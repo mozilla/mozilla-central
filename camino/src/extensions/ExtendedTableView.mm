@@ -84,6 +84,22 @@
         [self scrollRowToVisible:[self numberOfRows] - 1];
         handled = YES;
         break;
+
+      case NSCarriageReturnCharacter:
+      case NSEnterCharacter:
+        // Start editing the selected row
+        NSTableColumn *firstTableColumn = [[self tableColumns] objectAtIndex:0];
+        BOOL shouldEdit = [firstTableColumn isEditable] && [self numberOfSelectedRows] == 1;
+        // When programmatically editing, this delegate method is not called automatically.
+        if (shouldEdit && [[self delegate] respondsToSelector:@selector(tableView:shouldEditTableColumn:row:)]) {
+          shouldEdit = [[self delegate] tableView:self 
+                            shouldEditTableColumn:firstTableColumn
+                                              row:[self selectedRow]];
+        }
+        if (shouldEdit)
+          [self editColumn:0 row:[self selectedRow] withEvent:aEvent select:YES];
+        handled = YES;
+        break;
     }
   }
 

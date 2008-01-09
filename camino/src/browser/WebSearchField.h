@@ -38,10 +38,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-// Search engine description keys
-extern NSString* const kWebSearchEngineNameKey;
-extern NSString* const kWebSearchEngineURLKey;
-
 // WebSearchField
 //
 // A search field that knows how to manage a web search engine list, for use as
@@ -49,12 +45,15 @@ extern NSString* const kWebSearchEngineURLKey;
 @interface WebSearchField : NSSearchField {
 }
 
-// Takes an array of dictionaries, using the keys above, describing the search
-// engines to populate the menu with.
+// Takes an array of dictionaries, using the keys declared in SearchEngineManger.h,
+// describing the search engines to populate the menu with.
 - (void)setSearchEngines:(NSArray*)searchEngines;
 
 // Changes the current search engine setting to the one names |engineName|.
 - (void)setCurrentSearchEngine:(NSString*)engineName;
+
+// Returns the name of the currently selected search engine.
+- (NSString*)currentSearchEngine;
 
 // Returns the search URL for the currently selected search engine.
 - (NSString*)currentSearchURL;

@@ -78,6 +78,8 @@
 #import "WebSearchField.h"
 #import "wallet.h"
 #import "ToolbarScriptItem.h"
+#import "SearchEngineManager.h"
+#import "SearchEngineEditor.h"
 
 #import "CHPermissionManager.h"
 #import "CHBrowserService.h"
@@ -578,6 +580,9 @@ enum BWCOpenDest {
 - (void)getMisspelledWordRange:(nsIDOMRange**)outRange inlineSpellChecker:(nsIInlineSpellChecker**)outInlineChecker;
 
 - (void)setUpSearchFields;
+- (void)populateEnginesIntoSearchField:(WebSearchField*)searchField;
+- (NSString*)lastKnownPreferredSearchEngine;
+- (void)setLastKnownPreferredSearchEngine:(NSString*)inPreferredEngine;
 
 @end
 
@@ -837,6 +842,7 @@ enum BWCOpenDest {
   [mThrobberImages release];
   [mURLFieldEditor release];
   [mLocationToolbarView release];
+  [mLastKnownPreferredSearchEngine release];
 
   delete mDataOwner;    // paranoia; should have been deleted in -windowWillClose
 
@@ -886,7 +892,13 @@ enum BWCOpenDest {
     }
 
     // Set up the menus in the search fields
+    [self setLastKnownPreferredSearchEngine:[[SearchEngineManager sharedSearchEngineManager] preferredSearchEngine]];
     [self setUpSearchFields];
+    // Listen for changes to the collection of built-in search engines.
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                             selector:@selector(installedSearchEnginesDidChange:) 
+                                                 name:kInstalledSearchEnginesDidChangeNotification
+                                               object:nil];
     
     // Get our saved dimensions.
     NSRect oldFrame = [[self window] frame];
@@ -1690,8 +1702,11 @@ enum BWCOpenDest {
   SEL action = [aMenuItem action];
 
   // Always allow the search engine menu to work
-  if (action == @selector(searchEngineChanged:))
+  if (action == @selector(searchEngineChanged:) ||
+      action == @selector(manageSearchEngines:))
+  {
     return YES;
+  }
 
   // Disable all window-specific menu items while a sheet is showing.
   // We don't do this in validateActionBySelector: because toolbar items shouldn't
@@ -4657,73 +4672,68 @@ enum BWCOpenDest {
   return sBrokenIcon;
 }
 
+//
+// -lastKnownPreferredSearchEngine
+//
+// Caching the existing preferred search engine gives us a reference to the previous value,
+// should it be modified, and allows us to determine if a search field's selection was previously
+// set to the preferred engine and preserved accordingly.
+//
+- (NSString*)lastKnownPreferredSearchEngine
+{
+  return mLastKnownPreferredSearchEngine; 
+}
+
+- (void)setLastKnownPreferredSearchEngine:(NSString*)inPreferredEngine
+{
+  [mLastKnownPreferredSearchEngine autorelease];
+  mLastKnownPreferredSearchEngine = [inPreferredEngine retain];
+}
+
 - (void)setUpSearchFields
 {
-  NSDictionary* searchEngines = [BrowserWindowController searchURLDictionary];
-  NSArray* engineNames = [[searchEngines allKeys] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
-
-  NSMutableArray* engineList = [NSMutableArray arrayWithCapacity:([engineNames count] - 1)];
-  NSEnumerator* engineEnumerator = [engineNames objectEnumerator];
-  NSString* engineName;
-  while ((engineName = [engineEnumerator nextObject])) {
-    if ([engineName isEqualToString:@"PreferredSearchEngine"])
-      continue;
-    [engineList addObject:[NSDictionary dictionaryWithObjectsAndKeys:engineName,
-                                                                     kWebSearchEngineNameKey,
-                                                                     [searchEngines objectForKey:engineName],
-                                                                     kWebSearchEngineURLKey,
-                                                                     nil]];
-  }
-
-  [mSearchBar setSearchEngines:engineList];
-  [mSearchSheetTextField setSearchEngines:engineList];
-  NSString* defaultEngine = [searchEngines objectForKey:@"PreferredSearchEngine"];
-  [mSearchBar setCurrentSearchEngine:defaultEngine];
-  [mSearchSheetTextField setCurrentSearchEngine:defaultEngine];
+  [self populateEnginesIntoSearchField:mSearchBar];
+  [self populateEnginesIntoSearchField:mSearchSheetTextField];
 }
 
-+ (NSDictionary *)searchURLDictionary
+- (void)populateEnginesIntoSearchField:(WebSearchField*)searchField
 {
-  static NSDictionary *searchURLDictionary = nil;
-  if (searchURLDictionary)
-    return searchURLDictionary;
+  if (!searchField)
+    return;
 
-  NSString *defaultSearchEngineList = [[NSBundle mainBundle] pathForResource:@"SearchURLList" ofType:@"plist"];
+  SearchEngineManager* searchEngineManager = [SearchEngineManager sharedSearchEngineManager];
 
-  // We haven't read the search engine list yet; attempt to read from user's profile directory
-  NSString *profileDir = [[PreferenceManager sharedInstance] profilePath];
-  if (profileDir) {
-    // If the file exists we read it from the profile directory
-    // If it doesn't we attempt to copy it there from our app bundle first
-    // (so that the user has something to edit in future)
-    NSString *searchEngineListPath = [profileDir stringByAppendingPathComponent:@"SearchURLList.plist"];
+  // Grab onto the currently selected engine so we can restore it later.
+  NSString* selectedEngine = [[[searchField currentSearchEngine] retain] autorelease];
 
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    if ([fileManager isReadableFileAtPath:searchEngineListPath] ||
-        [fileManager copyPath:defaultSearchEngineList toPath:searchEngineListPath handler:nil])
-      searchURLDictionary = [[NSDictionary alloc] initWithContentsOfFile:searchEngineListPath];
-    else {
-#if DEBUG
-      NSLog(@"Unable to copy search engine list to user profile directory");
-#endif
-    }
-  }
-  else {
-#if DEBUG
-    NSLog(@"Unable to get profile directory");
-#endif
-  }
-  
-  //
-  // If reading from the profile directory failed for any reason
-  // then read the default search engine list from our application bundle directly
-  //
-  if (!searchURLDictionary) 
-    searchURLDictionary = [[NSDictionary alloc] initWithContentsOfFile:defaultSearchEngineList];
-  
-  return searchURLDictionary;
+  [searchField setSearchEngines:[searchEngineManager installedSearchEngines]];
+
+  BOOL selectedEngineIsStillAvailable = [[searchEngineManager installedSearchEngineNames] containsObject:selectedEngine];
+
+  NSString* lastKnownPreferredEngine = [self lastKnownPreferredSearchEngine];
+  BOOL preferredEngineWasSelected = lastKnownPreferredEngine && [selectedEngine isEqualToString:lastKnownPreferredEngine];
+
+  // Restore the selection if it was set to something other than the preferred engine.
+  if (selectedEngineIsStillAvailable && !preferredEngineWasSelected)
+    [searchField setCurrentSearchEngine:selectedEngine];
+  else
+    [searchField setCurrentSearchEngine:[searchEngineManager preferredSearchEngine]];
 }
 
+//
+// Called whenever an engine has been added, removed, renamed, etc.
+// in the collection of built-in search engines.
+//
+- (void)installedSearchEnginesDidChange:(NSNotification*)notification
+{ 
+  [self setUpSearchFields];
+  [self setLastKnownPreferredSearchEngine:[[SearchEngineManager sharedSearchEngineManager] preferredSearchEngine]];
+}
+
+- (IBAction)manageSearchEngines:(id)sender
+{
+  [[SearchEngineEditor sharedSearchEngineEditor] showSearchEngineEditor:self];
+}
 
 - (void) focusChangedFrom:(NSResponder*) oldResponder to:(NSResponder*) newResponder
 {

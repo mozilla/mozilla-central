@@ -283,6 +283,16 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
     [self removeItemAtIndex:inItemIndex];
 }
 
+- (void)removeAllItemsWithTag:(int)tagToRemove
+{
+  NSEnumerator* reverseItemEnumerator = [[self itemArray] reverseObjectEnumerator];
+  NSMenuItem* menuItem = nil;
+  while ((menuItem = [reverseItemEnumerator nextObject])) {
+    if ([menuItem tag] == tagToRemove)
+      [self removeItem:menuItem];
+  }
+}
+
 // because there's no way to map back from a MenuRef to a Cocoa NSMenu, we have
 // to let receivers of the notification do the test by calling this method.
 - (BOOL)isTargetOfMenuDisplayNotification:(id)inObject

@@ -74,6 +74,8 @@ extern NSString* const NSMenuClosedNotification;
 // remove all items including and after the given index (i.e. all items if index is 0)
 - (void)removeItemsFromIndex:(int)inItemIndex;
 
+- (void)removeAllItemsWithTag:(int)tag;
+
 // return YES if this menu is the target of the 'will display' notification.
 // the param should be the [NSNotification object]
 - (BOOL)isTargetOfMenuDisplayNotification:(id)inObject;

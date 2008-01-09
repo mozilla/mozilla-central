@@ -181,6 +181,8 @@ typedef enum
 
   // Funky field editor for URL bar
   NSTextView *mURLFieldEditor;
+
+  NSString *mLastKnownPreferredSearchEngine;
 }
 
 - (BrowserTabView*)tabBrowser;
@@ -209,6 +211,7 @@ typedef enum
 - (void)beginSearchSheet;
 - (IBAction)endSearchSheet:(id)sender;
 - (IBAction)cancelSearchSheet:(id)sender;
+- (IBAction)manageSearchEngines:(id)sender;
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize;
 
@@ -354,9 +357,6 @@ typedef enum
 + (NSImage*) insecureIcon;
 + (NSImage*) secureIcon;
 + (NSImage*) brokenIcon;
-
-// cache the search engines and their search strings we parse from a plist
-+ (NSDictionary *)searchURLDictionary;
 
 // cache the toolbar defaults we parse from a plist
 + (NSArray*) toolbarDefaults;

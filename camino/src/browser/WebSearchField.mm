@@ -41,9 +41,8 @@
 #import "NSString+Utils.h"
 #import "NSMenu+Utils.h"
 
-NSString* const kWebSearchEngineNameKey = @"SearchEngineName";
-NSString* const kWebSearchEngineURLKey = @"SearchEngineURL";
-
+// For search engine description keys:
+#import "SearchEngineManager.h"
 
 // Formatter that prevents entry of control characters.
 @interface WebSearchFormatter : NSFormatter
@@ -53,31 +52,50 @@ NSString* const kWebSearchEngineURLKey = @"SearchEngineURL";
 
 # pragma mark -
 
+static const int kSearchEngineMenuItemTag = 100;
+static const int kSeparatorBeforeManageSearchEnginesMenuItemTag = 101;
+
 @implementation WebSearchField
 
 - (void)awakeFromNib
 {
   [self registerForDraggedTypes:[NSArray arrayWithObject:NSStringPboardType]];
   [self setFormatter:[[[WebSearchFormatter alloc] init] autorelease]];
+
+  // Set up an initial search menu with our static items.
+  NSMenu* searchMenu = [[[NSMenu alloc] initWithTitle:@"Search Menu"] autorelease];
+  NSMenuItem* separatorBeforeManageEngines = [NSMenuItem separatorItem];
+  [separatorBeforeManageEngines setTag:kSeparatorBeforeManageSearchEnginesMenuItemTag];
+  [searchMenu addItem:separatorBeforeManageEngines];
+  NSMenuItem* manageEnginesMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"ManageSearchEnginesMenuItem", nil)
+                                                                 action:@selector(manageSearchEngines:) 
+                                                          keyEquivalent:@""] autorelease];
+  [manageEnginesMenuItem setTarget:[self target]];
+  [searchMenu addItem:manageEnginesMenuItem];
+  [[self cell] setSearchMenuTemplate:searchMenu];
 }
 
 - (void)setSearchEngines:(NSArray*)searchEngines
 {
-  NSMenu* engineMenu = [[[NSMenu alloc] initWithTitle:@"Search Engines"] autorelease];
+  NSMenu* searchMenu = [[self cell] searchMenuTemplate];
+  [searchMenu removeAllItemsWithTag:kSearchEngineMenuItemTag];
 
-  NSEnumerator* engineEnumerator = [searchEngines objectEnumerator];
-  NSDictionary* engine;
-  while ((engine = [engineEnumerator nextObject])) {
+  // Insert the search engine menu items at the beginning of our menu.
+  NSEnumerator* reverseEnginesEnumerator = [searchEngines reverseObjectEnumerator];
+  NSDictionary* engine = nil;
+  while ((engine = [reverseEnginesEnumerator nextObject])) {
     NSMenuItem* menuItem =
       [[[NSMenuItem alloc] initWithTitle:[engine objectForKey:kWebSearchEngineNameKey]
                                   action:@selector(searchEngineChanged:)
                            keyEquivalent:@""] autorelease];
     [menuItem setTarget:self];
     [menuItem setRepresentedObject:[engine objectForKey:kWebSearchEngineURLKey]];
-    [engineMenu addItem:menuItem];
+    [menuItem setTag:kSearchEngineMenuItemTag];
+    [searchMenu insertItem:menuItem atIndex:0];
   }
 
-  [[self cell] setSearchMenuTemplate:engineMenu];
+  [[self cell] setSearchMenuTemplate:searchMenu];
+
   // Set an initial default
   if ([searchEngines count] > 0)
     [self setCurrentSearchEngine:[[searchEngines objectAtIndex:0] objectForKey:kWebSearchEngineNameKey]];
@@ -93,6 +111,11 @@ NSString* const kWebSearchEngineURLKey = @"SearchEngineURL";
     [newSelection setState:NSOnState];
     [[self cell] setSearchMenuTemplate:engineMenu];
   }
+}
+
+- (NSString*)currentSearchEngine
+{
+  return [[[[self cell] searchMenuTemplate] firstCheckedItem] title];
 }
 
 - (NSString*)currentSearchURL
