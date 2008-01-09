@@ -50,12 +50,14 @@
 }
 
 + (Bookmark*)separator;
-+ (Bookmark*)bookmarkWithTitle:(NSString*)aTitle url:(NSString*)aURL;
++ (Bookmark*)bookmarkWithTitle:(NSString*)aTitle
+                           url:(NSString*)aURL
+                     lastVisit:(NSDate*)aLastVisit;
 + (Bookmark*)bookmarkWithNativeDictionary:(NSDictionary*)aDict;
 + (Bookmark*)bookmarkWithSafariDictionary:(NSDictionary*)aDict;
 
 - (NSString *)url;
-- (NSDate *)lastVisit;
+- (NSDate *)lastVisit;  // nil if not visited
 - (unsigned)numberOfVisits;
 
 - (NSString*)faviconURL;
@@ -63,7 +65,7 @@
 
 - (void)setUrl:(NSString *)aURL;
 - (void)setLastVisit:(NSDate *)aLastVisit;
-- (void)setNumberOfVisits:(unsigned)aNumber;
+- (void)setNumberOfVisits:(unsigned)aNumber;  // if 0, clears lastVisit
 
 - (void)notePageLoadedWithSuccess:(BOOL)inSuccess;
 

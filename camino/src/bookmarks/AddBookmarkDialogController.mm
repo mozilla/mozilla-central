@@ -255,6 +255,10 @@ static NSDictionary* PrimaryBookmarkItem(NSArray* inItems) {
   BookmarkItem* newItem = nil;
   unsigned int  insertPosition = (mInitialParentFolderIndex != -1) ? mInitialParentFolderIndex : [parentFolder count];
 
+  // When creating Bookmark items, set the last-visited time to the time that
+  // the bookmark was created.  TODO: use page load time.
+  NSDate* now = [NSDate date];
+
   if (!mTabGroupCheckbox) {
     // No checkbox means to create a folder
     newItem = [parentFolder addBookmarkFolder:titleString inPosition:insertPosition isGroup:NO];
@@ -270,7 +274,9 @@ static NSDictionary* PrimaryBookmarkItem(NSArray* inItems) {
       NSString* itemURL   = BookmarkUrlForItem(curItem);
       NSString* itemTitle = BookmarkTitleForItem(curItem);
 
-      newItem = [Bookmark bookmarkWithTitle:itemTitle url:itemURL];
+      newItem = [Bookmark bookmarkWithTitle:itemTitle
+                                        url:itemURL
+                                  lastVisit:now];
       [newGroup insertChild:newItem atIndex:i isMove:NO];
     }
   }
@@ -280,7 +286,9 @@ static NSDictionary* PrimaryBookmarkItem(NSArray* inItems) {
 
     NSString* itemURL = BookmarkUrlForItem(curItem);
 
-    newItem = [Bookmark bookmarkWithTitle:titleString url:itemURL];
+    newItem = [Bookmark bookmarkWithTitle:titleString
+                                      url:itemURL
+                                lastVisit:now];
     [parentFolder insertChild:newItem atIndex:insertPosition isMove:NO];
   }
 

@@ -306,6 +306,7 @@
 "Bookmark Manager" = "Bookmarks Manager";
 "BookmarkInfoTitle" = "Info for ‘%@’";
 "BlankBookmarkInfoTitle" = "Bookmark Info";
+"BookmarkVisitedNever" = "Never";
 "NewBookmarkFolder" = "New Folder";
 "BookmarksRootName" = "Bookmarks"; /* root of folders menu in Add Bookmark dialog */
 "OK" = "OK";

@@ -699,7 +699,11 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
       NSString* title = [titles objectAtIndex:i];
       if ([title length] == 0)
         title = url;
-      [toolbar insertChild:[Bookmark bookmarkWithTitle:title url:url] atIndex:index isMove:NO];
+      [toolbar insertChild:[Bookmark bookmarkWithTitle:title
+                                                   url:url
+                                             lastVisit:nil]
+                   atIndex:index
+                    isMove:NO];
     }
     dropHandled = YES;
   }

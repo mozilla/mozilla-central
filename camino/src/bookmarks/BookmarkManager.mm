@@ -1709,7 +1709,9 @@ static BookmarkManager* gBookmarkManager = nil;
             title = [[tokenString substringFromIndex:([tokenScanner scanLocation] + 1)] stringByRemovingAmpEscapes];
             justSetTitle = YES;
           }
-          currentItem = [Bookmark bookmarkWithTitle:title url:url];
+          currentItem = [Bookmark bookmarkWithTitle:title
+                                                url:url
+                                          lastVisit:nil];
           [currentArray appendChild:currentItem];
           // see if we had a shortcut
           if (isNetscape) {
@@ -1863,7 +1865,7 @@ static BookmarkManager* gBookmarkManager = nil;
     }
     // Maybe it's a new URL!
     else if ([aLine hasPrefix:@"#URL"]) {
-      currentItem = [Bookmark bookmarkWithTitle:nil url:nil];
+      currentItem = [Bookmark bookmarkWithTitle:nil url:nil lastVisit:nil];
       [currentArray appendChild:currentItem];
     }
     // Perhaps a separator? This isn't how I'd spell it, but

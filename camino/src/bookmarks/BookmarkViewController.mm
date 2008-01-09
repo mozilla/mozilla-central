@@ -1051,7 +1051,9 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
       NSString* title = [titles objectAtIndex:i];
       if ([title length] == 0)
         title = url;
-      Bookmark* bookmark = [Bookmark bookmarkWithTitle:title url:url];
+      Bookmark* bookmark = [Bookmark bookmarkWithTitle:title
+                                                   url:url
+                                             lastVisit:nil];
       [dropFolder insertChild:bookmark atIndex:(index + i) isMove:NO];
       [newBookmarks addObject:bookmark];
     }

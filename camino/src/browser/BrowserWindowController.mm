@@ -2964,7 +2964,12 @@ enum BWCOpenDest {
   NSString* itemURL = [browserWrapper currentURI];
 
   NS_ASSERTION([browserWrapper isBookmarkable], "Bookmarking an innappropriate URI");
-  [parentFolder appendChild:[Bookmark bookmarkWithTitle:itemTitle url:itemURL]];
+
+  // When creating Bookmark items, set the last-visited time to the time that
+  // the bookmark was created.  TODO: use page load time.
+  [parentFolder appendChild:[Bookmark bookmarkWithTitle:itemTitle
+                                                    url:itemURL
+                                              lastVisit:[NSDate date]]];
   [bookmarkManager setLastUsedBookmarkFolder:parentFolder];
 }
 
@@ -2977,13 +2982,18 @@ enum BWCOpenDest {
   int numberOfTabs = [mTabBrowser numberOfTabViewItems];
   NSString *primaryTabTitle = nil;
 
+  // When creating Bookmark items, set the last-visited time to the time that
+  // the bookmark was created.  TODO: use page load time.
+  NSDate* now = [NSDate date];
+
   for (int i = 0; i < numberOfTabs; i++) {
     BrowserWrapper* browserWrapper = (BrowserWrapper*)[[mTabBrowser tabViewItemAtIndex:i] view];
     if (![browserWrapper isBookmarkable])
       continue;
 
     [newTabGroup appendChild:[Bookmark bookmarkWithTitle:[browserWrapper pageTitle]
-                                                     url:[browserWrapper currentURI]]];
+                                                     url:[browserWrapper currentURI]
+                                               lastVisit:now]];
 
     if (browserWrapper == currentBrowserWrapper)
       primaryTabTitle = [browserWrapper pageTitle];
