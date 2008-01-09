@@ -92,7 +92,7 @@ GREP_V_PATTERN = __dummy__
 CVS_TAG_FILE = generated/cvs_tag
 CVS_TAG := $(shell if [ -d $(srcdir)/CVS ] ; then \
                      if [ -f $(srcdir)/CVS/Tag ] ; then \
-                       sed -e 's/^T//' $(srcdir)/CVS/Tag ; \
+                       sed -e 's/^D.*/HEAD/' -e 's/^[NT]//' $(srcdir)/CVS/Tag ; \
                      else \
                        echo HEAD ; \
                      fi \
