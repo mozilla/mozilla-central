@@ -130,6 +130,11 @@ calCalendarSearchService.prototype = {
     },
 
     // calICalendarSearchService:
+    getProviders: function calCalendarSearchService_getProviders(out_aCount) {
+        var ret = this.mProviders.interfaceArray;
+        out_aCount.value = ret.length;
+        return ret;
+    },
     addProvider: function calCalendarSearchService_addProvider(aProvider) {
         this.mProviders.add(aProvider);
     },

@@ -360,11 +360,6 @@
              observes="calendar_new_todo_command"
              position="3"/>
        <menuseparator id="firstCalendarSeparator" mode="calendar"/>
-       <menuitem id="subscribeCalendar"
-                 disabled="true"
-                 label="&calendar.subscribeshort.label;"
-                 accesskey="&calendar.subscribeshort.accesskey;"
-                 oncommand="openWcapSubscriptionsDialog();"/>
        <menuitem id="publishCalendar"
                  label="&calendar.publish.label;"
                  accesskey="&calendar.publish.accesskey;"

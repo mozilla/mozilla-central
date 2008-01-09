@@ -106,6 +106,15 @@ function getTimezoneService() {
     return getTimezoneService.mObject;
 }
 
+/* Shortcut to calendar search service */
+function getCalendarSearchService() {
+    if (getCalendarSearchService.mObject === undefined) {
+        getCalendarSearchService.mObject = Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
+                                                     .getService(Components.interfaces.calICalendarSearchProvider);
+    }
+    return getCalendarSearchService.mObject;
+}
+
 /// @return the UTC timezone.
 function UTC() {
     if (UTC.mObject === undefined) {
@@ -1245,6 +1254,10 @@ calInterfaceBag.prototype = {
     /// external:
     get size() {
         return this.mInterfaces.length;
+    },
+
+    get interfaceArray() {
+        return this.mInterfaces;
     },
 
     add: function calInterfaceBag_add(iface) {

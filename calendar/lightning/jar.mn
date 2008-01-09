@@ -93,3 +93,4 @@ calendar-en-US.jar:
   locale/en-US/calendar/sun-calendar-event-dialog.dtd	(/calendar/locales/en-US/chrome/prototypes/sun-calendar-event-dialog.dtd)
   locale/en-US/calendar/sun-calendar-event-dialog.properties  (/calendar/locales/en-US/chrome/prototypes/sun-calendar-event-dialog.properties)
   locale/en-US/calendar/calendar-invitations-dialog.dtd	(/calendar/locales/en-US/chrome/prototypes/calendar-invitations-dialog.dtd)
+  locale/en-US/calendar/calendar-subscriptions-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-subscriptions-dialog.dtd)

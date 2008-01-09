@@ -81,6 +81,12 @@ interface calICalendarSearchProvider : nsISupports
 interface calICalendarSearchService : calICalendarSearchProvider
 {
     /**
+     * Gets the currently registered set of search providers.
+     */
+    void getProviders(out PRUint32 aCount,
+                      [array, size_is(aCount), retval] out calICalendarSearchProvider aProviders);
+
+    /**
      * Adds a new search provider.
      */
     void addProvider(in calICalendarSearchProvider aProvider);
