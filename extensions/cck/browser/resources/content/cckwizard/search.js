@@ -46,8 +46,28 @@ const PERMS_FILE                 = 0644;
 const MODE_RDONLY                = 0x01;
 const SEARCH_DATA_XML            = 1;
 const SEARCH_DATA_TEXT           = 2;
+const SEARCH_TYPE_MOZSEARCH      = 1;
 const SEARCH_TYPE_SHERLOCK       = 2;
+const SEARCH_TYPE_OPENSEARCH     = 3;
 const NEW_LINES = /(\r\n|\r|\n)/;
+
+const OPENSEARCH_NS_10  = "http://a9.com/-/spec/opensearch/1.0/";
+const OPENSEARCH_NS_11  = "http://a9.com/-/spec/opensearch/1.1/";
+
+// Although the specification at http://opensearch.a9.com/spec/1.1/description/
+// gives the namespace names defined above, many existing OpenSearch engines
+// are using the following versions.  We therefore allow either.
+const OPENSEARCH_NAMESPACES = [
+  OPENSEARCH_NS_11, OPENSEARCH_NS_10,
+  "http://a9.com/-/spec/opensearchdescription/1.1/",
+  "http://a9.com/-/spec/opensearchdescription/1.0/"
+];
+
+const OPENSEARCH_LOCALNAME = "OpenSearchDescription";
+
+const MOZSEARCH_NS_10     = "http://www.mozilla.org/2006/browser/search/";
+const MOZSEARCH_LOCALNAME = "SearchPlugin";
+
 
 // Returns false for whitespace-only or commented out lines in a
 // Sherlock file, true otherwise.
@@ -61,6 +81,12 @@ function getSearchEngineName(searchenginepath)
   var type;
   var dataType = SEARCH_DATA_TEXT;
   var name;
+  
+  var ext = searchenginepath.substring(searchenginepath.lastIndexOf('.') + 1,searchenginepath.length);
+
+  if (ext.toLowerCase() == "xml") {
+    dataType = SEARCH_DATA_XML;
+  }
   
   var sourcefile = Components.classes["@mozilla.org/file/local;1"]
                              .createInstance(Components.interfaces.nsILocalFile);
@@ -80,13 +106,13 @@ function getSearchEngineName(searchenginepath)
                                           "text/xml");
       data = doc.documentElement;
 
-//      if (checkNameSpace(data, [MOZSEARCH_LOCALNAME], [MOZSEARCH_NS_10])) {
-//        type = SEARCH_TYPE_MOZSEARCH;
-//          parseAsMozSearch();
-//      } else if (checkNameSpace(data, [OPENSEARCH_LOCALNAME], OPENSEARCH_NAMESPACES)) {
-//        type = SEARCH_TYPE_OPENSEARCH;
-//          parseAsOpenSearch();
-//      }
+      if (checkNameSpace(data, [MOZSEARCH_LOCALNAME], [MOZSEARCH_NS_10])) {
+        type = SEARCH_TYPE_MOZSEARCH;
+          name = parseAsOpenSearch(data);
+      } else if (checkNameSpace(data, [OPENSEARCH_LOCALNAME], OPENSEARCH_NAMESPACES)) {
+        type = SEARCH_TYPE_OPENSEARCH;
+          name = parseAsOpenSearch(data);
+      }
       break;
     case SEARCH_DATA_TEXT:
       var binaryInStream = Components.classes["@mozilla.org/binaryinputstream;1"]
@@ -292,3 +318,82 @@ function parseAsSherlock(data) {
   return searchSection["name"];
 }
 
+/**
+ * Used to verify a given DOM node's localName and namespaceURI.
+ * @param aElement
+ *        The element to verify.
+ * @param aLocalNameArray
+ *        An array of strings to compare against aElement's localName.
+ * @param aNameSpaceArray
+ *        An array of strings to compare against aElement's namespaceURI.
+ *
+ * @returns false if aElement is null, or if its localName or namespaceURI
+ *          does not match one of the elements in the aLocalNameArray or
+ *          aNameSpaceArray arrays, respectively.
+ * @throws NS_ERROR_INVALID_ARG if aLocalNameArray or aNameSpaceArray are null.
+ */
+function checkNameSpace(aElement, aLocalNameArray, aNameSpaceArray) {
+  return (aElement                                                &&
+          (aLocalNameArray.indexOf(aElement.localName)    != -1)  &&
+          (aNameSpaceArray.indexOf(aElement.namespaceURI) != -1));
+}
+
+/**
+ * Extract search engine information from the collected data to initialize
+ * the engine object.
+ */
+function parseAsOpenSearch(data) {
+  var doc = data;
+
+  for (var i = 0; i < doc.childNodes.length; ++i) {
+    var child = doc.childNodes[i];
+    switch (child.localName) {
+      case "ShortName":
+        return child.textContent;
+        break;
+      case "Image":
+//          this._parseImage(child);
+        break;
+    }
+  }
+}
+  
+function getSearchEngineImage(searchenginepath) {
+  var ext = searchenginepath.substring(searchenginepath.lastIndexOf('.') + 1,searchenginepath.length);
+
+  if (ext.toLowerCase() != "xml") {
+    return;
+  }
+
+  
+// assume we're already open search
+
+  var data;
+  
+  var sourcefile = Components.classes["@mozilla.org/file/local;1"]
+                             .createInstance(Components.interfaces.nsILocalFile);
+  sourcefile.initWithPath(searchenginepath);
+
+  var fileInStream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                               .createInstance(Components.interfaces.nsIFileInputStream);
+  fileInStream.init(sourcefile, MODE_RDONLY, PERMS_FILE, false);
+
+      var domParser = Components.classes["@mozilla.org/xmlextras/domparser;1"]
+                                .createInstance(Components.interfaces.nsIDOMParser);
+      var doc = domParser.parseFromStream(fileInStream, "UTF-8",
+                                          sourcefile.fileSize,
+                                          "text/xml");
+      data = doc.documentElement;
+
+  for (var i = 0; i < data.childNodes.length; ++i) {
+    var child = data.childNodes[i];
+    switch (child.localName) {
+      case "Image":
+        fileInStream.close();
+        return child.textContent;
+        break;
+    }
+  }
+  fileInStream.close();
+  return;
+}

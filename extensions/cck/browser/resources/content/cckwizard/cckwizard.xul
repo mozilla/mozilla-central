@@ -92,7 +92,7 @@
   </vbox>
  </wizardpage>
 
- <wizardpage label="&customizeExt.label;" description="&customizeExt.description;"
+ <wizardpage label="&customizeExt.label;"
              onpageshow="initimage('iconURL','icon');"
              onpageadvanced="return (ValidateFile('iconURL') &amp;&amp; Validate('id','name','version'));">
    <grid>
@@ -220,6 +220,9 @@
         <label control="HomePageOverrideURL">&homePageOverride.label;</label>
         <textbox id="HomePageOverrideURL" flex="1"/>
       </hbox>
+       <hbox align="center">
+         <checkbox id="noWelcomePage" label="&noWelcomePage.label;"/>
+       </hbox>
     </groupbox>
     <groupbox>
       <caption label="&titleBar.caption;"/>
@@ -472,7 +475,7 @@
               </hbox>
               <hbox align="center">
                 <textbox id="Gopherproxyname" flex="1" preference="network.proxy.gopher"/>
-                <label value="&port.label;" accesskey="&gopherPort.accesskey;" control="Gopherportno"/>
+                <label value="&port.label;" control="Gopherportno"/>
                 <textbox id="Gopherportno" size="5" preference="network.proxy.gopher_port"/>
               </hbox>
             </row>

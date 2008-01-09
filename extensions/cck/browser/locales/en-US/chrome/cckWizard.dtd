@@ -5,7 +5,7 @@
 <!ENTITY  beforeYouBegin.description    "Decide which customizations you want to make and create/collect the customized files, such as:
                                          <html:ul>
                                          <html:li>Custom animation files for browser&apos;s animated logo</html:li>
-                                         <html:li>Search engines (SRC files and the corresponding images)</html:li>
+                                         <html:li>Search engines</html:li>
                                          <html:li>Browser plug-ins</html:li>
                                          <html:li>Extensions/themes</html:li>
                                          </html:ul>">
@@ -24,14 +24,9 @@
 <!ENTITY  configLocation.label          "Location of configuration">
 
 <!ENTITY  saveOnExit.label              "Save configuration automatically on exit">
-<!ENTITY  zipLocation.label             "In order to create the XPI, we need to use ZIP. If ZIP is not in your path, you can specify it here:">
-
-
-
+<!ENTITY  zipLocation.label             "<html:b>Important:</html:b> In order to create the XPI, we need to use ZIP or 7-Zip. Use the 'Choose File' button to locate one of these executables. Note we will also attempt to use ZIP.EXE if it is in the path.">
 
 <!ENTITY  customizeExt.label            "Customize Extension">
-<!ENTITY  customizeExt.description      "">
-
 
 <!ENTITY  id.label                      "Unique ID:">
 <!ENTITY  id.format                     "Format: companyname-cck@extensions.domainname.tld">
@@ -42,8 +37,8 @@
 <!ENTITY  homepageURL.label             "Homepage URL:">
 <!ENTITY  updateURL.label               "Update URL:">
 <!ENTITY  icon.label                    "Icon:">
-<!ENTITY  chooseFile.label              "Choose File…">
-<!ENTITY  chooseDir.label               "Choose Dir…">
+<!ENTITY  chooseFile.label              "Choose File...">
+<!ENTITY  chooseDir.label               "Choose Dir...">
 
 <!ENTITY  filename.label                "Filename:">
 
@@ -62,9 +57,9 @@
 <!ENTITY  homePage.label                "Default Home Page URL:">
 <!ENTITY  homePage.description          "This page is displayed when users first start the Firefox browser, or when they click the Home button.">
 
-<!ENTITY  homePageOverride.label        "Override Home Page URL:">
-<!ENTITY  homePageOverride.description  "This page is displayed  on the very first invocation of Firefox after a new profile is created. It is optional.">
-
+<!ENTITY  homePageOverride.description  "On the very first invocation of Firefox after a new profile is created, a welcome page is displayed. You can choose to replace this page or to not display it at all.">
+<!ENTITY  homePageOverride.label        "Replacement Welcome Page URL:">
+<!ENTITY  noWelcomePage.label           "Do not display the welcome page">
 
 <!ENTITY  titleBar.caption              "Browser Window&apos;s Title Bar Text">
 <!ENTITY  titleBar.label                "Custom Title Bar Text:">
@@ -106,9 +101,9 @@
 <!ENTITY  defaultSearchEngine.label     "Default Search Engine">
 
 <!ENTITY  engines.label                 "Search Engines">
-<!ENTITY  engines.description           "Please select a .src file and the corresponding image.">
+<!ENTITY  engines.description           "Please select a search engine and (if applicable) corresponding image.">
 
-<!ENTITY  engine.label                  "SRC File">
+<!ENTITY  engine.label                  "Search Engine:">
 <!ENTITY  engineIcon.label              "Image File:">
 
 <!ENTITY  file.label                    "File:">
@@ -146,6 +141,8 @@
 <!ENTITY  bookmark.description          "Enter a Bookmark">
 <!ENTITY  bookmarkTitle.label           "Title:">
 <!ENTITY  bookmarkURL.label             "URL:">
+<!ENTITY  liveBookmark.label            "Live Bookmark">
+<!ENTITY  separator.label               "Separator">
 
 
 <!ENTITY  customizePrefs.label          "Customize Preferences">
@@ -172,6 +169,9 @@
 
 <!ENTITY  registry.label                "Registry">
 <!ENTITY  registry.description          "Use the buttons below to add entries to the Windows registry. Note these items will be added/updated every time the browser starts.">
+
+<!ENTITY  regDescription.label          "Description">
+
 
 <!ENTITY  regRootKey.label              "Root Key">
 <!ENTITY  regKey.label                  "Key">
@@ -214,7 +214,9 @@
 <!ENTITY  manualTypeRadio.label         "Manual proxy configuration:">
 <!ENTITY  manualTypeRadio.accesskey     "m">
 <!ENTITY  autoTypeRadio.label           "Automatic proxy configuration URL:">
-<!ENTITY  autoTypeRadio.accesskey       "A">
+<!ENTITY  autoTypeRadio.accesskey       "a">
+<!ENTITY  configAutoconfigText.label    "Configuration location (URL):">
+<!ENTITY  configAutoconfigText.accesskey "u">
 <!ENTITY  autoCCKTypeRadio.label        "Store proxy configuration file in the CCK:">
 <!ENTITY  autoCCKTypeRadio.accesskey    "i">
 
@@ -239,8 +241,6 @@
 <!ENTITY  HTTPport.accesskey            "p">
 <!ENTITY  SSLport.accesskey             "o">
 <!ENTITY  FTPport.accesskey             "r">
-<!-- No accesskey for gopher (':' doesn't go well) - mpt's going to redesign the window -->
-<!ENTITY  gopherPort.accesskey          "">
 <!ENTITY  SOCKSport.accesskey           "t">
 <!ENTITY  noproxy.label                 "No Proxy for:">
 <!ENTITY  noproxy.accesskey             "n">

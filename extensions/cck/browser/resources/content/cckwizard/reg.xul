@@ -52,7 +52,7 @@
         >
   <script src="chrome://cckwizard/content/cckwizard.js"/>
   <vbox>
-    <label control="PrettyName">Name:</label>
+    <label control="PrettyName">&regDescription.label;:</label>
     <textbox id="PrettyName" onchange="regCheckOKButton();" onkeyup="regCheckOKButton();"/>
     <label control="RootKey">&regRootKey.label;:</label>
     <menulist id="RootKey">

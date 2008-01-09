@@ -57,6 +57,12 @@
     <textbox flex="1" id="bookmarkname" onchange="bookmarkCheckOKButton();" onkeyup="bookmarkCheckOKButton();"/>
     <label control="bookmarkurl">&bookmarkURL.label;</label>
     <textbox flex="1" id="bookmarkurl" onchange="bookmarkCheckOKButton();" onkeyup="bookmarkCheckOKButton();"/>
-    <checkbox id="liveBookmark" label="Live Bookmark"/>
+    <menulist id="bookmarktype" oncommand="bookmarkCheckOKButton();">
+      <menupopup>
+       <menuitem label="&bookmark.label;" value=""/>
+       <menuitem label="&liveBookmark.label;" value="live"/>
+       <menuitem label="&separator.label;" value="separator"/>
+      </menupopup>
+    </menulist>
   </vbox>
 </dialog>
