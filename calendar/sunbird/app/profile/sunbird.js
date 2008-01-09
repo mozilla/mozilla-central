@@ -119,16 +119,15 @@ pref("app.update.url.details", "http://www.mozilla.org/projects/calendar/sunbird
 // Interval: Time between checks for a new version (in seconds)
 //           default=1 day
 pref("app.update.interval", 86400);
-// Interval: Time before prompting the user to download a new version that
-//           is available (in seconds) default=1 day
-pref("app.update.nagTimer.download", 86400);
-// Interval: Time before prompting the user to restart to install the latest
-//           download (in seconds) default=30 minutes
-pref("app.update.nagTimer.restart", 1800);
+// Interval: Time before prompting the user again to restart to install the
+//           latest download (in seconds) default=1 day
+pref("app.update.nagTimer.restart", 86400);
 // Interval: When all registered timers should be checked (in milliseconds)
 //           default=10 minutes
 pref("app.update.timer", 600000);
-// Show the Update Checking UI when the user was idle for x seconds
+// Give the user x seconds to react before showing the big UI. default=12 hrs
+pref("app.update.promptWaitTime", 43200);
+// Show the Update Checking/Ready UI when the user was idle for x seconds
 pref("app.update.idletime", 60);
 
 // Whether or not we show a dialog box informing the user that the update was

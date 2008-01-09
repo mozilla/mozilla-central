@@ -154,7 +154,7 @@ function sbCheckForUpdates()
     // UI instead and let the user know they have to restart the application
     // for the changes to be applied.
     if (um.activeUpdate && um.activeUpdate.state == "pending") {
-        prompter.showUpdateDownloaded(um.activeUpdate, false);
+        prompter.showUpdateDownloaded(um.activeUpdate);
     } else {
         prompter.checkForUpdates();
     }
