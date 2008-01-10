@@ -59,7 +59,7 @@ static NSString* const kProgressWindowFrameSaveName = @"ProgressWindow";
 -(void)rebuildViews;
 -(NSArray*)selectedProgressViewControllers;
 -(ProgressViewController*)progressViewControllerAtIndex:(unsigned)inIndex;
--(void)deselectDLInstancesInArray:(NSArray*)instances;
+-(void)deselectDownloads:(NSArray*)downloads;
 -(void)scrollIntoView:(ProgressViewController*)controller;
 -(void)killDownloadTimer;
 -(void)setupDownloadTimer;
@@ -122,16 +122,6 @@ static id gSharedProgressController = nil;
     [mStackView setDataSource:self];
 
     mSelectionPivotIndex = -1;
-
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(DLInstanceSelected:)
-                                                 name:kDownloadInstanceSelectedNotificationName
-                                               object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(DLInstanceOpened:)
-                                                 name:kDownloadInstanceOpenedNotificationName
-                                               object:nil];
-    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(cancel:)
-                                                 name:kDownloadInstanceCancelledNotificationName
-                                               object:nil];
   }
   return self;
 }
@@ -152,7 +142,6 @@ static id gSharedProgressController = nil;
 
 -(void)dealloc
 {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
   if (self == gSharedProgressController) {
     gSharedProgressController = nil;
   }
@@ -177,7 +166,10 @@ static id gSharedProgressController = nil;
 // open all selected instances
 -(IBAction)open:(id)sender
 {
-  [[self selectedProgressViewControllers] makeObjectsPerformSelector:@selector(open:) withObject:sender];
+  if ([self shouldAllowOpenAction])
+    [[self selectedProgressViewControllers] makeObjectsPerformSelector:@selector(open:) withObject:sender];
+  else
+    NSBeep();
 }
 
 //
@@ -299,82 +291,48 @@ static id gSharedProgressController = nil;
   [self saveProgressViewControllers];
 }
 
-//
-// -DLInstanceOpened:
-// 
-// Called when one of the ProgressView's should be opened (dbl clicked, for example). Open all of the
-// selected instances with the Finder.
-//
--(void)DLInstanceOpened:(NSNotification*)notification
+-(void)updateSelectionOfDownload:(ProgressViewController*)selectedDownload
+                    withBehavior:(DownloadSelectionBehavior)behavior
 {
-  if ([self fileExistsForSelectedItems])
-    [self open:self];
-}
+  int indexOfSelectedDownload = (int)[mProgressViewControllers indexOfObject:selectedDownload];
 
-// calculate what buttons should be enabled/disabled because the user changed the selection state
--(void)DLInstanceSelected:(NSNotification*)notification
-{
-  // make sure the notification object is the kind we want
-  ProgressView* selectedView = ((ProgressView*)[notification object]);
-  if (![selectedView isKindOfClass:[ProgressView class]])
-    return;
+  NSArray* currentlySelectedDownloads = [self selectedProgressViewControllers];
 
-  ProgressViewController* selectedViewController = [selectedView controller];
-  
-  NSArray* selectedArray = [self selectedProgressViewControllers];
-
-  int indexOfSelectedController = (int)[mProgressViewControllers indexOfObject:selectedViewController];
-  
-  // check for key modifiers and select more instances if appropriate
-  // if its shift key, extend the selection one way or another
-  // if its command key, just let the selection happen wherever it is (don't mess with it here)
-  // if its not either clear all selections except the one that just happened
-  switch ([selectedView lastModifier])
-  {
-    case kNoKey:
-      // deselect everything
-      [self deselectDLInstancesInArray:selectedArray];
-      [selectedViewController setSelected:YES];
-      mSelectionPivotIndex = indexOfSelectedController;
+  switch (behavior) {
+    case DownloadSelectExclusively:
+      [self deselectDownloads:currentlySelectedDownloads];
+      [selectedDownload setSelected:YES];
+      mSelectionPivotIndex = indexOfSelectedDownload;
       break;
 
-    case kCommandKey:
-      if (![selectedViewController isSelected])
-      {
-        // if this was at the pivot index set the pivot index to -1
-        if (indexOfSelectedController == mSelectionPivotIndex)
-          mSelectionPivotIndex = -1;
+    case DownloadSelectByExtending:
+      if (mSelectionPivotIndex == -1 || [currentlySelectedDownloads count] == 0) {
+        mSelectionPivotIndex = indexOfSelectedDownload;
       }
-      else
-      {
-        if ([selectedArray count] == 1)
-          mSelectionPivotIndex = indexOfSelectedController;
-      }
-      break;
-
-    case kShiftKey:
-      if (mSelectionPivotIndex == -1)
-        mSelectionPivotIndex = indexOfSelectedController;
-      else
-      { 
-        if ([selectedArray count] == 1)
-            mSelectionPivotIndex = indexOfSelectedController;
-        else
-        {
-          // deselect everything
-          [self deselectDLInstancesInArray:selectedArray];
-          if (indexOfSelectedController <= mSelectionPivotIndex)
-          {
-            for (int i = indexOfSelectedController; i <= mSelectionPivotIndex; i++)
-              [(ProgressViewController*)[mProgressViewControllers objectAtIndex:i] setSelected:YES];
-          }
-          else if (indexOfSelectedController > mSelectionPivotIndex) 
-          {
-            for (int i = mSelectionPivotIndex; i <= indexOfSelectedController; i++)
-              [(ProgressViewController*)[mProgressViewControllers objectAtIndex:i] setSelected:YES];
-          }
+      else {
+        [self deselectDownloads:currentlySelectedDownloads];
+        if (indexOfSelectedDownload <= mSelectionPivotIndex) {
+          for (int i = indexOfSelectedDownload; i <= mSelectionPivotIndex; i++)
+            [(ProgressViewController*)[mProgressViewControllers objectAtIndex:i] setSelected:YES];
+        }
+        else if (indexOfSelectedDownload > mSelectionPivotIndex) {
+          for (int i = mSelectionPivotIndex; i <= indexOfSelectedDownload; i++)
+            [(ProgressViewController*)[mProgressViewControllers objectAtIndex:i] setSelected:YES];
         }
       }
+      break;
+
+    case DownloadSelectByInverting:
+      if ([selectedDownload isSelected]) {
+        // if this was at the pivot index set the pivot index to -1
+        if (indexOfSelectedDownload == mSelectionPivotIndex)
+          mSelectionPivotIndex = -1;
+      }
+      else {
+        if ([currentlySelectedDownloads count] == 0)
+          mSelectionPivotIndex = indexOfSelectedDownload;
+      }
+      [selectedDownload setSelected:(![selectedDownload isSelected])];
       break;
   }
 }
@@ -407,7 +365,7 @@ static id gSharedProgressController = nil;
         }      
         // deselect everything if the shift key isn't a modifier
         if (!shiftKeyDown)
-          [self deselectDLInstancesInArray:[self selectedProgressViewControllers]];
+          [self deselectDownloads:[self selectedProgressViewControllers]];
 
         if (i == (int)[mProgressViewControllers count]) // if nothing was selected select the first item
           instanceToSelect = 0;
@@ -439,7 +397,7 @@ static id gSharedProgressController = nil;
 
         // deselect everything if the shift key isn't a modifier
         if (!shiftKeyDown)
-          [self deselectDLInstancesInArray:[self selectedProgressViewControllers]];
+          [self deselectDownloads:[self selectedProgressViewControllers]];
 
         if (i < 0) // if nothing was selected select the first item
           instanceToSelect = ([mProgressViewControllers count] - 1);
@@ -489,24 +447,22 @@ static id gSharedProgressController = nil;
   }
 }
 
--(void)deselectDLInstancesInArray:(NSArray*)instances
+-(void)deselectDownloads:(NSArray*)downloads
 {
-  unsigned count = [instances count];
+  unsigned count = [downloads count];
   for (unsigned i = 0; i < count; i++) {
-    [(ProgressViewController*)[instances objectAtIndex:i] setSelected:NO];
+    [(ProgressViewController*)[downloads objectAtIndex:i] setSelected:NO];
   }
 }
 
-// return a mutable array with instance in order top-down
+// Returns the currently-selected download view controllers.
 -(NSArray*)selectedProgressViewControllers
 {
   NSMutableArray *selectedArray = [[NSMutableArray alloc] init];
   unsigned selectedCount = [mProgressViewControllers count];
   for (unsigned i = 0; i < selectedCount; i++) {
-    if ([[mProgressViewControllers objectAtIndex:i] isSelected]) {
-      // insert at zero so they're in order to-down
+    if ([[mProgressViewControllers objectAtIndex:i] isSelected])
       [selectedArray addObject:[mProgressViewControllers objectAtIndex:i]];
-    }
   }
   [selectedArray autorelease];
   return selectedArray;
@@ -557,7 +513,7 @@ static id gSharedProgressController = nil;
   [self setupDownloadTimer];
   
   // downloads should be individually selected when initiated
-  [self deselectDLInstancesInArray:[self selectedProgressViewControllers]];
+  [self deselectDownloads:[self selectedProgressViewControllers]];
   [(ProgressViewController*)progressDisplay setSelected:YES];
   
   // make sure new download is visible

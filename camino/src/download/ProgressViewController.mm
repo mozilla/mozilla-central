@@ -694,6 +694,23 @@ enum {
 
 #pragma mark -
 
+-(void)updateSelectionWithBehavior:(DownloadSelectionBehavior)behavior
+{
+  [mProgressWindowController updateSelectionOfDownload:self withBehavior:behavior];
+}
+
+-(void)openSelectedDownloads
+{
+  [mProgressWindowController open:self];
+}
+
+-(void)cancelSelectedDownloads
+{
+  [mProgressWindowController cancel:self];
+}
+
+#pragma mark -
+
 -(void)onStartDownload:(BOOL)isFileSave
 {
   mIsFileSave = isFileSave;

@@ -56,6 +56,11 @@ enum {
   kShiftKey = 1,
   kCommandKey = 2
 };
+typedef enum {
+  DownloadSelectExclusively,
+  DownloadSelectByInverting,
+  DownloadSelectByExtending
+} DownloadSelectionBehavior;
 
 // Define these auto remove download pref values here
 // becase both ProgressViewController and ProgressDlgController
@@ -129,10 +134,17 @@ const int kRemoveUponSuccessfulDownloadPrefValue = 2;
 
 -(BOOL)hasSucceeded;
 
+// Directly sets the selection of this item (should not be called by the view).
 -(void)setSelected:(BOOL)inSelected;
 
 -(NSDictionary*)downloadInfoDictionary;
 
 -(NSMenu*)contextualMenu;
+
+// Handlers for actions that are triggered by user action on a view but aren't
+// specific to the view.
+-(void)updateSelectionWithBehavior:(DownloadSelectionBehavior)behavior;
+-(void)openSelectedDownloads;
+-(void)cancelSelectedDownloads;
 
 @end

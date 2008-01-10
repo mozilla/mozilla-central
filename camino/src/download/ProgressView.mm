@@ -41,28 +41,7 @@
 
 #import "ProgressViewController.h"
 
-NSString* const kDownloadInstanceSelectedNotificationName = @"DownloadInstanceSelected";
-NSString* const kDownloadInstanceOpenedNotificationName   = @"DownloadInstanceOpened";
-NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceCancelled";
-
-@interface ProgressView(Private)
-
--(BOOL)isSelected;
--(void)setSelected:(BOOL)inSelected;
-
-@end
-
 @implementation ProgressView
-
-- (id)initWithFrame:(NSRect)frame
-{
-  self = [super initWithFrame:frame];
-  if (self) {
-    mLastModifier = kNoKey;
-    mProgressController = nil;
-  }
-  return self;
-}
 
 - (void)dealloc
 {
@@ -72,7 +51,7 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
 
 -(void)drawRect:(NSRect)rect
 {
-  if ([self isSelected]) {
+  if ([mProgressController isSelected]) {
     [[NSColor selectedTextBackgroundColor] set];
   }
   else {
@@ -84,33 +63,25 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
 -(void)mouseDown:(NSEvent*)theEvent
 {
   unsigned int mods = [theEvent modifierFlags];
-  mLastModifier = kNoKey;
-  BOOL shouldSelect = YES;
-  // set mLastModifier to any relevant modifier key
-  if (!((mods & NSShiftKeyMask) && (mods & NSCommandKeyMask))) {
-    if (mods & NSShiftKeyMask) {
-      mLastModifier = kShiftKey;
-    }
-    else if (mods & NSCommandKeyMask) {
-      if ([self isSelected])
-        shouldSelect = NO;
-      mLastModifier = kCommandKey;
-    }
-  }
-  [self setSelected:shouldSelect];
-  [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceSelectedNotificationName
-                                                      object:self];
+  DownloadSelectionBehavior selectionBehavior;
+  // Favor command behavior over shift, like most table views do
+  if (mods & NSCommandKeyMask)
+    selectionBehavior = DownloadSelectByInverting;
+  else if (mods & NSShiftKeyMask)
+    selectionBehavior = DownloadSelectByExtending;
+  else
+    selectionBehavior = DownloadSelectExclusively;
+  [mProgressController updateSelectionWithBehavior:selectionBehavior];
 
   [mFileIconMouseDownEvent release];
   mFileIconMouseDownEvent = nil;
   if ([theEvent type] == NSLeftMouseDown) {
     // See if it's a double-click; if so, send a notification off to the
     // controller which will handle it accordingly. Doing it after processing
-    // the modifiers allows someone to shift-dblClick and open all selected
-    // items in the list in one action.
+    // the selection change allows someone to shift-double-click and open all
+    // selected items in the list in one action.
     if ([theEvent clickCount] == 2) {
-      [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceOpenedNotificationName
-                                                          object:self];
+      [mProgressController openSelectedDownloads];
     }
     // If not, and the download isn't active, see if it's a click on the icon.
     else if (![mProgressController isActive]) {
@@ -183,32 +154,8 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
     [mProgressController remove:self];
 }
 
--(int)lastModifier
-{
-  return mLastModifier;
-}
-
-- (BOOL)isSelected
-{
-  // make sure the controller is not nil before checking if it is selected
-  if (!mProgressController)
-    return NO;
-  
-  return [mProgressController isSelected];
-}
-
--(void)setSelected:(BOOL)inSelected
-{
-  // make sure the controller is not nil before setting its selected state
-  if (!mProgressController)
-    return;
-  
-  [mProgressController setSelected:inSelected];
-}
-
 -(void)setController:(ProgressViewController*)controller
 {
-  // Don't retain since this view will only exist if its controller does
   mProgressController = controller;
 }
 
@@ -220,11 +167,9 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
 -(NSMenu*)menuForEvent:(NSEvent*)theEvent
 {  
   // if the item is unselected, select it and deselect everything else before displaying the contextual menu
-  if (![self isSelected]) {
-    mLastModifier = kNoKey; // control is only special because it means its contextual menu time
-    [self setSelected:YES];
-    [self display]; // change selection immediately
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceSelectedNotificationName object:self];
+  if (![mProgressController isSelected]) {
+    [mProgressController updateSelectionWithBehavior:DownloadSelectExclusively];
+    [self display]; // change visual selection immediately
   }
   return [[self controller] contextualMenu];
 }
@@ -236,7 +181,7 @@ NSString* const kDownloadInstanceCancelledNotificationName = @"DownloadInstanceC
       ([theEvent modifierFlags] & NSCommandKeyMask) != 0) && 
       [[theEvent characters] isEqualToString:@"."]) 
   {
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDownloadInstanceCancelledNotificationName object:self];
+    [mProgressController cancelSelectedDownloads];
     return YES;
   }
   

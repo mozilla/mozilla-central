@@ -69,8 +69,7 @@
 
 #import "CHDownloadProgressDisplay.h"
 #import "FileChangeWatcher.h"
-
-@class ProgressViewController;
+#import "ProgressViewController.h"; // For DownloadSelectionBehavior enum
 
 //
 // interface ProgressDlgController
@@ -106,6 +105,9 @@
 -(IBAction)open:(id)sender;
 -(IBAction)pause:(id)sender;
 -(IBAction)resume:(id)sender;
+
+-(void)updateSelectionOfDownload:(ProgressViewController*)selectedDownload
+                    withBehavior:(DownloadSelectionBehavior)behavior;
 
 -(int)numDownloadsInProgress;
 -(void)clearAllDownloads;
