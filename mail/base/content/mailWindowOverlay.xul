@@ -1318,7 +1318,7 @@
         </menu>
 
         <menu id="menu_MessagePaneLayout" label="&messagePaneLayoutStyle.label;" accesskey="&messagePaneLayoutStyle.accesskey;">
-          <menupopup onpopupshowing="InitViewLayoutStyleMenu(event)">
+          <menupopup id="view_layout_popup" onpopupshowing="InitViewLayoutStyleMenu(event)">
             <menuitem id="messagePaneClassic" type="radio" label="&messagePaneClassic.label;" name="viewlayoutgroup"
                       accesskey="&messagePaneClassic.accesskey;" oncommand="ChangeMailLayout(kClassicMailLayout);"/>
             <menuitem id="messagePaneWide" type="radio" label="&messagePaneWide.label;" name="viewlayoutgroup"
