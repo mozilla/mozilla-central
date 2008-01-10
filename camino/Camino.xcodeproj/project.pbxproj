@@ -1207,6 +1207,14 @@
 		82CE28C0073661F600B4DE07 /* EditorOverride.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28BD073661E300B4DE07 /* EditorOverride.css */; };
 		82CE28C7073662B400B4DE07 /* composer.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 82CE28C40736625800B4DE07 /* composer.xpt */; };
 		82CE28CB0736634A00B4DE07 /* txmgr.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 82CE28C80736633900B4DE07 /* txmgr.xpt */; };
+		C79573880D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = C79573840D35314D0028A773 /* XMLSearchPluginParser.mm */; };
+		C79573890D35314D0028A773 /* XMLSearchPluginParser.h in Headers */ = {isa = PBXBuildFile; fileRef = C79573850D35314D0028A773 /* XMLSearchPluginParser.h */; };
+		C795738A0D35314D0028A773 /* OpenSearchParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = C79573860D35314D0028A773 /* OpenSearchParser.mm */; };
+		C795738B0D35314D0028A773 /* OpenSearchParser.h in Headers */ = {isa = PBXBuildFile; fileRef = C79573870D35314D0028A773 /* OpenSearchParser.h */; };
+		C795738C0D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = C79573840D35314D0028A773 /* XMLSearchPluginParser.mm */; };
+		C795738D0D35314D0028A773 /* XMLSearchPluginParser.h in Headers */ = {isa = PBXBuildFile; fileRef = C79573850D35314D0028A773 /* XMLSearchPluginParser.h */; };
+		C795738E0D35314D0028A773 /* OpenSearchParser.mm in Sources */ = {isa = PBXBuildFile; fileRef = C79573860D35314D0028A773 /* OpenSearchParser.mm */; };
+		C795738F0D35314D0028A773 /* OpenSearchParser.h in Headers */ = {isa = PBXBuildFile; fileRef = C79573870D35314D0028A773 /* OpenSearchParser.h */; };
 		C7FF536C0D35281F00194776 /* search_editor_bottom_background.png in Resources */ = {isa = PBXBuildFile; fileRef = C7FF536A0D35281F00194776 /* search_editor_bottom_background.png */; };
 		C7FF536D0D35281F00194776 /* search_editor_action.png in Resources */ = {isa = PBXBuildFile; fileRef = C7FF536B0D35281F00194776 /* search_editor_action.png */; };
 		C7FF536E0D35281F00194776 /* search_editor_bottom_background.png in Resources */ = {isa = PBXBuildFile; fileRef = C7FF536A0D35281F00194776 /* search_editor_bottom_background.png */; };
@@ -2671,6 +2679,10 @@
 		A7D88E6A0465D9F800A80196 /* suitetypeaheadfind.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = suitetypeaheadfind.xpt; path = ../extensions/typeaheadfind/public/_xpidlgen/suitetypeaheadfind.xpt; sourceTree = SOURCE_ROOT; };
 		A7E5D960041A07C900A967F8 /* libi18n.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libi18n.a; path = ../intl/build/libi18n.a; sourceTree = SOURCE_ROOT; };
 		A7FD31C90466004E00A80196 /* libsuitetypeaheadfind.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsuitetypeaheadfind.a; path = ../extensions/typeaheadfind/src/libsuitetypeaheadfind.a; sourceTree = SOURCE_ROOT; };
+		C79573840D35314D0028A773 /* XMLSearchPluginParser.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = XMLSearchPluginParser.mm; path = src/websearch/XMLSearchPluginParser.mm; sourceTree = "<group>"; };
+		C79573850D35314D0028A773 /* XMLSearchPluginParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = XMLSearchPluginParser.h; path = src/websearch/XMLSearchPluginParser.h; sourceTree = "<group>"; };
+		C79573860D35314D0028A773 /* OpenSearchParser.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = OpenSearchParser.mm; path = src/websearch/OpenSearchParser.mm; sourceTree = "<group>"; };
+		C79573870D35314D0028A773 /* OpenSearchParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = OpenSearchParser.h; path = src/websearch/OpenSearchParser.h; sourceTree = "<group>"; };
 		C7FF536A0D35281F00194776 /* search_editor_bottom_background.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = search_editor_bottom_background.png; path = chrome/search_editor_bottom_background.png; sourceTree = "<group>"; };
 		C7FF536B0D35281F00194776 /* search_editor_action.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = search_editor_action.png; path = chrome/search_editor_action.png; sourceTree = "<group>"; };
 		C7FF53710D35285400194776 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/SearchEngineEditor.nib; sourceTree = "<group>"; };
@@ -3909,15 +3921,43 @@
 			name = Midas;
 			sourceTree = "<group>";
 		};
-		C7FF53690D3527F400194776 /* Web Search */ = {
+		C795737B0D35310B0028A773 /* Backend */ = {
 			isa = PBXGroup;
 			children = (
 				C7FF537A0D3528B700194776 /* SearchEngineManager.h */,
 				C7FF53790D3528B700194776 /* SearchEngineManager.mm */,
+			);
+			name = Backend;
+			sourceTree = "<group>";
+		};
+		C795737C0D3531100028A773 /* Plug-ins */ = {
+			isa = PBXGroup;
+			children = (
+				C79573870D35314D0028A773 /* OpenSearchParser.h */,
+				C79573860D35314D0028A773 /* OpenSearchParser.mm */,
+				C79573850D35314D0028A773 /* XMLSearchPluginParser.h */,
+				C79573840D35314D0028A773 /* XMLSearchPluginParser.mm */,
+			);
+			name = "Plug-ins";
+			sourceTree = "<group>";
+		};
+		C795737E0D35311B0028A773 /* UI */ = {
+			isa = PBXGroup;
+			children = (
 				C7FF537C0D3528B700194776 /* SearchEngineEditor.h */,
 				C7FF537B0D3528B700194776 /* SearchEngineEditor.mm */,
 				00335B8B0C655ABC00A607F2 /* WebSearchField.h */,
 				00335B8C0C655ABC00A607F2 /* WebSearchField.mm */,
+			);
+			name = UI;
+			sourceTree = "<group>";
+		};
+		C7FF53690D3527F400194776 /* Web Search */ = {
+			isa = PBXGroup;
+			children = (
+				C795737B0D35310B0028A773 /* Backend */,
+				C795737E0D35311B0028A773 /* UI */,
+				C795737C0D3531100028A773 /* Plug-ins */,
 			);
 			name = "Web Search";
 			sourceTree = "<group>";
@@ -4818,6 +4858,8 @@
 				33E95A770D31B6FA0054C01D /* CHCookieStorage.h in Headers */,
 				C7FF537E0D3528B700194776 /* SearchEngineManager.h in Headers */,
 				C7FF53800D3528B700194776 /* SearchEngineEditor.h in Headers */,
+				C79573890D35314D0028A773 /* XMLSearchPluginParser.h in Headers */,
+				C795738B0D35314D0028A773 /* OpenSearchParser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4994,6 +5036,8 @@
 				33E95A790D31B6FA0054C01D /* CHCookieStorage.h in Headers */,
 				C7FF53820D3528B700194776 /* SearchEngineManager.h in Headers */,
 				C7FF53840D3528B700194776 /* SearchEngineEditor.h in Headers */,
+				C795738D0D35314D0028A773 /* XMLSearchPluginParser.h in Headers */,
+				C795738F0D35314D0028A773 /* OpenSearchParser.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5854,6 +5898,8 @@
 				33E95A780D31B6FA0054C01D /* CHCookieStorage.mm in Sources */,
 				C7FF537D0D3528B700194776 /* SearchEngineManager.mm in Sources */,
 				C7FF537F0D3528B700194776 /* SearchEngineEditor.mm in Sources */,
+				C79573880D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */,
+				C795738A0D35314D0028A773 /* OpenSearchParser.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6024,6 +6070,8 @@
 				33E95A7A0D31B6FA0054C01D /* CHCookieStorage.mm in Sources */,
 				C7FF53810D3528B700194776 /* SearchEngineManager.mm in Sources */,
 				C7FF53830D3528B700194776 /* SearchEngineEditor.mm in Sources */,
+				C795738C0D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */,
+				C795738E0D35314D0028A773 /* OpenSearchParser.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
