@@ -197,6 +197,13 @@ private:
    */
   PRBool IsEphemeral();
 
+  /** Set context info for events.
+   *
+   * @param aName     Name of the context property.
+   * @param aValue    Value of the context property.
+   */
+  nsresult SetContextInfo(const char *aName, nsAString &aValue);
+
   MessageType          mType;
 
   // The position of the ephemeral message
@@ -209,6 +216,9 @@ private:
   StopType             mStopType;
   nsCString            mSrcAttrText;
   PRBool               mDoneAddingChildren;
+  // Context Info for events.
+  nsCOMArray<nsIXFormsContextInfo> mContextInfo;
+  nsString             mSrc;
 };
 
 NS_IMPL_ADDREF_INHERITED(nsXFormsMessageElement, nsXFormsDelegateStub)
@@ -473,7 +483,13 @@ nsXFormsMessageElement::HandleSingleAction(nsIDOMEvent *aEvent,
     nsCOMPtr<nsIModelElementPrivate> modelPriv =
       nsXFormsUtils::GetModel(mElement);
     nsCOMPtr<nsIDOMNode> model = do_QueryInterface(modelPriv);
-    nsXFormsUtils::DispatchEvent(model, eEvent_LinkError);
+
+    // Context Info: 'resource-uri'
+    // The URI associated with the failed link.
+    SetContextInfo("resource-uri", mSrc);
+
+    nsXFormsUtils::DispatchEvent(model, eEvent_LinkError, nsnull, nsnull,
+                                 &mContextInfo);
     return NS_OK;
   }
 
@@ -934,6 +950,9 @@ nsXFormsMessageElement::TestExternalFile()
   if (src.IsEmpty()) {
     return NS_OK;
   }
+  // Remember the src attribute so we can set it in the context info
+  // for the xforms-link-error event if the link fails.
+  mSrc = src;
 
   nsCOMPtr<nsIDOMDocument> domDoc;
   mElement->GetOwnerDocument(getter_AddRefs(domDoc));
@@ -997,6 +1016,9 @@ nsXFormsMessageElement::TestExternalFile()
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("externalLink1Error"),
                                strings, 2, mElement, mElement);
     mStopType = eStopType_LinkError;
+    // Remember the src attribute so we can set it in the context info
+    // for the xforms-link-error event.
+    mSrc = src;
     return NS_ERROR_FAILURE;
   }
 
@@ -1107,6 +1129,9 @@ nsXFormsMessageElement::OnStartRequest(nsIRequest *aRequest,
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("externalLink2Error"),
                                  strings, 2, mElement, mElement);
       mStopType = eStopType_LinkError;
+      // Remember the src attribute so we can set it in the context info
+      // for the xforms-link-error event.
+      mSrc = src;
     }
 
     AddRemoveExternalResource(PR_FALSE);
@@ -1133,6 +1158,9 @@ nsXFormsMessageElement::OnStartRequest(nsIRequest *aRequest,
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("externalLink2Error"),
                                  strings, 2, mElement, mElement);
       mStopType = eStopType_LinkError;
+      // Remember the src attribute so we can set it in the context info
+      // for the xforms-link-error event.
+      mSrc = src;
     }
   }
 
@@ -1258,6 +1286,17 @@ PRBool nsXFormsMessageElement::IsEphemeral()
   nsAutoString level;
   mElement->GetAttribute(NS_LITERAL_STRING("level"), level);
   return level.Equals(NS_LITERAL_STRING("ephemeral"));
+}
+
+nsresult
+nsXFormsMessageElement::SetContextInfo(const char *aName, nsAString &aValue)
+{
+  nsCOMPtr<nsXFormsContextInfo> contextInfo = new nsXFormsContextInfo(mElement);
+  NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+  contextInfo->SetStringValue(aName, aValue);
+  mContextInfo.AppendObject(contextInfo);
+
+  return NS_OK;
 }
 
 NS_HIDDEN_(nsresult)

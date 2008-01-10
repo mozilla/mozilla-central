@@ -51,6 +51,7 @@
 #include "nsVoidArray.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsXFormsXPathState.h"
+#include "nsXFormsDOMEvent.h"
 
 class nsIDOMElement;
 class nsIXFormsModelElement;
@@ -146,7 +147,8 @@ enum nsXFormsEvent {
   eEvent_LinkException,
   eEvent_LinkError,
   eEvent_ComputeException,
-  eEvent_MozHintOff
+  eEvent_MozHintOff,
+  eEvent_SubmitSerialize
 };
 
 struct EventData
@@ -156,7 +158,7 @@ struct EventData
   PRBool      canBubble;
 };
 
-extern const EventData sXFormsEventsEntries[42];
+extern const EventData sXFormsEventsEntries[43];
 
 // Default intrinsic state for XForms Controls
 extern const PRInt32 kDefaultIntrinsicState;
@@ -358,7 +360,8 @@ public:
   static NS_HIDDEN_(nsresult)
     DispatchEvent(nsIDOMNode* aTarget, nsXFormsEvent aEvent,
                   PRBool *aDefaultActionEnabled = nsnull,
-                  nsIDOMElement *aSrcElement = nsnull);
+                  nsIDOMElement *aSrcElement = nsnull,
+                  nsCOMArray<nsIXFormsContextInfo> *aContextInfo = nsnull);
 
   static NS_HIDDEN_(nsresult)
     DispatchDeferredEvents(nsIDOMDocument* aDocument);

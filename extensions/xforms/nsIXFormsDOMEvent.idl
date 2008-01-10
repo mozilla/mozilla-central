@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,16 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mozilla XForms support.
  *
  * The Initial Developer of the Original Code is
- * Peter Van der Beken.
- * Portions created by the Initial Developer are Copyright (C) 2005
+ * IBM Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Peter Van der Beken <peterv@propagandism.org>
- *
+ *  Merle Sterling <msterlin@us.ibm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,26 +36,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
-#include "txIFunctionEvaluationContext.idl"
+#include "nsIXFormsContextInfo.idl"
+#include "nsIDOMEvent.idl"
 
-[scriptable, uuid(d3c957be-9f59-42f3-8ca9-7a22edf0e231)]
-interface nsIXFormsXPathFunctions : nsISupports
+/**
+ * Interface exposing the events of an XForms control.
+ *
+ */
+
+[scriptable, uuid(ae6735d5-a8a4-4ac5-9f00-ec653433005c)]
+interface nsIXFormsDOMEvent : nsIDOMEvent
 {
-    double avg(in txINodeSet aNodeSet);
-    boolean booleanFromString(in DOMString aString);
-    double countNonEmpty(in txINodeSet aNodeSet);
-    double daysFromDate(in DOMString aDateTime);
-    DOMString if(in boolean aValue, in DOMString aIfString, in DOMString aElseString);
-    double index(in txIFunctionEvaluationContext aContext, in DOMString aId);
-    txINodeSet instance(in txIFunctionEvaluationContext aContext, in DOMString aString);
-    double max(in txINodeSet aNodeSet);
-    double min(in txINodeSet aNodeSet);
-    double months(in DOMString aDuration);
-    DOMString now();
-    DOMString property(in DOMString aProperty);
-    double seconds(in DOMString aDuration);
-    double secondsFromDateTime(in DOMString aDateTime);
-    txINodeSet current(in txIFunctionEvaluationContext aContext);
-    txINodeSet event(in txIFunctionEvaluationContext aContext, in DOMString aString);
+  /** Get a context property from an nsXFormsDOMEvent.
+   *  @param aName - context property name.
+   */
+  nsIXFormsContextInfo getContextInfo(in DOMString aName);
 };

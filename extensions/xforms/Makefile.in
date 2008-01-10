@@ -154,6 +154,8 @@ XPIDLSRCS	= \
 		nsIXFormsComboboxUIWidget.idl \
 		nsIXFormsXPathFunctions.idl \
 		nsIXFormsXPathState.idl \
+		nsIXFormsDOMEvent.idl \
+		nsIXFormsContextInfo.idl \
 		$(NULL)
 
 # XForms source files
@@ -217,6 +219,8 @@ CPPSRCS		= \
 		nsXFormsRangeConditionAccessors.cpp \
 		nsXFormsXPathFunctions.cpp \
 		nsXFormsXPathState.cpp \
+		nsXFormsDOMEvent.cpp \
+		nsXFormsContextInfo.cpp \
 		$(NULL)
 
 # Standard Mozilla make rules

@@ -1,4 +1,4 @@
-/* -*- Mode: IDL; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: IDL; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -12,16 +12,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is Mozilla XForms support.
  *
  * The Initial Developer of the Original Code is
- * Peter Van der Beken.
- * Portions created by the Initial Developer are Copyright (C) 2005
+ * IBM Corporation.
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Peter Van der Beken <peterv@propagandism.org>
- *
+ *  Merle Sterling <msterlin@us.ibm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,25 +37,40 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "txIFunctionEvaluationContext.idl"
+#include "nsIDOMNode.idl"
+#include "nsIDOMXPathResult.idl"
 
-[scriptable, uuid(d3c957be-9f59-42f3-8ca9-7a22edf0e231)]
-interface nsIXFormsXPathFunctions : nsISupports
+/**
+ * Interface exposing the event context info of an XForms control.
+ *
+ * Context info is accessed by name using nsIXFormsDOMEvent::GetContextInfo
+ * or the XPath function event().
+ *
+ */
+
+[scriptable, uuid(b012a3e5-7dbc-42b4-99da-5e94c37dc44e)]
+interface nsIXFormsContextInfo : nsISupports
 {
-    double avg(in txINodeSet aNodeSet);
-    boolean booleanFromString(in DOMString aString);
-    double countNonEmpty(in txINodeSet aNodeSet);
-    double daysFromDate(in DOMString aDateTime);
-    DOMString if(in boolean aValue, in DOMString aIfString, in DOMString aElseString);
-    double index(in txIFunctionEvaluationContext aContext, in DOMString aId);
-    txINodeSet instance(in txIFunctionEvaluationContext aContext, in DOMString aString);
-    double max(in txINodeSet aNodeSet);
-    double min(in txINodeSet aNodeSet);
-    double months(in DOMString aDuration);
-    DOMString now();
-    DOMString property(in DOMString aProperty);
-    double seconds(in DOMString aDuration);
-    double secondsFromDateTime(in DOMString aDateTime);
-    txINodeSet current(in txIFunctionEvaluationContext aContext);
-    txINodeSet event(in txIFunctionEvaluationContext aContext, in DOMString aString);
+  // Name of the event property; eg. 'resource-uri'
+  readonly attribute DOMString name;
+
+  // Type of the property: String, Number, Node, Nodeset
+  const unsigned short STRING_TYPE  = 1;
+  const unsigned short NUMBER_TYPE  = 2;
+  const unsigned short NODE_TYPE    = 3;
+  const unsigned short NODESET_TYPE = 4;
+  readonly attribute long type;
+
+  /** Get the value of a STRING_TYPE context info property.
+   */
+  readonly attribute DOMString stringValue;
+  /** Get the value of a NUMBER_TYPE context info property.
+   */
+  readonly attribute long numberValue;
+  /** Get the value of a NODE_TYPE context info property.
+   */
+  readonly attribute nsIDOMNode nodeValue;
+  /** Get the value of a NODESET_TYPE context info property.
+   */
+  readonly attribute nsIDOMXPathResult nodesetValue;
 };

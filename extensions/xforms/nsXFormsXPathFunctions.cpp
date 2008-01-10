@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *  Aaron Reed <aaronr@us.ibm.com>
+ *  Merle Sterling <msterlin@us.ibm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,6 +49,8 @@
 #include "txIFunctionEvaluationContext.h"
 #include "txINodeSet.h"
 #include "nsIClassInfoImpl.h"
+#include "nsIXFormsActionModuleElement.h"
+#include "nsIXFormsContextInfo.h"
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
 
@@ -456,4 +459,87 @@ nsXFormsXPathFunctions::Current(txIFunctionEvaluationContext *aContext,
   result.swap(*aResult);
 
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::Event(txIFunctionEvaluationContext *aContext,
+                              const nsAString &aName,
+                              txINodeSet **aResult)
+{
+    *aResult = nsnull;
+    nsresult rv;
+
+    nsCOMPtr<nsIXFormsXPathState> state;
+    aContext->GetState(getter_AddRefs(state));
+    nsCOMPtr<nsIDOMNode> xfNode;
+    state->GetXformsNode(getter_AddRefs(xfNode));
+    NS_ENSURE_TRUE(xfNode, NS_ERROR_FAILURE);
+
+    nsCOMPtr<txINodeSet> result =
+        do_CreateInstance("@mozilla.org/transformiix-nodeset;1", &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIXFormsContextInfo> contextInfo;
+    nsCOMPtr<nsIXFormsActionModuleElement> actionElt = do_QueryInterface(xfNode);
+    if (actionElt) {
+      nsCOMPtr<nsIDOMEvent> domEvent;
+      actionElt->GetCurrentEvent(getter_AddRefs(domEvent));
+      nsCOMPtr<nsIXFormsDOMEvent> xfEvent = do_QueryInterface(domEvent);
+      if (!xfEvent) {
+        // Event being called for an nsIDOMEvent that is not an
+        // nsIXFormsDOMEvent.
+        result.swap(*aResult);
+        return NS_OK;
+      }
+      xfEvent->GetContextInfo(aName, getter_AddRefs(contextInfo));
+      if (!contextInfo) {
+        // The requested context info property does not exist.
+        result.swap(*aResult);
+        return NS_OK;
+      }
+    }
+
+    // Determine the type of context info property.
+    PRInt32 resultType;
+    contextInfo->GetType(&resultType);
+
+    if (resultType == nsIXFormsContextInfo::NODESET_TYPE) {
+      // The context property is a nodeset. Snapshot each individual node
+      // in the nodeset and add them one at a time to the txINodeset.
+      nsCOMPtr<nsIDOMXPathResult> nodeset;
+      contextInfo->GetNodesetValue(getter_AddRefs(nodeset));
+      if (nodeset) {
+        PRUint32 nodesetSize;
+        rv = nodeset->GetSnapshotLength(&nodesetSize);
+        NS_ENSURE_SUCCESS(rv, rv);
+        for (PRUint32 i=0; i < nodesetSize; ++i) {
+          nsCOMPtr<nsIDOMNode> node;
+          nodeset->SnapshotItem(i, getter_AddRefs(node));
+          result->Add(node);
+        }
+      }
+    } else {
+      // The type is a dom node, string, or number. Strings and numbers
+      // are encapsulated in a text node.
+      nsCOMPtr<nsIDOMNode> node;
+      contextInfo->GetNodeValue(getter_AddRefs(node));
+      if (node) {
+        result->Add(node);
+      }
+#ifdef DEBUG
+      PRInt32 type;
+      contextInfo->GetType(&type);
+      if (type == nsXFormsContextInfo::STRING_TYPE) {
+        nsAutoString str;
+        contextInfo->GetStringValue(str);
+      } else if (type == nsXFormsContextInfo::NUMBER_TYPE) {
+        PRInt32 number;
+        contextInfo->GetNumberValue(&number);
+      }
+#endif
+    }
+
+    result.swap(*aResult);
+
+    return NS_OK;
 }

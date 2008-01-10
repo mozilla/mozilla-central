@@ -46,6 +46,7 @@
 #include "nsIDOMNamedNodeMap.h"
 #include "nsIXFormsRepeatElement.h"
 #include "nsIXFormsControl.h"
+#include "nsIXFormsContextInfo.h"
 
 #include "nsStringAPI.h"
 
@@ -63,14 +64,6 @@
 
 /**
  * Implementation of the XForms \<insert\> and \<delete\> elements.
- *
- * @see http://www.w3.org/TR/xforms/slice9.html#action-insert
- *
- * @todo The spec. states that the events must set their Context Info to:
- * "Path expression used for insert/delete (xsd:string)" (XXX)
- * @see http://www.w3.org/TR/xforms/slice4.html#evt-insert
- * @see https://bugzilla.mozilla.org/show_bug.cgi?id=280423
- *
  */
 class nsXFormsInsertDeleteElement : public nsXFormsActionModuleBase
 {
@@ -82,6 +75,9 @@ private:
     eLocation_Before,
     eLocation_FirstChild
   };
+
+  // Context Info for events.
+  nsCOMArray<nsIXFormsContextInfo> mContextInfo;
 
   /** Get the first node of a given type in aNodes.
    *
@@ -108,13 +104,15 @@ private:
   nsresult RefreshRepeats(nsCOMArray<nsIDOMNode> *aNodes);
 
 public:
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
-
   /** Constructor */
   nsXFormsInsertDeleteElement(PRBool aIsInsert) :
     nsXFormsActionModuleBase(PR_TRUE),
     mIsInsert(aIsInsert)
     {}
+
+  NS_IMETHOD
+  HandleAction(nsIDOMEvent* aEvent, nsIXFormsActionElement *aParentAction);
+
 protected:
   /**
    * Normally, an action element implements the body of its action handler
@@ -136,6 +134,8 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
 {
   if (!mElement)
     return NS_OK;
+
+  mCurrentEvent = aEvent;
 
   nsresult rv;
 
@@ -242,9 +242,9 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   //
   nsCOMPtr<nsIDOMXPathResult> nodeset;
   PRUint32 nodesetSize = 0;
+  nsAutoString nodesetExpr;
 
   if (bindExpr.IsEmpty()) {
-    nsAutoString nodesetExpr;
     mElement->GetAttribute(NS_LITERAL_STRING("nodeset"), nodesetExpr);
     if (!nodesetExpr.IsEmpty()) {
       // Evaluate the nodeset attribute within the insert context.
@@ -321,6 +321,13 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       // is the empty node-set.
       if (originNodesetSize < 1)
         return NS_OK;
+
+      // Context Info: 'origin-nodes'
+      nsCOMPtr<nsXFormsContextInfo> contextInfo =
+        new nsXFormsContextInfo(mElement);
+      NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+      contextInfo->SetNodesetValue("origin-nodes", originNodeset);
+      mContextInfo.AppendObject(contextInfo);
     }
   }
 
@@ -404,6 +411,20 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
     }
   }
 
+  // Context Info: 'insert-location-node' or 'delete-location'
+  nsCOMPtr<nsXFormsContextInfo> contextInfo;
+  if (mIsInsert) {
+    contextInfo = new nsXFormsContextInfo(mElement);
+    NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+    contextInfo->SetNodeValue("insert-location-node", locationNode);
+    mContextInfo.AppendObject(contextInfo);
+  } else {
+    contextInfo = new nsXFormsContextInfo(mElement);
+    NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+    contextInfo->SetNumberValue("delete-location", atInt);
+    mContextInfo.AppendObject(contextInfo);
+  }
+
   //
   // Step 5 (Insert): Each node in the origin node-set is cloned in the
   // order it appears in the origin node-set. If the origin node-set is empty
@@ -437,6 +458,12 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       cloneNodesetSize = originNodesetSize;
       cloneIndex = 0;
     }
+    // Context Info: 'inserted-nodes'
+    nsCOMPtr<nsXFormsContextInfo> contextInfo =
+      new nsXFormsContextInfo(mElement);
+    NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+    contextInfo->SetNodesetValue("inserted-nodes", cloneNodeset);
+    mContextInfo.AppendObject(contextInfo);
 
     cloneNodeset->SnapshotItem(cloneIndex, getter_AddRefs(prototypeNode));
     NS_ENSURE_STATE(prototypeNode);
@@ -556,6 +583,13 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
                 return NS_ERROR_FAILURE;
               }
             }
+            // Context Info: 'position'.
+            nsCOMPtr<nsXFormsContextInfo> contextInfo =
+              new nsXFormsContextInfo(mElement);
+            NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+            contextInfo->SetStringValue("position", position);
+            mContextInfo.AppendObject(contextInfo);
+
             InsertNode(locationNode, newNode,
                        insertAfter ? eLocation_After: eLocation_Before,
                        getter_AddRefs(resNode));
@@ -591,6 +625,12 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
       deleteIndex = atInt - 1;
       deleteCount = atInt;
     }
+    // Context Info: 'deleted-nodes'
+    nsCOMPtr<nsXFormsContextInfo> contextInfo =
+      new nsXFormsContextInfo(mElement);
+    NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+    contextInfo->SetNodesetValue("deleted-nodes", nodeset);
+    mContextInfo.AppendObject(contextInfo);
 
     nodeset->SnapshotItem(deleteIndex, getter_AddRefs(locationNode));
     NS_ENSURE_STATE(locationNode);
@@ -645,7 +685,8 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
   // Dispatch xforms-insert/delete event to the instance node we have modified
   // data for
   rv = nsXFormsUtils::DispatchEvent(instNode,
-                                    mIsInsert ? eEvent_Insert : eEvent_Delete);
+                                    mIsInsert ? eEvent_Insert : eEvent_Delete,
+                                    nsnull, nsnull, &mContextInfo);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Dispatch refreshing events to the model
@@ -673,7 +714,6 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
 
   return NS_OK;
 }
-
 
 nsresult
 nsXFormsInsertDeleteElement::GetFirstNodeOfType(nsCOMArray<nsIDOMNode> *aNodes,

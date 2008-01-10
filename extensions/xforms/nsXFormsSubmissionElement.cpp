@@ -22,6 +22,7 @@
  * Contributor(s):
  *  Darin Fisher <darin@meer.net>
  *  Doron Rosenberg <doronr@us.ibm.com>
+ *  Merle Sterling <msterlin@us.ibm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -115,6 +116,20 @@
 #define ENCODING_URL                  0x20    // application/x-www-form-urlencoded
 #define ENCODING_MULTIPART_RELATED    0x40    // multipart/related
 #define ENCODING_MULTIPART_FORM_DATA  0x80    // multipart/form-data
+
+// submission errors
+#define kError_SubmissionInProgress \
+        NS_LITERAL_STRING("submission-in-progress");
+#define kError_NoData \
+        NS_LITERAL_STRING("no-data");
+#define kError_ValidationError \
+        NS_LITERAL_STRING("validation-error");
+#define kError_ParseError \
+        NS_LITERAL_STRING("parse-error");
+#define kError_ResourceError \
+        NS_LITERAL_STRING("resource-error");
+#define kError_TargetError \
+        NS_LITERAL_STRING("target-error");
 
 struct SubmissionFormat
 {
@@ -301,6 +316,23 @@ nsXFormsSubmissionElement::HandleDefault(nsIDOMEvent *aEvent, PRBool *aHandled)
     }
 
     *aHandled = PR_TRUE;
+  } else if (type.EqualsLiteral("xforms-submit-serialize")) {
+    nsCOMPtr<nsIXFormsDOMEvent> xfEvent = do_QueryInterface(aEvent);
+    if (xfEvent) {
+      nsCOMPtr<nsIXFormsContextInfo> contextInfo;
+      nsAutoString contextName;
+      contextName.AssignLiteral("submission-body");
+      xfEvent->GetContextInfo(contextName, getter_AddRefs(contextInfo));
+      if (contextInfo) {
+        nsAutoString submissionBody;
+        contextInfo->GetStringValue(submissionBody);
+        if (!submissionBody.EqualsLiteral(" ")) {
+          // Save the new submission body.
+          contextInfo->GetNodeValue(&mSubmissionBody);
+        }
+      }
+    }
+    *aHandled = PR_TRUE;
   } else {
     *aHandled = PR_FALSE;
   }
@@ -413,22 +445,40 @@ nsXFormsSubmissionElement::OnStopRequest(nsIRequest  *aRequest,
 
   PRBool succeeded = NS_SUCCEEDED(aStatus);
   if (succeeded) {
+    PRUint32 avail = 0;
+    mPipeIn->Available(&avail);
+    if (avail > 0) {
+      nsresult rv;
 
-    // If it is a HTTP request, then check for error responses, which should
-    // result in NOP and an xforms-submit-error.
-    nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(channel);
-    if (httpChannel) {
-      PRUint32 response;
-      nsresult rv = httpChannel->GetResponseStatus(&response);
-      succeeded = NS_SUCCEEDED(rv) && (response < 400);
-    }
+      // Regardless of whether the response status represents success
+      // or failure, we want to read the response. For an error response
+      // nothing in the document is replaced, and submission processing
+      // concludes after dispatching xforms-submit-error with appropriate
+      // context information, including an error-type of resource-error.
+      nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(channel);
+      if (httpChannel) {
+        PRUint32 response;
+        nsresult rv = httpChannel->GetResponseStatus(&response);
+        nsCAutoString statusText;
+        httpChannel->GetResponseStatusText(statusText);
+        httpChannel->VisitResponseHeaders(this);
+        SetHttpContextInfo(response, NS_ConvertUTF8toUTF16(statusText));
 
-    if (succeeded) {
-      PRUint32 avail = 0;
-      mPipeIn->Available(&avail);
-      if (avail > 0) {
+        PRBool requestSucceeded;
+        httpChannel->GetRequestSucceeded(&requestSucceeded);
+        if (!requestSucceeded) {
+          // Server returned an error response code. Parse the error
+          // response body into an XML document for 'response-body'
+          // context info.
+          ParseErrorResponse(httpChannel);
+          mSubmitError = kError_ResourceError;
+          succeeded = PR_FALSE;
+        } else {
+          succeeded = PR_TRUE;
+        }
+      }
 
-        nsresult rv;
+      if (succeeded) {
         if (mIsReplaceInstance) {
           rv = LoadReplaceInstance(channel);
         } else {
@@ -437,13 +487,15 @@ nsXFormsSubmissionElement::OnStopRequest(nsIRequest  *aRequest,
           if (replace.IsEmpty() || replace.EqualsLiteral("all"))
             rv = LoadReplaceAll(channel);
           else
+            // replace="none"
             rv = NS_OK;
         }
         succeeded = NS_SUCCEEDED(rv);
       }
+    } else {
+      mSubmitError = kError_ResourceError;
     }
   }
-
   mPipeIn = 0;
 
   EndSubmit(succeeded);
@@ -461,8 +513,20 @@ nsXFormsSubmissionElement::EndSubmit(PRBool aSucceeded)
     mActivator->SetDisabled(PR_FALSE);
     mActivator = nsnull;
   }
+
+  // If there were any errors, set 'error-type' context info.
+  if (!mSubmitError.IsEmpty()) {
+    nsCOMPtr<nsXFormsContextInfo> contextInfo =
+      new nsXFormsContextInfo(mElement);
+    if (contextInfo) {
+      contextInfo->SetStringValue("error-type", mSubmitError);
+      mContextInfo.AppendObject(contextInfo);
+    }
+  }
+
   nsXFormsUtils::DispatchEvent(mElement, aSucceeded ?
-                               eEvent_SubmitDone : eEvent_SubmitError);
+                               eEvent_SubmitDone : eEvent_SubmitError,
+                               nsnull, nsnull, &mContextInfo);
 }
 
 already_AddRefed<nsIModelElementPrivate>
@@ -518,6 +582,7 @@ nsXFormsSubmissionElement::LoadReplaceInstance(nsIChannel *channel)
   if (!newDoc) {
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("instanceParseError"),
                                mElement);
+    mSubmitError = kError_ParseError;
     return NS_ERROR_UNEXPECTED;
   }
   
@@ -535,6 +600,7 @@ nsXFormsSubmissionElement::LoadReplaceInstance(nsIChannel *channel)
         namespaceURI.EqualsLiteral("http://www.mozilla.org/newlayout/xml/parsererror.xml")) {
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("instanceParseError"),
                                  mElement);
+      mSubmitError = kError_ParseError;
       return NS_ERROR_UNEXPECTED;
     }
   }
@@ -572,8 +638,9 @@ nsXFormsSubmissionElement::LoadReplaceInstance(nsIChannel *channel)
     model->Recalculate();
     model->Revalidate();
     model->Refresh();
+  } else {
+    mSubmitError = kError_NoData;
   }
-
 
   return NS_OK;
 }
@@ -639,6 +706,7 @@ nsXFormsSubmissionElement::Submit()
   if (mSubmissionActive) {
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitAlreadyRunning"),
                                mElement, nsIScriptError::warningFlag);
+    mSubmitError = kError_SubmissionInProgress;
     return NS_ERROR_FAILURE;
   }
   mSubmissionActive = PR_TRUE;
@@ -652,14 +720,37 @@ nsXFormsSubmissionElement::Submit()
   mElement->GetAttribute(NS_LITERAL_STRING("replace"), replace);
   mIsReplaceInstance = replace.EqualsLiteral("instance");
 
+  // 2. Dispatch xforms-submit-serialize.
+  // If the event context submission-body property string is empty, then no
+  // operation is performed so that the submission will use the normal
+  // serialization data. Otherwise, if the event context submission-body
+  // property string is non-empty, then the serialization data for the
+  // submission is set to be the content of the submission-body string.
+  nsCOMPtr<nsXFormsContextInfo> contextInfo = new nsXFormsContextInfo(mElement);
+  NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+  nsAutoString submissionBody;
+  submissionBody.AssignLiteral(" ");
+  contextInfo->SetStringValue("submission-body", submissionBody);
+  mContextInfo.AppendObject(contextInfo);
+  nsXFormsUtils::DispatchEvent(mElement, eEvent_SubmitSerialize, nsnull,
+                               nsnull, &mContextInfo);
+
   //
   // 2. get selected node from the instance data
   nsCOMPtr<nsIDOMNode> data;
-  rv = GetBoundInstanceData(getter_AddRefs(data));
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (mSubmissionBody) {
+    // submission-body property was modified during submit-serialize and its
+    // contents is the new serialization data.
+    data = mSubmissionBody;
+  } else {
+    // get selected node from the instance data.
+    rv = GetBoundInstanceData(getter_AddRefs(data));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   // No data to submit
   if (!data) {
+    mSubmitError = kError_NoData;
     EndSubmit(PR_FALSE);
     return NS_OK;
   }
@@ -668,8 +759,10 @@ nsXFormsSubmissionElement::Submit()
   // 3. Create submission document (include namespaces, purge non-relevant
   // nodes, check simple type validity)
   nsCOMPtr<nsIDOMDocument> submissionDoc;
-  rv = CreateSubmissionDoc(data, getter_AddRefs(submissionDoc));
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (!mSubmissionBody) {
+    rv = CreateSubmissionDoc(data, getter_AddRefs(submissionDoc));
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   //
   // 4. Validate document
@@ -688,7 +781,27 @@ nsXFormsSubmissionElement::Submit()
   nsCAutoString uri, contentType;
   GetSubmissionURI(uri);
 
-  rv = SerializeData(submissionDoc, uri, getter_AddRefs(stream), contentType);
+  if (mSubmissionBody) {
+    // submission-body property was modified during submit-serialize and we will
+    // serialize it as a simple string.
+    nsAutoString nodeValue;
+    nsXFormsUtils::GetNodeValue(mSubmissionBody, nodeValue);
+
+    // make new stream
+    nsCOMPtr<nsIStringInputStream> stringInput =
+      do_CreateInstance("@mozilla.org/io/string-input-stream;1");
+    NS_ENSURE_TRUE(stringInput, NS_ERROR_OUT_OF_MEMORY);
+    nsCAutoString submissionBody = NS_ConvertUTF16toUTF8(nodeValue);
+    nsresult rv = stringInput->SetData(submissionBody.get(),
+                                       submissionBody.Length());
+    NS_ENSURE_SUCCESS(rv, rv);
+    stream = stringInput;
+    contentType.AssignLiteral("application/xml");
+    rv = NS_OK;
+  } else {
+    // Serialize a document based on the submission format and content type.
+    rv = SerializeData(submissionDoc, uri, getter_AddRefs(stream), contentType);
+  }
   if (NS_FAILED(rv)) {
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitSerializeFailed"),
                                mElement, nsIScriptError::warningFlag);
@@ -800,6 +913,13 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
   if (uri.IsEmpty())
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitURI"), mElement,
                                nsIScriptError::warningFlag);
+
+  // Context Info: 'resource-uri'
+  nsCOMPtr<nsXFormsContextInfo> contextInfo =
+    new nsXFormsContextInfo(mElement);
+  NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+  contextInfo->SetStringValue("resource-uri", uri);
+  mContextInfo.AppendObject(contextInfo);
 
   CopyUTF16toUTF8(uri, aURI);
 
@@ -1558,6 +1678,7 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
           // abort
           nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitInvalidNode"),
                                      currentNode, nsIScriptError::warningFlag);
+          mSubmitError = kError_ValidationError;
           return NS_ERROR_ILLEGAL_VALUE;
         }
 
@@ -1593,6 +1714,7 @@ nsXFormsSubmissionElement::CopyChildren(nsIModelElementPrivate *aModel,
               // abort
               nsXFormsUtils::ReportError(NS_LITERAL_STRING("warnSubmitInvalidNode"),
                                          currentNode, nsIScriptError::warningFlag);
+              mSubmitError = kError_ValidationError;
               return NS_ERROR_ILLEGAL_VALUE;
             }
 
@@ -2474,6 +2596,232 @@ nsXFormsSubmissionElement::SendData(const nsCString &uriSpec,
   NS_ENSURE_SUCCESS(rv, rv);
 
   return rv;
+}
+
+// nsIHttpHeaderVisitor
+NS_IMETHODIMP
+nsXFormsSubmissionElement::VisitHeader(const nsACString &aHeader,
+                                       const nsACString &aValue)
+{
+  nsresult rv;
+  nsCOMPtr<nsIDOMElement> rootElt;
+  nsCOMPtr<nsIDOMNode> newChild;
+
+  // Every time this callback is called, we add another
+  // <header><name>aHeader</name><value>aValue</value></header> element
+  // to the http header document. The header document is used to create
+  // a nodeset of header elements in the context info.
+  if (!mHttpHeaderDoc) {
+    nsCOMPtr<nsIDOMDocument> doc;
+    rv = mElement->GetOwnerDocument(getter_AddRefs(doc));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIDOMDOMImplementation> domImpl;
+    rv = doc->GetImplementation(getter_AddRefs(domImpl));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = domImpl->CreateDocument(EmptyString(), EmptyString(), nsnull,
+                                 getter_AddRefs(mHttpHeaderDoc));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = mHttpHeaderDoc->CreateElement(NS_LITERAL_STRING("headers"),
+                                       getter_AddRefs(rootElt));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    mHttpHeaderDoc->AppendChild(rootElt, getter_AddRefs(newChild));
+  }
+
+  nsCOMPtr<nsIDOMElement> headerElt, nameElt, valueElt;
+  nsCOMPtr<nsIDOMNode> rootNode;
+
+  // Root <headers> element.
+  rv = mHttpHeaderDoc->GetFirstChild(getter_AddRefs(rootNode));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // <header>
+  rv = mHttpHeaderDoc->CreateElement(NS_LITERAL_STRING("header"),
+                                     getter_AddRefs(headerElt));
+
+  // <name>
+  rv = mHttpHeaderDoc->CreateElement(NS_LITERAL_STRING("name"),
+                                     getter_AddRefs(nameElt));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMText> nameTextNode;
+  rv = mHttpHeaderDoc->CreateTextNode(NS_ConvertUTF8toUTF16(aHeader),
+                                      getter_AddRefs(nameTextNode));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nameElt->AppendChild(nameTextNode, getter_AddRefs(newChild));
+  headerElt->AppendChild(nameElt, getter_AddRefs(newChild));
+
+  // <value>
+  rv = mHttpHeaderDoc->CreateElement(NS_LITERAL_STRING("value"),
+                                     getter_AddRefs(valueElt));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMText> valueTextNode;
+  rv = mHttpHeaderDoc->CreateTextNode(NS_ConvertUTF8toUTF16(aValue),
+                                      getter_AddRefs(valueTextNode));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  valueElt->AppendChild(valueTextNode, getter_AddRefs(newChild));
+  headerElt->AppendChild(valueElt, getter_AddRefs(newChild));
+
+  // Append <header> element to root <headers> element.
+  rootElt = do_QueryInterface(rootNode);
+  rootElt->AppendChild(headerElt, getter_AddRefs(newChild));
+
+  return NS_OK;
+}
+
+nsresult
+nsXFormsSubmissionElement::SetContextInfo()
+{
+
+  return NS_OK;
+}
+
+nsresult
+nsXFormsSubmissionElement::SetHttpContextInfo(PRUint32  aResponse,
+                                              nsAString &aResponseText)
+{
+  nsresult rv;
+
+  nsCOMPtr<nsXFormsContextInfo> contextInfo = new nsXFormsContextInfo(mElement);
+  NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+  // response-status-code
+  if (aResponse > 0) {
+    contextInfo->SetNumberValue("response-status-code", aResponse);
+    mContextInfo.AppendObject(contextInfo);
+  }
+  // response-reason-phrase
+  contextInfo = new nsXFormsContextInfo(mElement);
+  NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+  contextInfo->SetStringValue("response-reason-phrase", aResponseText);
+  mContextInfo.AppendObject(contextInfo);
+  // response-headers
+  if (mHttpHeaderDoc) {
+    nsCOMPtr<nsIDOMNode> rootNode;
+    rv = mHttpHeaderDoc->GetFirstChild(getter_AddRefs(rootNode));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIDOMXPathResult> headerNodeset;
+    nsAutoString expr;
+    expr.AssignLiteral("header");
+    rv = nsXFormsUtils::EvaluateXPath(expr, rootNode, rootNode,
+                                      nsIDOMXPathResult::ORDERED_NODE_SNAPSHOT_TYPE,
+                                      getter_AddRefs(headerNodeset));
+
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (headerNodeset) {
+      contextInfo = new nsXFormsContextInfo(mElement);
+      NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+      contextInfo->SetNodesetValue("response-headers", headerNodeset);
+      mContextInfo.AppendObject(contextInfo);
+#ifdef DEBUG
+      PRUint32 nodesetSize = 0;
+      headerNodeset->GetSnapshotLength(&nodesetSize);
+      for (PRUint32 i = 0; i < nodesetSize; i++) {
+        nsCOMPtr<nsIDOMNode> headerNode, nameNode, valueNode;
+        headerNodeset->SnapshotItem(i, getter_AddRefs(headerNode));
+        headerNode->GetFirstChild(getter_AddRefs(nameNode));
+        nsAutoString name, value;
+        nsXFormsUtils::GetNodeValue(nameNode, name);
+        nameNode->GetNextSibling(getter_AddRefs(valueNode));
+        nsXFormsUtils::GetNodeValue(valueNode, value);
+      }
+    }
+#endif // DEBUG
+  }
+
+  return NS_OK;
+}
+
+nsresult
+nsXFormsSubmissionElement::ParseErrorResponse(nsIChannel *aChannel)
+{
+  // Context Info: response-body
+  // When the error response specifies an XML media type as defined by
+  // RFC 3023], the response body is parsed into an XML document and the
+  // root element of the document is returned. If the parse fails, or if
+  // the error response specifies a text media type (starting with text/),
+  // then the response body is returned as a string.
+  // Otherwise, an empty string is returned.
+  nsCString contentCharset, contentType;
+  aChannel->GetContentCharset(contentCharset);
+  aChannel->GetContentType(contentType);
+
+  // use DOM parser to construct nsIDOMDocument
+  nsCOMPtr<nsIDOMParser> parser =
+    do_CreateInstance("@mozilla.org/xmlextras/domparser;1");
+  NS_ENSURE_STATE(parser);
+
+  PRUint32 contentLength;
+  mPipeIn->Available(&contentLength);
+
+  // set the base uri so that the document can get the correct security
+  // principal.
+  nsCOMPtr<nsIURI> uri;
+  nsresult rv = aChannel->GetURI(getter_AddRefs(uri));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  NS_ENSURE_STATE(mElement);
+  nsCOMPtr<nsIDOMDocument> domDoc;
+  mElement->GetOwnerDocument(getter_AddRefs(domDoc));
+  nsCOMPtr<nsIDocument> doc = do_QueryInterface(domDoc);
+  NS_ENSURE_STATE(doc);
+  NS_ENSURE_STATE(doc->GetScriptGlobalObject());
+  rv = parser->Init(nsnull, uri, nsnull, doc->GetScriptGlobalObject());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Try to parse the content into an XML document. If the parse fails, the
+  // content type is not an XML type that ParseFromStream can handle. In that
+  // case, read the response as a simple string.
+  nsCOMPtr<nsXFormsContextInfo> contextInfo;
+  nsCOMPtr<nsIDOMDocument> newDoc;
+  rv = parser->ParseFromStream(mPipeIn, contentCharset.get(), contentLength,
+                          contentType.get(), getter_AddRefs(newDoc));
+  if (NS_SUCCEEDED(rv)) {
+    // Succeeded in parsing the error response as an XML document.
+    nsCOMPtr<nsIDOMNode> responseBody = do_QueryInterface(newDoc);
+    if (newDoc) {
+      contextInfo = new nsXFormsContextInfo(mElement);
+      NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+
+      contextInfo->SetNodeValue("response-body", responseBody);
+      mContextInfo.AppendObject(contextInfo);
+    }
+  } else {
+    // Read the content as a simple string and set a string into the
+    // context info.
+    PRUint32 len, read, numReadIn = 1;
+    nsCAutoString responseBody;
+
+    rv = mPipeIn->Available(&len);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    char *buf = new char[len+1];
+    NS_ENSURE_TRUE(buf, NS_ERROR_OUT_OF_MEMORY);
+    memset(buf, 0, len+1);
+
+    // Read returns 0 if eos
+    while (numReadIn != 0) {
+      numReadIn = mPipeIn->Read(buf, len, &read);
+      responseBody.Append(buf);
+    }
+    delete [] buf;
+
+    // Set the string response body as context info.
+    contextInfo = new nsXFormsContextInfo(mElement);
+    NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+    contextInfo->SetStringValue("response-body",
+                                NS_ConvertUTF8toUTF16(responseBody));
+    mContextInfo.AppendObject(contextInfo);
+  }
+
+  return NS_OK;
 }
 
 // factory constructor

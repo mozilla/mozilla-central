@@ -41,9 +41,15 @@
 interface nsIDOMEvent;
 interface nsIXFormsActionElement;
 
-[uuid(b19c47e4-2478-4a73-91a3-d86f91d91ffd)]
+[uuid(4fa5fd18-902b-4ea8-a197-e93d5ce1ce71)]
 interface nsIXFormsActionModuleElement : nsISupports
 {
   void handleAction(in nsIDOMEvent aEvent, in nsIXFormsActionElement aParentAction);
+  /**
+   * Get the event currently being processed in handleAction. The XPath
+   * event() method uses this method to get the context info for the
+   * current event.
+   */
+  nsIDOMEvent getCurrentEvent();
 };
 

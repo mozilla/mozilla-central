@@ -99,6 +99,11 @@ protected:
    * additional information in the future.
    */
   PRBool mCanIterate;
+
+  /**
+   * The event currently being processed.
+   */
+  nsCOMPtr<nsIDOMEvent> mCurrentEvent;
 };
 
 #endif
