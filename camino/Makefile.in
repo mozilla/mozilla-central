@@ -46,6 +46,7 @@ include $(DEPTH)/config/autoconf.mk
 
 DIRS = \
 	flashblock \
+	idl \
 	$(NULL)
 
 APP_NAME	= Camino

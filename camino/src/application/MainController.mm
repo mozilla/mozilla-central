@@ -73,6 +73,7 @@
 #import "SessionManager.h"
 #import "CHPermissionManager.h"
 #import "CmXULAppInfo.h"
+#import "AddSearchProviderHandler.h"
 
 #include "nsCOMPtr.h"
 #include "nsEmbedAPI.h"
@@ -200,6 +201,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   unsigned int numComps = 0;
   const nsModuleComponentInfo* comps = GetAppComponents(&numComps);
   CHBrowserService::RegisterAppComponents(comps, numComps);
+
+  // add our OpenSearch handler
+  AddSearchProviderHandler::InstallHandler();
 
   mGeckoInitted = YES;
 }

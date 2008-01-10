@@ -45,7 +45,7 @@ NSString *const kWebSearchPluginURLKey = @"SearchPluginURL";
 
 #define PLUGIN_DOWNLOAD_TIMEOUT_INTERVAL 3.0
 
-static NSString *const kOpenSearchMIMEType = @"application/opensearchdescription+xml";
+NSString *const kOpenSearchMIMEType = @"application/opensearchdescription+xml";
 
 @interface XMLSearchPluginParser (PrivateToSuperclass)
 

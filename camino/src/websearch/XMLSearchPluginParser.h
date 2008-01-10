@@ -42,6 +42,9 @@ extern NSString *const kWebSearchPluginNameKey;
 extern NSString *const kWebSearchPluginMIMETypeKey;
 extern NSString *const kWebSearchPluginURLKey;
 
+// Supported MIME types:
+extern NSString *const kOpenSearchMIMEType;
+
 //
 // XMLSearchPluginParser
 //
