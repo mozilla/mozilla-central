@@ -170,8 +170,9 @@ pkix_pl_HttpCertStoreContext_RegisterSelf(void *plContext)
 /* --Private-Http-CertStore-Database-Functions----------------------- */
 
 typedef struct callbackContextStruct  {
-        PKIX_List *pkixCertList;
-        void *plContext;
+        PKIX_List  *pkixCertList;
+        PKIX_Error *error;
+        void       *plContext;
 } callbackContext;
 
 
@@ -207,12 +208,10 @@ static SECStatus
 certCallback(void *arg, SECItem **secitemCerts, int numcerts)
 {
         callbackContext *cbContext;
-        SECItem **certs = NULL;
-        SECItem *cert = NULL;
         PKIX_List *pkixCertList = NULL;
         PKIX_Error *error = NULL;
         void *plContext = NULL;
-        int certsFound = 0;
+        int itemNum = 0;
 
         if ((arg == NULL) || (secitemCerts == NULL)) {
                 return (SECFailure);
@@ -221,21 +220,31 @@ certCallback(void *arg, SECItem **secitemCerts, int numcerts)
         cbContext = (callbackContext *)arg;
         plContext = cbContext->plContext;
         pkixCertList = cbContext->pkixCertList;
-        certs = secitemCerts;
 
-        while ( *certs ) {
-                cert = *certs;
-                error = pkix_pl_Cert_CreateToList
-                        (cert, pkixCertList, plContext);
-                certsFound++;
-                certs++;
+        for (; itemNum < numcerts; itemNum++ ) {
+                error = pkix_pl_Cert_CreateToList(secitemCerts[itemNum],
+                                                  pkixCertList, plContext);
                 if (error != NULL) {
-                        PKIX_PL_Object_DecRef
-                                ((PKIX_PL_Object *)error, plContext);
+                    if (error->errClass == PKIX_FATAL_ERROR) {
+                        cbContext->error = error;
+                        return SECFailure;
+                    } 
+                    /* reuse "error" since we could not destruct the old *
+                     * value */
+                    error = PKIX_PL_Object_DecRef((PKIX_PL_Object *)error,
+                                                        plContext);
+                    if (error) {
+                        /* Treat decref failure as a fatal error.
+                         * In this case will leak error, but can not do
+                         * anything about it. */
+                        error->errClass = PKIX_FATAL_ERROR;
+                        cbContext->error = error;
+                        return SECFailure;
+                    }
                 }
         }
 
-        return ((certsFound == numcerts)?SECSuccess:SECFailure);
+        return SECSuccess;
 }
 
 
@@ -299,7 +308,7 @@ pkix_pl_HttpCertStore_Shutdown(void *plContext)
  */
 PKIX_Error *
 pkix_pl_HttpCertStore_DecodeCertPackage
-        (char *certbuf,
+        (const char *certbuf,
         int certlen,
         CERTImportCertificateFunc f,
         void *arg,
@@ -325,7 +334,7 @@ pkix_pl_HttpCertStore_DecodeCertPackage
                PKIX_ERROR(PKIX_CANTLOADLIBSMIME);
         }
 
-        rv = (*pkix_decodeFunc.func)(certbuf, certlen, f, arg);
+        rv = (*pkix_decodeFunc.func)((char*)certbuf, certlen, f, arg);
 
         if (rv != SECSuccess) {
                 PKIX_ERROR (PKIX_SECREADPKCS7CERTSFAILED);
@@ -377,15 +386,15 @@ pkix_pl_HttpCertStore_ProcessCertResponse(
         PKIX_List **pCertList,
         void *plContext)
 {
-        PRArenaPool *arena = NULL;
-        char *encodedResponse = NULL;
-        PRIntn compareVal = 0;
-        PKIX_List *certs = NULL;
         callbackContext cbContext;
 
-        PKIX_ENTER
-                (HTTPCERTSTORECONTEXT,
+        PKIX_ENTER(HTTPCERTSTORECONTEXT,
                 "pkix_pl_HttpCertStore_ProcessCertResponse");
+        
+        cbContext.error = NULL;
+        cbContext.plContext = plContext;
+        cbContext.pkixCertList = NULL;
+
         PKIX_NULLCHECK_ONE(pCertList);
 
         if (responseCode != 200) {
@@ -397,49 +406,33 @@ pkix_pl_HttpCertStore_ProcessCertResponse(
                 PKIX_ERROR(PKIX_NOCONTENTTYPEINHTTPRESPONSE);
         }
 
-        PKIX_PL_NSSCALLRV(HTTPCERTSTORECONTEXT, compareVal, PORT_Strcasecmp,
-                (responseContentType, "application/pkcs7-mime"));
-
-        if (compareVal != 0) {
-                PKIX_ERROR(PKIX_CONTENTTYPENOTPKCS7MIME);
-        }
-
-        PKIX_PL_NSSCALLRV(HTTPCERTSTORECONTEXT, arena, PORT_NewArena,
-                (DER_DEFAULT_CHUNKSIZE));
-
-        if (arena == NULL) {
-                PKIX_ERROR(PKIX_OUTOFMEMORY);
-        }
-
         if (responseData == NULL) {
                 PKIX_ERROR(PKIX_NORESPONSEDATAINHTTPRESPONSE);
         }
 
-        PKIX_CHECK(PKIX_List_Create(&certs, plContext),
-                PKIX_LISTCREATEFAILED);
-
-        cbContext.pkixCertList = certs;
-        cbContext.plContext = plContext;
-        encodedResponse = (char *)responseData;
-
-	PKIX_CHECK(pkix_pl_HttpCertStore_DecodeCertPackage
-		(encodedResponse,
-                responseDataLen,
-                certCallback,
-                &cbContext,
-                plContext),
-		PKIX_HTTPCERTSTOREDECODECERTPACKAGEFAILED);
-
+        PKIX_CHECK(
+            PKIX_List_Create(&cbContext.pkixCertList, plContext),
+            PKIX_LISTCREATEFAILED);
+        
+        PKIX_CHECK_ONLY_FATAL(
+            pkix_pl_HttpCertStore_DecodeCertPackage(responseData,
+                                                    responseDataLen,
+                                                    certCallback,
+                                                    &cbContext,
+                                                    plContext),
+            PKIX_HTTPCERTSTOREDECODECERTPACKAGEFAILED);
+        if (cbContext.error) {
+            /* Aborting on a fatal error(See certCallback fn) */
+            pkixErrorResult = cbContext.error;
+            goto cleanup;
+        }
+        
         *pCertList = cbContext.pkixCertList;
+        cbContext.pkixCertList = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
-                PKIX_DECREF(cbContext.pkixCertList);
-        }
 
-        if (arena != NULL) {
-                PKIX_PL_NSSCALL(CERTSTORE, PORT_FreeArena, (arena, PR_FALSE));
-        }
+        PKIX_DECREF(cbContext.pkixCertList);
 
         PKIX_RETURN(HTTPCERTSTORECONTEXT);
 }
