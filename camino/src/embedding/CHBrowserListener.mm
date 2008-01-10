@@ -831,6 +831,8 @@ CHBrowserListener::HandleLinkAddedEvent(nsIDOMEvent* inEvent)
     HandleFaviconLink(linkElement);
   else if (linkAttrType == eFeedType)
     HandleFeedLink(linkElement);
+  else if (linkAttrType == eSearchPluginType)
+    HandleSearchPluginLink(linkElement);
 
   return NS_OK;
 }
@@ -838,24 +840,29 @@ CHBrowserListener::HandleLinkAddedEvent(nsIDOMEvent* inEvent)
 ELinkAttributeType
 CHBrowserListener::GetLinkAttributeType(nsIDOMElement* inElement)
 {
-  nsAutoString attribute;
-  inElement->GetAttribute(NS_LITERAL_STRING("rel"), attribute);
+  nsAutoString relAttribute;
+  inElement->GetAttribute(NS_LITERAL_STRING("rel"), relAttribute);
   
   // Favicon link type
-  if (attribute.EqualsIgnoreCase("shortcut icon") || attribute.EqualsIgnoreCase("icon"))
+  if (relAttribute.EqualsIgnoreCase("shortcut icon") || relAttribute.EqualsIgnoreCase("icon"))
     return eFavIconType;
+  
+  // Search Plugin type
+  if (relAttribute.Equals(NS_LITERAL_STRING("search")))
+    return eSearchPluginType;
 
   // Check for feed type next
-  inElement->GetAttribute(NS_LITERAL_STRING("type"), attribute);
+  nsAutoString typeAttribute;
+  inElement->GetAttribute(NS_LITERAL_STRING("type"), typeAttribute);
   
   // kinda ugly, but if we don't match any of these strings return
-  if (attribute.Equals(NS_LITERAL_STRING("application/rssxml")) ||
-      attribute.Equals(NS_LITERAL_STRING("application/rss+xml")) ||
-      attribute.Equals(NS_LITERAL_STRING("application/atomxml")) ||
-      attribute.Equals(NS_LITERAL_STRING("application/atom+xml")) ||
-      attribute.Equals(NS_LITERAL_STRING("text/xml")) ||
-      attribute.Equals(NS_LITERAL_STRING("application/xml")) ||
-      attribute.Equals(NS_LITERAL_STRING("application/rdfxml")))
+  if (typeAttribute.Equals(NS_LITERAL_STRING("application/rssxml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("application/rss+xml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("application/atomxml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("application/atom+xml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("text/xml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("application/xml")) ||
+      typeAttribute.Equals(NS_LITERAL_STRING("application/rdfxml")))
   {
     return eFeedType;
   }
@@ -997,4 +1004,57 @@ CHBrowserListener::HandleFeedLink(nsIDOMElement* inElement)
   
   // notify that a feed has sucessfully been discovered
   [mContainer onFeedDetected:feedSpec feedTitle:titleSpec];
+}
+
+void
+CHBrowserListener::HandleSearchPluginLink(nsIDOMElement* inElement)
+{
+  nsresult rv;
+  
+  nsCOMPtr<nsIDOMDocument> domDoc;
+  inElement->GetOwnerDocument(getter_AddRefs(domDoc));
+  
+  nsAutoString titleAttribute;
+  rv = inElement->GetAttribute(NS_LITERAL_STRING("title"), titleAttribute);
+  if (NS_FAILED(rv))
+    return;
+  
+  nsAutoString hrefAttribute;
+  rv = inElement->GetAttribute(NS_LITERAL_STRING("href"), hrefAttribute);
+  if (NS_FAILED(rv))
+    return;
+
+  // get the document uri
+  nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface(domDoc);
+  if (!doc)
+    return;
+  
+  nsAutoString docURISpec;
+  rv = doc->GetDocumentURI(docURISpec);
+  if (NS_FAILED(rv))
+    return;
+  
+  nsCOMPtr<nsIURI> documentURI;
+  rv = NS_NewURI(getter_AddRefs(documentURI), docURISpec);
+  if (NS_FAILED(rv))
+    return;
+  
+  nsCOMPtr<nsIURI> fullSearchPluginURI;
+  rv = NS_NewURI(getter_AddRefs(fullSearchPluginURI), NS_ConvertUTF16toUTF8(hrefAttribute), nsnull, documentURI);
+  if (NS_FAILED(rv))
+    return;
+  
+  nsCAutoString fullSearchPluginURISpec;
+  fullSearchPluginURI->GetSpec(fullSearchPluginURISpec);
+
+  nsAutoString typeAttribute;
+  rv = inElement->GetAttribute(NS_LITERAL_STRING("type"), typeAttribute);
+  if (NS_FAILED(rv))
+    return;
+  
+  NSString* title = [NSString stringWith_nsAString:titleAttribute];
+  NSURL* location = [NSURL URLWithString:[NSString stringWith_nsACString:fullSearchPluginURISpec]];
+  NSString* mimeType = [NSString stringWith_nsAString:typeAttribute];
+
+  [mContainer onSearchPluginDetected:location mimeType:mimeType displayName:title];
 }

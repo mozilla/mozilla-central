@@ -62,8 +62,8 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
     mSearchEngineManager = [SearchEngineManager sharedSearchEngineManager];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(installedSearchEnginesDidChange:) 
-                                                 name:kInstalledSearchEnginesDidChangeNotification 
+                                             selector:@selector(installedSearchEnginesDidChange:)
+                                                 name:kInstalledSearchEnginesDidChangeNotification
                                                object:nil];
   }
   return self;
@@ -120,8 +120,8 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
     [alert setMessageText:NSLocalizedString(@"RemovingAllEnginesTitle", nil)];
     [alert setInformativeText:NSLocalizedString(@"RemovingAllEnginesMessage", nil)];
     [alert setAlertStyle:NSWarningAlertStyle];
-    [alert beginSheetModalForWindow:[self window] 
-                      modalDelegate:self 
+    [alert beginSheetModalForWindow:[self window]
+                      modalDelegate:self
                      didEndSelector:NULL
                         contextInfo:NULL];
     return;
@@ -202,7 +202,7 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
   // Store which rows are being dragged onto the pasteboard.
   [pboard declareTypes:[NSArray arrayWithObject:kSearchEngineEditorDraggedEngineType] owner:self];
 
-  // 10.4+ Note: Using the new NSTableDataSource dragging method |tableView:writeRowWithIndexes:toPasteboard:| 
+  // 10.4+ Note: Using the new NSTableDataSource dragging method |tableView:writeRowWithIndexes:toPasteboard:|
   // can eliminate this manual index set population.
   NSMutableIndexSet *draggedRowIndexSet = [NSMutableIndexSet indexSet];
   NSEnumerator *draggedRowEnumerator = [rows objectEnumerator];

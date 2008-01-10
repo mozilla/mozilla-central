@@ -51,6 +51,7 @@
 #import "AutoCompleteTextField.h"
 #import "RolloverImageButton.h"
 #import "CHPermissionManager.h"
+#import "XMLSearchPluginParser.h"
 
 #include "CHBrowserService.h"
 #include "ContentClickListener.h"
@@ -179,6 +180,8 @@ enum StatusPriority {
     
     mLoadingResources = [[NSMutableSet alloc] init];
     
+    mDetectedSearchPlugins = [[NSMutableArray alloc] initWithCapacity:1];
+
     [self registerNotificationListener];
   }
   return self;
@@ -204,7 +207,8 @@ enum StatusPriority {
   NS_IF_RELEASE(mBlockedPopups);
   
   [mFeedList release];
-  
+  [mDetectedSearchPlugins release];
+
   [mBrowserView release];
   [mContentViewProviders release];
 
@@ -501,6 +505,8 @@ enum StatusPriority {
   
   [mDelegate showFeedDetected:NO];
   [mFeedList removeAllObjects];
+  [mDelegate showSearchPluginDetected:NO];
+  [mDetectedSearchPlugins removeAllObjects];
   
   [mTabItem setLabel:NSLocalizedString(@"TabLoading", @"")];
 }
@@ -811,6 +817,18 @@ enum StatusPriority {
   [mFeedList addObject:feed];
   // notify the browser UI that a feed was found
   [mDelegate showFeedDetected:YES];
+}
+
+- (void)onSearchPluginDetected:(NSURL*)pluginURL mimeType:(NSString*)pluginMIMEType displayName:(NSString*)pluginName
+{
+  if ([XMLSearchPluginParser canParsePluginMIMEType:pluginMIMEType]) {
+    NSDictionary* searchPluginDict = [NSDictionary dictionaryWithObjectsAndKeys:pluginURL, kWebSearchPluginURLKey,
+                                                                                pluginMIMEType, kWebSearchPluginMIMETypeKey,
+                                                                                pluginName, kWebSearchPluginNameKey, 
+                                                                                nil];
+    [mDetectedSearchPlugins addObject:searchPluginDict];
+    [mDelegate showSearchPluginDetected:YES];
+  }
 }
 
 // Called when a context menu should be shown.
@@ -1168,6 +1186,11 @@ enum StatusPriority {
 - (NSArray*)feedList
 {
   return mFeedList;
+}
+
+- (NSArray*)detectedSearchPlugins
+{
+  return mDetectedSearchPlugins;
 }
 
 #pragma mark -

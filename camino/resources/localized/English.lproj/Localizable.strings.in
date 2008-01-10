@@ -444,3 +444,6 @@
 "EngineNameAlreadyExistsMessage" = "A search engine named “%@” already exists.  Please specify a different name.";
 "RemovingAllEnginesTitle" = "Cannot remove all search engines";
 "RemovingAllEnginesMessage" = "Camino needs at least one search engine to be installed.";
+"InstallSearchPluginMenuItem" = "Add “%@”";
+"SearchPluginInstallationErrorTitle" = "Problem adding the search engine.";
+"SearchPluginInstallationErrorMessage" = "Camino was unable to add %@ to the web search field. The search plugin could be unavailable or in an unsupported format.";

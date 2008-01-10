@@ -80,6 +80,8 @@
 #import "ToolbarScriptItem.h"
 #import "SearchEngineManager.h"
 #import "SearchEngineEditor.h"
+// For search plugin description keys:
+#import "XMLSearchPluginParser.h"
 
 #import "CHPermissionManager.h"
 #import "CHBrowserService.h"
@@ -579,7 +581,7 @@ enum BWCOpenDest {
 - (void)currentEditor:(nsIEditor**)outEditor;
 - (void)getMisspelledWordRange:(nsIDOMRange**)outRange inlineSpellChecker:(nsIInlineSpellChecker**)outInlineChecker;
 
-- (void)setUpSearchFields;
+- (void)populateEnginesIntoAllSearchFields;
 - (void)populateEnginesIntoSearchField:(WebSearchField*)searchField;
 - (NSString*)lastKnownPreferredSearchEngine;
 - (void)setLastKnownPreferredSearchEngine:(NSString*)inPreferredEngine;
@@ -893,7 +895,7 @@ enum BWCOpenDest {
 
     // Set up the menus in the search fields
     [self setLastKnownPreferredSearchEngine:[[SearchEngineManager sharedSearchEngineManager] preferredSearchEngine]];
-    [self setUpSearchFields];
+    [self populateEnginesIntoAllSearchFields];
     // Listen for changes to the collection of built-in search engines.
     [[NSNotificationCenter defaultCenter] addObserver:self 
                                              selector:@selector(installedSearchEnginesDidChange:) 
@@ -2152,6 +2154,7 @@ enum BWCOpenDest {
   [self updateStatus:[mBrowserView statusString]];
   [self updateLocationFields:[mBrowserView currentURI] ignoreTyping:NO];
   [self showFeedDetected:[mBrowserView feedsDetected]];
+  [self showSearchPluginDetected:[[mBrowserView detectedSearchPlugins] count]];
 }
 
 #pragma mark -
@@ -4690,7 +4693,7 @@ enum BWCOpenDest {
   mLastKnownPreferredSearchEngine = [inPreferredEngine retain];
 }
 
-- (void)setUpSearchFields
+- (void)populateEnginesIntoAllSearchFields
 {
   [self populateEnginesIntoSearchField:mSearchBar];
   [self populateEnginesIntoSearchField:mSearchSheetTextField];
@@ -4726,8 +4729,66 @@ enum BWCOpenDest {
 //
 - (void)installedSearchEnginesDidChange:(NSNotification*)notification
 { 
-  [self setUpSearchFields];
+  [self populateEnginesIntoAllSearchFields];
+  [self showSearchPluginDetected:([[[self browserWrapper] detectedSearchPlugins] count] > 0)];
   [self setLastKnownPreferredSearchEngine:[[SearchEngineManager sharedSearchEngineManager] preferredSearchEngine]];
+}
+
+- (void)showSearchPluginDetected:(BOOL)pluginsAreDetected
+{
+  if (pluginsAreDetected)
+    [mSearchBar setDetectedSearchPlugins:[[self browserWrapper] detectedSearchPlugins]];
+  else
+    [mSearchBar setDetectedSearchPlugins:nil];
+}
+
+- (BOOL)webSearchField:(WebSearchField*)searchField shouldListDetectedSearchPlugin:(NSDictionary *)searchPluginInfoDict
+{
+  // Exclude search plugins which are already installed. 
+  // Without actually parsing the plugin, all we can really compare is the name listed in
+  // |searchPluginInfoDict| (which is what was supplied on the page's autodiscovery link).
+  // It's tough to be perfect here though, because sometimes this name isn't identical to the
+  // actual installed engine name.
+
+  NSString* pluginName = [searchPluginInfoDict objectForKey:kWebSearchPluginNameKey];
+  if (!pluginName)
+    return NO;
+
+  NSEnumerator* installedEngineEnumerator = [[[SearchEngineManager sharedSearchEngineManager] installedSearchEngines] objectEnumerator];
+  NSDictionary* installedSearchEngine;
+  while ((installedSearchEngine = [installedEngineEnumerator nextObject])) {  
+    NSString* installedEngineName = [installedSearchEngine valueForKey:kWebSearchEngineNameKey];
+    if ([pluginName isEqualToString:installedEngineName])
+      return NO;
+  }
+
+  return YES;
+}
+
+- (IBAction)installSearchPlugin:(id)sender
+{
+  id searchPlugin = [sender representedObject];
+  BOOL addedOK = [[SearchEngineManager sharedSearchEngineManager] addSearchEngineFromPlugin:searchPlugin];
+
+  if (addedOK) {
+    // Start using the installed engine.
+    // The installed name sometimes differs from the name listed on the web page's autodiscovery link.
+    // Because of this, select the last engine.
+    NSString* installedPluginName = [[[SearchEngineManager sharedSearchEngineManager] installedSearchEngineNames] lastObject];
+    [mSearchBar setCurrentSearchEngine:installedPluginName];
+  }
+  else {
+    NSString* searchPluginName = [searchPlugin valueForKey:kWebSearchPluginNameKey];
+    NSAlert* alert = [[[NSAlert alloc] init] autorelease];
+    [alert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
+    [alert setMessageText:NSLocalizedString(@"SearchPluginInstallationErrorTitle", nil)];
+    [alert setInformativeText:[NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil), searchPluginName]];
+    [alert setAlertStyle:NSWarningAlertStyle];
+    [alert beginSheetModalForWindow:[self window] 
+                      modalDelegate:self 
+                     didEndSelector:NULL
+                        contextInfo:NULL];
+  }
 }
 
 - (IBAction)manageSearchEngines:(id)sender

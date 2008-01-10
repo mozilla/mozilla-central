@@ -1316,6 +1316,10 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
 {
 }
 
+- (void)onSearchPluginDetected:(NSURL*)pluginURL mimeType:(NSString*)pluginMIMEType displayName:(NSString*)pluginName
+{
+}
+
 @end
 
 //

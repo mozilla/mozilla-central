@@ -57,6 +57,7 @@ typedef enum
 {
   eFeedType,
   eFavIconType,
+  eSearchPluginType,
   eOtherType
 } ELinkAttributeType;
 
@@ -98,6 +99,7 @@ protected:
   nsresult HandleLinkAddedEvent(nsIDOMEvent* inEvent);
   void HandleFaviconLink(nsIDOMElement* inElement);
   void HandleFeedLink(nsIDOMElement* inElement);
+  void HandleSearchPluginLink(nsIDOMElement* inElement);
   ELinkAttributeType GetLinkAttributeType(nsIDOMElement* inElement); 
     
 private:

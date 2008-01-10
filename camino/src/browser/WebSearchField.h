@@ -43,6 +43,7 @@
 // A search field that knows how to manage a web search engine list, for use as
 // the toolbar web search field.
 @interface WebSearchField : NSSearchField {
+  NSImage* mDetectedSearchPluginImage; // strong
 }
 
 // Takes an array of dictionaries, using the keys declared in SearchEngineManger.h,
@@ -52,10 +53,25 @@
 // Changes the current search engine setting to the one names |engineName|.
 - (void)setCurrentSearchEngine:(NSString*)engineName;
 
+// Takes an array of dictionaries, using the keys declared in XMLSearchPluginParser.h, to
+// populate the menu with search plugins available to install. Plugin menu items send the
+// |installSearchPlugin:| action to the search field's target, and each item's |representedObject|
+// is the search plugin dictionary.
+//
+// The search field will automatically indicate if plugins are available in its menu.
+// Calling this method with nil or an empty array will remove all existing items.
+- (void)setDetectedSearchPlugins:(NSArray*)detectedSearchPlugins;
+
 // Returns the name of the currently selected search engine.
 - (NSString*)currentSearchEngine;
 
 // Returns the search URL for the currently selected search engine.
 - (NSString*)currentSearchURL;
+
+@end
+
+@interface WebSearchField (DelegateMethods)
+
+- (BOOL)webSearchField:(WebSearchField*)webSearchField shouldListDetectedSearchPlugin:(NSDictionary *)searchPluginInfoDict;
 
 @end

@@ -68,6 +68,7 @@ class nsIArray;
 - (void)showPopupBlocked:(BOOL)blocked;
 - (void)showSecurityState:(unsigned long)state;
 - (void)showFeedDetected:(BOOL)inDetected;
+- (void)showSearchPluginDetected:(BOOL)pluginsAreDetected;
 - (void)showBlockedPopups:(nsIArray*)blockedSites whitelistingSource:(BOOL)shouldWhitelist;
 - (void)blacklistPopupsFromURL:(NSString*)inURL;
 
@@ -144,6 +145,7 @@ class nsIArray;
     // later. If nil, no sites are blocked. Cleared after each new page.
   nsIMutableArray*          mBlockedPopups;
   NSMutableArray*           mFeedList;         // list of feeds found on page
+  NSMutableArray*           mDetectedSearchPlugins; // STRONG;
 
   CHBrowserView*            mBrowserView;      // retained
   ToolTip*                  mToolTip;
@@ -202,6 +204,7 @@ class nsIArray;
 - (BOOL)feedsDetected;
 - (unsigned long)securityState;
 - (NSArray*)feedList;
+- (NSArray*)detectedSearchPlugins;
 
 - (IBAction)showPopups:(id)sender;
 - (IBAction)unblockPopups:(id)sender;

@@ -21,6 +21,7 @@
 *
 * Contributor(s):
 *   Stuart Morgan <stuart.morgan@alumni.case.edu>
+*   Sean Murphy <murph@seanmurph.com>
 *
 * Alternatively, the contents of this file may be used under the terms of
 * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,9 +41,12 @@
 
 #import "NSString+Utils.h"
 #import "NSMenu+Utils.h"
+#import "NSBezierPath+Utils.h"
 
 // For search engine description keys:
 #import "SearchEngineManager.h"
+// For search plugin description keys:
+#import "XMLSearchPluginParser.h"
 
 // Formatter that prevents entry of control characters.
 @interface WebSearchFormatter : NSFormatter
@@ -54,6 +58,14 @@
 
 static const int kSearchEngineMenuItemTag = 100;
 static const int kSeparatorBeforeManageSearchEnginesMenuItemTag = 101;
+static const int kSearchPluginRelatedItemsTag = 102;
+
+@interface WebSearchField (Private)
+
+- (void)indicateDetectedSearchPlugin:(BOOL)shouldIndicate;
+- (NSImage*)searchButtonImageWithDetectedPlugins;
+
+@end
 
 @implementation WebSearchField
 
@@ -68,11 +80,17 @@ static const int kSeparatorBeforeManageSearchEnginesMenuItemTag = 101;
   [separatorBeforeManageEngines setTag:kSeparatorBeforeManageSearchEnginesMenuItemTag];
   [searchMenu addItem:separatorBeforeManageEngines];
   NSMenuItem* manageEnginesMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"ManageSearchEnginesMenuItem", nil)
-                                                                 action:@selector(manageSearchEngines:) 
+                                                                 action:@selector(manageSearchEngines:)
                                                           keyEquivalent:@""] autorelease];
   [manageEnginesMenuItem setTarget:[self target]];
   [searchMenu addItem:manageEnginesMenuItem];
   [[self cell] setSearchMenuTemplate:searchMenu];
+}
+
+- (void)dealloc
+{
+  [mDetectedSearchPluginImage release];
+  [super dealloc];
 }
 
 - (void)setSearchEngines:(NSArray*)searchEngines
@@ -111,6 +129,120 @@ static const int kSeparatorBeforeManageSearchEnginesMenuItemTag = 101;
     [newSelection setState:NSOnState];
     [[self cell] setSearchMenuTemplate:engineMenu];
   }
+}
+
+- (void)setDetectedSearchPlugins:(NSArray*)detectedSearchPlugins
+{
+  NSMenu *searchMenu = [[self cell] searchMenuTemplate];
+
+  [searchMenu removeAllItemsWithTag:kSearchPluginRelatedItemsTag];
+
+  if ([detectedSearchPlugins count] > 0) {
+
+    // Style the plugin menu items to make them stand out
+    NSDictionary* menuItemStringAttributes = [NSDictionary dictionaryWithObject:
+                                               [NSFont boldSystemFontOfSize:0] forKey:NSFontAttributeName];
+
+    NSEnumerator* pluginEnumerator = [detectedSearchPlugins objectEnumerator];
+    NSDictionary* searchPlugin;
+    while ((searchPlugin = [pluginEnumerator nextObject])) {
+      // Give the delegate a chance to exclude this plugin
+      if ([[self delegate] respondsToSelector:@selector(webSearchField:shouldListDetectedSearchPlugin:)]) {
+        if (![[self delegate] webSearchField:self shouldListDetectedSearchPlugin:searchPlugin])
+          continue;
+      }
+
+      NSString* pluginName = [searchPlugin objectForKey:kWebSearchPluginNameKey];
+      NSString* menuItemTitle = [NSString stringWithFormat:NSLocalizedString(@"InstallSearchPluginMenuItem", nil), pluginName];
+      NSAttributedString* attributedTitle = [[[NSAttributedString alloc] initWithString:menuItemTitle
+                                                                             attributes:menuItemStringAttributes] autorelease];
+
+      NSMenuItem* pluginMenuItem = [[[NSMenuItem alloc] initWithTitle:@""
+                                                               action:@selector(installSearchPlugin:)
+                                                        keyEquivalent:@""] autorelease];
+      [pluginMenuItem setAttributedTitle:attributedTitle];
+      [pluginMenuItem setRepresentedObject:searchPlugin];
+      [pluginMenuItem setTag:kSearchPluginRelatedItemsTag];
+      [pluginMenuItem setTarget:[self target]];
+      [searchMenu insertItem:pluginMenuItem
+                     atIndex:[searchMenu indexOfItemWithTag:kSeparatorBeforeManageSearchEnginesMenuItemTag]];
+    }
+  }
+
+  // See if any plugin menu items exist (detectedSearchPlugins could have been
+  // nil or the delegate excluded every one) and indicate this fact.
+  BOOL pluginItemsWereAdded = [searchMenu itemWithTag:kSearchPluginRelatedItemsTag] ? YES : NO;
+  if (pluginItemsWereAdded) {
+    // Insert a separator before the plugin items.
+    NSMenuItem* separatorItem = [NSMenuItem separatorItem];
+    [separatorItem setTag:kSearchPluginRelatedItemsTag];
+    [searchMenu insertItem:separatorItem
+                  atIndex:[searchMenu indexOfItemWithTag:kSearchPluginRelatedItemsTag]];
+  }
+  [self indicateDetectedSearchPlugin:pluginItemsWereAdded];
+
+  [[self cell] setSearchMenuTemplate:searchMenu];
+}
+
+// Informs the search field to visually indicate that a plugin is available to install.
+- (void)indicateDetectedSearchPlugin:(BOOL)shouldIndicate
+{
+  if (shouldIndicate)
+    [[[self cell] searchButtonCell] setImage:[self searchButtonImageWithDetectedPlugins]];
+  else
+    [[self cell] resetSearchButtonCell];
+}
+
+// Returns an image for our search button cell to indicate detected search plugins.
+- (NSImage*)searchButtonImageWithDetectedPlugins
+{
+  if (!mDetectedSearchPluginImage) {
+
+    // Construct a new image for our search button cell.  We do some custom drawing and
+    // then composite the original search button image back on top.
+
+    NSImage* systemSearchButtonImage  = [[[self cell] searchButtonCell] image];
+    mDetectedSearchPluginImage = [[NSImage alloc] initWithSize:[systemSearchButtonImage size]];
+
+    NSRect searchButtonRect = NSZeroRect;
+    searchButtonRect.size = [systemSearchButtonImage size];
+
+    // The search button cell has a lot of extra padding around the actual button image,
+    // so we have to trim it down for our background fill area.
+    // If the system search button image should change, these values will likely need modification.
+    float kDetectedSearchButtonCellTopTrimming    = 5.0f;
+    float kDetectedSearchButtonCellBottomTrimming = 2.0f;
+    float kDetectedSearchButtonCellLeftTrimming   = 2.5f;
+    float kDetectedSearchButtonCellRightTrimming  = 2.5f;
+
+    NSRect backgroundFillRect = searchButtonRect;
+    backgroundFillRect.origin.x += kDetectedSearchButtonCellLeftTrimming;
+    backgroundFillRect.size.width -= kDetectedSearchButtonCellRightTrimming;
+    backgroundFillRect.origin.y += kDetectedSearchButtonCellBottomTrimming;
+    backgroundFillRect.size.height -= kDetectedSearchButtonCellTopTrimming;
+
+    [mDetectedSearchPluginImage lockFocus];
+
+    // Draw a rounded fill as our background.
+    NSBezierPath* roundedBackgroundPath = [NSBezierPath bezierPathWithRoundCorneredRect:backgroundFillRect
+                                                                           cornerRadius:10.0];
+    NSColor* backgroundFillColor = [NSColor colorWithCalibratedRed:0.666667f
+                                                             green:0.768627f
+                                                              blue:0.866667f
+                                                             alpha:1.0f];
+    [backgroundFillColor set];
+    [roundedBackgroundPath fill];
+
+    // Then, composite the original search button image on top.
+    [systemSearchButtonImage drawInRect:searchButtonRect
+                               fromRect:NSZeroRect
+                              operation:NSCompositeSourceOver
+                               fraction:1.0];
+
+    [mDetectedSearchPluginImage unlockFocus];
+  }
+
+  return mDetectedSearchPluginImage;
 }
 
 - (NSString*)currentSearchEngine

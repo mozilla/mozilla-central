@@ -34,6 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
 #import <Cocoa/Cocoa.h>
 
 // The following notification is sent whenever a search engine has been
@@ -72,8 +73,16 @@ extern NSString *const kWebSearchEngineURLKey;
 - (NSString *)preferredSearchEngine;
 - (void)setPreferredSearchEngine:(NSString *)newPreferredSearchEngine;
 
+// Adds the plugin to the end of |installedSearchEngines|.
+// Return value indicates whether the plugin was successfully parsed and a new engine added.
+- (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict;
+
+- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL;
+- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL atIndex:(unsigned)index;
+
 - (void)renameSearchEngineAtIndex:(unsigned)index to:(NSString *)newEngineName;
 - (void)moveSearchEnginesAtIndexes:(NSIndexSet *)indexes toIndex:(unsigned)destinationIndex;
+
 - (void)removeSearchEngineAtIndex:(unsigned)index;
 - (void)removeSearchEnginesAtIndexes:(NSIndexSet *)indexes;
 

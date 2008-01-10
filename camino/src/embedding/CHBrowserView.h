@@ -93,6 +93,8 @@ class nsIFocusController;
 - (void)onFoundShortcutIcon:(NSString*)inIconURI;
 // Called when a feed link element is noticed
 - (void)onFeedDetected:(NSString*)inFeedURI feedTitle:(NSString*)inFeedTitle;
+// Called when a search plugin link element is noticed.
+- (void)onSearchPluginDetected:(NSURL*)pluginURL mimeType:(NSString*)pluginMIMEType displayName:(NSString*)pluginName;
 
 @end
 
