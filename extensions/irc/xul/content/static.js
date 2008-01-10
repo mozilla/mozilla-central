@@ -3969,6 +3969,14 @@ function __display(message, msgtype, sourceObj, destObj)
     if (!msgtype)
         msgtype = MT_INFO;
 
+    var msgprefix = "";
+    if (msgtype.indexOf("/") != -1)
+    {
+        var ary = msgtype.match(/^(.*)\/(.*)$/);
+        msgtype = ary[1];
+        msgprefix = ary[2];
+    }
+
     var blockLevel = false; /* true if this row should be rendered at block
                              * level, (like, if it has a really long nickname
                              * that might disturb the rest of the layout)     */
@@ -4062,6 +4070,7 @@ function __display(message, msgtype, sourceObj, destObj)
     var msgRow = document.createElementNS(XHTML_NS, "html:tr");
     msgRow.setAttribute("class", "msg");
     msgRow.setAttribute("msg-type", msgtype);
+    msgRow.setAttribute("msg-prefix", msgprefix);
     msgRow.setAttribute("msg-dest", toAttr);
     msgRow.setAttribute("dest-type", toType);
     msgRow.setAttribute("view-type", viewType);
@@ -4081,7 +4090,7 @@ function __display(message, msgtype, sourceObj, destObj)
 
     var canMergeData;
     var msgRowSource, msgRowType, msgRowData;
-    if (fromUser && msgtype.match(/^(PRIVMSG|ACTION|NOTICE)$/))
+    if (fromUser && msgtype.match(/^(PRIVMSG|ACTION|NOTICE|WALLOPS)$/))
     {
         var nick = sourceObj.unicodeName;
         var decorSt = "";
@@ -4145,12 +4154,13 @@ function __display(message, msgtype, sourceObj, destObj)
                 decorEn = "<";
             }
         }
-        // Log the nickname in the same format as we'll let the user copy.
-        logStringPfx += decorSt + nick + decorEn + " ";
 
-        // Mark makes alternate "talkers" show up in different shades.
-        //if (!("mark" in this))
-        //    this.mark = "odd";
+        // Log the nickname in the same format as we'll let the user copy.
+        // If the message has a prefix, show it after a "/".
+        if (msgprefix)
+            logStringPfx += decorSt + nick + "/" + msgprefix + decorEn + " ";
+        else
+            logStringPfx += decorSt + nick + decorEn + " ";
 
         if (!("lastNickDisplayed" in this) || this.lastNickDisplayed != nick)
         {
@@ -4179,8 +4189,33 @@ function __display(message, msgtype, sourceObj, destObj)
         {
             msgRowSource.appendChild(newInlineText(nick));
         }
+        if (msgprefix)
+        {
+            /* We don't style the "/" with chatzilla-decor because the one
+             * thing we don't want is it disappearing!
+             */
+            msgRowSource.appendChild(newInlineText("/", ""));
+            msgRowSource.appendChild(newInlineText(msgprefix,
+                                                   "chatzilla-prefix"));
+        }
         if (decorEn)
             msgRowSource.appendChild(newInlineText(decorEn, "chatzilla-decor"));
+        canMergeData = this.prefs["collapseMsgs"];
+    }
+    else if (msgprefix)
+    {
+        decorSt = "<";
+        decorEn = ">";
+
+        logStringPfx += decorSt + "/" + msgprefix + decorEn + " ";
+
+        msgRowSource = document.createElementNS(XHTML_NS, "html:td");
+        msgRowSource.setAttribute("class", "msg-user");
+
+        msgRowSource.appendChild(newInlineText(decorSt, "chatzilla-decor"));
+        msgRowSource.appendChild(newInlineText("/", ""));
+        msgRowSource.appendChild(newInlineText(msgprefix, "chatzilla-prefix"));
+        msgRowSource.appendChild(newInlineText(decorEn, "chatzilla-decor"));
         canMergeData = this.prefs["collapseMsgs"];
     }
     else
@@ -4366,6 +4401,9 @@ function addHistory (source, obj, mergeData)
             // Are we the same user as last time?
             sameNick = (lastRow.getAttribute("msg-user") ==
                         inobj.getAttribute("msg-user"));
+            // Do we have the same prefix as last time?
+            samePrefix = (lastRow.getAttribute("msg-prefix") ==
+                          inobj.getAttribute("msg-prefix"));
             // Do we have the same destination as last time?
             sameDest = (lastRow.getAttribute("msg-dest") ==
                         inobj.getAttribute("msg-dest"));
@@ -4386,7 +4424,8 @@ function addHistory (source, obj, mergeData)
                              ("collapsemore" in source.motifSettings));
         }
 
-        if (sameNick && sameDest && (haveSameType || !needSameType) &&
+        if (sameNick && samePrefix && sameDest &&
+            (haveSameType || !needSameType) &&
             (!isAction || collapseActions))
         {
             obj = inobj;

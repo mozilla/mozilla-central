@@ -2338,6 +2338,7 @@ function serv_notice (e)
         {
             if (targetName[0] == this.userModes[i].symbol)
             {
+                e.msgPrefix = this.userModes[i];
                 targetName = targetName.substr(1);
                 break;
             }
@@ -2392,6 +2393,7 @@ function serv_privmsg (e)
         {
             if (targetName[0] == this.userModes[i].symbol)
             {
+                e.msgPrefix = this.userModes[i];
                 targetName = targetName.substr(1);
                 break;
             }
@@ -2425,6 +2427,26 @@ function serv_privmsg (e)
         e.destObject = e.replyTo;
         e.msg = e.decodeParam(2, e.replyTo);
     }
+
+    return true;
+}
+
+CIRCServer.prototype.onWallops =
+function serv_wallops(e)
+{
+    if (("user" in e) && e.user)
+    {
+        e.msg = e.decodeParam(1, e.user);
+        e.replyTo = e.user;
+    }
+    else
+    {
+        e.msg = e.decodeParam(1);
+        e.replyTo = this;
+    }
+
+    e.destObject = this.parent;
+    e.set = "network";
 
     return true;
 }

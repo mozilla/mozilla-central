@@ -2143,6 +2143,17 @@ function my_netpong (e)
     this.updateHeader(this);
 }
 
+CIRCNetwork.prototype.onWallops =
+function my_netwallops(e)
+{
+    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
+    if (e.user)
+        this.display(e.msg, "WALLOPS/WALLOPS", e.user, this);
+    else
+        this.display(e.msg, "WALLOPS/WALLOPS", undefined, this);
+    client.munger.getRule(".mailto").enabled = false;
+}
+
 CIRCNetwork.prototype.reclaimName =
 function my_reclaimname()
 {
@@ -2224,9 +2235,12 @@ CIRCChannel.prototype.onPrivmsg =
 function my_cprivmsg (e)
 {
     var msg = e.decodeParam(2);
+    var msgtype = "PRIVMSG";
+    if ("msgPrefix" in e)
+        msgtype += "/" + e.msgPrefix.symbol;
 
     client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    this.display (msg, "PRIVMSG", e.user, this);
+    this.display (msg, msgtype, e.user, this);
     client.munger.getRule(".mailto").enabled = false;
 }
 
@@ -2362,8 +2376,12 @@ function my_needops(e)
 CIRCChannel.prototype.onNotice =
 function my_notice (e)
 {
+    var msgtype = "NOTICE";
+    if ("msgPrefix" in e)
+        msgtype += "/" + e.msgPrefix.symbol;
+
     client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    this.display(e.decodeParam(2), "NOTICE", e.user, this);
+    this.display(e.decodeParam(2), msgtype, e.user, this);
     client.munger.getRule(".mailto").enabled = false;
 }
 
