@@ -108,8 +108,8 @@ function onSearch() {
 
     var opListener = {
         onResult: function search_onResult(op, result) {
+            var richListBox = document.getElementById("subscriptions-listbox");
             if (result) {
-                var richListBox = document.getElementById("subscriptions-listbox");
                 for each (var calendar in result) {
                     richListBox.addCalendar(calendar, registeredCals[calendar.id]);
                 }
