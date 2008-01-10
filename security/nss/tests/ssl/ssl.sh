@@ -167,8 +167,7 @@ wait_for_selfserv()
       tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
               -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
       if [ $? -ne 0 ]; then
-          html_failed "<TR><TD> Waiting for Server"
-          echo "${SCRIPTNAME}: Waiting for Server - FAILED"
+          html_failed "Waiting for Server"
       fi
   fi
   is_selfserv_alive
@@ -213,7 +212,7 @@ kill_selfserv()
   echo "selfserv with PID ${PID} killed at `date`"
 
   rm ${SERVERPID}
-  html_detect_core "<TR><TD>kill_selfserv core detection step"
+  html_detect_core "kill_selfserv core detection step"
 }
 
 ########################### start_selfserv #############################
@@ -621,7 +620,7 @@ _EOF_REQUEST_
              -p ../tests.pw.928
         ret=$?
         if [ "$ret" -eq 0 ]; then
-	    html_passed "<TR><TD> ${CU_ACTION}"
+	    html_passed "${CU_ACTION}"
             return 1
         fi
         start_selfserv        

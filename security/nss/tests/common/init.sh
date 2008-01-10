@@ -161,7 +161,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     {
         if [ -n "$1" ] ; then
             echo "$SCRIPTNAME: Exit: $* - FAILED"
-            html_failed "<TR><TD>$*"
+            html_failed "$*"
         fi
         echo "</TABLE><BR>" >> ${RESULTS}
         if [ -n "${SERVERPID}" -a -f "${SERVERPID}" ]; then
@@ -200,19 +200,30 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     html_passed()
     {
         html_detect_core "$@" || return
-        html "$* ${HTML_PASSED}"
+        MSG_ID=`cat ${MSG_ID_FILE}`
+        MSG_ID=`expr ${MSG_ID} + 1`
+        echo ${MSG_ID} > ${MSG_ID_FILE}
+        html "<TR><TD>#${MSG_ID}: $1 ${HTML_PASSED}"
+        echo "${SCRIPTNAME}: #${MSG_ID}: $* - PASSED"
     }
     html_failed()
     {
         html_detect_core "$@" || return
-        html "$* ${HTML_FAILED}"
+        MSG_ID=`cat ${MSG_ID_FILE}`
+        MSG_ID=`expr ${MSG_ID} + 1`
+        echo ${MSG_ID} > ${MSG_ID_FILE}
+        html "<TR><TD>#${MSG_ID}: $1 ${HTML_FAILED}"
+        echo "${SCRIPTNAME}: #${MSG_ID}: $* - FAILED"
     }
     html_detect_core()
     {
         detect_core
         if [ $? -ne 0 ]; then
-            echo "$*. Core file is detected."
-            html "$* ${HTML_FAILED_CORE}"
+            MSG_ID=`cat ${MSG_ID_FILE}`
+            MSG_ID=`expr ${MSG_ID} + 1`
+            echo ${MSG_ID} > ${MSG_ID_FILE}
+            html "<TR><TD>#${MSG_ID}: $* ${HTML_FAILED_CORE}"
+            echo "${SCRIPTNAME}: #${MSG_ID}: $* - Core file is detected."
             return 1
         fi
         return 0
@@ -227,15 +238,9 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     html_msg()
     {
         if [ "$1" -ne "$2" ] ; then
-            html_failed "<TR><TD>$3"
-            if [ -n "$4" ] ; then
-                echo "$SCRIPTNAME: $3 $4 FAILED"
-            fi
+            html_failed "$3" "$4"
         else
-            html_passed "<TR><TD>$3"
-            if [ -n "$4" ] ; then
-                echo "$SCRIPTNAME: $3 $4 PASSED"
-            fi
+            html_passed "$3" "$4"
         fi
     }
     HTML_FAILED='</TD><TD bgcolor=red>Failed</TD><TR>'
@@ -606,6 +611,10 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
 
     NSS_DEFAULT_DB_TYPE="dbm"
     export NSS_DEFAULT_DB_TYPE
+
+    MSG_ID_FILE="${HOSTDIR}/id"
+    MSG_ID=0
+    echo ${MSG_ID} > ${MSG_ID_FILE}
 
     #################################################
     # Interoperability testing constatnts

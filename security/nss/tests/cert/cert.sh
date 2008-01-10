@@ -90,11 +90,11 @@ cert_init()
 
   ROOTCERTSFILE=`ls -1 ${LIBDIR}/*nssckbi* | head -1`
   if [ ! "${ROOTCERTSFILE}" ] ; then
-      html_failed "<TR><TD>Looking for root certs module." 
+      html_failed "Looking for root certs module." 
       cert_log "ERROR: Root certs module not found."
       Exit 5 "Fatal - Root certs module not found."
   else
-      html_passed "<TR><TD>Looking for root certs module."
+      html_passed "Looking for root certs module."
   fi
 
   if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
@@ -154,10 +154,10 @@ certu()
     fi
     if [ "$RET" -ne 0 ]; then
         CERTFAILED=$RET
-        html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+        html_failed "${CU_ACTION} ($RET) " 
         cert_log "ERROR: ${CU_ACTION} failed $RET"
     else
-        html_passed "<TR><TD>${CU_ACTION}"
+        html_passed "${CU_ACTION}"
     fi
 
     return $RET
@@ -177,10 +177,10 @@ crlu()
     RET=$?
     if [ "$RET" -ne 0 ]; then
         CRLFAILED=$RET
-        html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+        html_failed "${CU_ACTION} ($RET) " 
         cert_log "ERROR: ${CU_ACTION} failed $RET"
     else
-        html_passed "<TR><TD>${CU_ACTION}"
+        html_passed "${CU_ACTION}"
     fi
 
     return $RET
@@ -197,10 +197,10 @@ modu()
     RET=$?
     if [ "$RET" -ne 0 ]; then
         MODFAILED=$RET
-        html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+        html_failed "${CU_ACTION} ($RET) " 
         cert_log "ERROR: ${CU_ACTION} failed $RET"
     else
-        html_passed "<TR><TD>${CU_ACTION}"
+        html_passed "${CU_ACTION}"
     fi
 
     return $RET
@@ -269,9 +269,9 @@ hw_acc()
             HW_ACC_ERR="$HW_ACC_ERR,modutil -add ncipher"
         fi
         if [ "$HW_ACC_RET" -ne 0 ]; then
-            html_failed "<TR><TD>Adding HW accelerators to certDB for ${CERTNAME} ($HW_ACC_RET) " 
+            html_failed "Adding HW accelerators to certDB for ${CERTNAME} ($HW_ACC_RET) " 
         else
-            html_passed "<TR><TD>Adding HW accelerators to certDB for ${CERTNAME}"
+            html_passed "Adding HW accelerators to certDB for ${CERTNAME}"
         fi
 
     fi
@@ -1013,10 +1013,10 @@ y
 MODSCRIPT
   RET=$?
   if [ "$RET" -ne 0 ]; then
-    html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+    html_failed "${CU_ACTION} ($RET) " 
     cert_log "ERROR: ${CU_ACTION} failed $RET"
   else
-    html_passed "<TR><TD>${CU_ACTION}"
+    html_passed "${CU_ACTION}"
   fi
 
   CU_ACTION="Generate Certificate for ${CERTNAME}"
@@ -1157,10 +1157,10 @@ cert_extensions()
             RET=$?
             if [ "$RET" -ne 0 ]; then
                 CERTFAILED=$RET
-                html_failed "<TR><TD>${CU_ACTION} ($RET) " 
+                html_failed "${CU_ACTION} ($RET) " 
                 cert_log "ERROR: ${CU_ACTION} failed $RET"
             else
-                html_passed "<TR><TD>${CU_ACTION}"
+                html_passed "${CU_ACTION}"
             fi
             rm -f $TARG_FILE
         else

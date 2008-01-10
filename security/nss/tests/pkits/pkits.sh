@@ -169,10 +169,10 @@ pkits()
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -ne 0 ]; then
-      html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+      html_failed "${VFY_ACTION} ($RET) "
       pkits_log "ERROR: ${VFY_ACTION} failed $RET"
   else
-      html_passed "<TR><TD>${VFY_ACTION}"
+      html_passed "${VFY_ACTION}"
       pkits_log "SUCCESS: ${VFY_ACTION} returned as expected $RET"
   fi
 
@@ -193,10 +193,10 @@ pkitsn()
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -eq 0 ]; then
-      html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+      html_failed "${VFY_ACTION} ($RET) "
       pkits_log "ERROR: ${VFY_ACTION} failed $RET"
   else
-      html_passed "<TR><TD>${VFY_ACTION} ($RET) "
+      html_passed "${VFY_ACTION} ($RET) "
       pkits_log "SUCCESS: ${VFY_ACTION} returned as expected $RET"
   fi
   return $RET
@@ -215,7 +215,7 @@ crlImport()
     cat ${PKITSDIR}/cmdout.txt
 
     if [ "$RET" -ne 0 ]; then
-	html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+	html_failed "${VFY_ACTION} ($RET) "
 	pkits_log "ERROR: ${VFY_ACTION} failed $RET"
     fi
   fi
@@ -235,10 +235,10 @@ crlImportn()
     cat ${PKITSDIR}/cmdout.txt
 
     if [ "$RET" -eq 0 ]; then
-	html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+	html_failed "${VFY_ACTION} ($RET) "
 	pkits_log "ERROR: ${VFY_ACTION} failed $RET"
     else
-	html_passed "<TR><TD>${VFY_ACTION} ($RET) "
+	html_passed "${VFY_ACTION} ($RET) "
 	pkits_log "SUCCESS: ${VFY_ACTION} returned as expected $RET"
     fi
   fi
@@ -260,7 +260,7 @@ delete()
       cat ${PKITSDIR}/cmdout.txt
 
       if [ "$RET" -ne 0 ]; then
-	  html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+	  html_failed "${VFY_ACTION} ($RET) "
 	  pkits_log "ERROR: ${VFY_ACTION} failed $RET"
       fi
   fi
@@ -271,7 +271,7 @@ delete()
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -ne 0 ]; then
-      html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+      html_failed "${VFY_ACTION} ($RET) "
       pkits_log "ERROR: ${VFY_ACTION} failed $RET"
   fi
 }
@@ -288,7 +288,7 @@ certImport()
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -ne 0 ]; then
-      html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+      html_failed "${VFY_ACTION} ($RET) "
       pkits_log "ERROR: ${VFY_ACTION} failed $RET"
   fi
 }
@@ -307,10 +307,10 @@ certImportn()
     cat ${PKITSDIR}/cmdout.txt
 
     if [ "$RET" -eq 0 ]; then
-	html_failed "<TR><TD>${VFY_ACTION} ($RET) "
+	html_failed "${VFY_ACTION} ($RET) "
 	pkits_log "ERROR: ${VFY_ACTION} failed $RET"
     else
-	html_passed "<TR><TD>${VFY_ACTION} ($RET) "
+	html_passed "${VFY_ACTION} ($RET) "
 	pkits_log "SUCCESS: ${VFY_ACTION} returned as expected $RET"
     fi
   fi
@@ -2063,3 +2063,4 @@ fi
 pkits_NameConstraints | tee -a $PKITS_LOG
 pkits_PvtCertExtensions | tee -a $PKITS_LOG
 pkits_cleanup
+

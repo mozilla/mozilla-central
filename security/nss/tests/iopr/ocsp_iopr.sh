@@ -90,7 +90,7 @@ ocsp_get_cert_status() {
     
     if [ -n "$respUrl" -o -n "$defRespCert" ]; then
         if [ -z "$respUrl" -o -z "$defRespCert" ]; then
-            html_failed "<TR><TD>Incorrect test params" 
+            html_failed "Incorrect test params" 
             return 1
         fi
         clntParam="-l $respUrl -t $defRespCert"

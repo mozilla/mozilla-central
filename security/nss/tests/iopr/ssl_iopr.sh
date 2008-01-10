@@ -115,7 +115,7 @@ ssl_iopr_cov_ext_server()
 
   setValidCert; ret=$?
   if [ $ret -ne 0 ]; then
-      html_failed "<TR><TD>Fail to find valid test cert(ws: $host)" 
+      html_failed "Fail to find valid test cert(ws: $host)" 
       return $ret
   fi
 
@@ -184,7 +184,7 @@ ssl_iopr_auth_ext_server()
 
   setValidCert;ret=$?
   if [ $ret -ne 0 ]; then
-      html_failed "<TR><TD>Fail to find valid test cert(ws: $host)" 
+      html_failed "Fail to find valid test cert(ws: $host)" 
       return $ret
   fi
 
@@ -321,7 +321,7 @@ ssl_iopr_cov_ext_client()
   setValidCert
   ret=$?
   if [ $res -ne 0 ]; then
-      html_failed "<TR><TD>Fail to find valid test cert(ws: $host)" 
+      html_failed "Fail to find valid test cert(ws: $host)" 
       return $ret
   fi
 
@@ -424,7 +424,7 @@ ssl_iopr_auth_ext_client()
   setValidCert
   ret=$?
   if [ $res -ne 0 ]; then
-      html_failed "<TR><TD>Fail to find valid test cert(ws: $host)" 
+      html_failed "Fail to find valid test cert(ws: $host)" 
       return $ret
   fi
 
