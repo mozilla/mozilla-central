@@ -22,7 +22,6 @@
                 clickAskAboutCookies = id; 
                 clickCookieBehavior = id; 
                 clickStorePasswords = id; 
-                cookieFilterChanged = id; 
                 editCookies = id; 
                 editCookiesDone = id; 
                 editKeychainExclusions = id; 
@@ -30,9 +29,8 @@
                 editPermissions = id; 
                 editPermissionsDone = id; 
                 expandCookiePermission = id; 
-                keychainExclusionsFilterChanged = id; 
+                filterChanged = id; 
                 launchKeychainAccess = id; 
-                permissionFilterChanged = id; 
                 removeAllCookiePermissions = id; 
                 removeAllCookies = id; 
                 removeAllKeychainExclusions = id; 

@@ -34,7 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 #import <Cocoa/Cocoa.h>
 #import <PreferencePanes/NSPreferencePane.h>
 
@@ -64,7 +64,7 @@ typedef enum ECookiePolicyPopupIndex
   // pane
   IBOutlet NSMatrix*          mCookieBehavior;
   IBOutlet NSButton*          mAskAboutCookies;
-  
+
   IBOutlet NSButton*          mStorePasswords;
 
   BOOL                        mSortedAscending;   // sort direction for tables in sheets
@@ -74,8 +74,8 @@ typedef enum ECookiePolicyPopupIndex
   IBOutlet ExtendedTableView* mPermissionsTable;
   IBOutlet NSTableColumn*     mPermissionColumn;
   IBOutlet NSSearchField*     mPermissionFilterField;
-  NSMutableArray*             mCachedPermissions;  // strong
-      
+  NSMutableArray*             mPermissions;        // strong
+
   // cookie sheet
   IBOutlet id                 mCookiesPanel;
   IBOutlet ExtendedTableView* mCookiesTable;
@@ -90,39 +90,33 @@ typedef enum ECookiePolicyPopupIndex
 }
 
 // main panel button actions
--(IBAction) clickCookieBehavior:(id)aSender;
--(IBAction) clickAskAboutCookies:(id)sender;
--(IBAction) clickStorePasswords:(id)sender;
--(IBAction) launchKeychainAccess:(id)sender;
--(IBAction) editKeychainExclusions:(id)sender;
+- (IBAction)clickCookieBehavior:(id)aSender;
+- (IBAction)clickAskAboutCookies:(id)sender;
+- (IBAction)clickStorePasswords:(id)sender;
+- (IBAction)launchKeychainAccess:(id)sender;
+- (IBAction)editKeychainExclusions:(id)sender;
 
 // cookie editing functions
--(void) populateCookieCache;
--(IBAction) editCookies:(id)aSender;
--(IBAction) editCookiesDone:(id)aSender;
--(IBAction) removeCookies:(id)aSender;
--(IBAction) removeAllCookies:(id)aSender;
--(IBAction) allowCookiesFromSites:(id)aSender;
--(IBAction) blockCookiesFromSites:(id)aSender;
--(IBAction) removeCookiesAndBlockSites:(id)aSender;
+- (IBAction)editCookies:(id)aSender;
+- (IBAction)editCookiesDone:(id)aSender;
+- (IBAction)removeCookies:(id)aSender;
+- (IBAction)removeAllCookies:(id)aSender;
+- (IBAction)allowCookiesFromSites:(id)aSender;
+- (IBAction)blockCookiesFromSites:(id)aSender;
+- (IBAction)removeCookiesAndBlockSites:(id)aSender;
 
 // permission editing functions
-- (void)populatePermissionCache;
 - (IBAction)editPermissions:(id)aSender;
 - (IBAction)editPermissionsDone:(id)aSender;
 - (IBAction)expandCookiePermission:(id)aSender;
 - (IBAction)removeCookiePermissions:(id)aSender;
 - (IBAction)removeAllCookiePermissions:(id)aSender;
-- (int)rowForPermissionWithHost:(NSString *)aHost;
 
 // keychain exclusion list editing functions
-- (void)loadKeychainExclusions;
 - (IBAction)editKeychainExclusions:(id)sender;
 - (IBAction)editKeychainExclusionsDone:(id)sender;
 - (IBAction)removeKeychainExclusions:(id)sender;
 - (IBAction)removeAllKeychainExclusions:(id)sender;
-
--(void) mapCookiePrefToGUI:(int)pref;
 
 // data source informal protocol (NSTableDataSource)
 - (int)numberOfRowsInTableView:(NSTableView *)aTableView;
@@ -132,13 +126,9 @@ typedef enum ECookiePolicyPopupIndex
 // NSTableView delegate methods
 - (void)tableView:(NSTableView *)aTableView didClickTableColumn:(NSTableColumn *)aTableColumn;
 
-// filtering methods
-- (IBAction)cookieFilterChanged:(id)sender;
-- (IBAction)permissionFilterChanged:(id)sender;
-- (IBAction)keychainExclusionsFilterChanged:(id)sender;
-- (void) filterCookiesPermissionsWithString: (NSString*) inFilterString;
-- (void) filterCookiesWithString: (NSString*) inFilterString;
-- (void) filterKeychainExclusionsWithString: (NSString*)filterString;
+// Filtering delegate
+- (IBAction)filterChanged:(id)sender;
+
 @end
 
 // custom formatter for cookies list to handle session cookie expiration sanely
