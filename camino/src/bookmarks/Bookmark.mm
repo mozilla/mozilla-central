@@ -150,7 +150,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 - (NSString *)url
 {
-  return mURL;
+  return mURL ? mURL : @"";
 }
 
 - (NSImage *)icon
@@ -469,12 +469,11 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   if ([aItem isKindOfClass:[BookmarkFolder class]])
     result = NSOrderedDescending;
   else {
-    int myVisits    = [self numberOfVisits];
-    int otherVisits = [(Bookmark*)aItem numberOfVisits];
-    if (myVisits == otherVisits)
+    unsigned int otherVisits = [(Bookmark*)aItem numberOfVisits];
+    if (mNumberOfVisits == otherVisits)
       result = NSOrderedSame;
     else
-      result = (otherVisits > myVisits) ? NSOrderedAscending : NSOrderedDescending;
+      result = (otherVisits > mNumberOfVisits) ? NSOrderedAscending : NSOrderedDescending;
   }
 
   return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
@@ -484,10 +483,20 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 {
   NSComparisonResult result;
   // sort categories before sites
-  if ([aItem isKindOfClass:[BookmarkFolder class]])
+  if ([aItem isKindOfClass:[BookmarkFolder class]]) {
     result = NSOrderedDescending;
-  else
-    result = [mLastVisit compare:[(Bookmark*)aItem lastVisit]];
+  }
+  else {
+    NSDate* otherLastVisit = [(Bookmark*)aItem lastVisit];
+    if (mLastVisit && otherLastVisit)
+      result = [mLastVisit compare:otherLastVisit];
+    else if (mLastVisit)
+      result = NSOrderedDescending;
+    else if (otherLastVisit)
+      result = NSOrderedAscending;
+    else
+      result = NSOrderedSame;
+  }
 
   return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
 }
@@ -499,12 +508,11 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   if ([aItem isKindOfClass:[BookmarkFolder class]])
     result = NSOrderedDescending;
   else {
-    int myVisits    = [self numberOfVisits];
-    int otherVisits = [(Bookmark*)aItem numberOfVisits];
-    if (myVisits == otherVisits)
-      result = [mLastVisit compare:[(Bookmark*)aItem lastVisit]];
+    unsigned int otherVisits = [(Bookmark*)aItem numberOfVisits];
+    if (mNumberOfVisits == otherVisits)
+      return [self compareLastVisitDate:aItem sortDescending:inDescending];
     else
-      result = (otherVisits > myVisits) ? NSOrderedAscending : NSOrderedDescending;
+      result = (otherVisits > mNumberOfVisits) ? NSOrderedAscending : NSOrderedDescending;
   }
 
   return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
