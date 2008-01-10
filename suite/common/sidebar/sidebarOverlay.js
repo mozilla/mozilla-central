@@ -955,35 +955,16 @@ function get_sidebar_datasource_uri() {
 
 // Get the template for the available panels url from preferences.
 // Replace variables in the url:
-//     %LOCALE%  -->  Application locale (e.g. en-us).
-//     %VERSION% --> Sidebar file format version (e.g. 0.0).
+//     %LOCALE%  -->  Application locale (e.g. en-US).
+//     %SIDEBAR_VERSION% --> Sidebar file format version (e.g. 0.1).
 function get_remote_datasource_url() {
-  var url = '';
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-  var locale;
-  try {
-    url = prefs.getCharPref("sidebar.customize.all_panels.url");
-    url = url.replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
-  } catch(ex) {
-    debug("Unable to get remote url pref. What now? "+ex);
-  }
-  try {
-    locale = prefs.getComplexValue("intl.content.langcode",
-                                   Components.interfaces.nsIPrefLocalizedString);
-  } catch(ex) {
-    try {
-      debug("No lang code pref, intl.content.langcode.");
-      debug("Use locale from user agent string instead");
+  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
+                            .getService(Components.interfaces.nsIURLFormatter);
 
-      locale = prefs.getComplexValue("general.useragent.locale",
-                                     Components.interfaces.nsIPrefLocalizedString);
-  } catch(ex) {
-      debug("Unable to get system locale. What now? "+ex);
-    }
-  }
-  locale = locale.data.toLowerCase();
-  url = url.replace(/%LOCALE%/g, locale);
+  var url = formatter.formatURLPref("sidebar.customize.all_panels.url");
+  url = url.replace(/%SIDEBAR_VERSION%/g, SIDEBAR_VERSION);
+  // Convert the %LOCALE% value (in the url) to lower case (e.g. en-us).
+  url = url.toLowerCase();
 
   debug("Remote url is " + url);
   return url;
