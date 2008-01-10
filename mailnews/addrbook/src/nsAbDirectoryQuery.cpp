@@ -47,6 +47,7 @@
 #include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 #include "nsIAbDirSearchListener.h"
+#include "nsISimpleEnumerator.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbDirectoryQuerySimpleBooleanExpression, nsIAbBooleanExpression)
 

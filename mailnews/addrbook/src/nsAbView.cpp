@@ -53,12 +53,12 @@
 #include "nsISupportsPrimitives.h"
 #include "nsITreeColumns.h"
 #include "nsCRTGlue.h"
-
+#include "nsIMutableArray.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
 #include "nsIStringBundle.h"
 #include "nsIPrefLocalizedString.h"
-
+#include "nsArrayUtils.h"
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
 #include "rdf.h"
 
@@ -730,9 +730,9 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
     SortClosure closure;
     SetSortClosure(sortColumn.get(), sortDirection.get(), this, &closure);
     
-    nsCOMPtr <nsISupportsArray> selectedCards;
+    nsCOMPtr<nsIArray> selectedCards;
     rv = GetSelectedCards(getter_AddRefs(selectedCards));
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIAbCard> indexCard;
 
@@ -751,7 +751,7 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
     mCards.Sort(inplaceSortCallback, (void *)(&closure));
     
     rv = ReselectCards(selectedCards, indexCard);
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     mSortColumn = sortColumn.get();
     mSortDirection = sortDirection.get();
@@ -1073,22 +1073,22 @@ NS_IMETHODIMP nsAbView::GetSortColumn(nsAString & aColumn)
   return NS_OK;
 }
 
-nsresult nsAbView::ReselectCards(nsISupportsArray *cards, nsIAbCard *indexCard)
+nsresult nsAbView::ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard)
 {
   PRUint32 count;
   PRUint32 i;
 
-  if (!mTreeSelection || !cards)
+  if (!mTreeSelection || !aCards)
     return NS_OK;
 
   nsresult rv = mTreeSelection->ClearSelection();
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = cards->Count(&count);
+  rv = aCards->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
 
   for (i = 0; i < count; i++) {
-    nsCOMPtr <nsIAbCard> card = do_QueryElementAt(cards, i);
+    nsCOMPtr<nsIAbCard> card = do_QueryElementAt(aCards, i);
     if (card) {
       PRInt32 index = FindIndexForCard(card);
       if (index != CARD_NOT_FOUND) {
@@ -1098,8 +1098,8 @@ nsresult nsAbView::ReselectCards(nsISupportsArray *cards, nsIAbCard *indexCard)
   }
 
   // reset the index card, and ensure it is visible
-  if (indexCard) {
-    PRInt32 currentIndex = FindIndexForCard(indexCard);
+  if (aIndexCard) {
+    PRInt32 currentIndex = FindIndexForCard(aIndexCard);
     rv = mTreeSelection->SetCurrentIndex(currentIndex);
     NS_ENSURE_SUCCESS(rv, rv);
   
@@ -1114,34 +1114,34 @@ nsresult nsAbView::ReselectCards(nsISupportsArray *cards, nsIAbCard *indexCard)
 
 NS_IMETHODIMP nsAbView::DeleteSelectedCards()
 {
-  nsCOMPtr <nsISupportsArray> cardsToDelete;
+  nsCOMPtr<nsIArray> cardsToDelete;
   
   nsresult rv = GetSelectedCards(getter_AddRefs(cardsToDelete));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // mDirectory should not be null
   // bullet proof (and assert) to help figure out bug #127748
   NS_ENSURE_TRUE(mDirectory, NS_ERROR_UNEXPECTED);
 
   rv = mDirectory->DeleteCards(cardsToDelete);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   return rv;
 }
 
-nsresult nsAbView::GetSelectedCards(nsISupportsArray **selectedCards)
+nsresult nsAbView::GetSelectedCards(nsIArray **aSelectedCards)
 {
-  *selectedCards = nsnull;
+  *aSelectedCards = nsnull;
   if (!mTreeSelection)
     return NS_OK;
-  
+
   PRInt32 selectionCount; 
   nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (!selectionCount)
     return NS_OK;
-  
-  rv = NS_NewISupportsArray(selectedCards);
+
+  nsCOMPtr<nsIMutableArray> result(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
   
   for (PRInt32 i = 0; i < selectionCount; i++)
@@ -1158,14 +1158,14 @@ nsresult nsAbView::GetSelectedCards(nsISupportsArray **selectedCards)
         rv = GetCardFromRow(rangeIndex, getter_AddRefs(abCard));
         NS_ENSURE_SUCCESS(rv,rv);
         
-        nsCOMPtr<nsISupports> supports = do_QueryInterface(abCard, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
-        
-        rv = (*selectedCards)->AppendElement(supports);
-        NS_ENSURE_SUCCESS(rv,rv);
+        rv = result->AppendElement(abCard, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, rv);
       }
     }
   }
+
+  NS_ADDREF(*aSelectedCards = result);
+
   return NS_OK;
 }
 
@@ -1306,18 +1306,16 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
  
-  nsCOMPtr<nsISupportsArray> selectedCards;
+  nsCOMPtr<nsIArray> selectedCards;
   nsresult rv = GetSelectedCards(getter_AddRefs(selectedCards));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsArray> addresses(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID));
   PRUint32 count;
-  selectedCards->Count(&count);
+  selectedCards->GetLength(&count);
 
   for (PRUint32 i = 0; i < count; i++) {
-    nsCOMPtr<nsISupports> supports;
-    selectedCards->GetElementAt(i, getter_AddRefs(supports));
-    nsCOMPtr<nsIAbCard> card = do_QueryInterface(supports, &rv);
+    nsCOMPtr<nsIAbCard> card(do_QueryElementAt(selectedCards, i, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRBool isMailList;

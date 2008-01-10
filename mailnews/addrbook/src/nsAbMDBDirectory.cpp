@@ -64,6 +64,7 @@
 #include "nsILocalFile.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
+#include "nsArrayUtils.h"
 
 // XXX todo
 // fix this -1,0,1 crap, use an enum or #define
@@ -497,7 +498,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsISupportsArray *cards)
+NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 {
   nsresult rv = NS_OK;
 
@@ -520,7 +521,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsISupportsArray *cards)
     nsCOMPtr<nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = directory->DeleteCards(cards);
+    rv = directory->DeleteCards(aCards);
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = database->RemoveListener(this);
@@ -535,16 +536,16 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsISupportsArray *cards)
   {
     PRUint32 cardCount;
     PRUint32 i;
-    rv = cards->Count(&cardCount);
+    rv = aCards->GetLength(&cardCount);
     NS_ENSURE_SUCCESS(rv, rv);
     for (i = 0; i < cardCount; i++)
     {
-      nsCOMPtr<nsIAbCard> card;
-      nsCOMPtr<nsIAbMDBCard> dbcard;
-      card = do_QueryElementAt(cards, i, &rv);
+      nsCOMPtr<nsIAbCard> card(do_QueryElementAt(aCards, i, &rv));
       NS_ENSURE_SUCCESS(rv, rv);
-      dbcard = do_QueryInterface(card, &rv);
+
+      nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &rv));
       NS_ENSURE_SUCCESS(rv, rv);
+
       if (card)
       {
         if (IsMailingList())
@@ -589,30 +590,23 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsISupportsArray *cards)
               nsCOMPtr<nsIRDFService> rdfService = 
                        do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
 
-              if(NS_SUCCEEDED(rv))
-                {
-                nsCOMPtr<nsIRDFResource> listResource;
-                rv = rdfService->GetResource(listUri,
-                                             getter_AddRefs(listResource));
-                nsCOMPtr<nsIAbDirectory> listDir = do_QueryInterface(listResource, &rv);
-                if(NS_SUCCEEDED(rv))
-                  {
-                  if (m_AddressList)
-                    m_AddressList->RemoveElement(listDir);
-                  rv = mSubDirectories.RemoveObject(listDir);
-
-                  if (listDir)
-                    NotifyItemDeleted(listDir);
-                  }
-                else 
-                  {
-                  return rv;
-                  }
-                }
-              else
-                {
+              if (NS_FAILED(rv))
                 return rv;
-                }
+
+              nsCOMPtr<nsIRDFResource> listResource;
+              rv = rdfService->GetResource(listUri,
+                                           getter_AddRefs(listResource));
+              nsCOMPtr<nsIAbDirectory> listDir = do_QueryInterface(listResource, &rv);
+              if (NS_FAILED(rv))
+                return rv;
+
+              if (m_AddressList)
+                m_AddressList->RemoveElement(listDir);
+
+              mSubDirectories.RemoveObject(listDir);
+
+              if (listDir)
+                NotifyItemDeleted(listDir);
             }
           }
           else

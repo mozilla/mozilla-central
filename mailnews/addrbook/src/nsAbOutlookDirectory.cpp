@@ -59,8 +59,8 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsCRTGlue.h"
-#include "nsIArray.h"
 #include "nsArrayUtils.h"
+#include "nsArrayEnumerator.h"
 
 #ifdef PR_LOGGING
 static PRLogModuleInfo* gAbOutlookDirectoryLog
@@ -257,39 +257,40 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildNodes(nsISimpleEnumerator **aNodes)
 
 NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 {
-    if (!aCards) { return NS_ERROR_NULL_POINTER ; }
-    *aCards = nsnull ;
-    nsCOMPtr<nsISupportsArray> cardList ;
-    nsresult retCode ;
-    
+    NS_ENSURE_ARG_POINTER(aCards);
+
+    *aCards = nsnull;
+
+    nsresult retCode;
+    nsCOMPtr<nsIMutableArray> cardList(do_CreateInstance(NS_ARRAY_CONTRACTID, &retCode));
+
     mCardList.Reset() ;
-    if (mIsQueryURI) {
-        retCode = StartSearch() ;
-        NS_NewISupportsArray(getter_AddRefs(cardList)) ;
-    }
-    else {
-        retCode = GetChildCards(getter_AddRefs(cardList), nsnull) ;
-    }
+
+    retCode = mIsQueryURI ? StartSearch() : GetChildCards(cardList, nsnull);
+
     if (NS_SUCCEEDED(retCode)) {
         // Fill the results array and update the card list
         // Also update the address list and notify any changes.
         PRUint32 nbCards = 0 ;
-        nsCOMPtr<nsISupports> element ;
         
         NS_NewArrayEnumerator(aCards, cardList);
-        cardList->Count(&nbCards) ;
-        for (PRUint32 i = 0 ; i < nbCards ; ++ i) {
-            cardList->GetElementAt(i, getter_AddRefs(element)) ;
-            nsVoidKey newKey (static_cast<void *>(element)) ;
+        cardList->GetLength(&nbCards);
+
+        nsCOMPtr<nsIAbCard> card;
+
+        for (PRUint32 i = 0; i < nbCards; ++i) {
+            card = do_QueryElementAt(cardList, i, &retCode);
+            if (NS_FAILED(retCode))
+              continue;
+
+            nsVoidKey newKey (static_cast<void *>(card));
             nsCOMPtr<nsISupports> oldElement = mCardList.Get(&newKey) ;
 
             if (!oldElement) {
                 // We are dealing with a new element (probably directly
                 // added from Outlook), we may need to sync m_AddressList
-                mCardList.Put(&newKey, element) ;
-                nsCOMPtr<nsIAbCard> card (do_QueryInterface(element, &retCode)) ;
+                mCardList.Put(&newKey, card);
 
-                NS_ENSURE_SUCCESS(retCode, retCode) ;
                 PRBool isMailList = PR_FALSE ;
 
                 retCode = card->GetIsMailList(&isMailList) ;
@@ -316,9 +317,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
                     NotifyItemAddition(card) ;
                 }
             }
-            else {
-                NS_ASSERTION(oldElement == element, "Different card stored") ;
-            }
+            else
+              NS_WARNING("Card wasn't stored");
         }
     }
     return retCode ;
@@ -377,7 +377,7 @@ static nsresult ExtractDirectoryEntry(nsIAbDirectory *aDirectory, nsCString& aEn
     return ExtractEntryFromUri(resource, aEntry, kOutlookDirectoryScheme) ;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsISupportsArray *aCardList)
+NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsIArray *aCardList)
 {
     if (mIsQueryURI) { return NS_ERROR_NOT_IMPLEMENTED ; }
     if (!aCardList) { return NS_ERROR_NULL_POINTER ; }
@@ -387,19 +387,15 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsISupportsArray *aCardList)
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
     
-    retCode = aCardList->Count(&nbCards) ;
+    retCode = aCardList->GetLength(&nbCards);
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     PRUint32 i = 0 ;
-    nsCOMPtr<nsISupports> element ;
     nsCAutoString entryString ;
     nsMapiEntry cardEntry ;
 
     for (i = 0 ; i < nbCards ; ++ i) {
-        retCode = aCardList->GetElementAt(i, getter_AddRefs(element)) ;
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
-        nsCOMPtr<nsIAbCard> card (do_QueryInterface(element, &retCode)) ;
-        
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
+        nsCOMPtr<nsIAbCard> card(do_QueryElementAt(aCardList, i, &retCode));
+        NS_ENSURE_SUCCESS(retCode, retCode);
 
         retCode = ExtractCardEntry(card, entryString) ;
         if (NS_SUCCEEDED(retCode) && !entryString.IsEmpty()) {
@@ -409,11 +405,12 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsISupportsArray *aCardList)
                 PRINTF(("Cannot delete card %s.\n", entryString.get())) ;
             }
             else {
-                nsVoidKey key (static_cast<void *>(element)) ;
+                nsVoidKey key (static_cast<void *>(card));
                 
                 mCardList.Remove(&key) ;
-                if (m_IsMailList) { m_AddressList->RemoveElement(element) ; }
-                retCode = NotifyItemDeletion(element) ;
+                if (m_IsMailList)
+                  m_AddressList->RemoveElement(card);
+                retCode = NotifyItemDeletion(card);
                 NS_ENSURE_SUCCESS(retCode, retCode) ;
             }
         }
@@ -1100,15 +1097,17 @@ nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArgum
   retCode = BuildRestriction(aArguments, arguments);
   NS_ENSURE_SUCCESS(retCode, retCode);
 
-  nsCOMPtr<nsISupportsArray> resultsArray;
-  PRUint32 nbResults = 0;
-    
-  retCode = GetChildCards(getter_AddRefs(resultsArray), 
+  nsCOMPtr<nsIMutableArray> resultsArray(do_CreateInstance(NS_ARRAY_CONTRACTID,
+                                                           &retCode));
+  NS_ENSURE_SUCCESS(retCode, retCode);
+
+  retCode = GetChildCards(resultsArray,
                           arguments.rt == RES_COMMENT ? nsnull : &arguments);
   DestroyRestriction(arguments);
   NS_ENSURE_SUCCESS(retCode, retCode);
 
-  retCode = resultsArray->Count(&nbResults);
+  PRUint32 nbResults = 0;
+  retCode = resultsArray->GetLength(&nbResults);
   NS_ENSURE_SUCCESS(retCode, retCode);
 
   if (aResultLimit > 0 && nbResults > static_cast<PRUint32>(aResultLimit)) { 
@@ -1116,13 +1115,10 @@ nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArgum
   }
 
   PRUint32 i = 0;
-  nsCOMPtr<nsISupports> element;
+  nsCOMPtr<nsIAbCard> card;
     
   for (i = 0 ; i < nbResults ; ++ i) {
-    retCode = resultsArray->GetElementAt(i, getter_AddRefs(element));
-    NS_ENSURE_SUCCESS(retCode, retCode);
-
-    nsCOMPtr<nsIAbCard> card(do_QueryInterface(element, &retCode));
+    card = do_QueryElementAt(resultsArray, i, &retCode);
     NS_ENSURE_SUCCESS(retCode, retCode);
 
     aListener->OnSearchFoundCard(card);
@@ -1136,6 +1132,8 @@ nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArgum
                               EmptyString());
   return retCode;
 }
+
+// This version supports nsISupportsArray whilst we are completing bug 410177
 nsresult nsAbOutlookDirectory::GetChildCards(nsISupportsArray **aCards, 
                                              void *aRestriction)
 {
@@ -1174,6 +1172,48 @@ nsresult nsAbOutlookDirectory::GetChildCards(nsISupportsArray **aCards,
     *aCards = cards ;
     NS_ADDREF(*aCards) ;
     return retCode ;
+}
+
+// This function expects the aCards array to already be created.
+nsresult nsAbOutlookDirectory::GetChildCards(nsCOMPtr<nsIMutableArray> &aCards,
+                                             void *aRestriction)
+{
+  nsAbWinHelperGuard mapiAddBook(mAbWinType);
+
+  if (!mapiAddBook->IsOK())
+    return NS_ERROR_FAILURE;
+
+  nsMapiEntryArray cardEntries;
+  LPSRestriction restriction = (LPSRestriction) aRestriction;
+
+  if (!mapiAddBook->GetCards(*mMapiData, restriction, cardEntries)) {
+    PRINTF(("Cannot get cards.\n"));
+    return NS_ERROR_FAILURE;
+  }
+
+  nsCAutoString entryId;
+  nsCAutoString uriName;
+  nsCOMPtr<nsIRDFResource> resource;
+  nsCOMPtr<nsIAbCard> childCard;
+  nsresult rv;
+
+  for (ULONG card = 0; card < cardEntries.mNbEntries; ++card) {
+    cardEntries.mEntries[card].ToString(entryId);
+    buildAbWinUri(kOutlookCardScheme, mAbWinType, uriName);
+    uriName.Append(entryId);
+
+    childCard = do_CreateInstance(NS_ABOUTLOOKCARD_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    resource = do_QueryInterface(childCard, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = resource->Init(uriName.get());
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    aCards->AppendElement(childCard, PR_FALSE);
+  }
+  return rv;
 }
 
 nsresult nsAbOutlookDirectory::GetChildNodes(nsISupportsArray **aNodes)
@@ -1234,38 +1274,45 @@ nsresult nsAbOutlookDirectory::NotifyItemAddition(nsISupports *aItem)
 // list is supposed to contain at the end.
 nsresult nsAbOutlookDirectory::CommitAddressList(void)
 {
-    nsresult retCode = NS_OK ;
-    nsCOMPtr<nsISupportsArray> oldList ;
-    PRUint32 nbCards = 0 ;
-    PRUint32 i = 0 ;
-    
-    if (!m_IsMailList) { 
-        PRINTF(("We are not in a mailing list, no commit can be done.\n")) ;
-        return NS_ERROR_UNEXPECTED ;
-    }
-    retCode = GetChildCards(getter_AddRefs(oldList), nsnull) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = m_AddressList->Count(&nbCards) ;
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    nsCOMPtr<nsISupports> element ;
-    nsCOMPtr<nsIAbCard> newCard ;
+  if (!m_IsMailList) { 
+    PRINTF(("We are not in a mailing list, no commit can be done.\n"));
+    return NS_ERROR_UNEXPECTED;
+  }
 
-    for (i = 0 ; i < nbCards ; ++ i) {
-        retCode = m_AddressList->GetElementAt(i, getter_AddRefs(element)) ;
-        NS_ENSURE_SUCCESS(retCode, retCode) ;
-        if (!oldList->RemoveElement(element)) {
-            // The entry was not already there
-            nsCOMPtr<nsIAbCard> card (do_QueryInterface(element, &retCode)) ;
-            
-            NS_ENSURE_SUCCESS(retCode, retCode) ;
+  nsresult rv;
+  PRUint32 i = 0;
+  nsCOMPtr<nsIMutableArray> oldList(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-            retCode = CreateCard(card, getter_AddRefs(newCard)) ;
-            NS_ENSURE_SUCCESS(retCode, retCode) ;
-            m_AddressList->ReplaceElementAt(newCard, i) ;
-        }
+  rv = GetChildCards(oldList, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRUint32 nbCards = 0;
+  rv = m_AddressList->Count(&nbCards);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsISupports> element;
+  nsCOMPtr<nsIAbCard> newCard;
+  PRUint32 pos;
+
+  for (i = 0; i < nbCards; ++i) {
+    rv = m_AddressList->GetElementAt(i, getter_AddRefs(element));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (NS_SUCCEEDED(oldList->IndexOf(0, element, &pos))) {
+        rv = oldList->RemoveElementAt(pos);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        // The entry was not already there
+        nsCOMPtr<nsIAbCard> card(do_QueryInterface(element, &rv));
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        rv = CreateCard(card, getter_AddRefs(newCard));
+        NS_ENSURE_SUCCESS(rv, rv);
+        m_AddressList->ReplaceElementAt(newCard, i);
     }
-    retCode = DeleteCards(oldList) ;
-    return retCode ;
+  }
+  return DeleteCards(oldList);
 }
 
 nsresult nsAbOutlookDirectory::UpdateAddressList(void)

@@ -44,7 +44,7 @@
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
 #include "nsHashtable.h"
-
+#include "nsIMutableArray.h"
 #include "nsISupportsArray.h"
 
 struct nsMapiEntry ;
@@ -70,7 +70,7 @@ public:
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
   NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
   NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
-  NS_IMETHOD DeleteCards(nsISupportsArray *aCardList);
+  NS_IMETHOD DeleteCards(nsIArray *aCardList);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *aDirectory);
   NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
@@ -93,6 +93,7 @@ public:
 protected:
   // Retrieve hierarchy as cards, with an optional restriction
   nsresult GetChildCards(nsISupportsArray **aCards, void *aRestriction);
+  nsresult GetChildCards(nsCOMPtr<nsIMutableArray> &aCards, void *aRestriction);
   // Retrieve hierarchy as directories
   nsresult GetChildNodes(nsISupportsArray **aNodes);
   // Create a new card

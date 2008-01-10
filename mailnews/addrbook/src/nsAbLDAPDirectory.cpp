@@ -66,6 +66,7 @@
 #include "nsILDAPService.h"
 #include "nsIAbLDAPCard.h"
 #include "nsAbUtils.h"
+#include "nsArrayUtils.h"
 
 #define kDefaultMaxHits 100
 
@@ -721,13 +722,13 @@ NS_IMETHODIMP nsAbLDAPDirectory::AddCard(nsIAbCard *aUpdatedCard,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsISupportsArray *aCards)
+NS_IMETHODIMP nsAbLDAPDirectory::DeleteCards(nsIArray *aCards)
 {
   PRUint32 cardCount;
   PRUint32 i;
   nsCAutoString cardDN;
 
-  nsresult rv = aCards->Count(&cardCount);
+  nsresult rv = aCards->GetLength(&cardCount);
   NS_ENSURE_SUCCESS(rv, rv);
  
   for (i = 0; i < cardCount; ++i)

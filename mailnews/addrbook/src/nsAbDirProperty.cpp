@@ -311,7 +311,7 @@ NS_IMETHODIMP nsAbDirProperty::AddCard(nsIAbCard *childCard, nsIAbCard **addedCa
 NS_IMETHODIMP nsAbDirProperty::ModifyCard(nsIAbCard *aModifiedCard)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
-NS_IMETHODIMP nsAbDirProperty::DeleteCards(nsISupportsArray *cards)
+NS_IMETHODIMP nsAbDirProperty::DeleteCards(nsIArray *cards)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::DropCard(nsIAbCard *childCard, PRBool needToCopyCard)

@@ -317,10 +317,10 @@ function run_test()
 
     // First delete all existing cards
     var childCards = CAB.childCards;
-    var cardsToDelete = Components.classes["@mozilla.org/supports-array;1"]
-                                  .createInstance(Components.interfaces.nsISupportsArray);
+    var cardsToDelete = Components.classes["@mozilla.org/array;1"]
+                                  .createInstance(Components.interfaces.nsIMutableArray);
     while (childCards.hasMoreElements()) {
-      cardsToDelete.AppendElement(childCards.getNext());
+      cardsToDelete.appendElement(childCards.getNext(), false);
     }
 
     CAB.deleteCards(cardsToDelete);

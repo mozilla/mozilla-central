@@ -79,7 +79,7 @@ public:
   NS_IMETHOD GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete);
   NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
-  NS_IMETHOD DeleteCards(nsISupportsArray *aCards);
+  NS_IMETHOD DeleteCards(nsIArray *aCards);
 
   // nsIAbDirectorySearch methods
   NS_DECL_NSIABDIRECTORYSEARCH

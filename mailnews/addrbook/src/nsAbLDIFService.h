@@ -39,6 +39,7 @@
 #define __nsAbLDIFService_h
 
 #include "nsIAbLDIFService.h"
+#include "nsCOMPtr.h"
 
 class nsIMdbRow;
 

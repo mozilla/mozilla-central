@@ -94,8 +94,8 @@ private:
   nsresult AddPrefObservers();
   nsresult RemovePrefObservers();
   nsresult SetGeneratedNameFormatFromPrefs();
-  nsresult GetSelectedCards(nsISupportsArray **cards);
-  nsresult ReselectCards(nsISupportsArray *cards, nsIAbCard *indexCard);
+  nsresult GetSelectedCards(nsIArray **aSelectedCards);
+  nsresult ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard);
   nsresult GetCardValue(nsIAbCard *card, const PRUnichar *colID, nsAString &_retval);
   nsresult RefreshTree();
 

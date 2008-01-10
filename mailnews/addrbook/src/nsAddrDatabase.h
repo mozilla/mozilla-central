@@ -46,6 +46,7 @@
 #include "nsStringGlue.h"
 #include "nsIAddrDBListener.h"
 #include "nsCOMPtr.h"
+#include "nsIEnumerator.h"
 
 typedef enum
 {

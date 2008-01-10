@@ -39,7 +39,10 @@
  
 #include "nsISupports.idl"
 #include "nsIAbCard.idl"
-#include "nsISupportsArray.idl"
+
+interface nsISimpleEnumerator;
+interface nsIArray;
+interface nsISupportsArray;
 
 %{C++
 /* RDF root for all types of address books */
@@ -56,7 +59,7 @@
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(97d7858d-9222-45c0-813e-2f3b0ea9ac03)]
+[scriptable, uuid(2c0af941-5b77-4f26-923b-f3c5de286046)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -149,9 +152,11 @@ interface nsIAbDirectory : nsISupports {
   void modifyCard(in nsIAbCard modifiedCard);
 
   /**
-   * Deletes the array of cards from the database
+   * Deletes the array of cards from the database.
+   *
+   * @param  aCards  The cards to delete from the database.
    */
-  void deleteCards(in nsISupportsArray cards);
+  void deleteCards(in nsIArray aCards);
 
   void dropCard(in nsIAbCard card, in boolean needToCopyCard);
 

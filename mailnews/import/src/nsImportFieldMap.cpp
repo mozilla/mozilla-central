@@ -44,6 +44,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsCRTGlue.h"
 #include "ImportDebug.h"
+#include "nsCOMPtr.h"
 
 ////////////////////////////////////////////////////////////////////////
 
