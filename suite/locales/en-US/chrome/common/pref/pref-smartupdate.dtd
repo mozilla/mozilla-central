@@ -6,6 +6,7 @@
 <!ENTITY allowedSites.label                   "Allowed Sites">
 <!ENTITY allowedSites.accesskey               "A">
 
+<!ENTITY verifyUpdates.caption                "Updates">
 <!ENTITY autoUpdates.label                    "Automatically check for updates to:">
 <!ENTITY appUpdates.label                     "&brandShortName;">
 <!ENTITY appUpdates.accesskey                 "S">
