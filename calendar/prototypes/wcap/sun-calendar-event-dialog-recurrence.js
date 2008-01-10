@@ -54,7 +54,7 @@ function onLoad() {
     onChangeCalendar(calendar);
 
     // Set starting value for 'repeat until' rule.
-    setElementValue("repeat-until-date", gStartTime);
+    setElementValue("repeat-until-date", gStartTime.getInTimezone(floating()).jsDate);
 
     if (item.parentItem != item) {
         item = item.parentItem;
@@ -213,10 +213,9 @@ function initializeControls(rule) {
         if (!endDate) {
             setElementValue("recurrence-duration", "forever");
         } else {
-            // Convert the datetime from UTC to localtime.
-            endDate = endDate.getInTimezone(calendarDefaultTimezone());
+            endDate = endDate.getInTimezone(gStartTime.timezone); // calIRecurrenceRule::endDate is always UTC or floating
             setElementValue("recurrence-duration", "until");
-            setElementValue("repeat-until-date", endDate.jsDate);
+            setElementValue("repeat-until-date", endDate.getInTimezone(floating()).jsDate);
         }
     }
 }
@@ -326,14 +325,14 @@ function onSave(item) {
             recRule.count = Math.max(1, getElementValue("repeat-ntimes-count"));
             break;
         case "until":
-            // Get the datetime from the control (which is in localtime),
-            // set the time to 23:59:99 and convert that to UTC time.
-            var endDate = getElementValue("repeat-until-date")
-            endDate.setHours(23);
-            endDate.setMinutes(59);
-            endDate.setSeconds(59);
-            endDate.setMilliseconds(999);
-            endDate = jsDateToDateTime(endDate);
+            var endDate = jsDateToDateTime(getElementValue("repeat-until-date"), gStartTime.timezone);
+            endDate.isDate = gStartTime.isDate; // enforce same value type as DTSTART
+            if (!gStartTime.isDate) {
+                // correct UNTIL to exactly match start date's hour, minute, second:
+                endDate.hour = gStartTime.hour;
+                endDate.minute = gStartTime.minute;
+                endDate.second = gStartTime.second;
+            }
             recRule.endDate = endDate;
             break;
     }
