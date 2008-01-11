@@ -391,29 +391,37 @@ sub packit {
     }
   } # do_installer
 
-  # Lightning stuff. Only bother if we find lightning.xpi
-  my $lightningXpi = "$builddir/dist/xpi-stage/lightning.xpi";
-  my $lightningXpiStageDir = undef;
-  if (-e $lightningXpi) {
-    if (TinderUtils::is_windows()) {
-      $lightningXpiStageDir = 'windows-xpi';
-    } elsif (TinderUtils::is_linux()) {
-      $lightningXpiStageDir = 'linux-xpi';
-    } elsif (TinderUtils::is_mac()) {
-      $lightningXpiStageDir = 'mac-xpi';
-    } else {
-      return returnStatus('lightningXpiStageDir not defined!', ('busted'));
-    }
-
-    my $lightningWcapXpi = "$builddir/dist/xpi-stage/lightning-wcap.xpi";
-    if (! -e $lightningWcapXpi) {
-        return returnStatus('lightning-wcap not found!', ('busted'));
-    }
-
-    TinderUtils::run_shell_command("mkdir -p $stagedir/$lightningXpiStageDir");
-    TinderUtils::run_shell_command("cp -r $lightningXpi $stagedir/$lightningXpiStageDir");
-    TinderUtils::run_shell_command("cp -r $lightningWcapXpi $stagedir/$lightningXpiStageDir");
+  # Extensions
+  my $extensionStageDir;
+  if ($Settings::ReleaseExtensionSubdir) {
+    $extensionStageDir = $Settings::RelaseExtensionSubdir;
+  } elsif (TinderUtils::is_windows()) {
+    $extensionStageDir = 'windows-xpi';
+  } elsif (TinderUtils::is_linux()) {
+    $extensionStageDir = 'linux-xpi';
+  } elsif (TinderUtils::is_mac()) {
+    $extensionStageDir = 'mac-xpi';
+  } else {
+    return returnStatus('Platform specific staging directory unknown!', ('busted'));
   }
+
+  foreach my $extension (@Settings::ReleaseExtensions) {
+    my $extensionDistFile;
+    if ($Settings::MacUniversalBinary) {
+      $extensionDistFile = "$builddir/dist/universal/xpi-stage/$extension";
+    } else {
+      $extensionDistFile = "$builddir/dist/xpi-stage/$extension";
+    }
+
+    if (! -e $extensionDistFile) {
+      return returnStatus("$extension is missing from dist $extensionDistFile directory!", ('busted'));
+    }
+    
+    TinderUtils::run_shell_command("mkdir -p $stagedir/$extensionStageDir");
+    TinderUtils::run_shell_command("cp -r $extensionDistFile $stagedir/$extensionStageDir");
+
+  }
+        
 
   if ($Settings::archive) {
     TinderUtils::run_shell_command("make -C $packaging_dir");
