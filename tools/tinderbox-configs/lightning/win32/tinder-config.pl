@@ -233,3 +233,9 @@ $push_raw_xpis = 0;
 # Prevent Extension Manager from spawning child processes during tests
 # - processes that tbox scripts cannot kill. 
 #$ENV{NO_EM_RESTART} = '1';
+
+# Any extensions that are built can be uploaded to the stage server using these
+# config options. Wildcards can be used. These variables are mainly used by
+# post-mozilla-rel.pl
+@ReleaseExtensions = ('lightning.xpi', 'lightning-wcap.xpi');
+#$ReleaseExtensionSubdir = "" # set to e.g. "xpi"; if not specified, <os>-xpi will be used.
