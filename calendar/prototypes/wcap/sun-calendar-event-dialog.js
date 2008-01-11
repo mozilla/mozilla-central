@@ -811,10 +811,12 @@ function saveDialog(item) {
     }
 
     // URL
-    setItemProperty(item, "URL", gURL);
+    setItemProperty(item, "URL", gURL, "URL");
 
+    // Description
     setItemProperty(item, "DESCRIPTION", getElementValue("item-description"));
 
+    // Event Status
     if (isEvent(item)) {
         if(gStatus && gStatus != "NONE") {
             item.setProperty("STATUS", gStatus);
@@ -836,19 +838,22 @@ function saveDialog(item) {
     // handling since the WCAP provider always includes the priority
     // with value *null* and we don't detect changes to this item if
     // we delete this property.
-    if (gPriority || item.hasProperty("PRIORITY")) {
+    if (capSupported("priority") &&
+        (gPriority || item.hasProperty("PRIORITY"))) {
         item.setProperty("PRIORITY", gPriority);
     } else {
         item.deleteProperty("PRIORITY");
     }
 
+    // Transparency
     if (gShowTimeAs) {
         item.setProperty("TRANSP", gShowTimeAs);
     } else {
         item.deleteProperty("TRANSP");
     }
 
-    setItemProperty(item, "CLASS", gPrivacy);
+    // Privacy
+    setItemProperty(item, "CLASS", gPrivacy, "privacy");
 
     if (item.status == "COMPLETED" && isToDo(item)) {
         var elementValue = getElementValue("completed-date-picker");
@@ -1162,7 +1167,7 @@ function editAttendees() {
 }
 
 function editPrivacy(target) {
-    gPrivacy = target.getAttribute("value");
+    gPrivacy = target.getAttribute("privacy");
 
     switch (gPrivacy) {
         case "PRIVATE":
@@ -1178,38 +1183,112 @@ function editPrivacy(target) {
     updatePrivacy();
 }
 
-// this function updates the UI according to the global field 'gPrivacy'.
-// in case 'gPrivacy' is modified updatePrivacy() should be called to
-// reflect the modification in the UI.
+/**
+ * This function updates the UI according to the global field 'gPrivacy' and the
+ * selected calendar. If the selected calendar does not support privacy or only
+ * certain values, these are removed from the UI. This function should be called
+ * any time that gPrivacy is updated.
+ */
 function updatePrivacy() {
-    var privacyPublic = document.getElementById("cmd_privacy_public");
-    var privacyConfidential = document.getElementById("cmd_privacy_confidential");
-    var privacyPrivate = document.getElementById("cmd_privacy_private");
+    var calendar = document.getElementById("item-calendar")
+                           .selectedItem.calendar;
+    var hasPrivacy = capSupported("privacy");
 
-    privacyPublic.setAttribute(
-        "checked",
-        privacyPublic.getAttribute("value") == gPrivacy ?
-            "true" : "false");
-    privacyConfidential.setAttribute(
-        "checked",
-        privacyConfidential.getAttribute("value") == gPrivacy ?
-            "true" : "false");
-    privacyPrivate.setAttribute(
-        "checked",
-        privacyPrivate.getAttribute("value") == gPrivacy ?
-            "true" : "false");
+    if (hasPrivacy) {
+        var numChilds;
+        var privacyValues = capValues("privacy",
+                                      ["PUBLIC", "CONFIDENTIAL", "PRIVATE"]);
 
-    var statusbar = document.getElementById("status-bar");
-    var numChilds = statusbar.childNodes.length;
-    for (var i = 0; i < numChilds; i++) {
-        var node = statusbar.childNodes[i];
-        if (node.hasAttribute("privacy")) {
-            if (gPrivacy != node.getAttribute("privacy")) {
-                node.setAttribute("collapsed", "true");
-            } else {
-                node.removeAttribute("collapsed");
+        // Update privacy capabilities (toolbar)
+        var menupopup = document.getElementById("event-privacy-menupopup");
+        numChilds = menupopup.childNodes.length;
+        for (var i = 0; i < numChilds; i++) {
+            var node = menupopup.childNodes[i];
+            if (node.hasAttribute("privacy")) {
+                var currentPrivacyValue = node.getAttribute("privacy");
+                // Collapsed state
+
+                // Hide the toolbar if the value is unsupported or is for a
+                // specific provider and doesn't belong to the current provider.
+                if (privacyValues.indexOf(currentPrivacyValue) < 0 ||
+                    (currentProvider && currentProvider != calendar.type)) {
+                    node.setAttribute("collapsed", "true");
+                } else {
+                    node.removeAttribute("collapsed");
+                }
+
+                // Checked state
+                if (gPrivacy == currentPrivacyValue) {
+                    node.setAttribute("checked", "true");
+                } else {
+                    node.removeAttribute("checked");
+                }
             }
         }
+
+        // Update privacy capabilities (menu)
+        menupopup = document.getElementById("options-privacy-menupopup");
+        numChilds = menupopup.childNodes.length;
+        for (var i = 0; i < numChilds; i++) {
+            var node = menupopup.childNodes[i];
+            var currentProvider = node.getAttribute("provider");
+            if (node.hasAttribute("privacy")) {
+                var currentPrivacyValue = node.getAttribute("privacy");
+                // Collapsed state
+
+                // Hide the menu if the value is unsupported or is for a
+                // specific provider and doesn't belong to the current provider.
+                if (privacyValues.indexOf(currentPrivacyValue) < 0 ||
+                    (currentProvider && currentProvider != calendar.type)) {
+                    node.setAttribute("collapsed", "true");
+                } else {
+                    node.removeAttribute("collapsed");
+                }
+
+                // Checked state
+                if (gPrivacy == currentPrivacyValue) {
+                    node.setAttribute("checked", "true");
+                } else {
+                    node.removeAttribute("checked");
+                }
+            }
+        }
+
+        // Update privacy capabilities (statusbar)
+        var privacyPanel = document.getElementById("status-privacy");
+        var hasAnyPrivacyValue = false;
+        numChilds = privacyPanel.childNodes.length;
+        for (var i = 0; i < numChilds; i++) {
+            var node = privacyPanel.childNodes[i];
+            var currentProvider = node.getAttribute("provider");
+            if (node.hasAttribute("privacy")) {
+                var currentPrivacyValue = node.getAttribute("privacy");
+
+                // Hide the panel if the value is unsupported or is for a
+                // specific provider and doesn't belong to the current provider,
+                // or is not the items privacy value
+                if (privacyValues.indexOf(currentPrivacyValue) < 0 ||
+                    (currentProvider && currentProvider != calendar.type) ||
+                    gPrivacy != currentPrivacyValue) {
+                    node.setAttribute("collapsed", "true");
+                } else {
+                    node.removeAttribute("collapsed");
+                    hasAnyPrivacyValue = true;
+                }
+            }
+        }
+
+        // Don't show the status panel if no valid privacy value is selected
+        if (!hasAnyPrivacyValue) {
+            privacyPanel.setAttribute("collapsed", "true");
+        } else {
+            privacyPanel.removeAttribute("collapsed");
+        }
+
+    } else {
+        setElementValue("button-privacy", !hasPrivacy && "true", "disabled");
+        setElementValue("options-privacy-menu", !hasPrivacy && "true", "disabled");
+        setElementValue("status-privacy", !hasPrivacy && "true", "collapsed");
     }
 }
 
@@ -1219,41 +1298,50 @@ function editPriority(target) {
 }
 
 function updatePriority() {
-    var priorityLevel = "none";
-    if (gPriority >= 1 && gPriority <= 4) {
-        priorityLevel = "high";
-    } else if (gPriority == 5) {
-        priorityLevel = "normal";
-    } else if (gPriority >= 6 && gPriority <= 9) {
-        priorityLevel = "low";
-    }
+    // Set up capabilities
+    var hasPriority = capSupported("priority");
+    setElementValue("options-priority-menu", !hasPriority && "true", "disabled");
+    setElementValue("status-priority", !hasPriority && "true", "collapsed");
 
-    var priorityNone = document.getElementById("cmd_priority_none");
-    var priorityLow = document.getElementById("cmd_priority_low");
-    var priorityNormal = document.getElementById("cmd_priority_normal");
-    var priorityHigh = document.getElementById("cmd_priority_high");
-
-    priorityNone.setAttribute("checked",
-                              priorityLevel == "none" ? "true" : "false");
-    priorityLow.setAttribute("checked",
-                             priorityLevel == "low" ? "true" : "false");
-    priorityNormal.setAttribute("checked",
-                                priorityLevel == "normal" ? "true" : "false");
-    priorityHigh.setAttribute("checked",
-                              priorityLevel == "high" ? "true" : "false");
-
-    var priority = document.getElementById("status-priority");
-    var collapse = (priorityLevel == "none" ? true : false);
-    var numChilds = priority.childNodes.length;
-    for (var i = 0; i < numChilds; i++) {
-        var node = priority.childNodes[i];
-        if (collapse) {
-            node.setAttribute("collapsed", "true");
-        } else {
-            node.removeAttribute("collapsed");
+    if (hasPriority) {
+        var priorityLevel = "none";
+        if (gPriority >= 1 && gPriority <= 4) {
+            priorityLevel = "high";
+        } else if (gPriority == 5) {
+            priorityLevel = "normal";
+        } else if (gPriority >= 6 && gPriority <= 9) {
+            priorityLevel = "low";
         }
-        if (node.getAttribute("value") == priorityLevel) {
-            collapse = true;
+
+        var priorityNone = document.getElementById("cmd_priority_none");
+        var priorityLow = document.getElementById("cmd_priority_low");
+        var priorityNormal = document.getElementById("cmd_priority_normal");
+        var priorityHigh = document.getElementById("cmd_priority_high");
+
+        priorityNone.setAttribute("checked",
+                                  priorityLevel == "none" ? "true" : "false");
+        priorityLow.setAttribute("checked",
+                                 priorityLevel == "low" ? "true" : "false");
+        priorityNormal.setAttribute("checked",
+                                    priorityLevel == "normal" ? "true" : "false");
+        priorityHigh.setAttribute("checked",
+                                  priorityLevel == "high" ? "true" : "false");
+
+        var priorityPanel = document.getElementById("status-priority");
+        if (priorityLevel == "none") {
+            // If the priority is none, don't show the status bar panel
+            priorityPanel.setAttribute("collapsed", "true");
+        } else {
+            priorityPanel.removeAttribute("collapsed");
+            var numChilds = priorityPanel.childNodes.length;
+            for (var i = 0; i < numChilds; i++) {
+                var node = priorityPanel.childNodes[i];
+                if (node.getAttribute("value") == priorityLevel) {
+                    node.removeAttribute("collapsed");
+                } else {
+                    node.setAttribute("collapsed", "true");
+                }
+            }
         }
     }
 }
@@ -1319,7 +1407,9 @@ function editURL() {
     }
 }
 
-function setItemProperty(item, propertyName, value) {
+function setItemProperty(item, propertyName, aValue, aCapability) {
+    var value = (aCapability && !capSupported(aCapability) ? null : aValue);
+
     switch (propertyName) {
         case "startDate":
             if (value.isDate && !item.startDate.isDate ||
@@ -1477,6 +1567,10 @@ function updateCalendar() {
         // update datetime pickers
         updateAllDay();
     }
+
+    // Make sure capabilties are reflected correctly
+    updateCapabilities();
+
 }
 
 function editRepeat() {
@@ -2123,8 +2217,11 @@ function updateTimezone() {
 }
 
 function updateDocument() {
+    var hasURL = capSupported("URL");
+    setElementValue("cmd_url", !hasURL && "true", "disabled");
+
     var documentRow = document.getElementById("event-grid-document-row");
-    if (!gURL || gURL == "") {
+    if (!hasURL || !gURL || gURL == "") {
         documentRow.setAttribute('collapsed', 'true');
     } else {
         documentRow.removeAttribute('collapsed');
@@ -2339,4 +2436,37 @@ function sendMailToAttendees(aAttendees) {
                                     [item.title]);
 
     sendMailTo(toList, emailSubject);
+}
+
+/**
+ * Make sure all fields that may have calendar specific capabilities are updated
+ */
+function updateCapabilities() {
+    updateDocument();
+    updatePriority();
+    updatePrivacy();
+}
+
+/**
+ * Test if a specific capability is supported
+ *
+ * @param aCap      The capability from "capabilities.<aCap>.supported"
+ */
+function capSupported(aCap) {
+    var calendar = document.getElementById("item-calendar")
+                           .selectedItem.calendar;
+    return calendar.getProperty("capabilities." + aCap + ".supported") !== false;
+}
+
+/**
+ * Return the values for a certain capability.
+ *
+ * @param aCap      The capability from "capabilities.<aCap>.values"
+ * @return          The values for this capability
+ */
+function capValues(aCap, aDefault) {
+    var calendar = document.getElementById("item-calendar")
+                           .selectedItem.calendar;
+    var vals = calendar.getProperty("capabilities." + aCap + ".values");
+    return (vals === null ? aDefault : vals);
 }

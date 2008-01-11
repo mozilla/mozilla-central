@@ -1144,12 +1144,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         // gd:visibility
         item.privacy = aXMLEntry.gd::visibility.@value.toString()
                                 .substring(39).toUpperCase();
-        if (item.privacy == "DEFAULT") {
-            // Currently we will use a preference to substitue the
-            // default value
-            item.privacy = getPrefSafe("calendar.google.defaultPrivacy",
-                                       "private").toUpperCase();
-        }
 
         // category
         var categories = new Array();

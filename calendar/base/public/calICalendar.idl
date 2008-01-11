@@ -25,6 +25,7 @@
  *                 Dan Mosedale <dan.mosedale@oracle.com>
  *                 Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *                 Mike Shaver <shaver@off.net>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -120,6 +121,22 @@ interface calICalendar : nsISupports
    *   [boolean] suppressAlarms
    *   [boolean] calendar-main-in-composite
    *   [string]  name
+   *
+   * The following calendar capabilities can be used to inform the UI or backend
+   * that certain features are not supported. If not otherwise mentioned, not
+   * specifying these capabilities assumes a default value of true
+   *   capabilities.URL.supported       Supports a Document Link
+   *   capabilities.privacy.supported   Supports a privacy state
+   *   capabilities.priority.supported  Supports the priority field
+   *
+   * The following capabilities are used to restrict the values for specific
+   * fields. An array should be specified with the values, the default
+   * values are specified here. Extensions using this need to take care of
+   * adding any UI elements needed in an overlay. To make sure the correct
+   * elements are shown, those elements should additionally specify an attribute
+   * "provider", with the type of the provider.
+   *
+   *   capabilities.privacy.values = ["PUBLIC", "CONFIDENTIAL", "PRIVATE"];
    *
    * @param aName property name
    * @return value (string, integer and boolean values are supported),

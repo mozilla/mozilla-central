@@ -167,6 +167,19 @@ calGoogleCalendar.prototype = {
         return this.mUri;
     },
 
+    getProperty: function cGC_getProperty(aName) {
+        switch (aName) {
+            // Capabilities
+            case "capabilities.URL.supported":
+            case "capabilities.priority.supported":
+                return false;
+            case "capabilities.privacy.values":
+                return ["DEFAULT", "PUBLIC", "PRIVATE"];
+        }
+
+        return this.__proto__.__proto__.getProperty.apply(this, arguments);
+    },
+
     get canRefresh cGC_getCanRefresh() {
         return true;
     },

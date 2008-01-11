@@ -4,7 +4,9 @@ gdata-provider.jar:
 % content gdata-provider %content/
 % skin gdata-provider classic/1.0 %skin/
 % overlay chrome://calendar/content/calendarCreation.xul chrome://gdata-provider/content/calendarCreation.xul
+% overlay chrome://calendar/content/sun-calendar-event-dialog.xul chrome://gdata-provider/content/gdata-calendar-event-dialog.xul
     content/calendarCreation.xul                 (content/calendarCreation.xul)
+    content/gdata-calendar-event-dialog.xul      (content/gdata-calendar-event-dialog.xul)
     content/gcal.png                             (content/gcal.png)
 
 gdata-provider-@AB_CD@.jar:

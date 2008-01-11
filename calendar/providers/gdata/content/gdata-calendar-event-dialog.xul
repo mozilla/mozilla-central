@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -11,11 +12,11 @@
    - for the specific language governing rights and limitations under the
    - License.
    -
-   - The Original Code is Google Calendar Provider code.
+   - The Original Code is Provider for Google Calendar code.
    -
    - The Initial Developer of the Original Code is
    -   Philipp Kewisch <mozilla@kewis.ch>
-   - Portions created by the Initial Developer are Copyright (C) 2006
+   - Portions created by the Initial Developer are Copyright (C) 2008
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
@@ -34,7 +35,40 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY gdata-provider.label "Google Calendar">
+<!DOCTYPE overlay SYSTEM "chrome://gdata-provider/locale/gdata.dtd">
 
-<!ENTITY gdata.privacy.default.label "Google Default">
-<!ENTITY gdata.privacy.default.accesskey "D">
+<?xml-stylesheet href="chrome://gdata-provider/skin/gdata-calendar-event-dialog.css" type="text/css"?>
+
+<overlay id="gdata-calendar-event-dialog"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!-- Privacy items -->
+  <menupopup id="options-privacy-menupopup">
+    <menuitem id="gdata-options-privacy-default-menuitem"
+              insertbefore="options-privacy-public-menuitem,options-privacy-private-menuitem"
+              label="&gdata.privacy.default.label;"
+              accesskey="&gdata.privacy.default.accesskey;"
+              type="radio"
+              privacy="DEFAULT"
+              provider="gdata"
+              oncommand="editPrivacy(this)"/>
+  </menupopup>
+
+  <menupopup id="event-privacy-menupopup">
+    <menuitem id="gdata-event-privacy-default-menuitem"
+              name="event-privacy-group"
+              insertbefore="event-privacy-public-menuitem,event-privacy-private-menuitem"
+              label="&gdata.privacy.default.label;"
+              type="radio"
+              provider="gdata"
+              privacy="DEFAULT"
+              oncommand="editPrivacy(this)"/>
+  </menupopup>
+
+  <statusbarpanel id="status-privacy">
+    <hbox id="gdata-status-privacy-default-box"
+          insertbefore="status-privacy-public-box,status-privacy-private-box"
+          privacy="DEFAULT"
+          provider="gdata"/>
+  </statusbarpanel>
+</overlay>

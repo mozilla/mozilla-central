@@ -162,15 +162,6 @@
                  oncommand="sendMailToAttendees(window.attendees);"/>
         <command id="cmd_email_undecided"
                  oncommand="sendMailToUndecidedAttendees(window.attendees);"/>
-        <command id="cmd_privacy_public"
-                 oncommand="editPrivacy(event.target)"
-                 value="PUBLIC"/>
-        <command id="cmd_privacy_confidential"
-                 oncommand="editPrivacy(event.target)"
-                 value="CONFIDENTIAL"/>
-        <command id="cmd_privacy_private"
-                 oncommand="editPrivacy(event.target)"
-                 value="PRIVATE"/>
         <command id="cmd_status_none"
                  oncommand="editStatus(event.target)"
                  value="NONE"/>
@@ -466,20 +457,23 @@
                           <menuitem id="options-privacy-public-menuitem"
                                     label="&event.menu.options.privacy.public.label;"
                                     accesskey="&event.menu.options.privacy.public.accesskey;"
-                                    type="checkbox"
-                                    command="cmd_privacy_public"
+                                    type="radio"
+                                    privacy="PUBLIC"
+                                    oncommand="editPrivacy(this)"
                                     disable-on-readonly="true"/>
                           <menuitem id="options-privacy-confidential-menuitem"
                                     label="&event.menu.options.privacy.confidential.label;"
                                     accesskey="&event.menu.options.privacy.confidential.accesskey;"
-                                    type="checkbox"
-                                    command="cmd_privacy_confidential"
+                                    type="radio"
+                                    privacy="CONFIDENTIAL"
+                                    oncommand="editPrivacy(this)"
                                     disable-on-readonly="true"/>
                           <menuitem id="options-privacy-private-menuitem"
                                     label="&event.menu.options.privacy.private.label;"
                                     accesskey="&event.menu.options.privacy.private.accesskey;"
-                                    type="checkbox"
-                                    command="cmd_privacy_private"
+                                    type="radio"
+                                    privacy="PRIVATE"
+                                    oncommand="editPrivacy(this)"
                                     disable-on-readonly="true"/>
                       </menupopup>
                   </menu>
@@ -578,17 +572,23 @@
                            label="&event.toolbar.privacy.label;">
                 <menupopup id="event-privacy-menupopup">
                     <menuitem id="event-privacy-public-menuitem"
+                              name="event-privacy-group"
                               label="&event.menu.options.privacy.public.label;"
-                              type="checkbox"
-                              command="cmd_privacy_public"/>
+                              type="radio"
+                              privacy="PUBLIC"
+                              oncommand="editPrivacy(this)"/>
                     <menuitem id="event-privacy-confidential-menuitem"
+                              name="event-privacy-group"
                               label="&event.menu.options.privacy.confidential.label;"
-                              type="checkbox"
-                              command="cmd_privacy_confidential"/>
+                              type="radio"
+                              privacy="CONFIDENTIAL"
+                              oncommand="editPrivacy(this)"/>
                     <menuitem id="event-privacy-private-menuitem"
+                              name="event-privacy-group"
                               label="&event.menu.options.privacy.private.label;"
-                              type="checkbox"
-                              command="cmd_privacy_private"/>
+                              type="radio"
+                              privacy="PRIVATE"
+                              oncommand="editPrivacy(this)"/>
                 </menupopup>
             </toolbarbutton>
             <toolbarbutton id="button-url"
@@ -1027,56 +1027,49 @@
                             disable-on-readonly="true"/>
                 </hbox>
             </row>
-
         </rows>
     </grid>
 
     <statusbar class="chromeclass-status" id="status-bar">
-        <statusbarpanel id="status-privacy-public"
-                        align="center"
-                        collapsed="true"
-                        flex="1"
-                        pack="start"
-                        privacy="PUBLIC">
-            <image id="button-privacy-public" class="cal-statusbar-1"/>
-            <label value="&event.menu.options.privacy.public.label;"/>
-        </statusbarpanel>
-        <statusbarpanel id="status-privacy-confidential"
-                        align="center"
-                        collapsed="true"
-                        flex="1"
-                        pack="start"
-                        privacy="CONFIDENTIAL">
-            <image id="button-privacy-confidential" class="cal-statusbar-1"/>
-            <label value="&event.menu.options.privacy.confidential.label;"/>
-        </statusbarpanel>
-        <statusbarpanel id="status-privacy-private"
-                        align="center"
-                        collapsed="true"
-                        flex="1"
-                        pack="start"
-                        privacy="PRIVATE">
-            <image id="button-privacy-private" class="cal-statusbar-1"/>
-            <label value="&event.menu.options.privacy.private.label;"/>
-        </statusbarpanel>
-        <statusbarpanel id="status-priority"
-                        align="center"
-                        flex="1"
-                        pack="start">
-            <label value="&event.priority.label;"/>
-            <image id="button-importance-low"
-                   class="cal-statusbar-1"
-                   collapsed="true"
-                   value="low"/>
-            <image id="button-importance-medium"
-                   class="cal-statusbar-1"
-                   collapsed="true"
-                   value="normal"/>
-            <image id="button-importance-high"
-                   class="cal-statusbar-1"
-                   collapsed="true"
-                   value="high"/>
-        </statusbarpanel>
+      <statusbarpanel id="status-text"
+                      flex="1"/>
+      <statusbarpanel id="status-privacy"
+                      align="center"
+                      flex="1"
+                      collapsed="true"
+                      pack="start">
+        <hbox id="status-privacy-public-box" privacy="PUBLIC">
+          <image id="button-privacy-public" class="cal-statusbar-1"/>
+          <label value="&event.menu.options.privacy.public.label;"/>
+        </hbox>
+        <hbox id="status-privacy-confidential-box" privacy="CONFIDENTIAL">
+          <image id="button-privacy-confidential" class="cal-statusbar-1"/>
+          <label value="&event.menu.options.privacy.confidential.label;"/>
+        </hbox>
+        <hbox id="status-privacy-private-box" privacy="PRIVATE">
+          <image id="button-privacy-private" class="cal-statusbar-1"/>
+          <label value="&event.menu.options.privacy.private.label;"/>
+        </hbox>
+      </statusbarpanel>
+      <statusbarpanel id="status-priority"
+                      align="center"
+                      flex="1"
+                      collapsed="true"
+                      pack="start">
+        <label value="&event.priority.label;"/>
+        <image id="button-importance-low"
+               class="cal-statusbar-1"
+               collapsed="true"
+               value="low"/>
+        <image id="button-importance-medium"
+               class="cal-statusbar-1"
+               collapsed="true"
+               value="normal"/>
+        <image id="button-importance-high"
+               class="cal-statusbar-1"
+               collapsed="true"
+               value="high"/>
+      </statusbarpanel>
     </statusbar>
 
     <popupset id="event-dialog-popupset">
