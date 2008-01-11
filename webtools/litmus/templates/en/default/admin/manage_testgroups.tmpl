@@ -55,20 +55,16 @@ var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
           <b>Filter:</b>
           <table border="0">
 	    <tr>
-	      <td>Product:</td>
-	      <td>Branch:</td>
-	    </tr>
-	    <tr>
-	      <td>
+	      <td>Product:<br/>
                 [% INCLUDE form_widgets/select_product_id.tmpl name="product_filter" placeholder=1 size=1 display_id=1 onchange="changeProduct('_filter');updatePersistVars();filterList();" %]
 	      </td>
-	      <td>
+	      <td>Branch:<br/>
                 [% INCLUDE form_widgets/select_branch_id.tmpl name="branch_filter" placeholder=1 size=1 display_id=1 onchange="updatePersistVars();filterList();" %]
 	      </td>
 	    </tr>
 	  </table>
         </div>
-
+        <hr/>
 	<table border="0" cellspacing="0" cellpadding="5">
 	<tr>
         <td>
