@@ -202,7 +202,7 @@ private:
    * @param aName     Name of the context property.
    * @param aValue    Value of the context property.
    */
-  nsresult SetContextInfo(const char *aName, nsAString &aValue);
+  nsresult SetContextInfo(const char *aName, const nsAString &aValue);
 
   MessageType          mType;
 
@@ -1289,7 +1289,7 @@ PRBool nsXFormsMessageElement::IsEphemeral()
 }
 
 nsresult
-nsXFormsMessageElement::SetContextInfo(const char *aName, nsAString &aValue)
+nsXFormsMessageElement::SetContextInfo(const char *aName, const nsAString &aValue)
 {
   nsCOMPtr<nsXFormsContextInfo> contextInfo = new nsXFormsContextInfo(mElement);
   NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);

@@ -467,7 +467,7 @@ private:
    * @param aName     Name of the context property.
    * @param aValue    Value of the context property.
    */
-  nsresult SetContextInfo(const char *aName, nsAString &aValue);
+  nsresult SetContextInfo(const char *aName, const nsAString &aValue);
 
   nsCOMPtr<nsISchemaLoader> mSchemas;
   nsStringArray             mPendingInlineSchemas;

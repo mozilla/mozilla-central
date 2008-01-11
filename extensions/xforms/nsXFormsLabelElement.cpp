@@ -99,7 +99,7 @@ private:
    * @param aName     Name of the context property.
    * @param aValue    Value of the context property.
    */
-  nsresult SetContextInfo(const char *aName, nsAString &aValue);
+  nsresult SetContextInfo(const char *aName, const nsAString &aValue);
 
   nsCString            mSrcAttrText;
   nsCOMPtr<nsIChannel> mChannel;
@@ -453,7 +453,7 @@ nsXFormsLabelElement::OnStopRequest(nsIRequest *aRequest,
 }
 
 nsresult
-nsXFormsLabelElement::SetContextInfo(const char *aName, nsAString &aValue)
+nsXFormsLabelElement::SetContextInfo(const char *aName, const nsAString &aValue)
 {
   nsCOMPtr<nsXFormsContextInfo> contextInfo = new nsXFormsContextInfo(mElement);
   NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);

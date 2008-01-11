@@ -225,7 +225,7 @@ private:
    * @param aResponse         Protocol response code
    * @param aResponseText     Protocol response reason phrase
    */
-  nsresult SetHttpContextInfo(PRUint32 aResponse, nsAString &aResponseText);
+  nsresult SetHttpContextInfo(PRUint32 aResponse, const nsAString &aResponseText);
 
   nsresult ParseErrorResponse(nsIChannel *aChannel);
 };

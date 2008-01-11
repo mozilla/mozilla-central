@@ -74,7 +74,7 @@ public:
    * @param aName   - name of the string property.
    * @param aString - string value.
    */
-  nsresult SetStringValue(const char *aName, nsAString &aString);
+  nsresult SetStringValue(const char *aName, const nsAString &aString);
 
   /** Set a number value for a context info property.
    *  Number values are encapsulated in a text node because
@@ -108,7 +108,7 @@ private:
    * @param aName - name of the node property.
    * @param aValue - value of the text node.
   */
-  nsresult SetNodeValueInternal(const char *aName, nsAString &aValue);
+  nsresult SetNodeValueInternal(const char *aName, const nsAString &aValue);
 
   // The element to which the context info refers.
   nsIDOMElement *mElement;

@@ -87,7 +87,7 @@ nsXFormsContextInfo::GetType(PRInt32 *aType)
 }
 
 nsresult
-nsXFormsContextInfo::SetStringValue(const char *aName, nsAString &aString)
+nsXFormsContextInfo::SetStringValue(const char *aName, const nsAString &aString)
 {
   // Store the string value of the context property as a node.
   SetNodeValueInternal(aName, aString);
@@ -201,7 +201,8 @@ nsXFormsContextInfo::GetNodesetValue(nsIDOMXPathResult **aResult)
 }
 
 nsresult
-nsXFormsContextInfo::SetNodeValueInternal(const char *aName, nsAString &aValue)
+nsXFormsContextInfo::SetNodeValueInternal(const char *aName,
+                                          const nsAString &aValue)
 {
   if (!mElement)
     return NS_ERROR_FAILURE;

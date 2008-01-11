@@ -2684,7 +2684,7 @@ nsXFormsSubmissionElement::SetContextInfo()
 
 nsresult
 nsXFormsSubmissionElement::SetHttpContextInfo(PRUint32  aResponse,
-                                              nsAString &aResponseText)
+                                              const nsAString &aResponseText)
 {
   nsresult rv;
 
