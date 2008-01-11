@@ -289,7 +289,7 @@ sub getTestResults($\@\@$) {
                 $from .= ", test_result_bugs trb";
                 $where .= " AND tr.testresult_id=trb.test_result_id";
               } else {
-                $from =~ s/test_results tr,/test_results tr LEFT JOIN test_result_bugs trb ON (tr.testresult_id=trb.test_result_id),/;
+                $from =~ s/test_results tr([ ,])/test_results tr LEFT JOIN test_result_bugs trb ON (tr.testresult_id=trb.test_result_id)$1/;
                 $where .= " AND trb.bug_id IS NULL";                
               }
             }
@@ -326,7 +326,7 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'search_field') {
             ($from,$where) = &_processSearchField($criterion,$from,$where);
         } elsif ($criterion->{'field'} eq 'has_comments') {
-          $from =~ s/^FROM test_results tr,/FROM test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id,/;
+          $from =~ s/test_results tr([ ,])/test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id$1/;
        } elsif ($criterion->{'field'} eq 'test_run') {
             # First check to make sure test run exists.
             my $test_run = Litmus::DB::TestRun->retrieve($criterion->{'value'});
@@ -408,7 +408,7 @@ sub _processSearchField(\%\$\$) {
         $table_field='tr.build_id';
     } elsif ($search_field->{'search_field'} eq 'comment') {
         $table_field='trc.comment';
-        $from =~ s/^FROM test_results tr,/FROM test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id,/;
+        $from =~ s/^test_results tr([ ,])/test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id$1/;
     } elsif ($search_field->{'search_field'} eq 'locale') {
         $table_field='tr.locale_abbrev';        
     } elsif ($search_field->{'search_field'} eq 'opsys') {

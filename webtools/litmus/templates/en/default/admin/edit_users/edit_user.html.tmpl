@@ -75,8 +75,8 @@ function checkFormContents(f) {
   </tr>
   [% IF show_admin %]
   <tr>
-    <td class="headerleft">Enabled?</td>
-    <td><input name="enabled" type="checkbox" value="1" 
+    <td class="headerleft"><label for="enabled">Enabled?</label></td>
+    <td><input id="enabled" name="enabled" type="checkbox" value="1" 
       [% IF user.enabled %] checked [% END %] /></td>
   </tr>
   [% END %]
@@ -111,8 +111,8 @@ function checkFormContents(f) {
      <table class="manage">
        [% FOREACH group=groups %]
        <tr>
-         <td><input name="group_[%group.id | html %]" type="checkbox" value="1" [% IF user.inGroup(group) %] checked [%END%]></td>
-         <td>[% group.name | html %]</td>
+         <td><input id="group_[%group.id | html %]" name="group_[%group.id | html %]" type="checkbox" value="1" [% IF user.inGroup(group) %] checked [%END%]></td>
+         <td><label for="group_[% group.id | html %]">[% group.name | html %]</label></td>
        </tr>
        [% END %]
      </table>

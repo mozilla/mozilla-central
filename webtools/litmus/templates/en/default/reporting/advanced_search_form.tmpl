@@ -223,21 +223,21 @@ Use this to limit the number of results displayed.
 <td class="heading">Limit to:</td>
 <td><input type="text" name="limit" value="15" size="5" /> results per page</td>
 <tr>
-<td class="heading">Display only <em>my</em> test results?</td>
-<td><input type="checkbox" name="my_results_only" /></td>
+<td class="heading"><label for="my_results_only">Display only <em>my</em> test results?</label></td>
+<td><input type="checkbox" name="my_results_only" id="my_results_only" /></td>
 </tr>
 </tr>
 <tr>
-<td class="heading">Display only results with comments?</td>
-<td><input type="checkbox" name="has_comments" /></td>
+<td class="heading"><label for="has_comments">Display only results with comments?</label></td>
+<td><input type="checkbox" name="has_comments" id="has_comments" /></td>
 </tr>
 <tr>
   <td class="heading">Display automated results?</td>
-  <td><input type="radio" id="automated" name="automated" value="1" />&nbsp;Automated Only <input type="radio" id="automated" name="automated" value="0E0" />&nbsp;Manual Only <input type="radio" id="automated" name="automated" value="all" checked />&nbsp;All</td>
+  <td><input type="radio" id="automated_only" name="automated" value="1" /><label for="automated_only">&nbsp;Automated Only</label> <input type="radio" id="manual_only" name="automated" value="0E0" /><label for="manual_only">&nbsp;Manual Only</label> <input type="radio" id="automated_all" name="automated" value="all" checked /><label for="automated_all">&nbsp;All</label></td>
 </tr>
 <tr>
   <td class="heading">Associated bug(s)?</td>
-  <td><input type="radio" id="withbugs" name="withbugs" value="1" />&nbsp;With bug(s) <input type="radio" id="withbugs" name="withbugs" value="0E0" />&nbsp;No bug(s) <input type="radio" id="withbugs" name="withbugs" value="all" checked />&nbsp;All</td>
+  <td><input type="radio" id="withbugs_bugs" name="withbugs" value="1" /><label for="withbugs_bugs">&nbsp;With bug(s)</label> <input type="radio" id="withbugs_nobugs" name="withbugs" value="0E0" /><label for="withbugs_nobugs">&nbsp;No bug(s)</label> <input type="radio" id="withbugs_all" name="withbugs" value="all" checked /><label for="withbugs_all">&nbsp;All</label></td>
 </tr>
 </tr>
 </table>
@@ -264,15 +264,15 @@ Admin-specific limiting criteria go here. These criteria are not available to re
 </tr>
 <tr>
 <td class="heading">&nbsp;&nbsp;From Trusted Sources:</td>
-<td><input type="radio" id="trusted_only" name="trusted_only" value="1" />&nbsp;Trusted <input type="radio" id="trusted_only" name="trusted_only" value="0E0" />&nbsp;Untrusted <input type="radio" id="trusted_only" name="trusted_only" value="all" checked />&nbsp;All</td>
+<td><input type="radio" id="trusted_only_trusted" name="trusted_only" value="1" /><label for="trusted_only_trusted">&nbsp;Trusted</label> <input type="radio" id="trusted_only_untrusted" name="trusted_only" value="0E0" /><label for="trusted_only_untrusted">&nbsp;Untrusted</label> <input type="radio" id="trusted_only_all" name="trusted_only" value="all" checked /><label for="trusted_only_all">&nbsp;All</label></td>
 </tr>
 <tr>
 <td class="heading">&nbsp;&nbsp;By <a class='help' name="showVettingHelpText" onclick="toggleHelp(vettingHelpTitle,vettingHelpText);">Vetting Status: <img class="inline" src="images/info.png" alt="What is vetting?" /></a></td>
-<td><input type="radio" id="vetted_only" name="vetted_only" value="1" />&nbsp;Vetted <input type="radio" id="vetted_only" name="vetted_only" value="0E0" />&nbsp;Not Vetted <input type="radio" id="vetted_only" name="vetted_only" value="all" checked />&nbsp;All</td>
+<td><input type="radio" id="vetted_only_vetted" name="vetted_only" value="1" /><label for="vetted_only_vetted">&nbsp;Vetted</label> <input type="radio" id="vetted_only_notvetted" name="vetted_only" value="0E0" /><label for="vetted_only_notvetted">&nbsp;Not Vetted</label> <input type="radio" id="vetted_only_all" name="vetted_only" value="all" checked /><label for="vetted_only_all">&nbsp;All</label></td>
 </tr>
 <tr>
 <td class="heading">&nbsp;&nbsp;By Validity:</td>
-<td><input type="radio" id="valid_only" name="valid_only" value="1" checked />&nbsp;Valid <input type="radio" id="valid_only" name="valid_only" value="0E0" />&nbsp;Invalid <input type="radio" id="valid_only" name="valid_only" value="all" />&nbsp;All</td>
+<td><input type="radio" id="valid_only_valid" name="valid_only" value="1" checked /><label for="valid_only_valid">&nbsp;Valid</label> <input type="radio" id="valid_only_invalid" name="valid_only" value="0E0" /><label for="valid_only_invalid">&nbsp;Invalid</label> <input type="radio" id="valid_only_all" name="valid_only" value="all" /><label for="valid_only_all">&nbsp;All</label></td>
 </tr>
 </table>
   </div>
