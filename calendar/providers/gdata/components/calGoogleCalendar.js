@@ -170,7 +170,7 @@ calGoogleCalendar.prototype = {
     getProperty: function cGC_getProperty(aName) {
         switch (aName) {
             // Capabilities
-            case "capabilities.URL.supported":
+            case "capabilities.attachments.supported":
             case "capabilities.priority.supported":
                 return false;
             case "capabilities.privacy.values":

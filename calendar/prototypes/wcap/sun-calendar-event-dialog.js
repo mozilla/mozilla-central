@@ -811,7 +811,7 @@ function saveDialog(item) {
     }
 
     // URL
-    setItemProperty(item, "URL", gURL, "URL");
+    setItemProperty(item, "URL", gURL, "attachments");
 
     // Description
     setItemProperty(item, "DESCRIPTION", getElementValue("item-description"));
@@ -2217,11 +2217,11 @@ function updateTimezone() {
 }
 
 function updateDocument() {
-    var hasURL = capSupported("URL");
-    setElementValue("cmd_url", !hasURL && "true", "disabled");
+    var hasAttachments = capSupported("attachments");
+    setElementValue("cmd_url", !hasAttachments && "true", "disabled");
 
     var documentRow = document.getElementById("event-grid-document-row");
-    if (!hasURL || !gURL || gURL == "") {
+    if (!hasAttachments || !gURL || gURL == "") {
         documentRow.setAttribute('collapsed', 'true');
     } else {
         documentRow.removeAttribute('collapsed');
