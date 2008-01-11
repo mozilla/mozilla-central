@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "ExtendedTableView.h"
-
+#import "NSWorkspace+Utils.h"
 
 @implementation ExtendedTableView
 
@@ -147,6 +147,12 @@
 //
 - (void)textDidEndEditing:(NSNotification *)aNotification
 {
+  // This action is not needed on Leopard, as selection behavior was changed.
+  if ([NSWorkspace isLeopardOrHigher]) {
+    [super textDidEndEditing:aNotification];
+    return;
+  }
+
   // Fake our own notification. We pretend that the editing was canceled due to a
   // mouse click. This prevents outlineviw from selecting another cell for editing.
   NSDictionary *userInfo = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:NSIllegalTextMovement] forKey:@"NSTextMovement"];
