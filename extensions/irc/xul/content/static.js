@@ -3340,7 +3340,7 @@ tabsDropObserver.canDrop =
 function tabdnd_candrop(aEvent, aDragSession)
 {
     if (aEvent.getPreventDefault())
-        return;
+        return false;
 
     // See comment above |var tabsDropObserver|.
     var flavourSet = this.getSupportedFlavours();
