@@ -46,6 +46,20 @@ interface calICalendarManagerObserver;
 [scriptable, uuid(43a71d40-7807-4e2f-b741-2926ee73f89a)]
 interface calICalendarManager : nsISupports
 {
+  /**
+   * Gives the number of registered calendars that require network access.
+   */
+  readonly attribute PRUint32 networkCalendarCount;
+
+  /***
+   * Gives the number of registered readonly calendars.
+   */
+  readonly attribute PRUint32 readOnlyCalendarCount;
+
+  /**
+   * Gives the number of registered calendars
+   */
+  readonly attribute PRUint32 calendarCount;
   /* 
    * create a new calendar
    * aType is the type ("caldav", "storage", etc)

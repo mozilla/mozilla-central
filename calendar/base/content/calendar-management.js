@@ -246,11 +246,6 @@ var calendarListTreeView = {
             aCalendar.id == composite.defaultCalendar.id) {
             this.tree.view.selection.select(this.mCalendarList.length - 1);
         }
-
-        if (!aCalendar.readOnly) {
-            calendarManagerObserver.mWritableCalendars++;
-            calendarManagerObserver.setupWritableCalendars();
-        }
     },
 
     removeCalendar: function cLTV_removeCalendar(aCalendar) {
@@ -267,11 +262,6 @@ var calendarListTreeView = {
         }
 
         this.tree.view.selection.select(index);
-
-        if (!aCalendar.readOnly) {
-            calendarManagerObserver.mWritableCalendars--;
-            calendarManagerObserver.setupWritableCalendars();
-        }
     },
 
     updateCalendar: function cLTV_updateCalendar(aCalendar) {
@@ -629,7 +619,6 @@ var calendarManagerCompositeObserver = {
 
 var calendarManagerObserver = {
     mDefaultCalendarItem: null,
-    mWritableCalendars: 0,
 
     QueryInterface: function cMO_QueryInterface(aIID) {
         if (!aIID.equals(Components.interfaces.calICalendarManagerObserver) &&
@@ -657,16 +646,9 @@ var calendarManagerObserver = {
         // or changing items.
         aCalendar.addObserver(this);
 
-        // Make sure we can delete calendars when there is more than one.
-        if (calendars.length > 1) {
-            document.getElementById("calendar_delete_calendar_command")
-                    .removeAttribute("disabled");
-        }
-
-        if (aCalendar.canRefresh) {
-            document.getElementById("calendar_reload_remote_calendars")
-                    .removeAttribute("disabled");
-        }
+        // Update the calendar commands for number of remote calendars and for
+        // more than one calendar
+        document.commandDispatcher.updateCommands("calendar_commands");
     },
 
     setupWritableCalendars: function cMO_setupWritableCalendars() {
@@ -700,25 +682,9 @@ var calendarManagerObserver = {
         // Make sure the calendar is removed from the composite calendar
         getCompositeCalendar().removeCalendar(aCalendar.uri);
 
-        // We want to make sure its not possible to delete the last calendar.
-        // Since at this point the current calendar hasn't been deleted yet,
-        // start disabling when there are two calendars.
-        if (calendars.length <= 2) {
-            document.getElementById("calendar_delete_calendar_command")
-                    .setAttribute("disabled", true);
-        }
-
-        if (aCalendar.canRefresh) {
-            // This may be the last refreshable calendar. In that case, disable
-            // the possibility to reload remote calendars.
-            function calCanRefresh(cal) {
-                return (cal.canRefresh && !cal.uri.equals(aCalendar.uri));
-            }
-            if (!calendars.some(calCanRefresh)) {
-                document.getElementById("calendar_reload_remote_calendars")
-                        .setAttribute("disabled", true);
-            }
-        }
+        // Update commands to disallow deleting the last calendar and only
+        // allowing reload remote calendars when there are remote calendars.
+        document.commandDispatcher.updateCommands("calendar_commands");
     },
 
     onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
@@ -754,9 +720,10 @@ var calendarManagerObserver = {
                 calendarListTreeView.updateCalendar(aCalendar);
                 break;
             case "readOnly":
-                this.mWritableCalendars += (aValue ? -1 : 1);
-                this.setupWritableCalendars();
                 calendarListTreeView.updateCalendar(aCalendar);
+                // Fall through, update commands in any cases.
+            case "requiresNetwork":
+                document.commandDispatcher.updateCommands("calendar_commands");
                 break;
         }
     },

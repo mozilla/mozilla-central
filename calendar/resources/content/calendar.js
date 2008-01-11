@@ -120,6 +120,8 @@ function calendarInit() {
         handleCommandLine(cl);
     }
 
+    // Setup the command controller
+    injectCalendarCommandController();
 }
 
 function handleCommandLine(aComLine) {
@@ -254,19 +256,30 @@ function closeCalendar()
 }
 
 function onSelectionChanged(aEvent) {
-    var elements = 
-        document.getElementsByAttribute("disabledwhennoeventsselected", "true");
-
     var selectedItems = aEvent.detail;
     gXXXEvilHackSavedSelection = selectedItems;
 
-    for (var i = 0; i < elements.length; i++) {
-        if (selectedItems.length >= 1) {
-            elements[i].removeAttribute("disabled");
-        } else {
-            elements[i].setAttribute("disabled", "true");
+    // Tell the commands that events were selected.
+    calendarController.item_selected = (selectedItems.length > 0);
+    var selected_events_readonly = 0;
+    var selected_events_requires_network = 0;
+
+    for each (var item in selectedItems) {
+        if (item.calendar.readOnly) {
+            selected_events_readonly++;
+        }
+        if (item.calendar.getProperty("requiresNetwork")) {
+            selected_events_requires_network++;
         }
     }
+
+    calendarController.selected_events_readonly =
+        (selected_events_readonly == selectedItems.length);
+
+    calendarController.selected_events_requires_network =
+        (selected_events_requires_network == selectedItems.length);
+
+    document.commandDispatcher.updateCommands("calendar_commands");
 }
 
 function openPreferences() {
@@ -323,22 +336,10 @@ function CalendarToolboxCustomizeDone(aToolboxChanged)
   window.focus();
 }
 
+/**
+ * Update the undo and redo menu items
+ */
 function updateUndoRedoMenu() {
-    // We need to make sure the menu is updated on all main windows
-    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    var enumerator = wm.getEnumerator('calendarMainWindow');
-    while (enumerator.hasMoreElements()) {
-        var doc = enumerator.getNext().document;
-
-        if (getTransactionMgr().canUndo())
-            doc.getElementById('undo_command').removeAttribute('disabled');
-        else
-            doc.getElementById('undo_command').setAttribute('disabled', true);
-
-        if (getTransactionMgr().canRedo())
-            doc.getElementById('redo_command').removeAttribute('disabled');
-        else
-            doc.getElementById('redo_command').setAttribute('disabled', true);
-    }
+    goUpdateCommand("cmd_undo");
+    goUpdateCommand("cmd_redo");
 }

@@ -136,6 +136,14 @@ calICSCalendar.prototype = {
         this.refresh();
     },
 
+    getProperty: function calICSCalendar_getProperty(aName) {
+        switch (aName) {
+            case "requiresNetwork":
+                return (!this.uri.schemeIs("file"));
+        }
+        return this.__proto__.__proto__.getProperty.apply(this, arguments);
+    },
+
     refresh: function calICSCalendar_refresh() {
         this.queue.push({action: 'refresh'});
         this.processQueue();

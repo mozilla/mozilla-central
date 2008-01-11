@@ -117,10 +117,13 @@ interface calICalendar : nsISupports
    * e.g. on the server or in local prefs.
    *
    * Currently known properties are:
-   *   [boolean] readOnly
-   *   [boolean] suppressAlarms
    *   [boolean] calendar-main-in-composite
    *   [string]  name
+   *   [boolean] readOnly
+   *   [boolean] requiresNetwork    If false, the calendar does not require
+   *                                  network access at all. This is mainy used
+   *                                  as a UI hint.
+   *   [boolean] suppressAlarms
    *
    * The following calendar capabilities can be used to inform the UI or backend
    * that certain features are not supported. If not otherwise mentioned, not

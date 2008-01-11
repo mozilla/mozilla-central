@@ -50,27 +50,28 @@
 </broadcasterset>
 
 <commandset id="calendar_commands">
-  <command id="cmd_pageSetup" oncommand="PrintUtils.showPageSetup();"/>
-  <command id="print_command" oncommand="calPrint()"/>
-  
-  <command id="undo_command" oncommand="undo()" disabled="true"/>
-  <command id="redo_command" oncommand="redo()" disabled="true"/>
-  <command id="cut_command" oncommand="cutToClipboard()" disabled="true" disabledwhennoeventsselected="true"/>
-  <command id="copy_command" oncommand="copyToClipboard()" disabled="true" disabledwhennoeventsselected="true"/>
-  <command id="paste_command" oncommand="pasteFromClipboard()"/>
-  <command id="select_all_command" oncommand="selectAllEvents()"/>
+  <!-- These commands already exist in thunderbird -->
+  <command id="cmd_undo" oncommand="goDoCommand('cmd_undo')"/>
+  <command id="cmd_redo" oncommand="goDoCommand('cmd_redo')"/>
+  <command id="cmd_cut" oncommand="goDoCommand('cmd_cut')"/>
+  <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')"/>
+  <command id="cmd_paste" oncommand="goDoCommand('cmd_paste')"/>
+  <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')"/>
+  <command id="cmd_pageSetup" oncommand="goDoCommand('cmd_pageSetup')"/>
+  <command id="cmd_print" oncommand="goDoCommand('cmd_print')"/>
 
+  <command id="cmd_CustomizeToolbars" oncommand="CalendarCustomizeToolbar()"/>
+  <command id="cmd_showStatusBar" oncommand="goToggleToolbar('status-bar', 'menu_showStatusBar');"/>
+  <command id="cmd_showTaskBox" oncommand="goToggleToolbar('todo-tab-panel', 'menu_showTaskBox'); goToggleToolbar('calendar-todo-splitter');"/>
+
+  <command id="Tools:Addons" oncommand="goOpenAddons();"/>
+
+  <!-- Sunbird specific commands -->
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
 
   <command id="go_date_command" oncommand="gCalendarWindow.pickAndGoToDate()"/>
 
   <command id="close_calendar_command" oncommand="closeCalendar()"/>
-
-  <command id="cmd_CustomizeToolbars"   oncommand="CalendarCustomizeToolbar()"/>
-  <command id="cmd_showStatusBar"       oncommand="goToggleToolbar('status-bar', 'menu_showStatusBar');"/>
-  <command id="cmd_showTaskBox"         oncommand="goToggleToolbar('todo-tab-panel', 'menu_showTaskBox'); goToggleToolbar('calendar-todo-splitter');"/>
-
-  <command id="Tools:Addons" oncommand="goOpenAddons();"/>
 
 #ifdef XP_MACOSX
   <command id="minimizeWindowCmd" oncommand="window.minimize();"/>
@@ -85,19 +86,19 @@
   <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
   <key id="key_close"            key="&calendar.menu.options.close.key;" observes="close_calendar_command"      modifiers="accel"/>
-  <key id="print_key"            key="&calendar.print.key;"              observes="print_command"               modifiers="accel"/>
+  <key id="print_key"            key="&calendar.print.key;"              observes="cmd_print"                   modifiers="accel"/>
 
-  <key id="undo_key"             key="&calendar.undo.key;"               observes="undo_command"                modifiers="accel"/>
+  <key id="undo_key"             key="&calendar.undo.key;"               observes="cmd_undo"                    modifiers="accel"/>
 #ifdef XP_UNIX
-  <key id="redo_key"             key="&calendar.undo.key;"               observes="redo_command"                modifiers="shift, accel"/>
+  <key id="redo_key"             key="&calendar.undo.key;"               observes="cmd_redo"                    modifiers="shift, accel"/>
 #else
-  <key id="redo_key"             key="&calendar.redo.key;"               observes="redo_command"                modifiers="accel"/>
+  <key id="redo_key"             key="&calendar.redo.key;"               observes="cmd_redo"                    modifiers="accel"/>
 #endif
 
-  <key id="key_cut"              key="&calendar.cut.key;"                observes="cut_command"                 modifiers="accel"/>
-  <key id="key_copy"             key="&calendar.copy.key;"               observes="copy_command"                modifiers="accel"/>
-  <key id="key_paste"            key="&calendar.paste.key;"              observes="paste_command"               modifiers="accel"/>
-  <key id="key_selectAll"        key="&calendar.selectall.key;"          observes="select_all_command"          modifiers="accel"/>
+  <key id="key_cut"              key="&calendar.cut.key;"                observes="cmd_cut"                     modifiers="accel"/>
+  <key id="key_copy"             key="&calendar.copy.key;"               observes="cmd_copy"                    modifiers="accel"/>
+  <key id="key_paste"            key="&calendar.paste.key;"              observes="cmd_paste"                   modifiers="accel"/>
+  <key id="key_selectAll"        key="&calendar.selectall.key;"          observes="cmd_selectAll"               modifiers="accel"/>
 
   <key id="view_day_key"         key="&calendar.dayView.key;"            observes="calendar_day-view_command"            modifiers="accel"/>
   <key id="view_week_key"        key="&calendar.weekView.key;"           observes="calendar_week-view_command"           modifiers="accel"/>

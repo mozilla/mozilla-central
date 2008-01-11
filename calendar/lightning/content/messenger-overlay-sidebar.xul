@@ -69,6 +69,7 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendarCreation.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
@@ -363,7 +364,7 @@
        <menuitem id="publishCalendar"
                  label="&calendar.publish.label;"
                  accesskey="&calendar.publish.accesskey;"
-                 observes="calendar_publish_calendar"/>
+                 observes="calendar_publish_calendar_command"/>
        <menuseparator id="afterSubscription"/>
        <menuitem label="&calendar.context.newserver.label;"
                  id="calpopup-new"

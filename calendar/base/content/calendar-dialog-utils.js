@@ -22,6 +22,7 @@
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Michael Buettner <michael.buettner@sun.com>
  *   Stefan Sitter <ssitter@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,104 +37,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-/* utility functions */
-
-function setElementValue(elementName, value, name)
-{
-    var element = document.getElementById(elementName);
-    if (!element) {
-        dump("unable to find " + elementName + "\n");
-        return;
-    }
-
-    if (value === false) {
-        element.removeAttribute(name ? name : "value");
-    } else if (name) {
-        //dump("element.setAttribute(" + name + ", " + value + ")\n");
-        element.setAttribute(name, value);
-    } else {
-        //dump("element.value = " + value + "\n");
-        element.value = value;
-    }
-}
-
-function getElementValue(elementName, name)
-{
-    var element = document.getElementById(elementName);
-    if (!element) {
-        dump("unable to find " + elementName + "\n");
-        return null;
-    }
-
-    if (name)
-        return element[name];
-
-    return element.value;
-}
-
-function enableElement(elementId)
-{
-    setElementValue(elementId, false, "disabled");
-}
-
-function disableElement(elementId)
-{
-    setElementValue(elementId, "true", "disabled");
-}
-
-/**
- * This function unconditionally disables the element for
- * which the id has been passed as argument. Furthermore, it
- * remembers who was responsible for this action by using
- * the given key (lockId). In case the control should be
- * enabled again the lock gets removed, but the control only
- * gets enabled if *all* possibly held locks have been removed.
- */
-function disableElementWithLock(elementId,lockId) {
-
-    // unconditionally disable the element.
-    disableElement(elementId);
-
-    // remember that this element has been locked with
-    // the key passed as argument. we keep a primitive
-    // form of ref-count in the attribute 'lock'.
-    var element = document.getElementById(elementId);
-    if (element) {
-        if (!element.hasAttribute(lockId)) {
-            element.setAttribute(lockId, "true");
-            var n = parseInt(element.getAttribute("lock") || 0);
-            element.setAttribute("lock", n + 1);
-        }
-    }
-}
-
-/**
- * This function is intended to be used in tandem with the
- * above defined function 'disableElementWithLock()'.
- * See the respective comment for further details.
- */
-function enableElementWithLock(elementId, lockId) {
-
-    var element = document.getElementById(elementId);
-    if (!element) {
-        dump("unable to find " + elementId + "\n");
-        return;
-    }
-
-    if (element.hasAttribute(lockId)) {
-        element.removeAttribute(lockId);
-        var n = parseInt(element.getAttribute("lock") || 0) - 1;
-        if (n > 0) {
-            element.setAttribute("lock", n);
-        } else {
-            element.removeAttribute("lock");
-        }
-        if (n <= 0) {
-            enableElement(elementId);
-        }
-    }
-}
 
 /* use with textfields oninput to only allow integers */
 function validateIntegerRange(event, lowerBound, upperBound) {

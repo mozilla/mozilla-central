@@ -50,27 +50,32 @@
     <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
   </stringbundleset>
 
-  <commandset id="calendar_commands">
-    <command id="calendar_new_event_command" oncommand="createEventWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>
-    <command id="calendar_modify_event_command" oncommand="editSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
-    <command id="calendar_delete_event_command" oncommand="deleteSelectedEvents()" disabled="true" disabledwhennoeventsselected="true"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-common-sets.js"/>
 
-    <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());" disable-when-no-writable-calendars="true" disabled="true"/>
-    <command id="calendar_delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
+  <commandset id="calendar_commands"
+              commandupdater="true"
+              events="calendar_commands"
+              oncommandupdate="calendarController.updateCommands()">
+    <command id="calendar_new_event_command" oncommand="goDoCommand('calendar_new_event_command')"/>
+    <command id="calendar_modify_event_command" oncommand="goDoCommand('calendar_modify_event_command')"/>
+    <command id="calendar_delete_event_command" oncommand="goDoCommand('calendar_delete_event_command')"/>
 
-    <command id="calendar_new_calendar_command" oncommand="openCalendarWizard();"/>
-    <command id="calendar_edit_calendar_command" oncommand="openCalendarProperties(getSelectedCalendar());"/>
-    <command id="calendar_delete_calendar_command" oncommand="promptDeleteCalendar(getSelectedCalendar());" disabled="true"/>
+    <command id="calendar_new_todo_command" oncommand="goDoCommand('calendar_new_todo_command')"/>
+    <command id="calendar_delete_todo_command" oncommand="goDoCommand('calendar_delete_todo_command')"/>
 
-    <command id="calendar_import_command" oncommand="loadEventsFromFile()" disable-when-no-writable-calendars="true" disabled="true"/>
-    <command id="calendar_export_command" oncommand="exportEntireCalendar()"/>
-    <command id="calendar_export_selection_command" oncommand="saveEventsToFile(currentView().getSelectedItems({}))" disabledwhennoeventsselected="true" disabled="true"/>
+    <command id="calendar_new_calendar_command" oncommand="goDoCommand('calendar_new_calendar_command')"/>
+    <command id="calendar_edit_calendar_command" oncommand="goDoCommand('calendar_edit_calendar_command')"/>
+    <command id="calendar_delete_calendar_command" oncommand="goDoCommand('calendar_delete_calendar_command')"/>
 
-    <command id="calendar_publish_selected_calendar_command" oncommand="publishEntireCalendar(getSelectedCalendar());"/>
-    <command id="calendar_publish_calendar_command" oncommand="publishEntireCalendar()"/>
-    <command id="calendar_publish_selected_events_command" oncommand="publishCalendarData()" disabledwhennoeventsselected="true" disabled="true"/>
+    <command id="calendar_import_command" oncommand="goDoCommand('calendar_import_command')"/>
+    <command id="calendar_export_command" oncommand="goDoCommand('calendar_export_command')"/>
+    <command id="calendar_export_selection_command" oncommand="goDoCommand('calendar_export_selection_command')"/>
 
-    <command id="calendar_reload_remote_calendars" oncommand="getCompositeCalendar().refresh()"/>
+    <command id="calendar_publish_selected_calendar_command" oncommand="goDoCommand('calendar_publish_selected_calendar_command')"/>
+    <command id="calendar_publish_calendar_command" oncommand="goDoCommand('calendar_publish_calendar_command')"/>
+    <command id="calendar_publish_selected_events_command" oncommand="goDoCommand('calendar_publish_selected_events_command')"/>
+
+    <command id="calendar_reload_remote_calendars" oncommand="goDoCommand('calendar_reload_remote_calendars')"/>
 
     <command id="calendar_show_unifinder_command" oncommand="goToggleToolbar('bottom-events-box', 'calendar_show_unifinder_command'); goToggleToolbar('calendar-view-splitter');"/>
 

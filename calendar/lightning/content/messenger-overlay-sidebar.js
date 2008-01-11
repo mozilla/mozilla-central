@@ -31,7 +31,7 @@
  *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -45,140 +45,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 var gLastShownCalendarView = null;
-
-var CalendarController =
-{
-  defaultController: null,
-
-  supportsCommand: function ccSC(command) {
-    switch (command) {
-      case "cmd_cut":
-      case "cmd_copy":
-      case "cmd_paste":
-      case "cmd_undo":
-      case "cmd_redo":
-      case "cmd_print":
-      case "cmd_printpreview":
-      case "button_print":
-      case "button_delete":
-      case "cmd_delete":
-        return true;
-    }
-    if (this.defaultController) {
-      return this.defaultController.supportsCommand(command);
-    }
-    return false;
-  },
-
-  isCommandEnabled: function ccICE(command) {
-    switch (command) {
-      case "cmd_cut":
-      case "cmd_copy":
-        return currentView().getSelectedItems({}).length != 0;
-      case "cmd_paste":
-        return canPaste();
-      case "cmd_undo":
-        if (this.isCalendarInForeground()) {
-          goSetMenuValue(command, 'valueDefault');
-          if (canUndo()) {
-            return true;
-          }
-        }
-        break;
-      case "cmd_redo":
-        if (this.isCalendarInForeground()) {
-          goSetMenuValue(command, 'valueDefault');
-          if(canRedo()) {
-            return true;
-          }
-        }
-        break;
-      case "button_print":
-      case "cmd_print":
-        if (this.isCalendarInForeground()) {
-          return true;
-        }
-        break;
-      case "cmd_printpreview":
-        if (this.isCalendarInForeground()) {
-          return false;
-        }
-        break;
-      case "button_delete":
-      case "cmd_delete":
-        if (this.isCalendarInForeground()) {
-          var selectedItems = currentView().getSelectedItems({});
-          return selectedItems.length != 0;
-        }
-        break;
-    }
-    if (this.defaultController) {
-      return this.defaultController.isCommandEnabled(command);
-    }
-    return false;
-  },
-
-  doCommand: function ccDC(command) {
-    // if the user invoked a key short cut then it is possible that we got
-    // here for a command which is really disabled. kick out if the
-    // command should be disabled.
-    if (!this.isCommandEnabled(command)) {
-      return;
-    }
-
-    switch ( command )
-    {
-      case "cmd_cut":
-        cutToClipboard();
-        break;
-      case "cmd_copy":
-        copyToClipboard();
-        break;
-      case "cmd_paste":
-        pasteFromClipboard();
-        break;
-      case "cmd_undo":
-        if (this.isCalendarInForeground() && canUndo()) {
-          getTransactionMgr().undo();
-        }
-        break;
-      case "cmd_redo":
-        if (this.isCalendarInForeground() && canRedo()) {
-          getTransactionMgr().redo();
-        }
-        break;
-      case "button_print":
-      case "cmd_print":
-        if (this.isCalendarInForeground()) {
-          calPrint();
-          return;
-        }
-        break;
-      case "cmd_printpreview":
-        if (this.isCalendarInForeground()) {
-          return;
-        }
-        break;
-      case "button_delete":
-      case "cmd_delete":
-        if (this.isCalendarInForeground()) {
-          return;
-        }
-        break;
-    }
-    if (this.defaultController) {
-      this.defaultController.doCommand(command);
-    }
-  },
-
-  onEvent: function ccOE(event) {
-    // do nothing here...
-  },
-
-  isCalendarInForeground: function ccIC() {
-    return document.getElementById("displayDeck").selectedPanel.id == "calendar-view-box";
-  }
-};
 
 function yesterday()
 {
@@ -213,7 +79,7 @@ function ltnMinimonthPick(minimonth)
     document.getElementById("ltnDateTextPicker").value = jsDate;
     var cdt = jsDateToDateTime(jsDate);
 
-    if (document.getElementById("displayDeck").selectedPanel != 
+    if (document.getElementById("displayDeck").selectedPanel !=
         document.getElementById("calendar-view-box")) {
         ltnShowCalendarView(gLastShownCalendarView);
     }
@@ -390,39 +256,36 @@ function ltnOnLoad(event)
             null);
     }
 
-    // we need to put our new command controller *before* the one that
-    // gets installed by thunderbird. since we get called pretty early
-    // during startup we need to install the function below as a callback
-    // that periodically checks when the original thunderbird controller
-    // gets alive. please note that setTimeout with a value of 0 means that
-    // we leave the current thread in order to re-enter the message loop.
-    var injectCommandController = function inject() {
-      var controller = top.controllers.getControllerForCommand("cmd_undo");
-      if (!controller) {
-        setTimeout(injectCommandController, 0);
-      } else {
-        CalendarController.defaultController = controller;
-        top.controllers.insertControllerAt(0, CalendarController);
-        ltnInitializeCalendarMenu();
-      }
-    }
-    injectCommandController();
+    // Set up the command controller from calendar-common-sets.js
+    injectCalendarCommandController();
 
     getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
 }
 
 function onSelectionChanged(aEvent) {
-  var elements = document.getElementsByAttribute("disabledwhennoeventsselected", "true");
-  var selectedItems = aEvent.detail;
-  for (var i = 0; i < elements.length; i++) {
-    if (selectedItems.length >= 1) {
-      elements[i].removeAttribute("disabled");
-    } else {
-      elements[i].setAttribute("disabled", "true");
+    var selectedItems = aEvent.detail;
+
+    calendarController.item_selected = (selectedItems.length > 0);
+    var selected_events_readonly = 0;
+    var selected_events_requires_network = 0;
+
+    for each (var item in selectedItems) {
+        if (item.calendar.readOnly) {
+            selected_events_readonly++;
+        }
+        if (item.calendar.getProperty("requiresNetwork") !== false) {
+            selected_events_requires_network++;
+        }
     }
-  }
-  document.commandDispatcher.updateCommands('mail-toolbar');
-  document.commandDispatcher.updateCommands('calendar_commands');
+
+    calendarController.selected_events_readonly =
+        (selected_events_readonly == selectedItems.length);
+
+    calendarController.selected_events_requires_network =
+        (selected_events_requires_network == selectedItems.length);
+
+    document.commandDispatcher.updateCommands('mail-toolbar');
+    document.commandDispatcher.updateCommands('calendar_commands');
 }
 
 /* Called at midnight to tell us to redraw date-specific widgets.  Do NOT call
@@ -756,6 +619,7 @@ function ltnInitializeCalendarMenu() {
     var modeToolbar = document.getElementById("mode-toolbar");
     var visible = !modeToolbar.hasAttribute("collapsed");
     document.getElementById("modeBroadcaster").setAttribute("checked", visible);
+    document.commandDispatcher.updateCommands("calendar_commands");
 }
 
 function swapPopupMenus() {

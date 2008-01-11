@@ -320,6 +320,14 @@ calStorageCalendar.prototype = {
         this.mUri = aUri;
     },
 
+    getProperty: function stor_getProperty(aName) {
+        switch (aName) {
+            case "requiresNetwork":
+                return false;
+        }
+        return this.__proto__.__proto__.getProperty.apply(this, arguments);
+    },
+
     refresh: function() {
         // no-op
     },

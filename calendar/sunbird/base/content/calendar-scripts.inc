@@ -69,6 +69,7 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calendar.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendarWindow.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>

@@ -115,19 +115,19 @@
     <menuitem label="&calendar.context.cutevent.label;"
               accesskey="&calendar.context.cutevent.accesskey;"
               id="general-context-menu-cut"
-              observes="cut_command">
+              observes="cmd_cut">
       <observes element="is_editable" attribute="hidden"/>
     </menuitem>
     <menuitem label="&calendar.context.copyevent.label;"
               accesskey="&calendar.context.copyevent.accesskey;"
               id="general-context-menu-copy"
-              observes="copy_command">
+              observes="cmd_copy">
       <observes element="is_editable" attribute="hidden"/>
     </menuitem>
     <menuitem label="&calendar.context.pasteevent.label;"
               accesskey="&calendar.context.pasteevent.accesskey;"
               id="general-context-menu-paste"
-              observes="paste_command">
+              observes="cmd_paste">
       <observes element="is_editable" attribute="hidden"/>
     </menuitem>
     <menuseparator>
@@ -136,7 +136,7 @@
     <menuitem label="&calendar.context.selectall.label;"
               accesskey="&calendar.context.selectall.accesskey;"
               id="general-context-menu-selectall"
-              observes="select_all_command">
+              observes="cmd_selectAll">
       <observes element="is_editable" attribute="hidden"/>
     </menuitem>
     <menuseparator>
@@ -230,17 +230,17 @@
                    id="calendar-cut-button"
                    label="&calendar.cut.button.label;"
                    tooltiptext="&calendar.cut.button.tooltip;"
-                   observes="cut_command"/>
+                   observes="cmd_cut"/>
     <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-copy-button"
                    label="&calendar.copy.button.label;"
                    tooltiptext="&calendar.copy.button.tooltip;"
-                   observes="copy_command"/>
+                   observes="cmd_copy"/>
     <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-paste-button"
                    label="&calendar.paste.button.label;"
                    tooltiptext="&calendar.paste.button.tooltip;"
-                   observes="paste_command"/>
+                   observes="cmd_paste"/>
     <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-import-button"
                    label="&calendar.import.button.label;"
@@ -265,7 +265,7 @@
                    id="calendar-print-button"
                    label="&calendar.print.button.label;"
                    tooltiptext="&calendar.print.button.tooltip;"
-                   observes="print_command"/>
+                   observes="cmd_print"/>
     <toolbarbutton class="cal-toolbarbutton-1"
                    id="calendar-new-task-button"
                    label="&calendar.newtask.button.label;"
