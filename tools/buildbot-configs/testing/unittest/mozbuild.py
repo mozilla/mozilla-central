@@ -13,13 +13,15 @@ MozillaEnvironments['linux'] = {
 }
 
 MozillaEnvironments['centos'] = {
-    "MOZ_NO_REMOTE": '1'
+    "MOZ_NO_REMOTE": '1',
+    "CVS_RSH": 'ssh'
 }
 
 MozillaEnvironments['osx'] = {
     "MOZ_NO_REMOTE": '1',
     "NO_EM_RESTART": '1',
-    "XPCOM_DEBUG_BREAK": 'warn'
+    "XPCOM_DEBUG_BREAK": 'warn',
+    "CVS_RSH": 'ssh'
 }
 
 # standard vc8 express build env; vc8 normal will be very similar, just different
@@ -31,6 +33,7 @@ MozillaEnvironments['vc8'] = {
     "VCVARS": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\bin\\vcvars32.bat',
     "MOZ_TOOLS": 'C:\\moztools',
     "CYGWINBASE": 'C:\\cygwin',
+    "CVS_RSH": 'ssh',
     "VSINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8',
     "VCINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC',
     "FrameworkDir": 'C:\\WINDOWS\\Microsoft.NET\\Framework',
@@ -79,6 +82,7 @@ MozillaEnvironments['mozbuild'] = {
     "MOZILLABUILDDRIVE": 'C:',
     "MOZILLABUILDPATH": '\\mozilla-build\\',
     "MOZ_TOOLS": 'C:\\mozilla-build\\moztools',
+    "CVS_RSH": 'ssh',
     "VSINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8',
     "VCINSTALLDIR": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC',
     "FrameworkDir": 'C:\\WINDOWS\\Microsoft.NET\\Framework',
@@ -133,7 +137,7 @@ class TinderboxShellCommand(ShellCommand):
 
 class MozillaCheckoutClientMk(ShellCommand):
     haltOnFailure = True
-    cvsroot = ":pserver:anonymous@cvs.mozilla.org:/cvsroot"
+    cvsroot = ":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"
     
     def __init__(self, **kwargs):
         if 'cvsroot' in kwargs:
