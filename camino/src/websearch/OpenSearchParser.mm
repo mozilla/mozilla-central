@@ -42,6 +42,7 @@
 // XML element names we're interested in.
 static NSString *const kSearchEngineNameElement = @"ShortName";
 static NSString *const kSearchEngineURLElement = @"Url";
+static NSString *const kSearchEngineURLParameterElement = @"Param";
 
 // Template URL parameters
 static NSString *const kSearchTermsURLParameter = @"searchTerms";
@@ -72,7 +73,9 @@ static NSString *const kDefaultLanguage = @"*"; // '*' is defined in OS spec to 
 {
   if ((self = [super init])) {
     [self setShouldParseContentsOfElements:[NSSet setWithObject:kSearchEngineNameElement]];
-    [self setShouldParseAttributesOfElements:[NSSet setWithObject:kSearchEngineURLElement]];
+    [self setShouldParseAttributesOfElements:[NSSet setWithObjects:kSearchEngineURLElement,
+                                                                   kSearchEngineURLParameterElement,
+                                                                   nil]];
 
     mURLParametersAndKnownValues = [[NSDictionary alloc] initWithObjectsAndKeys:
       kSearchTermsToken, kSearchTermsURLParameter,
@@ -117,6 +120,26 @@ static NSString *const kDefaultLanguage = @"*"; // '*' is defined in OS spec to 
       [self insertValuesForParametersInURLTemplate:searchURLTemplate];
       [self setSearchEngineURL:searchURLTemplate];
     }
+  }
+  else if ([elementName isEqualToString:kSearchEngineURLParameterElement]) {
+    // Older drafts of the OpenSearch spec allow "<Param>" elements inside "<Url>".  When used, only
+    // a base search URL template is specified, requiring us to manually append each query parameter.
+
+    NSMutableString *searchURL = [NSMutableString stringWithString:[self searchEngineURL]];
+    if (!searchURL)
+      return;
+
+    NSString *paramName = [attributeDict objectForKey:@"name"];
+    NSString *paramValue = [attributeDict objectForKey:@"value"];
+    // Append the query param differently depending if it's the first one or not.
+    NSRange queryStartRange = [searchURL rangeOfString:@"?"];
+    if (queryStartRange.location == NSNotFound)
+      [searchURL appendFormat:@"?%@=%@", paramName, paramValue];
+    else
+      [searchURL appendFormat:@"&%@=%@", paramName, paramValue];
+
+    [self insertValuesForParametersInURLTemplate:searchURL];
+    [self setSearchEngineURL:searchURL];
   }
 }
 
