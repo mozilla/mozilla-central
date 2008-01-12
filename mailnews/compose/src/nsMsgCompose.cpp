@@ -812,39 +812,42 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   rv = composeService->DetermineComposeHTML(m_identity, format, &m_composeHTML);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCAutoString draftId; // will get set for drafts and templates
-  rv = composeFields->GetDraftId(getter_Copies(draftId));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // Set return receipt flag and type, and if we should attach a vCard
-  // by checking the identity prefs - but don't clobber the values for
-  // drafts and templates as they were set up already by mime when
-  // initializing the message.
-  if (m_identity && composeFields && draftId.IsEmpty())
+  if (composeFields)
   {
-    PRBool requestReturnReceipt = PR_FALSE;
-    rv = m_identity->GetRequestReturnReceipt(&requestReturnReceipt);
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = composeFields->SetReturnReceipt(requestReturnReceipt);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCAutoString draftId; // will get set for drafts and templates
+    rv = composeFields->GetDraftId(getter_Copies(draftId));
+    NS_ENSURE_SUCCESS(rv,rv);
 
-    PRInt32 receiptType = nsIMsgMdnGenerator::eDntType;
-    rv = m_identity->GetReceiptHeaderType(&receiptType);
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = composeFields->SetReceiptHeaderType(receiptType);
-    NS_ENSURE_SUCCESS(rv, rv);
+    // Set return receipt flag and type, and if we should attach a vCard
+    // by checking the identity prefs - but don't clobber the values for
+    // drafts and templates as they were set up already by mime when
+    // initializing the message.
+    if (m_identity && draftId.IsEmpty())
+    {
+      PRBool requestReturnReceipt = PR_FALSE;
+      rv = m_identity->GetRequestReturnReceipt(&requestReturnReceipt);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = composeFields->SetReturnReceipt(requestReturnReceipt);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool requestDSN = PR_FALSE;
-    rv = m_identity->GetRequestDSN(&requestDSN);
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = composeFields->SetDSN(requestDSN);
-    NS_ENSURE_SUCCESS(rv, rv);
+      PRInt32 receiptType = nsIMsgMdnGenerator::eDntType;
+      rv = m_identity->GetReceiptHeaderType(&receiptType);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = composeFields->SetReceiptHeaderType(receiptType);
+      NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool attachVCard;
-    rv = m_identity->GetAttachVCard(&attachVCard);
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = composeFields->SetAttachVCard(attachVCard);
-    NS_ENSURE_SUCCESS(rv, rv);
+      PRBool requestDSN = PR_FALSE;
+      rv = m_identity->GetRequestDSN(&requestDSN);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = composeFields->SetDSN(requestDSN);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      PRBool attachVCard;
+      rv = m_identity->GetAttachVCard(&attachVCard);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = composeFields->SetAttachVCard(attachVCard);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
   }
 
   nsCOMPtr<nsIMsgSendListener> externalSendListener;
