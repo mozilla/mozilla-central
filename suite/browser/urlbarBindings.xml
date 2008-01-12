@@ -148,12 +148,14 @@
       <property name="overrideValue" readonly="true">
         <getter><![CDATA[
           if (this.mSearchBox.selectedIndex != -1) {
+            // save the value.  RevealSearchPanel can close the popup
+            var returnValue = this.mSearchBox.overrideValue;
             try {
               if (pref.getBoolPref("browser.search.opensidebarsearchpanel"))
                 RevealSearchPanel();
             } catch (ex) {
             }
-            return this.mSearchBox.overrideValue;
+            return returnValue;
           }
           return null;
         ]]></getter>
