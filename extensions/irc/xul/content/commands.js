@@ -877,6 +877,30 @@ function cmdAblePlugin(e)
 
 function cmdBanOrExcept(e)
 {
+    var modestr;
+    switch (e.command.name)
+    {
+        case "ban":
+            modestr = "+bbbb";
+            break;
+
+        case "unban":
+            modestr = "-bbbb";
+            break;
+
+        case "except":
+            modestr = "+eeee";
+            break;
+
+        case "unexcept":
+            modestr = "-eeee";
+            break;
+
+        default:
+            ASSERT(0, "Dispatch from unknown name " + e.command.name);
+            return;
+    }
+
     /* If we're unbanning, or banning in odd cases, we may actually be talking
      * about a user who is not in the channel, so we need to check the server
      * for information as well.
@@ -886,11 +910,17 @@ function cmdBanOrExcept(e)
     if (!e.user && e.nickname)
         e.user = e.server.getUser(e.nickname);
 
-    var mask = "";
-    if (e.user)
+    var masks = new Array();
+
+    if (e.userList)
+    {
+        for (var i = 0; i < e.userList.length; i++)
+            masks.push(fromUnicode(e.userList[i].getBanMask(), e.server));
+    }
+    else if (e.user)
     {
         // We have a real user object, so get their proper 'ban mask'.
-        mask = fromUnicode(e.user.getBanMask(), e.server);
+        masks = [fromUnicode(e.user.getBanMask(), e.server)];
     }
     else if (e.nickname)
     {
@@ -898,28 +928,20 @@ function cmdBanOrExcept(e)
          * us a complete mask and pass it directly, otherwise assume it is
          * only the nickname and use * for username/host.
          */
-        mask = fromUnicode(e.nickname, e.server);
+        masks = [fromUnicode(e.nickname, e.server)];
         if (!/[!@]/.test(e.nickname))
-            mask = mask + "!*@*";
+            masks[0] = masks[0] + "!*@*";
     }
 
-    var op;
-    switch (e.command.name)
+    // Collapses into groups we can do individually.
+    masks = combineNicks(masks);
+
+    for (var i = 0; i < masks.length; i++)
     {
-        case "ban":
-            op = " +b ";
-            break;
-        case "unban":
-            op = " -b ";
-            break;
-        case "except":
-            op = " +e ";
-            break;
-        case "unexcept":
-            op = " -e ";
-            break;
+        e.server.sendData("MODE " + e.channel.encodedName + " " +
+                          modestr.substr(0, masks[i].count + 1) +
+                          " " + masks[i] + "\n");
     }
-    e.server.sendData("MODE " + e.channel.encodedName + op + mask + "\n");
 }
 
 function cmdCancel(e)
@@ -3156,6 +3178,31 @@ function cmdInvite(e)
 
 function cmdKick(e)
 {
+    if (e.userList)
+    {
+        if (e.command.name == "kick-ban")
+        {
+            e.sourceObject.dispatch("ban", { userList: e.userList,
+                                             canonNickList: e.canonNickList,
+                                             user: e.user,
+                                             nickname: e.user.encodedName });
+        }
+
+        /* Note that we always do /kick below; the /ban is covered above.
+         * Also note that we are required to pass the nickname, to satisfy
+         * the dispatching of the command (which is defined with a required
+         * <nickname> parameter). It's not required for /ban, above, but it
+         * seems prudent to include it anyway.
+         */
+        for (var i = 0; i < e.userList.length; i++)
+        {
+            var e2 = { user: e.userList[i],
+                       nickname: e.userList[i].encodedName };
+            e.sourceObject.dispatch("kick", e2);
+        }
+        return;
+    }
+
     if (!e.user)
         e.user = e.channel.getUser(e.nickname);
 
