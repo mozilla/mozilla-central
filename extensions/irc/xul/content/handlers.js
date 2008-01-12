@@ -333,7 +333,14 @@ function onInputKeyPress (e)
                 onTabCompleteRequest(e);
                 e.preventDefault();
             }
-            break;
+            return;
+
+        case 77: /* Hackaround for carbon on mac sending us this instead of 13
+                  * for ctrl+enter. 77 = "M", and ctrl+M was originally used
+                  * to send a CR in a terminal. */
+            // Fallthrough if ctrl was pressed, otherwise break out to default:
+            if (!e.ctrlKey)
+                break;
 
         case 13: /* CR */
             e.line = e.target.value;
@@ -343,12 +350,12 @@ function onInputKeyPress (e)
             if (e.ctrlKey)
                 e.line = client.COMMAND_CHAR + "say " + e.line;
             onInputCompleteLine (e);
-            break;
+            return;
 
         case 37: /* left */
-             if (e.altKey && e.metaKey)
-                 cycleView(-1);
-             break;
+            if (e.altKey && e.metaKey)
+                cycleView(-1);
+            return;
 
         case 38: /* up */
             if (e.ctrlKey || e.metaKey)
@@ -371,12 +378,12 @@ function onInputKeyPress (e)
                 }
             }
             e.preventDefault();
-            break;
+            return;
 
         case 39: /* right */
-             if (e.altKey && e.metaKey)
-                 cycleView(+1);
-             break;
+            if (e.altKey && e.metaKey)
+                cycleView(+1);
+            return;
 
         case 40: /* down */
             if (client.lastHistoryReferenced > 0)
@@ -393,14 +400,10 @@ function onInputKeyPress (e)
                 e.target.value = client.incompleteLine;
             }
             e.preventDefault();
-            break;
-
-        default:
-            client.lastHistoryReferenced = -1;
-            client.incompleteLine = e.target.value;
-            break;
+            return;
     }
-
+    client.lastHistoryReferenced = -1;
+    client.incompleteLine = e.target.value;
 }
 
 function onTabCompleteRequest (e)
