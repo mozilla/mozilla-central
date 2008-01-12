@@ -377,7 +377,10 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
       PR_GetSystemInfo(PR_SI_HOSTNAME_UNTRUNCATED, hostName, sizeof hostName);
       if ((hostName[0] != '\0') && (strchr(hostName, '.') != NULL))
       {
-          aResult += hostName;
+          nsDependentCString cleanedHostName(hostName);
+          // avoid problems with hostnames containing newlines/whitespace
+          cleanedHostName.StripWhitespace();
+          aResult += cleanedHostName;
       }
       else
       {
