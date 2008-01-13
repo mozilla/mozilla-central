@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -50,6 +50,7 @@
 #include "nsIMutableArray.h"
 #include "nsIMsgProgress.h"
 #include "nsTArray.h"
+#include "nsTObserverArray.h"
 
 ///////////////////////////////////////////////////////////////////////////////////
 // The mail session is a replacement for the old 4.x MSG_Master object. It contains
@@ -75,8 +76,26 @@ public:
   nsresult GetSelectedLocaleDataDir(nsIFile *defaultsDir);
 
 protected:
-  nsCOMArray<nsIFolderListener> mListeners; 
-  nsTArray<PRUint32> mListenerNotifyFlags;
+  struct folderListener {
+    nsCOMPtr<nsIFolderListener> mListener;
+    PRUint32 mNotifyFlags;
+
+    folderListener(nsIFolderListener *aListener, PRUint32 aNotifyFlags)
+      : mListener(aListener), mNotifyFlags(aNotifyFlags) {}
+    folderListener(const folderListener &aListener)
+      : mListener(aListener.mListener), mNotifyFlags(aListener.mNotifyFlags) {}
+    ~folderListener() {}
+
+    int operator==(nsIFolderListener* aListener) const {
+      return mListener == aListener;
+    }
+    int operator==(const folderListener &aListener) const {
+      return mListener == aListener.mListener &&
+             mNotifyFlags == aListener.mNotifyFlags;
+    }
+  };
+
+  nsTObserverArray<folderListener> mListeners; 
 
   nsCOMArray<nsIMsgWindow> mWindows;
   // stick this here temporarily
