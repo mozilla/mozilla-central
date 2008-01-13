@@ -49,7 +49,7 @@ ifneq (,$(filter windows os2 gtk gtk2,$(MOZ_WIDGET_TOOLKIT)))
 ifneq (,$(filter windows os2,$(MOZ_WIDGET_TOOLKIT)))
 ICON_SUFFIX=.ico
 else
-ICON_SUFFIX=.xpm
+ICON_SUFFIX=.png
 endif
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
@@ -100,9 +100,11 @@ install:: icons/gtk/seamonkey.png
 GARBAGE	+= $(DIST)/bin/chrome/icons/default/seamonkey.png
 
 DESKTOP_ICONS += default
+DESKTOP_ICONS_SMALL = $(patsubst %,%16,$(DESKTOP_ICONS))
+DESKTOP_ICONS_LARGE = $(patsubst %,%48,$(DESKTOP_ICONS))
 endif
 
-DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS))
+DESKTOP_ICON_FILES = $(addsuffix $(ICON_SUFFIX), $(DESKTOP_ICONS) $(DESKTOP_ICONS_SMALL) $(DESKTOP_ICONS_LARGE))
 
 libs:: $(addprefix icons/$(ICON_DIR)/,$(DESKTOP_ICON_FILES))
 	$(INSTALL) $^ $(DIST)/bin/chrome/icons/default
