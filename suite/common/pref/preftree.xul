@@ -111,7 +111,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-tabs.xul" label="&tabWindows.label;"/>
+            <treecell label="Migrated: &tabWindows.label;"/>
           </treerow>
         </treeitem>
         <treeitem>
