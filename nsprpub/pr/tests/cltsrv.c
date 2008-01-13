@@ -214,10 +214,8 @@ PRLogModuleInfo *cltsrv_log_file = NULL;
 static void _MY_Assert(const char *s, const char *file, PRIntn ln)
 {
     PL_PrintError(NULL);
-#if DEBUG
     PR_Assert(s, file, ln);
-#endif
-}  /* _MW_Assert */
+}  /* _MY_Assert */
 
 static PRBool Aborted(PRStatus rv)
 {
