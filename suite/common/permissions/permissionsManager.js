@@ -76,6 +76,8 @@ var permissionType = "popup";
 var permissionsBundle;
 
 function Startup() {
+  var introText, windowTitle;
+
   permissionManager = Components.classes["@mozilla.org/permissionmanager;1"]
                                 .getService(nsIPermissionManager);
 
@@ -87,17 +89,21 @@ function Startup() {
   sortColumn = permissionsTree.getAttribute("sortColumn");
 
   if (window.arguments && window.arguments[0]) {
-    document.getElementById("btnBlock").hidden = !window.arguments[0].blockVisible;
-    document.getElementById("btnSession").hidden = !window.arguments[0].sessionVisible;
-    document.getElementById("btnAllow").hidden = !window.arguments[0].allowVisible;
-    setHost(window.arguments[0].prefilledHost);
-    permissionType = window.arguments[0].permissionType;
+    var params = window.arguments[0];
+    document.getElementById("btnBlock").hidden = !params.blockVisible;
+    document.getElementById("btnSession").hidden = !params.sessionVisible;
+    document.getElementById("btnAllow").hidden = !params.allowVisible;
+    setHost(params.prefilledHost);
+    permissionType = params.permissionType;
+    introText = params.introText;
+    windowTitle = params.windowTitle;
   }
 
-  var introString = permissionsBundle.getString(permissionType + "permissionstext");
-  document.getElementById("permissionsText").textContent = introString;
+  document.getElementById("permissionsText").textContent = introText ||
+      permissionsBundle.getString(permissionType + "permissionstext");
 
-  document.title = permissionsBundle.getString(permissionType + "permissionstitle");
+  document.title = windowTitle ||
+      permissionsBundle.getString(permissionType + "permissionstitle");
 
   var dialogElement = document.getElementById("permissionsManager");
   dialogElement.setAttribute("windowtype", "permissions-" + permissionType);
