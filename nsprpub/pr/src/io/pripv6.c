@@ -278,7 +278,7 @@ static PRInt32 PR_CALLBACK Ipv6ToIpv4SocketRecvFrom(PRFileDesc *fd, void *buf,
 }
 
 #if defined(_PR_INET6_PROBE)
-PRBool _pr_ipv6_is_present;
+static PRBool ipv6_is_present;
 extern PRBool _pr_test_ipv6_socket(void);
 
 #if !defined(_PR_INET6) && defined(_PR_HAVE_GETIPNODEBYNAME)
@@ -306,13 +306,15 @@ _pr_probe_ipv6_presence(void)
 }
 #endif  /* _PR_INET6_PROBE */
 
-PRStatus _pr_init_ipv6()
+static PRCallOnceType _pr_init_ipv6_once;
+
+static PRStatus PR_CALLBACK _pr_init_ipv6(void)
 {
     const PRIOMethods *stubMethods;
 
 #if defined(_PR_INET6_PROBE)
-    _pr_ipv6_is_present = _pr_probe_ipv6_presence();
-    if (PR_TRUE == _pr_ipv6_is_present)
+    ipv6_is_present = _pr_probe_ipv6_presence();
+    if (ipv6_is_present)
         return PR_SUCCESS;
 #endif
 
@@ -348,9 +350,21 @@ PRStatus _pr_init_ipv6()
 	return PR_SUCCESS;
 }
 
+#if defined(_PR_INET6_PROBE)
+PRBool _pr_ipv6_is_present(void)
+{
+    if (PR_CallOnce(&_pr_init_ipv6_once, _pr_init_ipv6) != PR_SUCCESS)
+        return PR_FALSE;
+    return ipv6_is_present;
+}
+#endif
+
 PR_IMPLEMENT(PRStatus) _pr_push_ipv6toipv4_layer(PRFileDesc *fd)
 {
 	PRFileDesc *ipv6_fd = NULL;
+
+	if (PR_CallOnce(&_pr_init_ipv6_once, _pr_init_ipv6) != PR_SUCCESS)
+		return PR_FAILURE;
 
 	/*
 	 * For platforms with no support for IPv6 
