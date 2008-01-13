@@ -44,7 +44,8 @@
 #include "nsCOMPtr.h"
 #include "nsIAddrDatabase.h"
 
-class nsAbMDBCard: public nsIAbMDBCard, nsAbCardProperty
+class nsAbMDBCard: public nsIAbMDBCard,
+                   public nsAbCardProperty
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
