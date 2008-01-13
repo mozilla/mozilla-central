@@ -37,32 +37,10 @@
 #ifndef MapiMessage_h___
 #define MapiMessage_h___
 
-#include "nsUInt32Array.h"
+#include "nsTArray.h"
 #include "nsString.h"
 #include "nsILocalFile.h"
 #include "MapiApi.h"
-
-
-class nsSimpleUInt32Array {
-public:
-  nsSimpleUInt32Array( int growBy = 20)
-    { m_growBy = growBy; m_pData = nsnull; m_used = 0; m_allocated = 0;}
-  ~nsSimpleUInt32Array() { if (m_pData) delete [] m_pData;}
-
-  void Add( PRUint32 data) { Allocate(); if (m_used < m_allocated) { m_pData[m_used] = data; m_used++;}}
-  PRUint32 GetAt( PRInt32 index) { if ((index >= 0) && (index < m_used)) return( m_pData[index]); else return( 0);}
-  PRInt32  GetSize( void) { return( m_used);}
-  void RemoveAll( void) { m_used = 0;}
-
-private:
-  void Allocate( void);
-
-  PRInt32    m_allocated;
-  PRInt32    m_used;
-  PRUint32 *  m_pData;
-  int      m_growBy;
-};
-
 
 
 class CMapiMessage {
@@ -142,7 +120,7 @@ private:
   nsCString    m_mimeCharset;
   BOOL      m_bMimeVersion;
   BOOL      m_bMimeEncoding;
-  nsSimpleUInt32Array  m_attachNums;
+  nsTArray<DWORD>  m_attachNums;
   nsCString    m_attachMimeType;
   nsCString    m_attachPath;
   nsCString    m_attachFileName;

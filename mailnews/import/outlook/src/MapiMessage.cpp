@@ -505,7 +505,7 @@ static const SizedSPropTagArray(ieidAttachMax, ptaEid)=
 
 int CMapiMessage::CountAttachments( void)
 {
-  m_attachNums.RemoveAll();
+  m_attachNums.Clear();
 
   LPSPropValue pVal = CMapiApi::GetMapiProperty( m_lpMsg, PR_HASATTACH);
   BOOL has = TRUE;
@@ -528,7 +528,7 @@ int CMapiMessage::CountAttachments( void)
     IterateAttachTable();
   }
 
-  return( m_attachNums.GetSize());
+  return m_attachNums.Length();
 }
 
 
@@ -567,16 +567,16 @@ BOOL CMapiMessage::IterateAttachTable( void)
       break;
     }
 
-        if(lpRow) {
-            cNumRows = lpRow->cRows;
+    if (lpRow) {
+      cNumRows = lpRow->cRows;
 
-        if (cNumRows) {
-          LONG aNum = lpRow->aRow[0].lpProps[ieidPR_ATTACH_NUM].Value.l;
-        m_attachNums.Add( (PRUint32)aNum);
+      if (cNumRows) {
+        DWORD aNum = lpRow->aRow[0].lpProps[ieidPR_ATTACH_NUM].Value.ul;
+        m_attachNums.AppendElement(aNum);
         MAPI_TRACE1( "\t\t****Attachment found - #%d\r\n", (int)aNum);
-        }
+      }
       CMapiApi::FreeProws( lpRow);
-        }
+    }
 
   } while ( SUCCEEDED(hr) && cNumRows && lpRow);
 
@@ -662,11 +662,11 @@ BOOL CMapiMessage::GetAttachmentInfo( int idx)
   ClearTempAttachFile();
 
   BOOL bResult = TRUE;
-  if ((idx < 0) || (idx >= (int)m_attachNums.GetSize())) {
+  if ((idx < 0) || (idx >= (int)m_attachNums.Length())) {
     return( FALSE);
   }
 
-  DWORD aNum = m_attachNums.GetAt( idx);
+  DWORD aNum = m_attachNums[idx];
   LPATTACH lpAttach = NULL;
   HRESULT hr = m_lpMsg->OpenAttach( aNum, NULL, 0, &lpAttach);
   if (HR_FAILED( hr)) {
@@ -771,21 +771,4 @@ BOOL CMapiMessage::GetAttachmentInfo( int idx)
   lpAttach->Release();
 
   return( bResult);
-}
-
-void nsSimpleUInt32Array::Allocate( void)
-{
-  if (m_used < m_allocated)
-    return;
-  if (!m_pData) {
-    m_pData = new PRUint32[m_growBy];
-    m_allocated = m_growBy;
-  }
-  else {
-    m_allocated += m_growBy;
-    PRUint32 *pData = new PRUint32[m_allocated];
-    memcpy( pData, m_pData, (m_allocated - m_growBy) * sizeof( PRUint32));
-    delete [] m_pData;
-    m_pData = pData;
-  }
 }
