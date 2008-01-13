@@ -62,6 +62,7 @@
   <!-- Javascript includes -->
   <script type="application/x-javascript" src="chrome://calendar/content/sun-calendar-event-dialog-recurrence.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-dialog-utils.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
 
   <!-- recurrence pattern -->
