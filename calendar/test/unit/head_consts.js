@@ -11,15 +11,16 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla calendar code.
+ * The Original Code is Mozilla Calendar tests code.
  *
  * The Initial Developer of the Original Code is
- *   Michiel van Leeuwen <mvl@exedo.nl>
+ * Michiel van Leeuwen <mvl@exedo.nl>.
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Sebastian Schwieger <sebo.moz@googlemail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,11 +39,11 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-/* Shortcut to the timezone service */
+/// Shortcut to the timezone service
 function getTimezoneService() {
     if (getTimezoneService.mObject === undefined) {
-        getTimezoneService.mObject = Components.classes["@mozilla.org/calendar/timezone-service;1"]
-                                               .getService(Components.interfaces.calITimezoneService);
+        getTimezoneService.mObject = Cc["@mozilla.org/calendar/timezone-service;1"]
+                                     .getService(Ci.calITimezoneService);
     }
     return getTimezoneService.mObject;
 }
@@ -64,14 +65,160 @@ function floating() {
 }
 
 function createDate(aYear, aMonth, aDay) {
-    var cd = Cc["@mozilla.org/calendar/datetime;1"].
-             createInstance(Ci.calIDateTime);
+    var cd = Cc["@mozilla.org/calendar/datetime;1"]
+             .createInstance(Ci.calIDateTime);
     cd.resetTo(aYear, aMonth, aDay, 0, 0, 0, UTC());
     cd.isDate = true;
     return cd;
 }
 
-// branch support:
+function createEventFromIcalString(icalString) {
+    var event = Cc["@mozilla.org/calendar/event;1"]
+                .createInstance(Ci.calIEvent);
+    event.icalString = icalString;
+    return event;
+}
+
+function createTodoFromIcalString(icalString) {
+    var todo = Cc["@mozilla.org/calendar/todo;1"]
+               .createInstance(Ci.calITodo);
+    todo.icalString = icalString;
+    return todo;
+}
+
+function getMemoryCal() {
+    // create memory calendar
+    var cal = Cc["@mozilla.org/calendar/calendar;1?type=memory"]
+              .createInstance(Ci.calICalendar);
+
+    // remove existing items
+    var calendar = cal.QueryInterface(Ci.calICalendarProvider);
+    try {
+        calendar.deleteCalendar(calendar, null);
+    } catch (e) {
+        print("*** error purging calendar: " + e);
+    }
+    return cal;
+}
+
+function getStorageCal() {
+    var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
+                 .getService(Ci.nsIProperties);
+    var db = dirSvc.get("TmpD", Ci.nsIFile);
+    db.append("test_storage.sqlite");
+
+    // create URI
+    var ioSvc = Cc["@mozilla.org/network/io-service;1"]
+                .getService(Ci.nsIIOService);
+    var uri = ioSvc.newFileURI(db);
+
+    // create storage calendar
+    var cal = Cc["@mozilla.org/calendar/calendar;1?type=storage"]
+              .createInstance(Ci.calICalendar);
+    cal.uri = uri;
+
+    // remove existing items
+    var calendar = cal.QueryInterface(Ci.calICalendarProvider);
+    try {
+        calendar.deleteCalendar(calendar, null);
+    } catch (e) {
+        print("*** error purging calendar: " + e);
+    }
+    return cal;
+}
+
+/**
+ * Return an item property as string.
+ * @param aItem
+ * @param string aProp possible item properties: start, end, duration,
+ *                     generation, title,
+ *                     id, calendar, creationDate, lastModifiedTime,
+ *                     stampTime, priority, privacy, status,
+ *                     alarmOffset, alarmRelated,
+ *                     alarmLastAck, recurrenceStartDate
+ *                     and any property that can be obtained using getProperty()
+ */
+function getProps(aItem, aProp) {
+    var value = null;
+    switch (aProp) {
+        case "start":
+            value = aItem.startDate || aItem.entryDate || null;
+            break;
+        case "end":
+            value = aItem.endDate || aItem.dueDate || null;
+            break;
+        case "duration":
+            value = aItem.duration || null;
+            break;
+        case "generation":
+            value = aItem.generation;
+            break;
+        case "title":
+            value = aItem.title;
+            break;
+        case "id":
+            value = aItem.id;
+            break;
+        case "calendar":
+            value = aItem.calendar.id;
+            break;
+        case "creationDate":
+            value = aItem.creationDate;
+            break;
+        case "lastModifiedTime":
+            value = aItem.lastModifiedTime;
+            break;
+        case "stampTime":
+            value = aItem.stampTime;
+            break;
+        case "priority":
+            value = aItem.priority;
+            break;
+        case "privacy":
+            value = aItem.privacy;
+            break;
+        case "status":
+            value = aItem.status;
+            break;
+        case "alarmOffset":
+            value = aItem.alarmOffset;
+            break;
+        case "alarmRelated":
+            value = aItem.alarmRelated;
+            break;
+        case "alarmLastAck":
+            value = aItem.alarmLastAck;
+            break;
+        case "recurrenceStartDate":
+            value = aItem.recurrenceStartDate;
+            break;
+        default:
+            value = aItem.getProperty(aProp);
+    }
+    if (value) {
+        return value.toString();
+    } else {
+        return null;
+    }
+}
+
+function compareItems(aLeftItem, aRightItem, aPropArray) {
+    if (!aPropArray) {
+        // left out:  "id", "calendar", "lastModifiedTime", "generation",
+        // "stampTime" as these are expected to change
+        aPropArray = ["start", "end", "duration",
+                      "title", "priority", "privacy", "creationDate",
+                      "status", "alarmOffset", "alarmRelated", "alarmLastAck",
+                      "recurrenceStartDate"];
+    }
+    for (var i = 0; i < aPropArray.length; i++) {
+        do_check_eq(getProps(aLeftItem, aPropArray[i]),
+                    getProps(aRightItem,
+                    aPropArray[i]));
+    }
+}
+
+// Support do_check_true and  do_check_false on MOZILLA_1_8_BRANCH
 if (typeof do_check_true != "function") {
     do_check_true = function do_check_true(condition) {
         do_check_eq(condition, true);
