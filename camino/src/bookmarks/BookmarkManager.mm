@@ -452,7 +452,7 @@ static BookmarkManager* gBookmarkManager = nil;
   [mRootBookmarks insertChild:mAddressBookContainer atIndex:(collectionIndex++) isMove:NO];
 
   // set pretty icons
-  [[self historyFolder]       setIcon:[NSImage imageNamed:@"historyicon"]];
+  [[self historyFolder]       setIcon:[NSImage imageNamed:@"history_icon"]];
   [[self top10Folder]         setIcon:[NSImage imageNamed:@"top10_icon"]];
   [[self bookmarkMenuFolder]  setIcon:[NSImage imageNamed:@"bookmarkmenu_icon"]];
   [[self toolbarFolder]       setIcon:[NSImage imageNamed:@"bookmarktoolbar_icon"]];
