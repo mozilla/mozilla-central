@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsAbMDBCard.h"	 
+#include "nsAbMDBCard.h"
 #include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsRDFCID.h"
@@ -48,6 +48,9 @@
 #include "nsIAddrBookSession.h"
 
 nsAbMDBCard::nsAbMDBCard(void)
+  : m_key(0),
+    m_dbTableID(0),
+    m_dbRowID(0)
 {
 }
 
@@ -55,19 +58,104 @@ nsAbMDBCard::~nsAbMDBCard(void)
 {
 }
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsAbMDBCard, nsAbMDBCardProperty, nsIAbMDBCard)
+NS_IMPL_ISUPPORTS_INHERITED1(nsAbMDBCard, nsAbCardProperty, nsIAbMDBCard)
 
-nsresult nsAbMDBCard::NotifyPropertyChanged(const char *property, const PRUnichar* oldValue, const PRUnichar* newValue)
+NS_IMETHODIMP nsAbMDBCard::GetDbTableID(PRUint32 *aDbTableID)
 {
-	nsCOMPtr<nsISupports> supports;
-	if(NS_SUCCEEDED(QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(supports))))
-	{
-		nsresult rv;
-		nsCOMPtr<nsIAddrBookSession> abSession = 
-		         do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
-		if(NS_SUCCEEDED(rv))
-			abSession->NotifyItemPropertyChanged(supports, property, oldValue, newValue);
-	}
-
-	return NS_OK;
+  *aDbTableID = m_dbTableID;
+  return NS_OK;
 }
+
+NS_IMETHODIMP nsAbMDBCard::SetDbTableID(PRUint32 aDbTableID)
+{
+  m_dbTableID = aDbTableID;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::GetDbRowID(PRUint32 *aDbRowID)
+{
+  *aDbRowID = m_dbRowID;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::SetDbRowID(PRUint32 aDbRowID)
+{
+  m_dbRowID = aDbRowID;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::GetKey(PRUint32 *aKey)
+{
+  *aKey = m_key;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::SetKey(PRUint32 key)
+{
+  m_key = key;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::SetAbDatabase(nsIAddrDatabase* database)
+{
+  mCardDatabase = database;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbMDBCard::SetStringAttribute(const char *name, const PRUnichar *value)
+{
+  NS_ASSERTION(mCardDatabase, "no db");
+  if (!mCardDatabase)
+    return NS_ERROR_UNEXPECTED;
+
+  return mCardDatabase->SetCardValue(this, name, value, PR_TRUE /* notify */);
+}  
+
+NS_IMETHODIMP nsAbMDBCard::GetStringAttribute(const char *name, PRUnichar **value)
+{
+  NS_ASSERTION(mCardDatabase, "no db");
+  if (!mCardDatabase)
+    return NS_ERROR_UNEXPECTED;
+
+  return mCardDatabase->GetCardValue(this, name, value);
+}
+
+NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, PRBool *result)
+{
+  nsresult rv;
+
+  if (this == card) {
+    *result = PR_TRUE;
+    return NS_OK;
+  }
+
+  // the reason we need this card at all is that multiple nsIAbCards
+  // can exist for a given mdbcard
+  nsCOMPtr <nsIAbMDBCard> mdbcard = do_QueryInterface(card, &rv);
+  if (NS_FAILED(rv) || !mdbcard) {
+    // XXX using ldap can get us here, we need to fix how the listeners work
+    *result = PR_FALSE;
+    return NS_OK;
+  }
+
+  // XXX todo
+  // optimize this code, key might be enough
+  PRUint32 dbRowID;
+  rv = mdbcard->GetDbRowID(&dbRowID);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRUint32 dbTableID;
+  rv = mdbcard->GetDbTableID(&dbTableID);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRUint32 key;
+  rv = mdbcard->GetKey(&key);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  if (dbRowID == m_dbRowID && dbTableID == m_dbTableID && key == m_key)
+    *result = PR_TRUE;
+  else
+    *result = PR_FALSE;
+  return NS_OK;
+}
+

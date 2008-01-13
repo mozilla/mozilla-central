@@ -39,7 +39,7 @@
 #ifndef nsAbIPCCard_h__
 #define nsAbIPCCard_h__
 
-#include "nsAbMDBCardProperty.h"
+#include "nsAbMDBCard.h"
 #include "nsIAbMDBCard.h"
 #include "nsISupportsArray.h"
 #include "nsVoidArray.h"
@@ -54,7 +54,7 @@
 #define ATTR_NONE           0x0020
 #define ATTR_NO_REC         0x0040
 
-class nsAbIPCCard : public nsAbMDBCardProperty
+class nsAbIPCCard : public nsAbMDBCard
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED

@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Mark Banner <mark@standard8.demon.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -35,32 +36,31 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/********************************************************************************************************
- 
-   Interface for representing Address Book Directory
- 
-*********************************************************************************************************/
-
 #ifndef nsAbMDBCard_h__
 #define nsAbMDBCard_h__
 
-#include "nsAbMDBCardProperty.h"
+#include "nsIAbMDBCard.h"
+#include "nsAbCardProperty.h"
 #include "nsCOMPtr.h"
 #include "nsIAddrDatabase.h"
 
-class nsAbMDBCard: public nsAbMDBCardProperty
+class nsAbMDBCard: public nsIAbMDBCard, nsAbCardProperty
 {
-public: 
+public:
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIABMDBCARD
 
-	NS_DECL_ISUPPORTS_INHERITED
+  nsAbMDBCard(void);
+  virtual ~nsAbMDBCard(void);
 
-	nsAbMDBCard(void);
-	virtual ~nsAbMDBCard(void);
+  NS_IMETHOD Equals(nsIAbCard *card, PRBool *result);
 
 protected:
+  PRUint32 m_key;
+  PRUint32 m_dbTableID;
+  PRUint32 m_dbRowID;
 
-	nsresult NotifyPropertyChanged(const char *property, const PRUnichar* oldValue, const PRUnichar* newValue);
-	 
+  nsCOMPtr<nsIAddrDatabase> mCardDatabase;
 };
 
 #endif

@@ -88,7 +88,6 @@ CPPSRCS		= \
 		nsAddbookProtocolHandler.cpp  \
 		nsAbMDBDirProperty.cpp \
 		nsAbMDBDirectory.cpp \
-		nsAbMDBCardProperty.cpp \
 		nsAbMDBCard.cpp \
 		nsAbBSDirectory.cpp \
 		nsAddbookUrl.cpp    \
@@ -109,7 +108,7 @@ CPPSRCS		= \
 
 EXPORTS		= \
 		nsAbCardProperty.h \
-		nsAbMDBCardProperty.h \
+		nsAbMDBCard.h \
                 nsVCardObj.h \
 		$(NULL)
 

@@ -54,7 +54,6 @@
 #include "nsAbQueryStringToExpression.h"
 #include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
-#include "nsAbMDBCardProperty.h"
 #include "nsEnumeratorUtils.h"
 #include "mdb.h"
 #include "prprf.h"
