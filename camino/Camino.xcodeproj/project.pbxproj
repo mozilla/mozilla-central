@@ -1288,6 +1288,8 @@
 		DE8AD6A10ADB4E38009D44F6 /* bm_horizontal_separator.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tif */; };
 		DE8C61FF0AB67CDA00078871 /* hidemanager.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE8C61FE0AB67CDA00078871 /* hidemanager.tif */; };
 		DE8C62000AB67CDA00078871 /* hidemanager.tif in Resources */ = {isa = PBXBuildFile; fileRef = DE8C61FE0AB67CDA00078871 /* hidemanager.tif */; };
+		DE8EEA0C0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */; };
+		DE8EEA0D0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */; };
 		DEA5484A0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
 		DEA5484B0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
 		DEB608CA0CAF0964006C34F1 /* throbber-00.tif in Resources */ = {isa = PBXBuildFile; fileRef = DEB608C90CAF0964006C34F1 /* throbber-00.tif */; };
@@ -1691,6 +1693,7 @@
 				3F44ACDC05BDFB9F00CB4B08 /* dom_css.xpt in Copy Component XPTs */,
 				3F44ACDD05BDFB9F00CB4B08 /* dom_events.xpt in Copy Component XPTs */,
 				3F44ACDE05BDFB9F00CB4B08 /* dom_html.xpt in Copy Component XPTs */,
+				DE8EEA0C0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */,
 				DEFD23500D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */,
 				3F44ACDF05BDFB9F00CB4B08 /* dom_range.xpt in Copy Component XPTs */,
 				DEFD23530D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */,
@@ -1972,6 +1975,7 @@
 				3F44AF1205BDFBA000CB4B08 /* dom_css.xpt in Copy Component XPTs */,
 				3F44AF1305BDFBA000CB4B08 /* dom_events.xpt in Copy Component XPTs */,
 				3F44AF1405BDFBA000CB4B08 /* dom_html.xpt in Copy Component XPTs */,
+				DE8EEA0D0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */,
 				DEFD23510D021C3A006899B9 /* dom_loadsave.xpt in Copy Component XPTs */,
 				3F44AF1505BDFBA000CB4B08 /* dom_range.xpt in Copy Component XPTs */,
 				DEFD23540D021C48006899B9 /* dom_storage.xpt in Copy Component XPTs */,
@@ -2728,6 +2732,7 @@
 		DE878FCB0C175ABB00153511 /* dom_offline.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_offline.xpt; path = ../dist/Embed/components/dom_offline.xpt; sourceTree = SOURCE_ROOT; };
 		DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_horizontal_separator.tif; path = resources/images/chrome/bm_horizontal_separator.tif; sourceTree = SOURCE_ROOT; };
 		DE8C61FE0AB67CDA00078871 /* hidemanager.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = hidemanager.tif; path = resources/images/toolbar/hidemanager.tif; sourceTree = SOURCE_ROOT; };
+		DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_json.xpt; path = ../dist/bin/components/dom_json.xpt; sourceTree = SOURCE_ROOT; };
 		DEA548490A251FA900186C93 /* GeckoUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GeckoUtils.cpp; path = src/extensions/GeckoUtils.cpp; sourceTree = SOURCE_ROOT; };
 		DEB608C90CAF0964006C34F1 /* throbber-00.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "throbber-00.tif"; path = "resources/images/throbber/throbber-00.tif"; sourceTree = SOURCE_ROOT; };
 		DEB968140B0D8DF70023F8B1 /* KeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = KeychainItem.m; path = src/formfill/KeychainItem.m; sourceTree = "<group>"; };
@@ -3416,6 +3421,7 @@
 				F6BD639901B3131201A962F7 /* dom_css.xpt */,
 				F6BD639A01B3131201A962F7 /* dom_events.xpt */,
 				F6BD639B01B3131201A962F7 /* dom_html.xpt */,
+				DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */,
 				DEFD234F0D021C3A006899B9 /* dom_loadsave.xpt */,
 				F6BD639C01B3131201A962F7 /* dom_range.xpt */,
 				DEFD23520D021C48006899B9 /* dom_storage.xpt */,
