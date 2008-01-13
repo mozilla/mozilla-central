@@ -50,7 +50,6 @@
 #include "nsITimer.h"
 #include "nsIChannel.h"
 #include "nsILoadGroup.h"
-#include "nsIPref.h"
 #include "nsCycleCollectionParticipant.h"
 
 class InternetSearchDataSource : public nsIInternetSearchService,
@@ -130,8 +129,6 @@ protected:
   PRBool                      busySchedule;
   nsCOMPtr<nsIRDFResource>    busyResource;
   nsString                    mQueryEncodingStr;
-
-  friend  int  PR_CALLBACK  searchModePrefCallback(const char *pref, void *aClosure);
 
   // helper methods
   nsresult  GetSearchEngineToPing(nsIRDFResource **theResource, nsCString &updateURL);

@@ -82,6 +82,8 @@
 #include "nsILocalFile.h"
 #include "nsUnicharUtils.h"
 #include "nsIPrefLocalizedString.h"
+#include "nsIPrefBranch2.h"
+#include "nsIPrefService.h"
 
 #ifdef  XP_WIN
 #include "windef.h"
@@ -114,8 +116,6 @@ static const char kURINC_SearchCategoryEngineBasenamePrefix[] = "NC:SearchCatego
 static const char kURINC_FilterSearchURLsRoot[]       = "NC:FilterSearchURLsRoot";
 static const char kURINC_FilterSearchSitesRoot[]      = "NC:FilterSearchSitesRoot";
 static const char kSearchCommand[]                    = "http://home.netscape.com/NC-rdf#command?";
-
-int PR_CALLBACK searchModePrefCallback(const char *pref, void *aClosure);
 
 // helper routines to ease the transition to frozen linkage strings (nsStringAPI.h)
 
@@ -355,27 +355,6 @@ static const char   kSearchProtocol[] = "internetsearch:";
 #endif
 
 
-int PR_CALLBACK
-searchModePrefCallback(const char *pref, void *aClosure)
-{
-  InternetSearchDataSource *searchDS = static_cast<InternetSearchDataSource *>(aClosure);
-  NS_ASSERTION(searchDS, "No closure?");
-
-  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
-  if (!prefs)
-    return NS_OK;
-
-  prefs->GetIntPref(pref, &searchDS->mBrowserSearchMode);
-#ifdef DEBUG
-  printf("searchModePrefCallback: '%s' = %d\n",
-         pref, searchDS->mBrowserSearchMode);
-#endif
-  searchDS->Assert(searchDS->mNC_LastSearchRoot, searchDS->mNC_LastSearchMode,
-                   searchDS->mTrueLiteral, PR_TRUE);
-
-  return NS_OK;
-}
-
 InternetSearchDataSource::InternetSearchDataSource(void) :
   mBrowserSearchMode(0),
   mEngineListBuilt(PR_FALSE),
@@ -490,9 +469,9 @@ InternetSearchDataSource::InternetSearchDataSource(void) :
   mRDFService->GetLiteral(NS_LITERAL_STRING("true").get(),
                           getter_AddRefs(mTrueLiteral));
 
-  nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID);
+  nsCOMPtr<nsIPrefBranch2> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefs) {
-    prefs->RegisterCallback("browser.search.mode", searchModePrefCallback, this);
+    prefs->AddObserver("browser.search.mode", this, PR_FALSE);
     prefs->GetIntPref("browser.search.mode", &mBrowserSearchMode);
   }
 }
@@ -506,10 +485,6 @@ InternetSearchDataSource::~InternetSearchDataSource (void)
     // weak reference back to InternetSearchDataSource
     mTimer->Cancel();
   }
-
-  nsCOMPtr<nsIPref> prefs = do_GetService(NS_PREF_CONTRACTID);
-  if (prefs)
-    prefs->UnregisterCallback("browser.search.mode", searchModePrefCallback, this);
 
   if (mRDFService)
     mRDFService->UnregisterDataSource(this);
@@ -3536,9 +3511,15 @@ InternetSearchDataSource::MapEncoding(const nsString &numericEncoding,
 
   // Still no encoding, fall back to default charset if possible
   nsString defCharset;
-  nsCOMPtr<nsIPref> prefs(do_GetService(NS_PREF_CONTRACTID));
-  if (prefs)
-    prefs->GetLocalizedUnicharPref("intl.charset.default", getter_Copies(defCharset));
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefs) {
+    nsCOMPtr<nsIPrefLocalizedString> localizedStr;
+    nsresult rv = prefs->GetComplexValue("intl.charset.default",
+                                         NS_GET_IID(nsIPrefLocalizedString),
+                                         getter_AddRefs(localizedStr));
+    if (NS_SUCCEEDED(rv))
+      localizedStr->GetData(getter_Copies(defCharset));
+  }
 
   if (!defCharset.IsEmpty())
     stringEncoding = defCharset;
@@ -6169,6 +6150,15 @@ InternetSearchDataSource::Observe(nsISupports *aSubject, const char *aTopic, con
         // The profile has aleady changed.
         if (!categoryDataSource)
           GetCategoryList();
+    }
+    else if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID))
+    {
+        nsCOMPtr<nsIPrefBranch> prefs = do_QueryInterface(aSubject);
+        if (prefs)
+        {
+            prefs->GetIntPref("browser.search.mode", &mBrowserSearchMode);
+            Assert(mNC_LastSearchRoot, mNC_LastSearchMode, mTrueLiteral, PR_TRUE);
+        }
     }
 
     return rv;
