@@ -4323,7 +4323,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
             nsString listDescription;
 
             directory->GetDirName(listName);
-            directory->GetDescription(getter_Copies(listDescription));
+            directory->GetDescription(listDescription);
 
             nsMsgMailList* mailList = new nsMsgMailList(listName,
                   listDescription, directory);

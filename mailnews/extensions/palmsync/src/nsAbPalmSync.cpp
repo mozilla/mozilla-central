@@ -203,7 +203,7 @@ nsresult nsAbPalmHotSync::GetABInterface()
       {
         // TODO: may need to skip mailing list?? but maybe not since there's no mailing list on the top level.
 
-        rv = directory->GetDescription(getter_Copies(description));
+        rv = directory->GetDescription(description);
         if(NS_FAILED(rv)) return E_FAIL;
         rv = directory->GetFileName(fileName);
         if(NS_FAILED(rv)) return E_FAIL;

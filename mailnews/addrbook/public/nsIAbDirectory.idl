@@ -59,7 +59,7 @@ interface nsISupportsArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(2c0af941-5b77-4f26-923b-f3c5de286046)]
+[scriptable, uuid(55acf262-81e3-4ffe-bfd1-8b328adb49b4)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -201,9 +201,17 @@ interface nsIAbDirectory : nsISupports {
    */
   void addMailList(in nsIAbDirectory list);
 
-  // Specific to a directory which is a mail list
-  attribute wstring listNickName;
-  attribute wstring description;
+  /**
+   * Nick Name of the mailing list. This attribute is only really used when
+   * the nsIAbDirectory represents a mailing list.
+   */
+  attribute AString listNickName;
+
+  /**
+   * Description of the mailing list. This attribute is only really used when
+   * the nsIAbDirectory represents a mailing list.
+   */
+  attribute AString description;
 
   /**
    * Edits an existing mailing list (specified as listCard) into its parent

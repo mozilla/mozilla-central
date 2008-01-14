@@ -184,39 +184,29 @@ NS_IMETHODIMP nsAbDirProperty::SetLastModifiedDate(PRUint32 aLastModifiedDate)
 	return NS_OK;
 }
 
-nsresult nsAbDirProperty::GetAttributeName(PRUnichar **aName, nsString& value)
+NS_IMETHODIMP nsAbDirProperty::GetListNickName(nsAString &aListNickName)
 {
-	if (aName)
-	{
-		*aName = ToNewUnicode(value);
-		if (!(*aName)) 
-			return NS_ERROR_OUT_OF_MEMORY;
-		else
-			return NS_OK;
-	}
-	else
-		return NS_ERROR_NULL_POINTER;
-
+  aListNickName = m_ListNickName;
+  return NS_OK;
 }
 
-nsresult nsAbDirProperty::SetAttributeName(const PRUnichar *aName, nsString& arrtibute)
+NS_IMETHODIMP nsAbDirProperty::SetListNickName(const nsAString &aListNickName)
 {
-	if (aName)
-		arrtibute = aName;
-	return NS_OK;
+  m_ListNickName = aListNickName;
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetListNickName(PRUnichar * *aListNickName)
-{ return GetAttributeName(aListNickName, m_ListNickName); }
+NS_IMETHODIMP nsAbDirProperty::GetDescription(nsAString &aDescription)
+{
+  aDescription = m_Description;
+  return NS_OK;
+}
 
-NS_IMETHODIMP nsAbDirProperty::SetListNickName(const PRUnichar * aListNickName)
-{ return SetAttributeName(aListNickName, m_ListNickName); }
-
-NS_IMETHODIMP nsAbDirProperty::GetDescription(PRUnichar * *aDescription)
-{ return GetAttributeName(aDescription, m_Description); }
-
-NS_IMETHODIMP nsAbDirProperty::SetDescription(const PRUnichar * aDescription)
-{ return SetAttributeName(aDescription, m_Description); }
+NS_IMETHODIMP nsAbDirProperty::SetDescription(const nsAString &aDescription)
+{
+  m_Description = aDescription;
+  return NS_OK;
+}
 
 NS_IMETHODIMP nsAbDirProperty::GetIsMailList(PRBool *aIsMailList)
 {
@@ -255,10 +245,10 @@ NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
   nsString str;
   srcList->GetDirName(str);
   SetDirName(str);
-  srcList->GetListNickName(getter_Copies(str));
-  SetListNickName(str.get());
-  srcList->GetDescription(getter_Copies(str));
-  SetDescription(str.get());
+  srcList->GetListNickName(str);
+  SetListNickName(str);
+  srcList->GetDescription(str);
+  SetDescription(str);
 
   nsCOMPtr <nsISupportsArray> pAddressLists;
   srcList->GetAddressLists(getter_AddRefs(pAddressLists));

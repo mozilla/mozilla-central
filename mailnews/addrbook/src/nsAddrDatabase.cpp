@@ -1614,10 +1614,10 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
         if (!unicodeStr.IsEmpty())
             AddUnicodeToColumn(listRow, m_ListNameColumnToken, m_LowerListNameColumnToken, unicodeStr.get());
 
-        list->GetListNickName(getter_Copies(unicodeStr));
+        list->GetListNickName(unicodeStr);
         AddListNickName(listRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-        list->GetDescription(getter_Copies(unicodeStr));
+        list->GetDescription(unicodeStr);
         AddListDescription(listRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
     // XXX todo, this code has problems if you manually enter duplicate emails.
@@ -2899,12 +2899,12 @@ nsresult nsAddrDatabase::GetListFromDB(nsIAbDirectory *newList, nsIMdbRow* listR
   err = GetStringColumn(listRow, m_ListNickNameColumnToken, tempString);
   if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
   {
-    newList->SetListNickName(tempString.get());
+    newList->SetListNickName(tempString);
   }
   err = GetStringColumn(listRow, m_ListDescriptionColumnToken, tempString);
   if (NS_SUCCEEDED(err) && !tempString.IsEmpty())
   {
-    newList->SetDescription(tempString.get());
+    newList->SetDescription(tempString);
   }
 
   nsCOMPtr<nsIAbMDBDirectory> dbnewList(do_QueryInterface(newList, &err));

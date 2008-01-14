@@ -74,9 +74,6 @@ protected:
    */
   nsresult InitDirectoryPrefs();
 
-	nsresult GetAttributeName(PRUnichar **aName, nsString& value);
-	nsresult SetAttributeName(const PRUnichar *aName, nsString& arrtibute);
-
 	PRUint32 m_LastModifiedDate;
 
 	nsString m_ListDirName;

@@ -210,7 +210,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
           PRUint32 palmSyncTimeStamp;
           PRInt32 dirType, palmCategoryIndex;
 
-          rv = directory->GetDescription(getter_Copies(description));
+          rv = directory->GetDescription(description);
           if(NS_FAILED(rv)) return E_FAIL;
           rv = directory->GetFileName(fileName);
           if(NS_FAILED(rv)) return E_FAIL;

@@ -69,9 +69,6 @@ public:
 
 protected:
 
-	nsresult GetAttributeName(const nsAString &aName, nsString& value);
-	nsresult SetAttributeName(const nsAString &aName, nsString& attribute);
-
 	nsString m_PhoneticFirstName;
 	nsString m_PhoneticLastName;
 	nsString m_FirstName;
