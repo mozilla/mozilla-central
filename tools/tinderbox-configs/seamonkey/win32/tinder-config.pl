@@ -236,7 +236,7 @@ $update_platform = "WINNT_x86-msvc";
 $update_hash = "sha1";
 $update_filehost = "ftp.mozilla.org";
 $update_ver_file = 'suite/config/version.txt';
-$update_pushinfo = 0;
+$update_pushinfo = 1;
 
 # override tinder-defaults.pl to use community server
 $update_aus_host = 'aus2-community.mozilla.org';
