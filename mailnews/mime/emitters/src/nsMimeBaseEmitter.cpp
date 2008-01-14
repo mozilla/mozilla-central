@@ -38,7 +38,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include <stdio.h>
 #include "nsMimeBaseEmitter.h"
 #include "nsMailHeaders.h"
@@ -46,7 +45,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIServiceManager.h"
-#include "nsEscape.h"
 #include "prmem.h"
 #include "nsEmitterUtils.h"
 #include "nsMimeStringResources.h"
@@ -62,6 +60,9 @@
 #include "nsIMimeHeaders.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 static PRLogModuleInfo * gMimeEmitterLogModule = nsnull;
 
@@ -584,7 +585,7 @@ nsMimeBaseEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const c
   // If the main doc, check on updated character set
   if (mDocHeader)
     UpdateCharacterSet(outCharset);
-  CopyASCIItoUTF16(outCharset, mCharset);
+  CopyASCIItoUTF16(nsDependentCString(outCharset), mCharset);
   return NS_OK;
 }
 
@@ -710,13 +711,13 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
     // we're going to need a converter to convert
     nsresult rv = mUnicodeConverter->DecodeMimeHeader(value, getter_Copies(tValue));
     if (NS_SUCCEEDED(rv) && !tValue.IsEmpty())
-      newValue = nsEscapeHTML(tValue.get());
+      newValue = MsgEscapeHTML(tValue.get());
     else
-      newValue = nsEscapeHTML(value);
+      newValue = MsgEscapeHTML(value);
   }
   else
   {
-    newValue = nsEscapeHTML(value);
+    newValue = MsgEscapeHTML(value);
   }
 
   if (!newValue)
@@ -734,8 +735,8 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
   // get a field name next to an emitted header value. Note: Default will always
   // be the name of the header itself.
   //
-  nsCAutoString  newTagName(field);
-  newTagName.CompressWhitespace(PR_TRUE, PR_TRUE);
+  nsCString newTagName(field);
+  newTagName.StripWhitespace();
   ToUpperCase(newTagName);
 
   char *l10nTagName = LocalizeHeaderName(newTagName.get(), field);

@@ -41,8 +41,7 @@
 #include "mimexpcom.h"
 #include "mimecth.h"
 #include "mimeobj.h"
-#include "nsReadableUtils.h"
-
+#include "nsServiceManagerUtils.h"
 // String bundles...
 #include "nsIStringBundle.h"
 

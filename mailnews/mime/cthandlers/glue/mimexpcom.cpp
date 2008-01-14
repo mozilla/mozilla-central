@@ -39,6 +39,7 @@
 #include "nsIMimeObjectClassAccess.h"
 #include "nsMsgMimeCID.h"
 #include "nsCOMPtr.h"
+#include "nsComponentManagerUtils.h"
 static NS_DEFINE_CID(kMimeObjectClassAccessCID, NS_MIME_OBJECT_CLASS_ACCESS_CID); 
 
 /*

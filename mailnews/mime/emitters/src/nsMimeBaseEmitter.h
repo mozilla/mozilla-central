@@ -47,7 +47,6 @@
 #include "nsIAsyncInputStream.h"
 #include "nsIURI.h"
 #include "nsIChannel.h"
-#include "nsString.h"
 #include "nsIMimeMiscStatus.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIPipe.h"

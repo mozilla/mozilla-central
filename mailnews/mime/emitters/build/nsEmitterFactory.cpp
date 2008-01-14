@@ -40,7 +40,7 @@
 #include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "pratom.h"
-
+#include "nsServiceManagerUtils.h"
 #include "nsIGenericFactory.h"
 #include "nsIModule.h"
 #include "nsICategoryManager.h"

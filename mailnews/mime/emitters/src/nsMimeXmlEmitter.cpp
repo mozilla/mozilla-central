@@ -41,12 +41,11 @@
 #include "plstr.h"
 #include "nsMailHeaders.h"
 #include "nscore.h"
-#include "nsEscape.h"
 #include "prmem.h"
 #include "nsEmitterUtils.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
+#include "nsMsgUtils.h"
 
 /*
  * nsMimeXmlEmitter definitions....
@@ -87,7 +86,7 @@ nsMimeXmlEmitter::WriteXMLHeader(const char *msgID)
   if ( (!msgID) || (!*msgID) )
     msgID = "none";
 
-  char  *newValue = nsEscapeHTML(msgID);
+  char  *newValue = MsgEscapeHTML(msgID);
   if (!newValue)
     return NS_ERROR_OUT_OF_MEMORY;
 
@@ -111,14 +110,12 @@ nsMimeXmlEmitter::WriteXMLTag(const char *tagName, const char *value)
     return NS_OK;
 
   char  *upCaseTag = NULL;
-  char  *newValue = nsEscapeHTML(value);
+  char  *newValue = MsgEscapeHTML(value);
   if (!newValue)
     return NS_OK;
 
-  nsString  newTagName;
-  CopyASCIItoUTF16(tagName, newTagName);
-  newTagName.CompressWhitespace(PR_TRUE, PR_TRUE);
-
+  nsCString newTagName(tagName);
+  newTagName.StripWhitespace();
   ToUpperCase(newTagName);
   upCaseTag = ToNewCString(newTagName);
 

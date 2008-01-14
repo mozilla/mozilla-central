@@ -39,7 +39,7 @@
 #include "nsNetCID.h"
 #include "nsIServiceManager.h"
 #include "nsICharsetConverterManager.h"
-
+#include "nsServiceManagerUtils.h"
 #include "msgCore.h"
 #include "prlog.h"
 #include "prtypes.h"
@@ -49,12 +49,10 @@
 #include "mimecth.h"
 #include "mimexpcom.h"
 #include "mimevcrd.h"
-#include "nsEscape.h"
 #include "nsIURI.h"
 #include "nsMsgI18N.h"
 #include "nsMsgUtils.h"
-#include "nsReadableUtils.h"
-
+#include "nsINetUtil.h"
 #include "nsIStringBundle.h"
 #include "nsVCardStringResources.h"
 
@@ -1028,7 +1026,6 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
   char * htmlLine1 = NULL;
   char *htmlLine2 = NULL;
   char* vCard = NULL;
-  char* vEscCard = NULL;
   int len = 0;
   char* rsrcString = NULL;
 
@@ -1045,12 +1042,11 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
   if (!vCard)
     return VCARD_OUT_OF_MEMORY;
 
-  vEscCard = nsEscape (vCard, url_XAlphas);
+  nsCString vEscCard;
+  MsgEscapeString(nsDependentCString(vCard), nsINetUtil::ESCAPE_XALPHAS,
+                  vEscCard);
 
   PR_FREEIF (vCard);
-
-  if (!vEscCard)
-    return VCARD_OUT_OF_MEMORY;
 
   if (basic)
   {
@@ -1068,7 +1064,7 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
 
   rsrcString = VCardGetStringByID(VCARD_MSG_ADD_TO_ADDR_BOOK);
   htmlLine2 = PR_smprintf("<FORM name=form1 METHOD=get ACTION=\"addbook:add?action=add\"><INPUT TYPE=hidden name=vcard VALUE=\"%s\"><INPUT type=submit value=\"%s\"></INPUT></FORM>",
-                           vEscCard, rsrcString);
+                          vEscCard.get(), rsrcString);
   PR_FREEIF(rsrcString);
 
   if (!htmlLine1 || !htmlLine2)
@@ -1104,7 +1100,6 @@ static int OutputButtons(MimeObject *obj, PRBool basic, VObject *v)
   if (status < 0) goto FAIL;
 
   FAIL:
-  PR_FREEIF (vEscCard);
   PR_FREEIF (htmlLine1);
   PR_FREEIF(htmlLine2);
 

@@ -41,11 +41,9 @@
 #include "plstr.h"
 #include "nsMailHeaders.h"
 #include "nscore.h"
-#include "nsEscape.h"
 #include "prmem.h"
 #include "nsEmitterUtils.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 
 /*

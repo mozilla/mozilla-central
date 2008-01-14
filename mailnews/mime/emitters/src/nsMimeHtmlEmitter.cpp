@@ -45,23 +45,23 @@
 #include "nsEmitterUtils.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsEscape.h"
 #include "nsIMimeStreamConverter.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsMimeTypes.h"
 #include "prtime.h"
-#include "nsReadableUtils.h"
 #include "prprf.h"
 #include "nsIStringEnumerator.h"
 #include "nsStringEnumerator.h"
-
+#include "nsServiceManagerUtils.h"
 // hack: include this to fix opening news attachments.
 #include "nsINntpUrl.h"
-
+#include "nsComponentManagerUtils.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
 #include "nsDateTimeFormatCID.h"
+#include "nsMsgUtils.h"
+#include "nsINetUtil.h"
 
 #define VIEW_ALL_HEADERS 2
 
@@ -205,7 +205,7 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
           PL_strcasecmp("references", headerInfo->name) && PL_strcasecmp("in-reply-to", headerInfo->name) &&
           // make headerStr lower case because IndexOf is case-sensitive
          (!extraExpandedHeadersArray.Count() || (ToLowerCase(headerStr),
-            extraExpandedHeadersArray.IndexOf(headerStr) == kNotFound)))
+            extraExpandedHeadersArray.IndexOf(headerStr) == -1)))
             continue;
     }
 
@@ -355,7 +355,7 @@ nsMimeHtmlDisplayEmitter::EndHeader()
     const char * val = GetHeaderValue(HEADER_SUBJECT); // do not free this value
     if (val)
     {
-      char * subject = nsEscapeHTML(val);
+      char * subject = MsgEscapeHTML(val);
       if (subject)
       {
         PRInt32 bufLen = strlen(subject) + 16;
@@ -393,7 +393,6 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
 
   if (NS_SUCCEEDED(rv) && headerSink)
   {
-    char * escapedUrl = nsEscape(url, url_Path);
     nsCString uriString;
 
     nsCOMPtr<nsIMsgMessageUrl> msgurl (do_QueryInterface(mURL, &rv));
@@ -419,7 +418,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
 
     if (NS_FAILED(rv))
     {
-      CopyUTF8toUTF16(name, unicodeHeaderValue);
+      CopyUTF8toUTF16(nsDependentCString(name), unicodeHeaderValue);
 
       // but it's not really a failure if we didn't have a converter
       // in the first place
@@ -431,7 +430,6 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const char *name,
                                  unicodeHeaderValue.get(), uriString.get(),
                                  aIsExternalAttachment);
 
-    NS_Free(escapedUrl);
     mSkipAttachment = PR_TRUE;
   }
   else if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
@@ -505,7 +503,7 @@ nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *valu
   if (!strcmp(field, HEADER_X_MOZILLA_PART_URL))
     return NS_OK;
 
-  char  *newValue = nsEscapeHTML(value);
+  char  *newValue = MsgEscapeHTML(value);
 
   UtilityWrite("<tr>");
 

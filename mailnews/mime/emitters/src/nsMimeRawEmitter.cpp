@@ -42,7 +42,6 @@
 #include "nsIMimeEmitter.h"
 #include "nsMailHeaders.h"
 #include "nscore.h"
-#include "nsEscape.h"
 #include "prmem.h"
 #include "nsEmitterUtils.h"
 
