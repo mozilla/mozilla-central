@@ -1548,7 +1548,8 @@
         <parameter name="aMouseX"/>
         <parameter name="aMouseY"/>
         <body><![CDATA[
-          if (aOccurrence.calendar.readOnly) {
+          if (!isCalendarWritable(aOccurrence.calendar) ||
+              aOccurrence.calendar.getProperty("capabilities.events.supported") === false) {
               return;
           }
 
@@ -1742,7 +1743,9 @@
         this.calendarView.selectedDay = this.mDate;
 
         // If the selected calendar is readOnly, we don't want any sweeping.
-        if (getSelectedCalendar().readOnly) {
+        var cal = getSelectedCalendar();
+        if (!isCalendarWritable(cal) ||
+            cal.getProperty("capabilities.events.supported") === false) {
             return;
         }
 

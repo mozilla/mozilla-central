@@ -131,6 +131,8 @@ interface calICalendar : nsISupports
    *   capabilities.attachments.supported Supports attachments
    *   capabilities.privacy.supported     Supports a privacy state
    *   capabilities.priority.supported    Supports the priority field
+   *   capabilities.events.supported      Supports tasks
+   *   capabilities.tasks.supported       Supports events
    *
    * The following capabilities are used to restrict the values for specific
    * fields. An array should be specified with the values, the default

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -186,14 +185,30 @@ function openEventDialog(calendarItem, calendar, mode, callback, job)
     mode = mode || "new";
     calendar = calendar || getSelectedCalendar();
     var calendars = getCalendarManager().getCalendars({});
-    calendars = calendars.filter(function(el) { return !el.readOnly; });
+    calendars = calendars.filter(isCalendarWritable);
 
-    if (calendar.readOnly && mode == "new" && calendars.length < 1) {
-        // All calendars are marked readonly, don't show the dialog
+    var isItemSupported;
+    if (isToDo(calendarItem)) {
+        isItemSupported = function isTodoSupported(cal) {
+            return (cal.getProperty("capabilities.tasks.supported") !== false);
+        };
+    } else if (isEvent(calendarItem)) {
+        isItemSupported = function isEventSupported(cal) {
+            return (cal.getProperty("capabilities.events.supported") !== false);
+        };
+    }
+
+    // Filter out calendars that don't support the given calendar item
+    calendars = calendars.filter(isItemSupported);
+
+    if (mode == "new" && calendars.length < 1 &&
+        (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {
+        // There are no writable calendars or no calendar supports the given
+        // item. Don't show the dialog.
         return;
-    } else if (calendar.readOnly && mode == "new") {
-        // If the default calendar is marked readOnly, pick the first
-        // non-readOnly calendar
+    } else if (mode == "new" &&
+               (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {
+        // Pick the first calendar that supports the item and is writable
         calendar = calendars[0];
         if (calendarItem) {
             // XXX The dialog currently uses the items calendar as a first
@@ -230,7 +245,7 @@ function openEventDialog(calendarItem, calendar, mode, callback, job)
 
     // open the dialog modeless
     var url = "chrome://calendar/content/sun-calendar-event-dialog.xul";
-    if (isInvitation || calendar.readOnly) {
+    if (isInvitation || !isCalendarWritable(calendar)) {
         url = "chrome://calendar/content/calendar-summary-dialog.xul";
     }
     openDialog(url, "_blank", "chrome,titlebar,resizable", args);

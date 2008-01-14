@@ -95,13 +95,13 @@ var calendarController = {
     isCommandEnabled: function cC_isCommandEnabled(aCommand) {
         switch (aCommand) {
             case "calendar_new_event_command":
-                return this.writable;
+                return this.writable && this.calendars_support_events;
             case "calendar_modify_event_command":
                 return this.item_selected;
             case "calendar_delete_event_command":
                 return this.selected_items_writable;
             case "calendar_new_todo_command":
-                return this.writable;
+                return this.writable && this.calendars_support_tasks;
             case "calendar_delete_todo_comand":
                 return this.writable; // XXX are selected todo items readonly?
 
@@ -350,6 +350,32 @@ var calendarController = {
                this.item_selected &&
                !this.selected_events_readonly &&
                (!this.offline || !this.selected_events_requires_network);
+    },
+
+    get calendars_support_tasks() {
+        // XXX We might want to cache this
+        var calendars = getCalendarManager().getCalendars({});
+
+        for each (var cal in calendars) {
+            if (isCalendarWritable(cal) &&
+                cal.getProperty("capabilities.tasks.supported") !== false) {
+                return true;
+            }
+        }
+        return false;
+    },
+
+    get calendars_support_events() {
+        // XXX We might want to cache this
+        var calendars = getCalendarManager().getCalendars({});
+
+        for each (var cal in calendars) {
+            if (isCalendarWritable(cal) &&
+                cal.getProperty("capabilities.events.supported") !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 };
 

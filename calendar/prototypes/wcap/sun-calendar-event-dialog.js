@@ -286,6 +286,17 @@ function loadDialog(item) {
 
     loadDateTime(item);
 
+    var isItemSupported;
+    if (isToDo(calendarItem)) {
+        isItemSupported = function isTodoSupported(cal) {
+            return (cal.getProperty("capabilities.tasks.supported") !== false);
+        };
+    } else if (isEvent(calendarItem)) {
+        isItemSupported = function isEventSupported(cal) {
+            return (cal.getProperty("capabilities.events.supported") !== false);
+        };
+    }
+
     // add calendars to the calendar menulist
     var calendarList = document.getElementById("item-calendar");
     var calendars = getCalendarManager().getCalendars({});
@@ -303,7 +314,9 @@ function loadDialog(item) {
                 }
             }
             selectIndex++;
-        } else if (calendar && !calendar.readOnly) {
+        } else if (calendar &&
+                   isCalendarWritable(calendar) &&
+                   isItemSupported(calendar)) {
             var menuitem = calendarList.appendItem(calendar.name, i);
             menuitem.calendar = calendar;
             if (calendarToUse) {
