@@ -49,6 +49,7 @@
 #include "mimecth.h"
 #include "mimexpcom.h"
 #include "mimevcrd.h"
+#include "nsEscape.h"
 #include "nsIURI.h"
 #include "nsMsgI18N.h"
 #include "nsMsgUtils.h"
