@@ -1102,6 +1102,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
 {
   if (mTreeSelection)
   {
+    PRInt32 viewSize = GetSize();
     PRInt32 count;
     mTreeSelection->GetCount(&count);
     selection->SetSize(count);
@@ -1110,17 +1111,17 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
     nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
     for (PRInt32 i = 0; i < selectionCount; i++)
     {
-      PRInt32 startRange;
-      PRInt32 endRange;
-      rv = mTreeSelection->GetRangeAt(i, &startRange, &endRange);
-      NS_ENSURE_SUCCESS(rv, NS_OK);
-      PRInt32 viewSize = GetSize();
+      PRInt32 startRange = -1;
+      PRInt32 endRange = -1;
+      mTreeSelection->GetRangeAt(i, &startRange, &endRange);
       if (startRange >= 0 && startRange < viewSize)
       {
         for (PRInt32 rangeIndex = startRange; rangeIndex <= endRange && rangeIndex < viewSize; rangeIndex++)
           selection->SetAt(count++, rangeIndex);
       }
     }
+    NS_ASSERTION(selection->GetSize() == count, "selection count is wrong");
+    selection->SetSize(count);
   }
   else
   {
