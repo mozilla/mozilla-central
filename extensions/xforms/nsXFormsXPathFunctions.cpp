@@ -365,28 +365,51 @@ nsXFormsXPathFunctions::Months(const nsAString & aDuration, double *aResult)
 NS_IMETHODIMP
 nsXFormsXPathFunctions::Now(nsAString & aResult)
 {
-    PRExplodedTime time;
-    char ctime[60];
+    return nsXFormsUtils::GetTime(aResult, true);
+}
 
-    PR_ExplodeTime(PR_Now(), PR_LocalTimeParameters, &time);
-    int gmtoffsethour = time.tm_params.tp_gmt_offset < 0 ?
-                        -1*time.tm_params.tp_gmt_offset / 3600 :
-                        time.tm_params.tp_gmt_offset / 3600;
-    int remainder = time.tm_params.tp_gmt_offset%3600;
-    int gmtoffsetminute = remainder ? remainder/60 : 00;
+NS_IMETHODIMP
+nsXFormsXPathFunctions::LocalDate(nsAString & aResult)
+{
+    nsAutoString time;
+    nsresult rv = nsXFormsUtils::GetTime(time);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-    char zone_location[40];
-    const int zoneBufSize = sizeof(zone_location);
-    PR_snprintf(zone_location, zoneBufSize, "%c%02d:%02d\0",
-                time.tm_params.tp_gmt_offset < 0 ? '-' : '+',
-                gmtoffsethour, gmtoffsetminute);
+    // since we know that the returned string will be in the format of
+    // yyyy-mm-ddThh:mm:ss.ssszzzz, we just need to grab the first 10
+    // characters to represent the date and then strip off the time zone
+    // information from the end and append it to the string to get our answer
+    aResult = Substring(time, 0, 10);
+    PRInt32 timeSeparator = time.FindChar(PRUnichar('T'));
+    if (timeSeparator == kNotFound) {
+      // though this should probably never happen, if this is the case we
+      // certainly don't have to worry about timezones.  Just return.
+      return NS_OK;
+    }
 
-    PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
+    // Time zone information can be of the format '-hh:ss', '+hh:ss', 'Z' or
+    // might be no time zone information at all.
+    nsAutoString hms(Substring(time, timeSeparator+1, time.Length()));
+    PRInt32 timeZoneSeparator = hms.FindChar(PRUnichar('-'));
+    if (timeZoneSeparator == kNotFound) {
+      timeZoneSeparator = hms.FindChar(PRUnichar('+'));
+      if (timeZoneSeparator == kNotFound) {
+        timeZoneSeparator = hms.FindChar(PRUnichar('Z'));
+        if (timeZoneSeparator == kNotFound) {
+          // no time zone information available
+          return NS_OK;
+        }
+      }
+    }
 
-    aResult.AssignLiteral(ctime);
-    aResult.Append(NS_ConvertASCIItoUTF16(zone_location));
-
+    aResult.Append(Substring(hms, timeZoneSeparator, hms.Length()));
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::LocalDateTime(nsAString & aResult)
+{
+    return nsXFormsUtils::GetTime(aResult);
 }
 
 NS_IMETHODIMP
@@ -438,10 +461,6 @@ nsXFormsXPathFunctions::Current(txIFunctionEvaluationContext *aContext,
                                 txINodeSet **aResult)
 {
   *aResult = nsnull;
-
-  if (!nsXFormsUtils::ExperimentalFeaturesEnabled()) {
-    return NS_ERROR_NOT_IMPLEMENTED;
-  }
 
   // now get the contextNode passed in to the evaluation
   nsCOMPtr<nsIXFormsXPathState> state;

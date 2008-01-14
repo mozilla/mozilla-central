@@ -718,6 +718,17 @@ public:
                                                   PRInt32 * aDays);
 
   /**
+   * Get the current date and time as a string.  For example,
+   * 2007-01-11T17:57:30-6:00 if UTC is not set and 2007-01-11T23:57:30Z if
+   * it is.
+   *
+   * @param aResult          The returned string
+   * @param aUTC             Should the string be expressed in UTC format or
+   *                         in the current timezone.
+   */
+  static NS_HIDDEN_(nsresult) GetTime(nsAString & aResult, PRBool aUTC = false);
+
+  /**
    * Determine whether the given node contains an xf:itemset as a child.
    * In valid XForms documents this should only be possible if aNode is an
    * xf:select/1 or an xf:choices element.  This function is used primarily

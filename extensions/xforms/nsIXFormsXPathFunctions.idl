@@ -40,7 +40,7 @@
 #include "nsISupports.idl"
 #include "txIFunctionEvaluationContext.idl"
 
-[scriptable, uuid(d3c957be-9f59-42f3-8ca9-7a22edf0e231)]
+[scriptable, uuid(4c92138c-5d7d-4f82-99d7-3a1aa0167a56)]
 interface nsIXFormsXPathFunctions : nsISupports
 {
     double avg(in txINodeSet aNodeSet);
@@ -54,6 +54,8 @@ interface nsIXFormsXPathFunctions : nsISupports
     double min(in txINodeSet aNodeSet);
     double months(in DOMString aDuration);
     DOMString now();
+    DOMString localDate();
+    DOMString localDateTime();
     DOMString property(in DOMString aProperty);
     double seconds(in DOMString aDuration);
     double secondsFromDateTime(in DOMString aDateTime);

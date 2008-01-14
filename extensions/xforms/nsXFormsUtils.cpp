@@ -2809,18 +2809,17 @@ nsXFormsUtils::GetDaysFromDateTime(const nsAString & aValue, PRInt32 * aDays)
     do_CreateInstance("@mozilla.org/schemavalidator;1");
   NS_ENSURE_TRUE(schemaValidator, NS_ERROR_FAILURE);
 
-  // aValue could be a xsd:date or a xsd:dateTime.  If it is a dateTime, we
-  // should ignore the hours, minutes, and seconds according to 7.10.2 in
-  // the spec.  So search for such things now.  If they are there, strip 'em.
-  PRInt32 findTime = aValue.FindChar('T');
+  // aValue could be a xsd:date or a xsd:dateTime.  If it is a xsd:dateTime,
+  // there will be a 'T' separating the date portion of the string from the time
+  // portion http://www.w3.org/TR/xmlschema-2/#dateTime
+  PRInt32 timeSeparator = aValue.FindChar('T');
 
-  nsAutoString dateString;
-  dateString.Assign(aValue);
-  if (findTime >= 0) {
-    dateString.Assign(Substring(dateString, 0, findTime));
+  nsresult rv;
+  if (timeSeparator >= 0) {
+    rv = schemaValidator->ValidateBuiltinTypeDateTime(aValue, &date);
+  } else {
+    rv = schemaValidator->ValidateBuiltinTypeDate(aValue, &date);
   }
-
-  nsresult rv = schemaValidator->ValidateBuiltinTypeDate(dateString, &date);
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRTime secs64 = date;
@@ -2836,10 +2835,73 @@ nsXFormsUtils::GetDaysFromDateTime(const nsAString & aValue, PRInt32 * aDays)
   // convert whole seconds to PRInt32
   LL_L2I(secs32, secs64);
 
-  // convert whole seconds to days.  86400 seconds in a day.
+  // If aValue was a dateTime, "Hour, minute, and second components are ignored
+  // after normalization" according to 7.10.2 in the spec.  So according to spec
+  // we should strip off the fraction of a day after normalizing and before
+  // figuring out its distance from the epoch.  But secs32 already has been
+  // normalized and contains the distance from the epoch.  So now we might have
+  // to alter aDays to account for the fact that we didn't remove any fraction
+  // before.  For example, if aValue is 1970-01-02T12:00:00, then this is
+  // 1.5 days after the epoch.  But if we removed the fraction before the
+  // calculation we'd have 1970-01-02, which is 1 day from the epoch.  So
+  // GetDaysFromDateTime would return 1.  So we see that if aValue is on or
+  // after the epoch, we can ignore the remainder.  However, if aValue is
+  // 1969-12-31T12:00:00, this would be -0.5 days from the epoch.  Applying
+  // the spec rule of dropping the fractional day, we would be calculating
+  // using 1969-12-31 which would give us -1 days from the epoch (negative
+  // because it is before the epoch).  So we can't simply ignore the remainder.
+  // If we have a negative value with a remainder, we need to round down to
+  // the next whole day value.  So that is what we will do below.
+
+  // Convert seconds to days.  86400 seconds in a day.
   *aDays = secs32/86400;
 
+  // Apply the rule from above to simulate having removed the fractional day
+  // prior to calculating the distance from the epoch.  If secs32 is negative
+  // then if there was a fraction of a day, round down a day.
+  if (secs32 < 0) {
+    PRInt32 remainder = secs32%86400;
+    if (remainder) {
+      --*aDays;
+    }
+  }
+
   return NS_OK;
+}
+
+/* static */ nsresult
+nsXFormsUtils::GetTime(nsAString & aResult, PRBool aUTC)
+{
+    PRExplodedTime time;
+    char ctime[60];
+
+    PR_ExplodeTime(PR_Now(),
+                   aUTC ? PR_GMTParameters : PR_LocalTimeParameters, &time);
+
+    PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
+
+    aResult.AssignLiteral(ctime);
+
+    if (aUTC) {
+      aResult.AppendLiteral("Z");
+      return NS_OK;
+    }
+
+    int gmtoffsethour = time.tm_params.tp_gmt_offset < 0 ?
+                        -1*time.tm_params.tp_gmt_offset / 3600 :
+                        time.tm_params.tp_gmt_offset / 3600;
+    int remainder = time.tm_params.tp_gmt_offset%3600;
+    int gmtoffsetminute = remainder ? remainder/60 : 00;
+  
+    char zone_location[40];
+    const int zoneBufSize = sizeof(zone_location);
+    PR_snprintf(zone_location, zoneBufSize, "%c%02d:%02d\0",
+                time.tm_params.tp_gmt_offset < 0 ? '-' : '+',
+                gmtoffsethour, gmtoffsetminute);
+
+    aResult.Append(NS_ConvertASCIItoUTF16(zone_location));
+
+    return NS_OK;
 }
 
 /* static */ PRBool
