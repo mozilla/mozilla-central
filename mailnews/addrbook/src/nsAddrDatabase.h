@@ -46,6 +46,7 @@
 #include "nsStringGlue.h"
 #include "nsIAddrDBListener.h"
 #include "nsCOMPtr.h"
+#include "nsTObserverArray.h"
 #include "nsIEnumerator.h"
 
 typedef enum
@@ -372,7 +373,7 @@ protected:
   nsIMdbTable *m_mdbDeletedCardsTable;
   nsCOMPtr<nsIFile> m_dbName;
   PRBool        m_mdbTokensInitialized;
-  nsVoidArray /*<nsIAddrDBListener>*/ *m_ChangeListeners;
+  nsTObserverArray<nsIAddrDBListener*> m_ChangeListeners;
 
   mdb_kind      m_PabTableKind;
   mdb_kind      m_MailListTableKind;

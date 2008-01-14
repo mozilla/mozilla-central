@@ -97,7 +97,6 @@ nsAddrDatabase::nsAddrDatabase()
       m_mdbPabTable(nsnull),
       m_mdbDeletedCardsTable(nsnull),
       m_mdbTokensInitialized(PR_FALSE),
-      m_ChangeListeners(nsnull),
       m_PabTableKind(0),
       m_MailListTableKind(0),
       m_DeletedCardsTableKind(0),
@@ -164,12 +163,9 @@ nsAddrDatabase::nsAddrDatabase()
 nsAddrDatabase::~nsAddrDatabase()
 {
     Close(PR_FALSE);    // better have already been closed.
-    if (m_ChangeListeners)
-    {
-        // better not be any listeners, because we're going away.
-        NS_ASSERTION(m_ChangeListeners->Count() == 0, "shouldn't have any listeners");
-        delete m_ChangeListeners;
-    }
+
+    // better not be any listeners, because we're going away.
+    NS_ASSERTION(m_ChangeListeners.Length() == 0, "shouldn't have any listeners");
 
     RemoveFromCache(this);
 }
@@ -216,117 +212,42 @@ NS_IMETHODIMP nsAddrDatabase::QueryInterface(REFNSIID aIID, void** aResult)
 
 NS_IMETHODIMP nsAddrDatabase::AddListener(nsIAddrDBListener *listener)
 {
-  if (!listener)
-    return NS_ERROR_NULL_POINTER;
-  if (!m_ChangeListeners)
-    {
-    m_ChangeListeners = new nsVoidArray();
-    if (!m_ChangeListeners)
-            return NS_ERROR_OUT_OF_MEMORY;
-  }
-    PRInt32 count = m_ChangeListeners->Count();
-    PRInt32 i;
-    for (i = 0; i < count; i++)
-    {
-        nsIAddrDBListener *dbListener = (nsIAddrDBListener *)m_ChangeListeners->ElementAt(i);
-        if (dbListener == listener)
-            return NS_OK;
-    }
-    return m_ChangeListeners->AppendElement(listener);
+  NS_ENSURE_ARG_POINTER(listener);
+  return m_ChangeListeners.AppendElement(listener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsAddrDatabase::RemoveListener(nsIAddrDBListener *listener)
 {
-    if (!m_ChangeListeners)
-        return NS_OK;
-
-    PRInt32 count = m_ChangeListeners->Count();
-    PRInt32 i;
-    for (i = 0; i < count; i++)
-    {
-        nsIAddrDBListener *dbListener = (nsIAddrDBListener *)m_ChangeListeners->ElementAt(i);
-        if (dbListener == listener)
-        {
-            m_ChangeListeners->RemoveElementAt(i);
-            return NS_OK;
-        }
-    }
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_ARG_POINTER(listener);
+  return m_ChangeListeners.RemoveElement(listener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsAddrDatabase::NotifyCardAttribChange(PRUint32 abCode)
 {
-  if (!m_ChangeListeners)
-      return NS_OK;
-    PRInt32 i;
-    for (i = 0; i < m_ChangeListeners->Count(); i++)
-    {
-        nsIAddrDBListener *changeListener =
-            (nsIAddrDBListener *) m_ChangeListeners->ElementAt(i);
-
-        nsresult rv = changeListener->OnCardAttribChange(abCode);
-    NS_ENSURE_SUCCESS(rv, rv);
-    }
-    return NS_OK;
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
+                                     OnCardAttribChange, (abCode));
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAddrDatabase::NotifyCardEntryChange(PRUint32 abCode, nsIAbCard *card)
 {
-  if (!m_ChangeListeners)
-      return NS_OK;
-  PRInt32 i;
-  PRInt32 count = m_ChangeListeners->Count();
-  for (i = count - 1; i >= 0; i--)
-  {
-    nsIAddrDBListener *changeListener =
-            (nsIAddrDBListener *) m_ChangeListeners->ElementAt(i);
-
-    if (changeListener)
-    {
-      nsresult rv = changeListener->OnCardEntryChange(abCode, card);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-    else
-      m_ChangeListeners->RemoveElementAt(i); //remove null ptr in the list
-    // since we're looping down, this is ok
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
+                                     OnCardEntryChange, (abCode, card));
   return NS_OK;
 }
 
 nsresult nsAddrDatabase::NotifyListEntryChange(PRUint32 abCode, nsIAbDirectory *dir)
 {
-  if (!m_ChangeListeners)
-        return NS_OK;
-
-    PRInt32 i;
-    PRInt32 count = m_ChangeListeners->Count();
-    for (i = 0; i < count; i++)
-    {
-        nsIAddrDBListener *changeListener =
-            (nsIAddrDBListener *) m_ChangeListeners->ElementAt(i);
-
-        nsresult rv = changeListener->OnListEntryChange(abCode, dir);
-    NS_ENSURE_SUCCESS(rv, rv);
-    }
-    return NS_OK;
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
+                                     OnListEntryChange, (abCode, dir));
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP nsAddrDatabase::NotifyAnnouncerGoingAway(void)
 {
-  if (!m_ChangeListeners)
-    return NS_OK;
-    // run loop backwards because listeners remove themselves from the list
-    // on this notification
-    PRInt32 i;
-    for (i = m_ChangeListeners->Count() - 1; i >= 0 ; i--)
-    {
-        nsIAddrDBListener *changeListener =
-            (nsIAddrDBListener *) m_ChangeListeners->ElementAt(i);
-
-        nsresult rv = changeListener->OnAnnouncerGoingAway();
-    NS_ENSURE_SUCCESS(rv, rv);
-    }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
+                                     OnAnnouncerGoingAway, ());
   return NS_OK;
 }
 
