@@ -51,7 +51,6 @@ DIRS = \
 
 APP_NAME	= Camino
 
-PYTHON ?= python
 RSYNC_ALL = rsync -aC --exclude .cvsignore --delete
 
 CM_APP_VERSION_FILE = $(srcdir)/config/version.txt
@@ -62,10 +61,8 @@ FOX_APP_VERSION_FILE = $(topsrcdir)/browser/config/version.txt
 FOX_APP_VERSION := $(shell cat $(FOX_APP_VERSION_FILE))
 PLATFORM_VERSION_FILE = $(topsrcdir)/config/milestone.txt
 PLATFORM_VERSION := $(shell egrep "^[^\#]+" $(PLATFORM_VERSION_FILE))
-PLATFORM_BUILD_ID_FILE = generated/platform_build_id
-PLATFORM_BUILD_ID := \
-	$(shell $(PYTHON) \
-	$(topsrcdir)/toolkit/xre/make-platformini.py --print-buildid)
+PLATFORM_BUILD_ID_FILE = $(DEPTH)/config/buildid
+PLATFORM_BUILD_ID := $(shell cat $(PLATFORM_BUILD_ID_FILE))
 PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
 
 # For Launch Services compatibility, CFBundleVersion can be at most three
