@@ -47,12 +47,12 @@ prefwindow {
   padding: 0px;
 }
 
-prefpane {
+prefwindow[type="child"] {
   padding: 7px 5px 5px 5px;
 }
 
-prefwindow[type="child"] {
-  padding: 7px 5px 5px 5px;
+prefpane {
+  padding: 7px 5px 0px 5px;
 }
 
 prefwindow[type="child"] > prefpane {
@@ -63,7 +63,7 @@ prefwindow[type="child"] > prefpane {
   padding: 0px 5px 5px 5px;
 }
 
-prefwindow[type="child"] .prefWindow-dlgbuttons {
+.prefWindow-dlgbuttons[type="child"] {
   padding: 0px;
 }
 
@@ -73,6 +73,15 @@ radio[pane] {
   min-width: 4.5em;
   background-color: #FFFFFF;
   color: #000000;
+}
+
+radio[pane][selected="true"] {
+  background-color: #C7D0D9;
+}
+
+radio[pane]:hover:active {
+  background-color: #90A1B3;
+  color: #FFFFFF;
 }
 
 .paneSelector {
@@ -87,13 +96,4 @@ radio[pane] {
 .paneButtonIcon {
   width: 32px;
   height: 32px;
-}
-
-radio[pane]:hover:active {
-  background-color: #90A1B3;
-  color: #FFFFFF;
-}
-
-radio[pane][selected="true"] {
-  background-color: #C7D0D9;
 }

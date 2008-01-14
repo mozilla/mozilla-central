@@ -40,8 +40,11 @@
 
 /* ::::: Main Window ::::: */
 
-prefwindow
-{ 
-  padding: 8px 10px 0px 8px;
+prefwindow {
+  padding: 7px 5px 5px 5px;
 }
 
+prefpane,
+.prefWindow-dlgbuttons {
+  padding: 0px;
+}

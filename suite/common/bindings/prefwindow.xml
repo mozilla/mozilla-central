@@ -129,7 +129,7 @@
           </xul:deck>
         </xul:vbox>
       </xul:hbox>
-      <xul:hbox anonid="dlg-buttons" class="prefWindow-dlgbuttons" pack="end">
+      <xul:hbox anonid="dlg-buttons" class="prefWindow-dlgbuttons" pack="end" xbl:inherits="type">
 #ifdef XP_UNIX
         <xul:button dlgtype="disclosure" class="dialog-button" hidden="true"/>
         <xul:button dlgtype="help" class="dialog-button" hidden="true" icon="help"/>
@@ -455,6 +455,10 @@
 
   <binding id="prefpane"
            extends="chrome://global/content/bindings/preferences.xml#prefpane">
+    <resources>
+      <stylesheet src="chrome://communicator/skin/preferences.css"/>
+    </resources>
+
     <handlers>
       <handler event="paneload">
       <![CDATA[
