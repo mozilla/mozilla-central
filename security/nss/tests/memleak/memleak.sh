@@ -314,7 +314,7 @@ run ${ATTR}
 	echo "${DBX_CMD}" | ${DBX} ${COMMAND} 2>/dev/null | grep -v Reading > ${TMP_DBX}
 	cat ${TMP_DBX} 1>&2
 	
-	cat ${TMP_DBX} | grep "exit code is 0"
+	grep "exit code is 0" ${TMP_DBX}
 	return $?
 }
 
