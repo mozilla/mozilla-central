@@ -7,12 +7,14 @@ MozillaEnvironments = {}
 MozillaEnvironments['linux'] = {
     "DISPLAY": ':0',
     "MOZ_NO_REMOTE": '1',
-    "CVSROOT": r':pserver:anonymous@cvs.mozilla.org:/cvsroot'
+    "CVSROOT": r':ext:unittest@cvs.mozilla.org:/cvsroot',
+    "CVS_RSH": 'ssh'
 }
 
 MozillaEnvironments['macosxppc'] = {
     "MOZ_NO_REMOTE": '1',
-    "CVSROOT": r':pserver:anonymous@cvs.mozilla.org:/cvsroot'
+    "CVSROOT": r':ext:unittest@cvs.mozilla.org:/cvsroot',
+    "CVS_RSH": 'ssh'
 }
 
 class SisyphusJSTest(ShellCommand):
