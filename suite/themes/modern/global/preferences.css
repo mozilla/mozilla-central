@@ -63,7 +63,7 @@ prefwindow[type="child"] > prefpane {
   padding: 0px 5px 5px 5px;
 }
 
-.prefWindow-dlgbuttons[type="child"] {
+prefwindow[type="child"] > .prefWindow-dlgbuttons {
   padding: 0px;
 }
 
