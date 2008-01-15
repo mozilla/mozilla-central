@@ -3804,7 +3804,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessa
           seekableStream->Tell(&lineStartPos);
           // we need to adjust the linestart pos by how much extra the line
           // buffer has read from the stream.
-          lineStartPos -= (lineBuffer->end - lineBuffer->current);
+          lineStartPos -= (lineBuffer->end - lineBuffer->start);
           // NS_ReadLine doesn't return line termination chars.
           nsCString keywordHeaders;
           rv = NS_ReadLine(inputStream.get(), lineBuffer, keywordHeaders, &more);

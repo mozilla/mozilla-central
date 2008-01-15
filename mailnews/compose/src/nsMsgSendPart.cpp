@@ -731,7 +731,7 @@ nsMsgSendPart::Write()
         if (curLine.Length() == 2) {
           nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
           // seek back the amount of data left in the line buffer...
-          seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, lineBuffer->current - lineBuffer->end);
+          seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, lineBuffer->start - lineBuffer->end);
           break;  // Now can do normal reads for the body.
         }
       }
