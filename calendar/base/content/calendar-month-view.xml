@@ -385,8 +385,62 @@
             }
           }
 
-          // insert the new item block, and then relayout
-          this.mItemData.push({ item: aItem });
+          function comptor(a, b) {
+            var aIsEvent = isEvent(a.item);
+            var aIsTodo = isToDo(a.item);
+
+            var bIsEvent = isEvent(b.item);
+            var bIsTodo = isToDo(b.item);
+
+            if ((!aIsEvent && !aIsTodo) || (!bIsEvent && !bIsTodo)) {
+              // XXX ????
+              dump ("Don't know how to sort these two events: " + a.item + " " + b.item + "\n");
+              return 0;
+            }
+
+            // sort todos before events
+            if (aIsTodo && bIsEvent) return -1;
+            if (aIsEvent && bIsTodo) return 1;
+
+            // XXX how do I sort todos?
+            if (aIsTodo && bIsTodo) {
+              return 0;
+            }
+
+            if (aIsEvent && bIsEvent) {
+              // sort all day events before events with a duration
+              if (a.item.startDate.isDate && !b.item.startDate.isDate) return -1;
+              if (!a.item.startDate.isDate && b.item.startDate.isDate) return 1;
+
+              var cmp;
+
+              cmp = a.item.startDate.compare(b.item.startDate);
+              if (cmp != 0)
+                return cmp;
+
+              cmp = a.item.endDate.compare(b.item.endDate);
+              if (cmp != 0)
+                return cmp;
+
+              if (a.item.title < b.item.title)
+                return -1;
+              if (a.item.title > b.item.title)
+                return 1;
+            }
+
+            return 0;
+          }
+
+          // insert the new item block (while keeping the array sorted),
+          // and then relayout.
+          // Note: don't use Array.Sort, because that's quicksort, which
+          // is not good for an already mostly-sorted array
+          var newItem = {item: aItem};
+          for (i = 0; i<this.mItemData.length; ++i) {
+            if (comptor(this.mItemData[i], newItem) > 0)
+              break;
+          }
+          this.mItemData.splice(i, 0, newItem);
 
           this.relayout();
         ]]></body>
@@ -447,53 +501,6 @@
               return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
           }
 
-
-          this.mItemData.sort(
-            function (a, b) {
-              var aIsEvent = isEvent(a.item);
-              var aIsTodo = isToDo(a.item);
-
-              var bIsEvent = isEvent(b.item);
-              var bIsTodo = isToDo(b.item);
-
-              if ((!aIsEvent && !aIsTodo) || (!bIsEvent && !bIsTodo)) {
-                // XXX ????
-                dump ("Don't know how to sort these two events: " + a.item + " " + b.item + "\n");
-                return 0;
-              }
-
-              // sort todos before events
-              if (aIsTodo && bIsEvent) return -1;
-              if (aIsEvent && bIsTodo) return 1;
-
-              // XXX how do I sort todos?
-              if (aIsTodo && bIsTodo) {
-                return 0;
-              }
-
-              if (aIsEvent && bIsEvent) {
-                // sort all day events before events with a duration
-                if (a.item.startDate.isDate && !b.item.startDate.isDate) return -1;
-                if (!a.item.startDate.isDate && b.item.startDate.isDate) return 1;
-
-                var cmp;
-
-                cmp = a.item.startDate.compare(b.item.startDate);
-                if (cmp != 0)
-                  return cmp;
-
-                cmp = a.item.endDate.compare(b.item.endDate);
-                if (cmp != 0)
-                  return cmp;
-
-                if (a.item.title < b.item.title)
-                  return -1;
-                if (a.item.title > b.item.title)
-                  return 1;
-              }
-
-              return 0;
-            });
 
           for (var i = 0; i < this.mItemData.length; i++) {
             var itd = this.mItemData[i];
