@@ -69,7 +69,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-colors.xul" label="&colors.label;"/> 
+            <treecell label="(Migrated: &colors.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>
