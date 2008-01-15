@@ -2012,7 +2012,7 @@ function MessageFcc(menuItem)
   // Get the id for the folder we're FCC into
   // This is the additional FCC in addition to the
   // default FCC
-  destUri = menuItem.getAttribute('id');
+  var destUri = menuItem.getAttribute('id');
   if (gMsgCompose)
   {
     var msgCompFields = gMsgCompose.compFields;
