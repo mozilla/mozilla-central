@@ -73,14 +73,15 @@ memleak_init()
 		CLEANUP="${SCRIPTNAME}"
 	fi
 
- 	NSS_DISABLE_ARENA_FREE_LIST="1"
- 	export NSS_DISABLE_ARENA_FREE_LIST
+	NSS_DISABLE_ARENA_FREE_LIST="1"
+	export NSS_DISABLE_ARENA_FREE_LIST
 	
 	OLD_LIBRARY_PATH=${LD_LIBRARY_PATH}
 	TMP_LIBDIR="${HOSTDIR}/tmp$$"
 	TMP_STACKS="${HOSTDIR}/stacks$$"
 	TMP_SORTED="${HOSTDIR}/sorted$$"
 	TMP_COUNT="${HOSTDIR}/count$$"
+	TMP_DBX="${HOSTDIR}/dbx$$"
 	
 	PORT=${PORT:-8443}
 	
@@ -180,6 +181,7 @@ memleak_init()
 
 	SELFSERV_ATTR="-D -p ${PORT} -d ${SERVER_DB} -n ${HOSTADDR} -e ${HOSTADDR}-ec -w nss -c ABCDEF:C001:C002:C003:C004:C005:C006:C007:C008:C009:C00A:C00B:C00C:C00D:C00E:C00F:C010:C011:C012:C013:C014cdefgijklmnvyz -t 5"
 	TSTCLNT_ATTR="-p ${PORT} -h ${HOSTADDR} -c j -f -d ${CLIENT_DB} -w nss -o"
+	STRSCLNT_ATTR="-q -p ${PORT} -d ${CLIENT_DB} -w nss -c 1000 -n TestUser ${HOSTADDR}"
 
 	tbytes=0
 	tblocks=0
@@ -308,7 +310,12 @@ run ${ATTR}
 	echo "${DBX} ${COMMAND}"
 	echo "${SCRIPTNAME}: -------- DBX commands:"
 	echo "${DBX_CMD}"
-	echo "${DBX_CMD}" | ${DBX} ${COMMAND} 2>/dev/null | grep -v Reading 1>&2
+	
+	echo "${DBX_CMD}" | ${DBX} ${COMMAND} 2>/dev/null | grep -v Reading > ${TMP_DBX}
+	cat ${TMP_DBX} 1>&2
+	
+	cat ${TMP_DBX} | grep "exit code is 0"
+	return $?
 }
 
 ######################### run_command_valgrind #########################
@@ -319,12 +326,15 @@ run_command_valgrind()
 	COMMAND=$1
 	shift
 	ATTR=$*
-
+	
 	echo "${SCRIPTNAME}: -------- Running ${COMMAND} under Valgrind:"
 	echo "${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR}"
 	echo "Running: ${COMMAND} ${ATTR}" 1>&2
 	${VALGRIND} --tool=memcheck --leak-check=yes --show-reachable=yes --partial-loads-ok=yes --leak-resolution=high --num-callers=50 ${COMMAND} ${ATTR} 1>&2
-	echo "==0==" 
+	ret=$?
+	echo "==0=="
+	
+	return $ret
 }
 
 ############################# run_selfserv #############################
@@ -337,6 +347,12 @@ run_selfserv()
 	echo "${SCRIPTNAME}: -------- Running selfserv:"
 	echo "selfserv ${SELFSERV_ATTR}"
 	selfserv ${SELFSERV_ATTR}
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		html_failed "<TR><TD> ${LOGNAME}: Selfserv"
+		echo "${SCRIPTNAME} ${LOGNAME}: " \
+			"Selfserv produced a returncode of ${ret} - FAILED"
+	fi
 }
 
 ########################### run_selfserv_dbg ###########################
@@ -347,6 +363,12 @@ run_selfserv_dbg()
 	echo "PATH=${PATH}"
 	echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 	${RUN_COMMAND_DBG} selfserv ${SERVER_OPTION} ${SELFSERV_ATTR}
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		html_failed "<TR><TD> ${LOGNAME}: Selfserv"
+		echo "${SCRIPTNAME} ${LOGNAME}: " \
+			"Selfserv produced a returncode of ${ret} - FAILED"
+	fi
 }
 
 ############################# run_strsclnt #############################
@@ -356,15 +378,27 @@ run_selfserv_dbg()
 run_strsclnt()
 {
 	for cipher in ${cipher_list}; do
-		STRSCLNT_ATTR="-q -p ${PORT} -d ${CLIENT_DB} -w nss -c 1000 -C ${cipher} ${HOSTADDR}"
+		ATTR="${STRSCLNT_ATTR} -C ${cipher}"
 		echo "${SCRIPTNAME}: -------- Trying cipher ${cipher}:"
-		echo "strsclnt ${STRSCLNT_ATTR}"
-		strsclnt ${STRSCLNT_ATTR}
+		echo "strsclnt ${ATTR}"
+		strsclnt ${ATTR}
+		ret=$?
+		if [ $ret -ne 0 ]; then
+			html_failed "<TR><TD> ${LOGNAME}: Strsclnt with cipher ${cipher}"
+			echo "${SCRIPTNAME} ${LOGNAME}: " \
+				"Strsclnt produced a returncode of ${ret} - FAILED"
+		fi
 	done
 	
 	echo "${SCRIPTNAME}: -------- Stopping server:"
 	echo "tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}"
 	tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		html_failed "<TR><TD> ${LOGNAME}: Tstclnt"
+		echo "${SCRIPTNAME} ${LOGNAME}: " \
+			"Tstclnt produced a returncode of ${ret} - FAILED"
+	fi
 }
 
 ########################### run_strsclnt_dbg ###########################
@@ -374,13 +408,25 @@ run_strsclnt()
 run_strsclnt_dbg()
 {
 	for cipher in ${cipher_list}; do
-		STRSCLNT_ATTR="-q -p ${PORT} -d ${CLIENT_DB} -w nss -c 1001 -C ${cipher} ${HOSTADDR}"
-		${RUN_COMMAND_DBG} strsclnt ${CLIENT_OPTION} ${STRSCLNT_ATTR}
+		ATTR="${STRSCLNT_ATTR} -C ${cipher}"
+		${RUN_COMMAND_DBG} strsclnt ${CLIENT_OPTION} ${ATTR}
+		ret=$?
+		if [ $ret -ne 0 ]; then
+			html_failed "<TR><TD> ${LOGNAME}: Strsclnt with cipher ${cipher}"
+			echo "${SCRIPTNAME} ${LOGNAME}: " \
+				"Strsclnt produced a returncode of ${ret} - FAILED"
+		fi
 	done
 	
 	echo "${SCRIPTNAME}: -------- Stopping server:"
 	echo "tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}"
 	tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
+	ret=$?
+	if [ $ret -ne 0 ]; then
+		html_failed "<TR><TD> ${LOGNAME}: Tstclnt"
+		echo "${SCRIPTNAME} ${LOGNAME}: " \
+			"Tstclnt produced a returncode of ${ret} - FAILED"
+	fi
 }
 
 stat_clear()
