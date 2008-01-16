@@ -54,16 +54,16 @@
     <label id="recordNumber"/>
     <spacer flex="1"/>
     <button id="previous" oncommand="Browse(-1);"
-            label="&fieldMapImport.previous;"
+            label="&fieldMapImport.previous.label;"
             accesskey="&fieldMapImport.previous.accesskey;"/>
     <button id="next" oncommand="Browse(1);" 
-            label="&fieldMapImport.next;"
+            label="&fieldMapImport.next.label;"
             accesskey="&fieldMapImport.next.accesskey;"/>      
   </hbox>
 
   <hbox align="center">
     <checkbox id="skipFirstRecord"
-              label="&fieldMapImport.skipFirstRecord;"
+              label="&fieldMapImport.skipFirstRecord.label;"
               accesskey="&fieldMapImport.skipFirstRecord.accessKey;"/>
   </hbox>
 
@@ -88,10 +88,10 @@
 
     <vbox>
       <spacer flex="1"/>
-      <button id="upButton" class="up" label="&fieldMapImport.up;"
+      <button id="upButton" class="up" label="&fieldMapImport.up.label;"
               accesskey="&fieldMapImport.up.accesskey;"
               oncommand="moveItem(true);"/>
-      <button id="downButton" class="down" label="&fieldMapImport.down;"
+      <button id="downButton" class="down" label="&fieldMapImport.down.label;"
               accesskey="&fieldMapImport.down.accesskey;"
               oncommand="moveItem(false);"/>
       <spacer flex="1"/>
