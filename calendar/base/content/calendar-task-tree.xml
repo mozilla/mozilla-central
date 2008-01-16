@@ -517,7 +517,11 @@
           
           _getItemFromEvent: function tTV_getItemFromEvent(event, aCol, aRow) {
             aRow = aRow || {};
-            this.treebox.getCellAt(event.clientX, event.clientY, aRow, aCol || {}, {});
+            var childElt = {};
+            this.treebox.getCellAt(event.clientX, event.clientY, aRow, aCol || {}, childElt);
+            if (!childElt.value) {
+                return false;
+            }
             return aRow && aRow.value > -1 && this.binding.mTaskArray[aRow.value];
           },
           
