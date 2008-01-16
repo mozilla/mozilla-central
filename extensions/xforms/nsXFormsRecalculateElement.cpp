@@ -43,13 +43,11 @@ class nsXFormsRecalculateElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsRecalculateElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsRecalculateElement::nsXFormsRecalculateElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsRecalculateElement::nsXFormsRecalculateElement()
 {
 }
 

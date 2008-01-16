@@ -48,38 +48,22 @@
 #include "nsCOMPtr.h"
 #include "nsXFormsUtils.h"
 
-class nsXFormsActionModuleBase : public nsIDOMEventListener,
-                                 public virtual nsXFormsStubElement,
-                                 public nsIXFormsActionModuleElement
+class nsXFormsActionModuleHelper
 {
-public:
-  nsXFormsActionModuleBase(PRBool canIterate = PR_FALSE);
-  virtual ~nsXFormsActionModuleBase();
-  NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
-  NS_DECL_NSIDOMEVENTLISTENER
-  NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
-  NS_IMETHOD OnDestroyed();
-  NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
-  NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
-  NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
-  NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
-protected:
   /**
-   * Determine whether this action element should be executed, based upon
-   * optional `if` and `while` attributes.  For each of these attributes
-   * that are present on an action element, the action is only performed if
-   * the boolean value of the XPath expression contained in the attribute is
-   * true.  In addition, if the `while` attribute is used, the action is
-   * "executed repeatedly" until one of these attributes evaluates to false.
-   * This method indicates to the caller whether the action element uses a
-   * `while` attribute through the `usesWhile` parameter.
+   * nsXFormsActionModuleHelper provides the foundation that allows event
+   * iteration to work.  Every xforms action needs to inherit from
+   * nsXFormsActionModuleHelper in some capacity; they can inherit indirectly
+   * through nsXFormsActionModuleBase or directly from
+   * nsXFormsActionModuleHelper in the cases where the action actually needs to
+   * have binding capabilities (like nsXFormsAlertElement, etc)
    */
-  NS_HIDDEN_(PRBool) CanPerformAction(PRBool         *usesWhile,
-                                      nsIDOMNode     *contextNode = nsnull,
-                                      PRInt32         contextSize = 0,
-                                      PRInt32         contextPosition = 0);
 
+public:
+  nsXFormsActionModuleHelper() : mCanIterate(PR_TRUE) {}
+  virtual nsIDOMElement* GetElement() = 0;
+  PRBool CanIterate() { return mCanIterate; }
+  void SetCurrentEvent(nsIDOMEvent* aEvent) { mCurrentEvent = aEvent; }
   /**
    * With the `while` attribute, actions can potentially be iterated.  The
    * `HandleSingleAction` method processes one iteration of an action (that
@@ -88,9 +72,9 @@ protected:
    * iteration of the action.
    */
   virtual nsresult
-    HandleSingleAction(nsIDOMEvent* aEvent,
+    HandleSingleAction(nsIDOMEvent *aEvent,
                        nsIXFormsActionElement *aParentAction) = 0;
-
+protected:
   /**
    * This signals whether or not this action can iterate.  Technically, all
    * XForms 1.1 actions are allowed to iterate, but for some of them it
@@ -104,6 +88,48 @@ protected:
    * The event currently being processed.
    */
   nsCOMPtr<nsIDOMEvent> mCurrentEvent;
+};
+
+class nsXFormsActionModuleBase : public nsIDOMEventListener,
+                                 public nsXFormsStubElement,
+                                 public nsIXFormsActionModuleElement,
+                                 public nsXFormsActionModuleHelper
+{
+public:
+  nsXFormsActionModuleBase();
+  virtual ~nsXFormsActionModuleBase();
+  NS_DECL_ISUPPORTS_INHERITED
+  NS_DECL_NSIXFORMSACTIONMODULEELEMENT
+  NS_DECL_NSIDOMEVENTLISTENER
+  NS_IMETHOD OnCreated(nsIXTFElementWrapper *aWrapper);
+  NS_IMETHOD OnDestroyed();
+  NS_IMETHOD WillChangeDocument(nsIDOMDocument *aNewDocument);
+  NS_IMETHOD DocumentChanged(nsIDOMDocument *aNewDocument);
+  NS_IMETHOD WillChangeParent(nsIDOMElement *aNewParent);
+  NS_IMETHOD ParentChanged(nsIDOMElement *aNewParent);
+
+  virtual nsIDOMElement *GetElement() { return mElement; }
+
+  static nsresult DoHandleAction(nsXFormsActionModuleHelper *aXFormsAction,
+                                 nsIDOMEvent                *aEvent,
+                                 nsIXFormsActionElement     *aParentAction);
+  /**
+   * Determine whether this action element should be executed, based upon
+   * optional `if` and `while` attributes.  For each of these attributes
+   * that are present on an action element, the action is only performed if
+   * the boolean value of the XPath expression contained in the attribute is
+   * true.  In addition, if the `while` attribute is used, the action is
+   * "executed repeatedly" until one of these attributes evaluates to false.
+   * This method indicates to the caller whether the action element uses a
+   * `while` attribute through the `usesWhile` parameter.
+   */
+  static PRBool CanPerformAction(nsIDOMElement  *aElement,
+                                 PRBool         *aUsesWhile,
+                                 nsIDOMNode     *aContextNode = nsnull,
+                                 PRInt32         aContextSize = 0,
+                                 PRInt32         aContextPosition = 0);
+protected:
+  nsIDOMElement *mElement;
 };
 
 #endif

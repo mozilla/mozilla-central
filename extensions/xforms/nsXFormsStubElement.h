@@ -73,8 +73,6 @@ enum nsRepeatState {
 class nsXFormsStubElement : public nsIXTFElement
 {
 protected:
-  nsIDOMElement*                      mElement;
-
   // We need a virtual destructor so that when a subclass does
   // NS_IMPL_ISUPPORTS_INHERITED, our Release() implementation calls the
   // derived class destructor.
@@ -112,7 +110,6 @@ public:
 
   /** Constructor */
   nsXFormsStubElement() :
-    mElement(nsnull),
     mRepeatState(eType_Unknown),
     mHasParent(PR_FALSE),
     mHasDoc(PR_FALSE)

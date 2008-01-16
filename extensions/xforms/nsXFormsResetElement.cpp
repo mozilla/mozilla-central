@@ -43,13 +43,11 @@ class nsXFormsResetElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsResetElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsResetElement::nsXFormsResetElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsResetElement::nsXFormsResetElement()
 {
 }
 

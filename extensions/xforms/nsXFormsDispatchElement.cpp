@@ -49,13 +49,11 @@ class nsXFormsDispatchElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsDispatchElement();
-protected:
   nsresult HandleSingleAction(nsIDOMEvent* aEvent,
                               nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsDispatchElement::nsXFormsDispatchElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsDispatchElement::nsXFormsDispatchElement()
 {
 }
 

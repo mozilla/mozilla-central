@@ -58,8 +58,7 @@
 #include "nsIPrefService.h"
 #include "nsServiceManagerUtils.h"
 
-nsXFormsActionModuleBase::nsXFormsActionModuleBase(PRBool canIterate) :
-  nsXFormsStubElement(), mCanIterate(canIterate)
+nsXFormsActionModuleBase::nsXFormsActionModuleBase() : mElement(nsnull)
 {
 }
 
@@ -145,10 +144,17 @@ NS_IMETHODIMP
 nsXFormsActionModuleBase::HandleAction(nsIDOMEvent            *aEvent,
                                        nsIXFormsActionElement *aParentAction)
 {
-  if (!mElement)
-    return NS_OK;
+  return nsXFormsActionModuleBase::DoHandleAction(this, aEvent, aParentAction);
+}
 
-  mCurrentEvent = aEvent;
+/* static */ nsresult
+nsXFormsActionModuleBase::DoHandleAction(nsXFormsActionModuleHelper *aXFormsAction,
+                                         nsIDOMEvent                *aEvent,
+                                         nsIXFormsActionElement     *aParentAction)
+{
+  nsCOMPtr<nsIDOMElement> element = aXFormsAction->GetElement();
+  NS_ENSURE_STATE(element);
+  aXFormsAction->SetCurrentEvent(aEvent);
 
   // Set the maximum run time for the loop (in microseconds).
   PRTime microseconds = nsXFormsUtils::waitLimit * PR_USEC_PER_SEC;
@@ -159,17 +165,17 @@ nsXFormsActionModuleBase::HandleAction(nsIDOMEvent            *aEvent,
     // Test the `if` and `while` attributes to determine whether this action
     // can be performed and should be repeated.
     PRBool usesWhile;
-    if (!CanPerformAction(&usesWhile)) {
+    if (!nsXFormsActionModuleBase::CanPerformAction(element, &usesWhile)) {
       return NS_OK;
     }
 
-    nsresult rv = HandleSingleAction(aEvent, aParentAction);
+    nsresult rv = aXFormsAction->HandleSingleAction(aEvent, aParentAction);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Repeat this action if it can iterate and if it uses the `while`
     // attribute (the expression of which must have evaluated to true to
     // arrive here).
-    if (!mCanIterate || !usesWhile) {
+    if (!aXFormsAction->CanIterate() || !usesWhile) {
       return NS_OK;
     }
 
@@ -182,7 +188,7 @@ nsXFormsActionModuleBase::HandleAction(nsIDOMEvent            *aEvent,
 
     // The remaining part of the loop prompts the user about cancelling the
     // loop, and is only executed if we've gone over the time limit.
-    PRBool stopWaiting = nsXFormsUtils::AskStopWaiting(mElement);
+    PRBool stopWaiting = nsXFormsUtils::AskStopWaiting(element);
 
     if (stopWaiting) {
       // Stop the loop
@@ -193,18 +199,20 @@ nsXFormsActionModuleBase::HandleAction(nsIDOMEvent            *aEvent,
   }
 }
 
+/* static */
 PRBool
-nsXFormsActionModuleBase::CanPerformAction(PRBool     *aUsesWhile,
-                                           nsIDOMNode *aContext,
-                                           PRInt32     aContextSize,
-                                           PRInt32     aContextPosition)
+nsXFormsActionModuleBase::CanPerformAction(nsIDOMElement *aElement,
+                                           PRBool        *aUsesWhile,
+                                           nsIDOMNode    *aContext,
+                                           PRInt32        aContextSize,
+                                           PRInt32        aContextPosition)
 {
   *aUsesWhile = PR_FALSE;
 
   nsAutoString ifExpr;
   nsAutoString whileExpr;
-  mElement->GetAttribute(NS_LITERAL_STRING("if"), ifExpr);
-  mElement->GetAttribute(NS_LITERAL_STRING("while"), whileExpr);
+  aElement->GetAttribute(NS_LITERAL_STRING("if"), ifExpr);
+  aElement->GetAttribute(NS_LITERAL_STRING("while"), whileExpr);
 
   if (whileExpr.IsEmpty() && ifExpr.IsEmpty()) {
     return PR_TRUE;
@@ -224,7 +232,7 @@ nsXFormsActionModuleBase::CanPerformAction(PRBool     *aUsesWhile,
     nsCOMPtr<nsIDOMElement> bindElement;
     nsCOMPtr<nsIXFormsControl> parentControl;
     PRBool outerBind;
-    rv = nsXFormsUtils::GetNodeContext(mElement, 0,
+    rv = nsXFormsUtils::GetNodeContext(aElement, 0,
                                        getter_AddRefs(model),
                                        getter_AddRefs(bindElement),
                                        &outerBind,
@@ -237,7 +245,7 @@ nsXFormsActionModuleBase::CanPerformAction(PRBool     *aUsesWhile,
   if (!whileExpr.IsEmpty()) {
     *aUsesWhile = PR_TRUE;
 
-    rv = nsXFormsUtils::EvaluateXPath(whileExpr, contextNode, mElement,
+    rv = nsXFormsUtils::EvaluateXPath(whileExpr, contextNode, aElement,
                                       nsIDOMXPathResult::BOOLEAN_TYPE,
                                       getter_AddRefs(res),
                                       aContextPosition, aContextSize);
@@ -250,7 +258,7 @@ nsXFormsActionModuleBase::CanPerformAction(PRBool     *aUsesWhile,
   }
 
   if (!ifExpr.IsEmpty()) {
-    rv = nsXFormsUtils::EvaluateXPath(ifExpr, contextNode, mElement, 
+    rv = nsXFormsUtils::EvaluateXPath(ifExpr, contextNode, aElement,
                                       nsIDOMXPathResult::BOOLEAN_TYPE,
                                       getter_AddRefs(res),
                                       aContextPosition, aContextSize);

@@ -51,13 +51,11 @@ class nsXFormsSetValueElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsSetValueElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsSetValueElement::nsXFormsSetValueElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsSetValueElement::nsXFormsSetValueElement()
 {
 }
 

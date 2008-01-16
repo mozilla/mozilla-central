@@ -43,13 +43,11 @@ class nsXFormsRebuildElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsRebuildElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsRebuildElement::nsXFormsRebuildElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsRebuildElement::nsXFormsRebuildElement()
 {
 }
 

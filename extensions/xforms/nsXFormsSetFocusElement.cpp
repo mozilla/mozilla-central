@@ -46,13 +46,11 @@ class nsXFormsSetFocusElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsSetFocusElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsSetFocusElement::nsXFormsSetFocusElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsSetFocusElement::nsXFormsSetFocusElement()
 {
 }
 

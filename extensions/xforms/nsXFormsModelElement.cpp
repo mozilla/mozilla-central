@@ -642,7 +642,7 @@ nsXFormsModelElement::CancelPostRefresh(nsIXFormsControl* aControl)
 }
 
 nsXFormsModelElement::nsXFormsModelElement()
-  : nsXFormsStubElement(),
+  : mElement(nsnull),
     mFormControls(nsnull, &mControlListHash),
     mSchemaCount(0),
     mSchemaTotal(0),

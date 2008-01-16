@@ -61,13 +61,11 @@ class nsXFormsSetIndexElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsSetIndexElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsSetIndexElement::nsXFormsSetIndexElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsSetIndexElement::nsXFormsSetIndexElement()
 {
 }
 

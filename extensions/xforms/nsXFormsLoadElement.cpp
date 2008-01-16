@@ -49,13 +49,11 @@ class nsXFormsLoadElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsLoadElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsLoadElement::nsXFormsLoadElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsLoadElement::nsXFormsLoadElement()
 {
 }
 

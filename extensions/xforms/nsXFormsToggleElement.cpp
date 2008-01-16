@@ -52,13 +52,11 @@ class nsXFormsToggleElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsToggleElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsToggleElement::nsXFormsToggleElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsToggleElement::nsXFormsToggleElement()
 {
 }
 

@@ -469,6 +469,7 @@ private:
    */
   nsresult SetContextInfo(const char *aName, const nsAString &aValue);
 
+  nsIDOMElement            *mElement;
   nsCOMPtr<nsISchemaLoader> mSchemas;
   nsStringArray             mPendingInlineSchemas;
   nsXFormsControlListItem   mFormControls;

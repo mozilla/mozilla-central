@@ -45,13 +45,11 @@ class nsXFormsSendElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsSendElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsSendElement::nsXFormsSendElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsSendElement::nsXFormsSendElement()
 {
 }
 

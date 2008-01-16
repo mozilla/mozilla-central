@@ -49,8 +49,7 @@
 #define DEFERRED_REVALIDATE  0x04
 #define DEFERRED_REFRESH     0x08
 
-nsXFormsActionElement::nsXFormsActionElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsActionElement::nsXFormsActionElement() : mElement(nsnull)
 {
 }
 
@@ -153,6 +152,13 @@ PR_STATIC_CALLBACK(PLDHashOperator) DoDeferredActions(nsISupports * aModel,
       model->RequestRefresh();
   }
   return PL_DHASH_NEXT;
+}
+
+NS_IMETHODIMP
+nsXFormsActionElement::HandleAction(nsIDOMEvent* aEvent,
+                                    nsIXFormsActionElement* aParentAction)
+{
+  return nsXFormsActionModuleBase::DoHandleAction(this, aEvent, aParentAction);
 }
 
 nsresult
@@ -288,6 +294,13 @@ nsXFormsActionElement::SetRefresh(nsIModelElementPrivate* aModel,
     deferred &= ~DEFERRED_REFRESH;
   }
   mDeferredUpdates.Put(temp, deferred);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsActionElement::GetCurrentEvent(nsIDOMEvent** aEvent)
+{
+  NS_IF_ADDREF(*aEvent = mCurrentEvent);
   return NS_OK;
 }
 

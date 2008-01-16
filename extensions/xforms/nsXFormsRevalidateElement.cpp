@@ -43,13 +43,11 @@ class nsXFormsRevalidateElement : public nsXFormsActionModuleBase
 {
 public:
   nsXFormsRevalidateElement();
-protected:
-  nsresult HandleSingleAction(nsIDOMEvent* aEvent,
-                              nsIXFormsActionElement *aParentAction);
+  virtual nsresult HandleSingleAction(nsIDOMEvent* aEvent,
+                                      nsIXFormsActionElement *aParentAction);
 };
 
-nsXFormsRevalidateElement::nsXFormsRevalidateElement() :
-  nsXFormsActionModuleBase(PR_TRUE)
+nsXFormsRevalidateElement::nsXFormsRevalidateElement()
 {
 }
 
