@@ -331,15 +331,14 @@ function onLoadPageInfo()
   onLoadRegistry.map(function(func) { func(); });
 
   /* Select the requested tab, if the name is specified */
-  var initialTab = "general";
+  var initialTab = "generalTab";
   if ("arguments" in window && window.arguments.length >= 1 &&
        window.arguments[0] && window.arguments[0].initialTab)
     initialTab = window.arguments[0].initialTab;
   var tabbox = document.getElementById("tabbox");
-  initialTab = document.getElementById(initialTab + "Tab") || document.getElementById("generalTab");
-  tabbox.selectedItem = initialTab;
-  tabbox.selectedItem.doCommand();
-  tabbox.focus();
+  initialTab = document.getElementById(initialTab) || document.getElementById("generalTab");
+  tabbox.selectedTab = initialTab;
+  tabbox.selectedTab.focus();
 }
 
 function onUnloadPageInfo()
