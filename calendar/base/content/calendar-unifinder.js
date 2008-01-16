@@ -200,7 +200,7 @@ var unifinderObserver = {
         }
         items = items.filter(this.dateFilter);
         gEventArray = gEventArray.concat(items);
-        gEventArray.sort(compareEvents);
+        unifinderTreeView.sortCalendarEvents();
         var tree = document.getElementById("unifinder-search-results-tree");
         for each (var item in items) {
             var row = tree.eventView.getRowOfCalendarEvent(item);
@@ -461,10 +461,67 @@ var unifinderTreeView = {
         }
         col.element.setAttribute("sortActive", "true");
         col.element.setAttribute("sortDirection", this.sortDirection);
+
+        this.sortCalendarEvents();
+
+        document.getElementById("unifinder-search-results-tree").view = this;
+    },
+
+    sortCalendarEvents : function uTV_sortCalendarEvents()
+    {
+        // get a current locale string collator for compareEvents
+        var localeService =
+            Components
+            .classes["@mozilla.org/intl/nslocaleservice;1"]
+            .getService(Components.interfaces.nsILocaleService);
+        this.localeCollator =
+            Components
+            .classes["@mozilla.org/intl/collation-factory;1"]
+            .getService(Components.interfaces.nsICollationFactory)
+            .CreateCollation(localeService.getApplicationLocale());
+
+        // cache sort keys, used by compareEvents
+        this.sortKeyByEvent_cache = new Object();
+        for (var i in gEventArray) {
+            var sortEvent = gEventArray[i];
+            this.sortKeyByEvent_cache_put(sortEvent, getEventSortKey(sortEvent));
+        }
+
         this.sortStartedTime = new Date().getTime(); // for null/0 dates in sort
         gEventArray.sort(compareEvents);
 
-        document.getElementById("unifinder-search-results-tree").view = this;
+        this.sortKeyByEvent_cache = null;
+    },
+
+    /* event is a calendar event. value is sortKey, a string or number */
+    sortKeyByEvent_cache_put : function uTV_cache_put( calEvent, value )
+    {
+        var earlierValues = this.sortKeyByEvent_cache[calEvent.id];
+        if (earlierValues == null && value != null) {
+          // common entry is just the value 
+          this.sortKeyByEvent_cache[calEvent.id] = value;
+        } else {
+            // null key or rare dup id: link event & value to earlier value(s)
+            // id may be duplicated if event is in more than one calendar file.
+            var entry = new Object();
+            entry.isSortKeyByEventCacheEntry = true;
+            entry.event = calEvent;
+            entry.value = value;
+            entry.rest = earlierValues;
+            this.sortKeyByEvent_cache[calEvent.id] = entry;
+        }
+    },
+
+    sortKeyByEvent_cache_get : function uTV_cache_get( calEvent )
+    {
+        var entry = this.sortKeyByEvent_cache[calEvent.id];
+        while (typeof(entry) == "object" &&
+               "isSortKeyByEventCacheEntry" in entry) {
+            if (entry.event === calEvent) //pointer identity
+                return entry.value;
+            entry = entry.rest;
+        }
+        return entry; // only or last entry is first value put
     },
 
     setTree: function uTV_setTree(tree) { this.tree = tree; },
@@ -507,53 +564,65 @@ var unifinderTreeView = {
     }
 };
 
-function compareEvents(eventA, eventB) {
-    var modifier = (unifinderTreeView.sortDirection == "descending" ? -1 : 1);
-
-    switch (unifinderTreeView.selectedColumn) {
+function getEventSortKey(calEvent) {
+    switch(unifinderTreeView.selectedColumn) {
         case "unifinder-search-results-tree-col-title":
-            return compareString(eventA.title,  eventB.title) * modifier;
+            return calEvent.title || "";
 
         case "unifinder-search-results-tree-col-startdate":
-            var msNextStartA = msNextOrPreviousRecurrenceStart(eventA);
-            var msNextStartB = msNextOrPreviousRecurrenceStart(eventB);
-            return compareMSTime(msNextStartA, msNextStartB) * modifier;
+            return msNextOrPreviousRecurrenceStart(calEvent);
 
         case "unifinder-search-results-tree-col-enddate":
-            var msNextEndA = msNextOrPreviousRecurrenceEnd(eventA);
-            var msNextEndB = msNextOrPreviousRecurrenceEnd(eventB);
-            return compareMSTime(msNextEndA, msNextEndB) * modifier;
+            return msNextOrPreviousRecurrenceEnd(calEvent);
 
         case "unifinder-search-results-tree-col-categories":
-             return compareString(eventA.getProperty("CATEGORIES"),
-                                  eventB.getProperty("CATEGORIES")) * modifier;
+            return calEvent.getProperty("CATEGORIES") || "";
 
         case "unifinder-search-results-tree-col-location":
-            return compareString(eventA.getProperty("LOCATION"),
-                                 eventB.getProperty("LOCATION")) * modifier;
+            return calEvent.getProperty("LOCATION") || "";
 
         case "unifinder-search-results-tree-col-status":
-            return compareNumber(kEventStatusOrder.indexOf(eventA.status),
-                                 kEventStatusOrder.indexOf(eventB.status)) * modifier;
+            return calEvent.status || "";
 
         case "unifinder-search-results-tree-col-calendarname":
-            return compareString(eventA.calendar.name,
-                                 eventB.calendar.name) * modifier;
+            return calEvent.calendar.name || "";
 
         default:
+            return null;
+    }
+}
+
+function compareEvents( calEventA, calEventB )
+{
+    var modifier = (unifinderTreeView.sortDirection == "descending"? -1 : 1);
+   
+    switch(unifinderTreeView.selectedColumn) {
+        case "unifinder-search-results-tree-col-startdate":
+        case "unifinder-search-results-tree-col-enddate":
+            var msA = unifinderTreeView.sortKeyByEvent_cache_get(calEventA);
+            var msB = unifinderTreeView.sortKeyByEvent_cache_get(calEventB);
+            return compareMSTime(msA, msB) * modifier;
+
+        case "unifinder-search-results-tree-col-title":
+        case "unifinder-search-results-tree-col-categories":
+        case "unifinder-search-results-tree-col-location":
+        case "unifinder-search-results-tree-col-status":
+        case "unifinder-search-results-tree-col-calendarname":
+            var strA = unifinderTreeView.sortKeyByEvent_cache_get(calEventA);
+            var strB = unifinderTreeView.sortKeyByEvent_cache_get(calEventB);
+            if (strA.length == 0 || strB.length == 0) {
+                // sort empty values to end (so when users first sort by a
+                // column, they can see and find the desired values in that
+                // column without scrolling past all the empty values).
+                return -(strA.length - strB.length) * modifier;
+            }
+            var comparison =
+                unifinderTreeView.localeCollator.compareString(0, strA, strB); 
+            return comparison * modifier;
+ 
+        default:
             return 0;
-     }
-}
-
-function compareString(a, b) {
-    a = nullToEmpty(a);
-    b = nullToEmpty(b);
-    return (a < b ? -1 :
-            a > b ?  1 : 0);
-}
-
-function nullToEmpty(value) {
-    return value == null ? "" : value;
+        }
 }
 
 function compareMSTime(a, b) {
@@ -769,8 +838,7 @@ function refreshEventTreeInternal(eventArray) {
         if (arrayOfTreeCols[i].getAttribute("sortActive") == "true") {
             unifinderTreeView.selectedColumn = arrayOfTreeCols[i].getAttribute("id");
             unifinderTreeView.sortDirection = arrayOfTreeCols[i].getAttribute("sortDirection");
-            unifinderTreeView.sortStartedTime = new Date().getTime(); // for null/0 dates
-            gEventArray.sort(compareEvents);
+            unifinderTreeView.sortCalendarEvents();
             break;
         }
     }
