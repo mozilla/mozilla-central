@@ -188,6 +188,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMessengerUnixIntegration, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMessengerContentHandler)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsMsgContentPolicy, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailDirProvider)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgShutdownService)
 
 static NS_METHOD
 RegisterMailnewsContentPolicy(nsIComponentManager *aCompMgr, nsIFile *aPath,
@@ -462,6 +463,11 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGCONTENTPOLICY_CONTRACTID,
       nsMsgContentPolicyConstructor,
       RegisterMailnewsContentPolicy, UnregisterMailnewsContentPolicy
+    },
+    { "msg shutdown service",
+       NS_MSGSHUTDOWNSERVICE_CID,
+       NS_MSGSHUTDOWNSERVICE_CONTRACTID,
+       nsMsgShutdownServiceConstructor
     },
     {
       "mail director provider",
