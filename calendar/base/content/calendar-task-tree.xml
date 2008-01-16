@@ -552,8 +552,10 @@
                                             .getService(Components.interfaces.calIDateTimeFormatter);
 
               // datetime is from todo object, it is not a javascript date
-              if (aDateTime && aDateTime.isValid)
-                  return dateFormatter.formatDateTime(aDateTime);
+              if (aDateTime && aDateTime.isValid) {
+                  var dateTime = aDateTime.getInTimezone(calendarDefaultTimezone());
+                  return dateFormatter.formatDateTime(dateTime);
+              }
               return "";
           }
       })

@@ -268,7 +268,7 @@ function monthName(aDayIndex) {
 };
 
 calDateTimeFormatter.prototype.shortDayName =
-function shortMonthName(aDayIndex) {
+function shortDayName(aDayIndex) {
     var oneBasedDayIndex = aDayIndex + 1;
     return this.mDateStringBundle.GetStringFromName("day." + oneBasedDayIndex + ".Mmm" );
 };
