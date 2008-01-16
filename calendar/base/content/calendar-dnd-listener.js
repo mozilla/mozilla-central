@@ -35,11 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function calendarDNDBaseObserver() {
-    ASSERT(false, "Inheriting objects call calendarDNDBaseObserver!");
+function calDNDBaseObserver() {
+    ASSERT(false, "Inheriting objects call calDNDBaseObserver!");
 }
 
-calendarDNDBaseObserver.prototype = {
+calDNDBaseObserver.prototype = {
     // initialize this class's members
     initBase: function calDNDInitBase() {
     },
@@ -118,7 +118,7 @@ calendarDNDBaseObserver.prototype = {
                 var uri = ioService.newURI(data.toString(), null, null);
                 var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
                              .createInstance(Components.interfaces.nsIUnicharStreamLoader);
-                channel = ioService.newChannelFromURI(uri);
+                var channel = ioService.newChannelFromURI(uri);
                 channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
                 
                 var self = this;
@@ -229,7 +229,7 @@ calendarDNDBaseObserver.prototype = {
                             case "amp": return "&";
                             case "lt": return "<";
                             case "gt": return ">";
-                            case "quot": return '"';
+                            case "quot": return '\"';
                         }
                         return " ";
                     });
@@ -273,21 +273,21 @@ calendarDNDBaseObserver.prototype = {
 };
 
 /**
- * calendarViewDNDObserver::calendarViewDNDObserver
+ * calViewDNDObserver::calViewDNDObserver
  *
  * Drag'n'drop handler for the calendar views. This handler is
  * derived from the base handler and just implements specific actions.
  */
-function calendarViewDNDObserver() {
+function calViewDNDObserver() {
     this.wrappedJSObject = this;
     this.initBase();
 }
 
-calendarViewDNDObserver.prototype = {
-    __proto__: calendarDNDBaseObserver.prototype,
+calViewDNDObserver.prototype = {
+    __proto__: calDNDBaseObserver.prototype,
 
     /**
-     * calendarViewDNDObserver::onDropItems
+     * calViewDNDObserver::onDropItems
      *
      * Gets called in case we're dropping an array of items
      * on one of the calendar views. In this case we just
@@ -308,21 +308,21 @@ calendarViewDNDObserver.prototype = {
 };
 
 /**
- * calendarMailButtonDNDObserver::calendarMailButtonDNDObserver
+ * calMailButtonDNDObserver::calMailButtonDNDObserver
  *
  * Drag'n'drop handler for the 'mail mode'-button. This handler is
  * derived from the base handler and just implements specific actions.
  */
-function calendarMailButtonDNDObserver() {
+function calMailButtonDNDObserver() {
     this.wrappedJSObject = this;
     this.initBase();
 }
 
-calendarMailButtonDNDObserver.prototype = {
-    __proto__: calendarDNDBaseObserver.prototype,
+calMailButtonDNDObserver.prototype = {
+    __proto__: calDNDBaseObserver.prototype,
 
     /**
-     * calendarMailButtonDNDObserver::onDropItems
+     * calMailButtonDNDObserver::onDropItems
      *
      * Gets called in case we're dropping an array of items
      * on the 'mail mode'-button.
@@ -366,7 +366,7 @@ calendarMailButtonDNDObserver.prototype = {
     },
 
     /**
-     * calendarMailButtonDNDObserver::onDropMessage
+     * calMailButtonDNDObserver::onDropMessage
      *
      * Gets called in case we're dropping a message
      * on the 'mail mode'-button.
@@ -376,21 +376,21 @@ calendarMailButtonDNDObserver.prototype = {
 };
 
 /**
- * calendarCalendarButtonDNDObserver::calendarCalendarButtonDNDObserver
+ * calCalendarButtonDNDObserver::calCalendarButtonDNDObserver
  *
  * Drag'n'drop handler for the 'calendar mode'-button. This handler is
  * derived from the base handler and just implements specific actions.
  */
-function calendarCalendarButtonDNDObserver() {
+function calCalendarButtonDNDObserver() {
     this.wrappedJSObject = this;
     this.initBase();
 }
 
-calendarCalendarButtonDNDObserver.prototype = {
-    __proto__: calendarDNDBaseObserver.prototype,
+calCalendarButtonDNDObserver.prototype = {
+    __proto__: calDNDBaseObserver.prototype,
 
     /**
-     * calendarCalendarButtonDNDObserver::onDropItems
+     * calCalendarButtonDNDObserver::onDropItems
      *
      * Gets called in case we're dropping an array of items
      * on the 'calendar mode'-button.
@@ -412,7 +412,7 @@ calendarCalendarButtonDNDObserver.prototype = {
     },
 
     /**
-     * calendarCalendarButtonDNDObserver::onDropMessage
+     * calCalendarButtonDNDObserver::onDropMessage
      *
      * Gets called in case we're dropping a message on the
      * 'calendar mode'-button. In this case we create a new
@@ -427,21 +427,21 @@ calendarCalendarButtonDNDObserver.prototype = {
 };
 
 /**
- * calendarTaskButtonDNDObserver::calendarTaskButtonDNDObserver
+ * calTaskButtonDNDObserver::calTaskButtonDNDObserver
  *
  * Drag'n'drop handler for the 'task mode'-button. This handler is
  * derived from the base handler and just implements specific actions.
  */
-function calendarTaskButtonDNDObserver() {
+function calTaskButtonDNDObserver() {
     this.wrappedJSObject = this;
     this.initBase();
 }
 
-calendarTaskButtonDNDObserver.prototype = {
-    __proto__: calendarDNDBaseObserver.prototype,
+calTaskButtonDNDObserver.prototype = {
+    __proto__: calDNDBaseObserver.prototype,
 
     /**
-     * calendarTaskButtonDNDObserver::onDropItems
+     * calTaskButtonDNDObserver::onDropItems
      *
      * Gets called in case we're dropping an array of items
      * on the 'task mode'-button.
@@ -463,7 +463,7 @@ calendarTaskButtonDNDObserver.prototype = {
     },
 
     /**
-     * calendarTaskButtonDNDObserver::onDropMessage
+     * calTaskButtonDNDObserver::onDropMessage
      *
      * Gets called in case we're dropping a message
      * on the 'task mode'-button.
@@ -475,7 +475,7 @@ calendarTaskButtonDNDObserver.prototype = {
     }
 };
 
-var calendarViewDNDObserver = new calendarViewDNDObserver();
-var calendarMailButtonDNDObserver = new calendarMailButtonDNDObserver();
-var calendarCalendarButtonDNDObserver = new calendarCalendarButtonDNDObserver();
-var calendarTaskButtonDNDObserver = new calendarTaskButtonDNDObserver();
+var calendarViewDNDObserver = new calViewDNDObserver();
+var calendarMailButtonDNDObserver = new calMailButtonDNDObserver();
+var calendarCalendarButtonDNDObserver = new calCalendarButtonDNDObserver();
+var calendarTaskButtonDNDObserver = new calTaskButtonDNDObserver();
