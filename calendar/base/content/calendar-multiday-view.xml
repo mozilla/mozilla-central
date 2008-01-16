@@ -2018,18 +2018,6 @@
              document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-if-vertical").removeAttribute("hidden");
              document.getAnonymousElementByAttribute(this, "anonid", "shadow-left-box").setAttribute("hidden","true");
          }
-
-         var self = this;
-         this.eventNameInput.onblur =
-             function onBlur() { self.stopEditing(true); };
-         this.eventNameInput.onkeypress = function onKeyPress(event) {
-             // save on enter
-             if (event.keyCode == 13)
-                 self.stopEditing(true);
-             // abort on escape
-             else if (event.keyCode == 27)
-                 self.stopEditing(false);
-         };
       ]]></constructor>
 
       <!-- fields -->

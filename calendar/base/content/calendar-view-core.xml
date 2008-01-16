@@ -113,8 +113,8 @@
          container.setAttribute("class", "calendar-item");
 
          var self = this;
-         this.eventNameInput.onblur = function alldayItemBlur() { self.stopEditing(true); };
-         this.eventNameInput.onkeypress = function alldayItemKeyPress(event) {
+         this.eventNameInput.onblur = function onBlur() { self.stopEditing(true); };
+         this.eventNameInput.onkeypress = function onKeyPress(event) {
              // save on enter
              if (event.keyCode == 13)
                  self.stopEditing(true);
@@ -122,6 +122,18 @@
              else if (event.keyCode == 27)
                  self.stopEditing(false);
          };
+         function stopPropagationIfEditing(event) { 
+           if (self.mEditing) {
+             event.stopPropagation();
+           }
+         }
+         // while editing, single click positions cursor, so don't propagate.
+         this.eventNameInput.onclick = stopPropagationIfEditing;
+         // while editing, double click selects words, so don't propagate.
+         this.eventNameInput.ondblclick = stopPropagationIfEditing;
+         // while editing, don't propagate mousedown/up (selects calEvent).
+         this.eventNameInput.onmousedown = stopPropagationIfEditing;
+         this.eventNameInput.onmouseup = stopPropagationIfEditing;
       ]]></constructor>
 
       <field name="mOccurrence">null</field>
