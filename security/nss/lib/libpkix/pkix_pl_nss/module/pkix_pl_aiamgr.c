@@ -215,7 +215,9 @@ pkix_pl_AiaMgr_FindLDAPClient(
                 /* No, create a connection (and cache it) */
                 PKIX_CHECK(PKIX_PL_LdapDefaultClient_CreateByName
                         (domainName,
-                        PR_INTERVAL_NO_WAIT, /* PR_INTERVAL_NO_TIMEOUT, */
+                         /* Do not use NBIO until we verify, that
+                          * it is working */
+                        PR_INTERVAL_NO_TIMEOUT, /* PR_INTERVAL_NO_WAIT, */
                         NULL,
                         &client,
                         plContext),
@@ -376,15 +378,34 @@ pkix_pl_AIAMgr_GetHTTPCerts(
 	                pCerts,
 	                plContext),
 	                PKIX_HTTPCERTSTOREPROCESSCERTRESPONSEFAILED);
+                
+                /* Session and request cleanup in case of success */
+                if (aiaMgr->client.hdata.requestSession != NULL) {
+                    (*hcv1->freeFcn)(aiaMgr->client.hdata.requestSession);
+                    aiaMgr->client.hdata.requestSession = NULL;
+                }
+                if (aiaMgr->client.hdata.serverSession != NULL) {
+                    (*hcv1->freeSessionFcn)(aiaMgr->client.hdata.serverSession);
+                    aiaMgr->client.hdata.serverSession = NULL;
+                }
+                aiaMgr->client.hdata.httpClient = 0; /* callback fn */
 
         } else  {
 		PKIX_ERROR(PKIX_UNSUPPORTEDVERSIONOFHTTPCLIENT);
 	}
 
 cleanup:
-        if (aiaMgr) {
-            PKIX_DECREF(aiaMgr->client.hdata.requestSession);
-            PKIX_DECREF(aiaMgr->client.hdata.serverSession);
+        /* Session and request cleanup in case of error. Passing through without cleanup
+         * if interrupted by blocked IO. */
+        if (PKIX_ERROR_RECEIVED && aiaMgr) {
+            if (aiaMgr->client.hdata.requestSession != NULL) {
+                (*hcv1->freeFcn)(aiaMgr->client.hdata.requestSession);
+                aiaMgr->client.hdata.requestSession = NULL;
+            }
+            if (aiaMgr->client.hdata.serverSession != NULL) {
+                (*hcv1->freeSessionFcn)(aiaMgr->client.hdata.serverSession);
+                aiaMgr->client.hdata.serverSession = NULL;
+            }
             aiaMgr->client.hdata.httpClient = 0; /* callback fn */
         }
 

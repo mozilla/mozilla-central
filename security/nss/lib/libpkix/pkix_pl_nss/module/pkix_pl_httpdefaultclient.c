@@ -498,8 +498,7 @@ pkix_pl_HttpDefaultClient_Destroy(
         client->rcvHeaders = NULL;
 
         if (client->GETBuf != NULL) {
-                PKIX_PL_NSSCALL
-                        (HTTPDEFAULTCLIENT, PR_smprintf_free, (client->GETBuf));
+                PR_smprintf_free(client->GETBuf);
                 client->GETBuf = NULL;
         }
 
@@ -1220,19 +1219,6 @@ cleanup:
 }
 
 PKIX_Error *
-pkix_pl_HttpDefaultClient_FreeSession(
-        SEC_HTTP_SERVER_SESSION session,
-        void *plContext)
-{
-
-        PKIX_ENTER(HTTPDEFAULTCLIENT, "pkix_pl_HttpDefaultClient_FreeSession");
-        PKIX_DECREF(session);
-
-        PKIX_RETURN(HTTPDEFAULTCLIENT);
-
-}
-
-PKIX_Error *
 pkix_pl_HttpDefaultClient_RequestCreate(
         SEC_HTTP_SERVER_SESSION session,
         const char *http_protocol_variant, /* usually "http" */
@@ -1363,34 +1349,6 @@ pkix_pl_HttpDefaultClient_SetPostData(
             (*(client->send_http_content_type) == '\0')) {
                 client->send_http_content_type = "application/ocsp-request";
         }
-
-cleanup:
-
-        PKIX_RETURN(HTTPDEFAULTCLIENT);
-
-}
-
-PKIX_Error *
-pkix_pl_HttpDefaultClient_AddHeader(
-        SEC_HTTP_REQUEST_SESSION request,
-        const char *http_header_name, 
-        const char *http_header_value,
-        void *plContext)
-{
-        PKIX_PL_HttpDefaultClient *client = NULL;
-
-        PKIX_ENTER(HTTPDEFAULTCLIENT, "pkix_pl_HttpDefaultClient_AddHeader");
-        PKIX_NULLCHECK_ONE(request);
-
-        PKIX_CHECK(pkix_CheckType
-                ((PKIX_PL_Object *)request,
-                PKIX_HTTPDEFAULTCLIENT_TYPE,
-                plContext),
-                PKIX_REQUESTNOTANHTTPDEFAULTCLIENT);
-
-        client = (PKIX_PL_HttpDefaultClient *)request;
-
-        PKIX_ERROR(PKIX_ADDHEADERFUNCTIONNOTSUPPORTED);
 
 cleanup:
 
@@ -1603,35 +1561,7 @@ pkix_pl_HttpDefaultClient_Cancel(
 
         client = (PKIX_PL_HttpDefaultClient *)request;
 
-        /* ... */
-
-cleanup:
-
-        PKIX_RETURN(HTTPDEFAULTCLIENT);
-
-}
-
-PKIX_Error *
-pkix_pl_HttpDefaultClient_Free(
-        SEC_HTTP_REQUEST_SESSION request,
-        void *plContext)
-{
-        PKIX_PL_HttpDefaultClient *client = NULL;
-
-        PKIX_ENTER(HTTPDEFAULTCLIENT, "pkix_pl_HttpDefaultClient_Free");
-        PKIX_NULLCHECK_ONE(request);
-
-        PKIX_CHECK(pkix_CheckType
-                ((PKIX_PL_Object *)request,
-                PKIX_HTTPDEFAULTCLIENT_TYPE,
-                plContext),
-                PKIX_REQUESTNOTANHTTPDEFAULTCLIENT);
-
-        client = (PKIX_PL_HttpDefaultClient *)request;
-
         /* XXX Not implemented */
-
-        PKIX_DECREF(client);
 
 cleanup:
 
@@ -1648,12 +1578,11 @@ pkix_pl_HttpDefaultClient_CreateSessionFcn(
         PKIX_Error *err = pkix_pl_HttpDefaultClient_CreateSession
                 (host, portnum, pSession, plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
@@ -1664,27 +1593,25 @@ pkix_pl_HttpDefaultClient_KeepAliveSessionFcn(
         PKIX_Error *err = pkix_pl_HttpDefaultClient_KeepAliveSession
                 (session, pPollDesc, plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
 pkix_pl_HttpDefaultClient_FreeSessionFcn(
         SEC_HTTP_SERVER_SESSION session)
 {
-        PKIX_Error *err = pkix_pl_HttpDefaultClient_FreeSession
-                (session, plContext);
+        PKIX_Error *err =
+            PKIX_PL_Object_DecRef((PKIX_PL_Object *)(session), plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
@@ -1705,12 +1632,11 @@ pkix_pl_HttpDefaultClient_RequestCreateFcn(
                 pRequest,
                 plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
@@ -1720,19 +1646,16 @@ pkix_pl_HttpDefaultClient_SetPostDataFcn(
         const PRUint32 http_data_len,
         const char *http_content_type)
 {
-        PKIX_Error *err = pkix_pl_HttpDefaultClient_SetPostData
-                (request,
-                http_data,
-                http_data_len,
-                http_content_type,
-                plContext);
-
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        PKIX_Error *err =
+            pkix_pl_HttpDefaultClient_SetPostData(request, http_data,
+                                                  http_data_len,
+                                                  http_content_type,
+                                                  plContext);
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
@@ -1741,15 +1664,8 @@ pkix_pl_HttpDefaultClient_AddHeaderFcn(
         const char *http_header_name, 
         const char *http_header_value)
 {
-        PKIX_Error *err = pkix_pl_HttpDefaultClient_AddHeader
-                (request, http_header_name, http_header_value, plContext);
-
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
-                PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
-                return SECFailure;
-        }
+        /* Not supported */
+        return SECFailure;
 }
 
 SECStatus
@@ -1775,12 +1691,11 @@ pkix_pl_HttpDefaultClient_TrySendAndReceiveFcn(
                 &rv,
                 plContext);
 
-        if (err == NULL) {
-                return rv;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return rv;
         }
+        return SECSuccess;
 }
 
 SECStatus
@@ -1789,24 +1704,23 @@ pkix_pl_HttpDefaultClient_CancelFcn(
 {
         PKIX_Error *err = pkix_pl_HttpDefaultClient_Cancel(request, plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
 
 SECStatus
 pkix_pl_HttpDefaultClient_FreeFcn(
         SEC_HTTP_REQUEST_SESSION request)
 {
-        PKIX_Error *err = pkix_pl_HttpDefaultClient_Free(request, plContext);
+        PKIX_Error *err =
+            PKIX_PL_Object_DecRef((PKIX_PL_Object *)(request), plContext);
 
-        if (err == NULL) {
-                return SECSuccess;
-        } else {
+        if (err) {
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)err, plContext);
                 return SECFailure;
         }
+        return SECSuccess;
 }
