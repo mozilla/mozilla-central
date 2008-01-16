@@ -2,7 +2,6 @@ venkman.jar:
 % content venkman            %content/venkman/
 % content venkman-ff         %content/venkman/ff/
 % content venkman-sm         %content/venkman/sm/
-% locale  venkman en-US      %locale/en-US/venkman/
 % skin    venkman modern/1.0 %skin/modern/venkman/
 % overlay chrome://communicator/content/tasksOverlay.xul  chrome://venkman/content/venkman-overlay.xul      application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 % overlay chrome://venkman/content/venkman-menus.xul      chrome://communicator/content/tasksOverlay.xul    application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
@@ -14,7 +13,6 @@ venkman.jar:
   content/venkman/ff/contents.rdf       (content/ff/contents.rdf)
   content/venkman/sm/contents.rdf       (content/sm/contents.rdf)
 * content/venkman/contents.rdf          (content/contents.rdf)
-* locale/en-US/venkman/contents.rdf     (locale/en-US/contents.rdf)
   skin/modern/venkman/contents.rdf      (skin/contents.rdf)
   content/venkman/venkman.xul           (content/venkman.xul)
   content/venkman/venkman-views.xul     (content/venkman-views.xul)
@@ -54,15 +52,6 @@ venkman.jar:
   content/venkman/venkman-overlay.xul   (content/venkman-overlay.xul)
   content/venkman/venkman-overlay.js    (content/venkman-overlay.js)
   skin/modern/venkman/venkman.css       (skin/venkman.css)
-  locale/en-US/venkman/venkman.dtd      (locale/en-US/venkman.dtd)
-  locale/en-US/venkman/venkman.properties        (locale/en-US/venkman.properties)
-  locale/en-US/venkman/venkman-output-locale.css (locale/en-US/venkman-output-locale.css)
-  locale/en-US/venkman/venkman-overlay.dtd   (locale/en-US/venkman-overlay.dtd)
-  locale/en-US/venkman/venkman-help.tpl      (locale/en-US/venkman-help.tpl)
-  locale/en-US/venkman/profile.csv.tpl       (locale/en-US/profile.csv.tpl)
-  locale/en-US/venkman/profile.txt.tpl       (locale/en-US/profile.txt.tpl)
-  locale/en-US/venkman/profile.html.tpl      (locale/en-US/profile.html.tpl)
-  locale/en-US/venkman/profile.xml.tpl       (locale/en-US/profile.xml.tpl)
   content/venkman/venkman-output-window.html (content/venkman-output-window.html)
   content/venkman/venkman-output-base.css     (content/venkman-output-base.css)
   skin/modern/venkman/venkman-overlay.css      (skin/venkman-overlay.css)

@@ -38,5 +38,6 @@
 
 add_makefiles "
   extensions/venkman/Makefile
+  extensions/venkman/locales/Makefile
   extensions/venkman/resources/Makefile
 "

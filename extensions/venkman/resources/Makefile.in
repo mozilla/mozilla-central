@@ -45,13 +45,11 @@ include $(DEPTH)/config/autoconf.mk
 
 VENKMAN_VERSION=$(shell cat $(srcdir)/../version.txt)
 
-ifdef MOZ_XUL_APP
 XPI_NAME = venkman
 USE_EXTENSION_MANIFEST = 1
 NO_JAR_AUTO_REG = 1
 INSTALL_EXTENSION_ID = {f13b157f-b174-47e7-a34d-4815ddfdfeb8}
 XPI_PKGNAME = venkman-$(VENKMAN_VERSION)
-endif
 
 DEFINES += -DVENKMAN_VERSION=$(VENKMAN_VERSION)
 
