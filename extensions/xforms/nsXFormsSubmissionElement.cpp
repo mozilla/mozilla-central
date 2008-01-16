@@ -2732,8 +2732,8 @@ nsXFormsSubmissionElement::SetHttpContextInfo(PRUint32  aResponse,
         nameNode->GetNextSibling(getter_AddRefs(valueNode));
         nsXFormsUtils::GetNodeValue(valueNode, value);
       }
-    }
 #endif // DEBUG
+    }
   }
 
   return NS_OK;
