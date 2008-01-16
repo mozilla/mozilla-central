@@ -68,30 +68,11 @@
 <overlay id="ltnSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendarCreation.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/import-export.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/publish.js"/>
-<script type="application/x-javascript" src="chrome://lightning/content/lightning-utils.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
-<script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/clipboard.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-creation.js"/>
-<script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
-<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-
-<script type="application/x-javascript">
-    var calendarmenulabel = "&lightning.calendar.label;";
-    var calendarmenuaccesskey = "&lightning.calendar.accesskey;";
-    var messagemenulabel = "&msgMenu.label;";
-    var messagemenuaccesskey = "&msgMenu.accesskey;";
-</script>
+<!-- All JS files that messenger-overlay-sidebar.xul wishes to include *must* go into the 
+     calendar-scripts.inc file (all scripts shared with Sunbird) or lightning-scripts.inc 
+     file (scripts relevant for Lightning-only). -->
+#include /calendar/base/content/calendar-scripts.inc
+#include lightning-scripts.inc
 
 <menupopup id="menu_FilePopup">
   <menu id="menu_Open"
