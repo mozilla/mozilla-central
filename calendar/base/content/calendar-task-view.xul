@@ -62,7 +62,7 @@
                           persist="visible-columns ordinals widths sort-active sort-direction"
                           context="taskitem-context-menu"/>
       <splitter id="calendar-task-view-splitter" collapse="before" persist="state"/>
-      <vbox>
+      <vbox flex="1">
         <grid>
           <columns>
             <column/>
