@@ -75,7 +75,7 @@ REQUIRES	= xpcom \
 		  widget \
 		  msgdb \
 		  appcomps \
- 		  toolkitcomps \
+		  toolkitcomps \
 		  nkcache \
 		  $(NULL)
 

@@ -78,7 +78,7 @@ REQUIRES	= xpcom \
 		  msgbaseutil \
 		  msgdb \
 		  appcomps \
- 		  toolkitcomps \
+		  toolkitcomps \
 		  msgnews \
 		  msgimap \
 		  gfx \
