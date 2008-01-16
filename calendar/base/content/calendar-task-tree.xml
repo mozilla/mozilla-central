@@ -232,7 +232,8 @@
               if (index != undefined) {
                   if (aNewItem.isCompleted != aOldItem.isCompleted) {
                       if (aNewItem.isCompleted && this.binding.hideCompleted) {
-                          return this.removeItem(aNewItem);
+                          this.removeItem(aNewItem);
+                          return;
                       }
                   }
                   delete this.binding.mHash2Index[aOldItem.hashId];
@@ -451,17 +452,21 @@
           onSelect: function tTV_onSelect(event) {},
 
           onDoubleClick: function tTV_onDoubleClick(event) {
-              var col = {};
-              var item = this._getItemFromEvent(event, col);
-              if (event.button != 0 || 
-                 (col.value && col.value.anonid == "calendar-task-tree-col-completed")) {
-                  // Only left clicks that are not on the checkbox column
-                  return;
-              }
-              if (item) {
-                  modifyEventWithDialog(item);
-              } else {
-                  createTodoWithDialog();
+              if (event.button == 0) {
+                  var col = {};
+                  var item = this._getItemFromEvent(event, col);
+                  if (item) {
+                      var colAnonId = col.value.element.getAttribute("anonid");
+                      if (colAnonId == "calendar-task-tree-col-completed") {
+                          // item holds checkbox state toggled by first click,
+                          // so don't call modifyEventWithDialog
+                          // to make sure user notices state changed.
+                      } else {
+                          modifyEventWithDialog(item);
+                      }
+                  } else {
+                      createTodoWithDialog();
+                  }
               }
           },
 
