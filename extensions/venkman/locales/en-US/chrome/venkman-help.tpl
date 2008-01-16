@@ -108,7 +108,7 @@
           <a href="http://www.hacksrus.com/~ginda/venkman/faq/venkman-faq.html">Venkman FAQ</a>.
       </span>
       <span class="newbie-help">
-        The check boxes control which fields the search is performed on...
+        The check boxes control which fields the search is performed on…
         <ul>
           <li><b>Command Names</b> matches the command name, as you might enter
             it in the </b>Interactive Session</b>.

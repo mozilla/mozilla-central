@@ -104,8 +104,8 @@
 <!ENTITY BPProps.FunctionName.label "Function">
 <!ENTITY BPProps.TriggerCount.label "Trigger count">
 <!ENTITY BPProps.OneTime.label      "Clear breakpoint after first trigger">
-<!ENTITY BPProps.Then.label         "Then ...">
-<!ENTITY BPProps.ConditionalCheck.label      "When triggered, execute...">
+<!ENTITY BPProps.Then.label         "Then …">
+<!ENTITY BPProps.ConditionalCheck.label      "When triggered, execute…">
 <!ENTITY BPProps.NeverStopRadio.label        "Continue regardless of result">
 <!ENTITY BPProps.AlwaysStopRadio.label       "Stop regardless of result">
 <!ENTITY BPProps.ConditionalBreakRadio.label "Stop if result is true">
