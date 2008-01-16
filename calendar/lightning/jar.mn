@@ -23,11 +23,6 @@ lightning.jar:
 #expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
 #expand    skin/classic/lightning/sun-messenger-overlay-sidebar.css	(/calendar/prototypes/themes/__THEME__/sun-messenger-overlay-sidebar.css)
 
-lightning-en-US.jar:
-    locale/en-US/lightning/lightning.dtd         (/calendar/locales/en-US/chrome/lightning/lightning.dtd)
-    locale/en-US/lightning/lightning.properties  (/calendar/locales/en-US/chrome/lightning/lightning.properties)
-    locale/en-US/lightning/sun-lightning.dtd     (/calendar/locales/en-US/chrome/prototypes/sun-lightning.dtd)
-
 calendar.jar:
   content/calendar/calendarProperties.xul		(/calendar/resources/content/calendarProperties.xul) 
   content/calendar/calendarProperties.js		(/calendar/resources/content/calendarProperties.js) 
@@ -70,27 +65,3 @@ calendar.jar:
     skin/classic/calendar/unifinder/priority_header.png (/calendar/resources/skin/classic/unifinder/priority_header.png)
     skin/classic/calendar/unifinder/priority_high.png (/calendar/resources/skin/classic/unifinder/priority_high.png)
     skin/classic/calendar/unifinder/priority_low.png (/calendar/resources/skin/classic/unifinder/priority_low.png)   
-
-calendar-en-US.jar:
-  locale/en-US/calendar/global.dtd             (/calendar/locales/en-US/chrome/calendar/global.dtd)
-  locale/en-US/calendar/calendar.dtd           (/calendar/locales/en-US/chrome/calendar/calendar.dtd)
-  locale/en-US/calendar/calendarCreation.dtd   (/calendar/locales/en-US/chrome/calendar/calendarCreation.dtd)
-  locale/en-US/calendar/calendar-event-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-event-dialog.dtd)
-  locale/en-US/calendar/calendar-recurrence-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-recurrence-dialog.dtd)
-  locale/en-US/calendar/calendar.properties    (/calendar/locales/en-US/chrome/calendar/calendar.properties)
-  locale/en-US/calendar/categories.properties  (/calendar/locales/en-US/chrome/calendar/categories.properties)
-  locale/en-US/calendar/wcap.properties        (/calendar/locales/en-US/chrome/calendar/wcap.properties)
-  locale/en-US/calendar/dateFormat.properties  (/calendar/locales/en-US/chrome/calendar/dateFormat.properties)
-  locale/en-US/calendar/menuOverlay.dtd        (/calendar/locales/en-US/chrome/calendar/menuOverlay.dtd)
-  locale/en-US/calendar/migration.dtd          (/calendar/locales/en-US/chrome/calendar/migration.dtd)
-  locale/en-US/calendar/migration.properties   (/calendar/locales/en-US/chrome/calendar/migration.properties)
-  locale/en-US/calendar/preferences/alarms.dtd (/calendar/locales/en-US/chrome/calendar/preferences/alarms.dtd)
-  locale/en-US/calendar/preferences/categories.dtd   (/calendar/locales/en-US/chrome/calendar/preferences/categories.dtd)
-  locale/en-US/calendar/preferences/general.dtd      (/calendar/locales/en-US/chrome/calendar/preferences/general.dtd)
-  locale/en-US/calendar/preferences/preferences.dtd  (/calendar/locales/en-US/chrome/calendar/preferences/preferences.dtd)
-  locale/en-US/calendar/preferences/timezones.dtd    (/calendar/locales/en-US/chrome/calendar/preferences/timezones.dtd)
-  locale/en-US/calendar/preferences/views.dtd  (/calendar/locales/en-US/chrome/calendar/preferences/views.dtd)
-  locale/en-US/calendar/sun-calendar-event-dialog.dtd	(/calendar/locales/en-US/chrome/prototypes/sun-calendar-event-dialog.dtd)
-  locale/en-US/calendar/sun-calendar-event-dialog.properties  (/calendar/locales/en-US/chrome/prototypes/sun-calendar-event-dialog.properties)
-  locale/en-US/calendar/calendar-invitations-dialog.dtd	(/calendar/locales/en-US/chrome/prototypes/calendar-invitations-dialog.dtd)
-  locale/en-US/calendar/calendar-subscriptions-dialog.dtd  (/calendar/locales/en-US/chrome/calendar/calendar-subscriptions-dialog.dtd)
