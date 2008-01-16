@@ -90,6 +90,7 @@ EXTRA_SCRIPTS = \
     calAttachment.js \
     calAttendee.js \
     calCalendarManager.js \
+    calCachedCalendar.js \
     calDateTimeFormatter.js \
     calEvent.js \
     calIcsParser.js \

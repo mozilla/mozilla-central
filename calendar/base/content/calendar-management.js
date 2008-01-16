@@ -797,3 +797,53 @@ function openCalendarSubscriptionsDialog() {
                       "chrome,titlebar,modal,resizable");
 }
 
+/**
+ * Calendar Offline Manager
+ */
+var calendarOfflineManager = {
+    QueryInterface: function cOM_QueryInterface(aIID) {
+        return doQueryInterface(this, calendarOfflineManager.prototype, aIID,
+                                [Components.interfaces.nsIObserver, Components.interfaces.nsISupports]);
+    },
+
+    init: function cOM_init() {
+        if (this.initialized) {
+            throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
+        }
+        var os = Components.classes["@mozilla.org/observer-service;1"]
+                           .getService(Components.interfaces.nsIObserverService);
+        os.addObserver(this, "network:offline-status-changed", false);
+
+        this.updateOfflineUI(!this.isOnline());
+        this.initialized = true;
+    },
+
+    uninit: function cOM_uninit() {
+        if (!this.initialized) {
+            throw Components.results.NS_ERROR_NOT_INITIALIZED;
+        }
+        var os = Components.classes["@mozilla.org/observer-service;1"]
+                           .getService(Components.interfaces.nsIObserverService);
+        os.removeObserver(this, "network:offline-status-changed", false);
+        this.initialized = false;
+    },
+
+    isOnline: function cOM_isOnline() {
+        return (!getIOService().offline);
+
+    },
+
+    updateOfflineUI: function cOM_updateOfflineUI(aIsOffline) {
+        // Refresh the current view
+        currentView().goToDay(currentView().selectedDay);
+
+        // Set up disabled locks for offline
+        document.commandDispatcher.updateCommands("calendar_commands");
+    },
+
+    observe: function cOM_observe(aSubject, aTopic, aState) {
+        if (aTopic == "network:offline-status-changed") {
+            this.updateOfflineUI(aState == "offline");
+        }
+    }
+};

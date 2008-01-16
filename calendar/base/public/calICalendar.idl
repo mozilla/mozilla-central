@@ -123,7 +123,11 @@ interface calICalendar : nsISupports
    *   [boolean] requiresNetwork    If false, the calendar does not require
    *                                  network access at all. This is mainy used
    *                                  as a UI hint.
-   *   [boolean] suppressAlarms
+   *   [boolean] suppressAlarms     If true, alarms of this calendar are not minded.
+   *   [boolean] cache.supported    If true, the calendar should to be cached,
+   *                                   e.g. this generally applies to network calendars;
+   *                                   default is true (if not present).
+   *   [boolean] cache.enabled      If true, the calendar is cached; default is false.
    *
    * The following calendar capabilities can be used to inform the UI or backend
    * that certain features are not supported. If not otherwise mentioned, not

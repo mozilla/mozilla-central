@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,7 +39,7 @@
 
 #include "calICalendar.idl"
 #include "calIDateTime.idl"
-#include "calIOperation.idl"
+interface calISyncCalendar;
 interface calIWcapSession;
 interface calIAttendee;
 
@@ -218,7 +219,7 @@ interface calIWcapCalendar : calICalendar
      *                 (may optionally implemented calIObserver to receive
      *                 onAddItem(), onModifyItem() or onDeleteItem() calls)
      */
-    calIOperation syncChangesTo(in calICalendar destCal,
+    calIOperation syncChangesTo(in calISyncCalendar destCal,
                                 in unsigned long itemFilter,
                                 in calIDateTime dtFrom,
                                 in calIOperationListener listener);

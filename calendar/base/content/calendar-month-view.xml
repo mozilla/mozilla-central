@@ -179,7 +179,7 @@
         transfer.addDataFlavor("text/calendar");
 
         var item = this.occurrence;
-        if (item.calendar.readOnly) {
+        if (!isCalendarWritable(item.calendar)) {
             return;
         }
 

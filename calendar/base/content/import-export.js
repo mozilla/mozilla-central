@@ -120,10 +120,13 @@ function loadEventsFromFile(aCalendar)
             return;
         }
 
-        var count = new Object();
-        var calendars = getCalendarManager().getCalendars(count);
+        var calendars = getCalendarManager().getCalendars({});
+        calendars = calendars.filter(isCalendarWritable);
 
-        if (count.value == 1) {
+        if (calendars.length < 1) {
+            // XXX alert something?
+            return;
+        } else if (calendars.length == 1) {
             // There's only one calendar, so it's silly to ask what calendar
             // the user wants to import into.
             putItemsIntoCal(calendars[0], items, filePath);
@@ -131,6 +134,7 @@ function loadEventsFromFile(aCalendar)
             // Ask what calendar to import into
             var args = new Object();
             args.onOk = function putItems(aCal) { putItemsIntoCal(aCal, items, filePath); };
+            args.calendars = calendars;
             args.promptText = calGetString("calendar", "importPrompt");
             openDialog("chrome://calendar/content/chooseCalendarDialog.xul", 
                        "_blank", "chrome,titlebar,modal,resizable", args);

@@ -114,7 +114,7 @@ function createStatement (dbconn, sql) {
     } catch (e) {
         Components.utils.reportError(
             "mozStorage exception: createStatement failed, statement: '" + 
-            sql + "', error: '" + dbconn.lastErrorString + "'");
+            sql + "', error: '" + dbconn.lastErrorString + "' - " + e);
     }
 
     return null;
@@ -220,7 +220,8 @@ calStorageCalendar.prototype = {
     // 
     QueryInterface: function (aIID) {
         return doQueryInterface(this, calStorageCalendar.prototype, aIID,
-                                [Components.interfaces.calICalendarProvider]);
+                                [Components.interfaces.calICalendarProvider,
+                                 Components.interfaces.calISyncCalendar]);
     },
 
     //
@@ -244,18 +245,22 @@ calStorageCalendar.prototype = {
         for (var i in this.mDeleteEventExtras) {
             this.mDeleteEventExtras[i].params.cal_id = cal.mCalId;
             this.mDeleteEventExtras[i].execute();
+            this.mDeleteEventExtras[i].reset();
         }
 
         for (var i in this.mDeleteTodoExtras) {
             this.mDeleteTodoExtras[i].params.cal_id = cal.mCalId;
             this.mDeleteTodoExtras[i].execute();
+            this.mDeleteTodoExtras[i].reset();
         }
 
         this.mDeleteAllEvents.params.cal_id = cal.mCalId;
         this.mDeleteAllEvents.execute();
+        this.mDeleteAllEvents.reset();
 
         this.mDeleteAllTodos.params.cal_id = cal.mCalId;
         this.mDeleteAllTodos.execute();
+        this.mDeleteAllTodos.reset();
 
         try {
             listener.onDeleteCalendar(cal, Components.results.NS_OK, null);
@@ -263,10 +268,28 @@ calStorageCalendar.prototype = {
         }
     },
 
+    mRelaxedMode: undefined,
+    get relaxedMode() {
+        if (this.mRelaxedMode === undefined) {
+            this.mRelaxedMode = this.getProperty("relaxedMode");
+        }
+        return this.mRelaxedMode;
+    },
+
     //
     // calICalendar interface
     //
-    
+
+    getProperty: function stor_getProperty(aName) {
+        switch (aName) {
+            case "cache.supported":
+                return false;
+            case "requiresNetwork":
+                return false;
+        }
+        return this.__proto__.__proto__.getProperty.apply(this, arguments);
+    },
+
     // readonly attribute AUTF8String type;
     get type() { return "storage"; },
 
@@ -303,29 +326,21 @@ calStorageCalendar.prototype = {
             this.mDBTwo = dbService.openDatabase (fileURL.file);
         } else if (aUri.scheme == "moz-profile-calendar") {
             dbService = Components.classes[kStorageServiceContractID].getService(kStorageServiceIID);
-	    if ( "getProfileStorage" in dbService ) {
-	      // 1.8 branch
-	      this.mDB = dbService.getProfileStorage("profile");
-	      this.mDBTwo = dbService.getProfileStorage("profile");
-	    } else {
-	      // trunk 
-	      this.mDB = dbService.openSpecialDatabase("profile");
-	      this.mDBTwo = dbService.openSpecialDatabase("profile");
-	    }
-	}
+            if ("getProfileStorage" in dbService) {
+              // 1.8 branch
+              this.mDB = dbService.getProfileStorage("profile");
+              this.mDBTwo = dbService.getProfileStorage("profile");
+            } else {
+              // trunk
+              this.mDB = dbService.openSpecialDatabase("profile");
+              this.mDBTwo = dbService.openSpecialDatabase("profile");
+            }
+        }
 
         this.initDB();
 
         this.mCalId = id;
         this.mUri = aUri;
-    },
-
-    getProperty: function stor_getProperty(aName) {
-        switch (aName) {
-            case "requiresNetwork":
-                return false;
-        }
-        return this.__proto__.__proto__.getProperty.apply(this, arguments);
     },
 
     refresh: function() {
@@ -356,13 +371,19 @@ calStorageCalendar.prototype = {
         } else {
             var olditem = this.getItemById(aItem.id);
             if (olditem) {
-                if (aListener)
-                    aListener.onOperationComplete (this.superCalendar,
-                                                   Components.interfaces.calIErrors.DUPLICATE_ID,
-                                                   aListener.ADD,
-                                                   aItem.id,
-                                                   "ID already exists for addItem");
-                return;
+                if (this.relaxedMode) {
+                    // we possibly want to interact with the user before deleting
+                    this.deleteItemById(aItem.id);
+                }
+                else {
+                    if (aListener)
+                        aListener.onOperationComplete(this.superCalendar,
+                                                      Components.interfaces.calIErrors.DUPLICATE_ID,
+                                                      aListener.ADD,
+                                                      aItem.id,
+                                                      "ID already exists for addItem");
+                    return;
+                }
             }
         }
 
@@ -385,54 +406,54 @@ calStorageCalendar.prototype = {
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
     modifyItem: function (aNewItem, aOldItem, aListener) {
-        if (this.readOnly) 
+        if (this.readOnly) {
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
-        function reportError(errId, errStr) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               errId ? errId : Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               errStr);
+        }
+        if (!aNewItem) {
+            throw Components.results.NS_ERROR_INVALID_ARG;
+        }
+
+        var this_ = this;
+        function reportError(errStr, errId) {
+            if (aListener) {
+                aListener.onOperationComplete(this_.superCalendar,
+                                              errId ? errId : Components.results.NS_ERROR_FAILURE,
+                                              aListener.MODIFY,
+                                              aNewItem.id,
+                                              errStr);
+            }
+            return null;
         }
 
         if (aNewItem.id == null) {
             // this is definitely an error
-            reportError (null, "ID for modifyItem item is null");
-            return;
+            return reportError("ID for modifyItem item is null");
         }
 
         // Ensure that we're looking at the base item
         // if we were given an occurrence.  Later we can
         // optimize this.
         if (aNewItem.parentItem != aNewItem) {
+// isn't the below a bug? we modify the passed item's recurrenceInfo; why don't we clone it before, modifiedItem...?
             aNewItem.parentItem.recurrenceInfo.modifyException(aNewItem);
+            aNewItem = aNewItem.parentItem;
         }
 
-        aNewItem = aNewItem.parentItem;
-        aOldItem = aOldItem.parentItem;
+        if (this.relaxedMode) {
+            if (!aOldItem) {
+                aOldItem = this.getItemById(aNewItem.id) || aNewItem;
+            }
+            aOldItem = aOldItem.parentItem;
+        } else {
+            if (!aOldItem || !this.getItemById(aOldItem.id)) {
+                // no old item found?  should be using addItem, then.
+                return reportError("ID does not already exist for modifyItem");
+            }
+            aOldItem = aOldItem.parentItem;
 
-        // get the old item
-        var olditem = this.getItemById(aOldItem.id);
-        if (!olditem) {
-            // no old item found?  should be using addItem, then.
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "ID does not already exist for modifyItem");
-            return;
-        }
-
-        if (aOldItem.generation != aNewItem.generation) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "generation too old for for modifyItem");
-            return;
+            if (aOldItem.generation != aNewItem.generation) {
+                return reportError("generation too old for for modifyItem");
+            }
         }
 
         var modifiedItem = aNewItem.clone();
@@ -1156,6 +1177,7 @@ calStorageCalendar.prototype = {
     // assumes mDB is valid
 
     initDB: function () {
+        ASSERT(this.mDB, "Database has not been opened!", true);
         if (!this.mDB.tableExists("cal_calendar_schema_version")) {
             this.initDBSchema();
         } else {
@@ -1981,7 +2003,16 @@ calStorageCalendar.prototype = {
             if (pval instanceof Components.interfaces.calIDateTime) {
                 pp.value = pval.nativeTime;
             } else {
-                pp.value = pval;
+                try {
+                    pp.value = pval;
+                } catch (e) {
+                    // The storage service throws an NS_ERROR_ILLEGAL_VALUE in
+                    // case pval is something complex (i.e not a string or
+                    // number). Swallow this error, leaving the value empty.
+                    if (e.result != Components.results.NS_ERROR_ILLEGAL_VALUE) {
+                        throw e;
+                    }
+                }
             }
             pp.item_id = item.id;
             this.setDateParamHelper(pp, "recurrence_id", item.recurrenceId);

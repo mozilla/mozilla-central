@@ -233,6 +233,8 @@ pref("network.protocol-handler.warn-external.nntp", false);
 pref("network.protocol-handler.expose-all", false);
 pref("network.protocol-handler.expose.webcal", true);
 
+pref("offline.autoDetect", true);
+
 // Default security warning dialogs to show once.
 pref("security.warn_entering_secure.show_once", true);
 pref("security.warn_entering_weak.show_once", true);

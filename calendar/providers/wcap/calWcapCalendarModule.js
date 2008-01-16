@@ -80,15 +80,6 @@ var CACHE_LAST_RESULTS_INVALIDATE = 120;
 // logging:
 var LOG_LEVEL = 0;
 
-var g_ioService = null;
-function getIoService() {
-    if (!g_ioService) {
-        g_ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                      .getService(Components.interfaces.nsIIOService);
-    }
-    return g_ioService;
-}
-
 function initWcapProvider()
 {
     try {
@@ -191,7 +182,8 @@ var calWcapCalendarModule = { // nsIModule:
             var scriptLoader =
                 Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                           .createInstance(Components.interfaces.mozIJSSubScriptLoader);
-            var ioService = getIoService();
+            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                      .getService(Components.interfaces.nsIIOService);
             var baseDir = __LOCATION__.parent.parent;
             baseDir.append("js");
             for each (var script in scripts) {

@@ -57,10 +57,16 @@
         function loadCalendars() {
             const calendarManager = Components.classes["@mozilla.org/calendar/manager;1"]
                                             .getService(Components.interfaces.calICalendarManager);
-            var calendars = calendarManager.getCalendars({});
             var listbox = document.getElementById("calendar-list");
             var composite = window.opener.getCompositeCalendar();
             var selectedIndex = 0;
+            var calendars;
+
+            if (window.arguments[0].calendars) {
+                calendars = window.arguments[0].calendars;
+            } else {
+                calendars = calendarManager.getCalendars({});
+            }
 
             for (var i = 0; i < calendars.length; i++) {
                 var cal = calendars[i];

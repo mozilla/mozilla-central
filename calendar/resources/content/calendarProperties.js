@@ -20,6 +20,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -60,6 +62,12 @@ function loadCalendarPropertiesDialog()
    // start focus on title
    document.getElementById("calendar-name").focus();
 
+   // set up the cache field
+   var cacheBox = document.getElementById("cache");
+   var canCache = (gCalendar.getProperty("cache.supported") !== false);
+   cacheBox.disabled = !canCache;
+   cacheBox.checked = (canCache && gCalendar.getProperty("cache.enabled"));
+
    sizeToContent();
 }
 
@@ -73,7 +81,8 @@ function onOKCommand()
 
    gCalendar.setProperty('color', document.getElementById("calendar-color").color);
    gCalendar.readOnly = document.getElementById("read-only").checked;
-   
+   gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
+
    // tell standard dialog stuff to close the dialog
    return true;
 }

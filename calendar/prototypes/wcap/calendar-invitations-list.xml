@@ -19,6 +19,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s): Thomas Benisch <thomas.benisch@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -214,8 +215,10 @@
         <parameter name="aItem"/>
         <body><![CDATA[
           try {
-              var wcapCalendar = aItem.calendar.QueryInterface(
-                  Components.interfaces.calIWcapCalendar);
+              // temporary hack unless all group scheduling features are supported
+              // by the caching facade (calCachedCalendar):
+              var wcapCalendar = aItem.calendar.getProperty("private.wcapCalendar")
+                                               .QueryInterface(Components.interfaces.calIWcapCalendar);
               var att = wcapCalendar.getInvitedAttendee(aItem);
               if (att) {
                   return att.participationStatus;
@@ -230,8 +233,10 @@
         <parameter name="aStatus"/>
         <body><![CDATA[
           try {
-              var wcapCalendar = aItem.calendar.QueryInterface(
-                  Components.interfaces.calIWcapCalendar);
+              // temporary hack unless all group scheduling features are supported
+              // by the caching facade (calCachedCalendar):
+              var wcapCalendar = aItem.calendar.getProperty("private.wcapCalendar")
+                                               .QueryInterface(Components.interfaces.calIWcapCalendar);
               var att = wcapCalendar.getInvitedAttendee(aItem);
               if (att) {
                   var att_ = att.clone();

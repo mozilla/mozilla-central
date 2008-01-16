@@ -178,7 +178,10 @@ InvitationsManager.prototype = {
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
             try {
-                var wcapCalendar = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
+                // temporary hack unless all group scheduling features are supported
+                // by the caching facade (calCachedCalendar):
+                var wcapCalendar = calendar.getProperty("private.wcapCalendar")
+                                           .QueryInterface(Components.interfaces.calIWcapCalendar);
                 if (!wcapCalendar.isOwnedCalendar) {
                     continue;
                 }
@@ -514,8 +517,10 @@ InvitationsManager.prototype = {
 
     getParticipationStatus: function IM_getParticipationStatus(item) {
         try {
-            var wcapCalendar = item.calendar.QueryInterface(
-                Components.interfaces.calIWcapCalendar);
+            // temporary hack unless all group scheduling features are supported
+            // by the caching facade (calCachedCalendar):
+            var wcapCalendar = item.calendar.getProperty("private.wcapCalendar")
+                                            .QueryInterface(Components.interfaces.calIWcapCalendar);
             var attendee = wcapCalendar.getInvitedAttendee(item);
             if (attendee)
                 return attendee.participationStatus;

@@ -793,7 +793,7 @@
                               chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
                           }
 
-                          if (chunk.event.calendar.readOnly) {
+                          if (!isCalendarWritable(chunk.event.calendar)) {
                               chunkBox.setAttribute("readOnly", "true");
                           }
 

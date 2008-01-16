@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -380,7 +381,7 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging)
     try {
         var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
                                .createInstance(Components.interfaces.nsIUnicharStreamLoader);
-        channel = getIoService().newChannel(url, "" /* charset */, null /* baseURI */);
+        channel = getIOService().newChannel(url, "" /* charset */, null /* baseURI */);
         channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
     }
     catch (exc) {

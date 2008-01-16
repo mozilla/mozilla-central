@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,11 +49,12 @@ calProviderBase.prototype = {
     mID: null,
     mUri: null,
     mObservers: null,
-    mReadOnly: false,
+    mProperties: null,
 
     initProviderBase: function cPB_initProviderBase() {
         this.wrappedJSObject = this;
         this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
+        this.mProperties = {};
     },
 
     get observers() {
@@ -67,7 +69,11 @@ calProviderBase.prototype = {
         if (this.mID) {
             throw Components.results.NS_ERROR_ALREADY_INITIALIZED;
         }
-        return (this.mID = aValue);
+        this.mID = aValue;
+
+//         ASSERT(this.mProperties.toSource() == "({})", "setProperty calls before id has been set!");
+
+        return aValue;
     },
 
     // attribute AUTF8String name;
@@ -125,36 +131,71 @@ calProviderBase.prototype = {
 
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
-        switch (aName) {
-            case "readOnly":
-                return this.mReadOnly;
-            default:
+        var ret = this.mProperties[aName];
+        if (ret === undefined) {
+            ret = null;
+            if (this.id) {
                 // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                return getCalendarManager().getCalendarPref_(this, aName);
+                ret = getCalendarManager().getCalendarPref_(this, aName);
+                if (ret !== null) {
+                    // xxx todo: work around value types here unless we save into the prefs...
+                    switch (aName) {
+                    case "readOnly":
+                    case "relaxedMode":
+                    case "cache.supported":
+                    case "cache.enabled":
+                    case "suppressAlarms":
+                    case "calendar-main-in-composite":
+                    case "calendar-main-default":
+                        ret = (ret == "true");
+                        break;
+                    case "backup-time":
+                    case "cache.updateTimer":
+                        ret = Number(ret);
+                        break;
+                    }
+                }
+            }
+            this.mProperties[aName] = ret;
         }
+        return ret;
     },
 
     // void setProperty(in AUTF8String aName, in nsIVariant aValue);
     setProperty: function cPB_setProperty(aName, aValue) {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
-            switch (aName) {
+            this.mProperties[aName] = aValue;
+            if (this.id) {
+                var v = aValue;
+                // xxx todo: work around value types here unless we save into the prefs...
+                switch (aName) {
                 case "readOnly":
-                    this.mReadOnly = aValue;
+                case "relaxedMode":
+                case "cache.supported":
+                case "cache.enabled":
+                case "suppressAlarms":
+                case "calendar-main-in-composite":
+                case "calendar-main-default":
+                    v = (v ? "true" : "false");
                     break;
-                default:
-                    // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                    getCalendarManager().setCalendarPref_(this, aName, aValue);
+//                 case "backup-time":
+//                 case "cache.updateTimer":
+//                     break;
+                }
+                // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
+                getCalendarManager().setCalendarPref_(this, aName, v);
             }
             this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
+                                   [this.superCalendar, aName, aValue, oldValue]);
         }
         return aValue;
     },
 
     // void deleteProperty(in AUTF8String aName);
     deleteProperty: function cPB_deleteProperty(aName) {
-        this.mObservers.notify("onPropertyDeleting", [this, aName]);
+        this.mObservers.notify("onPropertyDeleting", [this.superCalendar, aName]);
+        delete this.mProperties[aName];
         getCalendarManager().deleteCalendarPref_(this, aName);
     },
 

@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -70,9 +71,10 @@ function onLoad() {
     window.readOnly = calendar.readOnly;
     if (!window.readOnly) {
         try {
-            var provider = calendar
-                .QueryInterface(
-                    Components.interfaces.calIWcapCalendar);
+            // temporary hack unless all group scheduling features are supported
+            // by the caching facade (calCachedCalendar):
+            var provider = calendar.getProperty("private.wcapCalendar")
+                                   .QueryInterface(Components.interfaces.calIWcapCalendar);
             var attendee = provider.getInvitedAttendee(item);
             if (attendee) {
                 window.attendee = attendee.clone();

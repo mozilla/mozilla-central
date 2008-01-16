@@ -383,6 +383,9 @@ calICSCalendar.prototype = {
     // this.mMemoryCalendar.addItem() and friends are called. less
     // copied code.
     addItem: function (aItem, aListener) {
+        this.adoptItem(aItem.clone(), aListener);
+    },
+    adoptItem: function (aItem, aListener) {
         if (this.readOnly) 
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
         this.queue.push({action:'add', item:aItem, listener:aListener});
@@ -633,6 +636,7 @@ calICSCalendar.prototype = {
         try {
             var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
                                        .getService(CI.nsIProperties);
+// xxx todo: would we want to migrate the backups into getCalendarDirectory()?
             var backupDir = dirService.get("ProfD", CI.nsILocalFile);
             backupDir.append("backupData");
             if (!backupDir.exists()) {
@@ -667,7 +671,7 @@ calICSCalendar.prototype = {
             doInitialBackup = true;
 
         var doDailyBackup = false;
-        var backupTime = new Number(this.getProperty('backup-time'));
+        var backupTime = this.getProperty('backup-time');
         if (!backupTime ||
             (new Date().getTime() > backupTime + backupDays*24*60*60*1000)) {
             // It's time do to a daily backup

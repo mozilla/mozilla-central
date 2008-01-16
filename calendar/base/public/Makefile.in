@@ -53,36 +53,37 @@ XPIDLSRCS	= calIAlarmService.idl \
 		  calICalendar.idl   \
 		  calICalendarManager.idl \
 		  calICalendarProvider.idl \
+		  calICalendarSearchProvider.idl \
 		  calICalendarView.idl \
 		  calICalendarViewController.idl \
+		  calIChangeLog.idl \
 		  calIDateTime.idl   \
-		  calIPeriod.idl     \
+		  calIDateTimeFormatter.idl \
 		  calIDecoratedView.idl   \
 		  calIDuration.idl   \
 		  calIErrors.idl     \
 		  calIEvent.idl      \
+		  calIFreeBusyProvider.idl \
 		  calIIcsParser.idl  \
 		  calIIcsSerializer.idl \
 		  calIICSService.idl \
+		  calIImportExport.idl \
 		  calIItemBase.idl   \
 		  calIItipItem.idl   \
 		  calIItipProcessor.idl \
 		  calIItipTransport.idl \
+		  calIOperation.idl \
+		  calIPeriod.idl     \
+		  calIPrintFormatter.idl \
 		  calIRecurrenceInfo.idl \
 		  calIRecurrenceDate.idl \
 		  calIRecurrenceDateSet.idl \
 		  calIRecurrenceItem.idl \
 		  calIRecurrenceRule.idl \
-		  calIImportExport.idl \
-		  calITodo.idl       \
-		  calIDateTimeFormatter.idl \
-		  calIWeekTitleService.idl \
-		  calIPrintFormatter.idl \
-		  calITransactionManager.idl \
-		  calIOperation.idl \
-		  calIFreeBusyProvider.idl \
-		  calICalendarSearchProvider.idl \
 		  calITimezoneProvider.idl \
+		  calITodo.idl       \
+		  calITransactionManager.idl \
+		  calIWeekTitleService.idl \
 		  $(NULL)
 
 EXPORTS		= calBaseCID.h

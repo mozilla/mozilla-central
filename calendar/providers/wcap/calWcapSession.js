@@ -61,15 +61,22 @@ function getWcapSessionFor(cal, uri) {
     var contextId = cal.getProperty("shared_context");
     if (!contextId) {
         contextId = getUUID();
+        cal.setProperty("shared_context", contextId);
     }
     var session = g_openWcapSessions[contextId];
     if (!session) {
         session = new calWcapSession(contextId, uri);
         g_openWcapSessions[contextId] = session;
-    }
-    if (!session.defaultCalendar && cal.isDefaultCalendar) {
-        session.defaultCalendar = cal;
-        session.credentials.userId = cal.getProperty("user_id");
+        // install a mandatory default calendar:
+        var defaultCal = cal;
+        for each (var regCal in session.getRegisteredCalendars()) {
+            if (regCal.isDefaultCalendar) {
+                defaultCal = regCal;
+                session.credentials.userId = defaultCal.getProperty("user_id");
+                break;
+            }
+        }
+        session.defaultCalendar = defaultCal;
     }
     return session;
 }
@@ -82,11 +89,6 @@ function calWcapSession(contextId, thatUri) {
     this.m_uri = thatUri.clone();
     this.m_sessionUri = thatUri.clone();
     this.m_sessionUri.userPass = "";
-    // sensible default for user id login:
-    var username = decodeURIComponent(thatUri.username);
-    if (username.length > 0) {
-        this.credentials.userId = username;
-    }
     log("new session", this);
 
     // listen for shutdown, being logged out:
@@ -153,7 +155,7 @@ calWcapSession.prototype = {
             str += (", userId=" + this.credentials.userId);
         }
         if (!this.m_sessionId) {
-            str += (getIoService().offline ? ", offline" : ", not logged in");
+            str += (getIOService().offline ? ", offline" : ", not logged in");
         }
         return str;
     },
@@ -225,7 +227,7 @@ calWcapSession.prototype = {
     getSessionId:
     function calWcapSession_getSessionId(request, respFunc, timedOutSessionId)
     {
-        if (getIoService().offline) {
+        if (getIOService().offline) {
             log("in offline mode.", this);
             respFunc(new Components.Exception(
                          "The requested action could not be completed while the " +
@@ -476,7 +478,7 @@ calWcapSession.prototype = {
                 else
                     log("logout succeeded.", this_);
                 if (listener)
-                    listener.onResult(request, err);
+                    listener.onResult(request, null);
             },
             log("logout", this));
         
@@ -594,7 +596,7 @@ calWcapSession.prototype = {
                     log("installed user prefs.", this_);
                     
                     // get calprops for all registered calendars:                        
-                    var cals = this_.getRegisteredCalendars();
+                    var cals = this_.getRegisteredCalendars(true);
 
                     var calprops_resp = null;
                     var defaultCal = this_.defaultCalendar;
@@ -632,7 +634,6 @@ calWcapSession.prototype = {
                                 }
                             }
                             // do only once:
-                            defaultCal.setProperty("shared_context", this_.m_contextId);
                             defaultCal.setProperty("account_name", defaultCal.name);
                             defaultCal.setProperty("subscriptions_registered", true);
                         }
@@ -915,7 +916,9 @@ calWcapSession.prototype = {
     
     belongsTo: function calWcapSession_belongsTo(cal) {
         try {
-            cal = cal.QueryInterface(calIWcapCalendar).wrappedJSObject;
+            // xxx todo hack to get the unwrapped wcap calendar instance:
+            cal = cal.getProperty("private.wcapCalendar")
+                     .QueryInterface(calIWcapCalendar).wrappedJSObject;
             if (cal && (cal.session.m_contextId == this.m_contextId)) {
                 return cal;
             }
@@ -925,13 +928,17 @@ calWcapSession.prototype = {
         return null;
     },
 
-    getRegisteredCalendars: function calWcapSession_getRegisteredCalendars() {
-        var registeredCalendars = {};
+    getRegisteredCalendars: function calWcapSession_getRegisteredCalendars(asAssocObj) {
+        var registeredCalendars = (asAssocObj ? {} : []);
         var cals = getCalendarManager().getCalendars({});
         for each (var cal in cals) {
             cal = this.belongsTo(cal);
             if (cal) {
-                registeredCalendars[cal.calId] = cal;
+                if (asAssocObj) {
+                    registeredCalendars[cal.calId] = cal;
+                } else {
+                    registeredCalendars.push(cal);
+                }
             }
         }
         return registeredCalendars;
@@ -985,8 +992,8 @@ calWcapSession.prototype = {
             log("searchForCalendars, searchString=" + searchString, this));
         
         try {
-            var registeredCalendars = this.getRegisteredCalendars();
-            
+            var registeredCalendars = this.getRegisteredCalendars(true);
+
             var params = ("&fmt-out=text%2Fxml&search-string=" +
                           encodeURIComponent(searchString));
             if (maxResults > 0) {

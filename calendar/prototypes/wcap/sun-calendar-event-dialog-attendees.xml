@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -196,7 +197,10 @@
           this.mIsInvitation = false;
           this.mOrganizerID = ((organizer && organizer.id) ? organizer.id : "");
           try {
-              var provider = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
+              // temporary hack unless all group scheduling features are supported
+              // by the caching facade (calCachedCalendar):
+              var provider = calendar.getProperty("private.wcapCalendar")
+                                     .QueryInterface(Components.interfaces.calIWcapCalendar);
               this.mIsInvitation = provider.isInvitation(args.item);
               if (this.mOrganizerID.length == 0) {
                   this.mOrganizerID = provider.ownerId; // sensible default
@@ -238,7 +242,10 @@
                   }
               }
               try {
-                  var provider = calendar.QueryInterface(Components.interfaces.calIWcapCalendar);
+                  // temporary hack unless all group scheduling features are supported
+                  // by the caching facade (calCachedCalendar):
+                  var provider = calendar.getProperty("private.wcapCalendar")
+                                         .QueryInterface(Components.interfaces.calIWcapCalendar);
                   var props = provider.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME", {});
                   if (props.length > 0) {
                       if(organizer.commonName.length <= 0) {

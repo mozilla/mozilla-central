@@ -57,13 +57,13 @@ calMemoryCalendar.prototype = {
     // 
     QueryInterface: function (aIID) {
         return doQueryInterface(this, calMemoryCalendar.prototype, aIID,
-                                [Components.interfaces.calICalendarProvider]);
+                                [Components.interfaces.calISyncCalendar,
+                                 Components.interfaces.calICalendarProvider]);
     },
 
     initMemoryCalendar: function() {
         this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
         this.mItems = { };
-        this.mProperties = {};
     },
 
     //
@@ -90,30 +90,29 @@ calMemoryCalendar.prototype = {
         } catch(ex) {}
     },
 
+    mRelaxedMode: undefined,
+    get relaxedMode calMemoryCalendar_relaxedModeGetter() {
+        if (this.mRelaxedMode === undefined) {
+            this.mRelaxedMode = this.getProperty("relaxedMode");
+        }
+        return this.mRelaxedMode;
+    },
+
     //
     // calICalendar interface
     //
 
+    getProperty: function calMemoryCalendar_getProperty(aName) {
+        switch (aName) {
+            case "cache.supported":
+            case "requiresNetwork":
+                return false;
+        }
+        return this.__proto__.__proto__.getProperty.apply(this, arguments);
+    },
+
     // readonly attribute AUTF8String type;
     get type() { return "memory"; },
-
-    mProperties: null,
-    getProperty: function(aName) {
-        return this.mProperties[aName];
-    },
-    setProperty: function(aName, aValue) {
-        var oldValue = this.getProperty(aName);
-        if (oldValue != aValue) {
-            this.mProperties[aName] = aValue;
-            this.mObservers.notify("onPropertyChanged",
-                                   [this, aName, aValue, oldValue]);
-        }
-        return aValue;
-    },
-    deleteProperty: function(aName) {
-        this.mObservers.notify("onPropertyDeleting", [this, aName]);
-        delete this.mProperties[aName];
-    },
 
     // void addItem( in calIItemBase aItem, in calIOperationListener aListener );
     addItem: function (aItem, aListener) {
@@ -139,14 +138,20 @@ calMemoryCalendar.prototype = {
         }
 
         if (this.mItems[aItem.id] != null) {
-            // is this an error?
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.interfaces.calIErrors.DUPLICATE_ID,
-                                               aListener.ADD,
-                                               aItem.id,
-                                               "ID already exists for addItem");
-            return;
+            if (this.relaxedMode) {
+                // we possibly want to interact with the user before deleting
+                delete this.mItems[aItem.id];
+            }
+            else {
+                if (aListener) {
+                    aListener.onOperationComplete (this.superCalendar,
+                                                   Components.interfaces.calIErrors.DUPLICATE_ID,
+                                                   aListener.ADD,
+                                                   aItem.id,
+                                                   "ID already exists for addItem");
+                }
+                return;
+            }
         }
 
         aItem.calendar = this.superCalendar;
@@ -184,54 +189,57 @@ calMemoryCalendar.prototype = {
         if (this.readOnly) 
             throw Components.interfaces.calIErrors.CAL_IS_READONLY;
         if (!aNewItem) {
-            throw Components.results.NS_ERROR_FAILURE;
-        }
-        if (aNewItem.id == null || this.mItems[aNewItem.id] == null) {
-            // this is definitely an error
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "ID for modifyItem doesn't exist, is null, or is from different calendar");
-            return;
+            throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
-        // do the old and new items match?
-        if (aOldItem.id != aNewItem.id) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "item ID mismatch between old and new items");
-            return;
+        var this_ = this;
+        function reportError(errStr, errId) {
+            if (aListener) {
+                aListener.onOperationComplete(this_.superCalendar,
+                                              errId ? errId : Components.results.NS_ERROR_FAILURE,
+                                              aListener.MODIFY,
+                                              aNewItem.id,
+                                              errStr);
+            }
+            return null;
         }
-        
+
+        if (!aNewItem.id) {
+            // this is definitely an error
+            return reportError(null, "ID for modifyItem item is null");
+        }
+
         if (aNewItem.parentItem != aNewItem) {
+// isn't the below a bug? we modify the passed item's recurrenceInfo; why don't we clone it before, modifiedItem...?
             aNewItem.parentItem.recurrenceInfo.modifyException(aNewItem);
             aNewItem = aNewItem.parentItem;
         }
-        aOldItem = aOldItem.parentItem;
 
-        if (!compareItems(this.mItems[aOldItem.id], aOldItem)) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "old item mismatch in modifyItem");
-            return;
-        }
+        if (this.relaxedMode) {
+            if (!aOldItem) {
+                aOldItem = (this.mItems[aNewItem.id] || aNewItem);
+            }
+            aOldItem = aOldItem.parentItem;
+        } else {
+            if (!aOldItem || !this.mItems[aNewItem.id]) {
+                // no old item found?  should be using addItem, then.
+                return reportError("ID for modifyItem doesn't exist, is null, or is from different calendar");
+            }
 
-        if (aOldItem.generation != aNewItem.generation) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.MODIFY,
-                                               aNewItem.id,
-                                               "generation mismatch in modifyItem");
-            return;
+            // do the old and new items match?
+            if (aOldItem.id != aNewItem.id) {
+                return reportError("item ID mismatch between old and new items");
+            }
+
+            aOldItem = aOldItem.parentItem;
+
+            if (!compareItems(this.mItems[aOldItem.id], aOldItem)) {
+                return reportError("old item mismatch in modifyItem");
+            }
+
+            if (aOldItem.generation != aNewItem.generation) {
+                return reportError("generation mismatch in modifyItem");
+            }
         }
 
         var modifiedItem = aNewItem.clone();

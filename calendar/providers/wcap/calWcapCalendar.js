@@ -41,13 +41,13 @@ function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
     this.initProviderBase();
     this.m_session = session;
     this.m_calProps = calProps;
-    this.m_observers = new calListenerBag(Components.interfaces.calIObserver);
 }
 calWcapCalendar.prototype = {
     __proto__: calProviderBase.prototype,
 
     m_ifaces: [ calIWcapCalendar,
                 calICalendar,
+                Components.interfaces.calIChangeLog,
                 Components.interfaces.calICalendarProvider,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIClassInfo,
@@ -145,28 +145,20 @@ calWcapCalendar.prototype = {
     getCalendar: function calWcapCalendar_getCalendar(url) {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
-    
+
     // calICalendar:
-    get name() {
+    get name calWcapCalendar_nameGetter() {
         var name = this.getProperty("name");
         if (!name) {
             name = this.displayName;
         }
         return name;
     },
-    set name(name) {
-        return this.setProperty("name", name);
+    set name calWcapCalendar_nameSetter(aValue) {
+        return this.setProperty("name", aValue);
     },
-    
+
     get type() { return "wcap"; },
-    
-    m_superCalendar: null,
-    get superCalendar() {
-        return (this.m_superCalendar || this);
-    },
-    set superCalendar(cal) {
-        return (this.m_superCalendar = cal);
-    },
 
     m_uri: null,
     get uri() {
@@ -188,15 +180,16 @@ calWcapCalendar.prototype = {
         return this.uri;
     },
 
-    m_bReadOnly: null,
     getProperty: function calWcapCalendar_getProperty(aName) {
-        var value = getCalendarManager().getCalendarPref_(this, aName);
+        var value = this.__proto__.__proto__.getProperty.apply(this, arguments);
         switch (aName) {
+        case "private.wcapCalendar":
+            value = this;
+            break;
         case "readOnly":
-            value = this.m_bReadOnly;
             if (value === null) {
                 // tweak readOnly default to true for non-owned calendars:
-                value = (this.session.isLoggedIn && !this.isOwnedCalendar);
+                value = (this.m_session && this.session.isLoggedIn && !this.isOwnedCalendar);
             }
             break;
         case "calendar-main-in-composite":
@@ -211,48 +204,16 @@ calWcapCalendar.prototype = {
             value = true;
             break;
         }
-        // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
         return value;
     },
-    setProperty: function calWcapCalendar_setProperty(aName, aValue) {
-        var oldValue = this.getProperty(aName);
-        if (oldValue != aValue) {
-            switch (aName) {
-            case "readOnly":
-                this.m_bReadOnly = aValue;
-                break;
-            case "suppressAlarms":
-            case "calendar-main-in-composite":
-                if (!aValue) {
-                    getCalendarManager().deleteCalendarPref_(this, aName);
-                    break;
-                }
-                // fallthru intended
-            default:
-                // xxx future: setPrefSafe("calendars." + this.id + "." + aName, aValue);
-                getCalendarManager().setCalendarPref_(this, aName, aValue);
-                break;
-            }
-            this.m_observers.notify("onPropertyChanged",
-                                    [this, aName, aValue, oldValue]);
-        }
-        return aValue;
-    },
-    // deleteProperty implemented in calProviderBase
 
-    m_observers: null,
     notifyObservers: function calWcapCalendar_notifyObservers(func, args) {
-        if (g_bShutdown)
+        if (g_bShutdown) {
             return;
-        this.m_observers.notify(func, args);
+        }
+        this.observers.notify(func, args);
     },
-    addObserver: function calWcapCalendar_addObserver(observer) {
-        this.m_observers.add(observer);
-    },
-    removeObserver: function calWcapCalendar_removeObserver(observer) {
-        this.m_observers.remove(observer);
-    },
-    
+
     // xxx todo: batch currently not used
     startBatch: function calWcapCalendar_startBatch() {
         this.notifyObservers("onStartBatch");

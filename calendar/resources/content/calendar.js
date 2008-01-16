@@ -109,6 +109,9 @@ function calendarInit() {
     // Setup undo/redo menu for additional main windows
     updateUndoRedoMenu();
 
+    // Setup the offline manager
+    calendarOfflineManager.init();
+
     // Handle commandline args
     for (var i = 0; i < window.arguments.length; i++) {
         try {
@@ -214,6 +217,9 @@ function calendarFinish()
    finishCalendarUnifinder();
    
    unloadCalendarManager();
+
+    // Finish the offline manager
+    calendarOfflineManager.uninit();
 }
 
 function selectAllEvents()

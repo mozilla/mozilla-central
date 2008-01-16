@@ -150,23 +150,42 @@ calCalendarManager.prototype = {
                                    Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
         }
     },
+    setupOfflineObservers: function ccm_setupOfflineObservers() {
+        var os = Components.classes["@mozilla.org/observer-service;1"]
+                           .getService(Components.interfaces.nsIObserverService);
+        os.addObserver(this, "network:offline-status-changed", false);
+
+        // TODO removeObserver
+    },
     
     observe: function ccm_observe(aSubject, aTopic, aData) {
-        if (aTopic == 'timer-callback') {
-            // Refresh all the calendars that can be refreshed.
-            var cals = this.getCalendars({});
-            for each (var cal in cals) {
-                if (cal.canRefresh) {
-                    cal.refresh();
+        switch (aTopic) {
+            case "timer-callback":
+                // Refresh all the calendars that can be refreshed.
+                var cals = this.getCalendars({});
+                for each (var cal in cals) {
+                    if (cal.canRefresh) {
+                        cal.refresh();
+                    }
                 }
-            }
-        } else if (aTopic == 'nsPref:changed') {
-            if (aData == "calendar.autorefresh.enabled" ||
-                aData == "calendar.autorefresh.timeout") {
-                this.setUpRefreshTimer();
-            }
+                break;
+            case "nsPref:changed":
+                if (aData == "calendar.autorefresh.enabled" ||
+                    aData == "calendar.autorefresh.timeout") {
+                    this.setUpRefreshTimer();
+                }
+                break;
+            case "network:offline-status-changed":
+                for each (var calendar in this.mCache) {
+                    if (calendar instanceof calCachedCalendar) {
+                        calendar.onOfflineStatusChanged(aData == "offline");
+                    }
+                }
+                break;
         }
+
     },
+
     
     DB_SCHEMA_VERSION: 7,
 
@@ -432,7 +451,8 @@ calCalendarManager.prototype = {
      * calICalendarManager interface
      */
     createCalendar: function(type, uri) {
-        var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type].createInstance(Components.interfaces.calICalendar);
+        var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
+                                 .createInstance(Components.interfaces.calICalendar);
         calendar.uri = uri;
         return calendar;
     },
@@ -477,6 +497,11 @@ calCalendarManager.prototype = {
 
     unregisterCalendar: function(calendar) {
         this.notifyObservers("onCalendarUnregistering", [calendar]);
+
+        // calendar may be a calICalendar wrapper:
+        if (calendar.wrappedJSObject instanceof calCachedCalendar) {
+            calendar.wrappedJSObject.onCalendarUnregistering();
+        }
 
         var calendarID = calendar.id;
 
@@ -556,6 +581,9 @@ calCalendarManager.prototype = {
                 try {
                     var cal = this.createCalendar(caldata.type, makeURL(caldata.uri));
                     cal.id = caldata.id;
+                    if ((cal.getProperty("cache.supported") !== false) && cal.getProperty("cache.enabled")) {
+                        cal = new calCachedCalendar(cal);
+                    }
                     var newObserver = new calMgrCalendarObserver(cal, this);
                     cal.addObserver(newObserver);
                     this.mCache[caldata.id] = cal;
@@ -578,6 +606,10 @@ calCalendarManager.prototype = {
     },
 
     getCalendarPref_: function(calendar, name) {
+        ASSERT(calendar, "Invalid Calendar");
+        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
+        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+
         // pref names must be lower case
         name = name.toLowerCase();
 
@@ -596,9 +628,13 @@ calCalendarManager.prototype = {
     },
 
     setCalendarPref_: function(calendar, name, value) {
+        ASSERT(calendar, "Invalid Calendar");
+        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
+        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+
         // pref names must be lower case
         name = name.toLowerCase();
-
+       
         var calendarID = calendar.id;
 
         this.mDB.beginTransaction();
@@ -620,6 +656,10 @@ calCalendarManager.prototype = {
     },
 
     deleteCalendarPref_: function(calendar, name) {
+        ASSERT(calendar, "Invalid Calendar");
+        ASSERT(calendar.id !== null, "Calendar id needs to be an integer");
+        ASSERT(name && name.length > 0, "Pref Name must be non-empty");
+
         // pref names must be lower case
         name = name.toLowerCase();
 
@@ -731,6 +771,13 @@ calMgrCalendarObserver.prototype = {
                 break;
             case "readOnly":
                 this.calMgr.mReadonlyCalendarCount += (aValue ? 1 : -1);
+                break;
+            case "cache.enabled":
+                if (aCalendar.wrappedJSObject instanceof calCachedCalendar) {
+                    // any attempt to switch this flag will reset the cached calendar;
+                    // could be useful for users in case the cache may be corrupted.
+                    aCalendar.wrappedJSObject.setupCachedCalendar();
+                }
                 break;
         }
     },

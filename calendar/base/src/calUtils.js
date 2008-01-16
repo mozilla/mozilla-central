@@ -312,6 +312,29 @@ function guessSystemTimezone() {
 }
 
 /**
+ * Shared dialog functions
+ * Gets the calendar directory, defaults to <profile-dir>/calendar
+ */
+function getCalendarDirectory() {
+    if (getCalendarDirectory.mDir === undefined) {
+        var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
+                               .getService(Components.interfaces.nsIProperties);
+        var dir = dirSvc.get("ProfD", Components.interfaces.nsILocalFile);
+        dir.append("calendar-data");
+        if (!dir.exists()) {
+            try {
+                dir.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0700);
+            } catch (exc) {
+                ASSERT(false, exc);
+                throw exc;
+            }
+        }
+        getCalendarDirectory.mDir = dir;
+    }
+    return getCalendarDirectory.mDir.clone();
+}
+
+/**
  * Check if the specified calendar is writable. This is the case when it is not
  * marked readOnly, we are not offline, or we are offline and the calendar is
  * local.
@@ -685,6 +708,11 @@ function doQueryInterface(aSelf, aProto, aIID, aList, aClassInfo) {
         list = aClassInfo.getInterfaces({});
     }
 
+    var list = aList;
+    if (!list && aClassInfo) {
+        list = aClassInfo.getInterfaces({});
+    }
+
     for each (var iid in list) {
         if (aIID.equals(iid))
             return aSelf;
@@ -774,22 +802,19 @@ function WARN(aMessage) {
 }
 
 /**
- * Returns a string describing the current js-stack.  Note that this is
- * different than Components.stack, in that STACK just returns that js
- * functions that were called on the way to this function.
+ * Returns a string describing the current js-stack with filename and line
+ * numbers.
  *
- * @param aDepth (optional) The number of frames to include
+ * @param aDepth (optional) The number of frames to include. Defaults to 5.
  */
 function STACK(aDepth) {
     var depth = aDepth || 5;
     var stack = "";
-    var frame = arguments.callee.caller;
-    for (var i = 1; i <= depth; i++) {
-        stack += i+": "+ frame.name+ "\n";
-        frame = frame.arguments.callee.caller;
-        if (!frame) {
-            break;
-        }
+    var frame = Components.stack.caller;
+    for (var i = 1; i <= depth && frame; i++) {
+        stack += i + ": [" + frame.filename + ":" +
+                 frame.lineNumber + "] " + frame.name + "\n";
+        frame = frame.caller;
     }
     return stack;
 }
@@ -1118,7 +1143,7 @@ calListenerBag.prototype = {
                 iface[func].apply(iface, args ? args : []);
             }
             catch (exc) {
-                Components.utils.reportError(exc);
+                Components.utils.reportError(exc + " STACK: " + STACK());
             }
         }
         this.mInterfaces.forEach(notifyFunc);

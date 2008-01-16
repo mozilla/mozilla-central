@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -94,7 +95,10 @@
                 <checkbox id="read-only" label="&calendarproperties.readonly.label;"/>
                 <spacer />
             </row>
-
+            <row align="center">
+                <checkbox id="cache" label="&calendarproperties.cache.label;"/>
+                <spacer/>
+            </row>
         </rows>
     </grid> 
 </dialog>

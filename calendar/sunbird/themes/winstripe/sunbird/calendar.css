@@ -202,3 +202,13 @@ calendar-navigation-buttons {
     -moz-box-align: center;
     -moz-box-pack: end;
 }
+
+#offline-status {
+    list-style-image: url(chrome://calendar/skin/offline-online.png);
+    -moz-image-region: rect(0px, 28px, 14px, 14px);
+    padding: 0px 2px;
+}
+
+#offline-status[offline="true"] {
+    -moz-image-region: rect(0px, 14px, 14px, 0px);
+}

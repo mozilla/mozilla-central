@@ -94,6 +94,11 @@ const componentData =
      script: "calUtils.js",
      constructor: null},
 
+    {cid: null,
+     contractid: null,
+     script: "calCachedCalendar.js",
+     constructor: null},
+
     {cid: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
      contractid: "@mozilla.org/calendar/manager;1",
      script: "calCalendarManager.js",

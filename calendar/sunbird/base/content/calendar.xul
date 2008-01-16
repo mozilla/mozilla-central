@@ -388,13 +388,13 @@
 </vbox>
 
 <statusbar id="status-bar" class="chromeclass-status">
+  <statusbarpanel id="offline-status"
+                  class="statusbarpanel-iconic"
+                  offline="true"
+                  oncommand="calendarOfflineManager.toggleOfflineStatus()"/>
   <statusbarpanel id="statusText"
                   flex="1"
                   value="&statusText.label;"/>
-  <statusbarpanel id="offline-status"
-                  class="statusbarpanel-iconic"
-                  hidden="true"
-                  offline="true"/>
 </statusbar>  
 
 </window>

@@ -239,6 +239,7 @@ bin\js\calAlarmMonitor.js
 bin\js\calAttachment.js
 bin\js\calAttendee.js
 bin\js\calCalendarManager.js
+bin\js\calCachedCalendar.js
 bin\js\calDateTimeFormatter.js
 bin\js\calDavCalendar.js
 bin\js\calEvent.js
