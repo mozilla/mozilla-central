@@ -43,6 +43,7 @@ const nsICommandLineHandler    = Components.interfaces.nsICommandLineHandler;
 const nsICommandLineValidator  = Components.interfaces.nsICommandLineValidator;
 const nsIDOMWindowInternal     = Components.interfaces.nsIDOMWindowInternal;
 const nsIFactory               = Components.interfaces.nsIFactory;
+const nsIFileURL               = Components.interfaces.nsIFileURL;
 const nsINetUtil               = Components.interfaces.nsINetUtil;
 const nsISupportsString        = Components.interfaces.nsISupportsString;
 const nsIURILoader             = Components.interfaces.nsIURILoader;
@@ -53,6 +54,37 @@ const NS_ERROR_ABORT = Components.results.NS_ERROR_ABORT;
 
 const URI_INHERITS_SECURITY_CONTEXT = Components.interfaces.nsIProtocolHandler
                                         .URI_INHERITS_SECURITY_CONTEXT;
+
+function resolveURIInternal(aCmdLine, aArgument) {
+  var uri = aCmdLine.resolveURI(aArgument);
+
+  if (!(uri instanceof nsIFileURL)) {
+    return uri;
+  }
+
+  try {
+    if (uri.file.exists())
+      return uri;
+  }
+  catch (e) {
+    Components.utils.reportError(e);
+  }
+
+  // We have interpreted the argument as a relative file URI, but the file
+  // doesn't exist. Try URI fixup heuristics: see bug 290782.
+
+  try {
+    var urifixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
+                             .getService(nsIURIFixup);
+
+    uri = urifixup.createFixupURI(aArgument, 0);
+  }
+  catch (e) {
+    Components.utils.reportError(e);
+  }
+
+  return uri;
+}
 
 function mayOpenURI(uri)
 {
