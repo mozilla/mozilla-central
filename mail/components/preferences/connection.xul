@@ -99,7 +99,7 @@
               <hbox align="center">
                 <textbox id="networkProxyHTTP" flex="1"
                          preference="network.proxy.http" onsyncfrompreference="return gConnectionsDialog.readHTTPProxyServer();"/>
-                <label value="&port.label;" accesskey="&HTTPport.accesskey;" control="networkProxyHTTP_Port"/>
+                <label value="&HTTPport.label;" accesskey="&HTTPport.accesskey;" control="networkProxyHTTP_Port"/>
                 <textbox id="networkProxyHTTP_Port" size="5"
                          preference="network.proxy.http_port" onsyncfrompreference="return gConnectionsDialog.readHTTPProxyPort();"/>
               </hbox>
@@ -119,7 +119,7 @@
               <hbox align="center">
                 <textbox id="networkProxySSL" flex="1" preference="network.proxy.ssl"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('ssl', false);"/>
-                <label value="&port.label;" accesskey="&SSLport.accesskey;" control="networkProxySSL_Port"/>
+                <label value="&SSLport.label;" accesskey="&SSLport.accesskey;" control="networkProxySSL_Port"/>
                 <textbox id="networkProxySSL_Port" size="5" preference="network.proxy.ssl_port"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('ssl', true);"/>
               </hbox>
@@ -131,7 +131,7 @@
               <hbox align="center">
                 <textbox id="networkProxySOCKS" flex="1" preference="network.proxy.socks"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('socks', false);"/>
-                <label value="&port.label;" accesskey="&SOCKSport.accesskey;" control="networkProxySOCKS_Port"/>
+                <label value="&SOCKSport.label;" accesskey="&SOCKSport.accesskey;" control="networkProxySOCKS_Port"/>
                 <textbox id="networkProxySOCKS_Port" size="5" preference="network.proxy.socks_port"
                          onsyncfrompreference="return gConnectionsDialog.readProxyProtocolPref('socks', true);"/>
               </hbox>
