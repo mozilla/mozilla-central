@@ -397,6 +397,8 @@ sub packit {
     $extensionStageDir = $Settings::RelaseExtensionSubdir;
   } elsif (TinderUtils::is_windows()) {
     $extensionStageDir = 'windows-xpi';
+  } elsif (TinderUtils::is_os2()) {
+    $extensionStageDir = 'os2-xpi';
   } elsif (TinderUtils::is_linux()) {
     $extensionStageDir = 'linux-xpi';
   } elsif (TinderUtils::is_mac()) {
@@ -413,35 +415,19 @@ sub packit {
       $extensionDistFile = "$builddir/dist/xpi-stage/$extension";
     }
 
-    if (! -e $extensionDistFile) {
-      return returnStatus("$extension is missing from dist $extensionDistFile directory!", ('busted'));
+    if ( scalar(grep { -f $_ } glob("$extensionDistFile")) eq 0 ) {
+      return returnStatus("Extension $extensionDistFile for uploading was not found!", ('busted'));
     }
-    
-    TinderUtils::run_shell_command("mkdir -p $stagedir/$extensionStageDir");
-    TinderUtils::run_shell_command("cp -r $extensionDistFile $stagedir/$extensionStageDir");
 
+    TinderUtils::run_shell_command("mkdir -p $stagedir/$extensionStageDir") if ( ! -e "$stagedir/$extensionStageDir" );
+    TinderUtils::run_shell_command("cp $extensionDistFile $stagedir/$extensionStageDir");
   }
-        
 
   if ($Settings::archive) {
     TinderUtils::run_shell_command("make -C $packaging_dir");
 
-    my(@xforms_xpi);
-    if ($Settings::BuildXForms) {
-      if ($Settings::MacUniversalBinary) {
-        @xforms_xpi = grep { -f $_ } <${builddir}/dist/universal/xpi-stage/xforms.xpi>;
-      } else {
-        @xforms_xpi = grep { -f $_ } <${builddir}/dist/xpi-stage/xforms.xpi>;
-      }
-    }
-
     if (TinderUtils::is_windows()) {
       TinderUtils::run_shell_command("cp $package_location/../*.zip $stagedir/");
-      if ( scalar(@xforms_xpi) gt 0 ) {
-        my $xforms_xpi_files = join(' ', @xforms_xpi);
-        TinderUtils::run_shell_command("mkdir -p $stagedir/windows-xpi/") if ( ! -e "$stagedir/windows-xpi/" );
-        TinderUtils::run_shell_command("cp $xforms_xpi_files $stagedir/windows-xpi/");
-      }
     } elsif (TinderUtils::is_mac()) {
       TinderUtils::run_shell_command("mkdir -p $package_location");
 
@@ -468,30 +454,14 @@ sub packit {
       if (glob "$package_location/../*.tar.*") {
         TinderUtils::run_shell_command("cp $package_location/../*.tar.* $stagedir/");
       }
-
-      if ( scalar(@xforms_xpi) gt 0 ) {
-        my $xforms_xpi_files = join(' ', @xforms_xpi);
-        TinderUtils::run_shell_command("mkdir -p $stagedir/mac-xpi/") if ( ! -e "$stagedir/mac-xpi/" );
-        TinderUtils::run_shell_command("cp $xforms_xpi_files $stagedir/mac-xpi/");
-      }
     } elsif (TinderUtils::is_os2()) {
       TinderUtils::run_shell_command("cp $package_location/../*.zip $stagedir/");
-      if ( scalar(@xforms_xpi) gt 0 ) {
-        my $xforms_xpi_files = join(' ', @xforms_xpi);
-        TinderUtils::run_shell_command("mkdir -p $stagedir/os2-xpi/") if ( ! -e "$stagedir/os2-xpi/" );
-        TinderUtils::run_shell_command("cp $xforms_xpi_files $stagedir/os2-xpi/");
-      }
     } else {
       my $archive_loc = "$package_location/..";
       if ($Settings::package_creation_path eq "/xpinstall/packager") {
         $archive_loc = "$archive_loc/dist";
       }
       TinderUtils::run_shell_command("cp $archive_loc/*.tar.* $stagedir/");
-      if ( scalar(@xforms_xpi) gt 0 ) {
-        my $xforms_xpi_files = join(' ', @xforms_xpi);
-        TinderUtils::run_shell_command("mkdir -p $stagedir/linux-xpi/") if ( ! -e "$stagedir/linux-xpi/" );
-        TinderUtils::run_shell_command("cp $xforms_xpi_files $stagedir/linux-xpi/");
-      }
     }
   }
 
