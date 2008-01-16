@@ -46,6 +46,7 @@
 #include "nsMsgBaseCID.h"
 #include "pratom.h"
 #include "nsIComponentManager.h"
+#include "nsICategoryManager.h"
 #include "nsIServiceManager.h"
 #include "rdf.h"
 #include "nsCOMPtr.h"
@@ -234,9 +235,7 @@ static const nsModuleComponentInfo gComponents[] = {
     },
     { "Mail Startup Handler", NS_MESSENGERBOOTSTRAP_CID,
       NS_MAILSTARTUPHANDLER_CONTRACTID,
-      nsMessengerBootstrapConstructor,
-      nsMessengerBootstrap::RegisterProc,
-      nsMessengerBootstrap::UnregisterProc
+      nsMessengerBootstrapConstructor
     },
     { "UrlListenerManager", NS_URLLISTENERMANAGER_CID,
       NS_URLLISTENERMANAGER_CONTRACTID,

@@ -78,6 +78,7 @@ REQUIRES	= xpcom \
 		  msgbaseutil \
 		  msgdb \
 		  appcomps \
+ 		  toolkitcomps \
 		  msgnews \
 		  msgimap \
 		  gfx \
@@ -85,7 +86,11 @@ REQUIRES	= xpcom \
 		  $(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
-REQUIRES	+= appcomps
+REQUIRES	+= alerts
+endif
+
+ifneq (,$(filter $(MOZ_WIDGET_TOOLKIT),gtk gtk2))
+REQUIRES	+= alerts
 endif
 
 CPPSRCS		= nsMsgFactory.cpp
@@ -102,7 +107,7 @@ EXTRA_DSO_LIBS = msgbaseutil
 endif
 
 EXTRA_DSO_LDOPTS = \
-		$(DEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
+		$(DEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
 		$(LIBS_DIR) \
 		$(EXTRA_DSO_LIBS) \
 		$(MOZ_JS_LIBS) \
