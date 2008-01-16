@@ -883,7 +883,8 @@ enum BWCOpenDest {
       mustResizeChrome = YES;
     }
     if ([NSWorkspace isLeopardOrHigher]) {
-      [[self window] setContentBorderThickness:NSHeight([mStatusBar bounds]) forEdge:NSMinYEdge];
+      if (![mStatusBar isHidden])
+        [[self window] setContentBorderThickness:NSHeight([mStatusBar bounds]) forEdge:NSMinYEdge];
     }
     else {
       // due to a cocoa issue with it updating the bounding box of two rects
@@ -2525,6 +2526,12 @@ enum BWCOpenDest {
   [[NSUserDefaults standardUserDefaults] setBool:shouldHide forKey:USER_DEFAULTS_HIDE_STATUS_BAR_KEY];
 
   [mStatusBar setHidden:shouldHide];
+  if ([NSWorkspace isLeopardOrHigher]) {
+    if (shouldHide)
+      [[self window] setContentBorderThickness:0 forEdge:NSMinYEdge];
+    else
+      [[self window] setContentBorderThickness:NSHeight([mStatusBar bounds]) forEdge:NSMinYEdge];
+  }
 
   NSSize oldContentSize = [mContentView frame].size;
   NSRect windowRect = [[self window] frame];
