@@ -48,7 +48,9 @@ EXTRA_COMPONENTS = nsBrowserContentHandler.js \
 	nsAboutAbout.js \
 	$(NULL)
 
-PREF_JS_EXPORTS = $(srcdir)/browser-prefs.js
+PREF_JS_EXPORTS = $(srcdir)/browser-prefs.js \
+		  $(srcdir)/channel-prefs.js \
+		  $(NULL)
 
 DEFINES += -DMOZ_APP_NAME="$(MOZ_APP_NAME)" \
            -DMOZ_APP_DISPLAYNAME="$(MOZ_APP_DISPLAYNAME)" \
