@@ -151,6 +151,9 @@ NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, 
   NS_ENSURE_ARG_POINTER(filterFile);
   NS_ENSURE_ARG_POINTER(filterList);
 
+  PRBool tmpExists;
+  nsresult rv;
+
   nsresult ret = NS_OK;
   nsCOMPtr <nsILocalFile> realFiltersFile;
   nsCOMPtr <nsIFile> parentDir;
@@ -189,6 +192,11 @@ NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, 
     ret = tmpFiltersFile->MoveToNative(parentDir, finalLeafName);
   }
   NS_ASSERTION(NS_SUCCEEDED(ret), "error opening/saving filter list");
+
+  rv = tmpFile->Exists(&tmpExists);
+  if (NS_SUCCEEDED(rv) && tmpExists)
+    tmpFile->Remove(PR_FALSE);
+
   return ret;
 }
 
