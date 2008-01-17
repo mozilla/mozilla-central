@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -53,10 +54,15 @@
     border-right: 1px dotted #AAA;
 }
 
-#task-edit-field {
+#view-task-edit-field {
     margin: 5px;
 }
 
-#task-edit-field[instructions] {
+.task-edit-field[instructions] {
     color: grey;
+}
+
+.task-quickadd-box {
+    margin: 0px 4px;
+    background-color: -moz-field;
 }

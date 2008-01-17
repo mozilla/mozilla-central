@@ -44,14 +44,15 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-task-tree.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-task-view.js"/>
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 
   <vbox id="displayDeck">
     <vbox id="calendar-task-box" flex="1"
           onselect="taskDetailsView.onSelect(event);">
       <hbox align="center">
-        <textbox id="task-edit-field" flex="1"
+        <textbox id="view-task-edit-field"
+                 class="task-edit-field"
+                 flex="1"
                  value="&calendar.task.edit.instructions.label;"
                  instructions="&calendar.task.edit.instructions.label;"
                  onfocus="taskEdit.onFocus(event)" 

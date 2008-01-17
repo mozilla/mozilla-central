@@ -65,3 +65,6 @@
 
   <!-- NEEDED FOR MINIMONTH BUSY HIGHLIGHT -->
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-minimonth-busy.js"/>
+
+  <!-- NEEDED FOR TASK VIEW/LIST SUPPORT -->
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-task-view.js"/>
