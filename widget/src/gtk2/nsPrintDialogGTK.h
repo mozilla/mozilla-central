@@ -12,18 +12,18 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is mozilla.org code.
+ * The Original Code is the Mozilla GTK2 print dialog interface.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Kenneth Herron <kherron@fmailbox.com>
+ * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
  * under the terms of either the GPL or the LGPL, and not to allow others to
@@ -34,37 +34,25 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-#include "nsPrintOptionsGTK.h"
-#include "nsPrintSettingsGTK.h"
 
+#ifndef nsPrintDialog_h__
+#define nsPrintDialog_h__
 
-/** ---------------------------------------------------
- *  See documentation in nsPrintOptionsWin.h
- *	@update 6/21/00 dwc
- */
-nsPrintOptionsGTK::nsPrintOptionsGTK()
+#include "nsIPrintDialogService.h"
+
+class nsIPrintSettings;
+
+class nsPrintDialogServiceGTK : public nsIPrintDialogService
 {
+public:
+  nsPrintDialogServiceGTK();
+  virtual ~nsPrintDialogServiceGTK();
 
-}
+  NS_DECL_ISUPPORTS
 
-/** ---------------------------------------------------
- *  See documentation in nsPrintOptionsImpl.h
- *	@update 6/21/00 dwc
- */
-nsPrintOptionsGTK::~nsPrintOptionsGTK()
-{
-}
+  NS_IMETHODIMP Init();
+  NS_IMETHODIMP Show(nsIPrintSettings *aSettings);
+  NS_IMETHODIMP ShowPageSetup(nsIPrintSettings *aSettings);
+};
 
-/* nsIPrintSettings CreatePrintSettings (); */
-nsresult nsPrintOptionsGTK::_CreatePrintSettings(nsIPrintSettings **_retval)
-{
-  *_retval = nsnull;
-  nsPrintSettingsGTK* printSettings = new nsPrintSettingsGTK(); // does not initially ref count
-  NS_ENSURE_TRUE(printSettings, NS_ERROR_OUT_OF_MEMORY);
-
-  NS_ADDREF(*_retval = printSettings); // ref count
-
-  return NS_OK;
-}
-
-
+#endif
