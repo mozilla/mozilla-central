@@ -88,6 +88,7 @@ sub build_who {
     my ($tree) = @_;
     my $result = undef;
     $::query_date_min = time - (60 * 60 * 24 * $days);
+    $::query_date_min -= $::query_date_min % 3600;
 
     print "Minimum date: $::query_date_min\n" if $F_DEBUG;
 
