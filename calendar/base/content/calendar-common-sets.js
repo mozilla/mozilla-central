@@ -94,6 +94,13 @@ var calendarController = {
     },
 
     isCommandEnabled: function cC_isCommandEnabled(aCommand) {
+        if (this.defaultController && !this.isCalendarInForeground()) {
+            // If calendar is not in foreground, let the default controller take
+            // care. If we don't have a default controller (i.e sunbird), just
+            // continue.
+            return this.defaultController.isCommandEnabled(aCommand);
+        }
+
         switch (aCommand) {
             case "calendar_new_event_command":
                 return this.writable && this.calendars_support_events;
@@ -133,61 +140,34 @@ var calendarController = {
             case "cmd_paste":
                 return this.writable && canPaste();
             case "cmd_undo":
-                if (this.isCalendarInForeground()) {
-                    goSetMenuValue(aCommand, 'valueDefault');
-                    if (canUndo()) {
-                        return true;
-                    }
-                }
-                break;
+                goSetMenuValue(aCommand, 'valueDefault');
+                return canUndo();
             case "cmd_redo":
-                if (this.isCalendarInForeground()) {
-                    goSetMenuValue(aCommand, 'valueDefault');
-                    if (canRedo()) {
-                        return true;
-                    }
-                }
-                break;
-
-            case "cmd_selectAll":
-                if (this.isCalendarInForeground()) {
-                    // If there are no events at all, we might want to disable
-                    // this item
-                    return true;
-                }
-                break;
-
-            case "button_print":
-            case "cmd_print":
-                if (this.isCalendarInForeground()) {
-                    return true;
-                }
-                break;
+                goSetMenuValue(aCommand, 'valueDefault');
+                return canRedo();
             case "cmd_printpreview":
-                if (this.isCalendarInForeground()) {
-                    return false;
-                }
-                break;
+                return false;
             case "button_delete":
             case "cmd_delete":
-                if (this.isCalendarInForeground()) {
-                    return this.item_selected;
-                }
-                break;
+                return this.item_selected;
         }
 
         if (aCommand in this.commands) {
             // All other commands we support should be enabled by default
             return true;
         }
-
-        if (this.defaultController) {
-            return this.defaultController.isCommandEnabled(aCommand);
-        }
         return false;
     },
 
     doCommand: function cC_doCommand(aCommand) {
+        if (this.defaultController && !this.isCalendarInForeground()) {
+            // If calendar is not in foreground, let the default controller take
+            // care. If we don't have a default controller (i.e sunbird), just
+            // continue.
+            this.defaultController.doCommand(aCommand);
+            return;
+        }
+
         switch (aCommand) {
             // Common Commands
             case "calendar_new_event_command":
@@ -258,12 +238,12 @@ var calendarController = {
                 pasteFromClipboard();
                 break;
             case "cmd_undo":
-                if (this.isCalendarInForeground() && canUndo()) {
+                if (canUndo()) {
                     getTransactionMgr().undo();
                 }
                 break;
             case "cmd_redo":
-                if (this.isCalendarInForeground() && canRedo()) {
+                if (canRedo()) {
                     getTransactionMgr().redo();
                 }
                 break;
@@ -275,25 +255,15 @@ var calendarController = {
                 break;
             case "button_print":
             case "cmd_print":
-                if (this.isCalendarInForeground()) {
-                    calPrint();
-                    return;
-                }
+                calPrint();
                 break;
 
             // Thunderbird commands
             case "cmd_printpreview":
             case "button_delete":
             case "cmd_delete":
-                if (this.isCalendarInForeground()) {
-                    // For these commands, nothing should happen in calendar mode.
-                    return;
-                }
-                break;
-        }
-
-        if (this.defaultController) {
-            this.defaultController.doCommand(aCommand);
+                // For these commands, nothing should happen in calendar mode.
+                return;
         }
     },
 

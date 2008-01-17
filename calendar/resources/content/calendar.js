@@ -222,40 +222,6 @@ function calendarFinish()
     calendarOfflineManager.uninit();
 }
 
-function selectAllEvents()
-{
-    var items = [];
-    var listener = {
-        onOperationComplete: function selectAll_ooc(aCalendar, aStatus, 
-                                                    aOperationType, aId, 
-                                                    aDetail) {
-            currentView().setSelectedItems(items.length, items, false);
-        },
-        onGetResult: function selectAll_ogr(aCalendar, aStatus, aItemType, 
-                                            aDetail, aCount, aItems) {
-            for each (var item in aItems) {
-                items.push(item);
-            }
-        }
-    };
-
-    var composite = getCompositeCalendar();
-    var filter = composite.ITEM_FILTER_COMPLETED_ALL |
-                 composite.ITEM_FILTER_CLASS_OCCURRENCES;
-
-    if (currentView().tasksInView) {
-        filter |= composite.ITEM_FILTER_TYPE_ALL; 
-    } else {
-        filter |= composite.ITEM_FILTER_TYPE_EVENT;
-    }
-
-    // Need to move one day out to get all events
-    var end = currentView().endDay.clone();
-    end.day += 1;
-
-    composite.getItems(filter, 0, currentView().startDay, end, listener);
-}
-
 function closeCalendar()
 {
    self.close();
