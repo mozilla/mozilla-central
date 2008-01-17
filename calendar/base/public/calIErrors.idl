@@ -83,6 +83,11 @@ interface calIErrors : nsISupports
    */
   const unsigned long OPERATION_CANCELLED = ERROR_BASE + 5;
 
+  /**
+   * Creation of calendar object failed
+   */
+  const unsigned long PROVIDER_CREATION_FAILED = ERROR_BASE + 6;
+
   /* ICS specific errors */
   const unsigned long ICS_ERROR_BASE = ERROR_BASE + 0x100;
 

@@ -451,10 +451,27 @@ calCalendarManager.prototype = {
      * calICalendarManager interface
      */
     createCalendar: function(type, uri) {
-        var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
-                                 .createInstance(Components.interfaces.calICalendar);
-        calendar.uri = uri;
-        return calendar;
+        try {
+            var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
+                                     .createInstance(Components.interfaces.calICalendar);
+            calendar.uri = uri;
+            return calendar;
+        } catch (ex) {
+            ASSERT(false, ex);
+            var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
+                                       .createInstance(Components.interfaces.nsIDialogParamBlock);
+            paramBlock.SetNumberStrings(3);
+            paramBlock.SetString(0, calGetString("calendar", "unableToCreateProvider", [uri.spec]));
+            paramBlock.SetString(1, Components.interfaces.calIErrors.PROVIDER_CREATION_FAILED);
+            paramBlock.SetString(2, ex);
+            var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                     .getService(Components.interfaces.nsIWindowWatcher);
+            wWatcher.openWindow(null,
+                                "chrome://calendar/content/calErrorPrompt.xul",
+                                "_blank",
+                                "chrome,dialog=yes,alwaysRaised=yes",
+                                paramBlock);
+        }
     },
 
     registerCalendar: function(calendar) {
