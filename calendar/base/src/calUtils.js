@@ -83,7 +83,7 @@ function createAttendee() {
 function getIOService() {
     if (getIOService.mObject === undefined) {
         getIOService.mObject = Components.classes["@mozilla.org/network/io-service;1"]
-                                         .getService(Components.interfaces.nsIIOService);
+                                         .getService(Components.interfaces.nsIIOService2);
     }
     return getIOService.mObject;
 }
