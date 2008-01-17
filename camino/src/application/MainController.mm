@@ -883,10 +883,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (BOOL)applicationShouldHandleReopen:(NSApplication*)theApp hasVisibleWindows:(BOOL)flag
 {
-  // we might be sitting there with the "there is another copy of camino running" dialog up
-  // (which means we're in a modal loop in [PreferenceManager init]). So if we haven't
-  // finished initting prefs yet, just bail.
-  if (![PreferenceManager sharedInstanceDontCreate])
+  // Don't open a new browser window if we're still launching or if there's a
+  // modal alert dialog displayed.
+  if (![self isInitialized] || [NSApp modalWindow])
     return NO;
 
   // ignore |hasVisibleWindows| because we always want to show a browser window when
