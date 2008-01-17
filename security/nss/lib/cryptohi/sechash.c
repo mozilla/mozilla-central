@@ -211,6 +211,44 @@ HASH_GetHashTypeByOidTag(SECOidTag hashOid)
     return ht;
 }
 
+SECOidTag
+HASH_GetHashOidTagByHMACOidTag(SECOidTag hmacOid)
+{
+    SECOidTag hashOid = SEC_OID_UNKNOWN;
+
+    switch(hmacOid) {
+    /* no oid exists for HMAC_MD2 */
+    /* NSS does not define a oid for HMAC_MD4 */
+    case SEC_OID_HMAC_SHA1:   hashOid = SEC_OID_SHA1;   break;
+    case SEC_OID_HMAC_SHA256: hashOid = SEC_OID_SHA256; break;
+    case SEC_OID_HMAC_SHA384: hashOid = SEC_OID_SHA384; break;
+    case SEC_OID_HMAC_SHA512: hashOid = SEC_OID_SHA512; break;
+    default:                  hashOid = SEC_OID_UNKNOWN;   
+	PORT_SetError(SEC_ERROR_INVALID_ALGORITHM);
+	break;
+    }
+    return hashOid;
+}
+
+SECOidTag
+HASH_GetHMACOidTagByHashOidTag(SECOidTag hashOid)
+{
+    SECOidTag hmacOid = SEC_OID_UNKNOWN;
+
+    switch(hmacOid) {
+    /* no oid exists for HMAC_MD2 */
+    /* NSS does not define a oid for HMAC_MD4 */
+    case SEC_OID_SHA1:   hmacOid = SEC_OID_HMAC_SHA1;   break;
+    case SEC_OID_SHA256: hmacOid = SEC_OID_HMAC_SHA256; break;
+    case SEC_OID_SHA384: hmacOid = SEC_OID_HMAC_SHA384; break;
+    case SEC_OID_SHA512: hmacOid = SEC_OID_HMAC_SHA512; break;
+    default:             hmacOid = SEC_OID_UNKNOWN;   
+	PORT_SetError(SEC_ERROR_INVALID_ALGORITHM);
+	break;
+    }
+    return hmacOid;
+}
+
 const SECHashObject * 
 HASH_GetHashObjectByOidTag(SECOidTag hashOid)
 {
