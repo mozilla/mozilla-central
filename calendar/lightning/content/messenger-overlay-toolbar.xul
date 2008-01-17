@@ -113,12 +113,12 @@
                    label="&calendar.month.button.label;"
                    tooltiptext="&calendar.month.button.tooltip;"
                    observes="calendar_month-view_command"/>
-    <toolbarbutton id="calendar-delete-event-button"
+    <toolbarbutton id="calendar-delete-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.delete.button.label;"
                    tooltiptext="&calendar.delete.button.tooltip;"
-                   observes="calendar_delete_event_command"/>
+                   observes="lightning_delete_item_command"/>
     <toolbarbutton id="calendar-print-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
@@ -136,12 +136,12 @@
                    label="&calendar.context.button.label;"
                    tooltiptext="&calendar.todaypane.button.tooltip;"
                    command="cmd_toggleTodayPane"/>
-    <toolbarbutton id="calendar-edit-event-button"
+    <toolbarbutton id="calendar-edit-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
                    label="&calendar.edit.button.label;"
                    tooltiptext="&calendar.edit.button.tooltip;"
-                   observes="calendar_modify_event_command"/>
+                   observes="lightning_modify_item_command"/>
     <toolbarbutton id="calendar-import-button"
                    mode="calendar"
                    class="cal-toolbarbutton-1"
@@ -189,7 +189,7 @@
              context="toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,separator,calendar-delete-event-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
+             defaultset="calendar-new-event-button,calendar-new-task-button,separator,calendar-go-to-today-button,separator,calendar-day-view-button,calendar-week-view-button,calendar-multiweek-view-button,calendar-month-view-button,separator,calendar-unifinder-button,separator,calendar-delete-button,calendar-print-button,separator,calendar-remote-reload-button,spring"
              persist="collapsedinMode"/>
   </toolbox>
 

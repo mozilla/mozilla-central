@@ -355,8 +355,16 @@ calStorageCalendar.prototype = {
 
     // void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
     adoptItem: function (aItem, aListener) {
-        if (this.readOnly) 
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+        if (this.readOnly) {
+            if (aListener) {
+                aListener.onOperationComplete(this.superCalenddar,
+                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                              aListener.ADD,
+                                              null,
+                                              "Calendar is readonly");
+            }
+            return;
+        }
         // Ensure that we're looking at the base item
         // if we were given an occurrence.  Later we can
         // optimize this.
@@ -407,7 +415,14 @@ calStorageCalendar.prototype = {
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
     modifyItem: function (aNewItem, aOldItem, aListener) {
         if (this.readOnly) {
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+            if (aListener) {
+                aListener.onOperationComplete(this.superCalenddar,
+                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                              aListener.MODIFY,
+                                              null,
+                                              "Calendar is readonly");
+            }
+            return;
         }
         if (!aNewItem) {
             throw Components.results.NS_ERROR_INVALID_ARG;
@@ -475,8 +490,16 @@ calStorageCalendar.prototype = {
 
     // void deleteItem( in string id, in calIOperationListener aListener );
     deleteItem: function (aItem, aListener) {
-        if (this.readOnly) 
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+        if (this.readOnly) {
+            if (aListener) {
+                aListener.onOperationComplete(this.superCalenddar,
+                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                              aListener.DELETE,
+                                              null,
+                                              "Calendar is readonly");
+            }
+            return;
+        }
         if (aItem.parentItem != aItem) {
             aItem.parentItem.recurrenceInfo.removeExceptionFor(aItem.recurrenceId);
             return;

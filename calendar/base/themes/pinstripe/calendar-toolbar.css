@@ -31,6 +31,7 @@
 #                 Kevin Gerich <webmail@kmgerich.com>
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Simon Paquet <bugzilla@babylonsounds.com>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -99,23 +100,23 @@ toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"] {
  *   Button: "Edit"
  *-------------------------------------------------------------------*/
 
-#calendar-edit-event-button {
+#calendar-edit-button {
     -moz-image-region: rect(0px 64px 32px 32px);
 }
-#calendar-edit-event-button:active {
+#calendar-edit-button:active {
     -moz-image-region: rect(32px 64px 64px 32px);
 }
-#calendar-edit-event-button[disabled="true"] {
+#calendar-edit-button[disabled="true"] {
     -moz-image-region: rect(64px 64px 96px 32px);
 }
 
-toolbar[iconsize="small"] #calendar-edit-event-button {
+toolbar[iconsize="small"] #calendar-edit-button {
     -moz-image-region: rect(0px 48px 24px 24px);
 }
-toolbar[iconsize="small"] #calendar-edit-event-button:active {
+toolbar[iconsize="small"] #calendar-edit-button:active {
     -moz-image-region: rect(24px 48px 48px 24px);
 }
-toolbar[iconsize="small"] #calendar-edit-event-button[disabled="true"] {
+toolbar[iconsize="small"] #calendar-edit-button[disabled="true"] {
     -moz-image-region: rect(48px 48px 72px 24px);
 }
 
@@ -123,23 +124,23 @@ toolbar[iconsize="small"] #calendar-edit-event-button[disabled="true"] {
  *   Button: "Delete"
  *-------------------------------------------------------------------*/
 
-#calendar-delete-event-button {
+#calendar-delete-button {
     -moz-image-region: rect(0px 96px 32px 64px);
 }
-#calendar-delete-event-button:active {
+#calendar-delete-button:active {
     -moz-image-region: rect(32px 96px 64px 64px);
 }
-#calendar-delete-event-button[disabled="true"] {
+#calendar-delete-button[disabled="true"] {
     -moz-image-region: rect(64px 96px 96px 64px);
 }
 
-toolbar[iconsize="small"] #calendar-delete-event-button {
+toolbar[iconsize="small"] #calendar-delete-button {
     -moz-image-region: rect(0px 72px 24px 48px);
 }
-toolbar[iconsize="small"] #calendar-delete-event-button:active {
+toolbar[iconsize="small"] #calendar-delete-button:active {
     -moz-image-region: rect(24px 72px 48px 48px);
 }
-toolbar[iconsize="small"] #calendar-delete-event-button[disabled="true"] {
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"] {
     -moz-image-region: rect(48px 72px 72px 48px);
 }
 

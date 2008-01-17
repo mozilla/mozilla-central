@@ -140,6 +140,25 @@
         ]]></getter>
       </property>
 
+      <property name="selectedTasks" readonly="true">
+        <getter><![CDATA[
+          var tasks = [];
+          var start = {};
+          var end = {};
+          var rangeCount = this.mTreeView.selection.getRangeCount();
+          for (var range = 0; range < rangeCount; range++) {
+              this.mTreeView.selection.getRangeAt(range, start, end);
+              for (var i = start.value; i <= end.value; i++) {
+                  var task = this.getTaskAtRow(i);
+                  if (task) {
+                      tasks.push(this.getTaskAtRow(i));
+                  }
+              }
+          }
+          return tasks;
+        ]]></getter>
+      </property>
+
       <property name="hideCompleted">
         <getter><![CDATA[
           return this.mHideCompletedTasks;

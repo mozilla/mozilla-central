@@ -247,6 +247,9 @@
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
     <command id="modify_todo_command" oncommand="editToDo()"/>
     <command id="delete_todo_command" oncommand="deleteToDoCommand()" disabled="true"/>
+
+    <command id="lightning_delete_item_command" oncommand="goDoCommand('lightning_delete_item_command');"/>
+    <command id="lightning_modify_item_command" oncommand="goDoCommand('lightning_modify_item_command');"/>
   </commandset>
 
   <keyset id="ltnKeys">
@@ -288,10 +291,10 @@
     <popup id="calendar-item-context-menu" onpopupshowing="return true;">
       <menuitem label="&calendar.context.modifyitem.label;" 
                 accesskey="&calendar.context.modifyitem.accesskey;" 
-                observes="calendar_modify_event_command"/>
+                observes="lightning_modify_item_command"/>
       <menuitem label="&calendar.context.deleteitem.label;" 
                 accesskey="&calendar.context.deleteitem.accesskey;"
-                observes="calendar_delete_event_command"/>
+                observes="lightning_delete_item_command"/>
     </popup>
     <menupopup id="calendar-GoPopupMenu">
        <menuitem id="ltnGoToToday"

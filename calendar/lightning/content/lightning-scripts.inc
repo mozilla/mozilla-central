@@ -45,7 +45,7 @@
 <script type="application/x-javascript" src="chrome://lightning/content/lightning-utils.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
-
+<script type="application/x-javascript" src="chrome://lightning/content/lightning-common-sets.js"/>
 <script type="application/x-javascript">
     var calendarmenulabel = "&lightning.calendar.label;";
     var calendarmenuaccesskey = "&lightning.calendar.accesskey;";

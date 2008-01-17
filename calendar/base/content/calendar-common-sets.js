@@ -44,6 +44,7 @@ var calendarController = {
         "calendar_delete_event_command": true,
 
         "calendar_new_todo_command": true,
+        "calendar_modify_todo_command": true,
         "calendar_delete_todo_command": true,
 
         "calendar_new_calendar_command": true,
@@ -100,10 +101,15 @@ var calendarController = {
                 return this.item_selected;
             case "calendar_delete_event_command":
                 return this.selected_items_writable;
+
             case "calendar_new_todo_command":
                 return this.writable && this.calendars_support_tasks;
-            case "calendar_delete_todo_comand":
-                return this.writable; // XXX are selected todo items readonly?
+            case "calendar_modify_todo_command":
+                return this.todo_items_selected;
+            case "calendar_delete_todo_command":
+                return this.writable &&
+                       this.todo_items_selected &&
+                       this.todo_items_writable;
 
             case "calendar_delete_calendar_command":
                 return !this.last_calendar;
@@ -196,6 +202,12 @@ var calendarController = {
 
             case "calendar_new_todo_command":
                 createTodoWithDialog(getSelectedCalendar());
+                break;
+            case "calendar_modify_todo_command":
+                var selectedTasks = getFocusedTaskTree().selectedTasks;
+                for each (var task in selectedTasks) {
+                    modifyEventWithDialog(task);
+                }
                 break;
             case "calendar_delete_todo_command":
                 deleteToDoCommand();
@@ -373,6 +385,28 @@ var calendarController = {
             if (isCalendarWritable(cal) &&
                 cal.getProperty("capabilities.events.supported") !== false) {
                 return true;
+            }
+        }
+        return false;
+    },
+
+    get todo_items_selected cC_todo_items_selected() {
+        var taskTree = getFocusedTaskTree();
+        if (taskTree) {
+            var selectedTasks = taskTree.selectedTasks;
+            return (selectedTasks.length > 0);
+        }
+        return false;
+    },
+
+    get todo_items_writable cC_todo_items_writable() {
+        var taskTree = getFocusedTaskTree();
+        if (taskTree) {
+            var selectedTasks = taskTree.selectedTasks;
+            for each (var task in selectedTasks) {
+                if (isCalendarWritable(task.calendar)) {
+                    return true;
+                }
             }
         }
         return false;

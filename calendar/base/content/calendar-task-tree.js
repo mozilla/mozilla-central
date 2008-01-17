@@ -170,22 +170,21 @@ function modifyTaskFromContext() {
  *  Delete the current selected item with focus from the task tree
  */
 function deleteToDoCommand(aDoNotConfirm) {
-   if (!document.popupNode)
-     return;
-   var tree = document.popupNode;
-   var numRanges = tree.mTreeView.selection.getRangeCount();
-   var selectedItems = [];
-   var start = {};
-   var end = {};
-   for (var t=0; t<numRanges; t++) {
-      tree.mTreeView.selection.getRangeAt(t, start, end);
-      for (var v = start.value; v <= end.value; v++) {
-         selectedItems.push(tree.getTaskAtRow(v));
-      }
-   }
-   calendarViewController.deleteOccurrences(selectedItems.length,
-                                            selectedItems,
-                                            false,
-                                            aDoNotConfirm);
-   tree.mTreeView.selection.clearSelection();
+    var taskTree = getFocusedTaskTree();
+    var selectedItems = taskTree.selectedTasks;
+    calendarViewController.deleteOccurrences(selectedItems.length,
+                                             selectedItems,
+                                             false,
+                                             aDoNotConfirm);
+}
+
+function getFocusedTaskTree() {
+    // Which tree is focused depends on the mode.
+    var taskTree;
+    if (gCurrentMode == "task") {
+        taskTree = document.getElementById("calendar-task-tree");
+    } else if (!gCurrentMode || gCurrentMode == "mail" || isSunbird()) {
+        taskTree = document.getElementById("unifinder-todo-tree");
+    }
+    return taskTree;
 }

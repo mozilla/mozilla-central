@@ -32,6 +32,7 @@
 #                 Matthew Willis <mattwillis@gmail.com>
 #                 Simon Paquet <bugzilla@babylonsounds.com>
 #                 Martin Schroeder <mschroeder@mozilla.x-home.org>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -112,72 +113,72 @@ toolbar[iconsize="small"] #calendar-new-event-button:hover:active {
  *   edit event button
  *-------------------------------------------------------------------*/
 
-#calendar-edit-event-button {
+#calendar-edit-button {
     -moz-image-region: rect(0px 48px 24px 24px);
 }
-#calendar-edit-event-button[disabled="true"],
-#calendar-edit-event-button[disabled="true"]:hover,
-#calendar-edit-event-button[disabled="true"]:hover:active {
+#calendar-edit-button[disabled="true"],
+#calendar-edit-button[disabled="true"]:hover,
+#calendar-edit-button[disabled="true"]:hover:active {
     -moz-image-region: rect(48px 48px 72px 24px);
 }
-#calendar-edit-event-button:hover {
+#calendar-edit-button:hover {
     -moz-image-region: rect(24px 48px 48px 24px);
 }
-#calendar-edit-event-button:hover:active {
+#calendar-edit-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   edit event button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-edit-event-button {
+toolbar[iconsize="small"] #calendar-edit-button {
     -moz-image-region: rect(0px 32px 16px 16px);
 }
-toolbar[iconsize="small"] #calendar-edit-event-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-edit-event-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-edit-event-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-edit-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-edit-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-edit-button[disabled="true"]:hover:active {
     -moz-image-region: rect(32px 32px 48px 16px);
 }
-toolbar[iconsize="small"] #calendar-edit-event-button:hover {
+toolbar[iconsize="small"] #calendar-edit-button:hover {
     -moz-image-region: rect(16px 32px 32px 16px);
 }
-toolbar[iconsize="small"] #calendar-edit-event-button:hover:active {
+toolbar[iconsize="small"] #calendar-edit-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   delete event button
  *-------------------------------------------------------------------*/
 
-#calendar-delete-event-button {
+#calendar-delete-button {
     -moz-image-region: rect(0px 72px 24px 48px);
 }
-#calendar-delete-event-button[disabled="true"],
-#calendar-delete-event-button[disabled="true"]:hover,
-#calendar-delete-event-button[disabled="true"]:hover:active {
+#calendar-delete-button[disabled="true"],
+#calendar-delete-button[disabled="true"]:hover,
+#calendar-delete-button[disabled="true"]:hover:active {
     -moz-image-region: rect(48px 72px 72px 48px);
 }
-#calendar-delete-event-button:hover {
+#calendar-delete-button:hover {
     -moz-image-region: rect(24px 72px 48px 48px);
 }
-#calendar-delete-event-button:hover:active {
+#calendar-delete-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   delete event button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-delete-event-button {
+toolbar[iconsize="small"] #calendar-delete-button {
     -moz-image-region: rect(0px 48px 16px 32px);
 }
-toolbar[iconsize="small"] #calendar-delete-event-button[disabled="true"],
-toolbar[iconsize="small"] #calendar-delete-event-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-delete-event-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"],
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"]:hover:active {
     -moz-image-region: rect(32px 48px 48px 32px);
 }
-toolbar[iconsize="small"] #calendar-delete-event-button:hover {
+toolbar[iconsize="small"] #calendar-delete-button:hover {
     -moz-image-region: rect(16px 48px 32px 32px);
 }
-toolbar[iconsize="small"] #calendar-delete-event-button:hover:active {
+toolbar[iconsize="small"] #calendar-delete-button:hover:active {
 }
 
 /*--------------------------------------------------------------------

@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -60,7 +61,8 @@
       <calendar-task-tree id="calendar-task-tree" flex="1"
                           visible-columns="completed priority title startdate duedate"
                           persist="visible-columns ordinals widths sort-active sort-direction"
-                          context="taskitem-context-menu"/>
+                          context="taskitem-context-menu"
+                          onselect="document.commandDispatcher.updateCommands('calendar_commands')"/>
       <splitter id="calendar-task-view-splitter" collapse="before" persist="state"/>
       <vbox flex="1">
         <grid>
