@@ -68,3 +68,23 @@ treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, white) {
     list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
     -moz-image-region: rect(0, 20px, 10px, 10px);
 }
+
+tree {
+  border: none;
+  padding: 0;
+  margin: 4px;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+  -moz-appearance: none;
+}
+
+treecol[hideheader="true"],
+treecols[hideheader="true"] {
+  font-size: 0px;
+  border: none;
+  padding: 0;
+  max-height: 0px;
+  height: 0px;
+}

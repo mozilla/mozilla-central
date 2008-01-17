@@ -122,6 +122,9 @@
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
       <field name="mHideCompletedTasks">false</field>
+      <field name="mFilterFunction">null</field>
+      <field name="mStartDate">null</field>
+      <field name="mEndDate">null</field>
 
       <property name="currentIndex">
         <getter><![CDATA[
@@ -165,6 +168,33 @@
         ]]></getter>
         <setter><![CDATA[
           this.mHideCompletedTasks = val;
+          return val;
+        ]]></setter>
+      </property>
+      
+      <property name="filterFunction">
+        <setter><![CDATA[
+          this.mFilterFunction = val;
+          return val;
+        ]]></setter>
+      </property>
+      
+      <property name="startDate">
+        <getter><![CDATA[
+          return this.mStartDate;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mStartDate = val;
+          return val;
+        ]]></setter>
+      </property>
+
+      <property name="endDate">
+        <getter><![CDATA[
+          return this.mEndDate;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mEndDate = val;
           return val;
         ]]></setter>
       </property>
@@ -249,6 +279,16 @@
           modifyItem: function tTV_modifyItem(aNewItem, aOldItem) {
               var index = this.binding.mHash2Index[aOldItem.hashId];
               if (index != undefined) {
+                  // if a filter is installed we need to make sure that
+                  // the item still belongs to the set of valid items before
+                  // moving forward. if the filter cuts this item off, we
+                  // need to act accordingly.
+                  if (this.binding.mFilterFunction &&
+                      !this.binding.mFilterFunction(aNewItem)) {
+                      return this.removeItem(aNewItem);
+                  }
+                  // same holds true for the completed filter, which is
+                  // currently modeled as an explicit boolean.
                   if (aNewItem.isCompleted != aOldItem.isCompleted) {
                       if (aNewItem.isCompleted && this.binding.hideCompleted) {
                           this.removeItem(aNewItem);
@@ -807,7 +847,10 @@
 
              onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
                  for (var i=0; i<aCount; i++) {
-                     refreshListener.mTaskArray.push(aItems[i]);
+                     if (!savedThis.mFilterFunction ||
+                         savedThis.mFilterFunction(aItems[i])) {
+                         refreshListener.mTaskArray.push(aItems[i]);
+                     }
                  }
              }
           };
@@ -819,7 +862,10 @@
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;
-                  composite.getItems(filter, 0, null, null, refreshListener);
+                  if (savedThis.startDate && savedThis.endDate) {
+                      filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
+                  }
+                  composite.getItems(filter, 0, savedThis.startDate, savedThis.endDate, refreshListener);
               }
           };
           this.mRefreshQueue.push(refreshJob);
@@ -839,7 +885,10 @@
 
              onGetResult: function (aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
                  for (var i=0; i<aCount; i++) {
-                     savedThis.mTaskArray.push(aItems[i]);
+                     if (!savedThis.mFilterFunction ||
+                         savedThis.mFilterFunction(aItems[i])) {
+                         savedThis.mTaskArray.push(aItems[i]);
+                     }
                  }
              }
           };
@@ -851,7 +900,10 @@
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;
-                  aCalendar.getItems(filter, 0, null, null, refreshListener);
+                  if (savedThis.startDate && savedThis.endDate) {
+                      filter |= composite.ITEM_FILTER_CLASS_OCCURRENCES;
+                  }
+                  aCalendar.getItems(filter, 0, savedThis.startDate, savedThis.endDate, refreshListener);
               }
           };
           this.mRefreshQueue.push(refreshJob);

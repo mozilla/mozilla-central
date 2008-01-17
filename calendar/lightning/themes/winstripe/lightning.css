@@ -292,3 +292,7 @@ description.tooltipBody {
   white-space: -moz-pre-wrap;
   margin: 0pt;
 }
+
+#ltnSidebar {
+  background: white;
+}

@@ -291,3 +291,15 @@ description.tooltipBody {
   white-space: -moz-pre-wrap;
   margin: 0pt;
 }
+
+#ltnSidebar {
+  background: white;
+}
+
+#task-tree-filter {
+  margin-left: 12px;
+}
+
+#calendar-list-tree {
+  margin-left: 12px;
+}

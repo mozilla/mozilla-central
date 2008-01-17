@@ -95,6 +95,76 @@ var taskDetailsView = {
     }
 };
 
+function taskViewUpdate(filter) {
+
+    var percentCompleted = function(item) {
+        var percent = 0;
+        var property = item.getProperty("PERCENT-COMPLETE");
+        if (property != null) {
+            var percent = parseInt(property);
+        }
+        return percent;
+    }
+
+    var filterFunctions = {
+        notstarted: function filterNotStarted(item) {
+            return (percentCompleted(item) <= 0);
+        },
+        overdue: function filterOverdue(item) {
+          // in case the item has no due date
+          // it can't be overdue by definition
+          if (item.dueDate == null) {
+              return false;
+          }
+          return (percentCompleted(item) < 100) &&
+                 !(item.dueDate.compare(now()) > 0);
+        },
+        completed: function filterCompleted(item) {
+            return (percentCompleted(item) >= 100);
+        }
+    }
+
+    var tree = document.getElementById("calendar-task-tree");
+    tree.filterFunction = filterFunctions[filter] || null;
+
+    var todayDate = new Date();
+    var startDate = new Date(todayDate.getFullYear(),
+                             todayDate.getMonth(),
+                             todayDate.getDate(),
+                             0, 0, 0);
+
+    var rangeFunctions = {
+        today: function rangeToday() {
+            tree.startDate = jsDateToDateTime(startDate)
+                .getInTimezone(calendarDefaultTimezone());
+            tree.endDate = jsDateToDateTime(
+                new Date(startDate.getTime() + (1000 * 60 * 60 * 24) - 1))
+                    .getInTimezone(calendarDefaultTimezone());
+        },
+        next7days: function rangeNext7Days() {
+            tree.startDate = jsDateToDateTime(startDate)
+                .getInTimezone(calendarDefaultTimezone());
+            tree.endDate = jsDateToDateTime(
+                new Date(startDate.getTime() + (1000 * 60 * 60 * 24 * 8)))
+                    .getInTimezone(calendarDefaultTimezone());
+        }
+    }
+    
+    if (rangeFunctions[filter]) {
+      rangeFunctions[filter]();
+    } else {
+      tree.startDate = null;
+      tree.endDate = null;
+    }
+
+    tree.refresh();
+}
+
+function taskViewUpdateFilter(event) {
+
+    taskViewUpdate(event.target.value);
+}
+
 function taskViewObserveDisplayDeckChange(event) {
     var deck = event.target;
 
@@ -112,7 +182,8 @@ function taskViewObserveDisplayDeckChange(event) {
 
     // In case we find that the task view has been made visible, we refresh the view.
     if (id == "calendar-task-box") {
-        document.getElementById("calendar-task-tree").refresh();
+        taskViewUpdate(
+            document.getElementById("task-tree-filter").value || "all");
     }
 }
 

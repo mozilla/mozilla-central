@@ -177,6 +177,14 @@
 <!ENTITY calendar.menu.numberofweeks.5      "5 Weeks" >
 <!ENTITY calendar.menu.numberofweeks.6      "6 Weeks" >
 
+<!ENTITY calendar.task.filter.title.label      "Show">
+<!ENTITY calendar.task.filter.all.label        "All">
+<!ENTITY calendar.task.filter.today.label      "Today">
+<!ENTITY calendar.task.filter.next7days.label  "Next Seven Days">
+<!ENTITY calendar.task.filter.notstarted.label "Not Started Tasks">
+<!ENTITY calendar.task.filter.overdue.label    "Overdue Tasks">
+<!ENTITY calendar.task.filter.completed.label  "Completed Tasks">
+
 <!ENTITY calendar.task.edit.instructions.label "Click Here to Add a New Task">
 <!ENTITY calendar.task.details.title.label     "Title:">
 

@@ -268,7 +268,7 @@ agenda-checkbox {
   -moz-box-align: center;
   padding: 4px 2px 4px 4px;
   font-weight: bold;
-  border-bottom: 1px solid #A7A6AA;
+  border-bottom: 1px dotted #c0c0c0;
 }
 
 .checkbox-label-box {

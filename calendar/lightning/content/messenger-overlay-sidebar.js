@@ -260,6 +260,9 @@ function ltnOnLoad(event)
     injectCalendarCommandController();
 
     getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
+
+    var filter = document.getElementById("task-tree-filter");
+    filter.value = filter.value || "all";
 }
 
 function onSelectionChanged(aEvent) {

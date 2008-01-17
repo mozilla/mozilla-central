@@ -175,6 +175,15 @@ function ltnSwitch2Calendar() {
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
 
+    // always hide the task filter option
+    document.getElementById("task-tree-filter-header")
+        .setAttribute("collapsed", "true");
+    document.getElementById("task-tree-filter")
+        .setAttribute("collapsed", "true");
+    
+    mailToolbar.setAttribute("collapsed", "true");
+    calendarToolbar.removeAttribute("collapsed");
+
     window.setCursor("auto");
   }
 }
@@ -212,6 +221,16 @@ function ltnSwitch2Task() {
 
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
+
+    // always show the task filter option
+    var filterHeader = document.getElementById("task-tree-filter-header");
+    filterHeader.removeAttribute("collapsed");
+    var filter = document.getElementById("task-tree-filter");
+    if (filterHeader.getAttribute("checked") != "true") {
+        filter.setAttribute("collapsed", "true");
+    } else {
+        filter.removeAttribute("collapsed");
+    }
 
     window.setCursor("auto");
   }

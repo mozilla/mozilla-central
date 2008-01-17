@@ -61,6 +61,7 @@
 <?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
 
 <?xul-overlay href="chrome://calendar/content/calendar-calendars-list.xul"?>
 <?xul-overlay href="chrome://calendar/content/calendar-common-sets.xul"?>
@@ -402,8 +403,31 @@
         </hbox>
         <separator/>
         <vbox id="calendar-panel" flex="1">
+          <agenda-checkbox id="task-tree-filter-header"
+                           checked="true"
+                           persist="checked"
+                           class="agenda-checkbox"
+                           label="&calendar.task.filter.title.label;"/>
+          <radiogroup id="task-tree-filter"
+                      collapsable="true"
+                      persist="value,collapsed">
+            <radio label="&calendar.task.filter.all.label;" value="all" onclick="taskViewUpdateFilter(event)"/>
+            <radio label="&calendar.task.filter.today.label;" value="today" onclick="taskViewUpdateFilter(event)"/>
+            <radio label="&calendar.task.filter.next7days.label;" value="next7days" onclick="taskViewUpdateFilter(event)"/>
+            <radio label="&calendar.task.filter.notstarted.label;" value="notstarted" onclick="taskViewUpdateFilter(event)"/>
+            <radio label="&calendar.task.filter.overdue.label;" value="overdue" onclick="taskViewUpdateFilter(event)"/>
+            <radio label="&calendar.task.filter.completed.label;" value="completed" onclick="taskViewUpdateFilter(event)"/>
+          </radiogroup>
+          <agenda-checkbox id="calendar-list-header"
+                           checked="true"
+                           persist="checked"
+                           class="agenda-checkbox"
+                           label="Calendar"/>
           <!-- This will be overlayed by calendar-calendars-list.xul -->
-          <tree id="calendar-list-tree" flex="1"/>
+          <tree id="calendar-list-tree"
+                flex="1"
+                collapsable="true"
+                persist="collapsed"/>
         </vbox>
       </vbox>
     </deck>

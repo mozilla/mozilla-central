@@ -86,15 +86,18 @@
         ondblclick="calendarListTreeView.onDoubleClick(event);"
         onselect="calendarListTreeView.onSelect(event);"
         context="list-calendars-context-menu">
-    <treecols>
+      <treecols hideheader="true">
       <treecol id="calendar-list-tree-checkbox"
                cycler="true"
                type="checkbox"
+               hideheader="true"
                width="17"/>
       <treecol id="calendar-list-tree-color"
                cycler="true"
+               hideheader="true"
                width="16"/>
       <treecol id="calendar-list-tree-calendar"
+               hideheader="true"
                label="&calendar.unifinder.tree.calendarname.label;"
                flex="1"/>
     </treecols>
