@@ -434,7 +434,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, addListener, httpchannel);
         } else {
             streamLoader.init(addListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
 
         return;
@@ -594,7 +594,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, modListener, httpchannel);
         } else {
             streamLoader.init(modListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
 
         return;
@@ -662,7 +662,7 @@ calDavCalendar.prototype = {
                     streamLoader2.init(httpchannel2, delListener2, httpchannel2);
                 } else {
                     streamLoader2.init(streamListener2);
-                    channel.asyncOpen(streamLoader2, httpchannel2);
+                    httpchannel2.asyncOpen(streamLoader2, httpchannel2);
                 }
 
             } else {
@@ -721,7 +721,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, delListener, httpchannel);
         } else {
             streamLoader.init(delListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
 
         return;
@@ -1452,7 +1452,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, streamListener, httpchannel);
         } else {
             streamLoader.init(streamListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
 
     },
@@ -1510,7 +1510,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, streamListener, httpchannel);
         } else {
             streamLoader.init(streamListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
     },
 
@@ -1639,7 +1639,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, streamListener, httpchannel);
         } else {
             streamLoader.init(streamListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
         return;
     },
@@ -1802,7 +1802,7 @@ calDavCalendar.prototype = {
             streamLoader.init(httpchannel, streamListener, httpchannel);
         } else {
             streamLoader.init(streamListener);
-            channel.asyncOpen(streamLoader, httpchannel);
+            httpchannel.asyncOpen(streamLoader, httpchannel);
         }
 
     },
