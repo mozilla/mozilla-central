@@ -22,6 +22,7 @@ bin\defaults\messenger\*
 bin\searchplugins\*
 bin\dictionaries\*
 bin\uninstall\helper.exe
+bin\updater.ini
 
 ; default files for en-US
 bin\defaults\profile\bookmarks.html
@@ -461,6 +462,9 @@ bin\chrome\pippki.manifest
 ; crashreporter
 bin\crashreporter.exe
 bin\crashreporter.ini
+
+; Updater
+bin\updater.exe
 
 [mail]
 ; MOZ_XUL_APP=1 addition
