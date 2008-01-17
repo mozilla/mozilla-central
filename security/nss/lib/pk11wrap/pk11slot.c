@@ -2124,6 +2124,61 @@ PK11_GetBestKeyLength(PK11SlotInfo *slot,CK_MECHANISM_TYPE mechanism)
     return mechanism_info.ulMaxKeySize;
 }
 
+
+/*
+ * This function uses the existing PKCS #11 module to find the
+ * longest supported key length in the preferred token for a mechanism.
+ * This varies from the above function in that 1) it returns the key length
+ * even for fixed key algorithms, and 2) it looks through the tokens
+ * generally rather than for a specific token. This is used in liu of
+ * a PK11_GetKeyLength function in pk11mech.c since we can actually read
+ * supported key lengths from PKCS #11.
+ *
+ * For symmetric key operations the length is returned in bytes.
+ */
+int
+PK11_GetMaxKeyLength(CK_MECHANISM_TYPE mechanism)
+{
+    CK_MECHANISM_INFO mechanism_info;
+    PK11SlotList *list = NULL;
+    PK11SlotListElement *le ;
+    PRBool freeit = PR_FALSE;
+    int keyLength = 0;
+
+    list = PK11_GetSlotList(mechanism);
+
+    if ((list == NULL) || (list->head == NULL)) {
+	/* We need to look up all the tokens for the mechanism */
+	list = PK11_GetAllTokens(mechanism,PR_FALSE,PR_FALSE,NULL);
+	freeit = PR_TRUE;
+    }
+
+    /* no tokens recognize this mechanism */
+    if (list == NULL) {
+	PORT_SetError(SEC_ERROR_INVALID_ALGORITHM);
+	return 0;
+    }
+
+    for (le = PK11_GetFirstSafe(list); le;
+			 	le = PK11_GetNextSafe(list,le,PR_TRUE)) {
+	PK11SlotInfo *slot = le->slot;
+	CK_RV crv;
+	if (PK11_IsPresent(slot)) {
+	    if (!slot->isThreadSafe) PK11_EnterSlotMonitor(slot);
+	    crv = PK11_GETTAB(slot)->C_GetMechanismInfo(slot->slotID,
+                               mechanism,&mechanism_info);
+ 	    if (!slot->isThreadSafe) PK11_ExitSlotMonitor(slot);
+	    if ((crv == CKR_OK)  && (mechanism_info.ulMaxKeySize != 0)
+		&& (mechanism_info.ulMaxKeySize != 0xffffffff)) {
+		keyLength = mechanism_info.ulMaxKeySize;
+		break;
+	    }
+	}
+    }
+    if (freeit) { PK11_FreeSlotList(list); }
+    return keyLength;
+}
+
 SECStatus
 PK11_SeedRandom(PK11SlotInfo *slot, unsigned char *data, int len) {
     CK_RV crv;

@@ -111,6 +111,16 @@ SECStatus pbe_PK11AlgidToParam(SECAlgorithmID *algid,SECItem *mech);
 SECStatus PBE_PK11ParamToAlgid(SECOidTag algTag, SECItem *param, 
 				PRArenaPool *arena, SECAlgorithmID *algId);
 
+PK11SymKey *pk11_TokenKeyGenWithFlagsAndKeyType(PK11SlotInfo *slot,
+	CK_MECHANISM_TYPE type, SECItem *param, CK_KEY_TYPE keyType, 
+	int keySize, SECItem *keyId, CK_FLAGS opFlags, 
+	PK11AttrFlags attrFlags, void *wincx);
+
+CK_MECHANISM_TYPE pk11_GetPBECryptoMechanism(SECAlgorithmID *algid,
+                   SECItem **param, SECItem *pwd, PRBool faulty3DES);
+
+
+
 extern void pk11sdr_Init(void);
 extern void pk11sdr_Shutdown(void);
 

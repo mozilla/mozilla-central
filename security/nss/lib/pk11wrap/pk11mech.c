@@ -61,12 +61,14 @@ typedef struct {
 	CK_MECHANISM_TYPE keyGen;
 	CK_KEY_TYPE keyType;
 	CK_MECHANISM_TYPE type;
+	CK_MECHANISM_TYPE padType;
 	int blockSize;
 	int iv;
 } pk11MechanismData;
 	
 static pk11MechanismData pk11_default = 
-  { CKM_GENERIC_SECRET_KEY_GEN, CKK_GENERIC_SECRET, CKM_FAKE_RANDOM, 8, 8 };
+  { CKM_GENERIC_SECRET_KEY_GEN, CKK_GENERIC_SECRET, 
+	CKM_FAKE_RANDOM, CKM_FAKE_RANDOM, 8, 8 };
 static pk11MechanismData *pk11_MechanismTable = NULL;
 static int pk11_MechTableSize = 0;
 static int pk11_MechEntrySize = 0;
@@ -139,7 +141,9 @@ PK11_GetBestWrapMechanism(PK11SlotInfo *slot)
  */
 void
 PK11_AddMechanismEntry(CK_MECHANISM_TYPE type, CK_KEY_TYPE key,
-		 	CK_MECHANISM_TYPE keyGen, int ivLen, int blockSize)
+		 	CK_MECHANISM_TYPE keyGen, 
+			CK_MECHANISM_TYPE padType,
+			int ivLen, int blockSize)
 {
     int tableSize = pk11_MechTableSize;
     int size = pk11_MechEntrySize;
@@ -160,6 +164,7 @@ PK11_AddMechanismEntry(CK_MECHANISM_TYPE type, CK_KEY_TYPE key,
     newt[entry].type = type;
     newt[entry].keyType = key;
     newt[entry].keyGen = keyGen;
+    newt[entry].padType = padType;
     newt[entry].iv = ivLen;
     newt[entry].blockSize = blockSize;
 
@@ -603,6 +608,7 @@ PK11_GetKeyGenWithSize(CK_MECHANISM_TYPE type, int size)
     case CKM_PBE_SHA1_RC4_128:
     case CKM_PBE_SHA1_DES3_EDE_CBC:
     case CKM_PBE_SHA1_DES2_EDE_CBC:
+    case CKM_PKCS5_PBKD2:
     	return type;
     default:
 	return pk11_lookup(type)->keyGen;
@@ -976,6 +982,8 @@ PK11_IVFromParam(CK_MECHANISM_TYPE type,SECItem *param,int *len)
     case CKM_CAST_CBC:
     case CKM_CAST3_CBC:
     case CKM_CAST5_CBC:
+    case CKM_CAMELLIA_CBC_PAD:
+    case CKM_AES_CBC_PAD:
     case CKM_DES_CBC_PAD:
     case CKM_DES3_CBC_PAD:
     case CKM_IDEA_CBC_PAD:
@@ -1217,6 +1225,7 @@ PK11_ParamFromAlgid(SECAlgorithmID *algid)
     case CKM_PBE_SHA1_RC2_128_CBC:
     case CKM_PBE_SHA1_RC4_40:
     case CKM_PBE_SHA1_RC4_128:
+    case CKM_PKCS5_PBKD2:
 	rv = pbe_PK11AlgidToParam(algid,mech);
 	if (rv != SECSuccess) {
 	    goto loser;
@@ -1369,7 +1378,7 @@ PK11_GenerateNewParam(CK_MECHANISM_TYPE type, PK11SymKey *key) {
 	}
 	/* NOTE PK11_GetKeyLength can return -1 if the key isn't and RC2, RC5,
 	 *   or RC4 key. Of course that wouldn't happen here doing RC2:).*/
-	*rc2_ecb_params = PK11_GetKeyLength(key)*8;
+	*rc2_ecb_params = key ? PK11_GetKeyLength(key)*8 : 128;
 	mech->data = (unsigned char *) rc2_ecb_params;
 	mech->len = sizeof(CK_RC2_PARAMS);
 	break;
@@ -1387,7 +1396,7 @@ PK11_GenerateNewParam(CK_MECHANISM_TYPE type, PK11SymKey *key) {
 	}
 	/* NOTE PK11_GetKeyLength can return -1 if the key isn't and RC2, RC5,
 	 *   or RC4 key. Of course that wouldn't happen here doing RC2:).*/
-	rc2_params->ulEffectiveBits = PK11_GetKeyLength(key)*8;
+	rc2_params->ulEffectiveBits = key ? PK11_GetKeyLength(key)*8 : 128;
 	if (iv.data)
 	    PORT_Memcpy(rc2_params->iv,iv.data,sizeof(rc2_params->iv));
 	mech->data = (unsigned char *) rc2_params;
@@ -1693,6 +1702,14 @@ PK11_MapPBEMechanismToCryptoMechanism(CK_MECHANISM_PTR pPBEMechanism,
 
     if((pPBEMechanism == CK_NULL_PTR) || (pCryptoMechanism == CK_NULL_PTR)) {
 	return CKR_HOST_MEMORY;
+    }
+
+    /* pkcs5 v2 cannot be supported by this interface.
+     * use PK11_GetPBECryptoMechanism instead.
+     */
+    if ((pPBEMechanism->mechanism == CKM_INVALID_MECHANISM) || 
+	(pPBEMechanism->mechanism == CKM_PKCS5_PBKD2)) {
+	return CKR_MECHANISM_INVALID;
     }
 
     pPBEparams = (CK_PBE_PARAMS_PTR)pPBEMechanism->pParameter;

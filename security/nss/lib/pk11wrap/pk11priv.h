@@ -65,6 +65,7 @@ SECStatus PK11_DeleteSlotFromList(PK11SlotList *list,PK11SlotListElement *le);
 PK11SlotListElement *PK11_FindSlotElement(PK11SlotList *list,
 							PK11SlotInfo *slot);
 PK11SlotInfo *PK11_FindSlotBySerial(char *serial);
+int PK11_GetMaxKeyLength(CK_MECHANISM_TYPE type);
 
 /************************************************************
  * Generic Slot Management
@@ -122,7 +123,8 @@ SECStatus PK11_ReadSlotCerts(PK11SlotInfo *slot);
  *       Mechanism Mapping functions
  *********************************************************************/
 void PK11_AddMechanismEntry(CK_MECHANISM_TYPE type, CK_KEY_TYPE key,
-		 	CK_MECHANISM_TYPE keygen, int ivLen, int blocksize);
+	 	CK_MECHANISM_TYPE keygen, CK_MECHANISM_TYPE pad, 
+		int ivLen, int blocksize);
 CK_MECHANISM_TYPE PK11_GetKeyMechanism(CK_KEY_TYPE type);
 CK_MECHANISM_TYPE PK11_GetKeyGenWithSize(CK_MECHANISM_TYPE type, int size);
 

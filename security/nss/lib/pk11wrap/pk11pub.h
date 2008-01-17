@@ -258,6 +258,9 @@ SECStatus PK11_SeedRandom(PK11SlotInfo *,unsigned char *data,int len);
 SECStatus PK11_GenerateRandomOnSlot(PK11SlotInfo *,unsigned char *data,int len);
 SECStatus PK11_RandomUpdate(void *data, size_t bytes);
 SECStatus PK11_GenerateRandom(unsigned char *data,int len);
+
+/* warning: cannot work with pkcs 5 v2
+ * use algorithm ID s instead of pkcs #11 mechanism pointers */
 CK_RV PK11_MapPBEMechanismToCryptoMechanism(CK_MECHANISM_PTR pPBEMechanism,
 					    CK_MECHANISM_PTR pCryptoMechanism,
 					    SECItem *pbe_pwd, PRBool bad3DES);
@@ -682,14 +685,31 @@ void PK11_DestroyPBEParams(SECItem *params);
 
 SECAlgorithmID *
 PK11_CreatePBEAlgorithmID(SECOidTag algorithm, int iteration, SECItem *salt);
+
+/* use to create PKCS5 V2 algorithms with finder control than that provided
+ * by PK11_CreatePBEAlgorithmID. */
+SECAlgorithmID *
+PK11_CreatePBEV2AlgorithmID(SECOidTag pbeAlgTag, SECOidTag cipherAlgTag,
+                            SECOidTag prfAlgTag, int keyLength, int iteration,
+                            SECItem *salt);
 PK11SymKey *
 PK11_PBEKeyGen(PK11SlotInfo *slot, SECAlgorithmID *algid,  SECItem *pwitem,
 	       PRBool faulty3DES, void *wincx);
+
+/* warning: cannot work with PKCS 5 v2 use PK11_PBEKeyGen instead */
 PK11SymKey *
 PK11_RawPBEKeyGen(PK11SlotInfo *slot, CK_MECHANISM_TYPE type, SECItem *params,
 		SECItem *pwitem, PRBool faulty3DES, void *wincx);
 SECItem *
 PK11_GetPBEIV(SECAlgorithmID *algid, SECItem *pwitem);
+/*
+ * Get the Mechanism and parameter of the base encryption or mac scheme from
+ * a PBE algorithm ID.
+ *  Caller is responsible for freeing the return parameter (param).
+ */
+CK_MECHANISM_TYPE
+PK11_GetPBECryptoMechanism(SECAlgorithmID *algid, 
+			   SECItem **param, SECItem *pwd);
 
 /**********************************************************************
  * Functions to manage secmod flags

@@ -876,23 +876,31 @@ PK11_MoveSymKey(PK11SlotInfo *slot, CK_ATTRIBUTE_TYPE operation,
 					operation, flags, perm, symKey);
 }
 
-
 /*
- * Use the token to generate a key. keySize must be 'zero' for fixed key
- * length algorithms. A nonzero keySize causes the CKA_VALUE_LEN attribute
- * to be added to the template for the key. PKCS #11 modules fail if you
- * specify the CKA_VALUE_LEN attribute for keys with fixed length.
- * NOTE: this means to generate a DES2 key from this interface you must
- * specify CKM_DES2_KEY_GEN as the mechanism directly; specifying
- * CKM_DES3_CBC as the mechanism and 16 as keySize currently doesn't work.
+ * Use the token to generate a key. 
+ * 
+ * keySize must be 'zero' for fixed key length algorithms. A nonzero 
+ *  keySize causes the CKA_VALUE_LEN attribute to be added to the template 
+ *  for the key. Most PKCS #11 modules fail if you specify the CKA_VALUE_LEN 
+ *  attribute for keys with fixed length. The exception is DES2. If you
+ *  select a CKM_DES3_CBC mechanism, this code will not add the CKA_VALUE_LEN
+ *  paramter and use the key size to determine which underlying DES keygen
+ *  function to use (CKM_DES2_KEY_GEN or CKM_DES3_KEY_GEN).
+ *
+ * keyType must be -1 for most algorithms. Some PBE algorthims cannot 
+ *  determine the correct key type from the mechanism or the paramters,
+ *  so key type must be specified. Other PKCS #11 mechanisms may do so in
+ *  the future. Currently there is no need to export this publically.
+ *  Keep it private until there is a need in case we need to expand the
+ *  keygen parameters again...
  *
  * CK_FLAGS flags: key operation flags
  * PK11AttrFlags attrFlags: PK11_ATTR_XXX key attribute flags
  */
 PK11SymKey *
-PK11_TokenKeyGenWithFlags(PK11SlotInfo *slot, CK_MECHANISM_TYPE type,
-    SECItem *param, int keySize, SECItem *keyid, CK_FLAGS opFlags,
-    PK11AttrFlags attrFlags, void *wincx)
+pk11_TokenKeyGenWithFlagsAndKeyType(PK11SlotInfo *slot, CK_MECHANISM_TYPE type,
+    SECItem *param, CK_KEY_TYPE keyType, int keySize, SECItem *keyid, 
+    CK_FLAGS opFlags, PK11AttrFlags attrFlags, void *wincx)
 {
     PK11SymKey *symKey;
     CK_ATTRIBUTE genTemplate[MAX_TEMPL_ATTRS];
@@ -911,10 +919,16 @@ PK11_TokenKeyGenWithFlags(PK11SlotInfo *slot, CK_MECHANISM_TYPE type,
 	return NULL;
     }
 
-    if (keySize != 0) {
+    if ((keySize != 0) && (type != CKM_DES3_CBC) && 
+		(type !=CKM_DES3_CBC_PAD) && (type != CKM_DES3_ECB)) {
         ck_key_size = keySize; /* Convert to PK11 type */
 
         PK11_SETATTRS(attrs, CKA_VALUE_LEN, &ck_key_size, sizeof(ck_key_size)); 
+							attrs++;
+    }
+
+    if (keyType != -1) {
+        PK11_SETATTRS(attrs, CKA_KEY_TYPE, &keyType, sizeof(CK_KEY_TYPE)); 
 							attrs++;
     }
 
@@ -1003,6 +1017,29 @@ PK11_TokenKeyGenWithFlags(PK11SlotInfo *slot, CK_MECHANISM_TYPE type,
 }
 
 /*
+ * Use the token to generate a key.  - Public
+ * 
+ * keySize must be 'zero' for fixed key length algorithms. A nonzero 
+ *  keySize causes the CKA_VALUE_LEN attribute to be added to the template 
+ *  for the key. Most PKCS #11 modules fail if you specify the CKA_VALUE_LEN 
+ *  attribute for keys with fixed length. The exception is DES2. If you
+ *  select a CKM_DES3_CBC mechanism, this code will not add the CKA_VALUE_LEN
+ *  paramter and use the key size to determine which underlying DES keygen
+ *  function to use (CKM_DES2_KEY_GEN or CKM_DES3_KEY_GEN).
+ *
+ * CK_FLAGS flags: key operation flags
+ * PK11AttrFlags attrFlags: PK11_ATTR_XXX key attribute flags
+ */
+PK11SymKey *
+PK11_TokenKeyGenWithFlags(PK11SlotInfo *slot, CK_MECHANISM_TYPE type,
+    SECItem *param, int keySize, SECItem *keyid, CK_FLAGS opFlags,
+    PK11AttrFlags attrFlags, void *wincx)
+{
+    return pk11_TokenKeyGenWithFlagsAndKeyType(slot, type, param, -1, keySize, 
+	keyid, opFlags, attrFlags, wincx);
+}
+
+/*
  * Use the token to generate a key. keySize must be 'zero' for fixed key
  * length algorithms. A nonzero keySize causes the CKA_VALUE_LEN attribute
  * to be added to the template for the key. PKCS #11 modules fail if you
@@ -1031,8 +1068,8 @@ PK11_TokenKeyGen(PK11SlotInfo *slot, CK_MECHANISM_TYPE type, SECItem *param,
 	attrFlags |= (PK11_ATTR_TOKEN | PK11_ATTR_PRIVATE);
     }
 
-    symKey = PK11_TokenKeyGenWithFlags(slot, type, param, keySize, keyid,
-						opFlags, attrFlags, wincx);
+    symKey = pk11_TokenKeyGenWithFlagsAndKeyType(slot, type, param, 
+			-1, keySize, keyid, opFlags, attrFlags, wincx);
     if (symKey && weird) {
 	PK11_SetFortezzaHack(symKey);
     }

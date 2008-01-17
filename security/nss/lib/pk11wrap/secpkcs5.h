@@ -50,8 +50,11 @@ typedef struct PBEBitGenContextStr PBEBitGenContext;
 
 SEC_BEGIN_PROTOS
 
+/* private */
 SECAlgorithmID *
-SEC_PKCS5CreateAlgorithmID(SECOidTag algorithm, SECItem *salt, int iteration);
+sec_pkcs5CreateAlgorithmID(SECOidTag algorithm, SECOidTag cipherAlgorithm,
+			SECOidTag prfAlg, SECOidTag *pPbeAlgorithm,
+			int keyLengh, SECItem *salt, int iteration);
 
 /* Get the initialization vector.  The password is passed in, hashing
  * is performed, and the initialization vector is returned.
@@ -65,6 +68,7 @@ SEC_PKCS5GetIV(SECAlgorithmID *algid, SECItem *pwitem, PRBool faulty3DES);
 
 SECOidTag SEC_PKCS5GetCryptoAlgorithm(SECAlgorithmID *algid);
 PRBool SEC_PKCS5IsAlgorithmPBEAlg(SECAlgorithmID *algid);
+PRBool SEC_PKCS5IsAlgorithmPBEAlgTag(SECOidTag algTag);
 SECOidTag SEC_PKCS5GetPBEAlgorithm(SECOidTag algTag, int keyLen);
 int SEC_PKCS5GetKeyLength(SECAlgorithmID *algid);
 
