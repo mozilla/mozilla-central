@@ -1197,9 +1197,13 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   NSMutableDictionary* folderDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                             children, BMChildrenKey,
                    [self savedTitle], BMTitleKey,
-                    [self savedUUID], BMUUIDKey,
-             [self savedSpecialFlag], BMFolderTypeKey,
                                       nil];
+
+  if (mSpecialFlag)
+    [folderDict setObject:[self savedSpecialFlag] forKey:BMFolderTypeKey];
+
+  if ([mUUID length])
+    [folderDict setObject:mUUID forKey:BMUUIDKey];
 
   if ([[self itemDescription] length])
     [folderDict setObject:[self itemDescription] forKey:BMFolderDescKey];

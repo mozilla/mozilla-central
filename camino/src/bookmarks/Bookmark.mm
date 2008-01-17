@@ -64,7 +64,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 // methods used for saving to files; are guaranteed never to return nil
 - (id)savedURL;
-- (id)savedLastVisit;
 - (id)savedStatus;
 - (id)savedNumberOfVisits;
 - (id)savedFaviconURL;
@@ -294,12 +293,7 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 
 - (id)savedURL
 {
-  return mURL;
-}
-
-- (id)savedLastVisit
-{
-  return mLastVisit;
+  return mURL ? mURL : @"";
 }
 
 - (id)savedStatus
@@ -366,10 +360,17 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   NSMutableDictionary* itemDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                 [self savedTitle], BMTitleKey,
                   [self savedURL], BMURLKey,
-            [self savedLastVisit], BMLastVisitKey,
-       [self savedNumberOfVisits], BMNumberVisitsKey,
-               [self savedStatus], BMStatusKey,
                                    nil];
+
+  if (mLastVisit)
+    [itemDict setObject:mLastVisit forKey:BMLastVisitKey];
+
+  if (mNumberOfVisits)
+    [itemDict setObject:[self savedNumberOfVisits] forKey:BMNumberVisitsKey];
+
+  // The bookmark is guaranteed not to be a separator at this point, so
+  // [self savedStatus] will be 0, and there is no reason to write anything
+  // for BMStatusKey.
 
   if ([[self itemDescription] length])
     [itemDict setObject:[self itemDescription] forKey:BMDescKey];
