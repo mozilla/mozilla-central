@@ -582,9 +582,13 @@ function grabAll(elem)
     url = elem.getAttributeNS(XLinkNS, "href");
     try {
       var baseURI = ioService.newURI(elem.baseURI, elem.ownerDocument.characterSet, null);
-      url = ioService.newURI(href, elem.ownerDocument.characterSet, baseURI).spec;
+      url = ioService.newURI(url, elem.ownerDocument.characterSet, baseURI).spec;
     } catch (e) {}
-    gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
+    // SVG images without an xlink:href attribute are ignored
+    if (elem instanceof SVGImageElement)
+      addImage(url, gStrings.mediaImg, "", elem, false);
+    else
+      gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
   }
   else if (elem instanceof HTMLScriptElement)
     gLinkView.addRow([elem.type || elem.language, elem.src || gStrings.linkScriptInline, gStrings.linkScript]);
@@ -876,17 +880,21 @@ function makePreview(row)
 
   setItemValue("imageurltext", url);
 
-  if (item.hasAttribute("title"))
+  if (item.hasAttribute("title") &&
+      !item instanceof SVGImageElement)
     setItemValue("imagetitletext", item.title);
   else
     setItemValue("imagetitletext", null);
 
-  if (item.hasAttribute("longDesc"))
+  if (item.hasAttribute("longDesc") &&
+      !item instanceof SVGImageElement)
     setItemValue("imagelongdesctext", item.longDesc);
   else
     setItemValue("imagelongdesctext", null);
 
-  if (item.hasAttribute("alt"))
+  if (item instanceof SVGImageElement)
+    setItemValue("imagealttext", null);
+  else if (item.hasAttribute("alt"))
     setItemValue("imagealttext", item.alt);
   else if (item instanceof HTMLImageElement || isBG)
     setItemValue("imagealttext", null);
@@ -967,22 +975,28 @@ function makePreview(row)
   var physWidth = 0, physHeight = 0;
   var width = 0, height = 0;
 
-  if ((item instanceof HTMLLinkElement || item instanceof HTMLInputElement ||
+  if ((item instanceof HTMLLinkElement ||
+       item instanceof HTMLInputElement ||
        item instanceof HTMLImageElement ||
+       item instanceof SVGImageElement ||
       (item instanceof HTMLObjectElement && /^image\//.test(mimeType)) || isBG) && isProtocolAllowed) {
     newImage.setAttribute("src", url);
     physWidth = newImage.width || 0;
     physHeight = newImage.height || 0;
 
-    // "width" and "height" attributes must be set to newImage,
-    // even if there is no "width" or "height attribute in item;
-    // otherwise, the preview image cannot be displayed correctly.
-    if (!isBG) {
+    if (item instanceof SVGImageElement) {
+      newImage.width = item.width.baseVal.value;
+      newImage.height = item.height.baseVal.value;
+    }
+    else if (!isBG) {
+      // "width" and "height" attributes must be set to newImage,
+      // even if there is no "width" or "height attribute in item;
+      // otherwise, the preview image cannot be displayed correctly.
       newImage.width = ("width" in item && item.width) || newImage.naturalWidth;
       newImage.height = ("height" in item && item.height) || newImage.naturalHeight;
     }
     else {
-      // the Width and Height of an HTML tag should not be use for its background image
+      // the Width and Height of an HTML tag should not be used for its background image
       // (for example, "table" can have "width" or "height" attributes)
       newImage.width = newImage.naturalWidth;
       newImage.height = newImage.naturalHeight;
