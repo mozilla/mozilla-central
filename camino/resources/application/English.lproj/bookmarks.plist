@@ -11,80 +11,42 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Macworld</string>
 							<key>URL</key>
 							<string>http://www.macworld.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>TidBITS</string>
 							<key>URL</key>
 							<string>http://www.tidbits.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>The Unofficial Apple Weblog</string>
 							<key>URL</key>
 							<string>http://www.tuaw.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>MacInTouch</string>
 							<key>URL</key>
 							<string>http://www.macintouch.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Apple - Support</string>
 							<key>URL</key>
 							<string>http://www.apple.com/support/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Mac OS X Hints</string>
 							<key>URL</key>
 							<string>http://www.macosxhints.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Mac News &amp; Support</string>
 				</dict>
@@ -92,56 +54,30 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Apple - Downloads</string>
 							<key>URL</key>
 							<string>http://www.apple.com/downloads/macosx/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>VersionTracker</string>
 							<key>URL</key>
 							<string>http://www.versiontracker.com/macosx/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Open Source Mac</string>
 							<key>URL</key>
 							<string>http://www.opensourcemac.org/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>iusethis Mac Software</string>
 							<key>URL</key>
 							<string>http://osx.iusethis.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Mac Software</string>
 				</dict>
@@ -149,68 +85,36 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Amazon.com</string>
 							<key>URL</key>
 							<string>http://www.amazon.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Buy.com</string>
 							<key>URL</key>
 							<string>http://www.buy.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>craigslist Classifieds</string>
 							<key>URL</key>
 							<string>http://www.craigslist.org/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>eBay</string>
 							<key>URL</key>
 							<string>http://www.ebay.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>PriceGrabber.com</string>
 							<key>URL</key>
 							<string>http://www.pricegrabber.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Shopping</string>
 				</dict>
@@ -218,56 +122,30 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Flickr</string>
 							<key>URL</key>
 							<string>http://www.flickr.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>LiveJournal</string>
 							<key>URL</key>
 							<string>http://www.livejournal.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>WordPress.com</string>
 							<key>URL</key>
 							<string>http://wordpress.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>YouTube</string>
 							<key>URL</key>
 							<string>http://youtube.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Social</string>
 				</dict>
@@ -275,40 +153,22 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>CNET News.com</string>
 							<key>URL</key>
 							<string>http://www.news.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Wired News</string>
 							<key>URL</key>
 							<string>http://www.wired.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Macworld</string>
 							<key>URL</key>
 							<string>http://www.macworld.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
 					<key>FolderType</key>
@@ -317,56 +177,30 @@
 					<string>Tech News</string>
 				</dict>
 				<dict>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Google</string>
 					<key>URL</key>
 					<string>http://www.google.com/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 				<dict>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Wikipedia</string>
 					<key>URL</key>
 					<string>http://en.wikipedia.org/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 				<dict>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Google Maps</string>
 					<key>URL</key>
 					<string>http://maps.google.com/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 				<dict>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Yahoo!</string>
 					<key>URL</key>
 					<string>http://www.yahoo.com/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 			</array>
-			<key>FolderType</key>
-			<integer>0</integer>
 			<key>Title</key>
 			<string>Bookmark Menu</string>
 		</dict>
@@ -379,58 +213,32 @@
 						<dict>
 							<key>Keyword</key>
 							<string>camino</string>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Camino</string>
 							<key>URL</key>
 							<string>http://caminobrowser.org/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Camino Help</string>
 							<key>URL</key>
 							<string>http://caminobrowser.org/help/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
 							<key>Description</key>
 							<string>Unofficial site for third-party themes and add-ons for Camino.</string>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>PimpMyCamino</string>
 							<key>URL</key>
 							<string>http://pimpmycamino.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Mozilla.org</string>
 							<key>URL</key>
 							<string>http://www.mozilla.org/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Camino Info</string>
 				</dict>
@@ -438,108 +246,58 @@
 					<key>Children</key>
 					<array>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>BBC News</string>
 							<key>URL</key>
 							<string>http://news.bbc.co.uk/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>MSNBC News</string>
 							<key>URL</key>
 							<string>http://www.msnbc.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Guardian Unlimited</string>
 							<key>URL</key>
 							<string>http://www.guardian.co.uk/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>The New York Times</string>
 							<key>URL</key>
 							<string>http://nytimes.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Google News</string>
 							<key>URL</key>
 							<string>http://news.google.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 						<dict>
-							<key>LastVisitedDate</key>
-							<date>2002-01-29T10:01:11Z</date>
-							<key>Status</key>
-							<integer>0</integer>
 							<key>Title</key>
 							<string>Yahoo! News</string>
 							<key>URL</key>
 							<string>http://news.yahoo.com/</string>
-							<key>VisitCount</key>
-							<integer>0</integer>
 						</dict>
 					</array>
-					<key>FolderType</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>News</string>
 				</dict>
 				<dict>
 					<key>Keyword</key>
 					<string>google</string>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Google</string>
 					<key>URL</key>
 					<string>http://www.google.com/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 				<dict>
-					<key>LastVisitedDate</key>
-					<date>2002-01-29T10:01:11Z</date>
-					<key>Status</key>
-					<integer>0</integer>
 					<key>Title</key>
 					<string>Amazon.com</string>
 					<key>URL</key>
 					<string>http://www.amazon.com/</string>
-					<key>VisitCount</key>
-					<integer>0</integer>
 				</dict>
 			</array>
 			<key>FolderType</key>
