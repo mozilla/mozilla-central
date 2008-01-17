@@ -618,10 +618,10 @@ nsSchemaLoader::GetResolvedURI(const nsAString& aSchemaURI,
                                nsIURI** aURI)
 {
   nsresult rv;
-  nsCOMPtr<nsIXPCNativeCallContext> cc;
+  nsAXPCNativeCallContext *cc = nsnull;
   nsCOMPtr<nsIXPConnect> xpc(do_GetService(nsIXPConnect::GetCID(), &rv));
   if(NS_SUCCEEDED(rv)) {
-    rv = xpc->GetCurrentNativeCallContext(getter_AddRefs(cc));
+    rv = xpc->GetCurrentNativeCallContext(&cc);
   }
 
   if (NS_SUCCEEDED(rv) && cc) {

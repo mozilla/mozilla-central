@@ -132,10 +132,10 @@ nsWSDLLoader::GetResolvedURI(const nsAString& aWSDLURI, const char* aMethod,
                              nsIURI** aURI)
 {
   nsresult rv;
-  nsCOMPtr<nsIXPCNativeCallContext> cc;
+  nsAXPCNativeCallContext *cc = nsnull;
   nsCOMPtr<nsIXPConnect> xpc(do_GetService(nsIXPConnect::GetCID()));
   if(xpc) {
-    xpc->GetCurrentNativeCallContext(getter_AddRefs(cc));
+    xpc->GetCurrentNativeCallContext(&cc);
   }
 
   if (cc) {

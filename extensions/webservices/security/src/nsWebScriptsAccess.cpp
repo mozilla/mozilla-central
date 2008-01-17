@@ -137,8 +137,8 @@ nsWebScriptsAccess::CanAccess(nsIURI* aTransportURI,
       // security model's decision.
       nsCOMPtr<nsIXPConnect> xpc(do_GetService(nsIXPConnect::GetCID()));
       if (xpc) {
-        nsCOMPtr<nsIXPCNativeCallContext> cc;
-        xpc->GetCurrentNativeCallContext(getter_AddRefs(cc));
+        nsAXPCNativeCallContext *cc = nsnull;
+        xpc->GetCurrentNativeCallContext(&cc);
         if (cc) {
           JSContext* cx;
           rv = cc->GetJSContext(&cx);
