@@ -181,10 +181,10 @@ function deleteToDoCommand(aDoNotConfirm) {
 function getFocusedTaskTree() {
     // Which tree is focused depends on the mode.
     var taskTree;
-    if (gCurrentMode == "task") {
-        taskTree = document.getElementById("calendar-task-tree");
-    } else if (!gCurrentMode || gCurrentMode == "mail" || isSunbird()) {
+    if (isSunbird() || !gCurrentMode || gCurrentMode == "mail") {
         taskTree = document.getElementById("unifinder-todo-tree");
+    } else if (!isSunbird() && gCurrentMode == "task") {
+        taskTree = document.getElementById("calendar-task-tree");
     }
     return taskTree;
 }
