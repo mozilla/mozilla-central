@@ -22,6 +22,7 @@
  *   Mike Shaver <shaver@mozilla.org>
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Mauro Cicognini <mcicogni@libero.it>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -101,9 +102,16 @@ function createHtml(event)
                                                                eventLocation));
         }
 
+        var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                                  .getService(Components.interfaces.calIDateTimeFormatter);
+        var startString = new Object();
+        var endString = new Object();
+        dateFormatter.formatInterval(event.startDate, event.endDate, startString, endString);
+        var dateString = startString.value + " - " + endString.value;
+
         var labelText = stringBundle.GetStringFromName("imipHtml.when");
         html.body.table.appendChild(createHtmlTableSection(labelText,
-                                                           event.startDate.jsDate.toLocaleString()));
+                                                           dateString));
 
         if (event.organizer &&
             (event.organizer.commonName || event.organizer.id))
@@ -122,6 +130,12 @@ function createHtml(event)
 
             labelText = stringBundle.GetStringFromName("imipHtml.description");
             html.body.table.appendChild(createHtmlTableSection(labelText,desc));
+        }
+
+        var eventComment = event.getProperty("COMMENT");
+        if (eventComment) {
+            labelText = stringBundle.GetStringFromName("imipHtml.comment");
+            html.body.table.appendChild(createHtmlTableSection(labelText,eventComment));
         }
     }
 
