@@ -101,6 +101,8 @@ const SEC_ASN1Template SEC_V2PKCS12PBEParameterTemplate[] =
     { 0 }
 };
 
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+
 /* SECOID_PKCS5_PBKDF2 */
 const SEC_ASN1Template SEC_PKCS5V2PBEParameterTemplate[] =
 {   
