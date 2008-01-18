@@ -2295,11 +2295,39 @@ function updateRepeatDetails() {
     var recurrenceInfo = window.recurrenceInfo;
     var itemRepeat = document.getElementById("item-repeat");
     if (itemRepeat.value == "custom" && recurrenceInfo) {
+        
+        // First of all collapse the details text. If we fail to
+        // create a details string, we simply don't show anything.
+        // this could happen if the repeat rule is something exotic
+        // we don't have any strings prepared for.
+        var repeatDetails = document.getElementById("repeat-details");
+        repeatDetails.setAttribute("collapsed", "true");
+        
+        // Try to create a descriptive string from the rule(s).
         var kDefaultTimezone = calendarDefaultTimezone();
         var startDate = jsDateToDateTime(getElementValue("event-starttime"), kDefaultTimezone);
         var endDate = jsDateToDateTime(getElementValue("event-endtime"), kDefaultTimezone);
         var allDay = getElementValue("event-all-day", "checked");
-        commonUpdateRepeatDetails(recurrenceInfo,startDate,endDate,allDay);
+        var detailsString = recurrenceRule2String(
+            recurrenceInfo, startDate, endDate, allDay);
+            
+        // Now display the string...
+        if (detailsString) {
+            var lines = detailsString.split("\n");
+            repeatDetails.removeAttribute("collapsed");
+            while (repeatDetails.childNodes.length > lines.length) {
+                repeatDetails.removeChild(repeatDetails.lastChild);
+            }
+            var numChilds = repeatDetails.childNodes.length;
+            for (var i = 0; i < lines.length; i++) {
+                if (i >= numChilds) {
+                    var newNode = repeatDetails.childNodes[0]
+                                               .cloneNode(true);
+                    repeatDetails.appendChild(newNode);
+                }
+                repeatDetails.childNodes[i].value = lines[i];
+            }
+        }
     } else {
         var repeatDetails = document.getElementById("repeat-details");
         repeatDetails.setAttribute("collapsed", "true");

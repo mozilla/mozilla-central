@@ -62,3 +62,11 @@
     margin: 0px 4px;
     background-color: -moz-field;
 }
+
+#calendar-task-details-grid-right {
+    margin-left: 3em;
+}
+
+#calendar-task-details-title {
+    font-weight: bold;
+}

@@ -185,8 +185,18 @@
 <!ENTITY calendar.task.filter.overdue.label    "Overdue Tasks">
 <!ENTITY calendar.task.filter.completed.label  "Completed Tasks">
 
-<!ENTITY calendar.task.edit.instructions.label "Click Here to Add a New Task">
-<!ENTITY calendar.task.details.title.label     "Title:">
+<!ENTITY calendar.task.edit.instructions.label       "Click Here to Add a New Task">
+<!ENTITY calendar.task.details.title.label           "Title:">
+<!ENTITY calendar.task.details.entrydate.label       "Start Date:">
+<!ENTITY calendar.task.details.duedate.label         "Due Date:">
+<!ENTITY calendar.task.details.organizer.label       "From:">
+<!ENTITY calendar.task.details.priority.label        "Importance:">
+<!ENTITY calendar.task.details.priority.low.label    "Low">
+<!ENTITY calendar.task.details.priority.normal.label "Normal">
+<!ENTITY calendar.task.details.priority.high.label   "High">
+<!ENTITY calendar.task.details.status.label          "Status:">
+<!ENTITY calendar.task.details.category.label        "Category:">
+<!ENTITY calendar.task.details.repeat.label          "Repeat:">
 
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">

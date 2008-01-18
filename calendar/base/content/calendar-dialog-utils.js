@@ -73,20 +73,8 @@ function validateNaturalNums(event) {
 /**
  * This function takes the recurrence info passed as argument and creates a
  * literal string representing the repeat pattern in natural language.
- * It expects a xul <box> with the id 'repeat-details' which should hold
- * at least a single <label> element. The structure should look similar to
- * this example:
- *                     <vbox id="repeat-details">
- *                       <label/>
- *                     </vbox>
  */
-function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
-    // First of all collapse the details text. If we fail to
-    // create a details string, we simply don't show anything.
-    // this could happen if the repeat rule is something exotic
-    // we don't have any strings prepared for.
-    var repeatDetails = document.getElementById("repeat-details");
-    repeatDetails.setAttribute("collapsed", "true");
+function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
 
     // Retrieve a valid recurrence rule from the currently
     // set recurrence info. Bail out if there's more
@@ -404,7 +392,7 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
                 .getService(Components.interfaces.calIDateTimeFormatter);
 
             var detailsString;
-            if (allDay) {
+            if (!endDate || allDay) {
                 if (rule.isFinite) {
                     if (rule.isByCount) {
                         detailsString = calGetString(
@@ -463,24 +451,11 @@ function commonUpdateRepeatDetails(recurrenceInfo, startDate, endDate, allDay) {
                 }
             }
 
-            if (detailsString) {
-                var lines = detailsString.split("\n");
-                repeatDetails.removeAttribute("collapsed");
-                while (repeatDetails.childNodes.length > lines.length) {
-                    repeatDetails.removeChild(repeatDetails.lastChild);
-                }
-                var numChilds = repeatDetails.childNodes.length;
-                for (var i = 0; i < lines.length; i++) {
-                    if (i >= numChilds) {
-                        var newNode = repeatDetails.childNodes[0]
-                                                   .cloneNode(true);
-                        repeatDetails.appendChild(newNode);
-                    }
-                    repeatDetails.childNodes[i].value = lines[i];
-                }
-            }
+            return detailsString;
         }
     }
+    
+    return null;
 }
 
 function splitRecurrenceRules(recurrenceInfo) {
