@@ -54,6 +54,8 @@ calendar.jar:
     content/calendar/calendar-views.js           (content/calendar-views.js)
 *   content/calendar/calApplicationUtils.js      (src/calApplicationUtils.js)
     content/calendar/calUtils.js                 (src/calUtils.js)
+    content/calendar/Windows98ToZoneInfoTZId.properties (src/Windows98ToZoneInfoTZId.properties)
+    content/calendar/WindowsNTToZoneInfoTZId.properties (src/WindowsNTToZoneInfoTZId.properties)
     content/calendar/calErrorPrompt.xul          (content/calErrorPrompt.xul)
     content/calendar/chooseCalendarDialog.xul    (content/chooseCalendarDialog.xul)
     content/calendar/import-export.js            (content/import-export.js)
