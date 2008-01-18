@@ -919,11 +919,15 @@
 		7B64B7E10CCFDA640098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7E30CCFDA860098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
 		7B64B7EE0CCFDAAF0098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
+		7B9A26190D411275008CDB39 /* libnssutil3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9A26180D411275008CDB39 /* libnssutil3.dylib */; };
 		7BAEF8120CCFDF3400384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BAEF8150CCFDF4A00384F4E /* Sparkle.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */; };
 		7BB332F40A7E99BC0075521C /* libspellchecker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7BB332F30A7E99BC0075521C /* libspellchecker.a */; };
 		7BB8FC1D0D2D58BB00CC63B0 /* KeychainDenyList.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */; };
 		7BB8FC1F0D2D58D000CC63B0 /* KeychainDenyList.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */; };
+		7BC5674B0D411368007503E1 /* libnssutil3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 7B9A26180D411275008CDB39 /* libnssutil3.dylib */; };
+		7BC5674C0D4113D8007503E1 /* libnssutil3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B9A26180D411275008CDB39 /* libnssutil3.dylib */; };
+		7BC5674D0D4113EA007503E1 /* libnssutil3.dylib in Copy Security Libraries */ = {isa = PBXBuildFile; fileRef = 7B9A26180D411275008CDB39 /* libnssutil3.dylib */; };
 		82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28710736615300B4DE07 /* grabber.gif */; };
 		82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28720736615300B4DE07 /* table-add-column-after-active.gif */; };
 		82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 82CE28730736615300B4DE07 /* table-add-column-after-hover.gif */; };
@@ -1609,6 +1613,7 @@
 				0FF2885A0961EE00007527B4 /* libfreebl3.dylib in Copy Security Libraries */,
 				3F44AD5F05BDFB9F00CB4B08 /* libssl3.dylib in Copy Security Libraries */,
 				33B778810C55C58500A6D67F /* libnssdbm3.dylib in Copy Security Libraries */,
+				7BC5674B0D411368007503E1 /* libnssutil3.dylib in Copy Security Libraries */,
 			);
 			name = "Copy Security Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1892,6 +1897,7 @@
 				0FF2885D0961EE2A007527B4 /* libfreebl3.dylib in Copy Security Libraries */,
 				3F44AF7A05BDFBA000CB4B08 /* libssl3.dylib in Copy Security Libraries */,
 				33B778820C55C59A00A6D67F /* libnssdbm3.dylib in Copy Security Libraries */,
+				7BC5674D0D4113EA007503E1 /* libnssutil3.dylib in Copy Security Libraries */,
 			);
 			name = "Copy Security Libraries";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2388,6 +2394,7 @@
 		7B5072FC0D11E83B00458384 /* KeyEquivView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEquivView.h; path = src/extensions/KeyEquivView.h; sourceTree = "<group>"; };
 		7B5072FD0D11E83B00458384 /* KeyEquivView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeyEquivView.mm; path = src/extensions/KeyEquivView.mm; sourceTree = "<group>"; };
 		7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sparkle.xcodeproj; path = sparkle/Sparkle.xcodeproj; sourceTree = "<group>"; };
+		7B9A26180D411275008CDB39 /* libnssutil3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libnssutil3.dylib; path = ../dist/Embed/libnssutil3.dylib; sourceTree = SOURCE_ROOT; };
 		7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sparkle.framework; path = sparkle/build/Release/Sparkle.framework; sourceTree = "<group>"; };
 		7BB332F30A7E99BC0075521C /* libspellchecker.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libspellchecker.a; path = ../staticlib/components/libspellchecker.a; sourceTree = SOURCE_ROOT; };
 		7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeychainDenyList.h; path = src/formfill/KeychainDenyList.h; sourceTree = "<group>"; };
@@ -2892,6 +2899,7 @@
 				008115430B180F35001CB3F0 /* libthebes.dylib in Frameworks */,
 				33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */,
 				7B64B7E10CCFDA640098406C /* Sparkle.framework in Frameworks */,
+				7BC5674C0D4113D8007503E1 /* libnssutil3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3016,6 +3024,7 @@
 				DEC87B150C288403002EB106 /* libstoragecomps.a in Frameworks */,
 				33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */,
 				7B64B7E30CCFDA860098406C /* Sparkle.framework in Frameworks */,
+				7B9A26190D411275008CDB39 /* libnssutil3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3968,6 +3977,7 @@
 				F5247C350228B91F013DD99A /* libsoftokn3.dylib */,
 				0FF288540961EDDD007527B4 /* libfreebl3.dylib */,
 				33B778800C55C57800A6D67F /* libnssdbm3.dylib */,
+				7B9A26180D411275008CDB39 /* libnssutil3.dylib */,
 			);
 			name = "Executable Level";
 			sourceTree = "<group>";
