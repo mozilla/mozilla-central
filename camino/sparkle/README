@@ -3,7 +3,8 @@ functionality. See http://sparkle.andymatuschak.org/ for more information about
 Sparkle. The Sparkle framework is shipped inside Camino's bundle, and some glue
 code is included in Camino itself.
 
-This is trunk r52 of Sparkle:
+This is based on trunk r52 of Sparkle:
 svn co -r52 http://code.andymatuschak.org/sparkle/trunk Sparkle
-with the change from bug 405901. That change has been contributed back to
-the Sparkle mainline, so hopefully a future sync will already include it.
+with the following changes:
+- Bug 405901: fix an XML attribute handling bug (already part of Sparkle trunk)
+- Bug 412857: don't show CFBundleVersion (Sparkle ticket 150; may require some change on our part when we switch to trunk)

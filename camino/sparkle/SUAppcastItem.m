@@ -65,11 +65,7 @@
 	
 	NSString *shortVersionString = [enclosure objectForKey:@"sparkle:shortVersionString"];
 	if (shortVersionString)
-	{
-		if (![[self fileVersion] isEqualToString:shortVersionString])
-			shortVersionString = [shortVersionString stringByAppendingFormat:@"/%@", [self fileVersion]];
 		[self setVersionString:shortVersionString];
-	}
 	else
 		[self setVersionString:[self fileVersion]];
 	
