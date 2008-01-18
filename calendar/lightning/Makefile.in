@@ -55,9 +55,13 @@ DIST_FILES = chrome.manifest install.rdf
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 
+# don't install by default, it causes problems on tinderboxes
+# (for example, see bug 406441)
+ifdef INSTALL_LIGHTNING
 ifndef MOZ_SUNBIRD
 # install Lightning as a global extension in dist/bin/extensions/
 INSTALL_EXTENSION_ID   = {e2fda1a4-762b-4020-b5ad-a41df1933103}
+endif
 endif
 
 DIRS = ../../extensions/webdav \

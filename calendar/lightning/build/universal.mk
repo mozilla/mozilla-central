@@ -49,17 +49,17 @@ postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
 	rm -rf $(DIST_UNI)/xpi-stage/*
 	cp -R $(DIST_PPC)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
-	platform=`$(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
+	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
 		$(DIST_PPC)/xpi-stage/lightning`; \
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
 	mv $(DIST_UNI)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
-	platform=`$(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
+	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
 		$(DIST_X86)/xpi-stage/lightning`; \
 	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
 	cp $(DIST_X86)/xpi-stage/lightning/components/*.dylib \
 		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
-	$(TOPSRCDIR)/calendar/lightning/build/merge-installrdf.py \
+	$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/merge-installrdf.py \
 		$(DIST_PPC)/xpi-stage/lightning \
 		$(DIST_X86)/xpi-stage/lightning \
 		> $(DIST_UNI)/xpi-stage/lightning/install.rdf
