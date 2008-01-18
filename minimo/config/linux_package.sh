@@ -29,6 +29,7 @@ cp -pRL bin/libxpcom.so                                    minimo
 cp -pRL bin/libxpcom_core.so                               minimo
 
 cp -pRL bin/libnss3.so                                     minimo
+cp -pRL bin/libnssutil3.so                                 minimo
 cp -pRL bin/libnssckbi.so                                  minimo
 cp -pRL bin/libsmime3.so                                   minimo
 cp -pRL bin/libsoftokn3.so                                 minimo
