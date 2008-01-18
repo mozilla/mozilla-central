@@ -454,6 +454,9 @@ bin/updater
 ; Extensions
 bin/components/libnkgnomevfs.so
 
+; DBUS Integration
+bin/components/libdbusservice.so
+
 [mail]
 bin/chrome/icons/default/abcardWindow.png
 bin/chrome/icons/default/abcardWindow16.png
