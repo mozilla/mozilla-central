@@ -181,9 +181,6 @@ function ltnSwitch2Calendar() {
     document.getElementById("task-tree-filter")
         .setAttribute("collapsed", "true");
     
-    mailToolbar.setAttribute("collapsed", "true");
-    calendarToolbar.removeAttribute("collapsed");
-
     window.setCursor("auto");
   }
 }
