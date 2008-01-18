@@ -36,6 +36,7 @@
 
 package org.mozilla.jss.tests;
 
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -44,6 +45,8 @@ import org.mozilla.jss.CertDatabaseException;
 import org.mozilla.jss.KeyDatabaseException;
 import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.CryptoManager;
+import org.mozilla.jss.util.IncorrectPasswordException;
+import org.mozilla.jss.util.PasswordCallback;
 import java.security.Provider;
 import java.security.Security;
 
@@ -63,16 +66,37 @@ import java.security.SecureRandom;
  */
 public class JCASymKeyGen {
     static final String MOZ_PROVIDER_NAME = "Mozilla-JSS";
-    byte[] plainText16Bytes = "Firefox   rules!".getBytes(); /* 16 bytes */
-    byte[] plainText18Bytes = "Thunderbird rules!".getBytes(); /* 18 bytes */
+    byte[] plainText     = "Firefox   rules!Firefox   rules!Firefox   rules!Firefox   rules!Firefox   rules!".getBytes();
+    byte[] plainTextPad  = "Thunderbird rules!Thunderbird rules!Thunderbird rules!Thunderbird rules!Thunderbird rules!".getBytes(); 
+    byte[] plainTextB    = "NSPR   NSS  JSS!NSPR   NSS  JSS!NSPR   NSS  JSS!".getBytes();
+    byte[] plainTextPadB = "Use Firefox and Thunderbird!".getBytes(); 
+
+    static boolean bFipsMode = false;
     /**
      * Default constructor
      */
-    public JCASymKeyGen( String certDbLoc) {
+    public JCASymKeyGen( String certDbLoc, String passwdFile) {
         try {
             CryptoManager.initialize(certDbLoc);
             CryptoManager cm  = CryptoManager.getInstance();
             CryptoToken token = cm.getInternalCryptoToken();
+            if (cm.FIPSEnabled()) {
+                try {
+                    bFipsMode=true;
+                    PasswordCallback cb = new FilePasswordCallback(passwdFile);
+                    token.login(cb);
+                    System.out.println("Logged in");
+                } catch (IncorrectPasswordException ex) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                } catch (TokenException ex) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    System.exit(1);
+                }
+            }
         } catch (AlreadyInitializedException ex) {
             ex.printStackTrace();
             System.exit(1);
@@ -153,9 +177,11 @@ public class JCASymKeyGen {
             // key = kf.generateSecret(pbeKeySpec);
             System.out.println("Key " + keyType + " generation done by "
                     + kf.getProvider().toString());
-            //System.out.println("The length of the generated key in bits: " +
-            //    (key.getEncoded().length * 8) +
-            //    " " + key.getAlgorithm() );
+            if (!bFipsMode) {
+                System.out.println("The length of the generated key in bits: " +
+                (key.getEncoded().length * 8) +
+                " " + key.getAlgorithm() );
+            }
         } catch (NoSuchProviderException ex) {
             ex.printStackTrace();
         } catch (NoSuchAlgorithmException ex) {
@@ -179,9 +205,9 @@ public class JCASymKeyGen {
             
             // if no padding is used plainText needs to be fixed length
             // block divisable by 8 bytes
-            byte[] plaintext = plainText16Bytes;
+            byte[] plaintext = plainText;
             if (algType.endsWith("PKCS5Padding")) {
-                plaintext = plainText18Bytes;
+                plaintext = plainTextPad;
             }
             
             //encypt
@@ -211,10 +237,17 @@ public class JCASymKeyGen {
                 }
             }
             
-            byte[] ciphertext = cipher.doFinal(plaintext);
+            
+            //System.out.print(plaintext.length + " plaintext size " + 
+            //        providerForEncrypt + " encrypt outputsize: " + 
+            //        cipher.getOutputSize(plaintext.length));
+            byte[] ciphertext = 
+                    new byte[cipher.getOutputSize(plaintext.length)];
+            int cLen = cipher.update(plaintext, 0, plaintext.length, 
+                    ciphertext, 0);
+            cLen += cipher.doFinal(ciphertext, cLen);         
             
             //decrypt
-            
             cipher = Cipher.getInstance(algType, providerForDecrypt);
             if (encodedAlgParams == null)
                 if (RC2ParSpec != null)
@@ -229,12 +262,24 @@ public class JCASymKeyGen {
                 aps.init(encodedAlgParams);
                 cipher.init(Cipher.DECRYPT_MODE, sKey, aps);
             }
-            byte[] recovered = cipher.doFinal(ciphertext);
             
-            if (java.util.Arrays.equals(plaintext, recovered) ) {
-                // System.out.println(providerForEncrypt + " encrypted & " +
-                //        providerForDecrypt + " decrypted using " +
-                //        algType + " successful.");
+            byte[] recovered = new byte[cLen];
+            int rLen = cipher.update(ciphertext, 0, cLen, recovered, 0);
+            rLen += cipher.doFinal(recovered, rLen);
+            
+            //ensure the recovered bytes equals the orginal plaintext
+            boolean isEqual = true;
+            for (int i = 0; i < plaintext.length; i++) {
+                if (plaintext[i] != recovered[i]) {
+                    isEqual = false;
+                    break;
+                }
+            }
+            
+            if (isEqual) {
+                //System.out.println(providerForEncrypt + " encrypted & " +
+                //       providerForDecrypt + " decrypted using " +
+                //       algType + " successful.");
             } else {
                 throw new Exception("ERROR: " + providerForEncrypt +
                         " and " + providerForDecrypt + " failed for "
@@ -254,11 +299,126 @@ public class JCASymKeyGen {
             ex.printStackTrace();
         }
     }
-    
+    /**
+     *
+     * @param sKey
+     * @param AlgType
+     * @param provider
+     */
+    public void testMultiPartCipher(javax.crypto.SecretKey sKey, String algFamily,
+            String algType, String providerForEncrypt, String providerForDecrypt)
+            throws Exception {
+        try {
+            
+            // if no padding is used plainText needs to be fixed length
+            // block divisable by 8 bytes
+            byte[] plaintext = plainText;
+            byte[] plaintextB = plainTextB;
+            if (algType.endsWith("PKCS5Padding")) {
+                plaintext = plainTextPad;
+                plaintextB = plainTextPadB;
+            }
+            
+            //encypt
+            Cipher cipher = Cipher.getInstance(algType, providerForEncrypt);
+            AlgorithmParameters ap = null;
+            byte[] encodedAlgParams = null;
+            AlgorithmParameterSpec RC2ParSpec = null;
+            
+            if (algFamily.compareToIgnoreCase("RC2")==0) {
+                //JDK 1.4 requires you to pass in generated algorithm
+                //parameters for RC2 (JDK 1.5 does not).
+                byte[] iv = new byte[8];
+                SecureRandom random = SecureRandom.getInstance("pkcs11prng",
+                        MOZ_PROVIDER_NAME);
+                random.nextBytes(iv);
+                RC2ParSpec = new RC2ParameterSpec(128, iv);
+                cipher.init(Cipher.ENCRYPT_MODE, sKey, RC2ParSpec);
+                
+            } else {
+                cipher.init(Cipher.ENCRYPT_MODE, sKey);
+                //generate the algorithm Parameters; they need to be
+                //the same for encrypt/decrypt if they are needed.
+                ap = cipher.getParameters();
+                if (ap != null) {
+                    //get parameters to store away as example.
+                    encodedAlgParams = ap.getEncoded();
+                }
+            }
+            
+            byte[] ciphertext = 
+                new byte[(cipher.getOutputSize(plaintext.length +
+                    plaintextB.length))];
+            int cLen = cipher.update(plaintext, 0, plaintext.length, 
+                    ciphertext, 0);
+            cLen += cipher.update(plaintextB, 0, plaintextB.length, 
+                    ciphertext, cLen);
+            cLen += cipher.doFinal(ciphertext, cLen);         
+            
+            //decrypt
+            cipher = Cipher.getInstance(algType, providerForDecrypt);
+            if (encodedAlgParams == null)
+                if (RC2ParSpec != null)
+                    // JDK 1.4 RC2
+                    cipher.init(Cipher.DECRYPT_MODE, sKey, RC2ParSpec);
+                else
+                    cipher.init(Cipher.DECRYPT_MODE, sKey);
+            else {
+                //retrieve the algorithmParameters from the encoded array
+                AlgorithmParameters aps =
+                        AlgorithmParameters.getInstance(algFamily);
+                aps.init(encodedAlgParams);
+                cipher.init(Cipher.DECRYPT_MODE, sKey, aps);
+            }
+            
+            byte[] recovered = new byte[cLen];
+            int rLen = cipher.update(ciphertext, 0, cLen, recovered, 0);
+            rLen += cipher.doFinal(recovered, rLen);
+
+            //ensure the recovered bytes equals the orginal plaintext
+            boolean isEqual = true;
+            for (int i = 0; i < plaintext.length; i++) {
+                if (i<plaintext.length) {
+                    if (plaintext[i] != recovered[i]) {
+                        isEqual = false;
+                        break;
+                    }
+                } else {
+                    if (plaintextB[i - plainText.length] == recovered[i] ) {
+                        isEqual = false;
+                        break;
+                    }
+                }
+            }
+            
+            if (isEqual) {
+                //System.out.println(providerForEncrypt + " encrypted & " +
+                //       providerForDecrypt + " decrypted using " +
+                //       algType + " successful.");
+            } else {
+                throw new Exception("ERROR: " + providerForEncrypt +
+                        " and " + providerForDecrypt + " failed for "
+                        + algType );
+            }
+        } catch (InvalidKeyException ex) {
+            ex.printStackTrace();
+        } catch (javax.crypto.BadPaddingException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchProviderException ex) {
+            ex.printStackTrace();
+        } catch (javax.crypto.NoSuchPaddingException ex) {
+            ex.printStackTrace();
+        } catch (javax.crypto.IllegalBlockSizeException ex) {
+            ex.printStackTrace();
+        } catch (NoSuchAlgorithmException ex) {
+            ex.printStackTrace();
+        }
+    }
+       
     public static void main(String args[]) {
         
         String certDbLoc             = ".";
-        
+        String passwdFile            = null;
         // Mozilla supported symmetric key ciphers and algorithms
         // Note JCE supports algorthm/ECB/PKCS5Padding and JSS does
         // not support algorithms in ECB mode with PKCS5Padding
@@ -271,7 +431,7 @@ public class JCASymKeyGen {
                                  "AES/CBC/PKCS5Padding"},
             {"RC2", "RC2/CBC/NoPadding", "RC2/CBC/PKCS5Padding"},
             //{"RC4", "RC4"}, todo
-            //{PBAHmacSHA1"}, todo
+            //{"PBAHmacSHA1"},
             {"PBEWithMD5AndDES", "DES/ECB/NoPadding"},
             //todo "DES/CBC/PKCS5Padding",  "DES/CBC/NoPadding" },
             {"PBEWithSHA1AndDES"},
@@ -281,12 +441,18 @@ public class JCASymKeyGen {
         
         
         
-        if ( args.length == 1 ) {
+        if ( args.length <= 2 ) {
             certDbLoc  = args[0];
+            if (args.length == 2) {
+                passwdFile = args[1];
+            }
         } else {
             System.out.println(
                     "USAGE: java org.mozilla.jss.tests.JCASymKeyGen" +
-                    " <certDbPath> ");
+                    " <certDbPath> [passwordFile]");
+            System.out.println("password file only required if in " +
+                                "FIPSMODE.");
+            System.out.println("FIPSMODE requires Java 1.6 or higher!");
             System.exit(1);
         }
         
@@ -303,8 +469,7 @@ public class JCASymKeyGen {
                 System.exit(1);
             }
         }
-        
-        JCASymKeyGen skg = new JCASymKeyGen(certDbLoc);
+        JCASymKeyGen skg = new JCASymKeyGen(certDbLoc, passwdFile);
         System.out.println(otherProvider + ": " + p.getInfo());
         p = Security.getProvider(MOZ_PROVIDER_NAME);
         System.out.println(MOZ_PROVIDER_NAME + ": " + p.getInfo());
@@ -330,8 +495,13 @@ public class JCASymKeyGen {
                 //test the cihper algorithms for this keyType
                 for (int a = 1 ;  a < symKeyTable[i].length; a++){
                     //encrypt/decrypt with Mozilla Provider
+ 
                     skg.testCipher(mozKey, symKeyTable[i][0], symKeyTable[i][a],
                             MOZ_PROVIDER_NAME, MOZ_PROVIDER_NAME);
+                    skg.testMultiPartCipher(mozKey, symKeyTable[i][0], 
+                        symKeyTable[i][a], 
+                        MOZ_PROVIDER_NAME, MOZ_PROVIDER_NAME);
+
                     try {
                         //check to see if the otherProvider we are testing
                         //against supports the algorithm.
@@ -343,16 +513,28 @@ public class JCASymKeyGen {
                         //therefore don't try comparison
                         continue;
                     }
-                    //encrypt with Mozilla, and Decrypt with otherProvider
-                    skg.testCipher(mozKey, symKeyTable[i][0], symKeyTable[i][a],
+                    //in FIPSMODE you can only use the Mozilla Provider
+                    if (!bFipsMode) {                    
+                        //encrypt with Mozilla, and Decrypt with otherProvider
+                        skg.testCipher(mozKey, symKeyTable[i][0], 
+                            symKeyTable[i][a],
                             MOZ_PROVIDER_NAME, otherProvider);
+                        skg.testMultiPartCipher(mozKey, symKeyTable[i][0], 
+                            symKeyTable[i][a],
+                            MOZ_PROVIDER_NAME, otherProvider);
+
                     
-                    //encrypt with default otherProvider and decrypt with Mozilla
-                    skg.testCipher(mozKey, symKeyTable[i][0], symKeyTable[i][a],
+                        //encrypt with otherProvider and decrypt with Mozilla
+                        skg.testCipher(mozKey, symKeyTable[i][0], 
+                            symKeyTable[i][a],
                             otherProvider, MOZ_PROVIDER_NAME);
-                    System.out.println(MOZ_PROVIDER_NAME + " and  " + otherProvider
-                            + " tested " + symKeyTable[i][a]);
-                    
+                        skg.testMultiPartCipher(mozKey, symKeyTable[i][0], 
+                            symKeyTable[i][a],
+                            otherProvider, MOZ_PROVIDER_NAME);
+
+                        System.out.println(MOZ_PROVIDER_NAME + " and  " + 
+                            otherProvider + " tested " + symKeyTable[i][a]);
+                    }
                 }
             }
         } catch(Exception e) {
