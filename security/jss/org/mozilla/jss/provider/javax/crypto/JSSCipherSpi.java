@@ -363,7 +363,7 @@ class JSSCipherSpi extends javax.crypto.CipherSpi {
         byte[] output, int outputOffset) throws ShortBufferException
     {
         byte[] bytes = engineUpdate(input, inputOffset, inputLen);
-        if( bytes.length < output.length-outputOffset ) {
+        if( bytes.length > output.length-outputOffset ) {
             throw new ShortBufferException(bytes.length +  " needed, " +
                 (output.length-outputOffset) + " supplied");
         }
@@ -404,7 +404,7 @@ class JSSCipherSpi extends javax.crypto.CipherSpi {
             BadPaddingException
     {
         byte[] bytes = engineDoFinal(input, inputOffset, inputLen);
-        if( bytes.length < output.length-outputOffset ) {
+        if( bytes.length > output.length-outputOffset ) {
             throw new ShortBufferException(bytes.length +  " needed, " +
                 (output.length-outputOffset) + " supplied");
         }
