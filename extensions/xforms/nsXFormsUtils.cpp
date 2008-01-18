@@ -92,6 +92,7 @@
 #include "nsISchemaDuration.h"
 #include "nsXFormsSchemaValidator.h"
 #include "prdtoa.h"
+#include "prprf.h"
 
 #include "nsIPref.h"
 #include "nsIPrefBranch.h"
