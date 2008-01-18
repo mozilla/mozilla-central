@@ -37,54 +37,54 @@
  ***** END LICENSE BLOCK ***** -->
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://debugQA/locale/pref-debug2.dtd" >
+<!DOCTYPE overlay SYSTEM "chrome://debugQA/locale/pref-debug2.dtd" >
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-debug2.xul');"
-      headertitle="&lHeader;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="debugqa_prefs_debug2" label="&lHeader;">
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["dirFormat", "nglayoutDebugDisableXULCache", 
-                       "browserEnableCache", "browserEnableDiskCache", ];
-  ]]>
-  </script>
+    <preferences id="debugqa_preferences">
+      <preference id="network.dir.format" name="network.dir.format" type="int"/>
+      <preference id="nglayout.debug.disable_xul_cache"
+                  name="nglayout.debug.disable_xul_cache" type="bool"/>
+      <preference id="browser.cache.disk.enable"
+                  name="browser.cache.disk.enable" type="bool"/>
+      <preference id="browser.cache.memory.enable"
+                  name="browser.cache.memory.enable" type="bool"/>
+    </preferences>
 
-  <!-- nothing on this page has accesskeys because this is a temporary debug
-       panel and you can damn well click the widgets! -->
+    <!-- nothing on this page has accesskeys because this is a temporary debug
+         panel and you can damn well click the widgets! -->
 
-  <groupbox>
-    <caption label="&debugNetworking.label;"/>
-    <vbox align="start">
-      <description>&dirFormat;</description>
-      <vbox align="start" class="indent">
-        <radiogroup id="dirFormat"
-                    prefstring="network.dir.format">
-          <!-- If we display a raw option, then people select it, and complain
-               when they don't actually get results -->
-          <!-- <radio value="1" label="&raw.label;"/> -->
-          <radio value="2" label="&html.label;"/>
-          <!-- OK, this is application/http-index-format, not XUL. But the
-               result is that the XUL viwer is used. Anyway, this is only a
-               debug panel, so lets not get worked up about it -->
-          <radio value="3" label="&xul.label;"/>
-        </radiogroup>
-      </vbox>         
-    </vbox>
-  </groupbox>
+    <groupbox>
+      <caption label="&debugNetworking.label;"/>
+      <vbox align="start">
+        <description>&dirFormat;</description>
+        <vbox align="start" class="indent">
+          <radiogroup id="dirFormat"
+                      preference="network.dir.format">
+            <!-- If we display a raw option, then people select it, and complain
+                 when they don't actually get results -->
+            <!-- <radio value="1" label="&raw.label;"/> -->
+            <radio value="2" label="&html.label;"/>
+            <!-- OK, this is application/http-index-format, not XUL. But the
+                 result is that the XUL viwer is used. Anyway, this is only a
+                 debug panel, so lets not get worked up about it -->
+            <radio value="3" label="&xul.label;"/>
+          </radiogroup>
+        </vbox>         
+      </vbox>
+    </groupbox>
 
-  <groupbox>
-    <caption label="&debugCache.label;"/>
-    <vbox align="start">
-    <checkbox id="nglayoutDebugDisableXULCache" label="&debugDisableXULCache.label;"
-              prefstring="nglayout.debug.disable_xul_cache"/>
-    <checkbox id="browserEnableDiskCache" label="&debugEnableDiskCache.label;"
-              prefstring="browser.cache.disk.enable"/>
-    <checkbox id="browserEnableCache" label="&debugEnableMemCache.label;"
-              prefstring="browser.cache.memory.enable"/>
-
-    </vbox>
-  </groupbox>
-
-</page>
-
+    <groupbox>
+      <caption label="&debugCache.label;"/>
+      <vbox align="start">
+        <checkbox id="nglayoutDebugDisableXULCache" label="&debugDisableXULCache.label;"
+                  preference="nglayout.debug.disable_xul_cache"/>
+        <checkbox id="browserEnableDiskCache" label="&debugEnableDiskCache.label;"
+                  preference="browser.cache.disk.enable"/>
+        <checkbox id="browserEnableCache" label="&debugEnableMemCache.label;"
+                  preference="browser.cache.memory.enable"/>
+      </vbox>
+    </groupbox>
+  </prefpane>
+</overlay>

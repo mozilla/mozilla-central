@@ -42,23 +42,35 @@
 <overlay id="debugQAPrefsOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <treechildren id="prefsPanelChildren">
+    <treeitem container="true" id="debugItem" label="&debug.label;"
+              prefpane="debugqa_prefs_general"
+              url="chrome://debugQA/content/pref-debug.xul">
+      <treechildren id="debugChildren">
+        <treeitem id="debugqa_debug1" label="&debug1.label;"
+                  prefpane="debugqa_prefs_debug1"
+                  url="chrome://debugQA/content/pref-debug1.xul"/>
+        <treeitem id="debugqa_debug2" label="&debug2.label;"
+                  prefpane="debugqa_prefs_debug2"
+                  url="chrome://debugQA/content/pref-debug2.xul"/>
+      </treechildren>
+    </treeitem>
+  </treechildren>
+
   <treechildren id="panelChildren">
     <treeitem container="true" id="debugItem">
       <treerow>       
-        <treecell url="chrome://debugQA/content/pref-debug.xul"
-                  label="&debug.label;"/> 
+        <treecell label="Migrated: (&debug.label;)"/>
       </treerow>
-      <treechildren id="debugChildren">
+      <treechildren>
         <treeitem>
           <treerow>
-            <treecell url="chrome://debugQA/content/pref-debug1.xul"
-                      label="&debug1.label;"/> 
+            <treecell label="Migrated: (&debug1.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://debugQA/content/pref-debug2.xul"
-                      label="&debug2.label;"/> 
+            <treecell label="Migrated: (&debug2.label;)"/> 
           </treerow>
         </treeitem>
       </treechildren>
