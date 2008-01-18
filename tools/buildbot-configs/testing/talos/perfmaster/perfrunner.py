@@ -465,6 +465,42 @@ class MozillaInstallDmg(ShellCommand):
             return FAILURE
         return SUCCESS
 
+class MozillaInstallDmgEx(ShellCommand):
+    """Install given file, copying to workdir"""
+    #This is a temporary class to test the new InstallDmg script without affecting the production mac machines
+    # if this works everything should be switched over the using it
+    
+    def __init__(self, **kwargs):
+        self.filename = ""
+        self.branch = ""
+        if 'branch' in kwargs:
+            self.branch = kwargs['branch']
+        if 'filename' in kwargs:
+            self.filename = kwargs['filename']
+        if not 'command' in kwargs:
+            kwargs['command'] = ["./installdmg.ex", "$FILENAME"]
+        ShellCommand.__init__(self, **kwargs)
+    
+    def describe(self, done=False):
+        return ["Install dmg"]
+    
+    def start(self):
+        if not self.filename:
+            if self.branch:
+                self.filename = self.getProperty("filename")
+            else:
+                return FAILURE
+
+        for i in range(len(self.command)):
+            if self.command[i] == "$FILENAME":
+                self.command[i] = self.filename
+        ShellCommand.start(self)
+    
+    def evaluateCommand(self, cmd):
+        superResult = ShellCommand.evaluateCommand(self, cmd)
+        if SUCCESS != superResult:
+            return FAILURE
+        return SUCCESS
 
 def main(argv=None):
     if argv is None:
