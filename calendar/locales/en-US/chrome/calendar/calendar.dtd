@@ -44,6 +44,9 @@
 
 <!-- General -->
 <!ENTITY calendar.file.default.name  "My Calendar" >
+<!ENTITY calendar.calendar.label     "Calendar">
+<!ENTITY calendar.calendar.accesskey "C">
+
 
 <!ENTITY calendar.confirm.deleteallevents  "Are you sure you want to delete all the selected events?" >
 <!ENTITY calendar.confirm.deleteevent "Are you sure you want to delete this event titled: " >
@@ -178,13 +181,19 @@
 <!ENTITY calendar.menu.numberofweeks.5      "5 Weeks" >
 <!ENTITY calendar.menu.numberofweeks.6      "6 Weeks" >
 
-<!ENTITY calendar.task.filter.title.label      "Show">
-<!ENTITY calendar.task.filter.all.label        "All">
-<!ENTITY calendar.task.filter.today.label      "Today">
-<!ENTITY calendar.task.filter.next7days.label  "Next Seven Days">
-<!ENTITY calendar.task.filter.notstarted.label "Not Started Tasks">
-<!ENTITY calendar.task.filter.overdue.label    "Overdue Tasks">
-<!ENTITY calendar.task.filter.completed.label  "Completed Tasks">
+<!ENTITY calendar.task.filter.title.label           "Show">
+<!ENTITY calendar.task.filter.all.label             "All">
+<!ENTITY calendar.task.filter.all.accesskey         "A">
+<!ENTITY calendar.task.filter.today.label           "Today">
+<!ENTITY calendar.task.filter.today.accesskey       "T">
+<!ENTITY calendar.task.filter.next7days.label       "Next Seven Days">
+<!ENTITY calendar.task.filter.next7days.accesskey   "N">
+<!ENTITY calendar.task.filter.notstarted.label      "Not Started Tasks">
+<!ENTITY calendar.task.filter.notstarted.accesskey  "a">
+<!ENTITY calendar.task.filter.overdue.label         "Overdue Tasks">
+<!ENTITY calendar.task.filter.overdue.accesskey     "O">
+<!ENTITY calendar.task.filter.completed.label       "Completed Tasks">
+<!ENTITY calendar.task.filter.completed.accesskey   "C">
 
 <!ENTITY calendar.task.edit.instructions.label       "Click Here to Add a New Task">
 <!ENTITY calendar.task.details.title.label           "Title:">
@@ -249,17 +258,20 @@
 
 <!ENTITY percnt "&#38;#37;" ><!--=percent sign-->
 
-<!ENTITY progress.level.0             "0&percnt;">
+<!ENTITY calendar.context.markcompleted.label     "Mark Completed">
+<!ENTITY calendar.context.markcompleted.accesskey "o">
+
+<!ENTITY progress.level.0             "0&percnt; Completed">
 <!ENTITY progress.level.0.accesskey   "0">
-<!ENTITY progress.level.25            "25&percnt;">
+<!ENTITY progress.level.25            "25&percnt; Completed">
 <!ENTITY progress.level.25.accesskey  "2">
-<!ENTITY progress.level.50            "50&percnt;">
+<!ENTITY progress.level.50            "50&percnt; Completed">
 <!ENTITY progress.level.50.accesskey  "5">
-<!ENTITY progress.level.75            "75&percnt;">
+<!ENTITY progress.level.75            "75&percnt; Completed">
 <!ENTITY progress.level.75.accesskey  "7">
-<!ENTITY progress.level.100            "100&percnt;">
+<!ENTITY progress.level.100            "100&percnt; Completed">
 <!ENTITY progress.level.100.accesskey  "1">
-                                                                 
+
 <!-- Server Context Menu -->
 <!ENTITY calendar.context.newserver.label              "New Calendar…">
 <!ENTITY calendar.context.newserver.accesskey          "N">
@@ -275,6 +287,22 @@
 <!ENTITY calendar.context.export.accesskey             "E">
 <!ENTITY calendar.context.properties.label             "Properties">
 <!ENTITY calendar.context.properties.accesskey         "P">
+
+<!ENTITY calendar.context.convert.label                "Convert to">
+<!ENTITY calendar.context.convert.accesskey            "v">
+<!ENTITY calendar.context.converttoevent.label         "Event">
+<!ENTITY calendar.context.converttoevent.accesskey     "E">
+<!ENTITY calendar.context.converttomessage.label       "Message">
+<!ENTITY calendar.context.converttomessage.accesskey   "M">
+
+<!ENTITY calendar.tasks.view.minimonth.label           "Mini Month">
+<!ENTITY calendar.tasks.view.minimonth.accesskey       "M">
+
+<!ENTITY calendar.tasks.view.calendarlist.label        "Calendar List">
+<!ENTITY calendar.tasks.view.calendarlist.accesskey    "L">
+
+<!ENTITY calendar.tasks.view.sorttasks.label           "Sort Tasks">
+<!ENTITY calendar.tasks.view.sorttasks.accesskey       "S">
 
 <!-- Calendar Alarm Dialog -->
 
