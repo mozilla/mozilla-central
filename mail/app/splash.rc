@@ -70,6 +70,7 @@ END
 #define IDC_COLRESIZE                   4108
 #define IDC_ROWRESIZE                   4109
 #define IDC_VERTICALTEXT                4110
+#define IDC_NONE                        4112
 
 IDC_GRAB                CURSOR  DISCARDABLE     "../../widget/src/build/res/grab.cur"
 IDC_GRABBING            CURSOR  DISCARDABLE     "../../widget/src/build/res/grabbing.cur"
@@ -81,6 +82,7 @@ IDC_ZOOMOUT             CURSOR  DISCARDABLE     "../../widget/src/build/res/zoom
 IDC_COLRESIZE           CURSOR  DISCARDABLE     "../../widget/src/build/res/col_resize.cur"
 IDC_ROWRESIZE           CURSOR  DISCARDABLE     "../../widget/src/build/res/row_resize.cur"
 IDC_VERTICALTEXT        CURSOR  DISCARDABLE     "../../widget/src/build/res/vertical_text.cur"
+IDC_NONE                CURSOR  DISCARDABLE     "../../widget/src/build/res/none.cur"
 
 // For some reason IDI_MAILBIFF needs to be larger than the value of IDI_APPLICATION for static builds
 #define IDI_MAILBIFF 101
