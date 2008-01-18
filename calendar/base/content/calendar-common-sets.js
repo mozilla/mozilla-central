@@ -271,10 +271,9 @@ var calendarController = {
     },
 
     isCalendarInForeground: function cC_isCalendarInForeground() {
-        // For sunbird, calendar is always in foreground. Otherwise check if the
-        // displayDeck is showing the calendar box.
-        return isSunbird() ||
-            document.getElementById("displayDeck").selectedPanel.id == "calendar-view-box";
+        // For sunbird, calendar is always in foreground. Otherwise check if
+        // we are in the correct mode.
+        return isSunbird() || (gCurrentMode && gCurrentMode != "mail");
     },
 
     /**
