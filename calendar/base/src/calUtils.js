@@ -171,537 +171,144 @@ function calendarDefaultTimezone() {
  * winter JSdates.  However, when available, we also use the name of the
  * timezone in the JSdate, or a string-bundle term from the locale.
  *
- * @return a mozilla ICS timezone string.
- */
+ * @returns  a ICS timezone string.
+*/
 function guessSystemTimezone() {
-    // Probe JSDates for basic OS timezone offsets and names.
-    const dateJun = (new Date(2005, 5,20)).toString();
-    const dateDec = (new Date(2005,11,20)).toString();
-    const tzNameRegex = /[^(]* ([^ ]*) \(([^)]+)\)/;
-    const nameDataJun = dateJun.match(tzNameRegex);
-    const nameDataDec = dateDec.match(tzNameRegex);
-    const tzNameJun = nameDataJun && nameDataJun[2];
-    const tzNameDec = nameDataDec && nameDataDec[2];
-    const offsetRegex = /[+-]\d{4}/;
-    const offsetJun = dateJun.match(offsetRegex)[0];
-    const offsetDec = dateDec.match(offsetRegex)[0];
+    var probableTZ = null;
+    var TZname1 = null;
+    var TZname2 = null;
+    var Date1 = (new Date(2005,6,20)).toString();
+    var Date2 = (new Date(2005,12,20)).toString();
+    var nameData1 = Date1.match(/[^(]* ([^ ]*) \(([^)]+)\)/);
+    var nameData2 = Date2.match(/[^(]* ([^ ]*) \(([^)]+)\)/);
 
-    const icsSvc = (Components.classes["@mozilla.org/calendar/ics-service;1"]
-                    .getService(Components.interfaces.calIICSService));
-    function getIcalString(component, property) {
-        return (component &&
-                component.getFirstProperty(property).valueAsIcalString);
+    if (nameData1 && nameData1[2]) {
+        TZname1 = nameData1[2];
+    }
+    if (nameData2 && nameData2[2]) {
+        TZname2 = nameData2[2];
     }
 
-    // Check if Olson ZoneInfo timezone matches OS/JSDate timezone properties:
-    // * standard offset and daylight/summer offset if present (longitude),
-    // * if has summer time, direction of change (northern/southern hemisphere)
-    // * if has summer time, dates of next transitions
-    // * timezone name (such as "Western European Standard Time").
-    // Score is 3 if matches dates and names, 2 if matches dates without names,
-    // 1 if matches dates within a week (so changes on different weekday),
-    // otherwise 0 if no match.
-    function checkTZ(tzId) {
-        var comp = icsSvc.getTimezone(tzId);
-        var subComp = comp.getFirstSubcomponent("VTIMEZONE");
-        // find currently applicable time period, not just first,
-        // because offsets of timezone may be changed over the years.
-        var standard = findCurrentTimePeriod(tzId, subComp, "STANDARD");
-        var standardTZOffset = getIcalString(standard, "TZOFFSETTO");
-        var standardName     = getIcalString(standard, "TZNAME");
-        var daylight = findCurrentTimePeriod(tzId, subComp, "DAYLIGHT");
-        var daylightTZOffset = getIcalString(daylight, "TZOFFSETTO");
-        var daylightName     = getIcalString(daylight, "TZNAME");
-
-        // Try northern hemisphere cases.
-        if (offsetDec == standardTZOffset && offsetDec == offsetJun &&
-            !daylight) {
-            if (standardName && standardName == tzNameJun) {
-                return 3;
-            } else {
-                return 2;
-            }
-        }
-
-        if (offsetDec == standardTZOffset && offsetJun == daylightTZOffset &&
-            daylight) {
-            var dateMatchWt = systemTZMatchesTimeShiftDates(tzId, subComp);
-            if (dateMatchWt > 0) { 
-                if (standardName && standardName == tzNameJun &&
-                    daylightName && daylightName == tzNameDec) {
-                    return 3;
-                } else {
-                    return dateMatchWt;
-                }
-            }
-        }
-
-        // Now flip them and check again, to cover southern hemisphere cases.
-        if (offsetJun == standardTZOffset && offsetDec == offsetJun &&
-            !daylight) {
-            if (standardName && standardName == tzNameDec) {
-                return 3;
-            } else {
-                return 2;
-            }
-        }
-
-        if (offsetJun == standardTZOffset && offsetDec == daylightTZOffset &&
-            daylight) {
-            var dateMatchWt = systemTZMatchesTimeShiftDates(tzId, subComp);
-            if (dateMatchWt > 0) { 
-                if (standardName && standardName == tzNameJun &&
-                    daylightName && daylightName == tzNameDec) {
-                    return 3;
-                } else {
-                    return dateMatchWt;
-                }
-            }
-        }
-        return 0;
+    var index = Date1.indexOf('+');
+    if (index < 0) {
+        index = Date2.indexOf('-');
     }
 
-    // returns 2=match-within-hours, 1=match-within-week, 0=no-match
-    function systemTZMatchesTimeShiftDates(tzId, subComp) {
-        // Verify local autumn and spring shifts also occur in system timezone
-        // (jsDate) on correct date in correct direction.
-        // (Differs for northern/southern hemisphere.
-        //  Local autumn shift is to local winter STANDARD time.
-        //  Local spring shift is to local summer DAYLIGHT time.)
-        const autumnShiftJSDate =
-            findCurrentTimePeriod(tzId, subComp, "STANDARD", true);
-        const afterAutumnShiftJSDate = new Date(autumnShiftJSDate);
-        const beforeAutumnShiftJSDate = new Date(autumnShiftJSDate);
-        const springShiftJSDate =
-            findCurrentTimePeriod(tzId, subComp, "DAYLIGHT", true);
-        const beforeSpringShiftJSDate = new Date(springShiftJSDate);
-        const afterSpringShiftJSDate = new Date(springShiftJSDate);
-        // Try with 6 HOURS fuzz in either direction, since OS and ZoneInfo
-        // may disagree on the exact time of shift (midnight, 2am, 4am, etc).
-        beforeAutumnShiftJSDate.setHours(autumnShiftJSDate.getHours()-6);
-        afterAutumnShiftJSDate.setHours(autumnShiftJSDate.getHours()+6);
-        afterSpringShiftJSDate.setHours(afterSpringShiftJSDate.getHours()+6);
-        beforeSpringShiftJSDate.setHours(beforeSpringShiftJSDate.getHours()-6);
-        if ((beforeAutumnShiftJSDate.getTimezoneOffset() <
-             afterAutumnShiftJSDate.getTimezoneOffset()) &&
-            (beforeSpringShiftJSDate.getTimezoneOffset() >
-             afterSpringShiftJSDate.getTimezoneOffset())) {
-            return 2;
-        }          
-        // Try with 7 DAYS fuzz in either direction, so if no other tz found,
-        // will have a nearby tz that disagrees only on the weekday of shift
-        // (sunday vs. friday vs. calendar day), or off by exactly one week,
-        // (e.g., needed to guess Africa/Cairo on w2k in 2006).
-        beforeAutumnShiftJSDate.setDate(autumnShiftJSDate.getDate()-7);
-        afterAutumnShiftJSDate.setDate(autumnShiftJSDate.getDate()+7);
-        afterSpringShiftJSDate.setDate(afterSpringShiftJSDate.getDate()+7);
-        beforeSpringShiftJSDate.setDate(beforeSpringShiftJSDate.getDate()-7);
-        if ((beforeAutumnShiftJSDate.getTimezoneOffset() <
-             afterAutumnShiftJSDate.getTimezoneOffset()) &&
-            (beforeSpringShiftJSDate.getTimezoneOffset() >
-             afterSpringShiftJSDate.getTimezoneOffset())) {
+    // the offset is always 5 characters long
+    var TZoffset1 = Date1.substr(index, 5);
+    index = Date2.indexOf('+');
+    if (index < 0) {
+        index = Date2.indexOf('-');
+    }
+    // the offset is always 5 characters long
+    var TZoffset2 = Date2.substr(index, 5);
+    
+    // returns 0=definitely not, 1=maybe, 2=likely
+    function checkTZ(someTZ)
+    {
+        var tz = getTimezoneService().getTimezone(someTZ);
+        var subComp = tz.component;
+        var standard = subComp.getFirstSubcomponent("STANDARD");
+        var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
+        var standardNameProp = standard.getFirstProperty("TZNAME");
+        var standardName = standardNameProp &&
+                           standardNameProp.valueAsIcalString;
+        var daylight = subComp.getFirstSubcomponent("DAYLIGHT");
+        var daylightTZOffset = null;
+        var daylightNameProp = null;
+        var daylightName = null;
+        if (daylight) {
+            daylightTZOffset = daylight.getFirstProperty("TZOFFSETTO").valueAsIcalString;
+            daylightNameProp = daylight.getFirstProperty("TZNAME");
+            daylightName = daylightNameProp &&
+                           daylightNameProp.valueAsIcalString;
+        }
+
+        if (TZoffset2 == standardTZOffset && TZoffset2 == TZoffset1 &&
+           !daylight) {
+            if (!standardName || standardName == TZname1) {
+                return 2;
+            }
             return 1;
         }
-        // no match
+
+        if (TZoffset2 == standardTZOffset && TZoffset1 == daylightTZOffset) {
+            if ((!standardName || standardName == TZname1) &&
+                (!daylightName || daylightName == TZname2)) {
+                return 2;
+            }
+            return 1;
+        }
+
+        // Now flip them and check again, to cover the southern hemisphere case
+        if (TZoffset1 == standardTZOffset && TZoffset2 == TZoffset1 &&
+           !daylight) {
+            if (!standardName || standardName == TZname2) {
+                return 2;
+            }
+            return 1;
+        }
+
+        if (TZoffset1 == standardTZOffset && TZoffset2 == daylightTZOffset) {
+            if ((!standardName || standardName == TZname2) &&
+                (!daylightName || daylightName == TZname1)) {
+                return 2;
+            }
+            return 1;
+        }
         return 0;
     }
-  
-    const todayUTC = createDateTime(); todayUTC.jsDate = new Date();
-    const oneYrUTC = todayUTC.clone(); oneYrUTC.year += 1;
-    const periodStartCalDate = createDateTime();
-    const periodUntilCalDate = createDateTime(); // until timezone is UTC
-    const periodCalRule =
-        Components.classes["@mozilla.org/calendar/recurrence-rule;1"]
-                  .createInstance(Components.interfaces.calIRecurrenceRule);
-    const untilRegex = /UNTIL=(\d{8}T\d{6}Z)/;
 
-    function findCurrentTimePeriod(tzId, subComp, standardOrDaylight,
-                                   isForNextTransitionDate) { 
-        periodStartCalDate.timezone = tzId;
-        // Iterate through 'STANDARD' declarations or 'DAYLIGHT' declarations
-        // (periods in history with different settings.
-        //  e.g., US changes daylight start in 2007 (from April to March).)
-        // Each period is marked by a DTSTART.
-        // Find the currently applicable period: has most recent DTSTART
-        // not later than today and no UNTIL, or UNTIL is greater than today.
-        for (var period = subComp.getFirstSubcomponent(standardOrDaylight);
-             period;
-             period = subComp.getNextSubcomponent(standardOrDaylight)) {
-            periodStartCalDate.icalString = getIcalString(period, "DTSTART");
-            if (oneYrUTC.nativeTime < periodStartCalDate.nativeTime) {
-                continue; // period starts too far in future
-            }
-            // Must examine UNTIL date (not next daylight start) because
-            // some zones (e.g., Arizona, Hawaii) may stop using daylight
-            // time, so there might not be a next daylight start.
-            var rrule = period.getFirstProperty("RRULE");
-            if (rrule) { 
-                var match = untilRegex.exec(rrule.valueAsIcalString);
-                if (match) {
-                    periodUntilCalDate.icalString = match[1];
-                    if (todayUTC.nativeTime > periodUntilDate.nativeTime) {
-                        continue; // period ends too early
-                    }
-                } // else forever rule
-            } // else no daylight rule
-
-            // found period that covers today.
-            if (!isForNextTransitionDate) {
-                return period;
-            } else /*isForNextTranstionDate*/ { 
-                if (todayUTC.nativeTime < periodStartCalDate.nativeTime) {
-                    // already know periodStartCalDate < oneYr from now,
-                    // and transitions are at most once per year, so it is next.
-                    return periodStartCalDate.jsDate;
-                } else if (rrule) { 
-                    // find next occurrence after today
-                    periodCalRule.icalProperty = rrule;
-                    var nextTransitionDate =
-                        periodCalRule.getNextOccurrence(periodStartCalDate,
-                                                        todayUTC);
-                    // make sure rule doesn't end before next transition date.
-                    if (nextTransitionDate)
-                        return nextTransitionDate.jsDate;
-                }
-            }
-        }
-        // no such period found
-        return null; 
-    }
-
-
-    // Try to find a tz that matches OS/JSDate timezone.  If no name match,
-    // will use first of probable timezone(s) with highest score.
-    var probableTZId = "floating"; // default fallback tz if no tz matches.
-    var probableTZScore = 0;
-    var probableTZSource = null;
-
-    const sbSvc = 
-        Components.classes["@mozilla.org/intl/stringbundle;1"]
-        .getService(Components.interfaces.nsIStringBundleService);
-    const calProperties =
-        sbSvc.createBundle("chrome://calendar/locale/calendar.properties");
-
-    // First, try to detect operating system timezone.
-    try { 
-        var osUserTimeZone = null;
-        var zoneInfoIdFromOSUserTimeZone = null;
-
-        if (navigator.oscpu.match(/^Windows/)) {
-            var regOSName, fileOSName;
-            if (navigator.oscpu.match(/^Windows NT/)) {
-                regOSName  = "Windows NT";
-                fileOSName = "WindowsNT";
-            } else {
-                // Note: windows 98 compatibility will be deleted
-                // in releases built on Gecko 1.9 or later.
-                regOSName  = "Windows";
-                fileOSName = "Windows98";
-            }                    
-
-            // If on Windows NT (2K/XP/Vista), current timezone only lists its
-            // localized name, so to find its registry key name, match localized
-            // name to localized names of each windows timezone listed in
-            // registry.  Then use the registry key name to see if this
-            // timezone has a known ZoneInfo name.
-            var wrk = (Components
-                       .classes["@mozilla.org/windows-registry-key;1"]
-                       .createInstance(Components.interfaces.nsIWindowsRegKey));
-            wrk.open(wrk.ROOT_KEY_LOCAL_MACHINE,
-                     "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation",
-                     wrk.ACCESS_READ);
-            var currentTZStandardName = wrk.readStringValue("StandardName");
-            wrk.close()
-
-            wrk.open(wrk.ROOT_KEY_LOCAL_MACHINE,
-                     ("SOFTWARE\\Microsoft\\"+regOSName+
-                      "\\CurrentVersion\\Time Zones"),
-                     wrk.ACCESS_READ);
-
-            // Linear search matching localized name of standard timezone
-            // to find the non-localized registry key.
-            // (Registry keys are sorted by subkeyName, not by localized name
-            //  nor offset, so cannot use binary search.)
-            for (var i = 0; i < wrk.childCount; i++) {
-              var subkeyName  = wrk.getChildName(i);
-              var subkey = wrk.openChild(subkeyName, wrk.ACCESS_READ);
-              var std = subkey.readStringValue("Std");
-              subkey.close();
-              if (std == currentTZStandardName) {
-                osUserTimeZone = subkeyName;
-                break;
-              }
-            }
-            wrk.close();
-
-            if (osUserTimeZone != null) {
-                // Lookup timezone registry key in table of known tz keys
-                // to convert to ZoneInfo timezone id.
-                const regKeyToZoneInfoBundle =
-                    sbSvc.createBundle("chrome://calendar/content/"+
-                                       fileOSName+"ToZoneInfoTZId.properties");
-                zoneInfoIdFromOSUserTimeZone =
-                    regKeyToZoneInfoBundle.GetStringFromName(osUserTimeZone);
-            }
-        } else {
-            // Else look for ZoneInfo timezone id in
-            // - TZ environment variable value
-            // - /etc/localtime symbolic link target path
-            // - /etc/TIMEZONE or /etc/timezone file content
-            // - /etc/sysconfig/clock file line content.
-            // The timezone is set per user via the TZ environment variable.
-            // TZ may contain a path that may start with a colon and ends with
-            // a ZoneInfo timezone identifier, such as ":America/New_York" or 
-            // ":/share/lib/zoneinfo/America/New_York".  The others are
-            // in the filesystem so they give one timezone for the system;
-            // the values are similar (but cannot have a leading colon).
-            // (Note: the OS ZoneInfo database may be a different version from
-            // the one we use, so still need to check that DST dates match.)
-            var continent = "America|Africa|Antarctica|Asia|Australia|Europe";
-            var ocean     = "Arctic|Atlantic|Indian|Pacific";
-            var tzRegex   = new RegExp(".*((?:"+continent+"|"+ocean+")"+
-                                       "(?:[/][-A-Z_a-z]+)+)");
-            const CC = Components.classes;
-            const CI = Components.interfaces;
-            var envSvc = (CC["@mozilla.org/process/environment;1"]
-                          .getService(Components.interfaces.nsIEnvironment));
-            function environmentVariableValue(varName) {
-                var value = envSvc.get(varName);
-                if (!value) return "";
-                if (!value.match(tzRegex)) return "";
-                return varName+"="+value;
-            }
-            function symbolicLinkTarget(filepath) {
-                try {
-                    var file = (CC["@mozilla.org/file/local;1"]
-                                .createInstance(CI.nsILocalFile));
-                    file.initWithPath(filepath);
-                    file.QueryInterface(CI.nsIFile);
-                    if (!file.exists()) return "";
-                    if (!file.isSymlink()) return "";
-                    if (!file.target.match(tzRegex)) return "";
-                    return filepath +" -> "+file.target;
-                } catch (ex) {
-                    Components.utils.reportError(filepath+": "+ex);
-                    return "";
-                }
-            }
-            function fileFirstZoneLineString(filepath) {
-                // return first line of file that matches tzRegex (ZoneInfo id),
-                // or "" if no file or no matching line.
-                try {
-                    var file = (CC["@mozilla.org/file/local;1"]
-                                .createInstance(CI.nsILocalFile));
-                    file.initWithPath(filepath);
-                    file.QueryInterface(CI.nsIFile);
-                    if (!file.exists()) return "";
-                    var fileInstream =
-                        (CC["@mozilla.org/network/file-input-stream;1"].
-                         createInstance(CI.nsIFileInputStream));
-                    const PR_RDONLY = 0x1;
-                    fileInstream.init(file, PR_RDONLY, 0, 0);
-                    fileInstream.QueryInterface(CI.nsILineInputStream);
-                    try { 
-                        var line = {}, hasMore = true, MAXLINES = 10;
-                        for (var i = 0; hasMore && i < MAXLINES; i++) { 
-                            hasMore = fileInstream.readLine(line);
-                            if (line.value && line.value.match(tzRegex)) { 
-                                return filepath+": "+line.value;
-                            }
-                        }
-                        return ""; // not found
-                    } finally {
-                        fileInstream.close();
-                    }
-                } catch (ex) {
-                    Components.utils.reportError(filepath+": "+ex);
-                    return "";
-                }
-              
-            }
-            osUserTimeZone = (environmentVariableValue("TZ") ||
-                              symbolicLinkTarget("/etc/localtime") ||
-                              fileFirstZoneLineString("/etc/TIMEZONE") ||
-                              fileFirstZoneLineString("/etc/timezone") ||
-                              fileFirstZoneLineString("/etc/sysconfig/clock"));
-            var results = osUserTimeZone.match(tzRegex);
-            if (results) {
-                zoneInfoIdFromOSUserTimeZone = results[1];
-            }
-        }
-
-        // check how well OS tz matches tz defined in our version of zoneinfo db
-        if (zoneInfoIdFromOSUserTimeZone != null) { 
-            var tzId = icsSvc.tzIdPrefix + zoneInfoIdFromOSUserTimeZone;
-            var score = checkTZ(tzId);
-            switch(score) {
-            case 0:
-                // Did not match.
-                // Maybe OS or Application is old, and the timezone changed.
-                // Or maybe user turned off DST in Date/Time control panel.
-                // Will look for a better matching tz, or fallback to floating.
-                // (Match OS so alarms go off at time indicated by OS clock.)
-                const consoleSvc =
-                    (Components.classes["@mozilla.org/consoleservice;1"]
-                     .getService(Components.interfaces.nsIConsoleService));
-                var msg = (calProperties.formatStringFromName
-                           ("WarningOSTZNoMatch",
-                            [osUserTimeZone, zoneInfoIdFromOSUserTimeZone], 2));
-                consoleSvc.logStringMessage(msg);
-                break;
-            case 1: case 2:
-                // inexact match: OS TZ and our ZoneInfo TZ matched imperfectly.
-                // Will keep looking, will use tzId unless another is better.
-                // (maybe OS TZ has changed to match a nearby TZ, so maybe
-                // another ZoneInfo TZ matches it better).
-                probableTZId = tzId;
-                probableTZScore = score;
-                probableTZSource = (calProperties.formatStringFromName
-                                    ("TZFromOS", [osUserTimeZone], 1));
-                break;
-            case 3:
-                // exact match
-                return tzId;
-            }
-        }
-    } catch (ex) {
-        // zoneInfo id given was not recognized by our ZoneInfo database
-        var errMsg = (calProperties.formatStringFromName
-                      ("SkippingOSTimezone",
-                       [zoneInfoIdFromOSUserTimeZone || osUserTimeZone], 1));
-        Components.utils.reportError(errMsg+" "+ex);
-    } 
-
-    // Second, give priority to "likelyTimezone"s if provided by locale.
     try {
-        // The likelyTimezone property is a comma-separated list of 
-        // ZoneInfo timezone ids.
-        const bundleTZString =
-            calProperties.GetStringFromName("likelyTimezone");
-        const bundleTZIds = bundleTZString.split(/\s*,\s*/);
-        for each (var bareTZId in bundleTZIds) { 
-            var tzId = bareTZId; 
-            if (tzId.indexOf("/mozilla.org/") == -1) {
-                // Convert a ZoneInfo timezone to a mozilla timezone-string
-                tzId = icsSvc.tzIdPrefix + tzId;
-            }
-            try { 
-                var score = checkTZ(tzId);
+        var stringBundleTZ = calGetString("calendar", "likelyTimezone");
 
-                switch (score) {
-                case 0:
-                    break;
-                case 1: case 2:
-                    if (score > probableTZScore) { 
-                        probableTZId = tzId;
-                        probableTZScore = score;
-                        probableTZSource = (calProperties.GetStringFromName
-                                            ("TZFromLocale"));
-                    }
-                    break;
-                case 3:
-                    return tzId;
-                }
-            } catch (ex) {
-                var errMsg = (calProperties.formatStringFromName
-                              ("SkippingLocaleTimezone", [bareTZId], 1));
-                Components.utils.reportError(errMsg+" "+ex);
-            }
+        if (stringBundleTZ.indexOf("/mozilla.org/") == -1) {
+            // This happens if the l10n team didn't know how to get a time from
+            // tzdata.c.  To convert an Olson time to a ics-timezone-string we
+            // need to append this prefix.
+            stringBundleTZ = getTimezoneService().tzidPrefix + stringBundleTZ;
         }
-    } catch (ex) { // Oh well, this didn't work, next option...
-        Components.utils.reportError(ex);
+
+        switch (checkTZ(stringBundleTZ)) {
+            case 0:
+                break;
+            case 1:
+                if (!probableTZ)
+                    probableTZ = stringBundleTZ;
+                break;
+            case 2:
+                return stringBundleTZ;
+        }
+    }
+    catch (ex) { // Oh well, this didn't work, next option...
     }
         
-    // Third, try all known timezones.
-    const tzIDs = icsSvc.timezoneIds;
+    var tzIDs = getTimezoneService().timezoneIds;
     while (tzIDs.hasMore()) {
-        var tzId = tzIDs.getNext();
+        var theTZ = tzIDs.getNext();
         try {
-            var score = checkTZ(tzId);
-            switch(score) { 
-            case 0: break;
-            case 1: case 2:
-                if (score > probableTZScore) {
-                    probableTZId = tzId;
-                    probableTZScore = score;
-                    probableTZSource = (calProperties.GetStringFromName
-                                        ("TZFromKnownTimezones"));
-                }
-                break;
-            case 3:
-                return tzId;
+            switch (checkTZ(theTZ)) {
+                case 0: break;
+                case 1: 
+                    if (!probableTZ) {
+                        probableTZ = theTZ;
+                    }
+                    break;
+                case 2:
+                    return theTZ;
             }
-        } catch (ex) { // bug if ics service doesn't recognize own tzid!
-            var msg = ("ics-service doesn't recognize own tzid: "+tzId+"\n"+
-                       ex);
-            Components.utils.reportError(msg);
+        }
+        catch (ex) {
         }
     }
 
-    // If reach here, there were no score=3 matches, so Warn in console.
-    try { 
-        const jsConsole = Components.classes["@mozilla.org/consoleservice;1"]
-                           .getService(Components.interfaces.nsIConsoleService);
-        switch(probableTZScore) {
-        case 0:
-            jsConsole.logStringMessage(calProperties.GetStringFromName
-                                       ("warningUsingFloatingTZNoMatch"));
-            break;
-        case 1: case 2:
-            var tzId = probableTZId;
-            var comp = icsSvc.getTimezone(tzId);
-            var subComp = comp.getFirstSubcomponent("VTIMEZONE");
-            var standard = findCurrentTimePeriod(tzId, subComp, "STANDARD");
-            var standardTZOffset = getIcalString(standard, "TZOFFSETTO");
-            var daylight = findCurrentTimePeriod(tzId, subComp, "DAYLIGHT");
-            var daylightTZOffset = getIcalString(daylight, "TZOFFSETTO");
-            var warningDetail;
-            if (probableTZScore == 1) {
-                // score 1 means has daylight time,
-                // but transitions start on different weekday from os timezone.
-                function weekday(icsDate) {
-                    var calDate = createDateTime();
-                    calDate.timezone = tzId;
-                    calDate.icalString = icsDate;
-                    return calDate.jsDate.toLocaleFormat("%a");
-                }
-                var standardStart = getIcalString(standard, "DTSTART");
-                var standardStartWeekday = weekday(standardStart);
-                var standardRule  = getIcalString(standard, "RRULE");
-                var standardText = 
-                    ("  Standard: "+standardStart+" "+standardStartWeekday+"\n"+
-                     "            "+standardRule+"\n");
-                var daylightStart = getIcalString(daylight, "DTSTART");
-                var daylightStartWeekday = weekday(daylightStart);
-                var daylightRule  = getIcalString(daylight, "RRULE");
-                var daylightText =
-                    ("  Daylight: "+daylightStart+" "+daylightStartWeekday+"\n"+
-                     "            "+daylightRule+"\n");
-                warningDetail =
-                    ((standardStart < daylightStart
-                      ? standardText + daylightText
-                      : daylightText + standardText)+
-                     (calProperties.GetStringFromName
-                      ("TZAlmostMatchesOSDifferAtMostAWeek")));
-            } else {
-                warningDetail =
-                    (calProperties.GetStringFromName("TZSeemsToMatchOS"));
-            }
-            var offsetString = (standardTZOffset+
-                                 (!daylightTZOffset? "": "/"+daylightTZOffset));
-            var warningMsg = (calProperties.formatStringFromName
-                              ("WarningUsingGuessedTZ",
-                               [tzId, offsetString, warningDetail,
-                                probableTZSource], 4));
-            jsConsole.logStringMessage(warningMsg);
-            break;
-        }
-    } catch (ex) { // don't abort if error occurs warning user
-        Components.utils.reportError(ex);
+    // If we get to this point, should we alert the user?
+    if (probableTZ) {
+        return probableTZ;
     }
 
-    // return the guessed timezone
-    return probableTZId;
+    // Everything failed, so this is our only option.
+    return "floating";
 }
 
 /**
