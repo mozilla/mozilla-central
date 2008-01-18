@@ -100,9 +100,12 @@ GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBX
 DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 endif
 
-l10n_locales := $(filter-out CVS,$(notdir $(wildcard $(topsrcdir)/../l10n/*)))
+# Get all directories in /l10n/*, that contain a calendar subdir.
+calendar_locales := $(subst /calendar,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar)))
+# Now make sure those dirs are in shipped-locales
 shipped_locales :=$(shell cat $(topsrcdir)/calendar/locales/shipped-locales)
-locales_to_build :=$(foreach locale,$(l10n_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
+locales_to_build :=$(foreach locale,$(calendar_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
+
 ifneq ($(strip $(locales_to_build)),)
 # The l10n directory is checked out and contains supported locales, start building our locales
 
