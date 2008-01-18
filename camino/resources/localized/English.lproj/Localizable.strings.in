@@ -395,13 +395,13 @@
 
 /* Empty cache messages (note that these are duplicated in the History prefs panel) */
 "EmptyCacheTitle" = "Are you sure you want to empty the cache?";
-"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits. You cannot undo this action.";
+"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits.\n\nYou cannot undo this action.\n";
 "EmptyButton" = "Empty";
 
 /* Clear history message (note that these are duplicated in the History prefs panel) */
 "ClearHistoryMenuItem" = "Clear History…";
 "ClearHistoryTitle" = "Are you sure you want to clear the history?";
-"ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar. You cannot undo this action.";
+"ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar.\n\nYou cannot undo this action.\n";
 "ClearHistoryButton" = "Clear History";
 
 "ShowMoreHistoryMenuItem" = "Show More";
@@ -444,6 +444,11 @@
 "EngineNameAlreadyExistsMessage" = "A search engine named “%@” already exists.  Please specify a different name.";
 "RemovingAllEnginesTitle" = "Cannot remove all search engines";
 "RemovingAllEnginesMessage" = "Camino needs at least one search engine to be installed.";
+"RestoreDefaultEnginesTitle" = "Restore the default search engines?";
+"RestoreDefaultEnginesMessage" = "Restoring the default search engines will replace all of the engines that are currently installed.\n\nYou cannot undo this action.\n";
+"RestoreDefaultEnginesActionButton" = "Restore Default Engines";
+
+/* Web Search Plug-ins */
 "InstallSearchPluginMenuItem" = "Add “%@”";
 "SearchPluginInstallationErrorTitle" = "Problem adding the search engine.";
 "SearchPluginInstallationErrorMessage" = "Camino was unable to add “%@” to the web search field. The search plug-in could be unavailable or in an unsupported format.";

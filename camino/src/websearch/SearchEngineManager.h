@@ -86,4 +86,8 @@ extern NSString *const kWebSearchEngineURLKey;
 - (void)removeSearchEngineAtIndex:(unsigned)index;
 - (void)removeSearchEnginesAtIndexes:(NSIndexSet *)indexes;
 
+// Removes all existing engine info and reverts back to the initial default engine list 
+// and preferred engine selection from the application bundle.
+- (void)revertToDefaultSearchEngines;
+
 @end

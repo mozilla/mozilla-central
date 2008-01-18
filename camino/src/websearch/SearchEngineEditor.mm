@@ -144,6 +144,27 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
     [mSearchEnginesTableView editColumn:0 row:[mSearchEnginesTableView selectedRow] withEvent:nil select:YES];
 }
 
+- (IBAction)restoreDefaultSearchEngines:(id)sender
+{
+  // Since this will remove all existing engines, ask the user for confirmation
+  NSAlert *alert = [[[NSAlert alloc] init] autorelease];
+  [alert addButtonWithTitle:NSLocalizedString(@"RestoreDefaultEnginesActionButton", nil)];
+  [alert addButtonWithTitle:NSLocalizedString(@"CancelButtonText", nil)];
+  [alert setMessageText:NSLocalizedString(@"RestoreDefaultEnginesTitle", nil)];
+  [alert setInformativeText:NSLocalizedString(@"RestoreDefaultEnginesMessage", nil)];
+  [alert setAlertStyle:NSWarningAlertStyle];
+  [alert beginSheetModalForWindow:[self window]
+                    modalDelegate:self
+                   didEndSelector:@selector(restoreDefaultEnginesAlertDidEnd:returnCode:contextInfo:)
+                      contextInfo:NULL];
+}
+
+- (void)restoreDefaultEnginesAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+  if (returnCode == NSAlertFirstButtonReturn)
+    [mSearchEngineManager revertToDefaultSearchEngines];
+}
+
 #pragma mark -
 #pragma mark NSTableDataSource/Delegate Methods
 

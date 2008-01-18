@@ -42,6 +42,7 @@
                 editSelectedSearchEngine = id;
                 makeSelectedSearchEngineDefault = id;
                 removeSelectedSearchEngines = id;
+                restoreDefaultSearchEngines = id;
                 showSearchEngineEditor = id;
             };
             CLASS = SearchEngineEditor;
