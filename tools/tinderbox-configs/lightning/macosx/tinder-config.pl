@@ -240,3 +240,5 @@ $push_raw_xpis = 0;
 # post-mozilla-rel.pl
 @ReleaseExtensions = ('lightning.xpi', 'lightning-wcap.xpi');
 #$ReleaseExtensionSubdir = "" # set to e.g. "xpi"; if not specified, <os>-xpi will be used.
+
+$MacUniversalBinary = 1;
