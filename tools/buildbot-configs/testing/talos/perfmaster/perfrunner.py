@@ -478,7 +478,7 @@ class MozillaInstallDmgEx(ShellCommand):
         if 'filename' in kwargs:
             self.filename = kwargs['filename']
         if not 'command' in kwargs:
-            kwargs['command'] = ["./installdmg.ex", "$FILENAME"]
+            kwargs['command'] = ["expect", "installdmg.ex", "$FILENAME"]
         ShellCommand.__init__(self, **kwargs)
     
     def describe(self, done=False):
