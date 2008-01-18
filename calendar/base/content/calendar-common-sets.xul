@@ -78,7 +78,7 @@
 
     <command id="calendar_reload_remote_calendars" oncommand="goDoCommand('calendar_reload_remote_calendars')"/>
 
-    <command id="calendar_show_unifinder_command" oncommand="goToggleToolbar('bottom-events-box', 'calendar_show_unifinder_command'); goToggleToolbar('calendar-view-splitter');"/>
+    <command id="calendar_show_unifinder_command" oncommand="toggleUnifinder()"/>
 
     <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
     <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>

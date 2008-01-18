@@ -67,6 +67,7 @@ var gEndDate;
 
 var kDefaultTimezone;
 var doingSelection = false;
+var gUnifinderNeedsRefresh = true;
 
 function resetAllowSelection() {
     /**
@@ -80,8 +81,12 @@ function resetAllowSelection() {
     searchTree.addEventListener("select", unifinderOnSelect, true);
 }
 
+function isUnifinderHidden() {
+    return document.getElementById("bottom-events-box").hidden;
+}
+
 function selectSelectedEventsInTree(aEventsToSelect) {
-    if (doingSelection === true) {
+    if (doingSelection === true || isUnifinderHidden()) {
         return;
     }
 
@@ -151,6 +156,18 @@ var unifinderObserver = {
     },
 
     onLoad: function uO_onLoad() {
+        if (isUnifinderHidden() && !gUnifinderNeedsRefresh) {
+            // If the unifinder is hidden, all further item operations might
+            // produce invalid entries in the unifinder. From now on, ignore
+            // those operations and refresh as soon as the unifinder is shown
+            // again.
+            var unifinderTree = document.getElementById("unifinder-search-results-tree");
+
+            gUnifinderNeedsRefresh = true;
+            gEventArray = [];
+            unifinderTree.view = unifinderTreeView;
+            unifinderTree.eventView = new calendarEventView(gEventArray);
+        }
         if (!this.mInBatch) {
             refreshEventTree();
         }
@@ -158,14 +175,15 @@ var unifinderObserver = {
 
     onAddItem: function uO_onAddItem(aItem) {
         if (!(aItem instanceof Components.interfaces.calIEvent) ||
-            this.mInBatch) {
+            this.mInBatch ||
+            gUnifinderNeedsRefresh) {
             return;
         }
         this.addItemToTree(aItem);
     },
 
     onModifyItem: function uO_onModifyItem(aNewItem, aOldItem) {
-        if (this.mInBatch) {
+        if (this.mInBatch || gUnifinderNeedsRefresh) {
             return;
         }
         if (aOldItem instanceof Components.interfaces.calIEvent) {
@@ -178,7 +196,8 @@ var unifinderObserver = {
 
     onDeleteItem: function uO_onDeleteItem(aDeletedItem) {
         if (!(aDeletedItem instanceof Components.interfaces.calIEvent) ||
-            this.mInBatch) {
+            this.mInBatch ||
+            gUnifinderNeedsRefresh) {
             return;
         }
         this.removeItemFromTree(aDeletedItem);
@@ -267,7 +286,10 @@ function prepareCalendarUnifinder() {
     
     // Display something upon first load. onLoad doesn't work properly for
     // observers
-    refreshEventTree();
+    if (!isUnifinderHidden()) {
+        gUnifinderNeedsRefresh = false;
+        refreshEventTree();
+    }
 }
 
 /**
@@ -692,6 +714,11 @@ calendarEventView.prototype = {
 };
 
 function refreshEventTree() {
+    if (isUnifinderHidden()) {
+        // If the unifinder is hidden, don't refresh the events to reduce needed
+        // getItems calls.
+        return;
+    }
     var savedThis = this;
     var refreshListener = {
         mEventArray: new Array(),
@@ -866,6 +893,19 @@ function unifinderKeyPress(aEvent) {
 
 function focusSearch() {
     document.getElementById("unifinder-search-field").focus();
+}
+
+function toggleUnifinder() {
+    // Toggle the elements
+    goToggleToolbar('bottom-events-box', 'calendar_show_unifinder_command');
+    goToggleToolbar('calendar-view-splitter');
+
+    // When the unifinder is hidden, refreshEventTree is not called. Make sure
+    // the event tree is refreshed now.
+    if (!isUnifinderHidden() && gUnifinderNeedsRefresh) {
+        gUnifinderNeedsRefresh = false;
+        refreshEventTree();
+    }
 }
 
 window.addEventListener("load", prepareCalendarUnifinder, false);
