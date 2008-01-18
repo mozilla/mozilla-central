@@ -75,6 +75,8 @@
 <!ENTITY lightning.sidebar.calendars.label   "Calendars">
 <!ENTITY lightning.calendar.label            "Calendar">
 <!ENTITY lightning.calendar.accesskey        "C">
+<!ENTITY lightning.tasks.label               "Tasks">
+<!ENTITY lightning.tasks.accesskey           "T">
 
 <!-- Mode Toolbar -->
 <!ENTITY lightning.toolbar.mail.label         "Mail">
