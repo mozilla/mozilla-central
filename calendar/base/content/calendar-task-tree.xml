@@ -285,7 +285,8 @@
                   // need to act accordingly.
                   if (this.binding.mFilterFunction &&
                       !this.binding.mFilterFunction(aNewItem)) {
-                      return this.removeItem(aNewItem);
+                      this.removeItem(aNewItem);
+                      return;
                   }
                   // same holds true for the completed filter, which is
                   // currently modeled as an explicit boolean.

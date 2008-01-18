@@ -422,7 +422,7 @@ calStorageCalendar.prototype = {
                                               null,
                                               "Calendar is readonly");
             }
-            return;
+            return null;
         }
         if (!aNewItem) {
             throw Components.results.NS_ERROR_INVALID_ARG;
@@ -486,6 +486,7 @@ calStorageCalendar.prototype = {
 
         // notify observers
         this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
+        return null;
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );

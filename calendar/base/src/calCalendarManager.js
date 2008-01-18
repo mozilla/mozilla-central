@@ -471,6 +471,7 @@ calCalendarManager.prototype = {
                                 "_blank",
                                 "chrome,dialog=yes,alwaysRaised=yes",
                                 paramBlock);
+            return null;
         }
     },
 

@@ -255,6 +255,7 @@ calMemoryCalendar.prototype = {
                                            modifiedItem);
         // notify observers
         this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
+        return null;
     },
 
     // void deleteItem( in calIItemBase aItem, in calIOperationListener aListener );
