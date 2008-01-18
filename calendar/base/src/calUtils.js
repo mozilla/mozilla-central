@@ -1351,7 +1351,54 @@ function getAdjacentSibling(aElement, aDistance) {
     return retElement;
 }
 
+/**
+ * applies a value to all children of a Menu. If the respective childnodes define
+ * a command the value is applied to the attribute of thecommand of the childnode
+ *
+ * @param aElement The parentnode of the elements
+ * @param aAttributeName The name of the attribute
+ * @param aValue The value of the attribute
+ */
+function applyAttributeToMenuChildren(aElement, aAttributeName, aValue) {
+   var sibling = aElement.firstChild;
+   do {
+       if (sibling) {
+           var domObject = sibling;
+           var commandName = sibling.getAttribute("command");
+           if (commandName) {
+               var command = document.getElementById(commandName);
+               if (command) {
+                   domObject = command;
+               }
+           }
+           domObject.setAttribute(aAttributeName, aValue);
+       sibling = sibling.nextSibling;          
+       }
+    } while (sibling);
+  }
 
+
+/**
+ * compares the value of a property of an array of objects and returns 
+ * true or false if it is same or not among all array members 
+ *
+ * @param aObjects An Array of Objects to inspect
+ * @param aProperty Name the name of the Property of which the value is compared
+ */
+function isPropertyValueSame(aObjects, aPropertyName) {
+    var value = null;
+    for (var i = 0; i < aObjects.length; i++) {
+        if (!value) {
+            value = aObjects[0][aPropertyName];
+        }
+        var compValue = aObjects[i][aPropertyName];
+        if (compValue != value ) {
+            return false;
+        }
+    }
+    return true;
+}
+  
 /**
  * sets the value of a boolean attribute by either setting the value or 
  * removing the attribute
@@ -1386,6 +1433,18 @@ function getParentNode(aNode, aLocalName) {
   return node;
 }
 
+function addCalendarsToMenu(aMenuItem, aFunctionName) {
+    var calendarList = aMenuItem;
+    var calendars = getCalendarManager().getCalendars({});
+    for (i in calendars) {
+        var calendar = calendars[i];
+        var menuitem = calendarList.appendItem(calendar.name, i);
+        if (aFunctionName) {
+            menuitem.setAttribute("oncommand", aFunctionName)
+        }
+        menuitem.calendar = calendar;
+    }
+}
 /**
  * Implements a property bag.
  */

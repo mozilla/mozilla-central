@@ -28,6 +28,7 @@
  *                 Mark Swaffer <swaff@fudo.org>
  *                 Michael Buettner <michael.buettner@sun.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
+ *                 Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,128 +44,138 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function changeContextMenuForTask(event) {
+function addCalendarNames(aEvent) {
+    var calendarMenuPopup = aEvent.target;
+    var calendars = getCalendarManager().getCalendars({});
+    while (calendarMenuPopup.hasChildNodes()) {
+        calendarMenuPopup.removeChild(calendarMenuPopup.lastChild);
+    }
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    var tasksSelected = (tasks.length > 0);
+    if (tasksSelected) {
+        var task = tasks[0];
+        var isSame = isPropertyValueSame(tasks, "calendar");
+        var selCalendarName = task.calendar.name;
+        for (i in calendars) {
+            var calendar = calendars[i];
+            var calendarMenuItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
+            calendarMenuItem.setAttribute("type", "checkbox");
+            if (isSame && (selCalendarName.length > 0) && (calendar.name == selCalendarName)) {
+                calendarMenuItem.setAttribute("checked", true);
+            }
+            calendarMenuItem.setAttribute("label", calendar.name);
+            calendarMenuItem.setAttribute("oncommand", "contextChangeCalendar(event);");
+            calendarMenuItem.calendar = calendar;
+            calendarMenuPopup.appendChild(calendarMenuItem);
+         }
+    }
+}
+  
+function changeContextMenuForTask(aEvent) {
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    var task = null;
+    var tasksSelected = (tasks.length > 0);
+    applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
+    document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
+    if (tasksSelected) {
+        taskTree.contextTask = task = tasks[0];
+    } else {
+        taskTree.contextTask = null;
+        return;
+    }
 
-   if (event.target.id != "taskitem-context-menu" || !document.popupNode)
-     return;
-
-   var tree = document.popupNode;
-   var task = tree.mTreeView._getItemFromEvent(event);
-
-   // If only one task is selected, enable 'Edit Task'
-   var start = new Object();
-   var end = new Object();
-   var numRanges = tree.mTreeView.selection.getRangeCount();
-   tree.mTreeView.selection.getRangeAt(0, start, end);
-   if (numRanges == 1 && (start.value == end.value) && task) {
-       document.getElementById("task-context-menu-modify")
-               .removeAttribute("disabled");
-       tree.contextTask = task;
-   } else {
-       document.getElementById("task-context-menu-modify")
-               .setAttribute("disabled", "true");
-       tree.contextTask = null;
-   }
-
-   // If no task is selected, disable 'Delete Task'
-   if (task) {
-       document.getElementById("task-context-menu-delete")
-               .removeAttribute("disabled");
-   } else {
-       document.getElementById("task-context-menu-delete")
-               .setAttribute("disabled", "true");
-   }
-
-   // make progress and priority popup menu visible
-   document.getElementById("is_editable").removeAttribute("hidden");
-
-   // enable/disable progress and priority popup menus
-   if (task) {
-      document.getElementById("is_editable").removeAttribute("disabled");
-      var liveList = document.getElementById("taskitem-context-menu")
-                             .getElementsByAttribute("checked", "true");
-      // Delete in reverse order.  Moz1.8+ getElementsByAttribute list is
-      // 'live', so when attribute is deleted the indexes of later elements
-      // change, but Moz1.7- is not.  Reversed order works with both.
-      for (var i = liveList.length - 1; i >= 0; i-- ) {
-         liveList.item(i).removeAttribute("checked");
-      }
-
-      if (document.getElementById("percent-" + task.percentComplete+"-menuitem")) {
-         document.getElementById("percent-" + task.percentComplete+"-menuitem")
-                 .setAttribute("checked", "true");
-      }
-   
-      if (document.getElementById("priority-" + task.priority+"-menuitem")) {
-         document.getElementById("priority-" + task.priority+"-menuitem")
-                 .setAttribute("checked", "true");
-      }
-   } else {
-      document.getElementById("is_editable").setAttribute("disabled", "true");
-   }
+    if (tasksSelected) {
+        var liveList = aEvent.target.getElementsByAttribute("checked", "true");
+        // Delete in reverse order.  Moz1.8+ getElementsByAttribute list is
+        // 'live', so when attribute is deleted the indexes of later elements
+        // change, but Moz1.7- is not.  Reversed order works with both.
+        for (var i = liveList.length - 1; i >= 0; i-- ) {
+            var commandName = liveList.item(i).getAttribute("command");
+            var command = document.getElementById(commandName);
+            if (command) {
+                command.setAttribute("checked", "false");
+            }
+        }
+        if (isPropertyValueSame(tasks, "isCompleted")) {;
+            document.getElementById("calendar_iscompleted_command").setAttribute("checked", task.isCompleted);
+        } else {
+            document.getElementById("calendar_iscompleted_command").setAttribute("checked", false);
+        }
+        if (isPropertyValueSame(tasks, "percentComplete")) {
+            var percentCommand = document.getElementById("calendar_percent-" + task.percentComplete + "_command");
+            if (percentCommand) {
+                percentCommand.setAttribute("checked", "true");
+            }
+        }
+        if (isPropertyValueSame(tasks, "priority")) {
+            var priorityCommand = document.getElementById("calendar_priority-" + task.priority + "_command");
+            if (priorityCommand) {
+                priorityCommand.setAttribute("checked", "true");
+            }
+        }
+    }
 }
 
-function contextChangeProgress(event, Progress) {
-   var tree = document.popupNode;
-   var start = new Object();
-   var end = new Object();
-   var numRanges = tree.mTreeView.selection.getRangeCount();
-   if(numRanges == 0) {
-      return;
-   }
+function contextChangeProgress(aProgress) {
+    startBatchTransaction();
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    for (var t = 0; t < tasks.length; t++) {
+       var task = tasks[t];
+            var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
+          newTask.percentComplete = aProgress;
+          switch (aProgress) {
+                case 0:
+                    newTask.isCompleted = false;
+                    break;
+                case 100:
+                    newTask.isCompleted = true;
+                    break;
+                default:
+                    newTask.status = "IN-PROCESS";
+                    newTask.completedDate = null;
+                    break;
+            }
+            doTransaction('modify', newTask, newTask.calendar, task, null);
+        }
+    endBatchTransaction();
+}
+
+function contextChangeCalendar(aEvent) {
    startBatchTransaction();
-   for (var t = 0; t < numRanges; t++) {
-      tree.mTreeView.selection.getRangeAt(t, start, end);
-      for (var v = start.value; v <= end.value; v++) {
-          var task = tree.getTaskAtRow(v);
-          var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
-          newTask.percentComplete = Progress;
-          switch (Progress) {
-              case 0:
-                  newTask.isCompleted = false;
-                  break;
-              case 100:
-                  newTask.isCompleted = true;
-                  break;
-              default:
-                  newTask.status = "IN-PROCESS";
-                  newTask.completedDate = null;
-                  break;
-          }
-          doTransaction('modify', newTask, newTask.calendar, task, null);
-      }
-   }
-   endBatchTransaction();
+   var taskTree = getFocusedTaskTree();
+   var tasks = taskTree.selectedTasks;
+   for (var t = 0; t < tasks.length; t++) {
+       var task = tasks[t];
+       var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
+       newTask.calendar = aEvent.target.calendar;
+       doTransaction('modify', newTask, newTask.calendar, task, null);
+    }
+    endBatchTransaction();
 }
 
-function contextChangePriority(event, Priority) {
-   var tree = document.popupNode;
-   var start = new Object();
-   var end = new Object();
-   var numRanges = tree.mTreeView.selection.getRangeCount();
-   if(numRanges == 0) {
-      return;
-   }
-   startBatchTransaction();
-   for (var t = 0; t < numRanges; t++) {
-      tree.mTreeView.selection.getRangeAt(t, start, end);
-      for (var v = start.value; v <= end.value; v++) {
-          var task = tree.getTaskAtRow(v);
-          var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
-          newTask.priority = Priority;
-          doTransaction('modify', newTask, newTask.calendar, task, null);
-      }
-   }
-   endBatchTransaction();
-}
-
+function contextChangePriority(aPriority) {
+    startBatchTransaction();
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    for (var t = 0; t < tasks.length; t++) {
+        var task = tasks[t];
+        var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
+        newTask.priority = aPriority;
+        doTransaction('modify', newTask, newTask.calendar, task, null);
+     }
+     endBatchTransaction();
+  }
+  
 function modifyTaskFromContext() {
-   var tree = document.popupNode;
-   var task = tree.contextTask;
-   if(task) {
-        modifyEventWithDialog(task);
-   }
-}
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    for (var t = 0; t < tasks.length; t++) {
+        modifyEventWithDialog(tasks[t]);
+    }
+ }
 
 /**
  *  Delete the current selected item with focus from the task tree
@@ -187,4 +198,24 @@ function getFocusedTaskTree() {
         taskTree = document.getElementById("calendar-task-tree");
     }
     return taskTree;
+}
+
+function tasksToMail() {
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    calendarMailButtonDNDObserver.onDropItems(tasks);
+}
+
+function tasksToEvents() {
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;  
+    calendarCalendarButtonDNDObserver.onDropItems(tasks);
+}
+
+function toggleCompleted(aEvent) {
+    if (aEvent.target.getAttribute("checked") == "true") {
+        contextChangeProgress(100);
+    } else {
+        contextChangeProgress(0);
+    }
 }

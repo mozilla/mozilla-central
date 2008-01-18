@@ -139,7 +139,7 @@
  </menupopup>
    <menupopup id="menu_View_Popup">
      <menu label="&showCurrentView.label;"
-           mode="calendar"
+           mode="calendar,task"
            accesskey="&showCurrentView.accesskey;">
        <menupopup>
          <menuitem type="checkbox"
@@ -162,6 +162,37 @@
                    accesskey="&calendar.orientation.accesskey;"
                    mode="calendar"
                    observes="calendar_toggle_orientation_command"/>
+         <menuitem id="tasks-view-filter-all"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.all.label;"
+                   accesskey="&calendar.task.filter.all.accesskey;"/>
+         <menuitem id="tasks-view-filter-today"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.today.label;"
+                   accesskey="&calendar.task.filter.today.accesskey;"/>
+         <menuitem id="tasks-view-filter-next7days"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.next7days.label;"
+                   accesskey="&calendar.task.filter.next7days.accesskey;"/>
+         <menuitem id="tasks-view-filter-notstartedtasks"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.notstarted.label;"
+                   accesskey="&calendar.task.filter.notstarted.accesskey;"/>
+         <menuitem id="tasks-view-filter-overdue"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.overdue.label;"
+                   accesskey="&calendar.task.filter.overdue.accesskey;"/>
+         <menuitem id="tasks-view-filter-completed"
+                   disabled="true"
+                   mode="task"
+                   label="&calendar.task.filter.completed.label;"
+                   accesskey="&calendar.task.filter.completed.accesskey;"/>
+
        </menupopup>
      </menu>
      <menuseparator id="before-Unifinder-Section" mode="calendar"/>
@@ -205,6 +236,22 @@
                mode="calendar"
                key="month-view-key"
                observes="calendar_month-view_command"/>
+     <menuseparator id="before-task-View-Section" mode="task"/>
+      <menuitem id="tasks-view-minimonth"
+                disabled="true"
+                mode="task"
+                label="&calendar.tasks.view.minimonth.label;"
+                accesskey="&calendar.tasks.view.minimonth.accesskey;"/>
+      <menuitem id="tasks-view-calendarlist"
+                disabled="true"
+                mode="task"
+                label="&calendar.tasks.view.calendarlist.label;"
+                accesskey="&calendar.tasks.view.calendarlist.accesskey;"/>
+      <menuitem id="tasks-view-sorttasks"
+                disabled="true"
+                mode="task"
+                label="&calendar.tasks.view.sorttasks.label;"
+                accesskey="&calendar.tasks.view.sorttasks.accesskey;"/>
    </menupopup>
  <menupopup id="view_toolbars_popup">
    <menuitem id="ltnCalendarToolbar"

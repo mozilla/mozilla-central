@@ -398,7 +398,7 @@ function injectCalendarCommandController() {
             return;
         } else {
             calendarController.defaultController = tbController;
-            ltnInitializeCalendarMenu();
+            ltnInitializeMenus();
         }
     }
     top.controllers.insertControllerAt(0, calendarController);
