@@ -200,7 +200,7 @@ function ltnSwitch2Task() {
     switch2task.setAttribute("checked", "true");
 
     gCurrentMode = 'task';
-
+    swapPopupMenus();
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.setAttribute("collapsed", "true");
