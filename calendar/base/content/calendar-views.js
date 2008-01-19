@@ -430,7 +430,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
     } else {
         // This is a category, where we set the border.  Also note that we 
         // use the ~= selector, since there could be multiple categories
-        name = aObject.replace(' ','_');
+        name = formatStringForCSSRule(aObject);
         selectorPrefix = "item-category~=";
         ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
             var color = getPrefSafe("calendar.category.color."+aObject, null);

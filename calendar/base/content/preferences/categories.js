@@ -103,7 +103,7 @@ var gCategoriesPane = {
             var categoryName = document.createElement("listcell");
             categoryName.setAttribute("id", gCategoryList[i]);
             categoryName.setAttribute("label", gCategoryList[i]);
-            var categoryNameFix = this.fixName(gCategoryList[i]);
+            var categoryNameFix = formatStringForCSSRule(gCategoryList[i]);
             var categoryColor = document.createElement("listcell");
             try {
                 var colorCode = categoryPrefBranch.getCharPref(categoryNameFix);
@@ -131,7 +131,7 @@ var gCategoriesPane = {
 
     editCategory: function () {
         var list = document.getElementById("categorieslist");
-        var categoryNameFix = this.fixName(gCategoryList[list.selectedIndex]);
+        var categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
         try {
             var currentColor = categoryPrefBranch.getCharPref(categoryNameFix);
         } catch (ex) {
@@ -148,7 +148,7 @@ var gCategoriesPane = {
     deleteCategory: function () {
         var list = document.getElementById("categorieslist");
         if (list.selectedItem) {
-            var categoryNameFix = this.fixName(gCategoryList[list.selectedIndex]);
+            var categoryNameFix = formatStringForCSSRule(gCategoryList[list.selectedIndex]);
             this.backupData(categoryNameFix);
             try {
                 categoryPrefBranch.clearUserPref(categoryNameFix);
@@ -186,7 +186,7 @@ var gCategoriesPane = {
             return;
         }
 
-        var categoryNameFix = this.fixName(categoryName);
+        var categoryNameFix = formatStringForCSSRule(categoryName);
         if (list.selectedIndex == -1) {
             this.backupData(categoryNameFix);
             gCategoryList.push(categoryName);
@@ -213,12 +213,6 @@ var gCategoriesPane = {
         }
 
         this.updateCategoryList();
-    },
-
-    fixName: function (categoryName) {
-        var categoryNameFix = categoryName.toLowerCase();
-        categoryNameFix = categoryNameFix.replace(" ","_");
-        return categoryNameFix;
     },
 
     enableButtons: function () {

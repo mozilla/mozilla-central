@@ -210,8 +210,7 @@
             var categoriesList = item.getProperty("CATEGORIES").split(",");
             for (var i = 0; i < categoriesList.length; i++ ) {
               // Remove illegal chars.
-              categoriesList[i] = categoriesList[i].replace(' ','_');
-              categoriesList[i] = categoriesList[i].toLowerCase();
+              categoriesList[i] = formatStringForCSSRule(categoriesList[i]);
             }
             categoriesSelectorList = categoriesList.join(" ");
           }

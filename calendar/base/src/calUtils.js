@@ -165,6 +165,16 @@ function calendarDefaultTimezone() {
 }
 
 /**
+ * Format the given string to work inside a CSS rule selector
+ *
+ * @param aString       The string to format
+ * @return              The formatted string
+ */
+function formatStringForCSSRule(aString) {
+    return aString.replace(/ /g, "_").toLowerCase();
+}
+
+/**
  * We're going to do everything in our power, short of rumaging through the
  * user's actual file-system, to figure out the time-zone they're in.  The
  * deciding factors are the offsets given by (northern-hemisphere) summer and

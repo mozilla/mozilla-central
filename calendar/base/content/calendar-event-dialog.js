@@ -1185,9 +1185,10 @@ var gCategoriesPane = {
                 var repTitle = calGetString("calendar", "categoryReplaceTitle");
                 var rep = calGetString("calendar", "categoryReplace");
                 if (promptService.confirm(null, repTitle, rep)) {
-                    var categoryNameFix = aName.toLowerCase().replace(' ','_');
-                    setPref("calendar.category.color."+categoryNameFix, 
-                            "CHAR", aColor);
+                    var categoryNameFix = formatStringForCSSRule(aName);
+                    setPref("calendar.category.color." + categoryNameFix,
+                            "CHAR",
+                            aColor);
                 }
                 return;
             }
@@ -1204,8 +1205,8 @@ var gCategoriesPane = {
         setLocalizedPref("calendar.categories.names", categoriesList.join(','));
 
         if (aColor) {
-            var categoryNameFix = aName.toLowerCase().replace(' ','_');
-            setPref("calendar.category.color."+categoryNameFix, "CHAR", aColor);
+            var categoryNameFix = formatStringForCSSRule(aName);
+            setPref("calendar.category.color." + categoryNameFix, "CHAR", aColor);
         }
         var catList = document.getElementById("item-categories");
         var index = categoriesList.indexOf(aName);
