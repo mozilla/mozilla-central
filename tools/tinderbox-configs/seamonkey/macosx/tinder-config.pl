@@ -81,8 +81,6 @@ $LocaleProduct = "suite";
   "editor/ui",
   "suite",
 );
-$BuildLocalesArgs = "UNIVERSAL_BINARY=";  # Extra attributes to add to the makefile command
-                                          # which builds the "installers-<locale>" target.
 
 #$TestsPhoneHome           = 0;  # Should test report back to server?
 
