@@ -32,9 +32,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#tb-venkman-open {
+.venkman-open-tb-button {
   list-style-image: url("chrome://venkman/skin/images/step-into.png");
 }
-toolbar[iconsize="small"] #tb-venkman-open {
+toolbar[iconsize="small"] .venkman-open-tb-button {
   list-style-image: url("chrome://venkman/skin/images/file-js-bp.png");
 }

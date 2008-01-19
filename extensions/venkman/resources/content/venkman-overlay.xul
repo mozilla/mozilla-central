@@ -69,7 +69,7 @@
 
 <toolbarpalette id="BrowserToolbarPalette">
   <toolbarbutton id="tb-venkman-open" oncommand="start_venkman()" 
-      class="toolbarbutton-1"
+      class="toolbarbutton-1 venkman-open-tb-button"
       label="&vnkButton.label;" tooltiptext="&vnkButton.label;"/>
 </toolbarpalette>
 
@@ -90,7 +90,7 @@
 <!-- Sunbird toolbar button -->
 <toolbarpalette id="calendarToolbarPalette">
   <toolbarbutton id="sb-venkman-open" oncommand="start_venkman()" 
-      class="toolbarbutton-1"
+      class="toolbarbutton-1 venkman-open-tb-button"
       label="&vnkButton.label;" tooltiptext="&vnkButton.label;"/>
 </toolbarpalette>
 
