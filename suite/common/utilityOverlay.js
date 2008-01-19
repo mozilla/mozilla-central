@@ -58,6 +58,7 @@ const kProxyManual = ["network.proxy.ftp",
                       "network.proxy.socks",
                       "network.proxy.ssl"];
 var gShowBiDi = false;
+var gUtilityBundle = null;
 
 function toggleOfflineStatus()
 {
@@ -417,6 +418,74 @@ function goReleaseNotes()
     openTopWin(formatter.formatURLPref("app.releaseNotesURL"));
   }
   catch (ex) { dump(ex); }
+}
+
+function checkForUpdates()
+{
+  var um = Components.classes["@mozilla.org/updates/update-manager;1"]
+                     .getService(Components.interfaces.nsIUpdateManager);
+  var prompter = Components.classes["@mozilla.org/updates/update-prompt;1"]
+                           .createInstance(Components.interfaces.nsIUpdatePrompt);
+
+  // If there's an update ready to be applied, show the "Update Downloaded"
+  // UI instead and let the user know they have to restart the browser for
+  // the changes to be applied. 
+  if (um.activeUpdate && um.activeUpdate.state == "pending")
+    prompter.showUpdateDownloaded(um.activeUpdate);
+  else
+    prompter.checkForUpdates();
+}
+
+function updateCheckUpdatesItem()
+{
+  var updates = Components.classes["@mozilla.org/updates/update-service;1"]
+                          .getService(Components.interfaces.nsIApplicationUpdateService);
+  var um = Components.classes["@mozilla.org/updates/update-manager;1"]
+                     .getService(Components.interfaces.nsIUpdateManager);
+  
+  // Disable the UI if the update enabled pref has been locked by the
+  // administrator or if we cannot update for some other reason.
+  var checkForUpdates = document.getElementById("checkForUpdates");
+  var canUpdate = updates.canUpdate;
+  checkForUpdates.setAttribute("disabled", !canUpdate);
+  if (!canUpdate)
+    return;
+
+  if (!gUtilityBundle)
+    gUtilityBundle = document.getElementById("bundle_utilityOverlay");
+  
+  // By default, show "Check for Updates..."
+  var key = "default";
+  if (um.activeUpdate) {
+    switch (um.activeUpdate.state) {
+    case "downloading":
+      // If we're downloading an update at present, show the text:
+      // "Downloading Firefox x.x..." otherwise we're paused, and show
+      // "Resume Downloading Firefox x.x..."
+      key = updates.isDownloading ? "downloading" : "resume";
+      break;
+    case "pending":
+      // If we're waiting for the user to restart, show: "Apply Downloaded
+      // Updates Now..."
+      key = "pending";
+      break;
+    }
+  }
+
+  // If there's an active update, substitute its name into the label
+  // we show for this item, otherwise display a generic label.
+  if (um.activeUpdate && um.activeUpdate.name)
+    checkForUpdates.label = gUtilityBundle.getFormattedString("updatesItem_" + key,
+                                                              [activeUpdate.name]);
+  else
+    checkForUpdates.label = gUtilityBundle.getString("updatesItem_" + key + "Fallback");
+
+  checkForUpdates.accesskey = gUtilityBundle.getString("updatesItem_" + key + "AccessKey");
+
+  if (um.activeUpdate && updates.isDownloading)
+    checkForUpdates.setAttribute("loading", "true");
+  else
+    checkForUpdates.removeAttribute("loading");
 }
 
 // update menu items that rely on focus

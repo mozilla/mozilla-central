@@ -40,8 +40,7 @@
 function Startup()
 {
   toggleFrequency("extensions");
-  // disabled until SM updates are available
-  // toggleFrequency("app");
+  toggleFrequency("app");
 }
 
 function toggleFrequency(aType)
@@ -52,10 +51,4 @@ function toggleFrequency(aType)
   document.getElementById(aType + "FreqWeekly").disabled =
     !document.getElementById(aType + ".update.enabled").value ||
     document.getElementById(aType + ".update.interval").locked;
-}
-
-function toEM()
-{
-  toOpenWindowByType("Extension:Manager",
-    "chrome://mozapps/content/extensions/extensions.xul");
 }

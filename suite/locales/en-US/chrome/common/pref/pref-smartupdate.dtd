@@ -18,6 +18,5 @@
 <!ENTITY extensionsUpdates.accesskey          "n">
 <!ENTITY extensionsDaily.accesskey            "i">
 <!ENTITY extensionsWeekly.accesskey           "k">
-<!ENTITY appUpdatesDisabled.desc              "Automatic updates to &brandShortName; are not currently available. This feature is intended for implementation before the next release.">
 <!ENTITY addonManagerButton.label             "Add-on Manager">
 <!ENTITY addonManagerButton.accesskey         "M">

@@ -23,6 +23,11 @@
   <script type="application/x-javascript"
           src="chrome://help/content/contextHelp.js"/>
 
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_utilityOverlay"
+                  src="chrome://communicator/locale/utilityOverlay.properties"/>
+  </stringbundleset>
+
   <!-- online/offline status indicators -->   
   <broadcaster id="Communicator:WorkMode"
                label="&offlineGoOfflineCmd.label;"
@@ -290,7 +295,7 @@
   <menu id="menu_Help"
         label="&helpMenu.label;"
         accesskey="&helpMenu.accesskey;">
-    <menupopup id="helpPopup">
+    <menupopup id="helpPopup" onpopupshowing="updateCheckUpdatesItem();">
       <menuitem label="&openHelpCmd.label;"
                 accesskey="&openHelpCmd.accesskey;"
                 id="help"
@@ -301,6 +306,11 @@
                 label="&releaseCmd.label;"
                 id="releaseUrl"
                 oncommand="goReleaseNotes();"/>
+
+      <menuseparator id="menu_HelpUpdatesSeparator"/>
+
+      <menuitem accesskey="&updateCmd.accesskey;" label="&updateCmd.label;"
+                id="checkForUpdates" oncommand="checkForUpdates();"/>
 
       <menuseparator id="menu_HelpAboutSeparator"/>
 

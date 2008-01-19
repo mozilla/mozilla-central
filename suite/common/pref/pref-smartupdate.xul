@@ -83,16 +83,14 @@
 
         <rows>
           <row>
-            <!-- disabled until SM updates are available -->
             <checkbox id="appUpdatesEnabled" label="&appUpdates.label;"
-                      accesskey="&appUpdates.accesskey;" disabled="true"
+                      accesskey="&appUpdates.accesskey;"
                       preference="app.update.enabled"/>
-            <!-- disabled until SM updates are available -->
             <radiogroup id="appUpdateFrequency" orient="horizontal" 
                         preference="app.update.interval">
-              <radio id="appFreqDaily" label="&daily.label;" disabled="true"
+              <radio id="appFreqDaily" label="&daily.label;"
                      accesskey="&appDaily.accesskey;" value="86400"/>
-              <radio id="appFreqWeekly" label="&weekly.label;" disabled="true"
+              <radio id="appFreqWeekly" label="&weekly.label;"
                      accesskey="&appWeekly.accesskey;" value="604800"/>
             </radiogroup>
           </row>
@@ -111,7 +109,6 @@
           </row>
         </rows>
       </grid>
-      <description>&appUpdatesDisabled.desc;</description>
       <vbox align="end">
         <button id="startAddonManager" oncommand="toEM();"
                 label="&addonManagerButton.label;"

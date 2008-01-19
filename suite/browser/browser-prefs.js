@@ -225,8 +225,8 @@ pref("app.vendorURL", "chrome://branding/locale/brand.properties");
 
 // App-specific update preferences
 
-// Whether or not app updates are enabled - false initally for SeaMonkey
-pref("app.update.enabled", false);
+// Whether or not app updates are enabled
+pref("app.update.enabled", true);
  
 // This preference turns on app.update.mode and allows automatic download and
 // install to take place. We use a separate boolean toggle for this to make
