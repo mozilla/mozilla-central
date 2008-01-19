@@ -111,9 +111,23 @@ PR_IMPLEMENT(void) PL_InitArenaPool(
 #pragma unused (name)
 #endif
 
+    /*
+     * Look-up table of PR_BITMASK(PR_CeilingLog2(align)) values for
+     * align = 1 to 32.
+     */
+    static const PRUint8 pmasks[33] = {
+         0,                                               /*  not used */
+         0, 1, 3, 3, 7, 7, 7, 7,15,15,15,15,15,15,15,15,  /*  1 ... 16 */
+        31,31,31,31,31,31,31,31,31,31,31,31,31,31,31,31}; /* 17 ... 32 */
+
     if (align == 0)
         align = PL_ARENA_DEFAULT_ALIGN;
-    pool->mask = PR_BITMASK(PR_CeilingLog2(align));
+
+    if (align < sizeof(pmasks)/sizeof(pmasks[0]))
+        pool->mask = pmasks[align];
+    else
+        pool->mask = PR_BITMASK(PR_CeilingLog2(align));
+
     pool->first.next = NULL;
     pool->first.base = pool->first.avail = pool->first.limit =
         (PRUword)PL_ARENA_ALIGN(pool, &pool->first + 1);
