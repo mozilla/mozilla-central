@@ -3755,6 +3755,16 @@ function cmdDoCommand(e)
         window.openDialog('chrome://chatzilla/content/config.xul', '',
                           'chrome,resizable,dialog=no', window);
     }
+    else if (e.cmdName == "cmd_selectAll")
+    {
+        var userList = document.getElementById("user-list");
+        var elemFocused = document.commandDispatcher.focusedElement;
+
+        if (userList.view && (elemFocused == userList))
+            userList.view.selection.selectAll();
+        else
+            doCommand("cmd_selectAll");
+    }
     else
     {
         doCommand(e.cmdName);
