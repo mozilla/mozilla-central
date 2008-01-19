@@ -35,7 +35,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --enable-os2-high-mem Enable high-memory support on OS/2"
 ac_help="$ac_help
-build with dtrace support if available (default=no)"
+  --enable-dtrace         build with dtrace support if available (default=no)"
 ac_help="$ac_help
   --with-ft-prefix=PFX    Prefix where FreeType is installed (optional)"
 ac_help="$ac_help
