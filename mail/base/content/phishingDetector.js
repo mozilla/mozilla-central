@@ -79,11 +79,11 @@ var gPhishingDetector = {
       // Download/update lists if we're in non-enhanced mode
       this.mPhishingWarden.maybeToggleUpdateChecking();  
     } catch (ex) { dump('unable to create the phishing warden: ' + ex + '\n');}
-    
+
     this.mCheckForIPAddresses = gPrefBranch.getBoolPref("mail.phishing.detection.ipaddresses");
     this.mCheckForMismatchedHosts = gPrefBranch.getBoolPref("mail.phishing.detection.mismatched_hosts");
   },
-  
+
   /**
    * Analyzes the urls contained in the currently loaded message in the message pane, looking for
    * phishing URLs.
@@ -111,7 +111,7 @@ var gPhishingDetector = {
     var linkNodes = document.getElementById('messagepane').contentDocument.links;
     for (var index = 0; index < linkNodes.length; index++)
       this.analyzeUrl(linkNodes[index].href, gatherTextUnder(linkNodes[index]));
-      
+
     // extract the action urls associated with any form elements in the message and analyze them.
     var formNodes = document.getElementById('messagepane').contentDocument.getElementsByTagName("form");
     for (index = 0; index < formNodes.length; index++)
@@ -120,7 +120,7 @@ var gPhishingDetector = {
         this.analyzeUrl(formNodes[index].action);
     }
   },
-  
+
   /** 
    * Analyze the url contained in aLinkNode for phishing attacks. If a phishing URL is found,
    * 
@@ -151,7 +151,11 @@ var gPhishingDetector = {
       unobscuredHostName.value = hrefURL.host;
 
       // The link is not suspicious if the visible text is the same as the URL,
-      // even if the URL is an IP address.
+      // even if the URL is an IP address. URLs are commonly surrounded by
+      // < > or "" (RFC2396E) - so strip those from the link text before comparing.
+      if (aLinkText)
+        aLinkText = aLinkText.replace(/^<(.+)>$|^"(.+)"$/, "$1$2");
+
       var failsStaticTests = (aLinkText != aUrl) &&
          ((this.mCheckForIPAddresses && this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName) &&
            !this.isLocalIPAddress(unobscuredHostName)) ||
@@ -187,7 +191,7 @@ var gPhishingDetector = {
         gMessageNotificationBar.setPhishingMsg();
     }
   },
-  
+
   /**
    * Looks up the report phishing url for the current phishing provider, appends aPhishingURL to the url,
    * and loads it in the default browser where the user can submit the url as a phish.
@@ -202,7 +206,7 @@ var gPhishingDetector = {
      {
        reportUrl += "&url=" + encodeURIComponent(aPhishingURL);
        // now send the url to the default browser
-       
+
        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                        .getService(Components.interfaces.nsIIOService);
        var uri = ioService.newURI(reportUrl, null, null);
@@ -211,7 +215,7 @@ var gPhishingDetector = {
        protocolSvc.loadUrl(uri);
      }
    },   
-  
+
   /**
    * Private helper method to determine if the link node contains a user visible
    * url with a host name that differs from the actual href the user would get taken to.
@@ -241,7 +245,7 @@ var gPhishingDetector = {
 
     return false;
   },
-  
+
   /**
    * Private helper method to determine if aHostName is an obscured IP address 
    * @return unobscured host name (if there is one)
@@ -299,7 +303,7 @@ var gPhishingDetector = {
     }
     return false;
   },
-  
+
   /**
    * Private helper method.
    * @return true if aHostName is an IPv4 address
@@ -310,7 +314,7 @@ var gPhishingDetector = {
     // treat 0.0.0.0 as an invalid IP address
     return ipv4HostRegExp.test(aHostName) && aHostName != '0.0.0.0';
   },
-  
+
   /** 
    * Private helper method.
    * @return true if unobscuredHostName is a local IP address.
@@ -320,11 +324,12 @@ var gPhishingDetector = {
     var ipComponents = unobscuredHostName.value.split(".");
 
     return ipComponents[0] == 10 ||
+           ipComponents[0] == 127 || // loopback address
            (ipComponents[0] == 192 && ipComponents[1] == 168) ||
            (ipComponents[0] == 169 && ipComponents[1] == 254) ||
            (ipComponents[0] == 172 && ipComponents[1] >= 16 && ipComponents[1] < 32);
   },
-  
+
   /** 
    * If the current message has been identified as an email scam, prompts the user with a warning
    * before allowing the link click to be processed. The warning prompt includes the unobscured host name
@@ -346,7 +351,7 @@ var gPhishingDetector = {
     try {
       hrefURL = ioService.newURI(aUrl, null, null);
     } catch(ex) { return false; }
-    
+
     // only prompt for http and https urls
     if (hrefURL.schemeIs('http') || hrefURL.schemeIs('https'))
     {
@@ -354,7 +359,7 @@ var gPhishingDetector = {
       var unobscuredHostName = {};
       unobscuredHostName.value = hrefURL.host;
       this.hostNameIsIPAddress(hrefURL.host, unobscuredHostName);
-      
+
       var brandShortName = gBrandBundle.getString("brandShortName");
       var titleMsg = gMessengerBundle.getString("confirmPhishingTitle");
       var dialogMsg = gMessengerBundle.getFormattedString("confirmPhishingUrl", 
