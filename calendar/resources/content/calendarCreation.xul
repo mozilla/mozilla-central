@@ -70,7 +70,7 @@
         </radiogroup>
    </wizardpage>
 
-   <wizardpage pageid="locationPage" 
+   <wizardpage pageid="locationPage"
                next="customizePage"
                label="&wizard.label;"
                onpageshow="initLocationPage();"
@@ -110,7 +110,7 @@
         </grid>
    </wizardpage>
 
-   <wizardpage pageid="customizePage" 
+   <wizardpage pageid="customizePage"
                description="&custompage.shortdescription;"
                label="&wizard.label;"
                next="finishPage"
@@ -136,6 +136,10 @@
                                      type="button"
                                      palettename="standard"/>
                     </hbox>
+                </row>
+                <row>
+                    <label value="&calendarproperties.firealarms.label;:" control="fire-alarms"/>
+                    <checkbox id="fire-alarms" checked="true"/>
                 </row>
             </rows>
         </grid>

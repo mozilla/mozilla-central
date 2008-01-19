@@ -341,6 +341,7 @@
 <!ENTITY calendarproperties.name.label     "Name:">
 <!ENTITY calendarproperties.readonly.label "Read-only">
 <!ENTITY calendarproperties.cache.label    "Cache (EXPERIMENTAL, requires restart)">
+<!ENTITY calendarproperties.firealarms.label "Display alarms">
 
 <!-- Sunbird Help -->
 <!ENTITY calendar.help.label               "Help Contents">

@@ -46,59 +46,62 @@
 
 
 <dialog
-   id="calendar-properties-dialog"
-   title="&calendar.server.dialog.title.edit;"
-   buttons="accept,cancel"
-   ondialogaccept="return onOKCommand();"
-   ondialogcancel="return true;"
-   onload="loadCalendarPropertiesDialog()"
-   persist="screenX screenY"
-   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-   width="500"
-   xmlns:nc="http://home.netscape.com/NC-rdf#">
-    
-   <script type="application/x-javascript" src="chrome://calendar/content/calendarProperties.js"/>
-   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
-   
-   <!-- STRING BUNDLE for calendar properties -->
-   <stringbundleset id="stringbundleset">
-     <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
-   </stringbundleset>
- 
-   <grid>
-       <columns>
-           <column/>
-           <column flex="1"/>
-       </columns>
-       <rows id="calendar-properties-rows">
-           <row align="center">
-               <label value="&calendar.server.dialog.name.label;" control="calendar-name"/>
-               <textbox flex="1" id="calendar-name"/>
-           </row>
-                    
-           <row align="center">
-               <label value="&calendarproperties.color.label;" control="calendar-color"/>
-                <hbox align="center">
-                    <colorpicker id="calendar-color"
-                                 class="small-margin"
-                                 type="button"
-                                 palettename="standard"/>
-                </hbox>
-           </row>
+    id="calendar-properties-dialog"
+    title="&calendar.server.dialog.title.edit;"
+    buttons="accept,cancel"
+    ondialogaccept="return onOKCommand();"
+    ondialogcancel="return true;"
+    onload="loadCalendarPropertiesDialog()"
+    persist="screenX screenY"
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    width="500"
+    xmlns:nc="http://home.netscape.com/NC-rdf#">
 
+    <script type="application/x-javascript" src="chrome://calendar/content/calendarProperties.js"/>
+    <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+
+    <!-- STRING BUNDLE for calendar properties -->
+    <stringbundleset id="stringbundleset">
+        <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
+    </stringbundleset>
+
+    <grid>
+        <columns>
+            <column/>
+            <column flex="1"/>
+        </columns>
+        <rows id="calendar-properties-rows">
+            <row align="center">
+                <label value="&calendar.server.dialog.name.label;" control="calendar-name"/>
+                <textbox flex="1" id="calendar-name"/>
+            </row>
+            <row align="center">
+                <label value="&calendarproperties.color.label;" control="calendar-color"/>
+                    <hbox align="center">
+                        <colorpicker id="calendar-color"
+                                    class="small-margin"
+                                    type="button"
+                                    palettename="standard"/>
+                    </hbox>
+            </row>
             <row align="center">
                 <label value="&calendarproperties.location.label;" control="calendar-uri"/>
                 <!-- XXX Make location field readonly until Bug 315307 is fixed -->
                 <textbox id="calendar-uri" readonly="true" oninput="checkURL()"/>
             </row>
             <row align="center">
+                <spacer/>
                 <checkbox id="read-only" label="&calendarproperties.readonly.label;"/>
-                <spacer />
             </row>
             <row align="center">
-                <checkbox id="cache" label="&calendarproperties.cache.label;"/>
                 <spacer/>
+                <checkbox id="fire-alarms" label="&calendarproperties.firealarms.label;"/>
             </row>
+            <row align="center">
+                <spacer/>
+                <checkbox id="cache" label="&calendarproperties.cache.label;"/>
+            </row>
+            <spacer/>
         </rows>
-    </grid> 
+    </grid>
 </dialog>

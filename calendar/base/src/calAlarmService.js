@@ -108,9 +108,9 @@ function calAlarmService() {
         onError: function(aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
             if (aName == "suppressAlarms") {
-                if (!aOldValue && aValue) {
+                if (aOldValue && !aValue) {
                     this.alarmService.initAlarms([aCalendar]);
-                } else if (aOldValue && !aValue) {
+                } else if (!aOldValue && aValue) {
                     this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
                 }
             }
@@ -592,9 +592,9 @@ calAlarmService.prototype = {
     },
 
     alarmFired: function cas_alarmFired(event) {
-        if (event.calendar.getProperty("suppressAlarms"))
+        if (event.calendar.getProperty("suppressAlarms")) {
             return;
-
+        }
         this.notifyObservers("onAlarm", [event]);
     }
 };

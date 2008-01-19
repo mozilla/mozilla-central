@@ -85,7 +85,7 @@ function doCreateCalendar()
         uri = document.getElementById("calendar-uri").value;
         provider = document.getElementById('calendar-format').selectedItem.value;
     }
-        
+
     var calManager = getCalendarManager();
     var cals = calManager.getCalendars({});
     do {
@@ -113,10 +113,15 @@ function doCreateCalendar()
         return false;
     }
     calManager.registerCalendar(newCalendar);
-    
+
     newCalendar.name = cal_name;
 
     newCalendar.setProperty('color', cal_color);
+
+    var fireAlarms = document.getElementById("fire-alarms").checked;
+    if (!fireAlarms) {
+        newCalendar.setProperty('suppressAlarms', true);
+    }
 
     return true;
 }

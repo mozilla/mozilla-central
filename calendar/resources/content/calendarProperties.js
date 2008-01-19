@@ -48,7 +48,7 @@ var gCalendar;
 function loadCalendarPropertiesDialog()
 {
    var args = window.arguments[0];
-   
+
    gCalendar = args.calendar;
 
    document.getElementById("calendar-name").value = gCalendar.name;
@@ -58,7 +58,9 @@ function loadCalendarPropertiesDialog()
    }
    document.getElementById("calendar-uri").value = gCalendar.uri.spec;
    document.getElementById("read-only").checked = gCalendar.readOnly;
-   
+   var suppressAlarms = gCalendar.getProperty('suppressAlarms');
+   document.getElementById("fire-alarms").checked = !suppressAlarms;
+
    // start focus on title
    document.getElementById("calendar-name").focus();
 
@@ -81,6 +83,8 @@ function onOKCommand()
 
    gCalendar.setProperty('color', document.getElementById("calendar-color").color);
    gCalendar.readOnly = document.getElementById("read-only").checked;
+   var fireAlarms = document.getElementById("fire-alarms").checked;
+   gCalendar.setProperty('suppressAlarms', !fireAlarms);
    gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
    // tell standard dialog stuff to close the dialog
