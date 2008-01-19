@@ -129,6 +129,10 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}" "/S=0K" $0 $8 $9
+    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+      ${GetSize} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org" "/S=0K" $1 $8 $9
+      IntOp $0 $0 + $1
+    ${EndIf}
     SectionSetSize 4 $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4

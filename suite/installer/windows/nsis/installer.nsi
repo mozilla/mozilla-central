@@ -289,6 +289,10 @@ Section "-Application" Section1
     ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
       RmDir /r "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     ${EndIf}
+    ${If} ${FileExists} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+      RmDir /r "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+    ${EndIf}
   ${EndIf}
 
   Call CleanupOldLogs
@@ -611,11 +615,17 @@ Function installVenkman
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
     ${RemoveDir} "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ${RemoveDir} "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
     ClearErrors
     ${LogHeader} "Installing JavaScript Debugger"
     StrCpy $R0 "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     StrCpy $R1 "$INSTDIR\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
     Call DoCopyFiles
+    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+      StrCpy $R0 "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+      StrCpy $R1 "$INSTDIR\extensions\langpack-${AB_CD}@venkman.mozilla.org"
+      Call DoCopyFiles
+    ${EndIf}
   ${EndIf}
 FunctionEnd
 
