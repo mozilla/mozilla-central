@@ -588,13 +588,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   }
 
   // make new window
-  BOOL loadNewTabsInBackgroundPref = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadInBackground" withSuccess:NULL];
-
-  NSWindow* behindWindow = nil;
-  if (loadNewTabsInBackgroundPref)
-    behindWindow = [mBrowserWindowController window];
-
-  [[NSApp delegate] openBrowserWindowWithURLs:urlArray behind:behindWindow allowPopups:NO];
+  [[NSApp delegate] openBrowserWindowWithURLs:urlArray behind:nil allowPopups:NO];
 }
 
 - (IBAction)openBookmarkInNewWindow:(id)aSender

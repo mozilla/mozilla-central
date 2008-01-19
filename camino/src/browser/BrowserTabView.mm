@@ -461,14 +461,16 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
 {
   if ([urls count] == 1) {
     NSString* url = [urls objectAtIndex:0];
+    BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:eDestinationNewTab
+                                                                                   sender:nil];
     if (targetTab) {
       [[targetTab view] loadURI:url referrer:nil flags:NSLoadFlagsNone focusContent:YES allowPopups:NO];
       
-      if (![BrowserWindowController shouldLoadInBackground:nil])
+      if (!loadInBackground)
         [self selectTabViewItem:targetTab];
     }
     else {
-      [self addTabForURL:url referrer:nil inBackground:[BrowserWindowController shouldLoadInBackground:nil]];
+      [self addTabForURL:url referrer:nil inBackground:loadInBackground];
     }
   }
   else {

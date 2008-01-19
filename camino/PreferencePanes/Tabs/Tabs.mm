@@ -44,7 +44,7 @@
 const int kOpenExternalLinksInNewWindow = 0;
 const int kOpenExternalLinksInNewTab = 1;
 
-@implementation OrgMozillaChimeraPreferenceTabs
+@implementation OrgMozillaCaminoPreferenceTabs
 
 - (id)initWithBundle:(NSBundle *)bundle
 {

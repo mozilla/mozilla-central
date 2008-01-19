@@ -203,8 +203,10 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
     return;
   }
 
-  BOOL loadInBackground = [BrowserWindowController shouldLoadInBackground:sender];
   BOOL openInTabs       = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+  BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:(openInTabs ? eDestinationNewTab
+                                                                                                    : eDestinationNewWindow)
+                                                                                 sender:sender];
   BOOL cmdKeyDown       = (([[NSApp currentEvent] modifierFlags] & NSCommandKeyMask) != 0);
   
   NSEnumerator* itemEnum = [selectedHistoryItems objectEnumerator];
@@ -265,7 +267,8 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
 {
   NSArray* itemsArray = [mHistoryOutlineView selectedItems];
 
-  BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackground:aSender];
+  BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackgroundForDestination:eDestinationNewWindow
+                                                                               sender:aSender];
 
   NSEnumerator* itemsEnum = [itemsArray objectEnumerator];
   HistoryItem* curItem;
@@ -281,7 +284,8 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
 {
   NSArray* itemsArray = [mHistoryOutlineView selectedItems];
 
-  BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackground:aSender];
+  BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackgroundForDestination:eDestinationNewTab
+                                                                               sender:aSender];
 
   NSEnumerator* itemsEnum = [itemsArray objectEnumerator];
   HistoryItem* curItem;
@@ -307,7 +311,8 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
   }
 
   // make new window
-  BOOL loadInBackground = [BrowserWindowController shouldLoadInBackground:aSender];
+  BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:eDestinationNewWindow
+                                                                                 sender:aSender];
   NSWindow* behindWindow = nil;
   if (loadInBackground)
     behindWindow = [mBrowserWindowController window];

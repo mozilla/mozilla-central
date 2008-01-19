@@ -96,6 +96,12 @@ typedef enum
 	  
 } ETabOpenPolicy;
 
+typedef enum  {
+  eDestinationNewWindow = 0,
+  eDestinationNewTab,
+  eDestinationCurrentView
+} EOpenDestination;
+
 @class CHBrowserView;
 @class BookmarkViewController;
 @class BookmarkToolbar;
@@ -361,10 +367,13 @@ typedef enum
 // cache the toolbar defaults we parse from a plist
 + (NSArray*) toolbarDefaults;
 
-// Get the load-in-background pref.  If possible, aSender's keyEquivalentModifierMask
-// is used to determine the shift key's state.  Otherwise (if aSender doesn't respond to
-// keyEquivalentModifierMask or aSender is nil) uses the current event's modifier flags.
-+ (BOOL)shouldLoadInBackground:(id)aSender;
+// Get the correct load-in-background behvaior for the given destination based
+// on prefs and the state of the shift key. If possible, aSender's
+// keyEquivalentModifierMask is used to determine the shift key's state.
+// Otherwise (if aSender doesn't respond to keyEquivalentModifierMask is nil)
+// it uses the current event's modifier flags.
++ (BOOL)shouldLoadInBackgroundForDestination:(EOpenDestination)destination
+                                      sender:(id)sender;
 
 // Accessor to get the proxy icon view
 - (PageProxyIcon *)proxyIconView;

@@ -14,7 +14,7 @@
         }, 
         {
             ACTIONS = {checkboxClicked = id; }; 
-            CLASS = OrgMozillaChimeraPreferenceTabs; 
+            CLASS = OrgMozillaCaminoPreferenceTabs; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 mCheckboxLoadTabsInBackground = NSButton; 

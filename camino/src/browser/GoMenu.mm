@@ -450,8 +450,12 @@ static const unsigned int kMaxTitleLength = 50;
     {
       if ([sender keyEquivalentModifierMask] & NSCommandKeyMask)
       {
-        BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackground:sender];
-        if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL])
+        BOOL openInTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick"
+                                                                withSuccess:NULL];
+        BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackgroundForDestination:(openInTab ? eDestinationNewTab
+                                                                                                       : eDestinationNewWindow)
+                                                                                     sender:sender];
+        if (openInTab)
           [bwc openNewTabWithURL:itemURL referrer:nil loadInBackground:backgroundLoad allowPopups:NO setJumpback:NO];
         else
           [bwc openNewWindowWithURL:itemURL referrer:nil loadInBackground:backgroundLoad allowPopups:NO];
