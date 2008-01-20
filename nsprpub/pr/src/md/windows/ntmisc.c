@@ -147,8 +147,11 @@ static int assembleCmdLine(char *const *argv, char **cmdLine)
         numBackslashes = 0;
         argNeedQuotes = 0;
 
-        /* If the argument contains white space, it needs to be quoted. */
-        if (strpbrk(*arg, " \f\n\r\t\v")) {
+        /*
+         * If the argument is empty or contains white space, it needs to
+         * be quoted.
+         */
+        if (**arg == '\0' || strpbrk(*arg, " \f\n\r\t\v")) {
             argNeedQuotes = 1;
         }
 
