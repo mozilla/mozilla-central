@@ -6,6 +6,9 @@
  * nsIAbAddressCollecter::getCardFromAttribute if its kept.
  */
 
+do_import_script("mailnews/addrbook/test/resources/abSetup.js");
+do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
+
 const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;
 
 var testnum = 0;
@@ -348,6 +351,8 @@ function run_test()
     collectChecker.part = 0;
 
     modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
+
+    cleanup();
 
   } catch (e) {
     throw "FAILED in address collector tests in test #" + testnum + ": " + e;

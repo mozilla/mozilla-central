@@ -24,6 +24,9 @@
  * - createDirectoryByURI
  */
 
+do_import_script("mailnews/addrbook/test/resources/abSetup.js");
+do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
+
 var testnum = 0;
 
 // Main function for the this test so we can check both personal and
@@ -104,6 +107,8 @@ function check_ab(abConfig) {
     AB.setStringValue("stringtest", "tyu");
     do_check_eq(gPref.getCharPref(abConfig.dirPrefID + ".stringtest"), "tyu");
     do_check_eq(AB.getStringValue("stringtest", ""), "tyu");
+
+    cleanup();
 
   } catch (e) {
     throw "FAILED in AB \"" + abConfig.dirName + "\" in test #" +

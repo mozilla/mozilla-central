@@ -7,6 +7,9 @@
  *
  * Uses: cardForEmail.mab
  */
+do_import_script("mailnews/addrbook/test/resources/abSetup.js");
+do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
+
 function run_test() {
   var testnum = 0;
 
@@ -47,6 +50,8 @@ function run_test() {
     do_check_eq(card.lastName, "LastName1");
     do_check_eq(card.displayName, "DisplayName1");
     do_check_eq(card.primaryEmail, "PrimaryEmail1@test.invalid");
+
+    cleanup();
   }
   catch (e) {
     throw "FAILED in test #" + testnum + ": " + e;
