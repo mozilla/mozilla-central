@@ -932,6 +932,11 @@ function cmdBanOrExcept(e)
         if (!/[!@]/.test(e.nickname))
             masks[0] = masks[0] + "!*@*";
     }
+    else
+    {
+        // Nothing specified, so we want to list the bans/excepts.
+        masks = [""];
+    }
 
     // Collapses into groups we can do individually.
     masks = combineNicks(masks);
