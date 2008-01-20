@@ -284,6 +284,9 @@ function initStatic()
         dd("Locale-correct date formatting failed to initialize: " + ex);
     }
 
+    // XXX Bug 335998: See cmdHideView for usage of this.
+    client.hiddenDocument = document.implementation.createDocument(null, null, null);
+
     multilineInputMode(client.prefs["multiline"]);
     updateSpellcheck(client.prefs["inputSpellcheck"]);
     if (client.prefs["showModeSymbols"])

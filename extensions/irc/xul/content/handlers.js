@@ -142,6 +142,8 @@ function onClose()
 function onUnload()
 {
     dd("Shutting down ChatZilla.");
+    // We don't trust anybody.
+    client.hiddenDocument = null;
     uninitOfflineIcon();
     uninitIdleAutoAway(client.prefs["awayIdleTime"]);
     destroy();

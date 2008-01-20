@@ -1663,6 +1663,12 @@ function cmdHideView(e)
         // Detach messages from output window content.
         if (e.view.messages.parentNode)
             e.view.messages.parentNode.removeChild(e.view.messages);
+
+        /* XXX Bug 335998: Adopt the messages into our own internal document
+         * so that when the real one the messages were in gets incorrectly
+         * GC-collected (see bug) the nodes still have an ownerDocument.
+         */
+        client.adoptNode(e.view.messages, client.hiddenDocument);
     }
 
     var tb = getTabForObject(e.view);
