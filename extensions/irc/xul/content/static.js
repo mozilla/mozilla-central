@@ -3375,7 +3375,7 @@ function tabdnd_dover(aEvent, aFlavour, aDragSession)
      * somewhere beyond all the tabs.
      */
     var ltr = (window.getComputedStyle(client.tabs, null).direction == "ltr");
-    var newPosition = 0;
+    var newPosition = client.tabs.firstChild.boxObject.x;
     for (var dropTab = client.tabs.firstChild; dropTab;
          dropTab = dropTab.nextSibling)
     {
@@ -3387,7 +3387,7 @@ function tabdnd_dover(aEvent, aFlavour, aDragSession)
         {
             break;
         }
-        newPosition += dropTab.boxObject.width;
+        newPosition = bo.x + bo.width;
     }
 
     // Reposition the drop marker and show it. In that order.
