@@ -352,10 +352,14 @@ function initMenus()
          ["toggle-umode", {type: "checkbox",
                            checkedif: "client.prefs['showModeSymbols']"}],
          ["-", {visibleif: "cx.nickname"}],
-         ["label-user", {visibleif: "cx.nickname", header: true}],
+         ["label-user", {visibleif: "cx.nickname && (cx.userCount == 1)",
+                         header: true}],
+         ["label-user-multi", {visibleif: "cx.nickname && (cx.userCount != 1)",
+                               header: true}],
          [">popup:opcommands", {visibleif: "cx.nickname",
                                 enabledif: isopish + "true"}],
-         [">popup:usercommands", {visibleif: "cx.nickname"}],
+         [">popup:usercommands", {visibleif: "cx.nickname",
+                                  enabledif: "cx.userCount == 1"}],
         ]
     };
 

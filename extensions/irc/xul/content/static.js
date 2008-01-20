@@ -1121,6 +1121,7 @@ function getUserlistContext(cx)
             cx.canonNick = user.canonicalName;
         }
     }
+    cx.userCount = cx.userList.length;
 
     return cx;
 }

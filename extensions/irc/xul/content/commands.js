@@ -217,6 +217,7 @@ function initCommands()
          ["homepage",         "goto-url homepage",                           0],
          // Used to display a nickname in the menu only.
          ["label-user",       "echo",                                        0],
+         ["label-user-multi", "echo",                                        0],
          // These are all the font family/size menu commands...
          ["font-family-default",    "font-family default",                   0],
          ["font-family-serif",      "font-family serif",                     0],
