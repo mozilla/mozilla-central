@@ -215,6 +215,37 @@ function dumpObjectTree (o, recurse, compress, level)
     
 }
 
+function getService(contractID, iface)
+{
+    var rv;
+    var cls = Components.classes[contractID];
+
+    if (!cls)
+        return null;
+
+    switch (typeof iface)
+    {
+        case "undefined":
+            rv = cls.getService();
+            break;
+
+        case "string":
+            rv = cls.getService(Components.interfaces[iface]);
+            break;
+
+        case "object":
+            rv = cls.getService(iface);
+            break;
+
+        default:
+            rv = null;
+            break;
+    }
+
+    return rv;
+
+}
+
 function safeHTML(str)
 {
     function replaceChars(ch)
