@@ -2037,7 +2037,7 @@ function cmdStop (e)
     if (console.jsds.interruptHook)
         setStopState(false);
     else
-        setStopState(true);
+        setTimeout(setStopState, 1, true);
 }
 
 function cmdTMode (e)
