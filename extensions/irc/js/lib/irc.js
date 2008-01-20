@@ -2405,9 +2405,16 @@ function serv_privmsg (e)
     if (arrayIndexOf(this.channelTypes, targetName[0]) != -1)
     {
         e.channel = new CIRCChannel(this, null, targetName);
-        e.user = new CIRCChanUser(e.channel, e.user.unicodeName);
+        if ("user" in e)
+            e.user = new CIRCChanUser(e.channel, e.user.unicodeName);
         e.replyTo = e.channel;
         e.set = "channel";
+    }
+    else if (!("user" in e))
+    {
+        e.set = "network";
+        e.destObject = this.parent;
+        return true;
     }
     else
     {

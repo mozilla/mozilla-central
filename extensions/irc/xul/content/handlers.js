@@ -1173,10 +1173,18 @@ function my_ctcprunk (e)
 }
 
 CIRCNetwork.prototype.onNotice =
-function my_notice (e)
+function my_notice(e)
 {
     client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
     this.display(e.decodeParam(2), "NOTICE", this, e.server.me);
+    client.munger.getRule(".mailto").enabled = false;
+}
+
+CIRCNetwork.prototype.onPrivmsg =
+function my_privmsg(e)
+{
+    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
+    this.display(e.decodeParam(2), "PRIVMSG", this, e.server.me);
     client.munger.getRule(".mailto").enabled = false;
 }
 
