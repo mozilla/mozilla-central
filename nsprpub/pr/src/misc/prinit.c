@@ -452,6 +452,7 @@ PR_IMPLEMENT(PRStatus) PR_Cleanup()
         _PR_CleanupCPUs();
 #endif
         _PR_CleanupThreads();
+        _PR_CleanupCMon();
         PR_DestroyLock(_pr_sleeplock);
         _pr_sleeplock = NULL;
         _PR_CleanupLayerCache();

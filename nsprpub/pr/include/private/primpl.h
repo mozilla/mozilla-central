@@ -1802,6 +1802,7 @@ extern void _PR_CleanupDtoa(void);
 extern void _PR_ShutdownLinker(void);
 extern void _PR_CleanupEnv(void);
 extern void _PR_CleanupIO(void);
+extern void _PR_CleanupCMon(void);
 extern void _PR_CleanupNet(void);
 extern void _PR_CleanupLayerCache(void);
 extern void _PR_CleanupStacks(void);

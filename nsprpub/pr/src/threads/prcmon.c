@@ -43,16 +43,25 @@
 /* Lock used to lock the monitor cache */
 #ifdef _PR_NO_PREEMPT
 #define _PR_NEW_LOCK_MCACHE()
+#define _PR_DESTROY_LOCK_MCACHE()
 #define _PR_LOCK_MCACHE()
 #define _PR_UNLOCK_MCACHE()
 #else
 #ifdef _PR_LOCAL_THREADS_ONLY
 #define _PR_NEW_LOCK_MCACHE()
+#define _PR_DESTROY_LOCK_MCACHE()
 #define _PR_LOCK_MCACHE() { PRIntn _is; _PR_INTSOFF(_is)
 #define _PR_UNLOCK_MCACHE() _PR_INTSON(_is); }
 #else
 PRLock *_pr_mcacheLock;
 #define _PR_NEW_LOCK_MCACHE() (_pr_mcacheLock = PR_NewLock())
+#define _PR_DESTROY_LOCK_MCACHE()               \
+    PR_BEGIN_MACRO                              \
+        if (_pr_mcacheLock) {                   \
+            PR_DestroyLock(_pr_mcacheLock);     \
+            _pr_mcacheLock = NULL;              \
+        }                                       \
+    PR_END_MACRO
 #define _PR_LOCK_MCACHE() PR_Lock(_pr_mcacheLock)
 #define _PR_UNLOCK_MCACHE() PR_Unlock(_pr_mcacheLock)
 #endif
@@ -69,6 +78,18 @@ struct MonitorCacheEntryStr {
     long                cacheEntryCount;
 };
 
+/*
+** An array of MonitorCacheEntry's, plus a pointer to link these
+** arrays together.
+*/
+
+typedef struct MonitorCacheEntryBlockStr MonitorCacheEntryBlock;
+
+struct MonitorCacheEntryBlockStr {
+    MonitorCacheEntryBlock* next;
+    MonitorCacheEntry entries[1];
+};
+
 static PRUint32 hash_mask;
 static PRUintn num_hash_buckets;
 static PRUintn num_hash_buckets_log2;
@@ -76,7 +97,7 @@ static MonitorCacheEntry **hash_buckets;
 static MonitorCacheEntry *free_entries;
 static PRUintn num_free_entries;
 static PRBool expanding;
-int _pr_mcache_ready;
+static MonitorCacheEntryBlock *mcache_blocks;
 
 static void (*OnMonitorRecycle)(void *address);
 
@@ -102,47 +123,48 @@ static PRStatus ExpandMonitorCache(PRUintn new_size_log2)
 {
     MonitorCacheEntry **old_hash_buckets, *p;
     PRUintn i, entries, old_num_hash_buckets, added;
-    MonitorCacheEntry **new_hash_buckets, *new_entries;
+    MonitorCacheEntry **new_hash_buckets;
+    MonitorCacheEntryBlock *new_block;
 
     entries = 1L << new_size_log2;
 
     /*
     ** Expand the monitor-cache-entry free list
     */
-    new_entries = (MonitorCacheEntry*)
-        PR_CALLOC(entries * sizeof(MonitorCacheEntry));
-    if (NULL == new_entries) return PR_FAILURE;
+    new_block = (MonitorCacheEntryBlock*)
+        PR_CALLOC(sizeof(MonitorCacheEntryBlock)
+        + (entries - 1) * sizeof(MonitorCacheEntry));
+    if (NULL == new_block) return PR_FAILURE;
 
     /*
     ** Allocate system monitors for the new monitor cache entries. If we
     ** run out of system monitors, break out of the loop.
     */
-    for (i = 0, added = 0, p = new_entries; i < entries; i++, p++, added++) {
+    for (i = 0, p = new_block->entries; i < entries; i++, p++) {
         p->mon = PR_NewMonitor();
         if (!p->mon)
             break;
     }
+    added = i;
     if (added != entries) {
+        MonitorCacheEntryBlock *realloc_block;
+
         if (added == 0) {
             /* Totally out of system monitors. Lossage abounds */
-            PR_DELETE(new_entries);
+            PR_DELETE(new_block);
             return PR_FAILURE;
         }
 
         /*
         ** We were able to allocate some of the system monitors. Use
-        ** realloc to shrink down the new_entries memory
+        ** realloc to shrink down the new_block memory. If that fails,
+        ** carry on with the too-large new_block.
         */
-        p = (MonitorCacheEntry*)
-            PR_REALLOC(new_entries, added * sizeof(MonitorCacheEntry));
-        if (p == 0) {
-            /*
-            ** Total lossage. We just leaked a bunch of system monitors
-            ** all over the floor. This should never ever happen.
-            */
-            PR_ASSERT(p != 0);
-            return PR_FAILURE;
-        }
+        realloc_block = (MonitorCacheEntryBlock*)
+            PR_REALLOC(new_block, sizeof(MonitorCacheEntryBlock)
+            + (added - 1) * sizeof(MonitorCacheEntry));
+        if (realloc_block)
+            new_block = realloc_block;
     }
 
     /*
@@ -151,11 +173,13 @@ static PRStatus ExpandMonitorCache(PRUintn new_size_log2)
     ** the mcache-lock and we aren't calling anyone who might want to use
     ** it.
     */
-    for (i = 0, p = new_entries; i < added - 1; i++, p++)
+    for (i = 0, p = new_block->entries; i < added - 1; i++, p++)
         p->next = p + 1;
     p->next = free_entries;
-    free_entries = new_entries;
+    free_entries = new_block->entries;
     num_free_entries += added;
+    new_block->next = mcache_blocks;
+    mcache_blocks = new_block;
 
     /* Try to expand the hash table */
     new_hash_buckets = (MonitorCacheEntry**)
@@ -305,7 +329,36 @@ void _PR_InitCMon(void)
 {
     _PR_NEW_LOCK_MCACHE();
     ExpandMonitorCache(3);
-    _pr_mcache_ready = 1;
+}
+
+/*
+** Destroy the monitor cache
+*/
+void _PR_CleanupCMon(void)
+{
+    _PR_DESTROY_LOCK_MCACHE();
+
+    while (free_entries) {
+        PR_DestroyMonitor(free_entries->mon);
+        free_entries = free_entries->next;
+    }
+    num_free_entries = 0;
+
+    while (mcache_blocks) {
+        MonitorCacheEntryBlock *block;
+
+        block = mcache_blocks;
+        mcache_blocks = block->next;
+        PR_DELETE(block);
+    }
+
+    PR_DELETE(hash_buckets);
+    hash_mask = 0;
+    num_hash_buckets = 0;
+    num_hash_buckets_log2 = 0;
+
+    expanding = PR_FALSE;
+    OnMonitorRecycle = NULL;
 }
 
 /*

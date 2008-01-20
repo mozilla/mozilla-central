@@ -1038,6 +1038,7 @@ PR_IMPLEMENT(PRStatus) PR_Cleanup(void)
         _PR_CleanupNet();
         /* Close all the fd's before calling _PR_CleanupIO */
         _PR_CleanupIO();
+        _PR_CleanupCMon();
 
         _pt_thread_death(me);
         rv = pthread_setspecific(pt_book.key, NULL);
