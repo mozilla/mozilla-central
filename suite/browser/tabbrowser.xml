@@ -72,7 +72,7 @@
             <xul:label class="tooltip-label" crop="right"/>
             <xul:label class="tooltip-label" hidden="true"><html:canvas class="tab-tooltip-canvas"/></xul:label>
           </xul:tooltip>
-          <xul:menupopup onpopupshowing="this.parentNode.parentNode.parentNode.updatePopupMenu(this);">
+          <xul:menupopup anonid="tabContextMenu" onpopupshowing="this.parentNode.parentNode.parentNode.updatePopupMenu(this);">
             <xul:menuitem label="&closeTab.label;" accesskey="&closeTab.accesskey;"
                           tbattr="tabbrowser-multiple"
                           oncommand="var tabbrowser = this.parentNode.parentNode.parentNode.parentNode;
@@ -295,6 +295,19 @@
           label.removeAttribute("width");
           aPopup.removeAttribute("tabpreview");
         ]]>
+        </body>
+      </method>
+
+      <method name="getBrowserForDocument">
+        <parameter name="aDocument"/>
+        <body>
+          <![CDATA[
+            var browsers = this.browsers;
+            for (var i = 0; i < browsers.length; i++)
+              if (browsers[i].contentDocument == aDocument)
+                return browsers[i];
+            return null;
+          ]]>
         </body>
       </method>
 
