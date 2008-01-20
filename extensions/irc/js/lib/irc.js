@@ -136,36 +136,32 @@ CIRCNetwork.prototype.PROXY_TYPE_OVERRIDE = "";
 CIRCNetwork.prototype.TYPE = "IRCNetwork";
 
 CIRCNetwork.prototype.getURL =
-function net_geturl(target)
+function net_geturl(target, flags)
 {
     if (this.temporary)
-        return this.serverList[0].getURL(target);
-
-    if (!target)
-        target = "";
+        return this.serverList[0].getURL();
 
     /* Determine whether to use the irc:// or ircs:// scheme */
-    if ("primServ" in this && this.primServ.isConnected)
+    var scheme = "irc";
+    if ((("primServ" in this) && this.primServ.isConnected &&
+         this.primServ.isSecure) ||
+        this.hasOnlySecureServers())
     {
-        if (this.primServ.isSecure)
-            return "ircs://" + ecmaEscape(this.unicodeName) + "/" + target;
+        scheme = "ircs"
     }
-    else
+    
+    var obj = {host: this.unicodeName, scheme: scheme};
+
+    if (target)
+        obj.target = target;
+
+    if (flags)
     {
-        /* No current connections, so let's see if every server has SSL */
-        var isSecure = true;
-        for (var s in this.serverList)
-        {
-            if (!this.serverList[s].isSecure)
-            {
-                isSecure = false;
-                break;
-            }
-        }
-        if (isSecure)
-            return "ircs://" + ecmaEscape(this.unicodeName) + "/" + target;
+        for (var f in flags)
+            obj[f] = true;
     }
-    return "irc://" + ecmaEscape(this.unicodeName) + "/" + target;
+
+    return constructIRCURL(obj);
 }
 
 CIRCNetwork.prototype.getUser =
@@ -194,6 +190,18 @@ function net_hasSecure()
     }
 
     return false;
+}
+
+CIRCNetwork.prototype.hasOnlySecureServers =
+function net_hasOnlySecure()
+{
+    for (var i = 0; i < this.serverList.length; i++)
+    {
+        if (!this.serverList[i].isSecure)
+            return false;
+    }
+
+    return true;
 }
 
 CIRCNetwork.prototype.clearServerList =
@@ -610,21 +618,22 @@ function serv_tolowercase(str)
 }
 
 CIRCServer.prototype.getURL =
-function serv_geturl(target)
+function serv_geturl(target, flags)
 {
-    if (!target)
-        target = "";
+    var scheme = (this.isSecure ? "ircs" : "irc");
+    var obj = {host: this.hostname, scheme: scheme, isserver: true,
+               port: this.port, needpass: Boolean(this.password)};
 
-    var url = (this.isSecure ? "ircs://" : "irc://") + this.hostname;
-    if (this.port != 6667)
-        url += ":" + this.port;
-    url += "/" + target;
-    if (url.indexOf(".") == -1)
-        url += ",isserver";
-    if (this.password)
-        url += ",needpass";
+    if (target)
+        obj.target = target;
 
-    return url;
+    if (flags)
+    {
+        for (var f in flags)
+            obj[f] = true;
+    }
+
+    return constructIRCURL(obj);
 }
 
 CIRCServer.prototype.getUser =
@@ -2787,25 +2796,18 @@ CIRCChannel.prototype.TYPE = "IRCChannel";
 CIRCChannel.prototype.topic = "";
 
 CIRCChannel.prototype.getURL =
-function chan_geturl ()
+function chan_geturl()
 {
     var target = this.encodedName;
 
     if ((target[0] == "#") &&
         arrayIndexOf(this.parent.channelTypes, target[1]) == -1)
     {
-        /* First character is "#" (which we're allowed to ommit), and the
+        /* First character is "#" (which we're allowed to omit), and the
          * following character is NOT a valid prefix, so it's safe to remove.
          */
-        target = ecmaEscape(target.substr(1));
+        target = target.substr(1);
     }
-    else
-    {
-        target = ecmaEscape(target);
-    }
-
-    target = target.replace(/\//g, "%2f");
-
     return this.parent.parent.getURL(target);
 }
 
@@ -3198,13 +3200,9 @@ function CIRCUser(parent, unicodeName, encodedName, name, host)
 CIRCUser.prototype.TYPE = "IRCUser";
 
 CIRCUser.prototype.getURL =
-function usr_geturl ()
+function usr_geturl()
 {
-    var target = ecmaEscape(this.encodedName);
-    target = target.replace("/", "%2f");
-    //target += "?charset=" + this.prefs["charset"];
-
-    return this.parent.parent.getURL(target) + ",isnick";
+    return this.parent.parent.getURL(this.encodedName, ["isnick"]);
 }
 
 CIRCUser.prototype.rehome =
@@ -3411,12 +3409,13 @@ function cusr_updatesortname()
     this.sortName = (9 - modeLevel) + "-" + this.unicodeName;
 }
 
-function cusr_geturl ()
+function cusr_geturl()
 {
-    return this.parent.parent.getURL(ecmaEscape(this.unicodeName)) + ",isnick";
+    // Don't ask.
+    return this.parent.parent.parent.getURL(this.encodedName, ["isnick"]);
 }
 
-function cusr_setop (f)
+function cusr_setop(f)
 {
     var server = this.parent.parent;
     var me = server.me;
@@ -3732,7 +3731,7 @@ function constructIRCURL(obj)
             dd("parseIRCObject: invalid characters in channel/nick name");
             return null;
         }
-        url += ecmaEscape(obj.target);
+        url += ecmaEscape(obj.target.replace(/\//g, "%2f"));
     }
 
     return url + flags + parseFlags(obj) + parseQuery(obj);
