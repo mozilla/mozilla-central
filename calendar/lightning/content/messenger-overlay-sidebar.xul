@@ -469,7 +469,7 @@
                            checked="true"
                            persist="checked"
                            class="agenda-checkbox"
-                           label="Calendar"/>
+                           label="&calendar.list.header.label;"/>
           <!-- This will be overlayed by calendar-calendars-list.xul -->
           <tree id="calendar-list-tree"
                 flex="1"

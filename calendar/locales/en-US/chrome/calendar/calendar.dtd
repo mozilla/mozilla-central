@@ -181,6 +181,8 @@
 <!ENTITY calendar.menu.numberofweeks.5      "5 Weeks" >
 <!ENTITY calendar.menu.numberofweeks.6      "6 Weeks" >
 
+<!ENTITY calendar.list.header.label                 "Calendar">
+
 <!ENTITY calendar.task.filter.title.label           "Show">
 <!ENTITY calendar.task.filter.all.label             "All">
 <!ENTITY calendar.task.filter.all.accesskey         "A">
