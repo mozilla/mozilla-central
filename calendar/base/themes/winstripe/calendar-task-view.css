@@ -74,3 +74,7 @@
 #calendar-task-details-title {
     font-weight: bold;
 }
+
+#unifinder-todo-tree > .calendar-task-tree {
+    margin-bottom: 0;
+}

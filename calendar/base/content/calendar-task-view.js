@@ -35,59 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var taskEdit = {
-
-    /**
-     * Task Edit Events
-     */
-    onFocus: function tE_onFocus(aEvent) {
-        var edit = aEvent.target;
-        if (edit.localName == "input") {
-            // For some reason, we only recieve an onfocus event for the textbox
-            // when debugging with venkman.
-            edit = edit.parentNode.parentNode;
-        }
-        if (!edit.savedInstructions) {
-            edit.savedInstructions = edit.getAttribute("instructions");
-        }
-        edit.value = edit.savedValue || "";
-        edit.removeAttribute("instructions");
-    },
-    
-    onBlur: function tE_onBlur(aEvent) {
-        var edit = aEvent.target;
-        if (edit.localName == "input") {
-            // For some reason, we only recieve the blur event for the input
-            // element. There are no targets that point to the textbox. Go up
-            // the parent chain until we reach the textbox.
-            edit = edit.parentNode.parentNode;
-        }
-        edit.savedValue = edit.value;
-        edit.value = edit.savedInstructions;
-        edit.setAttribute("instructions", edit.savedInstructions);
-    },
-
-    onKeyPress: function tE_onKeyPress(aEvent) {
-        if (aEvent.keyCode == Components.interfaces.nsIDOMKeyEvent.DOM_VK_RETURN) {
-            var edit = aEvent.target;
-            if (edit.value && edit.value.length > 0) {
-                var item = createTodo();
-                item.calendar = getSelectedCalendar();
-                item.title = edit.value;
-                edit.value = "";
-                setDefaultAlarmValues(item);
-                doTransaction('add', item, item.calendar, null,
-                    new OpCompleteListener(
-                        function respFunc(savedItem) {
-                            if (savedItem) {
-                                checkForAttendees(savedItem, null);
-                            }
-                        }));
-            }
-        }
-    }
-}
-
 var taskDetailsView = {
 
     /**

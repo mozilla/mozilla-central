@@ -28,6 +28,7 @@ calendar.jar:
     content/calendar/calendar-item-editing.js    (content/calendar-item-editing.js)
     content/calendar/calendar-month-view.xml     (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml  (content/calendar-multiday-view.xml)
+    content/calendar/calendar-task-editing.js (content/calendar-task-editing.js)
     content/calendar/calendar-task-tree.xml      (content/calendar-task-tree.xml)
     content/calendar/calendar-task-tree.js       (content/calendar-task-tree.js)
     content/calendar/calendar-task-view.xul      (content/calendar-task-view.xul)
