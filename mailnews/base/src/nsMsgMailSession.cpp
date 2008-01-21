@@ -86,21 +86,22 @@ nsresult nsMsgMailSession::Shutdown()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::AddFolderListener(nsIFolderListener * listener, PRUint32 notifyFlags)
+NS_IMETHODIMP nsMsgMailSession::AddFolderListener(nsIFolderListener *aListener,
+                                                  PRUint32 aNotifyFlags)
 {
-  NS_ENSURE_ARG_POINTER(listener);
+  NS_ENSURE_ARG_POINTER(aListener);
 
-  folderListener newListener(listener, notifyFlags);
+  folderListener newListener(aListener, aNotifyFlags);
   mListeners.AppendElement(newListener);
 
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::RemoveFolderListener(nsIFolderListener * listener)
+NS_IMETHODIMP nsMsgMailSession::RemoveFolderListener(nsIFolderListener *aListener)
 {
-  NS_ENSURE_ARG_POINTER(listener);
+  NS_ENSURE_ARG_POINTER(aListener);
 
-  PRInt32 index = mListeners.IndexOf(listener);
+  PRInt32 index = mListeners.IndexOf(aListener);
   NS_ASSERTION(index != -1, "removing non-existent listener");
   if (index != -1)
     mListeners.RemoveElementAt(index);
@@ -119,69 +120,71 @@ NS_IMETHODIMP nsMsgMailSession::RemoveFolderListener(nsIFolderListener * listene
   PR_END_MACRO
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemPropertyChanged(nsIRDFResource *item,
-                                        nsIAtom *property,
-                                        const char* oldValue,
-                                        const char* newValue)
+nsMsgMailSession::OnItemPropertyChanged(nsIRDFResource *aItem,
+                                        nsIAtom *aProperty,
+                                        const char* aOldValue,
+                                        const char* aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(propertyChanged, OnItemPropertyChanged,
-                          (item, property, oldValue, newValue));
+                          (aItem, aProperty, aOldValue, aNewValue));
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemUnicharPropertyChanged(nsIRDFResource *item,
-                                               nsIAtom *property,
-                                               const PRUnichar* oldValue,
-                                               const PRUnichar* newValue)
+nsMsgMailSession::OnItemUnicharPropertyChanged(nsIRDFResource *aItem,
+                                               nsIAtom *aProperty,
+                                               const PRUnichar* aOldValue,
+                                               const PRUnichar* aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(unicharPropertyChanged, OnItemUnicharPropertyChanged,
-                          (item, property, oldValue, newValue));
+                          (aItem, aProperty, aOldValue, aNewValue));
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemIntPropertyChanged(nsIRDFResource *item,
-                                           nsIAtom *property,
-                                           PRInt32 oldValue,
-                                           PRInt32 newValue)
+nsMsgMailSession::OnItemIntPropertyChanged(nsIRDFResource *aItem,
+                                           nsIAtom *aProperty,
+                                           PRInt32 aOldValue,
+                                           PRInt32 aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(intPropertyChanged, OnItemIntPropertyChanged,
-                          (item, property, oldValue, newValue));
+                          (aItem, aProperty, aOldValue, aNewValue));
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemBoolPropertyChanged(nsIRDFResource *item,
-                                            nsIAtom *property,
-                                            PRBool oldValue,
-                                            PRBool newValue)
+nsMsgMailSession::OnItemBoolPropertyChanged(nsIRDFResource *aItem,
+                                            nsIAtom *aProperty,
+                                            PRBool aOldValue,
+                                            PRBool aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(boolPropertyChanged, OnItemBoolPropertyChanged,
-                          (item, property, oldValue, newValue));
+                          (aItem, aProperty, aOldValue, aNewValue));
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgMailSession::OnItemPropertyFlagChanged(nsIMsgDBHdr *item,
-                                            nsIAtom *property,
-                                            PRUint32 oldValue,
-                                            PRUint32 newValue)
+nsMsgMailSession::OnItemPropertyFlagChanged(nsIMsgDBHdr *aItem,
+                                            nsIAtom *aProperty,
+                                            PRUint32 aOldValue,
+                                            PRUint32 aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(propertyFlagChanged, OnItemPropertyFlagChanged,
-                          (item, property, oldValue, newValue));
+                          (aItem, aProperty, aOldValue, aNewValue));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::OnItemAdded(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsMsgMailSession::OnItemAdded(nsIRDFResource *aParentItem,
+                                            nsISupports *aItem)
 {
-  NOTIFY_FOLDER_LISTENERS(added, OnItemAdded, (parentItem, item));
+  NOTIFY_FOLDER_LISTENERS(added, OnItemAdded, (aParentItem, aItem));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIRDFResource *parentItem, nsISupports *item)
+NS_IMETHODIMP nsMsgMailSession::OnItemRemoved(nsIRDFResource *aParentItem,
+                                              nsISupports *aItem)
 {
-  NOTIFY_FOLDER_LISTENERS(removed, OnItemRemoved, (parentItem, item));
+  NOTIFY_FOLDER_LISTENERS(removed, OnItemRemoved, (aParentItem, aItem));
   return NS_OK;
 }
 
