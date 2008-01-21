@@ -40,7 +40,6 @@
 
 @class BrowserWindowController;
 @class ToolTip;
-@class FormFillController;
 @class AutoCompleteTextField;
 @class RolloverImageButton;
 
@@ -150,7 +149,6 @@ class nsIArray;
 
   CHBrowserView*            mBrowserView;      // retained
   ToolTip*                  mToolTip;
-  FormFillController*       mFormFillController;  // strong
   NSMutableArray*           mStatusStrings;    // current status bar messages, STRONG
   NSMutableSet*             mLoadingResources; // page resources currently loading, STRONG
 

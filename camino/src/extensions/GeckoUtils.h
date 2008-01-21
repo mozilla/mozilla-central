@@ -42,7 +42,6 @@
 #include "nsString.h"
 #include "jsapi.h"
 #include "nsIJSContextStack.h"
-#include "nsRect.h"
 
 class nsIDOMWindow;
 class nsIDOMNode;
@@ -82,13 +81,6 @@ class GeckoUtils
     
     /* Finds the preferred size (ie the minimum size where scrollbars are not needed) of the content window. */
     static void GetIntrisicSize(nsIDOMWindow* aWindow, PRInt32* outWidth, PRInt32* outHeight);
-
-    // Finds the screen location (nsIntRect) in screen coordinates of a DOM Element.
-    // Returns PR_FALSE if the function fails.
-    static PRBool GetFrameInScreenCoordinates(nsIDOMElement* aElement, nsIntRect* aRect);
-
-    // Given a DOM Element, scroll the view so that the element is shown
-    static void ScrollElementIntoView(nsIDOMElement* aElement);
 };
 
 /* Stack-based utility that will push a null JSContext onto the JS stack during the

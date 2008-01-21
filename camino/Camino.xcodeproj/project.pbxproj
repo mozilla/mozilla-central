@@ -1038,14 +1038,6 @@
 		DE8C62000AB67CDA00078871 /* hidemanager.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE8C61FE0AB67CDA00078871 /* hidemanager.tiff */; };
 		DE8EEA0C0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */; };
 		DE8EEA0D0D39A2A500BB96C1 /* dom_json.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */; };
-		DE963D190D43EFCF007D44EE /* AutoCompleteUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D110D43EFCF007D44EE /* AutoCompleteUtils.mm */; };
-		DE963D1A0D43EFCF007D44EE /* FormFillPopup.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D120D43EFCF007D44EE /* FormFillPopup.mm */; };
-		DE963D1B0D43EFCF007D44EE /* FormFillController.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D130D43EFCF007D44EE /* FormFillController.mm */; };
-		DE963D1C0D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D150D43EFCF007D44EE /* KeychainAutoCompleteSession.mm */; settings = {COMPILER_FLAGS = "-DNO_NSPR_10_SUPPORT"; }; };
-		DE963D1D0D43EFCF007D44EE /* AutoCompleteUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D110D43EFCF007D44EE /* AutoCompleteUtils.mm */; };
-		DE963D1E0D43EFCF007D44EE /* FormFillPopup.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D120D43EFCF007D44EE /* FormFillPopup.mm */; };
-		DE963D1F0D43EFCF007D44EE /* FormFillController.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D130D43EFCF007D44EE /* FormFillController.mm */; };
-		DE963D200D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE963D150D43EFCF007D44EE /* KeychainAutoCompleteSession.mm */; settings = {COMPILER_FLAGS = "-DNO_NSPR_10_SUPPORT"; }; };
 		DEA5484A0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
 		DEA5484B0A251FA900186C93 /* GeckoUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = DEA548490A251FA900186C93 /* GeckoUtils.cpp */; };
 		DEB608CA0CAF0964006C34F1 /* throbber-00.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DEB608C90CAF0964006C34F1 /* throbber-00.tiff */; };
@@ -2480,14 +2472,6 @@
 		DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_horizontal_separator.tiff; path = resources/images/chrome/bm_horizontal_separator.tiff; sourceTree = SOURCE_ROOT; };
 		DE8C61FE0AB67CDA00078871 /* hidemanager.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = hidemanager.tiff; path = resources/images/toolbar/hidemanager.tiff; sourceTree = SOURCE_ROOT; };
 		DE8EEA0B0D39A2A500BB96C1 /* dom_json.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_json.xpt; path = ../dist/bin/components/dom_json.xpt; sourceTree = SOURCE_ROOT; };
-		DE963D110D43EFCF007D44EE /* AutoCompleteUtils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AutoCompleteUtils.mm; path = src/formfill/AutoCompleteUtils.mm; sourceTree = SOURCE_ROOT; };
-		DE963D120D43EFCF007D44EE /* FormFillPopup.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FormFillPopup.mm; path = src/formfill/FormFillPopup.mm; sourceTree = SOURCE_ROOT; };
-		DE963D130D43EFCF007D44EE /* FormFillController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = FormFillController.mm; path = src/formfill/FormFillController.mm; sourceTree = SOURCE_ROOT; };
-		DE963D140D43EFCF007D44EE /* KeychainAutoCompleteSession.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeychainAutoCompleteSession.h; path = src/formfill/KeychainAutoCompleteSession.h; sourceTree = SOURCE_ROOT; };
-		DE963D150D43EFCF007D44EE /* KeychainAutoCompleteSession.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeychainAutoCompleteSession.mm; path = src/formfill/KeychainAutoCompleteSession.mm; sourceTree = SOURCE_ROOT; };
-		DE963D160D43EFCF007D44EE /* FormFillPopup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FormFillPopup.h; path = src/formfill/FormFillPopup.h; sourceTree = SOURCE_ROOT; };
-		DE963D170D43EFCF007D44EE /* FormFillController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = FormFillController.h; path = src/formfill/FormFillController.h; sourceTree = SOURCE_ROOT; };
-		DE963D180D43EFCF007D44EE /* AutoCompleteUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AutoCompleteUtils.h; path = src/formfill/AutoCompleteUtils.h; sourceTree = SOURCE_ROOT; };
 		DEA548490A251FA900186C93 /* GeckoUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = GeckoUtils.cpp; path = src/extensions/GeckoUtils.cpp; sourceTree = SOURCE_ROOT; };
 		DEB608C90CAF0964006C34F1 /* throbber-00.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = "throbber-00.tiff"; path = "resources/images/throbber/throbber-00.tiff"; sourceTree = SOURCE_ROOT; };
 		DEB968140B0D8DF70023F8B1 /* KeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = KeychainItem.m; path = src/formfill/KeychainItem.m; sourceTree = "<group>"; };
@@ -3541,14 +3525,6 @@
 		335639BD0C84E8B900DC4D06 /* Keychain */ = {
 			isa = PBXGroup;
 			children = (
-				DE963D180D43EFCF007D44EE /* AutoCompleteUtils.h */,
-				DE963D110D43EFCF007D44EE /* AutoCompleteUtils.mm */,
-				DE963D170D43EFCF007D44EE /* FormFillController.h */,
-				DE963D130D43EFCF007D44EE /* FormFillController.mm */,
-				DE963D160D43EFCF007D44EE /* FormFillPopup.h */,
-				DE963D120D43EFCF007D44EE /* FormFillPopup.mm */,
-				DE963D140D43EFCF007D44EE /* KeychainAutoCompleteSession.h */,
-				DE963D150D43EFCF007D44EE /* KeychainAutoCompleteSession.mm */,
 				7BB8FC190D2D589100CC63B0 /* KeychainDenyList.h */,
 				7BB8FC1A0D2D589100CC63B0 /* KeychainDenyList.mm */,
 				DEB968170B0D8E0B0023F8B1 /* KeychainItem.h */,
@@ -5319,10 +5295,6 @@
 				C79573880D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */,
 				C795738A0D35314D0028A773 /* OpenSearchParser.mm in Sources */,
 				33E1EA100D34550A00910BBD /* AddSearchProviderHandler.mm in Sources */,
-				DE963D190D43EFCF007D44EE /* AutoCompleteUtils.mm in Sources */,
-				DE963D1A0D43EFCF007D44EE /* FormFillPopup.mm in Sources */,
-				DE963D1B0D43EFCF007D44EE /* FormFillController.mm in Sources */,
-				DE963D1C0D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5496,10 +5468,6 @@
 				C795738C0D35314D0028A773 /* XMLSearchPluginParser.mm in Sources */,
 				C795738E0D35314D0028A773 /* OpenSearchParser.mm in Sources */,
 				33E1EA120D34550A00910BBD /* AddSearchProviderHandler.mm in Sources */,
-				DE963D1D0D43EFCF007D44EE /* AutoCompleteUtils.mm in Sources */,
-				DE963D1E0D43EFCF007D44EE /* FormFillPopup.mm in Sources */,
-				DE963D1F0D43EFCF007D44EE /* FormFillController.mm in Sources */,
-				DE963D200D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

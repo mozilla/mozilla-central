@@ -48,8 +48,6 @@
 #include "nsIAuthPromptWrapper.h"
 #include "nsIObserver.h"
 #include "nsIFormSubmitObserver.h"
-#include "nsIDOMHTMLFormElement.h"
-#include "nsIDOMHTMLInputElement.h"
 
 class nsIPrefBranch;
 
@@ -57,11 +55,6 @@ enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
 @class CHBrowserView;
 @class KeychainItem;
-
-nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
-                                    nsIDOMHTMLInputElement** outUsername,
-                                    nsIDOMHTMLInputElement** outPassword,
-                                    PRBool inStopWhenFound);
 
 @interface KeychainService : NSObject
 {
@@ -91,35 +84,21 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
                           inWindow:(NSWindow*)window;
 - (BOOL)confirmFillPassword:(NSWindow*)parent;
 
-- (KeychainItem*)findWebFormKeychainEntryForUsername:(NSString*)username
-                                             forHost:(NSString*)host
-                                                port:(PRInt32)port
-                                              scheme:(NSString*)scheme;
-- (KeychainItem*)findDefaultWebFormKeychainEntryForHost:(NSString*)host
-                                                   port:(PRInt32)port
-                                                 scheme:(NSString*)scheme;
-- (void)setDefaultWebFormKeychainEntry:(KeychainItem*)keychainItem;
-
-- (NSArray*)allWebFormKeychainItemsForHost:(NSString*)host
-                                      port:(PRInt32)port
-                                    scheme:(NSString*)scheme;
-- (KeychainItem*)defaultFromKeychainItems:(NSArray*)items;
-
-- (KeychainItem*)findAuthKeychainEntryForHost:(NSString*)host
-                                         port:(PRInt32)port
-                                       scheme:(NSString*)scheme
-                               securityDomain:(NSString*)securityDomain;
-- (KeychainItem*)updateAuthKeychainEntry:(KeychainItem*)keychainItem
-                            withUsername:(NSString*)username
-                                password:(NSString*)password;
-- (KeychainItem*)storeUsername:(NSString*)username
-                      password:(NSString*)password
-                       forHost:(NSString*)host
-                securityDomain:(NSString*)securityDomain
-                          port:(PRInt32)port
-                        scheme:(NSString*)scheme
-                        isForm:(BOOL)isForm;
-
+- (KeychainItem*)findKeychainEntryForHost:(NSString*)host
+                                     port:(PRInt32)port
+                                   scheme:(NSString*)scheme
+                           securityDomain:(NSString*)securityDomain
+                                   isForm:(BOOL)isForm;
+- (void)storeUsername:(NSString*)username
+             password:(NSString*)password
+              forHost:(NSString*)host
+       securityDomain:(NSString*)host
+                 port:(PRInt32)port
+               scheme:(NSString*)scheme
+               isForm:(BOOL)isForm;
+- (KeychainItem*)updateKeychainEntry:(KeychainItem*)keychainItem
+                        withUsername:(NSString*)username
+                            password:(NSString*)password;
 - (void)removeAllUsernamesAndPasswords;
 
 - (void)addListenerToView:(CHBrowserView*)view;

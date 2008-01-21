@@ -46,7 +46,6 @@
 #import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
 #import "ToolTip.h"
-#import "FormFillController.h"
 #import "PageProxyIcon.h"
 #import "KeychainService.h"
 #import "AutoCompleteTextField.h"
@@ -167,9 +166,6 @@ enum StatusPriority {
 
     mToolTip = [[ToolTip alloc] init];
 
-    mFormFillController = [[FormFillController alloc] init]; 
-    [mFormFillController attachToBrowser:mBrowserView];
-
     //[self setSiteIconImage:[NSImage imageNamed:@"globe_ico"]];
     //[self setSiteIconURI: [NSString string]];
 
@@ -203,7 +199,6 @@ enum StatusPriority {
 
   [mToolTip release];
   [mDisplayTitle release];
-  [mFormFillController release];
   [mPendingURI release];
   
   NS_IF_RELEASE(mBlockedPopups);
