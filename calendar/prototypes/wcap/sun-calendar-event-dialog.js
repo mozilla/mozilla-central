@@ -1214,27 +1214,30 @@ function updatePrivacy() {
 
         // Update privacy capabilities (toolbar)
         var menupopup = document.getElementById("event-privacy-menupopup");
-        numChilds = menupopup.childNodes.length;
-        for (var i = 0; i < numChilds; i++) {
-            var node = menupopup.childNodes[i];
-            if (node.hasAttribute("privacy")) {
-                var currentPrivacyValue = node.getAttribute("privacy");
-                // Collapsed state
+        if (menupopup) {
+            // Only update the toolbar if the button is actually there
+            numChilds = menupopup.childNodes.length;
+            for (var i = 0; i < numChilds; i++) {
+                var node = menupopup.childNodes[i];
+                if (node.hasAttribute("privacy")) {
+                    var currentPrivacyValue = node.getAttribute("privacy");
+                    // Collapsed state
 
-                // Hide the toolbar if the value is unsupported or is for a
-                // specific provider and doesn't belong to the current provider.
-                if (privacyValues.indexOf(currentPrivacyValue) < 0 ||
-                    (currentProvider && currentProvider != calendar.type)) {
-                    node.setAttribute("collapsed", "true");
-                } else {
-                    node.removeAttribute("collapsed");
-                }
+                    // Hide the toolbar if the value is unsupported or is for a
+                    // specific provider and doesn't belong to the current provider.
+                    if (privacyValues.indexOf(currentPrivacyValue) < 0 ||
+                        (currentProvider && currentProvider != calendar.type)) {
+                        node.setAttribute("collapsed", "true");
+                    } else {
+                        node.removeAttribute("collapsed");
+                    }
 
-                // Checked state
-                if (gPrivacy == currentPrivacyValue) {
-                    node.setAttribute("checked", "true");
-                } else {
-                    node.removeAttribute("checked");
+                    // Checked state
+                    if (gPrivacy == currentPrivacyValue) {
+                        node.setAttribute("checked", "true");
+                    } else {
+                        node.removeAttribute("checked");
+                    }
                 }
             }
         }
@@ -1915,6 +1918,10 @@ function DialogToolboxCustomizeDone(aToolboxChanged) {
 
     // Enable the toolbar context menu items
     document.getElementById("cmd_customize").removeAttribute("disabled");
+
+    // Update privacy items to make sure the toolbarbutton's menupopup is set
+    // correctly
+    updatePrivacy();
 }
 
 function onCommandCustomize() {
