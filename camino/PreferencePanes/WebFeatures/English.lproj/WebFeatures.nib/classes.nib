@@ -21,15 +21,14 @@
                 clickEnableFlashBlock = id; 
                 clickEnableJS = id; 
                 clickEnableJava = id; 
-                clickEnablePlugins = id; 
                 clickEnablePopupBlocking = id; 
                 clickPreventAnimation = id; 
-                clickTabFocusCheckboxes = id; 
                 editWhitelist = id; 
                 editWhitelistDone = id; 
                 removeWhitelistSite = id; 
+                tabFocusBehaviorChanged = id; 
             }; 
-            CLASS = OrgMozillaChimeraPreferenceWebFeatures; 
+            CLASS = OrgMozillaCaminoPreferenceWebFeatures; 
             LANGUAGE = ObjC; 
             OUTLETS = {
                 mAddButton = NSButton; 
@@ -40,12 +39,10 @@
                 mEnableFlashBlock = NSButton; 
                 mEnableJS = NSButton; 
                 mEnableJava = NSButton; 
-                mEnablePlugins = NSButton; 
                 mEnablePopupBlocking = NSButton; 
                 mPolicyColumn = NSTableColumn; 
                 mPreventAnimation = NSButton; 
-                mTabToFormElements = NSButton; 
-                mTabToLinks = NSButton; 
+                mTabBehaviorPopup = NSPopUpButton; 
                 mWhitelistPanel = id; 
                 mWhitelistTable = ExtendedTableView; 
             }; 

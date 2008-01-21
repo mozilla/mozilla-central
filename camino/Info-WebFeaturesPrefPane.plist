@@ -27,6 +27,6 @@
 	<key>NSMainNibFile</key>
 	<string>WebFeatures</string>
 	<key>NSPrincipalClass</key>
-	<string>OrgMozillaChimeraPreferenceWebFeatures</string>
+	<string>OrgMozillaCaminoPreferenceWebFeatures</string>
 </dict>
 </plist>

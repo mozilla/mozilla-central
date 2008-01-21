@@ -84,9 +84,6 @@
 
 class nsIDOMPopupBlockedEvent;
 
-// for camino.enable_plugins; needs to match string in WebFeatures.mm
-static NSString* const kEnablePluginsChangedNotificationName = @"EnablePluginsChanged";
-
 // types of status bar messages, in order of priority for showing to the user
 enum StatusPriority {
   eStatusLinkTarget    = 0, // link mouseover info
@@ -912,11 +909,6 @@ enum StatusPriority {
   [[mWindow delegate] didDismissPromptForBrowser:self];
 }
 
-- (void)enablePluginsChanged:(NSNotification*)aNote
-{
-  [self updatePluginsEnabledState];
-}
-
 //
 // sizeBrowserTo
 //
@@ -1076,11 +1068,6 @@ enum StatusPriority {
                                            selector:@selector(imageLoadedNotification:)
                                                name:SiteIconLoadNotificationName
                                              object:self];
-
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(enablePluginsChanged:)
-                                               name:kEnablePluginsChangedNotificationName
-                                             object:nil];
 }
 
 // called when [[SiteIconProvider sharedFavoriteIconProvider] fetchFavoriteIconForPage:...] completes

@@ -49,21 +49,20 @@
 static NSString* const AdBlockingChangedNotificationName = @"AdBlockingChanged";
 static NSString* const kFlashBlockChangedNotificationName = @"FlashBlockChanged";
 
-// for camino.enable_plugins; needs to match string in BrowserWrapper.mm
-static NSString* const kEnablePluginsChangedNotificationName = @"EnablePluginsChanged";
-
 // for accessibility.tabfocus
-const int kFocusLinks = (1 << 2);
-const int kFocusForms = (1 << 1);
+const int kFocusTextFields = (1 << 0);
+const int kFocusForms      = (1 << 1);
+const int kFocusLinks      = (1 << 2);
 
 // for annoyance blocker prefs
 const int kAnnoyancePrefNone = 1;
 const int kAnnoyancePrefAll  = 2;
 const int kAnnoyancePrefSome = 3;
 
-@interface OrgMozillaChimeraPreferenceWebFeatures(PRIVATE)
+@interface OrgMozillaCaminoPreferenceWebFeatures(Private)
 
 - (int)annoyingWindowPrefs;
+- (int)popupIndexForCurrentTabFocusPref;
 - (int)preventAnimationCheckboxState;
 - (BOOL)isFlashBlockAllowed;
 - (void)updateFlashBlock;
@@ -71,7 +70,7 @@ const int kAnnoyancePrefSome = 3;
 
 @end
 
-@implementation OrgMozillaChimeraPreferenceWebFeatures
+@implementation OrgMozillaCaminoPreferenceWebFeatures
 
 - (void) dealloc
 {
@@ -87,16 +86,15 @@ const int kAnnoyancePrefSome = 3;
 
   BOOL gotPref = NO;
 
-  // Set initial value on Java/JavaScript checkboxes
+  // Set initial value on JavaScript checkbox.
   BOOL jsEnabled = [self getBooleanPref:"javascript.enabled" withSuccess:&gotPref] && gotPref;
   [mEnableJS setState:jsEnabled];
-  BOOL javaEnabled = [self getBooleanPref:"security.enable_java" withSuccess:&gotPref] && gotPref;
-  [mEnableJava setState:javaEnabled];
 
-  // Set initial value on Plug-ins checkbox.
-  // If we fail to get the pref, ensure we leave plugins enabled by default.
+  // Set initial value on Java checkbox, and disable it if plugins are off
   BOOL pluginsEnabled = [self getBooleanPref:"camino.enable_plugins" withSuccess:&gotPref] || !gotPref;
-  [mEnablePlugins setState:pluginsEnabled];
+  [mEnableJava setEnabled:pluginsEnabled];
+  BOOL javaEnabled = pluginsEnabled && [self getBooleanPref:"security.enable_java" withSuccess:NULL];
+  [mEnableJava setState:javaEnabled];
 
   // set initial value on popup blocking checkbox and disable the whitelist
   // button if it's off
@@ -133,13 +131,8 @@ const int kAnnoyancePrefSome = 3;
                                                                 [self localizedStringForKey:@"Deny"],
                                                                 nil]];
 
-  // Set inital values for tabfocus pref.  Internally, it's a bitwise additive pref:
-  // bit 0 adds focus for text fields (not exposed in the UI, so not given a constant)
-  // bit 1 adds focus for other form elements (kFocusForms)
-  // bit 2 adds links and linked images (kFocusLinks)
-  int tabFocusMask = [self getIntPref:"accessibility.tabfocus" withSuccess:&gotPref];
-  [mTabToLinks setState:((tabFocusMask & kFocusLinks) ? NSOnState : NSOffState)];
-  [mTabToFormElements setState:((tabFocusMask & kFocusForms) ? NSOnState : NSOffState)];
+  // Set tab focus popup.
+  [mTabBehaviorPopup selectItemAtIndex:[self popupIndexForCurrentTabFocusPref]];
 }
 
 
@@ -164,20 +157,6 @@ const int kAnnoyancePrefSome = 3;
 -(IBAction) clickEnableJava:(id)sender
 {
   [self setPref:"security.enable_java" toBoolean:([sender state] == NSOnState)];
-}
-
-//
-// -clickEnablePlugins:
-//
-// Enable and disable plugins
-//
--(IBAction) clickEnablePlugins:(id)sender
-{
-  [self setPref:"camino.enable_plugins" toBoolean:([sender state] == NSOnState)];
-  [[NSNotificationCenter defaultCenter] postNotificationName:kEnablePluginsChangedNotificationName object:nil];
-
-  // FlashBlock depends on plug-ins so make sure to update the FlashBlock settings
-  [self updateFlashBlock];
 }
 
 //
@@ -374,34 +353,47 @@ const int kAnnoyancePrefSome = 3;
 }
 
 //
-// clickTabFocusCheckboxes:
+// tabFocusBehaviorChanged:
 //
-// Enable and disable tabbing to various elements.  Internally, it's a bitwise additive pref:
-// bit 0 adds focus for text fields (not exposed in the UI, so not given a constant)
+// Enable and disable tabbing to various elements. We expose only three options,
+// but internally it's a bitwise additive pref:
+// bit 0 adds focus for text fields (kFocusTextFields)
 // bit 1 adds focus for other form elements (kFocusForms)
 // bit 2 adds links and linked images (kFocusLinks)
-// By default, the pref is set to binary 011 (text fields and forms)
 //
--(IBAction) clickTabFocusCheckboxes:(id)sender
+- (IBAction)tabFocusBehaviorChanged:(id)sender
 {
-  BOOL gotPref;
-  int tabFocusValue = [self getIntPref:"accessibility.tabfocus" withSuccess:&gotPref];
-
-  if (sender == mTabToFormElements)
-  {
-    if ([sender state])
-      tabFocusValue |= kFocusForms; // turn the forms bit on
-    else
-      tabFocusValue &= ~kFocusForms; // turn the forms bit off
-  } 
-  else // sender == mTabToLinks
-  {
-    if ([sender state])
-      tabFocusValue |= kFocusLinks; // turn the links bit on
-    else
-      tabFocusValue &= ~kFocusLinks; // turn the links bit off
+  int tabFocusValue = 0;
+  switch ([sender indexOfSelectedItem]) {
+    case 0:
+      tabFocusValue = kFocusTextFields;
+      break;
+    case 1:
+      tabFocusValue = kFocusTextFields | kFocusForms;
+      break;
+    case 2:
+      tabFocusValue = kFocusTextFields | kFocusForms | kFocusLinks;
+      break;
   }
+
   [self setPref:"accessibility.tabfocus" toInt:tabFocusValue];
+}
+
+//
+// popupIndexForCurrentTabFocusPref
+//
+// Returns the tab focus popup index for the current setting of the tab focus
+// pref. Since we may not be able to show the actual pref, we err on the side
+// of showing an over-inclusive item.
+//
+- (int)popupIndexForCurrentTabFocusPref {
+  int tabFocusValue = [self getIntPref:"accessibility.tabfocus" withSuccess:NULL];
+  if (tabFocusValue & kFocusLinks)
+    return 2;
+  else if (tabFocusValue & kFocusForms)
+    return 1;
+  else
+    return 0;
 }
 
 //
