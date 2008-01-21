@@ -42,6 +42,7 @@
 
 #include "nsAbBaseCID.h"
 #include "pratom.h"
+#include "nsICategoryManager.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "rdf.h"
@@ -155,6 +156,33 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbView)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgVCardService)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbLDIFService)
 
+static NS_METHOD
+RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
+                           const char *location, const char *type,
+                           const nsModuleComponentInfo *info)
+{
+  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
+  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+
+  return catMan->AddCategoryEntry("command-line-handler", "m-addressbook",
+                                  NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
+                                  PR_TRUE, PR_TRUE, nsnull);
+}
+
+static NS_METHOD
+UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
+                             const char *location,
+                             const nsModuleComponentInfo *info)
+{
+  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
+  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+
+  catMan->DeleteCategoryEntry("command-line-handler", "m-addressbook",
+                              PR_TRUE);
+
+  return NS_OK;
+}
+
 static const nsModuleComponentInfo components[] =
 {
   { "Address Book Manager",
@@ -165,7 +193,9 @@ static const nsModuleComponentInfo components[] =
   { "Address Book Manager Startup Handler",
     NS_ABMANAGER_CID,
     NS_ABMANAGERSTARTUPHANDLER_CONTRACTID,
-    nsAbManagerConstructor },
+    nsAbManagerConstructor,
+    RegisterCommandLineHandler,
+    UnregisterCommandLineHandler },
 
   { "Address Book Directory Datasource",
     NS_ABDIRECTORYDATASOURCE_CID,

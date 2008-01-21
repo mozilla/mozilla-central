@@ -42,6 +42,7 @@
 
 #include "msgCore.h"
 #include "pratom.h"
+#include "nsICategoryManager.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
@@ -68,6 +69,33 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsNNTPNewsgroupList)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgNewsFolder)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNewsDownloadDialogArgs)
 
+static NS_METHOD
+RegisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
+                           const char *location, const char *type,
+                           const nsModuleComponentInfo *info)
+{
+  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
+  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+
+  return catMan->AddCategoryEntry("command-line-handler", "m-news",
+                                  NS_NEWSSTARTUPHANDLER_CONTRACTID,
+                                  PR_TRUE, PR_TRUE, nsnull);
+}
+
+static NS_METHOD
+UnregisterCommandLineHandler(nsIComponentManager* compMgr, nsIFile* path,
+                             const char *location,
+                             const nsModuleComponentInfo *info)
+{
+  nsCOMPtr<nsICategoryManager> catMan (do_GetService(NS_CATEGORYMANAGER_CONTRACTID));
+  NS_ENSURE_TRUE(catMan, NS_ERROR_FAILURE);
+
+  catMan->DeleteCategoryEntry("command-line-handler", "m-news",
+                              PR_TRUE);
+
+  return NS_OK;
+}
+
 static const nsModuleComponentInfo components[] =
 {
   { "NNTP URL",
@@ -81,7 +109,9 @@ static const nsModuleComponentInfo components[] =
   { "News Startup Handler",
     NS_NNTPSERVICE_CID,
     NS_NEWSSTARTUPHANDLER_CONTRACTID,
-    nsNntpServiceConstructor },
+    nsNntpServiceConstructor,
+    RegisterCommandLineHandler, 
+    UnregisterCommandLineHandler },
   { "NNTP Protocol Info",
     NS_NNTPSERVICE_CID,
     NS_NNTPPROTOCOLINFO_CONTRACTID,
