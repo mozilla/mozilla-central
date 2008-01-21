@@ -120,6 +120,15 @@ function createStatement (dbconn, sql) {
     return null;
 }
 
+function getInUtcOrKeepFloating(dt) {
+    var tz = dt.timezone;
+    if (tz.isFloating || tz.isUTC) {
+        return dt;
+    } else {
+        return dt.getInTimezone(UTC());
+    }
+}
+
 function textToDate(d) {
     var dval;
     var tz = "UTC";
@@ -180,11 +189,43 @@ function dateToText(d) {
 // other helpers
 //
 
+function calStorageTimezone(comp) {
+    this.wrappedJSObject = this;
+    this.provider = null;
+    this.component = comp;
+    this.tzid = comp.getFirstProperty("TZID").value;
+    this.isUTC = false;
+    this.isFloating = false;
+    this.latitude = "";
+    this.longitude = "";
+}
+calStorageTimezone.prototype = {
+    toString: function() {
+        return this.component.toString();
+    }
+};
+var gForeignTimezonesCache = {};
+
 function newDateTime(aNativeTime, aTimezone) {
     var t = createDateTime();
     t.nativeTime = aNativeTime;
     if (aTimezone) {
-        var tz = getTimezoneService().getTimezone(aTimezone);
+        var tz;
+        if (aTimezone.indexOf("BEGIN:VTIMEZONE") == 0) {
+            tz = gForeignTimezonesCache[aTimezone]; // using full definition as key
+            if (!tz) {
+                try {
+                    // cannot cope without parent VCALENDAR:
+                    var comp = getIcsService().parseICS("BEGIN:VCALENDAR\n" + aTimezone + "\nEND:VCALENDAR", null);
+                    tz = new calStorageTimezone(comp.getFirstSubcomponent("VTIMEZONE"));
+                    gForeignTimezonesCache[aTimezone] = tz;
+                } catch (exc) {
+                    ASSERT(false, exc);
+                }
+            }
+        } else {
+            tz = getTimezoneService().getTimezone(aTimezone);
+        }
         if (tz) {
             t = t.getInTimezone(tz);
         } else {
@@ -1829,29 +1870,13 @@ calStorageCalendar.prototype = {
 
     setDateParamHelper: function (params, entryname, cdt) {
         if (cdt) {
-            var tz = cdt.timezone;
-            var tzService = getTimezoneService();
-            if (!compareObjects(tz.provider, tzService)) { // foreign one
-                // try to map to our Olson set or fall back to UTC unless bug 402518 is done:
-                var tzid = tz.tzid;
-                if (tzid.indexOf("/mozilla.org/") != 0) {
-                    tzid = (tzService.tzidPrefix + tzid);
-                }
-                tz = tzService.getTimezone(tzid);
-                if (tz) {
-                    if (cdt.timezone.tzid != tz.tzid) {
-                        WARN("foreign timezone \"" + cdt.timezone.tzid +
-                             "\" has been mapped to internal \"" + tz.tzid + "\".");
-                    }
-                } else {
-                    WARN("foreign timezone \"" + cdt.timezone.tzid +
-                         "\" cannot be stored, falling back to UTC!");
-                    tz = tzService.UTC;
-                }
-                cdt = cdt.getInTimezone(tz);
-            }
             params[entryname] = cdt.nativeTime;
-            params[entryname + "_tz"] = tz.tzid;
+            var tz = cdt.timezone;
+            if (compareObjects(tz.provider, getTimezoneService())) {
+                params[entryname + "_tz"] = tz.tzid;
+            } else { // foreign one
+                params[entryname + "_tz"] = tz.component.serializeToICS();
+            }
         } else {
             params[entryname] = null;
             params[entryname + "_tz"] = null;
@@ -2063,7 +2088,7 @@ calStorageCalendar.prototype = {
                 if (ritem instanceof kCalIRecurrenceDate) {
                     ritem = ritem.QueryInterface(kCalIRecurrenceDate);
                     ap.recur_type = "x-date";
-                    ap.dates = dateToText(ritem.date);
+                    ap.dates = dateToText(getInUtcOrKeepFloating(ritem.date));
 
                 } else if (ritem instanceof kCalIRecurrenceDateSet) {
                     ritem = ritem.QueryInterface(kCalIRecurrenceDateSet);
@@ -2075,7 +2100,7 @@ calStorageCalendar.prototype = {
                         if (j != 0)
                             datestr += ",";
 
-                        datestr += dateToText(rdates[j]);
+                        datestr += dateToText(getInUtcOrKeepFloating(rdates[j]));
                     }
 
                     ap.dates = datestr;
