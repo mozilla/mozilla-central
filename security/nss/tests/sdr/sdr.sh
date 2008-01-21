@@ -96,22 +96,22 @@ sdr_main()
 {
   echo "$SCRIPTNAME: Creating an SDR key/Encrypt"
   echo "sdrtest -d ${PROFILE} -o ${VALUE1} -t Test1"
-  sdrtest -d ${PROFILE} -o ${VALUE1} -t Test1
+  ${BINDIR}/sdrtest -d ${PROFILE} -o ${VALUE1} -t Test1
   html_msg $? 0 "Creating SDR Key"
 
   echo "$SCRIPTNAME: SDR Encrypt - Second Value"
   echo "sdrtest -d ${PROFILE} -o ${VALUE2} -t '${T2}'"
-  sdrtest -d ${PROFILE} -o ${VALUE2} -t "${T2}"
+  ${BINDIR}/sdrtest -d ${PROFILE} -o ${VALUE2} -t "${T2}"
   html_msg $? 0 "Encrypt - Value 2"
 
   echo "$SCRIPTNAME: Decrypt - Value 1"
   echo "sdrtest -d ${PROFILE} -i ${VALUE1} -t Test1"
-  sdrtest -d ${PROFILE} -i ${VALUE1} -t Test1
+  ${BINDIR}/sdrtest -d ${PROFILE} -i ${VALUE1} -t Test1
   html_msg $? 0 "Decrypt - Value 1"
 
   echo "$SCRIPTNAME: Decrypt - Value 2"
   echo "sdrtest -d ${PROFILE} -i ${VALUE2} -t ${T2}"
-  sdrtest -d ${PROFILE} -i ${VALUE2} -t "${T2}"
+  ${BINDIR}/sdrtest -d ${PROFILE} -i ${VALUE2} -t "${T2}"
   html_msg $? 0 "Decrypt - Value 2"
 }
 

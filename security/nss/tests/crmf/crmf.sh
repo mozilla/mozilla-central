@@ -91,11 +91,11 @@ crmf_main()
 {
   echo "$SCRIPTNAME: CRMF/CMMF Tests ------------------------------"
   echo "crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss crmf decode"
-  crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss crmf decode
+  ${BINDIR}/crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss crmf decode
   html_msg $? 0 "CRMF test" "."
 
   echo "crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss cmmf"
-  crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss cmmf 
+  ${BINDIR}/crmftest -d ${P_R_BOBDIR} -p Bob -e dave@bogus.com -s TestCA -P nss cmmf 
   html_msg $? 0 "CMMF test" "."
 
 # Add tests for key recovery and challange as crmftest's capabilities increase

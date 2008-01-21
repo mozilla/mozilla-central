@@ -110,12 +110,12 @@ pkits_init()
   echo "crls" $crls
 
   echo nss > ${PKITSdb}/pw
-  certutil -N -d ${PKITSdb} -f ${PKITSdb}/pw
+  ${BINDIR}/certutil -N -d ${PKITSdb} -f ${PKITSdb}/pw
 
-  certutil -A -n TrustAnchorRootCertificate -t "C,C,C" -i \
+  ${BINDIR}/certutil -A -n TrustAnchorRootCertificate -t "C,C,C" -i \
       $certs/TrustAnchorRootCertificate.crt -d $PKITSdb
   if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
-    crlutil -I -i $crls/TrustAnchorRootCRL.crl -d ${PKITSdb}
+    ${BINDIR}/crlutil -I -i $crls/TrustAnchorRootCRL.crl -d ${PKITSdb}
   else
     html  "<H3>NO CRLs are being used.</H3>"
     pkits_log "NO CRLs are being used."
@@ -163,7 +163,7 @@ break_table()
 pkits()
 {
   echo "vfychain -d $PKITSdb -u 4 $*"
-  vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
+  ${BINDIR}/vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
   RET=$(expr $RET + $(grep -c ERROR ${PKITSDIR}/cmdout.txt))
   cat ${PKITSDIR}/cmdout.txt
@@ -187,7 +187,7 @@ pkits()
 pkitsn()
 {
   echo "vfychain -d $PKITSdb -u 4 $*"
-  vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
+  ${BINDIR}/vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
   RET=$(expr $RET + $(grep -c ERROR ${PKITSDIR}/cmdout.txt))
   cat ${PKITSDIR}/cmdout.txt
@@ -210,7 +210,7 @@ crlImport()
 {
   if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
     echo "crlutil -d $PKITSdb -I -i $crls/$*"
-    crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
+    ${BINDIR}/crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
     cat ${PKITSDIR}/cmdout.txt
 
@@ -230,7 +230,7 @@ crlImportn()
   RET=0
   if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
     echo "crlutil -d $PKITSdb -I -i $crls/$*"
-    crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
+    ${BINDIR}/crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
     cat ${PKITSDIR}/cmdout.txt
 
@@ -255,7 +255,7 @@ delete()
 {
   if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
       echo "crlutil -d $PKITSdb -D -n $*"
-      crlutil -d ${PKITSdb} -D -n $* > ${PKITSDIR}/cmdout.txt 2>&1
+      ${BINDIR}/crlutil -d ${PKITSdb} -D -n $* > ${PKITSDIR}/cmdout.txt 2>&1
       RET=$?
       cat ${PKITSDIR}/cmdout.txt
 
@@ -266,7 +266,7 @@ delete()
   fi
 
   echo "certutil -d $PKITSdb -D -n $*"
-  certutil -d $PKITSdb -D -n $* > ${PKITSDIR}/cmdout.txt 2>&1
+  ${BINDIR}/certutil -d $PKITSdb -D -n $* > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
   cat ${PKITSDIR}/cmdout.txt
 
@@ -283,7 +283,7 @@ delete()
 certImport()
 {
   echo "certutil -d $PKITSdb -A -t \",,\" -n $* -i $certs/$*.crt"
-  certutil -d $PKITSdb -A -t ",," -n $* -i $certs/$*.crt > ${PKITSDIR}/cmdout.txt 2>&1
+  ${BINDIR}/certutil -d $PKITSdb -A -t ",," -n $* -i $certs/$*.crt > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
   cat ${PKITSDIR}/cmdout.txt
 
@@ -302,7 +302,7 @@ certImportn()
   RET=0
   if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
     echo "certutil -d $PKITSdb -A -t \",,\" -n $* -i $certs/$*.crt"
-    certutil -d $PKITSdb -A -t ",," -n $* -i $certs/$*.crt > ${PKITSDIR}/cmdout.txt 2>&1
+    ${BINDIR}/certutil -d $PKITSdb -A -t ",," -n $* -i $certs/$*.crt > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
     cat ${PKITSDIR}/cmdout.txt
 

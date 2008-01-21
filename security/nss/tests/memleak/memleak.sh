@@ -222,27 +222,27 @@ set_test_mode()
 	fi
 	
 	if [ "${server_mode}" = "FIPS" ] ; then
-		modutil -dbdir ${SERVER_DB} -fips true -force
-		modutil -dbdir ${SERVER_DB} -list
-		modutil -dbdir ${CLIENT_DB} -fips false -force
-		modutil -dbdir ${CLIENT_DB} -list
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -fips true -force
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -list
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -fips false -force
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -list
 		
 		echo "${SCRIPTNAME}: FIPS is ON"
 		cipher_list="c d e i j k n v y z"
 	elif [ "${client_mode}" = "FIPS" ] ; then
 		
-		modutil -dbdir ${SERVER_DB} -fips false -force
-		modutil -dbdir ${SERVER_DB} -list
-		modutil -dbdir ${CLIENT_DB} -fips true -force
-		modutil -dbdir ${CLIENT_DB} -list
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -fips false -force
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -list
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -fips true -force
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -list
 		
 		echo "${SCRIPTNAME}: FIPS is ON"
 		cipher_list="c d e i j k n v y z"
 	else
-		modutil -dbdir ${SERVER_DB} -fips false -force
-		modutil -dbdir ${SERVER_DB} -list
-		modutil -dbdir ${CLIENT_DB} -fips false -force
-		modutil -dbdir ${CLIENT_DB} -list
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -fips false -force
+		${BINDIR}/modutil -dbdir ${SERVER_DB} -list
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -fips false -force
+		${BINDIR}/modutil -dbdir ${CLIENT_DB} -list
 		
 		echo "${SCRIPTNAME}: FIPS is OFF"
 		cipher_list="A B C D E F :C001 :C002 :C003 :C004 :C005 :C006 :C007 :C008 :C009 :C00A :C010 :C011 :C012 :C013 :C014 c d e f g i j k l m n v y z"
@@ -346,7 +346,7 @@ run_selfserv()
 	echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
 	echo "${SCRIPTNAME}: -------- Running selfserv:"
 	echo "selfserv ${SELFSERV_ATTR}"
-	selfserv ${SELFSERV_ATTR}
+	${BINDIR}/selfserv ${SELFSERV_ATTR}
 	ret=$?
 	if [ $ret -ne 0 ]; then
 		html_failed "<TR><TD> ${LOGNAME}: Selfserv"
@@ -362,7 +362,7 @@ run_selfserv_dbg()
 {
 	echo "PATH=${PATH}"
 	echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-	${RUN_COMMAND_DBG} selfserv ${SERVER_OPTION} ${SELFSERV_ATTR}
+	${RUN_COMMAND_DBG} ${BINDIR}/selfserv ${SERVER_OPTION} ${SELFSERV_ATTR}
 	ret=$?
 	if [ $ret -ne 0 ]; then
 		html_failed "<TR><TD> ${LOGNAME}: Selfserv"
@@ -381,7 +381,7 @@ run_strsclnt()
 		ATTR="${STRSCLNT_ATTR} -C ${cipher}"
 		echo "${SCRIPTNAME}: -------- Trying cipher ${cipher}:"
 		echo "strsclnt ${ATTR}"
-		strsclnt ${ATTR}
+		${BINDIR}/strsclnt ${ATTR}
 		ret=$?
 		if [ $ret -ne 0 ]; then
 			html_failed "<TR><TD> ${LOGNAME}: Strsclnt with cipher ${cipher}"
@@ -392,7 +392,7 @@ run_strsclnt()
 	
 	echo "${SCRIPTNAME}: -------- Stopping server:"
 	echo "tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}"
-	tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
+	${BINDIR}/tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
 	ret=$?
 	if [ $ret -ne 0 ]; then
 		html_failed "<TR><TD> ${LOGNAME}: Tstclnt"
@@ -409,7 +409,7 @@ run_strsclnt_dbg()
 {
 	for cipher in ${cipher_list}; do
 		ATTR="${STRSCLNT_ATTR} -C ${cipher}"
-		${RUN_COMMAND_DBG} strsclnt ${CLIENT_OPTION} ${ATTR}
+		${RUN_COMMAND_DBG} ${BINDIR}/strsclnt ${CLIENT_OPTION} ${ATTR}
 		ret=$?
 		if [ $ret -ne 0 ]; then
 			html_failed "<TR><TD> ${LOGNAME}: Strsclnt with cipher ${cipher}"
@@ -420,7 +420,7 @@ run_strsclnt_dbg()
 	
 	echo "${SCRIPTNAME}: -------- Stopping server:"
 	echo "tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}"
-	tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
+	${BINDIR}/tstclnt ${TSTCLNT_ATTR} < ${REQUEST_FILE}
 	ret=$?
 	if [ $ret -ne 0 ]; then
 		html_failed "<TR><TD> ${LOGNAME}: Tstclnt"

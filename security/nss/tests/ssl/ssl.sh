@@ -157,14 +157,14 @@ wait_for_selfserv()
   echo "trying to connect to selfserv at `date`"
   echo "tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \\"
   echo "        -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
-  tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
+  ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
           -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
   if [ $? -ne 0 ]; then
       sleep 5
       echo "retrying to connect to selfserv at `date`"
       echo "tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \\"
       echo "        -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
-      tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
+      ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} ${CLIENT_OPTIONS} -q \
               -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}
       if [ $? -ne 0 ]; then
           html_failed "Waiting for Server"
@@ -203,7 +203,7 @@ kill_selfserv()
   # the port.  Wait until the port is free. (Bug 129701)
   if [ "${OS_ARCH}" = "Linux" ]; then
       echo "selfserv -b -p ${PORT} 2>/dev/null;"
-      until selfserv -b -p ${PORT} 2>/dev/null; do
+      until ${BINDIR}/selfserv -b -p ${PORT} 2>/dev/null; do
           echo "RETRY: selfserv -b -p ${PORT} 2>/dev/null;"
           sleep 1
       done
@@ -239,11 +239,11 @@ start_selfserv()
   echo "selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \\"
   echo "         ${ECC_OPTIONS} -w nss ${sparam} -i ${R_SERVERPID} $verbose &"
   if [ ${fileout} -eq 1 ]; then
-      ${PROFTOOL} selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
+      ${PROFTOOL} ${BINDIR}/selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
                ${ECC_OPTIONS} -w nss ${sparam} -i ${R_SERVERPID} $verbose \
                > ${SERVEROUTFILE} 2>&1 &
   else
-      ${PROFTOOL} selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
+      ${PROFTOOL} ${BINDIR}/selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
                ${ECC_OPTIONS} -w nss ${sparam} -i ${R_SERVERPID} $verbose &
   fi
   # The PID $! returned by the MKS or Cygwin shell is not the PID of
@@ -342,7 +342,7 @@ ssl_cov()
           echo "        -f -d ${P_R_CLIENTDIR} < ${REQUEST_FILE}"
 
           rm ${TMP}/$HOST.tmp.$$ 2>/dev/null
-          ${PROFTOOL} tstclnt -p ${PORT} -h ${HOSTADDR} -c ${param} ${TLS_FLAG} ${CLIENT_OPTIONS} -f \
+          ${PROFTOOL} ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} -c ${param} ${TLS_FLAG} ${CLIENT_OPTIONS} -f \
                   -d ${P_R_CLIENTDIR} < ${REQUEST_FILE} \
                   >${TMP}/$HOST.tmp.$$  2>&1
           ret=$?
@@ -375,7 +375,7 @@ ssl_auth()
           echo "tstclnt -p ${PORT} -h ${HOSTADDR} -f -d ${P_R_CLIENTDIR} ${CLIENT_OPTIONS} \\"
 	  echo "        ${cparam}  < ${REQUEST_FILE}"
           rm ${TMP}/$HOST.tmp.$$ 2>/dev/null
-          ${PROFTOOL} tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} ${CLIENT_OPTIONS} \
+          ${PROFTOOL} ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} ${CLIENT_OPTIONS} \
                   -d ${P_R_CLIENTDIR} < ${REQUEST_FILE} \
                   >${TMP}/$HOST.tmp.$$  2>&1
           ret=$?
@@ -433,7 +433,7 @@ ssl_stress()
           echo "strsclnt -q -p ${PORT} -d ${P_R_CLIENTDIR} ${CLIENT_OPTIONS} -w nss $cparam \\"
           echo "         $verbose ${HOSTADDR}"
           echo "strsclnt started at `date`"
-          ${PROFTOOL} strsclnt -q -p ${PORT} -d ${P_R_CLIENTDIR} ${CLIENT_OPTIONS} -w nss $cparam \
+          ${PROFTOOL} ${BINDIR}/strsclnt -q -p ${PORT} -d ${P_R_CLIENTDIR} ${CLIENT_OPTIONS} -w nss $cparam \
                    $verbose ${HOSTADDR}
           ret=$?
           echo "strsclnt completed at `date`"
@@ -502,7 +502,7 @@ ssl_crl_ssl()
 	  echo "tstclnt -p ${PORT} -h ${HOSTADDR} -f -d ${R_CLIENTDIR} \\"
 	  echo "        ${cparam}  < ${REQUEST_FILE}"
 	  rm ${TMP}/$HOST.tmp.$$ 2>/dev/null
-	  ${PROFTOOL} tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} \
+	  ${PROFTOOL} ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} \
 	      -d ${R_CLIENTDIR} < ${REQUEST_FILE} \
 	      >${TMP}/$HOST.tmp.$$  2>&1
 	  ret=$?
@@ -599,7 +599,7 @@ load_group_crl() {
         echo "GET crl://${SERVERDIR}/root.crl_${grpBegin}-${grpEnd}${ecsuffix}"
         echo ""
         echo "RELOAD time $i"
-        ${PROFTOOL} tstclnt -p ${PORT} -h ${HOSTADDR} -f  \
+        ${PROFTOOL} ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} -f  \
             -d ${R_CLIENTDIR} -w nss -n TestUser${UNREVOKED_CERT_GRP_1}${ecsuffix} \
 	    >${OUTFILE_TMP}  2>&1 <<_EOF_REQUEST_
 GET crl://${SERVERDIR}/root.crl_${grpBegin}-${grpEnd}${ecsuffix}
@@ -686,7 +686,7 @@ ssl_crl_cache()
             echo "tstclnt -p ${PORT} -h ${HOSTADDR} -f -d ${R_CLIENTDIR} \\"
             echo "        ${cparam}  < ${REQUEST_FILE}"
             rm ${TMP}/$HOST.tmp.$$ 2>/dev/null
-            ${PROFTOOL} tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} \
+            ${PROFTOOL} ${BINDIR}/tstclnt -p ${PORT} -h ${HOSTADDR} -f ${cparam} \
 	        -d ${R_CLIENTDIR} < ${REQUEST_FILE} \
                 >${TMP}/$HOST.tmp.$$  2>&1
             ret=$?
@@ -803,13 +803,13 @@ ssl_set_fips()
     echo "${SCRIPTNAME}: ${TESTNAME}"
 
     echo "${MODUTIL} -dbdir ${DBDIR} -fips ${FIPSMODE} -force"
-    ${MODUTIL} -dbdir ${DBDIR} -fips ${FIPSMODE} -force 2>&1
+    ${BINDIR}/${MODUTIL} -dbdir ${DBDIR} -fips ${FIPSMODE} -force 2>&1
     RET=$?  
     html_msg "${RET}" "0" "${TESTNAME} (modutil -fips ${FIPSMODE})" \
              "produced a returncode of ${RET}, expected is 0"
 
     echo "${MODUTIL} -dbdir ${DBDIR} -list"
-    DBLIST=`${MODUTIL} -dbdir ${DBDIR} -list 2>&1`
+    DBLIST=`${BINDIR}/${MODUTIL} -dbdir ${DBDIR} -list 2>&1`
     RET=$?  
     html_msg "${RET}" "0" "${TESTNAME} (modutil -list)" \
              "produced a returncode of ${RET}, expected is 0"

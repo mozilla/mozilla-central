@@ -39,16 +39,16 @@ while read mode keysize bufsize reps cxreps
 do
     if [ $mode != "#" ]; then
 	echo "bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps"
-	bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps >> ${SKPERFOUT}
+	${BINDIR}/bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps >> ${SKPERFOUT}
 	mv "tmp.in.0" "$mode.in"
 	mv tmp.key $mode.key
 	if [ -f tmp.iv ]; then
 	    mv tmp.iv $mode.iv
 	fi
 	echo "bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.out"
-	bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.out >> ${SKPERFOUT}
+	${BINDIR}/bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.out >> ${SKPERFOUT}
 	echo "bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.inv"
-	bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.inv >> ${SKPERFOUT}
+	${BINDIR}/bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -v ${CIPHERDIR}/$mode.iv -p $reps -o ${CIPHERDIR}/$mode.inv >> ${SKPERFOUT}
     fi
 done < ${SKTESTS} 
 
@@ -68,13 +68,13 @@ while read mode keysize bufsize exp reps cxreps
 do
     if [ $mode != "#" ]; then
 	echo "bltest -N -m $mode -b $bufsize -e $exp -g $keysize -u $cxreps"
-	bltest -N -m $mode -b $bufsize -e $exp -g $keysize -u $cxreps >> ${RSAPERFOUT}
+	${BINDIR}/bltest -N -m $mode -b $bufsize -e $exp -g $keysize -u $cxreps >> ${RSAPERFOUT}
 	mv "tmp.in.0" "$mode.in"
 	mv tmp.key $mode.key
 	echo "bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out"
-	bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out >> ${RSAPERFOUT}
+	${BINDIR}/bltest -E -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out >> ${RSAPERFOUT}
 	echo "bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.inv"
-	bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.inv >> ${RSAPERFOUT}
+	${BINDIR}/bltest -D -m $mode -i ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.inv >> ${RSAPERFOUT}
     fi
 done < ${RSATESTS} 
 
@@ -97,13 +97,13 @@ while read mode keysize bufsize reps cxreps
 do
     if [ $mode != "#" ]; then
 	echo "bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps"
-	bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps >> ${DSAPERFOUT}
+	${BINDIR}/bltest -N -m $mode -b $bufsize -g $keysize -u $cxreps >> ${DSAPERFOUT}
 	mv "tmp.in.0" "$mode.in"
 	mv tmp.key $mode.key
 	echo "bltest -S -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out"
-	bltest -S -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out >> ${DSAPERFOUT}
+	${BINDIR}/bltest -S -m $mode -i ${CIPHERDIR}/$mode.in -k ${CIPHERDIR}/$mode.key -p $reps -o ${CIPHERDIR}/$mode.out >> ${DSAPERFOUT}
 	echo "bltest -V -m $mode -f ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -i ${CIPHERDIR}/$mode.in -o ${CIPHERDIR}/$mode.out"
-	bltest -V -m $mode -f ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -i ${CIPHERDIR}/$mode.in -o ${CIPHERDIR}/$mode.out >> ${DSAPERFOUT}
+	${BINDIR}/bltest -V -m $mode -f ${CIPHERDIR}/$mode.out -k ${CIPHERDIR}/$mode.key -p $reps -i ${CIPHERDIR}/$mode.in -o ${CIPHERDIR}/$mode.out >> ${DSAPERFOUT}
     fi
 done < ${DSATESTS} 
 
@@ -125,10 +125,10 @@ while read mode bufsize reps
 do
     if [ $mode != "#" ]; then
 	echo "bltest -N -m $mode -b $bufsize"
-	bltest -N -m $mode -b $bufsize
+	${BINDIR}/bltest -N -m $mode -b $bufsize
 	mv "tmp.in.0" "$mode.in"
 	echo "bltest -H -m $mode -i ${CIPHERDIR}/$mode.in -p $reps -o ${CIPHERDIR}/$mode.out"
-	bltest -H -m $mode -i ${CIPHERDIR}/$mode.in -p $reps -o ${CIPHERDIR}/$mode.out >> ${HASHPERFOUT}
+	${BINDIR}/bltest -H -m $mode -i ${CIPHERDIR}/$mode.in -p $reps -o ${CIPHERDIR}/$mode.out >> ${HASHPERFOUT}
     fi
 done < ${HASHTESTS} 
 

@@ -112,7 +112,7 @@ tools_p12()
   echo "$SCRIPTNAME: Exporting Alice's email cert & key------------------"
   echo "pk12util -o Alice.p12 -n \"Alice\" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \\"
   echo "         -w ${R_PWFILE}"
-  pk12util -o Alice.p12 -n "Alice" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \
+  ${BINDIR}/pk12util -o Alice.p12 -n "Alice" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \
            -w ${R_PWFILE} 2>&1 
   ret=$?
   html_msg $ret 0 "Exporting Alice's email cert & key (pk12util -o)"
@@ -120,14 +120,14 @@ tools_p12()
 
   echo "$SCRIPTNAME: Importing Alice's email cert & key -----------------"
   echo "pk12util -i Alice.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE}"
-  pk12util -i Alice.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE} 2>&1
+  ${BINDIR}/pk12util -i Alice.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE} 2>&1
   ret=$?
   html_msg $ret 0 "Importing Alice's email cert & key (pk12util -i)"
   check_tmpfile
 
   echo "$SCRIPTNAME: Listing Alice's pk12 file -----------------"
   echo "pk12util -l Alice.p12 -w ${R_PWFILE}"
-  pk12util -l Alice.p12 -w ${R_PWFILE} 2>&1
+  ${BINDIR}/pk12util -l Alice.p12 -w ${R_PWFILE} 2>&1
   ret=$?
   html_msg $ret 0 "Listing Alice's pk12 file (pk12util -l)"
   check_tmpfile
@@ -136,7 +136,7 @@ tools_p12()
       echo "$SCRIPTNAME: Exporting Alice's email EC cert & key---------------"
       echo "pk12util -o Alice-ec.p12 -n \"Alice-ec\" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \\"
       echo "         -w ${R_PWFILE}"
-      pk12util -o Alice-ec.p12 -n "Alice-ec" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \
+      ${BINDIR}/pk12util -o Alice-ec.p12 -n "Alice-ec" -d ${P_R_ALICEDIR} -k ${R_PWFILE} \
            -w ${R_PWFILE} 2>&1 
       ret=$?
       html_msg $ret 0 "Exporting Alice's email EC cert & key (pk12util -o)"
@@ -144,14 +144,14 @@ tools_p12()
 
       echo "$SCRIPTNAME: Importing Alice's email EC cert & key --------------"
       echo "pk12util -i Alice-ec.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE}"
-      pk12util -i Alice-ec.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE} 2>&1
+      ${BINDIR}/pk12util -i Alice-ec.p12 -d ${P_R_COPYDIR} -k ${R_PWFILE} -w ${R_PWFILE} 2>&1
       ret=$?
       html_msg $ret 0 "Importing Alice's email EC cert & key (pk12util -i)"
       check_tmpfile
 
       echo "$SCRIPTNAME: Listing Alice's pk12 EC file -----------------"
       echo "pk12util -l Alice-ec.p12 -w ${R_PWFILE}"
-      pk12util -l Alice-ec.p12 -w ${R_PWFILE} 2>&1
+      ${BINDIR}/pk12util -l Alice-ec.p12 -w ${R_PWFILE} 2>&1
       ret=$?
       html_msg $ret 0 "Listing Alice's pk12 EC file (pk12util -l)"
       check_tmpfile
@@ -178,7 +178,7 @@ tools_sign()
 {
   echo "$SCRIPTNAME: Create objsign cert -------------------------------"
   echo "signtool -G \"objectsigner\" -d ${P_R_ALICEDIR} -p \"nss\""
-  signtool -G "objsigner" -d ${P_R_ALICEDIR} -p "nss" 2>&1 <<SIGNSCRIPT
+  ${BINDIR}/signtool -G "objsigner" -d ${P_R_ALICEDIR} -p "nss" 2>&1 <<SIGNSCRIPT
 y
 TEST
 MOZ
@@ -193,35 +193,35 @@ SIGNSCRIPT
   echo "$SCRIPTNAME: Signing a jar of files ----------------------------"
   echo "signtool -Z nojs.jar -d ${P_R_ALICEDIR} -p \"nss\" -k objsigner \\"
   echo "         ${R_TOOLSDIR}/html"
-  signtool -Z nojs.jar -d ${P_R_ALICEDIR} -p "nss" -k objsigner \
+  ${BINDIR}/signtool -Z nojs.jar -d ${P_R_ALICEDIR} -p "nss" -k objsigner \
            ${R_TOOLSDIR}/html
   html_msg $? 0 "Signing a jar of files (signtool -Z)"
 
   echo "$SCRIPTNAME: Listing signed files in jar ----------------------"
   echo "signtool -v nojs.jar -d ${P_R_ALICEDIR} -p nss -k objsigner"
-  signtool -v nojs.jar -d ${P_R_ALICEDIR} -p nss -k objsigner
+  ${BINDIR}/signtool -v nojs.jar -d ${P_R_ALICEDIR} -p nss -k objsigner
   html_msg $? 0 "Listing signed files in jar (signtool -v)"
 
   echo "$SCRIPTNAME: Show who signed jar ------------------------------"
   echo "signtool -w nojs.jar -d ${P_R_ALICEDIR}"
-  signtool -w nojs.jar -d ${P_R_ALICEDIR}
+  ${BINDIR}/signtool -w nojs.jar -d ${P_R_ALICEDIR}
   html_msg $? 0 "Show who signed jar (signtool -w)"
 
   echo "$SCRIPTNAME: Signing a xpi of files ----------------------------"
   echo "signtool -Z nojs.xpi -X -d ${P_R_ALICEDIR} -p \"nss\" -k objsigner \\"
   echo "         ${R_TOOLSDIR}/html"
-  signtool -Z nojs.xpi -X -d ${P_R_ALICEDIR} -p "nss" -k objsigner \
+  ${BINDIR}/signtool -Z nojs.xpi -X -d ${P_R_ALICEDIR} -p "nss" -k objsigner \
            ${R_TOOLSDIR}/html
   html_msg $? 0 "Signing a xpi of files (signtool -Z -X)"
 
   echo "$SCRIPTNAME: Listing signed files in xpi ----------------------"
   echo "signtool -v nojs.xpi -d ${P_R_ALICEDIR} -p nss -k objsigner"
-  signtool -v nojs.xpi -d ${P_R_ALICEDIR} -p nss -k objsigner
+  ${BINDIR}/signtool -v nojs.xpi -d ${P_R_ALICEDIR} -p nss -k objsigner
   html_msg $? 0 "Listing signed files in xpi (signtool -v)"
 
   echo "$SCRIPTNAME: Show who signed xpi ------------------------------"
   echo "signtool -w nojs.xpi -d ${P_R_ALICEDIR}"
-  signtool -w nojs.xpi -d ${P_R_ALICEDIR}
+  ${BINDIR}/signtool -w nojs.xpi -d ${P_R_ALICEDIR}
   html_msg $? 0 "Show who signed xpi (signtool -w)"
 
 }

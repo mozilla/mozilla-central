@@ -102,7 +102,7 @@ cipher_main()
              while [ $outOff -lt 8 ]
              do
                  echo "bltest -T -m $PARAM -d $CIPHERTESTDIR -1 $inOff -2 $outOff"
-                 ${PROFTOOL} bltest -T -m $PARAM -d $CIPHERTESTDIR -1 $inOff -2 $outOff
+                 ${PROFTOOL} ${BINDIR}/bltest -T -m $PARAM -d $CIPHERTESTDIR -1 $inOff -2 $outOff
                  if [ $? -ne 0 ]; then
                      failedStr="$failedStr[$inOff:$outOff]"
                  fi

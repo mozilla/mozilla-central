@@ -140,7 +140,7 @@ ssl_iopr_cov_ext_server()
       echo "      -n $testUser -w nss ${CLIEN_OPTIONS} -f \\"
       echo "      -d ${dbDir} < ${SSL_REQ_FILE} > $resFile"
       
-      tstclnt -w nss -p ${sslPort} -h ${host} -c ${param} \
+      ${BINDIR}/tstclnt -w nss -p ${sslPort} -h ${host} -c ${param} \
           ${TLS_FLAG} ${CLIEN_OPTIONS} -f -n $testUser -w nss \
           -d ${dbDir} < ${SSL_REQ_FILE} >$resFile  2>&1
       ret=$?
@@ -206,7 +206,7 @@ ssl_iopr_auth_ext_server()
       resFile=${TMP}/$HOST.tmp.$$
       rm $rsFile 2>/dev/null
 
-      tstclnt -p ${sslPort} -h ${host} ${CLIEN_OPTIONS} -f ${cparam} \
+      ${BINDIR}/tstclnt -p ${sslPort} -h ${host} ${CLIEN_OPTIONS} -f ${cparam} \
           -d ${dbDir} < ${SSL_REQ_FILE} >$resFile  2>&1
       ret=$?
       grep "ACCESS=OK" $resFile
@@ -267,7 +267,7 @@ ssl_iopr_crl_ext_server()
           echo "        -f -d ${dbDir} ${cparam}  < ${SSL_REQ_FILE}"
           resFile=${TMP}/$HOST.tmp.$$
           rm -f $resFile 2>/dev/null
-          tstclnt -p ${sslPort} -h ${host} ${CLIEN_OPTIONS} -f ${cparam} \
+          ${BINDIR}/tstclnt -p ${sslPort} -h ${host} ${CLIEN_OPTIONS} -f ${cparam} \
               -d ${dbDir} < ${SSL_REQ_FILE} \
               > $resFile  2>&1
           ret=$?
@@ -356,7 +356,7 @@ ssl_iopr_cov_ext_client()
       echo tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
           -h $host \< $TEST_IN \>\> $TEST_OUT
 
-      tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
+      ${BINDIR}/tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
           -h $host <$TEST_IN > $TEST_OUT 
 
       echo "------- Server output Begin ----------"
@@ -457,7 +457,7 @@ ssl_iopr_auth_ext_client()
       echo tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
           -h $host \< $TEST_IN \>\> $TEST_OUT
       
-      tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
+      ${BINDIR}/tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
           -h $host <$TEST_IN > $TEST_OUT 
       
       echo "------- Server output Begin ----------"
@@ -545,7 +545,7 @@ ssl_iopr_crl_ext_client()
           echo tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
               -h ${host} \< $TEST_IN \>\> $TEST_OUT
             
-          tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
+          ${BINDIR}/tstclnt -d $serDbDir -w ${R_PWFILE} -o -p $port \
               -h ${host} <$TEST_IN > $TEST_OUT 
           echo "------- Request ----------------------"
           cat $TEST_IN

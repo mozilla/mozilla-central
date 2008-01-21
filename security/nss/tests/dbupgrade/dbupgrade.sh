@@ -82,9 +82,9 @@ dbupgrade_main()
 	# 'reset' the databases to initial values
 	echo "Reset databases to their initial values:"
 	cd ${HOSTDIR}
-	certutil -D -n objsigner -d alicedir 2>&1
-	certutil -M -n FIPS_PUB_140_Test_Certificate -t "C,C,C" -d fips -f ${FIPSPWFILE} 2>&1
-	certutil -L -d fips 2>&1
+	${BINDIR}/certutil -D -n objsigner -d alicedir 2>&1
+	${BINDIR}/certutil -M -n FIPS_PUB_140_Test_Certificate -t "C,C,C" -d fips -f ${FIPSPWFILE} 2>&1
+	${BINDIR}/certutil -L -d fips 2>&1
 	rm -f smime/alicehello.env
 	
 	# test upgrade to the new database
@@ -96,7 +96,7 @@ dbupgrade_main()
 		echo $i
 		if [ -d $i ]; then
 			echo "upgrading db $i"
-			certutil -G -g 512 -d sql:$i -f ${PWFILE} -z ${NOISE_FILE} 2>&1
+			${BINDIR}/certutil -G -g 512 -d sql:$i -f ${PWFILE} -z ${NOISE_FILE} 2>&1
 			html_msg $? 0 "Upgrading $i"
 		else
 			echo "skipping db $i"
@@ -106,11 +106,11 @@ dbupgrade_main()
 	
 	if [ -d fips ]; then
 		echo "upgrading db fips"
-		certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2>&1
+		${BINDIR}/certutil -S -g 512 -n tmprsa -t "u,u,u" -s "CN=tmprsa, C=US" -x -d sql:fips -f ${FIPSPWFILE} -z ${NOISE_FILE} 2>&1
 		html_msg $? 0 "Upgrading fips"
 		# remove our temp certificate we created in the fist token
-		certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2>&1
-		certutil -L -d sql:fips 2>&1
+		${BINDIR}/certutil -F -n tmprsa -d sql:fips -f ${FIPSPWFILE} 2>&1
+		${BINDIR}/certutil -L -d sql:fips 2>&1
 	fi
 	
 	html "</TABLE><BR>"

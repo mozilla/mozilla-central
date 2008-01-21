@@ -144,12 +144,12 @@ certu()
         #the subject of the cert contains blanks, and the shell 
         #will strip the quotes off the string, if called otherwise...
         echo "certutil -s \"${CU_SUBJECT}\" $*"
-        ${PROFTOOL} certutil -s "${CU_SUBJECT}" $*
+        ${PROFTOOL} ${BINDIR}/certutil -s "${CU_SUBJECT}" $*
         RET=$?
         CU_SUBJECT=""
     else
         echo "certutil $*"
-        ${PROFTOOL} certutil $*
+        ${PROFTOOL} ${BINDIR}/certutil $*
         RET=$?
     fi
     if [ "$RET" -ne 0 ]; then
@@ -173,7 +173,7 @@ crlu()
     
     CRLUTIL="crlutil -q"
     echo "$CRLUTIL $*"
-    ${PROFTOOL} $CRLUTIL $*
+    ${PROFTOOL} ${BINDIR}/$CRLUTIL $*
     RET=$?
     if [ "$RET" -ne 0 ]; then
         CRLFAILED=$RET
@@ -193,7 +193,7 @@ modu()
     MODUTIL="modutil"
     echo "$MODUTIL $*"
     # echo is used to press Enter expected by modutil
-    echo | $MODUTIL $*
+    echo | ${BINDIR}/$MODUTIL $*
     RET=$?
     if [ "$RET" -ne 0 ]; then
         MODFAILED=$RET
@@ -249,7 +249,7 @@ hw_acc()
 
         echo "modutil -add rainbow -libfile /usr/lib/libcryptoki22.so "
         echo "         -dbdir ${PROFILEDIR} 2>&1 "
-        echo | modutil -add rainbow -libfile /usr/lib/libcryptoki22.so \
+        echo | ${BINDIR}/modutil -add rainbow -libfile /usr/lib/libcryptoki22.so \
             -dbdir ${PROFILEDIR} 2>&1 
         if [ "$?" -ne 0 ]; then
             echo "modutil -add rainbow failed in `pwd`"
@@ -260,7 +260,7 @@ hw_acc()
         echo "modutil -add ncipher "
         echo "         -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so "
         echo "         -dbdir ${PROFILEDIR} 2>&1 "
-        echo | modutil -add ncipher \
+        echo | ${BINDIR}/modutil -add ncipher \
             -libfile /opt/nfast/toolkits/pkcs11/libcknfast.so \
             -dbdir ${PROFILEDIR} 2>&1 
         if [ "$?" -ne 0 ]; then
@@ -1008,7 +1008,7 @@ cert_fips()
   echo "$SCRIPTNAME: Enable FIPS mode on database -----------------------"
   CU_ACTION="Enable FIPS mode on database for ${CERTNAME}"
   echo "modutil -dbdir ${PROFILEDIR} -fips true "
-  modutil -dbdir ${PROFILEDIR} -fips true 2>&1 <<MODSCRIPT
+  ${BINDIR}/modutil -dbdir ${PROFILEDIR} -fips true 2>&1 <<MODSCRIPT
 y
 MODSCRIPT
   RET=$?
@@ -1114,7 +1114,7 @@ checkRes()
             expStat=1
             fl=`echo $fl | tr -d '!'`
         fi
-        certutil -d ${CERT_EXTENSIONS_DIR} -L -n $CERTNAME | grep "$fl" >/dev/null 2>&1
+        ${BINDIR}/certutil -d ${CERT_EXTENSIONS_DIR} -L -n $CERTNAME | grep "$fl" >/dev/null 2>&1
         [ $? -ne $expStat ] && return 1
     done
     return 0
@@ -1143,11 +1143,11 @@ cert_extensions()
             count=`expr $count + 1`
             echo "#################################################"
             CU_ACTION="Testing $testName"
-            certutil -d ${CERT_EXTENSIONS_DIR} -D -n $CERTNAME
+            ${BINDIR}/certutil -d ${CERT_EXTENSIONS_DIR} -D -n $CERTNAME
             echo certutil -d ${CERT_EXTENSIONS_DIR} -S -n $CERTNAME \
 	        -t "u,u,u" -o /tmp/cert -s "${CU_SUBJECT}" -x -f ${R_PWFILE} \
 		-z "${R_NOISE_FILE}" -$opt < $TARG_FILE
-            certutil -d ${CERT_EXTENSIONS_DIR} -S -n $CERTNAME -t "u,u,u" \
+            ${BINDIR}/certutil -d ${CERT_EXTENSIONS_DIR} -S -n $CERTNAME -t "u,u,u" \
 	        -o /tmp/cert -s "${CU_SUBJECT}" -x -f ${R_PWFILE} \
 		-z "${R_NOISE_FILE}" -$opt < $TARG_FILE
             ret=$?  

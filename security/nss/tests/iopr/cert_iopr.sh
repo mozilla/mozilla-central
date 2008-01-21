@@ -64,7 +64,7 @@ pk12u()
     echo "${CU_ACTION} --------------------------"
 
     echo "pk12util $@"
-    pk12util $@
+    ${BINDIR}/pk12util $@
     RET=$?
 
     return $RET
@@ -123,7 +123,7 @@ download_file() {
     echo "GET $filePath HTTP/1.0" > $req
     echo >> $req
 
-    tstclnt -d $trgDir -S -h $host -p $IOPR_DOWNLOAD_PORT \
+    ${BINDIR}/tstclnt -d $trgDir -S -h $host -p $IOPR_DOWNLOAD_PORT \
         -w ${R_PWFILE} -o < $req > $file
     ret=$?
     rm -f $_tmp;

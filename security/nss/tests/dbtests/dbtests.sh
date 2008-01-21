@@ -114,14 +114,14 @@ dbtest_main()
 
     
     Echo "test opening the database read/write in a nonexisting directory"
-    certutil -L -X -d ./non_existant_dir
+    ${BINDIR}/certutil -L -X -d ./non_existant_dir
     ret=$?
     if [ $ret -ne 255 ]; then
       html_failed "Certutil succeeded in a nonexisting directory $ret"
     else
       html_passed "Certutil didn't work in a nonexisting dir $ret" 
     fi
-    dbtest -r -d ./non_existant_dir
+    ${BINDIR}/dbtest -r -d ./non_existant_dir
     ret=$?
     if [ $ret -ne 46 ]; then
       html_failed "Dbtest readonly succeeded in a nonexisting directory $ret"
@@ -130,7 +130,7 @@ dbtest_main()
     fi
 
     Echo "test force opening the database in a nonexisting directory"
-    dbtest -f -d ./non_existant_dir
+    ${BINDIR}/dbtest -f -d ./non_existant_dir
     ret=$?
     if [ $ret -ne 0 ]; then
       html_failed "Dbtest force failed in a nonexisting directory $ret"
@@ -140,14 +140,14 @@ dbtest_main()
 
     Echo "test opening the database readonly in an empty directory"
     mkdir $EMPTY_DIR
-    tstclnt -h  ${HOST}  -d $EMPTY_DIR 
+    ${BINDIR}/tstclnt -h  ${HOST}  -d $EMPTY_DIR 
     ret=$?
     if [ $ret -ne 1 ]; then
       html_failed "Tstclnt succeded in an empty directory $ret"
     else
       html_passed "Tstclnt didn't work in an empty dir $ret"
     fi
-    dbtest -r -d $EMPTY_DIR
+    ${BINDIR}/dbtest -r -d $EMPTY_DIR
     ret=$?
     if [ $ret -ne 46 ]; then
       html_failed "Dbtest readonly succeeded in an empty directory $ret"
@@ -155,7 +155,7 @@ dbtest_main()
       html_passed "Dbtest readonly didn't work in an empty dir $ret" 
     fi
     rm -rf $EMPTY_DIR/* 2>/dev/null
-    certutil -D -n xxxx -d $EMPTY_DIR #created DB
+    ${BINDIR}/certutil -D -n xxxx -d $EMPTY_DIR #created DB
     ret=$?
     if [ $ret -ne 255 ]; then 
         html_failed "Certutil succeeded in deleting a cert in an empty directory $ret"
@@ -164,7 +164,7 @@ dbtest_main()
     fi
     rm -rf $EMPTY_DIR/* 2>/dev/null
     Echo "test force opening the database  readonly in a empty directory"
-    dbtest -r -f -d $EMPTY_DIR
+    ${BINDIR}/dbtest -r -f -d $EMPTY_DIR
     ret=$?
     if [ $ret -ne 0 ]; then
       html_failed "Dbtest force readonly failed in an empty directory $ret"
@@ -186,14 +186,14 @@ dbtest_main()
         cat $RONLY_DIR/* > /dev/null
     fi
 
-    dbtest -d $RONLY_DIR
+    ${BINDIR}/dbtest -d $RONLY_DIR
     ret=$?
     if [ $ret -ne 46 ]; then
       html_failed "Dbtest r/w succeeded in an readonly directory $ret"
     else
       html_passed "Dbtest r/w didn't work in an readonly dir $ret" 
     fi
-    certutil -D -n "TestUser" -d .
+    ${BINDIR}/certutil -D -n "TestUser" -d .
     ret=$?
     if [ $ret -ne 255 ]; then
       html_failed "Certutil succeeded in deleting a cert in an readonly directory $ret"
@@ -203,7 +203,7 @@ dbtest_main()
     
     Echo "test opening the database ronly in a readonly directory"
 
-    dbtest -d $RONLY_DIR -r
+    ${BINDIR}/dbtest -d $RONLY_DIR -r
     ret=$?
     if [ $ret -ne 0 ]; then
       html_failed "Dbtest readonly failed in a readonly directory $ret"
@@ -212,7 +212,7 @@ dbtest_main()
     fi
 
     Echo "test force opening the database  r/w in a readonly directory"
-    dbtest -d $RONLY_DIR -f
+    ${BINDIR}/dbtest -d $RONLY_DIR -f
     ret=$?
     if [ $ret -ne 0 ]; then
       html_failed "Dbtest force failed in a readonly directory $ret"

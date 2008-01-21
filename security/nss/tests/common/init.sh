@@ -280,6 +280,8 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     DLL_SUFFIX=`(cd $COMMON; $MAKE dll_suffix)`
     OS_NAME=`uname -s | sed -e "s/-[0-9]*\.[0-9]*//" | sed -e "s/-WOW64//"`
 
+    BINDIR="${DIST}/${OBJDIR}/bin"
+
     # Pathnames constructed from ${TESTDIR} are passed to NSS tools
     # such as certutil, which don't understand Cygwin pathnames.
     # So we need to convert ${TESTDIR} to a Windows pathname (with
