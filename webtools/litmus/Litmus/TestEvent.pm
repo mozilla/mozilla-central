@@ -127,7 +127,7 @@ sub getBreakdownByLocale {
   if ($self->{_testgroup_id}) {
     $locale_sql_from .= ", testcase_subgroups tsg, subgroup_testgroups sgtg";
     $locale_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=".$self->{_testgroup_id};
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $locale_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
@@ -187,7 +187,7 @@ sub getBreakdownByPlatform {
   if ($self->{_testgroup_id}) {
     $platform_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $platform_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=$self->{_testgroup_id}";
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $platform_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
@@ -248,7 +248,7 @@ sub getBreakdownByResultStatus {
   if ($self->{_testgroup_id}) {
     $status_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $status_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=" . $self->{_testgroup_id};
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $status_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
@@ -307,7 +307,7 @@ sub getBreakdownBySubgroup {
 
   if ($self->{_testgroup_id}) {
     $subgroup_sql_where .= " AND tg.testgroup_id=" . $self->{_testgroup_id};
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $subgroup_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
@@ -378,7 +378,7 @@ sub getBreakdownByUser {
   if ($self->{_testgroup_id}) {
     $user_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $user_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=" . $self->{_testgroup_id};
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $user_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
@@ -439,7 +439,7 @@ sub getBreakdownByUserAndResultStatus {
   if ($self->{_testgroup_id}) {
     $tester_sql_from .= ",  testcase_subgroups tsg, subgroup_testgroups sgtg";
     $tester_sql_where .= " AND tr.testcase_id=tsg.testcase_id AND tsg.subgroup_id=sgtg.subgroup_id AND sgtg.testgroup_id=$self->{_testgroup_id}";
-    if ($self->{_subgroups}) {
+    if ($self->{_subgroups} and scalar @{$self->{_subgroups}}) {
       $tester_sql_where .= " AND tsg.subgroup_id IN (";
       for (my $i=0; $i<=$#{$self->{_subgroups}}; $i++) {
         if ($i>0) {
