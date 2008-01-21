@@ -109,6 +109,10 @@
 <!ENTITY lightning.toolbar.month.label               "Month">
 <!ENTITY lightning.toolbar.month.accesskey           "M">
 
+<!-- properties dialog, calendar creation wizard -->
+<!ENTITY lightning.calendarproperties.showevents.inagenda.label "Show Events in Today Pane">
+<!ENTITY lightning.calendarproperties.showtasks.label           "Show Tasks in Today Pane and Task Mode">
+
 <!--Views' context menu-->
 <!-- This access key is in the same menu as 'Go to Next' which gets the 'N'-->
 <!ENTITY lightning.context.newevent.accesskey  "E">

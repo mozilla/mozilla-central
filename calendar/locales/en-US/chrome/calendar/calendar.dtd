@@ -297,6 +297,11 @@
 <!ENTITY calendar.context.converttomessage.label       "Message">
 <!ENTITY calendar.context.converttomessage.accesskey   "M">
 
+<!ENTITY calendar.context.showeventsof.label           "Show Events of">
+<!ENTITY calendar.context.showeventsof.accesskey       "S">
+<!ENTITY calendar.context.showtasksof.label            "Show Tasks of">
+<!ENTITY calendar.context.showtasksof.accesskey        "S">
+
 <!ENTITY calendar.tasks.view.minimonth.label           "Mini Month">
 <!ENTITY calendar.tasks.view.minimonth.accesskey       "M">
 
@@ -341,9 +346,9 @@
 <!ENTITY calendarproperties.format.label   "Format:">
 <!ENTITY calendarproperties.location.label "Location:">
 <!ENTITY calendarproperties.name.label     "Name:">
-<!ENTITY calendarproperties.readonly.label "Read-only">
+<!ENTITY calendarproperties.readonly.label "Read Only">
+<!ENTITY calendarproperties.firealarms.label "Show Alarms">
 <!ENTITY calendarproperties.cache.label    "Cache (EXPERIMENTAL, requires restart)">
-<!ENTITY calendarproperties.firealarms.label "Display alarms">
 
 <!-- Sunbird Help -->
 <!ENTITY calendar.help.label               "Help Contents">
