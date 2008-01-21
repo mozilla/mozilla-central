@@ -105,8 +105,8 @@ calWcapCalendar.prototype = {
         var rc = getResultCode(err);
         switch (rc) {
         case calIErrors.OPERATION_CANCELLED:
+        case calIWcapErrors.WCAP_COMPONENT_NOT_FOUND:
         case NS_ERROR_OFFLINE:
-            // no real errors:
             return;
         default:
             if (!checkErrorCode(rc, calIErrors.WCAP_ERROR_BASE, 8) &&
