@@ -1143,8 +1143,8 @@
                      command="cmd_settingsOffline"/>
            <menuseparator id="offlineMenuAfterSettingsSeparator"/>
            <menuitem id="menu_downloadStarred"
-                      label="&downloadStarredCmd.label;"
-                      accesskey="&downloadStarredCmd.accesskey;"
+                      label="&downloadFlaggedCmd.label;"
+                      accesskey="&downloadFlaggedCmd.accesskey;"
                       command="cmd_downloadFlagged"/>
            <menuitem id="menu_downloadSelected"
                      label="&downloadSelectedCmd.label;"
@@ -1362,10 +1362,10 @@
       </menu>
       <menuitem id="viewAttachmentsInlineMenuitem"
                 type="checkbox"
-                checked="true
+                checked="true"
                 label="&viewAttachmentsInlineCmd.label;"
                 accesskey="&viewAttachmentsInlineCmd.accesskey;"
-                oncommand="ToggleInlineAttachment(event.target)""/>
+                oncommand="ToggleInlineAttachment(event.target)"/>
       <menuseparator id="viewAfterAttachmentsSeparator"/>
       <menuitem id="stopMenuitem"
                 label="&stopCmd.label;"
