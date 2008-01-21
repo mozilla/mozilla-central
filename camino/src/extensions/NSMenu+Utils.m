@@ -302,6 +302,14 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 
 - (void)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem
 {
+  // Find the item we are adding alternates for. Since this is generally used
+  // when building a menu, check the last item first as an optimization.
+  int itemIndex = [self numberOfItems] - 1;
+  if (![[self itemAtIndex:itemIndex] isEqual:inMenuItem])
+    itemIndex = [self indexOfItem:inMenuItem];
+  if (itemIndex == -1)
+    return;
+
   [inMenuItem setKeyEquivalentModifierMask:0]; // Needed since by default NSMenuItems have NSCommandKeyMask
 
   NSString* title = [inMenuItem title];
@@ -316,7 +324,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
                                                              modifiers:NSCommandKeyMask];
   [altMenuItem setRepresentedObject:representedObject];
   [altMenuItem setImage:image];
-  [self addItem:altMenuItem];
+  [self insertItem:altMenuItem atIndex:(itemIndex + 1)];
   [altMenuItem release];
 
   altMenuItem = [[NSMenuItem alloc] initAlternateWithTitle:title
@@ -325,7 +333,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
                                                  modifiers:(NSCommandKeyMask | NSShiftKeyMask)];
   [altMenuItem setRepresentedObject:representedObject];
   [altMenuItem setImage:image];
-  [self addItem:altMenuItem];
+  [self insertItem:altMenuItem atIndex:(itemIndex + 2)];
   [altMenuItem release];
 }
 
