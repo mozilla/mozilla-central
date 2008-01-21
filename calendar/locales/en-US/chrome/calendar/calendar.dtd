@@ -73,6 +73,7 @@
 
 <!ENTITY calendar.unifinder.todoitems.label       "Tasks" >
 <!ENTITY calendar.unifinder.hidecompletedtodos.label "Hide Completed Tasks">
+<!ENTITY calendar.unifinder.showcompletedtodos.label "Show Completed Tasks">
 
 <!ENTITY calendar.calendartab.label "Date">
 <!ENTITY calendar.listofcalendarstab.label "Calendars">
@@ -165,6 +166,8 @@
 <!ENTITY calendar.onlyworkday.checkbox.accesskey  "r" >
 <!ENTITY calendar.displaytodos.checkbox.label   "Tasks in View" >
 <!ENTITY calendar.displaytodos.checkbox.accesskey "k" >
+<!ENTITY calendar.completedtasks.checkbox.label     "Show completed Tasks" >
+<!ENTITY calendar.completedtasks.checkbox.accesskey "c" >
 
 <!ENTITY calendar.orientation.label "Rotate View" >
 <!ENTITY calendar.orientation.accesskey "o" >
