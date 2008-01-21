@@ -210,6 +210,11 @@
 <!ENTITY calendar.task.details.category.label        "Category:">
 <!ENTITY calendar.task.details.repeat.label          "Repeat:">
 
+<!ENTITY calendar.task.category.button.tooltip  "Categorize tasks">
+<!ENTITY calendar.task.complete.button.tooltip  "Mark selected tasks completed">
+<!ENTITY calendar.task.priority.button.tooltip  "Change the priority">
+<!ENTITY calendar.task.delete.button.tooltip    "Delete the selected task">
+
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">
 
@@ -257,12 +262,16 @@
 <!ENTITY calendar.context.progress.accesskey          "P">
 <!ENTITY calendar.context.priority.label              "Priority">
 <!ENTITY calendar.context.priority.accesskey          "r">
+<!ENTITY calendar.context.category.label              "New Category…">
+<!ENTITY calendar.context.category.accesskey          "g">
 
 <!ENTITY percnt "&#38;#37;" ><!--=percent sign-->
 
 <!ENTITY calendar.context.markcompleted.label     "Mark Completed">
 <!ENTITY calendar.context.markcompleted.accesskey "o">
 
+<!ENTITY progress.notstarted           "Not Started">
+<!ENTITY progress.notstarted.accesskey "N">
 <!ENTITY progress.level.0             "0&percnt; Completed">
 <!ENTITY progress.level.0.accesskey   "0">
 <!ENTITY progress.level.25            "25&percnt; Completed">
