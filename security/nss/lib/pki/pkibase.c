@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pkibase.c,v $ $Revision: 1.29 $ $Date: 2007-11-21 18:02:13 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pkibase.c,v $ $Revision: 1.30 $ $Date: 2008-01-21 23:20:19 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -847,10 +847,7 @@ nssPKIObjectCollection_AddInstances (
     PRBool foundIt;
     pkiObjectCollectionNode *node;
     if (instances) {
-	for (; *instances; instances++, i++) {
-	    if (numInstances > 0 && i == numInstances) {
-		break;
-	    }
+	while ((!numInstances || i < numInstances) && *instances) {
 	    if (status == PR_SUCCESS) {
 		node = add_object_instance(collection, *instances, &foundIt);
 		if (node == NULL) {
@@ -861,6 +858,8 @@ nssPKIObjectCollection_AddInstances (
 	    } else {
 		nssCryptokiObject_Destroy(*instances);
 	    }
+	    instances++;
+	    i++;
 	}
     }
     return status;
