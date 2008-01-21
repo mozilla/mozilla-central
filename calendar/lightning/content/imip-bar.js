@@ -310,11 +310,16 @@ function setAttendeeResponse(type, eventStatus)
         switch (type) {
             case "ACCEPTED":
             case "TENTATIVE":
-            case "DECLINED":
                 gItipItem.setAttendeeStatus(myAddress, type);
                 // fall through
             case "REPLY":
             case "PUBLISH":
+                var targetCalendar = getTargetCalendar();
+                gItipItem.targetCalendar = targetCalendar;
+                doResponse(eventStatus);
+                break;
+            case "DECLINED":
+                gItipItem.setAttendeeStatus(myAddress, type);
                 doResponse(eventStatus);
                 break;
             default:
@@ -350,8 +355,6 @@ function doResponse(aLocalStatus)
 
     // The spec is unclear if we must add all the items or if the
     // user should get to pick which item gets added.
-    var targetCalendar = getTargetCalendar();
-    gItipItem.targetCalendar = targetCalendar;
 
     if (aLocalStatus != null) {
         gItipItem.localStatus = aLocalStatus;
