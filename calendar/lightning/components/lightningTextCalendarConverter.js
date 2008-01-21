@@ -106,7 +106,9 @@ function createHtml(event)
                                   .getService(Components.interfaces.calIDateTimeFormatter);
         var startString = new Object();
         var endString = new Object();
-        dateFormatter.formatInterval(event.startDate, event.endDate, startString, endString);
+        dateFormatter.formatInterval(event.startDate.getInTimezone(calendarDefaultTimezone()),
+                                     event.endDate.getInTimezone(calendarDefaultTimezone()),
+                                     startString, endString);
         var dateString = startString.value + " - " + endString.value;
 
         var labelText = stringBundle.GetStringFromName("imipHtml.when");
@@ -220,7 +222,25 @@ var myModule = {
                                 this.myContractID, true, true);
     },
 
+    mScriptsLoaded: false,
     getClassObject: function GCO(aCompMgr, aCid, aIid) {
+        if (!this.mScriptsLoaded) {
+            // loading extra scripts from ../js:
+            const scripts = [ "calUtils.js" ];
+            var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                                         .createInstance(Components.interfaces.mozIJSSubScriptLoader);
+            var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                      .getService(Components.interfaces.nsIIOService);
+            var baseDir = __LOCATION__.parent.parent;
+            baseDir.append("js");
+            for each (var script in scripts) {
+                var scriptFile = baseDir.clone();
+                scriptFile.append(script);
+                scriptLoader.loadSubScript(ioService.newFileURI(scriptFile).spec, null);
+            }
+            this.mScriptsLoaded = true;
+        }
+
         if (!aCid.equals(this.myCID)) {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
