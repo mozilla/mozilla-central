@@ -49,14 +49,18 @@
 @implementation KeychainItem
 
 + (KeychainItem*)keychainItemForHost:(NSString*)host
+                            username:(NSString*)username
                                 port:(UInt16)port
                             protocol:(SecProtocolType)protocol
                   authenticationType:(SecAuthenticationType)authType
 {
   SecKeychainItemRef itemRef;
-  const char* serverName = host ? [host UTF8String] : NULL;
+  const char* serverName = [host UTF8String];
   UInt32 serverNameLength = serverName ? strlen(serverName) : 0;
-  OSStatus result = SecKeychainFindInternetPassword(NULL, serverNameLength, serverName, 0, NULL, 0, NULL,
+  const char* accountName = [username UTF8String];
+  UInt32 accountNameLength = accountName ? strlen(accountName) : 0;
+  OSStatus result = SecKeychainFindInternetPassword(NULL, serverNameLength, serverName,
+                                                    0, NULL, accountNameLength, accountName,
                                                     0, NULL, port, protocol, authType,
                                                     NULL, NULL, &itemRef);
   if (result != noErr)
