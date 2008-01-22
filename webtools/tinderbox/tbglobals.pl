@@ -55,7 +55,7 @@ $::CI_LOG=11;
 
 # Variables set from Makefile
 $::default_cvsroot = "@CVSROOT@";
-$::data_dir='data';
+$::data_dir='@DATA_DIR@';
 $::tree_dir = 'trees';
 $::static_rel_path = '../../';
 if ( ! -d "$::tree_dir/." ) {
@@ -131,7 +131,7 @@ sub make_tree_list {
     return @::global_tree_list if defined(@::global_tree_list);
     foreach my $t  (<$::tree_dir/*>) {
         $t =~ s@^$::tree_dir/@@;
-        if (-d "$::tree_dir/$t" && $t ne "$::data_dir" && $t ne 'CVS' && -f "$::tree_dir/$t/treedata.pl") {
+        if (-d "$::tree_dir/$t" && -f "$::tree_dir/$t/treedata.pl") {
             push @::global_tree_list, $t;
         }
     }

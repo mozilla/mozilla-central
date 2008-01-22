@@ -33,6 +33,12 @@
 
 #TINDERBOX_DIR = /var/www/html/tinderbox
 
+# Directory for passwd file & transient data
+DATA_DIR = data
+ifeq (,$(filter /%,$(DATA_DIR)))
+DATA_DIR := $(TINDERBOX_DIR)/$(DATA_DIR)
+endif
+
 # Set these to the user/group that will run the tinderbox processes
 #TINDERBOX_USER = tinderbox
 #TINDERBOX_GROUP = tinderbox
@@ -111,6 +117,7 @@ install:
 	  echo Installing $$I && \
           sed -e s#/usr/bonsaitools/bin/perl#$(PERL)#g \
               -e s#@CVSROOT@#$(CVSROOT)#g \
+              -e s#@DATA_DIR@#$(DATA_DIR)#g \
               -e s#@TINDERBOX_DIR@#$(TINDERBOX_DIR)#g \
               -e s#@SETUID_PATH@#$(SETUID_PATH)#g \
               $$I > $(TINDERBOX_DIR)/$$I && \
@@ -122,13 +129,15 @@ install:
 	  cp $$I $(TINDERBOX_DIR) && \
 	  chmod 644 $(TINDERBOX_DIR)/$$I; \
 	done
-	mkdir -p $(TINDERBOX_DIR)/data/bad
 	chown -R $(TINDERBOX_USER) $(TINDERBOX_DIR)
 	chgrp -R $(TINDERBOX_GROUP) $(TINDERBOX_DIR)
 	chmod 755 $(TINDERBOX_DIR)
-	chmod 770 $(TINDERBOX_DIR)/data
-	chmod 770 $(TINDERBOX_DIR)/data/bad
 	chmod 770 $(TINDERBOX_DIR)/examples
+	mkdir -p $(DATA_DIR)/bad
+	chown -R $(TINDERBOX_USER) $(DATA_DIR)
+	chgrp -R $(TINDERBOX_GROUP) $(DATA_DIR)
+	chmod 770 $(DATA_DIR)
+	chmod 770 $(DATA_DIR)/bad
 	chmod 755 $(addprefix $(TINDERBOX_DIR)/,$(EXE_FILES))
 	chmod 4755 $(addprefix $(TINDERBOX_DIR)/,$(SETUID_SCRIPTS))
 
@@ -136,6 +145,7 @@ define READPASS
 $(PERL) -e ' \
 use Digest::MD5 qw(md5_hex); \
 use Term::ReadKey; \
+umask(027); \
 open(PASSWD, ">$1") or die "$1:$$!\n"; \
 print "Enter the new admin password: "; \
 ReadMode("noecho"); \
@@ -147,6 +157,6 @@ close(PASSWD);'
 endef
 
 genpasswd:
-	@$(call READPASS,$(TINDERBOX_DIR)/data/passwd)
-	@chown $(TINDERBOX_USER) $(TINDERBOX_DIR)/data/passwd
-	@chgrp $(TINDERBOX_USER) $(TINDERBOX_DIR)/data/passwd
+	@$(call READPASS,$(DATA_DIR)/passwd)
+	@chown $(TINDERBOX_USER) $(DATA_DIR)/passwd
+	@chgrp $(TINDERBOX_USER) $(DATA_DIR)/passwd
