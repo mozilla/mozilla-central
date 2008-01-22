@@ -61,6 +61,12 @@ MOZ_PKG_MAC_EXTRA=--format "UDBZ" \
 
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 
+# Use striptease instead of strip.  Strip out debugging symbols and local
+# symbols, but leave local symbols in text sections intact.  This keeps
+# CrashReporter stacks usable.
+STRIP=$(DIST)/host/bin/tease
+STRIP_FLAGS=-S -t
+
 # The core build system thinks it's Mozilla.  Override what's necessary.
 # Do this after including packager.mk because it has dependencies that
 # break if these are already set to Camino when it's included.
