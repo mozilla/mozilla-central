@@ -868,7 +868,7 @@ calMgrCalendarObserver.prototype = {
         if (!this.announcedMessages.length) {
             Components.classes["@mozilla.org/appshell/window-mediator;1"]
                       .getService(Components.interfaces.nsIWindowMediator)
-                      .addListener(this.observer);
+                      .addListener(this);
         }
 
         // this message hasn't been announced recently, remember the
