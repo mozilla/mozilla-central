@@ -54,6 +54,7 @@ static char *sfile;	/* filename of global symbol names to keep */
 static char *Rfile;	/* filename of global symbol names to remove */
 static long Aflag;	/* save only absolute symbols with non-zero value and
 			   .objc_class_name_* symbols */
+static long aflag;	/* -a save all symbols, just regenerate symbol table */
 static long iflag;	/* -i ignore symbols in -s file not in object */
 #ifdef NMEDIT
 static long pflag;	/* make all defined global symbols private extern */
@@ -65,9 +66,13 @@ static long nflag;	/* save N_SECT global symbols */
 static long Sflag;	/* -S strip only debugger symbols N_STAB */
 static long xflag;	/* -x strip non-globals */
 static long Xflag;	/* -X strip local symbols with 'L' names */
+static long tflag;	/* -t strip local symbols except those in the text
+			   section with names that don't begin with 'L' */
 static long cflag;	/* -c strip section contents from dynamic libraries
 			   files to create stub libraries */
 static long no_uuid;	/* -no_uuid strip LC_UUID load commands */
+static long no_code_signature;
+			/* -no_code_signature strip LC_CODE_SIGNATURE cmds */
 static long strip_all = 1;
 /*
  * This is set on an object by object basis if the strip_all flag is still set
@@ -378,6 +383,9 @@ char *envp[])
 		else if(strcmp(argv[i], "-no_uuid") == 0){
 		    no_uuid = 1;
 		}
+		else if(strcmp(argv[i], "-no_code_signature") == 0){
+		    no_code_signature = 1;
+		}
 #endif /* !defined(NMEDIT) */
 		else if(strcmp(argv[i], "-arch") == 0){
 		    if(i + 1 == argc){
@@ -432,6 +440,10 @@ char *envp[])
 			    xflag = 1;
 			    strip_all = 0;
 			    break;
+			case 't':
+			    tflag = 1;
+			    strip_all = 0;
+			    break;
 			case 'i':
 			    iflag = 1;
 			    break;
@@ -455,6 +467,10 @@ char *envp[])
 #endif /* !defined(NMEDIT) */
 			    break;
 #ifndef NMEDIT
+			case 'a':
+			    aflag = 1;
+			    strip_all = 0;
+			    break;
 			case 'c':
 			    cflag = 1;
 			    strip_all = 0;
@@ -560,8 +576,9 @@ usage(
 void)
 {
 #ifndef NMEDIT
-	fprintf(stderr, "Usage: %s [-AnuSXx] [-] [-d filename] [-s filename] "
-		"[-R filename] [-o output] file [...] \n", progname);
+	fprintf(stderr, "Usage: %s [-AanuStXx] [-no_uuid] [-no_code_signature] "
+		"[-] [-d filename] [-s filename] [-R filename] [-o output] "
+		"file [...]\n", progname);
 #else /* defined(NMEDIT) */
 	fprintf(stderr, "Usage: %s -s filename [-R filename] [-p] [-A] [-] "
 		"[-o output] file [...] \n",
@@ -1179,8 +1196,8 @@ struct object *object)
 #endif /* !defined(NMEDIT) */
 
 #ifndef NMEDIT
-	if(sfile != NULL || Rfile != NULL || dfile != NULL || Aflag || uflag ||
-	   Sflag || xflag || Xflag || nflag || rflag || 
+	if(sfile != NULL || Rfile != NULL || dfile != NULL || Aflag || aflag ||
+	   uflag || Sflag || xflag || Xflag || tflag || nflag || rflag || 
 	   default_dyld_executable || object->mh_filetype == MH_DYLIB ||
 	   object->mh_filetype == MH_DYLINKER)
 #endif /* !defined(NMEDIT) */
@@ -1226,7 +1243,7 @@ struct object *object)
 	    }
 	    if(object->code_sig_cmd != NULL){
 #ifndef NMEDIT
-		if(!cflag)
+		if(!cflag && !no_code_signature)
 #endif /* !(NMEDIT) */
 		{
 		    object->output_code_sig_data = object->object_addr +
@@ -1354,7 +1371,7 @@ struct object *object)
 		    object->input_sym_info_size +=
 			object->code_sig_cmd->datasize;
 #ifndef NMEDIT
-		    if(cflag){
+		    if(cflag || no_code_signature){
 			strip_LC_CODE_SIGNATURE_commands(arch, member, object);
 		    }
 		    else
@@ -2260,6 +2277,7 @@ unsigned long nindirectsyms)
     uint64_t n_value;
     uint32_t module_name, iextdefsym, nextdefsym, ilocalsym, nlocalsym;
     uint32_t irefsym, nrefsym;
+    unsigned char text_nsect;
 
 	save_debug = 0;
 	if(saves != NULL)
@@ -2292,6 +2310,7 @@ unsigned long nindirectsyms)
 	 * statics.
 	 */
 	nsects = 0;
+	text_nsect = NO_SECT;
 	lc = object->load_commands;
 	if(object->mh != NULL)
 	    ncmds = object->mh->ncmds;
@@ -2323,15 +2342,23 @@ unsigned long nindirectsyms)
 		sg = (struct segment_command *)lc;
 		s = (struct section *)((char *)sg +
 					sizeof(struct segment_command));
-		for(j = 0; j < sg->nsects; j++)
+		for(j = 0; j < sg->nsects; j++){
+		    if(strcmp((s + j)->sectname, SECT_TEXT) == 0 &&
+		       strcmp((s + j)->segname, SEG_TEXT) == 0)
+			text_nsect = nsects + 1;
 		    sections[nsects++] = s++;
+		}
 	    }
 	    else if(lc->cmd == LC_SEGMENT_64){
 		sg64 = (struct segment_command_64 *)lc;
 		s64 = (struct section_64 *)((char *)sg64 +
 					sizeof(struct segment_command_64));
-		for(j = 0; j < sg64->nsects; j++)
+		for(j = 0; j < sg64->nsects; j++){
+		    if(strcmp((s64 + j)->sectname, SECT_TEXT) == 0 &&
+		       strcmp((s64 + j)->segname, SEG_TEXT) == 0)
+			text_nsect = nsects + 1;
 		    sections64[nsects++] = s64++;
+		}
 	    }
 	    lc = (struct load_command *)((char *)lc + lc->cmdsize);
 	}
@@ -2387,13 +2414,7 @@ unsigned long nindirectsyms)
 		}
 	    }
 	    if((n_type & N_EXT) == 0){ /* local symbol */
-		/*
-		 * strip -x or -X on an x86_64 .o file should do nothing.
-		 */
-		if(object->mh == NULL && 
-		   object->mh64->cputype == CPU_TYPE_X86_64 &&
-		   object->mh64->filetype == MH_OBJECT &&
-		   (xflag == 1 || Xflag == 1)){
+		if(aflag){
 		    if(n_strx != 0)
 			new_strsize += strlen(strings + n_strx) + 1;
 		    new_nlocalsym++;
@@ -2401,10 +2422,23 @@ unsigned long nindirectsyms)
 		    saves[i] = new_nsyms;
 		}
 		/*
-		 * The cases a local symbol might be saved is with -X -S or
-		 * with -d filename.
+		 * strip -x, -X, or -t on an x86_64 .o file should do nothing.
 		 */
-		else if((!strip_all && (Xflag || Sflag)) || dfile){
+		else if(object->mh == NULL && 
+		   object->mh64->cputype == CPU_TYPE_X86_64 &&
+		   object->mh64->filetype == MH_OBJECT &&
+		   (xflag == 1 || Xflag == 1 || tflag == 1)){
+		    if(n_strx != 0)
+			new_strsize += strlen(strings + n_strx) + 1;
+		    new_nlocalsym++;
+		    new_nsyms++;
+		    saves[i] = new_nsyms;
+		}
+		/*
+		 * The cases a local symbol might be saved are with -X, -S, -t,
+		 * or with -d filename.
+		 */
+		else if((!strip_all && (Xflag || tflag || Sflag)) || dfile){
 		    if(n_type & N_STAB){ /* debug symbol */
 			if(dfile && n_type == N_SO){
 			    if(n_strx != 0){
@@ -2458,10 +2492,18 @@ unsigned long nindirectsyms)
 			}
 		    }
 		    else{ /* non-debug local symbol */
-			if(xflag == 0 && (Sflag || Xflag)){
-			    if(Xflag == 0 ||
-			       (n_strx != 0 &&
-		                strings[n_strx] != 'L')){
+			if(xflag == 0 && (Sflag || Xflag || tflag)){
+			    /*
+			     * No -x (strip all local), and one of -S (strip
+			     * debug), -X (strip 'L' local), or -t (strip
+			     * local except non-'L' text) was given.
+			     */
+			    if((Xflag && n_strx != 0 &&
+			        strings[n_strx] != 'L') ||
+			       (tflag && (n_type & N_TYPE) == N_SECT &&
+			        n_sect == text_nsect && n_strx != 0 &&
+			        strings[n_strx] != 'L') ||
+			       (Sflag && !Xflag && !tflag)) {
 				/*
 				 * If this file is a for the dynamic linker and
 				 * this symbol is in a section marked so that
@@ -2714,7 +2756,8 @@ unsigned long nindirectsyms)
 		    new_nsyms++;
 		    saves[i] = new_nsyms;
 		}
-		if(saves[i] == 0 && ((Xflag || Sflag || xflag) ||
+		if(saves[i] == 0 &&
+		   ((Xflag || Sflag || xflag || tflag || aflag) ||
 		   ((rflag || default_dyld_executable) &&
 		    n_desc & REFERENCED_DYNAMICALLY))){
 		    len = strlen(strings + n_strx) + 1;
@@ -3500,32 +3543,35 @@ struct object *object)
 	    lc1 = (struct load_command *)((char *)lc1 + lc1->cmdsize);
 	}
 
-	/*
-	 * To get the right amount of the file copied out by writeout() for the
-	 * case when we are stripping out the section contents we already reduce
-	 * the object size by the size of the section contents including the
-	 * padding after the load commands.  So here we need to further reduce
-	 * it by the load command for the LC_CODE_SIGNATURE (a struct
-	 * linkedit_data_command) we are removing.
-	 */
-	object->object_size -= sizeof(struct linkedit_data_command);
-	/*
- 	 * Then this size minus the size of the input symbolic information is
-	 * what is copied out from the file by writeout().  Which in this case
-	 * is just the new headers.
-	 */
+	if(cflag){
+	    /*
+	     * To get the right amount of the file copied out by writeout() for
+	     * the case when we are stripping out the section contents we
+	     * already reduce the object size by the size of the section
+	     * contents including the padding after the load commands.  So here
+	     * we need to further reduce it by the load command for the
+             * LC_CODE_SIGNATURE (a struct linkedit_data_command) we are
+	     * removing.
+	     */
+	    object->object_size -= sizeof(struct linkedit_data_command);
+	    /*
+ 	     * Then this size minus the size of the input symbolic information
+	     * is what is copied out from the file by writeout().  Which in this
+	     * case is just the new headers.
+	     */
 
-	/*
-	 * Finally for -c the file offset to the link edit information is to be
-	 * right after the load commands.  So reset this for the updated size
-	 * of the load commands without the LC_CODE_SIGNATURE.
-	 */
-	if(object->mh != NULL)
-	    object->seg_linkedit->fileoff = sizeof(struct mach_header) +
-					    sizeofcmds;
-	else
-	    object->seg_linkedit64->fileoff = sizeof(struct mach_header_64) +
-					    sizeofcmds;
+	    /*
+	     * Finally for -c the file offset to the link edit information is to
+	     * be right after the load commands.  So reset this for the updated
+	     * size of the load commands without the LC_CODE_SIGNATURE.
+	     */
+	    if(object->mh != NULL)
+		object->seg_linkedit->fileoff = sizeof(struct mach_header) +
+						sizeofcmds;
+	    else
+		object->seg_linkedit64->fileoff =
+			sizeof(struct mach_header_64) + sizeofcmds;
+	}
 }
 #endif /* !(NMEDIT) */
 
