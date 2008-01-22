@@ -1,0 +1,97 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1/GPL 2.0/LGPL 2.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is just a lowly Makefile.
+#
+# The Initial Developer of the Original Code is Google Inc.
+# Portions created by the Initial Developer are Copyright (C) 2008
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#  Mark Mentovai <mark@moxienet.com> (Original Author)
+#
+# Alternatively, the contents of this file may be used under the terms of
+# either the GNU General Public License Version 2 or later (the "GPL"), or
+# the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+# in which case the provisions of the GPL or the LGPL are applicable instead
+# of those above. If you wish to allow use of your version of this file only
+# under the terms of either the GPL or the LGPL, and not to allow others to
+# use your version of this file under the terms of the MPL, indicate your
+# decision by deleting the provisions above and replace them with the notice
+# and other provisions required by the GPL or the LGPL. If you do not delete
+# the provisions above, a recipient may use your version of this file under
+# the terms of any one of the MPL, the GPL or the LGPL.
+#
+# ***** END LICENSE BLOCK *****
+
+DEPTH		= ../..
+topsrcdir	= @top_srcdir@
+srcdir		= @srcdir@
+VPATH		= @srcdir@
+
+include $(DEPTH)/config/autoconf.mk
+
+LIBSTUFF_CSRCS	= \
+		libstuff/allocate.c \
+		libstuff/arch.c \
+		libstuff/arch_usage.c \
+		libstuff/breakout.c \
+		libstuff/bytesex.c \
+		libstuff/checkout.c \
+		libstuff/crc32.c \
+		libstuff/errors.c \
+		libstuff/fatal_arch.c \
+		libstuff/fatals.c \
+		libstuff/get_arch_from_host.c \
+		libstuff/ofile.c \
+		libstuff/ofile_error.c \
+		libstuff/print.c \
+		libstuff/reloc.c \
+		libstuff/round.c \
+		libstuff/set_arch_flag_name.c \
+		libstuff/swap_headers.c \
+		libstuff/symbol_list.c \
+		libstuff/unix_standard_mode.c \
+		libstuff/writeout.c \
+		$(NULL)
+
+# It's possible to build strip (the unmodified original version) or tease
+# (the enahnced version) by changing the value of this variable.
+STRIP_OR_TEASE	= tease
+
+# Build tease (or strip) as a host program because we only care about running
+# it on the build host.  It doesn't need to be built for the target
+# architecture.
+HOST_PROGRAM	= $(STRIP_OR_TEASE)
+HOST_CFLAGS	+= -I$(srcdir)/include
+HOST_CSRCS	= \
+		$(STRIP_OR_TEASE).c \
+		$(LIBSTUFF_CSRCS) \
+		$(NULL)
+
+# config/rules.mk has a simpler transformation to derive HOST_OBJS from
+# HOST_CSRCS.  It simply prepends host_ to each name.  That winds up
+# referencing the host_libstuff directory, which does not exist.  This
+# transformation splits each proposed object into its dirname and basename,
+# prepending host_ only to the basename.
+HOST_OBJS	= $(foreach obj, \
+		  $(HOST_CSRCS:.c=.$(OBJ_SUFFIX)), \
+		  $(dir $(obj))$(addprefix host_,$(notdir $(obj))))
+
+# Be sure there's a place to put libstuff objects in an objdir build.
+ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
+libs::
+	mkdir -p libstuff
+endif
+
+include $(topsrcdir)/config/rules.mk
