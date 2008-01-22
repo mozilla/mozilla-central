@@ -627,16 +627,17 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 {
   NSDictionary* loginInfo = (NSDictionary*)contextInfo;
   switch (returnCode) {
-    case NSAlertFirstButtonReturn:  // Save
-      KeychainItem* keychainEntry =
-        [self storeUsername:[loginInfo objectForKey:kLoginUsernameKey]
-                   password:[loginInfo objectForKey:kLoginPasswordKey]
-                    forHost:[loginInfo objectForKey:kLoginHostKey]
-             securityDomain:[loginInfo objectForKey:kLoginSecurityDomainKey]
-                       port:[[loginInfo objectForKey:kLoginPortKey] intValue]
-                     scheme:[loginInfo objectForKey:kLoginSchemeKey]
-                     isForm:YES];
-      [self setDefaultWebFormKeychainEntry:keychainEntry];
+    case NSAlertFirstButtonReturn: {  // Save
+        KeychainItem* keychainEntry =
+          [self storeUsername:[loginInfo objectForKey:kLoginUsernameKey]
+                     password:[loginInfo objectForKey:kLoginPasswordKey]
+                      forHost:[loginInfo objectForKey:kLoginHostKey]
+               securityDomain:[loginInfo objectForKey:kLoginSecurityDomainKey]
+                         port:[[loginInfo objectForKey:kLoginPortKey] intValue]
+                       scheme:[loginInfo objectForKey:kLoginSchemeKey]
+                       isForm:YES];
+        [self setDefaultWebFormKeychainEntry:keychainEntry];
+      }
 
       break;
       
