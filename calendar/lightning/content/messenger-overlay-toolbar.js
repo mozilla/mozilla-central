@@ -56,7 +56,8 @@ var gCurrentMode = 'mail';
  */
 function getMailBar() {
   return document.getElementById("mail-bar2") ||
-         document.getElementById("mail-bar");
+         document.getElementById("mail-bar") ||
+         document.getElementById("msgToolbar");
 }
 
 /**
