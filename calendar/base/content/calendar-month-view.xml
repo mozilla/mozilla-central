@@ -1134,13 +1134,20 @@
             aEndDate = aEndDate.getInTimezone(this.mTimezone);
           }
 
-          this.mStartDate = aStartDate.startOfWeek;
-          this.mEndDate = aEndDate.endOfWeek;
+          var startDate = aStartDate.startOfWeek;
+          var endDate = aEndDate.endOfWeek;
+          startDate.day += this.mWeekStartOffset;
+          endDate.day += this.mWeekStartOffset;
 
-          this.mStartDate.day += this.mWeekStartOffset;
-          this.mEndDate.day += this.mWeekStartOffset;
+          if (!this.mStartDate || !this.mEndDate ||
+              this.mStartDate.compare(startDate) != 0 ||
+              this.mEndDate.compare(endDate) != 0) {
+              // Only refresh if the date range actually changed.
+              this.mStartDate = startDate;
+              this.mEndDate = endDate;
 
-          this.refresh();
+              this.refresh();
+          }
         ]]></body>
       </method>
 

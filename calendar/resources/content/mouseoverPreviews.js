@@ -26,6 +26,7 @@
  *                 Mike Norton <xor@ivwnet.com>
  *                 ArentJan Banck <ajbanck@planet.nl>
  *                 Eric Belhaire <belhaire@ief.u-psud.fr>
+ *                 Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -82,7 +83,7 @@ function onMouseOverItem( occurrenceBoxMouseEvent )
 /** For all instances of an event, as displayed by unifinder. **/
 function onMouseOverEventTree( toolTip, mouseEvent )
 {
-  var item = getCalendarEventFromEvent( mouseEvent );
+  var item = unifinderTreeView.getItemFromEvent(mouseEvent);
   if (isEvent(item)) {
     var holderBox = getPreviewForEvent(item);
     if (holderBox) {

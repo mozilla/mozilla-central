@@ -148,6 +148,10 @@
           var tasks = [];
           var start = {};
           var end = {};
+          if (!this.mTreeView.selection) {
+              return tasks;
+          }
+
           var rangeCount = this.mTreeView.selection.getRangeCount();
           for (var range = 0; range < rangeCount; range++) {
               this.mTreeView.selection.getRangeAt(range, start, end);

@@ -306,6 +306,10 @@ function refreshUIBits() {
     if (TodayPane.showsYesterday()) {
       TodayPane.setDay(now());
     }
+
+    // update the unifinder
+    refreshEventTree();
+
     // schedule our next update...
     scheduleMidnightUpdate(refreshUIBits);
 }

@@ -2788,6 +2788,13 @@
           // make sure unnormalized version not used below
           aStartDate = aEndDate = null;
 
+          if (this.mStartDate && this.mEndDate &&
+              this.mStartDate.compare(startDate) == 0 &&
+              this.mEndDate.compare(endDate) == 0) {
+              // Do not change anything if the date range already matches.
+              return;
+          }
+
           if (this.mDisplayDaysOff) {
             startDate.makeImmutable();
             endDate.makeImmutable();

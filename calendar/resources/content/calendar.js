@@ -82,7 +82,6 @@ function calendarInit() {
     currentView().goToDay(currentView().selectedDay);
 
     // set up the unifinder
-    prepareCalendarUnifinder();
     prepareCalendarToDoUnifinder();
    
     scheduleMidnightUpdate(refreshUIBits);
@@ -214,12 +213,10 @@ function calendarFinish()
    var tabbox = document.getElementById("tablist");
    tabbox.setAttribute("selectedIndex", tabbox.selectedIndex);
 
-   finishCalendarUnifinder();
-   
    unloadCalendarManager();
 
-    // Finish the offline manager
-    calendarOfflineManager.uninit();
+   // Finish the offline manager
+   calendarOfflineManager.uninit();
 }
 
 function closeCalendar()

@@ -61,7 +61,7 @@
       <hbox id="unifinder-searchBox" persist="collapsed">
         <box align="center">
           <menulist id="event-filter-menulist" value="next7Days" persist="value">
-            <menupopup id="event-filter-menupopup" oncommand="changeEventFilter( event );">
+            <menupopup id="event-filter-menupopup" oncommand="refreshEventTree()">
               <menuitem id="event-filter-all"
                         label="&calendar.events.filter.all.label;"
                         value="all"/>
@@ -96,7 +96,7 @@
         <toolbarbutton id="unifinder-closer" class="unifinder-closebutton" command="calendar_show_unifinder_command"/>
       </hbox>
       <tree id="unifinder-search-results-tree" flex="1"
-            onselect="unifinderOnSelect( event ); onSelectionChanged()"
+            onselect="unifinderSelect( event ); onSelectionChanged()"
             onkeypress="unifinderKeyPress(event)"
             enableColumnDrag="true">
         <treecols id="unifinder-search-results-tree-cols">
@@ -142,7 +142,7 @@
         <treechildren tooltip="eventTreeTooltip"
                       onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
                       ondragover="return( false );"
-                      ondblclick="unifinderDoubleClickEvent( event )"
+                      ondblclick="unifinderDoubleClick(event)"
                       onfocus="focusFirstItemIfNoSelection( );"/>
       </tree>
     </vbox>
