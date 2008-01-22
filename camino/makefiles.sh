@@ -38,6 +38,9 @@
 
 add_makefiles "
 camino/Makefile
+camino/IBPalette/Makefile
 camino/flashblock/Makefile
+camino/idl/Makefile
 camino/installer/Makefile
+camino/striptease/Makefile
 "
