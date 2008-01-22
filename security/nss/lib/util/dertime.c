@@ -52,6 +52,7 @@
 {							  \
     if (!ISDIGIT((p)[0]) || !ISDIGIT((p)[1])) goto label; \
     (var) = ((p)[0] - '0') * 10 + ((p)[1] - '0');	  \
+    p += 2; \
 }
 
 #define SECMIN  60L            /* seconds in a minute        */
@@ -134,124 +135,48 @@ DER_TimeToUTCTime(SECItem *dst, int64 gmttime)
     return DER_TimeToUTCTimeArena(NULL, dst, gmttime);
 }
 
+static SECStatus /* forward */
+der_TimeStringToTime(PRTime *dst, const char * string, int generalized);
+
+#define GEN_STRING 2 /* TimeString is a GeneralizedTime */
+#define UTC_STRING 0 /* TimeString is a UTCTime         */
+
 /* The caller of DER_AsciiToItem MUST ENSURE that either
 ** a) "string" points to a null-terminated ASCII string, or
 ** b) "string" points to a buffer containing a valid UTCTime, 
-**     whether null terminated or not.
+**     whether null terminated or not, or
+** c) "string" contains at least 19 characters, with or without null char.
 ** otherwise, this function may UMR and/or crash.
 ** It suffices to ensure that the input "string" is at least 17 bytes long.
 */
 SECStatus
 DER_AsciiToTime(int64 *dst, const char *string)
 {
-    long year, month, mday, hour, minute, second, hourOff, minOff, days;
-    int64 result, tmp1, tmp2;
-
-    if (string == NULL) {
-	goto loser;
-    }
-    
-    /* Verify time is formatted properly and capture information */
-    second = 0;
-    hourOff = 0;
-    minOff = 0;
-    CAPTURE(year,string+0,loser);
-    if (year < 50) {
-	/* ASSUME that year # is in the 2000's, not the 1900's */
-	year += 100;
-    }
-    CAPTURE(month,string+2,loser);
-    if ((month == 0) || (month > 12)) goto loser;
-    CAPTURE(mday,string+4,loser);
-    if ((mday == 0) || (mday > 31)) goto loser;
-    CAPTURE(hour,string+6,loser);
-    if (hour > 23) goto loser;
-    CAPTURE(minute,string+8,loser);
-    if (minute > 59) goto loser;
-    if (ISDIGIT(string[10])) {
-	CAPTURE(second,string+10,loser);
-	if (second > 59) goto loser;
-	string += 2;
-    }
-    if (string[10] == '+') {
-	CAPTURE(hourOff,string+11,loser);
-	if (hourOff > 23) goto loser;
-	CAPTURE(minOff,string+13,loser);
-	if (minOff > 59) goto loser;
-    } else if (string[10] == '-') {
-	CAPTURE(hourOff,string+11,loser);
-	if (hourOff > 23) goto loser;
-	hourOff = -hourOff;
-	CAPTURE(minOff,string+13,loser);
-	if (minOff > 59) goto loser;
-	minOff = -minOff;
-    } else if (string[10] != 'Z') {
-	goto loser;
-    }
-    
-    
-    /* Compute the number of seconds in the years elapsed since 1970 */
-    LL_I2L(tmp1, (year-70L));   /* ignores leap days (see below) */
-    LL_I2L(tmp2, SECYEAR);
-    LL_MUL(result, tmp1, tmp2);
-    /* compute number of seconds since beginning of the given month */
-    LL_I2L(tmp1, ( (mday-1L)*SECDAY + hour*SECHOUR + minute*SECMIN -
-		  hourOff*SECHOUR - minOff*SECMIN + second ) );
-    LL_ADD(result, result, tmp1);
-    /* compute days for elapsed months in the target year */
-    days = monthToDayInYear[month-1];  /* ignoring leap days */
-
-    /*
-    ** Account for leap days. The return time value is in
-    ** microseconds since January 1st, 12:00am 1970 and may be negative.
-    ** Using two digit years, we can only represent dates from 1950
-    ** to 2049.  All years in that span of time that are divisible
-    ** by 4 are leap years.
-    **/
-    /* compute number of elapsed leap days since 1970 */
-    days += (year - 68)/4;  
-    if (((year % 4) == 0) && (month < 3)) {
-	days--;
-    }
-
-    LL_I2L(tmp1, (days * SECDAY) );
-    LL_ADD(result, result, tmp1 );
-
-    /* convert to micro seconds */
-    LL_I2L(tmp1, PR_USEC_PER_SEC);
-    LL_MUL(result, result, tmp1);
-
-    *dst = result;
-    return SECSuccess;
-
-  loser:
-    PORT_SetError(SEC_ERROR_INVALID_TIME);
-    return SECFailure;
-	
+    return der_TimeStringToTime(dst, string, UTC_STRING);
 }
 
 SECStatus
 DER_UTCTimeToTime(int64 *dst, const SECItem *time)
 {
-    const char * string;
-    char localBuf[20]; 
-
     /* Minimum valid UTCTime is yymmddhhmmZ       which is 11 bytes. 
     ** Maximum valid UTCTime is yymmddhhmmss+0000 which is 17 bytes.
     ** 20 should be large enough for all valid encoded times. 
     */
+    int  len;
+    char localBuf[20];
+
     if (!time || !time->data || time->len < 11) {
 	PORT_SetError(SEC_ERROR_INVALID_TIME);
 	return SECFailure;
     }
-    if (time->len >= sizeof localBuf) { 
-	string = (const char *)time->data;
-    } else {
-	memset(localBuf, 0, sizeof localBuf);
-	memcpy(localBuf, time->data, time->len);
-        string = (const char *)localBuf;
+
+    len = PR_MIN(time->len, sizeof localBuf);
+    memcpy(localBuf, time->data, len);
+    while (len < sizeof localBuf) {
+        localBuf[len++] = '\0';
     }
-    return DER_AsciiToTime(dst, string);
+
+    return der_TimeStringToTime(dst, localBuf, UTC_STRING);
 }
 
 /*
@@ -314,91 +239,103 @@ DER_TimeToGeneralizedTime(SECItem *dst, int64 gmttime)
 }
 
 
-/*
-    The caller should make sure that the generalized time should only
-    be used for the certificate validity after the year 2051; otherwise,
-    the certificate should be consider invalid!?
- */
 SECStatus
 DER_GeneralizedTimeToTime(int64 *dst, const SECItem *time)
 {
-    PRExplodedTime genTime;
-    const char *string;
-    long hourOff, minOff;
-    uint16 century;
-    char localBuf[20];
-
     /* Minimum valid GeneralizedTime is ccyymmddhhmmZ       which is 13 bytes.
     ** Maximum valid GeneralizedTime is ccyymmddhhmmss+0000 which is 19 bytes.
     ** 20 should be large enough for all valid encoded times. 
     */
-    if (!time || !time->data || time->len < 13)
-        goto loser;
-    if (time->len >= sizeof localBuf) {
-        string = (const char *)time->data;
-    } else {
-	memset(localBuf, 0, sizeof localBuf);
-        memcpy(localBuf, time->data, time->len);
-	string = (const char *)localBuf;
+    int  len;
+    char localBuf[20];
+
+    if (!time || !time->data || time->len < 13) {
+	PORT_SetError(SEC_ERROR_INVALID_TIME);
+	return SECFailure;
     }
 
-    memset(&genTime, 0, sizeof genTime);
+    len = PR_MIN(time->len, sizeof localBuf);
+    memcpy(localBuf, time->data, len);
+    while (len < sizeof localBuf) {
+        localBuf[len++] = '\0';
+    }
+
+    return der_TimeStringToTime(dst, localBuf, GEN_STRING);
+}
+
+static SECStatus
+der_TimeStringToTime(PRTime *dst, const char * string, int generalized)
+{
+    PRExplodedTime genTime;
+    long hourOff = 0, minOff = 0;
+    uint16 century;
+    char signum;
+
+    if (string == NULL || dst == NULL) {
+	PORT_SetError(SEC_ERROR_INVALID_ARGS);
+	return SECFailure;
+    }
 
     /* Verify time is formatted properly and capture information */
-    hourOff = 0;
-    minOff = 0;
+    memset(&genTime, 0, sizeof genTime);
 
-    CAPTURE(century, string+0, loser);
-    century *= 100;
-    CAPTURE(genTime.tm_year,string+2,loser);
-    genTime.tm_year += century;
+    if (generalized == UTC_STRING) {
+	CAPTURE(genTime.tm_year, string, loser);
+	century = (genTime.tm_year < 50) ? 20 : 19;
+    } else {
+	CAPTURE(century, string, loser);
+	CAPTURE(genTime.tm_year, string, loser);
+    }
+    genTime.tm_year += century * 100;
 
-    CAPTURE(genTime.tm_month,string+4,loser);
-    if ((genTime.tm_month == 0) || (genTime.tm_month > 12)) goto loser;
+    CAPTURE(genTime.tm_month, string, loser);
+    if ((genTime.tm_month == 0) || (genTime.tm_month > 12)) 
+    	goto loser;
 
     /* NSPR month base is 0 */
     --genTime.tm_month;
     
-    CAPTURE(genTime.tm_mday,string+6,loser);
-    if ((genTime.tm_mday == 0) || (genTime.tm_mday > 31)) goto loser;
+    CAPTURE(genTime.tm_mday, string, loser);
+    if ((genTime.tm_mday == 0) || (genTime.tm_mday > 31)) 
+    	goto loser;
     
-    CAPTURE(genTime.tm_hour,string+8,loser);
-    if (genTime.tm_hour > 23) goto loser;
+    CAPTURE(genTime.tm_hour, string, loser);
+    if (genTime.tm_hour > 23) 
+    	goto loser;
     
-    CAPTURE(genTime.tm_min,string+10,loser);
-    if (genTime.tm_min > 59) goto loser;
+    CAPTURE(genTime.tm_min, string, loser);
+    if (genTime.tm_min > 59) 
+    	goto loser;
     
-    if (ISDIGIT(string[12])) {
-	CAPTURE(genTime.tm_sec,string+12,loser);
-	if (genTime.tm_sec > 59) goto loser;
-	string += 2;
+    if (ISDIGIT(string[0])) {
+	CAPTURE(genTime.tm_sec, string, loser);
+	if (genTime.tm_sec > 59) 
+	    goto loser;
     }
-    if (string[12] == '+') {
-	CAPTURE(hourOff,string+13,loser);
-	if (hourOff > 23) goto loser;
-	CAPTURE(minOff,string+15,loser);
-	if (minOff > 59) goto loser;
-    } else if (string[12] == '-') {
-	CAPTURE(hourOff,string+13,loser);
-	if (hourOff > 23) goto loser;
-	hourOff = -hourOff;
-	CAPTURE(minOff,string+15,loser);
-	if (minOff > 59) goto loser;
-	minOff = -minOff;
-    } else if (string[12] != 'Z') {
+    signum = *string++;
+    if (signum == '+' || signum == '-') {
+	CAPTURE(hourOff, string, loser);
+	if (hourOff > 23) 
+	    goto loser;
+	CAPTURE(minOff, string, loser);
+	if (minOff > 59) 
+	    goto loser;
+	if (signum == '-') {
+	    hourOff = -hourOff;
+	    minOff  = -minOff;
+	}
+    } else if (signum != 'Z') {
 	goto loser;
     }
 
-    /* Since the values of hourOff and minOff are small, there will
-       be no loss of data by the conversion to int8 */
-    /* Convert the GMT offset to seconds and save it it genTime
-       for the implode time process */
+    /* Convert the GMT offset to seconds and save it in genTime
+     * for the implode time call.
+     */
     genTime.tm_params.tp_gmt_offset = (PRInt32)((hourOff * 60L + minOff) * 60L);
-    *dst = PR_ImplodeTime (&genTime);
+    *dst = PR_ImplodeTime(&genTime);
     return SECSuccess;
 
-  loser:
+loser:
     PORT_SetError(SEC_ERROR_INVALID_TIME);
     return SECFailure;
-	
 }
