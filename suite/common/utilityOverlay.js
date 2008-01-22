@@ -476,7 +476,7 @@ function updateCheckUpdatesItem()
   // we show for this item, otherwise display a generic label.
   if (um.activeUpdate && um.activeUpdate.name)
     checkForUpdates.label = gUtilityBundle.getFormattedString("updatesItem_" + key,
-                                                              [activeUpdate.name]);
+                                                              [um.activeUpdate.name]);
   else
     checkForUpdates.label = gUtilityBundle.getString("updatesItem_" + key + "Fallback");
 
