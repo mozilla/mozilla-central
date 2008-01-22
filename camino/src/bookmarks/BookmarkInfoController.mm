@@ -61,7 +61,7 @@ enum EBookmarkInfoViewType {
 - (void)updateLastVisitField;
 - (void)dockMenuChanged:(NSNotification *)aNote;
 
-@end;
+@end
 
 @implementation BookmarkInfoController
 
@@ -372,10 +372,12 @@ static BookmarkInfoController* gSharedBookmarkInfoController = nil;
     lastVisitString = NSLocalizedString(@"BookmarkVisitedNever", nil);
   }
   else {
-    lastVisitString =
-        [lastVisit descriptionWithCalendarFormat:[[mLastVisitField formatter] dateFormat]
-                                        timeZone:nil
-                                          locale:[[NSUserDefaults standardUserDefaults] dictionaryRepresentation]];
+    NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
+    [dateFormatter setDateStyle:NSDateFormatterLongStyle];
+    [dateFormatter setTimeStyle:NSDateFormatterLongStyle];
+    lastVisitString = [dateFormatter stringFromDate:lastVisit];
+    [dateFormatter release];
   }
 
   [mLastVisitField setStringValue:lastVisitString];

@@ -44,6 +44,9 @@
 #import "ExtendedTableView.h"
 #import "KeychainDenyList.h"
 
+@interface CookieDateFormatter : NSDateFormatter
+@end
+
 // prefs for keychain password autofill
 static const char* const kUseKeychainPref = "chimera.store_passwords_with_keychain";
 
@@ -216,17 +219,12 @@ const int kSortReverse = 1;
   // build cookie list
   [self loadCookies];
 
-  CookieDateFormatter* cookieDateFormatter =
-    [[CookieDateFormatter alloc] initWithDateFormat:@"%b %d, %Y"
-                               allowNaturalLanguage:NO];
-  // Once we are 10.4+, the above and all the CF stuff in CookieDateFormatter
-  // can be replaced with the following:
-  //CookieDateFormatter* cookieDateFormatter = [[CookieDateFormatter alloc] init];
-  //[cookieDateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
-  //[cookieDateFormatter setDateStyle:NSDateFormatterMediumStyle];
-  //[cookieDateFormatter setTimeStyle:NSDateFormatterNoStyle];
-  [[[mCookiesTable tableColumnWithIdentifier:@"expiresDate"] dataCell] setFormatter:cookieDateFormatter];
-  [cookieDateFormatter release];
+  CookieDateFormatter* dateFormatter = [[CookieDateFormatter alloc] init];
+  [dateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
+  [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+  [dateFormatter setTimeStyle:NSDateFormatterNoStyle];
+  [[[mCookiesTable tableColumnWithIdentifier:@"expiresDate"] dataCell] setFormatter:dateFormatter];
+  [dateFormatter release];
 
   [self initializeTable:mCookiesTable
      withInitialSortKey:@"domain"
@@ -1072,43 +1070,15 @@ objectValueForTableColumn:(NSTableColumn *)aTableColumn
 
 @implementation CookieDateFormatter
 
-- (id)initWithDateFormat:(NSString*)format allowNaturalLanguage:(BOOL)flag;
-{
-  if ((self = [super initWithDateFormat:format allowNaturalLanguage:flag])) {
-    CFLocaleRef userLocale = CFLocaleCopyCurrent();
-    if (userLocale) {
-      mLocaleFormatter = CFDateFormatterCreate(NULL,
-                                               userLocale,
-                                               kCFDateFormatterMediumStyle,
-                                               kCFDateFormatterNoStyle);
-      CFRelease(userLocale);
-    }
+- (NSString*)stringForObjectValue:(id)object {
+  if ([object isKindOfClass:[NSDate class]] &&
+      [(NSDate*)object timeIntervalSince1970] == 0) {
+    return NSLocalizedStringFromTableInBundle(@"CookieExpiresOnQuit",
+                                              nil,
+                                              [NSBundle bundleForClass:[self class]],
+                                              nil);
   }
-  return self;
-}
-
-- (void)dealloc
-{
-  if (mLocaleFormatter)
-    CFRelease(mLocaleFormatter);
-  [super dealloc];
-}
-
-- (NSString*)stringForObjectValue:(id)anObject
-{
-  if ([(NSDate*)anObject timeIntervalSince1970] == 0)
-    return NSLocalizedStringFromTableInBundle(@"CookieExpiresOnQuit", nil,
-                                              [NSBundle bundleForClass:[self class]], nil);
-  if (mLocaleFormatter) {
-    NSString* dateString = (NSString*)CFDateFormatterCreateStringWithDate(NULL,
-                                                                          mLocaleFormatter,
-                                                                          (CFDateRef)anObject);
-    if (dateString)
-      return [dateString autorelease];
-  }
-
-  // If all else fails, fall back on the standard date formatter
-  return [super stringForObjectValue:anObject];
+  return [super stringForObjectValue:object];
 }
 
 @end

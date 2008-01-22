@@ -1,9 +1,6 @@
 "IssuedByHeaderFormat" = "Issued by: %@";
 "ExpiresHeaderFormat" = "Expires: %@";
 
-"ShortExpireDateFormat" = "%Y-%m-%d"; /* Year-month-day */
-"ExpireDateFormat" = "%A, %B %d, %Y %H:%M:%S %Z"; /* Day, Month nn, Year h:m:s timezone */
-
 "CertDetailsGroupHeader" = "Details";
 "CertTrustGroupHeader" = "Trust Settings";
 

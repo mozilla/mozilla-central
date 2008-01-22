@@ -291,7 +291,7 @@ static BrowserSecurityUIProvider* gBrowserSecurityUIProvider;
   [mTitleField setStringValue:title];
 
   NSString* msgFormat = NSLocalizedStringFromTable(@"ExpiredCertMessageFormat", @"CertificateDialogs", @"");
-  NSString* msg = [NSString stringWithFormat:msgFormat, [inCert commonName], [inCert longExpiresString]];
+  NSString* msg = [NSString stringWithFormat:msgFormat, [inCert commonName], [inCert expiresString]];
   [mMessageField setStringValue:msg];
 
   [mCertificateView setDetailsInitiallyExpanded:NO];

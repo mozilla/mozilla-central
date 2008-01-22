@@ -113,12 +113,10 @@ extern NSString* const CertificateChangedNotificationName;
 - (BOOL)isUntrustedRootCACert;
 
 - (NSDate*)expiresDate;
-- (NSString*)shortExpiresString;
-- (NSString*)longExpiresString;
+- (NSString*)expiresString;
 
 - (NSDate*)validFromDate;
-- (NSString*)shortValidFromString;
-- (NSString*)longValidFromString;
+- (NSString*)validFromString;
 
 - (BOOL)isExpired;
 - (BOOL)isNotYetValid;

@@ -63,7 +63,7 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
 
 @interface CertificateItem(Private)
 
-- (NSString*)stringForDate:(NSDate*)inDate withFormat:(NSString*)inFormat;
+- (NSString*)stringForDate:(NSDate*)inDate;
 
 - (PRUint32)validityForUsage:(PRUint32)inUsage;
 - (PRUint32)generalValidity;    // whether it's verified for at least one usage
@@ -401,14 +401,9 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
   return nil;
 }
 
-- (NSString*)shortExpiresString
+- (NSString*)expiresString
 {
-  return [self stringForDate:[self expiresDate] withFormat:NSLocalizedStringFromTable(@"ShortExpireDateFormat", @"CertificateDialogs", @"")];
-}
-
-- (NSString*)longExpiresString
-{
-  return [self stringForDate:[self expiresDate] withFormat:NSLocalizedStringFromTable(@"ExpireDateFormat", @"CertificateDialogs", @"")];
+  return [self stringForDate:[self expiresDate]];
 }
 
 - (NSDate*)validFromDate
@@ -423,14 +418,9 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
   return nil;
 }
 
-- (NSString*)shortValidFromString
+- (NSString*)validFromString
 {
-  return [self stringForDate:[self validFromDate] withFormat:NSLocalizedStringFromTable(@"ShortExpireDateFormat", @"CertificateDialogs", @"")];
-}
-
-- (NSString*)longValidFromString
-{
-  return [self stringForDate:[self validFromDate] withFormat:NSLocalizedStringFromTable(@"ExpireDateFormat", @"CertificateDialogs", @"")];
+  return [self stringForDate:[self validFromDate]];
 }
 
 - (BOOL)isExpired
@@ -489,12 +479,19 @@ NSString* const CertificateChangedNotificationName = @"CertificateChangedNotific
   return nil;
 }
 
-- (NSString*)stringForDate:(NSDate*)inDate withFormat:(NSString*)inFormat
+- (NSString*)stringForDate:(NSDate*)inDate
 {
-  if (!inDate) return @"";
+  if (!inDate) {
+    return @"";
+  }
 
-  NSDictionary* curCalendarLocale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-  return [inDate descriptionWithCalendarFormat:inFormat timeZone:nil locale:curCalendarLocale];
+  NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
+  [dateFormatter setFormatterBehavior:NSDateFormatterBehavior10_4];
+  [dateFormatter setDateStyle:NSDateFormatterLongStyle];
+  [dateFormatter setTimeStyle:NSDateFormatterLongStyle];
+  NSString* string = [dateFormatter stringFromDate:inDate];
+  [dateFormatter release];
+  return string;
 }
 
 - (PRUint32)validityForUsage:(PRUint32)inUsage

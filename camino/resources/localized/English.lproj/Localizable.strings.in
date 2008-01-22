@@ -357,7 +357,6 @@
 "Reveal in Bookmark Manager" = "Reveal in Bookmark Manager";
 
 /* Page Info */
-"PageInfoDateFormat" = "%x";
 "WebSiteVerified" = "Website identity verified";
 "WebSiteVerifiedMixed" = "Website identity verified, but not all content is secure";
 "WebSiteNotVerified" = "Website identity not verified";
