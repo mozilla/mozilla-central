@@ -225,6 +225,13 @@ nsDownloadListener::GetReferrer(nsIURI * *aReferrer) {
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsDownloadListener::GetResumable(PRBool *resumable)
+{
+  // TODO: Implement this to allow a Camino version of bug 410289.
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 #pragma mark -
 
 /* void onProgressChange64 (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in long long aCurSelfProgress, in long long aMaxSelfProgress, in long long a
