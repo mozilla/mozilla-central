@@ -58,6 +58,7 @@
 
 // Returns the first keychain item matching the given criteria.
 + (KeychainItem*)keychainItemForHost:(NSString*)host
+                            username:(NSString*)username
                                 port:(UInt16)port
                             protocol:(SecProtocolType)protocol
                   authenticationType:(SecAuthenticationType)authType;
