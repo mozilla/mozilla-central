@@ -52,7 +52,7 @@ var gCurrentMode = 'mail';
 
 /**
  * Helper function to get the view deck in a neutral way, regardless of whether
- * we're in Thunderbird 1.x or 2.x
+ * we're in Thunderbird 1.x, 2.x or SeaMonkey
  */
 function getMailBar() {
   return document.getElementById("mail-bar2") ||
