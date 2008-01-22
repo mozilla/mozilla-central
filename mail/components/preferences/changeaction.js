@@ -100,7 +100,7 @@ var gChangeActionDialog = {
     // We don't let users open .exe files or random binary data directly 
     // from the browser at the moment because of security concerns. 
     var mimeType = this._item.mimeInfo.MIMEType;
-    if (mimeType == "application/object-stream" ||
+    if (mimeType == "application/octet-stream" ||
         mimeType == "application/x-msdownload") {
       document.getElementById("openApplication").disabled = true;
       document.getElementById("openDefault").disabled = true;
