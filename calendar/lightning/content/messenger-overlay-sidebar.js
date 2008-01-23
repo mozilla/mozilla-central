@@ -164,25 +164,27 @@ function ltnOnLoad(event)
     }
 
     // DOMAttrModified handler that listens on the toolbox element
-    var onModified = function(aEvent)
-    {
+    var onModified = function(aEvent) {
       if(aEvent.attrName == "location") {
-        var contentPanel = document.getElementById("contentPanel");
         var modeToolbox = document.getElementById("mode-toolbox");
-        var palette = modeToolbox.palette;
         modeToolbox.removeEventListener("DOMAttrModified", onModified, false);
-        var bag = retrieveToolbarProperties(modeToolbox);
-        if(aEvent.newValue == "top" && !aEvent.prevValue || aEvent.prevValue == "bottom") {
-          // place the mode toolbox at the top of the left pane
-          modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
-          modeToolbox.palette = palette;
-        } else if(aEvent.newValue == "bottom" && aEvent.prevValue == "top") {
-          // place the mode toolbox at the bottom of the left pane
-          modeToolbox = contentPanel.parentNode.appendChild(modeToolbox);
+        var onLocationHandler = function() {
+          var contentPanel = document.getElementById("contentPanel");
+          var palette = modeToolbox.palette;
+          var bag = retrieveToolbarProperties(modeToolbox);
+          if(aEvent.newValue == "top" && !aEvent.prevValue || aEvent.prevValue == "bottom") {
+            // place the mode toolbox at the top of the left pane
+            modeToolbox = contentPanel.parentNode.insertBefore(modeToolbox, contentPanel);
+          } else if(aEvent.newValue == "bottom" && aEvent.prevValue == "top") {
+            // place the mode toolbox at the bottom of the left pane
+            modeToolbox = contentPanel.parentNode.appendChild(modeToolbox);
+          }
+          restoreToolbarProperties(modeToolbox,bag);
+          modeToolbox.addEventListener("DOMAttrModified", onModified, false);
           modeToolbox.palette = palette;
         }
-        restoreToolbarProperties(modeToolbox,bag);
-        modeToolbox.addEventListener("DOMAttrModified", onModified, false);
+
+        setTimeout(onLocationHandler,1);
       }
     }
 
