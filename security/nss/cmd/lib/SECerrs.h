@@ -515,7 +515,7 @@ ER3(SEC_ERROR_TOKEN_NOT_LOGGED_IN,  		(SEC_ERROR_BASE + 155),
 "The operation failed because the PKCS#11 token is not logged in.")
 
 ER3(SEC_ERROR_OCSP_RESPONDER_CERT_INVALID,  	(SEC_ERROR_BASE + 156),
-"OCSP Trusted Responder Cert is invalid.")
+"Configured OCSP responder's certificate is invalid.")
 
 ER3(SEC_ERROR_OCSP_BAD_SIGNATURE,      		(SEC_ERROR_BASE + 157),
 "OCSP response has an invalid signature.")
