@@ -466,7 +466,7 @@ nsDownloadListener::IsDownloadPaused()
 static const CFStringRef GetCFStringFromBundle(CFBundleRef bundle,
                                                CFStringRef symbol) {
   const CFStringRef* string = (const CFStringRef*)
-      ::CFBundleGetFunctionPointerForName(bundle, symbol);
+      ::CFBundleGetDataPointerForName(bundle, symbol);
   if (!string) {
     return NULL;
   }
@@ -481,7 +481,7 @@ static const CFStringRef GetCFStringFromBundle(CFBundleRef bundle,
 //
 // Quarantined files are marked with the "com.apple.quarantine" extended
 // attribute, tracked by Launch Services.  When the user attempts to launch
-// an quarantined application, or an application in a quarantined disk image,
+// a quarantined application, or an application in a quarantined disk image,
 // the system will warn the user that the application may have untrustworthy
 // origins.
 //
