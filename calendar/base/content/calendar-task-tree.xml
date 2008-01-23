@@ -533,8 +533,12 @@
                   }
               }
           },
-
-          onDrop: function tTV_onDrop(event) {},
+          
+          drop: function tTV_drop(aRow, aOrientation) {},
+          
+          getParentIndex: function tTV_getParentIndex(aRow) {
+              return -1;
+          },
           
           onKeyPress: function tTV_onKeyPress(event) {
               const kKE = Components.interfaces.nsIDOMKeyEvent;
