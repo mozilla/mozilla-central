@@ -123,7 +123,7 @@
           <children includes="tree"/>
         </xul:vbox>
         <xul:vbox flex="1">
-          <xul:dialogheader anonid="paneHeader"/>
+          <xul:dialogheader anonid="paneHeader" hidden="true"/>
           <xul:deck anonid="paneDeck" flex="1">
             <children includes="prefpane"/>
           </xul:deck>
@@ -350,6 +350,7 @@
       <method name="setPaneTitle">
         <parameter name="aPaneElement"/>
         <body>
+#ifndef XP_MACOSX
         <![CDATA[
           // show pane title, if given
           var paneHeader = document.getAnonymousElementByAttribute(this, 'anonid', 'paneHeader');
@@ -360,6 +361,7 @@
           if (!paneHeader.hidden)
             paneHeader.setAttribute('title', paneHeaderLabel);
         ]]>
+#endif
         </body>
       </method>
 
