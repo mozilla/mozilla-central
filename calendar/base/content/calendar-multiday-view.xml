@@ -2792,7 +2792,9 @@
               this.mStartDate.compare(startDate) == 0 &&
               this.mEndDate.compare(endDate) == 0) {
               // Do not change anything if the date range already matches.
-              return;
+              // XXX In general it should be possible to return here, but
+              // lightning doesn't like it when first initializing the view.
+              // return;
           }
 
           if (this.mDisplayDaysOff) {
@@ -3205,6 +3207,7 @@
           }
 
           this.mDateColumns = new Array();
+
 
           // get today's date
           var today = this.today();

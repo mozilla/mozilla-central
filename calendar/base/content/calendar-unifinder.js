@@ -187,8 +187,6 @@ var unifinderObserver = {
 function prepareCalendarUnifinder() {
     // Only load once
     window.removeEventListener("load", prepareCalendarUnifinder, false);
-
-    LOG("PREPARE UNIFINDER " + STACK());
     var unifinderTree = document.getElementById("unifinder-search-results-tree");
 
     // set up our calendar event observer
@@ -368,9 +366,14 @@ var unifinderTreeView = {
 
     addItems: function uTV_addItems(aItemArray, aDontSort) {
         this.eventArray = this.eventArray.concat(aItemArray);
-        this.tree.rowCountChanged(this.eventArray.length - aItemArray.length,
-                                  aItemArray.length);
-        if (!aDontSort) {
+        if (this.tree) {
+            var newCount = this.eventArray.length - aItemArray.length - 1;
+            this.tree.rowCountChanged(newCount, aItemArray.length);
+        }
+
+        if (aDontSort) {
+            this.calculateIndexMap();
+        } else {
             this.sortItems();
         }
     },
@@ -378,22 +381,47 @@ var unifinderTreeView = {
     removeItems: function uTV_removeItems(aItemArray) {
         for each (var item in aItemArray) {
             var row = this.getItemRow(item);
-            this.eventArray = this.eventArray.splice(row, 1);
-            this.tree.rowCountChanged(row, -1);
+            if (row > -1) {
+                this.eventArray.splice(row, 1);
+                if (this.tree) {
+                    this.tree.rowCountChanged(row, -1);
+                }
+            }
         }
+        this.calculateIndexMap();
     },
 
     clearItems: function uTV_clearItems() {
+        var oldCount = this.eventArray.length;
         this.eventArray = [];
-        this.tree.invalidate();
+        if (this.tree) {
+            this.tree.rowCountChanged(0, -oldCount);
+        }
+        this.calculateIndexMap();
     },
 
     setItems: function uTV_setItems(aItemArray, aDontSort) {
-        this.eventArray = aItemArray.splice(0);
+        var oldCount = this.eventArray.length;
+        this.eventArray = aItemArray.slice(0);
+        if (this.tree) {
+            this.tree.rowCountChanged(0, (this.eventArray.length - oldCount));
+        }
+       
         if (aDontSort) {
-            this.tree.invalidate();
+            this.calculateIndexMap();
         } else {
             this.sortItems();
+        }
+    },
+
+    calculateIndexMap: function uTV_calculateIndexMap() {
+        this.eventIndexMap = {};
+        for (var i = 0 ; i < this.eventArray.length; i++) {
+            this.eventIndexMap[this.eventArray[i].hashId] = i;
+        }
+
+        if (this.tree) {
+            this.tree.invalidate();
         }
     },
 
@@ -419,19 +447,15 @@ var unifinderTreeView = {
         this.sortStartedTime = new Date().getTime(); // for null/0 dates in sort
         this.eventArray.sort(compareEvents);
 
-        // Set up eventIndexMap
-        this.eventIndexMap = {};
-        for (var i = 0 ; i < this.eventArray.length; i++) {
-            this.eventIndexMap[this.eventArray[i].hashId] = i;
-        }
-
         this.sortKeyByEvent_cache = null;
 
-        // Setting the view again refreshes the tree
-        this.treeElement.view = unifinderTreeView;
+        this.calculateIndexMap();
     },
 
     getItemRow: function uTV_getItemRow(item) {
+        if (this.eventIndexMap[item.hashId] === undefined) {
+            return -1;
+        }
         return this.eventIndexMap[item.hashId];
     },
 
@@ -452,7 +476,7 @@ var unifinderTreeView = {
     },
 
     setSelectedItems: function uTV_setSelectedItems(aItemArray) {
-        if (this.doingSelection) {
+        if (this.doingSelection || !this.tree) {
             return;
         }
 
@@ -478,7 +502,7 @@ var unifinderTreeView = {
             var rowToScrollTo = this.getItemRow(aItemArray[0]);
             if (rowToScrollTo > -1) {
                this.tree.ensureRowIsVisible(rowToScrollTo);
-               this.tree.view.selection.timedSelect(rowToScrollTo, 1);
+               this.tree.view.selection.select(rowToScrollTo);
             }
         } else if (aItemArray && aItemArray.length > 1) {
             // If there is more than one item, just select them all.
@@ -493,6 +517,9 @@ var unifinderTreeView = {
     },
 
     resetAllowSelection: function uTV_resetAllowSelection() {
+        if (!this.tree) {
+            return;
+        }
         /**
          * Do not change anything in the following lines, they are needed as
          * described in the selection observer above
@@ -510,78 +537,53 @@ var unifinderTreeView = {
         return this.eventArray.length;
     },
 
-    /* event is a calendar event. value is sortKey, a string or number */
-    sortKeyByEvent_cache_put : function uTV_cache_put( calEvent, value ) {
-        var earlierValues = this.sortKeyByEvent_cache[calEvent.id];
-        if (earlierValues == null && value != null) {
-          // common entry is just the value
-          this.sortKeyByEvent_cache[calEvent.id] = value;
-        } else {
-            // null key or rare dup id: link event & value to earlier value(s)
-            // id may be duplicated if event is in more than one calendar file.
-            var entry = new Object();
-            entry.isSortKeyByEventCacheEntry = true;
-            entry.event = calEvent;
-            entry.value = value;
-            entry.rest = earlierValues;
-            this.sortKeyByEvent_cache[calEvent.id] = entry;
-        }
+    getRowProperties: function uTV_getRowProperties() {},
+    getCellProperties: function uTV_getCellProperties() {},
+    getColumnProperties: function uTV_getColumnProperties() {},
+
+    isContainer: function uTV_isContainer() {
+        return false;
     },
 
-    sortKeyByEvent_cache_get : function uTV_cache_get( calEvent ) {
-        var entry = this.sortKeyByEvent_cache[calEvent.id];
-        while (typeof(entry) == "object" &&
-               "isSortKeyByEventCacheEntry" in entry) {
-            if (entry.event === calEvent) //pointer identity
-                return entry.value;
-            entry = entry.rest;
-        }
-        return entry; // only or last entry is first value put
+    isContainerOpen: function uTV_isContainerOpen(aRow) {
+        return false;
     },
 
-    selectedColumn: null,
-    sortDirection: null,
-    sortStartedTime: new Date().getTime(), // updated just before sort
-    outParameter: new Object(), // used to obtain dates during sort
-
-    isContainer: function uTV_isContainer() { return false; },
-    getCellProperties: function uTV_getCellProperties() { return false; },
-    getColumnProperties: function uTV_getColumnProperties() { return false; },
-    getRowProperties: function uTV_getRowProperties() { return false; },
-    isSorted: function uTV_isSorted() { return false;},
-    isEditable: function uTV_isEditable() { return true; },
-    isSeparator: function uTV_isSeparator() { return false; },
-    getImageSrc: function uTV_getImageSrc() { return false; },
-    cycleHeader: function uTV_cycleHeader(col) {
-
-        var sortActive = col.element.getAttribute("sortActive");
-        this.selectedColumn = col.id;
-        this.sortDirection = col.element.getAttribute("sortDirection");
-
-        if (sortActive != "true") {
-            var unifinder = document.getElementById("unifinder-search-results-tree");
-            var treeCols = unifinder.getElementsByTagName("treecol");
-            for (var i = 0; i < treeCols.length; i++) {
-                treeCols[i].removeAttribute("sortActive");
-                treeCols[i].removeAttribute("sortDirection");
-            }
-            this.sortDirection = "ascending";
-        } else {
-            if (!this.sortDirection || this.sortDirection == "descending") {
-                this.sortDirection = "ascending";
-            } else {
-                this.sortDirection = "descending";
-            }
-        }
-        col.element.setAttribute("sortActive", "true");
-        col.element.setAttribute("sortDirection", this.sortDirection);
-
-        this.sortItems();
-
-        document.getElementById("unifinder-search-results-tree").view = this;
+    isContainerEmpty: function uTV_isContainerEmpty(aRow) {
+        return false;
     },
 
-    setTree: function uTV_setTree(tree) { this.tree = tree; },
+    isSeparator: function uTV_isSeparator(aRow) {
+        return false;
+    },
+
+    isSorted: function uTV_isSorted(aRow) {
+        return false;
+    },
+
+    canDrop: function uTV_canDrop(aRow, aOrientation) {
+        return false;
+    },
+
+    drop: function uTV_drop(aRow, aOrientation) {},
+
+    getParentIndex: function uTV_getParentIndex(aRow) {
+        return -1;
+    },
+
+    hasNextSibling: function uTV_hasNextSibling(aRow, aAfterIndex) {},
+
+    getLevel: function uTV_getLevel(aRow) {
+        return 0;
+    },
+
+    getImageSrc: function uTV_getImageSrc(aRow, aOrientation) {},
+
+    getProgressMode: function uTV_getProgressMode(aRow, aCol) {},
+
+    getCellValue: function uTV_getCellValue(aRow, aCol) {
+        return null;
+    },
 
     getCellText: function uTV_getCellText(row, column) {
         calendarEvent = this.eventArray[row];
@@ -618,7 +620,87 @@ var unifinderTreeView = {
             default:
                 return false;
         }
-    }
+    },
+
+    setTree: function uTV_setTree(tree) {
+        this.tree = tree;
+    },
+
+    toggleOpenState: function uTV_toggleOpenState(aRow) {},
+
+    cycleHeader: function uTV_cycleHeader(col) {
+
+        var sortActive = col.element.getAttribute("sortActive");
+        this.selectedColumn = col.id;
+        this.sortDirection = col.element.getAttribute("sortDirection");
+
+        if (sortActive != "true") {
+            var unifinder = document.getElementById("unifinder-search-results-tree");
+            var treeCols = unifinder.getElementsByTagName("treecol");
+            for (var i = 0; i < treeCols.length; i++) {
+                treeCols[i].removeAttribute("sortActive");
+                treeCols[i].removeAttribute("sortDirection");
+            }
+            this.sortDirection = "ascending";
+        } else {
+            if (!this.sortDirection || this.sortDirection == "descending") {
+                this.sortDirection = "ascending";
+            } else {
+                this.sortDirection = "descending";
+            }
+        }
+        col.element.setAttribute("sortActive", "true");
+        col.element.setAttribute("sortDirection", this.sortDirection);
+
+        this.sortItems();
+    },
+
+    isEditable: function uTV_isEditable(aRow, aCol) {
+        return false;
+    },
+
+    setCellValue: function uTV_setCellValue(aRow, aCol, aValue) {},
+    setCellText: function uTV_setCellText(aRow, aCol, aValue) {},
+
+    performAction: function uTV_performAction(aAction) {},
+
+    performActionOnRow: function uTV_performActionOnRow(aAction, aRow) {},
+
+    performActionOnCell: function uTV_performActionOnCell(aAction, aRow, aCol) {},
+
+    /* event is a calendar event. value is sortKey, a string or number */
+    sortKeyByEvent_cache_put : function uTV_cache_put( calEvent, value ) {
+        var earlierValues = this.sortKeyByEvent_cache[calEvent.id];
+        if (earlierValues == null && value != null) {
+          // common entry is just the value
+          this.sortKeyByEvent_cache[calEvent.id] = value;
+        } else {
+            // null key or rare dup id: link event & value to earlier value(s)
+            // id may be duplicated if event is in more than one calendar file.
+            var entry = new Object();
+            entry.isSortKeyByEventCacheEntry = true;
+            entry.event = calEvent;
+            entry.value = value;
+            entry.rest = earlierValues;
+            this.sortKeyByEvent_cache[calEvent.id] = entry;
+        }
+    },
+
+    sortKeyByEvent_cache_get : function uTV_cache_get( calEvent ) {
+        var entry = this.sortKeyByEvent_cache[calEvent.id];
+        while (typeof(entry) == "object" &&
+               "isSortKeyByEventCacheEntry" in entry) {
+            if (entry.event === calEvent) //pointer identity
+                return entry.value;
+            entry = entry.rest;
+        }
+        return entry; // only or last entry is first value put
+    },
+
+    selectedColumn: null,
+    sortDirection: null,
+    sortStartedTime: new Date().getTime(), // updated just before sort
+    outParameter: new Object() // used to obtain dates during sort
 };
 
 function getEventSortKey(calEvent) {
@@ -827,7 +909,6 @@ function refreshEventTree() {
         filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
     }
 
-    LOG("GETITEMS FOR UNIFINDER " + STACK());
     ccalendar.getItems(filter, 0, gStartDate, gEndDate, refreshListener);
 }
 
@@ -875,12 +956,20 @@ function toggleUnifinder() {
     goToggleToolbar('bottom-events-box', 'calendar_show_unifinder_command');
     goToggleToolbar('calendar-view-splitter');
 
+    unifinderTreeView.treeElement.view = unifinderTreeView;
+
     // When the unifinder is hidden, refreshEventTree is not called. Make sure
     // the event tree is refreshed now.
     if (!isUnifinderHidden() && gUnifinderNeedsRefresh) {
         gUnifinderNeedsRefresh = false;
         refreshEventTree();
     }
+
+    // Make sure the selection is correct
+    if (unifinderTreeView.doingSelection) {
+        unifinderTreeView.resetAllowSelection();
+    }
+    unifinderTreeView.setSelectedItems();
 }
 
 window.addEventListener("load", prepareCalendarUnifinder, false);

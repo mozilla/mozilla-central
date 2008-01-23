@@ -230,7 +230,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         // freeze for 0.7 so I can't add the necessary bits and
                         // pieces.
                         if (component[i] < 0) {
-                            return;
+                            return null;
                         }
                         day_string += component[i];
                         if (component.length > 1 &&
@@ -450,11 +450,9 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                           dateFormatter.formatTime(endDate) ], 4);
                 }
             }
-
             return detailsString;
         }
     }
-    
     return null;
 }
 
