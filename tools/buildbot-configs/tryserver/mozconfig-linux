@@ -5,6 +5,8 @@ ac_add_options --enable-optimize="-Os -freorder-blocks -fno-reorder-functions -g
 ac_add_options --disable-debug
 ac_add_options --disable-tests
 ac_add_options --disable-pedantic
+mk_add_options RUN_AUTOCONF_LOCALLY=1
+mk_add_options AUTOCONF=/usr/local/bin/autoconf-2.13
 
 CC=/tools/gcc/bin/gcc
 CXX=/tools/gcc/bin/g++

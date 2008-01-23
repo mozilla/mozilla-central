@@ -5,6 +5,8 @@ mk_add_options MOZ_PACKAGE_NSIS=1
 ac_add_options --enable-optimize
 ac_add_options --disable-debug
 ac_add_options --disable-tests
+mk_add_options RUN_AUTOCONF_LOCALLY=1
+mk_add_options AUTOCONF=/local/bin/autoconf-2.13
 
 # for hg win3 2builds
 ac_add_options --enable-oji
