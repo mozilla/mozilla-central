@@ -442,23 +442,24 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         html "<HR><BR>" 
         html "<HTML><BODY>" 
 
-        echo "********************************************" | tee ${LOGFILE}
-        echo "   Platform: ${OBJDIR}" | tee ${LOGFILE}
-        echo "   Results: ${HOST}.$version" | tee ${LOGFILE}
-        echo "********************************************" | tee ${LOGFILE}
-	echo "$BC_ACTION" | tee ${LOGFILE}
-    #if running remote side of the distributed stress test let the user know who it is...
+        echo "********************************************" | tee -a ${LOGFILE}
+        echo "   Platform: ${OBJDIR}"                       | tee -a ${LOGFILE}
+        echo "   Results: ${HOST}.$version"                 | tee -a ${LOGFILE}
+        echo "********************************************" | tee -a ${LOGFILE}
+	echo "$BC_ACTION"                                   | tee -a ${LOGFILE}
+#if running remote side of the distributed stress test 
+# let the user know who it is...
     elif [ -n "$DO_REM_ST" -a "$DO_REM_ST" = "TRUE" ] ; then
-        echo "********************************************" | tee ${LOGFILE}
-        echo "   Platform: ${OBJDIR}" | tee ${LOGFILE}
-        echo "   Results: ${HOST}.$version" | tee ${LOGFILE}
-        echo "   remote side of distributed stress test " | tee ${LOGFILE}
-        echo "   `uname -n -s`" | tee ${LOGFILE}
-        echo "********************************************" | tee ${LOGFILE}
+        echo "********************************************" | tee -a ${LOGFILE}
+        echo "   Platform: ${OBJDIR}"                       | tee -a ${LOGFILE}
+        echo "   Results: ${HOST}.$version"                 | tee -a ${LOGFILE}
+        echo "   remote side of distributed stress test "   | tee -a ${LOGFILE}
+        echo "   `uname -n -s`"                             | tee -a ${LOGFILE}
+        echo "********************************************" | tee -a ${LOGFILE}
     fi
 
-    echo "$SCRIPTNAME init: Testing PATH $PATH against LIB $LD_LIBRARY_PATH" |
-        tee ${LOGFILE}
+    echo "$SCRIPTNAME init: Testing PATH $PATH against LIB $LD_LIBRARY_PATH" |\
+        tee -a ${LOGFILE}
 
     KILL="kill"
 
