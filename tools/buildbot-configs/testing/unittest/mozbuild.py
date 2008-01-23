@@ -4,6 +4,7 @@ from buildbot.process import step
 from buildbot.process.step import ShellCommand
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION
 import re
+import os
 
 MozillaEnvironments = { }
 
@@ -24,8 +25,9 @@ MozillaEnvironments['osx'] = {
     "CVS_RSH": 'ssh'
 }
 
-# standard vc8 express build env; vc8 normal will be very similar, just different
-# platform SDK location.  we can build both from one generic template.
+# standard vc8 express build env; vc8 normal will be very similar, 
+# just different platform SDK location.  we can build both from one 
+# generic template.
 MozillaEnvironments['vc8'] = {
     "MOZ_NO_REMOTE": '1',
     "NO_EM_RESTART": '1',
@@ -128,6 +130,10 @@ MozillaEnvironments['mozbuild'] = {
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB'
 }
 
+cvsCoLog = "cvsco.log"
+tboxClobberCvsCoLog = "tbox-CLOBBER-cvsco.log"
+buildbotClobberCvsCoLog = "buildbot-CLOBBER-cvsco.log"
+
 class TinderboxShellCommand(ShellCommand):
     haltOnFailure = False
     
@@ -182,28 +188,68 @@ class MozillaPackage(ShellCommand):
     descriptionDone = ["package"]
     command = ["make"]
 
+class UpdateClobberFiles(ShellCommand):
+    name = "update clobber files"
+    warnOnFailure = True
+    description = "updating clobber files"
+    descriptionDone = "clobber files updated"
+    clobberFilePath = "clobber_files/"
+    logDir = '../logs/'
+
+    def __init__(self, **kwargs):
+        if not 'platform' in kwargs:
+            return FAILURE
+        self.platform = kwargs['platform']
+        if 'clobberFilePath' in kwargs:
+            self.clobberFilePath = kwargs['clobberFilePath']
+       if logDir in kwargs:
+            self.logDir = kwargs['logDir']
+        if self.platform.startswith('win'):
+            self.tboxClobberModule = 'mozilla/tools/tinderbox-configs/firefox/win32'
+        else:
+            self.tboxClobberModule = 'mozilla/tools/tinderbox-configs/firefox/' + self.platform
+        if 'cvsroot' in kwargs:
+            self.cvsroot = kwargs['cvsroot']
+        if 'branch' in kwargs:
+            self.branchString = ' -r ' + kwargs['branch']
+            self.buildbotClobberModule = 'mozilla/tools/buildbot-configs/testing/unittest/CLOBBER/firefox/' + kwargs['branch'] + '/' + self.platform
+        else:
+            self.branchString = ''
+            self.buildbotClobberModule = 'mozilla/tools/buildbot-configs/testing/unittest/CLOBBER/firefox/TRUNK/' + self.platform 
+            
+        if not 'command' in kwargs:
+            if self.platform.startswith('win'):
+                self.command = ''
+            else:
+                self.command = r'mkdir -p ' + self.clobberFilePath + r' && '
+            self.command += r'cd ' + self.clobberFilePath + r' && cvs -d ' + self.cvsroot + r' checkout' + self.branchString + r' -d tinderbox-configs ' + self.tboxClobberModule + r'>' + self.logDir + tboxClobberCvsCoLog + r' && cvs -d ' + self.cvsroot + r' checkout -d buildbot-configs ' + self.buildbotClobberModule + r'>' + self.logDir + buildbotClobberCvsCoLog
+        ShellCommand.__init__(self, **kwargs)
+
 class MozillaClobber(ShellCommand):
     name = "clobber"
     description = "checking clobber file"
     descriptionDone = "clobber checked"
-    filePath = "mozilla/tools/tinderbox-configs/firefox/"
+    clobberFilePath = "clobber_files/"
+    logDir = 'logs/'
     
     def __init__(self, **kwargs):
         if 'platform' in kwargs:
             self.platform = kwargs['platform']
+       if logDir in kwargs:
+            self.logDir = kwargs['logDir']
+        if 'clobberFilePath' in kwargs:
+            self.clobberFilePath = kwargs['clobberFilePath']
         if not 'command' in kwargs:
-            self.command = ["awk"]
-            catCommand = "cat %s%s/CLOBBER" % (self.filePath, self.platform)
-            rmCommand = "rm -rf mozilla/objdir"
-            awkString = "/U "+ self.filePath.replace('/', '.') + \
-                self.platform + '.CLOBBER/ { system("' + catCommand + \
-                '"); system("' + rmCommand + '") }'
-            self.command.append(awkString)
-            self.command.append('cvsco.log')
-            if self.platform == 'win32':
-                self.command = "sh -c 'awk \'" + awkString + "\' cvsco.log'"
+            tboxGrepCommand = r"grep -q '^U tinderbox-configs.CLOBBER' " + self.logDir + tboxClobberCvsCoLog
+            tboxPrintHeader = "echo Tinderbox clobber file updated"
+            tboxCatCommand = "cat %s/tinderbox-configs/CLOBBER" % self.clobberFilePath
+            buildbotGrepCommand = r"grep -q '^U buildbot-configs.CLOBBER' " + self.logDir + buildbotClobberCvsCoLog
+            buildbotPrintHeader = "echo Buildbot clobber file updated"
+            buildbotCatCommand = "cat %s/buildbot-configs/CLOBBER" % self.clobberFilePath
+            rmCommand = "rm -rf mozilla"
+            printExitStatus = "echo No clobber required"
+            self.command = tboxGrepCommand + r' && ' + tboxPrintHeader + r' && ' + tboxCatCommand + r' && ' + rmCommand + r'; if [ $? -gt 0 ]; then ' + buildbotGrepCommand + r' && ' + buildbotPrintHeader + r' && ' + buildbotCatCommand + r' && ' + rmCommand + r'; fi; if [ $? -gt 0 ]; then ' + printExitStatus + r'; fi'
         ShellCommand.__init__(self, **kwargs)
-    
 
 class MozillaClobberWin(ShellCommand):
     name = "clobber win"
@@ -211,10 +257,18 @@ class MozillaClobberWin(ShellCommand):
     descriptionDone = "clobber finished"
     
     def __init__(self, **kwargs):
+        platformFlag = ""
+        slaveNameFlag = ""
+        branchFlag = ""
+        if 'platform' in kwargs:
+            platformFlag = " --platform=" + kwargs['platform']
+        if 'slaveName' in kwargs:
+            slaveNameFlag = " --slaveName=" + kwargs['slaveName']
+        if 'branch' in kwargs:
+            branchFlag = " --branch=" + kwargs['branch']
         if not 'command' in kwargs:
-            self.command = 'python C:\\Utilities\\killAndClobberWin.py'
+            self.command = 'python C:\\Utilities\\killAndClobberWin.py' + platformFlag + slaveNameFlag + branchFlag
         ShellCommand.__init__(self, **kwargs)
-    
 
 class MozillaCheck(ShellCommand):
     name = "check"

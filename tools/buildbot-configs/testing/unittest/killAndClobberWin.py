@@ -1,20 +1,108 @@
-import subprocess
+import os, subprocess, sys, getopt
 
-def killAndClobber():
+def usage():
+    print "killAndClobberWin.py [--help] [--platform=?] [--slave_name=?] [--branch=?]"
+    print "    Defaults:"
+    print "        platform:  <none>"
+    print "        slaveName: slave"
+    print "        branch:    trunk"
+
+def rmdirRecursive(dir):
+    """This is a replacement for shutil.rmtree that works better under
+    windows. Thanks to Bear at the OSAF for the code."""
+    if not os.path.exists(dir):
+        return
+
+    if os.path.islink(dir):
+        os.remove(dir)
+        return
+
+    # Verify the directory is read/write/execute for the current user
+    os.chmod(dir, 0700)
+
+    for name in os.listdir(dir):
+        full_name = os.path.join(dir, name)
+        # on Windows, if we don't have write permission we can't remove
+        # the file/directory either, so turn that on
+        if os.name == 'nt':
+            if not os.access(full_name, os.W_OK):
+                # I think this is now redundant, but I don't have an NT
+                # machine to test on, so I'm going to leave it in place
+                # -warner
+                os.chmod(full_name, 0600)
+
+        if os.path.isdir(full_name):
+            rmdirRecursive(full_name)
+        else:
+            os.chmod(full_name, 0700)
+            os.remove(full_name)
+    os.rmdir(dir)
+
+def killAndClobber(slaveName, branchDir):
     print "Killing Firefox..."
+    mozDir = os.path.join('C:\\', 
+                          slaveName,
+                          branchDir,
+                          'mozilla')
     try:
-        subprocess.call("C:\\Utilities\\pskill.exe firefox")
-        subprocess.call(["C:\\Windows\\System32\\cmd.exe", "/X", "/C", "rmdir", "/s", "/q", "C:\\slave\\trunk_2k3\\mozilla\\objdir"])
+        # This may be redundant if the pskill on sh.exe succeeds, but we
+        # want to be sure.
+        subprocess.call("C:\\Utilities\\pskill.exe -t sh.exe")
+        subprocess.call("C:\\Utilities\\pskill.exe -t make.exe")
+        subprocess.call("C:\\Utilities\\pskill.exe -t firefox")
+        rmdirRecursive(mozDir);
     except Exception, err:
         print str(err)
 
-def main():
-    cvsco = open("C:\\slave\\trunk_2k3\\cvsco.log")
-    lines = cvsco.readlines()
-    cvsco.close()
+def main(argv):
     
-    if 'U mozilla/tools/tinderbox-configs/firefox/win32/CLOBBER\n' in lines:
-        killAndClobber()
+    try:
+        opts, args = getopt.getopt(argv,
+                                   "hp:s:b:d",
+                                   ["help",
+                                    "platform=",
+                                    "slaveName=",
+                                    "branch="])
+    except getopt.GetoptError:
+        usage()
+	sys.exit(2)
+
+    platform = ""
+    slaveName = "slave"
+    branch = "trunk"
+    branchDir = "trunk"
+
+    for opt,arg in opts:
+        if opt in ("-h", "--help"):
+            usage()
+	    sys.exit()
+        elif opt in ("-p", "--platform"):
+            platform = arg
+        elif opt in ("-s", "--slaveName"):
+            slaveName = arg
+        elif opt in ("-b", "--branch"):
+            branch = arg
+    
+    if platform != "":
+        branchDir = branch + "_" + platform
+
+    logDir = os.path.join('C:\\',
+                          slaveName,
+                          branchDir,
+                          'logs')
+    tboxClobberLog = os.path.join(logDir, 'tbox-CLOBBER-cvsco.log')
+    buildbotClobberLog = os.path.join(logDir, 'buildbot-CLOBBER-cvsco.log')
+
+    tboxCvsCo = open(tboxClobberLog)
+    tboxLines = tboxCvsCo.readlines()
+    tboxCvsCo.close()
+    buildbotCvsCo = open(buildbotClobberLog)
+    buildbotLines = buildbotCvsCo.readlines()
+    buildbotCvsCo.close()
+
+    if 'U tinderbox-configs/CLOBBER' in tboxLines or 'U buildbot-configs/CLOBBER' in buildbotLines:
+        killAndClobber(slaveName, branchDir)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
+
