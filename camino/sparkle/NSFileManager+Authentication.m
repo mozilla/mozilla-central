@@ -15,6 +15,37 @@
 #import <sys/stat.h>
 #import <dirent.h>
 
+#import "NSFileManager+ExtendedAttributes.h"
+
+// TN OV02 says that the range between 1000 and 9999 can be used for
+// application-defined errors.  errToolFailedError will indicate that an
+// executed program crashed or indicated failure with a nonzero exit status.
+static const OSStatus errToolFailedError = 1000;
+
+static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
+    AuthorizationRef authorization,
+    const char* executablePath,
+    AuthorizationFlags options,
+    const char* const* arguments) {
+	sig_t oldSigChildHandler = signal(SIGCHLD, SIG_DFL);
+	OSStatus ret;
+	ret = AuthorizationExecuteWithPrivileges(authorization,
+	                                         executablePath,
+	                                         options,
+	                                         (char* const*)arguments,
+	                                         NULL);
+	if (ret == errAuthorizationSuccess) {
+		int status;
+		pid_t pid = wait(&status);
+		if (pid == -1 ||
+		    !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+			ret = errToolFailedError;
+		}
+	}
+	signal(SIGCHLD, oldSigChildHandler);
+	return ret;
+}
+
 @implementation NSFileManager (SUAuthenticationAdditions)
 
 - (BOOL)currentUserOwnsPath:(NSString *)oPath
@@ -53,42 +84,107 @@
 - (BOOL)_movePathWithForcedAuthentication:(NSString *)src toPath:(NSString *)dst
 {
 	NSString *tmp = [[[dst stringByDeletingPathExtension] stringByAppendingString:@".old"] stringByAppendingPathExtension:[dst pathExtension]];
-	BOOL res = NO;
-	struct stat sb;
-	if((stat([src UTF8String], &sb) != 0) || (stat([tmp UTF8String], &sb) == 0) || stat([dst UTF8String], &sb) != 0)
-		return false;
-	
-	char* buf = NULL;
-	asprintf(&buf,
-			 "mv -f \"$DST_PATH\" \"$TMP_PATH\" && "
-			 "mv -f \"$SRC_PATH\" \"$DST_PATH\" && "
-			 "rm -rf \"$TMP_PATH\" && "
-			 "chown -R %d:%d \"$DST_PATH\"",
-			 sb.st_uid, sb.st_gid);
-	
-	if(!buf)
-		return false;
-	
-	AuthorizationRef auth;
-	if(AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &auth) == errAuthorizationSuccess)
-	{
-		setenv("SRC_PATH", [src UTF8String], 1);
-		setenv("DST_PATH", [dst UTF8String], 1);
-		setenv("TMP_PATH", [tmp UTF8String], 1);
-		sig_t oldSigChildHandler = signal(SIGCHLD, SIG_DFL);
-		char const* arguments[] = { "-c", buf, NULL };
-		if(AuthorizationExecuteWithPrivileges(auth, "/bin/sh", kAuthorizationFlagDefaults, (char**)arguments, NULL) == errAuthorizationSuccess)
-		{
-			int status;
-			int pid = wait(&status);
-			if(pid != -1 && WIFEXITED(status) && WEXITSTATUS(status) == 0)
-				res = YES;
-		}
-		signal(SIGCHLD, oldSigChildHandler);
+
+	const char* srcPath = [src fileSystemRepresentation];
+	const char* tmpPath = [tmp fileSystemRepresentation];
+	const char* dstPath = [dst fileSystemRepresentation];
+
+	struct stat sb, dstSB;
+	if ((stat(srcPath, &sb) != 0) ||
+	    (stat(tmpPath, &sb) == 0) ||
+	    (stat(dstPath, &dstSB) != 0)) {
+		return NO;
 	}
-	AuthorizationFree(auth, 0);
-	free(buf);
-	return res;	
+
+	AuthorizationRef auth;
+	OSStatus authStat = errAuthorizationDenied;
+	while (authStat == errAuthorizationDenied) {
+		authStat = AuthorizationCreate(NULL,
+		                               kAuthorizationEmptyEnvironment,
+		                               kAuthorizationFlagDefaults,
+		                               &auth);
+	}
+
+	BOOL res = NO;
+	if (authStat == errAuthorizationSuccess) {
+		res = YES;
+
+		char uidgid[42];
+		snprintf(uidgid, sizeof(uidgid), "%d:%d",
+		         dstSB.st_uid, dstSB.st_gid);
+
+		const char* executables[] = {
+	  		"/bin/mv",
+			"/bin/mv",
+			"/bin/rm",
+			NULL,  // pause here and do some housekeeping before
+			       // continuing
+			"/usr/sbin/chown",
+			NULL   // stop here for real
+		};
+
+		// 4 is the maximum number of arguments to any command,
+		// including the NULL that signals the end of an argument
+		// list.
+		const char* const argumentLists[][4] = {
+			{ "-f", dstPath, tmpPath, NULL },  // mv
+			{ "-f", srcPath, dstPath, NULL },  // mv
+			{ "-rf", tmpPath, NULL },  // rm
+			{ NULL },  // pause
+			{ "-R", uidgid, dstPath, NULL },  // chown
+			{ NULL }  // stop
+		};
+
+		// Process the commands up until the first NULL
+		int commandIndex = 0;
+		for (; executables[commandIndex] != NULL; ++commandIndex) {
+			if (res) {
+				res = (
+				    AuthorizationExecuteWithPrivilegesAndWait(
+				        auth,
+				        executables[commandIndex],
+				        kAuthorizationFlagDefaults,
+				        argumentLists[commandIndex]) ==
+				    errAuthorizationSuccess);
+			}
+		}
+
+		// If the currently-running application is trusted, the new
+		// version should be trusted as well.  Remove it from the
+		// quarantine to avoid a delay at launch, and to avoid
+		// presenting the user with a confusing trust dialog.
+		//
+		// This needs to be done after the application is moved to its
+		// new home with "mv" in case it's moved across filesystems: if
+		// that happens, "mv" actually performs a copy and may result
+		// in the application being quarantined.  It also needs to be
+		// done before "chown" changes ownership, because the ownership
+		// change will almost certainly make it impossible to change
+		// attributes to release the files from the quarantine.
+		if (res) {
+			[self releaseFromQuarantine:dst];
+		}
+
+		// Now move past the NULL we found and continue executing
+		// commands from the list.
+		++commandIndex;
+
+		for (; executables[commandIndex] != NULL; ++commandIndex) {
+			if (res) {
+				res = (
+				    AuthorizationExecuteWithPrivilegesAndWait(
+				        auth,
+				        executables[commandIndex],
+				        kAuthorizationFlagDefaults,
+				        argumentLists[commandIndex]) ==
+				    errAuthorizationSuccess);
+			}
+		}
+
+		AuthorizationFree(auth, 0);
+	}
+
+	return res;
 }
 
 - (BOOL)movePathWithAuthentication:(NSString *)src toPath:(NSString *)dst
@@ -98,6 +194,20 @@
 		int tag = 0;
 		BOOL result = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:[dst stringByDeletingLastPathComponent] destination:@"" files:[NSArray arrayWithObject:[dst lastPathComponent]] tag:&tag];
 		result &= [[NSFileManager defaultManager] movePath:src toPath:dst handler:NULL];
+
+		// If the currently-running application is trusted, the new
+		// version should be trusted as well.  Remove it from the
+		// quarantine to avoid a delay at launch, and to avoid
+		// presenting the user with a confusing trust dialog.
+		//
+		// This needs to be done after the application is moved to its
+		// new home in case it's moved across filesystems: if that
+		// happens, the move is actually a copy, and it may result
+		// in the application being quarantined.
+		if (result) {
+			[self releaseFromQuarantine:dst];
+		}
+
 		return result;
 	}
 	else

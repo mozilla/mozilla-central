@@ -8,3 +8,4 @@ svn co -r52 http://code.andymatuschak.org/sparkle/trunk Sparkle
 with the following changes:
 - Bug 405901: fix an XML attribute handling bug (already part of Sparkle trunk)
 - Bug 412857: don't show CFBundleVersion (Sparkle ticket 150; may require some change on our part when we switch to trunk)
+- Bug 412837: keep updates out of the quarantine

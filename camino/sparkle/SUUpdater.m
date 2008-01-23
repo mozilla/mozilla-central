@@ -18,6 +18,7 @@
 
 #import "NSFileManager+Authentication.h"
 #import "NSFileManager+Verification.h"
+#import "NSFileManager+ExtendedAttributes.h"
 #import "NSApplication+AppCopies.h"
 
 #import <stdio.h>
@@ -553,6 +554,18 @@
 			[self abandonUpdate];
 			return;
 		}
+	
+		// If the currently-running application is trusted, the new
+		// version should be trusted as well.  Remove it from the
+		// quarantine to avoid a delay at launch, and to avoid
+		// presenting the user with a confusing trust dialog.
+		//
+		// This isn't shared with the attended-update block because
+		// the quarantine removal needs to be done at a specific time
+		// if the user needs to authenticate: it needs to be done
+		// after the files are moved (in case they are moving across
+		// filesystems) but before permissions are changed.
+		[[NSFileManager defaultManager] releaseFromQuarantine:currentAppPath];
 	}
 	else // But if we're updating by the action of the user, do an authenticated move.
 	{
