@@ -447,6 +447,7 @@ bin/libfreebl_32int64_3.so
 ; Crash Reporter
 bin/crashreporter
 bin/crashreporter.ini
+bin/Throbber-small.gif
 
 ; Updater
 bin/updater
