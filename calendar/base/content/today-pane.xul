@@ -53,6 +53,7 @@
 <script type="application/x-javascript" src="chrome://calendar/content/today-pane.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/agenda-listbox.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/> 
 
 <script type="application/x-javascript">
   var todaylabel = "&calendar.context.button.label;";
@@ -136,7 +137,10 @@
       </box>
       <vbox flex="1">
         <vbox id="agenda-panel" width="20"
-              height="200" persist="collapsed height" flex="1">
+              height="200" persist="collapsed height" flex="1"
+              ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
+              ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
+              ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
           <toolbar id="agenda-toolbar" iconsize="small">
             <toolbarbutton id="calendar-new-event-button"
                            mode="mail"
@@ -171,7 +175,10 @@
                        ondblclick="agendaListbox.createNewEvent(event);"/>
         </vbox>
         <splitter id="today-pane-splitter" persist="hidden"/>
-        <vbox id="todo-tab-panel" flex="1" persist="collapsed height"/>
+        <vbox id="todo-tab-panel" flex="1" persist="collapsed height"
+              ondraggesture="nsDragAndDrop.startDrag(event, calendarTaskButtonDNDObserver);"
+              ondragover="nsDragAndDrop.dragOver(event, calendarTaskButtonDNDObserver);"
+              ondragdrop="nsDragAndDrop.drop(event, calendarTaskButtonDNDObserver);"/>
       </vbox>
     </vbox>
   </box>
