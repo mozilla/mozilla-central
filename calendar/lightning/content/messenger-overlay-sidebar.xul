@@ -98,17 +98,20 @@
              mode="calendar"
              label="&calendar.export.selection.label;"
              accesskey="&calendar.export.selection.accesskey;"
+             command="calendar_export_selection_command"
              observes="calendar_export_selection_command"
              insertafter="menu_close"/>
   <menuitem id="calendar-export-menu"
              mode="calendar"
              label="&calendar.export.calendar;"
              accesskey="&calendar.export.calendar.accesskey;"
+             command="calendar_export_command"
              observes="calendar_export_command"
              insertafter="menu_close"/>
   <menuitem id="calendar-import-menu"
              label="&calendar.importcalendar.label;"
              accesskey="&calendar.import.accesskey;"
+             command="calendar_import_command"
              observes="calendar_import_command"
              mode="calendar"
              insertafter="menu_close"/>
@@ -121,11 +124,13 @@
   <menuitem id="ltnNewEvent" label="&lightning.menupopup.new.event.label;"
              accesskey="&event.new.event.accesskey;"
              key="newEventKey"
+             command="calendar_new_event_command"
              observes="calendar_new_event_command"
              position="2"/>
   <menuitem id="ltnNewTask" label="&lightning.menupopup.new.task.label;"
              accesskey="&event.new.todo.accesskey;"
              key="newTaskKey"
+             command="calendar_new_todo_command"
              observes="calendar_new_todo_command"
              position="3"/>
    <menuseparator id="afterltnNewTask" position="4"/>
@@ -133,6 +138,7 @@
                   mode="mail"
                   insertbefore="newAccountMenuItem"/>  
   <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
+             command="calendar_new_calendar_command"
              observes="calendar_new_calendar_command"
              accesskey="&calendar.new.server.accesskey;"
              insertafter="newAccountMenuItem"/>
@@ -161,6 +167,7 @@
                    label="&calendar.orientation.label;"
                    accesskey="&calendar.orientation.accesskey;"
                    mode="calendar"
+                   command="calendar_toggle_orientation_command"
                    observes="calendar_toggle_orientation_command"/>
          <menuitem id="tasks-view-filter-all"
                    disabled="true"
@@ -259,6 +266,7 @@
              label="&calendar.toolbar.label;"
              accesskey="&calendar.toolbar.accesskey;"
              mode="calendar"
+             command="cmd_toggleCalendarToolbar"
              observes="cmd_toggleCalendarToolbar"
              position="1"/>
    <menuitem id="ltnModeToolbar"
@@ -386,30 +394,36 @@
              accesskey="&event.new.event.accesskey;"
              key="newEventKey"
              observes="calendar_new_event_command"
+             command="calendar_new_event_command"
              position="2"/>
         <menuitem id="ltnNewTask2" label="&event.new.todo;"
              accesskey="&event.new.todo.accesskey;"
              key="newTaskKey"
              observes="calendar_new_todo_command"
+             command="calendar_new_todo_command"
              position="3"/>
        <menuseparator id="firstCalendarSeparator" mode="calendar"/>
        <menuitem id="publishCalendar"
                  label="&calendar.publish.label;"
                  accesskey="&calendar.publish.accesskey;"
+                 commmand="calendar_publish_calendar_command"
                  observes="calendar_publish_calendar_command"/>
        <menuseparator id="afterSubscription"/>
        <menuitem label="&calendar.context.newserver.label;"
                  id="calpopup-new"
                  accesskey="&calendar.context.newserver.accesskey;"
+                 command="calendar_new_calendar_command"
                  observes="calendar_new_calendar_command"/>
       <menuitem id="ltnDeleteSelectedCalendar"
                 label="&calendar.context.deleteserver.label;"
                 accesskey="&calendar.context.deleteserver.accesskey;"
+                command="calendar_delete_calendar_command"
                 observes="calendar_delete_calendar_command"/>
       <menuseparator id="beforeProperties"/>
        <menuitem label="&calendar.properties.label;"
                  id="calendarproperties"
                  accesskey="&calendar.properties.accesskey;"
+                 command="calendar_edit_calendar_command"
                  observes="calendar_edit_calendar_command"/>
     </menupopup>
      <menu id="ltnCalendarMenu" label="&lightning.calendar.label;"

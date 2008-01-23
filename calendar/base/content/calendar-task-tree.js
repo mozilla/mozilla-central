@@ -123,23 +123,23 @@ function contextChangeProgress(aProgress) {
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
     for (var t = 0; t < tasks.length; t++) {
-       var task = tasks[t];
-            var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
-          newTask.percentComplete = aProgress;
-          switch (aProgress) {
-                case 0:
-                    newTask.isCompleted = false;
-                    break;
-                case 100:
-                    newTask.isCompleted = true;
-                    break;
-                default:
-                    newTask.status = "IN-PROCESS";
-                    newTask.completedDate = null;
-                    break;
-            }
-            doTransaction('modify', newTask, newTask.calendar, task, null);
+        var task = tasks[t];
+        var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
+        newTask.percentComplete = aProgress;
+        switch (aProgress) {
+            case 0:
+                newTask.isCompleted = false;
+                break;
+            case 100:
+                newTask.isCompleted = true;
+                break;
+            default:
+                newTask.status = "IN-PROCESS";
+                newTask.completedDate = null;
+                break;
         }
+        doTransaction('modify', newTask, newTask.calendar, task, null);
+    }
     endBatchTransaction();
 }
 
@@ -214,8 +214,8 @@ function tasksToEvents() {
 
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
-        contextChangeProgress(100);
-    } else {
         contextChangeProgress(0);
+    } else {
+        contextChangeProgress(100);
     }
 }

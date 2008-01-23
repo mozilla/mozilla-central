@@ -125,11 +125,11 @@
                 observes="calendar_delete_todo_command"/>
       <menuseparator/>
       <menuitem type="checkbox"
-                validate="always"
                 label="&calendar.context.markcompleted.label;"
                 accesskey="&calendar.context.markcompleted.accesskey;"
                 id="calendar.context.markcompleted"
-                observes="calendar_iscompleted_command"/>
+                observes="calendar_iscompleted_command"
+                command="calendar_iscompleted_command"/>
       <menu label="&calendar.context.progress.label;"
             accesskey="&calendar.context.progress.accesskey;"
             id="task-context-menu-progress">
