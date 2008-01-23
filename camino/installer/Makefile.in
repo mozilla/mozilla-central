@@ -63,11 +63,11 @@ include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 
 # Use striptease instead of strip.  Strip out debugging symbols and local
 # symbols, but leave local symbols in text sections intact.  This keeps
-# CrashReporter stacks usable.  Use abspath to get an absolute path based
+# CrashReporter stacks usable.  Use pwd to get an absolute path based
 # on $(DIST) relative to this directory.  If $(DIST) were used directly, the
 # strip part of packger.mk might not be able to find strip, because $(DIST)
 # is a relative path, and the stripper changes directory.
-STRIP=$(abspath $(DIST)/host/bin/tease)
+STRIP:=$(shell pwd)/$(DIST)/host/bin/tease
 STRIP_FLAGS=-S -t
 
 # The core build system thinks it's Mozilla.  Override what's necessary.
