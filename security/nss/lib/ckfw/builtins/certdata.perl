@@ -35,7 +35,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-my $cvs_id = '@(#) $RCSfile: certdata.perl,v $ $Revision: 1.11 $ $Date: 2006-07-17 16:50:45 $';
+my $cvs_id = '@(#) $RCSfile: certdata.perl,v $ $Revision: 1.12 $ $Date: 2008-01-23 07:34:49 $';
 use strict;
 
 my %constants;
@@ -266,7 +266,7 @@ for( $i = 0; $i <= $count; $i++ ) {
   }
 }
 
-print CFILE "\nPR_IMPLEMENT_DATA(builtinsInternalObject)\n";
+print CFILE "\nbuiltinsInternalObject\n";
 print CFILE "nss_builtins_data[] = {\n";
 
 for( $i = 0; $i <= $count; $i++ ) {
@@ -290,7 +290,7 @@ for( $i = 0; $i <= $count; $i++ ) {
 
 print CFILE "};\n";
 
-print CFILE "PR_IMPLEMENT_DATA(const PRUint32)\n";
+print CFILE "const PRUint32\n";
 print CFILE "#ifdef DEBUG\n";
 print CFILE "  nss_builtins_nObjects = $count+1;\n";
 print CFILE "#else\n";

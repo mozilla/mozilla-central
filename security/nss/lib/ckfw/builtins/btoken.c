@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: btoken.c,v $ $Revision: 1.3 $ $Date: 2005-01-20 02:25:46 $";
+static const char CVS_ID[] = "@(#) $RCSfile: btoken.c,v $ $Revision: 1.4 $ $Date: 2008-01-23 07:34:49 $";
 #endif /* DEBUG */
 
 #include "builtins.h"
@@ -150,7 +150,7 @@ builtins_mdToken_OpenSession
   return nss_builtins_CreateSession(fwSession, pError);
 }
 
-NSS_IMPLEMENT_DATA const NSSCKMDToken
+const NSSCKMDToken
 nss_builtins_mdToken = {
   (void *)NULL, /* etc */
   NULL, /* Setup */

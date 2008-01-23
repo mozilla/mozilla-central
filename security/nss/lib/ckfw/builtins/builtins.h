@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char BUILTINS_CVS_ID[] = "@(#) $RCSfile: builtins.h,v $ $Revision: 1.5 $ $Date: 2005-01-20 02:25:46 $";
+static const char BUILTINS_CVS_ID[] = "@(#) $RCSfile: builtins.h,v $ $Revision: 1.6 $ $Date: 2008-01-23 07:34:49 $";
 #endif /* DEBUG */
 
 #include "nssckmdt.h"
@@ -64,23 +64,24 @@ struct builtinsInternalObjectStr {
 };
 typedef struct builtinsInternalObjectStr builtinsInternalObject;
 
-NSS_EXTERN_DATA builtinsInternalObject nss_builtins_data[];
-NSS_EXTERN_DATA const PRUint32               nss_builtins_nObjects;
+extern       builtinsInternalObject nss_builtins_data[];
+extern const PRUint32               nss_builtins_nObjects;
 
-NSS_EXTERN_DATA const CK_VERSION   nss_builtins_CryptokiVersion;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_ManufacturerID;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_LibraryDescription;
-NSS_EXTERN_DATA const CK_VERSION   nss_builtins_LibraryVersion;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_SlotDescription;
-NSS_EXTERN_DATA const CK_VERSION   nss_builtins_HardwareVersion;
-NSS_EXTERN_DATA const CK_VERSION   nss_builtins_FirmwareVersion;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_TokenLabel;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_TokenModel;
-NSS_EXTERN_DATA const NSSUTF8 *    nss_builtins_TokenSerialNumber;
+extern const CK_VERSION   nss_builtins_CryptokiVersion;
+extern const CK_VERSION   nss_builtins_LibraryVersion;
+extern const CK_VERSION   nss_builtins_HardwareVersion;
+extern const CK_VERSION   nss_builtins_FirmwareVersion;
 
-NSS_EXTERN_DATA const NSSCKMDInstance nss_builtins_mdInstance;
-NSS_EXTERN_DATA const NSSCKMDSlot     nss_builtins_mdSlot;
-NSS_EXTERN_DATA const NSSCKMDToken    nss_builtins_mdToken;
+extern const NSSUTF8      nss_builtins_ManufacturerID[];
+extern const NSSUTF8      nss_builtins_LibraryDescription[];
+extern const NSSUTF8      nss_builtins_SlotDescription[];
+extern const NSSUTF8      nss_builtins_TokenLabel[];
+extern const NSSUTF8      nss_builtins_TokenModel[];
+extern const NSSUTF8      nss_builtins_TokenSerialNumber[];
+
+extern const NSSCKMDInstance nss_builtins_mdInstance;
+extern const NSSCKMDSlot     nss_builtins_mdSlot;
+extern const NSSCKMDToken    nss_builtins_mdToken;
 
 NSS_EXTERN NSSCKMDSession *
 nss_builtins_CreateSession
