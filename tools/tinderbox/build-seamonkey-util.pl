@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.379 $ ';
+$::UtilsVersion = '$Revision: 1.380 $ ';
 
 package TinderUtils;
 
@@ -2182,6 +2182,8 @@ sub run_all_tests {
                 # Suppress tab warning dialog when closing the browser. 
                 set_pref($pref_file, 'browser.warnOnQuit', 'false');
 
+                # Do not run frecency recalculation during tests.
+                set_pref($pref_file, 'places.frecency.updateIdleTime', 0);
             }
             elsif ($Settings::BinaryName eq 'Camino') {
                 # Suppress default browser dialog
