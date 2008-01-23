@@ -110,12 +110,8 @@ endif
 ifdef MOZ_ENABLE_GTK2
 LIBS	 += $(XLDFLAGS)	 \
 		 	$(XLIBS)	 \
+			$(MOZ_XFT_LIBS)	 \
 			$(NULL)
-endif
-
-ifdef MOZ_ENABLE_XFT
-LIBS     += $(MOZ_XFT_LIBS) \
-	        $(NULL)
 endif
 
 include $(topsrcdir)/config/config.mk
