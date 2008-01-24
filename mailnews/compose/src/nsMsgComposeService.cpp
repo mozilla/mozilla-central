@@ -1133,6 +1133,8 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
 NS_IMETHODIMP nsMsgComposeService::ForwardMessage(const nsAString &forwardTo, nsIMsgDBHdr *aMsgHdr,
                                              nsIMsgWindow *aMsgWindow, nsIMsgIncomingServer *aServer)
 {
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+
   nsresult rv;
   nsCOMPtr<nsIDOMWindowInternal> parentWindow;
   if (aMsgWindow)
@@ -1496,6 +1498,8 @@ nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutput
 NS_IMETHODIMP
 nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
 {
+  NS_ENSURE_ARG_POINTER(aCmdLine);
+
   nsresult rv;
   PRInt32 found, end, count;
   nsAutoString uristr;
