@@ -317,7 +317,7 @@ void GeckoUtils::GetAnchorNodeFromSelection(nsIEditor* inEditor, nsIDOMNode** ou
   selection->GetAnchorNode(outAnchorNode);
 }
 
-void GeckoUtils::GetIntrisicSize(nsIDOMWindow* aWindow,  PRInt32* outWidth, PRInt32* outHeight)
+void GeckoUtils::GetIntrinsicSize(nsIDOMWindow* aWindow,  PRInt32* outWidth, PRInt32* outHeight)
 {
   if (!aWindow)
     return;

@@ -81,7 +81,7 @@ class GeckoUtils
     static void FindDocShellForURI(nsIURI *aURI, nsIDocShell *aRoot, nsIDocShell **outMatch);
     
     /* Finds the preferred size (ie the minimum size where scrollbars are not needed) of the content window. */
-    static void GetIntrisicSize(nsIDOMWindow* aWindow, PRInt32* outWidth, PRInt32* outHeight);
+    static void GetIntrinsicSize(nsIDOMWindow* aWindow, PRInt32* outWidth, PRInt32* outHeight);
 
     // Finds the screen location (nsIntRect) in screen coordinates of a DOM Element.
     // Returns PR_FALSE if the function fails.

@@ -684,7 +684,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     return nil;
   int pageWidth;
   int pageHeight;
-  GeckoUtils::GetIntrisicSize(domWindow, &pageWidth, &pageHeight);
+  GeckoUtils::GetIntrinsicSize(domWindow, &pageWidth, &pageHeight);
   // Enforce a non-zero size, since Gecko gets very angry with a zero-sized
   // Quartz surface.
   if (pageWidth == 0)

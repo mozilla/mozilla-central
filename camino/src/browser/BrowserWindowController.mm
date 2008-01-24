@@ -1069,7 +1069,7 @@ public:
 
   PRInt32 contentWidth = 0, contentHeight = 0;
   const PRInt32 kMinSaneHeight = 20; // for bug 361049
-  GeckoUtils::GetIntrisicSize(contentWindow, &contentWidth, &contentHeight);
+  GeckoUtils::GetIntrinsicSize(contentWindow, &contentWidth, &contentHeight);
   if (contentWidth <= 0 || contentHeight <= kMinSaneHeight) {
     // Something went wrong, maximize to screen
     [self setZoomState:defaultFrame defaultFrame:defaultFrame];
@@ -1081,7 +1081,7 @@ public:
   float widthChange   = contentWidth  - curFrameSize.width;
   float heightChange  = contentHeight - curFrameSize.height;
 
-  // The values from GeckoUtils::GetIntrisicSize may be rounded down, add 1 extra pixel but
+  // The values from GeckoUtils::GetIntrinsicSize may be rounded down, add 1 extra pixel but
   // only if the window will be smaller than the screen (see bug 360878)
   NSRect stdFrame     = [[self window] frame];
   if (stdFrame.size.width + widthChange < defaultFrame.size.width)
