@@ -77,6 +77,8 @@ NS_IMPL_ISUPPORTS4(nsMailboxService, nsIMailboxService, nsIMsgMessageService, ns
 nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *aMailboxPath, nsIStreamListener *aMailboxParser,
                     nsIUrlListener * aUrlListener, nsIURI ** aURL)
 {
+  NS_ENSURE_ARG_POINTER(aMailboxPath);
+
   nsresult rv;
   nsCOMPtr<nsIMailboxUrl> mailboxurl = do_CreateInstance(kCMailboxUrl, &rv);
   if (NS_SUCCEEDED(rv) && mailboxurl)
@@ -281,7 +283,10 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
 
 NS_IMETHODIMP nsMailboxService::FetchMimePart(nsIURI *aURI, const char *aMessageURI, nsISupports *aDisplayConsumer, nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener, nsIURI **aURL)
 {
-  nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(aURI));
+  nsresult rv;
+  nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(aURI, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   msgUrl->SetMsgWindow(aMsgWindow);
 
   // set up the url listener
