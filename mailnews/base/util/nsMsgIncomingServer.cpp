@@ -980,6 +980,9 @@ nsMsgIncomingServer::Equals(nsIMsgIncomingServer *server, PRBool *_retval)
 NS_IMETHODIMP
 nsMsgIncomingServer::ClearAllValues()
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->DeleteBranch("");
 }
 
@@ -1191,6 +1194,10 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetDoBiff(PRBool *aDoBiff)
 {
   NS_ENSURE_ARG_POINTER(aDoBiff);
+
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsresult rv;
 
   rv = mPrefBranch->GetBoolPref(BIFF_PREF_NAME, aDoBiff);
@@ -1216,6 +1223,9 @@ nsMsgIncomingServer::GetDoBiff(PRBool *aDoBiff)
 NS_IMETHODIMP
 nsMsgIncomingServer::SetDoBiff(PRBool aDoBiff)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->SetBoolPref(BIFF_PREF_NAME, aDoBiff);
 }
 
@@ -1574,6 +1584,9 @@ NS_IMETHODIMP nsMsgIncomingServer::GetIntAttribute(const char *aName, PRInt32 *v
 
 NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsresult rv = mPrefBranch->GetIntPref("socketType", aSocketType);
 
   // socketType is set to default value. Look at isSecure setting
@@ -1599,6 +1612,9 @@ NS_IMETHODIMP nsMsgIncomingServer::GetSocketType(PRInt32 *aSocketType)
 
 NS_IMETHODIMP nsMsgIncomingServer::SetSocketType(PRInt32 aSocketType)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   return mPrefBranch->SetIntPref("socketType", aSocketType);
 }
 
