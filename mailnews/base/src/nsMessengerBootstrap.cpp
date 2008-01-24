@@ -86,6 +86,7 @@ nsMessengerBootstrap::~nsMessengerBootstrap()
 NS_IMETHODIMP
 nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
 {
+  NS_ENSURE_ARG_POINTER(aCmdLine);
   nsresult rv;
 
   nsCOMPtr<nsIWindowWatcher> wwatch (do_GetService(NS_WINDOWWATCHER_CONTRACTID));
