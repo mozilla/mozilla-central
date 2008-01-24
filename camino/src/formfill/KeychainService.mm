@@ -1488,7 +1488,7 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
   nsAutoString autocomplete;
   inFormElement->GetAttribute(NS_LITERAL_STRING("autocomplete"), autocomplete);
   if (autocomplete.EqualsIgnoreCase("off") && !autoCompleteOverride)
-    return NS_OK;
+    return NS_ERROR_FAILURE;
   
   //
   // Search the form the password field and the preceding text field
@@ -1501,7 +1501,7 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
   nsCOMPtr<nsIDOMHTMLCollection> elements;
   nsresult rv = inFormElement->GetElements(getter_AddRefs(elements));
   if (NS_FAILED(rv) || !elements)
-    return NS_OK;
+    return NS_ERROR_FAILURE;
 
   PRUint32 numElements;
   elements->GetLength(&numElements);
@@ -1542,7 +1542,7 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
     if (!inStopWhenFound && isPassword && *outPassword) {
       NS_RELEASE(*outPassword);
       *outPassword = nsnull;
-      return NS_OK;
+      return NS_ERROR_FAILURE;
     }
     
     // Keep taking text fields until we have a password, so that
@@ -1563,5 +1563,5 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
     
   } // for each item in form
 
-  return NS_OK;
+  return (*outPassword && *outUsername) ? NS_OK : NS_ERROR_FAILURE;
 }
