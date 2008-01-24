@@ -93,20 +93,20 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
 
 - (KeychainItem*)findWebFormKeychainEntryForUsername:(NSString*)username
                                              forHost:(NSString*)host
-                                                port:(PRInt32)port
+                                                port:(UInt16)port
                                               scheme:(NSString*)scheme;
 - (KeychainItem*)findDefaultWebFormKeychainEntryForHost:(NSString*)host
-                                                   port:(PRInt32)port
+                                                   port:(UInt16)port
                                                  scheme:(NSString*)scheme;
 - (void)setDefaultWebFormKeychainEntry:(KeychainItem*)keychainItem;
 
 - (NSArray*)allWebFormKeychainItemsForHost:(NSString*)host
-                                      port:(PRInt32)port
+                                      port:(UInt16)port
                                     scheme:(NSString*)scheme;
 - (KeychainItem*)defaultFromKeychainItems:(NSArray*)items;
 
 - (KeychainItem*)findAuthKeychainEntryForHost:(NSString*)host
-                                         port:(PRInt32)port
+                                         port:(UInt16)port
                                        scheme:(NSString*)scheme
                                securityDomain:(NSString*)securityDomain;
 - (KeychainItem*)updateAuthKeychainEntry:(KeychainItem*)keychainItem
@@ -116,7 +116,7 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
                       password:(NSString*)password
                        forHost:(NSString*)host
                 securityDomain:(NSString*)securityDomain
-                          port:(PRInt32)port
+                          port:(UInt16)port
                         scheme:(NSString*)scheme
                         isForm:(BOOL)isForm;
 
@@ -156,7 +156,7 @@ protected:
   
   void PreFill(const PRUnichar *, PRUnichar **, PRUnichar **);
   void ProcessPrompt(const PRUnichar *, bool, PRUnichar *, PRUnichar *);
-  static void ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost, NSString** outRealm, PRInt32* outPort);
+  static void ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost, NSString** outRealm, UInt16* outPort);
 
   nsCOMPtr<nsIPrompt>   mPrompt;
 };

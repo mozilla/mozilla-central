@@ -52,7 +52,7 @@ static BOOL FindPasswordField(nsIDOMHTMLInputElement* inUsername, nsIDOMHTMLInpu
 static void GetFormInfoForInput(nsIDOMHTMLInputElement* aElement,
                                 NSString** host,
                                 NSString** asciiHost,
-                                PRInt32* port,
+                                UInt16* port,
                                 NSString** scheme);
 
 NS_IMPL_ISUPPORTS1(KeychainAutoCompleteDOMListener, nsIDOMEventListener)
@@ -97,7 +97,7 @@ void KeychainAutoCompleteDOMListener::FillPassword()
 
   NSString* host;
   NSString* asciiHost;
-  PRInt32 port;
+  UInt16 port;
   NSString* scheme;
 
   GetFormInfoForInput(mUsernameElement, &host, &asciiHost, &port, &scheme);
@@ -195,7 +195,7 @@ void KeychainAutoCompleteDOMListener::FillPassword()
   // Get the host information so we can get the keychain entries below.
   NSString* host;
   NSString* asciiHost;
-  PRInt32 port;
+  UInt16 port;
   NSString* scheme;
 
   GetFormInfoForInput(usernameElement, &host, &asciiHost, &port, &scheme);
@@ -322,14 +322,14 @@ BOOL FindPasswordField(nsIDOMHTMLInputElement* inUsername, nsIDOMHTMLInputElemen
 static void GetFormInfoForInput(nsIDOMHTMLInputElement* aElement,
                                 NSString** host,
                                 NSString** asciiHost,
-                                PRInt32* port,
+                                UInt16* port,
                                 NSString** scheme)
 {
   if (!aElement)
     return;
   *host = nil;
   *asciiHost = nil;
-  *port = -1;
+  *port = kAnyPort;
   *scheme = nil;
 
   nsCOMPtr<nsIDOMDocument> domDoc;
@@ -358,7 +358,9 @@ static void GetFormInfoForInput(nsIDOMHTMLInputElement* aElement,
   *asciiHost = NS_SUCCEEDED(rv) ? [NSString stringWithCString:asciiHostCAString.get()]
                                 : *host;
 
-  docURL->GetPort(port);
+  PRInt32 signedPort;
+  docURL->GetPort(&signedPort);
+  *port = (signedPort < 0) ? kAnyPort : (UInt16)signedPort;
 
   nsCAutoString schemeCAString;
   rv = docURL->GetScheme(schemeCAString);

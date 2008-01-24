@@ -107,7 +107,7 @@ extern NSString* const XPCOMShutDownNotificationName;
 static NSWindow* GetNSWindow(nsIDOMWindow* inWindow);
 
 @interface KeychainService(Private)
-- (KeychainItem*)findLegacyKeychainEntryForHost:(NSString*)host port:(PRInt32)port;
+- (KeychainItem*)findLegacyKeychainEntryForHost:(NSString*)host port:(UInt16)port;
 - (void)upgradeLegacyKeychainEntry:(KeychainItem*)keychainItem
                         withScheme:(NSString*)scheme
                             isForm:(BOOL)isFrom;
@@ -224,11 +224,9 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 
 - (KeychainItem*)findWebFormKeychainEntryForUsername:(NSString*)username
                                              forHost:(NSString*)host
-                                                port:(PRInt32)port
+                                                port:(UInt16)port
                                               scheme:(NSString*)scheme
 {
-  if (port == -1)
-    port = kAnyPort;
   SecProtocolType protocol = [scheme isEqualToString:@"https"] ? kSecProtocolTypeHTTPS : kSecProtocolTypeHTTP;
 
   KeychainItem* item = [KeychainItem keychainItemForHost:host
@@ -248,7 +246,7 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 }
 
 - (KeychainItem*)findDefaultWebFormKeychainEntryForHost:(NSString*)host
-                                                   port:(PRInt32)port
+                                                   port:(UInt16)port
                                                  scheme:(NSString*)scheme
 {
   NSArray* keychainItems = [self allWebFormKeychainItemsForHost:host port:port scheme:scheme];
@@ -293,15 +291,13 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
     [keychainItem setComment:@"camino_default"];
 }
 
-- (NSArray*)allWebFormKeychainItemsForHost:(NSString*)host port:(PRInt32)port scheme:(NSString*)scheme
+- (NSArray*)allWebFormKeychainItemsForHost:(NSString*)host port:(UInt16)port scheme:(NSString*)scheme
 {
-  if (port == -1)
-    port = kAnyPort;
   SecProtocolType protocol = [scheme isEqualToString:@"https"] ? kSecProtocolTypeHTTPS : kSecProtocolTypeHTTP;
 
   // Since there are old-style (pre-1.1) authenticationType values, retrieve them all then filter.
   NSArray* keychainItems = [KeychainItem allKeychainItemsForHost:host
-                                                            port:(UInt16)port
+                                                            port:port
                                                         protocol:protocol
                                               authenticationType:0
                                                          creator:0];
@@ -371,16 +367,14 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 }
 
 - (KeychainItem*)findAuthKeychainEntryForHost:(NSString*)host
-                                         port:(PRInt32)port
+                                         port:(UInt16)port
                                        scheme:(NSString*)scheme
                                securityDomain:(NSString*)securityDomain
 {
-  if (port == -1)
-    port = kAnyPort;
   SecProtocolType protocol = [scheme isEqualToString:@"https"] ? kSecProtocolTypeHTTPS : kSecProtocolTypeHTTP;
 
   NSArray* newKeychainItems = [KeychainItem allKeychainItemsForHost:host
-                                                               port:(UInt16)port
+                                                               port:port
                                                            protocol:protocol
                                                  authenticationType:kSecAuthenticationTypeDefault
                                                             creator:0];
@@ -440,18 +434,18 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
 // and may have been created with the authentication type backward due to an
 // endian bug in KeychainManager. This can be removed once it's reasonable to
 // assume people no longer have old-style keychain items.
-- (KeychainItem*)findLegacyKeychainEntryForHost:(NSString*)host port:(PRInt32)port
+- (KeychainItem*)findLegacyKeychainEntryForHost:(NSString*)host port:(UInt16)port
 {
   KeychainItem* item = [KeychainItem keychainItemForHost:host
                                                 username:nil
-                                                    port:(UInt16)port
+                                                    port:port
                                                 protocol:kSecProtocolTypeHTTP
                                       authenticationType:kSecAuthenticationTypeHTTPDigest];
   if (!item) {
     // check for the reverse auth type
     item = [KeychainItem keychainItemForHost:host
                                     username:nil
-                                        port:(UInt16)port
+                                        port:port
                                     protocol:kSecProtocolTypeHTTP
                           authenticationType:kSecAuthenticationTypeHTTPDigestReversed];
     // fix it for future queries
@@ -464,17 +458,15 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
                       password:(NSString*)password
                        forHost:(NSString*)host
                 securityDomain:(NSString*)securityDomain
-                          port:(PRInt32)port
+                          port:(UInt16)port
                         scheme:(NSString*)scheme
                         isForm:(BOOL)isForm
 {
-  if (port == -1)
-    port = kAnyPort;
   SecProtocolType protocol = [scheme isEqualToString:@"https"] ? kSecProtocolTypeHTTPS : kSecProtocolTypeHTTP;
   SecAuthenticationType authType = isForm ? kSecAuthenticationTypeHTMLForm : kSecAuthenticationTypeDefault;
 
   KeychainItem* newItem = [KeychainItem addKeychainItemForHost:host
-                                                          port:(UInt16)port
+                                                          port:port
                                                       protocol:protocol
                                             authenticationType:authType
                                                   withUsername:username
@@ -820,7 +812,7 @@ KeychainPrompt::~KeychainPrompt()
 // netwerk/protocol/ftp/src/nsFtpConnectionThread.cpp).
 //
 void
-KeychainPrompt::ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost, NSString** outRealm, PRInt32* outPort)
+KeychainPrompt::ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost, NSString** outRealm, UInt16* outPort)
 {
   if (!outHost || !outPort)
     return;
@@ -873,7 +865,7 @@ KeychainPrompt::PreFill(const PRUnichar *realmBlob, PRUnichar **user, PRUnichar 
 {
   NSString* host = nil;
   NSString* realm = nil;
-  PRInt32 port = -1;
+  UInt16 port = kAnyPort;
   NSString* realmBlobString = [NSString stringWithPRUnichars:realmBlob];
   ExtractRealmComponents(realmBlobString, &host, &realm, &port);
 
@@ -900,7 +892,7 @@ KeychainPrompt::ProcessPrompt(const PRUnichar* realmBlob, bool checked, PRUnicha
 {
   NSString* host = nil;
   NSString* realm = nil;
-  PRInt32 port = -1;
+  UInt16 port = kAnyPort;
   NSString* realmBlobString = [NSString stringWithPRUnichars:realmBlob];
   ExtractRealmComponents(realmBlobString, &host, &realm, &port);
 
@@ -1119,8 +1111,10 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     nsCAutoString schemeCAString;
     docURL->GetScheme(schemeCAString);
     NSString* scheme = [NSString stringWithCString:schemeCAString.get()];
-    PRInt32 port = -1;
-    docURL->GetPort(&port);
+
+    PRInt32 signedPort;
+    docURL->GetPort(&signedPort);
+    UInt16 port = (signedPort < 0) ? kAnyPort : (UInt16)signedPort;
 
     nsAutoString action;
     formNode->GetAction(action);
@@ -1289,8 +1283,10 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
       nsCAutoString schemeCAString;
       docURL->GetScheme(schemeCAString);
       NSString* scheme = [NSString stringWithCString:schemeCAString.get()];
-      PRInt32 port = -1;
-      docURL->GetPort(&port);
+
+      PRInt32 signedPort;
+      docURL->GetPort(&signedPort);
+      UInt16 port = (signedPort < 0) ? kAnyPort : (UInt16)signedPort;
 
       // We weren't using punycode for keychain entries up through 1.5, so try
       // non-punycode first to favor Camino entries.
