@@ -99,14 +99,14 @@
 <!ENTITY bidiSwitchPageDirectionItem.accesskey    "g">
 <!ENTITY bidiSwitchTextDirectionItem.label        "Switch Text Direction">
 <!ENTITY bidiSwitchTextDirectionItem.accesskey    "w">
-<!ENTITY spellAddToDictionary.label     "Add to dictionary">
+<!ENTITY spellAddToDictionary.label     "Add to Dictionary">
 <!ENTITY spellAddToDictionary.accesskey "o">
-<!ENTITY spellIgnoreWord.label          "Ignore word">
-<!ENTITY spellIgnoreWord.accesskey      "w">
-<!ENTITY spellEnable.label              "Spell check this field">
-<!ENTITY spellEnable.accesskey          "S">
-<!ENTITY spellNoSuggestions.label       "(No spelling suggestions)">
+<!ENTITY spellIgnoreWord.label          "Ignore Word">
+<!ENTITY spellIgnoreWord.accesskey      "W">
+<!ENTITY spellCheckEnable.label         "Check Spelling">
+<!ENTITY spellCheckEnable.accesskey     "S">
+<!ENTITY spellNoSuggestions.label       "(No Spelling Suggestions)">
 <!ENTITY spellDictionaries.label        "Languages">
 <!ENTITY spellDictionaries.accesskey    "L">
-<!ENTITY spellAddDictionaries.label     "Download more dictionaries...">
+<!ENTITY spellAddDictionaries.label     "Download More Dictionaries...">
 <!ENTITY spellAddDictionaries.accesskey "D">
