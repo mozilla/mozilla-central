@@ -400,6 +400,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetBoolValue(const char *prefname,
                                  PRBool *val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   NS_ENSURE_ARG_POINTER(val);
   *val = PR_FALSE;
 
@@ -413,6 +416,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::SetBoolValue(const char *prefname,
                                  PRBool val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   PRBool defaultValue;
   nsresult rv = mDefPrefBranch->GetBoolPref(prefname, &defaultValue);
 
@@ -428,6 +434,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetIntValue(const char *prefname,
                                 PRInt32 *val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   NS_ENSURE_ARG_POINTER(val);
   *val = 0;
 
@@ -442,6 +451,9 @@ nsMsgIncomingServer::GetFileValue(const char* aRelPrefName,
                                   const char* aAbsPrefName,
                                   nsILocalFile** aLocalFile)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   // Get the relative first
   nsCOMPtr<nsIRelativeFilePref> relFilePref;
   nsresult rv = mPrefBranch->GetComplexValue(aRelPrefName,
@@ -474,6 +486,9 @@ nsMsgIncomingServer::SetFileValue(const char* aRelPrefName,
                                   const char* aAbsPrefName,
                                   nsILocalFile* aLocalFile)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   // Write the relative path.
   nsCOMPtr<nsIRelativeFilePref> relFilePref;
   NS_NewRelativeFilePref(aLocalFile,
@@ -493,6 +508,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::SetIntValue(const char *prefname,
                                  PRInt32 val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   PRInt32 defaultVal;
   nsresult rv = mDefPrefBranch->GetIntPref(prefname, &defaultVal);
 
@@ -508,6 +526,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetCharValue(const char *prefname,
                                   nsACString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCString tmpVal;
   if (NS_FAILED(mPrefBranch->GetCharPref(prefname, getter_Copies(tmpVal))))
     mDefPrefBranch->GetCharPref(prefname, getter_Copies(tmpVal));
@@ -519,6 +540,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetUnicharValue(const char *prefname,
                                      nsAString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsCOMPtr<nsISupportsString> supportsString;
   if (NS_FAILED(mPrefBranch->GetComplexValue(prefname,
                                              NS_GET_IID(nsISupportsString),
@@ -537,6 +561,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::SetCharValue(const char *prefname,
                                   const nsACString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   if (val.IsEmpty()) {
     mPrefBranch->ClearUserPref(prefname);
     return NS_OK;
@@ -557,6 +584,9 @@ NS_IMETHODIMP
 nsMsgIncomingServer::SetUnicharValue(const char *prefname,
                                      const nsAString& val)
 {
+  if (!mPrefBranch)
+    return NS_ERROR_NOT_INITIALIZED;
+
   if (val.IsEmpty()) {
     mPrefBranch->ClearUserPref(prefname);
     return NS_OK;
