@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.380 $ ';
+$::UtilsVersion = '$Revision: 1.381 $ ';
 
 package TinderUtils;
 
@@ -1668,7 +1668,12 @@ BEGIN {
                 }
             }
         }
-        return $sig_name[$number];
+        if ($number <= $#sig_name) {
+            return $sig_name[$number];
+        }
+        else {
+            return $number;
+        }
     }
 }
 
@@ -1732,18 +1737,26 @@ sub wait_for_pid {
         if ($timeout_secs <= 0);
 
     eval {
+        $? = 0;
         $loop_count = 0;
+        my $wait_pid;
         while (++$loop_count < $timeout_secs) {
-            my $wait_pid = waitpid($pid, POSIX::WNOHANG());
+            $wait_pid = waitpid($pid, POSIX::WNOHANG());
             # the following will work with 'cygwin' perl on win32, but not 
             # with 'MSWin32' (ActiveState) perl
-            last if ($wait_pid == $pid and POSIX::WIFEXITED($?)) or $wait_pid == -1;
+            last if (($wait_pid == -1) ||
+                     ($wait_pid == $pid &&
+                      (POSIX::WIFEXITED($?) || POSIX::WIFSIGNALED($?))));
             sleep 1;
         }
 
+        if ($wait_pid == -1) {
+            print_log ("Error: waitpid: " . $! . "\n");
+        }
+
         $exit_value = $? >> 8;
-        $signal_num = $? >> 127;
-        $dumped_core = $? & 128;
+        $signal_num = $? & 0x7f;
+        $dumped_core = $? & 0x80;
         if ($loop_count >= $timeout_secs) {
             die "timeout";
         }
