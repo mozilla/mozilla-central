@@ -100,7 +100,7 @@ def main(argv):
     buildbotLines = buildbotCvsCo.readlines()
     buildbotCvsCo.close()
 
-    if 'U tinderbox-configs/CLOBBER' in tboxLines or 'U buildbot-configs/CLOBBER' in buildbotLines:
+    if 'U tinderbox-configs/CLOBBER\n' in tboxLines or 'U buildbot-configs/CLOBBER\n' in buildbotLines:
         killAndClobber(slaveName, branchDir)
 
 if __name__ == "__main__":
