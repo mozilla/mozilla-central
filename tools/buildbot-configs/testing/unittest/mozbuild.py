@@ -202,7 +202,7 @@ class UpdateClobberFiles(ShellCommand):
         self.platform = kwargs['platform']
         if 'clobberFilePath' in kwargs:
             self.clobberFilePath = kwargs['clobberFilePath']
-       if logDir in kwargs:
+       if 'logDir' in kwargs:
             self.logDir = kwargs['logDir']
         if self.platform.startswith('win'):
             self.tboxClobberModule = 'mozilla/tools/tinderbox-configs/firefox/win32'
@@ -235,7 +235,7 @@ class MozillaClobber(ShellCommand):
     def __init__(self, **kwargs):
         if 'platform' in kwargs:
             self.platform = kwargs['platform']
-       if logDir in kwargs:
+       if 'logDir' in kwargs:
             self.logDir = kwargs['logDir']
         if 'clobberFilePath' in kwargs:
             self.clobberFilePath = kwargs['clobberFilePath']
