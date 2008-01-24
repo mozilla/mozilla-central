@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joey Minta <jminta@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,98 +43,38 @@
  * by making the current executable the "default mail app."
  */
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 function nsSetDefaultMail() {
 }
 
 nsSetDefaultMail.prototype = {
   /* nsISupports */
-  QueryInterface: function nsSetDefault_QI(iid) {
-    if (!iid.equals(Components.interfaces.nsICommandLineHandler) &&
-        !iid.equals(Components.interfaces.nsISupports))
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-
-    return this;
-  },
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsICommandLineHandler]),
 
   /* nsICommandLineHandler */
   handle : function nsSetDefault_handle(cmdline) {
     if (cmdline.handleFlag("setDefaultMail", false)) {
-      var shell = Components.classes["@mozilla.org/mail/shell-service;1"]
-                            .getService(Components.interfaces.nsIShellService);
-      shell.setDefaultClient(true, Components.interfaces.nsIShellService.MAIL);
+      var shell = Cc["@mozilla.org/mail/shell-service;1"].
+                  getService(Ci.nsIShellService);
+      shell.setDefaultClient(true, Ci.nsIShellService.MAIL);
     }
   },
 
-  helpInfo : "  -setDefaultMail   Set this app as the default mail client.\n"
-}
+  helpInfo : "  -setDefaultMail   Set this app as the default mail client.\n",
 
-const contractID = "@mozilla.org/mail/default-mail-clh;1";
-const CID = Components.ID("{ED117D0A-F6C2-47d8-8A71-0E15BABD2554}");
-
-var ModuleAndFactory = {
-  /* nsISupports */
-  QueryInterface: function nsSetDefault_QI(iid) {
-    if (!iid.equals(Components.interfaces.nsIModule) &&
-        !iid.equals(Components.interfaces.nsIFactory) &&
-        !iid.equals(Components.interfaces.nsISupports))
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-
-    return this;
-  },
-
-  /* nsIModule */
-  getClassObject: function (compMgr, cid, iid) {
-    if (!cid.equals(CID))
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    
-    return this.QueryInterface(iid);
-  },
-    
-  registerSelf: function mod_regself(compMgr, fileSpec, location, type) {
-    var compReg =
-      compMgr.QueryInterface( Components.interfaces.nsIComponentRegistrar );
-
-    compReg.registerFactoryLocation( CID,
-                                     "Default Mail Cmdline Handler",
-                                     contractID,
-                                     fileSpec,
-                                     location,
-                                     type );
-
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"]
-                           .getService(Components.interfaces.nsICategoryManager);
-
-    catMan.addCategoryEntry("command-line-handler",
-                            "m-setdefaultmail",
-                            contractID, true, true);
-  },
-    
-  unregisterSelf : function mod_unregself(compMgr, location, type) {
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"]
-                           .getService(Components.interfaces.nsICategoryManager);
-
-    catMan.deleteCategoryEntry("command-line-handler",
-                               "m-setdefaultmail", true);
-  },
-
-  canUnload: function(compMgr) {
-    return true;
-  },
-
-  /* nsIFactory */
-  createInstance: function mod_CI(outer, iid) {
-    if (outer != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
-  
-    return new nsSetDefaultMail().QueryInterface(iid);
-  },
-    
-  lockFactory : function mod_lock(lock) {
-    /* no-op */
-  }
-}
+  // XPCOMUtils info
+  _xpcom_categories: [{category: "command-line-handler",
+                       entry: "m-setdefaultmail"}],
+  classDescription: "Default Mail Cmdline Handler",
+  contractID: "@mozilla.org/mail/default-mail-clh;1",
+  classID: Components.ID("{ED117D0A-F6C2-47d8-8A71-0E15BABD2554}"),
+};
 
 // NSGetModule: Return the nsIModule object.
 function NSGetModule(compMgr, fileSpec) {
-  return ModuleAndFactory;
+  return XPCOMUtils.generateModule([nsSetDefaultMail]);
 }
