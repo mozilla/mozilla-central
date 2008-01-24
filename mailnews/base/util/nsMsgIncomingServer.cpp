@@ -197,6 +197,7 @@ NS_IMETHODIMP
 nsMsgIncomingServer::GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow,
                       nsIUrlListener *aUrlListener)
 {
+  NS_ENSURE_ARG_POINTER(aFolder);
   return aFolder->GetNewMessages(aMsgWindow, aUrlListener);
 }
 
