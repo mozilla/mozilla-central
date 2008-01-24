@@ -102,6 +102,8 @@ def main(argv):
 
     if 'U tinderbox-configs/CLOBBER\n' in tboxLines or 'U buildbot-configs/CLOBBER\n' in buildbotLines:
         killAndClobber(slaveName, branchDir)
+    else:
+        print "No clobber required"
 
 if __name__ == "__main__":
     main(sys.argv[1:])
