@@ -102,3 +102,6 @@ _PR_ppc_AtomicAdd:
         mr      3,0
         blr
 .Lfe4:  .size _PR_ppc_AtomicAdd,.Lfe4-_PR_ppc_AtomicAdd
+
+# Magic indicating no need for an executable stack
+.section .note.GNU-stack, "", @progbits ; .previous

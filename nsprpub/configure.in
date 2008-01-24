@@ -1465,10 +1465,11 @@ tools are selected during the Xcode/Developer Tools installation.])
         PR_MD_ASFILES=os_Linux_ppc.s
         ;;
     powerpc64)
-        PR_MD_ASFILES=os_Linux_ppc.s
         if test -n "$USE_64"; then
             CC="$CC -m64"
             CXX="$CXX -m64"
+        else
+            PR_MD_ASFILES=os_Linux_ppc.s
         fi
         ;;
     m68k)
