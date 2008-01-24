@@ -61,6 +61,7 @@ $CleanProfile             = 1;
 $ProductName              = "Firefox";
 $VendorName               = 'Mozilla';
 
+# CONFIG: $RunMozillaTests          = %runMozillaTests%;
 $RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
 $RegxpcomTest             = 1;
 $AliveTest                = 1;
@@ -144,6 +145,7 @@ $pageload_server      = "pageload.build.mozilla.org";
 # :pserver:$ENV{USER}%netscape.com@cvs.mozilla.org:/cvsroot
 
 #$moz_cvsroot   = $ENV{CVSROOT};
+# CONFIG: $moz_cvsroot   = '%mozillaCvsroot%';
 $moz_cvsroot   = ":ext:ffxbld\@cvs.mozilla.org:/cvsroot";
 
 #- Set these proper values for your tinderbox server
@@ -171,6 +173,7 @@ $BuildNameExtra = 'Nightly';
 
 #- Until you get the script working. When it works,
 #- change to the tree you're actually building
+# CONFIG: $BuildTree  = '%buildTree%';
 $BuildTree  = 'Firefox';
 
 #$BuildName = '';
@@ -202,8 +205,10 @@ $build_hour    = 4;
 $package_creation_path = "/browser/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
 $ssh_version   = "2";
+# CONFIG: $ssh_user      = "%sshUser%";
 $ssh_user      = "ffxbld";
 $ssh_key       = "'$ENV{HOME}/.ssh/ffxbld_dsa'";
+# CONFIG: $ssh_server    = "%sshServer%";
 $ssh_server    = "stage.mozilla.org";
 $ReleaseGroup  = "firefox";
 $ftp_path      = "/home/ftp/pub/firefox/nightly";
@@ -216,19 +221,26 @@ $stub_installer = 0;
 $sea_installer = 0;
 $archive       = 1;
 $push_raw_xpis = 0;
+# CONFIG: $update_aus_host = '%ausServer%';
+$update_aus_host = 'aus2-staging.mozilla.org';
 $update_pushinfo = 1;
 $update_package = 1;
 $update_product = "Firefox";
 $update_version = "trunk";
 $update_platform = "Linux_x86-gcc3";
 $update_hash = "sha1";
+# CONFIG: $update_filehost = '%externalStagingServer%';
 $update_filehost = 'ftp.mozilla.org';
 $update_ver_file = 'browser/config/version.txt';
 $crashreporter_buildsymbols = 1;
 $crashreporter_pushsymbols = 1;
+# CONFIG: $ENV{'SYMBOL_SERVER_HOST'}    = '%symbolServer%';
 $ENV{'SYMBOL_SERVER_HOST'} = 'stage.mozilla.org';
+# CONFIG: $ENV{'SYMBOL_SERVER_USER'}    = '%symbolServerUser%';
 $ENV{'SYMBOL_SERVER_USER'}   = 'ffxbld';
+# CONFIG: $ENV{'SYMBOL_SERVER_PATH'}    = '%symbolServerPath%';
 $ENV{'SYMBOL_SERVER_PATH'}   = '/mnt/netapp/breakpad/symbols_ffx/';
+# CONFIG: $ENV{'SYMBOL_SERVER_SSH_KEY'} = '%symbolServerKey%';
 $ENV{'SYMBOL_SERVER_SSH_KEY'}   = "$ENV{'HOME'}/.ssh/ffxbld_dsa";
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
