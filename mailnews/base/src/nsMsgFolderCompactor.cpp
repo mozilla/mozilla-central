@@ -184,6 +184,7 @@ NS_IMETHODIMP nsFolderCompactState::CompactAll(nsISupportsArray *aArrayOfFolders
 NS_IMETHODIMP
 nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore, nsIMsgWindow *aMsgWindow)
 {
+  NS_ENSURE_ARG_POINTER(folder);
   if (!m_compactingOfflineFolders && !aOfflineStore)
 {
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
