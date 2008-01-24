@@ -1068,6 +1068,7 @@ NS_IMETHODIMP nsMsgMdnGenerator::OnStopRunningUrl(nsIURI *url,
                                                   nsresult aExitCode)
 {
     DEBUG_MDN("nsMsgMdnGenerator::OnStopRunningUrl");
-    m_file->Remove(PR_FALSE);
+    if (m_file)
+      m_file->Remove(PR_FALSE);
     return NS_OK;
 }
