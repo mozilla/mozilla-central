@@ -403,7 +403,10 @@ nsNntpService::FetchMessage(nsIMsgFolder *folder, nsMsgKey key, nsIMsgWindow *aM
 
 NS_IMETHODIMP nsNntpService::FetchMimePart(nsIURI *aURI, const char *aMessageURI, nsISupports *aDisplayConsumer, nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlListener, nsIURI **aURL)
 {
-  nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(aURI));
+  nsresult rv;
+  nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(aURI, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   msgUrl->SetMsgWindow(aMsgWindow);
 
   // set up the url listener
@@ -430,6 +433,8 @@ NS_IMETHODIMP nsNntpService::OpenAttachment(const char *aContentType,
                                             nsIMsgWindow *aMsgWindow,
                                             nsIUrlListener *aUrlListener)
 {
+  NS_ENSURE_ARG_POINTER(aUrl);
+  NS_ENSURE_ARG_POINTER(aFileName);
 
   nsCOMPtr<nsIURI> url;
   nsresult rv = NS_OK;
@@ -444,7 +449,9 @@ NS_IMETHODIMP nsNntpService::OpenAttachment(const char *aContentType,
 
   if (NS_SUCCEEDED(rv) && url)
   {
-    nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(url));
+    nsCOMPtr<nsIMsgMailNewsUrl> msgUrl (do_QueryInterface(url, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     msgUrl->SetMsgWindow(aMsgWindow);
     msgUrl->SetFileName(nsDependentCString(aFileName));
 // this code isn't ready yet, but it helps getting opening attachments
@@ -1625,6 +1632,8 @@ nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMs
 NS_IMETHODIMP
 nsNntpService::Handle(nsICommandLine* aCmdLine)
 {
+  NS_ENSURE_ARG_POINTER(aCmdLine);
+
   nsresult rv;
   PRBool found;
 

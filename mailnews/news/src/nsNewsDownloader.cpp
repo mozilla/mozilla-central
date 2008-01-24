@@ -551,7 +551,7 @@ nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
       return m_listener->OnStopRunningUrl(nsnull, NS_OK);
   }
   m_downloadedHdrsForCurGroup = PR_TRUE;
-  return m_currentFolder->GetNewMessages(m_window, this);
+  return m_currentFolder ? m_currentFolder->GetNewMessages(m_window, this) : NS_ERROR_NOT_INITIALIZED;
 }
 
 nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
