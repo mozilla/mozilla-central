@@ -1201,6 +1201,8 @@ nsNntpIncomingServer::Subscribe(const PRUnichar *aUnicharName)
 NS_IMETHODIMP
 nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
 {
+  NS_ENSURE_ARG_POINTER(aUnicharName);
+
   nsresult rv;
 
   nsCOMPtr <nsIMsgFolder> serverFolder;
@@ -1787,6 +1789,9 @@ nsNntpIncomingServer::GetCellProperties(PRInt32 row, nsITreeColumn* col, nsISupp
     if (!IsValidRow(row))
       return NS_ERROR_UNEXPECTED;
 
+    NS_ENSURE_ARG_POINTER(col);
+    NS_ENSURE_ARG_POINTER(properties);
+
     const PRUnichar* colID;
     col->GetIdConst(&colID);
     if (colID[0] == 's') {
@@ -1908,6 +1913,8 @@ nsNntpIncomingServer::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& _r
     if (!IsValidRow(row))
       return NS_ERROR_UNEXPECTED;
 
+    NS_ENSURE_ARG_POINTER(col);
+
     const PRUnichar* colID;
     col->GetIdConst(&colID);
 
@@ -1961,6 +1968,8 @@ nsNntpIncomingServer::ToggleOpenState(PRInt32 index)
 NS_IMETHODIMP
 nsNntpIncomingServer::CycleHeader(nsITreeColumn* col)
 {
+    NS_ENSURE_ARG_POINTER(col);
+
     PRBool cycler;
     col->GetCycler(&cycler);
     if (!cycler) {
