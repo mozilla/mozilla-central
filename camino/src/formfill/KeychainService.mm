@@ -614,7 +614,7 @@ int KeychainPrefChangedCallback(const char* inPref, void* unused)
   [neverStore setKeyEquivalent:@"n"];
   [neverStore setKeyEquivalentModifierMask:NSCommandKeyMask];
 
-  [[alert window] makeFirstResponder:dontStore];
+  [[alert window] setInitialFirstResponder:dontStore];
   [alert beginSheetModalForWindow:window
                     modalDelegate:self
                    didEndSelector:@selector(storeSheetDidEnd:returnCode:contextInfo:)
