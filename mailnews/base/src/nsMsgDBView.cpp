@@ -854,6 +854,8 @@ nsresult nsMsgDBView::CycleThreadedColumn(nsIDOMElement * aElement)
 
 NS_IMETHODIMP nsMsgDBView::IsEditable(PRInt32 row, nsITreeColumn* col, PRBool* _retval)
 {
+  NS_ENSURE_ARG_POINTER(col);
+  NS_ENSURE_ARG_POINTER(_retval);
   //attempt to retreive a custom column handler. If it exists call it and return
   const PRUnichar* colID;
   col->GetIdConst(&colID);
@@ -1490,6 +1492,7 @@ nsresult nsMsgDBView::GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDatabase **d
 
 NS_IMETHODIMP nsMsgDBView::GetImageSrc(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
+  NS_ENSURE_ARG_POINTER(aCol);
   //attempt to retreive a custom column handler. If it exists call it and return
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
@@ -5006,6 +5009,7 @@ NS_IMETHODIMP nsMsgDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFl
   // if we're not the instigator, update flags if this key is in our view
   if (aInstigator != this)
   {
+    NS_ENSURE_ARG_POINTER(aHdrChanged);
     nsMsgKey msgKey;
     aHdrChanged->GetMessageKey(&msgKey);
     nsMsgViewIndex index = FindViewIndex(msgKey);
