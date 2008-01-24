@@ -2001,6 +2001,7 @@ const long kMaxDownloadTableSize = 500;
 NS_IMETHODIMP nsMsgIncomingServer::IsNewHdrDuplicate(nsIMsgDBHdr *aNewHdr, PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
+  NS_ENSURE_ARG_POINTER(aNewHdr);
   *aResult = PR_FALSE;
   nsCAutoString strHashKey;
   nsCString messageId, subject;
