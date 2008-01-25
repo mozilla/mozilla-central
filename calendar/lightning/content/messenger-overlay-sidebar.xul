@@ -277,9 +277,6 @@
              command="cmd_toggleModeToolbar"
              position="2"/>
   </menupopup>
-<!-- Hide the Thunderbird Open menuitem. Don't remove it, since other extensions
-     might depend on its position. A visible menuitem will be added below. -->
-<menuitem id="openMessageFileMenuitem" hidden="true" accesskey="" key=""/>
 
 <window id="messengerWindow">
 
