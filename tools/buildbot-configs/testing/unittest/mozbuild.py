@@ -134,12 +134,28 @@ cvsCoLog = "cvsco.log"
 tboxClobberCvsCoLog = "tbox-CLOBBER-cvsco.log"
 buildbotClobberCvsCoLog = "buildbot-CLOBBER-cvsco.log"
 
+class CreateDir(ShellCommand):
+    name = "create dir"
+    haltOnFailure = False
+    warnOnFailure = True
+
+    def __init__(self, **kwargs):
+        if not 'platform' in kwargs:
+            return FAILURE
+        self.platform = kwargs['platform']
+        if 'dir' in kwargs:
+            self.dir = kwargs['dir']
+        if self.platform.startswith('win'):
+            self.command = r'if not exist ' + slef.dir + r' mkdir ' + self.dir
+        else:
+            self.command = ['mkdir', '-p', self.dir]
+        ShellCommand.__init__(self, **kwargs)
+
 class TinderboxShellCommand(ShellCommand):
     haltOnFailure = False
     
     def evaluateCommand(self, cmd):
        return SUCCESS
-    
 
 class MozillaCheckoutClientMk(ShellCommand):
     haltOnFailure = True
@@ -218,11 +234,7 @@ class UpdateClobberFiles(ShellCommand):
             self.buildbotClobberModule = 'mozilla/tools/buildbot-configs/testing/unittest/CLOBBER/firefox/TRUNK/' + self.platform 
             
         if not 'command' in kwargs:
-            if self.platform.startswith('win'):
-                self.command = ''
-            else:
-                self.command = r'mkdir -p ' + self.clobberFilePath + r' && '
-            self.command += r'cd ' + self.clobberFilePath + r' && cvs -d ' + self.cvsroot + r' checkout' + self.branchString + r' -d tinderbox-configs ' + self.tboxClobberModule + r'>' + self.logDir + tboxClobberCvsCoLog + r' && cvs -d ' + self.cvsroot + r' checkout -d buildbot-configs ' + self.buildbotClobberModule + r'>' + self.logDir + buildbotClobberCvsCoLog
+            self.command = r'cd ' + self.clobberFilePath + r' && cvs -d ' + self.cvsroot + r' checkout' + self.branchString + r' -d tinderbox-configs ' + self.tboxClobberModule + r'>' + self.logDir + tboxClobberCvsCoLog + r' && cvs -d ' + self.cvsroot + r' checkout -d buildbot-configs ' + self.buildbotClobberModule + r'>' + self.logDir + buildbotClobberCvsCoLog
         ShellCommand.__init__(self, **kwargs)
 
 class MozillaClobber(ShellCommand):
