@@ -1984,29 +1984,19 @@ function SaveAsTemplate()
   gEditingDraft = false;
 }
 
+// Sets the additional FCC, in addition to the default FCC.
 function MessageFcc(menuItem)
 {
-  // Get the id for the folder we're FCC into
-  // This is the additional FCC in addition to the
-  // default FCC
-  var destUri = menuItem.getAttribute('id');
-  if (gMsgCompose)
-  {
-    var msgCompFields = gMsgCompose.compFields;
-    if (msgCompFields)
-    {
-      if (msgCompFields.fcc2 == destUri)
-      {
-        msgCompFields.fcc2 = "nocopy://";
-        dump("FCC2: none\n");
-      }
-      else
-      {
-        msgCompFields.fcc2 = destUri;
-        dump("FCC2: " + destUri + "\n");
-      }
-    }
-  }
+  if (!gMsgCompose)
+    return;
+
+  var msgCompFields = gMsgCompose.compFields;
+  if (!msgCompFields)
+    return;
+
+  // Get the uri for the folder to FCC into.
+  var fccUri = menuItem.getAttribute("fccUri");
+  msgCompFields.fcc2 = (msgCompFields.fcc2 == fccUri) ? "nocopy://" : fccUri;
 }
 
 function updatePriorityMenu(priorityMenu)
