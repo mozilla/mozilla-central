@@ -675,7 +675,9 @@ parse_logfile_valgrind()
 	}
 	!/==[0-9]*==/ { 
 		if ( $1 == "Running:" ) 
-			bin_name = $2 
+			bin_name = $2
+			bin_nf = split(bin_name, bin_fields, "/")
+			bin_name = bin_fields[bin_nf]
 		next
 	}
 	/blocks are/ {
