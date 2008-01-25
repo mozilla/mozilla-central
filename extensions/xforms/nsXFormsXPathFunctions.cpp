@@ -54,8 +54,8 @@
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
 
-static const PRUint32 nanMask[2] = TX_DOUBLE_NaN;
-#define kNaN *((double*)nanMask)
+static const txdpun nanMask = TX_DOUBLE_NaN;
+#define kNaN (nanMask.d)
 
 NS_IMPL_ISUPPORTS1_CI(nsXFormsXPathFunctions, nsIXFormsXPathFunctions)
 
