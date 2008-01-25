@@ -52,6 +52,8 @@
     <script type="application/x-javascript"
             src="chrome://lightning/content/lightning-utils.js"/>
     <script type="application/x-javascript"
+            src="chrome://calendar/content/calUtils.js"/>
+    <script type="application/x-javascript"
             src="chrome://lightning/content/imip-bar.js"/>
 
     <vbox id="messagepanebox">
