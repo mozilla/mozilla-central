@@ -231,7 +231,9 @@
           }
 
           var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
-          if ((item.alarmOffset || item.parentItem.alarmOffset) && getPrefSafe("calendar.alarms.indicator.show", true)) {
+          if ((item.alarmOffset || item.parentItem.alarmOffset) &&
+              getPrefSafe("calendar.alarms.indicator.show", true) &&
+              !item.calendar.getProperty("suppressAlarms")) {
               alarmImage.removeAttribute("hidden");
           }
         ]]></body>

@@ -1672,8 +1672,15 @@
           },
           onError: function (aErrNo, aMessage) { },
 
-          onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
-          onPropertyDeleting: function(aCalendar, aName) {},
+          onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+            if (aName == "suppressAlarms" &&
+                getPrefSafe("calendar.alarms.indicator.show", true)) {
+              this.calView.refresh();
+            }
+          },
+          onPropertyDeleting: function(aCalendar, aName) {
+            this.onPropertyChanged(aCalendar, aName, null, null);
+          },
 
           //
           // calIAlarmServiceObserver stuff

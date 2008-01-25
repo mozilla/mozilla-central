@@ -2500,6 +2500,11 @@
 
             onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
                 switch (aName) {
+                    case "suppressAlarms":
+                        if (!getPrefSafe("calendar.alarms.indicator.show", true)) {
+                            break;
+                        }
+                        // else fall through
                     case "readOnly":
                         // XXXvv we can be smarter about how we handle this stuff
                         this.calView.refresh();
