@@ -146,7 +146,7 @@ class CreateDir(ShellCommand):
         if 'dir' in kwargs:
             self.dir = kwargs['dir']
         if self.platform.startswith('win'):
-            self.command = r'if not exist ' + slef.dir + r' mkdir ' + self.dir
+            self.command = r'if not exist ' + self.dir + r' mkdir ' + self.dir
         else:
             self.command = ['mkdir', '-p', self.dir]
         ShellCommand.__init__(self, **kwargs)
