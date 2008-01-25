@@ -469,7 +469,8 @@
              sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
              sortDirection="ascending"
              datasources="rdf:msgaccountmanager rdf:mailnewsfolders" 
-             ref="msgaccounts:/">
+             ref="msgaccounts:/"
+             oncommand="MessageFcc(event.target);">
             <menupopup/>
             <template> 
               <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
@@ -483,8 +484,7 @@
                         IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
                         ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
                     <menupopup>
-                      <menuitem label="&fileHereMenu.label;"
-                                oncommand="MessageFcc(event.target.parentNode.parentNode)"/>
+                      <menuitem label="&fileHereMenu.label;" fccUri="rdf:*"/>
                       <menuseparator/>
                     </menupopup>
                   </menu>
@@ -506,12 +506,12 @@
               <rule nc:CanFileMessages="true">
                 <menupopup>
                   <menuitem uri="..." class="folderMenuItem menuitem-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                            oncommand="MessageFcc(event.target)" 
                             SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
                             BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
                             IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
                             IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
+                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                            fccUri="rdf:*"/>
                 </menupopup>
               </rule>
             </template>
