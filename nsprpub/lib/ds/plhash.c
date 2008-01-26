@@ -524,7 +524,7 @@ PL_HashString(const void *key)
 
     h = 0;
     for (s = (const PRUint8*)key; *s; s++)
-        h = (h >> 28) ^ (h << 4) ^ *s;
+        h = PR_ROTATE_LEFT32(h, 4) ^ *s;
     return h;
 }
 

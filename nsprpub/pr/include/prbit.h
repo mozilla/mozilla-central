@@ -107,5 +107,30 @@ NSPR_API(PRIntn) PR_FloorLog2(PRUint32 i);
 	(_log2) += 1;               \
   PR_END_MACRO
 
+/*
+** Macros for rotate left and right. The argument 'a' must be an unsigned
+** 32-bit integer type such as PRUint32.
+**
+** There is no rotate operation in the C Language, so the construct
+** (a >> 28) | (a << 4) is frequently used instead. Most compilers convert
+** this to a rotate instruction, but MSVC doesn't without a little help.
+** To get MSVC to generate a rotate instruction, we have to use the _rotl
+** or _rotr intrinsic and use a pragma to make it inline.
+**
+** Note: MSVC in VS2005 will do an inline rotate instruction on the above
+** construct.
+*/
+
+#if defined(_MSC_VER) && (defined(_X86_) || defined(_AMD64_) || \
+    defined(_M_AMD64))
+#include <stdlib.h>
+#pragma intrinsic(_rotl, _rotr)
+#define PR_ROTATE_LEFT32(a, bits) _rotl(a, bits)
+#define PR_ROTATE_RIGHT32(a, bits) _rotr(a, bits)
+#else
+#define PR_ROTATE_LEFT32(a, bits) (((a) << (bits)) | ((a) >> (32 - (bits))))
+#define PR_ROTATE_RIGHT32(a, bits) (((a) >> (bits)) | ((a) << (32 - (bits))))
+#endif
+
 PR_END_EXTERN_C
 #endif /* prbit_h___ */
