@@ -3239,12 +3239,7 @@ function usr_banmask()
     if (!this.host)
         return this.unicodeName + "!*@*";
 
-    var hostmask = this.host;
-    if (!/^\d+\.\d+\.\d+\.\d+$/.test(hostmask))
-        hostmask = hostmask.replace(/^[^.]+/, "*");
-    else
-        hostmask = hostmask.replace(/[^.]+$/, "*");
-    return "*!" + this.name + "@" + hostmask;
+    return "*!*@" + this.host;
 }
 
 CIRCUser.prototype.say =
