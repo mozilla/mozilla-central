@@ -121,8 +121,8 @@ NSPR_API(PRIntn) PR_FloorLog2(PRUint32 i);
 ** construct.
 */
 
-#if defined(_MSC_VER) && (defined(_X86_) || defined(_AMD64_) || \
-    defined(_M_AMD64))
+#if defined(_MSC_VER) && (defined(_X86_) || defined(_M_IX86) || \
+    defined(_AMD64_) || defined(_M_AMD64))
 #include <stdlib.h>
 #pragma intrinsic(_rotl, _rotr)
 #define PR_ROTATE_LEFT32(a, bits) _rotl(a, bits)
