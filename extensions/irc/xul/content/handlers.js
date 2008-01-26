@@ -2261,6 +2261,16 @@ function my_cprivmsg (e)
 CIRCChannel.prototype.on366 =
 function my_366 (e)
 {
+    // First clear up old users:
+    var removals = new Array();
+    while (this.userList.childData.childData.length > 0)
+    {
+        var userToRemove = this.userList.childData.childData[0]._userObj;
+        this.removeFromList(userToRemove);
+        removals.push(userToRemove);
+    }
+    this.removeUsers(removals);
+
     var entries = new Array(), updates = new Array();
     for (var u in this.users)
     {
