@@ -1343,11 +1343,6 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     if (!userValue.Length() || userValue.Equals(user, nsCaseInsensitiveStringComparator())) {
       rv = usernameElement->SetValue(user);
       rv = passwordElement->SetValue(pwd);
-
-      // Highlight the username.
-      nsCOMPtr<nsIDOMNSHTMLInputElement> nsElement = do_QueryInterface(usernameElement);
-      if (nsElement)
-        nsElement->SetSelectionStart(0);
     }
 
     // Now that we have actually filled the password, cache the keychain entry.
