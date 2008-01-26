@@ -293,7 +293,7 @@ function cmgr_instkey (parentElem, command)
     var key = document.createElement ("key");
     key.setAttribute ("id", "key:" + command.name);
     key.setAttribute ("oncommand", "dispatch('" + command.name +
-                      "', {isInteractive: true});");
+                      "', {isInteractive: true, source: 'keyboard'});");
 
     if (ary[1])
         key.setAttribute ("modifiers", ary[1]);
