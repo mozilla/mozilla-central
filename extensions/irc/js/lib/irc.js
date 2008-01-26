@@ -157,8 +157,8 @@ function net_geturl(target, flags)
 
     if (flags)
     {
-        for (var f in flags)
-            obj[f] = true;
+        for (var i = 0; i < flags.length; i++)
+            obj[flags[i]] = true;
     }
 
     return constructIRCURL(obj);
@@ -629,8 +629,8 @@ function serv_geturl(target, flags)
 
     if (flags)
     {
-        for (var f in flags)
-            obj[f] = true;
+        for (var i = 0; i < flags.length; i++)
+            obj[flags[i]] = true;
     }
 
     return constructIRCURL(obj);
