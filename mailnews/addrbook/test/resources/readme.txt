@@ -18,3 +18,41 @@ abCleanup.js
 Provides the cleanup() function for closing down the address book and then
 removing the remaining files. Relies on abSetup.js.
 
+---------------------
+General Support Files
+---------------------
+
+abLists1.mab
+------------
+
+An address book with 5 cards and 3 lists. The cards only have the email and
+prefer mail format set:
+
+test1@invalid.com  unknown
+test2@invalid.com  unknown
+test3@invalid.com  unknown
+test4@invalid.com  plain text
+test5@invalid.com  html
+
+There are 3 lists, TestList1, TestList2 and TestList3. They have the following
+cards:
+
+TestList1:
+
+test1@invalid.com
+test2@invalid.com
+test3@invalid.com
+
+TestList2:
+
+test4@invalid.com
+
+TestList3:
+
+test5@invalid.com
+
+
+abLists2.mab
+------------
+
+The same as abLists1.mab, but with com.invalid instead of invalid.com, and ListTestX instead of TestListX.

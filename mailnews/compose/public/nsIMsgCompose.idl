@@ -1,4 +1,4 @@
-/* -*- Mode: idl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -131,7 +131,7 @@ interface nsIMsgComposeRecyclingListener : nsISupports {
   void onReopen(in nsIMsgComposeParams params);
 };
 
-[scriptable, uuid(c58ffdef-39a4-4935-9a81-409fe3986085)]
+[scriptable, uuid(4e0bbbb8-4c9d-499e-ad8a-5e4c1866c0bb)]
 interface nsIMsgCompose : nsIMsgSendListener {
 
   /* ... */
@@ -165,15 +165,26 @@ interface nsIMsgCompose : nsIMsgSendListener {
     This UI utility function should probably go into it's own class
   */
   AUTF8String AttachmentPrettyName(in string url, in string charset);
-    
-  /*
-    CheckAndPopulateRecipients will perform several tasks:
-      1) if populateMailList is true, it will populate mailing presents in the compose field
-      2) if returnNoHTMLRecipients is true, build a list of non HTML recipient
-      3) return the lowest common format preferred by recipients (unknown, plaintext or html)
-  */
-  unsigned long CheckAndPopulateRecipients(in boolean populateMailList, in boolean returnNonHTMLRecipients, out wstring nonHTMLRecipients);
-  
+
+  /**
+   * checkAndPopulateRecipients can perform several tasks (see params), the
+   * main task is to determine the lowest common format preferred by recipients.
+   *
+   * @param aPopulateMailList        If true, this function will populate
+   *                                 mailing lists present in the compose field.
+   * @param aReturnNonHTMLRecipients If true, will build a list of the non
+   *                                 HTML receipients.
+   * @param aNonHTMLRecipients       This will contain any non-HTML recipients,
+   *                                 if aReturnNonHTMLRecipients is true
+   *                                 (comma-separated).
+   * @return                         The lowest common format preferred by
+   *                                 recipients (unknown, plaintext or html).
+   *                                 See nsIAbPreferMailFormat.
+   */
+  unsigned long checkAndPopulateRecipients(in boolean aPopulateMailList,
+                                           in boolean aReturnNonHTMLRecipients,
+                                           out AString aNonHTMLRecipients);
+
   /* bodyConvertible: The level of "convertibility" to plaintext
    * @return a value from nsIMsgCompConvertible.
   */

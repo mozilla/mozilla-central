@@ -42,21 +42,17 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgCompose.h"
-
 #include "nsIScriptGlobalObject.h"
 #include "nsIScriptContext.h"
 #include "nsIDOMNode.h"
 #include "nsIDOMNodeList.h"
-#include "nsIDOMHTMLInputElement.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsIDOMHTMLLinkElement.h"
 #include "nsIDOMHTMLAnchorElement.h"
 #include "nsPIDOMWindow.h"
-#include "nsISelection.h"
 #include "nsISelectionController.h"
 #include "nsIDOMNamedNodeMap.h"
 #include "nsMsgI18N.h"
-#include "nsICharsetConverterManager.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgQuote.h"
 #include "nsIPrefService.h"
@@ -65,7 +61,7 @@
 #include "nsIMsgHeaderParser.h"
 #include "nsMsgCompUtils.h"
 #include "nsComposeStrings.h"
-#include "nsMsgSend.h"
+#include "nsIMsgSend.h"
 #include "nsMailHeaders.h"
 #include "nsMsgPrompts.h"
 #include "nsMimeTypes.h"
@@ -81,36 +77,28 @@
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
 #include "nsIAddrDatabase.h"
-#include "nsIAddrBookSession.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIMIMEService.h"
 #include "nsIDocShellTreeItem.h"
 #include "nsIDocShellTreeOwner.h"
 #include "nsIWindowMediator.h"
-#include "nsISupportsArray.h"
-#include "nsCOMArray.h"
-#include "nsIIOService.h"
 #include "nsIURL.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
-#include "nsIPrompt.h"
 #include "nsMsgMimeCID.h"
-#include "nsCOMPtr.h"
 #include "nsDateTimeFormatCID.h"
 #include "nsIDateTimeFormat.h"
 #include "nsILocaleService.h"
 #include "nsILocale.h"
-#include "nsMsgComposeService.h"
+#include "nsIMsgComposeService.h"
 #include "nsIMsgComposeProgressParams.h"
 #include "nsMsgUtils.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsImapCore.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsNetUtil.h"
 #include "nsMsgSimulateError.h"
-#include "nsILocalFile.h"
 #include "nsIContentViewer.h"
 #include "nsIMarkupDocumentViewer.h"
 #include "nsIMsgMdnGenerator.h"
@@ -4380,92 +4368,65 @@ nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsISupportsArray* ma
 // 3 = To, Cc, Bcc
 #define MAX_OF_RECIPIENT_ARRAY    3
 
-NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, PRBool returnNonHTMLRecipients, PRUnichar **nonHTMLRecipients, PRUint32 *_retval)
+NS_IMETHODIMP
+nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
+                                         PRBool aReturnNonHTMLRecipients,
+                                         nsAString &aNonHTMLRecipients,
+                                         PRUint32 *aResult)
 {
-  if (returnNonHTMLRecipients && !nonHTMLRecipients || !_retval)
-    return NS_ERROR_INVALID_ARG;
+  NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv = NS_OK;
-  PRInt32 i;
-  PRInt32 j;
-  PRInt32 k;
 
-  if (nonHTMLRecipients)
-    *nonHTMLRecipients = nsnull;
-  if (_retval)
-    *_retval = nsIAbPreferMailFormat::unknown;
+  aNonHTMLRecipients.Truncate();
 
-  /* First, build an array with original recipients */
-  nsCOMArray<nsMsgRecipient> recipientsList[MAX_OF_RECIPIENT_ARRAY];
+  if (aResult)
+    *aResult = nsIAbPreferMailFormat::unknown;
+
+  // First, build some arrays with the original recipients.
+  nsTArray<nsMsgRecipient> recipientsList[MAX_OF_RECIPIENT_ARRAY];
 
   nsAutoString originalRecipients[MAX_OF_RECIPIENT_ARRAY];
   m_compFields->GetTo(originalRecipients[0]);
   m_compFields->GetCc(originalRecipients[1]);
   m_compFields->GetBcc(originalRecipients[2]);
 
-  nsCOMPtr<nsIMsgRecipientArray> addressArray;
-  nsCOMPtr<nsIMsgRecipientArray> emailArray;
-  for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; i ++)
+  PRUint32 i, j, k;
+
+  for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; ++i)
   {
     if (originalRecipients[i].IsEmpty())
       continue;
+
     rv = m_compFields->SplitRecipientsEx(originalRecipients[i].get(),
-                                         getter_AddRefs(addressArray), getter_AddRefs(emailArray));
-    if (NS_SUCCEEDED(rv))
-    {
-      PRInt32 nbrRecipients;
-      nsString emailAddr;
-      nsString addr;
-      addressArray->GetCount(&nbrRecipients);
-
-      for (j = 0; j < nbrRecipients; j ++)
-      {
-        rv = addressArray->StringAt(j, getter_Copies(addr));
-        if (NS_FAILED(rv))
-          return rv;
-
-        rv = emailArray->StringAt(j, getter_Copies(emailAddr));
-        if (NS_FAILED(rv))
-          return rv;
-
-        nsMsgRecipient* recipient = new nsMsgRecipient(addr, emailAddr);
-        if (!recipient)
-           return NS_ERROR_OUT_OF_MEMORY;
-        NS_ADDREF(recipient);
-        rv = recipientsList[i].AppendObject(recipient) ? NS_OK : NS_ERROR_FAILURE;
-        NS_RELEASE(recipient);
-        if (NS_FAILED(rv))
-          return rv;
-      }
-    }
-    else
-      return rv;
+                                         recipientsList[i]);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  /* Then look them up in the Addressbooks*/
-
+  // Then look them up in the Addressbooks
   PRBool stillNeedToSearch = PR_TRUE;
   nsCOMPtr<nsIAddrDatabase> abDataBase;
   nsCOMPtr<nsIAbDirectory> abDirectory;
   nsCOMPtr<nsIAbMDBDirectory> mdbDirectory;
-  nsCOMPtr <nsIAbCard> existingCard;
-  nsCOMPtr <nsISupportsArray> mailListAddresses;
-  nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
-  nsCOMPtr<nsISupportsArray> mailListArray (do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
+  nsCOMPtr<nsIAbCard> existingCard;
+  nsCOMPtr<nsISupportsArray> mailListAddresses;
+  nsCOMPtr<nsIMsgHeaderParser> parser(do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
+  nsCOMPtr<nsISupportsArray> mailListArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   if (NS_FAILED(rv))
     return rv;
 
-  nsCOMPtr<nsISupportsArray> addrbookDirArray (do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
+  nsCOMPtr<nsISupportsArray> addrbookDirArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv) && addrbookDirArray)
   {
     nsString dirPath;
-    GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), addrbookDirArray, PR_TRUE);
-    PRInt32 nbrRecipients;
-
     PRBool dirtyABDatabase = PR_FALSE;
     PRUint32 nbrAddressbook;
+
+    GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), addrbookDirArray,
+                     PR_TRUE);
+
     addrbookDirArray->Count(&nbrAddressbook);
-    for (k = 0; k < (PRInt32)nbrAddressbook && stillNeedToSearch; k ++)
+    for (k = 0; k < nbrAddressbook && stillNeedToSearch; ++k)
     {
       nsCOMPtr<nsISupports> item;
       addrbookDirArray->GetElementAt(k, getter_AddRefs(item));
@@ -4496,7 +4457,7 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
       if (NS_FAILED(rv))
         continue;
 
-      /* Collect all mailing list defined in this address book */
+      // Collect all mailing lists defined in this address book
       rv = BuildMailListArray(abDirectory, mailListArray);
       if (NS_FAILED(rv))
         return rv;
@@ -4504,18 +4465,19 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
       stillNeedToSearch = PR_FALSE;
       for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; i ++)
       {
-        nbrRecipients = recipientsList[i].Count();
-        if (nbrRecipients == 0)
-          continue;
-        for (j = 0; j < nbrRecipients; j++, nbrRecipients = recipientsList[i].Count())
+        // Note: We check this each time to allow for length changes.
+        for (j = 0; j < recipientsList[i].Length(); ++j)
         {
-          nsMsgRecipient* recipient = recipientsList[i][j];
-          if (recipient && !recipient->mProcessed)
+          nsMsgRecipient &recipient = recipientsList[i][j];
+          if (!recipient.mProcessed)
           {
-            /* First check if it's a mailing list */
-            if (NS_SUCCEEDED(GetMailListAddresses(recipient->mAddress, mailListArray, getter_AddRefs(mailListAddresses))))
+            // First check if it's a mailing list
+            if (NS_SUCCEEDED(GetMailListAddresses(recipient.mAddress,
+                                                  mailListArray,
+                                                  getter_AddRefs(mailListAddresses))))
             {
-              if (populateMailList)
+              // It is, so populate it if we are required to do so.
+              if (aPopulateMailList)
               {
                   PRUint32 nbrAddresses = 0;
                   for (mailListAddresses->Count(&nbrAddresses); nbrAddresses > 0; nbrAddresses --)
@@ -4525,9 +4487,8 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                     if (NS_FAILED(rv))
                       return rv;
 
+                    nsMsgRecipient newRecipient;
                     nsAutoString pDisplayName;
-                    nsAutoString pEmail;
-                    nsAutoString fullNameStr;
 
                     PRBool bIsMailList;
                     rv = existingCard->GetIsMailList(&bIsMailList);
@@ -4539,9 +4500,10 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                       return rv;
 
                     if (bIsMailList)
-                      rv = existingCard->GetNotes(pEmail);
+                      rv = existingCard->GetNotes(newRecipient.mEmail);
                     else
-                      rv = existingCard->GetPrimaryEmail(pEmail);
+                      rv = existingCard->GetPrimaryEmail(newRecipient.mEmail);
+
                     if (NS_FAILED(rv))
                       return rv;
 
@@ -4550,61 +4512,57 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
                       nsCString fullAddress;
 
                       parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(pDisplayName).get(),
-                                              NS_ConvertUTF16toUTF8(pEmail).get(), getter_Copies(fullAddress));
+                                              NS_ConvertUTF16toUTF8(newRecipient.mEmail).get(),
+                                              getter_Copies(fullAddress));
+
                       if (!fullAddress.IsEmpty())
                       {
-                        /* We need to convert back the result from UTF-8 to Unicode */
-                        CopyUTF8toUTF16(fullAddress, fullNameStr);
+                        // We need to convert back the result from UTF-8 to Unicode
+                        CopyUTF8toUTF16(fullAddress, newRecipient.mAddress);
                       }
                     }
-                    if (fullNameStr.IsEmpty())
+                    if (newRecipient.mAddress.IsEmpty())
                     {
-                      //oops, parser problem! I will try to do my best...
-                      fullNameStr = pDisplayName;
-                      fullNameStr.AppendLiteral(" <");
+                      // oops, parser problem! I will try to do my best...
+                      newRecipient.mAddress = pDisplayName;
+                      newRecipient.mAddress.AppendLiteral(" <");
                       if (bIsMailList)
                       {
-                        if (!pEmail.IsEmpty())
-                          fullNameStr += pEmail;
+                        if (!newRecipient.mEmail.IsEmpty())
+                          newRecipient.mAddress += newRecipient.mEmail;
                         else
-                          fullNameStr += pDisplayName;
+                          newRecipient.mAddress += pDisplayName;
                       }
                       else
-                        fullNameStr += pEmail;
-                      fullNameStr.Append(PRUnichar('>'));
+                        newRecipient.mAddress += newRecipient.mEmail;
+                      newRecipient.mAddress.Append(PRUnichar('>'));
                     }
 
-                    if (fullNameStr.IsEmpty())
+                    if (newRecipient.mAddress.IsEmpty())
                       continue;
 
-                    /* Now we need to insert the new address into the list of recipient */
-                    nsMsgRecipient* newRecipient = new nsMsgRecipient(fullNameStr, nsAutoString(pEmail));
-                    if (!recipient)
-                       return  NS_ERROR_OUT_OF_MEMORY;
-                    NS_ADDREF(newRecipient);
-
+                    // Now we need to insert the new address into the list of
+                    // recipient
                     if (bIsMailList)
                     {
                       stillNeedToSearch = PR_TRUE;
                     }
                     else
                     {
-                      newRecipient->mPreferFormat = nsIAbPreferMailFormat::unknown;
-                      rv = existingCard->GetPreferMailFormat(&newRecipient->mPreferFormat);
+                      newRecipient.mPreferFormat = nsIAbPreferMailFormat::unknown;
+                      rv = existingCard->GetPreferMailFormat(&newRecipient.mPreferFormat);
                       if (NS_SUCCEEDED(rv))
-                        recipient->mProcessed = PR_TRUE;
+                        newRecipient.mProcessed = PR_TRUE;
                     }
-                    rv = recipientsList[i].InsertObjectAt(newRecipient,
-                                                          j + 1) ? NS_OK : NS_ERROR_FAILURE;
-                    NS_RELEASE(newRecipient);
+                    rv = recipientsList[i].InsertElementAt(j + 1, newRecipient) ? NS_OK : NS_ERROR_FAILURE;
                     if (NS_FAILED(rv))
                       return rv;
                   }
-                  rv = recipientsList[i].RemoveObjectAt(j) ? NS_OK : NS_ERROR_FAILURE;
-                 j --;
+                  recipientsList[i].RemoveElementAt(j);
+                 --j;
               }
               else
-                recipient->mProcessed = PR_TRUE;
+                recipient.mProcessed = PR_TRUE;
 
               continue;
             }
@@ -4613,15 +4571,15 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
             // Please DO NOT change the 4th param of GetCardFromAttribute() call to
             // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
             rv = abDataBase->GetCardFromAttribute(abDirectory, kPriEmailColumn,
-                                                  NS_ConvertUTF16toUTF8(recipient->mEmail),
+                                                  NS_ConvertUTF16toUTF8(recipient.mEmail),
                                                   PR_FALSE /* case insensitive */,
                                                   getter_AddRefs(existingCard));
             if (NS_SUCCEEDED(rv) && existingCard)
             {
-              recipient->mPreferFormat = nsIAbPreferMailFormat::unknown;
-              rv = existingCard->GetPreferMailFormat(&recipient->mPreferFormat);
+              recipient.mPreferFormat = nsIAbPreferMailFormat::unknown;
+              rv = existingCard->GetPreferMailFormat(&recipient.mPreferFormat);
               if (NS_SUCCEEDED(rv))
-                recipient->mProcessed = PR_TRUE;
+                recipient.mProcessed = PR_TRUE;
 
               // bump the popularity index for this card since we are about to send e-mail to it
               PRUint32 popularityIndex = 0;
@@ -4642,122 +4600,121 @@ NS_IMETHODIMP nsMsgCompose::CheckAndPopulateRecipients(PRBool populateMailList, 
     }
   }
 
-  /* Finally return the list of non HTML recipient if requested and/or rebuilt the recipient field.
-     Also, check for domain preference when preferFormat is unknown
-  */
-    nsAutoString recipientsStr;
-    nsAutoString nonHtmlRecipientsStr;
-    nsString plaintextDomains;
-    nsString htmlDomains;
-    nsAutoString domain;
+  // Finally return the list of non HTML recipient if requested and/or rebuilt
+  // the recipient field. Also, check for domain preference when preferFormat
+  // is unknown
+  nsAutoString recipientsStr;
+  nsAutoString nonHtmlRecipientsStr;
+  nsString plaintextDomains;
+  nsString htmlDomains;
+  nsAutoString domain;
 
-    nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID));
-    if (prefBranch)
-    {
-      NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.plaintext_domains", EmptyString(),
-                                                  plaintextDomains);
-      NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.html_domains", EmptyString(),
-                                                  htmlDomains);
-    }
-
-    PRBool atLeastOneRecipientPrefersUnknown = PR_FALSE;
-    PRBool atLeastOneRecipientPrefersPlainText = PR_FALSE;
-    PRBool atLeastOneRecipientPrefersHTML = PR_FALSE;
-
-    for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; i ++)
-    {
-      PRInt32 nbrRecipients = recipientsList[i].Count();
-      if (nbrRecipients == 0)
-        continue;
-      recipientsStr.SetLength(0);
-
-      for (j = 0; j < nbrRecipients; j ++)
-      {
-        nsMsgRecipient* recipient = recipientsList[i][j];
-        if (recipient)
-        {
-          /* if we don't have a prefer format for a recipient, check the domain in case we have a format defined for it */
-          if (recipient->mPreferFormat == nsIAbPreferMailFormat::unknown &&
-              (plaintextDomains.Length() || htmlDomains.Length()))
-          {
-            PRInt32 atPos = recipient->mEmail.FindChar('@');
-            if (atPos >= 0)
-            {
-              recipient->mEmail.Right(domain, recipient->mEmail.Length() - atPos - 1);
-              // when we move to frozen linkage this should be:
-              // if (plaintextDomains.Find(domain, CaseInsensitiveCompare) >= 0)
-              if (FindInReadable(domain, plaintextDomains, nsCaseInsensitiveStringComparator()))
-                recipient->mPreferFormat = nsIAbPreferMailFormat::plaintext;
-              else
-                // when we move to frozen linkage this should be:
-                // if (htmlDomains.Find(domain, CaseInsensitiveCompare) >= 0)
-                if (FindInReadable(domain, htmlDomains, nsCaseInsensitiveStringComparator()))
-                  recipient->mPreferFormat = nsIAbPreferMailFormat::html;
-            }
-          }
-
-          switch (recipient->mPreferFormat)
-          {
-            case nsIAbPreferMailFormat::html:
-              atLeastOneRecipientPrefersHTML = PR_TRUE;
-              break;
-
-            case nsIAbPreferMailFormat::plaintext:
-              atLeastOneRecipientPrefersPlainText = PR_TRUE;
-              break;
-
-            default: /* nsIAbPreferMailFormat::unknown */
-              atLeastOneRecipientPrefersUnknown = PR_TRUE;
-              break;
-          }
-
-          if (populateMailList)
-          {
-            if (! recipientsStr.IsEmpty())
-              recipientsStr.Append(PRUnichar(','));
-            recipientsStr.Append(recipient->mAddress);
-          }
-
-          if (returnNonHTMLRecipients && recipient->mPreferFormat != nsIAbPreferMailFormat::html)
-          {
-            if (! nonHtmlRecipientsStr.IsEmpty())
-              nonHtmlRecipientsStr.Append(PRUnichar(','));
-            nonHtmlRecipientsStr.Append(recipient->mEmail);
-          }
-
-        }
-      }
-
-      if (populateMailList)
-      {
-        switch (i)
-        {
-          case 0 : m_compFields->SetTo(recipientsStr);  break;
-          case 1 : m_compFields->SetCc(recipientsStr);  break;
-          case 2 : m_compFields->SetBcc(recipientsStr); break;
-        }
-      }
+  nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID));
+  if (prefBranch)
+  {
+    NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.plaintext_domains", EmptyString(),
+                                                plaintextDomains);
+    NS_GetLocalizedUnicharPreferenceWithDefault(prefBranch, "mailnews.html_domains", EmptyString(),
+                                                htmlDomains);
   }
 
-  if (returnNonHTMLRecipients)
-    *nonHTMLRecipients = ToNewUnicode(nonHtmlRecipientsStr);
+  PRBool atLeastOneRecipientPrefersUnknown = PR_FALSE;
+  PRBool atLeastOneRecipientPrefersPlainText = PR_FALSE;
+  PRBool atLeastOneRecipientPrefersHTML = PR_FALSE;
+
+  for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; ++i)
+  {
+    PRUint32 nbrRecipients = recipientsList[i].Length();
+    if (nbrRecipients == 0)
+      continue;
+    recipientsStr.SetLength(0);
+
+    for (j = 0; j < nbrRecipients; ++j)
+    {
+      nsMsgRecipient &recipient = recipientsList[i][j];
+
+      // if we don't have a prefer format for a recipient, check the domain in
+      // case we have a format defined for it
+      if (recipient.mPreferFormat == nsIAbPreferMailFormat::unknown &&
+          (plaintextDomains.Length() || htmlDomains.Length()))
+      {
+        PRInt32 atPos = recipient.mEmail.FindChar('@');
+        if (atPos >= 0)
+        {
+          recipient.mEmail.Right(domain, recipient.mEmail.Length() - atPos - 1);
+          // when we move to frozen linkage this should be:
+          // if (plaintextDomains.Find(domain, CaseInsensitiveCompare) >= 0)
+          if (FindInReadable(domain, plaintextDomains, nsCaseInsensitiveStringComparator()))
+            recipient.mPreferFormat = nsIAbPreferMailFormat::plaintext;
+          else
+            // when we move to frozen linkage this should be:
+            // if (htmlDomains.Find(domain, CaseInsensitiveCompare) >= 0)
+            if (FindInReadable(domain, htmlDomains, nsCaseInsensitiveStringComparator()))
+              recipient.mPreferFormat = nsIAbPreferMailFormat::html;
+        }
+      }
+
+      switch (recipient.mPreferFormat)
+      {
+      case nsIAbPreferMailFormat::html:
+        atLeastOneRecipientPrefersHTML = PR_TRUE;
+        break;
+
+      case nsIAbPreferMailFormat::plaintext:
+        atLeastOneRecipientPrefersPlainText = PR_TRUE;
+        break;
+
+      default: // nsIAbPreferMailFormat::unknown
+        atLeastOneRecipientPrefersUnknown = PR_TRUE;
+        break;
+      }
+
+      if (aPopulateMailList)
+      {
+        if (!recipientsStr.IsEmpty())
+          recipientsStr.Append(PRUnichar(','));
+        recipientsStr.Append(recipient.mAddress);
+      }
+
+      if (aReturnNonHTMLRecipients &&
+          recipient.mPreferFormat != nsIAbPreferMailFormat::html)
+      {
+        if (!nonHtmlRecipientsStr.IsEmpty())
+          nonHtmlRecipientsStr.Append(PRUnichar(','));
+        nonHtmlRecipientsStr.Append(recipient.mEmail);
+      }
+    }
+
+    if (aPopulateMailList)
+    {
+      switch (i)
+      {
+      case 0 : m_compFields->SetTo(recipientsStr);  break;
+      case 1 : m_compFields->SetCc(recipientsStr);  break;
+      case 2 : m_compFields->SetBcc(recipientsStr); break;
+      }
+    }
+  }
+
+  if (aReturnNonHTMLRecipients)
+    aNonHTMLRecipients = nonHtmlRecipientsStr;
 
   if (atLeastOneRecipientPrefersUnknown)
-    *_retval = nsIAbPreferMailFormat::unknown;
+    *aResult = nsIAbPreferMailFormat::unknown;
   else if (atLeastOneRecipientPrefersHTML)
   {
     // if we have at least one recipient that prefers html
     // and at least one that recipients that prefers plain text
     // we need to return unknown, so that we can prompt the user
     if (atLeastOneRecipientPrefersPlainText)
-      *_retval = nsIAbPreferMailFormat::unknown;
+      *aResult = nsIAbPreferMailFormat::unknown;
     else
-      *_retval = nsIAbPreferMailFormat::html;
+      *aResult = nsIAbPreferMailFormat::html;
   }
   else
   {
     NS_ASSERTION(atLeastOneRecipientPrefersPlainText, "at least one should prefer plain text");
-    *_retval = nsIAbPreferMailFormat::plaintext;
+    *aResult = nsIAbPreferMailFormat::plaintext;
   }
 
   return rv;
@@ -5268,31 +5225,6 @@ NS_IMETHODIMP nsMsgCompose::CheckCharsetConversion(nsIMsgIdentity *identity, cha
   }
 
   return NS_OK;
-}
-
-NS_IMPL_ADDREF(nsMsgRecipient)
-NS_IMPL_RELEASE(nsMsgRecipient)
-
-NS_INTERFACE_MAP_BEGIN(nsMsgRecipient)
-   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsISupports)
-NS_INTERFACE_MAP_END
-
-nsMsgRecipient::nsMsgRecipient() :
-  mPreferFormat(nsIAbPreferMailFormat::unknown),
-  mProcessed(PR_FALSE)
-{
-}
-
-nsMsgRecipient::nsMsgRecipient(nsString fullAddress, nsString email, PRUint32 preferFormat, PRBool processed) :
-  mAddress(fullAddress),
-  mEmail(email),
-  mPreferFormat(preferFormat),
-  mProcessed(processed)
-{
-}
-
-nsMsgRecipient::~nsMsgRecipient()
-{
 }
 
 NS_IMPL_ADDREF(nsMsgMailList)

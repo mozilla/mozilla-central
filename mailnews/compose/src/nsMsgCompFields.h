@@ -41,7 +41,29 @@
 
 #include "nsIMsgCompFields.h"
 #include "msgCore.h"
+#include "nsIAbCard.h"
+#include "nsTArray.h"
 
+struct nsMsgRecipient
+{
+  nsMsgRecipient() : mPreferFormat(nsIAbPreferMailFormat::unknown),
+                     mProcessed(PR_FALSE) {}
+
+  nsMsgRecipient(const nsMsgRecipient &other)
+  {
+    mAddress = other.mAddress;
+    mEmail = other.mEmail;
+    mPreferFormat = other.mPreferFormat;
+    mProcessed = other.mProcessed;
+  }
+
+  ~nsMsgRecipient() {}
+
+  nsString mAddress;
+  nsString mEmail;
+  PRUint32 mPreferFormat;
+  PRUint32 mProcessed;
+};
 
 /* Note that all the "Get" methods never return NULL (except in case of serious
    error, like an illegal parameter); rather, they return "" if things were set
@@ -169,7 +191,8 @@ public:
   nsresult SetBody(const char *value);
   const char* GetBody();
 
-  nsresult SplitRecipientsEx(const PRUnichar *recipients, nsIMsgRecipientArray ** fullAddrsArray, nsIMsgRecipientArray ** emailsArray); 
+  nsresult SplitRecipientsEx(const PRUnichar *recipients,
+                             nsTArray<nsMsgRecipient> &aResult); 
 
 protected:
   char*       m_headers[MSG_MAX_HEADERS];

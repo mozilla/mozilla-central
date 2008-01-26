@@ -2900,9 +2900,11 @@ function DetermineHTMLAction(convertible)
     if (! gMsgCompose.composeHTML)
     {
         try {
-            obj = new Object;
-            gMsgCompose.CheckAndPopulateRecipients(true, false, obj);
-        } catch(ex) { dump("gMsgCompose.CheckAndPopulateRecipients failed: " + ex + "\n"); }
+          obj = new Object;
+          gMsgCompose.checkAndPopulateRecipients(true, false, obj);
+        } catch(ex) {
+          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
+        }
         return nsIMsgCompSendFormat.PlainText;
     }
 
@@ -2916,15 +2918,14 @@ function DetermineHTMLAction(convertible)
 
         //Check the address book for the HTML property for each recipient
         try {
-            obj = new Object;
-            preferFormat = gMsgCompose.CheckAndPopulateRecipients(true, true, obj);
-            noHtmlRecipients = obj.value;
-        } catch(ex)
-        {
-            dump("gMsgCompose.CheckAndPopulateRecipients failed: " + ex + "\n");
-            var msgCompFields = gMsgCompose.compFields;
-            noHtmlRecipients = msgCompFields.to + "," + msgCompFields.cc + "," + msgCompFields.bcc;
-            preferFormat = nsIAbPreferMailFormat.unknown;
+          obj = new Object;
+          preferFormat = gMsgCompose.checkAndPopulateRecipients(true, true, obj);
+          noHtmlRecipients = obj.value;
+        } catch(ex) {
+          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
+          var msgCompFields = gMsgCompose.compFields;
+          noHtmlRecipients = msgCompFields.to + "," + msgCompFields.cc + "," + msgCompFields.bcc;
+          preferFormat = nsIAbPreferMailFormat.unknown;
         }
         dump("DetermineHTMLAction: preferFormat = " + preferFormat + ", noHtmlRecipients are " + noHtmlRecipients + "\n");
 
@@ -2964,9 +2965,11 @@ function DetermineHTMLAction(convertible)
     else
     {
       try {
-                       obj = new Object;
-                       gMsgCompose.CheckAndPopulateRecipients(true, false, obj);
-      } catch(ex) { dump("gMsgCompose.CheckAndPopulateRecipients failed: " + ex + "\n"); }
+        obj = new Object;
+        gMsgCompose.checkAndPopulateRecipients(true, false, obj);
+      } catch(ex) {
+          dump("gMsgCompose.checkAndPopulateRecipients failed: " + ex + "\n");
+      }
     }
 
     return gSendFormat;

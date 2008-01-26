@@ -38,28 +38,20 @@
 #ifndef _nsMsgCompose_H_
 #define _nsMsgCompose_H_
 
-#include "nsCOMArray.h"
 #include "nsIMsgCompose.h"
-#include "nsCOMPtr.h"
+#include "nsCOMArray.h"
 #include "nsWeakReference.h"
 #include "nsMsgCompFields.h"
 #include "nsIOutputStream.h"
-#include "nsIDocumentStateListener.h"
 #include "nsIMsgQuote.h"
-#include "nsIMsgSendListener.h"
 #include "nsIMsgCopyServiceListener.h"
-#include "nsIMsgSend.h"
-#include "nsIMsgQuotingOutputStreamListener.h"
-#include "nsIMimeHeaders.h"
 #include "nsIBaseWindow.h"
 #include "nsIAbDirectory.h"
-#include "nsIAbCard.h"
 #include "nsIWebProgressListener.h"
-#include "nsIAbDirectory.h"
 #include "nsIMimeConverter.h"
 #include "nsIUnicodeDecoder.h"
-#include "nsIEditor.h"
 #include "nsIMsgFolder.h"
+
 // Forward declares
 class QuotingOutputStreamListener;
 class nsMsgComposeSendListener;
@@ -247,26 +239,6 @@ public:
 private:
   nsWeakPtr               mWeakComposeObj;
 	MSG_DeliverMode         mDeliverMode;
-};
-
-/******************************************************************************
- * nsMsgRecipient
- ******************************************************************************/
-class nsMsgRecipient : public nsISupports
-{
-public:
-  nsMsgRecipient();
-  nsMsgRecipient(nsString fullAddress, nsString email, PRUint32 preferFormat = nsIAbPreferMailFormat::unknown,
-                 PRBool processed = PR_FALSE);
-	virtual ~nsMsgRecipient();
-
-  NS_DECL_ISUPPORTS
-  
-public:
-  nsString mAddress;      /* full email address (name + email) */
-  nsString mEmail;        /* email address only */
-  PRUint32 mPreferFormat; /* nsIAbPreferMailFormat:: unknown, plaintext or html */
-  PRBool mProcessed;
 };
 
 /******************************************************************************
