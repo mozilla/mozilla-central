@@ -50,6 +50,7 @@ _MD_create_process (const char *path, char *const *argv,
 	char *const *childEnvp;
 	char **newEnvp = NULL;
 	int flags;
+	PRBool found = PR_FALSE;
 
 	process = PR_NEW(PRProcess);
 	if (!process) {
@@ -72,8 +73,14 @@ _MD_create_process (const char *path, char *const *argv,
 		}
 		for (idx = 0; idx < nEnv; idx++) {
 			newEnvp[idx] = childEnvp[idx];
+			if (!found && !strncmp(newEnvp[idx], "NSPR_INHERIT_FDS=", 17)) {
+				newEnvp[idx] = attr->fdInheritBuffer;
+				found = PR_TRUE;
+			}
 		}
-		newEnvp[idx++] = attr->fdInheritBuffer;
+		if (!found) {
+			newEnvp[idx++] = attr->fdInheritBuffer;
+		}
 		newEnvp[idx] = NULL;
 		childEnvp = newEnvp;
 	}

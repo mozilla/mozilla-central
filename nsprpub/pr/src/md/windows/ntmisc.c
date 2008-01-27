@@ -310,6 +310,7 @@ PRProcess * _PR_CreateWindowsProcess(
     char **newEnvp = NULL;
     const char *cwd = NULL; /* current working directory */
     PRProcess *proc = NULL;
+    PRBool hasFdInheritBuffer;
 
     proc = PR_NEW(PRProcess);
     if (!proc) {
@@ -326,33 +327,34 @@ PRProcess * _PR_CreateWindowsProcess(
      * If attr->fdInheritBuffer is not NULL, we need to insert
      * it into the envp array, so envp cannot be NULL.
      */
-    if ((envp == NULL) && attr && attr->fdInheritBuffer) {
+    hasFdInheritBuffer = (attr && attr->fdInheritBuffer);
+    if ((envp == NULL) && hasFdInheritBuffer) {
         envp = environ;
     }
 
     if (envp != NULL) {
         int idx;
         int numEnv;
-        int newEnvpSize;
+        PRBool found = PR_FALSE;
 
         numEnv = 0;
         while (envp[numEnv]) {
             numEnv++;
         }
-        newEnvpSize = numEnv + 1;  /* terminating null pointer */
-        if (attr && attr->fdInheritBuffer) {
-            newEnvpSize++;
-        }
-        newEnvp = (char **) PR_MALLOC(newEnvpSize * sizeof(char *));
+        newEnvp = (char **) PR_MALLOC((numEnv + 2) * sizeof(char *));
         for (idx = 0; idx < numEnv; idx++) {
             newEnvp[idx] = envp[idx];
+            if (hasFdInheritBuffer && !found
+                    && !strncmp(newEnvp[idx], "NSPR_INHERIT_FDS=", 17)) {
+                newEnvp[idx] = attr->fdInheritBuffer;
+                found = PR_TRUE;
+            }
         }
-        if (attr && attr->fdInheritBuffer) {
+        if (hasFdInheritBuffer && !found) {
             newEnvp[idx++] = attr->fdInheritBuffer;
         }
         newEnvp[idx] = NULL;
-        qsort((void *) newEnvp, (size_t) (newEnvpSize - 1),
-                sizeof(char *), compare);
+        qsort((void *) newEnvp, (size_t) idx, sizeof(char *), compare);
     }
     if (assembleEnvBlock(newEnvp, &envBlock) == -1) {
         PR_SetError(PR_OUT_OF_MEMORY_ERROR, 0);
