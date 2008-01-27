@@ -155,9 +155,9 @@
 
           var sinceAlarm = currentDate.subtractDate(startDate).inSeconds;
 
-          this.mAlarmToday = (sinceAlarm < sinceDayStart);
+          this.mAlarmToday = (sinceAlarm < sinceDayStart) && (sinceAlarm > sinceDayStart - 86400);
 
-          if (sinceAlarm < sinceDayStart) {
+          if (this.mAlarmToday) {
               // The alarm is today
               relativeDateString = calGetString("calendar",
                                                 "alarmTodayAt",
