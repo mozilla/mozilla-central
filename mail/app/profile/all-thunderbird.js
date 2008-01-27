@@ -395,3 +395,6 @@ pref("mail.tabs.tabClipWidth", 140);
 // 2 - no close buttons
 // 3 - at the end of the tabstrip
 pref("mail.tabs.closeButtons", 1);
+
+// The breakpad report server to link to in about:crashes
+pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
