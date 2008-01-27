@@ -1671,12 +1671,6 @@ calDavCalendar.prototype = {
         var outBoxUri = this.mOutBoxUrl.clone();
         var thisCalendar = this;
 
-        //there really ought to be a better way to do this...
-        var bogusItem = getIcsService().createIcalComponent("VEVENT");
-        calSetProdidVersion(bogusItem);
-        var prodid = bogusItem.prodid;
-        var version = bogusItem.version;
-
         var organizer = this.mMailToUrl;
 
         var dtstamp = now().getInTimezone(UTC()).icalString;
@@ -1685,8 +1679,8 @@ calDavCalendar.prototype = {
         var uuid = getUUID();
 
         var fbQuery = "BEGIN:VCALENDAR\n";
-        fbQuery += "VERSION:" + version + "\n";
-        fbQuery += "PRODID:-" + prodid + "\n";
+        fbQuery += "VERSION:" + calGetProductVersion() + "\n";
+        fbQuery += "PRODID:-" + calGetProductId() + "\n";
         fbQuery += "METHOD:REQUEST\n";
         fbQuery += "BEGIN:VFREEBUSY\n";
         fbQuery += "DTSTAMP:" + dtstamp + "\n";

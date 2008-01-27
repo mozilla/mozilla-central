@@ -1725,6 +1725,16 @@ function sameDay(date1, date2) {
 }
 
 /**
+ * Centralized funtions for accessing prodid and version
+ */
+function calGetProductId() {
+    return "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN";
+}
+function calGetProductVersion() {
+    return "2.0";
+}
+
+/**
  * This is a centralized function for setting the prodid and version on an
  * ical component.  This should be used whenever you need to set the prodid
  * and version on a calIcalComponent object.
@@ -1738,8 +1748,8 @@ function calSetProdidVersion(aIcalComponent) {
         throw Components.results.NS_ERROR_INVALID_ARG;
     }
     // Set the prodid and version
-    aIcalComponent.prodid = "-//Mozilla.org/NONSGML Mozilla Calendar V1.1//EN";
-    aIcalComponent.version = "2.0";
+    aIcalComponent.prodid = calGetProductId();
+    aIcalComponent.version = calGetProductVersion();
 }
 
 /**
