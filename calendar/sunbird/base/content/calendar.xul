@@ -184,13 +184,6 @@
     </toolbaritem>
   </toolbar>
 
-<!-- All toolbar buttons that calendar.xul wishes to include *must* go either 
-     into the calendar-toolbar.inc file (all toolbar buttons shared with 
-     Lightning) or sunbird-toolbar.inc file (toolbar buttons relevant 
-     only for Sunbird-only). -->
-#include ../../../base/content/calendar-toolbar.inc
-#include sunbird-toolbar.inc
-
   <toolbarpalette id="calendarToolbarPalette">
 <!-- All toolbar buttons that calendar.xul wishes to include *must* go either 
      into the calendar-toolbar.inc file (all toolbar buttons shared with 
