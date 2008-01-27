@@ -282,6 +282,26 @@ CERT_FindUserCertByUsage(CERTCertDBHandle *handle,
     }
 
     if ( cert != NULL ) {
+	unsigned int requiredKeyUsage;
+	unsigned int requiredCertType;
+
+	rv = CERT_KeyUsageAndTypeForCertUsage(usage, PR_FALSE,
+					&requiredKeyUsage, &requiredCertType);
+	if ( rv != SECSuccess ) {
+	    /* drop the extra reference */
+	    CERT_DestroyCertificate(cert);
+	    cert = NULL;
+	    goto loser;
+	}
+	/* If we already found the right cert, just return it */
+	if ( (!validOnly || CERT_CheckCertValidTimes(cert, time, PR_FALSE)
+	      == secCertTimeValid) &&
+	     (CERT_CheckKeyUsage(cert, requiredKeyUsage) == SECSuccess) &&
+	     (cert->nsCertType & requiredCertType) &&
+	      CERT_IsUserCert(cert) ) {
+	    return(cert);
+	}
+
  	/* collect certs for this nickname, sorting them into the list */
 	certList = CERT_CreateSubjectCertList(certList, handle, 
 					&cert->derSubject, time, validOnly);
