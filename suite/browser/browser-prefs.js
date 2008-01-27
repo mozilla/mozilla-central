@@ -413,3 +413,6 @@ pref("general.autoScroll", false);
 pref("layout.word_select.stop_at_punctuation", false);
 #endif
 #endif
+
+// The breakpad report server to link to in about:crashes
+pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
