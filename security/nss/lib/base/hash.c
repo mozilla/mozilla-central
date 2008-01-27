@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: hash.c,v $ $Revision: 1.9 $ $Date: 2005-01-20 02:25:45 $";
+static const char CVS_ID[] = "@(#) $RCSfile: hash.c,v $ $Revision: 1.10 $ $Date: 2008-01-27 00:43:52 $";
 #endif /* DEBUG */
 
 /*
@@ -51,6 +51,8 @@ static const char CVS_ID[] = "@(#) $RCSfile: hash.c,v $ $Revision: 1.9 $ $Date: 
 #ifndef BASE_H
 #include "base.h"
 #endif /* BASE_H */
+
+#include "prbit.h"
 
 /*
  * nssHash
@@ -101,7 +103,7 @@ nss_item_hash
   NSSItem *it = (NSSItem *)key;
   h = 0;
   for (i=0; i<it->size; i++)
-    h = (h >> 28) ^ (h << 4) ^ ((unsigned char *)it->data)[i];
+    h = PR_ROTATE_RIGHT32(h, 28) ^ ((unsigned char *)it->data)[i];
   return h;
 }
 

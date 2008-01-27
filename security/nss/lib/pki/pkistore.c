@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pkistore.c,v $ $Revision: 1.30 $ $Date: 2007-11-16 05:29:27 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pkistore.c,v $ $Revision: 1.31 $ $Date: 2008-01-27 00:43:57 $";
 #endif /* DEBUG */
 
 #ifndef PKIM_H
@@ -59,6 +59,8 @@ static const char CVS_ID[] = "@(#) $RCSfile: pkistore.c,v $ $Revision: 1.30 $ $D
 #endif /* PKISTORE_H */
 
 #include "cert.h"
+
+#include "prbit.h"
 
 /* 
  * Certificate Store
@@ -719,9 +721,9 @@ nss_certificate_hash (
     NSSCertificate *c = (NSSCertificate *)key;
     h = 0;
     for (i=0; i<c->issuer.size; i++)
-	h = (h >> 28) ^ (h << 4) ^ ((unsigned char *)c->issuer.data)[i];
+	h = PR_ROTATE_RIGHT32(h, 28) ^ ((unsigned char *)c->issuer.data)[i];
     for (i=0; i<c->serial.size; i++)
-	h = (h >> 28) ^ (h << 4) ^ ((unsigned char *)c->serial.data)[i];
+	h = PR_ROTATE_RIGHT32(h, 28) ^ ((unsigned char *)c->serial.data)[i];
     return h;
 }
 
