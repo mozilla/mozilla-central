@@ -37,17 +37,23 @@
 # ***** END LICENSE BLOCK *****
 
 #
-# tests.ksh
-#	korn shell script for nspr tests
+# runtests.sh
+#	Bourne shell script for nspr tests
 #
 
 SYSTEM_INFO=`uname -a`
 OS_ARCH=`uname -s`
+
 if [ $OS_ARCH = "Windows_NT" ] || [ $OS_ARCH = "OS/2" ]
 then
 	NULL_DEVICE=nul
 else
 	NULL_DEVICE=/dev/null
+	FILE_D=`ulimit -n`
+	if [ $FILE_D -lt 512 ]
+	then
+		ulimit -n 512
+	fi
 fi
 
 #
