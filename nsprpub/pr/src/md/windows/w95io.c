@@ -895,7 +895,7 @@ _PR_MD_GETFILEINFO64(const char *fn, PRFileInfo64 *info)
     if (getFileAttributesEx) {
         rv = getFileAttributesEx(fn, GetFileExInfoStandard, &findFileData);
     } else {
-       rv = GetFileAttributesExFB(fn, &findFileData);
+        rv = GetFileAttributesExFB(fn, &findFileData);
     }
     if (!rv) {
         _PR_MD_MAP_OPENDIR_ERROR(GetLastError());
