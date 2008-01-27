@@ -39,6 +39,14 @@
 #include "prprf.h"
 #include "pratom.h"
 
+/*
+ * TODO: create a macro to generate the six lines of code that are repeated
+ * for every test.  Also rewrite the statement
+ *     result = result | ((EXPRESSION) ? 0 : 1);
+ * as
+ *     result |= !(EXPRESSION);
+ */
+
 PRIntn main(PRIntn argc, char **argv)
 {
     PRInt32 rv, oldval, test, result = 0;

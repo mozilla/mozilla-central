@@ -102,6 +102,13 @@ NSPR_API(PRInt32)	PR_AtomicAdd(PRInt32 *ptr, PRInt32 val);
 ** DESCRIPTION:
 **    Macro versions of the atomic operations.  They may be implemented
 **    as compiler intrinsics.
+**
+** IMPORTANT NOTE TO NSPR MAINTAINERS:
+**    Implement these macros with compiler intrinsics only on platforms
+**    where the PR_AtomicXXX functions are truly atomic (i.e., where the
+**    configuration macro _PR_HAVE_ATOMIC_OPS is defined).  Otherwise,
+**    the macros and functions won't be compatible and can't be used
+**    interchangeably.
 */
 #if defined(_WIN32) && (_MSC_VER >= 1310)
 
@@ -123,8 +130,13 @@ long __cdecl _InterlockedExchangeAdd(long volatile *Addend, long Value);
 #define PR_ATOMIC_ADD(ptr, val) (_InterlockedExchangeAdd(ptr, val) + (val))
 
 #elif ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)) && \
-    (defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || \
-    defined(__powerpc__) || defined(__ppc__) || defined(__alpha))
+      ((defined(DARWIN) && \
+           (defined(__ppc__) || defined(__i386__))) || \
+       (defined(LINUX) && \
+           (defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || \
+           (defined(__powerpc__) && !defined(__powerpc64__)) || \
+           defined(__alpha))))
+
 /*
  * Because the GCC manual warns that some processors may support
  * reduced functionality of __sync_lock_test_and_set, we test for the
