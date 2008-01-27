@@ -1497,7 +1497,12 @@ calDavCalendar.prototype = {
             str = str.substring(str.indexOf('\n'));
             var multistatus = new XML(str);
             var pnsUri = thisCalendar.mUri.clone();
-            pnsUri.path = multistatus..D::["principal-collection-set"]..D::href;
+            var pcs = multistatus..D::["principal-collection-set"]..D::href;
+            if (pcs.charAt(pcs.length-1) != '/') {
+                pcs += "/";
+            }
+
+            pnsUri.path = thisCalendar.ensurePath(pcs);
             thisCalendar.mPrincipalsNS = pnsUri;
             thisCalendar.checkPrincipalsNameSpace();
         }
@@ -1593,7 +1598,8 @@ calDavCalendar.prototype = {
                     responseCHS += "/";
                 }
 
-                if (responseCHS  != thisCalendar.mCalHomeSet.path) {
+                if (responseCHS  != thisCalendar.mCalHomeSet.path &&
+                    responseCHS != thisCalendar.mCalHomeSet.spec) {
                     continue;
                 }
                 var addrHrefs =
@@ -1613,7 +1619,7 @@ calDavCalendar.prototype = {
                 if (!ibPath) {
                     var ibPath = response..D::["schedule-inbox-URL"]..D::href[0];
                 }
-                ibUrl.path = ibPath;
+                ibUrl.path = thisCalendar.ensurePath(ibPath);
                 thisCalendar.mInBoxUrl = ibUrl;
                 var obUrl = thisCalendar.mUri.clone();
                 var obPath =
@@ -1621,7 +1627,7 @@ calDavCalendar.prototype = {
                 if (!obPath) {
                     var obPath = response..D::["schedule-outbox-URL"]..D::href[0];
                 }
-                obUrl.path = obPath;
+                obUrl.path = thisCalendar.ensurePath(obPath);
                 thisCalendar.mOutBoxUrl = obUrl;
             }
 
@@ -1812,6 +1818,14 @@ calDavCalendar.prototype = {
             aString = aString.substr(72);
         }
         return parts.join("\n ");
+    },
+
+    ensurePath: function caldav_ensurePath(aString) {
+        if (aString.charAt(0) != "/") {
+            var bogusUri = makeURL(aString);
+            return bogusUri.path;
+        }
+        return aString;
     },
 
     // stubs to keep callbacks we don't support yet from throwing errors
