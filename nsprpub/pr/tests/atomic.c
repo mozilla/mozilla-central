@@ -44,6 +44,10 @@ PRIntn main(PRIntn argc, char **argv)
     PRInt32 rv, oldval, test, result = 0;
     PRFileDesc *output = PR_GetSpecialFD(PR_StandardOutput);
 
+    /***********************/
+    /* Test the functions. */
+    /***********************/
+
     oldval = test = -2;
     rv = PR_AtomicIncrement(&test);
     result = result | ((rv == -1) ? 0 : 1);
@@ -115,6 +119,83 @@ PRIntn main(PRIntn argc, char **argv)
     result = result | (((rv == -2) && (test == -2)) ? 0 : 1);
     PR_fprintf(
         output, "PR_AtomicSet(%d, %d) == %d: %s\n",
+        oldval, -2, rv, ((rv == -2) && (test == -2)) ? "PASSED" : "FAILED");
+
+    /***********************/
+    /* Test the macros.    */
+    /***********************/
+
+    oldval = test = -2;
+    rv = PR_ATOMIC_INCREMENT(&test);
+    result = result | ((rv == -1) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_INCREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == -1) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_INCREMENT(&test);
+    result = result | ((rv == 0) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_INCREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == 0) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_INCREMENT(&test);
+    result = result | ((rv == 1) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_INCREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == 1) ? "PASSED" : "FAILED");
+
+    oldval = test = -2;
+    rv = PR_ATOMIC_ADD(&test,1);
+    result = result | ((rv == -1) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_ADD(%d,%d) == %d: %s\n",
+        oldval, 1, rv, (rv == -1) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_ADD(&test, 4);
+    result = result | ((rv == 3) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_ADD(%d,%d) == %d: %s\n",
+        oldval, 4, rv, (rv == 3) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_ADD(&test, -6);
+    result = result | ((rv == -3) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_ADD(%d,%d) == %d: %s\n",
+        oldval, -6, rv, (rv == -3) ? "PASSED" : "FAILED");
+
+    oldval = test = 2;
+    rv = PR_ATOMIC_DECREMENT(&test);
+    result = result | ((rv == 1) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_DECREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == 1) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_DECREMENT(&test);
+    result = result | ((rv == 0) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_DECREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == 0) ? "PASSED" : "FAILED");
+    oldval = test;
+    rv = PR_ATOMIC_DECREMENT(&test);
+    result = result | ((rv == -1) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_DECREMENT(%d) == %d: %s\n",
+        oldval, rv, (rv == -1) ? "PASSED" : "FAILED");
+
+    /* set to a different value */
+    oldval = test = -2;
+    rv = PR_ATOMIC_SET(&test, 2);
+    result = result | (((rv == -2) && (test == 2)) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_SET(%d, %d) == %d: %s\n",
+        oldval, 2, rv, ((rv == -2) && (test == 2)) ? "PASSED" : "FAILED");
+
+    /* set to the same value */
+    oldval = test = -2;
+    rv = PR_ATOMIC_SET(&test, -2);
+    result = result | (((rv == -2) && (test == -2)) ? 0 : 1);
+    PR_fprintf(
+        output, "PR_ATOMIC_SET(%d, %d) == %d: %s\n",
         oldval, -2, rv, ((rv == -2) && (test == -2)) ? "PASSED" : "FAILED");
 
     PR_fprintf(

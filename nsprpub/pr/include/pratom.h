@@ -95,6 +95,57 @@ NSPR_API(PRInt32) PR_AtomicSet(PRInt32 *val, PRInt32 newval);
 NSPR_API(PRInt32)	PR_AtomicAdd(PRInt32 *ptr, PRInt32 val);
 
 /*
+** MACRO: PR_ATOMIC_INCREMENT
+** MACRO: PR_ATOMIC_DECREMENT
+** MACRO: PR_ATOMIC_SET
+** MACRO: PR_ATOMIC_ADD
+** DESCRIPTION:
+**    Macro versions of the atomic operations.  They may be implemented
+**    as compiler intrinsics.
+*/
+#if defined(_WIN32) && (_MSC_VER >= 1310)
+
+long __cdecl _InterlockedIncrement(long volatile *Addend);
+#pragma intrinsic(_InterlockedIncrement)
+
+long __cdecl _InterlockedDecrement(long volatile *Addend);
+#pragma intrinsic(_InterlockedDecrement)
+
+long __cdecl _InterlockedExchange(long volatile *Target, long Value);
+#pragma intrinsic(_InterlockedExchange)
+
+long __cdecl _InterlockedExchangeAdd(long volatile *Addend, long Value);
+#pragma intrinsic(_InterlockedExchangeAdd)
+
+#define PR_ATOMIC_INCREMENT(val) _InterlockedIncrement(val)
+#define PR_ATOMIC_DECREMENT(val) _InterlockedDecrement(val)
+#define PR_ATOMIC_SET(val, newval) _InterlockedExchange(val, newval)
+#define PR_ATOMIC_ADD(ptr, val) (_InterlockedExchangeAdd(ptr, val) + (val))
+
+#elif ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)) && \
+    (defined(__i386__) || defined(__ia64__) || defined(__x86_64__) || \
+    defined(__powerpc__) || defined(__ppc__) || defined(__alpha))
+/*
+ * Because the GCC manual warns that some processors may support
+ * reduced functionality of __sync_lock_test_and_set, we test for the
+ * processors that we believe support a full atomic exchange operation.
+ */
+
+#define PR_ATOMIC_INCREMENT(val) __sync_add_and_fetch(val, 1)
+#define PR_ATOMIC_DECREMENT(val) __sync_sub_and_fetch(val, 1)
+#define PR_ATOMIC_SET(val, newval) __sync_lock_test_and_set(val, newval)
+#define PR_ATOMIC_ADD(ptr, val) __sync_add_and_fetch(ptr, val)
+
+#else
+
+#define PR_ATOMIC_INCREMENT(val) PR_AtomicIncrement(val)
+#define PR_ATOMIC_DECREMENT(val) PR_AtomicDecrement(val)
+#define PR_ATOMIC_SET(val, newval) PR_AtomicSet(val, newval)
+#define PR_ATOMIC_ADD(ptr, val) PR_AtomicAdd(ptr, val)
+
+#endif
+
+/*
 ** LIFO linked-list (stack)
 */
 typedef struct PRStackElemStr PRStackElem;
