@@ -20484,8 +20484,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "$MAKEFILES gfx/gfx-config.h
-netwerk/necko-config.h
+trap 'rm -fr `echo "$MAKEFILES netwerk/necko-config.h
 xpcom/xpcom-config.h
 xpcom/xpcom-private.h
 " | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
@@ -21091,8 +21090,7 @@ ac_eD='%g'
 if test "${CONFIG_HEADERS+set}" != set; then
 EOF
 cat >> $CONFIG_STATUS <<EOF
-  CONFIG_HEADERS="gfx/gfx-config.h
-netwerk/necko-config.h
+  CONFIG_HEADERS="netwerk/necko-config.h
 xpcom/xpcom-config.h
 xpcom/xpcom-private.h
 "
