@@ -501,12 +501,12 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   NSString* vendorSubString = [prefManager getStringPref:"general.useragent.vendorSub" withSuccess:NULL];
   if ([vendorSubString rangeOfString:@"pre"].location == NSNotFound) {
     // has the user seen this already?
-    NSString* startPageRev = [prefManager getStringPref:"browser.startup_page_override.version" withSuccess:NULL];
-    if (![vendorSubString isEqualToString:startPageRev]) {
-      NSString* startPage = NSLocalizedStringFromTable(@"StartPageDefault", @"WebsiteDefaults", nil);
-      if ([startPage length] && ![startPage isEqualToString:@"StartPageDefault"]) {
+    NSString* newVersionPageRev = [prefManager getStringPref:"browser.startup_page_override.version" withSuccess:NULL];
+    if (![vendorSubString isEqualToString:newVersionPageRev]) {
+      NSString* newVersionPage = NSLocalizedStringFromTable(@"NewVersionPage", @"WebsiteDefaults", nil);
+      if ([newVersionPage length] && ![newVersionPage isEqualToString:@"NewVersionPage"]) {
         [mStartURL release];
-        mStartURL = [startPage retain];
+        mStartURL = [newVersionPage retain];
       }
       // set the pref to say they've seen it
       [prefManager setPref:"browser.startup_page_override.version" toString:vendorSubString];
@@ -950,8 +950,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (IBAction)feedbackLink:(id)aSender
 {
-  NSString* pageToLoad = NSLocalizedStringFromTable(@"FeedbackPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"FeedbackPageDefault"])
+  NSString* pageToLoad = NSLocalizedStringFromTable(@"FeedbackPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"FeedbackPage"])
     [self loadApplicationPage:pageToLoad];
 }
 
@@ -1523,8 +1523,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (IBAction)aboutServers:(id)aSender
 {
-  NSString* pageToLoad = NSLocalizedStringFromTable(@"RendezvousPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"RendezvousPageDefault"])
+  NSString* pageToLoad = NSLocalizedStringFromTable(@"RendezvousPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"RendezvousPage"])
     [self loadApplicationPage:pageToLoad];
 }
 
@@ -1572,22 +1572,22 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (IBAction)supportLink:(id)aSender
 {
-  NSString* pageToLoad = NSLocalizedStringFromTable(@"SupportPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"SupportPageDefault"])
+  NSString* pageToLoad = NSLocalizedStringFromTable(@"SupportPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"SupportPage"])
     [self loadApplicationPage:pageToLoad];
 }
 
 - (IBAction)keyboardShortcutsLink:(id)aSender
 {
-  NSString* pageToLoad = NSLocalizedStringFromTable(@"KeyboardShortcutsPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"KeyboardShortcutsPageDefault"])
+  NSString* pageToLoad = NSLocalizedStringFromTable(@"KeyboardShortcutsPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"KeyboardShortcutsPage"])
     [self loadApplicationPage:pageToLoad];
 }
 
 - (IBAction)infoLink:(id)aSender
 {
-  NSString* pageToLoad = NSLocalizedStringFromTable(@"InfoPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"InfoPageDefault"])
+  NSString* pageToLoad = NSLocalizedStringFromTable(@"InfoPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"InfoPage"])
     [self loadApplicationPage:pageToLoad];
 }
 

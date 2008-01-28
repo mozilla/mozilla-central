@@ -1408,7 +1408,7 @@ public:
   else if ([itemIdent isEqual:ThrobberToolbarItemIdentifier]) {
     [toolbarItem setLabel:@""];
     [toolbarItem setPaletteLabel:NSLocalizedString(@"Progress", nil)];
-    [toolbarItem setToolTip:NSLocalizedStringFromTable(@"ThrobberPageDefault", @"WebsiteDefaults", nil)];
+    [toolbarItem setToolTip:NSLocalizedStringFromTable(@"ThrobberPage", @"WebsiteDefaults", nil)];
     [toolbarItem setImage:[NSImage imageNamed:@"throbber-01"]];
     [toolbarItem setTarget:self];
     [toolbarItem setTag:'Thrb'];
@@ -2823,8 +2823,8 @@ public:
 
 - (void)clickThrobber:(id)aSender
 {
-  NSString *pageToLoad = NSLocalizedStringFromTable(@"ThrobberPageDefault", @"WebsiteDefaults", nil);
-  if (![pageToLoad isEqualToString:@"ThrobberPageDefault"])
+  NSString *pageToLoad = NSLocalizedStringFromTable(@"ThrobberPage", @"WebsiteDefaults", nil);
+  if (![pageToLoad isEqualToString:@"ThrobberPage"])
     [self loadURL:pageToLoad];
 }
 

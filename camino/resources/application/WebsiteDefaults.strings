@@ -1,9 +1,8 @@
-SupportPageDefault = "http://www.mozilla.org/products/camino/support/";
-HomePageDefault = "http://www.mozilla.org/projects/camino/homepage.html";
-StartPageDefault = "http://www.mozilla.org/projects/camino/welcome.html";
-ThrobberPageDefault = "http://www.mozilla.org/projects/camino/";
-FeedbackPageDefault = "http://www.mozilla.org/projects/camino/feedback.html";
-InfoPageDefault = "http://www.mozilla.org/projects/camino/";
-RendezvousPageDefault ="http://www.zeroconf.org/webbrowsers.html";
-KeyboardShortcutsPageDefault = "http://www.mozilla.org/projects/camino/shortcuts.html";
-
+HomePageDefault = "http://caminobrowser.org/start/";
+NewVersionPage = "http://caminobrowser.org/welcome/";
+InfoPage = "http://caminobrowser.org/";
+ThrobberPage = "http://caminobrowser.org/";
+SupportPage = "http://caminobrowser.org/help/";
+KeyboardShortcutsPage = "http://caminobrowser.org/documentation/shortcuts/";
+FeedbackPage = "http://caminobrowser.org/contact/";
+RendezvousPage ="http://www.zeroconf.org/webbrowsers.html";
