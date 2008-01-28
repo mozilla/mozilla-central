@@ -42,6 +42,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <string.h>
 #if defined(AIX)
 #include <dlfcn.h>  /* For dlopen, dlsym, dlclose */
 #endif
