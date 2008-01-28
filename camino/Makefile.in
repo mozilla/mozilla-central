@@ -157,6 +157,7 @@ GARBAGE_DIRS += \
 	$(DIST)/$(APP_NAME).app \
 	embed-replacements.tmp \
 	generated \
+	sharedmenuscocoa/build \
 	sparkle/build \
 	$(NULL)
 
@@ -174,13 +175,15 @@ ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
 	ln -fs $(srcdir)/src
 	ln -fs $(srcdir)/resources
 	ln -fs $(srcdir)/config
-	mkdir -p sparkle
-	rm -rf sparkle/Sparkle.xcodeproj
-	ln -fs $(ABS_topsrcdir)/camino/sparkle/* sparkle
-	rm -rf sparkle/Sparkle.xcodeproj
-	$(RSYNC_ALL) $(ABS_topsrcdir)/camino/sparkle/Sparkle.xcodeproj sparkle
 	ln -fs $(srcdir)/PreferencePanes
 	ln -fs $(srcdir)/Info-*.plist .
+	mkdir -p sharedmenuscocoa sparkle
+	bash -O extglob -c \
+	  "ln -fs $(ABS_topsrcdir)/camino/sharedmenuscocoa/!(CVS|*.xcodeproj|build) sharedmenuscocoa"
+	$(RSYNC_ALL) $(ABS_topsrcdir)/camino/sharedmenuscocoa/*.xcodeproj sharedmenuscocoa
+	bash -O extglob -c \
+	  "ln -fs $(ABS_topsrcdir)/camino/sparkle/!(CVS|*.xcodeproj|build) sparkle"
+	$(RSYNC_ALL) $(ABS_topsrcdir)/camino/sparkle/*.xcodeproj sparkle
 endif
 
 generated:

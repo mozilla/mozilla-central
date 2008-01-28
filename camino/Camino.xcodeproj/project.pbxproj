@@ -514,7 +514,6 @@
 		3F44AD6D05BDFB9F00CB4B08 /* libpipboot.dylib in Copy Security Components */ = {isa = PBXBuildFile; fileRef = F5247C3C0228B990013DD99A /* libpipboot.dylib */; };
 		3F44AD6E05BDFB9F00CB4B08 /* libpipnss.dylib in Copy Security Components */ = {isa = PBXBuildFile; fileRef = F5247C3D0228B990013DD99A /* libpipnss.dylib */; };
 		3F44AD7005BDFB9F00CB4B08 /* pipnss.jar in Copy Security Chrome */ = {isa = PBXBuildFile; fileRef = F54EF7ED022A2F9C01A80165 /* pipnss.jar */; };
-		3F44AD7805BDFB9F00CB4B08 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */; };
 		3F44AD7B05BDFB9F00CB4B08 /* PrintPDE.plugin in Copy Plugins */ = {isa = PBXBuildFile; fileRef = 7919FCF0044631350000010E /* PrintPDE.plugin */; };
 		3F44AD7D05BDFB9F00CB4B08 /* libembed_base_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F51D9B2D0209573701A80166 /* libembed_base_s.a */; };
 		3F44AD7E05BDFB9F00CB4B08 /* libunicharutil_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F5C2CDA702383CE601A967DF /* libunicharutil_s.a */; };
@@ -524,7 +523,6 @@
 		3F44AD8205BDFB9F00CB4B08 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52D5CDC027D412A01A80166 /* CoreFoundation.framework */; };
 		3F44AD8305BDFB9F00CB4B08 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52D5CDD027D412A01A80166 /* SystemConfiguration.framework */; };
 		3F44AD8405BDFB9F00CB4B08 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5FEDBCB02AD8DD101A967F3 /* QuickTime.framework */; };
-		3F44AD8505BDFB9F00CB4B08 /* SharedMenusCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */; };
 		3F44AD8F05BDFB9F00CB4B08 /* Appearance.nib in Resources */ = {isa = PBXBuildFile; fileRef = F507A85903116FF301026D5D /* Appearance.nib */; };
 		3F44AD9005BDFB9F00CB4B08 /* Appearance.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F5A8CE5102DFF167013CA8EC /* Appearance.tiff */; };
 		3F44AD9105BDFB9F00CB4B08 /* RegionMapping.plist in Resources */ = {isa = PBXBuildFile; fileRef = F5F9FBD902E13767012B5DB7 /* RegionMapping.plist */; };
@@ -767,7 +765,6 @@
 		3F44AF8B05BDFBA000CB4B08 /* libplc4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638101B30EA301A962F7 /* libplc4.dylib */; };
 		3F44AF8C05BDFBA000CB4B08 /* libplds4.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F6BD638201B30EA301A962F7 /* libplds4.dylib */; };
 		3F44AF8D05BDFBA000CB4B08 /* libwidget.rsrc in Copy Libraries */ = {isa = PBXBuildFile; fileRef = F5F14E9602A5A43A01A967F3 /* libwidget.rsrc */; };
-		3F44AF9105BDFBA000CB4B08 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */; };
 		3F44AF9305BDFBA000CB4B08 /* PrintPDE.plugin in Copy Plugins */ = {isa = PBXBuildFile; fileRef = 7919FCF0044631350000010E /* PrintPDE.plugin */; };
 		3F44AF9605BDFBA000CB4B08 /* libembed_base_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F51D9B2D0209573701A80166 /* libembed_base_s.a */; };
 		3F44AF9705BDFBA000CB4B08 /* libnecko.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F56F242602AC706801A967F3 /* libnecko.a */; };
@@ -808,7 +805,6 @@
 		3F44AFBE05BDFBA000CB4B08 /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F5FEDBCB02AD8DD101A967F3 /* QuickTime.framework */; };
 		3F44AFBF05BDFBA000CB4B08 /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52D5CDC027D412A01A80166 /* CoreFoundation.framework */; };
 		3F44AFC005BDFBA000CB4B08 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52D5CDD027D412A01A80166 /* SystemConfiguration.framework */; };
-		3F44AFC105BDFBA000CB4B08 /* SharedMenusCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */; };
 		3F44AFC205BDFBA000CB4B08 /* libucvutil_s.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0FEBFCA1044F989900A96652 /* libucvutil_s.a */; };
 		3F44AFC305BDFBA000CB4B08 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F558E950552122E006156FD /* IOKit.framework */; };
 		3F44AFF905BDFBA000CB4B08 /* layout_printing.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD63F201B313EE01A962F7 /* layout_printing.xpt */; };
@@ -912,6 +908,10 @@
 		6021CDDC0C84FDC4000E7754 /* CHStringBundleOverride.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */; };
 		7B06E8160D0DC8C20032E38A /* PreferencePaneBase.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5A8CE4202DFEF4C013CA8EC /* PreferencePaneBase.mm */; };
 		7B06E8170D0DC8DC0032E38A /* PreferencePaneBase.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5A8CE4202DFEF4C013CA8EC /* PreferencePaneBase.mm */; };
+		7B0B576E0D4A4F1E003BC853 /* SharedMenusCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B576D0D4A4EE0003BC853 /* SharedMenusCocoa.framework */; };
+		7B0B576F0D4A4F2B003BC853 /* SharedMenusCocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B576D0D4A4EE0003BC853 /* SharedMenusCocoa.framework */; };
+		7B0B57D20D4A519B003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */; };
+		7B0B57D30D4A51AA003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */; };
 		7B479B7D0D0DD5EB00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B5073000D11E88400458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
@@ -1132,6 +1132,27 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		7B0B576C0D4A4EE0003BC853 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 7B0B54EF0D4A459E003BC853;
+			remoteInfo = SharedMenusCocoa;
+		};
+		7B0B578C0D4A5098003BC853 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B0B54DD0D4A459E003BC853;
+			remoteInfo = SharedMenusCocoa;
+		};
+		7B0B578E0D4A50A0003BC853 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7B0B54DD0D4A459E003BC853;
+			remoteInfo = SharedMenusCocoa;
+		};
 		7B64B7C90CCFD9F50098406C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */;
@@ -1680,7 +1701,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3F44AD7805BDFB9F00CB4B08 /* SharedMenusCocoa.framework in Copy Frameworks */,
+				7B0B57D20D4A519B003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */,
 				7BAEF8120CCFDF3400384F4E /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
@@ -1957,7 +1978,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3F44AF9105BDFBA000CB4B08 /* SharedMenusCocoa.framework in Copy Frameworks */,
+				7B0B57D30D4A51AA003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */,
 				7BAEF8150CCFDF4A00384F4E /* Sparkle.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
@@ -2399,6 +2420,8 @@
 		6021CDD70C84FDC4000E7754 /* CHStringBundleOverride.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHStringBundleOverride.h; path = src/embedding/CHStringBundleOverride.h; sourceTree = "<group>"; };
 		6021CDD80C84FDC4000E7754 /* CHStringBundleOverride.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHStringBundleOverride.mm; path = src/embedding/CHStringBundleOverride.mm; sourceTree = "<group>"; };
 		7919FCF0044631350000010E /* PrintPDE.plugin */ = {isa = PBXFileReference; lastKnownFileType = wrapper.cfbundle; name = PrintPDE.plugin; path = ../dist/package/PrintPDE.plugin; sourceTree = SOURCE_ROOT; };
+		7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SharedMenusCocoa.xcodeproj; path = sharedmenuscocoa/SharedMenusCocoa.xcodeproj; sourceTree = "<group>"; };
+		7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SharedMenusCocoa.framework; path = "sharedmenuscocoa/build/$(CONFIGURATION)/SharedMenusCocoa.framework"; sourceTree = "<group>"; };
 		7B5072FC0D11E83B00458384 /* KeyEquivView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeyEquivView.h; path = src/extensions/KeyEquivView.h; sourceTree = "<group>"; };
 		7B5072FD0D11E83B00458384 /* KeyEquivView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = KeyEquivView.mm; path = src/extensions/KeyEquivView.mm; sourceTree = "<group>"; };
 		7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Sparkle.xcodeproj; path = sparkle/Sparkle.xcodeproj; sourceTree = "<group>"; };
@@ -2650,7 +2673,6 @@
 		F558B1F1030F6E470166970F /* CHBrowserListener.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CHBrowserListener.mm; path = src/embedding/CHBrowserListener.mm; sourceTree = "<group>"; };
 		F558B1F1030F6E470166971F /* CmXULAppInfo.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CmXULAppInfo.h; path = src/embedding/CmXULAppInfo.h; sourceTree = "<group>"; };
 		F558B1F1030F6E470166972F /* CmXULAppInfo.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = CmXULAppInfo.mm; path = src/embedding/CmXULAppInfo.mm; sourceTree = "<group>"; };
-		F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SharedMenusCocoa.framework; path = /Library/Frameworks/SharedMenusCocoa.framework; sourceTree = "<absolute>"; };
 		F55A9BC60228CCE101DAE4DB /* security-prefs.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "security-prefs.js"; path = "../dist/Embed/greprefs/security-prefs.js"; sourceTree = SOURCE_ROOT; };
 		F55B6BF402EF1F7E01026D5D /* broken-image.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = "broken-image.gif"; path = "resources/images/gecko/broken-image.gif"; sourceTree = SOURCE_ROOT; };
 		F55C4DD302D2864D0130B065 /* UserDefaults.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = UserDefaults.h; path = src/application/UserDefaults.h; sourceTree = "<group>"; };
@@ -2907,7 +2929,7 @@
 				3F44AD8205BDFB9F00CB4B08 /* CoreFoundation.framework in Frameworks */,
 				3F44AD8305BDFB9F00CB4B08 /* SystemConfiguration.framework in Frameworks */,
 				3F44AD8405BDFB9F00CB4B08 /* QuickTime.framework in Frameworks */,
-				3F44AD8505BDFB9F00CB4B08 /* SharedMenusCocoa.framework in Frameworks */,
+				7B0B576E0D4A4F1E003BC853 /* SharedMenusCocoa.framework in Frameworks */,
 				3FECC8E605D1FE800068E7ED /* libprofdirserviceprovider_s.a in Frameworks */,
 				34884A36074F7C5D000EA76B /* AddressBook.framework in Frameworks */,
 				0FF288560961EDDD007527B4 /* libfreebl3.dylib in Frameworks */,
@@ -3024,7 +3046,7 @@
 				3F44AFBE05BDFBA000CB4B08 /* QuickTime.framework in Frameworks */,
 				3F44AFBF05BDFBA000CB4B08 /* CoreFoundation.framework in Frameworks */,
 				3F44AFC005BDFBA000CB4B08 /* SystemConfiguration.framework in Frameworks */,
-				3F44AFC105BDFBA000CB4B08 /* SharedMenusCocoa.framework in Frameworks */,
+				7B0B576F0D4A4F2B003BC853 /* SharedMenusCocoa.framework in Frameworks */,
 				3F44AFC205BDFBA000CB4B08 /* libucvutil_s.a in Frameworks */,
 				3F44AFC305BDFBA000CB4B08 /* IOKit.framework in Frameworks */,
 				3FECC8E705D1FE800068E7ED /* libprofdirserviceprovider_s.a in Frameworks */,
@@ -3270,7 +3292,6 @@
 			isa = PBXGroup;
 			children = (
 				34884A35074F7C5D000EA76B /* AddressBook.framework */,
-				F55A4DED0380705A01A80166 /* SharedMenusCocoa.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				F557193A022B4102010001CA /* PreferencePanes.framework */,
 				F52D5CDB027D412A01A80166 /* Carbon.framework */,
@@ -3279,6 +3300,8 @@
 				F52D5CDD027D412A01A80166 /* SystemConfiguration.framework */,
 				F5FEDBCB02AD8DD101A967F3 /* QuickTime.framework */,
 				3F558E950552122E006156FD /* IOKit.framework */,
+				7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */,
+				7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */,
 				7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */,
 				7BAEF7470CCFDE7D00384F4E /* Sparkle.framework */,
 			);
@@ -3667,6 +3690,14 @@
 				035A4976079DC83E0084B05F /* Info-HistoryPrefPane.plist */,
 			);
 			name = "Target Plists";
+			sourceTree = "<group>";
+		};
+		7B0B57660D4A4EE0003BC853 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B0B576D0D4A4EE0003BC853 /* SharedMenusCocoa.framework */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		7B64B7BB0CCFD9F50098406C /* Products */ = {
@@ -4574,6 +4605,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7B0B578D0D4A5098003BC853 /* PBXTargetDependency */,
 				7B64B7D20CCFDA1A0098406C /* PBXTargetDependency */,
 			);
 			name = CaminoApp;
@@ -4705,6 +4737,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				7B0B578F0D4A50A0003BC853 /* PBXTargetDependency */,
 				7B64B7D60CCFDA210098406C /* PBXTargetDependency */,
 			);
 			name = CaminoStaticApp;
@@ -4734,6 +4767,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = 7B0B57660D4A4EE0003BC853 /* Products */;
+					ProjectRef = 7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */;
+				},
+				{
 					ProductGroup = 7B64B7BB0CCFD9F50098406C /* Products */;
 					ProjectRef = 7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */;
 				},
@@ -4757,6 +4794,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		7B0B576D0D4A4EE0003BC853 /* SharedMenusCocoa.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SharedMenusCocoa.framework;
+			remoteRef = 7B0B576C0D4A4EE0003BC853 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		7B64B7CA0CCFD9F50098406C /* Sparkle.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -5506,6 +5550,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		7B0B578D0D4A5098003BC853 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SharedMenusCocoa;
+			targetProxy = 7B0B578C0D4A5098003BC853 /* PBXContainerItemProxy */;
+		};
+		7B0B578F0D4A50A0003BC853 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = SharedMenusCocoa;
+			targetProxy = 7B0B578E0D4A50A0003BC853 /* PBXContainerItemProxy */;
+		};
 		7B64B7D20CCFDA1A0098406C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Sparkle;

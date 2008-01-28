@@ -39,6 +39,7 @@
 
 #import <Carbon/Carbon.h>
 #import <Sparkle/Sparkle.h>
+#import <SharedMenusCocoa/SharedMenusObj.h>
 
 #import "NSArray+Utils.h"
 #import "NSString+Utils.h"
@@ -68,7 +69,6 @@
 #import "CertificatesWindowController.h"
 #import "PageInfoWindowController.h"
 #import "PreferenceManager.h"
-#import "SharedMenusObj.h"
 #import "SiteIconProvider.h"
 #import "SessionManager.h"
 #import "CHPermissionManager.h"
