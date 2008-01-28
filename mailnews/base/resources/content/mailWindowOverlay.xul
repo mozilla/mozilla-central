@@ -1493,7 +1493,7 @@
     </template>
   </menu>
 
-  <menu label="&msgMenu.label;" accesskey="&msgMenu.accesskey;" >
+  <menu id="messageMenu" label="&msgMenu.label;" accesskey="&msgMenu.accesskey;">
     <menupopup id="messageMenuPopup" onpopupshowing="InitMessageMenu();">
       <menuitem id="newMsgCmd"
                 label="&newMsgCmd.label;"
@@ -1830,7 +1830,7 @@
 <spacer flex="100%"/>
 </menubar>
 
-<toolbox id="mailToolbarToolbox">
+<toolbox id="mail-toolbox">
   <toolbar class="toolbar-primary chromeclass-toolbar" id="msgToolbar" persist="collapsed" grippytooltiptext="&mailToolbar.tooltip;">
       <toolbarbutton type="menu-button" id="button-getmsg"
                      class="toolbarbutton-1"
