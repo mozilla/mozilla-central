@@ -57,6 +57,7 @@ class QuotingOutputStreamListener;
 class nsMsgComposeSendListener;
 class nsIAddrDatabase;
 class nsIEditorMailSupport;
+class nsIRDFService;
 
 class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 {
@@ -118,7 +119,9 @@ private:
   nsresult _SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, PRBool entityConversionDone);
   nsresult CreateMessage(const char * originalMsgURI, MSG_ComposeType type, nsIMsgCompFields* compFields);
   void CleanUpRecipients(nsString& recipients);
-  nsresult GetABDirectories(const nsACString& dirUri, nsISupportsArray* directoriesArray, PRBool searchSubDirectory);
+  nsresult GetABDirectories(const nsACString& aDirUri,
+                            nsIRDFService *aRDFService,
+                            nsCOMArray<nsIAbDirectory> &aDirArray);
   nsresult BuildMailListArray(nsIAbDirectory* parentDir,
                               nsISupportsArray* array);
   nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsISupportsArray** addresses);

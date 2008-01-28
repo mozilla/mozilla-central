@@ -4208,26 +4208,22 @@ nsresult nsMsgCompose::AttachmentPrettyName(const char* scheme, const char* char
   return NS_OK;
 }
 
-nsresult nsMsgCompose::GetABDirectories(const nsACString& dirUri, nsISupportsArray* directoriesArray, PRBool searchSubDirectory)
+nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
+                                        nsIRDFService *aRDFService,
+                                        nsCOMArray<nsIAbDirectory> &aDirArray)
 {
   static PRBool collectedAddressbookFound;
-  if (dirUri.EqualsLiteral(kMDBDirectoryRoot))
+  if (aDirUri.EqualsLiteral(kMDBDirectoryRoot))
     collectedAddressbookFound = PR_FALSE;
 
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIRDFService> rdfService (do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
-  if (NS_FAILED(rv)) return rv;
-
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(dirUri, getter_AddRefs(resource));
-  if (NS_FAILED(rv)) return rv;
+  nsresult rv;
+  nsCOMPtr<nsIRDFResource> resource;
+  rv = aRDFService->GetResource(aDirUri, getter_AddRefs(resource));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // query interface
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
-  if (NS_FAILED(rv)) return rv;
-
-  if (!searchSubDirectory)
-      return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISimpleEnumerator> subDirectories;
   if (NS_SUCCEEDED(directory->GetChildNodes(getter_AddRefs(subDirectories))) && subDirectories)
@@ -4258,8 +4254,7 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& dirUri, nsISupportsArr
             pos = 0;
           else
           {
-            PRUint32 count = 0;
-            directoriesArray->Count(&count);
+            PRUint32 count = aDirArray.Count();
 
             if (uri.EqualsLiteral(kCollectedAddressbookUri))
             {
@@ -4275,8 +4270,8 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& dirUri, nsISupportsArr
             }
           }
 
-          directoriesArray->InsertElementAt(directory, pos);
-          rv = GetABDirectories(uri, directoriesArray, PR_TRUE);
+          aDirArray.InsertObjectAt(directory, pos);
+          rv = GetABDirectories(uri, aRDFService, aDirArray);
         }
       }
     }
@@ -4412,35 +4407,30 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
   nsCOMPtr<nsISupportsArray> mailListAddresses;
   nsCOMPtr<nsIMsgHeaderParser> parser(do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
   nsCOMPtr<nsISupportsArray> mailListArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return rv;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> addrbookDirArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && addrbookDirArray)
+  nsCOMPtr<nsIRDFService> rdfService(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMArray<nsIAbDirectory> addrbookDirArray;
+  rv = GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), rdfService,
+                        addrbookDirArray);
+  if (NS_SUCCEEDED(rv))
   {
     nsString dirPath;
     PRBool dirtyABDatabase = PR_FALSE;
-    PRUint32 nbrAddressbook;
+    PRUint32 nbrAddressbook = addrbookDirArray.Count();
 
-    GetABDirectories(NS_LITERAL_CSTRING(kAllDirectoryRoot), addrbookDirArray,
-                     PR_TRUE);
-
-    addrbookDirArray->Count(&nbrAddressbook);
     for (k = 0; k < nbrAddressbook && stillNeedToSearch; ++k)
     {
-      nsCOMPtr<nsISupports> item;
-      addrbookDirArray->GetElementAt(k, getter_AddRefs(item));
-
       // Avoid recursive mailing lists
-      if (abDirectory && (item == abDirectory))
+      if (abDirectory && (addrbookDirArray[k] == abDirectory))
       {
         stillNeedToSearch = PR_FALSE;
         break;
       }
 
-      abDirectory = do_QueryInterface(item, &rv);
-      if (NS_FAILED(rv))
-        return rv;
+      abDirectory = addrbookDirArray[k];
 
       nsCOMPtr<nsIRDFResource> source(do_QueryInterface(abDirectory));
 
