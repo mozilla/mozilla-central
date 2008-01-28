@@ -181,9 +181,7 @@ OS_LIBS += $(call EXPAND_LIBNAME,comctl32 comdlg32 uuid shell32 ole32 oleaut32 v
 ifdef MOZILLA_1_8_BRANCH
 OS_LIBS += $(call EXPAND_LIBNAME,gdi32)
 endif
-ifdef MOZ_ENABLE_CAIRO_GFX
 OS_LIBS += $(call EXPAND_LIBNAME,usp10 msimg32)
-endif
 RCINCLUDE = splash.rc
 ifndef GNU_CC
 RCFLAGS += -DMOZ_SUNBIRD -I$(srcdir)
