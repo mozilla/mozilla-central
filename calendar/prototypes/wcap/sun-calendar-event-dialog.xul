@@ -696,7 +696,7 @@
                           disable-on-readonly="true"
                           label="&event.alldayevent.label;"
                           accesskey="&event.alldayevent.accesskey;"
-                          oncommand="updateAllDay();"/>
+                          oncommand="onUpdateAllDay();"/>
             </row>
 
             <!-- StartDate -->

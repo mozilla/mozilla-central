@@ -1030,6 +1030,18 @@ function updateAccept() {
     return enableAccept;
 }
 
+function onUpdateAllDay() {
+    if (!isEvent(window.calendarItem)) {
+        return;
+    }
+    var allDay = getElementValue("event-all-day", "checked");
+    gStartTimezone = (allDay ? floating(): calendarDefaultTimezone());
+    gEndTimezone = gStartTimezone;
+    gStartTime.timezone = gStartTimezone;
+    gEndTime.timezone = gEndTimezone;
+    updateAllDay();
+}
+
 // this function sets the enabled/disabled
 // state of the following controls:
 // - 'event-starttime'
@@ -2189,7 +2201,7 @@ function updateTimezone() {
                 if (aTimezone != null && !aCollapse) {
                     element.removeAttribute('collapsed');
                     element.value = timezoneString(aTimezone);
-                    if (!aDateTime || !aDateTime.isValid || gIsReadOnly) {
+                    if (!aDateTime || !aDateTime.isValid || gIsReadOnly || aDateTime.isDate) {
                         if (element.hasAttribute('class')) {
                             element.setAttribute('class-on-enabled',
                                 element.getAttribute('class'));
