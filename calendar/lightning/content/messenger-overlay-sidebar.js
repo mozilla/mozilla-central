@@ -486,8 +486,8 @@ var menulist = new Array();
 
 function ltnInitializeMenus(){
     copyPopupMenus();
-    ltnInitializeCalendarMenu();
-    ltnInitializeTaskMenu();
+    ltnRemoveMailOnlyItems(calendarpopuplist, "calendar");
+    ltnRemoveMailOnlyItems(taskpopuplist, "task");
     document.getElementById("calendar-toolbar").setAttribute("collapsed", "true")
     var modeToolbar = document.getElementById("mode-toolbar");
     var visible = !modeToolbar.hasAttribute("collapsed");
@@ -578,54 +578,67 @@ function copyPopupMenus() {
     menulist.push(document.getElementById("menu_Edit"));
     var menuView = document.getElementById("menu_View");
     menulist.push(menuView);
-    menulist.push(menuView.nextSibling);
+    menulist.push(menuView.nextSibling); // id-less menu_Go
     menulist.push(document.getElementById("messageMenu"));
     menulist.push(document.getElementById("tasksMenu"));
 
     // define PopupMenus for calendar mode...
     var excludeList = new Array("task");
-    addToPopupList(document.getElementById("menu_File"), null, calendarpopuplist, excludeList, true, true);
-    addToPopupList(document.getElementById("menu_Edit"), null, calendarpopuplist, excludeList, true, false);
-    var menuView = document.getElementById("menu_View");
-    addToPopupList(menuView, null, calendarpopuplist, excludeList, true, true);
-    addToPopupList(menuView.nextSibling, document.getElementById("calendar-GoPopupMenu"), calendarpopuplist, excludeList, true, false);
-    addToPopupList(document.getElementById("messageMenu"), document.getElementById("calendarCalendarPopupMenu"), calendarpopuplist, excludeList, true, false);
-    var tasksMenu = document.getElementById("tasksMenu");
-    addToPopupList(tasksMenu, null, calendarpopuplist, excludeList, true, false);
+    addToPopupList(menulist[0], null, calendarpopuplist, excludeList, true, true);
+    addToPopupList(menulist[1], null, calendarpopuplist, excludeList, true, false);
+    addToPopupList(menulist[2], null, calendarpopuplist, excludeList, true, true);
+    addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), calendarpopuplist, excludeList, true, false);
+    addToPopupList(menulist[4], document.getElementById("calendarCalendarPopupMenu"), calendarpopuplist, excludeList, true, false);
+    addToPopupList(menulist[5], null, calendarpopuplist, excludeList, true, false);
 
-    // define PopupMenus for mail mode...
+    // define PopupMenus for task mode...
     var excludeList = new Array("calendar");
-    addToPopupList(document.getElementById("menu_File"), null, taskpopuplist, excludeList, true, true);
-    addToPopupList(document.getElementById("menu_Edit"), null, taskpopuplist, excludeList, true, false);
-    var menuView = document.getElementById("menu_View");
-    addToPopupList(menuView, null, taskpopuplist, excludeList, true, true);
-    addToPopupList(menuView.nextSibling, document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
+    addToPopupList(menulist[0], null, taskpopuplist, excludeList, true, true);
+    addToPopupList(menulist[1], null, taskpopuplist, excludeList, true, false);
+    addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
+    addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
     var tasksViewMenuPopup = document.getElementById("taskitem-context-menu").cloneNode(true);
     tasksViewMenuPopup.setAttribute("id", "taskitem-menu");
     var menuElements = tasksViewMenuPopup.getElementsByAttribute("id", "*");
-    for (var i = 0; i < menuElements.length; i++) {
+    for (var i = menuElements.length; i-- > 0;) {
         var lid = menuElements[i].getAttribute("id");
         menuElements[i].setAttribute("id", "menu-" + lid);
     }
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-modify", tasksViewMenuPopup));
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-delete", tasksViewMenuPopup));
-    addToPopupList(document.getElementById("messageMenu"), tasksViewMenuPopup, taskpopuplist, excludeList, false, false);
-    var tasksMenu = document.getElementById("tasksMenu");
-    addToPopupList(tasksMenu, null, taskpopuplist, excludeList, true, true);
+    addToPopupList(menulist[4], tasksViewMenuPopup, taskpopuplist, excludeList, false, false);
+    addToPopupList(menulist[5], null, taskpopuplist, excludeList, true, true);
 
-    // define PopupMenus for task mode...
+    // define PopupMenus for mail mode...
     var excludeList = new Array("calendar", "task", "calendar,task");
     addToPopupList(menulist[0], null, mailpopuplist, excludeList, false, false);
     addToPopupList(menulist[1], null, mailpopuplist, excludeList, false, false);
     addToPopupList(menulist[2], null, mailpopuplist, excludeList, false, false);
+    // copy calendar-GoPopupMenu into Thunderbird's GoPopupMenu to switch modes
+    var tbGoPopupMenu = menulist[3].lastChild;
+    var calGoPopupMenu = document.getElementById("calendar-GoPopupMenu").cloneNode(true);
+    var calGoItem;
+    while(calGoItem = calGoPopupMenu.firstChild) {
+        tbGoPopupMenu.appendChild(calGoItem);
+    }
     addToPopupList(menulist[3], null, mailpopuplist, excludeList, false, false);
     addToPopupList(menulist[4], null, mailpopuplist, excludeList, false, false);
     addToPopupList(menulist[5], null, mailpopuplist, excludeList, false, false);
 }
 
-function removeLastMenuSeparator(aMenuPopupList) {
+function removeNeedlessSeparators(aMenuPopupList) {
     aMenuPopupList.forEach(function(aMenuPopup) {
-        var child = aMenuPopup.lastChild;
+        var child = aMenuPopup.firstChild;
+        if (child) {
+            if (child.localName == "menuseparator") {
+                try {
+                    aMenuPopup.removeChild(child)
+                } catch (e) {
+                    dump("Element '" + child.getAttribute("id") + "' could not be removed\n");
+                }
+            }
+        }
+        child = aMenuPopup.lastChild;
         if (child) {
             if (child.localName == "menuseparator") {
                 try {
@@ -638,104 +651,53 @@ function removeLastMenuSeparator(aMenuPopupList) {
     });
 }
 
-
-function ltnInitializeCalendarMenu() {
-// "File" - menu
+function ltnRemoveMailOnlyItems(aMenuPopupList, aExcludeMode) {
     removeElements(
-    [getMenuElementById("openMessageFileMenuitem", calendarpopuplist[0]),
-     getMenuElementById("newAccountMenuItem", calendarpopuplist[0]),
-     getMenuElementById("fileAttachmentMenu", calendarpopuplist[0]),
-     getAdjacentSibling(getMenuElementById("menu_saveAs", calendarpopuplist[0]), 2),
+// "File" - menu
+    [getMenuElementById("openMessageFileMenuitem", aMenuPopupList[0]),
+     getMenuElementById("newAccountMenuItem", aMenuPopupList[0]),
+     getMenuElementById("fileAttachmentMenu", aMenuPopupList[0]),
+     getAdjacentSibling(getMenuElementById("menu_saveAs", aMenuPopupList[0]), 2),
 
 // "Edit" - menu
-     getMenuElementById("menu_find", calendarpopuplist[1]),
-     getMenuElementById("menu_favoriteFolder", calendarpopuplist[1]),
-     getMenuElementById("menu_properties", calendarpopuplist[1]),
-     getMenuElementById("menu_accountmgr", calendarpopuplist[1]),
+     getMenuElementById("menu_find", aMenuPopupList[1]),
+     getMenuElementById("menu_favoriteFolder", aMenuPopupList[1]),
+     getMenuElementById("menu_properties", aMenuPopupList[1]),
+     getMenuElementById("menu_accountmgr", aMenuPopupList[1]),
 
 // "View"-menu
-     getMenuElementById("menu_showMessengerToolbar", calendarpopuplist[2]),
+     getMenuElementById("menu_showMessengerToolbar", aMenuPopupList[2]),
 
 // "Tools"-menu
-     getMenuElementById("tasksMenuMail", calendarpopuplist[5]),
-     getMenuElementById("menu_import", calendarpopuplist[5])]);
+     getMenuElementById("tasksMenuMail", aMenuPopupList[5]),
+     getMenuElementById("menu_import", aMenuPopupList[5])]);
 
-     removeLastMenuSeparator(calendarpopuplist);
+     removeNeedlessSeparators(aMenuPopupList);
 
 // "File" - menu
-    [getMenuElementById("menu_newFolder", calendarpopuplist[0]),
-     getMenuElementById("menu_saveAs", calendarpopuplist[0]),
-     getMenuElementById("menu_getnextnmsg", calendarpopuplist[0]),
-     getMenuElementById("menu_renameFolder", calendarpopuplist[0]),
-//     getMenuElementById("offlineMenuItem", calendarpopuplist[0]),
+    [getMenuElementById("menu_newFolder", aMenuPopupList[0]),
+     getMenuElementById("menu_saveAs", aMenuPopupList[0]),
+     getMenuElementById("menu_getnextnmsg", aMenuPopupList[0]),
+     getMenuElementById("menu_renameFolder", aMenuPopupList[0]),
+//     getMenuElementById("offlineMenuItem", aMenuPopupList[0]),
+
 // "Edit" - menu
-     getMenuElementById("menu_delete", calendarpopuplist[1]),
-     getMenuElementById("menu_select", calendarpopuplist[1]),
+     getMenuElementById("menu_delete", aMenuPopupList[1]),
+     getMenuElementById("menu_select", aMenuPopupList[1]),
 
 // "View"-menu
-     getMenuElementById("menu_MessagePaneLayout", calendarpopuplist[2]),
-     getMenuElementById("viewSortMenu", calendarpopuplist[2]),
-     getMenuElementById("viewheadersmenu", calendarpopuplist[2]),
-     getMenuElementById("viewTextSizeMenu", calendarpopuplist[2]),
-     getMenuElementById("pageSourceMenuItem", calendarpopuplist[2]),
+     getMenuElementById("menu_MessagePaneLayout", aMenuPopupList[2]),
+     getMenuElementById("viewSortMenu", aMenuPopupList[2]),
+     getMenuElementById("viewheadersmenu", aMenuPopupList[2]),
+     getMenuElementById("viewTextSizeMenu", aMenuPopupList[2]),
+     getMenuElementById("pageSourceMenuItem", aMenuPopupList[2]),
 
 // "Tools"-menu
-     getMenuElementById("filtersCmd", calendarpopuplist[5]),
-     getMenuElementById("runJunkControls", calendarpopuplist[5])].forEach(function(element){
-        removeMenuElementsInSection(element, "calendar");
+     getMenuElementById("filtersCmd", aMenuPopupList[5]),
+     getMenuElementById("runJunkControls", aMenuPopupList[5])].forEach(function(element){
+        removeMenuElementsInSection(element, aExcludeMode);
     });
 }
-
-function ltnInitializeTaskMenu() {
-// "File" - menu
-    removeElements(
-    [getMenuElementById("openMessageFileMenuitem", taskpopuplist[0]),
-     getMenuElementById("newAccountMenuItem", taskpopuplist[0]),
-     getMenuElementById("fileAttachmentMenu", taskpopuplist[0]),
-     getAdjacentSibling(getMenuElementById("menu_saveAs", taskpopuplist[0]), 2),
-
-// "Edit" - menu
-     getMenuElementById("menu_find", taskpopuplist[1]),
-     getMenuElementById("menu_favoriteFolder", taskpopuplist[1]),
-     getMenuElementById("menu_properties", taskpopuplist[1]),
-     getMenuElementById("menu_accountmgr", taskpopuplist[1]),
-
-// "View"-menu
-     getMenuElementById("menu_showMessengerToolbar", taskpopuplist[2]),
-
-// "Tools"-menu
-     getMenuElementById("tasksMenuMail", taskpopuplist[5]),
-     getMenuElementById("menu_import", taskpopuplist[5])]);
-
-     removeLastMenuSeparator(taskpopuplist);
-
-// "File" - menu
-    [getMenuElementById("menu_newFolder", taskpopuplist[0]),
-     getMenuElementById("menu_saveAs", taskpopuplist[0]),
-     getMenuElementById("menu_getnextnmsg", taskpopuplist[0]),
-     getMenuElementById("menu_renameFolder", taskpopuplist[0]),
-//     getMenuElementById("offlineMenuItem", calendarpopuplist[0]),
-// "Edit" - menu
-     getMenuElementById("menu_delete", taskpopuplist[1]),
-     getMenuElementById("menu_select", taskpopuplist[1]),
-
-// "View"-menu
-     getMenuElementById("menu_MessagePaneLayout", taskpopuplist[2]),
-     getMenuElementById("viewSortMenu", taskpopuplist[2]),
-     getMenuElementById("viewheadersmenu", taskpopuplist[2]),
-     getMenuElementById("viewTextSizeMenu", taskpopuplist[2]),
-     getMenuElementById("pageSourceMenuItem", taskpopuplist[2]),
-
-//   "Go"-menu
-     getMenuElementById("ltnGoToToday", taskpopuplist[3]),
-
-// "Tools"-menu
-     getMenuElementById("filtersCmd", taskpopuplist[5]),
-     getMenuElementById("runJunkControls", taskpopuplist[5])].forEach(function(element){
-        removeMenuElementsInSection(element, "task");
-    });
-}
-
 
 function swapPopupMenus() {
     var showStatusbar = document.getElementById("menu_showTaskbar").getAttribute("checked");

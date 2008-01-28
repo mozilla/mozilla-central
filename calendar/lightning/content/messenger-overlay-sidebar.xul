@@ -353,6 +353,7 @@
        <menuitem id="ltnGoToToday"
                  label="&goTodayCmd.label;"
                  accesskey="&goTodayCmd.accesskey;"
+                 mode="calendar"
                  observes="calendar_go_to_today_command"
                  key="gotoToday-key"/>
        <menuseparator id="before-ModeMenuItems"/>
@@ -366,7 +367,6 @@
        <menuitem id="ltnMenu_calendar"
                  type="radio"
                  name="modemenu"
-                 checked="true"
                  label="&lightning.toolbar.calendar.label;"
                  accesskey="&lightning.toolbar.calendar.accesskey;"
                  command="switch2calendar"
@@ -374,7 +374,6 @@
        <menuitem id="ltnMenu_tasks"
                  type="radio"
                  name="modemenu"
-                 checked="false"
                  label="&lightning.toolbar.task.label;"
                  accesskey="&lightning.toolbar.task.accesskey;"
                  command="switch2task"
@@ -383,7 +382,6 @@
        <menuitem id="addressBook-calendar" label="&addressBookCmd.label;"
                  accesskey="&addressBookCmd.accesskey;"
                  key="key_addressbook"
-                 mode="calendar"
                  oncommand="toAddressBook();"/>
     </menupopup>    
     <menupopup id="calendarCalendarPopupMenu">
@@ -423,10 +421,6 @@
                  command="calendar_edit_calendar_command"
                  observes="calendar_edit_calendar_command"/>
     </menupopup>
-     <menu id="ltnCalendarMenu" label="&lightning.calendar.label;"
-        accesskey="&lightning.calendar.accesskey;"
-        mode="calendar">
-     </menu>
   </popupset>
   <tooltip id="itemTooltip" noautohide="true"/>
 
