@@ -139,6 +139,7 @@
                 aboutPlugins = id; 
                 aboutServers = id; 
                 aboutWindow = id; 
+                checkForUpdates = id; 
                 clearHistory = id; 
                 closeAllWindows = id; 
                 closeCurrentTab = id; 
@@ -149,7 +150,6 @@
                 emptyCache = id; 
                 exportBookmarks = id; 
                 feedbackLink = id; 
-                findInPage = id; 
                 goBack = id; 
                 goForward = id; 
                 goHome = id; 

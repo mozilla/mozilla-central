@@ -66,6 +66,10 @@ PLATFORM_BUILD_ID_FILE = $(DEPTH)/config/buildid
 PLATFORM_BUILD_ID := $(shell cat $(PLATFORM_BUILD_ID_FILE))
 PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
 
+ifdef MOZILLA_OFFICIAL
+APP_UPDATE_URL = https://caminobrowser.org/update-check
+endif
+
 # For Launch Services compatibility, CFBundleVersion can be at most three
 # .-separated integers, aaaaaa.bb.cc, with a maximum of 429496.99.99.  Use
 # Camino's major and minor version number and the build date as the basis for
@@ -194,7 +198,8 @@ generated/resources/application/all-camino.js: \
   $(CM_APP_VERSION_FILE)
 	mkdir -p $(dir $@)
 	sed -e "s/%FOX_APP_VERSION%/$(FOX_APP_VERSION)/" \
-	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" $< > $@
+	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
+	    -e "s@%APP_UPDATE_URL%@$(APP_UPDATE_URL)@" $< > $@
 
 generated/Info-Camino.plist: \
   $(srcdir)/Info-Camino.plist.in \

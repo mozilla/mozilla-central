@@ -457,3 +457,6 @@
 "SearchPluginInstallationConfirmationMessage" = "Would you like to add the search engine “%@” to the search field?";
 "SearchPluginInstallationConfirmButton" = "Add";
 "SearchPluginInstallationCancelButton" = "Don’t Add";
+
+/* Auto-Update */
+"AutoUpdateDisabledToolTip" = "Automatic updates are available in official builds";

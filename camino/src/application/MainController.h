@@ -113,6 +113,7 @@ typedef enum EBookmarkOpenBehavior
 // Application menu actions
 - (IBAction)aboutWindow:(id)sender;
 - (IBAction)feedbackLink:(id)aSender;
+- (IBAction)checkForUpdates:(id)sender;
 - (IBAction)displayPreferencesWindow:(id)sender;
 - (IBAction)resetBrowser:(id)sender;
 - (IBAction)emptyCache:(id)sender;

@@ -149,6 +149,17 @@
 // This is generally useful for a menu item--when the check is explicitly invoked.
 - (void)checkForUpdatesAndNotify:(BOOL)verbosity
 {	
+	// A value in the user defaults overrides one in the Info.plist (so preferences panels can be created wherein users choose between beta / release feeds).
+	NSString *appcastString = [[NSUserDefaults standardUserDefaults] objectForKey:SUFeedURLKey];
+	if (!appcastString)
+		appcastString = SUInfoValueForKey(SUFeedURLKey);
+	if (!appcastString) { [NSException raise:@"SUNoFeedURL" format:@"No feed URL is specified in the Info.plist or the user defaults!"]; }
+	if (![appcastString length]) {
+		// Allow the application to provide an empty appcast string to
+		// indicate that update checking should be disabled.
+		return;
+	}
+
 	if (updateInProgress)
 	{
 		if (verbosity)
@@ -165,12 +176,6 @@
 	}
 	verbose = verbosity;
 	updateInProgress = YES;
-	
-	// A value in the user defaults overrides one in the Info.plist (so preferences panels can be created wherein users choose between beta / release feeds).
-	NSString *appcastString = [[NSUserDefaults standardUserDefaults] objectForKey:SUFeedURLKey];
-	if (!appcastString)
-		appcastString = SUInfoValueForKey(SUFeedURLKey);
-	if (!appcastString) { [NSException raise:@"SUNoFeedURL" format:@"No feed URL is specified in the Info.plist or the user defaults!"]; }
 	
 	SUAppcast *appcast = [[SUAppcast alloc] init];
 	[appcast setDelegate:self];

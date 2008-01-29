@@ -955,6 +955,14 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     [self loadApplicationPage:pageToLoad];
 }
 
+- (IBAction)checkForUpdates:(id)sender
+{
+  // MainController is the target of the "Check for Updates..." menu item
+  // instead of SUUpdater solely to allow MainController to participate in
+  // NSMenuValidation for the menu item.
+  return [mAutoUpdater checkForUpdates:sender];
+}
+
 - (IBAction)displayPreferencesWindow:(id)sender
 {
   [[MVPreferencesController sharedInstance] showPreferences:nil];
@@ -1705,6 +1713,13 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     if (browserController && [[browserController window] attachedSheet])
       return NO;
     return (browserController && [browserController validateActionBySelector:action]);
+  }
+
+  if (action == @selector(checkForUpdates:) &&
+      [[[NSUserDefaults standardUserDefaults] stringForKey:SUFeedURLKey] length] == 0) {
+    // Disable update checking if there's no feed to check.
+    [aMenuItem setToolTip:NSLocalizedString(@"AutoUpdateDisabledToolTip", @"")];
+    return NO;
   }
 
   // default return

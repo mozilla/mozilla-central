@@ -107,8 +107,15 @@ static const char kRememberWindowStatePrefName[] = "camino.remember_window_state
   if ([self getBooleanPref:kRememberWindowStatePrefName withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
 
-  if ([[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey] > 0)
+  if ([[[NSUserDefaults standardUserDefaults] stringForKey:SUFeedURLKey] length] == 0) {
+    // Disable update checking if there's no feed to check.  The tooltip comes
+    // from the main application because it's used there too.
+    [checkboxAutoUpdate setEnabled:NO];
+    [checkboxAutoUpdate setToolTip:NSLocalizedString(@"AutoUpdateDisabledToolTip", @"")];
+  }
+  else if ([[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey] > 0) {
     [checkboxAutoUpdate setState:NSOnState];
+  }
 
   [textFieldHomePage setStringValue:[self currentHomePage]];
 

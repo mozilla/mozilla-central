@@ -668,21 +668,26 @@ static BOOL gMadePrefManager;
                               withSuccess:NULL];
   if (![baseURL length])
     baseURL = [self getStringPref:"app.update.url" withSuccess:NULL];
-  NSString* intlUAString = [self getStringPref:"general.useragent.extra.multilang"
-                                   withSuccess:NULL];
-  // Append the parameters we might be interested in.
-  NSString* manifestURL = !baseURL ? @"" : [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d",
-    baseURL,
-    [NSWorkspace osVersionString],
+
+  // An empty manifestURL will tell Sparkle not to check for updates.
+  NSString* manifestURL = @"";
+  if ([baseURL length]) {
+    // Append the parameters we might be interested in.
+    NSString* intlUAString = [self getStringPref:"general.useragent.extra.multilang"
+                                     withSuccess:NULL];
+    manifestURL = [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d",
+                   baseURL,
+                   [NSWorkspace osVersionString],
 #if defined(__ppc__)
-    @"ppc",
+                   @"ppc",
 #elif defined(__i386__)
-    @"x86",
+                   @"x86",
 #else
 #error Unknown Architecture
 #endif
-    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
-    ([intlUAString length] ? 1 : 0)];
+                   [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+                   ([intlUAString length] ? 1 : 0)];
+  }
   [defaults setObject:manifestURL forKey:SUFeedURLKey];
 
   // Set the update interval default if none is set. We don't set this in the
