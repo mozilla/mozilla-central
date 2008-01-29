@@ -430,8 +430,10 @@ pkix_pl_OcspRequest_Create(
         ocspRequest->encoded = encoding;
 
         *pRequest = ocspRequest;
+        ocspRequest = NULL;
 
 cleanup:
+        PKIX_DECREF(ocspRequest);
 
         PKIX_RETURN(OCSPREQUEST);
 }
