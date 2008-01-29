@@ -225,7 +225,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = Info.plist;
-				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				PREBINDING = NO;
 				PRODUCT_NAME = SharedMenusCocoa;
 				WARNING_CFLAGS = (
@@ -243,7 +243,7 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				INFOPLIST_FILE = Info.plist;
-				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
+				INSTALL_PATH = "@executable_path/../Frameworks";
 				PREBINDING = NO;
 				PRODUCT_NAME = SharedMenusCocoa;
 				WARNING_CFLAGS = (
