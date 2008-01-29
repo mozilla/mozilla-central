@@ -186,16 +186,12 @@ ifneq ($(ABS_topsrcdir),$(MOZ_BUILD_ROOT))
 	$(RSYNC_ALL) $(ABS_topsrcdir)/camino/sparkle/*.xcodeproj sparkle
 endif
 
-generated:
-	mkdir -p $@
-
 # Generate files which need to pull version numbers or dates from other files
 # in the tree
 generated/resources/application/all-camino.js: \
   $(srcdir)/resources/application/all-camino.js.in \
   $(FOX_APP_VERSION_FILE) \
-  $(CM_APP_VERSION_FILE) \
-  generated
+  $(CM_APP_VERSION_FILE)
 	mkdir -p $(dir $@)
 	sed -e "s/%FOX_APP_VERSION%/$(FOX_APP_VERSION)/" \
 	    -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" $< > $@
@@ -207,8 +203,7 @@ generated/Info-Camino.plist: \
   $(PLATFORM_BUILD_ID_FILE) \
   $(PLATFORM_VERSION_FILE) \
   $(CVS_TAG_FILE) \
-  $(CVS_TIME_FILE) \
-  generated
+  $(CVS_TIME_FILE)
 	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_APP_VERSION_CFBUNDLE%/$(CM_APP_VERSION_CFBUNDLE)/" \
@@ -221,8 +216,7 @@ generated/Info-Camino.plist: \
 generated/resources/localized/English.lproj/InfoPlist.strings: \
   $(srcdir)/resources/localized/English.lproj/InfoPlist.strings.in \
   $(CM_APP_VERSION_FILE) \
-  $(CM_COPYRIGHT_YEAR_FILE) \
-  generated
+  $(CM_COPYRIGHT_YEAR_FILE)
 	mkdir -p $(dir $@)
 	sed -e "s/%CM_APP_VERSION%/$(CM_APP_VERSION)/" \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" $< | \
@@ -232,8 +226,7 @@ generated/resources/localized/English.lproj/InfoPlist.strings: \
 # OS X, iconv seems always to output big-endian when asked for UTF-16 with a
 # BOM, which is what AppleGlot seems to require.
 $(GENERATED_STRINGS_FILES): \
-  generated/%.strings: $(srcdir)/%.strings.in \
-  generated
+  generated/%.strings: $(srcdir)/%.strings.in
 	mkdir -p $(dir $@)
 	iconv -f UTF-8 -t UTF-16 $< > $@
 
@@ -241,23 +234,19 @@ $(GENERATED_STRINGS_FILES): \
 # contents are changing.  The file's timestamp will be preserved when the
 # contents aren't changing, reducing unnecessary build activity.
 
-$(PLATFORM_BUILD_ID_FILE): FORCE generated
-	grep -lFx "$(PLATFORM_BUILD_ID)" $@ >& /dev/null || \
-	  echo $(PLATFORM_BUILD_ID) > $@
-
-$(CVS_TAG_FILE): FORCE generated
+$(CVS_TAG_FILE): FORCE
 	grep -lFx "$(CVS_TAG)" $@ >& /dev/null || \
-	  echo $(CVS_TAG) > $@
+	  (mkdir -p $(dir $@) && echo "$(CVS_TAG)" > $@)
 
-$(CVS_TIME_FILE): FORCE generated
+$(CVS_TIME_FILE): FORCE
 	grep -lFx "$(CVS_TIME)" $@ >& /dev/null || \
-	  echo $(CVS_TIME) > $@
+	  (mkdir -p $(dir $@) && echo "$(CVS_TIME)" > $@)
 
 # Put platform.ini into toolkit/xre and dist/bin, because that's where
 # Tinderbox looks to figure out the build ID.  It currently doesn't need
 # to be distributed with the application.
 $(PLATFORM_INI_FILE): $(PLATFORM_BUILD_ID_FILE) $(PLATFORM_VERSION_FILE)
-	mkdir -p `dirname $@`
+	mkdir -p $(dir $@)
 	echo [Build] > $@
 	echo BuildID=$(PLATFORM_BUILD_ID) >> $@
 	echo Milestone=$(PLATFORM_VERSION) >> $@
