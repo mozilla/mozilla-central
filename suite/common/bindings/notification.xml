@@ -87,8 +87,8 @@
                 this.popupCount = 0;
                 this.notifyPopupCountChanged();
               }
-              // XXX should be: removeAllNotifications(true) once bug 303327 is fixed
-              this.removeAllNotifications(false);
+              // XXX should be: removeTransientNotifications(true) once bug 303327 is fixed
+              this.removeTransientNotifications();
             }
           ]]>
         </body>  
