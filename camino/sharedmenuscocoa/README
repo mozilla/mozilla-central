@@ -23,11 +23,11 @@ image is included here, except:
       been removed.
     + The empty Build Resource Manager Resources phase has been deleted.
     + The following build settings were deleted, as the defaults are suitable:
-      INSTALL_PATH OTHER_LDFLAGS SECTORDER_FLAGS ZERO_LINK
-      FRAMEWORK_VERSION WRAPPER_EXTENSION FRAMEWORK_SEARCH_PATHS
-      HEADER_SEARCH_PATHS LIBRARY_SEARCH_PATHS GCC_GENERATE_DEBUGGING_SYMBOLS
-      GCC_DYNAMIC_NO_PIC GCC_SYMBOLS_PRIVATE_EXTERN OTHER_CFLAGS
+      OTHER_LDFLAGS SECTORDER_FLAGS ZERO_LINK FRAMEWORK_VERSION
+      WRAPPER_EXTENSION FRAMEWORK_SEARCH_PATHS HEADER_SEARCH_PATHS
+      LIBRARY_SEARCH_PATHS GCC_GENERATE_DEBUGGING_SYMBOLS GCC_DYNAMIC_NO_PIC
+      GCC_SYMBOLS_PRIVATE_EXTERN OTHER_CFLAGS
     + In the Deployment target, the setting for GCC_ENABLE_FIX_AND_CONTINUE
       has been deleted, as the default is suitable.
-    + LD_DYLIB_INSTALL_NAME and INFOPLIST_FILE have been set properly.
+    + INFOPLIST_FILE has been set properly.
     + PREBINDING has been turned off, as it is no longer desirable.
