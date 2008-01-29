@@ -112,7 +112,7 @@ NSPR_API(PRIntn) PR_FloorLog2(PRUint32 i);
 ** 32-bit integer type such as PRUint32.
 **
 ** There is no rotate operation in the C Language, so the construct
-** (a >> 28) | (a << 4) is frequently used instead. Most compilers convert
+** (a << 4) | (a >> 28) is frequently used instead. Most compilers convert
 ** this to a rotate instruction, but MSVC doesn't without a little help.
 ** To get MSVC to generate a rotate instruction, we have to use the _rotl
 ** or _rotr intrinsic and use a pragma to make it inline.
