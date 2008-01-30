@@ -137,7 +137,8 @@ class BotRunner:
     def updateBuildbot(self):
         """ Update buildbot install from CVS """
         isUpdate = self.checkForUpdates(checkoutdir = 'buildbot', 
-                                        module = BUILDBOT_SOURCE)
+                                        module = BUILDBOT_SOURCE,
+                                        tag = BUILDBOT_TAG)
         if isUpdate:
             bbotCheckout = path.join(self.checkoutbase, 'buildbot')
             if self.isRunning():
@@ -156,7 +157,7 @@ class BotRunner:
             copyfile(checkoutdir + '/buildbot-configs/*', basedir)
             check_call([self.buildbot, 'reconfig', '.'], cwd=basedir)
 
-    def checkForUpdates(self, checkoutdir, module):
+    def checkForUpdates(self, checkoutdir, module, tag=''):
         """ CVS update method, return True if it looks like CVS updated
         @type checkoutdir: str
         @param checkoutdir: CVS checkout directory name to use
@@ -166,8 +167,9 @@ class BotRunner:
         """
         cvsCommand = ['cvs', '-q', '-d', self.cvsroot,
                       'co', '-d', checkoutdir]
-        if BUILDBOT_TAG != '':
-            cvsCommand.append(['-r', BUILDBOT_TAG])
+        if tag != '':
+            cvsCommand.append('-r')
+            cvsCommand.append(tag)
         cvsCommand.append(module)
         p = Popen(cvsCommand, cwd=self.checkoutbase, stdout=PIPE)
 
