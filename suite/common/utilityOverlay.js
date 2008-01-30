@@ -187,14 +187,14 @@ function setOfflineUI(offline)
   var panel = document.getElementById("offline-status");
   if (!broadcaster || !panel) return;
 
-  //Checking for a preference "network.online", if it's locked, disabling 
+  // Checking for a preference "network.online", if it's locked, disabling
   // network icon and menu item
   var prefService = Components.classes["@mozilla.org/preferences-service;1"];
   prefService = prefService.getService(Components.interfaces.nsIPrefService);
   var prefBranch = prefService.getBranch(null);
-  
-  var offlineLocked = prefBranch.prefIsLocked("network.online"); 
-  
+
+  var offlineLocked = prefBranch.prefIsLocked("network.online");
+
   if (offlineLocked ) {
       broadcaster.setAttribute("disabled","true");
   }
@@ -429,7 +429,7 @@ function checkForUpdates()
 
   // If there's an update ready to be applied, show the "Update Downloaded"
   // UI instead and let the user know they have to restart the browser for
-  // the changes to be applied. 
+  // the changes to be applied.
   if (um.activeUpdate && um.activeUpdate.state == "pending")
     prompter.showUpdateDownloaded(um.activeUpdate);
   else
@@ -442,7 +442,7 @@ function updateCheckUpdatesItem()
                           .getService(Components.interfaces.nsIApplicationUpdateService);
   var um = Components.classes["@mozilla.org/updates/update-manager;1"]
                      .getService(Components.interfaces.nsIUpdateManager);
-  
+
   // Disable the UI if the update enabled pref has been locked by the
   // administrator or if we cannot update for some other reason.
   var checkForUpdates = document.getElementById("checkForUpdates");
@@ -453,15 +453,15 @@ function updateCheckUpdatesItem()
 
   if (!gUtilityBundle)
     gUtilityBundle = document.getElementById("bundle_utilityOverlay");
-  
+
   // By default, show "Check for Updates..."
   var key = "default";
   if (um.activeUpdate) {
     switch (um.activeUpdate.state) {
     case "downloading":
       // If we're downloading an update at present, show the text:
-      // "Downloading Firefox x.x..." otherwise we're paused, and show
-      // "Resume Downloading Firefox x.x..."
+      // "Downloading SeaMonkey x.x..." otherwise we're paused, and show
+      // "Resume Downloading SeaMonkey x.x..."
       key = updates.isDownloading ? "downloading" : "resume";
       break;
     case "pending":
@@ -540,18 +540,18 @@ function extractFileNameFromUrl(urlstr) {
   // The 2nd url (ie, "imap://...") is generated for inline images by MimeInlineImage_parse_begin() in mimeiimg.cpp.
   var lastSlash = urlstr.slice(urlstr.lastIndexOf( "/" )+1);
   if (lastSlash)
-  { 
+  {
     var nameIndex = lastSlash.lastIndexOf( "filename=" );
     if (nameIndex != -1)
       return (lastSlash.slice(nameIndex+9));
     else
       return lastSlash;
   }
-  return null; 
+  return null;
 }
 
 // Gather all descendent text under given document node.
-function gatherTextUnder ( root ) 
+function gatherTextUnder(root)
 {
   var text = "";
   var node = root.firstChild;
@@ -624,7 +624,7 @@ function utilityOnLoad(aEvent)
   if (!broadcaster) return;
 
   var observerService = Components.classes[kObserverServiceProgID]
-		          .getService(Components.interfaces.nsIObserverService);
+                                  .getService(Components.interfaces.nsIObserverService);
   observerService.addObserver(offlineObserver, "network:offline-status-changed", false);
   // make sure we remove this observer later
   var prefService = Components.classes["@mozilla.org/preferences-service;1"];
@@ -638,20 +638,20 @@ function utilityOnLoad(aEvent)
 
   // set the initial state
   var ioService = Components.classes[kIOServiceProgID]
-		      .getService(Components.interfaces.nsIIOService);
+                            .getService(Components.interfaces.nsIIOService);
   setOfflineUI(ioService.offline);
 }
 
-function utilityOnUnload(aEvent) 
+function utilityOnUnload(aEvent)
 {
   var observerService = Components.classes[kObserverServiceProgID]
-			  .getService(Components.interfaces.nsIObserverService);
+                                  .getService(Components.interfaces.nsIObserverService);
   observerService.removeObserver(offlineObserver, "network:offline-status-changed");
   var prefService = Components.classes["@mozilla.org/preferences-service;1"];
   prefService = prefService.getService(Components.interfaces.nsIPrefService);
   var prefBranch = prefService.getBranch(null);
   prefBranch = prefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
-  
+
   prefBranch.removeObserver("network.proxy.type", proxyTypeObserver);
 }
 
@@ -682,7 +682,7 @@ function validateFileName(aFileName)
   }
   else if (navigator.appVersion.indexOf("Macintosh") != -1)
     re = /[\:\/]+/g;
-  
+
   return aFileName.replace(re, "_");
 }
 
