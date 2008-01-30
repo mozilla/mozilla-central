@@ -45,6 +45,8 @@ CHECKOUTBASE = path.join(TOPDIR, 'checkouts')
 BUILDBOT_CONFIGS = 'mozilla/tools/buildbot'
 # CVS module for buildbot sources
 BUILDBOT_SOURCE = 'mozilla/tools/buildbot'
+# The tag or branch to pull Buildbot from
+BUILDBOT_TAG = 'BUILDBOT_0_7_6_BRANCH'
 # path to buildbot run script, relative to PREFIX
 BUILDBOT_RUN_SCRIPT = path.join('scripts', 'buildbot.bat')
 # Buildbot basedir for master 
@@ -163,7 +165,10 @@ class BotRunner:
         @param module: CVS module to check out 
         """
         cvsCommand = ['cvs', '-q', '-d', self.cvsroot,
-                      'co', '-d', checkoutdir, module]
+                      'co', '-d', checkoutdir]
+        if BUILDBOT_TAG != '':
+            cvsCommand.append(['-r', BUILDBOT_TAG])
+        cvsCommand.append(module)
         p = Popen(cvsCommand, cwd=self.checkoutbase, stdout=PIPE)
 
         retcode = p.wait()
