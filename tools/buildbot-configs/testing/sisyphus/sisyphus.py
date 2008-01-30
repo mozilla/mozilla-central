@@ -105,7 +105,7 @@ class SisyphusJSTestWin(CygwinBashShellCommand):
     def start(self):
         self.command = ["./tests/mozilla.org/js/runtests.sh",
                    "-p", self.product, "-b", self.branch,
-                   "-T", self.buildType, "-B", '"checkout build"', "-S"]
+                   "-T", self.buildType, "-B", "checkout-build", "-S"]
         CygwinBashShellCommand.start(self)
     
     def evaluateCommand(self, cmd):
