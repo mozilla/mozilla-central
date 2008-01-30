@@ -1142,7 +1142,7 @@
                      accesskey="&settingsOfflineCmd.accesskey;"
                      command="cmd_settingsOffline"/>
            <menuseparator id="offlineMenuAfterSettingsSeparator"/>
-           <menuitem id="menu_downloadStarred"
+           <menuitem id="menu_downloadFlagged"
                       label="&downloadFlaggedCmd.label;"
                       accesskey="&downloadFlaggedCmd.accesskey;"
                       command="cmd_downloadFlagged"/>

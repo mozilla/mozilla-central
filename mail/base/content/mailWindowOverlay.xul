@@ -1235,7 +1235,7 @@
                         accesskey="&settingsOfflineCmd.accesskey;"
                         command="cmd_settingsOffline"/>
               <menuseparator id="offlineMenuAfterSettingsSeparator"/>
-              <menuitem id="menu_downloadStarred"
+              <menuitem id="menu_downloadFlagged"
                         label="&downloadStarredCmd.label;"
                         accesskey="&downloadStarredCmd.accesskey;"
                         command="cmd_downloadFlagged"/>
@@ -1466,8 +1466,8 @@
                         key="key_nextMsg"/>
               <menuitem id="menu_nextUnreadMsg" label="&nextUnreadMsgCmd.label;" accesskey="&nextUnreadMsgCmd.accesskey;" command="cmd_nextUnreadMsg"
                         key="key_nextUnreadMsg"/>
-              <menuitem id="menu_nextStarredMsg" label="&nextStarredMsgCmd.label;" accesskey="&nextStarredMsgCmd.accesskey;" command="cmd_nextFlaggedMsg"/>
-              <menuseparator id="goNextAfterStarredSeparator"/>
+              <menuitem id="menu_nextFlaggedMsg" label="&nextStarredMsgCmd.label;" accesskey="&nextStarredMsgCmd.accesskey;" command="cmd_nextFlaggedMsg"/>
+              <menuseparator id="goNextAfterFlaggedSeparator"/>
               <menuitem id="menu_nextUnreadThread" label="&nextUnreadThread.label;" accesskey="&nextUnreadThreadCmd.accesskey;" command="cmd_nextUnreadThread"
                         key="key_nextUnreadThread"/>
             </menupopup>
@@ -1478,7 +1478,7 @@
                         key="key_previousMsg"/>
               <menuitem id="menu_prevUnreadMsg" label="&prevUnreadMsgCmd.label;" accesskey="&prevUnreadMsgCmd.accesskey;" command="cmd_previousUnreadMsg"
                         key="key_previousUnreadMsg"/>
-              <menuitem id="menu_prevStarredMsg" label="&prevStarredMsgCmd.label;" accesskey="&prevStarredMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
+              <menuitem id="menu_prevFlaggedMsg" label="&prevStarredMsgCmd.label;" accesskey="&prevStarredMsgCmd.accesskey;" command="cmd_previousFlaggedMsg"/>
             </menupopup>
           </menu>
           <menuitem id="menu_goForward" label="&goForwardCmd.label;" accesskey="&goForwardCmd.accesskey;" command="cmd_goForward"
