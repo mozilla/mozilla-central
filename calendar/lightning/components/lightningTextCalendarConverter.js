@@ -136,7 +136,7 @@ function createHtml(event)
 
         var eventComment = event.getProperty("COMMENT");
         if (eventComment) {
-            labelText = stringBundle.GetStringFromName("imipHtml.comment");
+            labelText = stringBundle.GetStringFromName("imipHtml.Comment");
             html.body.table.appendChild(createHtmlTableSection(labelText,eventComment));
         }
     }
