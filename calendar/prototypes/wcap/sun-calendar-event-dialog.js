@@ -1355,6 +1355,7 @@ function updatePriority() {
         priorityHigh.setAttribute("checked",
                                   priorityLevel == "high" ? "true" : "false");
 
+        // Status bar panel
         var priorityPanel = document.getElementById("status-priority");
         if (priorityLevel == "none") {
             // If the priority is none, don't show the status bar panel
@@ -1362,12 +1363,16 @@ function updatePriority() {
         } else {
             priorityPanel.removeAttribute("collapsed");
             var numChilds = priorityPanel.childNodes.length;
+            var foundPriority = false;
             for (var i = 0; i < numChilds; i++) {
                 var node = priorityPanel.childNodes[i];
-                if (node.getAttribute("value") == priorityLevel) {
-                    node.removeAttribute("collapsed");
-                } else {
+                if (foundPriority) {
                     node.setAttribute("collapsed", "true");
+                } else {
+                    node.removeAttribute("collapsed");
+                }
+                if (node.getAttribute("value") == priorityLevel) {
+                    foundPriority = true;
                 }
             }
         }
