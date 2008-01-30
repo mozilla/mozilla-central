@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.381 $ ';
+$::UtilsVersion = '$Revision: 1.382 $ ';
 
 package TinderUtils;
 
@@ -2226,16 +2226,19 @@ sub run_all_tests {
     }
 
     #
-    # Assume that we want to test modern skin for all tests.
+    # Assume that we want to test modern skin for all tests - Mozilla/SeaMonkey 1.x only!
     #
-    if ($pref_file && $test_result eq 'success' and $Settings::UseMozillaProfile) { #XXX lame
-        if (system("\\grep -s general.skins.selectedSkin \"$pref_file\" > /dev/null")) {
-            print_log "Setting general.skins.selectedSkin to modern/1.0\n";
-            open PREFS, ">>$pref_file" or die "can't open $pref_file ($?)\n";
-            print PREFS "user_pref(\"general.skins.selectedSkin\", \"modern/1.0\");\n";
-            close PREFS;
-        } else {
-            print_log "Modern skin already set.\n";
+    if (($Settings::ProductName eq "Mozilla") ||
+        (($Settings::ProductName eq "SeaMonkey") && !($Settings::VendorName))) {
+        if ($pref_file && $test_result eq 'success' and $Settings::UseMozillaProfile) { #XXX lame
+            if (system("\\grep -s general.skins.selectedSkin \"$pref_file\" > /dev/null")) {
+                print_log "Setting general.skins.selectedSkin to modern/1.0\n";
+                open PREFS, ">>$pref_file" or die "can't open $pref_file ($?)\n";
+                print PREFS "user_pref(\"general.skins.selectedSkin\", \"modern/1.0\");\n";
+                close PREFS;
+            } else {
+                print_log "Modern skin already set.\n";
+            }
         }
     }
 
