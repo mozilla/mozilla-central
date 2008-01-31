@@ -599,6 +599,10 @@ PR_IMPLEMENT(PRStatus) PR_JoinThread(PRThread *thred)
             rv = pthread_detach(&id);
             PR_ASSERT(0 == rv);
 #endif
+            /*
+             * PR_FALSE, because the thread already called the TPD
+             * destructors before exiting _pt_root.
+             */
             _pt_thread_death_internal(thred, PR_FALSE);
         }
         else
