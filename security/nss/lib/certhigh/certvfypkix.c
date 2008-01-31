@@ -1373,8 +1373,14 @@ PKIX_List *cert_PKIXMakeOIDList(const SECOidTag *oids, int oidCount, void *plCon
     if (error == NULL) r = policyList;
 
 cleanup:
+    if (policyOID != NULL)  {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)policyOID, plContext);
+    }
     if (policyList != NULL)  {
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)policyList, plContext);
+    }
+    if (error != NULL)  {
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
     }
 
     return r;
@@ -1704,6 +1710,9 @@ SECStatus CERT_PKIXVerifyCert(
     r = SECSuccess;
 
 cleanup:
+    if (anchors != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)anchors, plContext);
+
     if (procParams != NULL) 
        PKIX_PL_Object_DecRef((PKIX_PL_Object *)procParams, plContext);
 
@@ -1724,6 +1733,9 @@ cleanup:
 
     if (certSelector != NULL) 
        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
+
+    if (error != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
 
     PKIX_PL_NssContext_Destroy(plContext);
 
