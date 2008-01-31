@@ -75,7 +75,7 @@ var opsyses=[% IF opsyses_js %][% opsyses_js %][% ELSE %]{}[% END %];
     <script language="JavaScript" type="text/Javascript" src="js/Litmus.js"></script>
     <script language="JavaScript" type="text/Javascript" src="js/RunTests.js"></script>
     <script language="JavaScript" type="text/Javascript" src="js/ManageTestcases.js"></script>
-    [% INCLUDE test/test.html.tmpl testcase=testcase results=results show_config=1 single=1 sysconfig=sysconfig %]
+    [% INCLUDE test/test.html.tmpl testcase=testcase results=results show_config=1 single=1 sysconfig=sysconfig show_edit=1 %]
     </div>
 </form>    
   </div>
