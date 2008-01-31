@@ -548,6 +548,16 @@ static NSString* const CacheInfoPaneSeenKey   = @"MVPreferencePaneSeen";    // N
 
   // Set the current first responder to the first valid key view, if any.
   NSView* nextValidKeyView = [initialFirstResponder nextValidKeyView];
+  if (![nextValidKeyView canBecomeKeyView]) {
+    // On 10.4 ("Tiger"), nextValidKeyView can be set to the first view in
+    // the window's tab chain, which is the first toolbar item, even if that
+    // view can't normally be tabbed to because FKA is off.  This only happens
+    // when there's no other tabbable view in the chain.  The canBecomeKeyView
+    // check still works properly in this case.  This problem doesn't occur
+    // in 10.5 ("Leopard").
+    nextValidKeyView = nil;
+  }
+
   NSView* firstValidKeyView = nil;
   if ((!nextValidKeyView && [initialFirstResponder canBecomeKeyView]) ||
       ([nextValidKeyView previousValidKeyView] == initialFirstResponder)) {
