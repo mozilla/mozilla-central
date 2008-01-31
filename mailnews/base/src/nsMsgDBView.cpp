@@ -2156,15 +2156,15 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
 
   nsMsgViewIndexArray selection;
   GetSelectedIndices(selection);
-  *length = selection.Length();
-  PRUint32 numIndicies = *length;
-  if (!numIndicies) return NS_OK;
+  PRUint32 numIndices = selection.Length();
+  if (!numIndices) return NS_OK;
+  *length = numIndices;
 
   nsCOMPtr <nsIMsgFolder> folder = m_folder;
   char **outArray, **next;
-  next = outArray = (char **)nsMemory::Alloc(numIndicies * sizeof(char *));
+  next = outArray = (char **)nsMemory::Alloc(numIndices * sizeof(char *));
   if (!outArray) return NS_ERROR_OUT_OF_MEMORY;
-  for (PRUint32 i=0;i<numIndicies;i++)
+  for (PRUint32 i = 0; i < numIndices; i++)
   {
     nsMsgViewIndex selectedIndex = selection[i];
     nsCString tmpUri;
