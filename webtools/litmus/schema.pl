@@ -149,6 +149,16 @@ $table{subgroups} =
          index(product_id),
          index(branch_id)';
 
+$table{tags} =
+        'tag_id int(11) not null primary key auto_increment,
+         tag_name varchar(255) not null,
+         user_id int(11) not null,
+         creation_date datetime not null,
+
+         unique index(tag_name),
+         index(user_id),
+         index(creation_date)';
+
 $table{test_format_lookup} = 
 	'format_id tinyint(4) not null primary key auto_increment,
 	 name varchar(255) not null,
@@ -302,7 +312,6 @@ $table{test_runs} =
          index(author_id),
          index(version)';
 
-
 $table{testcase_subgroups} =
         'testcase_id int(11) not null,
          subgroup_id smallint(6) not null,
@@ -310,6 +319,17 @@ $table{testcase_subgroups} =
 
          primary key(testcase_id, subgroup_id),
 	 index(sort_order)';
+
+$table{testcase_tags} =
+        'tag_id int(11) not null,
+         testcase_id int(11) not null,
+         user_id int(11) not null,
+         tagged_date datetime not null,
+         
+         primary key(tag_id,testcase_id),
+         index(user_id),
+         index(tagged_date)
+        ';
 
 $table{testcases} = 
 	'testcase_id int(11) not null primary key auto_increment,

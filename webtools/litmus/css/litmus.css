@@ -997,6 +997,11 @@ div.manage {
     margin: 0px;
 }
 
+table.newSubgroups td {
+    padding-top: 0px;
+    margin-top: 0px;
+}
+
 /* Test Cases ******************************************************** */
 
 div.testcase {

@@ -408,7 +408,7 @@ sub _processSearchField(\%\$\$) {
         $table_field='tr.build_id';
     } elsif ($search_field->{'search_field'} eq 'comment') {
         $table_field='trc.comment';
-        $from =~ s/^test_results tr([ ,])/test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id$1/;
+        $from =~ s/test_results tr([ ,])/test_results tr INNER JOIN test_result_comments trc ON tr.testresult_id=trc.test_result_id$1/;
     } elsif ($search_field->{'search_field'} eq 'locale') {
         $table_field='tr.locale_abbrev';        
     } elsif ($search_field->{'search_field'} eq 'opsys') {

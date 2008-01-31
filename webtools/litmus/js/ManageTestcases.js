@@ -164,43 +164,6 @@ function populateTestcase(data) {
     document.getElementById('branch_text').innerHTML = '<em>No branch set for this subgroup.</em>';
   }
 
-  var testgroups_text = "";
-  var testgroups_link_text = "";
-  for (var i in testcase.testgroups) {
-    if (testcase.testgroups[i].name != '') {
-      testgroups_text = testgroups_text + testcase.testgroups[i].name + ', ';
-      testgroups_link_text = testgroups_link_text + '<a target="manage_testgroups" href="manage_testgroups.cgi?testgroup_id=' + testcase.testgroups[i].testgroup_id + '">'+ testcase.testgroups[i].name + '</a>, ';
-
-    }
-  }
-  if (testgroups_text != '') {
-    testgroups_text = testgroups_text.replace(/, $/g,'');
-    testgroups_link_text = testgroups_link_text.replace(/, $/g,'');
-    document.getElementById('testgroups_display').innerHTML = testgroups_text;
-    document.getElementById('testgroups_link_display').innerHTML = testgroups_link_text;
-  } else {
-    document.getElementById('testgroups_display').innerHTML = '<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>';
-    document.getElementById('testgroups_link_display').innerHTML = '<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled &rArr;&nbsp;<a target="manage_testgroups" href="manage_testgroups.cgi">Jump to Manage Testgroups</a>.</span>';
-  }
-
-  var subgroups_text = "";
-  var subgroups_link_text = "";
-  for (var i in testcase.subgroups) {
-    if (testcase.subgroups[i].name != '') {
-      subgroups_text = subgroups_text + testcase.subgroups[i].name + ', ';
-      subgroups_link_text = subgroups_link_text + '<a target="manage_subgroups" href="manage_subgroups.cgi?subgroup_id=' + testcase.subgroups[i].subgroup_id + '">'+ testcase.subgroups[i].name + '</a>, ';
-    }
-  }
-  if (subgroups_text != '') {
-    subgroups_text = subgroups_text.replace(/, $/g,'');
-    subgroups_link_text = subgroups_link_text.replace(/, $/g,'');
-    document.getElementById('subgroups_display').innerHTML = subgroups_text;
-    document.getElementById('subgroups_link_display').innerHTML = subgroups_link_text;
-  } else {
-    document.getElementById('subgroups_display').innerHTML = '<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>';
-    document.getElementById('subgroups_link_display').innerHTML = '<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled &rArr;&nbsp;<a target="manage_subgroups" href="manage_subgroups.cgi">Jump to Manage Subgroups</a>.</span>';
-  }
-
   var enabled_em = document.getElementById('enabled')
   var enabled_display_em = document.getElementById('enabled_display')
   if (testcase.enabled == 1) {
@@ -231,9 +194,41 @@ function populateTestcase(data) {
   document.getElementById('last_updated').innerHTML = testcase.last_updated;
   document.getElementById('litmus_version').innerHTML = testcase.version;
 
+  var testgroups_display_text = "";
+  var testgroups_div = document.getElementById('testgroups_display');
+  var subgroups_display_text = "";
+  var subgroups_div = document.getElementById('subgroups_display');
+
+  if (testcase.testgroups && testcase.testgroups.length > 0) {
+    for (var i=0; i<testcase.testgroups.length; i++) {
+      testgroups_display_text += '<a target="manage_testgroups" href="manage_testgroups.cgi?testgroup_id=' +
+        testcase.testgroups[i].testgroup_id + '">' +
+        testcase.testgroups[i].name + ' (' +
+        testcase.testgroups[i].testgroup_id + ')</a><br/>';            
+    }
+  } else {
+    testgroups_display_text = '<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>';
+  }
+  testgroups_div.innerHTML = testgroups_display_text;
+
+  resetTable('tblNewSubgroups');
+  if (testcase.subgroups && testcase.subgroups.length > 0) {
+    for (var i=0; i<testcase.subgroups.length; i++) {
+      addRowToTestcaseTable('tblNewSubgroups',testcase.subgroups[i].testgroup_id,testcase.subgroups[i].subgroup_id);
+      subgroups_display_text += '<a target="manage_subgroups" href="manage_subgroups.cgi?subgroup_id=' +
+        testcase.subgroups[i].subgroup_id + '">' + testcase.subgroups[i].name +
+        ' (' + testcase.subgroups[i].subgroup_id + ')</a><br/>';            
+    }
+  } else {
+    subgroups_display_text = '<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>';
+    addRowToTestcaseTable('tblNewSubgroups');
+  }
+  subgroups_div.innerHTML = subgroups_display_text;
+
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('testcase_display_div').style.display = 'block';
   enableModeButtons();
+
 
   if (firstPassEdit) {
     firstPassEdit = 0;
@@ -251,6 +246,8 @@ function blankTestcaseForm(formid) {
   document.getElementById('last_updated').innerHTML = '';
   document.getElementById('litmus_version').innerHTML = '';
   changeProduct();
+  resetTable('tblNewSubgroups');
+  addRowToTestcaseTable('tblNewSubgroups');
 }
 
 function switchToAdd() {
@@ -286,8 +283,6 @@ function switchToAdd() {
   enableForm('edit_testcase_form');
   document.getElementById('testcase_display_div').style.display = 'none';
   document.getElementById('testcase_id_display_edit').innerHTML = '<em>Automatically generated for a new testcase</em>';
-  document.getElementById('testgroups_link_display').innerHTML = '<em>A new testcase does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroups to testgroups after the new testcase is created.</em>';
-  document.getElementById('subgroups_link_display').innerHTML = '<em>A new testcase does not belong to any subgroups by default.<br/>Use the <a target="manage_subgroups" href="manage_subgroups.cgi">Manage Subgroups</a> interface to assign the new testcase to subgroups once it is created.</em>';
   document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new testcase</em>';
   document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new testcase</em>';
   document.getElementById('litmus_version').innerHTML = '<em>Automatically generated for a new testcase</em>';
@@ -336,14 +331,6 @@ function updatePersistVars() {
   if (branchBox.selectedIndex) {
     var branchPersist = document.getElementById('branch_persist');
     branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
-  }
-  if (testgroupBox.selectedIndex) {
-    var testgroupPersist = document.getElementById('testgroup_persist');
-    testgroupPersist.value = testgroupBox.options[testgroupBox.selectedIndex].value;
-  }
-  if (subgroupBox.selectedIndex) {
-    var subgroupPersist = document.getElementById('subgroup_persist');
-    subgroupPersist.value = subgroupBox.options[subgroupBox.selectedIndex].value;
   }
 }
 
@@ -400,3 +387,132 @@ function populateSubgroupsFirstPass(data) {
   toggleMessage('none');
   enableForm(formName);
 }
+
+function addRowToTestcaseTable(tblName,testgroupId,subgroupId) {
+  // Only add a new row if testgroups have already been defined by selecting
+  // a product/branch.
+  var tbl = document.getElementById(tblName);
+  var lastRow = tbl.rows.length;
+  // if there's no header row in the table, then iteration = lastRow + 1
+  var iteration = lastRow;
+  var row = tbl.insertRow(lastRow);
+  var branchBox = document.getElementById('branch');
+  if (branchBox.selectedIndex <= 0) {
+    var cellNew = row.insertCell(0);  
+    cellNew.setAttribute('rowspan','4');
+    cellNew.setAttribute('class','errorHeading');
+    cellNew.innerHTML = 'Please select a product and branch first.';
+    return;
+  }
+  var branchId = branchBox.options[branchBox.selectedIndex].value;
+ 
+  // Testgroup cell
+  var cellTestgroup = row.insertCell(0);
+  var el = document.createElement('select');
+  el.setAttribute('name', 'testgroup_new_' + iteration);
+  el.setAttribute('id', 'testgroup_new_' + iteration);
+  el.setAttribute('size', '1');
+  el.setAttribute('onChange', "changeTestgroupForTestcase('_new_"+iteration+"')");
+  el.setAttribute('class', 'select_testgroup');
+  el.options[0] = new Option('-Testgroup (ID#)-','');
+  var j=1;
+  for (i=0;i<testgroups.length;i+=1) {
+    if (testgroups[i].branch_id == branchId) {
+      el.options[j] = new Option(testgroups[i].name+' ('+testgroups[i].testgroup_id+')',testgroups[i].testgroup_id);
+      if (testgroupId && testgroups[i].testgroup_id == testgroupId) {
+        el.options[j].selected = true;
+      }
+      j++;
+    }
+  }
+  cellTestgroup.setAttribute('valign','middle');
+  cellTestgroup.appendChild(el);
+
+  // Subgroup cell
+  var cellSubgroup = row.insertCell(1);
+  var el = document.createElement('select');
+  el.setAttribute('name', 'subgroup_new_' + iteration);
+  el.setAttribute('id', 'subgroup_new_' + iteration);
+  el.setAttribute('size', '1');
+  //el.setAttribute('onChange', "changeSubgroup('_new_"+iteration+"')");
+  el.setAttribute('class', 'select_subgroup');
+  el.options[0] = new Option('-Subgroup (ID#)-','');
+  j=0;
+  if (testgroupId && subgroupId) {
+    for (i=0;i<subgroups.length;i+=1) {
+      if (subgroups[i].testgroup_id == testgroupId) {
+        el.options[j] = new Option(subgroups[i].name+' ('+subgroups[i].subgroup_id+')',subgroups[i].subgroup_id);
+        if (subgroups[i].subgroup_id == subgroupId) {
+          el.options[j].selected = true;
+        }
+      j++;
+      }
+    }
+  }
+
+  cellSubgroup.setAttribute('valign','middle');
+  cellSubgroup.appendChild(el);
+  
+  var cellRemoveButton = row.insertCell(2);
+  var el = document.createElement('input');
+  el.setAttribute('type', 'button');
+  el.setAttribute('name', 'remove_row_new_' + iteration);
+  el.setAttribute('id', 'remove_row_new_' + iteration);
+  el.setAttribute('class', 'button');
+  el.setAttribute('onClick', "removeRowFromTable('"+tblName+"');");
+  el.setAttribute('value', '-');
+  cellRemoveButton.setAttribute('valign','top');
+  cellRemoveButton.appendChild(el);
+
+  var cellAddButton = row.insertCell(3);
+  var el = document.createElement('input');
+  el.setAttribute('type', 'button');
+  el.setAttribute('name', 'add_row_new_' + iteration);
+  el.setAttribute('id', 'add_row_new_' + iteration);
+  el.setAttribute('class', 'button');
+  el.setAttribute('onClick', "addRowToTestcaseTable('"+tblName+"');");
+  el.setAttribute('value', '+');
+  cellAddButton.setAttribute('valign','top');
+  cellAddButton.appendChild(el);
+}
+
+function changeBranchForTestcase(silent) {
+  resetTable('tblNewSubgroups');
+  addRowToTestcaseTable('tblNewSubgroups');
+  var testgroupBox = document.getElementById('testgroup_new_1');
+  if (testgroupBox) {
+    loadTestgroups(testgroupBox,'',silent);
+  }
+}
+
+function changeTestgroupForTestcase(mySuffix,silent) {
+  if (!mySuffix) {
+    mySuffix=suffix;
+  }
+  var testgroupBox = document.getElementById('testgroup'+mySuffix);
+  var subgroupBox = document.getElementById('subgroup'+mySuffix);
+  var testgroupId = testgroupBox.options[testgroupBox.selectedIndex].value;
+  clearSelect(subgroupBox);
+  addNullEntry(subgroupBox);
+  if (!testgroupId) {
+    // No testgroup selected.
+    return undefined;
+  }
+  disableForm(formName);
+  if (!silent) {
+    toggleMessage('loading','Loading Subgroups...');
+  }
+  if (subgroups) {
+    for (var i=0; i<subgroups.length; i++) {
+      if (subgroups[i].testgroup_id == testgroupId) {
+        var optionText = subgroups[i].name + ' (' + subgroups[i].subgroup_id + ')';
+        subgroupBox.options[subgroupBox.length] = new Option(optionText,
+                                                             subgroups[i].subgroup_id);
+      }
+    }
+  }
+  FormInit(document.forms[formName], document.location.search, 'subgroup'+suffix);
+  toggleMessage('none');
+  enableForm(formName);
+}
+

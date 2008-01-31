@@ -55,20 +55,6 @@
     </td>
   </tr>
   <tr>
-    <td><b>Test Group(s):</b></td>
-    <td>
-      <div id="testgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF testgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>[% ELSE %]
-      [% FOREACH testgroup=testgroups %][% IF show_admin %]<a href="manage_testgroups.cgi?testgroup_id=[% testgroup.testgroup_id %]">[% END %][% testgroup.name | html %][% IF show_admin %]</a>[% END %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
-    </td>
-  </tr>
-  <tr>
-    <td><b>Subgroup(s):</b></td>
-    <td>
-      <div id="subgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF subgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>[% ELSE %]
-      [% FOREACH subgroup=subgroups %][% IF show_admin %]<a href="manage_subgroups.cgi?subgroup_id=[% subgroup.subgroup_id %]">[% END %][% subgroup.name | html %][% IF show_admin %]</a>[% END %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
-    </td>
-  </tr>
-  <tr>
     <td><b>Regression Bug ID #:</b></td>
     <td id="regression_bug_id_display[% IF ! show_edit %]_[% testcase.regression_bug_id | html %][% END %]">[% IF testcase.regression_bug_id %]<script>document.write('<a href="' + generateBugLink([% testcase.regression_bug_id %]) + '">[% testcase.regression_bug_id | html %]</a>');</script>[% ELSE %]None specified[% END %]</td>
   </tr>
@@ -97,11 +83,11 @@
     </td>
   </tr>
 
-  [% IF (defaultemail AND ! show_edit) and ! print %]
-  <!-- Only allow the user to submit a single result if they are already 
-       logged in. -->
+[% IF (defaultemail AND ! show_edit) and ! print %]
+<!-- Only allow the user to submit a single result if they are already 
+     logged in. -->
   <tr>
-   <td class="content" colspan="2">
+    <td class="content" colspan="2">
 
 [% IF single %]
     <a class="test_run" title="Click here to toggle the single test result submission form for this testcase." onclick="runSingleTestHeight.toggle('height');" name="runSingleTestToggle">Submit single test result for this testcase&nbsp;&raquo;</a>
@@ -196,4 +182,27 @@ function checkResultSubmission(f) {
 [% END %]
 
 [% END %]
+</table>
+
+<br/>
+
+<table class="tcm" id="tblSubgroups" name="tblSubgroups" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td class="content"><div class="dh">Testgroup(s)</div></td>
+    <td class="content"><div class="dh">Subgroup(s)</div></td>
+  </tr>
+
+  [% IF testcase.testgroups %][% testgroups=testcase.testgroups%][% END %]
+  [% IF testcase.subgroups %][% subgroups=testcase.subgroups%][% END %]
+
+  <tr>
+    <td width="50%" class="content" valign="top">
+      <div id="testgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF testgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any testgroups that are currently enabled.</span>[% ELSE %]
+        [% FOREACH testgroup=testgroups %][% IF show_admin %]<a target="manage_testgroups" href="manage_testgroups.cgi?testgroup_id=[% testgroup.testgroup_id %]">[% END %][% testgroup.name | html %] ([% testgroup.testgroup_id %])[% IF show_admin %]</a>[% END %][% UNLESS loop.last %]<br/>[% END %][% END %][% END %]</div>
+    </td>
+    <td width="50%" class="content" valign="top">
+      <div id="subgroups_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% IF subgroups.size==0 %]<span class="errorHeading">This testcase does not belong to any subgroups that are currently enabled.</span>[% ELSE %]
+        [% FOREACH subgroup=subgroups %][% IF show_admin %]<a target="manage_subgroups" href="manage_subgroups.cgi?subgroup_id=[% subgroup.subgroup_id %]">[% END %][% subgroup.name | html %] ([% subgroup.subgroup_id %])[% IF show_admin %]</a>[% END %][% UNLESS loop.last %]<br/>[% END %][% END %][% END %]</div>            
+    </td>
+  </tr>
 </table>

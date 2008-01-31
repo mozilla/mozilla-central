@@ -111,11 +111,12 @@ ORDER by sg.name ASC
 });
 
 __PACKAGE__->set_sql(ByTestcase => qq{
-SELECT sg.* 
-FROM subgroups sg, testcase_subgroups tcsg
+SELECT sg.*, sgtg.testgroup_id
+FROM subgroups sg, testcase_subgroups tcsg, subgroup_testgroups sgtg
 WHERE 
   tcsg.testcase_id=? AND 
-  tcsg.subgroup_id=sg.subgroup_id 
+  tcsg.subgroup_id=sg.subgroup_id AND
+  tcsg.subgroup_id=sgtg.subgroup_id
 ORDER by sg.name ASC
 });
 

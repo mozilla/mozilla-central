@@ -52,7 +52,7 @@ my $js;
 if ($c->param("testcase_id")) {
   my $testcase_id = $c->param("testcase_id");
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
-  my @testgroups = Litmus::DB::Testgroup->search_ByTestcase($testcase_id);
+  my @testgroups = Litmus::DB::Testgroup->search_UniqueByTestcase($testcase_id);
   my @subgroups = Litmus::DB::Subgroup->search_ByTestcase($testcase_id);
   $testcase->{'testgroups'} = \@testgroups;
   $testcase->{'subgroups'} = \@subgroups;

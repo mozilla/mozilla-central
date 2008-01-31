@@ -46,7 +46,7 @@ Litmus::DB::Testcase->table('testcases');
 Litmus::DB::Testcase->columns(Primary => qw/testcase_id/);
 Litmus::DB::Testcase->columns(Essential => qw/summary details enabled community_enabled format_id regression_bug_id product_id steps expected_results author_id creation_date last_updated version branch_id/);
 Litmus::DB::Testcase->utf8_columns(qw/summary details steps expected_results steps_formatted expected_results_formatted/);
-Litmus::DB::Testcase->columns(TEMP => qw /relevance subgroup_name steps_formatted expected_results_formatted/);
+Litmus::DB::Testcase->columns(TEMP => qw /relevance subgroup_name steps_formatted expected_results_formatted testgroups subgroups/);
 
 Litmus::DB::Testcase->column_alias("testcase_id", "testid");
 Litmus::DB::Testcase->column_alias("testcase_id", "test_id");
@@ -384,9 +384,19 @@ sub clone() {
 		      $self->testcase_id
 		     );
   if (! $rows) {
-    # XXX: Do we need to throw a warning here?
-    # What happens when we clone a testcase that doesn't belong to
-    # any subgroups?
+    print STDERR "WARNING: No subgroups added to new testcase: " . $new_testcase->testcase_id . "\n";
+  }
+
+  # Propagate tags;
+  $sql = "INSERT INTO testcase_tags (tag_id,testcase_id,user_id,tagged_date) SELECT tag_id,?,user_id,NOW() FROM testcase_tags WHERE testcase_id=?";
+  
+  $rows = $dbh->do($sql,
+                   undef,
+		   $new_testcase->testcase_id,
+		   $self->testcase_id
+		   );
+  if (! $rows) {
+    print STDERR "WARNING: No tags added to new testcase: " . $new_testcase->testcase_id . "\n";
   }
   
   $sql = "INSERT INTO related_testcases (testcase_id, related_testcase_id) VALUES (?,?)";
@@ -396,7 +406,7 @@ sub clone() {
                    $new_testcase->testcase_id
                   );
   if (! $rows) {
-    # XXX: Do we need to throw a warning here?
+    print STDERR "WARNING: Unable to establish testcase relationship for testcase " . $self->testcase_id . " and testcase " . $new_testcase->testcase_id . "\n";
   }
   
   return $new_testcase;
@@ -429,6 +439,32 @@ sub delete_from_subgroup() {
 }
 
 #########################################################################
+sub delete_from_tags() {
+  my $self = shift;
+  
+  my $dbh = __PACKAGE__->db_Main();
+  my $sql = "DELETE from testcase_tags WHERE testcase_id=?";
+  return $dbh->do($sql,
+                  undef,
+                  $self->testcase_id
+                 );
+}
+
+#########################################################################
+sub delete_from_tag() {
+  my $self = shift;
+  my $tag_id = shift;  
+
+  my $dbh = __PACKAGE__->db_Main();
+  my $sql = "DELETE from testcase_tags WHERE testcase_id=? AND tag_id=?";
+  return $dbh->do($sql,
+                  undef,
+                  $self->testcase_id,
+                  $tag_id
+                 );
+}
+
+#########################################################################
 sub delete_from_related() {
   my $self = shift;
   
@@ -445,6 +481,7 @@ sub delete_from_related() {
 sub delete_with_refs() {
   my $self = shift;
   $self->delete_from_subgroups();
+  $self->delete_from_tags();
   $self->delete_from_related();
   return $self->delete;
 }
@@ -490,6 +527,47 @@ sub update_subgroup() {
                   $self->testcase_id,
                   $subgroup_id,
                   $sort_order
+                 );
+}
+
+#########################################################################
+sub update_tags() {
+  my $self = shift;
+  my $new_tags = shift;
+  my $user_id = shift;
+
+  # We always want to delete the existing tags. 
+  # Failing to delete tags is _not_ fatal when adding a new testcase.
+  my $rv = $self->delete_from_tags();
+  
+  if (scalar @$new_tags) {
+    my $dbh = __PACKAGE__->db_Main();
+    my $sql = "INSERT INTO testcase_tags (testcase_id,tag_id,user_id,tagged_date) VALUES (?,?,?,NOW())";
+    foreach my $new_tag (@$new_tags) {
+      my $rows = $dbh->do($sql, 
+			  undef,
+			  $self->testcase_id,
+			  $new_tag->{'tag_id'},
+                          $user_id
+			 );
+    }
+  }
+}
+
+#########################################################################
+sub update_tag() {
+  my $self = shift;
+  my $tag = shift;
+  my $user_id = shift;
+
+  my $rv = $self->delete_from_tag($tag->{'tag_id'});
+  my $dbh = __PACKAGE__->db_Main();
+  my $sql = "INSERT INTO testcase_tags (testcase_id,tag_id,user_id,tagged_date) VALUES (?,?,?,NOW())";
+  return $dbh->do($sql, 
+                  undef,
+                  $self->testcase_id,
+                  $tag->{'tag_id'},
+                  $user_id
                  );
 }
 

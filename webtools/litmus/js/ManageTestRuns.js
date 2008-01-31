@@ -394,20 +394,6 @@ function addRowToTable(tblName,buildID,platformID,opsysID) {
   cellAddButton.appendChild(el);
 }
 
-function removeRowFromTable(tblName) {
-  var tbl = document.getElementById(tblName);
-  var lastRow = tbl.rows.length;
-  if (lastRow > 2) tbl.deleteRow(lastRow - 1);
-}
-
-function resetTable(tblName) {
-  var tbl = document.getElementById(tblName);
-  var lastRow = tbl.rows.length;
-  while (tbl.rows.length > 1) {
-    tbl.deleteRow(tbl.rows.length - 1);
-  }
-}
-
 function checkFormContents(f) {
   if ( checkString(f.name, 'Name') &&
        verifySelected(f.product, 'Product') &&

@@ -163,7 +163,14 @@ if ($c->param("delete_testcase_button")) {
     my $new_testcase = 
       Litmus::DB::Testcase->create(\%hash);
 
-    if ($new_testcase) {      
+    if ($new_testcase) {
+      
+      # Add subgroup info
+      &update_subgroups($new_testcase, $c, $now);
+      
+      # Add tags (if any)
+      &update_tags($new_testcase, $c, $now);
+      
       $status = "success";
       $message = "Testcase added successfully. New testcase ID# is " . $new_testcase->testcase_id;
       $defaults->{'testcase_id'} = $new_testcase->testcase_id;
@@ -191,6 +198,12 @@ if ($c->param("delete_testcase_button")) {
       $testcase->version($testcase->version + 1);
       $rv = $testcase->update();
       if ($rv) {
+        # Add subgroup info
+        &update_subgroups($testcase, $c, $now);
+
+        # Add tags (if any)
+        &update_tags($testcase, $c, $now);
+
         $status = "success";
 	$message = "Testcase ID# $testcase_id updated successfully.";
         $defaults->{'testcase_id'} = $testcase_id;
@@ -302,3 +315,42 @@ print $c->header();
 Litmus->template()->process("admin/manage_testcases.tmpl", $vars) || 
   internalError("Error loading template: ".Litmus->template()->error());
 
+#########################################################################
+sub update_subgroups() {
+  my ($testcase, $c, $now) = @_;
+
+  my @new_subgroup_ids;
+  foreach my $param ($c->param) {
+    if ($param =~ /^subgroup_new_/) {
+      push @new_subgroup_ids, $c->param($param);
+    }
+  }
+  if (scalar @new_subgroup_ids) {
+    $testcase->update_subgroups(\@new_subgroup_ids);
+  }
+}
+
+#########################################################################
+sub update_tags() {
+  my ($testcase, $c, $now) = @_;
+        
+  if ($c->param('tags')) {
+    my @tag_names = split (/,/,$c->param('tags'));
+    my @tags;
+    foreach my $tag_name (@tag_names) {
+      my %tag_hash =  (
+                       tag_name => $tag_name,
+                       user_id => $c->param('author_id'),
+                       creation_date => $now,
+                      );
+      my $tag;
+      ($tag) = Litmus::DB::Tag->find_or_create(\%tag_hash);
+      if (!$tag) {
+        print STDERR "Unable to find or create tag: $tag_name\n";
+      } else {
+        push @tags, $tag;
+      }
+    }
+    $testcase->update_tags(\@tags,$c->param('author_id'));
+  }
+}
