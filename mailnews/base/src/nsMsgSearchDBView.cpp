@@ -307,11 +307,11 @@ NS_IMETHODIMP nsMsgSearchDBView::DoCommand(nsMsgViewCommandTypeValue command)
     || command == nsMsgViewCommandType::selectAll)
     return nsMsgDBView::DoCommand(command);
   nsresult rv = NS_OK;
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
 
-  nsMsgViewIndex *indices = selection.GetData();
-  PRInt32 numIndices = selection.GetSize();
+  nsMsgViewIndex *indices = selection.Elements();
+  PRInt32 numIndices = selection.Length();
 
   // we need to break apart the selection by folders, and then call
   // ApplyCommandToIndices with the command and the indices in the

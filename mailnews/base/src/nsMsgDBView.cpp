@@ -760,16 +760,16 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   }
 
   // third, get an array of view indices for the selection.
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
-  PRInt32 numIndices = selection.GetSize();
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  PRInt32 numIndices = selection.Length();
   aMsgKeyArray->SetSize(numIndices);
 
   // now store the msg key for each selected item.
   nsMsgKey msgKey;
   for (PRInt32 index = 0; index < numIndices; index++)
   {
-    msgKey = m_keys.GetAt(selection.GetAt(index));
+    msgKey = m_keys.GetAt(selection[index]);
     aMsgKeyArray->SetAt(index, msgKey);
   }
 
@@ -1013,10 +1013,10 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
   PRUint32 numSelected = 0;
 
   GetNumSelected(&numSelected);
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
-  nsMsgViewIndex *indices = selection.GetData();
-  NS_ASSERTION(numSelected == selection.GetSize(), "selected indices is not equal to num of msg selected!!!");
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  nsMsgViewIndex *indices = selection.Elements();
+  NS_ASSERTION(numSelected == selection.Length(), "selected indices is not equal to num of msg selected!!!");
 
   PRBool commandsNeedDisablingBecauseOfSelection = PR_FALSE;
 
@@ -1100,14 +1100,14 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
   return NS_OK;
 }
 
-nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
+nsresult nsMsgDBView::GetSelectedIndices(nsMsgViewIndexArray& selection)
 {
   if (mTreeSelection)
   {
     PRInt32 viewSize = GetSize();
     PRInt32 count;
     mTreeSelection->GetCount(&count);
-    selection->SetSize(count);
+    selection.SetLength(count);
     count = 0;
     PRInt32 selectionCount;
     nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
@@ -1119,11 +1119,11 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
       if (startRange >= 0 && startRange < viewSize)
       {
         for (PRInt32 rangeIndex = startRange; rangeIndex <= endRange && rangeIndex < viewSize; rangeIndex++)
-          selection->SetAt(count++, rangeIndex);
+          selection[count++] = rangeIndex;
       }
     }
-    NS_ASSERTION(selection->GetSize() == count, "selection count is wrong");
-    selection->SetSize(count);
+    NS_ASSERTION(selection.Length() == count, "selection count is wrong");
+    selection.SetLength(count);
   }
   else
   {
@@ -1131,7 +1131,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsUInt32Array *selection)
     // in that case the selected indices are really just the current message key.
     nsMsgViewIndex viewIndex = FindViewIndex(m_currentlyDisplayedMsgKey);
     if (viewIndex != nsMsgViewIndex_None)
-      selection->Add(viewIndex);
+      selection.AppendElement(viewIndex);
   }
   return NS_OK;
 }
@@ -2132,17 +2132,16 @@ NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(nsMsgViewIndex **indices,  PRU
   NS_ENSURE_ARG_POINTER(indices);
   *indices = nsnull;
 
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
-  *length = selection.GetSize();
-  PRUint32 numIndicies = *length;
-  if (!numIndicies) return NS_OK;
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  PRUint32 numIndices = selection.Length();
+  if (!numIndices) return NS_OK;
+  *length = numIndices;
 
-  *indices = (nsMsgViewIndex *)nsMemory::Alloc(numIndicies * sizeof(nsMsgViewIndex));
+  PRUint32 datalen = numIndices * sizeof(nsMsgViewIndex);
+  *indices = (nsMsgViewIndex *)NS_Alloc(datalen);
   if (!*indices) return NS_ERROR_OUT_OF_MEMORY;
-  for (PRUint32 i=0;i<numIndicies;i++) {
-    (*indices)[i] = selection.GetAt(i);
-  }
+  memcpy(*indices, selection.Elements(), datalen);
   return NS_OK;
 }
 
@@ -2155,9 +2154,9 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
   NS_ENSURE_ARG_POINTER(uris);
   *uris = nsnull;
 
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
-  *length = selection.GetSize();
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  *length = selection.Length();
   PRUint32 numIndicies = *length;
   if (!numIndicies) return NS_OK;
 
@@ -2167,7 +2166,7 @@ NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
   if (!outArray) return NS_ERROR_OUT_OF_MEMORY;
   for (PRUint32 i=0;i<numIndicies;i++)
   {
-    nsMsgViewIndex selectedIndex = selection.GetAt(i);
+    nsMsgViewIndex selectedIndex = selection[i];
     nsCString tmpUri;
     if (!m_folder) // must be a cross folder view, like search results
       GetFolderForViewIndex(selectedIndex, getter_AddRefs(folder));
@@ -2199,25 +2198,19 @@ NS_IMETHODIMP nsMsgDBView::GetURIForViewIndex(nsMsgViewIndex index, nsACString &
 
 NS_IMETHODIMP nsMsgDBView::DoCommandWithFolder(nsMsgViewCommandTypeValue command, nsIMsgFolder *destFolder)
 {
-  nsUInt32Array selection;
-
   NS_ENSURE_ARG_POINTER(destFolder);
 
-  GetSelectedIndices(&selection);
+  nsMsgViewIndexArray selection;
 
-  nsMsgViewIndex *indices = selection.GetData();
-  PRInt32 numIndices = selection.GetSize();
+  GetSelectedIndices(selection);
+
+  nsMsgViewIndex *indices = selection.Elements();
+  PRInt32 numIndices = selection.Length();
 
   nsresult rv = NS_OK;
   switch (command) {
     case nsMsgViewCommandType::copyMessages:
     case nsMsgViewCommandType::moveMessages:
-        // since the FE could have constructed the list of indices in
-        // any order (e.g. order of discontiguous selection), we have to
-        // sort the indices in order to find out which nsMsgViewIndex will
-        // be deleted first.
-        if (numIndices > 1)
-          NS_QuickSort(indices, numIndices, sizeof(nsMsgViewIndex), CompareViewIndices, nsnull);
         NoteStartChange(nsMsgViewNotificationCode::none, 0, 0);
         rv = ApplyCommandToIndicesWithFolder(command, indices, numIndices, destFolder);
         NoteEndChange(nsMsgViewNotificationCode::none, 0, 0);
@@ -2233,12 +2226,12 @@ NS_IMETHODIMP nsMsgDBView::DoCommandWithFolder(nsMsgViewCommandTypeValue command
 
 NS_IMETHODIMP nsMsgDBView::DoCommand(nsMsgViewCommandTypeValue command)
 {
-  nsUInt32Array selection;
+  nsMsgViewIndexArray selection;
 
-  GetSelectedIndices(&selection);
+  GetSelectedIndices(selection);
 
-  nsMsgViewIndex *indices = selection.GetData();
-  PRInt32 numIndices = selection.GetSize();
+  nsMsgViewIndex *indices = selection.Elements();
+  PRInt32 numIndices = selection.Length();
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
 
   nsresult rv = NS_OK;
@@ -2259,12 +2252,6 @@ NS_IMETHODIMP nsMsgDBView::DoCommand(nsMsgViewCommandTypeValue command)
   case nsMsgViewCommandType::markThreadRead:
   case nsMsgViewCommandType::junk:
   case nsMsgViewCommandType::unjunk:
-    // since the FE could have constructed the list of indices in
-    // any order (e.g. order of discontiguous selection), we have to
-    // sort the indices in order to find out which nsMsgViewIndex will
-    // be deleted first.
-    if (numIndices > 1)
-      NS_QuickSort (indices, numIndices, sizeof(nsMsgViewIndex), CompareViewIndices, nsnull);
     NoteStartChange(nsMsgViewNotificationCode::none, 0, 0);
     rv = ApplyCommandToIndices(command, indices, numIndices);
     NoteEndChange(nsMsgViewNotificationCode::none, 0, 0);
@@ -2360,10 +2347,10 @@ NS_IMETHODIMP nsMsgDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, P
 
   PRBool haveSelection;
   PRInt32 rangeCount;
-  nsUInt32Array selection;
-  GetSelectedIndices(&selection);
-  PRInt32 numIndices = selection.GetSize();
-  nsMsgViewIndex *indices = selection.GetData();
+  nsMsgViewIndexArray selection;
+  GetSelectedIndices(selection);
+  PRInt32 numIndices = selection.Length();
+  nsMsgViewIndex *indices = selection.Elements();
   // if range count is non-zero, we have at least one item selected, so we have a selection
   if (mTreeSelection && NS_SUCCEEDED(mTreeSelection->GetRangeCount(&rangeCount)) && rangeCount > 0)
     haveSelection = NonDummyMsgSelected(indices, numIndices);
@@ -5482,9 +5469,9 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
         case nsMsgNavigationType::toggleThreadKilled:
             {
                 PRBool resultKilled;
-                nsUInt32Array selection;
-                GetSelectedIndices(&selection);
-                ToggleIgnored(selection.GetData(), selection.GetSize(), &threadIndex, &resultKilled);
+                nsMsgViewIndexArray selection;
+                GetSelectedIndices(selection);
+                ToggleIgnored(selection.Elements(), selection.Length(), &threadIndex, &resultKilled);
                 if (resultKilled)
                 {
                     return NavigateFromPos(nsMsgNavigationType::nextUnreadThread, threadIndex, pResultKey, pResultIndex, pThreadIndex, PR_TRUE);
@@ -5789,8 +5776,6 @@ nsresult nsMsgDBView::ToggleIgnored(nsMsgViewIndex * indices, PRInt32 numIndices
   nsCOMPtr <nsIMsgThread> thread;
 
   // Ignored state is toggled based on the first selected thread
-  if (numIndices > 1)
-    NS_QuickSort(indices, numIndices, sizeof(nsMsgViewIndex), CompareViewIndices, nsnull);
   nsMsgViewIndex threadIndex = GetThreadFromMsgIndex(indices[0], getter_AddRefs(thread));
   PRUint32 threadFlags;
   thread->GetFlags(&threadFlags);
@@ -5846,8 +5831,6 @@ nsresult nsMsgDBView::ToggleWatched( nsMsgViewIndex* indices,  PRInt32 numIndice
   nsCOMPtr <nsIMsgThread> thread;
 
   // Watched state is toggled based on the first selected thread
-  if (numIndices > 1)
-    NS_QuickSort(indices, numIndices, sizeof(nsMsgViewIndex), CompareViewIndices, nsnull);
   nsMsgViewIndex threadIndex = GetThreadFromMsgIndex(indices[0], getter_AddRefs(thread));
   PRUint32 threadFlags;
   thread->GetFlags(&threadFlags);

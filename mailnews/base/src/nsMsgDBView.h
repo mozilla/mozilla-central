@@ -69,6 +69,8 @@
 
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
+typedef nsAutoTArray<nsMsgViewIndex, 1> nsMsgViewIndexArray;
+
 enum eFieldType {
     kCollationKey,
     kU32
@@ -212,7 +214,7 @@ protected:
   // RestoreSelection()
   nsresult AdjustRowCount(PRInt32 rowCountBeforeSort, PRInt32 rowCountAfterSort);
 
-  nsresult GetSelectedIndices(nsUInt32Array *selection);
+  nsresult GetSelectedIndices(nsMsgViewIndexArray& selection);
   nsresult GenerateURIForMsgKey(nsMsgKey aMsgKey, nsIMsgFolder *folder, nsACString &aURI);
 // routines used in building up view
   virtual PRBool WantsThisThread(nsIMsgThread * thread);
