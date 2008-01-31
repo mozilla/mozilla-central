@@ -257,6 +257,8 @@ static void *_pt_root(void *arg)
     */
     if (PR_FALSE == detached)
     {
+        /* Call TPD destructors on this thread. */
+        _PR_DestroyThreadPrivate(thred);
         rv = pthread_setspecific(pt_book.key, NULL);
         PR_ASSERT(0 == rv);
     }
@@ -597,7 +599,7 @@ PR_IMPLEMENT(PRStatus) PR_JoinThread(PRThread *thred)
             rv = pthread_detach(&id);
             PR_ASSERT(0 == rv);
 #endif
-            _pt_thread_death(thred);
+            _pt_thread_death_internal(thred, PR_FALSE);
         }
         else
         {
