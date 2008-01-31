@@ -139,7 +139,7 @@ CIRCNetwork.prototype.getURL =
 function net_geturl(target, flags)
 {
     if (this.temporary)
-        return this.serverList[0].getURL();
+        return this.serverList[0].getURL(target, flags);
 
     /* Determine whether to use the irc:// or ircs:// scheme */
     var scheme = "irc";
