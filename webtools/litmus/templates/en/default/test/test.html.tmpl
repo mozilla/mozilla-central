@@ -37,7 +37,7 @@
   <tr>
     <td><b>Testcase ID #:</b></td>
     <td id="testcase_id_display[% IF ! show_edit %]_[% testcase.testcase_id | html %][% END %]">[% testcase.testcase_id | html %]</td>
-    [% IF ! show_edit && show_admin %]<td align="right" valign="top" colspan="5"><a href="manage_testcases.cgi?testcase_id=[%testcase.testcase_id | html%]&edit=1"> Edit Testcase</a></td>[% END %]
+    [% IF (single || ! show_edit) && show_admin %]<td align="right" valign="top" colspan="5"><a href="manage_testcases.cgi?testcase_id=[%testcase.testcase_id | html%]&edit=1"> Edit Testcase</a></td>[% END %]
   </tr>
   <tr>
     <td><b>Summary:</b></td>
