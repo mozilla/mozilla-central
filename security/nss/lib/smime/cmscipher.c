@@ -37,7 +37,7 @@
 /*
  * Encryption/decryption routines for CMS implementation, none of which are exported.
  *
- * $Id: cmscipher.c,v 1.9 2006-06-12 21:05:12 alexei.volkov.bugs%sun.com Exp $
+ * $Id: cmscipher.c,v 1.10 2008-02-01 00:23:58 rrelyea%redhat.com Exp $
  */
 
 #include "cmslocal.h"
@@ -72,7 +72,8 @@ struct NSSCMSCipherContextStr {
 
 /*
  * NSS_CMSCipherContext_StartDecrypt - create a cipher context to do decryption
- * based on the given bulk * encryption key and algorithm identifier (which may include an iv).
+ * based on the given bulk encryption key and algorithm identifier (which 
+ * may include an iv).
  *
  * XXX Once both are working, it might be nice to combine this and the
  * function below (for starting up encryption) into one routine, and just
@@ -83,7 +84,7 @@ NSS_CMSCipherContext_StartDecrypt(PK11SymKey *key, SECAlgorithmID *algid)
 {
     NSSCMSCipherContext *cc;
     void *ciphercx;
-    CK_MECHANISM_TYPE mechanism;
+    CK_MECHANISM_TYPE cryptoMechType;
     SECItem *param;
     PK11SlotInfo *slot;
     SECOidTag algtag;
@@ -92,41 +93,19 @@ NSS_CMSCipherContext_StartDecrypt(PK11SymKey *key, SECAlgorithmID *algid)
 
     /* set param and mechanism */
     if (SEC_PKCS5IsAlgorithmPBEAlg(algid)) {
-	CK_MECHANISM pbeMech, cryptoMech;
-	SECItem *pbeParams, *pwitem;
-
-	PORT_Memset(&pbeMech, 0, sizeof(CK_MECHANISM));
-	PORT_Memset(&cryptoMech, 0, sizeof(CK_MECHANISM));
+	SECItem *pwitem;
 
 	pwitem = PK11_GetSymKeyUserData(key);
 	if (!pwitem) 
 	    return NULL;
 
-	/* find correct PK11 mechanism and parameters to initialize pbeMech */
-	pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-	pbeParams = PK11_ParamFromAlgid(algid);
-	if (!pbeParams)
-	    return NULL;
-	pbeMech.pParameter = pbeParams->data;
-	pbeMech.ulParameterLen = pbeParams->len;
-
-	/* now map pbeMech to cryptoMech */
-	if (PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, pwitem,
-						  PR_FALSE) != CKR_OK) { 
-	    SECITEM_ZfreeItem(pbeParams, PR_TRUE);
+	cryptoMechType = PK11_GetPBECryptoMechanism(algid, &param, pwitem);
+	if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	    return NULL;
 	}
-	SECITEM_ZfreeItem(pbeParams, PR_TRUE);
 
-	/* and use it to initialize param & mechanism */
-	if ((param = (SECItem *)PORT_ZAlloc(sizeof(SECItem))) == NULL)
-	     return NULL;
-
-	param->data = (unsigned char *)cryptoMech.pParameter;
-	param->len = cryptoMech.ulParameterLen;
-	mechanism = cryptoMech.mechanism;
     } else {
-	mechanism = PK11_AlgtagToMechanism(algtag);
+	cryptoMechType = PK11_AlgtagToMechanism(algtag);
 	if ((param = PK11_ParamFromAlgid(algid)) == NULL)
 	    return NULL;
     }
@@ -138,13 +117,14 @@ NSS_CMSCipherContext_StartDecrypt(PK11SymKey *key, SECAlgorithmID *algid)
     }
 
     /* figure out pad and block sizes */
-    cc->pad_size = PK11_GetBlockSize(mechanism, param);
+    cc->pad_size = PK11_GetBlockSize(cryptoMechType, param);
     slot = PK11_GetSlotFromKey(key);
     cc->block_size = PK11_IsHW(slot) ? BLOCK_SIZE : cc->pad_size;
     PK11_FreeSlot(slot);
 
     /* create PK11 cipher context */
-    ciphercx = PK11_CreateContextBySymKey(mechanism, CKA_DECRYPT, key, param);
+    ciphercx = PK11_CreateContextBySymKey(cryptoMechType, CKA_DECRYPT, 
+					  key, param);
     SECITEM_FreeItem(param, PR_TRUE);
     if (ciphercx == NULL) {
 	PORT_Free (cc);
@@ -162,8 +142,8 @@ NSS_CMSCipherContext_StartDecrypt(PK11SymKey *key, SECAlgorithmID *algid)
 
 /*
  * NSS_CMSCipherContext_StartEncrypt - create a cipher object to do encryption,
- * based on the given bulk encryption key and algorithm tag.  Fill in the algorithm
- * identifier (which may include an iv) appropriately.
+ * based on the given bulk encryption key and algorithm tag.  Fill in the 
+ * algorithm identifier (which may include an iv) appropriately.
  *
  * XXX Once both are working, it might be nice to combine this and the
  * function above (for starting up decryption) into one routine, and just
@@ -176,49 +156,26 @@ NSS_CMSCipherContext_StartEncrypt(PRArenaPool *poolp, PK11SymKey *key, SECAlgori
     void *ciphercx;
     SECItem *param;
     SECStatus rv;
-    CK_MECHANISM_TYPE mechanism;
+    CK_MECHANISM_TYPE cryptoMechType;
     PK11SlotInfo *slot;
     PRBool needToEncodeAlgid = PR_FALSE;
     SECOidTag algtag = SECOID_GetAlgorithmTag(algid);
 
     /* set param and mechanism */
     if (SEC_PKCS5IsAlgorithmPBEAlg(algid)) {
-	CK_MECHANISM pbeMech, cryptoMech;
-	SECItem *pbeParams, *pwitem;
-
-	PORT_Memset(&pbeMech, 0, sizeof(CK_MECHANISM));
-	PORT_Memset(&cryptoMech, 0, sizeof(CK_MECHANISM));
+	SECItem *pwitem;
 
 	pwitem = PK11_GetSymKeyUserData(key);
 	if (!pwitem) 
 	    return NULL;
 
-	/* find correct PK11 mechanism and parameters to initialize pbeMech */
-	pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-	pbeParams = PK11_ParamFromAlgid(algid);
-	if (!pbeParams)
-	    return NULL;
-	pbeMech.pParameter = pbeParams->data;
-	pbeMech.ulParameterLen = pbeParams->len;
-
-	/* now map pbeMech to cryptoMech */
-	if (PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, pwitem,
-						  PR_FALSE) != CKR_OK) { 
-	    SECITEM_ZfreeItem(pbeParams, PR_TRUE);
+	cryptoMechType = PK11_GetPBECryptoMechanism(algid, &param, pwitem);
+	if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	    return NULL;
 	}
-	SECITEM_ZfreeItem(pbeParams, PR_TRUE);
-
-	/* and use it to initialize param & mechanism */
-	if ((param = (SECItem *)PORT_ZAlloc(sizeof(SECItem))) == NULL)
-	    return NULL;
-
-	param->data = (unsigned char *)cryptoMech.pParameter;
-	param->len = cryptoMech.ulParameterLen;
-	mechanism = cryptoMech.mechanism;
     } else {
-	mechanism = PK11_AlgtagToMechanism(algtag);
-	if ((param = PK11_GenerateNewParam(mechanism, key)) == NULL)
+	cryptoMechType = PK11_AlgtagToMechanism(algtag);
+	if ((param = PK11_GenerateNewParam(cryptoMechType, key)) == NULL)
 	    return NULL;
 	needToEncodeAlgid = PR_TRUE;
     }
@@ -229,13 +186,14 @@ NSS_CMSCipherContext_StartEncrypt(PRArenaPool *poolp, PK11SymKey *key, SECAlgori
     }
 
     /* now find pad and block sizes for our mechanism */
-    cc->pad_size = PK11_GetBlockSize(mechanism,param);
+    cc->pad_size = PK11_GetBlockSize(cryptoMechType, param);
     slot = PK11_GetSlotFromKey(key);
     cc->block_size = PK11_IsHW(slot) ? BLOCK_SIZE : cc->pad_size;
     PK11_FreeSlot(slot);
 
     /* and here we go, creating a PK11 cipher context */
-    ciphercx = PK11_CreateContextBySymKey(mechanism, CKA_ENCRYPT, key, param);
+    ciphercx = PK11_CreateContextBySymKey(cryptoMechType, CKA_ENCRYPT, 
+					  key, param);
     if (ciphercx == NULL) {
 	PORT_Free(cc);
 	cc = NULL;

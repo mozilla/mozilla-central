@@ -38,7 +38,7 @@
  * PKCS7 implementation -- the exported parts that are used whether
  * creating or decoding.
  *
- * $Id: p7common.c,v 1.4 2004-04-25 15:03:13 gerv%gerv.net Exp $
+ * $Id: p7common.c,v 1.5 2008-02-01 00:23:57 rrelyea%redhat.com Exp $
  */
 
 #include "p7local.h"
@@ -450,12 +450,10 @@ SEC_PKCS7EncryptContents(PRArenaPool *poolp,
     PK11SymKey *    eKey 	= NULL;
     PK11SlotInfo *  slot 	= NULL;
 
-    CK_MECHANISM    pbeMech;
-    CK_MECHANISM    cryptoMech;
+    CK_MECHANISM_TYPE cryptoMechType;
     int             bs;
-    SECOidTag       algtag;
     SECStatus       rv 		= SECFailure;
-    SECItem         c_param;
+    SECItem         *c_param = NULL;
 
     if((cinfo == NULL) || (key == NULL))
 	return SECFailure;
@@ -474,8 +472,6 @@ SEC_PKCS7EncryptContents(PRArenaPool *poolp,
     
     src = &cinfo->content.encryptedData->encContentInfo.plainContent;
     dest = &cinfo->content.encryptedData->encContentInfo.encContent;
-    algtag = SECOID_GetAlgorithmTag(algid);
-    c_param.data = NULL;
     dest->data = (unsigned char*)PORT_ArenaZAlloc(poolp, (src->len + 64));
     dest->len = (src->len + 64);
     if(dest->data == NULL) {
@@ -488,32 +484,21 @@ SEC_PKCS7EncryptContents(PRArenaPool *poolp,
 	rv = SECFailure;
 	goto loser;
     }
-    pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-    result = PK11_ParamFromAlgid(algid);
-    if (result == NULL) {
-	rv = SECFailure;
-	goto loser;
-    }
-    pbeMech.pParameter = result->data;
-    pbeMech.ulParameterLen = result->len;
 
-    eKey = PK11_RawPBEKeyGen(slot, pbeMech.mechanism, result, key, PR_FALSE,
-								 wincx);
+    eKey = PK11_PBEKeyGen(slot, algid, key, PR_FALSE, wincx);
     if(eKey == NULL) {
 	rv = SECFailure;
 	goto loser;
     }
-
-    if(PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, key, 
-			PR_FALSE) != CKR_OK) {
+    
+    cryptoMechType = PK11_GetPBECryptoMechanism(algid, &c_param, key);
+    if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	rv = SECFailure;
 	goto loser;
     }
-    c_param.data = (unsigned char *)cryptoMech.pParameter;
-    c_param.len = cryptoMech.ulParameterLen;
 
     /* block according to PKCS 8 */
-    bs = PK11_GetBlockSize(cryptoMech.mechanism, &c_param);
+    bs = PK11_GetBlockSize(cryptoMechType, c_param);
     rv = SECSuccess;
     if(bs) {
 	char pad_char;
@@ -522,7 +507,8 @@ SEC_PKCS7EncryptContents(PRArenaPool *poolp,
 	    rv = SECSuccess;
 	    blocked_data = PK11_BlockData(src, bs);
 	    if(blocked_data) {
-		PORT_Memset((blocked_data->data + blocked_data->len - (int)pad_char), 
+		PORT_Memset((blocked_data->data + blocked_data->len 
+			    - (int)pad_char), 
 			    pad_char, (int)pad_char);
 	    } else {
 		rv = SECFailure;
@@ -554,8 +540,8 @@ SEC_PKCS7EncryptContents(PRArenaPool *poolp,
 	}
     }
 
-    cx = PK11_CreateContextBySymKey(cryptoMech.mechanism, CKA_ENCRYPT,
-		    		    eKey, &c_param);
+    cx = PK11_CreateContextBySymKey(cryptoMechType, CKA_ENCRYPT,
+		    		    eKey, c_param);
     if(cx == NULL) {
 	rv = SECFailure;
 	goto loser;
@@ -585,8 +571,8 @@ loser:
     if(slot != NULL)
 	PK11_FreeSlot(slot);
 
-    if(c_param.data != NULL) 
-	SECITEM_ZfreeItem(&c_param, PR_FALSE);
+    if(c_param != NULL) 
+	SECITEM_ZfreeItem(c_param, PR_TRUE);
 	
     return rv;
 }
@@ -612,16 +598,15 @@ SEC_PKCS7DecryptContents(PRArenaPool *poolp,
 			 void *wincx)
 {
     SECAlgorithmID *algid = NULL;
-    SECOidTag algtag;
     SECStatus rv = SECFailure;
     SECItem *result = NULL, *dest, *src;
     void *mark;
 
     PK11SymKey *eKey = NULL;
     PK11SlotInfo *slot = NULL;
-    CK_MECHANISM pbeMech, cryptoMech;
+    CK_MECHANISM_TYPE cryptoMechType;
     void *cx;
-    SECItem c_param;
+    SECItem *c_param = NULL;
     int bs;
 
     if((cinfo == NULL) || (key == NULL))
@@ -641,8 +626,6 @@ SEC_PKCS7DecryptContents(PRArenaPool *poolp,
     
     src = &cinfo->content.encryptedData->encContentInfo.encContent;
     dest = &cinfo->content.encryptedData->encContentInfo.plainContent;
-    algtag = SECOID_GetAlgorithmTag(algid);
-    c_param.data = NULL;
     dest->data = (unsigned char*)PORT_ArenaZAlloc(poolp, (src->len + 64));
     dest->len = (src->len + 64);
     if(dest->data == NULL) {
@@ -655,30 +638,21 @@ SEC_PKCS7DecryptContents(PRArenaPool *poolp,
 	rv = SECFailure;
 	goto loser;
     }
-    pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-    result = PK11_ParamFromAlgid(algid);
-    if (result == NULL) {
-	rv = SECFailure;
-	goto loser;
-    }
-    pbeMech.pParameter = result->data;
-    pbeMech.ulParameterLen = result->len;
-    eKey = PK11_RawPBEKeyGen(slot,pbeMech.mechanism,result,key,PR_FALSE,wincx);
+
+    eKey = PK11_PBEKeyGen(slot, algid, key, PR_FALSE, wincx);
     if(eKey == NULL) {
 	rv = SECFailure;
 	goto loser;
     }
-
-    if(PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, key,
-			PR_FALSE) != CKR_OK) {
+    
+    cryptoMechType = PK11_GetPBECryptoMechanism(algid, &c_param, key);
+    if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	rv = SECFailure;
 	goto loser;
     }
-    c_param.data = (unsigned char *)cryptoMech.pParameter;
-    c_param.len = cryptoMech.ulParameterLen;
 
-    cx = PK11_CreateContextBySymKey(cryptoMech.mechanism, CKA_DECRYPT,
-		    		    eKey, &c_param);
+    cx = PK11_CreateContextBySymKey(cryptoMechType, CKA_DECRYPT,
+		    		    eKey, c_param);
     if(cx == NULL) {
 	rv = SECFailure;
 	goto loser;
@@ -688,7 +662,7 @@ SEC_PKCS7DecryptContents(PRArenaPool *poolp,
 		       (int)(src->len + 64), src->data, (int)src->len);
     PK11_DestroyContext((PK11Context *)cx, PR_TRUE);
 
-    bs = PK11_GetBlockSize(cryptoMech.mechanism, &c_param);
+    bs = PK11_GetBlockSize(cryptoMechType, c_param);
     if(bs) {
 	/* check for proper badding in block algorithms.  this assumes
 	 * RC2 cbc or a DES cbc variant.  and the padding is thus defined
@@ -718,8 +692,8 @@ loser:
     if(slot != NULL)
 	PK11_FreeSlot(slot);
 
-    if(c_param.data != NULL) 
-	SECITEM_ZfreeItem(&c_param, PR_FALSE);
+    if(c_param != NULL) 
+	SECITEM_ZfreeItem(c_param, PR_TRUE);
 	
     return rv;
 }
