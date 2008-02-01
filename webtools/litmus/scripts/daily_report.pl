@@ -32,6 +32,7 @@ $|++;
 use lib qw(..);
 
 use Date::Manip;
+use Getopt::Long;
 use Litmus::DBI;
 use Litmus::Config;
 use Litmus::Mailer qw( sendMessage );
@@ -47,6 +48,15 @@ END {
 }
 
 $litmus_dbh = Litmus::DBI->db_ReadOnly() or die;
+
+my $help;
+my $html_mail;
+GetOptions('help|?' => \$help,'html' => \$html_mail);
+
+if ($help) {
+  &usage;
+  exit;
+}
 
 my ($sql,$sth);
 
@@ -76,13 +86,38 @@ while (my $hashref = $sth->fetchrow_hashref) {
 $sth->finish;
 
 if (scalar @failed_results > 0) {
+  if ($html_mail) {
+    &send_html_mail(\@failed_results);
+  } else {
+    &send_plaintext_mail(\@failed_results);
+  }
+} else {
+  # No Results today.
+}
+
+exit;
+
+#########################################################################
+sub usage {
+  print "\nUsage: daily_report.pl [--html]\n\n";
+}
+
+#########################################################################
+sub message_header {
   my $today = &UnixDate("today","%Y/%m/%d");
   my $subject = "[litmus] Daily Report - $today";
-  my $message = "Content-type: text/html\n";
-  $message .= "Subject: $subject\n";
-  $message .= "To: " . join(',',@Litmus::Config::nightly_report_recipients) . "\n\n";
-  $message .= "<html>\n<head>\n<title>$subject</title>\n</head>\n<body>\n<pre>\n";
+  my $header .= "Subject: $subject\n";
+  $header .= "Content-Type: text/html\n";
+  $header .= "To: " . join(',',@Litmus::Config::nightly_report_recipients) . "\n\n";
 
+  return $header;
+}
+
+#########################################################################
+sub send_plaintext_mail(\@) {
+  my ($failed_results) = @_;
+
+  my $message = &message_header();
   $message .= "Failed results submitted to Litmus in the past day:\n\n";
   
   my $header = sprintf(
@@ -98,7 +133,7 @@ if (scalar @failed_results > 0) {
   
   $message .= "$header\n";
   
-  foreach my $hashref (@failed_results) {
+  foreach my $hashref (@$failed_results) {
     my $result_link = sprintf("<a href=\"http://litmus.mozilla.org/single_result.cgi?id=%d\">%-8d</a>",
 			      $hashref->{'testresult_id'},
       			      $hashref->{'testresult_id'}
@@ -120,14 +155,123 @@ if (scalar @failed_results > 0) {
   $message .= "\n";
   $message .= "Visit Litmus: <a href=\"http:/litmus.mozilla.org/\">http:/litmus.mozilla.org/</a>\n\n";
 
-  $message .= "</body>\n</html>\n";
+  my $rv = sendMessage($message);
+  if (!$rv) {
+    warn('[litmus] FAIL - Unable to send daily report');
+  }  
+}
+
+#########################################################################
+sub send_html_mail(\@) {
+  my ($failed_results) = @_;
+
+  my $message = &message_header();
+
+  $message .= '
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Failed results submitted to Litmus in the past day</title>
+</head>
+<style type="text/css">
+body {
+    margin: 0 30px 2em 30px;
+    color: #333333;
+    font-size: 65%;
+}
+
+body, td, th, h3, input, pre { /* redundant rules for bad browsers  */
+    font-family: verdana, sans-serif;
+    voice-family: "\"}\"";
+    voice-family: inherit;
+}
+
+h1 {
+    text-align: left;
+    padding-top: 5px;
+    border-bottom: none;
+    MARGIN-Top: 0;
+    font-size: 1.4em;
+    line-height: 1.0em;
+    text-transform: lowercase; 
+}
+
+th {
+    vertical-align: middle;
+    background: #dddddd;
+    border: solid #bbbbbb 1px;
+    font-weight: bold;
+    text-transform: lowercase; 
+    text-align: center;
+    color: #666666;
+    padding: 0px 5px 0px 5px;
+    font-size: .75em;
+}
+
+td {
+    font-size: .75em;
+    border:1px solid #BBBBBB;
+    margin: 0px;
+    padding: 3px 5px;
+    vertical-align: top;
+}
+
+.odd {
+    background-color: #eeeeee;
+}
+.even {
+    background-color: #ffffff;
+}
+
+</style>
+
+<body>
+
+<h1>Failed results submitted to Litmus in the past day:</h1>
+
+<table cellpadding="0" cellspacing="0" width="620" class="body">
+<tr>
+<th>ID</th>
+<th>Product</th>
+<th>Branch</th>
+<th>Platform</th>
+<th>Opsys</th>
+<th>Tester</th>
+<th>Testcase Summary</th>
+</tr>
+';
+
+  my $class='odd';
+  foreach my $hashref (@$failed_results) {
+    if ($class eq 'odd') {
+      $class = 'even';
+    } else {
+      $class = 'odd';
+    }
+    $message .= '<tr class="' . $class . 
+                '"><td align="center"><a href="http://litmus.mozilla.org/single_result.cgi?id=' .
+                $hashref->{'testresult_id'} . '">' .
+                $hashref->{'testresult_id'} . '</a></td>';
+    
+    $message .= '<td align="center">' . $hashref->{'product'} . '</td>';
+    $message .= '<td align="center">' . $hashref->{'branch'} . '</td>';
+    $message .= '<td align="center">' . $hashref->{'platform'} . '</td>';
+    $message .= '<td align="center">' . $hashref->{'opsys'} . '</td>';
+    $message .= '<td align="center">' . $hashref->{'email'} . '</td>';
+    $message .= '<td>' . $hashref->{'summary'} . '</td>';	   
+
+    $message .= '</tr>';
+  }
+
+  $message .= "</table>";
+  $message .= "<p>Visit Litmus: <a href=\"http:/litmus.mozilla.org/\">http:/litmus.mozilla.org/</a></p>";
+
+  $message .= "</body>\n</html>\n\n";
 
   my $rv = sendMessage($message);
   if (!$rv) {
     warn('[litmus] FAIL - Unable to send daily report');
-  }
-} else {
-  # No Results today.
-}
+  } 
 
-exit;
+}
