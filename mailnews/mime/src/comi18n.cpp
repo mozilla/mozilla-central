@@ -167,23 +167,30 @@ static PRBool intlmime_only_ascii_str(const char *s)
   return PR_TRUE;
 }
 
+
+#define IS_UTF8_HEADER(s, h) ((*(s) & (~(~(h) >> 1))) == (h))
+#define IS_UTF8_SUBBYTE(s) ((*(s) & 0xC0) == 0x80)
 static unsigned char * utf8_nextchar(unsigned char *str)
 {
-  if (*str < 128) {
-    return (str+1);
-  }
-  int len = strlen((char *) str);
-  // RFC 2279 defines more than 3 bytes sequences (0xF0, 0xF8, 0xFC),
-  // but I think we won't encounter those cases as long as we're supporting UCS-2 and no surrogate.
-  if ((len >= 3) && (*str >= 0xE0)) {
-    return (str+3);
-  }
-  else if ((len >= 2) && (*str >= 0xC0)) {
-    return (str+2);
-  }
-
-  return (str+1); // error, return +1 to avoid infinite loop
+  if (*str < 0x80)
+    return (str + 1);
+  if (IS_UTF8_HEADER(str, 0xC0) &&
+      IS_UTF8_SUBBYTE(str + 1))
+    return (str + 2);
+  if (IS_UTF8_HEADER(str, 0xE0) &&
+      IS_UTF8_SUBBYTE(str + 1) &&
+      IS_UTF8_SUBBYTE(str + 2) )
+    return (str + 3);
+  if (IS_UTF8_HEADER(str, 0xF0) &&
+      IS_UTF8_SUBBYTE(str + 1) &&
+      IS_UTF8_SUBBYTE(str + 2) &&
+      IS_UTF8_SUBBYTE(str + 3) )
+    return (str + 4);
+  // error, return + 1 to avoid infinite loop
+  return (str + 1); 
 }
+#undef IS_UTF8_HEADER
+#undef IS_UTF8_SUBBYTE
 
 /* -------------- */
 
