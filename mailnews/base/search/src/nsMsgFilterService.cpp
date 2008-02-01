@@ -151,53 +151,24 @@ NS_IMETHODIMP  nsMsgFilterService::SaveFilterList(nsIMsgFilterList *filterList, 
   NS_ENSURE_ARG_POINTER(filterFile);
   NS_ENSURE_ARG_POINTER(filterList);
 
-  PRBool tmpExists;
-  nsresult rv;
+  nsCOMPtr<nsIOutputStream> out;
+  nsresult rv = NS_NewSafeLocalFileOutputStream(getter_AddRefs(out),
+                                                filterFile, -1, 0600);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsresult ret = NS_OK;
-  nsCOMPtr <nsILocalFile> realFiltersFile;
-  nsCOMPtr <nsIFile> parentDir;
-  nsCOMPtr <nsIFile> tmpFile;
-  ret = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
-                                        "tmprules.dat",
-                                        getter_AddRefs(tmpFile));
+  nsCOMPtr<nsIOutputStream> strm;
+  rv = NS_NewBufferedOutputStream(getter_AddRefs(strm), out, 4096);
+  NS_ENSURE_SUCCESS(rv, rv);
 
+  rv = filterList->SaveToFile(strm);
 
-  NS_ASSERTION(NS_SUCCEEDED(ret),"writing filters file: failed to append filename");
-  if (NS_FAILED(ret))
-    return ret;
+  nsCOMPtr<nsISafeOutputStream> safeStream = do_QueryInterface(strm);
+  NS_ASSERTION(safeStream, "expected a safe output stream");
+  if (NS_SUCCEEDED(rv) && safeStream)
+    rv = safeStream->Finish();
 
-  nsCOMPtr <nsILocalFile> tmpFiltersFile = do_QueryInterface(tmpFile);
-  ret = tmpFiltersFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
-  NS_ENSURE_SUCCESS(ret, ret);
-
-  if (NS_SUCCEEDED(ret))
-    ret = filterFile->GetParent(getter_AddRefs(parentDir));
-
-  nsCOMPtr <nsIOutputStream> tmpFileStream;
-
-  if (NS_SUCCEEDED(ret))
-    ret = NS_NewLocalFileOutputStream(getter_AddRefs(tmpFileStream), tmpFiltersFile, -1, 00600);
-  NS_ENSURE_SUCCESS(ret, ret);
-
-  ret = filterList->SaveToFile(tmpFileStream);
-  tmpFileStream->Close();
-  tmpFileStream = nsnull;
-
-  if (NS_SUCCEEDED(ret))
-  {
-
-    nsCString finalLeafName;
-    filterFile->GetNativeLeafName(finalLeafName);
-    ret = tmpFiltersFile->MoveToNative(parentDir, finalLeafName);
-  }
-  NS_ASSERTION(NS_SUCCEEDED(ret), "error opening/saving filter list");
-
-  rv = tmpFile->Exists(&tmpExists);
-  if (NS_SUCCEEDED(rv) && tmpExists)
-    tmpFile->Remove(PR_FALSE);
-
-  return ret;
+  NS_ASSERTION(NS_SUCCEEDED(rv), "failed to save filter file");
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgFilterService::CancelFilterList(nsIMsgFilterList *filterList)
