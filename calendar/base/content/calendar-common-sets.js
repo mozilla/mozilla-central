@@ -123,10 +123,6 @@ var calendarController = {
             case "calendar_reload_remote_calendar":
                 return !this.no_network_calendars && !this.offline
             default:
-                if (aCommand in this.commands) {
-                    // All other commands we support should be enabled by default
-                    return true;
-                }            
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // If calendar is not in foreground, let the default controller take
                     // care. If we don't have a default controller (i.e sunbird), just
@@ -153,6 +149,10 @@ var calendarController = {
                     case "cmd_delete":
                         return this.item_selected;
                 }
+                if (aCommand in this.commands) {
+                    // All other commands we support should be enabled by default
+                    return true;
+                }            
         }
         return false;
           
