@@ -354,8 +354,7 @@ PK11_MakeCertFromHandle(PK11SlotInfo *slot,CK_OBJECT_HANDLE certID,
 	     * valid CA's which are self-signed here. They must have an object
 	     * ID of '0'.  */ 
 	    if (pk11_isID0(slot,certID) && 
-		SECITEM_CompareItem(&cert->derSubject,&cert->derIssuer)
-							   == SECEqual) {
+		cert->isRoot) {
 		trustflags |= CERTDB_TRUSTED_CA;
 		/* is the slot a fortezza card? allow the user or
 		 * admin to turn on objectSigning, but don't turn

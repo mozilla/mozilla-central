@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: cmpcert.c,v 1.5 2007-07-06 03:16:54 julien.pierre.bugs%sun.com Exp $ */
+/* $Id: cmpcert.c,v 1.6 2008-02-01 22:09:09 julien.pierre.boogz%sun.com Exp $ */
 
 #include <stdio.h>
 #include <string.h>
@@ -79,7 +79,7 @@ NSS_CmpCertChainWCANames(CERTCertificate *cert, CERTDistNames *caNames)
     
     /* compute an alternate issuer name for compatibility with 2.0
      * enterprise server, which send the CA names without
-     * the outer layer of DER hearder
+     * the outer layer of DER header
      */
     rv = DER_Lengths(&issuerName, &headerlen, (PRUint32 *)&contentlen);
     if ( rv == SECSuccess ) {

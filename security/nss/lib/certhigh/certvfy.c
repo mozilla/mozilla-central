@@ -1043,8 +1043,7 @@ CERT_VerifyCACertForUsage(CERTCertDBHandle *handle, CERTCertificate *cert,
     /* make sure that the issuer is not self signed.  If it is, then
      * stop here to prevent looping.
      */
-    rvCompare = SECITEM_CompareItem(&cert->derSubject, &cert->derIssuer);
-    if (rvCompare == SECEqual) {
+    if (cert->isRoot) {
 	    PORT_SetError(SEC_ERROR_UNTRUSTED_ISSUER);
 	    LOG_ERROR(log, cert, 0, 0);
 	    goto loser;
@@ -1973,8 +1972,7 @@ CERT_GetCertChainFromCert(CERTCertificate *cert, int64 time, SECCertUsage usage)
             return chain;
         }
 
-	if (SECITEM_CompareItem(&cert->derIssuer, &cert->derSubject)
-	    == SECEqual) {
+	if (cert->isRoot) {
             /* return complete chain */
 	    return chain;
 	}
