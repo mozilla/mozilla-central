@@ -1701,8 +1701,7 @@ nsSchemaLoader::ProcessComplexTypeBody(nsIWebServiceErrorHandler* aErrorHandler,
       
       if (aSequence) {
         // Check if we were collapsed
-        if (modelGroup.get() != NS_STATIC_CAST(nsISchemaModelGroup*, 
-                                               aSequence)) {
+        if (modelGroup.get() != static_cast<nsISchemaModelGroup*>(aSequence)) {
           rv = aSequence->AddParticle(modelGroup);
         }
       }
