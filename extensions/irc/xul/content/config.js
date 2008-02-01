@@ -1057,6 +1057,8 @@ function pwin_onLoad()
             var czWin = window.arguments[0];
             var s;
             var n, c, u;
+            this.ownerClient = czWin.client;
+            this.ownerClient.configWindow = window;
             
             /* Go nick the source window's view list. We can then show items in
              * the tree for the currently connected/shown networks, channels
@@ -1163,6 +1165,8 @@ function pwin_onLoad()
 PrefWindow.prototype.onClose =
 function pwin_onClose()
 {
+    if (this.ownerClient)
+        delete this.ownerClient.configWindow;
     if (this.loaded)
         destroyPrefs();
 }

@@ -142,6 +142,16 @@ function onClose()
 function onUnload()
 {
     dd("Shutting down ChatZilla.");
+
+    // Close all dialogs.
+    for (var net in client.networks)
+    {
+        if ("joinDialog" in client.networks[net])
+            client.networks[net].joinDialog.close();
+    }
+    if ("configWindow" in client)
+        client.configWindow.close();
+
     // We don't trust anybody.
     client.hiddenDocument = null;
     uninitOfflineIcon();
