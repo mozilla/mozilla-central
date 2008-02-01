@@ -2432,6 +2432,7 @@ shutdown:
     if ((initialized == PR_TRUE) && NSS_Shutdown() != SECSuccess) {
         exit(1);
     }
+    PR_Cleanup();
 
     if (rv == SECSuccess) {
 	return 0;
