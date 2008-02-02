@@ -56,6 +56,7 @@ function nsContextMenu( xulMenu ) {
     this.onTextInput       = false;
     this.onImage           = false;
     this.onLoadedImage     = false;
+    this.onCanvas          = false;
     this.onLink            = false;
     this.onMailtoLink      = false;
     this.onSaveableLink    = false;
@@ -126,7 +127,8 @@ nsContextMenu.prototype = {
         // Forward determined by canGoForward broadcaster.
         this.setItemAttrFromNode( "context-forward", "disabled", "canGoForward" );
 
-        var showNav = !( this.isContentSelected || this.onLink || this.onImage || this.onTextInput );
+        var showNav = !( this.isContentSelected || this.onLink || this.onImage ||
+                         this.onCanvas || this.onTextInput );
         
         this.showItem( "context-back", showNav );
         this.showItem( "context-forward", showNav );
@@ -140,7 +142,8 @@ nsContextMenu.prototype = {
         //this.setItemAttrFromNode( "context-stop", "disabled", "canStop" );
     },
     initSaveItems : function () {
-        var showSave = !( this.inDirList || this.isContentSelected || this.onTextInput || this.onStandaloneImage ||
+        var showSave = !( this.inDirList || this.isContentSelected || this.onTextInput ||
+                          this.onStandaloneImage || this.onCanvas ||
                        ( this.onLink && this.onImage ) );
         if (showSave)
           goSetMenuValue( "context-savepage", this.autoDownload ? "valueSave" : "valueSaveAs" );
@@ -152,7 +155,7 @@ nsContextMenu.prototype = {
         this.showItem( "context-savelink", this.onSaveableLink );
 
         // Save/Send image depends on whether there is one.
-        showSave = this.onLoadedImage || this.onStandaloneImage;
+        showSave = this.onLoadedImage || this.onStandaloneImage || this.onCanvas;
         if (showSave)
           goSetMenuValue( "context-saveimage", this.autoDownload ? "valueSave" : "valueSaveAs" );
         this.showItem( "context-saveimage", showSave );
@@ -188,7 +191,8 @@ nsContextMenu.prototype = {
         this.showItem( "context-reloadimage", this.onImage);
 
         // View Image depends on whether an image was clicked on.
-        this.showItem( "context-viewimage", this.onImage && !this.onStandaloneImage);
+        this.showItem( "context-viewimage", this.onImage &&
+                      ( !this.onStandaloneImage || this.inFrame ) || this.onCanvas );
 
         // View background image depends on whether there is one.
         this.showItem( "context-viewbgimage", showView && !this.onStandaloneImage);
@@ -308,6 +312,7 @@ nsContextMenu.prototype = {
         this.onImage    = false;
         this.onLoadedImage = false;
         this.onStandaloneImage = false;
+        this.onCanvas          = false;
         this.onMetaDataItem = false;
         this.onTextInput = false;
         this.imageURL   = "";
@@ -365,6 +370,8 @@ nsContextMenu.prototype = {
 
                 if ( this.target.ownerDocument instanceof ImageDocument )
                    this.onStandaloneImage = true;
+            } else if (this.target instanceof HTMLCanvasElement) {
+                this.onCanvas = true;
             } else if ( this.target instanceof HTMLInputElement ) {
                 this.onTextInput = this.isTargetATextBox(this.target);
                 // allow spellchecking UI on all writable text boxes except passwords
@@ -671,9 +678,15 @@ nsContextMenu.prototype = {
     },
     // Change current window to the URL of the image.
     viewImage : function () {
-        urlSecurityCheck( this.target.nodePrincipal, this.imageURL,
-                          Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
-        openTopWin( this.imageURL, this.target.ownerDocument.defaultView );
+        var viewURL;
+        if (this.onCanvas)
+          viewURL = this.target.toDataURL();
+        else {
+          viewURL = this.imageURL;
+          urlSecurityCheck( this.target.nodePrincipal, viewURL,
+                            Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
+        }
+        openTopWin( viewURL, this.target.ownerDocument.defaultView );
     },
     // Change current window to the URL of the background image.
     viewBGImage : function () {
@@ -713,8 +726,13 @@ nsContextMenu.prototype = {
     },
     // Save URL of clicked-on image.
     saveImage : function () {
-        saveImageURL( this.imageURL, null, "SaveImageTitle", false,
-                      this.target.ownerDocument.documentURIObject );
+        if (this.onCanvas)
+          // Bypass cache, since it's a data: URL.
+          saveImageURL( this.target.toDataURL(), "canvas.png", "SaveImageTitle",
+                        true, null );
+        else
+          saveImageURL( this.imageURL, null, "SaveImageTitle", false,
+                        this.target.ownerDocument.documentURIObject );
     },
     // Generate email address.
     getEmail : function () {
