@@ -801,7 +801,7 @@ PK11_GetIVLength(CK_MECHANISM_TYPE type)
  * like SSL and S-MIME to automatically add them.
  */
 SECItem *
-pk11_ParamFromIVWithLen(CK_MECHANISM_TYPE type, SECItem *iv, int keyLen)
+PK11_ParamFromIV(CK_MECHANISM_TYPE type,SECItem *iv)
 {
     CK_RC2_CBC_PARAMS *rc2_params = NULL;
     CK_RC2_PARAMS *rc2_ecb_params = NULL;
@@ -833,7 +833,7 @@ pk11_ParamFromIVWithLen(CK_MECHANISM_TYPE type, SECItem *iv, int keyLen)
 	rc2_ecb_params = (CK_RC2_PARAMS *)PORT_Alloc(sizeof(CK_RC2_PARAMS));
 	if (rc2_ecb_params == NULL) break;
 	/*  Maybe we should pass the key size in too to get this value? */
-	*rc2_ecb_params = keyLen ? keyLen*8 : 128;
+	*rc2_ecb_params = 128;
 	param->data = (unsigned char *) rc2_ecb_params;
 	param->len = sizeof(CK_RC2_PARAMS);
 	break;
@@ -842,7 +842,7 @@ pk11_ParamFromIVWithLen(CK_MECHANISM_TYPE type, SECItem *iv, int keyLen)
 	rc2_params = (CK_RC2_CBC_PARAMS *)PORT_Alloc(sizeof(CK_RC2_CBC_PARAMS));
 	if (rc2_params == NULL) break;
 	/* Maybe we should pass the key size in too to get this value? */
-	rc2_params->ulEffectiveBits = keyLen ? keyLen*8 : 128;
+	rc2_params->ulEffectiveBits = 128;
 	if (iv && iv->data)
 	    PORT_Memcpy(rc2_params->iv,iv->data,sizeof(rc2_params->iv));
 	param->data = (unsigned char *) rc2_params;
@@ -937,16 +937,6 @@ pk11_ParamFromIVWithLen(CK_MECHANISM_TYPE type, SECItem *iv, int keyLen)
 	break;
      }
      return param;
-}
-
-/* These next two utilities are here to help facilitate future
- * Dynamic Encrypt/Decrypt symetric key mechanisms, and to allow functions
- * like SSL and S-MIME to automatically add them.
- */
-SECItem *
-PK11_ParamFromIV(CK_MECHANISM_TYPE type,SECItem *iv)
-{
-    return pk11_ParamFromIVWithLen(type, iv, 0);
 }
 
 unsigned char *
@@ -1353,8 +1343,7 @@ pk11_GenIV(CK_MECHANISM_TYPE type, SECItem *iv) {
  * key. Use Netscape's S/MIME Rules for the New param block.
  */
 SECItem *
-pk11_GenerateNewParamWithKeyLen(CK_MECHANISM_TYPE type, int keyLen) 
-{ 
+PK11_GenerateNewParam(CK_MECHANISM_TYPE type, PK11SymKey *key) { 
     CK_RC2_CBC_PARAMS *rc2_params;
     CK_RC2_PARAMS *rc2_ecb_params;
     SECItem *mech;
@@ -1389,7 +1378,7 @@ pk11_GenerateNewParamWithKeyLen(CK_MECHANISM_TYPE type, int keyLen)
 	}
 	/* NOTE PK11_GetKeyLength can return -1 if the key isn't and RC2, RC5,
 	 *   or RC4 key. Of course that wouldn't happen here doing RC2:).*/
-	*rc2_ecb_params = keyLen ? keyLen*8 : 128;
+	*rc2_ecb_params = key ? PK11_GetKeyLength(key)*8 : 128;
 	mech->data = (unsigned char *) rc2_ecb_params;
 	mech->len = sizeof(CK_RC2_PARAMS);
 	break;
@@ -1407,7 +1396,7 @@ pk11_GenerateNewParamWithKeyLen(CK_MECHANISM_TYPE type, int keyLen)
 	}
 	/* NOTE PK11_GetKeyLength can return -1 if the key isn't and RC2, RC5,
 	 *   or RC4 key. Of course that wouldn't happen here doing RC2:).*/
-	rc2_params->ulEffectiveBits = keyLen ? keyLen*8 : 128;
+	rc2_params->ulEffectiveBits = key ? PK11_GetKeyLength(key)*8 : 128;
 	if (iv.data)
 	    PORT_Memcpy(rc2_params->iv,iv.data,sizeof(rc2_params->iv));
 	mech->data = (unsigned char *) rc2_params;
@@ -1484,14 +1473,6 @@ pk11_GenerateNewParamWithKeyLen(CK_MECHANISM_TYPE type, int keyLen)
     }
     return mech;
 
-}
-
-SECItem *
-PK11_GenerateNewParam(CK_MECHANISM_TYPE type, PK11SymKey *key) 
-{ 
-    int keyLen = key ? PK11_GetKeyLength(key) :  0;
-
-    return pk11_GenerateNewParamWithKeyLen(type, keyLen);
 }
 
 #define RC5_V10 0x10

@@ -673,8 +673,8 @@ sec_pkcs5CreateAlgorithmID(SECOidTag algorithm,
 	}
 
 	/* build the PKCS5v2 cipher algorithm id */
-	cipherParams = pk11_GenerateNewParamWithKeyLen(	
-			PK11_AlgtagToMechanism(cipherAlgorithm), keyLength);
+	cipherParams = PK11_GenerateNewParam(	
+			PK11_AlgtagToMechanism(cipherAlgorithm), NULL);
 	if (!cipherParams) {
 	    goto loser;
 	}
@@ -1407,7 +1407,6 @@ CK_MECHANISM_TYPE
 pk11_GetPBECryptoMechanism(SECAlgorithmID *algid, SECItem **param, 
 			   SECItem *pbe_pwd, PRBool faulty3DES)
 {
-    int keyLen = 0;
     SECOidTag algTag = SEC_PKCS5GetCryptoAlgorithm(algid);
     CK_MECHANISM_TYPE mech = PK11_AlgtagToMechanism(algTag);
     CK_MECHANISM_TYPE returnedMechanism = CKM_INVALID_MECHANISM;
@@ -1424,9 +1423,7 @@ pk11_GetPBECryptoMechanism(SECAlgorithmID *algid, SECItem **param,
 	}
     }
 
-    keyLen = SEC_PKCS5GetKeyLength(algid);
-
-    *param = pk11_ParamFromIVWithLen(mech, iv, keyLen);
+    *param = PK11_ParamFromIV(mech, iv);
     if (*param == NULL) {
 	goto loser;
     }
