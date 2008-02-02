@@ -166,12 +166,40 @@ function calendarDefaultTimezone() {
 
 /**
  * Format the given string to work inside a CSS rule selector
+ * (and as part of a non-unicode preference key).
  *
- * @param aString       The string to format
- * @return              The formatted string
+ * Replaces each space ' ' char with '_'.
+ * Replaces each char other than ascii digits and letters, with '-uxHHH-'
+ * where HHH is unicode in hexadecimal (variable length, terminated by the '-').
+ *
+ * Ensures: result only contains ascii digits, letters,'-', and '_'.
+ * Ensures: result is invertible, so (f(a) = f(b)) implies (a = b).
+ *   also means f is not idempotent, so (a != f(a)) implies (f(a) != f(f(a))).
+ * Ensures: result must be lowercase.
+ * Rationale: preference keys require 8bit chars, and ascii chars are legible
+ *              in most fonts (in case user edits PROFILE/prefs.js).
+ *            CSS class names in Gecko 1.8 seem to require lowercase,
+ *              no punctuation, and of course no spaces.
+ *   nmchar		[_a-zA-Z0-9-]|{nonascii}|{escape}
+ *   name		{nmchar}+
+ *   http://www.w3.org/TR/CSS21/grammar.html#scanner
+ *
+ * @param aString       The unicode string to format
+ * @return              The formatted string using only chars [_a-zA-Z0-9-]
  */
 function formatStringForCSSRule(aString) {
-    return aString.replace(/ /g, "_").toLowerCase();
+    function toReplacement(ch) {
+        // char code is natural number (positive integer)
+        var nat = ch.charCodeAt(0);
+        switch(nat) {
+            case 0x20: // space
+                return "_";
+            default:
+                return "-ux" + nat.toString(16) + "-"; // lowercase
+        }
+    }
+    // Result must be lowercase or style rule will not work.
+    return aString.toLowerCase().replace(/[^a-zA-Z0-9]/g, toReplacement);
 }
 
 /**
@@ -977,6 +1005,80 @@ function getLocalizedPref(aPrefName, aDefault) {
         return aDefault;
     }
     return result;
+}
+
+/**
+ * Get array of category names from preferences or locale default,
+ * unescaping any commas in each category name.
+ * @return array of category names
+ */
+function getPrefCategoriesArray() {
+    var categories = getLocalizedPref("calendar.categories.names", null);
+    // If no categories are configured load a default set from properties file
+    if (!categories || categories == "") {
+        categories = calGetString("categories", "categories");
+        setLocalizedPref("calendar.categories.names", categories);
+    }
+    return categoriesStringToArray(categories);
+}
+
+/**
+ * Convert categories string to list of category names.
+ *
+ * Stored categories may include escaped commas within a name.
+ * Split categories string at commas, but not at escaped commas (\,).
+ * Afterward, replace escaped commas (\,) with commas (,) in each name.
+ * @param aCategoriesPrefValue string from "calendar.categories.names" pref,
+ * which may contain escaped commas (\,) in names.
+ * @return list of category names
+ */
+function categoriesStringToArray(aCategories) {
+    // \u001A is the unicode "SUBSTITUTE" character
+    function revertCommas(name) { return name.replace(/\u001A/g, ","); }
+    return aCategories.replace(/\\,/g, "\u001A").split(",").map(revertCommas);
+}
+
+/**
+ * Set categories preference, escaping any commas in category names.
+ * @param aCategoriesArray array of category names,
+ * may contain unescaped commas which will be escaped in combined pref.
+ */
+function setPrefCategoriesFromArray(aCategoriesArray) {
+    setLocalizedPref("calendar.categories.names",
+                     categoriesArrayToString(aCategoriesList));
+}
+
+/**
+ * Convert array of category names to string.
+ *
+ * Category names may contain commas (,).  Escape commas (\,) in each,
+ * then join them in comma separated string for storage.
+ * @param aSortedCategoriesArray sorted array of category names,
+ * may contain unescaped commas, which will be escaped in combined string.
+ */
+function categoriesArrayToString(aSortedCategoriesArray) {
+    function escapeComma(category) { return category.replace(/,/g,"\\,"); }
+    return aSortedCategoriesArray.map(escapeComma).join(",");
+}
+
+/**
+ * Sort an array of strings according to the current locale.
+ * Modifies aStringArray, returning it sorted.
+ */
+function sortArrayByLocaleCollator(aStringArray) {
+    // get a current locale string collator for compareEvents
+    var localeService =
+        Components
+        .classes["@mozilla.org/intl/nslocaleservice;1"]
+        .getService(Components.interfaces.nsILocaleService);
+    var localeCollator =
+        Components
+        .classes["@mozilla.org/intl/collation-factory;1"]
+        .getService(Components.interfaces.nsICollationFactory)
+        .CreateCollation(localeService.getApplicationLocale());
+    function compare(a, b) { return localeCollator.compareString(0, a, b); }
+    aStringArray.sort(compare);
+    return aStringArray;
 }
 
 /**

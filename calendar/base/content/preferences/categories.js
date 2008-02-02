@@ -67,14 +67,7 @@ var gCategoriesPane = {
         }
 
         var categories = document.getElementById("calendar.categories.names").value;
-
-        // If no categories are configured load a default set from properties file
-        if (!categories || categories == "") {
-            categories = calGetString("categories", "categories");
-            document.getElementById("calendar.categories.names").value = categories;
-        }
-
-        gCategoryList = categories.split(",");
+        gCategoryList = categoriesStringToArray(categories);
         
         // When categories is empty, split returns an array containing one empty
         // string, rather than an empty array. This results in an empty listbox
@@ -87,8 +80,10 @@ var gCategoriesPane = {
     },
 
     updateCategoryList: function () {
-        gCategoryList.sort();
-        document.getElementById("calendar.categories.names").value = gCategoryList.join(",");
+        sortArrayByLocaleCollator(gCategoryList);
+        document.getElementById("calendar.categories.names").value =
+            categoriesArrayToString(gCategoryList);
+
         var listbox = document.getElementById("categorieslist");
 
         listbox.clearSelection();

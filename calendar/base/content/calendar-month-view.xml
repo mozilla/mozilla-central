@@ -522,14 +522,13 @@
               }
 
               var categoriesSelectorList = "";
-              if (itd.item.getProperty("CATEGORIES") != null) {
-                var categoriesList = itd.item.getProperty("CATEGORIES").split(",");
-                for (var i = 0; i < categoriesList.length; i++ ) {
-                  // Remove illegal chars.
-                  categoriesList[i] = formatStringForCSSRule(categoriesList[i]);
-                }
-                categoriesSelectorList = categoriesList.join(" ");
+              var categoriesProperty = itd.item.getProperty("CATEGORIES");
+              if (categoriesProperty) {
+                var categoriesArray = categoriesStringToArray(categoriesProperty);
+                var cssClassesArray = categoriesArray.map(formatStringForCSSRule);
+                categoriesSelectorList = cssClassesArray.join(" ");
               }
+
               box.setAttribute("item-category", categoriesSelectorList);
 
               this.dayitems.insertBefore(box, before);

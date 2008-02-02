@@ -168,10 +168,45 @@ function calendarListInitCategoryColors() {
     var categoryPrefBranch = prefService.getBranch("calendar.category.color.");
     var categories = categoryPrefBranch.getChildList("", {});
 
+    // check category preference name syntax
+    categories = calendarConvertObsoleteColorPrefs(categoryPrefBranch, categories);
+
     // Update all categories
     for each (var category in categories) {
         updateStyleSheetForObject(category, gCachedStyleSheet);
     }
+}
+
+/**
+ * Remove illegally formatted category names from the array coloredCategories
+ * so they don't cause CSS errors.  For each illegal colored category c, if
+ * its color preference has not yet been replaced with a converted preference
+ * with key formatStringForCSSRule(c), create the preference with the
+ * converted key and with the previous preference value, and clear the old
+ * preference.  (For most users who upgrade and do not later add colors with a
+ * downgrade version, this should convert any illegal preferences once, so
+ * future runs have no illegal preferences.)
+ * @param categoryPrefBranch prefBranch for "calendar.category.color."
+ * @param coloredCategories array of preference name suffixes under the prefBranch.
+ * @return same array with each illegal name replaced with formatted name if
+ * it doesn't already exist, or simply removed from array if it does.
+ */
+function calendarConvertObsoleteColorPrefs(categoryPrefBranch, coloredCategories) {
+    for (var i in coloredCategories) {
+        var category = coloredCategories[i];
+        if (category.search(/[^_0-9a-z-]/) != -1) {
+            var categoryFix = formatStringForCSSRule(category);
+            if (!categoryPrefBranch.prefHasUserValue(categoryFix)) {
+                var color = categoryPrefBranch.getCharPref(category);
+                categoryPrefBranch.setCharPref(categoryFix, color);
+                categoryPrefBranch.clearUserPref(category); // not usable
+                coloredCategories[i] = categoryFix;  // replace illegal name
+            } else {
+                coloredCategories.splice(i, 1); // remove illegal name
+            }
+        }
+    }
+    return coloredCategories;
 }
 
 function calendarListUpdateColor(aCalendar) {

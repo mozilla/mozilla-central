@@ -206,13 +206,11 @@
           container.setAttribute("item-calendar", item.calendar.uri.spec);
 
           var categoriesSelectorList = "";
-          if (item.getProperty("CATEGORIES") != null) {
-            var categoriesList = item.getProperty("CATEGORIES").split(",");
-            for (var i = 0; i < categoriesList.length; i++ ) {
-              // Remove illegal chars.
-              categoriesList[i] = formatStringForCSSRule(categoriesList[i]);
-            }
-            categoriesSelectorList = categoriesList.join(" ");
+          var categoriesProperty = item.getProperty("CATEGORIES");
+          if (categoriesProperty) {
+            var categoriesArray = categoriesStringToArray(categoriesProperty);
+            var cssClassesArray = categoriesArray.map(formatStringForCSSRule);
+            categoriesSelectorList = cssClassesArray.join(" ");
           }
 
           var box = document.

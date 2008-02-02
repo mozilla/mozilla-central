@@ -410,13 +410,18 @@ function getStyleSheet(aStyleSheetPath) {
     return null;
 }
 
-// Updates the style rules for a particular object.  If the object is a
-// category (and hence doesn't have a uri), we set the border color.  If
-// it's a calendar, we set the background color
+/**
+ * Updates the style rules for a particular object.  If the object is a
+ * category (and hence doesn't have a uri), we set the category bar color.
+ * If it's a calendar, we set the background color and contrasting text color.
+ * @param aObject either a calendar (with a .uri), or the category color
+ * pref key suffix [the non-unicode part after "calendar.category.color.",
+ * equivalent to formatStringForCSSRule(categoryNameInUnicode)].
+ */
 function updateStyleSheetForObject(aObject, aSheet) {
     var selectorPrefix, name, ruleUpdaterFunc;
     if (aObject.uri) {
-        // This is a calendar, so we're going to set the background color
+        // For a calendar, set background and contrasting text colors
         name = aObject.uri.spec;
         selectorPrefix = "item-calendar=";
         ruleUpdaterFunc = function calendarRuleFunc(aRule, aIndex) {
@@ -428,12 +433,12 @@ function updateStyleSheetForObject(aObject, aSheet) {
             aRule.style.color = getContrastingTextColor(color);
         };
     } else {
-        // This is a category, where we set the border.  Also note that we 
-        // use the ~= selector, since there could be multiple categories
-        name = formatStringForCSSRule(aObject);
+        // For a category, set the category bar color.  Also note that
+        // it uses the ~= selector, since there could be multiple categories.
+        name = aObject;
         selectorPrefix = "item-category~=";
         ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
-            var color = getPrefSafe("calendar.category.color."+aObject, null);
+            var color = getPrefSafe("calendar.category.color."+name, null);
             if (color) {
                 aRule.style.backgroundColor = color;
             } else {

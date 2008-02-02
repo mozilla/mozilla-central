@@ -335,15 +335,7 @@ function loadDialog(item) {
     }
 
     // Categories
-    var categoriesString = getLocalizedPref("calendar.categories.names", "");
-
-    // If no categories are configured load a default set from properties file
-    if (!categoriesString || categoriesString == "") {
-        categoriesString = calGetString("categories", "categories");
-        setLocalizedPref("calendar.categories.names", categoriesString);
-    }
-
-    var categoriesList = categoriesString.split(",");
+    var categoriesList = getPrefCategoriesArray();
     
     // When categoriesString is empty, split returns an array containing one
     // empty string, rather than an empty array. This results in an empty
@@ -353,13 +345,16 @@ function loadDialog(item) {
     }
 
     // insert the category already in the menulist so it doesn't get lost
-    var itemCategory = item.getProperty("CATEGORIES");
-    if (itemCategory) {
-        if (categoriesString.indexOf(itemCategory) == -1) {
-            categoriesList[categoriesList.length] = itemCategory;
+    var itemProperty = item.getProperty("CATEGORIES");
+    if (itemProperty) {
+        var itemCategories = categoriesStringToArray(itemProperty);
+        for each (var itemCategory in itemCategories) {
+            if (!categoriesList.some(function(cat){ return cat == itemCategory; })){
+                categoriesList.push(itemCategory);
+            }
         }
     }
-    categoriesList.sort();
+    sortArrayByLocaleCollator(categoriesList);
 
     var oldMenulist = document.getElementById("item-categories");
     while (oldMenulist.hasChildNodes()) {
@@ -818,7 +813,7 @@ function saveDialog(item) {
     var category = getElementValue("item-categories");
 
     if (category != "NONE") {
-       setItemProperty(item, "CATEGORIES", category);
+       setItemProperty(item, "CATEGORIES", categoriesArrayToString([category]));
     } else {
        item.deleteProperty("CATEGORIES");
     }
