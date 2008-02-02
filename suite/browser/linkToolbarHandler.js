@@ -61,7 +61,10 @@ function(element)
   if (linkElement.isIgnored()) return;
 
   for (var i = 0; i < linkElement.relValues.length; i++) {
-    var linkType = LinkToolbarHandler.getLinkType(linkElement.relValues[i]);
+    if (linkElement.relValues.length > 1 && rel == "alternate")
+      continue; // skip "alternate" when we have "alternate XXX"
+
+    var linkType = LinkToolbarHandler.getLinkType(linkElement.relValues[i], element);
     if (linkType) {
       if (!this.hasItems) {
         this.hasItems = true;
@@ -73,8 +76,9 @@ function(element)
 }
 
 LinkToolbarHandler.getLinkType =
-function(relAttribute)
+function(relAttribute, element)
 {
+  var isFeed = false;
   switch (relAttribute.toLowerCase()) {
     case "start":
     case "top":
@@ -109,6 +113,20 @@ function(relAttribute)
     case "toc":
       return "toc";
 
+    case "feed":
+      isFeed = true;
+      // fall through
+    case "alternate":
+      var feed = { title: element.title, href: element.href,
+                    type: element.type };
+      if (isValidFeed(feed, element.nodePrincipal, isFeed)) {
+        return "feed";
+      }
+
+      if (!isFeed) {
+        return "alternate";
+      }
+      // fall through
     case "prefetch":
       return null;
 
@@ -132,7 +150,8 @@ function(linkType)
     return new LinkToolbarTransientMenu(linkType);
 
   // XXX: replace switch with polymorphism
-  switch(document.getElementById("link-" + linkType).localName) {
+  var element = document.getElementById("link-" + linkType);
+  switch (element.getAttribute("type") || element.localName) {
     case "toolbarbutton":
       return new LinkToolbarButton(linkType);
 

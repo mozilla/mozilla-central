@@ -171,14 +171,9 @@ function(event)
   // We have to do a security check here, because we are loading URIs given
   // to us by a web page from chrome, which is privileged.
   try {
-    var ssm = Components.classes["@mozilla.org/scriptsecuritymanager;1"].getService().
-	  	          QueryInterface(Components.interfaces.nsIScriptSecurityManager);
-  	ssm.checkLoadURIStr(window.content.location.href, destURL, 0);
-	var referrer =
-	    Components.classes["@mozilla.org/network/standard-url;1"].
-	      createInstance(Components.interfaces.nsIURI);
-	referrer.spec = window.content.location.href;
-	loadURI(destURL, referrer);
+    urlSecurityCheck(content.document.nodePrincipal, destURL,
+                     Components.interfaces.nsIScriptSecurityManager.STANDARD);
+    loadURI(destURL, content.document.documentURIObject);
   } catch (e) {
     dump("Error: it is not permitted to load this URI from a <link> element: " + e);
   }

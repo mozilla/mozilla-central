@@ -333,6 +333,7 @@
             mBrowser: aBrowser,
             mBlank: aStartsBlank,
             mIcon: "",
+            mFeeds: [],
 
             onProgressChange : function (aWebProgress, aRequest,
                                          aCurSelfProgress, aMaxSelfProgress,
@@ -451,6 +452,7 @@
             {
               if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
                 this.mIcon = "";
+                this.mFeeds = [];
 
                 if (this.mLocationChangeCount > 0 ||
                     aLocation.spec != "about:blank")
@@ -505,6 +507,11 @@
               this.mIcon = aURI;
               if (!this.mTab.hasAttribute("busy"))
                 this.mTab.setAttribute("image", aURI);
+            },
+
+            addFeed : function(aLink)
+            {
+              this.mFeeds.push(aLink);
             },
 
             QueryInterface : function(aIID)
@@ -783,6 +790,10 @@
                 var listener = this.mTabListeners[this.mTabContainer.selectedIndex];
                 if (listener.mIcon && 'onLinkIconAvailable' in p)
                   p.onLinkIconAvailable(listener.mIcon);
+                if ('onFeedAvailable' in p) {
+                  for (var j = 0; j < listener.mFeeds.length; j++)
+                    p.onFeedAvailable(listener.mFeeds[j]);
+                }
               }
             }
 
@@ -870,68 +881,100 @@
         <parameter name="event"/>
         <body>
           <![CDATA[
-            if (!this.mPrefs.getBoolPref("browser.chrome.site_icons"))
-              return;
-
-            if (!event.originalTarget.rel.match((/(?:^|\s)icon(?:\s|$)/i)))
-              return;
-
-            // We have an icon.
             var href = event.originalTarget.href;
             if (!href)
               return;
 
-            const nsIContentPolicy = Components.interfaces.nsIContentPolicy;
-            try {
-              var contentPolicy =
-                Components.classes['@mozilla.org/layout/content-policy;1']
-                          .getService(nsIContentPolicy);
-            } catch(e) {
-              return; // Refuse to load if we can't do a security check.
+            var rel = event.originalTarget.rel;
+            var isIcon = /\bicon\b/i.test(rel) &&
+                         this.mPrefs.getBoolPref("browser.chrome.site_icons");
+
+            var isFeed = /\bfeed\b/i.test(rel);
+            if (!isFeed && /\balternate\b/i.test(rel) &&
+                !/\bstylesheet\b/i.test(rel)) {
+              switch (event.originalTarget.type.toLowerCase()
+                           .replace(/^\s+|\s*(?:;.*)?$/g, "")) {
+                case "text/xml":
+                case "application/rdf+xml":
+                case "application/xml":
+                  isFeed = /\brss\b/i.test(event.originalTarget.title);
+                  break;
+                case "application/rss+xml":
+                case "application/atom+xml":
+                  isFeed = true;
+                  break;
+              }
             }
 
-            // Verify that the load of this icon is legal.
-            // We check first with the security manager
-            const secMan =
-              Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                        .getService(Components.interfaces.nsIScriptSecurityManager);
-
-            // Get the IOService so we can make URIs
-            const ioService =
-              Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService);
-
-            const targetDoc = event.target.ownerDocument;
-            // Make a URI out of our href.
-            var uri = ioService.newURI(href, targetDoc.characterSet, null);
-
-            var origURI = ioService.newURI(targetDoc.documentURI, targetDoc.characterSet, null);
-
-            const nsIScriptSecMan =
-              Components.interfaces.nsIScriptSecurityManager;
-
-            try {
-              secMan.checkLoadURI(origURI, uri,
-                                  nsIScriptSecMan.DISALLOW_SCRIPT);
-            } catch(e) {
+            if (!isIcon && !isFeed)
               return;
-            }
 
-            // Security says okay, now ask content policy
             for (var i = 0; i < this.browsers.length; i++) {
-              if (this.browsers[i].contentDocument == event.originalTarget.ownerDocument) {
-                if (contentPolicy.shouldLoad(nsIContentPolicy.TYPE_IMAGE,
-                                             uri, origURI, event.target,
-                                             event.target.type,
-                                             null) == nsIContentPolicy.ACCEPT) {
-                  this.mTabListeners[i].setIcon(href);
-                  if (this.browsers[i] == this.mCurrentBrowser)
-                    for each (var p in this.mProgressListeners)
-                      if (p && 'onLinkIconAvailable' in p)
-                        p.onLinkIconAvailable(href);
-                }
+              if (this.browsers[i].contentDocument != event.originalTarget.ownerDocument)
+                continue;
+
+              // The following code is only executed once, see
+              // 'continue' above, and the following return(s)
+              
+              // Verify that the load of this href is legal.
+              // We check first with the security manager
+              const nsIScriptSecurityManager =
+                Components.interfaces.nsIScriptSecurityManager;
+
+              const secMan =
+                Components.classes["@mozilla.org/scriptsecuritymanager;1"]
+                          .getService(nsIScriptSecurityManager);
+
+              // Get the IOService so we can make URIs
+              const ioService =
+                Components.classes["@mozilla.org/network/io-service;1"]
+                          .getService(Components.interfaces.nsIIOService);
+
+              const targetDoc = event.target.ownerDocument;
+              // Make a URI out of our href.
+              var uri = ioService.newURI(href, targetDoc.characterSet, null);
+
+              try {
+                secMan.checkLoadURIWithPrincipal(event.target.nodePrincipal, uri,
+                                                 nsIScriptSecurityManager.DISALLOW_SCRIPT);
+              } catch(e) {
                 return;
               }
+
+              if (isFeed) {
+                this.mTabListeners[i].addFeed(event.originalTarget);
+                if (this.browsers[i] == this.mCurrentBrowser)
+                  for each (var p in this.mProgressListeners)
+                    if (p && 'onFeedAvailable' in p)
+                      p.onFeedAvailable(event.originalTarget);
+              }
+
+              if (!isIcon)
+                return;
+
+              // Security says okay, now ask content policy
+              const nsIContentPolicy = Components.interfaces.nsIContentPolicy;
+              try {
+                var contentPolicy =
+                  Components.classes['@mozilla.org/layout/content-policy;1']
+                            .getService(nsIContentPolicy);
+              } catch(e) {
+                return; // Refuse to load if we can't do a security check.
+              }
+
+              var origURI = ioService.newURI(targetDoc.documentURI,
+                                             targetDoc.characterSet, null);
+              if (contentPolicy.shouldLoad(nsIContentPolicy.TYPE_IMAGE,
+                                           uri, origURI, event.target,
+                                           event.target.type,
+                                           null) == nsIContentPolicy.ACCEPT) {
+                this.mTabListeners[i].setIcon(href);
+                if (this.browsers[i] == this.mCurrentBrowser)
+                  for each (var p in this.mProgressListeners)
+                    if (p && 'onLinkIconAvailable' in p)
+                      p.onLinkIconAvailable(href);
+              }
+              return;
             }
           ]]>
         </body>

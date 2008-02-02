@@ -489,6 +489,12 @@
         <menuitem                       command="Browser:AddGroupmarkAs"/>
         <menuitem key="manBookmarkKb"   command="Browser:ManageBookmark"/>
         <menuseparator/>
+        <menu id="feedsMenu" class="menu-iconic" disabled="true"
+              label="&feedsMenu.label;" accesskey="&feedsMenu.accesskey;">
+          <menupopup onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
+                     oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
+        </menu>
+        <menuseparator/>
       </menupopup>
     </menu>
       

@@ -133,6 +133,9 @@
   <!-- context menu -->
   <popupset id="contentAreaContextSet"/>
 
+  <popup id="feedsPopup" popupanchor="bottomright" popupalign="topright"
+         onpopupshowing="window.XULBrowserWindow.populateFeeds(this);"
+         oncommand="loadURI(event.target.statusText, gBrowser.currentURI);"/>
   <panel type="autocomplete" id="PopupAutoComplete"/>
 
   <toolbox id="navigator-toolbox" class="toolbox-top" deferattached="true">
@@ -202,7 +205,9 @@
                    onerror="gBrowser.addToMissedIconCache(this.src); HandleBookmarkIcon(this.src, false);"
                    tooltiptext="&proxyIcon.tooltip;"/>
           </deck>
-
+          <hbox id="urlbar-icons">
+            <image id="feedsButton" hidden="true" popup="feedsPopup"/>
+          </hbox>
           <menupopup id="ubhist-popup" class="autocomplete-history-popup"
                      popupalign="topleft" popupanchor="bottomleft"
                      onpopupshowing="createUBHistoryMenu(event.target);" 

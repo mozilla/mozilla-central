@@ -51,26 +51,34 @@ function initFeedTab()
   var linkNodes = gDocument.getElementsByTagName("link");
   var length = linkNodes.length;
   for (var i = 0; i < length; i++) {
-    var feed = recognizeFeedFromLink(linkNodes[i], gDocument.nodePrincipal);
-    if (feed) {
-      var type = feed.type;
-      if (type in feedTypes)
-        type = feedTypes[type];
-      else
-        type = feedTypes["application/rss+xml"];
-      addRow(feed.title, type, feed.href);
+    var link = linkNodes[i];
+    if (!link.href)
+      continue;
+
+    var rel = link.rel && link.rel.toLowerCase();
+    var isFeed = /\bfeed\b/i.test(rel);
+    if (!isFeed && /\balternate\b/.test(rel) &&
+        !/\bstylesheet\b/.test(rel)) {
+      var feed = { title: link.title, href: link.href, type: link.type };
+      if (isValidFeed(feed, gDocument.nodePrincipal, isFeed)) {
+        var type = feed.type;
+        if (type in feedTypes)
+          type = feedTypes[type];
+        else
+          type = feedTypes["application/rss+xml"];
+        addRow(feed.title, type, feed.href);
+      }
     }
   }
+  var feedListbox = document.getElementById("feedListbox");
+  document.getElementById("feedTab").hidden = feedListbox.getRowCount() == 0;
 }
 
-/* uncomment this function when seamonkey supports some sort of subscription method for feeds
 function onSubscribeFeed()
 {
   var listbox = document.getElementById("feedListbox");
-  openUILink(listbox.selectedItem.getAttribute("feedURL"),
-             null, false, true, false, null);
+  openTopWin(listbox.selectedItem.getAttribute("feedURL"));
 }
-*/
 
 function addRow(name, type, url)
 {
@@ -80,71 +88,4 @@ function addRow(name, type, url)
   item.setAttribute("type", type);
   item.setAttribute("feedURL", url);
   document.getElementById("feedListbox").appendChild(item);
-}
-
-/**
- * recognizeFeedFromLink: recognizes RSS/ATOM feeds from DOM link elements.
- *
- * @param  aLink
- *         The DOM link element to check for representing a feed.
- * @param  aPrincipal
- *         The principal of the document, used for security check.
- * @return object
- *         The feed object containing href, type, and title properties,
- *          if successful, otherwise null.
- */ 
-function recognizeFeedFromLink(aLink, aPrincipal)
-{
-  if (!aLink || !aPrincipal)
-    return null;
-
-  var erel = aLink.rel && aLink.rel.toLowerCase();
-  var etype = aLink.type && aLink.type.toLowerCase();
-  var etitle = aLink.title;
-  const rssTitleRegex = /(^|\s)rss($|\s)/i;
-  var rels = {};
-
-  if (erel) {
-    for each (var relValue in erel.split(/\s+/))
-      rels[relValue] = true;
-  }
-  var isFeed = rels.feed;
-
-  if (!isFeed && (!rels.alternate || rels.stylesheet || !etype))
-    return null;
-
-  if (!isFeed) {
-    // Use type value
-    etype = etype.replace(/^\s+/, "");
-    etype = etype.replace(/\s+$/, "");
-    etype = etype.replace(/\s*;.*/, "");
-    isFeed = (etype == "application/rss+xml" ||
-              etype == "application/atom+xml");
-    if (!isFeed) {
-      // really slimy: general XML types with magic letters in the title
-      isFeed = ((etype == "text/xml" || etype == "application/xml" ||
-                 etype == "application/rdf+xml") && rssTitleRegex.test(etitle));
-    }
-  }
-
-  if (isFeed) {
-    try { 
-      urlSecurityCheck(aLink.href,
-                       aPrincipal,
-                       Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL);
-    }
-    catch (ex) {
-      dump(ex.message);
-      return null; // doesn't pass security check
-    }
-
-    // successful!  return the feed
-    return {
-        href: aLink.href,
-        type: etype,
-        title: aLink.title
-      };
-  }
-
-  return null;
 }

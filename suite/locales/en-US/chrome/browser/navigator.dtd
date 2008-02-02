@@ -152,6 +152,8 @@
 <!ENTITY manBookmarksCmd.label "Manage Bookmarks...">
 <!ENTITY manBookmarksCmd.accesskey "M">
 <!ENTITY manBookmarksCmd.commandkey "b">
+<!ENTITY feedsMenu.label "Subscribe to This Page">
+<!ENTITY feedsMenu.accesskey "S">
 <!ENTITY emptyItem.label "(Empty)">
 
 <!ENTITY helpMenuCmd.label "Help">

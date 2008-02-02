@@ -77,3 +77,5 @@
 <!ENTITY bookmarkButton.label "Bookmarks">
 
 <!ENTITY alternateButton.label "Other Versions">
+
+<!ENTITY feedButton.label "Subscribe">

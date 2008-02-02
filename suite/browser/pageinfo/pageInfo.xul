@@ -60,14 +60,14 @@
   persist="screenX screenY width height sizemode">
 
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-  <script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js"/>
+  <script type="application/x-javascript" src="chrome://communicator/content/contentAreaUtils.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/pageInfo.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/feeds.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/permissions.js"/>
   <script type="application/x-javascript" src="chrome://navigator/content/pageinfo/security.js"/>
   <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://help/content/contextHelp.js"/>
-  <script type="application/x-javascript" src="chrome://navigator/content/utilityOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
   <stringbundleset id="pageinfobundleset">
     <stringbundle id="pageinfobundle" src="chrome://navigator/locale/pageInfo.properties"/>

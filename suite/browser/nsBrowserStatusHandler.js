@@ -50,6 +50,7 @@ nsBrowserStatusHandler.prototype =
   jsStatus : "",
   jsDefaultStatus : "",
   overLink : "",
+  feeds : [],
 
   QueryInterface : function(aIID)
   {
@@ -73,6 +74,8 @@ nsBrowserStatusHandler.prototype =
     this.statusTextField = document.getElementById("statusbar-display");
     this.isImage         = document.getElementById("isImage");
     this.securityButton  = document.getElementById("security-button");
+    this.feedsMenu       = document.getElementById("feedsMenu");
+    this.feedsButton     = document.getElementById("feedsButton");
 
     // Initialize the security button's state and tooltip text
     const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
@@ -92,6 +95,8 @@ nsBrowserStatusHandler.prototype =
     this.statusTextField = null;
     this.isImage         = null;
     this.securityButton  = null;
+    this.feedsButton     = null;
+    this.feedsMenu       = null;
   },
 
   setJSStatus : function(status)
@@ -141,6 +146,29 @@ nsBrowserStatusHandler.prototype =
            contentType == "application/x-javascript" ||
            contentType == "application/xml" ||
            contentType == "mozilla.application/cached-xul";
+  },
+
+  populateFeeds : function(popup)
+  {
+    // First clear out any old items
+    while (popup.firstChild)
+      popup.removeChild(popup.lastChild);
+
+    for (var i = 0; i < this.feeds.length; i++) {
+      var link = this.feeds[i];
+      var menuitem = document.createElement("menuitem");
+      menuitem.className = "menuitem-iconic bookmark-item";
+      menuitem.statusText = link.href;
+      menuitem.setAttribute("label", link.title || link.href);
+      popup.appendChild(menuitem);
+    }
+  },
+
+  onFeedAvailable : function(aLink)
+  {
+    this.feeds.push(aLink);
+    this.feedsMenu.removeAttribute("disabled");
+    this.feedsButton.hidden = false;
   },
 
   onLinkIconAvailable : function(aHref)
@@ -343,6 +371,10 @@ nsBrowserStatusHandler.prototype =
         this.urlBar.value = userTypedValue;
         SetPageProxyState("invalid", null);
       }
+
+      this.feedsMenu.setAttribute("disabled", "true");
+      this.feedsButton.hidden = true;
+      this.feeds = [];
     }
     UpdateBackForwardButtons();
 

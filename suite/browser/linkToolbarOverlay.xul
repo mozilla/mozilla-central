@@ -191,6 +191,12 @@
         </menupopup>
       </toolbarbutton>
 
+      <toolbarbutton id="link-feed" class="bookmark-item"
+          type="menu"
+          container="true"
+          label="&feedButton.label;" disabled="true">
+        <menupopup id="link-feed-popup"/>
+      </toolbarbutton>
     </toolbar>
   </toolbox>
 </overlay>

@@ -793,3 +793,51 @@ function disablePopupBlockerNotifications()
 {
   pref.setBoolPref("privacy.popups.showBrowserMessage", false);
 }
+
+/**
+ * isValidFeed: checks whether the given data represents a valid feed.
+ *
+ * @param  aData
+ *         An object representing a feed with title, href and type.
+ * @param  aPrincipal
+ *         The principal of the document, used for security check.
+ * @param  aIsFeed
+ *         Whether this is already a known feed or not, if true only a security
+ *         check will be performed.
+ */ 
+function isValidFeed(aData, aPrincipal, aIsFeed)
+{
+  if (!aData || !aPrincipal)
+    return false;
+
+  if (!aIsFeed) {
+    var type = aData.type.toLowerCase().replace(/^\s+|\s*(?:;.*)?$/g, "");
+
+    switch (type) {
+      case "text/xml":
+      case "application/rdf+xml":
+      case "application/xml":
+        aIsFeed = /\brss\b/i.test(event.originalTarget.title);
+        break;
+      case "application/rss+xml":
+      case "application/atom+xml":
+        aIsFeed = true;
+        break;
+    }
+  }
+
+  if (aIsFeed) {
+    try {
+      urlSecurityCheck(aPrincipal, aData.href,
+                       Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL);
+    }
+    catch(ex) {
+      aIsFeed = false;
+    }
+  }
+
+  if (type)
+    aData.type = type;
+
+  return aIsFeed;
+}
