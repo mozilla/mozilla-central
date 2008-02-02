@@ -13,16 +13,17 @@
  *
  * The Original Code is Calendar Drag-n-drop code.
  *
- * The Initial Developer of the Original Code is 
+ * The Initial Developer of the Original Code is
  *   Joey Minta <jminta@gmail.com>
  * Portions created by the Initial Developer are Copyright (C) 2006
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -35,6 +36,178 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var itemConversion = {
+
+    calendarItemFromMessage: function iC_calendarItemFromMessage(aItem, aMessage) {
+        aItem.calendar = getSelectedCalendar();
+        aItem.title = aMessage.mime2DecodedSubject;
+
+        // The time for the event should default to the next full hour
+        if (isEvent(aItem)) {
+            aItem.startDate = now();
+            aItem.startDate.second = 0;
+            aItem.startDate.minute = 0;
+            aItem.startDate.hour++;
+            aItem.endDate = aItem.startDate.clone();
+            aItem.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+        } else if (isToDo(aItem)) {
+            aItem.entryDate = now();
+            aItem.entryDate.second = 0;
+            aItem.entryDate.minute = 0;
+            aItem.entryDate.hour++;
+        }
+        setDefaultAlarmValues(aItem);
+
+        function addAttendees(aEmailAddresses) {
+            if (msgHeaderParser) {
+                var addresses = {};
+                var fullNames = {};
+                var names = {};
+                var numAddresses =  0;
+                numAddresses = msgHeaderParser.parseHeadersWithArray(
+                    aEmailAddresses, addresses, names, fullNames);
+                for (var i = 0; i < numAddresses; i++) {
+                    var attendee = createAttendee();
+                    attendee.id = addresses.value[i];
+                    attendee.commonName = names.value[i];
+                    attendee.role = "REQ-PARTICIPANT";
+                    attendee.participationStatus = "NEEDS-ACTION";
+                    attendee.rsvp = true;
+                    aItem.addAttendee(attendee);
+                }
+            }
+        }
+
+        addAttendees(aMessage.recipients);
+        addAttendees(aMessage.ccList);
+
+        // XXX It would be great if nsPlainTextParser could take care of this.
+        function htmlToPlainText(html) {
+          var texts = html.split(/(<\/?[^>]+>)/);
+          var text = texts.map(function hTPT_map(string) {
+              if (string.length > 0 && string[0] == '<') {
+                  var regExpRes = string.match(/^<img.*?alt\s*=\s*['"](.*)["']/i)
+                  if (regExpRes) {
+                      return regExpRes[1];
+                  } else {
+                      return "";
+                  }
+              } else {
+                  return string.replace(/&([^;]+);/g, function hTPT_replace(str, p1) {
+                        switch (p1) {
+                            case "nbsp": return " ";
+                            case "amp": return "&";
+                            case "lt": return "<";
+                            case "gt": return ">";
+                            case "quot": return '\"';
+                        }
+                        return " ";
+                    });
+              }
+          }).join("");
+
+          return text;
+        }
+
+        var content = document.getElementById("messagepane");
+        if (content) {
+            var messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
+            if (messagePrefix.test(GetLoadedMessage())) {
+                var message = content.contentDocument;
+                var body = message.body;
+                if (body) {
+                    aItem.setProperty(
+                        "DESCRIPTION",
+                        htmlToPlainText(body.innerHTML));
+                }
+            }
+        }
+    },
+
+    copyItemBase: function iC_copyItemBase(aItem, aTarget) {
+        const copyProps = ["SUMMARY", "LOCATION", "CATEGORIES", "DESCRIPTION",
+                           "URL", "CLASS", "PRIORITY", "STATUS"];
+
+        for each (var prop in copyProps) {
+            aTarget.setProperty(prop, aItem.getProperty(prop));
+        }
+
+        // Attendees
+        var attendees = aItem.getAttendees({});
+        for each (var attendee in attendees) {
+            aTarget.addAttendee(attendee.clone());
+        }
+
+        // Organizer
+        aTarget.organizer = (aItem.organizer ? aItem.organizer.clone() : null);
+
+        // Calendar
+        aTarget.calendar = getSelectedCalendar();
+
+        // Recurrence
+        if (aItem.recurrenceInfo) {
+            aTarget.recurrenceInfo = aItem.recurrenceInfo.clone();
+            aTarget.recurrenceInfo.item = aTarget;
+        }
+    },
+
+    taskFromEvent: function iC_taskFromEvent(aEvent) {
+        var item = createTodo();
+
+        this.copyItemBase(aEvent, item);
+
+        // Dates and alarms
+        if (!aEvent.startDate.isDate && !aEvent.endDate.isDate) {
+            // Dates
+            item.entryDate = aEvent.startDate.clone();
+            item.dueDate = aEvent.endDate.clone();
+
+            // Alarms
+            item.alarmOffset = (aEvent.alarmOffset ?
+                                aEvent.alarmOffset.clone() :
+                                null);
+            item.alarmRelated = aEvent.alarmRelated;
+            item.alarmLastAck = (aEvent.alarmLastAck ?
+                                 aEvent.alarmLastAck.clone() :
+                                 null);
+        }
+        return item;
+    },
+
+    eventFromTask: function iC_eventFromTask(aTask) {
+        var item = createEvent();
+
+        this.copyItemBase(aTask, item);
+
+        // Dates and alarms
+        item.startDate = aTask.entryDate;
+        if (!item.startDate) {
+            item.startDate = now();
+            item.startDate.minute = 0;
+            item.startDate.second = 0;
+            item.startDate.hour++;
+        }
+
+        item.endDate = aTask.dueDate;
+        if (!item.endDate) {
+            // Make the event be the default event length if no due date was
+            // specified.
+            item.endDate = item.startDate.clone();
+            item.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+        }
+
+        // Alarms
+        item.alarmOffset = (aTask.alarmOffset ?
+                            aTask.alarmOffset.clone() :
+                            null);
+        item.alarmRelated = aTask.alarmRelated;
+        item.alarmLastAck = (aTask.alarmLastAck ?
+                             aTask.alarmLastAck.clone() :
+                             null);
+        return item;
+    }
+};
+
 function calDNDBaseObserver() {
     ASSERT(false, "Inheriting objects call calDNDBaseObserver!");
 }
@@ -43,7 +216,7 @@ calDNDBaseObserver.prototype = {
     // initialize this class's members
     initBase: function calDNDInitBase() {
     },
-    
+
     getSupportedFlavours: function calDNDGetFlavors() {
         var flavourSet = new FlavourSet();
         flavourSet.appendFlavour("text/calendar");
@@ -120,7 +293,7 @@ calDNDBaseObserver.prototype = {
                              .createInstance(Components.interfaces.nsIUnicharStreamLoader);
                 var channel = ioService.newChannelFromURI(uri);
                 channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
-                
+
                 var self = this;
 
                 var listener = {
@@ -174,86 +347,6 @@ calDNDBaseObserver.prototype = {
     onDropItems: function calDNDDropItems(aItems) {},
     onDropMessage: function calDNDDropMessage(aMessage) {},
 
-    calendarItemFromMessage: function calDNDItemFromMessage(aItem,aMessage) {
-    
-        aItem.calendar = getSelectedCalendar();
-        aItem.title = aMessage.subject;
-        if (isEvent(aItem)) {
-            aItem.startDate = now();
-            aItem.endDate = aItem.startDate.clone();
-            aItem.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
-        } else if (isToDo(aItem)) {
-            aItem.entryDate = now();
-        }
-        setDefaultAlarmValues(aItem);
-
-        var addAttendees = function(aEmailAddresses) {
-            if (msgHeaderParser) {
-                var addresses = {};
-                var fullNames = {};
-                var names = {};
-                var numAddresses =  0;
-                numAddresses = msgHeaderParser.parseHeadersWithArray(
-                    aEmailAddresses, addresses, names, fullNames);
-                var index = 0;
-                while (index < numAddresses) {
-                    var attendee = createAttendee();
-                    attendee.id = addresses.value[index];
-                    attendee.commonName = names.value[index];
-                    attendee.role = "REQ-PARTICIPANT";
-                    attendee.participationStatus = "NEEDS-ACTION";
-                    attendee.rsvp = true;
-                    aItem.addAttendee(attendee);
-                    index++;
-                }
-            }
-        }
-        
-        addAttendees(aMessage.recipients);
-        addAttendees(aMessage.ccList);
-
-        var htmlToPlainText = function(html) {
-          var texts = html.split(/(<\/?[^>]+>)/);
-          var text = texts.map(function(string) {
-              if (string.length > 0 && string[0] == '<') {
-                  var regExpRes = string.match(/^<img.*?alt\s*=\s*['"](.*)["']/i)
-                  if (regExpRes) {
-                      return regExpRes[1];
-                  } else {
-                      return "";
-                  }
-              } else {
-                  return string.replace(/&([^;]+);/g, function(str, p1) {
-                        switch (p1) {
-                            case "nbsp": return " ";
-                            case "amp": return "&";
-                            case "lt": return "<";
-                            case "gt": return ">";
-                            case "quot": return '\"';
-                        }
-                        return " ";
-                    });
-              }
-          }).join("");
-
-          return text;
-        }
-
-        var content = document.getElementById("messagepane");
-        if (content) {
-            var messagePrefix = /^mailbox-message:|^imap-message:|^news-message:/i;
-            if (messagePrefix.test(GetLoadedMessage())) {
-                var message = content.contentDocument;
-                var body = message.body;
-                if (body) {
-                    aItem.setProperty(
-                        "DESCRIPTION",
-                        htmlToPlainText(body.innerHTML));
-                }
-            }
-        }
-    
-    },
 
     retrieveURLFromData: function calDNDRetrieveURL(aData, aFlavor) {
         var data;
@@ -330,7 +423,7 @@ calMailButtonDNDObserver.prototype = {
     onDropItems: function(aItems) {
         if (aItems && aItems.length > 0) {
             var item = aItems[0];
-            
+
             var recipients = "";
             var attendees = item.getAttendees({});
             for each (var attendee in attendees) {
@@ -360,7 +453,7 @@ calMailButtonDNDObserver.prototype = {
 
             // set up message body from item description
             var body = item.getProperty("DESCRIPTION");
-            
+
             sendMailTo(recipients, subject, body);
         }
     },
@@ -396,18 +489,12 @@ calCalendarButtonDNDObserver.prototype = {
      * on the 'calendar mode'-button.
      */
     onDropItems: function(aItems) {
-        if (aItems && aItems.length > 0) {
-            var item = aItems[0];
-            if (!isEvent(item)) {
-                var newItem = createEvent();
-                newItem.wrappedJSObject.setItemBaseFromICS(
-                    item.icalComponent);
-                newItem.startDate = item.entryDate || now();
-                newItem.endDate = item.dueDate || now();
-                createEventWithDialog(null, null, null, null, newItem);
-            } else {
-                modifyEventWithDialog(item);
+        for each (var item in aItems) {
+            var newItem = item;
+            if (isToDo(item)) {
+                newItem = itemConversion.eventFromTask(item);
             }
+            createEventWithDialog(null, null, null, null, newItem);
         }
     },
 
@@ -420,9 +507,9 @@ calCalendarButtonDNDObserver.prototype = {
      * and just use the subject of the message as the event title.
      */
     onDropMessage: function(aMessage) {
-        var event = createEvent();
-        this.calendarItemFromMessage(event,aMessage);
-        createEventWithDialog(null, null, null, null, event);
+        var newItem = createEvent();
+        itemConversion.calendarItemFromMessage(newItem, aMessage);
+        createEventWithDialog(null, null, null, null, newItem);
     }
 };
 
@@ -447,18 +534,12 @@ calTaskButtonDNDObserver.prototype = {
      * on the 'task mode'-button.
      */
     onDropItems: function(aItems) {
-        if (aItems && aItems.length > 0) {
-            var item = aItems[0];
-            if (!isToDo(item)) {
-                var newItem = createTodo();
-                newItem.wrappedJSObject.setItemBaseFromICS(
-                    item.icalComponent);
-                newItem.entryDate = item.startDate || now();
-                newItem.dueDate = item.endDate || now();
-                createTodoWithDialog(null, null, null, newItem);
-            } else {
-                modifyEventWithDialog(newItem);
+        for each (var item in aItems) {
+            var newItem = item;
+            if (isEvent(item)) {
+                newItem = itemConversion.taskFromEvent(item);
             }
+            createTodoWithDialog(null, null, null, newItem);
         }
     },
 
@@ -470,7 +551,7 @@ calTaskButtonDNDObserver.prototype = {
      */
     onDropMessage: function(aMessage) {
         var todo = createTodo();
-        this.calendarItemFromMessage(todo,aMessage);
+        itemConversion.calendarItemFromMessage(todo, aMessage);
         createTodoWithDialog(null, null, null, todo);
     }
 };

@@ -2114,6 +2114,17 @@ function updateDateTime() {
               setElementValue("todo-has-duedate", hasDueDate, "checked");
               endTime.timezone = floating();
               setElementValue("todo-duedate", endTime.jsDate);
+          } else {
+              // The time for the todo should default to the next full hour
+              startTime = now();
+              startTime.timezone = floating();
+              startTime.minute = 0;
+              startTime.second = 0;
+              startTime.hour++;
+              endTime = startTime.clone();
+
+              setElementValue("todo-entrydate", startTime.jsDate);
+              setElementValue("todo-duedate", endTime.jsDate);
           }
         }
     } else {
@@ -2161,6 +2172,17 @@ function updateDateTime() {
 
                 setElementValue("todo-has-duedate", hasDueDate, "checked");
                 endTime.timezone = floating();
+                setElementValue("todo-duedate", endTime.jsDate);
+            } else {
+                // The time for the todo should default to the next full hour
+                startTime = now();
+                startTime.timezone = floating();
+                startTime.minute = 0;
+                startTime.second = 0;
+                startTime.hour++;
+                endTime = startTime.clone();
+
+                setElementValue("todo-entrydate", startTime.jsDate);
                 setElementValue("todo-duedate", endTime.jsDate);
             }
         }

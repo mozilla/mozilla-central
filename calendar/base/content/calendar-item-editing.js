@@ -65,6 +65,14 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
     }
 
     if (event) {
+        // If the event should be created from a template, then make sure to
+        // remove the id so that the item obtains a new id when doing the
+        // transaction
+        if (event.id) {
+            event = event.clone();
+            event.id = null;
+        }
+
         openEventDialog(event, calendar, "new", onNewEvent, null);
         return;
     }
@@ -86,7 +94,8 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
             startDate = startDate.clone();
         }
         startDate.isDate = false;
-        startDate.hour = now().hour;
+        // The time for the event should default to the next full hour
+        startDate.hour = now().hour + 1;
         startDate.minute = 0;
         startDate.second = 0;
    }
@@ -124,6 +133,13 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
     }
 
     if (todo) {
+        // If the too should be created from a template, then make sure to
+        // remove the id so that the item obtains a new id when doing the
+        // transaction
+        if (todo.id) {
+            todo = todo.clone();
+            todo.id = null;
+        }
         openEventDialog(todo, calendar, "new", onNewItem, null);
         return;
     }
