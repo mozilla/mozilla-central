@@ -123,7 +123,10 @@ var unifinderObserver = {
     },
 
     onAddItem: function uO_onAddItem(aItem) {
-        if (isEvent(aItem) &&  !this.mInBatch && !gUnifinderNeedsRefresh) {
+        if (isEvent(aItem) &&
+            !this.mInBatch &&
+            !gUnifinderNeedsRefresh &&
+            isItemInFilter(aItem)) {
             this.addItemToTree(aItem);
         }
     },
@@ -398,20 +401,6 @@ var unifinderTreeView = {
             this.tree.rowCountChanged(0, -oldCount);
         }
         this.calculateIndexMap();
-    },
-
-    setItems: function uTV_setItems(aItemArray, aDontSort) {
-        var oldCount = this.eventArray.length;
-        this.eventArray = aItemArray.slice(0);
-        if (this.tree) {
-            this.tree.rowCountChanged(0, (this.eventArray.length - oldCount));
-        }
-       
-        if (aDontSort) {
-            this.calculateIndexMap();
-        } else {
-            this.sortItems();
-        }
     },
 
     calculateIndexMap: function uTV_calculateIndexMap() {
@@ -914,37 +903,43 @@ function refreshEventTree() {
 
 function refreshEventTreeInternal(eventArray) {
     var searchText = document.getElementById("unifinder-search-field").value;
-    var unifinderTree = document.getElementById("unifinder-search-results-tree");
-    searchText = searchText.toLowerCase();
 
-    if (searchText.length && !searchText.match(/^\s*$/)) {
-        unifinderTreeView.clearItems();
-        const fieldsToSearch = ["SUMMARY", "DESCRIPTION", "LOCATION", "CATEGORIES", "URL"];
-
-        for (var j in eventArray) {
-            var item = eventArray[j];
-            if (!fixAlldayDates(item)) {
-                continue;
-            }
-
-            for each (var field in fieldsToSearch) {
-                var val = event.getProperty(fieldsToSearch[field]);
-                if (val && val.toLowerCase().indexOf(searchText) != -1) {
-                    unifinderTreeView.addItems([event], true);
-                    break;
-                }
-            }
+    unifinderTreeView.clearItems();
+    for (var j in eventArray) {
+        var item = eventArray[j];
+        if (isItemInFilter(item)) {
+            unifinderTreeView.addItems([item], true);
         }
-
-        // Finally, sort the items since it was suppressed above
-        unifinderTreeView.sortItems();
-    } else {
-        unifinderTreeView.setItems(eventArray.filter(fixAlldayDates));
     }
+
+    // Finally, sort the items since it was suppressed above
+    unifinderTreeView.sortItems();
 
     // Select selected events in the tree. Not passing the argument gets the
     // items from the view.
     unifinderTreeView.setSelectedItems();
+}
+
+function isItemInFilter(aItem) {
+    var searchText = document.getElementById("unifinder-search-field")
+                             .value.toLowerCase();
+
+    if (!searchText.length || searchText.match(/^\s*$/)) {
+        return true;
+    }
+
+    const fieldsToSearch = ["SUMMARY", "DESCRIPTION", "LOCATION", "CATEGORIES", "URL"];
+    if (!fixAlldayDates(aItem)) {
+        return false;
+    }
+
+    for each (var field in fieldsToSearch) {
+        var val = aItem.getProperty(field);
+        if (val && val.toLowerCase().indexOf(searchText) != -1) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function focusSearch() {
