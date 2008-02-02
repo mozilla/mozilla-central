@@ -1,0 +1,3 @@
+http://add.my.yahoo.com/rss?url=
+cmYH
+My Yahoo! Feed Handler
