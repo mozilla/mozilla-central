@@ -39,6 +39,7 @@
 add_makefiles "
 camino/Makefile
 camino/IBPalette/Makefile
+camino/feedhandlers/Makefile
 camino/flashblock/Makefile
 camino/idl/Makefile
 camino/installer/Makefile
