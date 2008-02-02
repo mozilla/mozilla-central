@@ -46,7 +46,7 @@
 #include "nsServiceManagerUtils.h"
 #include "prmem.h"
 #include "rdf.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 
 // From nsDirPrefs
 #define kDefaultPosition 1
@@ -133,11 +133,10 @@ NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
   rv = SetStringValue("description", NS_ConvertUTF16toUTF8(aDirName));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
 
   if (NS_SUCCEEDED(rv))
-    abSession->NotifyItemPropertyChanged(this, "DirName", oldDirName.get(),
+    abManager->NotifyItemPropertyChanged(this, "DirName", oldDirName.get(),
                                          nsString(aDirName).get());
 
   return NS_OK;

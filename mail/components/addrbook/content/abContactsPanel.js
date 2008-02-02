@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const nsIAbListener = Components.interfaces.nsIAbListener;
+
 function GetAbViewListener()
 {
   // the ab panel doesn't care if the total changes, or if the selection changes
@@ -149,15 +151,14 @@ function AbPanelLoad()
 
   LoadPreviouslySelectedAB();
 
-  // add a listener, so we can switch directories if
-  // the current directory is deleted, and change the name if the
-  // selected directory's name is modified
-  var addrbookSession = Components.classes["@mozilla.org/addressbook/services/session;1"].getService().QueryInterface(Components.interfaces.nsIAddrBookSession);
-  // this listener only cares when a directory is removed or modified
-  addrbookSession.addAddressBookListener(
-    gAddressBookPanelAbListener,
-    Components.interfaces.nsIAddrBookSession.directoryRemoved |
-    Components.interfaces.nsIAddrBookSession.changed);
+  // Add a listener, so we can switch directories if the current directory is
+  // deleted, and change the name if the selected directory's name is modified.
+  // This listener only cares when a directory is removed or modified.
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .addAddressBookListener(gAddressBookAbListener,
+                                    nsIAbListener.directoryRemoved |
+                                    nsIAbListener.changed);
 
   parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-close', AbPanelOnComposerClose, true);
   parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-reopen', AbPanelOnComposerReOpen, true);
@@ -166,8 +167,10 @@ function AbPanelLoad()
 
 function AbPanelUnload()
 {
-  var addrbookSession = Components.classes["@mozilla.org/addressbook/services/session;1"].getService().QueryInterface(Components.interfaces.nsIAddrBookSession);
-  addrbookSession.removeAddressBookListener(gAddressBookPanelAbListener);
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .removeAddressBookListener(gAddressBookPanelAbListener);
+
   parent.document.getElementById("msgcomposeWindow").removeEventListener('compose-window-close', AbPanelOnComposerClose, true);
   parent.document.getElementById("msgcomposeWindow").removeEventListener('compose-window-reopen', AbPanelOnComposerReOpen, true);
 

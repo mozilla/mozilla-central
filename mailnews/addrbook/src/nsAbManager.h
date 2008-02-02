@@ -39,9 +39,10 @@
 #define __nsAbManager_h
  
 #include "nsIAbManager.h"
+#include "nsTObserverArray.h"
+#include "nsCOMPtr.h"
 #include "nsICommandLineHandler.h"
 
-class nsILocalFile;
 class nsIAbDirectory;
 class nsIAbLDAPAttributeMap;
 
@@ -65,6 +66,26 @@ private:
   nsresult AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult);
   nsresult AppendProperty(const char *aProperty, const PRUnichar *aValue, nsACString &aResult);
   PRBool IsSafeLDIFString(const PRUnichar *aStr);
+
+  struct abListener {
+    nsCOMPtr<nsIAbListener> mListener;
+    PRUint32 mNotifyFlags;
+
+    abListener(nsIAbListener *aListener, PRUint32 aNotifyFlags)
+      : mListener(aListener), mNotifyFlags(aNotifyFlags) {}
+    abListener(const abListener &aListener)
+      : mListener(aListener.mListener), mNotifyFlags(aListener.mNotifyFlags) {}
+    ~abListener() {}
+
+    int operator==(nsIAbListener* aListener) const {
+      return mListener == aListener;
+    }
+    int operator==(const abListener &aListener) const {
+      return mListener == aListener.mListener;
+    }
+  };
+
+  nsTObserverArray<abListener> mListeners;
 };
 
 #endif

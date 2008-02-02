@@ -50,7 +50,7 @@
 #include "nsMemory.h"
 #include "nsIAddrDatabase.h"
 #include "nsAbBaseCID.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsILocalFile.h"
 #include "nsWeakReference.h"
 #include "nsIAbMDBDirectory.h"
@@ -643,10 +643,9 @@ nsresult DIR_DeleteServerFromList(DIR_Server *server)
   nsresult rv = NS_OK;
   nsCOMPtr<nsILocalFile> dbPath;
 
-  nsCOMPtr<nsIAddrBookSession> abSession = 
-           do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
   if (NS_SUCCEEDED(rv))
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+    rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
   
   if (NS_SUCCEEDED(rv))
   {
@@ -917,10 +916,9 @@ void DIR_SetFileName(char** fileName, const char* defaultName)
 
   *fileName = nsnull;
 
-  nsCOMPtr<nsIAddrBookSession> abSession = 
-           do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
   if (NS_SUCCEEDED(rv))
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+    rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
   if (NS_SUCCEEDED(rv))
   {
     rv = dbPath->AppendNative(nsDependentCString(defaultName));

@@ -46,12 +46,36 @@ typedef unsigned long abListenerNotifyFlagValue;
   * Implement this interface to receive notifications of address book
   * items being added, removed or changed with loaded address books.
   *
-  * Subscribe to events by using nsIAddrBookSession. See nsIAddrBookSession.idl
-  * for details of individual types of events that may be subscribed to.
-  *
+  * Subscribe to events by using nsIAbManager.
   */
-[scriptable, uuid(8c5b1f3d-983a-4854-a0e2-3719dba1a920)]
+[scriptable, uuid(b3ca8745-2dad-4032-ae2f-0b8622f32697)]
 interface nsIAbListener : nsISupports {
+  /**
+   * These flags are used when registering the listener with nsIAbManager to
+   * specify when to receive notifications of address book updates.
+   */
+
+  /**
+   * An address book, mailing list or card is added.
+   */
+  const abListenerNotifyFlagValue itemAdded = 0x1;
+  /**
+   * A mailing list or card is removed from an address book.
+   */
+  const abListenerNotifyFlagValue directoryItemRemoved = 0x2;
+  /**
+   * An address book is removed
+   */
+  const abListenerNotifyFlagValue directoryRemoved = 0x4;
+  /**
+   * An address book, mailing list or card is changed.
+   */
+  const abListenerNotifyFlagValue itemChanged = 0x8;
+  /**
+   * All of the above notifications are to be received.
+   */
+  const abListenerNotifyFlagValue all = 0xFFFFFFFF;
+
   /**
    * Called when an address book item (book, card or list) is added
    *

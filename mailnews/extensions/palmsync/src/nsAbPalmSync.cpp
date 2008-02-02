@@ -39,7 +39,6 @@
 
 #include "nsRDFResource.h"
 #include "nsAbPalmSync.h"
-#include "nsIAddrBookSession.h"
 #include "nsAbBaseCID.h"
 #include "nsMsgI18N.h"
 #include "nsIRDFService.h"
@@ -734,15 +733,15 @@ nsresult nsAbPalmHotSync::OpenABDBForHotSync(PRBool aCreate)
         return NS_ERROR_FILE_INVALID_PATH;
 
     nsresult rv;
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    if(NS_FAILED(rv)) 
-        return rv;
+    nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+    if (NS_FAILED(rv))
+      return rv;
 
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(mABFile));
-    if(NS_FAILED(rv)) 
-        return rv;
+    rv = abManager->GetUserProfileDirectory(getter_AddRefs(mABFile));
+    if (NS_FAILED(rv))
+      return rv;
 
-		mABFile->AppendNative(mFileName);
+    mABFile->AppendNative(mFileName);
 
     nsCOMPtr<nsIAddrDatabase> addrDBFactory = 
              do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
@@ -770,16 +769,17 @@ nsresult nsAbPalmHotSync::KeepCurrentStateAsPrevious()
 
     if(!mPreviousABFile) 
     {
-        nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-        if(NS_FAILED(rv)) 
-            return rv;
-        rv = abSession->GetUserProfileDirectory(getter_AddRefs(mPreviousABFile));
-        if(NS_SUCCEEDED(rv)) 
-        {
-            mPreviousABFile->AppendNative(previousLeafName);
-            if(NS_FAILED(rv))
-                return rv;
-        }
+      nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+      if (NS_FAILED(rv))
+        return rv;
+
+      rv = abManager->GetUserProfileDirectory(getter_AddRefs(mPreviousABFile));
+      if (NS_SUCCEEDED(rv))
+      {
+        mPreviousABFile->AppendNative(previousLeafName);
+        if (NS_FAILED(rv))
+          return rv;
+      }
     }
 
     PRBool bExists=PR_FALSE;

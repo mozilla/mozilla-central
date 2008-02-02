@@ -47,7 +47,7 @@
 #include "nsILocaleService.h"
 #include "prmem.h"
 #include "nsCollationCID.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsAbBaseCID.h"
 #include "nsXPCOM.h"
 #include "nsISupportsPrimitives.h"
@@ -106,10 +106,10 @@ NS_IMETHODIMP nsAbView::Close()
   rv = RemovePrefObservers();
   NS_ENSURE_SUCCESS(rv,rv);
   
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = abSession->RemoveAddressBookListener(this);
+  rv = abManager->RemoveAddressBookListener(this);
   NS_ENSURE_SUCCESS(rv,rv);
 
   PRInt32 i = mCards.Count();
@@ -271,11 +271,11 @@ NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewList
   rv = SortBy(actualSortColumn.get(), sortDirection);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
   NS_ENSURE_SUCCESS(rv,rv);
 
   // this listener cares about all events
-  rv = abSession->AddAddressBookListener(this, nsIAddrBookSession::all);
+  rv = abManager->AddAddressBookListener(this, nsIAbListener::all);
   NS_ENSURE_SUCCESS(rv,rv);
   
   mAbViewListener = abViewListener;
@@ -465,28 +465,16 @@ NS_IMETHODIMP nsAbView::GetCellValue(PRInt32 row, nsITreeColumn* col, nsAString&
 nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
                                 nsAString &_retval)
 {
-  nsresult rv;
-
   // "G" == "GeneratedName", "_P" == "_PhoneticName"
   // else, standard column (like PrimaryEmail and _AimScreenName)
-  if ((colID[0] == PRUnichar('G')) ||
-      (colID[0] == PRUnichar('_') && colID[1] == PRUnichar('P'))) {
-    // XXX todo 
-    // cache the ab session?
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-    
-    if (colID[0] == PRUnichar('G'))
-      rv = card->GenerateName(mGeneratedNameFormat, mABBundle, _retval);
-    else
-      // use LN/FN order for the phonetic name
-      rv = card->GeneratePhoneticName(PR_TRUE, _retval);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-  else {
-    rv = card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(), _retval);
-  }
-  return rv;
+  if (colID[0] == PRUnichar('G'))
+    return card->GenerateName(mGeneratedNameFormat, mABBundle, _retval);
+
+  if (colID[0] == PRUnichar('_') && colID[1] == PRUnichar('P'))
+    // use LN/FN order for the phonetic name
+    return card->GeneratePhoneticName(PR_TRUE, _retval);
+
+  return card->GetCardValue(NS_LossyConvertUTF16toASCII(colID).get(), _retval);
 }
 
 nsresult nsAbView::RefreshTree()

@@ -40,7 +40,7 @@
 #include "nsDirectoryDataSource.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbDirectory.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIAbCard.h"
 #include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
@@ -88,10 +88,10 @@ nsresult nsAbDirectoryDataSource::Cleanup()
   rv = rdf->UnregisterDataSource(this);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = abSession->RemoveAddressBookListener(this);
+  rv = abManager->RemoveAddressBookListener(this);
   NS_ENSURE_SUCCESS(rv,rv);
 
   return NS_OK;
@@ -122,12 +122,11 @@ nsresult
 nsAbDirectoryDataSource::Init()
 {
   nsresult rv;
-  nsCOMPtr<nsIAddrBookSession> abSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // this listener cares about all events
-  rv = abSession->AddAddressBookListener(this, nsIAddrBookSession::all);
+  rv = abManager->AddAddressBookListener(this, nsIAbListener::all);
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsCOMPtr <nsIRDFService> rdf = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);

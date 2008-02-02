@@ -49,7 +49,6 @@
 #include "nsAbBaseCID.h"
 #include "nsNetUtil.h"
 #include "nsStringStream.h"
-#include "nsIAddrBookSession.h"
 #include "nsIAbMDBCard.h"
 #include "nsIAbDirectory.h"
 #include "nsIRDFResource.h"

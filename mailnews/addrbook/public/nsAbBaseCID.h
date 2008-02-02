@@ -147,18 +147,6 @@
 }
 
 //
-// nsAddrBookSession
-//
-#define NS_ADDRBOOKSESSION_CONTRACTID \
-  "@mozilla.org/addressbook/services/session;1"
-
-#define NS_ADDRBOOKSESSION_CID						\
-{ /* C5339442-303F-11d3-9E13-00A0C92B5F0D */		\
-    0xc5339442, 0x303f, 0x11d3,						\
-    {0x9e, 0x13, 0x0, 0xa0, 0xc9, 0x2b, 0x5f, 0xd}	\
-}
-
-//
 // nsAbDirProperty
 //
 #define NS_ABDIRPROPERTY_CONTRACTID \

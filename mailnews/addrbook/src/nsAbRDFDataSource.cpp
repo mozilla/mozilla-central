@@ -40,7 +40,6 @@
 #include "nsAbRDFDataSource.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbDirectory.h"
-#include "nsIAddrBookSession.h"
 #include "nsIAbCard.h"
 
 #include "rdf.h"

@@ -46,7 +46,7 @@
 #include "nsAddrDatabase.h"
 #include "nsIAbMDBCard.h"
 #include "nsIAbListener.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIURL.h"
 #include "nsNetCID.h"
 #include "nsAbDirectoryQuery.h"
@@ -248,10 +248,10 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
 nsresult nsAbMDBDirectory::NotifyItemChanged(nsISupports *item)
 {
   nsresult rv;
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = abSession->NotifyItemPropertyChanged(item, nsnull, nsnull, nsnull);
+  rv = abManager->NotifyItemPropertyChanged(item, nsnull, nsnull, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -262,10 +262,10 @@ nsresult nsAbMDBDirectory::NotifyPropertyChanged(nsIAbDirectory *list, const cha
   nsCOMPtr<nsISupports> supports = do_QueryInterface(list, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = abSession->NotifyItemPropertyChanged(supports, property, oldValue, newValue);
+  rv = abManager->NotifyItemPropertyChanged(supports, property, oldValue, newValue);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -273,18 +273,18 @@ nsresult nsAbMDBDirectory::NotifyPropertyChanged(nsIAbDirectory *list, const cha
 nsresult nsAbMDBDirectory::NotifyItemAdded(nsISupports *item)
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if(NS_SUCCEEDED(rv))
-    abSession->NotifyDirectoryItemAdded(this, item);
+    abManager->NotifyDirectoryItemAdded(this, item);
   return NS_OK;
 }
 
 nsresult nsAbMDBDirectory::NotifyItemDeleted(nsISupports *item)
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if(NS_SUCCEEDED(rv))
-    abSession->NotifyDirectoryItemDeleted(this, item);
+    abManager->NotifyDirectoryItemDeleted(this, item);
 
   return NS_OK;
 }

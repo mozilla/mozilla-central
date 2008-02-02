@@ -46,7 +46,7 @@
 #include "nsCOMArray.h"
 #include "nsEnumeratorUtils.h"
 #include "nsIAbDirectoryQueryProxy.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIMutableArray.h"
@@ -151,8 +151,8 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
       do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv, );
     
-    nsCOMPtr<nsIAddrBookSession> abSession =
-      do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+    nsCOMPtr<nsIAbManager> abManager =
+      do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, );
     
     unsigned int i, count = [inserted count];
@@ -166,14 +166,14 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
         ConvertToGroupResource(rdfService, [inserted objectAtIndex:i],
                                getter_AddRefs(directory));
         
-        rv = osxDirectory->AssertDirectory(abSession, directory);
+        rv = osxDirectory->AssertDirectory(abManager, directory);
         NS_ENSURE_SUCCESS(rv, );
       }
       else {
         nsCOMPtr<nsIAbCard> abCard;
         ConvertToCard(rdfService, card, getter_AddRefs(abCard));
         
-        rv = osxDirectory->AssertCard(abSession, abCard);
+        rv = osxDirectory->AssertCard(abManager, abCard);
         NS_ENSURE_SUCCESS(rv, );
       }
     }
@@ -199,8 +199,8 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
       do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv, );
     
-    nsCOMPtr<nsIAddrBookSession> abSession =
-      do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+    nsCOMPtr<nsIAbManager> abManager =
+      do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, );
     
     unsigned int i, count = [deleted count];
@@ -213,7 +213,7 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
         ConvertToGroupResource(rdfService, [deleted objectAtIndex:i],
                                getter_AddRefs(directory));
         
-        rv = osxDirectory->UnassertDirectory(abSession, directory);
+        rv = osxDirectory->UnassertDirectory(abManager, directory);
         NS_ENSURE_SUCCESS(rv, );
       }
       else {
@@ -221,7 +221,7 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
         ConvertToCard(rdfService, [deleted objectAtIndex:i],
                       getter_AddRefs(abCard));
         
-        rv = osxDirectory->UnassertCard(abSession, abCard);
+        rv = osxDirectory->UnassertCard(abManager, abCard);
         NS_ENSURE_SUCCESS(rv, );
       }
     }
@@ -507,7 +507,7 @@ struct nsEnumeratorData
 {
   NSMutableArray *mCards;
   nsIAbDirectory *mDirectory;
-  nsIAddrBookSession *mSession;
+  nsIAbManager *mSession;
 };
 
 PLDHashOperator
@@ -544,7 +544,7 @@ nsresult
 nsAbOSXDirectory::Update()
 {
   nsresult rv;
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
   if (mIsQueryURI) {
@@ -566,7 +566,7 @@ nsAbOSXDirectory::Update()
   
   NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:cards];
   if (mCardList.IsInitialized()) {
-    nsEnumeratorData data = { mutableArray, this, abSession };
+    nsEnumeratorData data = { mutableArray, this, abManager };
     
     mCardList.EnumerateEntries(Enumerator, &data);
   }
@@ -578,7 +578,7 @@ nsAbOSXDirectory::Update()
     rv = ConvertToCard(gRDFService, card, getter_AddRefs(abCard));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    AssertCard(abSession, abCard);
+    AssertCard(abManager, abCard);
   }
   
   card = (ABRecord*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
@@ -588,7 +588,7 @@ nsAbOSXDirectory::Update()
     AssignToString(stringValue, m_ListDirName);
     nsISupports *supports =
       NS_ISUPPORTS_CAST(nsAbDirectoryRDFResource*, this);
-    abSession->NotifyItemPropertyChanged(supports, "DirName",
+    abManager->NotifyItemPropertyChanged(supports, "DirName",
                                          oldValue.get(), m_ListDirName.get());
   }
   
@@ -617,7 +617,7 @@ nsAbOSXDirectory::Update()
         }
         
         if (j == arrayCount) {
-          UnassertDirectory(abSession, directory);
+          UnassertDirectory(abManager, directory);
         }
       }
     }
@@ -628,7 +628,7 @@ nsAbOSXDirectory::Update()
                                   getter_AddRefs(directory));
       NS_ENSURE_SUCCESS(rv, rv);
       
-      AssertDirectory(abSession, directory);
+      AssertDirectory(abManager, directory);
     }
   }
   
@@ -644,8 +644,8 @@ nsAbOSXDirectory::AssertChildNodes()
   }
   
   nsresult rv;
-  nsCOMPtr<nsIAddrBookSession> abSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager =
+    do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   
   NSArray *groups = [[ABAddressBook sharedAddressBook] groups];
@@ -663,7 +663,7 @@ nsAbOSXDirectory::AssertChildNodes()
                                 getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    rv = AssertDirectory(abSession, directory);
+    rv = AssertDirectory(abManager, directory);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
@@ -671,7 +671,7 @@ nsAbOSXDirectory::AssertChildNodes()
 }
 
 nsresult
-nsAbOSXDirectory::AssertDirectory(nsIAddrBookSession *aSession,
+nsAbOSXDirectory::AssertDirectory(nsIAbManager *aManager,
                                   nsIAbDirectory *aDirectory)
 {
   NS_ASSERTION(!m_AddressList || m_AddressList->IndexOf(aDirectory) < 0,
@@ -686,11 +686,11 @@ nsAbOSXDirectory::AssertDirectory(nsIAddrBookSession *aSession,
   rv = m_AddressList->AppendElement(aDirectory);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  return aSession->NotifyDirectoryItemAdded(this, aDirectory);
+  return aManager->NotifyDirectoryItemAdded(this, aDirectory);
 }
 
 nsresult
-nsAbOSXDirectory::AssertCard(nsIAddrBookSession *aSession,
+nsAbOSXDirectory::AssertCard(nsIAbManager *aManager,
                              nsIAbCard *aCard)
 {
   NS_ASSERTION(!mCardList.IsInitialized() || !mCardList.GetEntry(aCard),
@@ -701,11 +701,11 @@ nsAbOSXDirectory::AssertCard(nsIAddrBookSession *aSession,
   }
   
   mCardList.PutEntry(aCard);
-  return aSession->NotifyDirectoryItemAdded(this, aCard);
+  return aManager->NotifyDirectoryItemAdded(this, aCard);
 }
 
 nsresult
-nsAbOSXDirectory::UnassertDirectory(nsIAddrBookSession *aSession,
+nsAbOSXDirectory::UnassertDirectory(nsIAbManager *aManager,
                                     nsIAbDirectory *aDirectory)
 {
   NS_ASSERTION(m_AddressList->IndexOf(aDirectory) >= 0, "Not found?");
@@ -713,17 +713,17 @@ nsAbOSXDirectory::UnassertDirectory(nsIAddrBookSession *aSession,
   nsresult rv = m_AddressList->RemoveElement(aDirectory);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  return aSession->NotifyDirectoryItemDeleted(this, aDirectory);
+  return aManager->NotifyDirectoryItemDeleted(this, aDirectory);
 }
 
 nsresult
-nsAbOSXDirectory::UnassertCard(nsIAddrBookSession *aSession,
+nsAbOSXDirectory::UnassertCard(nsIAbManager *aManager,
                                nsIAbCard *aCard)
 {
   NS_ASSERTION(mCardList.GetEntry(aCard), "Not found?");
   
   mCardList.RemoveEntry(aCard);
-  return aSession->NotifyDirectoryItemDeleted(this, aCard);
+  return aManager->NotifyDirectoryItemDeleted(this, aCard);
 }
 
 NS_IMETHODIMP

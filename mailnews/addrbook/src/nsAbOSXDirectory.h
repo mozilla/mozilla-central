@@ -48,7 +48,7 @@
 #include "nsIAbDirSearchListener.h"
 #include "nsTHashtable.h"
 
-class nsIAddrBookSession;
+class nsIAbManager;
 class nsIAbBooleanExpression;
 
 #define NS_ABOSXDIRECTORY_URI_PREFIX NS_ABOSXDIRECTORY_PREFIX "://"
@@ -110,13 +110,13 @@ public:
   
   virtual nsresult AssertChildNodes() = 0;
   virtual nsresult Update() = 0;
-  virtual nsresult AssertDirectory(nsIAddrBookSession *aSession,
+  virtual nsresult AssertDirectory(nsIAbManager *aManager,
                                    nsIAbDirectory *aDirectory) = 0;
-  virtual nsresult AssertCard(nsIAddrBookSession *aSession,
+  virtual nsresult AssertCard(nsIAbManager *aManager,
                               nsIAbCard *aCard) = 0;
-  virtual nsresult UnassertDirectory(nsIAddrBookSession *aSession,
+  virtual nsresult UnassertDirectory(nsIAbManager *aManager,
                                      nsIAbDirectory *aDirectory) = 0;
-  virtual nsresult UnassertCard(nsIAddrBookSession *aSession,
+  virtual nsresult UnassertCard(nsIAbManager *aManager,
                                 nsIAbCard *aCard) = 0;
 };
 
@@ -146,13 +146,13 @@ public:
 
   // nsIAbOSXDirectory
   nsresult AssertChildNodes();
-  nsresult AssertDirectory(nsIAddrBookSession *aSession,
+  nsresult AssertDirectory(nsIAbManager *aManager,
                            nsIAbDirectory *aDirectory);
-  nsresult AssertCard(nsIAddrBookSession *aSession,
+  nsresult AssertCard(nsIAbManager *aManager,
                       nsIAbCard *aCard);
-  nsresult UnassertDirectory(nsIAddrBookSession *aSession,
+  nsresult UnassertDirectory(nsIAbManager *aManager,
                              nsIAbDirectory *aDirectory);
-  nsresult UnassertCard(nsIAddrBookSession *aSession,
+  nsresult UnassertCard(nsIAbManager *aManager,
                         nsIAbCard *aCard);
   
   nsresult Update();

@@ -47,7 +47,7 @@
 #include "nsStringGlue.h"
 #include "nsILocalFile.h"
 #include "nsIAddrDatabase.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsAbBaseCID.h"
@@ -794,20 +794,19 @@ nsIAddrDatabase *GetAddressBook( const PRUnichar *name, PRBool makeNew)
   if (NS_FAILED(rv))
     return nsnull;
 
-  nsCOMPtr<nsIAddrBookSession> addrBookSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abMan = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv))
     return nsnull;
 
-  nsIAddrBookSession *abSession = nsnull;
+  nsIAbManager *abManager = nsnull;
   rv = proxyObjectManager->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
-                                             NS_GET_IID(nsIAddrBookSession),
-                                             addrBookSession,
+                                             NS_GET_IID(nsIAbManager),
+                                             abMan,
                                              NS_PROXY_SYNC,
-                                             (void**)&abSession);
+                                             (void**)&abManager);
 
   if (NS_SUCCEEDED(rv))
-    rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+    rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
   if (NS_SUCCEEDED(rv)) {
     // Create a new address book file - we don't care what the file
     // name is, as long as it's unique

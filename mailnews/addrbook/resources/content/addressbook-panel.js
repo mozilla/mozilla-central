@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const nsIAbListener = Components.interfaces.nsIAbListener;
+
 var gMsgCompose = false;
 
 function GetAbViewListener()
@@ -99,15 +101,14 @@ function AbPanelLoad()
 
   LoadPreviouslySelectedAB();
 
-  // add a listener, so we can switch directories if
-  // the current directory is deleted, and change the name if the
-  // selected directory's name is modified
-  var addrbookSession = Components.classes["@mozilla.org/addressbook/services/session;1"].getService().QueryInterface(Components.interfaces.nsIAddrBookSession);
-  // this listener only cares when a directory is removed or modified
-  addrbookSession.addAddressBookListener(
-    gAddressBookPanelAbListener,
-    Components.interfaces.nsIAddrBookSession.directoryRemoved |
-    Components.interfaces.nsIAddrBookSession.changed);
+  // Add a listener, so we can switch directories if the current directory is
+  // deleted, and change the name if the selected directory's name is modified.
+  // This listener only cares when a directory is removed or modified.
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .addAddressBookListener(gAddressBookAbListener,
+                                    nsIAbListener.directoryRemoved |
+                                    nsIAbListener.changed);
 
   gSearchInput = document.getElementById("searchInput");
 
@@ -122,8 +123,9 @@ function AbPanelLoad()
 
 function AbPanelUnload()
 {
-  var addrbookSession = Components.classes["@mozilla.org/addressbook/services/session;1"].getService().QueryInterface(Components.interfaces.nsIAddrBookSession);
-  addrbookSession.removeAddressBookListener(gAddressBookPanelAbListener);
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .removeAddressBookListener(gAddressBookPanelAbListener);
 
   CloseAbView();
 }

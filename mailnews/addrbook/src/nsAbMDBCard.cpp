@@ -37,15 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsAbMDBCard.h"
-#include "nsIRDFService.h"
-#include "nsServiceManagerUtils.h"
-#include "nsRDFCID.h"
-#include "nsStringGlue.h"
-#include "nsCOMPtr.h"
-#include "nsAbBaseCID.h"
-
-#include "nsAddrDatabase.h"
-#include "nsIAddrBookSession.h"
 
 nsAbMDBCard::nsAbMDBCard(void)
   : m_key(0),

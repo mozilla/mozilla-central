@@ -49,8 +49,6 @@ var gProfileDirURL;
 var gMapItURLFormat = gPrefs.getComplexValue("mail.addr_book.mapit_url.format", 
                                               Components.interfaces.nsIPrefLocalizedString).data;
 
-var gAddrbookSession = Components.classes["@mozilla.org/addressbook/services/session;1"].getService().QueryInterface(Components.interfaces.nsIAddrBookSession);
-
 var gIOService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
 var gFileHandler = gIOService.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 

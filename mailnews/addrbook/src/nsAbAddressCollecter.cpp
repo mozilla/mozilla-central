@@ -44,7 +44,6 @@
 #include "nsAbAddressCollecter.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch2.h"
-#include "nsIAddrBookSession.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"

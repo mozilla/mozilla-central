@@ -47,10 +47,9 @@
 #include "nsRDFResource.h"
 #include "nsServiceManagerUtils.h"
 #include "nsILocalFile.h"
-
+#include "nsIAbManager.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsAbMDBDirFactory.h"
-#include "nsIAddrBookSession.h"
 #include "nsIAddrDBListener.h"
 #include "nsIAddrDatabase.h"
 #include "nsEnumeratorUtils.h"
@@ -121,11 +120,11 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   rv = directory->SetDirPrefId(aPrefName);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILocalFile> dbPath;
-  rv = abSession->GetUserProfileDirectory(getter_AddRefs(dbPath));
+  rv = abManager->GetUserProfileDirectory(getter_AddRefs(dbPath));
 
   nsCOMPtr<nsIAddrDatabase> listDatabase;
   if (NS_SUCCEEDED(rv))

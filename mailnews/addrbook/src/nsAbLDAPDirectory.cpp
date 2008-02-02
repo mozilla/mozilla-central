@@ -45,7 +45,7 @@
 #include "nsAbQueryStringToExpression.h"
 
 #include "nsAbBaseCID.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIRDFService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
@@ -314,12 +314,11 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
       StringHead(oldUrl, 5).Equals("ldap:") != newIsNotSecure)
   {
     // They don't so its time to send round an update.
-    nsCOMPtr<nsIAddrBookSession> abSession =
-      do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+    nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // We inherit from nsAbDirProperty, so this static cast should be safe.
-    abSession->NotifyItemPropertyChanged(static_cast<nsAbDirProperty*>(this),
+    abManager->NotifyItemPropertyChanged(static_cast<nsAbDirProperty*>(this),
       "IsSecure",
       (newIsNotSecure ? NS_LITERAL_STRING("true") : NS_LITERAL_STRING("false")).get(),
       (newIsNotSecure ? NS_LITERAL_STRING("false") : NS_LITERAL_STRING("true")).get());
@@ -444,9 +443,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
   }
   // Exit lock
 
-  nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   if(NS_SUCCEEDED(rv))
-    abSession->NotifyDirectoryItemAdded(this, card);
+    abManager->NotifyDirectoryItemAdded(this, card);
 
   return NS_OK;
 }

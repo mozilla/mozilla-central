@@ -47,7 +47,7 @@
 #include "nsMsgI18N.h"
 #include "nsIStringBundle.h"
 #include "nsMsgUtils.h"
-
+#include "nsAppDirectoryServiceDefs.h"
 #include "plstr.h"
 #include "prmem.h"
 #include "nsIRDFResource.h"
@@ -232,6 +232,82 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
   NS_ENSURE_SUCCESS(rv, rv);
 
   return parentDir->DeleteDirectory(directory);
+}
+
+NS_IMETHODIMP nsAbManager::AddAddressBookListener(nsIAbListener *aListener,
+                                                  abListenerNotifyFlagValue aNotifyFlags)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+
+  abListener newListener(aListener, aNotifyFlags);
+  mListeners.AppendElementUnlessExists(newListener);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbManager::RemoveAddressBookListener(nsIAbListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+
+  mListeners.RemoveElement(aListener);
+  return NS_OK;
+}
+
+#define NOTIFY_AB_LISTENERS(propertyflag_, propertyfunc_, params_) \
+  PR_BEGIN_MACRO                                                       \
+  nsTObserverArray<abListener>::ForwardIterator iter(mListeners);      \
+  while (iter.HasMore()) {                                             \
+    const abListener &abL = iter.GetNext();                            \
+    if (abL.mNotifyFlags & nsIAbListener::propertyflag_)               \
+      abL.mListener->propertyfunc_ params_;                            \
+  }                                                                    \
+  PR_END_MACRO
+
+NS_IMETHODIMP nsAbManager::NotifyItemPropertyChanged(nsISupports *aItem,
+                                                     const char *aProperty,
+                                                     const PRUnichar* aOldValue,
+                                                     const PRUnichar* aNewValue)
+{
+  NOTIFY_AB_LISTENERS(itemChanged, OnItemPropertyChanged,
+                      (aItem, aProperty, aOldValue, aNewValue));
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbManager::NotifyDirectoryItemAdded(nsIAbDirectory *aParentDirectory,
+                                                    nsISupports *aItem)
+{
+  NOTIFY_AB_LISTENERS(itemAdded, OnItemAdded, (aParentDirectory, aItem));
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbManager::NotifyDirectoryItemDeleted(nsIAbDirectory *aParentDirectory,
+                                                      nsISupports *aItem)
+{
+  NOTIFY_AB_LISTENERS(directoryItemRemoved, OnItemRemoved,
+                      (aParentDirectory, aItem));
+  return NS_OK;
+}
+  
+NS_IMETHODIMP nsAbManager::NotifyDirectoryDeleted(nsIAbDirectory *aParentDirectory,
+                                                  nsISupports *aDirectory)
+{
+  NOTIFY_AB_LISTENERS(directoryRemoved, OnItemRemoved,
+                      (aParentDirectory, aDirectory));
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsILocalFile **userDir)
+{
+  NS_ENSURE_ARG_POINTER(userDir);
+  *userDir = nsnull;
+
+  nsresult rv;
+  nsCOMPtr<nsIFile> profileDir;
+  nsCAutoString pathBuf;
+
+  rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(profileDir));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return CallQueryInterface(profileDir, userDir);
 }
 
 NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, PRBool *exist)

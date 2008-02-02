@@ -47,7 +47,7 @@
 #include "nsStringGlue.h"
 #include "nsAbDirectoryQuery.h"
 #include "nsIAbBooleanExpression.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsAbQueryStringToExpression.h"
 #include "nsAbUtils.h"
@@ -1073,13 +1073,15 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFinished(PRInt32 aResult,
 
 NS_IMETHODIMP nsAbOutlookDirectory::OnSearchFoundCard(nsIAbCard *aCard) 
 {
-    nsVoidKey newKey (static_cast<void *>(aCard)) ;
-    nsresult retCode = NS_OK ;
+  nsVoidKey newKey(static_cast<void *>(aCard));
     
-    mCardList.Put(&newKey, aCard) ;
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &retCode);
-    if (NS_SUCCEEDED(retCode)) { abSession->NotifyDirectoryItemAdded(this, aCard) ; }
-    return retCode ;
+  mCardList.Put(&newKey, aCard);
+  nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  if (NS_SUCCEEDED(rv))
+    rv = abManager->NotifyDirectoryItemAdded(this, aCard);
+
+  return rv;
 }
 
 nsresult nsAbOutlookDirectory::ExecuteQuery(nsIAbDirectoryQueryArguments *aArguments,
@@ -1251,22 +1253,23 @@ nsresult nsAbOutlookDirectory::GetChildNodes(nsISupportsArray **aNodes)
 
 nsresult nsAbOutlookDirectory::NotifyItemDeletion(nsISupports *aItem) 
 {
-    nsresult retCode = NS_OK ;
-    
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &retCode);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = abSession->NotifyDirectoryItemDeleted(this, aItem) ;
-    return retCode ;
+  nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+
+  if (NS_SUCCEEDED(rv))
+    rv = abManager->NotifyDirectoryItemDeleted(this, aItem);
+
+  return rv;
 }
 
 nsresult nsAbOutlookDirectory::NotifyItemAddition(nsISupports *aItem) 
 {
-    nsresult retCode = NS_OK ;
-    
-    nsCOMPtr<nsIAddrBookSession> abSession = do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &retCode);
-    NS_ENSURE_SUCCESS(retCode, retCode) ;
-    retCode = abSession->NotifyDirectoryItemAdded(this, aItem) ;
-    return retCode ;
+  nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED(rv))
+    rv = abManager->NotifyDirectoryItemAdded(this, aItem);
+
+  return rv;
 }
 
 // This is called from EditMailListToDatabase.

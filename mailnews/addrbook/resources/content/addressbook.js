@@ -39,6 +39,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const nsIAbListener = Components.interfaces.nsIAbListener;
+
 var cvPrefs = 0;
 var gSearchTimer = null;
 var gStatusText = null;
@@ -118,10 +120,9 @@ var gAddressBookAbListener = {
 
 function OnUnloadAddressBook()
 {  
-  var addrbookSession =
-        Components.classes["@mozilla.org/addressbook/services/session;1"]
-                  .getService(Components.interfaces.nsIAddrBookSession);
-  addrbookSession.removeAddressBookListener(gAddressBookAbListener);
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .removeAddressBookListener(gAddressBookAbListener);
 
   RemovePrefObservers();
   CloseAbView();
@@ -193,18 +194,16 @@ function OnLoadAddressBook()
   if (gPrefs.prefIsLocked("ldap_2.disable_button_add"))
     document.getElementById("addLDAP").setAttribute("disabled", "true");
 
-  // add a listener, so we can switch directories if
-  // the current directory is deleted
-  var addrbookSession =
-        Components.classes["@mozilla.org/addressbook/services/session;1"]
-                  .getService(Components.interfaces.nsIAddrBookSession);
-  // this listener cares when a directory (= address book), or a directory item
-  // is/are removed. In the case of directory items, we are only really
-  // interested in mailing list changes and not cards but we have to have both.
-  addrbookSession.addAddressBookListener(
-    gAddressBookAbListener,
-    Components.interfaces.nsIAddrBookSession.directoryRemoved |
-    Components.interfaces.nsIAddrBookSession.directoryItemRemoved);
+  // Add a listener, so we can switch directories if the current directory is
+  // deleted. This listener cares when a directory (= address book), or a
+  // directory item is/are removed. In the case of directory items, we are
+  // only really interested in mailing list changes and not cards but we have
+  // to have both.
+  Components.classes["@mozilla.org/abmanager;1"]
+            .getService(Components.interfaces.nsIAbManager)
+            .addAddressBookListener(gAddressBookAbListener,
+                                    nsIAbListener.directoryRemoved |
+                                    nsIAbListener.directoryItemRemoved);
 
   var dirTree = GetDirTree();
   dirTree.addEventListener("click",DirPaneClick,true);
@@ -330,9 +329,6 @@ function AbPrintCardInternal(doPrintPreview, msgType)
   if (!numSelected)
     return;
 
-  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
-                              .getService(Components.interfaces.nsIAbManager);
-
   var uri = GetSelectedDirectory();
   if (!uri)
     return;
@@ -387,9 +383,6 @@ function CreatePrintCardUrl(card)
 
 function AbPrintAddressBookInternal(doPrintPreview, msgType)
 {
-  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
-                              .getService(Components.interfaces.nsIAbManager);
-
   var uri = GetSelectedDirectory();
   if (!uri)
     return;

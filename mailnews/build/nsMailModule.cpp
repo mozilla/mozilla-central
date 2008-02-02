@@ -134,7 +134,6 @@
 #include "nsAddrDatabase.h"
 #include "nsAbManager.h"
 #include "nsAbContentHandler.h"
-#include "nsAddrBookSession.h"
 #include "nsAbDirProperty.h"
 #include "nsAbAutoCompleteSession.h"
 #include "nsAbAddressCollecter.h"
@@ -376,7 +375,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbBSDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBDirectory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbMDBCard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddrDatabase)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddrBookSession)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAbAutoCompleteSession)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAbAddressCollecter,Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsAddbookUrl)
@@ -935,8 +933,6 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_ABCARDPROPERTY_CONTRACTID, nsAbCardPropertyConstructor },
     { "Address Book Directory Property", NS_ABDIRPROPERTY_CID,
       NS_ABDIRPROPERTY_CONTRACTID, nsAbDirPropertyConstructor },
-    { "Address Book Session", NS_ADDRBOOKSESSION_CID,
-      NS_ADDRBOOKSESSION_CONTRACTID, nsAddrBookSessionConstructor },
     { "Address Book Auto Complete Session", NS_ABAUTOCOMPLETESESSION_CID,
       NS_ABAUTOCOMPLETESESSION_CONTRACTID, nsAbAutoCompleteSessionConstructor },
     { "Address Book Address Collector", NS_ABADDRESSCOLLECTER_CID,

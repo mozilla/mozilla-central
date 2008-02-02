@@ -48,7 +48,7 @@
 #include "nsDirPrefs.h"
 #include "nsAbBaseCID.h"
 #include "nsAddrDatabase.h"
-#include "nsIAddrBookSession.h"
+#include "nsIAbManager.h"
 #include "nsIAbMDBDirectory.h"
 #include "nsServiceManagerUtils.h"
 #include "nsAbDirFactoryService.h"
@@ -98,8 +98,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
   // Enumerate through the directories adding them
   // to the sub directories array
   PRBool hasMore;
-  nsCOMPtr<nsIAddrBookSession> abSession = 
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID, &rv); 
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
 
   while (NS_SUCCEEDED(newDirEnumerator->HasMoreElements(&hasMore)) && hasMore)
   {
@@ -120,8 +119,8 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
     
     // Inform the listener, i.e. the RDF directory data
     // source that a new address book has been added
-    if (aNotify && abSession)
-      abSession->NotifyDirectoryItemAdded(this, childDir);
+    if (aNotify && abManager)
+      abManager->NotifyDirectoryItemAdded(this, childDir);
   }
   
   return NS_OK;
@@ -298,8 +297,7 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
 
   PRUint32 count = getDirectories.directories.Count();
 
-  nsCOMPtr<nsIAddrBookSession> abSession =
-    do_GetService(NS_ADDRBOOKSESSION_CONTRACTID);
+  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID);
 
   for (PRUint32 i = 0; i < count; i++) {
     nsCOMPtr<nsIAbDirectory> d = getDirectories.directories[i];
@@ -307,8 +305,8 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
     mServers.Remove(d);
     rv = mSubDirectories.RemoveObject(d);
 
-    if (abSession)
-      abSession->NotifyDirectoryDeleted(this, d);
+    if (abManager)
+      abManager->NotifyDirectoryDeleted(this, d);
 
     nsCOMPtr<nsIRDFResource> resource(do_QueryInterface (d, &rv));
     const char* uri;

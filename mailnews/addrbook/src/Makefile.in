@@ -76,7 +76,6 @@ REQUIRES	= xpcom \
 
 CPPSRCS		= \
 		nsAbManager.cpp \
-		nsAddrBookSession.cpp \
 		nsAbRDFDataSource.cpp \
 		nsDirectoryDataSource.cpp \
 		nsAbCardProperty.cpp \

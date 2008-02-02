@@ -36,12 +36,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
+#include "nsIAbListener.idl"
 
 interface nsIDOMWindow;
 interface nsIAbDirectory;
 interface nsIAbCard;
 interface nsIAbDirectoryProperties;
 interface nsIRDFDataSource;
+interface nsILocalFile;
 
 /**
  * nsIAbManager is an interface to the main address book mananger
@@ -50,17 +52,15 @@ interface nsIRDFDataSource;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(9d70d398-59cd-49ed-98e2-dcd57379db9e)]
+[scriptable, uuid(39cf5303-73ab-4f28-9ea5-fd38e86893b3)]
 interface nsIAbManager : nsISupports 
 {
   /**
    * Creates a new address book.
    *
    * @param  aDirName   The description of the address book.
-   *
    * @param  aURI       The URI for the address book. This is specific to each
    *                    type of address book.
-   *
    * @param  aType      The type of the address book (see nsDirPrefs.h)
    */
   ACString newAddressBook(in AString aDirName, in ACString aURI,
@@ -79,10 +79,79 @@ interface nsIAbManager : nsISupports
    * location to save the file to and will then save the address book to media.
    *
    * @param  aParentWin Parent Window for the file save dialog to use.
-   *
    * @param  aDirectory The directory to export.
    */
   void exportAddressBook(in nsIDOMWindow aParentWin, in nsIAbDirectory aDirectory);
+
+  /**
+   * Adds a nsIAbListener to receive notifications of address book updates
+   * according to the specified notifyFlags.
+   *
+   * @param  aListener      The listener that is to receive updates.
+   * @param  aNotifyFlags   A bitwise-or of abListenerNotifyFlagValue items
+   *                        specifying which notifications to receive. See
+   *                        nsIAbListener for possible values.
+   */
+  void addAddressBookListener(in nsIAbListener aListener,
+                              in abListenerNotifyFlagValue aNotifyFlags);
+
+  /**
+   * Removes a nsIAbListener from receive notifications of address book
+   * updates.
+   *
+   * @param  aListener     The listener that is to no longer receive updates.
+   */
+  void removeAddressBookListener(in nsIAbListener aListener);
+
+  /**
+   * Call to notify the registered listeners when a property on an item has
+   * changed.
+   *
+   * @param  aItem         The items that has changed (e.g. an nsIAbDirectory)
+   * @param  aProperty     The property that has changed (e.g. DirName)
+   * @param  aOldValue     The old value of the property.
+   * @param  aNewValue     The new value of the property.
+   */
+  void notifyItemPropertyChanged(in nsISupports aItem,
+                                 in string aProperty,
+                                 in wstring aOldValue,
+                                 in wstring aNewValue);
+
+  /**
+   * Call to notify the registered listeners when a directory item is added.
+   *
+   * @param  aParentDirectory  The parent directory of the item that has been
+   *                           added.
+   * @param  aItem             The item that has been added.
+   */
+  void notifyDirectoryItemAdded(in nsIAbDirectory aParentDirectory,
+                                in nsISupports aItem);
+
+  /**
+   * Call to notify the registered listeners when a directory item is removed.
+   *
+   * @param  aParentDirectory  The parent directory of the item that has been
+   *                           removed.
+   * @param  aItem             The item that has been removed.
+   */
+  void notifyDirectoryItemDeleted(in nsIAbDirectory aParentDirectory,
+                                  in nsISupports aItem);
+  
+  /**
+   * Call to notify the registered listeners when a directory is removed.
+   *
+   * @param  aParentDirectory  The parent directory of the directory that has
+   *                           been removed.
+   * @param  aDirectory        The directory that has been removed.
+   */
+  void notifyDirectoryDeleted(in nsIAbDirectory aParentDirectory,
+                              in nsISupports aDirectory);
+
+  /**
+   * Returns the user profile directory. NOTE: this should not be used
+   * as it may go away soon.
+   */
+  readonly attribute nsILocalFile userProfileDirectory;
 
   /**
    * Finds out if the mailing list name exists in any *mork/MDB* based
@@ -103,4 +172,3 @@ interface nsIAbManager : nsISupports
    */
   nsIAbCard escapedVCardToAbCard(in string escapedVCardStr);
 };
-
