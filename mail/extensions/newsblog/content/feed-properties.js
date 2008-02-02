@@ -47,8 +47,8 @@ function onLoad()
   // root the location picker to the news & blogs server
   document.getElementById('selectFolder').setAttribute('ref', window.arguments[0].serverURI);
 
+  document.getElementById('selectFolder').selectedIndex = -1;
   SetFolderPicker(window.arguments[0].folderURI ? window.arguments[0].folderURI : window.arguments[0].serverURI, 'selectFolder');
-  document.getElementById('selectFolder').setInitialSelection();
 
   rssAccountMenuItem.label = window.arguments[0].serverPrettyName;
   rssAccountMenuItem.value = window.arguments[0].serverURI;
@@ -83,8 +83,7 @@ function onOk()
 
 function PickedMsgFolder(selection,pickerID)
 {
-  var selectedUri = selection.getAttribute('id');
-  SetFolderPicker(selectedUri,pickerID);
+  SetFolderPicker(selection.value, pickerID);
 }   
 
 function SetFolderPicker(uri,pickerID)

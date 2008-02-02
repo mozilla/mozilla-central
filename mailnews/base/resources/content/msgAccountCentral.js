@@ -285,9 +285,9 @@ function Subscribe()
 {
     var server = GetSelectedServer();
     if (server && server.type == 'rss')
-        window.parent.openSubscriptionsDialog(server);
+        window.parent.openSubscriptionsDialog(server.rootFolder);
     else
-    window.parent.MsgSubscribe();
+        window.parent.MsgSubscribe();
 } 
 
 // Open junk mail settings dialog

@@ -6,7 +6,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript">
-  function openSubscriptionsDialog(aRSSServer) {
+  function openSubscriptionsDialog(aFolder) {
 
     //check for an existing subscriptions window and focus it.
     const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
@@ -15,17 +15,21 @@
     var lastSubscriptionWindow = kWindowMediator.getMostRecentWindow("Mail:News-BlogSubscriptions");
   
     if (lastSubscriptionWindow)
+    {
+      lastSubscriptionWindow.gFeedSubscriptionsWindow.selectFolder(aFolder);
       lastSubscriptionWindow.focus();
+    }
     else 
       window.openDialog("chrome://messenger-newsblog/content/feed-subscriptions.xul", "",
-                        "centerscreen,chrome,dialog=no,resizable", { server: aRSSServer});
+                        "centerscreen,chrome,dialog=no,resizable",
+                        { server: aFolder.server, folder: aFolder});
   }
 
   function openSubscriptionsDialogFromFolderPane()
   {
     // get the incoming server for the seleted folder
     var selectedFolders = GetSelectedMsgFolders();
-    openSubscriptionsDialog(selectedFolders[0].server);
+    openSubscriptionsDialog(selectedFolders[0]);
   }
 
   // Special case attempts to reply/forward/edit as new RSS arrticles

@@ -63,8 +63,9 @@ var gFeedSubscriptionsWindow = {
    
     this.loadSubscriptions();
     this.mTree.treeBoxObject.view = this.mView;
-    if (this.mView.rowCount > 0) 
-      this.mTree.view.selection.select(0);
+
+    if (window.arguments[0].folder)
+      this.selectFolder(window.arguments[0].folder);
   },
   
   uninit: function ()
@@ -97,6 +98,9 @@ var gFeedSubscriptionsWindow = {
     
     getItemAtIndex: function (aIndex)
     {
+      if (aIndex < 0 ||
+          aIndex >= gFeedSubscriptionsWindow.mFeedContainers.length)
+        return null;
       return gFeedSubscriptionsWindow.mFeedContainers[aIndex];
     },
 
@@ -453,7 +457,61 @@ var gFeedSubscriptionsWindow = {
 
     gFeedSubscriptionsWindow.mTree.focus();
   },
+
+  selectFolder: function(aFolder)
+  {
+    if (aFolder.isServer)
+      return;
+
+    var folderURI = aFolder.QueryInterface(Components.interfaces.nsIRDFResource)
+                           .Value;
+
+    function containsFolder(aItem)
+    {
+      var items = aItem ? aItem.children : this.mFeedContainers;
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].url == folderURI ||
+            item.container && containsFolder(items[i]))
+          return true;
+      }
+      return false;
+    }
+
+    for (var index = 0; index < this.mView.rowCount; index++)
+    {
+      var item = this.mView.getItemAtIndex(index);
+      if (item.url == folderURI || containsFolder(item))
+      {
+        if (!item.open)
+          this.mView.toggleOpenState(index);
+        if (item.url == folderURI) {
+          // we found the actual folder - not an ancestor
+          this.mTree.view.selection.select(index);
+          this.mTree.boxObject.ensureRowIsVisible(index);
+          break;
+        }
+      }
+    }
+  },
   
+  selectFeed: function(aFeed)
+  {
+    this.selectFolder(aFeed.folder);
+
+    var seln = this.mTree.view.selection;
+    var item = this.mView.getItemAtIndex(seln.currentIndex);
+    if (item) {
+      for (var i = 0; i < item.children.length; i++) {
+        if (item.children[i].url == aFeed.url) {
+          var index = seln.currentIndex + i + 1;
+          this.mTree.view.selection.select(index);
+          this.mTree.boxObject.ensureRowIsVisible(index);
+          break;
+        }
+      }
+    }
+  },
+
   updateFeedData: function (aItem)
   {
     var ids = ['nameLabel', 'nameValue', 'locationLabel', 'locationValue'];
@@ -584,10 +642,22 @@ var gFeedSubscriptionsWindow = {
     var feedProperties = { feedName: "", feedLocation: aFeedLocation, 
                            serverURI: this.mRSSServer.serverURI, 
                            serverPrettyName: this.mRSSServer.prettyName,  
-                           folderURI: aRootFolderURI, 
                            quickMode: this.mRSSServer.getBoolAttribute('quickMode'), 
                            newFeed: true,
                            result: userAddedFeed};
+
+    // unless another folder is specified, default to currently selected
+    if (aRootFolderURI) {
+      feedProperties.folderURI = aRootFolderURI;
+    } else {
+      var index = this.mTree.view.selection.currentIndex;
+      var item = this.mView.getItemAtIndex(index);
+      if (item) {
+        if (!item.container)
+          item = this.mView.getItemAtIndex(this.mView.getParentIndex(index));
+        feedProperties.folderURI = item.url;
+      }
+    }
 
     feedProperties = openFeedEditor(feedProperties);
 
@@ -785,6 +855,8 @@ var gFeedSubscriptionsWindow = {
 
         // now add the feed to our view
         refreshSubscriptionView();
+
+        gFeedSubscriptionsWindow.selectFeed(feed);
       } 
       else if (aErrorCode == kNewsBlogInvalidFeed) //  the feed was bad...
         window.alert(gFeedSubscriptionsWindow.mBundle.getFormattedString('newsblog-invalidFeed', [feed.url]));
