@@ -164,9 +164,9 @@ function onCancel()
 
 function onFilterServerClick(selection)
 {
-    var itemURI = selection.getAttribute('id');
+    var itemURI = selection.getAttribute('itemUri');
 
-    if (!itemURI || itemURI == gCurrentServerURI)
+    if (itemURI == gCurrentServerURI)
       return;
 
     // Save the current filters to disk before switching because
