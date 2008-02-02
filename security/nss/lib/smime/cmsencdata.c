@@ -37,7 +37,7 @@
 /*
  * CMS encryptedData methods.
  *
- * $Id: cmsencdata.c,v 1.9 2008-02-01 00:23:58 rrelyea%redhat.com Exp $
+ * $Id: cmsencdata.c,v 1.10 2008-02-02 02:07:03 rrelyea%redhat.com Exp $
  */
 
 #include "cmslocal.h"
@@ -61,8 +61,7 @@
  * (Retrieve specific errors via PORT_GetError()/XP_GetError().)
  */
 NSSCMSEncryptedData *
-NSS_CMSEncryptedData_Create(NSSCMSMessage *cmsg, SECOidTag algorithm, 
-			    int keysize)
+NSS_CMSEncryptedData_Create(NSSCMSMessage *cmsg, SECOidTag algorithm, int keysize)
 {
     void *mark;
     NSSCMSEncryptedData *encd;
@@ -74,7 +73,7 @@ NSS_CMSEncryptedData_Create(NSSCMSMessage *cmsg, SECOidTag algorithm,
 
     mark = PORT_ArenaMark(poolp);
 
-    encd = PORT_ArenaZNew(poolp, NSSCMSEncryptedData);
+    encd = (NSSCMSEncryptedData *)PORT_ArenaZAlloc(poolp, sizeof(NSSCMSEncryptedData));
     if (encd == NULL)
 	goto loser;
 
@@ -82,25 +81,23 @@ NSS_CMSEncryptedData_Create(NSSCMSMessage *cmsg, SECOidTag algorithm,
 
     /* version is set in NSS_CMSEncryptedData_Encode_BeforeStart() */
 
-    if (!SEC_PKCS5IsAlgorithmPBEAlgTag(algorithm)) {
-	rv = NSS_CMSContentInfo_SetContentEncAlg(poolp, &(encd->contentInfo), 
-						 algorithm, NULL, keysize);
-    } else {
-	/* Assume password-based-encryption.  
-	 * Note: we can't generate pkcs5v2 from this interface.
-	 * PK11_CreateBPEAlgorithmID generates pkcs5v2 by accepting
-	 * non-PBE oids and assuming that they are pkcs5v2 oids, but
-	 * NSS_CMSEncryptedData_Create accepts non-PBE oids as regular
-	 * CMS encrypted data, so we can't tell NSS_CMS_EncryptedData_Create
-	 * to create pkcs5v2 PBEs */
+    switch (algorithm) {
+    /* XXX hmmm... hardcoded algorithms? */
+    case SEC_OID_RC2_CBC:
+    case SEC_OID_DES_EDE3_CBC:
+    case SEC_OID_DES_CBC:
+	rv = NSS_CMSContentInfo_SetContentEncAlg(poolp, &(encd->contentInfo), algorithm, NULL, keysize);
+	break;
+    default:
+	/* Assume password-based-encryption.  At least, try that. */
 	pbe_algid = PK11_CreatePBEAlgorithmID(algorithm, 1, NULL);
 	if (pbe_algid == NULL) {
 	    rv = SECFailure;
-	} else {
-	    rv = NSS_CMSContentInfo_SetContentEncAlgID(poolp, 
-				&(encd->contentInfo), pbe_algid, keysize);
-	    SECOID_DestroyAlgorithmID (pbe_algid, PR_TRUE);
+	    break;
 	}
+	rv = NSS_CMSContentInfo_SetContentEncAlgID(poolp, &(encd->contentInfo), pbe_algid, keysize);
+	SECOID_DestroyAlgorithmID (pbe_algid, PR_TRUE);
+	break;
     }
     if (rv != SECSuccess)
 	goto loser;

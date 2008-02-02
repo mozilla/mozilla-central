@@ -99,7 +99,6 @@ struct SEC_PKCS12DecoderItemStr {
     SECOidTag type;
     PRBool hasKey;
     SECItem *friendlyName;      /* UTF-8 string */
-    SECAlgorithmID *shroudAlg;
 };
     
 

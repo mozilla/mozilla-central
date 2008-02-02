@@ -1720,8 +1720,8 @@ sec_pkcs12_encoder_start_context(SEC_PKCS12ExportContext *p12exp)
 	    SECItem *salt = sec_pkcs12_generate_salt();
 	    PK11SymKey *symKey;
 	    SECItem *params;
-	    CK_MECHANISM_TYPE integrityMechType;
-	    CK_MECHANISM_TYPE hmacMechType;
+	    CK_MECHANISM_TYPE integrityMech;
+	    CK_MECHANISM_TYPE hmacMech;
 
 	    /* zero out macData and set values */
 	    PORT_Memset(&p12enc->mac, 0, sizeof(sec_PKCS12MacData));
@@ -1742,41 +1742,35 @@ sec_pkcs12_encoder_start_context(SEC_PKCS12ExportContext *p12exp)
 			PR_TRUE, PR_TRUE)) {
 		goto loser;
 	    }
-	    /*
-	     * This code only works with PKCS #12 Mac using PKCS #5 v1
-	     * PBA keygens. PKCS #5 v2 support will require a change to
-	     * the PKCS #12 spec.
-	     */
+
 	    params = PK11_CreatePBEParams(salt, &pwd, 1);
 	    SECITEM_ZfreeItem(salt, PR_TRUE);
 	    SECITEM_ZfreeItem(&pwd, PR_FALSE);
 
-	    /* get the PBA Mechanism to generate the key */
 	    switch (p12exp->integrityInfo.pwdInfo.algorithm) {
 	    case SEC_OID_SHA1:
-		integrityMechType = CKM_PBA_SHA1_WITH_SHA1_HMAC; break;
+		integrityMech = CKM_NETSCAPE_PBE_SHA1_HMAC_KEY_GEN; break;
 	    case SEC_OID_MD5:
-		integrityMechType = CKM_NETSCAPE_PBE_MD5_HMAC_KEY_GEN;  break;
+		integrityMech = CKM_NETSCAPE_PBE_MD5_HMAC_KEY_GEN;  break;
 	    case SEC_OID_MD2:
-		integrityMechType = CKM_NETSCAPE_PBE_MD2_HMAC_KEY_GEN;  break;
+		integrityMech = CKM_NETSCAPE_PBE_MD2_HMAC_KEY_GEN;  break;
 	    default:
 		goto loser;
 	    }
 
-	    /* generate the key */
-	    symKey = PK11_KeyGen(NULL, integrityMechType, params, 20, NULL);
+	    symKey = PK11_KeyGen(NULL, integrityMech, params, 20, NULL);
 	    PK11_DestroyPBEParams(params);
 	    if(!symKey) {
 		goto loser;
 	    }
 
-	    /* initialize HMAC */
-	    /* Get the HMAC mechanism from the hash OID */
-	    hmacMechType=  sec_pkcs12_algtag_to_mech( 
+	    /* initialize hmac */
+	    /* XXX NBB, why is this mech different than the one above? */
+	    hmacMech =  sec_pkcs12_algtag_to_mech( 
 	                              p12exp->integrityInfo.pwdInfo.algorithm);
 
-	    p12enc->hmacCx = PK11_CreateContextBySymKey( hmacMechType,
-						 CKA_SIGN, symKey, &ignore);
+	    p12enc->hmacCx = PK11_CreateContextBySymKey( hmacMech, CKA_SIGN, 
+	                                                 symKey, &ignore);
 
 	    PK11_FreeSymKey(symKey);
 	    if(!p12enc->hmacCx) {

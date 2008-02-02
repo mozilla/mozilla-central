@@ -3076,15 +3076,11 @@ SEC_PKCS12DecoderIterateNext(SEC_PKCS12DecoderContext *p12dcx,
     if (p12dcx->decitem.type != 0 && p12dcx->decitem.der != NULL) {
         SECITEM_FreeItem(p12dcx->decitem.der, PR_TRUE);
     }
-    if (p12dcx->decitem.shroudAlg != NULL) {
-        SECOID_DestroyAlgorithmID(p12dcx->decitem.shroudAlg, PR_TRUE);
-    }
     if (p12dcx->decitem.friendlyName != NULL) {
         SECITEM_FreeItem(p12dcx->decitem.friendlyName, PR_TRUE);
     }
     p12dcx->decitem.type = 0;
     p12dcx->decitem.der = NULL;
-    p12dcx->decitem.shroudAlg = NULL;
     p12dcx->decitem.friendlyName = NULL;
     p12dcx->decitem.hasKey = PR_FALSE;
     *ipp = NULL;
@@ -3105,13 +3101,8 @@ SEC_PKCS12DecoderIterateNext(SEC_PKCS12DecoderContext *p12dcx,
                 p12dcx->decitem.friendlyName = sec_pkcs12_get_friendlyName(bag);
                 p12dcx->decitem.hasKey = sec_pkcs12_bagHasKey(p12dcx, bag);
                 break;
-            case SEC_OID_PKCS12_V1_PKCS8_SHROUDED_KEY_BAG_ID:
-                p12dcx->decitem.shroudAlg = PORT_ZNew(SECAlgorithmID);
-		if (p12dcx->decitem.shroudAlg) {
-		    SECOID_CopyAlgorithmID(NULL, p12dcx->decitem.shroudAlg,
-			&bag->safeBagContent.pkcs8ShroudedKeyBag->algorithm);
-		}
             case SEC_OID_PKCS12_V1_KEY_BAG_ID:
+            case SEC_OID_PKCS12_V1_PKCS8_SHROUDED_KEY_BAG_ID:
                 p12dcx->decitem.friendlyName = sec_pkcs12_get_friendlyName(bag);
                 break;
             default:
