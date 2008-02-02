@@ -59,6 +59,7 @@ components/bookmarks.xpt
 components/chatzilla-service.js
 components/nsCloseAllWindows.js
 components/nsKillAll.js
+components/nsScriptableIO.js
 components/search.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
