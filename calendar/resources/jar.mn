@@ -4,7 +4,6 @@ calendar.jar:
 % content calendar %content/calendar/
     content/calendar/attachFile.js (content/attachFile.js)
 *   content/calendar/calendar.js (content/calendar.js)
-    content/calendar/calendar-dnd-listener.js (/calendar/base/content/calendar-dnd-listener.js)
     content/calendar/calendarWindow.js (content/calendarWindow.js)
     content/calendar/calendarCreation.xul (content/calendarCreation.xul)
     content/calendar/calendarCreation.js (content/calendarCreation.js)
@@ -21,6 +20,7 @@ calendar.jar:
     content/calendar/publishDialog.js  (content/publishDialog.js)    
     content/calendar/publishDialog.xul  (content/publishDialog.xul)
     content/calendar/mouseoverPreviews.js (content/mouseoverPreviews.js)
+    content/calendar/sound.wav  (content/sound.wav)
     content/calendar/converters/date-time.xsl (content/converters/date-time.xsl)
     content/calendar/converters/ecsJune.xsl (content/converters/ecsJune.xsl)
     content/calendar/converters/sortEvents.xsl (content/converters/sortEvents.xsl)

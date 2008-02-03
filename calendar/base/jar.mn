@@ -22,6 +22,7 @@ calendar.jar:
 # This ^^^ isn't currently used by Lightning, but it's here for completeness
     content/calendar/calendar-decorated-month-view.xml  (content/calendar-decorated-month-view.xml)
     content/calendar/calendar-dialog-utils.js    (content/calendar-dialog-utils.js)
+    content/calendar/calendar-dnd-listener.js    (content/calendar-dnd-listener.js)
     content/calendar/calendar-event-dialog.css   (content/calendar-event-dialog.css)
     content/calendar/calendar-event-dialog.js    (content/calendar-event-dialog.js)
     content/calendar/calendar-event-dialog.xul   (content/calendar-event-dialog.xul)
@@ -73,7 +74,6 @@ calendar.jar:
     content/calendar/preferences/timezones.xul   (content/preferences/timezones.xul)
     content/calendar/preferences/views.js        (content/preferences/views.js)
     content/calendar/preferences/views.xul       (content/preferences/views.xul)
-    content/calendar/sound.wav                   (/calendar/resources/content/sound.wav)
     content/calendar/sun-calendar-event-dialog.css  (/calendar/prototypes/wcap/sun-calendar-event-dialog.css)
 *   content/calendar/sun-calendar-event-dialog.js  (/calendar/prototypes/wcap/sun-calendar-event-dialog.js)
     content/calendar/sun-calendar-event-dialog.xul  (/calendar/prototypes/wcap/sun-calendar-event-dialog.xul)
