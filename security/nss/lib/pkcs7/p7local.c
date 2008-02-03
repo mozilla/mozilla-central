@@ -40,7 +40,7 @@
  * encoding/creation side *and* the decoding/decryption side.  Anything
  * else should be static routines in the appropriate file.
  *
- * $Id: p7local.c,v 1.11 2008-02-02 02:07:02 rrelyea%redhat.com Exp $
+ * $Id: p7local.c,v 1.12 2008-02-03 06:08:48 nelson%bolyard.com Exp $
  */
 
 #include "p7local.h"
@@ -103,7 +103,7 @@ sec_PKCS7CreateDecryptObject (PK11SymKey *key, SECAlgorithmID *algid)
     sec_PKCS7CipherObject *result;
     SECOidTag algtag;
     void *ciphercx;
-    CK_MECHANISM_TYPE mechanism;
+    CK_MECHANISM_TYPE cryptoMechType;
     SECItem *param;
     PK11SlotInfo *slot;
 
@@ -116,8 +116,7 @@ sec_PKCS7CreateDecryptObject (PK11SymKey *key, SECAlgorithmID *algid)
     algtag = SECOID_GetAlgorithmTag (algid);
 
     if (SEC_PKCS5IsAlgorithmPBEAlg(algid)) {
-	CK_MECHANISM pbeMech, cryptoMech;
-	SECItem *pbeParams, *pwitem;
+	SECItem *pwitem;
 
 	pwitem = (SECItem *)PK11_GetSymKeyUserData(key);
 	if (!pwitem) {
@@ -125,33 +124,13 @@ sec_PKCS7CreateDecryptObject (PK11SymKey *key, SECAlgorithmID *algid)
 	    return NULL;
 	}
 
-	pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-	pbeParams = PK11_ParamFromAlgid(algid);
-	if (!pbeParams) {
+	cryptoMechType = PK11_GetPBECryptoMechanism(algid, &param, pwitem);
+	if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	    PORT_Free(result);
 	    return NULL;
 	}
-
-	pbeMech.pParameter = pbeParams->data;
-	pbeMech.ulParameterLen = pbeParams->len;
-	if (PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, pwitem,
-						  PR_FALSE) != CKR_OK) { 
-	    PORT_Free(result);
-	    SECITEM_ZfreeItem(pbeParams, PR_TRUE);
-	    return NULL;
-	}
-	SECITEM_ZfreeItem(pbeParams, PR_TRUE);
-
-	param = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-	if(!param) {
-	     PORT_Free(result);
-	     return NULL;
-	}
-	param->data = (unsigned char *)cryptoMech.pParameter;
-	param->len = cryptoMech.ulParameterLen;
-	mechanism = cryptoMech.mechanism;
     } else {
-	mechanism = PK11_AlgtagToMechanism(algtag);
+	cryptoMechType = PK11_AlgtagToMechanism(algtag);
 	param = PK11_ParamFromAlgid(algid);
 	if (param == NULL) {
 	    PORT_Free(result);
@@ -159,11 +138,12 @@ sec_PKCS7CreateDecryptObject (PK11SymKey *key, SECAlgorithmID *algid)
 	}
     }
 
-    result->pad_size = PK11_GetBlockSize(mechanism,param);
+    result->pad_size = PK11_GetBlockSize(cryptoMechType, param);
     slot = PK11_GetSlotFromKey(key);
     result->block_size = PK11_IsHW(slot) ? BLOCK_SIZE : result->pad_size;
     PK11_FreeSlot(slot);
-    ciphercx = PK11_CreateContextBySymKey(mechanism, CKA_DECRYPT, key, param);
+    ciphercx = PK11_CreateContextBySymKey(cryptoMechType, CKA_DECRYPT, 
+					  key, param);
     SECITEM_FreeItem(param,PR_TRUE);
     if (ciphercx == NULL) {
 	PORT_Free (result);
@@ -200,7 +180,7 @@ sec_PKCS7CreateEncryptObject (PRArenaPool *poolp, PK11SymKey *key,
     void *ciphercx;
     SECItem *param;
     SECStatus rv;
-    CK_MECHANISM_TYPE mechanism;
+    CK_MECHANISM_TYPE cryptoMechType;
     PRBool needToEncodeAlgid = PR_FALSE;
     PK11SlotInfo *slot;
 
@@ -211,11 +191,7 @@ sec_PKCS7CreateEncryptObject (PRArenaPool *poolp, PK11SymKey *key,
 
     ciphercx = NULL;
     if (SEC_PKCS5IsAlgorithmPBEAlg(algid)) {
-	CK_MECHANISM pbeMech, cryptoMech;
-	SECItem *pbeParams, *pwitem;
-
-	PORT_Memset(&pbeMech, 0, sizeof(CK_MECHANISM));
-	PORT_Memset(&cryptoMech, 0, sizeof(CK_MECHANISM));
+	SECItem *pwitem;
 
 	pwitem = (SECItem *)PK11_GetSymKeyUserData(key);
 	if (!pwitem) {
@@ -223,34 +199,14 @@ sec_PKCS7CreateEncryptObject (PRArenaPool *poolp, PK11SymKey *key,
 	    return NULL;
 	}
 
-	pbeMech.mechanism = PK11_AlgtagToMechanism(algtag);
-	pbeParams = PK11_ParamFromAlgid(algid);
-	if(!pbeParams) {
+	cryptoMechType = PK11_GetPBECryptoMechanism(algid, &param, pwitem);
+	if (cryptoMechType == CKM_INVALID_MECHANISM) {
 	    PORT_Free(result);
 	    return NULL;
 	}
-
-	pbeMech.pParameter = pbeParams->data;
-	pbeMech.ulParameterLen = pbeParams->len;
-	if(PK11_MapPBEMechanismToCryptoMechanism(&pbeMech, &cryptoMech, pwitem,
-							 PR_FALSE) != CKR_OK) {
-	    PORT_Free(result);
-	    SECITEM_ZfreeItem(pbeParams, PR_TRUE);
-	    return NULL;
-	}
-	SECITEM_ZfreeItem(pbeParams, PR_TRUE);
-
-	param = (SECItem *)PORT_ZAlloc(sizeof(SECItem));
-	if(!param) {
-	     PORT_Free(result);
-	     return NULL;
-	}
-	param->data = (unsigned char *)cryptoMech.pParameter;
-	param->len = cryptoMech.ulParameterLen;
-	mechanism = cryptoMech.mechanism;
     } else {
-	mechanism = PK11_AlgtagToMechanism(algtag);
-	param = PK11_GenerateNewParam(mechanism,key);
+	cryptoMechType = PK11_AlgtagToMechanism(algtag);
+	param = PK11_GenerateNewParam(cryptoMechType, key);
 	if (param == NULL) {
 	    PORT_Free(result);
 	    return NULL;
@@ -258,11 +214,11 @@ sec_PKCS7CreateEncryptObject (PRArenaPool *poolp, PK11SymKey *key,
 	needToEncodeAlgid = PR_TRUE;
     }
 
-    result->pad_size = PK11_GetBlockSize(mechanism,param);
+    result->pad_size = PK11_GetBlockSize(cryptoMechType,param);
     slot = PK11_GetSlotFromKey(key);
     result->block_size = PK11_IsHW(slot) ? BLOCK_SIZE : result->pad_size;
     PK11_FreeSlot(slot);
-    ciphercx = PK11_CreateContextBySymKey(mechanism, CKA_ENCRYPT, 
+    ciphercx = PK11_CreateContextBySymKey(cryptoMechType, CKA_ENCRYPT, 
     					  key, param);
     if (ciphercx == NULL) {
 	PORT_Free (result);

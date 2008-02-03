@@ -37,7 +37,7 @@
 /*
  * PKCS7 creation.
  *
- * $Id: p7create.c,v 1.8 2008-02-02 02:07:02 rrelyea%redhat.com Exp $
+ * $Id: p7create.c,v 1.9 2008-02-03 06:08:48 nelson%bolyard.com Exp $
  */
 
 #include "p7local.h"
@@ -50,6 +50,7 @@
 #include "prtime.h"
 #include "secerr.h"
 #include "secder.h"
+#include "secpkcs5.h"
 
 static SECStatus
 sec_pkcs7_init_content_info (SEC_PKCS7ContentInfo *cinfo, PRArenaPool *poolp,
@@ -1281,27 +1282,24 @@ SEC_PKCS7CreateEncryptedData (SECOidTag algorithm, int keysize,
     enc_data = cinfo->content.encryptedData;
     algid = &(enc_data->encContentInfo.contentEncAlg);
 
-    switch (algorithm) {
-      case SEC_OID_RC2_CBC:
-      case SEC_OID_DES_EDE3_CBC:
-      case SEC_OID_DES_CBC:
+    if (!SEC_PKCS5IsAlgorithmPBEAlgTag(algorithm)) {
 	rv = SECOID_SetAlgorithmID (cinfo->poolp, algid, algorithm, NULL);
-	break;
-      default:
-	{
-	    /*
-	     * Assume password-based-encryption.  At least, try that.
-	     */
-	    SECAlgorithmID *pbe_algid;
-	    pbe_algid = PK11_CreatePBEAlgorithmID (algorithm, 1, NULL);
-	    if (pbe_algid == NULL) {
-		rv = SECFailure;
-	    } else {
-		rv = SECOID_CopyAlgorithmID (cinfo->poolp, algid, pbe_algid);
-		SECOID_DestroyAlgorithmID (pbe_algid, PR_TRUE);
-	    }
+    } else {
+        /* Assume password-based-encryption.  
+         * Note: we can't generate pkcs5v2 from this interface.
+         * PK11_CreateBPEAlgorithmID generates pkcs5v2 by accepting
+         * non-PBE oids and assuming that they are pkcs5v2 oids, but
+         * NSS_CMSEncryptedData_Create accepts non-PBE oids as regular
+         * CMS encrypted data, so we can't tell SEC_PKCS7CreateEncryptedtedData
+         * to create pkcs5v2 PBEs */
+	SECAlgorithmID *pbe_algid;
+	pbe_algid = PK11_CreatePBEAlgorithmID (algorithm, 1, NULL);
+	if (pbe_algid == NULL) {
+	    rv = SECFailure;
+	} else {
+	    rv = SECOID_CopyAlgorithmID (cinfo->poolp, algid, pbe_algid);
+	    SECOID_DestroyAlgorithmID (pbe_algid, PR_TRUE);
 	}
-	break;
     }
 
     if (rv != SECSuccess) {
