@@ -195,6 +195,10 @@ embed[type="application/x-shockwave-flash"][src*="harvest.adgardener.com"],
 embed[type="application/x-shockwave-flash"][src="gcirm.dmp.gcion.com"],
 embed[type="application/x-shockwave-flash"][src^="http://richmedia"][src*=".yimg.com"],
 embed[type="application/x-shockwave-flash"][src*="cstatic.weborama.fr/weborama/adperf/"],
+embed[type="application/x-shockwave-flash"][src*="adtech.panthercustomer.com"],
+embed[type="application/x-shockwave-flash"][src*="hstus.tradedoubler.com"],
+embed[type="application/x-shockwave-flash"][src*=".trafficmp.com"],
+object[type="application/x-shockwave-flash"][src*="ad.advertstream.com"],
 
 img[src*="googlesyndication.com"],
 img[src*=".doubleclick.net"],
@@ -266,6 +270,7 @@ img[src*="impact-ad.jp"],
 img[src*="/RealMedia/ads/"],
 img[src*="mercuras.com"],
 img[src*="images.industrybrains.com/banner"],
+img[src*="home.edt02.net/emc/banner/"],
 
 iframe[src*="/ad."],
 iframe[src*="/ads."],
@@ -363,13 +368,22 @@ iframe[src*="google-afc"],
 iframe[src*="google-adsense"],
 iframe[id*="google_ads_iframe"],
 iframe[src*="werben-mit-campus-media.de/ads/"],
+iframe[class*="madison_ad"],
+iframe[src*="master.espace.netavenir.com"],
+iframe[src*="bwp.versiontracker.com"],
+iframe[src*="bwp.macfixit.com"],
+iframe[src*=".mercuras.com"],
+iframe[src*="api.gestionpub.com"],
+iframe[src*=".comclick.com"],
 
 table#overtureLinksWrapper,
 table.adbritetable,
+table.artbannersplus,
 td[class*="blogad_"],
 td[class*="adstrip"],
 td[class*="AdColumn"],
 td[onclick*="click.pulse360.com"],
+td[class^="todayTopAd"],
 div#omniture,
 div#cnnPartners,
 div#gB1,
@@ -426,7 +440,8 @@ div[class^="adbanner"],
 div[class*="_adsys_"],
 div[id*="SendMessage_gads"],
 div[id="box-ad"],
-div[id="adxSponLinkA"],
+div[class="box-ad"],
+div[id^="adxSponLink"],
 div[class$="storyad"],
 div[onclick*="click.pulse360.com"],
 div[id^="adpos"],
@@ -445,7 +460,15 @@ div[id^="ad5"],
 div[id^="ad6"],
 div[id^="ad7"],
 div[id^="ad8"],
-div[id^="ad9"]
+div[id^="ad9"],
+div[id="uxAd1"],
+div.contextualad,
+div[id^="adx_"],
+div.adText,
+div[class*="netavenir_slideup"],
+div[id="apopBg_dju"],
+div[id*="advst_special"],
+div[class="box"][id="dropin"]
 
 { display: none ! important }
 
@@ -467,10 +490,18 @@ iframe[src*="mozilla.org"]
 
 { display: inline ! important }
 
-@-moz-document domain(caminobrowser.org) {
+@-moz-document domain(wiki.caminobrowser.org) {
 img[src*="/ad/"] {display: inline !important }
 }
 
 @-moz-document domain(apple.com) {
 img[src*="/ads/"] {display: inline !important }
+}
+
+@-moz-document domain(nasdaq.com) {
+div[id*="panel_content_ads"] {display: block !important }
+}
+
+@-moz-document domain(slatev.com) {
+embed[type="application/x-shockwave-flash"][src*="slatev.com"] {display: inline !important }
 }
