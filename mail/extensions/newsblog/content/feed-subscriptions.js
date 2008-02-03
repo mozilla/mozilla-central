@@ -574,7 +574,7 @@ var gFeedSubscriptionsWindow = {
       return;
 
     var resource = rdf.GetResource(itemToRemove.url);
-    var feed = new Feed(resource);
+    var feed = new Feed(resource, this.mRSSServer);
     var ds = getSubscriptionsDS(this.mRSSServer);
 
     if (feed && ds)
