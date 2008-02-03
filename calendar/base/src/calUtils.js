@@ -1382,23 +1382,39 @@ calAuthPrompt.prototype = {
         var username;
         var password;
         var found = false;
-        var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                        .getService(Components.interfaces.nsIPasswordManager);
-        var pwenum = passwordManager.enumerator;
-        // step through each password in the password manager until we find the one we want:
-        while (pwenum.hasMoreElements()) {
-            try {
-                var pass = pwenum.getNext().QueryInterface(Components.interfaces.nsIPassword);
-                if (pass.host == aPasswordRealm) {
-                     // found it!
-                     username = pass.user;
-                     password = pass.password;
-                     found = true;
-                     break;
+
+        if ("@mozilla.org/passwordmanager;1" in Components.classes) {
+            var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
+                                            .getService(Components.interfaces.nsIPasswordManager);
+            var passwordRealm = aPasswordRealm.passwordRealm || aPasswordRealm;
+            var pwenum = passwordManager.enumerator;
+            // step through each password in the password manager until we find the one we want:
+            while (pwenum.hasMoreElements()) {
+                try {
+                    var pass = pwenum.getNext().QueryInterface(Components.interfaces.nsIPassword);
+                    if (pass.host == passwordRealm) {
+                         // found it!
+                         username = pass.user;
+                         password = pass.password;
+                         found = true;
+                    }
+                } catch (ex) {
+                         found = true;
+                         break;
+                    // don't do anything here, ignore the password that could not
+                    // be read
                 }
-            } catch (ex) {
-                // don't do anything here, ignore the password that could not
-                // be read
+            }
+        } else {
+            var loginManager = Components.classes["@mozilla.org/login-manager;1"]
+                                         .getService(Components.interfaces
+                                         .nsILoginManager);
+            var logins = loginManager.findLogins({}, aPasswordRealm.prePath, null,
+                                                 aPasswordRealm.realm);
+            if (logins.length) {
+                username = logins[0].username;
+                password = logins[0].password;
+                found = true;
             }
         }
         return {found: found, username: username, password: password};
@@ -1427,21 +1443,23 @@ calAuthPrompt.prototype = {
 
     // promptAuth is needed/used on trunk only
     promptAuth: function capPA(aChannel, aLevel, aAuthInfo) {
-        // need to match the way the password manager stores host/realm
-        var hostRealm = aChannel.URI.host + ":" + aChannel.URI.port + " (" +
-                        aAuthInfo.realm + ")";
+        var hostRealm = {};
+        hostRealm.prePath = aChannel.URI.prePath;
+        hostRealm.realm = aAuthInfo.realm;
+        hostRealm.passwordRealm = aChannel.URI.host + ":" + aChannel.URI.port +
+                                          " (" + aAuthInfo.realm + ")";
+
         var pw;
         if (!this.mTriedStoredPassword) {
             pw = this.getPasswordInfo(hostRealm);
         }
-
         if (pw && pw.found) {
             this.mTriedStoredPassword = true;
             aAuthInfo.username = pw.username;
             aAuthInfo.password = pw.password;
             return true;
         } else {
-            var prompter2 = 
+            var prompter2 =
                 Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                           .getService(Components.interfaces.nsIPromptFactory)
                           .getPrompt(null, Components.interfaces.nsIAuthPrompt2);
