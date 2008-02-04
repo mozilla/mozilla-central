@@ -262,14 +262,9 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     COMMON=${TEST_COMMON-$common}
     export COMMON
 
-    MAKE=`which gmake`
-    if [ -z "$MAKE" ]; then
-		MAKE=`which make`
-    fi
-    if [ -z "$MAKE" ]; then
-		You are missing make.
-		exit 5
-    fi
+    MAKE=gmake
+    $MAKE -v >/dev/null 2>&1 || MAKE=make
+    $MAKE -v >/dev/null 2>&1 || { echo "You are missing make."; exit 5; }
 
     DIST=${DIST-${MOZILLA_ROOT}/dist}
     SECURITY_ROOT=${SECURITY_ROOT-${MOZILLA_ROOT}/security/nss}
