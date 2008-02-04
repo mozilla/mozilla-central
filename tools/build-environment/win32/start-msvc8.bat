@@ -1,18 +1,15 @@
 @echo off
 
 SET MOZ_MSVCVERSION=8
+SET MOZBUILDDIR=%~dp0
 
-SET MOZILLABUILDDRIVE=%~d0%
-SET MOZILLABUILDPATH=%~p0%
-SET MOZILLABUILD=%MOZILLABUILDDRIVE%%MOZILLABUILDPATH%
-
-echo "Mozilla tools directory: %MOZILLABUILD%"
+echo "Mozilla tools directory: %MOZBUILDDIR%"
 
 REM Get MSVC paths
-call "%MOZILLABUILD%\guess-msvc.bat"
+call "%MOZBUILDDIR%guess-msvc.bat"
 
 REM Use the "new" moztools-static
-set MOZ_TOOLS=%MOZILLABUILD%\moztools
+set MOZ_TOOLS=%MOZBUILDDIR%moztools
 
 rem append moztools to PATH
 SET PATH=%PATH%;%MOZ_TOOLS%\bin
@@ -50,9 +47,9 @@ if "%USESDK%"=="1" (
     rem random VC paths which we don't want.
     rem Add the atlthunk compat library to the end of our LIB
     set PATH=%SDKDIR%\bin;%PATH%
-    set LIB=%SDKDIR%\lib;%LIB%;%MOZILLABUILD%\atlthunk_compat
+    set LIB=%SDKDIR%\lib;%LIB%;%MOZBUILDDIR%atlthunk_compat
     set INCLUDE=%SDKDIR%\include;%SDKDIR%\include\atl;%INCLUDE%
 )
 
 cd "%USERPROFILE%"
-start "MSYS Shell - MSVC8 Environment" "%MOZILLABUILD%\msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i
+start "MSYS Shell - MSVC8 Environment" "%MOZBUILDDIR%msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i

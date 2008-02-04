@@ -1,15 +1,12 @@
 @echo off
 
 SET MOZ_MSVCVERSION=7.1
+SET MOZBUILDDIR=%~dp0
 
-SET MOZILLABUILDDRIVE=%~d0%
-SET MOZILLABUILDPATH=%~p0%
-SET MOZILLABUILD=%MOZILLABUILDDRIVE%%MOZILLABUILDPATH%
-
-echo "Mozilla tools directory: %MOZILLABUILD%"
+echo "Mozilla tools directory: %MOZBUILDDIR%"
 
 REM Get MSVC paths
-call "%MOZILLABUILD%\guess-msvc.bat"
+call "%MOZBUILDDIR%guess-msvc.bat"
 
 if "%VC71DIR%"=="" (
     ECHO "Microsoft Visual C++ version 7.1 was not found. Exiting."
@@ -18,7 +15,7 @@ if "%VC71DIR%"=="" (
 )
 
 REM Use the "new" moztools-static
-set MOZ_TOOLS=%MOZILLABUILD%\moztools
+set MOZ_TOOLS=%MOZBUILDDIR%moztools
 
 rem append moztools to PATH
 SET PATH=%PATH%;%MOZ_TOOLS%\bin
@@ -43,4 +40,4 @@ if defined MOZBUILD_USE_SDK (
 )
 
 cd "%USERPROFILE%"
-start "MSYS Shell - MSVC7.1 Environment" "%MOZILLABUILD%\msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i
+start "MSYS Shell - MSVC7.1 Environment" "%MOZBUILDDIR%msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i
