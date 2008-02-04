@@ -34,8 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIAbListener = Components.interfaces.nsIAbListener;
-
 var gMsgCompose = false;
 
 function GetAbViewListener()
@@ -108,7 +106,7 @@ function AbPanelLoad()
             .getService(Components.interfaces.nsIAbManager)
             .addAddressBookListener(gAddressBookAbListener,
                                     nsIAbListener.directoryRemoved |
-                                    nsIAbListener.changed);
+                                    nsIAbListener.itemChanged);
 
   gSearchInput = document.getElementById("searchInput");
 

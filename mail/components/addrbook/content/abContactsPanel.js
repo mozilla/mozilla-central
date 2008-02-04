@@ -34,8 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const nsIAbListener = Components.interfaces.nsIAbListener;
-
 function GetAbViewListener()
 {
   // the ab panel doesn't care if the total changes, or if the selection changes
@@ -158,7 +156,7 @@ function AbPanelLoad()
             .getService(Components.interfaces.nsIAbManager)
             .addAddressBookListener(gAddressBookAbListener,
                                     nsIAbListener.directoryRemoved |
-                                    nsIAbListener.changed);
+                                    nsIAbListener.itemChanged);
 
   parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-close', AbPanelOnComposerClose, true);
   parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-reopen', AbPanelOnComposerReOpen, true);
