@@ -51,117 +51,116 @@
   <vbox id="displayDeck">
     <vbox id="calendar-task-box" flex="1"
           onselect="taskDetailsView.onSelect(event);">
-      <hbox align="center">
-        <textbox id="view-task-edit-field"
-                 class="task-edit-field"
-                 flex="1"
-                 value="&calendar.task.edit.instructions.label;"
-                 instructions="&calendar.task.edit.instructions.label;"
-                 onfocus="taskEdit.onFocus(event)" 
-                 onblur="taskEdit.onBlur(event)" 
-                 onkeypress="taskEdit.onKeyPress(event)"/>
-      </hbox>
-      <calendar-task-tree id="calendar-task-tree" flex="1"
-                          visible-columns="completed priority title startdate duedate"
-                          persist="visible-columns ordinals widths sort-active sort-direction height"
-                          context="taskitem-context-menu"
-                          onselect="document.commandDispatcher.updateCommands('calendar_commands')"/>
-      <splitter id="calendar-task-view-splitter" collapse="before" persist="state"/>
+      <textbox id="view-task-edit-field"
+               class="task-edit-field"
+               value="&calendar.task.edit.instructions.label;"
+               instructions="&calendar.task.edit.instructions.label;"
+               onfocus="taskEdit.onFocus(event)" 
+               onblur="taskEdit.onBlur(event)" 
+               onkeypress="taskEdit.onKeyPress(event)"/>
       <vbox flex="1">
-        <hbox id="calendar-task-details">
-          <grid id="calendar-task-details-grid-left">
-            <columns>
-              <column/>
-              <column/>
-            </columns>
-            <rows>
-              <row id="calendar-task-details-title-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.title.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-title"
-                       class="task-details-value"/>
-              </row>
-              <row id="calendar-task-details-organizer-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.organizer.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-organizer"
-                       class="task-details-value text-link"
-                       onclick="sendMailToOrganizer()"/>
-              </row>
-              <row id="calendar-task-details-priority-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.priority.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-priority-low"
-                       value="&calendar.task.details.priority.low.label;"
-                       class="task-details-value"
-                       hidden="true"/>
-                <label id="calendar-task-details-priority-normal"
-                       value="&calendar.task.details.priority.normal.label;"
-                       class="task-details-value"
-                       hidden="true"/>
-                <label id="calendar-task-details-priority-high"
-                       value="&calendar.task.details.priority.high.label;"
-                       class="task-details-value"
-                       hidden="true"/>
-              </row>
-              <row id="calendar-task-details-status-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.status.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-status"
-                       class="task-details-value"/>
-              </row>
-              <row id="calendar-task-details-category-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.category.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-category"
-                       class="task-details-value"/>
-              </row>
-            </rows>          
-          </grid>
-          <grid id="calendar-task-details-grid-right">
-            <columns>
-              <column/>
-              <column/>
-            </columns>
-            <rows>
-              <row id="calendar-task-details-entrydate-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.entrydate.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-entrydate"
-                       class="task-details-value"/>
-              </row>
-              <row id="calendar-task-details-duedate-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.duedate.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-duedate"
-                       class="task-details-value"/>
-              </row>
-              <row id="calendar-task-details-repeat-row"
-                   align="top"
-                   hidden="true">
-                <label value="&calendar.task.details.repeat.label;"
-                       class="task-details-name"/>
-                <label id="calendar-task-details-repeat"
-                       class="task-details-value"/>
-              </row>
-            </rows>          
-          </grid>
-        </hbox>
-        <textbox id="calendar-task-details-description" multiline="true" flex="1"/>
+        <calendar-task-tree id="calendar-task-tree" flex="1"
+                            visible-columns="completed priority title startdate duedate"
+                            persist="visible-columns ordinals widths sort-active sort-direction height"
+                            context="taskitem-context-menu"
+                            onselect="document.commandDispatcher.updateCommands('calendar_commands')"/>
+        <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
+        <vbox flex="1">
+          <hbox id="calendar-task-details">
+            <grid id="calendar-task-details-grid-left">
+              <columns>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row id="calendar-task-details-title-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.title.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-title"
+                         class="task-details-value"/>
+                </row>
+                <row id="calendar-task-details-organizer-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.organizer.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-organizer"
+                         class="task-details-value text-link"
+                         onclick="sendMailToOrganizer()"/>
+                </row>
+                <row id="calendar-task-details-priority-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.priority.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-priority-low"
+                         value="&calendar.task.details.priority.low.label;"
+                         class="task-details-value"
+                         hidden="true"/>
+                  <label id="calendar-task-details-priority-normal"
+                         value="&calendar.task.details.priority.normal.label;"
+                         class="task-details-value"
+                         hidden="true"/>
+                  <label id="calendar-task-details-priority-high"
+                         value="&calendar.task.details.priority.high.label;"
+                         class="task-details-value"
+                         hidden="true"/>
+                </row>
+                <row id="calendar-task-details-status-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.status.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-status"
+                         class="task-details-value"/>
+                </row>
+                <row id="calendar-task-details-category-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.category.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-category"
+                         class="task-details-value"/>
+                </row>
+              </rows>          
+            </grid>
+            <grid id="calendar-task-details-grid-right">
+              <columns>
+                <column/>
+                <column/>
+              </columns>
+              <rows>
+                <row id="calendar-task-details-entrydate-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.entrydate.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-entrydate"
+                         class="task-details-value"/>
+                </row>
+                <row id="calendar-task-details-duedate-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.duedate.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-duedate"
+                         class="task-details-value"/>
+                </row>
+                <row id="calendar-task-details-repeat-row"
+                     align="top"
+                     hidden="true">
+                  <label value="&calendar.task.details.repeat.label;"
+                         class="task-details-name"/>
+                  <label id="calendar-task-details-repeat"
+                         class="task-details-value"/>
+                </row>
+              </rows>          
+            </grid>
+          </hbox>
+          <textbox id="calendar-task-details-description" multiline="true" flex="1"/>
+        </vbox>
       </vbox>
     </vbox>
   </vbox>

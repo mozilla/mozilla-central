@@ -46,6 +46,10 @@
     background-color: transparent;
 }
 
+#calendar-task-tree {
+    min-height: 98px;
+}
+
 #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
     border-right: 1px dotted #AAA;
 }
