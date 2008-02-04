@@ -262,3 +262,6 @@ pref("view_source.editor.path", "");
 pref("view_source.editor.external", false);
 pref("view_source.syntax_highlight", true);
 pref("view_source.wrap_long_lines", false);
+
+// The breakpad report server to link to in about:crashes
+pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
