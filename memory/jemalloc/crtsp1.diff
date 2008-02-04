@@ -1,5 +1,11 @@
+# The Microsoft C Runtime source code to which this document refers is available
+# directly from Microsoft Corporation, under a separate license.
+# Please ensure that if you are using that source code, you have appropriate
+# rights to use it.  By providing you access to this file, Mozilla Corporation
+# and its affiliates do not purport to grant any rights in that source code. 
+# Binaries are available under separate licenses at 
+# http://www.microsoft.com/downloads/details.aspx?familyid=200b2fd9-ae1a-4a14-984d-389c36f85647&displaylang=en
 Only in crt-sp1/src: AMD64
-# header goes here
 diff -re crt/src/crt0.c crt-sp1/src/crt0.c
 273c
 	/*
