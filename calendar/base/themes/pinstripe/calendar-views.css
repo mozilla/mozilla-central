@@ -469,3 +469,7 @@ calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-bottom {
 .alarm-image[flashing="true"] {
   list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
 }
+
+.alarm-image[suppressed="true"] {
+  list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
+}
