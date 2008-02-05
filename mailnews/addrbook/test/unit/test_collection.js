@@ -328,6 +328,10 @@ function run_test()
 
     CAB.deleteCards(cardsToDelete);
 
+    //Null these directly, so gc() will purge them
+    childCards = null;
+    cardsToDelete = null;
+
     // Address book should have no cards present.
     do_check_false(CAB.childCards.hasMoreElements());
 
@@ -352,6 +356,8 @@ function run_test()
 
     modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
 
+    //Force GC; See abCleanup.js for why.
+    gc();
     cleanup();
 
   } catch (e) {

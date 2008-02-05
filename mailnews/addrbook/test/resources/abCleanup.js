@@ -10,6 +10,11 @@ var abs = [ kPABData.fileName,
 
 function cleanup()
 {
+  // If you've removed anything from a database in your test,
+  // be sure to clear any references to the removed objects
+  // and call gc() before you call this cleanup() function
+  // otherwise the forceClosed() call will remove mork objects
+  // underneath us and by the time GC happens things go screwy
   try {
     // Get the top-level directory
     var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
