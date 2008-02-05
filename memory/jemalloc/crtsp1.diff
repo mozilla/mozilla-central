@@ -5,7 +5,6 @@
 # and its affiliates do not purport to grant any rights in that source code. 
 # Binaries are available under separate licenses at 
 # http://www.microsoft.com/downloads/details.aspx?familyid=200b2fd9-ae1a-4a14-984d-389c36f85647&displaylang=en
-Only in crt-sp1/src: AMD64
 diff -re crt/src/crt0.c crt-sp1/src/crt0.c
 273c
 	/*
@@ -58,7 +57,6 @@ diff -re crt/src/dllcrt0.c crt-sp1/src/dllcrt0.c
 173d
 158d
 153,155d
-Only in crt-sp1/src: foo.diff
 diff -re crt/src/intel/_sample_.def crt-sp1/src/intel/_sample_.def
 1208d
 723,724d
@@ -69,11 +67,6 @@ diff -re crt/src/intel/_sample_.def crt-sp1/src/intel/_sample_.def
 9c
 LIBRARY MOZCRT19
 .
-Only in crt-sp1/src/intel/dll_lib: unhandld.obj
-Only in crt-sp1/src/intel: msvcrt.def
-Only in crt-sp1/src/intel/mt_lib: unhandld.obj
-Only in crt-sp1/src/intel/xdll_lib: unhandld.obj
-Only in crt-sp1/src/intel/xmt_lib: unhandld.obj
 diff -re crt/src/internal.h crt-sp1/src/internal.h
 407a
 #endif
@@ -81,7 +74,6 @@ diff -re crt/src/internal.h crt-sp1/src/internal.h
 403a
 #if 0
 .
-Only in crt-sp1/src: jemalloc.c
 diff -re crt/src/makefile crt-sp1/src/makefile
 1745a
 $(DEFFILE_DIR)\$(RETAIL_LIB_NAME).def : $(DEFFILE_DIR)\_sample_.def
@@ -129,8 +121,7 @@ $(OBJDIR)\unhandld.obj: $(PREOBJDIR)\unhandld.obj
 320d
 diff -re crt/src/makefile.sub crt-sp1/src/makefile.sub
 69c
-#CFLAGS=$(CFLAGS) -Od
-CFLAGS=$(CFLAGS) -O2
+CFLAGS=$(CFLAGS) -O2 -DMOZ_MEMORY=1 -DMOZ_MEMORY_WINDOWS=1
 .
 diff -re crt/src/malloc.h crt-sp1/src/malloc.h
 189a
@@ -171,11 +162,4 @@ diff -re crt/src/nothrownew.cpp crt-sp1/src/nothrownew.cpp
 
 .
 diff -re crt/src/tidtable.c crt-sp1/src/tidtable.c
-393a
-#endif
-.
-392a
-        /* we now do this in __CRTDLL_INIT before malloc_init */
-#if 0
-.
-Only in crt-sp1/src: tree.h
+393,394d

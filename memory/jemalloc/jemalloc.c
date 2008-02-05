@@ -94,10 +94,6 @@
  *******************************************************************************
  */
 
-#define MOZ_MEMORY 1
-#define MOZ_MEMORY_WINDOWS 1
-
-
 /*
  * MALLOC_PRODUCTION disables assertions and statistics gathering.  It also
  * defaults the A and J runtime options to off.  These settings are appropriate
@@ -117,7 +113,6 @@
    /* MALLOC_STATS enables statistics calculation. */
 #  define MALLOC_STATS
 #endif
-#  define MALLOC_STATS /* XXX */
 
 /*
  * MALLOC_LAZY_FREE enables the use of a per-thread vector of slots that free()
@@ -1046,7 +1041,7 @@ static chunk_stats_t	stats_chunks;
  */
 const char	*_malloc_options
 #ifdef MOZ_MEMORY_WINDOWS
-= "QAP"
+= "A10n3F"
 #elif (defined(MOZ_MEMORY_DARWIN))
 = "AP10n"
 #endif
@@ -5146,8 +5141,13 @@ malloc_print_stats(void)
 			mapped += base_mapped;
 			malloc_mutex_unlock(&base_mtx);
 
+#ifdef MOZ_MEMORY_WINDOWS
+			malloc_printf("Allocated: %lu, mapped: %lu\n",
+			    allocated, mapped);
+#else
 			malloc_printf("Allocated: %zu, mapped: %zu\n",
 			    allocated, mapped);
+#endif
 
 #ifdef MALLOC_BALANCE
 			malloc_printf("Arena balance reassignments: %llu\n",
@@ -5173,9 +5173,13 @@ malloc_print_stats(void)
 			/* Print chunk stats. */
 			malloc_printf(
 			    "huge: nmalloc      ndalloc    allocated\n");
+#ifdef MOZ_MEMORY_WINDOWS
+			malloc_printf(" %12llu %12llu %12lu\n",
+			    huge_nmalloc, huge_ndalloc, huge_allocated);
+#else
 			malloc_printf(" %12llu %12llu %12zu\n",
 			    huge_nmalloc, huge_ndalloc, huge_allocated);
-
+#endif
 			/* Print stats for each arena. */
 			for (i = 0; i < narenas; i++) {
 				arena = arenas[i];

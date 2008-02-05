@@ -43,9 +43,7 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= memory
-
-include $(topsrcdir)/config/rules.mk
+MODULE		= jemalloc
 
 ifeq (WINNT,$(OS_TARGET))
 # Two options for Windows, either you build the CRT from source,
@@ -57,7 +55,7 @@ libs:: $(CRT_OBJ_DIR)/build/intel/mozcrt19.dll
 	$(INSTALL) $< $(FINAL_TARGET)
 
 # patch if necessary
-$(CRT_OBJ_DIR)/jemalloc.c:
+$(CRT_OBJ_DIR)/jemalloc.c: $(srcdir)/crtsp1.diff
 	rm -rf $(CRT_OBJ_DIR)
 	cp -R "$(WIN32_CRT_SRC_DIR)" .
 	# per http://forums.microsoft.com/MSDN/ShowPost.aspx?PostID=1189363&SiteID=1
@@ -67,13 +65,15 @@ $(CRT_OBJ_DIR)/jemalloc.c:
 	# truly awful
 	#XXX: get ed into mozillabuild, bug 415123
 	$(PERL) $(srcdir)/apply-ed-patches.pl $(srcdir)/crtsp1.diff \
-	 $(CRT_OBJ_DIR) $(srcdir)/ed.exe
-	cp $(srcdir)/jemalloc.c $(srcdir)/tree.h $(CRT_OBJ_DIR)
+	$(CRT_OBJ_DIR) $(srcdir)/ed.exe
 
 $(CRT_OBJ_DIR)/build/intel/mozcrt19.dll: \
-  $(CRT_OBJ_DIR)/jemalloc.c
+  $(CRT_OBJ_DIR)/jemalloc.c $(srcdir)/jemalloc.c $(srcdir)/tree.h
+	cp $(srcdir)/jemalloc.c $(srcdir)/tree.h $(CRT_OBJ_DIR)
 # this pretty much sucks, but nmake and make don't play well together
 	$(PYTHON) $(srcdir)/build-crt.py $(CRT_OBJ_DIR)
+	#XXX: these don't link right for some reason
+	rm $(CRT_OBJ_DIR)/build/intel/{libcmt,libcpmt}.lib
 else
 # Using a pre-built DLL, so just install it.
 libs:: $(WIN32_CUSTOM_CRT_DIR)/mozcrt19.dll
@@ -84,7 +84,7 @@ else
 # for other platforms, just build jemalloc as a shared lib
 
 MODULE_OPTIMIZE_FLAGS = -O2
-LIBRARY_NAME	= memory
+LIBRARY_NAME	= jemalloc
 EXPORT_LIBRARY	= 1
 LIBXUL_LIBRARY	= 0
 FORCE_SHARED_LIB= 1
@@ -98,3 +98,5 @@ LDFLAGS += -init _jemalloc_darwin_init
 endif
 
 endif
+
+include $(topsrcdir)/config/rules.mk
