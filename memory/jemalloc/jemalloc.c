@@ -6055,8 +6055,6 @@ _recalloc(void *ptr, size_t count, size_t size)
 	size_t newsize = count * size;
 
 	ptr = realloc(ptr, newsize);
-	if (ptr)
-		memset(ptr, 0, newsize);
 
 	return ptr;
 }
