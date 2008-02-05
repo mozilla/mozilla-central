@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.42 $ $Date: 2007-11-16 05:29:25 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.43 $ $Date: 2008-02-05 03:22:38 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -274,7 +274,9 @@ create_objects_from_handles (
 		for (--i; i>0; --i) {
 		    nssCryptokiObject_Destroy(objects[i]);
 		}
-		return (nssCryptokiObject **)NULL;
+		nss_ZFreeIf(objects);
+		objects = NULL;
+		break;
 	    }
 	}
     }
