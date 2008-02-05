@@ -1041,7 +1041,7 @@ static chunk_stats_t	stats_chunks;
  */
 const char	*_malloc_options
 #ifdef MOZ_MEMORY_WINDOWS
-= "A10n4F"
+= "A10n3F"
 #elif (defined(MOZ_MEMORY_DARWIN))
 = "AP10n"
 #endif

@@ -120,8 +120,11 @@ $(OBJDIR)\unhandld.obj: $(PREOBJDIR)\unhandld.obj
 323d
 320d
 diff -re crt/src/makefile.sub crt-sp1/src/makefile.sub
+103c
+LIB=link -lib -nologo
+.
 69c
-CFLAGS=$(CFLAGS) -O2 -DMOZ_MEMORY=1 -DMOZ_MEMORY_WINDOWS=1
+CFLAGS=$(CFLAGS) -Od -DMOZ_MEMORY=1 -DMOZ_MEMORY_WINDOWS=1
 .
 diff -re crt/src/malloc.h crt-sp1/src/malloc.h
 189a
