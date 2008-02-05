@@ -121,12 +121,13 @@ function setToolTipContent(toolTip, holderBox)
     toolTip.removeChild( toolTip.firstChild );
   }
 
+  // workaround bug 369225 (aspect: tooltip may not shrink height)
+  toolTip.sizeTo(0, 0);
+
   toolTip.appendChild( holderBox );
   var width = holderBox.boxObject.width;
   var height = holderBox.boxObject.height;
 
-  // workaround bug 369225 (aspect: tooltip may not shrink height)
-  toolTip.sizeTo(0,0);
   // workaround bug 369225 (aspect: tooltip height too short)
   // Add top and bottom border and padding to workaround bug where bottom
   // tooltip border disappears if wrapped description below header grid.
