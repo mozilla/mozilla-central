@@ -50,6 +50,7 @@
   <!ENTITY % dtd1 SYSTEM "chrome://lightning/locale/lightning.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %dtd2;
   <!ENTITY % dtd3 SYSTEM "chrome://calendar/locale/calendar.dtd" > %dtd3;
+  <!ENTITY % dtd4 SYSTEM "chrome://lightning/locale/sun-lightning.dtd" > %dtd4;
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd"> %messengerDTD;
 ]>
 
@@ -481,6 +482,10 @@
                 collapsable="true"
                 persist="collapsed"/>
         </vbox>
+        <label id="invitations"
+               class="text-link calendar-invitations-sidebar-label"
+               value="&lightning.sidebar.invitations.label;"
+               onclick="openInvitationsDialog();"/>
       </vbox>
     </deck>
 

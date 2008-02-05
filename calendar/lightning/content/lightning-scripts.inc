@@ -46,6 +46,7 @@
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-sidebar.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/messenger-overlay-toolbar.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/lightning-common-sets.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-invitations-manager.js"/>
 <script type="application/x-javascript">
     var calendarmenulabel = "&lightning.calendar.label;";
     var calendarmenuaccesskey = "&lightning.calendar.accesskey;";
@@ -53,5 +54,5 @@
     var messagemenuaccesskey = "&msgMenu.accesskey;";
     var tasksmenulabel = "&lightning.tasks.label;";
     var tasksmenuaccesskey = "&lightning.tasks.accesskey;";
-    
+    var invitationsLabel = "&lightning.sidebar.invitations.label;";
 </script>

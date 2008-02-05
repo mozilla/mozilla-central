@@ -18,8 +18,6 @@ lightning.jar:
   content/lightning/messenger-overlay-toolbar.js        (content/messenger-overlay-toolbar.js)
 * content/lightning/messenger-overlay-toolbar.xul	    (content/messenger-overlay-toolbar.xul)
   content/lightning/toolkit-overlay-custombar.xul       (content/toolkit-overlay-custombar.xul)
-  content/lightning/sun-messenger-overlay-sidebar.xul	(/calendar/prototypes/wcap/sun-messenger-overlay-sidebar.xul)
-  content/lightning/sun-messenger-overlay-sidebar.js	(/calendar/prototypes/wcap/sun-messenger-overlay-sidebar.js)
 #expand    skin/classic/lightning/imip.css       (themes/__THEME__/imip.css)
 #expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
 #expand    skin/classic/lightning/sun-messenger-overlay-sidebar.css	(/calendar/prototypes/themes/__THEME__/sun-messenger-overlay-sidebar.css)

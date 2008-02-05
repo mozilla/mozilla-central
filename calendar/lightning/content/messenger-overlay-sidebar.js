@@ -252,11 +252,8 @@ function ltnOnLoad(event)
     // Make sure we update ourselves if the program stays open over midnight
     scheduleMidnightUpdate(refreshUIBits);
 
-    if (getPrefSafe("calendar.prototypes.wcap", false)) {
-        document.loadOverlay(
-            "chrome://lightning/content/sun-messenger-overlay-sidebar.xul",
-            null);
-    }
+    scheduleInvitationsUpdate(FIRST_DELAY_STARTUP, REPEAT_DELAY);
+    getCalendarManager().addObserver(gInvitationsCalendarManagerObserver);
 
     // Set up the command controller from calendar-common-sets.js
     injectCalendarCommandController();
@@ -448,6 +445,7 @@ function LtnObserveDisplayDeckChange(event) {
 }
 
 function ltnFinish() {
+    getCalendarManager().removeObserver(gInvitationsCalendarManagerObserver);
     getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
 
     unloadCalendarManager();
@@ -745,6 +743,79 @@ function removeMenuElements(aRoot, aModeValue) {
             }
         }
     }
+}
+
+// == invitations link
+const FIRST_DELAY_STARTUP = 100;
+const FIRST_DELAY_RESCHEDULE = 100;
+const FIRST_DELAY_REGISTER = 10000;
+const FIRST_DELAY_UNREGISTER = 0;
+const REPEAT_DELAY = 180000;
+
+var gInvitationsOperationListener = {
+    onOperationComplete: function sBOL_onOperationComplete(aCalendar,
+                                                           aStatus,
+                                                           aOperationType,
+                                                           aId,
+                                                           aDetail) {
+        if (!Components.isSuccessCode(aStatus)) {
+            var invitationsBox = document.getElementById("invitations");
+            invitationsBox.setAttribute("hidden", "true");
+        }
+    },
+
+    onGetResult: function sBOL_onGetResult(aCalendar,
+                                           aStatus,
+                                           aItemType,
+                                           aDetail,
+                                           aCount,
+                                           aItems) {
+        if (!Components.isSuccessCode(aStatus)) {
+            return;
+        }
+        var invitationsBox = document.getElementById("invitations");
+        var value = invitationsLabel + " (" + aCount + ")";
+        invitationsBox.setAttribute("value", value);
+        invitationsBox.removeAttribute("hidden");
+    }
+};
+
+var gInvitationsCalendarManagerObserver = {
+    mSideBar: this,
+
+    onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
+        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_REGISTER,
+                                                  REPEAT_DELAY);
+    },
+
+    onCalendarUnregistering: function cMO_onCalendarUnregistering(aCalendar) {
+        this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_UNREGISTER,
+                                                  REPEAT_DELAY);
+    },
+
+    onCalendarDeleting: function cMO_onCalendarDeleting(aCalendar) {
+    }
+};
+
+function scheduleInvitationsUpdate(firstDelay, repeatDelay) {
+    getInvitationsManager().scheduleInvitationsUpdate(firstDelay,
+                                                      repeatDelay,
+                                                      gInvitationsOperationListener);
+}
+
+function rescheduleInvitationsUpdate(firstDelay, repeatDelay) {
+    getInvitationsManager().cancelInvitationsUpdate();
+    scheduleInvitationsUpdate(firstDelay, repeatDelay);
+}
+
+function openInvitationsDialog() {
+    getInvitationsManager().cancelInvitationsUpdate();
+    getInvitationsManager().openInvitationsDialog(
+        gInvitationsOperationListener,
+        function oiD_callback() {
+            scheduleInvitationsUpdate(FIRST_DELAY_RESCHEDULE,
+                                     REPEAT_DELAY);
+        });
 }
 
 SelectMessage = function(messageUri) {

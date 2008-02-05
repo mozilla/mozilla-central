@@ -37,14 +37,6 @@
 
 function initLocationPage()
 {
-    var bShowWcap = false;
-    try {
-        bShowWcap = getPrefSafe("calendar.prototypes.wcap", false);
-    }
-    catch (exc) {} // calendar.prototypes.wcap currently not present in Sunbird
-    bShowWcap = (bShowWcap || getPrefSafe("calendar.wcap.enabled", false));
-    document.getElementById("wcap-radio").setAttribute(
-        "collapsed", bShowWcap ? "false" : "true");
     checkRequired();
 }
 
