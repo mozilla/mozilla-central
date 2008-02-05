@@ -183,6 +183,8 @@ NSC_DestroyObject(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hObject)
     SFTKObject *object;
     SFTKFreeStatus status;
 
+    CHECK_FORK();
+
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
     }
@@ -739,6 +741,7 @@ finish_des:
 CK_RV NSC_EncryptInit(CK_SESSION_HANDLE hSession,
 		 CK_MECHANISM_PTR pMechanism, CK_OBJECT_HANDLE hKey)
 {
+    CHECK_FORK();
     return sftk_CryptInit(hSession, pMechanism, hKey, CKA_ENCRYPT, 
 						SFTK_ENCRYPT, PR_TRUE);
 }
@@ -754,6 +757,8 @@ CK_RV NSC_EncryptUpdate(CK_SESSION_HANDLE hSession,
     unsigned int maxout = *pulEncryptedPartLen;
     CK_RV crv;
     SECStatus rv;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_ENCRYPT,PR_TRUE,NULL);
@@ -832,6 +837,8 @@ CK_RV NSC_EncryptFinal(CK_SESSION_HANDLE hSession,
     SECStatus rv = SECSuccess;
     PRBool contextFinished = PR_TRUE;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_ENCRYPT,PR_TRUE,&session);
     if (crv != CKR_OK) return crv;
@@ -885,6 +892,8 @@ CK_RV NSC_Encrypt (CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
     pText.type = siBuffer;
     pText.data = pData;
     pText.len  = ulDataLen;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_ENCRYPT,PR_FALSE,&session);
@@ -958,6 +967,8 @@ finish:
 CK_RV NSC_DecryptInit( CK_SESSION_HANDLE hSession,
 			 CK_MECHANISM_PTR pMechanism, CK_OBJECT_HANDLE hKey)
 {
+    CHECK_FORK();
+
     return sftk_CryptInit(hSession, pMechanism, hKey, CKA_DECRYPT,
 						SFTK_DECRYPT, PR_FALSE);
 }
@@ -973,6 +984,8 @@ CK_RV NSC_DecryptUpdate(CK_SESSION_HANDLE hSession,
     unsigned int maxout = *pulPartLen;
     CK_RV crv;
     SECStatus rv;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_DECRYPT,PR_TRUE,NULL);
@@ -1042,6 +1055,8 @@ CK_RV NSC_DecryptFinal(CK_SESSION_HANDLE hSession,
     CK_RV crv;
     SECStatus rv = SECSuccess;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_DECRYPT,PR_TRUE,&session);
     if (crv != CKR_OK) return crv;
@@ -1094,6 +1109,8 @@ CK_RV NSC_Decrypt(CK_SESSION_HANDLE hSession,
     CK_RV crv;
     CK_RV crv2;
     SECStatus rv = SECSuccess;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_DECRYPT,PR_FALSE,&session);
@@ -1154,6 +1171,8 @@ CK_RV NSC_DigestInit(CK_SESSION_HANDLE hSession,
     SFTKSession *session;
     SFTKSessionContext *context;
     CK_RV crv = CKR_OK;
+
+    CHECK_FORK();
 
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) 
@@ -1217,6 +1236,8 @@ CK_RV NSC_Digest(CK_SESSION_HANDLE hSession,
     unsigned int maxout = *pulDigestLen;
     CK_RV crv;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_HASH,PR_FALSE,&session);
     if (crv != CKR_OK) return crv;
@@ -1247,6 +1268,8 @@ CK_RV NSC_DigestUpdate(CK_SESSION_HANDLE hSession,CK_BYTE_PTR pPart,
     SFTKSessionContext *context;
     CK_RV crv;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_HASH,PR_TRUE,NULL);
     if (crv != CKR_OK) return crv;
@@ -1265,6 +1288,8 @@ CK_RV NSC_DigestFinal(CK_SESSION_HANDLE hSession,CK_BYTE_PTR pDigest,
     unsigned int maxout = *pulDigestLen;
     unsigned int digestLen;
     CK_RV crv;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession, &context, SFTK_HASH, PR_TRUE, &session);
@@ -1814,6 +1839,8 @@ CK_RV NSC_SignInit(CK_SESSION_HANDLE hSession,
     NSSLOWKEYPrivateKey *privKey;
     SFTKHashSignInfo *info = NULL;
 
+    CHECK_FORK();
+
     /* Block Cipher MACing Algorithms use a different Context init method..*/
     crv = sftk_InitCBCMac(hSession, pMechanism, hKey, CKA_SIGN, SFTK_SIGN);
     if (crv != CKR_FUNCTION_NOT_SUPPORTED) return crv;
@@ -2051,6 +2078,8 @@ sftk_MACUpdate(CK_SESSION_HANDLE hSession,CK_BYTE_PTR pPart,
 CK_RV NSC_SignUpdate(CK_SESSION_HANDLE hSession,CK_BYTE_PTR pPart,
     							CK_ULONG ulPartLen)
 {
+    CHECK_FORK();
+
     return sftk_MACUpdate(hSession, pPart, ulPartLen, SFTK_SIGN);
 }
 
@@ -2068,6 +2097,8 @@ CK_RV NSC_SignFinal(CK_SESSION_HANDLE hSession,CK_BYTE_PTR pSignature,
     unsigned char tmpbuf[SFTK_MAX_MAC_LENGTH];
     CK_RV crv;
     SECStatus rv = SECSuccess;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     *pulSignatureLen = 0;
@@ -2122,6 +2153,8 @@ CK_RV NSC_Sign(CK_SESSION_HANDLE hSession,
     CK_RV crv,crv2;
     SECStatus rv = SECSuccess;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_SIGN,PR_FALSE,&session);
     if (crv != CKR_OK) return crv;
@@ -2163,6 +2196,8 @@ finish:
 CK_RV NSC_SignRecoverInit(CK_SESSION_HANDLE hSession,
 			 CK_MECHANISM_PTR pMechanism,CK_OBJECT_HANDLE hKey)
 {
+    CHECK_FORK();
+
     switch (pMechanism->mechanism) {
     case CKM_RSA_PKCS:
     case CKM_RSA_X_509:
@@ -2180,6 +2215,8 @@ CK_RV NSC_SignRecoverInit(CK_SESSION_HANDLE hSession,
 CK_RV NSC_SignRecover(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
   CK_ULONG ulDataLen, CK_BYTE_PTR pSignature, CK_ULONG_PTR pulSignatureLen)
 {
+    CHECK_FORK();
+
     return NSC_Sign(hSession,pData,ulDataLen,pSignature,pulSignatureLen);
 }
 
@@ -2261,6 +2298,8 @@ CK_RV NSC_VerifyInit(CK_SESSION_HANDLE hSession,
     CK_RV crv = CKR_OK;
     NSSLOWKEYPublicKey *pubKey;
     SFTKHashVerifyInfo *info = NULL;
+
+    CHECK_FORK();
 
     /* Block Cipher MACing Algorithms use a different Context init method..*/
     crv = sftk_InitCBCMac(hSession, pMechanism, hKey, CKA_VERIFY, SFTK_VERIFY);
@@ -2412,6 +2451,8 @@ CK_RV NSC_Verify(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
     CK_RV crv, crv2;
     SECStatus rv;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_VERIFY,PR_FALSE,&session);
     if (crv != CKR_OK) return crv;
@@ -2442,6 +2483,8 @@ CK_RV NSC_Verify(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pData,
 CK_RV NSC_VerifyUpdate( CK_SESSION_HANDLE hSession, CK_BYTE_PTR pPart,
 						CK_ULONG ulPartLen)
 {
+    CHECK_FORK();
+
     return sftk_MACUpdate(hSession, pPart, ulPartLen, SFTK_VERIFY);
 }
 
@@ -2458,6 +2501,8 @@ CK_RV NSC_VerifyFinal(CK_SESSION_HANDLE hSession,
     unsigned char tmpbuf[SFTK_MAX_MAC_LENGTH];
     CK_RV crv;
     SECStatus rv = SECSuccess;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_VERIFY,PR_TRUE,&session);
@@ -2506,6 +2551,8 @@ CK_RV NSC_VerifyRecoverInit(CK_SESSION_HANDLE hSession,
     CK_KEY_TYPE key_type;
     CK_RV crv = CKR_OK;
     NSSLOWKEYPublicKey *pubKey;
+
+    CHECK_FORK();
 
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;
@@ -2565,6 +2612,8 @@ CK_RV NSC_VerifyRecover(CK_SESSION_HANDLE hSession,
     CK_RV crv;
     SECStatus rv;
 
+    CHECK_FORK();
+
     /* make sure we're legal */
     crv = sftk_GetContext(hSession,&context,SFTK_VERIFY_RECOVER,
 							PR_FALSE,&session);
@@ -2599,6 +2648,8 @@ CK_RV NSC_SeedRandom(CK_SESSION_HANDLE hSession, CK_BYTE_PTR pSeed,
 {
     SECStatus rv;
 
+    CHECK_FORK();
+
     rv = RNG_RandomUpdate(pSeed, ulSeedLen);
     return (rv == SECSuccess) ? CKR_OK : CKR_DEVICE_ERROR;
 }
@@ -2608,6 +2659,8 @@ CK_RV NSC_GenerateRandom(CK_SESSION_HANDLE hSession,
     CK_BYTE_PTR	pRandomData, CK_ULONG ulRandomLen)
 {
     SECStatus rv;
+
+    CHECK_FORK();
 
     rv = RNG_GenerateGlobalRandomBytes(pRandomData, ulRandomLen);
     return (rv == SECSuccess) ? CKR_OK : CKR_DEVICE_ERROR;
@@ -2974,6 +3027,8 @@ CK_RV NSC_GenerateKey(CK_SESSION_HANDLE hSession,
      * produce them any more.  The affected algorithm was 3DES.
      */
     PRBool faultyPBE3DES = PR_FALSE;
+
+    CHECK_FORK();
 
     if (!slot) {
         return CKR_SESSION_HANDLE_INVALID;
@@ -3477,6 +3532,8 @@ CK_RV NSC_GenerateKeyPair (CK_SESSION_HANDLE hSession,
     ECPrivateKey *	ecPriv;
     ECParams *          ecParams;
 #endif /* NSS_ENABLE_ECC */
+
+    CHECK_FORK();
 
     if (!slot) {
         return CKR_SESSION_HANDLE_INVALID;
@@ -4133,6 +4190,8 @@ CK_RV NSC_WrapKey(CK_SESSION_HANDLE hSession,
     SFTKObject *key;
     CK_RV crv;
 
+    CHECK_FORK();
+
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) {
     	return CKR_SESSION_HANDLE_INVALID;
@@ -4503,6 +4562,8 @@ CK_RV NSC_UnwrapKey(CK_SESSION_HANDLE hSession,
     SECItem bpki;
     CK_OBJECT_CLASS target_type = CKO_SECRET_KEY;
 
+    CHECK_FORK();
+
     if (!slot) {
         return CKR_SESSION_HANDLE_INVALID;
     }
@@ -4827,6 +4888,7 @@ CK_RV NSC_DeriveKey( CK_SESSION_HANDLE hSession,
     unsigned char   key_block2[MD5_LENGTH];
     PRBool          isFIPS;		
 
+    CHECK_FORK();
 
     if (!slot) {
         return CKR_SESSION_HANDLE_INVALID;
@@ -5803,12 +5865,16 @@ key_and_mac_derive_fail:
  * in parallel with an application. */
 CK_RV NSC_GetFunctionStatus(CK_SESSION_HANDLE hSession)
 {
+    CHECK_FORK();
+
     return CKR_FUNCTION_NOT_PARALLEL;
 }
 
 /* NSC_CancelFunction cancels a function running in parallel */
 CK_RV NSC_CancelFunction(CK_SESSION_HANDLE hSession)
 {
+    CHECK_FORK();
+
     return CKR_FUNCTION_NOT_PARALLEL;
 }
 
@@ -5824,6 +5890,8 @@ CK_RV NSC_GetOperationState(CK_SESSION_HANDLE hSession,
     SFTKSession *session;
     CK_RV crv;
     CK_ULONG pOSLen = *pulOperationStateLen;
+
+    CHECK_FORK();
 
     /* make sure we're legal */
     crv = sftk_GetContext(hSession, &context, SFTK_HASH, PR_TRUE, &session);
@@ -5866,6 +5934,8 @@ CK_RV NSC_SetOperationState(CK_SESSION_HANDLE hSession,
     SFTKContextType type;
     CK_MECHANISM mech;
     CK_RV crv = CKR_OK;
+
+    CHECK_FORK();
 
     while (ulOperationStateLen != 0) {
 	/* get what type of state we're dealing with... */
@@ -5922,6 +5992,8 @@ CK_RV NSC_DigestEncryptUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR  pPart,
 {
     CK_RV crv;
 
+    CHECK_FORK();
+
     crv = NSC_EncryptUpdate(hSession,pPart,ulPartLen, pEncryptedPart,	
 						      pulEncryptedPartLen);
     if (crv != CKR_OK) return crv;
@@ -5938,6 +6010,8 @@ CK_RV NSC_DecryptDigestUpdate(CK_SESSION_HANDLE hSession,
     				CK_BYTE_PTR  pPart, CK_ULONG_PTR pulPartLen)
 {
     CK_RV crv;
+
+    CHECK_FORK();
 
     crv = NSC_DecryptUpdate(hSession,pEncryptedPart, ulEncryptedPartLen, 
 							pPart,	pulPartLen);
@@ -5956,6 +6030,8 @@ CK_RV NSC_SignEncryptUpdate(CK_SESSION_HANDLE hSession, CK_BYTE_PTR  pPart,
 {
     CK_RV crv;
 
+    CHECK_FORK();
+
     crv = NSC_EncryptUpdate(hSession,pPart,ulPartLen, pEncryptedPart,	
 						      pulEncryptedPartLen);
     if (crv != CKR_OK) return crv;
@@ -5972,6 +6048,8 @@ CK_RV NSC_DecryptVerifyUpdate(CK_SESSION_HANDLE hSession,
 				CK_BYTE_PTR  pData, CK_ULONG_PTR pulDataLen)
 {
     CK_RV crv;
+
+    CHECK_FORK();
 
     crv = NSC_DecryptUpdate(hSession,pEncryptedData, ulEncryptedDataLen, 
 							pData,	pulDataLen);
@@ -5990,6 +6068,8 @@ CK_RV NSC_DigestKey(CK_SESSION_HANDLE hSession, CK_OBJECT_HANDLE hKey)
     SFTKObject *key = NULL;
     SFTKAttribute *att;
     CK_RV crv;
+
+    CHECK_FORK();
 
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;

@@ -460,6 +460,23 @@ static const struct mechanismList mechanisms[] = {
 };
 static const CK_ULONG mechanismCount = sizeof(mechanisms)/sizeof(mechanisms[0]);
 
+static PRBool nsc_init = PR_FALSE;
+
+#if defined(XP_UNIX) && !defined(NO_PTHREADS)
+
+#include <pthread.h>
+
+PRBool forked = PR_FALSE;
+
+void ForkedChild(void)
+{
+    if (nsc_init || nsf_init) {
+        forked = PR_TRUE;
+    }
+}
+
+#endif
+
 static char *
 sftk_setStringName(const char *inString, char *buffer, int buffer_length)
 {
@@ -1821,6 +1838,8 @@ sftk_IsWeakKey(unsigned char *key,CK_KEY_TYPE key_type)
 /* return the function list */
 CK_RV NSC_GetFunctionList(CK_FUNCTION_LIST_PTR *pFunctionList)
 {
+    CHECK_FORK();
+
     *pFunctionList = (CK_FUNCTION_LIST_PTR) &sftk_funcList;
     return CKR_OK;
 }
@@ -1828,6 +1847,8 @@ CK_RV NSC_GetFunctionList(CK_FUNCTION_LIST_PTR *pFunctionList)
 /* return the function list */
 CK_RV C_GetFunctionList(CK_FUNCTION_LIST_PTR *pFunctionList)
 {
+    CHECK_FORK();
+
     return NSC_GetFunctionList(pFunctionList);
 }
 
@@ -2333,6 +2354,10 @@ NSC_ModuleDBFunc(unsigned long function,char *parameters, void *args)
     static char *success="Success";
     char **rvstr = NULL;
 
+#if defined(XP_UNIX) && !defined(NO_PTHREADS)
+    if (forked) return NULL;
+#endif
+
     secmod = sftk_getSecmodName(parameters, &dbType, &appName,&filename, &rw);
 
     switch (function) {
@@ -2412,7 +2437,6 @@ sftk_closePeer(PRBool isFIPS)
     return;
 }
 
-static PRBool nsc_init = PR_FALSE;
 extern SECStatus secoid_Init(void);
 
 /* NSC_Initialize initializes the Cryptoki library. */
@@ -2423,7 +2447,6 @@ CK_RV nsc_CommonInitialize(CK_VOID_PTR pReserved, PRBool isFIPS)
     CK_C_INITIALIZE_ARGS *init_args = (CK_C_INITIALIZE_ARGS *) pReserved;
     int i;
     int moduleIndex = isFIPS? NSC_FIPS_MODULE : NSC_NON_FIPS_MODULE;
-
 
     if (isFIPS) {
 	loginWaitTime = PR_SecondsToInterval(1);
@@ -2511,12 +2534,20 @@ loser:
         sftk_InitFreeLists();
     }
 
+#if defined(XP_UNIX) && !defined(NO_PTHREADS)
+    if (CKR_OK == crv) {
+        pthread_atfork(NULL, NULL, ForkedChild);
+    }
+#endif
     return crv;
 }
 
 CK_RV NSC_Initialize(CK_VOID_PTR pReserved)
 {
     CK_RV crv;
+    
+    CHECK_FORK();
+
     if (nsc_init) {
 	return CKR_CRYPTOKI_ALREADY_INITIALIZED;
     }
@@ -2531,8 +2562,6 @@ extern SECStatus SECOID_Shutdown(void);
  * Cryptoki library.*/
 CK_RV nsc_CommonFinalize (CK_VOID_PTR pReserved, PRBool isFIPS)
 {
-    
-
     nscFreeAllSlots(isFIPS ? NSC_FIPS_MODULE : NSC_NON_FIPS_MODULE);
 
     /* don't muck with the globals is our peer is still initialized */
@@ -2566,6 +2595,8 @@ CK_RV NSC_Finalize (CK_VOID_PTR pReserved)
 {
     CK_RV crv;
 
+    CHECK_FORK();
+
     if (!nsc_init) {
 	return CKR_OK;
     }
@@ -2585,6 +2616,8 @@ CK_RV  NSC_GetInfo(CK_INFO_PTR pInfo)
 {
     volatile char c; /* force a reference that won't get optimized away */
 
+    CHECK_FORK();
+    
     c = __nss_softokn_rcsid[0] + __nss_softokn_sccsid[0]; 
     pInfo->cryptokiVersion.major = 2;
     pInfo->cryptokiVersion.minor = 20;
@@ -2613,6 +2646,7 @@ CK_RV nsc_CommonGetSlotList(CK_BBOOL tokenPresent,
 CK_RV NSC_GetSlotList(CK_BBOOL tokenPresent,
 	 		CK_SLOT_ID_PTR	pSlotList, CK_ULONG_PTR pulCount)
 {
+    CHECK_FORK();
     return nsc_CommonGetSlotList(tokenPresent, pSlotList, pulCount, 
 							NSC_NON_FIPS_MODULE);
 }
@@ -2621,6 +2655,9 @@ CK_RV NSC_GetSlotList(CK_BBOOL tokenPresent,
 CK_RV NSC_GetSlotInfo(CK_SLOT_ID slotID, CK_SLOT_INFO_PTR pInfo)
 {
     SFTKSlot *slot = sftk_SlotFromID(slotID, PR_TRUE);
+
+    CHECK_FORK();
+
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
 
     pInfo->firmwareVersion.major = 0;
@@ -2661,6 +2698,8 @@ CK_RV NSC_GetTokenInfo(CK_SLOT_ID slotID,CK_TOKEN_INFO_PTR pInfo)
     SFTKSlot *slot;
     SFTKDBHandle *handle;
 
+    CHECK_FORK();
+    
     if (!nsc_init && !nsf_init) return CKR_CRYPTOKI_NOT_INITIALIZED;
     slot = sftk_SlotFromID(slotID, PR_FALSE);
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
@@ -2742,6 +2781,8 @@ CK_RV NSC_GetMechanismList(CK_SLOT_ID slotID,
 {
     CK_ULONG i;
 
+    CHECK_FORK();
+
     switch (slotID) {
     /* default: */
     case NETSCAPE_SLOT_ID:
@@ -2776,6 +2817,8 @@ CK_RV NSC_GetMechanismInfo(CK_SLOT_ID slotID, CK_MECHANISM_TYPE type,
     PRBool isPrivateKey;
     CK_ULONG i;
 
+    CHECK_FORK();
+    
     switch (slotID) {
     case NETSCAPE_SLOT_ID:
 	isPrivateKey = PR_FALSE;
@@ -2832,6 +2875,8 @@ CK_RV NSC_InitToken(CK_SLOT_ID slotID,CK_CHAR_PTR pPin,
     SECStatus rv;
     unsigned int i;
     SFTKObject *object;
+
+    CHECK_FORK();
 
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
 
@@ -2897,6 +2942,7 @@ CK_RV NSC_InitPIN(CK_SESSION_HANDLE hSession,
     SECStatus rv;
     CK_RV crv = CKR_SESSION_HANDLE_INVALID;
 
+    CHECK_FORK();
     
     sp = sftk_SessionFromHandle(hSession);
     if (sp == NULL) {
@@ -2979,6 +3025,7 @@ CK_RV NSC_SetPIN(CK_SESSION_HANDLE hSession, CK_CHAR_PTR pOldPin,
     SECStatus rv;
     CK_RV crv = CKR_SESSION_HANDLE_INVALID;
 
+    CHECK_FORK();
     
     sp = sftk_SessionFromHandle(hSession);
     if (sp == NULL) {
@@ -3056,6 +3103,8 @@ CK_RV NSC_OpenSession(CK_SLOT_ID slotID, CK_FLAGS flags,
     SFTKSession *session;
     SFTKSession *sameID;
 
+    CHECK_FORK();
+    
     slot = sftk_SlotFromID(slotID, PR_FALSE);
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
 
@@ -3107,6 +3156,8 @@ CK_RV NSC_CloseSession(CK_SESSION_HANDLE hSession)
     PRBool sessionFound;
     PZLock *lock;
 
+    CHECK_FORK();
+
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;
     slot = sftk_SlotFromSession(session);
@@ -3152,6 +3203,8 @@ CK_RV NSC_CloseAllSessions (CK_SLOT_ID slotID)
 {
     SFTKSlot *slot;
 
+    CHECK_FORK();
+
     slot = sftk_SlotFromID(slotID, PR_FALSE);
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
 
@@ -3165,6 +3218,8 @@ CK_RV NSC_GetSessionInfo(CK_SESSION_HANDLE hSession,
     						CK_SESSION_INFO_PTR pInfo)
 {
     SFTKSession *session;
+
+    CHECK_FORK();
 
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;
@@ -3186,6 +3241,7 @@ CK_RV NSC_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
     CK_RV crv;
     char pinStr[SFTK_MAX_PIN+1];
 
+    CHECK_FORK();
 
     /* get the slot */
     slot = sftk_SlotFromSessionHandle(hSession);
@@ -3291,6 +3347,8 @@ CK_RV NSC_Logout(CK_SESSION_HANDLE hSession)
     SFTKSlot *slot = sftk_SlotFromSessionHandle(hSession);
     SFTKSession *session;
     SFTKDBHandle *handle;
+
+    CHECK_FORK();
 
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
@@ -3425,6 +3483,8 @@ CK_RV NSC_CreateObject(CK_SESSION_HANDLE hSession,
     CK_RV crv;
     int i;
 
+    CHECK_FORK();
+
     *phObject = CK_INVALID_HANDLE;
 
     if (slot == NULL) {
@@ -3491,6 +3551,8 @@ CK_RV NSC_CopyObject(CK_SESSION_HANDLE hSession,
     CK_RV crv = CKR_OK;
     SFTKSlot *slot = sftk_SlotFromSessionHandle(hSession);
     int i;
+
+    CHECK_FORK();
 
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
@@ -3570,7 +3632,10 @@ CK_RV NSC_CopyObject(CK_SESSION_HANDLE hSession,
 
 /* NSC_GetObjectSize gets the size of an object in bytes. */
 CK_RV NSC_GetObjectSize(CK_SESSION_HANDLE hSession,
-    			CK_OBJECT_HANDLE hObject, CK_ULONG_PTR pulSize) {
+    			CK_OBJECT_HANDLE hObject, CK_ULONG_PTR pulSize)
+{
+    CHECK_FORK();
+
     *pulSize = 0;
     return CKR_OK;
 }
@@ -3578,7 +3643,8 @@ CK_RV NSC_GetObjectSize(CK_SESSION_HANDLE hSession,
 
 /* NSC_GetAttributeValue obtains the value of one or more object attributes. */
 CK_RV NSC_GetAttributeValue(CK_SESSION_HANDLE hSession,
-    CK_OBJECT_HANDLE hObject,CK_ATTRIBUTE_PTR pTemplate,CK_ULONG ulCount) {
+    CK_OBJECT_HANDLE hObject,CK_ATTRIBUTE_PTR pTemplate,CK_ULONG ulCount)
+{
     SFTKSlot *slot = sftk_SlotFromSessionHandle(hSession);
     SFTKSession *session;
     SFTKObject *object;
@@ -3586,6 +3652,8 @@ CK_RV NSC_GetAttributeValue(CK_SESSION_HANDLE hSession,
     PRBool sensitive;
     CK_RV crv;
     int i;
+
+    CHECK_FORK();
 
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
@@ -3677,7 +3745,8 @@ CK_RV NSC_GetAttributeValue(CK_SESSION_HANDLE hSession,
 
 /* NSC_SetAttributeValue modifies the value of one or more object attributes */
 CK_RV NSC_SetAttributeValue (CK_SESSION_HANDLE hSession,
- CK_OBJECT_HANDLE hObject,CK_ATTRIBUTE_PTR pTemplate,CK_ULONG ulCount) {
+ CK_OBJECT_HANDLE hObject,CK_ATTRIBUTE_PTR pTemplate,CK_ULONG ulCount)
+{
     SFTKSlot *slot = sftk_SlotFromSessionHandle(hSession);
     SFTKSession *session;
     SFTKAttribute *attribute;
@@ -3686,6 +3755,8 @@ CK_RV NSC_SetAttributeValue (CK_SESSION_HANDLE hSession,
     CK_RV crv = CKR_OK;
     CK_BBOOL legal;
     int i;
+
+    CHECK_FORK();
 
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
@@ -3933,6 +4004,8 @@ CK_RV NSC_FindObjectsInit(CK_SESSION_HANDLE hSession,
     PRBool tokenOnly = PR_FALSE;
     CK_RV crv = CKR_OK;
     PRBool isLoggedIn;
+
+    CHECK_FORK();
     
     if (slot == NULL) {
 	return CKR_SESSION_HANDLE_INVALID;
@@ -4005,6 +4078,8 @@ CK_RV NSC_FindObjects(CK_SESSION_HANDLE hSession,
     int	transfer;
     int left;
 
+    CHECK_FORK();
+
     *pulObjectCount = 0;
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;
@@ -4038,6 +4113,8 @@ CK_RV NSC_FindObjectsFinal(CK_SESSION_HANDLE hSession)
     SFTKSession *session;
     SFTKSearchResults *search;
 
+    CHECK_FORK();
+
     session = sftk_SessionFromHandle(hSession);
     if (session == NULL) return CKR_SESSION_HANDLE_INVALID;
     search = session->search;
@@ -4054,5 +4131,8 @@ CK_RV NSC_FindObjectsFinal(CK_SESSION_HANDLE hSession)
 CK_RV NSC_WaitForSlotEvent(CK_FLAGS flags, CK_SLOT_ID_PTR pSlot,
 							 CK_VOID_PTR pReserved)
 {
+    CHECK_FORK();
+
     return CKR_FUNCTION_NOT_SUPPORTED;
 }
+

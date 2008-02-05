@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: softoken.h,v 1.16 2007-08-09 22:36:18 rrelyea%redhat.com Exp $ */
+/* $Id: softoken.h,v 1.17 2008-02-05 05:33:37 julien.pierre.boogz%sun.com Exp $ */
 
 #ifndef _SOFTOKEN_H_
 #define _SOFTOKEN_H_
@@ -260,6 +260,24 @@ extern void sftk_AuditDigestKey(CK_SESSION_HANDLE hSession,
 ** FIPS 140-2 Error state
 */
 extern PRBool sftk_fatalError;
+
+/*
+** macros to check for forked child after C_Initialize
+*/
+#if defined(XP_UNIX) && !defined(NO_PTHREADS)
+
+extern PRBool forked;
+
+extern void ForkedChild(void);
+
+#define CHECK_FORK() \
+    do { if (forked) return CKR_DEVICE_ERROR; } while (0)
+
+#else
+
+#define CHECK_FORK()
+
+#endif
 
 SEC_END_PROTOS
 
