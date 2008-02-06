@@ -1016,12 +1016,6 @@
 		DE1EBDC30D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */; };
 		DE1EBDC40D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */; };
 		DE1EBDC50D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */; };
-		DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
-		DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
-		DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
-		DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
-		DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
-		DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
 		DE62E4300B72B3D200142851 /* libauth.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = DE62E42F0B72B3D200142851 /* libauth.dylib */; };
 		DE62E4320B72B50C00142851 /* libauth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE62E4310B72B50C00142851 /* libauth.a */; };
 		DE6D27E70C1A014D00292043 /* CHPermissionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */; };
@@ -2493,9 +2487,6 @@
 		DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXSize1.properties; path = ../dist/bin/res/fonts/mathfontSTIXSize1.properties; sourceTree = SOURCE_ROOT; };
 		DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXNonUnicode.properties; path = ../dist/bin/res/fonts/mathfontSTIXNonUnicode.properties; sourceTree = SOURCE_ROOT; };
 		DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontStandardSymbolsL.properties; path = ../dist/bin/res/fonts/mathfontStandardSymbolsL.properties; sourceTree = SOURCE_ROOT; };
-		DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = BloglinesFeedHandler.app; path = generated/feedhandlers/BloglinesFeedHandler.app; sourceTree = SOURCE_ROOT; };
-		DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = GoogleFeedHandler.app; path = generated/feedhandlers/GoogleFeedHandler.app; sourceTree = SOURCE_ROOT; };
-		DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; name = MyYahooFeedHandler.app; path = generated/feedhandlers/MyYahooFeedHandler.app; sourceTree = SOURCE_ROOT; };
 		DE62E42F0B72B3D200142851 /* libauth.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libauth.dylib; path = ../dist/bin/components/libauth.dylib; sourceTree = SOURCE_ROOT; };
 		DE62E4310B72B50C00142851 /* libauth.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libauth.a; path = ../staticlib/components/libauth.a; sourceTree = SOURCE_ROOT; };
 		DE6D27E30C1A013800292043 /* CHPermissionManager.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHPermissionManager.h; path = src/embedding/CHPermissionManager.h; sourceTree = "<group>"; };
@@ -3363,7 +3354,6 @@
 			isa = PBXGroup;
 			children = (
 				3FBDC84C08253C7100D7F8E0 /* Form Fill Tables */,
-				DE579FFA0D43FB3D0057C437 /* Feed Handlers */,
 				F58A94F2023F10CA010001CA /* Nibs */,
 				F5264FCB020D4C25010001CA /* Toolbar-Browser */,
 				F50BC9A40239FA8D010001CA /* images */,
@@ -3786,16 +3776,6 @@
 				C795737C0D3531100028A773 /* Plug-ins */,
 			);
 			name = "Web Search";
-			sourceTree = "<group>";
-		};
-		DE579FFA0D43FB3D0057C437 /* Feed Handlers */ = {
-			isa = PBXGroup;
-			children = (
-				DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */,
-				DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */,
-				DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */,
-			);
-			name = "Feed Handlers";
 			sourceTree = "<group>";
 		};
 		E091C0D006225EA3007D9E8F /* cursors */ = {
@@ -5002,9 +4982,6 @@
 				C7FF536D0D35281F00194776 /* search_editor_action.png in Resources */,
 				C7FF53720D35285400194776 /* SearchEngineEditor.nib in Resources */,
 				C7FF53760D35286800194776 /* WebSearchEngines.plist in Resources */,
-				DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
-				DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
-				DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5195,9 +5172,6 @@
 				C7FF536F0D35281F00194776 /* search_editor_action.png in Resources */,
 				C7FF53730D35285400194776 /* SearchEngineEditor.nib in Resources */,
 				C7FF53770D35286800194776 /* WebSearchEngines.plist in Resources */,
-				DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
-				DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
-				DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
