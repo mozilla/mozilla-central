@@ -829,7 +829,10 @@ CLONG="-c ABCDEF:C001:C002:C003:C004:C005:C006:C007:C008:C009:C00A:C00B:C00C:C00
 
 if [ -z  "$DO_REM_ST" -a -z  "$DO_DIST_ST" ] ; then
 
-    ulimit -n 1000 # make sure we have enough file descriptors
+    if [ "${OS_ARCH}" != "WINNT" ]; then
+        ulimit -n 1000 # make sure we have enough file descriptors
+    fi
+
     ssl_init
 
     # save the directories as setup by init.sh
