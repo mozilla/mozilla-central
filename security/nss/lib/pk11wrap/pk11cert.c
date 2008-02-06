@@ -2226,39 +2226,10 @@ PK11_FindCertInSlot(PK11SlotInfo *slot, CERTCertificate *cert, void *wincx)
     return pk11_getcerthandle(slot,cert,theTemplate,tsize);
 }
 
-SECItem *
-PK11_GetKeyIDFromCert(CERTCertificate *cert, void *wincx)
-{
-    CK_OBJECT_HANDLE handle;
-    PK11SlotInfo *slot = NULL;
-    CK_ATTRIBUTE theTemplate[] = {
-	{ CKA_ID, NULL, 0 },
-    };
-    int tsize = sizeof(theTemplate)/sizeof(theTemplate[0]);
-    SECItem *item = NULL;
-    CK_RV crv;
+/* Looking for PK11_GetKeyIDFromCert?  
+ * Use PK11_GetLowLevelKeyIDForCert instead.
+ */
 
-    handle = PK11_FindObjectForCert(cert,wincx,&slot);
-    if (handle == CK_INVALID_HANDLE) {
-	goto loser;
-    }
-
-    crv = PK11_GetAttributes(NULL,slot,handle,theTemplate,tsize);
-    if (crv != CKR_OK) {
-	PORT_SetError( PK11_MapError(crv) );
-	goto loser;
-    }
-
-    item = PORT_ZNew(SECItem);
-    if (item) {
-        item->data = (unsigned char*) theTemplate[0].pValue;
-        item->len = theTemplate[0].ulValueLen;
-    }
-
-loser:
-    PK11_FreeSlot(slot);
-    return item;
-}
 
 struct listCertsStr {
     PK11CertListType type;

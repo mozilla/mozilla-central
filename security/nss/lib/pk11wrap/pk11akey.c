@@ -1928,32 +1928,10 @@ PK11_MakeIDFromPubKey(SECItem *pubKeyData)
     return certCKA_ID;
 }
 
-SECItem *
-PK11_GetKeyIDFromPrivateKey(SECKEYPrivateKey *key, void *wincx)
-{
-    CK_ATTRIBUTE theTemplate[] = {
-	{ CKA_ID, NULL, 0 },
-    };
-    int tsize = sizeof(theTemplate)/sizeof(theTemplate[0]);
-    SECItem *item = NULL;
-    CK_RV crv;
+/* Looking for PK11_GetKeyIDFromPrivateKey?
+ * Call PK11_GetLowLevelKeyIDForPrivateKey instead.
+ */
 
-    crv = PK11_GetAttributes(NULL,key->pkcs11Slot,key->pkcs11ID,
-							theTemplate,tsize);
-    if (crv != CKR_OK) {
-	PORT_SetError( PK11_MapError(crv) );
-	goto loser;
-    }
-
-    item = PORT_ZNew(SECItem);
-    if (item) {
-        item->data = (unsigned char*) theTemplate[0].pValue;
-        item->len = theTemplate[0].ulValueLen;
-    }
-
-loser:
-    return item;
-}
 
 SECItem *
 PK11_GetLowLevelKeyIDForPrivateKey(SECKEYPrivateKey *privKey)
