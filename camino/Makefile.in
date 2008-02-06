@@ -45,6 +45,7 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 DIRS = \
+	feedhandlers \
 	flashblock \
 	idl \
 	striptease \

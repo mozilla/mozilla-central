@@ -41,13 +41,21 @@ VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
+DEREZ = /Developer/Tools/DeRez
+REZ   = /Developer/Tools/Rez
+
 FEED_HANDLERS = \
+	BloglinesFeedHandler \
 	GoogleFeedHandler \
 	MyYahooFeedHandler \
-	BloglinesFeedHandler \
 	$(NULL)
 
 GENERATED_DIR = ../generated/feedhandlers
+
+GARBAGE += \
+	$(patsubst %, %.r, $(FEED_HANDLERS)) \
+	$(patsubst %, %.applescript, $(FEED_HANDLERS)) \
+	$(NULL)
 
 GARBAGE_DIRS += $(GENERATED_DIR)
 
@@ -71,6 +79,8 @@ $(GENERATED_FEED_HANDLERS): \
 	mkdir -p $(dir $@)
 	@set -e ; \
 	APP=$@ ; \
+	UTF16_SCRIPT_FILE=$*.applescript ; \
+	R_FILE=$*.r ; \
 	CFBUNDLE_NAME=$* ; \
 	INFO_TXT=$< ; \
 	ICNS_FILE=$(srcdir)/$*.icns ; \
@@ -80,7 +90,12 @@ $(GENERATED_FEED_HANDLERS): \
 	set -x ; \
 	rm -rf $$APP ; \
 	sed -e "s@%FEED_HANDLER_URL%@$$URL@" $(SCRIPT_FILE) | \
-	  osacompile -a $(OS_TEST) -x -o $$APP ; \
+	  iconv -f UTF-8 -t UTF-16 > $$UTF16_SCRIPT_FILE ; \
+	osacompile -a $(OS_TEST) -x -o $$APP $$UTF16_SCRIPT_FILE ; \
+	$(DEREZ) $$APP/Contents/Resources/applet.rsrc -useDF > \
+	  $$R_FILE ; \
+	$(REZ) $$R_FILE -o \
+	  $$APP/Contents/Resources/applet.rsrc -useDF ; \
 	cp $$ICNS_FILE $$APP/Contents/Resources/applet.icns ; \
 	printf APPL$$CREATOR > $$APP/Contents/PkgInfo ; \
 	sed -e "s/%FEED_HANDLER_CFBUNDLE_NAME%/$$CFBUNDLE_NAME/" \

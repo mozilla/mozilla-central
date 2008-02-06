@@ -39,7 +39,7 @@ property feedProtocols : {"feed", "feeds"}
 property httpProtocols : {"http", "https"}
 
 on open location inURL
-		
+
 	(*
 	Encode any common non-alpha characters in URLs--except colon (:), which is
 	handled below--to improve compatibility with URL parsers of major web feed
@@ -75,7 +75,7 @@ on open location inURL
 	set partiallyEncodedURI to (text items 1 through end of theUnencodedItems) ¬
 		as string
 	set AppleScript's text item delimiters to theTIDs
-	
+
 	(*
 	We're going to split the inURL string on colons (:) and append non-"feed"
 	fragments to build the full URL we send to the handler.  We do this because
@@ -93,13 +93,13 @@ on open location inURL
 	set AppleScript's text item delimiters to ":"
 	set theItems to text items of partiallyEncodedURI
 	set AppleScript's text item delimiters to "%3A"
-	
+
 	(* 
 	If the first text item is feed, get rid of it.  If the second item is also
 	feed, get rid of it.  Then, if the third text item is http or https, take
 	it and the whole rest of the string (it's a valid url).  Otherwise, append 
 	http in front of the third item.
-	
+
 	If the second text item is http or https, take it and the whole rest of the
 	string (it's a valid url).  Else ( //server.tld/url ) append http to the 
 	rest of the string.  This works fine as long as we're never handed URIs in
@@ -107,7 +107,7 @@ on open location inURL
 	Restore the TIDs when we're done constructing the URL we'll send back to 
 	Camino.
 	*)
-	
+
 	if the first text item of theItems is in feedProtocols then
 		if the second text item of theItems is in feedProtocols then
 			if the third text item of theItems is in httpProtocols then
@@ -127,9 +127,9 @@ on open location inURL
 			end if
 		end if
 	end if
-	
+
 	set AppleScript's text item delimiters to theTIDs
-		
+
 	my passFeedtoHandlerURL(feedURLasHTTP)
 end open location
 
