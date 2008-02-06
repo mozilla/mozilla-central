@@ -115,7 +115,7 @@ var unifinderObserver = {
             // those operations and refresh as soon as the unifinder is shown
             // again.
             gUnifinderNeedsRefresh = true;
-            unifinderTreeView.clearEvents();
+            unifinderTreeView.clearItems();
         }
         if (!this.mInBatch) {
             refreshEventTree();
