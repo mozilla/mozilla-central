@@ -122,14 +122,13 @@ function SelectAndScrollToKey(aMsgKey)
 // A helper routine called after a folder is loaded to make sure
 // we select and scroll to the correct message (could be the first new message,
 // could be the last displayed message, etc.)
-// returns true if we ended up scrolling to a message
 function ScrollToMessageAfterFolderLoad(folder)
 {
   var scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
       ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
   if (!scrolled && folder && pref.getBoolPref("mailnews.remember_selected_message"))
   {
-    // if we failed to scroll to a new message,
+    // If we failed to scroll to a new message,
     // reselect the last selected message
     var lastMessageLoaded = folder.lastMessageLoaded;
     if (lastMessageLoaded != nsMsgKey_None)
@@ -159,8 +158,6 @@ function ScrollToMessageAfterFolderLoad(folder)
     if (!scrolled)
       EnsureRowInThreadTreeIsVisible(0);
   }
-
-  return scrolled;
 }
 
 // the folderListener object
@@ -189,6 +186,7 @@ var folderListener = {
       var eventType = event.toString();
       if (eventType == "FolderLoaded") {
         if (folder) {
+          var scrolled = false;
           var msgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
           var uri = folder.URI;
           var rerootingFolder = (uri == gCurrentFolderToReroot);
@@ -225,9 +223,8 @@ var folderListener = {
               gCurrentLoadingFolderViewType = 0;
               gCurrentLoadingFolderViewFlags = 0;
 
-              var scrolled = false;
-
-              LoadCurrentlyDisplayedMessage();  //used for rename folder msg loading after folder is loaded.
+              // Used for rename folder msg loading after folder is loaded.
+              scrolled = LoadCurrentlyDisplayedMessage();
 
               if (gStartMsgKey != nsMsgKey_None) {
                 scrolled = SelectAndScrollToKey(gStartMsgKey);
@@ -249,7 +246,7 @@ var folderListener = {
             // Scroll to message for virtual folders is done in
             // gSearchNotificationListener.OnSearchDone (see searchBar.js).
             if (!scrolled && !(gMsgFolderSelected.flags & MSG_FOLDER_FLAG_VIRTUAL))
-              scrolled = ScrollToMessageAfterFolderLoad(msgFolder);   
+              ScrollToMessageAfterFolderLoad(msgFolder);
             SetBusyCursor(window, false);
           }
           if (gNotifyDefaultInboxLoadedOnStartup && (folder.flags & 0x1000))
@@ -589,7 +586,8 @@ function HandleCompactCompleted(folder)
 
 function LoadCurrentlyDisplayedMessage()
 {
-  if (gCurrentlyDisplayedMessage != nsMsgViewIndex_None)
+  var scrolled = (gCurrentlyDisplayedMessage != nsMsgViewIndex_None);
+  if (scrolled)
   {
     var treeView = gDBView.QueryInterface(Components.interfaces.nsITreeView);
     var treeSelection = treeView.selection;
@@ -600,6 +598,7 @@ function LoadCurrentlyDisplayedMessage()
     SetFocusThreadPane();
     gCurrentlyDisplayedMessage = nsMsgViewIndex_None; //reset
   }
+  return scrolled;
 }
 
 function IsCurrentLoadedFolder(folder)
@@ -1313,6 +1312,7 @@ function GetUnreadCountElement()
     gUnreadCount = document.getElementById('unreadMessageCount');
   return gUnreadCount;
 }
+
 function GetTotalCountElement()
 {
   if (!gTotalCount)
