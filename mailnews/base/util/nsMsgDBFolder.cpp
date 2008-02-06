@@ -4768,6 +4768,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
 
   // might want to use a state var instead of bools.
   PRBool inMsgBody = PR_FALSE, msgBodyIsHtml = PR_FALSE, lookingForBoundary = PR_FALSE;
+  PRBool lookingForCharset = PR_FALSE;
   PRBool haveBoundary = PR_FALSE;
   PRBool isBase64 = PR_FALSE;
   PRBool reachedEndBody = bytesToRead >= len;
@@ -4832,12 +4833,18 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
         continue;
       }
       if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Type:"),
-                           nsCaseInsensitiveCStringComparator()))
+                           nsCaseInsensitiveCStringComparator()) ||
+                           lookingForCharset)
       {
         // look for a charset in the Content-Type header line, we'll take the first one we find.
         nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv) && charset.IsEmpty())
           mimehdrpar->GetParameter(curLine, "charset", EmptyCString(), false, nsnull, charset);
+        // if the Content-Type header is multiline, look for a charset in other lines
+        if (charset.IsEmpty())
+          lookingForCharset = PR_TRUE;
+        else if (lookingForCharset || (curLine[0] != ' ' && curLine[0] != '\t'))
+          lookingForCharset = PR_FALSE;
         if (curLine.Find("text/html", PR_TRUE) >= 0)
           msgBodyIsHtml = PR_TRUE;
         else if (curLine.Find("multipart/", PR_TRUE) >= 0)

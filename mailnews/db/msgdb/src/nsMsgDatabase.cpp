@@ -3135,8 +3135,13 @@ nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_to
       nsAutoString decodedStr;
       nsCString charSet;
       PRBool characterSetOverride;
-      m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
+      err = RowCellColumnToCharPtr(row, m_messageCharSetColumnToken, getter_Copies(charSet));
+      if (NS_FAILED(err) || charSet.IsEmpty() || charSet.Equals("us-ascii") ||
+          characterSetOverride)
+      {
+        m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
+      }
 
       err = m_mimeConverter->DecodeMimeHeader(nakedString, resultStr,
                                               charSet.get(),
@@ -3165,8 +3170,13 @@ nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_t
         nsCString resultStr;
         nsCString charset;
         PRBool characterSetOverride;
-        m_dbFolderInfo->GetEffectiveCharacterSet(charset);
         m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
+        ret = RowCellColumnToCharPtr(row, m_messageCharSetColumnToken, getter_Copies(charset));
+        if (NS_FAILED(ret) || charset.IsEmpty() || charset.Equals("us-ascii") ||
+            characterSetOverride)
+        {
+          m_dbFolderInfo->GetEffectiveCharacterSet(charset);
+        }
 
         ret = converter->DecodeMimeHeader(cSender, getter_Copies(resultStr),
           charset.get(), characterSetOverride);
@@ -3228,8 +3238,13 @@ nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token co
       nsCString decodedStr;
       nsCString charSet;
       PRBool characterSetOverride;
-      m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       m_dbFolderInfo->GetCharacterSetOverride(&characterSetOverride);
+      err = RowCellColumnToCharPtr(row, m_messageCharSetColumnToken, getter_Copies(charSet));
+      if (NS_FAILED(err) || charSet.IsEmpty() || charSet.Equals("us-ascii") ||
+          characterSetOverride)
+      {
+        m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
+      }
 
       err = m_mimeConverter->DecodeMimeHeader(nakedString,
                                               getter_Copies(decodedStr),
