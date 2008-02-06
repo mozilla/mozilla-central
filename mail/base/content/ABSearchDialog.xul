@@ -97,11 +97,11 @@
                        datasources="rdf:addressdirectory"
                        sortActive="true"
                        sortDirection="ascending"
-                       sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort">
+                       sortResource="http://home.netscape.com/NC-rdf#DirTreeNameSort"
+                       oncommand="onChooseDirectory(event.target);">
               <template>
                 <rule nc:IsMailList="false">
                   <menuitem uri="..."
-                            oncommand="onChooseDirectory(event.target)"
                             label="rdf:http://home.netscape.com/NC-rdf#DirName"
                             value="rdf:http://home.netscape.com/NC-rdf#DirUri"/>
                 </rule>
@@ -109,7 +109,7 @@
             </menupopup>
           </menulist>
           <spacer flex="10"/>
-          <button id="search-button" oncommand="onSearchButton(event);" default="true" />
+          <button id="search-button" oncommand="onSearchButton(event);" default="true"/>
         </hbox>
         <hbox align="center">
           <spacer flex="1"/>
@@ -214,12 +214,11 @@
       </hbox>      
     </vbox>
 
-  <statusbar class="chromeclass-status" id="status-bar"> 
-    <statusbarpanel id="statusText" crop="right" flex="1"/>   
+  <statusbar class="chromeclass-status" id="status-bar">
+    <statusbarpanel id="statusText" crop="right" flex="1"/>
     <statusbarpanel class="statusbarpanel-progress" id="statusbar-progresspanel">
       <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
-    </statusbarpanel>    
-  </statusbar> 
-
+    </statusbarpanel>
+  </statusbar>
 
 </window>
