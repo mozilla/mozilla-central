@@ -1997,46 +1997,6 @@ PK11_FindCertFromDERCertItem(PK11SlotInfo *slot, SECItem *inDerCert,
     return c ? STAN_GetCERTCertificateOrRelease(c) : NULL;
 } 
 
-/* mcgreer 3.4 -- nobody uses this, ignoring */
-/*
- * return the certificate associated with a derCert 
- */
-CERTCertificate *
-PK11_FindCertFromDERSubjectAndNickname(PK11SlotInfo *slot, 
-					CERTCertificate *cert, 
-					char *nickname, void *wincx)
-{
-    CK_OBJECT_CLASS certClass = CKO_CERTIFICATE;
-    CK_ATTRIBUTE theTemplate[] = {
-	{ CKA_SUBJECT, NULL, 0 },
-	{ CKA_LABEL, NULL, 0 },
-	{ CKA_CLASS, NULL, 0 }
-    };
-    /* if you change the array, change the variable below as well */
-    int tsize = sizeof(theTemplate)/sizeof(theTemplate[0]);
-    CK_OBJECT_HANDLE certh;
-    CK_ATTRIBUTE *attrs = theTemplate;
-    SECStatus rv;
-
-    PK11_SETATTRS(attrs, CKA_SUBJECT, cert->derSubject.data, 
-						cert->derSubject.len); attrs++;
-    PK11_SETATTRS(attrs, CKA_LABEL, nickname, PORT_Strlen(nickname));
-    PK11_SETATTRS(attrs, CKA_CLASS, &certClass, sizeof(certClass));
-
-    /*
-     * issue the find
-     */
-    rv = pk11_AuthenticateUnfriendly(slot, PR_TRUE, wincx);
-    if (rv != SECSuccess) return NULL;
-
-    certh = pk11_getcerthandle(slot,cert,theTemplate,tsize);
-    if (certh == CK_INVALID_HANDLE) {
-	return NULL;
-    }
-
-    return PK11_MakeCertFromHandle(slot, certh, NULL);
-}
-
 /*
  * import a cert for a private key we have already generated. Set the label
  * on both to be the nickname.

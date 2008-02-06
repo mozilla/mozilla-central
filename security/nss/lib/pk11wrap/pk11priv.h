@@ -161,10 +161,6 @@ SECStatus PK11_TraverseCertsForSubject(CERTCertificate *cert,
 	SECStatus(*callback)(CERTCertificate *, void *), void *arg);
 CERTCertificate *PK11_FindCertFromDERCertItem(PK11SlotInfo *slot, 
 					  SECItem *derCert, void *wincx);
-CERTCertificate *PK11_FindCertFromDERSubjectAndNickname(
-					PK11SlotInfo *slot, 
-					CERTCertificate *cert, char *nickname,
-					void *wincx);
 SECStatus PK11_GetKEAMatchedCerts(PK11SlotInfo *slot1,
    PK11SlotInfo *slot2, CERTCertificate **cert1, CERTCertificate **cert2);
 SECStatus PK11_TraverseCertsInSlot(PK11SlotInfo *slot,
