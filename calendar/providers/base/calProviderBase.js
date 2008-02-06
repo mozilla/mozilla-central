@@ -73,6 +73,25 @@ calProviderBase.prototype = {
 
 //         ASSERT(this.mProperties.toSource() == "({})", "setProperty calls before id has been set!");
 
+        // xxx todo: move this code hack when migrating storage prefs to moz prefs,
+        //           presumably with bug 378754
+        var calMgr = getCalendarManager();
+        var this_ = this;
+        function takeOverIfNotPresent(oldPref, newPref, dontDeleteOldPref) {
+            var val = calMgr.getCalendarPref_(this_, oldPref);
+            if (val !== null) {
+                if (!dontDeleteOldPref) {
+                    calMgr.deleteCalendarPref_(this_, oldPref);
+                }
+                if (calMgr.getCalendarPref_(this_, newPref) === null) {
+                    calMgr.setCalendarPref_(this_, newPref, val);
+                }
+            }
+        }
+        // takeover lightning calendar visibility from 0.5:
+        takeOverIfNotPresent("lightning-main-in-composite", "calendar-main-in-composite");
+        takeOverIfNotPresent("lightning-main-default", "calendar-main-default");
+
         return aValue;
     },
 
