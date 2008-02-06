@@ -210,10 +210,7 @@ calRecurrenceDate::GetIcalProperty(calIIcalProperty **aProp)
     if (!mDate)
         return NS_ERROR_FAILURE;
 
-    nsCOMPtr<calIICSService> const icsService(do_GetService(kCalICSService));
-    if (!icsService)
-        return NS_ERROR_NOT_AVAILABLE;
-    nsresult rc =icsService->CreateIcalProperty(
+    nsresult rc = cal::getICSService()->CreateIcalProperty(
         (mIsNegative ? nsDependentCString("EXDATE") : nsDependentCString("RDATE")), aProp);
     if (NS_FAILED(rc))
         return rc;

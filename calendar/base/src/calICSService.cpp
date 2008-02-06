@@ -759,23 +759,30 @@ nsresult calIcalProperty::setDatetime_(calIcalComponent * parent,
 
     icaltimetype itt;
     dt->ToIcalTime(&itt);
-    icalvalue * const val = icalvalue_new_datetime(itt);
-    CAL_ENSURE_MEMORY(val);
-    icalproperty_set_value(prop, val);
 
-    if (!itt.is_utc && itt.zone) {
-        if (parent) {
+    if (parent) {
+        if (!itt.is_utc && itt.zone) {
             nsCOMPtr<calITimezone> tz;
             nsresult rv = dt->GetTimezone(getter_AddRefs(tz));
             NS_ENSURE_SUCCESS(rv, rv);
             rv = parent->getParentVCalendarOrThis()->AddTimezoneReference(tz);
             NS_ENSURE_SUCCESS(rv, rv);
-        } // else set TZID even though no containing component
-          // is present to add the VTIMEZONE to
-        icalparameter * const param = icalparameter_new_from_value_string(
-            ICAL_TZID_PARAMETER, icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone)));
-        icalproperty_set_parameter(prop, param);
+            icalparameter * const param = icalparameter_new_from_value_string(
+                ICAL_TZID_PARAMETER, icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone)));
+            icalproperty_set_parameter(prop, param);
+        }
+    } else if (!itt.is_date && !itt.is_utc && itt.zone) {
+        // no parent to add the CTIMEZONE to: coerce DATETIMEs to UTC, DATEs to floating
+        icaltimezone_convert_time(&itt,
+                                  const_cast<icaltimezone *>(itt.zone),
+                                  icaltimezone_get_utc_timezone());
+        itt.zone = icaltimezone_get_utc_timezone();
+        itt.is_utc = 1;
     }
+
+    icalvalue * const val = icalvalue_new_datetime(itt);
+    CAL_ENSURE_MEMORY(val);
+    icalproperty_set_value(prop, val);
     return NS_OK;
 }
 
