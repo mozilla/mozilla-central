@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Sun Microsystems, Inc.
+ *   Red Hat, Inc.
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -792,6 +793,7 @@ PKIX_ERRORENTRY(OBJECTNOTLOGGER,Object is not a Logger),
 PKIX_ERRORENTRY(OBJECTNOTMONITORLOCK,Object is not a MonitorLock),
 PKIX_ERRORENTRY(OBJECTNOTMUTEX,Object is not a Mutex),
 PKIX_ERRORENTRY(OBJECTNOTNAMECONSTRAINTSCHECKERSTATE,Object is not a name constraints checker state),
+PKIX_ERRORENTRY(OBJECTNOTOCSPCERTID,Object is not an OcspCertID),
 PKIX_ERRORENTRY(OBJECTNOTOCSPCHECKER,Object is not an OCSPChecker),
 PKIX_ERRORENTRY(OBJECTNOTOCSPREQUEST,Object is not an OcspRequest),
 PKIX_ERRORENTRY(OBJECTNOTPOLICYCHECKERSTATE,Object is not a PKIX_PolicyCheckerState),
@@ -816,6 +818,9 @@ PKIX_ERRORENTRY(OBJECTSTILLREFERENCED,Object is still referenced),
 PKIX_ERRORENTRY(OBJECTTOSTRINGFAILED,PKIX_PL_Object_ToString failed),
 PKIX_ERRORENTRY(OBJECTTYPESDONOTMATCH,Object types do not match),
 PKIX_ERRORENTRY(OBJECTWITHNONPOSITIVEREFERENCES,Object with non-positive references),
+PKIX_ERRORENTRY(OCSPCERTIDCREATEFAILED,PKIX_PL_OcspCertID_Create failed),
+PKIX_ERRORENTRY(OCSPCERTIDGETFRESHCACHESTATUSFAILED,PKIX_PL_OcspCertID_GetFreshCacheStatus returned an error),
+PKIX_ERRORENTRY(OCSPCERTIDREMEMBEROCSPFAILUREDFAILED,PKIX_PL_OcspCertID_RememberOCSPProcessingFailure),
 PKIX_ERRORENTRY(OCSPCHECKERCREATEFAILED,PKIX_OcspChecker_Create failed),
 PKIX_ERRORENTRY(OCSPREQUESTCREATEFAILED,PKIX_PL_OcspRequest_Create failed),
 PKIX_ERRORENTRY(OCSPREQUESTGETCERTIDFAILED,pkix_pl_OcspRequest_GetCertID failed),

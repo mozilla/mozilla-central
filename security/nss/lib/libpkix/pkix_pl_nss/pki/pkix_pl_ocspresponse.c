@@ -987,13 +987,14 @@ cleanup:
  */
 PKIX_Error *
 pkix_pl_OcspResponse_GetStatusForCert(
+        PKIX_PL_OcspCertID *cid,
         PKIX_PL_OcspResponse *response,
         PKIX_Boolean *pPassed,
         SECErrorCodes *pReturnCode,
         void *plContext)
 {
-        CERTOCSPCertID *certId = NULL;
         SECStatus rv = SECFailure;
+        SECStatus rvCache;
 
         PKIX_ENTER(OCSPRESPONSE, "pkix_pl_OcspResponse_GetStatusForCert");
         PKIX_NULLCHECK_THREE(response, pPassed, pReturnCode);
@@ -1005,25 +1006,20 @@ pkix_pl_OcspResponse_GetStatusForCert(
          */
         PKIX_NULLCHECK_TWO(response->signerCert, response->request);
 
-        PKIX_CHECK(
-            pkix_pl_OcspRequest_GetCertID(
-                (PKIX_PL_OcspRequest*)response->request, &certId, plContext),
-            PKIX_OCSPREQUESTGETCERTIDFAILED);
-        
-        rv = CERT_GetOCSPStatusForCertID (response->handle,
-                                          response->nssOCSPResponse,
-                                          certId,
-                                          response->signerCert,
-                                          PR_Now());
+        rv = cert_ProcessOCSPResponse(response->handle,
+                                      response->nssOCSPResponse,
+                                      cid->certID,
+                                      response->signerCert,
+                                      PR_Now(),
+                                      &cid->certIDWasConsumed,
+                                      &rvCache);
 	if (rv == SECSuccess) {
                 *pPassed = PKIX_TRUE;
                 *pReturnCode = 0;
         } else {
                 *pPassed = PKIX_FALSE;
-                PKIX_PL_NSSCALLRV
-                        (OCSPRESPONSE, *pReturnCode, PORT_GetError, ());
+                *pReturnCode = PORT_GetError();
         }
-cleanup:
 
         PKIX_RETURN(OCSPRESPONSE);
 }

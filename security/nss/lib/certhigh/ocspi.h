@@ -36,7 +36,7 @@
 /*
  * ocspi.h - NSS internal interfaces to OCSP code
  *
- * $Id: ocspi.h,v 1.8 2007-12-19 20:14:18 alexei.volkov.bugs%sun.com Exp $
+ * $Id: ocspi.h,v 1.9 2008-02-06 17:27:48 kaie%kuix.de Exp $
  */
 
 #ifndef _OCSPI_H_
@@ -63,4 +63,79 @@ ocsp_VerifyResponseSignature(CERTCertificate *signerCert,
                              ocspSignature *signature,
                              SECItem *tbsResponseDataDER,
                              void *pwArg);
+
+CERTOCSPRequest *
+cert_CreateSingleCertOCSPRequest(CERTOCSPCertID *certID, 
+                                 CERTCertificate *singleCert, 
+                                 int64 time, 
+                                 PRBool addServiceLocator,
+                                 CERTCertificate *signerCert);
+
+SECStatus
+ocsp_GetCachedOCSPResponseStatusIfFresh(CERTOCSPCertID *certID, 
+                                        int64 time, 
+                                        PRBool ignoreOcspFailureMode,
+                                        SECStatus *rvOcsp,
+                                        SECErrorCodes *missingResponseError);
+
+/*
+ * FUNCTION: cert_ProcessOCSPResponse
+ *  Same behavior and basic parameters as CERT_GetOCSPStatusForCertID.
+ *  In addition it can update the OCSP cache (using information
+ *  available internally to this function).
+ * INPUTS:
+ *  CERTCertDBHandle *handle
+ *    certificate DB of the cert that is being checked
+ *  CERTOCSPResponse *response
+ *    the OCSP response we want to retrieve status from.
+ *  CERTOCSPCertID *certID
+ *    the ID we want to look for from the response.
+ *  CERTCertificate *signerCert
+ *    the certificate that was used to sign the OCSP response.
+ *    must be obtained via a call to CERT_VerifyOCSPResponseSignature.
+ *  int64 time
+ *    The time at which we're checking the status for.
+ *  PRBool *certIDWasConsumed
+ *    In and Out parameter.
+ *    If certIDWasConsumed is NULL on input,
+ *    this function might produce a deep copy of cert ID
+ *    for storing it in the cache.
+ *    If out value is true, ownership of parameter certID was
+ *    transferred to the OCSP cache.
+ *  SECStatus *cacheUpdateStatus
+ *    This optional out parameter will contain the result
+ *    of the cache update operation (if requested).
+ *  RETURN:
+ *    The return value is not influenced by the cache operation,
+ *    it matches the documentation for CERT_CheckOCSPStatus
+ */
+
+SECStatus
+cert_ProcessOCSPResponse(CERTCertDBHandle *handle, 
+                         CERTOCSPResponse *response, 
+                         CERTOCSPCertID   *certID,
+                         CERTCertificate  *signerCert,
+                         int64             time,
+                         PRBool           *certIDWasConsumed,
+                         SECStatus        *cacheUpdateStatus);
+
+/*
+ * FUNCTION: cert_RememberOCSPProcessingFailure
+ *  If an application notices a failure during OCSP processing,
+ *  it should finally call this function. The failure will be recorded
+ *  in the OCSP cache in order to avoid repetitive failures.
+ * INPUTS:
+ *  CERTOCSPCertID *certID
+ *    the ID that was used for the failed OCSP processing
+ *  PRBool *certIDWasConsumed
+ *    Out parameter, if set to true, ownership of parameter certID was
+ *    transferred to the OCSP cache.
+ *  RETURN:
+ *    Status of the cache update operation.
+ */
+
+SECStatus
+cert_RememberOCSPProcessingFailure(CERTOCSPCertID *certID,
+                                   PRBool         *certIDWasConsumed);
+
 #endif /* _OCSPI_H_ */

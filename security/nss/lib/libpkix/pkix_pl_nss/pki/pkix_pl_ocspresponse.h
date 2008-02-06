@@ -45,6 +45,7 @@
 #define _PKIX_PL_OCSPRESPONSE_H
 
 #include "pkix_pl_common.h"
+#include "pkix_pl_ocspcertid.h"
 #include "hasht.h"
 #include "cryptohi.h"
 #include "ocspti.h"

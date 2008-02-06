@@ -223,6 +223,7 @@ PKIX_PL_Initialize(
         pkix_pl_InfoAccess_RegisterSelf(plContext);
         pkix_pl_AIAMgr_RegisterSelf(plContext);
         pkix_OcspChecker_RegisterSelf(plContext);
+        pkix_pl_OcspCertID_RegisterSelf(plContext);
         pkix_pl_OcspRequest_RegisterSelf(plContext);
         pkix_pl_OcspResponse_RegisterSelf(plContext);
         pkix_pl_HttpDefaultClient_RegisterSelf(plContext);

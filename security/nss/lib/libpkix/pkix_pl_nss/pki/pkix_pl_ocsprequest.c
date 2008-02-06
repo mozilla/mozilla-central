@@ -53,7 +53,6 @@ pkix_pl_OcspRequest_Destroy(
         void *plContext)
 {
         PKIX_PL_OcspRequest *ocspReq = NULL;
-        PRCList *node = NULL;
 
         PKIX_ENTER(OCSPREQUEST, "pkix_pl_OcspRequest_Destroy");
         PKIX_NULLCHECK_ONE(object);
@@ -64,29 +63,15 @@ pkix_pl_OcspRequest_Destroy(
         ocspReq = (PKIX_PL_OcspRequest *)object;
 
         if (ocspReq->decoded != NULL) {
-                PKIX_PL_NSSCALL(OCSPREQUEST, CERT_DestroyOCSPRequest,
-                        (ocspReq->decoded));
+                CERT_DestroyOCSPRequest(ocspReq->decoded);
         }
 
         if (ocspReq->encoded != NULL) {
-                PKIX_PL_NSSCALL(OCSPREQUEST, SECITEM_FreeItem,
-                        (ocspReq->encoded, PR_TRUE));
-        }
-
-        if (ocspReq->certList != NULL) {
-                /*
-                 * The CertList thinks it owns the nssCert. If it destroys it,
-                 * PKIX_PL_Cert_Destroy(ocspReq->cert) will crash. Let's
-                 * remove the nssCert first, and then destroy the CertList.
-                 */
-                node = PR_LIST_HEAD(&ocspReq->certList->list);
-                PR_REMOVE_LINK(node);
-                PKIX_PL_NSSCALL(OCSPREQUEST, CERT_DestroyCertList,
-                        (ocspReq->certList));
+                SECITEM_FreeItem(ocspReq->encoded, PR_TRUE);
         }
 
         if (ocspReq->location != NULL) {
-                PKIX_PL_NSSCALL(OCSPREQUEST, PORT_Free, (ocspReq->location));
+                PORT_Free(ocspReq->location);
         }
 
         PKIX_DECREF(ocspReq->cert);
@@ -303,6 +288,7 @@ pkix_pl_OcspRequest_RegisterSelf(void *plContext)
 PKIX_Error *
 pkix_pl_OcspRequest_Create(
         PKIX_PL_Cert *cert,
+        PKIX_PL_OcspCertID *cid,
         PKIX_PL_Date *validity,
         PKIX_Boolean addServiceLocator,
         PKIX_PL_Cert *signerCert,
@@ -315,7 +301,6 @@ pkix_pl_OcspRequest_Create(
         SECStatus rv = SECFailure;
         SECItem *encoding = NULL;
         CERTOCSPRequest *certRequest = NULL;
-        CERTCertList *certList = NULL;
         int64 time = 0;
         PRBool addServiceLocatorExtension = PR_FALSE;
         CERTCertificate *nssCert = NULL;
@@ -348,7 +333,6 @@ pkix_pl_OcspRequest_Create(
         ocspRequest->decoded = NULL;
         ocspRequest->encoded = NULL;
 
-        ocspRequest->certList = NULL;
         ocspRequest->location = NULL;
 
         nssCert = cert->nssCert;
@@ -357,12 +341,10 @@ pkix_pl_OcspRequest_Create(
          * Does this Cert have an Authority Information Access extension with
          * the URI of an OCSP responder?
          */
-        PKIX_PL_NSSCALLRV
-                (OCSPREQUEST, location, CERT_GetOCSPAuthorityInfoAccessLocation,
-                (nssCert));
+        location = CERT_GetOCSPAuthorityInfoAccessLocation(nssCert);
 
         if (location == NULL) {
-                PKIX_PL_NSSCALLRV(OCSPREQUEST, locError, PORT_GetError, ());
+                locError = PORT_GetError();
                 if (locError == SEC_ERROR_CERT_BAD_ACCESS_LOCATION) {
                         *pURIFound = PKIX_FALSE;
                         goto cleanup;
@@ -378,48 +360,26 @@ pkix_pl_OcspRequest_Create(
                 nssSignerCert = signerCert->nssCert;
         }
 
-        /*
-         * Build a CertList with this one Cert. But be careful: apparently it
-         * is customary for CertLists to "own" the Certs, and to destroy
-         * them as part of CERT_DestroyCertList. We must remember to remove
-         * this Cert from the List before destroying the List. Otherwise it
-         * will be destroyed when the CertList is destroyed and again when
-         * the PKIX_PL_Cert that owns it is destroyed.
-         */
-        PKIX_PL_NSSCALLRV(OCSPREQUEST, certList, CERT_NewCertList, ());
-        if (certList == NULL) {
-                PKIX_ERROR(PKIX_UNABLETOCREATENEWCERTLIST);
-        }
-
-        ocspRequest->certList = certList;
-
-        PKIX_PL_NSSCALLRV(OCSPREQUEST, rv, CERT_AddCertToListTail,
-                (certList, nssCert));
-
-        if (rv == SECFailure) {
-                PKIX_ERROR(PKIX_UNABLETOADDCERTTOCERTLIST);
-        }
-
         if (validity != NULL) {
 		PKIX_CHECK(pkix_pl_Date_GetPRTime(validity, &time, plContext),
 			PKIX_DATEGETPRTIMEFAILED);
         } else {
-                PKIX_PL_NSSCALLRV(OCSPREQUEST, time, PR_Now, ());
+                time = PR_Now();
 	}
 
         addServiceLocatorExtension = 
                 ((addServiceLocator == PKIX_TRUE)? PR_TRUE : PR_FALSE);
 
-        PKIX_PL_NSSCALLRV(OCSPREQUEST, certRequest, CERT_CreateOCSPRequest,
-                (certList, time, addServiceLocatorExtension, nssSignerCert));
+        certRequest = cert_CreateSingleCertOCSPRequest(
+                cid->certID, cert->nssCert, time, 
+                addServiceLocatorExtension, nssSignerCert);
 
         if (certRequest == NULL) {
                 PKIX_ERROR(PKIX_UNABLETOCREATECERTOCSPREQUEST);
         }
 
-        PKIX_PL_NSSCALLRV
-                (OCSPREQUEST, rv, CERT_AddOCSPAcceptableResponses,
-                (certRequest, SEC_OID_PKIX_OCSP_BASIC_RESPONSE));
+        rv = CERT_AddOCSPAcceptableResponses(
+                certRequest, SEC_OID_PKIX_OCSP_BASIC_RESPONSE);
 
         if (rv == SECFailure) {
                 PKIX_ERROR(PKIX_UNABLETOADDACCEPTABLERESPONSESTOREQUEST);
@@ -427,8 +387,7 @@ pkix_pl_OcspRequest_Create(
 
         ocspRequest->decoded = certRequest;
 
-        PKIX_PL_NSSCALLRV(OCSPREQUEST, encoding, CERT_EncodeOCSPRequest,
-                (NULL, certRequest, NULL));
+        encoding = CERT_EncodeOCSPRequest(NULL, certRequest, NULL);
 
         ocspRequest->encoded = encoding;
 
@@ -509,47 +468,6 @@ pkix_pl_OcspRequest_GetLocation(
         PKIX_NULLCHECK_TWO(request, pLocation);
 
         *pLocation = request->location;
-
-        PKIX_RETURN(OCSPREQUEST);
-}
-
-/*
- * FUNCTION: pkix_pl_OcspRequest_GetCertID
- * DESCRIPTION:
- *
- *  This function obtains the certID from the OcspRequest pointed to
- *  by "request", storing the result at "pCertID".
- *
- * PARAMETERS
- *  "request"
- *      The address of the OcspRequest whose certID is to be retrieved. Must
- *      be non-NULL.
- *  "pCertID"
- *      The address at which is stored the certID of the request. Must be
- *      non-NULL.
- *  "plContext"
- *      Platform-specific context pointer.
- * THREAD SAFETY:
- *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
- * RETURNS:
- *  Returns NULL if the function succeeds.
- *  Returns a Fatal Error if the function fails in an unrecoverable way.
- */
-PKIX_Error *
-pkix_pl_OcspRequest_GetCertID(
-        PKIX_PL_OcspRequest *request,
-        CERTOCSPCertID **pCertID,
-        void *plContext)
-{
-        ocspTBSRequest *tbsRequest = NULL;
-
-        PKIX_ENTER(OCSPREQUEST, "pkix_pl_OcspRequest_GetCertID");
-        PKIX_NULLCHECK_TWO(request, pCertID);
-
-        PKIX_NULLCHECK_ONE(request->decoded);
-        tbsRequest = request->decoded->tbsRequest;
-        PKIX_NULLCHECK_ONE(tbsRequest);
-        *pCertID = tbsRequest->requestList[0]->reqCert;
 
         PKIX_RETURN(OCSPREQUEST);
 }

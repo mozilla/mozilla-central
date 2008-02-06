@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Sun Microsystems, Inc.
+ *   Red Hat, Inc.
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,8 @@
  */
 
 #include "pkix_ocspchecker.h"
+#include "pkix_pl_ocspcertid.h"
+#include "pkix_error.h"
 
 
 /* --Private-Functions-------------------------------------------- */
@@ -143,11 +146,13 @@ pkix_OcspChecker_Check(
         PKIX_UInt32 *pResultCode,
         void *plContext)
 {
-        SECErrorCodes resultCode = 0;
+        SECErrorCodes resultCode = SEC_ERROR_REVOKED_CERTIFICATE_OCSP;
         PKIX_Boolean uriFound = PKIX_FALSE;
         PKIX_Boolean passed = PKIX_FALSE;
         PKIX_OcspChecker *checker = NULL;
+        PKIX_PL_OcspCertID *cid = NULL;
         PKIX_PL_OcspRequest *request = NULL;
+        PKIX_PL_Date *validity = NULL;
         void *nbioContext = NULL;
 
         PKIX_ENTER(OCSPCHECKER, "pkix_OcspChecker_Check");
@@ -167,13 +172,47 @@ pkix_OcspChecker_Check(
         if (nbioContext == 0) {
                 /* We are initiating a check, not resuming previous I/O. */
 
+                PKIX_Boolean hasFreshStatus = PKIX_FALSE;
+                PKIX_Boolean statusIsGood = PKIX_FALSE;
+
+                PKIX_CHECK(PKIX_PL_OcspCertID_Create
+                        (cert,
+                        validity,
+                        &cid,
+                        plContext),
+                        PKIX_OCSPCERTIDCREATEFAILED);
+
+                if (!cid) {
+                        goto cleanup;
+                }
+
+                PKIX_CHECK(PKIX_PL_OcspCertID_GetFreshCacheStatus
+                        (cid, 
+                        validity, 
+                        &hasFreshStatus, 
+                        &statusIsGood,
+                        &resultCode,
+                        plContext),
+                        PKIX_OCSPCERTIDGETFRESHCACHESTATUSFAILED);
+
+                if (hasFreshStatus) {
+                        /* avoid updating the cache with a cached result... */
+                        passed = PKIX_TRUE; 
+
+                        if (statusIsGood) {
+                                resultCode = 0;
+                        }
+                        goto cleanup;
+                }
+
                 PKIX_INCREF(cert);
                 checker->cert = cert;
                 
                 /* create request */
                 PKIX_CHECK(pkix_pl_OcspRequest_Create
                         (cert,
-                        NULL,           /* PKIX_PL_Date *validity */
+                        cid,
+                        validity,
                         PKIX_FALSE,     /* PKIX_Boolean addServiceLocator */
                         NULL,           /* PKIX_PL_Cert *signerCert */
                         &uriFound,
@@ -183,6 +222,7 @@ pkix_OcspChecker_Check(
                 
                 /* No uri to check is considered passing! */
                 if (uriFound == PKIX_FALSE) {
+                        /* no caching for certs lacking URI */
                         passed = PKIX_TRUE;
                         resultCode = 0;
                         goto cleanup;
@@ -244,12 +284,22 @@ pkix_OcspChecker_Check(
         }
 
         PKIX_CHECK(pkix_pl_OcspResponse_GetStatusForCert
-                ((checker->response), &passed, &resultCode, plContext),
+                (cid, (checker->response), &passed, &resultCode, plContext),
                 PKIX_OCSPRESPONSEGETSTATUSFORCERTFAILED);
 
 cleanup:
+        if (!passed && cid) {
+                PKIX_Error *err;
+                err = PKIX_PL_OcspCertID_RememberOCSPProcessingFailure(
+                        cid, plContext);
+                if (err) {
+                        PKIX_PL_Object_DecRef((PKIX_PL_Object*)err, plContext);
+                }
+        }
+
         *pResultCode = (PKIX_UInt32)resultCode;
 
+        PKIX_DECREF(cid);
         PKIX_DECREF(request);
         PKIX_DECREF(checker->response);
 
@@ -269,7 +319,6 @@ pkix_OcspChecker_Create(
         void *plContext)
 {
         PKIX_OcspChecker *checkerObject = NULL;
-        PKIX_RevocationChecker *revChecker = NULL;
 
         PKIX_ENTER(OCSPCHECKER, "pkix_OcspChecker_Create");
         PKIX_NULLCHECK_ONE(pChecker);

@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Sun Microsystems, Inc.
+ *   Red Hat, Inc.
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -161,6 +162,7 @@ typedef struct PKIX_PL_LdapDefaultClientStruct PKIX_PL_LdapDefaultClient;
 typedef struct PKIX_PL_SocketStruct PKIX_PL_Socket;
 typedef struct PKIX_PL_InfoAccessStruct PKIX_PL_InfoAccess;
 typedef struct PKIX_PL_AIAMgrStruct PKIX_PL_AIAMgr;
+typedef struct PKIX_PL_OcspCertIDStruct PKIX_PL_OcspCertID;
 typedef struct PKIX_PL_OcspRequestStruct PKIX_PL_OcspRequest;
 typedef struct PKIX_PL_OcspResponseStruct PKIX_PL_OcspResponse;
 typedef struct PKIX_PL_HttpClientStruct PKIX_PL_HttpClient;
@@ -237,6 +239,7 @@ typedef int PKIX_Boolean;
     TYPEMACRO(MONITORLOCK), \
     TYPEMACRO(MUTEX), \
     TYPEMACRO(OBJECT), \
+    TYPEMACRO(OCSPCERTID), \
     TYPEMACRO(OCSPCHECKER), \
     TYPEMACRO(OCSPREQUEST), \
     TYPEMACRO(OCSPRESPONSE), \
@@ -333,6 +336,7 @@ typedef enum {     /* Now invoke all those TYPEMACROs to assign the numbers */
    ERRMACRO(MONITORLOCK), \
    ERRMACRO(MUTEX), \
    ERRMACRO(OBJECT), \
+   ERRMACRO(OCSPCERTID), \
    ERRMACRO(OCSPCHECKER), \
    ERRMACRO(OCSPREQUEST), \
    ERRMACRO(OCSPRESPONSE), \

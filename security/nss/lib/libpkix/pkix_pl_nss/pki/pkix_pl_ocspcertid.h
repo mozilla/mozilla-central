@@ -14,12 +14,12 @@
  * The Original Code is the PKIX-C library.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ * Red Hat, Inc.
  * Portions created by the Initial Developer are
- * Copyright 2004-2007 Sun Microsystems, Inc.  All Rights Reserved.
+ * Copyright 2008 Red Hat, Inc.  All Rights Reserved.
  *
  * Contributor(s):
- *   Sun Microsystems, Inc.
+ *   Red Hat, Inc.
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,14 +35,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 /*
- * pkix_pl_ocsprequest.h
+ * pkix_pl_ocspcertid.h
  *
- * OcspRequest Object Definitions
+ * Public Key Object Definitions
  *
  */
 
-#ifndef _PKIX_PL_OCSPREQUEST_H
-#define _PKIX_PL_OCSPREQUEST_H
+#ifndef _PKIX_PL_OCSPCERTID_H
+#define _PKIX_PL_OCSPCERTID_H
 
 #include "pkix_pl_common.h"
 
@@ -50,45 +50,38 @@
 extern "C" {
 #endif
 
-struct PKIX_PL_OcspRequestStruct{
-        PKIX_PL_Cert *cert;
-        PKIX_PL_Date *validity;
-        PKIX_Boolean addServiceLocator;
-        PKIX_PL_Cert *signerCert;
-        CERTOCSPRequest *decoded;
-        SECItem *encoded;
-        char *location;
+struct PKIX_PL_OcspCertIDStruct {
+        CERTOCSPCertID *certID;
+        PRBool certIDWasConsumed;
 };
 
 /* see source file for function documentation */
 
+PKIX_Error *pkix_pl_OcspCertID_RegisterSelf(void *plContext);
+
 PKIX_Error *
-pkix_pl_OcspRequest_Create(
+PKIX_PL_OcspCertID_Create(
         PKIX_PL_Cert *cert,
-        PKIX_PL_OcspCertID *cid,
         PKIX_PL_Date *validity,
-        PKIX_Boolean addServiceLocator,
-        PKIX_PL_Cert *signerCert,
-        PKIX_Boolean *pURIFound,
-        PKIX_PL_OcspRequest **pRequest,
+        PKIX_PL_OcspCertID **object,
         void *plContext);
 
 PKIX_Error *
-pkix_pl_OcspRequest_GetEncoded(
-        PKIX_PL_OcspRequest *request,
-        SECItem **pRequest,
+PKIX_PL_OcspCertID_GetFreshCacheStatus(
+        PKIX_PL_OcspCertID *cid, 
+        PKIX_PL_Date *validity,
+        PKIX_Boolean *hasFreshStatus,
+        PKIX_Boolean *statusIsGood,
+        SECErrorCodes *missingResponseError,
         void *plContext);
 
 PKIX_Error *
-pkix_pl_OcspRequest_GetLocation(
-        PKIX_PL_OcspRequest *request,
-        char **pLocation,
+PKIX_PL_OcspCertID_RememberOCSPProcessingFailure(
+        PKIX_PL_OcspCertID *cid, 
         void *plContext);
-
-PKIX_Error *pkix_pl_OcspRequest_RegisterSelf(void *plContext);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _PKIX_PL_OCSPREQUEST_H */
+#endif /* _PKIX_PL_OCSPCERTID_H */

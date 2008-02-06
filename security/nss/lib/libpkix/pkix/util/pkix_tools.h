@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Sun Microsystems, Inc.
+ *   Red Hat, Inc.
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1269,6 +1270,16 @@ extern const PKIX_StdVars zeroStdVars;
 #else
 #define PKIX_OCSPCHECKER_DEBUG(expr)
 #define PKIX_OCSPCHECKER_DEBUG_ARG(expr, arg)
+#endif
+
+#if PKIX_OCSPCERTIDDEBUG
+#define PKIX_OCSPCERTID_DEBUG(expr) \
+        PKIX_DEBUG(expr)
+#define PKIX_OCSPCERTID_DEBUG_ARG(expr, arg) \
+        PKIX_DEBUG_ARG(expr, arg)
+#else
+#define PKIX_OCSPCERTID_DEBUG(expr)
+#define PKIX_OCSPCERTID_DEBUG_ARG(expr, arg)
 #endif
 
 #if PKIX_OCSPREQUESTDEBUG

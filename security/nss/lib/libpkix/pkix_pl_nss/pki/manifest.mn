@@ -21,6 +21,7 @@
 #
 # Contributor(s):
 #   Sun Microsystems, Inc.
+#   Red Hat, Inc.
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,6 +57,7 @@ PRIVATE_EXPORTS = \
 	pkix_pl_ocspresponse.h \
 	pkix_pl_publickey.h \
 	pkix_pl_x500name.h \
+	pkix_pl_ocspcertid.h \
 	$(NULL)
 
 MODULE = nss
@@ -76,6 +78,7 @@ CSRCS = \
 	pkix_pl_ocspresponse.c \
 	pkix_pl_publickey.c \
 	pkix_pl_x500name.c \
+	pkix_pl_ocspcertid.c \
 	$(NULL)
 
 REQUIRES = dbm

@@ -99,6 +99,7 @@
 #include "pkix_pl_nameconstraints.h"
 #include "pkix_nameconstraintschecker.h"
 #include "pkix_ocspchecker.h"
+#include "pkix_pl_ocspcertid.h"
 #include "pkix_pl_ocsprequest.h"
 #include "pkix_pl_ocspresponse.h"
 #include "pkix_pl_httpdefaultclient.h"
