@@ -103,6 +103,9 @@ private:
   void SetProgressBarPercent(PRInt32 percent);
   void SetProgressStatus(const PRUnichar *message);
 
+  void UpdateStatus(PRBool filtering, PRInt32 numDled, PRInt32 totToDL);
+
+  nsresult AddHeader(const char * header, const char * value);
 protected:
   PRBool m_getOldMessages;
   PRBool m_promptedAlready;
@@ -124,12 +127,19 @@ protected:
   struct MSG_NewsKnown m_knownArts;
   nsMsgKeySet *m_set;
 
+  nsCStringArray m_filterHeaders;
+  PRInt32 m_currentXHDRIndex;
+  nsCString m_lastHeader;
+  nsCString m_thisLine;
+
 private:
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFilterList> m_filterList;
   nsCOMPtr <nsIMsgFilterList> m_serverFilterList;
   nsCOMPtr <nsIMsgDBHdr> m_newMsgHdr; /* current message header we're building */
+
   PRBool m_addHdrToDB;
+
 };
     
 #endif /* nsNNTPNewsgroupListState_h___ */
