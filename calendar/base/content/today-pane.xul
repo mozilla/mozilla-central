@@ -165,7 +165,7 @@
             <agenda-richlist-item/>
             <agenda-checkbox-richlist-item id="today-header" title="&calendar.today.button.label;"/>
             <agenda-checkbox-richlist-item id="tomorrow-header" title="&calendar.tomorrow.button.label;"/>
-            <agenda-checkbox-richlist-item id="nextweek-header" title="&calendar.nextweek.button.label;"/>
+            <agenda-checkbox-richlist-item id="nextweek-header" title="&calendar.soon.button.label;"/>
          </vbox>
          <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
                        onclick="agendaListbox.onSelect();"

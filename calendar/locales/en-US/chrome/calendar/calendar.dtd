@@ -81,6 +81,7 @@
 <!ENTITY calendar.tomorrow.button.label       "Tomorrow">
 <!ENTITY calendar.nextweek.button.label       "Next Week">
 <!ENTITY calendar.thisweek.button.label       "This Week">
+<!ENTITY calendar.soon.button.label           "Soon">
 
 <!ENTITY calendar.events.filter.all.label "All Events">
 <!ENTITY calendar.events.filter.today.label "Today's Events">
