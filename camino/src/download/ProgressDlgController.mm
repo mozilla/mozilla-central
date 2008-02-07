@@ -693,31 +693,27 @@ static id gSharedProgressController = nil;
 	
   if (downloadsInProgress)
   {
+    // set this bool to true so that if a download finishes while the modal
+    // sheet is up we don't lock
+    mAwaitingTermination = YES;
+
     // make sure the window is visible
     [self showWindow:self];
-    
-    NSString *alert     = NSLocalizedString(@"QuitWithDownloadsMsg", nil);
-    NSString *message   = NSLocalizedString(@"QuitWithDownloadsExpl", nil);
-    NSString *okButton  = NSLocalizedString(@"QuitWithDownloadsButtonDefault", nil);
-    NSString *altButton = NSLocalizedString(@"QuitButtonText", nil);
-    
-    // while the panel is up, download dialogs won't update (no timers firing) but
-    // downloads continue (PLEvents being processed)
-    id panel = NSGetAlertPanel(alert, message, okButton, altButton, nil, message);
-    
-    // set this bool to true so that if a download finishes while the modal sheet is up we don't lock
-    mAwaitingTermination = YES;
-    
-    [NSApp beginSheet:panel
-       modalForWindow:[self window]
-        modalDelegate:self
-       didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:)
-          contextInfo:NULL];
-    int sheetResult = [nsAlertController safeRunModalForWindow:panel];
-    [NSApp endSheet: panel];
-    [panel orderOut: self];
-    NSReleaseAlertPanel(panel);
-    
+
+    NSString *title    = NSLocalizedString(@"QuitWithDownloadsMsg", nil);
+    NSString *text     = NSLocalizedString(@"QuitWithDownloadsExpl", nil);
+    NSString *dontQuit = NSLocalizedString(@"QuitWithDownloadsButtonDefault",
+                                           nil);
+    NSString *quit     = NSLocalizedString(@"QuitButtonText", nil);
+
+    nsAlertController* alertController = [nsAlertController sharedController];
+    int sheetResult = [alertController confirmDestructive:[self window]
+                                                    title:title
+                                                     text:text
+                                                  button1:dontQuit
+                                                  button2:quit
+                                                  button3:nil];
+
     if (sheetResult == NSAlertDefaultReturn)
     {
       mAwaitingTermination = NO;

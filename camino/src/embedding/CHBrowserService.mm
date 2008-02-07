@@ -65,7 +65,6 @@ NSString* const InitEmbeddingNotificationName = @"InitEmebedding";    // this is
 NSString* const TermEmbeddingNotificationName = @"TermEmbedding";
 NSString* const XPCOMShutDownNotificationName = @"XPCOMShutDown";
 
-nsAlertController* CHBrowserService::sController = nsnull;
 CHBrowserService* CHBrowserService::sSingleton = nsnull;
 PRUint32 CHBrowserService::sNumBrowsers = 0;
 PRBool CHBrowserService::sCanTerminate = PR_FALSE;
@@ -217,18 +216,7 @@ void CHBrowserService::ShutDown()
 nsAlertController* 
 CHBrowserService::GetAlertController()
 {
-  if (!sController) {
-    sController = [[nsAlertController alloc] init];
-  }
-  return sController;
-}
-
-void
-CHBrowserService::SetAlertController(nsAlertController* aController)
-{
-  // XXX When should the controller be released?
-  sController = aController;
-  [sController retain];
+  return [nsAlertController sharedController];
 }
 
 // nsIFactory implementation

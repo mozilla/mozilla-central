@@ -82,8 +82,8 @@ public:
   // Called automatically after autoregistration to ensure that overrides
   // remain in effect.
   static void ReRegisterAppComponents();
-  
-  static void SetAlertController(nsAlertController* aController);
+ 
+  // Deprecated.  Use +[nsAlertController sharedController] directly.
   static nsAlertController* GetAlertController();
 
 public:
@@ -94,7 +94,6 @@ private:
   static void SetUpAutoregistrationListener();
 
   static CHBrowserService* sSingleton;
-  static nsAlertController* sController;
   static PRBool sCanTerminate;
   static const nsModuleComponentInfo* sAppComponents; // weak
   static int sAppComponentCount;

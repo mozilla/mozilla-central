@@ -41,6 +41,7 @@
 
 #import "nsAlertController.h"
 #import "CHBrowserService.h"
+#import "KeyEquivView.h"
 
 const int kMinDialogWidth = 500;
 const int kMaxDialogHeight = 400;
@@ -98,7 +99,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                       altButton:(NSString*)altLabel      // "Cancel" or equiv.
                     otherButton:(NSString*)otherLabel
                       extraView:(NSView*)extraView       // Shown above buttons
-                  lastResponder:(NSView*)lastResponder;  // Last in extraView
+                  lastResponder:(NSView*)lastResponder   // Last in extraView
+                    destructive:(BOOL)destructive;       // Don't focus alt
         
 - (NSButton*)makeButtonWithTitle:(NSString*)title;
 
@@ -118,6 +120,14 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
 #pragma mark -
 
 @implementation nsAlertController
+
++ (nsAlertController*)sharedController {
+  static nsAlertController* sController = nil;
+  if (!sController) {
+    sController = [[nsAlertController alloc] init];
+  }
+  return sController;
+}
 
 + (int)safeRunModalForWindow:(NSWindow*)window
             relativeToWindow:(NSWindow*)parentWindow {
@@ -191,7 +201,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:nil
                                  otherButton:nil
                                    extraView:nil
-                               lastResponder:nil];
+                               lastResponder:nil
+                                 destructive:NO];
   [self runModalWindow:panel relativeToWindow:parent];
   [panel close];
 }
@@ -214,7 +225,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:nil
                                  otherButton:nil
                                    extraView:checkboxView
-                               lastResponder:checkBox];
+                               lastResponder:checkBox
+                                 destructive:NO];
   [panel setInitialFirstResponder: checkBox];
 
   [self runModalWindow:panel relativeToWindow:parent];
@@ -231,7 +243,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:NSLocalizedString(@"CancelButtonText", nil)
                                  otherButton:nil
                                    extraView:nil
-                               lastResponder:nil];
+                               lastResponder:nil
+                                 destructive:NO];
   
   int result = [self runModalWindow:panel relativeToWindow:parent];
   
@@ -262,7 +275,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:cancelButton
                                  otherButton:nil
                                    extraView:checkboxView
-                               lastResponder:checkBox];
+                               lastResponder:checkBox
+                                 destructive:NO];
   [panel setInitialFirstResponder: checkBox];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -281,7 +295,29 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                     altButton:btn2
                                   otherButton:btn3
                                     extraView:nil
-                                lastResponder:nil];
+                                lastResponder:nil
+                                  destructive:NO];
+
+  int result = [self runModalWindow:panel relativeToWindow:parent];
+
+   [panel close];
+   return result;
+}
+
+- (int)confirmDestructive:(NSWindow*)parent
+                    title:(NSString*)title
+                     text:(NSString*)text
+                  button1:(NSString*)button1
+                  button2:(NSString*)button2
+                  button3:(NSString*)button3 {
+   NSPanel* panel = [self alertPanelWithTitle:title
+                                      message:text
+                                defaultButton:button1
+                                    altButton:button2
+                                  otherButton:button3
+                                    extraView:nil
+                                lastResponder:nil
+                                  destructive:YES];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
 
@@ -307,7 +343,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:btn2
                                  otherButton:btn3
                                    extraView:checkboxView
-                               lastResponder:checkBox];
+                               lastResponder:checkBox
+                                 destructive:NO];
   [panel setInitialFirstResponder: checkBox];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -360,7 +397,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:cancelButton
                                  otherButton:nil
                                    extraView:extraView
-                               lastResponder:lastResponder];
+                               lastResponder:lastResponder
+                                 destructive:NO];
   [panel setInitialFirstResponder: field];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -423,7 +461,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:cancelButton
                                  otherButton:nil
                                    extraView:extraView
-                               lastResponder:lastResponder];
+                               lastResponder:lastResponder
+                                 destructive:NO];
   [panel setInitialFirstResponder: userField];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -478,7 +517,8 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                                    altButton:cancelButton
                                  otherButton:nil
                                    extraView:extraView
-                               lastResponder:lastResponder];
+                               lastResponder:lastResponder
+                                 destructive:NO];
   [panel setInitialFirstResponder: passField];
 
   int result = [self runModalWindow:panel relativeToWindow:parent];
@@ -556,6 +596,7 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
                     otherButton:(NSString*)otherLabel
                       extraView:(NSView*)extraView
                   lastResponder:(NSView*)lastResponder
+                    destructive:(BOOL)destructive
 {
   NSRect rect = NSMakeRect(0, 0, kMinDialogWidth, kMaxDialogHeight);
   NSPanel* panel = [[[NSPanel alloc] initWithContentRect: rect styleMask: NSTitledWindowMask backing: NSBackingStoreBuffered defer: YES] autorelease];
@@ -580,6 +621,16 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
   [[panel contentView] addSubview: defButton];
   [panel setDefaultButtonCell: [defButton cell]];
 
+  if (destructive) {
+    // If the dialog has a destructive action, the default button will map
+    // roughly to "Cancel", and Esc should trigger that action.
+    KeyEquivView* defEquiv = [KeyEquivView kevWithKeyEquivalent:@"\e"  // Esc
+                                      keyEquivalentModifierMask:0
+                                                         target:defButton
+                                                         action:@selector(performClick:)];
+    [[panel contentView] addSubview:defEquiv];
+  }
+
   // Keep track of the leftmost created button for setting up the tab chain.
   // The tab chain should generally cycle top to bottom (if an extraView was
   // supplied), and within that, left to right.
@@ -590,7 +641,11 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     altButton = [self makeButtonWithTitle: altLabel];
     [altButton setAction: @selector(hitButton2:)];
     [altButton setAutoresizingMask: NSViewMinXMargin | NSViewMaxYMargin];
-    [altButton setKeyEquivalent:@"\e"];  // Esc
+    if (!destructive) {
+      // In a normal dialog, the alternate button will map roughly to "Cancel",
+      // and Esc should trigger that action.
+      [altButton setKeyEquivalent:@"\e"];  // Esc
+    }
     [[panel contentView] addSubview: altButton];
     [altButton setNextKeyView:leftmostButton];
     leftmostButton = altButton;
@@ -682,7 +737,9 @@ const int kLabelCheckboxAdjustment = 2; // # pixels the label must be pushed dow
     [defButton setNextKeyView:extraView];
   }
   else {
-    if (altButton) {
+    if (altButton && !destructive) {
+      // Only set the second button as the initial first responder if it exists
+      // and if its action is not destructive.
       [panel setInitialFirstResponder:altButton];
     }
     else {

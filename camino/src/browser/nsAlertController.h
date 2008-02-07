@@ -46,6 +46,8 @@
 - (IBAction)hitButton2:(id)sender;
 - (IBAction)hitButton3:(id)sender;
 
++ (nsAlertController*)sharedController;
+
 // 
 // This is a version of [NSApp runModalForWindow:(relativeToWindow:)] that does
 // some extra things:
@@ -88,6 +90,12 @@
 // these return NSAlertDefaultReturn, NSAlertAlternateReturn or NSAlertOtherReturn
 - (int)confirmEx:(NSWindow*)parent title:(NSString*)title text:(NSString*)text
    button1:(NSString*)btn1 button2:(NSString*)btn2 button3:(NSString*)btn3;
+- (int)confirmDestructive:(NSWindow*)parent
+                    title:(NSString*)title
+                     text:(NSString*)text
+                  button1:(NSString*)button1
+                  button2:(NSString*)button2
+                  button3:(NSString*)button3;
 - (int)confirmCheckEx:(NSWindow*)parent title:(NSString*)title text:(NSString*)text 
   button1:(NSString*)btn1 button2:(NSString*)btn2 button3:(NSString*)btn3
   checkMsg:(NSString*)checkMsg checkValue:(BOOL*)checkValue;
