@@ -970,15 +970,21 @@ icalcomponent* icalparser_add_line(icalparser* parser,
            from rfc2445. Also added the x-properties, because the spec actually
            says that commas should be escaped. For x-properties, other apps may
            depend on that behaviour
-           Referring to RFC 2445, section 4.8.5.3 and section 4.8.5.1:
-           RDATE and EXDATE can specify a list of dates/date-times/periods.
-           */
+        */
         switch (prop_kind) {
             case ICAL_X_PROPERTY:
             case ICAL_CATEGORIES_PROPERTY:
             case ICAL_RESOURCES_PROPERTY:
+            /* Referring to RFC 2445, section 4.8.5.3 and section 4.8.5.1:
+               RDATE and EXDATE can specify a list of dates/date-times/periods.
+            */
             case ICAL_RDATE_PROPERTY:
             case ICAL_EXDATE_PROPERTY:
+            /* Referring to RFC 2445, section 4.8.2.6 Free/Busy Time:
+               The "FREEBUSY" property can specify more than one value, separated by
+               the COMMA character (US-ASCII decimal 44).
+            */
+            case ICAL_FREEBUSY_PROPERTY:
                  str = parser_get_next_value(end,&end, value_kind);
                  break;
             default:
