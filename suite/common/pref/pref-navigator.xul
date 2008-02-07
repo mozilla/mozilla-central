@@ -39,7 +39,10 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-navigator.dtd" >
+<!DOCTYPE overlay [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd"> %brandDTD;
+  <!ENTITY % navigatorDTD SYSTEM "chrome://communicator/locale/pref/pref-navigator.dtd"> %navigatorDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="navigator_pane"
@@ -56,12 +59,12 @@
       <preference id="browser.tabs.loadOnNewTab"
                   name="browser.tabs.loadOnNewTab"
                   type="int"/>
-      <preference id="browser.startup.homepage"
-                  name="browser.startup.homepage"
-                  type="wstring"/>
       <preference id="browser.startup.homepage.count"
                   name="browser.startup.homepage.count"
                   type="int"/>
+      <preference id="pref.browser.disable_button.default_browser"
+                  name="pref.browser.disable_button.default_browser"
+                  type="bool"/>
       <preference id="pref.browser.homepage.disable_button.select_file"
                   name="pref.browser.homepage.disable_button.select_file"
                   type="bool"/>
@@ -106,78 +109,112 @@
         </caption>
         <deck id="behaviourDeck" flex="1">
           <radiogroup id="startupPage" preference="browser.startup.page">
-            <radio value="0" label="&blankPageRadio.label;" ak="&blankPageRadio.accesskey;"/>
-            <radio value="1" label="&homePageRadio.label;"  ak="&homePageRadio.accesskey;"/>
-            <radio value="2" label="&lastPageRadio.label;"  ak="&lastPageRadio.accesskey;"/>
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
           </radiogroup>
           <radiogroup id="newWinPage" preference="browser.windows.loadOnNewWindow">
-            <radio value="0" label="&blankPageRadio.label;" ak="&blankPageRadio.accesskey;"/>
-            <radio value="1" label="&homePageRadio.label;"  ak="&homePageRadio.accesskey;"/>
-            <radio value="2" label="&lastPageRadio.label;"  ak="&lastPageRadio.accesskey;"/>
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
           </radiogroup>
           <radiogroup id="newTabPage" preference="browser.tabs.loadOnNewTab">
-            <radio value="0" label="&blankPageRadio.label;" ak="&blankPageRadio.accesskey;"/>
-            <radio value="1" label="&homePageRadio.label;"  ak="&homePageRadio.accesskey;"/>
-            <radio value="2" label="&lastPageRadio.label;"  ak="&lastPageRadio.accesskey;"/>
+            <radio value="0"
+                   label="&blankPageRadio.label;"
+                   accesskey="&blankPageRadio.accesskey;"/>
+            <radio value="1"
+                   label="&homePageRadio.label;"
+                   accesskey="&homePageRadio.accesskey;"/>
+            <radio value="2"
+                   label="&lastPageRadio.label;"
+                   accesskey="&lastPageRadio.accesskey;"/>
           </radiogroup>
         </deck>
+      </groupbox>
 
+      <!-- default browser settings are shown only if supported by the platform -->
+      <groupbox id="defaultBrowserGroup" flex="1000" align="center" hidden="true">
+        <caption label="&defaultBrowserGroup.label;"/>
+        <!-- We have three use cases, identified by their index:
+             0: not already the default => button enabled
+             1: already the default => button disabled
+             2: user pushed button => button disabled with different text
+        -->
+        <description id="defaultBrowserDesc"
+                     desc0="&makeDefaultText;"
+                     desc1="&alreadyDefaultText;"
+                     desc2="&defaultPendingText;"/>
+        <button id="defaultBrowserButton"
+                label="&defaultBrowserButton.label;"
+                accesskey="&defaultBrowserButton.accesskey;"
+                oncommand="SetAsDefaultBrowser()"
+                disabled="true"
+                preference="pref.browser.disable_button.default_browser"/>
       </groupbox>
     </hbox>
 
     <!-- homepage specification -->
-    <groupbox>
+    <groupbox orient="horizontal">
       <caption label="&header2.label;"/>
       <vbox flex="1">
         <description>&homePageIntro.label;</description>
-        <hbox align="center">
-          <label value="&location.label;"
-                 accesskey="&location.accesskey;"
-                 control="browserStartupHomepage"/>
-          <textbox id="browserStartupHomepage"
-                   type="autocomplete" flex="1" class="uri-element" 
-                   autocompletesearch="history" timeout="50" maxrows="6"
-                   oninput="UpdateHomePageListFromInput();"/>
-          <button label="&browseFile.label;"
-                  accesskey="&browseFile.accesskey;"
-                  oncommand="SelectFile();"
-                  id="browserChooseFile"
-                  preference="pref.browser.homepage.disable_button.select_file"/>
-        </hbox>
-        <hbox align="center" pack="end">
-          <button label="&useCurrent.label;" accesskey="&useCurrent.accesskey;"
-                  oncommand="SetHomePageToCurrentPage();"
-                  id="browserUseCurrent"
-                  preference="pref.browser.homepage.disable_button.current_page"/>
-          <button label="&useCurrentGroup.label;" accesskey="&useCurrentGroup.accesskey;"
-                  oncommand="SetHomePageToCurrentGroup();"
-                  id="browserUseCurrentGroup"
-                  preference="pref.browser.homepage.disable_button.current_group"/>
-          <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
-                  oncommand="SetHomePageToDefaultPage();"
-                  id="browserUseDefault"
-                  preference="pref.browser.homepage.disable_button.default_page"/>
-        </hbox>
+        <textbox id="browserStartupHomepage" class="uri-element" flex="1"
+                 multiline="true" wrap="off" timeout="500"
+                 oninput="UpdateHomePageListFromInput();"/>
+      </vbox>
+      <vbox>
+        <button label="&browseFile.label;" accesskey="&browseFile.accesskey;"
+                oncommand="SelectFile();"
+                id="browserChooseFile"
+                preference="pref.browser.homepage.disable_button.select_file"/>
+        <button label="&useCurrent.label;" accesskey="&useCurrent.accesskey;"
+                oncommand="SetHomePageToCurrentPage();"
+                id="browserUseCurrent"
+                preference="pref.browser.homepage.disable_button.current_page"/>
+        <button label="&useCurrentGroup.label;" accesskey="&useCurrentGroup.accesskey;"
+                oncommand="SetHomePageToCurrentGroup();"
+                id="browserUseCurrentGroup"
+                preference="pref.browser.homepage.disable_button.current_group"/>
+        <button label="&useDefault.label;" accesskey="&useDefault.accesskey;"
+                oncommand="SetHomePageToDefaultPage();"
+                id="browserUseDefault"
+                preference="pref.browser.homepage.disable_button.default_page"/>
       </vbox>
     </groupbox>
 
     <!-- toolbar buttons customization -->
     <description value="&toolbarIntro.label;"/>
     <hbox id="prefShowButtons" flex="1" equalsize="true">
-      <groupbox id="prefShowButtonsBox1" flex="1">
+      <groupbox id="prefShowButtonsBox1" flex="1" orient="horizontal">
         <caption label="&navToolbarIntro.label;"/>
-        <checkbox id="goButton"
-                  label="&goButton.label;"
-                  accesskey="&goButton.accesskey;"
-                  preference="browser.toolbars.showbutton.go"/>
-        <checkbox id="searchButton"
-                  label="&searchButton.label;"
-                  accesskey="&searchButton.accesskey;"
-                  preference="browser.toolbars.showbutton.search"/>
-        <checkbox id="printButton"
-                  label="&printButton.label;"
-                  accesskey="&printButton.accesskey;"
-                  preference="browser.toolbars.showbutton.print"/>
+        <vbox flex="1">
+          <checkbox id="searchButton"
+                    label="&searchButton.label;"
+                    accesskey="&searchButton.accesskey;"
+                    preference="browser.toolbars.showbutton.search"/>
+          <checkbox id="printButton"
+                    label="&printButton.label;"
+                    accesskey="&printButton.accesskey;"
+                    preference="browser.toolbars.showbutton.print"/>
+        </vbox>
+        <vbox flex="1">
+          <checkbox id="goButton"
+            label="&goButton.label;"
+            accesskey="&goButton.accesskey;"
+            preference="browser.toolbars.showbutton.go"/>
+        </vbox>
       </groupbox>
       <groupbox id="prefShowButtonsBox" flex="1">
         <caption label="&persToolbarIntro.label;"/>

@@ -39,8 +39,6 @@
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
 <?xml-stylesheet type="text/css" href="chrome://communicator/content/communicator.css"?>
 
-<?xul-overlay href="chrome://communicator/content/pref/platformPrefOverlay.xul"?>
-
 <!DOCTYPE prefwindow [
   <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://communicator/locale/pref/preftree.dtd" > %dtd2;

@@ -38,8 +38,6 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<?xul-overlay href="chrome://communicator/content/pref/platformPrefOverlay.xul"?>
-
 <!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/preftree.dtd">
 
 <overlay id="prefTreeOverlay"

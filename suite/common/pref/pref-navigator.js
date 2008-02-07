@@ -44,13 +44,57 @@
 // The contents of this file will be loaded into the scope of the object
 // <prefpane id="navigator_pane">!
 
+// platform integration
+const PFINT_NOT_DEFAULT = 0;
+const PFINT_DEFAULT     = 1;
+const PFINT_PENDING     = 2;
+
+
 // put "global" definitions here for easy reference
-var gHomePageGroupIsSet = "";
-var gDefaultPage = "";
-var gHomePages = [];
+var gDefaultHomePage = "";
+var gHomePagePrefPeak = 0;
+var gPreferences = null;
 
 
-function GetHomePageValue()
+// <preferences> access helper methods
+function GetHomePagePrefCount()
+{
+  return document.getElementById("browser.startup.homepage.count").value;
+}
+
+function SetHomePagePrefCount(aCount)
+{
+  document.getElementById("browser.startup.homepage.count").value = aCount;
+}
+
+function GetHomePagePrefName(aIndex)
+{
+  var prefname = "browser.startup.homepage";
+  if (aIndex > 0)
+    prefname += "." + aIndex;
+  return prefname;
+}
+
+function GetHomePagePref(aIndex)
+{
+  // return the <preference> at aIndex
+  return document.getElementById(GetHomePagePrefName(aIndex));
+}
+
+function AddHomePagePref(aIndex)
+{
+  // create new <preference> for aIndex
+  var pref = document.createElement("preference");
+  var prefname = GetHomePagePrefName(aIndex);
+  pref.setAttribute("id",   prefname);
+  pref.setAttribute("name", prefname);
+  pref.setAttribute("type", "wstring");
+  gPreferences.appendChild(pref);
+  return pref;
+}
+
+// homepage group textbox helper methods
+function GetHomePageGroup()
 {
   return document.getElementById("browserStartupHomepage").value;
 }
@@ -60,21 +104,22 @@ function SetHomePageValue(aValue)
   document.getElementById("browserStartupHomepage").value = aValue;
 }
 
+// helper methods for reading current page URIs
 function GetMostRecentBrowser()
 {
   var windowManager = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                                 .getService(Components.interfaces.nsIWindowMediator);
   var browserWindow = windowManager.getMostRecentWindow("navigator:browser");
-  return browserWindow && browserWindow.document.getElementById("content");
+  return browserWindow && browserWindow.getBrowser();
 }
 
 function GetCurrentPage()
 {
   var tabbrowser = GetMostRecentBrowser();
-  return tabbrowser && tabbrowser.currentURI.spec;
+  return tabbrowser && tabbrowser.currentURI.spec || ""; // ensure string
 }
 
-function GetCurrentPageGroup()
+function GetCurrentGroup()
 {
   var uris = [];
   var tabbrowser = GetMostRecentBrowser();
@@ -85,63 +130,103 @@ function GetCurrentPageGroup()
     for (var i = 0; i < browsersLen; ++i)
       uris[i] = browsers[i].currentURI.spec;
   }
-  return uris;
+  return uris.join("\n");
+}
+
+// synchronize button states with current input
+function CanonifyURLList(aList)
+{
+  return (aList + "\n").replace(/\n+/g, "\n");
 }
 
 function UpdateHomePageButtons()
 {
-  var homepage = GetHomePageValue();
+  var homePageGroup = CanonifyURLList(GetHomePageGroup());
+  var currentPage   = CanonifyURLList(GetCurrentPage());
+  var currentGroup  = CanonifyURLList(GetCurrentGroup());
 
   // disable "current page" button if current page is already the homepage
   var currentPageButton = document.getElementById("browserUseCurrent");
-  currentPageButton.disabled = (homepage == GetCurrentPage());
+  currentPageButton.disabled = (homePageGroup == currentPage) ||
+                               (currentPage == "\n");
 
-  // disable "default page" button if default page is already the homepage
-  var defaultPageButton = document.getElementById("browserUseDefault");
-  defaultPageButton.disabled = (homepage == gDefaultPage);
+  // disable "current group" button if current group already set or no group
+  var currentGroupButton = document.getElementById("browserUseCurrentGroup");
+  currentGroupButton.disabled = (homePageGroup == currentGroup) ||
+                                (currentGroup == currentPage);
 
-  // homePages.length == 1 if:
-  //  - we're called from startup and there's one homepage
-  //  - we're called from "current page" or "choose file"
-  //  - the user typed something in the location field
-  //   in those cases we only want to enable the button if:
-  //    - there's more than one tab in the most recent browser
-  // otherwise we have a group of homepages:
-  //  - we're called from startup and there's a group of homepages
-  //  - we're called from "current group"
-  //   in those cases we only want to enable the button if:
-  //    - there's more than one tab in the most recent browser and
-  //      the current group doesn't match the group of homepages
-  var enabled = false;
-  if (gHomePages.length == 1)
+  // disable "restore" button if homepage hasn't changed
+  var restoreButton = document.getElementById("browserUseDefault");
+  restoreButton.disabled = (homePageGroup == gDefaultHomePage);
+}
+
+function UpdateHomePagePrefs()
+{
+  // update the list of <preference>s to the current settings
+  var newCount = 0; // current number of homepages
+  var homePageGroup = CanonifyURLList(GetHomePageGroup()).split("\n");
+  if (homePageGroup[0])
   {
-    var browser = GetMostRecentBrowser();
-    enabled = !!browser && (browser.browsers.length > 1);
-  }
-  else
-  {
-    var currentURIs = GetCurrentPageGroup();
-    if (currentURIs.length == gHomePages.length)
+    // we have at least one homepage
+    // (the last index is always empty due to canonification)
+    newCount = homePageGroup.length - 1
+    for (var i = 0; i < newCount; ++i)
     {
-      for (var i = 0; !enabled && (i < gHomePages.length); ++i)
-      {
-        if (gHomePages[i] != currentURIs[i])
-          enabled = true;
-      }
-    }
-    else if (currentURIs.length > 1)
-    {
-      enabled = true;
+      var pref = GetHomePagePref(i) || AddHomePagePref(i);
+      pref.value = homePageGroup[i];
     }
   }
 
-  var currentPageGroupButton = document.getElementById("browserUseCurrentGroup");
-  currentPageGroupButton.disabled = !enabled;
+  // work around bug 410562:
+  // reset unneeded preferences on dialogaccept only
+  
+  // update pref count watermark before setting new number of homepages
+  var alreadyRequested = (gHomePagePrefPeak > 0);
+  var oldCount = GetHomePagePrefCount();
+  if (gHomePagePrefPeak < oldCount)
+    gHomePagePrefPeak = oldCount;
+  SetHomePagePrefCount(newCount);
+
+  var needCleanup = (newCount < gHomePagePrefPeak);
+  if (document.documentElement.instantApply)
+  {
+    // throw away unneeded preferences now
+    if (needCleanup)
+      HomePagePrefCleanup();
+  }
+  else if (needCleanup != alreadyRequested)
+  {
+    // cleanup necessity changed
+    if (needCleanup)
+    {
+      // register OK handler for the capturing phase
+      window.addEventListener("dialogaccept", this.HomePagePrefCleanup, true);
+    }
+    else
+    {
+      // no cleanup necessary, remove OK handler
+      window.removeEventListener("dialogaccept", this.HomePagePrefCleanup, true);
+    }
+  }
+}
+
+function HomePagePrefCleanup()
+{
+  // remove the old user prefs values that we didn't overwrite
+  var count = GetHomePagePrefCount();
+  for (var j = count; j < gHomePagePrefPeak; ++j)
+  {
+    // clear <preference>
+    var pref = GetHomePagePref(j);
+    pref.reset();
+    pref.parentNode.removeChild(pref);
+  }
+  gHomePagePrefPeak = 0; // cleanup done
 }
 
 function UpdateHomePageListFromInput()
 {
-  gHomePages = [GetHomePageValue()];
+  UpdateHomePagePrefs();
   UpdateHomePageButtons();
 }
 
@@ -175,134 +260,155 @@ function SetHomePageToCurrentPage()
   UpdateHomePageList(GetCurrentPage());
 }
 
-function SetHomePageToDefaultPage()
-{
-  UpdateHomePageList(gDefaultPage);
-}
-
 function SetHomePageToCurrentGroup()
 {
-  var uris = GetCurrentPageGroup();
-  if (uris.length > 0)
-  {
-    SetHomePageValue(gHomePageGroupIsSet);
-    gHomePages = uris;
-    UpdateHomePageButtons();
-  }
+  UpdateHomePageList(GetCurrentGroup());
+}
+
+function SetHomePageToDefaultPage()
+{
+  UpdateHomePageList(gDefaultHomePage);
 }
 
 function Startup()
 {
-  // initialize global strings
-  gHomePageGroupIsSet = document.getElementById("bundle_prefutilities")
-                                .getString("groupIsSet");
-  gDefaultPage = document.getElementById("browser.startup.homepage").value;
-
-  // initialize behaviourDeck
-  SetPageAccessKeys(document.getElementById("behaviourDeck").firstChild);
-
-  // homepage groups can have an arbitrary number of preferences,
+  // homepage groups can have an arbitrary number of <preference>s,
   // thus we create them manually here 
-  var uris = [];
-  var preferences = document.getElementById("navigator_preferences");
-  var count = document.getElementById("browser.startup.homepage.count").value;
-
-  uris[0] = gDefaultPage;
-  for (var i = 1; i < count; ++i)
+  gPreferences = document.getElementById("navigator_preferences");
+  var homePageGroup = "";
+  var count = GetHomePagePrefCount();
+  for (var i = 0; i < count; ++i)
   {
-    // add new <preference> 
-    var pref = document.createElement("preference");
-    var prefname = "browser.startup.homepage." + i;
-    pref.setAttribute("id", prefname);
-    pref.setAttribute("name", prefname);
-    pref.setAttribute("type", "string");
-    preferences.appendChild(pref);
-
-    // remember its URIs
-    try
-    {
-      uris[i] = pref.value;
-    }
-    catch(e) {}
+    var pref = AddHomePagePref(i);
+    homePageGroup += pref.value + "\n";
   }
-  gHomePages = uris;
-
-  if (uris.length == 1)
-    SetHomePageValue(uris[0]);
-  else
-    SetHomePageValue(gHomePageGroupIsSet);
+  gDefaultHomePage = CanonifyURLList(GetHomePagePref(0).defaultValue);
+  SetHomePageValue(homePageGroup);
   UpdateHomePageButtons();
 
-  // register our OK handler for the capturing(!) phase
-  window.addEventListener("dialogaccept", this.OnDialogAccept, true);
-}
-
-function OnDialogAccept()
-{
-  // OK could have been hit from another pane,
-  // so we need to get at our data the long but safer way
-  var navigator_pane = document.getElementById("navigator_pane");
-
-  // toolkit will save all our data for, we just need to make sure it's set
-  var preferences = document.getElementById("navigator_preferences");
-  var uris = navigator_pane.gHomePages;
-  var uriCount = uris.length;
-  if (uriCount > 0)
-    document.getElementById("browser.startup.homepage").value = uris[0];
-  var i = 1;
-  for (; i < uriCount; ++i)
-  {
-    // store current value
-    var prefname = "browser.startup.homepage." + i;
-    var pref = document.getElementById(prefname);
-    if (!pref)
-    {
-      pref = document.createElement("preference");
-      pref.setAttribute("id", prefname);
-      pref.setAttribute("name", prefname);
-      pref.setAttribute("type", "string");
-      preferences.appendChild(pref);
-    }
-    pref.value = uris[i];
-  }
-
-  // remove the old user prefs values that we didn't overwrite
-  var countPref = document.getElementById("browser.startup.homepage.count");
-  var oldCount = countPref.value;
-  for (; i < oldCount; ++i)
-  {
-    // clear old pref
-    var prefname = "browser.startup.homepage." + i;
-    var pref = document.getElementById(prefname);
-    if (pref)
-    {
-      pref.reset();
-      pref.parentNode.removeChild(pref);
-    }
-  }
-  countPref.value = uris.length;
-}
-
-// the following functions may seem weird, but they are needed to avoid
-// accesskey clashes with hidden deck panes
-function SetPageAccessKeys(aGroup)
-{
-  var nodes = aGroup.childNodes;
-  for (var i = 0; i < nodes.length; ++i)
-    nodes[i].accessKey = nodes[i].getAttribute("ak");
-}
-
-function RemovePageAccessKeys(aGroup)
-{
-  var nodes = aGroup.childNodes;
-  for (var i = 0; i < nodes.length; ++i)
-    nodes[i].accessKey = '';
+  // platform integration
+  InitPlatformIntegration();
 }
 
 function SwitchPage(aIndex)
 {
-  var deck = document.getElementById("behaviourDeck");
-  RemovePageAccessKeys(deck.selectedPanel);
-  deck.selectedIndex = aIndex;
-  SetPageAccessKeys(deck.selectedPanel);
+  document.getElementById("behaviourDeck").selectedIndex = aIndex;
+}
+
+
+// platform integration
+
+function ApplySetAsDefaultBrowser()
+{
+  // In future, we will use the Shell Service here,
+  // for now, just use WinHooks.
+  window.gWinHooks.winhooks.settings = window.gWinHooks.prefs;
+}
+
+function UpdateDefaultBrowserGroup()
+{
+  // set description and button state according to integration setting
+  var state = window.gWinHooks.state;
+  var desc = document.getElementById("defaultBrowserDesc");
+  desc.textContent = desc.getAttribute("desc" + state);
+  document.getElementById("defaultBrowserButton").disabled = (state != PFINT_NOT_DEFAULT);
+}
+
+function InitPlatformIntegration()
+{
+  // In future, we will ask the Shell Service about platform integration here,
+  // for now, just check WinHooks.
+  var showDefaultBrowserGroup = /Win/.test(navigator.platform);
+  document.getElementById("defaultBrowserGroup").hidden = !showDefaultBrowserGroup;
+  if (!showDefaultBrowserGroup)
+    return;
+
+  // Determine if we have been selected as the default browser already, and
+  // enable/disable the "Set As Default" button accordingly.
+
+  // We store our state info in the same place as the code in pref-winhooks.js
+  // uses so that this panel and the Advanced/System panel are kept in sync.
+  if (!("gWinHooks" in window))
+  {
+    // Neither the Advanced/System panel nor this panel has appeared.
+    // Initialize the state information.
+    window.gWinHooks = {};
+
+    // Get winhooks service.
+    window.gWinHooks.winhooks = Components.classes["@mozilla.org/winhooks;1"]
+                                          .getService(Components.interfaces.nsIWindowsHooks);
+
+    // Extract current settings (these are what the user has checked on
+    // the Advanced/System panel).
+    window.gWinHooks.prefs = window.gWinHooks.winhooks.settings;
+  }
+  var winHooks = window.gWinHooks;
+  winHooks.state = PFINT_NOT_DEFAULT;
+
+  // Start by checking http/https/ftp and html/xhtml/xml.
+  var prefs = winHooks.prefs;
+  if (prefs.isHandlingHTTP  &&
+      prefs.isHandlingHTTPS &&
+      prefs.isHandlingFTP   &&
+      prefs.isHandlingHTML  &&
+      prefs.isHandlingXHTML &&
+      prefs.isHandlingXML)
+  {
+    // The user *wants* us to be the default, so look if the registry matches.
+    // We test the registry settings using a scratch copy of the settings
+    // because we don't care about some of them, but we don't want to mess up
+    // the user's choices from the Advanced/System panel.
+    var testSettings = winHooks.winhooks.settings;
+    // Test that these are set.
+    testSettings.isHandlingHTTP   = true;
+    testSettings.isHandlingHTTPS  = true;
+    testSettings.isHandlingFTP    = true;
+    testSettings.isHandlingHTML   = true;
+    testSettings.isHandlingXHTML  = true;
+    testSettings.isHandlingXML    = true;
+    // Ignore the rest.
+    testSettings.isHandlingCHROME = false;
+    testSettings.isHandlingGOPHER = false;
+    testSettings.isHandlingJPEG   = false;
+    testSettings.isHandlingGIF    = false;
+    testSettings.isHandlingPNG    = false;
+    testSettings.isHandlingBMP    = false;
+    testSettings.isHandlingICO    = false;
+    testSettings.isHandlingXUL    = false;
+    // Now test whether the registry matches that.
+    if (testSettings.registryMatches)
+      winHooks.state = PFINT_DEFAULT;
+  }
+  UpdateDefaultBrowserGroup();
+}
+
+function SetAsDefaultBrowser()
+{
+  // In future, we will use the Shell Service here,
+  // for now, just process WinHooks.
+
+  // Extract current settings (these are what the
+  // user has checked on the Advanced/System panel).
+  var settings = window.gWinHooks.prefs;
+
+  // Turn on all "default browser" settings.
+  settings.isHandlingHTTP  = true;
+  settings.isHandlingHTTPS = true;
+  settings.isHandlingFTP   = true;
+  settings.isHandlingHTML  = true;
+  settings.isHandlingXHTML = true;
+  settings.isHandlingXML   = true;
+
+  if (document.documentElement.instantApply)
+  {
+    window.gWinHooks.state = PFINT_DEFAULT;
+    ApplySetAsDefaultBrowser();
+  }
+  else
+  {
+    // register OK handler for the capturing phase
+    window.gWinHooks.state = PFINT_PENDING;
+    window.addEventListener("dialogaccept", this.ApplySetAsDefaultBrowser, true);
+  }
+  UpdateDefaultBrowserGroup();
 }
