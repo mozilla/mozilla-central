@@ -1,1 +1,1 @@
-Clobbering to pick up stuart's jemalloc stuff (bug 407459).
+clobbering to back out tinderbox config changes from bug 415928 until we sort out the linkage issues
