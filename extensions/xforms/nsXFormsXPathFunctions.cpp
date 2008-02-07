@@ -499,23 +499,27 @@ nsXFormsXPathFunctions::Event(txIFunctionEvaluationContext *aContext,
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIXFormsContextInfo> contextInfo;
-    nsCOMPtr<nsIXFormsActionModuleElement> actionElt = do_QueryInterface(xfNode);
-    if (actionElt) {
-      nsCOMPtr<nsIDOMEvent> domEvent;
-      actionElt->GetCurrentEvent(getter_AddRefs(domEvent));
-      nsCOMPtr<nsIXFormsDOMEvent> xfEvent = do_QueryInterface(domEvent);
-      if (!xfEvent) {
-        // Event being called for an nsIDOMEvent that is not an
-        // nsIXFormsDOMEvent.
-        result.swap(*aResult);
-        return NS_OK;
-      }
-      xfEvent->GetContextInfo(aName, getter_AddRefs(contextInfo));
-      if (!contextInfo) {
-        // The requested context info property does not exist.
-        result.swap(*aResult);
-        return NS_OK;
-      }
+    nsCOMPtr<nsIXFormsActionModuleElement> actionElt(do_QueryInterface(xfNode));
+    if (!actionElt) {
+      result.swap(*aResult);
+      return NS_OK;
+    }
+
+    nsCOMPtr<nsIDOMEvent> domEvent;
+    actionElt->GetCurrentEvent(getter_AddRefs(domEvent));
+    nsCOMPtr<nsIXFormsDOMEvent> xfEvent(do_QueryInterface(domEvent));
+    if (!xfEvent) {
+      // Event being called for an nsIDOMEvent that is not an
+      // nsIXFormsDOMEvent.
+      result.swap(*aResult);
+      return NS_OK;
+    }
+
+    xfEvent->GetContextInfo(aName, getter_AddRefs(contextInfo));
+    if (!contextInfo) {
+      // The requested context info property does not exist.
+      result.swap(*aResult);
+      return NS_OK;
     }
 
     // Determine the type of context info property.

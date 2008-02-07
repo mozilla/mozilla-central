@@ -168,7 +168,7 @@ private:
   // Document for http header context info.
   nsCOMPtr<nsIDOMDocument>         mHttpHeaderDoc;
   // Submission body from xforms-submit-serialize.
-  nsIDOMNode*                      mSubmissionBody;
+  nsCOMPtr<nsIDOMNode>             mSubmissionBody;
   // Type of submit error.
   nsString                         mSubmitError;
 

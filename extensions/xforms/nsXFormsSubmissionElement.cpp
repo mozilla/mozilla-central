@@ -328,7 +328,7 @@ nsXFormsSubmissionElement::HandleDefault(nsIDOMEvent *aEvent, PRBool *aHandled)
         contextInfo->GetStringValue(submissionBody);
         if (!submissionBody.EqualsLiteral(" ")) {
           // Save the new submission body.
-          contextInfo->GetNodeValue(&mSubmissionBody);
+          contextInfo->GetNodeValue(getter_AddRefs(mSubmissionBody));
         }
       }
     }
