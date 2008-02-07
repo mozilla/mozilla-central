@@ -168,9 +168,14 @@ PKIX_PL_OcspCertID_Create(
         }
 
         cid->certID = CERT_CreateOCSPCertID(cert->nssCert, time);
+        if (!cid->certID) {
+                PKIX_ERROR(PKIX_COULDNOTCREATEOBJECT);
+        }
+
         *object = cid;
         cid = NULL;
 cleanup:
+        PKIX_DECREF(cid);
         PKIX_RETURN(OCSPCERTID);
 }
 
@@ -226,14 +231,8 @@ PKIX_PL_OcspCertID_GetFreshCacheStatus(
         }
 
         rv = ocsp_GetCachedOCSPResponseStatusIfFresh(
-                cid->certID, time, PR_TRUE, /* ignore OCSP failure mode */
+                cid->certID, time, PR_TRUE, /*ignoreGlobalOcspFailureSetting*/
                 &rvOcsp, missingResponseError);
-
-        /* We ignore rvBasedOnOcspFailureMode, we are interested in the
-         * real result. 
-         * XXX This may change in the future, when libpkix allows the
-         * application to specify the desired failure behavior.
-         */
 
         *hasFreshStatus = (rv == SECSuccess);
         if (*hasFreshStatus) {
