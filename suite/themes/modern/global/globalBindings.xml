@@ -50,4 +50,8 @@
     </content>
   </binding>
 
+  <!-- Hack to prevent Add-ons Manager window transparency on Mac (bug 415934) -->
+
+  <binding id="unifiedWindow"/>
+
 </bindings>
