@@ -61,8 +61,8 @@ interface calIIcsParser : nsISupports
    *    The timezone provider used to resolve timezones not contained in the
    *    parent VCALENDAR or null (falls back to timezone service)
    */
-    void parseString(in AString aICSString,
-                     in calITimezoneProvider aTzProvider);
+  void parseString(in AString aICSString,
+                   in calITimezoneProvider aTzProvider);
 
   /**
    * Parse an input stream.
@@ -74,11 +74,15 @@ interface calIIcsParser : nsISupports
    *    The timezone provider used to resolve timezones not contained in the
    *    parent VCALENDAR or null (falls back to timezone service)
    */
-    void parseFromStream(in nsIInputStream aStream,
-                         in calITimezoneProvider aTzProvider);
+  void parseFromStream(in nsIInputStream aStream,
+                       in calITimezoneProvider aTzProvider);
 
   /**
-   * Get the items that were in the string or stream
+   * Get the items that were in the string or stream. In case an item represents a
+   * recurring series, the (unexpanded) parent item is returned only.
+   * Please keep in mind that any parentless items (see below) are not contained
+   * in the returned set of items.
+   *
    * @param aCount
    *    Will hold the number of items that were parsed
    * @param aItems
@@ -86,6 +90,19 @@ interface calIIcsParser : nsISupports
    */
   void getItems(out PRUint32 aCount,
                 [array,size_is(aCount),retval] out calIItemBase aItems);
+
+  /**
+   * Get the parentless items that may have occurred, i.e. overridden items of a
+   * recurring series (having a RECURRENCE-ID) missing their parent item in the
+   * parsed content.
+   *
+   * @param aCount
+   *    Will hold the number of items that were parsed
+   * @param aItems
+   *    The items
+   */
+  void getParentlessItems(out PRUint32 aCount,
+                          [array,size_is(aCount),retval] out calIItemBase aItems);
 
   /**
    * Get the top-level properties that were not interpreted as anything special

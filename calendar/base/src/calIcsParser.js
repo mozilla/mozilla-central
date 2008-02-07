@@ -38,6 +38,7 @@
 function calIcsParser() {
     this.wrappedJSObject = this;
     this.mItems = new Array();
+    this.mParentlessItems = new Array();
     this.mComponents = new Array();
     this.mProperties = new Array();
 }
@@ -141,6 +142,8 @@ function ip_parseString(aICSString, aTzProvider) {
         if (parent) {
             item.parentItem = parent;
             parent.recurrenceInfo.modifyException(item);
+        } else { // a parentless one
+            this.mParentlessItems.push(item);
         }
     }
     
@@ -188,6 +191,12 @@ calIcsParser.prototype.getItems =
 function ip_getItems(aCount) {
     aCount.value = this.mItems.length;
     return this.mItems.concat([]); //clone
+}
+
+calIcsParser.prototype.getParentlessItems =
+function ip_getParentlessItems(aCount) {
+    aCount.value = this.mParentlessItems.length;
+    return this.mParentlessItems.concat([]); //clone
 }
 
 calIcsParser.prototype.getProperties =
