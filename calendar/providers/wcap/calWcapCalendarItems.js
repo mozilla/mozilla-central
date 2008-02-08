@@ -487,9 +487,6 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
             case "IN-PROCESS":   params += "&status=5"; break;
             case "DRAFT":        params += "&status=6"; break;
             case "FINAL":        params += "&status=7"; break;
-            default:
-                params += "&status=3"; // NEEDS-ACTION
-                break;
             }
         }
         
