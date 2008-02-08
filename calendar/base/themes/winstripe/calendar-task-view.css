@@ -39,11 +39,14 @@
     font-weight: bold;
     text-align: right;
     background-color: transparent;
+    border: none;
 }
 
+#calendar-task-details-attachment,
 .task-details-value {
     text-align: left;
     background-color: transparent;
+    border: none;
 }
 
 #calendar-task-tree {

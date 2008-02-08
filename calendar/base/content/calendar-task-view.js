@@ -168,6 +168,12 @@ var taskDetailsView = {
             var description = item.hasProperty("DESCRIPTION") ? item.getProperty("DESCRIPTION") : null;
             textbox.value = description;
             textbox.inputField.readOnly = true;
+            var gURL = item.getProperty("URL");
+            if (displayElement("calendar-task-details-attachment-row", gURL && gURL.length)) {
+                var urlLabel = document.getElementById("calendar-task-details-attachment");
+                urlLabel.value = gURL;
+                urlLabel.setAttribute("tooltiptext", gURL);
+            }
         }
     }
 };
