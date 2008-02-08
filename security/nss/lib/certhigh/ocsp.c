@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.48 2008-02-07 23:30:33 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.49 2008-02-08 02:50:44 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -956,13 +956,13 @@ typedef struct ocspCheckingContextStr {
     CERTCertificate *defaultResponderCert;
 } ocspCheckingContext;
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SEC_IntegerTemplate);
-SEC_ASN1_MKSUB(SEC_NullTemplate);
-SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
-SEC_ASN1_MKSUB(SEC_PointerToAnyTemplate);
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
-SEC_ASN1_MKSUB(SEC_SequenceOfAnyTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SEC_IntegerTemplate)
+SEC_ASN1_MKSUB(SEC_NullTemplate)
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate)
+SEC_ASN1_MKSUB(SEC_PointerToAnyTemplate)
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+SEC_ASN1_MKSUB(SEC_SequenceOfAnyTemplate)
 SEC_ASN1_MKSUB(SEC_PointerToGeneralizedTimeTemplate)
 SEC_ASN1_MKSUB(SEC_PointerToEnumeratedTemplate)
 

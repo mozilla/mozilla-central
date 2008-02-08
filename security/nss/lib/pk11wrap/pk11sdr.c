@@ -54,7 +54,7 @@ struct SDRResult
 };
 typedef struct SDRResult SDRResult;
 
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 
 static SEC_ASN1Template template[] = {
   { SEC_ASN1_SEQUENCE, 0, NULL, sizeof (SDRResult) },

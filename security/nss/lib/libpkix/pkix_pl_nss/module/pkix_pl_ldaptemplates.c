@@ -38,9 +38,9 @@
 
 #include "pkix_pl_ldapt.h"
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SEC_NullTemplate);
-SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SEC_NullTemplate)
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate)
 
 /*
  * CertificatePair      ::= SEQUENCE {

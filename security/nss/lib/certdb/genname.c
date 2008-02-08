@@ -49,11 +49,11 @@
 #include "prprf.h"
 #include "genname.h"
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SEC_IntegerTemplate);
-SEC_ASN1_MKSUB(SEC_IA5StringTemplate);
-SEC_ASN1_MKSUB(SEC_ObjectIDTemplate);
-SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SEC_IntegerTemplate)
+SEC_ASN1_MKSUB(SEC_IA5StringTemplate)
+SEC_ASN1_MKSUB(SEC_ObjectIDTemplate)
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate)
 
 static const SEC_ASN1Template CERTNameConstraintTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CERTNameConstraint) },

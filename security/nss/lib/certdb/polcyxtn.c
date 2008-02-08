@@ -37,7 +37,7 @@
 /*
  * Support for various policy related extensions
  *
- * $Id: polcyxtn.c,v 1.9 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
+ * $Id: polcyxtn.c,v 1.10 2008-02-08 02:50:43 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "seccomon.h"
@@ -49,8 +49,8 @@
 #include "secerr.h"
 #include "nspr.h"
 
-SEC_ASN1_MKSUB(SEC_IntegerTemplate);
-SEC_ASN1_MKSUB(SEC_ObjectIDTemplate);
+SEC_ASN1_MKSUB(SEC_IntegerTemplate)
+SEC_ASN1_MKSUB(SEC_ObjectIDTemplate)
 
 const SEC_ASN1Template CERT_DisplayTextTypeTemplate[] = {
     { SEC_ASN1_CHOICE, offsetof(SECItem, type), 0, sizeof(SECItem) },

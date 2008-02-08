@@ -51,8 +51,8 @@
 #include "genname.h"
 #include "secerr.h"
 
-SEC_ASN1_MKSUB(SEC_IntegerTemplate);
-SEC_ASN1_MKSUB(SEC_OctetStringTemplate);
+SEC_ASN1_MKSUB(SEC_IntegerTemplate)
+SEC_ASN1_MKSUB(SEC_OctetStringTemplate)
 
 const SEC_ASN1Template CERTAuthKeyIDTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(CERTAuthKeyID) },

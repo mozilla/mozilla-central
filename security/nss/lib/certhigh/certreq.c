@@ -42,7 +42,7 @@
 #include "secasn1.h"
 #include "secerr.h"
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
 
 const SEC_ASN1Template CERT_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE,

@@ -112,8 +112,8 @@ struct SECKEYRawPrivateKeyStr {
 };
 typedef struct SECKEYRawPrivateKeyStr SECKEYRawPrivateKey;
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 
 /* ASN1 Templates for new decoder/encoder */
 /*

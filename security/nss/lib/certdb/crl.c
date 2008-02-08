@@ -37,7 +37,7 @@
 /*
  * Moved from secpkcs7.c
  *
- * $Id: crl.c,v 1.57 2007-10-12 01:44:40 julien.pierre.boogz%sun.com Exp $
+ * $Id: crl.c,v 1.58 2008-02-08 02:50:43 julien.pierre.boogz%sun.com Exp $
  */
  
 #include "cert.h"
@@ -103,8 +103,8 @@ static const SEC_ASN1Template cert_KrlEntryTemplate[] = {
     { 0 }
 };
 
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
-SEC_ASN1_MKSUB(CERT_TimeChoiceTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
+SEC_ASN1_MKSUB(CERT_TimeChoiceTemplate)
 
 static const SEC_ASN1Template cert_KrlTemplate[] = {
     { SEC_ASN1_SEQUENCE,

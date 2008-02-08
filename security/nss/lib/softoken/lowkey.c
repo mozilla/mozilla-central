@@ -46,10 +46,10 @@
 #include "softoken.h"
 #endif
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SEC_BitStringTemplate);
-SEC_ASN1_MKSUB(SEC_ObjectIDTemplate);
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SEC_BitStringTemplate)
+SEC_ASN1_MKSUB(SEC_ObjectIDTemplate)
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 
 const SEC_ASN1Template nsslowkey_AttributeTemplate[] = {
     { SEC_ASN1_SEQUENCE, 

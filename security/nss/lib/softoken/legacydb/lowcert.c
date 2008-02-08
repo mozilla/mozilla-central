@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: lowcert.c,v 1.3 2007-10-12 01:44:48 julien.pierre.boogz%sun.com Exp $
+ * $Id: lowcert.c,v 1.4 2008-02-08 02:50:50 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "seccomon.h"
@@ -50,7 +50,7 @@
 #include "secerr.h"
 #include "pcert.h"
 
-SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate);
+SEC_ASN1_MKSUB(SECOID_AlgorithmIDTemplate)
 
 static const SEC_ASN1Template nsslowcert_SubjectPublicKeyInfoTemplate[] = {
     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(NSSLOWCERTSubjectPublicKeyInfo) },

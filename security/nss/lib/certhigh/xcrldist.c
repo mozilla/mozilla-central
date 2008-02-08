@@ -41,8 +41,8 @@
 #include "certt.h"
 #include "secerr.h"
 
-SEC_ASN1_MKSUB(SEC_AnyTemplate);
-SEC_ASN1_MKSUB(SEC_BitStringTemplate);
+SEC_ASN1_MKSUB(SEC_AnyTemplate)
+SEC_ASN1_MKSUB(SEC_BitStringTemplate)
 
 extern void PrepareBitStringForEncoding (SECItem *bitMap, SECItem *value);
 
