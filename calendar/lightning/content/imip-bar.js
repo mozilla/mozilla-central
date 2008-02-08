@@ -277,19 +277,19 @@ function getMsgRecipient()
 function getTargetCalendar()
 {
     var calendarToReturn;
-    var calMgr = Components.classes["@mozilla.org/calendar/manager;1"]
-                           .getService(Components.interfaces.calICalendarManager);
-    var count = new Object();
-    var calArray = calMgr.getCalendars(count);
+    var calendars = getCalendarManager().getCalendars({});
+    calendars = calendars.filter(isCalendarWritable);
 
-    if (count.value == 1) {
+    // XXXNeed an error message if there is no writable calendar
+    if (calendars.length == 1) {
         // There's only one calendar, so it's silly to ask what calendar
         // the user wants to import into.
-        calendarToReturn = calArray[0];
+        calendarToReturn = calendars[0];
     } else {
         // Ask what calendar to import into
         var args = new Object();
         var aCal;
+        args.calendars = calendars;
         args.onOk = function selectCalendar(aCal) { calendarToReturn = aCal; };
         args.promptText = calGetString("calendar", "importPrompt");
         openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
