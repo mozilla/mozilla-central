@@ -180,7 +180,8 @@ AddCert(PK11SlotInfo *slot, CERTCertDBHandle *handle, char *name, char *trusts,
 	if (PK11_IsFIPS() || !PK11_IsInternal(slot)) {
 	    rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
 	    if (rv != SECSuccess) {
-		SECU_PrintError(progName, "could not authenticate to token or database");
+		SECU_PrintError(progName, "could not authenticate to token %s.",
+                                PK11_GetTokenName(slot));
 		GEN_BREAK(SECFailure);
 	    }
 	}
@@ -196,8 +197,8 @@ AddCert(PK11SlotInfo *slot, CERTCertDBHandle *handle, char *name, char *trusts,
 	    if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
 		rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
 		if (rv != SECSuccess) {
-		    SECU_PrintError(progName, 
-			"could not authenticate to token or database");
+                    SECU_PrintError(progName, "could not authenticate to token %s.",
+                                    PK11_GetTokenName(slot));
 		    GEN_BREAK(SECFailure);
 		}
 		rv = CERT_ChangeCertTrust(handle, cert, trust);
@@ -392,8 +393,8 @@ ChangeTrustAttributes(CERTCertDBHandle *handle, PK11SlotInfo *slot,
 	if (PORT_GetError() == SEC_ERROR_TOKEN_NOT_LOGGED_IN) {
 	    rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
 	    if (rv != SECSuccess) {
-		SECU_PrintError(progName, 
-			"could not authenticate to token or database");
+		SECU_PrintError(progName, "could not authenticate to token %s.",
+                                PK11_GetTokenName(slot));
 		return SECFailure;
 	    }
 	    rv = CERT_ChangeCertTrust(handle, cert, trust);
@@ -476,8 +477,14 @@ listCerts(CERTCertDBHandle *handle, char *name, PK11SlotInfo *slot,
     CERTCertListNode *node;
 
     /* List certs on a non-internal slot. */
-    if (!PK11_IsFriendly(slot) && PK11_NeedLogin(slot))
-	    PK11_Authenticate(slot, PR_TRUE, pwarg);
+    if (!PK11_IsFriendly(slot) && PK11_NeedLogin(slot)) {
+        SECStatus newrv = PK11_Authenticate(slot, PR_TRUE, pwarg);
+        if (newrv != SECSuccess) {
+            SECU_PrintError(progName, "could not authenticate to token %s.",
+                            PK11_GetTokenName(slot));
+            return SECFailure;
+        }
+    }
     if (name) {
 	CERTCertificate *the_cert;
 	the_cert = CERT_FindCertByNicknameOrEmailAddr(handle, name);
@@ -771,8 +778,14 @@ ListKeysInSlot(PK11SlotInfo *slot, const char *nickName, KeyType keyType,
     SECKEYPrivateKeyListNode *node;
     int count = 0;
 
-    if (PK11_NeedLogin(slot))
-	    PK11_Authenticate(slot, PR_TRUE, pwarg);
+    if (PK11_NeedLogin(slot)) {
+        SECStatus rv = PK11_Authenticate(slot, PR_TRUE, pwarg);
+        if (rv != SECSuccess) {
+            SECU_PrintError(progName, "could not authenticate to token %s.",
+                            PK11_GetTokenName(slot));
+            return SECFailure;
+        }
+    }
 
     if (nickName && nickName[0]) 
 	list = PK11_ListPrivKeysInSlot(slot, (char *)nickName, pwarg);
@@ -861,8 +874,14 @@ DeleteKey(char *nickname, secuPWData *pwdata)
     PK11SlotInfo *slot;
 
     slot = PK11_GetInternalKeySlot();
-    if (PK11_NeedLogin(slot))
-	PK11_Authenticate(slot, PR_TRUE, pwdata);
+    if (PK11_NeedLogin(slot)) {
+        SECStatus rv = PK11_Authenticate(slot, PR_TRUE, pwdata);
+        if (rv != SECSuccess) {
+            SECU_PrintError(progName, "could not authenticate to token %s.",
+                            PK11_GetTokenName(slot));
+            return SECFailure;
+        }
+    }
     cert = PK11_FindCertFromNickname(nickname, pwdata);
     if (!cert) {
 	PK11_FreeSlot(slot);
@@ -2182,7 +2201,8 @@ certutil_main(int argc, char **argv, PRBool initialize)
 	if (PK11_IsFIPS() || !PK11_IsFriendly(slot)) {
 	    rv = PK11_Authenticate(slot, PR_TRUE, &pwdata);
 	    if (rv != SECSuccess) {
-		SECU_PrintError(progName, "could not authenticate to token or database");
+		SECU_PrintError(progName, "could not authenticate to token %s.",
+                                PK11_GetTokenName(slot));
 		goto shutdown;
 	    }
 	}
@@ -2211,8 +2231,14 @@ certutil_main(int argc, char **argv, PRBool initialize)
     if (certutil.commands[cmd_CheckCertValidity].activated) {
 	/* XXX temporary hack for fips - must log in to get priv key */
 	if (certutil.options[opt_VerifySig].activated) {
-	    if (slot && PK11_NeedLogin(slot))
-		PK11_Authenticate(slot, PR_TRUE, &pwdata);
+	    if (slot && PK11_NeedLogin(slot)) {
+                SECStatus newrv = PK11_Authenticate(slot, PR_TRUE, &pwdata);
+                if (newrv != SECSuccess) {
+                    SECU_PrintError(progName, "could not authenticate to token %s.",
+                                    PK11_GetTokenName(slot));
+                    goto shutdown;
+                }
+            }
 	}
 	rv = ValidateCert(certHandle, name, 
 	                  certutil.options[opt_ValidityTime].arg,
