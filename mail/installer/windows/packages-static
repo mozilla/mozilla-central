@@ -284,6 +284,7 @@ bin\components\necko_socket.xpt
 bin\components\nsProxyAutoConfig.js
 
 ; extensions
+bin\components\nsAddonRepository.js
 bin\components\nsExtensionManager.js
 bin\components\nsBlocklistService.js
 bin\components\nsUpdateService.js
