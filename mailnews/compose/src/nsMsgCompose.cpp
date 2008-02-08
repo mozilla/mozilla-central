@@ -911,14 +911,13 @@ nsresult nsMsgCompose::UnregisterStateListener(nsIMsgComposeStateListener *state
 NS_IMETHODIMP nsMsgCompose::AddMsgSendListener( nsIMsgSendListener *aMsgSendListener )
 {
   NS_ENSURE_ARG_POINTER(aMsgSendListener);
-  nsresult rv = mExternalSendListeners.AppendObject( aMsgSendListener );
-  return rv;
+  return mExternalSendListeners.AppendElement(aMsgSendListener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendListener )
 {
   NS_ENSURE_ARG_POINTER(aMsgSendListener);
-  return mExternalSendListeners.RemoveObject( aMsgSendListener );
+  return mExternalSendListeners.RemoveElement(aMsgSendListener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, 
@@ -3083,49 +3082,83 @@ nsresult nsMsgCompose::ProcessReplyFlags()
 
   return NS_OK;
 }
-
 NS_IMETHODIMP nsMsgCompose::OnStartSending(const char *aMsgID, PRUint32 aMsgSize)
 {
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnStartSending(aMsgID, aMsgSize);
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
+
+  while (iter.HasMore()) 
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnStartSending(aMsgID, aMsgSize);
+  }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnProgress(const char *aMsgID, PRUint32 aProgress, PRUint32 aProgressMax)
 {
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnProgress(aMsgID, aProgress, aProgressMax);
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
+
+  while (iter.HasMore())
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnProgress(aMsgID, aProgress, aProgressMax);
+  }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnStatus(const char *aMsgID, const PRUnichar *aMsg)
 {
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnStatus(aMsgID, aMsg);
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
+
+  while (iter.HasMore())
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnStatus(aMsgID, aMsg);
+  }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                                       nsIFile *returnFile)
 {
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
+
+  while (iter.HasMore())
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnStopSending(aMsgID, aStatus, aMsg, returnFile);
+  }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnSendNotPerformed(const char *aMsgID, nsresult aStatus)
 {
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnSendNotPerformed(aMsgID, aStatus);
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
+
+  while (iter.HasMore())
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnSendNotPerformed(aMsgID, aStatus);
+  }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgCompose::OnGetDraftFolderURI(const char *aFolderURI)
 {
   m_folderName = aFolderURI;
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >::ForwardIterator iter(mExternalSendListeners);
+  nsCOMPtr<nsIMsgSendListener> externalSendListener;
 
-  for (PRInt32 i = 0; i < mExternalSendListeners.Count(); i++)
-    mExternalSendListeners[i]->OnGetDraftFolderURI(aFolderURI);
+  while (iter.HasMore())
+  {
+    externalSendListener = iter.GetNext();
+    externalSendListener->OnGetDraftFolderURI(aFolderURI);
+  }
   return NS_OK;
 }
 
