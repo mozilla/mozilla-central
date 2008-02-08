@@ -848,7 +848,7 @@ toolbar[iconsize="small"] #task-progress-button {
 toolbar[iconsize="small"] #task-progress-button[disabled="true"],
 toolbar[iconsize="small"] #task-progress-button[disabled="true"]:hover,
 toolbar[iconsize="small"] #task-progress-button[disabled="true"]:hover:active {
-        -moz-image-region: rect(32px 384px 48px 368x);
+        -moz-image-region: rect(32px 384px 48px 368px);
 }
 
 toolbar[iconsize="small"] #task-progress-button:hover {
