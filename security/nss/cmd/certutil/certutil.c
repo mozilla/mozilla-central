@@ -770,6 +770,7 @@ PrintKey(PRFileDesc *out, const char *nickName, int count,
     return SECSuccess;
 }
 
+/* returns SECSuccess if ANY keys are found, SECFailure otherwise. */
 static SECStatus
 ListKeysInSlot(PK11SlotInfo *slot, const char *nickName, KeyType keyType, 
                void *pwarg)
@@ -844,6 +845,7 @@ ListKeysInSlot(PK11SlotInfo *slot, const char *nickName, KeyType keyType,
     return SECSuccess;
 }
 
+/* returns SECSuccess if ANY keys are found, SECFailure otherwise. */
 static SECStatus
 ListKeys(PK11SlotInfo *slot, const char *nickName, int index, 
          KeyType keyType, PRBool dopriv, secuPWData *pwdata)
@@ -859,6 +861,7 @@ ListKeys(PK11SlotInfo *slot, const char *nickName, int index,
 	    for (le = list->head; le; le = le->next) {
 		rv &= ListKeysInSlot(le->slot,nickName,keyType,pwdata);
 	    }
+	    PK11_FreeSlotList(list);
 	}
     } else {
 	rv = ListKeysInSlot(slot,nickName,keyType,pwdata);
