@@ -1899,6 +1899,27 @@ function getAdjacentSibling(aElement, aDistance) {
 }
 
 /**
+ * deeply clones a popupmenu
+ *
+ * @param aMenuPopupId The Id of the popup-menu to be cloned
+ * @param aNewPopupId The new id of the cloned popup-menu
+ * @param aNewIdPrefix To keep the ids unique the childnodes of the returned 
+ * popup-menu are prepended with a prefix
+ * @return the cloned popup-menu
+ */
+function clonePopupMenu(aMenuPopupId, aNewPopupId, aNewIdPrefix) {
+    var oldMenuPopup = document.getElementById(aMenuPopupId);
+    var retMenuPopup = oldMenuPopup.cloneNode(true);
+    retMenuPopup.setAttribute("id", aNewPopupId);
+    var menuElements = retMenuPopup.getElementsByAttribute("id", "*");
+    for (var i = 0; i < menuElements.length; i++) {
+        var lid = menuElements[i].getAttribute("id");
+        menuElements[i].setAttribute("id", aNewIdPrefix + lid);
+    }
+    return retMenuPopup;
+}
+
+/**
  * applies a value to all children of a Menu. If the respective childnodes define
  * a command the value is applied to the attribute of thecommand of the childnode
  *
@@ -1911,7 +1932,10 @@ function applyAttributeToMenuChildren(aElement, aAttributeName, aValue) {
    do {
        if (sibling) {
            var domObject = sibling;
-           var commandName = sibling.getAttribute("command");
+           var commandName = null;
+           if (sibling.hasAttribute("command")){
+               commandName = sibling.getAttribute("command");
+           }
            if (commandName) {
                var command = document.getElementById(commandName);
                if (command) {
@@ -1980,18 +2004,72 @@ function getParentNode(aNode, aLocalName) {
   return node;
 }
 
-function addCalendarsToMenu(aMenuItem, aFunctionName) {
-    var calendarList = aMenuItem;
-    var calendars = getCalendarManager().getCalendars({});
-    for (i in calendars) {
-        var calendar = calendars[i];
-        var menuitem = calendarList.appendItem(calendar.name, i);
-        if (aFunctionName) {
-            menuitem.setAttribute("oncommand", aFunctionName)
-        }
-        menuitem.calendar = calendar;
+function setItemProperty(item, propertyName, aValue, aCapability) {
+    var isSupported = (item.calendar.getProperty("capabilities." + aCapability + ".supported") == false)
+    var value = (aCapability && !isSupported ? null : aValue);
+
+    switch (propertyName) {
+        case "startDate":
+            if (value.isDate && !item.startDate.isDate ||
+                !value.isDate && item.startDate.isDate ||
+                !compareObjects(value.timezone, item.startDate.timezone) ||
+                value.compare(item.startDate) != 0) {
+                item.startDate = value;
+            }
+            break;
+        case "endDate":
+            if (value.isDate && !item.endDate.isDate ||
+                !value.isDate && item.endDate.isDate ||
+                !compareObjects(value.timezone, item.endDate.timezone) ||
+                value.compare(item.endDate) != 0) {
+                item.endDate = value;
+            }
+            break;
+        case "entryDate":
+            if (value == item.entryDate) {
+                break;
+            }
+            if (value && !item.entryDate ||
+                !value && item.entryDate ||
+                value.isDate != item.entryDate.isDate ||
+                !compareObjects(value.timezone, item.entryDate.timezone) ||
+                value.compare(item.entryDate) != 0) {
+                item.entryDate = value;
+            }
+            break;
+        case "dueDate":
+            if (value == item.dueDate) {
+                break;
+            }
+            if (value && !item.dueDate ||
+                !value && item.dueDate ||
+                value.isDate != item.dueDate.isDate ||
+                !compareObjects(value.timezone, item.dueDate.timezone) ||
+                value.compare(item.dueDate) != 0) {
+                item.dueDate = value;
+            }
+            break;
+        case "isCompleted":
+            if (value != item.isCompleted) {
+                item.isCompleted = value;
+            }
+            break;
+        case "title":
+            if (value != item.title) {
+                item.title = value;
+            }
+            break;
+        default:
+            if (!value || value == "") {
+                item.deleteProperty(propertyName);
+            } else if (item.getProperty(propertyName) != value) {
+                item.setProperty(propertyName, value);
+            }
+            break;
     }
 }
+
+
 /**
  * Implements a property bag.
  */

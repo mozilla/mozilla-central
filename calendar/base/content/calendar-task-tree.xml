@@ -573,14 +573,8 @@
                 this.binding, "anonid", "calendar-task-tree");
             var treechildren = tree.getElementsByTagName("treechildren")[0];
             
-            if (this._getItemFromEvent(event)) {
-                // TODO HACK notifiers should be rewritten to integrate events and todos
-                document.getElementById("calendar_delete_todo_command").removeAttribute("disabled");
-            } else {
+            if (!this._getItemFromEvent(event)) {
                 tree.view.selection.clearSelection();
-
-                // TODO HACK notifiers should be rewritten to integrate events and todos
-                document.getElementById("calendar_delete_todo_command").setAttribute("disabled", "true");
             }
           },
           

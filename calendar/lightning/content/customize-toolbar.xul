@@ -24,6 +24,7 @@
    -   David Hyatt (hyatt@apple.com)
    -   Blake Ross (blaker@netscape.com)
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -64,6 +65,7 @@
             <menuitem value="mode" label="&customize.toolbar.selector.mode;"/>
             <menuitem value="mail" label="&customize.toolbar.selector.mail;"/>
             <menuitem value="calendar" label="&customize.toolbar.selector.calendar;"/>
+            <menuitem value="task" label="&customize.toolbar.selector.task;"/>
           </menupopup>
         </menulist>
       </box>

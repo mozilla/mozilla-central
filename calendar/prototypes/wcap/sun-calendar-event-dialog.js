@@ -335,47 +335,8 @@ function loadDialog(item) {
     }
 
     // Categories
-    var categoriesList = getPrefCategoriesArray();
-    
-    // When categoriesString is empty, split returns an array containing one
-    // empty string, rather than an empty array. This results in an empty
-    // menulist item with no corresponding category.
-    if (categoriesList.length == 1 && !categoriesList[0].length) {
-        categoriesList.pop();
-    }
-
-    // insert the category already in the menulist so it doesn't get lost
-    var itemProperty = item.getProperty("CATEGORIES");
-    if (itemProperty) {
-        var itemCategories = categoriesStringToArray(itemProperty);
-        for each (var itemCategory in itemCategories) {
-            if (!categoriesList.some(function(cat){ return cat == itemCategory; })){
-                categoriesList.push(itemCategory);
-            }
-        }
-    }
-    sortArrayByLocaleCollator(categoriesList);
-
-    var oldMenulist = document.getElementById("item-categories");
-    while (oldMenulist.hasChildNodes()) {
-        oldMenulist.removeChild(oldMenulist.lastChild);
-    }
-
     var categoryMenuList = document.getElementById("item-categories");
-    var indexToSelect = 0;
-
-    // Add a 'none' option to allow users to cancel the category
-    var noneItem = categoryMenuList.appendItem(calGetString("calendar", "None"),
-                                               "NONE");
-
-    for (var i in categoriesList) {
-        var catItem = categoryMenuList.appendItem(categoriesList[i],
-                                                  categoriesList[i]);
-        catItem.value = categoriesList[i];
-        if (itemCategory && categoriesList[i] == itemCategory) {
-            indexToSelect = parseInt(i) + 1;  // Add 1 because of 'None'
-        }
-    }
+    var indexToSelect = appendCategoryItems(item, categoryMenuList);
 
     categoryMenuList.selectedIndex = indexToSelect;
 
@@ -809,14 +770,7 @@ function saveDialog(item) {
         setItemProperty(item, "PERCENT-COMPLETE", percentCompleteInteger);
     }
 
-    // Category
-    var category = getElementValue("item-categories");
-
-    if (category != "NONE") {
-       setItemProperty(item, "CATEGORIES", categoriesArrayToString([category]));
-    } else {
-       item.deleteProperty("CATEGORIES");
-    }
+     setCategory(item, "item-categories");
 
     // URL
     setItemProperty(item, "URL", gURL, "attachments");
@@ -1432,70 +1386,6 @@ function editURL() {
             gURL = url;
             updateDocument();
         }
-    }
-}
-
-function setItemProperty(item, propertyName, aValue, aCapability) {
-    var value = (aCapability && !capSupported(aCapability) ? null : aValue);
-
-    switch (propertyName) {
-        case "startDate":
-            if (value.isDate && !item.startDate.isDate ||
-                !value.isDate && item.startDate.isDate ||
-                !compareObjects(value.timezone, item.startDate.timezone) ||
-                value.compare(item.startDate) != 0) {
-                item.startDate = value;
-            }
-            break;
-        case "endDate":
-            if (value.isDate && !item.endDate.isDate ||
-                !value.isDate && item.endDate.isDate ||
-                !compareObjects(value.timezone, item.endDate.timezone) ||
-                value.compare(item.endDate) != 0) {
-                item.endDate = value;
-            }
-            break;
-        case "entryDate":
-            if (value == item.entryDate) {
-                break;
-            }
-            if (value && !item.entryDate ||
-                !value && item.entryDate ||
-                value.isDate != item.entryDate.isDate ||
-                !compareObjects(value.timezone, item.entryDate.timezone) ||
-                value.compare(item.entryDate) != 0) {
-                item.entryDate = value;
-            }
-            break;
-        case "dueDate":
-            if (value == item.dueDate) {
-                break;
-            }
-            if (value && !item.dueDate ||
-                !value && item.dueDate ||
-                value.isDate != item.dueDate.isDate ||
-                !compareObjects(value.timezone, item.dueDate.timezone) ||
-                value.compare(item.dueDate) != 0) {
-                item.dueDate = value;
-            }
-            break;
-        case "isCompleted":
-            if (value != item.isCompleted) {
-                item.isCompleted = value;
-            }
-            break;
-        case "title":
-            if (value != item.title) {
-                item.title = value;
-            }
-            break;
-        default:
-            if (!value || value == "") {
-                item.deleteProperty(propertyName);
-            } else if (item.getProperty(propertyName) != value) {
-                item.setProperty(propertyName, value);
-            }
-            break;
     }
 }
 

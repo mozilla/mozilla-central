@@ -180,6 +180,107 @@ function enableElementWithLock(elementId, lockId) {
     }
 }
 
+function addCalendarsToMenu(aMenuItem, aFunctionName) {
+    var calendarList = aMenuItem;
+    var calendars = getCalendarManager().getCalendars({});
+    for (i in calendars) {
+        var calendar = calendars[i];
+        var menuitem = calendarList.appendItem(calendar.name, i);
+        if (aFunctionName) {
+            menuitem.setAttribute("oncommand", aFunctionName)
+        }
+        menuitem.calendar = calendar;
+    }
+}
+
+/** unchecks the commands of the child elements of a DOM-tree-node
+* e.g of a menu
+* @param aEvent the event from which the target is taken to retrieve the child
+* elements
+*/
+function uncheckChildNodes(aEvent) {
+    var liveList = aEvent.target.getElementsByAttribute("checked", "true");
+    for (var i = liveList.length - 1; i >= 0; i-- ) {
+        var commandName = liveList.item(i).getAttribute("command");
+        var command = document.getElementById(commandName);
+        if (command) {
+            command.setAttribute("checked", "false");
+        }
+    }
+}
+
+function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
+    var categoriesString = getLocalizedPref("calendar.categories.names", "");
+    var categoriesList = getPrefCategoriesArray();
+
+    // When categoriesString is empty, split returns an array containing one
+    // empty string, rather than an empty array. This results in an empty
+    // menulist item with no corresponding category.
+    if (categoriesList.length == 1 && !categoriesList[0].length) {
+        categoriesList.pop();
+    }
+
+    // insert the category already in the menulist so it doesn't get lost
+    if (aItem) {
+        var itemCategory = aItem.getProperty("CATEGORIES");
+        if (itemCategory) {
+            if (categoriesString.indexOf(itemCategory) == -1) {
+                categoriesList[categoriesList.length] = itemCategory;
+            }
+        }
+    }
+    categoriesList.sort();
+
+    while (aCategoryMenuList.hasChildNodes()) {
+       aCategoryMenuList.removeChild(aCategoryMenuList.lastChild);
+    }
+
+    var indexToSelect = 0;
+    var menuitem = addMenuItem(aCategoryMenuList, calGetString("calendar", "None"), "NONE", aCommand);
+    if (aCategoryMenuList.localName == "menupopup") {
+        menuitem.setAttribute("type", "checkbox");
+    }
+    for (var i in categoriesList) {
+        var menuitem = addMenuItem(aCategoryMenuList, categoriesList[i], categoriesList[i], aCommand);
+        if (aCategoryMenuList.localName == "menupopup") {
+            menuitem.setAttribute("type", "checkbox");
+        }
+        if (itemCategory && categoriesList[i] == itemCategory) {
+            indexToSelect = parseInt(i) + 1;  // Add 1 because of 'None'
+        }
+    }
+    return indexToSelect;
+}
+
+function addMenuItem(aParent, aLabel, aValue, aCommand) {
+    if (aParent.localName == "menupopup") {
+        var item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
+        item.setAttribute("label", aLabel);
+        if (aValue) {
+            item.value = aValue;
+        }
+        if (aCommand) {
+          item.command = aCommand;
+        }
+        aParent.appendChild(item);
+    }
+    else if (aParent.localName == "menulist") {
+        aParent.appendItem(aLabel, aValue);
+    }
+    return item;
+}
+
+function setCategory(aItem, aMenuElement) {
+    // Category
+    var category = getElementValue(aMenuElement);
+
+    if (category != "NONE") {
+       setItemProperty(aItem, "CATEGORIES", category);
+    } else {
+       aItem.deleteProperty("CATEGORIES");
+    }
+}
+
 function processEnableCheckbox(checkboxId, elementId) {
     var checked = document.getElementById(checkboxId).checked;
     setElementValue(elementId, !checked && "true", "disabled");

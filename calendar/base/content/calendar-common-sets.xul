@@ -78,24 +78,25 @@
     <command id="calendar_reload_remote_calendars" oncommand="goDoCommand('calendar_reload_remote_calendars')"/>
 
     <command id="calendar_show_unifinder_command" oncommand="toggleUnifinder()"/>
-
     <!-- The dash instead of the underscore is intended. the 'xxx-view' part should be the id of the view in the deck -->
     <command id="calendar_day-view_command" oncommand="showCalendarView('day')"/>
     <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
     <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
     <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
-    <command id="calendar_iscompleted_command" oncommand="toggleCompleted(event)"/>
-    <command id="calendar_modify_todo_command" oncommand="modifyTaskFromContext();"/>
-    <command id="calendar_percent-0_command" oncommand="contextChangeProgress(0);"/>
-    <command id="calendar_percent-25_command" oncommand="contextChangeProgress(25);"/>
-    <command id="calendar_percent-50_command" oncommand="contextChangeProgress(50);"/>
-    <command id="calendar_percent-75_command" oncommand="contextChangeProgress(75);"/>
-    <command id="calendar_percent-100_command" oncommand="contextChangeProgress(100);"/>
-    <command id="calendar_priority-0_command" oncommand="contextChangePriority(0);"/>
-    <command id="calendar_priority-9_command" oncommand="contextChangePriority(9);"/>
-    <command id="calendar_priority-5_command" oncommand="contextChangePriority(5);"/>
-    <command id="calendar_priority-1_command" oncommand="contextChangePriority(1);"/>
-
+    <command id="calendar_iscompleted_command" oncommand="toggleCompleted(event);"/>
+    <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
+    <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
+    <command id="calendar_percentComplete-0_command" oncommand="goDoCommand('calendar_percentComplete-0_command')"/>
+    <command id="calendar_percentComplete-25_command" oncommand="goDoCommand('calendar_percentComplete-25_command')"/>
+    <command id="calendar_percentComplete-50_command" oncommand="goDoCommand('calendar_percentComplete-50_command')"/>
+    <command id="calendar_percentComplete-75_command" oncommand="goDoCommand('calendar_percentComplete-75_command')"/>
+    <command id="calendar_percentComplete-100_command" oncommand="goDoCommand('calendar_percentComplete-100_command')"/>
+    <command id="calendar_percentComplete-100_command2" oncommand="goDoCommand('calendar_percentComplete-100_command2')"/>
+    <command id="calendar_priority-0_command" oncommand="goDoCommand('calendar_priority-0_command')"/>
+    <command id="calendar_priority-9_command" oncommand="goDoCommand('calendar_priority-9_command')"/>
+    <command id="calendar_priority-5_command" oncommand="goDoCommand('calendar_priority-5_command')"/>
+    <command id="calendar_priority-1_command" oncommand="goDoCommand('calendar_priority-1_command')"/>
+    <command id="calendar_general-priority_command" oncommand="goDoCommand('calendar_general-priority_command')"/>
     <command id="calendar_toggle_orientation_command" persist="checked" oncommand="toggleOrientation()" disabled="true"/>
     <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="toggleWorkdaysOnly()"/>
     <command id="calendar_toggle_tasks_in_view_command" persist="checked" oncommand="toggleTasksInView()"/>
@@ -122,6 +123,7 @@
       <menuitem label="&calendar.context.deletetask.label;"
                 accesskey="&calendar.context.deletetask.accesskey;"
                 id="task-context-menu-delete"
+                command="calendar_delete_todo_command"
                 observes="calendar_delete_todo_command"/>
       <menuseparator/>
       <menuitem type="checkbox"
@@ -133,43 +135,43 @@
       <menu label="&calendar.context.progress.label;"
             accesskey="&calendar.context.progress.accesskey;"
             id="task-context-menu-progress">
-        <menupopup>
+        <menupopup id="calendar.context.progress-menu" onpopupshowing="changeTaskProgressMenu(event);">
           <menuitem type="checkbox"
                     id="percent-0-menuitem"
                     label="&progress.level.0;"
                     accesskey="&progress.level.0.accesskey;"
-                    observes="calendar_percent-0_command"
-                    command="calendar_percent-0_command"/>
+                    observes="calendar_percentComplete-0_command"
+                    command="calendar_percentComplete-0_command"/>
           <menuitem type="checkbox"
                     id="percent-25-menuitem"
                     label="&progress.level.25;"
                     accesskey="&progress.level.25.accesskey;"
-                    observes="calendar_percent-25_command"
-                    command="calendar_percent-25_command"/>
+                    observes="calendar_percentComplete-25_command"
+                    command="calendar_percentComplete-25_command"/>
           <menuitem type="checkbox"
                     id="percent-50-menuitem"
                     label="&progress.level.50;"
                     accesskey="&progress.level.50.accesskey;"
-                    observes="calendar_percent-50_command"
-                    command="calendar_percent-50_command"/>
+                    observes="calendar_percentComplete-50_command"
+                    command="calendar_percentComplete-50_command"/>
           <menuitem type="checkbox"
                     id="percent-75-menuitem"
                     label="&progress.level.75;"
                     accesskey="&progress.level.75.accesskey;"
-                    observes="calendar_percent-75_command"
-                    command="calendar_percent-75_command"/>
+                    observes="calendar_percentComplete-75_command"
+                    command="calendar_percentComplete-75_command"/>
           <menuitem type="checkbox"
                     id="percent-100-menuitem"
                     label="&progress.level.100;"
                     accesskey="&progress.level.100.accesskey;"
-                    observes="calendar_percent-100_command"
-                    command="calendar_percent-100_command"/>
+                    observes="calendar_percentComplete-100_command"
+                    command="calendar_percentComplete-100_command"/>
         </menupopup>
       </menu>
       <menu label="&calendar.context.priority.label;"
             accesskey="&calendar.context.priority.accesskey;"
             id="task-context-menu-priority">
-        <menupopup>
+        <menupopup id="calendar.context.priority-menu" onpopupshowing="changeTaskPriorityMenu(event)">
           <menuitem type="checkbox"
                     id="priority-0-menuitem"
                     label="&priority.level.none;"

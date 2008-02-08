@@ -486,11 +486,16 @@ function ltnInitializeMenus(){
     copyPopupMenus();
     ltnRemoveMailOnlyItems(calendarpopuplist, "calendar");
     ltnRemoveMailOnlyItems(taskpopuplist, "task");
-    document.getElementById("calendar-toolbar").setAttribute("collapsed", "true")
     var modeToolbar = document.getElementById("mode-toolbar");
     var visible = !modeToolbar.hasAttribute("collapsed");
     document.getElementById("modeBroadcaster").setAttribute("checked", visible);
-    }
+    document.getElementById("calendar-toolbar").setAttribute("collapsed", gCurrentMode!="calendar");
+    document.getElementById("task-toolbar").setAttribute("collapsed", gCurrentMode!="task");
+    var progressToolbarPopupMenu = clonePopupMenu("calendar.context.progress-menu", "toolbar-progress-menu", "tb-");
+    document.getElementById("task-progress-button").appendChild(progressToolbarPopupMenu);
+    var priorityToolbarPopupMenu = clonePopupMenu("calendar.context.priority-menu", "toolbar-priority-menu", "tb-");
+    document.getElementById("task-priority-button").appendChild(priorityToolbarPopupMenu);
+}
 
 function getMenuElementById(aElementId, aMenuPopup) {
         var element = null;
@@ -595,13 +600,7 @@ function copyPopupMenus() {
     addToPopupList(menulist[1], null, taskpopuplist, excludeList, true, false);
     addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
     addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
-    var tasksViewMenuPopup = document.getElementById("taskitem-context-menu").cloneNode(true);
-    tasksViewMenuPopup.setAttribute("id", "taskitem-menu");
-    var menuElements = tasksViewMenuPopup.getElementsByAttribute("id", "*");
-    for (var i = menuElements.length; i-- > 0;) {
-        var lid = menuElements[i].getAttribute("id");
-        menuElements[i].setAttribute("id", "menu-" + lid);
-    }
+    var tasksViewMenuPopup = clonePopupMenu("taskitem-context-menu", "taskitem-menu", "menu-");
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-modify", tasksViewMenuPopup));
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-delete", tasksViewMenuPopup));
     addToPopupList(menulist[4], tasksViewMenuPopup, taskpopuplist, excludeList, false, false);

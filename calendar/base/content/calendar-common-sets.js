@@ -60,7 +60,19 @@ var calendarController = {
         "calendar_publish_selected_events_command": true,
 
         "calendar_reload_remote_calendars": true,
-
+        "calendar_iscompleted_command": true,
+        "calendar_percentComplete-0_command": true,
+        "calendar_percentComplete-25_command": true,
+        "calendar_percentComplete-50_command": true,
+        "calendar_percentComplete-75_command": true,
+        "calendar_percentComplete-100_command": true,
+        "calendar_percentComplete-100_command2": true,
+        "calendar_priority-0_command": true,
+        "calendar_priority-9_command": true,
+        "calendar_priority-5_command": true,
+        "calendar_priority-1_command": true,
+        "calendar_general-priority_command": true,
+        "calendar_task_category_command": true,
         "cmd_cut": true,
         "cmd_copy": true,
         "cmd_paste": true,
@@ -104,8 +116,22 @@ var calendarController = {
             case "calendar_new_todo_command":
                 return this.writable && this.calendars_support_tasks;
             case "calendar_modify_todo_command":
-                return this.todo_items_selected;
+                return this.todo_items_selected &&
+                       this.todo_tasktree_focused;
             case "calendar_delete_todo_command":
+            case "calendar_iscompleted_command":
+            case "calendar_percentComplete-0_command":
+            case "calendar_percentComplete-25_command":
+            case "calendar_percentComplete-50_command":
+            case "calendar_percentComplete-75_command":
+            case "calendar_percentComplete-100_command":
+            case "calendar_percentComplete-100_command2":
+            case "calendar_priority-0_command":
+            case "calendar_priority-9_command":
+            case "calendar_priority-5_command":
+            case "calendar_priority-1_command":
+            case "calendar_task_category_command":
+            case "calendar_general-priority_command":
                 return this.writable &&
                        this.todo_items_selected &&
                        this.todo_items_writable;
@@ -121,7 +147,7 @@ var calendarController = {
                 return this.item_selected;
 
             case "calendar_reload_remote_calendar":
-                return !this.no_network_calendars && !this.offline
+                return !this.no_network_calendars && !this.offline;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
                     // If calendar is not in foreground, let the default controller take
@@ -155,7 +181,6 @@ var calendarController = {
                 }            
         }
         return false;
-          
     },
 
     doCommand: function cC_doCommand(aCommand) {
@@ -216,6 +241,36 @@ var calendarController = {
 
             case "calendar_reload_remote_calendars":
                 getCompositeCalendar().refresh();
+                break;
+            case "calendar_percentComplete-0_command":
+                contextChangeTaskProgress(0);
+                break;
+            case "calendar_percentComplete-25_command":
+                contextChangeTaskProgress(25);
+                break;
+            case "calendar_percentComplete-50_command":
+                contextChangeTaskProgress(50);
+                break;
+            case "calendar_percentComplete-75_command":
+                contextChangeTaskProgress(75);
+                break;
+            case "calendar_percentComplete-100_command":
+                contextChangeTaskProgress(100);
+                break;
+            case "calendar_percentComplete-100_command2":
+                contextChangeTaskProgress2(100);
+                break;
+            case "calendar_priority-0_command":
+                contextChangeTaskPriority(0);
+                break;
+            case "calendar_priority-9_command":
+                contextChangeTaskPriority(9);
+                break;
+            case "calendar_priority-5_command":
+                contextChangeTaskPriority(5);
+                break;
+            case "calendar_priority-1_command":
+                contextChangeTaskPriority(1);
                 break;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {

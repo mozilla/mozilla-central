@@ -109,6 +109,9 @@ function ltnSwitch2Mail() {
     var calendarToolbar = document.getElementById("calendar-toolbar");
     calendarToolbar.setAttribute("collapsed", "true");
 
+    var calendarToolbar = document.getElementById("task-toolbar");
+    calendarToolbar.setAttribute("collapsed", "true");
+    
     // the content panel should display the folder tree
     var contentDeck = document.getElementById("contentPanel");
     contentDeck.selectedPanel = document.getElementById("folderPaneBox");
@@ -158,6 +161,9 @@ function ltnSwitch2Calendar() {
     mailToolbar.setAttribute("collapsed", "true");
 
     toggleControlDisplay("cmd_toggleCalendarToolbar", "calendar-toolbar", "calendar");
+    toggleControlDisplay("cmd_toggleTaskToolbar", "task-toolbar", "task");
+    var taskToolbar = document.getElementById("task-toolbar");
+    taskToolbar.setAttribute("collapsed", "true");
 
 
     // the content deck should display the calendar panel
@@ -199,13 +205,14 @@ function ltnSwitch2Task() {
     switch2mail.removeAttribute("checked");
     switch2calendar.removeAttribute("checked");
     switch2task.setAttribute("checked", "true");
-
+    toggleControlDisplay("cmd_toggleCalendarToolbar", "calendar-toolbar", "calendar");
+    toggleControlDisplay("cmd_toggleTaskToolbar", "task-toolbar", "task");
     gCurrentMode = 'task';
     swapPopupMenus();
     var mailToolbar = getMailBar();
     var calendarToolbar = document.getElementById("calendar-toolbar");
     mailToolbar.setAttribute("collapsed", "true");
-    calendarToolbar.removeAttribute("collapsed");
+    calendarToolbar.setAttribute("collapsed", "true");
 
     // the content deck should display the calendar panel
     var contentDeck = document.getElementById("contentPanel");
@@ -253,6 +260,7 @@ function CustomizeApplicationToolbar(id) {
   var mailbar = getMailBar();
   var menubar = document.getElementById('mail-menubar');
   var calendarbar = document.getElementById('calendar-toolbar');
+  var taskbar = document.getElementById('task-toolbar');
   var mailbox = document.getElementById("mail-toolbox");
   var modebar = document.getElementById('mode-toolbar');
   var modebox = document.getElementById('mode-toolbox');
@@ -268,6 +276,7 @@ function CustomizeApplicationToolbar(id) {
       EnableDisableHierarchy(menubar, true);
       EnableDisableHierarchy(mailbar, true);
       EnableDisableHierarchy(calendarbar, true);
+      EnableDisableHierarchy(taskbar, true);
     } else {
       EnableDisableHierarchy(modebar, true);
     }
@@ -299,6 +308,9 @@ function CustomizeApplicationToolbar(id) {
     } else if(aMode == 'calendar') {
       ltnSwitch2Calendar();
       toolbox = 'mail-toolbox';
+    } else if(aMode == 'task') {
+      ltnSwitch2Task();
+      toolbox = 'mail-toolbox';
     }
 
     // enable/disable all toolbar to reflect the new state
@@ -307,6 +319,7 @@ function CustomizeApplicationToolbar(id) {
     EnableDisableHierarchy(menubar, isMode);
     EnableDisableHierarchy(mailbar, isMode);
     EnableDisableHierarchy(calendarbar, isMode);
+    EnableDisableHierarchy(taskbar, isMode);
     
     // remember the current toolbox
     gCustomizeId = toolbox;
@@ -342,6 +355,7 @@ function ModeToolboxCustomizeDone(aToolboxChanged) {
     EnableDisableHierarchy(document.getElementById('mail-menubar'), false);
     EnableDisableHierarchy(getMailBar(), false);
     EnableDisableHierarchy(document.getElementById('calendar-toolbar'), false);
+    EnableDisableHierarchy(document.getElementById('task-toolbar'), false);
   }
 
   // Unconditionally enable the mode toolbar

@@ -33,6 +33,7 @@
 #                 Simon Paquet <bugzilla@babylonsounds.com>
 #                 Martin Schroeder <mschroeder@mozilla.x-home.org>
 #                 Philipp Kewisch <mozilla@kewis.ch>
+#                 Berend Cornelius <berend.cornelius@sun.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -59,6 +60,52 @@
     list-style-image: url("chrome://calendar/skin/toolbar-large.png");
 }
 
+.cal-toolbarbutton-1[type="menu"] {
+    -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+}
+
+toolbarbutton[type="menu-button"] {
+    -moz-box-orient: horizontal;
+}
+
+toolbarbutton[type="menu-button"] > toolbarbutton {
+    -moz-box-orient: vertical !important;
+}
+
+.cal-toolbarbutton-1,
+.cal-toolbarbutton-menubutton-button {
+   padding-top: 5px;
+   padding-bottom: 6px;
+   -moz-padding-start: 4px;
+   -moz-padding-end: 5px;
+}
+
+.cal-toolbarbutton-1:hover:active:not([disabled]),
+.cal-toolbarbutton-1[open="true"],
+.cal-toolbarbutton-menubutton-button:hover:active:not([disabled]),
+.cal-toolbarbutton-menubutton-button[open="true"] {
+   padding-top: 6px;
+   padding-bottom: 5px;
+   -moz-padding-start: 5px;
+   -moz-padding-end: 4px;
+}
+ 
+.cal-toolbarbutton-1[checked="true"] {
+   padding-top: 6px !important;
+   padding-bottom: 5px !important;
+   -moz-padding-start: 5px !important;
+   -moz-padding-end: 4px !important;
+}
+ 
+ 
+.toolbarbutton-menu-dropmarker {
+   -moz-padding-start: 3px;
+}
+
+.cal-toolbarbutton-1 .toolbarbutton-icon {
+    -moz-margin-end: 0px;
+}
+
 toolbar[mode="full"] .cal-toolbarbutton-1 {
     min-width: 55px;
 }
@@ -77,36 +124,48 @@ toolbar[iconsize="small"] .cal-toolbarbutton-1 {
  *   new event button
  *-------------------------------------------------------------------*/
 
- #calendar-new-event-button {
+ #calendar-new-event-button,
+ #task-new-event-button {
     -moz-image-region: rect(0px 24px 24px 0px);
 }
 #calendar-new-event-button[disabled="true"],
 #calendar-new-event-button[disabled="true"]:hover,
-#calendar-new-event-button[disabled="true"]:hover:active {
+#calendar-new-event-button[disabled="true"]:hover:active,
+#task-new-event-button[disabled="true"],
+#task-new-event-button[disabled="true"]:hover,
+#task-new-event-button[disabled="true"]:hover:active {
     -moz-image-region: rect(48px 24px 72px 0px);
 }
-#calendar-new-event-button:hover {
+#calendar-new-event-button:hover,
+#task-new-event-button:hover {
     -moz-image-region: rect(24px 24px 48px 0px);
 }
-#calendar-new-event-button:hover:active {
+#calendar-new-event-button:hover:active,
+#task-new-event-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   new event button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-new-event-button {
+toolbar[iconsize="small"] #calendar-new-event-button,
+toolbar[iconsize="small"] #task-new-event-button {
     -moz-image-region: rect(0px 16px 16px 0px);
 }
 toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-new-event-button[disabled="true"]:hover:active,
+toolbar[iconsize="small"] #task-new-event-button[disabled="true"],
+toolbar[iconsize="small"] #task-new-event-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-new-event-button[disabled="true"]:hover:active {
     -moz-image-region: rect(32px 16px 48px 0px);
 }
-toolbar[iconsize="small"] #calendar-new-event-button:hover {
+toolbar[iconsize="small"] #calendar-new-event-button:hover,
+toolbar[iconsize="small"] #task-new-event-button:hover {
     -moz-image-region: rect(16px 16px 32px 0px);
 }
-toolbar[iconsize="small"] #calendar-new-event-button:hover:active {
+toolbar[iconsize="small"] #calendar-new-event-button:hover:active,
+toolbar[iconsize="small"] #task-new-event-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -149,36 +208,48 @@ toolbar[iconsize="small"] #calendar-edit-button:hover:active {
  *   delete event button
  *-------------------------------------------------------------------*/
 
-#calendar-delete-button {
+#calendar-delete-button,
+#task-delete-button {
     -moz-image-region: rect(0px 72px 24px 48px);
 }
 #calendar-delete-button[disabled="true"],
 #calendar-delete-button[disabled="true"]:hover,
-#calendar-delete-button[disabled="true"]:hover:active {
+#calendar-delete-button[disabled="true"]:hover:active,
+#task-delete-button[disabled="true"],
+#task-delete-button[disabled="true"]:hover,
+#task-delete-button[disabled="true"]:hover:active {
     -moz-image-region: rect(48px 72px 72px 48px);
 }
-#calendar-delete-button:hover {
+#calendar-delete-button:hover,
+#task-delete-button:hover {
     -moz-image-region: rect(24px 72px 48px 48px);
 }
-#calendar-delete-button:hover:active {
+#calendar-delete-button:hover:active,
+#task-delete-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   delete event button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-delete-button {
+toolbar[iconsize="small"] #calendar-delete-button,
+toolbar[iconsize="small"] #task-delete-button {
     -moz-image-region: rect(0px 48px 16px 32px);
 }
 toolbar[iconsize="small"] #calendar-delete-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-delete-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-delete-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-delete-button[disabled="true"]:hover:active,
+toolbar[iconsize="small"] #task-delete-button[disabled="true"],
+toolbar[iconsize="small"] #task-delete-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-delete-button[disabled="true"]:hover:active {
     -moz-image-region: rect(32px 48px 48px 32px);
 }
-toolbar[iconsize="small"] #calendar-delete-button:hover {
+toolbar[iconsize="small"] #calendar-delete-button:hover,
+toolbar[iconsize="small"] #task-delete-button:hover {
     -moz-image-region: rect(16px 48px 32px 32px);
 }
-toolbar[iconsize="small"] #calendar-delete-button:hover:active {
+toolbar[iconsize="small"] #calendar-delete-button:hover:active,
+toolbar[iconsize="small"] #task-delete-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -712,6 +783,118 @@ toolbar[iconsize="small"] #calendar-publish-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
+ *   Category button
+ *-------------------------------------------------------------------*/
+
+#task-category-button {
+        -moz-image-region: rect(0px 552px 24px 528px);
+}
+#task-category-button[disabled="true"],
+#task-category-button[disabled="true"]:hover,
+#task-category-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 552px 72px 528px);
+}
+#task-category-button:hover {
+        -moz-image-region: rect(24px 552px 48px 528px);
+}
+#task-category-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Category button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #task-category-button {
+        -moz-image-region: rect(0px 368px 16px 352px);
+}
+toolbar[iconsize="small"] #task-category-button[disabled="true"],
+toolbar[iconsize="small"] #task-category-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-category-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 368px 48px 352px);
+}
+toolbar[iconsize="small"] #task-category-button:hover {
+        -moz-image-region: rect(16px 368px 32px 352px);
+}
+toolbar[iconsize="small"] #task-category-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Progress button
+ *-------------------------------------------------------------------*/
+
+#task-progress-button {
+        -moz-image-region: rect(0px 576px 24px 552px);
+}
+
+#task-progress-button[disabled="true"],
+#task-progress-button[disabled="true"]:hover,
+#task-progress-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 576px 72px 552px);
+}
+#task-progress-button:hover {
+        -moz-image-region: rect(24px 576px 48px 552px);
+}
+#task-progress-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Progress button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #task-progress-button {
+        -moz-image-region: rect(0px 384px 16px 368px);
+}
+
+toolbar[iconsize="small"] #task-progress-button[disabled="true"],
+toolbar[iconsize="small"] #task-progress-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-progress-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 384px 48px 368x);
+}
+
+toolbar[iconsize="small"] #task-progress-button:hover {
+        -moz-image-region: rect(16px 384px 32px 368px);
+}
+
+toolbar[iconsize="small"] #task-progress-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Priority button
+ *-------------------------------------------------------------------*/
+
+#task-priority-button {
+        -moz-image-region: rect(0px 600px 24px 576px);
+}
+#task-priority-button[disabled="true"],
+#task-priority-button[disabled="true"]:hover,
+#task-priority-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 600px 72px 576px);
+}
+#task-priority-button:hover {
+        -moz-image-region: rect(24px 600px 48px 576px);
+}
+#task-priority-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Priority button - small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #task-priority-button {
+        -moz-image-region: rect(0px 400px 16px 384px);
+}
+toolbar[iconsize="small"] #task-priority-button[disabled="true"],
+toolbar[iconsize="small"] #task-priority-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-priority-button[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 400px 48px 384px);
+}
+toolbar[iconsize="small"] #task-priority-button:hover {
+        -moz-image-region: rect(16px 400px 32px 384px);
+}
+toolbar[iconsize="small"] #task-priority-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
  *   Local Reload button
  *-------------------------------------------------------------------*/
 
@@ -751,107 +934,186 @@ toolbar[iconsize="small"] #calendar-local-reload:hover:active {
  *   Remote Reload button
  *-------------------------------------------------------------------*/
 
-#calendar-remote-reload-button {
+#calendar-remote-reload-button,
+#task-remote-reload-button {
         -moz-image-region: rect(0px 480px 24px 456px);
 }
 #calendar-remote-reload-button[disabled="true"],
 #calendar-remote-reload-button[disabled="true"]:hover,
-#calendar-remote-reload-button[disabled="true"]:hover:active {
+#calendar-remote-reload-button[disabled="true"]:hover:active,
+#task-remote-reload-button[disabled="true"],
+#task-remote-reload-button[disabled="true"]:hover,
+#task-remote-reload-button[disabled="true"]:hover:active {
         -moz-image-region: rect(48px 480px 72px 456px);
 }
-#calendar-remote-reload-button:hover {
+#calendar-remote-reload-button:hover,
+#task-remote-reload-button:hover {
         -moz-image-region: rect(24px 480px 48px 456px);
 }
-#calendar-remote-reload-button:hover:active {
+#calendar-remote-reload-button:hover:active,
+#task-remote-reload-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   Remote Reload button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-remote-reload-button { 
+toolbar[iconsize="small"] #calendar-remote-reload-button,
+toolbar[iconsize="small"] #task-remote-reload-button {
         -moz-image-region: rect(0px 320px 16px 304px);
 }
 toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-remote-reload-button[disabled="true"]:hover:active,
+toolbar[iconsize="small"] #task-remote-reload-button[disabled="true"],
+toolbar[iconsize="small"] #task-remote-reload-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-remote-reload-button[disabled="true"]:hover:active {
         -moz-image-region: rect(32px 320px 48px 304px);
 }
-toolbar[iconsize="small"] #calendar-remote-reload-button:hover {
+toolbar[iconsize="small"] #calendar-remote-reload-button:hover,
+toolbar[iconsize="small"] #task-remote-reload-button:hover {
         -moz-image-region: rect(16px 320px 32px 304px);
 }
-toolbar[iconsize="small"] #calendar-remote-reload-button:hover:active {
+toolbar[iconsize="small"] #calendar-remote-reload-button:hover:active,
+toolbar[iconsize="small"] #task-remote-reload-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   Print button
  *-------------------------------------------------------------------*/
 
-#calendar-print-button {
+#calendar-print-button,
+#task-print-button {
         -moz-image-region: rect(0px 360px 24px 336px);
 }
 #calendar-print-button[disabled="true"],
 #calendar-print-button[disabled="true"]:hover,
-#calendar-print-button[disabled="true"]:hover:active {
+#calendar-print-button[disabled="true"]:hover:active,
+#task-print-button[disabled="true"],
+#task-print-button[disabled="true"]:hover,
+#task-print-button[disabled="true"]:hover:active {
         -moz-image-region: rect(48px 360px 72px 336px);
 }
-#calendar-print-button:hover {
+#calendar-print-button:hover,
+#task-print-button:hover {
         -moz-image-region: rect(24px 360px 48px 336px);
 }
-#calendar-print-button:hover:active {
+#calendar-print-button:hover:active,
+#task-print-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   Print button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-print-button {
+toolbar[iconsize="small"] #calendar-print-button,
+toolbar[iconsize="small"] #task-print-button {
         -moz-image-region: rect(0px 240px 16px 224px);
 }
 toolbar[iconsize="small"] #calendar-print-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-print-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-print-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-print-button[disabled="true"]:hover:active,
+toolbar[iconsize="small"] #task-print-button[disabled="true"],
+toolbar[iconsize="small"] #task-print-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-print-button[disabled="true"]:hover:active {
         -moz-image-region: rect(32px 240px 48px 224px);
 }
-toolbar[iconsize="small"] #calendar-print-button:hover {
+toolbar[iconsize="small"] #calendar-print-button:hover,
+toolbar[iconsize="small"] #task-print-button:hover {
         -moz-image-region: rect(16px 240px 32px 224px);
 }
-toolbar[iconsize="small"] #calendar-print-button:hover:active {
+toolbar[iconsize="small"] #calendar-print-button:hover:active,
+toolbar[iconsize="small"] #task-print-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   New Task button
  *-------------------------------------------------------------------*/
 
-#calendar-new-task-button {
+#calendar-new-task-button,
+#task-new-task-button {
         -moz-image-region: rect(0px 384px 24px 360px);
 }
 #calendar-new-task-button[disabled="true"],
 #calendar-new-task-button[disabled="true"]:hover,
-#calendar-new-task-button[disabled="true"]:hover:active {
+#calendar-new-task-button[disabled="true"]:hover:active,
+#task-new-task-button[disabled="true"],
+#task-new-task-button[disabled="true"]:hover,
+#task-new-task-button[disabled="true"]:hover:active {
         -moz-image-region: rect(48px 384px 72px 360px);
 }
-#calendar-new-task-button:hover {
+#calendar-new-task-button:hover,
+#task-new-task-button:hover {
         -moz-image-region: rect(24px 384px 48px 360px);
 }
-#calendar-new-task-button:hover:active {
+#calendar-new-task-button:hover:active,
+#task-new-task-button:hover:active {
 }
 
 /*--------------------------------------------------------------------
  *   New Task button - small
  *-------------------------------------------------------------------*/
 
-toolbar[iconsize="small"] #calendar-new-task-button {
+toolbar[iconsize="small"] #calendar-new-task-button,
+toolbar[iconsize="small"] #task-new-task-button {
         -moz-image-region: rect(0px 256px 16px 240px);
 }
 toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"],
 toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"]:hover,
-toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #calendar-new-task-button[disabled="true"]:hover:active,
+toolbar[iconsize="small"] #task-new-task-button[disabled="true"],
+toolbar[iconsize="small"] #task-new-task-button[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-new-task-button[disabled="true"]:hover:active {
         -moz-image-region: rect(32px 256px 48px 240px);
 }
-toolbar[iconsize="small"] #calendar-new-task-button:hover {
+toolbar[iconsize="small"] #calendar-new-task-button:hover,
+toolbar[iconsize="small"] #task-new-task-button:hover {
         -moz-image-region: rect(16px 256px 32px 240px);
 }
-toolbar[iconsize="small"] #calendar-new-task-button:hover:active {
+toolbar[iconsize="small"] #calendar-new-task-button:hover:active,
+toolbar[iconsize="small"] #task-new-task-button:hover:active {
+}
+
+/*--------------------------------------------------------------------
+ *   Addressbook button
+ *-------------------------------------------------------------------*/
+
+#task-button-address {
+        -moz-image-region: rect(0px 624px 24px 600px);
+}
+
+#task-button-address[disabled="true"],
+#task-button-address[disabled="true"]:hover,
+#task-button-address[disabled="true"]:hover:active {
+        -moz-image-region: rect(48px 624px 72px 600px);
+}
+
+#task-button-address:hover {
+        -moz-image-region: rect(24px 624px 48px 600px);
+}
+
+#task-button-address:hover:active {
+}
+
+
+/*--------------------------------------------------------------------
+ *   Addressbook button small
+ *-------------------------------------------------------------------*/
+
+toolbar[iconsize="small"] #task-button-address {
+        -moz-image-region: rect(0px 416px 16px 400px);
+}
+
+toolbar[iconsize="small"] #task-button-address[disabled="true"],
+toolbar[iconsize="small"] #task-button-address[disabled="true"]:hover,
+toolbar[iconsize="small"] #task-button-address[disabled="true"]:hover:active {
+        -moz-image-region: rect(32px 416px 48px 400px);
+}
+
+toolbar[iconsize="small"] #task-button-address:hover {
+        -moz-image-region: rect(16px 416px 32px 400px);
+}
+
+toolbar[iconsize="small"] #task-button-address:hover:active {
 }
 

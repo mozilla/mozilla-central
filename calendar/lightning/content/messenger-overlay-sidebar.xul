@@ -270,13 +270,21 @@
              command="cmd_toggleCalendarToolbar"
              observes="cmd_toggleCalendarToolbar"
              position="1"/>
+   <menuitem id="ltnTaskToolbar"
+             type="checkbox"
+             label="&task.toolbar.label;"
+             accesskey="&task.toolbar.accesskey;"
+             mode="task"
+             command="cmd_toggleTaskToolbar"
+             observes="cmd_toggleTaskToolbar"
+             position="2"/>
    <menuitem id="ltnModeToolbar"
              type="checkbox"
              label="&mode.toolbar.label;"
              accesskey="&mode.toolbar.accesskey;"
              observes="modeBroadcaster"
              command="cmd_toggleModeToolbar"
-             position="2"/>
+             position="3"/>
   </menupopup>
 
 <window id="messengerWindow">
@@ -297,6 +305,7 @@
     <command id="cmd_toggleTodayPane" oncommand="toggleTodayPaneinMailMode()"/>
     <command id="cmd_toggleModeToolbar" oncommand="toggleToolbar('cmd_toggleModeToolbar', 'mode-toolbar')"/>
     <command id="cmd_toggleCalendarToolbar" oncommand="toggleControlinMode('cmd_toggleCalendarToolbar', 'calendar-toolbar')"/>
+    <command id="cmd_toggleTaskToolbar" oncommand="toggleControlinMode('cmd_toggleTaskToolbar', 'task-toolbar')"/>
     <command id="calendar-delete-command" oncommand="ltnDeleteSelectedItem()" disabledwhennoeventsselected="true"/>
     <command id="calendar_new_todo_command" oncommand="createTodoWithDialog(getSelectedCalendar());"/>
     <command id="modify_todo_command" oncommand="editToDo()"/>

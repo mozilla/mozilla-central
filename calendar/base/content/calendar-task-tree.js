@@ -71,7 +71,54 @@ function addCalendarNames(aEvent) {
          }
     }
 }
-  
+
+function addCategoryNames(aEvent) {
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    var tasksSelected = (tasks.length > 0);
+    if (tasksSelected) {
+        var index = appendCategoryItems(tasks[0], aEvent.target, document.getElementById("calendar_task_category_command"));
+        aEvent.target.childNodes[index].setAttribute("checked","true");
+    } else {
+        appendCategoryItems(null, aEvent.target);
+        applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
+    }
+}
+
+function changeTaskProgressMenu(aEvent) {
+    changeMenuByPropertyName(aEvent, "percentComplete");
+}
+
+function changeTaskPriorityMenu(aEvent) {
+    changeMenuByPropertyName(aEvent, "priority")
+}
+
+/** This highly specialized function checks a command which naming follows
+ *  the notation 'calendar_' +  propertyname + ' + '-' + propertvalue + 'command',
+ *  when its propertyvalue part matches the propertyvalue of the selected tasks
+ *  as long as the selected tasks share common propertyValues.
+ *  @param aEvent the event that contains a target from which the child elements
+ *  are retrieved and unchecked.
+ *  @param aPropertyName the name of the property that is available at a task
+ */ 
+function changeMenuByPropertyName(aEvent, aPropertyName) {
+    uncheckChildNodes(aEvent);
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    var tasksSelected = ((tasks != null) && (tasks.length > 0));
+    if (tasksSelected) {
+        var task = tasks[0];
+        if (isPropertyValueSame(tasks, aPropertyName)) {
+            var command = document.getElementById("calendar_" + aPropertyName + "-" + task[aPropertyName] + "_command");
+            if (command) {
+                command.setAttribute("checked", "true");
+            }
+        }
+    } else {
+        applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
+    }
+}
+
 function changeContextMenuForTask(aEvent) {
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
@@ -81,44 +128,22 @@ function changeContextMenuForTask(aEvent) {
     document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
     if (tasksSelected) {
         taskTree.contextTask = task = tasks[0];
-    } else {
-        taskTree.contextTask = null;
-        return;
-    }
-
-    if (tasksSelected) {
-        var liveList = aEvent.target.getElementsByAttribute("checked", "true");
-        // Delete in reverse order.  Moz1.8+ getElementsByAttribute list is
-        // 'live', so when attribute is deleted the indexes of later elements
-        // change, but Moz1.7- is not.  Reversed order works with both.
-        for (var i = liveList.length - 1; i >= 0; i-- ) {
-            var commandName = liveList.item(i).getAttribute("command");
-            var command = document.getElementById(commandName);
-            if (command) {
-                command.setAttribute("checked", "false");
-            }
-        }
         if (isPropertyValueSame(tasks, "isCompleted")) {;
-            document.getElementById("calendar_iscompleted_command").setAttribute("checked", task.isCompleted);
+            setBooleanAttribute(document.getElementById("calendar_iscompleted_command"), "checked", task.isCompleted);
         } else {
             document.getElementById("calendar_iscompleted_command").setAttribute("checked", false);
         }
-        if (isPropertyValueSame(tasks, "percentComplete")) {
-            var percentCommand = document.getElementById("calendar_percent-" + task.percentComplete + "_command");
-            if (percentCommand) {
-                percentCommand.setAttribute("checked", "true");
-            }
-        }
-        if (isPropertyValueSame(tasks, "priority")) {
-            var priorityCommand = document.getElementById("calendar_priority-" + task.priority + "_command");
-            if (priorityCommand) {
-                priorityCommand.setAttribute("checked", "true");
-            }
-        }
+    } else {
+        taskTree.contextTask = null;
     }
 }
 
-function contextChangeProgress(aProgress) {
+function contextChangeTaskProgress2(aProgress) {
+    contextChangeTaskProgress(aProgress);
+    document.getElementById("calendar_percentComplete-100_command2").checked = false;
+}
+
+function contextChangeTaskProgress(aProgress) {
     startBatchTransaction();
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
@@ -143,6 +168,22 @@ function contextChangeProgress(aProgress) {
     endBatchTransaction();
 }
 
+function contextChangeTaskCategory(aEvent) {
+    startBatchTransaction();
+    var taskTree = getFocusedTaskTree();
+    var tasks = taskTree.selectedTasks;
+    var tasksSelected = (tasks.length > 0);
+    if (tasksSelected) {
+        var menuItem = aEvent.target;
+        for (var t = 0; t < tasks.length; t++) {
+            var newTask = tasks[t].clone().QueryInterface( Components.interfaces.calITodo );
+            setCategory(newTask, menuItem);
+            doTransaction('modify', newTask, newTask.calendar, tasks[t], null);
+        }
+    }
+    endBatchTransaction();
+}
+
 function contextChangeCalendar(aEvent) {
    startBatchTransaction();
    var taskTree = getFocusedTaskTree();
@@ -156,7 +197,7 @@ function contextChangeCalendar(aEvent) {
     endBatchTransaction();
 }
 
-function contextChangePriority(aPriority) {
+function contextChangeTaskPriority(aPriority) {
     startBatchTransaction();
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
@@ -168,7 +209,7 @@ function contextChangePriority(aPriority) {
      }
      endBatchTransaction();
   }
-  
+
 function modifyTaskFromContext() {
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
@@ -208,14 +249,14 @@ function tasksToMail() {
 
 function tasksToEvents() {
     var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;  
+    var tasks = taskTree.selectedTasks;
     calendarCalendarButtonDNDObserver.onDropItems(tasks);
 }
 
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
-        contextChangeProgress(0);
+        contextChangeTaskProgress(0);
     } else {
-        contextChangeProgress(100);
+        contextChangeTaskProgress(100);
     }
 }
