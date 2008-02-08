@@ -39,6 +39,7 @@
 #define _nsMsgCompose_H_
 
 #include "nsIMsgCompose.h"
+#include "nsCOMArray.h"
 #include "nsTObserverArray.h"
 #include "nsWeakReference.h"
 #include "nsMsgCompFields.h"
