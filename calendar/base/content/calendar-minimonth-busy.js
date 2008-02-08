@@ -193,16 +193,22 @@ function monthChangeListener(event) {
 
 function minimonthOnLoad() {
     var minimonth = getMinimonth();
-    minimonth.addEventListener("monthchange", monthChangeListener, false);
-    monthChangeListener({ target: minimonth });
-    getCompositeCalendar().addObserver(minimonthBusyListener);
+    // This might be the hidden window, which has no UI
+    if (minimonth) {
+        minimonth.addEventListener("monthchange", monthChangeListener, false);
+        monthChangeListener({ target: minimonth });
+        getCompositeCalendar().addObserver(minimonthBusyListener);
+    }
 }
 
 function minimonthOnUnload() {
     var minimonth = getMinimonth();
-    minimonth.removeEventListener("monthchange", monthChangeListener, false);
-    monthChangeListener({ target: minimonth });
-    getCompositeCalendar().removeObserver(minimonthBusyListener);
+    // This might be the hidden window, which has no UI
+    if (minimonth) {
+        minimonth.removeEventListener("monthchange", monthChangeListener, false);
+        monthChangeListener({ target: minimonth });
+        getCompositeCalendar().removeObserver(minimonthBusyListener);
+    }
 }
 
 window.addEventListener("load", minimonthOnLoad, false);

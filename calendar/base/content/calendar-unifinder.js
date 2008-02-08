@@ -192,28 +192,29 @@ function prepareCalendarUnifinder() {
     window.removeEventListener("load", prepareCalendarUnifinder, false);
     var unifinderTree = document.getElementById("unifinder-search-results-tree");
 
-    // set up our calendar event observer
-    var ccalendar = getCompositeCalendar();
-    ccalendar.addObserver(unifinderObserver);
+    // Check if this is not the hidden window, which has no UI elements
+    if (unifinderTree) {
+        // set up our calendar event observer
+        var ccalendar = getCompositeCalendar();
+        ccalendar.addObserver(unifinderObserver);
 
-    kDefaultTimezone = calendarDefaultTimezone();
+        kDefaultTimezone = calendarDefaultTimezone();
 
-    // Set up the unifinder views.
-    unifinderTreeView.treeElement = unifinderTree;
-    unifinderTree.view = unifinderTreeView;
+        // Set up the unifinder views.
+        unifinderTreeView.treeElement = unifinderTree;
+        unifinderTree.view = unifinderTreeView;
 
-    // Listen for changes in the selected day, so we can update if need be
-    var viewDeck = getViewDeck();
-    if (viewDeck) {
+        // Listen for changes in the selected day, so we can update if need be
+        var viewDeck = getViewDeck();
         viewDeck.addEventListener("dayselect", unifinderDaySelect, false);
         viewDeck.addEventListener("itemselect", unifinderItemSelect, true);
-    }
 
-    // Display something upon first load. onLoad doesn't work properly for
-    // observers
-    if (!isUnifinderHidden()) {
-        gUnifinderNeedsRefresh = false;
-        refreshEventTree();
+        // Display something upon first load. onLoad doesn't work properly for
+        // observers
+        if (!isUnifinderHidden()) {
+            gUnifinderNeedsRefresh = false;
+            refreshEventTree();
+        }
     }
 }
 
