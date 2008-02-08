@@ -35,6 +35,13 @@
  *
  * ***** END LICENSE BLOCK ***** *)
 
+(*
+Indirectly reference Camino to prevent osacompile on the tinderbox from
+including paths to different copies of Camino per-arch in the compiled 
+main.scpt, since this breaks unify.
+*)
+
+property caminoApp : "Camino"
 property feedProtocols : {"feed", "feeds"}
 property httpProtocols : {"http", "https"}
 
@@ -135,7 +142,7 @@ end open location
 
 on passFeedtoHandlerURL(feedURLasHTTP)
 	set feedHandler to "%FEED_HANDLER_URL%"
-	tell application "Camino" -- in case Camino isn't set as the default browser
+	tell application caminoApp -- in case Camino isn't set as the default browser
 		activate -- don't stay in the background when the sender was another app
 		open location feedHandler & feedURLasHTTP
 	end tell
