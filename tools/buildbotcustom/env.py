@@ -26,10 +26,14 @@ MozillaEnvironments['win32-ref-platform'] = {
             'd:\\mozilla-build\\info-zip;' + \
             'd:\\mozilla-build\\wget;' + \
             'd:\\mozilla-build\\nsis-2.22;',
-    "INCLUDE": 'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + \
+            'd:\\sdks\\v6.0\\bin'
+    "INCLUDE": 'D:\\sdks\\v6.0\\include;' + \
+               'D:\\sdks\\v6.0\\include\\atl;' + \
+               'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + \
                'D:\\msvs8\\VC\\INCLUDE;' + \
                'D:\\msvs8\\VC\\PlatformSDK\\include',
     "LIB": 'D:\\msvs8\\VC\\ATLMFC\\LIB;' + \
            'D:\\msvs8\\VC\\LIB;' + \
-           'D:\\msvs8\\VC\\PlatformSDK\\lib'
+           'D:\\msvs8\\VC\\PlatformSDK\\lib',
+    "SDKDIR": 'D:\\sdks\\v6.0'
 }
