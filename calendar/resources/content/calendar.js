@@ -209,19 +209,21 @@ function refreshUIBits() {
 
 function calendarFinish()
 {
-   // Workaround to make the selected tab persist. See bug 249552.
-   var tabbox = document.getElementById("tablist");
-   tabbox.setAttribute("selectedIndex", tabbox.selectedIndex);
+    // Workaround to make the selected tab persist. See bug 249552.
+    var tabbox = document.getElementById("tablist");
+    tabbox.setAttribute("selectedIndex", tabbox.selectedIndex);
 
-   unloadCalendarManager();
+    unloadCalendarManager();
 
-   // Finish the offline manager
-   calendarOfflineManager.uninit();
+    // Finish the offline manager
+    calendarOfflineManager.uninit();
+
+    removeCalendarCommandController();
 }
 
 function closeCalendar()
 {
-   self.close();
+    self.close();
 }
 
 function onSelectionChanged(aEvent) {

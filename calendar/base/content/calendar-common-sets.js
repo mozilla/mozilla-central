@@ -460,3 +460,7 @@ function injectCalendarCommandController() {
     top.controllers.insertControllerAt(0, calendarController);
     document.commandDispatcher.updateCommands("calendar_commands");
 }
+
+function removeCalendarCommandController() {
+    top.controllers.removeController(calendarController);
+}

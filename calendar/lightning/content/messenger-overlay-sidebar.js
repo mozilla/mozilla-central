@@ -449,6 +449,8 @@ function ltnFinish() {
     getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
 
     unloadCalendarManager();
+
+    removeCalendarCommandController();
 }
 
 // After 1.5 was released, the search box was moved into an optional toolbar
