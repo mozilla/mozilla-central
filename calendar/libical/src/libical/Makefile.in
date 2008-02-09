@@ -147,6 +147,8 @@ BUILT_SOURCES =			\
 	icalrestriction.c	\
 	icalderivedvalue.c
 
+GARBAGE += $(BUILT_SOURCES)
+
 ical.h: $(COMBINEDHEADERS) Makefile
 	echo '#ifdef __cplusplus'         >  ical.h
 	echo 'extern "C" {'               >> ical.h
@@ -163,6 +165,7 @@ ical.h: $(COMBINEDHEADERS) Makefile
 	echo '}'                          >> ical.h
 	echo '#endif'                     >> ical.h
 
+GARBAGE += ical.h
 
 #
 # parameters

@@ -45,8 +45,6 @@ MODULE=suitetypeaheadfind
 XPIDL_MODULE=suitetypeaheadfind
 GRE_MODULE	= 1
 
-XPIDLSRCS= ./nsITypeAheadFind.idl \
-  $(NULL)
-
+XPIDLSRCS = nsITypeAheadFind.idl
 
 include $(topsrcdir)/config/rules.mk
