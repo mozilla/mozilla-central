@@ -36,7 +36,6 @@ bin/libplds4.so
 bin/libthebes.so
 bin/libxpcom.so
 bin/libxpcom_core.so
-bin/libxpistub.so
 bin/libnspr4.so
 bin/libxul.so
 bin/components/libxpinstall.so
@@ -51,10 +50,8 @@ bin/mozilla-xremote-client
 bin/platform.ini
 bin/plugins/libnullplugin.so
 bin/README
-bin/res/cmessage.txt
 bin/res/effective_tld_names.dat
 bin/run-mozilla.sh
-bin/xpicleanup
 
 ; shared libraries
 bin/libgfxpsshar.so

@@ -40,7 +40,6 @@ bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\xpistub.dll
 bin\nspr4.dll
 bin\xul.dll
 bin\components\jar50.dll
@@ -58,7 +57,6 @@ bin\seamonkey.exe
 bin\application.ini
 bin\platform.ini
 bin\regxpcom.exe
-bin\xpicleanup.exe
 bin\jsj3250.dll
 ; GFX files
 bin\thebes.dll
@@ -366,7 +364,6 @@ bin\res\forms.css
 bin\res\contenteditable.css
 bin\res\designmode.css
 bin\res\viewsource.css
-bin\res\cmessage.txt
 bin\res\effective_tld_names.dat
 bin\res\EditorOverride.css
 bin\res\broken-image.gif

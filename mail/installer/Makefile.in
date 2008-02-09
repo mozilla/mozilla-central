@@ -71,7 +71,6 @@ NO_PKG_FILES = \
 	res/arrow.gif \
 	res/arrowd.gif \
 	res/bloatcycle.html \
-	res/cmessage.txt \
 	res/html \
 	res/loading-image.gif \
 	res/rdf \

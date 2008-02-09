@@ -201,6 +201,7 @@ isp/gmail.rdf
 components/@DLL_PREFIX@xpcom_compat_c@DLL_SUFFIX@
 @DLL_PREFIX@xpcom_compat@DLL_SUFFIX@
 @DLL_PREFIX@zlib@DLL_SUFFIX@
+@DLL_PREFIX@xpistub@DLL_SUFFIX@
 #Remove Talkback files from old location (in case user updates from 1.0.x)
 components/BrandRes.dll
 components/fullsoft.dll
@@ -228,6 +229,7 @@ components/myspell/en-US.dic
 components/myspell/en-US.aff
 regxpcom.exe
 components/xmlextras.xpt
+res/cmessage.txt
 res/html/gopher-audio.gif
 res/html/gopher-binary.gif
 res/html/gopher-find.gif
@@ -295,3 +297,9 @@ extensions/talkback@mozilla.org/components/talkback.so
 #endif
 components/airbag.xpt
 components/nsUrlClassifierTable.js
+components/nsScriptableIO.js
+#ifdef XP_WIN
+xpicleanup.exe
+#else
+xpicleanup
+#endif

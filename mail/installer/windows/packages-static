@@ -15,7 +15,6 @@ bin\isp\@AB_CD@\*
 [xpcom]
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\xpistub.dll
 bin\components\jar50.dll
 bin\nspr4.dll
 bin\plc4.dll
@@ -39,7 +38,6 @@ bin\components\newsblog.js
 
 [mail]
 
-bin\xpicleanup.exe
 bin\thunderbird.exe
 bin\application.ini
 bin\platform.ini

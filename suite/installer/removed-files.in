@@ -64,3 +64,10 @@ components/search.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/venkman-service.js
+@DLL_PREFIX@xpistub@DLL_SUFFIX@
+res/cmessage.txt
+#ifdef XP_WIN
+xpicleanup.exe
+#else
+xpicleanup
+#endif
