@@ -160,14 +160,16 @@ function spawnChatZilla(uri, count)
         dump("cz-service: Existing, fully loaded window. Using.\n");
         // Window is working and initialized ok. Use it.
         w.focus();
-        w.gotoIRCURL(uri);
+        if (uri)
+            w.gotoIRCURL(uri);
         return true;
     }
 
     dump("cz-service: No windows, starting new one.\n");
     // Ok, no available window, loading or otherwise, so start ChatZilla.
     var args = new Object();
-    args.url = uri;
+    if (uri)
+        args.url = uri;
 
     hiddenWin.ChatZillaStarting = new Date();
     hiddenWin.openDialog("chrome://chatzilla/content/chatzilla.xul", "_blank",
@@ -211,28 +213,18 @@ CLineService.prototype.openWindowWithArgs = true;
 CLineService.prototype.handle =
 function handler_handle(cmdLine)
 {
-    var args;
+    var uri;
     try
     {
-        var uristr = cmdLine.handleFlagWithParam("chat", false);
-        if (uristr)
-        {
-            args = new Object();
-            args.url = uristr;
-        }
+        uri = cmdLine.handleFlagWithParam("chat", false);
     }
     catch (e)
     {
     }
 
-    if (args || cmdLine.handleFlag("chat", false))
+    if (uri || cmdLine.handleFlag("chat", false))
     {
-        var assClass = Components.classes[ASS_CONTRACTID];
-        var ass = assClass.getService(nsIAppShellService);
-        var hWin = ass.hiddenDOMWindow;
-        hWin.openDialog("chrome://chatzilla/content/", "_blank",
-                        "chrome,menubar,toolbar,status,resizable,dialog=no",
-                        args);
+        spawnChatZilla(uri || null)
         cmdLine.preventDefault = true;
     }
 }
