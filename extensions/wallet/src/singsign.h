@@ -172,6 +172,9 @@ extern void
 SINGSIGN_RememberSignonData
   (nsIPrompt* dialog, nsIURI* uri, nsVoidArray * signonData, nsIDOMWindowInternal* window);
 
+extern void
+SI_ShutdownModule();
+
 PR_END_EXTERN_C
 
 class si_SignonDataStruct {

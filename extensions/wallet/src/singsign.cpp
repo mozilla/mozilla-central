@@ -2345,6 +2345,15 @@ si_RememberSignonData
 }
 
 void
+SI_ShutdownModule()
+{
+  if(signon_lock_monitor) {
+    PR_DestroyMonitor(signon_lock_monitor);
+    signon_lock_monitor = nsnull;
+  }
+}
+
+void
 SINGSIGN_RememberSignonData 
     (nsIPrompt* dialog, nsIURI* passwordRealm, nsVoidArray * signonData,
      nsIDOMWindowInternal* window)

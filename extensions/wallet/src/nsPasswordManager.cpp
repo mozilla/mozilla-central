@@ -158,6 +158,7 @@ nsPasswordManager::nsPasswordManager()
 
 nsPasswordManager::~nsPasswordManager(void)
 {
+  SI_ShutdownModule();
 }
 
 nsresult nsPasswordManager::Init()
