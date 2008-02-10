@@ -258,6 +258,9 @@
 			<property name="URL" code="pURL" description="The tab&apos;s current URL" type="text">
 				<cocoa key="currentURI"/>
 			</property>
+			<responds-to name="close">
+				<cocoa method="close:"/>
+			</responds-to>
 		</class>
 		<class name="bookmark item" code="BMIt" plural="bookmark items">
 			<cocoa class="BookmarkItem"/>

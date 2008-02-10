@@ -45,6 +45,7 @@
 #import "Bookmark.h"
 #import "AutoCompleteTextField.h"
 #import "BrowserWindowController.h"
+#import "BrowserTabViewItem.h"
 
 
 // This file adds scripting support to various classes.
@@ -300,7 +301,7 @@
   }
 }
 
-// BrowserWindow implements a -currentURI but not a -setCurrentURI:.
+// BrowserWrapper implements a -currentURI but not a -setCurrentURI:.
 // This method lets "tab's URL" be a read/write property.
 - (void)setCurrentURI:(NSString *)newURI
 {
@@ -314,6 +315,16 @@
   }
 
   [self loadURI:newURI referrer:nil flags:NSLoadFlagsNone focusContent:YES allowPopups:NO];
+}
+
+// Allow tabs to respond to "close" command.
+- (id)close:(NSCloseCommand *)command
+{
+  if ([[[self tab] tabView] numberOfTabViewItems] > 1)
+    [(BrowserTabViewItem *)[self tab] closeTab:self];
+  else
+    [[self nativeWindow] performClose:self];
+  return nil;
 }
 
 @end
