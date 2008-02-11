@@ -43,7 +43,8 @@
 
 @interface BookmarkButton : NSButton
 {
-  BookmarkItem*   mItem;
+  BookmarkItem*   mItem;                // strong
+  NSEvent*        mLastMouseDownEvent;  // strong
   BOOL            mLastEventWasMenu;
 }
 
