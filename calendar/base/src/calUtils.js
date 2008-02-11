@@ -2005,7 +2005,7 @@ function getParentNode(aNode, aLocalName) {
 }
 
 function setItemProperty(item, propertyName, aValue, aCapability) {
-    var isSupported = (item.calendar.getProperty("capabilities." + aCapability + ".supported") == false)
+    var isSupported = (item.calendar.getProperty("capabilities." + aCapability + ".supported") !== false)
     var value = (aCapability && !isSupported ? null : aValue);
 
     switch (propertyName) {
