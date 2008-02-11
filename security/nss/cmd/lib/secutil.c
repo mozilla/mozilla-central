@@ -3079,6 +3079,37 @@ loser:
 }
 
 SECStatus
+SEC_PrintCertificateAndTrust(CERTCertificate *cert,
+                             const char *label,
+                             void *arg)
+{
+    SECStatus rv;
+    SECItem data;
+    CERTCertTrust *trust = (CERTCertTrust *)arg;
+    
+    data.data = cert->derCert.data;
+    data.len = cert->derCert.len;
+
+    rv = SECU_PrintSignedData(stdout, &data, label, 0,
+			      SECU_PrintCertificate);
+    if (rv) {
+	return(SECFailure);
+    }
+    if (trust) {
+	SECU_PrintTrustFlags(stdout, trust,
+	                     "Certificate Trust Flags", 1);
+    } else if (cert->trust) {
+	SECU_PrintTrustFlags(stdout, cert->trust,
+	                     "Certificate Trust Flags", 1);
+    }
+
+    printf("\n");
+
+    return(SECSuccess);
+}
+
+
+SECStatus
 SECU_ParseCommandLine(int argc, char **argv, char *progName,
 		      const secuCommand *cmd)
 {
@@ -3373,10 +3404,8 @@ SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle,
 	PRTime datetime)
 {
     CERTVerifyLog      log;
-    CERTVerifyLogNode *node   = NULL;
-    unsigned int       depth  = (unsigned int)-1;
-    unsigned int       flags  = 0;
-    char *             errstr = NULL;
+    CERTVerifyLogNode *node;
+
     PRErrorCode	       err    = PORT_GetError();
 
     log.arena = PORT_NewArena(512);
@@ -3384,9 +3413,29 @@ SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle,
     log.count = 0;
     CERT_VerifyCertificate(handle, cert, checksig, certUsage, datetime, pinArg, &log, NULL);
 
-    if (log.count > 0) {
+    SECU_displayVerifyLog(outfile, &log, verbose);
+
+    for (node = log.head; node; node = node->next) {
+        if (node->cert)
+            CERT_DestroyCertificate(node->cert);
+    }
+    PORT_FreeArena(log.arena, PR_FALSE);
+
+    PORT_SetError(err); /* restore original error code */
+}
+
+void
+SECU_displayVerifyLog(FILE *outfile, CERTVerifyLog *log,
+                      PRBool verbose)
+{
+    CERTVerifyLogNode *node   = NULL;
+    unsigned int       depth  = (unsigned int)-1;
+    unsigned int       flags  = 0;
+    char *             errstr = NULL;
+
+    if (log->count > 0) {
 	fprintf(outfile,"PROBLEM WITH THE CERT CHAIN:\n");
-	for (node = log.head; node; node = node->next) {
+	for (node = log->head; node; node = node->next) {
 	    if (depth != node->depth) {
 		depth = node->depth;
 		fprintf(outfile,"CERT %d. %s %s:\n", depth,
@@ -3462,10 +3511,8 @@ SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle,
 	    if (errstr) {
 		fprintf(stderr,"    %s\n",errstr);
 	    }
-	    CERT_DestroyCertificate(node->cert);
 	}    
     }
-    PORT_SetError(err); /* restore original error code */
 }
 
 void

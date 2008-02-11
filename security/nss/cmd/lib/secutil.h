@@ -178,17 +178,24 @@ extern void SECU_PrintSystemError(char *progName, char *msg, ...);
 /* Return informative error string */
 extern const char * SECU_Strerror(PRErrorCode errNum);
 
-/* print information about cert verification failure at time == now */
+/* revalidate the cert and print information about cert verification
+ * failure at time == now */
 extern void
 SECU_printCertProblems(FILE *outfile, CERTCertDBHandle *handle, 
 	CERTCertificate *cert, PRBool checksig, 
 	SECCertificateUsage certUsage, void *pinArg, PRBool verbose);
 
-/* print information about cert verification failure at specified time */
+/* revalidate the cert and print information about cert verification
+ * failure at specified time */
 extern void
 SECU_printCertProblemsOnDate(FILE *outfile, CERTCertDBHandle *handle, 
 	CERTCertificate *cert, PRBool checksig, SECCertificateUsage certUsage, 
 	void *pinArg, PRBool verbose, PRTime datetime);
+
+/* print out CERTVerifyLog info. */
+extern void
+SECU_displayVerifyLog(FILE *outfile, CERTVerifyLog *log,
+                      PRBool verbose);
 
 /* Read the contents of a file into a SECItem */
 extern SECStatus SECU_FileToItem(SECItem *dst, PRFileDesc *src);
@@ -286,6 +293,11 @@ extern SECStatus SECU_PKCS11Init(PRBool readOnly);
 /* Dump contents of signed data */
 extern int SECU_PrintSignedData(FILE *out, SECItem *der, char *m, int level,
 				SECU_PPFunc inner);
+
+/* Print cert data and its trust flags */
+extern SECStatus SEC_PrintCertificateAndTrust(CERTCertificate *cert,
+                                              const char *label,
+                                              void *arg);
 
 extern int SECU_PrintCrl(FILE *out, SECItem *der, char *m, int level);
 

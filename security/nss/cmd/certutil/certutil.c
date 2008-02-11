@@ -517,7 +517,12 @@ listCerts(CERTCertDBHandle *handle, char *name, PK11SlotInfo *slot,
 		}
 		rv = SECSuccess;
 	    } else {
-		rv = printCertCB(the_cert, the_cert->trust);
+		rv = SEC_PrintCertificateAndTrust(the_cert, the_cert->trust,
+		                                  "Certificate");
+		if (rv != SECSuccess) {
+		    SECU_PrintError(progName, "problem printing certificate");
+		}
+
 	    }
 	    if (rv != SECSuccess) {
 		break;
