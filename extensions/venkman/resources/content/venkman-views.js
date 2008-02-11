@@ -3306,6 +3306,9 @@ function s2v_statechange (webProgress, request, stateFlags, status)
     const nsIWebProgressListener = Components.interfaces.nsIWebProgressListener;
     const START = nsIWebProgressListener.STATE_START;
     const STOP = nsIWebProgressListener.STATE_STOP;
+    const NETWORK = nsIWebProgressListener.STATE_IS_NETWORK;
+    const WINDOW = nsIWebProgressListener.STATE_IS_WINDOW;
+    const STOPNETWIN = (STOP | WINDOW | NETWORK);
 
     //dd ("state change " + stateFlags + ", " + status);
     
@@ -3323,7 +3326,7 @@ function s2v_statechange (webProgress, request, stateFlags, status)
 
         sourceTab.tab.setAttribute ("loading", "true");
     }
-    else if (stateFlags == 786448)
+    else if ((stateFlags & STOPNETWIN) == STOPNETWIN)
     {
         /*
         dd ("stop load " + stateFlags + " " + 
