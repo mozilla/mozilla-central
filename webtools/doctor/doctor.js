@@ -55,8 +55,12 @@ function switchToTab(newTab) {
     var modifiedPanel = document.getElementById('modifiedPanel');
     var content_file = document.getElementById('content_file');
     if (content_file.value) {
-      modifiedPanel.innerHTML = '<iframe id="modified" name="modified"></iframe>';
-      submitForm("modified", "regurgitate");
+      // Displaying the edited version of a file being uploaded opens the user
+      // to XSS attacks, per bug 412437; until we figure out how to make it safe,
+      // we have disabled regurgitation here and in doctor.cgi.
+      //modifiedPanel.innerHTML = '<iframe id="modified" name="modified"></iframe>';
+      //submitForm("modified", "regurgitate");
+      modifiedPanel.innerHTML = 'Doctor is unable to display the edited version of a file being uploaded.';
     }
     else {
       modifiedPanel.innerHTML = document.getElementById('content').value;

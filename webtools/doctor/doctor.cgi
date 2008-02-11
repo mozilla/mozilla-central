@@ -81,7 +81,10 @@ elsif ($action eq "diff" || $action eq "download-diff")
 # in a file upload control on the client side.  Called by JavaScript
 # when the user focuses the View Edited panel on the Edit page after entering
 # a filename into the file upload control.
-elsif ($action eq "regurgitate")  { regurgitate() }
+# Displaying the edited version of a file being uploaded opens the user
+# to XSS attacks, per bug 412437; until we figure out how to make it safe,
+# we have disabled regurgitation here and in doctor.cgi.
+#elsif ($action eq "regurgitate")  { regurgitate() }
 
 # Submits a change to the editors for review.  Requires the EDITOR_EMAIL config
 # parameter to be set to the editors' email addresses.

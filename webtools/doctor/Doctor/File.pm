@@ -75,6 +75,12 @@ sub spec {
     if (@_ && !$self->{_spec}) {
         $self->{_spec} = shift;
 
+        # Make sure the spec doesn't contain a null byte to avoid attacks.
+        if ($self->{_spec} =~ /\x00/) {
+            $self->{_error} = "File specification contains null byte.";
+            return;
+        }
+
         # Canonicalize the spec:
 
         # URL -> Spec Conversion
