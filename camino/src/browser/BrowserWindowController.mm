@@ -138,10 +138,15 @@
 
 #include "nsAppDirectoryServiceDefs.h"
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
 @interface NSWindow(LeopardSDKDeclarations)
 - (void)setContentBorderThickness:(float)borderThickness forEdge:(NSRectEdge)edge;
 @end
+
+@interface NSCell(LeopardSDKDeclarations)
+- (void)setBackgroundStyle:(int)backgroundStyle;
+@end
+static const int NSBackgroundStyleRaised = 2;
 #endif
 
 static NSString* const BrowserToolbarIdentifier         = @"Browser Window Toolbar Combined";
@@ -877,6 +882,8 @@ public:
       mustResizeChrome = YES;
     }
     if ([NSWorkspace isLeopardOrHigher]) {
+      // On 10.5+, give the text an etched look for the textured status bar.
+      [[mStatus cell] setBackgroundStyle:NSBackgroundStyleRaised];
       if (![mStatusBar isHidden])
         [[self window] setContentBorderThickness:NSHeight([mStatusBar bounds]) forEdge:NSMinYEdge];
     }
@@ -1897,22 +1904,7 @@ public:
   if ([[mStatus stringValue] isEqualToString:status])
     return;
 
-  if ([NSWorkspace isLeopardOrHigher]) {
-    // On 10.5+, give the text an etched look for the textured status bar.
-    static NSDictionary* shadowAttributes = nil;
-    if (!shadowAttributes) {
-      NSShadow* shadow = [[[NSShadow alloc] init] autorelease];
-      [shadow setShadowOffset:NSMakeSize(0.0, -2.0)];
-      [shadow setShadowColor:[NSColor colorWithCalibratedWhite:1.0 alpha:0.6]];
-      shadowAttributes = [[NSDictionary dictionaryWithObject:shadow forKey:NSShadowAttributeName] retain];
-    }
-    NSAttributedString* shadowedStatus = [[[NSAttributedString alloc] initWithString:status
-                                                                          attributes:shadowAttributes] autorelease];
-    [mStatus setAttributedStringValue:shadowedStatus];
-  }
-  else {
-    [mStatus setStringValue:status];
-  }
+  [mStatus setStringValue:status];
 }
 
 - (void)updateLocationFields:(NSString*)url ignoreTyping:(BOOL)ignoreTyping
