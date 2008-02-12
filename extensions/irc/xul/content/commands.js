@@ -4164,7 +4164,7 @@ function cmdDCCList(e) {
                 if (c.TYPE == "IRCDCCFileTransfer")
                 {
                     state = getMsg(MSG_DCC_STATE_CONNECTPRO,
-                                   [Math.floor(100 * c.position / c.size),
+                                   [c.progress,
                                     getSISize(c.position), getSISize(c.size),
                                     getSISpeed(c.speed)]);
                 }

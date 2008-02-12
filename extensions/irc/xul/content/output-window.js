@@ -513,7 +513,7 @@ function updateDCCChat()
 
 function updateDCCFile()
 {
-    var pcent = Math.floor(100 * view.position / view.size);
+    var pcent = view.progress;
     
     setText("file", view.filename);
     setText("progress", getMsg(MSG_DCCFILE_PROGRESS,

@@ -1296,3 +1296,14 @@ function dfile_say(data)
 {
     this.connection.sendData(data);
 }
+
+CIRCDCCFileTransfer.prototype.size = 0;
+CIRCDCCFileTransfer.prototype.position = 0;
+CIRCDCCFileTransfer.prototype.__defineGetter__("progress",
+    function dfile_get_progress()
+    {
+        if (this.size > 0)
+            return Math.floor(100 * this.position / this.size);
+        return 0;
+    });
+
