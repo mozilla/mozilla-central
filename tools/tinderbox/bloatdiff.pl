@@ -183,10 +183,9 @@ print "Previous file: $OLDFILE\n";
 print "----------------------------------------------leaks------leaks%------bloat------bloat%\n";
 
     if (! $newMap{"TOTAL"} or 
-	! $newMap{"TOTAL"}{leaked} or 
-	! $newMap{"TOTAL"}{leakPercent} or
 	! $newMap{"TOTAL"}{bloat} or 
 	! $newMap{"TOTAL"}{bloatPercent}) {
+        # it's OK if leaked or leakPercent are 0 (in fact, that would be good)
 	print "\nERROR - unable to calculate bloat/leak data.\n\n";
 	print "HINT - Did your test run complete successfully?\n";
 	print "HINT - Are you pointing at the right log files?\n\n";
