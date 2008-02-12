@@ -392,7 +392,7 @@ function matchObject (o, pattern, negate)
         if (isinstance(pattern, Function))
             return pattern(o);
 
-        for (p in pattern)
+        for (var p in pattern)
         {
             var val;
                 /* nice to have, but slow as molases, allows you to match
@@ -433,6 +433,22 @@ function matchObject (o, pattern, negate)
 
     return negate;
 
+}
+
+function equalsObject(o1, o2)
+{
+    for (var p in o1)
+    {
+        if (!(p in o2) || (o1[p] != o2[p]))
+            return false;
+    }
+    for (p in o2)
+    {
+        // If the property did exist in o1, the previous loop tested it:
+        if (!(p in o1))
+            return false;
+    }
+    return true;
 }
 
 function utils_lcfn(text)

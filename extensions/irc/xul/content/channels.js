@@ -78,7 +78,7 @@ delete s;
 var data = {
     list:   { state: STATE_IDLE },
     load:   { state: STATE_IDLE },
-    filter: { state: STATE_IDLE },
+    filter: { state: STATE_IDLE }
 };
 
 
@@ -185,7 +185,15 @@ function onUnload()
 
 function onKeyPress(event)
 {
-    if (event.keyCode == event.DOM_VK_UP)
+    if (event.keyCode == event.DOM_VK_RETURN)
+    {
+        startOperation(OP_FILTER);
+        if (joinChannel())
+            window.close();
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    else if (event.keyCode == event.DOM_VK_UP)
     {
         if (channelTreeView.selectedIndex > 0)
         {
@@ -386,8 +394,9 @@ function processOperation(op)
         fn += "Run";
     else if (opData.state == STATE_STOP)
         fn += "Stop";
-    else
-        return ASSERT(false, dbg + " invalid state: " + opData.state);
+    // assert and return if we're in a different state:
+    else if (!ASSERT(false, dbg + " invalid state: " + opData.state))
+        return;
 
     try
     {
@@ -581,15 +590,31 @@ function processOpLoadStop(opData)
 
 function processOpFilterStart(opData)
 {
-    opData.text = channelFilterText.value.toLowerCase();
-    opData.searchTopics = channelSearchTopics.checked;
-    opData.minUsers = channelMinUsers.value * 1;
-    opData.maxUsers = channelMaxUsers.value * 1;
+    // Catch filtering with the same options on the same channels:
+    var newOptions = {text: channelFilterText.value.toLowerCase(),
+                      min: channelMinUsers.value * 1,
+                      max: channelMaxUsers.value * 1,
+                      listLen: channels.length,
+                      searchTopics: channelSearchTopics.checked};
+
+    if (("filterOptions" in window) &&
+        equalsObject(window.filterOptions, newOptions))
+    {
+        return STATE_IDLE;
+    }
+
+    window.filterOptions = newOptions;
+
+    opData.text = newOptions.text;
+    opData.searchTopics = newOptions.searchTopics;
+    opData.minUsers = newOptions.min;
+    opData.maxUsers = newOptions.max;
     opData.exactMatch = null;
     opData.currentIndex = 0;
     opData.channelText = opData.text;
 
-    if ((arrayIndexOf(["#", "&", "+", "!"], opData.channelText[0]) == -1) &&
+    if (opData.channelText &&
+        (arrayIndexOf(["#", "&", "+", "!"], opData.channelText[0]) == -1) &&
         (arrayIndexOf(serverChannelPrefixes, opData.channelText[0]) == -1))
     {
         opData.channelText = serverChannelPrefixes[0] + opData.channelText;
