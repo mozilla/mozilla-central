@@ -75,7 +75,7 @@ NS_IMETHODIMP nsConsoleListener::Observe(nsIConsoleMessage* aMessage)
 {
   if (aMessage) {
     nsAutoString msgBuffer;
-    aMessage->GetMessage(getter_Copies(msgBuffer));
+    aMessage->GetMessageMoz(getter_Copies(msgBuffer));
     [[JSConsole sharedJSConsole] logMessage:[NSString stringWith_nsAString:msgBuffer]];
   }
   
