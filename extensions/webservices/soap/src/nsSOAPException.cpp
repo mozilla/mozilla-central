@@ -60,7 +60,7 @@ NS_IMPL_ISUPPORTS1_CI(nsSOAPException, nsIException)
 
 /* readonly attribute string message; */
 NS_IMETHODIMP 
-nsSOAPException::GetMessage(char * *aMessage)
+nsSOAPException::GetMessageMoz(char * *aMessage)
 {
   NS_ENSURE_ARG_POINTER(aMessage);
 
