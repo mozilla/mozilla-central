@@ -6,16 +6,13 @@
 <!ENTITY newMenu.label                                  "New">
 <!ENTITY newMenu.accesskey                              "N">
 <!ENTITY newCard.label                                  "Address Book Card...">
-<!-- LOCALIZATION NOTE (newCard.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newCard.accesskey                              "C">
 <!ENTITY newCard.key                                    "N">
 <!ENTITY newListCmd.label                               "Mailing List...">
-<!-- LOCALIZATION NOTE (newListCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newListCmd.accesskey                           "L">
 <!ENTITY newAddressBookCmd.label                        "Address Book...">
 <!ENTITY newAddressBookCmd.accesskey                    "B">
 <!ENTITY newLDAPDirectoryCmd.label                      "LDAP Directory...">
-<!-- LOCALIZATION NOTE (newLDAPDirectoryCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newLDAPDirectoryCmd.accesskey                  "D">
 <!ENTITY newMessageCmd.label                            "Message">
 <!ENTITY newMessageCmd.key                              "M">
@@ -31,7 +28,6 @@
 <!ENTITY printPreviewAddressBook.accesskey              "B">
 <!ENTITY printCardViewCmd.label                         "Print Card...">
 <!ENTITY printCardViewCmd.accesskey                     "p">
-<!-- LOCALIZATION NOTE (printCardViewCmd.key) : DONT_TRANSLATE -->
 <!ENTITY printCardViewCmd.key                           "P">
 <!ENTITY printAddressBook.label                         "Print Address Book...">
 <!ENTITY printAddressBook.accesskey                     "A">
@@ -76,7 +72,6 @@
 <!-- Swap FN/LN UI  Set to "false" to show swap fn/ln UI -->
 <!ENTITY hideSwapFnLnUI "true">
 <!ENTITY propertiesCmd.label                            "Properties...">
-<!-- LOCALIZATION NOTE (propertiesCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY propertiesCmd.accesskey                        "i">
 <!ENTITY propertiesCmd.key                              "i">
 
