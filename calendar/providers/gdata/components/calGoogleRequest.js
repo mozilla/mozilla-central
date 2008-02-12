@@ -356,9 +356,21 @@ calGoogleRequest.prototype = {
      * @see nsIInterfaceRequestor
      */
     getInterface: function cGR_getInterface(aIID) {
+        // Support Auth Prompt Interfaces
+        if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
+            (Components.interfaces.nsIAuthPrompt2 &&
+             aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
+            return new calAuthPrompt();
+        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
+            return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                             .getService(Components.interfaces.nsIWindowWatcher)
+                             .getNewPrompter(null);
+        }
+
         try {
             return this.QueryInterface(aIID);
         } catch (e) {
+            WARN("nsIInterfaceRequestor requesting invalid interface " + aIID);
             throw Components.results.NS_NOINTERFACE;
         }
     },
