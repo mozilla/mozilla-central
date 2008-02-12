@@ -255,7 +255,11 @@ function initCommands()
          ["iltr",             "input-text-direction ltr",          CMD_CONSOLE],
          // Instrumentation aliases
          ["allow-inst1",      "pref instrumentation.inst1 1",                0],
-         ["deny-inst1",       "pref instrumentation.inst1 2",                0]
+         ["deny-inst1",       "pref instrumentation.inst1 2",                0],
+         // Services aliases
+         ["cs",               "quote cs",                                    0],
+         ["ms",               "quote ms",                                    0],
+         ["ns",               "quote ns",                                    0]
         ];
 
     // set the stringbundle associated with these commands.
