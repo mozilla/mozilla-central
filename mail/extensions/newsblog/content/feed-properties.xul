@@ -94,7 +94,8 @@
               datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
               ref="...">
             <menupopup>
-              <menuitem  id="rssAccountMenuItem"/>
+              <menuitem id="rssAccountMenuItem"
+                        oncommand="PickedMsgFolder(event.target, 'selectFolder')"/>
               <menuseparator/>
             </menupopup>
 
@@ -104,6 +105,7 @@
                 <menupopup>
                   <menu uri="..."
                         class="folderMenuItem menu-iconic"
+                        oncommand="PickedMsgFolder(event.target, 'selectFolder')"
                         SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
                         BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
                         IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
