@@ -618,6 +618,9 @@ NS_IMETHODIMP nsMsgGroupView::GetRowProperties(PRInt32 aRow, nsISupportsArray *a
 
 NS_IMETHODIMP nsMsgGroupView::GetCellProperties(PRInt32 aRow, nsITreeColumn *aCol, nsISupportsArray *aProperties)
 {
+  if (!IsValidIndex(aRow))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
   if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY)
     return aProperties->AppendElement(kDummyMsgAtom);
   return nsMsgDBView::GetCellProperties(aRow, aCol, aProperties);
@@ -625,6 +628,9 @@ NS_IMETHODIMP nsMsgGroupView::GetCellProperties(PRInt32 aRow, nsITreeColumn *aCo
 
 NS_IMETHODIMP nsMsgGroupView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
+  if (!IsValidIndex(aRow))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
   if (m_flags[aRow] & MSG_VIEW_FLAG_DUMMY && colID[0] != 'u')
