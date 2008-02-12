@@ -1832,8 +1832,7 @@ function gotoIRCURL(url, e)
                 var chan = new CIRCChannel(serv, null, target);
 
                 client.pendingViewContext = e;
-                d = { channelName: chan.unicodeName, key: key,
-                      charset: url.charset };
+                d = {channelToJoin: chan, key: key};
                 targetObject = network.dispatch("join", d);
                 delete client.pendingViewContext;
             }
