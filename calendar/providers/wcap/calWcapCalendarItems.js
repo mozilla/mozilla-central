@@ -317,7 +317,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request, netRespFunc
     var params = "";
     
     var calId = this.calId;
-    if (this.isInvitation(item)) { // REPLY
+    if (!bAddItem && this.isInvitation(item)) { // REPLY
         method = METHOD_REPLY;
         var att = getAttendeeByCalId(item.getAttendees({}), calId);
         if (att) {
