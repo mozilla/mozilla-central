@@ -50,6 +50,14 @@ function calGoogleCalendar() {
 calGoogleCalendar.prototype = {
     __proto__: calProviderBase.prototype,
 
+    QueryInterface: function cGS_QueryInterface(aIID) {
+        return doQueryInterface(this,
+                                calGoogleCalendar.prototype,
+                                aIID,
+                                null,
+                                g_classInfo["calGoogleCalendar"]);
+    },
+
     /* Member Variables */
     mSession: null,
     mFullUri: null,
@@ -614,6 +622,10 @@ calGoogleCalendar.prototype = {
                 this.mSession.googleFullName = xml.author.name.toString();
             }
 
+            // If this is a synchronization run (i.e updated-min was passed to
+            // google, then we also have a calendar to replay the changes on.
+            var destinationCal = aRequest.extraData.destination;
+
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
                 if (entry.gd::originalEvent.toString()) {
@@ -626,10 +638,12 @@ calGoogleCalendar.prototype = {
                 LOG("Parsing entry:\n" + entry + "\n");
 
                 var item = XMLEntryToItem(entry, timezone, this.superCalendar);
-                if (!item) {
-                    LOG("Notice: An Item was skipped. Probably it has" +
-                        " features that are not supported, or it was" +
-                        " canceled");
+                if (item.status == "CANCELED") {
+                    if (destinationCal) {
+                        // When synchronizing, a "CANCELED" item is a deleted
+                        // event. Delete it from the destination calendar.
+                        destinationCal.deleteItem(item, null);
+                    }
                     continue;
                 }
 
@@ -682,31 +696,57 @@ calGoogleCalendar.prototype = {
                     expandedItems = [item];
                 }
 
-                aRequest.extraData.listener.onGetResult(this.superCalendar,
-                                                        Components.results.NS_OK,
-                                                        Components.interfaces.calIEvent,
-                                                        null,
-                                                        expandedItems.length,
-                                                        expandedItems);
+                if (destinationCal) {
+                    // When synchronizing, instead of reporting to a listener,
+                    // we must just modify the item on the destination calendar.
+                    // Since relaxed mode is set on the destination calendar, we
+                    // can just call modifyItem, which will also handle
+                    // additions correctly.
+                    for each (var item in expandedItems) {
+                        destinationCal.modifyItem(item, null, null);
+                    }
+                } else {
+                    // Otherwise, this in an uncached getItems call, notify the
+                    // listener that we got a result.
+                    aRequest.extraData.listener.onGetResult(this.superCalendar,
+                                                            Components.results.NS_OK,
+                                                            Components.interfaces.calIEvent,
+                                                            null,
+                                                            expandedItems.length,
+                                                            expandedItems);
+                }
             }
 
             // Operation Completed successfully.
-            if (aRequest.extraData.listener != null) {
+            if (!destinationCal && aRequest.extraData.listener) {
                 aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 Components.results.NS_OK,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
                                                                 null);
+            } else if (destinationCal && aRequest.extraData.listener) {
+                // The listener for synchronization is a
+                // calIGenericOperationListener. Call accordingly.
+                aRequest.extraData.listener.onResult(aRequest, null);
+
+                // Set the last updated timestamp to now.
+                LOG("Last sync date for " + this.name + " is now: " + aRequest.requestDate.toString());
+
+                this.setProperty("google.lastUpdated",
+                                 aRequest.requestDate.icalString);
             }
         } catch (e) {
             LOG("Error getting items:\n" + e);
             // Operation failed
-            if (aRequest.extraData.listener != null) {
+            if (!destinationCal && aRequest.extraData.listener) {
                 aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 e.result,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
                                                                 e.message);
+            } else if (destinationCal && aRequest.extraData.listener) {
+                aRequest.extraData.listener.onResult({ status: e.result},
+                                                     e.message);
             }
         }
     },
@@ -797,5 +837,54 @@ calGoogleCalendar.prototype = {
         }
         // Returning null to avoid js strict warning.
         return null;
+    },
+
+    /**
+     * Implement calIChangeLog
+     */
+    resetLog: function cGC_resetLog() {
+        this.deleteProperty("google.lastUpdated");
+    },
+
+    replayChangesOn: function cGC_replayChangesOn(aDestination, aListener) {
+
+        var extraData = {
+            destination: aDestination,
+            listener: aListener
+        };
+
+        var lastUpdate = this.getProperty("google.lastUpdated");
+        var lastUpdateDateTime;
+        if (lastUpdate) {
+            // Set up the last sync stamp
+            lastUpdateDateTime = createDateTime();
+            lastUpdateDateTime.icalString = lastUpdate;
+
+            // Set up last week
+            var lastWeek = getCorrectedDate(now().getInTimezone(UTC()));
+            lastWeek.day -= 7;
+            if (lastWeek.compare(lastUpdateDateTime) >= 0) {
+                // The last sync was longer than a week ago. Google requires a full
+                // sync in that case. This call also takes care of calling
+                // resetLog().
+                this.superCalendar.wrappedJSObject.setupCachedCalendar();
+                lastUpdateDateTime = null;
+            }
+            LOG("The calendar " + this.name + " was last modified: " + lastUpdateDateTime);
+
+        }
+
+        // Calling getItems with the aLastModified parameter causes a
+        // synchronization to occur. If the property was wiped out above, then
+        // having destination in the extraData will still add items to the
+        // cached calendar.
+        return this.mSession.getItems(this,
+                                      null,
+                                      null,
+                                      null,
+                                      false,
+                                      this.getItems_response,
+                                      extraData,
+                                      lastUpdateDateTime);
     }
 };

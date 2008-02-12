@@ -254,6 +254,23 @@ var gdataTimezoneProvider = {
 };
 
 /**
+ * Gets the date and time that Google's http server last sent us. Note the
+ * passed argument is modified. This might not be the exact server time (i.e it
+ * may be off by network latency), but it does give a good guess when syncing.
+ *
+ * @param aDate     The date to modify
+ */
+function getCorrectedDate(aDate) {
+
+    if (!getCorrectedDate.mClockSkew) {
+        return aDate;
+    }
+
+    aDate.second += getCorrectedDate.mClockSkew;
+    return aDate;
+}
+
+/**
  * fromRFC3339
  * Convert a RFC3339 compliant Date string to a calIDateTime.
  *
@@ -949,12 +966,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         // gd:eventStatus
         item.status = aXMLEntry.gd::eventStatus.@value.toString()
                                .substring(39).toUpperCase();
-        if (item.status == "CANCELED") {
-            // Google uses the canceled state for deleted events. I
-            // don't think this is a good solution, but we need to
-            // wait what google says about that.
-            return null;
-        }
 
         // gd:when
         var recurrenceInfo = aXMLEntry.gd::recurrence.toString();

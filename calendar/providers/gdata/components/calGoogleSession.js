@@ -544,6 +544,10 @@ calGoogleSession.prototype = {
      *                                  completion.
      * @param   aExtraData              Extra data to be passed to the response
      *                                  listener
+     * @param   aLastModified           If specified, only events that have been
+     *                                    modified since this date will be
+     *                                    returned. This will also include
+     *                                    deleted events. (optional)
      */
 
     getItems: function cGS_getItems(aCalendar,
@@ -552,7 +556,8 @@ calGoogleSession.prototype = {
                                     aRangeEnd,
                                     aItemReturnOccurrences,
                                     aResponseListener,
-                                    aExtraData) {
+                                    aExtraData,
+                                    aLastModified) {
         // Requesting only a DATE returns items based on UTC. Therefore, we make
         // sure both start and end dates include a time and timezone. This may
         // not quite be what was requested, but I'd say its a shortcoming of
@@ -583,6 +588,11 @@ calGoogleSession.prototype = {
         request.addQueryParameter("singleevents", "false");
         request.addQueryParameter("start-min", rfcRangeStart);
         request.addQueryParameter("start-max", rfcRangeEnd);
+
+        if (aLastModified) {
+            var rfcLastModified = toRFC3339(aLastModified);
+            request.addQueryParameter("updated-min", rfcLastModified);
+        }
 
         this.asyncItemRequest(request);
     },

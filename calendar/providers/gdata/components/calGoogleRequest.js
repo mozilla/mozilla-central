@@ -422,6 +422,18 @@ calGoogleRequest.prototype = {
             return;
         }
 
+        // Calculate Google Clock Skew
+        var serverDate = new Date(httpChannel.getResponseHeader("Date"));
+        var curDate = new Date();
+
+        // The utility function getCorrectedDate in calGoogleUtils.js recieves
+        // its clock skew seconds from here. The clock skew is updated on each
+        // request and is therefore quite accurate.
+        getCorrectedDate.mClockSkew = curDate.getTime() - serverDate.getTime();
+
+        // Remember when this request happened
+        this.requestDate = jsDateToDateTime(serverDate);
+
         // Handle all (documented) error codes
         switch (httpChannel.responseStatus) {
             case 200: /* No error. */

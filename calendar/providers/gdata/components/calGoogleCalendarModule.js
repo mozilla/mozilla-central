@@ -44,6 +44,7 @@ var g_classInfo = {
             var ifaces = [
                 Components.interfaces.nsISupports,
                 Components.interfaces.calICalendar,
+                Components.interfaces.calIChangeLog,
                 Components.interfaces.nsIClassInfo
             ];
             count.value = ifaces.length;
@@ -88,7 +89,7 @@ var calGoogleCalendarModule = {
             return;
 
         const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-        const kLIGHTNING_UID = "{e2fda1a4-762b-4020-b5ad-a41df1933103}"; 
+        const kLIGHTNING_UID = "{e2fda1a4-762b-4020-b5ad-a41df1933103}";
         const scripts = ["calGoogleCalendar.js", "calGoogleSession.js",
                          "calGoogleRequest.js", "calGoogleUtils.js"];
         const baseScripts = ["calUtils.js", "calProviderBase.js"];
@@ -111,7 +112,7 @@ var calGoogleCalendarModule = {
             // Otherwise, the application directory is the lightning extension directory
             var extman = Components.classes["@mozilla.org/extensions/manager;1"]
                                    .getService(Components.interfaces.nsIExtensionManager);
-            try { 
+            try {
                 var appdir = extman.getInstallLocation(kLIGHTNING_UID)
                                    .getItemLocation(kLIGHTNING_UID);
                 appdir.append("js");
