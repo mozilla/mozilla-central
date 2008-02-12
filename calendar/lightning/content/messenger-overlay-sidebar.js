@@ -617,8 +617,8 @@ function copyPopupMenus() {
     var tbGoPopupMenu = menulist[3].lastChild;
     var calGoPopupMenu = document.getElementById("calendar-GoPopupMenu").cloneNode(true);
     var calGoItem;
-    while(calGoItem = calGoPopupMenu.firstChild) {
-        tbGoPopupMenu.appendChild(calGoItem);
+    while ((calGoItem = calGoPopupMenu.firstChild)) {
+        tbGoPopupMenu.appendChild(calGoPopupMenu.removeChild(calGoItem));
     }
     addToPopupList(menulist[3], null, mailpopuplist, excludeList, false, false);
     addToPopupList(menulist[4], null, mailpopuplist, excludeList, false, false);
