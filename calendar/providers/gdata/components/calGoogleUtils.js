@@ -1049,8 +1049,13 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             // We don't really care about google's timezone info for
             // now. This may change when bug 314339 is fixed. Split out
             // the timezone information so we only have the first bit
+            var vevent = recurrenceInfo;
             var splitpos = recurrenceInfo.indexOf("BEGIN:VTIMEZONE");
-            var vevent = recurrenceInfo.substring(0, splitpos);
+            if (splitpos > -1) {
+                // Sometimes (i.e if only DATE values are specified), no
+                // timezone info is contained. Only remove it if it shows up.
+                vevent = recurrenceInfo.substring(0, splitpos);
+            }
 
             vevent = "BEGIN:VEVENT\n" + vevent + "END:VEVENT";
             var icsService = getIcsService();
@@ -1058,6 +1063,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             var rootComp = icsService.parseICS(vevent, gdataTimezoneProvider);
             var prop = rootComp.getFirstProperty("ANY");
             var i = 0;
+            var hasRecurringRules = false;
             while (prop) {
                switch (prop.propertyName) {
                     case "EXDATE":
@@ -1066,6 +1072,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                         try {
                             recItem.icalProperty = prop;
                             item.recurrenceInfo.appendRecurrenceItem(recItem);
+                            hasRecurringRules = true;
                         } catch (e) {
                             Components.utils.reportError(e);
                         }
@@ -1075,6 +1082,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                         try {
                             recRule.icalProperty = prop;
                             item.recurrenceInfo.appendRecurrenceItem(recRule);
+                            hasRecurringRules = true;
                         } catch (e) {
                             Components.utils.reportError(e);
                         }
@@ -1087,6 +1095,13 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                         break;
                 }
                 prop = rootComp.getNextProperty("ANY");
+            }
+
+            if (!hasRecurringRules) {
+                // Sometimes Google gives us events that have <gd:recurrence>
+                // but contain no recurrence rules. Treat the event as a normal
+                // event. See gdata issue 353.
+                item.recurrenceInfo = null;
             }
         }
 
