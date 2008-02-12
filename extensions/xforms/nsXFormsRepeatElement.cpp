@@ -39,7 +39,7 @@
 #include "nsAutoPtr.h"
 #include "nsCOMPtr.h"
 #include "nsINameSpaceManager.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsIServiceManager.h"
 #include "nsMemory.h"
 #include "nsStringAPI.h"
@@ -535,7 +535,7 @@ nsXFormsRepeatElement::GetStartingIndex(PRUint32 *aRes)
 
   nsresult rv = GetIntAttr(NS_LITERAL_STRING("startindex"),
                            (PRInt32*) aRes,
-                           nsISchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER);
+                           nsISVSchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER);
   if (NS_FAILED(rv)) {
     *aRes = 1;
   }
@@ -1308,19 +1308,19 @@ nsXFormsRepeatElement::GetIntAttr(const nsAString &aName,
   ///
   /// @todo Check maximum values? (XXX)
   switch (aType) {
-  case nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
+  case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
     if (*aVal < 0) {
      rv = NS_ERROR_FAILURE;
     }
     break;
   
-  case nsISchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
+  case nsISVSchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
     if (*aVal <= 0) {
       rv = NS_ERROR_FAILURE;
     }
     break;
 
-  case nsISchemaBuiltinType::BUILTIN_TYPE_ANYTYPE:
+  case nsISVSchemaBuiltinType::BUILTIN_TYPE_ANYTYPE:
     break;
 
   default:

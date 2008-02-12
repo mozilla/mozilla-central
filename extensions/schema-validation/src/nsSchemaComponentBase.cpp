@@ -43,7 +43,7 @@
 // nsSchemaComponentBase implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaComponentBase::nsSchemaComponentBase(nsSchema* aSchema) 
+nsSchemaComponentBase::nsSchemaComponentBase(nsSchema* aSchema)
   : mSchema(aSchema), mIsResolved(PR_FALSE), mIsCleared(PR_FALSE)
 {
 }
@@ -54,7 +54,7 @@ nsSchemaComponentBase::~nsSchemaComponentBase()
 }
 
 /* readonly attribute wstring targetNamespace; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSchemaComponentBase::GetTargetNamespace(nsAString& aTargetNamespace)
 {
   if (mSchema) {

@@ -51,7 +51,7 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMXPathExpression.h"
 #include "nsIDOMXPathResult.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 
 #include "nsIModelElementPrivate.h"
 #include "nsXFormsDelegateStub.h"

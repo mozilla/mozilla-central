@@ -37,41 +37,45 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIWebServiceErrorHandler.idl"
+#include "nsISVSchemaErrorHandler.idl"
 
-interface nsISchema;
-interface nsISchemaType;
+/**
+ * the original code came from mozilla/extensions/webservices/public/nsISchemaLoader.idl
+ */
+
+interface nsISVSchema;
+interface nsISVSchemaType;
 interface nsIDOMElement;
-interface nsISchemaLoadListener;
+interface nsISVSchemaLoadListener;
 
-[scriptable, uuid(9B2F0B4A-8F00-4a78-961A-7E84ED49B0B6)]
-interface nsISchemaLoader : nsISupports {
-  nsISchema load(in AString schemaURI);
-  void loadAsync(in AString schemaURI, 
-                 in nsISchemaLoadListener listener);
-  nsISchema processSchemaElement(in nsIDOMElement element,
-                                 in nsIWebServiceErrorHandler aErrorHandler);
+[scriptable, uuid(ab374f43-73cf-4bba-925a-31ebdfc8d172)]
+interface nsISVSchemaLoader : nsISupports {
+  nsISVSchema load(in AString schemaURI);
+  void loadAsync(in AString schemaURI,
+                 in nsISVSchemaLoadListener listener);
+  nsISVSchema processSchemaElement(in nsIDOMElement element,
+                                   in nsISVSchemaErrorHandler aErrorHandler);
 };
 
-[scriptable, function, uuid(8d9aa9ce-e191-11d8-9f31-000393b6661a)]
-interface nsISchemaLoadListener : nsIWebServiceErrorHandler {
-  void onLoad(in nsISchema schema);
+[scriptable, function, uuid(0fe151fe-4c7c-462c-9732-1b5cd211139b)]
+interface nsISVSchemaLoadListener : nsISVSchemaErrorHandler {
+  void onLoad(in nsISVSchema schema);
 };
 
 %{ C++
-#define NS_SCHEMALOADER_CID                           \
-{ /* 5adc10f0-74e1-11d5-9b49-00104bdf5339 */          \
- 0x5adc10f0, 0x74e1, 0x11d5,                          \
-{0x9b, 0x49, 0x00, 0x10, 0x4b, 0xdf, 0x53, 0x39}}     
+#define NS_SVSCHEMALOADER_CID                           \
+{ /* 255be572-9d9f-40f1-8c92-d407f26c9330 */          \
+ 0x255be572, 0x9d9f, 0x40f1,                          \
+{0x8c, 0x92, 0xd4, 0x07, 0xf2, 0x6c, 0x93, 0x30}}
 
-#define NS_SCHEMALOADER_CONTRACTID "@mozilla.org/xmlextras/schemas/schemaloader;1"
+#define NS_SVSCHEMALOADER_CONTRACTID "@mozilla.org/schemavalidator/schemaloader;1"
 
-#define NS_BUILTINSCHEMACOLLECTION_CID                \
-{ /* a83b0823-f10e-4235-9859-88a5abd2ed54 */          \
- 0xa83b0823, 0xf10e, 0x4235,                          \
-{0x98, 0x59, 0x88, 0xa5, 0xab, 0xd2, 0xed, 0x54}}
+#define NS_SVBUILTINSCHEMACOLLECTION_CID                \
+{ /* e62ddb80-f7c6-4c4b-96fa-2fda9e67eb4d */          \
+ 0xe62ddb80, 0xf7c6, 0x4c4b,                          \
+{0x96, 0xfa, 0x2f, 0xda, 0x9e, 0x67, 0xeb, 0x4d}}
 
-#define NS_BUILTINSCHEMACOLLECTION_CONTRACTID "@mozilla.org/xmlextras/schemas/builtinschemacollection;1"
+#define NS_SVBUILTINSCHEMACOLLECTION_CONTRACTID "@mozilla.org/schemavalidator/builtinschemacollection;1"
 
 #define NS_ERROR_SCHEMA_NOT_SCHEMA_ELEMENT NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GENERAL, 1)
 #define NS_ERROR_SCHEMA_UNKNOWN_TARGET_NAMESPACE NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_GENERAL, 2)

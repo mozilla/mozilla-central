@@ -37,7 +37,11 @@
 
 #include "nsISupports.idl"
 
-[scriptable,uuid(068e20e0-df59-11d8-869f-000393b6661a)]
-interface nsIWebServiceErrorHandler : nsISupports {
+/**
+ * the original code came from mozilla/extensions/webservices/public/nsISchemaErrorHandler.idl
+ */
+
+[scriptable,uuid(a7172f0c-3b08-4f2b-8cea-423eff4c1898)]
+interface nsISVSchemaErrorHandler : nsISupports {
   void onError(in nsresult status, in AString statusMessage);
 };

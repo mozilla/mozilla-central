@@ -37,33 +37,32 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSchemaPrivate.h"
-#include "nsReadableUtils.h"
 
 ////////////////////////////////////////////////////////////
 //
 // nsSchema implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchema::nsSchema(nsISchemaCollection* aCollection,
-                   nsIDOMElement* aSchemaElement) 
+nsSchema::nsSchema(nsISVSchemaCollection* aCollection,
+                   nsIDOMElement* aSchemaElement)
 {
   mCollection = aCollection;  // Weak reference
   
   if (aSchemaElement) {
-    const nsAFlatString& empty = EmptyString();
+    const nsString& empty = EmptyString();
 
-    aSchemaElement->GetAttributeNS(empty, 
-                                   NS_LITERAL_STRING("targetNamespace"), 
+    aSchemaElement->GetAttributeNS(empty,
+                                   NS_LITERAL_STRING("targetNamespace"),
                                    mTargetNamespace);
     mTargetNamespace.Trim(" \r\n\t");
     aSchemaElement->GetNamespaceURI(mSchemaNamespace);
 
     nsAutoString elementFormDefault;
-    aSchemaElement->GetAttributeNS(empty, 
-                                   NS_LITERAL_STRING("elementFormDefault"), 
+    aSchemaElement->GetAttributeNS(empty,
+                                   NS_LITERAL_STRING("elementFormDefault"),
                                    elementFormDefault);
     elementFormDefault.Trim(" \r\n\t");
-    mElementFormQualified = 
+    mElementFormQualified =
       elementFormDefault.EqualsLiteral("qualified");
 
     // get the attribute qualification form
@@ -83,7 +82,7 @@ nsSchema::~nsSchema()
   Clear();
 }
 
-NS_IMPL_ISUPPORTS2_CI(nsSchema, nsISchema, nsISchemaComponent)
+NS_IMPL_ISUPPORTS2(nsSchema, nsISVSchema, nsISVSchemaComponent)
 
 nsresult
 nsSchema::Init()
@@ -119,7 +118,7 @@ nsSchema::GetSchemaNamespace(nsAString& aSchemaNamespace)
 }
 
 NS_IMETHODIMP
-nsSchema::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchema::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv;
   PRUint32 i, count;
@@ -259,7 +258,7 @@ nsSchema::GetTypeCount(PRUint32 *aTypeCount)
 }
 
 NS_IMETHODIMP
-nsSchema::GetTypeByIndex(PRUint32 aIndex, nsISchemaType** aResult)
+nsSchema::GetTypeByIndex(PRUint32 aIndex, nsISVSchemaType** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -273,7 +272,7 @@ nsSchema::GetTypeByIndex(PRUint32 aIndex, nsISchemaType** aResult)
 }
 
 NS_IMETHODIMP
-nsSchema::GetTypeByName(const nsAString& aName, nsISchemaType** aResult)
+nsSchema::GetTypeByName(const nsAString& aName, nsISVSchemaType** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -293,7 +292,7 @@ nsSchema::GetAttributeCount(PRUint32 *aAttributeCount)
 }
 
 NS_IMETHODIMP
-nsSchema::GetAttributeByIndex(PRUint32 aIndex, nsISchemaAttribute** aResult)
+nsSchema::GetAttributeByIndex(PRUint32 aIndex, nsISVSchemaAttribute** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -308,7 +307,7 @@ nsSchema::GetAttributeByIndex(PRUint32 aIndex, nsISchemaAttribute** aResult)
 
 NS_IMETHODIMP
 nsSchema::GetAttributeByName(const nsAString& aName,
-                             nsISchemaAttribute** aResult)
+                             nsISVSchemaAttribute** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -328,7 +327,7 @@ nsSchema::GetElementCount(PRUint32 *aElementCount)
 }
 
 NS_IMETHODIMP
-nsSchema::GetElementByIndex(PRUint32 aIndex, nsISchemaElement** aResult)
+nsSchema::GetElementByIndex(PRUint32 aIndex, nsISVSchemaElement** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -342,7 +341,7 @@ nsSchema::GetElementByIndex(PRUint32 aIndex, nsISchemaElement** aResult)
 }
 
 NS_IMETHODIMP
-nsSchema::GetElementByName(const nsAString& aName, nsISchemaElement** aResult)
+nsSchema::GetElementByName(const nsAString& aName, nsISVSchemaElement** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -363,7 +362,7 @@ nsSchema::GetAttributeGroupCount(PRUint32 *aAttributeGroupCount)
 
 NS_IMETHODIMP
 nsSchema::GetAttributeGroupByIndex(PRUint32 aIndex,
-                                   nsISchemaAttributeGroup** aResult)
+                                   nsISVSchemaAttributeGroup** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -378,7 +377,7 @@ nsSchema::GetAttributeGroupByIndex(PRUint32 aIndex,
 
 NS_IMETHODIMP
 nsSchema::GetAttributeGroupByName(const nsAString& aName,
-                                  nsISchemaAttributeGroup** aResult)
+                                  nsISVSchemaAttributeGroup** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -398,7 +397,7 @@ nsSchema::GetModelGroupCount(PRUint32 *aModelGroupCount)
 }
 
 NS_IMETHODIMP
-nsSchema::GetModelGroupByIndex(PRUint32 aIndex, nsISchemaModelGroup** aResult)
+nsSchema::GetModelGroupByIndex(PRUint32 aIndex, nsISVSchemaModelGroup** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -413,7 +412,7 @@ nsSchema::GetModelGroupByIndex(PRUint32 aIndex, nsISchemaModelGroup** aResult)
 
 NS_IMETHODIMP
 nsSchema::GetModelGroupByName(const nsAString& aName,
-                              nsISchemaModelGroup** aResult)
+                              nsISVSchemaModelGroup** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -423,7 +422,7 @@ nsSchema::GetModelGroupByName(const nsAString& aName,
 }
 
 NS_IMETHODIMP
-nsSchema::GetCollection(nsISchemaCollection** aResult)
+nsSchema::GetCollection(nsISVSchemaCollection** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -433,7 +432,7 @@ nsSchema::GetCollection(nsISchemaCollection** aResult)
 }
 
 NS_IMETHODIMP
-nsSchema::AddType(nsISchemaType* aType)
+nsSchema::AddType(nsISVSchemaType* aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 
@@ -447,7 +446,7 @@ nsSchema::AddType(nsISchemaType* aType)
 }
 
 NS_IMETHODIMP
-nsSchema::AddAttribute(nsISchemaAttribute* aAttribute)
+nsSchema::AddAttribute(nsISVSchemaAttribute* aAttribute)
 {
   NS_ENSURE_ARG_POINTER(aAttribute);
 
@@ -461,7 +460,7 @@ nsSchema::AddAttribute(nsISchemaAttribute* aAttribute)
 }
 
 NS_IMETHODIMP
-nsSchema::AddElement(nsISchemaElement* aElement)
+nsSchema::AddElement(nsISVSchemaElement* aElement)
 {
   NS_ENSURE_ARG_POINTER(aElement);
 
@@ -475,7 +474,7 @@ nsSchema::AddElement(nsISchemaElement* aElement)
 }
 
 NS_IMETHODIMP
-nsSchema::AddAttributeGroup(nsISchemaAttributeGroup* aAttributeGroup)
+nsSchema::AddAttributeGroup(nsISVSchemaAttributeGroup* aAttributeGroup)
 {
   NS_ENSURE_ARG_POINTER(aAttributeGroup);
 
@@ -489,7 +488,7 @@ nsSchema::AddAttributeGroup(nsISchemaAttributeGroup* aAttributeGroup)
 }
 
 NS_IMETHODIMP
-nsSchema::AddModelGroup(nsISchemaModelGroup* aModelGroup)
+nsSchema::AddModelGroup(nsISVSchemaModelGroup* aModelGroup)
 {
   NS_ENSURE_ARG_POINTER(aModelGroup);
 
@@ -502,21 +501,21 @@ nsSchema::AddModelGroup(nsISchemaModelGroup* aModelGroup)
   return NS_OK;
 }
 
-void 
+void
 nsSchema::DropCollectionReference()
 {
   mCollection = nsnull;
 }
 
 nsresult
-nsSchema::ResolveTypePlaceholder(nsIWebServiceErrorHandler* aErrorHandler, 
-                                 nsISchemaType* aPlaceholder,
-                                 nsISchemaType** aType)
+nsSchema::ResolveTypePlaceholder(nsISVSchemaErrorHandler* aErrorHandler,
+                                 nsISVSchemaType* aPlaceholder,
+                                 nsISVSchemaType** aType)
 {
   PRUint16 schemaType;
 
   aPlaceholder->GetSchemaType(&schemaType);
-  if (schemaType == nsISchemaType::SCHEMA_TYPE_PLACEHOLDER) {
+  if (schemaType == nsISVSchemaType::SCHEMA_TYPE_PLACEHOLDER) {
     nsAutoString name;
     aPlaceholder->GetName(name);
     

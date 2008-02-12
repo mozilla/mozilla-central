@@ -46,15 +46,14 @@
 #include "nsIDOMNodeList.h"
 
 // string includes
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringAPI.h"
 
 // collection includes
 #include "nsVoidArray.h"
 
 ////////////////////////////////////////////////////////////
 //
-// nsChildElementIterator 
+// nsChildElementIterator
 //
 ////////////////////////////////////////////////////////////
 
@@ -72,7 +71,7 @@ public:
     mIndex(0), mLength(0), mNumNamespaces(0)
   {
     SetElement(aParent);
-  }    
+  }
   
   nsChildElementIterator(nsIDOMElement* aParent,
                          const nsAString& aNamespace) :
@@ -84,22 +83,22 @@ public:
   nsChildElementIterator(nsIDOMElement* aParent,
                          const char** aNamespaceArray,
                          PRUint32 aNumNamespaces) :
-    mIndex(0), mLength(0), mNamespaceArray(aNamespaceArray), 
+    mIndex(0), mLength(0), mNamespaceArray(aNamespaceArray),
     mNumNamespaces(aNumNamespaces)
   {
-    SetElement(aParent);    
+    SetElement(aParent);
   }
 
   ~nsChildElementIterator() {}
 
-  void SetElement(nsIDOMElement* aParent) 
+  void SetElement(nsIDOMElement* aParent)
   {
     aParent->GetChildNodes(getter_AddRefs(mNodeList));
     if (mNodeList) {
       mNodeList->GetLength(&mLength);
       // if we change the element, reset the index
       mIndex = 0;
-    }    
+    }
   }
 
   PRUint32 GetCurrentIndex() { return mIndex; }
@@ -117,7 +116,7 @@ public:
       return NS_ERROR_FAILURE;
     }
 
-    nsCOMPtr<nsIDOMNode> child; 
+    nsCOMPtr<nsIDOMNode> child;
     while (mIndex < mLength) {
       mNodeList->Item(mIndex++, getter_AddRefs(child));
       nsCOMPtr<nsIDOMElement> childElement(do_QueryInterface(child));
@@ -126,8 +125,8 @@ public:
       }
       
       // Confirm that the element is an element of the specified namespace
-      nsAutoString namespaceURI;           
-      childElement->GetNamespaceURI(namespaceURI);  
+      nsAutoString namespaceURI;
+      childElement->GetNamespaceURI(namespaceURI);
       if (!mNamespace.IsEmpty()) {
         if (!namespaceURI.Equals(mNamespace)) {
           continue;

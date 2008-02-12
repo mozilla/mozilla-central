@@ -320,7 +320,7 @@ protected:
                            nsIXFormsControl       *aParent);
 
   /**
-   * Returns the nsISchemaBuiltinType of the node to which this element is
+   * Returns the nsISVSchemaBuiltinType of the node to which this element is
    * bound.
    */
   nsresult GetBoundBuiltinType(PRUint16 *aBuiltinType);

@@ -37,9 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsSchemaPrivate.h"
-#include "nsIWebServiceErrorHandler.h"
+#include "nsISVSchemaErrorHandler.h"
 
-nsSOAPArray::nsSOAPArray(nsISchemaType* aAnyType)
+nsSOAPArray::nsSOAPArray(nsISVSchemaType* aAnyType)
   : mAnyType(aAnyType)
 {
 }
@@ -48,22 +48,22 @@ nsSOAPArray::~nsSOAPArray()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSOAPArray,
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaComplexType)
+NS_IMPL_ISUPPORTS3(nsSOAPArray,
+                      nsISVSchemaComponent,
+                      nsISVSchemaType,
+                      nsISVSchemaComplexType)
 
 /* readonly attribute wstring targetNamespace; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetTargetNamespace(nsAString& aTargetNamespace)
 {
   aTargetNamespace.AssignLiteral(NS_SOAP_1_2_ENCODING_NAMESPACE);
   return NS_OK;
 }
 
-/* void resolve(in nsIWebServiceErrorHandler); */
+/* void resolve(in nsISVSchemaErrorHandler); */
 NS_IMETHODIMP
-nsSOAPArray::Resolve(nsIWebServiceErrorHandler* aErrorHandler) 
+nsSOAPArray::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -76,61 +76,61 @@ nsSOAPArray::Clear()
 }
 
 /* readonly attribute wstring name; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetName(nsAString& aName)
 {
-  aName.AssignLiteral("Array"); 
+  aName.AssignLiteral("Array");
   return NS_OK;
 }
 
 /* readonly attribute unsigned short schemaType; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_COMPLEX;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_COMPLEX;
   return NS_OK;
 }
 
 /* readonly attribute unsigned short contentModel; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetContentModel(PRUint16 *aContentModel)
 {
   NS_ENSURE_ARG_POINTER(aContentModel);
-  *aContentModel = nsISchemaComplexType::CONTENT_MODEL_ELEMENT_ONLY;
+  *aContentModel = nsISVSchemaComplexType::CONTENT_MODEL_ELEMENT_ONLY;
   return NS_OK;
 }
 
 /* readonly attribute unsigned short derivation; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetDerivation(PRUint16 *aDerivation)
 {
   NS_ENSURE_ARG_POINTER(aDerivation);
-  *aDerivation = nsISchemaComplexType::DERIVATION_SELF_CONTAINED;
+  *aDerivation = nsISVSchemaComplexType::DERIVATION_SELF_CONTAINED;
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaType baseType; */
-NS_IMETHODIMP 
-nsSOAPArray::GetBaseType(nsISchemaType * *aBaseType)
+/* readonly attribute nsISVSchemaType baseType; */
+NS_IMETHODIMP
+nsSOAPArray::GetBaseType(nsISVSchemaType * *aBaseType)
 {
   NS_ENSURE_ARG_POINTER(aBaseType);
   NS_ADDREF(*aBaseType = mAnyType);
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType simplBaseType; */
-NS_IMETHODIMP 
-nsSOAPArray::GetSimpleBaseType(nsISchemaSimpleType * *aSimpleBaseType)
+/* readonly attribute nsISVSchemaSimpleType simplBaseType; */
+NS_IMETHODIMP
+nsSOAPArray::GetSimpleBaseType(nsISVSchemaSimpleType * *aSimpleBaseType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleBaseType);
   *aSimpleBaseType = nsnull;
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaModelGroup modelGroup; */
-NS_IMETHODIMP 
-nsSOAPArray::GetModelGroup(nsISchemaModelGroup * *aModelGroup)
+/* readonly attribute nsISVSchemaModelGroup modelGroup; */
+NS_IMETHODIMP
+nsSOAPArray::GetModelGroup(nsISVSchemaModelGroup * *aModelGroup)
 {
   NS_ENSURE_ARG_POINTER(aModelGroup);
   *aModelGroup = nsnull;
@@ -138,7 +138,7 @@ nsSOAPArray::GetModelGroup(nsISchemaModelGroup * *aModelGroup)
 }
 
 /* readonly attribute PRUint32 attributeCount; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetAttributeCount(PRUint32 *aAttributeCount)
 {
   NS_ENSURE_ARG_POINTER(aAttributeCount);
@@ -146,20 +146,20 @@ nsSOAPArray::GetAttributeCount(PRUint32 *aAttributeCount)
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
-NS_IMETHODIMP 
-nsSOAPArray::GetAttributeByIndex(PRUint32 index, 
-                                 nsISchemaAttributeComponent **_retval)
+/* nsISVSchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
+NS_IMETHODIMP
+nsSOAPArray::GetAttributeByIndex(PRUint32 index,
+                                 nsISVSchemaAttributeComponent **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = nsnull;
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByName (in AString name); */
-NS_IMETHODIMP 
-nsSOAPArray::GetAttributeByName(const nsAString& name, 
-                                nsISchemaAttributeComponent **_retval)
+/* nsISVSchemaAttributeComponent getAttributeByName (in AString name); */
+NS_IMETHODIMP
+nsSOAPArray::GetAttributeByName(const nsAString& name,
+                                nsISVSchemaAttributeComponent **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = nsnull;
@@ -167,7 +167,7 @@ nsSOAPArray::GetAttributeByName(const nsAString& name,
 }
 
 /* readonly attribute boolean abstract; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArray::GetAbstract(PRBool *aAbstract)
 {
   NS_ENSURE_ARG_POINTER(aAbstract);
@@ -177,16 +177,16 @@ nsSOAPArray::GetAbstract(PRBool *aAbstract)
 
 /* readonly attribute boolean isArray; */
 NS_IMETHODIMP
-nsSOAPArray::GetIsArray(PRBool* aIsArray) 
+nsSOAPArray::GetIsArray(PRBool* aIsArray)
 {
   NS_ENSURE_ARG_POINTER(aIsArray);
   *aIsArray = PR_TRUE;
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaType arrayType; */
+/* readonly attribute nsISVSchemaType arrayType; */
 NS_IMETHODIMP
-nsSOAPArray::GetArrayType(nsISchemaType** aArrayType)
+nsSOAPArray::GetArrayType(nsISVSchemaType** aArrayType)
 {
   NS_ENSURE_ARG_POINTER(aArrayType);
   *aArrayType = mAnyType;
@@ -211,23 +211,23 @@ nsSOAPArrayType::~nsSOAPArrayType()
 {
 }
 
-NS_IMPL_ISUPPORTS4_CI(nsSOAPArrayType,
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType,
-                      nsISchemaRestrictionType)
+NS_IMPL_ISUPPORTS4(nsSOAPArrayType,
+                   nsISVSchemaComponent,
+                   nsISVSchemaType,
+                   nsISVSchemaSimpleType,
+                   nsISVSchemaRestrictionType)
 
 /* readonly attribute wstring targetNamespace; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArrayType::GetTargetNamespace(nsAString& aTargetNamespace)
 {
   aTargetNamespace.AssignLiteral(NS_SOAP_1_2_ENCODING_NAMESPACE);
   return NS_OK;
 }
 
-/* void resolve(in nsIWebServiceErrorHandler); */
+/* void resolve(in nsISVSchemaErrorHandler); */
 NS_IMETHODIMP
-nsSOAPArrayType::Resolve(nsIWebServiceErrorHandler* aErrorHandler) 
+nsSOAPArrayType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -240,7 +240,7 @@ nsSOAPArrayType::Clear()
 }
 
 /* readonly attribute wstring name; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArrayType::GetName(nsAString& aName)
 {
   aName.AssignLiteral("arrayType");
@@ -248,26 +248,26 @@ nsSOAPArrayType::GetName(nsAString& aName)
 }
 
 /* readonly attribute unsigned short schemaType; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArrayType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
   return NS_OK;
 }
 
 /* readonly attribute unsigned short simpleType; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArrayType::GetSimpleType(PRUint16 *aSimpleType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleType);
-  *aSimpleType = nsISchemaSimpleType::SIMPLE_TYPE_RESTRICTION;
+  *aSimpleType = nsISVSchemaSimpleType::SIMPLE_TYPE_RESTRICTION;
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType baseType; */
-NS_IMETHODIMP 
-nsSOAPArrayType::GetBaseType(nsISchemaSimpleType * *aBaseType)
+/* readonly attribute nsISVSchemaSimpleType baseType; */
+NS_IMETHODIMP
+nsSOAPArrayType::GetBaseType(nsISVSchemaSimpleType * *aBaseType)
 {
   NS_ENSURE_ARG_POINTER(aBaseType);
   *aBaseType = nsnull;
@@ -275,7 +275,7 @@ nsSOAPArrayType::GetBaseType(nsISchemaSimpleType * *aBaseType)
 }
 
 /* readonly attribute PRUint32 facetCount; */
-NS_IMETHODIMP 
+NS_IMETHODIMP
 nsSOAPArrayType::GetFacetCount(PRUint32 *aFacetCount)
 {
   NS_ENSURE_ARG_POINTER(aFacetCount);
@@ -283,9 +283,9 @@ nsSOAPArrayType::GetFacetCount(PRUint32 *aFacetCount)
   return NS_OK;
 }
 
-/* nsISchemaFacet getFacet(in PRUint32 index); */
-NS_IMETHODIMP 
-nsSOAPArrayType::GetFacet(PRUint32 index, nsISchemaFacet **_retval)
+/* nsISVSchemaFacet getFacet(in PRUint32 index); */
+NS_IMETHODIMP
+nsSOAPArrayType::GetFacet(PRUint32 index, nsISVSchemaFacet **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = nsnull;

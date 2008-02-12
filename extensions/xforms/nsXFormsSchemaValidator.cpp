@@ -56,7 +56,7 @@ nsXFormsSchemaValidator::nsXFormsSchemaValidator()
 }
 
 nsresult
-nsXFormsSchemaValidator::LoadSchema(nsISchema* aSchema)
+nsXFormsSchemaValidator::LoadSchema(nsISVSchema* aSchema)
 {
   NS_ENSURE_TRUE(mSchemaValidator, NS_ERROR_UNEXPECTED);
 
@@ -97,7 +97,7 @@ nsXFormsSchemaValidator::Validate(nsIDOMNode* aElement)
 PRBool
 nsXFormsSchemaValidator::GetType(const nsAString & aType,
                                  const nsAString & aNamespace,
-                                 nsISchemaType **aSchemaType)
+                                 nsISVSchemaType **aSchemaType)
 {
   NS_ENSURE_TRUE(mSchemaValidator, PR_FALSE);
 

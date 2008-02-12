@@ -52,11 +52,11 @@ nsSchemaBuiltinType::~nsSchemaBuiltinType()
 {
 }
 
-NS_IMPL_ISUPPORTS4_CI(nsSchemaBuiltinType, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType,
-                      nsISchemaBuiltinType)
+NS_IMPL_ISUPPORTS4(nsSchemaBuiltinType,
+                   nsISVSchemaComponent,
+                   nsISVSchemaType,
+                   nsISVSchemaSimpleType,
+                   nsISVSchemaBuiltinType)
 
 /* readonly attribute wstring targetNamespace; */
 NS_IMETHODIMP
@@ -67,9 +67,9 @@ nsSchemaBuiltinType::GetTargetNamespace(nsAString& aTargetNamespace)
   return NS_OK;
 }
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaBuiltinType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaBuiltinType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -84,7 +84,7 @@ NS_IMETHODIMP nsSchemaBuiltinType::Clear()
 NS_IMETHODIMP
 nsSchemaBuiltinType::GetName(nsAString& aName)
 {
-  switch(mBuiltinType) {
+  switch (mBuiltinType) {
     case BUILTIN_TYPE_ANYTYPE:
       aName.AssignLiteral("anyType");
       break;
@@ -234,7 +234,7 @@ nsSchemaBuiltinType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
 
   return NS_OK;
 }
@@ -245,7 +245,7 @@ nsSchemaBuiltinType::GetSimpleType(PRUint16 *aSimpleType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleType);
 
-  *aSimpleType = nsISchemaSimpleType::SIMPLE_TYPE_BUILTIN;
+  *aSimpleType = nsISVSchemaSimpleType::SIMPLE_TYPE_BUILTIN;
 
   return NS_OK;
 }
@@ -266,7 +266,7 @@ nsSchemaBuiltinType::GetBuiltinType(PRUint16 *aBuiltinType)
 // nsSchemaListType implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaListType::nsSchemaListType(nsSchema* aSchema, 
+nsSchemaListType::nsSchemaListType(nsSchema* aSchema,
                                    const nsAString& aName)
   : nsSchemaComponentBase(aSchema), mName(aName)
 {
@@ -276,15 +276,15 @@ nsSchemaListType::~nsSchemaListType()
 {
 }
 
-NS_IMPL_ISUPPORTS4_CI(nsSchemaListType, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType,
-                      nsISchemaListType)
+NS_IMPL_ISUPPORTS4(nsSchemaListType,
+                   nsISVSchemaComponent,
+                   nsISVSchemaType,
+                   nsISVSchemaSimpleType,
+                   nsISVSchemaListType)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaListType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaListType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -293,7 +293,7 @@ nsSchemaListType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   nsresult rv = NS_OK;
   mIsResolved = PR_TRUE;
   if (mListType && mSchema) {
-    nsCOMPtr<nsISchemaType> type;
+    nsCOMPtr<nsISVSchemaType> type;
     rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mListType, getter_AddRefs(type));
     if (NS_FAILED(rv)) {
       return NS_ERROR_FAILURE;
@@ -340,7 +340,7 @@ nsSchemaListType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
 
   return NS_OK;
 }
@@ -351,14 +351,14 @@ nsSchemaListType::GetSimpleType(PRUint16 *aSimpleType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleType);
 
-  *aSimpleType = nsISchemaSimpleType::SIMPLE_TYPE_LIST;
+  *aSimpleType = nsISVSchemaSimpleType::SIMPLE_TYPE_LIST;
 
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType listType; */
+/* readonly attribute nsISVSchemaSimpleType listType; */
 NS_IMETHODIMP
-nsSchemaListType::GetListType(nsISchemaSimpleType * *aListType)
+nsSchemaListType::GetListType(nsISVSchemaSimpleType * *aListType)
 {
   NS_ENSURE_ARG_POINTER(aListType);
 
@@ -368,7 +368,7 @@ nsSchemaListType::GetListType(nsISchemaSimpleType * *aListType)
 }
 
 NS_IMETHODIMP
-nsSchemaListType::SetListType(nsISchemaSimpleType* aListType)
+nsSchemaListType::SetListType(nsISVSchemaSimpleType* aListType)
 {
   mListType = aListType;
 
@@ -380,7 +380,7 @@ nsSchemaListType::SetListType(nsISchemaSimpleType* aListType)
 // nsSchemaUnionType implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaUnionType::nsSchemaUnionType(nsSchema* aSchema, 
+nsSchemaUnionType::nsSchemaUnionType(nsSchema* aSchema,
                                      const nsAString& aName)
   : nsSchemaComponentBase(aSchema), mName(aName)
 {
@@ -390,15 +390,15 @@ nsSchemaUnionType::~nsSchemaUnionType()
 {
 }
 
-NS_IMPL_ISUPPORTS4_CI(nsSchemaUnionType, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType,
-                      nsISchemaUnionType)
+NS_IMPL_ISUPPORTS4(nsSchemaUnionType,
+                   nsISVSchemaComponent,
+                   nsISVSchemaType,
+                   nsISVSchemaSimpleType,
+                   nsISVSchemaUnionType)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaUnionType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaUnionType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -409,13 +409,13 @@ nsSchemaUnionType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
     PRUint32 i, count;
     count = mUnionTypes.Count();
     for (i = 0; i < count; ++i) {
-      nsCOMPtr<nsISchemaType> type;
+      nsCOMPtr<nsISVSchemaType> type;
       nsresult rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mUnionTypes.ObjectAt(i),
                                                     getter_AddRefs(type));
       if (NS_FAILED(rv)) {
         return NS_ERROR_FAILURE;
       }
-      nsCOMPtr<nsISchemaSimpleType> simpleType = do_QueryInterface(type);
+      nsCOMPtr<nsISVSchemaSimpleType> simpleType = do_QueryInterface(type);
       mUnionTypes.ReplaceObjectAt(simpleType, i);
       rv = type->Resolve(aErrorHandler);
       if (NS_FAILED(rv)) {
@@ -461,7 +461,7 @@ nsSchemaUnionType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
 
   return NS_OK;
 }
@@ -472,7 +472,7 @@ nsSchemaUnionType::GetSimpleType(PRUint16 *aSimpleType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleType);
 
-  *aSimpleType = nsISchemaSimpleType::SIMPLE_TYPE_UNION;
+  *aSimpleType = nsISVSchemaSimpleType::SIMPLE_TYPE_UNION;
 
   return NS_OK;
 }
@@ -488,9 +488,9 @@ nsSchemaUnionType::GetUnionTypeCount(PRUint32 *aUnionTypeCount)
   return NS_OK;
 }
 
-/* nsISchemaSimpleType getUnionType (in PRUint32 index); */
+/* nsISVSchemaSimpleType getUnionType (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaUnionType::GetUnionType(PRUint32 aIndex, nsISchemaSimpleType** aResult)
+nsSchemaUnionType::GetUnionType(PRUint32 aIndex, nsISVSchemaSimpleType** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -504,7 +504,7 @@ nsSchemaUnionType::GetUnionType(PRUint32 aIndex, nsISchemaSimpleType** aResult)
 }
 
 NS_IMETHODIMP
-nsSchemaUnionType::AddUnionType(nsISchemaSimpleType* aType)
+nsSchemaUnionType::AddUnionType(nsISVSchemaSimpleType* aType)
 {
   NS_ENSURE_ARG(aType);
 
@@ -516,7 +516,7 @@ nsSchemaUnionType::AddUnionType(nsISchemaSimpleType* aType)
 // nsSchemaRestrictionType implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaRestrictionType::nsSchemaRestrictionType(nsSchema* aSchema, 
+nsSchemaRestrictionType::nsSchemaRestrictionType(nsSchema* aSchema,
                                                  const nsAString& aName)
   : nsSchemaComponentBase(aSchema), mName(aName)
 {
@@ -526,15 +526,15 @@ nsSchemaRestrictionType::~nsSchemaRestrictionType()
 {
 }
 
-NS_IMPL_ISUPPORTS4_CI(nsSchemaRestrictionType, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType,
-                      nsISchemaRestrictionType)
+NS_IMPL_ISUPPORTS4(nsSchemaRestrictionType,
+                   nsISVSchemaComponent,
+                   nsISVSchemaType,
+                   nsISVSchemaSimpleType,
+                   nsISVSchemaRestrictionType)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaRestrictionType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaRestrictionType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -543,7 +543,7 @@ nsSchemaRestrictionType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   nsresult rv = NS_OK;
   mIsResolved = PR_TRUE;
   if (mBaseType && mSchema) {
-    nsCOMPtr<nsISchemaType> type;
+    nsCOMPtr<nsISVSchemaType> type;
     rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mBaseType, getter_AddRefs(type));
     if (NS_FAILED(rv)) {
       return NS_ERROR_FAILURE;
@@ -597,7 +597,7 @@ nsSchemaRestrictionType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
 
   return NS_OK;
 }
@@ -608,14 +608,14 @@ nsSchemaRestrictionType::GetSimpleType(PRUint16 *aSimpleType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleType);
 
-  *aSimpleType = nsISchemaSimpleType::SIMPLE_TYPE_RESTRICTION;
+  *aSimpleType = nsISVSchemaSimpleType::SIMPLE_TYPE_RESTRICTION;
 
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType baseType; */
+/* readonly attribute nsISVSchemaSimpleType baseType; */
 NS_IMETHODIMP
-nsSchemaRestrictionType::GetBaseType(nsISchemaSimpleType * *aBaseType)
+nsSchemaRestrictionType::GetBaseType(nsISVSchemaSimpleType * *aBaseType)
 {
   NS_ENSURE_ARG_POINTER(aBaseType);
 
@@ -635,9 +635,9 @@ nsSchemaRestrictionType::GetFacetCount(PRUint32 *aFacetCount)
   return NS_OK;
 }
 
-/* nsISchemaFacet getFacet(in PRUint32 index); */
+/* nsISVSchemaFacet getFacet(in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaRestrictionType::GetFacet(PRUint32 aIndex, nsISchemaFacet** aResult)
+nsSchemaRestrictionType::GetFacet(PRUint32 aIndex, nsISVSchemaFacet** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -651,7 +651,7 @@ nsSchemaRestrictionType::GetFacet(PRUint32 aIndex, nsISchemaFacet** aResult)
 }
 
 NS_IMETHODIMP
-nsSchemaRestrictionType::SetBaseType(nsISchemaSimpleType* aBaseType)
+nsSchemaRestrictionType::SetBaseType(nsISVSchemaSimpleType* aBaseType)
 {
   NS_ENSURE_ARG(aBaseType);
 
@@ -661,7 +661,7 @@ nsSchemaRestrictionType::SetBaseType(nsISchemaSimpleType* aBaseType)
 }
 
 NS_IMETHODIMP
-nsSchemaRestrictionType::AddFacet(nsISchemaFacet* aFacet)
+nsSchemaRestrictionType::AddFacet(nsISVSchemaFacet* aFacet)
 {
   NS_ENSURE_ARG(aFacet);
 
@@ -683,15 +683,15 @@ nsSchemaTypePlaceholder::~nsSchemaTypePlaceholder()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaTypePlaceholder, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaSimpleType)
+NS_IMPL_ISUPPORTS3(nsSchemaTypePlaceholder,
+                      nsISVSchemaComponent,
+                      nsISVSchemaType,
+                      nsISVSchemaSimpleType)
 
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaTypePlaceholder::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaTypePlaceholder::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -718,7 +718,7 @@ nsSchemaTypePlaceholder::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_PLACEHOLDER;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_PLACEHOLDER;
 
   return NS_OK;
 }
@@ -745,13 +745,13 @@ nsSchemaFacet::~nsSchemaFacet()
 {
 }
 
-NS_IMPL_ISUPPORTS2_CI(nsSchemaFacet,
-                      nsISchemaComponent,
-                      nsISchemaFacet)
+NS_IMPL_ISUPPORTS2(nsSchemaFacet,
+                   nsISVSchemaComponent,
+                   nsISVSchemaFacet)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaFacet::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaFacet::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -772,7 +772,7 @@ nsSchemaFacet::SetFacetType(PRUint16 aFacetType)
 }
 
 NS_IMETHODIMP
-nsSchemaFacet::SetIsFixed(PRBool aIsFixed) 
+nsSchemaFacet::SetIsFixed(PRBool aIsFixed)
 {
   mIsFixed = aIsFixed;
 

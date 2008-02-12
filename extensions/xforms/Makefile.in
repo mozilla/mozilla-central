@@ -98,7 +98,6 @@ REQUIRES	= \
 		dom \
 		widget \
 		necko \
-		websrvcs \
 		docshell \
 		mimetype \
 		caps \

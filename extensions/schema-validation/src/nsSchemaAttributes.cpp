@@ -43,7 +43,7 @@
 // nsSchemaAttribute implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaAttribute::nsSchemaAttribute(nsSchema* aSchema, 
+nsSchemaAttribute::nsSchemaAttribute(nsSchema* aSchema,
                                      const nsAString& aName)
   : nsSchemaComponentBase(aSchema), mName(aName)
 {
@@ -53,15 +53,15 @@ nsSchemaAttribute::~nsSchemaAttribute()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAttribute,
-                      nsISchemaComponent,
-                      nsISchemaAttributeComponent,
-                      nsISchemaAttribute)
+NS_IMPL_ISUPPORTS3(nsSchemaAttribute,
+                      nsISVSchemaComponent,
+                      nsISVSchemaAttributeComponent,
+                      nsISVSchemaAttribute)
 
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAttribute::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAttribute::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -70,7 +70,7 @@ nsSchemaAttribute::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   mIsResolved = PR_TRUE;
   nsresult rv = NS_OK;
   if (mType && mSchema) {
-    nsCOMPtr<nsISchemaType> type;
+    nsCOMPtr<nsISVSchemaType> type;
     rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mType, getter_AddRefs(type));
     if (NS_FAILED(rv)) {
       return NS_ERROR_FAILURE;
@@ -117,14 +117,14 @@ nsSchemaAttribute::GetComponentType(PRUint16 *aComponentType)
 {
   NS_ENSURE_ARG_POINTER(aComponentType);
 
-  *aComponentType = nsISchemaAttributeComponent::COMPONENT_TYPE_ATTRIBUTE;
+  *aComponentType = nsISVSchemaAttributeComponent::COMPONENT_TYPE_ATTRIBUTE;
 
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType type; */
+/* readonly attribute nsISVSchemaSimpleType type; */
 NS_IMETHODIMP
-nsSchemaAttribute::GetType(nsISchemaSimpleType** aType)
+nsSchemaAttribute::GetType(nsISVSchemaSimpleType** aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 
@@ -175,7 +175,7 @@ nsSchemaAttribute::GetQualifiedNamespace(nsAString & aNamespace)
 }
 
 NS_IMETHODIMP
-nsSchemaAttribute::SetType(nsISchemaSimpleType* aType)
+nsSchemaAttribute::SetType(nsISVSchemaSimpleType* aType)
 {
   NS_ENSURE_ARG(aType);
   
@@ -215,7 +215,7 @@ nsSchemaAttribute::SetAttributeFormQualified(PRBool aAttributeFormQualified)
 // nsSchemaAttributeRef implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaAttributeRef::nsSchemaAttributeRef(nsSchema* aSchema, 
+nsSchemaAttributeRef::nsSchemaAttributeRef(nsSchema* aSchema,
                                            const nsAString& aRef,
                                            const nsAString& aRefNS)
   : nsSchemaComponentBase(aSchema), mRef(aRef), mRefNS(aRefNS)
@@ -226,15 +226,15 @@ nsSchemaAttributeRef::~nsSchemaAttributeRef()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAttributeRef,
-                      nsISchemaComponent,
-                      nsISchemaAttributeComponent,
-                      nsISchemaAttribute)
+NS_IMPL_ISUPPORTS3(nsSchemaAttributeRef,
+                      nsISVSchemaComponent,
+                      nsISVSchemaAttributeComponent,
+                      nsISVSchemaAttribute)
 
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAttributeRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAttributeRef::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv = NS_OK;
   if (mIsResolved) {
@@ -247,7 +247,7 @@ nsSchemaAttributeRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
     mSchema->GetAttributeByName(mRef, getter_AddRefs(mAttribute));
     } else {
       // use the namespace and type
-      nsCOMPtr<nsISchemaCollection> schemaColl;
+      nsCOMPtr<nsISVSchemaCollection> schemaColl;
       mSchema->GetCollection(getter_AddRefs(schemaColl));
       NS_ENSURE_STATE(schemaColl);
 
@@ -296,14 +296,14 @@ nsSchemaAttributeRef::GetComponentType(PRUint16 *aComponentType)
 {
   NS_ENSURE_ARG_POINTER(aComponentType);
 
-  *aComponentType = nsISchemaAttributeComponent::COMPONENT_TYPE_ATTRIBUTE;
+  *aComponentType = nsISVSchemaAttributeComponent::COMPONENT_TYPE_ATTRIBUTE;
 
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType type; */
+/* readonly attribute nsISVSchemaSimpleType type; */
 NS_IMETHODIMP
-nsSchemaAttributeRef::GetType(nsISchemaSimpleType * *aType)
+nsSchemaAttributeRef::GetType(nsISVSchemaSimpleType * *aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 
@@ -396,14 +396,14 @@ nsSchemaAttributeGroup::~nsSchemaAttributeGroup()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAttributeGroup,
-                      nsISchemaComponent,
-                      nsISchemaAttributeComponent,
-                      nsISchemaAttributeGroup)
+NS_IMPL_ISUPPORTS3(nsSchemaAttributeGroup,
+                      nsISVSchemaComponent,
+                      nsISVSchemaAttributeComponent,
+                      nsISVSchemaAttributeGroup)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAttributeGroup::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAttributeGroup::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -460,7 +460,7 @@ nsSchemaAttributeGroup::GetComponentType(PRUint16 *aComponentType)
 {
   NS_ENSURE_ARG_POINTER(aComponentType);
 
-  *aComponentType = nsISchemaAttributeComponent::COMPONENT_TYPE_GROUP;
+  *aComponentType = nsISVSchemaAttributeComponent::COMPONENT_TYPE_GROUP;
 
   return NS_OK;
 }
@@ -476,10 +476,10 @@ nsSchemaAttributeGroup::GetAttributeCount(PRUint32* aAttributeCount)
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
+/* nsISVSchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaAttributeGroup::GetAttributeByIndex(PRUint32 aIndex, 
-                                            nsISchemaAttributeComponent** aResult)
+nsSchemaAttributeGroup::GetAttributeByIndex(PRUint32 aIndex,
+                                            nsISVSchemaAttributeComponent** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -492,10 +492,10 @@ nsSchemaAttributeGroup::GetAttributeByIndex(PRUint32 aIndex,
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByName (in AString name); */
+/* nsISVSchemaAttributeComponent getAttributeByName (in AString name); */
 NS_IMETHODIMP
-nsSchemaAttributeGroup::GetAttributeByName(const nsAString& aName, 
-                                           nsISchemaAttributeComponent** aResult)
+nsSchemaAttributeGroup::GetAttributeByName(const nsAString& aName,
+                                           nsISVSchemaAttributeComponent** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -505,7 +505,7 @@ nsSchemaAttributeGroup::GetAttributeByName(const nsAString& aName,
 }
 
 NS_IMETHODIMP
-nsSchemaAttributeGroup::AddAttribute(nsISchemaAttributeComponent* aAttribute)
+nsSchemaAttributeGroup::AddAttribute(nsISVSchemaAttributeComponent* aAttribute)
 {
   NS_ENSURE_ARG_POINTER(aAttribute);
 
@@ -515,7 +515,7 @@ nsSchemaAttributeGroup::AddAttribute(nsISchemaAttributeComponent* aAttribute)
   mAttributes.AppendObject(aAttribute);
   mAttributesHash.Put(name, aAttribute);
 
-  return NS_OK;    
+  return NS_OK;
 }
 
 ////////////////////////////////////////////////////////////
@@ -534,14 +534,14 @@ nsSchemaAttributeGroupRef::~nsSchemaAttributeGroupRef()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAttributeGroupRef,
-                      nsISchemaComponent,
-                      nsISchemaAttributeComponent,
-                      nsISchemaAttributeGroup)
+NS_IMPL_ISUPPORTS3(nsSchemaAttributeGroupRef,
+                      nsISVSchemaComponent,
+                      nsISVSchemaAttributeComponent,
+                      nsISVSchemaAttributeGroup)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAttributeGroupRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAttributeGroupRef::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv = NS_OK;
   if (mIsResolved) {
@@ -554,12 +554,12 @@ nsSchemaAttributeGroupRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
     mSchema->GetAttributeGroupByName(mRef, getter_AddRefs(mAttributeGroup));
     } else {
       // use the namespace and type
-      nsCOMPtr<nsISchemaCollection> schemaColl;
+      nsCOMPtr<nsISVSchemaCollection> schemaColl;
       mSchema->GetCollection(getter_AddRefs(schemaColl));
       NS_ENSURE_STATE(schemaColl);
 
       // get the right schema
-      nsCOMPtr<nsISchema> schema;
+      nsCOMPtr<nsISVSchema> schema;
       schemaColl->GetSchema(mRefNS, getter_AddRefs(schema));
       NS_ENSURE_STATE(schema);
 
@@ -608,7 +608,7 @@ nsSchemaAttributeGroupRef::GetComponentType(PRUint16 *aComponentType)
 {
   NS_ENSURE_ARG_POINTER(aComponentType);
 
-  *aComponentType = nsISchemaAttributeComponent::COMPONENT_TYPE_GROUP;
+  *aComponentType = nsISVSchemaAttributeComponent::COMPONENT_TYPE_GROUP;
 
   return NS_OK;
 }
@@ -626,10 +626,10 @@ nsSchemaAttributeGroupRef::GetAttributeCount(PRUint32 *aAttributeCount)
   return mAttributeGroup->GetAttributeCount(aAttributeCount);
 }
 
-/* nsISchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
+/* nsISVSchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaAttributeGroupRef::GetAttributeByIndex(PRUint32 index, 
-                                               nsISchemaAttributeComponent **_retval)
+nsSchemaAttributeGroupRef::GetAttributeByIndex(PRUint32 index,
+                                               nsISVSchemaAttributeComponent **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -640,10 +640,10 @@ nsSchemaAttributeGroupRef::GetAttributeByIndex(PRUint32 index,
   return mAttributeGroup->GetAttributeByIndex(index, _retval);
 }
 
-/* nsISchemaAttributeComponent getAttributeByName (in AString name); */
+/* nsISVSchemaAttributeComponent getAttributeByName (in AString name); */
 NS_IMETHODIMP
-nsSchemaAttributeGroupRef::GetAttributeByName(const nsAString & name, 
-                                              nsISchemaAttributeComponent **_retval)
+nsSchemaAttributeGroupRef::GetAttributeByName(const nsAString & name,
+                                              nsISVSchemaAttributeComponent **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -668,14 +668,14 @@ nsSchemaAnyAttribute::~nsSchemaAnyAttribute()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAnyAttribute,
-                      nsISchemaComponent,
-                      nsISchemaAttributeComponent,
-                      nsISchemaAnyAttribute)
+NS_IMPL_ISUPPORTS3(nsSchemaAnyAttribute,
+                      nsISVSchemaComponent,
+                      nsISVSchemaAttributeComponent,
+                      nsISVSchemaAnyAttribute)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAnyAttribute::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAnyAttribute::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -693,7 +693,7 @@ nsSchemaAnyAttribute::GetComponentType(PRUint16 *aComponentType)
 {
   NS_ENSURE_ARG_POINTER(aComponentType);
 
-  *aComponentType = nsISchemaAttributeComponent::COMPONENT_TYPE_ANY;
+  *aComponentType = nsISVSchemaAttributeComponent::COMPONENT_TYPE_ANY;
 
   return NS_OK;
 }

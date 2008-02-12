@@ -50,7 +50,7 @@ public:
    * @param aSchema           The schema to load
    * @return                  If it succeeded or not
    */
-  nsresult LoadSchema(nsISchema* aSchema);
+  nsresult LoadSchema(nsISVSchema* aSchema);
 
   /**
    * Validates a string against a namespace and schema type
@@ -72,15 +72,15 @@ public:
   PRBool Validate(nsIDOMNode* aElement);
 
   /**
-   * Returns a nsISchemaType given an type and namespace
+   * Returns a nsISVSchemaType given an type and namespace
    *
    * @param aType             Type
    * @param aNamespace        Namespace
-   * @param aSchemaType       The nsISchemaType is stored here.
+   * @param aSchemaType       The nsISVSchemaType is stored here.
    * @return                  Whether a type was found or not
    */
   PRBool GetType(const nsAString & aType, const nsAString & aNamespace,
-                 nsISchemaType **aSchemaType);
+                 nsISVSchemaType **aSchemaType);
 
   /**
    * Validates a string against an XForms Schema Type

@@ -69,10 +69,20 @@ REQUIRES	= xpcom \
 		  htmlparser \
 		  necko \
 		  xmlextras \
-		  websrvcs \
 		  $(NULL)
 
 CPPSRCS		= \
+		nsSchema.cpp				\
+		nsSchemaComponentBase.cpp		\
+		nsSchemaSimpleTypes.cpp			\
+		nsSchemaComplexType.cpp			\
+		nsSchemaParticles.cpp			\
+		nsSchemaAttributes.cpp			\
+		nsSchemaLoader.cpp			\
+		nsSOAPTypes.cpp			\
+		$(NULL)
+
+CPPSRCS		+= \
 		nsSchemaValidatorModule.cpp \
 		nsSchemaValidator.cpp \
 		nsSchemaDuration.cpp \

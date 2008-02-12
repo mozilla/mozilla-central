@@ -56,8 +56,8 @@
           var myValidator = Components.classes["@mozilla.org/schemavalidator;1"].createInstance(Components.interfaces.nsISchemaValidator);
         } catch(e){ alert(e) }
 
-        var schemaLoader = Components.classes["@mozilla.org/xmlextras/schemas/schemaloader;1"]
-                                     .getService(Components.interfaces.nsISchemaLoader);
+        var schemaLoader = Components.classes["@mozilla.org/schemavalidator/schemaloader;1"]
+                                     .getService(Components.interfaces.nsISVSchemaLoader);
         try {
           schema = schemaLoader.load(aSchema);
           myValidator.loadSchema(schema);
@@ -132,8 +132,8 @@
         myValidator = Components.classes["@mozilla.org/schemavalidator;1"].createInstance(Components.interfaces.nsISchemaValidator);
       } catch(e){ alert(e) }
 
-      var schemaLoader = Components.classes["@mozilla.org/xmlextras/schemas/schemaloader;1"]
-                                   .getService(Components.interfaces.nsISchemaLoader);
+      var schemaLoader = Components.classes["@mozilla.org/schemavalidator/schemaloader;1"]
+                                   .getService(Components.interfaces.nsISVSchemaLoader);
       try {
         // SchemaLoader.Load() wants a URI
         schema = schemaLoader.load(document.URL + "/../schema.xsd");

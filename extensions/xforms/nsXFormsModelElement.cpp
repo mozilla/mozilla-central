@@ -72,8 +72,8 @@
 #include "nsXFormsUtils.h"
 #include "nsXFormsSchemaValidator.h"
 #include "nsIXFormsUIWidget.h"
-#include "nsISchemaLoader.h"
-#include "nsISchema.h"
+#include "nsISVSchemaLoader.h"
+#include "nsISVSchema.h"
 #include "nsAutoPtr.h"
 #include "nsIDOMDocumentXBL.h"
 #include "nsIProgrammingLanguage.h"
@@ -664,8 +664,8 @@ NS_INTERFACE_MAP_BEGIN(nsXFormsModelElement)
   NS_INTERFACE_MAP_ENTRY(nsIXFormsModelElement)
   NS_INTERFACE_MAP_ENTRY(nsIXFormsNSModelElement)
   NS_INTERFACE_MAP_ENTRY(nsIModelElementPrivate)
-  NS_INTERFACE_MAP_ENTRY(nsISchemaLoadListener)
-  NS_INTERFACE_MAP_ENTRY(nsIWebServiceErrorHandler)
+  NS_INTERFACE_MAP_ENTRY(nsISVSchemaLoadListener)
+  NS_INTERFACE_MAP_ENTRY(nsISVSchemaErrorHandler)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
   NS_INTERFACE_MAP_ENTRY(nsIXFormsContextControl)
 NS_INTERFACE_MAP_END_INHERITING(nsXFormsStubElement)
@@ -1001,7 +1001,7 @@ nsXFormsModelElement::OnCreated(nsIXTFElementWrapper *aWrapper)
   nsresult rv = mMDG.Init(this);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mSchemas = do_CreateInstance(NS_SCHEMALOADER_CONTRACTID);
+  mSchemas = do_CreateInstance(NS_SVSCHEMALOADER_CONTRACTID);
 
   mInstanceDocuments = new nsXFormsModelInstanceDocuments();
   NS_ASSERTION(mInstanceDocuments, "could not create mInstanceDocuments?!");
@@ -1386,10 +1386,10 @@ nsXFormsModelElement::Refresh()
   return NS_OK;
 }
 
-// nsISchemaLoadListener
+// nsISVSchemaLoadListener
 
 NS_IMETHODIMP
-nsXFormsModelElement::OnLoad(nsISchema* aSchema)
+nsXFormsModelElement::OnLoad(nsISVSchema* aSchema)
 {
   mSchemaCount++;
 
@@ -1405,7 +1405,7 @@ nsXFormsModelElement::OnLoad(nsISchema* aSchema)
   return NS_OK;
 }
 
-// nsIWebServiceErrorHandler
+// nsISVSchemaErrorHandler
 
 NS_IMETHODIMP
 nsXFormsModelElement::OnError(nsresult aStatus,
@@ -1469,7 +1469,7 @@ nsXFormsModelElement::RemoveFormControl(nsIXFormsControl *aControl)
 
 NS_IMETHODIMP
 nsXFormsModelElement::GetTypeForControl(nsIXFormsControl  *aControl,
-                                        nsISchemaType    **aType)
+                                        nsISVSchemaType    **aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
   *aType = nsnull;
@@ -1487,7 +1487,7 @@ nsXFormsModelElement::GetTypeForControl(nsIXFormsControl  *aControl,
 }
 
 NS_IMETHODIMP nsXFormsModelElement::GetTypeForNode(nsIDOMNode     *aBoundNode,
-                                                   nsISchemaType **aType)
+                                                   nsISVSchemaType **aType)
 {
   nsAutoString schemaTypeName, schemaTypeNamespace;
   nsresult rv = GetTypeFromNode(aBoundNode, schemaTypeName,
@@ -1497,9 +1497,9 @@ NS_IMETHODIMP nsXFormsModelElement::GetTypeForNode(nsIDOMNode     *aBoundNode,
 
   nsXFormsSchemaValidator validator;
 
-  nsCOMPtr<nsISchemaCollection> schemaColl = do_QueryInterface(mSchemas);
+  nsCOMPtr<nsISVSchemaCollection> schemaColl = do_QueryInterface(mSchemas);
   if (schemaColl) {
-    nsCOMPtr<nsISchema> schema;
+    nsCOMPtr<nsISVSchema> schema;
     schemaColl->GetSchema(schemaTypeNamespace, getter_AddRefs(schema));
     // if no schema found, then we will only handle built-in types.
     if (schema)
@@ -1521,7 +1521,7 @@ nsXFormsModelElement::GetTypeAndNSFromNode(nsIDOMNode *aInstanceData,
   // 6.2.1 1. see if the instance data has a schema type.
   // if the control has a schema type then we will then
   // have to set a MIP node.
-  nsCOMPtr<nsISchemaType> schemaType;
+  nsCOMPtr<nsISVSchemaType> schemaType;
   nsresult rv = GetTypeForNode(aInstanceData, getter_AddRefs(schemaType));
 
   if (rv == NS_OK) {
@@ -1683,28 +1683,28 @@ nsXFormsModelElement::ValidateNode(nsIDOMNode *aInstanceNode, PRBool *aResult)
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsXFormsSchemaValidator validator;
-  nsCOMPtr<nsISchemaCollection> schemaColl = do_QueryInterface(mSchemas);
+  nsCOMPtr<nsISVSchemaCollection> schemaColl = do_QueryInterface(mSchemas);
   if (schemaColl) {
-    nsCOMPtr<nsISchema> schema;
+    nsCOMPtr<nsISVSchema> schema;
     schemaColl->GetSchema(schemaTypeNamespace, getter_AddRefs(schema));
     // if no schema found, then we will only handle built-in types.
     if (schema)
       validator.LoadSchema(schema);
   }
 
-  nsCOMPtr<nsISchemaType> type;
+  nsCOMPtr<nsISVSchemaType> type;
   rv = validator.GetType(schemaTypeName, schemaTypeNamespace,
                          getter_AddRefs(type));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint16 typevalue = nsISchemaType::SCHEMA_TYPE_SIMPLE;
+  PRUint16 typevalue = nsISVSchemaType::SCHEMA_TYPE_SIMPLE;
   if (type) {
     rv = type->GetSchemaType(&typevalue);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
   PRBool isValid = PR_FALSE;
-  if (typevalue == nsISchemaType::SCHEMA_TYPE_SIMPLE) {
+  if (typevalue == nsISVSchemaType::SCHEMA_TYPE_SIMPLE) {
     nsAutoString value;
     nsXFormsUtils::GetNodeValue(aInstanceNode, value);
     isValid = validator.ValidateString(value, schemaTypeName,
@@ -1745,10 +1745,10 @@ nsXFormsModelElement::ValidateDocument(nsIDOMDocument *aInstanceDocument,
   nsAutoString nsuri;
   element->GetNamespaceURI(nsuri);
 
-  nsCOMPtr<nsISchemaCollection> schemaColl = do_QueryInterface(mSchemas);
+  nsCOMPtr<nsISVSchemaCollection> schemaColl = do_QueryInterface(mSchemas);
   NS_ENSURE_STATE(schemaColl);
 
-  nsCOMPtr<nsISchema> schema;
+  nsCOMPtr<nsISVSchema> schema;
   schemaColl->GetSchema(nsuri, getter_AddRefs(schema));
   if (!schema) {
     // No schema found, so nothing to validate
@@ -1837,7 +1837,7 @@ nsXFormsModelElement::GetTypeFromNode(nsIDOMNode *aInstanceData,
   // bound to the node via \<xforms:bind\>
   nsresult rv = NS_ERROR_FAILURE;
   if (!typeVal && !mNodeToType.Get(aInstanceData, &typeVal)) {
-    // check if schema validation left us a nsISchemaType*
+    // check if schema validation left us a nsISVSchemaType*
     nsCOMPtr<nsIAtomService> atomServ =
       do_GetService(NS_ATOMSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1862,7 +1862,7 @@ nsXFormsModelElement::GetTypeFromNode(nsIDOMNode *aInstanceData,
     }
 
     if (NS_SUCCEEDED(rv) && xsdType) {
-      nsCOMPtr<nsISchemaType> type;
+      nsCOMPtr<nsISVSchemaType> type;
       nsIID *containedInterface;
 
       if (NS_SUCCEEDED(xsdType->GetAsInterface(&containedInterface,
@@ -2204,7 +2204,7 @@ nsXFormsModelElement::FinishConstruction()
       if (nsURI.EqualsLiteral(NS_NAMESPACE_XML_SCHEMA) &&
           localName.EqualsLiteral("schema")) {
         if (!IsDuplicateSchema(element)) {
-          nsCOMPtr<nsISchema> schema;
+          nsCOMPtr<nsISVSchema> schema;
           nsresult rv = mSchemas->ProcessSchemaElement(element, nsnull,
                                                        getter_AddRefs(schema));
           if (!NS_SUCCEEDED(rv)) {
@@ -2779,136 +2779,136 @@ nsXFormsModelElement::GetBuiltinTypeName(PRUint16   aType,
                                          nsAString& aName)
 {
   switch (aType) {
-    case nsISchemaBuiltinType::BUILTIN_TYPE_STRING:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_STRING:
       aName.AssignLiteral("string");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BOOLEAN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BOOLEAN:
       aName.AssignLiteral("boolean");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DECIMAL:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DECIMAL:
       aName.AssignLiteral("decimal");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_FLOAT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_FLOAT:
       aName.AssignLiteral("float");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DOUBLE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DOUBLE:
       aName.AssignLiteral("double");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DURATION:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DURATION:
       aName.AssignLiteral("duration");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DATETIME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DATETIME:
       aName.AssignLiteral("dateTime");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_TIME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_TIME:
       aName.AssignLiteral("time");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DATE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DATE:
       aName.AssignLiteral("date");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH:
       aName.AssignLiteral("gYearMonth");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GYEAR:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEAR:
       aName.AssignLiteral("gYear");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY:
       aName.AssignLiteral("gMonthDay");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GDAY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GDAY:
       aName.AssignLiteral("gDay");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GMONTH:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTH:
       aName.AssignLiteral("gMonth");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY:
       aName.AssignLiteral("hexBinary");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY:
       aName.AssignLiteral("base64Binary");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ANYURI:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ANYURI:
       aName.AssignLiteral("anyURI");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_QNAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_QNAME:
       aName.AssignLiteral("QName");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NOTATION:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NOTATION:
       aName.AssignLiteral("NOTATION");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
       aName.AssignLiteral("normalizedString");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN:
       aName.AssignLiteral("token");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BYTE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BYTE:
       aName.AssignLiteral("byte");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
       aName.AssignLiteral("unsignedByte");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER:
       aName.AssignLiteral("integer");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
       aName.AssignLiteral("negativeInteger");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
       aName.AssignLiteral("nonPositiveInteger");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LONG:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LONG:
       aName.AssignLiteral("long");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
       aName.AssignLiteral("nonNegativeInteger");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INT:
       aName.AssignLiteral("int");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
       aName.AssignLiteral("unsignedInt");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
       aName.AssignLiteral("unsignedLong");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
       aName.AssignLiteral("positiveInteger");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_SHORT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_SHORT:
       aName.AssignLiteral("short");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
       aName.AssignLiteral("unsignedShort");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
       aName.AssignLiteral("language");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
       aName.AssignLiteral("NMTOKEN");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NAME:
       aName.AssignLiteral("Name");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME:
       aName.AssignLiteral("NCName");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ID:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ID:
       aName.AssignLiteral("ID");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREF:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREF:
       aName.AssignLiteral("IDREF");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITY:
       aName.AssignLiteral("ENTITY");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREFS:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREFS:
       aName.AssignLiteral("IDREFS");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
       aName.AssignLiteral("ENTITIES");
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
       aName.AssignLiteral("NMTOKENS");
       break;
     default:
@@ -2936,80 +2936,80 @@ nsXFormsModelElement::GetBuiltinTypesNames(PRUint16       aType,
   NS_ENSURE_SUCCESS(rv, rv);
 
   switch (aType) {
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_STRING;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_STRING;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BYTE:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_SHORT;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BYTE:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_SHORT;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_DECIMAL;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_DECIMAL;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LONG:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LONG:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INT:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_LONG;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INT:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_LONG;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_SHORT:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_INT;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_SHORT:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_INT;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NAME:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NAME:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NAME;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NAME;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ID:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ID:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREF:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREF:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITY:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITY:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREFS:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_IDREF;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREFS:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREF;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_ENTITY;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITY;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
-      parentType = nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKEN;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
+      parentType = nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKEN;
       break;
   }
 
@@ -3025,7 +3025,7 @@ nsXFormsModelElement::GetBuiltinTypesNames(PRUint16       aType,
 }
 
 nsresult
-nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
+nsXFormsModelElement::WalkTypeChainInternal(nsISVSchemaType *aType,
                                             PRBool         aFindRootBuiltin,
                                             PRUint16      *aBuiltinType,
                                             nsStringArray *aTypeArray)
@@ -3034,9 +3034,9 @@ nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
   aType->GetSchemaType(&schemaTypeValue);
   NS_ENSURE_STATE(schemaTypeValue);
   nsresult rv = NS_OK;
-  nsCOMPtr<nsISchemaSimpleType> simpleType;
+  nsCOMPtr<nsISVSchemaSimpleType> simpleType;
 
-  if (schemaTypeValue == nsISchemaType::SCHEMA_TYPE_SIMPLE) {
+  if (schemaTypeValue == nsISVSchemaType::SCHEMA_TYPE_SIMPLE) {
     simpleType = do_QueryInterface(aType);
     NS_ENSURE_STATE(simpleType);
     PRUint16 simpleTypeValue;
@@ -3044,9 +3044,9 @@ nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
     NS_ENSURE_STATE(simpleTypeValue);
 
     switch (simpleTypeValue) {
-      case nsISchemaSimpleType::SIMPLE_TYPE_BUILTIN:
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_BUILTIN:
       {
-        nsCOMPtr<nsISchemaBuiltinType> builtinType(do_QueryInterface(aType));
+        nsCOMPtr<nsISVSchemaBuiltinType> builtinType(do_QueryInterface(aType));
         NS_ENSURE_STATE(builtinType);
 
         if (aFindRootBuiltin)
@@ -3064,23 +3064,23 @@ nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
 
         return NS_OK;
       }
-      case nsISchemaSimpleType::SIMPLE_TYPE_RESTRICTION:
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_RESTRICTION:
       {
-        nsCOMPtr<nsISchemaRestrictionType> restType(do_QueryInterface(aType));
+        nsCOMPtr<nsISVSchemaRestrictionType> restType(do_QueryInterface(aType));
         NS_ENSURE_STATE(restType);
         restType->GetBaseType(getter_AddRefs(simpleType));
 
         break;
       }
-      case nsISchemaSimpleType::SIMPLE_TYPE_LIST:
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_LIST:
       {
-        nsCOMPtr<nsISchemaListType> listType(do_QueryInterface(aType));
+        nsCOMPtr<nsISVSchemaListType> listType(do_QueryInterface(aType));
         NS_ENSURE_STATE(listType);
         listType->GetListType(getter_AddRefs(simpleType));
 
         break;
       }
-      case nsISchemaSimpleType::SIMPLE_TYPE_UNION:
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_UNION:
       {
         // For now union types aren't supported.  A union means that the type
         // could be of any type listed in the union and still be valid.  But we
@@ -3099,16 +3099,16 @@ nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
         return NS_ERROR_FAILURE;
     }
 
-  } else if (schemaTypeValue == nsISchemaType::SCHEMA_TYPE_COMPLEX) {
-    nsCOMPtr<nsISchemaComplexType> complexType(do_QueryInterface(aType));
+  } else if (schemaTypeValue == nsISVSchemaType::SCHEMA_TYPE_COMPLEX) {
+    nsCOMPtr<nsISVSchemaComplexType> complexType(do_QueryInterface(aType));
     NS_ENSURE_STATE(complexType);
     PRUint16 complexTypeValue = 0;
     complexType->GetDerivation(&complexTypeValue);
     NS_ENSURE_STATE(complexTypeValue);
     if ((complexTypeValue ==
-         nsISchemaComplexType::DERIVATION_RESTRICTION_SIMPLE) ||
+         nsISVSchemaComplexType::DERIVATION_RESTRICTION_SIMPLE) ||
         (complexTypeValue ==
-         nsISchemaComplexType::DERIVATION_EXTENSION_SIMPLE)) {
+         nsISVSchemaComplexType::DERIVATION_EXTENSION_SIMPLE)) {
       complexType->GetSimpleBaseType(getter_AddRefs(simpleType));
     } else {
       return NS_ERROR_FAILURE;
@@ -3142,7 +3142,7 @@ nsXFormsModelElement::WalkTypeChainInternal(nsISchemaType *aType,
 }
 
 nsresult
-nsXFormsModelElement::BuiltinTypeToPrimative(nsISchemaBuiltinType *aSchemaType,
+nsXFormsModelElement::BuiltinTypeToPrimative(nsISVSchemaBuiltinType *aSchemaType,
                                              PRUint16             *aPrimType)
 {
   NS_ENSURE_ARG(aSchemaType);
@@ -3156,56 +3156,56 @@ nsXFormsModelElement::BuiltinTypeToPrimative(nsISchemaBuiltinType *aSchemaType,
   // types.
 
   switch (builtinType) {
-    case nsISchemaBuiltinType::BUILTIN_TYPE_STRING:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BOOLEAN:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DECIMAL:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_FLOAT:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DOUBLE:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DURATION:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DATETIME:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_TIME:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_DATE:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GYEAR:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GDAY:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_GMONTH:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ANYURI:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_QNAME:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NOTATION:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_STRING:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BOOLEAN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DECIMAL:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_FLOAT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DOUBLE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DURATION:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DATETIME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_TIME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_DATE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEAR:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GDAY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTH:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ANYURI:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_QNAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NOTATION:
       *aPrimType = builtinType;
       break;
 
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_TOKEN:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NAME:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NCNAME:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ID:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREF:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITY:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_IDREFS:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
-      *aPrimType = nsISchemaBuiltinType::BUILTIN_TYPE_STRING;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NORMALIZED_STRING:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_TOKEN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LANGUAGE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKEN:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NCNAME:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ID:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREF:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITY:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_IDREFS:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_ENTITIES:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NMTOKENS:
+      *aPrimType = nsISVSchemaBuiltinType::BUILTIN_TYPE_STRING;
       break;
-    case nsISchemaBuiltinType::BUILTIN_TYPE_BYTE:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INTEGER:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_LONG:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_INT:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_SHORT:
-    case nsISchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
-      *aPrimType = nsISchemaBuiltinType::BUILTIN_TYPE_DECIMAL;
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_BYTE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDBYTE:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NEGATIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONPOSITIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_LONG:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_NONNEGATIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_INT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDINT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDLONG:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_POSITIVEINTEGER:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_SHORT:
+    case nsISVSchemaBuiltinType::BUILTIN_TYPE_UNSIGNEDSHORT:
+      *aPrimType = nsISVSchemaBuiltinType::BUILTIN_TYPE_DECIMAL;
       break;
     default:
       // should never hit here
@@ -3221,10 +3221,10 @@ nsXFormsModelElement::GetDerivedTypeList(const nsAString &aType,
                                          const nsAString &aNamespace,
                                          nsAString       &aTypeList)
 {
-  nsCOMPtr<nsISchemaCollection> schemaColl = do_QueryInterface(mSchemas);
+  nsCOMPtr<nsISVSchemaCollection> schemaColl = do_QueryInterface(mSchemas);
   NS_ENSURE_STATE(schemaColl);
 
-  nsCOMPtr<nsISchemaType> schemaType;
+  nsCOMPtr<nsISVSchemaType> schemaType;
   schemaColl->GetType(aType, aNamespace, getter_AddRefs(schemaType));
   NS_ENSURE_STATE(schemaType);
 
@@ -3266,7 +3266,7 @@ nsXFormsModelElement::GetBuiltinTypeNameForControl(nsIXFormsControl  *aControl,
 {
   NS_ENSURE_ARG(aControl);
 
-  nsCOMPtr<nsISchemaType> schemaType;
+  nsCOMPtr<nsISVSchemaType> schemaType;
   nsresult rv = GetTypeForControl(aControl, getter_AddRefs(schemaType));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3278,7 +3278,7 @@ nsXFormsModelElement::GetBuiltinTypeNameForControl(nsIXFormsControl  *aControl,
 }
 
 NS_IMETHODIMP
-nsXFormsModelElement::GetRootBuiltinType(nsISchemaType *aType,
+nsXFormsModelElement::GetRootBuiltinType(nsISVSchemaType *aType,
                                          PRUint16      *aBuiltinType)
 {
   NS_ENSURE_ARG(aType);
@@ -3445,7 +3445,7 @@ nsXFormsModelElement::HandleLoad(nsIDOMEvent* aEvent)
         // processors ignore this rule and it isn't specifically a fatal error,
         // we won't make this a failure here.
         if (!IsDuplicateSchema(el)) {
-          nsCOMPtr<nsISchema> schema;
+          nsCOMPtr<nsISVSchema> schema;
           // no need to observe errors via the callback.  instead, rely on
           // this method returning a failure code when it encounters errors.
           rv = mSchemas->ProcessSchemaElement(el, nsnull,
@@ -3495,7 +3495,7 @@ nsXFormsModelElement::HandleUnload(nsIDOMEvent* aEvent)
 PRBool
 nsXFormsModelElement::IsDuplicateSchema(nsIDOMElement *aSchemaElement)
 {
-  nsCOMPtr<nsISchemaCollection> schemaColl = do_QueryInterface(mSchemas);
+  nsCOMPtr<nsISVSchemaCollection> schemaColl = do_QueryInterface(mSchemas);
   if (!schemaColl)
     return PR_FALSE;
 
@@ -3505,7 +3505,7 @@ nsXFormsModelElement::IsDuplicateSchema(nsIDOMElement *aSchemaElement)
                                  targetNamespace);
   targetNamespace.Trim(" \r\n\t");
 
-  nsCOMPtr<nsISchema> schema;
+  nsCOMPtr<nsISVSchema> schema;
   schemaColl->GetSchema(targetNamespace, getter_AddRefs(schema));
   if (!schema)
     return PR_FALSE;

@@ -45,6 +45,9 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= schemavalidation
 
 XPIDLSRCS	=                      \
+		nsISVSchemaErrorHandler.idl       \
+		nsISVSchema.idl       \
+		nsISVSchemaLoader.idl       \
 		nsISchemaValidator.idl       \
 		nsISchemaDuration.idl        \
 		nsISchemaValidatorRegexp.idl \

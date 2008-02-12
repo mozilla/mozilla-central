@@ -44,7 +44,7 @@
 #include "nsIModelElementPrivate.h"
 #include "nsIXFormsNSModelElement.h"
 #include "nsIDOMEventListener.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsCOMArray.h"
 #include "nsVoidArray.h"
 #include "nsCOMPtr.h"
@@ -54,8 +54,7 @@
 #include "nsXFormsUtils.h"
 #include "nsIClassInfo.h"
 
-#include "nsISchemaLoader.h"
-#include "nsISchema.h"
+#include "nsISVSchemaLoader.h"
 #include "nsIXFormsContextControl.h"
 #include "nsDataHashtable.h"
 #include "nsRefPtrHashtable.h"
@@ -257,7 +256,7 @@ public:
 class nsXFormsModelElement : public nsXFormsStubElement,
                              public nsIModelElementPrivate,
                              public nsIXFormsNSModelElement,
-                             public nsISchemaLoadListener,
+                             public nsISVSchemaLoadListener,
                              public nsIDOMEventListener,
                              public nsIXFormsContextControl
 {
@@ -268,8 +267,8 @@ public:
   NS_DECL_NSIXFORMSMODELELEMENT
   NS_DECL_NSIMODELELEMENTPRIVATE
   NS_DECL_NSIXFORMSNSMODELELEMENT
-  NS_DECL_NSISCHEMALOADLISTENER
-  NS_DECL_NSIWEBSERVICEERRORHANDLER
+  NS_DECL_NSISVSCHEMALOADLISTENER
+  NS_DECL_NSISVSCHEMAERRORHANDLER
   NS_DECL_NSIDOMEVENTLISTENER
   NS_DECL_NSIXFORMSCONTEXTCONTROL
 
@@ -452,14 +451,14 @@ private:
    *                         build a string array of datatype URIs and put them
    *                         in aTypeArray.
    */
-  NS_HIDDEN_(nsresult) WalkTypeChainInternal(nsISchemaType *aType,
+  NS_HIDDEN_(nsresult) WalkTypeChainInternal(nsISVSchemaType *aType,
                                              PRBool         aFindRootBuiltin,
                                              PRUint16      *aBuiltinType,
                                              nsStringArray *aTypeArray = nsnull);
   /**
    * Returns the primative type that aSchemaType is derived/extended from
    */
-  NS_HIDDEN_(nsresult) BuiltinTypeToPrimative(nsISchemaBuiltinType *aSchemaType,
+  NS_HIDDEN_(nsresult) BuiltinTypeToPrimative(nsISVSchemaBuiltinType *aSchemaType,
                                               PRUint16             *aPrimType);
 
   /** Set context info for events.
@@ -469,10 +468,10 @@ private:
    */
   nsresult SetContextInfo(const char *aName, const nsAString &aValue);
 
-  nsIDOMElement            *mElement;
-  nsCOMPtr<nsISchemaLoader> mSchemas;
-  nsStringArray             mPendingInlineSchemas;
-  nsXFormsControlListItem   mFormControls;
+  nsIDOMElement              *mElement;
+  nsCOMPtr<nsISVSchemaLoader> mSchemas;
+  nsStringArray               mPendingInlineSchemas;
+  nsXFormsControlListItem     mFormControls;
   nsRefPtrHashtable<nsISupportsHashKey, nsXFormsControlListItem> mControlListHash;
 
   PRInt32 mSchemaCount;

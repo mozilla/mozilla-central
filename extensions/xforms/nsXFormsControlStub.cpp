@@ -993,7 +993,7 @@ nsXFormsControlStub::GetBoundBuiltinType(PRUint16 *aBuiltinType)
   NS_ENSURE_STATE(mModel);
 
   // get type of bound instance data
-  nsCOMPtr<nsISchemaType> schemaType;
+  nsCOMPtr<nsISVSchemaType> schemaType;
   nsresult rv = mModel->GetTypeForControl(this, getter_AddRefs(schemaType));
   NS_ENSURE_SUCCESS(rv, rv);
 

@@ -41,7 +41,7 @@
 #include "nsStringAPI.h"
 #include "nsUnicharUtils.h"
 
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsSchemaValidator.h"
 #include "nsSchemaValidatorUtils.h"
 #include "nsISchemaValidatorRegexp.h"
@@ -1678,11 +1678,11 @@ nsSchemaValidatorUtils::RemoveTrailingZeros(nsAString & aString)
 // it makes sure that it won't be overwritten by the same facet defined in one
 // of the inherited types.
 nsresult
-nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
+nsSchemaValidatorUtils::GetDerivedSimpleType(nsISVSchemaSimpleType *aSimpleType,
                                              nsSchemaDerivedSimpleType *aDerived)
 {
   PRBool done = PR_FALSE, hasEnumerations = PR_FALSE;
-  nsCOMPtr<nsISchemaSimpleType> simpleType(aSimpleType);
+  nsCOMPtr<nsISVSchemaSimpleType> simpleType(aSimpleType);
   PRUint16 simpleTypeValue;
   PRUint32 facetCount;
 
@@ -1695,13 +1695,13 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
     NS_ENSURE_SUCCESS(rv, rv);
 
     switch (simpleTypeValue) {
-      case nsISchemaSimpleType::SIMPLE_TYPE_RESTRICTION: {
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_RESTRICTION: {
         // handle the facets
 
-        nsCOMPtr<nsISchemaRestrictionType> restrictionType =
+        nsCOMPtr<nsISVSchemaRestrictionType> restrictionType =
           do_QueryInterface(simpleType);
 
-        nsCOMPtr<nsISchemaFacet> facet;
+        nsCOMPtr<nsISVSchemaFacet> facet;
         PRUint32 facetCounter;
         PRUint16 facetType;
 
@@ -1721,7 +1721,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
           facet->GetFacetType(&facetType);
 
           switch (facetType) {
-            case nsISchemaFacet::FACET_TYPE_LENGTH: {
+            case nsISVSchemaFacet::FACET_TYPE_LENGTH: {
               nsSchemaIntFacet *length = &aDerived->length;
               if (!length->isDefined) {
                 length->isDefined = PR_TRUE;
@@ -1732,7 +1732,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MINLENGTH: {
+            case nsISVSchemaFacet::FACET_TYPE_MINLENGTH: {
               nsSchemaIntFacet *minLength = &aDerived->minLength;
               if (!minLength->isDefined) {
                 minLength->isDefined = PR_TRUE;
@@ -1743,7 +1743,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MAXLENGTH: {
+            case nsISVSchemaFacet::FACET_TYPE_MAXLENGTH: {
               nsSchemaIntFacet *maxLength = &aDerived->maxLength;
               if (!maxLength->isDefined) {
                 maxLength->isDefined = PR_TRUE;
@@ -1754,7 +1754,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_PATTERN: {
+            case nsISVSchemaFacet::FACET_TYPE_PATTERN: {
               nsSchemaStringFacet *pattern = &aDerived->pattern;
               if (!pattern->isDefined) {
                 pattern->isDefined = PR_TRUE;
@@ -1765,7 +1765,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_ENUMERATION: {
+            case nsISVSchemaFacet::FACET_TYPE_ENUMERATION: {
               if (!hasEnumerations) {
                 facet->GetValue(enumeration);
                 aDerived->enumerationList.AppendString(enumeration);
@@ -1775,13 +1775,13 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_WHITESPACE: {
+            case nsISVSchemaFacet::FACET_TYPE_WHITESPACE: {
               if (!aDerived->isWhitespaceDefined)
                 facet->GetWhitespaceValue(&aDerived->whitespace);
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MAXINCLUSIVE: {
+            case nsISVSchemaFacet::FACET_TYPE_MAXINCLUSIVE: {
               nsSchemaStringFacet *maxInclusive = &aDerived->maxInclusive;
               if (!maxInclusive->isDefined) {
                 maxInclusive->isDefined = PR_TRUE;
@@ -1792,7 +1792,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MININCLUSIVE: {
+            case nsISVSchemaFacet::FACET_TYPE_MININCLUSIVE: {
               nsSchemaStringFacet *minInclusive = &aDerived->minInclusive;
               if (!minInclusive->isDefined) {
                 minInclusive->isDefined = PR_TRUE;
@@ -1803,7 +1803,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MAXEXCLUSIVE: {
+            case nsISVSchemaFacet::FACET_TYPE_MAXEXCLUSIVE: {
               nsSchemaStringFacet *maxExclusive = &aDerived->maxExclusive;
               if (!maxExclusive->isDefined) {
                 maxExclusive->isDefined = PR_TRUE;
@@ -1814,7 +1814,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_MINEXCLUSIVE: {
+            case nsISVSchemaFacet::FACET_TYPE_MINEXCLUSIVE: {
               nsSchemaStringFacet *minExclusive = &aDerived->minExclusive;
               if (!minExclusive->isDefined) {
                 minExclusive->isDefined = PR_TRUE;
@@ -1825,7 +1825,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_TOTALDIGITS: {
+            case nsISVSchemaFacet::FACET_TYPE_TOTALDIGITS: {
               nsSchemaIntFacet *totalDigits = &aDerived->totalDigits;
               if (!totalDigits->isDefined) {
                 totalDigits->isDefined = PR_TRUE;
@@ -1836,7 +1836,7 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
               break;
             }
 
-            case nsISchemaFacet::FACET_TYPE_FRACTIONDIGITS: {
+            case nsISVSchemaFacet::FACET_TYPE_FRACTIONDIGITS: {
               nsSchemaIntFacet *fractionDigits = &aDerived->fractionDigits;
               if (!fractionDigits->isDefined) {
                 fractionDigits->isDefined = PR_TRUE;
@@ -1855,21 +1855,21 @@ nsSchemaValidatorUtils::GetDerivedSimpleType(nsISchemaSimpleType *aSimpleType,
         break;
       }
 
-      case nsISchemaSimpleType::SIMPLE_TYPE_BUILTIN: {
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_BUILTIN: {
         // we are done
         aDerived->mBaseType = simpleType;
         done = PR_TRUE;
         break;
       }
 
-      case nsISchemaSimpleType::SIMPLE_TYPE_LIST: {
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_LIST: {
         // set as base type
         aDerived->mBaseType = simpleType;
         done = PR_TRUE;
         break;
       }
 
-      case nsISchemaSimpleType::SIMPLE_TYPE_UNION: {
+      case nsISVSchemaSimpleType::SIMPLE_TYPE_UNION: {
         // set as base type
         aDerived->mBaseType = simpleType;
         done = PR_TRUE;

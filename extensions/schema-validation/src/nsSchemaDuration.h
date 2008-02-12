@@ -41,7 +41,7 @@
 
 #include "nsSchemaValidatorUtils.h"
 #include "nsISchemaDuration.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsCOMPtr.h"
 
 /* 85dad673-28ce-414d-b46b-5c3cf4fd18a6 */

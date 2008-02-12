@@ -37,76 +37,80 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsIWebServiceErrorHandler.idl"
-
-interface nsISchema;
-interface nsISchemaType;
-interface nsISchemaSimpleType;
-interface nsISchemaBuiltinType;
-interface nsISchemaListType;
-interface nsISchemaUnionType;
-interface nsISchemaRestrictionType;
-interface nsISchemaComplexType;
-interface nsISchemaParticle;
-interface nsISchemaModelGroup;
-interface nsISchemaAnyParticle;
-interface nsISchemaElement;
-interface nsISchemaAttributeComponent;
-interface nsISchemaAttribute;
-interface nsISchemaAttributeGroup;
-interface nsISchemaAnyAttribute;
-interface nsISchemaFacet;
+#include "nsISVSchemaErrorHandler.idl"
 
 /**
- * The collection of loaded schemas. If a schema references other 
- * schemas (generally through an import), these will be included
- * in the corresponding collection. 
+ * the original code came from mozilla/extensions/webservices/public/nsISchema.idl
  */
-[scriptable, uuid(427c5511-941b-48c0-9abc-8ec9ea5d964b)]
-interface nsISchemaCollection : nsISupports {
-  nsISchema getSchema(in AString targetNamespace);
-  nsISchemaElement getElement(in AString name, in AString aNamespace);
-  nsISchemaAttribute getAttribute(in AString name, in AString aNamespace);
-  nsISchemaType getType(in AString name, in AString aNamespace);
+
+interface nsISVSchema;
+interface nsISVSchemaType;
+interface nsISVSchemaSimpleType;
+interface nsISVSchemaBuiltinType;
+interface nsISVSchemaListType;
+interface nsISVSchemaUnionType;
+interface nsISVSchemaRestrictionType;
+interface nsISVSchemaComplexType;
+interface nsISVSchemaParticle;
+interface nsISVSchemaModelGroup;
+interface nsISVSchemaAnyParticle;
+interface nsISVSchemaElement;
+interface nsISVSchemaAttributeComponent;
+interface nsISVSchemaAttribute;
+interface nsISVSchemaAttributeGroup;
+interface nsISVSchemaAnyAttribute;
+interface nsISVSchemaFacet;
+
+/**
+ * The collection of loaded schemas. If a schema references other
+ * schemas (generally through an import), these will be included
+ * in the corresponding collection.
+ */
+[scriptable, uuid(a3e9f1c3-8a3b-4c49-a093-74b51a333356)]
+interface nsISVSchemaCollection : nsISupports {
+  nsISVSchema getSchema(in AString targetNamespace);
+  nsISVSchemaElement getElement(in AString name, in AString aNamespace);
+  nsISVSchemaAttribute getAttribute(in AString name, in AString aNamespace);
+  nsISVSchemaType getType(in AString name, in AString aNamespace);
 };
 
-[scriptable, uuid(5caaa64e-e191-11d8-842a-000393b6661a)]
-interface nsISchemaComponent : nsISupports {
+[scriptable, uuid(9ed2eaf0-d2eb-430a-814e-ed2d5641b20e)]
+interface nsISVSchemaComponent : nsISupports {
   readonly attribute AString targetNamespace;
-  void resolve(in nsIWebServiceErrorHandler aErrorHandler);
+  void resolve(in nsISVSchemaErrorHandler aErrorHandler);
   void clear();
 };
 
-[scriptable, uuid(236ce1d7-213e-42e7-96ad-79f4cb3282a9)]
-interface nsISchema : nsISchemaComponent {
+[scriptable, uuid(47b42895-63e8-4309-b519-24d5492d26af)]
+interface nsISVSchema : nsISVSchemaComponent {
   /* Is this necessary? */
   readonly attribute AString schemaNamespace;
 
   readonly attribute PRUint32 typeCount;
-  nsISchemaType getTypeByIndex(in PRUint32 index);
-  nsISchemaType getTypeByName(in AString name);
+  nsISVSchemaType getTypeByIndex(in PRUint32 index);
+  nsISVSchemaType getTypeByName(in AString name);
 
   readonly attribute PRUint32 attributeCount;
-  nsISchemaAttribute getAttributeByIndex(in PRUint32 index);
-  nsISchemaAttribute getAttributeByName(in AString name);
+  nsISVSchemaAttribute getAttributeByIndex(in PRUint32 index);
+  nsISVSchemaAttribute getAttributeByName(in AString name);
 
   readonly attribute PRUint32 elementCount;
-  nsISchemaElement getElementByIndex(in PRUint32 index);
-  nsISchemaElement getElementByName(in AString name);
+  nsISVSchemaElement getElementByIndex(in PRUint32 index);
+  nsISVSchemaElement getElementByName(in AString name);
   
   readonly attribute PRUint32 attributeGroupCount;
-  nsISchemaAttributeGroup getAttributeGroupByIndex(in PRUint32 index);
-  nsISchemaAttributeGroup getAttributeGroupByName(in AString name);
+  nsISVSchemaAttributeGroup getAttributeGroupByIndex(in PRUint32 index);
+  nsISVSchemaAttributeGroup getAttributeGroupByName(in AString name);
 
   readonly attribute PRUint32 modelGroupCount;
-  nsISchemaModelGroup getModelGroupByIndex(in PRUint32 index);
-  nsISchemaModelGroup getModelGroupByName(in AString name);
+  nsISVSchemaModelGroup getModelGroupByIndex(in PRUint32 index);
+  nsISVSchemaModelGroup getModelGroupByName(in AString name);
 
-  readonly attribute nsISchemaCollection collection;
+  readonly attribute nsISVSchemaCollection collection;
 };
 
-[scriptable, uuid(3c14a022-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaType : nsISchemaComponent {
+[scriptable, uuid(efa0b937-bc67-4da5-a02f-dbd1036d8c28)]
+interface nsISVSchemaType : nsISVSchemaComponent {
   const unsigned short SCHEMA_TYPE_SIMPLE = 1;
   const unsigned short SCHEMA_TYPE_COMPLEX = 2;
   const unsigned short SCHEMA_TYPE_PLACEHOLDER = 3;
@@ -115,8 +119,8 @@ interface nsISchemaType : nsISchemaComponent {
   readonly attribute unsigned short schemaType;
 };
 
-[scriptable, uuid(3c14a023-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaSimpleType : nsISchemaType {
+[scriptable, uuid(0cd89306-f9fe-4696-855f-a87be3dd2fe7)]
+interface nsISVSchemaSimpleType : nsISVSchemaType {
   const unsigned short SIMPLE_TYPE_BUILTIN = 1;
   const unsigned short SIMPLE_TYPE_LIST = 2;
   const unsigned short SIMPLE_TYPE_UNION = 3;
@@ -125,8 +129,8 @@ interface nsISchemaSimpleType : nsISchemaType {
   readonly attribute unsigned short simpleType;
 };
 
-[scriptable, uuid(3c14a024-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaBuiltinType : nsISchemaSimpleType {
+[scriptable, uuid(db0a2a09-e7f3-4b02-b080-de27fb1ef4be)]
+interface nsISVSchemaBuiltinType : nsISVSchemaSimpleType {
   const unsigned short BUILTIN_TYPE_ANYTYPE = 1;
   const unsigned short BUILTIN_TYPE_STRING = 2;
   const unsigned short BUILTIN_TYPE_NORMALIZED_STRING = 3;
@@ -176,26 +180,26 @@ interface nsISchemaBuiltinType : nsISchemaSimpleType {
   readonly attribute unsigned short builtinType;
 };
 
-[scriptable, uuid(3c14a025-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaListType : nsISchemaSimpleType {
-  readonly attribute nsISchemaSimpleType listType;
+[scriptable, uuid(14a41758-1ec5-4ad2-aa0e-b6401573189e)]
+interface nsISVSchemaListType : nsISVSchemaSimpleType {
+  readonly attribute nsISVSchemaSimpleType listType;
 };
 
-[scriptable, uuid(3c14a026-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaUnionType : nsISchemaSimpleType {
+[scriptable, uuid(38352e6c-d989-4431-85b9-f248b941ac07)]
+interface nsISVSchemaUnionType : nsISVSchemaSimpleType {
   readonly attribute PRUint32 unionTypeCount;
-  nsISchemaSimpleType getUnionType(in PRUint32 index);
+  nsISVSchemaSimpleType getUnionType(in PRUint32 index);
 };
 
-[scriptable, uuid(3c14a027-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaRestrictionType : nsISchemaSimpleType {
-  readonly attribute nsISchemaSimpleType baseType;
+[scriptable, uuid(0a0fedc6-656a-4162-bde9-add2462e668d)]
+interface nsISVSchemaRestrictionType : nsISVSchemaSimpleType {
+  readonly attribute nsISVSchemaSimpleType baseType;
   readonly attribute PRUint32 facetCount;
-  nsISchemaFacet getFacet(in PRUint32 index);
+  nsISVSchemaFacet getFacet(in PRUint32 index);
 };
 
-[scriptable, uuid(3c14a028-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaComplexType : nsISchemaType {
+[scriptable, uuid(f078e1f9-cfe2-4b77-ab70-a8abd366267f)]
+interface nsISVSchemaComplexType : nsISVSchemaType {
   const unsigned short CONTENT_MODEL_EMPTY = 1;
   const unsigned short CONTENT_MODEL_SIMPLE = 2;
   const unsigned short CONTENT_MODEL_ELEMENT_ONLY = 3;
@@ -204,34 +208,34 @@ interface nsISchemaComplexType : nsISchemaType {
   const unsigned short DERIVATION_EXTENSION_SIMPLE = 1;
   const unsigned short DERIVATION_RESTRICTION_SIMPLE = 2;
   const unsigned short DERIVATION_EXTENSION_COMPLEX = 3;
-  const unsigned short DERIVATION_RESTRICTION_COMPLEX = 4;  
+  const unsigned short DERIVATION_RESTRICTION_COMPLEX = 4;
   const unsigned short DERIVATION_SELF_CONTAINED = 5; // Restriction of ur-type
 
   readonly attribute unsigned short contentModel;
   readonly attribute unsigned short derivation;
-  readonly attribute nsISchemaType baseType;
+  readonly attribute nsISVSchemaType baseType;
 
   // For complex types that are derivations of simple types or of
   // complex types that are themselves derivations of simple types
   // i.e. derivation is either DERIVATION_RESTRICTION_SIMPLE or
   // DERIVATION_EXTENSION_SIMPLE.
-  readonly attribute nsISchemaSimpleType simpleBaseType; 
+  readonly attribute nsISVSchemaSimpleType simpleBaseType;
 
-  readonly attribute nsISchemaModelGroup modelGroup;
+  readonly attribute nsISVSchemaModelGroup modelGroup;
   
   readonly attribute PRUint32 attributeCount;
-  nsISchemaAttributeComponent getAttributeByIndex(in PRUint32 index);
-  nsISchemaAttributeComponent getAttributeByName(in AString name);
+  nsISVSchemaAttributeComponent getAttributeByIndex(in PRUint32 index);
+  nsISVSchemaAttributeComponent getAttributeByName(in AString name);
 
   readonly attribute boolean abstract;
   
   readonly attribute boolean isArray;
-  readonly attribute nsISchemaType arrayType;
+  readonly attribute nsISVSchemaType arrayType;
   readonly attribute PRUint32 arrayDimension;
 };
 
-[scriptable, uuid(3c14a029-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaParticle : nsISchemaComponent {
+[scriptable, uuid(25712c88-05cb-4e94-a1c4-3d365df32708)]
+interface nsISVSchemaParticle : nsISVSchemaComponent {
   const unsigned short PARTICLE_TYPE_ELEMENT = 1;
   const unsigned short PARTICLE_TYPE_MODEL_GROUP = 2;
   const unsigned short PARTICLE_TYPE_ANY = 3;
@@ -242,11 +246,11 @@ interface nsISchemaParticle : nsISchemaComponent {
   readonly attribute unsigned short particleType;
 
   readonly attribute PRUint32 minOccurs;
-  readonly attribute PRUint32 maxOccurs;  
+  readonly attribute PRUint32 maxOccurs;
 };
 
-[scriptable, uuid(3c14a02a-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaModelGroup : nsISchemaParticle {
+[scriptable, uuid(19d749dd-3782-4e3a-bce9-653e08c75508)]
+interface nsISVSchemaModelGroup : nsISVSchemaParticle {
   const unsigned short COMPOSITOR_ALL = 1;
   const unsigned short COMPOSITOR_SEQUENCE = 2;
   const unsigned short COMPOSITOR_CHOICE = 3;
@@ -254,15 +258,15 @@ interface nsISchemaModelGroup : nsISchemaParticle {
   readonly attribute unsigned short compositor;
 
   readonly attribute PRUint32 particleCount;
-  nsISchemaParticle getParticle(in PRUint32 index);
+  nsISVSchemaParticle getParticle(in PRUint32 index);
 
   // Get named element definition for a named element that is
   // part of this model group or part of a nested model group.
-  nsISchemaElement getElementByName(in AString name);
+  nsISVSchemaElement getElementByName(in AString name);
 };
 
-[scriptable, uuid(3c14a02b-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaAnyParticle : nsISchemaParticle {
+[scriptable, uuid(8369e29b-a24c-4dbc-9885-657abb0c8161)]
+interface nsISVSchemaAnyParticle : nsISVSchemaParticle {
   const unsigned short PROCESS_STRICT = 1;
   const unsigned short PROCESS_SKIP = 2;
   const unsigned short PROCESS_LAX = 3;
@@ -271,19 +275,19 @@ interface nsISchemaAnyParticle : nsISchemaParticle {
   readonly attribute AString namespace;
 };
 
-[scriptable, uuid(3c14a02c-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaElement : nsISchemaParticle {
-  readonly attribute nsISchemaType type;
+[scriptable, uuid(7aab361f-8412-4fad-ba13-2af7c39b54d9)]
+interface nsISVSchemaElement : nsISVSchemaParticle {
+  readonly attribute nsISVSchemaType type;
 
   readonly attribute AString defaultValue;
   readonly attribute AString fixedValue;
 
   readonly attribute boolean nillable;
-  readonly attribute boolean abstract; 
+  readonly attribute boolean abstract;
 };
 
-[scriptable, uuid(3c14a02d-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaAttributeComponent : nsISchemaComponent {
+[scriptable, uuid(a9e4bf57-fb60-4f00-8807-e20757b85f2e)]
+interface nsISVSchemaAttributeComponent : nsISVSchemaComponent {
   const unsigned short COMPONENT_TYPE_ATTRIBUTE = 1;
   const unsigned short COMPONENT_TYPE_GROUP = 2;
   const unsigned short COMPONENT_TYPE_ANY = 3;
@@ -292,13 +296,13 @@ interface nsISchemaAttributeComponent : nsISchemaComponent {
   readonly attribute unsigned short componentType;
 };
 
-[scriptable, uuid(47241e70-ca2c-4372-a6b2-5c84d32cc739)]
-interface nsISchemaAttribute : nsISchemaAttributeComponent {
+[scriptable, uuid(241528b5-d85c-4625-8f42-12458ac3df21)]
+interface nsISVSchemaAttribute : nsISVSchemaAttributeComponent {
   const unsigned short USE_OPTIONAL = 1;
   const unsigned short USE_PROHIBITED = 2;
   const unsigned short USE_REQUIRED = 3;
 
-  readonly attribute nsISchemaSimpleType type;
+  readonly attribute nsISVSchemaSimpleType type;
  
   readonly attribute AString defaultValue;
   readonly attribute AString fixedValue;
@@ -307,15 +311,15 @@ interface nsISchemaAttribute : nsISchemaAttributeComponent {
   readonly attribute AString qualifiedNamespace;
 };
 
-[scriptable, uuid(3c14a02f-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaAttributeGroup : nsISchemaAttributeComponent {
+[scriptable, uuid(3279223d-4059-43af-a290-bb6fe401618f)]
+interface nsISVSchemaAttributeGroup : nsISVSchemaAttributeComponent {
   readonly attribute PRUint32 attributeCount;
-  nsISchemaAttributeComponent getAttributeByIndex(in PRUint32 index);
-  nsISchemaAttributeComponent getAttributeByName(in AString name);
+  nsISVSchemaAttributeComponent getAttributeByIndex(in PRUint32 index);
+  nsISVSchemaAttributeComponent getAttributeByName(in AString name);
 };
 
-[scriptable, uuid(3c14a030-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaAnyAttribute : nsISchemaAttributeComponent {
+[scriptable, uuid(1969d64c-29e8-4fa1-a4aa-0edb6ac12948)]
+interface nsISVSchemaAnyAttribute : nsISVSchemaAttributeComponent {
   const unsigned short PROCESS_STRICT = 1;
   const unsigned short PROCESS_SKIP = 2;
   const unsigned short PROCESS_LAX = 3;
@@ -324,8 +328,8 @@ interface nsISchemaAnyAttribute : nsISchemaAttributeComponent {
   readonly attribute AString namespace;
 };
 
-[scriptable, uuid(3c14a031-6f4e-11d5-9b46-000064657374)]
-interface nsISchemaFacet : nsISchemaComponent {
+[scriptable, uuid(74a513b7-7519-4296-ad7a-878f5d616ee3)]
+interface nsISVSchemaFacet : nsISVSchemaComponent {
   const unsigned short FACET_TYPE_LENGTH = 1;
   const unsigned short FACET_TYPE_MINLENGTH = 2;
   const unsigned short FACET_TYPE_MAXLENGTH = 3;

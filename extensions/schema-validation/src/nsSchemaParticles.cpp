@@ -101,7 +101,7 @@ nsSchemaParticleBase::SetMaxOccurs(PRUint32 aMaxOccurs)
 // nsSchemaModelGroup implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaModelGroup::nsSchemaModelGroup(nsSchema* aSchema, 
+nsSchemaModelGroup::nsSchemaModelGroup(nsSchema* aSchema,
                                        const nsAString& aName)
   : nsSchemaParticleBase(aSchema), mName(aName), mCompositor(COMPOSITOR_SEQUENCE)
 {
@@ -111,15 +111,15 @@ nsSchemaModelGroup::~nsSchemaModelGroup()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaModelGroup, 
-                      nsISchemaComponent,
-                      nsISchemaParticle,
-                      nsISchemaModelGroup)
+NS_IMPL_ISUPPORTS3(nsSchemaModelGroup,
+                      nsISVSchemaComponent,
+                      nsISVSchemaParticle,
+                      nsISVSchemaModelGroup)
 
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaModelGroup::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaModelGroup::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -176,7 +176,7 @@ nsSchemaModelGroup::GetParticleType(PRUint16 *aParticleType)
 {
   NS_ENSURE_ARG_POINTER(aParticleType);
 
-  *aParticleType = nsISchemaParticle::PARTICLE_TYPE_MODEL_GROUP;
+  *aParticleType = nsISVSchemaParticle::PARTICLE_TYPE_MODEL_GROUP;
 
   return NS_OK;
 }
@@ -211,9 +211,9 @@ nsSchemaModelGroup::GetParticleCount(PRUint32 *aParticleCount)
   return NS_OK;
 }
 
-/* nsISchemaParticle getParticle (in PRUint32 index); */
+/* nsISVSchemaParticle getParticle (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaModelGroup::GetParticle(PRUint32 aIndex, nsISchemaParticle** aResult)
+nsSchemaModelGroup::GetParticle(PRUint32 aIndex, nsISVSchemaParticle** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -226,10 +226,10 @@ nsSchemaModelGroup::GetParticle(PRUint32 aIndex, nsISchemaParticle** aResult)
   return NS_OK;
 }
 
-/* nsISchemaElement getElementByName(in AString name); */
+/* nsISVSchemaElement getElementByName(in AString name); */
 NS_IMETHODIMP
 nsSchemaModelGroup::GetElementByName(const nsAString& aName,
-                                     nsISchemaElement** aResult)
+                                     nsISVSchemaElement** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -237,9 +237,9 @@ nsSchemaModelGroup::GetElementByName(const nsAString& aName,
   count = mParticles.Count();
 
   for (i = 0; i < count; ++i) {
-    nsISchemaParticle* particle = mParticles.ObjectAt(i);
+    nsISVSchemaParticle* particle = mParticles.ObjectAt(i);
 
-    nsCOMPtr<nsISchemaElement> element = do_QueryInterface(particle);
+    nsCOMPtr<nsISVSchemaElement> element = do_QueryInterface(particle);
     if (element) {
       nsAutoString name;
       element->GetName(name);
@@ -251,7 +251,7 @@ nsSchemaModelGroup::GetElementByName(const nsAString& aName,
       }
     }
     else {
-      nsCOMPtr<nsISchemaModelGroup> group = do_QueryInterface(particle);
+      nsCOMPtr<nsISVSchemaModelGroup> group = do_QueryInterface(particle);
       if (group) {
         nsresult rv = group->GetElementByName(aName, aResult);
         if (NS_SUCCEEDED(rv)) {
@@ -273,7 +273,7 @@ nsSchemaModelGroup::SetCompositor(PRUint16 aCompositor)
 }
 
 NS_IMETHODIMP
-nsSchemaModelGroup::AddParticle(nsISchemaParticle* aParticle)
+nsSchemaModelGroup::AddParticle(nsISVSchemaParticle* aParticle)
 {
   NS_ENSURE_ARG_POINTER(aParticle);
 
@@ -296,14 +296,14 @@ nsSchemaModelGroupRef::~nsSchemaModelGroupRef()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaModelGroupRef, 
-                      nsISchemaComponent,
-                      nsISchemaParticle,
-                      nsISchemaModelGroup)
+NS_IMPL_ISUPPORTS3(nsSchemaModelGroupRef,
+                      nsISVSchemaComponent,
+                      nsISVSchemaParticle,
+                      nsISVSchemaModelGroup)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaModelGroupRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaModelGroupRef::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv = NS_OK;
 
@@ -317,12 +317,12 @@ nsSchemaModelGroupRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
       mSchema->GetModelGroupByName(mRef, getter_AddRefs(mModelGroup));
     } else {
       // use the namespace and type
-      nsCOMPtr<nsISchemaCollection> schemaColl;
+      nsCOMPtr<nsISVSchemaCollection> schemaColl;
       mSchema->GetCollection(getter_AddRefs(schemaColl));
       NS_ENSURE_STATE(schemaColl);
 
       // get the right schema
-      nsCOMPtr<nsISchema> schema;
+      nsCOMPtr<nsISVSchema> schema;
       schemaColl->GetSchema(mRefNS, getter_AddRefs(schema));
       NS_ENSURE_STATE(schema);
 
@@ -359,7 +359,7 @@ nsSchemaModelGroupRef::GetParticleType(PRUint16 *aParticleType)
 {
   NS_ENSURE_ARG_POINTER(aParticleType);
 
-  *aParticleType = nsISchemaParticle::PARTICLE_TYPE_MODEL_GROUP;
+  *aParticleType = nsISVSchemaParticle::PARTICLE_TYPE_MODEL_GROUP;
 
   return NS_OK;
 }
@@ -398,12 +398,12 @@ nsSchemaModelGroupRef::GetParticleCount(PRUint32 *aParticleCount)
     return NS_ERROR_NOT_INITIALIZED;
   }
 
-  return mModelGroup->GetParticleCount(aParticleCount);  
+  return mModelGroup->GetParticleCount(aParticleCount);
 }
 
-/* nsISchemaParticle getParticle (in PRUint32 index); */
+/* nsISVSchemaParticle getParticle (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaModelGroupRef::GetParticle(PRUint32 index, nsISchemaParticle **_retval)
+nsSchemaModelGroupRef::GetParticle(PRUint32 index, nsISVSchemaParticle **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   
@@ -416,7 +416,7 @@ nsSchemaModelGroupRef::GetParticle(PRUint32 index, nsISchemaParticle **_retval)
 
 NS_IMETHODIMP
 nsSchemaModelGroupRef::GetElementByName(const nsAString& aName,
-                                        nsISchemaElement** _retval)
+                                        nsISVSchemaElement** _retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   
@@ -441,15 +441,15 @@ nsSchemaAnyParticle::~nsSchemaAnyParticle()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaAnyParticle, 
-                      nsISchemaComponent,
-                      nsISchemaParticle,
-                      nsISchemaAnyParticle)
+NS_IMPL_ISUPPORTS3(nsSchemaAnyParticle,
+                      nsISVSchemaComponent,
+                      nsISVSchemaParticle,
+                      nsISVSchemaAnyParticle)
 
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaAnyParticle::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaAnyParticle::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   return NS_OK;
 }
@@ -466,7 +466,7 @@ nsSchemaAnyParticle::GetParticleType(PRUint16 *aParticleType)
 {
   NS_ENSURE_ARG_POINTER(aParticleType);
 
-  *aParticleType = nsISchemaParticle::PARTICLE_TYPE_ANY;
+  *aParticleType = nsISVSchemaParticle::PARTICLE_TYPE_ANY;
 
   return NS_OK;
 }
@@ -520,7 +520,7 @@ nsSchemaAnyParticle::SetNamespace(const nsAString& aNamespace)
 // nsSchemaElement implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaElement::nsSchemaElement(nsSchema* aSchema, 
+nsSchemaElement::nsSchemaElement(nsSchema* aSchema,
                                  const nsAString& aName)
   : nsSchemaParticleBase(aSchema), mName(aName), mFlags(0)
 {
@@ -530,14 +530,14 @@ nsSchemaElement::~nsSchemaElement()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaElement, 
-                      nsISchemaComponent,
-                      nsISchemaParticle,
-                      nsISchemaElement)
+NS_IMPL_ISUPPORTS3(nsSchemaElement,
+                      nsISVSchemaComponent,
+                      nsISVSchemaParticle,
+                      nsISVSchemaElement)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaElement::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaElement::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -546,7 +546,7 @@ nsSchemaElement::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   mIsResolved = PR_TRUE;
   nsresult rv = NS_OK;
   if (mType && mSchema) {
-    nsCOMPtr<nsISchemaType> type;
+    nsCOMPtr<nsISVSchemaType> type;
     rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mType, getter_AddRefs(type));
     if (NS_FAILED(rv)) {
       return rv;
@@ -581,7 +581,7 @@ nsSchemaElement::GetParticleType(PRUint16 *aParticleType)
 {
   NS_ENSURE_ARG_POINTER(aParticleType);
 
-  *aParticleType = nsISchemaParticle::PARTICLE_TYPE_ELEMENT;
+  *aParticleType = nsISVSchemaParticle::PARTICLE_TYPE_ELEMENT;
 
   return NS_OK;
 }
@@ -594,9 +594,9 @@ nsSchemaElement::GetName(nsAString& aName)
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaType type; */
+/* readonly attribute nsISVSchemaType type; */
 NS_IMETHODIMP
-nsSchemaElement::GetType(nsISchemaType * *aType)
+nsSchemaElement::GetType(nsISVSchemaType * *aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
   
@@ -646,7 +646,7 @@ nsSchemaElement::GetAbstract(PRBool *aAbstract)
 }
 
 NS_IMETHODIMP
-nsSchemaElement::SetType(nsISchemaType* aType)
+nsSchemaElement::SetType(nsISVSchemaType* aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 
@@ -687,7 +687,7 @@ nsSchemaElement::GetTargetNamespace(nsAString& aTargetNamespace)
 // nsSchemaElementRef implementation
 //
 ////////////////////////////////////////////////////////////
-nsSchemaElementRef::nsSchemaElementRef(nsSchema* aSchema, 
+nsSchemaElementRef::nsSchemaElementRef(nsSchema* aSchema,
                                        const nsAString& aRef,
                                        const nsAString& aRefNS)
   : nsSchemaParticleBase(aSchema), mRef(aRef), mRefNS(aRefNS)
@@ -698,14 +698,14 @@ nsSchemaElementRef::~nsSchemaElementRef()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaElementRef,
-                      nsISchemaComponent,
-                      nsISchemaParticle,
-                      nsISchemaElement)
+NS_IMPL_ISUPPORTS3(nsSchemaElementRef,
+                      nsISVSchemaComponent,
+                      nsISVSchemaParticle,
+                      nsISVSchemaElement)
 
-/* void resolve (in nsIWebServiceErrorHandler aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaElementRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaElementRef::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv = NS_OK;
   if (mIsResolved) {
@@ -718,7 +718,7 @@ nsSchemaElementRef::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
       mSchema->GetElementByName(mRef, getter_AddRefs(mElement));
     } else {
       // use the namespace and type
-      nsCOMPtr<nsISchemaCollection> schemaColl;
+      nsCOMPtr<nsISVSchemaCollection> schemaColl;
       mSchema->GetCollection(getter_AddRefs(schemaColl));
       NS_ENSURE_STATE(schemaColl);
 
@@ -755,7 +755,7 @@ nsSchemaElementRef::GetParticleType(PRUint16 *aParticleType)
 {
   NS_ENSURE_ARG_POINTER(aParticleType);
 
-  *aParticleType = nsISchemaParticle::PARTICLE_TYPE_ELEMENT;
+  *aParticleType = nsISVSchemaParticle::PARTICLE_TYPE_ELEMENT;
 
   return NS_OK;
 }
@@ -770,9 +770,9 @@ nsSchemaElementRef::GetName(nsAString& aName)
   return mElement->GetName(aName);
 }
 
-/* readonly attribute nsISchemaType type; */
+/* readonly attribute nsISVSchemaType type; */
 NS_IMETHODIMP
-nsSchemaElementRef::GetType(nsISchemaType * *aType)
+nsSchemaElementRef::GetType(nsISVSchemaType * *aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
   

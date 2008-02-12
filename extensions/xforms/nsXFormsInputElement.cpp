@@ -38,7 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsXFormsDelegateStub.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsIStringBundle.h"
 #include "nsServiceManagerUtils.h"
 
@@ -70,8 +70,8 @@ nsXFormsInputElement::IsTypeAllowed(PRUint16 aType, PRBool *aIsAllowed,
   // For input and secret elements, the bound type can't be xsd:hexBinary
   // or xsd:base64Binary
 
-  if (aType != nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY &&
-      aType != nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY) {
+  if (aType != nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY &&
+      aType != nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY) {
     *aIsAllowed = PR_TRUE;
     return NS_OK;
   }
@@ -122,7 +122,7 @@ nsXFormsTextareaElement::IsTypeAllowed(PRUint16 aType, PRBool *aIsAllowed,
   // Textareas can only be bound to types of xsd:string (or a type derived from
   // xsd:string).
 
-  if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_STRING) {
+  if (aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_STRING) {
     *aIsAllowed = PR_TRUE;
     return NS_OK;
   }

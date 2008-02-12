@@ -39,7 +39,7 @@
 #include "nsXFormsDelegateStub.h"
 #include "nsXFormsRangeAccessors.h"
 #include "nsIEventStateManager.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 #include "nsIStringBundle.h"
 #include "nsServiceManagerUtils.h"
 
@@ -88,18 +88,18 @@ nsXFormsRangeElement::IsTypeAllowed(PRUint16 aType, PRBool *aIsAllowed,
   // in the console.  CSS and XBL will make sure that the control won't appear
   // in the form.
 
-  if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_DURATION ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_DATE ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_TIME ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_DATETIME ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_GYEAR ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_GDAY ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_GMONTH ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_FLOAT ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_DECIMAL ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_DOUBLE) {
+  if (aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_DURATION ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_DATE ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_TIME ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_DATETIME ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEARMONTH ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_GYEAR ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTHDAY ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_GDAY ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_GMONTH ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_FLOAT ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_DECIMAL ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_DOUBLE) {
 
     *aIsAllowed = PR_TRUE;
     return NS_OK;

@@ -55,7 +55,7 @@
 #include "nsTArray.h"
 #include "nsIEventStateManager.h"
 #include "prmem.h"
-#include "nsISchema.h"
+#include "nsISVSchema.h"
 
 #define NS_HTMLFORM_BUNDLE_URL \
           "chrome://global/locale/layout/HtmlForm.properties"
@@ -118,9 +118,9 @@ nsXFormsUploadElement::IsTypeAllowed(PRUint16 aType, PRBool *aIsAllowed,
   // the console.  CSS and XBL will make sure that the control won't appear in
   // the form.
 
-  if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY ||
-      aType == nsISchemaBuiltinType::BUILTIN_TYPE_ANYURI) {
+  if (aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY ||
+      aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_ANYURI) {
 
     *aIsAllowed = PR_TRUE;
     return NS_OK;
@@ -302,14 +302,14 @@ nsXFormsUploadElement::SetFile(nsILocalFile *aFile)
     PRUint16 type = 0;
     rv = GetBoundBuiltinType(&type);
     NS_ENSURE_SUCCESS(rv, rv);
-    if (type == nsISchemaBuiltinType::BUILTIN_TYPE_ANYURI) {
+    if (type == nsISVSchemaBuiltinType::BUILTIN_TYPE_ANYURI) {
       // set fully qualified path as value in instance data node
       nsCAutoString spec;
       NS_GetURLSpecFromFile(aFile, spec);
       rv = mModel->SetNodeValue(mBoundNode, NS_ConvertUTF8toUTF16(spec),
                                 PR_FALSE, &dataChanged);
-    } else if (type == nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY ||
-               type == nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY) {
+    } else if (type == nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY ||
+               type == nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY) {
       // encode file contents in base64/hex and set into instance data node
       PRUnichar *fileData;
       rv = EncodeFileContents(aFile, type, &fileData);
@@ -490,7 +490,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
                "fileStream->Read failed");
 
   if (NS_SUCCEEDED(rv)) {
-    if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY) {
+    if (aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_BASE64BINARY) {
       // encode file contents
       *aResult = nsnull;
       char *buffer = PL_Base64Encode(fileData.Elements(), bytesRead, nsnull);
@@ -504,7 +504,7 @@ nsXFormsUploadElement::EncodeFileContents(nsIFile *aFile, PRUint16 aType,
         ReportEncodingMemoryError(mElement, aFile, failedSize);
         rv = NS_ERROR_OUT_OF_MEMORY;
       }
-    } else if (aType == nsISchemaBuiltinType::BUILTIN_TYPE_HEXBINARY) {
+    } else if (aType == nsISVSchemaBuiltinType::BUILTIN_TYPE_HEXBINARY) {
       // create buffer for hex encoded data
       PRUint32 length = bytesRead * 2 + 1;
       PRUnichar *fileDataHex =

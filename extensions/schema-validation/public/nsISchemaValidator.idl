@@ -35,18 +35,18 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISchema.idl"
+#include "nsISVSchema.idl"
 #include "nsISchemaDuration.idl"
 #include "nsIDOMNode.idl"
 
 [scriptable, uuid(eced2af3-fde9-4575-b5a4-e1c830b24611)]
 interface nsISchemaValidator : nsISupports {
-  void loadSchema(in nsISchema aSchema);
+  void loadSchema(in nsISVSchema aSchema);
   boolean validate(in nsIDOMNode aElement);
   boolean validateString(in AString aValue, in AString aType, in AString aNamespace);
-  boolean validateAgainstType(in nsIDOMNode aElement, in nsISchemaType aType);
+  boolean validateAgainstType(in nsIDOMNode aElement, in nsISVSchemaType aType);
 
-  nsISchemaType getType(in AString aType, in AString aNamespace);
+  nsISVSchemaType getType(in AString aType, in AString aNamespace);
 
   // methods to validate and parse schema builtin types
   nsISchemaDuration validateBuiltinTypeDuration(in AString aValue);

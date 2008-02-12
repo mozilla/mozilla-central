@@ -39,10 +39,10 @@
 #include "nsIXFormsModelElement.idl"
 
 interface nsIXFormsControl;
-interface nsISchemaType;
+interface nsISVSchemaType;
 interface nsIInstanceElementPrivate;
 interface nsIDOMNode;
-interface nsISchemaBuiltinType;
+interface nsISVSchemaBuiltinType;
 
 /**
  * Private interface implemented by the model element for other
@@ -206,13 +206,13 @@ interface nsIModelElementPrivate : nsIXFormsModelElement
     * Determine the type for a form control based on the schema included by
     * this model.
     */
-  nsISchemaType getTypeForNode(in nsIDOMNode node);
+  nsISVSchemaType getTypeForNode(in nsIDOMNode node);
 
   /**
    * Determine the type for a form control based on the schema included by
    * this model.
    */
-  nsISchemaType getTypeForControl(in nsIXFormsControl control);
+  nsISVSchemaType getTypeForControl(in nsIXFormsControl control);
 
   /**
    * Return builtin type name for a form control based on the schema included by
@@ -256,6 +256,6 @@ interface nsIModelElementPrivate : nsIXFormsModelElement
    * error if we encounter a complex type that comes from complex content
    * extension or restriction.
    */
-  void GetRootBuiltinType(in nsISchemaType aType,
+  void GetRootBuiltinType(in nsISVSchemaType aType,
                           out unsigned short aBuiltinType);
 };

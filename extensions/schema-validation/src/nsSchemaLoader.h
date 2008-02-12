@@ -39,8 +39,8 @@
 #ifndef __nsSchemaLoader_h__
 #define __nsSchemaLoader_h__
 
-#include "nsIWebServiceErrorHandler.h"
-#include "nsISchemaLoader.h"
+#include "nsISVSchemaErrorHandler.h"
+#include "nsISVSchemaLoader.h"
 #include "nsSchemaPrivate.h"
 #include "nsDOMUtils.h"
 
@@ -52,14 +52,13 @@
 // XPCOM Includes
 #include "nsCOMPtr.h"
 #include "nsVoidArray.h"
-#include "nsString.h"
 #include "nsIAtom.h"
 #include "nsInterfaceHashtable.h"
 
 // Loading includes
 #include "nsIURI.h"
 
-class nsSchemaAtoms 
+class nsSchemaAtoms
 {
 public:
   static nsresult AddRefAtoms();
@@ -69,136 +68,136 @@ public:
 #undef SCHEMA_ATOM
 };
 
-class nsBuiltinSchemaCollection : public nsISchemaCollection
+class nsBuiltinSchemaCollection : public nsISVSchemaCollection
 {
 public:
   nsBuiltinSchemaCollection();
   nsresult Init();
 
   NS_DECL_ISUPPORTS
-  NS_DECL_NSISCHEMACOLLECTION
+  NS_DECL_NSISVSCHEMACOLLECTION
 
 protected:
   nsresult GetBuiltinType(const nsAString& aName,
                           const nsAString& aNamespace,
-                          nsISchemaType** aType);
+                          nsISVSchemaType** aType);
   nsresult GetSOAPType(const nsAString& aName,
                        const nsAString& aNamespace,
-                       nsISchemaType** aType);
+                       nsISVSchemaType** aType);
 
 protected:
-  nsInterfaceHashtable<nsStringHashKey, nsISchemaType> mBuiltinTypesHash;
-  nsInterfaceHashtable<nsStringHashKey, nsISchemaType> mSOAPTypeHash;
+  nsInterfaceHashtable<nsStringHashKey, nsISVSchemaType> mBuiltinTypesHash;
+  nsInterfaceHashtable<nsStringHashKey, nsISVSchemaType> mSOAPTypeHash;
 };
 
-class nsSchemaLoader : public nsISchemaLoader,
-                       public nsISchemaCollection
+class nsSchemaLoader : public nsISVSchemaLoader,
+                       public nsISVSchemaCollection
 {
 public:
   nsSchemaLoader();
   nsresult Init();
 
   NS_DECL_ISUPPORTS
-  NS_DECL_NSISCHEMALOADER
-  NS_DECL_NSISCHEMACOLLECTION
+  NS_DECL_NSISVSCHEMALOADER
+  NS_DECL_NSISVSCHEMACOLLECTION
 
 protected:
-  nsresult ProcessElement(nsIWebServiceErrorHandler* aErrorHandler,
-                          nsSchema* aSchema, 
+  nsresult ProcessElement(nsISVSchemaErrorHandler* aErrorHandler,
+                          nsSchema* aSchema,
                           nsIDOMElement* aElement,
-                          nsISchemaElement** aSchemaElement);
-  nsresult ProcessComplexType(nsIWebServiceErrorHandler* aErrorHandler,
-                              nsSchema* aSchema, 
+                          nsISVSchemaElement** aSchemaElement);
+  nsresult ProcessComplexType(nsISVSchemaErrorHandler* aErrorHandler,
+                              nsSchema* aSchema,
                               nsIDOMElement* aElement,
-                              nsISchemaComplexType** aComplexType);
-  nsresult ProcessComplexTypeBody(nsIWebServiceErrorHandler* aErrorHandler,
-                                  nsSchema* aSchema, 
+                              nsISVSchemaComplexType** aComplexType);
+  nsresult ProcessComplexTypeBody(nsISVSchemaErrorHandler* aErrorHandler,
+                                  nsSchema* aSchema,
                                   nsIDOMElement* aElement,
                                   nsSchemaComplexType* aComplexType,
                                   nsSchemaModelGroup* aSequence,
                                   PRUint16* aContentModel);
-  nsresult ProcessSimpleContent(nsIWebServiceErrorHandler* aErrorHandler,
-                                nsSchema* aSchema, 
+  nsresult ProcessSimpleContent(nsISVSchemaErrorHandler* aErrorHandler,
+                                nsSchema* aSchema,
                                 nsIDOMElement* aElement,
                                 nsSchemaComplexType* aComplexType,
                                 PRUint16* aDerivation,
-                                nsISchemaType** aBaseType);
-  nsresult ProcessSimpleContentRestriction(nsIWebServiceErrorHandler* aErrorHandler,
-                                           nsSchema* aSchema, 
+                                nsISVSchemaType** aBaseType);
+  nsresult ProcessSimpleContentRestriction(nsISVSchemaErrorHandler* aErrorHandler,
+                                           nsSchema* aSchema,
                                            nsIDOMElement* aElement,
-                                           nsSchemaComplexType* aComplexType, 
-                                           nsISchemaType* aBaseType,
-                                           nsISchemaSimpleType** aSimpleBaseType);
-  nsresult ProcessSimpleContentExtension(nsIWebServiceErrorHandler* aErrorHandler,
-                                         nsSchema* aSchema, 
+                                           nsSchemaComplexType* aComplexType,
+                                           nsISVSchemaType* aBaseType,
+                                           nsISVSchemaSimpleType** aSimpleBaseType);
+  nsresult ProcessSimpleContentExtension(nsISVSchemaErrorHandler* aErrorHandler,
+                                         nsSchema* aSchema,
                                          nsIDOMElement* aElement,
                                          nsSchemaComplexType* aComplexType,
-                                         nsISchemaType* aBaseType,
-                                         nsISchemaSimpleType** aSimpleBaseType);
-  nsresult ProcessComplexContent(nsIWebServiceErrorHandler* aErrorHandler,
-                                 nsSchema* aSchema, 
+                                         nsISVSchemaType* aBaseType,
+                                         nsISVSchemaSimpleType** aSimpleBaseType);
+  nsresult ProcessComplexContent(nsISVSchemaErrorHandler* aErrorHandler,
+                                 nsSchema* aSchema,
                                  nsIDOMElement* aElement,
                                  nsSchemaComplexType* aComplexType,
                                  PRUint16* aContentModel,
                                  PRUint16* aDerivation,
-                                 nsISchemaType** aBaseType);
-  nsresult ProcessSimpleType(nsIWebServiceErrorHandler* aErrorHandler,
-                             nsSchema* aSchema, 
+                                 nsISVSchemaType** aBaseType);
+  nsresult ProcessSimpleType(nsISVSchemaErrorHandler* aErrorHandler,
+                             nsSchema* aSchema,
                              nsIDOMElement* aElement,
-                             nsISchemaSimpleType** aSimpleType);
-  nsresult ProcessSimpleTypeRestriction(nsIWebServiceErrorHandler* aErrorHandler,
-                                        nsSchema* aSchema, 
+                             nsISVSchemaSimpleType** aSimpleType);
+  nsresult ProcessSimpleTypeRestriction(nsISVSchemaErrorHandler* aErrorHandler,
+                                        nsSchema* aSchema,
                                         nsIDOMElement* aElement,
                                         const nsAString& aName,
-                                        nsISchemaSimpleType** aSimpleType);
-  nsresult ProcessSimpleTypeList(nsIWebServiceErrorHandler* aErrorHandler,
-                                 nsSchema* aSchema, 
+                                        nsISVSchemaSimpleType** aSimpleType);
+  nsresult ProcessSimpleTypeList(nsISVSchemaErrorHandler* aErrorHandler,
+                                 nsSchema* aSchema,
                                  nsIDOMElement* aElement,
                                  const nsAString& aName,
-                                 nsISchemaSimpleType** aSimpleType);
-  nsresult ProcessSimpleTypeUnion(nsIWebServiceErrorHandler* aErrorHandler,
-                                  nsSchema* aSchema, 
+                                 nsISVSchemaSimpleType** aSimpleType);
+  nsresult ProcessSimpleTypeUnion(nsISVSchemaErrorHandler* aErrorHandler,
+                                  nsSchema* aSchema,
                                   nsIDOMElement* aElement,
                                   const nsAString& aName,
-                                  nsISchemaSimpleType** aSimpleType);
-  nsresult ProcessAttribute(nsIWebServiceErrorHandler* aErrorHandler,
-                            nsSchema* aSchema, 
+                                  nsISVSchemaSimpleType** aSimpleType);
+  nsresult ProcessAttribute(nsISVSchemaErrorHandler* aErrorHandler,
+                            nsSchema* aSchema,
                             nsIDOMElement* aElement,
-                            nsISchemaAttribute** aAttribute);
-  nsresult ProcessAttributeGroup(nsIWebServiceErrorHandler* aErrorHandler,
-                                 nsSchema* aSchema, 
+                            nsISVSchemaAttribute** aAttribute);
+  nsresult ProcessAttributeGroup(nsISVSchemaErrorHandler* aErrorHandler,
+                                 nsSchema* aSchema,
                                  nsIDOMElement* aElement,
-                                 nsISchemaAttributeGroup** aAttributeGroup);
-  nsresult ProcessAttributeComponent(nsIWebServiceErrorHandler* aErrorHandler,
-                                     nsSchema* aSchema, 
+                                 nsISVSchemaAttributeGroup** aAttributeGroup);
+  nsresult ProcessAttributeComponent(nsISVSchemaErrorHandler* aErrorHandler,
+                                     nsSchema* aSchema,
                                      nsIDOMElement* aElement,
                                      nsIAtom* aTagName,
-                                     nsISchemaAttributeComponent** aAttribute);
-  nsresult ProcessModelGroup(nsIWebServiceErrorHandler* aErrorHandler,
-                             nsSchema* aSchema, 
+                                     nsISVSchemaAttributeComponent** aAttribute);
+  nsresult ProcessModelGroup(nsISVSchemaErrorHandler* aErrorHandler,
+                             nsSchema* aSchema,
                              nsIDOMElement* aElement,
                              nsIAtom* aTagName,
                              nsSchemaModelGroup* aParentSequence,
-                             nsISchemaModelGroup** aModelGroup);
-  nsresult ProcessParticle(nsIWebServiceErrorHandler* aErrorHandler,
-                           nsSchema* aSchema, 
+                             nsISVSchemaModelGroup** aModelGroup);
+  nsresult ProcessParticle(nsISVSchemaErrorHandler* aErrorHandler,
+                           nsSchema* aSchema,
                            nsIDOMElement* aElement,
                            nsIAtom* aTagName,
-                           nsISchemaParticle** aModelGroup);
-  nsresult ProcessFacet(nsIWebServiceErrorHandler* aErrorHandler,
-                        nsSchema* aSchema, 
+                           nsISVSchemaParticle** aModelGroup);
+  nsresult ProcessFacet(nsISVSchemaErrorHandler* aErrorHandler,
+                        nsSchema* aSchema,
                         nsIDOMElement* aElement,
                         nsIAtom* aTagName,
-                        nsISchemaFacet** aFacet);
+                        nsISVSchemaFacet** aFacet);
 
   nsresult GetNewOrUsedType(nsSchema* aSchema,
                             nsIDOMElement* aContext,
                             const nsAString& aTypeName,
-                            nsISchemaType** aType);
+                            nsISVSchemaType** aType);
 
-  void GetUse(nsIDOMElement* aElement, 
+  void GetUse(nsIDOMElement* aElement,
               PRUint16* aUse);
-  void GetProcess(nsIDOMElement* aElement, 
+  void GetProcess(nsIDOMElement* aElement,
                   PRUint16* aProcess);
   void GetMinAndMax(nsIDOMElement* aElement,
                     PRUint32* aMinOccurs,
@@ -210,15 +209,15 @@ protected:
   nsresult ParseArrayType(nsSchema* aSchema,
                           nsIDOMElement* aAttrElement,
                           const nsAString& aStr,
-                          nsISchemaType** aType,
+                          nsISVSchemaType** aType,
                           PRUint32* aDimension);
   nsresult ParseDimensions(nsSchema* aSchema,
                            nsIDOMElement* aAttrElement,
                            const nsAString& aStr,
-                           nsISchemaType* aBaseType,
-                           nsISchemaType** aArrayType,
+                           nsISVSchemaType* aBaseType,
+                           nsISVSchemaType** aArrayType,
                            PRUint32* aDimension);
-  void ConstructArrayName(nsISchemaType* aType,
+  void ConstructArrayName(nsISVSchemaType* aType,
                           nsAString& aName);
 
   nsresult ParseNameAndNS(const nsAString& aName, nsIDOMElement* aElement,
@@ -228,8 +227,8 @@ protected:
                               nsIDOMDocument** aDocument);
 
 protected:
-  nsInterfaceHashtable<nsStringHashKey, nsISchema> mSchemas;
-  nsCOMPtr<nsISchemaCollection> mBuiltinCollection;
+  nsInterfaceHashtable<nsStringHashKey, nsISVSchema> mSchemas;
+  nsCOMPtr<nsISVSchemaCollection> mBuiltinCollection;
 };
 
 #endif // __nsSchemaLoader_h__

@@ -39,12 +39,12 @@
 #include "nsIGenericFactory.h"
 #include "nsSchemaValidator.h"
 #include "nsSchemaDuration.h"
-#include "nsIClassInfoImpl.h"
+#include "nsSchemaLoader.h"
+#include "nsSchemaPrivate.h"
 
-NS_DECL_CLASSINFO(nsSchemaValidator)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSchemaValidator)
-
-NS_DECL_CLASSINFO(nsSchemaDuration)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsSchemaLoader, Init)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsBuiltinSchemaCollection, Init)
 
 static const nsModuleComponentInfo components[] = {
   { "SchemaValidator",
@@ -55,13 +55,124 @@ static const nsModuleComponentInfo components[] = {
   { "SchemaDuration",
     NS_SCHEMADURATION_CID,
     NS_SCHEMADURATION_CONTRACTID,
-    nsnull }
+    nsnull },
+
+  { "SchemaLoader",
+    NS_SVSCHEMALOADER_CID,
+    NS_SVSCHEMALOADER_CONTRACTID,
+    nsSchemaLoaderConstructor,
+    nsnull },
+
+  { "Schema",
+    NS_SVSCHEMA_CID,
+    NS_SVSCHEMA_CONTRACTID,
+    nsnull },
+
+  { "SchemaBuiltinType",
+    NS_SVSCHEMABUILTINTYPE_CID,
+    NS_SVSCHEMABUILTINTYPE_CONTRACTID,
+    nsnull },
+
+  { "SchemaListType",
+    NS_SVSCHEMALISTTYPE_CID,
+    NS_SVSCHEMALISTTYPE_CONTRACTID,
+    nsnull },
+
+  { "SchemaUnionType",
+    NS_SVSCHEMAUNIONTYPE_CID,
+    NS_SVSCHEMAUNIONTYPE_CONTRACTID,
+    nsnull },
+
+  { "SchemaRestrictionType",
+    NS_SVSCHEMARESTRICTIONTYPE_CID,
+    NS_SVSCHEMARESTRICTIONTYPE_CONTRACTID,
+    nsnull },
+
+  { "SchemaComplexType",
+    NS_SVSCHEMACOMPLEXTYPE_CID,
+    NS_SVSCHEMACOMPLEXTYPE_CONTRACTID,
+    nsnull },
+
+  { "SchemaTypePlaceholder",
+    NS_SVSCHEMATYPEPLACEHOLDER_CID,
+    NS_SVSCHEMATYPEPLACEHOLDER_CONTRACTID,
+    nsnull },
+    
+  { "SchemaModelGroup",
+    NS_SVSCHEMAMODELGROUP_CID,
+    NS_SVSCHEMAMODELGROUP_CONTRACTID,
+    nsnull },
+
+  { "SchemaModelGroupRef",
+    NS_SVSCHEMAMODELGROUPREF_CID,
+    NS_SVSCHEMAMODELGROUPREF_CONTRACTID,
+    nsnull },
+
+  { "SchemaAnyParticle",
+    NS_SVSCHEMAANYPARTICLE_CID,
+    NS_SVSCHEMAANYPARTICLE_CONTRACTID,
+    nsnull },
+
+  { "SchemaElement",
+    NS_SVSCHEMAELEMENT_CID,
+    NS_SVSCHEMAELEMENT_CONTRACTID,
+    nsnull },
+
+  { "SchemaElementRef",
+    NS_SVSCHEMAELEMENTREF_CID,
+    NS_SVSCHEMAELEMENTREF_CONTRACTID,
+    nsnull },
+
+  { "SchemaAttribute",
+    NS_SVSCHEMAATTRIBUTE_CID,
+    NS_SVSCHEMAATTRIBUTE_CONTRACTID,
+    nsnull },
+
+  { "SchemaAttributeRef",
+    NS_SVSCHEMAATTRIBUTEREF_CID,
+    NS_SVSCHEMAATTRIBUTEREF_CONTRACTID,
+    nsnull },
+    
+  { "SchemaAttributeGroup",
+    NS_SVSCHEMAATTRIBUTEGROUP_CID,
+    NS_SVSCHEMAATTRIBUTEGROUP_CONTRACTID,
+    nsnull },
+
+  { "SchemaAttributeGroupRef",
+    NS_SVSCHEMAATTRIBUTEGROUPREF_CID,
+    NS_SVSCHEMAATTRIBUTEGROUPREF_CONTRACTID,
+    nsnull },
+
+  { "SchemaAnyAttribute",
+    NS_SVSCHEMAANYATTRIBUTE_CID,
+    NS_SVSCHEMAANYATTRIBUTE_CONTRACTID,
+    nsnull },
+    
+  { "SchemaFacet",
+    NS_SVSCHEMAFACET_CID,
+    NS_SVSCHEMAFACET_CONTRACTID,
+    nsnull },
+
+  { "SOAPArray",
+    NS_SVSOAPARRAY_CID,
+    NS_SVSOAPARRAY_CONTRACTID,
+    nsnull },
+
+  { "SOAPArrayType",
+    NS_SVSOAPARRAYTYPE_CID,
+    NS_SVSOAPARRAYTYPE_CONTRACTID,
+    nsnull },
+
+  { "Builtin Schema Collection",
+    NS_SVBUILTINSCHEMACOLLECTION_CID,
+    NS_SVBUILTINSCHEMACOLLECTION_CONTRACTID,
+    nsBuiltinSchemaCollectionConstructor }
 };
 
 PR_STATIC_CALLBACK(nsresult)
 SchemaValidatorModuleCtor(nsIModule* aSelf)
 {
-  return NS_OK;
+  return nsSchemaAtoms::AddRefAtoms();
 }
 
 NS_IMPL_NSGETMODULE_WITH_CTOR(schemavalidation, components, SchemaValidatorModuleCtor)

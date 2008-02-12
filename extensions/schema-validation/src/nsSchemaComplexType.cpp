@@ -47,7 +47,7 @@ nsSchemaComplexType::nsSchemaComplexType(nsSchema* aSchema,
                                          const nsAString& aName,
                                          PRBool aAbstract)
   : nsSchemaComponentBase(aSchema), mName(aName), mAbstract(aAbstract),
-    mContentModel(CONTENT_MODEL_ELEMENT_ONLY), 
+    mContentModel(CONTENT_MODEL_ELEMENT_ONLY),
     mDerivation(DERIVATION_SELF_CONTAINED)
 {
 }
@@ -56,27 +56,27 @@ nsSchemaComplexType::~nsSchemaComplexType()
 {
 }
 
-NS_IMPL_ISUPPORTS3_CI(nsSchemaComplexType, 
-                      nsISchemaComponent,
-                      nsISchemaType,
-                      nsISchemaComplexType)
+NS_IMPL_ISUPPORTS3(nsSchemaComplexType,
+                      nsISVSchemaComponent,
+                      nsISVSchemaType,
+                      nsISVSchemaComplexType)
 
 
 nsresult
-nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaComplexType::ProcessExtension(nsISVSchemaErrorHandler* aErrorHandler)
 {
   nsresult rv = NS_OK;
 
   nsAutoString baseStr;
   mBaseType->GetName(baseStr);
 
-  nsCOMPtr<nsISchemaComplexType> complexBaseType(do_QueryInterface(mBaseType));
+  nsCOMPtr<nsISVSchemaComplexType> complexBaseType(do_QueryInterface(mBaseType));
 
-  nsCOMPtr<nsISchemaModelGroup> sequence;
+  nsCOMPtr<nsISVSchemaModelGroup> sequence;
   nsSchemaModelGroup* sequenceInst = nsnull;
   if (complexBaseType) {
     // XXX Should really be cloning
-    nsCOMPtr<nsISchemaModelGroup> baseGroup;
+    nsCOMPtr<nsISVSchemaModelGroup> baseGroup;
     rv = complexBaseType->GetModelGroup(getter_AddRefs(baseGroup));
     if (NS_FAILED(rv)) {
       nsAutoString errorMsg;
@@ -109,12 +109,12 @@ nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
 
       // If the base group also a sequence, we can collapse the
       // two sequences.
-      if ((compositor == nsISchemaModelGroup::COMPOSITOR_SEQUENCE) &&
+      if ((compositor == nsISVSchemaModelGroup::COMPOSITOR_SEQUENCE) &&
           (minOccurs == 1) && (maxOccurs == 1)) {
         PRUint32 pIndex, pCount;
         baseGroup->GetParticleCount(&pCount);
         for (pIndex = 0; pIndex < pCount; pIndex++) {
-          nsCOMPtr<nsISchemaParticle> particle;
+          nsCOMPtr<nsISVSchemaParticle> particle;
                 
           rv = baseGroup->GetParticle(pIndex, getter_AddRefs(particle));
           if (NS_FAILED(rv)) {
@@ -154,7 +154,7 @@ nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
         PRUint32 pIndex, pCount;
         mModelGroup->GetParticleCount(&pCount);
         for (pIndex = 0; pIndex < pCount; pIndex++) {
-          nsCOMPtr<nsISchemaParticle> particle;
+          nsCOMPtr<nsISVSchemaParticle> particle;
           rv = mModelGroup->GetParticle(pIndex, getter_AddRefs(particle));
           rv = sequenceInst->AddParticle(particle);
         }
@@ -165,7 +165,7 @@ nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
         
   if (complexBaseType) {
     // Inherit content model from base if currently empty
-    if (mContentModel == nsISchemaComplexType::CONTENT_MODEL_EMPTY) {
+    if (mContentModel == nsISVSchemaComplexType::CONTENT_MODEL_EMPTY) {
       PRUint16 baseContentModel;
       complexBaseType->GetContentModel(&baseContentModel);
       mContentModel = baseContentModel;
@@ -177,7 +177,7 @@ nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
     complexBaseType->GetAttributeCount(&attrCount);
 
     for (attrIndex = 0; attrIndex < attrCount; attrIndex++) {
-      nsCOMPtr<nsISchemaAttributeComponent> attribute;
+      nsCOMPtr<nsISVSchemaAttributeComponent> attribute;
 
       rv = complexBaseType->GetAttributeByIndex(attrIndex,
                                                 getter_AddRefs(attribute));
@@ -211,9 +211,9 @@ nsSchemaComplexType::ProcessExtension(nsIWebServiceErrorHandler* aErrorHandler)
 }
 
 
-/* void resolve (in nsIWebServiceErrorHandler* aErrorHandler); */
+/* void resolve (in nsISVSchemaErrorHandler* aErrorHandler); */
 NS_IMETHODIMP
-nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
+nsSchemaComplexType::Resolve(nsISVSchemaErrorHandler* aErrorHandler)
 {
   if (mIsResolved) {
     return NS_OK;
@@ -247,7 +247,7 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
     return NS_ERROR_FAILURE;
   }
 
-  nsCOMPtr<nsISchemaType> type;
+  nsCOMPtr<nsISVSchemaType> type;
   if (mBaseType) {
     rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mBaseType, getter_AddRefs(type));
     if (NS_FAILED(rv)) {
@@ -274,7 +274,7 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
       }
 
       // Only extensions need to be applied
-      if (mDerivation == nsISchemaComplexType::DERIVATION_EXTENSION_COMPLEX) {
+      if (mDerivation == nsISVSchemaComplexType::DERIVATION_EXTENSION_COMPLEX) {
         rv = ProcessExtension(aErrorHandler);
         if (NS_FAILED(rv)) {
           return NS_ERROR_FAILURE;
@@ -284,7 +284,7 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   }
     
   if (mSimpleBaseType) {
-    rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mSimpleBaseType, 
+    rv = mSchema->ResolveTypePlaceholder(aErrorHandler, mSimpleBaseType,
                                          getter_AddRefs(type));
     if (NS_FAILED(rv)) {
       return NS_ERROR_FAILURE;
@@ -297,7 +297,7 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
     // simple content).  So if we can't QI to a simple type, get the simple
     // base type if it is a complex type.
     if (!mSimpleBaseType) {
-      nsCOMPtr<nsISchemaComplexType> complexType = do_QueryInterface(type);
+      nsCOMPtr<nsISVSchemaComplexType> complexType = do_QueryInterface(type);
       if (complexType) {
         complexType->GetSimpleBaseType(getter_AddRefs(mSimpleBaseType));
       }
@@ -332,12 +332,12 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
   }
 
   if (mArrayInfo) {
-    nsCOMPtr<nsISchemaType> placeHolder;
+    nsCOMPtr<nsISVSchemaType> placeHolder;
     mArrayInfo->GetType(getter_AddRefs(placeHolder));
     if (placeHolder) {
       PRUint16 schemaType;
       placeHolder->GetSchemaType(&schemaType);
-      if (schemaType == nsISchemaType::SCHEMA_TYPE_PLACEHOLDER) {
+      if (schemaType == nsISVSchemaType::SCHEMA_TYPE_PLACEHOLDER) {
         rv = mSchema->ResolveTypePlaceholder(aErrorHandler, placeHolder, getter_AddRefs(type));
         if (NS_FAILED(rv)) {
           return NS_ERROR_FAILURE;
@@ -354,7 +354,7 @@ nsSchemaComplexType::Resolve(nsIWebServiceErrorHandler* aErrorHandler)
           return NS_ERROR_FAILURE;
         }
       }
-    } 
+    }
   }
 
   return NS_OK;
@@ -408,7 +408,7 @@ nsSchemaComplexType::GetSchemaType(PRUint16 *aSchemaType)
 {
   NS_ENSURE_ARG_POINTER(aSchemaType);
 
-  *aSchemaType = nsISchemaType::SCHEMA_TYPE_COMPLEX;
+  *aSchemaType = nsISVSchemaType::SCHEMA_TYPE_COMPLEX;
 
   return NS_OK;
 }
@@ -435,9 +435,9 @@ nsSchemaComplexType::GetDerivation(PRUint16 *aDerivation)
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaType baseType; */
+/* readonly attribute nsISVSchemaType baseType; */
 NS_IMETHODIMP
-nsSchemaComplexType::GetBaseType(nsISchemaType * *aBaseType)
+nsSchemaComplexType::GetBaseType(nsISVSchemaType * *aBaseType)
 {
   NS_ENSURE_ARG_POINTER(aBaseType);
 
@@ -446,9 +446,9 @@ nsSchemaComplexType::GetBaseType(nsISchemaType * *aBaseType)
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaSimpleType simplBaseType; */
+/* readonly attribute nsISVSchemaSimpleType simplBaseType; */
 NS_IMETHODIMP
-nsSchemaComplexType::GetSimpleBaseType(nsISchemaSimpleType * *aSimpleBaseType)
+nsSchemaComplexType::GetSimpleBaseType(nsISVSchemaSimpleType * *aSimpleBaseType)
 {
   NS_ENSURE_ARG_POINTER(aSimpleBaseType);
 
@@ -457,9 +457,9 @@ nsSchemaComplexType::GetSimpleBaseType(nsISchemaSimpleType * *aSimpleBaseType)
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaModelGroup modelGroup; */
+/* readonly attribute nsISVSchemaModelGroup modelGroup; */
 NS_IMETHODIMP
-nsSchemaComplexType::GetModelGroup(nsISchemaModelGroup * *aModelGroup)
+nsSchemaComplexType::GetModelGroup(nsISVSchemaModelGroup * *aModelGroup)
 {
   NS_ENSURE_ARG_POINTER(aModelGroup);
 
@@ -479,10 +479,10 @@ nsSchemaComplexType::GetAttributeCount(PRUint32 *aAttributeCount)
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
+/* nsISVSchemaAttributeComponent getAttributeByIndex (in PRUint32 index); */
 NS_IMETHODIMP
-nsSchemaComplexType::GetAttributeByIndex(PRUint32 aIndex, 
-                                         nsISchemaAttributeComponent** aResult)
+nsSchemaComplexType::GetAttributeByIndex(PRUint32 aIndex,
+                                         nsISVSchemaAttributeComponent** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -495,10 +495,10 @@ nsSchemaComplexType::GetAttributeByIndex(PRUint32 aIndex,
   return NS_OK;
 }
 
-/* nsISchemaAttributeComponent getAttributeByName (in AString name); */
+/* nsISVSchemaAttributeComponent getAttributeByName (in AString name); */
 NS_IMETHODIMP
-nsSchemaComplexType::GetAttributeByName(const nsAString& aName, 
-                                        nsISchemaAttributeComponent** aResult)
+nsSchemaComplexType::GetAttributeByName(const nsAString& aName,
+                                        nsISVSchemaAttributeComponent** aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -520,11 +520,11 @@ nsSchemaComplexType::GetAbstract(PRBool *aAbstract)
 
 /* readonly attribute boolean isArray; */
 NS_IMETHODIMP
-nsSchemaComplexType::GetIsArray(PRBool* aIsArray) 
+nsSchemaComplexType::GetIsArray(PRBool* aIsArray)
 {
   NS_ENSURE_ARG_POINTER(aIsArray);
 
-  nsCOMPtr<nsISchemaComplexType> complexBase = do_QueryInterface(mBaseType);
+  nsCOMPtr<nsISVSchemaComplexType> complexBase = do_QueryInterface(mBaseType);
   if (complexBase) {
     return complexBase->GetIsArray(aIsArray);
   }
@@ -534,9 +534,9 @@ nsSchemaComplexType::GetIsArray(PRBool* aIsArray)
   return NS_OK;
 }
 
-/* readonly attribute nsISchemaType arrayType; */
+/* readonly attribute nsISVSchemaType arrayType; */
 NS_IMETHODIMP
-nsSchemaComplexType::GetArrayType(nsISchemaType** aArrayType)
+nsSchemaComplexType::GetArrayType(nsISVSchemaType** aArrayType)
 {
   NS_ENSURE_ARG_POINTER(aArrayType);
 
@@ -545,7 +545,7 @@ nsSchemaComplexType::GetArrayType(nsISchemaType** aArrayType)
     mArrayInfo->GetType(aArrayType);
   }
   else {
-    nsCOMPtr<nsISchemaComplexType> complexBase = do_QueryInterface(mBaseType);
+    nsCOMPtr<nsISVSchemaComplexType> complexBase = do_QueryInterface(mBaseType);
     if (complexBase) {
       return complexBase->GetArrayType(aArrayType);
     }
@@ -565,7 +565,7 @@ nsSchemaComplexType::GetArrayDimension(PRUint32* aDimension)
     *aDimension = mArrayInfo->GetDimension();
   }
   else {
-    nsCOMPtr<nsISchemaComplexType> complexBase = do_QueryInterface(mBaseType);
+    nsCOMPtr<nsISVSchemaComplexType> complexBase = do_QueryInterface(mBaseType);
     if (complexBase) {
       return complexBase->GetArrayDimension(aDimension);
     }
@@ -583,8 +583,8 @@ nsSchemaComplexType::SetContentModel(PRUint16 aContentModel)
 }
 
 NS_IMETHODIMP
-nsSchemaComplexType::SetDerivation(PRUint16 aDerivation, 
-                                   nsISchemaType* aBaseType)
+nsSchemaComplexType::SetDerivation(PRUint16 aDerivation,
+                                   nsISVSchemaType* aBaseType)
 {
   mDerivation = aDerivation;
   mBaseType = aBaseType;
@@ -593,7 +593,7 @@ nsSchemaComplexType::SetDerivation(PRUint16 aDerivation,
 }
 
 NS_IMETHODIMP
-nsSchemaComplexType::SetSimpleBaseType(nsISchemaSimpleType* aSimpleBaseType)
+nsSchemaComplexType::SetSimpleBaseType(nsISVSchemaSimpleType* aSimpleBaseType)
 {
   mSimpleBaseType = aSimpleBaseType;
 
@@ -601,7 +601,7 @@ nsSchemaComplexType::SetSimpleBaseType(nsISchemaSimpleType* aSimpleBaseType)
 }
 
 NS_IMETHODIMP
-nsSchemaComplexType::SetModelGroup(nsISchemaModelGroup* aModelGroup)
+nsSchemaComplexType::SetModelGroup(nsISVSchemaModelGroup* aModelGroup)
 {
   mModelGroup = aModelGroup;
 
@@ -609,7 +609,7 @@ nsSchemaComplexType::SetModelGroup(nsISchemaModelGroup* aModelGroup)
 }
 
 NS_IMETHODIMP
-nsSchemaComplexType::AddAttribute(nsISchemaAttributeComponent* aAttribute)
+nsSchemaComplexType::AddAttribute(nsISVSchemaAttributeComponent* aAttribute)
 {
   NS_ENSURE_ARG_POINTER(aAttribute);
 
@@ -619,11 +619,11 @@ nsSchemaComplexType::AddAttribute(nsISchemaAttributeComponent* aAttribute)
   mAttributes.AppendObject(aAttribute);
   mAttributesHash.Put(name, aAttribute);
 
-  return NS_OK;  
+  return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSchemaComplexType::SetArrayInfo(nsISchemaType* aType, PRUint32 aDimension)
+nsSchemaComplexType::SetArrayInfo(nsISVSchemaType* aType, PRUint32 aDimension)
 {
   mArrayInfo = new nsComplexTypeArrayInfo(aType, aDimension);
 
