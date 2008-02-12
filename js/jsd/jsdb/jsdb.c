@@ -228,6 +228,7 @@ Load(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
     JSScript *script;
     JSBool ok;
     jsval result;
+    uint32 oldopts;
 
     ok = JS_TRUE;
     for (i = 0; i < argc; i++) {
@@ -239,6 +240,8 @@ Load(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
         argv[i] = STRING_TO_JSVAL(str);
         filename = JS_GetStringBytes(str);
         errno = 0;
+        oldopts = JS_GetOptions(cx);
+        JS_SetOptions(cx, oldopts | JSOPTION_COMPILE_N_GO);
         script = JS_CompileFile(cx, obj, filename);
         if (!script)
             continue;
@@ -247,6 +250,7 @@ Load(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
         if (!ok)
             break;
     }
+    JS_SetOptions(cx, oldopts);
     JS_GC(cx);
     *rval = STRING_TO_JSVAL(JS_NewStringCopyZ(cx,""));
     return ok;
