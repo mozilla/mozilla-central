@@ -61,4 +61,7 @@ interface nsIXFormsXPathFunctions : nsISupports
     double secondsFromDateTime(in DOMString aDateTime);
     txINodeSet current(in txIFunctionEvaluationContext aContext);
     txINodeSet event(in txIFunctionEvaluationContext aContext, in DOMString aString);
+    double power(in double aBase, in double aExponent);
+    double random(in boolean aSeed);
+    double compare(in DOMString aString1, in DOMString aString2);
 };
