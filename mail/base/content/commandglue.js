@@ -47,8 +47,6 @@
 //      for this Overlay to work properly
 
 var gFolderJustSwitched = false;
-var gBeforeFolderLoadTime;
-var gRDFNamespace = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 var gVirtualFolderTerms;
 var gXFVirtualFolderTerms;
 var gCurrentVirtualFolderUri;

@@ -1330,11 +1330,6 @@ function IsFolderPaneCollapsed()
   return GetFolderTree().parentNode.collapsed;
 }
 
-function FindMessenger()
-{
-  return messenger;
-}
-
 function ClearThreadPaneSelection()
 {
   try {
@@ -1363,15 +1358,6 @@ function ClearMessagePane()
     gMessageNotificationBar.clearMsgNotifications();
     ClearPendingReadTimer();
   }
-}
-
-function GetSelectedFolderIndex()
-{
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    return startIndex.value;
 }
 
 // Function to change the highlighted row to where the mouse was clicked
@@ -1678,11 +1664,6 @@ function GetDBView()
 function GetFolderResource(tree, index)
 {
   return tree.builderView.getResourceAtIndex(index);
-}
-
-function GetFolderIndex(tree, resource)
-{
-  return tree.builderView.getIndexOfResource(resource);
 }
 
 function GetFolderAttribute(tree, source, attribute)

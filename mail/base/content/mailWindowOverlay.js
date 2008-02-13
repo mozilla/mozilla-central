@@ -2216,29 +2216,6 @@ function MsgSynchronizeOffline()
         "", "centerscreen,chrome,modal,titlebar,resizable=yes",{msgWindow:msgWindow});          
 }
 
-
-function MsgMarkByDate() {}
-function MsgOpenAttachment() {}
-function MsgUpdateMsgCount() {}
-function MsgImport() {}
-function MsgSynchronize() {}
-function MsgGetSelectedMsg() {}
-function MsgGetFlaggedMsg() {}
-function MsgSelectThread() {}
-function MsgShowFolders(){}
-function MsgShowLocationbar() {}
-function MsgViewAttachInline() {}
-function MsgWrapLongLines() {}
-function MsgIncreaseFont() {}
-function MsgDecreaseFont() {}
-function MsgShowImages() {}
-function MsgRefresh() {}
-function MsgViewPageInfo() {}
-function MsgFirstUnreadMessage() {}
-function MsgFirstFlaggedMessage() {}
-function MsgAddSenderToAddressBook() {}
-function MsgAddAllToAddressBook() {}
-
 function SpaceHit(event)
 {
   var contentWindow = window.top._content;

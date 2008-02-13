@@ -38,7 +38,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 var gMessengerBundle = document.getElementById("bundle_messenger");
 
 // Controller object for folder pane
@@ -590,7 +589,7 @@ var DefaultController =
         MsgViewPageSource();
         return;
       case "cmd_setFolderCharset":
-        MsgSetFolderCharset();
+        MsgFolderProperties();
         return;
       case "cmd_reload":
         MsgReload();
@@ -946,6 +945,9 @@ function MsgDeleteFolder()
                 var errorMessage = gMessengerBundle.getFormattedString("specialFolderDeletionErr",
                                                     [specialFolder]);
                 var specialFolderDeletionErrTitle = gMessengerBundle.getString("specialFolderDeletionErrTitle");
+                var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                              .getService(Components.interfaces.nsIPromptService);
+
                 promptService.alert(window, specialFolderDeletionErrTitle, errorMessage);
                 continue;
             }
@@ -1070,12 +1072,6 @@ function SwitchPaneFocus(event)
   }
 }
 
-function SetFocusFolderPane()
-{
-    var folderTree = GetFolderTree();
-    folderTree.focus();
-}
-
 function SetFocusThreadPane()
 {
     var threadTree = GetThreadTree();
@@ -1086,11 +1082,6 @@ function SetFocusMessagePane()
 {
   // messagePaneFrame.focus() fails to blur the currently focused element
   document.commandDispatcher.advanceFocusIntoSubtree(GetMessagePane());
-}
-
-function is_collapsed(element)
-{
-  return (element.getAttribute('state') == 'collapsed');
 }
 
 function isCommandEnabled(cmd)

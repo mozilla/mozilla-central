@@ -49,17 +49,6 @@
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
-function ConvertDOMListToResourceArray(nodeList)
-{
-    var result = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-
-    for (var i=0; i<nodeList.length; i++) {
-        result.AppendElement(nodeList[i].resource);
-    }
-
-    return result;
-}
-
 function GetSelectedFolderURI()
 {
     var folderTree = GetFolderTree();
@@ -303,11 +292,6 @@ function MsgToggleMessagePane()
     splitter.setAttribute("state", "collapsed")
 
    ChangeMessagePaneVisibility(IsMessagePaneCollapsed());
-}
-
-function MsgSetFolderCharset()
-{
-  MsgFolderProperties();
 }
 
 // Given a URI we would like to return corresponding message folder here.
