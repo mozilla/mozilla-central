@@ -113,6 +113,7 @@ function onSelect() {
         item.selected = true;
         item.removeAttribute("disabled");
     }
+    document.commandDispatcher.updateCommands('calendar_commands');
 }
 
 agendaListbox.onFocus =
@@ -128,6 +129,7 @@ function onBlur() {
     if (item) {
         item.setAttribute("disabled","true");
     }
+    document.commandDispatcher.updateCommands('calendar_commands');
 }
 
 agendaListbox.enableListItems =
@@ -355,6 +357,15 @@ agendaListbox.isSameEvent =
 function isSameEvent(aItem, aCompItem) {
     return ((aItem.id == aCompItem.id) &&
             (calGetStartDate(aItem).compare(calGetStartDate(aCompItem)) == 0));
+}
+
+agendaListbox.isEventSelected =
+function isEventSelected() {
+    var listItem = this.agendaListboxControl.selectedItem;
+    if (listItem) {
+        return (this.isEventListItem(listItem));
+    }
+    return false;
 }
 
 agendaListbox.deleteSelectedItem =

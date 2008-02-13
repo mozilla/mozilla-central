@@ -150,6 +150,21 @@ var calendarController = {
                 return !this.no_network_calendars && !this.offline;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
+                    // The delete-button demands a special handling in mail-mode
+                    // as it is supposed to delete an element of the focused pane
+                    if (aCommand == "cmd_delete" || aCommand == "button_delete") {
+                        var focusedElement = document.commandDispatcher.focusedElement;
+                        if (focusedElement) {
+                            if (focusedElement.getAttribute("id") == "agenda-listbox") {
+                                 return agendaListbox.isEventSelected();
+                            } else if (focusedElement.className == "calendar-task-tree") {
+                                 return this.writable &&
+                                        this.todo_items_selected &&
+                                        this.todo_items_writable;
+                            }
+                        }
+                    }
+
                     // If calendar is not in foreground, let the default controller take
                     // care. If we don't have a default controller (i.e sunbird), just
                     // continue.
@@ -274,6 +289,21 @@ var calendarController = {
                 break;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
+                    // The delete-button demands a special handling in mail-mode
+                    // as it is supposed to delete an element of the focused pane
+                    if (aCommand == "cmd_delete" || aCommand == "button_delete") {
+                        var focusedElement = document.commandDispatcher.focusedElement;
+                        if (focusedElement) {
+                            if (focusedElement.getAttribute("id") == "agenda-listbox") {
+                                agendaListbox.deleteSelectedItem(false);
+                                return;
+                            } else if (focusedElement.className == "calendar-task-tree") {
+                                deleteToDoCommand(false);
+                                return;
+                            }
+                        }
+                    }
+
                     // If calendar is not in foreground, let the default controller take
                     // care. If we don't have a default controller (i.e sunbird), just
                     // continue.
