@@ -69,8 +69,12 @@ calWcapCalendar.prototype.encodeNscpTzid =
 function calWcapCalendar_encodeNscpTzid(dateTime)
 {
     var params = "X-NSCP-ORIGINAL-OPERATION=X-NSCP-WCAP-PROPERTY-";
-    if (!dateTime || !dateTime.isValid || dateTime.timezone.isUTC || dateTime.timezone.isFloating) {
+    if (!dateTime || !dateTime.isValid || dateTime.timezone.isUTC) {
         params += "DELETE^";
+    } else if (dateTime.timezone.isFloating) {
+        // cs cannot cope with floating, always enforces server tz,
+        // better use user's tz then:
+        params += ("REPLACE^" + encodeURIComponent(this.defaultTimezone));
     } else {
         params += ("REPLACE^" + encodeURIComponent(this.getAlignedTzid(dateTime.timezone)));
     }
