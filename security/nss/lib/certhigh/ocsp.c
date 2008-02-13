@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.49 2008-02-08 02:50:44 julien.pierre.boogz%sun.com Exp $
+ * $Id: ocsp.c,v 1.50 2008-02-13 15:29:12 kaie%kuix.de Exp $
  */
 
 #include "prerror.h"
@@ -158,10 +158,12 @@ ocsp_GetVerifiedSingleResponseForCertID(CERTCertDBHandle *handle,
 #define OCSP_TRACE(msg)
 #define OCSP_TRACE_TIME(msg, time)
 #define OCSP_TRACE_CERT(cert)
+#define OCSP_TRACE_CERTID(certid)
 #else
 #define OCSP_TRACE(msg) ocsp_Trace msg
 #define OCSP_TRACE_TIME(msg, time) ocsp_dumpStringWithTime(msg, time)
 #define OCSP_TRACE_CERT(cert) dumpCertificate(cert)
+#define OCSP_TRACE_CERTID(certid) dumpCertID(certid)
 
 #if (defined(XP_UNIX) || defined(XP_WIN32) || defined(XP_BEOS) \
      || defined(XP_MACOSX)) && !defined(_WIN32_WCE)
@@ -221,9 +223,9 @@ printHexString(const char *prefix, SECItem *hexval)
 
     for (i = 0; i < hexval->len; i++) {
         if (i != hexval->len - 1) {
-            PR_sprintf_append(hexbuf, "%02x:", hexval->data[i]);
+            hexbuf = PR_sprintf_append(hexbuf, "%02x:", hexval->data[i]);
         } else {
-            PR_sprintf_append(hexbuf, "%02x", hexval->data[i]);
+            hexbuf = PR_sprintf_append(hexbuf, "%02x", hexval->data[i]);
         }
     }
     if (hexbuf) {
@@ -256,6 +258,16 @@ dumpCertificate(CERTCertificate *cert)
     }
     ocsp_Trace("OCSP ## ISSUER:  %s\n", cert->issuerName);
     printHexString("OCSP ## SERIAL NUMBER:", &cert->serialNumber);
+}
+
+static void
+dumpCertID(CERTOCSPCertID *certID)
+{
+    if (!wantOcspTrace())
+        return;
+
+    printHexString("OCSP certID issuer", &certID->issuerNameHash);
+    printHexString("OCSP certID serial", &certID->serialNumber);
 }
 #endif
 
@@ -501,6 +513,7 @@ ocsp_FindCacheEntry(OCSPCacheData *cache, CERTOCSPCertID *certID)
 {
     OCSPCacheItem *found_ocsp_item = NULL;
     OCSP_TRACE(("OCSP ocsp_FindCacheEntry\n"));
+    OCSP_TRACE_CERTID(certID);
     PR_EnterMonitor(OCSP_Global.monitor);
     if (ocsp_IsCacheDisabled())
         goto loser;
@@ -1729,8 +1742,6 @@ CERT_CreateOCSPCertID(CERTCertificate *cert, int64 time)
     return certID;
 }
 
-
-
 /*
  * Callback to set Extensions in request object
  */
@@ -1852,6 +1863,7 @@ ocsp_CreateSingleRequestList(PRArenaPool *arena, CERTCertList *certList,
         if (requestList[i] == NULL)
             goto loser;
 
+        OCSP_TRACE(("OCSP CERT_CreateOCSPRequest %s\n", node->cert->subjectName));
         requestList[i]->arena = arena;
         requestList[i]->reqCert = ocsp_CreateCertID(arena, node->cert, time);
         if (requestList[i]->reqCert == NULL)
@@ -1957,6 +1969,7 @@ cert_CreateSingleCertOCSPRequest(CERTOCSPCertID *certID,
                                  CERTCertificate *signerCert)
 {
     CERTOCSPRequest *request;
+    OCSP_TRACE(("OCSP cert_CreateSingleCertOCSPRequest %s\n", singleCert->subjectName));
 
     /* XXX Support for signerCert may be implemented later,
      * see also the comment in CERT_CreateOCSPRequest.
@@ -3297,6 +3310,8 @@ fetchOcspHttpClientV1(PRArenaPool *arena,
     /* we don't want result objects larger than this: */
     myHttpResponseDataLen = MAX_WANTED_OCSP_RESPONSE_LEN;
 
+    OCSP_TRACE(("OCSP trySendAndReceive %s\n", location));
+
     if ((*hcv1->trySendAndReceiveFcn)(
             pRequestSession, 
             NULL,
@@ -3308,6 +3323,8 @@ fetchOcspHttpClientV1(PRArenaPool *arena,
         PORT_SetError(SEC_ERROR_OCSP_SERVER_ERROR);
         goto loser;
     }
+
+    OCSP_TRACE(("OCSP trySendAndReceive result http %d\n", myHttpResponseCode));
 
     if (myHttpResponseCode != 200) {
         PORT_SetError(SEC_ERROR_OCSP_BAD_HTTP_RESPONSE);
