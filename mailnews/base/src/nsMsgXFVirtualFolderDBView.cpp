@@ -161,7 +161,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
   msgHdr->GetMessageKey(&msgKey);
   msgHdr->GetFlags(&msgFlags);
   m_keys.InsertAt(insertIndex, msgKey);
-  m_flags.InsertAt(insertIndex, msgFlags);
+  m_flags.InsertElementAt(insertIndex, msgFlags);
   m_folders->InsertElementAt(folder, insertIndex);
   m_levels.InsertElementAt(insertIndex, 0);
 
@@ -293,7 +293,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   // folder - easier than trying to keep the count up to date in the face of
   // search hits coming in while the user is reading/deleting messages.
   PRInt32 numUnread = 0;
-  for (PRInt32 i = 0; i < m_flags.GetSize(); i++)
+  for (PRUint32 i = 0; i < m_flags.Length(); i++)
     if (!(m_flags[i] & MSG_FLAG_READ))
       numUnread++;
   dbFolderInfo->SetNumUnreadMessages(numUnread);
@@ -323,7 +323,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   m_folders->Clear();
   m_keys.RemoveAll();
   m_levels.Clear();
-  m_flags.RemoveAll();
+  m_flags.Clear();
 
   // needs to happen after we remove the keys, since RowCountChanged() will call our GetRowCount()
   if (mTree)

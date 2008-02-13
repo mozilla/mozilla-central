@@ -326,7 +326,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
     if (insertIndex == nsMsgViewIndex_None)
       insertIndex = m_keys.GetSize();
     m_keys.InsertAt(insertIndex, msgKey);
-    m_flags.InsertAt(insertIndex, msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED);
+    m_flags.InsertElementAt(insertIndex, msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED);
     m_levels.InsertElementAt(insertIndex, 0);
     // if grouped by date, insert dummy header for "age"
     if (GroupViewUsesDummyRow())
@@ -434,7 +434,7 @@ nsresult nsMsgGroupView::HandleDayChange()
     // row count, which get determine from the number of keys.
     m_keys.RemoveAll();
     // be consistent
-    m_flags.RemoveAll();
+    m_flags.Clear();
     m_levels.Clear();
 
     // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
@@ -514,7 +514,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
           }
 
           m_keys.InsertAt(threadIndex + msgIndexInThread, msgKey);
-          m_flags.InsertAt(threadIndex + msgIndexInThread, msgFlags);
+          m_flags.InsertElementAt(threadIndex + msgIndexInThread, msgFlags);
           if (msgIndexInThread > 0)
           {
             m_levels.InsertElementAt(threadIndex + msgIndexInThread, 1);
@@ -587,7 +587,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
       {
         nsMsgDBView::RemoveByIndex(viewIndexOfThread - 1);
         if (m_deletingRows)
-          mIndicesToNoteChange.Add(viewIndexOfThread - 1);
+          mIndicesToNoteChange.AppendElement(viewIndexOfThread - 1);
       }
     }
     else if (rootDeleted && viewIndexOfThread > 0)

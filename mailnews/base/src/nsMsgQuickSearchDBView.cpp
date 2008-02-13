@@ -307,7 +307,7 @@ nsMsgQuickSearchDBView::OnNewSearch()
 
   m_keys.RemoveAll();
   m_levels.Clear();
-  m_flags.RemoveAll();
+  m_flags.Clear();
   m_hdrHits.Clear();
   // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
   if (mTree)
@@ -454,7 +454,7 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
   }
   m_keys.RemoveAll();
   m_levels.Clear();
-  m_flags.RemoveAll();
+  m_flags.Clear();
   // now we've build up the list of thread ids - need to build the view
   // from that. So for each thread id, we need to list the messages in the thread.
   PRUint32 numThreads = threadRootIds.GetSize();
@@ -476,7 +476,7 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
         displayRootHdr->GetFlags(&rootFlags);
         rootFlags |= MSG_VIEW_FLAG_ISTHREAD;
         m_keys.Add(rootKey);
-        m_flags.Add(rootFlags);
+        m_flags.AppendElement(rootFlags);
         m_levels.AppendElement(0);
 
         nsMsgViewIndex startOfThreadViewIndex = m_keys.GetSize() - 1;
@@ -519,11 +519,11 @@ nsresult  nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsg
           msgHdr->GetFlags(&childFlags);
           PRUint8 levelToAdd;
           m_keys.InsertAt(viewIndex, msgKey);
-          m_flags.InsertAt(viewIndex, childFlags);
+          m_flags.InsertElementAt(viewIndex, childFlags);
           if (! (rootFlags & MSG_VIEW_FLAG_HASCHILDREN))
           {
             rootFlags |= MSG_VIEW_FLAG_HASCHILDREN;
-            m_flags.SetAt(startOfThreadViewIndex, rootFlags);
+            m_flags[startOfThreadViewIndex] = rootFlags;
           }
           levelToAdd = FindLevelInThread(msgHdr, startOfThreadViewIndex, viewIndex);
           m_levels.InsertElementAt(viewIndex, levelToAdd);

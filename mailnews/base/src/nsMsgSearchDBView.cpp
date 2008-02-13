@@ -48,6 +48,7 @@
 #include "nsMsgUtils.h"
 #include "nsITreeColumns.h"
 #include "nsIMsgMessageService.h"
+#include "nsAutoPtr.h"
 
 nsMsgSearchDBView::nsMsgSearchDBView()
 {
@@ -109,8 +110,6 @@ nsMsgSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView, nsIMessenger *aMesseng
     // register the new view with the database so it gets notifications
     m_dbToUseList[i]->AddListener(newMsgDBView);
   }
-
-  // nsUInt32Array* mTestIndices;
 
   return NS_OK;
 }
@@ -193,7 +192,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *f
     msgHdr->GetFlags(&msgFlags);
     m_keys.Add(msgKey);
     m_levels.AppendElement(0);
-    m_flags.Add(msgFlags);
+    m_flags.AppendElement(msgFlags);
     
     // this needs to be called after we add the key, since RowCountChanged() will call our GetRowCount()
     if (mTree)
@@ -253,7 +252,7 @@ nsMsgSearchDBView::OnNewSearch()
   m_folders->Clear();
   m_keys.RemoveAll();
   m_levels.Clear();
-  m_flags.RemoveAll();
+  m_flags.Clear();
 
   // needs to happen after we remove the keys, since RowCountChanged() will call our GetRowCount()
   if (mTree) 
@@ -317,13 +316,13 @@ NS_IMETHODIMP nsMsgSearchDBView::DoCommand(nsMsgViewCommandTypeValue command)
   // ApplyCommandToIndices with the command and the indices in the
   // selection that are from that folder.
 
-  nsUInt32Array *indexArrays;
+  nsAutoArrayPtr<nsTArray<PRUint32> > indexArrays;
   PRInt32 numArrays;
-  rv = PartitionSelectionByFolder(indices, numIndices, &indexArrays, &numArrays);
+  rv = PartitionSelectionByFolder(indices, numIndices, getter_Transfers(indexArrays), &numArrays);
   NS_ENSURE_SUCCESS(rv, rv);
   for (PRInt32 folderIndex = 0; folderIndex < numArrays; folderIndex++)
   {
-    rv = ApplyCommandToIndices(command, indexArrays[folderIndex].GetData(), indexArrays[folderIndex].GetSize());
+    rv = ApplyCommandToIndices(command, indexArrays[folderIndex].Elements(), indexArrays[folderIndex].Length());
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
@@ -378,38 +377,45 @@ nsMsgSearchDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, P
 }
 
 nsresult
-nsMsgSearchDBView::PartitionSelectionByFolder(nsMsgViewIndex *indices, PRInt32 numIndices, nsUInt32Array **indexArrays, PRInt32 *numArrays)
+nsMsgSearchDBView::PartitionSelectionByFolder(nsMsgViewIndex *indices, PRInt32 numIndices, nsTArray<PRUint32> **indexArrays, PRInt32 *numArrays)
 {
-  nsresult rv = NS_OK; 
-  nsCOMPtr <nsISupportsArray> uniqueFoldersSelected = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+  nsMsgViewIndex i;
+  PRInt32 folderIndex;
+  nsCOMArray<nsISupports> uniqueFoldersSelected;
+  nsTArray<PRUint32> numIndicesSelected;
   mCurIndex = 0;
 
   //Build unique folder list based on headers selected by the user
-  for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++)
+  for (i = 0; i < (nsMsgViewIndex) numIndices; i++)
   {
-     nsCOMPtr <nsISupports> curSupports = getter_AddRefs(m_folders->ElementAt(indices[i]));
-     if ( uniqueFoldersSelected->IndexOf(curSupports) < 0)
-       uniqueFoldersSelected->AppendElement(curSupports); 
+    nsCOMPtr <nsISupports> curSupports = dont_AddRef(m_folders->ElementAt(indices[i]));
+    folderIndex = uniqueFoldersSelected.IndexOf(curSupports);
+    if (folderIndex < 0)
+    {
+      uniqueFoldersSelected.AppendObject(curSupports);
+      numIndicesSelected.AppendElement(1);
+    }
+    else
+    {
+      numIndicesSelected[folderIndex]++;
+    }
   }
 
-  PRUint32 numFolders =0; 
-  rv = uniqueFoldersSelected->Count(&numFolders);   //group the headers selected by each folder 
-  *indexArrays = new nsUInt32Array[numFolders];
+  PRInt32 numFolders = uniqueFoldersSelected.Count();
+  *indexArrays = new nsTArray<PRUint32>[numFolders];
   *numArrays = numFolders;
   NS_ENSURE_TRUE(*indexArrays, NS_ERROR_OUT_OF_MEMORY);
-  for (PRUint32 folderIndex=0; folderIndex < numFolders; folderIndex++)
+  for (folderIndex = 0; folderIndex < numFolders; folderIndex++)
   {
-     nsCOMPtr <nsIMsgFolder> curFolder =
-         do_QueryElementAt(uniqueFoldersSelected, folderIndex, &rv);
-     for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
-     {
-       nsCOMPtr <nsIMsgFolder> msgFolder = do_QueryElementAt(m_folders,
-                                                             indices[i], &rv);
-       if (NS_SUCCEEDED(rv) && msgFolder && msgFolder == curFolder) 
-          (*indexArrays)[folderIndex].Add(indices[i]);
-     }
+    (*indexArrays)[folderIndex].SetCapacity(numIndicesSelected[folderIndex]);
   }
-  return rv;
+  for (i = 0; i < (nsMsgViewIndex) numIndices; i++) 
+  {
+    nsCOMPtr <nsISupports> curSupports = getter_AddRefs(m_folders->ElementAt(indices[i]));
+    PRInt32 folderIndex = uniqueFoldersSelected.IndexOf(curSupports);
+    (*indexArrays)[folderIndex].AppendElement(indices[i]);
+  }
+  return NS_OK;
 
 }
 

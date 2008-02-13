@@ -78,7 +78,7 @@ protected:
   // between two views is quick (e.g., threaded and flat sorted by date).
   PRBool          m_havePrevView;
   nsMsgKeyArray   m_prevKeys;   //this is used for caching non-threaded view.
-  nsUInt32Array   m_prevFlags;
+  nsTArray<PRUint32> m_prevFlags;
   nsTArray<PRUint8>  m_prevLevels;
   nsCOMPtr <nsISimpleEnumerator> m_threadEnumerator;
 };

@@ -349,7 +349,7 @@ protected:
   void FreeAll(nsVoidArray *ptrs);
   void ClearHdrCache();
   nsMsgKeyArray m_keys;
-  nsUInt32Array m_flags;
+  nsTArray<PRUint32> m_flags;
   nsTArray<PRUint8> m_levels;
   nsMsgImapDeleteModel mDeleteModel;
 
@@ -411,7 +411,7 @@ protected:
   nsMsgViewIndex *mJunkIndices;
   PRUint32 mNumJunkIndices;
   
-  nsUInt32Array mIndicesToNoteChange;
+  nsTArray<PRUint32> mIndicesToNoteChange;
 
   // the saved search views keep track of the XX most recently deleted msg ids, so that if the 
   // delete is undone, we can add the msg back to the search results, even if it no longer
