@@ -169,6 +169,11 @@ pref("layout.spellcheckDefault", 2);
 // enable popup blocking
 pref("dom.disable_open_during_load", true);
 
+// disable features that allow websites to change window size and position
+pref("dom.disable_window_status_change", true);
+pref("dom.disable_window_move_resize", true);
+pref("dom.disable_window_flip", true);
+
 // don't hide user:pass when fixing up URIs
 pref("browser.fixup.hide_user_pass", false);
 
