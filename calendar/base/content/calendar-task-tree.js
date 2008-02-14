@@ -54,21 +54,10 @@ function addCalendarNames(aEvent) {
     var tasks = taskTree.selectedTasks;
     var tasksSelected = (tasks.length > 0);
     if (tasksSelected) {
-        var task = tasks[0];
-        var isSame = isPropertyValueSame(tasks, "calendar");
-        var selCalendarName = task.calendar.name;
-        for (i in calendars) {
-            var calendar = calendars[i];
-            var calendarMenuItem = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
-            calendarMenuItem.setAttribute("type", "checkbox");
-            if (isSame && (selCalendarName.length > 0) && (calendar.name == selCalendarName)) {
-                calendarMenuItem.setAttribute("checked", true);
-            }
-            calendarMenuItem.setAttribute("label", calendar.name);
-            calendarMenuItem.setAttribute("oncommand", "contextChangeCalendar(event);");
-            calendarMenuItem.calendar = calendar;
-            calendarMenuPopup.appendChild(calendarMenuItem);
-         }
+        var selIndex = appendCalendarItems(tasks[0], calendarMenuPopup, "contextChangeTaskCalendar(event);");
+        if (isPropertyValueSame(tasks, "calendar") && (selIndex > -1)) {
+            calendarMenuPopup.childNodes[selIndex].setAttribute("checked", "true");
+        }
     }
 }
 
@@ -100,7 +89,7 @@ function changeTaskPriorityMenu(aEvent) {
  *  @param aEvent the event that contains a target from which the child elements
  *  are retrieved and unchecked.
  *  @param aPropertyName the name of the property that is available at a task
- */ 
+ */
 function changeMenuByPropertyName(aEvent, aPropertyName) {
     uncheckChildNodes(aEvent);
     var taskTree = getFocusedTaskTree();
@@ -184,7 +173,7 @@ function contextChangeTaskCategory(aEvent) {
     endBatchTransaction();
 }
 
-function contextChangeCalendar(aEvent) {
+function contextChangeTaskCalendar(aEvent) {
    startBatchTransaction();
    var taskTree = getFocusedTaskTree();
    var tasks = taskTree.selectedTasks;
@@ -192,7 +181,7 @@ function contextChangeCalendar(aEvent) {
        var task = tasks[t];
        var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
        newTask.calendar = aEvent.target.calendar;
-       doTransaction('modify', newTask, newTask.calendar, task, null);
+       doTransaction('move', newTask, newTask.calendar, task, null);
     }
     endBatchTransaction();
 }

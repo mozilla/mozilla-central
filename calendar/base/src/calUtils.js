@@ -898,6 +898,21 @@ function calRadioGroupSelectItem(aRadioGroupId, aItemId) {
     radioGroup.selectedIndex = index;
 }
 
+
+/** checks if an item is supported by a Calendar
+* @param aCalendar the calendar
+* @param aItem the item either a task or an event
+* @return true or false
+*/
+function isItemSupported(aItem, aCalendar) {
+    if (isToDo(aItem)) {
+        return (aCalendar.getProperty("capabilities.tasks.supported") !== false);
+    } else if (isEvent(aItem)) {
+        return (aCalendar.getProperty("capabilities.events.supported") !== false);
+    }
+    return false;
+}
+
 /**
  * Determines whether or not the aObject is a calIEvent
  *

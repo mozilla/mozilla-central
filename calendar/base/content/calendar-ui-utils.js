@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -180,18 +181,6 @@ function enableElementWithLock(elementId, lockId) {
     }
 }
 
-function addCalendarsToMenu(aMenuItem, aFunctionName) {
-    var calendarList = aMenuItem;
-    var calendars = getCalendarManager().getCalendars({});
-    for (i in calendars) {
-        var calendar = calendars[i];
-        var menuitem = calendarList.appendItem(calendar.name, i);
-        if (aFunctionName) {
-            menuitem.setAttribute("oncommand", aFunctionName)
-        }
-        menuitem.calendar = calendar;
-    }
-}
 
 /** unchecks the commands of the child elements of a DOM-tree-node
 * e.g of a menu
@@ -208,6 +197,45 @@ function uncheckChildNodes(aEvent) {
         }
     }
 }
+
+/**
+ * fills up a menu - either a menupopup or a menulist - with menuitems that refer
+ * to calendars
+ * @param   aItem the event or task
+ * @param   aCalendarMenuParent the direct parent of the menuitems -either a menupopup
+ *          or a menulist
+ * @param   aCalendarToUse the default-calendar.
+ * @param   aOnCommand aString that is applied to the "oncommand" attribute of each
+ *          menuitem
+ * @return  the index of the calendar that matches the default-calendar. By default
+ *          0 is returned
+ */
+function appendCalendarItems(aItem, aCalendarMenuParent, aOnCommand) {
+    var calendarToUse = aItem.calendar;
+    var calendars = getCalendarManager().getCalendars({});
+    var indexToSelect = 0;
+    var index = -1;
+    for (var i = 0; i < calendars.length; ++i) {
+        var calendar = calendars[i];
+        if ((calendar.id == calendarToUse.id) ||
+           (calendar && isCalendarWritable(calendar) && isItemSupported(aItem, calendar))) {
+            var menuitem = addMenuItem(aCalendarMenuParent, calendar.name, calendar.name);
+            menuitem.calendar = calendar;
+            index++;
+            if (aOnCommand) {
+                menuitem.setAttribute("oncommand", aOnCommand);
+            }
+            if (aCalendarMenuParent.localName == "menupopup") {
+                menuitem.setAttribute("type", "checkbox");
+            }
+            if ((calendarToUse) && (calendarToUse.id == calendar.id)) {
+                indexToSelect = index;
+            }
+        }
+    }
+    return indexToSelect;
+}
+
 
 function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
     var categoriesString = getLocalizedPref("calendar.categories.names", "");
@@ -265,7 +293,7 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
         aParent.appendChild(item);
     }
     else if (aParent.localName == "menulist") {
-        aParent.appendItem(aLabel, aValue);
+        item = aParent.appendItem(aLabel, aValue);
     }
     return item;
 }
