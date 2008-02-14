@@ -61,6 +61,7 @@
 #define PK12UERR_CERTKEYSAFE 27
 #define PK12UERR_ADDCERTKEY 28
 #define PK12UERR_ENCODE 29
+#define PK12UERR_INVALIDALGORITHM 30
 
 
 /* additions for importing and exporting PKCS 12 files */

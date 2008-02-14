@@ -339,7 +339,7 @@ extern SECOidTag SECU_StringToSignatureAlgTag(const char *alg);
  * encodes with base64 and exports to file if ascii flag is set
  * and file is not NULL. */
 extern SECStatus SECU_StoreCRL(PK11SlotInfo *slot, SECItem *derCrl,
-                               PRFileDesc *outFile, int ascii, char *url);
+                               PRFileDesc *outFile, PRBool ascii, char *url);
 
 
 /*
