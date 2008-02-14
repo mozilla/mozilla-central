@@ -40,7 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-
+#include "prmem.h"
 #include "nsMsgImapCID.h"
 #include "nsImapMailFolder.h"
 #include "nsIEnumerator.h"

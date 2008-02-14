@@ -96,7 +96,7 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
     url->SetMsgWindow(aMsgWindow);
     char *temp = PR_smprintf("mailbox://%s", buf.get());
     url->SetSpec(nsDependentCString(temp));
-    PR_Free(temp);
+    PR_smprintf_free(temp);
     mailboxurl->SetMailboxParser(aMailboxParser);
     if (aUrlListener)
       url->RegisterListener(aUrlListener);
@@ -477,7 +477,7 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
 
       nsCOMPtr <nsIMsgMailNewsUrl> url = do_QueryInterface(*aMailboxUrl);
       url->SetSpec(nsDependentCString(urlSpec));
-      PR_Free(urlSpec);
+      PR_smprintf_free(urlSpec);
 
       (*aMailboxUrl)->SetMailboxAction(aMailboxAction);
 

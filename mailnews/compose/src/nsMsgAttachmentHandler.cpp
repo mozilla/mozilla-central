@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgAttachmentHandler.h"
-
+#include "prmem.h"
 #include "nsMsgCopy.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"

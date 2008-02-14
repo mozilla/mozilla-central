@@ -55,11 +55,11 @@
 #include "rdf.h"
 #include "nsIMsgFolder.h"
 #include "prprf.h"
+#include "prmem.h"
 #include "nsISupportsObsolete.h"
 #include "nsIMsgMailSession.h"
 #include "nsNetUtil.h"
 #include "nsIFileURL.h"
-static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 
 // this is totally lame and MUST be removed by M6
 // the real fix is to attach the URI to the URL as it runs through netlib

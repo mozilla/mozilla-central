@@ -68,6 +68,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsMsgUtils.h"
 #include "prprf.h"
+#include "prmem.h"
 #include "nsISeekableStream.h"
 #include "nsEscape.h"
 #include "nsIMimeHeaders.h"

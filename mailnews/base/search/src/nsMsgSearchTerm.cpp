@@ -40,7 +40,7 @@
 
 #include "msgCore.h"
 #include "nsReadableUtils.h"
-
+#include "prmem.h"
 #include "nsMsgSearchCore.h"
 #include "nsIMsgSearchSession.h"
 #include "nsMsgUtils.h"

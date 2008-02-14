@@ -66,6 +66,7 @@
 #include "nsIChannel.h"
 #include "nsNetUtil.h"
 #include "prlog.h"
+#include "prmem.h"
 #include "nsMsgSimulateError.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"

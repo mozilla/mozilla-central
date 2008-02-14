@@ -39,6 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
+#include "prmem.h"
 #include "nsReadableUtils.h"
 #include "nsIMsgCustomColumnHandler.h"
 #include "nsMsgDBView.h"

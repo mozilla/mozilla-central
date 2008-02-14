@@ -54,6 +54,7 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsCharTraits.h"
 #include "prprf.h"
+#include "prmem.h"
 #include "nsNetCID.h"
 #include "nsIIOService.h"
 #include "nsIRDFService.h"

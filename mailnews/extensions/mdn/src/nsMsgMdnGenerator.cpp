@@ -43,6 +43,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsMimeTypes.h"
 #include "prprf.h"
+#include "prmem.h"
 #include "nsMsgI18N.h"
 #include "nsMailHeaders.h"
 #include "nsMsgLocalFolderHdrs.h"

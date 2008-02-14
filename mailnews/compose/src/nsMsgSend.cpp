@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsMsgSend.h"
-
+#include "prmem.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsMsgSendPart.h"
 #include "nsMsgBaseCID.h"

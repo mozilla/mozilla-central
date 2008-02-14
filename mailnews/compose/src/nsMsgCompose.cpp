@@ -72,6 +72,7 @@
 #include "nsIEditorMailSupport.h"
 #include "nsEscape.h"
 #include "plstr.h"
+#include "prmem.h"
 #include "nsIDocShell.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"

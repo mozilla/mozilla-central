@@ -252,7 +252,7 @@ public:
 
   nsCOMPtr<nsIFile> m_file;
   nsCOMPtr<nsIOutputStream> m_outputStream;
-  char *m_dataBuffer;
+  nsAutoPtr<char> m_dataBuffer;
   nsCOMPtr<nsIChannel> m_channel;
   nsCString m_templateUri;
   nsMessenger *m_messenger; // not ref counted
@@ -1736,7 +1736,7 @@ nsSaveMsgListener::nsSaveMsgListener(nsIFile* aFile, nsMessenger *aMessenger, ns
   mInitialized = PR_FALSE;
   if (m_file)
     NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream), m_file, -1, 00600);
-  m_dataBuffer = (char*) PR_CALLOC(FOUR_K+1);
+  m_dataBuffer = new char[FOUR_K];
 }
 
 nsSaveMsgListener::~nsSaveMsgListener()
@@ -1987,7 +1987,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
         rv = NS_ERROR_FAILURE;
     }
     
-    PR_FREEIF(conBuf);
+    NS_Free(conBuf);
   }
  
   if (m_outputStream)

@@ -864,7 +864,7 @@ nsMsgNewsFolder::DeleteMessages(nsISupportsArray *messages, nsIMsgWindow *aMsgWi
   cancelURL += escapedMessageID;
   cancelURL += "?cancel";
 
-  PR_Free(escapedMessageID);
+  NS_Free(escapedMessageID);
 
   nsCString messageURI;
   rv = GetUriForMsg(msgHdr, messageURI);
