@@ -189,8 +189,7 @@ NS_IMETHODIMP nsMsgMailViewList::AddMailView(nsIMsgMailView * aMailView)
 
 NS_IMETHODIMP nsMsgMailViewList::RemoveMailView(nsIMsgMailView * aMailView)
 {
-    if (m_mailViews)
-      m_mailViews->RemoveElement(static_cast<nsISupports*>(aMailView));
+    m_mailViews->RemoveElement(static_cast<nsISupports*>(aMailView));
     return NS_OK;
 }
 
@@ -210,9 +209,8 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
     // brute force...remove all the old filters in our filter list, then we'll re-add our current
     // list
     nsCOMPtr<nsIMsgFilter> msgFilter;
-    PRUint32 numFilters = 0;
-    if (mFilterList)
-        mFilterList->GetFilterCount(&numFilters);
+    PRUint32 numFilters;
+    mFilterList->GetFilterCount(&numFilters);
     while (numFilters)
     {
         mFilterList->RemoveFilterAt(numFilters - 1);
@@ -223,14 +221,13 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
     ConvertMailViewListToFilterList();
 
     // now save the filters to our file
-    return mFilterList ? mFilterList->SaveToDefaultFile() : NS_ERROR_FAILURE;
+    return mFilterList->SaveToDefaultFile();
 }
 
 nsresult nsMsgMailViewList::ConvertMailViewListToFilterList()
 {
   PRUint32 mailViewCount = 0;
-  if (m_mailViews)
-      m_mailViews->Count(&mailViewCount);
+  m_mailViews->Count(&mailViewCount);
   nsCOMPtr<nsIMsgMailView> mailView;
   nsCOMPtr<nsIMsgFilter> newMailFilter;
   nsString mailViewName;

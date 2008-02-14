@@ -1054,7 +1054,7 @@ private:
 
 nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow *aMsgWindow, TokenAnalyzer* aAnalyzer)
 {
-    NS_ENSURE_ARG_POINTER(aMessageURI);
+
     nsCOMPtr <nsIMsgMessageService> msgService;
     nsresult rv = GetMessageServiceFromURI(nsDependentCString(aMessageURI), getter_AddRefs(msgService));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1247,7 +1247,6 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgW
 /* void classifyMessages (in unsigned long aCount, [array, size_is (aCount)] in string aMsgURLs, in nsIJunkMailClassificationListener aListener); */
 NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **aMsgURLs, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
-    NS_ENSURE_ARG_POINTER(aMsgURLs);
     TokenAnalyzer* analyzer = new MessageClassifier(this, aListener, aMsgWindow, aCount, aMsgURLs);
     if (!analyzer) return NS_ERROR_OUT_OF_MEMORY;
     TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);

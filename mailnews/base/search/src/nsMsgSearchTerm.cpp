@@ -947,8 +947,6 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
                                        PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
-  NS_ENSURE_ARG_POINTER(charset);
-
   PRBool result = PR_FALSE;
 
   nsresult err = NS_OK;

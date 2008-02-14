@@ -128,7 +128,6 @@ NS_IMETHODIMP nsMsgSearchDBView::Close()
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
-  NS_ENSURE_ARG_POINTER(aCol);
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
   if (colID[0] == 'l' && colID[1] == 'o') // location, need to check for "lo" not just "l" to avoid "label" column
@@ -168,9 +167,6 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDB
 
 NS_IMETHODIMP nsMsgSearchDBView::GetFolderForViewIndex(nsMsgViewIndex index, nsIMsgFolder **aFolder)
 {
-  if (!m_folders)
-    return NS_ERROR_FAILURE;
-
   return m_folders->QueryElementAt(index, NS_GET_IID(nsIMsgFolder), (void **) aFolder);
 }
 
@@ -253,8 +249,7 @@ nsMsgSearchDBView::OnNewSearch()
 
   m_dbToUseList.Clear();
 
-  if (m_folders)
-    m_folders->Clear();
+  m_folders->Clear();
   m_keys.RemoveAll();
   m_levels.Clear();
   m_flags.Clear();
@@ -529,9 +524,8 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
     if (NS_SUCCEEDED(aStatus))
     {
         mCurIndex++;
-        PRUint32 numFolders = 0;
-        if (m_uniqueFoldersSelected)
-          rv = m_uniqueFoldersSelected->Count(&numFolders);
+        PRUint32 numFolders =0;
+        rv = m_uniqueFoldersSelected->Count(&numFolders);
         if ( mCurIndex < (PRUint32) numFolders)
         {
           nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
