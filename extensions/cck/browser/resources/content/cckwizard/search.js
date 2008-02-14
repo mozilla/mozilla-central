@@ -1,3 +1,4 @@
+/*
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -41,6 +42,7 @@
 
 # This code is a subset of nsSearchService.js from the current trunk
 # It is used to retrieve the name from a Sherlock SRC file
+*/
 
 const PERMS_FILE                 = 0644;
 const MODE_RDONLY                = 0x01;
