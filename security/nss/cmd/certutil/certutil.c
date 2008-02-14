@@ -517,8 +517,8 @@ listCerts(CERTCertDBHandle *handle, char *name, PK11SlotInfo *slot,
 		}
 		rv = SECSuccess;
 	    } else {
-		rv = SEC_PrintCertificateAndTrust(the_cert, the_cert->trust,
-		                                  "Certificate");
+		rv = SEC_PrintCertificateAndTrust(the_cert, "Certificate",
+                                                  the_cert->trust);
 		if (rv != SECSuccess) {
 		    SECU_PrintError(progName, "problem printing certificate");
 		}
