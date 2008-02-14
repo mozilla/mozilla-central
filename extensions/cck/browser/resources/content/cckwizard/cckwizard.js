@@ -706,7 +706,6 @@ function RefreshDefaultSearchEngines()
   if (!listbox)
     listbox = this.opener.document.getElementById('searchEngineList');
 
-
   var curitem = menulist.value;
   menulist.selectedIndex = -1;
   menulist.removeAllItems();
@@ -724,6 +723,18 @@ function RefreshDefaultSearchEngines()
       setcuritem = true;
     menulistitem.minWidth=menulist.width;
   }
+  var ss = Components.classes["@mozilla.org/browser/search-service;1"]
+                     .getService(Components.interfaces.nsIBrowserSearchService);
+  var engines = ss.getVisibleEngines({ });
+  for (var i=0; i < engines.length; i++) {
+    name = engines[i].name;
+    menulistitem = menulist.appendItem(name, name);
+    if (name == curitem)
+      setcuritem = true;
+    menulistitem.minWidth=menulist.width;
+  }
+
+
   if (setcuritem)
     menulist.value = curitem;
   else 

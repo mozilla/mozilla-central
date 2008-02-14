@@ -305,7 +305,7 @@
   </wizardpage>
 
 
-  <wizardpage label="&customizeSearchEngines.label;">
+  <wizardpage label="&customizeSearchEngines.label;" onpageshow="RefreshDefaultSearchEngines();">
     <groupbox>
       <caption label="&engines.label;"/>
     <description>&searchEngines.description;</description>
@@ -315,7 +315,7 @@
 
     <hbox align="center">
       <label control="defaultSearchEngine" value="&defaultSearchEngine.label;" />
-       <menulist editable="true" id="defaultSearchEngine">
+       <menulist id="defaultSearchEngine">
          <menupopup>
          </menupopup>
        </menulist>
