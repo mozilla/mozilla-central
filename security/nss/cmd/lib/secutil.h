@@ -297,7 +297,7 @@ extern int SECU_PrintSignedData(FILE *out, SECItem *der, char *m, int level,
 /* Print cert data and its trust flags */
 extern SECStatus SEC_PrintCertificateAndTrust(CERTCertificate *cert,
                                               const char *label,
-                                              void *arg);
+                                              CERTCertTrust *trust);
 
 extern int SECU_PrintCrl(FILE *out, SECItem *der, char *m, int level);
 

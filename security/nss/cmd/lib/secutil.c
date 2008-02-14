@@ -3229,11 +3229,10 @@ loser:
 SECStatus
 SEC_PrintCertificateAndTrust(CERTCertificate *cert,
                              const char *label,
-                             void *arg)
+                             CERTCertTrust *trust)
 {
     SECStatus rv;
     SECItem data;
-    CERTCertTrust *trust = (CERTCertTrust *)arg;
     
     data.data = cert->derCert.data;
     data.len = cert->derCert.len;

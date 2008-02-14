@@ -410,35 +410,6 @@ ChangeTrustAttributes(CERTCertDBHandle *handle, PK11SlotInfo *slot,
 }
 
 static SECStatus
-printCertCB(CERTCertificate *cert, void *arg)
-{
-    SECStatus rv;
-    SECItem data;
-    CERTCertTrust *trust = (CERTCertTrust *)arg;
-    
-    data.data = cert->derCert.data;
-    data.len = cert->derCert.len;
-
-    rv = SECU_PrintSignedData(stdout, &data, "Certificate", 0,
-			      SECU_PrintCertificate);
-    if (rv) {
-	SECU_PrintError(progName, "problem printing certificate");
-	return(SECFailure);
-    }
-    if (trust) {
-	SECU_PrintTrustFlags(stdout, trust,
-	                     "Certificate Trust Flags", 1);
-    } else if (cert->trust) {
-	SECU_PrintTrustFlags(stdout, cert->trust,
-	                     "Certificate Trust Flags", 1);
-    }
-
-    printf("\n");
-
-    return(SECSuccess);
-}
-
-static SECStatus
 DumpChain(CERTCertDBHandle *handle, char *name)
 {
     CERTCertificate *the_cert;
