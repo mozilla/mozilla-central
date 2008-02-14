@@ -76,7 +76,7 @@ interface nsISOAPMessage : nsISupports {
    * may also use this accessor to get the document to avoid using 
    * decoders.
    */
-  attribute nsIDOMDocument message;
+  [binaryname(MessageMoz)] attribute nsIDOMDocument message;
 
   /**
    * A convenience attribute to obtain the DOM element representing the

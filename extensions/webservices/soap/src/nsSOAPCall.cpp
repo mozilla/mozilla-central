@@ -143,7 +143,7 @@ NS_IMETHODIMP nsSOAPCall::Invoke(nsISOAPResponse ** _retval)
     return rv;
 
   nsCOMPtr<nsIDOMDocument> document;
-  rv = response->GetMessage(getter_AddRefs(document));        //  No XML response.
+  rv = response->GetMessageMoz(getter_AddRefs(document));   //  No XML response.
   if (NS_FAILED(rv))
     return rv;
   if (!document) {

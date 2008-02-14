@@ -380,7 +380,7 @@ nsHTTPSOAPTransport::SyncCall(nsISOAPCall * aCall, nsISOAPResponse * aResponse)
   NS_ENSURE_ARG(aCall);
 
   nsCOMPtr<nsIDOMDocument> messageDocument;
-  nsresult rv = aCall->GetMessage(getter_AddRefs(messageDocument));
+  nsresult rv = aCall->GetMessageMoz(getter_AddRefs(messageDocument));
   if (NS_FAILED(rv))
     return rv;
   if (!messageDocument)
@@ -423,7 +423,7 @@ nsHTTPSOAPTransport::SyncCall(nsISOAPCall * aCall, nsISOAPResponse * aResponse)
       return rv;
     if (response) {
     DEBUG_DUMP_DOCUMENT("Asynchronous Response", response)}
-    rv = aResponse->SetMessage(response);
+    rv = aResponse->SetMessageMoz(response);
     if (NS_FAILED(rv))
       return rv;
   }
@@ -518,7 +518,7 @@ NS_IMETHODIMP
       nsCOMPtr<nsIDOMDocument> document;
       rv = mRequest->GetResponseXML(getter_AddRefs(document));
       if (NS_SUCCEEDED(rv) && document) {
-        rv = mResponse->SetMessage(document);
+        rv = mResponse->SetMessageMoz(document);
         ChangePrincipal(document);
         DEBUG_DUMP_DOCUMENT("Asynchronous Response", document)
       } 
@@ -548,7 +548,7 @@ nsHTTPSOAPTransport::AsyncCall(nsISOAPCall * aCall,
 
 
   nsCOMPtr<nsIDOMDocument> messageDocument;
-  nsresult rv = aCall->GetMessage(getter_AddRefs(messageDocument));
+  nsresult rv = aCall->GetMessageMoz(getter_AddRefs(messageDocument));
   if (NS_FAILED(rv))
     return rv;
   if (!messageDocument)

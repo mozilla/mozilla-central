@@ -65,7 +65,7 @@ NS_IMPL_ISUPPORTS1_CI(WSPException, nsIException)
 
 /* readonly attribute string message; */
 NS_IMETHODIMP
-WSPException::GetMessage(char * *aMessage)
+WSPException::GetMessageMoz(char * *aMessage)
 {
   NS_ENSURE_ARG_POINTER(aMessage);
 
@@ -178,6 +178,6 @@ WSPException::ToString(char **_retval)
     return GetName(_retval);
   }
   // else
-  return GetMessage(_retval);
+  return GetMessageMoz(_retval);
 }
 

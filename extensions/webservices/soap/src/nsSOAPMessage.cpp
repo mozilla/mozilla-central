@@ -73,7 +73,7 @@ NS_IMETHODIMP nsSOAPMessage::GetMessageMoz(nsIDOMDocument * *aMessage)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsSOAPMessage::SetMessage(nsIDOMDocument * aMessage)
+NS_IMETHODIMP nsSOAPMessage::SetMessageMoz(nsIDOMDocument * aMessage)
 {
   mMessage = aMessage;
   return NS_OK;
