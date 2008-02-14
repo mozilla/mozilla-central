@@ -1563,6 +1563,7 @@ function CCKWriteProperties(destdir)
   input.close();
 
   str = str.replace(/%id%/g, document.getElementById("id").value);
+  str = str.replace(/%version%/g, document.getElementById("version").value);
   str = str.replace(/%OrganizationName%/g, document.getElementById("OrganizationName").value);
   str = str.replace(/%browser.throbber.url%/g, document.getElementById("AnimatedLogoURL").value);
   str = str.replace(/%cckhelp.url%/g, document.getElementById("HelpMenuCommandURL").value);
