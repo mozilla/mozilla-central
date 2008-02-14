@@ -1805,7 +1805,7 @@ function CCKWriteDefaultJS(destdir)
   
   var bundle = document.getElementById("bundle_cckwizard");
 
-  if (document.getElementById("defaultSearchEngine").value != bundle.getString("useBrowserDefault")) {
+  if (document.getElementById("defaultSearchEngine").selectedItem.label != bundle.getString("useBrowserDefault")) {
     fos.write(searchengine1, searchengine1.length);
     fos.write(searchengine2, searchengine2.length);
   }
