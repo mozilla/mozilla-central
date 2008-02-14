@@ -261,6 +261,7 @@
                   this.treebox.rowCountChanged(index, 1);
                   this.tree.view.selection.select(index);
               }
+              this.treebox.ensureRowIsVisible(this.rowCount - 1);
           },
 
           removeItem: function tTV_removeItem(aItem) {
