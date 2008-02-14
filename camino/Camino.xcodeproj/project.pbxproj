@@ -1006,8 +1006,6 @@
 		DE1BDD250AD4E13000F0C7BD /* tab_scroll_button_right.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE1BDD230AD4E13000F0C7BD /* tab_scroll_button_right.tiff */; };
 		DE1BDD260AD4E13000F0C7BD /* tab_scroll_button_left.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE1BDD220AD4E13000F0C7BD /* tab_scroll_button_left.tiff */; };
 		DE1BDD270AD4E13000F0C7BD /* tab_scroll_button_right.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE1BDD230AD4E13000F0C7BD /* tab_scroll_button_right.tiff */; };
-		DE1E11C00C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */; };
-		DE1E11C10C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */; };
 		DE1EBDBE0D066F5100BE9ECC /* mathfontUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */; };
 		DE1EBDBF0D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */; };
 		DE1EBDC00D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */; };
@@ -1531,7 +1529,6 @@
 			files = (
 				0E6A98A2097E00A6007962C1 /* mathml.css in Copy Gecko Resources */,
 				82180AC807368B21002EFA6D /* EditorOverride.css in Copy Gecko Resources */,
-				DE1E11C10C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */,
 				82180AB107368AD7002EFA6D /* grabber.gif in Copy Gecko Resources */,
 				82180AB207368AD7002EFA6D /* table-add-column-after-active.gif in Copy Gecko Resources */,
 				82180AB307368AD7002EFA6D /* table-add-column-after-hover.gif in Copy Gecko Resources */,
@@ -1814,7 +1811,6 @@
 			dstSubfolderSpec = 6;
 			files = (
 				82CE28C0073661F600B4DE07 /* EditorOverride.css in Copy Gecko Resources */,
-				DE1E11C00C28C92B00CD6DD4 /* effective_tld_names.dat in Copy Gecko Resources */,
 				82CE28AA0736618A00B4DE07 /* grabber.gif in Copy Gecko Resources */,
 				82CE28AB0736618A00B4DE07 /* table-add-column-after-active.gif in Copy Gecko Resources */,
 				82CE28AC0736618A00B4DE07 /* table-add-column-after-hover.gif in Copy Gecko Resources */,
@@ -2488,7 +2484,6 @@
 		DE09CD720ACB97C5008A8D9C /* popup_close_hover.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = popup_close_hover.tiff; path = resources/images/chrome/popup_close_hover.tiff; sourceTree = SOURCE_ROOT; };
 		DE1BDD220AD4E13000F0C7BD /* tab_scroll_button_left.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_scroll_button_left.tiff; path = resources/images/chrome/tab_scroll_button_left.tiff; sourceTree = SOURCE_ROOT; };
 		DE1BDD230AD4E13000F0C7BD /* tab_scroll_button_right.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_scroll_button_right.tiff; path = resources/images/chrome/tab_scroll_button_right.tiff; sourceTree = SOURCE_ROOT; };
-		DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = effective_tld_names.dat; path = ../dist/Embed/res/effective_tld_names.dat; sourceTree = SOURCE_ROOT; };
 		DE1EBDBA0D066F5100BE9ECC /* mathfontUnicode.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontUnicode.properties; path = ../dist/bin/res/fonts/mathfontUnicode.properties; sourceTree = SOURCE_ROOT; };
 		DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXSize1.properties; path = ../dist/bin/res/fonts/mathfontSTIXSize1.properties; sourceTree = SOURCE_ROOT; };
 		DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = mathfontSTIXNonUnicode.properties; path = ../dist/bin/res/fonts/mathfontSTIXNonUnicode.properties; sourceTree = SOURCE_ROOT; };
@@ -4487,7 +4482,6 @@
 				F6BD64BC01B316DA01A962F7 /* maccharset.properties */,
 				E091C0D006225EA3007D9E8F /* cursors */,
 				F5949A46030D58A1014E8430 /* dtd */,
-				DE1E11BF0C28C92B00CD6DD4 /* effective_tld_names.dat */,
 				F6BD64D701B3172601A962F7 /* entityTables */,
 				0E6A988C097E0007007962C1 /* fonts */,
 				F6BD64DD01B3172601A962F7 /* forms.css */,
