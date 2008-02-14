@@ -21,7 +21,7 @@ use Cwd;
 use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.1 $ ';
+$::UtilsVersion = '$Revision: 1.2 $ ';
 
 package TinderUtils;
 
@@ -217,7 +217,7 @@ sub PrintExampleConfig {
 
 sub GetSystemInfo {
     $Settings::OS = `uname -s`;
-    my $os_ver = `uname -r`;
+    my $os_ver = `uname -r | sed "s/(.*//"`;
     $Settings::CPU = `uname -m`;
     #$Settings::ObjDir = '';
     my $host = ::hostname();

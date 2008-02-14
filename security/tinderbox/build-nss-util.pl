@@ -19,7 +19,7 @@ use Sys::Hostname;
 use strict;
 use POSIX qw(sys_wait_h strftime);
 
-$::UtilsVersion = '$Revision: 1.2 $ ';
+$::UtilsVersion = '$Revision: 1.3 $ ';
 
 package TinderNssUtils;
 
@@ -35,7 +35,7 @@ my $test_options;
 my $test_cycle = 0;
 my $test_cycles_total = 1;
 
-$::Version = '$Revision: 1.2 $ ';
+$::Version = '$Revision: 1.3 $ ';
 
 sub Build {
     BuildAndRun();
@@ -75,6 +75,7 @@ sub BuildAndRun {
         $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS $hostname";
         $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/sparc $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'sun4u';
         $Settings::BuildName = "$Settings::Branch $nsstests $Settings::OS/x86 $hostname" if $Settings::OS eq 'SunOS' and $Settings::CPU eq 'i86pc';
+        $Settings::BuildName = "$Settings::Branch $nsstests Windows $hostname" if $Settings::OS =~ /^MINGW/;
 
         print "Starting dir is : $build_dir\n";
 
@@ -124,13 +125,13 @@ sub BuildAndRun {
         }
 
         if ($test_cycle eq 0) {
-            TinderUtils::print_log("TinderboxPrint:Standard");
+            TinderUtils::print_log("TinderboxPrint:Standard\n");
         } elsif ($test_cycle eq 1) { 
-            TinderUtils::print_log("TinderboxPrint:PKIX");
+            TinderUtils::print_log("TinderboxPrint:PKIX\n");
         } elsif ($test_cycle eq 2) {
-            TinderUtils::print_log("TinderboxPrint:Upgrade DB");
+            TinderUtils::print_log("TinderboxPrint:Upgrade DB\n");
         } elsif ($test_cycle eq 3) {
-            TinderUtils::print_log("TinderboxPrint:Shared DB");
+            TinderUtils::print_log("TinderboxPrint:Shared DB\n");
         }
 
         TinderUtils::PrintEnv();
@@ -235,6 +236,7 @@ sub cvs_checkout {
     my $cvsco;
     my @cvsfiles;
     my $cvsitem;
+    my $status;
 
     my $build_status = 'none';
 
@@ -254,9 +256,9 @@ sub cvs_checkout {
         @cvsfiles = @TreeSpecific::tip_cvsfiles;
     }
 
+    TinderUtils::print_log("######### CVS checkout #########\n");
     for $cvsitem (@cvsfiles) {
-        print '##################################\n';
-        my $status = TinderUtils::run_shell_command("$Settings::CVS $cvsco $cvsitem");
+        $status = TinderUtils::run_shell_command("$Settings::CVS $cvsco $cvsitem");
         if ($status ne 0) {
             $build_status = "busted";
             TinderUtils::print_log("Error: CVS checkout failed.\n");
@@ -264,6 +266,31 @@ sub cvs_checkout {
         } else {
             $build_status = "success";
         }
+    }
+       
+    TinderUtils::print_log("######### CVS stat diff #########\n");
+    if (-f "cvs_stat") {
+        $status = rename("cvs_stat", "cvs_stat.last"); 
+        if (! $status) {
+            $build_status = "busted";
+            TinderUtils::print_log("Error: Can't rename CVS stat file.\n");
+            return $build_status;
+        }
+    } 
+    $status = TinderUtils::run_shell_command("$Settings::CVS stat mozilla > cvs_stat");
+    if ($status ne 0) {
+        $build_status = "busted";
+        TinderUtils::print_log("Error: CVS stat failed.\n");
+        unlink("cvs_stat");
+        return $build_status;
+    }
+    if (! -f "cvs_stat.last") {
+        TinderUtils::print_log("CVS stat diff - skipping (don't have older data).\n");
+        return $build_status;
+    }
+    $status = TinderUtils::run_shell_command("diff -U4 cvs_stat.last cvs_stat"); 
+    if ($status ne 0) {
+        TinderUtils::print_log("TinderboxPrint:CVS change\n");
     }
 
     return $build_status;

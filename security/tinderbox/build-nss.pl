@@ -12,7 +12,7 @@ use strict;
 # They are not initialized here. The default values are after "__END__".
 $TreeSpecific::nss_build_target = $TreeSpecific::jss_build_target = @TreeSpecific::tip_cvsfiles = @TreeSpecific::jes5_cvsfiles = $TreeSpecific::nss_extraflags = $::Version = undef;
 
-$::Version = '$Revision: 1.2 $ ';
+$::Version = '$Revision: 1.3 $ ';
 
 {
     TinderUtils::Setup();
@@ -39,7 +39,7 @@ sub tree_specific_overides {
         '-r NSS_3_11_BRANCH mozilla/security/dbm', 
         '-r NSS_3_11_BRANCH mozilla/security/coreconf', 
         '-r NSS_3_11_BRANCH mozilla/security/nss', 
-        '-r JSS_4_2_5_RTM mozilla/security/jss', 
+        'mozilla/security/jss', 
         '-r NSS_3_11_1_RTM mozilla/security/nss/lib/freebl/ecl/ecl-curve.h'
     );
 

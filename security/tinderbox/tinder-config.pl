@@ -4,6 +4,7 @@ $Tinderbox_server   = 'tinderbox-daemon@tinderbox.mozilla.org';
 #$Tinderbox_server   = 'slavomir.katuscak@sun.com';
 
 $mail               = 'rsh mace.red.iplanet.com -l svbld /bin/mail';
+$CVS                = 'cvs -d :pserver:anonymous@63.245.209.14:/cvsroot';
 
 if ($hostname eq 'attic') {
     $DbgObjDir64 = 'Linux2.4_x86_64_glibc_PTH_64_DBG.OBJ';
@@ -14,6 +15,7 @@ if ($hostname eq 'attic') {
     $JavaHome32  = '/opt/jdk/1.6.0_01/Linux';
     $BuildBits   = 'both'; 
     $Branch      = 'securitytip';
+    $BuildSleep  = 30;
 }
 
 if ($hostname eq 'dopushups') {
@@ -54,6 +56,7 @@ if ($hostname eq 'dositups') {
     $JavaHome32  = '/opt/jdk/1.6.0_01/SunOS_x86';
     $BuildBits   = 'both';
     $Branch      = 'securitytip';
+    $BuildSleep  = 30;
 }
 
 if ($hostname eq 'aquash') {
@@ -63,6 +66,7 @@ if ($hostname eq 'aquash') {
     $Branch      = 'securitytip';
     $NSSTests    = 'memleak';
     $SkipJSS     = '1';
+    $BuildSleep  = 30;
 }
 
 if ($hostname eq 'boy') {
@@ -143,4 +147,12 @@ if ($hostname eq 'NSS-W2KP') {
     $JavaHome32  = 'C:/Progra~1/Java/jdk1.6.0_01';
     $BuildBits   = '32';
     $Branch      = 'securityjes5';
+}
+
+if ($hostname eq 'JESMA51') {
+    $DbgObjDir64 = 'WINNT5.2_64_DBG.OBJ';
+    $OptObjDir64 = 'WINNT5.2_64_OPT.OBJ';
+    $JavaHome64  = "/c/Progra~1/Java/jdk1.6.0_04";
+    $BuildBits   = '64';
+    $Branch      = 'securitytip';
 }
