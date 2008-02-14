@@ -631,7 +631,7 @@ static int jar_extract_mf (JAR *jar, jarArch format, JAR_FILE fp, char *ext)
   ZZList *list;
 
   char *fn, *e;
-  char ZHUGEP *manifest;
+  char ZHUGEP *manifest = NULL;
 
   long length;
   int status, ret = 0, num;
@@ -683,13 +683,10 @@ static int jar_extract_mf (JAR *jar, jarArch format, JAR_FILE fp, char *ext)
         }
 
       /* Read in the manifest and parse it */
-      /* FIX? Does this break on win16 for very very large manifest files? */
-
-#ifdef XP_WIN16
-      PORT_Assert( phy->length+1 < 0xFFFF );
-#endif
-
-      manifest = (char ZHUGEP *) PORT_ZAlloc (phy->length + 1);
+      /* limit is per J2SE SDK */
+      if (phy->length <= 0xFFFF) {
+          manifest = (char ZHUGEP *) PORT_ZAlloc (phy->length + 1);
+      }
       if (manifest)
         {
         JAR_FSEEK (fp, phy->offset, (PRSeekWhence)0);
