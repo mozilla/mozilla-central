@@ -286,52 +286,13 @@ function loadDialog(item) {
 
     loadDateTime(item);
 
-    var isItemSupported;
-    if (isToDo(calendarItem)) {
-        isItemSupported = function isTodoSupported(cal) {
-            return (cal.getProperty("capabilities.tasks.supported") !== false);
-        };
-    } else if (isEvent(calendarItem)) {
-        isItemSupported = function isEventSupported(cal) {
-            return (cal.getProperty("capabilities.events.supported") !== false);
-        };
-    }
-
     // add calendars to the calendar menulist
     var calendarList = document.getElementById("item-calendar");
-    var calendars = getCalendarManager().getCalendars({});
-    var calendarToUse = item.calendar || window.arguments[0].calendar
-    var selectIndex = 0;
-    for (var i = 0; i < calendars.length; ++i) {
-        var calendar = calendars[i];
-        if (calendar == item.calendar ||
-            calendar == window.arguments[0].calendar) {
-            var menuitem = calendarList.appendItem(calendar.name, i);
-            menuitem.calendar = calendar;
-            if (calendarToUse) {
-                if (calendarToUse.id == calendar.id) {
-                    calendarList.selectedIndex = selectIndex;
-                }
-            }
-            selectIndex++;
-        } else if (calendar &&
-                   isCalendarWritable(calendar) &&
-                   isItemSupported(calendar)) {
-            var menuitem = calendarList.appendItem(calendar.name, i);
-            menuitem.calendar = calendar;
-            if (calendarToUse) {
-                if (calendarToUse.id == calendar.id) {
-                    calendarList.selectedIndex = selectIndex;
-                }
-            }
-            selectIndex++;
-        }
-    }
-
-    // no calendar attached to item
-    // select first entry in calendar list as default
-    if (!calendarToUse) {
-        document.getElementById("item-calendar").selectedIndex = 0;
+    var calendarToUse = item.calendar || window.arguments[0].calendar;
+    item.calendar = calendarToUse;
+    var indexToSelect = appendCalendarItems(item, calendarList);
+    if (indexToSelect > -1) {
+        calendarList.selectedIndex = indexToSelect;
     }
 
     // Categories
