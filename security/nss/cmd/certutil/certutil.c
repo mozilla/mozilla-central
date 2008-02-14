@@ -556,6 +556,11 @@ ListCerts(CERTCertDBHandle *handle, char *nickname, PK11SlotInfo *slot,
 {
     SECStatus rv;
 
+    if (!ascii && !raw) {
+        PR_fprintf(outfile, "\n%-60s %-5s\n%-60s %-5s\n\n",
+                   "Certificate Nickname", "Trust Attributes", "",
+                   "SSL,S/MIME,JAR/XPI");
+    }
     if (slot == NULL) {
 	CERTCertList *list;
 	CERTCertListNode *node;
@@ -1002,6 +1007,8 @@ static void LongUsage(char *progName)
 	"   -n cert-name");
     FPS "%-20s Set the certificate trust attributes:\n",
 	"   -t trustargs");
+    FPS "%-25s trustargs is of the form x,y,z where x is for SSL, y is for S/MIME,\n", "");
+    FPS "%-25s and z is for code signing\n", "");
     FPS "%-25s p \t valid peer\n", "");
     FPS "%-25s P \t trusted peer (implies p)\n", "");
     FPS "%-25s c \t valid CA\n", "");
