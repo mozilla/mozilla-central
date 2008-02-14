@@ -273,6 +273,8 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *fold
 NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 {
+  if (!m_viewFolder)
+    return NS_ERROR_NOT_INITIALIZED;
   // handle any non verified hits we haven't handled yet.
   UpdateCacheAndViewForPrevSearchedFolders(nsnull);
 
@@ -320,7 +322,8 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   m_doingSearch = PR_TRUE;
 
-  m_folders->Clear();
+  if (m_folders)
+    m_folders->Clear();
   m_keys.RemoveAll();
   m_levels.Clear();
   m_flags.Clear();
@@ -334,10 +337,11 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   // and for each folder, then open the db and pull out the cached hits, add them to the view.
   // For each hit in a new folder, we'll then clean up the stale hits from the previous folder(s).
 
-  PRInt32 scopeCount;
+  PRInt32 scopeCount = 0;
   nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
-  searchSession->CountSearchScopes(&scopeCount);
+  if (searchSession)
+    searchSession->CountSearchScopes(&scopeCount);
   for (PRInt32 i = 0; i < scopeCount; i++)
   {
     nsMsgSearchScopeValue scopeId;

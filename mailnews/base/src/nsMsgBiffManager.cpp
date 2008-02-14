@@ -154,6 +154,7 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
 
 NS_IMETHODIMP nsMsgBiffManager::AddServerBiff(nsIMsgIncomingServer *server)
 {
+  NS_ENSURE_ARG_POINTER(server);
   nsresult rv;
   PRInt32 biffMinutes;
   
@@ -211,6 +212,7 @@ NS_IMETHODIMP nsMsgBiffManager::ForceBiffAll()
 
 NS_IMETHODIMP nsMsgBiffManager::OnServerLoaded(nsIMsgIncomingServer *server)
 {
+  NS_ENSURE_ARG_POINTER(server);
   nsresult rv;
   PRBool doBiff = PR_FALSE;
   

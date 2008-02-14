@@ -826,11 +826,13 @@ NS_IMETHODIMP nsImapService::Search(nsIMsgSearchSession *aSearchSession,
                                     nsIMsgFolder *aMsgFolder, 
                                     const char *aSearchUri)
 {
-  nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(aMsgFolder);
+  nsresult rv;
   nsCAutoString	folderURI;
   
   nsCOMPtr<nsIImapUrl> imapUrl;
-  nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(aSearchSession);
+  nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(aSearchSession, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   
   nsCAutoString urlSpec;
   PRUnichar hierarchySeparator = GetHierarchyDelimiter(aMsgFolder);
@@ -1122,6 +1124,7 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
                                            const char *aAdditionalHeader,
                                            nsIURI **aURL)
 {
+  NS_ENSURE_ARG_POINTER(aMessageURI);
   nsCOMPtr<nsIMsgFolder> folder;
   nsCAutoString msgKey;
   nsCAutoString mimePart;
@@ -1463,6 +1466,7 @@ NS_IMETHODIMP nsImapService::DeleteFolder(nsIEventTarget *aClientEventTarget,
                                           nsIMsgWindow *aMsgWindow,
                                           nsIURI **aURL)
 {
+  NS_ENSURE_ARG_POINTER(aImapMailFolder);
   // If it's an aol server then use 'deletefolder' url to 
   // remove all msgs first and then remove the folder itself.
   PRBool removeFolderAndMsgs = PR_FALSE;
@@ -2695,7 +2699,9 @@ NS_IMETHODIMP nsImapService::GetDefaultLocalPath(nsILocalFile **aResult)
                                      NS_APP_IMAP_MAIL_50_DIR,
                                      havePref,
                                      getter_AddRefs(localFile));
-  
+
+  if (!localFile)
+    return NS_ERROR_FAILURE;
   PRBool exists;
   rv = localFile->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists)
