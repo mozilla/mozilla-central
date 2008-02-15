@@ -176,6 +176,7 @@ var unifinderObserver = {
     },
 
     onCalendarRemoved: function uO_onCalendarRemoved(aDeletedItem) {
+        // TODO only remove such items that belong to the calendar
         if (!this.mInBatch) {
             refreshEventTree();
         }
@@ -208,6 +209,14 @@ function prepareCalendarUnifinder() {
         var viewDeck = getViewDeck();
         viewDeck.addEventListener("dayselect", unifinderDaySelect, false);
         viewDeck.addEventListener("itemselect", unifinderItemSelect, true);
+
+        // Set up sortDirection and sortActive, in case it persisted
+        var active = document.getElementById("unifinder-search-results-tree-cols")
+                             .getElementsByAttribute("sortActive", "true");
+        if (active.length > 0) {
+            unifinderTreeView.selectedColumn = active[0].id;
+            unifinderTreeView.sortDirection = active[0].getAttribute("sortDirection");
+        }
 
         // Display something upon first load. onLoad doesn't work properly for
         // observers
@@ -404,6 +413,20 @@ var unifinderTreeView = {
         this.calculateIndexMap();
     },
 
+    setItems: function uTV_setItems(aItemArray, aDontSort) {
+        var oldCount = this.eventArray.length;
+        this.eventArray = aItemArray.slice(0);
+        if (this.tree) {
+            this.tree.rowCountChanged(0, (this.eventArray.length - oldCount));
+        }
+       
+        if (aDontSort) {
+            //this.calculateIndexMap();
+        } else {
+            this.sortItems();
+        }
+    },
+
     calculateIndexMap: function uTV_calculateIndexMap() {
         this.eventIndexMap = {};
         for (var i = 0 ; i < this.eventArray.length; i++) {
@@ -417,15 +440,17 @@ var unifinderTreeView = {
 
     sortItems: function uTV_sortItems() {
         // Get a current locale string collator for compareEvents
-        var localeService =
-            Components
-            .classes["@mozilla.org/intl/nslocaleservice;1"]
-            .getService(Components.interfaces.nsILocaleService);
-        this.localeCollator =
-            Components
-            .classes["@mozilla.org/intl/collation-factory;1"]
-            .getService(Components.interfaces.nsICollationFactory)
-            .CreateCollation(localeService.getApplicationLocale());
+        if (!this.localeCollator) {
+            var localeService =
+                Components
+                .classes["@mozilla.org/intl/nslocaleservice;1"]
+                .getService(Components.interfaces.nsILocaleService);
+            this.localeCollator =
+                Components
+                .classes["@mozilla.org/intl/collation-factory;1"]
+                .getService(Components.interfaces.nsICollationFactory)
+                .CreateCollation(localeService.getApplicationLocale());
+        }
 
         // cache sort keys, used by compareEvents
         this.sortKeyByEvent_cache = new Object();
@@ -905,16 +930,7 @@ function refreshEventTree() {
 function refreshEventTreeInternal(eventArray) {
     var searchText = document.getElementById("unifinder-search-field").value;
 
-    unifinderTreeView.clearItems();
-    for (var j in eventArray) {
-        var item = eventArray[j];
-        if (isItemInFilter(item)) {
-            unifinderTreeView.addItems([item], true);
-        }
-    }
-
-    // Finally, sort the items since it was suppressed above
-    unifinderTreeView.sortItems();
+    unifinderTreeView.setItems(eventArray.filter(isItemInFilter));
 
     // Select selected events in the tree. Not passing the argument gets the
     // items from the view.
