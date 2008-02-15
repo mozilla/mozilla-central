@@ -213,12 +213,8 @@ clobber::
 	rm -rf $(OBJS) $(TARGETS) $(filter-out . ..,$(OBJDIR)) $(GARBAGE) so_locations $(NOSUCHFILE)
 	+$(LOOP_OVER_DIRS)
 
-realclean clobber_all::
+realclean clobber_all distclean::
 	rm -rf $(wildcard *.OBJ *.OBJD) dist $(ALL_TRASH)
-	+$(LOOP_OVER_DIRS)
-
-distclean::
-	rm -rf $(wildcard *.OBJ *.OBJD) dist $(ALL_TRASH) $(DIST_GARBAGE)
 	+$(LOOP_OVER_DIRS)
 
 real_install:: $(RELEASE_BINS) $(RELEASE_HEADERS) $(RELEASE_LIBS)

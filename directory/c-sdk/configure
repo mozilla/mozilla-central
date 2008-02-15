@@ -6883,6 +6883,8 @@ ldap/libraries/libutil/Makefile
 mkdir ldap > /dev/null 2>&1
 mkdir ldap/clients > /dev/null 2>&1
 
+echo $MAKEFILES > unallmakefiles
+
 trap '' 1 2 15
 cat > confcache <<\EOF
 # This file is a shell script that caches the results of configure

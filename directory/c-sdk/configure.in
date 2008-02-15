@@ -2645,4 +2645,6 @@ dnl structure for us..
 mkdir ldap > /dev/null 2>&1
 mkdir ldap/clients > /dev/null 2>&1
 
+echo $MAKEFILES > unallmakefiles
+
 AC_OUTPUT([$MAKEFILES])

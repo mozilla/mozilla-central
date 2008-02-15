@@ -56,3 +56,7 @@ depend:
 
 FORCE:
 
+distclean::
+	rm -f $(DIST_GARBAGE)
+	rm -f config/autoconf.mk
+	rm -f `cat unallmakefiles` unallmakefiles
