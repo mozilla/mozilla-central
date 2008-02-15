@@ -493,10 +493,20 @@ function ltnInitializeMenus(){
     document.getElementById("modeBroadcaster").setAttribute("checked", visible);
     document.getElementById("calendar-toolbar").setAttribute("collapsed", gCurrentMode!="calendar");
     document.getElementById("task-toolbar").setAttribute("collapsed", gCurrentMode!="task");
-    var progressToolbarPopupMenu = clonePopupMenu("calendar.context.progress-menu", "toolbar-progress-menu", "tb-");
-    document.getElementById("task-progress-button").appendChild(progressToolbarPopupMenu);
-    var priorityToolbarPopupMenu = clonePopupMenu("calendar.context.priority-menu", "toolbar-priority-menu", "tb-");
-    document.getElementById("task-priority-button").appendChild(priorityToolbarPopupMenu);
+
+    var taskProgressButton = document.getElementById("task-progress-button");
+    if (taskProgressButton) {
+        taskProgressButton.appendChild(clonePopupMenu("calendar.context.progress-menu",
+                                                      "toolbar-progress-menu",
+                                                      "tb-"));
+    }
+
+    var taskPriorityButton = document.getElementById("task-priority-button");
+    if (taskPriorityButton) {
+        taskPriorityButton.appendChild(clonePopupMenu("calendar.context.priority-menu",
+                                                      "toolbar-priority-menu",
+                                                      "tb-"));
+    }
 }
 
 function getMenuElementById(aElementId, aMenuPopup) {
