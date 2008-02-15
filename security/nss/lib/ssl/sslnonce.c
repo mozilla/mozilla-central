@@ -36,19 +36,17 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.19 2008-02-15 00:46:47 nelson%bolyard.com Exp $ */
+/* $Id: sslnonce.c,v 1.20 2008-02-15 07:39:23 nelson%bolyard.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
 #include "secitem.h"
 #include "ssl.h"
-#include "nss.h" /* for NSS_RegisterShutdown */
 
 #include "sslimpl.h"
 #include "sslproto.h"
 #include "nssilock.h"
 #include "nsslocks.h"
-#include "prinit.h"
 #if (defined(XP_UNIX) || defined(XP_WIN) || defined(_WINDOWS) || defined(XP_BEOS)) && !defined(_WIN32_WCE)
 #include <time.h>
 #endif
@@ -70,34 +68,10 @@ static PZLock *      cacheLock = NULL;
 #define LOCK_CACHE 	lock_cache()
 #define UNLOCK_CACHE	PZ_Unlock(cacheLock)
 
-static const PRCallOnceType pristineCallOnce;
-static       PRCallOnceType setupClientCacheLockOnce;
-
-static SECStatus clientCacheLockShutdown(void* appData, void* nssData)
-{
-    if (cacheLock) {
-	PZ_DestroyLock(cacheLock);
-	cacheLock = NULL;
-    }
-    setupClientCacheLockOnce = pristineCallOnce;
-    return SECSuccess;
-}
-
-static PRStatus clientCacheLockSetup(void)
-{
-    SECStatus rv = NSS_RegisterShutdown(clientCacheLockShutdown, NULL);
-    PORT_Assert(SECSuccess == rv);
-    if (SECSuccess == rv) {
-	nss_InitLock(&cacheLock, nssILockCache);
-	return PR_SUCCESS;
-    }
-    return PR_FAILURE;
-}
-
 void ssl_InitClientSessionCacheLock(void)
 {
     if (!cacheLock)
-	PR_CallOnce(&setupClientCacheLockOnce, &clientCacheLockSetup);
+	nss_InitLock(&cacheLock, nssILockCache);
 }
 
 static void 
@@ -385,7 +359,7 @@ ssl_Time(void)
 {
     PRUint32 myTime;
 #if (defined(XP_UNIX) || defined(XP_WIN) || defined(_WINDOWS) || defined(XP_BEOS)) && !defined(_WIN32_WCE)
-    myTime = (PRUint32)time(NULL);	/* accurate until the year 2038. */
+    myTime = time(NULL);	/* accurate until the year 2038. */
 #else
     /* portable, but possibly slower */
     PRTime now;

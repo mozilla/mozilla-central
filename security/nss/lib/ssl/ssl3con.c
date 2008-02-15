@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.104 2008-02-08 22:13:22 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: ssl3con.c,v 1.105 2008-02-15 07:39:23 nelson%bolyard.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -3944,6 +3944,8 @@ SSL3_ShutdownServerCache(void)
     }
 
     PZ_Unlock(symWrapKeysLock);
+    PZ_DestroyLock(symWrapKeysLock);
+    symWrapKeysLock = NULL;
     return SECSuccess;
 }
 
