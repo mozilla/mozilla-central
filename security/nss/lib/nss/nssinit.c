@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.88 2008-02-15 02:27:32 nelson%bolyard.com Exp $ */
+/* $Id: nssinit.c,v 1.89 2008-02-15 02:49:44 nelson%bolyard.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -652,8 +652,8 @@ struct NSSShutdownFuncPair {
 
 static struct NSSShutdownListStr {
     PZLock		*lock;
-    int			maxFuncs;
-    int			numFuncs;
+    int			allocatedFuncs;
+    int			peakFuncs;
     struct NSSShutdownFuncPair	*funcs;
 } nssShutdownList = { 0 };
 
@@ -664,7 +664,7 @@ static int
 nss_GetShutdownEntry(NSS_ShutdownFunc sFunc, void *appData)
 {
     int count, i;
-    count = nssShutdownList.numFuncs;
+    count = nssShutdownList.peakFuncs;
     /* expect the list to be short, just do a linear search */
     for (i=0; i < count; i++) {
 	if ((nssShutdownList.funcs[i].func == sFunc) &&
@@ -697,34 +697,34 @@ NSS_RegisterShutdown(NSS_ShutdownFunc sFunc, void *appData)
 
     /* make sure we don't have a duplicate */
     i = nss_GetShutdownEntry(sFunc, appData);
-    if (i > 0) {
+    if (i >= 0) {
 	PZ_Unlock(nssShutdownList.lock);
 	PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
 	return SECFailure;
     }
     /* find an empty slot */
     i = nss_GetShutdownEntry(NULL, NULL);
-    if (i > 0) {
+    if (i >= 0) {
 	nssShutdownList.funcs[i].func = sFunc;
 	nssShutdownList.funcs[i].appData = appData;
 	PZ_Unlock(nssShutdownList.lock);
 	return SECSuccess;
     }
-    if (nssShutdownList.maxFuncs == nssShutdownList.numFuncs) {
+    if (nssShutdownList.allocatedFuncs == nssShutdownList.peakFuncs) {
 	struct NSSShutdownFuncPair *funcs = 
 		(struct NSSShutdownFuncPair *)PORT_Realloc
 		(nssShutdownList.funcs, 
-		(nssShutdownList.maxFuncs + NSS_SHUTDOWN_STEP) 
+		(nssShutdownList.allocatedFuncs + NSS_SHUTDOWN_STEP) 
 		*sizeof(struct NSSShutdownFuncPair));
 	if (!funcs) {
 	    return SECFailure;
 	}
 	nssShutdownList.funcs = funcs;
-	nssShutdownList.maxFuncs += NSS_SHUTDOWN_STEP;
+	nssShutdownList.allocatedFuncs += NSS_SHUTDOWN_STEP;
     }
-    nssShutdownList.funcs[nssShutdownList.numFuncs].func = sFunc;
-    nssShutdownList.funcs[nssShutdownList.numFuncs].appData = appData;
-    nssShutdownList.numFuncs++;
+    nssShutdownList.funcs[nssShutdownList.peakFuncs].func = sFunc;
+    nssShutdownList.funcs[nssShutdownList.peakFuncs].appData = appData;
+    nssShutdownList.peakFuncs++;
     PZ_Unlock(nssShutdownList.lock);
     return SECSuccess;
 }
@@ -744,7 +744,7 @@ NSS_UnregisterShutdown(NSS_ShutdownFunc sFunc, void *appData)
     PORT_Assert(nssShutdownList.lock);
     PZ_Lock(nssShutdownList.lock);
     i = nss_GetShutdownEntry(sFunc, appData);
-    if (i > 0) {
+    if (i >= 0) {
 	nssShutdownList.funcs[i].func = NULL;
 	nssShutdownList.funcs[i].appData = NULL;
     }
@@ -774,8 +774,8 @@ nss_InitShutdownList(void)
     	nssShutdownList.lock = NULL;
 	return SECFailure;
     }
-    nssShutdownList.maxFuncs = NSS_SHUTDOWN_STEP;
-    nssShutdownList.numFuncs = 0;
+    nssShutdownList.allocatedFuncs = NSS_SHUTDOWN_STEP;
+    nssShutdownList.peakFuncs = 0;
 
     return SECSuccess;
 }
@@ -787,7 +787,7 @@ nss_ShutdownShutdownList(void)
     int i;
 
     /* call all the registerd functions first */
-    for (i=0; i < nssShutdownList.numFuncs; i++) {
+    for (i=0; i < nssShutdownList.peakFuncs; i++) {
 	struct NSSShutdownFuncPair *funcPair = &nssShutdownList.funcs[i];
 	if (funcPair->func) {
 	    if ((*funcPair->func)(funcPair->appData,NULL) != SECSuccess) {
@@ -796,8 +796,8 @@ nss_ShutdownShutdownList(void)
 	}
     }
 
-    nssShutdownList.numFuncs = 0;
-    nssShutdownList.maxFuncs = 0;
+    nssShutdownList.peakFuncs = 0;
+    nssShutdownList.allocatedFuncs = 0;
     PORT_Free(nssShutdownList.funcs);
     nssShutdownList.funcs = NULL;
     if (nssShutdownList.lock) {
