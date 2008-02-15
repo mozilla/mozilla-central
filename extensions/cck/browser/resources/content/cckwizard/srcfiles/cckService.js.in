@@ -256,7 +256,10 @@ CCKService.prototype={
         prefName = "";
       }
       if (prefName && prefName.length) {
-        if ((prefName == "browser.startup.homepage") || (prefName == "browser.throbber.url")) {
+        if ((prefName == "browser.startup.homepage") ||
+            (prefName == "browser.search.defaultenginename") ||
+            (prefName == "browser.search.order.1") ||
+            (prefName == "browser.throbber.url")) {
           var url = bundle.GetStringFromName(prefName);
           if (url) {
             defprefbranch.setCharPref(prefName, url);

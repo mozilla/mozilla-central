@@ -358,7 +358,8 @@ Array.prototype.exists = function (x) {
 }
 
 var prefsLockOnly = ["browser.startup.homepage", "browser.throbber.url",
-                     "startup.homepage_override_url", "startup.homepage_welcome_url", 
+                     "startup.homepage_override_url", "startup.homepage_welcome_url",
+                     "browser.search.defaultenginename", "browser.search.order.1",
                      "network.proxy.type", "network.proxy.http", "network.proxy.http_port",
                      "network.proxy.share_proxy_settings", "network.proxy.ssl",
                      "network.proxy.ssl_port", "network.proxy.ftp", "network.proxy.ftp_port",
@@ -1814,8 +1815,12 @@ function CCKWriteDefaultJS(destdir)
   var bundle = document.getElementById("bundle_cckwizard");
 
   if (document.getElementById("defaultSearchEngine").selectedItem.label != bundle.getString("useBrowserDefault")) {
-    fos.write(searchengine1, searchengine1.length);
-    fos.write(searchengine2, searchengine2.length);
+    if (!prefIsLocked("browser.search.defaultenginename")) {
+      fos.write(searchengine1, searchengine1.length);
+    }
+    if (!prefIsLocked("browser.search.order.1")) {
+      fos.write(searchengine2, searchengine2.length);
+    }
   }
   
 
