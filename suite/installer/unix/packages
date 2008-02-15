@@ -50,7 +50,6 @@ bin/mozilla-xremote-client
 bin/platform.ini
 bin/plugins/libnullplugin.so
 bin/README
-bin/res/effective_tld_names.dat
 bin/run-mozilla.sh
 
 ; shared libraries
