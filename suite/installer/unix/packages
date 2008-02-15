@@ -90,7 +90,6 @@ bin/components/content_xtf.xpt
 bin/components/contentprefs.xpt
 bin/components/libcookie.so
 bin/components/cookie.xpt
-bin/components/crashreporter.xpt
 bin/components/directory.xpt
 bin/components/libdocshell.so
 bin/components/docshell.xpt

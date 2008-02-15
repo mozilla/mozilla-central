@@ -59,6 +59,7 @@ components/content_html.xpt
 components/content_htmldoc.xpt
 components/content_xmldoc.xpt
 components/content_xslt.xpt
+components/crashreporter.xpt
 components/docshell_base.xpt
 components/dom.xpt
 components/dom_base.xpt

@@ -57,6 +57,7 @@ components/airbag.xpt
 components/@DLL_PREFIX@bookmark@DLL_SUFFIX@
 components/bookmarks.xpt
 components/chatzilla-service.js
+components/crashreporter.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
 components/nsScriptableIO.js

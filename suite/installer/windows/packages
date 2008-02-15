@@ -98,7 +98,6 @@ bin\components\content_xtf.xpt
 bin\components\contentprefs.xpt
 bin\components\cookie.dll
 bin\components\cookie.xpt
-bin\components\crashreporter.xpt
 bin\components\directory.xpt
 bin\components\docshell.dll
 bin\components\docshell_base.xpt
