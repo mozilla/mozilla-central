@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.18 2008-02-14 23:58:27 nelson%bolyard.com Exp $ */
+/* $Id: sslnonce.c,v 1.19 2008-02-15 00:46:47 nelson%bolyard.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -48,6 +48,7 @@
 #include "sslproto.h"
 #include "nssilock.h"
 #include "nsslocks.h"
+#include "prinit.h"
 #if (defined(XP_UNIX) || defined(XP_WIN) || defined(_WINDOWS) || defined(XP_BEOS)) && !defined(_WIN32_WCE)
 #include <time.h>
 #endif
