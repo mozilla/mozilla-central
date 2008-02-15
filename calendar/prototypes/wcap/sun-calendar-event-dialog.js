@@ -288,9 +288,7 @@ function loadDialog(item) {
 
     // add calendars to the calendar menulist
     var calendarList = document.getElementById("item-calendar");
-    var calendarToUse = item.calendar || window.arguments[0].calendar;
-    item.calendar = calendarToUse;
-    var indexToSelect = appendCalendarItems(item, calendarList);
+    var indexToSelect = appendCalendarItems(item, calendarList, window.arguments[0].calendar);
     if (indexToSelect > -1) {
         calendarList.selectedIndex = indexToSelect;
     }
@@ -731,7 +729,11 @@ function saveDialog(item) {
         setItemProperty(item, "PERCENT-COMPLETE", percentCompleteInteger);
     }
 
-     setCategory(item, "item-categories");
+    setCategory(item, "item-categories");
+
+    // Calendar
+    item.calendar = document.getElementById("item-calendar")
+                            .selectedItem.calendar;
 
     // URL
     setItemProperty(item, "URL", gURL, "attachments");

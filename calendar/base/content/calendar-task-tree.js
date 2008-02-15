@@ -54,7 +54,7 @@ function addCalendarNames(aEvent) {
     var tasks = taskTree.selectedTasks;
     var tasksSelected = (tasks.length > 0);
     if (tasksSelected) {
-        var selIndex = appendCalendarItems(tasks[0], calendarMenuPopup, "contextChangeTaskCalendar(event);");
+        var selIndex = appendCalendarItems(tasks[0], calendarMenuPopup, null, "contextChangeTaskCalendar(event);");
         if (isPropertyValueSame(tasks, "calendar") && (selIndex > -1)) {
             calendarMenuPopup.childNodes[selIndex].setAttribute("checked", "true");
         }

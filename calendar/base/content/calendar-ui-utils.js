@@ -182,11 +182,12 @@ function enableElementWithLock(elementId, lockId) {
 }
 
 
-/** unchecks the commands of the child elements of a DOM-tree-node
-* e.g of a menu
-* @param aEvent the event from which the target is taken to retrieve the child
-* elements
-*/
+/** 
+ * Unchecks the commands of the child elements of a DOM-tree-node e.g of a menu
+ *
+ * @param aEvent    The event from which the target is taken to retrieve the
+ *                    child elements
+ */
 function uncheckChildNodes(aEvent) {
     var liveList = aEvent.target.getElementsByAttribute("checked", "true");
     for (var i = liveList.length - 1; i >= 0; i-- ) {
@@ -199,26 +200,29 @@ function uncheckChildNodes(aEvent) {
 }
 
 /**
- * fills up a menu - either a menupopup or a menulist - with menuitems that refer
- * to calendars
- * @param   aItem the event or task
- * @param   aCalendarMenuParent the direct parent of the menuitems -either a menupopup
- *          or a menulist
- * @param   aCalendarToUse the default-calendar.
- * @param   aOnCommand aString that is applied to the "oncommand" attribute of each
- *          menuitem
- * @return  the index of the calendar that matches the default-calendar. By default
- *          0 is returned
+ * Fills up a menu - either a menupopup or a menulist - with menuitems that refer
+ * to calendars.
+ *
+ * @param aItem                 The event or task
+ * @param aCalendarMenuParent   The direct parent of the menuitems - either a
+ *                                menupopup or a menulist
+ * @param aCalendarToUse        The default-calendar
+ * @param aOnCommand            A string that is applied to the "oncommand" 
+ *                                attribute of each menuitem
+ * @return                      The index of the calendar that matches the
+ *                                default-calendar. By default 0 is returned.
  */
-function appendCalendarItems(aItem, aCalendarMenuParent, aOnCommand) {
-    var calendarToUse = aItem.calendar;
+function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnCommand) {
+    var calendarToUse = aCalendarToUse || aItem.calendar;
     var calendars = getCalendarManager().getCalendars({});
     var indexToSelect = 0;
     var index = -1;
     for (var i = 0; i < calendars.length; ++i) {
         var calendar = calendars[i];
-        if ((calendar.id == calendarToUse.id) ||
-           (calendar && isCalendarWritable(calendar) && isItemSupported(aItem, calendar))) {
+        if (calendar.id == calendarToUse.id ||
+            (calendar &&
+             isCalendarWritable(calendar) &&
+             isItemSupported(aItem, calendar))) {
             var menuitem = addMenuItem(aCalendarMenuParent, calendar.name, calendar.name);
             menuitem.calendar = calendar;
             index++;
@@ -228,14 +232,13 @@ function appendCalendarItems(aItem, aCalendarMenuParent, aOnCommand) {
             if (aCalendarMenuParent.localName == "menupopup") {
                 menuitem.setAttribute("type", "checkbox");
             }
-            if ((calendarToUse) && (calendarToUse.id == calendar.id)) {
+            if (calendarToUse && calendarToUse.id == calendar.id) {
                 indexToSelect = index;
             }
         }
     }
     return indexToSelect;
 }
-
 
 function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
     var categoriesString = getLocalizedPref("calendar.categories.names", "");
