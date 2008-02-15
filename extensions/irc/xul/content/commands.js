@@ -2957,9 +2957,11 @@ function cmdAway(e)
 
 function cmdOpenAtStartup(e)
 {
-    var url = e.sourceObject.getURL();
+    var origURL = e.sourceObject.getURL();
+    var url = makeCanonicalIRCURL(origURL);
     var list = client.prefs["initialURLs"];
-    var index = arrayIndexOf(list, url);
+    ensureCachedCanonicalURLs(list);
+    var index = arrayIndexOf(list.canonicalURLs, url);
 
     if (e.toggle == null)
     {
@@ -2977,7 +2979,7 @@ function cmdOpenAtStartup(e)
         // yes, please open at startup
         if (index == -1)
         {
-            list.push(url);
+            list.push(origURL);
             list.update();
             display(getMsg(MSG_STARTUP_ADDED, url));
         }

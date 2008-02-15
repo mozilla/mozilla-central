@@ -1192,12 +1192,30 @@ function msgIsImportant(msg, sourceNick, network)
     return false;
 }
 
-function isStartupURL(url)
+function ensureCachedCanonicalURLs(array)
 {
-    return arrayContains(client.prefs["initialURLs"], url);
+    if ("canonicalURLs" in array)
+        return;
+
+    /* Caching this on the array is safe because the PrefManager constructs
+     * a new array if the preference changes, but otherwise keeps the same
+     * one around.
+     */
+    array.canonicalURLs = new Array();
+    for (var i = 0; i < array.length; i++)
+        array.canonicalURLs.push(makeCanonicalIRCURL(array[i]));
 }
 
-function cycleView (amount)
+function isStartupURL(url)
+{
+    // We canonicalize all URLs before we do the (string) comparison.
+    url = makeCanonicalIRCURL(url);
+    var list = client.prefs["initialURLs"];
+    ensureCachedCanonicalURLs(list);
+    return arrayContains(list.canonicalURLs, url);
+}
+
+function cycleView(amount)
 {
     var len = client.viewsArray.length;
     if (len <= 1)

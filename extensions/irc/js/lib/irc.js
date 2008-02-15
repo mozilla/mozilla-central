@@ -2799,6 +2799,7 @@ CIRCChannel.prototype.getURL =
 function chan_geturl()
 {
     var target = this.encodedName;
+    var flags = this.mode.key ? ["needkey"] : [];
 
     if ((target[0] == "#") &&
         arrayIndexOf(this.parent.channelTypes, target[1]) == -1)
@@ -2808,7 +2809,7 @@ function chan_geturl()
          */
         target = target.substr(1);
     }
-    return this.parent.parent.getURL(target);
+    return this.parent.parent.getURL(target, flags);
 }
 
 CIRCChannel.prototype.rehome =
@@ -3732,4 +3733,24 @@ function constructIRCURL(obj)
     return url + flags + parseFlags(obj) + parseQuery(obj);
 }
 
+/* Canonicalizing an IRC URL removes all items which aren't necessary to
+ * identify the target. For example, an IRC URL with ?pass=password and one
+ * without (but otherwise identical) are refering to the same target, so
+ * ?pass= is removed.
+ */
+function makeCanonicalIRCURL(url)
+{
+    var canonicalProps = { scheme: true, host: true, port: true,
+                           target: true, isserver: true, isnick: true };
+
+    var urlObject = parseIRCURL(url);
+    if (!urlObject)
+        return ""; // Input wasn't a valid IRC URL.
+    for (var prop in urlObject)
+    {
+        if (!(prop in canonicalProps))
+            delete urlObject[prop];
+    }
+    return constructIRCURL(urlObject);
+}
 
