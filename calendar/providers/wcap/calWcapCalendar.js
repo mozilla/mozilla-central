@@ -183,6 +183,9 @@ calWcapCalendar.prototype = {
     getProperty: function calWcapCalendar_getProperty(aName) {
         var value = this.__proto__.__proto__.getProperty.apply(this, arguments);
         switch (aName) {
+        case "cache.supported":
+            value = false; // until bug 412914 and bug 412606 are fixed
+            break;
         case "private.wcapCalendar":
             value = this;
             break;
