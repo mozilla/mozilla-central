@@ -93,6 +93,9 @@ CCKService.prototype={
     var defprefbranch;
     try {
       prefbranch=Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+      defprefbranch = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefService)
+                                .getDefaultBranch(null);
     } catch (ex) {
       return;
     }
@@ -253,8 +256,15 @@ CCKService.prototype={
         prefName = "";
       }
       if (prefName && prefName.length) {
-        if (prefName == "browser.startup.homepage") {
-        
+        if ((prefName == "browser.startup.homepage") || (prefName == "browser.throbber.url")) {
+          var url = bundle.GetStringFromName(prefName);
+          if (url) {
+            defprefbranch.setCharPref(prefName, url);
+          } else {
+            url = defprefbranch.getComplexValue(prefName,
+                                Components.interfaces.nsIPrefLocalizedString).data;
+            defprefbranch.setCharPref(prefName, url);
+          }
         } 
         prefbranch.lockPref(prefName);
       }

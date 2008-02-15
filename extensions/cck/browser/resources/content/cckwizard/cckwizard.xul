@@ -216,15 +216,32 @@
         <label control="HomePageURL">&homePage.label;</label>
         <textbox id="HomePageURL" flex="1"/>
       </hbox>
+    </groupbox>
+    <groupbox>
+      <caption label="&homePageWelcome.caption;"/>
+      <description>&homePageWelcome.description;</description>
+      <hbox align="center">
+        <label control="HomePageWelcomeURL">&homePageWelcome.label;</label>
+        <textbox id="HomePageWelcomeURL" flex="1"/>
+      </hbox>
+      <hbox align="center">
+        <checkbox id="noWelcomePage" label="&noWelcomePage.label;"/>
+      </hbox>
+    </groupbox>
+    <groupbox>
+      <caption label="&homePageOverride.caption;"/>
       <description>&homePageOverride.description;</description>
       <hbox align="center">
         <label control="HomePageOverrideURL">&homePageOverride.label;</label>
         <textbox id="HomePageOverrideURL" flex="1"/>
       </hbox>
        <hbox align="center">
-         <checkbox id="noWelcomePage" label="&noWelcomePage.label;"/>
+         <checkbox id="noOverridePage" label="&noOverridePage.label;"/>
        </hbox>
     </groupbox>
+  </wizardpage>
+
+  <wizardpage label="&customizePartTwo.label;" onpageshow="initimage('LargeStillPath','LargeStill');initimage('LargeAnimPath','LargeAnim');" onpageadvanced="return ValidateFile('LargeAnimPath','LargeStillPath');">
     <groupbox>
       <caption label="&titleBar.caption;"/>
       <description>&titleBar.description;</description>
@@ -233,9 +250,6 @@
         <textbox id="CompanyName" flex="1"/>
       </hbox>
     </groupbox>
-  </wizardpage>
-
-  <wizardpage label="&customizePartTwo.label;" onpageshow="initimage('LargeStillPath','LargeStill');initimage('LargeAnimPath','LargeAnim');" onpageadvanced="return ValidateFile('LargeAnimPath','LargeStillPath');">
     <groupbox>
       <caption label="&animLogo.caption;"/>
       <description>&animLogoURL.description;</description>

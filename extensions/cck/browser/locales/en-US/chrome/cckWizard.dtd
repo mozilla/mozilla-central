@@ -53,13 +53,19 @@
 <!ENTITY  orgName.label                 "Enter Your Company Identifier (up to 10 characters; no spaces):">
 <!ENTITY  orgName.caption               "Company Identifier">
 
-<!ENTITY  homePage.caption              "Home Pages">
+<!ENTITY  homePage.caption              "Home Page">
 <!ENTITY  homePage.label                "Default Home Page URL:">
 <!ENTITY  homePage.description          "This page is displayed when users first start the Firefox browser, or when they click the Home button.">
 
-<!ENTITY  homePageOverride.description  "On the very first invocation of Firefox after a new profile is created, a welcome page is displayed. You can choose to replace this page or to not display it at all.">
-<!ENTITY  homePageOverride.label        "Replacement Welcome Page URL:">
+<!ENTITY  homePageWelcome.caption       "Welcome Page">
+<!ENTITY  homePageWelcome.description   "On the very first invocation of Firefox after a new profile is created, a welcome page is displayed. You can choose to replace this page or to not display it at all.">
+<!ENTITY  homePageWelcome.label         "Replacement Welcome Page URL:">
 <!ENTITY  noWelcomePage.label           "Do not display the welcome page">
+
+<!ENTITY  homePageOverride.caption       "Upgrade Page">
+<!ENTITY  homePageOverride.description   "After upgrading to a new version of Firefox, an override page is displayed. You can choose to replace this page or to not display it at all.">
+<!ENTITY  homePageOverride.label         "Upgrade Page URL:">
+<!ENTITY  noOverridePage.label           "Do not display the upgrade page">
 
 <!ENTITY  titleBar.caption              "Browser Window&apos;s Title Bar Text">
 <!ENTITY  titleBar.label                "Custom Title Bar Text:">

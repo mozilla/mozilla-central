@@ -358,6 +358,7 @@ Array.prototype.exists = function (x) {
 }
 
 var prefsLockOnly = ["browser.startup.homepage", "browser.throbber.url",
+                     "startup.homepage_override_url", "startup.homepage_welcome_url", 
                      "network.proxy.type", "network.proxy.http", "network.proxy.http_port",
                      "network.proxy.share_proxy_settings", "network.proxy.ssl",
                      "network.proxy.ssl_port", "network.proxy.ftp", "network.proxy.ftp_port",
@@ -1751,8 +1752,9 @@ function CCKWriteDefaultJS(destdir)
 {
   var throbber1 = 'pref("browser.throbber.url",            "';
   var homepage1 = 'pref("browser.startup.homepage",        "';
-  var homepage2 = 'pref("startup.homepage_override_url",   "chrome://cck/content/cck.properties");\n';
-  var override  = 'pref("browser.startup.homepage_override.mstone",   "ignore");\n';
+  var homepage2 = 'pref("startup.homepage_override_url",   "';
+  var homepage3 = 'pref("startup.homepage_welcome_url",   "';
+
   var chromeurl =   "chrome://cck/content/cck.properties";
   var prefend = '");\n';
   var useragent1begin = 'pref("general.useragent.vendorComment", "CK-';
@@ -1773,36 +1775,42 @@ function CCKWriteDefaultJS(destdir)
 
   var logobuttonurl = document.getElementById("AnimatedLogoURL").value;
   if (logobuttonurl && (logobuttonurl.length > 0)) {
-    fos.write(throbber1, throbber1.length);
-    if (prefIsLocked("browser.throbber.url")) {
-      fos.write(logobuttonurl, logobuttonurl.length);
-    } else {
+    /* If the pref is locked, we set it in our service using */
+    /* The value from properties */
+    if (!prefIsLocked("browser.throbber.url")) {
+      fos.write(throbber1, throbber1.length);
       fos.write(chromeurl, chromeurl.length);
+      fos.write(prefend, prefend.length);
     }
-    fos.write(prefend, prefend.length);
   }
 
   var browserstartuppage = document.getElementById("HomePageURL").value;
   var overrideurl = document.getElementById('HomePageOverrideURL').value;
+  var welcomeurl = document.getElementById('HomePageWelcomeURL').value;
   if (browserstartuppage && (browserstartuppage.length > 0)) {
-    fos.write(homepage1, homepage1.length);
-    if (prefIsLocked("browser.startup.homepage")) {
-      fos.write(browserstartuppage, browserstartuppage.length);
-    } else {    
+    /* If the pref is locked, we set it in our service using */
+    /* The value from properties */
+    if (!prefIsLocked("browser.startup.homepage")) {
+      fos.write(homepage1, homepage1.length);
       fos.write(chromeurl, chromeurl.length);
+      fos.write(prefend, prefend.length);
+    }
+  }
+  if ((overrideurl && overrideurl.length) || (document.getElementById("noOverridePage").checked)) {
+    fos.write(homepage2, homepage2.length);
+    if (!document.getElementById("noOverridePage").checked) {
+      fos.write(overrideurl, overrideurl.length);
     }
     fos.write(prefend, prefend.length);
+  }
+  if ((welcomeurl && welcomeurl.length) || (document.getElementById("noWelcomePage").checked)) {
+    fos.write(homepage3, homepage3.length);
+    if (!document.getElementById("noWelcomePage").checked) {
+      fos.write(welcomeurl, welcomeurl.length);
+    }
+    fos.write(prefend, prefend.length);
+  }
 
-    fos.write(homepage2, homepage2.length);
-  } else if (overrideurl && overrideurl.length) {
-    fos.write(homepage2, homepage2.length);
-  }
-  
-  if (document.getElementById("noWelcomePage").checked) {
-    fos.write(override, override.length);
-  }
-  
-  
   var bundle = document.getElementById("bundle_cckwizard");
 
   if (document.getElementById("defaultSearchEngine").selectedItem.label != bundle.getString("useBrowserDefault")) {
@@ -2711,6 +2719,9 @@ function CCKReadConfigFile(srcdir)
   
   var noWelcomePage = document.getElementById("noWelcomePage");
   noWelcomePage.checked = configarray["noWelcomePage"];
+
+  var noWelcomePage = document.getElementById("noOverridePage");
+  noWelcomePage.checked = configarray["noOverridePage"];
 
 
   var proxyitem = document.getElementById("shareAllProxies");
