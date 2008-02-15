@@ -811,7 +811,8 @@ nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray *a
   {
     newViewPosition = FindKey(aMsgKeyArray->GetAt(index), PR_FALSE);
     // add the index back to the selection.
-    mTreeSelection->ToggleSelect(newViewPosition);
+    if (newViewPosition != nsMsgViewIndex_None)
+      mTreeSelection->ToggleSelect(newViewPosition);
   }
 
   // make sure the currentView was preserved....
@@ -1111,7 +1112,7 @@ nsresult nsMsgDBView::GetSelectedIndices(nsMsgViewIndexArray& selection)
     selection.SetLength(count);
     count = 0;
     PRInt32 selectionCount;
-    nsresult rv = mTreeSelection->GetRangeCount(&selectionCount);
+    mTreeSelection->GetRangeCount(&selectionCount);
     for (PRInt32 i = 0; i < selectionCount; i++)
     {
       PRInt32 startRange = -1;
@@ -6243,15 +6244,16 @@ NS_IMETHODIMP nsMsgDBView::SelectFolderMsgByKey(nsIMsgFolder *aFolder, nsMsgKey 
 
   nsMsgViewIndex viewIndex = FindKey(aKey, PR_TRUE /* expand */);
 
-  mTreeSelection->Select(viewIndex);
-
   if (mTree)
     mTreeSelection->SetCurrentIndex(viewIndex);
 
   // make sure the current message is once again visible in the thread pane
   // so we don't have to go search for it in the thread pane
   if (mTree && viewIndex != nsMsgViewIndex_None)
+  {
+    mTreeSelection->Select(viewIndex);
     mTree->EnsureRowIsVisible(viewIndex);
+  }
   return NS_OK;
 }
 
