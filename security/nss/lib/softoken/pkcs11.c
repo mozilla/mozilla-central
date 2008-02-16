@@ -65,7 +65,7 @@
 #include "prtypes.h"
 #include "nspr.h"
 #include "softkver.h"
-
+#include "secoid.h"
 #include "sftkdb.h"
 #include "sftkpars.h"
 
@@ -2554,7 +2554,6 @@ CK_RV NSC_Initialize(CK_VOID_PTR pReserved)
     return crv;
 }
 
-extern SECStatus SECOID_Shutdown(void);
 
 /* NSC_Finalize indicates that an application is done with the 
  * Cryptoki library.*/

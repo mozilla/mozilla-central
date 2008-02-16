@@ -51,6 +51,7 @@
 #include "softoken.h"
 #include "nspr.h"
 #include "nss.h"
+#include "secoid.h"
 
 #ifdef NSS_ENABLE_ECC
 #include "ecl-curve.h"
