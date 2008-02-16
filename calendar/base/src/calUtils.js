@@ -1730,10 +1730,10 @@ function sendMailTo(aRecipient, aSubject, aBody) {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                         .getService(Components.interfaces.nsIIOService);
 
-        var uriString = "";
+        var uriString = "mailto:";
         var uriParams = [];
-        if (!aRecipient || aRecipient.length < 1) {
-            uriString = "mailto:" + aRecipient;
+        if (aRecipient) {
+            uriString += aRecipient;
         }
 
         if (aSubject) {
