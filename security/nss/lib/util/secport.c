@@ -41,7 +41,7 @@
  * 
  * NOTE - These are not public interfaces
  *
- * $Id: secport.c,v 1.20 2006-08-15 23:56:01 wtchang%redhat.com Exp $
+ * $Id: secport.c,v 1.21 2008-02-16 04:38:09 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "seccomon.h"
@@ -50,7 +50,7 @@
 #include "plarena.h"
 #include "secerr.h"
 #include "prmon.h"
-#include "nsslocks.h"
+#include "nssilock.h"
 #include "secport.h"
 #include "prvrsion.h"
 #include "prenv.h"

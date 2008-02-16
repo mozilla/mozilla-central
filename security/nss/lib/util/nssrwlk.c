@@ -166,41 +166,6 @@ NSSRWLock_Destroy(NSSRWLock *rwlock)
     PR_DELETE(rwlock);
 }
 
-/***********************************************************************
-**  Given the address of a NULL pointer to a NSSRWLock, 
-**  atomically initializes that pointer to a newly created NSSRWLock.
-**  Returns the value placed into that pointer, or NULL.
-**   If the lock cannot be created because of resource constraints, 
-**   the pointer will be left NULL.
-**  
-***********************************************************************/
-PR_IMPLEMENT(NSSRWLock *)
-nssRWLock_AtomicCreate( NSSRWLock  ** prwlock, 
-			PRUint32      lock_rank, 
-			const char *  lock_name)
-{
-    NSSRWLock  *    rwlock;
-    static PRInt32  initializers;
-
-    PR_ASSERT(prwlock != NULL);
-
-    /* atomically initialize the lock */
-    while (NULL == (rwlock = *prwlock)) {
-        PRInt32 myAttempt = PR_AtomicIncrement(&initializers);
-        if (myAttempt == 1) {
-            if (NULL == (rwlock = *prwlock)) {
-                *prwlock = rwlock = NSSRWLock_New(lock_rank, lock_name);
-            }
-            (void) PR_AtomicDecrement(&initializers);
-            break;
-        }
-        PR_Sleep(PR_INTERVAL_NO_WAIT);          /* PR_Yield() */
-        (void) PR_AtomicDecrement(&initializers);
-    }
-
-    return rwlock;
-}
-
 /*
 ** Read-lock the RWLock.
 */

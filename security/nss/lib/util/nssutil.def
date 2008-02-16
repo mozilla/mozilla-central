@@ -51,7 +51,6 @@
 ;+    global:
 LIBRARY nssutil3	;-
 EXPORTS		;-
-__nss_InitLock_Util;
 ATOB_AsciiToData_Util;
 ATOB_ConvertAsciiToItem_Util;
 BTOA_ConvertItemToAscii_Util;
@@ -166,7 +165,7 @@ SECOID_FindOIDByTag_Util;
 SECOID_FindOIDTag_Util;
 SECOID_FindOIDTagDescription_Util;
 SECOID_GetAlgorithmTag_Util;
-secoid_Init;
+SECOID_Init;
 SECOID_KnownCertExtenOID;
 SECOID_SetAlgorithmID_Util;
 SECOID_Shutdown;

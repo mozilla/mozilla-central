@@ -1590,7 +1590,7 @@ static SECOidData ** dynOidTable;	/* not in the pool */
 static int           dynOidEntriesAllocated;
 static int           dynOidEntriesUsed;
 
-/* Creates NSSRWLock and dynOidPool, if they don't exist.
+/* Creates NSSRWLock and dynOidPool at initialization time.
 ** This function MIGHT create the lock, but not the pool, so
 ** code should test for dynOidPool, not dynOidLock, when deciding
 ** whether or not to call this function.
@@ -1599,25 +1599,19 @@ static SECStatus
 secoid_InitDynOidData(void)
 {
     SECStatus   rv = SECSuccess;
-    NSSRWLock * lock;
 
     /* This function will create the lock if it doesn't exist,
     ** and will return the address of the lock, whether it was 
     ** previously created, or was created by the function.
     */
-    lock = nssRWLock_AtomicCreate(&dynOidLock, 1, "dynamic OID data");
-    if (!lock) {
+    dynOidLock = NSSRWLock_New(1, "dynamic OID data");
+    if (!dynOidLock) {
     	return SECFailure; /* Error code should already be set. */
     }
-    PORT_Assert(lock == dynOidLock);
-    NSSRWLock_LockWrite(lock);
+    dynOidPool = PORT_NewArena(2048);
     if (!dynOidPool) {
-    	dynOidPool = PORT_NewArena(2048);
-	if (!dynOidPool) {
-	    rv = SECFailure /* Error code should already be set. */;
-	}
+        rv = SECFailure /* Error code should already be set. */;
     }
-    NSSRWLock_UnlockWrite(lock);
     return rv;
 }
 
@@ -1714,8 +1708,8 @@ SECOID_AddEntry(const SECOidData * src)
 	return ret;
     }
 
-    if (!dynOidPool && secoid_InitDynOidData() != SECSuccess) {
-	/* Caller has set error code. */
+    if (!dynOidPool || !dynOidLock) {
+	PORT_SetError(SEC_ERROR_NOT_INITIALIZED);
     	return ret;
     }
 
@@ -1796,18 +1790,20 @@ secoid_HashNumber(const void *key)
 
 
 SECStatus
-secoid_Init(void)
+SECOID_Init(void)
 {
     PLHashEntry *entry;
     const SECOidData *oid;
     int i;
 
-    if (!dynOidPool && secoid_InitDynOidData() != SECSuccess) {
-    	return SECFailure;
+    if (oidhash) {
+	return SECSuccess; /* already initialized */
     }
 
-    if (oidhash) {
-	return SECSuccess;
+    if (secoid_InitDynOidData() != SECSuccess) {
+        PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
+        PORT_Assert(0); /* this function should never fail */
+    	return SECFailure;
     }
     
     oidhash = PL_NewHashTable(0, SECITEM_Hash, SECITEM_HashCompare,

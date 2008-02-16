@@ -37,35 +37,9 @@
 /*
  * nsslocks.h - threadsafe functions to initialize lock pointers.
  *
- * NOTE - These are not public interfaces
+ * NOTE - The interfaces formerly in this header were private and are now all
+ *        obsolete.
  *
- * $Id: nsslocks.h,v 1.4 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
+ * $Id: nsslocks.h,v 1.5 2008-02-16 04:38:09 julien.pierre.boogz%sun.com Exp $
  */
 
-#ifndef _NSSLOCKS_H_
-#define _NSSLOCKS_H_
-
-#include "utilrename.h"
-#include "seccomon.h"
-#include "nssilock.h"
-#include "prmon.h"
-
-SEC_BEGIN_PROTOS
-
-/* Given the address of a (global) pointer to a PZLock, 
- * atomically create the lock and initialize the (global) pointer, 
- * if it is not already created/initialized.
- */
-
-extern SECStatus nss_InitLock(   PZLock    **ppLock, nssILockType ltype );
-
-/* Given the address of a (global) pointer to a PZMonitor, 
- * atomicly create the monitor and initialize the (global) pointer, 
- * if it is not already created/initialized.
- */
-
-extern SECStatus nss_InitMonitor(PZMonitor **ppMonitor, nssILockType ltype );
-
-SEC_END_PROTOS
-
-#endif

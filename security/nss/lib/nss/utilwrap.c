@@ -46,11 +46,10 @@
 #include "base64.h"
 #include "nssb64.h"
 #include "nssrwlk.h"
-#include "nsslocks.h"
 #include "cert.h"
+#include "prerror.h"
 
 /* wrappers for implementation in libnssutil3 */
-#undef __nss_InitLock
 #undef ATOB_AsciiToData
 #undef ATOB_ConvertAsciiToItem
 #undef BTOA_ConvertItemToAscii
@@ -782,7 +781,8 @@ PRBool NSSRWLock_HaveWriteLock(NSSRWLock *rwlock)
 
 SECStatus __nss_InitLock(   PZLock    **ppLock, nssILockType ltype )
 {
-    return __nss_InitLock_Util(ppLock, ltype);
+    PORT_SetError(PR_NOT_IMPLEMENTED_ERROR);
+    return SECFailure;
 }
 
 /* templates duplicated in libnss3 and libnssutil3 */

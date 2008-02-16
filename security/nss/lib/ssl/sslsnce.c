@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsnce.c,v 1.41 2007-09-11 22:40:40 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: sslsnce.c,v 1.42 2008-02-16 04:38:09 julien.pierre.boogz%sun.com Exp $ */
 
 /* Note: ssl_FreeSID() in sslnonce.c gets used for both client and server 
  * cache sids!
@@ -105,7 +105,6 @@
 #define SET_ERROR_CODE /* reminder */
 
 #include "nspr.h"
-#include "nsslocks.h"
 #include "sslmutex.h"
 
 /*
@@ -1174,8 +1173,7 @@ SSL_ConfigServerSessionIDCache(	int      maxCacheEntries,
 			       	PRUint32 ssl3_timeout, 
 			  const char *   directory)
 {
-    ssl_InitClientSessionCacheLock();
-    ssl_InitSymWrapKeysLock();
+    ssl_InitLocks(PR_FALSE);
     return SSL_ConfigServerSessionIDCacheInstance(&globalCache, 
     		maxCacheEntries, ssl2_timeout, ssl3_timeout, directory, PR_FALSE);
 }
@@ -1288,8 +1286,7 @@ SSL_InheritMPServerSIDCacheInstance(cacheDesc *cache, const char * envString)
     	return SECSuccess;	/* already done. */
     }
 
-    ssl_InitClientSessionCacheLock();
-    ssl_InitSymWrapKeysLock();
+    ssl_InitLocks(PR_FALSE);
 
     ssl_sid_lookup  = ServerSessionIDLookup;
     ssl_sid_cache   = ServerSessionIDCache;

@@ -40,7 +40,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ECC code moved here from ssl3con.c */
-/* $Id: ssl3ecc.c,v 1.19 2007-07-18 21:38:54 neil.williams%sun.com Exp $ */
+/* $Id: ssl3ecc.c,v 1.20 2008-02-16 04:38:08 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "nss.h"
@@ -63,7 +63,6 @@
 
 #include "pk11func.h"
 #include "secmod.h"
-#include "nsslocks.h"
 #include "ec.h"
 #include "blapi.h"
 

@@ -48,7 +48,6 @@
 #include "secerr.h"
 #include "nssilock.h"
 #include "prmon.h"
-#include "nsslocks.h"
 #include "base64.h"
 #include "sechash.h"
 #include "plhash.h"

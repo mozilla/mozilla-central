@@ -45,8 +45,6 @@
 #ifdef USE_UTIL_DIRECTLY
 
 /* functions moved from libnss3 */
-#define nss_InitLock __nss_InitLock_Util
-#define __nss_InitLock __nss_InitLock_Util
 #define ATOB_AsciiToData ATOB_AsciiToData_Util
 #define ATOB_ConvertAsciiToItem ATOB_ConvertAsciiToItem_Util
 #define BTOA_ConvertItemToAscii BTOA_ConvertItemToAscii_Util

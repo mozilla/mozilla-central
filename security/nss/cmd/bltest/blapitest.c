@@ -58,7 +58,6 @@ SECStatus EC_DecodeParams(const SECItem *encodedParams,
 	ECParams **ecparams);
 SECStatus EC_CopyParams(PRArenaPool *arena, ECParams *dstParams,
 	      const ECParams *srcParams);
-SECStatus secoid_Init(void);
 #endif
 
 /* Temporary - add debugging ouput on windows for RSA to track QA failure */
@@ -438,7 +437,7 @@ eckey_from_filedata(SECItem *filedata)
     /* read and convert params */
     key->ecParams.arena = arena;
     key_from_filedata(arena, &key->ecParams.DEREncoding, 0, 1, filedata);
-    rv = secoid_Init();
+    rv = SECOID_Init();
     CHECKERROR(rv, __LINE__);
     rv = EC_DecodeParams(&key->ecParams.DEREncoding, &tmpECParams);
     CHECKERROR(rv, __LINE__);
@@ -1860,7 +1859,7 @@ pubkeyInitKey(bltestCipherInfo *cipherInfo, PRFileDesc *file,
 	ecdsap = &cipherInfo->params.ecdsa;
 	if (curveName != NULL) {
 	    tmpECParamsDER = getECParams(curveName);
-	    rv = secoid_Init();
+	    rv = SECOID_Init();
 	    CHECKERROR(rv, __LINE__);
 	    rv = EC_DecodeParams(tmpECParamsDER, &tmpECParams) == SECFailure;
 	    CHECKERROR(rv, __LINE__);

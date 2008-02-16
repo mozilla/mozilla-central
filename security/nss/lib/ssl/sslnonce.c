@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.20 2008-02-15 07:39:23 nelson%bolyard.com Exp $ */
+/* $Id: sslnonce.c,v 1.21 2008-02-16 04:38:09 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -46,7 +46,6 @@
 #include "sslimpl.h"
 #include "sslproto.h"
 #include "nssilock.h"
-#include "nsslocks.h"
 #if (defined(XP_UNIX) || defined(XP_WIN) || defined(_WINDOWS) || defined(XP_BEOS)) && !defined(_WIN32_WCE)
 #include <time.h>
 #endif
@@ -68,16 +67,58 @@ static PZLock *      cacheLock = NULL;
 #define LOCK_CACHE 	lock_cache()
 #define UNLOCK_CACHE	PZ_Unlock(cacheLock)
 
-void ssl_InitClientSessionCacheLock(void)
+static SECStatus
+ssl_InitClientSessionCacheLock(void)
 {
-    if (!cacheLock)
-	nss_InitLock(&cacheLock, nssILockCache);
+    if (!cacheLock) {
+        cacheLock = PZ_NewLock(nssILockCache);
+    }
+    return cacheLock ? SECSuccess:SECFailure;
+}
+
+static PRBool LocksInitializedEarly = PR_FALSE;
+
+static PRStatus
+initLocks(void)
+{
+    SECStatus rv1, rv2;
+    rv1 = ssl_InitSymWrapKeysLock();
+    rv2 = ssl_InitClientSessionCacheLock();
+    if ( (SECSuccess == rv1) && (SECSuccess == rv2) ) {
+        return PR_SUCCESS;
+    }
+    return PR_FAILURE;
+}
+
+static PRCallOnceType lockOnce;
+
+/* lateInit means that the call is not happening during a 1-time
+ * initialization function
+ */
+SECStatus
+ssl_InitLocks(PRBool lateInit)
+{
+    if (LocksInitializedEarly) {
+        return SECSuccess;
+    }
+
+    if (lateInit) {
+        return (PR_SUCCESS == PR_CallOnce(&lockOnce, initLocks)) ? 
+             SECSuccess : SECFailure;
+    }
+     
+    if (PR_SUCCESS == initLocks()) {
+        LocksInitializedEarly = PR_TRUE;
+        return SECSuccess;
+    }
+
+    return SECFailure;
 }
 
 static void 
 lock_cache(void)
 {
-    ssl_InitClientSessionCacheLock();
+    ssl_InitLocks(PR_TRUE);
     PZ_Lock(cacheLock);
 }
 

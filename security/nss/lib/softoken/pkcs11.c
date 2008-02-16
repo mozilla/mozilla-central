@@ -2437,8 +2437,6 @@ sftk_closePeer(PRBool isFIPS)
     return;
 }
 
-extern SECStatus secoid_Init(void);
-
 /* NSC_Initialize initializes the Cryptoki library. */
 CK_RV nsc_CommonInitialize(CK_VOID_PTR pReserved, PRBool isFIPS)
 {
@@ -2452,7 +2450,7 @@ CK_RV nsc_CommonInitialize(CK_VOID_PTR pReserved, PRBool isFIPS)
 	loginWaitTime = PR_SecondsToInterval(1);
     }
 
-    rv = secoid_Init();
+    rv = SECOID_Init();
     if (rv != SECSuccess) {
 	crv = CKR_DEVICE_ERROR;
 	return crv;

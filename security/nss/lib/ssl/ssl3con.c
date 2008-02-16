@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.105 2008-02-15 07:39:23 nelson%bolyard.com Exp $ */
+/* $Id: ssl3con.c,v 1.106 2008-02-16 04:38:08 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -60,7 +60,6 @@
 
 #include "pk11func.h"
 #include "secmod.h"
-#include "nsslocks.h"
 #include "ec.h"
 #include "blapi.h"
 
@@ -3949,11 +3948,12 @@ SSL3_ShutdownServerCache(void)
     return SECSuccess;
 }
 
-void ssl_InitSymWrapKeysLock(void)
+SECStatus ssl_InitSymWrapKeysLock(void)
 {
-    /* atomically initialize the lock */
-    if (!symWrapKeysLock)
-	nss_InitLock(&symWrapKeysLock, nssILockOther);
+    if (!symWrapKeysLock) {
+        symWrapKeysLock = PZ_NewLock(nssILockOther);
+    }
+    return symWrapKeysLock ? SECSuccess:SECFailure;
 }
 
 /* Try to get wrapping key for mechanism from in-memory array.
@@ -3992,7 +3992,7 @@ getWrappingKey( sslSocket *       ss,
 
     pSymWrapKey = &symWrapKeys[symWrapMechIndex].symWrapKey[exchKeyType];
 
-    ssl_InitSymWrapKeysLock();
+    ssl_InitLocks(PR_TRUE);
 
     PZ_Lock(symWrapKeysLock);
 

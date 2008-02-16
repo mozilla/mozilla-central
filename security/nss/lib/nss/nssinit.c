@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.89 2008-02-15 02:49:44 nelson%bolyard.com Exp $ */
+/* $Id: nssinit.c,v 1.90 2008-02-16 04:38:06 julien.pierre.boogz%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -413,7 +413,6 @@ nss_FindExternalRoot(const char *dbpath, const char* secmodprefix)
 static PRBool nss_IsInitted = PR_FALSE;
 static void* plContext = NULL;
 
-extern SECStatus secoid_Init(void);
 static SECStatus nss_InitShutdownList(void);
 
 #ifdef DEBUG
@@ -510,7 +509,7 @@ loser:
     }
 
     if (rv == SECSuccess) {
-	if (secoid_Init() != SECSuccess) {
+	if (SECOID_Init() != SECSuccess) {
 	    return SECFailure;
 	}
 	if (STAN_LoadDefaultNSS3TrustDomain() != PR_SUCCESS) {
