@@ -606,9 +606,11 @@
         var dragService = Components.classes["@mozilla.org/widget/dragservice;1"].
                           getService(Components.interfaces.nsIDragService);
         var session = dragService.getCurrentSession();
-        session.canDrop = true;
-        this.removeDropShadows();
-        this.addDropShadows();
+        if (session) {
+            session.canDrop = true;
+            this.removeDropShadows();
+            this.addDropShadows();
+        }
       ]]></handler>
 
       <handler event="dragover"><![CDATA[
@@ -649,15 +651,6 @@
          var newEnd;
 
          var boxDate = this.mDate;
-         var offset = this.monthView.mShadowIndex;
-
-         function adjustDate(date) {
-           var newDate = date.clone();
-           newDate.day = boxDate.day - offset;
-           newDate.month = boxDate.month;
-           newDate.year = boxDate.year;
-           return newDate;
-         }
 
          if (!session.sourceNode || !session.sourceNode.occurrence) {
              return;
@@ -665,47 +658,36 @@
 
          event.stopPropagation();
          var item = session.sourceNode.occurrence;
-        var beginMove = session.sourceNode.mParentBox.date;
-           var duration = boxDate.subtractDate(beginMove);
-        if (isEvent(item)) {
-           // Since both boxDate and beginMove are dates (note datetimes),
-           // subtractDate will only give us a non-zero number of hours on DST
-           // changes. While strictly speaking, subtractDate's behavior is 
-           // correct, we need to move the event a discrete number of days here.
-           // There is no need for normalization here, since addDuration does 
-           // the job for us.
-           if (duration.hours == 23) {
-             // entering DST
-             duration.hours++;
-           } else if (duration.hours == 1) {
-             // leaving DST
-             duration.hours--;
-           }
+         var beginMove = session.sourceNode.mParentBox.date;
+         var duration = boxDate.subtractDate(beginMove);
 
-           newStart = item.startDate.clone();
-           newStart.addDuration(duration);
-           newEnd = item.endDate.clone();
-           newEnd.addDuration(duration);
+         // Since both boxDate and beginMove are dates (note datetimes),
+         // subtractDate will only give us a non-zero number of hours on DST
+         // changes. While strictly speaking, subtractDate's behavior is 
+         // correct, we need to move the event a discrete number of days here.
+         if (duration.hours == 23) {
+             // crossing DT/DST border (spring)
+             duration.hours++;
+             duration.normalize();
+         } else if (duration.hours == 1) {
+            // crossing DST/DT border (autumn)
+            duration.hours--;
+         }
+
+        if (isEvent(item)) {
+            newStart = item.startDate.clone();
+            newStart.addDuration(duration);
+            newEnd = item.endDate.clone();
+            newEnd.addDuration(duration);
          } else if (isToDo(item)) {
-           if (item.entryDate && item.dueDate) {
-             newStart = item.entryDate.clone();
-             newStart.addDuration(duration);
-             newEnd = item.dueDate.clone();
-             newEnd.addDuration(duration);
-           } else if (item.entryDate) {
-             newStart = adjustDate(item.entryDate);
-             // zero offset so we don't double-count
-             offset = 0;
-           } else { // only due date
-             newEnd = adjustDate(item.dueDate);
-             offset = 0;
-           }
-         }
-         if (newStart && offset) {
-           newStart.day -= offset;
-         }
-         if (newEnd && offset) {
-           newEnd.day -= offset;
+             if (item.entryDate) {
+                 newStart = item.entryDate.clone();
+                 newStart.addDuration(duration);
+             }
+             if (item.dueDate) {
+                 newEnd = item.dueDate.clone();
+                 newEnd.addDuration(duration);
+             }
          }
 
          this.removeDropShadows();
