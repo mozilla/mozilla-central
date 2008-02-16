@@ -963,7 +963,7 @@ calDavCalendar.prototype = {
         reportListener.onOperationComplete = function(aStatusCode, aResource,
                                                       aOperation, aClosure) {
             LOG("refresh completed with status " + aStatusCode);
-
+            thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
         };
 
         // convert this into a form the WebDAV service can use
