@@ -45,9 +45,9 @@
 #import "BrowserTabView.h"
 #import "BrowserTabViewItem.h"
 #import "TabButtonView.h"
-#import "ImageAdditions.h"
 
 #import "NSArray+Utils.h"
+#import "NSImage+Utils.h"
 #import "NSMenu+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "NSView+Utils.h"

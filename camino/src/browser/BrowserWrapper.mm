@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "NSView+Utils.h"
-#import "ImageAdditions.h"
 
 #import "PreferenceManager.h"
 #import "BrowserWrapper.h"

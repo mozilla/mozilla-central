@@ -38,8 +38,8 @@
 
 #import "TabButtonView.h"
 
-#import "ImageAdditions.h"
 #import "NSBezierPath+Utils.h"
+#import "NSImage+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "NSString+Utils.h"
 

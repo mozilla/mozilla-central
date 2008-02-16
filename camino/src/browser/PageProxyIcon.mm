@@ -39,7 +39,7 @@
 
 #import "PageProxyIcon.h"
 
-#import "ImageAdditions.h"
+#import "NSImage+Utils.h"
 #import "NSString+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "BrowserWindowController.h"

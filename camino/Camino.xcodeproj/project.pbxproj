@@ -340,7 +340,7 @@
 		3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
 		3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
-		3F44AC9605BDFB9E00CB4B08 /* CHImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* CHImageAdditions.m */; };
+		3F44AC9605BDFB9E00CB4B08 /* NSImage+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* NSImage+Utils.m */; };
 		3F44AC9705BDFB9E00CB4B08 /* AutoCompleteTextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */; };
 		3F44AC9805BDFB9E00CB4B08 /* AutoCompleteDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */; };
 		3F44AC9905BDFB9E00CB4B08 /* PreferenceManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */; };
@@ -621,7 +621,7 @@
 		3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
 		3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
-		3F44AECF05BDFBA000CB4B08 /* CHImageAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* CHImageAdditions.m */; };
+		3F44AECF05BDFBA000CB4B08 /* NSImage+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* NSImage+Utils.m */; };
 		3F44AED005BDFBA000CB4B08 /* AutoCompleteTextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */; };
 		3F44AED105BDFBA000CB4B08 /* AutoCompleteDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */; };
 		3F44AED205BDFBA000CB4B08 /* PreferenceManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */; };
@@ -2646,8 +2646,8 @@
 		F540BD1C029ED17901026D5D /* security_broken.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = security_broken.tiff; path = resources/images/chrome/security_broken.tiff; sourceTree = SOURCE_ROOT; };
 		F541495A02711A8301A80166 /* CHToolbarAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHToolbarAdditions.h; path = src/extensions/ToolbarAdditions.h; sourceTree = "<group>"; };
 		F541495B02711A8301A80166 /* CHToolbarAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHToolbarAdditions.m; path = src/extensions/ToolbarAdditions.m; sourceTree = "<group>"; };
-		F541495E02711B0001A80166 /* CHImageAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHImageAdditions.h; path = src/extensions/ImageAdditions.h; sourceTree = "<group>"; };
-		F541495F02711B0001A80166 /* CHImageAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHImageAdditions.m; path = src/extensions/ImageAdditions.m; sourceTree = "<group>"; };
+		F541495E02711B0001A80166 /* NSImage+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSImage+Utils.h"; path = "src/extensions/NSImage+Utils.h"; sourceTree = "<group>"; };
+		F541495F02711B0001A80166 /* NSImage+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSImage+Utils.m"; path = "src/extensions/NSImage+Utils.m"; sourceTree = "<group>"; };
 		F541496202714F9A01A80166 /* groupbookmark.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = groupbookmark.tiff; path = resources/images/chrome/groupbookmark.tiff; sourceTree = SOURCE_ROOT; };
 		F5461CBB03AAC25C01A96660 /* nsProxyAutoConfig.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = nsProxyAutoConfig.js; path = ../dist/bin/components/nsProxyAutoConfig.js; sourceTree = SOURCE_ROOT; };
 		F549ACDE0302DE6001026D5D /* ToolTip.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ToolTip.mm; path = src/browser/ToolTip.mm; sourceTree = "<group>"; };
@@ -4150,8 +4150,8 @@
 				0FBC0ECD0798F94900E8E0E2 /* NSDate+Utils.m */,
 				0FEA7DDD0926BBEA00B06154 /* NSFileManager+Utils.h */,
 				0FEA7DE00926BBF500B06154 /* NSFileManager+Utils.m */,
-				F541495E02711B0001A80166 /* CHImageAdditions.h */,
-				F541495F02711B0001A80166 /* CHImageAdditions.m */,
+				F541495E02711B0001A80166 /* NSImage+Utils.h */,
+				F541495F02711B0001A80166 /* NSImage+Utils.m */,
 				0FBC0ED30798F96100E8E0E2 /* NSMenu+Utils.h */,
 				0FBC0ED00798F95400E8E0E2 /* NSMenu+Utils.m */,
 				F5B34B04034A50C901A80166 /* NSPasteboard+Utils.h */,
@@ -5271,7 +5271,7 @@
 				3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */,
 				3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */,
-				3F44AC9605BDFB9E00CB4B08 /* CHImageAdditions.m in Sources */,
+				3F44AC9605BDFB9E00CB4B08 /* NSImage+Utils.m in Sources */,
 				3F44AC9705BDFB9E00CB4B08 /* AutoCompleteTextField.mm in Sources */,
 				3F44AC9805BDFB9E00CB4B08 /* AutoCompleteDataSource.mm in Sources */,
 				3F44AC9905BDFB9E00CB4B08 /* PreferenceManager.mm in Sources */,
@@ -5448,7 +5448,7 @@
 				3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */,
 				3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */,
-				3F44AECF05BDFBA000CB4B08 /* CHImageAdditions.m in Sources */,
+				3F44AECF05BDFBA000CB4B08 /* NSImage+Utils.m in Sources */,
 				3F44AED005BDFBA000CB4B08 /* AutoCompleteTextField.mm in Sources */,
 				3F44AED105BDFBA000CB4B08 /* AutoCompleteDataSource.mm in Sources */,
 				3F44AED205BDFBA000CB4B08 /* PreferenceManager.mm in Sources */,

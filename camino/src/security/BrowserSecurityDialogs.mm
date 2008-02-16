@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#import "NSImage+Utils.h"
 #import "NSString+Utils.h"
 
 #import "nsCOMPtr.h"
@@ -43,7 +44,6 @@
 
 #import "nsIX509Cert.h"
 
-#import "ImageAdditions.h"
 
 #import "CertificateItem.h"
 #import "CertificateView.h"

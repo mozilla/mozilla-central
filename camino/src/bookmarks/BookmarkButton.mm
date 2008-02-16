@@ -39,7 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "BookmarkButton.h"
-#import "ImageAdditions.h"
+#import "NSImage+Utils.h"
 #import "NSString+Utils.h"
 #import "NSPasteboard+Utils.h"
 #import "DraggableImageAndTextCell.h"

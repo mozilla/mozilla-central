@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import "ImageAdditions.h"
+#import "NSImage+Utils.h"
 #import "NSString+Utils.h"
 
 #import "BrowserTabViewItem.h"
