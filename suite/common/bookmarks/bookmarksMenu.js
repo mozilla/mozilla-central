@@ -308,7 +308,6 @@ var BookmarksMenuController = {
 
   doCommand: function (aCommand)
   {
-    BookmarksMenuDNDObserver.onDragRemoveFeedBack(document.popupNode);
     var selection = BookmarksMenu._selection;
     var target    = BookmarksMenu._target;
     switch (aCommand) {
