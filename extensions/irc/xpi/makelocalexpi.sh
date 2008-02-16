@@ -152,7 +152,7 @@ fi
 
 # Extract version number.
 VERSION=`grep "const __cz_version" "$FEDIR/xul/content/static.js" | sed "s|.*\"\([^\"]\{1,\}\)\".*|\1|"`
-BASE_VERSION=`echo "$VERSION" | sed "s|\([0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|"
+BASE_VERSION=`echo "$VERSION" | sed "s|\([0-9]\{1,\}\.[0-9]\{1,\}\.[0-9]\{1,\}\).*|\1|"`
 
 if [ -z "$VERSION" ]; then
   echo "ERROR: Unable to get version number."
