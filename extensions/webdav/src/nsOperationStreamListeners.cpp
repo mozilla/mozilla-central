@@ -152,6 +152,7 @@ OperationStreamListener::OnStopRequest(nsIRequest *aRequest,
     rv = NS_WD_GetDocAndResponseListFromBuffer(mBody, getter_AddRefs(mXMLDoc),
                                                getter_AddRefs(responseList),
                                                &length);
+    NS_ENSURE_SUCCESS(rv, SignalCompletion(rv));
 
     LOG(("found %d responses", length));
     
