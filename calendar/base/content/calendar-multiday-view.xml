@@ -65,10 +65,42 @@
       <field name="mPixPerMin">0.6</field>
       <field name="mStartMin">0*60</field>
       <field name="mEndMin">24*60</field>
+      <field name="mDayStartHour">0</field>
+      <field name="mDayEndHour">24</field>
 
       <constructor>
         this.relayout();
       </constructor>
+
+      <method name="setDayStartEndHours">
+        <parameter name="aDayStartHour"/>
+        <parameter name="aDayEndHour"/>
+        <body><![CDATA[
+          if (aDayStartHour * 60 < this.mStartMin ||
+              aDayStartHour > aDayEndHour ||
+              aDayEndHour * 60 > this.mEndMin) {
+              throw Components.results.NS_ERROR_INVALID_ARG;
+          }
+          if (this.mDayStartHour != aDayStartHour ||
+              this.mDayEndHour != aDayEndHour) {
+              this.mDayEndHour = aDayEndHour;
+              this.mDayStartHour = aDayStartHour;
+
+              var topbox = document.getAnonymousElementByAttribute(this, "anonid", "topbox");
+              if (topbox.childNodes.length) {
+                  // This only needs to be done if the initial relayout has
+                  // already happened, otherwise it will be done then.
+                  for (var hour = this.mStartMin / 60; hour < this.mEndMin / 60; hour++) {
+                      if (hour < this.mDayStartHour || hour > this.mDayEndHour) {
+                          topbox.childNodes[hour].setAttribute("off-time", "true");
+                      } else {
+                          topbox.childNodes[hour].removeAttribute("off-time");
+                      }
+                  }
+              }
+          }
+        ]]></body>
+      </method>
 
       <method name="setAttribute">
         <parameter name="aAttr"/>
@@ -164,6 +196,11 @@
                                                     theHour, 0, 0);
                   box = makeTimeBox(timeString, durPix);
               }
+
+              // Set up workweek hours
+              if (theHour < this.mDayStartHour || theHour >= this.mDayEndHour) {
+                  box.setAttribute("off-time", "true");
+              } 
 
               box.setAttribute("class", "calendar-time-bar-box-" + (theHour % 2 == 0 ? "even" : "odd"));
               topbox.appendChild(box);
@@ -394,17 +431,6 @@
         name="events"
         readonly="true"
         onget="return this.methods"/>
-
-      <field name="mToday">false</field>
-      <property name="today">
-        <getter><![CDATA[
-          return this.mToday;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mToday = val;
-          return val;
-        ]]></setter>
-      </property>
 
       <field name="mDayOff">false</field>
       <property name="dayOff">
@@ -658,15 +684,15 @@
               if (this.mSelected) {
                   box.setAttribute("selected", "true");
               }
-              if (this.mToday) {
-                  box.setAttribute("today", "true");
-              }
               if (this.mDayOff) {
                   box.setAttribute("weekend", "true");
               }
               if (theMin < this.mDayStartMin || theMin >= this.mDayEndMin) {
                   box.setAttribute("off-time", "true");
               }
+
+              // Carry forth the day relation
+              box.setAttribute("relation", this.getAttribute("relation"));
 
               // calculate duration pixel as the difference between
               // start pixel and end pixel to avoid rounding errors.
@@ -2371,8 +2397,8 @@
 
       <field name="mStartMin">0*60</field>
       <field name="mEndMin">24*60</field>
-      <field name="mDayStartMin">8*60</field>
-      <field name="mDayEndMin">17*60</field>
+      <field name="mDayStartMin">0</field>
+      <field name="mDayEndMin">0</field>
       <field name="mVisibleMinutes">9*60</field>
       <field name="mTasksInView">false</field>
       <field name="mShowCompleted">false</field>
@@ -3226,7 +3252,7 @@
               var dayEventsBox;
               if (counter < dayboxkids.length) {
                   dayEventsBox = dayboxkids[counter];
-                  dayEventsBox.today = false;
+                  dayEventsBox.removeAttribute("relation");
                   dayEventsBox.mEvents = new Array();
               } else {
                   dayEventsBox = createXULElement("calendar-event-column");
@@ -3260,10 +3286,22 @@
                   dayHeaderBox.removeAttribute("weekend");
               }
 
-              // highlight today
-              if (this.numVisibleDates > 1 && d.compare(today) == 0) {
-                  dayEventsBox.today = true;
-                  dayHeaderBox.setAttribute("today", "true");
+              // Set attributes for date relations.
+              if (this.numVisibleDates > 1) {
+                  switch (d.compare(today)) {
+                      case -1:
+                          dayHeaderBox.setAttribute("relation", "past");
+                          dayEventsBox.setAttribute("relation", "past");
+                          break;
+                      case 0:
+                          dayHeaderBox.setAttribute("relation", "today");
+                          dayEventsBox.setAttribute("relation", "today");
+                          break;
+                      case 1:
+                          dayHeaderBox.setAttribute("relation", "future");
+                          dayEventsBox.setAttribute("relation", "future");
+                          break;
+                  }
               }
 
               var labelbox;
@@ -3593,9 +3631,16 @@
           }
           if (this.mDayStartMin != aDayStartMin ||
             this.mDayEndMin != aDayEndMin) {
+
             this.mDayStartMin = aDayStartMin;
             this.mDayEndMin = aDayEndMin;
+
+            // Also update on the time-bar
+            document.getAnonymousElementByAttribute(this, "anonid", "timebar")
+                    .setDayStartEndHours(this.mDayStartMin / 60,
+                                         this.mDayEndMin / 60);
           }
+
         ]]></body>
       </method>
 

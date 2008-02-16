@@ -1298,12 +1298,7 @@
           }
 
           var dateBoxes = [];
-
-          // clear out the old today
-          var oldToday = document.getAnonymousElementByAttribute(this, "today", "true");
-          if (oldToday) {
-            oldToday.removeAttribute("today");
-          }
+          var today = this.today();
 
           // This gets set to true, telling us to collapse the rest of the rows
           var finished = false;
@@ -1347,6 +1342,19 @@
                 boxClass = "calendar-month-day-box-day-off " + boxClass;
               }
 
+              // Set up date relations
+              switch (date.compare(today)) {
+                  case -1:
+                      daybox.setAttribute("relation", "past");
+                      break;
+                  case 0:
+                      daybox.setAttribute("relation", "today");
+                      break;
+                  case 1:
+                      daybox.setAttribute("relation", "future");
+                      break;
+              }
+
               daybox.setAttribute("class", boxClass);
 
               daybox.setDate(date);
@@ -1386,7 +1394,6 @@
           this.hideDaysOff();
 
           // Highlight today, if it's in the range of the view
-          var today = this.today();
           if (today.compare(dateList[0]) != -1 &&
               today.compare(dateList[dateList.length-1]) != 1) {
               this.findBoxForDate(today).box.setAttribute("today", "true");
