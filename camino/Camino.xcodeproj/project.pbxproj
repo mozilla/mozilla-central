@@ -339,7 +339,7 @@
 		3F44AC9005BDFB9E00CB4B08 /* ContentClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F59E9F3F0237E43401A967DF /* ContentClickListener.mm */; };
 		3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
-		3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
+		3F44AC9505BDFB9E00CB4B08 /* NSToolbar+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* NSToolbar+Utils.m */; };
 		3F44AC9605BDFB9E00CB4B08 /* NSImage+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* NSImage+Utils.m */; };
 		3F44AC9705BDFB9E00CB4B08 /* AutoCompleteTextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */; };
 		3F44AC9805BDFB9E00CB4B08 /* AutoCompleteDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */; };
@@ -620,7 +620,7 @@
 		3F44AEC905BDFBA000CB4B08 /* ContentClickListener.mm in Sources */ = {isa = PBXBuildFile; fileRef = F59E9F3F0237E43401A967DF /* ContentClickListener.mm */; };
 		3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = F51B70B7026EC98B01A80166 /* GetURLCommand.mm */; };
 		3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5C3AB820270072A01A80166 /* ExtendedOutlineView.mm */; };
-		3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* CHToolbarAdditions.m */; };
+		3F44AECE05BDFBA000CB4B08 /* NSToolbar+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495B02711A8301A80166 /* NSToolbar+Utils.m */; };
 		3F44AECF05BDFBA000CB4B08 /* NSImage+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = F541495F02711B0001A80166 /* NSImage+Utils.m */; };
 		3F44AED005BDFBA000CB4B08 /* AutoCompleteTextField.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD0027A887001A80166 /* AutoCompleteTextField.mm */; };
 		3F44AED105BDFBA000CB4B08 /* AutoCompleteDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD4027A88C601A80166 /* AutoCompleteDataSource.mm */; };
@@ -2644,8 +2644,8 @@
 		F53F21F0022B7C77010001CA /* MVPreferencesController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = MVPreferencesController.mm; path = src/preferences/MVPreferencesController.mm; sourceTree = SOURCE_ROOT; };
 		F540BD1A029ED15301026D5D /* security_lock.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = security_lock.tiff; path = resources/images/chrome/security_lock.tiff; sourceTree = SOURCE_ROOT; };
 		F540BD1C029ED17901026D5D /* security_broken.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = security_broken.tiff; path = resources/images/chrome/security_broken.tiff; sourceTree = SOURCE_ROOT; };
-		F541495A02711A8301A80166 /* CHToolbarAdditions.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = CHToolbarAdditions.h; path = src/extensions/ToolbarAdditions.h; sourceTree = "<group>"; };
-		F541495B02711A8301A80166 /* CHToolbarAdditions.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = CHToolbarAdditions.m; path = src/extensions/ToolbarAdditions.m; sourceTree = "<group>"; };
+		F541495A02711A8301A80166 /* NSToolbar+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSToolbar+Utils.h"; path = "src/extensions/NSToolbar+Utils.h"; sourceTree = "<group>"; };
+		F541495B02711A8301A80166 /* NSToolbar+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSToolbar+Utils.m"; path = "src/extensions/NSToolbar+Utils.m"; sourceTree = "<group>"; };
 		F541495E02711B0001A80166 /* NSImage+Utils.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = "NSImage+Utils.h"; path = "src/extensions/NSImage+Utils.h"; sourceTree = "<group>"; };
 		F541495F02711B0001A80166 /* NSImage+Utils.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = "NSImage+Utils.m"; path = "src/extensions/NSImage+Utils.m"; sourceTree = "<group>"; };
 		F541496202714F9A01A80166 /* groupbookmark.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = groupbookmark.tiff; path = resources/images/chrome/groupbookmark.tiff; sourceTree = SOURCE_ROOT; };
@@ -4164,8 +4164,8 @@
 				33FBAAFA0C84D0CA00DD459E /* NSString+Gecko.mm */,
 				F558099D02F22168015DF512 /* NSString+Utils.h */,
 				33FBAAFB0C84D0CA00DD459E /* NSString+Utils.m */,
-				F541495A02711A8301A80166 /* CHToolbarAdditions.h */,
-				F541495B02711A8301A80166 /* CHToolbarAdditions.m */,
+				F541495A02711A8301A80166 /* NSToolbar+Utils.h */,
+				F541495B02711A8301A80166 /* NSToolbar+Utils.m */,
 				0F84BF1608862E4B00E23BC4 /* NSThread+Utils.h */,
 				0F84BF1208862E3E00E23BC4 /* NSThread+Utils.m */,
 				335639060C84DAC100DC4D06 /* NSURL+Utils.h */,
@@ -5270,7 +5270,7 @@
 				3F44AC9005BDFB9E00CB4B08 /* ContentClickListener.mm in Sources */,
 				3F44AC9305BDFB9E00CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AC9405BDFB9E00CB4B08 /* ExtendedOutlineView.mm in Sources */,
-				3F44AC9505BDFB9E00CB4B08 /* CHToolbarAdditions.m in Sources */,
+				3F44AC9505BDFB9E00CB4B08 /* NSToolbar+Utils.m in Sources */,
 				3F44AC9605BDFB9E00CB4B08 /* NSImage+Utils.m in Sources */,
 				3F44AC9705BDFB9E00CB4B08 /* AutoCompleteTextField.mm in Sources */,
 				3F44AC9805BDFB9E00CB4B08 /* AutoCompleteDataSource.mm in Sources */,
@@ -5447,7 +5447,7 @@
 				3F44AEC905BDFBA000CB4B08 /* ContentClickListener.mm in Sources */,
 				3F44AECC05BDFBA000CB4B08 /* GetURLCommand.mm in Sources */,
 				3F44AECD05BDFBA000CB4B08 /* ExtendedOutlineView.mm in Sources */,
-				3F44AECE05BDFBA000CB4B08 /* CHToolbarAdditions.m in Sources */,
+				3F44AECE05BDFBA000CB4B08 /* NSToolbar+Utils.m in Sources */,
 				3F44AECF05BDFBA000CB4B08 /* NSImage+Utils.m in Sources */,
 				3F44AED005BDFBA000CB4B08 /* AutoCompleteTextField.mm in Sources */,
 				3F44AED105BDFBA000CB4B08 /* AutoCompleteDataSource.mm in Sources */,

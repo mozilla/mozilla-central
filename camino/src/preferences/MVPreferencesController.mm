@@ -37,7 +37,7 @@
 #import "PreferencePaneBase.h"
 
 #import "MVPreferencesController.h"
-#import "ToolbarAdditions.h"
+#import "NSToolbar+Utils.h"
 #import "PreferenceManager.h"
 
 #include "nsCOMPtr.h"
