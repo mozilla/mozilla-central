@@ -51,6 +51,7 @@
 #import "BookmarkFolder.h"
 #import "NSPasteboard+Utils.h"
 #import "NSBezierPath+Utils.h"
+#import "NSWorkspace+Utils.h"
 
 #define CHInsertNone 0
 #define CHInsertInto  1
@@ -69,6 +70,8 @@ static const float kButtonRectVPadding = 4.0f;
 - (void)managerStarted:(NSNotification*)inNotify;
 - (BOOL)anchorFoundAtPoint:(NSPoint)testPoint forButton:(NSButton*)sourceButton;
 - (BOOL)anchorFoundScanningFromPoint:(NSPoint)testPoint withStep:(int)step;
+- (void)drawBackgroundInRect:(NSRect)rect;
+- (void)drawInsertionHighlightForButtonRect:(NSRect)rect;
 
 @end
 
@@ -126,48 +129,9 @@ static const int kBMBarScanningStep = 5;
   [self rebuildButtonList];
 }
 
-static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
-{
-  float* grays = static_cast<float*>(inInfo);
-  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
-  outData[1] = 1.0;
-}
-
 - (void)drawRect:(NSRect)aRect
 {
-  // If the unified title bar and toolbar is in use (>=10.4 with the
-  // appropriate attribute set on the window), the bookmark bar gets a
-  // background gradient that matches the unified title bar/toolbar.  This
-  // gradient is only used if the window is main.  If the window is not main,
-  // the title bar and toolbar will have a different (inactive) appearance, so
-  // so the gradient won't be used.
-
-  BrowserWindow* browserWin = (BrowserWindow*)[self window];
-  if ([browserWin hasUnifiedToolbarAppearance] && [browserWin isMainWindow]) {
-    float grays[2] = {235.0/255.0, 214.0/255.0};
-
-    NSRect bounds = [self bounds];
-    bounds.size.height -= 1.0;
-
-    struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
-    CGFunctionRef function = CGFunctionCreate(grays, 1, NULL, 2, NULL,
-                                              &callbacks);
-
-    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceGray();
-    CGShadingRef shading = CGShadingCreateAxial(colorspace,
-                                                CGPointMake(NSMinX(bounds),
-                                                            NSMinY(bounds)),
-                                                CGPointMake(NSMinX(bounds),
-                                                            NSMaxY(bounds)),
-                                                function, false, false);
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-
-    CGContextDrawShading(context, shading);
-
-    CGShadingRelease(shading);
-    CGColorSpaceRelease(colorspace);
-    CGFunctionRelease(function);
-  }
+  [self drawBackgroundInRect:aRect];
 
   if (mDrawBorder) {
     [[NSColor controlShadowColor] set];
@@ -180,47 +144,120 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
 
   // draw a separator at drag n drop insertion point if there is one
   if (mDragInsertionPosition) {
-    NSRect buttonRect = [self insertionHiliteRectForButton:mDragInsertionButton position:mDragInsertionPosition];
-    if (mDragInsertionPosition == CHInsertInto) {
-      buttonRect = NSInsetRect(buttonRect, kButtonRectHPadding - 1.0f, kButtonRectVPadding - 1.0f);
-      NSBezierPath* dropTargetOutline = [NSBezierPath bezierPathWithRoundCorneredRect:buttonRect cornerRadius:3.0f];
+    NSRect buttonRect = [self insertionHiliteRectForButton:mDragInsertionButton
+                                                  position:mDragInsertionPosition];
+    if (NSIntersectsRect(buttonRect, aRect))
+      [self drawInsertionHighlightForButtonRect:buttonRect];
+  }
+}
 
-      [[NSColor colorWithCalibratedRed:0.12 green:0.36 blue:0.81 alpha:1.0f] set];
-      [dropTargetOutline setLineWidth:2.0f];
-      [dropTargetOutline stroke];
+static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
+{
+  float* grays = static_cast<float*>(inInfo);
+  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
+  outData[1] = 1.0;
+}
 
-      [[[NSColor colorForControlTint:NSDefaultControlTint] colorWithAlphaComponent:0.5] set];
-      [dropTargetOutline fill];
+//
+// -drawBackgroundInRect:
+//
+// Draws the background for the toolbar
+//
+- (void)drawBackgroundInRect:(NSRect)rect
+{
+  // On 10.4, if the unified title bar and toolbar is in use, the bookmark bar
+  // gets a background gradient that matches the unified title bar/toolbar. This
+  // gradient is only used if the window is main.  If the window is not main,
+  // the title bar and toolbar will have a different (inactive) appearance, so
+  // so the gradient won't be used.
+  // On 10.5, a different gradient is used, and is always drawn.
+
+  BrowserWindow* browserWin = (BrowserWindow*)[self window];
+  BOOL isLeopardOrHigher = [NSWorkspace isLeopardOrHigher];
+  if (isLeopardOrHigher ||
+      ([browserWin hasUnifiedToolbarAppearance] && [browserWin isMainWindow]))
+  {
+    float grays[2];
+    if (isLeopardOrHigher) {
+      grays[0] = 233.0/255.0;
+      grays[1] = 207.0/255.0;
     }
     else {
-      // rect is a 5-pixel rect before or after the button, offset a little so this draws
-      // in the right place. We take care to keep our drawing inside the rect returned from
-      // -insertionHiliteRectForButton, since that rect is used to do invalidations.
-      NSBezierPath* insertionPointPath = [NSBezierPath bezierPath];
-      float insertionPos = floorf(NSMidX(buttonRect));    // avoid drawing at fractional offsets
-      buttonRect = NSInsetRect(buttonRect, 0.0f, 2.0f);
-
-      // top Y
-      const float kTipsXOffset = 3.0f;
-      const float kTipsYOffset = 2.0f;
-      [insertionPointPath moveToPoint:NSMakePoint(insertionPos - kTipsXOffset, NSMinY(buttonRect))];
-      [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMinY(buttonRect) + kTipsYOffset)];
-      [insertionPointPath lineToPoint:NSMakePoint(insertionPos + kTipsXOffset, NSMinY(buttonRect))];
-
-      // line
-      [insertionPointPath moveToPoint:NSMakePoint(insertionPos, NSMinY(buttonRect) + kTipsYOffset)];
-      [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMaxY(buttonRect) - kTipsYOffset)];
-
-      // bottom Y
-      [insertionPointPath moveToPoint:NSMakePoint(insertionPos - kTipsXOffset, NSMaxY(buttonRect))];
-      [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMaxY(buttonRect) - kTipsYOffset)];
-      [insertionPointPath lineToPoint:NSMakePoint(insertionPos + kTipsXOffset, NSMaxY(buttonRect))];
-
-      [[NSColor colorWithCalibratedRed:0.12 green:0.36 blue:0.81 alpha:1.0f] set];
-      [insertionPointPath setLineCapStyle:NSRoundLineCapStyle];
-      [insertionPointPath setLineWidth:2.0f];
-      [insertionPointPath stroke];
+      grays[0] = 235.0/255.0;
+      grays[1] = 214.0/255.0;
     }
+
+    NSRect bounds = [self bounds];
+    bounds.size.height -= 1.0;
+
+    struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
+    CGFunctionRef function = CGFunctionCreate(grays, 1, NULL, 2, NULL,
+                                              &callbacks);
+
+    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceGray();
+    CGShadingRef shading = CGShadingCreateAxial(colorspace,
+                                                CGPointMake(NSMinX(rect),
+                                                            NSMinY(bounds)),
+                                                CGPointMake(NSMinX(rect),
+                                                            NSMaxY(bounds)),
+                                                function, false, false);
+    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+
+    CGContextDrawShading(context, shading);
+
+    CGShadingRelease(shading);
+    CGColorSpaceRelease(colorspace);
+    CGFunctionRelease(function);
+  }
+}
+
+//
+// -drawInsertionHighlightInRect:
+//
+// Draws a visual indicator of where a bookmark/url drop will be inserted.
+//
+- (void)drawInsertionHighlightForButtonRect:(NSRect)rect
+{
+  if (mDragInsertionPosition == CHInsertInto) {
+    rect = NSInsetRect(rect, kButtonRectHPadding - 1.0f, kButtonRectVPadding - 1.0f);
+    NSBezierPath* dropTargetOutline = [NSBezierPath bezierPathWithRoundCorneredRect:rect
+                                                                       cornerRadius:3.0f];
+
+    [[NSColor colorWithCalibratedRed:0.12 green:0.36 blue:0.81 alpha:1.0f] set];
+    [dropTargetOutline setLineWidth:2.0f];
+    [dropTargetOutline stroke];
+
+    [[[NSColor colorForControlTint:NSDefaultControlTint] colorWithAlphaComponent:0.5] set];
+    [dropTargetOutline fill];
+  }
+  else {
+    // rect is a 5-pixel rect before or after the button, offset a little so this draws
+    // in the right place. We take care to keep our drawing inside the rect returned from
+    // -insertionHiliteRectForButton, since that rect is used to do invalidations.
+    NSBezierPath* insertionPointPath = [NSBezierPath bezierPath];
+    float insertionPos = floorf(NSMidX(rect));    // avoid drawing at fractional offsets
+    rect = NSInsetRect(rect, 0.0f, 2.0f);
+
+    // top Y
+    const float kTipsXOffset = 3.0f;
+    const float kTipsYOffset = 2.0f;
+    [insertionPointPath moveToPoint:NSMakePoint(insertionPos - kTipsXOffset, NSMinY(rect))];
+    [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMinY(rect) + kTipsYOffset)];
+    [insertionPointPath lineToPoint:NSMakePoint(insertionPos + kTipsXOffset, NSMinY(rect))];
+
+    // line
+    [insertionPointPath moveToPoint:NSMakePoint(insertionPos, NSMinY(rect) + kTipsYOffset)];
+    [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMaxY(rect) - kTipsYOffset)];
+
+    // bottom Y
+    [insertionPointPath moveToPoint:NSMakePoint(insertionPos - kTipsXOffset, NSMaxY(rect))];
+    [insertionPointPath lineToPoint:NSMakePoint(insertionPos, NSMaxY(rect) - kTipsYOffset)];
+    [insertionPointPath lineToPoint:NSMakePoint(insertionPos + kTipsXOffset, NSMaxY(rect))];
+
+    [[NSColor colorWithCalibratedRed:0.12 green:0.36 blue:0.81 alpha:1.0f] set];
+    [insertionPointPath setLineCapStyle:NSRoundLineCapStyle];
+    [insertionPointPath setLineWidth:2.0f];
+    [insertionPointPath stroke];
   }
 }
 
