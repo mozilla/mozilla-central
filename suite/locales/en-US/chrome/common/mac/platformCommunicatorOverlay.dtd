@@ -5,7 +5,7 @@
 <!-- LOCALIZATION NOTE (.modifiers): The following entites are for the
   application menu. Never change the modifiers unless you are 100% sure that
   they are different on your locale (should be very rare). -->
-<!ENTITY preferencesCmd.label           "Preferences...">
+<!ENTITY preferencesCmd.label           "Preferences…">
 <!ENTITY preferencesCmd.key             ",">
 <!ENTITY preferencesCmd.modifiers       "accel">
 <!ENTITY servicesMenu.label             "Services">
@@ -24,7 +24,7 @@
 <!ENTITY closeCmd.label                 "Close">  
 <!ENTITY closeCmd.key                   "W">  
 
-<!ENTITY printSetupCmd.label            "Page Setup...">
+<!ENTITY printSetupCmd.label            "Page Setup…">
 <!ENTITY printSetupCmd.accesskey        "u">
 
 <!ENTITY redoCmd.label                  "Redo">  

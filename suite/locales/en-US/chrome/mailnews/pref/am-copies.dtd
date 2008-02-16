@@ -6,7 +6,7 @@
 <!ENTITY fccMailFolder.accesskey "P">
 <!ENTITY fccReplyFollowsParent.label "Place replies in the folder of the message being replied to">
 <!ENTITY fccReplyFollowsParent.accesskey "l">
-<!ENTITY chooseFolderButton.label "Choose Folder...">
+<!ENTITY chooseFolderButton.label "Choose Folder…">
 <!-- LOCALIZATION NOTE (bccAddress.label): do not translate "Bcc" in below line -->
 <!ENTITY bccAddress.label "Bcc these email addresses:">
 <!ENTITY bccAddress.accesskey "B">

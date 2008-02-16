@@ -46,9 +46,9 @@
 <!ENTITY remove.label                "Remove">
 <!ENTITY remove.accesskey            "r">
 
-<!ENTITY new.category.label          "New...">
+<!ENTITY new.category.label          "New…">
 <!ENTITY new.category.accesskey      "n">
-<!ENTITY rename.category.label       "Rename...">
+<!ENTITY rename.category.label       "Rename…">
 <!ENTITY rename.category.accesskey   "e">
 <!ENTITY remove.category.label       "Delete">
 <!ENTITY remove.category.accesskey   "d">

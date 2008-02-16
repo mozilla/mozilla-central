@@ -63,7 +63,7 @@
 <!ENTITY spellCheckInline.accesskey           "e">
 <!ENTITY languagePopup.label                  "Language:">
 <!ENTITY languagePopup.accessKey              "g">
-<!ENTITY moreDictionaries.label               "Download more dictionaries...">
+<!ENTITY moreDictionaries.label               "Download more dictionaries…">
 
 <!ENTITY defaultMessagesHeader.label          "Defaults for HTML Messages">
 <!ENTITY font.label                           "Font:">

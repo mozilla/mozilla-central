@@ -10,7 +10,7 @@
 <!ENTITY viewTags.accesskey "T">
 <!ENTITY viewCustomViews.label "Custom Views">
 <!ENTITY viewCustomViews.accesskey "V">
-<!ENTITY viewVirtualFolder.label "Save View as a Folder...">
+<!ENTITY viewVirtualFolder.label "Save View as a Folder…">
 <!ENTITY viewVirtualFolder.accesskey "S">
-<!ENTITY viewCustomizeView.label "Customize...">
+<!ENTITY viewCustomizeView.label "Customize…">
 <!ENTITY viewCustomizeView.accesskey "C">

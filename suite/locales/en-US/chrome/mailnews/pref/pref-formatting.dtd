@@ -56,7 +56,7 @@
 <!ENTITY HTMLdomaintitle.accesskey    "M">
 <!ENTITY PlainTexttitle.label         "Plain Text Domains">
 <!ENTITY PlainTexttitle.accesskey     "p">
-<!ENTITY AddButton.label              "Add...">
+<!ENTITY AddButton.label              "Add…">
 <!ENTITY AddHtmlDomain.accesskey      "a">
 <!ENTITY AddPlainText.accesskey       "d">
 <!ENTITY DeleteButton.label           "Delete">

@@ -19,8 +19,8 @@
 <!ENTITY selectProfile.title             "Select Profile">
 <!ENTITY selectProfile.label             "The following profiles are available to import from:">
 
-<!ENTITY migrating.title                 "Importing...">
-<!ENTITY migrating.label                 "The following items are currently being imported...">
+<!ENTITY migrating.title                 "Importing…">
+<!ENTITY migrating.label                 "The following items are currently being imported…">
 
 <!ENTITY done.title                      "Import Complete">
 <!ENTITY done.label                      "The following items were successfully imported:">

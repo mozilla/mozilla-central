@@ -19,9 +19,9 @@
 <!ENTITY findNextCmd.label "Find Next">
 <!ENTITY findNextCmd.accesskey "n">
 
-<!ENTITY goToLineCmd.label "Go to Line...">
+<!ENTITY goToLineCmd.label "Go to Line…">
 <!ENTITY goToLineCmd.accesskey "G">
 <!ENTITY goToLineCmd.commandkey "l">
 
-<!ENTITY printSetupCmd.label "Page Setup...">
+<!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">

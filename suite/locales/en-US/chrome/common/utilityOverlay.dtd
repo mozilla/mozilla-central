@@ -42,7 +42,7 @@
 <!ENTITY selectAllCmd.label					"Select All">  
 <!ENTITY selectAllCmd.key					"A">  
 <!ENTITY selectAllCmd.accesskey				"a"> 
-<!ENTITY preferencesCmd.label				"Preferences...">
+<!ENTITY preferencesCmd.label				"Preferences…">
 <!ENTITY preferencesCmd.key					"E">  
 <!ENTITY preferencesCmd.accesskey			"e"> 
 <!ENTITY findTypeTextCmd.label "Find Text As You Type">
@@ -62,7 +62,7 @@
 
 <!ENTITY releaseCmd.label				"Release Notes">
 <!ENTITY releaseCmd.accesskey                   "N">
-<!ENTITY updateCmd.label                        "Check for Updates...">
+<!ENTITY updateCmd.label                        "Check for Updates…">
 <!ENTITY updateCmd.accesskey                    "C">
 <!ENTITY aboutCmd.label					"About &brandShortName;">
 <!ENTITY aboutCmd.accesskey				"A">
@@ -78,7 +78,7 @@
 <!ENTITY wpad.label                                     "Online (Proxy: Auto Discover)">
 <!ENTITY wpad.accesskey                                 "D">
 
-<!ENTITY proxy.label                                    "Proxy Configuration...">
+<!ENTITY proxy.label                                    "Proxy Configuration…">
 <!ENTITY proxy.accesskey                                "C">
 
 <!ENTITY bidiSwitchTextDirectionItem.label        "Switch Text Direction">

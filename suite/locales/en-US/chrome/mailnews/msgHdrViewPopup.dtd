@@ -36,13 +36,13 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!-- Message Header View Popup -->
-<!ENTITY AddToAddressBook.label            "Add To Address Book...">
+<!ENTITY AddToAddressBook.label            "Add To Address Book…">
 <!ENTITY AddToAddressBook.accesskey        "B">
-<!ENTITY SendMailTo.label                  "Compose Mail To...">
+<!ENTITY SendMailTo.label                  "Compose Mail To…">
 <!ENTITY SendMailTo.accesskey              "s">
 <!ENTITY CopyEmailAddress.label            "Copy Email Address">
 <!ENTITY CopyEmailAddress.accesskey        "C">
-<!ENTITY CreateFilterFrom.label            "Create Filter From...">
+<!ENTITY CreateFilterFrom.label            "Create Filter From…">
 <!ENTITY CreateFilterFrom.accesskey        "F">
 <!ENTITY BlockAddress.label                "Block Address">
 <!ENTITY BlockAddress.accesskey            "A">

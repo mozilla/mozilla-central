@@ -1,6 +1,6 @@
 <!-- Override app-specific error messages for SeaMonkey -->
 
-<!ENTITY securityOverride.linkText "Or you can add an exception...">
+<!ENTITY securityOverride.linkText "Or you can add an exception…">
 <!ENTITY securityOverride.getMeOutOfHereButton "This sounds bad, take me to my home page instead">
 <!ENTITY securityOverride.exceptionButtonLabel "Add Exception">
 

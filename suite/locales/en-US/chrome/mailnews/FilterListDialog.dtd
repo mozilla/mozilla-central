@@ -1,9 +1,9 @@
 <!ENTITY window.title "Message Filters">
 <!ENTITY nameColumn.label "Filter Name">
 <!ENTITY activeColumn.label "Enabled">
-<!ENTITY newButton.label "New...">
+<!ENTITY newButton.label "New…">
 <!ENTITY newButton.accesskey "N">
-<!ENTITY editButton.label "Edit...">
+<!ENTITY editButton.label "Edit…">
 <!ENTITY editButton.accesskey "E">
 <!ENTITY deleteButton.label "Delete">
 <!ENTITY deleteButton.accesskey "t">

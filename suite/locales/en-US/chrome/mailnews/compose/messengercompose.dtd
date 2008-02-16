@@ -18,7 +18,7 @@
 <!ENTITY saveCmd.accesskey "s">
 <!ENTITY saveAsCmd.label "Save As">
 <!ENTITY saveAsCmd.accesskey "A">
-<!ENTITY saveAsFileCmd.label "File...">
+<!ENTITY saveAsFileCmd.label "File…">
 <!ENTITY saveAsFileCmd.accesskey "F">
 <!ENTITY saveAsDraftCmd.label "Draft">
 <!ENTITY saveAsDraftCmd.accesskey "D">
@@ -26,10 +26,10 @@
 <!ENTITY saveAsTemplateCmd.accesskey "T">
 <!ENTITY attachMenu.label "Attach">
 <!ENTITY attachMenu.accesskey "t">
-<!ENTITY attachFileCmd.label "File(s)...">
+<!ENTITY attachFileCmd.label "File(s)…">
 <!ENTITY attachFileCmd.key "">
 <!ENTITY attachFileCmd.accesskey "F">
-<!ENTITY attachPageCmd.label "Web Page...">
+<!ENTITY attachPageCmd.label "Web Page…">
 <!ENTITY attachPageCmd.accesskey "W">
 <!--LOCALIZATION NOTE attachVCardCmd.label Don't translate the term 'vCard' -->
 <!ENTITY attachVCardCmd.label "Personal Card (vCard)">
@@ -40,9 +40,9 @@
 <!ENTITY sendLaterCmd.label "Send Later">
 <!ENTITY sendLaterCmd.keycode "VK_RETURN">
 <!ENTITY sendLaterCmd.accesskey "L">
-<!ENTITY printSetupCmd.label "Page Setup...">
+<!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
-<!ENTITY printCmd.label "Print...">
+<!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.key "P">
 <!ENTITY printCmd.accesskey "P">
 <!ENTITY closeCmd.label "Close">
@@ -50,7 +50,7 @@
 <!-- Edit menu items -->
 <!ENTITY editRewrapCmd.label "Rewrap">
 <!ENTITY editRewrapCmd.accesskey  "w">
-<!ENTITY findCmd.label "Find and Replace...">
+<!ENTITY findCmd.label "Find and Replace…">
 <!ENTITY findCmd.key "F">
 <!ENTITY findCmd.accesskey "F">
 <!ENTITY findAgainCmd.label "Find Again">
@@ -61,7 +61,7 @@
 <!ENTITY findPrevCmd.key "G">
 <!ENTITY findPrevCmd.key2 "VK_F3">
 <!ENTITY findPrevCmd.accesskey "v">
-<!ENTITY accountManagerCmd.label "Mail &amp; Newsgroups Account Settings...">
+<!ENTITY accountManagerCmd.label "Mail &amp; Newsgroups Account Settings…">
 <!ENTITY accountManagerCmd.accesskey "m">
 
 <!-- View menu items -->
@@ -111,11 +111,11 @@
 
 <!ENTITY quoteCmd.label "Quote Message">
 <!ENTITY quoteCmd.accesskey "Q">
-<!ENTITY selectAddressCmd.label "Select Addresses...">
+<!ENTITY selectAddressCmd.label "Select Addresses…">
 <!ENTITY selectAddressCmd.key "">
 <!ENTITY selectAddressCmd.accesskey "A">
 
-<!ENTITY checkSpellingCmd.label "Check Spelling...">
+<!ENTITY checkSpellingCmd.label "Check Spelling…">
 <!ENTITY checkSpellingCmd.key "K">
 <!ENTITY checkSpellingCmd.accesskey "h">
 <!ENTITY enableInlineSpellChecker.label "Spellcheck As You Type">
@@ -221,7 +221,7 @@
 <!ENTITY delete.accesskey "D">
 <!ENTITY selectAll.label "Select All">
 <!ENTITY selectAll.accesskey "A">
-<!ENTITY attachFile.label "Attach File(s)...">
+<!ENTITY attachFile.label "Attach File(s)…">
 <!ENTITY attachFile.accesskey "F">
-<!ENTITY attachPage.label "Attach Web Page...">
+<!ENTITY attachPage.label "Attach Web Page…">
 <!ENTITY attachPage.accesskey "W">

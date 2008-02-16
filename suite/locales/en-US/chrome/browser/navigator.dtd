@@ -17,10 +17,10 @@
 <!ENTITY tabCmd.label "Browser Tab">
 <!ENTITY tabCmd.accesskey "T">
 <!ENTITY tabCmd.commandkey "t">
-<!ENTITY openCmd.label "Open Web Location...">
+<!ENTITY openCmd.label "Open Web Location…">
 <!ENTITY openCmd.accesskey "l">
 <!ENTITY openCmd.commandkey "l">
-<!ENTITY openFileCmd.label "Open File...">
+<!ENTITY openFileCmd.label "Open File…">
 <!ENTITY openFileCmd.accesskey "o">
 <!ENTITY openFileCmd.commandkey "o">
 <!ENTITY recentTabs.label "Recently Closed Tabs">
@@ -34,14 +34,14 @@
 <!ENTITY editFrameSetCmd.label "Edit Frameset">
 <!ENTITY editFrameSetCmd.accesskey "t">
 
-<!ENTITY uploadFile.label "Upload File...">
+<!ENTITY uploadFile.label "Upload File…">
 <!ENTITY uploadFile.accesskey "F">
 
-<!ENTITY printSetupCmd.label "Page Setup...">
+<!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
 <!ENTITY printPreviewCmd.label "Print Preview">
 <!ENTITY printPreviewCmd.accesskey "v">
-<!ENTITY printCmd.label "Print...">
+<!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "p">
 <!ENTITY printCmd.commandkey "p">
 
@@ -119,7 +119,7 @@
 <!ENTITY getNewThemesCmd.accesskey "G">
 <!ENTITY searchMenu.label "Search">
 <!ENTITY searchMenu.accesskey "S">
-<!ENTITY findOnCmd.label "Find in This Page...">
+<!ENTITY findOnCmd.label "Find in This Page…">
 <!ENTITY findOnCmd.accesskey "f">
 <!ENTITY findOnCmd.commandkey "f">
 <!ENTITY findAgainCmd.label "Find Again">
@@ -144,12 +144,12 @@
 <!ENTITY bookmarksMenu.accesskey "B">
 <!ENTITY addCurPageCmd.label "Bookmark This Page">
 <!ENTITY addCurPageCmd.accesskey "B">
-<!ENTITY addCurPageAsCmd.label "File Bookmark...">
+<!ENTITY addCurPageAsCmd.label "File Bookmark…">
 <!ENTITY addCurPageAsCmd.accesskey "F">
 <!ENTITY addCurPageAsCmd.commandkey "d">
-<!ENTITY addCurTabsAsCmd.label "Bookmark This Group of Tabs...">
+<!ENTITY addCurTabsAsCmd.label "Bookmark This Group of Tabs…">
 <!ENTITY addCurTabsAsCmd.accesskey "G">
-<!ENTITY manBookmarksCmd.label "Manage Bookmarks...">
+<!ENTITY manBookmarksCmd.label "Manage Bookmarks…">
 <!ENTITY manBookmarksCmd.accesskey "M">
 <!ENTITY manBookmarksCmd.commandkey "b">
 <!ENTITY feedsMenu.label "Subscribe to This Page">

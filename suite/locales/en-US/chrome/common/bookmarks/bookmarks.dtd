@@ -51,30 +51,30 @@
 <!ENTITY button.newSeparator.label     "New Separator">
 <!ENTITY button.newSeparator.accesskey  "o">
 <!ENTITY command.newSeparator.accesskey "S">
-<!ENTITY menuitem.open.label           "Open Bookmarks File...">
+<!ENTITY menuitem.open.label           "Open Bookmarks File…">
 <!ENTITY menuitem.open.accesskey       "O">
-<!ENTITY menuitem.import.label         "Import...">
+<!ENTITY menuitem.import.label         "Import…">
 <!ENTITY menuitem.import.accesskey     "i">
-<!ENTITY menuitem.export.label         "Export...">
+<!ENTITY menuitem.export.label         "Export…">
 <!ENTITY menuitem.export.accesskey     "e">
-<!ENTITY menuitem.find.label           "Search Bookmarks...">
-<!ENTITY command.findBookmarks.label   "Search...">
+<!ENTITY menuitem.find.label           "Search Bookmarks…">
+<!ENTITY command.findBookmarks.label   "Search…">
 <!ENTITY menuitem.find.accesskey       "S">
 <!ENTITY edit.find.keybinding          "f">
-<!ENTITY command.properties.label      "Properties...">
+<!ENTITY command.properties.label      "Properties…">
 <!ENTITY button.properties.accesskey  "P">
 <!ENTITY command.properties.accesskey  "o">
 <!ENTITY edit.properties.keybinding    "i">
-<!ENTITY command.rename.label          "Rename...">
+<!ENTITY command.rename.label          "Rename…">
 <!ENTITY button.rename.accesskey      "R">
 <!ENTITY command.delete.label          "Delete">
 <!ENTITY button.delete.accesskey      "D">
-<!ENTITY command.moveBookmark.label    "Move Bookmark(s)...">
-<!ENTITY command.moveBookmarkShort.label "Move...">
+<!ENTITY command.moveBookmark.label    "Move Bookmark(s)…">
+<!ENTITY command.moveBookmarkShort.label "Move…">
 <!ENTITY command.moveBookmark.accesskey "M">
-<!ENTITY command.addBookmark.label     "Add...">
+<!ENTITY command.addBookmark.label     "Add…">
 <!ENTITY command.manageBookmarks.label "Manage">
-<!ENTITY command.sortFolder.label      "Sort Folder...">
+<!ENTITY command.sortFolder.label      "Sort Folder…">
 <!ENTITY command.sortFolder.accesskey  "S">
 <!ENTITY edit.sortFolder.keybinding    "S">
 <!ENTITY command.sortFolderByName.label "Sort Folder by Name">

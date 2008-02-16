@@ -8,11 +8,11 @@
 <!ENTITY alwaysEncryptMessage.accesskey "u">
 <!ENTITY encryptionCert.message "Use this certificate to encrypt &amp; decrypt messages sent to you:">
 <!ENTITY encryptionCert.notselected "No certificate set">
-<!ENTITY digitalSign.certificate.button "Select...">
+<!ENTITY digitalSign.certificate.button "Select…">
 <!ENTITY digitalSign.certificate.accesskey "S">
 <!ENTITY digitalSign.certificate_clear.button "Clear">
 <!ENTITY digitalSign.certificate_clear.accesskey "C">
-<!ENTITY encryption.certificate.button "Select...">
+<!ENTITY encryption.certificate.button "Select…">
 <!ENTITY encryption.certificate.accesskey "e">
 <!ENTITY encryption.certificate_clear.button "Clear">
 <!ENTITY encryption.certificate_clear.accesskey "r">

@@ -10,7 +10,7 @@
 <!ENTITY  annoyances.label    "Common Annoyances">
 <!ENTITY  restricted.label    "Restricted Sites">
 
-<!ENTITY  addSite.label       "Add Site...">
+<!ENTITY  addSite.label       "Add Site…">
 <!ENTITY  addSite.accesskey   "a">
 <!ENTITY  settings.label      "Settings for ">
 <!ENTITY  settings.accesskey  "s">

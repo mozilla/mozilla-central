@@ -38,5 +38,5 @@
 <!ENTITY addonsManagerCmd.label "Add-on Manager">
 <!ENTITY addonsManagerCmd.accesskey "A">
 
-<!ENTITY switchProfileCmd.label "Switch Profile...">
+<!ENTITY switchProfileCmd.label "Switch Profile…">
 <!ENTITY switchProfileCmd.accesskey "h">

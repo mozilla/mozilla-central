@@ -46,14 +46,14 @@
 <!-- File menu items -->
 <!ENTITY newMessage.label "New Message">
 <!ENTITY newMessage.accesskey "N">
-<!ENTITY newFolderCmd.label "Folder...">
+<!ENTITY newFolderCmd.label "Folder…">
 <!ENTITY newFolderCmd.accesskey "F">
-<!ENTITY newVirtualFolderCmd.label "Saved Search...">
+<!ENTITY newVirtualFolderCmd.label "Saved Search…">
 <!ENTITY newVirtualFolderCmd.accesskey "S">
-<!ENTITY newAccountCmd.label "Account...">
+<!ENTITY newAccountCmd.label "Account…">
 <!ENTITY newAccountCmd.accesskey "A">
 <!ENTITY openMessageMenu.label "Open">
-<!ENTITY openMessageFileCmd.label "Open File...">
+<!ENTITY openMessageFileCmd.label "Open File…">
 <!ENTITY openMessageFileCmd.accesskey "O">
 <!ENTITY openAttachmentCmd.label "Attachments">
 <!ENTITY openAttachmentCmd.accesskey "h">
@@ -78,33 +78,33 @@
 <!ENTITY sendUnsentCmd.label "Send Unsent Messages">
 <!ENTITY sendUnsentCmd.accesskey "d">
 <!ENTITY loadFirstDraft.label			"Load First Draft Message">
-<!ENTITY subscribeCmd.label "Subscribe...">
+<!ENTITY subscribeCmd.label "Subscribe…">
 <!ENTITY subscribeCmd.accesskey "b">
-<!ENTITY renameFolder.label "Rename Folder...">
+<!ENTITY renameFolder.label "Rename Folder…">
 <!ENTITY renameFolder.accesskey "R">
 <!ENTITY compactFolders.label "Compact Folders">
 <!ENTITY compactFolder.accesskey		"F">
 <!ENTITY emptyTrashCmd.label "Empty Trash">
 <!ENTITY emptyTrashCmd.accesskey		"y">
-<!ENTITY importCmd.label "Import...">
+<!ENTITY importCmd.label "Import…">
 <!ENTITY importCmd.accesskey "I">
 <!ENTITY offlineMenu.label "Offline">
 <!ENTITY offlineMenu.accesskey "l">
-<!ENTITY synchronizeOfflineCmd.label "Download/Sync Now...">
+<!ENTITY synchronizeOfflineCmd.label "Download/Sync Now…">
 <!ENTITY synchronizeOfflineCmd.accesskey "S">
-<!ENTITY settingsOfflineCmd.label "Offline Settings...">
+<!ENTITY settingsOfflineCmd.label "Offline Settings…">
 <!ENTITY settingsOfflineCmd.accesskey "e">
 <!ENTITY downloadSelectedCmd.label "Get Selected Messages">
 <!ENTITY downloadSelectedCmd.accesskey "t">
 <!ENTITY downloadFlaggedCmd.label "Get Flagged Messages">
 <!ENTITY downloadFlaggedCmd.accesskey "G">
-<!ENTITY printCmd.label "Print...">
+<!ENTITY printCmd.label "Print…">
 <!ENTITY printCmd.accesskey "P">
 <!ENTITY printCmd.key "p">
 <!ENTITY printPreviewCmd.label "Print Preview">
 <!ENTITY printPreviewCmd.accesskey "v">
 <!ENTITY printPreviewCmd.key "v">
-<!ENTITY printSetupCmd.label "Page Setup...">
+<!ENTITY printSetupCmd.label "Page Setup…">
 <!ENTITY printSetupCmd.accesskey "u">
 
 <!-- Edit Menu -->
@@ -133,15 +133,15 @@
 <!ENTITY selectFlaggedCmd.accesskey "F">
 <!ENTITY selectInvertCmd.label ".Invert Selection">
 <!ENTITY selectInvertCmd.accesskey "I">
-<!ENTITY filtersCmd.label "Message Filters...">
+<!ENTITY filtersCmd.label "Message Filters…">
 <!ENTITY filtersCmd.accesskey "F">
 <!ENTITY filtersApply.label "Run Filters on Folder">
 <!ENTITY filtersApply.accesskey "R">
-<!ENTITY folderPropsCmd.label "Properties...">
-<!ENTITY folderPropsFolderCmd.label "Folder Properties...">
-<!ENTITY folderPropsNewsgroupCmd.label "Newsgroup Properties...">
+<!ENTITY folderPropsCmd.label "Properties…">
+<!ENTITY folderPropsFolderCmd.label "Folder Properties…">
+<!ENTITY folderPropsNewsgroupCmd.label "Newsgroup Properties…">
 <!ENTITY folderPropsCmd.accesskey "o">
-<!ENTITY accountManagerCmd.label "Mail &amp; Newsgroups Account Settings...">
+<!ENTITY accountManagerCmd.label "Mail &amp; Newsgroups Account Settings…">
 <!ENTITY accountManagerCmd.accesskey "M">
 <!ENTITY undoDeleteMsgCmd.label "Undo Delete Message">
 <!ENTITY redoDeleteMsgCmd.label "Redo Delete Message">
@@ -157,7 +157,7 @@
 <!-- View Menu -->
 <!ENTITY showMessengerToolbarCmd.label		"Mail Toolbar">
 <!ENTITY showMessengerToolbarCmd.accesskey	"o">
-<!ENTITY customizeToolbar.label                 "Customize...">
+<!ENTITY customizeToolbar.label                 "Customize…">
 <!ENTITY customizeToolbar.accesskey             "C">
  
 <!-- showSearchToolbarCmd is also used by addressbook -->
@@ -276,7 +276,7 @@
 <!ENTITY searchMenu.label "Search">
 <!ENTITY searchMenu.accesskey "S">
 
-<!ENTITY findCmd.label "Find in This Message...">
+<!ENTITY findCmd.label "Find in This Message…">
 <!ENTITY findCmd.accesskey "F">
 <!ENTITY findCmd.key "f">
 <!ENTITY findAgainCmd.label "Find Again">
@@ -297,7 +297,7 @@
 <!ENTITY searchParentParentCmd.label ".Search in &lt;parent parent&gt;">
 <!ENTITY searchParentParentCmd.accesskey "">
 
-<!ENTITY searchMailCmd.label "Search Messages...">
+<!ENTITY searchMailCmd.label "Search Messages…">
 <!ENTITY searchMailCmd.accesskey "M">
 <!ENTITY searchMailCmd.key "s">
 
@@ -375,7 +375,7 @@
 <!ENTITY editMsgAsNewCmd.label "Edit Message As New">
 <!ENTITY editMsgAsNewCmd.accesskey "E">
 <!ENTITY editMsgAsNewCmd.key "e">
-<!ENTITY createFilter.label "Create Filter From Message...">
+<!ENTITY createFilter.label "Create Filter From Message…">
 <!ENTITY createFilter.accesskey "a">
 <!ENTITY moveMsgMenu.label "Move">
 <!ENTITY moveMsgMenu.accesskey "M">
@@ -399,7 +399,7 @@
 <!ENTITY addAllToAddressBookCmd.accesskey "A">
 <!ENTITY tagMenu.label "Tag">
 <!ENTITY tagMenu.accesskey "g">
-<!ENTITY tagCustomize.label "Customize...">
+<!ENTITY tagCustomize.label "Customize…">
 <!ENTITY tagCustomize.accesskey "C">
 <!ENTITY tagCmd0.key "0">
 <!ENTITY tagCmd1.key "1">
@@ -421,7 +421,7 @@
 <!ENTITY markThreadAsReadCmd.label "Thread As Read">
 <!ENTITY markThreadAsReadCmd.accesskey "T">
 <!ENTITY markThreadAsReadCmd.key "r">
-<!ENTITY markReadByDateCmd.label "As Read by Date...">
+<!ENTITY markReadByDateCmd.label "As Read by Date…">
 <!ENTITY markReadByDateCmd.accesskey "D">
 <!ENTITY markReadByDateCmd.key "c">
 <!ENTITY markAllReadCmd.label "All Read">
@@ -503,7 +503,7 @@
 <!-- Thread Pane Context Menu -->
 <!ENTITY contextOpenNewWindow.label "Open Message in New Window">
 <!ENTITY contextOpenNewWindow.accesskey "W">
-<!ENTITY contextEditAsNew.label "Edit As New...">
+<!ENTITY contextEditAsNew.label "Edit As New…">
 <!ENTITY contextEditAsNew.accesskey "E">
 <!ENTITY contextReplySender.label "Reply to Sender Only">
 <!ENTITY contextReplySender.accesskey "O">
@@ -521,9 +521,9 @@
 <!ENTITY contextMoveMsgMenu.accesskey "M">
 <!ENTITY contextCopyMsgMenu.label "Copy To">
 <!ENTITY contextCopyMsgMenu.accesskey "C">
-<!ENTITY contextSaveAs.label "Save As...">
+<!ENTITY contextSaveAs.label "Save As…">
 <!ENTITY contextSaveAs.accesskey "S">
-<!ENTITY contextPrint.label "Print...">
+<!ENTITY contextPrint.label "Print…">
 <!ENTITY contextPrint.accesskey "P">
 <!ENTITY contextPrintPreview.label "Print Preview">
 <!ENTITY contextPrintPreview.accesskey "v">
@@ -551,13 +551,13 @@
 <!ENTITY folderContextMarkNewsgroupRead.accesskey "k">
 <!ENTITY folderContextMarkMailFolderRead.label "Mark Folder Read">
 <!ENTITY folderContextMarkMailFolderRead.accesskey "k">
-<!ENTITY folderContextNew.label "New Subfolder...">
+<!ENTITY folderContextNew.label "New Subfolder…">
 <!ENTITY folderContextNew.accesskey "N">
-<!ENTITY folderContextSubscribe.label "Subscribe...">
+<!ENTITY folderContextSubscribe.label "Subscribe…">
 <!ENTITY folderContextSubscribe.accesskey "b">
-<!ENTITY folderContextSearchMessages.label "Search Messages...">
+<!ENTITY folderContextSearchMessages.label "Search Messages…">
 <!ENTITY folderContextSearchMessages.accesskey "S">
-<!ENTITY folderContextProperties.label "Properties...">
+<!ENTITY folderContextProperties.label "Properties…">
 <!ENTITY folderContextProperties.accesskey "P">
 
 <!---SearchBar-->
@@ -566,7 +566,7 @@
 <!ENTITY SearchSubjectOrFrom.accesskey "S">
 <!ENTITY SearchNameOrEmail.label "Name or Email contains:">
 <!ENTITY SearchNameOrEmail.accesskey "N">
-<!ENTITY advancedButton.label "Advanced...">
+<!ENTITY advancedButton.label "Advanced…">
 <!ENTITY advancedButton.accesskey "A">
 
 <!ENTITY clearButton.label "Clear">
@@ -575,10 +575,10 @@
 <!ENTITY all.label "All">
 <!ENTITY all.accesskey "A">
 
-<!ENTITY searchAddressesCmd.label "Search Addresses...">
+<!ENTITY searchAddressesCmd.label "Search Addresses…">
 <!ENTITY searchAddressesCmd.accesskey "S">
 
-<!ENTITY junkMailCmd.label "Junk Mail Controls...">
+<!ENTITY junkMailCmd.label "Junk Mail Controls…">
 <!ENTITY junkMailCmd.accesskey "J">
 
 <!ENTITY runJunkControls.label "Run Junk Mail Controls on Folder">

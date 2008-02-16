@@ -41,31 +41,31 @@
 <!-- Menus:  the . means that the menu item isn't implemented yet -->
 
 <!-- File Menu -->
-<!ENTITY newCard.label                                  "Address Book Card...">
+<!ENTITY newCard.label                                  "Address Book Card…">
 <!-- LOCALIZATION NOTE (newCard.accesskey) : DONT_TRANSLATE -->  
 <!ENTITY newCard.accesskey                              "C">  
-<!ENTITY newListCmd.label                               "Mailing List...">
+<!ENTITY newListCmd.label                               "Mailing List…">
 <!-- LOCALIZATION NOTE (newListCmd.accesskey) : DONT_TRANSLATE -->  
 <!ENTITY newListCmd.accesskey                           "L">  
-<!ENTITY newAddressBookCmd.label                        "Address Book..."> 
+<!ENTITY newAddressBookCmd.label                        "Address Book…"> 
 <!ENTITY newAddressBookCmd.accesskey                    "o">  
-<!ENTITY renameAddressBookCmd.label                     "Rename Address Book..."> 
+<!ENTITY renameAddressBookCmd.label                     "Rename Address Book…"> 
 <!ENTITY renameAddressBookCmd.accesskey                 "R">  
-<!ENTITY newLDAPDirectoryCmd.label                      "LDAP Directory...">
+<!ENTITY newLDAPDirectoryCmd.label                      "LDAP Directory…">
 <!-- LOCALIZATION NOTE (newLDAPDirectoryCmd.accesskey) : DONT_TRANSLATE -->
 <!ENTITY newLDAPDirectoryCmd.accesskey                  "D">
 <!ENTITY newIM.label                                    "IM">
-<!ENTITY printCardViewCmd.label                         "Print Card...">
+<!ENTITY printCardViewCmd.label                         "Print Card…">
 <!ENTITY printCardViewCmd.accesskey                     "p">
 <!ENTITY printPreviewCardViewCmd.label                  "Print Preview Card">
 <!ENTITY printPreviewCardViewCmd.accesskey              "v">
 <!-- LOCALIZATION NOTE (printCardViewCmd.key) : DONT_TRANSLATE -->  
 <!ENTITY printCardViewCmd.key                           "P">
-<!ENTITY printAddressBook.label                         "Print Address Book..."> 
+<!ENTITY printAddressBook.label                         "Print Address Book…"> 
 <!ENTITY printAddressBook.accesskey                     "A"> 
 <!ENTITY printPreviewAddressBook.label                  "Print Preview Address Book"> 
 <!ENTITY printPreviewAddressBook.accesskey              "B">
-<!ENTITY printSetupCmd.label                            "Page Setup...">
+<!ENTITY printSetupCmd.label                            "Page Setup…">
 <!ENTITY printSetupCmd.accesskey                        "u">
 
 <!-- Edit Menu -->
@@ -77,7 +77,7 @@
 <!ENTITY deleteItemsCmd.label                           "Delete Selected Items">
 <!ENTITY swapFirstNameLastNameCmd.label                 "Swap First/Last Name">
 <!ENTITY swapFirstNameLastNameCmd.accesskey             "w">  
-<!ENTITY propertiesCmd.label                            "Properties...">
+<!ENTITY propertiesCmd.label                            "Properties…">
 <!-- LOCALIZATION NOTE (propertiesCmd.accesskey) : DONT_TRANSLATE -->  
 <!ENTITY propertiesCmd.accesskey                        "i">  
 <!ENTITY propertiesCmd.key                              "i">  
@@ -99,9 +99,9 @@
 <!ENTITY displayNameCmd.accesskey                       "d"> 
 
 <!-- Tasks Menu -->
-<!ENTITY importCmd.label                                "Import...">
+<!ENTITY importCmd.label                                "Import…">
 <!ENTITY importCmd.accesskey                            "I">
-<!ENTITY exportCmd.label                                "Export...">
+<!ENTITY exportCmd.label                                "Export…">
 <!ENTITY exportCmd.accesskey                            "E">
 <!ENTITY allowOnlineCheck.label                         "Check online presence (AOL)">
 <!ENTITY allowOnlineCheck.accesskey                     "C">

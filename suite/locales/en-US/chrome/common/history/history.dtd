@@ -13,7 +13,7 @@
 <!ENTITY deleteHostnameCmd.accesskey "H">
 <!ENTITY deleteDomainCmd.accesskey  "s">
 <!ENTITY selAllCmd.label            "Select All">
-<!ENTITY findHisCmd.label           "Search History...">
+<!ENTITY findHisCmd.label           "Search History…">
 <!ENTITY findHisCmd.commandkey      "f">
 <!ENTITY findHisCmd.accesskey       "S">
 <!ENTITY groupBy.label              "Group By">

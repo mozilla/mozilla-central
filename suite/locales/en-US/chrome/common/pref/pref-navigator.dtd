@@ -18,7 +18,7 @@
 <!ENTITY useCurrent.accesskey           "U">
 <!ENTITY useCurrentGroup.label          "Use Current Group">
 <!ENTITY useCurrentGroup.accesskey      "G">
-<!ENTITY browseFile.label               "Choose File...">
+<!ENTITY browseFile.label               "Choose File…">
 <!ENTITY browseFile.accesskey           "C">
 <!ENTITY useDefault.label               "Restore Default">
 <!ENTITY useDefault.accesskey           "R">

@@ -41,7 +41,7 @@
 <!ENTITY            windowTitle.label    "Select User Profile">
 <!ENTITY            profileManager.title "&brandShortName; Profile Manager">
 
-<!ENTITY            manage.label     "Manage Profiles...">
+<!ENTITY            manage.label     "Manage Profiles…">
 <!ENTITY            manage.accesskey "M">
 <!ENTITY            select.label     "Use Profile">
 

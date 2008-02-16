@@ -8,5 +8,5 @@
 <!ENTITY localPath.label "Local directory:">
 <!ENTITY localPath.accesskey "L">
 <!ENTITY localFolderPicker.label "Select Local Directory">
-<!ENTITY browseFolder.label "Browse...">
+<!ENTITY browseFolder.label "Browse…">
 <!ENTITY browseFolder.accesskey "B">

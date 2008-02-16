@@ -7,7 +7,7 @@
 <!ENTITY languages.customize.prefAddLangDescript        "Select the language(s) you would like to add.">
 <!ENTITY languages.customize.engOrder.label             "1">
 <!ENTITY languages.customize.engOption.label            "English">
-<!ENTITY languages.customize.addButton.label            "Add...">
+<!ENTITY languages.customize.addButton.label            "Add…">
 <!ENTITY languages.customize.addButton.accesskey        "A">
 <!ENTITY languages.customize.deleteButton.label         "Remove">
 <!ENTITY languages.customize.deleteButton.accesskey     "R">
@@ -31,7 +31,7 @@
 <!ENTITY languages.customize.cancel.label		            "Cancel">
 <!ENTITY languages.customize.save.label                 "Save">
 <!ENTITY languages.customize.ok.label                   "OK">
-<!ENTITY languages.customize.save.popup                 "Please restart the browser for changes to take effect...">
+<!ENTITY languages.customize.save.popup                 "Please restart the browser for changes to take effect…">
 <!ENTITY languages.customize.moveUp.label               "Move Up">
 <!ENTITY languages.customize.moveUp.accesskey           "u">
 <!ENTITY languages.customize.moveDown.label             "Move Down">
