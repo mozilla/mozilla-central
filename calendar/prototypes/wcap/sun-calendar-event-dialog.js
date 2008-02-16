@@ -710,6 +710,10 @@ function updateReminder() {
 }
 
 function saveDialog(item) {
+    // Calendar
+    item.calendar = document.getElementById("item-calendar")
+                            .selectedItem.calendar;
+
     setItemProperty(item, "title", getElementValue("item-title"));
     setItemProperty(item, "LOCATION", getElementValue("item-location"));
 
@@ -730,10 +734,6 @@ function saveDialog(item) {
     }
 
     setCategory(item, "item-categories");
-
-    // Calendar
-    item.calendar = document.getElementById("item-calendar")
-                            .selectedItem.calendar;
 
     // URL
     setItemProperty(item, "URL", gURL, "attachments");
