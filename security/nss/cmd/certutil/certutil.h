@@ -63,6 +63,7 @@ enum certutilExtns {
     ext_policyMappings,
     ext_policyConstr,
     ext_inhibitAnyPolicy,
+    ext_subjectKeyID,
     ext_End
 };
 

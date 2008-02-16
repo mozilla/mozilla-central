@@ -57,6 +57,7 @@
 #endif
 
 #include "cert.h"
+#include "xconst.h"
 #include "prprf.h"
 #include "certutil.h"
 
@@ -703,6 +704,9 @@ AddAuthKeyID (void *extHandle)
                         "enter to omit:", &authKeyID->keyID);
         if (rv != SECSuccess)
             break;
+
+        SECU_SECItemHexStringToBinary(&authKeyID->keyID);
+
         authKeyID->authCertIssuer = GetGeneralName (arena);
         if (authKeyID->authCertIssuer == NULL && 
             SECFailure == PORT_GetError ())
@@ -726,6 +730,43 @@ AddAuthKeyID (void *extHandle)
     return (rv);
 }   
     
+static SECStatus 
+AddSubjKeyID (void *extHandle)
+{
+    SECItem keyID;
+    PRArenaPool *arena = NULL;
+    SECStatus rv = SECSuccess;
+    PRBool yesNoAns;
+
+    do {
+        arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
+        if ( !arena ) {
+            SECU_PrintError(progName, "out of memory");
+            GEN_BREAK (SECFailure);
+        }
+        printf("Adding Subject Key ID extension.\n");
+
+        rv = GetString (arena, "Enter value for the key identifier fields,"
+                        "enter to omit:", &keyID);
+        if (rv != SECSuccess)
+            break;
+
+        SECU_SECItemHexStringToBinary(&keyID);
+
+        yesNoAns = GetYesNo ("Is this a critical extension [y/N]?");
+
+        rv = SECU_EncodeAndAddExtensionValue(arena, extHandle,
+		     &keyID, yesNoAns, SEC_OID_X509_SUBJECT_KEY_ID, 
+		     (EXTEN_EXT_VALUE_ENCODER) CERT_EncodeSubjectKeyID);
+        if (rv)
+            break;
+
+    } while (0);
+    if (arena)
+        PORT_FreeArena (arena, PR_FALSE);
+    return (rv);
+}   
+
 static SECStatus 
 AddCrlDistPoint(void *extHandle)
 {
@@ -1546,6 +1587,14 @@ AddExtensions(void *extHandle, const char *emailAddrs, const char *dnsNames,
             rv = AddAuthKeyID(extHandle);
             if (rv) {
 		errstring = "AuthorityKeyID";
+                break;
+	    }
+        }
+
+        if (extList[ext_subjectKeyID]) {
+            rv = AddSubjKeyID(extHandle);
+            if (rv) {
+		errstring = "SubjectKeyID";
                 break;
 	    }
         }    

@@ -916,6 +916,7 @@ CERT_EncodeInhibitAnyExtension;
 CERT_EncodeNoticeReference;
 CERT_EncodePolicyConstraintsExtension;
 CERT_EncodePolicyMappingExtension;
+CERT_EncodeSubjectKeyID;
 CERT_EncodeUserNotice;
 CERT_FindCRLEntryReasonExten;
 CERT_FindCRLNumberExten;

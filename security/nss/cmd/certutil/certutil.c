@@ -958,8 +958,8 @@ Usage(char *progName)
 	"\t\t [-f pwfile] [-d certdir] [-P dbprefix]\n"
         "\t\t [-p phone] [-1] [-2] [-3] [-4] [-5] [-6] [-7 emailAddrs]\n"
         "\t\t [-8 DNS-names]\n"
-        "\t\t [--extAIA] [--extSIA] [--extCP] [--extPM] [--extPC] [--extIA]\n",
-	progName);
+        "\t\t [--extAIA] [--extSIA] [--extCP] [--extPM] [--extPC] [--extIA]\n"
+        "\t\t [--extSKID]\n", progName);
     FPS "\t%s -U [-X] [-d certdir] [-P dbprefix]\n", progName);
     exit(1);
 }
@@ -1331,6 +1331,8 @@ static void LongUsage(char *progName)
 	"   --extPC ");
     FPS "%-20s Create an Inhibit Any Policy extension\n",
 	"   --extIA ");
+    FPS "%-20s Create a subject key ID extension\n",
+	"   --extSKID ");
     FPS "\n");
 
     exit(1);
@@ -1635,7 +1637,8 @@ enum certutilOpts {
     opt_AddCertPoliciesExt,
     opt_AddPolicyMapExt,
     opt_AddPolicyConstrExt,
-    opt_AddInhibAnyExt
+    opt_AddInhibAnyExt,
+    opt_AddSubjectKeyIDExt
 };
 
 static const
@@ -1711,7 +1714,8 @@ secuCommandFlag options_init[] =
 	{ /* opt_AddCertPoliciesExt  */  0,   PR_FALSE, 0, PR_FALSE, "extCP" },
 	{ /* opt_AddPolicyMapExt     */  0,   PR_FALSE, 0, PR_FALSE, "extPM" },
 	{ /* opt_AddPolicyConstrExt  */  0,   PR_FALSE, 0, PR_FALSE, "extPC" },
-	{ /* opt_AddInhibAnyExt      */  0,   PR_FALSE, 0, PR_FALSE, "extIA" }
+	{ /* opt_AddInhibAnyExt      */  0,   PR_FALSE, 0, PR_FALSE, "extIA" },
+	{ /* opt_AddSubjectKeyIDExt  */  0,   PR_FALSE, 0, PR_FALSE, "extSKID" }
 };
 #define NUM_OPTIONS ((sizeof options_init)  / (sizeof options_init[0]))
 
@@ -2301,6 +2305,8 @@ certutil_main(int argc, char **argv, PRBool initialize)
 				certutil.options[opt_AddBasicConstraintExt].activated;
         certutil_extns[ext_authorityKeyID] =
 				certutil.options[opt_AddAuthorityKeyIDExt].activated;
+        certutil_extns[ext_subjectKeyID] =
+				certutil.options[opt_AddSubjectKeyIDExt].activated;
         certutil_extns[ext_CRLDistPts] =
 				certutil.options[opt_AddCRLDistPtsExt].activated;
         certutil_extns[ext_NSCertType] =

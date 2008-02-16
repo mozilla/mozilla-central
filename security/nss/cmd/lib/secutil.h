@@ -403,6 +403,11 @@ SECU_EncodeAndAddExtensionValue(PRArenaPool *arena, void *extHandle,
 void
 SECU_SECItemToHex(const SECItem * item, char * dst);
 
+/* Requires 0x prefix. Case-insensitive. Will do in-place replacement if
+ * successful */
+SECStatus
+SECU_SECItemHexStringToBinary(SECItem* srcdest);
+
 /*
  *
  *  Utilities for parsing security tools command lines 

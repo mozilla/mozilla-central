@@ -4004,3 +4004,53 @@ SECU_SECItemToHex(const SECItem * item, char * dst)
 	*dst = '\0';
     }
 }
+
+static unsigned char nibble(char c) {
+    c = PORT_Tolower(c);
+    return ( c >= '0' && c <= '9') ? c - '0' :
+           ( c >= 'a' && c <= 'f') ? c - 'a' +10 : -1;
+}
+
+SECStatus
+SECU_SECItemHexStringToBinary(SECItem* srcdest)
+{
+    int i;
+
+    if (!srcdest) {
+        PORT_SetError(SEC_ERROR_INVALID_ARGS);
+        return SECFailure;
+    }
+    if (srcdest->len < 4 || (srcdest->len % 2) ) {
+        /* too short to convert, or even number of characters */
+        PORT_SetError(SEC_ERROR_BAD_DATA);
+        return SECFailure;
+    }
+    if (PORT_Strncasecmp((const char*)srcdest->data, "0x", 2)) {
+        /* wrong prefix */
+        PORT_SetError(SEC_ERROR_BAD_DATA);
+        return SECFailure;
+    }
+
+    /* 1st pass to check for hex characters */
+    for (i=2; i<srcdest->len; i++) {
+        char c = PORT_Tolower(srcdest->data[i]);
+        if (! ( ( c >= '0' && c <= '9') ||
+                ( c >= 'a' && c <= 'f')
+              ) ) {
+            PORT_SetError(SEC_ERROR_BAD_DATA);
+            return SECFailure;
+        }
+    }
+
+    /* 2nd pass to convert */
+    for (i=2; i<srcdest->len; i+=2) {
+        srcdest->data[(i-2)/2] = (nibble(srcdest->data[i]) << 4) +
+                                 nibble(srcdest->data[i+1]);
+    }
+
+    /* adjust length */
+    srcdest->len -= 2;
+    srcdest->len /= 2;
+    return SECSuccess;
+}
+

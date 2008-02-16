@@ -57,7 +57,7 @@ CERT_EncodeNameConstraintsExtension(PRArenaPool *arena,
 			            SECItem *encodedValue);
 
 extern SECStatus 
-CERT_EncodeSubjectKeyID(PRArenaPool *arena, char *value, int len, 
+CERT_EncodeSubjectKeyID(PRArenaPool *arena, const SECItem* srcString,
                         SECItem *encodedValue);
 
 extern SECStatus 

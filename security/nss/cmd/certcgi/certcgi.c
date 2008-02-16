@@ -952,8 +952,7 @@ AddSubKeyID(void             *extHandle,
 	(data,"subjectKeyIdentifier-text", PR_TRUE);
     subjectCert->subjectKeyID.len = len;
     rv = CERT_EncodeSubjectKeyID
-	(NULL, find_field(data,"subjectKeyIdentifier-text", PR_TRUE),
-	 len, &encodedValue);
+	(NULL, &subjectCert->subjectKeyID, &encodedValue);
     if (rv) {
 	return (rv);
     }

@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.63 2008-01-08 07:33:58 kaie%kuix.de Exp $
+ * $Id: cert.h,v 1.64 2008-02-16 01:17:43 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1257,10 +1257,6 @@ CERT_CheckForEvilCert(CERTCertificate *cert);
 
 CERTGeneralName *
 CERT_GetCertificateNames(CERTCertificate *cert, PRArenaPool *arena);
-
-
-SECStatus 
-CERT_EncodeSubjectKeyID(PRArenaPool *arena, char *value, int len, SECItem *encodedValue);
 
 char *
 CERT_GetNickName(CERTCertificate   *cert, CERTCertDBHandle *handle, PRArenaPool *nicknameArena);

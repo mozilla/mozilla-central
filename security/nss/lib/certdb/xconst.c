@@ -63,7 +63,7 @@ static const SEC_ASN1Template CERTIA5TypeTemplate[] = {
     { SEC_ASN1_IA5_STRING }
 };
 
-SEC_ASN1_MKSUB(SEC_GeneralizedTimeTemplate);
+SEC_ASN1_MKSUB(SEC_GeneralizedTimeTemplate)
 
 static const SEC_ASN1Template CERTPrivateKeyUsagePeriodTemplate[] = {
     { SEC_ASN1_SEQUENCE,
@@ -99,19 +99,16 @@ const SEC_ASN1Template CERTAuthInfoAccessTemplate[] = {
 
 
 SECStatus 
-CERT_EncodeSubjectKeyID(PRArenaPool *arena, char *value, int len, SECItem *encodedValue)
+CERT_EncodeSubjectKeyID(PRArenaPool *arena, const SECItem* srcString,
+                        SECItem *encodedValue)
 {
-    SECItem encodeContext;
     SECStatus rv = SECSuccess;
 
-
-    PORT_Memset (&encodeContext, 0, sizeof (encodeContext));
-    
-    if (value != NULL) {
-	encodeContext.data = (unsigned char *)value;
-	encodeContext.len = len;
+    if (!srcString) {
+        PORT_SetError(SEC_ERROR_INVALID_ARGS);
+        return SECFailure;
     }
-    if (SEC_ASN1EncodeItem (arena, encodedValue, &encodeContext,
+    if (SEC_ASN1EncodeItem (arena, encodedValue, srcString,
 			    CERTSubjectKeyIDTemplate) == NULL) {
 	rv = SECFailure;
     }
