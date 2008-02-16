@@ -58,6 +58,9 @@ static char *reasonCodeMsgString[] = {
 	"Certificate is revoked by CRL for aACompromise",
 };
 
+static const int numReasonCodes = 
+    sizeof(reasonCodeMsgString) / sizeof(reasonCodeMsgString[0]);
+
 /* --Private-DefaultCRLCheckerState-Functions------------------------------- */
 
 /*
@@ -433,8 +436,9 @@ pkix_DefaultCRLChecker_CheckCRLs(
 
                 /* Set reason code in state for advance CRL reviewing */
 
-                if (reasonCode >= 0 &&
-                    reasonCode < sizeof (reasonCodeMsgString)) {
+                if (reasonCode >= 0) {
+                    if (reasonCode >= numReasonCodes) 
+		        reasonCode = 0;
 
                     state->reasonCodeMask |= 1 << reasonCode;
                     PKIX_DEFAULTCRLCHECKERSTATE_DEBUG_ARG
@@ -726,12 +730,13 @@ pkix_DefaultCRLChecker_Check_Store(
                             (crlEntry, &reasonCode, plContext),
                             PKIX_CRLENTRYGETCRLENTRYREASONCODEFAILED);
 
-                    if ((reasonCode >= 0) &&
-                        (reasonCode < sizeof (reasonCodeMsgString))) {
+		    if (reasonCode >= 0) {
+			if (reasonCode >= numReasonCodes) 
+			    reasonCode = 0;
 
-                            allReasonCodes |= (1 << (reasonCode - 1));
+			allReasonCodes |= (1 << reasonCode);
 
-                            PKIX_DEFAULTCRLCHECKERSTATE_DEBUG_ARG
+			PKIX_DEFAULTCRLCHECKERSTATE_DEBUG_ARG
                                     ("CRL revocation Reason: %s\n ",
                                     reasonCodeMsgString[reasonCode]);
 
@@ -991,7 +996,7 @@ pkix_DefaultCRLChecker_Check(
         PKIX_PL_PublicKey *newPublicKey = NULL;
         PKIX_Error *checkKeyUsageFail = NULL;
         PKIX_Boolean selfIssued = PKIX_FALSE;
-        void *nbioContext = PKIX_FALSE;
+        void *nbioContext = NULL;
 
         PKIX_ENTER(CERTCHAINCHECKER, "pkix_DefaultCRLChecker_Check");
         PKIX_NULLCHECK_THREE(checker, cert, pNBIOContext);
