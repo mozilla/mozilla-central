@@ -19,6 +19,7 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.com>
+#				  Andrew Nelson  <anelson@novell.com>
 
 =head1 NAME
 
@@ -126,6 +127,31 @@ sub _init {
     $self->get_properties();
     
     return $self;
+}
+
+=head2 isMapped
+
+Checks to see if the element has en environment mapping
+
+=cut
+
+sub isMapped{
+	my $dbh = Bugzilla->dbh;
+    my $self = shift;
+    
+    my $id = $self->id;
+    
+    my $ref = $dbh->selectcol_arrayref(qq{
+            SELECT distinct element_id FROM test_environment_map});
+    
+    foreach my $val  (@$ref){
+        if($id == $val)
+        {
+        	return 1;
+        }
+    }   
+    
+    return 0; 
 }
 
 =head2 get_children
@@ -250,41 +276,71 @@ sub check_for_children{
 sub children_to_json{
     my $self = shift;
     my ($disable_move) = @_;
+    my $json = new JSON;
     
     $disable_move = ',"addChild","move","remove"' if $disable_move;
     my $disable_add = ',"addChild"' if $disable_move; 
     my $elements = $self->get_children;
     my $properties = $self->get_properties;
-    my $json = '[';
+
+
+my @values; 
     
-    foreach my $elem (@$elements)
+    foreach my $element (@$elements)
     {
-        $json .= '{title:"' . $elem->{'name'} . '",';
-        $json .=  'objectId:"' . $elem->{'element_id'} . '",';
-        $json .=  'widgetId:"element' . $elem->{'element_id'} . '",';
-        $json .=  'actionsDisabled:["addCategory","addValue"';
-        $json .=  $disable_add if $disable_add;
-        $json .=',"remove"' unless $elem->candelete;
-        $json .=  '],';
-        $json .=  'isFolder:true,' if $elem->check_for_children();
-        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
+    	my $leaf;
+    	if($element->check_for_children || $element->check_for_properties)
+    	{
+    		$leaf = 'false';
+    	}
+    		
+    	else
+    	{
+    		$leaf = 'true';
+    	}
+    	
+    	push @values, {text=> $element->{'name'}, id=> $element->{'element_id'} . ' element', type=> 'element', leaf => $leaf, cls =>'element'};
     }
-    foreach my $prop (@$properties)
-    {
-        $json .= '{title: "' . $prop->{'name'} .'",';
-        $json .=  'objectId:"' . $prop->{'property_id'} . '",';
-        $json .=  'widgetId:"property' . $prop->{'property_id'} . '",';
-        $json .=  'actionsDisabled:["addCategory","addElement","addProperty"';
-        $json .=  $disable_move if $disable_move;
-        $json .=  ',"remove"' unless $prop->candelete;
-        $json .=  '],';
-        $json .=  'isFolder:true,' if($prop->check_for_validexp($prop));
-        $json .=  'childIconSrc:"testopia/img/triangle.gif"},'; 
+    
+    foreach my $property (@$properties)
+    {    	
+    	push @values, {text=> $property->{'name'}, id=> $property->id . ' property', type=> 'property', leaf => 'false', cls =>'property'};
     }
-    chop $json if ($json ne '[');
-    $json .= ']';
-   
-   return $json;
+    
+    my $json = new JSON; 
+    return $json->objToJson(\@values);
+
+
+#    my $json = '[';
+#    
+#    foreach my $elem (@$elements)
+#    {
+#        $json .= '{title:"' . $elem->{'name'} . '",';
+#        $json .=  'objectId:"' . $elem->{'element_id'} . '",';
+#        $json .=  'widgetId:"element' . $elem->{'element_id'} . '",';
+#        $json .=  'actionsDisabled:["addCategory","addValue"';
+#        $json .=  $disable_add if $disable_add;
+#        $json .=',"remove"' unless $elem->candelete;
+#        $json .=  '],';
+#        $json .=  'isFolder:true,' if $elem->check_for_children();
+#        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
+#    }
+#    foreach my $prop (@$properties)
+#    {
+#        $json .= '{title: "' . $prop->{'name'} .'",';
+#        $json .=  'objectId:"' . $prop->{'property_id'} . '",';
+#        $json .=  'widgetId:"property' . $prop->{'property_id'} . '",';
+#        $json .=  'actionsDisabled:["addCategory","addElement","addProperty"';
+#        $json .=  $disable_move if $disable_move;
+#        $json .=  ',"remove"' unless $prop->candelete;
+#        $json .=  '],';
+#        $json .=  'isFolder:true,' if($prop->check_for_validexp($prop));
+#        $json .=  'childIconSrc:"testopia/img/triangle.gif"},'; 
+#    }
+#    chop $json if ($json ne '[');
+#    $json .= ']';
+#   
+#   return $json;
 }
 
 =head2 new_element_count
@@ -309,6 +365,23 @@ sub new_element_count{
     return $used + 1;             
 }
 
+sub this_to_json
+{
+	my $self = shift; 
+	
+	my $element = {
+	    text=> $self->{'name'}, 
+	    id=> $self->{'element_id'} . ' element', 
+	    type=> 'element', 
+	    leaf => 'true', 
+	    cls =>'element',
+	    allowDrop => 'false',
+	    disabled => 'true'
+	};
+	my $json = new JSON();
+	print $json->objToJson($element);
+
+}
 =head2 check_for_properties
 
 Returns 1 if element has properties
@@ -496,6 +569,14 @@ sub get_parent {
     else {
         return Bugzilla::Testopia::Environment::Category->new($self->{'env_category_id'});
     }
+}
+
+sub is_parent_a_category{
+	my $self = shift;
+    if ($self->{'parent_id'}){
+    	return 0;
+    }
+    return 1;
 }
 
 sub product {

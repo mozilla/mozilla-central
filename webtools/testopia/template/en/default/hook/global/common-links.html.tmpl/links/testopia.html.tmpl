@@ -26,13 +26,12 @@
 <div class="label">Testopia: </div>
 <ul class="links testopia_links">
 [% IF user.in_group('Testers') %]
-  <li><a href="tr_admin_environment.cgi">Environments</a></li>
+  <li><a href="tr_show_product.cgi">Product Dashboard</a></li>
   <li><span class="separator">| </span><a href="tr_new_plan.cgi">New Plan</a></li>
 [% END %]
   <li><span class="separator">| </span><a href="tr_new_case.cgi?plan_id=[% plan_id FILTER none %]">New Case</a></li>
   <li><span class="separator">| </span><a href="tr_new_run.cgi?plan_id=[% plan_id FILTER none %]&case_status_id=2">New Run</a></li>
   <li><span class="separator">| </span><a href="tr_query.cgi">Search</a></li>
-  <li><span class="separator">| </span><a href="tr_query.cgi?report=1">Reports</a></li>
 
 [% IF user.in_group('admin') %]
   <li><span class="separator">| </span><a href="tr_admin.cgi">Admin</a></li>

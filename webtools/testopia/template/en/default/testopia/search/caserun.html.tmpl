@@ -20,12 +20,12 @@
 
 
 [% IF report %]
-<form action="tr_caserun_reports.cgi" method="GET"> 
+<form id="case_run_search_form" action="tr_caserun_reports.cgi" method="GET"> 
 [% PROCESS "testopia/search/report-matrix.html.tmpl" 
    obj = caserun
 %]   
 [% ELSE %]
-<form action="tr_list_caseruns.cgi" method="GET">
+<form id="case_run_search_form" action="tr_list_caseruns.cgi" method="GET">
 [% END %]
   <input type="hidden" name="current_tab" value="[% current_tab FILTER none %]" />
 <fieldset>
@@ -81,7 +81,7 @@
                                                       document.getElementById(\'category\').disabled=true;
                                                       document.getElementById(\'build\').disabled=true;
                                                       document.getElementById(\'environment\').disabled=true;
-                                                      onProductSelection()"' } %]
+                                                      t.onProductSelection(this)"' } %]
     </td>
   </tr>
 </table>
@@ -234,8 +234,5 @@
   
 </p>
 <input name="isactive" type="hidden" value="1">
-<input type="submit" value="Submit" id="search_submit">
+
 </form>  
-<script type="text/javascript">
- dojo.addOnLoad(onProductSelection);
-</script>

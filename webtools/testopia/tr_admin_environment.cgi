@@ -364,7 +364,7 @@ sub do_edit_element{
     
     my $cat_id = $cgi->param('categoryCombo');
     my $parent_id = $cgi->param('elementCombo');
-    my $name = $cgi->param('name');
+    my $name = $cgi->param('text');
     my $parent;
     
     detaint_natural($cat_id);

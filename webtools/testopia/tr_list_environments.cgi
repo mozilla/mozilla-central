@@ -42,8 +42,7 @@ my $vars = {};
 my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 
-print $cgi->header;
-
+my $format = $template->get_format("testopia/case/list", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
 my $action = $cgi->param('action') || '';
 
 $vars->{'qname'} = $cgi->param('qname') if $cgi->param('qname');
@@ -52,7 +51,12 @@ $cgi->param('current_tab', 'environment');
 my $search = Bugzilla::Testopia::Search->new($cgi);
 my $table = Bugzilla::Testopia::Table->new('environment', 'tr_list_environments.cgi', $cgi, undef, $search->query);
 
-$vars->{'table'} = $table;
-
-$template->process("testopia/environment/list.html.tmpl", $vars)
-    || print $template->error();
+if ($cgi->param('ctype') eq 'json'){
+    print $cgi->header;
+    $vars->{'json'} = $table->to_ext_json;
+    $template->process($format->{'template'}, $vars)
+        || ThrowTemplateError($template->error());
+}
+else{
+    print "Location: tr_show_product.cgi?tab=environments\n\n";
+}

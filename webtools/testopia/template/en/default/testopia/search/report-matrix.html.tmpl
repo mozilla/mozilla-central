@@ -18,6 +18,16 @@
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #%]
 
+<script type="text/javascript">
+  function chartTypeChanged() {
+    if (document.getElementById('pie_selector').checked == true) {
+      document.getElementById('y_axis_field').disabled = true;
+    } else {
+      document.getElementById('y_axis_field').disabled = false;
+    }
+  }
+</script>
+
 <p>
   Choose one or more fields as your axes, and then refine your set of 
   [% obj.type FILTER none %]s using the rest of the form.
@@ -55,10 +65,16 @@
         </tr>
       </table>
     </td>
+    <td rowspan="2">
+      <b>Format:</b><br>
+        <input name="format" value="table" onchange="chartTypeChanged()" checked="checked" type="radio">Table<br>
+        <input name="format" value="line" onchange="chartTypeChanged()" type="radio">Line Graph<br>
+        <input name="format" value="bar" onchange="chartTypeChanged()" type="radio">Bar Chart<br>
+<!--        <input id="pie_selector" name="format" value="pie" onchange="chartTypeChanged()" type="radio">Pie Chart<br> -->
+    </td>
   </tr>
 </table>
 
 <br>
-<input type="hidden" name="format" value="table">
 <input type="hidden" name="report_action" value="data">
 <input type="hidden" name="report" value="1" />

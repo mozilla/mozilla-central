@@ -130,7 +130,7 @@ sub lookup_id_by_name
 
   $self->login;
 
-  my $result = check_build_by_name($name);
+  my $result = Bugzilla::Testopia::Build::check_build_by_name($name);
   
   $self->logout;
 

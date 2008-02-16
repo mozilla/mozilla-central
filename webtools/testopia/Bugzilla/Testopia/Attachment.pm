@@ -235,6 +235,28 @@ sub store {
     return $key;    
 }
 
+sub to_json {
+	my $self = shift;
+	my $cgi  = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    
+    # Add the calculated fields
+    $obj->{'isviewable'} = $self->is_browser_safe($cgi);
+    $obj->{'datasize'}   = $self->datasize;
+    $obj->{'submitter'}  = $self->submitter->name;
+    $obj->{'canedit'}    = $self->canedit;
+    $obj->{'candelete'}  = $self->candelete;
+    
+    return $json->objToJson($obj); 
+}
+
 # Returns 1 if the parameter is a content-type viewable in this browser
 # Note that we don't use $cgi->Accept()'s ability to check if a content-type
 # matches, because this will return a value even if it's matched by the generic
@@ -433,7 +455,8 @@ sub contents {
 sub datasize {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
-    return $self->{'datasize'} if exists $self->{'datasize'};
+#    return $self->{'datasize'} if exists $self->{'datasize'};
+
     my ($datasize) = $dbh->selectrow_array("SELECT LENGTH(contents) 
                                            FROM test_attachment_data
                                            WHERE attachment_id = ?",

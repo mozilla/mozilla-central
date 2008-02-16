@@ -19,35 +19,26 @@
   #                 Greg Hendricks <ghendricks@novell.com>
   #%]
 
-[%############################################################################%]
-[%# Template Initialization                                                  #%]
-[%############################################################################%]
-
 [% PROCESS global/variables.none.tmpl %]
 [% PROCESS testopia/blocks.html.tmpl %]
-[% title = "Create a New Test Plan" %]
-
-[%############################################################################%]
-[%# Page Header                                                              #%]
-[%############################################################################%]
-
-[% PROCESS global/header.html.tmpl
-  title = title
-  style = style
-%]
-<script type="text/javascript">
-  djConfig = {
-    parseWidgets: false,
-    searchIds: ["plandoc"]
-  };
-</script>
-<script src="testopia/dojo/dojo.js" type="text/javascript"></script>
-<script src="testopia/js/util.js" type="text/javascript"></script>
-
 [% PROCESS testopia/style.none.tmpl %]
 
-[% PROCESS testopia/messages.html.tmpl %]
-<form name="planform" action="[% form_action FILTER none %]" method="POST">
-[% PROCESS testopia/plan/form.html.tmpl %]
-</form>
+[% javascript_urls.push('testopia/js/plan.js') %]
+[% javascript_urls.push('testopia/js/attachments.js') %]
+
+[% title = "Create a New Test Plan" %]
+[% PROCESS global/header.html.tmpl %]
+
+<script type="text/javascript">
+
+Ext.onReady(function(){
+    Ext.QuickTips.init();
+    var newplan = new NewPlanForm([% product.id FILTER none %]);
+    newplan.render('plan-form-div');
+});
+
+</script>
+
+<div id="plan-form-div"></div>
+
 [% PROCESS global/footer.html.tmpl %]

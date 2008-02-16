@@ -17,53 +17,29 @@
   #
   # Contributor(s): Ed Fuentetaja <efuentetaja@acm.org>
   #                 Greg Hendricks <ghendricks@novell.com>
+  #                 Joel Smith <jsmith@novell.com>
   #%]
 
-[%# INTERFACE:
-  # ...
-  #%]
+[% PROCESS testopia/blocks.html.tmpl %]
 
-[%############################################################################%]
-[%# Template Initialization #%]
-[%############################################################################%]
-
-[% PROCESS global/variables.none.tmpl %]
-
-[%############################################################################%]
-[%# Page Header #%]
-[%############################################################################%]
-
-[% PROCESS global/header.html.tmpl
-   style_urls = ['testopia.css'] 
-  title = "Clone Test Run: $run.summary" 
-  style = style 
-%] 
-
-[% PROCESS testopia/style.none.tmpl %] 
-[% PROCESS testopia/blocks.html.tmpl %] 
-[% PROCESS testopia/messages.html.tmpl %]
-
-<form method="POST" action="tr_show_run.cgi">
-<input type="HIDDEN" name="action" value="do_clone" /> 
-<input type="HIDDEN" name="run_id" value="[% run.id FILTER none %]" />
-<input type="HIDDEN" name="case_list" value="[% case_list FILTER html %]" />
+<form method="POST" action="tr_process_run.cgi" id="run_clone_frm">
+<input type="hidden" name="action" value="clone" /> 
+<input type="hidden" name="ctype" value="json" /> 
+<input type="hidden" name="run_id" value="[% run.id FILTER none %]" />
+<input type="hidden" name="case_list" value="[% case_list FILTER html %]" />
 
 <table border="0" cellspacing="4">
-  <tr bgcolor="lightyellow">
-    <td colspan="2"><font size="+1">Select Clone Options</font></td>
-  </tr>
-
   <tr>
-    <td valign="TOP" align="RIGHT">New run summary:</td>
+    <td>New run summary:</td>
     <td><input size="30" name="summary"
       value="Copy of [% run.summary FILTER html %]" /></td>
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">Clone to plan:</td>
+    <td>Clone to plan:</td>
     <td>
       [% PROCESS select sel = { name => 'plan_id', 
-                                list => product.plans 
+                                list => run.plan.product.plans 
                                 accesskey => 'p' 
                                 default => run.plan.id} 
       %]
@@ -71,7 +47,7 @@
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">Product version:</td>
+    <td>Product version:</td>
     <td>[% PROCESS select sel = { name => 'product_version', 
                                   list => run.plan.product.versions,
                                   accesskey => 'v' 
@@ -79,7 +55,7 @@
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">Build:</td>
+    <td>Build:</td>
     <td>[% PROCESS select sel = { name => 'build', 
                                   list => run.plan.product.builds 
                                   accesskey => 'b' 
@@ -87,25 +63,30 @@
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">Maintain Run Manager:</td>
+    <td>Maintain Run Manager:</td>
     <td><input type="radio" style="border: none" name="keepauthor" value="1" checked />Yes <input
       type="radio" style="border: none" name="keepauthor" value="0" />No, make me the manager of the new run.</td>
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">Copy tags:</td>
+    <td>Copy tags:</td>
     <td><input type="radio" style="border: none" name="copy_tags" value="1" checked />Yes <input
       type="radio" style="border: none" name="copy_tags" value="0" />No</td>
   </tr>
+  <tr>
+    <td>Copy test case indexes:</td>
+    <td><input type="radio" style="border: none" name="copy_sortkey" value="1" checked />Yes <input
+      type="radio" style="border: none" name="copy_sortkey" value="0" />No</td>
+  </tr>
 [% IF NOT case_list %]
   <tr>
-    <td valign="TOP" align="RIGHT">Copy test cases:</td>
+    <td>Copy test cases:</td>
     <td><input type="radio" style="border: none" name="copy_test_cases" value="1" checked />Yes
     <input type="radio" style="border: none" name="copy_test_cases" value="0" />No</td>
   </tr>
 
   <tr>
-    <td valign="TOP" align="RIGHT">With status:</td>
+    <td>With status:</td>
     <td>
       [% PROCESS select sel = { name => 'status', 
                                 list => caserun.get_status_list
@@ -117,9 +98,4 @@
 [% END %]
 </table>
 
-<input type="SUBMIT" value="Clone">
 </form>
-<p><a href="tr_show_run.cgi?run_id=[% run.id FILTER none %]">Back</a> to
-test run</p>
-
-[% PROCESS global/footer.html.tmpl %]

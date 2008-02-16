@@ -156,28 +156,6 @@ diff -u -r1.5.2.1 WebService.pm
 -error, and C<32000> if it's a "transient" error.
 +error, and C<32000> if it's a "transient" error.
 \ No newline at end of file
-Index: Bugzilla/Template.pm
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Template.pm,v
-retrieving revision 1.68.2.1
-diff -u -r1.68.2.1 Template.pm
---- Bugzilla/Template.pm	10 Mar 2007 11:43:14 -0000	1.68.2.1
-+++ Bugzilla/Template.pm	15 Jun 2007 22:57:19 -0000
-@@ -738,6 +738,14 @@
-                 return $var;
-             },
- 
-+            # Prevent XSS attacks in WYSIWYG fields. 
-+            xss => sub{
-+                my ($var) = @_;
-+                $var =~ s/(&lt;|<)script/_script/ig;
-+                $var =~ s/(&lt;|<)\/script(>|&gt;)/script_/gi;
-+                return $var;
-+            },
-+
-             html_light => \&Bugzilla::Util::html_light_quote,
- 
-             # iCalendar contentline filter
 Index: template/en/default/global/common-links.html.tmpl
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/template/en/default/global/common-links.html.tmpl,v

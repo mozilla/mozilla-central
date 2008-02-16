@@ -31,6 +31,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestRun;
+use Bugzilla::Testopia::Classification;
 
 use JSON;
 
@@ -126,28 +127,6 @@ if ($term){
             }
             last SWITCH;
         };
-        /^(caserun|TCR|cr)?[\s:-]+(.*)$/i && do{
-            my $text = trim($2);
-            if ($text =~ /^\d+$/){
-                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_caserun.cgi?caserun_id=" . $text . "\n\n";
-            }
-            else{
-                $cgi->param('current_tab', 'case_run');
-                $cgi->param('notes_type', 'anywordssubstr');
-                $cgi->param('notes', $text);
-                
-                my $search = Bugzilla::Testopia::Search->new($cgi);
-                my $table = Bugzilla::Testopia::Table->new('run', 'tr_list_runs.cgi', $cgi, undef, $search->query);
-                if ($table->list_count == 1){
-                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_caserun.cgi?caserun_id=" . ${$table->list}[0]->id . "\n\n";
-                }
-                else{
-                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_caseruns.cgi?" . $table->get_query_part . "\n\n";
-                }
-                
-            }
-            last SWITCH;
-        };
         do{
             $term =~ s/^(case|TC|c)?[\s:-]+(.*)$/$2/gi;
             if ($term =~ /^\d+$/){
@@ -181,11 +160,19 @@ else{
     print $cgi->header;
 
 # Environment Lookup
-    if ($action eq 'getenv'){
+    if ($action eq 'getenvironments'){
         my $search = $cgi->param('search');
-        my $prod_id = $cgi->param('prod_id');
+        my $prod_ids = $cgi->param('prod_id');
         trick_taint($search);
-        detaint_natural($prod_id);
+        my @ids;
+        foreach my $id (split(',', $prod_ids)){
+            push @ids, $id if detaint_natural($id);
+        }
+        unless (scalar @ids > 0){
+            print "{}";
+            exit;
+        }
+        $prod_ids = join(',', @ids);   
         
         $search = "%$search%";
         my $dbh = Bugzilla->dbh;
@@ -195,13 +182,13 @@ else{
         # as a select list in the ComboBox widget.
         my $ref;
             
-        if ($prod_id){
+        if ($prod_ids){
             $ref = $dbh->selectall_arrayref(
                 "SELECT test_environments.name AS name, test_environments.environment_id 
                    FROM test_environments 
-                  WHERE name like ? AND product_id = ? AND isactive = 1
+                  WHERE name like ? AND product_id IN($prod_ids) AND isactive = 1
                   ORDER BY name",
-                  undef, ($search, $prod_id));
+                  undef, ($search));
         }
         else{
             $ref = $dbh->selectall_arrayref(
@@ -212,46 +199,62 @@ else{
                   LIMIT 20",
                   undef, ($search));
         }
-        print objToJson($ref);  
+        print"{environments:";
+        print objToJson($ref);
+        print "}";  
     }
 # user lookup
     elsif ($action eq 'getuser'){
         my $search = $cgi->param('search');
+        my $start = $cgi->param('start');
+        my $limit = 20;
+        detaint_natural($start) || exit;
+        exit if ($search eq '');
         $search = "%$search%";
         trick_taint($search);
         my $dbh = Bugzilla->dbh;
 
-        my $query  = "SELECT DISTINCT login_name, realname,";
+        my $countquery = "SELECT COUNT(DISTINCT login_name) ";        
+        my $query  = "SELECT login_name, realname,";
+        my $qbody = '';
+
         if (Bugzilla->params->{'usevisibilitygroups'}) {
             $query .= " COUNT(group_id) ";
         } else {
             $query .= " 1 ";
         }
-        $query     .= "FROM profiles ";
+        $qbody     .= "FROM profiles ";
         if (Bugzilla->params->{'usevisibilitygroups'}) {
-            $query .= "LEFT JOIN user_group_map " .
+            $qbody .= "LEFT JOIN user_group_map " .
                       "ON user_group_map.user_id = userid AND isbless = 0 " .
                       "AND group_id IN(" .
                       join(', ', (-1, @{Bugzilla->user->visible_groups_inherited})) . ")";
         }
-        $query    .= " WHERE disabledtext = '' AND (login_name LIKE ? OR realname LIKE ?) ";
+        $qbody    .= " WHERE disabledtext = '' AND (login_name LIKE ? OR realname LIKE ?) ";
+        
+        
+        $countquery .= $qbody;
+        
+        $query    .= $qbody;
         $query    .= $dbh->sql_group_by('userid', 'login_name, realname');
-        $query    .= " ORDER BY login_name LIMIT 20";
-    
+        $query    .= " ORDER BY login_name LIMIT $limit OFFSET $start";
+
+        my ($total) = $dbh->selectrow_array($countquery,undef,($search,$search));
+        
         my $sth = $dbh->prepare($query);
         $sth->execute($search,$search);
 
         my @userlist;
         while (my($login, $name, $visible) = $sth->fetchrow_array) {
             if ($visible){
-                push @userlist, [
-                    $name ? "$name <$login>" : $login, $login
-                ];
+                push @userlist, {
+                    'id' => $login, 'name' => $name
+                };
             }
         }
-        
+        print "{'total':$total,'users':";
         print objToJson(\@userlist);
- 
+        print "}"
     }
 # Tag lookup
     elsif ($action eq 'gettag'){
@@ -288,7 +291,7 @@ else{
                     INNER JOIN test_plans ON test_plans.plan_id = test_runs.plan_id
                     WHERE tag_name like ? AND test_plans.product_id IN ($product_ids)
                  ORDER BY tag_name",
-                  undef, ($search,$search,$search));
+                  {'Slice' =>{}}, ($search,$search,$search));
         }
         else {
             $ref = $dbh->selectall_arrayref(
@@ -297,9 +300,9 @@ else{
                   WHERE tag_name like ?
                   ORDER BY tag_name
                   LIMIT 20",
-                  undef, $search);
+                  {'Slice' =>{}}, $search);
         }
-        print objToJson($ref);  
+        print "{'tags':" . objToJson($ref) . "}";  
     }
     elsif ($action eq 'getversions'){
         my $plan = Bugzilla::Testopia::TestPlan->new({});
@@ -321,10 +324,83 @@ else{
         }
         my $json = new JSON;
         $json->autoconv(0);
+        
+        print "{versions:";
         print $json->objToJson(\@versions);
+        print "}";
+    }
+    elsif ($action eq 'getmilestones'){
+        my $product = Bugzilla::Testopia::Product->new($cgi->param("product_id"));
+        exit unless $product->canedit;
+        my $json = new JSON;
+        $json->autoconv(0);
+        print "{milestones:";
+        print $json->objToJson($product->milestones);
+        print "}";
+    }
+    elsif ($action eq 'getplantypes'){
+        my $plan = Bugzilla::Testopia::TestPlan->new({});
+        my $json = new JSON;
+        print "{types:";
+        print $json->objToJson($plan->get_plan_types());
+        print "}";
+    }
+    elsif ($action eq 'getpriorities'){
+        my $plan = Bugzilla::Testopia::TestCase->new({});
+        my $json = new JSON;
+        print "{priorities:";
+        print $json->objToJson($plan->get_priority_list());
+        print "}";
+    }
+    elsif ($action eq 'getcasestatus'){
+        my $plan = Bugzilla::Testopia::TestCase->new({});
+        my $json = new JSON;
+        print "{statuses:";
+        print $json->objToJson($plan->get_status_list());
+        print "}";
+    }
+    elsif ($action eq 'getproducts'){
+        my $products;
+        my $json = new JSON;
+        
+        if ($cgi->param('class_id')){
+            my $class = Bugzilla::Testopia::Classification->new($cgi->param('class_id'));
+            $products = $class->user_visible_products;
+        }
+        else{
+            $products = Bugzilla->user->get_selectable_products;
+        }
+        my @prods;
+        foreach my $p (@$products){
+            push @prods, {name => $p->name, id => $p->id};
+        }
+        print "{products:" . $json->objToJson(\@prods) . "}";
+    }
+    
+    elsif ($action eq 'getproductstree'){
+    }
+    elsif ($action eq 'getclassificationstree'){
+        my $node = $cgi->param('node');
+        if ($node && $node ne 'classes'){
+            $node =~ s/\D*//;
+            my @products;
+            my $classification = Bugzilla::Testopia::Classification->new($node);
+            foreach my $p (@{$classification->products}){
+                push @products, {id => $p->id, text => $p->name, leaf => 'true'};
+            }
+            my $json = new JSON;
+            print $json->objToJson(\@products);
+            exit;
+        }        
+        my @classifications;
+        foreach my $c (@{Bugzilla->user->get_selectable_classifications}){
+            push @classifications, {id => "c" . $c->id, text => $c->name, leaf => scalar @{$c->products} > 0 ? 'false' : 'true'};
+        }
+        my $json = new JSON;
+        print $json->objToJson(\@classifications);
     }
     # For use in new_case and show_case since new_plan does not require an id
-    elsif ($action eq 'getcomps'){
+    elsif ($action eq 'getcomponents'){
         my $plan = Bugzilla::Testopia::TestPlan->new({});
         my $product_id = $cgi->param('product_id');
     
@@ -341,12 +417,18 @@ else{
             push @comps, {'id' => $c->id, 'name' => $c->name, 'qa_contact' => $c->default_qa_contact->login};
         }
         my $json = new JSON;
-        print $json->objToJson(\@comps);
+        print "{'components':". $json->objToJson(\@comps) ."}";
         exit;
     }
-    
+    elsif ($action eq 'get_action'){
+        print Bugzilla->params->{'new-case-action-template'};
+    }
+    elsif ($action eq 'get_effect'){
+        print Bugzilla->params->{'new-case-results-template'};
+        
+    }
 
-# If neither is true above, display the quicksearch form and explaination.
+# If neither is true above, display the quicksearch form and explanation.
     else{
         $template->process("testopia/quicksearch.html.tmpl", $vars) ||
             ThrowTemplateError($template->error());

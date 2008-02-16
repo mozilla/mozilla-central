@@ -37,69 +37,35 @@ my $cgi = Bugzilla->cgi;
 my $dbh = Bugzilla->dbh;
 
 Bugzilla->login(LOGIN_REQUIRED);
+Bugzilla->error_mode(ERROR_MODE_AJAX) if $cgi->param('ctype') eq 'json';
 
 my $action     = $cgi->param('action') || '';
 my $attach_id  = $cgi->param('attach_id');
-my $plan_id    = $cgi->param('plan_id');
-my $case_id    = $cgi->param('case_id');
-my $caserun_id = $cgi->param('caserun_id');
 
 detaint_natural($attach_id) if $attach_id;
-
-unless ($attach_id){
+if (!$attach_id and $cgi->param('ctype') ne 'json'){
     print $cgi->header();
     $template->process("testopia/attachment/choose.html.tmpl", $vars) 
         || ThrowTemplateError($template->error());
     exit;
 }
 
-validate_test_id($attach_id,'attachment');
-my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
-
-my $obj;
-if ($plan_id){
-    detaint_natural($plan_id);
-    $obj = Bugzilla::Testopia::TestPlan->new($plan_id);
-}
-elsif ($case_id){
-    detaint_natural($case_id);
-    $obj = Bugzilla::Testopia::TestCase->new($case_id);
-}
-elsif ($caserun_id){
-    detaint_natural($caserun_id);
-    $obj = Bugzilla::Testopia::TestCaseRun->new($caserun_id);
-}
-
 ##################
 ###    Edit    ###
 ##################
-if ($action eq 'edit'){
-    print $cgi->header;
-    ThrowUserError('testopia-permission-denied', {'object' => $attachment}) unless $attachment->canedit;
-    
-    $vars->{'attachment'} = $attachment;
-    $vars->{'isviewable'} = $attachment->is_browser_safe($cgi);
-    $vars->{'obj'} = $obj;
-    $template->process("testopia/attachment/show.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-}
-elsif ($action eq 'do_edit') {
-    print $cgi->header;
+if ($action eq 'edit') {
+	print $cgi->header;
+	validate_test_id($attach_id,'attachment');
+    my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
+	
     ThrowUserError('testopia-permission-denied', {'object' => $attachment}) unless $attachment->canedit;
 
-    $attachment->set_description($cgi->param('description'));
-    $attachment->set_filename($cgi->param('filename'));
-    $attachment->set_mime_type($cgi->param('mime_type'));
+    $attachment->set_description($cgi->param('description')) if $cgi->param('description');
+    $attachment->set_filename($cgi->param('filename')) if $cgi->param('filename');
+    $attachment->set_mime_type($cgi->param('mime_type')) if $cgi->param('mime_type');
     $attachment->update();
 
-    $vars->{'attachment'} = $attachment;
-    $vars->{'tr_message'} = "Attachment updated";
-    $vars->{'backlink'} = $obj;
-    $vars->{'obj'} = $obj;
-    $vars->{'isviewable'} = $attachment->is_browser_safe($cgi);
-    $template->process("testopia/attachment/show.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-
+    print "{success: true}";
 }
 
 ####################
@@ -107,35 +73,39 @@ elsif ($action eq 'do_edit') {
 ####################
 
 elsif ($action eq 'remove') {
-    print $cgi->header;
-    ThrowUserError('testopia-missing-parameter', {'param' => 'case_id or plan_id'}) unless $obj;
-    ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $obj->canedit;
-    $vars->{'attachment'} = $attachment;
-    $vars->{'action'} = 'do_remove';
-    $vars->{'obj'} = $obj;
-    
-    $template->process("testopia/attachment/delete.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-    
-}
-elsif ($action eq 'do_remove') {
-    print $cgi->header;
-    $vars->{'tr_message'} = "Attachment ". $attachment->description ." deleted";
-    ThrowUserError('testopia-missing-parameter', {'param' => 'case_id or plan_id'}) unless $obj;
-    ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $obj->canedit;
-    if ($plan_id){
-        $attachment->unlink_plan($plan_id);
+	print $cgi->header;
+	my $item    = $cgi->param('object');
+	my $item_id = $cgi->param('object_id');
+    my $obj;
+ 
+    if ($item eq 'case'){
+      	$obj = Bugzilla::Testopia::TestCase->new($item_id);
     }
-    elsif ($case_id){
-        $attachment->unlink_plan($case_id);
+    elsif ($item eq 'plan'){
+    	$obj = Bugzilla::Testopia::TestPlan->new($item_id);
     }
+	elsif ($item eq 'caserun'){
+		$obj = Bugzilla::Testopia::TestCaseRun->new($item_id);
+		$obj = $obj->case;
+	}
 
-    $vars->{'tr_message'} = "Attachment removed";
-    $vars->{'backlink'} = $obj;
-    $vars->{'deleted'} = 1;
-    $template->process("testopia/attachment/delete.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
+    ThrowUserError('testopia-missing-parameter', {'param' => 'case_id or plan_id'}) unless $obj;
 
+	foreach my $attach_id (split(',', $cgi->param('attach_ids'))){
+    	validate_test_id($attach_id,'attachment');
+        my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
+    	
+    	ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->canedit;
+    	        
+        if ($obj->type eq 'plan'){
+            $attachment->unlink_plan($obj->id);
+        }
+        elsif ($obj->type eq 'case'){
+            $attachment->unlink_case($obj->id);
+        }
+	}
+
+    print "{success: true}";
 }
 
 ####################
@@ -143,17 +113,11 @@ elsif ($action eq 'do_remove') {
 ####################
 
 elsif ($action eq 'delete') {
-    print $cgi->header;
-    ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->candelete;
-    $vars->{'attachment'} = $attachment;
-    $vars->{'action'} = 'do_delete';
+	print $cgi->header;
+
+	validate_test_id($attach_id,'attachment');
+    my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
     
-    $template->process("testopia/attachment/delete.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-    
-}
-elsif ($action eq 'do_delete') {
-    print $cgi->header;
     $vars->{'tr_message'} = "Attachment ". $attachment->description ." deleted";
     ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->candelete;
     
@@ -164,10 +128,98 @@ elsif ($action eq 'do_delete') {
         || ThrowTemplateError($template->error());
 
 }
+elsif ($action eq 'add'){
+    print $cgi->header;
+	
+	my $item    = $cgi->param('object');
+	my $item_id = $cgi->param('object_id');
+    my $obj;
+    my $att;      
+    if ($item eq 'case'){
+      	$obj = Bugzilla::Testopia::TestCase->new($item_id);
+      	$att->{'case_id'} = $obj->id;
+    }
+    elsif ($item eq 'plan'){
+    	$obj = Bugzilla::Testopia::TestPlan->new($item_id);
+    	$att->{'plan_id'} = $obj->id;
+    }
+	elsif ($item eq 'caserun'){
+		$obj = Bugzilla::Testopia::TestCaseRun->new($item_id);
+	    $att->{'caserun_id'} = $obj->id;
+	    $att->{'case_id'} = $obj->case_id;
+	}
+    
+    ThrowUserError("testopia-read-only", {'object' => $obj}) unless $obj->canedit;
+
+    defined $cgi->upload('data')
+        || ThrowUserError("file_not_specified");
+        
+    my $fh = $cgi->upload('data');
+    my $data;
+    # enable 'slurp' mode
+    local $/;
+
+    $data = <$fh>;       
+    $data || ThrowUserError("zero_length_file");
+    
+    $att->{'submitter_id'} = Bugzilla->user->id;
+    $att->{'description'}  = $cgi->param("description") || 'Attachment';
+    $att->{'filename'}     = $cgi->upload("data");
+    $att->{'mime_type'}    = $cgi->uploadInfo($cgi->param("data"))->{'Content-Type'};
+    $att->{'contents'}     = $data;
+
+    my $attachment = Bugzilla::Testopia::Attachment->create($att);
+
+    print "{success: true}";
+}
+
+################
+###   List   ###
+################
+elsif ($action eq 'list') {
+	my $format = $template->get_format("testopia/attachment/list", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
+	print $cgi->header;
+
+	my $item    = $cgi->param('object');
+	my $item_id = $cgi->param('object_id');
+    my $obj;
+ 
+    if ($item eq 'case'){
+      	$obj = Bugzilla::Testopia::TestCase->new($item_id);
+    }
+    elsif ($item eq 'plan'){
+    	$obj = Bugzilla::Testopia::TestPlan->new($item_id);
+    }
+	elsif ($item eq 'caserun'){
+		$obj = Bugzilla::Testopia::TestCaseRun->new($item_id);
+	}
+	
+	my @attachments = @{$obj->attachments};
+	
+	my $out = '';
+    $out .= '{';
+    $out .= '"totalResultsAvailable":' . scalar @attachments .',';
+    $out .= '"attachment":[';
+    foreach my $i (@attachments){
+        $out .= $i->to_json($cgi) . ',' if $i->canview;
+    }
+    chop($out) if scalar @attachments;
+    $out .= ']}';
+
+    $vars->{'json'} = $out;
+    $template->process($format->{'template'}, $vars)
+        || ThrowTemplateError($template->error());
+    exit;
+}
+
 ################
 ###   View   ###
 ################
 else {
+    validate_test_id($attach_id,'attachment');
+    my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
+    
+    ThrowUserError("attachment_removed") if $attachment->datasize == 0;
     
     my $filename = $attachment->filename;
     $filename =~ s/\\/\\\\/g; # escape backslashes

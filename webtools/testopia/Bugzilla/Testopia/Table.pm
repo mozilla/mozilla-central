@@ -459,6 +459,50 @@ sub arrow {
     return $self->{'arrow'};
 }
 
+sub to_yui_json {
+    my $self = shift;
+    my $out = '';
+    $out .= '{"ResultSet":{';
+    $out .= '"totalResultsAvailable":' . $self->list_count .',';
+    $out .= '"totalResultsReturned":'  . $self->page_size .',';
+    $out .= '"firstResultPosition":' . $self->page * $self->page_size .',';
+    $out .= '"Result":[';
+    foreach my $i (@{$self->list}){
+        $out .= '{';
+        $out .= '"ID":"' .      $i->id . '",';
+        $out .= '"Name":"' .    $i->name . '",';
+        $out .= '"Author":"' .  $i->author->login . '",';
+        $out .= '"Created":"' . $i->creation_date . '",';
+        $out .= '"Product":"' . $i->product->name . '",';
+        $out .= '"Version":"' . $i->product_version . '",';
+        $out .= '"Type":"' .    $i->type . '",';
+        $out .= '"Cases":"' .   $i->test_case_count . '",';
+        $out .= '"Runs":"' .    $i->test_run_count . '",';
+        $out .= '"ClickUrl":"tr_show_plan.cgi?plan_id=' . $i->id;
+        $out .= '"},';
+    }
+    chomp($out);
+    $out .= ']}}';
+    return $out;
+        
+}
+
+sub to_ext_json {
+    my $self = shift;
+    
+    my $out = '';
+    $out .= '{';
+    $out .= '"totalResultsAvailable":' . $self->list_count .',';
+    $out .= '"Result":[';
+    foreach my $i (@{$self->list}){
+        $out .= $i->to_json . ',';
+    }
+    chop($out) if scalar @{$self->list};
+    $out .= ']}';
+    return $out;
+        
+}
+
 =head1 SEE ALSO
 
 Testopia::Search

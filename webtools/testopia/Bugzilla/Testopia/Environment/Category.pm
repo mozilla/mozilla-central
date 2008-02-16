@@ -18,7 +18,8 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Michael Hight <mjhight@gmail.com>
-#                 Garrett Braden <gbraden@novell.com>
+#                 Garrett Braden <gbraden@novell.c
+#				  Andrew Nelson  <anelson@novell.com>
 
 =head1 NAME
 
@@ -275,21 +276,46 @@ sub product_categories_to_json {
     my ($product_id, $disable_move) = @_;
     detaint_natural($product_id);
     $disable_move = ',"addChild","move"' if $disable_move;
-    my $json = "[";
-    foreach my $cat (@{$self->get_element_categories_by_product($product_id)}){
-        $json .= '{title:"' . $cat->name . '",';
-        $json .=  'isFolder:' . ($cat->check_for_elements() ? "true" : "false") . ',';
-        $json .=  'objectId:"' . $cat->id . '",';
-        $json .=  'widgetId:"category' . $cat->id . '",';
-        $json .=  'actionsDisabled:["addCategory","addProperty","addValue"';
-        $json .=  $disable_move if $disable_move;
-        $json .=  ',"remove"' unless $cat->candelete;
-        $json .=  '],';
-        $json .=  'childIconSrc:"testopia/img/square.gif"},';
-    }
-    chop $json;
-    $json .= "]";
-    return $json;   
+    my $json = new JSON;
+    
+    my $categories = $self->get_element_categories_by_product($product_id);
+    
+	my @values; 
+    
+    	foreach my $cat (@$categories)
+    	{
+    		my $leaf;
+    		if($cat->check_for_elements)
+    		{
+    			$leaf = 'false';
+    		}
+    		
+    		else
+    		{
+    			$leaf = 'true';
+    		}
+    	
+    		push @values, {text=> $cat->{'name'}, id=> $cat->id . ' category', type=> 'category', leaf => $leaf, cls=> 'category'};
+    	}
+    
+    return $json->objToJson(\@values);
+
+
+#    my $json = "[";
+#    foreach my $cat (@{$self->get_element_categories_by_product($product_id)}){
+#        $json .= '{title:"' . $cat->name . '",';
+#        $json .=  'isFolder:' . ($cat->check_for_elements() ? "true" : "false") . ',';
+#        $json .=  'objectId:"' . $cat->id . '",';
+#        $json .=  'widgetId:"category' . $cat->id . '",';
+#        $json .=  'actionsDisabled:["addCategory","addProperty","addValue"';
+#        $json .=  $disable_move if $disable_move;
+#        $json .=  ',"remove"' unless $cat->candelete;
+#        $json .=  '],';
+#        $json .=  'childIconSrc:"testopia/img/square.gif"},';
+#    }
+#    chop $json;
+#    $json .= "]";
+#    return $json;   
 }
 
 =head2 get_element_categories_by_product
@@ -314,7 +340,6 @@ sub get_element_categories_by_product{
     }
     return \@objs;            
 }
-
 
 =head2 new_category_count
 
@@ -346,22 +371,43 @@ sub elements_to_json {
     my $elements = $self->get_parent_elements;
     my $json = '[';
     
-    foreach my $element (@$elements)
-    {
-        $json .= '{title:"'. $element->{'name'} .'",';
-        $json .=  'objectId:"'. $element->{'element_id'}. '",';
-        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
-        $json .=  'actionsDisabled:["addCategory","addValue"';
-        $json .=  $disable_add if $disable_add;
-        $json .=  ',"remove"' unless $element->candelete;
-        $json .=  '],';
-        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
-        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
-    }
-    chop $json;
-    $json .= ']';
-
-    return $json;   
+	my @values; 
+    
+    	foreach my $element (@$elements)
+    	{
+    		my $leaf;
+    		if($element->check_for_children || $element->check_for_properties)
+    		{
+    			$leaf = 'false';
+    		}
+    		
+    		else
+    		{
+    			$leaf = 'true';
+    		}
+    	
+    		push @values, {text=> $element->{'name'}, id=> ($element->{'element_id'}) . ' element', type=> 'element', leaf => $leaf, cls=> 'element'};
+    	}
+    	
+    	$json = new JSON();
+    	return $json->objToJson(\@values);
+	 
+#    foreach my $element (@$elements)
+#    {
+#        $json .= '{title:"'. $element->{'name'} .'",';
+#        $json .=  'objectId:"'. $element->{'element_id'}. '",';
+#        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
+#        $json .=  'actionsDisabled:["addCategory","addValue"';
+#        $json .=  $disable_add if $disable_add;
+#        $json .=  ',"remove"' unless $element->candelete;
+#        $json .=  '],';
+#        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
+#        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
+#    }
+#    chop $json;
+#    $json .= ']';
+#
+#    return $json;   
 }
     
 =head2 check_category

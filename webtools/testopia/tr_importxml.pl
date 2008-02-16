@@ -46,6 +46,7 @@ BEGIN {
 chdir $::path;
 use lib ($::path);
 
+use Bugzilla;
 use Bugzilla::Util;
 use Bugzilla::Config;
 use Bugzilla::Constants;
@@ -59,14 +60,21 @@ use XML::Twig;
 use Getopt::Long;
 use Pod::Usage;
 
+# Keep the template from spitting out garbage
+Bugzilla->usage_mode(Bugzilla::Constants::USAGE_MODE_CMDLINE);
+
 my $debug = 0;
-my $help = 0;
+my $help  = 0;
+my $login = undef;
+my $pass  = undef; 
 
 my $result = GetOptions("verbose|debug+" => \$debug,
-                        "help|?"         => \$help);
+                        "help|?"         => \$help,
+                        "login=s"        => \$login,
+                        "pass=s"         => \$pass);
 
 pod2usage(0) if $help;
-                        
+
 use constant DEBUG_LEVEL => 2;
 use constant ERR_LEVEL => 1;
 
@@ -96,6 +104,21 @@ else
     pod2usage(0);
 }
 
+# Log in if credentials are provided.
+if (defined $login)
+{
+    Debug("Logging in as '$login'", DEBUG_LEVEL);
+
+    # Make sure no user is logged in
+    Bugzilla->logout();
+
+    my $cgi = Bugzilla->cgi();
+    $cgi->param("Bugzilla_login", $login);
+    $cgi->param("Bugzilla_password", $pass);
+
+    Bugzilla->login();
+}
+                        
 Debug("Parsing tree", DEBUG_LEVEL);
 
 my $testopiaXml = Bugzilla::Testopia::Xml->new();
@@ -117,8 +140,10 @@ tr_importxml - Import Testopia data from xml.
        -? --help        Brief help message.
        -v --verbose     Print error and debug information. 
                         Multiple -v options increase verbosity.
+       --login          Login ID (email address)
+       --pass           Password
                         
- With no file read standard input.
+       With no file read standard input.
 
 =head1 OPTIONS
 
@@ -130,7 +155,7 @@ tr_importxml - Import Testopia data from xml.
 
 =item B<-v>
 
-    Print error and debug information. Mulltiple -v increases verbosity
+    Print error and debug information. Multiple -v increases verbosity
 
 =back
 

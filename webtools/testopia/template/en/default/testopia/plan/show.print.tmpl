@@ -141,5 +141,5 @@
 [% IF printdoc %]
 <hr>
 <h3>Plan Document</h3>
-[% plan.text FILTER xss %]
+[% plan.text.plan_text FILTER html_light %]
 [% END %]

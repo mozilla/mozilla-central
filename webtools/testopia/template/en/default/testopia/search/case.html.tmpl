@@ -20,12 +20,12 @@
 
 
 [% IF report %]
-<form action="tr_case_reports.cgi" method="GET"> 
+<form  id="case_search_form" action="tr_case_reports.cgi" method="GET"> 
 [% PROCESS "testopia/search/report-matrix.html.tmpl" 
    obj = case 
 %]   
 [% ELSE %]
-<form action="tr_list_cases.cgi" method="GET">
+<form id="case_search_form" action="tr_list_cases.cgi" method="GET">
 [% END %]
   <input type="hidden" name="current_tab" value="[% current_tab FILTER none %]" />
 <fieldset>
@@ -77,7 +77,7 @@
                   mult      => 1  
                   events    => 'onChange="document.getElementById(\'component\').disabled=true;
                                           document.getElementById(\'category\').disabled=true;
-                                          onProductSelection()"' } %]
+                                          t.onProductSelection(this)"' } %]
     </td>
     <td style="padding-right: 30px;">
     [% PROCESS select sel = { name  => 'component',
@@ -224,8 +224,5 @@
   </tr>  
 </table>
 </fieldset>
-<input type="submit" value="Submit" id="search_submit">
+
 </form>  
-<script type="text/javascript">
- dojo.addOnLoad(onProductSelection);
-</script>

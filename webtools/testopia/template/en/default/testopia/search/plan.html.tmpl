@@ -19,12 +19,12 @@
   #%]
 
 [% IF report %]
-<form action="tr_plan_reports.cgi" method="GET">    
+<form  id="plan_search_form" action="tr_plan_reports.cgi" method="GET">    
 [% PROCESS "testopia/search/report-matrix.html.tmpl" 
    obj = plan
 %]   
 [% ELSE %]
-<form action="tr_list_plans.cgi" method="GET">
+<form id="plan_search_form" action="tr_list_plans.cgi" method="GET">
 [% END %]
   <input type="hidden" name="current_tab" value="[% current_tab FILTER none %]" />
 <fieldset>
@@ -43,7 +43,8 @@
                   elements  => 5,
                   mult      => 1  
                   events    => 'onChange="document.getElementById(\'version\').disabled=true; 
-                                          onProductSelection()"'  } %]
+                                          t.onProductSelection(this)"'  } %]
+
     </td>
     <td style="padding-right: 30px;">
     [% PROCESS select sel = { name  => 'version',
@@ -135,9 +136,4 @@
   <input type="checkbox" style="border: none" name="isactive" id="isactive" value="1" />
 </p>
 
-<input type="submit" value="Submit" id="search_submit">
 </form>  
-
-<script type="text/javascript">
- dojo.addOnLoad(onProductSelection);
-</script>

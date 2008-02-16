@@ -117,6 +117,39 @@ sub create
     return $test_case->id
 }
 
+sub createBatch
+{
+    my $self =shift;
+    my (@values) = @_;
+    my @ids;
+    
+    for my $new_values (@values)
+    {
+    if (not defined $$new_values{plan_id})
+    {
+        die "Plan ID Number (plan_id) Required When Creating A TestCase"
+    }
+
+    # Plan id linked to new test case after store method is called
+    my $plan_id = $$new_values{plan_id};
+
+    # Remove plan id from new_values hash    
+    delete $$new_values{plan_id};
+
+    $self->login;
+
+    my $test_case = Bugzilla::Testopia::TestCase->create($new_values);
+    
+    $test_case->link_plan($plan_id, $test_case->id);
+    
+    $self->logout;
+
+    push @ids, $test_case->id;
+    }
+    
+    return @ids;
+}
+
 sub update
 {
     my $self =shift;
@@ -419,7 +452,7 @@ sub remove_tag
         die "Tag, " . $tag_name . ", does not exist";
     }
     
-    my $result = $test_case->remove_tag($test_tag->id);
+    my $result = $test_case->remove_tag($test_tag->name);
 
     $self->logout;
     

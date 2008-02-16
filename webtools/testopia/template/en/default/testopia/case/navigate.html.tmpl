@@ -20,6 +20,15 @@
   #                 Greg Hendricks <ghendricks@novell.com>
   #%]
   
+<a href="tr_show_product.cgi?product_id=[% case.plans.0.product_id FILTER none %]">Product: [% case.plans.0.product.name FILTER html %]</a>
+&nbsp;&gt;&nbsp;
+[% IF plan_id %]
+<a href="tr_show_plan.cgi?plan_id=[% plan_id FILTER none %]">Plan: [% plan_id FILTER html %]</a>
+[% ELSE %]
+<a href="tr_show_plan.cgi?plan_id=[% case.plans.0.id FILTER none %]" title="[% case.plans.0.name FILTER html %]">Plan [% case.plans.0.id FILTER html %]</a>
+[% END %]
+&nbsp;&gt;&nbsp; Case [% case.id FILTER html %]
+<br/>
 [% list = table.get_saved_list('case') %]
 <b>Case List:</b>
 [% IF table && list > 0 %]

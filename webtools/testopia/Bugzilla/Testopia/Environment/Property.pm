@@ -285,7 +285,6 @@ sub valid_exp_to_json {
     my $self = shift;
     my ($disable_move, $env_id) = @_;
     my $env = Bugzilla::Testopia::Environment->new($env_id) if $env_id;
-    
     $disable_move = $disable_move ? ',"addChild","move","remove"' : '';
     my $validexp = $self->get_validexp;
    
@@ -293,23 +292,27 @@ sub valid_exp_to_json {
     
     my $json = '[';
     
+        
+    my @validExpressionsArray;
     foreach (@validexpressions)
-    {
-        $json .= '{title: "' . $_ . '",';
-        $json .=  'widgetId:"validexp' . $self->id . '~'. $_ .'",';
-        $json .=  'actionsDisabled:["addCategory","addElement","addProperty","addValue"'. $disable_move .'],';
-        $json .=  'objectId:"' . $self->id . '~' . $_ . '",';
-        if ($env && $env->get_value_selected($env->id, $self->element_id, $self->id) eq $_){
-            $json .=  'childIconSrc:"testopia/img/selected_value.png"},';
+    {	
+    	my $class;
+    	if ($env && $env->get_value_selected($env->id, $self->element_id, $self->id) eq $_)
+    	{
+            $class = "validexpYellow";
         }
-        else{
-            $json .=  'childIconSrc:""},';
-        }
-    }
-    chop $json;
-    $json .= ']';
+ 		else
+ 		{
+ 			$class = "validexp";
+ 		}
+    	
+         push @validExpressionsArray, {text=> $_, id=> $self->id . ' ' . $_ . ' validexp', value => $_, type=> 'validexp', leaf => 'true', cls=> $class};
+	}
     
-    return $json;
+    my $json = new JSON;
+    return $json->objToJson(\@validExpressionsArray);
+    
+    
 }
 
 =head2 obliterate

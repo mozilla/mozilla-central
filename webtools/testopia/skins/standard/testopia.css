@@ -35,7 +35,7 @@
 
 /* old default.css */
 textarea {
-  background-color: #fff;
+  /* background-color: #fff; */
   border: 1px solid #999;
 }
 
@@ -214,4 +214,57 @@ h3 {
 dt {
   font-weight: bold;
   font-size: medium;
+}
+
+.bz_row_odd
+{
+    background-color: #F7F7F7;
+    color: #000000;
+}
+
+.bz_row_even
+{
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.bz_row_header { background-color: #E7E9E7;
+                font-weight: bolder;
+              }
+.bz_row_data { padding-bottom: 5px;}
+
+.img_button_16x {
+    background-repeat: no-repeat;
+}
+
+.plan_archived {
+    background: url(../../testopia/img/archived.png);
+    background-repeat: no-repeat;
+    width: 120px;
+    height: 32px;
+}
+
+.x-progress-bar-red{height:18px;float:left;width:0;background:#9CBFEE url( ../../testopia/img/red_bar.gif ) repeat-x left center;border-top:1px solid #D1E4FD;border-bottom:1px solid #7FA9E4;}
+.x-progress-bar-green{height:18px;float:left;width:0;background:#9CBFEE url( ../../testopia/img/green_bar.gif ) repeat-x left center;border-top:1px solid #D1E4FD;border-bottom:1px solid #7FA9E4;}
+.x-progress-bar-orange{height:18px;float:left;width:0;background:#9CBFEE url( ../../testopia/img/orange_bar.gif ) repeat-x left center;border-top:1px solid #D1E4FD;border-bottom:1px solid #7FA9E4;}
+.x-progress-text-main{font-size:11px;font-weight:bold;color:#fff;padding:3px 5px;overflow:hidden;position:absolute;left:0;text-align:center;}
+.x-progress-text-back-main{color:#000;line-height:16px;font-weight:bold;}
+
+.x-hidden {position: absolute; left: -1000px; top: -100px;}
+
+.t1     { background-color: #ffffff } /* white       */
+.t2     { background-color: #dfefff } /* light blue  */
+.t3     { background-color: #dddddd } /* grey        */
+.t4     { background-color: #c3d3ed } /* darker blue */
+.ttotal { background-color: #cfffdf } /* light green */
+
+.msg .x-box-mc {
+    font-size:14px;
+}
+#msg-div {
+    position:absolute;
+    left:35%;
+    top:10px;
+    width:250px;
+    z-index:20000;
 }

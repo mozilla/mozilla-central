@@ -27,6 +27,7 @@
 #                 Frederic Buclin <LpSolit@gmail.com>
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
+#                 Jeff Dayley <jedayley@novell.com>
 
 package Bugzilla::Testopia::TestCase;
 
@@ -45,6 +46,7 @@ use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::Category;
 
+use JSON;
 use Text::Diff;
 
 use base qw(Exporter Bugzilla::Object);
@@ -102,6 +104,7 @@ use constant VALIDATORS => {
     runs              => \&_check_runs,
     tags              => \&_check_tags,
     components        => \&_check_components,
+    bugs              => \&_check_bugs,
 };
 
 use constant ALIAS_MAX_LENGTH => 255;
@@ -130,7 +133,7 @@ sub report_columns {
     # Changes here need to match Report.pm
     $columns{'Status'}          = "case_status";        
     $columns{'Priority'}        = "priority";
-    $columns{'Product'}         = "product_id";
+    $columns{'Product'}         = "product";
     $columns{'Component'}       = "component";
     $columns{'Category'}        = "category";
     $columns{'Automated'}       = "isautomated";
@@ -274,10 +277,11 @@ sub _check_alias {
 
 sub _check_time{
     my ($invocant, $time) = @_;
-    $time = trim($time) || 0;    
-    $time =~ m/(\d+)[:\s](\d+)[:\s](\d+)/;
+    $time = trim($time);
+    return 0 unless $time;    
+    $time =~ m/^(\d+)[:\s](\d+)[:\s](\d+)$/;
     ThrowUserError('testopia-format-error', {'field' => 'Estimated Time' })
-      unless ($1 < 24 && $2 < 60 && $3 < 60);
+      unless (defined $1 && defined $2 && $2 < 60 && defined $3 && $3 < 60);
     $time = "$1:$2:$3";
     return $time;
 }
@@ -304,6 +308,18 @@ sub _check_plans {
     return $plans;
 }
 
+sub _check_cases {
+    my ($invocant, $caseids) = @_;
+    my @cases;
+    
+    foreach my $caseid (split(/[\s,]+/, $caseids)){
+        Bugzilla::Testopia::Util::validate_test_id($caseid, 'case');
+        push @cases, Bugzilla::Testopia::TestCase->new($caseid);
+    }
+    
+    return \@cases;
+}
+
 sub _check_runs {
     my ($invocant, $runids) = @_;
     my @runs;
@@ -323,10 +339,20 @@ sub _check_tags {
 sub _check_components {
     my ($invocant, $components) = @_;
     my @components;
+    my @comp_ids;
     my $dbh = Bugzilla->dbh;
-  
-    foreach my $id (@$components){
+    
+    ThrowUserError('testopia-missing-parameter', {param => 'components'}) unless $components;
+    if (ref $components eq 'ARRAY'){
+        @comp_ids = @$components;
+    }
+    else {
+        @comp_ids = split(',', $components);
+    }
+    foreach my $id (@comp_ids){
         Bugzilla::Testopia::Util::validate_selection($id, 'id', 'components');
+        trick_taint($id);
+        
         if (ref $invocant){
             my ($is) = $dbh->selectrow_array(
                 "SELECT case_id FROM test_case_components
@@ -334,7 +360,7 @@ sub _check_components {
                  undef, ($invocant->id, $id));
             ThrowUserError('testopia_component_attached') if $is;
         }
-        trick_taint($id);
+        
         push @components, $id;
     }
     return \@components;
@@ -347,7 +373,7 @@ sub _check_bugs {
     
     foreach my $bug (split(/[\s,]+/, $bugids)){
         trick_taint($bug);
-        ValidateBugID($bug);
+        Bugzilla::Bug::ValidateBugID($bug);
         if (ref $invocant){
             my ($exists) = $dbh->selectrow_array(
                     "SELECT bug_id 
@@ -514,6 +540,7 @@ sub lookup_category {
 
 sub lookup_category_by_name {
     my ($name) = @_;
+    trick_taint $name;
     my $dbh = Bugzilla->dbh;
     my ($value) = $dbh->selectrow_array(
             "SELECT category_id 
@@ -660,6 +687,25 @@ sub get_status_list {
     return $ref
 }
 
+=head2 get_text_versions
+
+Returns the list of versions of the plan document.
+
+=cut
+
+sub get_text_versions {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;    
+
+    my $versions = $dbh->selectall_arrayref(
+            "SELECT case_text_version AS id, case_text_version AS name 
+               FROM test_case_texts
+              WHERE case_id = ?
+              ORDER BY case_text_version", 
+            {'Slice' =>{}}, $self->id);
+    return $versions;
+}
+
 =head2 get_priority_list
 
 Returns a list of legal priorities
@@ -729,11 +775,13 @@ Disassociates a tag from this test case
 
 sub remove_tag {    
     my $self = shift;
-    my ($tag_id) = @_;
+    my ($tag_name) = @_;
+    my $tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
+    ThrowUserError('testopia-unknown-tag', {'name' => $tag}) unless $tag;
     my $dbh = Bugzilla->dbh;
     $dbh->do("DELETE FROM test_case_tags 
               WHERE tag_id=? AND case_id=?",
-              undef, $tag_id, $self->{'case_id'});
+              undef, $tag->id, $self->{'case_id'});
     return;
 }
 
@@ -749,7 +797,7 @@ sub attach_bug {
     my $dbh = Bugzilla->dbh;
     
     $case_id ||= $self->{'case_id'};
-    $bugids = $self->_check_bugs($bugids);
+    $bugids = $self->_check_bugs($bugids) unless ref $bugids;
     
     $dbh->bz_lock_tables('test_case_bugs WRITE');
     
@@ -804,8 +852,148 @@ sub add_to_run {
     my $runs = $self->_check_runs($runids);
      
     foreach my $run (@$runs){
-        $run->add_case_run($self->id);
+    	$run->add_case_run($self->id);
     }
+}
+
+=head2 add_blocks
+
+Adds a list of test cases to the current test cases being blocked by the testcase
+
+=cut
+
+sub add_blocks {
+	my $self     = shift;
+	my $case_ids = shift;
+	
+	my $cases    = $self->_check_cases($case_ids);
+	my @blocks;
+	
+    my $dbh      = Bugzilla->dbh();
+	
+	# Get a list of the cases this test case currently blocks
+	my $current_blocks = $dbh->selectcol_arrayref("SELECT blocked
+	                                               FROM   test_case_dependencies
+	                                               WHERE  dependson = ?",
+	                                              undef,
+	                                              $self->id());
+    
+    # update the list of items
+    foreach (@$cases) {
+    	push @blocks, $_->id();
+    }
+    
+    push @blocks, @$current_blocks;
+    
+    $cases = join ",", @blocks;
+    
+    $self->set_blocks($cases);
+    $self->update();
+}
+
+=head2 remove_blocks
+
+Removes a list of test cases from being blocked by the testcase 
+
+=cut
+
+sub remove_blocks {
+	my $self     = shift;
+	my $case_ids = shift;
+	
+	return 0 if ($case_ids eq '' or !defined $case_ids);
+	
+	my $dbh = Bugzilla->dbh();
+	
+	my @cases;
+	
+	foreach my $case (split /,/, $case_ids)
+	{
+		detaint_natural($case);
+		push @cases, $case;
+	}
+	
+	my $query =<<QUERY;
+       DELETE
+       FROM   test_case_dependencies
+       WHERE  dependson = ?
+QUERY
+
+    $query .= "AND (";
+    $query .= join(" or ", map {"blocked = ?"} @cases);
+    $query .= ")";
+
+    $dbh->do($query, undef, $self->id, @cases);
+}
+
+=head2 add_dependson
+
+Adds a list of test cases to the current test cases depended on by the testcase
+
+=cut
+
+sub add_dependson {
+	my $self     = shift;
+	my $case_ids = shift;
+	
+	my $cases    = $self->_check_cases($case_ids);
+	my @dependson;
+	
+    my $dbh      = Bugzilla->dbh();
+	
+	# Get a list of the cases this test case currently blocks
+	my $current_dependson = $dbh->selectcol_arrayref("SELECT dependson
+	                                                  FROM   test_case_dependencies
+	                                                  WHERE  blocked = ?",
+	                                                  undef,
+	                                                  $self->id());
+    
+    # update the list of items
+    foreach (@$cases) {
+    	push @dependson, $_->id();
+    }
+    
+    push @dependson, @$current_dependson;
+    
+    $cases = join ",", @dependson;
+    
+    $self->set_dependson($cases);
+    $self->update();
+}
+
+=head2 remove_dependson
+
+Adds a list of test cases to the current test cases depended on by the testcase
+
+=cut
+
+sub remove_dependson {
+	my $self     = shift;
+	my $case_ids = shift;
+	
+	return 0 if ($case_ids eq '' or !defined $case_ids);
+	
+	my $dbh = Bugzilla->dbh();
+	
+	my @cases;
+	
+	foreach my $case (split /,/, $case_ids)
+	{
+		detaint_natural($case);
+		push @cases, $case;
+	}
+	
+	my $query =<<QUERY;
+       DELETE
+       FROM   test_case_dependencies
+       WHERE  blocked = ?
+QUERY
+
+    $query .= "AND (";
+    $query .= join(" or ", map {"dependson = ?"} @cases);
+    $query .= ")";
+
+    $dbh->do($query, undef, $self->id, @cases);
 }
 
 =head2 remove_component
@@ -817,6 +1005,7 @@ Disassociates a component with this test case
 sub remove_component {
     my $self = shift;
     my ($comp_id) = @_;
+    trick_taint($comp_id);
     my $dbh = Bugzilla->dbh;
     $dbh->do("DELETE FROM test_case_components
               WHERE case_id = ? AND component_id = ?",
@@ -954,10 +1143,10 @@ sub store_text {
     if (!defined $timestamp){
         ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
     }
-    trick_taint($action);
-    trick_taint($effect);
-    trick_taint($breakdown);
-    trick_taint($setup);
+    trick_taint($action) if $action;
+    trick_taint($effect) if $effect;
+    trick_taint($breakdown) if $breakdown;
+    trick_taint($setup) if $setup;
     
     my $version = $reset_version ? 0 : $self->version || 0;
     $dbh->do("INSERT INTO test_case_texts 
@@ -1020,8 +1209,7 @@ sub unlink_plan {
     my $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
 
     if (scalar @{$self->plans} == 1){
-        $self->obliterate;
-        return 1;
+        return 0; #Return failure
     }
 
     $dbh->bz_lock_tables('test_case_plans WRITE', 'test_case_runs WRITE', 
@@ -1043,7 +1231,7 @@ sub unlink_plan {
     # Update the plans array.
     delete $self->{'plans'}; 
 
-      return 1;    
+    return 1;    
 }
 
 =head2 copy
@@ -1086,7 +1274,9 @@ sub copy {
                           $self->text->{'effect'}, $self->text->{'setup'}, 
                           $self->text->{'breakdown'},'VRESET' , $timestamp);
     }
-    
+    else{
+        $self->store_text($key, Bugzilla->user->id, '', '', '', '', 'VRESET', $timestamp);
+    }
     return $key;
     
 }
@@ -1155,22 +1345,23 @@ sub history {
 
     foreach my $row (@$ref){
         if ($row->{'what'} eq 'Case Status'){
-            $row->{'oldvalue'} = $self->lookup_status($row->{'oldvalue'});
-            $row->{'newvalue'} = $self->lookup_status($row->{'newvalue'});
+            $row->{'oldvalue'} = lookup_status($row->{'oldvalue'});
+            $row->{'newvalue'} = lookup_status($row->{'newvalue'});
         }
         elsif ($row->{'what'} eq 'Category'){
-            $row->{'oldvalue'} = $self->lookup_category($row->{'oldvalue'});
-            $row->{'newvalue'} = $self->lookup_category($row->{'newvalue'});
+            $row->{'oldvalue'} = lookup_category($row->{'oldvalue'});
+            $row->{'newvalue'} = lookup_category($row->{'newvalue'});
         }
         elsif ($row->{'what'} eq 'Priority'){
-            $row->{'oldvalue'} = $self->lookup_priority($row->{'oldvalue'});
-            $row->{'newvalue'} = $self->lookup_priority($row->{'newvalue'});
+            $row->{'oldvalue'} = lookup_priority($row->{'oldvalue'});
+            $row->{'newvalue'} = lookup_priority($row->{'newvalue'});
         }
         elsif ($row->{'what'} eq 'Default Tester'){
-            $row->{'oldvalue'} = $self->lookup_default_tester($row->{'oldvalue'});
-            $row->{'newvalue'} = $self->lookup_default_tester($row->{'newvalue'});
+            $row->{'oldvalue'} = lookup_default_tester($row->{'oldvalue'});
+            $row->{'newvalue'} = lookup_default_tester($row->{'newvalue'});
         }
-    }        
+    }
+    
     return $ref;
 }
 
@@ -1295,7 +1486,7 @@ sub update_deps {
     my @isect = ();
     my %union = ();
     my %isect = ();
-    foreach my $b (@deps, @blocks) { $union{$b}++ && $isect{$b}++ }
+    foreach my $block (@deps, @blocks) { $union{$block}++ && $isect{$block}++ }
     @union = keys %union;
     @isect = keys %isect;
     if (scalar(@isect) > 0) {
@@ -1413,6 +1604,40 @@ sub obliterate {
                WHERE dependson = ? OR blocked = ?", undef, ($self->id, $self->id));
     $dbh->do("DELETE FROM test_cases WHERE case_id = ?", undef, $self->id);
     return 1;
+}
+
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    
+    my @plan_ids;
+    foreach my $p (@{$self->plans}){
+        push @plan_ids, $p->id;
+    }
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    
+    $obj->{'run_count'}    = $self->run_count;
+    $obj->{'author_name'}  = $self->author->name;
+    $obj->{'default_tester'}  = $self->default_tester->name;
+    $obj->{'status'}       = $self->status;
+    $obj->{'priority'}     = $self->priority;
+    $obj->{'plan_id'}      = $plan_ids[0];
+    $obj->{'plan_ids'}     = \@plan_ids;
+    $obj->{'type'}         = $self->type;
+    $obj->{'id'}           = $self->id;
+    $obj->{'canedit'}      = $self->canedit;
+    $obj->{'canview'}      = $self->canview;
+    $obj->{'candelete'}    = $self->candelete;
+    $obj->{'category_name'} = $self->category->name;
+    $obj->{'product_id'}   = $self->plans->[0]->product_id;
+
+    return $json->objToJson($obj); 
 }
 
 =head2 canview
@@ -1598,8 +1823,8 @@ sub attachments {
          undef, $self->{'case_id'});
     
     my @attachments;
-    foreach my $a (@{$attachments}){
-        push @attachments, Bugzilla::Testopia::Attachment->new($a);
+    foreach my $attach (@{$attachments}){
+        push @attachments, Bugzilla::Testopia::Attachment->new($attach);
     }
     $self->{'attachments'} = \@attachments;
     return $self->{'attachments'};
@@ -1812,13 +2037,21 @@ case.
 sub text {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-    return $self->{'text'} if exists $self->{'text'};
+    my ($version) = @_;
+    trick_taint($version) if $version;
+    return $self->{'text'} if exists $self->{'text'} && !$version;
+    
+    $version = $version || $self->version;
+    
     my $text = $dbh->selectrow_hashref(
-        "SELECT action, effect, setup, breakdown, who AS author_id, case_text_version AS version
+        "SELECT action, effect, setup, breakdown, profiles.realname AS author, case_text_version AS version
            FROM test_case_texts
-          WHERE case_id=? AND case_text_version=?",
-        undef, $self->{'case_id'}, 
-        $self->version);
+     INNER JOIN profiles on profiles.userid = test_case_texts.who
+          WHERE case_id = ? AND case_text_version = ?",
+        undef, ($self->{'case_id'}, $version));
+    
+    return $text if scalar @_;
+    
     $self->{'text'} = $text;
     return $self->{'text'};
 }

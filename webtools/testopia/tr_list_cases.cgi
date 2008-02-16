@@ -18,6 +18,7 @@
 # Novell. All Rights Reserved.
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
+#                 Jeff Dayley <jedayley@novell.com>
 
 use strict;
 use lib ".";
@@ -39,11 +40,6 @@ my $vars = {};
 
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
-my $query_limit = 10000;
-
-$cgi->send_cookie(-name => "TEST_LAST_ORDER",
-                  -value => $cgi->param('order'),
-                  -expires => "Fri, 01-Jan-2038 00:00:00 GMT");
 
 Bugzilla->login(LOGIN_REQUIRED);
 
@@ -51,23 +47,7 @@ Bugzilla->login(LOGIN_REQUIRED);
 # Uses the default format if the user did not specify an output format;
 # otherwise validates the user's choice against the list of available formats.
 my $format = $template->get_format("testopia/case/list", scalar $cgi->param('format'), scalar $cgi->param('ctype'));
-       
 my $action = $cgi->param('action') || '';
-my $serverpush = ( support_server_push($cgi) ) && ( $format->{'extension'} eq "html" );
-
-if ($serverpush) {
-    print $cgi->multipart_init;
-    print $cgi->multipart_start;
-
-    # Under mod_perl, flush stdout so that the page actually shows up.
-    if ($ENV{MOD_PERL}) {
-        require Apache2::RequestUtil;
-        Apache2::RequestUtil->request->rflush();
-    }
-
-    $template->process("list/server-push.html.tmpl", $vars)
-      || ThrowTemplateError($template->error());
-}
 
 # prevent DOS attacks from multiple refreshes of large data
 $::SIG{TERM} = 'DEFAULT';
@@ -76,120 +56,70 @@ $::SIG{PIPE} = 'DEFAULT';
 ###############
 ### Actions ###
 ###############
-if ($action eq 'Commit'){
+if ($action eq 'update'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    print $cgi->header;
+    
+    my @case_ids = split(',', $cgi->param('ids'));
+    ThrowUserError('testopia-none-selected', {'object' => 'case'}) unless (scalar @case_ids);
 
-    # Match the list of checked items. 
-    my $reg = qr/c_([\d]+)/;
-    my $params = join(" ", $cgi->param());
-    my @params = $cgi->param();
-
-    unless ($params =~ $reg){
-        print $cgi->multipart_end if $serverpush;
-        ThrowUserError('testopia-none-selected', {'object' => 'case'});
+    my @uneditable;
+    my @runs;
+    my %planseen;
+    my @components;
+    
+    foreach my $planid (split(",", $cgi->param('linkplans'))){
+        validate_test_id($planid, 'plan');
+        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
+        next unless $plan->canedit;
+        $planseen{$planid} = 1;
     }
 
-    my $progress_interval = 250;
-    my $i = 0;
-    my $total = scalar @params;
-    my @uneditable;
+    foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
+        validate_test_id($runid, 'run');
+        push @runs, Bugzilla::Testopia::TestRun->new($runid);
+    }
     
-    foreach my $p ($cgi->param()){
-        my $case = Bugzilla::Testopia::TestCase->new($1) if $p =~ $reg;
+    my @comps = $cgi->param("components");
+    my (@addcomponents,@remcomponents);
+    foreach my $id (@comps){
+        detaint_natural($id);
+        validate_selection($id, 'id', 'components');
+        if ($cgi->param('comp_action') eq 'add'){
+            push @addcomponents, $id;
+        }
+        else {
+            push @remcomponents, $id;
+        }
+    }
+
+    foreach my $p (@case_ids){
+        my $case = Bugzilla::Testopia::TestCase->new($p);
         next unless $case;
         
         unless ($case->canedit){
             push @uneditable, $case;
             next;
         }
+
+        $case->set_requirement($cgi->param('requirement')) if $cgi->param('requirement');
+        $case->set_case_status($cgi->param('status')) if $cgi->param('status');
+        $case->set_priority($cgi->param('priority')) if $cgi->param('priority');
+        $case->set_isautomated($cgi->param('isautomated') eq 'on' ? 1 : 0) if $cgi->param('isautomated');
+        $case->set_script($cgi->param('script')) if $cgi->param('script');
+        $case->set_arguments($cgi->param('arguments')) if $cgi->param('arguments');    
+        $case->set_default_tester($cgi->param('tester')) if $cgi->param('tester');
         
-        $i++;
-        if ($i % $progress_interval == 0 && $serverpush){
-            print $cgi->multipart_end;
-            print $cgi->multipart_start;
-            $vars->{'complete'} = $i;
-            $vars->{'total'} = $total;
-            $template->process("testopia/progress.html.tmpl", $vars)
-              || ThrowTemplateError($template->error());
-        } 
+        $case->update();
 
-        my $requirement = $cgi->param('requirement') eq '--Do Not Change--' ? $case->requirement : $cgi->param('requirement');
-        my $arguments = $cgi->param('arguments') eq '--Do Not Change--' ? $case->arguments : $cgi->param('requirement');
-        my $script = $cgi->param('script') eq '--Do Not Change--' ? $case->script : $cgi->param('requirement');
-        my $status = $cgi->param('status')     == -1 ? $case->status_id : $cgi->param('status');
-        my $priority = $cgi->param('priority') == -1 ? $case->{'priority_id'} : $cgi->param('priority');
-        my $category = $cgi->param('category') == -1 ? $case->{'category_id'} : $cgi->param('category');
-        my $isautomated = $cgi->param('isautomated') == -1 ? $case->isautomated : $cgi->param('isautomated');
-        my @comps       = $cgi->param("components");
-        my $tester = $cgi->param('tester') || ''; 
-        if ($tester && $tester ne '--Do Not Change--'){
-            $tester = login_to_id(trim($cgi->param('tester')));
-            unless ($tester){
-                print $cgi->multipart_end;
-                ThrowUserError("invalid_username", { name => $cgi->param('tester') });
-            }
-        }
-        else {
-            $tester = $case->default_tester->id;
-        }
-            
-        # We use placeholders so trick_taint is ok.
-        trick_taint($requirement) if $requirement;
-        trick_taint($arguments) if $arguments;
-        trick_taint($script) if $script;
-        trick_taint($tester);
-        
-        detaint_natural($status);
-        detaint_natural($priority);
-        detaint_natural($category);
-        detaint_natural($isautomated);
+        $case->add_component($_) foreach (@addcomponents);
+        $case->remove_component($_) foreach (@remcomponents);
 
-        my @components;
-        foreach my $id (@comps){
-            detaint_natural($id);
-            validate_selection($id, 'id', 'components');
-            push @components, $id;
-        }
-
-        my %newvalues = ( 
-            'case_status_id' => $status,
-            'category_id'    => $category,
-            'priority_id'    => $priority,
-            'isautomated'    => $isautomated,
-            'requirement'    => $requirement,
-            'script'         => $script,
-            'arguments'      => $arguments,
-            'default_tester_id' => $tester  || $case->default_tester->id,
-        );
-      
-        $case->update(\%newvalues);
-        $case->add_component($_) foreach (@components);
-        if ($cgi->param('addtags')){
-            foreach my $name (split(/[,]+/, $cgi->param('addtags'))){
-                if ($cgi->param('tag_action') eq 'add'){
-                    $case->add_tag($name);
-                }
-                else {
-                    $case->remove_tag($name);
-                }
-            }
-        }
         # Add to runs
-        my @runs;
-        foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
-            validate_test_id($runid, 'run');
-            push @runs, Bugzilla::Testopia::TestRun->new($runid);
-        }
         foreach my $run (@runs){
             $run->add_case_run($case->id) if $run->canedit;
         }
         # Clone
-        my %planseen;
-        foreach my $planid (split(",", $cgi->param('linkplans'))){
-            validate_test_id($planid, 'plan');
-            my $plan = Bugzilla::Testopia::TestPlan->new($planid);
-            next unless $plan->canedit;
-            $planseen{$planid} = 1;
-        }
         if ($cgi->param('copymethod') eq 'copy'){
             foreach my $planid (keys %planseen){
                 my $author = $cgi->param('newauthor') ? Bugzilla->user->id : $case->author->id;
@@ -209,221 +139,48 @@ if ($action eq 'Commit'){
                 $case->link_plan($planid);
             }
         }
-        
     }
-    if ($serverpush && !$cgi->param('debug')) {
-        print $cgi->multipart_end;
-        print $cgi->multipart_start;
-    }    
-    my @runlist = split(/[\s,]+/, $cgi->param('addruns'));
-    if (scalar @runlist == 1){
-        my $run_id = $cgi->param('addruns');
-        validate_test_id($run_id, 'run');
-        $cgi->delete_all;
-        $cgi->param('run_id', $run_id);
-        $cgi->param('current_tab', 'case_run');
-        my $search = Bugzilla::Testopia::Search->new($cgi);
-        my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_show_run.cgi', $cgi, undef, $search->query);
-        
-        my @case_list;
-        foreach my $caserun (@{$table->list}){
-            push @case_list, $caserun->case_id;
-        }
-        $vars->{'run'} = Bugzilla::Testopia::TestRun->new($run_id);
-        $vars->{'table'} = $table;
-        $vars->{'case_list'} = join(",", @case_list);
-        $vars->{'action'} = 'Commit';
-        $template->process("testopia/run/show.html.tmpl", $vars)
-            || ThrowTemplateError($template->error());
-        exit;
-    } 
-    my $case = Bugzilla::Testopia::TestCase->new({});
-    my $updated = $i - scalar @uneditable;
-    $vars->{'case'} = $case;
-    $vars->{'title'} = "Update Successful";
-    $vars->{'tr_error'} = "You did not have rights to edit ". scalar @uneditable . "cases" if scalar @uneditable > 0;
-    $vars->{'tr_message'} = "$updated Test Cases Updated";
-    $vars->{'current_tab'} = 'case';
-    
-    $template->process("testopia/search/advanced.html.tmpl", $vars)
-        || ThrowTemplateError($template->error()); 
-    print $cgi->multipart_final if $serverpush;
-    exit;
+    ThrowUserError('testopia-update-failed', {'object' => 'plan', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
+    print "{'success': true}";    
 
 }
-elsif ($action eq 'Delete Selected'){
-    # Match the list of checked items. 
-    my $reg = qr/c_([\d]+)/;
-    my $params = join(" ", $cgi->param());
-    my @params = $cgi->param();
 
-    unless ($params =~ $reg){
-        print $cgi->multipart_end if $serverpush;
-        ThrowUserError('testopia-none-selected', {'object' => 'case'});
-    }
-    # You must have rights to delete from all the plans this case
-    # is linked to in order to delete.
-    # We separate them here so that users can still remove the ones
-    # they have rights to.
-    my @deletable;
-    my @undeletable;
-    foreach my $p ($cgi->param()){
-        my $case = Bugzilla::Testopia::TestCase->new($1) if $p =~ $reg;
-        next unless $case;
-        
-        if ($case->candelete){
-            push @deletable, $case;
-        }
-        else {
-            push @undeletable, $case;
-        }
-    }
-    print $cgi->multipart_end if $serverpush;
-    $vars->{'delete_list'} = \@deletable;
-    $vars->{'unable_list'} = \@undeletable;
-    $template->process("testopia/case/delete-list.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-    print $cgi->multipart_final if $serverpush;
-    exit; 
+elsif ($action eq 'delete'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    print $cgi->header;
     
-}
-
-elsif ($action eq 'do_delete'){
-    my @case_ids = split(",", $cgi->param('case_list'));
-    my $progress_interval = 250;
-    my $i = 0;
-    my $total = scalar @case_ids;
-    
+    my @case_ids = split(",", $cgi->param('case_ids'));
+    my @uneditable;
     foreach my $id (@case_ids){
-        
-        $i++;
-        if ($i % $progress_interval == 0 && $serverpush){
-            print $cgi->multipart_end;
-            print $cgi->multipart_start;
-            $vars->{'complete'} = $i;
-            $vars->{'total'} = $total;
-            $template->process("testopia/progress.html.tmpl", $vars)
-              || ThrowTemplateError($template->error());
+        my $case = Bugzilla::Testopia::TestCase->new($id);
+        unless ($case->candelete){
+            push @uneditable, $case;
+            next;
         }
         
-        detaint_natural($id);
-        next unless $id;
-        my $case = Bugzilla::Testopia::TestCase->new($id);
-        next unless $case->candelete;
         $case->obliterate;
     }
-    
-    print $cgi->multipart_end if $serverpush;
-    my $case = Bugzilla::Testopia::TestCase->new({});
-    $vars->{'case'} = $case;
-    $vars->{'title'} = "Update Successful";
-    $vars->{'tr_message'} = "$i test cases deleted";
-    $vars->{'current_tab'} = 'case';
-    
-    $template->process("testopia/search/advanced.html.tmpl", $vars)
-        || ThrowTemplateError($template->error()); 
-    print $cgi->multipart_final if $serverpush;
-    exit;
+
+    ThrowUserError('testopia-update-failed', {'object' => 'case', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
+    print "{'success': true}";
 }
 
-###############
-### Display ###
-###############
-
-$vars->{'qname'} = $cgi->param('qname') if $cgi->param('qname');
-
-# Take the search from the URL params and convert it to SQL
-$cgi->param('current_tab', 'case');
-my $search = Bugzilla::Testopia::Search->new($cgi);
-my $table = Bugzilla::Testopia::Table->new('case', 'tr_list_cases.cgi', $cgi, undef, $search->query);
-if ($table->view_count > $query_limit){
-    print $cgi->multipart_end if $serverpush;
-    ThrowUserError('testopia-query-too-large', {'limit' => $query_limit});
-}
-# Check that all of the test cases returned only belong to one product.
-if ($table->list_count > 0 && !$cgi->param('addrun')){
-    my %case_prods;
-    my $prod_id;
-    foreach my $case (@{$table->list}){
-        $case_prods{$case->id} = $case->get_product_ids;
-        $prod_id = @{$case_prods{$case->id}}[0];
-        if (scalar(@{$case_prods{$case->id}} > 1)){
-            $vars->{'multiprod'} = 1 ;
-            last;
-        }
-    }
-    # Check that all of them are the same product
-    if (!$vars->{'multiprod'}){
-        foreach my $c (keys %case_prods){
-            if ($case_prods{$c}->[0] != $prod_id){
-                $vars->{'multiprod'} = 1;
-                last;
-            }
-        }
-    }
-    if (!$vars->{'multiprod'}) {
-        my $category_list = $table->list->[0]->get_category_list;
-        unshift @{$category_list},  {'id' => -1, 'name' => "--Do Not Change--"};
-        $vars->{'category_list'} = $category_list;
-    }
-}
-# create an empty case to use for getting status and priority lists
-my $c = Bugzilla::Testopia::TestCase->new({});
-my $status_list   = $c->get_status_list;
-my $priority_list = $c->get_priority_list;
-
-# add the "do not change" option to each list
-# we use unshift so they show at the top of the list
-unshift @{$status_list},   {'id' => -1, 'name' => "--Do Not Change--"};
-unshift @{$priority_list}, {'id' => -1, 'name' => "--Do Not Change--"};
-
-my $addrun = $cgi->param('addrun');
-if ($addrun){
-    validate_test_id($addrun, 'run');
-    my $run = Bugzilla::Testopia::TestRun->new($addrun);
-    $vars->{'addruns'} = $addrun;
-    $vars->{'plan'} = $run->plan;
-}
-    
-$vars->{'addrun'} = $cgi->param('addrun');
-$vars->{'fullwidth'} = 1; #novellonly
-$vars->{'case'} = $c;
-$vars->{'status_list'} = $status_list;
-$vars->{'priority_list'} = $priority_list;
-$vars->{'table'} = $table;
-$vars->{'urlquerypart'} = $cgi->canonicalise_query('cmdtype');
-
-my @plan_ids = split(/[,]+/, $cgi->param('plan_id'));
-
-if (scalar @plan_ids == 1){
-    my $plan = Bugzilla::Testopia::TestPlan->new($plan_ids[0]);
-    unless ($plan){
-         print $cgi->multipart_end if $serverpush;
-        ThrowUserError("invalid-test-id-non-existent", 
-                      {'id' => $cgi->param('plan_id'), 'type' => 'plan'});
-    }
-    $vars->{'dotweak'} = $plan->canedit;
-    $vars->{'candelete'} = $plan->candelete;
-}
 else{
-    $vars->{'dotweak'} = Bugzilla->user->in_group('Testers');
-    $vars->{'candelete'} = Bugzilla->user->in_group('admin') 
-        || (Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"});
-}
-my $contenttype;
-
-if ($format->{'extension'} eq "html") {
-    $contenttype = "text/html";
-}
-else {
-    $contenttype = $format->{'ctype'};
-}
-
-if ($serverpush && !$cgi->param('debug')) {
-    print $cgi->multipart_end;
-    print $cgi->multipart_start;
-}                              
-else {
+    $vars->{'qname'} = $cgi->param('qname') if $cgi->param('qname');
+    
+    $cgi->param('current_tab', 'case');
+    my $search = Bugzilla::Testopia::Search->new($cgi);
+    my $table = Bugzilla::Testopia::Table->new('case', 'tr_list_cases.cgi', $cgi, undef, $search->query);
+    
+    if ($cgi->param('ctype') eq 'json'){
+        Bugzilla->error_mode(ERROR_MODE_AJAX);
+        print $cgi->header;
+        $vars->{'json'} = $table->to_ext_json;
+        $template->process($format->{'template'}, $vars)
+            || ThrowTemplateError($template->error());
+        exit;
+    }
+    
     my @time = localtime(time());
     my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
     my $filename = "testcases-$date.$format->{extension}";
@@ -431,18 +188,16 @@ else {
     my $disp = "inline";
     # We set CSV files to be downloaded, as they are designed for importing
     # into other programs.
-    if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" )
-    {
+    if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" ){
         $disp = "attachment";
         $vars->{'displaycolumns'} = \@Bugzilla::Testopia::Constants::TESTCASE_EXPORT;
     }
 
     # Suggest a name for the bug list if the user wants to save it as a file.
-    print $cgi->header(-type => $contenttype,
+    print $cgi->header(-type => $format->{'ctype'},
                        -content_disposition => "$disp; filename=$filename");
-} 
-                                       
-$template->process($format->{'template'}, $vars)
-    || ThrowTemplateError($template->error());
-    
-print $cgi->multipart_final if $serverpush;
+                                           
+    $template->process($format->{'template'}, $vars)
+        || ThrowTemplateError($template->error());
+        
+}

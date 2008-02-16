@@ -18,6 +18,7 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Ed Fuentetaja <efuentetaja@acm.org>
+#                 Joel Smith <jsmith@novell.com>
 
 package Bugzilla::Testopia::TestRun;
 
@@ -31,7 +32,10 @@ use Bugzilla::Config;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Bug;
 
+use JSON;
 use base qw(Exporter Bugzilla::Object);
+
+@Bugzilla::Testopia::TestRun::EXPORT = qw(calculate_percent);
 
 ###############################
 ####    Initialization     ####
@@ -78,7 +82,8 @@ use constant REQUIRED_CREATE_FIELDS => qw(plan_id environment_id build_id
                                           plan_text_version);
 
 use constant UPDATE_COLUMNS         => qw(environment_id build_id product_version 
-                                          summary manager_id plan_text_version notes);
+                                          summary manager_id plan_text_version notes
+                                          stop_date);
 
 use constant VALIDATORS => {
     plan_id           => \&_check_plan,
@@ -214,7 +219,6 @@ sub run_create_validators {
 
 sub create {
     my ($class, $params) = @_;
-
     $class->SUPER::check_required_create_fields($params);
     my $field_values = $class->run_create_validators($params);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
@@ -257,7 +261,6 @@ and adds them to get a total then takes the percentage.
 =cut
 
 sub calculate_percent {
-
   my ($total, $count) = (@_);
   my $percent;
   if ($total == 0) {
@@ -334,11 +337,13 @@ Disassociates a tag from this test run
 
 sub remove_tag {    
     my $self = shift;
-    my ($tag_id) = @_;
+    my ($tag_name) = @_;
+    my $tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
+    ThrowUserError('testopia-unknown-tag', {'name' => $tag}) unless $tag;
     my $dbh = Bugzilla->dbh;
     $dbh->do("DELETE FROM test_run_tags 
               WHERE tag_id=? AND run_id=?",
-              undef, $tag_id, $self->{'run_id'});
+              undef, $tag->id, $self->{'run_id'});
     return;
 }
 
@@ -351,20 +356,22 @@ the test_case_runs table
 
 sub add_case_run {
     my $self = shift;
-    my ($case_id) = @_;
+    my ($case_id, $sortkey) = @_;
+    trick_taint($case_id);
     return 0 if $self->check_case($case_id);
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
     return 0 if $case->status ne 'CONFIRMED';
     my $assignee = $case->default_tester ? $case->default_tester->id : undef;
-    my $caserun = Bugzilla::Testopia::TestCaseRun->new({
-        'run_id' => $self->{'run_id'},
-        'case_id' => $case_id,
-        'assignee' => $assignee,
-        'case_text_version' => $case->version,
-        'build_id' => $self->build->id,
-        'environment_id' => $self->environment_id,
+    my $caserun = Bugzilla::Testopia::TestCaseRun->create({
+        'run_id'     => $self->{'run_id'},
+        'case_id'    => $case_id,
+        'assignee'   => $assignee,
+        'case_text_version'  => $case->version,
+        'build_id'           => $self->build->id,
+        'environment_id'     => $self->environment_id,
+        'case_run_status_id' => IDLE,
+        'sortkey'            => $sortkey,
     });
-    $caserun->store;    
 }
 
 =head2 store
@@ -520,6 +527,33 @@ sub check_case {
               WHERE case_id = ? AND run_id = ?",
               undef, ($case_id, $self->{'run_id'}));
     return $value;
+}
+
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    $obj->{'plan'}          = { id => $self->plan->id, product_id => $self->plan->product_id};
+    $obj->{'build'}         = { id => $self->build->id, name => $self->build->name};
+    $obj->{'environment'}   = { id => $self->environment->id, name => $self->environment->name};
+    $obj->{'case_count'}    = $self->case_run_count;
+    $obj->{'manager'}       = { login_name => $self->manager->login, name => $self->manager->name};
+    $obj->{'manager_name'}  = $self->manager->name;
+    $obj->{'canedit'}       = $self->canedit;
+    $obj->{'canview'}       = $self->canview;
+    $obj->{'candelete'}     = $self->candelete;
+    $obj->{'status'}        = $self->stop_date ? 'STOPPED' : 'RUNNING';
+    $obj->{'type'}          = $self->type;
+    $obj->{'id'}            = $self->id;
+    $obj->{'product_id'}    = $self->plan->product_id;
+
+    return $json->objToJson($obj); 
 }
 
 =head2 lookup_environment
@@ -800,6 +834,15 @@ sub canedit {
     return 0;
 }
 
+# Only certain people are able to change the status of a run.
+sub canstatus {
+    my $self = shift;
+    return 1 if Bugzilla->user->in_group('admin');
+    return 1 if $self->plan->get_user_rights(Bugzilla->user->id) & TR_ADMIN;
+    return 1 if $self->manager->id == Bugzilla->user->id;
+    return 0;
+}
+
 =head2 candelete
 
 Returns true if the logged in user has rights to delete this test run.
@@ -813,6 +856,25 @@ sub candelete {
     return 1 if Bugzilla->user->in_group('Testers') && Bugzilla->params->{"testopia-allow-group-member-deletes"};
     return 1 if $self->plan->get_user_rights(Bugzilla->user->id) & TR_DELETE;
     return 0;
+}
+
+sub completion_percent {
+    my $self = shift;
+    my ($products, $plans, $runs) = @_;
+    my $dbh = Bugzilla->dbh;
+    my @runs;
+    foreach my $p (@$products){
+        foreach my $plan (@{$p->plans}){
+            push @runs, $_->id foreach (@{$plan->test_runs});
+        }
+    }
+    push @runs, $_->id foreach (@{$plans->test_runs});
+    push @runs, $_->id foreach (@$runs);
+    return 0 unless scalar @runs;
+    
+    my $run_ids = join (',',@runs);
+    
+    
 }
 
 ###############################
@@ -1025,10 +1087,25 @@ sub cases {
     return $self->{'cases'} if exists $self->{'cases'};
     my @cases;
     foreach my $cr (@{$self->current_caseruns}){
-        push @cases, Bugzilla::Testopia::TestCase->new($cr);
+        push @cases, Bugzilla::Testopia::TestCase->new($cr->case_id);
     }
     $self->{'cases'} = \@cases;
     return $self->{'cases'};
+    
+}
+
+sub case_ids {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'case_ids'} if exists $self->{'case_ids'};
+    
+    my $ref = $dbh->selectcol_arrayref(
+        "SELECT DISTINCT case_id FROM test_case_runs
+         WHERE run_id=? AND iscurrent=1", undef,
+         $self->{'run_id'});
+    
+    $self->{'case_ids'} = $ref;
+    return $self->{'case_ids'};
     
 }
 
@@ -1052,23 +1129,44 @@ sub case_count {
 
 sub case_run_count {
     my $self = shift;
-    my ($status_id) = @_;
+    my ($status_id, $runs, $plans, $products) = @_;    
     my $dbh = Bugzilla->dbh;
+    
+    my @runs;
+    if ($products){
+        foreach my $p (@$products){
+            foreach my $plan (@{$p->plans}){
+                push @runs, $_->id foreach (@{$plan->test_runs});
+            }
+        }
+    }
+    if ($plans){
+        push @runs, $_->id foreach (@{$plans->test_runs});
+    }
+    if ($runs){
+        push @runs, $_->id foreach (@$runs);
+    }
+    push @runs, $self->id if $self->id;
+    
+    return 0 unless scalar @runs > 0;
+    
+    my $run_ids = join (',', @runs);
+
     my $query = 
            "SELECT COUNT(*) 
               FROM test_case_runs 
-             WHERE run_id = ? AND iscurrent = 1";
+             WHERE run_id IN (" . $run_ids .") AND iscurrent = 1";
     $query .= " AND case_run_status_id = ?" if $status_id;
     
     my $count;
     if ($status_id){
-        ($count) = $dbh->selectrow_array($query,undef,($self->{'run_id'}, $status_id));
+        ($count) = $dbh->selectrow_array($query,undef,($status_id));
     }
     else {
-        ($count) = $dbh->selectrow_array($query,undef,$self->{'run_id'});
+        ($count) = $dbh->selectrow_array($query);
     }
-    
-    return $count;       
+
+    return $count;
 }
 
 sub finished_count {

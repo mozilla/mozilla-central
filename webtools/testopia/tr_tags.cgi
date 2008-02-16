@@ -34,6 +34,8 @@ use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCase;
 
+use JSON;
+
 Bugzilla->login(LOGIN_REQUIRED);
 
 local our $cgi = Bugzilla->cgi;
@@ -44,10 +46,7 @@ print $cgi->header;
 
 my $action   = $cgi->param('action') || '';
 my $type     = $cgi->param('type');
-my $id = $cgi->param('id');
-detaint_natural($id) if $id;
 
-$vars->{'id'} = $id;
 $vars->{'type'} = $type;
 
 if ($action eq 'delete'){
@@ -63,28 +62,32 @@ if ($action eq 'delete'){
 ####################
 ### Ajax Actions ###
 ####################
-elsif ($action eq 'addtag'){
-    my $obj;
-    if ($type eq 'plan'){
-        $obj = Bugzilla::Testopia::TestPlan->new($id);
-    } elsif ($type eq 'case'){
-        $obj = Bugzilla::Testopia::TestCase->new($id);
-    } elsif($type eq 'run'){
-        $obj = Bugzilla::Testopia::TestRun->new($id);
-    }
-    unless ($obj) {
-        $vars->{'tr_error'} = "Error - I don't know what you are trying to do.";
-        print $vars->{'tr_error'};
-        exit;
-    }
-    unless ($obj->canedit) {
-        $vars->{'tr_error'} = "Error - You do not have permission to modify this ". $obj->type;
-        print $vars->{'tr_error'};
-        exit;
-    }
+elsif ($action eq 'addtag' || $action eq 'removetag'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
     
-    $obj->add_tag($cgi->param('tag'));
+    my $obj;
+    foreach my $id (split(/,/, $cgi->param('id'))){
+        if ($type eq 'plan'){
+            $obj = Bugzilla::Testopia::TestPlan->new($id);
+        } elsif ($type eq 'case'){
+            $obj = Bugzilla::Testopia::TestCase->new($id);
+        } elsif($type eq 'run'){
+            $obj = Bugzilla::Testopia::TestRun->new($id);
+        }
 
+        ThrowUserError("unknown-type", {type => $type}) unless ($obj);
+        ThrowUserError("testopia-read-only", {'object' => $obj}) unless $obj->canedit;
+
+        if ($action eq 'addtag'){
+            $obj->add_tag($cgi->param('tag'));
+        }
+        else {
+            foreach my $tag (split(',', $cgi->param('tag'))){
+                trick_taint($tag);
+                $obj->remove_tag($tag);
+            }
+        }
+    }
     if ($cgi->param('method')){
         $vars->{'tr_message'} = "Added tag " . $cgi->param('tag') . " To $type " . $obj->id;
         $cgi->param($type.'_id', $obj->id);
@@ -92,39 +95,45 @@ elsif ($action eq 'addtag'){
         exit;
     }
     
-    $vars->{'item'} = $obj;
-    $vars->{'type'} = $type;
-    print "OK";
-    $template->process("testopia/tag/table.html.tmpl", $vars)
-        || print $template->error();
+    print "{success: true}";
         
 }
-elsif ($action eq 'removetag'){
-    my $id = $cgi->param('id');
-    my $tag_id = $cgi->param('tagid');
-    detaint_natural($tag_id);
-    my $obj;
-    if ($type eq 'plan'){
-        $obj = Bugzilla::Testopia::TestPlan->new($id);
-    } elsif ($type eq 'case'){
-        $obj = Bugzilla::Testopia::TestCase->new($id);
-    } elsif($type eq 'run'){
-        $obj = Bugzilla::Testopia::TestRun->new($id);
+elsif ($action eq 'gettags'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    my $json = new JSON;
+    my $tags;
+    if ($cgi->param('type') eq 'user'){
+        $tags = get_user_tags();
     }
-    ThrowUserError('testopia-unkown-object') unless $obj;
-    ThrowUserError("testopia-read-only", {'object' => $obj}) unless $obj->canedit;
-    $obj->remove_tag($tag_id);
-    if ($cgi->param('method')){
-        $vars->{'tr_message'} = "Removed tag From $type " . $obj->id;
-        $cgi->param($type.'_id', $obj->id);
-        display();
-        exit;
+    elsif ($cgi->param('type') eq 'product'){
+        my $product = Bugzilla::Testopia::Product->new($cgi->param('product_id'));
+        $tags = $product->tags if $product->canedit;
     }
-    $vars->{'item'} = $obj;
-    $vars->{'type'} = $type;
-    print "OK";
-    $template->process("testopia/tag/table.html.tmpl", $vars)
-        || print $template->error();
+    else {
+        my $type = $cgi->param('type');
+        my $id = $cgi->param('id');
+        my $obj;
+        if ($type eq 'plan'){
+            $obj = Bugzilla::Testopia::TestPlan->new($id);
+        } elsif ($type eq 'case'){
+            $obj = Bugzilla::Testopia::TestCase->new($id);
+        } elsif($type eq 'run'){
+            $obj = Bugzilla::Testopia::TestRun->new($id);
+        }
+
+        ThowUserError("unkown-type", {type => $type}) unless ($obj);
+        ThrowUserError("testopia-permission-denied", {'object' => $obj}) unless $obj->canview;
+        
+        $tags = $obj->tags;
+    }
+    
+    my $out =  "{tags:[";
+    foreach my $tag (@$tags){
+        $out .=  $tag->to_json . ',';
+    }
+    chop($out) if scalar @$tags;
+    print $out ."]}";
+    
 }
 ###################
 ###     Body    ###
@@ -139,8 +148,6 @@ else {
 sub display {
     my $dbh = Bugzilla->dbh;
     my @tags;
-    my $user;
-    $user = login_to_id($cgi->param('user')) if $cgi->param('user');
     
     if ($cgi->param('action') eq 'show_all' && Bugzilla->user->in_group('admin')){
         my $tags = $dbh->selectcol_arrayref(
@@ -152,25 +159,8 @@ sub display {
         $vars->{'viewall'} = 1;
     }
 
-    my $userid = $user ? $user : Bugzilla->user->id;
-    ThrowUserError("invalid_username", { name => $cgi->param('user') }) unless $userid;        
-    my $user_tags = $dbh->selectcol_arrayref(
-             "(SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_case_tags
-          INNER JOIN test_tags ON test_case_tags.tag_id = test_tags.tag_id 
-               WHERE userid = ?)
-        UNION (SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_plan_tags 
-          INNER JOIN test_tags ON test_plan_tags.tag_id = test_tags.tag_id
-               WHERE userid = ?)
-        UNION (SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_run_tags 
-          INNER JOIN test_tags ON test_run_tags.tag_id = test_tags.tag_id
-               WHERE userid = ?)
-               ORDER BY name", undef, ($userid, $userid, $userid)); 
-    my @user_tags;
-    foreach my $id (@$user_tags){
-        push @user_tags, Bugzilla::Testopia::TestTag->new($id);
-    }
     
-    $vars->{'user_tags'} = \@user_tags;
+    $vars->{'user_tags'} = get_user_tags();
     $vars->{'user_name'} = $cgi->param('user') ? $cgi->param('user') : Bugzilla->user->login;
 
     if ($cgi->param('case_id')){
@@ -213,4 +203,29 @@ sub display {
     $template->process("testopia/tag/show.html.tmpl", $vars)
         || print $template->error();
 
+}
+
+sub get_user_tags {
+    my $user;
+    my $dbh = Bugzilla->dbh;
+    $user = login_to_id($cgi->param('user')) if $cgi->param('user');
+    
+    my $userid = $user ? $user : Bugzilla->user->id;
+    ThrowUserError("invalid_username", { name => $cgi->param('user') }) unless $userid;        
+    my $user_tags = $dbh->selectcol_arrayref(
+             "(SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_case_tags
+          INNER JOIN test_tags ON test_case_tags.tag_id = test_tags.tag_id 
+               WHERE userid = ?)
+        UNION (SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_plan_tags 
+          INNER JOIN test_tags ON test_plan_tags.tag_id = test_tags.tag_id
+               WHERE userid = ?)
+        UNION (SELECT test_tags.tag_id, test_tags.tag_name AS name FROM test_run_tags 
+          INNER JOIN test_tags ON test_run_tags.tag_id = test_tags.tag_id
+               WHERE userid = ?)
+               ORDER BY name", undef, ($userid, $userid, $userid)); 
+    my @user_tags;
+    foreach my $id (@$user_tags){
+        push @user_tags, Bugzilla::Testopia::TestTag->new($id);
+    }
+    return \@user_tags;
 }

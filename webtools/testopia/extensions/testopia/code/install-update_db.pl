@@ -79,6 +79,7 @@ sub testopiaUpdateDB {
     $dbh->bz_add_column('test_case_status', 'description', {TYPE => 'MEDIUMTEXT'}, 0);
     $dbh->bz_add_column('test_case_run_status', 'description', {TYPE => 'MEDIUMTEXT'}, 0);
     $dbh->bz_add_column('test_case_runs', 'iscurrent', {TYPE => 'INT1', NOTNULL => 1, DEFAULT => 0}, 0);
+    $dbh->bz_add_column('test_named_queries', 'type', {TYPE => 'INT3', NOTNULL => 1, DEFAULT => 0}, 0);
     fixTables();
 
     $dbh->bz_alter_column('test_attachment_data', 'attachment_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});

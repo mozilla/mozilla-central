@@ -22,88 +22,13 @@
   # ...
   #%]
 
-[%############################################################################%]
-[%# Template Initialization                                                  #%]
-[%############################################################################%]
-
 [% PROCESS global/variables.none.tmpl %]
-
-[%############################################################################%]
-[%# Page Header                                                              #%]
-[%############################################################################%]
-
-[% PROCESS global/header.html.tmpl
-   style_urls = ['testopia.css'] %]
-[% PROCESS testopia/messages.html.tmpl %]
 [% PROCESS testopia/style.none.tmpl %]
 [% PROCESS testopia/blocks.html.tmpl %]
 
-
-[% tabs = [ { name => 'case', description => "Find Test Cases" },
-            { name => 'run',  description => "Find Test Runs"  },
-            { name => 'plan', description => "Find Test Plans" },
-            { name => 'case_run', description => "Find Test Case-Runs" },
-            { name => 'environment', description => "Find Test Run Environments" }, ] %]
-            
-<script src="testopia/dojo/dojo.js" type="text/javascript"></script>
-<script src="testopia/js/util.js" type="text/javascript"></script>
-
 <script type="text/javascript">
-    function fillSelects (data){
-      for (i in data.selectTypes){
-        try{
-          document.getElementById(data.selectTypes[i]).options.length = 0;
-          for (j in data[data.selectTypes[i]]){
-            var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j]);
-            addOption(document.getElementById(data.selectTypes[i]),newOption);
-          }
-          dojo.byId(data.selectTypes[i]).disabled = false;
-        }
-        catch(err){}
-      }
-
-      
-    }
-
-  function onProductSelection(){
-    var prod = document.getElementById("product_id");
-    var ids = new Array;
-
-    for (var i=0; i<prod.options.length; i++){
-      if (prod.options[i].selected == true)
-        ids.push(prod.options[i].value);
-    }
-    dojo.require('dojo.io.*');
-    dojo.io.bind({
-        url:     "tr_query.cgi",
-        content: {  current_tab: "[% current_tab FILTER none %]", prod_ids: ids.join(","), action: "getversions" },
-        load:    function(type, data, evt){ fillSelects(data);},
-        error:   function(type, error){},
-        mimetype: "text/json"
-    });
-
-  }
-  
+  var t = new TestopiaUtil();
 </script>
-<table cellspacing="0" cellpadding="10" border="0" width="100%">
-  <tr>
-    <td class="spacer">&nbsp;</td>
-    [% FOREACH tab = tabs %]
-      [% IF tab.name == current_tab %]
-        <td align="center" bgcolor="lightblue" class="selected_tab">
-          [% tab.description %]
-        </td>
-      [% ELSE %]
-        <td align="center" bgcolor="#BBBBEE" class="unselected_tab">
-          <a href="tr_query.cgi?current_tab=[% tab.name %][% '&report=1' IF report %]" >
-            [% tab.description %]
-          </a>
-        </td>
-      [% END %]
-     [% END %]
-    <td class="spacer">&nbsp;</td>
-  </tr>
-</table>
 
 [% PROCESS testopia/search/variables.none.tmpl %]
         
@@ -118,5 +43,3 @@
 [% ELSE %]
   [% PROCESS testopia/search/case.html.tmpl %]
 [% END %]
-
-[% PROCESS global/footer.html.tmpl %]

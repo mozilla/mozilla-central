@@ -133,5 +133,24 @@
     [% title = "Plan has Children" %]
     This test plan has children and so it is not possible to change the product.
     You may wish to clone the plan instead.
+  [% ELSIF error == "testopia-no-status" %]
+    [% title = "Permission Denied" %]
+    You must either be the run manager or a plan administrator to change the status of a run.
+  [% ELSIF error == "testopia-update-failed" %]
+    [% title = "One or more of your test $object failed to update" %]
+    Update of one or more of your [% object %]s failed. The most likely cause is that you don't have permissions
+    to update them. 
+    [% IF object == 'case-run' %]
+      If the case is in the RUNNING state, only the asignee may update it. Otherwise,
+    [% END %]
+    Contact the plan administrator to grant rights to update these [% object %]s.
+    <p>
+    The id's of those that failed are: [% list FILTER none %]
+    </p>
+  [% ELSIF error == "testopia-unknown-tag" %]
+    The tag "[% name FILTER html %]" does not exist.
+  [% ELSIF error == "testopia-regexp-too-inclusive" %]
+    You are attempting to allow access to your test plan to more people than the limit set by your administrator allows.
+    Please contatct your administrator.
   [% END %]
   

@@ -36,6 +36,7 @@
        dojoType="combobox" 
        dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% product_id %]&search=${searchString}" 
        mode="remote"
+       searchDelay="1000"
        maxListLength="10">
 
 <input type="button" id="doAdd" onclick="addTag([% item.id FILTER none %],'[% item.type FILTER none %]')" value="Add"></a><br>

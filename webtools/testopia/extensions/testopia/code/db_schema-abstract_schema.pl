@@ -460,6 +460,7 @@ $schema->{test_named_queries} = {
         name      => {TYPE => 'varchar(64)', NOTNULL => 1},
         isvisible => {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => 1},
         query     => {TYPE => 'MEDIUMTEXT', NOTNULL => 1},
+        type      => {TYPE => 'INT3', NOTNULL => 1, DEFAULT => 0},
     ],
     INDEXES => [
         test_namedquery_primary_idx => {FIELDS => [qw(userid name)], TYPE => 'UNIQUE'},

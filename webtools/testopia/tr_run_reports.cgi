@@ -29,6 +29,7 @@ use Bugzilla::Util;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Report;
+use Bugzilla::Testopia::TestRun;
 
 my $vars = {};
 my $template = Bugzilla->template;
@@ -37,6 +38,82 @@ my $cgi = Bugzilla->cgi;
 Bugzilla->login(LOGIN_REQUIRED);
 
 my $type = $cgi->param('type') || '';
+
+if ($type eq 'completion'){
+    print $cgi->header;
+    my @run_ids  = $cgi->param('run_ids');
+    my @plan_ids = $cgi->param('plan_ids');
+    my @runs;
+
+    foreach my $g (@plan_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestPlan->new($id);
+            push @runs, @{$obj->test_runs} if $obj && $obj->canview;
+        }
+    }
+    foreach my $g (@run_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestRun->new($id);
+            push @runs, $obj if $obj && $obj->canview;
+        }
+    }
+    
+    unless (scalar @runs){
+        print "<b>No runs found</b>";
+        exit;
+    }
+    my $total = $runs[0]->case_run_count(undef, \@runs);
+    my $passed = $runs[0]->case_run_count(PASSED, \@runs);
+    my $failed = $runs[0]->case_run_count(FAILED, \@runs);
+    my $blocked = $runs[0]->case_run_count(BLOCKED, \@runs);
+
+    my $completed = $passed + $failed + $blocked;
+    
+    my $unfinished = $total - $completed;
+    my $unpassed = $completed - $passed;
+    my $unfailed = $completed - $failed;
+    my $unblocked = $completed - $blocked;
+
+    $vars->{'total'} = $total;
+    $vars->{'completed'} = $completed;
+    $vars->{'passed'} = $passed;
+    $vars->{'failed'} = $failed;
+    $vars->{'blocked'} = $blocked;
+
+    $vars->{'percent_completed'} = calculate_percent($total, $completed);
+    $vars->{'percent_passed'} = calculate_percent($completed, $passed);
+    $vars->{'percent_failed'} = calculate_percent($completed, $failed);
+    $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
+    
+    
+    $template->process("testopia/reports/completion.html.tmpl", $vars)
+       || ThrowTemplateError($template->error());
+    exit;
+}
+elsif ($type eq 'bar'){
+    
+    $vars->{'total'} = $cgi->param('t');
+#    $vars->{'data'} = [
+#        ["Total", "Completed", "Passed", "Failed", "Blocked"],
+#        [ $cgi->param('t'), $cgi->param('c'), $cgi->param('p'), $cgi->param('f'), $cgi->param('b') ],
+#    ];
+    
+    $vars->{'colors'} = (['#858aef', '#56e871', '#ed3f58','#e17a56']);
+    $vars->{'legend'} = ["Complete", "PASSED", "FAILED", "BLOCKED"]; 
+    $vars->{'data'} = [
+        ["CASES"],
+        [$cgi->param('c')], 
+        [$cgi->param('p')], 
+        [$cgi->param('f')], 
+        [$cgi->param('b')],
+    ];
+
+    print $cgi->header;
+    $template->process("testopia/reports/completion.png.tmpl", $vars)
+       || ThrowTemplateError($template->error());
+    exit;
+    
+}
 
 $cgi->param('current_tab', 'run');
 $cgi->param('viewall', 1);
@@ -72,10 +149,21 @@ else {
 my $format = $template->get_format("testopia/reports/report", $formatparam,
                                scalar($cgi->param('ctype')));
 
-my $filename = "report-" . $report->{'date'} . ".$format->{extension}";
+my @time = localtime(time());
+my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
+my $filename = "report-" . $date . ".$format->{extension}";
+
+my $disp = "inline";
+# We set CSV files to be downloaded, as they are designed for importing
+# into other programs.
+if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" ){
+    $disp = "attachment";
+}
+
 print $cgi->header(-type => $format->{'ctype'},
-                   -content_disposition => "inline; filename=$filename");
-$vars->{'time'} = time();
+                   -content_disposition => "$disp; filename=$filename");
+
+$vars->{'time'} = $date;
 $template->process("$format->{'template'}", $vars)
     || ThrowTemplateError($template->error());
 

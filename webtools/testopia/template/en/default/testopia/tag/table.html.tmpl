@@ -29,7 +29,7 @@
 [% FOREACH tag = item.tags %]
   <a href="tr_tags.cgi?tag=[% tag.name FILTER none %]"><span class="tag">[% tag.name FILTER html %]</span></a>
 [% IF item.canedit %]
-  <a onclick="removeTag([% tag.id FILTER none %],[% item.id FILTER none %],'[% type FILTER none %]')" style="decoration:none; cursor:pointer;">
+  <a onclick="removeTag([% tag.id FILTER none %],[% item.id FILTER none %],'[% item.type FILTER none %]')" style="decoration:none; cursor:pointer;">
       <img src="testopia/img/del.gif" alt="[x]" title="Remove tag [% tag.name %]"></a>
 [% END %]
 <br>

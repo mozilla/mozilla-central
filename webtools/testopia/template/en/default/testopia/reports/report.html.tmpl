@@ -65,18 +65,6 @@
   [% col_field_disp FILTER html %]
 [% END %]
 
-[% PROCESS global/header.html.tmpl
-   style_urls = ['testopia.css'] 
-  style = "
-    .t1     { background-color: #ffffff } /* white       */
-    .t2     { background-color: #dfefff } /* light blue  */
-    .t3     { background-color: #dddddd } /* grey        */
-    .t4     { background-color: #c3d3ed } /* darker blue */
-    .ttotal { background-color: #cfffdf } /* light green */
-  "
-  h3 = time2str("%Y-%m-%d %H:%M:%S", time)
-%]
-
 [% IF debug %]
   <p>[% query FILTER html %]</p>
 [% END %]
@@ -121,58 +109,10 @@
   <table>
     <tr>
       <td>
-        [% formats = [ { name => "pie",   description => "Pie" },
-                       { name => "bar",   description => "Bar" },
-                       { name => "line",  description => "Line" },
-                       { name => "table", description => "Table" } ] %]
-
         [% formaturl = "$report.report_loc?$report.switchbase&width=$width&height=$height" _ 
                        "&report_action=data" %]
-        [% FOREACH other_format = formats %]
-          [% NEXT IF other_format.name == "pie" AND report.row_field AND report.col_field %]
-          [% UNLESS other_format.name == format %]
-            <a href="[% formaturl %]&amp;format=[% other_format.name %]">
-          [% END %]
-          [% other_format.description FILTER html %]
-          [% "</a>" UNLESS other_format.name == format %] | 
-        [% END %]
-        <a href="[% formaturl %]&amp;ctype=csv&amp;format=table">CSV</a> 
+        <a href="[% formaturl %]&amp;ctype=csv&amp;format=table">Export as CSV</a> 
       </td>
-      
-      [% IF format != "table" %]
-        <td>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        </td>
-
-        [% sizeurl = BLOCK %]report.cgi?
-          [% report.switchbase %]&amp;report_action=data&amp;format=
-          [% format FILTER html %][% END %]
-        <td align="center">
-          <a href="[% sizeurl %]&amp;width=[% width %]&amp;height=
-                   [% height + 100 %]">Taller</a><br>
-          <a href="[% sizeurl %]&amp;width=[% width - 100 %]&amp;height=
-                   [% height %]">Thinner</a> * 
-          <a href="[% sizeurl %]&amp;width=[% width + 100 %]&amp;height=
-                   [% height %]">Fatter</a>&nbsp;&nbsp;&nbsp;&nbsp;<br>
-          <a href="[% sizeurl %]&amp;width=[% width %]&amp;height=
-                   [% height - 100 %]">Shorter</a><br>
-        </td>
-      [% END %]
     <tr>
   </table>
-<!-- 
-  <p>
-    [% IF format == "table" %]
-      <a href="query.cgi?[% report.switchbase %]&amp;format=report-table">Edit 
-      this report</a>
-    [% ELSE %]
-      <a href="query.cgi?[% report.switchbase %]&amp;chart_format=
-        [% format %]&amp;format=report-graph&amp;cumulate=[% cumulate %]">
-        Edit this report
-      </a>
-    [% END %]
-  </p>
--->
 </div>
-
-[% PROCESS global/footer.html.tmpl %]

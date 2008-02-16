@@ -39,6 +39,7 @@ use Bugzilla::Testopia::Product;
 use Bugzilla::Bug;
 
 use Text::Diff;
+use JSON;
 
 use base qw(Exporter Bugzilla::Object);
 
@@ -116,6 +117,7 @@ sub _check_product {
     
     $product_id = trim($product_id);
     my $product = Bugzilla::Testopia::Product->new($product_id);
+    ThrowUserError("invalid-test-id-non-existent", {'id' => $product_id, 'type' => 'product'}) unless $product;
     ThrowUserError("testopia-create-denied", {'object' => 'plan'}) unless $product->canedit;
     if (ref $invocant){
         $invocant->{'product'} = $product; 
@@ -364,11 +366,13 @@ Removes a tag from this plan. Takes the tag_id of the tag to remove.
 
 sub remove_tag {    
     my $self = shift;
-    my ($tag_id) = @_;
+    my ($tag_name) = @_;
+    my $tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
+    ThrowUserError('testopia-unknown-tag', {'name' => $tag}) unless $tag;
     my $dbh = Bugzilla->dbh;
     $dbh->do("DELETE FROM test_plan_tags 
                WHERE tag_id=? AND plan_id=?",
-              undef, ($tag_id, $self->{'plan_id'}));
+              undef, ($tag->id, $self->{'plan_id'}));
 }
 
 sub get_used_categories {
@@ -534,20 +538,21 @@ sub get_fields {
     return $types;
 }
 
-=head2 get_plan_versions
+=head2 get_text_versions
 
 Returns the list of versions of the plan document.
 
 =cut
 
-sub get_plan_versions {
+sub get_text_versions {
     my $self = shift;
     my $dbh = Bugzilla->dbh;    
 
     my $versions = $dbh->selectall_arrayref(
             "SELECT plan_text_version AS id, plan_text_version AS name 
                FROM test_plan_texts
-              WHERE plan_id = ?", 
+              WHERE plan_id = ?
+              ORDER BY plan_text_version", 
             {'Slice' =>{}}, $self->id);
     return $versions;
 }
@@ -718,6 +723,17 @@ sub set_tester_regexp {
     my $self = shift;
     my ($regexp, $permissions) = @_;
     my $dbh = Bugzilla->dbh;
+    
+    ThrowUserError("invalid_regexp") unless (eval {qr/$regexp/});
+    
+    return unless $regexp;
+    my ($count) = $dbh->selectrow_array(
+        "SELECT COUNT(*) 
+           FROM profiles 
+          WHERE login_name REGEXP(?)", 
+          undef, $regexp);
+    ThrowUserError("testopia-regexp-too-inclusive") if $count > Bugzilla->params->{'testopia-max-allowed-plan-testers'};
+     
     my ($is, $oldreg, $oldperms) = $dbh->selectrow_array(
         "SELECT 1, user_regexp, permissions 
            FROM test_plan_permissions_regexp 
@@ -743,8 +759,7 @@ sub set_tester_regexp {
 sub derive_regexp_testers {
     my $self = shift;
     my $regexp = shift;
-    eval{ "" =~ $regexp; };
-    ThrowUserError('invalid_regexp') if $@;
+    ThrowUserError("invalid_regexp") unless (eval {qr/$regexp/});
     my $dbh = Bugzilla->dbh;
     # Get the permissions of the regexp testers so we can set it later.
     my ($permissions) = $dbh->selectrow_array(
@@ -922,7 +937,31 @@ sub get_user_rights {
     
     return $perms;
 }
+
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
     
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    
+    $obj->{'product_name'} = $self->product->name;
+    $obj->{'run_count'}    = $self->test_run_count;
+    $obj->{'case_count'}   = $self->test_case_count;
+    $obj->{'author_name'}  = $self->author->login;
+    $obj->{'plan_type'}    = $self->plan_type;
+    $obj->{'canedit'}      = $self->canedit;
+    $obj->{'canview'}      = $self->canview;
+    $obj->{'candelete'}    = $self->candelete;
+    $obj->{'link_url'}     = 'tr_show_plan.cgi?plan_id=' . $self->id;
+    $obj->{'type'}         = $self->type;
+    $obj->{'id'}           = $self->id;
+    
+    return $json->objToJson($obj); 
+}
+
 ###############################
 ####      Accessors        ####
 ###############################
@@ -1054,8 +1093,8 @@ sub attachments {
              undef, $self->{'plan_id'});
     
     my @attachments;
-    foreach my $a (@{$attachments}){
-        push @attachments, Bugzilla::Testopia::Attachment->new($a);
+    foreach my $attach (@{$attachments}){
+        push @attachments, Bugzilla::Testopia::Attachment->new($attach);
     }
     $self->{'attachments'} = \@attachments;
     return $self->{'attachments'};
@@ -1275,14 +1314,25 @@ in the test_plan_texts table
 =cut
 
 sub text {
-    my ($self) = @_;
+    my $self = shift;
     my $dbh = Bugzilla->dbh;
-    return $self->{'text'} if exists $self->{'text'};
-    my ($text) = $dbh->selectrow_array("SELECT plan_text
-                                       FROM test_plan_texts
-                                       WHERE plan_id = ? AND plan_text_version = ?", 
-                                       undef, $self->{'plan_id'}, $self->version);
+    my ($version) = @_;
+    trick_taint($version) if $version;
+    return $self->{'text'} if exists $self->{'text'} && !$version;
+    
+    $version = $version || $self->version;
+    
+    my $text = $dbh->selectrow_hashref(
+        "SELECT plan_text, profiles.realname AS author, plan_text_version AS version
+           FROM test_plan_texts AS tpt
+          INNER JOIN profiles ON tpt.who = profiles.userid
+          WHERE plan_id = ? AND plan_text_version = ?", 
+          undef, ($self->{'plan_id'}, $version));
+    
+    return $text if scalar @_;
+    
     $self->{'text'} = $text;
+    
     return $self->{'text'};
 }
 

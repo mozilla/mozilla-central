@@ -345,6 +345,23 @@ sub run_count {
     return $self->{'run_count'}
 }
 
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    $obj->{'run_count'}   = $self->run_count;
+    $obj->{'plan_count'}  = $self->plan_count;
+    $obj->{'case_count'}  = $self->case_count;
+
+    return $json->objToJson($obj); 
+}
+
 =head1 SEE ALSO
 
 TestPlan TestRun TestCase

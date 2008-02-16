@@ -192,6 +192,7 @@ sub log_activity {
     my $dbh = Bugzilla->dbh;
     $timestamp ||= get_time_stamp();
     
+    trick_taint($newvalue) if defined $newvalue;
     my $field_id = Bugzilla::Testopia::Util::get_test_field_id($field, "test_". $type ."s");
     $dbh->do("INSERT INTO test_". $type ."_activity 
               (". $type . "_id, fieldid, who, changed, oldvalue, newvalue)

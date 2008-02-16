@@ -26,6 +26,7 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
+use JSON;
 
 use base qw(Exporter Bugzilla::Object);
 @Bugzilla::Bug::EXPORT = qw(check_build check_build_by_name);
@@ -74,11 +75,13 @@ sub _check_product {
 sub _check_name {
     my ($invocant, $name, $product_id) = @_;
     $name = clean_text($name) if $name;
-    trick_taint($name);
+
     if (!defined $name || $name eq '') {
         ThrowUserError('testopia-missing-required-field', {'field' => 'name'});
     }
-
+    
+    trick_taint($name);
+    
     # Check that we don't already have a build with that name in this product.    
     my $orig_id = check_build($name, $product_id);
     my $notunique;
@@ -127,7 +130,7 @@ sub set_milestone {
 }
 sub set_name { 
     my ($self, $value) = @_;
-    $value = $self->_check_name($value, $self->product_id);
+    $value = $self->_check_name($value, $self->product);
     $self->set('name', $value); 
 }
 
@@ -155,7 +158,7 @@ sub new {
 sub run_create_validators {
     my $class  = shift;
     my $params = $class->SUPER::run_create_validators(@_);
-    my $product = $params->{product_id};
+    my $product = $params->{product_id}; # Returns actual product object
     
     $params->{milestone} = $class->_check_milestone($params->{milestone}, $product);
     $params->{name}      = $class->_check_name($params->{name}, $product);
@@ -179,13 +182,12 @@ sub create {
 ####      Functions        ####
 ###############################
 sub check_build {
-    my ($name, $product_id) = @_;
+    my ($name, $product) = @_;
     my $dbh = Bugzilla->dbh;
     my $is = $dbh->selectrow_array(
         "SELECT build_id FROM test_builds 
          WHERE name = ? AND product_id = ?",
-         undef, $name, $product_id);
- 
+         undef, $name, $product->id);
     return $is;
 }
 
@@ -215,12 +217,18 @@ sub store {
     return $key;
 }
 
-sub toggle_hidden {
+sub to_json {
     my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    $dbh->do("UPDATE test_builds SET isactive = ? 
-               WHERE build_id = ?", undef, $self->isactive ? 0 : 1, $self->id);
+    my $obj;
+    my $json = new JSON;
     
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+        
+    return $json->objToJson($obj); 
 }
 
 ###############################
@@ -255,19 +263,28 @@ sub run_count {
 }
 
 sub case_run_count {
-    my ($self,$status_id) = @_;
+    my $self = shift;
+    my ($status_id, $builds) = @_;
     my $dbh = Bugzilla->dbh;
     
+    my @build_ids;
+    if ($builds){
+        push @build_ids, $_->id foreach (@$builds);
+    }
+    push @build_ids, $self->id if $self->id;
+    
+    my $ids = join (',', @build_ids);
+    
     my $query = "SELECT COUNT(case_run_id) FROM test_case_runs 
-           WHERE build_id = ?";
+           WHERE build_id IN (". $ids . ")";
     $query .= " AND case_run_status_id = ?" if $status_id;
     
     my $count;
     if ($status_id){
-        $count = $dbh->selectrow_array($query, undef, ($self->{'build_id'},$status_id));
+        $count = $dbh->selectrow_array($query, undef, ($status_id));
     }
     else {
-        $count = $dbh->selectrow_array($query, undef, $self->{'build_id'});
+        $count = $dbh->selectrow_array($query);
     }
           
     return $count;
@@ -455,15 +472,14 @@ Boolean - determines whether to show this build in lists for selection.
 
 =over
 
-=item C<toggle_hidden()>
- 
- Description: Flips the bit in the isactive field. If it is currently 0 it sets
-              it to 1 and vice versa. 
-              
- Params:      none.
- 
- Returns:     nothing.
+=item C<to_json()>
 
+ Description: Outputs a JSON representation of the object.
+ 
+ Params:      none
+          
+ Returns:     A JSON string.
+ 
 =back
 
 =head1 ACCESSORS

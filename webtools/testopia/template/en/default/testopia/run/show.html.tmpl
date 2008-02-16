@@ -23,103 +23,398 @@
   # ...
   #%]
 
-[%############################################################################%]
-[%# Template Initialization                                                  #%]
-[%############################################################################%]
-
 [% PROCESS global/variables.none.tmpl %]
-[% PROCESS testopia/blocks.html.tmpl %]
-[% title = "Test Run $run.id: $run.summary" %]
-
-[%############################################################################%]
-[%# Page Header                                                              #%]
-[%############################################################################%]
-
-[% PROCESS global/header.html.tmpl
-   style_urls = ['testopia.css'] %]
 [% PROCESS testopia/blocks.html.tmpl %]
 [% PROCESS testopia/style.none.tmpl %]
 
-[% PROCESS testopia/messages.html.tmpl %]
+[% javascript_urls.push("testopia/js/attachments.js") %]
+[% javascript_urls.push("testopia/js/tags.js") %]
+[% javascript_urls.push("testopia/js/caserun.js") %]
+[% javascript_urls.push("testopia/js/case.js") %]
+[% javascript_urls.push("testopia/js/run.js") %]
 
+[% title = "Test Run $run.id: $run.summary" %]
+
+[% PROCESS global/header.html.tmpl %]
 
 <script type="text/javascript">
-  djConfig = {
-    parseWidgets: false,
-    searchIds: ["manager","percent_bar","environment","tags","newtag","tagTable","tip_[% run.id FILTER none %]","caseruns_table",[% FOREACH cr = table.list %]"env_[% loop.count %]","head_caserun_[% loop.count %]"[%',' UNLESS loop.last %][% END %]]
-  };
-</script>
-<script src="testopia/js/util.js" type="text/javascript"></script>
-<script src="testopia/js/tags.js" type="text/javascript"></script>
-<script src="testopia/dojo/dojo.js" type="text/javascript"></script>
-<script type="text/javascript">
-    dojo.require('dojo.io.*');
-    dojo.require("dojo.widget.Tooltip");
-    dojo.require("dojo.widget.ComboBox");
-    function getSelected (ccbox){
-        var ccselected = new Array();
-        for (j=0; j < ccbox.options.length; j++){
-            if (ccbox.options[j].selected != 0)
-                ccselected.push(ccbox.options[j].value);
-            
+var run = [% run.to_json FILTER html_light %];
+
+Ext.onReady(function(){
+    Ext.QuickTips.init();
+    
+    var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
+    
+    function submitEdits(field, value){
+        var params = {action: 'edit', run_id: run.run_id};
+        switch(field){
+            case 'run_product_version': 
+                params.run_product_version = value;
+                break;
+            case 'build': 
+                params.build = value;
+                break;
+            case 'status': 
+                params.status = value;
+                break;
+            case 'summary': 
+                params.summary = value;
+                break;
+            case 'environment': 
+                params.environment = value;
+                break;
+            case 'run_notes': 
+                params.run_notes = value;
+                break;
+            case 'manager': 
+                params.manager = value;
+                break;
         }
-        var sel = ccselected.toString();
-        return sel;
-    }
-
-    function fillcc (data){
-         var xmldocroot = data.documentElement;
-         var newcc = xmldocroot.getElementsByTagName('user');
-         var cc = document.getElementById("cc");
-         cc.options.length = 0;
-         for (i=0; i< newcc.length; i++){
-           var id = newcc[i].childNodes[0].firstChild.nodeValue;
-           var name = newcc[i].childNodes[1].firstChild.nodeValue;
-           var myOp = new Option(name, id);
-           addOption(cc,myOp);
-         }
-         document.getElementById("newcc").value = '';
-         document.getElementById("addCC").disabled = false;
-         document.getElementById("deleteCC").disabled = false;
-
-    }
-    function updateCC(cctext, action){
-        if (cctext == '')
-          return;
-        document.getElementById("addCC").disabled = true;
-        document.getElementById("deleteCC").disabled = true;
-        dojo.io.bind({
-            url:     "tr_show_run.cgi",
-            content: {  cc: cctext, run_id: [% run.id FILTER none %], action: action },
-            load:    function(type, data, evt){ fillcc(data);},
-            error:   function(type, error){ alert(error.message);},
-            mimetype: "text/xml"
+        testopia_form.submit({
+            url: 'tr_process_run.cgi',
+            params: params,
+            success: function(f,a){
+                TestopiaUtil.notify.msg('Test Run updated', 'Test Run {0} was updated successfully', field);
+            },
+            failure: function(f,a){
+                if (field == 'status'){
+                    Ext.getCmp('run_status_cycle').setActiveItem(Ext.getCmp('run_status_cycle').getActiveItem().id == 'run_status_stopped' ? Ext.getCmp('run_status_running') : Ext.getCmp('run_status_stopped'), true);
+                    Ext.getCmp('run_status_cycle').getEl().child(Ext.getCmp('run_status_cycle').buttonSelector).setStyle('background-image', 'url(' +Ext.getCmp('run_status_cycle').getActiveItem().icon +')');
+                }
+                testopiaError(f,a);
+            }
         });
     }
-    function notesZoom(id, case_id){
-      notes = window.open('','notes', 'status=1,toolbar=0,location=0,menubar=0,directories=0,resizable=1,scrollbars=1,width=800,height=600'); 
-      notes.title = 'Hello';
-      notes.document.write('<html><head><title>Notes for Case ' + case_id + '</title></head><body>');
-      notes.document.write(document.getElementById('old_notes'+id).innerHTML);
-      notes.document.write('</body></html>');
-      notes.document.close();
+
+    var runDelete = function(btn){
+        if (btn == 'yes'){
+            var form = new Ext.form.BasicForm("testopia_helper_frm",{});
+            form.submit({
+                url: 'tr_process_run.cgi',
+                params: {run_id: run.run_id, action:'delete'},
+                success: function(data){
+                    Ext.Msg.show({
+                        title:'Test Run Deleted',
+                        msg: "Test Run " + run.run_id + " was deleted",
+                        buttons: Ext.Msg.OK,
+                        icon: Ext.MessageBox.INFO
+                    });
+                    window.location="tr_show_plan.cgi?plan_id=" + run.plan.id;
+                },
+                failure: testopiaError
+            });
+        }
+    };
+    var fileMenu = new Ext.menu.Menu({
+        id: 'file-menu',
+        items: [{
+            text: "Clone",
+            id:'run-clone-icon',
+            icon: 'testopia/img/copy.png',
+            iconCls: 'img_button_16x',
+            handler: function(){
+                RunClonePopup(run);
+            }
+        },{
+            text: "Delete",
+            disabled: run.candelete ? false : true,
+            id:'run-delete-icon',
+            icon: 'testopia/img/delete.png',
+            iconCls: 'img_button_16x',
+            handler: function(){
+                Ext.Msg.show({
+                   title:'Confirm Delete?',
+                   msg: 'You are about to delete run ' + run.id + ' with all of its history. Are you sure you want to continue?',
+                   buttons: Ext.Msg.YESNO,
+                   fn: runDelete,
+                   animEl: 'run_delete_btn',
+                   icon: Ext.MessageBox.QUESTION
+                });
+            }
+        }]
+    });
+
+    var runControls = new Ext.Toolbar();
+    runControls.render('run-tb-div');
+    runControls.add({
+        text: 'File',
+        menu: fileMenu
+    },new Ext.Toolbar.Fill()
+    ,{
+        xtype: 'button',
+        template: button_16x_tmpl,
+        id:'run-clone-ibtn',
+        icon: 'testopia/img/copy.png',
+        iconCls: 'img_button_16x',
+        tooltip: 'Clone this Test Run',
+        handler: function(){
+            RunClonePopup(run);
+        }
     }
+[% IF run.candelete %]
+    ,{
+        xtype: 'button',
+        id: 'run_delete_btn',
+        template: button_16x_tmpl,
+        icon: 'testopia/img/delete.png',
+        iconCls: 'img_button_16x',
+        tooltip: 'Delete this Run',
+        handler: function(){
+            Ext.Msg.show({
+               title:'Confirm Delete?',
+               msg: 'You are about to delete run ' + run.id + ' with all of its history. Are you sure you want to continue?',
+               buttons: Ext.Msg.YESNO,
+               fn: runDelete,
+               animEl: 'run_delete_btn',
+               icon: Ext.MessageBox.QUESTION
+            });
+        }
+    }
+[% END %]    
+    );
+    var runpanel = new Ext.Panel({
+        layout: 'border',
+        applyTo: 'run-body-div',
+        monitorResize: true,
+        id: 'runpanel',
+        height: 1000,
+        footer: true,
+        items:[{
+            split: true,
+            region: 'center',
+            xtype: 'tabpanel',
+            activeTab: 0,
+            id: 'object_panel',
+            items: [new CaseRunPanel({run_id: run.run_id}, run),
+            {
+                title: 'Notes',
+                layout: 'fit',
+                items: [{
+                    id: 'run_notes',
+                    xtype:'textarea',
+                    value: '[% run.notes FILTER js %]'
+                }],
+                buttons: [{
+                    text: 'Submit',
+                    disabled: run.canedit ? false : true,
+                    handler: function(){
+                        submitEdits('run_notes', Ext.getCmp('run_notes').getValue());
+                    }
+                }]
+            },
+            new HistoryGrid('run', [% run.id FILTER none %])
+            ]
+        },{
+            split: true,
+            id: 'run_overview_pane',
+            title: '[% title FILTER js %]',
+            headerAsText: true,
+            region: 'north',
+            collapsible: true,
+            contentEl: 'run_overview',
+            height: 'auto'
+        },{
+            xtype: 'tabpanel',
+            split: true,
+            region:'east',
+            width: 200,
+            activeTab: 0,
+            items:[
+                new TestopiaObjectTags('run', [% run.id FILTER none %]),
+//                {
+//                    title: 'CC List'
+//                },
+                new RunFilterGrid(run)
+                
+            ]
+        }]
+    });
+[% IF run.canedit %]    
+// Manager Editing
+    var manager_edit_btn = new Ext.Button({
+        applyTo: 'manager_edit_btn_div',
+        template: button_16x_tmpl,
+        id:'manager_edit_btn',
+        icon: 'testopia/img/edit.png',
+        iconCls: 'img_button_16x',
+        tooltip: 'Edit Manager',
+        handler: function(){
+            Ext.getCmp('manager_edt').startEdit(Ext.get('run_manager_div'), '[% run.manager.name FILTER js %]');
+        }
+    });
+    var manager_edt = new Ext.Editor(
+        new UserLookup({
+            hiddenName:'manager',
+            value: run.manager
+        }),
+    {
+        alignment: 'tl-tl',
+        id: 'manager_edt',
+        updateEl: true,
+        completeOnEnter: true,
+        ignoreNoChange: true,
+        cancelOnEsc: true
+    });
+    manager_edt.on('complete', function(e,v){
+        submitEdits('manager', v);
+    });
+
+// Summary Editing    
+    var summary_edit_btn = new Ext.Button({
+        applyTo: 'run_summary_edit_btn_div',
+        template: button_16x_tmpl,
+        id:'run_summary_edit_btn',
+        icon: 'testopia/img/edit.png',
+        iconCls: 'img_button_16x',
+        tooltip: 'Edit Run Summary',
+        handler: function(){
+            Ext.getCmp('run_summary_edt').startEdit(Ext.get('run_summary_div'));
+        }
+    });
+    var run_summary_edt = new Ext.Editor(
+        new Ext.form.TextField({
+            width: Ext.get('run_summary_div').getWidth() < 200 ? 200 : Ext.get('run_summary_div').getWidth(),
+            name: 'summary'
+        }),{
+            alignment: 'tl-tl',
+            id: 'run_summary_edt',
+            ignoreNoChange: true,
+            updateEl: true,
+            completeOnEnter: true,
+            ignoreNoChange: true,
+            cancelOnEsc: true
+    });
+    run_summary_edt.on('complete', function(e,v,sv){
+        submitEdits('summary', v);
+    });
+
+// Combo Boxes
+    var pbox = new ProductVersionCombo({
+        hiddenName: 'run_product_version',
+        transform: 'product_version'
+    });
+    pbox.on('select', function(c,r,i){
+        submitEdits('run_product_version', r.get('value'));
+    });
+    
+    var bbox = new BuildCombo({
+        hiddenName: 'build',
+        transform: 'run_default_build'
+    });
+    bbox.on('select', function(c,r,i){
+        submitEdits('build', r.get('value'));
+    });
+
+    var ebox = new EnvironmentCombo({
+        hiddenName: 'environment',
+        transform: 'run_default_environment'
+    });
+    ebox.on('select', function(c,r,i){
+        submitEdits('environment', r.get('value'));
+    });
+[% END %]
+// Status editor
+    var statusBtn = new Ext.CycleButton({
+        applyTo: 'run_status_btn',
+        id: 'run_status_cycle',
+        showText: true,
+        [% 'disabled: true,' UNLESS run.canstatus %]
+        icon: 'testopia/img/[% run.stop_date ? "stop" : "go" %].png',
+        iconCls: 'img_button_16x',
+
+        items: [{
+            text: 'RUNNING',
+            icon: 'testopia/img/go.png',
+            id: 'run_status_running',
+            iconCls: 'img_button_16x'
+            [% ',checked: true' IF NOT run.stop_date %]
+        },{
+            text: 'STOPPED',
+            id: 'run_status_stopped',
+            icon: 'testopia/img/stop.png',
+            iconCls: 'img_button_16x'
+            [% ',checked: true' IF run.stop_date %]
+        }],
+
+        changeHandler: function (btn, item){
+            Ext.Msg.show({
+                msg: 'Are you sure you want to change the status to ' + item.text,
+                title: 'Change Run Status?',
+                buttons: Ext.Msg.YESNO,
+                icon: Ext.MessageBox.QUESTION,
+                fn: function(b){
+                    if (b == 'yes'){
+                        btn.getEl().child(btn.buttonSelector).setStyle('background-image', 'url(' +item.icon +')');
+                        submitEdits('status', item.text);
+                        if (item.text == 'STOPPED'){
+                            Ext.getCmp('caserun_grid_tb').disable();
+                        }
+                        else {
+                            if (Ext.getCmp('caserun_grid').getSelectionModel().getCount() > 0){
+                                Ext.getCmp('caserun_grid_tb').enable();
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+
+// Resizer
+    var resizer = new Ext.Resizable('run-body-div',{
+        handles: 's',
+        pinned: true
+        
+    });
+    resizer.on('resize', function(r,w,h,e){
+        runpanel.setHeight(h);
+        runpanel.doLayout();
+    });
+  [% IF run.case_run_count == 0 %]
+    Ext.getCmp('run_progress').updateProgress(0,0,0,'0%');
+  [% ELSE %]
+    Ext.getCmp('run_progress').updateProgress([% run.case_run_count(2) / run.case_run_count %],[% run.case_run_count(3) / run.case_run_count %],[% run.case_run_count(6) / run.case_run_count %], '[% run.percent_complete %]%');
+  [% END %]
+  [% IF run.stop_date %]
+    Ext.getCmp('caserun_grid_tb').disable();
+  [% END %]
+});
 </script>
-<style>
-  .number_cell{
-      border: 1px solid #000;
-      width: 100px;
-      text-align: right;
-  }
-</style>
 
 [% PROCESS testopia/run/navigate.html.tmpl %]
+<div id="run-body-div"></div>
+<div id="caserun"></div>
+<form id="caserungrideditform"></form>
+<form id="rungrideditform"></form>
+<form id="attachmentgrideditform"></form>
 
 [%##### Overview #####%]
 <div id="run_overview">
-<h3>Overview</h3>
+<div id="run-tb-div"></div>
+<div id="caserun-tb-div"></div>
 <table border="0" cellpadding="1" width="100%">
   <tbody align="left">
+    <tr class="bz_row_header">
+      <th colspan="2">Run Summary</th>
+      <th width="25%">Manager</th>
+    </tr>
+    <tr class="bz_row_data">
+      <td colspan="2">
+        <table>
+          <tr style="width:100%;">
+            <td><div id="run_summary_div">[% run.summary FILTER html %]</div></td>
+            <td><div id="run_summary_edit_btn_div"></div></td>
+          </tr>
+        </table>
+      </td>
+      <td>
+        <table>
+          <tr><td><a href="mailto:[% run.manager.email FILTER html %]" id="run_manager_div">[% run.manager.identity FILTER html %]</a></td>
+          <td><div id="manager_edit_btn_div"></div></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
     <tr class="bz_row_header">
       <th>Plan</th>
       <th>Plan Text Version</th>
@@ -130,187 +425,52 @@
       <td>[% run.plan_text_version FILTER html %]</td>
       <td>[% run.start_date FILTER time %]</td>
       </tr>
-    <tr class="bz_row_header">
+    <tr  class="bz_row_header">
       <th>Product</th>
       <th>Product Version</th>
       <th>Stop Date</th>
       </tr>
     <tr class="bz_row_data">
-      <td>[% run.plan.product.name FILTER html %]</td>
-      <td>[% run.product_version FILTER html %]</td>
+      <td><a href="tr_show_product.cgi?product_id=[% run.plan.product.id FILTER none %]">[% run.plan.product.name FILTER html %]</a></td>
+      <td>[% IF run.canedit %]
+          [% PROCESS select sel = { name  => 'product_version',
+                                    list  => run.plan.product.versions,
+                                    default => run.product_version  } %]
+          [% ELSE %]
+          [% run.product_version FILTER html %]
+          [% END %]
+      </td>
       <td>[% run.stop_date FILTER time %]</td>
     </tr>
     <tr class="bz_row_header">
-      <th>Manager</th>
-      <th>Percent Complete</th>
-      <th>Status</th>
-      </tr>
-    <tr class="bz_row_data">
-      <td><a href="mailto:[% run.manager.email FILTER html %]">[% run.manager.identity FILTER html %]</a></td>
-      <td align="center" dojoType="ContentPane" id="percent_bar">
-        [% PROCESS testopia/percent_bar.html.tmpl 
-           percent = run.percent_complete 
-        %]
-      </td>
-      <td align="center">
-      [% IF run.stop_date %]
-        STOPPED
-      [% ELSE %]
-        RUNNING
-      [% END %]
-      </td>
+      <th>Default Build</th>
+      <th>Default Environment</th>
+      <th>Run Status</th>
     </tr>
-    
     <tr class="bz_row_data">
-      <td colspan="3"></td>
+      <td>[% IF run.canedit %]
+          [% PROCESS select sel = { name  => 'run_default_build',
+                                    list  => run.plan.product.builds('ACTIVE', run.build.id),
+                                    default => run.build.name  } %]
+          [% ELSE %]
+          [% run.build.name FILTER html %]
+          [% END %]
+      </td>
+      <td>[% IF run.canedit %]
+          [% PROCESS select sel = { name  => 'run_default_environment',
+                                    list  => run.plan.product.environments('ACTIVE', run.environment.id),
+                                    default => run.environment.name  } %]
+          [% ELSE %]
+          [% run.environment.name FILTER html %]
+          [% END %]
+      </td>
+      <td align="center"><div id="run_status_btn"></div></td>      
     </tr>
   </tbody>
 </table>
-[% IF run.canedit %]
-<a href="#attributes">Edit Run Attributes</a>
-[% END %]
+<div style="height: 10px"></div>
 </div>
 
-<h3>Test Case Run Logs</h3><a name="table" />
 [% PROCESS testopia/caserun/filter.html.tmpl %]
-<br/>
-[% PROCESS testopia/caserun/table.html.tmpl %]
 
-[% table.list_count FILTER none %] test cases found.
-<br/>
-[% IF run.canedit %]
-<form action="tr_list_cases.cgi" method="POST">
-  <input type="hidden" name="exclude" value="[% run.id FILTER none %]" />
-  <input type="hidden" name="current_tab" value="case" />
-  <input type="hidden" name="addrun" value="[% run.id FILTER none %]" />
-  <input type="hidden" name="plan_id" value="[% run.plan.id FILTER none %]" />
-  <input type="hidden" name="case_status_id" value="2" />
-  <input type="submit" value="Add Cases" />
-</form>
-
-<form method="POST" action="tr_show_run.cgi">
-  <div style="z-index:-1; visibility:hidden; position:absolute; left:-10">
-    <input type="submit" name="action" value="Commit" style="width:1px;" >
-  </div>
-  <input type="hidden" name="case_list" value="[% table.id_list FILTER none %]" />
-  <input type="hidden" name="run_id" value="[% run.id FILTER none %]" />
-  <input type="submit" name="action" value="Clone Run With These Cases" />
-<a href="tr_list_caseruns.cgi?[% table.get_query_part FILTER none %]">Update Multiple</a> |
-[% END %]
-
-<a href="tr_list_cases.cgi?run_id=[% run.id FILTER none %]">List Cases</a>
-[%##### Reports #####%]
-<br><br>
-<h3>Reports</h3>
-<a href="tr_query.cgi?current_tab=run&report=1">General Reports</a><br>
-[% IF run.bugs %]
-<a href="buglist.cgi?bug_id=[% run.bug_list FILTER none %]">Bugs Found in this Run</a><br>
-[% END %]
-<br>
-[%##### Categories and Tags #####%]
-<h3>CC, Coverage, Tags</h3>
-
-<div id="run_categories">
-<table width="100%" border="0">
-  <tr class="bz_row_header">
-    <th width="33%">CC List</th>
-    <th width="33%">Case Run Status</th>
-    <th width="33%"><a href="tr_tags.cgi?run_id=[% run.id FILTER none %]">Tags</a></th>
-  </tr>
-  <tr>
-    <td valign="top">
-    <table>
-    [% IF run.canedit %]
-      <tr>
-        <td>
-          <input name="newcc" id="newcc">
-          <input type="button" id="addCC" value="Add" onclick="updateCC(document.getElementById('newcc').value, 'addcc')">
-        </td>
-      </tr>
-    [% END %]
-      <tr>
-        <td>
-          <select name="cc" id="cc" size="5" multiple="multiple">
-          [% FOREACH cc = run.cc %]
-            <option value="[% cc.id FILTER none %]">[% cc.login FILTER html %]</option>
-          [% END %]
-          </select>
-          <br>
-        [% IF run.canedit %]
-          <input type="button" id="deleteCC" value="Remove" onclick="updateCC(getSelected(document.getElementById('cc')), 'removecc')">
-        [% END %]
-        </td>
-      </tr>
-    </table>
-    </td>
-    <td>
-    <table align="center">
-      <tr>
-        <th align="right">Idle:</th>
-        <td class="number_cell"><b>[% run.case_run_count(1) FILTER html %]</b></td>
-      </tr>
-      <tr>
-        <th align="right">Passed:</th>
-        <td class="number_cell"><b>[% run.case_run_count(2) FILTER html %]</b></td>
-      </tr>
-      <tr>
-        <th align="right">Failed:</th>
-        <td class="number_cell"><b>[% run.case_run_count(3) FILTER html %]</b></td>
-      </tr>
-      <tr>
-        <th align="right">Running:</th>
-        <td class="number_cell"><b>[% run.case_run_count(4) FILTER html %]</b></td>
-      </tr>
-      <tr>
-        <th align="right">Paused:</th>
-        <td class="number_cell"><b>[% run.case_run_count(5) FILTER html %]</b></td>
-      </tr>
-      <tr>
-        <th align="right">Blocked:</th>
-        <td class="number_cell"><b>[% run.case_run_count(6) FILTER html %]</b></td>
-        </td>
-      </tr>
-      <tr>
-        <th align="right">Total:</th>
-        <td class="number_cell"><b>[% run.case_count FILTER html %]</b></td>
-      </tr>
-    </table>
-    </td>
-  
-    <td valign="top" align="center">
-
-    [% PROCESS testopia/tag/form.html.tmpl 
-       item = run 
-    %]
-    [% PROCESS testopia/tag/table.html.tmpl 
-       item = run
-       type = 'run' 
-    %]
-    </td>
-    
-  </tr>
-</table>
-</div>
-<div align="right">
-      <table>
-        <tr>
-          <!-- 
-          <td><a href="tr_testrun_regression.cgi?run_id=[% run.id FILTER none %]">Create regression test cases</a></td> -->
-          <td><input type="submit" name="action" value="History"></td>
-          [% IF run.canedit %]
-          <td><input type="submit" name="action" value="Clone"></td>
-          [% END %]
-          [% IF run.candelete %]
-          <td><input type="submit" name="action" value="Delete"></td>
-          [% END %]
-
-        </tr>      
-      </table>
-      </div>
-
-[% IF run.canedit %]
-<h3>Attributes</h3>
-  [% PROCESS testopia/run/form.html.tmpl %]
-[% END %]
-</form>
 [% PROCESS global/footer.html.tmpl %]

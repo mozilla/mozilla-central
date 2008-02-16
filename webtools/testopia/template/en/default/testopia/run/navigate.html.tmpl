@@ -19,7 +19,12 @@
   # Contributor(s): Gervase Markham <gerv@gerv.net>
   #                 Greg Hendricks <ghendricks@novell.com>
   #%]
-  
+
+<a href="tr_show_product.cgi?product_id=[% run.plan.product_id FILTER none %]">Product: [% run.plan.product.name FILTER html %]</a>
+&nbsp;&gt;&nbsp; 
+<a href="tr_show_plan.cgi?plan_id=[% run.plan_id FILTER none %]" title="[% case.plans.0.name FILTER html %]">Plan [% run.plan.id FILTER html %]</a>
+&nbsp;&gt;&nbsp; Run [% run.id FILTER html %]
+<br/>
 [% list = table.get_saved_list('run') %]
 <b>Run List:</b>
 [% IF table && list > 0 %]

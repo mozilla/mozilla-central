@@ -17,6 +17,7 @@
 # Maciej Maczynski. All Rights Reserved.
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
+#                 Andrew Nelson <anelson@novell.com>
 
 package Bugzilla::Testopia::Classification;
 
@@ -65,21 +66,45 @@ sub user_visible_products {
 sub products_to_json {
     my $self = shift;
     my ($disable_move) = @_;
+    my $json = new JSON;
     
     $disable_move ||= '';
     $disable_move = ',"addChild","move"' if $disable_move;
     my $products = $self->user_visible_products;
-    my $json = "[";
-    foreach my $obj (@{$products}){
-        $json .= '{title:"' . $obj->name . '",';
-        $json .=  'isFolder:' . (scalar @{$obj->environment_categories} > 0 ? "true" : "false") . ',';
-        $json .=  'objectId:"' . $obj->id . '",';
-        $json .=  'widgetId:"product' . $obj->id . '",';
-        $json .=  'actionsDisabled:["addElement","addProperty","addValue"'. $disable_move .'],';
-        $json .=  'childIconSrc:"testopia/img/folder_red.gif"},';
+
+	
+	my @values; 
+    
+    foreach my $product (@$products)
+    {   	
+    	my $leaf; 
+    	
+    	if(scalar @{$product->environment_categories}> 0)
+    	{
+    		$leaf = "false";
+    	}
+     	else
+     	{
+     		$leaf = "true";
+     	}
+     	
+        	push @values, {text=> $product->{'name'}, id=> $product->{'id'} . ' product', type=> 'product', leaf=>$leaf, draggable => 'false', cls => 'product'};
     }
-    chop $json;
-    $json .= "]";
-    return $json;   
+    
+	
+	return $json->objToJson(\@values);
+
+#    my $json = "[";
+#    foreach my $obj (@{$products}){
+#        $json .= '{title:"' . $obj->name . '",';
+#        $json .=  'isFolder:' . (scalar @{$obj->environment_categories} > 0 ? "true" : "false") . ',';
+#        $json .=  'objectId:"' . $obj->id . '",';
+#        $json .=  'widgetId:"product' . $obj->id . '",';
+#        $json .=  'actionsDisabled:["addElement","addProperty","addValue"'. $disable_move .'],';
+#        $json .=  'childIconSrc:"testopia/img/folder_red.gif"},';
+#    }
+#    chop $json;
+#    $json .= "]";
+#    return $json;   
 }
 1;

@@ -98,19 +98,17 @@ sub create
 
     $self->login;
 
-    my $environment = new Bugzilla::Testopia::Environment($new_values);
-    
-    my $result = $environment->store(); 
+    my $environment = Bugzilla::Testopia::Environment->create($new_values);
     
     $self->logout;
 
-    if (not defined $result)
+    if (not defined $environment)
     {
         die "Environment already exists"; 
     }
     
     # Result is new environment id
-    return $result;
+    return $environment->id;
 }
 
 sub update

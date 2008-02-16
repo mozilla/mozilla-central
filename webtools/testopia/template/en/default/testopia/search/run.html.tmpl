@@ -12,19 +12,19 @@
   # The Original Code is the Bugzilla Testopia System.
   #
   # The Initial Developer of the Original Code is Greg Hendricks.
-  # Portions created by Greg Hendricks are Copyright (C) 2001
+  # Portions created by Greg Hendricks are Copyright (C) 2006
   # Greg Hendricks. All Rights Reserved.
   #
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #%]
 
 [% IF report %]
-<form action="tr_run_reports.cgi" method="GET">    
+<form id="run_search_form" action="tr_run_reports.cgi" method="GET">    
 [% PROCESS "testopia/search/report-matrix.html.tmpl" 
    obj = run 
 %]   
 [% ELSE %]
-<form action="tr_list_runs.cgi" method="GET">
+<form id="run_search_form" action="tr_list_runs.cgi" method="GET">
 [% END %]
 
   <input type="hidden" name="current_tab" value="[% current_tab FILTER none %]" />
@@ -54,7 +54,7 @@
                                                       document.getElementById(\'milestone\').disabled=true;
                                                       document.getElementById(\'build\').disabled=true;
                                                       document.getElementById(\'environment\').disabled=true;
-                                                      onProductSelection()"' } %]
+                                                      onProductSelection(this)"' } %]
     </td>
     <td style="padding-right: 30px;">
     [% PROCESS select sel = { name  => 'version',
@@ -115,13 +115,6 @@
     <td><input name="notes"></td>
   </tr>
   <tr>
-    <th align="right">Environment XML:</th>
-    <td>
-    [% PROCESS select sel = { name => 'environment_type',
-                              list => query_variants } %]</td>
-    <td><input name="environment"></td>
-  </tr>
-  <tr>
     <th align="right">Tags:</th>
     <td>
     [% PROCESS select sel = { name => 'tags_type',
@@ -178,8 +171,4 @@
   <br/><br/>
 </p>
 
-<input type="submit" value="Submit" id="search_submit">
 </form>  
-<script type="text/javascript">
- dojo.addOnLoad(onProductSelection);
-</script>

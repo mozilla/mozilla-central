@@ -92,6 +92,35 @@ sub get_milestones
     return $result;
 }
 
+sub get_components
+{
+    my $self = shift;
+    my ($product_id) = @_;
+
+    $self->login;
+
+    my $product = new Bugzilla::Testopia::Product($product_id);
+
+    if (not defined $product)
+    {
+        $self->logout;
+        die "Product, " . $product_id . ", not found"; 
+    }
+    
+    if (not $product->canedit)
+    {
+        $self->logout;
+        die "User Not Authorized";
+    }
+    
+    my $result = $product->components;
+
+    $self->logout;
+    
+    # Result is list of components for the given product
+    return $result;
+}
+
 #sub get_product 
 #{
 #    my $self = shift;

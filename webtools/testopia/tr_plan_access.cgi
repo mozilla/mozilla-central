@@ -37,13 +37,15 @@ local our $template = Bugzilla->template;
 local our $cgi = Bugzilla->cgi;
 
 Bugzilla->login(LOGIN_REQUIRED);
+Bugzilla->error_mode(ERROR_MODE_AJAX);
+
 print $cgi->header;
 
 my $plan_id = trim($cgi->param('plan_id') || '');
 my $action = $cgi->param('action') || '';
 
 unless (detaint_natural($plan_id)){
-  $vars->{'form_action'} = 'tr_plan_access.cgi';
+  $vars->{'form_action'} = 'tr_show_plan.cgi';
   $template->process("testopia/plan/choose.html.tmpl", $vars) 
       || ThrowTemplateError($template->error());
   exit;
@@ -52,15 +54,13 @@ unless (detaint_natural($plan_id)){
 validate_test_id($plan_id, 'plan');
 local our $plan = Bugzilla::Testopia::TestPlan->new($plan_id);
 
-unless ($plan->canadmin){
-     ThrowUserError('testopia-plan-acl-denied', {plan_id => $plan->id});
-}
-
-if ($action eq 'Apply Changes'){
+if ($action eq 'edit'){
+    ThrowUserError('testopia-plan-acl-denied', {plan_id => $plan->id}) unless ($plan->canadmin);
     do_update();
-    display();
+    print "{success: true}";
 }
-elsif ($action eq 'Add User'){
+elsif ($action eq 'add_user'){
+    ThrowUserError('testopia-plan-acl-denied', {plan_id => $plan->id}) unless ($plan->canadmin);
     do_update();
     my $userid = login_to_id(trim($cgi->param('adduser')));
     ThrowUserError("invalid_username", { name => $cgi->param('adduser')}) unless $userid;
@@ -78,19 +78,25 @@ elsif ($action eq 'Add User'){
     trick_taint($userid);
     $plan->add_tester($userid, $perms); 
 
-    display();
+    print "{success: true}";
 }
 elsif ($action eq 'delete'){
+    ThrowUserError('testopia-plan-acl-denied', {plan_id => $plan->id}) unless ($plan->canadmin);
     my $userid = $cgi->param('user');
     detaint_natural($userid);
     my $user = Bugzilla::User->new($userid);
+    ThrowUserError('baduser') unless $user;
     $plan->remove_tester($user->id);
-    $vars->{'tr_message'} = $user->login ." Removed from Plan";
-    display();
+    print "{success: true, action: 'Removed User', value: '" . $user->login ."'}";
+    exit;
 }
     
 else{
-    display();
+    $vars->{'plan'} = $plan;
+    $vars->{'user'} = Bugzilla->user;
+    $template->process("testopia/plan/access-list.html.tmpl", $vars) 
+      || ThrowTemplateError($template->error());
+
 }
 
 sub do_update {
@@ -100,7 +106,7 @@ sub do_update {
     
     my $tester_regexp = $cgi->param('userregexp');
     trick_taint($tester_regexp);
-    
+       
     my $regexp_perms = 0;
 
     # Each permission implies the prior ones.
@@ -124,12 +130,4 @@ sub do_update {
         $plan->update_tester($row->{'user'}->id, $perms);
     }
     $vars->{'tr_message'} = " Access updated";
-}
-
-sub display {
-    $vars->{'plan'} = $plan;
-    $vars->{'user'} = Bugzilla->user;
-    $template->process("testopia/admin/access-list.html.tmpl", $vars) 
-      || ThrowTemplateError($template->error());
-    
 }

@@ -19,6 +19,7 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com> 
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.com>
+#                    Andrew Nelson <anelson@novell.com>
 
 =head1 NAME
 
@@ -51,19 +52,25 @@ use Bugzilla::Error;
 use Bugzilla::User;
 use Bugzilla::Config;
 
+use JSON;
+
+use base qw(Exporter Bugzilla::Object);
+@Bugzilla::Bug::EXPORT = qw(check_environment);
+
 ###############################
 ####    Initialization     ####
 ###############################
 
 =head1 FIELDS
-
     environment_id
     product_id
     name
     isactive
 
 =cut
-
+use constant DB_TABLE   => "test_environments";
+use constant NAME_FIELD => "name";
+use constant ID_FIELD   => "environment_id";
 use constant DB_COLUMNS => qw(
     environment_id
     product_id
@@ -71,88 +78,126 @@ use constant DB_COLUMNS => qw(
     isactive
 );
 
+use constant REQUIRED_CREATE_FIELDS => qw(name product_id);
+use constant UPDATE_COLUMNS         => qw(name product_id isactive);
+
+use constant VALIDATORS => {
+    product_id => \&_check_product,
+    isactive   => \&_check_isactive,
+};
+
 our constant $max_depth = 7;
+
+###############################
+####       Validators      ####
+###############################
+sub _check_product {
+    my ($invocant, $product_id) = @_;
+
+    $product_id = trim($product_id);
+    
+    my $product = Bugzilla::Testopia::Product->new($product_id);
+    ThrowUserError("testopia-create-denied", {'object' => 'environment'}) unless $product->canedit;
+    if (ref $invocant){
+        $invocant->{'product'} = $product; 
+        return $product->id;
+    } 
+
+    return $product;
+}
+sub _check_isactive {
+    my ($invocant, $isactive) = @_;
+    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
+    return $isactive;
+}
+sub _check_name {
+    my ($invocant, $name, $product_id) = @_;
+    
+    $name = clean_text($name) if $name;
+    trick_taint($name);
+    if (!defined $name || $name eq '') {
+        ThrowUserError('testopia-missing-required-field', {'field' => 'name'});
+    }
+
+    # Check that we don't already have a environment with that name in this product.    
+    my $orig_id = check_environment($name, $product_id);
+    my $notunique;
+
+    if (ref $invocant){
+        # If updating, we have matched ourself at least
+        $notunique = 1 if (($orig_id && $orig_id != $invocant->id))
+    }
+    else {
+        # In new environment any match is one too many
+        $notunique = 1 if $orig_id;
+    }
+
+    ThrowUserError('testopia-name-not-unique', 
+                  {'object' => 'Environment', 
+                   'name' => $name}) if $notunique;
+               
+    return $name;
+}
+
+###############################
+####       Mutators        ####
+###############################
+sub set_isactive    { $_[0]->set('isactive', $_[1]); }
+sub set_name { 
+    my ($self, $value) = @_;
+    $value = $self->_check_name($value, $self->product_id);
+    $self->set('name', $value); 
+}
+
+sub new {
+    my $invocant = shift;
+    my $class = ref($invocant) || $invocant;
+    my $param = shift;
+    
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        if (!keys %$param || $param->{PREVALIDATED}){
+            bless($param, $class);
+            return $param;
+        }
+    }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
+}
+
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $product = $params->{product_id};
+    
+    $params->{name} = $class->_check_name($params->{name}, ref $product ? $product->id : $product);
+    
+    return $params;
+}
+
+sub create {
+    my ($class, $params) = @_;
+
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    
+    $field_values->{isactive}  = 1;
+    $field_values->{product_id} = ref $field_values->{product_id} ? $field_values->{product_id}->id : $field_values->{product_id};
+    my $self = $class->SUPER::insert_create_data($field_values);
+    
+    return $self;
+}
 
 ###############################
 ####       Methods         ####
 ###############################
 
 =head1 METHODS
-
-=head2 new
-
-Instantiates a new Environment object
-
-=cut
-
-sub new {
-    my $invocant = shift;
-    my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
-}
-
-=head2 _init
-
-Private constructor for the environment class
-
-=cut
-
-sub _init {
-    my $self = shift;
-    my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH' || ref $param eq 'Bugzilla::Testopia::Environment::Xml');
-    my $obj;
-    
-    if (defined $id && detaint_natural($id)) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns 
-            FROM test_environments 
-            WHERE environment_id = ?}, undef, ($id));
-     
-    } elsif (ref $param eq 'HASH' || ref $param eq 'Bugzilla::Testopia::Environment::Xml'){
-         $obj = $param;   
-    }
-
-    return undef unless (defined $obj);
-
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
-    
-    if(! ref $obj eq 'Bugzilla::Testopia::Environment::Xml'){  
-    
-        $self->get_environment_elements();    
-        my @elements = $self->{'elements'};
-    
-        foreach my $elem (@elements)
-        {
-            foreach my $element (@$elem)
-            {
-        
-                my $elem_id = $element->{'element_id'};
-                my @properties = $element->{'properties'};
-            
-                foreach my $prop (@properties)
-                {
-                    foreach my $property (@$prop)
-                    {
-                        my $prop_id = $property->{'property_id'};
-                        $property->{'value_selected'} = $self->get_value_selected($self->{'environment_id'},$elem_id,$prop_id);
-                    }
-                }
-            }
-        }
-    }
-    
-    return $self;
-}
-
 
 =head2 get element list for environment
 
@@ -195,25 +240,137 @@ sub elements_to_json {
     my $self = shift;
 
     my $elements = $self->get_environment_elements;
-    my $json = '[';
-    
+            
+    my @environments; 
+        
     foreach my $element (@$elements)
     {
-        $json .= '{title:"'. $element->{'name'} .'",';
-        $json .=  'objectId:"'. $element->{'element_id'}. '",';
-        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
-        $json .=  'actionsDisabled:["addCategory","addValue","addChild"';
-        $json .=  ',"remove"' unless $self->canedit;
-        $json .=  '],';
-        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
-        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
+        my $leaf;
+        if($element->check_for_children || $element->check_for_properties)
+        {
+            $leaf = 'false';
+        }
+            
+        else
+        {
+            $leaf = 'true';
+        }
+        
+        push @environments, {text=> $element->{'name'}, id=> $element->{'element_id'}, type=> 'element', leaf => $leaf, cls => 'element'};
     }
-    chop $json;
-    $json .= ']';
-
-    return $json;   
+    
+    my $json = new JSON; 
+    return trim($json->objToJson(\@environments));
+    
+    
+#    my $json = '[';
+#    
+#    foreach my $element (@$elements)
+#    {
+#        $json .= '{title:"'. $element->{'name'} .'",';
+#        $json .=  'objectId:"'. $element->{'element_id'}. '",';
+#        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
+#        $json .=  'actionsDisabled:["addCategory","addValue","addChild"';
+#        $json .=  ',"remove"' unless $self->canedit;
+#        $json .=  '],';
+#        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
+#        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
+#    }
+#    chop $json;
+#    $json .= ']';
+#
+#    return $json;   
 }
 
+sub categories_to_json {
+    my $self = shift;
+
+    my $elements = $self->get_environment_elements;
+            
+    my @environments; 
+    my %categoryHash;
+    
+    foreach my $element (@$elements){
+        if ($element->is_parent_a_category()){
+            my $parent = $element->get_parent();
+            my $hash_key = $parent->id;
+             
+            #the category already exists in the hash
+            if(exists $categoryHash{$hash_key}){
+                #do nothing right now
+            }
+             
+            #otherwise make a new hash category
+            else{
+                my @elementsArray;
+                push @elementsArray, {text=> $parent->{'name'}, id=> $parent->id . ' category', type=> 'category', leaf=> 'false', cls => 'category'};
+                
+                my $leaf;
+                if($element->check_for_children || $element->check_for_properties){
+                    $leaf = 'false';
+                }
+                else{
+                    $leaf = 'true';
+                }
+                 
+                push @elementsArray, {
+                    text => $element->{'name'}, 
+                    id   => $element->{'id'} . ' element', 
+                    type => 'element', 
+                    leaf => $leaf,
+                    allowDrop => 'false',
+                    cls  => 'element'
+                }; 
+                 
+            $categoryHash{$hash_key} = \@elementsArray;                
+            }                     
+         }
+         
+         #push the element onto the hash without a category
+         else{
+             my @elementsArray;
+             my $leaf;
+             if ($element->check_for_children || $element->check_for_properties){
+                $leaf = 'false';
+             }
+             else{
+                $leaf = 'true';
+             }
+                 
+             push @elementsArray, {
+                 text => $element->{'name'}, 
+                 id   => $element->{'element_id'} . ' element', 
+                 type => 'element', 
+                 allowDrop => 'false',
+                 leaf => $leaf, 
+                 cls  => 'element'
+             };
+                
+             $categoryHash{$element->{'element_id'} . "e"} = \@elementsArray;        
+         }
+    }
+    
+    my $json = new JSON; 
+
+    #use Data::Dumper;
+    #print Dumper(\%categoryHash);
+
+
+    my $firstloop = 1;
+    print "[";
+    for my $key (keys %categoryHash){    
+        if($firstloop == 0){
+            print ",";
+        }
+
+        my @elementsArray = @{$categoryHash{$key}};
+        print $json->objToJson($elementsArray[0]);
+             
+        $firstloop = 0;
+    }
+    print "]";
+    return;
+}
 
 =head2 get_value_selected
 
@@ -341,6 +498,27 @@ sub get_all_elements{
        return \@elements;             
 }
 
+sub get_elements_for_environment(){
+    my $dbh = Bugzilla->dbh;
+    my $self = shift;
+    
+    my $ref = $dbh->selectcol_arrayref(
+            "SELECT tee.element_id 
+               FROM test_environment_map as tem
+               JOIN test_environment_element as tee
+                 ON tem.element_id = tee.element_id
+                 where environment_id = ?",
+                 undef, ($self->id));
+    
+    my @elements;
+
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
+    }   
+             
+       return \@elements;    
+}
+
 =head2 check environment name
 
 Returns environment id if environment exists
@@ -348,9 +526,8 @@ Returns environment id if environment exists
 =cut
 
 sub check_environment{
-    my $self = shift;
     my ($name, $product_id) = (@_);
-    
+  
     my $dbh = Bugzilla->dbh;
 
     my ($used) = $dbh->selectrow_array(
@@ -398,7 +575,7 @@ sub store {
     my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
 
     #Verify Environment isn't already in use.
-    return undef if $self->check_environment($self->{'name'}, $self->{'product_id'});
+    return undef if check_environment($self->{'name'}, $self->{'product_id'});
     
     my $dbh = Bugzilla->dbh;
     $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
@@ -435,27 +612,23 @@ sub store_property_value {
     return 1;
 }
 
-=head2 store environment name
-
-Serializes the environment name to the database
-
-=cut
-
-sub store_environment_name {
+sub to_json {
     my $self = shift;
-    my ($name, $product_id) = (@_);
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
-
-    return undef if $self->check_environment($name, $product_id);
+    my $obj;
+    my $json = new JSON;
     
-    my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
-              undef, ($product_id, $name, 1));
-    return $dbh->bz_last_key( 'test_environments', 'environment_id' );
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    
+    $obj->{'product_name'}   = $self->product->name;
+    $obj->{'case_run_count'}   = $self->case_run_count;
+    $obj->{'run_count'}  = $self->get_run_count;
+    
+    return $json->objToJson($obj); 
 }
-
 =head2 update
 
 Updates this environment object in the database.
@@ -466,30 +639,12 @@ an environment.
 
 sub update {
     my $self = shift;
-    my ($newvalues) = @_;
     my $dbh = Bugzilla->dbh;
-    my $product_id;
 
     $dbh->bz_lock_tables('test_environments WRITE');
-    foreach my $field (keys %{$newvalues}){
-        if ($self->{$field} ne $newvalues->{$field}){
-            # If the new name is already in use, return.
-            $product_id = $newvalues->{'product_id'} || $self->{'product_id'};
-            unless ($product_id) {
-                $dbh->bz_unlock_tables;
-                return 0;
-            }
-            if ($field eq 'name' && $self->check_environment($newvalues->{'name'}, $product_id)) {
-                $dbh->bz_unlock_tables;
-                return 0;
-            }
-            trick_taint($newvalues->{$field});
-            $dbh->do("UPDATE test_environments 
-                      SET $field = ? WHERE environment_id = ?",
-                      undef, $newvalues->{$field}, $self->{'environment_id'});
-            $self->{$field} = $newvalues->{$field};     
-        }
-    }
+    
+    $self->SUPER::update();
+    
     $dbh->bz_unlock_tables;
 
     my $elements = $self->{'elements'};
@@ -581,6 +736,24 @@ sub delete_element {
               
 }
 
+sub element_is_mapped{
+    my $self = shift;
+    my ($element_id) = @_;
+    my $dbh = Bugzilla->dbh;
+    
+    $dbh->selectcol_arrayref("SELECT * FROM test_environment_map
+              WHERE environment_id = ? AND element_id = ?",
+              undef,($self->id, $element_id));
+              
+     if($dbh)
+     {
+         return 1;
+     }
+     
+     return 0;
+   
+}
+
 =head2 obliterate
 
 Completely removes this environment from the database.
@@ -602,6 +775,32 @@ sub obliterate {
     $dbh->do("DELETE FROM test_environment_map WHERE environment_id = ?", undef, $self->id);
     $dbh->do("DELETE FROM test_environments WHERE environment_id = ?", undef, $self->id);
     return 1;
+}
+
+sub clone {
+    my $self = shift;
+    my ($name, $product) = @_;
+    my $dbh = Bugzilla->dbh;
+    
+    my $new = $self->create({
+        name => $name,
+        product_id => $product
+    });  
+    
+    my $ref = $dbh->selectall_arrayref(
+        "SELECT * FROM test_environment_map
+          WHERE environment_id = ?",{'Slice' => {}}, $self->id);
+    
+    my $sth = $dbh->prepare_cached(
+        "INSERT INTO test_environment_map 
+         (environment_id, property_id, element_id, value_selected)
+         VALUES (?,?,?,?)");
+    
+    foreach my $row (@$ref){
+        $sth->execute($new->id, $row->{'property_id'}, $row->{'element_id'}, $row->{'value_selected'})
+    }
+    
+    return $new->id;
 }
 
 =head2 get_run_list

@@ -30,7 +30,7 @@ use Bugzilla::Testopia::Environment;
 
 sub environments {
     my $self = shift;
-    my($active) = @_;
+    my($active, $current) = @_;
     my $dbh = Bugzilla->dbh;
     
     return $self->{'environments'} if defined $self->{'environments'};
@@ -38,8 +38,16 @@ sub environments {
     my $query = "SELECT environment_id"; 
        $query .= " FROM test_environments";
        $query .= " WHERE product_id = ?";
-       $query .= " AND isactive = 1" if $active;          
-    my $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
+       $query .= " AND isactive = 1 OR environment_id = ?" if $active;          
+
+    my $ref;
+    if ($active && $current){
+        $ref = $dbh->selectcol_arrayref($query, undef, ($self->{'id'}, $current));
+    }
+    else{
+        $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
+    }
+
     my @objs;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Environment->new($id);
@@ -50,14 +58,21 @@ sub environments {
 
 sub builds {
     my $self = shift;
-    my($active) = @_;
+    my($active, $current) = @_;
     my $dbh = Bugzilla->dbh;
     
     my $query = "SELECT build_id FROM test_builds WHERE product_id = ?";
-    $query .= " AND isactive = 1" if $active; 
+    $query .= " AND isactive = 1 OR build_id = ?" if $active; 
     $query .= " ORDER BY name";
     
-    my $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
+    my $ref;
+    if ($active && $current){
+        $ref = $dbh->selectcol_arrayref($query, undef, ($self->{'id'}, $current));
+    }
+    else{
+        $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
+    }
+
     my @objs;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Build->new($id);
@@ -100,6 +115,43 @@ sub plans {
     }
     $self->{'plans'} = \@objs;
     return $self->{'plans'};
+}
+
+sub cases {
+    my ($self) = @_;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'cases'} if exists $self->{'cases'};
+    my $caseids = $dbh->selectcol_arrayref(
+        "SELECT case_id FROM test_case_plans
+          INNER JOIN test_plans on test_case_plans.plan_id = test_plans.plan_id
+          WHERE test_plans.product_id = ?", 
+         undef, $self->id);
+    my @cases;
+    foreach my $id (@{$caseids}){
+        push @cases, Bugzilla::Testopia::TestCase->new($id);
+    }
+
+    $self->{'cases'} = \@cases;
+    return $self->{'cases'};
+}
+
+sub runs {
+    my ($self) = @_;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'runs'} if exists $self->{'runs'};
+
+    my $runids = $dbh->selectcol_arrayref(
+        "SELECT run_id FROM test_runs
+          INNER JOIN test_plans ON test_runs.plan_id = test_plans.plan_id
+          WHERE test_plans.product_id = ?", 
+         undef, $self->id);
+    my @runs;
+    foreach my $id (@{$runids}){
+        push @runs, Bugzilla::Testopia::TestRun->new($id);
+    }
+    
+    $self->{'runs'} = \@runs;
+    return $self->{'runs'};
 }
 
 sub environment_categories {
@@ -220,5 +272,25 @@ sub canedit {
     return 0;
 }
 
+sub to_json {
+	my $self = shift;
+	my $cgi  = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $field =~ s/product\.//;
+        $obj->{$field} = $self->{$field};
+    }
+    
+    # Add the calculated fields
+    $obj->{'type'}         = $self->type;
+    $obj->{'id'}           = $self->id;
+    $obj->{'canedit'}      = $self->canedit;
+    
+    return $json->objToJson($obj); 
+}
 
 1;

@@ -29,6 +29,8 @@ use Bugzilla::Util;
 use Bugzilla::User;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Search;
+use Bugzilla::Testopia::Table;
 use JSON;
 
 ###############################################################################
@@ -56,7 +58,7 @@ my $template = Bugzilla->template;
 print $cgi->header;
 
 my $action = $cgi->param('action') || '';
-my @plan_id = $cgi->param('plan_id');
+my @plan_id = split(',', $cgi->param('plan_id'));
 
 unless ($plan_id[0]){
   $vars->{'product'} = Bugzilla::Testopia::Product->new({'name' => $cgi->param('product')}) if ($cgi->param('product'));
@@ -92,15 +94,15 @@ foreach my $id (keys %seen){
 
 # We need at least one category in the list.
 ThrowUserError('testopia-create-category', {'plan' => $plans[0] }) if scalar @categories < 1;
-
-if ($action eq 'Add'){
-    my @comps = $cgi->param("components");
+if ($action eq 'add'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    my @comps = split(',', $cgi->param("components"));
     my $case = Bugzilla::Testopia::TestCase->create({
             'alias'          => $cgi->param('alias'),
             'case_status_id' => $cgi->param('status'),
             'category_id'    => $cgi->param('category'),
             'priority_id'    => $cgi->param('priority'),
-            'isautomated'    => $cgi->param("isautomated"),
+            'isautomated'    => $cgi->param("isautomated") eq 'on' ? 1 : 0,
             'estimated_time' => $cgi->param("estimated_time"),
             'script'         => $cgi->param("script"),
             'arguments'      => $cgi->param("arguments"),
@@ -108,10 +110,10 @@ if ($action eq 'Add'){
             'requirement'    => $cgi->param("requirement"),
             'default_tester_id' => $cgi->param("tester"),
             'author_id'      => Bugzilla->user->id,
-            'action'         => $cgi->param("tcaction"),
-            'effect'         => $cgi->param("tceffect"),
-            'setup'          => $cgi->param("tcsetup"),
-            'breakdown'      => $cgi->param("tcbreakdown"),
+            'action'         => $cgi->param("tcaction") || '',
+            'effect'         => $cgi->param("tceffect") || '',
+            'setup'          => $cgi->param("tcsetup") || '',
+            'breakdown'      => $cgi->param("tcbreakdown") || '',
             'dependson'      => $cgi->param("tcdependson"),
             'blocks'         => $cgi->param("tcblocks"),
             'tags'           => $cgi->param('addtags'),
@@ -121,23 +123,40 @@ if ($action eq 'Add'){
             'components'     => \@comps,
             
     });
-
-    $vars->{'action'} = "Commit";
-    $vars->{'form_action'} = "tr_show_case.cgi";
-    $vars->{'case'} = $case;
-    $vars->{'tr_message'} = "Case ". $case->id ." Created. 
-        <a href=\"tr_new_case.cgi?plan_id=" . join(",", @plan_ids) . "\">Add another</a>";
-    $vars->{'backlink'} = $case;
-    $template->process("testopia/case/show.html.tmpl", $vars) ||
-        ThrowTemplateError($template->error());
     
+    my $err = 'false';
+    for (my $i=1; $i<5; $i++){
+        next unless defined $cgi->upload("file$i");
+            
+        my $fh = $cgi->upload("file$i");
+        my $data;
+        # enable 'slurp' mode
+        local $/;
+        $data = <$fh>;
+        Bugzilla->error_mode(ERROR_MODE_DIE);
+        eval {
+            $data || ThrowUserError("zero_length_file");
+            my $attachment = Bugzilla::Testopia::Attachment->create({
+                                case_id      => $case->id,
+                                submitter_id => Bugzilla->user->id,
+                                description  => $cgi->param("file_desc$1") || 'Attachment',
+                                filename     => $cgi->upload("file$i"),
+                                mime_type    => $cgi->uploadInfo($cgi->param("file$i"))->{'Content-Type'},
+                                contents     => $data
+            });
+        };
+        if ($@){
+            $err = 'true';
+        }
+    }
+
+    print "{success: true, tc: '". $case->id ."', err: $err}";    
 }
 
 ####################
 ### Display Form ###
 ####################
 else {
-    
     my $summary;
     my $text;
     if( $cgi->param('bug')){
@@ -145,7 +164,7 @@ else {
         $bug = Bugzilla::Bug->new($cgi->param('bug'),Bugzilla->user->id);
         
         my $bug_id = $bug->bug_id;
-        my $description = ${$bug->GetComments}[0];
+        my $description = '<br><pre>' . wrap_comment(@{Bugzilla::Bug::GetComments($bug_id,'oldest_to_newest')}[0]->{'body'}) . '</pre>';
         my $short_desc = $bug->short_desc; 
         
         $summary   = Bugzilla->params->{"bug-to-test-case-summary"};
@@ -170,21 +189,15 @@ else {
     }
         
     my $case = Bugzilla::Testopia::TestCase->new(
-                        {'plans' => \@plans,
+                        {'plans' => join(',', @plan_ids),
                          'category' => {name => '--default--'}, 
                          'summary' =>  $summary,
                          'text' => $text,
     });
-    my @comps;
-    foreach my $comp (@{$case->get_selectable_components(1)}){
-        push @comps, $comp->default_qa_contact->login;
-    }
     
-    $vars->{'case'} = $case;
+    $vars->{'tc'} = $case;
+    $vars->{'product_id'} = $plans[0]->product_id;
     
-    $vars->{'components'} = objToJson(\@comps);
-    $vars->{'action'} = "Add";
-    $vars->{'form_action'} = "tr_new_case.cgi";
     $template->process("testopia/case/add.html.tmpl", $vars) ||
         ThrowTemplateError($template->error());
 }

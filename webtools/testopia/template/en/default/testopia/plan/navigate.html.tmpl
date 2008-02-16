@@ -20,7 +20,10 @@
   #                 Greg Hendricks <ghendricks@novell.com>
   #%]
   
-[% list = case_table.get_saved_list('plan') %]
+<a href="tr_show_product.cgi?product_id=[% plan.product_id FILTER none %]">Product: [% plan.product.name FILTER html %]</a>
+&nbsp;&gt;&nbsp; Plan [% plan.id FILTER html %]
+<br/>
+[% list = table.get_saved_list('plan') %]
 <b>Plan List:</b>
 [% IF list > 0 %]
 [% curr = lsearch(list, plan.id) %]

@@ -28,6 +28,7 @@ use Bugzilla;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Constants;
+use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Classification;
 use Bugzilla::Testopia::TestPlan;
@@ -44,6 +45,7 @@ local our $cgi = Bugzilla->cgi;
 local our $template = Bugzilla->template;
 
 Bugzilla->login(LOGIN_REQUIRED);
+Bugzilla->error_mode(ERROR_MODE_AJAX);
 
 sub get_searchable_objects{
     my $object = shift;
@@ -107,12 +109,10 @@ sub get_searchable_objects{
     return $ref;             
 }
 
-
-print $cgi->header;
-
 my $action = $cgi->param('action') || '';
     
 if ($action eq 'getversions'){
+    print $cgi->header;
     my @prod_ids = split(",", $cgi->param('prod_ids'));
     my $tab = $cgi->param('current_tab') || '';
     my $plan = Bugzilla::Testopia::TestPlan->new({});
@@ -124,6 +124,10 @@ if ($action eq 'getversions'){
         validate_selection($p,'id','products');
         my $prod = $plan->lookup_product($p);
         push @validated, $p if Bugzilla->user->can_see_product($prod);
+    }
+    unless (scalar @validated > 0){
+        print "{}";
+        exit; 
     }
     my $prod_ids = join(",", @validated);
     my $dbh = Bugzilla->dbh;
@@ -139,10 +143,11 @@ if ($action eq 'getversions'){
 
     my $json = new JSON;
     $json->autoconv(0);
-    print $json->objToJson($products);
+    print "{'success': true, objects: " .  $json->objToJson($products) . "}";
 }
 
 elsif ($action eq 'get_products'){
+    print $cgi->header;
     my @prod;
     if (Bugzilla->params->{'useclassification'}){
         my @classes = $cgi->param('class_ids');
@@ -164,6 +169,7 @@ elsif ($action eq 'get_products'){
 }
 
 elsif ($action eq 'get_categories'){
+    print $cgi->header;
     my @prod_ids = $cgi->param('prod_id');
     my $ret;
     
@@ -180,6 +186,7 @@ elsif ($action eq 'get_categories'){
     print $ret;
 }
 elsif ($action eq 'get_elements'){
+    print $cgi->header;
     my @cat_ids = $cgi->param('cat_id');
     my $ret;
     my @elmnts;
@@ -203,6 +210,7 @@ elsif ($action eq 'get_elements'){
 }
 
 elsif ($action eq 'get_properties'){
+    print $cgi->header;
     my @elmnt_ids = $cgi->param('elmnt_id');
     my $ret;
     
@@ -220,6 +228,7 @@ elsif ($action eq 'get_properties'){
     print $ret;
 }
 elsif ($action eq 'get_valid_exp'){
+    print $cgi->header;
     my @prop_ids = $cgi->param('prop_id');
     my $ret;
     
@@ -238,13 +247,17 @@ elsif ($action eq 'get_valid_exp'){
     print $ret;
 }
 elsif ($action eq 'save_query'){
+    print $cgi->header;
     my $query = $cgi->param('query_part');
     my $qname = $cgi->param('query_name');
+    my $type = $cgi->param('type');
     
     ThrowUserError('query_name_missing') unless $qname;
     
     trick_taint($query);
     trick_taint($qname);
+    detaint_natural($type);
+    $type ||= SAVED_SEARCH;
      
     my ($name) = $dbh->selectrow_array(
         "SELECT name 
@@ -266,14 +279,16 @@ elsif ($action eq 'save_query'){
         my $quoted_qname = url_quote($qname);
         $query .= "&qname=$quoted_qname";
         $dbh->do("INSERT INTO test_named_queries 
-                  VALUES(?,?,?,?)",
-                  undef, (Bugzilla->user->id, $qname, 1, $query)); 
+                  VALUES(?,?,?,?,?)",
+                  undef, (Bugzilla->user->id, $qname, 1, $query, $type)); 
         
         $vars->{'tr_message'} = "Search saved as '$qname'";
     }
-    display();             
+    
+    print "{'success': true}";
 }
 elsif ($action eq 'delete_query'){
+    print $cgi->header;
     my $qname = $cgi->param('query_name');
     
     trick_taint($qname);
@@ -281,14 +296,30 @@ elsif ($action eq 'delete_query'){
     $dbh->do("DELETE FROM test_named_queries WHERE userid = ? AND name = ?",
     undef, (Bugzilla->user->id, $qname));
     $vars->{'tr_message'} = "Testopia Saved Search '$qname' Deleted";
-    display();
-}
-else{
-    display();
+    
+    print "{'success': true}";
 }
 
-sub display {
+elsif ($action eq 'get_saved_searches'){
+    print $cgi->header;
+    my $type = $cgi->param('type');
+    detaint_natural($type);
+    $type ||= SAVED_SEARCH;
     
+    my $ref = $dbh->selectall_arrayref(
+        "SELECT tnq.name, query, profiles.realname AS author, type
+           FROM test_named_queries AS tnq
+           INNER JOIN profiles ON tnq.userid = profiles.userid
+          WHERE tnq.userid = ? AND isvisible = 1 
+            AND type = ?",
+            {'Slice' =>{}} ,(Bugzilla->user->id, $type));
+    
+    print $cgi->header;
+    print "{'searches':" . objToJson($ref) . "}";
+}
+
+else{
+   
     #TODO: Support default query
     my $tab = $cgi->param('current_tab') || '';
     if ($tab eq 'plan'){
@@ -323,7 +354,7 @@ sub display {
         $vars->{'components'}   = get_searchable_objects('components');
         $vars->{'categories'}   = get_searchable_objects('categories');
     }
-    else { # show the case form
+    elsif ($tab eq 'case') {
         $tab = 'case';
         my $case = Bugzilla::Testopia::TestCase->new({ 'case_id' => 0 });
         $vars->{'title'} = "Search For Test Cases";
@@ -331,6 +362,11 @@ sub display {
         $vars->{'components'} = get_searchable_objects('components');
         $vars->{'categories'} = get_searchable_objects('categories');
     }
+    else{
+        print "Location: tr_show_product.cgi?search=1 \n\n";
+        exit;
+    }
+    print $cgi->header;
     $vars->{'report'} = $cgi->param('report');
     $vars->{'current_tab'} = $tab;
     $template->process("testopia/search/advanced.html.tmpl", $vars)

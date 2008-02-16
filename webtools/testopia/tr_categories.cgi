@@ -26,71 +26,52 @@ use Bugzilla;
 use Bugzilla::Util;
 use Bugzilla::Constants;
 use Bugzilla::Error;
-use Bugzilla::Config;
-use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Category;
-use Bugzilla::Testopia::Search;
-use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::Util;
+use JSON;
 
+Bugzilla->error_mode(ERROR_MODE_AJAX);
 Bugzilla->login(LOGIN_REQUIRED);
 
-local our $vars = {};
-local our $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
-
-print $cgi->header;
 
 my $action =  $cgi->param('action') || '';
 my $product_id = $cgi->param('product_id');
 
+print "Location: tr_show_product.cgi?tab=category\n\n" unless $action;
+
+print $cgi->header;
+
 ThrowUserError("testopia-missing-parameter", {param => "product_id"}) unless $product_id;
+
 my $product = Bugzilla::Testopia::Product->new($product_id);
 ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
-
-$vars->{'plan_id'} = $cgi->param('plan_id');
-$vars->{'product'} = $product;  
 
 #########################
 ### Create a Category ###
 #########################
-if ($action eq 'add'){
-    $vars->{'action'} = 'do_add';
-    $template->process("testopia/category/form.html.tmpl", $vars) 
-      || ThrowTemplateError($template->error());
-}
 
-elsif ($action eq 'do_add'){
+if ($action eq 'add'){
     my $category = Bugzilla::Testopia::Category->create({
                           product_id  => $product->id,
                           name        => $cgi->param('name'),
                           description => $cgi->param('desc'),
                    });
 
-    $vars->{'tr_message'} = "Category successfully added";
-    display();                                        
+    print "{success: true, category_id: ". $category->id . "}";
 }
 
 #######################
 ### Edit a Category ###
 #######################
 elsif ($action eq 'edit'){
-    $vars->{'category'} = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
-    $vars->{'action'} = 'do_edit';
-    $template->process("testopia/category/form.html.tmpl", $vars) 
-      || ThrowTemplateError($template->error());
-
-}
-elsif ($action eq 'do_edit'){
     my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     
-    $category->set_name($cgi->param('name'));
-    $category->set_description($cgi->param('desc'));
+    $category->set_name($cgi->param('name')) if $cgi->param('name');
+    $category->set_description($cgi->param('description')) if $cgi->param('description');
 
     $category->update;
-    $vars->{'tr_message'} = "Category successfully updated";
-    display();
-
+    print "{success: true}";
 }
 
 #########################
@@ -99,30 +80,20 @@ elsif ($action eq 'do_edit'){
 elsif ($action eq 'delete'){
     my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     ThrowUserError("testopia-non-zero-case-count") unless $category->candelete;
-
-    $vars->{'category'} = $category;
-    $template->process("testopia/category/delete.html.tmpl", $vars) 
-      || ThrowTemplateError($template->error());
-}
-elsif ($action eq 'do_delete'){
-    my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
-    ThrowUserError("testopia-non-zero-case-count") unless $category->candelete;
     
     $category->remove;
 
-    $vars->{'tr_message'} = "Category successfully removed";
-    display();
+    print "{success: true}";
 
 }
-############################
-### View plan Categories ###
-############################
-else {
-    display();
-}
 
-
-sub display{
-    $template->process("testopia/category/list.html.tmpl", $vars) 
-      || ThrowTemplateError($template->error());
+elsif ($action eq 'list'){
+    my $json = new JSON;
+    
+    my $out;
+    $out .= $_->to_json . ',' foreach (@{$product->categories()});
+    chop ($out); # remove the trailing comma for IE
+    
+    print "{categories:[$out]}";
+    
 }

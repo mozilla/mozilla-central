@@ -46,6 +46,12 @@ REL_TEST_CC
 
 TR_RELATIONSHIPS
 
+CASE_RUN_STATUSES
+
+SAVED_SEARCH
+SAVED_REPORT
+SAVED_FILTER
+
 );
 
 #
@@ -94,11 +100,18 @@ use constant RUNNING => 4;
 use constant PAUSED  => 5;
 use constant BLOCKED => 6;
 
+use constant CASE_RUN_STATUSES => IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED;
+ 
 # Test Plan Permissions (bit flags)
 use constant TR_READ    => 1;
 use constant TR_WRITE   => 2;
 use constant TR_DELETE  => 4;
 use constant TR_ADMIN   => 8;
+
+# Save search types
+use constant SAVED_SEARCH => 0;
+use constant SAVED_REPORT => 1;
+use constant SAVED_FILTER => 2;
 
 use constant REL_AUTHOR             => 0;
 use constant REL_EDITOR             => 1;

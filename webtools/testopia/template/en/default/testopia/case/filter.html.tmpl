@@ -18,8 +18,9 @@
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #%]
 
-<h3>Filter</h3>
-<form id="filter" method="GET" action="[% table.url_loc %]">
+[% PROCESS testopia/blocks.html.tmpl %]
+
+<form id="case_filter" method="GET">
   <input type="hidden" name="plan_id" value="[% plan.id FILTER none %]" />
   <input type="hidden" name="addrun" value="[% addrun FILTER none %]" />
   <input type="hidden" name="case_status" value="CONFIRMED" />
@@ -38,14 +39,14 @@
                     elements  => 5,
                     mult      => 1 } %]   
       </td>
-      <td style="padding-right: 30px;">
+      <td>
       [% PROCESS select sel = { name  => 'priority_id',
                     accesskey => 'p', 
                     list      => case.get_priority_list
                     elements  => 5,
                     mult      => 1 } %]
       </td>
-      <td style="padding-right: 30px;">
+      <td>
       [% PROCESS select sel = { name  => 'component',
                     accesskey => 'm', 
                     list      => plan.product.components
@@ -72,12 +73,8 @@
       <tr>
         <th align="right" class="bz_row_header">Tags:</th>
         <td><input type="hidden" name="tags_type" value="anyexact" />
-            <input id="tags" name="tags"
-                   autocomplete="false"
-                   dojoType="combobox" 
-                   dataUrl="tr_quicksearch.cgi?action=gettag&product_id=[% plan.product_id FILTER none %]&search=${searchString}" 
-                   mode="remote"
-                   maxListLength="10"></td>
+            <input id="tags" name="tags">
+        </td>
       </tr>
       <tr>
         <th align="right" class="bz_row_header">Default Tester Contains:</th>
@@ -86,7 +83,6 @@
       </tr>
       </table>
       </td>
-      <td valign="bottom"><input type="submit" value="Filter"/></td>
     </tr>
   </table>
 </form>

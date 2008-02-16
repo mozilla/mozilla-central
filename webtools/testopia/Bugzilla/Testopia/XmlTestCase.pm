@@ -185,7 +185,7 @@ sub get_testcase_ids {
     
     foreach my $testcase_summary ( @{$self->$field->get(uc $Bugzilla::Testopia::Xml::XML_DESCRIPTION)} ) {
         foreach my $testcase (@new_testcases) {
-            push @testcase_id, $testcase->testcase->id() if ( $testcase->testcase->summary() eq $testcase_summary );
+            push @testcase_id, $testcase->testcase->{'case_id'} if ( $testcase->testcase->{'summary'} eq $testcase_summary );
         }
     }
     
@@ -282,17 +282,16 @@ sub store {
     foreach my $testplan ( @testplan ) {
         $case->link_plan($testplan->id(),$case->id)
     }
-    
+
     # Code below requires the testplans to be linked into testcases before being run.
-    foreach my $component_id ( @{$self->component_ids} ) {
-        $case->add_component($component_id);
-    }
+    $case->add_component($self->component_ids);
     
     return $error_message;
 }
 
 sub store_relationships {
     my ($self, @new_testcases) = @_;
+    my $testcase = Bugzilla::Testopia::TestCase->new($self->testcase->{'case_id'});
 
     # Hashes are used because the entires in blocks and dependson must be unique.
     my %blocks = ();
@@ -310,17 +309,17 @@ sub store_relationships {
     if ( ( $blocks_size > 0 ) || ( $dependson_size > 0 ) ) {
         # Need to add the current blocks and dependson from the Test Case; otherwise, they will
         # be removed.
-        foreach my $block ( split(/ /,$self->testcase->blocked_list_uncached()) ) {
+        foreach my $block ( split(/ /,$testcase->blocked_list_uncached()) ) {
             $blocks{$block}++;
         }
 
-        foreach my $dependson ( split(/ /,$self->testcase->dependson_list_uncached()) ) {
+        foreach my $dependson ( split(/ /,$testcase->dependson_list_uncached()) ) {
             $dependson{$dependson}++;
         }
 
         my @blocks = keys(%blocks);
         my @dependson = keys(%dependson);
-        $self->testcase->update_deps( join(' ',@dependson ),join(' ',@blocks) );
+        $testcase->update_deps( join(' ',@dependson ),join(' ',@blocks) );
     }
 }
 

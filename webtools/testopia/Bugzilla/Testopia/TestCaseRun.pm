@@ -18,28 +18,6 @@
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
-=head1 NAME
-
-Bugzilla::Testopia::TestCaseRun - Testopia Test Case Run object
-
-=head1 DESCRIPTION
-
-This module represents a test case run in Testopia. 
-A test case run is a record in the test_case_runs table which joins
-test cases to test runs. Basically, for each test run a selction of 
-test cases is made to be included in that run. As a test run 
-progresses, testers set statuses on each of the cases in the run.
-If the build is changed on a case-run with a status, a clone of that
-case-run is made in the table for historical purposes.
-
-=head1 SYNOPSIS
-
-use Bugzilla::Testopia::TestCaseRun;
-
- $caserun = Bugzilla::Testopia::TestCaseRun->new($caserun_id);
- $caserun = Bugzilla::Testopia::TestCaseRun->new(\%caserun_hash);
-
-=cut
 
 package Bugzilla::Testopia::TestCaseRun;
 
@@ -57,6 +35,8 @@ use Bugzilla::Bug;
 
 use Date::Format;
 use Date::Parse;
+
+use base qw(Exporter Bugzilla::Object);
 
 ###############################
 ####    Initialization     ####
@@ -80,7 +60,9 @@ use Date::Parse;
     sortkey
 
 =cut
-
+use constant DB_TABLE   => "test_case_runs";
+use constant ID_FIELD   => "case_run_id";
+use constant NAME_FIELD   => "";
 use constant DB_COLUMNS => qw(
     case_run_id
     run_id
@@ -97,6 +79,18 @@ use constant DB_COLUMNS => qw(
     iscurrent
     sortkey
 );
+
+use constant REQUIRED_CREATE_FIELDS => qw(case_id run_id build_id environment_id case_run_status_id);
+use constant UPDATE_COLUMNS         => qw(case_run_status_id case_text_version notes sortkey);
+
+use constant VALIDATORS => {
+    case_id            => \&_check_case_id,
+    build_id           => \&_check_build_id,
+    run_id             => \&_check_run_id,
+    environment_id     => \&_check_env_id,
+    case_text_version  => \&_check_case_text_version,
+    case_run_status_id => \&_check_case_run_status_id,
+};
 
 sub report_columns {
     my $self = shift;
@@ -121,153 +115,104 @@ sub report_columns {
     return \@result;     
         
 }
+###############################
+####       Validators      ####
+###############################
+sub _check_case_id {
+    my ($invocant, $id) = @_;
+    return Bugzilla::Testopia::Util::validate_test_id($id, 'case');
+}
+
+sub _check_run_id {
+    my ($invocant, $id) = @_;
+    return Bugzilla::Testopia::Util::validate_test_id($id, 'run');
+}
+
+sub _check_build_id {
+    my ($invocant, $id) = @_;
+    return Bugzilla::Testopia::Util::validate_test_id($id, 'build');
+}
+
+sub _check_env_id {
+    my ($invocant, $id) = @_;
+    return Bugzilla::Testopia::Util::validate_test_id($id, 'environment');
+}
+
+sub _check_case_run_status_id {
+    my ($invocant, $status) = @_;
+    $status = trim($status);
+    my $status_id;
+    if ($status =~ /^\d+$/){
+        $status_id = Bugzilla::Testopia::Util::validate_selection($status, 'case_run_status_id', 'test_case_run_status');
+    }
+    else {
+        $status_id = lookup_status_by_name($status);
+    }
+    ThrowUserError('invalid_status') unless $status_id;
+    return $status_id;
+}
+
+sub _check_case_text_version {
+    my ($invocant, $version) = @_;
+    return $version =~ /\d+/ ? $version : 1; 
+}
 
 ###############################
-####       Methods         ####
+####       Mutators        ####
 ###############################
-
-=head1 METHODS
-
-=head2 new
-
-Instantiate a new case run. This takes a single argument 
-either a test case ID or a reference to a hash containing keys 
-identical to a test case-run's fields and desired values.
-
-=cut
 
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
-    return $self->_init(@_);
-}
-
-=head2 _init
-
-Private constructor for this object
-
-=cut
-
-sub _init {
-    my $self = shift;
     my ($param, $run_id, $build_id, $env_id) = (@_);
     my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
-
-    my $id = $param unless (ref $param eq 'HASH');
-    my $obj;
-
-    if (defined $id && detaint_natural($id) && !$run_id) {
-
-        $obj = $dbh->selectrow_hashref(qq{
-            SELECT $columns FROM test_case_runs
-            WHERE case_run_id = ?}, undef, $id);
     
-    } elsif ($run_id && detaint_natural($run_id) 
+    # We want to be able to supply an empty object to the templates for numerous
+    # lists etc. This is much cleaner than exporting a bunch of subroutines and
+    # adding them to $vars one by one. Probably just Laziness shining through.
+    if (ref $param eq 'HASH'){
+        if (!keys %$param || $param->{PREVALIDATED}){
+            bless($param, $class);
+            return $param;
+        }
+    }
+    elsif ($run_id && detaint_natural($run_id) 
              && $build_id && detaint_natural($build_id) 
              && $env_id && detaint_natural($env_id)){
                  
          my $case_id = $param;
          detaint_natural($case_id) || return undef;
-         $obj = $dbh->selectrow_hashref(
-            "SELECT $columns FROM test_case_runs
+         ($param) = $dbh->selectrow_array(
+            "SELECT case_run_id FROM test_case_runs
              WHERE case_id = ?
                AND run_id = ?
                AND build_id = ?
                AND environment_id = ?", 
              undef, ($case_id, $run_id, $build_id, $env_id));
-                  
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
-
-    } else {
-        Bugzilla::Error::ThrowCodeError('bad_arg',
-            {argument => 'param',
-             function => 'Testopia::TestCaseRun::_init'});
     }
+    
+    unshift @_, $param;
+    my $self = $class->SUPER::new(@_);
+    
+    return $self; 
+}
 
-    return undef unless (defined $obj);
+sub create {
+    my ($class, $params) = @_;
 
-    foreach my $field (keys %$obj) {
-        $self->{$field} = $obj->{$field};
-    }
+    $class->SUPER::check_required_create_fields($params);
+    my $field_values = $class->run_create_validators($params);
+    
+    $field_values->{iscurrent} = 1;
+    
+    my $self = $class->SUPER::insert_create_data($field_values);
 
     return $self;
 }
 
-=head2 store
-
-Stores a test case run object in the database. This method is used 
-to store a newly created test case run. It returns the new id.
-
-=cut
-
-sub store {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;    
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
-
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-              undef,
-              ($self->{'run_id'},             # run_id
-               $self->{'case_id'},            # case_id
-               $self->{'assignee'},           # assignee
-               undef,                         # testedby
-               IDLE,                          # case_run_status_id
-               $self->{'case_text_version'},  # case_text_version
-               $self->{'build_id'},           # build_id
-               $self->{'environment_id'},     # environment_id
-               $self->{'notes'},              # notes
-               undef,                         # running_date
-               undef,                         # close_date
-               1,                             # iscurrent
-               0,                             # sortkey
-              ));
-
-    my $key = $dbh->bz_last_key( 'test_case_runs', 'case_run_id' );
-    return $key;               
-}
-
-=head2 clone
-
-Creates a copy of this caserun and sets it as the current record
-
-=cut
-
-sub clone {
-    my $self = shift;
-    my ($build_id, $env_id ,$run_id, $case_id) = @_;
-    $run_id   ||= $self->{'run_id'};
-    $case_id  ||= $self->{'case_id'};
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'case_run_id'} DB_COLUMNS);
-
-    my $dbh = Bugzilla->dbh;    
-    $dbh->do("INSERT INTO test_case_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-              undef,
-              ($run_id,                       # run_id
-               $case_id,                      # case_id
-               $self->{'assignee'},           # assignee
-               undef,                         # testedby
-               IDLE,                          # case_run_status_id
-               $self->{'case_text_version'},  # case_text_version
-               $build_id,                     # build_id
-               $env_id,                       # environment_id
-               undef,                         # notes
-               undef,                         # running_date
-               undef,                         # close_date
-               1,                             # iscurrent
-               0,                             # sortkey
-              ));
-
-    my $key = $dbh->bz_last_key( 'test_case_runs', 'case_run_id' );
-    
-    $self->set_as_current($key);
-    return $key;
-}
+###############################
+####       Methods         ####
+###############################
 
 =head2 check_exists
 
@@ -279,6 +224,11 @@ case and run and switches self to that object.
 sub switch {
    my $self = shift;
    my ($build_id, $env_id ,$run_id, $case_id) = @_;
+   
+   detaint_natural($build_id);
+   detaint_natural($env_id);
+   detaint_natural($run_id);
+   detaint_natural($case_id);
 
    $run_id   ||= $self->{'run_id'};
    $case_id  ||= $self->{'case_id'};
@@ -302,7 +252,15 @@ sub switch {
        my $oldbuild = $self->{'build_id'};
        my $oldenv = $self->{'environment_id'};
        
-       $self = Bugzilla::Testopia::TestCaseRun->new($self->clone($build_id,$env_id));
+       $self = $self->create({
+                    'run_id'     => $self->{'run_id'},
+                    'case_id'    => $self->{'case_id'},
+                    'assignee'   => $self->{'assignee'},
+                    'case_text_version'  => $self->{'case_text_version'},
+                    'build_id'           => $build_id,
+                    'environment_id'     => $env_id,
+                    'case_run_status_id' => IDLE,
+                });
        
        if ($oldbuild != $build_id){
            my $build = Bugzilla::Testopia::Build->new($oldbuild);
@@ -320,9 +278,39 @@ sub switch {
               $note .= "'. Resetting to IDLE.";
            $self->append_note($note);
        }
+       $self->set_as_current;
    }
-   $self->set_as_current; 
+    
    return $self;
+}
+
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+    
+    $obj->{'assignee_name'}  = $self->assignee->login;
+    $obj->{'testedby'}  = $self->testedby->login;
+    $obj->{'status'}    = $self->status;
+    $obj->{'build_name'}    = $self->build->name;
+    $obj->{'env_name'}    = $self->environment->name;
+    $obj->{'env_id'}    = $self->environment->id;
+    $obj->{'category'}    = $self->case->category->name;
+    $obj->{'priority'}    = $self->case->priority;
+    $obj->{'bug_count'}    = $self->bug_count;
+    $obj->{'case_summary'}    = $self->case->summary;
+    $obj->{'component'}    = @{$self->case->components}[0]->name if (scalar @{$self->case->components});
+    $obj->{'type'}         = $self->type;
+    $obj->{'id'}           = $self->id;
+    $obj->{'sortkey'}      = $self->sortkey;
+    
+    return $json->objToJson($obj); 
 }
 
 =head2 _update_fields
@@ -417,7 +405,7 @@ sub set_status {
         $self->update_bugs('REOPENED') if ($status_id == FAILED && $update_bugs);
         $self->update_bugs('VERIFIED') if ($status_id == PASSED && $update_bugs);
     }
-    
+    $self->set_as_current;
     my $note = "Status changed from $oldstatus to $newstatus by ". Bugzilla->user->login;
     $note .= " for build '". $self->build->name ."' and environment '". $self->environment->name; 
     $self->append_note($note);
@@ -429,7 +417,7 @@ sub set_sortkey {
     my $self = shift;
     my ($sortkey) = @_;
     my $dbh = Bugzilla->dbh;
-    
+    detaint_natural($sortkey);
     $dbh->do("UPDATE test_case_runs SET sortkey = ?
               WHERE case_id = ? AND run_id = ?",
               undef, ($sortkey, $self->case_id, $self->run_id));
@@ -468,6 +456,7 @@ Returns the status name of the given case_run_status_id
 sub lookup_status {
     my $self = shift;
     my ($status_id) = @_;
+    detaint_natural($status_id);
     my $dbh = Bugzilla->dbh;
     my ($status) = $dbh->selectrow_array(
             "SELECT name 
@@ -566,6 +555,24 @@ sub get_case_run_list {
              ($self->{'case_id'}, $self->{'run_id'}));
 
     return $ref;    
+}
+
+sub get_history {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    my $ref = $dbh->selectall_arrayref(
+            "SELECT tcr.case_run_id, tcr.close_date, tcr.iscurrent, tb.name AS build_name, 
+                    te.name as env_name, p.login_name AS testedby, tcrs.name AS status_name   
+               FROM test_case_runs tcr
+         INNER JOIN test_builds tb ON tcr.build_id = tb.build_id
+         INNER JOIN test_environments te ON tcr.environment_id = te.environment_id
+         INNER JOIN test_case_run_status tcrs ON tcr.case_run_status_id = tcrs.case_run_status_id
+         INNER JOIN profiles p ON tcr.testedby = p.userid 
+              WHERE case_id = ? AND run_id = ?", {'Slice' =>{}},
+             ($self->{'case_id'}, $self->{'run_id'}));
+
+    return $ref;    
+    
 }
 
 =head2 get_status_list
@@ -676,7 +683,7 @@ sub update_bugs {
             $resolution = $oldresolution;
         }
         my $comment  = "Status updated by Testopia:  ". Bugzilla->params->{"urlbase"};
-           $comment .= "tr_show_caserun.cgi?caserun_id=" . $self->id;
+           $comment .= "tr_show_case.cgi?case_id=" . $self->case->id;
           
         $dbh->bz_lock_tables("bugs WRITE, fielddefs READ, longdescs WRITE, bugs_activity WRITE");
         $dbh->do("UPDATE bugs 
@@ -909,12 +916,12 @@ sub attachments {
     my $attachments = $dbh->selectcol_arrayref(
         "SELECT attachment_id
            FROM test_case_attachments
-          WHERE caserun_id = ?", 
-         undef, $self->{'case_id'});
+          WHERE case_run_id = ?", 
+         undef, $self->id);
     
     my @attachments;
-    foreach my $a (@{$attachments}){
-        push @attachments, Bugzilla::Testopia::Attachment->new($a);
+    foreach my $attach (@{$attachments}){
+        push @attachments, Bugzilla::Testopia::Attachment->new($attach);
     }
     $self->{'attachments'} = \@attachments;
     return $self->{'attachments'};
@@ -1050,8 +1057,15 @@ Returns true if the logged in user has rights to edit this case-run.
 
 sub canedit {
     my $self = shift;
+    return 0 if $self->run->stop_date;
+    return 1 if Bugzilla->user->in_group('admin');
+    return 1 if $self->run->plan->get_user_rights(Bugzilla->user->id) & TR_ADMIN;
+    if ($self->status_id == RUNNING){
+        return 0 unless $self->assignee->id && $self->assignee->id == Bugzilla->user->id;
+    } 
     return 1 if Bugzilla->user->in_group('Testers');
     return 1 if $self->run->plan->get_user_rights(Bugzilla->user->id) & TR_WRITE;
+     
     return 0;
 }
 
@@ -1080,6 +1094,48 @@ sub completion_time {
     return 0;
 }
 
+1;
+__END__
+=head1 NAME
+
+Bugzilla::Testopia::TestCaseRun - Testopia Test Case Run object
+
+=head1 DESCRIPTION
+
+This module represents a test case run in Testopia. 
+A test case run is a record in the test_case_runs table which joins
+test cases to test runs. Basically, for each test run a selction of 
+test cases is made to be included in that run. As a test run 
+progresses, testers set statuses on each of the cases in the run.
+If the build is changed on a case-run with a status, a clone of that
+case-run is made in the table for historical purposes.
+
+=head1 SYNOPSIS
+
+use Bugzilla::Testopia::TestCaseRun;
+
+ $caserun = Bugzilla::Testopia::TestCaseRun->new($caserun_id);
+ $caserun = Bugzilla::Testopia::TestCaseRun->new(\%caserun_hash);
+
+=cut
+
+=head1 METHODS
+
+=head2 new
+
+Instantiate a new case run. This takes a single argument 
+either a test case ID or a reference to a hash containing keys 
+identical to a test case-run's fields and desired values.
+
+=cut
+
+=head2 _init
+
+Private constructor for this object
+
+=cut
+
+
 =head1 SEE ALSO
 
 TestCase TestRun
@@ -1090,4 +1146,4 @@ Greg Hendricks <ghendricks@novell.com>
 
 =cut
 
-1;
+

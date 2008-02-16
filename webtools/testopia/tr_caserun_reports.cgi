@@ -77,10 +77,21 @@ else{
     my $format = $template->get_format("testopia/reports/report", $formatparam,
                                    scalar($cgi->param('ctype')));
 
-    my $filename = "report-" . $report->{'date'} . ".$format->{extension}";
+    my @time = localtime(time());
+    my $date = sprintf "%04d-%02d-%02d", 1900+$time[5],$time[4]+1,$time[3];
+    my $filename = "report-" . $date . ".$format->{extension}";
+    
+    my $disp = "inline";
+    # We set CSV files to be downloaded, as they are designed for importing
+    # into other programs.
+    if ( $format->{'extension'} eq "csv" || $format->{'extension'} eq "xml" ){
+        $disp = "attachment";
+    }
+
     print $cgi->header(-type => $format->{'ctype'},
-                       -content_disposition => "inline; filename=$filename");
-    $vars->{'time'} = time();
+                       -content_disposition => "$disp; filename=$filename");
+
+    $vars->{'time'} = $date;
     $template->process("$format->{'template'}", $vars)
         || ThrowTemplateError($template->error());
 

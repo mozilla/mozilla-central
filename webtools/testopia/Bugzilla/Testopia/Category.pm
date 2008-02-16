@@ -28,8 +28,10 @@ use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::Product;
 
+use JSON;
+
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Bug::EXPORT = qw(check_case_category);
+@Bugzilla::Testopia::Category::EXPORT = qw(check_case_category);
 
 ###############################
 ####    Initialization     ####
@@ -58,7 +60,7 @@ sub _check_product {
     my ($invocant, $product_id) = @_;
     $product_id = trim($product_id);
     
-    ThrowUserError("testopia-create-denied", {'object' => 'build'}) unless Bugzilla->user->in_group('Testers');
+    ThrowUserError("testopia-create-denied", {'object' => 'category'}) unless Bugzilla->user->in_group('Testers');
     
     my $product = Bugzilla::Testopia::Product->new($product_id);
     
@@ -72,10 +74,12 @@ sub _check_product {
 sub _check_name {
     my ($invocant, $name, $product_id) = @_;
     $name = clean_text($name) if $name;
-    trick_taint($name);
+
     if (!defined $name || $name eq '') {
         ThrowUserError('testopia-missing-required-field', {'field' => 'name'});
     }
+    
+    trick_taint($name);
 
     # Check that we don't already have a build with that name in this product.    
     my $orig_id = check_case_category($name, $product_id);
@@ -153,12 +157,12 @@ sub create {
 ####      Functions        ####
 ###############################
 sub check_case_category {
-    my ($name, $product_id) = @_;
+    my ($name, $product) = @_;
     my $dbh = Bugzilla->dbh;
     my $is = $dbh->selectrow_array(
         "SELECT category_id FROM test_case_categories 
          WHERE name = ? AND product_id = ?",
-         undef, $name, $product_id);
+         undef, $name, $product->id);
  
     return $is;
 }
@@ -176,6 +180,20 @@ sub store {
               undef, ($self->{'product_id'}, $self->{'name'}, $self->{'description'}));
     my $key = $dbh->bz_last_key( 'test_case_categories', 'category_id' );
     return $key;
+}
+
+sub to_json {
+    my $self = shift;
+    my $obj;
+    my $json = new JSON;
+    
+    $json->autoconv(0);
+    
+    foreach my $field ($self->DB_COLUMNS){
+        $obj->{$field} = $self->{$field};
+    }
+        
+    return $json->objToJson($obj); 
 }
 
 sub remove {
@@ -412,6 +430,14 @@ A detailed description for this category.
 
 =over
 
+=item C<to_json()>
+
+ Description: Outputs a JSON representation of the object.
+ 
+ Params:      none
+          
+ Returns:     A JSON string.
+ 
 =back
 
 =head1 ACCESSORS

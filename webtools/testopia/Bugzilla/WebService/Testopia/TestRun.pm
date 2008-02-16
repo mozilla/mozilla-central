@@ -319,7 +319,7 @@ sub remove_tag
         die "Tag, " . $tag_name . ", does not exist";
     }
     
-    my $result = $test_run->remove_tag($test_tag->id);
+    my $result = $test_run->remove_tag($test_tag->name);
 
     $self->logout;
     

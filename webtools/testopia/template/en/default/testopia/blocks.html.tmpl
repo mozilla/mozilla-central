@@ -25,7 +25,7 @@
 
 [% BLOCK select %]
     <label for="[% sel.name %]" accesskey="[% sel.accesskey %]"></label>
-      <select name="[% sel.name %]" id="[% sel.name %]" 
+      <select name="[% sel.name %]" id="[% sel.id || sel.name %]" 
       [%- "multiple=\"multiple\"" IF sel.mult %] 
       [%- "size=\"$sel.elements\"" IF sel.elements %] 
       [%- sel.events IF sel.events %] 

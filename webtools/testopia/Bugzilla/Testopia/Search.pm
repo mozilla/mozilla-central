@@ -86,13 +86,26 @@ sub init {
     if ($debug && !$cgi->{'final_separator'}){
         use Data::Dumper;
         print Dumper($cgi);
+        print $cgi->canonicalise_query;
     }
     my $page = $cgi->param('page') || 0;
+    my $start = $cgi->param('start') || 0;
+    my $limit = $cgi->param('limit') || 25;
     detaint_natural($page) if $page;
-    $page = undef if ($cgi->param('viewall'));
-    my $pagesize = $cgi->param('pagesize') if $cgi->param('pagesize');
+    detaint_natural($start) if $start;
+    detaint_natural($limit) if $limit;
+    if ($cgi->param('viewall')){
+        $page = undef;
+        $start = undef; 
+    }
+    my $pagesize;
+    if ($cgi->param('pagesize') || $cgi->param('page')){
+         $pagesize = $cgi->param('pagesize');
+         $start = undef;
+    }
     detaint_natural($pagesize) if defined $pagesize;
     $pagesize ||= 25;
+    my $sortdir = $cgi->param('dir') eq 'ASC' ? 'ASC' : 'DESC';
     
     my @specialchart;
     my @supptables;
@@ -325,16 +338,6 @@ sub init {
             push @wherepart, "test_plan_permissions.permissions > 0 AND test_plan_permissions.userid = ". Bugzilla->user->id;
         } 
     }
-    # Only display environments attached to products I can see.
-    # TODO: is there a better way to do this? 
-    if ($obj eq 'environment'){
-        my @prod_ids;
-        foreach my $p (@{Bugzilla->user->get_selectable_products}){
-            push @prod_ids, $p->id;
-        }
-        my $prod_ids = join(',',@prod_ids);
-        push @wherepart, "test_environments.product_id IN ($prod_ids)" if $prod_ids;
-    }
     # Set up tables for field sort order
     my $order = $cgi->param('order') || '';
     if ($order eq 'author') {        
@@ -377,6 +380,12 @@ sub init {
         push @supptables, "INNER JOIN versions ON versions.value = test_plans.default_product_version";
         push @orderby, 'versions.value';
     }
+    elsif($order eq 'plan_id'){
+        if ($obj eq 'case_run'){
+            push @supptables, "INNER JOIN test_case_plans AS case_plans ON test_cases.case_id = case_plans.case_id";
+            push @orderby, 'case_plans.plan_id';
+        }
+    }
     elsif ($order eq 'priority') {
         if ($obj eq 'case_run'){
             push @supptables, "INNER JOIN test_cases ON test_cases.case_id = test_case_runs.case_id";
@@ -388,9 +397,18 @@ sub init {
         push @supptables, "INNER JOIN test_builds ON test_builds.build_id = test_case_runs.build_id";
         push @orderby, 'test_builds.name';
     }
-    elsif ($order eq 'case_run_status') {
-        push @supptables, "INNER JOIN test_case_run_status as case_run_status ON case_run_status.case_run_status_id = test_case_runs.case_run_status_id";
-        push @orderby, 'case_run_status.sortkey';
+    elsif ($order eq 'status') {
+        if ($obj eq 'case_run'){
+            push @supptables, "INNER JOIN test_case_run_status as case_run_status ON case_run_status.case_run_status_id = test_case_runs.case_run_status_id";
+            push @orderby, 'case_run_status.sortkey';
+        }
+        elsif ($obj eq 'case'){
+            push @supptables, "INNER JOIN test_case_status AS case_status ON test_cases.case_status_id = case_status.case_status_id";
+            push @orderby, 'case_status.name';
+        }
+        elsif ($obj eq 'run'){
+            push @orderby, 'test_runs.stop_date';
+        }
     }
     elsif ($order eq 'category') {
         if ($obj eq 'case_run'){
@@ -404,12 +422,8 @@ sub init {
             push @supptables, "INNER JOIN test_cases ON test_cases.case_id = test_case_runs.case_id";
         }
         push @supptables, "INNER JOIN test_case_components ON test_cases.case_id = test_case_components.case_id";
-        push @supptables, "INNER JOIN components ON components.id = test_case_components.component_id";
+        push @supptables, "LEFT JOIN components ON components.id = test_case_components.component_id";
         push @orderby, 'components.name';
-    }
-    elsif ($order eq 'case_status') {
-        push @supptables, "INNER JOIN test_case_status AS case_status ON test_cases.case_status_id = case_status.case_status_id";
-        push @orderby, 'case_status.name';
     }
     elsif ($order eq 'summary') {
         if ($obj eq 'case_run'){
@@ -509,7 +523,7 @@ sub init {
                push(@supptables,
                     "INNER JOIN test_environments ".
                     "ON test_". $obj ."s.environment_id = test_environments.environment_id");
-               $f = 'test_environments.name';
+               $f = 'test_environments.name';      
          },
          "^plan_type," => sub {
                push(@supptables,
@@ -973,6 +987,9 @@ sub init {
         elsif ($obj eq 'case_run'){
             push(@specialchart, ["caserun_prod", $type, join(',', $cgi->param($attribute))]);
         }
+        elsif ($obj eq 'environment'){
+            push(@specialchart, ["env_products", $type, join(',', $cgi->param($attribute))]);
+        }
         else{
             if ($cgi->param("product")){
                 push(@specialchart, ["prod_name", $type, join(',', $cgi->param($attribute))]);
@@ -1083,7 +1100,7 @@ sub init {
             my $s = trim($cgi->param($f));
             if ($s ne "") {
                 trick_taint($s);
-                my $type = $cgi->param($f . "_type");
+                my $type = $cgi->param($f . "_type") || 'allwordssubstr';
                 push(@specialchart, [$f, $type, $s]);
             }
         }
@@ -1091,6 +1108,11 @@ sub init {
     if ($obj eq 'plan'){
         unless ($cgi->param('isactive')){
             push @wherepart, 'test_plans.isactive = 1';
+        }
+    }
+    if ($obj eq 'environment'){
+        if ($cgi->param('isactive')){
+            push @wherepart, 'test_environments.isactive = 1';
         }
     }
     if ($obj eq 'case_run'){
@@ -1316,9 +1338,12 @@ sub init {
     }
 
     if (@orderby) {
-        $query .= " ORDER BY " . join(',', @orderby);
+        $query .= " ORDER BY " . join(',', @orderby) . ' ' . $sortdir; #This works for now since there is only single field sort
     }
-    if (defined $page){
+    if(defined $start){
+        $query .= " LIMIT $limit OFFSET $start";
+    }
+    elsif (defined $page){
         $query .= " LIMIT $pagesize OFFSET ". $page*$pagesize;
     }
     if ($debug) {

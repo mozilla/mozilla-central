@@ -88,10 +88,10 @@
 <img src="tr_case_reports.cgi?case_id=[% case.id FILTER none %]&type=status-breakdown">
 <hr>
 <h3>Setup</h3>
-[% case.text.setup FILTER xss %]
+[% case.text.setup FILTER html_light %]
 <h3>Action</h3>
-[% case.text.action FILTER xss %]
+[% case.text.action FILTER html_light %]
 <h3>Expected Results</h3>
-[% case.text.effect FILTER xss %]
+[% case.text.effect FILTER html_light %]
 <h3>Breakdown</h3>
-[% case.text.breakdown FILTER xss %]
+[% case.text.breakdown FILTER html_light %]

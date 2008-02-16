@@ -1,0 +1,69 @@
+[%# 1.0@bugzilla.org %]
+[%# The contents of this file are subject to the Mozilla Public
+  # License Version 1.1 (the "License"); you may not use this file
+  # except in compliance with the License. You may obtain a copy of
+  # the License at http://www.mozilla.org/MPL/
+  #
+  # Software distributed under the License is distributed on an "AS
+  # IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
+  # implied. See the License for the specific language governing
+  # rights and limitations under the License.
+  #
+  # The Original Code is the Bugzilla Testopia System.
+  #
+  # The Initial Developer of the Original Code is Greg Hendricks.
+  # Portions created by Greg Hendricks are Copyright (C) 2006
+  # Greg Hendricks. All Rights Reserved.
+  #
+  # Contributor(s): Greg Hendricks <ghendricks@novell.com>
+  #%]
+
+<style type="text/css">
+.report_header {
+    font-weight: bold;
+    background-color: #DCDCDC;
+}
+
+.passed_cell{
+    border: 1px solid black;
+    background-color: #56e871;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.failed_cell{
+    border: 1px solid black;
+    background-color: #ed3f58;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.blocked_cell{
+    border: 1px solid black;
+    background-color: #e17a56;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.complete_cell{
+    border: 1px solid black;
+    background-color: #858aef;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+</style>
+
+<div id="completion_report">
+  <table>
+    <tr>
+      <td>
+        <table style="height:200px; cell-padding: 3px; margin-right: 10px; border: 1px solid black">
+          <tr><td class="report_header">Total:</td><td colspan="2" align="center">[% total FILTER none %]</td></tr>
+          <tr><td class="report_header">Completed:</td><td class="complete_cell">[% completed FILTER none %]</td><td class="complete_cell">[% percent_completed || 0 FILTER none %]%</td></tr>
+          <tr><td class="report_header">PASSED:</td><td class="passed_cell">[% passed FILTER none %]</td><td class="passed_cell">[% percent_passed  || 0 FILTER none %]%</td></tr>
+          <tr><td class="report_header">FAILED:</td><td class="failed_cell">[% failed FILTER none %]</td><td class="failed_cell">[% percent_failed  || 0 FILTER none %]%</td></tr>
+          <tr><td class="report_header">BLOCKED:</td><td class="blocked_cell">[% blocked FILTER none %]</td><td class="blocked_cell">[% percent_blocked  || 0 FILTER none %]%</td></tr>
+        </table>
+      </td>
+      <td><img src="tr_run_reports.cgi?type=bar&t=[% total FILTER none %]&c=[% completed FILTER none %]&p=[% passed FILTER none %]&f=[% failed FILTER none %]&b=[% blocked FILTER none %]"></td>
+    </tr>
+  </table>
+</div>

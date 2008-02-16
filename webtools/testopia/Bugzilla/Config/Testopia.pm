@@ -100,6 +100,12 @@ sub get_param_list {
    choices => ['PROPOSED', 'CONFIRMED', 'DISABLED'],
    default => 'PROPOSED'
   },
+  
+  {
+   name    => 'testopia-max-allowed-plan-testers',
+   type    => 't',
+   default => '500',
+  },
 
 #  {
 #   name    => 'new-testrun-email-notif',
