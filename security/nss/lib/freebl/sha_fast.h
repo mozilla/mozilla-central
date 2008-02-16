@@ -59,6 +59,7 @@ struct SHA1ContextStr {
 
 #if defined(_MSC_VER)
 #include <stdlib.h>
+#if defined(IS_LITTLE_ENDIAN) 
 #if (_MSC_VER >= 1300)
 #pragma intrinsic(_byteswap_ulong)
 #define SHA_HTONL(x) _byteswap_ulong(x)
@@ -83,6 +84,7 @@ swap4b(PRUint32 dwd)
 
 #define SHA_HTONL(x) swap4b(x)
 #endif /* _X86_ */
+#endif /* IS_LITTLE_ENDIAN */
 
 #pragma intrinsic (_lrotr, _lrotl) 
 #define SHA_ROTL(x,n) _lrotl(x,n)
