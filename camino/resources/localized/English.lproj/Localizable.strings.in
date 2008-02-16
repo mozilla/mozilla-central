@@ -78,13 +78,10 @@
 
 /* feed detection */
 "Select..." = "Select…";
-"FeedDetected" = "This page contains xml feed links";
+"FeedDetected" = "List feeds offered by this page";
 "SubscribeTo" = "Subscribe to “%@”";
 "FeedPreferences" = "Feed Preferences…";
 "FeedAppDoesNotExistExplanation" = "There is no feed reader selected. Please choose an application to handle feeds.";
-
-/* Prefs window */
-"ShowAllPrefItems" = "Show All";
 
 /* title for untitled pages */
 "UntitledPageTitle" = "Untitled";
