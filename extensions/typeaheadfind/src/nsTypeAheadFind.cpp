@@ -1375,8 +1375,10 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell,
       // Select the found text and focus it
       mFocusedDocSelection->RemoveAllRanges();
       mFocusedDocSelection->AddRange(returnRange);
-      mFocusedDocSelCon->ScrollSelectionIntoView(nsISelectionController::SELECTION_NORMAL,
-                                                 nsISelectionController::SELECTION_FOCUS_REGION, PR_TRUE);
+      mFocusedDocSelCon->ScrollSelectionIntoView(
+                           nsISelectionController::SELECTION_NORMAL,
+                           nsISelectionController::SELECTION_FOCUS_REGION,
+                           PR_FALSE);
       SetSelectionLook(presShell, PR_TRUE, mRepeatingMode != eRepeatingForward 
                                            && mRepeatingMode != eRepeatingReverse);
 

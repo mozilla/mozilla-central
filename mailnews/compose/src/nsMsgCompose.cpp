@@ -2800,7 +2800,10 @@ QuotingOutputStreamListener::InsertToCompose(nsIEditor *aEditor,
       aEditor->GetSelectionController(getter_AddRefs(selCon));
 
       if (selCon)
-        selCon->ScrollSelectionIntoView(nsISelectionController::SELECTION_NORMAL, nsISelectionController::SELECTION_ANCHOR_REGION, PR_TRUE);
+        selCon->ScrollSelectionIntoView(
+                  nsISelectionController::SELECTION_NORMAL,
+                  nsISelectionController::SELECTION_ANCHOR_REGION,
+                  PR_FALSE);
     }
   }
 
