@@ -98,6 +98,7 @@
       <tree id="unifinder-search-results-tree" flex="1"
             onselect="unifinderSelect( event ); onSelectionChanged()"
             onkeypress="unifinderKeyPress(event)"
+            _selectDelay="500"
             enableColumnDrag="true">
         <treecols id="unifinder-search-results-tree-cols">
           <treecol id="unifinder-search-results-tree-col-title"
