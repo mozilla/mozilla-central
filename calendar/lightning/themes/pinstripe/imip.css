@@ -59,6 +59,9 @@ td.content {
        width: 29em;
        background-color: white;
 }
+td.content p {
+       white-space: -moz-pre-wrap;
+}
 p.header {
        color: white;
        font-size: 1em;
