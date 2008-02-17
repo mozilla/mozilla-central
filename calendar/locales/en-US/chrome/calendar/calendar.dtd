@@ -101,9 +101,10 @@
 <!ENTITY calendar.unifinder.tree.duedate.label       "Due">
 <!ENTITY calendar.unifinder.tree.completeddate.label "Completed">
 <!ENTITY calendar.unifinder.tree.categories.label    "Category">
-<!ENTITY calendar.unifinder.tree.location.label    "Location">
-<!ENTITY calendar.unifinder.tree.status.label    "Status">
-<!ENTITY calendar.unifinder.tree.calendarname.label    "Calendar Name">
+<!ENTITY calendar.unifinder.tree.location.label      "Location">
+<!ENTITY calendar.unifinder.tree.status.label        "Status">
+<!ENTITY calendar.unifinder.tree.calendarname.label  "Calendar Name">
+<!ENTITY calendar.unifinder.close.tooltip            "Close event search and event list">
 <!ENTITY calendar.find.key  "F">
 
 <!ENTITY calendar.today.button.tooltip            "Go to today" >
