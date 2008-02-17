@@ -2592,6 +2592,9 @@
           onOperationComplete:
           function onOperationComplete(aCalendar, aStatus, aOperationType,
                                        aId, aDetail) {
+              // Fire event
+              this.calView.fireEvent('viewloaded', aOperationType);
+
               // signal that the current operation finished.
               this.calView.mRefreshPending = null;
 

@@ -1533,6 +1533,9 @@
           },
   
           onOperationComplete: function(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            // Fire viewloaded event
+            this.calView.fireEvent('viewloaded', aOperationType);
+          
             // signal that the current operation finished.
             this.calView.mRefreshPending = null;
 
