@@ -9,4 +9,4 @@ logic is fully implemented in debugger.js. The debugger can debug itself. It
 can also be modified and reloaded at runtime.
 
 The JavaScript keyword 'debugger' is used to break into the debugger. A 'help()'
-command is supplied to show available commands when exectution is stopped.
+command is supplied to show available commands when execution is stopped.
