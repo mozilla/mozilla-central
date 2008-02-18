@@ -45,10 +45,9 @@
 			<property name="id" code="ID  " description="The unique identifier of the window." type="number" access="r">
 				<cocoa key="uniqueID"/>
 			</property>
-			<!-- Rectangles do not appear to be properly supported by AS at this time and only cause Console warnings.
 			<property name="bounds" code="pbnd" description="The bounding rectangle of the window." type="rectangle">
 				<cocoa key="boundsAsQDRect"/>
-			</property> -->
+			</property>
 			<property name="closeable" code="hclb" description="Whether the window has a close box." type="boolean" access="r">
 				<cocoa key="hasCloseBox"/>
 			</property>
