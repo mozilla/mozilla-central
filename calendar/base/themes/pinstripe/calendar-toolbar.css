@@ -760,7 +760,7 @@ toolbar[iconsize="small"] #task-new-task-button[disabled="true"] {
  *-------------------------------------------------------------------*/
 
 toolbar[iconsize="small"] #task-button-address {
-        -moz-image-region: rect(0px 624px 24px 600x);
+        -moz-image-region: rect(0px 624px 24px 600px);
 }
 
 toolbar[iconsize="small"] #task-button-address:active {
