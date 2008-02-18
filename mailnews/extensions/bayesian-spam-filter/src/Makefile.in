@@ -54,7 +54,6 @@ REQUIRES	= xpcom \
 		  necko \
 		  mailnews \
 		  msgbaseutil \
-		  msgdb \
 		  lwbrk \
       mimetype \
       mime \

@@ -64,7 +64,6 @@ REQUIRES	= xpcom \
 		  txmgr \
 		  caps \
 		  docshell \
-		  uriloader \
 		  msgimap \
                   msgcompose \
 		  nkcache \

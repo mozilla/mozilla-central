@@ -56,7 +56,6 @@ REQUIRES	= xpcom \
 		  pref \
 		  intl \
 		  msgbaseutil \
-		  msgdb \
 		  msgimap \
 		  mimetype \
 		  msgcompose \

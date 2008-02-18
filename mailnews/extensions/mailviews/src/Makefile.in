@@ -52,8 +52,6 @@ REQUIRES	= xpcom \
 		  msgbase \
 		  mailnews \
 		  necko \
-		  msgbaseutil \
-          	  msgdb \
           	  mime \
 		  intl \
 		  $(NULL)

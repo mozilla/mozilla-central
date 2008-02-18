@@ -52,7 +52,6 @@ REQUIRES	= xpcom \
 		  wallet \
 		  dom \
 		  docshell \
-		  widget \
 		  $(NULL)
 
 CPPSRCS		= nsWalletEditor.cpp

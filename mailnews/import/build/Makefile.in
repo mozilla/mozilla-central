@@ -53,19 +53,9 @@ MODULE_NAME	= nsImportServiceModule
 
 REQUIRES	= xpcom \
 		  string \
-		  mailnews \
-		  addrbook \
 		  uconv \
-		  mork \
-		  msgbase \
-		  msgbaseutil \
 		  intl \
-		  impText \
 		  impComm4xMail \
-		  necko \
-		  rdf \
-		  msgdb \
-		  unicharutil \
 		  $(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))

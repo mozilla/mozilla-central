@@ -60,9 +60,6 @@ REQUIRES	= xpcom \
 		  dom \
 		  js \
 		  content \
-		  widget \
-		  necko \
-		  embedcomponents \
 		  xpconnect \
 		  $(NULL)
 

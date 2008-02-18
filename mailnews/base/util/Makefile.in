@@ -75,7 +75,6 @@ REQUIRES	= xpcom \
 		  addrbook \
 		  docshell \
 		  uriloader \
-		  appshell \
 		  msgimap \
 		  msglocal \
 		  msgnews \
@@ -85,7 +84,6 @@ REQUIRES	= xpcom \
 		  nkcache \
 		  mimetype \
 		  windowwatcher \
-		  embed_base \
 		  htmlparser \
 		  content \
 		  layout \

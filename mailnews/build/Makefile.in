@@ -62,13 +62,9 @@ MOZILLA_INTERNAL_API = 1
 MODULE_NAME	= nsMailModule
 
 REQUIRES	= xpcom \
-		  alerts \
 		  addrbook \
 		  appcomps \
-		  appshell \
 		  toolkitcomps \
-                  bayesflt \
-			xmlextras \
 		  content \
 		  dom \
 		  docshell \
@@ -82,14 +78,11 @@ REQUIRES	= xpcom \
 	          mailview \
 	          msglocal \
 		  msgcompose \
-		  msgbaseutil \
 	          msgbase  \
 		  msgnews \
 		  msgimap \
 		  msgdb \
-		  msgmdn \
 		  mime \
-	          mimeemitter \
 		  mork \
 		  necko \
 		  nkcache \

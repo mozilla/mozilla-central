@@ -50,19 +50,14 @@ MODULE_NAME	 = nsSuiteModule
 
 REQUIRES	= \
 		chardet \
-		dom \
 		intl \
-		libreg \
 		necko \
 		nkcache \
-		pref \
 		rdf \
 		string \
 		suitebrowser \
 		suitemigration \
 		txmgr \
-		unicharutil \
-		windowwatcher \
 		xpcom \
 		xulapp \
 		$(NULL)

@@ -58,11 +58,8 @@ REQUIRES	= xpcom \
 		  msgcompose \
 		  msgbase \
 		  dom \
-		  content \
 		  editor \
-		  uriloader \
 		  mailnews \
-		  msgdb \
 		  msgbaseutil \
 		  msglocal \
 		  mime \

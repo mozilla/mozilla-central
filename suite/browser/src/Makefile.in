@@ -48,14 +48,10 @@ META_COMPONENT  = suite
 
 REQUIRES = \
 	chardet \
-	content \
 	docshell \
 	dom \
-	js \
 	widget \
-	gfx \
 	intl \
-	layout \
 	locale \
 	necko \
 	nkcache \

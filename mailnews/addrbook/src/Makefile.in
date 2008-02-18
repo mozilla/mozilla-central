@@ -58,7 +58,6 @@ REQUIRES	= xpcom \
 		  layout \
 		  widget \
 		  mork \
-		  docshell \
 		  pref \
 		  necko \
 		  locale \

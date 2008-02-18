@@ -73,7 +73,6 @@ REQUIRES	= xpcom \
 		  chardet \
 		  caps \
 		  mimetype \
-		  uriloader \
 		  xpconnect \
 		  nkcache \
 		  pipnss \

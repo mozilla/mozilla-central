@@ -51,7 +51,6 @@ REQUIRES	= xpcom \
 		  string \
 		  dom \
 		  layout \
-		  js \
 		  editor \
 		  uriloader \
 		  msgbase \
@@ -82,12 +81,12 @@ REQUIRES	= xpcom \
 		  nkcache \
 		  mimetype \
 		  windowwatcher \
-		  xulapp \
+		  gfx \
 		  $(NULL)
 
-#ifdef XP_WIN32
-      REQUIRES += gfx
-#endif
+ifdef MOZ_THUNDERBIRD
+REQUIRES	+= xulapp
+endif
 
 DEFINES += -DMOZ_APP_VERSION="$(MOZ_APP_VERSION)"
 

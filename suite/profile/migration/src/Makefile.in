@@ -54,12 +54,9 @@ REQUIRES	= \
 		libreg \
 		pref \
 		rdf \
-		unicharutil \
 		windowwatcher \
 		suitebrowser \
-		suiteprofile \
 		xulapp \
-		profile \
 		$(NULL)
 
 CPPSRCS = \
