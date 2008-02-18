@@ -374,6 +374,8 @@ pkix_pl_OcspRequest_Create(
                 cid->certID, cert->nssCert, time, 
                 addServiceLocatorExtension, nssSignerCert);
 
+        ocspRequest->decoded = certRequest;
+
         if (certRequest == NULL) {
                 PKIX_ERROR(PKIX_UNABLETOCREATECERTOCSPREQUEST);
         }
@@ -384,8 +386,6 @@ pkix_pl_OcspRequest_Create(
         if (rv == SECFailure) {
                 PKIX_ERROR(PKIX_UNABLETOADDACCEPTABLERESPONSESTOREQUEST);
         }
-
-        ocspRequest->decoded = certRequest;
 
         encoding = CERT_EncodeOCSPRequest(NULL, certRequest, NULL);
 
