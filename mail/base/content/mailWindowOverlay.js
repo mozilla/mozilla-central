@@ -48,11 +48,7 @@
 const MSG_FLAG_READ              = 0x000001;
 const MSG_FLAG_HAS_RE            = 0x000010;
 const MSG_FLAG_IMAP_DELETED      = 0x200000;
-const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
-const MSG_FLAG_MDN_REPORT_SENT   = 0x800000;
-const MDN_DISPOSE_TYPE_DISPLAYED = 0;
 const ADDR_DB_LARGE_COMMIT       = 1;
-const MSG_DB_LARGE_COMMIT        = 1;
 
 const kClassicMailLayout = 0;
 const kWideMailLayout = 1;
@@ -66,18 +62,13 @@ const kNoRemoteContentPolicy = 0;
 const kBlockRemoteContent = 1;
 const kAllowRemoteContent = 2;
 
-const kIsAPhishMessage = 0;
-const kNotAPhishMessage = 1;
-
 const kMsgNotificationPhishingBar = 1;
 const kMsgNotificationJunkBar = 2;
 const kMsgNotificationRemoteImages = 3;
 
 var gMessengerBundle;
-var gWindowManagerInterface;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gPrintSettings = null;
-var gWindowReuse  = 0;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
 var gTimelineService = null;
 var gTimelineEnabled = ("@mozilla.org;timeline-service;1" in Components.classes);
@@ -884,15 +875,6 @@ function GetFirstSelectedMsgFolder()
     return result;
 }
 
-function GetWindowMediator()
-{
-    if (gWindowManagerInterface)
-        return gWindowManagerInterface;
-
-    var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-    return (gWindowManagerInterface = windowManager.QueryInterface(Components.interfaces.nsIWindowMediator));
-}
-
 function GetInboxFolder(server)
 {
     try {
@@ -1087,15 +1069,27 @@ function MsgMoveMessage(aDestFolderURI)
   }
 }
 
+/**
+ * Calls the ComposeMessage function with the desired type, and proper default
+ * based on the event that fired it.
+ *
+ * @param aCompType  the nsIMsgCompType to pass to the function
+ * @param aEvent (optional) the event that triggered the call
+ */
+function composeMsgByType(aCompType, aEvent) {
+  if (aEvent && aEvent.shiftKey) {
+    ComposeMessage(aCompType,
+                   Components.interfaces.nsIMsgCompFormat.OppositeOfDefault,
+                   GetFirstSelectedMsgFolder(), GetSelectedMessages());
+  } else {
+    ComposeMessage(aCompType, Components.interfaces.nsIMsgCompFormat.Default,
+                   GetFirstSelectedMsgFolder(), GetSelectedMessages());
+  }
+}
+
 function MsgNewMessage(event)
 {
-  var loadedFolder = GetFirstSelectedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  if (event && event.shiftKey)
-    ComposeMessage(msgComposeType.New, msgComposeFormat.OppositeOfDefault, loadedFolder, messageArray);
-  else
-    ComposeMessage(msgComposeType.New, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.New, event);
 }
 
 function MsgReplyMessage(event)
@@ -1116,34 +1110,17 @@ function MsgReplyMessage(event)
 
 function MsgReplySender(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  if (event && event.shiftKey)
-    ComposeMessage(msgComposeType.ReplyToSender, msgComposeFormat.OppositeOfDefault, loadedFolder, messageArray);
-  else
-    ComposeMessage(msgComposeType.ReplyToSender, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToSender, event);
 }
 
 function MsgReplyGroup(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  if (event && event.shiftKey)
-    ComposeMessage(msgComposeType.ReplyToGroup, msgComposeFormat.OppositeOfDefault, loadedFolder, messageArray);
-  else
-    ComposeMessage(msgComposeType.ReplyToGroup, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyToGroup, event);
 }
 
 function MsgReplyToAllMessage(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  ComposeMessage(msgComposeType.ReplyAll, 
-    (event && event.shiftKey) ? msgComposeFormat.OppositeOfDefault : msgComposeFormat.Default,
-    loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ReplyAll, event);
 }
 
 function MsgForwardMessage(event)
@@ -1167,36 +1144,18 @@ function MsgForwardMessage(event)
 
 function MsgForwardAsAttachment(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  //dump("\nMsgForwardAsAttachment from XUL\n");
-  if (event && event.shiftKey)
-    ComposeMessage(msgComposeType.ForwardAsAttachment,
-                   msgComposeFormat.OppositeOfDefault, loadedFolder, messageArray);
-  else
-    ComposeMessage(msgComposeType.ForwardAsAttachment, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ForwardAsAttachment, event);
 }
 
 function MsgForwardAsInline(event)
 {
-  var loadedFolder = GetLoadedMsgFolder();
-  var messageArray = GetSelectedMessages();
-
-  //dump("\nMsgForwardAsInline from XUL\n");
-  if (event && event.shiftKey)
-    ComposeMessage(msgComposeType.ForwardInline,
-                   msgComposeFormat.OppositeOfDefault, loadedFolder, messageArray);
-  else
-    ComposeMessage(msgComposeType.ForwardInline, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.ForwardInline, event);
 }
 
 
 function MsgEditMessageAsNew()
 {
-    var loadedFolder = GetLoadedMsgFolder();
-    var messageArray = GetSelectedMessages();
-    ComposeMessage(msgComposeType.Template, msgComposeFormat.Default, loadedFolder, messageArray);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.Template, event);
 }
 
 function MsgCreateFilter()
@@ -1677,16 +1636,17 @@ function MsgOpenSelectedMessages()
   var indices = GetSelectedIndices(dbView);
   var numMessages = indices.length;
 
-  gWindowReuse = gPrefBranch.getBoolPref("mailnews.reuse_message_window");
+  var windowReuse = gPrefBranch.getBoolPref("mailnews.reuse_message_window");
   // This is a radio type button pref, currently with only 2 buttons.
   // We need to keep the pref type as 'bool' for backwards compatibility
   // with 4.x migrated prefs.  For future radio button(s), please use another
   // pref (either 'bool' or 'int' type) to describe it.
   //
-  // gWindowReuse values: false, true
+  // windowReuse values: false, true
   //    false: open new standalone message window for each message
   //    true : reuse existing standalone message window for each message
-  if (gWindowReuse && numMessages == 1 && MsgOpenSelectedMessageInExistingWindow())
+  if (windowReuse && numMessages == 1 &&
+      MsgOpenSelectedMessageInExistingWindow())
     return;
     
   var openWindowWarning = gPrefBranch.getIntPref("mailnews.open_window_warning");
@@ -2672,7 +2632,7 @@ function IgnorePhishingWarning()
 {
   // this property should really be called skipPhishingWarning or something like that, but it's too late to change that now. This property is used to supress the phishing 
   // bar for the message.
-  setMsgHdrPropertyAndReload("notAPhishMessage", kNotAPhishMessage);
+  setMsgHdrPropertyAndReload("notAPhishMessage", 1);
 }
 
 function setMsgHdrPropertyAndReload(aProperty, aValue)
@@ -2723,8 +2683,10 @@ function OnMsgParsed(aUrl)
     findBar.onFindAgainCommand(false);
     
   // run the phishing detector on the message
-  if (!checkMsgHdrPropertyIsNot("notAPhishMessage", kIsAPhishMessage))
+  var msgHdr = msgHdrForCurrentMessage();
+  if (msgHdr.getUint32Property("notAPhishMessage"))
     gPhishingDetector.analyzeMsgForPhishingURLs(aUrl);
+
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
   var msgURI = GetLoadedMessage();
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
@@ -2890,9 +2852,12 @@ function HandleMDNResponse(aUrl)
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"].
                                   createInstance(Components.interfaces.nsIMsgMdnGenerator);
+  const MDN_DISPOSE_TYPE_DISPLAYED = 0;
   mdnGenerator.process(MDN_DISPOSE_TYPE_DISPLAYED, msgWindow, msgFolder, msgHdr.messageKey, mimeHdr, false);
 
   // Reset mark msg MDN "Sent" and "Not Needed".
+  const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
+  const MSG_FLAG_MDN_REPORT_SENT = 0x800000
   msgHdr.flags = (msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
   msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
 

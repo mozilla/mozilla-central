@@ -1047,8 +1047,6 @@ function FolderPaneSelectionChange()
 
     if (gAccountCentralLoaded)
       UpdateMailToolbar("gAccountCentralLoaded");
-    else if (gFakeAccountPageLoaded)
-      UpdateMailToolbar("gFakeAccountPageLoaded");
 
     if (gDisplayStartupPage)
     {

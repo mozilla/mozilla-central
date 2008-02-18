@@ -165,7 +165,8 @@ function getIdentityForServer(server, optionalHint)
 function getIdentityForHeader(hdr, type)
 {
   // If we treat reply from sent specially, do we check for that folder flag here ?
-  var hintForIdentity = (type == msgComposeType.Template) ? hdr.author : hdr.recipients + hdr.ccList;
+  var isTemplate = (type == Components.interfaces.nsIMsgCompType.Template);
+  var hintForIdentity = isTemplate ? hdr.author : hdr.recipients + hdr.ccList;
   var identity = null;
   var server;
 
@@ -470,7 +471,7 @@ function SaveAsTemplate(uri, folder)
   if (uri) 
   {
     var hdr = messenger.msgHdrFromURI(uri);
-    var identity = getIdentityForHeader(hdr, msgComposeType.Template);
+    var identity = getIdentityForHeader(hdr, Components.interfaces.nsIMsgCompType.Template);
     messenger.saveAs(uri, false, identity, null);
   }
 }

@@ -235,7 +235,8 @@ function SubscribeOnLoad()
 
   gSubscribeDeck = document.getElementById("subscribedeck");
 
-  msgWindow = Components.classes[msgWindowContractID].createInstance(Components.interfaces.nsIMsgWindow);
+  msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                        .createInstance(Components.interfaces.nsIMsgWindow);
   msgWindow.domWindow = window;
   msgWindow.statusFeedback = gStatusFeedback;
   msgWindow.rootDocShell.allowAuth = true;

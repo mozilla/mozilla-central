@@ -39,10 +39,7 @@
 # ***** END LICENSE BLOCK *****
 
 //This file stores variables common to mail windows
-var messengerContractID        = "@mozilla.org/messenger;1";
-var statusFeedbackContractID   = "@mozilla.org/messenger/statusfeedback;1";
-var mailSessionContractID      = "@mozilla.org/messenger/services/session;1";
-var msgWindowContractID      = "@mozilla.org/messenger/msgwindow;1";
+var mailSessionContractID = "@mozilla.org/messenger/services/session;1";
 
 var messenger;
 var pref;
@@ -52,8 +49,6 @@ var msgWindow;
 var msgComposeService;
 var accountManager;
 var RDF;
-var msgComposeType;
-var msgComposeFormat;
 
 var mailSession;
 
@@ -62,22 +57,13 @@ var gBrandBundle;
 
 var gContextMenu;
 
-var datasourceContractIDPrefix = "@mozilla.org/rdf/datasource;1?name=";
-var accountManagerDSContractID = datasourceContractIDPrefix + "msgaccountmanager";
-var folderDSContractID         = datasourceContractIDPrefix + "mailnewsfolders";
-var unreadFoldersDSContractID = datasourceContractIDPrefix + "mailnewsunreadfolders";
-var favoriteFoldersDSContractID = datasourceContractIDPrefix + "mailnewsfavefolders";
-var recentFoldersDSContractID = datasourceContractIDPrefix + "mailnewsrecentfolders";
 var accountManagerDataSource;
 var folderDataSource;
 var unreadFolderDataSource;
 var favoriteFoldersDataSource;
 var recentFoldersDataSource;
 
-var accountCentralBox = null;
 var gAccountCentralLoaded = true;
-var gFakeAccountPageLoaded = false;
-//End progress and Status variables
 
 function OnMailWindowUnload()
 {
@@ -125,7 +111,8 @@ function OnMailWindowUnload()
 
 function CreateMessenger()
 {
-  messenger = Components.classes[messengerContractID].createInstance(Components.interfaces.nsIMessenger);
+  messenger = Components.classes["@mozilla.org/messenger;1"]
+                        .createInstance(Components.interfaces.nsIMessenger);
 }
 
 function CreateMailWindowGlobals()
@@ -147,16 +134,16 @@ function CreateMailWindowGlobals()
         .getInterface(Components.interfaces.nsIXULWindow)
         .XULBrowserWindow = window.MsgStatusFeedback;
 
-  statusFeedback = Components.classes[statusFeedbackContractID].createInstance();
-  statusFeedback = statusFeedback.QueryInterface(Components.interfaces.nsIMsgStatusFeedback);
+  statusFeedback = Components.classes["@mozilla.org/messenger/statusfeedback;1"]
+                             .createInstance(Components.interfaces.nsIMsgStatusFeedback);
   statusFeedback.setWrappedStatusFeedback(window.MsgStatusFeedback);
 
   //Create message window object
-  msgWindow = Components.classes[msgWindowContractID].createInstance();
-  msgWindow = msgWindow.QueryInterface(Components.interfaces.nsIMsgWindow);
+  msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                        .createInstance(Components.interfaces.nsIMsgWindow);
 
-  msgComposeService = Components.classes['@mozilla.org/messengercompose;1'].getService();
-  msgComposeService = msgComposeService.QueryInterface(Components.interfaces.nsIMsgComposeService);
+  msgComposeService = Components.classes['@mozilla.org/messengercompose;1']
+                                .getService(Components.interfaces.nsIMsgComposeService);
 
   mailSession = Components.classes["@mozilla.org/messenger/services/session;1"].getService(Components.interfaces.nsIMsgMailSession);
 
@@ -165,18 +152,21 @@ function CreateMailWindowGlobals()
   RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService();
   RDF = RDF.QueryInterface(Components.interfaces.nsIRDFService);
 
-  msgComposeType = Components.interfaces.nsIMsgCompType;
-  msgComposeFormat = Components.interfaces.nsIMsgCompFormat;
-
   gMessengerBundle = document.getElementById("bundle_messenger");
   gBrandBundle = document.getElementById("bundle_brand");
 
   //Create datasources
-  accountManagerDataSource = Components.classes[accountManagerDSContractID].getService();
-  folderDataSource         = Components.classes[folderDSContractID].getService();
-  unreadFolderDataSource = Components.classes[unreadFoldersDSContractID].getService();
-  favoriteFoldersDataSource = Components.classes[favoriteFoldersDSContractID].getService();
-  recentFoldersDataSource = Components.classes[recentFoldersDSContractID].getService();
+  var prefix = "@mozilla.org/rdf/datasource;1?name=";
+  accountManagerDataSource = Components.classes[prefix + "msgaccountmanager"]
+                                       .getService();
+  folderDataSource = Components.classes[prefix + "mailnewsfolders"]
+                               .getService();
+  unreadFolderDataSource = Components.classes[prefix + "mailnewsunreadfolders"]
+                                     .getService();
+  favoriteFoldersDataSource = Components.classes[prefix + "mailnewsfavefolders"]
+                                        .getService();
+  recentFoldersDataSource = Components.classes[prefix + "mailnewsrecentfolders"]
+                                      .getService();
 }
 
 function InitMsgWindow()
@@ -502,17 +492,12 @@ function loadStartPage()
 // corresponding page.
 function ShowAccountCentral()
 {
-  try
-  {
-    document.getElementById("displayDeck").selectedPanel = accountCentralBox;
-    var acctCentralPage = pref.getComplexValue("mailnews.account_central_page.url",
-                                               Components.interfaces.nsIPrefLocalizedString).data;
-    window.frames["accountCentralPane"].location.href = acctCentralPage;
-  }
-  catch (ex)
-  {
-    dump("Error loading AccountCentral page -> " + ex + "\n");
-  }
+  var accountBox = document.getElementById("accountCentralBox");
+  document.getElementById("displayDeck").selectedPanel = accountBox;
+  var prefName = "mailnews.account_central_page.url";
+  var acctCentralPage = pref.getComplexValue(prefName,
+                                             Components.interfaces.nsIPrefLocalizedString).data;
+  window.frames["accountCentralPane"].location.href = acctCentralPage;
 }
 
 function ShowingAccountCentral()

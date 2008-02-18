@@ -40,9 +40,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-  var pref = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(Components.interfaces.nsIPrefBranch);
-
   /**
    * Extract the href from the link click event.
    * We look for HTMLAnchorElement, HTMLAreaElement, HTMLLinkElement,
@@ -154,33 +151,4 @@
     }
 
     return true;
-  }
-
-  function openNewTabOrWindow(aEvent, aHref, aSendReferrer)
-  {
-    // always return false for stand alone mail (MOZ_THUNDERBIRD)
-    // let someone else deal with it
-    return false;
-  }
-
-  function getContentFrameURI(aFocusedWindow)
-  {
-    var contentFrame =
-      isContentFrame(aFocusedWindow) ? aFocusedWindow : window.content;
-    return contentFrame.location.href;
-  }
-
-  function middleMousePaste(aEvent)
-  {
-    return false;
-  }
-
-  function makeURLAbsolute(aBase, aUrl)
-  {
-    // Construct nsIURL.
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"].
-                    getService(Components.interfaces.nsIIOService);
-    var baseURI  = ioService.newURI(aBase, null, null);
-
-    return ioService.newURI(baseURI.resolve(aUrl), null, null).spec;
   }

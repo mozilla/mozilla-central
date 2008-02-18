@@ -113,6 +113,7 @@ var gSearchNotificationListener =
           dbFolderInfo.NumMessages = gNumTotalMessages;
           vFolder.updateSummaryTotals(true); // force update from db.
           var msgdb = vFolder.getMsgDatabase(msgWindow);
+          const MSG_DB_LARGE_COMMIT = 1;
           msgdb.Commit(MSG_DB_LARGE_COMMIT);
           // now that we have finished loading a virtual folder,
           // scroll to the correct message if there is at least one.
@@ -508,11 +509,6 @@ function createSearchTerms()
   
   // now that we've added the terms, clear out our input array
   searchTermsArray.Clear();
-}
-
-function onAdvancedSearch()
-{
-  MsgSearchMessages();
 }
 
 function onSearchStop() 

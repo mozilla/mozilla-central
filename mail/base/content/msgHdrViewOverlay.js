@@ -51,10 +51,7 @@
 // view in the message header pane.
 ////////////////////////////////////////////////////////////////////////////////////
 
-const msgHeaderParserContractID       = "@mozilla.org/messenger/headerparser;1";
-const abAddressCollectorContractID   = "@mozilla.org/addressbook/services/addressCollecter;1";
 const kPersonalAddressbookUri        = "moz-abmdbdirectory://abook.mab";
-const kRDFServiceContractID          = "@mozilla.org/rdf/rdf-service;1";
 
 const kLargeIcon = 32;
 const kSmallIcon = 16;
@@ -86,13 +83,10 @@ var gProfileDirURL;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
 var gPersonalAddressBookDirectory; // used for determining if we want to show just the display name in email address nodes
 
-var msgHeaderParser = Components.classes[msgHeaderParserContractID].getService(Components.interfaces.nsIMsgHeaderParser);
-var abAddressCollector = null;
-
 // other components may listen to on start header & on end header notifications for each message we display
 // to do that you need to add yourself to our gMessageListeners array with object that has two properties:
 // onStartHeaders and onEndHeaders.
-var gMessageListeners = new Array;
+var gMessageListeners = new Array();
 
 // For every possible "view" in the message pane, you need to define the header names you want to
 // see in that view. In addition, include information describing how you want that header field to be
@@ -417,8 +411,10 @@ var messageHeaderSink = {
       // process message tags as if they were headers in the message
       SetTagHeader();
 
-      if (("from" in currentHeaderData) && ("sender" in currentHeaderData) && msgHeaderParser)
+      if (("from" in currentHeaderData) && ("sender" in currentHeaderData))
       {
+        var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                        .getService(Components.interfaces.nsIMsgHeaderParser);
         var senderMailbox = kMailboxSeparator + msgHeaderParser.extractHeaderAddressMailboxes(null,
                             currentHeaderData.sender.headerValue) + kMailboxSeparator;
         var fromMailboxes = kMailboxSeparator + msgHeaderParser.extractHeaderAddressMailboxes(null,
@@ -925,34 +921,33 @@ function OutputEmailAddresses(headerEntry, emailAddresses)
   if (!emailAddresses)
     return;
 
-  if (msgHeaderParser)
+  var addresses = {};
+  var fullNames = {};
+  var names = {};
+  var numAddresses =  0;
+
+  var msgHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                  .getService(Components.interfaces.nsIMsgHeaderParser);
+  numAddresses = msgHeaderParser.parseHeadersWithArray(emailAddresses, addresses, names, fullNames);
+  var index = 0;
+  while (index < numAddresses)
   {
-    var addresses = {};
-    var fullNames = {};
-    var names = {};
-    var numAddresses =  0;
-
-    numAddresses = msgHeaderParser.parseHeadersWithArray(emailAddresses, addresses, names, fullNames);
-    var index = 0;
-    while (index < numAddresses)
-    {
-      // if we want to include short/long toggle views and we have a long view, always add it.
-      // if we aren't including a short/long view OR if we are and we haven't parsed enough
-      // addresses to reach the cutoff valve yet then add it to the default (short) div.
-      var address = {};
-      address.emailAddress = addresses.value[index];
-      address.fullAddress = fullNames.value[index];
-      address.displayName = names.value[index];
-      if (headerEntry.useToggle)
-        headerEntry.enclosingBox.addAddressView(address);
-      else
-        updateEmailAddressNode(headerEntry.enclosingBox.emailAddressNode, address);
-      index++;
-    }
-
+    // if we want to include short/long toggle views and we have a long view, always add it.
+    // if we aren't including a short/long view OR if we are and we haven't parsed enough
+    // addresses to reach the cutoff valve yet then add it to the default (short) div.
+    var address = {};
+    address.emailAddress = addresses.value[index];
+    address.fullAddress = fullNames.value[index];
+    address.displayName = names.value[index];
     if (headerEntry.useToggle)
-      headerEntry.enclosingBox.buildViews();
-  } // if msgheader parser
+      headerEntry.enclosingBox.addAddressView(address);
+    else
+      updateEmailAddressNode(headerEntry.enclosingBox.emailAddressNode, address);
+    index++;
+  }
+
+  if (headerEntry.useToggle)
+    headerEntry.enclosingBox.buildViews();
 }
 
 function updateEmailAddressNode(emailAddressNode, address)
@@ -1011,7 +1006,8 @@ function useDisplayNameForAddress(emailAddress)
 
   if (!gPersonalAddressBookDirectory)
   {
-    var RDFService = Components.classes[kRDFServiceContractID].getService(Components.interfaces.nsIRDFService);
+    var RDFService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                               .getService(Components.interfaces.nsIRDFService);
     gPersonalAddressBookDirectory = RDFService.GetResource(kPersonalAddressbookUri).QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
     if (!gPersonalAddressBookDirectory)
@@ -1391,12 +1387,6 @@ function ClearAttachmentMenu(popup)
      while ( popup.childNodes[0].localName == 'menu' )
        popup.removeChild(popup.childNodes[0]);
   }
-}
-
-// Public method used to determine the number of attachments for the currently displayed message...
-function GetNumberOfAttachmentsForDisplayedMessage()
-{
-  return currentAttachments.length;
 }
 
 // private method used to build up a menu list of attachments

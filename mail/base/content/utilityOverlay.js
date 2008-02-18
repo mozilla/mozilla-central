@@ -48,17 +48,6 @@
 
 var gShowBiDi = false;
 
-function GetStringPref(name)
-{
-  try {
-    return pref.getComplexValue(name, Components.interfaces.nsISupportsString).data;
-  } catch (e) {}
-  return "";
-}
-
-
-var goPrefWindow = 0;
-
 function getBrowserURL() {
 
   try {

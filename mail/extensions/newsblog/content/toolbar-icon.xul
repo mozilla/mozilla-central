@@ -50,6 +50,7 @@
       {
         params.composeFields.body = contentBase;
         var subject = msgHdr.mime2DecodedSubject;
+        var msgComposeType = Components.interfaces.nsIMsgCompType;
         if (type == msgComposeType.Reply 
             || type == msgComposeType.ReplyAll 
             || type == msgComposeType.ReplyToSender 

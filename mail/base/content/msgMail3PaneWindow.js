@@ -124,9 +124,9 @@ function SelectAndScrollToKey(aMsgKey)
 // could be the last displayed message, etc.)
 function ScrollToMessageAfterFolderLoad(folder)
 {
-  var scrolled = pref.getBoolPref("mailnews.scroll_to_new_message") &&
+  var scrolled = gPrefBranch.getBoolPref("mailnews.scroll_to_new_message") &&
       ScrollToMessage(nsMsgNavigationType.firstNew, true, false /* selectMessage */);
-  if (!scrolled && folder && pref.getBoolPref("mailnews.remember_selected_message"))
+  if (!scrolled && folder && gPrefBranch.getBoolPref("mailnews.remember_selected_message"))
   {
     // If we failed to scroll to a new message,
     // reselect the last selected message
@@ -690,7 +690,7 @@ var gThreePaneIncomingServerListener = {
 // aMsgWindowInitialized: false if we are calling from the onload handler, otherwise true
 function UpdateMailPaneConfig(aMsgWindowInitialized) {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
-  var desiredId = dynamicIds[pref.getIntPref("mail.pane_config.dynamic")];
+  var desiredId = dynamicIds[gPrefBranch.getIntPref("mail.pane_config.dynamic")];
   var messagePane = GetMessagePane();
   if (messagePane.parentNode.id != desiredId) {
     ClearAttachmentList();
@@ -761,13 +761,12 @@ function OnLoadMessenger()
 /* Functions related to startup */
 function delayedOnLoadMessenger()
 {
-  pref.QueryInterface(Components.interfaces.nsIPrefBranch2);
-  pref.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
-  pref.addObserver("mail.showFolderPaneColumns", MailPrefObserver, false);
+  gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+  gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
+  gPrefBranch.addObserver("mail.showFolderPaneColumns", MailPrefObserver, false);
 
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
-  accountCentralBox = document.getElementById("accountCentralBox");
   GetMessagePane().collapsed = true;
   verifyAccounts(null);
 
@@ -851,9 +850,9 @@ function OnUnloadMessenger()
 {
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
-  pref.QueryInterface(Components.interfaces.nsIPrefBranch2);
-  pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
-  pref.removeObserver("mail.showFolderPaneColumns", MailPrefObserver);
+  gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
+  gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
+  gPrefBranch.removeObserver("mail.showFolderPaneColumns", MailPrefObserver);
   document.getElementById('tabmail').closeTabs();
 
   gPhishingDetector.shutdown();
@@ -896,9 +895,9 @@ function loadStartFolder(initialUri)
             // Enable check new mail once by turning checkmail pref 'on' to bring
             // all users to one plane. This allows all users to go to Inbox. User can
             // always go to server settings panel and turn off "Check for new mail at startup"
-            if (!pref.getBoolPref(kMailCheckOncePrefName))
+            if (!gPrefBranch.getBoolPref(kMailCheckOncePrefName))
             {
-                pref.setBoolPref(kMailCheckOncePrefName, true);
+                gPrefBranch.setBoolPref(kMailCheckOncePrefName, true);
                 defaultServer.loginAtStartUp = true;
             }
 
@@ -1003,7 +1002,7 @@ function OnFolderUnreadColAttrModified(event)
 function UpdateFolderColumnVisibility()
 {
   var folderNameCol = document.getElementById("folderNameCol");
-  var showColumns = pref.getBoolPref("mail.showFolderPaneColumns");
+  var showColumns = gPrefBranch.getBoolPref("mail.showFolderPaneColumns");
   var folderUnreadCol = document.getElementById("folderUnreadCol");
   var folderColumnLabel = document.getElementById("folderColumnLabel");
   if (!showColumns)
@@ -1095,7 +1094,7 @@ function loadFolderView(aNewFolderView)
     loadFolderViewForTree(aNewFolderView, document.getElementById('folderLocationPopup').tree);
 
   // now reflect the new value back into prefs
-  pref.setIntPref('mail.ui.folderpane.view', gCurrentFolderView = aNewFolderView);
+  gPrefBranch.setIntPref('mail.ui.folderpane.view', gCurrentFolderView = aNewFolderView);
 }
 
 // we can cycle the folder view forward or backwards
@@ -1116,7 +1115,7 @@ function OnLoadFolderPane()
   var folderUnreadCol = document.getElementById("folderUnreadCol");
   folderUnreadCol.addEventListener("DOMAttrModified", OnFolderUnreadColAttrModified, false);
 
-  loadFolderView(pref.getIntPref('mail.ui.folderpane.view'));
+  loadFolderView(gPrefBranch.getIntPref('mail.ui.folderpane.view'));
 
   var folderTree = GetFolderTree();
   var folderTreeBuilder = folderTree.builder.QueryInterface(Components.interfaces.nsIXULTreeBuilder);
@@ -1148,7 +1147,7 @@ function UpgradeThreadPaneUI()
 
   try {
 
-    threadPaneUIVersion = pref.getIntPref("mailnews.ui.threadpane.version");
+    threadPaneUIVersion = gPrefBranch.getIntPref("mailnews.ui.threadpane.version");
 
     // Note: threadTree._reorderColumn will throw an ERROR if the columns specified are already in the same order!
 
@@ -1191,7 +1190,7 @@ function UpgradeThreadPaneUI()
       else
         threadTree._reorderColumn(receivedCol, junkCol, false);
 
-      pref.setIntPref("mailnews.ui.threadpane.version", 6);
+      gPrefBranch.setIntPref("mailnews.ui.threadpane.version", 6);
 
     } // version 6 upgrades
   }
@@ -1431,7 +1430,7 @@ function FolderPaneOnClick(event)
 
 function FolderPaneDoubleClick(folderIndex, event)
 {
-    if (!pref.getBoolPref("mailnews.reuse_thread_window2"))
+    if (!gPrefBranch.getBoolPref("mailnews.reuse_thread_window2"))
     {
       var folderResource = GetFolderResource(GetFolderTree(), folderIndex);
       // Open a new msg window only if we are double clicking on
@@ -1693,7 +1692,7 @@ function LoadNavigatedToMessage(msgHdr, folder, folderUri)
 // of those settings from the default account.
 function MigrateJunkMailSettings()
 {
-  var junkMailSettingsVersion = pref.getIntPref("mail.spam.version");
+  var junkMailSettingsVersion = gPrefBranch.getIntPref("mail.spam.version");
   if (!junkMailSettingsVersion)
   {
     // Get the default account, check to see if we have values for our
@@ -1706,17 +1705,17 @@ function MigrateJunkMailSettings()
     {
       // we only care about
       var prefix = "mail.server." + defaultAccount.incomingServer.key + ".";
-      if (pref.prefHasUserValue(prefix + "manualMark"))
-        pref.setBoolPref("mail.spam.manualMark", pref.getBoolPref(prefix + "manualMark"));
-      if (pref.prefHasUserValue(prefix + "manualMarkMode"))
-        pref.setIntPref("mail.spam.manualMarkMode", pref.getIntPref(prefix + "manualMarkMode"));
-      if (pref.prefHasUserValue(prefix + "spamLoggingEnabled"))
-        pref.setBoolPref("mail.spam.logging.enabled", pref.getBoolPref(prefix + "spamLoggingEnabled"));
-      if (pref.prefHasUserValue(prefix + "markAsReadOnSpam"))
-        pref.setBoolPref("mail.spam.markAsReadOnSpam", pref.getBoolPref(prefix + "markAsReadOnSpam"));
+      if (gPrefBranch.prefHasUserValue(prefix + "manualMark"))
+        gPrefBranch.setBoolPref("mail.spam.manualMark", pref.getBoolPref(prefix + "manualMark"));
+      if (gPrefBranch.prefHasUserValue(prefix + "manualMarkMode"))
+        gPrefBranch.setIntPref("mail.spam.manualMarkMode", pref.getIntPref(prefix + "manualMarkMode"));
+      if (gPrefBranch.prefHasUserValue(prefix + "spamLoggingEnabled"))
+        gPrefBranch.setBoolPref("mail.spam.logging.enabled", pref.getBoolPref(prefix + "spamLoggingEnabled"));
+      if (gPrefBranch.prefHasUserValue(prefix + "markAsReadOnSpam"))
+        gPrefBranch.setBoolPref("mail.spam.markAsReadOnSpam", pref.getBoolPref(prefix + "markAsReadOnSpam"));
     }
     // bump the version so we don't bother doing this again.
-    pref.setIntPref("mail.spam.version", 1);
+    gPrefBranch.setIntPref("mail.spam.version", 1);
   }
 }
 
@@ -1724,7 +1723,7 @@ function MigrateJunkMailSettings()
 // with the existing INBOX folders.
 function MigrateFolderViews()
 {
-  var folderViewsVersion = pref.getIntPref("mail.folder.views.version");
+  var folderViewsVersion = gPrefBranch.getIntPref("mail.folder.views.version");
   if (!folderViewsVersion)
   {
      var servers = accountManager.allServers;
@@ -1740,7 +1739,7 @@ function MigrateFolderViews()
            inbox.setFlag(MSG_FOLDER_FLAG_FAVORITE);
        }
      }
-    pref.setIntPref("mail.folder.views.version", 1);
+    gPrefBranch.setIntPref("mail.folder.views.version", 1);
   }
 }
 
@@ -1750,7 +1749,7 @@ function MigrateFolderViews()
 // To migrate to the new download manager, remove downloads.rdf.
 function MigrateAttachmentDownloadStore()
 {
-  var attachmentStoreVersion = pref.getIntPref("mail.attachment.store.version");
+  var attachmentStoreVersion = gPrefBranch.getIntPref("mail.attachment.store.version");
   if (!attachmentStoreVersion)
   {
     var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
@@ -1760,6 +1759,6 @@ function MigrateAttachmentDownloadStore()
       downloadsFile.remove(false);
 
     // bump the version so we don't bother doing this again.
-    pref.setIntPref("mail.attachment.store.version", 1);
+    gPrefBranch.setIntPref("mail.attachment.store.version", 1);
   }
 }
