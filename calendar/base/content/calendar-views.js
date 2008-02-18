@@ -526,7 +526,7 @@ function toggleOrientation() {
 
     var deck = getViewDeck();
     for each (var view in deck.childNodes) {
-        view.rotated = !view.rotated;
+        view.rotated = (newValue == "true");
     }
 
     // orientation refreshes automatically
@@ -542,7 +542,7 @@ function toggleWorkdaysOnly() {
 
     var deck = getViewDeck();
     for each (var view in deck.childNodes) {
-        view.workdaysOnly = !view.workdaysOnly;
+        view.workdaysOnly = (newValue == "true");
     }
 
     // Refresh the current view
@@ -559,7 +559,7 @@ function toggleTasksInView() {
 
     var deck = getViewDeck();
     for each (var view in deck.childNodes) {
-        view.tasksInView = !view.tasksInView;
+        view.tasksInView = (newValue == "true");
     }
 
     // Refresh the current view
