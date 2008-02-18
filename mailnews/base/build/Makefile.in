@@ -85,14 +85,6 @@ REQUIRES	= xpcom \
 		  webbrwsr \
 		  $(NULL)
 
-ifeq ($(OS_ARCH),WINNT)
-REQUIRES	+= alerts
-endif
-
-ifneq (,$(filter $(MOZ_WIDGET_TOOLKIT),gtk gtk2))
-REQUIRES	+= alerts
-endif
-
 CPPSRCS		= nsMsgFactory.cpp
 
 SHARED_LIBRARY_LIBS = \

@@ -48,7 +48,6 @@
 
 #include "nsIMessengerOSIntegration.h"
 #include "nsIFolderListener.h"
-#include "nsIAlertsService.h"
 #include "nsIAtom.h"
 #include "nsITimer.h"
 #include "nsCOMPtr.h"
