@@ -158,12 +158,13 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
                                            andTarget:inTarget];
       [menu insertItem:menuItem atIndex:0];
     }
-    // Since we couldn't find a default application, add a blank menu item.
+    // Since we couldn't find a default application, add a "no default reader" menu item.
     else {
-      NSMenuItem* dummyItem = [[NSMenuItem alloc] init];
-      [dummyItem setTitle:@""];
-      [menu insertItem:dummyItem atIndex:0];
-      [dummyItem release];
+      NSMenuItem* noReaderSelectedItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"NoDefaultReader", nil)
+                                                                    action:NULL 
+                                                             keyEquivalent:@""];
+      [menu insertItem:noReaderSelectedItem atIndex:0];
+      [noReaderSelectedItem release];
     }
   }
   

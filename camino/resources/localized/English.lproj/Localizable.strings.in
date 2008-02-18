@@ -78,6 +78,7 @@
 
 /* feed detection */
 "Select..." = "Select…";
+"NoDefaultReader" = "None";
 "FeedDetected" = "List feeds offered by this page";
 "SubscribeTo" = "Subscribe to “%@”";
 "FeedPreferences" = "Feed Preferences…";
