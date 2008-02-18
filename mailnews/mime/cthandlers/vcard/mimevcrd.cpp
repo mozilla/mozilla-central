@@ -49,7 +49,6 @@
 #include "mimecth.h"
 #include "mimexpcom.h"
 #include "mimevcrd.h"
-#include "nsEscape.h"
 #include "nsIURI.h"
 #include "nsMsgI18N.h"
 #include "nsMsgUtils.h"
@@ -1960,7 +1959,7 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
   int len = 0;
 
   vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, aVcard, PR_FALSE));
-  vEscCard.Adopt(nsEscape (vCard.get(), url_XAlphas));
+  MsgEscapeString(vCard, nsINetUtil::ESCAPE_XALPHAS, vEscCard);
 
   // first cell in the outer table row is a clickable image which brings up the rich address book UI for the vcard
   vCardOutput += "<td valign=\"top\"> <a class=\"moz-vcard-badge\" href=\"addbook:add?action=add?vcard=";
