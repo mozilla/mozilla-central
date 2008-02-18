@@ -705,9 +705,10 @@ calGoogleCalendar.prototype = {
                     for each (var item in expandedItems) {
                         destinationCal.modifyItem(item, null, null);
                     }
-                } else {
+                } else if (aRequest.extraData.listener) {
                     // Otherwise, this in an uncached getItems call, notify the
-                    // listener that we got a result.
+                    // listener that we got a result, but only if we actually
+                    // have a listener
                     aRequest.extraData.listener.onGetResult(this.superCalendar,
                                                             Components.results.NS_OK,
                                                             Components.interfaces.calIEvent,
@@ -718,13 +719,13 @@ calGoogleCalendar.prototype = {
             }
 
             // Operation Completed successfully.
-            if (!destinationCal && aRequest.extraData.listener) {
+            if (aRequest.extraData.listener instanceof Components.interfaces.calIOperationListener) {
                 aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 Components.results.NS_OK,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
                                                                 null);
-            } else if (destinationCal && aRequest.extraData.listener) {
+            } else if (aRequest.extraData.listener instanceof Components.interfaces.calIGenericOperationListener) {
                 // The listener for synchronization is a
                 // calIGenericOperationListener. Call accordingly.
                 aRequest.extraData.listener.onResult(aRequest, null);
@@ -738,13 +739,13 @@ calGoogleCalendar.prototype = {
         } catch (e) {
             LOG("Error getting items:\n" + e);
             // Operation failed
-            if (!destinationCal && aRequest.extraData.listener) {
+            if (aRequest.extraData.listener instanceof Components.interfaces.calIOperationListener) {
                 aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                                 e.result,
                                                                 Components.interfaces.calIOperationListener.GET,
                                                                 null,
                                                                 e.message);
-            } else if (destinationCal && aRequest.extraData.listener) {
+            } else if (aRequest.extraData.listener instanceof Components.interfaces.calIGenericOperationListener) {
                 aRequest.extraData.listener.onResult({ status: e.result},
                                                      e.message);
             }
@@ -847,7 +848,6 @@ calGoogleCalendar.prototype = {
     },
 
     replayChangesOn: function cGC_replayChangesOn(aDestination, aListener) {
-
         var extraData = {
             destination: aDestination,
             listener: aListener

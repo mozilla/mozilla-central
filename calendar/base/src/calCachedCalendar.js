@@ -56,7 +56,7 @@ calCachedCalendarObserverHelper.prototype = {
         } else {
             // start sync action after uncached calendar has been loaded.
             // xxx todo, think about:
-            // altohugh onAddItem et al have been called, we need to fire
+            // although onAddItem et al have been called, we need to fire
             // an additional onLoad completing the refresh call (->composite)
             var home = this.home;
             home.synchronize(
@@ -128,6 +128,9 @@ function calCachedCalendar(uncachedCalendar) {
                                            updateTimer * 60 * 1000,
                                            Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
     }
+
+    // Take care of the inital synchronization
+    this.refresh();
 }
 calCachedCalendar.prototype = {
     QueryInterface: function cCC_QueryInterface(aIID) {
@@ -183,21 +186,22 @@ calCachedCalendar.prototype = {
                 cachedCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + calType]
                                            .createInstance(Components.interfaces.calICalendar);
                 switch (calType) {
-                case "memory":
-                    if (this.supportsChangeLog) {
-                        // start with full sync:
-                        this.mUncachedCalendar.resetLog();
-                    }
-                    break;
-                case "storage":
-                    var file = getCalendarDirectory();
-                    file.append("cache.sqlite");
-                    var uri = getIOService().newFileURI(file);
-                    uri.spec += ("?id=" + this.id);
-                    cachedCalendar.uri = uri;
-                    break;
-                default:
-                    throw new Error("unsupported cache calendar type: " + calType);
+                    case "memory":
+                        if (this.supportsChangeLog) {
+                            // start with full sync:
+                            this.mUncachedCalendar.resetLog();
+                        }
+                        break;
+                    case "storage":
+                        var file = getCalendarDirectory();
+                        file.append("cache.sqlite");
+                        var uri = getIOService().newFileURI(file);
+                        uri.spec += ("?id=" + this.id);
+                        cachedCalendar.uri = uri;
+                        cachedCalendar.id = this.id;
+                        break;
+                    default:
+                        throw new Error("unsupported cache calendar type: " + calType);
                 }
                 cachedCalendar.setProperty("relaxedMode", true);
                 cachedCalendar.superCalendar = this;
@@ -217,7 +221,7 @@ calCachedCalendar.prototype = {
     synchronize: function cCC_synchronize(respFunc) {
         this.mSyncQueue.push(respFunc);
         if (this.mSyncQueue.length > 1) { // don't use mPendingSync here
-            LOG("sync in action/pending.");
+            LOG("[calCachedCalendar] sync in action/pending.");
             return this.mPendingSync;
         }
 
@@ -233,7 +237,7 @@ calCachedCalendar.prototype = {
                 }
             }
             queue.forEach(execResponseFunc);
-            LOG("sync queue empty.");
+            LOG("[calCachedCalendar] sync queue empty.");
             var op = this_.mPendingSync;
             this_.mPendingSync = null;
             return op;
@@ -250,7 +254,7 @@ calCachedCalendar.prototype = {
                     if (!op || !op.isPending) {
                         var status = (op ? op.status : Components.results.NS_OK);
                         ASSERT(Components.isSuccessCode(status), "replay action failed: " + (op ? op.id : "<unknown>"));
-                        LOG("replayChangesOn finished.");
+                        LOG("[calCachedCalendar] replayChangesOn finished.");
                         emptyQueue(status);
                     }
                 }
@@ -449,59 +453,32 @@ calCachedCalendar.prototype = {
             }
         }
         return this.mUncachedCalendar.deleteItem(item, opListener);
-    },
-
-    mInitialSync: false,
-    assureInitialSync: function(respFunc) {
-        if (this.mInitialSync) {
-            return respFunc();
-        } else {
-            var this_ = this;
-            this.synchronize(
-                function(status) {
-                    this_.mInitialSync = true;
-                    respFunc();
-                });
-            return null; // xxx todo we need to group sync and getter operations into a parent operation
-        }
-    },
-    getItem: function(id, listener) {
-        var this_ = this;
-        return this.assureInitialSync(
-            function() {
-                return this_.mCachedCalendar.getItem(id, listener);
-            });
-    },
-    getItems: function(filter, count, rangeStart, rangeEnd, listener) {
-        var this_ = this;
-        return this.assureInitialSync(
-            function() {
-                return this_.mCachedCalendar.getItems(filter, count, rangeStart, rangeEnd, listener);
-            });
-    },
-
-    startBatch: function() {
-        return this.mCachedCalendar.startBatch.apply(this.mCachedCalendar, arguments)
-    },
-    endBatch: function() {
-        return this.mCachedCalendar.endBatch.apply(this.mCachedCalendar, arguments)
     }
 };
 (function() {
-    function defineForwardGetter(attr) {
-        calCachedCalendar.prototype.__defineGetter__(attr, function() { return this.mUncachedCalendar[attr]; });
+    function defineForwards(proto, targetName, functions, getters, gettersAndSetters) {
+        function defineForwardGetter(attr) {
+            proto.__defineGetter__(attr, function() { return this[targetName][attr]; });
+        }
+        function defineForwardGetterAndSetter(attr) {
+            defineForwardGetter(attr);
+            proto.__defineSetter__(attr, function(value) { return (this[targetName][attr] = value); });
+        }
+        function defineForwardFunction(funcName) {
+            proto[funcName] = function() {
+                var obj = this[targetName];
+                return obj[funcName].apply(obj, arguments);
+            };
+        }
+        functions.forEach(defineForwardFunction);
+        getters.forEach(defineForwardGetter);
+        gettersAndSetters.forEach(defineForwardGetterAndSetter);
     }
-    function defineForwardGetterAndSetter(attr) {
-        defineForwardGetter(attr);
-        calCachedCalendar.prototype.__defineSetter__(attr, function(value) { return (this.mUncachedCalendar[attr] = value); });
-    }
-    function defineForwardFunction(funcName) {
-        calCachedCalendar.prototype[funcName] = function() {
-            return this.mUncachedCalendar[funcName].apply(this.mUncachedCalendar, arguments);
-        };
-    }
-    ["sendItipInvitations", "type"].forEach(defineForwardGetter);
-    ["id", "name", "uri", "readOnly"].forEach(defineForwardGetterAndSetter);
-    ["getProperty", "setProperty", "deleteProperty"].forEach(defineForwardFunction);
+
+    defineForwards(calCachedCalendar.prototype, "mUncachedCalendar",
+                   ["getProperty", "setProperty", "deleteProperty"],
+                   ["sendItipInvitations", "type"], ["id", "name", "uri", "readOnly"]);
+    defineForwards(calCachedCalendar.prototype, "mCachedCalendar",
+                   ["getItem", "getItems", "startBatch", "endBatch"], [], []);
 })();
 
