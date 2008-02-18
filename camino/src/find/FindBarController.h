@@ -79,9 +79,13 @@
 // notification.
 - (void)showFindBar;
 - (IBAction)hideFindBar:(id)sender;
-
+- (IBAction)toggleCaseSensitivity:(id)sender;
+// 10.4- version
 - (IBAction)findNext:(id)sender;
 - (IBAction)findPrevious:(id)sender;
+// 10.5+ version
+- (IBAction)findPreviousNextClicked:(id)sender;
+// Currently unimplemented.
 - (IBAction)findAll:(id)sender;
 
 @end

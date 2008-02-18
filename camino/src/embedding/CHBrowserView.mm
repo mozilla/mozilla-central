@@ -158,6 +158,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (void)ensurePrintSettings;
 - (void)savePrintSettings;
 - (BOOL)isPasswordFieldFocused;
+- (void)collapseSelection;
 
 - (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI;
 
@@ -903,6 +904,17 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   }
 }
 
+- (void)collapseSelection
+{
+  nsCOMPtr<nsIDOMWindow> domWindow = [self focussedDOMWindow];
+  if (domWindow) {
+    nsCOMPtr<nsISelection> selection;
+    domWindow->GetSelection(getter_AddRefs(selection));
+    if (selection)
+      selection->CollapseToStart();
+  }
+}
+
 - (BOOL)findInPageWithPattern:(NSString*)inText caseSensitive:(BOOL)inCaseSensitive
     wrap:(BOOL)inWrap backwards:(BOOL)inBackwards
 {
@@ -922,8 +934,16 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
       nsCOMPtr<nsIWebBrowserFindInFrames> framesFind(do_QueryInterface(webFind));
       framesFind->SetRootSearchFrame(rootWindow);
       framesFind->SetCurrentSearchFrame(focusedWindow);
-      
-      webFind->SetMatchCase(inCaseSensitive ? PR_TRUE : PR_FALSE);
+
+      // If case sensitivity has been toggled, collapse the selection before
+      // searching (see the comment in findInPage:).
+      PRBool inCaseSensitivePRBool = inCaseSensitive ? PR_TRUE : PR_FALSE;
+      PRBool wasCaseSensitivePRBool;
+      webFind->GetMatchCase(&wasCaseSensitivePRBool);
+      if (inCaseSensitivePRBool != wasCaseSensitivePRBool)
+        [self collapseSelection];
+
+      webFind->SetMatchCase(inCaseSensitivePRBool);
       webFind->SetWrapFind(inWrap ? PR_TRUE : PR_FALSE);
     
       nsAutoString findString;
@@ -950,15 +970,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   webFind->GetSearchString(getter_Copies(findString));
   NSString* searchText = [NSString stringWith_nsAString:findString];
   NSString* selectedText = [self selectedText];
-  if (![searchText caseInsensitiveCompare:selectedText] == NSOrderedSame) {
-    nsCOMPtr<nsIDOMWindow> domWindow = [self focussedDOMWindow];
-    if (domWindow) {
-      nsCOMPtr<nsISelection> selection;
-      domWindow->GetSelection(getter_AddRefs(selection));
-      if (selection)
-        selection->CollapseToStart();
-    }
-  }
+  if (![searchText caseInsensitiveCompare:selectedText] == NSOrderedSame)
+    [self collapseSelection];
 
   webFind->SetFindBackwards(inBackwards);
 

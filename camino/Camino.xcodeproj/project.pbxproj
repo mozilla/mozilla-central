@@ -71,6 +71,8 @@
 		0098B29A0CAECEF500DA0F2F /* necko_file.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B2980CAECEBA00DA0F2F /* necko_file.xpt */; };
 		00A29E870BC9AA5B00BF313F /* tab_menu_button.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */; };
 		00A29E880BC9AA5B00BF313F /* tab_menu_button.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */; };
+		00BBBF1E0D6A149900C2D916 /* FindBarTextured.nib in Resources */ = {isa = PBXBuildFile; fileRef = 00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */; };
+		00BBBF1F0D6A149900C2D916 /* FindBarTextured.nib in Resources */ = {isa = PBXBuildFile; fileRef = 00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */; };
 		032FFDD5077351DA00440548 /* Downloads.mm in Sources */ = {isa = PBXBuildFile; fileRef = 032FFDCE077351A800440548 /* Downloads.mm */; };
 		032FFDD6077351EA00440548 /* Downloads.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 032FFDCF077351A800440548 /* Downloads.tiff */; };
 		032FFDD7077351EA00440548 /* Downloads.nib in Resources */ = {isa = PBXBuildFile; fileRef = 032FFDD0077351A800440548 /* Downloads.nib */; };
@@ -2147,6 +2149,7 @@
 		0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = mimeTypes.rdf; path = resources/application/mimeTypes.rdf; sourceTree = "<group>"; };
 		0098B2980CAECEBA00DA0F2F /* necko_file.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = necko_file.xpt; path = ../dist/bin/components/necko_file.xpt; sourceTree = SOURCE_ROOT; };
 		00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_menu_button.tiff; path = resources/images/chrome/tab_menu_button.tiff; sourceTree = SOURCE_ROOT; };
+		00BBBF1D0D6A149800C2D916 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/FindBarTextured.nib; sourceTree = "<group>"; };
 		032FFDCD077351A800440548 /* Downloads.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Downloads.h; sourceTree = "<group>"; };
 		032FFDCE077351A800440548 /* Downloads.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; path = Downloads.mm; sourceTree = "<group>"; };
 		032FFDCF077351A800440548 /* Downloads.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Downloads.tiff; sourceTree = "<group>"; };
@@ -4345,6 +4348,7 @@
 				E4575BBA09CE163A0060A9E7 /* PopupBlockView.nib */,
 				DE74F7600AB2612700FD1D5B /* OpenFeed.nib */,
 				E43EFBAD0D143F0D00DACA10 /* FindBar.nib */,
+				00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */,
 				C7FF53700D35285400194776 /* SearchEngineEditor.nib */,
 			);
 			name = Nibs;
@@ -4999,6 +5003,7 @@
 				DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
 				DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
 				DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
+				00BBBF1F0D6A149900C2D916 /* FindBarTextured.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5192,6 +5197,7 @@
 				DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
 				DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
 				DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
+				00BBBF1E0D6A149900C2D916 /* FindBarTextured.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5688,6 +5694,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				00BBBF1D0D6A149800C2D916 /* English */,
+			);
+			name = FindBarTextured.nib;
+			sourceTree = "<group>";
+		};
 		032FFDD0077351A800440548 /* Downloads.nib */ = {
 			isa = PBXVariantGroup;
 			children = (

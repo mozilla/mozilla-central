@@ -40,6 +40,7 @@
 
 #import "BrowserContentViews.h"
 #import "RolloverImageButton.h"
+#import "NSWorkspace+Utils.h"
 
 
 @interface FindBarController(Private)
@@ -77,7 +78,13 @@
 //
 - (void)lazyLoad
 {
-  BOOL success = [NSBundle loadNibNamed:@"FindBar" owner:self];
+  NSString* nibName;
+  BOOL isLeopardOrHigher = [NSWorkspace isLeopardOrHigher];
+  if (isLeopardOrHigher)
+    nibName = @"FindBarTextured";
+  else
+    nibName = @"FindBar";
+  BOOL success = [NSBundle loadNibNamed:nibName owner:self];
   if (!success) {
     NSLog(@"Error, couldn't load find bar. Find won't work");
     return;
@@ -85,6 +92,17 @@
   
   [self setupCloseBox:mCloseBox];
   [mStatusText setStringValue:@""];
+  if (isLeopardOrHigher) {
+    // The textured buttons at regular size use a larger font size than the
+    // status text that's right next to it, which looks bad. To work around it,
+    // we use a smaller control in the nib (so that localizers are sizing the
+    // button width based on the font size that will actually be used), then we
+    // fix up the controlSize and height of the button as we load it.
+    [[mMatchCase cell] setControlSize:NSRegularControlSize];
+    NSSize buttonSize = [mMatchCase frame].size;
+    buttonSize.height = [[mMatchCase cell] cellSize].height;
+    [mMatchCase setFrameSize:buttonSize];
+  }
 }
 
 //
@@ -130,6 +148,29 @@
 - (IBAction)findPrevious:(id)sender
 {
   [self doFindForwards:NO];
+}
+
+//
+// -findPreviousNextClicked:
+//
+// Action for the segmented previous/next button for 10.5+.
+//
+- (IBAction)findPreviousNextClicked:(id)sender
+{
+  if ([sender selectedSegment] == 0)
+    [self doFindForwards:NO];
+  else
+    [self doFindForwards:YES];
+}
+
+//
+// -toggleCaseSensitivity:
+//
+// Action for the case sensitivity button.
+//
+- (IBAction)toggleCaseSensitivity:(id)sender
+{
+  [self doFindForwards:YES];
 }
 
 //

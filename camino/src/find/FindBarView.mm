@@ -37,18 +37,75 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "FindBarView.h"
+#import "NSWorkspace+Utils.h"
 
 @implementation FindBarView
 
-//
-// -drawRect:
-//
-// Override to draw the top header of the find bar
-//
+- (void)dealloc
+{
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+  [super dealloc];
+}
+
+static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
+{
+  float* grays = static_cast<float*>(inInfo);
+  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
+  outData[1] = 1.0;
+}
+
+- (void)viewDidMoveToWindow
+{
+  if ([self window] && [NSWorkspace isLeopardOrHigher]) {
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(windowKeyStatusChanged:)
+                                                 name:NSWindowDidBecomeKeyNotification
+                                               object:[self window]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(windowKeyStatusChanged:)
+                                                 name:NSWindowDidResignKeyNotification
+                                               object:[self window]];
+  }
+}
+
+- (void)windowKeyStatusChanged:(NSNotification *)aNotification
+{
+  [self setNeedsDisplay:YES];
+}
+
 - (void)drawRect:(NSRect)aRect
 {
-  [super drawRect:aRect];
+  // Only draw a gradient if the window is main; this isn't the way these bars
+  // ususally work, but it is how the OS draws the status bar, and since the
+  // find bar lives at the bottom of the window it looks better to match that.
+  if ([NSWorkspace isLeopardOrHigher] && [[self window] isMainWindow]) {
+    float grays[2] = {207.0/255.0, 233.0/255.0};
+    
+    NSRect bounds = [self bounds];
+    bounds.size.height -= 1.0;
+    
+    struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
+    CGFunctionRef function = CGFunctionCreate(grays, 1, NULL, 2, NULL,
+                                              &callbacks);
+    
+    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceGray();
+    CGShadingRef shading = CGShadingCreateAxial(colorspace,
+                                                CGPointMake(NSMinX(aRect),
+                                                            NSMinY(bounds)),
+                                                CGPointMake(NSMinX(aRect),
+                                                            NSMaxY(bounds)),
+                                                function, false, false);
+    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    
+    CGContextDrawShading(context, shading);
+    
+    CGShadingRelease(shading);
+    CGColorSpaceRelease(colorspace);
+    CGFunctionRelease(function);
+  }
   
+  [super drawRect:aRect];
+
   // optimize drawing a bit so we're not *always* redrawing our top header. Only
   // draw if the area we're asked to draw overlaps with the top line.
   NSRect bounds = [self bounds];
