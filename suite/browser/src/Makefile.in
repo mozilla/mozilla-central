@@ -71,6 +71,7 @@ CPPSRCS = \
 
 ifeq ($(OS_ARCH),WINNT)
 CPPSRCS += nsUrlWidget.cpp
+REQUIRES += content
 endif
 
 FORCE_STATIC_LIB = 1
