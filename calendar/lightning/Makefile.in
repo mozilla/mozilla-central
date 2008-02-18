@@ -46,12 +46,12 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= lightning
 
 export XPI_NAME = lightning
-export XPI_PKGNAME = lightning
 export USE_EXTENSION_MANIFEST = 1
 export NO_JAR_AUTO_REG = 1
+XPI_PKGNAME = lightning
 
 STRIP_XPI = 1
-DIST_FILES = chrome.manifest install.rdf
+DIST_FILES = install.rdf
 PREF_JS_EXPORTS = $(srcdir)/content/lightning.js
 LIGHTNING_VERSION := $(shell cat $(srcdir)/../sunbird/config/version.txt)
 
@@ -78,15 +78,6 @@ DIRS = ../../extensions/webdav \
 PWD := $(shell pwd)
 core_abspath = $(if $(findstring :,$(1)),$(1),$(if $(filter /%,$(1)),$(1),$(PWD)/$(1)))
 
-DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
-           -DFIREFOX_VERSION=$(FIREFOX_VERSION) \
-           -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
-           -DLIGHTNING_VERSION=$(LIGHTNING_VERSION) \
-           -DLIGHTNING_FIREFOX=$(LIGHTNING_FIREFOX) \
-           -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI) \
-           -DTHEME=$(THEME) \
-           $(NULL)
-
 # Select a theme from which to pull our skin goodness
 # OS X: pinstripe
 # Others: winstripe
@@ -96,6 +87,16 @@ THEME=pinstripe
 else
 THEME=winstripe
 endif
+
+DEFINES += -DTHUNDERBIRD_VERSION=$(THUNDERBIRD_VERSION) \
+           -DAB_CD=$(AB_CD) \
+           -DFIREFOX_VERSION=$(FIREFOX_VERSION) \
+           -DSEAMONKEY_VERSION=$(SEAMONKEY_VERSION) \
+           -DLIGHTNING_VERSION=$(LIGHTNING_VERSION) \
+           -DLIGHTNING_FIREFOX=$(LIGHTNING_FIREFOX) \
+           -DTARGET_PLATFORM=$(OS_TARGET)_$(TARGET_XPCOM_ABI) \
+           -DTHEME=$(THEME) \
+           $(NULL)
 
 ifdef MOZILLA_1_8_BRANCH
 DEFINES += -DBUILD_ID=$(BUILD_ID)
@@ -116,8 +117,8 @@ ifneq ($(strip $(locales_to_build)),)
 libs:: $(addprefix libs-,$(locales_to_build))
 libs-%:
 	@echo - locales to build -- $(locales_to_build)
-	$(MAKE) -C locales libs AB_CD=$*
-	$(MAKE) -C ../locales libs AB_CD=$*
+	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
+	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=lightning USE_EXTENSION_MANIFEST=1 NO_JAR_AUTO_REG=1
 
 endif
 
