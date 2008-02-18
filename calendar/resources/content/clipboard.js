@@ -212,6 +212,11 @@ function pasteFromClipboard()
     switch (flavour.value) {
         case "text/calendar":
         case "text/unicode":
+            // Moving this test up before processing
+            var destCal = getSelectedCalendar();
+            if (!destCal) {
+                return;
+            }
             var calComp = getIcsService().parseICS(data, null);
             var subComp = calComp.getFirstSubcomponent("ANY");
             while (subComp) {
@@ -235,7 +240,7 @@ function pasteFromClipboard()
                 subComp = calComp.getNextSubcomponent("ANY");
             }
             // If there are multiple items on the clipboard, the earliest
-            // should be set to the selected day/time and the rest adjusted.
+            // should be set to the selected day and the rest adjusted.
             var earliestDate = null;
             for each(item in items) {
                 var date = null;
@@ -251,50 +256,30 @@ function pasteFromClipboard()
                 if (!earliestDate || date.compare(earliestDate) < 0)
                     earliestDate = date;
             }
-            var destCal = getSelectedCalendar();
-            if (!destCal) {
-                return;
-            }
-            var firstDate = currentView().selectedDay;
-            if (!firstDate.isMutable) {
-                firstDate = firstDate.clone();
-            }
-            firstDate.isDate = false;
+            var firstDate = currentView().selectedDay; 
 
-            function makeNewStartingDate(oldDate) {
-                var date = firstDate.clone();
-                var offset = oldDate.subtractDate(earliestDate);
-                date.addDuration(offset);
-
-                // now that the day is set, fix the time back to the original
-                date.hour = oldDate.hour;
-                date.minute = oldDate.minute;
-                date.second = oldDate.second;
-                date.timezone = oldDate.timezone;
-                if (oldDate.isDate) {
-                    date.isDate = true;
-                }
-                return date;
-            }
+            // Timezones and DT/DST time may differ between the earliest item  
+            // and the selected day. Determine the offset between the 
+            // earliestDate in local time and the selected day in whole days. 
+            earliestDate = earliestDate.getInTimezone(calendarDefaultTimezone());
+            earliestDate.isDate = true;
+            var offset = firstDate.subtractDate(earliestDate);
+            var deltaDST = firstDate.timezoneOffset - earliestDate.timezoneOffset;
+            offset.inSeconds += deltaDST;
 
             startBatchTransaction();
             for each(item in items) {
-                var duration = item.duration;
                 var newItem = item.clone();
                 if (item.startDate) {
-                    newItem.startDate = makeNewStartingDate(item.startDate).clone();
-                    newItem.endDate = newItem.startDate.clone();
-                    newItem.endDate.addDuration(duration);
-                }
-                if (item.entryDate) {
-                    newItem.entryDate = makeNewStartingDate(item.entryDate).clone();
-                    if (item.dueDate) {
-                        newItem.dueDate = newItem.entryDate.clone();
-                        newItem.dueDate.addDuration(duration);
+                    newItem.startDate.addDuration(offset);
+                    newItem.endDate.addDuration(offset);
+                } else {
+                    if (item.entryDate) {
+                        newItem.entryDate.addDuration(offset);
                     }
-                }
-                else if (item.dueDate) {
-                    newItem.dueDate = makeNewStartingDate(item.dueDate).clone();
+                    if (item.dueDate) {
+                        newItem.dueDate.addDuration(offset);
+                    }
                 }
                 doTransaction('add', newItem, destCal, null, null);
             }
