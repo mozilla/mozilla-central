@@ -1,8 +1,8 @@
 BEGIN:VCALENDAR
-PRODID:-//citadel.org//NONSGML Citadel calendar//EN
+PRODID:-//mozilla.org//NONSGML Sunbird via VZIC//EN
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:/citadel.org/20070227_1/Europe/San_Marino
+TZID:/mozilla.org/20071231_1/Europe/San_Marino
 X-LIC-LOCATION:Europe/San_Marino
 BEGIN:DAYLIGHT
 TZOFFSETFROM:+0100

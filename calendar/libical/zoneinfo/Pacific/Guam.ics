@@ -1,8 +1,8 @@
 BEGIN:VCALENDAR
-PRODID:-//citadel.org//NONSGML Citadel calendar//EN
+PRODID:-//mozilla.org//NONSGML Sunbird via VZIC//EN
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:/citadel.org/20070227_1/Pacific/Guam
+TZID:/mozilla.org/20071231_1/Pacific/Guam
 X-LIC-LOCATION:Pacific/Guam
 BEGIN:STANDARD
 TZOFFSETFROM:+1000

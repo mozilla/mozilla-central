@@ -1,8 +1,8 @@
 BEGIN:VCALENDAR
-PRODID:-//citadel.org//NONSGML Citadel calendar//EN
+PRODID:-//mozilla.org//NONSGML Sunbird via VZIC//EN
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:/citadel.org/20070227_1/Pacific/Guadalcanal
+TZID:/mozilla.org/20071231_1/Pacific/Guadalcanal
 X-LIC-LOCATION:Pacific/Guadalcanal
 BEGIN:STANDARD
 TZOFFSETFROM:+1100

@@ -1,8 +1,8 @@
 BEGIN:VCALENDAR
-PRODID:-//citadel.org//NONSGML Citadel calendar//EN
+PRODID:-//mozilla.org//NONSGML Sunbird via VZIC//EN
 VERSION:2.0
 BEGIN:VTIMEZONE
-TZID:/citadel.org/20070227_1/America/Montserrat
+TZID:/mozilla.org/20071231_1/America/Montserrat
 X-LIC-LOCATION:America/Montserrat
 BEGIN:STANDARD
 TZOFFSETFROM:-0400
