@@ -241,10 +241,9 @@ function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnComm
 }
 
 function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
-    var categoriesString = getLocalizedPref("calendar.categories.names", "");
     var categoriesList = getPrefCategoriesArray();
 
-    // When categoriesString is empty, split returns an array containing one
+    // 'split'may return an array containing one
     // empty string, rather than an empty array. This results in an empty
     // menulist item with no corresponding category.
     if (categoriesList.length == 1 && !categoriesList[0].length) {
@@ -253,15 +252,18 @@ function appendCategoryItems(aItem, aCategoryMenuList, aCommand) {
 
     // insert the category already in the menulist so it doesn't get lost
     if (aItem) {
-        var itemCategory = aItem.getProperty("CATEGORIES");
-        if (itemCategory) {
-            if (categoriesString.indexOf(itemCategory) == -1) {
-                categoriesList[categoriesList.length] = itemCategory;
+        var itemProperty = aItem.getProperty("CATEGORIES");
+        if (itemProperty) {
+            var itemCategories = categoriesStringToArray(itemProperty);
+            for each (var itemCategory in itemCategories) {
+                if (!categoriesList.some(function(cat){ return cat == itemCategory; })){
+                    categoriesList.push(itemCategory);
+                }
             }
         }
+        sortArrayByLocaleCollator(categoriesList);
     }
-    categoriesList.sort();
-
+    
     while (aCategoryMenuList.hasChildNodes()) {
        aCategoryMenuList.removeChild(aCategoryMenuList.lastChild);
     }
@@ -306,7 +308,7 @@ function setCategory(aItem, aMenuElement) {
     var category = getElementValue(aMenuElement);
 
     if (category != "NONE") {
-       setItemProperty(aItem, "CATEGORIES", category);
+       setItemProperty(aItem, "CATEGORIES", categoriesArrayToString([category]));
     } else {
        aItem.deleteProperty("CATEGORIES");
     }
