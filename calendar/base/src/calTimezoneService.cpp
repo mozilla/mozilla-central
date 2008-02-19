@@ -199,27 +199,29 @@ nsresult calTimezoneService::LatestTzId(const nsACString& tzid, nsACString& _ret
     
     if (continent.EqualsLiteral("Africa")) {
         if (tzid.EqualsLiteral("/mozilla.org/20050126_1/Africa/Asmera")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/Africa/Asmara");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Africa/Asmara");
         } else if (tzid.EqualsLiteral("/mozilla.org/20050126_1/Africa/Timbuktu")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/Africa/Bamako");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Africa/Bamako");
         }
     } else if (continent.EqualsLiteral("Atlantic")) {
         if (tzid.EqualsLiteral("/mozilla.org/20050126_1/Atlantic/Faeroe")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/Atlantic/Faroe");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Atlantic/Faroe");
+        } else if (tzid.EqualsLiteral("/mozilla.org/20070129_1/Atlantic/Jan_Mayen")) {
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Europe/Oslo");
         }
     } else if (continent.EqualsLiteral("America")) {
         if (tzid.EqualsLiteral("/mozilla.org/20050126_1/America/Argentina/ComodRivadavia")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/America/Argentina/Catamarca");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/America/Argentina/Catamarca");
         } else if (tzid.EqualsLiteral("/mozilla.org/20050126_1/America/Louisville")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/America/Kentucky/Louisville");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/America/Kentucky/Louisville");
         }
     } else if (continent.EqualsLiteral("Europe")) {
         if (tzid.EqualsLiteral("/mozilla.org/20050126_1/Europe/Belfast")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/Europe/London");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Europe/London");
         }
     } else if (continent.EqualsLiteral("Pacific")) {
         if (tzid.EqualsLiteral("/mozilla.org/20050126_1/Pacific/Yap")) {
-            _retval.AssignLiteral("/mozilla.org/20070129_1/Pacific/Truk");
+            _retval.AssignLiteral("/mozilla.org/20071231_1/Pacific/Truk");
         }
     }
 

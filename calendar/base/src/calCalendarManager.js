@@ -186,8 +186,7 @@ calCalendarManager.prototype = {
 
     },
 
-    
-    DB_SCHEMA_VERSION: 7,
+    DB_SCHEMA_VERSION: 8,
 
     upgradeDB: function (oldVersion) {
         // some common helpers
@@ -195,7 +194,18 @@ calCalendarManager.prototype = {
             db.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
         }
 
-        if (oldVersion <= 5 && this.DB_SCHEMA_VERSION >= 6) {
+        // xxx todo: needs to be resolved with
+        //           Bug 377845 - Decouple calendar manager from storage provider
+        //
+        //           This code always runs before the update code of calStorageCalendar which
+        //           needs the old schema version to run.
+        //           So this code just updates its schema without updating the version number.
+        //
+        //           We may run into problems if this code has passed successfully, but the code
+        //           in calStorageCalendar hasn't, because on next startup this code will run
+        //           into the same section again...
+
+        if (oldVersion < 6) {
             dump ("**** Upgrading calCalendarManager schema to 6\n");
 
             this.mDB.beginTransaction();
@@ -251,7 +261,6 @@ calCalendarManager.prototype = {
                 }
 
                 this.mDB.commitTransaction();
-                oldVersion = 6;
             } catch (e) {
                 dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
                 Components.utils.reportError("Upgrade failed! DB Error: " +
@@ -259,13 +268,6 @@ calCalendarManager.prototype = {
                 this.mDB.rollbackTransaction();
                 throw e;
             }
-        }
-
-        if (oldVersion != 6) {
-            dump ("#######!!!!! calCalendarManager Schema Update failed! " +
-                  " db version: " + oldVersion + 
-                  " this version: " + this.DB_SCHEMA_VERSION + "\n");
-            throw Components.results.NS_ERROR_FAILURE;
         }
     },
 
