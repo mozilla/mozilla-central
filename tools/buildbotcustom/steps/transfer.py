@@ -96,7 +96,7 @@ class MozillaStageUpload(ShellCommand):
                                  releaseToDated=releaseToDated,
                                  releaseToLatest=releaseToLatest,
                                  releaseToTinderboxBuilds=releaseToTinderboxBuilds,
-                                 tinderboxBuildsDir=tinderboxBuirdsDir,
+                                 tinderboxBuildsDir=tinderboxBuildsDir,
                                  dependToDated=dependToDated)
 
         assert platform in ('win32', 'linux', 'macosx')
