@@ -898,8 +898,8 @@ nsMsgDatabase::nsMsgDatabase()
         m_cachedHeaders(nsnull),
         m_bCacheHeaders(PR_TRUE),
         m_cachedThreadId(nsMsgKey_None),
-        m_cacheSize(kMaxHdrsInCache),
-        m_msgReferences(nsnull)
+        m_msgReferences(nsnull),
+        m_cacheSize(kMaxHdrsInCache)
 {
 }
 
