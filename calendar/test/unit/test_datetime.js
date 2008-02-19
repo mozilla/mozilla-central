@@ -89,17 +89,17 @@ function run_test() {
     const zeroLength = Cc["@mozilla.org/calendar/duration;1"].createInstance(Ci.calIDuration);
     const a = Cc["@mozilla.org/calendar/datetime;1"].createInstance(Ci.calIDateTime);
     a.jsDate = new Date();
-    a.timezone = getMozTimezone("/mozilla.org/20070129_1/Europe/Berlin");
+    a.timezone = getMozTimezone("/mozilla.org/20071231_1/Europe/Berlin");
 
     var b = a.clone();
-    b.timezone = getMozTimezone("/mozilla.org/20070129_1/America/New_York");
+    b.timezone = getMozTimezone("/mozilla.org/20071231_1/America/New_York");
 
     var duration = a.subtractDate(b);
     do_check_neq(duration.compare(zeroLength), 0);
     do_check_neq(a.compare(b), 0);
 
     // Should lead to zero length duration
-    b = a.getInTimezone(getMozTimezone("/mozilla.org/20070129_1/America/New_York"));
+    b = a.getInTimezone(getMozTimezone("/mozilla.org/20071231_1/America/New_York"));
     duration = a.subtractDate(b);
     do_check_eq(duration.compare(zeroLength), 0);
     do_check_eq(a.compare(b), 0);

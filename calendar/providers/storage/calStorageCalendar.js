@@ -891,7 +891,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 7,
+    DB_SCHEMA_VERSION: 8,
 
     /** 
      * @return      db schema version
@@ -935,7 +935,7 @@ calStorageCalendar.prototype = {
             db.executeSimpleSQL("ALTER TABLE " + tableName + " ADD COLUMN " + colName + " " + colType);
         }
 
-        if (oldVersion == 2 && this.DB_SCHEMA_VERSION >= 3) {
+        if (oldVersion == 2) {
             dump ("**** Upgrading schema from 2 -> 3\n");
 
             this.mDB.beginTransaction();
@@ -988,7 +988,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (oldVersion == 3 && this.DB_SCHEMA_VERSION >= 4) {
+        if (oldVersion == 3) {
             dump ("**** Upgrading schema from 3 -> 4\n");
 
             this.mDB.beginTransaction();
@@ -1021,7 +1021,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (oldVersion == 4 && this.DB_SCHEMA_VERSION >= 5) {
+        if (oldVersion == 4) {
             dump ("**** Upgrading schema from 4 -> 5\n");
 
             this.mDB.beginTransaction();
@@ -1050,7 +1050,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (oldVersion == 5 && this.DB_SCHEMA_VERSION >= 6) {
+        if (oldVersion == 5) {
             dump ("**** Upgrading schema from 5 -> 6\n");
 
             this.mDB.beginTransaction();
@@ -1160,8 +1160,9 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (oldVersion == 6 && this.DB_SCHEMA_VERSION >= 7) {
-            dump ("**** Upgrading schema from 6 -> 7\n");
+        // run TZID updates both on db of version 6 and 7:
+        if (oldVersion == 6 || oldVersion == 7) {
+            dump ("**** Upgrading schema from 6/7 -> 8\n");
 
             var getTzIds;
             this.mDB.beginTransaction();
@@ -1171,6 +1172,11 @@ calStorageCalendar.prototype = {
                 // - Migrate all stored mozilla.org timezones from 20050126_1
                 //   to 20070129_1.  Note that there are some exceptions where
                 //   timezones were deleted and/or renamed.
+
+                // Schema changes between v7 and v8:
+                //
+                // - Migrate all stored mozilla.org timezones from 20070129_1
+                //   to 20071231_1.
 
                 // Get a list of the /mozilla.org/* timezones used in the db
                 var tzId;
@@ -1218,11 +1224,10 @@ calStorageCalendar.prototype = {
                             "UPDATE cal_todos      SET alarm_time_tz    = '" + update.newTzId + "' WHERE recurrence_id_tz = '" + update.oldTzId + "';");
                     }
                 }
-
                 // Update the version stamp, and commit.
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 7;");
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 8;");
                 this.mDB.commitTransaction();
-                oldVersion = 7;
+                oldVersion = 8;
             } catch (e) {
                 dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
                 Components.utils.reportError("Upgrade failed! DB Error: " +
@@ -1232,7 +1237,7 @@ calStorageCalendar.prototype = {
             }
         }
 
-        if (oldVersion != 7) {
+        if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
         }
