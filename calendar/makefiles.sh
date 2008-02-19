@@ -41,6 +41,7 @@ add_makefiles "
 calendar/sunbird/Makefile
 calendar/sunbird/app/Makefile
 calendar/sunbird/base/Makefile
+calendar/sunbird/locales/Makefile
 "
 
  . ${srcdir}/calendar/shared_makefiles.sh
