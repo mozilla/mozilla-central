@@ -31,6 +31,7 @@ use Bugzilla::User;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
+use Bugzilla::Testopia::Constants;
 
 ###############################################################################
 # tr_new_run.cgi

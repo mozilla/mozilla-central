@@ -28,6 +28,7 @@ use Bugzilla::Constants;
 use Bugzilla::Error;
 use Bugzilla::Testopia::Category;
 use Bugzilla::Testopia::Util;
+use Bugzilla::Testopia::Constants;
 use JSON;
 
 Bugzilla->error_mode(ERROR_MODE_AJAX);

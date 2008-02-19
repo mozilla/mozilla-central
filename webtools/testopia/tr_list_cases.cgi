@@ -35,6 +35,7 @@ use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::Table;
+use Bugzilla::Testopia::Constants;
 
 my $vars = {};
 

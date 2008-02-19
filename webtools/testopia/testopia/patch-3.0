@@ -455,3 +455,58 @@ diff -u -r1.18 Filesystem.pm
           $templatedir          => { files => $ws_readable,
                                       dirs => $ws_dir_readable },
           images                => { files => $ws_readable,
+Index: Bugzilla/Constants.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Constants.pm,v
+retrieving revision 1.85
+diff -u -r1.85 Constants.pm
+--- Bugzilla/Constants.pm	23 Nov 2007 06:58:34 -0000	1.85
++++ Bugzilla/Constants.pm	29 Nov 2007 00:23:46 -0000
+@@ -131,6 +131,7 @@
+     ERROR_MODE_WEBPAGE
+     ERROR_MODE_DIE
+     ERROR_MODE_DIE_SOAP_FAULT
++    ERROR_MODE_DIE_AJAX
+ 
+     INSTALLATION_MODE_INTERACTIVE
+     INSTALLATION_MODE_NON_INTERACTIVE
+@@ -371,6 +372,7 @@
+ use constant ERROR_MODE_WEBPAGE        => 0;
+ use constant ERROR_MODE_DIE            => 1;
+ use constant ERROR_MODE_DIE_SOAP_FAULT => 2;
++use constant ERROR_MODE_DIE_AJAX       => 3;
+ 
+ # The various modes that checksetup.pl can run in.
+ use constant INSTALLATION_MODE_INTERACTIVE => 0;
+Index: Bugzilla/Error.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Error.pm,v
+retrieving revision 1.22
+diff -u -r1.22 Error.pm
+--- Bugzilla/Error.pm	16 Aug 2007 20:36:27 -0000	1.22
++++ Bugzilla/Error.pm	29 Nov 2007 00:23:46 -0000
+@@ -32,6 +32,7 @@
+ use Bugzilla::WebService::Constants;
+ use Bugzilla::Util;
+ use Date::Format;
++use JSON;
+ 
+ # We cannot use $^S to detect if we are in an eval(), because mod_perl
+ # already eval'uates everything, so $^S = 1 in all cases under mod_perl!
+@@ -110,6 +111,16 @@
+             }
+             die SOAP::Fault->faultcode($code)->faultstring($message);
+         }
++        elsif (Bugzilla->error_mode == ERROR_MODE_DIE_AJAX) {
++            # JSON can't handle strings across lines. 
++            $message =~ s/\n/ /gm;
++            my $err;
++            $err->{'success'} = 'false';
++            $err->{'error'} = $error;
++            $err->{'message'} = $message;
++            my $json = new JSON;
++            print $json->objToJson($err);
++        }
+     }
+     exit;
+ }

@@ -10,6 +10,7 @@ use Bugzilla::Error;
 use Bugzilla::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Constants;
 use JSON;
 
 local our $vars = {};

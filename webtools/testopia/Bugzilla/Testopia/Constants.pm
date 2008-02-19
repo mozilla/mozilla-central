@@ -113,54 +113,12 @@ use constant SAVED_SEARCH => 0;
 use constant SAVED_REPORT => 1;
 use constant SAVED_FILTER => 2;
 
-use constant REL_AUTHOR             => 0;
-use constant REL_EDITOR             => 1;
-use constant REL_TESTER             => 2;
-use constant REL_TEST_CC            => 3;
+# Testopia Relationships
+use constant REL_AUTHOR             => 100;
+use constant REL_EDITOR             => 101;
+use constant REL_TESTER             => 102;
+use constant REL_TEST_CC            => 103;
 
 use constant RELATIONSHIPS => REL_AUTHOR, REL_EDITOR, REL_TESTER, REL_TEST_CC;
-                              
-# Used for global events like EVT_FLAG_REQUESTED
-use constant REL_ANY                => 100;
-
-# There are two sorts of event - positive and negative. Positive events are
-# those for which the user says "I want mail if this happens." Negative events
-# are those for which the user says "I don't want mail if this happens."
-#
-# Exactly when each event fires is defined in wants_bug_mail() in User.pm; I'm
-# not commenting them here in case the comments and the code get out of sync.
-use constant EVT_OTHER              => 0;
-use constant EVT_ADDED_REMOVED      => 1;
-use constant EVT_COMMENT            => 2;
-use constant EVT_ATTACHMENT         => 3;
-use constant EVT_ATTACHMENT_DATA    => 4;
-use constant EVT_PROJ_MANAGEMENT    => 5;
-use constant EVT_OPENED_CLOSED      => 6;
-use constant EVT_KEYWORD            => 7;
-use constant EVT_CC                 => 8;
-
-use constant POS_EVENTS => EVT_OTHER, EVT_ADDED_REMOVED, EVT_COMMENT, 
-                           EVT_ATTACHMENT, EVT_ATTACHMENT_DATA, 
-                           EVT_PROJ_MANAGEMENT, EVT_OPENED_CLOSED, EVT_KEYWORD,
-                           EVT_CC;
-
-use constant EVT_UNCONFIRMED        => 50;
-use constant EVT_CHANGED_BY_ME      => 51;
-
-use constant NEG_EVENTS => EVT_UNCONFIRMED, EVT_CHANGED_BY_ME;
-
-# These are the "global" flags, which aren't tied to a particular relationship.
-# and so use REL_ANY.
-use constant EVT_FLAG_REQUESTED     => 100; # Flag has been requested of me
-use constant EVT_REQUESTED_FLAG     => 101; # I have requested a flag
-
-use constant GLOBAL_EVENTS => EVT_FLAG_REQUESTED, EVT_REQUESTED_FLAG;
-
-#  Number of bugs to return in a buglist when performing
-#  a fulltext search.
-use constant FULLTEXT_BUGLIST_LIMIT => 200;
-
-# Path to sendmail.exe (Windows only)
-use constant SENDMAIL_EXE => '/usr/lib/sendmail.exe';
 
 1;

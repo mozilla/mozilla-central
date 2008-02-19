@@ -28,6 +28,7 @@ use Bugzilla::Error;
 use Bugzilla::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Util;
+use Bugzilla::Testopia::Constants;
 
 local our $template = Bugzilla->template;
 my $dbh = Bugzilla->dbh;

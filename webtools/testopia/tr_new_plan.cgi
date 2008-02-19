@@ -32,6 +32,7 @@ use JSON;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Product;
+use Bugzilla::Testopia::Constants;
 
 ###############################################################################
 # tr_new_plan.cgi

@@ -30,6 +30,7 @@ use Bugzilla::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Constants;
 
 my $vars = {};
 my $template = Bugzilla->template;

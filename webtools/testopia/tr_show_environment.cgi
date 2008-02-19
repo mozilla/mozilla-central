@@ -41,6 +41,7 @@ use Bugzilla::Testopia::Environment;
 use Bugzilla::Testopia::Environment::Element;
 use Bugzilla::Testopia::Environment::Category;
 use Bugzilla::Testopia::Environment::Property;
+use Bugzilla::Testopia::Constants;
 use Data::Dumper;
 use JSON;
 

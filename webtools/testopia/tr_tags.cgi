@@ -33,6 +33,7 @@ use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Constants;
 
 use JSON;
 

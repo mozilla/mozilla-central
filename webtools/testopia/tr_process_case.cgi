@@ -33,6 +33,7 @@ use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::Attachment;
+use Bugzilla::Testopia::Constants;
 use JSON;
 
 Bugzilla->error_mode(ERROR_MODE_AJAX);

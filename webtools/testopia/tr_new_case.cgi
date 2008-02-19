@@ -31,6 +31,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
+use Bugzilla::Testopia::Constants;
 use JSON;
 
 ###############################################################################

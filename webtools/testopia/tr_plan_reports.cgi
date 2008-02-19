@@ -28,6 +28,7 @@ use Bugzilla::Error;
 use Bugzilla::Util;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Report;
+use Bugzilla::Testopia::Constants;
 
 my $vars = {};
 my $template = Bugzilla->template;
