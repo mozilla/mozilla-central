@@ -118,9 +118,9 @@ function changeContextMenuForTask(aEvent) {
     if (tasksSelected) {
         taskTree.contextTask = task = tasks[0];
         if (isPropertyValueSame(tasks, "isCompleted")) {;
-            setBooleanAttribute(document.getElementById("calendar_iscompleted_command"), "checked", task.isCompleted);
+            setBooleanAttribute(document.getElementById("calendar-context-markcompleted"), "checked", task.isCompleted);
         } else {
-            document.getElementById("calendar_iscompleted_command").setAttribute("checked", false);
+            document.getElementById("calendar-context-markcompleted").setAttribute("checked", false);
         }
     } else {
         taskTree.contextTask = null;
@@ -244,8 +244,8 @@ function tasksToEvents() {
 
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
-        contextChangeTaskProgress(0);
-    } else {
         contextChangeTaskProgress(100);
+    } else {
+        contextChangeTaskProgress(0);
     }
 }

@@ -122,10 +122,12 @@ var taskDetailsView = {
                             "taskDetailsStatusInProgress", [percent]);
                         break;
                     case "COMPLETED":
-                        statusDetails.value = calGetString(
-                            "calendar",
-                            "taskDetailsStatusCompletedOn",
-                            [dateFormatter.formatDateTime(item.completedDate)]);
+                        if (item.completedDate) {
+                            statusDetails.value = calGetString(
+                                "calendar",
+                                "taskDetailsStatusCompletedOn",
+                                [dateFormatter.formatDateTime(item.completedDate)]);
+                        }
                         break;
                     case "CANCELLED":
                         statusDetails.value = calGetString(

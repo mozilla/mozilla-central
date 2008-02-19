@@ -83,7 +83,6 @@
     <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
     <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
     <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
-    <command id="calendar_iscompleted_command" oncommand="toggleCompleted(event);"/>
     <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
     <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
     <command id="calendar_percentComplete-0_command" oncommand="goDoCommand('calendar_percentComplete-0_command')"/>
@@ -129,9 +128,8 @@
       <menuitem type="checkbox"
                 label="&calendar.context.markcompleted.label;"
                 accesskey="&calendar.context.markcompleted.accesskey;"
-                id="calendar.context.markcompleted"
-                observes="calendar_iscompleted_command"
-                command="calendar_iscompleted_command"/>
+                id="calendar-context-markcompleted"
+                oncommand="toggleCompleted(event)"/>
       <menu label="&calendar.context.progress.label;"
             accesskey="&calendar.context.progress.accesskey;"
             id="task-context-menu-progress">
@@ -211,11 +209,11 @@
         <menupopup>
           <menuitem label="&calendar.context.converttoevent.label;"
                     accesskey="&calendar.context.converttoevent.accesskey;"
-                    id="calendar.context.converttoevent"
+                    id="calendar-context-converttoevent"
                     oncommand="tasksToEvents()"/>
           <menuitem label="&calendar.context.converttomessage.label;"
                     accesskey="&calendar.context.converttomessage.accesskey;"
-                    id="calendar.context.converttomessage"
+                    id="calendar-context-converttomessage"
                     oncommand="tasksToMail()"/>
         </menupopup>
       </menu>
