@@ -46,3 +46,6 @@ selfserv/main/SSL_ConfigServerSessionIDCache/**
 **/testThreadLockingBehavior/pthread_create@@GLIBC_2.1/**
 **/findLockInfo/pthread_create@@GLIBC_2.1/**
 
+#418365
+selfserv/main/PR_NewTCPSocket/**
+
