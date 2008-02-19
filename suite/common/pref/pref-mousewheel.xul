@@ -131,9 +131,7 @@
 
     <description>&mouseWheelPanel.label;</description>
 
-    <separator class="thin"/>
-    
-    <tabbox class="indent">
+    <tabbox class="spaced">
       <tabs>
         <tab label="&usingJustTheWheel.label;"/>
         <tab label="&usingWheelAndAlt.label;"/>
@@ -144,17 +142,9 @@
       <tabpanels>
         
         <!-- no key modifiers -->
-        <groupbox>
-          <caption>
-            <menulist oncommand="this.parentNode.nextSibling.selectedIndex = this.selectedIndex;">
-              <menupopup>
-                <menuitem label="&mousewheelGroup.label;"/>
-                <menuitem label="&mousewheelHorizGroup.label;"/>
-              </menupopup>
-            </menulist>
-          </caption>
-
-          <deck>
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
             <radiogroup id="mousewheelWithNoKeyAction"
                         preference="mousewheel.withnokey.action">
               <hbox align="start">
@@ -173,14 +163,16 @@
               </hbox>
               <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
+          </groupbox>
 
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
             <radiogroup id="mousewheelHorizWithNoKeyAction"
                         preference="mousewheel.horizscroll.withnokey.action">
               <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
                 <vbox align="start">
                   <hbox align="center">
                     <textbox id="mousewheelWithNoKeyNumchars" size="3" 
@@ -189,30 +181,21 @@
                     <label value="&scrollChars.label;"/>
                   </hbox>
                   <checkbox id="mousewheelWithNoKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
                             preference="mousewheel.horizscroll.withnokey.sysnumlines"/>
                 </vbox>
               </hbox>
               <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
             </radiogroup>
-          </deck>
-        </groupbox>
+          </groupbox>
+        </vbox>
             
         <!-- alt modifiers -->
-        <groupbox>
-          <caption>
-            <menulist oncommand="this.parentNode.nextSibling.selectedIndex = this.selectedIndex;">
-              <menupopup>
-                <menuitem label="&mousewheelGroup.label;"/>
-                <menuitem label="&mousewheelHorizGroup.label;"/>
-              </menupopup>
-            </menulist>
-          </caption>
-
-          <deck>
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
             <radiogroup id="mousewheelWithAltKeyAction"
                         preference="mousewheel.withaltkey.action">
               <hbox align="start">
@@ -231,14 +214,16 @@
               </hbox>
               <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
+          </groupbox>
 
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
             <radiogroup id="mousewheelHorizWithAltKeyAction"
                         preference="mousewheel.horizscroll.withaltkey.action">
               <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
                 <vbox align="start">
                   <hbox align="center">
                     <textbox id="mousewheelWithAltKeyNumchars" size="3" 
@@ -247,30 +232,21 @@
                     <label value="&scrollChars.label;"/>
                   </hbox>
                   <checkbox id="mousewheelWithAltKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
                             preference="mousewheel.horizscroll.withaltkey.sysnumlines"/>
                 </vbox>
               </hbox>
               <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
             </radiogroup>
-          </deck>
-        </groupbox>
+          </groupbox>
+        </vbox>
     
         <!-- ctrl modifiers -->
-        <groupbox>
-          <caption>
-            <menulist oncommand="this.parentNode.nextSibling.selectedIndex = this.selectedIndex;">
-              <menupopup>
-                <menuitem label="&mousewheelGroup.label;"/>
-                <menuitem label="&mousewheelHorizGroup.label;"/>
-              </menupopup>
-            </menulist>
-          </caption>
-
-          <deck>
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
             <radiogroup id="mousewheelWithCtrlKeyAction"
                         preference="mousewheel.withcontrolkey.action" >
               <hbox align="start">
@@ -289,14 +265,16 @@
               </hbox>
               <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
+          </groupbox>
 
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
             <radiogroup id="mousewheelHorizWithCtrlKeyAction"
                         preference="mousewheel.horizscroll.withcontrolkey.action" >
               <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
                 <vbox align="start">
                   <hbox align="center">
                     <textbox id="mousewheelWithCtrlKeyNumchars" size="3" 
@@ -305,30 +283,21 @@
                     <label value="&scrollChars.label;"/>
                   </hbox>
                   <checkbox id="mousewheelWithCtrlKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
                             preference="mousewheel.horizscroll.withcontrolkey.sysnumlines"/>
                 </vbox>
               </hbox>
               <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
             </radiogroup>
-          </deck>
-        </groupbox>
+          </groupbox>
+        </vbox>
     
         <!-- shift modifiers -->
-        <groupbox>
-          <caption>
-            <menulist oncommand="this.parentNode.nextSibling.selectedIndex = this.selectedIndex;">
-              <menupopup>
-                <menuitem label="&mousewheelGroup.label;"/>
-                <menuitem label="&mousewheelHorizGroup.label;"/>
-              </menupopup>
-            </menulist>
-          </caption>
-
-          <deck>
+        <vbox>
+          <groupbox>
+            <caption label="&mousewheelGroup.label;"/>
             <radiogroup id="mousewheelWithShiftKeyAction"
                         preference="mousewheel.withshiftkey.action">
               <hbox align="start">
@@ -347,14 +316,16 @@
               </hbox>
               <radio value="1" label="&scrollPgUpPgDn.label;" accesskey="&scrollPgUpPgDn.accesskey;"/>
               <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
             </radiogroup>
+          </groupbox>
 
+          <groupbox>
+            <caption label="&mousewheelHorizGroup.label;"/>
             <radiogroup id="mousewheelHorizWithShiftKeyAction"
                         preference="mousewheel.horizscroll.withshiftkey.action">
               <hbox align="start">
-                <radio value="0" label="&scroll.label;" accesskey="&scroll.accesskey;"/>
+                <radio value="0" label="&scroll.label;" accesskey="&scrollHoriz.accesskey;"/>
                 <vbox align="start">
                   <hbox align="center">
                     <textbox id="mousewheelWithShiftKeyNumchars" size="3" 
@@ -363,18 +334,17 @@
                     <label value="&scrollChars.label;"/>
                   </hbox>
                   <checkbox id="mousewheelWithShiftKeySysNumchars" label="&useSystemDefault.label;"
-                            accesskey="&useSystemDefault.accesskey;"
+                            accesskey="&useSystemDefaultHoriz.accesskey;"
                             preference="mousewheel.horizscroll.withshiftkey.sysnumlines"/>
                 </vbox>
               </hbox>
               <radio value="1" label="&scrollPgLtPgRt.label;" accesskey="&scrollPgLtPgRt.accesskey;"/>
-              <radio value="2" label="&history.label;" accesskey="&history.accesskey;"/>
-              <radio value="3" label="&textsize.label;" accesskey="&textsize.accesskey;"/>
-              <radio value="5" label="&zoom.label;" accesskey="&zoom.accesskey;"/>
+              <radio value="2" label="&history.label;" accesskey="&historyHoriz.accesskey;"/>
+              <radio value="3" label="&zoom.label;" accesskey="&zoomHoriz.accesskey;"/>
             </radiogroup>
-          </deck>
-        </groupbox>
+          </groupbox>
+        </vbox>
       </tabpanels>     
-    </tabbox>
+    </tabbox> 
   </prefpane>
 </overlay>
