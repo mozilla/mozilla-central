@@ -85,3 +85,7 @@
 #unifinder-todo-tree > .calendar-task-tree {
     margin-bottom: 0;
 }
+
+#calendar-task-details-container {
+  overflow: hidden;
+}

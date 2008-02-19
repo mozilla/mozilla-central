@@ -59,8 +59,8 @@
                class="task-edit-field"
                value="&calendar.task.edit.instructions.label;"
                instructions="&calendar.task.edit.instructions.label;"
-               onfocus="taskEdit.onFocus(event)" 
-               onblur="taskEdit.onBlur(event)" 
+               onfocus="taskEdit.onFocus(event)"
+               onblur="taskEdit.onBlur(event)"
                onkeypress="taskEdit.onKeyPress(event)"/>
       <vbox flex="1">
         <calendar-task-tree id="calendar-task-tree" flex="1"
@@ -69,7 +69,7 @@
                             context="taskitem-context-menu"
                             onselect="document.commandDispatcher.updateCommands('calendar_commands')"/>
         <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
-        <vbox flex="1">
+        <vbox id="calendar-task-details-container" flex="1">
           <hbox id="calendar-task-details">
             <grid id="calendar-task-details-grid-left">
               <columns>
@@ -128,7 +128,7 @@
                   <label id="calendar-task-details-category"
                          class="task-details-value"/>
                 </row>
-              </rows>          
+              </rows>
             </grid>
             <grid id="calendar-task-details-grid-right">
               <columns>
@@ -160,7 +160,7 @@
                   <label id="calendar-task-details-repeat"
                          class="task-details-value"/>
                 </row>
-              </rows>          
+              </rows>
             </grid>
           </hbox>
           <textbox id="calendar-task-details-description" multiline="true" flex="1"/>
