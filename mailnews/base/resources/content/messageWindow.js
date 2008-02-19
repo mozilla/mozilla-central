@@ -763,9 +763,11 @@ var MessageWindowController =
 			case "cmd_nextMsg":
       case "button_next":
 			case "cmd_nextUnreadMsg":
+      case "cmd_nextFlaggedMsg":
 			case "cmd_nextUnreadThread":
 			case "cmd_previousMsg":
 			case "cmd_previousUnreadMsg":
+      case "cmd_previousFlaggedMsg":
 				return true;
 			case "cmd_findAgain":
 			case "cmd_findPrev":
