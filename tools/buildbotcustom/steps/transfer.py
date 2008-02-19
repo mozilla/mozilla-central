@@ -7,7 +7,8 @@ class MozillaStageUpload(ShellCommand):
     def __init__(self, objdir, username, milestone, platform, remoteHost,
                  remoteBasePath, group=None, chmodMode=755, sshKey=None,
                  releaseToDated=True, releaseToLatest=True,
-                 releaseToTinderboxBuilds=True, **kwargs):
+                 releaseToTinderboxBuilds=True, tinderboxBuildsDir=None, 
+                 dependToDated=True, **kwargs):
         """
         @type  objdir: string
         @param objdir: The obj directory used for the build. This is needed to
@@ -63,6 +64,23 @@ class MozillaStageUpload(ShellCommand):
         @param releaseToTinderboxBuilds: If True, builds will be pushed to
                 'remoteBasePath'/tinderbox-builds/$hostname. This should
                 generally be set to True for all builds. Default: True
+
+        @type  tinderboxBuildsDir: This option only has effect when
+                                   releaseToTinderboxBuilds is True. If this
+                                   option is None (default), builds will be
+                                   uploaded to:
+                                   tinderbox-builds/builderName
+                                   If otherwise set builds will be uploaded to
+                                   tinderbox-builds/tinderboxBuildsDir.
+
+        @type  dependToDated: This option only has effect when
+                              releaseToTinderboxBuilds is True. When
+                              dependToDated is True builds will be placed in
+                              a subdirectory named for the build start time
+                              (in unix time) when being pushed to the
+                              tinderbox-builds dir. For example:
+                              tinderbox-builds/builder/1203094573. The option
+                              defaults to True.
         """
 
         ShellCommand.__init__(self, **kwargs)
@@ -77,7 +95,9 @@ class MozillaStageUpload(ShellCommand):
                                  sshKey=sshKey,
                                  releaseToDated=releaseToDated,
                                  releaseToLatest=releaseToLatest,
-                                 releaseToTinderboxBuilds=releaseToTinderboxBuilds)
+                                 releaseToTinderboxBuilds=releaseToTinderboxBuilds,
+                                 tinderboxBuildsDir=tinderboxBuirdsDir,
+                                 dependToDated=dependToDated)
 
         assert platform in ('win32', 'linux', 'macosx')
         self.objdir = objdir
@@ -92,6 +112,8 @@ class MozillaStageUpload(ShellCommand):
         self.releaseToDated = releaseToDated
         self.releaseToLatest = releaseToLatest
         self.releaseToTinderboxBuilds = releaseToTinderboxBuilds
+        self.tinderboxBuildsDir = tinderboxBuildsDir
+        self.dependToDated = dependToDated
 
         self.description = ["uploading package(s) to", remoteHost]
         self.descriptionDone = ["upload package(s) to", remoteHost]
@@ -120,6 +142,9 @@ class MozillaStageUpload(ShellCommand):
         buildid = self.getProperty("buildid")
         return strftime("%Y-%m-%d-%H", strptime(buildid, "%Y%m%d%H"))
 
+    def getBuildStartTime(self):
+        return int(self.step_status.build.getTimes()[0])
+
     def getPackageDirectory(self):
         return '%s-%s' % (self.getBuildID(), self.milestone)
 
@@ -147,8 +172,16 @@ class MozillaStageUpload(ShellCommand):
                          'latest-%s' % self.milestone)
 
     def getTinderboxBuildsPath(self):
-        return path.join(self.remoteBasePath, 'tinderbox-builds',
-                         self.step_status.build.builder.getName())
+        tboxBuildsPath = path.join(self.remoteBasePath, 'tinderbox-builds')
+        if self.tinderboxBuildsDir:
+            tboxBuildsPath = path.join(tboxBuildsPath, self.tinderboxBuildsDir)
+        else:
+            tboxBuildsPath = path.join(tboxBuildsPath,
+                                       self.step_status.build.builder.getName())
+        if self.dependToDated:
+            tboxBuildsPath = path.join(tboxBuildsPath,
+                                       str(self.getBuildStartTime()))
+        return tboxBuildsPath
 
     def createDirCommand(self, dir):
         return self._getBaseCommand(ssh=True) + ' ' + self.remoteHost + \
