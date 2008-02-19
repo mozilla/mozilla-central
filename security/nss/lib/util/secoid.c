@@ -1591,19 +1591,12 @@ static int           dynOidEntriesAllocated;
 static int           dynOidEntriesUsed;
 
 /* Creates NSSRWLock and dynOidPool at initialization time.
-** This function MIGHT create the lock, but not the pool, so
-** code should test for dynOidPool, not dynOidLock, when deciding
-** whether or not to call this function.
 */
 static SECStatus
 secoid_InitDynOidData(void)
 {
     SECStatus   rv = SECSuccess;
 
-    /* This function will create the lock if it doesn't exist,
-    ** and will return the address of the lock, whether it was 
-    ** previously created, or was created by the function.
-    */
     dynOidLock = NSSRWLock_New(1, "dynamic OID data");
     if (!dynOidLock) {
     	return SECFailure; /* Error code should already be set. */
