@@ -22,7 +22,7 @@ calendar.jar:
 # This ^^^ isn't currently used by Lightning, but it's here for completeness
     content/calendar/calendar-decorated-month-view.xml  (content/calendar-decorated-month-view.xml)
     content/calendar/calendar-dialog-utils.js    (content/calendar-dialog-utils.js)
-    content/calendar/calendar-dnd-listener.js    (content/calendar-dnd-listener.js)
+*   content/calendar/calendar-dnd-listener.js    (content/calendar-dnd-listener.js)
     content/calendar/calendar-event-dialog.css   (content/calendar-event-dialog.css)
     content/calendar/calendar-event-dialog.js    (content/calendar-event-dialog.js)
     content/calendar/calendar-event-dialog.xul   (content/calendar-event-dialog.xul)

@@ -252,6 +252,10 @@ calDNDBaseObserver.prototype = {
         var destCal = getSelectedCalendar();
         switch (bestFlavor.value) {
             case "text/calendar":
+#ifdef XP_MACOSX
+                // Mac likes to convert all \r to \n, we need to reverse this.
+                data = data.data.replace(/\n\n/g, "\r\n");
+#endif
                 var parser = Components.classes["@mozilla.org/calendar/ics-parser;1"]
                              .createInstance(Components.interfaces.calIIcsParser);
                 parser.parseString(data, null);
