@@ -47,7 +47,6 @@
 #include "nsStringGlue.h"
 #include "nsISupportsArray.h"
 #include "nsIConsoleService.h"
-#include "nsIAuthPrompt.h"
 #include "nsIMutableArray.h"
 #include "nsAbLDAPListenerBase.h"
 

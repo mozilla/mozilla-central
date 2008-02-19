@@ -54,7 +54,6 @@
 #include "nsIWebProgressListener.h"
 #include "nsPIDOMWindow.h"
 #include "nsIPrompt.h"
-#include "nsIAuthPrompt.h"
 #include "nsICharsetAlias.h"
 #include "nsIChannel.h"
 #include "nsIRequestObserver.h"

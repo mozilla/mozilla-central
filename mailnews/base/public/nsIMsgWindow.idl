@@ -44,7 +44,6 @@ interface nsIDocShell;
 interface nsIDOMWindowInternal;
 interface nsIMsgHeaderSink;
 interface nsIPrompt;
-interface nsIAuthPrompt;
 
 [scriptable, uuid(7B8F4A65-CFC4-4b3f-BF5C-152AA8D5CD10)]
 interface nsIMsgWindowCommands : nsISupports {
