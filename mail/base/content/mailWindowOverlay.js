@@ -1155,7 +1155,7 @@ function MsgForwardAsInline(event)
 
 function MsgEditMessageAsNew()
 {
-  composeMsgByType(Components.interfaces.nsIMsgCompType.Template, event);
+  composeMsgByType(Components.interfaces.nsIMsgCompType.Template);
 }
 
 function MsgCreateFilter()
