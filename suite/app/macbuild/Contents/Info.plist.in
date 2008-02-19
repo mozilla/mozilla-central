@@ -28,6 +28,8 @@
 	<string>Copyright © 1998-2008 Contributors to the Mozilla project</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
+	<key>CGDisableCoalescedUpdates</key>
+	<true/>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 	
