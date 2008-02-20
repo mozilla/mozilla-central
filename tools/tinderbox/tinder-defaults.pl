@@ -31,6 +31,7 @@ $ReportFinalStatus = 1;      # Finer control over $ReportStatus.
 $UseTimeStamp      = 1;      # Use the CVS 'pull-by-timestamp' option, or not
 $BuildOnce         = 0;      # Build once, don't send results to server
 $ConfigureOnly     = 0;      # Configure, but do not build.
+$ProfiledBuild     = 0;      # make profiledbuild instead of build
 $TestOnly          = 0;      # Only run tests, don't pull/build
 $BuildEmbed        = 0;      # After building seamonkey, go build embed app.
 $SkipMozilla       = 0;      # Use to debug post-mozilla.pl scripts.

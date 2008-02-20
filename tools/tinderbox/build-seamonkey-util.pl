@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.382 $ ';
+$::UtilsVersion = '$Revision: 1.383 $ ';
 
 package TinderUtils;
 
@@ -1208,6 +1208,8 @@ sub BuildIt {
                 my $buildTarget = $TreeSpecific::build_target;
                 if ($Settings::ConfigureOnly) {
                     $buildTarget = "configure";
+                } elsif ($Settings::ProfiledBuild) {
+                    $buildTarget = "profiledbuild";
                 }
 
                 $status = run_shell_command "$make $buildTarget";
