@@ -316,7 +316,8 @@ function initializeSearchWindowWidgets()
     gStatusBar = document.getElementById('statusbar-icon');
     hideMatchAllItem();
     
-    msgWindow = Components.classes[msgWindowContractID].createInstance(nsIMsgWindow);
+    msgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                          .createInstance(nsIMsgWindow);
     msgWindow.domWindow = window;
     msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
     msgWindow.statusFeedback = gStatusFeedback;
