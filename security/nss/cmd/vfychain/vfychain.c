@@ -364,7 +364,7 @@ breakout:
         if (oidStr) {
             PRArenaPool *arena;
             SECOidData od;
-            
+            memset(&od, 0, sizeof od);
             od.offset = SEC_OID_UNKNOWN;
             od.desc = "User Defined Policy OID";
             od.mechanism = CKM_INVALID_MECHANISM;
