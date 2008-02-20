@@ -37,25 +37,9 @@
 
 #import <AppKit/AppKit.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-// utility routine; returns YES if the sizes are equal, with the given slop
-BOOL CHCloseSizes(NSSize aSize, NSSize bSize, float slop);
-
-#ifdef __cplusplus
-}
-#endif
-
 // category on NSView to add utilities for easy view resizing etc.
 
 @interface NSView(CHViewUtils)
-
-// move the receiver from its superview to the destView, 
-// maintaining  the relative size and position of the view based
-// on its autoresize flags.
-- (void)moveToView:(NSView*)destView resize:(BOOL)resize;
 
 // swap in the given subview as the first subview of the receiver,
 // returning the old view. Does nothing if the given view is
