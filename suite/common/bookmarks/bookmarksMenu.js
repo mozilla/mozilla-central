@@ -294,7 +294,31 @@ var BookmarksMenu = {
 
 var BookmarksMenuController = {
 
-  supportsCommand: BookmarksController.supportsCommand,
+  supportsCommand: function (aCommand)
+  {
+    var isCommandSupported;
+    switch(aCommand) {
+    case "cmd_bm_cut":
+    case "cmd_bm_copy":
+    case "cmd_bm_paste":
+    case "cmd_bm_delete":
+    case "cmd_bm_open":
+    case "cmd_bm_openinnewwindow":
+    case "cmd_bm_openinnewtab":
+    case "cmd_bm_managefolder":
+    case "cmd_bm_newfolder":
+    case "cmd_bm_properties":
+    case "cmd_bm_rename":
+    case "cmd_bm_movebookmark":
+    case "cmd_bm_sortfolderbyname":
+    case "cmd_bm_sortfolder":
+      isCommandSupported = true;
+      break;
+    default:
+      isCommandSupported = false;
+    }
+    return isCommandSupported;
+  },
 
   isCommandEnabled: function (aCommand)
   {
@@ -310,13 +334,7 @@ var BookmarksMenuController = {
   {
     var selection = BookmarksMenu._selection;
     var target    = BookmarksMenu._target;
-    switch (aCommand) {
-    case "cmd_bm_expandfolder":
-      setTimeout(BookmarksMenu.expandBTFolder, 0);
-      break;
-    default:
-      BookmarksController.doCommand(aCommand, selection, target);
-    }
+    BookmarksController.doCommand(aCommand, selection, target);
   },
 
   onMouseMove: function (aEvent)
