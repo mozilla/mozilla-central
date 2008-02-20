@@ -437,6 +437,7 @@
 
 /* Web Search Engines */
 "ManageSearchEnginesMenuItem" = "Manage Search Engines…";
+"FindSearchEnginesMenuItem" = "Find Search Engines…";
 "EngineNameAlreadyExistsTitle" = "Search engine name already exists";
 "EngineNameAlreadyExistsMessage" = "A search engine named “%@” already exists.  Please specify a different name.";
 "RemovingAllEnginesTitle" = "Cannot remove all search engines";

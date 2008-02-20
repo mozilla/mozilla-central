@@ -214,6 +214,7 @@ typedef enum  {
 - (IBAction)endSearchSheet:(id)sender;
 - (IBAction)cancelSearchSheet:(id)sender;
 - (IBAction)manageSearchEngines:(id)sender;
+- (IBAction)findSearchEngines:(id)sender;
 
 - (NSSize)windowWillResize:(NSWindow *)sender toSize:(NSSize)proposedFrameSize;
 

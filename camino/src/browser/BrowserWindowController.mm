@@ -1696,7 +1696,8 @@ public:
 
   // Always allow the search engine menu to work
   if (action == @selector(searchEngineChanged:) ||
-      action == @selector(manageSearchEngines:))
+      action == @selector(manageSearchEngines:) ||
+      action == @selector(findSearchEngines:))
   {
     return YES;
   }
@@ -4758,6 +4759,13 @@ public:
 - (IBAction)manageSearchEngines:(id)sender
 {
   [[SearchEngineEditor sharedSearchEngineEditor] showSearchEngineEditor:self];
+}
+
+- (IBAction)findSearchEngines:(id)sender
+{
+  NSString* findEnginesPage = NSLocalizedStringFromTable(@"FindEnginesPage", @"WebsiteDefaults", nil);
+  if (![findEnginesPage isEqualToString:@"FindEnginesPage"])
+    [[NSApp delegate] showURL:findEnginesPage];
 }
 
 - (void) focusChangedFrom:(NSResponder*) oldResponder to:(NSResponder*) newResponder

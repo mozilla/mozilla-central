@@ -80,10 +80,15 @@ static const int kSearchPluginRelatedItemsTag = 102;
   [separatorBeforeManageEngines setTag:kSeparatorBeforeManageSearchEnginesMenuItemTag];
   [searchMenu addItem:separatorBeforeManageEngines];
   NSMenuItem* manageEnginesMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"ManageSearchEnginesMenuItem", nil)
-                                                                 action:@selector(manageSearchEngines:)
-                                                          keyEquivalent:@""] autorelease];
+                                                                  action:@selector(manageSearchEngines:)
+                                                           keyEquivalent:@""] autorelease];
   [manageEnginesMenuItem setTarget:[self target]];
   [searchMenu addItem:manageEnginesMenuItem];
+  NSMenuItem* findEnginesMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"FindSearchEnginesMenuItem", nil)
+                                                                action:@selector(findSearchEngines:)
+                                                         keyEquivalent:@""] autorelease];
+  [findEnginesMenuItem setTarget:[self target]];
+  [searchMenu addItem:findEnginesMenuItem];
   [[self cell] setSearchMenuTemplate:searchMenu];
 }
 

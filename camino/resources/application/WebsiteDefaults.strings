@@ -6,3 +6,4 @@ SupportPage = "http://caminobrowser.org/help/";
 KeyboardShortcutsPage = "http://caminobrowser.org/documentation/shortcuts/";
 FeedbackPage = "http://caminobrowser.org/contact/";
 RendezvousPage ="http://www.zeroconf.org/webbrowsers.html";
+FindEnginesPage = "http://caminobrowser.org/documentation/searchplugins/";
