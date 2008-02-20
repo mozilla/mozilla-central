@@ -52,6 +52,7 @@
 #import "RolloverImageButton.h"
 #import "CHPermissionManager.h"
 #import "XMLSearchPluginParser.h"
+#import "FindBarController.h"
 
 #include "CHBrowserService.h"
 #include "ContentClickListener.h"
@@ -121,6 +122,9 @@ enum StatusPriority {
 - (void)addBlockedPopupViewAndDisplay;
 - (void)removeBlockedPopupViewAndDisplay;
 
+- (void)addFindBarViewAndDisplay;
+- (void)removeFindBarViewAndDisplay;
+
 @end
 
 #pragma mark -
@@ -169,6 +173,9 @@ enum StatusPriority {
     mFormFillController = [[FormFillController alloc] init]; 
     [mFormFillController attachToBrowser:mBrowserView];
 
+    mFindBarController = [[FindBarController alloc] initWithContent:self
+                                                             finder:(id<Find>)mBrowserView];
+
     //[self setSiteIconImage:[NSImage imageNamed:@"globe_ico"]];
     //[self setSiteIconURI: [NSString string]];
 
@@ -209,6 +216,10 @@ enum StatusPriority {
   
   [mFeedList release];
   [mDetectedSearchPlugins release];
+
+  // Make sure this is gone before |mBrowserView|, which it has a weak ref to.
+  [mFindBarView removeFromSuperviewWithoutNeedingDisplay];
+  [mFindBarController release];
 
   [mBrowserView release];
   [mContentViewProviders release];
@@ -299,12 +310,13 @@ enum StatusPriority {
   // sure that we maintain the scroll position in background tabs correctly.
   if ([self window] || inResizeBrowser) {
     NSRect bounds = [self bounds];
+    NSRect browserFrame = bounds;
     if (mBlockedPopupView) {
       // First resize the width of blockedPopupView to match this view.
       // The blockedPopupView will, during its setFrame method, wrap information 
       // text if necessary and adjust its own height to enclose that text.
       // Then find out the actual (possibly adjusted) height of blockedPopupView 
-      // and resize the browser view accordingly.
+      // and adjust the browser view frame accordingly.
       // Recall that we're flipped, so the origin is the top left.
 
       NSRect popupBlockFrame = [mBlockedPopupView frame];
@@ -313,15 +325,19 @@ enum StatusPriority {
       [mBlockedPopupView setFrame:popupBlockFrame];
 
       NSRect blockedPopupViewFrameAfterResized = [mBlockedPopupView frame];
-      NSRect browserFrame = [mBrowserView frame];
       browserFrame.origin.y = blockedPopupViewFrameAfterResized.size.height;
-      browserFrame.size.width = bounds.size.width;
-      browserFrame.size.height = bounds.size.height-blockedPopupViewFrameAfterResized.size.height;
-
-      [mBrowserView setFrame:browserFrame];
+      browserFrame.size.height -= blockedPopupViewFrameAfterResized.size.height;
     }
-    else
-      [mBrowserView setFrame:bounds];
+    if (mFindBarView) {
+      NSRect findBarFrame;
+      NSRect remainderRect;
+      NSDivideRect(browserFrame, &findBarFrame, &remainderRect,
+                   [mFindBarView frame].size.height, NSMaxYEdge);
+      [mFindBarView setFrame:findBarFrame];
+
+      browserFrame = remainderRect;
+    }
+    [mBrowserView setFrame:browserFrame];
   }
 }
 
@@ -586,15 +602,23 @@ enum StatusPriority {
 {
   if (newPage)
   {
-    // defer hiding of blocked popup view until we've loaded the new page
+    // Defer hiding of extra views until we've loaded the new page.
+    // If we are being called from within a history navigation, then core code
+    // has already stored our old size, and will incorrectly truncate the page
+    // later (see bug 350752, and the XXXbryner comment in nsDocShell.cpp). To
+    // work around that, re-set the frame once core is done meddling.
+    BOOL needsFrameAdjustment = NO;
     if (mBlockedPopupView) {
       [self removeBlockedPopupViewAndDisplay];
-      // If we are being called from within a history navigation, then core code
-      // has already stored our old size, and will incorrectly truncate the page
-      // later (see bug 350752, and the XXXbryner comment in nsDocShell.cpp). To
-      // work around that, re-set the frame once core is done meddling.
-      [self performSelector:@selector(reapplyFrame) withObject:nil afterDelay:0];
+      needsFrameAdjustment = YES;
     }
+    if (mFindBarView) {
+      [self removeFindBarViewAndDisplay];
+      needsFrameAdjustment = YES;
+    }
+    if (needsFrameAdjustment)
+      [self performSelector:@selector(reapplyFrame) withObject:nil afterDelay:0];
+
     if(mBlockedPopups)
       mBlockedPopups->Clear();
     [mDelegate showPopupBlocked:NO];
@@ -1275,8 +1299,7 @@ enum StatusPriority {
 // -removeBlockedPopupViewAndDisplay
 //
 // If we're showing the blocked popup view, this removes it and resizes the
-// browser view to again take up all the space. Causes a full redraw of our
-// view.
+// browser view to fill that space. Causes a full redraw of our view.
 //
 - (void)removeBlockedPopupViewAndDisplay
 {
@@ -1292,6 +1315,69 @@ enum StatusPriority {
 - (IBAction)hideBlockedPopupView:(id)sender
 {
   [self removeBlockedPopupViewAndDisplay];
+}
+
+#pragma mark -
+#pragma mark Find Bar
+
+//
+// -showFindBar
+//
+// Shows the find bar at the bottom of the content area.
+//
+- (void)showFindBar
+{
+  [mFindBarController showFindBar];
+}
+
+//
+// -showFindBarView:
+//
+// Meant for use by FindBarController; internally, use
+// add/removeFindBarViewAndDisplay.
+//
+- (void)showFindBarView:(NSView*)inBarView
+{
+  if (inBarView && (inBarView != mFindBarView)) {
+    [mFindBarView removeFromSuperviewWithoutNeedingDisplay];
+    mFindBarView = inBarView;
+    if (inBarView)
+      [self addFindBarViewAndDisplay];
+  }
+  else if (!inBarView && mFindBarView) {
+    // Pull focus back to the content area.
+    [[self window] makeFirstResponder:mBrowserView];
+    [self removeFindBarViewAndDisplay];
+  }
+}
+
+//
+// -addFindBarViewAndDisplay
+//
+// Even if we're hidden, we ensure that the new view is in the view hierarchy
+// and it will be resized when the current tab is eventually displayed.
+//
+- (void)addFindBarViewAndDisplay
+{
+  [self addSubview:mFindBarView];
+  [self setFrame:[self frame] resizingBrowserViewIfHidden:YES];
+  [self display];
+}
+
+//
+// -removeFindBarViewAndDisplay
+//
+// If we're showing the find bar view, this removes it and resizes the
+// browser view to fill that space. Causes a full redraw of our view.
+//
+- (void)removeFindBarViewAndDisplay
+{
+  if (mFindBarView) {
+    [mFindBarView removeFromSuperview];
+    mFindBarView = nil;
+    [self setFrame:[self frame] resizingBrowserViewIfHidden:YES];
+    [self display];
+  }
 }
 
 @end

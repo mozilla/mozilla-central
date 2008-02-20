@@ -43,6 +43,7 @@
 @class FormFillController;
 @class AutoCompleteTextField;
 @class RolloverImageButton;
+@class FindBarController;
 
 class nsIMutableArray;
 class nsIArray;
@@ -158,6 +159,9 @@ class nsIArray;
   IBOutlet RolloverImageButton* mBlockedPopupCloseButton;
   IBOutlet NSTextField*     mBlockedPopupLabel;
 
+  FindBarController*        mFindBarController;  // STRONG
+  NSView*                   mFindBarView;        // can be nil, WEAK (owned by the controller)
+
   double                    mProgress;
   
   id<BrowserUIDelegate>         mDelegate;         // not retained, NULL if in bg
@@ -227,6 +231,11 @@ class nsIArray;
 
 - (NSWindow*)nativeWindow;
 - (NSMenu*)contextMenu;
+
+- (void)showFindBar;
+
+// FindBarController content view method
+- (void)showFindBarView:(NSView*)inBarView;
 
 // Custom view embedding
 - (void)registerContentViewProvider:(id<ContentViewProvider>)inProvider forURL:(NSString*)inURL;

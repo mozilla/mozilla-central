@@ -38,7 +38,7 @@
 #import <Cocoa/Cocoa.h>
 #import "FindBarController.h"
 
-#import "BrowserContentViews.h"
+#import "BrowserWrapper.h"
 #import "RolloverImageButton.h"
 #import "NSWorkspace+Utils.h"
 
@@ -59,7 +59,7 @@
 // - hookup status text for wraparound (need to use FastFind?)
 // - find all (requires converting Ff's custom JS to C++, there's no API)
 
-- (id)initWithContent:(BrowserContentView*)inContentView finder:(id<Find>)inFinder
+- (id)initWithContent:(BrowserWrapper*)inContentView finder:(id<Find>)inFinder
 {
   if ((self = [super init])) {
     mContentView = inContentView;
@@ -67,6 +67,14 @@
     // lazily load the nibs
   }
   return self;
+}
+
+- (void)dealloc
+{
+  // Balance the implicit retain from being a top-level nib object.
+  [mFindBar release];
+
+  [super dealloc];
 }
 
 //
@@ -117,21 +125,17 @@
 
   [mStatusText setStringValue:@""];
   [mSearchField setStringValue:[self findPasteboardString]];
-  [mContentView showFindBar:mFindBar];
+  [mContentView showFindBarView:mFindBar];
   [[mFindBar window] makeFirstResponder:mSearchField];
 }
 
 //
 // -hideFindBar:
 //
-// Makes the find bar go away and posts the |kFindBarDidHideNotification| 
-// notification.
+// Makes the find bar go away.
 //
 - (IBAction)hideFindBar:(id)sender {
-  [mContentView showFindBar:nil];
-  
-  [[NSNotificationCenter defaultCenter] postNotificationName:kFindBarDidHideNotification
-                                                      object:self];
+  [mContentView showFindBarView:nil];
 }
 
 //

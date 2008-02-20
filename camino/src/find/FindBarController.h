@@ -38,11 +38,8 @@
 #import <Cocoa/Cocoa.h>
 #import "Find.h"
 
-@class BrowserContentView;
+@class BrowserWrapper;
 @class RolloverImageButton;
-
-// sent when the Find bar has left the window. Object is the find bar view.
-#define kFindBarDidHideNotification @"FindBarDidHideNotification"
 
 
 //
@@ -69,10 +66,10 @@
   IBOutlet RolloverImageButton* mCloseBox;
   
   id<Find>  mFinder;                    // actually performs the find, weak
-  BrowserContentView* mContentView;     // weak
+  BrowserWrapper* mContentView;         // weak
 }
 
-- (id)initWithContent:(BrowserContentView*)inContentView finder:(id<Find>)inFinder;
+- (id)initWithContent:(BrowserWrapper*)inContentView finder:(id<Find>)inFinder;
 
 // show and hide the various find bars. Showing the find bar sets the focus to
 // the search field. Hiding the bar posts the |kFindBarDidHideNotification|

@@ -48,16 +48,11 @@
   IBOutlet BookmarkToolbar  *mBookmarksToolbar;
   IBOutlet NSView           *mBrowserContainerView;   // manages tabs and web content
   IBOutlet NSView           *mStatusBar;
-  IBOutlet NSView           *mFindBar;                // will be nil if hidden  IBOutlet NSView           *mStatusBar;
   TabThumbnailGridView      *mTabThumbnailGridView;
   BOOL                       mStatusBarWasHidden;
 }
 
 - (void)toggleTabThumbnailGridView;
-
-// displays |inBarView| as the find bar just above the status bar. Pass nil to
-// make the bar disappear. 
-- (void)showFindBar:(NSView*)inBarView; 
 
 @end
 

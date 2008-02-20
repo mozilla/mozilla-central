@@ -88,9 +88,6 @@
     | | |_______________________________________________________| | |
     | |___________________________________________________________| |
     | ____________________________________________________________  |
-    | | Find bar                                                  | |
-    | |___________________________________________________________| |
-    | ____________________________________________________________  |
     | | Status bar                                                | |
     | |___________________________________________________________| |
     |_______________________________________________________________|
@@ -113,7 +110,6 @@
 {
   float bmToolbarHeight = 0.0;
   float statusBarHeight = 0.0;
-  float findBarHeight = 0.0;
 
   if (mBookmarksToolbar) {
     // first resize the toolbar, which can reflow to a different height
@@ -138,25 +134,15 @@
     statusRect.size.height = statusBarHeight;
     [mStatusBar setFrame:statusRect];
   }
-
-  // position the find bar above the status bar, if present. Unlike the other bars, if it's set, 
-  // it's meant to be visible.
-  if (mFindBar) {
-    findBarHeight = NSHeight([mFindBar frame]);
-    NSRect findRect = [self bounds];
-    findRect.size.height = findBarHeight;
-    findRect.origin.y = statusBarHeight;
-    [mFindBar setFrame:findRect];
-  }
   
   // figure out how much space is left for the browser view
   NSRect browserRect = [self bounds];
   // subtract bm toolbar
   browserRect.size.height -= bmToolbarHeight;
   
-  // subtract status bar and find bar
-  browserRect.size.height -= statusBarHeight + findBarHeight;
-  browserRect.origin.y += statusBarHeight + findBarHeight;
+  // subtract status bar
+  browserRect.size.height -= statusBarHeight;
+  browserRect.origin.y += statusBarHeight;
   
   // resize our current content area, whatever it may be. We will
   // take care of resizing the other view when we toggle it to
@@ -173,31 +159,12 @@
   }
 }
 
-// displays |inBarView| as the find bar just above the status bar. Pass nil to
-// make the bar disappear. 
-- (void)showFindBar:(NSView*)inBarView
-{
-  // out with the old
-  if (mFindBar)
-    [mFindBar removeFromSuperviewWithoutNeedingDisplay];
-
-  // in with the new
-  mFindBar = inBarView;
-  if (inBarView)
-    [self addSubview:inBarView];
-    
-  // resize everyone
-  [self resizeSubviewsWithOldSize:[self frame].size];
-}
-
 - (void)willRemoveSubview:(NSView *)subview
 {
   if (subview == mBookmarksToolbar)
     mBookmarksToolbar = nil;
   else if (subview == mStatusBar)
     mStatusBar = nil;
-  else if (subview == mFindBar)   // just in case callers don't clear it themselves
-    mFindBar = nil;
 
   [super willRemoveSubview:subview];
 }

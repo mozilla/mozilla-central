@@ -789,11 +789,6 @@ public:
   nsCOMPtr<nsIPref> pref(do_GetService(NS_PREF_CONTRACTID));
   if (pref)
     pref->UnregisterCallback(gTabBarVisiblePref, TabBarVisiblePrefChangedCallback, self);
-  
-  // make sure the find bar goes away early enough since it holds
-  // weak refs to things.
-  [mFindController hideFindBar:self];
-  [mFindController release];
       
   // Tell the BrowserTabView the window is closed
   [mTabBrowser windowClosed];
@@ -1031,14 +1026,6 @@ public:
       // actually move the window
       [[self window] setFrameOrigin: testBrowserFrame.origin];
     }
-    
-    // configure the find bar controller and register for notifications on when the
-    // find bar gets hidden so we can do things like reset focus.
-    mFindController = [[FindBarController alloc] initWithContent:mContentView finder:self];
-    [[NSNotificationCenter defaultCenter] addObserver:self 
-                                             selector:@selector(findBarHidden:)
-                                                 name:kFindBarDidHideNotification 
-                                               object:mFindController];
     
     // cache the original window frame, we may need this for correct zooming
     mLastFrameSize = [[self window] frame];
@@ -1742,7 +1729,7 @@ public:
       return NO;    
     long tag = [aMenuItem tag];
     if (tag == NSFindPanelActionNext || tag == NSFindPanelActionPrevious)
-      return ([[self lastFindText] length] > 0);
+      return ([[[mBrowserView browserView] lastFindText] length] > 0);
     return YES;
   }
 
@@ -1785,6 +1772,10 @@ public:
     return [self canMakeTextSmaller];
   if (action == @selector(makeTextDefaultSize:))
     return [self canMakeTextDefaultSize];
+  if (action == @selector(find:)) {
+    return ([self bookmarkManagerIsVisible] ||
+            [[[self browserWrapper] browserView] isTextBasedContent]);
+  }
   if (action == @selector(sendURL:))
     return ![[self browserWrapper] isInternalURI];
   if (action == @selector(viewSource:) ||
@@ -2327,7 +2318,6 @@ public:
       [[[self browserWrapper] browserView] goToSessionHistoryIndex:previousPage];
   }
   else {
-    [mFindController hideFindBar:self];
     [self loadURL:@"about:bookmarks"];
   }
 }
@@ -2350,9 +2340,6 @@ public:
 //
 -(IBAction)manageHistory: (id)aSender
 {
-  if ([self bookmarkManagerIsVisible])
-    [mFindController hideFindBar:self];
-  
   [self loadURL:@"about:history"];
 
   // aSender could be a history menu item with a represented object of
@@ -2843,19 +2830,8 @@ public:
     [[self bookmarkViewControllerForCurrentTab] focusSearchField];
   }
   else {
-    [mFindController showFindBar];
+    [mBrowserView showFindBar];
   }
-}
-
-//
-// - findBarHidden:
-//
-// Called when the find bar has been hidden in this window. Do things like
-// reset the focus to gecko.
-//
-- (void)findBarHidden:(NSNotification*)inNotify
-{
-  [[self window] makeFirstResponder:[mBrowserView browserView]];
 }
 
 //
@@ -2870,30 +2846,13 @@ public:
 {
   switch ([inSender tag]) {
     case NSFindPanelActionNext:
-      [mFindController findNext:self];
+      [[mBrowserView browserView] findInPage:NO];
       break;
     
     case NSFindPanelActionPrevious:
-      [mFindController findPrevious:self];
+      [[mBrowserView browserView] findInPage:YES];
       break;
   }
-}
-
-- (BOOL)findInPageWithPattern:(NSString*)text caseSensitive:(BOOL)inCaseSensitive
-    wrap:(BOOL)inWrap backwards:(BOOL)inBackwards
-{
-  return [[mBrowserView browserView] findInPageWithPattern:text caseSensitive:inCaseSensitive
-                                                      wrap:inWrap backwards:inBackwards];
-}
-
-- (BOOL)findInPage:(BOOL)inBackwards
-{
-  return [[mBrowserView browserView] findInPage:inBackwards];
-}
-
-- (NSString*)lastFindText
-{
-  return [[mBrowserView browserView] lastFindText];
 }
 
 - (void)stopThrobber
@@ -4972,7 +4931,6 @@ public:
 
 - (IBAction)toggleTabThumbnailView:(id)sender
 {
-  [mFindController hideFindBar:self];
   [mContentView toggleTabThumbnailGridView];
 }
 

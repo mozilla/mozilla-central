@@ -37,7 +37,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import "BrowserWrapper.h"
-#import "Find.h"
 #import "MainController.h"
 
 class nsIURIFixup;
@@ -112,10 +111,9 @@ typedef enum  {
 @class AutoCompleteTextField;
 @class ExtendedSplitView;
 @class WebSearchField;
-@class FindBarController;
 
 
-@interface BrowserWindowController : NSWindowController<Find, BrowserUIDelegate, BrowserUICreationDelegate>
+@interface BrowserWindowController : NSWindowController<BrowserUIDelegate, BrowserUICreationDelegate>
 {
   IBOutlet BrowserTabView*    mTabBrowser;
   IBOutlet ExtendedSplitView* mLocationToolbarView;     // parent splitter of location and search, strong
@@ -161,8 +159,6 @@ typedef enum  {
 
   // The browser view that the user was on before a prompt forced a switch (weak)
   BrowserWrapper*               mLastBrowserView;
-
-  FindBarController*            mFindController;
   
   BOOL mMoveReentrant;
   BOOL mClosingWindow;
