@@ -83,7 +83,6 @@
 #include "nsIWebBrowserChrome.h"
 #include "nsIServiceManager.h"
 #include "nsIIOService.h"
-#include "nsIPref.h"
 #include "nsIChromeRegistry.h"
 #include "nsIObserverService.h"
 #include "nsIGenericFactory.h"
@@ -704,14 +703,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 // opening a new window or tab (observing the user's pref) if it's not already open
 - (void)showURL:(NSString*)aURL
 {
-  // make sure we're initted
-  [PreferenceManager sharedInstance];
-
-  PRInt32 reuseWindow = 0;
-
-  nsCOMPtr<nsIPref> prefService(do_GetService(NS_PREF_CONTRACTID));
-  if (prefService)
-    prefService->GetIntPref("browser.reuse_window", &reuseWindow);
+  int reuseWindow = [[PreferenceManager sharedInstance] getIntPref:"browser.reuse_window" withSuccess:NULL];
 
   // Check to see if we already have the URL somewhere, and just show it if we do.
   NSEnumerator* windowEnumerator = [[NSApp orderedWindows] objectEnumerator];

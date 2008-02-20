@@ -51,8 +51,6 @@
 #include "nsIDOMHTMLFormElement.h"
 #include "nsIDOMHTMLInputElement.h"
 
-class nsIPrefBranch;
-
 enum KeychainPromptResult { kSave, kDontRemember, kNeverRemember } ;
 
 @class CHBrowserView;
