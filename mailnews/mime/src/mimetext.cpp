@@ -137,6 +137,17 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
                                           PR_FALSE, PR_FALSE);
       }
 
+      /* iMIP entities without an explicit charset parameter default to
+       US-ASCII (RFC 2447, section 2.4). However, Microsoft Outlook generates
+       UTF-8 but omits the charset parameter.
+       When no charset is defined by the container (e.g. iMIP), iCalendar
+       files default to UTF-8 (RFC 2445, section 4.1.4).
+       */
+      if (!text->charset &&
+          obj->content_type &&
+          !PL_strcasecmp(obj->content_type, TEXT_CALENDAR))
+        text->charset = strdup("UTF-8");
+
       if (!text->charset)
       {
         nsresult res;
