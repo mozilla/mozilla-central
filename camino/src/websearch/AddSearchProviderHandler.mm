@@ -137,7 +137,8 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
                                engineName];
   NSAlert* addSearchAlert = [[[NSAlert alloc] init] autorelease];
   [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationConfirmButton", nil)];
-  [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationCancelButton", nil)];
+  NSButton* cancelButton = [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationCancelButton", nil)];
+  [cancelButton setKeyEquivalent:@"\e"];  // Esc
   [addSearchAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationConfirmationTitle", nil)];
   [addSearchAlert setInformativeText:explanatoryText];
   [addSearchAlert setAlertStyle:NSInformationalAlertStyle];
