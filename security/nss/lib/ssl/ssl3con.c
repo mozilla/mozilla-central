@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.106 2008-02-16 04:38:08 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: ssl3con.c,v 1.107 2008-02-20 00:11:15 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -3950,10 +3950,8 @@ SSL3_ShutdownServerCache(void)
 
 SECStatus ssl_InitSymWrapKeysLock(void)
 {
-    if (!symWrapKeysLock) {
-        symWrapKeysLock = PZ_NewLock(nssILockOther);
-    }
-    return symWrapKeysLock ? SECSuccess:SECFailure;
+    symWrapKeysLock = PZ_NewLock(nssILockOther);
+    return symWrapKeysLock ? SECSuccess : SECFailure;
 }
 
 /* Try to get wrapping key for mechanism from in-memory array.
