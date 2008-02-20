@@ -162,29 +162,9 @@ function setupBar(imipMethod)
     imipBar.setAttribute("collapsed", "false");
     var description = document.getElementById("imip-description");
 
-    // Bug 348666: here is where we would check if this event was already
-    // added to calendar or not and display correct information
-
     if (imipMethod.toUpperCase() == "REQUEST") {
-        if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning",
-                                                       "imipBarRequestText");
-        }
-
-        var button = document.getElementById("imip-button1");
-        button.removeAttribute("hidden");
-        button.setAttribute("label", ltnGetString("lightning",
-                                                  "imipAcceptInvitation.label"));
-        button.setAttribute("oncommand",
-                            "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
-
-        // Create a DECLINE button
-        button = document.getElementById("imip-button2");
-        button.removeAttribute("hidden");
-        button.setAttribute("label", ltnGetString("lightning",
-                                                  "imipDeclineInvitation.label"));
-        button.setAttribute("oncommand",
-                            "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+        // Check if this is an update and display things accordingly
+        isUpdateMsg();
     } else if (imipMethod.toUpperCase() == "REPLY") {
         // Bug xxxx we currently cannot process REPLY messages so just let
         // the user know what this is, and don't give them any options.
@@ -402,5 +382,142 @@ function finishItipAction(aOperationType, aStatus, aDetail)
             // Defined in import-export
             showError(msg);
         }
+    }
+}
+
+/**
+ * Walks through the list of events in the iTipItem and discovers whether or not
+ * these events already exist on a calendar. Calls determineUpdateType.
+ */
+function isUpdateMsg()
+{
+    // According to the specification, we have to determine if the event ID
+    // already exists on the calendar of the user - that means we have to search
+    // them all. :-(
+    var isUpdate = 0;
+    var existingItemSequence = -1;
+    calendarList = getCalendarManager().getCalendars({});
+
+    // Create a composite
+    compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
+              .createInstance(Components.interfaces.calICompositeCalendar);
+
+    for(var i=0; i < calendarList.length; ++i) {
+        compCal.addCalendar(calendarList[i]);
+    }
+
+    // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
+    // same ID, this simplifies our searching, we can just look for Item[0].id
+    var itemList = gItipItem.getItemList({ });
+    var newSequence = itemList[0].getProperty("SEQUENCE");
+
+    var onFindItemListener = {
+        processedId: null,
+        onOperationComplete:
+        function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            if (!this.processedId){
+                // Then the ID doesn't exist, don't call us twice
+                this.processedId = true;
+                determineUpdateType(newSequence, -1);
+            }
+        },
+
+        onGetResult:
+        function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+            if (aCount && aItems[0] && !this.processedId) {
+                this.processedId = true;
+                determineUpdateType(newSequence, aItems[0].getProperty("SEQUENCE"));
+            }
+        }
+    };
+    // Search
+    compCal.getItem(itemList[0].id, onFindItemListener);
+}
+
+/**
+ * Determines what our update status is. It can return three things:
+ * 0 = the new event does not exist on the calendar (therefore, this is an add)
+ * 1 = the event does exist and contains a proper update (this is an update)
+ * 2 = the event clicked on is an old update and should NOT be applied
+ */
+function determineUpdateType(newItemSequence, existingItemSequence) {
+    // Three states here:
+    // Item does not exist yet: existingItemSequence == -1
+    // Item has been updated: newSequence > existingSequence
+    // Item is an old message that has already been added/updated: new <= existing
+    var isUpdate = 0;
+
+    if (existingItemSequence == -1)
+        isUpdate = 0;
+    else if (newItemSequence > existingItemSequence)
+        isUpdate = 1;
+    else
+        isUpdate = 2;
+
+    // We now call our display code to display the proper message for this
+    // update type
+    displayRequestMethod(isUpdate);
+}
+
+function displayRequestMethod(updateValue) {
+
+    var description = document.getElementById("imip-description");
+    if (updateValue) {
+        // This is a message updating existing event(s). But updateValue could
+        // indicate that this update has already been applied, check that first.
+        if (updateValue == 2) {
+            // This case, they clicked on an old message that has already been
+            // added/updated, we want to tell them that.
+            if (description.firstChild.data) {
+                description.firstChild.data = ltnGetString("lightning",
+                                                           "imipBarAlreadyAddedText");
+            }
+
+            var button = document.getElementById("imip-button1");
+            button.setAttribute("hidden", "true");
+            button = document.getElementById("imip-button2");
+            button.setAttribute("hidden", "true");
+        } else {
+            // Legitimate update, let's offer the update path
+            if (description.firstChild.data) {
+                description.firstChild.data = ltnGetString("lightning",
+                                                           "imipBarUpdateText");
+             }
+
+            var button = document.getElementById("imip-button1");
+            button.removeAttribute("hidden");
+            button.setAttribute("label", ltnGetString("lightning",
+                                                      "imipUpdateInvitation.label"));
+            button.setAttribute("oncommand", 
+                                "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
+
+            // Create a DECLINE button (user chooses not to attend the updated event)
+            button = document.getElementById("imip-button2");
+            button.removeAttribute("hidden");
+            button.setAttribute("label", ltnGetString("lightning",
+                                                      "imipDeclineInvitation.label"));
+            button.setAttribute("oncommand",
+                                "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+        }
+    } else {
+        if (description.firstChild.data) {
+            description.firstChild.data = ltnGetString("lightning",
+                                                       "imipBarRequestText");
+        }
+
+        var button = document.getElementById("imip-button1");
+        button.removeAttribute("hidden");
+        button.setAttribute("label", ltnGetString("lightning",
+                                                  "imipAcceptInvitation.label"));
+        button.setAttribute("oncommand",
+                            "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
+
+        // Create a DECLINE button
+        button = document.getElementById("imip-button2");
+        button.removeAttribute("hidden");
+        button.setAttribute("label", ltnGetString("lightning",
+                                                  "imipDeclineInvitation.label"));
+        button.setAttribute("oncommand",
+                            "setAttendeeResponse('DECLINED', 'CONFIRMED');");
     }
 }
