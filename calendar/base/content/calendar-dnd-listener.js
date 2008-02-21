@@ -450,15 +450,7 @@ calMailButtonDNDObserver.prototype = {
                 }
             }
 
-            // Set up the subject
-            var subject = calGetString("sun-calendar-event-dialog",
-                                       "emailSubjectReply",
-                                       [item.title]);
-
-            // set up message body from item description
-            var body = item.getProperty("DESCRIPTION");
-
-            sendMailTo(recipients, subject, body);
+            sendMailTo(recipients, item.title, item.getProperty("DESCRIPTION"));
         }
     },
 
