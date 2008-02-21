@@ -541,9 +541,9 @@ function grabAll(elem)
     if (elem.rel)
     {
       var rel = elem.rel;
-      if (/\bicon\b/i.test(rel))
+      if (/(?:^|\s)icon(?:\s|$)/i.test(rel))
         addImage(elem.href, gStrings.mediaLink, "", elem, false);
-      else if (/\bstylesheet\b/i.test(rel))
+      else if (/(?:^|\s)stylesheet(?:\s|$)/i.test(rel))
         gLinkView.addRow([elem.rel, elem.href, gStrings.linkStylesheet, elem.target]);
       else
         gLinkView.addRow([elem.rel, elem.href, gStrings.linkRel, elem.target]);

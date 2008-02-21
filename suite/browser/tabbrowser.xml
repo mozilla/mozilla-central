@@ -886,12 +886,12 @@
               return;
 
             var rel = event.originalTarget.rel;
-            var isIcon = /\bicon\b/i.test(rel) &&
+            var isIcon = /(?:^|\s)icon(?:\s|$)/i.test(rel) &&
                          this.mPrefs.getBoolPref("browser.chrome.site_icons");
 
-            var isFeed = /\bfeed\b/i.test(rel);
-            if (!isFeed && /\balternate\b/i.test(rel) &&
-                !/\bstylesheet\b/i.test(rel)) {
+            var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel);
+            if (!isFeed && /(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
+                !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel)) {
               switch (event.originalTarget.type.toLowerCase()
                            .replace(/^\s+|\s*(?:;.*)?$/g, "")) {
                 case "text/xml":

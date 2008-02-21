@@ -56,9 +56,9 @@ function initFeedTab()
       continue;
 
     var rel = link.rel && link.rel.toLowerCase();
-    var isFeed = /\bfeed\b/i.test(rel);
-    if (!isFeed && /\balternate\b/.test(rel) &&
-        !/\bstylesheet\b/.test(rel)) {
+    var isFeed = /(?:^|\s)feed(?:\s|$)/i.test(rel);
+    if (!isFeed && /(?:^|\s)alternate(?:\s|$)/i.test(rel) &&
+        !/(?:^|\s)stylesheet(?:\s|$)/i.test(rel)) {
       var feed = { title: link.title, href: link.href, type: link.type };
       if (isValidFeed(feed, gDocument.nodePrincipal, isFeed)) {
         var type = feed.type;
