@@ -151,6 +151,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>%CM_APP_VERSION_CFBUNDLE%</string>
+	<key>CGDisableCoalescedUpdates</key>
+	<true/>
 	<key>LSFileQuarantineEnabled</key>
 	<true/>
 	<key>LSFileQuarantineExcludedPathPatterns</key>
