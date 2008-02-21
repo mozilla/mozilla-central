@@ -697,12 +697,10 @@ sub update_create_package {
 
           my $ssh_opts = "";
           my $scp_opts = "";
-          if ($Settings::ssh_user eq 'cltbld') {
-             # $ENV{'HOME'} on MSYS conveniently defaults to 
-             # c:\Documents and Settings\blah, which has spaces, so quote the 
-             # ssh argument to ensure the shell gets it correctly.
-             $ssh_opts = "-i \"$ENV{'HOME'}/.ssh/aus\"";
-             $scp_opts = $ssh_opts;
+          if (defined($Settings::ssh_key) && $Settings::ssh_key !~ /^\s*$/) {
+             # NB: ssh_key must be quoted in the tinder-config.pl if the path contains spaces
+             $ssh_opts .= " -i ".$Settings::ssh_key;
+             $scp_opts .= " -i ".$Settings::ssh_key;
           }
 
           TinderUtils::run_shell_command("ssh $ssh_opts $Settings::ssh_user\@$update_aus_host mkdir -p $path");
