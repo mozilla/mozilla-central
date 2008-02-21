@@ -128,10 +128,16 @@ sub update
         die "User Not Authorized";
     }
 
-    my $result = $test_run->update($new_values);
+    $test_run->set_environment($new_values->{'environment_id'});
+    $test_run->set_build($new_values->{'build_id'});
+    $test_run->set_summary($new_values->{'summary'});
+    $test_run->set_manager($new_values->{'manager_id'});
+    $test_run->set_plan_text_version($new_values->{'plan_text_version'});
+    $test_run->set_notes($new_values->{'notes'});
+    $test_run->set_product_version($new_values->{'product_version'});
+     
+    $test_run->update();
 
-    $test_run = new Bugzilla::Testopia::TestRun($test_run_id);
-    
     $self->logout;
     
     # Result is modified test run on success, otherwise an exception will be thrown

@@ -95,19 +95,20 @@ sub create
     my $self =shift;
     my ($new_values) = @_;
     
-    if (not defined $$new_values{plan_id})
+    $self->login;
+        
+    my $plan = Bugzilla::Testopia::TestPlan->new($new_values->{plan_id});
+    unless ($plan)
     {
-        die "Plan ID Number (plan_id) Required When Creating A TestCase"
+        $self->logout;
+        die "Plan ID Number (plan_id) Required When Creating A TestCase";
     }
-
-    # Plan id linked to new test case after store method is called
-    my $plan_id = $$new_values{plan_id};
 
     # Remove plan id from new_values hash    
     delete $$new_values{plan_id};
-
-    $self->login;
-
+    
+    $new_values->{'plans'} = [$plan];
+    
     my $test_case = Bugzilla::Testopia::TestCase->create($new_values);
     
     $test_case->link_plan($plan_id, $test_case->id);
@@ -176,9 +177,22 @@ sub update
         die "Update of TestCase's author_id is not allowed";
     }
 
-    my $result = $test_case->update($new_values);
+    $test_case->set_case_status($new_values->{'case_status_id'});
+    $test_case->set_category($new_values->{'category_id'});
+    $test_case->set_priority($new_values->{'priority_id'});
+    $test_case->set_default_tester($new_values->{'default_tester_id'});
+    $test_case->set_sortkey($new_values->{'sortkey'});
+    $test_case->set_requirement($new_values->{'requirement'});
+    $test_case->set_isautomated($new_values->{'isautomated'});
+    $test_case->set_script($new_values->{'script'});
+    $test_case->set_arguments($new_values->{'arguments'});
+    $test_case->set_summary($new_values->{'summary'});
+    $test_case->set_alias($new_values->{'alias'});
+    $test_case->set_estimated_time($new_values->{'estimated_time'});
+    $test_case->set_dependson($new_values->{'dependson'});
+    $test_case->set_blocks($new_values->{'blocks'});
 
-    $test_case = new Bugzilla::Testopia::TestCase($test_case_id);
+    $test_case->update();
 
     $self->logout;
     

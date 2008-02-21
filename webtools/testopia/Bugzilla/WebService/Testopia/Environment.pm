@@ -131,11 +131,12 @@ sub update
         $self->logout;
         die "User Not Authorized";
     }
-
-    my $result = $environment->update($new_values);
-
-    $environment = new Bugzilla::Testopia::Environment($environment_id);
     
+    $environment->set_name($new_values->{'name'});
+    $environment->set_isactive($new_values->{'isactive'});
+    
+    $environment->update();
+
     $self->logout;
 
     # Result is modified environment, otherwise an exception will be thrown

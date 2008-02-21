@@ -130,7 +130,6 @@ sub update
     }
     
     $test_plan->set_name(trim($new_values->{'name'}));
-    $test_plan->set_product_id($new_values->{'product_id'});
     $test_plan->set_default_product_version($new_values->{'default_product_version'});
     $test_plan->set_type($new_values->{'type_id'});
     $test_plan->set_isactive($new_values->{'isactive'});
