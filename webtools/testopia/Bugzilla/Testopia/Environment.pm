@@ -79,7 +79,7 @@ use constant DB_COLUMNS => qw(
 );
 
 use constant REQUIRED_CREATE_FIELDS => qw(name product_id);
-use constant UPDATE_COLUMNS         => qw(name product_id isactive);
+use constant UPDATE_COLUMNS         => qw(name isactive);
 
 use constant VALIDATORS => {
     product_id => \&_check_product,

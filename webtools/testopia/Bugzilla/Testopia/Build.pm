@@ -29,7 +29,7 @@ use Bugzilla::Testopia::TestCase;
 use JSON;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Bug::EXPORT = qw(check_build check_build_by_name);
+@Bugzilla::Testopia::Build::EXPORT = qw(check_build check_build_by_name);
 
 ###############################
 ####    Initialization     ####

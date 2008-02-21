@@ -219,7 +219,8 @@ sub _check_automated{
 sub _check_sortkey{
     my ($invocant, $sortkey) = @_;
     $sortkey = trim($sortkey);
-    ThrowUserError('invalid_value', {argument => 'sortkey', value => $sortkey}) unless ($sortkey =~ /^\d+$/);
+    return unless $sortkey;
+    ThrowUserError('bad_arg', {argument => 'sortkey', function => 'set_sortkey'}) unless ($sortkey =~ /^\d+$/);
     return $sortkey;
 }
 
@@ -492,6 +493,8 @@ sub update {
                          'test_fielddefs READ');
     
     my $changed = $self->SUPER::update();
+    
+    delete $changed->{'sortkey'};
     
     foreach my $field (keys %$changed){
         Bugzilla::Testopia::Util::log_activity('case', $self->id, $field, $timestamp, 

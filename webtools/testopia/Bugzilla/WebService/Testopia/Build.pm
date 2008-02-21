@@ -76,7 +76,7 @@ sub update
     
     my $name = $$new_values{name};
     
-    if (defined($name) && check_build($name, $build->product_id))
+    if (defined($name) && check_build($name, new Bugzilla::Product($build->product_id)))
     {
         die "Build name, " . $name . ", already exists"; 
     }
@@ -122,7 +122,7 @@ sub lookup_name_by_id
   return $result;
 }
 
-# DEPRECATED use Build::check_build($name, $product_id) instead
+# DEPRECATED use Build::check_build($name, $product_obj) instead
 sub lookup_id_by_name
 {
   my $self = shift;

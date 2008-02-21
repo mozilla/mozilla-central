@@ -111,7 +111,7 @@ sub create
     
     my $test_case = Bugzilla::Testopia::TestCase->create($new_values);
     
-    $test_case->link_plan($plan_id, $test_case->id);
+    $test_case->link_plan($plan->id, $test_case->id);
     
     $self->logout;
 
