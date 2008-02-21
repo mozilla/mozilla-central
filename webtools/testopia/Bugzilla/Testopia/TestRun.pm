@@ -539,19 +539,19 @@ sub to_json {
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
-    $obj->{'plan'}          = { id => $self->plan->id, product_id => $self->plan->product_id};
-    $obj->{'build'}         = { id => $self->build->id, name => $self->build->name};
-    $obj->{'environment'}   = { id => $self->environment->id, name => $self->environment->name};
+    $obj->{'plan'}          = { id => $self->plan->id, product_id => $self->plan->product_id} if $self->plan;
+    $obj->{'build'}         = { id => $self->build->id, name => $self->build->name} if $self->build;
+    $obj->{'environment'}   = { id => $self->environment->id, name => $self->environment->name} if $self->environment;
     $obj->{'case_count'}    = $self->case_run_count;
-    $obj->{'manager'}       = { login_name => $self->manager->login, name => $self->manager->name};
-    $obj->{'manager_name'}  = $self->manager->name;
+    $obj->{'manager'}       = { login_name => $self->manager->login, name => $self->manager->name} if $self->manager;
+    $obj->{'manager_name'}  = $self->manager->name if $self->manager;
     $obj->{'canedit'}       = $self->canedit;
     $obj->{'canview'}       = $self->canview;
     $obj->{'candelete'}     = $self->candelete;
     $obj->{'status'}        = $self->stop_date ? 'STOPPED' : 'RUNNING';
     $obj->{'type'}          = $self->type;
     $obj->{'id'}            = $self->id;
-    $obj->{'product_id'}    = $self->plan->product_id;
+    $obj->{'product_id'}    = $self->plan->product_id if $self->plan;
 
     return $json->objToJson($obj); 
 }

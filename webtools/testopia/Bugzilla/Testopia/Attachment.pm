@@ -250,7 +250,7 @@ sub to_json {
     # Add the calculated fields
     $obj->{'isviewable'} = $self->is_browser_safe($cgi);
     $obj->{'datasize'}   = $self->datasize;
-    $obj->{'submitter'}  = $self->submitter->name;
+    $obj->{'submitter'}  = $self->submitter->name if $self->submitter;
     $obj->{'canedit'}    = $self->canedit;
     $obj->{'candelete'}  = $self->candelete;
     

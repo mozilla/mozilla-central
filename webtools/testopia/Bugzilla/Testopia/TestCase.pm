@@ -1623,8 +1623,8 @@ sub to_json {
     }
     
     $obj->{'run_count'}    = $self->run_count;
-    $obj->{'author_name'}  = $self->author->name;
-    $obj->{'default_tester'}  = $self->default_tester->name;
+    $obj->{'author_name'}  = $self->author->name if $self->author;
+    $obj->{'default_tester'}  = $self->default_tester->name if $self->default_tester;
     $obj->{'status'}       = $self->status;
     $obj->{'priority'}     = $self->priority;
     $obj->{'plan_id'}      = $plan_ids[0];
@@ -1634,8 +1634,8 @@ sub to_json {
     $obj->{'canedit'}      = $self->canedit;
     $obj->{'canview'}      = $self->canview;
     $obj->{'candelete'}    = $self->candelete;
-    $obj->{'category_name'} = $self->category->name;
-    $obj->{'product_id'}   = $self->plans->[0]->product_id;
+    $obj->{'category_name'} = $self->category->name if $self->category;
+    $obj->{'product_id'}   = $self->plans->[0]->product_id if $self->plans;
 
     return $json->objToJson($obj); 
 }

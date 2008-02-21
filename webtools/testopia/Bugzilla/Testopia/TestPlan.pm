@@ -947,7 +947,7 @@ sub to_json {
         $obj->{$field} = $self->{$field};
     }
     
-    $obj->{'product_name'} = $self->product->name;
+    $obj->{'product_name'} = $self->product->name if $self->product;
     $obj->{'run_count'}    = $self->test_run_count;
     $obj->{'case_count'}   = $self->test_case_count;
     $obj->{'author_name'}  = $self->author->login;

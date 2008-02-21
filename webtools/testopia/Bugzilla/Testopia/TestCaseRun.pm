@@ -295,17 +295,17 @@ sub to_json {
         $obj->{$field} = $self->{$field};
     }
     
-    $obj->{'assignee_name'}  = $self->assignee->login;
-    $obj->{'testedby'}  = $self->testedby->login;
+    $obj->{'assignee_name'}  = $self->assignee->login if $self->assignee;
+    $obj->{'testedby'}  = $self->testedby->login if $self->testedby;
     $obj->{'status'}    = $self->status;
-    $obj->{'build_name'}    = $self->build->name;
-    $obj->{'env_name'}    = $self->environment->name;
-    $obj->{'env_id'}    = $self->environment->id;
-    $obj->{'category'}    = $self->case->category->name;
-    $obj->{'priority'}    = $self->case->priority;
+    $obj->{'build_name'}    = $self->build->name if $self->build;
+    $obj->{'env_name'}    = $self->environment->name if $self->environment;
+    $obj->{'env_id'}    = $self->environment->id if $self->environment;
+    $obj->{'category'}    = $self->case->category->name if $self->case && $self->case->category;
+    $obj->{'priority'}    = $self->case->priority if $self->case;
     $obj->{'bug_count'}    = $self->bug_count;
-    $obj->{'case_summary'}    = $self->case->summary;
-    $obj->{'component'}    = @{$self->case->components}[0]->name if (scalar @{$self->case->components});
+    $obj->{'case_summary'}    = $self->case->summary if $self->case;
+    $obj->{'component'}    = @{$self->case->components}[0]->name if ($self->case && scalar @{$self->case->components});
     $obj->{'type'}         = $self->type;
     $obj->{'id'}           = $self->id;
     $obj->{'sortkey'}      = $self->sortkey;
