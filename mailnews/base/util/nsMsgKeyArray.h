@@ -57,6 +57,9 @@ public:
   nsMsgKey operator[](PRUint32 nIndex) const {
     return((nsMsgKey)nsUInt32Array::operator[](nIndex));
   }
+  nsMsgKey &operator[](PRUint32 nIndex) {
+    return((nsMsgKey&)nsUInt32Array::operator[](nIndex));
+  }
   nsMsgKey GetKeyFromIndex(PRUint32 nIndex) {
     return(operator[](nIndex));
   }

@@ -346,7 +346,7 @@ nsresult nsFolderCompactState::StartCompacting()
   {
     ShowCompactingStatusMsg();
     AddRef();
-    rv = m_messageService->CopyMessages(&m_keyArray, m_folder, this, PR_FALSE, nsnull, m_window, nsnull);
+    rv = m_messageService->CopyMessages(m_keyArray, m_folder, this, PR_FALSE, nsnull, m_window, nsnull);
     // m_curIndex = m_size;  // advance m_curIndex to the end - we're done
 
   }

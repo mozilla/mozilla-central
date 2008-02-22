@@ -427,7 +427,7 @@ nsresult nsMsgGroupView::HandleDayChange()
     m_dayChanged = PR_FALSE;
     nsMsgKeyArray preservedSelection;
     nsMsgKey curSelectedKey;
-    SaveAndClearSelection(&curSelectedKey, &preservedSelection);
+    SaveAndClearSelection(&curSelectedKey, preservedSelection);
     InternalClose();
     PRInt32 oldSize = GetSize();
     // this is important, because the tree will ask us for our
@@ -452,7 +452,7 @@ nsresult nsMsgGroupView::HandleDayChange()
     nsMsgKeyArray keyArray;
     keyArray.Add(curSelectedKey);
 
-    return RestoreSelection(curSelectedKey, &keyArray);
+    return RestoreSelection(curSelectedKey, keyArray);
   }
   return NS_OK;
 }

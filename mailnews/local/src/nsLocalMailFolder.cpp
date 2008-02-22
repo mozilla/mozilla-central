@@ -1545,13 +1545,13 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, PRBool moveCopySu
 }
 
 nsresult
-nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsMsgKeyArray *aKeyArray, nsIMsgFolder *srcFolder)
+nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsMsgKeyArray &aKeyArray, nsIMsgFolder *srcFolder)
 {
   nsresult rv = NS_OK;
   PRUint32 numMessages = 0;
   rv = messages->Count(&numMessages);
   NS_ENSURE_SUCCESS(rv,rv);
-  NS_ASSERTION ((numMessages == aKeyArray->GetSize()), "message array and key array size are not same");
+  NS_ASSERTION ((numMessages == aKeyArray.GetSize()), "message array and key array size are not same");
   rv = messages->Clear();
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -1561,7 +1561,7 @@ nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsMsgKe
   if (NS_SUCCEEDED(rv) && db)
     for (PRUint32 i=0;i < numMessages; i++)
     {
-      rv = db->GetMsgHdrForKey(aKeyArray->GetAt(i), getter_AddRefs(msgHdr));
+      rv = db->GetMsgHdrForKey(aKeyArray[i], getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv,rv);
       if (msgHdr)
         messages->AppendElement(msgHdr);
@@ -2789,7 +2789,7 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
       }
     }
     keyArray.QuickSort();
-    rv = SortMessagesBasedOnKey(messages, &keyArray, srcFolder);
+    rv = SortMessagesBasedOnKey(messages, keyArray, srcFolder);
     NS_ENSURE_SUCCESS(rv,rv);
 
     nsCOMPtr<nsIStreamListener> streamListener(do_QueryInterface(copyStreamListener, &rv));
@@ -2806,7 +2806,7 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
     nsCOMPtr <nsIMsgLocalMailFolder> srcLocalFolder = do_QueryInterface(srcFolder);
     if (srcLocalFolder)
       StartMessage();
-    rv = mCopyState->m_messageService->CopyMessages(&keyArray, srcFolder, streamListener, isMove, nsnull, aMsgWindow, nsnull);
+    rv = mCopyState->m_messageService->CopyMessages(keyArray, srcFolder, streamListener, isMove, nsnull, aMsgWindow, nsnull);
   }
   return rv;
 }

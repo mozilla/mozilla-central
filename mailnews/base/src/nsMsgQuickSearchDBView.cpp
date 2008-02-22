@@ -134,7 +134,7 @@ nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aPare
       // show the newly added header.
       nsMsgKey newKey;
       (void) newHdr->GetMessageKey(&newKey);
-      nsMsgViewIndex insertIndex = GetInsertIndexHelper(newHdr, &m_origKeys, 
+      nsMsgViewIndex insertIndex = GetInsertIndexHelper(newHdr, m_origKeys, 
                       nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
       m_origKeys.InsertAt(insertIndex, newKey);
       nsMsgThreadedDBView::OnNewHeader(newHdr, aParentKey, ensureListed); // do not add a new message if there isn't a match.
@@ -440,7 +440,7 @@ nsresult nsMsgQuickSearchDBView::SortThreads(nsMsgViewSortTypeValue sortType, ns
         continue;
       // it would be nice if GetInsertIndexHelper always found the hdr, but it doesn't.
       threadHdr->GetChildHdrAt(0, getter_AddRefs(rootHdr));
-      threadRootIndex = GetInsertIndexHelper(rootHdr, &threadRootIds, nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
+      threadRootIndex = GetInsertIndexHelper(rootHdr, threadRootIds, nsMsgViewSortOrder::ascending, nsMsgViewSortType::byId);
       threadRootIds.InsertAt(threadRootIndex, rootKey);
     }
   }

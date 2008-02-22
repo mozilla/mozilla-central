@@ -737,7 +737,7 @@ nsresult nsMsgDBView::FetchLabel(nsIMsgDBHdr *aHdr, nsAString &aLabelString)
 /*if you call SaveAndClearSelection make sure to call RestoreSelection otherwise
 m_saveRestoreSelectionDepth will be incorrect and will lead to selection msg problems*/
 
-nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyArray *aMsgKeyArray)
+nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyArray &aMsgKeyArray)
 {
   // we don't do anything on nested Save / Restore calls.
   m_saveRestoreSelectionDepth++;
@@ -764,14 +764,14 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   nsMsgViewIndexArray selection;
   GetSelectedIndices(selection);
   PRInt32 numIndices = selection.Length();
-  aMsgKeyArray->SetSize(numIndices);
+  aMsgKeyArray.SetSize(numIndices);
 
   // now store the msg key for each selected item.
   nsMsgKey msgKey;
   for (PRInt32 index = 0; index < numIndices; index++)
   {
     msgKey = m_keys.GetAt(selection[index]);
-    aMsgKeyArray->SetAt(index, msgKey);
+    aMsgKeyArray[index] = msgKey;
   }
 
   // clear the selection, we'll manually restore it later.
@@ -781,7 +781,7 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   return NS_OK;
 }
 
-nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray *aMsgKeyArray)
+nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray &aMsgKeyArray)
 {
   // we don't do anything on nested Save / Restore calls.
   m_saveRestoreSelectionDepth--;
@@ -792,7 +792,7 @@ nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray *a
     return NS_OK;
 
   // turn our message keys into corresponding view indices
-  PRInt32 arraySize = aMsgKeyArray->GetSize();
+  PRInt32 arraySize = aMsgKeyArray.GetSize();
   nsMsgViewIndex  currentViewPosition = nsMsgViewIndex_None;
   nsMsgViewIndex  newViewPosition = nsMsgViewIndex_None;
 
@@ -803,13 +803,13 @@ nsresult nsMsgDBView::RestoreSelection(nsMsgKey aCurrentMsgKey, nsMsgKeyArray *a
   {
     for (PRInt32 index = 0; index < arraySize; index ++)
     {
-      FindKey(aMsgKeyArray->GetAt(index), PR_TRUE /* expand */);
+      FindKey(aMsgKeyArray[index], PR_TRUE /* expand */);
     }
   }
 
   for (PRInt32 index = 0; index < arraySize; index ++)
   {
-    newViewPosition = FindKey(aMsgKeyArray->GetAt(index), PR_FALSE);
+    newViewPosition = FindKey(aMsgKeyArray[index], PR_FALSE);
     // add the index back to the selection.
     if (newViewPosition != nsMsgViewIndex_None)
       mTreeSelection->ToggleSelect(newViewPosition);
@@ -4580,10 +4580,10 @@ nsMsgViewIndex nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *hdr)
   return retIndex;
 }
 
-nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray *keys,
+nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray &keys,
                                                  nsMsgViewSortOrderValue sortOrder, nsMsgViewSortTypeValue sortType)
 {
-  nsMsgViewIndex highIndex = keys->GetSize();
+  nsMsgViewIndex highIndex = keys.GetSize();
   nsMsgViewIndex lowIndex = 0;
   IdKeyPtr EntryInfo1, EntryInfo2;
   EntryInfo1.key = nsnull;
@@ -4632,7 +4632,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyAr
   while (highIndex > lowIndex)
   {
     nsMsgViewIndex tryIndex = (lowIndex + highIndex - 1) / 2;
-    EntryInfo2.id = keys->GetAt(tryIndex);
+    EntryInfo2.id = keys[tryIndex];
     if (folders)
     {
       nsCOMPtr<nsISupports> curFolder;
@@ -4696,7 +4696,7 @@ nsMsgViewIndex nsMsgDBView::GetInsertIndex(nsIMsgDBHdr *msgHdr)
         && m_sortOrder != nsMsgViewSortType::byId)
     return GetIndexForThread(msgHdr);
 
-  return GetInsertIndexHelper(msgHdr, &m_keys, m_sortOrder, m_sortType);
+  return GetInsertIndexHelper(msgHdr, m_keys, m_sortOrder, m_sortType);
 }
 
 nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
@@ -6269,7 +6269,7 @@ NS_IMETHODIMP nsMsgDBView::SelectMsgByKey(nsMsgKey aKey)
   // select (and load) the desired message
 
   nsMsgKeyArray preservedSelection;
-  nsresult rv = SaveAndClearSelection(nsnull, &preservedSelection);
+  nsresult rv = SaveAndClearSelection(nsnull, preservedSelection);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // now, restore our desired selection
@@ -6279,7 +6279,7 @@ NS_IMETHODIMP nsMsgDBView::SelectMsgByKey(nsMsgKey aKey)
   // if the key was not found
   // (this can happen with "remember last selected message")
   // nothing will be selected
-  rv = RestoreSelection(aKey, &keyArray);
+  rv = RestoreSelection(aKey, keyArray);
   NS_ENSURE_SUCCESS(rv,rv);
   return NS_OK;
 }

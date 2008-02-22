@@ -601,7 +601,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgView
 
     nsMsgKey preservedKey;
     nsMsgKeyArray preservedSelection;
-    SaveAndClearSelection(&preservedKey, &preservedSelection);
+    SaveAndClearSelection(&preservedKey, preservedSelection);
 
     rv = nsMsgDBView::Sort(sortType,sortOrder);
 
@@ -611,7 +611,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgView
     // this is safe when there is no selection. 
     rv = AdjustRowCount(rowCountBeforeSort, GetSize());
 
-    RestoreSelection(preservedKey, &preservedSelection);
+    RestoreSelection(preservedKey, preservedSelection);
     if (mTree) mTree->Invalidate();
 
     NS_ENSURE_SUCCESS(rv,rv);

@@ -127,7 +127,7 @@ nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
   return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nsnull, mailboxAction, nsnull, aURL);
 }
 
-nsresult nsMailboxService::CopyMessages(nsMsgKeyArray *msgKeys,
+nsresult nsMailboxService::CopyMessages(nsMsgKeyArray &msgKeys,
                               nsIMsgFolder *srcFolder,
                               nsIStreamListener * aMailboxCopyHandler,
                               PRBool moveMessage,
@@ -148,7 +148,7 @@ nsresult nsMailboxService::CopyMessages(nsMsgKeyArray *msgKeys,
   srcFolder->GetMsgDatabase(aMsgWindow, getter_AddRefs(db));
   if (db)
   {
-    db->GetMsgHdrForKey(msgKeys->GetAt(0), getter_AddRefs(msgHdr));
+    db->GetMsgHdrForKey(msgKeys[0], getter_AddRefs(msgHdr));
     if (msgHdr)
     {
       nsCString uri;
@@ -162,7 +162,7 @@ nsresult nsMailboxService::CopyMessages(nsMsgKeyArray *msgKeys,
         nsCOMPtr<nsIMailboxUrl> mailboxUrl (do_QueryInterface(url));
         msgUrl->SetMsgWindow(aMsgWindow);
 
-        mailboxUrl->SetMoveCopyMsgKeys(msgKeys->GetArray(), msgKeys->GetSize());
+        mailboxUrl->SetMoveCopyMsgKeys(msgKeys.GetArray(), msgKeys.GetSize());
         rv = RunMailboxUrl(url, aMailboxCopyHandler);
       }
     }

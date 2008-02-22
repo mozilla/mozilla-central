@@ -101,11 +101,6 @@ NS_IMETHODIMP nsImapMailDatabase::EndBatch()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator)
-{
-  return nsMsgDatabase::DeleteMessages(nsMsgKeys, instigator);
-}
-
 nsresult nsImapMailDatabase::AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr)
 {
   PRUint32 msgFlags;

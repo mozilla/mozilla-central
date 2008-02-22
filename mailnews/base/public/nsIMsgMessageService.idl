@@ -51,7 +51,7 @@ interface nsIStreamConverter;
 #include "nsMsgKeyArray.h"
 %}
 
-[ptr] native nsMsgKeyArrayPtr(nsMsgKeyArray);
+[ref] native nsMsgKeyArrayRef(nsMsgKeyArray);
 
 
 [scriptable, uuid(e39c2eab-ad6c-4560-b642-7f98ba2c0c35)]
@@ -78,7 +78,7 @@ interface nsIMsgMessageService : nsISupports {
                in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
     /* copy multiple messages at a time */
-  [noscript] void CopyMessages(in nsMsgKeyArrayPtr keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
+  [noscript] void CopyMessages(in nsMsgKeyArrayRef keys, in nsIMsgFolder srcFolder, in nsIStreamListener aCopyListener, in boolean aMoveMessage,
                in nsIUrlListener aUrlListener, in nsIMsgWindow aMsgWindow, out nsIURI aURL);
 
     /////////////////////////////////////////////////////////////////////

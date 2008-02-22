@@ -120,7 +120,7 @@ public:
   NS_DECL_NSITREEVIEW
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
 
-  nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray *keys,
+  nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray &keys,
                                         nsMsgViewSortOrderValue sortOrder,
                                         nsMsgViewSortTypeValue sortType);
   PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
@@ -205,8 +205,8 @@ protected:
   // When you are done changing the view, 
   // call RestoreSelection passing in the same array
   // and we'll restore the selection AND unfreeze selection in the UI.
-  nsresult SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyArray *aMsgKeyArray);
-  nsresult RestoreSelection(nsMsgKey aCurrentmsgKey, nsMsgKeyArray *aMsgKeyArray);
+  nsresult SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyArray &aMsgKeyArray);
+  nsresult RestoreSelection(nsMsgKey aCurrentmsgKey, nsMsgKeyArray &aMsgKeyArray);
 
   // this is not safe to use when you have a selection
   // RowCountChanged() will call AdjustSelection() 

@@ -52,7 +52,6 @@ public:
   NS_IMETHOD    EndBatch();
   NS_IMETHOD    GetSummaryValid(PRBool *aResult);
   NS_IMETHOD    SetSummaryValid(PRBool valid = PR_TRUE);
-  NS_IMETHOD    DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator);
   virtual nsresult AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr);
 
   NS_IMETHOD    ForceClosed();
