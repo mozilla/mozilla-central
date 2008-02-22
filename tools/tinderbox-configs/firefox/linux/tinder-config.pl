@@ -44,7 +44,7 @@ $DisplayServer = ':0.0';
 
 #- Default values of command-line opts
 #-
-$BuildDepend       = 0;      # Depend or Clobber
+#$BuildDepend       = 1;      # Depend or Clobber
 #$BuildDebug        = 0;      # Debug or Opt (Darwin)
 #$ReportStatus      = 1;      # Send results to server, or not
 #$ReportFinalStatus = 1;      # Finer control over $ReportStatus.
@@ -196,7 +196,6 @@ $BinaryName = 'firefox-bin';
 #$NSPRArgs = '';
 #$ShellOverride = '';
 
-$ProfiledBuild = 1;
 # Release build options
 $ReleaseBuild  = 1;
 $shiptalkback  = 0;
