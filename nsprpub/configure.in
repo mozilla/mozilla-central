@@ -91,6 +91,7 @@ dnl ========================================================
 CFLAGS="${CFLAGS=}"
 CXXFLAGS="${CXXFLAGS=}"
 LDFLAGS="${LDFLAGS=}"
+DLLFLAGS="${LDFLAGS=}"
 HOST_CFLAGS="${HOST_CFLAGS=}"
 HOST_LDFLAGS="${HOST_LDFLAGS=}"
 
@@ -1534,7 +1535,7 @@ tools are selected during the Xcode/Developer Tools installation.])
         fi
         
         CFLAGS="$CFLAGS -W3 -nologo -GF -Gy"
-        DLLFLAGS='-OUT:"$@"'
+        DLLFLAGS="$DLLFLAGS -OUT:\"\$@\""
         _DEBUG_FLAGS=-Z7
         _OPTIMIZE_FLAGS=-O2
         if test -z "$MOZ_OPTIMIZE"; then
@@ -2170,7 +2171,7 @@ mips-sony-newsos*)
         _OPTIMIZE_FLAGS='/O+ /Gl+ /qtune=pentium /qarch=pentium'
         _DEBUG_FLAGS='/Ti+ '
         LDFLAGS='/NOL /M /L'
-        DLLFLAGS='/O:$@ /DLL /INC:_dllentry /MAP:$(@:.dll=.map) /L /NOL'
+        DLLFLAGS="$DLLFLAGS /O:\$@ /DLL /INC:_dllentry /MAP:\$(@:.dll=.map) /L /NOL"
         EXEFLAGS='/OUT:$@ /PMTYPE:VIO /MAP:$(@:.exe=.map) /L /NOL'
         if test -n "$MOZ_DEBUG"; then
           LDFLAGS="$LDFLAGS /DE"
