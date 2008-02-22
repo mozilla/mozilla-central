@@ -868,44 +868,24 @@ nsresult nsMsgCompose::SetDocumentCharset(const char *charset)
   return NS_OK;
 }
 
-nsresult nsMsgCompose::RegisterStateListener(nsIMsgComposeStateListener *stateListener)
+NS_IMETHODIMP
+nsMsgCompose::RegisterStateListener(nsIMsgComposeStateListener *aStateListener)
 {
-  nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(aStateListener);
 
-  if (!stateListener)
-    return NS_ERROR_NULL_POINTER;
-
-  if (!mStateListeners)
-  {
-    rv = NS_NewISupportsArray(getter_AddRefs(mStateListeners));
-    if (NS_FAILED(rv)) return rv;
-  }
-  nsCOMPtr<nsISupports> iSupports = do_QueryInterface(stateListener, &rv);
-  if (NS_FAILED(rv)) return rv;
-
-  // note that this return value is really a PRBool, so be sure to use
-  // NS_SUCCEEDED or NS_FAILED to check it.
-  return mStateListeners->AppendElement(iSupports);
+  return mStateListeners.AppendElement(aStateListener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-nsresult nsMsgCompose::UnregisterStateListener(nsIMsgComposeStateListener *stateListener)
+NS_IMETHODIMP
+nsMsgCompose::UnregisterStateListener(nsIMsgComposeStateListener *aStateListener)
 {
-  if (!stateListener)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG_POINTER(aStateListener);
 
-  nsresult rv = NS_OK;
+  PRInt32 index = mStateListeners.IndexOf(aStateListener);
+  if (index == -1)
+    return NS_ERROR_FAILURE;
 
-  // otherwise, see if it exists in our list
-  if (!mStateListeners)
-    return (nsresult)PR_FALSE;      // yeah, this sucks, but I'm emulating the behaviour of
-                                    // nsISupportsArray::RemoveElement()
-
-  nsCOMPtr<nsISupports> iSupports = do_QueryInterface(stateListener, &rv);
-  if (NS_FAILED(rv)) return rv;
-
-  // note that this return value is really a PRBool, so be sure to use
-  // NS_SUCCEEDED or NS_FAILED to check it.
-  return mStateListeners->RemoveElement(iSupports);
+  return mStateListeners.RemoveElement(aStateListener) ? NS_OK : NS_ERROR_FAILURE;
 }
 
 // Added to allow easier use of the nsIMsgSendListener
@@ -4162,42 +4142,34 @@ nsresult nsMsgCompose::NotifyStateListeners(PRInt32 aNotificationType, nsresult 
   if (aNotificationType == nsIMsgComposeNotificationType::SaveInFolderDone)
     ResetUrisForEmbeddedObjects();
 
-  if (!mStateListeners)
-    return NS_OK;    // maybe there just aren't any.
+  nsTObserverArray<nsCOMPtr<nsIMsgComposeStateListener> >::ForwardIterator iter(mStateListeners);
+  nsCOMPtr<nsIMsgComposeStateListener> thisListener;
 
-  PRUint32 numListeners;
-  nsresult rv = mStateListeners->Count(&numListeners);
-  if (NS_FAILED(rv)) return rv;
-
-  PRUint32 i;
-  for (i = 0; i < numListeners;i++)
+  while (iter.HasMore())
   {
-    nsCOMPtr<nsIMsgComposeStateListener> thisListener =
-      do_QueryElementAt(mStateListeners, i);
-    if (thisListener)
+    thisListener = iter.GetNext();
+
+    switch (aNotificationType)
     {
-      switch (aNotificationType)
-      {
-        case nsIMsgComposeNotificationType::ComposeFieldsReady:
-          thisListener->NotifyComposeFieldsReady();
-          break;
+    case nsIMsgComposeNotificationType::ComposeFieldsReady:
+      thisListener->NotifyComposeFieldsReady();
+      break;
 
-        case nsIMsgComposeNotificationType::ComposeProcessDone:
-          thisListener->ComposeProcessDone(aResult);
-          break;
+    case nsIMsgComposeNotificationType::ComposeProcessDone:
+      thisListener->ComposeProcessDone(aResult);
+      break;
 
-        case nsIMsgComposeNotificationType::SaveInFolderDone:
-          thisListener->SaveInFolderDone(m_folderName.get());
-          break;
+    case nsIMsgComposeNotificationType::SaveInFolderDone:
+      thisListener->SaveInFolderDone(m_folderName.get());
+      break;
 
-        case nsIMsgComposeNotificationType::ComposeBodyReady:
-          thisListener->NotifyComposeBodyReady();
-          break;
+    case nsIMsgComposeNotificationType::ComposeBodyReady:
+      thisListener->NotifyComposeBodyReady();
+      break;
 
-        default:
-          NS_NOTREACHED("Unknown notification");
-          break;
-      }
+    default:
+      NS_NOTREACHED("Unknown notification");
+      break;
     }
   }
 

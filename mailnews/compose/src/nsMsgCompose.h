@@ -153,7 +153,6 @@ private:
 	nsCOMPtr<nsIMsgQuote>                     mQuote;
 	PRBool						                        mQuotingToFollow;   // Quoting indicator
 	MSG_ComposeType                           mType;		          // Message type
-  nsCOMPtr<nsISupportsArray>                mStateListeners;		// contents are nsISupports
   PRBool                                    mCharsetOverride;
   PRBool                                    mDeleteDraft;
   nsMsgDispositionState                     mDraftDisposition;
@@ -161,7 +160,8 @@ private:
 
   nsCString                                 mSmtpPassword;
 
-  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> >      mExternalSendListeners;
+  nsTObserverArray<nsCOMPtr<nsIMsgComposeStateListener> > mStateListeners;
+  nsTObserverArray<nsCOMPtr<nsIMsgSendListener> > mExternalSendListeners;
     
   PRBool                                    mInsertingQuotedContent;
     
