@@ -7,7 +7,7 @@ export CFLAGS="-gstabs+"
 export CXXFLAGS="-gstabs+"
 
 mk_add_options MOZ_CO_PROJECT=browser
-mk_add_options PROFILE_GEN_SCRIPT=@TOPSRCDIR@/build/profile_pageloader.pl
+mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) $(MOZ_OBJDIR)/_profile/pgo/profileserver.py'
 mk_add_options MOZ_CO_MODULE="mozilla/tools/update-packaging mozilla/tools/codesighs"
 ac_add_options --enable-application=browser
 
