@@ -924,6 +924,7 @@ CERT_FindNameConstraintsExten;
 CERT_GetValidDNSPatternsFromCert;
 CERT_SetOCSPTimeout;
 CERT_PKIXVerifyCert;
+HASH_GetType;
 PK11_CreateGenericObject;
 PK11_CreatePBEV2AlgorithmID;
 PK11_GenerateKeyPairWithOpFlags;

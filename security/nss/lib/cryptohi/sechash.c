@@ -415,5 +415,8 @@ HASH_End(HASHContext *context,
     return;
 }
 
-
-
+HASH_HashType
+HASH_GetType(HASHContext *context)
+{
+    return(context->hashobj->type);
+}
