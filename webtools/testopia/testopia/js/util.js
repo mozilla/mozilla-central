@@ -126,7 +126,7 @@ TestopiaUtil = function(){
         });
         win.show(this);
     };
-    this.addOption = function(selectElement,newOption) {
+    addOption = function(selectElement,newOption) {
       try {
         selectElement.add(newOption,null);
       }
@@ -135,8 +135,8 @@ TestopiaUtil = function(){
         selectElement.add(newOption,selectElement.length);
       }
     };
-
-    this.fillSelects = function(data){
+    this.addOption = addOption;
+    var fillSelects = function(data){
       for (i in data.selectTypes){
         try{
           document.getElementById(data.selectTypes[i]).options.length = 0;
@@ -149,10 +149,10 @@ TestopiaUtil = function(){
           }
           document.getElementById(data.selectTypes[i]).disabled = false;
         }
-        catch(err){}
+        catch(err){console.log(err)}
       }
     };
-
+    this.fillSelects = fillSelects;
     this.onProductSelection = function(prod){
         var ids = [];
     
