@@ -197,7 +197,6 @@ nsEudoraCompose::nsEudoraCompose()
   m_pMsgSend = nsnull;
   m_pSendProxy = nsnull;
   m_pMsgFields = nsnull;
-  s_pIdentity = nsnull;
   m_pHeaders = p_test_headers;
   if (m_pHeaders)
     m_headerLen = strlen( m_pHeaders);
@@ -215,21 +214,11 @@ nsEudoraCompose::nsEudoraCompose()
 
 nsEudoraCompose::~nsEudoraCompose()
 {
-  if (s_pIdentity) {
-    nsresult rv = s_pIdentity->ClearAllValues();
-    NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
-    if (NS_FAILED(rv)) return;
-
-    NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-    NS_ASSERTION(NS_SUCCEEDED(rv) && accMgr,"failed to get account manager");
-    if (NS_FAILED(rv) || !accMgr) return;
-
-    rv = accMgr->RemoveIdentity(s_pIdentity);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"failed to remove identity");
-    if (NS_FAILED(rv)) return;
-
-    NS_RELEASE(s_pIdentity);
-  }
+  NS_IF_RELEASE( m_pSendProxy);
+  NS_IF_RELEASE( m_pIOService);
+  NS_IF_RELEASE( m_pMsgSend);
+  NS_IF_RELEASE( m_pListener);
+  NS_IF_RELEASE( m_pMsgFields);
 }
 
 nsresult nsEudoraCompose::CreateIdentity( void)
@@ -246,6 +235,14 @@ nsresult nsEudoraCompose::CreateIdentity( void)
     s_pIdentity->SetFullName(name);
     s_pIdentity->SetIdentityName(name);
     s_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
+
+    // SetDoFcc to PR_FALSE to save time when CreateAndSendMessage operates.
+    // Profiling revealed that GetFolderURIFromUserPrefs was taking up a significant chunk
+    // of time during the operation of CreateAndSendMessage. By calling SetDoFcc(PR_FALSE),
+    // we skip Fcc handling code inside of InitCompositionFields (called indirectly during
+    // CreateAndSendMessage operation). There's no point in any Fcc code firing since the
+    // message will never actually be sent anyway.
+    s_pIdentity->SetDoFcc(PR_FALSE);
   }
   return( rv);
 }
