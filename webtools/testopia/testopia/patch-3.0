@@ -497,7 +497,7 @@ diff -u -r1.22 Error.pm
              }
              die SOAP::Fault->faultcode($code)->faultstring($message);
          }
-+        elsif (Bugzilla->error_mode == ERROR_MODE_DIE_AJAX) {
++        elsif (Bugzilla->error_mode == ERROR_MODE_AJAX) {
 +            # JSON can't handle strings across lines. 
 +            $message =~ s/\n/ /gm;
 +            my $err;
