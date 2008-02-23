@@ -1,6 +1,3 @@
-#169313
-**/SECMOD_LoadModule/SECMOD_LoadPKCS11Module/secmod_ModuleInit/builtinsC_Initialize/NSSCKFWC_Initialize/nssCKFWInstance_Create/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
-
 #367374
 **/PR_ErrorInstallTable**
 **/_PR_ImplicitInitialization/**
@@ -21,7 +18,7 @@
 
 #370536
 **/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
-**/NSSArena_Create/nssArena_Create/arena_add_pointer/nssPointerTracker_initialize/call_once/**
+**/nssPointerTracker_initialize/PR_CallOnceWithArg/trackerOnceFunc/**
 
 #393181
 ocspclnt/main/CERT_SetOCSPDefaultResponder/**
