@@ -8,6 +8,7 @@ config-defs.h
 .mozconfig
 .mozconfig.mk
 .mozconfig.out
+mozconfig
 a.out
 unallmakefiles
 nss
