@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslimpl.h,v 1.63 2008-02-16 04:38:08 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: sslimpl.h,v 1.64 2008-02-23 02:21:31 julien.pierre.boogz%sun.com Exp $ */
 
 #ifndef __sslimpl_h_
 #define __sslimpl_h_
@@ -1448,7 +1448,12 @@ extern SECStatus SSL3_ShutdownServerCache(void);
 
 extern SECStatus ssl_InitSymWrapKeysLock(void);
 
-extern SECStatus ssl_InitLocks(PRBool lateInit);
+extern SECStatus ssl_FreeSymWrapKeysLock(void);
+
+extern SECStatus ssl_InitSessionCacheLocks(PRBool lazyInit);
+
+extern SECStatus ssl_FreeSessionCacheLocks(void);
+
 
 /********************** misc calls *********************/
 

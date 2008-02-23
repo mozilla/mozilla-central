@@ -36,12 +36,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.22 2008-02-20 00:11:16 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: sslnonce.c,v 1.23 2008-02-23 02:21:31 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
 #include "secitem.h"
 #include "ssl.h"
+#include "nss.h"
 
 #include "sslimpl.h"
 #include "sslproto.h"
@@ -74,38 +75,108 @@ ssl_InitClientSessionCacheLock(void)
     return cacheLock ? SECSuccess : SECFailure;
 }
 
+static SECStatus
+ssl_FreeClientSessionCacheLock(void)
+{
+    if (cacheLock) {
+        PZ_DestroyLock(cacheLock);
+        cacheLock = NULL;
+        return SECSuccess;
+    }
+    PORT_SetError(SEC_ERROR_NOT_INITIALIZED);
+    return SECFailure;
+}
+
 static PRBool LocksInitializedEarly = PR_FALSE;
 
-static PRStatus
-initLocks(void)
+static SECStatus
+FreeSessionCacheLocks()
 {
     SECStatus rv1, rv2;
+    rv1 = ssl_FreeSymWrapKeysLock();
+    rv2 = ssl_FreeClientSessionCacheLock();
+    if ( (SECSuccess == rv1) && (SECSuccess == rv2) ) {
+        return SECSuccess;
+    }
+    return SECFailure;
+}
+
+static SECStatus
+InitSessionCacheLocks(void)
+{
+    SECStatus rv1, rv2;
+    PRErrorCode rc;
     rv1 = ssl_InitSymWrapKeysLock();
     rv2 = ssl_InitClientSessionCacheLock();
     if ( (SECSuccess == rv1) && (SECSuccess == rv2) ) {
-        return PR_SUCCESS;
+        return SECSuccess;
     }
-    return PR_FAILURE;
+    rc = PORT_GetError();
+    FreeSessionCacheLocks();
+    PORT_SetError(rc);
+    return SECFailure;
+}
+
+/* free the session cache locks if they were initialized early */
+SECStatus
+ssl_FreeSessionCacheLocks()
+{
+    PORT_Assert(PR_TRUE == LocksInitializedEarly);
+    if (!LocksInitializedEarly) {
+        PORT_SetError(SEC_ERROR_NOT_INITIALIZED);
+        return SECFailure;
+    }
+    FreeSessionCacheLocks();
+    LocksInitializedEarly = PR_FALSE;
+    return SECSuccess;
 }
 
 static PRCallOnceType lockOnce;
 
-/* lateInit means that the call is not happening during a 1-time
+/* free the session cache locks if they were initialized lazily */
+static SECStatus ssl_ShutdownLocks(void* appData, void* nssData)
+{
+    PORT_Assert(PR_FALSE == LocksInitializedEarly);
+    if (LocksInitializedEarly) {
+        PORT_SetError(SEC_ERROR_LIBRARY_FAILURE);
+        return SECFailure;
+    }
+    FreeSessionCacheLocks();
+    memset(&lockOnce, 0, sizeof(lockOnce));
+    return SECSuccess;
+}
+
+static PRStatus initSessionCacheLocksLazily(void)
+{
+    SECStatus rv = InitSessionCacheLocks();
+    if (SECSuccess != rv) {
+        return PR_FAILURE;
+    }
+    rv = NSS_RegisterShutdown(ssl_ShutdownLocks, NULL);
+    PORT_Assert(SECSuccess == rv);
+    if (SECSuccess != rv) {
+        return PR_FAILURE;
+    }
+    return PR_SUCCESS;
+}
+
+/* lazyInit means that the call is not happening during a 1-time
  * initialization function, but rather during dynamic, lazy initialization
  */
 SECStatus
-ssl_InitLocks(PRBool lateInit)
+ssl_InitSessionCacheLocks(PRBool lazyInit)
 {
     if (LocksInitializedEarly) {
         return SECSuccess;
     }
 
-    if (lateInit) {
-        return (PR_SUCCESS == PR_CallOnce(&lockOnce, initLocks)) ? 
-             SECSuccess : SECFailure;
+    if (lazyInit) {
+        return (PR_SUCCESS ==
+                PR_CallOnce(&lockOnce, initSessionCacheLocksLazily)) ?
+               SECSuccess : SECFailure;
     }
      
-    if (PR_SUCCESS == initLocks()) {
+    if (SECSuccess == InitSessionCacheLocks()) {
         LocksInitializedEarly = PR_TRUE;
         return SECSuccess;
     }
@@ -116,7 +187,7 @@ ssl_InitLocks(PRBool lateInit)
 static void 
 lock_cache(void)
 {
-    ssl_InitLocks(PR_TRUE);
+    ssl_InitSessionCacheLocks(PR_TRUE);
     PZ_Lock(cacheLock);
 }
 

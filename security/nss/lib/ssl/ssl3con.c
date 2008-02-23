@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.107 2008-02-20 00:11:15 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: ssl3con.c,v 1.108 2008-02-23 02:21:31 julien.pierre.boogz%sun.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -3922,13 +3922,24 @@ typedef struct {
 static PZLock *          symWrapKeysLock = NULL;
 static ssl3SymWrapKey    symWrapKeys[SSL_NUM_WRAP_MECHS];
 
+SECStatus ssl_FreeSymWrapKeysLock(void)
+{
+    if (symWrapKeysLock) {
+        PZ_DestroyLock(symWrapKeysLock);
+        symWrapKeysLock = NULL;
+        return SECSuccess;
+    }
+    PORT_SetError(SEC_ERROR_NOT_INITIALIZED);
+    return SECFailure;
+}
+
 SECStatus
 SSL3_ShutdownServerCache(void)
 {
     int             i, j;
 
     if (!symWrapKeysLock)
-    	return SECSuccess;	/* was never initialized */
+    	return SECSuccess;	/* lock was never initialized */
     PZ_Lock(symWrapKeysLock);
     /* get rid of all symWrapKeys */
     for (i = 0; i < SSL_NUM_WRAP_MECHS; ++i) {
@@ -3943,8 +3954,7 @@ SSL3_ShutdownServerCache(void)
     }
 
     PZ_Unlock(symWrapKeysLock);
-    PZ_DestroyLock(symWrapKeysLock);
-    symWrapKeysLock = NULL;
+    ssl_FreeSessionCacheLocks();
     return SECSuccess;
 }
 
@@ -3990,7 +4000,7 @@ getWrappingKey( sslSocket *       ss,
 
     pSymWrapKey = &symWrapKeys[symWrapMechIndex].symWrapKey[exchKeyType];
 
-    ssl_InitLocks(PR_TRUE);
+    ssl_InitSessionCacheLocks(PR_TRUE);
 
     PZ_Lock(symWrapKeysLock);
 
