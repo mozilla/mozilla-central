@@ -1,1 +1,1 @@
-clobbering to back out tinderbox config changes from bug 415928 until we sort out the linkage issues
+Clobbering for jemalloc packaging changes (bug 415928).
