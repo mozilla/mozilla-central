@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.90 2008-02-16 04:38:06 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: nssinit.c,v 1.91 2008-02-23 05:29:39 nelson%bolyard.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -837,6 +837,7 @@ NSS_Shutdown(void)
 	shutdownRV = SECFailure;
     }
     pk11sdr_Shutdown();
+    nssArena_Shutdown();
     if (status == PR_FAILURE) {
 	if (NSS_GetError() == NSS_ERROR_BUSY) {
 	    PORT_SetError(SEC_ERROR_BUSY);

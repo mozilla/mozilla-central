@@ -38,7 +38,7 @@
 #define BASE_H
 
 #ifdef DEBUG
-static const char BASE_CVS_ID[] = "@(#) $RCSfile: base.h,v $ $Revision: 1.18 $ $Date: 2005-12-19 17:53:28 $";
+static const char BASE_CVS_ID[] = "@(#) $RCSfile: base.h,v $ $Revision: 1.19 $ $Date: 2008-02-23 05:29:23 $";
 #endif /* DEBUG */
 
 /*
@@ -518,6 +518,13 @@ extern const NSSError NSS_ERROR_INVALID_ARENA;
 /* The following line exceeds 72 characters, but emacs screws up if I split it. */
 #define nssArena_VERIFYPOINTER(p) (((NSSArena *)NULL == (p))?PR_FAILURE:PR_SUCCESS)
 #endif /* DEBUG */
+
+/*
+ * Private function to be called by NSS_Shutdown to cleanup nssArena 
+ * bookkeeping.
+ */
+extern PRStatus
+nssArena_Shutdown(void);
 
 /*
  * nssArenaHashAllocOps

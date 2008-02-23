@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: tracker.c,v $ $Revision: 1.6 $ $Date: 2005-01-20 02:25:45 $";
+static const char CVS_ID[] = "@(#) $RCSfile: tracker.c,v $ $Revision: 1.7 $ $Date: 2008-02-23 05:29:24 $";
 #endif /* DEBUG */
 
 /*
@@ -51,105 +51,6 @@ static const char CVS_ID[] = "@(#) $RCSfile: tracker.c,v $ $Revision: 1.6 $ $Dat
 #endif /* BASE_H */
 
 #ifdef DEBUG
-
-/*
- * call_once
- *
- * Unfortunately, NSPR's PR_CallOnce function doesn't accept a closure
- * variable.  So I have a static version here which does.  This code 
- * is based on NSPR's, and uses the NSPR function to initialize the
- * required lock.
- */
-
-/*
- * The is the "once block" that's passed to the "real" PR_CallOnce
- * function, to call the local initializer myOnceFunction once.
- */
-static PRCallOnceType myCallOnce;
-
-/*
- * This structure is used by the call_once function to make sure that
- * any "other" threads calling the call_once don't return too quickly,
- * before the initializer has finished.
- */
-static struct {
-  PZLock *ml;
-  PZCondVar *cv;
-} mod_init;
-
-/*
- * This is the initializer for the above mod_init structure.
- */
-static PRStatus
-myOnceFunction
-(
-  void
-)
-{
-  mod_init.ml = PZ_NewLock(nssILockOther);
-  if( (PZLock *)NULL == mod_init.ml ) {
-    return PR_FAILURE;
-  }
-
-  mod_init.cv = PZ_NewCondVar(mod_init.ml);
-  if( (PZCondVar *)NULL == mod_init.cv ) {
-    PZ_DestroyLock(mod_init.ml);
-    mod_init.ml = (PZLock *)NULL;
-    return PR_FAILURE;
-  }
-
-  return PR_SUCCESS;
-}
-
-/*
- * The nss call_once callback takes a closure argument.
- */
-typedef PRStatus (PR_CALLBACK *nssCallOnceFN)(void *arg);
-
-/*
- * NSS's call_once function.
- */
-static PRStatus
-call_once
-(
-  PRCallOnceType *once,
-  nssCallOnceFN func,
-  void *arg
-)
-{
-  PRStatus rv;
-
-  if( !myCallOnce.initialized ) {
-    rv = PR_CallOnce(&myCallOnce, myOnceFunction);
-    if( PR_SUCCESS != rv ) {
-      return rv;
-    }
-  }
-
-  if( !once->initialized ) {
-    if( 0 == PR_AtomicSet(&once->inProgress, 1) ) {
-      once->status = (*func)(arg);
-      PZ_Lock(mod_init.ml);
-      once->initialized = 1;
-      PZ_NotifyAllCondVar(mod_init.cv);
-      PZ_Unlock(mod_init.ml);
-    } else {
-      PZ_Lock(mod_init.ml);
-      while( !once->initialized ) {
-        PZ_WaitCondVar(mod_init.cv, PR_INTERVAL_NO_TIMEOUT);
-      }
-      PZ_Unlock(mod_init.ml);
-    }
-  }
-
-  return once->status;
-}
-
-/*
- * Now we actually get to my own "call once" payload function.
- * But wait, to create the hash, I need a hash function!
- */
-
 /*
  * identity_hash
  *
@@ -230,7 +131,7 @@ nssPointerTracker_initialize
   nssPointerTracker *tracker
 )
 {
-  PRStatus rv = call_once(&tracker->once, trackerOnceFunc, tracker);
+  PRStatus rv = PR_CallOnceWithArg(&tracker->once, trackerOnceFunc, tracker);
   if( PR_SUCCESS != rv ) {
     nss_SetError(NSS_ERROR_NO_MEMORY);
   }
