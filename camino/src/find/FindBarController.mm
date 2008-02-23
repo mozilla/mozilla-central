@@ -148,8 +148,13 @@
 {
   [self doFindForwards:YES];
   // Return/enter ends editing and unfocuses the search field, which we don't
-  // want. Rather than setting up a custom field editor, just force focus back. 
-  [[mSearchField window] makeFirstResponder:mSearchField];
+  // want. Rather than setting up a custom field editor, just force focus back
+  // if it's not focused.
+  if (![mSearchField currentEditor] ||
+      [[mSearchField window] firstResponder] != [mSearchField currentEditor])
+  {
+    [[mSearchField window] makeFirstResponder:mSearchField];
+  }
 }
 
 - (IBAction)findPrevious:(id)sender
