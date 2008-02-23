@@ -67,6 +67,7 @@ bin\components\autoconfig.xpt
 bin\components\calbscmp.dll
 bin\components\calbase.xpt
 bin\components\calbaseinternal.xpt
+bin\components\caldav.xpt
 bin\components\caps.xpt
 bin\components\chardet.xpt
 bin\components\chrome.xpt
