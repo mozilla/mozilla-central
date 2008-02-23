@@ -48,7 +48,11 @@
 {
   BrowserTabViewItem*           mTabViewItem;       // weak ref
   RolloverImageButton*          mCloseButton;       // strong ref
-  NSProgressIndicator*          mProgressWheel;     // strong ref
+#ifdef USE_PROGRESS_SPINNERS
+  NSProgressIndicator*          mLoadingIndicator;  // strong ref
+#else
+  NSImageView*                  mLoadingIndicator;  // strong ref
+#endif
   TruncatingTextAndImageCell*   mLabelCell;         // strong ref
   NSRect                        mLabelRect;
   NSTrackingRectTag             mTrackingTag;

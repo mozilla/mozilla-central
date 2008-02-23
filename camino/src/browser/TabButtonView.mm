@@ -98,11 +98,16 @@ static NSImage* sTabButtonDividerImage = nil;
     [mLabelCell setImageSpace:2.0];
     [mLabelCell setMaxImageHeight:[mCloseButton frame].size.height];
 
-    mProgressWheel = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
-    [mProgressWheel setStyle:NSProgressIndicatorSpinningStyle];
-    [mProgressWheel setUsesThreadedAnimation:YES];
-    [mProgressWheel setDisplayedWhenStopped:NO];
-    [mProgressWheel setAutoresizingMask:NSViewMaxXMargin];
+#ifdef USE_PROGRESS_SPINNERS
+    mLoadingIndicator = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
+    [mLoadingIndicator setStyle:NSProgressIndicatorSpinningStyle];
+    [mLoadingIndicator setUsesThreadedAnimation:YES];
+    [mLoadingIndicator setDisplayedWhenStopped:NO];
+    [mLoadingIndicator setAutoresizingMask:NSViewMaxXMargin];
+#else
+    mLoadingIndicator = [[NSImageView alloc] init];
+    [mLoadingIndicator setImage:[NSImage imageNamed:@"tab_loading"]];
+#endif
 
     // Don't autoresize subviews since our subview layout isn't a function of
     // just our own frame
@@ -121,8 +126,8 @@ static NSImage* sTabButtonDividerImage = nil;
   [self removeTrackingRect];
   [mLabelCell release];
   [mCloseButton release];
-  [mProgressWheel removeFromSuperview];
-  [mProgressWheel release];
+  [mLoadingIndicator removeFromSuperview];
+  [mLoadingIndicator release];
   [super dealloc];
 }
 
@@ -165,14 +170,18 @@ static NSImage* sTabButtonDividerImage = nil;
 
 - (void)startLoadAnimation
 {
-  [mLabelCell addProgressIndicator:mProgressWheel];
-  [mProgressWheel startAnimation:self];
+  [mLabelCell addProgressIndicator:mLoadingIndicator];
+#ifdef USE_PROGRESS_SPINNERS
+  [mLoadingIndicator startAnimation:self];
+#endif
   [self setNeedsDisplayInRect:mLabelRect];
 }
 
 - (void)stopLoadAnimation
 {
-  [mProgressWheel stopAnimation:self];
+#ifdef USE_PROGRESS_SPINNERS
+  [mLoadingIndicator stopAnimation:self];
+#endif
   [mLabelCell removeProgressIndicator];
   [self setNeedsDisplayInRect:mLabelRect];
 }

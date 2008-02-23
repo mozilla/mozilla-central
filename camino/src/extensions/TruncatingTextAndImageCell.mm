@@ -182,7 +182,7 @@
 }
 
 // called by BrowserTabViewItem when progress display should start
-- (void)addProgressIndicator:(NSProgressIndicator*)indicator
+- (void)addProgressIndicator:(NSView*)indicator
 {
   if (mProgressIndicator)
     [self removeProgressIndicator];

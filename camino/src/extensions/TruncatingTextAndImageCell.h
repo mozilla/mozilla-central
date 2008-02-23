@@ -50,7 +50,7 @@
   float           mRightGutter;           // leave space for an icon on the right
   float           mMaxImageHeight;
   NSRect          mImageFrame;
-  NSProgressIndicator *mProgressIndicator;
+  NSView          *mProgressIndicator;
 }
 
 -(id)initTextCell:(NSString*)aString;
@@ -63,7 +63,7 @@
 -(void)setImage:(NSImage *)anImage;
 -(NSImage*)image;
 -(NSRect)imageFrame;
--(void)addProgressIndicator:(NSProgressIndicator *)indicator;
+-(void)addProgressIndicator:(/*NSProgressIndicator * */NSView*)indicator;
 -(void)removeProgressIndicator;
 
 @end
