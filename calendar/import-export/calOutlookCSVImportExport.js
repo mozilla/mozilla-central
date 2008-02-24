@@ -480,7 +480,7 @@ function csv_exportToStream(aStream, aCount, aItems) {
         line.push((item.privacy=="PRIVATE") ? localeEn.valueTrue : localeEn.valueFalse);
 
         line = line.map(function(v) {
-            v = String(v).replace(/"/,'""');
+            v = String(v).replace(/"/g,'""');
             return '"'+v+'"';
         })
         str = line.join(',')+"\n";
