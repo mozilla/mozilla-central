@@ -294,12 +294,34 @@ function csv_importFromStream(aStream, aCount) {
                     event.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
                 }
 
-                if ("descriptionIndex" in args)
-                    event.setProperty("DESCRIPTION", parseTextField(eventFields[args.descriptionIndex]));
-                if ("categoriesIndex" in args)
-                    event.setProperty("CATEGORIES", parseTextField(eventFields[args.categoriesIndex]));
-                if ("locationIndex" in args)
-                    event.setProperty("LOCATION", parseTextField(eventFields[args.locationIndex]));
+                // Using the "Private" field only for getting privacy status.
+                // "Sensitivity" is neglected for now.
+                if ("privateIndex" in args) {
+                    if (locale.valueTrue == eventFields[args.privateIndex]) {
+                        event.privacy = "PRIVATE";
+                    }
+                }
+                
+                // Avoid setting empty properties
+                var txt = "";
+                if ("descriptionIndex" in args) {
+                    txt = parseTextField(eventFields[args.descriptionIndex])
+                    if (txt) {
+                        event.setProperty("DESCRIPTION", txt);
+                    }
+                }
+                if ("categoriesIndex" in args) {
+                    txt = parseTextField(eventFields[args.categoriesIndex])
+                    if (txt) {
+                        event.setProperty("CATEGORIES", txt);
+                    }
+                }
+                if ("locationIndex" in args) {
+                    txt = parseTextField(eventFields[args.locationIndex])
+                    if (txt) {
+                        event.setProperty("LOCATION", txt);
+                    }
+                }
 
                 //save the event into return array
                 eventArray.push(event);
