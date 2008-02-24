@@ -45,6 +45,9 @@ function onLoad() {
     if (index < 0) {
         tzname = timezoneString(calendarDefaultTimezone().tzid);
         index = findTimezone(tzname);
+        if (index < 0) {
+            index = 0;
+        }
     }
 
     var menulist = document.getElementById("timezone-menulist");
