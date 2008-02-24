@@ -263,9 +263,6 @@ function csv_importFromStream(aStream, aCount) {
             var eDate = parseDateTime(eventFields[args.endDateIndex],
                                       eventFields[args.endTimeIndex],
                                       locale);
-            var alarmDate = parseDateTime(eventFields[args.alarmDateIndex],
-                                          eventFields[args.alarmTimeIndex],
-                                          locale);
             if (title || sDate) {
                 var event = Components.classes["@mozilla.org/calendar/event;1"]
                                       .createInstance(Components.interfaces.calIEvent);
@@ -289,9 +286,32 @@ function csv_importFromStream(aStream, aCount) {
                 if (eDate) 
                     event.endDate = eDate;
 
-                if (alarmDate) {
-                    event.alarmOffset = sDate.subtractDate(alarmDate);
-                    event.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
+                // Exists an alarm true/false column?
+                if ("alarmIndex" in args) {
+                    // Is an alarm wanted for this event?
+                    if (locale.valueTrue == eventFields[args.alarmIndex]) {
+                        var alarmDate =
+                                parseDateTime(eventFields[args.alarmDateIndex],
+                                              eventFields[args.alarmTimeIndex],
+                                              locale);
+                        // Set to default if non valid alarmDate was achieved
+                        if (alarmDate) {
+                            event.alarmOffset = alarmDate.subtractDate(sDate);
+                        } else {
+                            var alarmOffset = Components
+                                              .classes["@mozilla.org/calendar/duration;1"]
+                                              .createInstance(Components
+                                              .interfaces.calIDuration);
+                            var units = getPrefSafe("calendar.alarms.eventalarmunit",
+                                                    "minutes");
+                            alarmOffset[units] = getPrefSafe("calendar.alarms.eventalarmlen",
+                                                             15);
+                            alarmOffset.isNegative = true;
+                            event.alarmOffset = alarmOffset;
+                        }
+                        event.alarmRelated = Components.interfaces.calIItemBase
+                                                       .ALARM_RELATED_START;
+                    }
                 }
 
                 // Using the "Private" field only for getting privacy status.
