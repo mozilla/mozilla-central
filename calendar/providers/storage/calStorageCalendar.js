@@ -657,13 +657,9 @@ calStorageCalendar.prototype = {
 
         var itemCompletedFilter = ((aItemFilter & kCalICalendar.ITEM_FILTER_COMPLETED_YES) != 0);
         var itemNotCompletedFilter = ((aItemFilter & kCalICalendar.ITEM_FILTER_COMPLETED_NO) != 0);
+
         function checkCompleted(item) {
-            // return item in case it matches, so this function could be used for Array.map:
-            if (item.isCompleted ? itemCompletedFilter : itemNotCompletedFilter) {
-                return item;
-            } else {
-                return null;
-            }
+            return (item.isCompleted ? itemCompletedFilter : itemNotCompletedFilter);
         }
 
         // sending items to the listener 1 at a time sucks. instead,
@@ -721,7 +717,7 @@ calStorageCalendar.prototype = {
             }
 
             if (expandedItems.length && optionalFilterFunc) {
-                expandedItems = expandedItems.map(optionalFilterFunc);
+                expandedItems = expandedItems.filter(optionalFilterFunc);
             }
 
             queueItems (expandedItems, theIID);
