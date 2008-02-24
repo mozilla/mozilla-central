@@ -190,7 +190,6 @@ $BinaryName = 'firefox.exe';
 #$NSPRArgs = '';
 #$ShellOverride = '';
 
-$ProfiledBuild = 1;
 # Release build options
 $ReleaseBuild  = 1;
 $shiptalkback  = 0;
