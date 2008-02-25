@@ -110,7 +110,7 @@ class SisyphusJSTestWin(CygwinBashShellCommand):
     def start(self):
         self.command = ["./tests/mozilla.org/js/runtests.sh",
                    "-p", self.product, "-b", self.branch,
-                   "-T", self.buildType, "-B", "checkout-build", "-S"]
+                   "-T", self.buildType, "-B", "checkout-build", "-c", "-S"]
         CygwinBashShellCommand.start(self)
     
     def evaluateCommand(self, cmd):
@@ -128,3 +128,9 @@ class SisyphusBrowserTestWin(SisyphusJSTestWin):
     descriptionDone = ["browsertest complete"]
     product = "firefox"
 
+    def start(self):
+        self.command = ["./tests/mozilla.org/js/runtests.sh",
+                   "-p", self.product, "-b", self.branch,
+                   "-T", self.buildType, "-B", "checkout-build", "-c", "-R", "-S"]
+        CygwinBashShellCommand.start(self)
+    
