@@ -164,6 +164,13 @@ var calendarViewController = {
                     }
                 }
             }
+
+            // If the item contains attendees then they need to be notified
+            if (instance.hasProperty("X-MOZ-SEND-INVITATIONS") &&
+               (instance.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE")) {
+               sendItipInvitation(instance);
+            }
+
             doTransaction('modify', instance, instance.calendar, aOccurrence, null);
         } else {
             // prompt for choice between occurrence and master for recurrent items
@@ -669,4 +676,3 @@ function selectAllEvents() {
 
     composite.getItems(filter, 0, currentView().startDay, end, listener);
 }
-
