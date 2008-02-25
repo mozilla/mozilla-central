@@ -441,7 +441,15 @@ calItipProcessor.prototype = {
                 }
             }
         };
-        aTargetCal.getItem(aCalItem.id, foundItemListener);
+        if (aTargetCal) {
+            aTargetCal.getItem(aCalItem.id, foundItemListener);
+        } else {
+            // Then we do not have a target calendar to search,
+            // this is probably a DECLINE reply or some other such response,
+            // allow it to pass through
+            this._continueProcessingItem(aCalItem, null, aRecvMethod, aRespMethod,
+                                         null, aTargetCal, aListener);
+        }
     },
 
     /**
