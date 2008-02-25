@@ -702,12 +702,17 @@ nsSchemaLoader::Load(const nsAString& schemaURI,
   return rv;
 }
 
-/* void loadAsync (in AString schemaURI, in nsISVSchemaLoadListener listener); */
+/* [noscript] void loadAsyncWithPrincipal (in AString schemaURI,
+ *                                         in nsISVSchemaLoadListener listener,
+ *                                         in nsIPrincipal principal);
+ */
 NS_IMETHODIMP
-nsSchemaLoader::LoadAsync(const nsAString& schemaURI,
-                          nsISVSchemaLoadListener *aListener)
+nsSchemaLoader::LoadAsyncWithPrincipal(const nsAString& schemaURI,
+                                       nsISVSchemaLoadListener *aListener,
+                                       nsIPrincipal *aPrincipal)
 {
   NS_ENSURE_ARG(aListener);
+  NS_ENSURE_ARG(aPrincipal);
 
   nsCOMPtr<nsIURI> resolvedURI;
   nsresult rv = GetResolvedURI(schemaURI, "loadAsync", getter_AddRefs(resolvedURI));
@@ -721,6 +726,9 @@ nsSchemaLoader::LoadAsync(const nsAString& schemaURI,
   if (!request) {
     return rv;
   }
+
+  rv = request->Init(aPrincipal, nsnull, nsnull);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   const nsAString& empty = EmptyString();
   rv = request->OpenRequest(NS_LITERAL_CSTRING("GET"), spec, PR_TRUE, empty,
@@ -763,6 +771,25 @@ nsSchemaLoader::LoadAsync(const nsAString& schemaURI,
   rv = request->Send(nsnull);
   
   return rv;
+}
+
+/* void loadAsync(in AString schemaURI, in nsISVSchemaLoadListener listener); */
+NS_IMETHODIMP
+nsSchemaLoader::LoadAsync(const nsAString& aSchemaURI,
+                          nsISVSchemaLoadListener *aListener)
+{
+  // Get the subject principal from the security manager.  We need it to
+  // initialize the nsIXMLHttpRequest inside loadAsyncWithPrincipal.
+  nsCOMPtr<nsIScriptSecurityManager> secMan =
+    do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
+  NS_ENSURE_STATE(secMan);
+
+  nsCOMPtr<nsIPrincipal> principal;
+  nsresult rv = secMan->GetSubjectPrincipal(getter_AddRefs(principal));
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(principal, NS_ERROR_FAILURE);
+
+  return LoadAsyncWithPrincipal(aSchemaURI, aListener, principal);
 }
 
 static const char* kSchemaNamespaces[] = {NS_SCHEMA_1999_NAMESPACE,

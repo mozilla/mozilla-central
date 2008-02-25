@@ -47,12 +47,16 @@ interface nsISVSchema;
 interface nsISVSchemaType;
 interface nsIDOMElement;
 interface nsISVSchemaLoadListener;
+interface nsIPrincipal;
 
 [scriptable, uuid(ab374f43-73cf-4bba-925a-31ebdfc8d172)]
 interface nsISVSchemaLoader : nsISupports {
   nsISVSchema load(in AString schemaURI);
   void loadAsync(in AString schemaURI,
                  in nsISVSchemaLoadListener listener);
+  [noscript] void loadAsyncWithPrincipal(in AString schemaURI,
+                                         in nsISVSchemaLoadListener listener,
+                                         in nsIPrincipal principal);
   nsISVSchema processSchemaElement(in nsIDOMElement element,
                                    in nsISVSchemaErrorHandler aErrorHandler);
 };

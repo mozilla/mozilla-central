@@ -85,6 +85,7 @@
 #include "nsStringEnumerator.h"
 #include "nsIAtomService.h"
 #include "nsIAttribute.h"
+#include "nsIScriptSecurityManager.h"
 
 #define XFORMS_LAZY_INSTANCE_BINDING \
   "chrome://xforms/content/xforms.xml#xforms-lazy-instance"
@@ -809,6 +810,18 @@ nsXFormsModelElement::InitializeInstances()
     // Increase by 1 to prevent OnLoad from calling FinishConstruction
     mSchemaTotal = schemas.Count();
 
+    // Get the system principal in case we need to load a remote schema
+    // file below.  This should be safe since this calls
+    // nsSchemaLoader::LoadAsyncWithPrincipal which uses XMLHttpRequest so
+    // no executable code will run and doron says that you really can't get to
+    // the schema contents from JS.
+    nsCOMPtr<nsIScriptSecurityManager> secMan =
+      do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
+    NS_ENSURE_STATE(secMan);
+    nsCOMPtr<nsIPrincipal> principal;
+    rv = secMan->GetSystemPrincipal(getter_AddRefs(principal));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     for (PRInt32 i=0; i<mSchemaTotal; ++i) {
       rv = NS_OK;
       nsCAutoString uriSpec;
@@ -850,7 +863,8 @@ nsXFormsModelElement::InitializeInstances()
           }
         } else {
           newURI->GetSpec(uriSpec);
-          rv = mSchemas->LoadAsync(NS_ConvertUTF8toUTF16(uriSpec), this);
+          rv = mSchemas->LoadAsyncWithPrincipal(NS_ConvertUTF8toUTF16(uriSpec),
+                                                this, principal);
         }
       }
       if (NS_FAILED(rv)) {
