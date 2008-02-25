@@ -233,7 +233,8 @@ calMemoryCalendar.prototype = {
 
             aOldItem = aOldItem.parentItem;
 
-            if (!compareItems(this.mItems[aOldItem.id], aOldItem)) {
+            // compareItems is not suitable here. See bug 418805.
+            if (this.mItems[aOldItem.id].icalString != aOldItem.icalString) {
                 return reportError("old item mismatch in modifyItem");
             }
 
