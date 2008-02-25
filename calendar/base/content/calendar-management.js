@@ -141,6 +141,7 @@ function loadCalendarManager() {
 }
 
 function unloadCalendarManager() {
+    calendarManagerObserver.unload();
     var calMgr = getCalendarManager();
     var composite = getCompositeCalendar();
     var prefService = Components.classes["@mozilla.org/preferences-service;1"]
@@ -671,7 +672,6 @@ var calendarManagerObserver = {
      * @param aCalendar     The calendar to add.
      */
     initializeCalendar: function cMO_initializeCalendar(aCalendar) {
-        var calendars = getCalendarManager().getCalendars({});
         calendarListTreeView.addCalendar(aCalendar);
 
         updateStyleSheetForObject(aCalendar, gCachedStyleSheet);
@@ -684,6 +684,13 @@ var calendarManagerObserver = {
         // Update the calendar commands for number of remote calendars and for
         // more than one calendar
         document.commandDispatcher.updateCommands("calendar_commands");
+    },
+    
+    unload: function cMO_unload() {
+        var calendars = getCalendarManager().getCalendars({});
+        for each (var calendar in calendars) {
+            calendar.removeObserver(this);
+        }
     },
 
     setupWritableCalendars: function cMO_setupWritableCalendars() {

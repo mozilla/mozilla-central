@@ -87,9 +87,15 @@
 
 <!-- All JS files that calendar.xul wishes to include *must* go into the calendar-scripts.inc
      file (all scripts shared with Lightning) or sunbird-scripts.inc file (scripts relevant 
-     for Sunbird-only)so that they can be shared by hiddenWindow.xul. -->
+     for Sunbird-only)so that they can be shared by hiddenWindow.xul.-->
 #include ../../../base/content/calendar-scripts.inc
 #include sunbird-scripts.inc
+
+<!-- Those scripts are not used by the hidden window, and thus can be put in here. The
+     scripts assume that they are part of calendar.xul, so they actually must not be
+     in sunbird-scripts.inc. (see bug 413296 comment 13) -->
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
 
 <!-- GENERAL CONTEXT MENU -->
 <popupset id="calendar-popupset">

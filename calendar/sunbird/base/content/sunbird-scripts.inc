@@ -56,8 +56,6 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calendar.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendarWindow.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-offline.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder.js"/>
-  <script type="application/x-javascript" src="chrome://calendar/content/calendar-unifinder-todo.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/migration.js"/>
 
   <!-- NEEDED FOR APPLICATION SUPPORT -->

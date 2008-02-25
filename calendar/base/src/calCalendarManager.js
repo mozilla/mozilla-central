@@ -61,14 +61,7 @@ function onCalCalendarManagerLoad() {
 
 function calCalendarManager() {
     this.wrappedJSObject = this;
-    this.initDB();
-    this.mCache = null;
-    this.mRefreshTimer = null;
-    this.setUpPrefObservers();
-    this.setUpRefreshTimer();
-    this.mNetworkCalendarCount = 0;
-    this.mReadonlyCalendarCount = 0;
-    this.mCalendarCount = 0;
+    this.setUpStartupObservers();
 }
 
 var calCalendarManagerClassInfo = {
@@ -114,12 +107,55 @@ calCalendarManager.prototype = {
     get calendarCount() {
         return this.mCalendarCount;
     },
+    
+    setUpStartupObservers: function ccm_setUpStartupObservers() {
+        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
+
+        observerSvc.addObserver(this, "profile-after-change", false);
+        observerSvc.addObserver(this, "profile-before-change", false);
+    },
+    
+    startup: function ccm_startup() {
+        this.initDB();
+        this.mCache = null;
+        this.mCalObservers = null;
+        this.mRefreshTimer = null;
+        this.setUpPrefObservers();
+        this.setUpRefreshTimer();
+        this.setupOfflineObservers();
+        this.mNetworkCalendarCount = 0;
+        this.mReadonlyCalendarCount = 0;
+        this.mCalendarCount = 0;
+    },
+    
+    shutdown: function ccm_shutdown() {
+        for each (var cal in this.mCache) {
+            cal.removeObserver(this.mCalObservers[cal.id]);
+        }
+
+        this.cleanupPrefObservers();
+        this.cleanupOfflineObservers();
+
+        var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
+
+        observerSvc.removeObserver(this, "profile-after-change");
+        observerSvc.removeObserver(this, "profile-before-change");
+    },
 
     setUpPrefObservers: function ccm_setUpPrefObservers() {
         var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefBranch2);
         prefBranch.addObserver("calendar.autorefresh.enabled", this, false);
         prefBranch.addObserver("calendar.autorefresh.timeout", this, false);
+    },
+    
+    cleanupPrefObservers: function ccm_cleanupPrefObservers() {
+        var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                                .getService(Components.interfaces.nsIPrefBranch2);
+        prefBranch.removeObserver("calendar.autorefresh.enabled", this);
+        prefBranch.removeObserver("calendar.autorefresh.timeout", this);
     },
 
     setUpRefreshTimer: function ccm_setUpRefreshTimer() {
@@ -150,16 +186,27 @@ calCalendarManager.prototype = {
                                    Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
         }
     },
+
     setupOfflineObservers: function ccm_setupOfflineObservers() {
         var os = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
         os.addObserver(this, "network:offline-status-changed", false);
+    },
 
-        // TODO removeObserver
+    cleanupOfflineObservers: function ccm_cleanupOfflineObservers() {
+        var os = Components.classes["@mozilla.org/observer-service;1"]
+                           .getService(Components.interfaces.nsIObserverService);
+        os.removeObserver(this, "network:offline-status-changed");
     },
     
     observe: function ccm_observe(aSubject, aTopic, aData) {
         switch (aTopic) {
+            case "profile-after-change":
+                this.startup();
+                break;
+            case "profile-before-change":
+                this.shutdown();
+                break;
             case "timer-callback":
                 // Refresh all the calendars that can be refreshed.
                 var cals = this.getCalendars({});
@@ -452,7 +499,7 @@ calCalendarManager.prototype = {
     /**
      * calICalendarManager interface
      */
-    createCalendar: function(type, uri) {
+    createCalendar: function cmgr_createCalendar(type, uri) {
         try {
             var calendar = Components.classes["@mozilla.org/calendar/calendar;1?type=" + type]
                                      .createInstance(Components.interfaces.calICalendar);
@@ -502,6 +549,7 @@ calCalendarManager.prototype = {
         //dump("adding [" + this.mDB.lastInsertRowID + "]\n");
         //this.mCache[this.mDB.lastInsertRowID] = calendar;
         this.mCache[calendar.id] = calendar;
+        this.mCalObserver[calendar.id] = newObserver;
 
         // Set up statistics
         if (calendar.getProperty("requiresNetwork") !== false) {
@@ -524,6 +572,8 @@ calCalendarManager.prototype = {
         }
 
         var calendarID = calendar.id;
+
+        calendar.removeObserver(this.mCalObservers[calendarID]);
 
         var pp = this.mUnregisterCalendar.params;
         pp.id = calendarID;
@@ -588,6 +638,7 @@ calCalendarManager.prototype = {
     assureCache: function cmgr_assureCache() {
         if (!this.mCache) {
             this.mCache = {};
+            this.mCalObservers = {};
 
             var stmt = this.mSelectCalendars;
             stmt.reset();
@@ -606,6 +657,8 @@ calCalendarManager.prototype = {
                     }
                     var newObserver = new calMgrCalendarObserver(cal, this);
                     cal.addObserver(newObserver);
+                    this.mCalObservers[caldata.id] = newObserver;
+
                     this.mCache[caldata.id] = cal;
 
                     // Set up statistics

@@ -85,7 +85,7 @@ calICSCalendar.prototype = {
 
         this.mMemoryCalendar.superCalendar = this;
         this.mObserver = new calICSObserver(this);
-        this.mMemoryCalendar.addObserver(this.mObserver);
+        this.mMemoryCalendar.addObserver(this.mObserver); // XXX Not removed
     },
 
     //
@@ -220,6 +220,8 @@ calICSCalendar.prototype = {
         }
 
         // Create a new calendar, to get rid of all the old events
+        // Don't forget to remove the observer
+        this.mMemoryCalendar.removeObserver(this.mObserver);
         this.mMemoryCalendar = Components.classes["@mozilla.org/calendar/calendar;1?type=memory"]
                                          .createInstance(Components.interfaces.calICalendar);
         this.mMemoryCalendar.uri = this.mUri;

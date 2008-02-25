@@ -185,6 +185,8 @@ calAlarmService.prototype = {
     },
 
     /* nsIObserver */
+    // This will also be called on app-startup, but nothing is done yet, to
+    // prevent unwanted dialogs etc. See bug 325476 and 413296 
     observe: function cas_observe(subject, topic, data) {
         if (topic == "profile-after-change") {
             this.shutdown();

@@ -103,12 +103,15 @@ const componentData =
      contractid: "@mozilla.org/calendar/manager;1",
      script: "calCalendarManager.js",
      constructor: "calCalendarManager",
+     categories: {"app-startup": "calendar-mananger-startup"},
+     service: true,
      onComponentLoad: "onCalCalendarManagerLoad()"},
 
     {cid: Components.ID("{7a9200dd-6a64-4fff-a798-c5802186e2cc}"),
      contractid: "@mozilla.org/calendar/alarm-service;1",
      script: "calAlarmService.js",
      constructor: "calAlarmService",
+     categories: {"app-startup": "alarm-service-startup"},
      service: true},
 
     {cid: Components.ID("{29C56CD5-D36E-453a-ACDE-0083BD4FE6D3}"),
@@ -128,7 +131,8 @@ const componentData =
      script: "calAlarmMonitor.js",
      constructor: "calAlarmMonitor",
      service: true,
-     categories: ["alarm-service-startup", "alarm-service-shutdown"]},
+     categories: {"alarm-service-startup": "calendar-alarm-monitor",
+                  "alarm-service-shutdown": "calendar-alarm-monitor"}},
 
     {cid: Components.ID("{974339d5-ab86-4491-aaaf-2b2ca177c12b}"),
      contractid: "@mozilla.org/calendar/event;1",
@@ -262,8 +266,8 @@ var calItemModule = {
                     contractid = "service," + comp.contractid;
                 else
                     contractid = comp.contractid;
-                for each (var category in comp.categories) {
-                    catman.addCategoryEntry(category, "calendar",
+                for (var category in comp.categories) {
+                    catman.addCategoryEntry(category, comp.categories[category],
                                             contractid, true, true);
                 }
             }

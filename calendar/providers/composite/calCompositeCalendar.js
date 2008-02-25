@@ -189,7 +189,7 @@ calCompositeCalendar.prototype = {
         }
 
         // add our observer helper
-        aCalendar.addObserver(this.mObserverHelper);
+        aCalendar.addObserver(this.mObserverHelper); // XXX Never removed!
 
         this.mCalendars.push(aCalendar);
         if (this.mPrefPrefix) {
