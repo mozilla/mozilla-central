@@ -101,6 +101,3 @@ endif
 ifeq ($(OS_TARGET),WINCE)
 DEFINES += -DDBM_USING_NSPR
 endif
-
-# indicates dependency on freebl static lib
-$(SHARED_LIBRARY): $(CRYPTOLIB)

@@ -78,6 +78,9 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 
 export:: private_export
 
+# indicates dependency on freebl static lib
+$(SHARED_LIBRARY): $(CRYPTOLIB)
+
 # On AIX 4.3, IBM xlC_r compiler (version 3.6.6) cannot compile
 # pkcs11c.c in 64-bit mode for unknown reasons.  A workaround is
 # to compile it with optimizations turned on.  (Bugzilla bug #63815)
