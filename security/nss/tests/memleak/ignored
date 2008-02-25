@@ -16,10 +16,6 @@
 **/PR_LoadLibraryWithFlags/**
 **/pr_LoadLibraryByPathname/**
 
-#370536
-**/nssArena_Destroy/arena_remove_pointer/nssPointerTracker_remove/PL_HashTableRemove/PL_HashTableRawRemove/DefaultAllocTable/**
-**/nssPointerTracker_initialize/PR_CallOnceWithArg/trackerOnceFunc/**
-
 #393181
 ocspclnt/main/CERT_SetOCSPDefaultResponder/**
 
