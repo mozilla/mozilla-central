@@ -58,7 +58,7 @@ if ($action eq 'edit'){
     $run->set_build($cgi->param('build')) if $cgi->param('build');
     $run->set_environment($cgi->param('environment')) if $cgi->param('environment');
     $run->set_manager($cgi->param('manager')) if $cgi->param('manager');
-    $run->set_notes($cgi->param('run_notes')) if $cgi->param('run_notes');
+    $run->set_notes($cgi->param('run_notes')) if exists $cgi->{'run_notes'};
     $run->set_stop_date($timestamp) if $cgi->param('status');
     
     $run->update();

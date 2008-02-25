@@ -1421,7 +1421,7 @@ sub update_deps {
     $fields->{'blocked'} = $blocks;
 # From process bug
     foreach my $field ("dependson", "blocked") {
-        if ($fields->{$field}) {
+        if (exists $fields->{$field}) {
             my @validvalues;
             foreach my $id (split(/[\s,]+/, $fields->{$field})) {
                 next unless $id;

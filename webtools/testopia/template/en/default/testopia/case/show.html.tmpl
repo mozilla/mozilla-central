@@ -362,12 +362,12 @@ Ext.onReady(function(){
                                 border: false,
                                 height: 200,
                                 autoScroll: true,
-                                html:'[% FOREACH dep = case.blocked %]<a href="tr_show_case.cgi?case_id=[% dep.id FILTER none %]" title="[% dep.summary %]">[% dep.id FILTER none %]</a>[% END %]'
+                                html:'[% FOREACH dep = case.blocked %]<a href="tr_show_case.cgi?case_id=[% dep.id FILTER none %]" title="[% dep.summary %]">[% dep.id FILTER none %]</a> [% END %]'
                             },{
                                 border: false,
                                 height: 200,
                                 autoScroll: true,
-                                html:'[% FOREACH dep = case.dependson %]<a href="tr_show_case.cgi?case_id=[% dep.id FILTER none %]" title="[% dep.summary %]">[% dep.id FILTER none %]</a>[% END %]'
+                                html:'[% FOREACH dep = case.dependson %]<a href="tr_show_case.cgi?case_id=[% dep.id FILTER none %]" title="[% dep.summary %]">[% dep.id FILTER none %]</a> [% END %]'
                             }]
                         }]
                     }]

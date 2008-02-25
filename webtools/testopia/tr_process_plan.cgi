@@ -161,7 +161,7 @@ elsif ($action eq 'edit'){
     $plan->set_type($cgi->param('type')) if $cgi->param('type');
     $plan->set_name($cgi->param('name')) if $cgi->param('name');
     
-    if($cgi->param("plandoc")){
+    if(exists $cgi->{"plandoc"}){
         my $newdoc = $cgi->param("plandoc");    
         if($plan->diff_plan_doc($newdoc) ne ''){
             $plan->store_text($plan->id, Bugzilla->user->id, $newdoc);

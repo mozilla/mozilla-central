@@ -49,7 +49,7 @@ ThrowUserError('testopia-missing-object',{object => 'case'}) unless $case;
 if ($action eq 'edit'){
     print $cgi->header;
     ThrowUserError("testopia-read-only", {'object' => $case}) unless $case->canedit;
-    
+
     my $newtcaction = $cgi->param('tcaction') || '' if $cgi->param('tcaction');
     my $newtceffect = $cgi->param('tceffect') || '' if $cgi->param('tceffect');
     my $newtcsetup  = $cgi->param('tcsetup') || '' if $cgi->param('tcsetup');
@@ -60,14 +60,14 @@ if ($action eq 'edit'){
     $case->set_case_status($cgi->param('status')) if $cgi->param('status');
     $case->set_priority($cgi->param('priority')) if $cgi->param('priority');
     $case->set_isautomated($cgi->param('isautomated') eq 'on' ? 1 : 0) if $cgi->param('isautomated');
-    $case->set_script($cgi->param('script')) if $cgi->param('script');
-    $case->set_arguments($cgi->param('arguments')) if $cgi->param('arguments');    
+    $case->set_script($cgi->param('script')) if exists $cgi->{'script'};
+    $case->set_arguments($cgi->param('arguments')) if exists $cgi->{'arguments'};    
     $case->set_summary($cgi->param('summary')) if $cgi->param('summary');
-    $case->set_requirement($cgi->param('requirement')) if $cgi->param('requirement');
-    $case->set_dependson($cgi->param('tcdependson')) if $cgi->param('tcdependson');
-    $case->set_blocks($cgi->param('tcblocks')) if $cgi->param('tcblocks');
-    $case->set_default_tester($cgi->param('tester')) if $cgi->param('tester');
-    $case->set_estimated_time($cgi->param('estimated_time')) if $cgi->param('estimated_time');
+    $case->set_requirement($cgi->param('requirement')) if exists $cgi->{'requirement'};
+    $case->set_dependson($cgi->param('tcdependson')) if exists $cgi->{'tcdependson'};
+    $case->set_blocks($cgi->param('tcblocks')) if exists $cgi->{'tcblocks'};
+    $case->set_default_tester($cgi->param('tester')) if exists $cgi->{'tester'};
+    $case->set_estimated_time($cgi->param('estimated_time')) if exists $cgi->{'estimated_time'};
     
     $case->add_to_run($cgi->param('addruns'));
     $case->add_tag($cgi->param('newtag'));
