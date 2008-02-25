@@ -549,7 +549,7 @@ calCalendarManager.prototype = {
         //dump("adding [" + this.mDB.lastInsertRowID + "]\n");
         //this.mCache[this.mDB.lastInsertRowID] = calendar;
         this.mCache[calendar.id] = calendar;
-        this.mCalObserver[calendar.id] = newObserver;
+        this.mCalObservers[calendar.id] = newObserver;
 
         // Set up statistics
         if (calendar.getProperty("requiresNetwork") !== false) {
