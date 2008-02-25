@@ -164,7 +164,7 @@ function toAddressBook()
 
 function toImport()
 {
-  window.openDialog("chrome://messenger/content/importDialog.xul","importDialog","chrome, modal, titlebar", {importType: "addressbook"});
+  window.openDialog("chrome://messenger/content/importDialog.xul","importDialog","chrome, modal, titlebar, centerscreen");
 }
 
 // aPaneID

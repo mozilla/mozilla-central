@@ -72,12 +72,16 @@
       <description>&importDescription.label;</description>
       <description>&importDescription2.label;</description>
       <separator/>
-      <label control="importFields">&select.label;</label>
-      <separator class="thin"/>
-      <radiogroup id="importFields" class="indent">
-        <radio value="addressbook" id="addressbookRadio" label="&importDialog.addressbookTitle;"/>
-        <radio value="mail" id="mailRadio" label="&importDialog.mailTitle;"/>
-        <radio value="settings" id="settingsRadio" label="&importDialog.settingsTitle;"/>
+      <radiogroup id="importFields">
+        <radio value="all" id="allRadio" label="&importDialog.allTitle;"/>
+        <separator/>
+        <label control="importFields">&select.label;</label>
+        <separator class="thin"/>
+        <vbox class="indent">
+          <radio value="addressbook" id="addressbookRadio" label="&importDialog.addressbookTitle;"/>
+          <radio value="mail" id="mailRadio" label="&importDialog.mailTitle;"/>
+          <radio value="settings" id="settingsRadio" label="&importDialog.settingsTitle;"/>
+        </vbox>
       </radiogroup>
     </vbox>
     <vbox class="wizard-box">

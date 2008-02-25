@@ -73,8 +73,8 @@ function OnLoadImportDialog()
   }
   else
   {
-    importType = "addressbook";
-    progressInfo.importType = "addressbook";
+    importType = "all";
+    progressInfo.importType = "all";
   }
 
   SetUpImportType();
@@ -914,10 +914,20 @@ function next()
     var backButton = document.getElementById("back");
     backButton.removeAttribute("disabled");
     var radioGroup = document.getElementById("importFields");
-    SwitchType(radioGroup.value);
-    deck.setAttribute("selectedIndex", "1");
-    SelectFirstItem();
-    enableAdvance();
+
+    if (radioGroup.value == "all")
+    {
+      window.openDialog("chrome://messenger/content/migration/migration.xul",
+                        "", "chrome,dialog,modal,centerscreen");
+      close();
+    }
+    else
+    {
+      SwitchType(radioGroup.value);
+      deck.setAttribute("selectedIndex", "1");
+      SelectFirstItem();
+      enableAdvance();
+    }
     break;
   case "1":
     ImportDialogOKButton();
