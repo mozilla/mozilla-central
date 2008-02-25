@@ -265,7 +265,7 @@ pkix_pl_CRLEntry_Extensions_Hashcode(
                 PKIX_CRLENTRY_DEBUG("\t\tCalling PORT_NewArena\n");
                 arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                 if (arena == NULL) {
-                        PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
+                        PKIX_ERROR(PKIX_OUTOFMEMORY);
                 }
 
                 while (*extensions) {
@@ -277,7 +277,7 @@ pkix_pl_CRLEntry_Extensions_Hashcode(
                         PKIX_CRLENTRY_DEBUG("\t\tCalling PORT_ArenaZNew\n");
                         derBytes = PORT_ArenaZNew(arena, SECItem);
                         if (derBytes == NULL) {
-                                PKIX_ERROR(PKIX_PORTARENAZNEWFAILED);
+                                PKIX_ERROR(PKIX_PORTARENAALLOCFAILED);
                         }
 
                         PKIX_CRLENTRY_DEBUG
@@ -476,7 +476,7 @@ pkix_pl_CRLEntry_Extensions_Equals(
         PKIX_CRLENTRY_DEBUG("\t\tCalling PORT_NewArena\n");
         arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE*2);
         if (arena == NULL) {
-                PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
+                PKIX_ERROR(PKIX_OUTOFMEMORY);
         }
 
         while (firstNumExt--) {
@@ -489,13 +489,13 @@ pkix_pl_CRLEntry_Extensions_Equals(
                 PKIX_CRLENTRY_DEBUG("\t\tCalling PORT_ArenaZNew\n");
                 firstDerBytes = PORT_ArenaZNew(arena, SECItem);
                 if (firstDerBytes == NULL) {
-                        PKIX_ERROR(PKIX_PORTARENAZNEWFAILED);
+                        PKIX_ERROR(PKIX_PORTARENAALLOCFAILED);
                 }
 
                 PKIX_CRLENTRY_DEBUG("\t\tCalling PORT_ArenaZNew\n");
                 secondDerBytes = PORT_ArenaZNew(arena, SECItem);
                 if (secondDerBytes == NULL) {
-                        PKIX_ERROR(PKIX_PORTARENAZNEWFAILED);
+                        PKIX_ERROR(PKIX_PORTARENAALLOCFAILED);
                 }
 
                 PKIX_CRLENTRY_DEBUG

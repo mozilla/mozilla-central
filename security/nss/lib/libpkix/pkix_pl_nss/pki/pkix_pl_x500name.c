@@ -438,7 +438,7 @@ PKIX_PL_X500Name_CreateFromCERTName(
 
         arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
         if (arena == NULL) {
-            PKIX_ERROR(PKIX_PORTARENAALLOCFAILED);
+            PKIX_ERROR(PKIX_OUTOFMEMORY);
         }
         
         PKIX_CHECK(PKIX_PL_Object_Alloc
@@ -454,7 +454,7 @@ PKIX_PL_X500Name_CreateFromCERTName(
         if (derName != NULL) {
             rv = SECITEM_CopyItem(arena, &x500Name->derName, derName);
             if (rv == SECFailure) {
-                PKIX_ERROR(PKIX_SECITEMCOPYITEMFAILED);
+                PKIX_ERROR(PKIX_OUTOFMEMORY);
             }
         }            
 
@@ -622,7 +622,7 @@ pkix_pl_X500Name_GetDERName(
 
         derName = SECITEM_ArenaDupItem(arena, &xname->derName);
         if (derName == NULL) {
-            PKIX_ERROR(PKIX_SECITEMCOPYITEMFAILED);
+            PKIX_ERROR(PKIX_OUTOFMEMORY);
         }
 
         *pDERName = derName;

@@ -129,7 +129,7 @@ PKIX_PL_CRL_GetCRLNumber(
                 PKIX_CRL_DEBUG("\t\tCalling PORT_NewArena).\n");
                 arena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
                 if (arena == NULL) {
-                        PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
+                        PKIX_ERROR(PKIX_OUTOFMEMORY);
                 }
 
                 PKIX_CRL_DEBUG("\t\tCalling CERT_FindCRLNumberExten\n");
@@ -924,7 +924,7 @@ PKIX_PL_CRL_Create(
         PKIX_CRL_DEBUG("\t\tCalling SECITEM_AllocItem\n");
         derCrlItem = SECITEM_AllocItem(NULL, NULL, derLength);
         if (derCrlItem == NULL){
-                PKIX_ERROR(PKIX_SECITEMALLOCITEMFORCRLDERRETURNNULL);
+                PKIX_ERROR(PKIX_OUTOFMEMORY);
         }
 
         PKIX_CRL_DEBUG("\t\tCalling PORT_Memcpy\n");

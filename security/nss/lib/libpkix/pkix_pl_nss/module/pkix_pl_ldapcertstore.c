@@ -90,7 +90,7 @@ pkix_pl_LdapCertStore_DecodeCrossCertPair(
 
         tempArena = PORT_NewArena(DER_DEFAULT_CHUNKSIZE);
         if (!tempArena) {
-            PKIX_ERROR(PKIX_PORTNEWARENAFAILED);
+            PKIX_ERROR(PKIX_OUTOFMEMORY);
         }
 
         rv = SEC_ASN1DecodeItem(tempArena, &certPair, PKIX_PL_LDAPCrossCertPairTemplate,

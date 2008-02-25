@@ -326,8 +326,6 @@ PKIX_PL_HashTable_Remove(
 
         if (result != NULL) {
                 PKIX_DECREF(result);
-        } else {
-                PKIX_ERROR(PKIX_ATTEMPTTOREMOVENONEXISTANTITEM);
         }
 
         /*

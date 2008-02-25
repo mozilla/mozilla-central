@@ -143,7 +143,7 @@ pkix_pl_LdapDefaultClient_MakeBind(
         PKIX_PL_NSSCALLRV(LDAPDEFAULTCLIENT, encoded, SEC_ASN1EncodeItem,
                 (arena, NULL, (void *)&msg, PKIX_PL_LDAPMessageTemplate));
         if (!encoded) {
-                PKIX_ERROR(PKIX_FAILEDINENCODINGBINDREQUEST);
+                PKIX_ERROR(PKIX_SECASN1ENCODEITEMFAILED);
         }
 
         *pBindMsg = encoded;
@@ -214,7 +214,7 @@ pkix_pl_LdapDefaultClient_MakeUnbind(
         PKIX_PL_NSSCALLRV(LDAPDEFAULTCLIENT, encoded, SEC_ASN1EncodeItem,
                 (arena, NULL, (void *)&msg, PKIX_PL_LDAPMessageTemplate));
         if (!encoded) {
-                PKIX_ERROR(PKIX_FAILEDINENCODINGUNBIND);
+                PKIX_ERROR(PKIX_SECASN1ENCODEITEMFAILED);
         }
 
         *pUnbindMsg = encoded;
@@ -281,7 +281,7 @@ pkix_pl_LdapDefaultClient_MakeAbandon(
         PKIX_PL_NSSCALLRV(LDAPDEFAULTCLIENT, encoded, SEC_ASN1EncodeItem,
                 (arena, NULL, (void *)&msg, PKIX_PL_LDAPMessageTemplate));
         if (!encoded) {
-                PKIX_ERROR(PKIX_FAILEDINENCODINGABANDON);
+                PKIX_ERROR(PKIX_SECASN1ENCODEITEMFAILED);
         }
 
         *pAbandonMsg = encoded;

@@ -726,7 +726,7 @@ pkix_UTF16_to_EscASCII(
                         PKIX_STRING_DEBUG("\tCalling PR_snprintf).\n");
                         if (PR_snprintf(destPtr, 13, "&#x%08X;", z) ==
                             (PKIX_UInt32)(-1)) {
-                                PKIX_ERROR(PKIX_ERRORINSNPRINTF);
+                                PKIX_ERROR(PKIX_PRSNPRINTFFAILED);
                         }
                         i += 2;
                         destPtr += 12;
@@ -740,7 +740,7 @@ pkix_UTF16_to_EscASCII(
                             utf16Char[i],
                             utf16Char[i+1]) ==
                             (PKIX_UInt32)(-1)) {
-                                PKIX_ERROR(PKIX_ERRORINSNPRINTF);
+                                PKIX_ERROR(PKIX_PRSNPRINTFFAILED);
                         }
                         destPtr += 8;
                 }

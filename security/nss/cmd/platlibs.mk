@@ -148,8 +148,8 @@ endif
 
 PKIXLIB = \
 	$(DIST)/lib/$(LIB_PREFIX)pkixtop.$(LIB_SUFFIX) \
-	$(DIST)/lib/$(LIB_PREFIX)pkixsystem.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)pkixutil.$(LIB_SUFFIX) \
+	$(DIST)/lib/$(LIB_PREFIX)pkixsystem.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)pkixcrlsel.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)pkixmodule.$(LIB_SUFFIX) \
 	$(DIST)/lib/$(LIB_PREFIX)pkixstore.$(LIB_SUFFIX) \
