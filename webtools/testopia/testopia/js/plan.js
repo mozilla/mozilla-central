@@ -331,13 +331,13 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
 NewPlanForm = function(product_id){
 	var versionsBox = new ProductVersionCombo({
         hiddenName: 'prod_version',
-        fieldLabel: "Product Version",
+        fieldLabel: "<b>Product Version</b>",
         mode:'local',
         params: {product_id: product_id}
 	});
 	var productsBox = new ProductCombo({
         hiddenName: 'product_id',
-        fieldLabel: "Product",
+        fieldLabel: "<b>Product</b>",
         mode:'local',
         value: product_id
 	});
@@ -366,11 +366,11 @@ NewPlanForm = function(product_id){
                 layout: 'form',
                 items: [{
                     xtype:'textfield',
-                    fieldLabel: 'Plan Name',
+                    fieldLabel: '<b>Plan Name</b>',
                     name: 'plan_name',
                     anchor:'95%',
                     allowBlank: false
-                }, new PlanTypesCombo({mode: 'local', hiddenName: 'type', fieldLabel: 'Plan Type'})]
+                }, new PlanTypesCombo({mode: 'local', hiddenName: 'type', fieldLabel: '<b>Plan Type</b>'})]
             },{
                 columnWidth: 0.5,
                 layout: 'form',

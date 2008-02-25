@@ -481,7 +481,7 @@ var NewRunForm = function(plan){
                     layout: 'form',
                     items: [
                         new ProductVersionCombo({
-                            fieldLabel: 'Product Version',
+                            fieldLabel: '<b>Product Version</b>',
                             hiddenName: 'prod_version',
                             mode: 'local',
                             forceSelection: true,
@@ -492,7 +492,7 @@ var NewRunForm = function(plan){
                         new UserLookup({
                             id: 'new_run_manager',
                             hiddenName: 'manager',
-                            fieldLabel: 'Run Manager', 
+                            fieldLabel: '<b>Run Manager</b>', 
                             allowBlank: false
                         })
                     ]
@@ -501,28 +501,30 @@ var NewRunForm = function(plan){
                     layout: 'form',
                     items: [
                     new BuildCombo({
-                        fieldLabel: 'Build',
+                        fieldLabel: '<b>Build</b>',
                         hiddenName: 'build',
                         mode: 'local',
                         forceSelection: false,
                         allowBlank: false,
                         typeAhead: true,
-                        params: {product_id: plan.product_id}
+                        params: {product_id: plan.product_id},
+                        emptyText: 'Select or type a new name'
                     }),
                     new EnvironmentCombo({
-                        fieldLabel: 'Environment',
+                        fieldLabel: '<b>Environment</b>',
                         hiddenName: 'environment',
                         mode: 'local',
                         forceSelection: false,
                         allowBlank: false,
                         typeAhead: true,
-                        params: {product_id: plan.product_id}
+                        params: {product_id: plan.product_id},
+                        emptyText: 'Select or type a new name'
                     })
                     ]
                 }]
             },{ 
                 xtype:'textfield',
-                fieldLabel: 'Summary',
+                fieldLabel: '<b>Summary</b>',
                 layout: 'fit',
                 id: 'run_summary',
                 name: 'summary',

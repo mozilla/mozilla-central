@@ -643,7 +643,7 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                 items: [{
                     id:'ncf-summary',
                     xtype:'textfield',
-                    fieldLabel: 'Summary',
+                    fieldLabel: '<b>Summary</b>',
                     name: 'summary',
                     allowBlank: false,
                     width: 800
@@ -672,13 +672,13 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                     name: 'alias'
                 },
                 new PriorityCombo({
-                    fieldLabel: 'Priority',
+                    fieldLabel: '<b>Priority</b>&nbsp;&nbsp;<img src="images/help.png" id="priority_help" style="cursor:pointer" onclick=\'window.open("testing_priorities.html","Priority Definitions","resizable=no, scrollbars=yes, width=550,height=420");\'/>',
                     hiddenName: 'priority',
                     mode: 'local',
                     allowBlank: false
                 }), 
                 new CaseCategoryCombo({
-                    fieldLabel: 'Category',
+                    fieldLabel: '<b>Category</b>',
                     hiddenName: 'category',
                     mode: 'local',
                     allowBlank: false,
@@ -704,7 +704,7 @@ NewCaseForm = function(plan_ids, product_id, run_id){
             },{
                 layout: 'form',
                 items: [new CaseStatusCombo({
-                    fieldLabel: 'Status',
+                    fieldLabel: '<b>Status</b>',
                     hiddenName: 'status',
                     mode: 'local',
                     allowBlank: false,
