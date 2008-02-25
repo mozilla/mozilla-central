@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: wrap.c,v $ $Revision: 1.15 $ $Date: 2006-06-10 22:21:10 $";
+static const char CVS_ID[] = "@(#) $RCSfile: wrap.c,v $ $Revision: 1.16 $ $Date: 2008-02-25 20:35:23 $";
 #endif /* DEBUG */
 
 /*
@@ -165,6 +165,8 @@ nssCKFW_GetThreadSafeState(CK_C_INITIALIZE_ARGS_PTR pInitArgs,
   return (4 == functionCount) ? CKR_CANT_LOCK : CKR_ARGUMENTS_BAD;
 }
 
+static PRInt32 liveInstances;
+
 /*
  * NSSCKFWC_Initialize
  *
@@ -204,7 +206,7 @@ NSSCKFWC_Initialize
   if( (NSSCKFWInstance *)NULL == *pFwInstance ) {
     goto loser;
   }
-
+  PR_AtomicIncrement(&liveInstances);
   return CKR_OK;
 
  loser:
@@ -255,11 +257,17 @@ NSSCKFWC_Finalize
 
  loser:
   switch( error ) {
+  PRInt32 remainingInstances;
+  case CKR_OK:
+    remainingInstances = PR_AtomicDecrement(&liveInstances);
+    if (!remainingInstances) {
+	nssArena_Shutdown();
+    }
+    break;
   case CKR_CRYPTOKI_NOT_INITIALIZED:
   case CKR_FUNCTION_FAILED:
   case CKR_GENERAL_ERROR:
   case CKR_HOST_MEMORY:
-  case CKR_OK:
     break;
   default:
     error = CKR_GENERAL_ERROR;
