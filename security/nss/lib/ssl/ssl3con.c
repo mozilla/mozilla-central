@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.108 2008-02-23 02:21:31 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: ssl3con.c,v 1.109 2008-02-25 18:50:31 wtc%google.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
@@ -535,7 +535,8 @@ static void SSL_AtomicIncrementLong(long * x)
         PR_AtomicIncrement((PRInt32 *)x);
     } else {
     	tooLong * tl = (tooLong *)x;
-	PR_AtomicIncrement(&tl->low) || PR_AtomicIncrement(&tl->high);
+	if (PR_AtomicIncrement(&tl->low) == 0)
+	    PR_AtomicIncrement(&tl->high);
     }
 }
 
