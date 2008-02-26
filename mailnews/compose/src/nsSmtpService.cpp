@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -44,9 +44,8 @@
 #include "nsIIOService.h"
 #include "nsIPipe.h"
 #include "nsNetCID.h"
-#include "nsEscape.h"
+#include "nsMsgUtils.h"
 #include "nsNetUtil.h"
-
 #include "nsSmtpService.h"
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
@@ -88,9 +87,9 @@ static NS_DEFINE_CID(kCMailtoUrlCID, NS_MAILTOURL_CID);
 // foward declarations...
 nsresult
 NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
-                   const char* aSmtpHostName, 
+                   const nsCString &aSmtpHostName, 
                    PRInt32 aSmtpPort,
-                   const char* aSmtpUserName, 
+                   const nsCString &aSmtpUserName, 
                    const char* aRecipients, 
                    nsIMsgIdentity * aSenderIdentity,
                    nsIUrlListener * aUrlListener,
@@ -158,7 +157,7 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
 
     if (!smtpHostName.IsEmpty() && !CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_10)) 
     {
-      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName.get(), smtpPort, smtpUserName.get(),
+      rv = NS_MsgBuildSmtpUrl(aFilePath, smtpHostName, smtpPort, smtpUserName,
                               aRecipients, aSenderIdentity, aUrlListener, aStatusFeedback, 
                               aNotificationCallbacks, &urlToRun, aRequestDSN); // this ref counts urlToRun
       if (NS_SUCCEEDED(rv) && urlToRun)	
@@ -186,9 +185,9 @@ nsresult nsSmtpService::SendMailMessage(nsIFile * aFilePath,
 
 // short cut function for creating a mailto url...
 nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
-                            const char* aSmtpHostName, 
+                            const nsCString &aSmtpHostName,
                             PRInt32 aSmtpPort,
-                            const char* aSmtpUserName, 
+                            const nsCString &aSmtpUserName,
                             const char * aRecipients, 
                             nsIMsgIdentity * aSenderIdentity,
                             nsIUrlListener * aUrlListener, 
@@ -197,63 +196,64 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                             nsIURI ** aUrl,
                             PRBool aRequestDSN)
 {
-    // mscott: this function is a convience hack until netlib actually dispatches smtp urls.
-    // in addition until we have a session to get a password, host and other stuff from, we need to use default values....
-    // ..for testing purposes....
+  // mscott: this function is a convience hack until netlib actually dispatches
+  // smtp urls. in addition until we have a session to get a password, host and
+  // other stuff from, we need to use default values....
+  // ..for testing purposes....
 
-    nsresult rv = NS_OK;
-    nsCOMPtr <nsISmtpUrl> smtpUrl (do_CreateInstance(kCSmtpUrlCID, &rv));
+  nsresult rv;
+  nsCOMPtr<nsISmtpUrl> smtpUrl(do_CreateInstance(kCSmtpUrlCID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    if (NS_SUCCEEDED(rv) && smtpUrl)
-    {
-        nsCAutoString urlSpec("smtp://");
-        if (aSmtpUserName) 
-        {
-            nsCString escapedUsername;
-            *((char **)getter_Copies(escapedUsername)) = nsEscape(aSmtpUserName, url_XAlphas);
-            urlSpec.Append(escapedUsername);
-            urlSpec.Append('@');
-        }
+  nsCAutoString urlSpec("smtp://");
 
-        urlSpec.Append(aSmtpHostName);
-        if (!PL_strchr(aSmtpHostName, ':'))
-        {
-            urlSpec.Append(':');
-            urlSpec.AppendInt(aSmtpPort);
-        }
+  if (!aSmtpUserName.IsEmpty())
+  {
+    nsCString escapedUsername;
+    MsgEscapeString(aSmtpUserName, nsINetUtil::ESCAPE_XALPHAS,
+                    escapedUsername);
+    urlSpec.Append(escapedUsername);
+    urlSpec.Append('@');
+  }
 
-        if (urlSpec.get())
-        {
-            nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(smtpUrl);
-            url->SetSpec(urlSpec);
-            smtpUrl->SetRecipients(aRecipients);
-            smtpUrl->SetRequestDSN(aRequestDSN);
-            smtpUrl->SetPostMessageFile(aFilePath);
-            smtpUrl->SetSenderIdentity(aSenderIdentity);
-            smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);
+  urlSpec.Append(aSmtpHostName);
+  if (aSmtpHostName.FindChar(':') != -1)
+  {
+    urlSpec.Append(':');
+    urlSpec.AppendInt(aSmtpPort);
+  }
 
-            nsCOMPtr<nsIPrompt> smtpPrompt(do_GetInterface(aNotificationCallbacks));
-            nsCOMPtr<nsIAuthPrompt> smtpAuthPrompt(do_GetInterface(aNotificationCallbacks));
-            if (!smtpPrompt || !smtpAuthPrompt)
-            {
-                nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-                if (wwatch) {
-                    if (!smtpPrompt)
-                        wwatch->GetNewPrompter(0, getter_AddRefs(smtpPrompt));
-                    if (!smtpAuthPrompt)
-                        wwatch->GetNewAuthPrompter(0, getter_AddRefs(smtpAuthPrompt));
-                }
-            }
-            smtpUrl->SetPrompt(smtpPrompt);            
-            smtpUrl->SetAuthPrompt(smtpAuthPrompt);
-            url->RegisterListener(aUrlListener);
-            if (aStatusFeedback)
-                url->SetStatusFeedback(aStatusFeedback);
-        }
-        rv = smtpUrl->QueryInterface(NS_GET_IID(nsIURI), (void **) aUrl);
-    }
+  nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(smtpUrl, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    return rv;
+  url->SetSpec(urlSpec);
+  smtpUrl->SetRecipients(aRecipients);
+  smtpUrl->SetRequestDSN(aRequestDSN);
+  smtpUrl->SetPostMessageFile(aFilePath);
+  smtpUrl->SetSenderIdentity(aSenderIdentity);
+  smtpUrl->SetNotificationCallbacks(aNotificationCallbacks);
+
+  nsCOMPtr<nsIPrompt> smtpPrompt(do_GetInterface(aNotificationCallbacks));
+  nsCOMPtr<nsIAuthPrompt> smtpAuthPrompt(do_GetInterface(aNotificationCallbacks));
+  if (!smtpPrompt || !smtpAuthPrompt)
+  {
+    nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (!smtpPrompt)
+      wwatch->GetNewPrompter(0, getter_AddRefs(smtpPrompt));
+    if (!smtpAuthPrompt)
+      wwatch->GetNewAuthPrompter(0, getter_AddRefs(smtpAuthPrompt));
+  }
+
+  smtpUrl->SetPrompt(smtpPrompt);            
+  smtpUrl->SetAuthPrompt(smtpAuthPrompt);
+
+  url->RegisterListener(aUrlListener);
+  if (aStatusFeedback)
+    url->SetStatusFeedback(aStatusFeedback);
+
+  return CallQueryInterface(smtpUrl, aUrl);
 }
 
 nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest ** aRequest)
