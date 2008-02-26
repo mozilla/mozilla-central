@@ -67,6 +67,13 @@ var gCategoriesPane = {
         }
 
         var categories = document.getElementById("calendar.categories.names").value;
+
+        // If no categories are configured load a default set from properties file
+        if (!categories || categories == "") {
+            categories = calGetString("categories", "categories");
+            document.getElementById("calendar.categories.names").value = categories;
+        }
+
         gCategoryList = categoriesStringToArray(categories);
         
         // When categories is empty, split returns an array containing one empty
