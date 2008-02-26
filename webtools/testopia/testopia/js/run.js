@@ -319,6 +319,11 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                     handler: function(){
                         grid.store.reload();
                     } 
+                },{
+                    text: 'View Test Run in a New Tab',
+                    handler: function(){
+                        window.open('tr_show_run.cgi?run_id=' + grid.store.getAt(index).get('run_id'));
+                    }
                 }]
             });
         }

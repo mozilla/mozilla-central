@@ -635,6 +635,42 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                                 win.show(this);
                             }
                         },{
+                            text: 'Priority',
+                            handler: function(){
+                                var win = new Ext.Window({
+                                    title: 'Edit Priority',
+                                    id: 'priority-win',
+                                    plain: true,
+                                    shadow: false,
+                                    width: 320,
+                                    height: 150,
+                                    layout: 'form',
+                                    bodyStyle: 'padding: 5px',
+                                    items: [new PriorityCombo({
+                                        fieldLabel: 'Priority',
+                                        id: 'multi_priority'
+                                    })],
+                                    buttons: [{
+                                        text:'Submit',
+                                        handler: function(){
+                                            params = {
+                                                run_id: grid.run.run_id, 
+                                                priority: Ext.getCmp('multi_priority').getValue(), 
+                                                ids: getSelectedObjects(grid,'case_id')
+                                            };
+                                            TestopiaUpdateMultiple('case', params, grid);
+                                            win.close();
+                                        }
+                                    },{
+                                        text: 'Close',
+                                        handler: function(){
+                                            win.close();
+                                        }
+                                    }]
+                                });
+                                win.show(this);
+                            }
+                        },{
                             text: 'Assignee',
                             handler: function(){
                                 var win = new Ext.Window({
@@ -703,6 +739,11 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                     handler: function(){
                         grid.store.reload();
                     } 
+                },{
+                    text: 'View Test Case in a New Tab',
+                    handler: function(){
+                        window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(index).get('case_id'));
+                    }
                 }]
             });
         }

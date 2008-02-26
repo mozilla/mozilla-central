@@ -534,6 +534,11 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                     handler: function(){
                         grid.store.reload();
                     } 
+                },{
+                    text: 'View Test Case in a New Tab',
+                    handler: function(){
+                        window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(index).get('case_id'));
+                    }
                 }]
             });
         }

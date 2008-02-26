@@ -275,6 +275,11 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                     handler: function(){
                         grid.store.reload();
                     } 
+                },{
+                    text: 'View Test Plan in a New Tab',
+                    handler: function(){
+                        window.open('tr_show_plan.cgi?plan_id=' + grid.store.getAt(index).get('plan_id'));
+                    }
                 }]
             });
         }
