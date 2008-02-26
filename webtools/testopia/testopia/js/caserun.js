@@ -41,6 +41,10 @@ CaseRunPanel = function(params, run){
     cgrid.getSelectionModel().on('rowdeselect', function (sm,n,r){
         if (sm.getCount() < 1){
             cr.disable();
+            Ext.getCmp('tb_build').disable();
+            Ext.getCmp('tb_environment').disable();
+            Ext.getCmp('update_bugs').disable();
+
             var items = this.grid.getTopToolbar().items.items;
             for (var i=0; i < items.length; i++){
                 if ((items[i].id == 'add_case_to_run_btn' || items[i].id == 'run_progress')){
@@ -56,6 +60,9 @@ CaseRunPanel = function(params, run){
     });
     cgrid.getSelectionModel().on('rowselect', function (sm,n,r){
         cr.enable();
+        Ext.getCmp('tb_build').enable();
+        Ext.getCmp('tb_environment').enable();
+        Ext.getCmp('update_bugs').enable();
         if (Ext.getCmp('run_status_cycle').text == 'RUNNING'){
             var items = sm.grid.getTopToolbar().items.items;
             for (var i=0; i < items.length; i++){
