@@ -256,6 +256,11 @@ protected:
 
   // Windows where typeaheadfind doesn't auto start as the user types
   nsCOMPtr<nsISupportsArray> mManualFindWindows;
+
+  //
+  // NOTE: if you add strong ref members here please make sure to null
+  //       them out in Shutdown() to prevent crashes like bug 414559.
+  //
 };
 
 

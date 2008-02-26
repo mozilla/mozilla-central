@@ -244,6 +244,8 @@ nsTypeAheadFind::ReleaseInstance()
 void 
 nsTypeAheadFind::Shutdown()
 {
+  RemoveDocListeners();
+
   // Application shutdown 
   mTimer = nsnull;
 
@@ -255,11 +257,21 @@ nsTypeAheadFind::Shutdown()
 
   // Clear strong refs.  It's important to release these so that we don't hold
   // on to objects that depends on other modules.
-  // E.g. gfxFonts in the nsThebesGfxModule, see bug 398084.
+  // E.g. gfxFonts in the nsThebesGfxModule, see bug 398084 and bug 414559.
+  mSoundInterface = nsnull;
+  mStartFindRange = nsnull;
+  mSearchRange = nsnull;
+  mStartPointRange = nsnull;
+  mEndPointRange = nsnull;
+  mFind = nsnull;
+  mFindService = nsnull;
+  mStringBundle = nsnull;
+  mTimer = nsnull;
   mFocusController = nsnull;
   mFocusedDocSelection = nsnull;
   mFocusedDocSelCon = nsnull;
   mFocusedWindow = nsnull;
+  mFocusedWeakShell = nsnull;
   mManualFindWindows->Clear();
 }
 
