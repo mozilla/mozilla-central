@@ -33,6 +33,9 @@ if ($cgi->param('object') eq 'plan'){
 elsif ($cgi->param('object') eq 'case'){
     $obj = Bugzilla::Testopia::TestCase->new($cgi->param('object_id'));
 }
+elsif ($cgi->param('object') eq 'run'){
+    $obj = Bugzilla::Testopia::TestRun->new($cgi->param('object_id'));
+}
 else{
     ThrowUserError("testopia-unknown-type", {'object' => $obj});
 }

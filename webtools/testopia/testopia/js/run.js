@@ -853,13 +853,20 @@ Ext.extend(RunFilterGrid, Ext.grid.GridPanel, {
         if(!this.menu){ // create context menu on first right click
             this.menu = new Ext.menu.Menu({
                 id:'run_filter_ctx',
-                items: [
-                {
-                    text: 'Open search in new tab', 
-                    handler: function(){}
-                },{
-                    text: 'Delete Saved Search', 
-                    handler: function(){}
+                items: [{
+                    text: 'Delete Saved Filter', 
+                    handler: function(){
+                        var form = new Ext.form.BasicForm('testopia_helper_frm', {});
+                        form.submit({
+                            url: 'tr_process_run.cgi',
+                            params: {action: 'delete_filter', query_name: grid.store.getAt(index).get('name'), run_id: grid.store.baseParams.run_id},
+                            success: function(){
+                                TestopiaUtil.notify.msg('Filter removed', 'filter removed successfully');
+                                grid.store.reload();
+                            },
+                            failure: testopiaError
+                        });
+                    }
                 }]
             });
         }

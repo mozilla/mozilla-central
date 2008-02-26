@@ -186,8 +186,9 @@ elsif ($action eq 'delete_filter'){
     my $dbh = Bugzilla->dbh;
     ThrowUserError('query_name_missing') unless $cgi->param('query_name');
     ThrowUserError("testopia-read-only", {'object' => $run}) unless $run->canedit;
-    
-    my $qname = '__run_id_' . $run->id . '_' . $cgi->param('query_name');
+    my $qname = $cgi->param('query_name');
+    trick_taint($qname);
+    $qname = '__run_id_' . $run->id . '_' . $qname;
     
     $dbh->do(
         "DELETE FROM test_named_queries 
