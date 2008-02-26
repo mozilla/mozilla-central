@@ -235,7 +235,7 @@ pkix_pl_PrimHashTable_Add(
                 if ((element->hashCode == hashCode) &&
                     (compResult == PKIX_TRUE)){
                         /* Same key already exists in the table */
-                    goto cleanup;
+                    PKIX_ERROR(PKIX_ATTEMPTTOADDDUPLICATEKEY);
                 }
         }
 

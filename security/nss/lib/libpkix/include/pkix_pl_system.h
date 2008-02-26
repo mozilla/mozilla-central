@@ -1573,4 +1573,18 @@ PKIX_PL_BigInt_Create(
 }
 #endif
 
+/*
+ * FUNCTION: PKIX_PL_GetPLErrorCode
+ * DESCRIPTION:
+ *
+ *  Returns error code from PL layer.
+ *
+ * THREAD SAFETY:
+ *  Thread Safe (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  PL layer error code. 
+ */
+int
+PKIX_PL_GetPLErrorCode();
+
 #endif /* _LIBPKIX_SYSTEM_H */

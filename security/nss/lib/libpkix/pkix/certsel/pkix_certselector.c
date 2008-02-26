@@ -213,7 +213,7 @@ pkix_CertSelector_Match_BasicConstraint(
                         PKIX_CERTSELECTOR_DEBUG
                             ("Basic Constraints path length match failed\n");
                         *pResult = PKIX_FALSE;
-                        goto cleanup;
+                        PKIX_ERROR(PKIX_PATHLENCONSTRAINTINVALID);
                 }
         }
 
@@ -223,7 +223,7 @@ pkix_CertSelector_Match_BasicConstraint(
                     PKIX_CERTSELECTOR_DEBUG
                         ("Basic Constraints end-entity match failed\n");
                     *pResult = PKIX_FALSE;
-                    goto cleanup;
+                    PKIX_ERROR(PKIX_PATHLENCONSTRAINTINVALID);
                 }
         }
 

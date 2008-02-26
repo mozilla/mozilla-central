@@ -120,9 +120,9 @@ PKIX_PL_OcspResponse_UseBuildChain(
                 *pNBIOContext = nbioContext;
 
         /* no buildResult means the build has failed */
-        } else if (buildError || (pBuildResult == NULL)) {
-                PKIX_DECREF(buildError);
-                PKIX_ERROR(PKIX_UNABLETOBUILDCHAIN);
+        } else if (buildError) {
+                pkixErrorResult = buildError;
+                buildError = NULL;
         } else {
                 PKIX_DECREF(*pState);
         }
@@ -563,7 +563,7 @@ pkix_pl_OcspResponse_Create(
                 }
 
                 if (responseCode != 200) {
-                        PKIX_ERROR(PKIX_BADHTTPRESPONSE);
+                        PKIX_ERROR(PKIX_OCSPBADHTTPRESPONSE);
                 }
 
 

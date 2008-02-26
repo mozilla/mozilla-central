@@ -59,19 +59,20 @@ PRIVATE_EXPORTS = \
 MODULE = nss
 
 CSRCS = \
-	pkix_pl_common.c \
-	pkix_pl_mem.c \
-	pkix_pl_object.c \
-	pkix_pl_string.c \
-	pkix_pl_primhash.c \
 	pkix_pl_bigint.c \
-	pkix_pl_mutex.c \
 	pkix_pl_bytearray.c \
-	pkix_pl_lifecycle.c \
-	pkix_pl_oid.c \
+	pkix_pl_common.c \
+	pkix_pl_error.c \
 	pkix_pl_hashtable.c \
-	pkix_pl_rwlock.c \
+	pkix_pl_lifecycle.c \
+	pkix_pl_mem.c \
 	pkix_pl_monitorlock.c \
+	pkix_pl_mutex.c \
+	pkix_pl_object.c \
+	pkix_pl_oid.c \
+	pkix_pl_primhash.c \
+	pkix_pl_rwlock.c \
+	pkix_pl_string.c \
 	$(NULL)
 
 REQUIRES = dbm

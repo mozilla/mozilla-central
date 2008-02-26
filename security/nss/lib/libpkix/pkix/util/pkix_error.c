@@ -45,12 +45,14 @@
 
 #undef PKIX_ERRORENTRY
 
-#define PKIX_ERRORENTRY(name,desc) #desc
+#define PKIX_ERRORENTRY(name,desc,nsserr) #desc
 
 const char * const PKIX_ErrorText[] =
 {
 #include "pkix_errorstrings.h"
 };
+
+extern const int const PKIX_PLErrorIndex[];
 
 /* --Private-Functions-------------------------------------------- */
 
@@ -164,6 +166,10 @@ pkix_Error_Equals(
 
         /* Compare descs */
         if (firstError->errCode != secondError->errCode) {
+                unequalFlag = PKIX_TRUE;
+        }
+
+        if (firstError->plErr != secondError->plErr) {
                 unequalFlag = PKIX_TRUE;
         }
 
@@ -458,6 +464,8 @@ PKIX_Error_Create(
         error->info = info;
 
         error->errCode = errCode;
+
+        error->plErr = PKIX_PLErrorIndex[error->errCode];
 
         *pError = error;
         error = NULL;

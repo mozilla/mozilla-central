@@ -367,7 +367,7 @@ typedef enum {     /* Now invoke all those ERRMACROs to assign the numbers */
 
 /* Now define error strings (for internationalization) */
 
-#define PKIX_ERRORENTRY(name,desc) PKIX_ ## name
+#define PKIX_ERRORENTRY(name,desc,plerr) PKIX_ ## name
 
 /* Define all the error numbers */
 typedef enum    {
@@ -375,7 +375,6 @@ typedef enum    {
 } PKIX_ERRORCODE;
 
 extern const char * const PKIX_ErrorText[];
-
 
 /* String Formats
  *

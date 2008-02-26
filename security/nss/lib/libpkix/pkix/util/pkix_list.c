@@ -1425,7 +1425,7 @@ PKIX_List_AppendItem(
         PKIX_NULLCHECK_ONE(list);
 
         if (list->immutable){
-                PKIX_ERROR(PKIX_CANNOTCALLAPPENDITEMONIMMUTABLELIST);
+                PKIX_ERROR(PKIX_OPERATIONNOTPERMITTEDONIMMUTABLELIST);
         }
 
         if (!list->isHeader){
@@ -1477,7 +1477,7 @@ PKIX_List_InsertItem(
 
 
         if (list->immutable){
-                PKIX_ERROR(PKIX_CANNOTCALLINSERTITEMONIMMUTABLELIST);
+                PKIX_ERROR(PKIX_OPERATIONNOTPERMITTEDONIMMUTABLELIST);
         }
 
         if (!list->isHeader){
@@ -1564,7 +1564,7 @@ PKIX_List_SetItem(
         PKIX_NULLCHECK_ONE(list);
 
         if (list->immutable){
-                PKIX_ERROR(PKIX_CANNOTCALLSETITEMONIMMUTABLELIST);
+                PKIX_ERROR(PKIX_OPERATIONNOTPERMITTEDONIMMUTABLELIST);
         }
 
         if (!list->isHeader){
@@ -1607,7 +1607,7 @@ PKIX_List_DeleteItem(
         PKIX_NULLCHECK_ONE(list);
 
         if (list->immutable){
-                PKIX_ERROR(PKIX_CANNOTCALLDELETEITEMONIMMUTABLELIST);
+                PKIX_ERROR(PKIX_OPERATIONNOTPERMITTEDONIMMUTABLELIST);
         }
 
         if (!list->isHeader){
