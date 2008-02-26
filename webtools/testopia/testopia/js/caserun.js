@@ -305,6 +305,7 @@ CaseRunGrid = function(params, run){
                {name: "assignee_name", mapping:"assignee_name"},
                {name: "testedby", mapping:"testedby"},
                {name: "status", mapping:"status"},
+               {name: "requirement", mapping:"requirement"},
                {name: "category", mapping:"category"},
                {name: "priority", mapping:"priority"},
                {name: "bug_count", mapping:"bug_count"},
@@ -392,6 +393,7 @@ CaseRunGrid = function(params, run){
          editor: new Ext.grid.GridEditor(
              new CaseCategoryCombo({id: 'caserun_category', params: {product_id: run.plan.product_id}})
          ),renderer: TestopiaComboRenderer.createDelegate(this)},
+        {header: "Requirement", width: 150, sortable: true, dataIndex: 'requirement', hidden: true},
         {header: "Component", width: 100, sortable: true,dataIndex: 'component'}
     ];
 

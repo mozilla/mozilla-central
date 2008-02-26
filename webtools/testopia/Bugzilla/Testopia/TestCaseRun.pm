@@ -296,6 +296,7 @@ sub to_json {
     }
     
     $obj->{'assignee_name'}  = $self->assignee->login if $self->assignee;
+    $obj->{'requirement'}  = $self->case->requirement if $self->case;
     $obj->{'testedby'}  = $self->testedby->login if $self->testedby;
     $obj->{'status'}    = $self->status;
     $obj->{'build_name'}    = $self->build->name if $self->build;
