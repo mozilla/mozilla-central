@@ -168,12 +168,13 @@ nsPalmSyncSupport::~nsPalmSyncSupport()
 nsresult nsPalmSyncSupport::GetPalmSyncInstall(nsILocalFile ** aLocalFile)
 {
     nsresult rv;
-    nsCOMPtr<nsIExtensionManager> em(do_GetService("@mozilla.org/extensions/manager;1"));
-    NS_ENSURE_TRUE(em, NS_ERROR_FAILURE);
+    nsCOMPtr<nsIExtensionManager> em(do_GetService("@mozilla.org/extensions/manager;1", &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIInstallLocation> installLocation;
-    rv = em->GetInstallLocation(NS_LITERAL_STRING(EXTENSION_ID), getter_AddRefs(installLocation));
-    NS_ENSURE_SUCCESS(rv, rv);
+    em->GetInstallLocation(NS_LITERAL_STRING(EXTENSION_ID), getter_AddRefs(installLocation));
+    if (!installLocation)
+      return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIFile> palmSyncInstallExe;
     rv = installLocation->GetItemFile(NS_LITERAL_STRING(EXTENSION_ID), NS_LITERAL_STRING(EXECUTABLE_FILENAME), getter_AddRefs(palmSyncInstallExe));
