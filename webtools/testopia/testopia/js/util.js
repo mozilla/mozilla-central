@@ -149,7 +149,7 @@ TestopiaUtil = function(){
           }
           document.getElementById(data.selectTypes[i]).disabled = false;
         }
-        catch(err){console.log(err)}
+        catch(err){}
       }
     };
     this.fillSelects = fillSelects;
