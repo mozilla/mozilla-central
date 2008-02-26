@@ -217,7 +217,7 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   }
 
   urlSpec.Append(aSmtpHostName);
-  if (aSmtpHostName.FindChar(':') != -1)
+  if (aSmtpHostName.FindChar(':') == -1)
   {
     urlSpec.Append(':');
     urlSpec.AppendInt(aSmtpPort);
