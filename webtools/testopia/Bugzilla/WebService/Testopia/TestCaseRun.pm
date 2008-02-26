@@ -22,6 +22,7 @@ use strict;
 use base qw(Bugzilla::WebService);
 
 use Bugzilla::User;
+use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestCaseRun;
@@ -126,17 +127,16 @@ sub create
 {
     my $self =shift;
     my ($new_values) = @_;
+    $new_values->{'case_run_status_id'} = IDLE unless $new_values->{'case_run_status_id'}; 
 
     $self->login;
 
-    my $test_case_run = new Bugzilla::Testopia::TestCaseRun($new_values);
-    
-    my $result = $test_case_run->store();
+    my $test_case_run = Bugzilla::Testopia::TestCaseRun->create($new_values);
     
     $self->logout;
 
     # Result is new test case run id
-    return $result;
+    return $test_case_run->id;
 }
 
 sub update
