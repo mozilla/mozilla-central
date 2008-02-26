@@ -1,1 +1,1 @@
-Clobbering to pick up bug 414515 mozconfig changes
+Clobbering to get new nightly to fix smtp bustage from bug 419116.
