@@ -386,6 +386,7 @@
 "Yesterday" = "Yesterday";
 "HistoryMoreThanAWeek" = "More than a week ago";
 "LocalFilesCategoryTitle" = "Local Files";
+"RecentlyClosed" = "Recently Closed Pages";
 
 /* Most likely the only thing you need to do here is change the ordering. The string should only include the name of the day of the week (%A), day of the month as a number (%d), and name of the month (%B). */
 "HistoryMenuDateFormat" = "%A, %B %d";
