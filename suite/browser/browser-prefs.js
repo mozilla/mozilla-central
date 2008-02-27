@@ -363,6 +363,20 @@ pref("privacy.popups.prefill_whitelist",          false);
 pref("privacy.popups.remove_blacklist",           true);
 pref("privacy.popups.showBrowserMessage",         true);
 
+// sanitize (clear private data) options
+// XXX: turn on sanitize for downloads once we support toolkit' download manager
+pref("privacy.item.history",     true);
+pref("privacy.item.formdata",    true);
+pref("privacy.item.passwords",   false);
+pref("privacy.item.downloads",   false);
+pref("privacy.item.cookies",     false);
+pref("privacy.item.cache",       true);
+pref("privacy.item.sessions",    true);
+pref("privacy.item.offlineApps", false);
+
+pref("privacy.sanitize.sanitizeOnShutdown", false);
+pref("privacy.sanitize.promptOnSanitize", true);
+
 // Show XUL error pages instead of alerts for errors
 pref("browser.xul.error_pages.enabled", true);
 

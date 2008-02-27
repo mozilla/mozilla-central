@@ -135,6 +135,9 @@
 <!ENTITY searchInternetCmd.accesskey "S">
 <!ENTITY searchInternet.commandKey "s">
 
+<!ENTITY clearPrivateDataCmd.label "Clear Private Data…">
+<!ENTITY clearPrivateDataCmd.accesskey "e">
+
 <!ENTITY goMenu.label "Go">
 <!ENTITY goMenu.accesskey "g">
 <!ENTITY goHomeCmd.label "Home">

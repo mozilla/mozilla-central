@@ -18,8 +18,8 @@
 
     <!-- Support Accel+Shift for Add Bookmark -->
     <key id="addBookmarkKb" key="&addCurPageCmd.commandkey;" command="Browser:AddBookmark" modifiers="accel,shift"/>
-  </keyset>  
+    <!-- Add additional sanitize keybinding for Macs without a delete key -->
+    <key id="key_sanitize_mac" command="Tools:Sanitize" keycode="VK_BACK" modifiers="accel,shift"/>
+  </keyset>
 
 </overlay>
-
-

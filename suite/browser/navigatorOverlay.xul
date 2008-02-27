@@ -127,6 +127,7 @@
     <keyset id="viewZoomKeys"/>
     <keyset id="navigationKeys"/>  
     <keyset id="tasksKeys"/>
+    <key id="key_sanitize" command="Tools:Sanitize" keycode="VK_DELETE" modifiers="accel,shift"/>
   </keyset>
 
   <commandset id="commands">
@@ -202,6 +203,8 @@
 
     <!-- Tools Menu -->
     <command id="Browser:SearchInternet" oncommand="BrowserSearchInternet();"/>
+    <command id="Tools:Sanitize"
+             oncommand="Components.classes['@mozilla.org/suite/suiteglue;1'].getService(Components.interfaces.nsISuiteGlue).sanitize(window);"/>
 
   </commandset>
 
@@ -503,6 +506,10 @@
       <menuitem id="menu_searchWeb" label="&searchInternetCmd.label;" key="searchInternetKb" accesskey="&searchInternetCmd.accesskey;" command="Browser:SearchInternet"/>
       <menuitem id="menu_translate" label="&translateMenu.label;" accesskey="&translateMenu.accesskey;" oncommand="Translate();"/>  
       <menuseparator id="navBeginGlobalItems"/>
+      <menuitem id="sanitizeItem"
+                accesskey="&clearPrivateDataCmd.accesskey;"
+                label="&clearPrivateDataCmd.label;"
+                key="key_sanitize" command="Tools:Sanitize"/>
     </menupopup>
   </menu>
 

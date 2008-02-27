@@ -65,6 +65,7 @@ comm.jar:
    content/communicator/openLocation.js
    content/communicator/openLocation.xul
    content/communicator/printPreviewBindings.xml
+   content/communicator/sanitize.xul
    content/communicator/tasksOverlay.js
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js
@@ -183,6 +184,7 @@ comm.jar:
    content/communicator/pref/pref-scripts.xul                       (pref/pref-scripts.xul)
    content/communicator/pref/pref-search.js                         (pref/pref-search.js)
    content/communicator/pref/pref-search.xul                        (pref/pref-search.xul)
+   content/communicator/pref/pref-security.js                       (pref/pref-security.js)
    content/communicator/pref/pref-security.xul                      (pref/pref-security.xul)
    content/communicator/pref/pref-smart_browsing.js                 (pref/pref-smart_browsing.js)
    content/communicator/pref/pref-smart_browsing.xul                (pref/pref-smart_browsing.xul)
