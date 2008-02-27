@@ -43,6 +43,7 @@ NSString *const kInstalledSearchEnginesDidChangeNotification = @"InstalledSearch
 
 NSString *const kWebSearchEngineNameKey = @"SearchEngineName";
 NSString *const kWebSearchEngineURLKey = @"SearchEngineURL";
+NSString *const kWebSearchEngineWhereFromKey = @"PluginURL";
 
 static NSString *const kListOfSearchEnginesKey = @"SearchEngineList";
 static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
@@ -58,6 +59,7 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
 - (void)filterDuplicatesFromEngines:(NSMutableArray *)searchEngines;
 - (void)setPreferredSearchEngine:(NSString *)newPreferredSearchEngine sendingChangeNotification:(BOOL)shouldNotify;
 - (NSDictionary *)defaultSearchEngineInformationFromBundle;
+- (NSString *)uniqueNameForEngine:(NSString *)engineName;
 
 @end
 
@@ -230,6 +232,18 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   return [NSDictionary dictionaryWithContentsOfFile:pathToDefaultEnginesInBundle];
 }
 
+- (NSString *)uniqueNameForEngine:(NSString *)engineName
+{
+  NSString *uniqueEngineName = engineName;
+  NSArray *installedEngineNames = [self installedSearchEngineNames];
+  int nameUseCount = 2;
+  while ([installedEngineNames containsObject:uniqueEngineName]) {
+    uniqueEngineName = [engineName stringByAppendingFormat:@" (%i)", nameUseCount];
+    ++nameUseCount;
+  }
+  return uniqueEngineName;
+}
+
 #pragma mark -
 
 - (NSArray *)installedSearchEngines
@@ -270,9 +284,13 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   if (!pluginParser)
     return NO;
 
-  BOOL parsedOk = [pluginParser parseSearchPluginAtURL:[searchPluginInfoDict objectForKey:kWebSearchPluginURLKey]];
+  NSURL *pluginURL = [searchPluginInfoDict objectForKey:kWebSearchPluginURLKey];
+  BOOL parsedOk = [pluginParser parseSearchPluginAtURL:pluginURL];
+
   if (parsedOk) {
-    [self addSearchEngineWithName:[pluginParser searchEngineName] url:[pluginParser searchEngineURL]];
+    [self addSearchEngineWithName:[pluginParser searchEngineName]
+                        searchURL:[pluginParser searchEngineURL]
+                        pluginURL:[pluginURL absoluteString]];
     return YES;
   }
   else {
@@ -280,25 +298,34 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   }
 }
 
-- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL
+- (NSDictionary *)searchEngineFromPluginURL:(NSString *)pluginURL
 {
-  [self addSearchEngineWithName:engineName url:engineURL atIndex:[mInstalledSearchEngines count]];
+  NSEnumerator *installedEnginesEnumerator = [mInstalledSearchEngines objectEnumerator];
+  NSDictionary *searchEngine = nil;
+  while ((searchEngine = [installedEnginesEnumerator nextObject])) {
+    if ([[searchEngine objectForKey:kWebSearchEngineWhereFromKey] isEqualToString:pluginURL])
+      return searchEngine;
+  }
+  return nil;  
 }
 
-- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL atIndex:(unsigned)index;
+- (BOOL)hasSearchEngineFromPluginURL:(NSString *)pluginURL
 {
-  if (index > [mInstalledSearchEngines count]) {
-    NSLog(@"Cannot add search engine at index: %u (out of bounds)", index);
-    return;
-  }
+  return ([self searchEngineFromPluginURL:pluginURL] != nil);
+}
+
+- (void)addSearchEngineWithName:(NSString *)engineName searchURL:(NSString *)engineURL pluginURL:(NSString *)pluginURL
+{
+  // Ensure the engine name is unique.
+  engineName = [self uniqueNameForEngine:engineName];
 
   NSDictionary *searchEngine = [NSDictionary dictionaryWithObjectsAndKeys:engineName, kWebSearchEngineNameKey,
                                                                           engineURL, kWebSearchEngineURLKey,
+                                                                          pluginURL, kWebSearchEngineWhereFromKey,
                                                                           nil];
-  [mInstalledSearchEngines insertObject:searchEngine atIndex:index];
+  [mInstalledSearchEngines addObject:searchEngine];
   [self installedSearchEnginesChanged];
 }
-
 
 - (void)renameSearchEngineAtIndex:(unsigned)index to:(NSString *)newEngineName
 {
@@ -307,19 +334,15 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
     return;
   }
 
-  NSDictionary *existingRenamingSearchEngine = [mInstalledSearchEngines objectAtIndex:index];
+  NSMutableDictionary *searchEngine = [NSMutableDictionary dictionaryWithDictionary:[mInstalledSearchEngines objectAtIndex:index]];
 
   // If this is the default engine, update that value (but don't notify observers
   // since we haven't actually renamed the engine yet)
-  if ([[self preferredSearchEngine] isEqualToString:[existingRenamingSearchEngine valueForKey:kWebSearchEngineNameKey]])
+  if ([[self preferredSearchEngine] isEqualToString:[searchEngine valueForKey:kWebSearchEngineNameKey]])
     [self setPreferredSearchEngine:newEngineName sendingChangeNotification:NO];
 
-  NSDictionary *newRenamedSearchEngine = [NSDictionary dictionaryWithObjectsAndKeys:newEngineName,
-                                                                                    kWebSearchEngineNameKey,
-                                                                                    [existingRenamingSearchEngine valueForKey:kWebSearchEngineURLKey],
-                                                                                    kWebSearchEngineURLKey, nil];
-
-  [mInstalledSearchEngines replaceObjectAtIndex:index withObject:newRenamedSearchEngine];
+  [searchEngine setObject:newEngineName forKey:kWebSearchEngineNameKey];
+  [mInstalledSearchEngines replaceObjectAtIndex:index withObject:searchEngine];
 
   [self installedSearchEnginesChanged];
 }

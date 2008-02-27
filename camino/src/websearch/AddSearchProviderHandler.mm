@@ -94,6 +94,24 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
   // sheets.
 
   NSString* searchDescriptionURL = [NSString stringWith_nsAString:aDescriptionURL];
+  SearchEngineManager* searchEngineManager = [SearchEngineManager sharedSearchEngineManager];
+
+  // Make sure the user hasn't already installed this search plugin.
+  NSDictionary* existingEngineFromThisPlugin = [searchEngineManager searchEngineFromPluginURL:searchDescriptionURL];
+  if (existingEngineFromThisPlugin) {
+    NSString* explanatoryText =
+      [NSString stringWithFormat:NSLocalizedString(@"SearchPluginAlreadyInstalledMessage", nil),
+                                 [existingEngineFromThisPlugin objectForKey:kWebSearchEngineNameKey]];
+    NSAlert* alreadyInstalledAlert = [[[NSAlert alloc] init] autorelease];
+    [alreadyInstalledAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
+    [alreadyInstalledAlert setMessageText:NSLocalizedString(@"SearchPluginAlreadyInstalledTitle", nil)];
+    [alreadyInstalledAlert setInformativeText:explanatoryText];
+    [alreadyInstalledAlert setAlertStyle:NSWarningAlertStyle];
+
+    [NSMenu cancelAllTracking];
+    [alreadyInstalledAlert runModal];
+    return NS_OK;
+  }
 
   XMLSearchPluginParser* pluginParser =
     [XMLSearchPluginParser searchPluginParserWithMIMEType:kOpenSearchMIMEType];
@@ -114,23 +132,6 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
   NSString* engineName = [pluginParser searchEngineName];
   NSString* engineURL = [pluginParser searchEngineURL];
 
-  SearchEngineManager* searchEngineManager = [SearchEngineManager sharedSearchEngineManager];
-  // Make sure the user doesn't already have an engine with the same name.
-  if ([[searchEngineManager installedSearchEngineNames] containsObject:engineName]) {
-    NSString* explanatoryText =
-      [NSString stringWithFormat:NSLocalizedString(@"DuplicateSearchEngineMessage", nil),
-                                 engineName];
-    NSAlert* duplicateErrorAlert = [[[NSAlert alloc] init] autorelease];
-    [duplicateErrorAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
-    [duplicateErrorAlert setMessageText:NSLocalizedString(@"EngineNameAlreadyExistsTitle", nil)];
-    [duplicateErrorAlert setInformativeText:explanatoryText];
-    [duplicateErrorAlert setAlertStyle:NSWarningAlertStyle];
-
-    [NSMenu cancelAllTracking];
-    [duplicateErrorAlert runModal];
-    return NS_OK;
-  }
-
   // Confirm that the user really wants to add the new engine.
   NSString* explanatoryText =
     [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationConfirmationMessage", nil),
@@ -149,7 +150,8 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
 
   // If we got this far, everything checked out, so add the engine.
   [searchEngineManager addSearchEngineWithName:engineName
-                                           url:engineURL];
+                                     searchURL:engineURL
+                                     pluginURL:searchDescriptionURL];
 
   return NS_OK;
 }

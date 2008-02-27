@@ -45,6 +45,8 @@ extern NSString *const kInstalledSearchEnginesDidChangeNotification;
 // Search engine description keys.
 extern NSString *const kWebSearchEngineNameKey;
 extern NSString *const kWebSearchEngineURLKey;
+// Optional key so we can identify engines installed from a plugin without relying on their name:
+extern NSString *const kWebSearchEngineWhereFromKey;
 
 //
 // SearchEngineManager
@@ -77,8 +79,10 @@ extern NSString *const kWebSearchEngineURLKey;
 // Return value indicates whether the plugin was successfully parsed and a new engine added.
 - (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict;
 
-- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL;
-- (void)addSearchEngineWithName:(NSString *)engineName url:(NSString *)engineURL atIndex:(unsigned)index;
+- (BOOL)hasSearchEngineFromPluginURL:(NSString *)pluginURL;
+- (NSDictionary *)searchEngineFromPluginURL:(NSString *)pluginURL;
+
+- (void)addSearchEngineWithName:(NSString *)engineName searchURL:(NSString *)engineURL pluginURL:(NSString *)pluginURL;
 
 - (void)renameSearchEngineAtIndex:(unsigned)index to:(NSString *)newEngineName;
 - (void)moveSearchEnginesAtIndexes:(NSIndexSet *)indexes toIndex:(unsigned)destinationIndex;

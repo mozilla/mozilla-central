@@ -4715,25 +4715,9 @@ public:
 
 - (BOOL)webSearchField:(WebSearchField*)searchField shouldListDetectedSearchPlugin:(NSDictionary *)searchPluginInfoDict
 {
-  // Exclude search plugins which are already installed. 
-  // Without actually parsing the plugin, all we can really compare is the name listed in
-  // |searchPluginInfoDict| (which is what was supplied on the page's autodiscovery link).
-  // It's tough to be perfect here though, because sometimes this name isn't identical to the
-  // actual installed engine name.
-
-  NSString* pluginName = [searchPluginInfoDict objectForKey:kWebSearchPluginNameKey];
-  if (!pluginName)
-    return NO;
-
-  NSEnumerator* installedEngineEnumerator = [[[SearchEngineManager sharedSearchEngineManager] installedSearchEngines] objectEnumerator];
-  NSDictionary* installedSearchEngine;
-  while ((installedSearchEngine = [installedEngineEnumerator nextObject])) {  
-    NSString* installedEngineName = [installedSearchEngine valueForKey:kWebSearchEngineNameKey];
-    if ([pluginName isEqualToString:installedEngineName])
-      return NO;
-  }
-
-  return YES;
+  // Exclude search plugins which are already installed.
+  NSString *searchPluginURL = [[searchPluginInfoDict objectForKey:kWebSearchPluginURLKey] absoluteString];
+  return (![[SearchEngineManager sharedSearchEngineManager] hasSearchEngineFromPluginURL:searchPluginURL]);
 }
 
 - (IBAction)installSearchPlugin:(id)sender
