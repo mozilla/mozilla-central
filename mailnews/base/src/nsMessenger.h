@@ -74,7 +74,8 @@ public:
                              const char ** aUrlArray,
                              const char ** aDisplayNameArray,
                              const char ** aMessageUriArray,
-                             nsCStringArray *saveFileUris);
+                             nsCStringArray *saveFileUris,
+                             PRBool withoutWarning = PR_FALSE);
   nsresult SaveAllAttachments(PRUint32 count,
                               const char **contentTypeArray,
                               const char **urlArray,

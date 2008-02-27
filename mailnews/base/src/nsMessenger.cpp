@@ -3006,7 +3006,7 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
 NS_IMETHODIMP
 nsMessenger::DetachAttachment(const char * aContentType, const char * aUrl,
                               const char * aDisplayName, const char * aMessageUri,
-                              PRBool aSaveFirst)
+                              PRBool aSaveFirst, PRBool withoutWarning = PR_FALSE)
 {
   NS_ENSURE_ARG_POINTER(aContentType);
   NS_ENSURE_ARG_POINTER(aUrl);
@@ -3014,7 +3014,7 @@ nsMessenger::DetachAttachment(const char * aContentType, const char * aUrl,
   NS_ENSURE_ARG_POINTER(aMessageUri);
 
   // convenience function for JS, processing handled by DetachAllAttachments()
-  return DetachAllAttachments(1, &aContentType, &aUrl, &aDisplayName, &aMessageUri, aSaveFirst);
+  return DetachAllAttachments(1, &aContentType, &aUrl, &aDisplayName, &aMessageUri, aSaveFirst, withoutWarning);
 }
 
 NS_IMETHODIMP
@@ -3023,7 +3023,8 @@ nsMessenger::DetachAllAttachments(PRUint32 aCount,
                                   const char ** aUrlArray,
                                   const char ** aDisplayNameArray,
                                   const char ** aMessageUriArray,
-                                  PRBool aSaveFirst)
+                                  PRBool aSaveFirst,
+                                  PRBool withoutWarning = PR_FALSE)
 {
   NS_ENSURE_ARG_MIN(aCount, 1);
   NS_ENSURE_ARG_POINTER(aContentTypeArray);
@@ -3034,7 +3035,7 @@ nsMessenger::DetachAllAttachments(PRUint32 aCount,
   if (aSaveFirst)
     return SaveAllAttachments(aCount, aContentTypeArray, aUrlArray, aDisplayNameArray, aMessageUriArray, PR_TRUE);
   else
-    return DetachAttachments(aCount, aContentTypeArray, aUrlArray, aDisplayNameArray, aMessageUriArray, nsnull);
+    return DetachAttachments(aCount, aContentTypeArray, aUrlArray, aDisplayNameArray, aMessageUriArray, nsnull, withoutWarning);
 }
 
 nsresult
@@ -3043,12 +3044,14 @@ nsMessenger::DetachAttachments(PRUint32 aCount,
                                   const char ** aUrlArray,
                                   const char ** aDisplayNameArray,
                                   const char ** aMessageUriArray,
-                                  nsCStringArray *saveFileUris)
+                                  nsCStringArray *saveFileUris,
+                                  PRBool withoutWarning)
 {
-  if (NS_FAILED(PromptIfDeleteAttachments(saveFileUris != nsnull, aCount, aDisplayNameArray)))
-    return NS_OK;
+  // if withoutWarning no dialog for user
+  if (!withoutWarning && NS_FAILED(PromptIfDeleteAttachments(saveFileUris != nsnull, aCount, aDisplayNameArray)))
+      return NS_OK;
+  
   nsresult rv = NS_OK;
-
 
   // ensure that our arguments are valid
 //  char * partId;
