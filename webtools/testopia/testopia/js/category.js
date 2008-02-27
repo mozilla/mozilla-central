@@ -66,6 +66,7 @@ CaseCategoryGrid = function(product_id){
         },{
             xtype: 'button',
             template: button_16x_tmpl,
+            id: 'add_category_btn',
             icon: 'testopia/img/add.png',
             iconCls: 'img_button_16x',
             tooltip: 'Add a new Category',
@@ -175,6 +176,8 @@ Ext.extend(CaseCategoryGrid, Ext.grid.EditorGridPanel, {
    onActivate: function(event){
         if (!this.product_id){
             Ext.Msg.alert('Error', 'Please select a product.');
+            Ext.getCmp('edit_category_btn').disable();
+            Ext.getCmp('add_category_btn').disable();
             return;
         }
         else {

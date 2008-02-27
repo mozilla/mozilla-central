@@ -229,6 +229,14 @@ Ext.onReady(function(){
                                 tabs.items[i].params.product_id = node.id;
                             }
                             tabs.items[i].product_id = node.id;
+                            if (Ext.getCmp('edit_build_btn')){
+                                Ext.getCmp('edit_build_btn').enable();
+                                Ext.getCmp('add_build_btn').enable();
+                            }
+                            if (Ext.getCmp('edit_category_btn')){
+                                Ext.getCmp('edit_category_btn').enable();
+                                Ext.getCmp('add_category_btn').enable();
+                            }
                         }
                         
                         product_id = node.id;

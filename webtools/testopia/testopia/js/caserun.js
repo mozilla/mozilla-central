@@ -27,6 +27,7 @@ CaseRunPanel = function(params, run){
     this.cgrid = cgrid;
     this.store = cgrid.store;
     this.params = params;
+    this.caserun = cr;
     var selected;
     
     CaseRunPanel.superclass.constructor.call(this, {
@@ -162,10 +163,16 @@ CaseRunFilter = function (){
         },
 //        new Ext.Toolbar.Fill(),
         {
-            text: 'Search',
+            text: 'Filter',
             handler: function(){
                 Ext.getCmp('caserun_grid').store.baseParams = searchform.getValues();
-                Ext.getCmp('caserun_grid').store.load();
+                Ext.getCmp('caserun_grid').store.load({
+                    callback: function(){
+                        if (Ext.getCmp('caserun_grid').getSelectionModel().getCount() < 1){
+                            Ext.getCmp('caserun-panel').caserun.disable();
+                        }
+                    }
+                });
             }
         }]
     });

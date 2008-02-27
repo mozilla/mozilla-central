@@ -86,6 +86,7 @@ BuildGrid = function(product_id){
         },{
             xtype: 'button',
             template: button_16x_tmpl,
+            id: 'add_build_btn',
             icon: 'testopia/img/add.png',
             iconCls: 'img_button_16x',
             tooltip: 'Add a new Build',
@@ -211,6 +212,8 @@ Ext.extend(BuildGrid, Ext.grid.EditorGridPanel, {
    onActivate: function(event){
         if (!this.product_id){
             Ext.Msg.alert('Error', 'Please select a product.');
+            Ext.getCmp('edit_build_btn').disable();
+            Ext.getCmp('add_build_btn').disable();
             return;
         }
         else{
