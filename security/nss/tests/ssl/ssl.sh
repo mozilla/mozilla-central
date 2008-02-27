@@ -251,7 +251,7 @@ start_selfserv()
 
   # Bug 348198 - temporary patch
   # Print processes and list of open ports, in case that selfserv fails.
-  if [ ${RET} -ne 0 && "${OS_NAME}" = "SunOS" ]; then
+  if [ ${RET} -ne 0 -a "${OS_NAME}" = "SunOS" ]; then
       ps -ef 
       netstat -af inet
   fi
