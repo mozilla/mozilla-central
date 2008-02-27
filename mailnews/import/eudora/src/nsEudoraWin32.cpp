@@ -906,7 +906,7 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
   PRBool    exists = PR_FALSE;
   if (NS_FAILED( rv = pFile->Exists( &exists)))
     return( rv);
-  if (NS_FAILED( rv = pFile->IsFile( &isFile)))
+  if ( exists && NS_FAILED( rv = pFile->IsFile(&isFile) ) )
     return( rv);
 
   if (!exists || !isFile) {
@@ -943,12 +943,16 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
       // We came up with a different path - check the new path.
       if (NS_FAILED( rv = altFile->Exists( &exists)))
         return( rv);
-      if (NS_FAILED( rv = altFile->IsFile( &isFile)))
+      if ( exists && NS_FAILED( rv = altFile->IsFile( &isFile) ) )
         return( rv);
 
       // Keep the new path if it helped us.
       if (exists && isFile)
-        pFile = altFile;
+      {
+        nsCString   nativePath;
+        altFile->GetNativePath(nativePath);
+        pLocalFile->InitWithNativePath(nativePath);
+      }
     }
   }
 
