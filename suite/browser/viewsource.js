@@ -362,7 +362,6 @@ function goToLine(line)
 
   var selCon = getSelectionController();
   selCon.setDisplaySelection(nsISelectionController.SELECTION_ON);
-  selCon.setCaretEnabled(true);
   selCon.setCaretVisibilityDuringSelection(true);
 
   // Scroll the beginning of the line into view.
@@ -397,7 +396,6 @@ function updateStatusBar()
 
   var selCon = getSelectionController();
   selCon.setDisplaySelection(nsISelectionController.SELECTION_ON);
-  selCon.setCaretEnabled(true);
   selCon.setCaretVisibilityDuringSelection(true);
 
   var interlinePosition = selection
