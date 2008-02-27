@@ -148,6 +148,9 @@ didStartElement:(NSString *)elementName
   qualifiedName:(NSString *)qualifiedName
      attributes:(NSDictionary *)attributeDict
 {
+  // Remove any namespace prefix.
+  elementName = [NSXMLNode localNameForName:elementName];
+
   if ([self shouldParseAttributesOfElement:elementName])
     [self foundAttributes:attributeDict forElement:elementName];
 
@@ -171,6 +174,9 @@ didStartElement:(NSString *)elementName
  qualifiedName:(NSString *)qName
 {
   if (mShouldParseContentsOfCurrentElement) {
+    // Remove any namespace prefix.
+    elementName = [NSXMLNode localNameForName:elementName];
+
     [self foundContents:mCurrentElementBuffer forElement:elementName];
 
     [mCurrentElementBuffer release];
