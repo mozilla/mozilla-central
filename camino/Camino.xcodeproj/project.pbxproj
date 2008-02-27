@@ -48,6 +48,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		001D4A260D75B0B100464BE4 /* MoveCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = 001D4A250D75B0B100464BE4 /* MoveCommand.mm */; };
+		001D4A270D75B0B100464BE4 /* MoveCommand.mm in Sources */ = {isa = PBXBuildFile; fileRef = 001D4A250D75B0B100464BE4 /* MoveCommand.mm */; };
 		001FFD970C795D4500D9C2C8 /* contenteditable.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD930C795D3300D9C2C8 /* contenteditable.css */; };
 		001FFD980C795D4500D9C2C8 /* designmode.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD940C795D3300D9C2C8 /* designmode.css */; };
 		001FFD990C795D5400D9C2C8 /* contenteditable.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 001FFD930C795D3300D9C2C8 /* contenteditable.css */; };
@@ -2139,6 +2141,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		001D4A240D75B0B100464BE4 /* MoveCommand.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MoveCommand.h; path = src/appleevents/MoveCommand.h; sourceTree = "<group>"; };
+		001D4A250D75B0B100464BE4 /* MoveCommand.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = MoveCommand.mm; path = src/appleevents/MoveCommand.mm; sourceTree = "<group>"; };
 		001FFD930C795D3300D9C2C8 /* contenteditable.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = contenteditable.css; path = ../dist/Embed/res/contenteditable.css; sourceTree = SOURCE_ROOT; };
 		001FFD940C795D3300D9C2C8 /* designmode.css */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = designmode.css; path = ../dist/Embed/res/designmode.css; sourceTree = SOURCE_ROOT; };
 		00335B8B0C655ABC00A607F2 /* WebSearchField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = WebSearchField.h; path = src/browser/WebSearchField.h; sourceTree = "<group>"; };
@@ -3946,6 +3950,8 @@
 			children = (
 				F51B70B6026EC98B01A80166 /* GetURLCommand.h */,
 				F51B70B7026EC98B01A80166 /* GetURLCommand.mm */,
+				001D4A240D75B0B100464BE4 /* MoveCommand.h */,
+				001D4A250D75B0B100464BE4 /* MoveCommand.mm */,
 				33F3B70A0C63F5F7007DFBD0 /* ScriptingSupport.mm */,
 			);
 			name = "Apple Events";
@@ -5406,6 +5412,7 @@
 				DE963D1B0D43EFCF007D44EE /* FormFillController.mm in Sources */,
 				DE963D1C0D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 				00BBBC860D66C13400C2D916 /* CHGradient.m in Sources */,
+				001D4A270D75B0B100464BE4 /* MoveCommand.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5584,6 +5591,7 @@
 				DE963D1F0D43EFCF007D44EE /* FormFillController.mm in Sources */,
 				DE963D200D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 				00BBBC850D66C13400C2D916 /* CHGradient.m in Sources */,
+				001D4A260D75B0B100464BE4 /* MoveCommand.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

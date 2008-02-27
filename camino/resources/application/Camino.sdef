@@ -170,7 +170,7 @@
 			<result description="to the new object" type="specifier"/>
 		</command>
 		<command name="move" code="coremove" description="Move object(s) to a new location.">
-			<cocoa class="NSMoveCommand"/>
+			<cocoa class="MoveCommand"/>
 			<direct-parameter description="the object(s) to move" type="specifier"/>
 			<!-- "move" is supposed to return the relocated objects.
 				<result type="object" description="to the object(s) after they have been moved"/>
