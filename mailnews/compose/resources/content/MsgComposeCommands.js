@@ -2583,7 +2583,7 @@ function AddAttachment(attachment)
     else {
       // for security reasons, don't allow mail protocol uris to leak out
       // we don't want to reveal the .slt path (for mailbox://), or the username or hostname
-      var mailProtocol = /^mailbox:|^imap:|^s?news:/i;
+      var mailProtocol = /^file:|^mailbox:|^imap:|^s?news:/i;
       if (mailProtocol.test(attachment.name))
         attachment.name = sComposeMsgsBundle.getString("partAttachmentSafeName");
     }
