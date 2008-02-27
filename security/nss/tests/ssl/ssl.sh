@@ -242,10 +242,20 @@ start_selfserv()
       ${PROFTOOL} ${BINDIR}/selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
                ${ECC_OPTIONS} -w nss ${sparam} -i ${R_SERVERPID} $verbose \
                > ${SERVEROUTFILE} 2>&1 &
+      RET=$?
   else
       ${PROFTOOL} ${BINDIR}/selfserv -D -p ${PORT} -d ${P_R_SERVERDIR} -n ${HOSTADDR} ${SERVER_OPTIONS} \
                ${ECC_OPTIONS} -w nss ${sparam} -i ${R_SERVERPID} $verbose &
+      RET=$?
   fi
+
+  # Bug 348198 - temporary patch
+  # Print processes and list of open ports, in case that selfserv fails.
+  if [ ${RET} -ne 0 && "${OS_NAME}" = "SunOS" ]; then
+      ps -ef 
+      netstat -af inet
+  fi
+
   # The PID $! returned by the MKS or Cygwin shell is not the PID of
   # the real background process, but rather the PID of a helper
   # process (sh.exe).  MKS's kill command has a bug: invoking kill
