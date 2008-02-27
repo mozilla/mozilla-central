@@ -143,10 +143,13 @@ static const int kSearchPluginRelatedItemsTag = 102;
   [searchMenu removeAllItemsWithTag:kSearchPluginRelatedItemsTag];
 
   if ([detectedSearchPlugins count] > 0) {
-
+    // In theory we should use menuFontOfSize:0, but AppKit (up through at least
+    // (10.5) will lie to us and say 13, so hard-code the correct value.
+    NSFont* boldMenuFont = [[NSFontManager sharedFontManager] convertFont:[NSFont menuFontOfSize:14.0]
+                                                              toHaveTrait:NSBoldFontMask];
     // Style the plugin menu items to make them stand out
-    NSDictionary* menuItemStringAttributes = [NSDictionary dictionaryWithObject:
-                                               [NSFont boldSystemFontOfSize:0] forKey:NSFontAttributeName];
+    NSDictionary* menuItemStringAttributes = [NSDictionary dictionaryWithObject:boldMenuFont
+                                                                         forKey:NSFontAttributeName];
 
     NSEnumerator* pluginEnumerator = [detectedSearchPlugins objectEnumerator];
     NSDictionary* searchPlugin;
