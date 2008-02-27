@@ -44,17 +44,11 @@
 #import "BrowserWindowController.h"
 #import "BrowserTabViewItem.h"
 #import "BrowserWrapper.h"
+#import "CHGradient.h"
 #import "NSView+Utils.h"
 
 const int kVerticalPadding = 25;
 const int kHorizontalPadding = 25;
-
-static CGColorSpaceRef sGenericGreyColorSpace = NULL;
-
-static void drawGradientBackground(CGContextRef context, NSRect rect);
-static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData);
-static void shadeBackground(CGContextRef context, NSRect rect);
-CGColorSpaceRef getTheGreyColorSpace(void);
 
 @interface TabThumbnailGridView (Private)
 - (void)updateGridSizeFor:(int)num;
@@ -81,8 +75,12 @@ CGColorSpaceRef getTheGreyColorSpace(void);
 
 - (void)drawRect:(NSRect)rect
 {
-  CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-  drawGradientBackground(context, [self frame]);
+  CHGradient* gradient =
+    [[[CHGradient alloc] initWithStartingColor:[NSColor colorWithDeviceWhite:(250.0/255.0)
+                                                                       alpha:1.0]
+                                   endingColor:[NSColor colorWithDeviceWhite:(200.0/255.0)
+                                                                       alpha:1.0]] autorelease];
+  [gradient drawInRect:[self bounds] angle:90.0];
 }
 
 #pragma mark Private
@@ -194,93 +192,6 @@ CGColorSpaceRef getTheGreyColorSpace(void);
     newY += kVerticalPadding + subviewHeight;
     rowCount++;
   }
-}
-
-#pragma mark Core Graphics
-
-//
-// Rotates the context and shades the background
-//
-static void drawGradientBackground(CGContextRef context, NSRect rect)
-{
-  CGContextSaveGState(context);
-  CGContextRotateCTM(context, M_PI/2);
-  shadeBackground(context,rect);
-  CGContextRestoreGState(context);
-}
-
-//
-// Callback function that calculates a grey gradient
-//
-static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
-{
-  float* grays = static_cast<float*>(inInfo);
-  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
-  outData[1] = 1.0;
-}
-
-//
-// Creates an axial shading and draws it to the context
-//
-static void shadeBackground(CGContextRef context, NSRect rect)
-{
-  CGFunctionRef axialFunction;
-  CGShadingRef shading;
-  CGPoint startPoint, endPoint;
-  bool extendStart, extendEnd;
-
-  float grays[2] = {250.0/255.0, 200.0/255.0};
-
-  struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
-  axialFunction = CGFunctionCreate(grays, 1, NULL, 2, NULL, &callbacks);
-
-  // The shading needs a function with 1 in and 4 outs
-  if (axialFunction == NULL)
-    return;
-
-  // X's and Y's are flipped due to the context being rotated
-  startPoint.x = 0;
-  startPoint.y = rect.size.width;
-  endPoint.x = rect.size.height;
-  endPoint.y = rect.size.width;
-
-  // Don't extend the shading, it's shady enough
-  extendStart = extendEnd = false;
-
-  shading = CGShadingCreateAxial(getTheGreyColorSpace(),
-                                 startPoint, endPoint, axialFunction, extendStart, extendEnd);
-
-  // axialFuncion begone!
-  CGFunctionRelease(axialFunction);
-
-  if (shading == NULL) {
-    NSLog(@"Couldn't create the shading!");
-    return;
-  }
-
-  // Draw then release
-  CGContextDrawShading(context, shading);
-  CGShadingRelease(shading);
-}
-
-//
-// Returns the current Generic Grey Color Space
-//
-CGColorSpaceRef getTheGreyColorSpace(void)
-{
-  if (sGenericGreyColorSpace == NULL) {
-
-    // If the kCGColorSpaceUserGray is available, use it
-    if (&kCGColorSpaceGenericGray != NULL) {
-      sGenericGreyColorSpace = CGColorSpaceCreateWithName(kCGColorSpaceGenericGray);
-
-      // If it's still NULL use the device grey
-      if (sGenericGreyColorSpace == NULL)
-        sGenericGreyColorSpace = CGColorSpaceCreateDeviceGray();
-    }
-  }
-
-  return sGenericGreyColorSpace;
 }
 
 @end

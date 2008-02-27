@@ -71,6 +71,8 @@
 		0098B29A0CAECEF500DA0F2F /* necko_file.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = 0098B2980CAECEBA00DA0F2F /* necko_file.xpt */; };
 		00A29E870BC9AA5B00BF313F /* tab_menu_button.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */; };
 		00A29E880BC9AA5B00BF313F /* tab_menu_button.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */; };
+		00BBBC850D66C13400C2D916 /* CHGradient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BBBC840D66C13400C2D916 /* CHGradient.m */; };
+		00BBBC860D66C13400C2D916 /* CHGradient.m in Sources */ = {isa = PBXBuildFile; fileRef = 00BBBC840D66C13400C2D916 /* CHGradient.m */; };
 		00BBBF1E0D6A149900C2D916 /* FindBarTextured.nib in Resources */ = {isa = PBXBuildFile; fileRef = 00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */; };
 		00BBBF1F0D6A149900C2D916 /* FindBarTextured.nib in Resources */ = {isa = PBXBuildFile; fileRef = 00BBBF1C0D6A149800C2D916 /* FindBarTextured.nib */; };
 		00BBBFE70D70A6E400C2D916 /* tab_loading.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 00BBBFE60D70A6E400C2D916 /* tab_loading.tiff */; };
@@ -2151,6 +2153,8 @@
 		0098B20C0CAEC6C600DA0F2F /* mimeTypes.rdf */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; name = mimeTypes.rdf; path = resources/application/mimeTypes.rdf; sourceTree = "<group>"; };
 		0098B2980CAECEBA00DA0F2F /* necko_file.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = necko_file.xpt; path = ../dist/bin/components/necko_file.xpt; sourceTree = SOURCE_ROOT; };
 		00A29E860BC9AA5B00BF313F /* tab_menu_button.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_menu_button.tiff; path = resources/images/chrome/tab_menu_button.tiff; sourceTree = SOURCE_ROOT; };
+		00BBBC830D66C13400C2D916 /* CHGradient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CHGradient.h; path = src/extensions/CHGradient.h; sourceTree = "<group>"; };
+		00BBBC840D66C13400C2D916 /* CHGradient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CHGradient.m; path = src/extensions/CHGradient.m; sourceTree = "<group>"; };
 		00BBBF1D0D6A149800C2D916 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/FindBarTextured.nib; sourceTree = "<group>"; };
 		00BBBFE60D70A6E400C2D916 /* tab_loading.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = tab_loading.tiff; path = chrome/tab_loading.tiff; sourceTree = "<group>"; };
 		032FFDCD077351A800440548 /* Downloads.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Downloads.h; sourceTree = "<group>"; };
@@ -3431,6 +3435,8 @@
 				DE74F7470AB25E7D00FD1D5B /* AppListMenuFactory.mm */,
 				0F7EAA9909326B860082C3EA /* AutoSizingTextField.h */,
 				0F7EAA9609326B770082C3EA /* AutoSizingTextField.m */,
+				00BBBC830D66C13400C2D916 /* CHGradient.h */,
+				00BBBC840D66C13400C2D916 /* CHGradient.m */,
 				F583E3C203B8228F01A80166 /* CHStackView.h */,
 				F583E3BF03B8228701A80166 /* CHStackView.m */,
 				F5FDF166031AF47301DE816D /* DraggableImageAndTextCell.h */,
@@ -5399,6 +5405,7 @@
 				DE963D1A0D43EFCF007D44EE /* FormFillPopup.mm in Sources */,
 				DE963D1B0D43EFCF007D44EE /* FormFillController.mm in Sources */,
 				DE963D1C0D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
+				00BBBC860D66C13400C2D916 /* CHGradient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5576,6 +5583,7 @@
 				DE963D1E0D43EFCF007D44EE /* FormFillPopup.mm in Sources */,
 				DE963D1F0D43EFCF007D44EE /* FormFillController.mm in Sources */,
 				DE963D200D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
+				00BBBC850D66C13400C2D916 /* CHGradient.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

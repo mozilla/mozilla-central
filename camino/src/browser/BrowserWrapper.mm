@@ -53,6 +53,7 @@
 #import "CHPermissionManager.h"
 #import "XMLSearchPluginParser.h"
 #import "FindBarController.h"
+#import "CHGradient.h"
 
 #include "CHBrowserService.h"
 #include "ContentClickListener.h"
@@ -1445,107 +1446,28 @@ enum StatusPriority {
 }
 
 //
-// CalculateShadingValues
-//
-// Callback function; Generates a color based upon
-// the current interval (location) of the shading.
-//
-static void CalculateShadingValues(void *info, const float *in, float *out)
-{
-  static float beginTopHalf[4] =    { 0.364706f, 0.364706f, 0.364706f, 1.0f };
-  static float endTopHalf[4] =      { 0.298039f, 0.298039f, 0.298039f, 1.0f };
-  static float beginBottomHalf[4] = { 0.207843f, 0.207843f, 0.207843f, 1.0f };
-  static float endBottomHalf[4] =   { 0.290196f, 0.290196f, 0.290196f, 1.0f };
-
-  float *startColor;
-  float *endColor;
-
-  // The interval is the sole item in the input array.
-  // It ranges from 0 - 1.0.
-  float currentInterval = in[0];
-
-  // Determine which shading to draw based upon the interval and adjust
-  // that interval so each shading contains a full range of 0 - 1.0.
-  if (currentInterval < 0.5f) {
-    startColor = beginTopHalf;
-    endColor = endTopHalf;
-    currentInterval /= 0.5f;
-  }
-  else {
-    startColor = beginBottomHalf;
-    endColor = endBottomHalf;
-    currentInterval = (currentInterval - 0.5f) / 0.5f;
-  }
-
-  // Using the interval, compute and set each color component (RGBa) output.
-  for(int i = 0; i < 4; i++)
-    out[i] = (1.0f - currentInterval) * startColor[i] + currentInterval * endColor[i];
-}
-
-//
 // -drawRect:
 //
 // Draws a shading behind the view's contents.
 //
 - (void)drawRect:(NSRect)aRect
 {
-  struct CGFunctionCallbacks shadingCallback = { 0, &CalculateShadingValues, NULL };
-
-  CGFunctionRef shadingFunction = CGFunctionCreate(NULL,              // void *info
-                                                   1,                 // number of inputs
-                                                   NULL,              // valid intervals of input values
-                                                   4,                 // number of outputs (4 = RGBa)
-                                                   NULL,              // valid intervals of output values
-                                                   &shadingCallback); // pointer to callback function
-
-  if (!shadingFunction) {
-    NSLog(@"Failed to create a shading function.");
-    return;
-  }
-
   NSRect bounds = [self bounds];
+  NSRect topHalf, bottomHalf;
+  NSDivideRect(bounds, &topHalf, &bottomHalf, ceilf(bounds.size.height / 2.0), NSMaxYEdge);
 
-  // Start/end at the top/bottom midpoint
-  CGPoint startPoint = CGPointMake(NSMidX(bounds), NSMaxY(bounds));
-  CGPoint endPoint = CGPointMake(NSMidX(bounds), NSMinY(bounds));
-
-  // To preserve 10.3 compatibility, create a color space
-  // using the CGColorSpaceCreateDeviceRGB function.
-
-  // CGColorSpaceCreateDeviceRGB has two possible behaviors:
-  // 1. On 10.3 or earlier it returns a device-dependent color space.
-  // 2. On 10.4 or later it will map to a generic (and more accurate)
-  //    device-independent color space.
-  CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-
-  if (!colorspace) {
-    NSLog(@"Failed to create a color space for the shading.");
-    CGFunctionRelease(shadingFunction);
-    return;
-  }
-
-  // Creates (but does not draw) the axial shading
-  CGShadingRef shading = CGShadingCreateAxial(colorspace,       // CGColorSpaceRef colorspace
-                                              startPoint,       // CGPoint start
-                                              endPoint,         // CGPoint end
-                                              shadingFunction,  // CGFunctionRef function
-                                              false,            // bool extendStart
-                                              false);           // bool extendEnd
-
-  if (!shading) {
-    NSLog(@"Failed to create the shading.");
-    CGFunctionRelease(shadingFunction);
-    CGColorSpaceRelease(colorspace);
-    return;
-  }
-
-  CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-
-  CGContextDrawShading(context, shading);
-
-  CGShadingRelease(shading);
-  CGColorSpaceRelease(colorspace);
-  CGFunctionRelease(shadingFunction);
+  CHGradient* topGradient =
+    [[[CHGradient alloc] initWithStartingColor:[NSColor colorWithDeviceWhite:0.364706
+                                                                       alpha:1.0]
+                                   endingColor:[NSColor colorWithDeviceWhite:0.298039
+                                                                       alpha:1.0]] autorelease];
+  CHGradient* bottomGradient =
+    [[[CHGradient alloc] initWithStartingColor:[NSColor colorWithDeviceWhite:0.207843
+                                                                       alpha:1.0]
+                                   endingColor:[NSColor colorWithDeviceWhite:0.290196
+                                                                       alpha:1.0]] autorelease];
+  [topGradient drawInRect:topHalf angle:270.0];
+  [bottomGradient drawInRect:bottomHalf angle:270.0];
 
   [super drawRect:aRect];
 }

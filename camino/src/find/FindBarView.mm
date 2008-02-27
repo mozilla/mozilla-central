@@ -38,6 +38,7 @@
 
 #import "FindBarView.h"
 #import "NSWorkspace+Utils.h"
+#import "CHGradient.h"
 
 @implementation FindBarView
 
@@ -45,13 +46,6 @@
 {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   [super dealloc];
-}
-
-static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
-{
-  float* grays = static_cast<float*>(inInfo);
-  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
-  outData[1] = 1.0;
 }
 
 - (void)viewDidMoveToWindow
@@ -79,31 +73,19 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
   // ususally work, but it is how the OS draws the status bar, and since the
   // find bar lives at the bottom of the window it looks better to match that.
   if ([NSWorkspace isLeopardOrHigher] && [[self window] isMainWindow]) {
-    float grays[2] = {207.0/255.0, 233.0/255.0};
+    NSColor* startColor = [NSColor colorWithDeviceWhite:(233.0/255.0) alpha:1.0];
+    NSColor* endColor = [NSColor colorWithDeviceWhite:(207.0/255.0) alpha:1.0];
     
     NSRect bounds = [self bounds];
-    bounds.size.height -= 1.0;
+    NSRect gradientRect = NSMakeRect(aRect.origin.x, 0,
+                                     aRect.size.width, bounds.size.height - 1.0);
     
-    struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
-    CGFunctionRef function = CGFunctionCreate(grays, 1, NULL, 2, NULL,
-                                              &callbacks);
-    
-    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceGray();
-    CGShadingRef shading = CGShadingCreateAxial(colorspace,
-                                                CGPointMake(NSMinX(aRect),
-                                                            NSMinY(bounds)),
-                                                CGPointMake(NSMinX(aRect),
-                                                            NSMaxY(bounds)),
-                                                function, false, false);
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-    
-    CGContextDrawShading(context, shading);
-    
-    CGShadingRelease(shading);
-    CGColorSpaceRelease(colorspace);
-    CGFunctionRelease(function);
+    CHGradient* backgroundGradient =
+    [[[CHGradient alloc] initWithStartingColor:startColor
+                                   endingColor:endColor] autorelease];
+    [backgroundGradient drawInRect:gradientRect angle:270.0];
   }
-  
+
   [super drawRect:aRect];
 
   // optimize drawing a bit so we're not *always* redrawing our top header. Only

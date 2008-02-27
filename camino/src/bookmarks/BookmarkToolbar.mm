@@ -49,6 +49,7 @@
 #import "BrowserWindow.h"
 #import "Bookmark.h"
 #import "BookmarkFolder.h"
+#import "CHGradient.h"
 #import "NSPasteboard+Utils.h"
 #import "NSBezierPath+Utils.h"
 #import "NSWorkspace+Utils.h"
@@ -151,13 +152,6 @@ static const int kBMBarScanningStep = 5;
   }
 }
 
-static void VerticalGrayGradient(void* inInfo, float const* inData, float* outData)
-{
-  float* grays = static_cast<float*>(inInfo);
-  outData[0] = (1.0-inData[0])*grays[0] + inData[0]*grays[1];
-  outData[1] = 1.0;
-}
-
 //
 // -drawBackgroundInRect:
 //
@@ -177,37 +171,25 @@ static void VerticalGrayGradient(void* inInfo, float const* inData, float* outDa
   if (isLeopardOrHigher ||
       ([browserWin hasUnifiedToolbarAppearance] && [browserWin isMainWindow]))
   {
-    float grays[2];
+    NSColor* startColor;
+    NSColor* endColor;
     if (isLeopardOrHigher) {
-      grays[0] = 233.0/255.0;
-      grays[1] = 207.0/255.0;
+      startColor = [NSColor colorWithDeviceWhite:(233.0/255.0) alpha:1.0];
+      endColor = [NSColor colorWithDeviceWhite:(207.0/255.0) alpha:1.0];
     }
     else {
-      grays[0] = 235.0/255.0;
-      grays[1] = 214.0/255.0;
+      startColor = [NSColor colorWithDeviceWhite:(235.0/255.0) alpha:1.0];
+      endColor = [NSColor colorWithDeviceWhite:(214.0/255.0) alpha:1.0];
     }
 
     NSRect bounds = [self bounds];
-    bounds.size.height -= 1.0;
+    NSRect gradientRect = NSMakeRect(rect.origin.x, 0,
+                                     rect.size.width, bounds.size.height - 1.0);
 
-    struct CGFunctionCallbacks callbacks = {0, VerticalGrayGradient, NULL};
-    CGFunctionRef function = CGFunctionCreate(grays, 1, NULL, 2, NULL,
-                                              &callbacks);
-
-    CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceGray();
-    CGShadingRef shading = CGShadingCreateAxial(colorspace,
-                                                CGPointMake(NSMinX(rect),
-                                                            NSMinY(bounds)),
-                                                CGPointMake(NSMinX(rect),
-                                                            NSMaxY(bounds)),
-                                                function, false, false);
-    CGContextRef context = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
-
-    CGContextDrawShading(context, shading);
-
-    CGShadingRelease(shading);
-    CGColorSpaceRelease(colorspace);
-    CGFunctionRelease(function);
+    CHGradient* backgroundGradient =
+      [[[CHGradient alloc] initWithStartingColor:startColor
+                                     endingColor:endColor] autorelease];
+    [backgroundGradient drawInRect:gradientRect angle:90.0];
   }
 }
 
