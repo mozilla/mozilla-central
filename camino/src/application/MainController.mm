@@ -112,6 +112,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)setupStartpage;
 - (void)setupRendezvous;
 - (void)checkDefaultBrowser;
+- (void)checkForProblemAddOns;
 - (BOOL)bookmarksItemsEnabled;
 - (void)adjustBookmarkMenuItems;
 - (void)updateDockMenuBookmarkFolder;
@@ -357,6 +358,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 {
   [self ensureInitializationCompleted];
 
+  [self checkForProblemAddOns];
+
   // open a new browser window if we don't already have one or we have a specific
   // start URL we need to show
   NSWindow* browserWindow = [self frontmostBrowserWindow];
@@ -569,6 +572,52 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
       [[PreferenceManager sharedInstance] setPref:"camino.check_default_browser" toBoolean:!dontAskAgain];
       [controller release];
+    }
+  }
+}
+
+- (void)checkForProblemAddOns
+{
+  // See if we need to show the once-per-release warning about problem add-ons.
+  PreferenceManager* prefManager = [PreferenceManager sharedInstance];
+  NSString* vendorSubString = [prefManager getStringPref:"general.useragent.vendorSub" withSuccess:NULL];
+  if ([vendorSubString rangeOfString:@"pre"].location == NSNotFound) {
+    NSString* lastWarningVersion = [prefManager getStringPref:"camino.last_addon_check_version"
+                                                 withSuccess:NULL];
+    if (![vendorSubString isEqualToString:lastWarningVersion]) {
+      // Check by class for each of the add-ons that are known to have
+      // problematic versions in the wild.
+      NSDictionary* problemAddOns = [NSDictionary dictionaryWithObjectsAndKeys:
+                                      @"CaminoSession", @"CaminoSession",
+                                          @"1Password", @"InputManager", // Yes, that's really the class name
+                                        @"GrowlCamino", @"GrowlCamino",
+                                        @"UnifyCamino", @"UnifyCamino",
+                                                        nil];
+      NSMutableArray* addOnsPresent = [NSMutableArray array];
+      NSEnumerator* classNameEnumerator = [[problemAddOns allKeys] objectEnumerator];
+      NSString* className;
+      while ((className = [classNameEnumerator nextObject])) {
+        if (NSClassFromString(className))
+          [addOnsPresent addObject:[problemAddOns objectForKey:className]];
+      }
+      if ([addOnsPresent count] > 0) {
+        NSString* warningText =
+          [NSString stringWithFormat:NSLocalizedString(@"ProblematicAddOnWarningMessage", nil),
+            [addOnsPresent componentsJoinedByString:@"\n\t"],
+            vendorSubString];
+        NSAlert* addOnAlert = [[[NSAlert alloc] init] autorelease];
+        [addOnAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
+        [addOnAlert setMessageText:NSLocalizedString(@"ProblematicAddOnWarningTitle", nil)];
+        [addOnAlert setInformativeText:warningText];
+        [addOnAlert setAlertStyle:NSWarningAlertStyle];
+        
+        // It should be impossible for a menu to be open so soon, but this
+        // should be called before displaying any modal dialogs.
+        [NSMenu cancelAllTracking];
+        [addOnAlert runModal];
+      }
+
+      [prefManager setPref:"camino.last_addon_check_version" toString:vendorSubString];
     }
   }
 }

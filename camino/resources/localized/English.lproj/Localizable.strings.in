@@ -25,6 +25,9 @@
 "RequiredVersionNotMetTitle" = "Cannot Launch %@";
 "RequiredVersionNotMet" = "%@ requires Mac OS X 10.4 or higher.";
 
+"ProblematicAddOnWarningTitle" = "Unsupported Add-Ons Detected";
+"ProblematicAddOnWarningMessage" = "The following unsupported third-party add-ons are currently installed:\n\t%1$@\n\nSome versions of these add-ons are known to be incompatible with current versions of Camino and could cause serious problems, including crashes and inability to open web pages. The versions you are using may not have been tested with Camino %2$@, and may cause Camino to behave incorrectly.\n\nIf you experience any problems with Camino, please try uninstalling these add-ons.";
+
 /* Restoring saved session after crash dialog */
 "RestoreAfterCrashTitle" = "Restore previous pages?";
 "RestoreAfterCrashMessage" = "Your last Camino session closed unexpectedly.  Would you like to restore the web pages you were previously viewing?";
