@@ -46,9 +46,13 @@ add_makefiles "
   suite/debugQA/Makefile
   suite/debugQA/locales/Makefile
   suite/common/Makefile
+  suite/common/public/Makefile
+  suite/common/src/Makefile
   suite/installer/Makefile
   suite/installer/windows/Makefile
   suite/locales/Makefile
+  suite/modules/Makefile
+  suite/modules/test/Makefile
   suite/profile/Makefile
   suite/profile/migration/Makefile
   suite/profile/migration/public/Makefile
