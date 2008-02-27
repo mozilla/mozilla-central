@@ -318,6 +318,8 @@
          file="${objdir}/java/dom/jni/${so.prefix}javadomjni.${jni.extension}" />
     <copy todir="${dist.home}/bin/${platform}/bin" 
           file="${objdir}/java/webclient/src_moz/${so.prefix}${name}.${jni.extension}" />
+    <copy todir="${dist.home}/lib" 
+          file="${basedir}/../external/MozillaInterfaces.jar" />
 
   </target>
 
