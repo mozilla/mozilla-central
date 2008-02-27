@@ -24,6 +24,7 @@ Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
 Ext.data.Connection.timeout = 120000;
 Ext.Updater.defaults.timeout = 120000;
 Ext.Ajax.timeout = 120000;
+
 //check column widget
 Ext.grid.CheckColumn = function(config){
     Ext.apply(this, config);
@@ -138,24 +139,24 @@ TestopiaUtil = function(){
     this.addOption = addOption;
     var fillSelects = function(data){
       for (i in data.selectTypes){
-        try{
-          document.getElementById(data.selectTypes[i]).options.length = 0;
-          for (j in data[data.selectTypes[i]]){
-            if (j == 'remove'){
-              continue;
+        if (typeof data.selectTypes[i] != 'function'){
+            try{
+              document.getElementById(data.selectTypes[i]).options.length = 0;
+              for (j in data[data.selectTypes[i]]){
+                if (typeof data[data.selectTypes[i]][j] != 'function'){
+                    var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j]);
+                    addOption(document.getElementById(data.selectTypes[i]),newOption);
+                }
+              }
+              document.getElementById(data.selectTypes[i]).disabled = false;
             }
-            var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j]);
-            addOption(document.getElementById(data.selectTypes[i]),newOption);
-          }
-          document.getElementById(data.selectTypes[i]).disabled = false;
+            catch(err){}
         }
-        catch(err){}
       }
     };
     this.fillSelects = fillSelects;
     this.onProductSelection = function(prod){
         var ids = [];
-    
         for (var i=0; i<prod.options.length; i++){
           if (prod.options[i].selected === true){
             ids.push(prod.options[i].value);

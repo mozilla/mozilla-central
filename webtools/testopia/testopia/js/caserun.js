@@ -155,7 +155,9 @@ CaseRunFilter = function (){
                     url: 'tr_process_run.cgi',
                     params: params,
                     success: function(){
+                        Ext.getCmp('run_east_panel').activate('run_filter_grid');
                         Ext.getCmp('run_filter_grid').store.reload();
+                        TestopiaUtil.notify.msg('Filter Saved', 'Added filter {0}', params.query_name);
                     },
                     failure: testopiaError
                 });
