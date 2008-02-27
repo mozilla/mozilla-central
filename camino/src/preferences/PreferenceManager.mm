@@ -40,6 +40,7 @@
 
 #import <Sparkle/Sparkle.h>
 
+#import "NSArray+Utils.h"
 #import "NSString+Gecko.h"
 #import "NSWorkspace+Utils.h"
 
@@ -675,7 +676,22 @@ static BOOL gMadePrefManager;
     // Append the parameters we might be interested in.
     NSString* intlUAString = [self getStringPref:"general.useragent.extra.multilang"
                                      withSuccess:NULL];
-    manifestURL = [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d",
+    NSArray* languages = [[NSBundle mainBundle] localizations];
+    NSString* currentLanguage = [[NSBundle preferredLocalizationsFromArray:languages] firstObject];
+    if (currentLanguage) {
+      // Once 10.4+, use +[NSLocale canonicalLocaleIdentifierFromString:]
+      CFStringRef canonicalLanguage =
+        CFLocaleCreateCanonicalLocaleIdentifierFromString(kCFAllocatorDefault,
+                                                          (CFStringRef)currentLanguage);
+      if (canonicalLanguage) {
+        currentLanguage = [NSString stringWithString:(NSString*)canonicalLanguage];
+        CFRelease(canonicalLanguage);
+      }
+    }
+    else {
+      currentLanguage = @"en";
+    }
+    manifestURL = [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d&lang=%@",
                    baseURL,
                    [NSWorkspace osVersionString],
 #if defined(__ppc__)
@@ -686,7 +702,8 @@ static BOOL gMadePrefManager;
 #error Unknown Architecture
 #endif
                    [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
-                   ([intlUAString length] ? 1 : 0)];
+                   ([intlUAString length] ? 1 : 0),
+                   currentLanguage];
   }
   [defaults setObject:manifestURL forKey:SUFeedURLKey];
 
