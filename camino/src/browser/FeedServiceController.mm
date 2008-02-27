@@ -44,7 +44,6 @@
 @interface FeedServiceController(Private)
 
 -(void)buildFeedAppsPopUp;
--(void)setDefaultFeedViewerWithIdentifier:(NSString*)inBundleID;
 -(void)shouldWarnWhenOpeningFeed:(BOOL)inState;
 -(void)showNotifyOpenExternalFeedAppModal:(NSWindow*)inParentWindow;
 -(void)showNotifyNoFeedAppFoundModal:(NSWindow*)inParentWindow;
@@ -114,7 +113,7 @@ static FeedServiceController* sInstance = nil;
     if (!appBundle)
       return;
     
-    [self setDefaultFeedViewerWithIdentifier:[appBundle bundleIdentifier]];
+    [[NSWorkspace sharedWorkspace] setDefaultFeedViewerWithIdentifier:[appBundle bundleIdentifier]];
     
     [self buildFeedAppsPopUp];
   }
@@ -146,7 +145,7 @@ static FeedServiceController* sInstance = nil;
         [[NSUserDefaults standardUserDefaults] setObject:userChosenBundleIDs forKey:kUserChosenFeedViewerUserDefaultsKey];
       }
       // set the default feed viewer
-      [self setDefaultFeedViewerWithIdentifier:chosenBundleID];
+      [[NSWorkspace sharedWorkspace] setDefaultFeedViewerWithIdentifier:chosenBundleID];
       
       // Open the URL with the freshly selected application
       [[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:mFeedURI]];
