@@ -159,7 +159,7 @@ nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
   }
   rv = inputStream->Close();
 
-  if (!more)
+  if (more)
   {
     IMPORT_LOG0( "*** Error reading the address book, didn't reach the end\n");
     return( NS_ERROR_FAILURE);
