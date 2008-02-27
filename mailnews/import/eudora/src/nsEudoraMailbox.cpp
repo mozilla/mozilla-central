@@ -391,9 +391,10 @@ nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
   IMPORT_LOG0( "Importing mailbox using TOC: ");
   DUMP_FILENAME( tocFile, PR_TRUE);
 
-  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(tocInputStream);
+  nsCOMPtr <nsISeekableStream> tocSeekableStream = do_QueryInterface(tocInputStream);
+  nsCOMPtr <nsISeekableStream> mailboxSeekableStream = do_QueryInterface(pInputStream);
   while (!*pAbort && (tocOffset < (PRInt32)tocSize)) {
-    if ( NS_FAILED(rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, tocOffset)) )
+    if ( NS_FAILED(rv = tocSeekableStream->Seek(nsISeekableStream::NS_SEEK_SET, tocOffset)) )
       break;
 
     if ( NS_FAILED(rv = ReadTOCEntry(tocInputStream, tocEntry)) )
@@ -404,6 +405,9 @@ nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
     nsCString              defaultDate;
     nsCAutoString            bodyType;
     ReadFileState            state;
+
+    // Seek to the start of the email message.
+    mailboxSeekableStream->Seek(nsISeekableStream::NS_SEEK_SET, tocEntry.m_Offset);
 
     // We're fudging the data to make ReadNextMessage happy. In particular
     // state.size is meant to be the size of the entire file, because it's
