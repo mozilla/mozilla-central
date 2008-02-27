@@ -1596,7 +1596,7 @@ nsXFormsUtils::CheckSameOrigin(nsIDocument   *aBaseDocument,
   NS_ENSURE_TRUE(permMgr, PR_FALSE);
 
   nsCOMPtr<nsIURI> principalURI;
-  rv = basePrincipal->GetURI(getter_AddRefs(principalURI));
+  rv = aBaseDocument->NodePrincipal()->GetURI(getter_AddRefs(principalURI));
 
   if (NS_SUCCEEDED(rv)) {
     PRUint32 perm;
