@@ -893,7 +893,7 @@ nsSchemaLoader::ProcessSchemaElement(nsIDOMElement* aElement,
       // a principal same origin check.
 
       // do a same origin check on the principal
-      rv = doc->NodePrincipal()->CheckMayLoad(uri);
+      rv = doc->NodePrincipal()->CheckMayLoad(uri, PR_TRUE);
       if (NS_FAILED(rv))
         continue;
 

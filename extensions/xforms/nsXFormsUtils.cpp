@@ -1584,7 +1584,7 @@ nsXFormsUtils::CheckSameOrigin(nsIDocument   *aBaseDocument,
   NS_ASSERTION(aBaseDocument && aTestURI, "Got null parameters?!");
 
   // do a same original check on the principal
-  rv = aBaseDocument->NodePrincipal()->CheckMayLoad(aTestURI);
+  rv = aBaseDocument->NodePrincipal()->CheckMayLoad(aTestURI, PR_FALSE);
   if (NS_SUCCEEDED(rv))
     return PR_TRUE;
 
