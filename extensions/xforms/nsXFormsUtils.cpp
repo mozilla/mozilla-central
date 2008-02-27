@@ -1583,10 +1583,21 @@ nsXFormsUtils::CheckSameOrigin(nsIDocument   *aBaseDocument,
 
   NS_ASSERTION(aBaseDocument && aTestURI, "Got null parameters?!");
 
-  // do a same original check on the principal
-  rv = aBaseDocument->NodePrincipal()->CheckMayLoad(aTestURI);
-  if (NS_SUCCEEDED(rv))
-    return PR_TRUE;
+  // check the security manager and do a same original check on the principal
+  nsIPrincipal* basePrincipal = aBaseDocument->NodePrincipal();
+  nsCOMPtr<nsIScriptSecurityManager> secMan =
+    do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
+  if (secMan) {
+    // get a principal for the uri we are testing
+    nsCOMPtr<nsIPrincipal> testPrincipal;
+    rv = secMan->GetCodebasePrincipal(aTestURI, getter_AddRefs(testPrincipal));
+
+    if (NS_SUCCEEDED(rv)) {
+      rv = secMan->CheckSameOriginPrincipal(basePrincipal, testPrincipal);
+      if (NS_SUCCEEDED(rv))
+        return PR_TRUE;
+    }
+  }
 
   // else, check with the permission manager to see if this host is
   // permitted to access sites from other domains.

@@ -939,8 +939,18 @@ nsSchemaLoader::ProcessSchemaElement(nsIDOMElement* aElement,
       nsIPrincipal *basePrincipal = doc->NodePrincipal();
       NS_ENSURE_STATE(basePrincipal);
 
-      // Do a same origin check on the principal
-      rv = basePrincipal->CheckMayLoad(uri, PR_TRUE);
+      // check the security manager and do a same original check on the principal
+      nsCOMPtr<nsIScriptSecurityManager> secMan =
+        do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID);
+      NS_ENSURE_STATE(secMan);
+
+      // get a principal for the uri we are testing
+      nsCOMPtr<nsIPrincipal> testPrincipal;
+      rv = secMan->GetCodebasePrincipal(uri, getter_AddRefs(testPrincipal));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      rv = secMan->CheckSameOriginPrincipal(basePrincipal, testPrincipal);
+      // if not allowed, continue onwards
       if (NS_FAILED(rv))
         continue;
 
