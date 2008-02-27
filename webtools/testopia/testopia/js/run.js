@@ -233,6 +233,7 @@ RunGrid = function(params, cfg){
 
 Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
     onContextClick: function(grid, index, e){
+        grid.selindex = index;
         if(!this.menu){ // create context menu on first right click
             this.menu = new Ext.menu.Menu({
                 id:'run-ctx-menu',
@@ -322,7 +323,7 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                 },{
                     text: 'View Test Run in a New Tab',
                     handler: function(){
-                        window.open('tr_show_run.cgi?run_id=' + grid.store.getAt(index).get('run_id'));
+                        window.open('tr_show_run.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
                     }
                 }]
             });

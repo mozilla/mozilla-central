@@ -180,6 +180,7 @@ PlanGrid = function(params,cfg){
 
 Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
     onContextClick: function(grid, index, e){
+        grid.selindex = index;
         if(!this.menu){ // create context menu on first right click
             this.menu = new Ext.menu.Menu({
                 id:'plan-ctx-menu',
@@ -278,7 +279,7 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                 },{
                     text: 'View Test Plan in a New Tab',
                     handler: function(){
-                        window.open('tr_show_plan.cgi?plan_id=' + grid.store.getAt(index).get('plan_id'));
+                        window.open('tr_show_plan.cgi?plan_id=' + grid.store.getAt(grid.selindex).get('plan_id'));
                     }
                 }]
             });

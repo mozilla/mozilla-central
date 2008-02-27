@@ -256,6 +256,7 @@ CaseGrid = function(params, cfg){
 
 Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
     onContextClick: function(grid, index, e){
+        grid.selindex = index;
         if(!this.menu){ // create context menu on first right click
             this.menu = new Ext.menu.Menu({
                 id:'case_list_ctx_menu',
@@ -537,7 +538,7 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                 },{
                     text: 'View Test Case in a New Tab',
                     handler: function(){
-                        window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(index).get('case_id'));
+                        window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(grid.selindex).get('case_id'));
                     }
                 }]
             });
