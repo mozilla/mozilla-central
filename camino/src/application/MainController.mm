@@ -1001,7 +1001,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // MainController is the target of the "Check for Updates..." menu item
   // instead of SUUpdater solely to allow MainController to participate in
   // NSMenuValidation for the menu item.
-  return [mAutoUpdater checkForUpdates:sender];
+  [mAutoUpdater checkForUpdates:sender];
 }
 
 - (IBAction)displayPreferencesWindow:(id)sender
