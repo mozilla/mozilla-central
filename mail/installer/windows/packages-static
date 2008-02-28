@@ -190,6 +190,7 @@ bin\components\content_xslt.xpt
 bin\components\xultmpl.xpt
 bin\components\xuldoc.xpt
 bin\components\xulapp.xpt
+bin\components\inspector.xpt
 
 ; Imaging:
 bin\components\imgicon.xpt
