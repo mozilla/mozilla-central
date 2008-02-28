@@ -12,7 +12,8 @@ import minjson as json
 
 import cStringIO
 
-from graphsdb import db
+from graphsdb import dbr
+
 #
 # All objects are returned in the form:
 # {
@@ -74,7 +75,7 @@ def doGetList(fo, type, branch, machine, testname):
       s1 = "SELECT DISTINCT machine FROM dataset_info"
     if testname:
       s1 = "SELECT DISTINCT test FROM dataset_info"
-    cur = db.cursor()
+    cur = dbr.cursor()
     cur.execute(s1 + " WHERE type = ?", (type,))
     for row in cur:
         results.append({ "value": row[0] })
@@ -93,7 +94,7 @@ def doListTests(fo, type, datelimit, branch, machine, testname, graphby):
     if testname:
        s1 += " AND test = '" + testname + "' "
    
-    cur = db.cursor()
+    cur = dbr.cursor()
     if graphby and graphby == 'bydata':
         cur.execute("SELECT id, machine, test, test_type, dataset_extra_data.data, extra_data, branch FROM dataset_extra_data JOIN dataset_info ON dataset_extra_data.dataset_id = dataset_info.id WHERE type = ? AND test_type != ? and (date >= ?) " + s1 +" GROUP BY machine,test,test_type,dataset_extra_data.data, extra_data, branch", (type, "baseline", datelimit))
     else:
@@ -141,7 +142,7 @@ def doSendAllResults(fo, setids):
     datasets = {} 
     data = {}
     fo.write ("{ resultcode: 0,")
-    cur = db.cursor()
+    cur = dbr.cursor()
     setids = [ int(x) for x in setids.split(",") ] 
 
     datasets[setids[0]] = {}
@@ -184,7 +185,7 @@ def doSendAllResults(fo, setids):
     fo.write ("],")
     fo.write("stats: {")
     for x in setids:
-        cur = db.cursor()
+        cur = dbr.cursor()
         cur.execute("SELECT avg(value), max(value), min(value) from dataset_values where dataset_id = ?  GROUP BY dataset_id", (x,))
         for row in cur:
             fo.write("'%s': [%s, %s, %s,]," %(x,row[0], row[1], row[2]))
@@ -203,7 +204,7 @@ def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
 
     fo.write ("{ resultcode: 0,")
 
-    cur = db.cursor()
+    cur = dbr.cursor()
     if not graphby or graphby == "time": 
         cur.execute("SELECT time, value FROM dataset_values WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
     else:
@@ -216,7 +217,7 @@ def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
     cur.close()
     fo.write ("],")
 
-    cur = db.cursor()
+    cur = dbr.cursor()
     cur.execute("SELECT time, value FROM annotations WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
     fo.write ("annotations: [")
     for row in cur:
@@ -224,7 +225,7 @@ def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
     cur.close()
     fo.write ("],")
 
-    cur = db.cursor()
+    cur = dbr.cursor()
     cur.execute("SELECT test FROM dataset_info WHERE id = ?", (setid,))
     row = cur.fetchone()
     test_name = row[0]
@@ -241,7 +242,7 @@ def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
     cur.close()
 
     if raw:
-        cur = db.cursor()
+        cur = dbr.cursor()
         cur.execute("SELECT time, data FROM dataset_extra_data WHERE dataset_id = ? " + s1 + s2 + " ORDER BY time", (setid,))
         fo.write ("rawdata: [")
         for row in cur:
@@ -254,7 +255,7 @@ def doSendResults(fo, setid, starttime, endtime, raw, graphby, extradata=None):
         cur.close()
         fo.write ("],")
 
-    cur = db.cursor()
+    cur = dbr.cursor()
     cur.execute("SELECT avg(value), max(value), min(value) from dataset_values where dataset_id = ? " + s1 + s2 + " GROUP BY dataset_id", (setid,))
     fo.write("stats: [")
     for row in cur:
