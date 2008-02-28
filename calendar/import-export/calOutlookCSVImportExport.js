@@ -481,9 +481,9 @@ function csv_exportToStream(aStream, aCount, aItems) {
             line.push("");
             line.push("");
         }
-        line.push(item.getProperty("CATEGORIES"));
-        line.push(item.getProperty("DESCRIPTION"));
-        line.push(item.getProperty("LOCATION"));
+        line.push(txtString(item.getProperty("CATEGORIES")));
+        line.push(txtString(item.getProperty("DESCRIPTION")));
+        line.push(txtString(item.getProperty("LOCATION")));
         line.push((item.privacy=="PRIVATE") ? localeEn.valueTrue : localeEn.valueFalse);
 
         line = line.map(function(v) {
@@ -503,4 +503,12 @@ function dateString(aDateTime) {
 
 function timeString(aDateTime) {
     return aDateTime.jsDate.toLocaleFormat(localeEn.timeFormat);
+}
+
+function txtString(aString) {
+    if (aString) {
+        return aString;
+    } else {
+        return "";
+    }
 }
