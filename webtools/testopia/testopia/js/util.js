@@ -1208,7 +1208,17 @@ TestopiaUpdateMultiple = function(type, params, grid){
             grid.store.reload({
                 callback: function(){
                     if (grid.selectedRows){
-                        grid.getSelectionModel().selectRows(grid.selectedRows);
+                        var sm = grid.getSelectionModel();
+                        var sel = [];
+                        for (var i=0; i < grid.selectedRows.length; i++){
+                            var index = grid.store.find('case_id',grid.selectedRows[i]);
+                            if (index >= 0)
+                            sel.push(index);
+                        }
+                        sm.selectRows(sel);
+                        if (sm.getCount() < 1){
+                            Ext.getCmp('case_details_panel').disable();
+                        }
                     }
                 }
             });

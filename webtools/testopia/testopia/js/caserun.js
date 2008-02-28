@@ -76,7 +76,7 @@ CaseRunPanel = function(params, run){
         var sel = [];
         for (var i=0; i< sm.grid.store.data.items.length; i++){
             if (sm.grid.getSelectionModel().isSelected(i)){
-                sel.push(i);
+                sel.push(sm.grid.store.getAt(i).get('case_id'));
             }
         }
         sm.grid.selectedRows = sel;
@@ -186,7 +186,7 @@ CaseRunListGrid = function(params, cfg){
     this.params = params;
     this.store = new Ext.data.GroupingStore({
         url: 'tr_list_caseruns.cgi',
-        baseParams: {ctype: 'json', viewall:1},
+        baseParams: {ctype: 'json', viewall:1, isactive:1},
         reader: new Ext.data.JsonReader({
             totalProperty: 'totalResultsAvailable',
             root: 'Result',
@@ -892,6 +892,7 @@ CaseRun = function(){
         });
     };
     CaseRun.superclass.constructor.call(this,{
+        id: 'case_details_panel',
         layout: 'fit',
         region: 'south',
         split: true,
