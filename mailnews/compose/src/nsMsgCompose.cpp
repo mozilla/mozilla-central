@@ -2780,12 +2780,10 @@ QuotingOutputStreamListener::InsertToCompose(nsIEditor *aEditor,
       aEditor->GetSelectionController(getter_AddRefs(selCon));
 
       if (selCon)
-        // After ScrollSelectionIntoView(), the pending notifications might be
-        // flushed and PresShell/PresContext/Frames may be dead. See bug 418470.
         selCon->ScrollSelectionIntoView(
                   nsISelectionController::SELECTION_NORMAL,
                   nsISelectionController::SELECTION_ANCHOR_REGION,
-                  PR_TRUE);
+                  PR_FALSE);
     }
   }
 

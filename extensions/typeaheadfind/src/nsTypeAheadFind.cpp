@@ -716,9 +716,6 @@ nsTypeAheadFind::KeyPress(nsIDOMEvent* aEvent)
     // 1) Chrome, 2) Typeahead, 3) [platform]HTMLBindings.xml
     // If chrome handles backspace, it needs to do this work
     // Otherwise, we handle backspace here.
-
-    // Beware! This may flush notifications via synchronous
-    // ScrollSelectionIntoView.
     PRBool backspaceUsed;
     BackOneChar(&backspaceUsed);
     if (backspaceUsed) {
@@ -747,8 +744,6 @@ nsTypeAheadFind::KeyPress(nsIDOMEvent* aEvent)
   // We're using this key, no one else should
   aEvent->PreventDefault();
 
-  // Beware! This may flush notifications via synchronous
-  // ScrollSelectionIntoView.
   return HandleChar(charCode);
 }
 
@@ -872,8 +867,6 @@ nsTypeAheadFind::BackOneChar(PRBool *aIsBackspaceUsed)
 
   // ----------- Perform the find ------------------
   mIsFindingText = PR_TRUE; // so selection won't call CancelFind()
-  // Beware! This may flush notifications via synchronous
-  // ScrollSelectionIntoView.
   if (NS_FAILED(FindItNow(presShell, findBackwards, mLinksOnly, PR_FALSE))) {
     DisplayStatus(PR_FALSE, nsnull, PR_FALSE); // Display failure status
   }
@@ -992,8 +985,6 @@ nsTypeAheadFind::HandleChar(PRUnichar aChar)
       // Regular find, not repeated char find
 
       // Prefer to find exact match
-      // Beware! This may flush notifications via synchronous
-      // ScrollSelectionIntoView.
       rv = FindItNow(nsnull, PR_FALSE, mLinksOnly, mIsFirstVisiblePreferred);
     }
 
@@ -1002,8 +993,6 @@ nsTypeAheadFind::HandleChar(PRUnichar aChar)
         mTypeAheadBuffer.Length() > 1) {
       mRepeatingMode = eRepeatingChar;
       mDontTryExactMatch = PR_TRUE;  // Repeated character find mode
-      // Beware! This may flush notifications via synchronous
-      // ScrollSelectionIntoView.
       rv = FindItNow(nsnull, PR_TRUE, PR_TRUE, mIsFirstVisiblePreferred);
     }
 #endif
@@ -1211,8 +1200,6 @@ nsTypeAheadFind::HandleEndComposition(nsIDOMEvent* aCompositionEvent)
 
   // Handle the characters one at a time
   while (iter != iterEnd) {
-    // Beware! This may flush notifications via synchronous
-    // ScrollSelectionIntoView.
     if (NS_FAILED(HandleChar(*iter))) {
       // Character not found, exit loop early
       break;
@@ -1400,12 +1387,10 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell,
       // Select the found text and focus it
       mFocusedDocSelection->RemoveAllRanges();
       mFocusedDocSelection->AddRange(returnRange);
-      // After ScrollSelectionIntoView(), the pending notifications might be
-      // flushed and PresShell/PresContext/Frames may be dead. See bug 418470.
       mFocusedDocSelCon->ScrollSelectionIntoView(
                            nsISelectionController::SELECTION_NORMAL,
                            nsISelectionController::SELECTION_FOCUS_REGION,
-                           PR_TRUE);
+                           PR_FALSE);
       SetSelectionLook(presShell, PR_TRUE, mRepeatingMode != eRepeatingForward 
                                            && mRepeatingMode != eRepeatingReverse);
 
@@ -1845,8 +1830,6 @@ nsTypeAheadFind::FindNext(PRBool aFindBackwards, nsISupportsInterfacePointer *aC
 
   mIsFindingText = PR_TRUE; // prevent our listeners from calling CancelFind()
 
-  // Beware! This may flush notifications via synchronous
-  // ScrollSelectionIntoView.
   if (NS_FAILED(FindItNow(nsnull, repeatingSameChar, mLinksOnly, PR_FALSE))) {
     DisplayStatus(PR_FALSE, nsnull, PR_FALSE); // Display failure status
     mRepeatingMode = eRepeatingNone;
