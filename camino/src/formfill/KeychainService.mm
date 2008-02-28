@@ -819,7 +819,7 @@ KeychainPrompt::ExtractRealmComponents(NSString* inRealmBlob, NSString** outHost
     return;
   *outHost = nil;
   *outRealm = nil;
-  *outPort = -1;
+  *outPort = kAnyPort;
 
   // first check for an ftp url and pull out the server from the realm
   if ([inRealmBlob rangeOfString:@"ftp://"].location != NSNotFound) {
