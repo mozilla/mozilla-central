@@ -385,12 +385,12 @@ function createNewEvent(aEvent) {
     if (aEvent.target instanceof Components.interfaces.nsIDOMXULSelectControlItemElement) {
         return;
     }
-    var eventStart = now();
-    eventStart.day = this.today.start.day;
-    eventStart.minute = eventStart.second = 0;
-    var eventEnd = eventStart.clone();
-    eventEnd.hour++;
-    createEventWithDialog(getSelectedCalendar(), eventStart, eventEnd)
+
+    // Create new event for the date currently displayed in the agenda. Setting 
+    // isDate = true automatically makes the start time be the next full hour.
+    var eventStart = this.today.start.clone();
+    eventStart.isDate = true;
+    createEventWithDialog(getSelectedCalendar(), eventStart);
 }
 
 agendaListbox.buildAgendaPopupMenu =
@@ -506,22 +506,6 @@ function showsToday(aStartDate) {
     }
     return lshowsToday;
 };
-
-agendaListbox.callModifyEventDialog =
-function callModifyEventDialog(aEvent, aItem) {
-    // We only care about left-clicks
-    if (aEvent) {
-        if (aEvent.button != 0) {
-            return;
-        }
-    }
-    if (!aItem) {
-        createEventWithDialog(this.calendar, this.today.start, this.today.start);
-        return;
-    } else {
-        modifyEventWithDialog(aItem);
-    }
-}
 
 agendaListbox.moveSelection =
 function moveSelection() {
