@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Michiel van Leeuwen <mvl@exedo.nl>
+ *   Ernst Herbst <hb@calen.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -142,8 +143,9 @@ const exportLineEnding = "\r\n";
  *   "Title","Start Date","Start Time","End Date","End Time","All day event",
  *   "Reminder on/off","Reminder Date","Reminder Time","Categories",
  *   "Description","Location","Private"
- * Not all fields are necessary.  If some fields do not match known field names,
- * a dialog is presented to the user to match fields.
+ *  The fields "Title" and "Start Date" are mandatory. If "Start Time" misses
+ *  the event is set as all day event. If "End Date" or "End Time" miss the
+ *  default durations are set.
  * 
  * The rest of the lines are events, one event per line, with fields in the
  * order descibed by the first line.   All non-empty values must be quoted.
@@ -179,6 +181,8 @@ function csv_importFromStream(aStream, aCount) {
         for (i in locales) {
             locale = locales[i];
             var knownIndxs = 0;
+            args.titleIndex = 0;
+            args.startDateIndex = 0;
             for (var i = 1; i <= header.length; ++i) {
                 switch( header[i-1] ) {
                     case locale.headTitle:        args.titleIndex = i;       knownIndxs++; break;
@@ -196,8 +200,10 @@ function csv_importFromStream(aStream, aCount) {
                     case locale.headPrivate:      args.privateIndex = i;     knownIndxs++; break;
                 }
             }
-            if (knownIndxs >= 13)
+            // Were both mandatory fields recognized?
+            if (args.titleIndex != 0 && args.startDateIndex != 0) {
                 break;
+            }
         }
 
         if (knownIndxs == 0 && header.length == 22) {
@@ -217,8 +223,7 @@ function csv_importFromStream(aStream, aCount) {
             args.privateIndex = 20;
         }  
 
-        // show field select dialog if not all required headers matched
-        if (knownIndxs < 13) {
+        if (args.titleIndex == 0 || args.startDateIndex == 0) {
             dump("Can't import. Life sucks\n")
             break parse;
         }
@@ -251,8 +256,8 @@ function csv_importFromStream(aStream, aCount) {
             // At this point eventFields contains following fields. Position
             // of fields is in args.[fieldname]Index.
             //    subject, start date, start time, end date, end time,
-            //    all day?, alarm?, alarm date, alarm time,
-            //    Description, Categories, Location, Private?
+            //    all day, alarm on, alarm date, alarm time,
+            //    Description, Categories, Location, Private
             // Unused fields (could maybe be copied to Description):
             //    Meeting Organizer, Required Attendees, Optional Attendees,
             //    Meeting Resources, Billing Information, Mileage, Priority,
@@ -266,28 +271,65 @@ function csv_importFromStream(aStream, aCount) {
             var eDate = parseDateTime(eventFields[args.endDateIndex],
                                       eventFields[args.endTimeIndex],
                                       locale);
-            if (title || sDate) {
-                var event = Components.classes["@mozilla.org/calendar/event;1"]
-                                      .createInstance(Components.interfaces.calIEvent);
+            // Create an event only if we have a startDate. No more checks
+            // on sDate needed in the following process.
+            if (sDate) {
+                var event = createEvent();
 
-                event.title = title;
-                if (sDate) {
-                    sDate.isDate = (locale.valueTrue == eventFields[args.allDayIndex]);
+                // Use column head in brackets if event title misses in data.
+                if (title) {
+                    event.title = title;
+                } else {
+                    event.title = "[" + locale.headTitle + "]";
+                }
+
+                // Check data for all day event. Additionally sDate.isDate
+                // may have been set in parseDateTime() if no time was found
+                if (eventFields[args.allDayIndex] == locale.valueTrue) {
+                    sDate.isDate = true;
                 }
                 if (locale.valueTrue == eventFields[args.privateIndex])
                     event.privacy = "PRIVATE";
 
-                if (!eDate && sDate) {
+                if (!eDate) {
+                    // No endDate was found. All day events last one day and
+                    // timed events last the default length.
                     eDate = sDate.clone();
                     if (sDate.isDate) {
                         // end date is exclusive, so set to next day after start.
-                       eDate.day = eDate.day + 1;
+                        eDate.day += 1;
+                    } else {
+                        eDate.minute += getPrefSafe(
+                                        "calendar.event.defaultlength", 60);
+                    }
+                } else {
+                    // An endDate was found.
+                    if (sDate.isDate) {
+                        // A time part for the startDate is missing or was
+                        // not recognized. We have to throw away the endDates
+                        // time part too for obtaining a valid event.
+                        eDate.isDate = true;
+                        // Correct the eDate if duration is less than one day.
+                        if (1 > eDate.subtractDate(sDate).days) {
+                            eDate = sDate.clone();
+                            eDate.day += 1;
+                        }
+                    } else {
+                        // We now have a timed startDate and an endDate. If the
+                        // end time is invalid set it to 23:59:00
+                        if (eDate.isDate) {
+                            eDate.isDate = false;
+                            eDate.hour   = 23;
+                            eDate.minute = 59;
+                        }
+                        // Correct the duration to 0 seconds if it is negative.
+                        if (eDate.subtractDate(sDate).isNegative ) {
+                            eDate = sDate.clone();
+                        }
                     }
                 }
-                if (sDate) 
-                    event.startDate = sDate;
-                if (eDate) 
-                    event.endDate = eDate;
+                event.startDate = sDate;
+                event.endDate = eDate;
 
                 // Exists an alarm true/false column?
                 if ("alarmIndex" in args) {
