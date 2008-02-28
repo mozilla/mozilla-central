@@ -130,6 +130,9 @@ const localeNl = {
 
 const locales = [localeEn, localeNl];
 
+// Windows line endings, CSV files with LF only can't be read by Outlook.
+const exportLineEnding = "\r\n";
+
 /**
  * Takes a text block of Outlook-exported Comma Separated Values and tries to 
  * parse that into individual events.  
@@ -447,7 +450,11 @@ function csv_exportToStream(aStream, aCount, aItems) {
     headers.push(localeEn['headDescription']);
     headers.push(localeEn['headLocation']);
     headers.push(localeEn['headPrivate']);
-    str = headers.map(function(v) {return '"'+v+'"';}).join(',')+"\n"
+    headers = headers.map(function(v) {
+        return '"' + v + '"';
+    });
+    str = headers.join(',');
+    str += exportLineEnding;
     aStream.write(str, str.length);
 
     for each (item in aItems) {
@@ -483,7 +490,7 @@ function csv_exportToStream(aStream, aCount, aItems) {
             v = String(v).replace(/"/g,'""');
             return '"'+v+'"';
         })
-        str = line.join(',')+"\n";
+        str = line.join(',') + exportLineEnding;
         aStream.write(str, str.length);
     }
 
