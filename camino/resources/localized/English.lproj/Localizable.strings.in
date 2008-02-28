@@ -427,6 +427,8 @@
 "SpellingPanel" = "Spelling…";
 "CheckSpelling" = "Check Spelling";
 "CheckSpellingAsYouType" = "Check Spelling as You Type";
+"CheckSpellingWhileTyping" = "Check Spelling While Typing";
+"SpellingLanguage" = "Spelling Language";
 
 /* Page contextual menus */
 "No Guesses Found" = "No Guesses Found";

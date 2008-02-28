@@ -143,6 +143,10 @@
 - (void)setContentBorderThickness:(float)borderThickness forEdge:(NSRectEdge)edge;
 @end
 
+@interface NSSpellChecker(LeopardSDKDeclarations)
+- (NSArray *)availableLanguages;
+@end
+
 @interface NSCell(LeopardSDKDeclarations)
 - (void)setBackgroundStyle:(int)backgroundStyle;
 @end
@@ -574,6 +578,8 @@ public:
 
 - (void)insertForceAlternatesIntoMenu:(NSMenu *)inMenu;
 - (BOOL)prepareSpellingSuggestionMenu:(NSMenu*)inMenu tag:(int)inTag;
+- (void)addSpellingControlsToMenu:(NSMenu*)inMenu;
+- (NSMenuItem*)spellingLanguageMenu;
 
 - (void)setZoomState:(NSRect)newFrame defaultFrame:(NSRect)defaultFrame;
 
@@ -4012,7 +4018,7 @@ public:
     return nil;
 
   BOOL showFrameItems = NO;
-  BOOL showSpellingItems = NO;
+  BOOL isTextField = NO;
   BOOL needsAlternates = NO;
   BOOL isUnsafeLink = NO;
 
@@ -4114,7 +4120,7 @@ public:
     }
     
     menuPrototype = mInputMenu;
-    showSpellingItems = YES;
+    isTextField = YES;
   }
   else if ((contextMenuFlags & nsIContextMenuListener::CONTEXT_IMAGE) != 0) {
     menuPrototype = mImageMenu;
@@ -4150,15 +4156,20 @@ public:
   // validate 'Bookmark This Page'
   [[result itemWithTarget:self andAction:@selector(addBookmark:)] setEnabled:[[self browserWrapper] isBookmarkable]];
 
-  if (showSpellingItems)
-    showSpellingItems = [self prepareSpellingSuggestionMenu:result tag:kSpellingRelatedItemsTag];
+  BOOL showMisspelledWordItems = NO;
+  if (isTextField)
+    showMisspelledWordItems = [self prepareSpellingSuggestionMenu:result tag:kSpellingRelatedItemsTag];
 
-  if (!showSpellingItems) {
+  if (!showMisspelledWordItems) {
     // word spelled correctly or not applicable, remove all traces of spelling items
     NSMenuItem* selectionItem;
     while ((selectionItem = [result itemWithTag:kSpellingRelatedItemsTag]) != nil)
       [result removeItem:selectionItem];
   }
+
+  // Add the persistent spelling items
+  if (isTextField)
+    [self addSpellingControlsToMenu:result];
 
   // if there's no selection or no search bar in the toolbar, hide the search item.
   // We need a search item to know what the user's preferred search is.
@@ -4371,6 +4382,84 @@ public:
   return YES;
 }
 
+- (void)addSpellingControlsToMenu:(NSMenu*)inMenu
+{
+  nsCOMPtr<nsIEditor> editor;
+  [self currentEditor:getter_AddRefs(editor)];
+  if (!editor)
+    return;
+  nsCOMPtr<nsIInlineSpellChecker> inlineChecker;
+  editor->GetInlineSpellChecker(PR_TRUE, getter_AddRefs(inlineChecker));
+  if (!inlineChecker)
+    return;
+
+  PRBool checkingIsEnabled = NO;
+  inlineChecker->GetEnableRealTimeSpell(&checkingIsEnabled);
+
+  [inMenu addItem:[NSMenuItem separatorItem]];
+  NSString* enableTitle;
+  if ([NSWorkspace isLeopardOrHigher])
+    enableTitle = NSLocalizedString(@"CheckSpellingWhileTyping", nil);
+  else
+    enableTitle = NSLocalizedString(@"CheckSpellingAsYouType", nil);
+  NSMenuItem* enableItem = [inMenu addItemWithTitle:enableTitle
+                                             action:@selector(toggleSpellingEnabled:)
+                                      keyEquivalent:@""];
+  [enableItem setTarget:self];
+  if (checkingIsEnabled) {
+    [enableItem setState:NSOnState];
+
+    NSMenuItem* languageMenu = [self spellingLanguageMenu];
+    if (languageMenu)
+      [inMenu addItem:languageMenu];
+  }
+}
+
+- (NSMenuItem*)spellingLanguageMenu
+{
+  // We need the 10.5+ -[NSSpellChecker availableLanguages] to build this menu.
+  if (![NSWorkspace isLeopardOrHigher])
+    return nil;
+  NSMenu* submenu = [[[NSMenu alloc] init] autorelease];
+
+  NSLocale* currentLocale = [NSLocale currentLocale];
+
+  NSMenuItem* multilingualEntry = nil;
+  NSSpellChecker* spellChecker = [NSSpellChecker sharedSpellChecker];
+  NSString* currentSpellingLanguage = [spellChecker language];
+  NSEnumerator* languageEnumerator = [[spellChecker availableLanguages] objectEnumerator];
+  NSString* languageCode;
+  while ((languageCode = [languageEnumerator nextObject])) {
+    NSMenuItem* languageItem = [[[NSMenuItem alloc] init] autorelease];
+    [languageItem setRepresentedObject:languageCode];
+    [languageItem setTarget:self];
+    [languageItem setAction:@selector(setSpellingLanguage:)];
+    if ([languageCode isEqualToString:currentSpellingLanguage])
+      [languageItem setState:NSOnState];
+    NSString *languageName = [currentLocale displayNameForKey:NSLocaleIdentifier
+                                                        value:languageCode];
+    if (!languageName)
+      languageName = languageCode;
+    [languageItem setTitle:languageName];
+    // Separate out the magic "Multilingual" entry.
+    if ([languageCode isEqualToString:@"Multilingual"])
+      multilingualEntry = languageItem;
+    else
+      [submenu addItem:languageItem];
+  }
+  // Add Multilingual at the end
+  if (multilingualEntry) {
+    [submenu addItem:[NSMenuItem separatorItem]];
+    [submenu addItem:multilingualEntry];
+  }
+
+  NSMenuItem* languageMenu =  [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"SpellingLanguage", nil)
+                                                          action:NULL
+                                                   keyEquivalent:@""] autorelease];
+  [languageMenu setSubmenu:submenu];
+  return languageMenu;
+}
+
 // Context menu methods
 
 //
@@ -4444,6 +4533,35 @@ public:
   [[NSSpellChecker sharedSpellChecker] learnWord:[NSString stringWith_nsAString:misspelledWord]];
   // check the range again to remove the misspelled word indication
   inlineChecker->SpellCheckRange(misspelledRange);
+}
+
+//
+// -setSpellingLanguage:
+//
+// Context menu action for toggling spellcheck of the current field.
+//
+- (IBAction)toggleSpellingEnabled:(id)inSender {
+  PRBool enableSpelling = ([inSender state] == NSOffState) ? PR_TRUE : PR_FALSE;
+
+  nsCOMPtr<nsIEditor> editor;
+  [self currentEditor:getter_AddRefs(editor)];
+  if (editor)
+    editor->SetSpellcheckUserOverride(enableSpelling);
+}
+
+//
+// -setSpellingLanguage:
+//
+// Context menu action for changing the current spell check language.
+//
+- (IBAction)setSpellingLanguage:(id)inSender {
+  [[NSSpellChecker sharedSpellChecker] setLanguage:[inSender representedObject]];
+
+  // re-sync the spell checker to pick up the new language
+  nsCOMPtr<nsIEditor> editor;
+  [self currentEditor:getter_AddRefs(editor)];
+  if (editor)
+    editor->SyncRealTimeSpell();
 }
 
 - (IBAction)openLinkInNewWindow:(id)aSender
