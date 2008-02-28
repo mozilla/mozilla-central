@@ -120,7 +120,7 @@ Ext.onReady(function(){
         params.tcaction = Ext.getCmp('action_editor').getValue();
         params.tceffect = Ext.getCmp('effect_editor').getValue();
         params.case_id = tcase.case_id;
-        params.action = 'edit';
+        params.action = 'update_doc';
         testopia_form.submit({
             url: 'tr_process_case.cgi',
             params: params,

@@ -50,11 +50,6 @@ if ($action eq 'edit'){
     print $cgi->header;
     ThrowUserError("testopia-read-only", {'object' => $case}) unless $case->canedit;
 
-    my $newtcaction = $cgi->param('tcaction') || '' if $cgi->param('tcaction');
-    my $newtceffect = $cgi->param('tceffect') || '' if $cgi->param('tceffect');
-    my $newtcsetup  = $cgi->param('tcsetup') || '' if $cgi->param('tcsetup');
-    my $newtcbreakdown = $cgi->param('tcbreakdown') || '' if $cgi->param('tcbreakdown');
-    
     $case->set_alias($cgi->param('alias')) if $cgi->param('alias');
     $case->set_category($cgi->param('category')) if $cgi->param('category');
     $case->set_case_status($cgi->param('status')) if $cgi->param('status');
@@ -73,13 +68,24 @@ if ($action eq 'edit'){
     $case->add_tag($cgi->param('newtag'));
     $case->attach_bug($cgi->param('bugs'));
     
-    if($case->diff_case_doc($newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown) ne ''){
-        $case->store_text($case->id, Bugzilla->user->id, $newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown);
-    }
-
     $case->update();
 
     print "{'success': true}";
+}
+
+elsif ($action eq 'update_doc'){
+
+    print $cgi->header;
+    ThrowUserError("testopia-read-only", {'object' => $case}) unless $case->canedit;
+
+    my $newtcaction = $cgi->param('tcaction') || '' if $cgi->param('tcaction');
+    my $newtceffect = $cgi->param('tceffect') || '' if $cgi->param('tceffect');
+    my $newtcsetup  = $cgi->param('tcsetup') || '' if $cgi->param('tcsetup');
+    my $newtcbreakdown = $cgi->param('tcbreakdown') || '' if $cgi->param('tcbreakdown');
+
+    if($case->diff_case_doc($newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown) ne ''){
+        $case->store_text($case->id, Bugzilla->user->id, $newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown);
+    }
 }
 
 elsif ($action eq 'clone'){
