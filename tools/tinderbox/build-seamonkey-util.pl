@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.384 $ ';
+$::UtilsVersion = '$Revision: 1.385 $ ';
 
 package TinderUtils;
 
@@ -384,12 +384,11 @@ sub GetSystemInfo {
         # $Settings::BuildName set above.
     }
     if ($Settings::OS eq 'Linux') {
-        if ($Settings::CPU eq 'alpha' or $Settings::CPU eq 'sparc') {
-            $Settings::BuildName = "$Settings::OS/$Settings::CPU $os_ver $host $build_type";
+        if ($Settings::CPU eq 'alpha' or $Settings::CPU eq 'sparc' 
+         or $Settings::CPU eq 'ppc' or $Settings::CPU eq 'x86_64') {
+            $Settings::BuildName = "$Settings::OS/$Settings::CPU $host $build_type";
         } elsif ($Settings::CPU eq 'armv4l' or $Settings::CPU eq 'sa110') {
             $Settings::BuildName = "$Settings::OS/arm $os_ver $host $build_type";
-        } elsif ($Settings::CPU eq 'ppc') {
-            $Settings::BuildName = "$Settings::OS/$Settings::CPU $os_ver $host $build_type";
         } elsif (($Settings::CPU eq 'i686') or ($Settings::CPU eq 'i586')) {
             $Settings::BuildName = "$Settings::OS $host $build_type";
         } else {
