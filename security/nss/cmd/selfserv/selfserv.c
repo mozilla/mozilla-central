@@ -638,6 +638,9 @@ logger(void *arg)
         fflush(stdout);
         previousOps = ops;
         previousTime = latestTime;
+        if (stopping) {
+            break;
+        }
     }
 }
 
@@ -1685,7 +1688,7 @@ main(int argc, char **argv)
     PRBool               useLocalThreads = PR_FALSE;
     PLOptState		*optstate;
     PLOptStatus          status;
-    PRThread             *loggerThread;
+    PRThread             *loggerThread = NULL;
     PRBool               debugCache = PR_FALSE; /* bug 90518 */
     char                 emptyString[] = { "" };
     char*                certPrefix = emptyString;
@@ -2076,7 +2079,7 @@ main(int argc, char **argv)
 	loggerThread = PR_CreateThread(PR_SYSTEM_THREAD, 
 			logger, NULL, PR_PRIORITY_NORMAL, 
                         useLocalThreads ? PR_LOCAL_THREAD:PR_GLOBAL_THREAD,
-                        PR_UNJOINABLE_THREAD, 0);
+                        PR_JOINABLE_THREAD, 0);
 	if (loggerThread == NULL) {
 	    fprintf(stderr, "selfserv: Failed to launch logger thread!\n");
 	    rv = SECFailure;
@@ -2129,6 +2132,9 @@ cleanup:
     }
     if (NSS_Shutdown() != SECSuccess) {
 	SECU_PrintError(progName, "NSS_Shutdown");
+        if (loggerThread) {
+            PR_JoinThread(loggerThread);
+        }
 	PR_Cleanup();
 	exit(1);
     }
