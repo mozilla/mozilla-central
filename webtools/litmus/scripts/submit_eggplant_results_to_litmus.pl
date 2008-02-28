@@ -150,7 +150,7 @@ if (!$locale or $locale eq '') {
 }
 
 if (!$server or $server eq '') {
-    $server='http://litmus.mozilla.org/process_test.cgi';
+    $server='https://litmus.mozilla.org/process_test.cgi';
 }
 
 if (!$machinename or $machinename eq '') {
@@ -237,7 +237,7 @@ build_id:      the 10-digit build ID of the build you are testing. If not
 locale:        the locale of the build you are testing, defaults to en-US
 server:        the hostname of your Litmus server, suffixed with
                process_test.cgi. Defaults to:
-               http://litmus.mozilla.org/process_test.cgi
+               https://litmus.mozilla.org/process_test.cgi
 machinename:   the hostname of the machine you are testing on
 build_type:    Nightly|Release|CVS Debug|CVS Optimized|Other
                (defaults to Nightly)
