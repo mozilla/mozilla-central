@@ -43,7 +43,7 @@
 /*
  * secoidt.h - public data structures for ASN.1 OID functions
  *
- * $Id: secoidt.h,v 1.26 2007-10-12 01:44:51 julien.pierre.boogz%sun.com Exp $
+ * $Id: secoidt.h,v 1.27 2008-02-28 04:27:30 nelson%bolyard.com Exp $
  */
 
 #include "secitem.h"
@@ -443,6 +443,8 @@ typedef enum {
 
     SEC_OID_PKIX_TIMESTAMPING               = 299,
     SEC_OID_PKIX_CA_REPOSITORY              = 300,
+
+    SEC_OID_ISO_SHA1_WITH_RSA_SIGNATURE     = 301,
 
     SEC_OID_TOTAL
 } SECOidTag;

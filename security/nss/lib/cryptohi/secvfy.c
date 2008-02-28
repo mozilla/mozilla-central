@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: secvfy.c,v 1.21 2007-01-09 00:37:20 alexei.volkov.bugs%sun.com Exp $ */
+/* $Id: secvfy.c,v 1.22 2008-02-28 04:27:36 nelson%bolyard.com Exp $ */
 
 #include <stdio.h>
 #include "cryptohi.h"
@@ -233,6 +233,7 @@ sec_DecodeSigAlg(const SECKEYPublicKey *key, SECOidTag sigAlg,
 	break;
       case SEC_OID_PKCS1_SHA1_WITH_RSA_ENCRYPTION:
       case SEC_OID_ISO_SHA_WITH_RSA_SIGNATURE:
+      case SEC_OID_ISO_SHA1_WITH_RSA_SIGNATURE:
         *hashalg = SEC_OID_SHA1;
 	break;
       case SEC_OID_PKCS1_RSA_ENCRYPTION:
@@ -320,6 +321,7 @@ sec_DecodeSigAlg(const SECKEYPublicKey *key, SECOidTag sigAlg,
       case SEC_OID_PKCS1_MD5_WITH_RSA_ENCRYPTION:
       case SEC_OID_PKCS1_SHA1_WITH_RSA_ENCRYPTION:
       case SEC_OID_ISO_SHA_WITH_RSA_SIGNATURE:
+      case SEC_OID_ISO_SHA1_WITH_RSA_SIGNATURE:
       case SEC_OID_PKCS1_SHA256_WITH_RSA_ENCRYPTION:
       case SEC_OID_PKCS1_SHA384_WITH_RSA_ENCRYPTION:
       case SEC_OID_PKCS1_SHA512_WITH_RSA_ENCRYPTION:
@@ -738,9 +740,9 @@ VFY_VerifyDataWithAlgorithmID(const unsigned char *buf, int len,
 			      SECOidTag *hash, void *wincx)
 {
     SECOidTag encAlg, hashAlg;
-    SECStatus rv = sec_DecodeSigAlg(key, 
-		    SECOID_GetAlgorithmTag((SECAlgorithmID *)sigAlgorithm), 
-		    &sigAlgorithm->parameters, &encAlg, &hashAlg);
+    SECOidTag sigAlg = SECOID_GetAlgorithmTag((SECAlgorithmID *)sigAlgorithm);
+    SECStatus rv     = sec_DecodeSigAlg(key, sigAlg, 
+		                &sigAlgorithm->parameters, &encAlg, &hashAlg);
     if (rv != SECSuccess) {
 	return rv;
     }

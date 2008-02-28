@@ -201,6 +201,7 @@ CONST_OID isoSHAWithRSASignature[]           = { ALGORITHM, 0x0f };
 CONST_OID desede[]                           = { ALGORITHM, 0x11 };
 CONST_OID sha1[]                             = { ALGORITHM, 0x1a };
 CONST_OID bogusDSASignaturewithSHA1Digest[]  = { ALGORITHM, 0x1b };
+CONST_OID isoSHA1WithRSASignature[]          = { ALGORITHM, 0x1d };
 
 CONST_OID pkcs1RSAEncryption[]         		= { PKCS1, 0x01 };
 CONST_OID pkcs1MD2WithRSAEncryption[]  		= { PKCS1, 0x02 };
@@ -1568,6 +1569,10 @@ const static SECOidData oids[] = {
     OD( x509SIACaRepository,          SEC_OID_PKIX_CA_REPOSITORY,
         "SIA CA Repository",          CKM_INVALID_MECHANISM,
 	INVALID_CERT_EXTENSION ),
+
+    OD( isoSHA1WithRSASignature, SEC_OID_ISO_SHA1_WITH_RSA_SIGNATURE,
+	"ISO SHA1 with RSA Signature", 
+	CKM_INVALID_MECHANISM, INVALID_CERT_EXTENSION ),
 
 };
 
