@@ -1323,6 +1323,7 @@ getBoundListenSocket(unsigned short port)
     opt.value.non_blocking = PR_FALSE;
     prStatus = PR_SetSocketOption(listen_sock, &opt);
     if (prStatus < 0) {
+        PR_Close(listen_sock);
 	errExit("PR_SetSocketOption(PR_SockOpt_Nonblocking)");
     }
 
@@ -1330,6 +1331,7 @@ getBoundListenSocket(unsigned short port)
     opt.value.reuse_addr = PR_TRUE;
     prStatus = PR_SetSocketOption(listen_sock, &opt);
     if (prStatus < 0) {
+        PR_Close(listen_sock);
 	errExit("PR_SetSocketOption(PR_SockOpt_Reuseaddr)");
     }
 
@@ -1344,17 +1346,20 @@ getBoundListenSocket(unsigned short port)
     opt.value.linger.linger = PR_SecondsToInterval(1);
     prStatus = PR_SetSocketOption(listen_sock, &opt);
     if (prStatus < 0) {
+        PR_Close(listen_sock);
         errExit("PR_SetSocketOption(PR_SockOpt_Linger)");
     }
 #endif
 
     prStatus = PR_Bind(listen_sock, &addr);
     if (prStatus < 0) {
+        PR_Close(listen_sock);
 	errExit("PR_Bind");
     }
 
     prStatus = PR_Listen(listen_sock, listenQueueDepth);
     if (prStatus < 0) {
+        PR_Close(listen_sock);
 	errExit("PR_Listen");
     }
     return listen_sock;
