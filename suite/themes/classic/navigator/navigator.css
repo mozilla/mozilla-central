@@ -158,7 +158,7 @@
   display: none;
 }
 
-toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-text {
+toolbar[mode="text"] .toolbarbutton-text {
   padding: 4px 0;
 }
 

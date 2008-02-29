@@ -78,12 +78,12 @@
 }
 
 toolbar[mode="icons"] .toolbarbutton-1,
-toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-button {
+toolbar[mode="icons"] .toolbarbutton-menubutton-button {
   min-width: 0px;
 }
 
-toolbar[mode="icons"] .toolbarbutton-1 .toolbarbutton-text,
-toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-icon {
+toolbar[mode="icons"] .toolbarbutton-text,
+toolbar[mode="text"] .toolbarbutton-icon {
   display: none;
 }
 

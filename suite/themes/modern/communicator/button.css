@@ -86,18 +86,16 @@ toolbar[mode="text"] .toolbarbutton-1 {
   min-width: 46px;
 }
 
-toolbar[mode="icons"] .toolbarbutton-1 .toolbarbutton-text,
-toolbar[mode="text"] .toolbarbutton-1 .toolbarbutton-icon {
+toolbar[mode="icons"] .toolbarbutton-text,
+toolbar[mode="text"] .toolbarbutton-icon {
   display: none;
 }
 
-toolbar[mode="icons"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
-  > .toolbarbutton-menubutton-dropmarker {
+toolbar[mode="icons"] .toolbarbutton-menubutton-dropmarker {
   margin: 20px 0px 0px 40px;
 }
 
-toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
-  > .toolbarbutton-menubutton-dropmarker {
+toolbar[mode="text"] .toolbarbutton-menubutton-dropmarker {
   margin: 8px 0px 0px 40px;
 }
 
@@ -107,5 +105,3 @@ toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-menubutton-stack
   -moz-user-focus: ignore !important;
   margin: 0px;
 }
-
-
