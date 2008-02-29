@@ -1313,6 +1313,11 @@ sub init {
     }
     $query .= " FROM $suppstring";
     $query .= " WHERE " . join(' AND ', (@wherepart, @andlist));
+    if ($obj eq 'case_run' && $cgi->param('addcases')){
+        my $addcases = $cgi->param('addcases'); 
+        trick_taint($addcases);
+        $query .= ' OR (test_case_runs.case_id IN ('. $addcases .') AND test_case_runs.iscurrent = 1)';
+    }
 
 
     foreach my $field (@fields, @orderby) {

@@ -1035,6 +1035,7 @@ var TestopiaPager = function(type, store){
     var sizer = new Ext.form.ComboBox({
         store: new Ext.data.SimpleStore({
             fields: ['value','name'],
+            id: 0,
             data: [[25,25],[50,50],[100,100],[500,500]],
             autoLoad: true
         }),
@@ -1044,18 +1045,19 @@ var TestopiaPager = function(type, store){
         valueField: 'value',
         triggerAction: 'all',
         editable: false,
-        width: 50,
-        value: 25
+        width: 50
     });
     
     sizer.on('select', function(c,r,i){
         this.pageSize = r.get('value');
+        Ext.state.Manager.set('TESTOPIA_DEFAULT_PAGE_SIZE', r.get('value'));
+        store.baseParams.limit = r.get('value');
         store.load({ 
-          params: {start: 0, limit: r.get('value')},
+          params: {start: 0},
           callback: doUpdate.createDelegate(this)
         });
     }, this);
-
+    this.sizer = sizer;
     var viewall = new Ext.Button({text: 'View All',enableToggle:true});
     viewall.on('toggle',function(b,p){
         if(p){
@@ -1101,10 +1103,9 @@ var TestopiaPager = function(type, store){
             });
         }
     });
-
     TestopiaPager.superclass.constructor.call(this,{
         id: 'testopia_pager',
-        pageSize: 25,
+        pageSize: Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25),
         displayInfo: true,
         displayMsg: 'Displaying test ' + type + 's {0} - {1} of {2}',
         emptyMsg: 'No test ' + type + 's were found',
@@ -1119,7 +1120,8 @@ var TestopiaPager = function(type, store){
             sizer,
             new Ext.Toolbar.Spacer('_'),
             viewall,
-            new Ext.Toolbar.Spacer('_')
+            new Ext.Toolbar.Spacer('_'),
+            new ToolbarText({ text: '(FILTERED)', hidden: true, id:'filtered_txt', style: 'font-weight:bold;color:red'})
         ]
     });
     this.on('render',this.setPager, this);
@@ -1127,10 +1129,29 @@ var TestopiaPager = function(type, store){
 };
 Ext.extend(TestopiaPager, Ext.PagingToolbar,{
     setPager: function(){
-        Ext.getCmp('page_sizer').setValue(this.pageSize);
+        Ext.getCmp('page_sizer').setValue(Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25));
     }
 });
 
+var ToolbarText = function(cfg){
+    ToolbarText.superclass.constructor.call(this,{
+        id: cfg.id,
+        text: cfg.text,
+        style: cfg.style,
+        hidden: cfg.hidden
+    });
+};
+Ext.extend(ToolbarText, Ext.menu.BaseItem, {
+    hideOnClick : false,
+    itemCls : "x-menu-text",
+    onRender : function(){
+        var s = document.createElement("span");
+        s.className = this.itemCls;
+        s.innerHTML = this.text;
+        this.el = s;
+        Ext.menu.TextItem.superclass.onRender.apply(this, arguments);
+    }
+});
 DashboardPanel = function(){
     DashboardPanel.superclass.constructor.call(this,{
         title: 'Dashboard',
@@ -1205,6 +1226,11 @@ TestopiaUpdateMultiple = function(type, params, grid){
                 Ext.getCmp('run_progress').updateProgress(a.result.passed,a.result.failed,a.result.blocked,a.result.complete);
             }
             TestopiaUtil.notify.msg('Test '+ type + 's updated', 'The selected {0}s were updated successfully', type);
+            if (grid.selectedRows){
+//                grid.store.baseParams.limit = Ext.getCmp('testopia_pager').pageSize;
+                grid.store.baseParams.addcases = grid.selectedRows.join(',');
+                Ext.getCmp('filtered_txt').show();
+            }
             grid.store.reload({
                 callback: function(){
                     if (grid.selectedRows){

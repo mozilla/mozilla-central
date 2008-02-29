@@ -296,7 +296,7 @@ Ext.onReady(function(){
                 }]
             },
             new HistoryGrid('case', [% case.id FILTER none %]),
-            new CaseRunListGrid({case_id: tcase.case_id}),
+            new CaseRunListGrid({case_id: tcase.case_id, viewall: 1}),
             new AttachGrid(tcase),
             new CaseBugsGrid([% case.id FILTER none %]), 
             new CaseComponentsGrid(tcase.case_id),

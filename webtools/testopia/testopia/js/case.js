@@ -67,6 +67,7 @@ CaseFilter = function (){
 Ext.extend(CaseFilter, Ext.Panel);
 
 CaseGrid = function(params, cfg){
+    params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
     var tutil = new TestopiaUtil();
     params.current_tab = 'case';
     this.params = params;

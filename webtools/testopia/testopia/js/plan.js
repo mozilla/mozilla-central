@@ -22,6 +22,7 @@
 
 
 PlanGrid = function(params,cfg){
+    params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
     params.current_tab = 'plan';
     this.params = params;
     var tutil = new TestopiaUtil();

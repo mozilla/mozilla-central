@@ -165,11 +165,35 @@ CaseRunFilter = function (){
         },
 //        new Ext.Toolbar.Fill(),
         {
+            text: 'Reset',
+            handler: function(){
+                searchform.reset();
+                var ds = Ext.getCmp('caserun_grid').store;
+                var run_id = ds.baseParams.run_id;
+                var ctype = ds.baseParams.ctype;
+                
+                ds.baseParams = {};
+                ds.baseParams.run_id = run_id;
+                ds.baseParams.ctype = ctype;
+                
+                ds.load({
+                    callback: function(){
+                        Ext.getCmp('filtered_txt').hide();
+                        if (Ext.getCmp('caserun_grid').getSelectionModel().getCount() < 1){
+                            Ext.getCmp('caserun-panel').caserun.disable();
+                        }
+                    }
+                });
+            }
+        },{
             text: 'Filter',
             handler: function(){
-                Ext.getCmp('caserun_grid').store.baseParams = searchform.getValues();
-                Ext.getCmp('caserun_grid').store.load({
+                var ds = Ext.getCmp('caserun_grid').store;
+                ds.baseParams = searchform.getValues();
+                ds.baseParams.limit = Ext.getCmp('testopia_pager').pageSize;
+                ds.load({
                     callback: function(){
+                        Ext.getCmp('filtered_txt').show();
                         if (Ext.getCmp('caserun_grid').getSelectionModel().getCount() < 1){
                             Ext.getCmp('caserun-panel').caserun.disable();
                         }
@@ -289,10 +313,12 @@ Ext.extend(CaseRunListGrid, Ext.grid.GridPanel, {
 });
 
 CaseRunGrid = function(params, run){
+    params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
     var t = new TestopiaUtil();
     this.params = params;
     this.run = run;
     var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
+    
     envRenderer = function(v,md,r,ri,ci,s){
         f = this.getColumnModel().getCellEditor(ci,ri).field;
         record = f.store.getById(v);

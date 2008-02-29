@@ -22,6 +22,7 @@
 
 RunGrid = function(params, cfg){
     this.tutil = new TestopiaUtil();
+    params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
     params.current_tab = 'run';
     this.params = params;
     var tutil = this.tutil;
