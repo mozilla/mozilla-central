@@ -50,6 +50,7 @@
   NSString* mHost;                     // strong
   NSString* mComment;                  // strong
   NSString* mSecurityDomain;           // strong
+  NSString* mLabel;                    // strong
   SecProtocolType mPort;
   SecProtocolType mProtocol;
   SecAuthenticationType mAuthenticationType;
@@ -94,8 +95,10 @@
 - (void)setCreator:(OSType)creator;
 - (NSString*)comment;
 - (void)setComment:(NSString*)comment;
-- (void)setSecurityDomain:(NSString*)securityDomain;
 - (NSString*)securityDomain;
+- (void)setSecurityDomain:(NSString*)securityDomain;
+- (NSString*)label;
+- (void)setLabel:(NSString*)label;
 
 - (void)removeFromKeychain;
 

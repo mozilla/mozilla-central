@@ -162,6 +162,10 @@
 "DownloadingTooltipFormat" = "Downloading %@\n\t%@\n\t%@";
 "DownloadedTooltipFormat" = "Downloaded %@\n\t%@\n\t%@";
 
+/* Keychain items */
+"KeychainLabelFormat" = "%1$@ (%2$@)";
+"WebFormPassword" = "Web form password";
+
 /* for Keychain prompts */
 "KeychainCheckTitle" = "Store this password in the Keychain";
 
