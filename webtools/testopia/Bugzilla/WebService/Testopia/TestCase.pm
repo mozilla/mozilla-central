@@ -111,7 +111,7 @@ sub create
     
     my $test_case = Bugzilla::Testopia::TestCase->create($new_values);
     
-    $test_case->link_plan($plan->id, $test_case->id);
+    $test_case->link_plan($plan_id, $test_case->id);
     
     $self->logout;
 
@@ -424,18 +424,12 @@ sub add_tag
         die "User Not Authorized";
     }
     
-    my $result = $test_case->add_tag($tag_name);
-    
-    if ($result == 1)
-    {
-        $self->logout;
-        die "Tag, " . $tag_name . ", already exists for Testcase, " . $test_case_id;
-    }
+    $test_case->add_tag($tag_name);
 
     $self->logout;
     
     # Result 0 on success, otherwise an exception will be thrown
-    return $result;
+    return 0;
 }
 
 sub remove_tag

@@ -50,7 +50,7 @@ use JSON;
 use Text::Diff;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Testopia::Util::EXPORT = qw(lookup_status lookup_status_by_name 
+@Bugzilla::Testopia::TestCase::EXPORT = qw(lookup_status lookup_status_by_name 
                                        lookup_category lookup_category_by_name
                                        lookup_priority lookup_priority_by_value
                                        lookup_default_tester);

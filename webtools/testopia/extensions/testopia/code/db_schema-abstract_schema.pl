@@ -244,7 +244,7 @@ $schema->{test_plan_texts} = {
 # Tiny table -- don't add keys besides primary key.
 $schema->{test_plan_types} = {
     FIELDS => [
-        type_id     => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
+        type_id     => {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
         name        => {TYPE => 'varchar(64)', NOTNULL => 1},
         description => {TYPE => 'MEDIUMTEXT'},
     ],
@@ -392,7 +392,7 @@ $schema->{test_relationships} = {
 # Tiny table -- don't add keys besides primary key.
 $schema->{test_case_run_status} = {
     FIELDS => [
-        case_run_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
+        case_run_status_id => {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
         name               => {TYPE => 'varchar(20)'},
         sortkey            => {TYPE => 'INT4'},
         description        => {TYPE => 'TEXT'},
@@ -401,7 +401,7 @@ $schema->{test_case_run_status} = {
 # Tiny table -- don't add keys besides primary key.
 $schema->{test_case_status} = {
     FIELDS => [
-        case_status_id => {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
+        case_status_id => {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1},
         name           => {TYPE => 'varchar(255)', NOTNULL => 1},
         description    => {TYPE => 'TEXT'},
     ],

@@ -14,58 +14,6 @@ diff -u -r1.141 editusers.cgi
                           'fielddefs READ',
                           'tokens WRITE',
                           'logincookies WRITE',
-Index: enter_bug.cgi
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/enter_bug.cgi,v
-retrieving revision 1.154
-diff -u -r1.154 enter_bug.cgi
---- enter_bug.cgi	14 Jan 2007 01:42:40 -0000	1.154
-+++ enter_bug.cgi	15 Jun 2007 22:57:19 -0000
-@@ -572,6 +572,8 @@
- 
- $vars->{'default'} = \%default;
- 
-+$vars->{'caserun_id'} = $cgi->param('caserun_id');
-+
- my $format = $template->get_format("bug/create/create",
-                                    scalar $cgi->param('format'), 
-                                    scalar $cgi->param('ctype'));
-Index: Bugzilla/DB/Schema/Pg.pm
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Pg.pm,v
-retrieving revision 1.13.2.1
-diff -u -r1.13.2.1 Pg.pm
---- Bugzilla/DB/Schema/Pg.pm	15 Apr 2007 01:34:58 -0000	1.13.2.1
-+++ Bugzilla/DB/Schema/Pg.pm	15 Jun 2007 22:57:20 -0000
-@@ -69,6 +69,7 @@
-         INT3 =>         'integer',
-         INT4 =>         'integer',
- 
-+        TINYSERIAL =>   'serial unique',
-         SMALLSERIAL =>  'serial unique',
-         MEDIUMSERIAL => 'serial unique',
-         INTSERIAL =>    'serial unique',
-Index: Bugzilla/DB/Schema/Mysql.pm
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Schema/Mysql.pm,v
-retrieving revision 1.14
-diff -u -r1.14 Mysql.pm
---- Bugzilla/DB/Schema/Mysql.pm	18 Nov 2006 15:10:11 -0000	1.14
-+++ Bugzilla/DB/Schema/Mysql.pm	15 Jun 2007 22:57:20 -0000
-@@ -103,9 +103,10 @@
-         INT3 =>         'mediumint',
-         INT4 =>         'integer',
- 
--        SMALLSERIAL =>  'smallint auto_increment',
--        MEDIUMSERIAL => 'mediumint auto_increment',
--        INTSERIAL =>    'integer auto_increment',
-+        TINYSERIAL =>    'tinyint unsigned auto_increment',
-+        SMALLSERIAL =>   'smallint unsigned auto_increment',
-+        MEDIUMSERIAL =>  'mediumint unsigned auto_increment',
-+        INTSERIAL =>     'integer unsigned auto_increment',
- 
-         TINYTEXT =>     'tinytext',
-         MEDIUMTEXT =>   'mediumtext',
 Index: Bugzilla/WebService.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService.pm,v

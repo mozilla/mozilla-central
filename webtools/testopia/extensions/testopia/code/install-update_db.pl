@@ -100,9 +100,9 @@ sub testopiaUpdateDB {
     $dbh->bz_alter_column('test_case_runs', 'environment_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_case_runs', 'iscurrent', {TYPE => 'BOOLEAN', NOTNULL => 1, DEFAULT => '0'});
     $dbh->bz_alter_column('test_case_runs', 'run_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});
-    $dbh->bz_alter_column('test_case_run_status', 'case_run_status_id', {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
+    $dbh->bz_alter_column('test_case_run_status', 'case_run_status_id', {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_cases', 'case_id', {TYPE => 'INTSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
-    $dbh->bz_alter_column('test_case_status', 'case_status_id', {TYPE => 'TINYSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
+    $dbh->bz_alter_column('test_case_status', 'case_status_id', {TYPE => 'SMALLSERIAL', PRIMARYKEY => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_case_tags', 'case_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_case_texts', 'case_id', {TYPE => 'INT4', UNSIGNED => 1, NOTNULL => 1});
     $dbh->bz_alter_column('test_case_texts', 'creation_ts', {TYPE => 'DATETIME', NOTNULL => 1});

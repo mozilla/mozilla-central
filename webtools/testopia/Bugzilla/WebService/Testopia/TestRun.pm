@@ -294,7 +294,7 @@ sub add_tag
     $self->logout;
     
     # Result 0 on success, otherwise an exception will be thrown
-    return $result;
+    return 0;
 }
 
 sub remove_tag
