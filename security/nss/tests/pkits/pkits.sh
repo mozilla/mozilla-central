@@ -114,7 +114,7 @@ pkits_init()
 
   ${BINDIR}/certutil -A -n TrustAnchorRootCertificate -t "C,C,C" -i \
       $certs/TrustAnchorRootCertificate.crt -d $PKITSdb
-  if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
+  if [ -z "$NSS_NO_PKITS_CRLS" ]; then
     ${BINDIR}/crlutil -I -i $crls/TrustAnchorRootCRL.crl -d ${PKITSdb}
   else
     html  "<H3>NO CRLs are being used.</H3>"
@@ -165,7 +165,8 @@ pkits()
   echo "vfychain -d $PKITSdb -u 4 $*"
   ${BINDIR}/vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
-  RET=$(expr $RET + $(grep -c ERROR ${PKITSDIR}/cmdout.txt))
+  CNT=`grep -c ERROR ${PKITSDIR}/cmdout.txt`
+  RET=`expr ${RET} + ${CNT}`
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -ne 0 ]; then
@@ -189,7 +190,8 @@ pkitsn()
   echo "vfychain -d $PKITSdb -u 4 $*"
   ${BINDIR}/vfychain -d $PKITSdb -u 4 $* > ${PKITSDIR}/cmdout.txt 2>&1
   RET=$?
-  RET=$(expr $RET + $(grep -c ERROR ${PKITSDIR}/cmdout.txt))
+  CNT=`grep -c ERROR ${PKITSDIR}/cmdout.txt`
+  RET=`expr ${RET} + ${CNT}`
   cat ${PKITSDIR}/cmdout.txt
 
   if [ "$RET" -eq 0 ]; then
@@ -208,7 +210,7 @@ pkitsn()
 ########################################################################
 crlImport()
 {
-  if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
+  if [ -z "$NSS_NO_PKITS_CRLS" ]; then
     echo "crlutil -d $PKITSdb -I -i $crls/$*"
     ${BINDIR}/crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
@@ -228,7 +230,7 @@ crlImport()
 crlImportn()
 {
   RET=0
-  if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
+  if [ -z "$NSS_NO_PKITS_CRLS" ]; then
     echo "crlutil -d $PKITSdb -I -i $crls/$*"
     ${BINDIR}/crlutil -d ${PKITSdb} -I -i $crls/$* > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
@@ -253,7 +255,7 @@ crlImportn()
 ########################################################################
 delete()
 {
-  if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
+  if [ -z "$NSS_NO_PKITS_CRLS" ]; then
       echo "crlutil -d $PKITSdb -D -n $*"
       ${BINDIR}/crlutil -d ${PKITSdb} -D -n $* > ${PKITSDIR}/cmdout.txt 2>&1
       RET=$?
@@ -300,7 +302,7 @@ certImport()
 certImportn()
 {
   RET=0
-  if [ "$NSS_NO_PKITS_CRLS" -ne 1 ]; then
+  if [ -z "$NSS_NO_PKITS_CRLS" ]; then
     echo "certutil -d $PKITSdb -A -t \",,\" -n $* -i $certs/$*.crt"
     ${BINDIR}/certutil -d $PKITSdb -A -t ",," -n $* -i $certs/$*.crt > ${PKITSDIR}/cmdout.txt 2>&1
     RET=$?
@@ -2053,7 +2055,7 @@ pkits_BasicCertRevocation | tee -a $PKITS_LOG
 pkits_PathVerificWithSelfIssuedCerts | tee -a $PKITS_LOG
 pkits_BasicConstraints | tee -a $PKITS_LOG
 pkits_KeyUsage | tee -a $PKITS_LOG
-if [ "$NSS_NO_PKITS_POLICIES" -ne 1 ]; then
+if [ -z "$NSS_NO_PKITS_POLICIES" ]; then
   pkits_CertificatePolicies | tee -a $PKITS_LOG
   pkits_RequireExplicitPolicy | tee -a $PKITS_LOG
   pkits_PolicyMappings | tee -a $PKITS_LOG
