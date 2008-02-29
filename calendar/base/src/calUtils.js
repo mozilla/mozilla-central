@@ -1592,12 +1592,12 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
     var queryEnd = ensureDateTime(rangeEnd);
 
     if (start.compare(end) == 0) {
-        if (!queryStart || start.compare(queryStart) >= 0 &&
+        if ((!queryStart || start.compare(queryStart) >= 0) &&
             (!queryEnd || start.compare(queryEnd) < 0)) {
             return startDate;
         }
     } else {
-        if (!queryEnd || start.compare(queryEnd) < 0 &&
+        if ((!queryEnd || start.compare(queryEnd) < 0) &&
             (!queryStart || end.compare(queryStart) > 0)) {
             return startDate;
         }
