@@ -241,7 +241,7 @@ Ext.onReady(function(){
                         
                         product_id = node.id;
                         p = Ext.getCmp('object_panel').getActiveTab();
-                        if (p.store){
+                        if (p && p.store){
                             p.store.load();
                         }
                         Ext.getCmp('producttags').store.load({params: {product_id: product_id}});

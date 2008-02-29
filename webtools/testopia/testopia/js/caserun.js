@@ -167,7 +167,7 @@ CaseRunFilter = function (){
         {
             text: 'Reset',
             handler: function(){
-                searchform.reset();
+                document.getElementById('caserun_filter_form').reset();
                 var ds = Ext.getCmp('caserun_grid').store;
                 var run_id = ds.baseParams.run_id;
                 var ctype = ds.baseParams.ctype;
@@ -175,6 +175,7 @@ CaseRunFilter = function (){
                 ds.baseParams = {};
                 ds.baseParams.run_id = run_id;
                 ds.baseParams.ctype = ctype;
+                ds.baseParams.limit = Ext.getCmp('testopia_pager').pageSize;
                 
                 ds.load({
                     callback: function(){
