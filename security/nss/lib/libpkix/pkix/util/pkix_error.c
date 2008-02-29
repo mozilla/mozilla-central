@@ -52,7 +52,7 @@ const char * const PKIX_ErrorText[] =
 #include "pkix_errorstrings.h"
 };
 
-extern const int const PKIX_PLErrorIndex[];
+extern const int PKIX_PLErrorIndex[];
 
 /* --Private-Functions-------------------------------------------- */
 

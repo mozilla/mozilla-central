@@ -47,7 +47,7 @@
 
 #define PKIX_ERRORENTRY(name,desc,plerr) plerr
 
-const SECErrorCodes const PKIX_PLErrorIndex[] =
+const SECErrorCodes PKIX_PLErrorIndex[] =
 {
 #include "pkix_errorstrings.h"
 };
