@@ -147,16 +147,17 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
 - (IBAction)restoreDefaultSearchEngines:(id)sender
 {
   // Since this will remove all existing engines, ask the user for confirmation
-  NSAlert *alert = [[[NSAlert alloc] init] autorelease];
-  [alert addButtonWithTitle:NSLocalizedString(@"RestoreDefaultEnginesActionButton", nil)];
-  [alert addButtonWithTitle:NSLocalizedString(@"CancelButtonText", nil)];
-  [alert setMessageText:NSLocalizedString(@"RestoreDefaultEnginesTitle", nil)];
-  [alert setInformativeText:NSLocalizedString(@"RestoreDefaultEnginesMessage", nil)];
-  [alert setAlertStyle:NSWarningAlertStyle];
-  [alert beginSheetModalForWindow:[self window]
-                    modalDelegate:self
-                   didEndSelector:@selector(restoreDefaultEnginesAlertDidEnd:returnCode:contextInfo:)
-                      contextInfo:NULL];
+  NSAlert *restoreDefaultSearchEnginesAlert = [[[NSAlert alloc] init] autorelease];
+  [restoreDefaultSearchEnginesAlert addButtonWithTitle:NSLocalizedString(@"RestoreDefaultEnginesActionButton", nil)];
+  NSButton* dontRestoreButton = [restoreDefaultSearchEnginesAlert addButtonWithTitle:NSLocalizedString(@"DontRestoreDefaultEnginesActionButton", nil)];
+  [dontRestoreButton setKeyEquivalent:@"\e"]; // escape
+  [restoreDefaultSearchEnginesAlert setMessageText:NSLocalizedString(@"RestoreDefaultEnginesTitle", nil)];
+  [restoreDefaultSearchEnginesAlert setInformativeText:NSLocalizedString(@"RestoreDefaultEnginesMessage", nil)];
+  [restoreDefaultSearchEnginesAlert setAlertStyle:NSWarningAlertStyle];
+  [restoreDefaultSearchEnginesAlert beginSheetModalForWindow:[self window]
+                                               modalDelegate:self
+                                              didEndSelector:@selector(restoreDefaultEnginesAlertDidEnd:returnCode:contextInfo:)
+                                                 contextInfo:NULL];
 }
 
 - (void)restoreDefaultEnginesAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo

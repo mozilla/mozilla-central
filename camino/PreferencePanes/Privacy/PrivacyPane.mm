@@ -300,12 +300,16 @@ const int kSortReverse = 1;
 
 - (IBAction)removeAllCookies:(id)aSender
 {
-  if (NSRunCriticalAlertPanel([self localizedStringForKey:@"RemoveAllCookiesWarningTitle"],
-                              [self localizedStringForKey:@"RemoveAllCookiesWarning"],
-                              [self localizedStringForKey:@"Remove All Cookies"],
-                              [self localizedStringForKey:@"CancelButtonText"],
-                              nil) == NSAlertDefaultReturn)
-  {
+  NSAlert* removeAllCookiesAlert = [[[NSAlert alloc] init] autorelease];
+  [removeAllCookiesAlert setMessageText:[self localizedStringForKey:@"RemoveAllCookiesWarningTitle"]];
+  [removeAllCookiesAlert setInformativeText:[self localizedStringForKey:@"RemoveAllCookiesWarning"]];
+  [removeAllCookiesAlert addButtonWithTitle:[self localizedStringForKey:@"Remove All Cookies"]];
+  NSButton* dontRemoveButton = [removeAllCookiesAlert addButtonWithTitle:[self localizedStringForKey:@"DontRemoveButtonText"]];
+  [dontRemoveButton setKeyEquivalent:@"\e"]; // escape
+
+  [removeAllCookiesAlert setAlertStyle:NSCriticalAlertStyle];
+
+  if ([removeAllCookiesAlert runModal] == NSAlertFirstButtonReturn) {
     [[CHCookieStorage cookieStorage] deleteAllCookies];
 
     [mCookies release];
@@ -512,12 +516,17 @@ const int kSortReverse = 1;
   CHPermissionManager* permManager = [CHPermissionManager permissionManager];
   if (!permManager)
     return;
-  if (NSRunCriticalAlertPanel([self localizedStringForKey:@"RemoveAllCookiePermissionsWarningTitle"],
-                              [self localizedStringForKey:@"RemoveAllCookiePermissionsWarning"],
-                              [self localizedStringForKey:@"Remove All Exceptions"],
-                              [self localizedStringForKey:@"CancelButtonText"],
-                              nil) == NSAlertDefaultReturn)
-  {
+
+  NSAlert* removeAllCookiePermissionsAlert = [[[NSAlert alloc] init] autorelease];
+  [removeAllCookiePermissionsAlert setMessageText:[self localizedStringForKey:@"RemoveAllCookiePermissionsWarningTitle"]];
+  [removeAllCookiePermissionsAlert setInformativeText:[self localizedStringForKey:@"RemoveAllCookiePermissionsWarning"]];
+  [removeAllCookiePermissionsAlert addButtonWithTitle:[self localizedStringForKey:@"Remove All Exceptions"]];
+  NSButton* dontRemoveButton = [removeAllCookiePermissionsAlert addButtonWithTitle:[self localizedStringForKey:@"DontRemoveButtonText"]];
+  [dontRemoveButton setKeyEquivalent:@"\e"]; // escape
+
+  [removeAllCookiePermissionsAlert setAlertStyle:NSCriticalAlertStyle];
+
+  if ([removeAllCookiePermissionsAlert runModal] == NSAlertFirstButtonReturn) {
     NSEnumerator* permissionEnumerator = [mPermissions objectEnumerator];
     CHPermission* permission;
     while ((permission = [permissionEnumerator nextObject])) {
@@ -637,11 +646,16 @@ const int kSortReverse = 1;
 }
 
 - (IBAction)removeAllKeychainExclusions:(id)sender {
-  if (NSRunCriticalAlertPanel([self localizedStringForKey:@"RemoveAllKeychainExclusionsWarningTitle"],
-                              [self localizedStringForKey:@"RemoveAllKeychainExclusionsWarning"],
-                              [self localizedStringForKey:@"RemoveAllKeychainExclusionsButton"],
-                              [self localizedStringForKey:@"CancelButtonText"],
-                              nil) == NSAlertDefaultReturn) {
+  NSAlert* removeAllKeychainExclusionsAlert = [[[NSAlert alloc] init] autorelease];
+  [removeAllKeychainExclusionsAlert setMessageText:[self localizedStringForKey:@"RemoveAllKeychainExclusionsWarningTitle"]];
+  [removeAllKeychainExclusionsAlert setInformativeText:[self localizedStringForKey:@"RemoveAllKeychainExclusionsWarning"]];
+  [removeAllKeychainExclusionsAlert addButtonWithTitle:[self localizedStringForKey:@"RemoveAllKeychainExclusionsButton"]];
+  NSButton* dontRemoveButton = [removeAllKeychainExclusionsAlert addButtonWithTitle:[self localizedStringForKey:@"DontRemoveButtonText"]];
+  [dontRemoveButton setKeyEquivalent:@"\e"]; // escape
+
+  [removeAllKeychainExclusionsAlert setAlertStyle:NSCriticalAlertStyle];
+
+  if ([removeAllKeychainExclusionsAlert runModal] == NSAlertFirstButtonReturn) {
     [[KeychainDenyList instance] removeAllHosts];
     [mKeychainExclusions removeAllObjects];
     [mKeychainExclusionsTable reloadData];

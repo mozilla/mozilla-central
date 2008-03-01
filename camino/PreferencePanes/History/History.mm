@@ -107,47 +107,51 @@ static const int kDefaultExpireDays = 9;
 // Clear the user's disk cache
 - (IBAction)clearDiskCache:(id)aSender
 {
-  NSBeginCriticalAlertSheet([self localizedStringForKey:@"EmptyCacheTitle"],
-                            [self localizedStringForKey:@"EmptyButton"],
-                            [self localizedStringForKey:@"CancelButtonText"],
-                            nil,
-                            [textFieldHistoryDays window],    // any view will do
-                            self,
-                            @selector(clearDiskCacheSheetDidEnd:returnCode:contextInfo:),
-                            nil,
-                            NULL,
-                            [self localizedStringForKey:@"EmptyCacheMessage"]);
+  NSAlert* clearCacheAlert = [[[NSAlert alloc] init] autorelease];
+  [clearCacheAlert setMessageText:[self localizedStringForKey:@"EmptyCacheTitle"]];
+  [clearCacheAlert setInformativeText:[self localizedStringForKey:@"EmptyCacheMessage"]];
+  [clearCacheAlert addButtonWithTitle:[self localizedStringForKey:@"EmptyCacheButtonText"]];
+  NSButton* dontEmptyButton = [clearCacheAlert addButtonWithTitle:[self localizedStringForKey:@"DontEmptyButtonText"]];
+  [dontEmptyButton setKeyEquivalent:@"\e"]; // escape
+
+  [clearCacheAlert setAlertStyle:NSCriticalAlertStyle];
+  [clearCacheAlert beginSheetModalForWindow:[textFieldHistoryDays window]
+                              modalDelegate:self
+                             didEndSelector:@selector(clearDiskCacheAlertDidEnd:returnCode:contextInfo:)
+                                contextInfo:nil];
 }
 
 // use the browser history service to clear out the user's global history
 - (IBAction)clearGlobalHistory:(id)sender
 {
-  NSBeginCriticalAlertSheet([self localizedStringForKey:@"ClearHistoryTitle"],
-                            [self localizedStringForKey:@"ClearHistoryButton"],
-                            [self localizedStringForKey:@"CancelButtonText"],
-                            nil,
-                            [textFieldHistoryDays window],    // any view willl do
-                            self,
-                            @selector(clearGlobalHistorySheetDidEnd:returnCode:contextInfo:),
-                            nil,
-                            NULL,
-                            [self localizedStringForKey:@"ClearHistoryMessage"]);
+  NSAlert* clearGlobalHistoryAlert = [[[NSAlert alloc] init] autorelease];
+  [clearGlobalHistoryAlert setMessageText:[self localizedStringForKey:@"ClearHistoryTitle"]];
+  [clearGlobalHistoryAlert setInformativeText:[self localizedStringForKey:@"ClearHistoryMessage"]];
+  [clearGlobalHistoryAlert addButtonWithTitle:[self localizedStringForKey:@"ClearHistoryButtonText"]];
+  NSButton* dontClearButton = [clearGlobalHistoryAlert addButtonWithTitle:[self localizedStringForKey:@"DontClearButtonText"]];
+  [dontClearButton setKeyEquivalent:@"\e"]; // escape
+
+  [clearGlobalHistoryAlert setAlertStyle:NSCriticalAlertStyle];
+  [clearGlobalHistoryAlert beginSheetModalForWindow:[textFieldHistoryDays window]
+                                      modalDelegate:self
+                                     didEndSelector:@selector(clearGlobalHistoryAlertDidEnd:returnCode:contextInfo:)
+                                        contextInfo:nil];
 }
 
 #pragma mark -
 
-- (void)clearDiskCacheSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)clearDiskCacheAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-  if (returnCode == NSAlertDefaultReturn) {
+  if (returnCode == NSAlertFirstButtonReturn) {
     nsCOMPtr<nsICacheService> cacheServ (do_GetService("@mozilla.org/network/cache-service;1"));
     if (cacheServ)
       cacheServ->EvictEntries(nsICache::STORE_ANYWHERE);
   }
 }
 
-- (void)clearGlobalHistorySheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+- (void)clearGlobalHistoryAlertDidEnd:(NSAlert *)alert returnCode:(int)returnCode contextInfo:(void *)contextInfo
 {
-  if (returnCode == NSAlertDefaultReturn) {
+  if (returnCode == NSAlertFirstButtonReturn) {
     nsCOMPtr<nsIBrowserHistory> hist (do_GetService("@mozilla.org/browser/global-history;2"));
     if (hist)
       hist->RemoveAllPages();

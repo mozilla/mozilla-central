@@ -702,8 +702,7 @@ static id gSharedProgressController = nil;
 
     NSString *title    = NSLocalizedString(@"QuitWithDownloadsMsg", nil);
     NSString *text     = NSLocalizedString(@"QuitWithDownloadsExpl", nil);
-    NSString *dontQuit = NSLocalizedString(@"QuitWithDownloadsButtonDefault",
-                                           nil);
+    NSString *dontQuit = NSLocalizedString(@"DontQuitButtonText", nil);
     NSString *quit     = NSLocalizedString(@"QuitButtonText", nil);
 
     nsAlertController* alertController = [nsAlertController sharedController];

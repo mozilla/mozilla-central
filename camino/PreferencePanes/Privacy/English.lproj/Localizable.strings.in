@@ -8,7 +8,7 @@
 
 "CookieExpiresOnQuit" = "On Quit";
 
-"CancelButtonText" = "Cancel";
+"DontRemoveButtonText"  = "Don’t Remove";
 
 /* cookie removal warning */
 "Remove All Cookies" = "Remove All Cookies";

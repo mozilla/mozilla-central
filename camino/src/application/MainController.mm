@@ -412,7 +412,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
                                          title:quitAlertMsg
                                            text:quitAlertExpl
                                         button1:NSLocalizedString(@"QuitButtonText", @"")
-                                        button2:NSLocalizedString(@"CancelButtonText", @"")
+                                        button2:NSLocalizedString(@"DontQuitButtonText", @"")
                                         button3:nil
                                        checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
                                      checkValue:&dontShowAgain];
@@ -1020,13 +1020,18 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 //
 - (IBAction)resetBrowser:(id)sender
 {
-  if (NSRunCriticalAlertPanel(NSLocalizedString(@"Reset Camino Title", nil),
-                              NSLocalizedString(@"Reset Warning Message", nil),
-                              NSLocalizedString(@"Reset Camino", nil),
-                              NSLocalizedString(@"CancelButtonText", nil),
-                              nil) == NSAlertDefaultReturn)
-  {
+  NSAlert* resetBrowserAlert = [[[NSAlert alloc] init] autorelease];
+  [resetBrowserAlert setMessageText:NSLocalizedString(@"Reset Camino Title", nil)];
+  [resetBrowserAlert setInformativeText:NSLocalizedString(@"Reset Warning Message", nil)];
+  [resetBrowserAlert addButtonWithTitle:NSLocalizedString(@"Reset Camino", nil)];
+  NSButton* dontResetButton = [resetBrowserAlert addButtonWithTitle:NSLocalizedString(@"DontResetButtonText", nil)];
+  [dontResetButton setKeyEquivalent:@"\e"]; // escape
 
+  [resetBrowserAlert setAlertStyle:NSCriticalAlertStyle];
+
+  [NSMenu cancelAllTracking];
+
+  if ([resetBrowserAlert runModal] == NSAlertFirstButtonReturn) {
     // close all windows
     NSArray* openWindows = [[NSApp orderedWindows] copy];
     NSEnumerator* windowEnum = [openWindows objectEnumerator];
@@ -1086,11 +1091,18 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 //
 - (IBAction)emptyCache:(id)sender
 {
-  if (NSRunCriticalAlertPanel(NSLocalizedString(@"EmptyCacheTitle", nil),
-                              NSLocalizedString(@"EmptyCacheMessage", nil),
-                              NSLocalizedString(@"EmptyButton", nil),
-                              NSLocalizedString(@"CancelButtonText", nil), nil) == NSAlertDefaultReturn)
-  {
+  NSAlert* emptyCacheAlert = [[[NSAlert alloc] init] autorelease];
+  [emptyCacheAlert setMessageText:NSLocalizedString(@"EmptyCacheTitle", nil)];
+  [emptyCacheAlert setInformativeText:NSLocalizedString(@"EmptyCacheMessage", nil)];
+  [emptyCacheAlert addButtonWithTitle:NSLocalizedString(@"EmptyCacheButtonText", nil)];
+  NSButton* dontEmptyButton = [emptyCacheAlert addButtonWithTitle:NSLocalizedString(@"DontEmptyButtonText", nil)];
+  [dontEmptyButton setKeyEquivalent:@"\e"]; // escape
+
+  [emptyCacheAlert setAlertStyle:NSCriticalAlertStyle];
+
+  [NSMenu cancelAllTracking];
+
+  if ([emptyCacheAlert runModal] == NSAlertFirstButtonReturn) {
     // remove cache
     nsCOMPtr<nsICacheService> cacheServ (do_GetService("@mozilla.org/network/cache-service;1"));
     if (cacheServ)
@@ -1274,8 +1286,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
         doCloseWindows = [controller confirmCheckEx:nil
                                               title:closeAlertMsg
                                                text:closeAlertExpl
-                                            button1:NSLocalizedString(@"OKButtonText", @"")
-                                            button2:NSLocalizedString(@"CancelButtonText", @"")
+                                            button1:NSLocalizedString(@"CloseWindowsButtonText", @"")
+                                            button2:NSLocalizedString(@"DontCloseButtonText", @"")
                                             button3:nil
                                            checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
                                          checkValue:&dontShowAgain];
@@ -1516,12 +1528,18 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 //
 - (IBAction)clearHistory:(id)aSender
 {
-  if (NSRunCriticalAlertPanel(NSLocalizedString(@"ClearHistoryTitle", nil),
-                              NSLocalizedString(@"ClearHistoryMessage", nil),
-                              NSLocalizedString(@"ClearHistoryButton", nil),
-                              NSLocalizedString(@"CancelButtonText", nil),
-                              nil) == NSAlertDefaultReturn)
-  {
+  NSAlert* clearHistoryAlert = [[[NSAlert alloc] init] autorelease];
+  [clearHistoryAlert setMessageText:NSLocalizedString(@"ClearHistoryTitle", nil)];
+  [clearHistoryAlert setInformativeText:NSLocalizedString(@"ClearHistoryMessage", nil)];
+  [clearHistoryAlert addButtonWithTitle:NSLocalizedString(@"ClearHistoryButtonText", nil)];
+  NSButton* dontClearButton = [clearHistoryAlert addButtonWithTitle:NSLocalizedString(@"DontClearButtonText", nil)];
+  [dontClearButton setKeyEquivalent:@"\e"]; // escape
+
+  [clearHistoryAlert setAlertStyle:NSCriticalAlertStyle];
+
+  [NSMenu cancelAllTracking];
+
+  if ([clearHistoryAlert runModal] == NSAlertFirstButtonReturn) {
     // clear history
     nsCOMPtr<nsIBrowserHistory> hist = do_GetService("@mozilla.org/browser/global-history;2");
     if (hist)

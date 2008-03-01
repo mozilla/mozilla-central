@@ -4,6 +4,8 @@
 "OKButtonText" = "OK";
 "CancelButtonText" = "Cancel";
 "QuitButtonText" = "Quit";
+"DontQuitButtonText" = "Don’t Quit";
+"DontCloseButtonText" = "Don’t Close";
 "ChooseDirectoryOKButton" = "Select";
 "DontShowWarningAgainCheckboxLabel" = "Don’t show this warning again";
 
@@ -42,6 +44,7 @@
 /* close multiple windows */
 "CloseMultipleWindowsMsg" = "Are you sure you want to close all windows?";
 "CloseMultipleWindowsExpl" = "You have %u windows open. If you close these windows, you will lose any information that you entered in them.";
+"CloseWindowsButtonText" = "Close Windows";
 
 /* quit multiple windows/tabs */
 "QuitWithMultipleWindowsMsg" = "Are you sure you want to quit when there are multiple open windows?";
@@ -69,7 +72,6 @@
 /* quit with downloads alert */
 "QuitWithDownloadsMsg" = "Are you sure you want to quit?";
 "QuitWithDownloadsExpl" = "There are downloads in progress that will be stopped if you quit now.";
-"QuitWithDownloadsButtonDefault" = "Don’t Quit";
 
 /* Parser error loading bookmarks.xml file */
 "CorruptedBookmarksAlert" = "Error Reading Bookmarks";
@@ -385,6 +387,7 @@
 "Reset Camino Title" = "Are you sure you want to reset Camino?";
 "Reset Warning Message" = "Resetting Camino will erase your browsing history, empty the cache, clear downloads, clear all cookies and site cookie permissions, and remove any passwords Camino saved in your Keychain.\n\nYou cannot undo this action.\n";
 "Reset Camino" = "Reset Camino";
+"DontResetButtonText" = "Don’t Reset";
 
 /* History labels */
 "Tomorrow" = "Tomorrow";
@@ -401,13 +404,15 @@
 /* Empty cache messages (note that these are duplicated in the History prefs panel) */
 "EmptyCacheTitle" = "Are you sure you want to empty the cache?";
 "EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits.\n\nYou cannot undo this action.\n";
-"EmptyButton" = "Empty";
+"EmptyCacheButtonText" = "Empty Cache";
+"DontEmptyButtonText" = "Don’t Empty";
 
 /* Clear history message (note that these are duplicated in the History prefs panel) */
 "ClearHistoryMenuItem" = "Clear History…";
 "ClearHistoryTitle" = "Are you sure you want to clear the history?";
 "ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar.\n\nYou cannot undo this action.\n";
-"ClearHistoryButton" = "Clear History";
+"ClearHistoryButtonText" = "Clear History";
+"DontClearButtonText" = "Don’t Clear";
 
 "ShowMoreHistoryMenuItem" = "Show More";
 
@@ -455,6 +460,7 @@
 "RestoreDefaultEnginesTitle" = "Restore the default search engines?";
 "RestoreDefaultEnginesMessage" = "Restoring the default search engines will replace all of the engines that are currently installed.\n\nYou cannot undo this action.\n";
 "RestoreDefaultEnginesActionButton" = "Restore Default Engines";
+"DontRestoreDefaultEnginesActionButton" = "Don’t Restore";
 
 /* Web Search Plug-ins */
 "InstallSearchPluginMenuItem" = "Add “%@”";

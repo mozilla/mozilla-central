@@ -752,7 +752,7 @@ public:
                                       title:NSLocalizedString(@"CloseWindowWithMultipleTabsMsg", @"")
                                        text:[NSString stringWithFormat:closeMultipleTabWarning, numberOfTabs]
                                     button1:NSLocalizedString(@"CloseWindowWithMultipleTabsButton", @"")
-                                    button2:NSLocalizedString(@"CancelButtonText", @"")
+                                    button2:NSLocalizedString(@"DontCloseButtonText", @"")
                                     button3:nil
                                    checkMsg:NSLocalizedString(@"DontShowWarningAgainCheckboxLabel", @"")
                                  checkValue:&dontShowAgain];
