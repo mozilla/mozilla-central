@@ -72,6 +72,7 @@ function calDavCalendar() {
     this.mHrefIndex = [];
     this.mAuthScheme = null;
     this.mAuthRealm = null;
+    this.mObserver = null;
 }
 
 // some shorthand
@@ -136,8 +137,7 @@ calDavCalendar.prototype = {
                                          .createInstance(Components.interfaces.calICalendar);
 
         this.mMemoryCalendar.superCalendar = this;
-        var cDO = new calDavObserver(this);
-        this.mMemoryCalendar.addObserver(cDO);
+        this.mObserver = new calDavObserver(this);
         this.mMemoryCalendar.setProperty("relaxedMode", true);
     },
 
@@ -621,7 +621,9 @@ calDavCalendar.prototype = {
             // 204 = HTTP "No content"
             //
             if (status == 204) {
+                thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
                 thisCalendar.mMemoryCalendar.deleteItem(aItem, aListener);
+                thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
                 delete thisCalendar.mHrefIndex[eventUri.path];
                 delete thisCalendar.mItemInfoCache[aItem.id];
                 LOG("Item deleted successfully.");
@@ -976,7 +978,9 @@ calDavCalendar.prototype = {
         reportListener.onOperationComplete = function(aStatusCode, aResource,
                                                       aOperation, aClosure) {
             LOG("refresh completed with status " + aStatusCode);
+            thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
             thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
+            thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
         };
 
         // convert this into a form the WebDAV service can use
