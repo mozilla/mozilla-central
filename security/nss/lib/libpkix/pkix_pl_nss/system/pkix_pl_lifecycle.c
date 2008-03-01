@@ -75,6 +75,7 @@ static PKIX_Alloc_Error_Object pkix_Alloc_Error_Data = {
     }, {
         (PKIX_ERRORCODE)0,              /* PKIX_ERRORCODE errCode; */
         (PKIX_ERRORCLASS)PKIX_FATAL_ERROR,/* PKIX_ERRORCLASS errClass */
+        (PKIX_UInt32)SEC_ERROR_LIBPKIX_INTERNAL, /* default PL Error Code */
         (PKIX_Error *)0,                /* PKIX_Error *cause */
         (PKIX_PL_Object *)0,            /* PKIX_PL_Object *info */
    }
