@@ -233,7 +233,7 @@ calCalendarManager.prototype = {
 
     },
 
-    DB_SCHEMA_VERSION: 8,
+    DB_SCHEMA_VERSION: 9,
 
     upgradeDB: function (oldVersion) {
         // some common helpers
@@ -308,6 +308,30 @@ calCalendarManager.prototype = {
                 }
 
                 this.mDB.commitTransaction();
+                oldVersion = 8;
+            } catch (e) {
+                dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
+                Components.utils.reportError("Upgrade failed! DB Error: " +
+                                             this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        } 
+        
+        if (oldVersion < 9) {
+            dump ("**** Upgrading calCalendarManager schema to 9\n");
+
+            this.mDB.beginTransaction();
+            try {
+                // Schema changes in v9:
+                //
+                // - Decouple schema version from storage calendar
+                // Create the new tables.
+                this.mDB.executeSimpleSQL("CREATE TABLE cal_calmgr_schema_version " +
+                                          "(version INTEGER);");
+                this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
+                this.mDB.commitTransaction();
+                oldVersion = 9;
             } catch (e) {
                 dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
                 Components.utils.reportError("Upgrade failed! DB Error: " +
@@ -331,17 +355,22 @@ calCalendarManager.prototype = {
         }
 
         var sqlTables = { cal_calendars: "id INTEGER PRIMARY KEY, type TEXT, uri TEXT",
-                          cal_calendars_prefs: "id INTEGER PRIMARY KEY, calendar INTEGER, name TEXT, value TEXT"
+                          cal_calendars_prefs: "id INTEGER PRIMARY KEY, calendar INTEGER, name TEXT, value TEXT",
+                          cal_calmgr_schema_version: "version INTEGER",
                         };
 
         // Should we check the schema version to see if we need to upgrade?
         var checkSchema = true;
-
-        for (table in sqlTables) {
-            if (!this.mDB.tableExists(table)) {
+        
+        // Check if the tables exists
+        if (!this.mDB.tableExists("cal_calendars")) {
+            // No table. Initialize the DB
+            for (table in sqlTables) {
                 this.mDB.createTable(table, sqlTables[table]);
-                checkSchema = false;
             }
+            // Store the schema version
+            this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
+            checkSchema = false;
         }
 
         if (checkSchema) {
@@ -461,9 +490,17 @@ calCalendarManager.prototype = {
         var stmt;
         var version = null;
 
+        var table;
+        if (this.mDB.tableExists("cal_calmgr_schema_version")) {
+            table = "cal_calmgr_schema_version";
+        } else {
+            // Fall back to the old schema table
+            table = "cal_calendar_schema_version";
+        }
+
         try {
             stmt = createStatement(this.mDB,
-                    "SELECT version FROM cal_calendar_schema_version LIMIT 1");
+                    "SELECT version FROM " + table + " LIMIT 1");
             if (stmt.step()) {
                 version = stmt.row.version;
             }
@@ -485,7 +522,7 @@ calCalendarManager.prototype = {
             throw e;
         }
 
-        throw "cal_calendar_schema_version SELECT returned no results";
+        throw table + " SELECT returned no results";
     },
 
     notifyObservers: function(functionName, args) {
