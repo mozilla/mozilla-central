@@ -7,7 +7,7 @@
 <!ENTITY  openDefault.accesskey               "O">
 <!ENTITY  openApplication.label               "Open them with this application:">
 <!ENTITY  openApplication.accesskey           "e">
-<!ENTITY  changeApp.label                     "Browse...">
+<!ENTITY  changeApp.label                     "Browse…">
 <!ENTITY  changeApp.accesskey                 "B">
 <!ENTITY  saveToDisk.label                    "Save them on my computer">
 <!ENTITY  saveToDisk.accesskey                "S">
@@ -15,7 +15,7 @@
 <!ENTITY  saveToDefaultFolder.accesskey       "d">
 <!ENTITY  saveToThisFolder.label              "in this folder:">
 <!ENTITY  saveToThisFolder.accesskey          "h">
-<!ENTITY  chooseFolder.label                  "Browse...">
+<!ENTITY  chooseFolder.label                  "Browse…">
 <!ENTITY  chooseFolder.accesskey              "w">
 <!ENTITY  saveToAskMe.label                   "ask me where to save the file">
 <!ENTITY  saveToAskMe.accesskey               "a">

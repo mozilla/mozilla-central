@@ -15,7 +15,7 @@
 
 <!ENTITY  remove.label                        "Remove Action">
 <!ENTITY  remove.accesskey                    "R">
-<!ENTITY  edit.label                          "Change Action...">
+<!ENTITY  edit.label                          "Change Action…">
 <!ENTITY  edit.accesskey                      "C">
 
 <!ENTITY  windowClose.key                     "w">

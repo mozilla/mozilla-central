@@ -54,12 +54,12 @@
 <!ENTITY addressingEnable.accesskey            "A">
 <!ENTITY directories.label                     "Directory Server:">
 <!ENTITY directories.accesskey                 "D">
-<!ENTITY editDirectories.label                 "Edit Directories...">
+<!ENTITY editDirectories.label                 "Edit Directories…">
 <!ENTITY editDirectories.accesskey             "E">
 <!ENTITY matchText.label                       "If there is a match in your local address books:">
 <!ENTITY skipDirectory.label                   "Do not search in the directory">
 
 <!ENTITY sendOptionsCaption.label              "Send and HTML Options">
 <!ENTITY sendOptionsDescription.label          "Configure text format behavior">
-<!ENTITY sendOptions.label                     "Send Options...">
+<!ENTITY sendOptions.label                     "Send Options…">
 <!ENTITY sendOptions.accesskey                 "S">

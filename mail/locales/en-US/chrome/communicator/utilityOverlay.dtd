@@ -30,7 +30,7 @@
 <!ENTITY selectAllCmd.label          "Select All">
 <!ENTITY selectAllCmd.key          "A">
 <!ENTITY selectAllCmd.accesskey        "a">
-<!ENTITY preferencesCmd.label        "Options...">
+<!ENTITY preferencesCmd.label        "Options…">
 <!ENTITY preferencesCmd.accesskey      "O">
 <!ENTITY preferencesCmdUnix.label       "Preferences">
 <!ENTITY preferencesCmdUnix.accesskey     "n">
@@ -52,7 +52,7 @@
 <!ENTITY pac.label                                      "Online (proxy: auto)">
 <!ENTITY pac.accesskey                                  "a">
 
-<!ENTITY proxy.label                                    "Proxy Configuration...">
+<!ENTITY proxy.label                                    "Proxy Configuration…">
 <!ENTITY proxy.accesskey                                "C">
 
 <!ENTITY findTypeTextCmd.key        "/">

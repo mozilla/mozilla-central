@@ -49,4 +49,4 @@
 <!ENTITY fontAndEncodingsDescription.label  "Configure the fonts and encodings used by &brandShortName;">
 <!ENTITY fontsAndEncodingsCaption.label      "Fonts &amp; Encodings">
 <!ENTITY fontOptions.accesskey   "F">
-<!ENTITY fontOptions.label       "Fonts...">
+<!ENTITY fontOptions.label       "Fonts…">

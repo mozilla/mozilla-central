@@ -16,7 +16,7 @@
 <!ENTITY filterActionDesc.label "Perform these actions:">
 <!ENTITY filterActionDesc.accesskey "P">
 
-<!ENTITY newFolderButton.label "New Folder...">
+<!ENTITY newFolderButton.label "New Folder…">
 <!ENTITY newFolderButton.accesskey "N">
 
 <!-- New Style Filter Rule Actions -->

@@ -26,7 +26,7 @@
 <!ENTITY playSound1.accesskey              "d">
 <!ENTITY showAnimatedAlert.label          "Show an alert">
 <!ENTITY showAnimatedAlert.accesskey      "S">
-<!ENTITY customizeMailAlert.label         "Customize...">
+<!ENTITY customizeMailAlert.label         "Customize…">
 <!ENTITY customizeMailAlert.accesskey     "C">
 
 <!ENTITY soundNotification1.caption       "Sound">
@@ -38,5 +38,5 @@
 <!ENTITY systemsound.accesskey            "y">
 <!ENTITY customsound.label                "Use the following sound file">
 <!ENTITY customsound.accesskey            "U">
-<!ENTITY browse.label                     "Browse...">
+<!ENTITY browse.label                     "Browse…">
 <!ENTITY browse.accesskey                 "B">

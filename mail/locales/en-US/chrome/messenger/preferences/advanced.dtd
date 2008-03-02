@@ -29,10 +29,10 @@
 <!ENTITY connectionTimeout.accesskey   "C">
 <!ENTITY connectionSeconds.label       "seconds">
 <!ENTITY configEditDesc.label          "Advanced Configuration">
-<!ENTITY configEdit.label              "Config Editor...">
+<!ENTITY configEdit.label              "Config Editor…">
 <!ENTITY configEdit.accesskey          "g">
 <!ENTITY returnReceiptsInfo.label      "Determine how &brandShortName; handles return receipts">
-<!ENTITY showReturnReceipts.label      "Return Receipts...">
+<!ENTITY showReturnReceipts.label      "Return Receipts…">
 <!ENTITY showReturnReceipts.accesskey  "R">
 
 <!-- Update -->
@@ -41,7 +41,7 @@
 <!ENTITY enableAppUpdate.accesskey      "h">
 <!ENTITY enableAddonsUpdate.label       "Installed Add-ons">
 <!ENTITY enableAddonsUpdate.accesskey   "t">
-<!ENTITY checkNow.label                 "Check Now...">
+<!ENTITY checkNow.label                 "Check Now…">
 <!ENTITY whenUpdatesFound.label         "When updates to &brandShortName; are found,">
 <!ENTITY modeAskMe.label                "Ask me what I want to do">
 <!ENTITY modeAskMe.accesskey            "k">
@@ -53,13 +53,13 @@
 <!ENTITY showUpdates.accesskey          "y">
 
 <!-- Networking and Disk Space -->
-<!ENTITY showConnections.label         "Connection...">
+<!ENTITY showConnections.label         "Connection…">
 <!ENTITY showConnections.accesskey     "n">
 <!ENTITY proxiesInfo.label             "Determine how &brandShortName; connects to the Internet.">
 <!ENTITY connectionsInfo.caption       "Connection">
 <!ENTITY offlineInfo.caption           "Offline">
 <!ENTITY offlineInfo.label             "Configure offline settings">
-<!ENTITY showOffline.label             "Offline...">
+<!ENTITY showOffline.label             "Offline…">
 <!ENTITY showOffline.accesskey         "O">
 
 <!ENTITY Diskspace "Disk Space">

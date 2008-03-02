@@ -88,7 +88,7 @@
 
 <!ENTITY folderSharingTab.label                  "Sharing">
 <!ENTITY privilegesDesc.label                    "Share this and other folders with network users and display and set access privileges">
-<!ENTITY privileges.button.label                 "Privileges...">
+<!ENTITY privileges.button.label                 "Privileges…">
 <!ENTITY privileges.button.accesskey             "P">
 <!ENTITY permissionsDesc.label                   "You have the following permissions:">
 <!ENTITY folderType.label                        "Folder Type:">

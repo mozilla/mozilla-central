@@ -56,21 +56,21 @@
 <!ENTITY originalWebsite.label "Website: ">
 <!ENTITY saveAll.label "Save All..">
 
-<!ENTITY editMessage.label "Edit Draft...">
+<!ENTITY editMessage.label "Edit Draft…">
 
 <!ENTITY openAttachmentCmd.label    "Open">
 <!ENTITY openAttachmentCmd.accesskey    "O">
-<!ENTITY saveAsAttachmentCmd.label    "Save As...">
+<!ENTITY saveAsAttachmentCmd.label    "Save As…">
 <!ENTITY saveAsAttachmentCmd.accesskey    "A">
 <!ENTITY printAttachmentCmd.label    ".Print">
 <!ENTITY printAttachmentCmd.accesskey    "P">
-<!ENTITY detachAttachmentCmd.label    "Detach ...">
+<!ENTITY detachAttachmentCmd.label    "Detach…">
 <!ENTITY deleteAttachmentCmd.label    "Delete">
-<!ENTITY saveAllAttachmentsCmd.label    "Save All...">
+<!ENTITY saveAllAttachmentsCmd.label    "Save All…">
 <!ENTITY saveAllAttachmentsCmd.accesskey    "S">
-<!ENTITY detachAllAttachmentsCmd.label    "Detach All...">
+<!ENTITY detachAllAttachmentsCmd.label    "Detach All…">
 <!ENTITY detachAllAttachmentsCmd.accesskey    "D">
-<!ENTITY deleteAllAttachmentsCmd.label    "Delete All...">
+<!ENTITY deleteAllAttachmentsCmd.label    "Delete All…">
 <!ENTITY deleteAllAttachmentsCmd.accesskey    "E">
 
 <!ENTITY copyLinkCmd.label        "Copy Link Location">

@@ -12,7 +12,7 @@
 <!ENTITY sendMessage.accesskey "S">
 <!ENTITY workOffline.label "Work offline once download and/or sync is complete">
 <!ENTITY workOffline.accesskey "W">
-<!ENTITY selectButton.label "Select...">
+<!ENTITY selectButton.label "Select…">
 <!ENTITY selectButton.accesskey "E">
 <!ENTITY MsgSelectDesc.label "Choose mail folders and newsgroups for offline use.">
 <!ENTITY MsgSelectInd.label "Download">
