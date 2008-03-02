@@ -51,6 +51,15 @@
 			</Description>
 		</em:targetApplication>
 		
+		<!-- target: Songbird, version 0.5pre to 0.5.* -->
+		<em:targetApplication>
+			<Description>
+				<em:id>songbird@songbirdnest.com</em:id>
+				<em:minVersion>0.5pre</em:minVersion>
+				<em:maxVersion>0.5.*</em:maxVersion>
+			</Description>
+		</em:targetApplication>
+		
 		<!-- front-end metadata -->
 		<em:name>ChatZilla</em:name>
 		<em:description>A clean, easy to use and highly extensible Internet Relay Chat (IRC) client.</em:description>

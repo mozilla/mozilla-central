@@ -21,13 +21,18 @@
 
   <!-- overlay information -->
   <RDF:Seq about="urn:mozilla:overlays">
-    <RDF:li resource="chrome://editor/content/editorTasksOverlay.xul"/>
     <RDF:li resource="chrome://browser/content/browser.xul"/>
+    <RDF:li resource="chrome://songbird/content/xul/layoutBaseOverlay.xul"/>
+    <RDF:li resource="chrome://editor/content/editorTasksOverlay.xul"/>
     <RDF:li resource="chrome://communicator/content/pref/preftree.xul"/>
     <RDF:li resource="chrome://communicator/content/pref/pref-appearance.xul"/>
   </RDF:Seq>
 
   <RDF:Seq about="chrome://browser/content/browser.xul">
+    <RDF:li>chrome://chatzilla/content/browserOverlay.xul</RDF:li>
+  </RDF:Seq>
+
+  <RDF:Seq about="chrome://songbird/content/xul/layoutBaseOverlay.xul">
     <RDF:li>chrome://chatzilla/content/browserOverlay.xul</RDF:li>
   </RDF:Seq>
 

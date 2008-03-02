@@ -439,6 +439,9 @@ function initApplicationCompatibility()
             case "{3db10fab-e461-4c80-8b97-957ad5f8ea47}": // Netscape
                 client.host = "Netscape";
                 break;
+            case "songbird@songbirdnest.com": // Songbird
+                client.host = "Songbird";
+                break;
             default:
                 client.unknownUID = app.ID;
                 client.host = ""; // Unknown host, show an error later.

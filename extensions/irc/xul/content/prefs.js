@@ -92,6 +92,12 @@ function initPrefs()
         gotos = ["goto-url-external", "goto-url-external",
                  "goto-url-external", "goto-url-external"];
     }
+    else if (client.host == "Songbird")
+    {
+        // Songbird has a browser, but only supports a single browser window
+        gotos = ["goto-url",        "goto-url-newtab",
+                 "goto-url-newtab", "goto-url-newtab"];
+    }
 
     // Set up default nickname, if possible.
     var defaultNick = DEFAULT_NICK;

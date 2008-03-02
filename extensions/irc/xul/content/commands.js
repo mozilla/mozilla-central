@@ -2312,7 +2312,10 @@ function cmdGotoURL(e)
         return;
     }
 
-    var window = getWindowByType("navigator:browser");
+    if (client.host == "Songbird")
+        var window = getWindowByType("Songbird:Main");
+    else
+        window = getWindowByType("navigator:browser");
 
     if (!window)
     {
