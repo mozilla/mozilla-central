@@ -696,16 +696,15 @@ calDavCalendar.prototype = {
      * @param aListener   listener for method completion
      */
     getUpdatedItem: function caldavGUI(aItem, aListener) {
-        if (!aListener) {
-            return;
-        }
 
         if (aItem == null) {
-            aListener.onOperationComplete(this.superCalendar,
-                                          Components.results.NS_ERROR_FAILURE,
-                                          aListener.GET,
-                                          null,
-                                          "passed in null item");
+            if (aListener) {
+                aListener.onOperationComplete(this.superCalendar,
+                                              Components.results.NS_ERROR_FAILURE,
+                                              aListener.GET,
+                                              null,
+                                              "passed in null item");
+            }
             return;
         }
 
