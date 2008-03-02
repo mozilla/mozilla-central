@@ -345,12 +345,3 @@ function exportEntireCalendar(aCalendar) {
         getItemsFromCal(aCalendar);
     }
 }
-
-function showError(aMsg)
-{
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(null,
-                        calGetString("calendar", "errorTitle"),
-                        aMsg);
-}

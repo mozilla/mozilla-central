@@ -374,12 +374,12 @@ function finishItipAction(aOperationType, aStatus, aDetail)
         } else {
             // Bug 348666: When we handle more iTIP methods, we need to create
             // more sophisticated error handling.
+            // TODO L10N localize
             document.getElementById("imip-bar").setAttribute("collapsed", true);
             var msg = "Invitation could not be processed. Status: " + aStatus;
             if (aDetail) {
                 msg += "\nDetails: " + aDetail;
             }
-            // Defined in import-export
             showError(msg);
         }
     }

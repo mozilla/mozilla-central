@@ -1374,6 +1374,19 @@ function ASSERT(aCondition, aMessage, aCritical) {
     }
 }
 
+/**
+ * Uses the prompt service to display an error message.
+ *
+ * @param aMsg The message to be shown
+ */
+function showError(aMsg) {
+    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                  .getService(Components.interfaces.nsIPromptService);
+
+    promptService.alert(window,
+                        calGetString("calendar", "errorTitle"),
+                        aMsg);
+}
 
 /**
  * Auth prompt implementation - Uses password manager if at all possible.
