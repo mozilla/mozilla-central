@@ -365,6 +365,10 @@ calItipProcessor.prototype = {
 
                 // TODO: Handle generation properly - Bug 418345 
                 aCalItem.generation = aExistingItem.generation;
+                // We also have to ensure that the calendar is set properly on
+                // the new item, or items with alarms will throw during the
+                // notification process
+                aCalItem.calendar = aExistingItem.calendar;
                 aTargetCalendar.modifyItem(aCalItem, aExistingItem, aListener);
                 return true;
 

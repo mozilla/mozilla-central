@@ -411,6 +411,13 @@ function isUpdateMsg()
     var itemList = gItipItem.getItemList({ });
     var newSequence = itemList[0].getProperty("SEQUENCE");
 
+    // Make sure we don't have a pre Outlook 2007 appointment, but if we do
+    // use Microsoft's Sequence number. I <3 MS
+    if ((newSequence == "0") &&
+       itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
+        newSequence = itemList[0].getProperty("X-MICROSOFT-CDO-APPT-SEQUENCE");
+    }
+
     var onFindItemListener = {
         processedId: null,
         onOperationComplete:
@@ -426,7 +433,14 @@ function isUpdateMsg()
         function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
             if (aCount && aItems[0] && !this.processedId) {
                 this.processedId = true;
-                determineUpdateType(newSequence, aItems[0].getProperty("SEQUENCE"));
+                var existingSequence = aItems[0].getProperty("SEQUENCE");
+
+                // Handle the microsoftism foolishness
+                if ((existingSequence == "0") &&
+                   itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
+                    existingSequence = aItems[0].getProperty("X-MICROSOFT-CDO-APPT-SEQUENCE");
+                }
+                determineUpdateType(newSequence, existingSequence);
             }
         }
     };
