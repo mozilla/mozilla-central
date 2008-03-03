@@ -209,15 +209,15 @@ calMemoryCalendar.prototype = {
             return reportError(null, "ID for modifyItem item is null");
         }
 
-        if (aNewItem.parentItem != aNewItem) {
-// isn't the below a bug? we modify the passed item's recurrenceInfo; why don't we clone it before, modifiedItem...?
-            aNewItem.parentItem.recurrenceInfo.modifyException(aNewItem);
-            aNewItem = aNewItem.parentItem;
+        var modifiedItem = aNewItem.clone();
+        if (modifiedItem.parentItem != modifiedItem) {
+            modifiedItem.parentItem.recurrenceInfo.modifyException(modifiedItem);
+            modifiedItem = modifiedItem.parentItem;
         }
 
         if (this.relaxedMode) {
             if (!aOldItem) {
-                aOldItem = (this.mItems[aNewItem.id] || aNewItem);
+                aOldItem = (this.mItems[aNewItem.id] || modifiedItem);
             }
             aOldItem = aOldItem.parentItem;
         } else {
@@ -227,7 +227,7 @@ calMemoryCalendar.prototype = {
             }
 
             // do the old and new items match?
-            if (aOldItem.id != aNewItem.id) {
+            if (aOldItem.id != modifiedItem.id) {
                 return reportError("item ID mismatch between old and new items");
             }
 
@@ -238,22 +238,26 @@ calMemoryCalendar.prototype = {
                 return reportError("old item mismatch in modifyItem");
             }
 
-            if (aOldItem.generation != aNewItem.generation) {
+            if (aOldItem.generation != modifiedItem.generation) {
                 return reportError("generation mismatch in modifyItem");
             }
+
+            // Only take care of incrementing the generation if relaxed mode is
+            // off. Users of relaxed mode need to take care of this themselves.
+            modifiedItem.generation += 1;
         }
 
-        var modifiedItem = aNewItem.clone();
-        modifiedItem.generation += 1;
         modifiedItem.makeImmutable();
-        this.mItems[aNewItem.id] = modifiedItem;
+        this.mItems[modifiedItem.id] = modifiedItem;
 
-        if (aListener)
+        if (aListener) {
             aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.MODIFY,
                                            modifiedItem.id,
                                            modifiedItem);
+        }
+
         // notify observers
         this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
         return null;
@@ -291,7 +295,7 @@ calMemoryCalendar.prototype = {
                                            Components.results.NS_OK,
                                            aListener.DELETE,
                                            aItem.id,
-                                           null);
+                                           aItem);
         // notify observers
         this.mObservers.notify("onDeleteItem", [oldItem]);
     },

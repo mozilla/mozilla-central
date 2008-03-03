@@ -36,33 +36,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-function OpCompleteListener(respFunc) {
-    this.mRespFunc = respFunc;
+function opCompleteListener(aOriginalItem, aOuterListener) {
+    this.mOriginalItem = aOriginalItem;
+    this.mOuterListener = aOuterListener;
 }
-OpCompleteListener.prototype = {
-    onOperationComplete: function opc_onOperationComplete(calendar, status, opType, id, detail) {
-        this.mRespFunc(Components.isSuccessCode(status) ? detail : null);
+
+opCompleteListener.prototype = {
+    mOriginalItem: null,
+    mOuterListener: null,
+
+    onOperationComplete: function oCL_onOperationComplete(aCalendar, aStatus, aOpType, aId, aItem) {
+        if (Components.isSuccessCode(aStatus)) {
+            checkForAttendees(aItem, this.mOriginalItem);
+        }
+        if (this.mOuterListener) {
+            this.mOuterListener.onOperationComplete.apply(this.mOuterListener,
+                                                          arguments);
+        }
     },
-    onGetResult: function opc_onGetResult() {
+
+    onGetItem: function oCL_onGetResult(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+
     }
 };
 
 /* all params are optional */
-function createEventWithDialog(calendar, startDate, endDate, summary, event)
-{
+function createEventWithDialog(calendar, startDate, endDate, summary, event) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
-
-    var onNewEvent = function(event, calendar, originalEvent) {
-        doTransaction('add', event, calendar, null,
-                      new OpCompleteListener(
-                          function respFunc(savedItem) {
-                              if (savedItem) {
-                                  checkForAttendees(savedItem, originalEvent);
-                              }
-                          }));
-    }
+    var onNewEvent = function(item, calendar, originalItem, listener) {
+        var innerListener = new opCompleteListener(originalItem, listener);
+        if (item.id) {
+            // If the item already has an id, then this is the result of
+            // saving the item without closing, and then saving again.
+            if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
+                doTransaction('modify', item, calendar, originalItem, innerListener);
+            } else {
+                doTransaction('move', item, calendar, originalItem, innerListener);
+            }
+        } else {
+            // Otherwise, this is an addition
+            doTransaction('add', item, calendar, null, innerListener);
+        }
+    };
 
     if (event) {
         // If the event should be created from a template, then make sure to
@@ -73,63 +89,65 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event)
             event.id = null;
         }
 
-        openEventDialog(event, calendar, "new", onNewEvent, null);
-        return;
-    }
-    
-    event = createEvent();
+    } else {
+        event = createEvent();
 
-    if (!startDate) {
-        // Have we shown the calendar view yet? (Lightning)
-        if (currentView().initialized) {
-            startDate = currentView().selectedDay.clone();
-        } else {
-            startDate = jsDateToDateTime(new Date()).getInTimezone(kDefaultTimezone);
+        if (!startDate) {
+            // Have we shown the calendar view yet? (Lightning)
+            if (currentView().initialized) {
+                startDate = currentView().selectedDay.clone();
+            } else {
+                startDate = jsDateToDateTime(new Date()).getInTimezone(kDefaultTimezone);
+            }
+            startDate.isDate = true;
         }
-        startDate.isDate = true;
-    }
 
-    if (startDate.isDate) {
-        if (!startDate.isMutable) {
-            startDate = startDate.clone();
+        if (startDate.isDate) {
+            if (!startDate.isMutable) {
+                startDate = startDate.clone();
+            }
+            startDate.isDate = false;
+            // The time for the event should default to the next full hour
+            startDate.hour = now().hour + 1;
+            startDate.minute = 0;
+            startDate.second = 0;
         }
-        startDate.isDate = false;
-        // The time for the event should default to the next full hour
-        startDate.hour = now().hour + 1;
-        startDate.minute = 0;
-        startDate.second = 0;
-   }
 
-    event.startDate = startDate.clone();
+        if (!endDate) {
+            endDate = startDate.clone();
+            endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+        }
 
-    if (!endDate) {
-        endDate = startDate.clone();
-        endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+        event.startDate = startDate.clone();
+        event.endDate = endDate.clone();
+
+        event.calendar = calendar || getSelectedCalendar();
+
+        if (summary)
+            event.title = summary;
+
+        setDefaultAlarmValues(event);
     }
-    event.endDate = endDate.clone();
-
-    event.calendar = calendar || getSelectedCalendar();
-
-    if (summary)
-        event.title = summary;
-
-    setDefaultAlarmValues(event);
-
     openEventDialog(event, calendar, "new", onNewEvent, null);
 }
 
-function createTodoWithDialog(calendar, dueDate, summary, todo)
-{
+function createTodoWithDialog(calendar, dueDate, summary, todo) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
-    var onNewItem = function(item, calendar, originalItem) {
-        doTransaction('add', item, calendar, null,
-                      new OpCompleteListener(
-                          function respFunc(savedItem) {
-                              if (savedItem) {
-                                  checkForAttendees(savedItem, originalItem);
-                              }
-                          }));
+    var onNewItem = function(item, calendar, originalItem, listener) {
+        var innerListener = new opCompleteListener(originalItem, listener);
+        if (item.id) {
+            // If the item already has an id, then this is the result of
+            // saving the item without closing, and then saving again.
+            if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
+                doTransaction('modify', item, calendar, originalItem, innerListener);
+            } else {
+                doTransaction('move', item, calendar, originalItem, innerListener);
+            }
+        } else {
+            // Otherwise, this is an addition
+            doTransaction('add', item, calendar, null, innerListener);
+        }
     }
 
     if (todo) {
@@ -140,63 +158,40 @@ function createTodoWithDialog(calendar, dueDate, summary, todo)
             todo = todo.clone();
             todo.id = null;
         }
-        openEventDialog(todo, calendar, "new", onNewItem, null);
-        return;
+    } else {
+        todo = createTodo();
+        todo.calendar = calendar || getSelectedCalendar();
+
+        if (summary)
+            todo.title = summary;
+
+        if (dueDate)
+            todo.dueDate = dueDate;
+
+        setDefaultAlarmValues(todo);
     }
-
-    todo = createTodo();
-
-    todo.calendar = calendar || getSelectedCalendar();
-
-    if (summary)
-        todo.title = summary;
-
-    if (dueDate)
-        todo.dueDate = dueDate;
-
-    var onNewItem = function(item, calendar, originalItem) {
-        calendar.addItem(item,
-                         new OpCompleteListener(
-                             function respFunc(savedItem) {
-                                 if (savedItem) {
-                                     checkForAttendees(savedItem, originalItem);
-                                 }
-                             }));
-    }
-
-    setDefaultAlarmValues(todo);
 
     openEventDialog(todo, calendar, "new", onNewItem, null);
 }
 
 
-function modifyEventWithDialog(item, job)
-{
-    var onModifyItem = function(item, calendar, originalItem) {
-        var listener = new OpCompleteListener(
-            function respFunc(savedItem) {
-                if (savedItem) {
-                    checkForAttendees(savedItem, originalItem);
-                }
-            });
-        // compare cal.uri because there may be multiple instances of
-        // calICalendar or uri for the same spec, and those instances are
-        // not ==.
-        if (!originalItem.calendar || 
-            (originalItem.calendar.uri.equals(calendar.uri)))
-            doTransaction('modify', item, item.calendar, originalItem, listener);
-        else {
-            doTransaction('move', item, calendar, originalItem, listener);
+function modifyEventWithDialog(item, job) {
+    var onModifyItem = function(item, calendar, originalItem, listener) {
+        var innerListener = new opCompleteListener(originalItem, listener);
+
+        if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
+            doTransaction('modify', item, calendar, originalItem, innerListener);
+        } else {
+            doTransaction('move', item, calendar, originalItem, innerListener);
         }
-    }
+    };
 
     if (item) {
         openEventDialog(item, item.calendar, "modify", onModifyItem, job);
     }
 }
 
-function openEventDialog(calendarItem, calendar, mode, callback, job)
-{
+function openEventDialog(calendarItem, calendar, mode, callback, job) {
     // Set up some defaults
     mode = mode || "new";
     calendar = calendar || getSelectedCalendar();

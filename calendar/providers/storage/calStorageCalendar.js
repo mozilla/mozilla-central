@@ -492,13 +492,12 @@ calStorageCalendar.prototype = {
             return reportError("ID for modifyItem item is null");
         }
 
-        // Ensure that we're looking at the base item
-        // if we were given an occurrence.  Later we can
-        // optimize this.
-        if (aNewItem.parentItem != aNewItem) {
-// isn't the below a bug? we modify the passed item's recurrenceInfo; why don't we clone it before, modifiedItem...?
-            aNewItem.parentItem.recurrenceInfo.modifyException(aNewItem);
-            aNewItem = aNewItem.parentItem;
+        // Ensure that we're looking at the base item if we were given an
+        // occurrence.  Later we can optimize this.
+        var modifiedItem = aNewItem.clone();
+        if (modifiedItem.parentItem != modifiedItem) {
+            modifiedItem.parentItem.recurrenceInfo.modifyException(modifiedItem);
+            modifiedItem = modifiedItem.parentItem;
         }
 
         if (this.relaxedMode) {
@@ -516,20 +515,22 @@ calStorageCalendar.prototype = {
             if (aOldItem.generation != aNewItem.generation) {
                 return reportError("generation too old for for modifyItem");
             }
+
+            // Only take care of incrementing the generation if relaxed mode is
+            // off. Users of relaxed mode need to take care of this themselves.
+            modifiedItem.generation += 1;
         }
 
-        var modifiedItem = aNewItem.clone();
-        modifiedItem.generation += 1;
         modifiedItem.makeImmutable();
-
         this.flushItem (modifiedItem, aOldItem);
 
-        if (aListener)
+        if (aListener) {
             aListener.onOperationComplete (this.superCalendar,
                                            Components.results.NS_OK,
                                            aListener.MODIFY,
                                            modifiedItem.id,
                                            modifiedItem);
+        }
 
         // notify observers
         this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);

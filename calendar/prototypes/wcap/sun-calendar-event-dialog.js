@@ -196,7 +196,7 @@ function onLoad() {
 
 function onAccept() {
     dispose();
-    onCommandSave();
+    onCommandSave(true);
     return true;
 }
 
@@ -253,12 +253,12 @@ function onCommandCancel() {
                                          null,
                                          {});
     switch (choice) {
-        case 0:
-            onCommandSave();
+        case 0: // Save
+            onCommandSave(true);
             return true;
-        case 2:
+        case 2: // Don't save
             return true;
-        default:
+        default: // Cancel
             return false;
     }
 }
@@ -1724,14 +1724,37 @@ function saveItem() {
     return item;
 }
 
-function onCommandSave() {
+function onCommandSave(aIsClosing) {
     var originalItem = window.calendarItem;
     var item = saveItem();
     var calendar = document.getElementById("item-calendar")
                            .selectedItem.calendar;
-    window.onAcceptCallback(item, calendar, originalItem);
+
     item.makeImmutable();
+    // Set the item for now, the callback below will set the full item when the
+    // call succeeded
     window.calendarItem = item;
+
+    // When the call is complete, we need to set the new item, so that the
+    // dialog is up to date.
+
+    // XXX Do we want to disable the dialog or at least the save button until
+    // the call is complete? This might help when the user tries to save twice
+    // before the call is complete. In that case, we do need a progress bar and
+    // the ability to cancel the operation though.
+    var listener = {
+        onOperationComplete: function(aCalendar, aStatus, aOpType, aId, aItem) {
+            if (Components.isSuccessCode(aStatus)) {
+                window.calendarItem = aItem;
+            }
+        }
+    };
+
+    // Let the caller decide how to handle the modified/added item. Only pass
+    // the above item if we are not closing, otherwise the listener will be
+    // missing its window afterwards.
+    window.onAcceptCallback(item, calendar, originalItem, !aIsClosing && listener);
+
 }
 
 function onCommandExit() {
