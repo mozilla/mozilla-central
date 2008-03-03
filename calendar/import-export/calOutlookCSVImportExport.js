@@ -500,6 +500,11 @@ function csv_exportToStream(aStream, aCount, aItems) {
     aStream.write(str, str.length);
 
     for each (item in aItems) {
+        if (!isEvent(item)) {
+            // XXX TODO: warn the user (once) that tasks are not supported
+            // (bug 336175)
+            continue;
+        }
         var line = [];
         line.push(item.title);
         line.push(dateString(item.startDate));
