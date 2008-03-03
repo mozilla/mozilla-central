@@ -172,7 +172,9 @@ function MsgComposeDraftMessage()
     var loadedFolder = GetLoadedMsgFolder();
     var messageArray = GetSelectedMessages();
 
-    ComposeMessage(msgComposeType.Draft, msgComposeFormat.Default, loadedFolder, messageArray);
+    ComposeMessage(Components.interfaces.nsIMsgCompType.Draft,
+                   Components.interfaces.nsIMsgCompFormat.Default, 
+                   loadedFolder, messageArray);
 }
 
 function ThreadPaneDoubleClick()
@@ -183,7 +185,10 @@ function ThreadPaneDoubleClick()
   else if(IsSpecialFolderSelected(MSG_FOLDER_FLAG_TEMPLATES, true)) {
     var loadedFolder = GetLoadedMsgFolder();
     var messageArray = GetSelectedMessages();
-    ComposeMessage(msgComposeType.Template, msgComposeFormat.Default, loadedFolder, messageArray);
+
+    ComposeMessage(Components.interfaces.nsIMsgCompType.Template,
+                   Components.interfaces.nsIMsgCompFormat.Default,
+                   loadedFolder, messageArray);
   }
   else {
     MsgOpenSelectedMessages();
