@@ -60,6 +60,7 @@ const mozISpellCheckingEngine = Components.interfaces.mozISpellCheckingEngine;
  */
 var sMsgComposeService = Components.classes["@mozilla.org/messengercompose;1"].getService(Components.interfaces.nsIMsgComposeService);
 var sComposeMsgsBundle = document.getElementById("bundle_composeMsgs");
+var sBrandBundle = document.getElementById("brandBundle");
 
 var sPrefs = null;
 var sPrefBranchInternal = null;
@@ -2375,10 +2376,13 @@ function ComposeCanClose()
 
     if (gPromptService)
     {
+      var brandShortName = sBrandBundle.getString("brandShortName");
+
       var promptTitle = sComposeMsgsBundle.getString("quitComposeWindowTitle");
-      var promptMsg = sComposeMsgsBundle.getString("quitComposeWindowMessage");
-      var quitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowQuitButtonLabel");
-      var waitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowWaitButtonLabel");
+      var promptMsg = sComposeMsgsBundle.getFormattedString("quitComposeWindowMessage2",
+                                                            [brandShortName], 1);
+      var quitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowQuitButtonLabel2");
+      var waitButtonLabel = sComposeMsgsBundle.getString("quitComposeWindowWaitButtonLabel2");
 
       result = gPromptService.confirmEx(window, promptTitle, promptMsg,
           (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +

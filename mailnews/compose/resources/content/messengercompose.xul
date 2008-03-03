@@ -85,6 +85,7 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <stringbundle id="bundle_offlinePrompts" src="chrome://messenger/locale/offline.properties"/>
   <stringbundle id="languageBundle" src="chrome://global/locale/languageNames.properties"/>
+  <stringbundle id="brandBundle" src="chrome://branding/locale/brand.properties"/>
 </stringbundleset>
 
 <script type="application/x-javascript" src="chrome://communicator/content/contentAreaDD.js"/>
