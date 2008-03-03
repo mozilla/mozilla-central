@@ -336,12 +336,6 @@ nsMsgStatusFeedback.prototype =
   },
    _stopMeteors : function()
     {
-      if(gTimelineEnabled){
-        gTimelineService.stopTimer("FolderLoading");
-        gTimelineService.markTimer("FolderLoading");
-        gTimelineService.resetTimer("FolderLoading");
-      }
-
       this.ensureStatusFields();
       this.showStatusString(defaultStatus);
 

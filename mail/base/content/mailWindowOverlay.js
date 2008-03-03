@@ -70,21 +70,6 @@ var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
 var gPrintSettings = null;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
-var gTimelineService = null;
-var gTimelineEnabled = ("@mozilla.org;timeline-service;1" in Components.classes);
-if (gTimelineEnabled) {
-  try {
-    gTimelineEnabled = gPrefBranch.getBoolPref("mailnews.timeline_is_enabled");
-    if (gTimelineEnabled) {
-      gTimelineService = 
-        Components.classes["@mozilla.org;timeline-service;1"].getService(Components.interfaces.nsITimelineService);
-    }
-  }
-  catch (ex)
-  {
-    gTimelineEnabled = false;
-  }
-}
 
 // the user preference,
 // if HTML is not allowed. I assume, that the user could have set this to a

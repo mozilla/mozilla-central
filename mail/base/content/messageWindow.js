@@ -44,7 +44,7 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 
 /* globals for a particular window */
 
-var compositeDataSourceContractID = "@mozilla.org/rdf/datasource;1?name=composite-datasource";
+var compositeDataSourceContractID        = datasourceContractIDPrefix + "composite-datasource";
 
 var gCompositeDataSource;
 var gCurrentMessageUri;

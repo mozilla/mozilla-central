@@ -909,11 +909,6 @@ function FolderPaneSelectionChange()
     if (!folderSelection.isSelected(folderSelection.currentIndex))
       return;
 
-    if(gTimelineEnabled) {
-      gTimelineService.startTimer("FolderLoading");
-      gTimelineService.enter("FolderLoading has Started");
-    }
-
     gVirtualFolderTerms = null;
     gXFVirtualFolderTerms = null;
 
@@ -1190,7 +1185,6 @@ var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 var gFolderDatasource;
 var gFolderPicker;
 var gStatusBar = null;
-var gTimelineEnabled = false;
 var gMessengerBundle = null;
 
 // Datasource search listener -- made global as it has to be registered

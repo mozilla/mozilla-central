@@ -48,7 +48,6 @@ var gNameField = null;
 var gNameFieldLabel = null;
 var gFolderDelimiter = ".";
 var gStatusFeedback = new nsMsgStatusFeedback;
-var gTimelineEnabled = false;
 var gMessengerBundle = null;
 var gSubscribeDeck = null;
 var gSearchView = null;
