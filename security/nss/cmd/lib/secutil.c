@@ -2303,7 +2303,15 @@ SECU_PrintName(FILE *out, CERTName *name, char *msg, int level)
     char *str;
     SECItem my;
 
-    str = nameStr = CERT_NameToAscii(name);
+    if (!name) {
+	PORT_SetError(SEC_ERROR_INVALID_ARGS);
+	return;
+    }
+    if (!name->rdns || !name->rdns[0]) {
+	str = "(empty)";
+    } else {
+	str = nameStr = CERT_NameToAscii(name);
+    }
     if (!str) {
     	str = "!Invalid AVA!";
     }
