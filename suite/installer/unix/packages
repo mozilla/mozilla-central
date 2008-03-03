@@ -191,6 +191,7 @@ bin/components/storage.xpt
 bin/components/libstoragecomps.so
 bin/components/libsuite.so
 bin/components/suitebrowser.xpt
+bin/components/suitecommon.xpt
 bin/components/suitemigration.xpt
 bin/components/suitetypeaheadfind.xpt
 bin/components/libsystem-pref.so
@@ -266,6 +267,7 @@ bin/components/nsProxyAutoConfig.js
 bin/components/nsResetPref.js
 bin/components/nsScriptableIO.js
 bin/components/nsSidebar.js
+bin/components/nsSuiteGlue.js
 bin/components/nsTryToClose.js
 bin/components/nsUpdateService.js
 bin/components/nsURLFormatter.js

@@ -194,6 +194,7 @@ bin\components\storage.xpt
 bin\components\strgcmps.dll
 bin\components\suite.dll
 bin\components\suitebrowser.xpt
+bin\components\suitecommon.xpt
 bin\components\suitemigration.xpt
 bin\components\tkautoc.dll
 bin\components\tkitcmps.dll
@@ -270,6 +271,7 @@ bin\components\nsProxyAutoConfig.js
 bin\components\nsResetPref.js
 bin\components\nsSetDefaultBrowser.js
 bin\components\nsSidebar.js
+bin\components\nsSuiteGlue.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
 bin\components\nsXmlRpcClient.js
