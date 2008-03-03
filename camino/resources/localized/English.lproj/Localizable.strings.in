@@ -174,7 +174,7 @@
 "KeychainStoreAlertTitle" = "Save this password in your Keychain?";
 "KeychainStoreAlertText" = "Saving this password allows Camino to fill it in when you return to this website. Use the Keychain Access application to reverse this decision or change the entry. Selecting “Never Save for this Website” is useful for shared computers or public labs.";
 "KeychainStoreAlertStoreButton" = "Save Password";
-"KeychainStoreAlertDontStoreButton" = "Don't Save";
+"KeychainStoreAlertDontStoreButton" = "Don’t Save";
 "KeychainStoreAlertNeverStoreButton" = "Never Save for this Website";
 
 "KeychainUpdateAlertTitle" = "Update your Keychain with new information?";
