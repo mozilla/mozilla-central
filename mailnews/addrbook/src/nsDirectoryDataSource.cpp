@@ -42,7 +42,6 @@
 #include "nsIAbDirectory.h"
 #include "nsIAbManager.h"
 #include "nsIAbCard.h"
-#include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
 #include "rdf.h"
 #include "nsIRDFService.h"
@@ -298,18 +297,19 @@ NS_IMETHODIMP nsAbDirectoryDataSource::ArcLabelsOut(nsIRDFResource* source,
 
   nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(source, &rv));
   if (NS_SUCCEEDED(rv)) {
-    nsCOMPtr<nsIMutableArray> arcs(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    // Initialise with the number of items below, to save reallocating on each
+    // addition.
+    nsCOMArray<nsIRDFResource> arcs(9);
 
-    arcs->AppendElement(kNC_DirName, PR_FALSE);
-    arcs->AppendElement(kNC_Child, PR_FALSE);
-    arcs->AppendElement(kNC_DirUri, PR_FALSE);
-    arcs->AppendElement(kNC_IsMailList, PR_FALSE);
-    arcs->AppendElement(kNC_IsRemote, PR_FALSE);
-    arcs->AppendElement(kNC_IsSecure, PR_FALSE);
-    arcs->AppendElement(kNC_IsWriteable, PR_FALSE);
-    arcs->AppendElement(kNC_DirTreeNameSort, PR_FALSE);
-    arcs->AppendElement(kNC_SupportsMailingLists, PR_FALSE);
+    arcs.AppendObject(kNC_DirName);
+    arcs.AppendObject(kNC_Child);
+    arcs.AppendObject(kNC_DirUri);
+    arcs.AppendObject(kNC_IsMailList);
+    arcs.AppendObject(kNC_IsRemote);
+    arcs.AppendObject(kNC_IsSecure);
+    arcs.AppendObject(kNC_IsWriteable);
+    arcs.AppendObject(kNC_DirTreeNameSort);
+    arcs.AppendObject(kNC_SupportsMailingLists);
 
     return NS_NewArrayEnumerator(labels, arcs);
   }

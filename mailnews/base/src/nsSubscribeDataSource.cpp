@@ -48,7 +48,7 @@
 #include "nsCOMPtr.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsIMutableArray.h"
+#include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -578,21 +578,22 @@ nsSubscribeDataSource::ArcLabelsOut(nsIRDFResource *source,
         return NS_NewEmptyEnumerator(labels);
     }
 
-    nsCOMPtr<nsIMutableArray> array(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    array->AppendElement(kNC_Subscribed, PR_FALSE);
-    array->AppendElement(kNC_Subscribable, PR_FALSE);
-    array->AppendElement(kNC_Name, PR_FALSE);
-    array->AppendElement(kNC_ServerType, PR_FALSE);
-    array->AppendElement(kNC_LeafName, PR_FALSE);
-
     PRBool hasChildren = PR_FALSE;
     rv = server->HasChildren(relativePath, &hasChildren);
     NS_ENSURE_SUCCESS(rv,rv);
 
+    // Initialise with the number of items below, to save reallocating on each
+    // addition.
+    nsCOMArray<nsIRDFResource> array(hasChildren ? 6 : 5);
+
+    array.AppendObject(kNC_Subscribed);
+    array.AppendObject(kNC_Subscribable);
+    array.AppendObject(kNC_Name);
+    array.AppendObject(kNC_ServerType);
+    array.AppendObject(kNC_LeafName);
+
     if (hasChildren) {
-        array->AppendElement(kNC_Child, PR_FALSE);
+        array.AppendObject(kNC_Child);
     }
 
     return NS_NewArrayEnumerator(labels, array);
