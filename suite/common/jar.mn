@@ -153,6 +153,7 @@ comm.jar:
    content/communicator/pref/pref-charset.js                        (pref/pref-charset.js)
    content/communicator/pref/pref-charset.xul                       (pref/pref-charset.xul)
    content/communicator/pref/pref-colors.xul                        (pref/pref-colors.xul)
+   content/communicator/pref/pref-content.xul                       (pref/pref-content.xul)
    content/communicator/pref/pref-cookies.xul                       (pref/pref-cookies.xul)
    content/communicator/pref/pref-download.js                       (pref/pref-download.js)
    content/communicator/pref/pref-download.xul                      (pref/pref-download.xul)

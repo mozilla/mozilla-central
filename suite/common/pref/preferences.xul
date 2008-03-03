@@ -77,13 +77,20 @@
                 label="&appear.label;"
                 url="chrome://communicator/content/pref/pref-appearance.xul">
         <treechildren id="appearanceChildren">
+-->
+          <treeitem id="contentItem"
+                    label="&content.label;"
+                    prefpane="content_pane"
+                    helpTopic="appearance_pref_content"
+                    url="chrome://communicator/content/pref/pref-content.xul"/>
+<!-- commenting out yet unmigrated panels
           <treeitem label="&fonts.label;"
                     url="chrome://communicator/content/pref/pref-fonts.xul"/>
 -->
           <treeitem id="colorsItem"
                     label="&colors.label;"
-                    helpTopic="appearance_pref_colors"
                     prefpane="colors_pane"
+                    helpTopic="appearance_pref_colors"
                     url="chrome://communicator/content/pref/pref-colors.xul"/>
 <!--
           <treeitem label="&locales.label;"

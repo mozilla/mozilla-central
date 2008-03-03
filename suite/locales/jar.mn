@@ -146,6 +146,7 @@
   locale/@AB_CD@/communicator/pref/pref-cache.dtd                           (%chrome/common/pref/pref-cache.dtd)
   locale/@AB_CD@/communicator/pref/pref-charset.dtd                         (%chrome/common/pref/pref-charset.dtd)
   locale/@AB_CD@/communicator/pref/pref-colors.dtd                          (%chrome/common/pref/pref-colors.dtd)
+  locale/@AB_CD@/communicator/pref/pref-content.dtd                         (%chrome/common/pref/pref-content.dtd)
   locale/@AB_CD@/communicator/pref/pref-cookies.dtd                         (%chrome/common/pref/pref-cookies.dtd)
   locale/@AB_CD@/communicator/pref/pref-download.dtd                        (%chrome/common/pref/pref-download.dtd)
   locale/@AB_CD@/communicator/pref/pref-fonts.dtd                           (%chrome/common/pref/pref-fonts.dtd)
