@@ -1139,11 +1139,11 @@ calDavCalendar.prototype = {
 
             if (thisCalendar.mHrefIndex[aResource.path]) {
                 var itemuid = thisCalendar.mHrefIndex[aResource.path];
-            }
-
-            if (!thisCalendar.mItemInfoCache[itemuid] ||
-                !etag == thisCalendar.mItemInfoCache[itemuid].etag) {
-                // we don't have a current copy in cache, fetch the item
+                if (etag != thisCalendar.mItemInfoCache[itemuid].etag) {
+                    // we don't have a current copy in cache; fetch the item
+                    aRefreshEvent.itemsNeedFetching.push(aResource.path);
+                }
+            } else {
                 aRefreshEvent.itemsNeedFetching.push(aResource.path);
             }
         }
@@ -1151,6 +1151,7 @@ calDavCalendar.prototype = {
         etagListener.onOperationComplete = function(aStatusCode, aResource,
                                                       aOperation, aClosure) {
             aRefreshEvent.queryStatuses.push(aStatusCode);
+            var needsRefresh = false;
             if (aRefreshEvent.queryStatuses.length == aRefreshEvent.typesCount) {
 
                for each (var statusCode in aRefreshEvent.queryStatuses) {
@@ -1171,7 +1172,7 @@ calDavCalendar.prototype = {
                             thisCalendar.mMemoryCalendar.deleteItem(itemToDelete,
                                                                      getItemListener);
                             delete thisCalendar.mHrefIndex[path];
-
+                            needsRefresh = true;
                         }
                         getItemListener.onOperationComplete = function
                             caldav_gUIs_oOC(aCalendar, aStatus, aOperationType,
@@ -1179,6 +1180,17 @@ calDavCalendar.prototype = {
                         thisCalendar.mMemoryCalendar.getItem(thisCalendar.mHrefIndex[path],
                                                              getItemListener);
                     }
+                }
+
+                // avoid sending empty multiget requests
+                // update views if something has been deleted server-side
+                if (!aRefreshEvent.itemsNeedFetching.length) {
+                    if (needsRefresh) {
+                        thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
+                        thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
+                        thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
+                    }
+                    return;
                 }
 
                 while (aRefreshEvent.itemsNeedFetching.length > 0) {
