@@ -38,6 +38,12 @@
 
 #import "KeychainItem.h"
 
+// Prior to 10.5, we can't use kSecLabelItemAttr due to a bug in Keychain
+// Services (see bug 420665). The recommendation from Apple is to use the raw
+// index instead of the attribute, which for password items is 7.
+// Once we are 10.5+, we can just use kSecLabelItemAttr instead.
+static const unsigned int kRawKeychainLabelIndex = 7;
+
 @interface KeychainItem(Private)
 + (NSString*)labelForHost:(NSString*)host username:(NSString*)username;
 - (KeychainItem*)initWithRef:(SecKeychainItemRef)ref;
@@ -212,7 +218,7 @@
   tags[5] = kSecSecurityDomainItemAttr;
   tags[6] = kSecCreatorItemAttr;
   tags[7] = kSecCommentItemAttr;
-  tags[8] = kSecLabelItemAttr;
+  tags[8] = kRawKeychainLabelIndex;
   attrInfo.count = sizeof(tags)/sizeof(UInt32);
   attrInfo.tag = tags;
   attrInfo.format = NULL;
@@ -251,7 +257,7 @@
       mComment = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
     else if (attr.tag == kSecSecurityDomainItemAttr)
       mSecurityDomain = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kSecLabelItemAttr)
+    else if (attr.tag == kRawKeychainLabelIndex || attr.tag == kSecLabelItemAttr)
       mLabel = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
     else if (attr.tag == kSecPortItemAttr)
       mPort = *((UInt16*)(attr.data));
@@ -475,7 +481,7 @@
 
  - (void)setLabel:(NSString*)label
 {
-  if ([self setAttributeType:kSecLabelItemAttr toString:label]) {
+  if ([self setAttributeType:kRawKeychainLabelIndex toString:label]) {
     [mLabel autorelease];
     mLabel = [label copy];
   }
