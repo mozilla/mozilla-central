@@ -93,6 +93,8 @@ calendar.jar:
     skin/classic/calendar/alarm-suppressed.png   (themes/common/alarm-suppressed.png)
     skin/classic/calendar/alarm-flashing.png     (themes/common/alarm-flashing.png)
     skin/classic/calendar/alarm.png              (themes/common/alarm.png)
+	skin/classic/calendar/priority_high_inverse.png (themes/common/priority_high_inverse.png)
+	skin/classic/calendar/priority_low_inverse.png (themes/common/priority_low_inverse.png)
 #expand    skin/classic/calendar/cal-icon32.png         (themes/__THEME__/cal-icon32.png)
 #expand    skin/classic/calendar/daypicker-background.png  (/calendar/base/themes/common/daypicker-background.png)
 #expand    skin/classic/calendar/calendar-alarm-dialog.css   (themes/__THEME__/calendar-alarm-dialog.css)

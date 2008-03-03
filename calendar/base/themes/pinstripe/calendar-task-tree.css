@@ -19,6 +19,8 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Lars Wohlfahrt <thetux.moz@googlemail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -104,6 +106,14 @@
 
 .calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, lowpriority) {
     list-style-image: url( "chrome://calendar/skin/unifinder/priority_low.png" )
+}
+
+.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, selected, highpriority) {
+    list-style-image: url(chrome://calendar/skin/priority_high_inverse.png)
+}
+
+.calendar-task-tree > treechildren::-moz-tree-image(calendar-task-tree-col-priority, selected, lowpriority) {
+    list-style-image: url(chrome://calendar/skin/priority_low_inverse.png)
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(selected) {
