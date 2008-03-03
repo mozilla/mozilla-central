@@ -377,7 +377,6 @@ protected:
   nsCOMPtr <nsIMsgDatabase> m_db;
   nsCOMPtr <nsIMsgFolder> m_folder;
   nsCOMPtr <nsIMsgFolder> m_viewFolder; // for virtual folders, the VF db.
-  nsCOMPtr <nsIAtom> mRedirectorTypeAtom;
   nsCOMPtr <nsIAtom> mMessageTypeAtom; // news, rss, mail, etc. 
   nsTArray <MsgViewSortColumnInfo> m_sortColumns;
   nsMsgViewSortTypeValue  m_sortType;

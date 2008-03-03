@@ -231,9 +231,6 @@
                        predicate="http://home.netscape.com/NC-rdf#ServerType"
                        object="?serverType" />
               <binding subject="?member"
-                       predicate="http://home.netscape.com/NC-rdf#RedirectorType"
-                       object="?redirectorType" />
-              <binding subject="?member"
                        predicate="http://home.netscape.com/NC-rdf#NoSelect"
                        object="?noSelect" />
               <binding subject="?member"
@@ -256,7 +253,7 @@
                   <treerow>
                     <treecell id="folderNameCell"
                               label="?folderTreeName"
-                              properties="specialFolder-?specialFolder biffState-?biffState isServer-?isServer newMessages-?newMessages hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages isSecure-?isSecure serverType-?serverType redirectorType-?redirectorType noSelect-?noSelect imapShared-?imapShared"/>
+                              properties="specialFolder-?specialFolder biffState-?biffState isServer-?isServer newMessages-?newMessages hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages isSecure-?isSecure serverType-?serverType noSelect-?noSelect imapShared-?imapShared"/>
                     <treecell label="?unreadCount"
                                   properties="hasUnreadMessages-?hasUnreadMessages subfoldersHaveUnreadMessages-?subfoldersHaveUnreadMessages"/>
                     <treecell label="?totalCount"

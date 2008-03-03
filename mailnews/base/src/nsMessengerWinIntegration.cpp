@@ -1116,32 +1116,7 @@ nsMessengerWinIntegration::SetupInbox()
     // imap and pop3 account should have an Inbox
     mDefaultAccountMightHaveAnInbox = PR_TRUE;
 
-    // get the redirector type, use it to get the prefix
-    // todo remove this extra copy
-    nsCString redirectorType;
-    server->GetRedirectorType(redirectorType);
-
-    if (!redirectorType.IsEmpty()) {
-      nsCAutoString providerPrefixPref;
-      providerPrefixPref.Assign("mail.");
-      providerPrefixPref.Append(redirectorType);
-      providerPrefixPref.Append(".unreadMailCountRegistryKeyPrefix");
-
-      // get pref service
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      nsCOMPtr<nsISupportsString> tmp;
-      rv = prefBranch->GetComplexValue(providerPrefixPref.get(), NS_GET_IID(nsISupportsString),
-                                       getter_AddRefs(tmp));
-
-      if (NS_SUCCEEDED(rv))
-        tmp->GetData(mEmailPrefix);
-      else
-        mEmailPrefix.Truncate();
-    }
-    else
-      mEmailPrefix.Truncate();
+    mEmailPrefix.Truncate();
 
     // Get user's email address
     nsCOMPtr<nsIMsgIdentity> identity;

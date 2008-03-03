@@ -1517,7 +1517,6 @@ NS_IMPL_SERVERPREF_STR(nsMsgIncomingServer, Type, "type")
 // in 5.0, this will be per server, and it will be "download_on_biff"
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, DownloadOnBiff, "download_on_biff")
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, Valid, "valid")
-NS_IMPL_SERVERPREF_STR(nsMsgIncomingServer, RedirectorType,  "redirector_type")
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, EmptyTrashOnExit,
                         "empty_trash_on_exit")
 NS_IMPL_SERVERPREF_BOOL(nsMsgIncomingServer, CanDelete, "canDelete")

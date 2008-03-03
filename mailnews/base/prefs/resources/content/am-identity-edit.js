@@ -349,20 +349,16 @@ function fillSmtpServers(smtpServerList, servers, defaultServer)
   for (var i = 0; i < serverCount; i++) 
   {
     var server = servers.QueryElementAt(i, Components.interfaces.nsISmtpServer);
-    //ToDoList: add code that allows for the redirector type to specify whether to show values or not
-    if (!server.redirectorType)
-    {
-      var serverName = "";
-      if (server.description)
-        serverName = server.description + ' - ';
-      else if (server.username)
-        serverName = server.username + ' - ';    
-      serverName += server.hostname;
+    var serverName = "";
+    if (server.description)
+      serverName = server.description + ' - ';
+    else if (server.username)
+      serverName = server.username + ' - ';
+    serverName += server.hostname;
 
-      if (defaultServer.key == server.key)
-        serverName += " " + document.getElementById("bundle_messenger").getString("defaultServerTag");
+    if (defaultServer.key == server.key)
+      serverName += " " + document.getElementById("bundle_messenger").getString("defaultServerTag");
 
-      smtpServerList.appendItem(serverName, server.key);
-    }
+    smtpServerList.appendItem(serverName, server.key);
   }
 }

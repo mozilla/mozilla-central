@@ -530,27 +530,6 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
         rv = cacheElement->GetStringProperty("onlineName", onlineFullUtf7Name);
         if (NS_SUCCEEDED(rv) && !onlineFullUtf7Name.IsEmpty())
         {
-          // Call ConvertFolderName() and HideFolderName() to do special folder name
-          // mapping and hiding, if configured to do so. For example, need to hide AOL's
-          // 'RECYCLE_OUT' & convert a few AOL folder names. Regular imap accounts
-          // will do no-op in the calls
-          if (imapServer)
-          {
-            PRBool hideFolder;
-            rv = imapServer->HideFolderName(onlineFullUtf7Name, &hideFolder);
-            if (hideFolder)
-              continue; // skip this folder
-            else
-            {
-              rv = imapServer->ConvertFolderName(onlineFullUtf7Name, unicodeName);
-              if (NS_FAILED(rv)) {
-                rv = CopyMUTF7toUTF16(onlineFullUtf7Name, unicodeName);
-                if (NS_FAILED(rv))  // XXX Does this make sense?
-                  CopyASCIItoUTF16(onlineFullUtf7Name, unicodeName);
-              }
-            }
-          }
-
           currentFolderNameStr.Assign(unicodeName);
 
           PRUnichar delimiter = 0;
@@ -2741,14 +2720,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
 
   nsCOMPtr<nsIMsgIncomingServer> server;
   rv = GetServer(getter_AddRefs(server));
-  if (NS_SUCCEEDED(rv)) // don't use NS_ENSURE_SUCCESS here; it's not a fatal error
-  {
-    nsCString redirectorType;
-    server->GetRedirectorType(redirectorType);
-    // only notify redirected type servers of new hdrs for performance
-    if (!redirectorType.IsEmpty())
-      NotifyFolderEvent(mImapHdrDownloadedAtom);
-  }
+  NS_ENSURE_SUCCESS(rv, rv);
   newMsgHdr->SetMessageKey(m_curMsgUid);
   TweakHeaderFlags(aProtocol, newMsgHdr);
   PRUint32 messageSize;
@@ -4184,35 +4156,8 @@ PRBool nsImapMailFolder::ShowDeletedMessages()
   GetServerKey(serverKey);
   hostSession->GetShowDeletedMessagesForHost(serverKey.get(), showDeleted);
 
-  // check for special folders that need to show deleted messages
-  if (!showDeleted)
-  {
-    nsCOMPtr<nsIImapIncomingServer> imapServer;
-    rv = GetImapIncomingServer(getter_AddRefs(imapServer));
-    if (NS_SUCCEEDED(rv) && imapServer)
-    {
-      // See if the redirector type has a different trash folder name (ie, not 'TRASH').
-      // If so then convert it to the beautified name (if configured) and compare it
-      // against the current folder name.
-      nsCString specialTrashName;
-      rv = imapServer->GetTrashFolderByRedirectorType(specialTrashName);
-      if (NS_SUCCEEDED(rv))
-      {
-        nsString convertedName;
-        rv = imapServer->ConvertFolderName(specialTrashName, convertedName);
-        if (NS_SUCCEEDED(rv))
-        {
-          nsString folderName;
-          GetName(folderName);
-          if (StringBeginsWith(folderName, convertedName, nsCaseInsensitiveStringComparator()))
-            showDeleted = PR_TRUE;
-        }
-      }
-    }
-  }
   return showDeleted;
 }
-
 
 PRBool nsImapMailFolder::DeleteIsMoveToTrash()
 {

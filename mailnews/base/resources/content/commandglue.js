@@ -235,10 +235,6 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
       // servers w/o passwords (like local mail) will always be non-authenticated.
       // So we need to use the account manager for that case.
     }
-    else if (server.redirectorType) {
-      var prefString = server.type + "." + server.redirectorType + ".showMessagesAfterLoading";
-      showMessagesAfterLoading = gPrefBranch.getBoolPref(prefString);
-    }
     else
       showMessagesAfterLoading = false;
   }

@@ -55,7 +55,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(D74FA1F8-8D28-43a5-AF13-797ED29F2D1F)]
+[scriptable, uuid(ceae707a-51c8-4a2f-b4f6-e4c816f779bd)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -105,11 +105,6 @@ interface nsIImapIncomingServer : nsISupports {
                                         in boolean forceAllFolders,
                                         in boolean performingBiff);
   attribute boolean doingLsub;
-  void allowFolderConversion(out boolean allowConversion);
-  void convertFolderName(in ACString originalName, out AString convertedName);
-  void hideFolderName(in ACString originalName, out boolean hideFolder);
-  ACString getTrashFolderByRedirectorType();
-  attribute ACString redirectorType;
 
   ACString getUriWithNamespacePrefixIfNecessary(in long namespaceType, in ACString originalUri);
   attribute boolean shuttingDown;

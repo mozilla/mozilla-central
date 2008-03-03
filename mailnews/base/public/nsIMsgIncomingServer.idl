@@ -57,7 +57,7 @@ interface nsILocalFile;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(5A1D6341-E808-4e1c-A587-D65C5898B532)]
+[scriptable, uuid(15087bf7-f63f-42c3-8f60-a0cd11aaca53)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -194,9 +194,6 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* can server support a secure channel? */
   readonly attribute boolean isSecureServer;
-
-  /* what kind of logon redirector to use for this server, if any */
-  attribute ACString redirectorType;
 
   /* empty trash on exit */
   attribute boolean emptyTrashOnExit;

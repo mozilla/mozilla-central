@@ -528,12 +528,8 @@ function finishAccount(account, accountData)
             // may not have a smtp server, see bug #138076
             if (smtpServer) {
               dump("Copying smtpServer (" + smtpServer + ") to accountData\n");
-              //set the smtp server to be the default only if it is not a redirectorType
-              if (accountData.smtp.redirectorType == null) 
-              {
-                if ((smtpService.defaultServer.hostname == null) || (smtpService.defaultServer.redirectorType != null))
-                  smtpService.defaultServer = smtpServer;
-              }
+              if (smtpService.defaultServer.hostname == null)
+                smtpService.defaultServer = smtpServer;
 
               copyObjectToInterface(smtpServer, accountData.smtp, false);
 

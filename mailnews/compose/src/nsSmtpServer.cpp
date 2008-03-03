@@ -603,69 +603,6 @@ nsSmtpServer::GetServerURI(char **aResult)
 }
 
 NS_IMETHODIMP
-nsSmtpServer::SetRedirectorType(const char *aRedirectorType)
-{
-    if (aRedirectorType)
-        return mPrefBranch->SetCharPref("redirector_type", aRedirectorType);
-
-    mPrefBranch->ClearUserPref("redirector_type");
-    return NS_OK;
-}
-
-NS_IMETHODIMP
-nsSmtpServer::GetRedirectorType(char **aResult)
-{
-    nsresult rv;
-
-    rv = mPrefBranch->GetCharPref("redirector_type", aResult);
-    if (NS_FAILED(rv))
-      *aResult = nsnull;
-
-    // Check if we need to change 'aol' to 'netscape' per #4696
-    if (*aResult)
-    {
-      if (!PL_strcasecmp(*aResult, "aol"))
-      {
-        nsCString hostName;
-        rv = GetHostname(getter_Copies(hostName));
-        if (NS_SUCCEEDED(rv) && hostName.LowerCaseEqualsLiteral("smtp.netscape.net"))
-        {
-          PL_strfree(*aResult);
-          rv = SetRedirectorType("netscape");
-          NS_ENSURE_SUCCESS(rv,rv);
-          *aResult = strdup("netscape");
-        }
-      }
-    }
-    else {
-      // for people who have migrated from 4.x or outlook, or mistakenly
-      // created redirected accounts as regular imap accounts,
-      // they won't have redirector type set properly
-      // this fixes the redirector type for them automatically
-      nsCString hostName;
-      rv = GetHostname(getter_Copies(hostName));
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      nsCAutoString prefName;
-      prefName.AssignLiteral("default_redirector_type.smtp.");
-      prefName.Append(hostName);
-
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-      NS_ENSURE_SUCCESS(rv,rv);
-      nsCString defaultRedirectorType;
-      rv = prefBranch->GetCharPref(prefName.get(), getter_Copies(defaultRedirectorType));
-      if (NS_SUCCEEDED(rv) && !defaultRedirectorType.IsEmpty())
-      {
-        // only set redirectory type in memory
-        // if we call SetRedirectorType() that sets it in prefs
-        // which makes this automatic redirector type repair permanent
-        *aResult = ToNewCString(defaultRedirectorType);
-      }
-    }
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 nsSmtpServer::ClearAllValues()
 {
   return mPrefBranch->DeleteBranch("");

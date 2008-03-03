@@ -84,7 +84,6 @@ nsIRDFResource* nsMsgFolderDataSource::kNC_FolderTreeNameSort= nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_SpecialFolder= nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_ServerType = nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_IsDeferred = nsnull;
-nsIRDFResource* nsMsgFolderDataSource::kNC_RedirectorType = nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_CanCreateFoldersOnServer = nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_CanFileMessagesOnServer = nsnull;
 nsIRDFResource* nsMsgFolderDataSource::kNC_IsServer = nsnull;
@@ -176,7 +175,6 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_SPECIALFOLDER), &kNC_SpecialFolder);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_SERVERTYPE), &kNC_ServerType);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_ISDEFERRED),&kNC_IsDeferred);
-    rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_REDIRECTORTYPE), &kNC_RedirectorType);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_CANCREATEFOLDERSONSERVER), &kNC_CanCreateFoldersOnServer);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_CANFILEMESSAGESONSERVER), &kNC_CanFileMessagesOnServer);
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_ISSERVER), &kNC_IsServer);
@@ -268,7 +266,6 @@ nsMsgFolderDataSource::~nsMsgFolderDataSource (void)
     NS_RELEASE2(kNC_SpecialFolder, refcnt);
     NS_RELEASE2(kNC_ServerType, refcnt);
     NS_RELEASE2(kNC_IsDeferred, refcnt);
-    NS_RELEASE2(kNC_RedirectorType, refcnt);
     NS_RELEASE2(kNC_CanCreateFoldersOnServer, refcnt);
     NS_RELEASE2(kNC_CanFileMessagesOnServer, refcnt);
     NS_RELEASE2(kNC_IsServer, refcnt);
@@ -483,7 +480,6 @@ NS_IMETHODIMP nsMsgFolderDataSource::GetTargets(nsIRDFResource* source,
       (kNC_CanCompact == property) ||
       (kNC_ServerType == property) ||
       (kNC_IsDeferred == property) ||
-      (kNC_RedirectorType == property) ||
       (kNC_CanCreateFoldersOnServer == property) ||
       (kNC_CanFileMessagesOnServer == property) ||
       (kNC_NoSelect == property) ||
@@ -560,7 +556,6 @@ nsMsgFolderDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, 
       aArc == kNC_SpecialFolder ||
       aArc == kNC_ServerType ||
       aArc == kNC_IsDeferred ||
-      aArc == kNC_RedirectorType ||
       aArc == kNC_CanCreateFoldersOnServer ||
       aArc == kNC_CanFileMessagesOnServer ||
       aArc == kNC_IsServer ||
@@ -633,7 +628,6 @@ nsMsgFolderDataSource::getFolderArcLabelsOut(nsISupportsArray **arcs)
   (*arcs)->AppendElement(kNC_SpecialFolder);
   (*arcs)->AppendElement(kNC_ServerType);
   (*arcs)->AppendElement(kNC_IsDeferred);
-  (*arcs)->AppendElement(kNC_RedirectorType);
   (*arcs)->AppendElement(kNC_CanCreateFoldersOnServer);
   (*arcs)->AppendElement(kNC_CanFileMessagesOnServer);
   (*arcs)->AppendElement(kNC_IsServer);
@@ -993,8 +987,6 @@ nsresult nsMsgFolderDataSource::createFolderNode(nsIMsgFolder* folder,
     rv = createFolderServerTypeNode(folder, target);
   else if ((kNC_IsDeferred == property))
     rv = createServerIsDeferredNode(folder, target);
-  else if ((kNC_RedirectorType == property))
-    rv = createFolderRedirectorTypeNode(folder, target);
   else if ((kNC_CanCreateFoldersOnServer == property))
     rv = createFolderCanCreateFoldersOnServerNode(folder, target);
   else if ((kNC_CanFileMessagesOnServer == property))
@@ -1192,23 +1184,6 @@ nsMsgFolderDataSource::createServerIsDeferredNode(nsIMsgFolder* folder,
   }
   *target = (isDeferred) ? kTrueLiteral : kFalseLiteral;
   NS_IF_ADDREF(*target);
-  return NS_OK;
-}
-
-nsresult
-nsMsgFolderDataSource::createFolderRedirectorTypeNode(nsIMsgFolder* folder,
-                                                  nsIRDFNode **target)
-{
-  nsresult rv;
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = folder->GetServer(getter_AddRefs(server));
-  if (NS_FAILED(rv) || !server) return NS_ERROR_FAILURE;
-
-  nsCString redirectorType;
-  rv = server->GetRedirectorType(redirectorType);
-  if (NS_FAILED(rv)) return rv;
-
-  createNode(NS_ConvertASCIItoUTF16(redirectorType).get(), target, getRDFService());
   return NS_OK;
 }
 
@@ -2175,7 +2150,6 @@ nsresult nsMsgFolderDataSource::DoFolderHasAssertion(nsIMsgFolder *folder,
     (kNC_SpecialFolder == property) ||
     (kNC_ServerType == property) ||
     (kNC_IsDeferred == property) ||
-    (kNC_RedirectorType == property) ||
     (kNC_CanCreateFoldersOnServer == property) ||
     (kNC_CanFileMessagesOnServer == property) ||
     (kNC_IsServer == property) ||

@@ -30,7 +30,6 @@
             </NC:ServerType-imap>                                               
             </NC:type>
             <NC:rememberPassword>false</NC:rememberPassword>
-            <NC:redirectorType>aol</NC:redirectorType>
             <NC:offlineSupportLevel>0</NC:offlineSupportLevel>
             <NC:defaultCopiesAndFoldersPrefsToServer>false</NC:defaultCopiesAndFoldersPrefsToServer>
             <NC:canCreateFoldersOnServer>false</NC:canCreateFoldersOnServer>
@@ -55,11 +54,9 @@
         <NC:smtp>
           <NC:nsISmtpServer>
             <NC:hostname>smtp.aol.com</NC:hostname>
-            <NC:redirectorType>aol</NC:redirectorType>
           </NC:nsISmtpServer>
         </NC:smtp>
 
-        
         <!-- other options... see http://www.mozilla.org/mailnews/?? -->
 
         <NC:smtpRequiresUsername>true</NC:smtpRequiresUsername>

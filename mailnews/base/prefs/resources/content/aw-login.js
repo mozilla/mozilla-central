@@ -91,8 +91,7 @@ function loginPageInit() {
 
     var smtpNameInput = document.getElementById("smtpusername");
     var smtpServer = parent.smtpService.defaultServer;
-    if (smtpServer && smtpServer.hostname && smtpServer.username &&
-        smtpServer.redirectorType == null) {
+    if (smtpServer && smtpServer.hostname && smtpServer.username) {
       // we have a default SMTP server, so modify and show the static text
       // and store the username for the default server in the textbox.
       modifyStaticText(smtpServer.username, "2")

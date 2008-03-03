@@ -165,11 +165,9 @@ function serverPageInit() {
   var smtpServer = null;
   var smtpCreateNewServer = gCurrentAccountData && gCurrentAccountData.smtpCreateNewServer;
 
-  // don't use the default smtp server if it has a redirector type
-  // or if smtp server creation was explicitly requested in isp rdf
-  if (parent.smtpService.defaultServer &&
-      !parent.smtpService.defaultServer.redirectorType &&
-      !smtpCreateNewServer) {
+  // Don't use the default smtp server if smtp server creation was explicitly
+  // requested in isp rdf.
+  if (parent.smtpService.defaultServer && !smtpCreateNewServer) {
     smtpServer = parent.smtpService.defaultServer;
     setPageData(pageData, "identity", "smtpServerKey", smtpServer.key);
   }
@@ -179,7 +177,6 @@ function serverPageInit() {
 
   var boxToHide;
   var boxToShow;
-  
 
   if (pageData.server && pageData.server.hostname) {
     var incomingServerTextBox = document.getElementById("incomingServer");
@@ -194,8 +191,8 @@ function serverPageInit() {
     boxToShow = haveSmtpBox;
     boxToHide = noSmtpBox;
   }
- 
-  if (smtpServer && smtpServer.hostname && smtpServer.redirectorType == null) {
+
+  if (smtpServer && smtpServer.hostname) {
     // we have a hostname, so modify and show the static text and 
     // store the value of the default smtp server in the textbox.
     modifyStaticText(smtpServer.hostname, "1")

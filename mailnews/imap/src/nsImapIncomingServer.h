@@ -129,7 +129,6 @@ private:
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, PRBool *urlDoomed);
   PRBool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
   nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
-  nsresult CreatePrefNameWithRedirectorType(const char *prefSuffix, nsCString &prefName);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
 
   nsCOMPtr<nsISupportsArray> m_connectionCache;
@@ -141,14 +140,12 @@ private:
   PRUint32          m_capability;
   nsCString         m_manageMailAccountUrl;
   PRPackedBool      m_readPFCName;
-  PRPackedBool      m_readRedirectorType;
   PRPackedBool      m_userAuthenticated;
   PRPackedBool      m_waitingForConnectionInfo;
   PRPackedBool      mDoingSubscribeDialog;
   PRPackedBool      mDoingLsub;
   PRPackedBool      m_shuttingDown;
   nsCString         m_pfcName;
-  nsCString         m_redirectorType;
   PRInt32           m_redirectedLogonRetries;
   nsCOMPtr<nsIMsgLogonRedirector> m_logonRedirector;
 

@@ -172,13 +172,10 @@ var gSmtpServerListWindow =
     {
       var server = aServers.QueryElementAt(i, Components.interfaces.nsISmtpServer);
       var isDefault = (aDefaultServer.key == server.key);
-      //ToDoList: add code that allows for the redirector type to specify whether to show values or not
-      if (!server.redirectorType) 
-      {
-        var listitem = this.createSmtpListItem(server, isDefault);
-        aListBox.appendChild(listitem);
-      }
-    }    
+
+      var listitem = this.createSmtpListItem(server, isDefault);
+      aListBox.appendChild(listitem);
+    }
   },
 
   createSmtpListItem: function(aServer, aIsDefault)

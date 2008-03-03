@@ -120,7 +120,6 @@ nsImapIncomingServer::nsImapIncomingServer()
   m_canHaveFilters = PR_TRUE;
   m_userAuthenticated = PR_FALSE;
   m_readPFCName = PR_FALSE;
-  m_readRedirectorType = PR_FALSE;
   m_shuttingDown = PR_FALSE;
 }
 
@@ -352,16 +351,6 @@ NS_IMETHODIMP
 nsImapIncomingServer::GetDeleteModel(PRInt32 *retval)
 {
   NS_ENSURE_ARG(retval);
-
-  nsCAutoString redirectorType;
-  GetRedirectorType(redirectorType);
-  if (redirectorType.Equals("aol"))
-  {
-    PRBool suppressPseudoView = PR_FALSE;
-    GetBoolAttribute("suppresspseudoview", &suppressPseudoView);
-    *retval = suppressPseudoView ? nsMsgImapDeleteModels::IMAPDelete : nsMsgImapDeleteModels::DeleteNoTrash;
-    return NS_OK;
-  }
   return GetIntValue("delete_model", retval);
 }
 
@@ -689,12 +678,8 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   nsCOMPtr<nsIImapProtocol> freeConnection;
   PRBool isBusy = PR_FALSE;
   PRBool isInboxConnection = PR_FALSE;
-  nsCAutoString redirectorType;
 
   PR_CEnterMonitor(this);
-
-  GetRedirectorType(redirectorType);
-  PRBool redirectLogon = !redirectorType.IsEmpty();
 
   PRInt32 maxConnections = 5; // default to be five
   rv = GetMaximumConnectionsNumber(&maxConnections);
@@ -795,26 +780,6 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   if (ConnectionTimeOut(freeConnection))
     freeConnection = nsnull;
 
-  if (!canRunButBusy && redirectLogon && (!connection || !canRunUrlImmediately))
-  {
-    // here's where we'd start the asynchronous process of requesting a connection to the
-    // AOL Imap server and getting back an ip address, port #, and cookie.
-    // if m_overRideUrlConnectionInfo is true, then we can go ahead and make a connection to this server.
-    // We should set some sort of timer on this override info.
-    if (!m_waitingForConnectionInfo)
-    {
-      m_waitingForConnectionInfo = PR_TRUE;
-      nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(aImapUrl, &rv);
-      nsCOMPtr<nsIMsgWindow> aMsgWindow;
-      if (NS_SUCCEEDED(rv))
-        rv = mailnewsUrl->GetMsgWindow(getter_AddRefs(aMsgWindow));
-      rv = RequestOverrideInfo(aMsgWindow);
-      if (m_waitingForConnectionInfo)
-      canRunButBusy = PR_TRUE;
-      else
-        userCancelled = PR_TRUE;
-    }
-  }
   nsImapState requiredState;
   aImapUrl->GetRequiredImapState(&requiredState);
   // refresh cnt in case we killed one or more dead connections. This
@@ -1228,12 +1193,6 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
     hostFolder->SetHierarchyDelimiter(hierarchyDelimiter);
   }
 
-  // Check to see if we need to ignore this folder (like AOL's 'RECYCLE_OUT').
-  PRBool hideFolder;
-  rv = HideFolderName(dupFolderPath, &hideFolder);
-  if (hideFolder)
-    return NS_OK;
-
   nsCOMPtr <nsIMsgFolder> child;
 
   // nsCString possibleName(aSpec->allocatedPathName);
@@ -1307,38 +1266,6 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
         nsImapUrl::UnescapeSlashes(folderName.BeginWriting());
       if (NS_SUCCEEDED(CopyMUTF7toUTF16(folderName, unicodeName)))
         child->SetPrettyName(unicodeName);
-      // Call ConvertFolderName() and HideFolderName() to do special folder name
-      // mapping and hiding, if configured to do so. For example, need to hide AOL's
-      // 'RECYCLE_OUT' & convert a few AOL folder names. Regular imap accounts
-      // will do no-op in the calls.
-      nsAutoString convertedName;
-      PRBool hideFolder;
-      rv = HideFolderName(onlineName, &hideFolder);
-      if (hideFolder)
-      {
-        nsCOMPtr<nsISupports> support(do_QueryInterface(child, &rv));
-        a_nsIFolder->PropagateDelete(child, PR_FALSE, nsnull);
-      }
-      else
-      {
-        rv = ConvertFolderName(onlineName, convertedName);
-        //make sure rv value is not crunched, it is used to SetPrettyName
-        nsCAutoString redirectorType;
-        GetRedirectorType(redirectorType); //Sent mail folder as per aol/netscape webmail
-        if ((redirectorType.EqualsLiteral("aol") && onlineName.EqualsLiteral("Sent Items"))
-          || (redirectorType.EqualsLiteral("netscape") && onlineName.EqualsLiteral("Sent")))
-          //we know that we don't allowConversion for netscape webmail so just use the onlineName
-          child->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
-
-        else if (redirectorType.EqualsLiteral("netscape") && onlineName.EqualsLiteral("Draft"))
-          child->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
-
-        else if (redirectorType.EqualsLiteral("aol") && onlineName.EqualsLiteral("RECYCLE"))
-          child->SetFlag(MSG_FOLDER_FLAG_TRASH);
-
-        if (NS_SUCCEEDED(rv))
-          child->SetPrettyName(convertedName);
-      }
     }
   }
   if (!found && child)
@@ -1406,173 +1333,6 @@ NS_IMETHODIMP nsImapIncomingServer::RefreshFolderRights(const nsACString& folder
     }
   }
   return rv;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetRedirectorType(nsACString& redirectorType)
-{
-  if (m_readRedirectorType)
-  {
-    redirectorType = m_redirectorType;
-    return NS_OK;
-  }
-
-  nsresult rv;
-  // Differentiate 'aol' and non-aol redirector type.
-  rv = GetCharValue("redirector_type", redirectorType);
-  m_redirectorType = redirectorType;
-  m_readRedirectorType = PR_TRUE;
-
-  if (!redirectorType.IsEmpty())
-  {
-    // we used to use "aol" as the redirector type
-    // for both aol mail and webmail
-    // this code migrates webmail accounts to use "netscape" as the
-    // redirectory type
-    if (redirectorType.LowerCaseEqualsLiteral("aol"))
-    {
-      nsCAutoString hostName;
-      GetHostName(hostName);
-      if (hostName.LowerCaseEqualsLiteral("imap.mail.netcenter.com"))
-        SetRedirectorType(NS_LITERAL_CSTRING("netscape"));
-    }
-  }
-  else
-  {
-    // for people who have migrated from 4.x or outlook, or mistakenly
-    // created redirected accounts as regular imap accounts,
-    // they won't have redirector type set properly
-    // this fixes the redirector type for them automatically
-    nsCAutoString prefName;
-    rv = CreateHostSpecificPrefName("default_redirector_type", prefName);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCAutoString defaultRedirectorType;
-    nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCOMPtr<nsIPrefBranch> prefBranch;
-    rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    rv = prefBranch->GetCharPref(prefName.get(), getter_Copies(defaultRedirectorType));
-    if (NS_SUCCEEDED(rv) && !defaultRedirectorType.IsEmpty())
-    {
-      // only set redirectory type in memory
-      // if we call SetRedirectorType() that sets it in prefs
-      // which makes this automatic redirector type repair permanent
-      m_redirectorType = defaultRedirectorType;
-    }
-  }
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::SetRedirectorType(const nsACString& redirectorType)
-{
-  m_redirectorType = redirectorType;
-  return (SetCharValue("redirector_type", redirectorType));
-}
-
-NS_IMETHODIMP nsImapIncomingServer::GetTrashFolderByRedirectorType(nsACString& specialTrashName)
-{
-  nsresult rv;
-  // see if it has a predefined trash folder name. The pref setting is like:
-  //    pref("imap.aol.trashFolder", "RECYCLE");  where the redirector type = 'aol'
-  nsCAutoString prefName;
-  rv = CreatePrefNameWithRedirectorType(".trashFolder", prefName);
-  if (NS_FAILED(rv))
-    return NS_OK; // return if no redirector type
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCString tmpTrashName;
-  rv = prefBranch->GetCharPref(prefName.get(), getter_Copies(tmpTrashName));
-  if (tmpTrashName.IsEmpty())
-    return NS_ERROR_FAILURE;
-  else
-    specialTrashName = tmpTrashName;
-  return rv;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::AllowFolderConversion(PRBool *allowConversion)
-{
-  NS_ENSURE_ARG_POINTER(allowConversion);
-
-  nsresult rv;
-  *allowConversion = PR_FALSE;
-
-  // See if the redirector type allows folder name conversion. The pref setting is like:
-  //    pref("imap.aol.convertFolders",true);     where the redirector type = 'aol'
-  // Construct pref name (like "imap.aol.hideFolders.RECYCLE_OUT") and get the setting.
-  nsCAutoString prefName;
-  rv = CreatePrefNameWithRedirectorType(".convertFolders", prefName);
-  if (NS_FAILED(rv))
-    return NS_OK; // return if no redirector type
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // In case this pref is not set we need to return NS_OK.
-  prefBranch->GetBoolPref(prefName.get(), allowConversion);
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::ConvertFolderName(const nsACString& originalName, nsAString& convertedName)
-{
-  nsresult rv = NS_OK;
-  // See if the redirector type allows folder name conversion.
-  PRBool allowConversion;
-  rv = AllowFolderConversion(&allowConversion);
-  if (NS_SUCCEEDED(rv) && !allowConversion)
-    return NS_ERROR_FAILURE;
-
-  // Get string bundle based on redirector type and convert folder name.
-  nsCOMPtr<nsIStringBundle> stringBundle;
-  nsCAutoString propertyURL;
-  nsCAutoString redirectorType;
-  GetRedirectorType(redirectorType);
-  if (redirectorType.IsEmpty())
-    return NS_ERROR_FAILURE; // return if no redirector type
-
-  propertyURL.AssignLiteral("chrome://messenger/locale/");
-  propertyURL.Append(redirectorType);
-  propertyURL.AppendLiteral("-imap.properties");
-
-  nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && sBundleService)
-    rv = sBundleService->CreateBundle(propertyURL.get(), getter_AddRefs(stringBundle));
-  if (NS_SUCCEEDED(rv))
-  {
-    nsString tmpName;
-    rv = stringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(originalName).get(), getter_Copies(tmpName));
-    convertedName = tmpName;
-  }
-  return convertedName.IsEmpty() ? NS_ERROR_FAILURE : NS_OK;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::HideFolderName(const nsACString& folderName, PRBool *hideFolder)
-{
-  NS_ENSURE_ARG_POINTER(hideFolder);
-  nsresult rv;
-  *hideFolder = PR_FALSE;
-
-  if (folderName.IsEmpty())
-    return NS_OK;
-
-  // See if the redirector type allows folder hiding. The pref setting is like:
-  //    pref("imap.aol.hideFolders.RECYCLE_OUT",true);    where the redirector type = 'aol'
-  nsCAutoString prefName;
-  rv = CreatePrefNameWithRedirectorType(".hideFolder.", prefName);
-  if (NS_FAILED(rv))
-    return NS_OK; // return if no redirector type
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  prefName.Append(folderName);
-  // In case this pref is not set we need to return NS_OK.
-  prefBranch->GetBoolPref(prefName.get(), hideFolder);
-  return NS_OK;
 }
 
 nsresult nsImapIncomingServer::GetFolder(const nsACString& name, nsIMsgFolder** pFolder)
@@ -2259,31 +2019,15 @@ NS_IMETHODIMP nsImapIncomingServer::PromptForPassword(nsACString& aPassword,
   PRBool okayValue;
   GetRealUsername(promptValue);
 
-  nsCAutoString prefName;
-  nsresult rv = CreatePrefNameWithRedirectorType(".hide_hostname_for_password", prefName);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  PRBool hideHostnameForPassword = PR_FALSE;
-  rv = prefBranch->GetBoolPref(prefName.get(), &hideHostnameForPassword);
-  if (NS_SUCCEEDED(rv) && hideHostnameForPassword)
-  {
-    // for certain redirector types, we don't want to show the
-    // hostname to the user when prompting for password
-  }
-  else
-  {
-    nsCString hostName;
-    GetRealHostName(hostName);
-    promptValue.Append('@');
-    promptValue.Append(hostName);
-  }
+  nsCString hostName;
+  GetRealHostName(hostName);
+  promptValue.Append('@');
+  promptValue.Append(hostName);
 
   nsString passwordText;
-  rv = GetFormattedStringFromID(NS_ConvertASCIItoUTF16(promptValue), IMAP_ENTER_PASSWORD_PROMPT, 
-                                passwordText);
+  nsresult rv = GetFormattedStringFromID(NS_ConvertASCIItoUTF16(promptValue),
+                                         IMAP_ENTER_PASSWORD_PROMPT,
+                                         passwordText);
   NS_ENSURE_SUCCESS(rv,rv);
   rv =  GetPasswordWithUI(passwordText, passwordTitle, aMsgWindow,
                           &okayValue, aPassword);
@@ -2379,10 +2123,7 @@ nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
   nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
-  nsCAutoString redirectorType;
-  GetRedirectorType(redirectorType);
   contractID.Append('/');
-  contractID.Append(redirectorType);
   m_logonRedirector = do_GetService(contractID.get(), &rv);
   if (m_logonRedirector && NS_SUCCEEDED(rv))
   {
@@ -2394,7 +2135,7 @@ nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
       nsCAutoString userName;
       PRBool requiresPassword = PR_TRUE;
       GetRealUsername(userName);
-      m_logonRedirector->RequiresPassword(userName.get(), redirectorType.get(), &requiresPassword);
+      m_logonRedirector->RequiresPassword(userName.get(), &requiresPassword);
       if (requiresPassword)
       {
         GetPassword(password);
@@ -2415,7 +2156,7 @@ nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
       nsCOMPtr<nsIPrompt> dialogPrompter;
       if (aMsgWindow)
         aMsgWindow->GetPromptDialog(getter_AddRefs(dialogPrompter));
-      rv = m_logonRedirector->Logon(userName.get(), password.get(), redirectorType.get(),
+      rv = m_logonRedirector->Logon(userName.get(), password.get(),
                                     dialogPrompter, logonRedirectorRequester,
                                     nsMsgLogonRedirectionServiceIDs::Imap);
       if (NS_FAILED(rv))
@@ -3054,9 +2795,7 @@ nsImapIncomingServer::GetNumIdleConnections(PRInt32 *aNumIdleConnections)
 /**
  * Get the preference that tells us whether the imap server in question allows
  * us to create subfolders. Some ISPs might not want users to create any folders
- * besides the existing ones. Then a pref in the format
- * imap.<redirector type>.canCreateFolders should be added as controller pref
- * to mailnews.js
+ * besides the existing ones.
  * We do want to identify all those servers that don't allow creation of subfolders
  * and take them out of the account picker in the Copies and Folder panel.
  */
@@ -3186,22 +2925,6 @@ nsImapIncomingServer::GetFormattedStringFromID(const nsAString& aValue, PRInt32 
 }
 
 nsresult
-nsImapIncomingServer::CreatePrefNameWithRedirectorType(const char *prefSuffix, nsCString &prefName)
-{
-  NS_ENSURE_ARG_POINTER(prefSuffix);
-
-  nsCString redirectorType;
-  nsresult rv = GetRedirectorType(redirectorType);
-  if (NS_FAILED(rv))
-   return rv;
-
-  prefName.AssignLiteral("imap.");
-  prefName.Append(redirectorType);
-  prefName.Append(prefSuffix);
-  return NS_OK;
-}
-
-nsresult
 nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue)
 {
   NS_ENSURE_ARG_POINTER(prefSuffix);
@@ -3211,21 +2934,7 @@ nsImapIncomingServer::GetPrefForServerAttribute(const char *prefSuffix, PRBool *
 
   // Time to check if this server has the pref
   // (mail.server.<serverkey>.prefSuffix) already set
-  rv = mPrefBranch->GetBoolPref(prefName.get(), prefValue);
-
-  // If the server pref is not set in then look at the
-  // pref set with redirector type
-  if (NS_FAILED(rv))
-  {
-    nsCAutoString redirectorType;
-    redirectorType.Assign('.');
-    redirectorType.Append(prefSuffix);
-
-    rv = CreatePrefNameWithRedirectorType(redirectorType.get(), prefName);
-    if (NS_SUCCEEDED(rv))
-      rv = prefBranch->GetBoolPref(prefName.get(), prefValue);
-  }
-  return rv;
+  return mPrefBranch->GetBoolPref(prefName.get(), prefValue);
 }
 
 NS_IMETHODIMP

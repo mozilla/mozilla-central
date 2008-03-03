@@ -1910,14 +1910,6 @@ nsSmtpProtocol::GetPassword(char **aPassword)
     NS_Free(*aPassword);
     *aPassword = nsnull;
 
-    nsCString redirectorType;
-    rv = smtpServer->GetRedirectorType(getter_Copies(redirectorType));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCAutoString prefName("smtp.");
-    prefName.Append(redirectorType);
-    prefName.Append(".hide_hostname_for_password");
-
     nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1936,19 +1928,14 @@ nsSmtpProtocol::GetPassword(char **aPassword)
       nsnull  // this will be overwritten in some cases.
     };
 
-    PRBool hideHostnameForPassword = PR_FALSE;
-    rv = prefBranch->GetBoolPref(prefName.get(), &hideHostnameForPassword);
-    // for certain redirector types, we don't want to show the
-    // hostname to the user when prompting for password
+    nsCString hostname;
+    rv = smtpServer->GetHostname(getter_Copies(hostname));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsAutoString hostnameUTF16;
-    if (!hideHostnameForPassword)
-    {
-      nsCString hostname;
-      rv = smtpServer->GetHostname(getter_Copies(hostname));
-      NS_ENSURE_SUCCESS(rv, rv);
-      CopyASCIItoUTF16(hostname, hostnameUTF16);
-      formatStrings[1] = hostnameUTF16.get();
-    }
+    CopyASCIItoUTF16(hostname, hostnameUTF16);
+    formatStrings[1] = hostnameUTF16.get();
+
     rv = PromptForPassword(smtpServer, smtpUrl, formatStrings, aPassword);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
@@ -2040,55 +2027,8 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
 
 nsresult nsSmtpProtocol::RequestOverrideInfo(nsISmtpServer * aSmtpServer)
 {
-  NS_ENSURE_ARG(aSmtpServer);
-
-  nsresult rv;
-  nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
-
-  // go get the redirection type...
-  nsCString redirectionTypeStr;
-  aSmtpServer->GetRedirectorType(getter_Copies(redirectionTypeStr));
-
-  // if we don't have a redirection type, then get out and proceed normally.
-  if (redirectionTypeStr.IsEmpty())
-    return NS_OK;
-
-  contractID.Append('/');
-  contractID.Append(redirectionTypeStr);
-
-  m_logonRedirector = do_GetService(contractID.get(), &rv);
-  if (m_logonRedirector && NS_SUCCEEDED(rv))
-  {
-    nsCString password;
-    nsCString userName;
-    PRBool requiresPassword = PR_TRUE;
-
-    aSmtpServer->GetUsername(getter_Copies(userName));
-    m_logonRedirector->RequiresPassword(userName.get(), redirectionTypeStr.get(), &requiresPassword);
-    if (requiresPassword)
-      GetPassword(getter_Copies(password));
-
-    nsCOMPtr<nsIPrompt> prompter;
-    m_runningURL->GetPrompt(getter_AddRefs(prompter));
-    rv = m_logonRedirector->Logon(userName.get(), password.get(), redirectionTypeStr.get(), prompter, static_cast<nsIMsgLogonRedirectionRequester *>(this), nsMsgLogonRedirectionServiceIDs::Smtp);
-  }
-
-  // this protocol instance now needs to wait until
-  // we receive the login redirection information so set the appropriate state
-  // flag
-  SetFlag(SMTP_WAIT_FOR_REDIRECTION);
-  SetFlag(SMTP_USE_LOGIN_REDIRECTION);
-
-  // even though we haven't started to send the message yet,
-  // we are going off and doing an asynch operation to get the redirection
-  // information. So start the url as being run.
-  nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
-  // this will cause another dialog to get thrown up....
-  mailNewsUrl->SetUrlState(PR_TRUE /* start running url */, NS_OK);
-  UpdateStatus(NS_SMTP_CONNECTING_TO_SERVER);
-  // and update the status
-
-  return rv;
+  // We don't have a redirection type - get out and proceed normally.
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionError(const PRUnichar *pErrMsg, PRBool aBadPassword)

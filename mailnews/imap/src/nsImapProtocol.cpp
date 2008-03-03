@@ -723,12 +723,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     else
       m_useIdle = PR_FALSE;
     if (imapServer)
-    {
-      nsCString redirectorType;
-      imapServer->GetRedirectorType(redirectorType);
-      m_ignoreExpunges = redirectorType.Equals("aol");
       imapServer->GetFetchByChunks(&m_fetchByChunks);
-    }
 
     if ( m_runningUrl && !m_transport /* and we don't have a transport yet */)
     {
@@ -7751,10 +7746,6 @@ void nsImapProtocol::GetQuotaDataIfSupported(const char *aBoxName)
   nsresult rv;
   nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryReferent(m_server, &rv);
   if (NS_FAILED(rv))
-    return;
-  nsCAutoString redirectorType;
-  imapServer->GetRedirectorType(redirectorType);
-  if (redirectorType.EqualsLiteral("aol") && PL_strcasecmp("Inbox", aBoxName))
     return;
 
   nsCString escapedName;

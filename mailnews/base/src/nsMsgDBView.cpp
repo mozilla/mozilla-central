@@ -1218,9 +1218,6 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
   if ((mDeleteModel == nsMsgImapDeleteModels::IMAPDelete) && (flags & MSG_FLAG_IMAP_DELETED))
     properties->AppendElement(kImapDeletedMsgAtom);
 
-  if (mRedirectorTypeAtom)
-    properties->AppendElement(mRedirectorTypeAtom);
-
   if (mMessageTypeAtom)
     properties->AppendElement(mMessageTypeAtom);
 
@@ -1996,15 +1993,6 @@ NS_IMETHODIMP nsMsgDBView::Open(nsIMsgFolder *folder, nsMsgViewSortTypeValue sor
     nsCString type;
     rv = server->GetType(type);
     NS_ENSURE_SUCCESS(rv,rv);
-
-    // turn the redirector type into an atom
-    nsCString redirectorType;
-    rv = server->GetRedirectorType(redirectorType);
-    NS_ENSURE_SUCCESS(rv,rv);
-    if (redirectorType.IsEmpty())
-      mRedirectorTypeAtom = nsnull;
-    else
-      mRedirectorTypeAtom = do_GetAtom(redirectorType.get());
 
     mIsNews = type.LowerCaseEqualsLiteral("nntp");
 

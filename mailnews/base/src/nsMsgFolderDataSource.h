@@ -133,8 +133,6 @@ protected:
                                       nsIRDFNode **target);
   nsresult createServerIsDeferredNode(nsIMsgFolder* folder,
                                       nsIRDFNode **target);
-  nsresult createFolderRedirectorTypeNode(nsIMsgFolder *folder,
-                                      nsIRDFNode **target);
   nsresult createFolderCanCreateFoldersOnServerNode(nsIMsgFolder *folder,
                                       nsIRDFNode **target);
   nsresult createFolderCanFileMessagesOnServerNode(nsIMsgFolder *folder,
@@ -231,7 +229,6 @@ protected:
   static nsIRDFResource* kNC_SpecialFolder;
   static nsIRDFResource* kNC_ServerType;
   static nsIRDFResource* kNC_IsDeferred;
-  static nsIRDFResource* kNC_RedirectorType;
   static nsIRDFResource* kNC_CanCreateFoldersOnServer;
   static nsIRDFResource* kNC_CanFileMessagesOnServer;
   static nsIRDFResource* kNC_IsServer;
