@@ -377,7 +377,7 @@ calItipProcessor.prototype = {
 
             default:
                 throw new Error("_processCalendarAction: " +
-                                "Undefined Operator: " + aOperator);
+                                "Undefined Operation: " + aOperation);
         }
 
         // If you got to here, something went horribly, horribly wrong.
@@ -390,15 +390,19 @@ calItipProcessor.prototype = {
      */
     _getReplyStatus: function cipGRS(aCalItem, aAttendeeId) {
         var idPrefix = "mailto:";
-        var replyStatus;
 
         // example: mailto:joe@domain.com
         var idString = idPrefix + aAttendeeId;
         var attendee = aCalItem.getAttendeeById(idString);
-        if (attendee) {
-            replyStatus = attendee.participationStatus;
+        if (!attendee) {
+            // Bug 420516 -- we don't support delegation yet TODO: Localize this?
+            throw new Error("_getReplyStatus: " +
+                            "You are not on the list of invited attendees, delegation " +
+                            "is not supported yet.  See bug 420516 for details.");
+            
         }
-        return replyStatus;
+        
+        return attendee.participationStatus;
     },
 
     // A placeholder to make sure we don't try to add multiple items from the
