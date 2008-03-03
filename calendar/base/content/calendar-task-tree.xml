@@ -29,6 +29,7 @@
    -   Mark Swaffer <swaff@fudo.org>
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Lars Wohlfahrt <thetux.moz@googlemail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -66,7 +67,8 @@
         <xul:treecols anonid="calendar-task-tree-cols">
           <xul:treecol anonid="calendar-task-tree-col-completed"
                        class="calendar-task-tree-col-completed" 
-                       width="18"
+                       minwidth="19"
+                       fixed="true"
                        cycler="true"
                        label="&calendar.unifinder.tree.done.label;">
             <xul:image anonid="checkboximg" />
@@ -74,7 +76,8 @@
           <xul:splitter class="tree-splitter"/>
           <xul:treecol anonid="calendar-task-tree-col-priority"
                        class="calendar-task-tree-col-priority"
-                       width="18" 
+                       minwidth="17"
+                       fixed="true"
                        label="&calendar.unifinder.tree.priority.label;">
             <xul:image anonid="priorityimg"/>
           </xul:treecol>
