@@ -71,6 +71,7 @@ install the Ext libraries:
   $> cd path/to/bugzilla/testopia/
   $> wget http://extjs.com/deploy/ext-2.0.1.zip
   $> unzip ext-2.0.1.zip
+  $> mv ext-2.0.1 extjs
 
 Congratulations, you should be able to see the Testopia links at the bottom of
 your bugzilla pages. 
@@ -84,7 +85,7 @@ so on their own. Here are some pointers:
 
     1. Rename the patch file to have a .txt extension. You may also want to 
        convert the patch to use DOS line endings using a utility such as 
-       unix2dos.
+       unix2dos or you will need use the --binary flag on the patch command.
     
     2. Download GNU Patch and install it in a directory in your path.
        It can be downloaded from http://gnuwin32.sourceforge.net/packages/patch.htm
