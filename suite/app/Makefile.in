@@ -249,7 +249,12 @@ LIBS += -lphexlib
 endif
 
 libs::
+ifeq ($(OS_ARCH),WINNT)
+	$(EXIT_ON_ERROR) \
+	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $(topsrcdir)/LICENSE > $(DIST)/bin/LICENSE
+else
 	$(INSTALL) $(topsrcdir)/LICENSE $(DIST)/bin
+endif
 	touch $(DIST)/bin/.autoreg
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
