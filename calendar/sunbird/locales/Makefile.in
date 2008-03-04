@@ -60,6 +60,7 @@ DEFINES += -DMOZ_USE_GENERIC_BRANDING
 endif
 
 include $(topsrcdir)/config/rules.mk
+include $(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
 libs:: $(addprefix $(LOCALE_SRCDIR)/,$(README_FILES))
 ifeq ($(OS_ARCH),WINNT)
@@ -69,4 +70,17 @@ ifeq ($(OS_ARCH),WINNT)
 	done
 else
 	$(INSTALL) $^ $(FINAL_TARGET)
+endif
+
+ifdef MOZ_UPDATER
+libs:: $(addprefix $(LOCALE_SRCDIR)/,updater/updater.ini)
+ifeq ($(OS_ARCH),WINNT)
+	iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) $< > $(FINAL_TARGET)/updater.ini
+else
+ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+	$(INSTALL) $^ $(FINAL_TARGET)/updater.app/Contents/MacOS
+else
+	$(INSTALL) $^ $(FINAL_TARGET)
+endif
+endif
 endif

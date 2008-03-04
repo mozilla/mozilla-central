@@ -102,7 +102,6 @@ endif
 
 PACKAGER_NO_LIBS = 1
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
-include $(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk
 
 repackage-win32-installer: WIN32_INSTALLER_OUT=$(_ABS_DIST)/install/sea/$(PKG_BASENAME).installer.exe
 repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
@@ -211,15 +210,3 @@ ifeq (WINNT,$(OS_ARCH))
 endif
 	@$(MAKE) repackage-zip-$*
 
-ifdef MOZ_UPDATER
-libs:: $(addprefix $(LOCALE_SRCDIR)/,updater/updater.ini)
-ifeq ($(OS_ARCH),WINNT)
-	iconv -f UTF-8 -t $(WIN_INSTALLER_CHARSET) $< > $(FINAL_TARGET)/updater.ini
-else
-ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-	$(INSTALL) $^ $(FINAL_TARGET)/updater.app/Contents/MacOS
-else
-	$(INSTALL) $^ $(FINAL_TARGET)
-endif
-endif
-endif
