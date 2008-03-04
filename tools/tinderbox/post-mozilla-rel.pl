@@ -1375,14 +1375,6 @@ sub main {
     }
   }
 
-  if (TinderUtils::is_windows()) {
-    # hack for cygwin installs with "unix" filetypes
-    unix2dos("$mozilla_build_dir/mozilla/LICENSE");
-    unix2dos("$mozilla_build_dir/mozilla/mail/LICENSE.txt");
-    unix2dos("$mozilla_build_dir/mozilla/README.txt");
-    unix2dos("$mozilla_build_dir/mozilla/browser/EULA");
-  }
-
   my($package_dir, $store_name, $local_build_dir);
 
   my $pretty_build_name = TinderUtils::ShortHostname() . "-" . $Settings::milestone;
