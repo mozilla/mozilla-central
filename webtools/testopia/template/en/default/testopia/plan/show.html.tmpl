@@ -277,8 +277,20 @@ Ext.onReady(function(){
             region: 'north',
             contentEl: 'plan_overview',
             height: Ext.get('plan_overview_table').getHeight() + 65
-        },tgrid
-        ]
+        },{
+            id: 'plan_east_panel',
+            xtype: 'tabpanel',
+            region: 'east',
+            width: '200',
+            activeTab: 0,
+            split: true,
+            items: [tgrid, new ReportGrid({
+                    title: 'Reports',
+                    id: 'reports_grid',
+                    type: 1
+                })
+            ]
+        }]
     });
 [% IF plan.canedit %]    
     var vbox = new ProductVersionCombo({
