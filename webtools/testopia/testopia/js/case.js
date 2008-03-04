@@ -1075,6 +1075,16 @@ Ext.extend(CasePlans, Ext.grid.GridPanel, {
 });
 
 CaseClonePanel = function(tcase){
+    var pgrid = new PlanGrid({product_id: tcase.product_id},{id: 'plan_clone_grid'});
+    pgrid.store.on('load',function(){
+        var sel = [];
+        for (var i=0; i < tcase.plan_ids.length; i++){
+            var index = pgrid.store.find('plan_id',tcase.plan_ids[i]);
+            if (index >= 0)
+               sel.push(index);
+        }
+        pgrid.getSelectionModel().selectRows(sel);
+    });
     CaseClonePanel.superclass.constructor.call(this,{
         id: 'case-clone-panel',
         layout: 'border',
@@ -1083,7 +1093,7 @@ CaseClonePanel = function(tcase){
             layout: 'fit',
             border: false,
             height: 300,
-            items:[new PlanGrid({product_id: tcase.product_id},{id: 'plan_clone_grid'})]
+            items:[pgrid]
         },{
             region: 'center',
             xtype: 'form',
@@ -1093,7 +1103,7 @@ CaseClonePanel = function(tcase){
             frame: true,
             bodyStyle: 'padding: 10px',
             labelWidth: 250,
-            height: 220,
+            height: 260,
             items: [{
                 xtype: 'fieldset',
                 autoHeight: true,

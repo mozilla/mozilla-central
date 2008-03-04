@@ -96,6 +96,7 @@ elsif ($action eq 'clone'){
         ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
         push @plans, $plan;
     }
+    ThrowUserError('missing-plans-list') unless scalar @plans;
     
     my @newcases;
     my $author = $cgi->param('keepauthor') ? $case->author->id : Bugzilla->user->id;
