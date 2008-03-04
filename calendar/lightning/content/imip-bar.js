@@ -211,44 +211,64 @@ function getMsgRecipient()
 {
     var imipRecipient = "";
     var msgURI = GetLoadedMessage();
-    var msgHdr = messenger.messageServiceFromURI(msgURI)
-                          .messageURIToMsgHdr(msgURI);
+    var msgHdr = messenger.msgHdrFromURI(msgURI);
+    if (!msgHdr) {
+        return null;
+    }
 
-    // msgHdr recipients can be a comma separated list of recipients.
-    // We then compare against the defaultIdentity to find ourselves.
-    // XXX This won't always work:
-    //     Users with multiple accounts and invites going to the non-default
-    //     account, Users with email aliases where the defaultIdentity.email
-    //     doesn't match the recipient, etc.
-    if (msgHdr) {
-        var recipientList = msgHdr.recipients;
-        // Remove any spaces
-        recipientList = recipientList.split(" ").join("");
-        recipientList = recipientList.split(",");
+    var acctmgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                            .getService(Components.interfaces.nsIMsgAccountManager);
+    var identities;
+    if (msgHdr.accountKey) {
+        // First, check if the message has an account key. If so, we can use the
+        // account identities to find the correct recipient
+        identities = acctmgr.getAccount(msgHdr.accountKey).identities;
+    } else {
+        // Without an account key, we have to revert back to using the server
+        identities = acctmgr.GetIdentitiesForServer(msgHdr.folder.server);
+    }
 
+    var emailMap = {};
+    if (identities.Count() == 0) {
+        // If we were not able to retrieve identities above, then we have no
+        // choice but to revert to the default identity
         var emailSvc = Components.classes["@mozilla.org/calendar/itip-transport;1?type=email"]
                                  .getService(Components.interfaces.calIItipTransport);
-        var me = emailSvc.defaultIdentity;
-
-        var lt;
-        var gt;
-        for each (var recipient in recipientList) {
-            // Deal with <foo@bar.com> style addresses
-            lt = recipient.indexOf("<");
-            gt = recipient.indexOf(">");
-
-            // I chose 6 since <a@b.c> is the shortest technically valid email
-            // address I could come up with.
-            if ((lt >= 0) && (gt >= 6)) {
-                recipient = recipient.substring(lt+1, gt);
-            }
-
-            if (recipient.toLowerCase() == me.toLowerCase()) {
-                imipRecipient = recipient;
-            }
+        emailMap[emailSvc.defaultIdentity.toLowerCase()] = true;
+    } else {
+        // Build a map of usable email addresses
+        for (var i = 0; i < identities.Count(); i++) {
+            var identity = identities.GetElementAt(i)
+                                     .QueryInterface(Components.interfaces.nsIMsgIdentity);
+            emailMap[identity.email.toLowerCase()] = true;
         }
     }
-    return imipRecipient;
+
+
+    var hdrParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                              .getService(Components.interfaces.nsIMsgHeaderParser);
+    var emails = {};
+
+    // First check the recipient list
+    hdrParser.parseHeadersWithArray(msgHdr.recipients, emails, {}, {});
+    for each (var recipient in emails.value) {
+        if (emailMap[recipient.toLowerCase()]) {
+            // Return the first found recipient
+            return recipient;
+        }
+    }
+
+    // Maybe we are in the CC list?
+    hdrParser.parseHeadersWithArray(msgHdr.ccList, emails, {}, {});
+    for each (var recipient in emails.value) {
+        if (emailMap[recipient.toLowerCase()]) {
+            // Return the first found recipient
+            return recipient;
+        }
+    }
+
+    // Hrmpf. Looks like delegation or maybe Bcc.
+    return null;
 }
 
 /**
@@ -285,6 +305,12 @@ function getTargetCalendar()
 function setAttendeeResponse(type, eventStatus)
 {
     var myAddress = getMsgRecipient();
+    if (!myAddress) {
+        // Bug 420516 -- we don't support delegation yet TODO: Localize this?
+        throw new Error("setAttendeeResponse: " +
+                        "You are not on the list of invited attendees, delegation " +
+                        "is not supported yet.  See bug 420516 for details.");
+    }
     if (type && gItipItem) {
         // We set the attendee status appropriately
         switch (type) {

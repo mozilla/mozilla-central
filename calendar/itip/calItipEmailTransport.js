@@ -160,26 +160,39 @@ calItipEmailTransport.prototype = {
     },
 
     _initEmailTransport: function cietIES() {
+        this.mHasXpcomMail = true;
+
         try {
             this.mAccountMgrSvc =
                  Components.classes["@mozilla.org/messenger/account-manager;1"].
                  getService(Components.interfaces.nsIMsgAccountManager);
 
-            this.mDefaultAccount = this.mAccountMgrSvc.defaultAccount;
-            this.mDefaultIdentity = this.mDefaultAccount.defaultIdentity;
-
             var smtpSvc = Components.classes["@mozilla.org/messengercompose/smtp;1"].
                           getService(Components.interfaces.nsISmtpService);
             this.mSmtpServer = smtpSvc.defaultServer;
 
+            this.mDefaultAccount = this.mAccountMgrSvc.defaultAccount;
+            this.mDefaultIdentity = this.mDefaultAccount.defaultIdentity;
+
+            if (!this.mDefaultIdentity) {
+                // If there isn't a default identity (i.e Local Folders is your
+                // default identity, then go ahead and use the first available
+                // identity.
+                var allIdentities = this.mAccountMgrSvc.allIdentities;
+                if (allIdentities.Count() > 0) {
+                    this.mDefaultIdentity = allIdentities.GetElementAt(0)
+                                                         .QueryInterface(Components.interfaces.nsIMsgIdentity);
+                } else {
+                    // If there are no identities, then we are in the same
+                    // situation as if we didn't have Xpcom Mail.
+                    this.mHasXpcomMail = false;
+                    LOG("initEmailService: No XPCOM Mail available: " + e);
+                }
+            }
         } catch (ex) {
             // Then we must resort to operating system specific means
             this.mHasXpcomMail = false;
         }
-
-        // But if none of that threw then we can send an email through XPCOM.
-        this.mHasXpcomMail = true;
-        LOG("initEmailService: hasXpcomMail: " + this.mHasXpcomMail);
     },
 
     _sendXpcomMail: function cietSXM(aCount, aToList, aSubject, aBody, aItem) {
