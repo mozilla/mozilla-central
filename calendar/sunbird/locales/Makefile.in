@@ -62,4 +62,11 @@ endif
 include $(topsrcdir)/config/rules.mk
 
 libs:: $(addprefix $(LOCALE_SRCDIR)/,$(README_FILES))
+ifeq ($(OS_ARCH),WINNT)
+	$(EXIT_ON_ERROR) \
+	for file in $^; do \
+	$(PERL) -pe 's/(?<!\r)\n/\r\n/g;' < $$file > $(FINAL_TARGET)/`basename $$file`; \
+	done
+else
 	$(INSTALL) $^ $(FINAL_TARGET)
+endif
