@@ -847,8 +847,9 @@ retry:
         if ( (savid != 1) &&
             ( ( (savid <= total_connections_rounded_down_to_hundreds) &&
                 (conid <= fullhs) ) ||
-              (conid*100 <= total_connections_modulo_100*fullhs ) ) ) {
+              (conid*100 <= total_connections_modulo_100*fullhs ) ) ) 
 #ifdef USE_SOCK_PEER_ID
+        {
             /* force a full handshake by changing the socket peer ID */
             thisPeerID = PR_AtomicIncrement(&sockPeerID);
         } else {
@@ -862,7 +863,6 @@ retry:
 #else
             /* force a full handshake by setting the no cache option */
             SSL_OptionSet(ssl_sock, SSL_NO_CACHE, 1);
-        }
 #endif
     }
     rv = SSL_ResetHandshake(ssl_sock, /* asServer */ 0);
@@ -1183,7 +1183,8 @@ client_main(
 
     /* do SSL configuration. */
 
-    rv = SSL_OptionSet(model_sock, SSL_SECURITY, 1);
+    rv = SSL_OptionSet(model_sock, SSL_SECURITY,
+        !(disableSSL2 && disableSSL3 && disableTLS));
     if (rv < 0) {
 	errExit("SSL_OptionSet SSL_SECURITY");
     }
