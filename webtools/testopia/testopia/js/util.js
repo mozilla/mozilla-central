@@ -1089,6 +1089,10 @@ var TestopiaPager = function(type, store){
                 params.summary = this.getValue();
                 params.summary_type = 'allwordssubst';
             }
+            else if (type == 'caserun'){
+                params.case_summary = this.getValue();
+                params.case_summary_type = 'allwordssubst';
+            }
             else {
                 params.name = this.getValue();
                 params.name_type = 'allwordssubst';
