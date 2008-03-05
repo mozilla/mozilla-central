@@ -1691,15 +1691,13 @@ nsImapMailFolder::AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDisposi
   // set the mark message answered flag on the server for this message...
   if (aMessage)
   {
-    nsMsgKeyArray messageIDs;
     nsMsgKey msgKey;
     aMessage->GetMessageKey(&msgKey);
-    messageIDs.Add(msgKey);
 
     if (aDispositionFlag == nsIMsgFolder::nsMsgDispositionState_Replied)
-      StoreImapFlags(kImapMsgAnsweredFlag, PR_TRUE, messageIDs.GetArray(), messageIDs.GetSize(), nsnull);
+      StoreImapFlags(kImapMsgAnsweredFlag, PR_TRUE, &msgKey, 1, nsnull);
     else if (aDispositionFlag == nsIMsgFolder::nsMsgDispositionState_Forwarded)
-      StoreImapFlags(kImapMsgForwardedFlag, PR_TRUE, messageIDs.GetArray(), messageIDs.GetSize(), nsnull);
+      StoreImapFlags(kImapMsgForwardedFlag, PR_TRUE, &msgKey, 1, nsnull);
   }
   return NS_OK;
 }
@@ -2752,10 +2750,8 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
               {
                 PRUint32 newFlags;
                 newMsgHdr->OrFlags(MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED, &newFlags);
-                nsMsgKeyArray keysToFlag;
-                keysToFlag.Add(m_curMsgUid);
-                StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE, keysToFlag.GetArray(),
-                              keysToFlag.GetSize(), nsnull);
+                StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE,
+                               &m_curMsgUid, 1, nsnull);
                 m_msgMovedByFilter = PR_TRUE;
               }
               break;
@@ -2776,10 +2772,8 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
             case nsIMsgIncomingServer::markDupsRead:
               {
                 PRUint32 newFlags;
-                nsMsgKeyArray keysToFlag;
-                keysToFlag.Add(m_curMsgUid);
                 newMsgHdr->OrFlags(MSG_FLAG_READ, &newFlags);
-                StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, keysToFlag.GetArray(), keysToFlag.GetSize(), nsnull);
+                StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &m_curMsgUid, 1, nsnull);
               }
               break;
           }
@@ -3062,10 +3056,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           else  // (!deleteToTrash)
           {
             msgHdr->OrFlags(MSG_FLAG_READ | MSG_FLAG_IMAP_DELETED, &newFlags);
-            nsMsgKeyArray keysToFlag;
-            keysToFlag.Add(msgKey);
-            StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE, keysToFlag.GetArray(),
-                           keysToFlag.GetSize(), nsnull);
+            StoreImapFlags(kImapMsgSeenFlag | kImapMsgDeletedFlag, PR_TRUE,
+                           &msgKey, 1, nsnull);
             m_msgMovedByFilter = PR_TRUE; // this will prevent us from adding the header to the db.
           }
           msgIsNew = PR_FALSE;
@@ -3130,19 +3122,15 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         break;
         case nsMsgFilterAction::MarkRead:
         {
-          nsMsgKeyArray keysToFlag;
-          keysToFlag.Add(msgKey);
           mDatabase->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
-          StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, keysToFlag.GetArray(), keysToFlag.GetSize(), nsnull);
+          StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &msgKey, 1, nsnull);
           msgIsNew = PR_FALSE;
         }
         break;
         case nsMsgFilterAction::MarkFlagged:
         {
-          nsMsgKeyArray keysToFlag;
-          keysToFlag.Add(msgKey);
           mDatabase->MarkHdrMarked(msgHdr, PR_TRUE, nsnull);
-          StoreImapFlags(kImapMsgFlaggedFlag, PR_TRUE, keysToFlag.GetArray(), keysToFlag.GetSize(), nsnull);
+          StoreImapFlags(kImapMsgFlaggedFlag, PR_TRUE, &msgKey, 1, nsnull);
         }
         break;
         case nsMsgFilterAction::KillThread:
@@ -3164,11 +3152,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           nsMsgLabelValue filterLabel;
           filterAction->GetLabel(&filterLabel);
           msgHdr->SetLabel(filterLabel);
-          nsMsgKeyArray keysToFlag;
-
-          keysToFlag.Add(msgKey);
-          StoreImapFlags((filterLabel << 9), PR_TRUE, keysToFlag.GetArray(),
-                          keysToFlag.GetSize(), nsnull);
+          StoreImapFlags((filterLabel << 9), PR_TRUE, &msgKey, 1, nsnull);
         }
         break;
         case nsMsgFilterAction::AddTag:

@@ -48,7 +48,6 @@
 #include "nsMailHeaders.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIHttpProtocolHandler.h"
-#include "nsMsgKeyArray.h"
 #include "nsISmtpService.h"  // for actually sending the message...
 #include "nsMsgCompCID.h"
 #include "nsIPrompt.h"
@@ -177,10 +176,7 @@ nsresult nsMsgMdnGenerator::StoreMDNSentFlag(nsIMsgFolder *folder,
     if (!imapFolder)
       return NS_OK;
 
-    nsMsgKeyArray keyArray;
-    keyArray.Add(key);
-    return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE,
-                               keyArray.GetArray(), keyArray.GetSize(), nsnull);
+    return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE, &key, 1, nsnull);
 }
 
 PRBool nsMsgMdnGenerator::ProcessSendMode()
