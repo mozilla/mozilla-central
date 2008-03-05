@@ -745,45 +745,7 @@ calDavCalendar.prototype = {
 
     // void getItem( in string id, in calIOperationListener aListener );
     getItem: function (aId, aListener) {
-
-        if (!aListener)
-            return;
-
-        if (aId == null) {
-            aListener.onOperationComplete(this.superCalendar,
-                                          Components.results.NS_ERROR_FAILURE,
-                                          aListener.GET,
-                                          null,
-                                          "passed in empty iid");
-            return;
-        }
-
-
-        // this is our basic search-by-uid xml
-        // XXX get rid of vevent filter?
-        // XXX need a prefix in the namespace decl?
-        default xml namespace = "urn:ietf:params:xml:ns:caldav";
-        var D = new Namespace("D", "DAV:");
-        queryXml =
-          <calendar-query xmlns:D="DAV:">
-            <D:prop>
-              <calendar-data/>
-            </D:prop>
-            <filter>
-              <comp-filter name="VCALENDAR">
-                <comp-filter name="VEVENT">
-                  <prop-filter name="UID">
-                    <text-match caseless="no">
-                      {aId}
-                    </text-match>
-                  </prop-filter>
-                </comp-filter>
-              </comp-filter>
-            </filter>
-          </calendar-query>;
-
-        this.reportInternal(xmlHeader + queryXml.toXMLString(),
-                            false, null, null, 1, aListener);
+        this.mMemoryCalendar.getItem(aId, aListener);
         return;
     },
 
