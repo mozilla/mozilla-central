@@ -56,6 +56,7 @@
 #include "nsITreeView.h"
 #include "nsITreeSelection.h"
 #include "nsIAtom.h"
+#include "nsCOMArray.h"
 
 class nsINntpUrl;
 class nsIMsgMailNewsUrl;
@@ -103,7 +104,7 @@ protected:
     nsresult CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection, nsIURI *url,
                                              nsIMsgWindow *window);
     PRBool ConnectionTimeOut(nsINNTPProtocol* aNntpConnection);
-    nsCOMPtr<nsISupportsArray> m_connectionCache;
+    nsCOMArray<nsINNTPProtocol> mConnectionCache;
     NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
     nsresult SetupNewsrcSaveTimer();
     static void OnNewsrcSaveTimer(nsITimer *timer, void *voidIncomingServer);

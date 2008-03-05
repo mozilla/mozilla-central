@@ -558,7 +558,6 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
 {
   NS_ENSURE_TRUE(m_downloaderForGroup, NS_ERROR_OUT_OF_MEMORY);
   nsCOMPtr <nsIMsgDatabase> db;
-  nsCOMPtr <nsISupportsArray> termList;
   nsCOMPtr <nsIMsgDownloadSettings> downloadSettings;
   m_currentFolder->GetMsgDatabase(m_window, getter_AddRefs(db));
   nsresult rv = m_currentFolder->GetDownloadSettings(getter_AddRefs(downloadSettings));
@@ -567,12 +566,6 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
   nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(m_currentFolder);
   if (newsFolder)
     newsFolder->SetSaveArticleOffline(PR_TRUE);
-
-  if (!m_termList)
-  {
-    rv = NS_NewISupportsArray(getter_AddRefs(m_termList));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
 
   nsCOMPtr <nsIMsgSearchSession> searchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

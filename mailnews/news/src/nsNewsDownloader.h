@@ -149,7 +149,6 @@ protected:
   nsCOMPtr <nsIMsgIncomingServer> m_currentServer;
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;
   nsCOMPtr <nsIUrlListener> m_listener;
-  nsCOMPtr <nsISupportsArray> m_termList;
 
   PRBool m_downloadedHdrsForCurGroup;
 };

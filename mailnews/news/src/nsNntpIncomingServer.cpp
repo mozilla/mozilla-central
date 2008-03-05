@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -109,7 +109,6 @@ nsNntpIncomingServer::nsNntpIncomingServer()
 {
   mNewsrcHasChanged = PR_FALSE;
   mGroupsEnumerator = nsnull;
-  NS_NewISupportsArray(getter_AddRefs(m_connectionCache));
 
   mHostInfoLoaded = PR_FALSE;
   mHostInfoHasChanged = PR_FALSE;
@@ -429,24 +428,21 @@ NS_IMETHODIMP
 nsNntpIncomingServer::CloseCachedConnections()
 {
   nsresult rv;
-  PRUint32 cnt;
   nsCOMPtr<nsINNTPProtocol> connection;
 
   // iterate through the connection cache and close the connections.
-  if (m_connectionCache)
+  PRInt32 cnt = mConnectionCache.Count();
+
+  for (PRInt32 i = 0; i < cnt; ++i)
   {
-    rv = m_connectionCache->Count(&cnt);
-    if (NS_FAILED(rv)) return rv;
-    for (PRUint32 i = 0; i < cnt; i++)
+    connection = mConnectionCache[0];
+    if (connection)
     {
-      connection = do_QueryElementAt(m_connectionCache, 0);
-      if (connection)
-      {
-        rv = connection->CloseConnection();
-        RemoveConnection(connection);
-      }
+      rv = connection->CloseConnection();
+      mConnectionCache.RemoveObjectAt(0);
     }
   }
+
   rv = WriteNewsrcFile();
   if (NS_FAILED(rv)) return rv;
 
@@ -485,8 +481,8 @@ nsNntpIncomingServer::ConnectionTimeOut(nsINNTPProtocol* aConnection)
       printf("XXX connection timed out, close it, and remove it from the connection cache\n");
 #endif
       aConnection->CloseConnection();
-            m_connectionCache->RemoveElement(aConnection);
-            retVal = PR_TRUE;
+      mConnectionCache.RemoveObject(aConnection);
+      retVal = PR_TRUE;
     }
     return retVal;
 }
@@ -507,7 +503,7 @@ nsNntpIncomingServer::CreateProtocolInstance(nsINNTPProtocol ** aNntpConnection,
   nsresult rv = protocolInstance->QueryInterface(NS_GET_IID(nsINNTPProtocol), (void **) aNntpConnection);
   // take the protocol instance and add it to the connectionCache
   if (NS_SUCCEEDED(rv) && *aNntpConnection)
-    m_connectionCache->AppendElement(*aNntpConnection);
+    mConnectionCache.AppendObject(*aNntpConnection);
   return rv;
 }
 
@@ -539,16 +535,14 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
 
   *aNntpConnection = nsnull;
   // iterate through the connection cache for a connection that can handle this url.
-  PRUint32 cnt;
+  PRInt32 cnt = mConnectionCache.Count();
 
-  rv = m_connectionCache->Count(&cnt);
-  if (NS_FAILED(rv)) return rv;
 #ifdef DEBUG_seth
   printf("XXX there are %d nntp connections in the conn cache.\n", (int)cnt);
 #endif
-  for (PRUint32 i = 0; i < cnt && isBusy; i++)
+  for (PRInt32 i = 0; i < cnt && isBusy; i++)
   {
-    connection = do_QueryElementAt(m_connectionCache, i);
+    connection = mConnectionCache[i];
     if (connection)
         rv = connection->GetIsBusy(&isBusy);
     if (NS_FAILED(rv))
@@ -583,10 +577,10 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
 /* void RemoveConnection (in nsINNTPProtocol aNntpConnection); */
 NS_IMETHODIMP nsNntpIncomingServer::RemoveConnection(nsINNTPProtocol *aNntpConnection)
 {
-    if (aNntpConnection)
-        m_connectionCache->RemoveElement(aNntpConnection);
+  if (aNntpConnection)
+    mConnectionCache.RemoveObject(aNntpConnection);
 
-    return NS_OK;
+  return NS_OK;
 }
 
 
