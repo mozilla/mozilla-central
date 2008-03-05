@@ -265,7 +265,7 @@ interface calICalendar : nsISupports
                           in calIOperationListener aListener);
 
   /**
-   * modifyItem takes a modified mutable item and modifies the
+   * modifyItem takes a modified item and modifies the
    * calendar's internal version of the item to match.  The item is
    * expected to have an ID that already exists in the calendar; if it
    * doesn't, or there is no id, onOperationComplete is called with a

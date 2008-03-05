@@ -501,8 +501,6 @@ calDavCalendar.prototype = {
             return;
         }
 
-        aNewItem.generation += 1;
-
         var modListener = {};
         var thisCalendar = this;
 
