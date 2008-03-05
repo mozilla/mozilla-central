@@ -394,7 +394,7 @@ sub packit {
   # Extensions
   my $extensionStageDir;
   if ($Settings::ReleaseExtensionSubdir) {
-    $extensionStageDir = $Settings::RelaseExtensionSubdir;
+    $extensionStageDir = $Settings::ReleaseExtensionSubdir;
   } elsif (TinderUtils::is_windows()) {
     $extensionStageDir = 'windows-xpi';
   } elsif (TinderUtils::is_os2()) {
