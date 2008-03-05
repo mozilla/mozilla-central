@@ -94,7 +94,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-applications.xul" label="&applications.label;"/> 
+            <treecell label="(Migrated: &applications.label;)"/> 
           </treerow>  
         </treeitem> 
         <treeitem>

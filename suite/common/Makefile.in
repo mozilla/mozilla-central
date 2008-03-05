@@ -49,3 +49,9 @@ EXTRA_COMPONENTS = \
 	$(NULL)
 
 include $(topsrcdir)/config/rules.mk
+
+# DEFINES for preprocessing
+# once we support the shell service, define this for supported platforms
+#ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
+#DEFINES += -DHAVE_SHELL_SERVICE=1
+#endif

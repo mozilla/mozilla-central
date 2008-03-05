@@ -40,34 +40,6 @@
    ====================================================================== */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-/* ::::: Themes ::::: */
-
-#skinsTree {
-  height: 80px;
-}
-
-*|*.themesLink {
-  margin-left: 5px;
-  text-decoration: underline;
-  color: blue;
-  cursor: pointer;
-}
-
-*|*.themesLink:active {
-  color: red;
-}
-
-#previewImageContainer {
-  height: 93px; 
-  padding: 1px;
-}
-
-#previewImage {
-  max-width: 355px; 
-  min-width: 355px;
-  max-height: 85px;
-  min-height: 85px;
-}
 
 /* ::::: Fonts ::::: */
 
@@ -80,8 +52,51 @@
   -moz-box-flex: 1;
 }
 
-/* ::::: Mouse Wheel ::::: */
+/* ::::: Applications ::::: */
+.handler-action > .menu-iconic-left {
+  /**
+    * Make the icons appear.
+    * Note: we display the icon box for every item whether or not it has an icon
+    * so the labels of all the items align vertically.
+    */
+  display: -moz-box;
+  min-width: 16px;
+}
 
-#mouseWheelMode {
-  width: 9em;
+/* Set icons on app pane elements */
+
+.handler-action > .listcell-icon,
+.handler-type > .listcell-icon {
+  height: 16px;
+  width: 16px;
+}
+
+.handler-action[appHandlerIcon="app"] {
+  list-style-image: url("chrome://communicator/skin/icons/application.png");
+}
+
+.handler-action[appHandlerIcon="ask"] {
+  list-style-image: url("chrome://communicator/skin/icons/alwaysAsk.png");
+}
+
+.handler-action[appHandlerIcon="save"] {
+  list-style-image: url("chrome://communicator/skin/icons/save.png");
+}
+
+.handler-action[appHandlerIcon="feed"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
+}
+
+.handler-action[appHandlerIcon="plugin"] {
+  list-style-image: url("chrome://communicator/skin/icons/plugin.png");
+}
+
+.handler-type[typeClass="unknown"] {
+  list-style-image: url("moz-icon://goat?size=16");
+}
+
+.handler-type[typeClass="webFeed"],
+.handler-type[typeClass="videoPodcastFeed"],
+.handler-type[typeClass="audioPodcastFeed"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }

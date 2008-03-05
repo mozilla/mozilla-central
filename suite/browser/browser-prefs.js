@@ -220,6 +220,33 @@ pref("browser.preferences.animateFadeIn", true);
 pref("browser.preferences.animateFadeIn", false);
 #endif
 
+pref("browser.download.show_plugins_in_list", true);
+pref("browser.download.hide_plugins_without_extensions", true);
+
+// initial web feed readers list - add enough entries for locales to add theirs
+pref("browser.contentHandlers.types.0.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.0.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.0.type", "application/vnd.mozilla.maybe.feed");
+pref("browser.contentHandlers.types.1.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.1.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.1.type", "application/vnd.mozilla.maybe.feed");
+pref("browser.contentHandlers.types.2.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.2.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.2.type", "application/vnd.mozilla.maybe.feed");
+pref("browser.contentHandlers.types.3.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.3.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.3.type", "application/vnd.mozilla.maybe.feed");
+pref("browser.contentHandlers.types.4.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.4.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.4.type", "application/vnd.mozilla.maybe.feed");
+pref("browser.contentHandlers.types.5.title", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.5.uri", "chrome://navigator-region/locale/region.properties");
+pref("browser.contentHandlers.types.5.type", "application/vnd.mozilla.maybe.feed");
+
+pref("browser.feeds.handler", "ask");
+pref("browser.videoFeeds.handler", "ask");
+pref("browser.audioFeeds.handler", "ask");
+
 pref("app.releaseNotesURL", "chrome://branding/locale/brand.properties");
 pref("app.vendorURL", "chrome://branding/locale/brand.properties");
 

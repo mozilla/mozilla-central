@@ -38,6 +38,8 @@
 
 <?xml-stylesheet type="text/css" href="chrome://communicator/skin/"?>
 <?xml-stylesheet type="text/css" href="chrome://communicator/content/communicator.css"?>
+<?xml-stylesheet type="text/css" href="chrome://communicator/content/pref/prefpanels.css"?>
+<?xml-stylesheet type="text/css" href="chrome://communicator/skin/prefpanels.css"?>
 
 <!DOCTYPE prefwindow [
   <!ENTITY % dtd1 SYSTEM "chrome://communicator/locale/pref/pref.dtd" > %dtd1;
@@ -98,6 +100,7 @@
         </treechildren>
       </treeitem>
 -->
+      <!-- Browser items -->
       <treeitem container="true"
                 id="navigator"
                 label="&navigator.label;"
@@ -112,8 +115,13 @@
 <!-- commenting out yet unmigrated panels
           <treeitem label="&languages.label;"
                     url="chrome://communicator/content/pref/pref-languages.xul"/>
-          <treeitem label="&applications.label;"
+-->
+          <treeitem id="applicationsItem"
+                    label="&applications.label;"
+                    prefpane="applications_pane"
+                    helpTopic="navigator_pref_helper_applications"
                     url="chrome://communicator/content/pref/pref-applications.xul"/>
+<!-- commenting out yet unmigrated panels
           <treeitem label="&smartBrowse.label;"
                     url="chrome://communicator/content/pref/pref-smart_browsing.xul"/>
           <treeitem label="&search.label;"
