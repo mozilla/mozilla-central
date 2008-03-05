@@ -130,96 +130,6 @@ diff -u -r1.19.2.3 Error.pm
      }
      exit;
  }
-Index: Bugzilla/WebService.pm
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService.pm,v
-retrieving revision 1.5.2.1
-diff -u -r1.5.2.1 WebService.pm
---- Bugzilla/WebService.pm	26 Mar 2007 07:57:32 -0000	1.5.2.1
-+++ Bugzilla/WebService.pm	29 Feb 2008 23:19:44 -0000
-@@ -14,10 +14,12 @@
- #
- # Contributor(s): Marc Schumann <wurblzap@gmail.com>
- #                 Max Kanat-Alexander <mkanat@bugzilla.org>
-+#                 Dallas Harken <dharken@novell.com>
- 
- package Bugzilla::WebService;
- 
- use strict;
-+use Bugzilla::Config;
- use Bugzilla::WebService::Constants;
- use Date::Parse;
- 
-@@ -48,9 +50,48 @@
-     Bugzilla->login;
- }
- 
-+sub login {
-+    my $self = shift;
-+    
-+    # Check for use of iChain first
-+    if (Bugzilla->params->{'user_verify_class'} ne 'iChain')
-+    {
-+        #
-+        # Check for use of Basic Authorization
-+        #
-+        # WARNING - Your must modify your Apache server's configuration
-+        # to allow the HTTP_AUTHORIZATION env parameter to be passed through!
-+        # This requires using the rewrite module.
-+        #
-+        if (defined($ENV{'HTTP_AUTHORIZATION'})) 
-+        {
-+            if ($ENV{'HTTP_AUTHORIZATION'} =~ /^Basic +(.*)$/os) 
-+            {
-+                # HTTP Basic Authentication
-+                my($login, $password) = split(/:/, MIME::Base64::decode_base64($1), 2);
-+            
-+                my $cgi = Bugzilla->cgi;
-+                $cgi->param("Bugzilla_login", $login);
-+                $cgi->param("Bugzilla_password", $password);
-+            }
-+        }
-+    }
-+    
-+    Bugzilla->login; 
-+}
-+
-+sub logout
-+{
-+# Testopia's method does not persist anything so logout in unneccessary.
-+#    my $self = shift;
-+#    
-+#    Bugzilla->logout;
-+}
-+
- package Bugzilla::WebService::XMLRPC::Transport::HTTP::CGI;
- 
- use strict;
-+use Bugzilla::WebService::Constants;
- eval 'use base qw(XMLRPC::Transport::HTTP::CGI)';
- 
- sub make_response {
-@@ -65,6 +106,13 @@
-     }
- }
- 
-+sub make_fault {
-+    my $self = shift;
-+
-+    # RPC Fault Code must be an integer
-+    $self->SUPER::make_fault(ERROR_FAULT_SERVER, $_[1]);
-+}
-+
- 1;
- 
- __END__
-@@ -131,4 +179,4 @@
- 
- Sometimes a function will throw an error that doesn't have a specific
- error code. In this case, the code will be C<-32000> if it's a "fatal"
--error, and C<32000> if it's a "transient" error.
-+error, and C<32000> if it's a "transient" error.
-\ No newline at end of file
 Index: Bugzilla/Constants.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Constants.pm,v
@@ -353,23 +263,6 @@ diff -u -r1.4.2.1 User.pm
  1;
  
  __END__
-Index: Bugzilla/WebService/Constants.pm
-===================================================================
-RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService/Constants.pm,v
-retrieving revision 1.6.2.2
-diff -u -r1.6.2.2 Constants.pm
---- Bugzilla/WebService/Constants.pm	18 Sep 2007 23:30:20 -0000	1.6.2.2
-+++ Bugzilla/WebService/Constants.pm	29 Feb 2008 23:19:45 -0000
-@@ -21,6 +21,9 @@
- use base qw(Exporter);
- 
- @Bugzilla::WebService::Constants::EXPORT = qw(
-+    ERROR_GENERAL
-+    ERROR_FAULT_SERVER
-+
-     WS_ERROR_CODE
-     ERROR_UNKNOWN_FATAL
-     ERROR_UNKNOWN_TRANSIENT
 Index: Bugzilla/Install/Filesystem.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Install/Filesystem.pm,v

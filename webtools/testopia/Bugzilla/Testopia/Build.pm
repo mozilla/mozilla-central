@@ -13,7 +13,7 @@
 # The Original Code is the Bugzilla Testopia System.
 #
 # The Initial Developer of the Original Code is Greg Hendricks.
-# Portions created by Maciej Maczynski are Copyright (C) 2006
+# Portions created by Greg Hendricks are Copyright (C) 2006
 # Novell. All Rights Reserved.
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
@@ -188,6 +188,7 @@ sub check_build {
         "SELECT build_id FROM test_builds 
          WHERE name = ? AND product_id = ?",
          undef, $name, $product->id);
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $name}) unless $is;
     return $is;
 }
 
@@ -340,27 +341,43 @@ and are associated with a milestone if targetmilestones are used in Bugzilla.
 
 =head1 FIELDS
 
+    +-------------+------------------+------+-----+---------+----------------+
+    | Field       | Type             | Null | Key | Default | Extra          |
+    +-------------+------------------+------+-----+---------+----------------+
+    | build_id    | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+    | product_id  | smallint(6)      | NO   | MUL | 0       |                |
+    | milestone   | varchar(20)      | YES  | MUL | NULL    |                |
+    | name        | varchar(255)     | YES  | MUL | NULL    |                |
+    | description | text             | YES  |     | NULL    |                |
+    | isactive    | tinyint(4)       | NO   |     | 1       |                |
+    +-------------+------------------+------+-----+---------+----------------+
+
 =over
 
 =item C<build_id> 
 
 The unique id of this build in the database. 
 
-=item C<name>
+=item C<name> B<REQUIRED>
 
 A unique name for this build.
 
-=item C<product_id>
+=item C<product_id> B<REQUIRED> B<CREATE ONLY>
 
 The id of the Bugzilla product this build is attached to.
 
-=item C<milestone>
+=item C<milestone> I<OPTIONAL>
 
 The value from the Bugzilla product milestone table this build is associated with.
 
-=item C<isactive>
+=item C<description> I<OPTIONAL>
 
-Boolean - determines whether to show this build in lists for selection.  
+A description of this build.
+
+=item C<isactive> I<OPTIONAL>
+
+Boolean - Determines whether to show this build in lists for selection. 
+          Defaults to true.  
 
 =back
 
@@ -404,10 +421,6 @@ Boolean - determines whether to show this build in lists for selection.
                        
  Returns:     A blessed Bugzilla::Testopia::Build object
  
-=back
-
-=over
-
 =item C<create()>
  
  Description: Creates a new build object and stores it in the database
@@ -417,10 +430,6 @@ Boolean - determines whether to show this build in lists for selection.
  
  Returns:     The newly created object.
  
-=back
-
-=over
-
 =item C<set_description()>
  
  Description: Replaces the current build's description. Must call update to 
@@ -430,10 +439,6 @@ Boolean - determines whether to show this build in lists for selection.
  
  Returns:     nothing.
  
-=back
-
-=over
-
 =item C<set_isactive()>
  
  Description: Sets the isactive field. 
@@ -442,10 +447,6 @@ Boolean - determines whether to show this build in lists for selection.
  
  Returns:     nothing.
  
-=back
-
-=over
-
 =item C<set_milestone()>
  
  Description: Assigns this build to a different milestone
@@ -454,10 +455,6 @@ Boolean - determines whether to show this build in lists for selection.
  
  Returns:     nothing.
  
-=back
-
-=over
-
 =item C<set_name()>
  
  Description: Renames the current build. If the new name is already in use
@@ -468,10 +465,6 @@ Boolean - determines whether to show this build in lists for selection.
  
  Returns:     nothing.
  
-=back
-
-=over
-
 =item C<to_json()>
 
  Description: Outputs a JSON representation of the object.

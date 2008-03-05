@@ -177,20 +177,20 @@ sub update
         die "Update of TestCase's author_id is not allowed";
     }
 
-    $test_case->set_case_status($new_values->{'case_status_id'});
-    $test_case->set_category($new_values->{'category_id'});
-    $test_case->set_priority($new_values->{'priority_id'});
-    $test_case->set_default_tester($new_values->{'default_tester_id'});
-    $test_case->set_sortkey($new_values->{'sortkey'});
-    $test_case->set_requirement($new_values->{'requirement'});
-    $test_case->set_isautomated($new_values->{'isautomated'});
-    $test_case->set_script($new_values->{'script'});
-    $test_case->set_arguments($new_values->{'arguments'});
-    $test_case->set_summary($new_values->{'summary'});
-    $test_case->set_alias($new_values->{'alias'});
-    $test_case->set_estimated_time($new_values->{'estimated_time'});
-    $test_case->set_dependson($new_values->{'dependson'});
-    $test_case->set_blocks($new_values->{'blocks'});
+    $test_case->set_case_status($new_values->{'case_status_id'}) if exists $new_values->{'case_status_id'};
+    $test_case->set_category($new_values->{'category_id'}) if exists $new_values->{'category_id'};
+    $test_case->set_priority($new_values->{'priority_id'}) if exists $new_values->{'priority_id'};
+    $test_case->set_default_tester($new_values->{'default_tester_id'}) if exists $new_values->{'default_tester_id'};
+    $test_case->set_sortkey($new_values->{'sortkey'}) if exists $new_values->{'sortkey'};
+    $test_case->set_requirement($new_values->{'requirement'}) if exists $new_values->{'requirement'};
+    $test_case->set_isautomated($new_values->{'isautomated'}) if exists $new_values->{'isautomated'};
+    $test_case->set_script($new_values->{'script'}) if exists $new_values->{'script'};
+    $test_case->set_arguments($new_values->{'arguments'}) if exists $new_values->{'arguments'};
+    $test_case->set_summary($new_values->{'summary'}) if exists $new_values->{'summary'};
+    $test_case->set_alias($new_values->{'alias'}) if exists $new_values->{'alias'};
+    $test_case->set_estimated_time($new_values->{'estimated_time'}) if exists $new_values->{'estimated_time'};
+    $test_case->set_dependson($new_values->{'dependson'}) if exists $new_values->{'dependson'};
+    $test_case->set_blocks($new_values->{'blocks'}) if exists $new_values->{'blocks'};
 
     $test_case->update();
 

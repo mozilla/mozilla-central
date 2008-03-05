@@ -53,6 +53,8 @@ use strict;
 use Getopt::Long;
 use Pod::Usage;
 use XMLRPC::Lite;
+use File::Basename qw(dirname);
+use HTTP::Cookies;
 
 my $help;
 my $Bugzilla_uri;
@@ -149,7 +151,12 @@ pod2usage({'-verbose' => 1, '-exitval' => 0}) if $help;
 
 syntaxhelp('URI unspecified') unless $Bugzilla_uri;
 
-my $proxy = XMLRPC::Lite->proxy($Bugzilla_uri);
+my $cookie_jar =
+    new HTTP::Cookies('file' => File::Spec->catdir(dirname($0), 'cookies.txt'),
+                      'autosave' => 1);
+
+my $proxy = XMLRPC::Lite->proxy($Bugzilla_uri,
+                                'cookie_jar' => $cookie_jar);
 
 my $query = {
           'field0-0-0' => 'author',
@@ -157,8 +164,22 @@ my $query = {
           'value0-0-0' => 'Second'
          };
 
+if (defined($Bugzilla_login)) {
+    if ($Bugzilla_login ne '') {
+        # Log in.
+        $soapresult = $proxy->call('User.login',
+                                   { login => $Bugzilla_login, 
+                                     password => $Bugzilla_password } );
+        print "Login successful.\n";
+    }
+    else {
+        # Log out.
+        $soapresult = $proxy->call('User.logout');
+        print "Logout successful.\n";
+    }
+}
 
-$soapresult = $proxy->call('TestPlan.list', {type_id=>4, pagesize=>1000});
+#$soapresult = $proxy->call('TestPlan.list', {type_id=>4, pagesize=>1000});
 #$soapresult = $proxy->call('TestPlan.list', {page=>0, pagesize=>10});
 #$soapresult = $proxy->call('TestPlan.lookup_type_name_by_id', 1);
 #$soapresult = $proxy->call('TestPlan.lookup_type_id_by_name', 'unit2');
@@ -203,7 +224,7 @@ $soapresult = $proxy->call('TestPlan.list', {type_id=>4, pagesize=>1000});
 #$soapresult = $proxy->call('TestRun.get_test_cases', 1758);
 #$soapresult = $proxy->call('TestRun.get_test_case_runs', 1);
 #$soapresult = $proxy->call('TestPlan.get_builds', 2);
-#$soapresult = $proxy->call('Build.get', 2);
+$soapresult = $proxy->call('Build.get', 2);
 #$soapresult = $proxy->call('Build.create', {name=>'Another Build', product_id=>1});
 #$soapresult = $proxy->call('Build.update', 2, {name=>'Second Build', description=>'desc', milestone=>'hmm'});
 #$soapresult = $proxy->call('Build.update', 2, {milestone=>'hmm3'});

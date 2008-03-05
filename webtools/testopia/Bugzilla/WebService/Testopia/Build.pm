@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::Build;
 
@@ -21,119 +25,141 @@ use strict;
 
 use base qw(Bugzilla::WebService);
 
+use Bugzilla::Constants;
 use Bugzilla::Testopia::Build;
 
-sub get
-{
+sub get {
     my $self = shift;
     my ($build_id) = @_;
-
-    $self->login;    
-
-    #Result is a test plan hash map
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    # Result is a build object hash
     my $build = new Bugzilla::Testopia::Build($build_id);
 
-    if (not defined $build)
-    {
-        $self->logout;
-        die "Build, " . $build_id . ", not found"; 
-    }
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $build_id}) unless $build;
     
-    $self->logout;
+    $build->run_count();
 
     return $build;
 }
 
-sub create
-{
+sub check_build {
+    my ($name, $product) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    if (ref $product){
+        $product = $product;
+    }
+    elsif ($product =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($product);
+    }
+    else {
+        $product = Bugzilla::Product::check_product($product);
+    }
+    
+    return Bugzilla::Testopia::Build->new(check_build($name, $product));
+}
+
+sub create{
     my $self = shift;
     my ($new_values) = @_;  # Required: name, product_id
-
-    $self->login;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    $new_values->{'milestone'} ||= '---';
 
     my $build = Bugzilla::Testopia::Build->create($new_values);
     
-    $self->logout;
-    
-    # Result is new build id
-    return $build->id;
-}
-
-sub update
-{
-    my $self =shift;
-    my ($build_id, $new_values) = @_;  # Modifiable: name, description, milestone
-
-    $self->login;
-
-    my $build = new Bugzilla::Testopia::Build($build_id);
-    
-    if (not defined $build)
-    {
-        $self->logout;
-        die "Build, " . $build_id . ", not found"; 
-    }
-    
-    my $name = $$new_values{name};
-    
-    if (defined($name) && check_build($name, new Bugzilla::Product($build->product_id)))
-    {
-        die "Build name, " . $name . ", already exists"; 
-    }
-    
-    if (!defined($name))
-    {
-        $name = $build->name();
-    }
-    
-    my $description = (defined($$new_values{description}) ? $$new_values{description} : $build->description()); 
-
-    my $milestone = (defined($$new_values{milestone}) ? $$new_values{milestone} : $build->milestone());
-    
-    $build->set_name($name);
-    $build->set_description($description);
-    $build->set_milestone($milestone); 
-    
-    $build->update;
-
-    $self->logout;
-
-    # Result is modified build, otherwise an exception will be thrown
+    # Result is new build
     return $build;
 }
 
+sub update{
+    my $self = shift;
+    my ($ids, $new_values) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my @ids;
+    
+    if (ref $ids eq 'ARRAY'){
+        @ids = @$ids;
+    }
+    elsif ($ids =~ /,/){
+        @ids = split(/[\s,]+/, $ids);
+    }
+    else {
+        push @ids, $ids;
+    }
+
+    my @builds;
+    foreach my $id (@ids){
+        my $build = new Bugzilla::Testopia::Build($id);
+        unless ($build){
+            ThrowUserError("invalid-test-id-non-existent", {'id' => $id, 'type' => 'Build'}) if scalar @ids == 1;
+            push @builds, {FAILED => 1, message => "Build $id does not exist"};
+            next;
+        }
+        if (exists $new_values->{'name'}){
+            check_build($new_values->{'name'}, $build->product) if scalar @ids == 1;
+            eval {check_build($new_values->{'name'}, $build->product)};
+            if ($@){
+                push @builds, {FAILED => 1, message => "A Build named " . $new_values->{'name'} . " already exists in the selected product."};
+                next;
+            }
+        }
+        if (exists $new_values->{'milestone'}){
+            Bugzilla::Milestone::check_milestone($build->product, $new_values->{'milestone'}) if scalar @ids == 1;
+            eval {Bugzilla::Milestone::check_milestone($build->product, $new_values->{'milestone'})};
+            if ($@){
+                push @builds, {FAILED => 1, message => "Invalid milestone"};
+                next;
+            }
+        }
+
+        $build->set_name($new_values->{'name'}) if $new_values->{'name'};
+        $build->set_description($new_values->{'description'}) if exists $new_values->{'description'};
+        $build->set_milestone($new_values->{'milestone'}) if $new_values->{'milestone'};
+        $build->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
+        
+        $build->update;
+        return $build if scalar @ids == 1;
+    }
+
+    return @builds;
+}
+
+# DEPRECATED use Build::get instead
 sub lookup_name_by_id
 {
   my $self = shift;
   my ($build_id) = @_;
   
+  Bugzilla->login(LOGIN_REQUIRED);
+  
   die "Invalid Build ID" 
       unless defined $build_id && length($build_id) > 0 && $build_id > 0;
       
-  $self->login;
-  
   my $build = new Bugzilla::Testopia::Build($build_id);
 
   my $result = defined $build ? $build->name : '';
-  
-  $self->logout;
   
   # Result is build name string or empty string if failed
   return $result;
 }
 
-# DEPRECATED use Build::check_build($name, $product_obj) instead
+# DEPRECATED use Build::check_build($name, $product) instead
 sub lookup_id_by_name
 {
   my $self = shift;
   my ($name) = @_;
 
-  $self->login;
-
+  Bugzilla->login(LOGIN_REQUIRED);
+    
   my $result = Bugzilla::Testopia::Build::check_build_by_name($name);
   
-  $self->logout;
-
   if (!defined $result)
   {
     $result = 0;
@@ -144,3 +170,107 @@ sub lookup_id_by_name
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Webservice::Build
+
+=head1 EXTENDS
+
+Bugzilla::Webservice
+
+=head1 DESCRIPTION
+
+Provides methods for automated scripts to manipulate Testopia Builds
+
+=head1 METHODS
+
+=over
+
+=item C<get($id)>
+
+ Description: Used to load an existing build from the database.
+ 
+ Params:      $id - An integer representing the ID in the database
+                       
+ Returns:     A blessed Bugzilla::Testopia::Build object hash
+ 
+=item C<check_build($name, $product)>
+ 
+ Description: Creates a new build object and stores it in the database
+              
+ Params:      $name - String: name of the build.
+              $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+ 
+ Returns:     Hash: Matching Build object hash.
+ 
+=item C<update($ids, $values)>
+ 
+ Description: Updates the fields of the selected build or builds.
+              
+ Params:      $ids - Integer/String/Array
+                     Integer: A single build ID.
+                     String:  A comma separates string of Build IDs for batch
+                              processing.
+                     Array:   An array of build IDs for batch mode processing
+                     
+              $values - Hash of keys matching Build fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash/Array: In the case of a single build it is returned. If a 
+              list was passed, it returns an array of build hashes. If the
+              update on any particular build failed, the has will contain a 
+              FAILED key and the message as to why it failed.
+ 
+=item C<create($values)>
+ 
+ Description: Creates a new build object and stores it in the database
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the build to be created. 
+              See Bugzilla::Testopia::Build for a list of required fields.
+ 
+ Returns:     The newly created object hash.
+ 
+=item C<update($ids, $values)>
+ 
+ Description: Updates the fields of the selected build or builds.
+              
+ Params:      $ids - Integer/String/Array
+                     Integer: A single build ID.
+                     String:  A comma separates string of Build IDs for batch
+                              processing.
+                     Array:   An array of build IDs for batch mode processing
+                     
+              $values - Hash of keys matching Build fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash/Array: In the case of a single build, it is returned. If a 
+              list was passed, it returns an array of build hashes. If the
+              update on any particular build failed, the hash will contain a 
+              FAILED key and the message as to why it failed.
+ 
+=item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
+              
+=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Build::check_build instead
+ 
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::Build>
+
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>
