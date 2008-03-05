@@ -65,8 +65,6 @@
 <!ENTITY viewAttachmentCmd.accesskey       "V">
 <!ENTITY saveAsAttachmentCmd.label         "Save As…">
 <!ENTITY saveAsAttachmentCmd.accesskey     "A">
-<!ENTITY printAttachmentCmd.label          ".Print">
-<!ENTITY printAttachmentCmd.accesskey      "P">
 <!ENTITY detachAttachmentCmd.label         "Detach…">
 <!ENTITY detachAttachmentCmd.accesskey     "h">
 <!ENTITY deleteAttachmentCmd.label         "Delete">
