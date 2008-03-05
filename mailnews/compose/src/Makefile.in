@@ -114,7 +114,6 @@ CPPSRCS		= \
 		nsMsgRecipientArray.cpp \
 		nsURLFetcher.cpp \
 		nsSmtpServer.cpp \
-		nsSmtpDataSource.cpp \
 		nsSmtpDelegateFactory.cpp \
 		$(NULL)
 

@@ -200,7 +200,6 @@
 #include "nsMsgQuote.h"
 #include "nsURLFetcher.h"
 #include "nsSmtpServer.h"
-#include "nsSmtpDataSource.h"
 #include "nsSmtpDelegateFactory.h"
 #include "nsMsgRecipientArray.h"
 #include "nsMsgCompUtils.h"
@@ -444,7 +443,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgQuoteListener)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailtoUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgRecipientArray)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpDataSource)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpDelegateFactory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsURLFetcher)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCompUtils)
@@ -1057,8 +1055,6 @@ static const nsModuleComponentInfo gComponents[] = {
       NS_MSGQUOTELISTENER_CONTRACTID, nsMsgQuoteListenerConstructor },
     { "Msg Recipient Array", NS_MSGRECIPIENTARRAY_CID,
       NS_MSGRECIPIENTARRAY_CONTRACTID, nsMsgRecipientArrayConstructor },
-    { "SMTP Datasource", NS_SMTPDATASOURCE_CID,
-      NS_SMTPDATASOURCE_CONTRACTID, nsSmtpDataSourceConstructor },
     { "SMTP Delegate Factory", NS_SMTPDELEGATEFACTORY_CID,
       NS_SMTPDELEGATEFACTORY_CONTRACTID, nsSmtpDelegateFactoryConstructor },
     { "URL Fetcher", NS_URLFETCHER_CID,
