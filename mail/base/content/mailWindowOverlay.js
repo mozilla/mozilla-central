@@ -1717,7 +1717,7 @@ function MsgOpenFromFile()
     return;
   }
 
-  var uri = fp.fileURL;
+  var uri = fp.fileURL.QueryInterface(Components.interfaces.nsIURL);
   uri.query = "type=application/x-message-display";
 
  window.openDialog( "chrome://messenger/content/messageWindow.xul", "_blank", "all,chrome,dialog=no,status,toolbar", uri, null, null );
