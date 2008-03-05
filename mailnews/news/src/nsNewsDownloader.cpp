@@ -190,7 +190,7 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     if (m_numwrote >= (PRInt32) m_keysToDownload.GetSize())
       return PR_FALSE;
 
-    m_keyToDownload = m_keysToDownload.GetAt(m_numwrote++);
+    m_keyToDownload = m_keysToDownload[m_numwrote++];
     PRInt32 percent;
     percent = (100 * m_numwrote) / (PRInt32) m_keysToDownload.GetSize();
 

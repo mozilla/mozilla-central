@@ -160,7 +160,7 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDB
       rv = folder->GetMsgDatabase(msgWindow, getter_AddRefs(db));
       NS_ENSURE_SUCCESS(rv, rv);
       if (db)
-        rv = db->GetMsgHdrForKey(m_keys.GetAt(index), msgHdr);
+        rv = db->GetMsgHdrForKey(m_keys[index], msgHdr);
     }
   return rv;
 }

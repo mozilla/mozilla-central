@@ -325,12 +325,12 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
 
   if (!(flags & MSG_FLAG_READ))
     ChangeUnreadChildCount(-1);
-  PRBool keyWasFirstKey = (m_keys.GetAt(0) == key);
+  PRBool keyWasFirstKey = (m_keys[0] == key);
   nsresult rv = RemoveChild(key);
  // if we're deleting the root of a dummy thread, need to update the threadKey
  // and the dummy header at position 0
  if (m_dummy && keyWasFirstKey && m_keys.GetSize() > 1)
-    m_keys.SetAt(0, m_keys.GetAt(1));
+    m_keys.SetAt(0, m_keys[1]);
 
  return rv;
 }

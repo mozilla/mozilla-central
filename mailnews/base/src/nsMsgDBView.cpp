@@ -755,7 +755,7 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   {
     PRInt32 currentIndex;
     if (NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) && currentIndex >= 0 && currentIndex < GetSize())
-      *aCurrentMsgKey = m_keys.GetAt(currentIndex);
+      *aCurrentMsgKey = m_keys[currentIndex];
     else
       *aCurrentMsgKey = nsMsgKey_None;
   }
@@ -1455,7 +1455,7 @@ NS_IMETHODIMP nsMsgDBView::GetLevel(PRInt32 index, PRInt32 *_retval)
 nsresult nsMsgDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index, nsIMsgDBHdr **msgHdr)
 {
   nsresult rv = NS_OK;
-  nsMsgKey key = m_keys.GetAt(index);
+  nsMsgKey key = m_keys[index];
   if (key == nsMsgKey_None || !m_db)
     return NS_MSG_INVALID_DBVIEW_INDEX;
 
@@ -2430,7 +2430,7 @@ nsMsgDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32
     nsMsgViewIndex viewIndex = indices[index];
     if (viewIndex == nsMsgViewIndex_None)
       continue;
-    key = m_keys.GetAt(viewIndex);
+    key = m_keys[viewIndex];
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
@@ -2690,7 +2690,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
   {
     if (m_flags[indices[index]] & MSG_VIEW_FLAG_DUMMY)
       continue;
-    nsMsgKey key = m_keys.GetAt(indices[index]);
+    nsMsgKey key = m_keys[indices[index]];
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
@@ -2715,7 +2715,7 @@ nsresult nsMsgDBView::DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *i
   NS_NewISupportsArray(getter_AddRefs(messageArray));
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
-    nsMsgKey key = m_keys.GetAt(indices[index]);
+    nsMsgKey key = m_keys[indices[index]];
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
     rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -3170,7 +3170,7 @@ nsresult nsMsgDBView::ReverseThreads()
         PRInt32 saveEndThread = endThread;
         while (endThread >= sourceIndex)
         {
-            newKeyArray.SetAt(destIndex, m_keys.GetAt(endThread));
+            newKeyArray.SetAt(destIndex, m_keys[endThread]);
             newFlagArray[destIndex] = m_flags[endThread];
             newLevelArray[destIndex] = m_levels[endThread];
             endThread--;
@@ -3205,8 +3205,8 @@ nsresult nsMsgDBView::ReverseSort()
         m_flags[end] = tempFlags;
 
         // swap keys
-        nsMsgKey tempKey = m_keys.GetAt(i);
-        m_keys.SetAt(i, m_keys.GetAt(end));
+        nsMsgKey tempKey = m_keys[i];
+        m_keys.SetAt(i, m_keys[end]);
         m_keys.SetAt(end, tempKey);
 
         if (folders)
@@ -3896,7 +3896,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   PRUint32 longValue;
   while (more && numSoFar < arraySize)
   {
-    nsMsgKey thisKey = m_keys.GetAt(numSoFar);
+    nsMsgKey thisKey = m_keys[numSoFar];
     if (sortType != nsMsgViewSortType::byId)
     {
       rv = GetMsgHdrForViewIndex(numSoFar, getter_AddRefs(msgHdr));
@@ -4175,7 +4175,7 @@ nsMsgKey nsMsgDBView::GetAt(nsMsgViewIndex index)
   if (index >= m_keys.GetSize() || index == nsMsgViewIndex_None)
     return nsMsgKey_None;
   else
-    return(m_keys.GetAt(index));
+    return(m_keys[index]);
 }
 
 nsMsgViewIndex  nsMsgDBView::FindKey(nsMsgKey key, PRBool expand)
@@ -4526,9 +4526,9 @@ nsMsgViewIndex nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *hdr)
     {
       if (m_levels[i] == 0)
       {
-        if (insertKey < m_keys.GetAt(i))
+        if (insertKey < m_keys[i])
           prevInsertIndex = i;
-        else if (insertKey >= m_keys.GetAt(i))
+        else if (insertKey >= m_keys[i])
         {
           retIndex = (prevInsertIndex == nsMsgViewIndex_None) ? nsMsgViewIndex_None : i + 1;
           if (prevInsertIndex == nsMsgViewIndex_None)
@@ -4557,7 +4557,7 @@ nsMsgViewIndex nsMsgDBView::GetIndexForThread(nsIMsgDBHdr *hdr)
     {
       if (!m_levels[i])
       {
-        if (insertKey > m_keys.GetAt(i))
+        if (insertKey > m_keys[i])
         {
           retIndex = i;
           break;
@@ -5320,40 +5320,40 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
     {
         case nsMsgNavigationType::firstMessage:
             *pResultIndex = 0;
-            *pResultKey = m_keys.GetAt(0);
+            *pResultKey = m_keys[0];
             break;
         case nsMsgNavigationType::nextMessage:
             // return same index and id on next on last message
             *pResultIndex = PR_MIN(startIndex + 1, lastIndex);
-            *pResultKey = m_keys.GetAt(*pResultIndex);
+            *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::previousMessage:
             *pResultIndex = (startIndex != nsMsgViewIndex_None && startIndex > 0) ? startIndex - 1 : 0;
-            *pResultKey = m_keys.GetAt(*pResultIndex);
+            *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::lastMessage:
             *pResultIndex = lastIndex;
-            *pResultKey = m_keys.GetAt(*pResultIndex);
+            *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::firstFlagged:
             rv = FindFirstFlagged(pResultIndex);
             if (IsValidIndex(*pResultIndex))
-                *pResultKey = m_keys.GetAt(*pResultIndex);
+                *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::nextFlagged:
             rv = FindNextFlagged(startIndex + 1, pResultIndex);
             if (IsValidIndex(*pResultIndex))
-                *pResultKey = m_keys.GetAt(*pResultIndex);
+                *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::previousFlagged:
             rv = FindPrevFlagged(startIndex, pResultIndex);
             if (IsValidIndex(*pResultIndex))
-                *pResultKey = m_keys.GetAt(*pResultIndex);
+                *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::firstNew:
             rv = FindFirstNew(pResultIndex);
             if (IsValidIndex(*pResultIndex))
-                *pResultKey = m_keys.GetAt(*pResultIndex);
+                *pResultKey = m_keys[*pResultIndex];
             break;
         case nsMsgNavigationType::firstUnreadMessage:
             startIndex = nsMsgViewIndex_None;        // note fall thru - is this motion ever used?
@@ -5365,7 +5365,7 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
                 if (!(flags & (MSG_FLAG_READ | MSG_VIEW_FLAG_DUMMY)) && (curIndex != startIndex))
                 {
                     *pResultIndex = curIndex;
-                    *pResultKey = m_keys.GetAt(*pResultIndex);
+                    *pResultKey = m_keys[*pResultIndex];
                     break;
                 }
                 // check for collapsed thread with new children
@@ -5415,7 +5415,7 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
         case nsMsgNavigationType::previousUnreadMessage:
             if (startIndex == nsMsgViewIndex_None)
               break;
-            rv = FindPrevUnread(m_keys.GetAt(startIndex), pResultKey,
+            rv = FindPrevUnread(m_keys[startIndex], pResultKey,
                                 &resultThreadKey);
             if (NS_SUCCEEDED(rv))
             {
@@ -5580,7 +5580,7 @@ NS_IMETHODIMP nsMsgDBView::NavigateStatus(nsMsgNavigationTypeValue motion, PRBoo
             if (IsValidIndex(index))
             {
                 nsMsgKey threadId;
-                rv = FindPrevUnread(m_keys.GetAt(index), &resultKey, &threadId);
+                rv = FindPrevUnread(m_keys[index], &resultKey, &threadId);
                 enable = (resultKey != nsMsgKey_None);
             }
             break;
@@ -5673,14 +5673,14 @@ nsresult nsMsgDBView::FindPrevUnread(nsMsgKey startKey, nsMsgKey *pResultKey,
         if (curIndex != startIndex && flags & MSG_VIEW_FLAG_ISTHREAD && flags & MSG_FLAG_ELIDED)
         {
             NS_ASSERTION(0,"fix this");
-            //nsMsgKey threadId = m_keys.GetAt(curIndex);
+            //nsMsgKey threadId = m_keys[curIndex];
             //rv = m_db->GetUnreadKeyInThread(threadId, pResultKey, resultThreadId);
             if (NS_SUCCEEDED(rv) && (*pResultKey != nsMsgKey_None))
                 break;
         }
         if (!(flags & (MSG_FLAG_READ | MSG_VIEW_FLAG_DUMMY)) && (curIndex != startIndex))
         {
-            *pResultKey = m_keys.GetAt(curIndex);
+            *pResultKey = m_keys[curIndex];
             rv = NS_OK;
             break;
         }
@@ -6138,7 +6138,7 @@ nsMsgDBView::GetKeyForFirstSelectedMessage(nsMsgKey *key)
     if (m_flags[startRange] & MSG_VIEW_FLAG_DUMMY)
       return NS_MSG_INVALID_DBVIEW_INDEX;
 
-    *key = m_keys.GetAt(startRange);
+    *key = m_keys[startRange];
   }
   else
     return NS_ERROR_UNEXPECTED;

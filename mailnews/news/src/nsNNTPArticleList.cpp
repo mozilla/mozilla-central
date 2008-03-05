@@ -90,7 +90,7 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
 
   if (m_dbIndex < m_idsInDB.GetSize())
   {
-    PRInt32 idInDBToCheck = m_idsInDB.GetAt(m_dbIndex);
+    PRInt32 idInDBToCheck = m_idsInDB[m_dbIndex];
     // if there are keys in the database that aren't in the newsgroup
     // on the server, remove them. We probably shouldn't do this if
     // we have a copy of the article offline.
@@ -102,7 +102,7 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
 #endif
       if (m_dbIndex >= m_idsInDB.GetSize())
         break;
-      idInDBToCheck = m_idsInDB.GetAt(++m_dbIndex);
+      idInDBToCheck = m_idsInDB[++m_dbIndex];
     }
     if (idInDBToCheck == key)
       m_dbIndex++;
@@ -119,16 +119,16 @@ nsNNTPArticleList::FinishAddingArticleKeys()
   PRUint32 i;
 
   for (i = m_dbIndex; i < totalCount; i++) {
-    m_newsFolder->RemoveMessage(m_idsInDB.GetAt(i));
+    m_newsFolder->RemoveMessage(m_idsInDB[i]);
 #ifdef DEBUG
-    m_idsDeleted.Add(m_idsInDB.GetAt(i));
+    m_idsDeleted.Add(m_idsInDB[i]);
 #endif
   }
 
 #ifdef DEBUG
   // make sure none of the deleted turned up on the idsOnServer list
   for (i = 0; i < m_idsDeleted.GetSize(); i++) {
-    NS_ASSERTION(m_idsOnServer.FindIndex((nsMsgKey)(m_idsDeleted.GetAt(i)), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
+    NS_ASSERTION(m_idsOnServer.FindIndex((nsMsgKey)(m_idsDeleted[i]), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
   }
 #endif
   return NS_OK;

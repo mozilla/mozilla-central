@@ -1917,7 +1917,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   {
     nsCString junkScore;
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
-    nsMsgKey msgKey = newMessageKeys.GetAt(i);
+    nsMsgKey msgKey = newMessageKeys[i];
     rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(msgHdr));
     if (!NS_SUCCEEDED(rv))
       continue;
@@ -1970,7 +1970,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         }
       }
     }
-    keysToClassify.Add(newMessageKeys.GetAt(i));
+    keysToClassify.Add(newMessageKeys[i]);
   }
 
   if (keysToClassify.GetSize() > 0)
@@ -1983,7 +1983,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
     for (PRUint32 msgIndex = 0; msgIndex < numMessagesToClassify ; ++msgIndex )
     {
       nsCString tmpStr;
-      rv = GenerateMessageURI(keysToClassify.GetAt(msgIndex), tmpStr);
+      rv = GenerateMessageURI(keysToClassify[msgIndex], tmpStr);
       messageURIs[msgIndex] = ToNewCString(tmpStr);
       if (NS_FAILED(rv))
           NS_WARNING("nsMsgDBFolder::CallFilterPlugins(): could not"

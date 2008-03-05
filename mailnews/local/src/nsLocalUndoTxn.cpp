@@ -169,7 +169,7 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
     {
       if (!msgIds.IsEmpty())
           msgIds.Append(',');
-      msgIds.AppendInt((PRInt32) keyArray.GetAt(i));
+      msgIds.AppendInt((PRInt32) keyArray[i]);
     }
     nsIThread *thread = NS_GetCurrentThread();
     if (thread)
@@ -284,7 +284,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
     if (m_srcIsImap4)
     {
       PRBool deleteFlag = PR_TRUE;  //message has been deleted -we are trying to undo it
-      CheckForToggleDelete(srcFolder, m_srcKeyArray.GetAt(0), &deleteFlag); //there could have been a toggle.
+      CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deleteFlag); //there could have been a toggle.
       rv = UndoImapDeleteFlag(srcFolder, m_srcKeyArray, deleteFlag);
     }
     else
@@ -294,12 +294,12 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
       nsCOMPtr <nsISupports> msgSupports;
       for (i=0; i<count; i++)
       {
-        rv = dstDB->GetMsgHdrForKey(m_dstKeyArray.GetAt(i), 
+        rv = dstDB->GetMsgHdrForKey(m_dstKeyArray[i], 
                                     getter_AddRefs(oldHdr));
         NS_ASSERTION(oldHdr, "fatal ... cannot get old msg header\n");
         if (NS_SUCCEEDED(rv) && oldHdr)
         {
-          rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray.GetAt(i),
+          rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray[i],
                                              oldHdr, PR_TRUE,
                                              getter_AddRefs(newHdr));
           NS_ASSERTION(newHdr, 
@@ -355,7 +355,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
   
   for (i=0; i<count; i++)
   {
-    rv = srcDB->GetMsgHdrForKey(m_srcKeyArray.GetAt(i), 
+    rv = srcDB->GetMsgHdrForKey(m_srcKeyArray[i], 
                                 getter_AddRefs(oldHdr));
     NS_ASSERTION(oldHdr, "fatal ... cannot get old msg header\n");
 
@@ -364,7 +364,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
       msgSupports =do_QueryInterface(oldHdr);
       srcMessages->AppendElement(msgSupports);
       
-      rv = dstDB->CopyHdrFromExistingHdr(m_dstKeyArray.GetAt(i),
+      rv = dstDB->CopyHdrFromExistingHdr(m_dstKeyArray[i],
                                          oldHdr, PR_TRUE,
                                          getter_AddRefs(newHdr));
       NS_ASSERTION(newHdr, "fatal ... cannot get new msg header\n");
@@ -389,7 +389,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
         return NS_ERROR_UNEXPECTED;
     
       PRBool deleteFlag = PR_FALSE; //message is un-deleted- we are trying to redo
-      CheckForToggleDelete(srcFolder, m_srcKeyArray.GetAt(0), &deleteFlag); // there could have been a toggle
+      CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deleteFlag); // there could have been a toggle
       rv = UndoImapDeleteFlag(srcFolder, m_srcKeyArray, deleteFlag);
     }
     else

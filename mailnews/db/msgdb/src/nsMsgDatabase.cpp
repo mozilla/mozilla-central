@@ -1922,7 +1922,7 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
-  if (m_newSet.GetSize() > 0 && m_newSet.GetAt(m_newSet.GetSize() - 1) == key || m_newSet.IndexOfSorted(key) != kNotFound)
+  if (m_newSet.GetSize() > 0 && m_newSet[m_newSet.GetSize() - 1] == key || m_newSet.IndexOfSorted(key) != kNotFound)
     statusFlags |= MSG_FLAG_NEW;
   else
     statusFlags &= ~MSG_FLAG_NEW;
@@ -2464,7 +2464,7 @@ NS_IMETHODIMP nsMsgDatabase::AddToNewList(nsMsgKey key)
 {
   // we add new keys in increasing order...
   if (m_newSet.GetSize() == 0
-      || (m_newSet.GetAt(m_newSet.GetSize() - 1) < key))
+      || (m_newSet[m_newSet.GetSize() - 1] < key))
     m_newSet.Add(key);
   return NS_OK;
 }

@@ -86,7 +86,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
     
     for (i=0; i<count; i++)
     {
-      rv = srcDB->GetMsgHdrForKey(m_srcKeyArray.GetAt(i),
+      rv = srcDB->GetMsgHdrForKey(m_srcKeyArray[i],
         getter_AddRefs(srcHdr));
       if (NS_SUCCEEDED(rv))
       {
@@ -182,7 +182,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
         return NS_ERROR_UNEXPECTED;
 
       if (NS_SUCCEEDED(rv) && deleteModel == nsMsgImapDeleteModels::IMAPDelete)
-        CheckForToggleDelete(srcFolder, m_srcKeyArray.GetAt(0), &deletedMsgs);
+        CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deletedMsgs);
 
       if (deletedMsgs)
         rv = imapService->SubtractMessageFlags(m_eventTarget, srcFolder, 
@@ -264,7 +264,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
         return NS_ERROR_UNEXPECTED;
       
       if (NS_SUCCEEDED(rv) && deleteModel == nsMsgImapDeleteModels::IMAPDelete)
-        rv = CheckForToggleDelete(srcFolder, m_srcKeyArray.GetAt(0), &deletedMsgs);
+        rv = CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deletedMsgs);
       
       // ** make sire we are in the selected state; use lite select
       // folder so we won't hit preformace hard
@@ -380,7 +380,7 @@ nsImapMoveCopyMsgTxn::UndoMailboxDelete()
         {
             oldHdr = do_QueryElementAt(m_srcHdrs, i);
             NS_ASSERTION(oldHdr, "fatal ... cannot get old msg header\n");
-            rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray.GetAt(i),
+            rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray[i],
                                                oldHdr,PR_TRUE,
                                                getter_AddRefs(newHdr));
             NS_ASSERTION(newHdr, "fatal ... cannot create new header\n");

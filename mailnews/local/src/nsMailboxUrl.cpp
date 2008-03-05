@@ -493,7 +493,7 @@ NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 num
   m_keys.RemoveAll();
   m_keys.Add(keysToFlag, numKeys);
   if (m_keys.GetSize() > 0 && m_messageKey == nsMsgKey_None)
-    m_messageKey = m_keys.GetAt(0);
+    m_messageKey = m_keys[0];
   return NS_OK;
 }
 
@@ -502,7 +502,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgD
   NS_ENSURE_ARG(msgHdr);
   if (msgIndex < m_keys.GetSize())
   {
-    nsMsgKey nextKey = m_keys.GetAt(msgIndex);
+    nsMsgKey nextKey = m_keys[msgIndex];
     return GetMsgHdrForKey(nextKey, msgHdr);
   }
   return NS_MSG_MESSAGE_NOT_FOUND;

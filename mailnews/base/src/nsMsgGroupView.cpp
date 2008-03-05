@@ -576,7 +576,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
 
   PRBool rootDeleted = viewIndexOfThread != nsMsgKey_None &&
-    m_keys.GetAt(viewIndexOfThread) == keyDeleted;
+    m_keys[viewIndexOfThread] == keyDeleted;
   rv = nsMsgDBView::OnHdrDeleted(aHdrDeleted, aParentKey, aFlags, aInstigator);
   if (groupThread->m_dummy)
   {
@@ -592,7 +592,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
     }
     else if (rootDeleted && viewIndexOfThread > 0)
     {
-      m_keys.SetAt(viewIndexOfThread - 1, m_keys.GetAt(viewIndexOfThread));
+      m_keys.SetAt(viewIndexOfThread - 1, m_keys[viewIndexOfThread]);
       OrExtraFlag(viewIndexOfThread - 1, MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_ISTHREAD);
     }
   }
