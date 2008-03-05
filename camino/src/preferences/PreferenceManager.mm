@@ -487,19 +487,23 @@ static BOOL gMadePrefManager;
     // directory but causes a (harmless) warning if not defined.
     setenv("MOZILLA_FIVE_HOME", binDirPath, 1);
     
-    const char* profileDirectory;
-    const char* customProfilePath = getenv(CUSTOM_PROFILE_DIR);
-    BOOL isCustomProfile = NO;
+    // Check for a custom profile, first from -profile, then in the environment.
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    const char* customProfilePath = [[defaults stringForKey:USER_DEFAULTS_PROFILE_KEY] fileSystemRepresentation];
+    if (!customProfilePath)
+      customProfilePath = getenv(CUSTOM_PROFILE_DIR);
     
-    // Based on whether $CAMINO_PROFILE_DIR is set, figure out what the
+    // Based on whether a custom path is set, figure out what the
     // profile path should be.
+    const char* profileDirectory;
+    BOOL isCustomProfile = NO;
     if (!customProfilePath) {
       // If it isn't, we then check the 'mozProfileDirName' key in our Info.plist file
       // and use the regular Application Support/<mozProfileDirName>, and Caches/<mozProfileDirName> 
       // folders.
       NSString* dirString = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"mozProfileDirName"];
       if (dirString)
-        profileDirectory = [dirString UTF8String];
+        profileDirectory = [dirString fileSystemRepresentation];
       else {
         NSLog(@"mozNewProfileDirName key missing from Info.plist file. Using default profile directory");
         profileDirectory = "Camino";

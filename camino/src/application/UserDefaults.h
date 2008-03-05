@@ -43,8 +43,10 @@
   easier documentation.
 */
 
-
+// Support for firefox-style command-line arguments, mostly for test harnesses.
 #define USER_DEFAULTS_URL_KEY                   @"url"                           /* String */
+#define USER_DEFAULTS_PROFILE_KEY               @"profile"                       /* String */
+
 #define USER_DEFAULTS_HIDE_PERS_TOOLBAR_KEY     @"Hide Personal Toolbar"         /* Integer */
 #define USER_DEFAULTS_HIDE_STATUS_BAR_KEY       @"Hide Status Bar"               /* Boolean */
 #define USER_DEFAULTS_HOMEPAGE_KEY              @"HomePage"                      /* String */
