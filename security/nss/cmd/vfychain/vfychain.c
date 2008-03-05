@@ -357,7 +357,7 @@ breakout:
                                            NULL);/* returned usages */
     } else do {
         CERTValOutParam cvout[3];
-        CERTValInParam cvin[3];
+        CERTValInParam cvin[4];
         SECOidTag oidTag;
         int inParamIndex = 0;
 
@@ -393,17 +393,23 @@ breakout:
                 break;
             }
 
-            cvin[0].type = cert_pi_policyOID;
-            cvin[0].value.arraySize = 1;
-            cvin[0].value.array.oids = &oidTag;
+            cvin[inParamIndex].type = cert_pi_policyOID;
+            cvin[inParamIndex].value.arraySize = 1;
+            cvin[inParamIndex].value.array.oids = &oidTag;
 
-            inParamIndex = 1;
+            inParamIndex++;
         }
-    
+
+	cvin[inParamIndex].type = cert_pi_date;
+	cvin[inParamIndex].value.scalar.time = time;
+	inParamIndex++;
+
         cvin[inParamIndex].type = cert_pi_revocationFlags;
         cvin[inParamIndex].value.scalar.ul = CERT_REV_FAIL_SOFT_CRL |
                                   CERT_REV_FLAG_CRL;
-        cvin[inParamIndex + 1].type = cert_pi_end;
+	inParamIndex++;
+
+        cvin[inParamIndex].type = cert_pi_end;
         
         cvout[0].type = cert_po_trustAnchor;
 
