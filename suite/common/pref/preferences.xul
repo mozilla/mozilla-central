@@ -169,8 +169,11 @@
                 label="&advance.label;"
                 url="chrome://communicator/content/pref/pref-advanced.xul">
         <treechildren id="advancedChildren">
-          <treeitem label="&scriptsAndWindows.label;"
+-->
+          <treeitem id="scriptsItem" label="&scriptsAndWindows.label;"
+                    prefpane="scripts_pane" helpTopic="advanced_pref_scripts"
                     url="chrome://communicator/content/pref/pref-scripts.xul"/>
+<!--
           <treeitem label="&keynav.label;"
                     url="chrome://communicator/content/pref/pref-keynav.xul"/>
           <treeitem label="&cache.label;"

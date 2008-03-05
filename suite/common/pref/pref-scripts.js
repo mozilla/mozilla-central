@@ -40,14 +40,13 @@
 
 function setDisableState(id, state) {
   var component = document.getElementById(id);
-  var prefString = component.getAttribute("prefstring");
-  var isLocked = parent.hPrefWindow.getPrefIsLocked(prefString);
+  var preference = component.getAttribute("preference");
+  var isLocked = document.getElementById(preference).locked;
   component.disabled = isLocked || state;
 }
 
-function changeDisabledState(state){
+function changeDisabledState(state) {
   //Set the states of the groupbox children state based on the "javascript enabled" checkbox value
-  setDisableState("allowScripts", state);
   setDisableState("allowWindowMoveResize", state);
   setDisableState("allowImageSrcChange", state);
   setDisableState("allowWindowStatusChange", state);
@@ -56,26 +55,19 @@ function changeDisabledState(state){
   setDisableState("allowContextmenuDisable", state);
 }
 
-function javascriptEnabledChange(){
-  // if javascriptAllowMailNews is overlayed (mailnews is installed), then if javascriptAllowMailnews 
-  // and javascriptAllowNavigator are unchecked, we disable the tree items. 
-  // If javascriptAllowMailNews is not available, we only take javascriptAllowNavigator in consideration
+function javascriptEnabledChange() {
+  // If javascript.allow.mailnews is overlayed (mailnews is installed),
+  // then if javascript.allow.mailnews and javascript.enabled are false,
+  // we disable the tree items. If javascript.allow.mailnews is not
+  // available, we only take javascript.enabled in consideration.
 
-  if (document.getElementById('javascriptAllowMailNews')){
-    if (!document.getElementById('javascriptAllowNavigator').checked && !document.getElementById('javascriptAllowMailNews').checked)
-      changeDisabledState(true);
-    else changeDisabledState(false);
-  } else {
-    changeDisabledState(!document.getElementById('javascriptAllowNavigator').checked);
-  }
+  var javascriptDisabled = !document.getElementById('javascript.enabled').value;
+  var javascriptAllowMailNews = document.getElementById('javascript.allow.mailnews');
+  if (javascriptDisabled && javascriptAllowMailNews)
+    javascriptDisabled = !javascriptAllowMailNews.value;
+  changeDisabledState(javascriptDisabled);
 }
 
-function Startup(){
-  //If we don't have a checkbox under groupbox pluginPreferences, we should hide it
-  var pluginGroup = document.getElementById("pluginPreferences");
-  var children = pluginGroup.childNodes;
-  if (!children || children.length <= 1)    // 1 for the caption
-    pluginGroup.setAttribute("hidden", "true");
-
+function Startup() {
   javascriptEnabledChange();
 }

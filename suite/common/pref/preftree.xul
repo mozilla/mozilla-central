@@ -160,7 +160,7 @@
       <treechildren id="advancedChildren">
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-scripts.xul" label="&scriptsAndWindows.label;"/> 
+            <treecell label="(Migrated: &scriptsAndWindows.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>

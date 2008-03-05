@@ -37,62 +37,78 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-scripts.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-scripts.dtd">
 
-<page id="scriptsAndWindowPanel" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-scripts.xul');"
-      headertitle="&pref.scripts.title;">
-  <script type="application/x-javascript" src="chrome://communicator/content/pref/pref-scripts.js"/>
-  <script type="application/x-javascript">
-    <![CDATA[
-      var panel = "chrome://communicator/content/pref/pref-scripts.xul";
-      var _elementIDs = ["javascriptAllowNavigator",
-                         "allowWindowMoveResize",
-                         "allowWindowFlip",
-                         "allowWindowStatusChange",
-                         "allowImageSrcChange",
-                         "allowContextmenuDisable",
-                         "allowHideStatusBar"];
-    ]]>
-  </script>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="scripts_pane"
+            label="&pref.scripts.title;"
+            script="chrome://communicator/content/pref/pref-scripts.js">
 
-  <groupbox id="javascriptPreferences" flex="1">
-    <caption label="&enableJavaScript.label;"/>
+    <preferences id="scripts_preferences">
+      <preference id="javascript.enabled"
+                  name="javascript.enabled"
+                  type="bool"
+                  onchange="javascriptEnabledChange();"/>
+      <preference id="dom.disable_window_move_resize"
+                  name="dom.disable_window_move_resize"
+                  type="bool" inverted="true"/>
+      <preference id="dom.disable_window_flip"
+                  name="dom.disable_window_flip"
+                  type="bool" inverted="true"/>
+      <preference id="dom.disable_window_open_feature.status"
+                  name="dom.disable_window_open_feature.status"
+                  type="bool" inverted="true"/>
+      <preference id="dom.disable_window_status_change"
+                  name="dom.disable_window_status_change"
+                  type="bool" inverted="true"/>
+      <preference id="dom.disable_image_src_set"
+                  name="dom.disable_image_src_set"
+                  type="bool" inverted="true"/>
+      <preference id="dom.event.contextmenu.enabled"
+                  name="dom.event.contextmenu.enabled"
+                  type="bool"/>
+    </preferences>
 
-    <checkbox id="javascriptAllowNavigator" label="&navigator.label;" accesskey="&navigator.accesskey;"
-                  pref="true" preftype="bool" prefstring="javascript.enabled"
-                  prefattribute="checked" oncommand="javascriptEnabledChange();"/>
- 
-    <separator/>
-  
-    <label id="allowScripts" accesskey="&allowScripts.accesskey;" control="AllowList" value="&allowScripts.label;"/>
+    <groupbox id="javascriptPreferences" flex="1">
+      <caption label="&enableJavaScript.label;"/>
 
-    <listbox id="AllowList" flex="1">
-      <listitem type="checkbox" id="allowWindowMoveResize" label="&allowWindowMoveResize.label;"
-                reversed="true" prefstring="dom.disable_window_move_resize"/>
-      <listitem type="checkbox" id="allowWindowFlip" label="&allowWindowFlip.label;"
-                reversed="true" prefstring="dom.disable_window_flip"/>
-      <listitem type="checkbox" id="allowHideStatusBar" label="&allowHideStatusBar.label;"
-                reversed="true" prefstring="dom.disable_window_open_feature.status"/>
-      <listitem type="checkbox" id="allowWindowStatusChange" label="&allowWindowStatusChange.label;"
-                reversed="true" prefstring="dom.disable_window_status_change"/>
-      <listitem type="checkbox" id="allowImageSrcChange" label="&allowWindowImageSrcChange.label;"
-                reversed="true" prefstring="dom.disable_image_src_set"/>
-      <listitem type="checkbox" id="allowContextmenuDisable" label="&allowContextmenuDisable.label;"
-                prefstring="dom.event.contextmenu.enabled"/>
-    </listbox>
-  </groupbox>
-
-  <groupbox id="pluginPreferences">
-    <caption label="&enablePlugin.label;"/>
+      <checkbox id="javascriptAllowNavigator"
+                label="&navigator.label;"
+                accesskey="&navigator.accesskey;"
+                preference="javascript.enabled"/>
+   
+      <separator/>
     
-    <!-- mailnews will add its checkbox here using overlay (mailPrefOverlay.xul).
-         The day we add a checkbox for plugins in browser, please do the following:
-         1) make sure that doesn't break the mailnews overlay, we'll probably have to add an
-            insertafter command to insure the proper order of the checkboxes
-         2) remove the js code in pref-scripts.js that hide this groupbox when not checkbox
-            has been defined (function Startup)
-    -->
-  </groupbox>
-  
-</page>
+      <label control="AllowList"
+             value="&allowScripts.label;" accesskey="&allowScripts.accesskey;"/>
+
+      <listbox id="AllowList" flex="1">
+        <listitem type="checkbox" id="allowWindowMoveResize"
+                  label="&allowWindowMoveResize.label;"
+                  preference="dom.disable_window_move_resize"/>
+        <listitem type="checkbox" id="allowWindowFlip"
+                  label="&allowWindowFlip.label;"
+                  preference="dom.disable_window_flip"/>
+        <listitem type="checkbox" id="allowHideStatusBar"
+                  label="&allowHideStatusBar.label;"
+                  preference="dom.disable_window_open_feature.status"/>
+        <listitem type="checkbox" id="allowWindowStatusChange"
+                  label="&allowWindowStatusChange.label;"
+                  preference="dom.disable_window_status_change"/>
+        <listitem type="checkbox" id="allowImageSrcChange"
+                  label="&allowWindowImageSrcChange.label;"
+                  preference="dom.disable_image_src_set"/>
+        <listitem type="checkbox" id="allowContextmenuDisable"
+                  label="&allowContextmenuDisable.label;"
+                  preference="dom.event.contextmenu.enabled"/>
+      </listbox>
+    </groupbox>
+
+    <groupbox id="pluginPreferences" hidden="true">
+      <caption label="&enablePlugin.label;"/>
+      <!-- mailnews will add its checkbox here using overlay (mailPrefOverlay.xul).
+      -->
+    </groupbox>
+    
+  </prefpane>
+</overlay>
