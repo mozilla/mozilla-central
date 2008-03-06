@@ -13,7 +13,7 @@ bm-xserve11.build.mozilla.org macOSX 1.9
 bl-bldxp01 winnt 1.9
 balsa-1_8 linux 1.8
 bl-bldlnx01.office.mozilla.org_mozilla_1_8_branch linux 1.8
-bm-xserve02.mozilla.org_mozilla_1_8_branch macOSX 1.8
+bm-xserve05.mozilla.org_mozilla_1_8_branch macOSX 1.8
 bl-bldxp01_mozilla_1_8_branch winnt 1.8
 "
 
