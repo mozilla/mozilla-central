@@ -57,6 +57,7 @@
 typedef struct JSDB_Data
 {
     JSDContext*     jsdcTarget;
+    JSDContext*     jsdcDebugger;
     JSRuntime*      rtTarget;
     JSRuntime*      rtDebugger;
     JSContext*      cxDebugger;
