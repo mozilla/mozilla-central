@@ -46,6 +46,39 @@
 
 #include "pkix_build.h"
 
+extern PRLogModuleInfo *pkixLog;
+
+void
+pkix_trace_dump_cert(const char *info, PKIX_PL_Cert *cert, void *plContext)
+{
+        PKIX_PL_String *unString;
+        char *unAscii;
+        PKIX_UInt32 length;
+
+        PKIX_ENTER(FORWARDBUILDERSTATE, "pkix_trace_dump_cert");
+
+        PKIX_TOSTRING
+                ((PKIX_PL_Object*)cert,
+                &unString,
+                plContext,
+                PKIX_OBJECTTOSTRINGFAILED);
+
+        PKIX_PL_String_GetEncoded
+                    (unString,
+                    PKIX_ESCASCII,
+                    (void **)&unAscii,
+                    &length,
+                    plContext);
+
+        PKIX_DEBUG_ARG("====> %s\n", info);
+        PKIX_DEBUG_ARG("====> cert: %s\n", unAscii);
+        PKIX_DECREF(unString);
+        PKIX_FREE(unAscii);
+
+cleanup:
+return;
+}
+
 /*
  * List of critical extension OIDs associate with what build chain has
  * checked. Those OIDs need to be removed from the unresolved critical
@@ -991,6 +1024,9 @@ cleanup:
 /* This local error check macro */
 #define ERROR_CHECK(errCode) \
     if (pkixErrorResult) { \
+        if (pkixLog) { \
+            PR_LOG(pkixLog, PR_LOG_DEBUG, ("====> ERROR_CHECK code %s\n", #errCode)); \
+        } \
         pkixTempErrorReceived = PKIX_TRUE; \
         pkixErrorClass = pkixErrorResult->errClass; \
         if (pkixErrorClass == PKIX_FATAL_ERROR) { \
@@ -2595,7 +2631,6 @@ pkix_BuildForwardDepthFirstSearch(
 #endif
 
             if (state->status == BUILD_CERTVALIDATING) {
-
                     revocationCheckingExists =
                         (state->buildConstants.crlChecker != NULL);
 
@@ -2626,6 +2661,10 @@ pkix_BuildForwardDepthFirstSearch(
                                     plContext),
                                     PKIX_VERIFYNODECREATEFAILED);
                     }
+
+                    pkix_trace_dump_cert(
+                      "pkix_BuildForwardDepthFirstSearch calling pkix_Build_VerifyCertificate",
+                      state->candidateCert, plContext);
 
                     /* If failure, this function sets Error in verifyNode */
                     verifyError = pkix_Build_VerifyCertificate

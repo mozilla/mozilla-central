@@ -939,6 +939,8 @@ pkix_CheckChain(
                     continue;
                 }
 
+                pkix_trace_dump_cert("pkix_CheckChain", cert, plContext);
+
                 if (revChecking == PKIX_FALSE) {
 
                         PKIX_CHECK(pkix_CheckCert

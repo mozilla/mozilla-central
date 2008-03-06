@@ -145,6 +145,8 @@ extern void PKIX_DoAddError(PKIX_StdVars * stdVars,
 
 extern const PKIX_StdVars zeroStdVars;
 
+extern PRLogModuleInfo *pkixLog;
+
 /*
  * UTILITY MACROS
  * Documentation for these common utility macros can be found in the
@@ -262,10 +264,24 @@ extern const PKIX_StdVars zeroStdVars;
     return PKIX_DoReturn(&stdVars, (PKIX_ ## type ## _ERROR), PKIX_FALSE, plContext);
 #endif
 
+/* disable to disable ;-) */
+#define WANT_TRACE_CHECK_FAILURES
+
+#ifdef WANT_TRACE_CHECK_FAILURES
+#define TRACE_CHECK_FAILURE(what, errorstring) \
+    if (pkixLog) { \
+      PR_LOG(pkixLog, PR_LOG_DEBUG, \
+        ("====> [%s] failed: %s\n", #what, errorstring)); \
+    }
+#else
+#define TRACE_CHECK_FAILURE(what, errorstring)
+#endif
+
 #define PKIX_CHECK(func, descNum) \
     do { \
 	pkixErrorResult = (func); \
 	if (pkixErrorResult) { \
+            TRACE_CHECK_FAILURE((func), PKIX_ErrorText[descNum]) \
 	    pkixErrorClass = pkixErrorResult->errClass; \
 	    pkixErrorCode = descNum; \
 	    pkixErrorMsg = PKIX_ErrorText[descNum]; \
@@ -278,6 +294,7 @@ extern const PKIX_StdVars zeroStdVars;
 	pkixTempErrorReceived = PKIX_FALSE; \
 	pkixErrorResult = (func); \
 	if (pkixErrorResult) { \
+            TRACE_CHECK_FAILURE((func), PKIX_ErrorText[descNum]) \
 	    pkixTempErrorReceived = PKIX_TRUE; \
 	    pkixErrorClass = pkixErrorResult->errClass; \
             if (pkixErrorClass == PKIX_FATAL_ERROR) { \
@@ -321,6 +338,7 @@ extern const PKIX_StdVars zeroStdVars;
     do { \
 	pkixErrorResult = (func); \
 	if (pkixErrorResult) { \
+                TRACE_CHECK_FAILURE((func), PKIX_ErrorText[descNum]) \
 		pkixErrorReceived = PKIX_TRUE; \
 		pkixErrorMsg = PKIX_ErrorText[descNum]; \
 		pkixErrorCode = descNum; \
@@ -1495,6 +1513,13 @@ pkix_CacheCrlEntry_Add(
         PKIX_PL_BigInt *certSerialNumber,
         PKIX_List* crlEntryList,
         void *plContext);
+
+void
+pkix_trace_dump_cert(
+        const char *info, 
+        PKIX_PL_Cert *cert, 
+        void *plContext);
+
 
 #ifdef __cplusplus
 }
