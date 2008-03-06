@@ -1,6 +1,6 @@
 // Using space required numbers as of 2007-07-16.  I'm sure that the number
 // will only go up from here.  But for now, as good a guess as any.
-var version = "0.8.0.3";
+var version = "0.8.5";
 var srChrome = 534;
 var srComponents = 910;
 
