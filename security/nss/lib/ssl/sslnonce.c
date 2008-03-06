@@ -36,10 +36,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.23 2008-02-23 02:21:31 julien.pierre.boogz%sun.com Exp $ */
+/* $Id: sslnonce.c,v 1.24 2008-03-06 20:16:22 wtc%google.com Exp $ */
 
 #include "nssrenam.h"
 #include "cert.h"
+#include "pk11pub.h"
 #include "secitem.h"
 #include "ssl.h"
 #include "nss.h"
@@ -219,6 +220,9 @@ ssl_DestroySID(sslSessionID *sid)
     if ( sid->localCert ) {
 	CERT_DestroyCertificate(sid->localCert);
     }
+    if (sid->u.ssl3.sessionTicket.ticket.data) {
+	SECITEM_FreeItem(&sid->u.ssl3.sessionTicket.ticket, PR_FALSE);
+    }
     
     PORT_ZFree(sid, sizeof(sslSessionID));
 }
@@ -355,8 +359,18 @@ CacheSID(sslSessionID *sid)
 	PRINT_BUF(8, (0, "cipherArg:",
 		  sid->u.ssl2.cipherArg.data, sid->u.ssl2.cipherArg.len));
     } else {
-	if (sid->u.ssl3.sessionIDLength == 0) 
+	if (sid->u.ssl3.sessionIDLength == 0 &&
+	    sid->u.ssl3.sessionTicket.ticket.data == NULL)
 	    return;
+	/* Client generates the SessionID if this was a stateless resume. */
+	if (sid->u.ssl3.sessionIDLength == 0) {
+	    SECStatus rv;
+	    rv = PK11_GenerateRandom(sid->u.ssl3.sessionID,
+		SSL3_SESSIONID_BYTES);
+	    if (rv != SECSuccess)
+		return;
+	    sid->u.ssl3.sessionIDLength = SSL3_SESSIONID_BYTES;
+	}
 	expirationPeriod = ssl3_sid_timeout;
 	PRINT_BUF(8, (0, "sessionID:",
 		      sid->u.ssl3.sessionID, sid->u.ssl3.sessionIDLength));
@@ -483,3 +497,35 @@ ssl_Time(void)
     return myTime;
 }
 
+SECStatus
+ssl3_SetSIDSessionTicket(sslSessionID *sid, NewSessionTicket *session_ticket)
+{
+    SECStatus rv;
+
+    /* We need to lock the cache, as this sid might already be in the cache. */
+    LOCK_CACHE;
+
+    /* A server might have sent us an empty ticket, which has the
+     * effect of clearing the previously known ticket.
+     */
+    if (sid->u.ssl3.sessionTicket.ticket.data)
+	SECITEM_FreeItem(&sid->u.ssl3.sessionTicket.ticket, PR_FALSE);
+    if (session_ticket->ticket.len > 0) {
+	rv = SECITEM_CopyItem(NULL, &sid->u.ssl3.sessionTicket.ticket,
+	    &session_ticket->ticket);
+	if (rv != SECSuccess) {
+	    UNLOCK_CACHE;
+	    return rv;
+	}
+    } else {
+	sid->u.ssl3.sessionTicket.ticket.data = NULL;
+	sid->u.ssl3.sessionTicket.ticket.len = 0;
+    }
+    sid->u.ssl3.sessionTicket.received_timestamp =
+	session_ticket->received_timestamp;
+    sid->u.ssl3.sessionTicket.ticket_lifetime_hint =
+	session_ticket->ticket_lifetime_hint;
+
+    UNLOCK_CACHE;
+    return SECSuccess;
+}

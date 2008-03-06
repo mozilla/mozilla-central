@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslerr.h,v 1.5 2006-04-04 00:32:27 nelson%bolyard.com Exp $ */
+/* $Id: sslerr.h,v 1.6 2008-03-06 20:16:22 wtc%google.com Exp $ */
 #ifndef __SSL_ERR_H_
 #define __SSL_ERR_H_
 
@@ -191,6 +191,9 @@ SSL_ERROR_CERTIFICATE_UNOBTAINABLE_ALERT	= (SSL_ERROR_BASE + 105),
 SSL_ERROR_UNRECOGNIZED_NAME_ALERT		= (SSL_ERROR_BASE + 106),
 SSL_ERROR_BAD_CERT_STATUS_RESPONSE_ALERT	= (SSL_ERROR_BASE + 107),
 SSL_ERROR_BAD_CERT_HASH_VALUE_ALERT		= (SSL_ERROR_BASE + 108),
+
+SSL_ERROR_RX_UNEXPECTED_NEW_SESSION_TICKET = (SSL_ERROR_BASE + 109),
+SSL_ERROR_RX_MALFORMED_NEW_SESSION_TICKET  = (SSL_ERROR_BASE + 110),
 
 SSL_ERROR_END_OF_LIST	/* let the c compiler determine the value of this. */
 } SSLErrorCodes;

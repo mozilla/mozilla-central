@@ -37,7 +37,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslt.h,v 1.10 2007-02-28 19:47:38 rrelyea%redhat.com Exp $ */
+/* $Id: sslt.h,v 1.11 2008-03-06 20:16:22 wtc%google.com Exp $ */
 
 #ifndef __sslt_h_
 #define __sslt_h_
@@ -59,6 +59,12 @@ typedef struct SSL3StatisticsStr {
     long hch_sid_cache_hits;
     long hch_sid_cache_misses;
     long hch_sid_cache_not_ok;
+
+    /* statistics related to stateless resume */
+    long sch_sid_stateless_resumes;
+    long hsh_sid_stateless_resumes;
+    long hch_sid_stateless_resumes;
+    long hch_sid_ticket_parse_failures;
 } SSL3Statistics;
 
 /* Key Exchange algorithm values */

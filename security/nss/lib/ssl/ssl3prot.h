@@ -38,7 +38,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3prot.h,v 1.12 2006-04-04 00:32:27 nelson%bolyard.com Exp $ */
+/* $Id: ssl3prot.h,v 1.13 2008-03-06 20:16:22 wtc%google.com Exp $ */
 
 #ifndef __ssl3proto_h_
 #define __ssl3proto_h_
@@ -150,6 +150,7 @@ typedef enum {
     hello_request	= 0, 
     client_hello	= 1, 
     server_hello	= 2,
+    new_session_ticket	= 4,
     certificate 	= 11, 
     server_key_exchange = 12,
     certificate_request	= 13, 
@@ -306,5 +307,57 @@ typedef SSL3Hashes SSL3Finished;
 typedef struct {
     SSL3Opaque verify_data[12];
 } TLSFinished;
+
+/*
+ * TLS extension related data structures and constants.
+ */ 
+
+/* SessionTicket extension related data structures. */
+
+/* NewSessionTicket handshake message. */
+typedef struct {
+    uint32  received_timestamp;
+    uint32  ticket_lifetime_hint;
+    SECItem ticket;
+} NewSessionTicket;
+
+typedef enum {
+    CLIENT_AUTH_ANONYMOUS   = 0,
+    CLIENT_AUTH_CERTIFICATE = 1
+} ClientAuthenticationType;
+
+typedef struct {
+    ClientAuthenticationType client_auth_type;
+    union {
+	SSL3Opaque *certificate_list;
+    } identity;
+} ClientIdentity;
+
+#define SESS_TICKET_KEY_NAME_LEN       16
+#define SESS_TICKET_KEY_NAME_PREFIX    "NSS!"
+#define SESS_TICKET_KEY_NAME_PREFIX_LEN 4
+#define SESS_TICKET_KEY_VAR_NAME_LEN   12
+
+typedef struct {
+    unsigned char *key_name;
+    unsigned char *iv;
+    SECItem encrypted_state;
+    unsigned char *mac;
+} EncryptedSessionTicket;
+
+/* Supported extensions. */
+/* Update MAX_EXTENSIONS whenever a new extension type is added. */
+typedef enum {
+    server_name_xtn              = 0,
+#ifdef NSS_ENABLE_ECC
+    elliptic_curves_xtn          = 10,
+    ec_point_formats_xtn         = 11,
+#endif
+    session_ticket_xtn           = 35
+} ExtensionType;
+
+#define MAX_EXTENSIONS             4
+
+#define TLS_EX_SESS_TICKET_MAC_LENGTH       32
 
 #endif /* __ssl3proto_h_ */

@@ -40,7 +40,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsock.c,v 1.54 2007-09-01 00:53:52 nelson%bolyard.com Exp $ */
+/* $Id: sslsock.c,v 1.55 2008-03-06 20:16:22 wtc%google.com Exp $ */
 #include "seccomon.h"
 #include "cert.h"
 #include "keyhi.h"
@@ -178,6 +178,7 @@ static sslOptions ssl_defaults = {
     PR_FALSE,   /* noStepDown         */
     PR_FALSE,   /* bypassPKCS11       */
     PR_FALSE,   /* noLocks            */
+    PR_FALSE,   /* enableSessionTickets */
 };
 
 sslSessionIDLookupFunc  ssl_sid_lookup;
@@ -699,6 +700,10 @@ SSL_OptionSet(PRFileDesc *fd, PRInt32 which, PRBool on)
 	}
 	break;
 
+      case SSL_ENABLE_SESSION_TICKETS:
+	ss->opt.enableSessionTickets = on;
+	break;
+
       default:
 	PORT_SetError(SEC_ERROR_INVALID_ARGS);
 	rv = SECFailure;
@@ -754,6 +759,9 @@ SSL_OptionGet(PRFileDesc *fd, PRInt32 which, PRBool *pOn)
     case SSL_NO_STEP_DOWN:        on = ss->opt.noStepDown;         break;
     case SSL_BYPASS_PKCS11:       on = ss->opt.bypassPKCS11;       break;
     case SSL_NO_LOCKS:            on = ss->opt.noLocks;            break;
+    case SSL_ENABLE_SESSION_TICKETS:
+	on = ss->opt.enableSessionTickets;
+	break;
 
     default:
 	PORT_SetError(SEC_ERROR_INVALID_ARGS);
@@ -795,6 +803,9 @@ SSL_OptionGetDefault(PRInt32 which, PRBool *pOn)
     case SSL_NO_STEP_DOWN:        on = ssl_defaults.noStepDown;         break;
     case SSL_BYPASS_PKCS11:       on = ssl_defaults.bypassPKCS11;       break;
     case SSL_NO_LOCKS:            on = ssl_defaults.noLocks;            break;
+    case SSL_ENABLE_SESSION_TICKETS:
+	on = ssl_defaults.enableSessionTickets;
+	break;
 
     default:
 	PORT_SetError(SEC_ERROR_INVALID_ARGS);
@@ -920,6 +931,10 @@ SSL_OptionSetDefault(PRInt32 which, PRBool on)
 	    locksEverDisabled = PR_TRUE;
 	    strcpy(lockStatus + LOCKSTATUS_OFFSET, "DISABLED.");
 	}
+	break;
+
+      case SSL_ENABLE_SESSION_TICKETS:
+	ssl_defaults.enableSessionTickets = on;
 	break;
 
       default:

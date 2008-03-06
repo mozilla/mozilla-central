@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl.h,v 1.27 2008-02-21 21:44:09 wtc%google.com Exp $ */
+/* $Id: ssl.h,v 1.28 2008-03-06 20:16:22 wtc%google.com Exp $ */
 
 #ifndef __ssl_h_
 #define __ssl_h_
@@ -113,7 +113,7 @@ SSL_IMPORT PRFileDesc *SSL_ImportFD(PRFileDesc *model, PRFileDesc *fd);
 #define SSL_BYPASS_PKCS11              16 /* use PKCS#11 for pub key only   */
 #define SSL_NO_LOCKS                   17 /* Don't use locks for protection */
 #define SSL_ENABLE_SESSION_TICKETS     18 /* Enable TLS SessionTicket       */
-                                          /* extension (not implemented)    */
+                                          /* extension (off by default)     */
 
 #ifdef SSL_DEPRECATED_FUNCTION 
 /* Old deprecated function names */

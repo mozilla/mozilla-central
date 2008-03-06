@@ -384,3 +384,9 @@ ER3(SSL_ERROR_BAD_CERT_STATUS_RESPONSE_ALERT , (SSL_ERROR_BASE + 107),
 
 ER3(SSL_ERROR_BAD_CERT_HASH_VALUE_ALERT      , (SSL_ERROR_BASE + 108),
 "SSL peer reported bad certificate hash value.")
+
+ER3(SSL_ERROR_RX_UNEXPECTED_NEW_SESSION_TICKET, (SSL_ERROR_BASE + 109),
+"SSL received an unexpected New Session Ticket handshake message.")
+
+ER3(SSL_ERROR_RX_MALFORMED_NEW_SESSION_TICKET, (SSL_ERROR_BASE + 110),
+"SSL received a malformed New Session Ticket handshake message.")

@@ -122,6 +122,7 @@ int ssl3CipherSuites[] = {
 
 unsigned long __cmp_umuls;
 PRBool verbose;
+int renegotiate = 0;
 
 static char *progName;
 
@@ -182,22 +183,26 @@ void printSecurityInfo(PRFileDesc *fd)
 	cert = NULL;
     }
     fprintf(stderr,
-    	"%ld cache hits; %ld cache misses, %ld cache not reusable\n",
+    	"%ld cache hits; %ld cache misses, %ld cache not reusable\n"
+	"%ld stateless resumes\n",
     	ssl3stats->hsh_sid_cache_hits, ssl3stats->hsh_sid_cache_misses,
-	ssl3stats->hsh_sid_cache_not_ok);
-
+	ssl3stats->hsh_sid_cache_not_ok, ssl3stats->hsh_sid_stateless_resumes);
 }
 
 void
 handshakeCallback(PRFileDesc *fd, void *client_data)
 {
     printSecurityInfo(fd);
+    if (renegotiate > 0) {
+	renegotiate--;
+	SSL_ReHandshake(fd, PR_FALSE);
+    }
 }
 
 static void Usage(const char *progName)
 {
     fprintf(stderr, 
-"Usage:  %s -h host [-p port] [-d certdir] [-n nickname] [-23BTfosvx] \n"
+"Usage:  %s -h host [-p port] [-d certdir] [-n nickname] [-23BTfosvxr] \n"
 "                   [-c ciphers] [-w passwd] [-q]\n", progName);
     fprintf(stderr, "%-20s Hostname to connect with\n", "-h host");
     fprintf(stderr, "%-20s Port number for SSL server\n", "-p port");
@@ -218,6 +223,8 @@ static void Usage(const char *progName)
     fprintf(stderr, "%-20s Verbose progress reporting.\n", "-v");
     fprintf(stderr, "%-20s Use export policy.\n", "-x");
     fprintf(stderr, "%-20s Ping the server and then exit.\n", "-q");
+    fprintf(stderr, "%-20s Renegotiate with session resumption.\n", "-r");
+    fprintf(stderr, "%-20s Enable the session ticket extension.\n", "-u");
     fprintf(stderr, "%-20s Letter(s) chosen from the following list\n", 
                     "-c ciphers");
     fprintf(stderr, 
@@ -512,6 +519,7 @@ int main(int argc, char **argv)
     int                bypassPKCS11 = 0;
     int                disableLocking = 0;
     int                useExportPolicy = 0;
+    int                enableSessionTickets = 0;
     PRSocketOptionData opt;
     PRNetAddr          addr;
     PRPollDesc         pollset[2];
@@ -540,7 +548,7 @@ int main(int argc, char **argv)
        }
     }
 
-    optstate = PL_CreateOptState(argc, argv, "23BTSfc:h:p:d:m:n:oqsvw:x");
+    optstate = PL_CreateOptState(argc, argv, "23BTSfc:h:p:d:m:n:oqr:suvw:x");
     while ((optstatus = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	switch (optstate->option) {
 	  case '?':
@@ -580,7 +588,11 @@ int main(int argc, char **argv)
 
 	  case 's': disableLocking = 1;                 break;
 
+	  case 'u': enableSessionTickets = PR_TRUE;	break;
+
 	  case 'v': verbose++;	 			break;
+
+	  case 'r': renegotiate = atoi(optstate->value);	break;
 
 	  case 'w':
 		password = PORT_Strdup(optstate->value);
@@ -824,6 +836,12 @@ int main(int argc, char **argv)
 	return 1;
     }
 
+    /* enable Session Ticket extension. */
+    rv = SSL_OptionSet(s, SSL_ENABLE_SESSION_TICKETS, enableSessionTickets);
+    if (rv != SECSuccess) {
+	SECU_PrintError(progName, "error enabling Session Ticket extension");
+	return 1;
+    }
 
     if (useCommandLinePassword) {
 	SSL_SetPKCS11PinArg(s, password);

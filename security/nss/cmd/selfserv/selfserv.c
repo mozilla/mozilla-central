@@ -199,6 +199,7 @@ Usage(const char *progName)
 "    3 -r's mean request, not require, cert on second handshake.\n"
 "    4 -r's mean request  and require, cert on second handshake.\n"
 "-s means disable SSL socket locking for performance\n"
+"-u means enable Session Ticket extension for TLS.\n"
 "-v means verbose output\n"
 "-x means use export policy.\n"
 "-L seconds means log statistics every 'seconds' seconds (default=30).\n"
@@ -347,19 +348,29 @@ mySSLAuthCertificate(void *arg, PRFileDesc *fd, PRBool checkSig,
     return rv;  
 }
 
+void
+printSSLStatistics()
+{
+    SSL3Statistics *  ssl3stats = SSL_GetStatistics();
+
+    printf(
+	"selfserv: %ld cache hits; %ld cache misses, %ld cache not reusable\n"
+	"          %ld stateless resumes, %ld ticket parse failures\n",
+	ssl3stats->hch_sid_cache_hits, ssl3stats->hch_sid_cache_misses,
+	ssl3stats->hch_sid_cache_not_ok, ssl3stats->hch_sid_stateless_resumes,
+	ssl3stats->hch_sid_ticket_parse_failures);
+}
+
 void 
 printSecurityInfo(PRFileDesc *fd)
 {
     CERTCertificate * cert      = NULL;
-    SSL3Statistics *  ssl3stats = SSL_GetStatistics();
     SECStatus         result;
     SSLChannelInfo    channel;
     SSLCipherSuiteInfo suite;
 
-    PRINTF(
-    	"selfserv: %ld cache hits; %ld cache misses, %ld cache not reusable\n",
-    	ssl3stats->hch_sid_cache_hits, ssl3stats->hch_sid_cache_misses,
-	ssl3stats->hch_sid_cache_not_ok);
+    if (verbose)
+	printSSLStatistics();
 
     result = SSL_GetChannelInfo(fd, &channel, sizeof channel);
     if (result == SECSuccess && 
@@ -660,6 +671,7 @@ PRBool disableStepDown = PR_FALSE;
 PRBool bypassPKCS11    = PR_FALSE;
 PRBool disableLocking  = PR_FALSE;
 PRBool testbypass      = PR_FALSE;
+PRBool enableSessionTickets = PR_FALSE;
 
 static const char stopCmd[] = { "GET /stop " };
 static const char getCmd[]  = { "GET " };
@@ -1447,6 +1459,12 @@ server_main(
 	    errExit("error disabling SSL socket locking ");
 	}
     } 
+    if (enableSessionTickets) {
+	rv = SSL_OptionSet(model_sock, SSL_ENABLE_SESSION_TICKETS, PR_TRUE);
+	if (rv != SECSuccess) {
+	    errExit("error enabling Session Ticket extension ");
+	}
+    }
 
     for (kea = kt_rsa; kea < kt_kea_size; kea++) {
 	if (cert[kea] != NULL) {
@@ -1693,6 +1711,7 @@ main(int argc, char **argv)
     char                 emptyString[] = { "" };
     char*                certPrefix = emptyString;
     PRUint32		 protos = 0;
+    SSL3Statistics      *ssl3stats;
  
     tmp = strrchr(argv[0], '/');
     tmp = tmp ? tmp + 1 : argv[0];
@@ -1705,7 +1724,7 @@ main(int argc, char **argv)
     ** numbers, then capital letters, then lower case, alphabetical. 
     */
     optstate = PL_CreateOptState(argc, argv, 
-        "2:3BC:DEL:M:NP:RSTbc:d:e:f:hi:lmn:op:qrst:vw:xy");
+        "2:3BC:DEL:M:NP:RSTbc:d:e:f:hi:lmn:op:qrst:uvw:xy");
     while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	++optionsFound;
 	switch(optstate->option) {
@@ -1783,6 +1802,8 @@ main(int argc, char **argv)
 	    if ( maxThreads > MAX_THREADS ) maxThreads = MAX_THREADS;
 	    if ( maxThreads < MIN_THREADS ) maxThreads = MIN_THREADS;
 	    break;
+
+	case 'u': enableSessionTickets = PR_TRUE; break;
 
 	case 'v': verbose++; break;
 
@@ -2093,6 +2114,13 @@ main(int argc, char **argv)
     VLOG(("selfserv: server_thread: exiting"));
 
 cleanup:
+    printSSLStatistics();
+    ssl3stats = SSL_GetStatistics();
+    if (ssl3stats->hch_sid_ticket_parse_failures != 0) {
+	fprintf(stderr, "selfserv: Experienced ticket parse failure(s)\n");
+	exit(1);
+    }
+
     {
 	int i;
 	for (i=0; i<kt_kea_size; i++) {

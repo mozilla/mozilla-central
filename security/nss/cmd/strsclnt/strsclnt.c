@@ -160,6 +160,7 @@ static PRBool disableTLS      = PR_FALSE;
 static PRBool bypassPKCS11    = PR_FALSE;
 static PRBool disableLocking  = PR_FALSE;
 static PRBool ignoreErrors    = PR_FALSE;
+static PRBool enableSessionTickets = PR_FALSE;
 
 PRIntervalTime maxInterval    = PR_INTERVAL_NO_TIMEOUT;
 
@@ -203,7 +204,8 @@ Usage(const char *progName)
         "       -3 means disable SSL3\n"
         "       -T means disable TLS\n"
         "       -U means enable throttling up threads\n"
-	"       -B bypasses the PKCS11 layer for SSL encryption and MACing\n",
+	"       -B bypasses the PKCS11 layer for SSL encryption and MACing\n"
+	"       -u enable TLS Session Ticket extension\n",
 	progName);
     exit(1);
 }
@@ -347,10 +349,12 @@ printSecurityInfo(PRFileDesc *fd)
 	cert = NULL;
     }
     fprintf(stderr,
-    	"strsclnt: %ld cache hits; %ld cache misses, %ld cache not reusable\n",
+    	"strsclnt: %ld cache hits; %ld cache misses, %ld cache not reusable\n"
+	"          %ld stateless resumes\n",
     	ssl3stats->hsh_sid_cache_hits, 
 	ssl3stats->hsh_sid_cache_misses,
-	ssl3stats->hsh_sid_cache_not_ok);
+	ssl3stats->hsh_sid_cache_not_ok,
+	ssl3stats->hsh_sid_stateless_resumes);
 
 }
 
@@ -1233,6 +1237,12 @@ client_main(
 	}
     }
 
+    if (enableSessionTickets) {
+	rv = SSL_OptionSet(model_sock, SSL_ENABLE_SESSION_TICKETS, PR_TRUE);
+	if (rv != SECSuccess)
+	    errExit("SSL_OptionSet SSL_ENABLE_SESSION_TICKETS");
+    }
+
     SSL_SetURL(model_sock, hostName);
 
     SSL_AuthCertificateHook(model_sock, mySSLAuthCertificate, 
@@ -1338,7 +1348,7 @@ main(int argc, char **argv)
     progName = progName ? progName + 1 : tmp;
  
 
-    optstate = PL_CreateOptState(argc, argv, "23BC:DNP:TUc:d:f:in:op:qst:vw:");
+    optstate = PL_CreateOptState(argc, argv, "23BC:DNP:TUc:d:f:in:op:qst:uvw:");
     while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	switch(optstate->option) {
 
@@ -1384,7 +1394,9 @@ main(int argc, char **argv)
 	        max_threads = active_threads = tmpInt;
 	    break;
 
-        case 'v': verbose++; break;
+	case 'u': enableSessionTickets = PR_TRUE; break;
+
+	case 'v': verbose++; break;
 
 	case 'w': passwd = PL_strdup(optstate->value); break;
 
@@ -1481,29 +1493,41 @@ main(int argc, char **argv)
     PL_strfree(hostName);
 
     /* some final stats. */
-    if (ssl3stats->hsh_sid_cache_hits + ssl3stats->hsh_sid_cache_misses +
-        ssl3stats->hsh_sid_cache_not_ok == 0) {
+    if (ssl3stats->hsh_sid_cache_hits +
+	ssl3stats->hsh_sid_cache_misses +
+	ssl3stats->hsh_sid_cache_not_ok +
+	ssl3stats->hsh_sid_stateless_resumes == 0) {
 	/* presumably we were testing SSL2. */
 	printf("strsclnt: SSL2 - %d server certificates tested.\n",
                certsTested);
     } else {
 	printf(
-	"strsclnt: %ld cache hits; %ld cache misses, %ld cache not reusable\n",
+	"strsclnt: %ld cache hits; %ld cache misses, %ld cache not reusable\n"
+	"          %ld stateless resumes\n",
 	    ssl3stats->hsh_sid_cache_hits, 
 	    ssl3stats->hsh_sid_cache_misses,
-	    ssl3stats->hsh_sid_cache_not_ok);
+	    ssl3stats->hsh_sid_cache_not_ok,
+	    ssl3stats->hsh_sid_stateless_resumes);
     }
 
-    if (!NoReuse)
-	exitVal = (ssl3stats->hsh_sid_cache_misses > 1) ||
-                (ssl3stats->hsh_sid_cache_not_ok != 0) ||
-                (certsTested > 1);
-    else {
+    if (!NoReuse) {
+	if (enableSessionTickets)
+	    exitVal = (ssl3stats->hsh_sid_stateless_resumes == 0);
+	else
+	    exitVal = (ssl3stats->hsh_sid_cache_misses > 1) ||
+		      (ssl3stats->hsh_sid_stateless_resumes != 0);
+	if (!exitVal)
+	    exitVal = (ssl3stats->hsh_sid_cache_not_ok != 0) ||
+		      (certsTested > 1);
+    } else {
 	printf("strsclnt: NoReuse - %d server certificates tested.\n",
                certsTested);
-        if (ssl3stats->hsh_sid_cache_hits + ssl3stats->hsh_sid_cache_misses +
-            ssl3stats->hsh_sid_cache_not_ok > 0) {
+        if (ssl3stats->hsh_sid_cache_hits +
+            ssl3stats->hsh_sid_cache_misses +
+            ssl3stats->hsh_sid_cache_not_ok +
+            ssl3stats->hsh_sid_stateless_resumes > 0) {
             exitVal = (ssl3stats->hsh_sid_cache_misses != connections) ||
+                (ssl3stats->hsh_sid_stateless_resumes != 0) ||
                 (certsTested != connections);
         } else {                /* ssl2 connections */
             exitVal = (certsTested != connections);
