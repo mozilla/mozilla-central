@@ -209,8 +209,9 @@ jsdb_HandleValToPointer(JSContext *cx, jsval val, JSDBHandleType type)
 /*         JS_ASSERT(0); */
         return NULL;
     }
+    if (p->type != type)
+        return NULL;
     JS_ASSERT(p->ptr);
-    JS_ASSERT(p->type == type);
     return p->ptr;
 }
 
