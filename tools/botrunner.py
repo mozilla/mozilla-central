@@ -29,7 +29,7 @@ if os.name == "posix":
 elif os.name == "nt":
     import win32api
 from optparse import OptionParser
-from MozBuild import Util
+from MozBuild.Util import check_call
 
 if os.name == "posix":
     TOPDIR = "/"
