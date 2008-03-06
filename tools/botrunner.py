@@ -22,7 +22,7 @@ from time import sleep
 from shutil import copyfile, copytree, copy2
 from traceback import print_exc
 from os.path import isdir, exists
-from os import mkdir, waitpid, path
+from os import mkdir, waitpid, path, listdir
 import os
 if os.name == "posix":
     from os import kill
@@ -150,11 +150,17 @@ class BotRunner:
         """ Copy buildbot master configs to buildbot dir and reconfig """
         isUpdate = self.checkForUpdates(checkoutdir = 'buildbot-configs', 
                                         module = BUILDBOT_CONFIGS)
+        configDir = path.join(self.checkoutbase, 'buildbot-configs')
         if (isUpdate):
             check_call(['python', 'buildbot/contrib/checkconfig.py',
                        path.join('buildbot-configs', 'master.cfg')],
                        cwd=self.checkoutbase)
-            copyfile(checkoutdir + '/buildbot-configs/*', basedir)
+            for entry in listdir(configDir):
+                if path.isdir(path.join(configDir, entry)):
+                    copytree(path.join(configDir, entry),
+                             path.join(self.basedir, entry))
+                else:
+                    copy2(path.join(configDir, entry), self.basedir)
             check_call([self.buildbot, 'reconfig', '.'], cwd=basedir)
 
     def checkForUpdates(self, checkoutdir, module, tag=''):
