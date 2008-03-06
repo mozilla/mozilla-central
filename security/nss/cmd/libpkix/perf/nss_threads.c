@@ -192,5 +192,6 @@ int nss_threads(int argc, char** argv)
                 }
         Test(cert, duration, threads);
 
+        CERT_DestroyCertificate(cert);
         return (0);
 }
