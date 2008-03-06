@@ -10,7 +10,7 @@ $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 $ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
 
 # Ship the MSVC8 runtime libs
-$ENV{WIN32_REDIST_DIR} = 'C:\Program Files\Microsoft Visual Studio 8\VC\Redist\x86\Microsoft.VC80.CRT';
+$ENV{WIN32_REDIST_DIR} = 'D:\msvs8\VC\redist\x86\Microsoft.VC80.CRT';
 
 # Enable Building of the Palm Sync extension.
 $ENV{BUILD_PALMSYNC} = '1';
@@ -143,7 +143,7 @@ $Make          = 'make';       # Must be GNU make
 #$CVSCO         = 'checkout -P';
 
 # win32 usually doesn't have /bin/mail
-$blat           = 'd:/moztools/bin/blat.exe';
+$blat           = '/d/mozilla-build/blat261/full/blat.exe';
 $use_blat       = 1;
 
 # Set moz_cvsroot to something like:
