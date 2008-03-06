@@ -361,10 +361,10 @@ static JSFunctionSpec debugger_functions[] = {
 };
 
 static JSClass debugger_global_class = {
-    "debugger_global", 0,
+    "debugger_global", JSCLASS_HAS_PRIVATE,
     JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,  JS_PropertyStub,
     JS_EnumerateStub, JS_ResolveStub,   JS_ConvertStub,   JS_FinalizeStub,
-    JSCLASS_NO_OPTIONAL_MEMBERS    
+    JSCLASS_NO_OPTIONAL_MEMBERS
 };
 
 /***************************************************************************/
@@ -414,20 +414,57 @@ _initReturn(const char* str, JSBool retval)
         ; /* printf("debugger initialized\n"); */
     else
     {
-        JS_ASSERT(0);
         printf("debugger FAILED to initialize\n");
     }
     return retval;
 }
 
 static JSBool
-_initReturn_cx(const char* str, JSBool retval, JSContext* cx)
+_initReturn_cx(const char* str, JSBool retval, JSDB_Data* data)
 {
+    JSContext* cx = data->cxDebugger;
     JS_EndRequest(cx);
+    if (!retval) {
+        JS_DestroyContext(cx);
+        JS_DestroyRuntime(data->rtDebugger);
+        free(data);
+    }
     return _initReturn(str, retval);
 }
 
 #define MAX_DEBUGGER_DEPTH 3
+
+void
+jsdb_TermDebugger(JSDB_Data* data, JSBool callDebuggerOff)
+{
+    JSObject* dbgObj;
+    jsval rvalIgnore;
+    JSContext* cx;
+    if (!data)
+        return;
+
+    cx = data->cxDebugger;
+    if (data->jsdcDebugger) {
+        JSDB_Data* targetData = (JSDB_Data*) JSD_GetContextPrivate(data->jsdcDebugger);
+        if (targetData)
+            jsdb_TermDebugger(targetData, JS_TRUE);
+    }
+    JS_DestroyContext(data->cxDebugger);
+    if (callDebuggerOff)
+        JSD_DebuggerOff(data->jsdcTarget);
+    JS_DestroyRuntime(data->rtDebugger);
+    free(data);
+}
+
+JS_EXPORT_API(void)
+JSDB_TermDebugger(JSDContext* jsdc)
+{
+    JSDB_Data* data = (JSDB_Data*) JSD_GetContextPrivate(jsdc);
+    if (!data)
+        return;
+
+    jsdb_TermDebugger(data, JS_FALSE);
+}
 
 JS_EXPORT_API(JSBool)
 JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
@@ -447,37 +484,49 @@ JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
 
     if(!(data->rtDebugger = JS_NewRuntime(8L * 1024L * 1024L)))
         return _initReturn("debugger runtime creation error", JS_FALSE);
-
-    if(!(data->cxDebugger = cx = JS_NewContext(data->rtDebugger, 8192)))
+    printf("NewRuntime: %p\n", data->rtDebugger);
+    if(!(data->cxDebugger = cx = JS_NewContext(data->rtDebugger, 8192))) {
+        JS_DestroyRuntime(data->rtDebugger);
+        free(data);
         return _initReturn("debugger creation error", JS_FALSE);
+    }
 
     JS_SetContextPrivate(cx, data);
+
+    JSD_SetContextPrivate(jsdc, data);
 
     JS_SetErrorReporter(cx, _ErrorReporter);
 
     JS_BeginRequest(cx);
     if(!(data->globDebugger = dbgObj =
             JS_NewObject(cx, &debugger_global_class, NULL, NULL)))
-        return _initReturn_cx("debugger global object creation error", JS_FALSE, cx);
+        return _initReturn_cx("debugger global object creation error", JS_FALSE, data);
+
+    if(!JS_SetPrivate(cx, dbgObj, data))
+        return _initReturn_cx("debugger global set private failure", JS_FALSE, data);
 
     if(!JS_InitStandardClasses(cx, dbgObj))
-        return _initReturn_cx("debugger InitStandardClasses error", JS_FALSE, cx);
+        return _initReturn_cx("debugger InitStandardClasses error", JS_FALSE, data);
 
     if(!JS_DefineFunctions(cx, dbgObj, debugger_functions))
-        return _initReturn_cx("debugger DefineFunctions error", JS_FALSE, cx);
+        return _initReturn_cx("debugger DefineFunctions error", JS_FALSE, data);
 
     if(!jsdb_ReflectJSD(data))
-        return _initReturn_cx("debugger reflection of JSD API error", JS_FALSE, cx);
+        return _initReturn_cx("debugger reflection of JSD API error", JS_FALSE, data);
 
     if(data->debuggerDepth < MAX_DEBUGGER_DEPTH)
     {
         JSDContext* local_jsdc;
         if(!(local_jsdc = JSD_DebuggerOnForUser(data->rtDebugger, NULL, NULL)))
             return _initReturn_cx("failed to create jsdc for nested debugger",
-                               JS_FALSE, cx);
+                               JS_FALSE, data);
         JSD_JSContextInUse(local_jsdc, cx);
-        if(!JSDB_InitDebugger(data->rtDebugger, local_jsdc, data->debuggerDepth))
-            return _initReturn_cx("failed to init nested debugger", JS_FALSE, cx);
+        if(!JSDB_InitDebugger(data->rtDebugger, local_jsdc, data->debuggerDepth)) {
+            JSD_DebuggerOff(local_jsdc);
+            return _initReturn_cx("failed to init nested debugger", JS_FALSE, data);
+        }
+
+        data->jsdcDebugger = local_jsdc;
     }
 
     JSD_SetScriptHook(jsdc, jsdb_ScriptHookProc, data);
@@ -490,10 +539,13 @@ JSDB_InitDebugger(JSRuntime* rt, JSDContext* jsdc, int depth)
     JS_SetSourceHandler(data->rtDebugger, SendSourceToJSDebugger, jsdc);
 #endif /* JSD_LOWLEVEL_SOURCE */
 
-    JS_EvaluateScript(cx, dbgObj,
+    if (!JS_EvaluateScript(cx, dbgObj,
                       load_deb, sizeof(load_deb)-1, "jsdb_autoload", 1,
-                      &rvalIgnore);
+                      &rvalIgnore))
+    {
+        return _initReturn_cx("failed to execute jsdb_autoload", JS_FALSE, data);
+    }
 
-    return _initReturn_cx(NULL, JS_TRUE, cx);
+    return _initReturn_cx(NULL, JS_TRUE, data);
 }
 

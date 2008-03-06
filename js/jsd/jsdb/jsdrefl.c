@@ -147,8 +147,14 @@ JS_STATIC_DLL_CALLBACK(void)
 handle_finalize(JSContext *cx, JSObject *obj)
 {
     JSDBHandle* p;
-    JSDB_Data* data = (JSDB_Data*) JS_GetContextPrivate(cx);
-    JS_ASSERT(data);
+    JSObject* pobj;
+    JSDB_Data* data;
+    pobj = JS_GetParent(cx, obj);
+    if (!pobj)
+        return;
+    data = (JSDB_Data*) JS_GetPrivate(cx, pobj);
+    if (!data)
+        return;
 
     p = (JSDBHandle*) JS_GetPrivate(cx, obj);
     if(p)
@@ -166,8 +172,6 @@ handle_finalize(JSContext *cx, JSObject *obj)
         }
         free(p);
     }
-    else
-        JS_ASSERT(0);
 }
 
 JSClass jsdb_HandleClass = {
