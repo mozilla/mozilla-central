@@ -278,6 +278,17 @@ Gets(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 }
 
 JS_STATIC_DLL_CALLBACK(JSBool)
+GC(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
+{
+    argc = 0;
+    obj = 0;
+    argv = 0;
+    JS_GC(cx);
+    *rval = JSVAL_VOID;
+    return JS_TRUE;
+}
+
+JS_STATIC_DLL_CALLBACK(JSBool)
 Version(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 {
     if (argc > 0 && JSVAL_IS_INT(argv[0]))
@@ -351,6 +362,7 @@ NativeBreak(JSContext *cx, JSObject *obj, uintN argc, jsval *argv, jsval *rval)
 }
 
 static JSFunctionSpec debugger_functions[] = {
+    {"gc",              GC,        0, 0, 0},
     {"version",         Version,        0, 0, 0},
     {"load",            Load,           1, 0, 0},
     {"write",           Write,          0, 0, 0},
