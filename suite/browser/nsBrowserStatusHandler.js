@@ -144,6 +144,7 @@ nsBrowserStatusHandler.prototype =
   {
     return /^text\/|\+xml$/.test(contentType) ||
            contentType == "application/x-javascript" ||
+           contentType == "application/javascript" ||
            contentType == "application/xml" ||
            contentType == "mozilla.application/cached-xul";
   },
