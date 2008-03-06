@@ -466,6 +466,11 @@ nsSchemaValidatorUtils::ParseSchemaTime(const nsAString & aStrValue,
           // has to be a numerical character or else abort
           if ((currentChar > '9') || (currentChar < '0'))
             done = PR_TRUE;
+          else if (start == end) {
+            usec.Assign(Substring(buffStart, end));
+            isValid = PR_TRUE;
+            done = PR_TRUE;
+          }
           buffLength++;
         }
         break;
@@ -1209,8 +1214,8 @@ nsSchemaValidatorUtils::GetMaximumDayInMonthFor(PRUint32 aYearValue, PRUint8 aMo
     Return Value      Condition
     31                month is either 1, 3, 5, 7, 8, 10, 12
     30                month is either 4, 6, 9, 11
-    29                month is 2 AND either (year % 400 == 0) OR (year % 100 == 0)
-                                            AND (year % 4 == 0)
+    29                month is 2 AND either ((year % 4 == 0) AND (year % 100 != 0))
+                                            OR (year % 400 == 0)
     28                Otherwise
   */
 
@@ -1219,7 +1224,7 @@ nsSchemaValidatorUtils::GetMaximumDayInMonthFor(PRUint32 aYearValue, PRUint8 aMo
     maxDay = 31;
   else if ((month == 4) || (month == 6) || (month == 9) || (month == 11))
     maxDay = 30;
-  else if ((month == 2) && ((year % 400 == 0) || (year % 100 == 0) && (year % 4 == 0)))
+  else if ((month == 2) && (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)))
     maxDay = 29;
 
   return maxDay;
