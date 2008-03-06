@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::Environment;
 
@@ -21,155 +25,237 @@ use strict;
 
 use base qw(Bugzilla::WebService);
 
+use Bugzilla::Constants;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-# Utility method called by the list method
-sub _list
-{
-    my ($query) = @_;
-    
-    my $cgi = Bugzilla->cgi;
+sub get {
+    my $self = shift;
+    my ($environment_id) = @_;
 
-    $cgi->param("current_tab", "environment");
+    Bugzilla->login(LOGIN_REQUIRED);    
+
+    my $environment = new Bugzilla::Testopia::Environment($environment_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $environment_id}) unless $environment;
+    ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canview;
     
-    foreach (keys(%$query))
-    {
-        $cgi->param($_, $$query{$_});
+    #Result is a environment hash map   
+    return $environment;
+}
+
+sub check_environment {
+    my ($name, $product) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    if (ref $product){
+        $product = $product;
+    }
+    elsif ($product =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($product);
+    }
+    else {
+        $product = Bugzilla::Product::check_product($product);
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+    
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
+    
+    return Bugzilla::Testopia::Build->new(check_environment($name, $product->id));
+}
+
+sub list {
+    my $self = shift;
+    my ($query) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    my $cgi = Bugzilla->cgi;
+    $cgi->param("current_tab", "environment");
+    foreach (keys(%$query)){
+        $cgi->param($_, $query->{$_});
     }
         
     my $search = Bugzilla::Testopia::Search->new($cgi);
 
     # Result is an array of environment hash maps 
-    return Bugzilla::Testopia::Table->new('environment', 
-                                          'tr_xmlrpc.cgi', 
-                                          $cgi, 
-                                          undef,
-                                          $search->query()
-                                          )->list();
+    return Bugzilla::Testopia::Table->new('environment', 'tr_xmlrpc.cgi',$cgi,undef, $search->query())->list();
+    
 }
 
-sub get
-{
+sub create {
     my $self = shift;
-    my ($environment_id) = @_;
+    my ($new_values) = @_;
 
-    $self->login;    
-
-    #Result is a environment hash map
-    my $environment = new Bugzilla::Testopia::Environment($environment_id);
-
-    if (not defined $environment)
-    {
-        $self->logout;
-        die "Environment, " . $environment_id . ", not found"; 
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    if (not $environment->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    $self->logout;
-
+    my $environment = Bugzilla::Testopia::Environment->create($new_values);
+    
+    # Result is new environment
     return $environment;
 }
 
-sub list
-{
+sub update {
     my $self = shift;
-    my ($query) = @_;
-
-    $self->login;
-   
-    my $list = _list($query);
-    
-    $self->logout;
-    
-    return $list;    
-}
-
-sub create
-{
-    my $self =shift;
-    my ($new_values) = @_;
-
-    $self->login;
-
-    my $environment = Bugzilla::Testopia::Environment->create($new_values);
-    
-    $self->logout;
-
-    if (not defined $environment)
-    {
-        die "Environment already exists"; 
-    }
-    
-    # Result is new environment id
-    return $environment->id;
-}
-
-sub update
-{
-    my $self =shift;
     my ($environment_id, $new_values) = @_;
 
-    $self->login;
-
+    Bugzilla->login(LOGIN_REQUIRED);
     my $environment = new Bugzilla::Testopia::Environment($environment_id);
     
-    if (not defined $environment)
-    {
-        $self->logout;
-        die "Environment, " . $environment_id . ", not found"; 
-    }
-    
-    if (not $environment->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $environment_id}) unless $environment;
+    ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canedit;
     
     $environment->set_name($new_values->{'name'});
     $environment->set_isactive($new_values->{'isactive'});
     
     $environment->update();
 
-    $self->logout;
-
     # Result is modified environment, otherwise an exception will be thrown
     return $environment;
 }
 
-sub get_runs
-{
+sub get_runs {
     my $self = shift;
     my ($environment_id) = @_;
 
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);    
 
     my $environment = new Bugzilla::Testopia::Environment($environment_id);
 
-    if (not defined $environment)
-    {
-        $self->logout;
-        die "Environment, " . $environment_id . ", not found"; 
-    }
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $environment_id}) unless $environment;
+    ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canview;
     
-    if (not $environment->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $environment->runs();
-    
-    $self->logout;
-
     # Result is list of test runs for the given environment
-    return $result;
+    return $environment->runs();
+}
+
+sub get_caseruns {
+    my $self = shift;
+    my ($environment_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);    
+
+    my $environment = new Bugzilla::Testopia::Environment($environment_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $environment_id}) unless $environment;
+    ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canview;
+    
+    # Result is list of test runs for the given environment
+    return $environment->caseruns();
 }
 
 1;
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Webservice::Environment
+
+=head1 EXTENDS
+
+Bugzilla::Webservice
+
+=head1 DESCRIPTION
+
+Provides methods for automated scripts to manipulate Testopia Environments
+
+=head1 METHODS
+
+=over
+
+=item C<get($id)>
+
+ Description: Used to load an existing Environment from the database.
+ 
+ Params:      $id - An integer representing the ID in the database
+                       
+ Returns:     A blessed Bugzilla::Testopia::Environment object hash
+ 
+=item C<list($query)>
+ 
+ Description: Performs a search and returns the resulting list of Environments
+              
+ Params:      $query - Hash: keys must match valid search fields.
+
+                        +--------------------------+
+                        | classification           |
+                        | env_products             |
+                        | env_categories           |
+                        | env_elements             |
+                        | env_properties           |
+                        | env_expressions          |
+                        | name                     |
+                        | env_value_selected_type  |
+                        +--------------------------+
+    
+ Returns:     Array: Matching Environments are retuned in a list of hashes.
+ 
+=item C<update($ids, $values)>
+ 
+ Description: Updates the fields of the selected environment or environments.
+              
+ Params:      $ids - Integer  A single environment ID.
+                     
+              $values - Hash of keys matching Environment fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash: The updated environment object hash.
+ 
+=item C<check_environment($name, $product)>
+ 
+ Description: Looks up and returns an environment by name.
+              
+ Params:      $name - String: name of the environment.
+              $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+ 
+ Returns:     Hash: Matching Environment object hash or error if not found.
+ 
+=item C<create($values)>
+ 
+ Description: Creates a new environment object and stores it in the database
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the environment to be created. 
+              See Bugzilla::Testopia::Environment for a list of required fields.
+ 
+ Returns:     The newly created object hash.
+ 
+=item C<get_runs($id)>
+ 
+ Description: Returns the list of runs that this Environment is used in.
+              
+ Params:      $id -  Integer: Environment ID.
+ 
+ Returns:     Array: List of run object hashes.
+ 
+=item C<get_caseruns($id)>
+ 
+ Description: Returns the list of case-runs that this Environment is used in.
+              
+ Params:      $id -  Integer: Environment ID.
+ 
+ Returns:     Array: List of case-run object hashes.
+ 
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::Environment>
+
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>

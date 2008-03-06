@@ -535,7 +535,7 @@ sub check_environment{
            FROM test_environments
           WHERE name = ? AND product_id = ?",
           undef, ($name, $product_id));
-
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $name}) unless $used;
     return $used;             
 }
 

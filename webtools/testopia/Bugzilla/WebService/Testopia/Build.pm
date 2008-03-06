@@ -38,7 +38,8 @@ sub get {
     my $build = new Bugzilla::Testopia::Build($build_id);
 
     ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $build_id}) unless $build;
-    
+    ThrowUserError('testopia-read-only', {'object' => $build->product}) unless $build->product->canedit;
+        
     $build->run_count();
 
     return $build;
@@ -57,7 +58,10 @@ sub check_build {
     }
     else {
         $product = Bugzilla::Product::check_product($product);
+        $product = Bugzilla::Testopia::Product->new($product->id);
     }
+    
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
     return Bugzilla::Testopia::Build->new(check_build($name, $product));
 }
@@ -67,6 +71,9 @@ sub create{
     my ($new_values) = @_;  # Required: name, product_id
     
     Bugzilla->login(LOGIN_REQUIRED);
+    
+    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
     $new_values->{'milestone'} ||= '---';
 
@@ -83,7 +90,6 @@ sub update{
     Bugzilla->login(LOGIN_REQUIRED);
     
     my @ids;
-    
     if (ref $ids eq 'ARRAY'){
         @ids = @$ids;
     }
@@ -100,6 +106,11 @@ sub update{
         unless ($build){
             ThrowUserError("invalid-test-id-non-existent", {'id' => $id, 'type' => 'Build'}) if scalar @ids == 1;
             push @builds, {FAILED => 1, message => "Build $id does not exist"};
+            next;
+        }
+        unless ($build->product->canedit){
+            ThrowUserError('testopia-read-only', {'object' => $product}) if scalar @ids == 1;
+            push @builds, {FAILED => 1, message => "You do not have rights to view this product"};
             next;
         }
         if (exists $new_values->{'name'}){
@@ -143,7 +154,8 @@ sub lookup_name_by_id
       unless defined $build_id && length($build_id) > 0 && $build_id > 0;
       
   my $build = new Bugzilla::Testopia::Build($build_id);
-
+  ThrowUserError('testopia-read-only', {'object' => $build->product}) unless $build->product->canedit;
+  
   my $result = defined $build ? $build->name : '';
   
   # Result is build name string or empty string if failed
@@ -156,17 +168,7 @@ sub lookup_id_by_name
   my $self = shift;
   my ($name) = @_;
 
-  Bugzilla->login(LOGIN_REQUIRED);
-    
-  my $result = Bugzilla::Testopia::Build::check_build_by_name($name);
-  
-  if (!defined $result)
-  {
-    $result = 0;
-  }
-
-  # Result is build id or 0 if failed
-  return $result;
+  return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use check_build instead'};
 }
 
 1;
@@ -199,7 +201,7 @@ Provides methods for automated scripts to manipulate Testopia Builds
  
 =item C<check_build($name, $product)>
  
- Description: Creates a new build object and stores it in the database
+ Description: Looks up and returns a build by name.
               
  Params:      $name - String: name of the build.
               $product - Integer/String/Object
@@ -207,7 +209,7 @@ Provides methods for automated scripts to manipulate Testopia Builds
                          String: Product name
                          Object: Blessed Bugzilla::Product object
  
- Returns:     Hash: Matching Build object hash.
+ Returns:     Hash: Matching Build object hash or error if not found.
  
 =item C<update($ids, $values)>
  
@@ -236,24 +238,6 @@ Provides methods for automated scripts to manipulate Testopia Builds
               See Bugzilla::Testopia::Build for a list of required fields.
  
  Returns:     The newly created object hash.
- 
-=item C<update($ids, $values)>
- 
- Description: Updates the fields of the selected build or builds.
-              
- Params:      $ids - Integer/String/Array
-                     Integer: A single build ID.
-                     String:  A comma separates string of Build IDs for batch
-                              processing.
-                     Array:   An array of build IDs for batch mode processing
-                     
-              $values - Hash of keys matching Build fields and the new values 
-              to set each field to.
- 
- Returns:     Hash/Array: In the case of a single build, it is returned. If a 
-              list was passed, it returns an array of build hashes. If the
-              update on any particular build failed, the hash will contain a 
-              FAILED key and the message as to why it failed.
  
 =item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
               

@@ -10,11 +10,11 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Test Runner System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# The Initial Developer of the Original Code is Maciej Maczynski.
-# Portions created by Maciej Maczynski are Copyright (C) 2001
-# Maciej Maczynski. All Rights Reserved.
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
 #
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 
@@ -62,12 +62,20 @@ sub builds {
     my $dbh = Bugzilla->dbh;
     
     my $query = "SELECT build_id FROM test_builds WHERE product_id = ?";
-    $query .= " AND isactive = 1 OR build_id = ?" if $active; 
+    if ($active && $current){
+        $query .= " AND isactive = 1 OR build_id = ?";
+    }
+    elsif  ($active){
+        $query .= " AND isactive = 1";
+    } 
     $query .= " ORDER BY name";
     
     my $ref;
     if ($active && $current){
         $ref = $dbh->selectcol_arrayref($query, undef, ($self->{'id'}, $current));
+    }
+    elsif ($active){
+        $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
     }
     else{
         $ref = $dbh->selectcol_arrayref($query, undef, $self->{'id'});
@@ -294,3 +302,161 @@ sub to_json {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Product
+
+=head1 EXTENDS
+
+Bugzilla::Product
+
+=head1 DESCRIPTION
+
+Provides additional methods and functionality to Bugzilla products 
+for Testopia specific usage. Methods are read only. For updating and
+creating new products, see Bugzilla::Product.
+
+=head1 SYNOPSIS
+
+=head2 Creating
+ 
+ $build = Bugzilla::Testopia::Product->new($product_id);
+ $build = Bugzilla::Testopia::Product->new({name => $name});
+
+=head1 METHODS
+
+=over
+
+=item C<builds($active, $current)>
+ 
+ Description: Get the list of builds associated with this product.
+              
+ Params:      $active  - Boolean (optional): True to only include builds with isactive set.
+                         Defaults to False.
+              $current - Integer (optional): Must be used in conjuntion with $active.
+                         If $active is true then $current should be the current build
+                         selected to prevent it from being excluded if isactive is false.  
+                     
+ Returns:     Array: Returns an array of Build objects.
+ 
+=item C<get_cases($product)>
+ 
+ Description: Get the list of cases associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of TestCase objects.
+ 
+=item C<get_categories($product)>
+ 
+ Description: Get the list of categories associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Case Category objects.
+ 
+=item C<get_components($product)>
+ 
+ Description: Get the list of components associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Component objects.
+ 
+=item C<get_environments($product)>
+ 
+ Description: Get the list of environments associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Environment objects.
+ 
+=item C<get_milestones($product)>
+ 
+ Description: Get the list of milestones associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Milestone objects.
+ 
+=item C<get_plans($product)>
+ 
+ Description: Get the list of plans associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Test Plan objects.
+ 
+=item C<get_runs($product)>
+ 
+ Description: Get the list of runs associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Test Run objects.
+ 
+=item C<get_tags($product)>
+ 
+ Description: Get the list of tags associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Tags objects.
+ 
+=item C<get_versions($product)>
+ 
+ Description: Get the list of versions associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Version objects.
+ 
+=item C<lookup_name_by_id> B<DEPRICATED> Use Product::get instead
+              
+=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Product::check_product instead
+ 
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::Product>
+
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>

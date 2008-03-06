@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::Product;
 
@@ -21,121 +25,320 @@ use strict;
 
 use base qw(Bugzilla::WebService);
 
+use Bugzilla::Constants;
 use Bugzilla::Testopia::Product;
 
-sub lookup_name_by_id
-{
-  my $self = shift;
-  my ($product_id) = @_;
-  
-  die "Invalid Product ID" 
-      unless defined $product_id && length($product_id) > 0 && $product_id > 0;
-      
-  $self->login;
-  
-  my $product = new Bugzilla::Testopia::Product($product_id);
+sub _validate {
+    my ($product) = @_;
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    if (ref $product){
+        $product = $product;
+    }
+    elsif ($product =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($product);
+    }
+    else {
+        $product = Bugzilla::Product::check_product($product);
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+    
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $id}) unless $product;
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) if $product && !$product->canedit;
 
-  my $result = defined $product ? $product->name : '';
-  
-  $self->logout;
-  
-  # Result is product name string or empty string if failed
-  return $result;
+    return $product;
 }
 
-sub lookup_id_by_name
-{
-  my $self = shift;
-  my ($name) = @_;
-
-  $self->login;
-
-  my $result = Bugzilla::Testopia::Product->check_product_by_name($name);
-  
-  $self->logout;
-
-  if (!defined $result)
-  {
-    $result = 0;
-  }
-
-  # Result is product id or 0 if failed
-  return $result;
-}
-
-sub get_milestones
-{
+sub get {
     my $self = shift;
-    my ($product_id) = @_;
-
-    $self->login;
-
-    my $product = new Bugzilla::Testopia::Product($product_id);
-
-    if (not defined $product)
-    {
-        $self->logout;
-        die "Product, " . $product_id . ", not found"; 
-    }
+    my ($id) = @_;
     
-    if (not $product->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    my $result = $product->milestones;
+    # Result is a product object hash
+    my $product = new Bugzilla::Testopia::Product($id);
 
-    $self->logout;
-    
-    # Result is list of milestones for the given product
-    return $result;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $id}) unless $product;
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canedit;
+
+    return $product;
 }
 
-sub get_components
-{
+sub check_product {
     my $self = shift;
-    my ($product_id) = @_;
-
-    $self->login;
-
-    my $product = new Bugzilla::Testopia::Product($product_id);
-
-    if (not defined $product)
-    {
-        $self->logout;
-        die "Product, " . $product_id . ", not found"; 
-    }
+    my ($name) = @_;
+ 
+    my $product = _validate($name);
     
-    if (not $product->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $product->components;
-
-    $self->logout;
-    
-    # Result is list of components for the given product
-    return $result;
+    return $product;
 }
 
-#sub get_product 
-#{
-#    my $self = shift;
-#    my ($product_id) = @_;
-#
-#    Bugzilla->login;
-#
-#    # We can detaint immediately if what we get passed is fully numeric.
-#    # We leave bug alias checks to Bugzilla::Testopia::TestPlan::new.
-#    
-#    if ($product_id =~ /^[0-9]+$/) {
-#        detaint_natural($product_id);
-#    }
-#
-#    return new Bugzilla::Product($product_id);
-#}
+sub get_builds {
+    my $self = shift;
+    my ($product, $active) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->builds($active);
+    
+}
+
+sub get_cases {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->cases;
+}
+
+sub get_categories {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->categories;
+}
+
+sub get_components {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->components;
+}
+
+sub get_environments {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->environments;
+}
+
+sub get_milestones {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->milestones;
+}
+
+sub get_plans {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->plans;
+}
+
+sub get_runs {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->runs;
+}
+
+sub get_tags {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->tags;
+}
+
+sub get_versions {
+    my $self = shift;
+    my ($product) = @_;
+    
+    $product = _validate($product);
+    
+    return $product->versions;
+
+}
+
+sub lookup_name_by_id {
+    return {FAILED => 1, message=> 'This method id depricated. Use Product->get instead.'};
+}
+sub lookup_id_by_name {
+    return {FAILED => 1, message=> 'This method id depricated. Use check_product instead.'};
+}
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Webservice::Product
+
+=head1 EXTENDS
+
+Bugzilla::Webservice
+
+=head1 DESCRIPTION
+
+Provides methods for automated scripts to expose Testopia Product data.
+
+=head1 METHODS
+
+=over
+
+=item C<get($id)>
+
+ Description: Used to load an existing product from the database.
+ 
+ Params:      $id - An integer representing the ID in the database
+                       
+ Returns:     A blessed Bugzilla::Testopia::Product object hash
+ 
+=item C<check_product($name, $product)>
+ 
+ Description: Looks up and returns a validated product.
+              
+ Params:      $name - String: name of the product.
+              $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+ 
+ Returns:     Hash: Matching Product object hash or error if not found.
+ 
+=item C<get_builds($product, $active)>
+ 
+ Description: Get the list of builds associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+              $active  - Boolean: True to only include builds where isactive is true. 
+              
+ Returns:     Array: Returns an array of Build objects.
+ 
+=item C<get_cases($product)>
+ 
+ Description: Get the list of cases associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of TestCase objects.
+ 
+=item C<get_categories($product)>
+ 
+ Description: Get the list of categories associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Case Category objects.
+ 
+=item C<get_components($product)>
+ 
+ Description: Get the list of components associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Component objects.
+ 
+=item C<get_environments($product)>
+ 
+ Description: Get the list of environments associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Environment objects.
+ 
+=item C<get_milestones($product)>
+ 
+ Description: Get the list of milestones associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Milestone objects.
+ 
+=item C<get_plans($product)>
+ 
+ Description: Get the list of plans associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Test Plan objects.
+ 
+=item C<get_runs($product)>
+ 
+ Description: Get the list of runs associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Test Run objects.
+ 
+=item C<get_tags($product)>
+ 
+ Description: Get the list of tags associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Tags objects.
+ 
+=item C<get_versions($product)>
+ 
+ Description: Get the list of versions associated with this product.
+              
+ Params:      $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+                     
+ Returns:     Array: Returns an array of Version objects.
+ 
+=item C<lookup_name_by_id> B<DEPRICATED> Use Product::get instead
+              
+=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Product::check_product instead
+ 
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::Product>
+
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>

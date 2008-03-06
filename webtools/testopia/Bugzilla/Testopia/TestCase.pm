@@ -370,9 +370,17 @@ sub _check_components {
 sub _check_bugs {
     my ($invocant, $bugids) = @_;
     my @bugids;
+    my @ids;
     my $dbh = Bugzilla->dbh;
     
-    foreach my $bug (split(/[\s,]+/, $bugids)){
+    if (ref $bugids eq 'ARRAY'){
+        push @ids, @$bugids;
+    }
+    else {
+        push @ids, split(/[\s,]+/, $bugids);
+    }
+    
+    foreach my $bug (@ids){
         trick_taint($bug);
         Bugzilla::Bug::ValidateBugID($bug);
         if (ref $invocant){
@@ -800,7 +808,7 @@ sub attach_bug {
     my $dbh = Bugzilla->dbh;
     
     $case_id ||= $self->{'case_id'};
-    $bugids = $self->_check_bugs($bugids) unless ref $bugids;
+    $bugids = $self->_check_bugs($bugids);
     
     $dbh->bz_lock_tables('test_case_bugs WRITE');
     
@@ -820,13 +828,17 @@ Removes the association of the specified bug from this test case-run
 
 sub detach_bug {
     my $self = shift;
-    my ($bug) = @_;
+    my ($bugids) = @_;
     my $dbh = Bugzilla->dbh;
-
-    $dbh->do("DELETE FROM test_case_bugs 
-               WHERE bug_id = ? 
-                 AND case_id = ?", 
-             undef, ($bug, $self->{'case_id'}));
+    
+    $bugids = $self->_check_bugs($bugids);
+    
+    foreach my $bug (@$bugids){
+        $dbh->do("DELETE FROM test_case_bugs 
+                   WHERE bug_id = ? 
+                     AND case_id = ?", 
+                 undef, ($bug, $self->{'case_id'}));
+    }
 }
 
 =head2 add_component
