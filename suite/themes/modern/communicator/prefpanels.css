@@ -40,34 +40,6 @@
    ====================================================================== */
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
-/* ::::: Themes ::::: */
-
-#skinsTree {
-  height: 80px;
-}
-
-*|*.themesLink {
-  margin-left: 5px;
-  text-decoration: underline;
-  color: blue;
-  cursor: pointer;
-}
-
-*|*.themesLink:active {
-  color: red;
-}
-
-#previewImageContainer {
-  height: 93px; 
-  padding: 1px;
-}
-
-#previewImage {
-  max-width: 355px; 
-  min-width: 355px;
-  max-height: 85px;
-  min-height: 85px;
-}
 
 /* ::::: Fonts ::::: */
 
@@ -80,8 +52,80 @@
   -moz-box-flex: 1;
 }
 
-/* ::::: Mouse Wheel ::::: */
+/* ::::: Applications ::::: */
+/**
+ * Line up the actions menu with action labels above and below it.
+ * Equalize the distance from the left side of the action box to the left side
+ * of the icon for both the menu and the non-menu versions of the action box.
+ * Also make sure the labels are the same distance away from the icons.
+ */
 
-#mouseWheelMode {
-  width: 9em;
+.handler-action,
+.handler-type {
+  padding: 0;
+}
+
+.handler-action > .listcell-icon,
+.handler-type > .listcell-icon {
+  margin: 5px 2px 5px 7px;
+  height: 16px;
+  width: 16px;
+}
+
+.handler-action > .listcell-label,
+.handler-type > .listcell-label {
+  padding: 5px 5px 5px 0;
+}
+
+.actionsMenu {
+  margin: 0;
+}
+
+.actionsMenu > .menulist-label-box {
+  padding-left: 0;
+}
+
+.actionsMenu > .menulist-label-box > .menulist-icon {
+  margin: 0 2px;
+  padding-right: 0;
+  height: 16px;
+  width: 16px;
+}
+
+.handler-action > .menu-iconic-left > .menu-iconic-icon {
+  margin-left: 6px;
+  height: 16px;
+  width: 16px;
+}
+
+/* Set icons on app pane elements */
+
+.handler-action[appHandlerIcon="app"] {
+  list-style-image: url("chrome://communicator/skin/icons/application.png");
+}
+
+.handler-action[appHandlerIcon="ask"] {
+  list-style-image: url("chrome://communicator/skin/icons/alwaysAsk.png");
+}
+
+.handler-action[appHandlerIcon="save"] {
+  list-style-image: url("chrome://communicator/skin/icons/save.png");
+}
+
+.handler-action[appHandlerIcon="feed"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
+}
+
+.handler-action[appHandlerIcon="plugin"] {
+  list-style-image: url("chrome://communicator/skin/icons/plugin.png");
+}
+
+.handler-type[typeClass="unknown"] {
+  list-style-image: url("moz-icon://goat?size=16");
+}
+
+.handler-type[typeClass="webFeed"],
+.handler-type[typeClass="videoPodcastFeed"],
+.handler-type[typeClass="audioPodcastFeed"] {
+  list-style-image: url("chrome://communicator/skin/icons/feedIcon16.png");
 }
