@@ -63,7 +63,7 @@ sub check_build {
     
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    return Bugzilla::Testopia::Build->new(check_build($name, $product));
+    return Bugzilla::Testopia::Build->new(Bugzilla::Testopia::Build::check_build($name, $product));
 }
 
 sub create{
@@ -143,8 +143,7 @@ sub update{
 }
 
 # DEPRECATED use Build::get instead
-sub lookup_name_by_id
-{
+sub lookup_name_by_id {
   my $self = shift;
   my ($build_id) = @_;
   
@@ -163,12 +162,8 @@ sub lookup_name_by_id
 }
 
 # DEPRECATED use Build::check_build($name, $product) instead
-sub lookup_id_by_name
-{
-  my $self = shift;
-  my ($name) = @_;
-
-  return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use check_build instead'};
+sub lookup_id_by_name {
+  return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use Build::check_build instead'};
 }
 
 1;
@@ -226,7 +221,7 @@ Provides methods for automated scripts to manipulate Testopia Builds
  
  Returns:     Hash/Array: In the case of a single build it is returned. If a 
               list was passed, it returns an array of build hashes. If the
-              update on any particular build failed, the has will contain a 
+              update on any particular build failed, the hash will contain a 
               FAILED key and the message as to why it failed.
  
 =item C<create($values)>
@@ -250,7 +245,6 @@ Provides methods for automated scripts to manipulate Testopia Builds
 =over
 
 L<Bugzilla::Testopia::Build>
-
 L<Bugzilla::Webservice> 
 
 =back

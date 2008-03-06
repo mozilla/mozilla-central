@@ -163,7 +163,7 @@ sub check_case_category {
         "SELECT category_id FROM test_case_categories 
          WHERE name = ? AND product_id = ?",
          undef, $name, $product->id);
- 
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Case Category', id => $name}) unless $is;
     return $is;
 }
 

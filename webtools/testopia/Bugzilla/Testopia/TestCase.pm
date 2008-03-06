@@ -60,7 +60,7 @@ use base qw(Exporter Bugzilla::Object);
 ###############################
 
 use constant DB_TABLE   => "test_cases";
-use constant NAME_FIELD => "summary";
+use constant NAME_FIELD => "alias";
 use constant ID_FIELD   => "case_id";
 use constant DB_COLUMNS => qw(
     case_id
@@ -167,16 +167,19 @@ sub _check_status{
 }
 
 sub _check_category{
-    my ($invocant, $category) = @_;
+    my ($invocant, $category, $product) = @_;
+    if (ref $invocant){
+        $product = $invocant->product;
+    }    
     $category = trim($category);
     my $category_id;
     if ($category =~ /^\d+$/){
         $category_id = Bugzilla::Testopia::Util::validate_selection($category, 'category_id', 'test_case_categories');
     }
     else {
-        $category_id = lookup_category_by_name($category);
+        $category_id = Bugzilla::Testopia::Category::check_case_category($category, $product->id)->id;
     }
-    ThrowUserError('invalid_category') unless $category_id;
+    
     return $category_id;
 }
 
@@ -428,6 +431,9 @@ sub new {
         bless($param, $class);
         return $param;
     }
+    if (!defined $param || (!ref($param) && $param !~ /^\d+$/)) {
+        $param = { name => $param };
+    }
     
     unshift @_, $param;
     my $self = $class->SUPER::new(@_);
@@ -510,6 +516,16 @@ sub update {
     }
 
     $dbh->bz_unlock_tables();
+}
+
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $product = $params->{plans}->[0]->product;
+    
+    $params->{category_id} = $class->_check_gategory($params->{category}, $product);
+    
+    return $params;
 }
 
 ###############################
