@@ -98,9 +98,10 @@ extern "C" {
  * FUNCTION: PKIX_ProcessingParams_Create
  * DESCRIPTION:
  *
- *  Creates a new ProcessingParams object using the List of TrustAnchors
- *  pointed to by "anchors" and stores it at "pParams". If the List of
- *  TrustAnchors is empty, an Error pointer is returned.
+ *  Creates a new ProcessingParams object. Trust anchor list is set to
+ *  newly created empty list of trust. In this case trust anchors will
+ *  be taken from provided cert store. Pointed to the created
+ *  ProcessingParams object is stored in "pParams".
  *
  * PARAMETERS:
  *  "anchors"
@@ -119,7 +120,6 @@ extern "C" {
  */
 PKIX_Error *
 PKIX_ProcessingParams_Create(
-        PKIX_List *anchors,  /* list of TrustAnchor */
         PKIX_ProcessingParams **pParams,
         void *plContext);
 
@@ -701,6 +701,34 @@ PKIX_Error *
 PKIX_ProcessingParams_GetTrustAnchors(
         PKIX_ProcessingParams *params,
         PKIX_List **pAnchors,  /* list of TrustAnchor */
+        void *plContext);
+/*
+ * FUNCTION: PKIX_ProcessingParams_SetTrustAnchors
+ * DESCRIPTION:
+ *
+ * Sets user defined set of trust anchors. A certificate will be considered
+ * invalid if it does not chain to a trusted anchor from this list.
+ * 
+ * PARAMETERS:
+ *  "params"
+ *      Address of ProcessingParams whose List of TrustAnchors are to
+ *      be stored. Must be non-NULL.
+ *  "anchors"
+ *      Address of the trust anchors list object. Must be non-NULL.
+ *  "plContext"
+ *      Platform-specific context pointer.
+ * THREAD SAFETY:
+ *  Conditionally Thread Safe
+ *      (see Thread Safety Definitions in Programmer's Guide)
+ * RETURNS:
+ *  Returns NULL if the function succeeds.
+ *  Returns a Params Error if the function fails in a non-fatal way.
+ *  Returns a Fatal Error if the function fails in an unrecoverable way.
+ */
+PKIX_Error *
+PKIX_ProcessingParams_SetTrustAnchors(
+        PKIX_ProcessingParams *params,
+        PKIX_List *pAnchors,  /* list of TrustAnchor */
         void *plContext);
 
 /*

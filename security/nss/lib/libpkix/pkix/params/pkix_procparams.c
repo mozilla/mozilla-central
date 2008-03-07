@@ -546,14 +546,13 @@ pkix_ProcessingParams_RegisterSelf(void *plContext)
  */
 PKIX_Error *
 PKIX_ProcessingParams_Create(
-        PKIX_List *anchors,  /* list of TrustAnchor */
         PKIX_ProcessingParams **pParams,
         void *plContext)
 {
         PKIX_ProcessingParams *params = NULL;
 
         PKIX_ENTER(PROCESSINGPARAMS, "PKIX_ProcessingParams_Create");
-        PKIX_NULLCHECK_TWO(pParams, anchors);
+        PKIX_NULLCHECK_ONE(pParams);
 
         PKIX_CHECK(PKIX_PL_Object_Alloc
                     (PKIX_PROCESSINGPARAMS_TYPE,
@@ -563,8 +562,8 @@ PKIX_ProcessingParams_Create(
                     PKIX_COULDNOTCREATEPROCESSINGPARAMSOBJECT);
 
         /* initialize fields */
-        PKIX_INCREF(anchors);
-        params->trustAnchors = anchors;
+        PKIX_CHECK(PKIX_List_Create(&params->trustAnchors, plContext),
+                   PKIX_LISTCREATEFAILED);
         PKIX_CHECK(PKIX_List_SetImmutable(params->trustAnchors, plContext),
                     PKIX_LISTSETIMMUTABLEFAILED);
 
@@ -594,6 +593,30 @@ cleanup:
 
         PKIX_RETURN(PROCESSINGPARAMS);
 
+}
+
+/*
+ * FUNCTION: PKIX_ProcessingParams_SetTrustAnchors
+ * (see comments in pkix_params.h)
+ */
+PKIX_Error *
+PKIX_ProcessingParams_SetTrustAnchors(
+        PKIX_ProcessingParams *params,
+        PKIX_List *anchors,  /* list of TrustAnchor */
+        void *plContext)
+{
+        PKIX_ENTER(PROCESSINGPARAMS, "PKIX_ProcessingParams_SetTrustAnchors");
+        PKIX_NULLCHECK_TWO(params, anchors);
+
+        PKIX_DECREF(params->trustAnchors);
+
+        PKIX_INCREF(anchors);
+        params->trustAnchors = anchors;
+        PKIX_CHECK(PKIX_List_SetImmutable(params->trustAnchors, plContext),
+                    PKIX_LISTSETIMMUTABLEFAILED);
+
+cleanup:
+        PKIX_RETURN(PROCESSINGPARAMS);
 }
 
 /*
