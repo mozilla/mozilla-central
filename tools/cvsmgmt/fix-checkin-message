@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use File::Spec;
 use File::Temp qw(tempdir);
 
 my $cvs_host = "dm-cvs01";
@@ -25,12 +26,31 @@ my $tempdir = tempdir('/tmp/cvsfix-temp-XXXXXXXXX', CLEANUP => 1);
 $::ENV{'CVS_RSH'} = 'ssh';
 my @files = ();
 
+sub get_log_message {
+  my ($cvsroot, $filename, $rev) = @_;
+  my $cvslog = `cvs -d $cvsroot log -r$rev $filename`;
+
+  if ($cvslog !~ /----\nrevision $rev\n/s) {
+    print "$filename revision $rev not found.\n";
+    exit;
+  }
+
+  $cvslog =~ s/^.*?----\nrevision $rev\n//s;
+  $cvslog =~ s/^date.*?\n//s;
+  $cvslog =~ s/^branches:\s+\d.*?\n//s;
+  $cvslog =~ s/\n=============================================================================\n$//s;
+  return $cvslog;
+}
+
 sub verify_file {
   my ($cvsroot, $filename, $rev) = @_;
 
   chdir $tempdir;
   system("cvs -q -d $cvsroot co -r $rev $filename");
   if (!-e $filename) {
+    system("cvs -q -d $cvsroot co -r1.1 $filename");
+  }
+  if (!get_log_message($cvsroot, $filename, $rev)) {
     print "File $filename does not exist.\n";
     return 0;
   }
@@ -126,22 +146,6 @@ EOF
   }
 }
 
-sub get_log_message {
-  my ($cvsroot, $filename, $rev) = @_;
-  my $cvslog = `cvs -d $cvsroot log -r$rev $filename`;
-
-  if ($cvslog !~ /----\nrevision $rev\n/s) {
-    print "$filename revision $rev not found.\n";
-    exit;
-  }
-
-  $cvslog =~ s/^.*?----\nrevision $rev\n//s;
-  $cvslog =~ s/^date.*?\n//s;
-  $cvslog =~ s/^branches:\s+\d.*?\n//s;
-  $cvslog =~ s/\n=============================================================================\n$//s;
-  return $cvslog;
-}
-
 my $have_first = 0;
 my $first_log = "";
 print "--\nReading existing commit messages...\n";
@@ -211,7 +215,14 @@ if ($answer =~ /n/i) {
 
 print "--\nApplying change:\n";
 foreach my $fileref (@files) {
-  system("cvs","-d",$cvsroot,"admin","-m" . $fileref->[1] . ":$logmsg\n",$fileref->[0]);
+  open ADMINOUT, "-|","cvs","-d",$cvsroot,"admin","-m" . $fileref->[1] . ":$logmsg\n",$fileref->[0];
+  my @output = <ADMINOUT>;
+  # RCS file: /cvsroot/mozilla/xpcom/components/Attic/nsCategoryCache.cpp,v
+  # done
+  close ADMINOUT;
+  for my $line (@output) { print $line; }
+  my ($rcsline) = grep /^RCS file: /, @output;
+  ($fileref->[0]) = ($rcsline =~ m#^RCS file: $cvsroot_path/(.+),v$#);
 }
 print "--\nForcing update of local mirrored repository copy for bonsai...\n";
 sleep 1; # give $cvs_host time for kernel buffers to flush?  Seems to miss the first couple files if we don't do this.
