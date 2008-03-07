@@ -281,7 +281,7 @@ nsSeamonkeyProfileMigrator::PrefTransform gTransforms[] = {
   MAKESAMETYPEPREFTRANSFORM("browser.cache.disk.capacity",             Int),
   MAKESAMETYPEPREFTRANSFORM("browser.cache.check_doc_frequency",       Int),
 
-  // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
+  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifdef SUITE_USING_TOOLKIT_DM
   MAKESAMETYPEPREFTRANSFORM("browser.download.autoDownload",           Bool),
