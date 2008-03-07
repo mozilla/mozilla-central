@@ -52,9 +52,9 @@ my $action = $cgi->param('action') || '';
 if ($cgi->param('caserun_id')){
     $caserun = Bugzilla::Testopia::TestCaseRun->new($cgi->param('caserun_id'));
 }
-elsif ($cgi->param('case_id')){
-    $caserun = Bugzilla::Testopia::TestCaseRun->new($cgi->param('case_id'),
-                                                       $cgi->param('run_id'),
+elsif ($cgi->param('run_id')){
+    $caserun = Bugzilla::Testopia::TestCaseRun->new($cgi->param('run_id'),
+                                                       $cgi->param('case_id'),
                                                        $cgi->param('build_id'),
                                                        $cgi->param('env_id'));
 }

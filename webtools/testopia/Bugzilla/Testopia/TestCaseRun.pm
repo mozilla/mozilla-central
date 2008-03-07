@@ -164,7 +164,7 @@ sub _check_case_text_version {
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
-    my ($param, $run_id, $build_id, $env_id) = (@_);
+    my ($param, $case_id, $build_id, $env_id) = (@_);
     my $dbh = Bugzilla->dbh;
     
     # We want to be able to supply an empty object to the templates for numerous
@@ -176,11 +176,11 @@ sub new {
             return $param;
         }
     }
-    elsif ($run_id && detaint_natural($run_id) 
+    elsif ($case_id && detaint_natural($case_id) 
              && $build_id && detaint_natural($build_id) 
              && $env_id && detaint_natural($env_id)){
                  
-         my $case_id = $param;
+         my $run_id = $param;
          detaint_natural($case_id) || return undef;
          ($param) = $dbh->selectrow_array(
             "SELECT case_run_id FROM test_case_runs
@@ -601,39 +601,42 @@ Attaches the specified bug to this test case-run
 
 sub attach_bug {
     my $self = shift;
-    my ($bug, $caserun_id) = @_;
+    my ($bugs, $caserun_id) = @_;
+    my @bugs = Bugzilla::Testopia::TestCase::_check_bugs($bugs);
     $caserun_id ||= $self->{'case_run_id'};
     my $dbh = Bugzilla->dbh;
-
+    
     $dbh->bz_lock_tables('test_case_bugs WRITE');
-    my ($exists) = $dbh->selectrow_array(
-            "SELECT bug_id 
-               FROM test_case_bugs 
-              WHERE case_run_id=?
-                AND bug_id=?", 
-             undef, ($caserun_id, $bug));
-    if ($exists) {
-        $dbh->bz_unlock_tables();
-        return;
-    }
-    my ($check) = $dbh->selectrow_array(
-            "SELECT bug_id 
-               FROM test_case_bugs 
-              WHERE case_id=?
-                AND bug_id=?
-                AND case_run_id=?", 
-             undef, ($caserun_id, $bug, undef));
-             
-    if ($check){
-        $dbh->do("UPDATE test_case_bugs 
-                     SET test_case_run_id = ?
-                   WHERE case_id = ?
-                     AND bug_id = ?", 
-                 undef, ($bug, $self->{'case_run_id'}));
-    }
-    else{
-        $dbh->do("INSERT INTO test_case_bugs (bug_id, case_run_id, case_id)
-                  VALUES(?,?,?)", undef, ($bug, $self->{'case_run_id'}, $self->{'case_id'}));
+    foreach my $bug (@bugs){ 
+        my ($exists) = $dbh->selectrow_array(
+                "SELECT bug_id 
+                   FROM test_case_bugs 
+                  WHERE case_run_id=?
+                    AND bug_id=?", 
+                 undef, ($caserun_id, $bug));
+        if ($exists) {
+            $dbh->bz_unlock_tables();
+            return;
+        }
+        my ($check) = $dbh->selectrow_array(
+                "SELECT bug_id 
+                   FROM test_case_bugs 
+                  WHERE case_id=?
+                    AND bug_id=?
+                    AND case_run_id=?", 
+                 undef, ($caserun_id, $bug, undef));
+                 
+        if ($check){
+            $dbh->do("UPDATE test_case_bugs 
+                         SET test_case_run_id = ?
+                       WHERE case_id = ?
+                         AND bug_id = ?", 
+                     undef, ($bug, $self->{'case_run_id'}));
+        }
+        else{
+            $dbh->do("INSERT INTO test_case_bugs (bug_id, case_run_id, case_id)
+                      VALUES(?,?,?)", undef, ($bug, $self->{'case_run_id'}, $self->{'case_id'}));
+        }
     }
     $dbh->bz_unlock_tables();
 }

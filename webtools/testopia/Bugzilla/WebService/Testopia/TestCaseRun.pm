@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::TestCaseRun;
 
@@ -22,234 +26,611 @@ use strict;
 use base qw(Bugzilla::WebService);
 
 use Bugzilla::User;
+use Bugzilla::Constants;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestCaseRun;
+use Bugzilla::Testopia::Util;
 
-# Utility method called by the list method
-sub _list
-{
+sub get {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless $caserun->canview;
+
+    return $caserun;
+}
+
+sub list {
+    my $self = shift;
     my ($query) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
     
     my $cgi = Bugzilla->cgi;
-
+    
     $cgi->param("current_tab", "case_run");
     
-    foreach (keys(%$query))
-    {
+    foreach (keys(%$query)){
         $cgi->param($_, $$query{$_});
     }
         
     my $search = Bugzilla::Testopia::Search->new($cgi);
 
-    # Result is an array of test case run hash maps 
-    return Bugzilla::Testopia::Table->new('case_run', 
-                                          'tr_xmlrpc.cgi', 
-                                          $cgi, 
-                                          undef,
-                                          $search->query()
-                                          )->list();
+    return Bugzilla::Testopia::Table->new('case_run','tr_xmlrpc.cgi',$cgi,undef,$search->query())->list();
 }
 
-sub get
-{
+sub create {
     my $self = shift;
-    my ($test_case_run_id) = @_;
-
-    $self->login;
-
-    #Result is a test case run hash map
-    my $test_case_run = new Bugzilla::Testopia::TestCaseRun($test_case_run_id);
-
-    if (not defined $test_case_run)
-    {
-        $self->logout;
-        die "TestcaseRun, " . $test_case_run_id . ", not found"; 
-    }
-    
-    if (not $test_case_run->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    $self->logout;
-    
-    return $test_case_run;
-    
-}
-
-sub get_bugs
-{
-    my $self = shift;
-    my ($test_case_run_id) = @_;
-
-    $self->login;
-
-    my $test_case_run = new Bugzilla::Testopia::TestCaseRun($test_case_run_id);
-
-    if (not defined $test_case_run)
-    {
-        $self->logout;
-        die "TestcaseRun, " . $test_case_run_id . ", not found"; 
-    }
-    
-    if (not $test_case_run->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $test_case_run->bugs;
-
-    $self->logout;
-    
-    # Result is list of bugs for the given test case run
-    return $result;
-}
-
-sub list
-{
-    my $self = shift;
-    my ($query) = @_;
-
-    $self->login;
-    
-    my $list = _list($query);
-    
-    $self->logout;
-    
-    return $list;    
-}
-
-sub create
-{
-    my $self =shift;
     my ($new_values) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my $run = Bugzilla::Testopia::TestCaseRun->new($new_values->{'run_id'});
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $new_values->{'run_id'}}) unless $run;
+    ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
+    
+    if ($new_values->{'status'}){
+        $new_values->{'case_run_status_id'} = Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($new_values->{'status'});
+        delete $new_values->{'status'};
+    }
     $new_values->{'case_run_status_id'} = IDLE unless $new_values->{'case_run_status_id'}; 
 
-    $self->login;
-
-    my $test_case_run = Bugzilla::Testopia::TestCaseRun->create($new_values);
+    my $caserun = Bugzilla::Testopia::TestCaseRun->create($new_values);
     
-    $self->logout;
-
-    # Result is new test case run id
-    return $test_case_run->id;
+    # Result is new test case run object hash
+    return $caserun;
 }
 
-sub update
-{
-    my $self =shift;
-    my ($run_id, $case_id, $build_id, $environment_id, $new_values) = @_;
+sub update {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id, $new_values) = @_;
 
-    $self->login;
-
-    my $test_case_run = new Bugzilla::Testopia::TestCaseRun($case_id,
-                                                            $run_id,
-                                                            $build_id,
-                                                            $environment_id
-                                                            );
-
-    if (not defined $test_case_run)
-    {
-        $self->logout;
-        die "TestCaseRun for build_id = " . $build_id .
-            ", case_id = " . $case_id . 
-            ", environment_id = " . $environment_id . 
-            ", run_id = " . $run_id . 
-            ", not found"; 
-    }
-
-    if (not $test_case_run->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-
-    # Check to see what has changed then use set methods
-    # The order is important. We need to check if the build or environment has 
-    # Changed so that we can switch to the right record first.
-    if (defined($$new_values{build_id}))
-    {
-        $test_case_run = $test_case_run->switch($$new_values{build_id}, $environment_id ,$run_id, $case_id);
-    }
-
-    if (defined($$new_values{environment_id}))
-    {
-        $test_case_run = $test_case_run->switch($build_id, $$new_values{environment_id} ,$run_id, $case_id);
-    }
-
-    if (defined($$new_values{assignee}))
-    {
-        $test_case_run->set_assignee($$new_values{assignee});
-    }
-
-    if (defined($$new_values{case_run_status_id}))
-    {
-        $test_case_run->set_status($$new_values{case_run_status_id}, $$new_values{update_bugs});
-    }
-
-    if (defined($$new_values{notes}))
-    {
-        $test_case_run->append_note($$new_values{notes});
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    # Remove assignee user object and replace with just assignee id
-    if (ref($$test_case_run{assignee}) eq 'Bugzilla::User')
-    {
-        $$test_case_run{assignee} = $$test_case_run{assignee}->id();
+    my @caseruns;
+    my @ids = use Bugzilla::Testopia::Util::process_list($run_id);
+    if (ref $case_id eq 'HASH' && !$build_id){
+        $new_values = $case_id;
+        foreach my $id (@ids){
+            my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id);
+            if ($caserun){
+                push @caseruns, $caserun;
+            }
+            else {
+                push @caseruns, {FAILED => 1, message => 'Case-run does not exist'};
+            }
+        } 
+    }
+    else {
+        foreach my $id (@ids){
+            my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id,$case_id,$build_id,$env_id);
+            if ($caserun){
+                push @caseruns, $caserun;
+            }
+            else {
+                push @caseruns, {FAILED => 1, message => 'Case-run does not exist'};
+            }
+        } 
     }
 
-    $self->logout;
+    if ($new_values->{'status'}){
+        $new_values->{'case_run_status_id'} = Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($new_values->{'status'});
+        delete $new_values->{'status'};
+    }
 
-    #Remove attributes we do not want to publish
-    delete $$test_case_run{bugs};
-    delete $$test_case_run{build};
-    delete $$test_case_run{case};
-    delete $$test_case_run{environment};
-    delete $$test_case_run{run};
+    my @results;
+    foreach my $caserun (@caseruns){
+        if ($caserun->{'FAILED'}){
+            push @results, $caserun;
+            next;
+        }
+        unless ($caserun->canedit){
+            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            next;
+        }
+
+        $run_id = $caserun->run_id;
+        $case_id = $caserun->case_id;
+        $build_id ||= $caserun->build_id;
+        $env_id ||= $caserun->env_id;
     
-    # Result is modified test case run on success, otherwise an exception will be thrown
-    return $test_case_run;
+        # Check to see what has changed then use set methods
+        # The order is important. We need to check if the build or environment has 
+        # Changed so that we can switch to the right record first.
+        if ($new_values->{'build_id'} && $new_values->{'environment_id'}){
+            $caserun = $caserun->switch($new_values->{'build_id'}, $new_values->{'environment_id'}, $run_id, $case_id);
+        }
+        elsif ($new_values->{'build_id'}){
+            $caserun = $caserun->switch($new_values->{'build_id'}, $env_id, $run_id, $case_id);
+        }
+        elsif ($new_values->{'environment_id'}){
+            $caserun = $caserun->switch($build_id, $new_values->{'environment_id'}, $run_id, $case_id);
+        }
+    
+        if ($new_values->{'assignee'}){
+            $caserun->set_assignee($new_values->{'assignee'});
+        }
+    
+        if ($new_values->{'case_run_status_id'}){
+            $caserun->set_status($new_values->{'case_run_status_id'}, $new_values->{'update_bugs'});
+        }
+    
+        if ($new_values->{'sortkey'}){
+            $caserun->set_sortkey($new_values->{'sortkey'});
+        }
+    
+        if ($new_values->{'notes'}){
+            $caserun->append_note($new_values->{'notes'});
+        }
+        
+        # Remove assignee user object and replace with just assignee id
+        if (ref $caserun{'assignee'} eq 'Bugzilla::User'){
+            $caserun{assignee} = $caserun{assignee}->id();
+        }
+    
+        # Result is modified test case run on success, otherwise an exception will be thrown
+        push @results, $caserun;
+    }
+    return @results;
 }
 
-sub lookup_status_id_by_name
-{
-    my $self =shift;
+sub lookup_status_id_by_name {
+    my $self = shift;
     my ($name) = @_;
     
-    $self->login;
-
-      my $result = Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($name);
-
-    $self->logout;
+    Bugzilla->login(LOGIN_REQUIRED);
 
     # Result is test case run status id for the given test case run status name
-    return $result;
+    return Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($name);
 }
 
-sub lookup_status_name_by_id
-{
-    my $self =shift;
+sub lookup_status_name_by_id {
+    my $self = shift;
     my ($id) = @_;
     
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
 
     my $test_case_run = new Bugzilla::Testopia::TestCaseRun({});
-     
-    my $result = $test_case_run->lookup_status($id);
 
-    $self->logout;
-
-    if (!defined $result) 
-    {
-      $result = 0;
-    };
-    
     # Result is test case run status name for the given test case run status id
-    return $result;
+    return $test_case_run->lookup_status($id);
+}
+
+sub get_history {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless $caserun->canview;
+
+    return $caserun->get_case_run_list;
+
+}
+
+sub attach_bug {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id, $bug_ids) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+    
+    # If we have just the id, the third arg will not be set.
+    $bug_ids = $case_id unless $build_id;
+    
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-read-only', {'object' => $caserun}) unless $caserun->canedit;
+    
+    $caserun->attach_bug($bug_ids);
+    
+    return undef;
+}
+
+sub detach_bug {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id, $bug_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+    
+    # If we have just the id, the third arg will not be set.
+    $bug_id = $case_id unless $build_id;
+    
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-read-only', {'object' => $caserun}) unless $caserun->canedit;
+    
+    $caserun->detach_bug($bug_ids);
+    
+    # Result 0 on success, otherwise an exception will be thrown
+    return 0;
+}
+
+sub get_bugs {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless $caserun->canview;
+
+    return $caserun->bugs;
+}
+
+sub get_completion_time {
+    my $self = shift;
+    my ($run_id, $case_id, $build_id, $env_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+
+    #Result is a test case run hash map
+    my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
+    ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless $caserun->canview;
+
+    return $caserun->completion_time;
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Webservice::TestCaseRun
+
+=head1 EXTENDS
+
+Bugzilla::Webservice
+
+=head1 DESCRIPTION
+
+Provides methods for automated scripts to manipulate Testopia TestCaseRuns.
+
+=head1 SYNOPSIS
+
+Test case-runs are the mapping of a test case in a given run for a particular 
+build and environment. There are therefore two ways to refer to a given 
+case-run:
+    
+    By ID: The unique case_run_id
+    By Combination: $run_id, $case_id, $build_id, $environment_id
+
+TestCaseRun methods are therefore overloaded to support either of these two
+methods of looking up the case-run you are interested in.
+
+B<EXAMPLE:>
+
+TestCaseRun->get($caserun_id)
+TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
+
+=head1 METHODS
+
+=over
+
+=item C<attach_bug($caserun_id, $bug_ids)>
+
+ Description: Add one or more bugs to the selected test case-runs.
+ 
+ Params:      $case_run_id - Integer: An integer representing the ID in the database.
+              
+              $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of bug_ids or aliases, or a string of comma separated bug_ids. 
+                       
+ Returns:     undef.
+
+=item C<attach_bug($run_id, $case_id, $build_id, $environment_id, $bug_ids)>
+
+ Description: Add one or more bugs to the selected test case-runs.
+ 
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+              
+              $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of bug_ids or aliases, or a string of comma separated bug_ids. 
+                       
+ Returns:     undef.
+
+=item C<create($values)>
+ 
+ Description: Creates a new Test Case Run object and stores it in the database.
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the test case to be created. 
+ 
+ Returns:     The newly created object hash.
+ 
+=item C<detach_bug($caserun_id, $bug_id)>
+
+ Description: Remove a bug from a test case-run.
+ 
+ Params:      $caserun_id - Integer: An integer representing the ID in the database.
+              
+              $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of bug_ids or aliases, or a string of comma separated bug_ids. 
+                       
+ Returns:     undef.
+
+=item C<detach_bug($run_id, $case_id, $build_id, $environment_id, $bug_id)>
+
+ Description: Remove a bug from a test case-run.
+
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+              
+              $bug_id - Integer: An integer or alias representing the ID of 
+                  the bug in the database,
+                       
+ Returns:     undef.
+
+=item C<get($caserun_id)>
+
+ Description: Used to load an existing test case-run from the database.
+ 
+ Params:      $caserun_id - Integer: An integer representing the ID in
+                  the database for this case-run.
+                       
+ Returns:     A blessed Bugzilla::Testopia::TestCase object hash
+ 
+=item C<get($run_id, $case_id, $build_id, $environment_id)>
+
+ Description: Used to load an existing test case from the database.
+ 
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+                       
+ Returns:     A blessed Bugzilla::Testopia::TestCase object hash
+ 
+=item C<get_bugs($caserun_id)>
+
+ Description: Get the list of bugs that are associated with this test case.
+ 
+ Params:      $caserun_id - Integer: An integer representing the ID in
+                  the database for this case-run.
+                       
+ Returns:     Array: An array of bug object hashes.
+ 
+=item C<get_bugs($run_id, $case_id, $build_id, $environment_id)>
+
+ Description: Get the list of bugs that are associated with this test case.
+ 
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+                       
+ Returns:     Array: An array of bug object hashes.
+ 
+=item C<get_completion_time($caserun_id)>
+
+ Description: Get the list of components attached to this case.
+ 
+ Params:      $caserun_id - Integer: An integer representing the ID in
+                  the database for this case-run.
+                       
+ Returns:     Array: An array of component object hashes.
+ 
+=item C<get_completion_time($run_id, $case_id, $build_id, $environment_id)>
+
+ Description: Get the list of components attached to this case.
+ 
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+                       
+ Returns:     Array: An array of component object hashes.
+ 
+=item C<get_history($caserun_id)>
+
+ Description: Get the list of case-runs for all runs this case appears in.
+              To limit this list by build or other attribute, see TestCaseRun::list.
+ 
+ Params:      $caserun_id - Integer: An integer representing the ID in
+                  the database for this case-run.
+                       
+ Returns:     Array: An array of case-run object hashes.
+ 
+=item C<get_history($run_id, $case_id, $build_id, $environment_id)>
+
+ Description: Get the list of case-runs for all runs this case appears in.
+              To limit this list by build or other attribute, see TestCaseRun::list.
+ 
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+                       
+ Returns:     Array: An array of case-run object hashes.
+ 
+=item C<list($query)>
+ 
+ Description: Performs a search and returns the resulting list of test cases.
+              
+ Params:      $query - Hash: keys must match valid search fields.
+
+    +--------------------------------------------------------+
+    |               Case-Run Search Parameters               |
+    +--------------------------------------------------------+
+    |        Key          |          Valid Values            |
+    | andor               | 1: Author AND tester, 0: OR      |
+    | assignee            | A bugzilla login (email address) |
+    | assignee_type       | (select from email_variants)     |
+    | build               | String                           |
+    | build_id            | Integer                          |
+    | case_id             | comma separated integers         |
+    | case_run_status     | String: Status                   |
+    | case_run_status_id  | Integer: Status                  |
+    | case_summary        | String: Requirement              |
+    | case_summary_type   | (select from query_variants)     |
+    | category            | String: Category Name            |
+    | category_id         | Integer                          |
+    | component           | String: Component Name           |
+    | environment         | String                           |
+    | environment_id      | Integer                          |
+    | isactive            | 0: Only show current 1: show all |
+    | isautomated         | 1: true 0: false                 |
+    | milestone           | String                           |
+    | notes               | String                           |
+    | notes_type          | (select from query_variants)     |
+    | plan_id             | comma separated integers         |
+    | priority            | String: Priority                 |
+    | priority_id         | Integer                          |
+    | product             | String                           |
+    | product_id          | Integer                          |
+    | requirement         | String: Requirement              |
+    | requirement_type    | (select from query_variants)     |
+    | run_id              | comma separated integers         |
+    | run_product_version | String                           |
+    | run_status          | 1: RUNNING 0: STOPPED            |
+    | tags                | String                           |
+    | tags_type           | (select from tag_variants)       |
+    | testedby            | A bugzilla login (email address) |
+    | testedby_type       | (select from email_variants)     |
+    +--------------------------------------------------------+
+        
+    +---------------------------------------------------+
+    |                Paging and Sorting                 |
+    +---------------------------------------------------+
+    |      Key       |            Description           |
+    | dir            | "ASC" or "DESC"                  |
+    | order          | field to sort by                 |
+    +---------------------------------------------------+
+    | page_size      | integer: how many per page       |
+    | page           | integer: page number             |
+    |            +++++++ OR +++++++                     |
+    | start          | integer: Start with which record |
+    | limit          | integer: limit to how many       |
+    +---------------------------------------------------+
+    | viewall        | 1: returns all records           |
+    +---------------------------------------------------+
+    
+    +----------------------------------------------------+
+    |                 query_variants                     |
+    +----------------+-----------------------------------+
+    |      Key       |            Description            |
+    | allwordssubstr | contains all of the words/strings |
+    | anywordssubstr | contains any of the words/strings |
+    | substring      | contains the string               |
+    | casesubstring  | contains the string (exact case)  |
+    | allwords       | contains all of the words         |
+    | anywords       | contains any of the words         |
+    | regexp         | matches the regexp                |
+    | notregexp      | doesn't match the regexp          |
+    +----------------+-----------------------------------+
+    
+            +-------------------------------------+
+            |            email_variants           |
+            +--------------+----------------------+
+            |      Key     |      Description     |
+            | substring    | contains             |
+            | exact        | is                   |
+            | regexp       | matches regexp       |
+            | notregexp    | doesn't match regexp |
+            +--------------+----------------------+
+    
+    +----------------------------------------------------+
+    |                    tag_variants                    |
+    +----------------+-----------------------------------+
+    |      Key       |            Description            |
+    | anyexact       | is tagged with                    |
+    | allwordssubstr | contains all of the words/strings |
+    | anywordssubstr | contains any of the words/strings |
+    | substring      | contains the string               |
+    | casesubstring  | contains the string (exact case)  |
+    | regexp         | matches the regexp                |
+    | notregexp      | doesn't match the regexp          |
+    | allwords       | contains all of the words         |
+    | anywords       | contains any of the words         |
+    | nowords        | contains none of the words        | 
+    +----------------------------------------------------+
+    
+ Returns:     Array: Matching test cases are retuned in a list of hashes.
+ 
+=item C<lookup_status_name_by_id> 
+
+ Params:      $id - Integer: ID of the case status to return
+ 
+ Returns:     String: the status name.
+             
+=item C<lookup_status_id_by_name>
+
+ Params:      $name - String: the status name. 
+ 
+ Returns:     Integer: ID of the case status.
+             
+=item C<update($caserun_ids, $values)>
+ 
+ Description: Updates the fields of the selected case-runs.
+              
+ Params:      $caserun_ids - Integer/String/Array
+                     Integer: A single TestCaseRun ID.
+                     String:  A comma separates string of TestCaseRun IDs for batch
+                              processing.
+                     Array:   An array of TestCaseRun IDs for batch mode processing
+                     
+              $values - Hash of keys matching TestCaseRun fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash/Array: In the case of a single object, it is returned. If a 
+              list was passed, it returns an array of object hashes. If the
+              update on any particular object failed, the hash will contain a 
+              FAILED key and the message as to why it failed.
+
+=item C<update($run_id, $case_id, $build_id, $environment_id, $values)>
+ 
+ Description: Updates the fields of the selected case-run.
+              
+ Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
+              $run_id - Integer: An integer representing the ID of the test run in the database.
+              $build_id - Integer: An integer representing the ID of the test build in the database.
+              $environment_id - Integer: An integer representing the ID of the environment in the database.
+                     
+              $values - Hash of keys matching TestCaseRun fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash/Array: In the case of a single object, it is returned. If a 
+              list was passed, it returns an array of object hashes. If the
+              update on any particular object failed, the hash will contain a 
+              FAILED key and the message as to why it failed.
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::TestCaseRun>
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>

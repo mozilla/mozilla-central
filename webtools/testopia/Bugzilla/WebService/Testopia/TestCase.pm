@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::TestCase;
 
@@ -27,23 +31,6 @@ use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
 use base qw(Bugzilla::WebService);
-
-sub _process_list { 
-    my ($ids) = @_;
-    
-    my @ids;
-    if (ref $ids eq 'ARRAY'){
-        @ids = @$ids;
-    }
-    elsif ($ids =~ /,/){
-        @ids = split(/[\s,]+/, $ids);
-    }
-    else {
-        push @ids, $ids;
-    }
-    
-    return @ids;
-}
 
 sub get {
     my $self = shift;
@@ -92,7 +79,7 @@ sub create {
     if (ref $new_values->{'plans'} eq 'ARRAY'){
         push @plan_ids, @{$new_values->{'plans'}};
     }
-    elsif ($new_values->{'plans'} =~ /^\d+$/){
+    elsif ($new_values->{'plans'} =~ /,/){
         push @plan_ids, split(/[\s,]+/, $new_values->{'plans'});
     }
     
@@ -130,14 +117,13 @@ sub create {
     return $case;
 }
 
-
 sub update {
     my $self = shift;
     my ($ids, $new_values) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
 
-    my @ids = _process_list($ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($ids);
 
     my @cases;
     foreach my $id (@ids){
@@ -233,7 +219,7 @@ sub attach_bug {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids = _process_list($case_ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
     my @results;
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
@@ -294,7 +280,7 @@ sub add_component {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids = _process_list($case_ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
     my @results;
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
@@ -355,7 +341,7 @@ sub add_tag {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids = _process_list($case_ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
     my @results;
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
@@ -436,7 +422,7 @@ sub link_plan {
     my ($case_ids, $test_plan_id) = @_;
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids = _process_list($case_ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
     my @results;
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
@@ -483,7 +469,7 @@ sub add_to_run {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids = _process_list($case_ids);
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
     my @results;
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
@@ -764,7 +750,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
                        
  Returns:     Array: An array of case-run object hashes.
  
-=item C<get_case_run_history($case_id)>
+=item C<get_change_history($case_id)>
 
  Description: Get the list of changes to the fields of this case.
  
@@ -838,11 +824,19 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     | author              | A bugzilla login (email address) |
     | author_type         | (select from email_variants)     |
     | case_id             | comma separated integers         |
+    | case_status         | String: Status                   |
+    | case_status_id      | Integer: Status                  |
+    | category            | String: Category Name            |
+    | category_id         | Integer                          |
+    | component           | String: Component Name           |
     | default_tester      | A bugzilla login (email address) |
     | default_tester_type | (select from email_variants)     |
+    | isautomated         | 1: true 0: false                 |
     | plan_id             | comma separated integers         |
     | priority            | String: Priority                 |
+    | priority_id         | Integer                          |
     | product             | String: Product Name             |
+    | product_id          | Integer                          |
     | requirement         | String: Requirement              |
     | requirement_type    | (select from query_variants)     |
     | run_id              | comma separated integers         |
@@ -916,17 +910,37 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     
  Returns:     Array: Matching test cases are retuned in a list of hashes.
  
-=item C<lookup_category_name_by_id> B<DEPRICATED> Use TestCase::get instead
-              
-=item C<lookup_category_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use TestCase::check_build instead
+=item C<lookup_category_name_by_id> 
+
+ Params:      $id - Integer: ID of the case status to return
  
-=item C<lookup_priority_name_by_id> B<DEPRICATED> Use TestCase::get instead
+ Returns:     String: the status name.
               
-=item C<lookup_priority_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use TestCase::check_build instead
+=item C<lookup_category_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use check_category instead
  
-=item C<lookup_status_name_by_id> B<DEPRICATED> Use TestCase::get instead
+=item C<lookup_priority_name_by_id>
+
+ Params:      $id - Integer: ID of the case status to return
+ 
+ Returns:     String: the status name.
               
-=item C<lookup_status_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use TestCase::check_build instead
+=item C<lookup_priority_id_by_name>
+
+ Params:      $name - String: the status name. 
+ 
+ Returns:     Integer: ID of the case status.
+ 
+=item C<lookup_status_name_by_id>
+
+ Params:      $id - Integer: ID of the case status to return
+ 
+ Returns:     String: the status name.
+
+=item C<lookup_status_id_by_name> 
+
+ Params:      $name - String: the status name. 
+ 
+ Returns:     Integer: ID of the case status.
 
 =item C<remove_component($case_id, $component_id)>
 
@@ -961,7 +975,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
  
 =item C<update($ids, $values)>
  
- Description: Updates the fields of the selected build or builds.
+ Description: Updates the fields of the selected case or cases.
               
  Params:      $ids - Integer/String/Array
                      Integer: A single TestCase ID.
@@ -972,9 +986,9 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               $values - Hash of keys matching TestCase fields and the new values 
               to set each field to.
  
- Returns:     Hash/Array: In the case of a single build it is returned. If a 
-              list was passed, it returns an array of build hashes. If the
-              update on any particular build failed, the has will contain a 
+ Returns:     Hash/Array: In the case of a single case it is returned. If a 
+              list was passed, it returns an array of case hashes. If the
+              update on any particular case failed, the has will contain a 
               FAILED key and the message as to why it failed.
 
 =back

@@ -10,10 +10,14 @@
 # implied. See the License for the specific language governing
 # rights and limitations under the License.
 #
-# The Original Code is the Bugzilla Bug Tracking System.
+# The Original Code is the Bugzilla Testopia System.
 #
-# Contributor(s): Marc Schumann <wurblzap@gmail.com>
-#                 Dallas Harken <dharken@novell.com>
+# The Initial Developer of the Original Code is Greg Hendricks.
+# Portions created by Greg Hendricks are Copyright (C) 2006
+# Novell. All Rights Reserved.
+#
+# Contributor(s): Dallas Harken <dharken@novell.com>
+#                 Greg Hendricks <ghendricks@novell.com>
 
 package Bugzilla::WebService::Testopia::TestPlan;
 
@@ -28,402 +32,486 @@ use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-# Utility method called by the list method
-sub _list
-{
+
+sub get {
+    my $self = shift;
+    my ($plan_id) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    # Result is a plan object hash
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
+        
+    $plan->test_run_count();
+    $plan->test_case_count();
+
+    return $plan;
+}
+
+sub list {
+    my $self = shift;
     my ($query) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
     
     my $cgi = Bugzilla->cgi;
-
+    
     $cgi->param("current_tab", "plan");
     
-    foreach (keys(%$query))
-    {
+    foreach (keys(%$query)){
         $cgi->param($_, $$query{$_});
     }
         
     my $search = Bugzilla::Testopia::Search->new($cgi);
 
-    # Result is an array of test plan hash maps 
-    return Bugzilla::Testopia::Table->new('plan', 
-                                          'tr_xmlrpc.cgi', 
-                                          $cgi, 
-                                          undef,
-                                          $search->query()
-                                          )->list();
+    return Bugzilla::Testopia::Table->new('plan','tr_xmlrpc.cgi',$cgi,undef,$search->query())->list();
 }
 
-sub get
-{
-    my $self = shift;
-    my ($test_plan_id) = @_;
-
-    $self->login;    
-
-    #Result is a test plan hash map
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
-    
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    $self->logout;
-
-    return $test_plan;
-}
-
-sub list
-{
-    my $self = shift;
-    my ($query) = @_;
-
-    $self->login;
-   
-    my $list = _list($query);
-    
-    $self->logout;
-    
-    return $list;    
-}
-
-sub create
-{
+sub create {
     my $self =shift;
     my ($new_values) = @_;
 
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
 
-    my $test_plan = Bugzilla::Testopia::TestPlan->create($new_values);
+    my $plan = Bugzilla::Testopia::TestPlan->create($new_values);
     
-    $self->logout;
-    
-    return $test_plan->id;
+    return $plan;
 }
 
-sub update
-{
+sub update {
     my $self =shift;
-    my ($test_plan_id, $new_values) = @_;
+    my ($plan_id, $new_values) = @_;
 
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
 
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
     
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-read-only', {'object' => $plan}) unless $plan->canedit;
+       
+    $plan->set_name(trim($new_values->{'name'}));
+    $plan->set_default_product_version($new_values->{'default_product_version'});
+    $plan->set_type($new_values->{'type_id'});
+    $plan->set_isactive($new_values->{'isactive'});
     
-    if (not $test_plan->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    $plan->update();
     
-    $test_plan->set_name(trim($new_values->{'name'}));
-    $test_plan->set_default_product_version($new_values->{'default_product_version'});
-    $test_plan->set_type($new_values->{'type_id'});
-    $test_plan->set_isactive($new_values->{'isactive'});
-    
-    $test_plan->update();
-    
-    $self->logout;
-
     # Result is modified test plan, otherwise an exception will be thrown
-    return $test_plan;
+    return $plan;
 }
 
-sub get_test_cases
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
+sub get_text {
+    my $self = shift;
+    my ($plan_id, $version) = @_;
 
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $test_plan->test_cases();
-    
-    $self->logout;
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
+
+    #Result is the latest test plan doc hash map
+    return $plan->text($version);
+}
+
+sub store_text {
+    my $self = shift;
+    my ($plan_id, $author_id, $text) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-read-only', {'object' => $plan}) unless $plan->canedit;
+
+    my $version = $plan->store_text($plan_id, $author_id);
+    
+    # Result is new test plan doc version on success, otherwise an exception will be thrown
+    return $version;
+}
+
+sub get_test_cases {
+    my $self = shift;
+    my ($plan_id) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    # Result is a plan object hash
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
+        
     # Result is list of test cases for the given test plan
-    return $result;
+    return $plan->test_cases;
 }
 
-sub get_test_runs
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
-
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+sub get_test_runs {
+    my ($plan_id) = @_;
     
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    my $result = $test_plan->test_runs();
+    # Result is a plan object hash
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    $self->logout;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
     
     # Result is list of test runs for the given test plan
-    return $result;
+    return $plan->test_runs;
 }
 
-sub get_categories
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
+sub get_change_history {
+    my $self = shift;
+    my ($plan_id) = @_;
 
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $test_plan->product->categories();
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    $self->logout;
-    
-    # Result is list of categories for the given test plan
-    return $result;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
+
+    # Result list of changes otherwise an exception will be thrown
+    return $plan->history;
 }
 
-sub get_components
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
-
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+sub get_product {
+    my $self = shift;
+    my ($plan_id) = @_;
     
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    my $result = $test_plan->product->components;
+    # Result is a plan object hash
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    $self->logout;
-    
-    # Result is list of components for the given test plan
-    return $result;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
+        
+    # Result is list of test cases for the given test plan
+    return $plan->product;
 }
 
-sub get_builds
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
-
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
-    
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $test_plan->product->builds();
-
-    $self->logout;
-    
-    # Result is list of builds for the given test plan
-    return $result;
-}
-
-sub lookup_type_name_by_id
-{
+sub lookup_type_name_by_id {
     my $self =shift;
     my ($id) = @_;
     
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
 
     my $test_plan = new Bugzilla::Testopia::TestPlan({});
     
-    my $result = $test_plan->lookup_type($id);
-
-    $self->logout;
-    
     # Result is test plan type name for the given test plan type id
-    return $result;
+    return $test_plan->lookup_type($id);
 }
 
-sub lookup_type_id_by_name
-{
+sub lookup_type_id_by_name {
     my $self =shift;
     my ($name) = @_;
     
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
 
     my $test_plan = new Bugzilla::Testopia::TestPlan({});
     
-    my $result = $test_plan->lookup_type_by_name($name);
-
-    $self->logout;
-
-    if (!defined $result) 
-    {
-      $result = 0;
-    };
-    
     # Result is test plan type id for the given test plan type name
-    return $result;
+    return $test_plan->lookup_type_by_name($name);
 }
 
-sub add_tag
-{
-    my $self =shift;
-    my ($test_plan_id, $tag_name) = @_;
+sub add_tag {
+    my $self = shift;
+    my ($plan_ids, $tags) = @_;
 
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my @ids = Bugzilla::Testopia::Util::process_list($plan_ids);
+    my @results;
+    foreach my $id (@ids){
+        my $plan = new Bugzilla::Testopia::TestPlan($id);
+        unless ($plan){
+            push @results, {FAILED => 1, message => "TestPlan $id does not exist"};
+            next;
+        }
+        unless ($plan->canedit){
+            push @results, {FAILED => 1, message => "You do not have rights to edit this test plan"};
+            next;
+        }
+        eval {
+            $plan->add_tag($tags);
+        }
+        if ($@){
+            push @results, {FAILED => 1, message => $@};
+        }
     }
-    
-    if (not $test_plan->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
-    
-    my $result = $test_plan->add_tag($tag_name);
-    
-    if ($result == 1)
-    {
-        $self->logout;
-        die "Tag, " . $tag_name . ", already exists for Testplan, " . $test_plan_id;
-    }
-
-    $self->logout;
-    
-    # Result 0 on success, otherwise an exception will be thrown
-    return $result;
+    # @results will be empty if successful
+    return @results;
 }
 
-sub remove_tag
-{
-    my $self =shift;
-    my ($test_plan_id, $tag_name) = @_;
+sub remove_tag {
+    my $self = shift;
+    my ($plan_id, $tag_name) = @_;
 
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    if (not $test_plan->canedit)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    my $test_tag = Bugzilla::Testopia::TestTag->check_tag($tag_name);
-    if (not defined $test_tag)
-    {
-        $self->logout;
-        die "Tag, " . $tag_name . ", does not exist";
-    }
-    
-    my $result = $test_plan->remove_tag($test_tag->name);
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-read-only', {'object' => $plan}) unless $plan->canedit;
 
-    $self->logout;
-    
+    $plan->remove_tag($tag_name);
+
     # Result 0 on success, otherwise an exception will be thrown
     return 0;
 }
 
-sub get_tags
-{
-    my $self =shift;
-    my ($test_plan_id) = @_;
+sub get_tags {
+    my $self = shift;
+    my ($plan_id) = @_;
 
-    $self->login;
-
-    my $test_plan = new Bugzilla::Testopia::TestPlan($test_plan_id);
-
-    if (not defined $test_plan)
-    {
-        $self->logout;
-        die "Testplan, " . $test_plan_id . ", not found"; 
-    }
+    Bugzilla->login(LOGIN_REQUIRED);
     
-    if (not $test_plan->canview)
-    {
-        $self->logout;
-        die "User Not Authorized";
-    }
+    my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    my $result = $test_plan->tags;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
+    ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
 
-    $self->logout;
-    
     # Result list of tags otherwise an exception will be thrown
-    return $result;
+    return $plan->tags;
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Bugzilla::Testopia::Webservice::TestPlan
+
+=head1 EXTENDS
+
+Bugzilla::Webservice
+
+=head1 DESCRIPTION
+
+Provides methods for automated scripts to manipulate Testopia TestPlans
+
+=head1 METHODS
+
+=over
+
+=item C<add_tag($plan_ids, $tags)>
+
+ Description: Add one or more tags to the selected test plans.
+ 
+ Params:      $plan_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an arry of plan_ids or aliases, or a string of comma separated plan_ids.
+              
+              $tags - String/Array - A single tag, an array of tags,
+                  or a comma separated list of tags. 
+                       
+ Returns:     undef/Array: undef on success or an array of hashes with failure 
+              codes if a failure occured.
+
+=item C<create($values)>
+ 
+ Description: Creates a new Test Plan object and stores it in the database.
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the test plan to be created. 
+              
+ 
+ Returns:     The newly created object hash.
+ 
+=item C<get($plan_id)>
+
+ Description: Used to load an existing test plan from the database.
+ 
+ Params:      $id - Integer/String: An integer representing the ID in the database
+                    for this plan.
+                       
+ Returns:     A blessed Bugzilla::Testopia::TestPlan object hash
+ 
+=item C<get_change_history($plan_id)>
+
+ Description: Get the list of changes to the fields of this plan.
+ 
+ Params:      $plan_id - Integer/String: An integer representing the ID in the database
+                    or a string representing the unique alias for this plan.
+                       
+ Returns:     Array: An array of hashes with changed fields and their details.
+ 
+=item C<get_tags($plan_id)>
+
+ Description: Get the list of tags attached to this plan.
+ 
+ Params:      $plan_id - Integer/String: An integer representing the ID in the database
+                    or a string representing the unique alias for this plan.
+                       
+ Returns:     Array: An array of tag object hashes.
+ 
+=item C<get_test_cases($plan_id)>
+
+ Description: Get the list of cases that this plan is linked to.
+ 
+ Params:      $plan_id - Integer/String: An integer representing the ID in the database
+                    for this plan.
+                       
+ Returns:     Array: An array of test case object hashes.
+ 
+=item C<get_test_runs($plan_id)>
+
+ Description: Get the list of runs in this plan.
+ 
+ Params:      $plan_id - Integer/String: An integer representing the ID in the database
+                    for this plan.
+                       
+ Returns:     Array: An array of test run object hashes.
+ 
+=item C<get_text($plan_id, $version)>
+
+ Description: The associated large text fields: Action, Expected Results, Setup, Breakdown
+              for a given version.
+ 
+ Params:      $plan_id - Integer/String: An integer representing the ID in the database
+                    or a string representing the unique alias for this plan.
+              
+              $version - Integer: (OPTIONAL) The version of the text you want returned.
+                    Defaults to the latest.
+                       
+ Returns:     Hash: Text fields and values.
+ 
+=item C<list($query)>
+ 
+ Description: Performs a search and returns the resulting list of test plans.
+              
+ Params:      $query - Hash: keys must match valid search fields.
+
+    +--------------------------------------------------------+
+    |                 Plan Search Parameters                 |
+    +--------------------------------------------------------+
+    |        Key          |          Valid Values            |
+    | author              | A bugzilla login (email address) |
+    | author_type         | (select from email_variants)     |
+    | plan_id             | comma separated integers         |
+    | plan_text           | String                           |
+    | plan_text_type      | (select from query_variants)     |
+    | plan_type           | String: Product Name             |
+    | product             | String: Product Name             |
+    | product_id          | Integer                          |
+    | tags                | String                           |
+    | tags_type           | (select from tag_variants)       |
+    | type_id             | Integer                          |
+    | version             | String: Product version          |
+    +--------------------------------------------------------+
+    
+    +--------------------------------------------------------+
+    |                Paging and Sorting                      |
+    +--------------------------------------------------------+
+    |      Key       |            Description                |
+    | dir            | "ASC" or "DESC"                       |
+    | order          | field to sort by                      |
+    +--------------------------------------------------------+
+    | page_size      | integer: how many per page            |
+    | page           | integer: page number                  |
+    |            +++++++ OR +++++++                          |
+    | start          | integer: Start with which record      |
+    | limit          | integer: limit to how many            |
+    +--------------------------------------------------------+
+    | viewall        | 1: returns all records 0: first 25    |
+    +--------------------------------------------------------+
+    
+    +----------------------------------------------------+
+    |                 query_variants                     |
+    +----------------+-----------------------------------+
+    |      Key       |            Description            |
+    | allwordssubstr | contains all of the words/strings |
+    | anywordssubstr | contains any of the words/strings |
+    | substring      | contains the string               |
+    | casesubstring  | contains the string (exact case)  |
+    | allwords       | contains all of the words         |
+    | anywords       | contains any of the words         |
+    | regexp         | matches the regexp                |
+    | notregexp      | doesn't match the regexp          |
+    +----------------+-----------------------------------+
+    
+            +-------------------------------------+
+            |            email_variants           |
+            +--------------+----------------------+
+            |      Key     |      Description     |
+            | substring    | contains             |
+            | exact        | is                   |
+            | regexp       | matches regexp       |
+            | notregexp    | doesn't match regexp |
+            +--------------+----------------------+
+    
+    +----------------------------------------------------+
+    |                    tag_variants                    |
+    +----------------+-----------------------------------+
+    |      Key       |            Description            |
+    | anyexact       | is tagged with                    |
+    | allwordssubstr | contains all of the words/strings |
+    | anywordssubstr | contains any of the words/strings |
+    | substring      | contains the string               |
+    | casesubstring  | contains the string (exact case)  |
+    | regexp         | matches the regexp                |
+    | notregexp      | doesn't match the regexp          |
+    | allwords       | contains all of the words         |
+    | anywords       | contains any of the words         |
+    | nowords        | contains none of the words        | 
+    +----------------------------------------------------+
+    
+ Returns:     Array: Matching test plans are retuned in a list of hashes.
+ 
+=item C<lookup_type_id_by_name>
+
+ Params:      $name - String: the status name. 
+ 
+ Returns:     Integer: ID of the plan type.
+ 
+=item C<lookup_type_name_by_id>
+
+ Params:      $id - Integer: ID of the plan stype to return
+ 
+ Returns:     String: the type name.
+
+=item C<remove_tag($plan_id, $tag)>
+
+ Description: Remove a tag from a plan.
+ 
+ Params:      $plan_id - Integer/String: An integer or alias representing the ID in the database.
+              
+              $tag - String - A single tag to be removed. 
+                       
+ Returns:     0 on success.
+
+=item C<update($ids, $values)>
+ 
+ Description: Updates the fields of the selected test plan.
+              
+ Params:      $ids - Integer: A single TestPlan ID.
+                     
+              $values - Hash of keys matching TestPlan fields and the new values 
+              to set each field to.
+ 
+ Returns:     Hash: The updated test plan object.
+
+=back
+
+=head1 SEE ALSO
+
+=over
+
+L<Bugzilla::Testopia::TestPlan>
+L<Bugzilla::Webservice> 
+
+=back
+
+=head1 AUTHOR
+
+Greg Hendricks <ghendricks@novell.com>

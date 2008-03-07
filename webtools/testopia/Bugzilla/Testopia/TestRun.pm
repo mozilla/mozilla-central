@@ -146,7 +146,7 @@ sub _check_summary{
 sub _check_manager {
     my ($invocant, $login) = @_;
     $login = trim($login);
-    return unless $login;
+    ThrowUserError('testopia-missing-required-field', {'field' => 'manager'}) unless $login;
     if ($login =~ /^\d+$/){
         $login = Bugzilla::User->new($login);
         return $login->id;

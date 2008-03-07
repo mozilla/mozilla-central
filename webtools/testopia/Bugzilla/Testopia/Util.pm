@@ -38,7 +38,7 @@ use strict;
 use base qw(Exporter);
 @Bugzilla::Testopia::Util::EXPORT = qw(get_test_field_id get_time_stamp 
                                        validate_test_id validate_selection
-                                       support_server_push
+                                       support_server_push process_list
                                        percentage);
 
 use Bugzilla;
@@ -200,6 +200,23 @@ sub log_activity {
               undef, ($obj_id, $field_id, Bugzilla->user->id,
               $timestamp, $oldvalue, $newvalue));
     
+}
+
+sub process_list { 
+    my ($ids) = @_;
+    
+    my @ids;
+    if (ref $ids eq 'ARRAY'){
+        @ids = @$ids;
+    }
+    elsif ($ids =~ /,/){
+        @ids = split(/[\s,]+/, $ids);
+    }
+    else {
+        push @ids, $ids;
+    }
+    
+    return @ids;
 }
 
 =head1 AUTHOR
