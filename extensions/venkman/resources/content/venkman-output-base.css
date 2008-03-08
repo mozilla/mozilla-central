@@ -54,6 +54,8 @@ a.venkman-link:hover {
 .msg {                                      /* .msg = a single message in the */
     width: 100%;                            /* output window                  */
     font: 11pt lucida, sans-serif;
+    /* need to set this twice for back+forward compat, see bug 418543 */
+    white-space: -moz-pre-wrap;
     white-space: pre-wrap;
 }
 
