@@ -145,6 +145,15 @@ libs-%:
 	@$(MAKE) -C ../../extensions/spellcheck/locales AB_CD=$* XPI_NAME=locale-$*
 	@$(MAKE) libs AB_CD=$* XPI_NAME=locale-$* PREF_DIR=defaults/pref
 
+ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
+MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
+MOZ_PKG_MAC_BACKGROUND=$(_ABS_DIST)/branding/background.png
+MOZ_PKG_MAC_ICON=$(_ABS_DIST)/branding/disk.icns
+MOZ_PKG_MAC_EXTRA=--format UDBZ \
+                  --symlink "/Applications: " \
+                  --copy "$(_ABS_DIST)/bin/README.txt"
+endif
+
 PACKAGER_NO_LIBS = 1
 include $(topsrcdir)/toolkit/mozapps/installer/packager.mk
 include $(call EXPAND_LOCALE_SRCDIR,toolkit/locales)/installer/windows/charset.mk

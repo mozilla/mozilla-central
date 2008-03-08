@@ -259,6 +259,15 @@ endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
+# copy .dmg contents into obj dir branding
+export::
+ifndef MOZ_BRANDING_DIRECTORY
+	$(NSINSTALL) -D $(DIST)/branding
+	cp $(topsrcdir)/suite/branding/package/mac/dsstore $(DIST)/branding/dsstore
+	cp $(topsrcdir)/suite/branding/package/mac/background.png $(DIST)/branding/background.png
+	cp $(topsrcdir)/suite/branding/package/mac/disk.icns $(DIST)/branding/disk.icns
+endif
+
 AB := $(firstword $(subst -, ,$(AB_CD)))
 
 ifdef MOZ_DEBUG
