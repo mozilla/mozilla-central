@@ -502,6 +502,8 @@ a.chatzilla-link:hover {
 .msg-data {                                 /* .msg-data = the text portion   */
     padding: 1px 1px 1px 3px;               /* of a message                   */
     width: 100%;
+    /* need to set this twice for back+forward compat, see bug 418543 */
+    white-space: -moz-pre-wrap;
     white-space: pre-wrap;
 }
 
