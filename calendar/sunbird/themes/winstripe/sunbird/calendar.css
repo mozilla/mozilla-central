@@ -115,7 +115,7 @@ separator.tooltipBodySeparator {
 
 description.tooltipBody {
   font-weight: normal;
-  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
   margin: 0px;
 }
 

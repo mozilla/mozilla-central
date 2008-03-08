@@ -61,7 +61,7 @@ td.content {
        background-color: white;
 }
 td.content p {
-       white-space: -moz-pre-wrap;
+       white-space: pre-wrap;
 }
 p.header {
        color: white;

@@ -54,7 +54,7 @@ a.venkman-link:hover {
 .msg {                                      /* .msg = a single message in the */
     width: 100%;                            /* output window                  */
     font: 11pt lucida, sans-serif;
-    white-space: -moz-pre-wrap;
+    white-space: pre-wrap;
 }
 
 .msg[monospace] { 

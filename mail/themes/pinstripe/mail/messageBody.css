@@ -76,7 +76,7 @@ blockquote {
 }
 
 .moz-text-plain[wrap="true"] {
-  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
 }
 
 .moz-text-plain[wrap="false"] {
@@ -84,7 +84,7 @@ blockquote {
 }
 
 .moz-text-plain[wrap="flow"] .moz-txt-sig {
-  white-space: -moz-pre-wrap;
+  white-space: pre-wrap;
 }
 
 .moz-text-plain[graphical-quote="false"] blockquote {
