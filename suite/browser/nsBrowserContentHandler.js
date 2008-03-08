@@ -50,6 +50,7 @@ const nsIFactory             = Components.interfaces.nsIFactory;
 const nsIFileURL             = Components.interfaces.nsIFileURL;
 const nsIHttpProtocolHandler = Components.interfaces.nsIHttpProtocolHandler;
 const nsINetUtil             = Components.interfaces.nsINetUtil;
+const nsIIOService           = Components.interfaces.nsIIOService;
 const nsIPrefService         = Components.interfaces.nsIPrefService;
 const nsIPrefBranch          = Components.interfaces.nsIPrefBranch;
 const nsIPrefLocalizedString = Components.interfaces.nsIPrefLocalizedString;
@@ -80,11 +81,13 @@ function shouldLoadURI(aURI)
 function resolveURIInternal(aCmdLine, aArgument)
 {
   try {
-    var uri = aCmdLine.resolveURI(aArgument);
-    if (!(uri instanceof nsIFileURL) || uri.file.exists())
-      return uri;
+    var file = aCmdLine.resolveFile(aArgument);
+    if (file.exists()) {
+      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                .getService(nsIIOService);
+      return ioService.newFileURI(file);
+    }
   } catch (e) {
-    Components.utils.reportError(e);
   }
 
   // We have interpreted the argument as a relative file URI, but the file
@@ -94,12 +97,13 @@ function resolveURIInternal(aCmdLine, aArgument)
     var urifixup = Components.classes["@mozilla.org/docshell/urifixup;1"]
                              .getService(nsIURIFixup);
 
-    uri = urifixup.createFixupURI(aArgument, 0);
+    return urifixup.createFixupURI(aArgument,
+                                   nsIURIFixup.FIXUP_FLAG_ALLOW_KEYWORD_LOOKUP);
   } catch (e) {
     Components.utils.reportError(e);
   }
 
-  return uri;
+  return null;
 }
 
 function getHomePageGroup(prefs)

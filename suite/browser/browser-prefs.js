@@ -159,6 +159,7 @@ pref("browser.translation.serviceDomain", "chrome://navigator-region/locale/regi
 // Smart Browsing prefs
 pref("browser.related.provider", "http://www-rl.netscape.com/wtgn?");
 pref("browser.related.disabledForDomains", "");
+pref("keyword.enabled", true);
 pref("keyword.moreInfoURL", "chrome://branding/locale/brand.properties");
 
 //Internet Search
