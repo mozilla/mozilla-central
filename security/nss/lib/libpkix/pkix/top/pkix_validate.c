@@ -939,7 +939,9 @@ pkix_CheckChain(
                     continue;
                 }
 
+#ifdef PR_LOGGING
                 pkix_trace_dump_cert("pkix_CheckChain", cert, plContext);
+#endif
 
                 if (revChecking == PKIX_FALSE) {
 

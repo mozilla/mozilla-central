@@ -1514,12 +1514,13 @@ pkix_CacheCrlEntry_Add(
         PKIX_List* crlEntryList,
         void *plContext);
 
+#ifdef PR_LOGGING
 void
 pkix_trace_dump_cert(
         const char *info, 
         PKIX_PL_Cert *cert, 
         void *plContext);
-
+#endif
 
 #ifdef __cplusplus
 }

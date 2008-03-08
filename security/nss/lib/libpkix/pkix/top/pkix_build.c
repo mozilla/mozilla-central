@@ -48,36 +48,41 @@
 
 extern PRLogModuleInfo *pkixLog;
 
+#ifdef PR_LOGGING
 void
 pkix_trace_dump_cert(const char *info, PKIX_PL_Cert *cert, void *plContext)
 {
-        PKIX_PL_String *unString;
-        char *unAscii;
-        PKIX_UInt32 length;
-
         PKIX_ENTER(FORWARDBUILDERSTATE, "pkix_trace_dump_cert");
 
-        PKIX_TOSTRING
-                ((PKIX_PL_Object*)cert,
-                &unString,
-                plContext,
-                PKIX_OBJECTTOSTRINGFAILED);
-
-        PKIX_PL_String_GetEncoded
-                    (unString,
-                    PKIX_ESCASCII,
-                    (void **)&unAscii,
-                    &length,
-                    plContext);
-
-        PKIX_DEBUG_ARG("====> %s\n", info);
-        PKIX_DEBUG_ARG("====> cert: %s\n", unAscii);
-        PKIX_DECREF(unString);
-        PKIX_FREE(unAscii);
+        if (pkixLog && PR_LOG_TEST(pkixLog, PR_LOG_DEBUG)) {
+            PKIX_PL_String *unString;
+            char *unAscii;
+            PKIX_UInt32 length;
+    
+            PKIX_TOSTRING
+                    ((PKIX_PL_Object*)cert,
+                    &unString,
+                    plContext,
+                    PKIX_OBJECTTOSTRINGFAILED);
+    
+            PKIX_PL_String_GetEncoded
+                        (unString,
+                        PKIX_ESCASCII,
+                        (void **)&unAscii,
+                        &length,
+                        plContext);
+    
+            PR_LOG(pkixLog, PR_LOG_DEBUG, ("====> %s\n", info));
+            PR_LOG(pkixLog, PR_LOG_DEBUG, ("====> cert: %s\n", unAscii));
+    
+            PKIX_DECREF(unString);
+            PKIX_FREE(unAscii);
+        }
 
 cleanup:
 return;
 }
+#endif
 
 /*
  * List of critical extension OIDs associate with what build chain has
@@ -2662,9 +2667,11 @@ pkix_BuildForwardDepthFirstSearch(
                                     PKIX_VERIFYNODECREATEFAILED);
                     }
 
+#ifdef PR_LOGGING
                     pkix_trace_dump_cert(
                       "pkix_BuildForwardDepthFirstSearch calling pkix_Build_VerifyCertificate",
                       state->candidateCert, plContext);
+#endif
 
                     /* If failure, this function sets Error in verifyNode */
                     verifyError = pkix_Build_VerifyCertificate
