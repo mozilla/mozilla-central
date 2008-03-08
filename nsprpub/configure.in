@@ -135,6 +135,8 @@ dist_prefix='${MOD_DEPTH}/dist'
 dist_bindir='${dist_prefix}/bin'
 dist_includedir='${dist_prefix}/include/nspr'
 dist_libdir='${dist_prefix}/lib'
+dnl If the --includedir option was not specified, add '/nspr' to autoconf's
+dnl default value of includedir.
 if test "${includedir}" = '${prefix}/include'; then
     includedir='${prefix}/include/nspr'
 fi
