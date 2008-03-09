@@ -573,7 +573,7 @@ calStorageCalendar.prototype = {
                                            Components.results.NS_OK,
                                            aListener.DELETE,
                                            aItem.id,
-                                           null);
+                                           aItem);
 
         // notify observers 
         this.mObservers.notify("onDeleteItem", [aItem]);
