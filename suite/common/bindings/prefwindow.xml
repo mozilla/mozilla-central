@@ -333,7 +333,7 @@
             this.currentPane = paneToLoad;
           }
           if (this.currentPane)
-            this.syncTreeWithPane(this.currentPane);
+            this.syncTreeWithPane(this.currentPane, true);
         ]]>
         </body>
       </method>
@@ -395,6 +395,7 @@
 
       <method name="syncTreeWithPane">
         <parameter name="aPane"/>
+        <parameter name="aExpand"/>
         <body>
         <![CDATA[
           if (this._navigationTree && aPane)
@@ -402,7 +403,9 @@
             if ('preftreeitem' in aPane)
             {
               // make sure the treeitem is visible
-              var container = aPane.preftreeitem.parentNode.parentNode;
+              var container = aPane.preftreeitem;
+              if (!aExpand)
+                container = container.parentNode.parentNode;
               while (container != this._navigationTree)
               {
                 container.setAttribute('open', true);
@@ -434,7 +437,7 @@
         {
           // deck.selectedIndex is a string!
           var pane = this.preferencePanes[Number(target.selectedIndex)];
-          this.syncTreeWithPane(pane);
+          this.syncTreeWithPane(pane, false);
         }
       ]]>
       </handler>
@@ -443,7 +446,7 @@
       <![CDATA[
         // panes may load asynchronously,
         // so we have to "late-sync" those to our navigation tree
-        this.syncTreeWithPane(event.originalTarget);
+        this.syncTreeWithPane(event.originalTarget, false);
       ]]>
       </handler>
     </handlers>
