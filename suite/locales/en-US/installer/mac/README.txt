@@ -1,107 +1,118 @@
-==========================================================================
+  = = = = = = = = = = = = = = SeaMonkey Read Me = = = = = = = = = = = = = = =
 
-= = = = = = = = = = = = =  SeaMonkey Read Me   = = = = = = = = = = = = = =
+  Thank you for downloading SeaMonkey. This file contains information on the
+  following topics:
+  
+  - System & Hardware Requirements
+  - Installation
+  - Where Information is Stored
+  - Uninstallation
+  - Getting SeaMonkey
+  - More Information & Feedback
+  - License
 
-==========================================================================
-
-SeaMonkey is subject to the terms detailed in the license agreement
-accompanying it.
-
-This Read Me file contains information about system requirements and
-installation instructions for the Mac OS builds of SeaMonkey.
-
-For more info on SeaMonkey, see http://www.seamonkey-project.org/
-To submit bugs or other feedback, see
-http://www.seamonkey-project.org/dev/get-involved and check out Bugzilla
-at https://bugzilla.mozilla.org/ for links to known bugs, bug-writing
-guidelines, and more. You can also get help with Bugzilla by pointing your
-IRC client to #mozillazine at irc.mozilla.org.
-
-
-==========================================================================
-
-                          Getting SeaMonkey
-
-==========================================================================
-
-You can download nightly builds of SeaMonkey from the mozilla.org FTP site
-at
-
-  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/
-
-For the very latest builds, see
-
-  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/
-
-Keep in mind that nightly builds, which are used by mozilla.org developers
-for testing, may be buggy. If you are looking for a more polished version
-of SeaMonkey, the SeaMonkey project releases builds of SeaMonkey regularly
-that you can download from
-
-  http://www.seamonkey-project.org/releases/
-
-Be sure to read the SeaMonkey release notes for information on known
-problems and installation issues with SeaMonkey.  The release notes can be
-found at the preceding URL along with the releases themselves.
+  For information on known problems and installation issues, please read the
+  release notes. They can be found along with the releases at
+  
+  http://www.seamonkey-project.org/releases/.
 
 
-==========================================================================
+  System & Hardware Requirements
+  ------------------------------
 
-                         System Requirements
+  System Requirements:
 
-==========================================================================
-
-* Mac OS
-
-   - Mac OS X 10.4 or later
-   - PowerPC G3/G4/G5 or Intel processor
-   - 256 MB RAM
-   - 100 MB of free hard disk space
+  - Mac OS X 10.4 and later
 
 
-==========================================================================
+  Hardware Requirements:
 
-                      Installation Instructions
+  - Macintosh computer with an Intel x86 or PowerPC G3/G4/G5 processor
+  - 256 MB RAM
+  - 200 MB of free hard disk space
 
-==========================================================================
 
-It is strongly recommended that you exit all programs before running the
-setup program. Also, you should temporarily disable virus-detection
-software.
+  Installation
+  ------------
 
-Install into a clean (new) directory. Installing on top of previously
-released builds may cause problems.
+  To install SeaMonkey, follow these steps:
 
-Note: These instructions do not tell you how to build SeaMonkey.
-For info on building SeaMonkey from the mozilla.org source code, see
+  1. Drag the SeaMonkey application icon to the Applications folder
 
-  http://developer.mozilla.org/en/docs/Build_Documentation
+  2. Eject the disk image
 
-Mac OS X Installation Instructions
-----------------------------------
+  3. If you want SeaMonkey to be accessible from the Dock, drag the SeaMonkey
+     icon from the Applications folder to the Dock
 
-   To install SeaMonkey by downloading the SeaMonkey disk image,
-   follow these steps:
 
-   1. Click the link to seamonkey-x.xx.en-US.mac.dmg (or similar file
-      name) to download it to your machine. By default, the file
-      is downloaded to your desktop.
+  Where Information is Stored
+  ---------------------------
 
-   2. Once you have downloaded the .dmg file, if the disk image doesn't
-      mount automatically, double-click on the .dmg file to mount it. If
-      that fails, and the file does not look like a disk image file, do a
-      "Show Info" on the file, and, in the "Open with application"
-      category, choose Disk Copy. You can also use "Open with" from the
-      context menu.
+  When you run SeaMonkey for the first time, a "SeaMonkey" folder is created in
 
-   3. Once the disk image mounts, open it, and drag the SeaMonkey icon
-      onto your hard disk.
+  ~/Library/Application Support/ (where ~ is your home directory).
 
-   4. We recommend that you copy it to the Applications folder.
+  Your personal settings, bookmarks, e-mail, passwords etc. are stored in a
+  profile folder inside the SeaMonkey folder. The profile folder is located at
 
-   5. Now Eject the disk image.
+  ~/Library/Application Support/SeaMonkey/Profiles/[randomString.profileName].
 
-   6. If you like, you can drag SeaMonkey to your dock to have it easily
-      accessible at all times. You might also wish to select SeaMonkey as
-      your default browser in the Internet system preferences pane (under
-      the Web tab).
+  SeaMonkey stores its cache in ~/Library/Cache/SeaMonkey. Certain settings
+  (like the last root folder used by the Save dialog) are stored in
+
+  ~/Library/Preferences/org.mozilla.seamonkey.plist.
+
+
+  Uninstallation
+  --------------
+
+  To uninstall SeaMonkey (but keep your personal settings, bookmarks etc.),
+  simply drag the SeaMonkey icon from your Applications folder to the Trash.
+
+  To completely remove all traces of SeaMonkey from your computer
+  (including your personal settings, bookmarks, e-mail, passwords etc.),
+  follow these steps:
+
+  1. Drag the SeaMonkey icon from your Applications folder to the Trash
+
+  2. Drag the ~/Library/Application Support/SeaMonkey folder to the Trash
+
+  3. Drag the ~/Library/Cache/SeaMonkey folder to the Trash
+
+  4. Drag the ~/Library/Preferences/org.mozilla.seamonkey.plist file to the
+     trash
+
+
+  Getting SeaMonkey
+  -----------------
+
+  For testing purposes, nightly builds of SeaMonkey are provided regularly.
+  They reflect the current development and may be buggy.
+
+  Nightly builds from various dates are available on the mozilla.org FTP site
+  at http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/.
+
+  For the very latest builds, see
+
+  http://ftp.mozilla.org/pub/mozilla.org/seamonkey/nightly/latest-trunk/.
+
+  If you are looking for a more polished version of SeaMonkey, you can download
+  official releases from
+  
+  http://www.seamonkey-project.org/releases/.
+
+  More Information & Feedback
+  ---------------------------
+
+  For more info on SeaMonkey, see http://www.seamonkey-project.org/. To submit
+  bugs or other feedback, see http://www.seamonkey-project.org/dev/get-involved
+  and check out Bugzilla at https://bugzilla.mozilla.org/ for known bugs,
+  bug-writing guidelines, and more. You can also get help with Bugzilla by
+  pointing your IRC client to #mozillazine at irc.mozilla.org.
+
+
+  License
+  -------
+
+  SeaMonkey is subject to the terms detailed in the license agreement
+  available at http://www.mozilla.org/legal/eula/seamonkey-en.html.
