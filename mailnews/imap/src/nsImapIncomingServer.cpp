@@ -103,7 +103,6 @@ NS_IMPL_RELEASE_INHERITED(nsImapIncomingServer, nsMsgIncomingServer)
 NS_INTERFACE_MAP_BEGIN(nsImapIncomingServer)
   NS_INTERFACE_MAP_ENTRY(nsIImapServerSink)
   NS_INTERFACE_MAP_ENTRY(nsIImapIncomingServer)
-  NS_INTERFACE_MAP_ENTRY(nsIMsgLogonRedirectionRequester)
   NS_INTERFACE_MAP_ENTRY(nsISubscribableServer)
   NS_INTERFACE_MAP_ENTRY(nsIUrlListener)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
@@ -113,8 +112,6 @@ nsImapIncomingServer::nsImapIncomingServer()
   m_connectionCache = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_urlQueue = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_capability = kCapabilityUndefined;
-  m_waitingForConnectionInfo = PR_FALSE;
-  m_redirectedLogonRetries = 0;
   mDoingSubscribeDialog = PR_FALSE;
   mDoingLsub = PR_FALSE;
   m_canHaveFilters = PR_TRUE;
@@ -2117,186 +2114,6 @@ NS_IMETHODIMP nsImapIncomingServer::GetManageMailAccountUrl(nsACString& manageMa
 {
   manageMailAccountUrl = m_manageMailAccountUrl;
   return NS_OK;
-}
-
-nsresult nsImapIncomingServer::RequestOverrideInfo(nsIMsgWindow *aMsgWindow)
-{
-  nsresult rv;
-  nsCAutoString contractID(NS_MSGLOGONREDIRECTORSERVICE_CONTRACTID);
-  contractID.Append('/');
-  m_logonRedirector = do_GetService(contractID.get(), &rv);
-  if (m_logonRedirector && NS_SUCCEEDED(rv))
-  {
-    nsCOMPtr <nsIMsgLogonRedirectionRequester> logonRedirectorRequester;
-    rv = QueryInterface(NS_GET_IID(nsIMsgLogonRedirectionRequester), getter_AddRefs(logonRedirectorRequester));
-    if (NS_SUCCEEDED(rv))
-    {
-      nsCAutoString password;
-      nsCAutoString userName;
-      PRBool requiresPassword = PR_TRUE;
-      GetRealUsername(userName);
-      m_logonRedirector->RequiresPassword(userName.get(), &requiresPassword);
-      if (requiresPassword)
-      {
-        GetPassword(password);
-
-        if (password.IsEmpty())
-          PromptForPassword(password, aMsgWindow);
-
-        if (password.IsEmpty())  // if still empty then the user canceld out of the password dialog
-        {
-          // be sure to clear the waiting for connection info flag because we aren't waiting
-          // anymore for a connection...
-          m_waitingForConnectionInfo = PR_FALSE;
-          return NS_OK;
-        }
-      }
-      else
-        SetUserAuthenticated(PR_TRUE);  // we are already authenicated
-      nsCOMPtr<nsIPrompt> dialogPrompter;
-      if (aMsgWindow)
-        aMsgWindow->GetPromptDialog(getter_AddRefs(dialogPrompter));
-      rv = m_logonRedirector->Logon(userName.get(), password.get(),
-                                    dialogPrompter, logonRedirectorRequester,
-                                    nsMsgLogonRedirectionServiceIDs::Imap);
-      if (NS_FAILED(rv))
-        return OnLogonRedirectionError(nsnull, PR_TRUE);
-    }
-  }
-  return rv;
-}
-
-NS_IMETHODIMP nsImapIncomingServer::OnLogonRedirectionError(const PRUnichar *pErrMsg, PRBool badPassword)
-{
-  nsresult rv = NS_OK;
-  nsString progressString;
-  GetImapStringByID(IMAP_REDIRECT_LOGIN_FAILED, progressString);
-
-  nsCOMPtr<nsIMsgWindow> msgWindow;
-  PRUint32 urlQueueCnt = 0;
-  // pull the url out of the queue so we can get the msg window, and try to rerun it.
-  m_urlQueue->Count(&urlQueueCnt);
-
-  nsCOMPtr<nsISupports> aSupport;
-  nsCOMPtr<nsIImapUrl> aImapUrl;
-  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl;
-  if (urlQueueCnt > 0)
-  {
-    aSupport = getter_AddRefs(m_urlQueue->ElementAt(0));
-    aImapUrl = do_QueryInterface(aSupport, &rv);
-    mailnewsUrl = do_QueryInterface(aSupport, &rv);
-  }
-
-  if (mailnewsUrl)
-    mailnewsUrl->GetMsgWindow(getter_AddRefs(msgWindow));
-
-  // don't put up alert if no msg window - it means we're biffing.
-  if (msgWindow)
-    FEAlert(progressString, msgWindow);
-
-  // If password is bad then clean up all cached passwords.
-  if (badPassword)
-    ForgetPassword();
-
-  PRBool resetUrlState = PR_FALSE;
-  if (badPassword && ++m_redirectedLogonRetries <= 3)
-  {
-    // this will force a reprompt for the password.
-    // ### DMB TODO display error message?
-    if (urlQueueCnt > 0)
-    {
-      nsCOMPtr <nsIImapProtocol> imapProtocol;
-
-      if (aImapUrl)
-      {
-        nsCOMPtr <nsIImapProtocol>  protocolInstance ;
-        m_waitingForConnectionInfo = PR_FALSE;
-        rv = GetImapConnection(NS_GetCurrentThread(), aImapUrl,
-                               getter_AddRefs(protocolInstance));
-        // If users cancel the login then we need to reset url state.
-        if (rv == NS_BINDING_ABORTED)
-          resetUrlState = PR_TRUE;
-      }
-    }
-  }
-  else
-    resetUrlState = PR_TRUE;
-
-  // Either user cancel (2nd, 3rd or 4th) login or all tries fail we'll
-  // have to reset url state so that next login will work correctly.
-  if  (resetUrlState)
-  {
-    m_redirectedLogonRetries = 0; // reset so next attempt will start at 0.
-    m_waitingForConnectionInfo = PR_FALSE;
-    if (urlQueueCnt > 0)
-    {
-      // Reset url state.
-      if (mailnewsUrl)
-        mailnewsUrl->SetUrlState(PR_FALSE, NS_MSG_ERROR_URL_ABORTED);
-
-      m_urlQueue->RemoveElementAt(0);
-      m_urlConsumers.RemoveElementAt(0);
-    }
-  }
-
-  return rv;
-}
-
-  /* Logon Redirection Progress */
-NS_IMETHODIMP nsImapIncomingServer::OnLogonRedirectionProgress(nsMsgLogonRedirectionState pState)
-{
-  return NS_OK;
-}
-
-  /* reply with logon redirection data. */
-NS_IMETHODIMP nsImapIncomingServer::OnLogonRedirectionReply(const PRUnichar *pHost, unsigned short pPort, const char *pCookieData,  unsigned short pCookieSize)
-{
-  PRBool urlRun = PR_FALSE;
-  nsresult rv;
-  nsCOMPtr <nsIImapProtocol> imapProtocol;
-  nsCAutoString cookie(pCookieData, pCookieSize);
-  // we used to logoff the external requestor...we no longer need to do that.
-
-  m_redirectedLogonRetries = 0; // we got through, so reset this counter.
-
-  PRUint32 cnt = 0;
-
-  m_urlQueue->Count(&cnt);
-  if (cnt > 0)
-  {
-    nsCOMPtr<nsIImapUrl> aImapUrl(do_QueryElementAt(m_urlQueue, 0, &rv));
-
-    if (aImapUrl)
-    {
-      nsCOMPtr<nsISupports> aConsumer = (nsISupports*)m_urlConsumers.ElementAt(0);
-
-      nsCOMPtr <nsIImapProtocol>  protocolInstance ;
-      rv = GetImapConnection(NS_GetCurrentThread(), aImapUrl,
-                             getter_AddRefs(protocolInstance));
-      m_waitingForConnectionInfo = PR_FALSE;
-      if (NS_SUCCEEDED(rv) && protocolInstance)
-      {
-        protocolInstance->OverrideConnectionInfo(pHost, pPort, cookie.get());
-        nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl, &rv);
-        if (NS_SUCCEEDED(rv) && url)
-        {
-          rv = protocolInstance->LoadImapUrl(url, aConsumer);
-          urlRun = PR_TRUE;
-        }
-
-        m_urlQueue->RemoveElementAt(0);
-        m_urlConsumers.RemoveElementAt(0);
-      }
-    }
-  }
-  else
-  {
-    m_waitingForConnectionInfo = PR_FALSE;
-    NS_ASSERTION(PR_FALSE, "got redirection response with no queued urls");
-  // Need to clear this even if we don't have any urls in the queue.
-  // Otherwise, we'll never clear it and we'll never request override info.
-  }
-  return rv;
 }
 
 NS_IMETHODIMP

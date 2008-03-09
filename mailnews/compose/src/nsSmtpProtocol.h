@@ -42,7 +42,6 @@
 #include "nsIStreamListener.h"
 #include "nsISmtpUrl.h"
 #include "nsIMsgStatusFeedback.h"
-#include "nsIMsgLogonRedirector.h"
 #include "nsMsgLineBuffer.h"
 #include "nsIAuthModule.h"
 
@@ -88,20 +87,6 @@ SMTP_SEND_AUTH_GSSAPI_STEP                          // 25
 #define SMTP_EHLO_STARTTLS_ENABLED      0x00000008
 #define SMTP_EHLO_SIZE_ENABLED          0x00000010
 
-// if we are using a login redirection
-// and we are waiting for it to give us the
-// host and port to connect to, then this flag
-// will be set...
-#define SMTP_WAIT_FOR_REDIRECTION       0x00000020
-// if we are using login redirection and we received a load Url
-// request while we were stil waiting for the redirection information
-// then we'll look in this field 
-#define SMTP_LOAD_URL_PENDING           0x00000040
-// if we are using login redirection, then this flag will be set.
-// Note, this is different than the flag for whether we are waiting
-// for login redirection information.
-#define SMTP_USE_LOGIN_REDIRECTION      0x00000080
-
 // insecure mechanisms follow
 #define SMTP_AUTH_LOGIN_ENABLED         0x00000100
 #define SMTP_AUTH_PLAIN_ENABLED         0x00000200
@@ -133,12 +118,10 @@ typedef enum _PrefTrySSL {
     PREF_SECURE_ALWAYS_SMTPS = 3
 } PrefTrySSL;
 
-class nsSmtpProtocol : public nsMsgAsyncWriteProtocol,
-                       public nsIMsgLogonRedirectionRequester
+class nsSmtpProtocol : public nsMsgAsyncWriteProtocol
 {
 public:
     NS_DECL_ISUPPORTS_INHERITED
-    NS_DECL_NSIMSGLOGONREDIRECTIONREQUESTER
 
     // Creating a protocol instance requires the URL which needs to be run.
     nsSmtpProtocol(nsIURI * aURL);
@@ -155,16 +138,10 @@ public:
     NS_IMETHOD OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status);
 
 private:
-    // logon redirection related variables and methods
-    nsresult RequestOverrideInfo(nsISmtpServer * aSmtpServer); // kicks off the request to get redirection info for the server
-    nsCString mLogonCookie; // an opaque cookie we pass to certain servers to logon
     // if we are asked to load a url while we are blocked waiting for redirection information,
     // then we'll store the url consumer in mPendingConsumer until we can actually load
     // the url.
     nsCOMPtr<nsISupports> mPendingConsumer;
-    // we cache the logon redirector in the short term so after we receive
-    // the redirect information we can logoff the redirector...
-    nsCOMPtr <nsIMsgLogonRedirector> m_logonRedirector;
 
     // the nsISmtpURL that is currently running
     nsCOMPtr<nsISmtpUrl> m_runningURL;

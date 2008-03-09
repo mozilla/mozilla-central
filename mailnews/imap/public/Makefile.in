@@ -61,7 +61,6 @@ XPIDLSRCS	= \
 		nsIMailboxSpec.idl \
 		nsIImapMailFolderSink.idl \
         	nsIMsgImapMailFolder.idl \
-		nsIMsgLogonRedirector.idl \
     nsIImapHeaderXferInfo.idl \
 		$(NULL)
 

@@ -45,7 +45,6 @@
 #include "nsMsgIncomingServer.h"
 #include "nsIImapServerSink.h"
 #include "nsIStringBundle.h"
-#include "nsIMsgLogonRedirector.h"
 #include "nsISubscribableServer.h"
 #include "nsIUrlListener.h"
 #include "nsAdapterEnumerator.h"
@@ -58,7 +57,6 @@ class nsIEventTarget;
 class nsImapIncomingServer : public nsMsgIncomingServer,
                              public nsIImapIncomingServer,
                              public nsIImapServerSink,
-                             public nsIMsgLogonRedirectionRequester,
                              public nsISubscribableServer,
                              public nsIUrlListener
 
@@ -75,7 +73,6 @@ public:
 
   NS_DECL_NSIIMAPINCOMINGSERVER
   NS_DECL_NSIIMAPSERVERSINK
-  NS_DECL_NSIMSGLOGONREDIRECTIONREQUESTER
   NS_DECL_NSISUBSCRIBABLESERVER
   NS_DECL_NSIURLLISTENER
 
@@ -123,7 +120,6 @@ private:
                                    nsIImapProtocol** aImapConnection);
   nsresult CreateProtocolInstance(nsIEventTarget *aEventTarget,
                                            nsIImapProtocol ** aImapConnection);
-  nsresult RequestOverrideInfo(nsIMsgWindow *aMsgWindow);
   nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName);
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, PRBool *urlDoomed);
@@ -141,13 +137,10 @@ private:
   nsCString         m_manageMailAccountUrl;
   PRPackedBool      m_readPFCName;
   PRPackedBool      m_userAuthenticated;
-  PRPackedBool      m_waitingForConnectionInfo;
   PRPackedBool      mDoingSubscribeDialog;
   PRPackedBool      mDoingLsub;
   PRPackedBool      m_shuttingDown;
   nsCString         m_pfcName;
-  PRInt32           m_redirectedLogonRetries;
-  nsCOMPtr<nsIMsgLogonRedirector> m_logonRedirector;
 
   // subscribe dialog stuff
   nsresult AddFolderToSubscribeDialog(const char *parentUri, const char *uri,const char *folderName);

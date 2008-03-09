@@ -77,7 +77,6 @@
 #include "nsCOMPtr.h"
 #include "nsIImapIncomingServer.h"
 #include "nsIMsgWindow.h"
-#include "nsIMsgLogonRedirector.h"
 #include "nsICacheListener.h"
 #include "nsIImapHeaderXferInfo.h"
 #include "nsMsgLineBuffer.h"

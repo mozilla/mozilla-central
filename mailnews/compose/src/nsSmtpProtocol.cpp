@@ -235,7 +235,6 @@ NS_IMPL_ADDREF_INHERITED(nsSmtpProtocol, nsMsgAsyncWriteProtocol)
 NS_IMPL_RELEASE_INHERITED(nsSmtpProtocol, nsMsgAsyncWriteProtocol)
 
 NS_INTERFACE_MAP_BEGIN(nsSmtpProtocol)
-    NS_INTERFACE_MAP_ENTRY(nsIMsgLogonRedirectionRequester)
 NS_INTERFACE_MAP_END_INHERITING(nsMsgAsyncWriteProtocol)
 
 nsSmtpProtocol::nsSmtpProtocol(nsIURI * aURL)
@@ -322,12 +321,6 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
         smtpServer->GetTrySecAuth(&m_prefTrySecAuth);
         smtpServer->GetHelloArgument(getter_Copies(m_helloArgument));
     }
-
-    rv = RequestOverrideInfo(smtpServer);
-    // if we aren't waiting for a login override, then go ahead an
-    // open the network connection like we normally would have.
-    if (NS_SUCCEEDED(rv) && TestFlag(SMTP_WAIT_FOR_REDIRECTION))
-        return;
 
 #if defined(PR_LOGGING)
     nsCAutoString hostName;
@@ -1041,9 +1034,8 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
           // if LOGIN enabled, clear it if we failed.
           ClearFlag(SMTP_AUTH_LOGIN_ENABLED);
 
-        // Only forget the password if we didn't get here from the redirection
-        // and if we've no mechanism left.
-        if (!TestFlag(SMTP_AUTH_ANY_ENABLED) && mLogonCookie.IsEmpty())
+        // Only forget the password if we've no mechanism left.
+        if (!TestFlag(SMTP_AUTH_ANY_ENABLED))
         {
             smtpServer->ForgetPassword();
             if (m_usernamePrompted)
@@ -1173,17 +1165,13 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
     if (username.IsEmpty() || password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
-  else if (!TestFlag(SMTP_USE_LOGIN_REDIRECTION))
+
+  GetPassword(getter_Copies(password));
+  if (password.IsEmpty())
   {
-    GetPassword(getter_Copies(password));
-    if (password.IsEmpty())
-    {
-      m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
-      return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
-    }
+    m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
+    return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
-  else
-    password.Assign(mLogonCookie);
 
   if (TestFlag(SMTP_AUTH_CRAM_MD5_ENABLED))
     PR_snprintf(buffer, sizeof(buffer), "AUTH CRAM-MD5" CRLF);
@@ -1243,17 +1231,12 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
   nsresult rv;
   nsCAutoString password;
 
-  if (!TestFlag(SMTP_USE_LOGIN_REDIRECTION))
+  GetPassword(getter_Copies(password));
+  if (password.IsEmpty())
   {
-    GetPassword(getter_Copies(password));
-    if (password.IsEmpty())
-    {
-      m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
-      return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
-    }
+    m_urlErrorState = NS_ERROR_SMTP_PASSWORD_UNDEFINED;
+    return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
-  else
-    password.Assign(mLogonCookie);
 
   if (!password.IsEmpty())
   {
@@ -1606,22 +1589,7 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
 
 nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
 {
-	nsresult rv = NS_OK;
-
-  // if we are currently waiting for login redirection information
-  // then hold off on loading the url....but be sure to remember
-  // aConsumer so we can use it later...
-  if (TestFlag(SMTP_WAIT_FOR_REDIRECTION))
-  {
-    // mark a pending load...
-    SetFlag(SMTP_LOAD_URL_PENDING);
-    mPendingConsumer = aConsumer;
-    return NS_OK;
-  }
-  else
-    ClearFlag(SMTP_LOAD_URL_PENDING);
-
-  // otherwise begin loading the url
+  nsresult rv = NS_OK;
 
   PRInt32 status = 0;
 	m_continuationResponse = -1;  /* init */
@@ -2023,112 +1991,4 @@ nsSmtpProtocol::GetUsernamePassword(char **aUsername, char **aPassword)
     rv = PromptForPassword(smtpServer, smtpUrl, formatStrings, aPassword);
     NS_ENSURE_SUCCESS(rv,rv);
     return rv;
-}
-
-nsresult nsSmtpProtocol::RequestOverrideInfo(nsISmtpServer * aSmtpServer)
-{
-  // We don't have a redirection type - get out and proceed normally.
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionError(const PRUnichar *pErrMsg, PRBool aBadPassword)
-{
-  nsCOMPtr<nsISmtpServer> smtpServer;
-  m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
-
-  NS_ENSURE_TRUE(smtpServer, NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(m_logonRedirector, NS_ERROR_FAILURE);
-
-  m_logonRedirector = nsnull; // we don't care about it anymore
-
-  // step (1) alert the user about the error
-  nsCOMPtr<nsIPrompt> dialog;
-  if (m_runningURL && pErrMsg && pErrMsg[0])
-  {
-    m_runningURL->GetPrompt(getter_AddRefs(dialog));
-    if (dialog)
-      dialog->Alert(nsnull, pErrMsg);
-  }
-
-  // step (2) if they entered a bad password, forget about it!
-  if (aBadPassword && smtpServer)
-    smtpServer->ForgetPassword();
-
-  // step (3) we need to let the originator of the send url request know that an
-  // error occurred and we aren't sending the message...in our case, this will
-  // force the user back into the compose window and they can try to send it
-  // again.
-
-  // this will cause another dialog to get thrown up....
-  nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
-	mailNewsUrl->SetUrlState(PR_FALSE /* stopped running url */, NS_ERROR_COULD_NOT_LOGIN_TO_SMTP_SERVER);
-	return NS_OK;
-}
-
-  /* Logon Redirection Progress */
-NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionProgress(nsMsgLogonRedirectionState pState)
-{
-	return NS_OK;
-}
-
-  /* reply with logon redirection data. */
-NS_IMETHODIMP nsSmtpProtocol::OnLogonRedirectionReply(const PRUnichar * aHost, unsigned short aPort, const char * aCookieData,  unsigned short aCookieSize)
-{
-  NS_ENSURE_ARG(aHost);
-
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsISmtpServer> smtpServer;
-  m_runningURL->GetSmtpServer(getter_AddRefs(smtpServer));
-  NS_ENSURE_TRUE(smtpServer, NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(m_logonRedirector, NS_ERROR_FAILURE);
-
-  // we used to logoff from the requestor but we don't want to do
-  // that anymore in the success case. We want to end up caching the
-  // external connection for the entire session.
-  m_logonRedirector = nsnull; // we don't care about it anymore
-
-  // remember the logon cookie
-  mLogonCookie.Assign(aCookieData, aCookieSize);
-
-  //currently the server isn't returning a valid auth logon capability
-  // this line is just a HACK to force us to use auth login.
-  SetFlag(SMTP_AUTH_LOGIN_ENABLED);
-  // currently the account manager isn't properly setting the authMethod
-  // preference for servers which require redirectors. This is another
-  // HACK ALERT....we'll force it to be set...
-  m_prefAuthMethod = PREF_AUTH_ANY;
-
-  // now that we have a host and port to connect to,
-  // open up the channel...
-  NS_ConvertUTF16toUTF8 hostUTF8(aHost);
-  PR_LOG(SMTPLogModule, PR_LOG_ALWAYS, ("SMTP Connecting to: %s on port %d.", hostUTF8.get(), aPort));
-  nsCOMPtr<nsIInterfaceRequestor> callbacks;
-  nsCOMPtr<nsISmtpUrl> smtpUrl(do_QueryInterface(m_runningURL));
-  if (smtpUrl)
-      smtpUrl->GetNotificationCallbacks(getter_AddRefs(callbacks));
-
-  nsCOMPtr<nsIProxyInfo> proxyInfo;
-  rv = NS_ExamineForProxy("mailto", hostUTF8.get(), aPort, getter_AddRefs(proxyInfo));
-  if (NS_FAILED(rv)) proxyInfo = nsnull;
-
-  // pass in "ssl" for connectionType if you want this to be over SSL
-  rv = OpenNetworkSocketWithInfo(hostUTF8.get(), aPort, nsnull /* connectionType */, proxyInfo, callbacks);
-
-  // we are no longer waiting for a logon redirection reply
-  ClearFlag(SMTP_WAIT_FOR_REDIRECTION);
-
-  // check to see if we had a pending LoadUrl call...be sure to
-  // do this after we clear the SMTP_WAIT_FOR_REDIRECTION flag =).
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  if (TestFlag(SMTP_LOAD_URL_PENDING))
-    rv = LoadUrl(url , mPendingConsumer);
-
-  mPendingConsumer = nsnull; // we don't need to remember this anymore...
-
-  // since we are starting this url load out of the normal loading process,
-  // we probably should stop the url from running and throw up an error dialog
-  // if for some reason we didn't successfully load the url...
-
-  // we may want to always return NS_OK regardless of an error
-  return rv;
 }
