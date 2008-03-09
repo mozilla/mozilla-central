@@ -127,6 +127,3 @@ MKSHLIB += -R '$$ORIGIN'
 endif
 
 endif
-
-# indicates dependency on freebl static lib
-$(SHARED_LIBRARY): $(CRYPTOLIB)

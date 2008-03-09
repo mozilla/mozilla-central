@@ -89,3 +89,5 @@ include $(CORE_DEPTH)/coreconf/rules.mk
 
 export:: private_export
 
+# indicates dependency on freebl static lib
+$(SHARED_LIBRARY): $(CRYPTOLIB)
