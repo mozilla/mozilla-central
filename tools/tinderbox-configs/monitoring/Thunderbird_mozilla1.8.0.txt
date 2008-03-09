@@ -1,8 +1,3 @@
 /pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.linux-i686.complete.mar
 /pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.linux-i686.tar.gz
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.mac.complete.mar
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.mac.dmg
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.win32.installer.exe
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.win32.complete.mar
-/pub/mozilla.org/thunderbird/nightly/latest-mozilla1.8.0/thunderbird-1.5.0.14eol.en-US.win32.zip
 
