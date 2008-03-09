@@ -92,12 +92,12 @@ __asm__ (                                                     \
 
 #define SQRADDSC(i, j)                                    \
 __asm__ (                                                     \
-     "movq  %6,%%rax     \n\t"                            \
-     "mulq  %7           \n\t"                            \
+     "movq  %3,%%rax     \n\t"                            \
+     "mulq  %4           \n\t"                            \
      "movq  %%rax,%0     \n\t"                            \
      "movq  %%rdx,%1     \n\t"                            \
      "xorq  %2,%2        \n\t"                            \
-     :"=r"(sc0), "=r"(sc1), "=r"(sc2): "0"(sc0), "1"(sc1), "2"(sc2), "g"(i), "g"(j) :"%rax","%rdx","%cc");
+     :"=r"(sc0), "=r"(sc1), "=r"(sc2): "g"(i), "g"(j) :"%rax","%rdx","%cc");
 
 #define SQRADDAC(i, j)                                                         \
 __asm__ (                                                     \
@@ -110,13 +110,13 @@ __asm__ (                                                     \
 
 #define SQRADDDB                                                               \
 __asm__ (                                                     \
-     "addq %3,%0         \n\t"                            \
-     "adcq %4,%1         \n\t"                            \
-     "adcq %5,%2         \n\t"                            \
-     "addq %3,%0         \n\t"                            \
-     "adcq %4,%1         \n\t"                            \
-     "adcq %5,%2         \n\t"                            \
-     :"=r"(c0), "=r"(c1), "=r"(c2), "=r"(sc0), "=r"(sc1), "=r"(sc2) : "0"(c0), "1"(c1), "2"(c2), "3"(sc0), "4"(sc1), "5"(sc2) : "%cc");
+     "addq %6,%0         \n\t"                            \
+     "adcq %7,%1         \n\t"                            \
+     "adcq %8,%2         \n\t"                            \
+     "addq %6,%0         \n\t"                            \
+     "adcq %7,%1         \n\t"                            \
+     "adcq %8,%2         \n\t"                            \
+     :"=&r"(c0), "=&r"(c1), "=&r"(c2) : "0"(c0), "1"(c1), "2"(c2), "r"(sc0), "r"(sc1), "r"(sc2) : "%cc");
 
 
 
@@ -650,9 +650,7 @@ void s_mp_mul_comba_32(const mp_int *A, const mp_int *B, mp_int *C)
 
 void s_mp_sqr_comba_4(const mp_int *A, mp_int *B)
 {
-   mp_digit *a, b[8], c0, c1, c2, sc0, sc1, sc2;
-   /* get rid of some compiler warnings */
-   sc0 = 0; sc1 = 0; sc2 = 0;
+   mp_digit *a, b[8], c0, c1, c2;
 
    a = A->dp;
    COMBA_START; 
@@ -705,8 +703,6 @@ void s_mp_sqr_comba_4(const mp_int *A, mp_int *B)
 void s_mp_sqr_comba_8(const mp_int *A, mp_int *B)
 {
    mp_digit *a, b[16], c0, c1, c2, sc0, sc1, sc2;
-   /* get rid of some compiler warnings */
-   sc0 = 0; sc1 = 0; sc2 = 0;
 
    a = A->dp;
    COMBA_START; 
@@ -799,8 +795,6 @@ void s_mp_sqr_comba_8(const mp_int *A, mp_int *B)
 void s_mp_sqr_comba_16(const mp_int *A, mp_int *B)
 {
    mp_digit *a, b[32], c0, c1, c2, sc0, sc1, sc2;
-   /* get rid of some compiler warnings */
-   sc0 = 0; sc1 = 0; sc2 = 0;
 
    a = A->dp;
    COMBA_START; 
@@ -974,8 +968,6 @@ void s_mp_sqr_comba_16(const mp_int *A, mp_int *B)
 void s_mp_sqr_comba_32(const mp_int *A, mp_int *B)
 {
    mp_digit *a, b[64], c0, c1, c2, sc0, sc1, sc2;
-   /* get rid of some compiler warnings */
-   sc0 = 0; sc1 = 0; sc2 = 0;
 
    a = A->dp;
    COMBA_START; 
