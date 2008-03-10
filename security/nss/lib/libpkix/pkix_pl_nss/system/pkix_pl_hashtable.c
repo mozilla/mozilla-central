@@ -237,6 +237,8 @@ PKIX_PL_HashTable_Add(
                     (key, &keyComp, plContext),
                     PKIX_OBJECTRETRIEVEEQUALSCALLBACKFAILED);
 
+        PKIX_MUTEX_LOCK(ht->tableLock);
+
         PKIX_CHECK(pkix_pl_PrimHashTable_GetBucketSize
                 (ht->primHash,
                 hashCode,
@@ -257,8 +259,6 @@ PKIX_PL_HashTable_Add(
                 PKIX_DECREF(deletedKey);
                 PKIX_DECREF(deletedValue);
         }
-
-        PKIX_MUTEX_LOCK(ht->tableLock);
 
         PKIX_CHECK(pkix_pl_PrimHashTable_Add
                 (ht->primHash,
