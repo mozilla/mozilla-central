@@ -6,6 +6,9 @@ mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
 
+# mozilla/testing/tools needed for buildbot profile (re)creation
+mk_add_options MOZ_CO_MODULE="mozilla/testing/tools"
+
 ac_add_options --enable-tests
 #ac_add_options --enable-mochitest
 

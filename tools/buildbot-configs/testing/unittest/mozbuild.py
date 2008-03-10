@@ -550,3 +550,13 @@ class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
                "--autorun",
                "--browser-chrome",
                "--close-when-done"]
+
+class CreateProfile(ShellCommand):
+    name = "create profile"
+    warnOnFailure = True
+    description = ["create profile"]
+    descriptionDone = ["create profile complete"]
+    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/bin/firefox'
+
+class CreateProfileWin(createProfile):
+    command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --binary mozilla\objdir\dist\bin\firefox.exe'

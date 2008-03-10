@@ -13,3 +13,6 @@ ac_add_options --disable-composer
 ac_add_options --disable-mailnews
 mk_add_options MOZ_MAKE_FLAGS="-j3 -s"
 # ac_add_options --enable-optimize="-O2 -g"
+
+# mozilla/testing/tools needed for buildbot profile (re)creation
+mk_add_options MOZ_CO_MODULE="mozilla/testing/tools"
