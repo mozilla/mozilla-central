@@ -1691,13 +1691,15 @@ PKIX_PL_Cert_GetVersion(
         void *plContext)
 {
         CERTCertificate *nssCert = NULL;
-        PKIX_UInt32 myVersion;
+        PKIX_UInt32 myVersion = 1;
 
         PKIX_ENTER(CERT, "PKIX_PL_Cert_GetVersion");
         PKIX_NULLCHECK_THREE(cert, cert->nssCert, pVersion);
 
         nssCert = cert->nssCert;
-        myVersion = *(nssCert->version.data);
+        if (nssCert->version.data) {
+                myVersion = *(nssCert->version.data);
+        }
 
         if (myVersion > 2){
                 PKIX_ERROR(PKIX_VERSIONVALUEMUSTBEV1V2ORV3);
