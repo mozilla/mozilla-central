@@ -1,3 +1,4 @@
+import buildbot
 from buildbot.steps.shell import ShellCommand
 from buildbot.status.builder import FAILURE, SUCCESS
 
@@ -11,7 +12,10 @@ class GetBuildID(ShellCommand):
 
     def __init__(self, objdir="", **kwargs):
         ShellCommand.__init__(self, **kwargs)
-        self.addFactoryArguments(objdir=objdir)
+        major, minor, point = buildbot.version.split(".", 3)
+        # Buildbot 0.7.5 and below do not require this
+        if int(minor) >= 7 and int(point) >= 6:
+            self.addFactoryArguments(objdir=objdir)
 
         self.objdir = objdir
         self.command = ['python', 'config/printconfigsetting.py',
