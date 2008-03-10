@@ -2052,7 +2052,8 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
   if(mTransfer)
   {
     mTransfer->OnProgressChange(nsnull, nsnull, mContentLength, mContentLength, mContentLength, mContentLength);
-    mTransfer->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_OK);
+    mTransfer->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP |
+      nsIWebProgressListener::STATE_IS_NETWORK, NS_OK);
     mTransfer = nsnull; // break any circular dependencies between the progress dialog and use
   }
   
