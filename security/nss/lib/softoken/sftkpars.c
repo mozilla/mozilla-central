@@ -524,6 +524,11 @@ sftk_freeParams(sftk_parameters *params)
 	FREE_CLEAR(params->tokens[i].keyPrefix);
 	FREE_CLEAR(params->tokens[i].tokdes);
 	FREE_CLEAR(params->tokens[i].slotdes);
+	FREE_CLEAR(params->tokens[i].updatedir);
+	FREE_CLEAR(params->tokens[i].updCertPrefix);
+	FREE_CLEAR(params->tokens[i].updKeyPrefix);
+	FREE_CLEAR(params->tokens[i].updateID);
+	FREE_CLEAR(params->tokens[i].updtokdes);
     }
 
     FREE_CLEAR(params->configdir);
@@ -531,6 +536,8 @@ sftk_freeParams(sftk_parameters *params)
     FREE_CLEAR(params->man);
     FREE_CLEAR(params->libdes); 
     FREE_CLEAR(params->tokens);
+    FREE_CLEAR(params->updatedir);
+    FREE_CLEAR(params->updateID);
 }
 
 #define SQLDB "sql:"
