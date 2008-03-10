@@ -107,7 +107,7 @@ Ext.extend(BuildGrid, Ext.grid.EditorGridPanel, {
         ]);
         var b = new NewBuild({
             name: '',
-            milestone: '---',
+            milestone: Ext.getCmp('products-pane').getSelectionModel().getSelectedNode().attributes.attributes.defaultmilestone,
             description: '',
             isactive: true
         });

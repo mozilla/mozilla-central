@@ -77,6 +77,15 @@ sub create {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $new_values->{'run_id'}}) unless $run;
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
     
+    if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product);
+        $new_values->{'build_id'} = $build->id;
+    }
+    if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product);
+        $new_values->{'environment_id'} = $environment->id;
+    }
+    
     if ($new_values->{'status'}){
         $new_values->{'case_run_status_id'} = Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($new_values->{'status'});
         delete $new_values->{'status'};
@@ -359,7 +368,21 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
               
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test case to be created. 
- 
+  +--------------------+----------------+-----------+------------------------------------------------+
+  | Field              | Type           | Null      | Description                                    |
+  +--------------------+----------------+-----------+------------------------------------------------+
+  | run_id             | Integer        | Required  | Test Run Number                                |
+  | case_id            | Integer/String | Required  | ID or alias of test case                       |
+  | build_id           | Integer/String | Required  | ID or name of a Build in plan's product        |
+  | environment_id     | Integer/String | Required  | ID or name of an Environment in plan's product |
+  | assignee           | Integer/String | Optional  | Defaults to test case default tester           |
+  | status             | String         | Optional  | Defaults to "IDLE"                             |
+  | case_text_version  | Integer        | Optional  |                                                |
+  | notes              | String         | Optional  |                                                |
+  | sortkey            | Integer        | Optional  | a.k.a. Index                                   |
+  +--------------------+----------------+-----------+------------------------------------------------+
+    Valid statuses include: IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED
+    
  Returns:     The newly created object hash.
  
 =item C<detach_bug($caserun_id, $bug_id)>
@@ -597,6 +620,17 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
                      
               $values - Hash of keys matching TestCaseRun fields and the new values 
               to set each field to.
+                      +--------------------+----------------+
+                      | Field              | Type           |
+                      +--------------------+----------------+
+                      | build_id           | Integer/String |
+                      | environment_id     | Integer/String |
+                      | assignee           | Integer/String |
+                      | status             | String         |
+                      | notes              | String         |
+                      | sortkey            | Integer        |
+                      | update_bugs        | Boolean        | 1: Reopen bugs on FAILED 0: Don't change bug status 
+                      +--------------------+----------------+ 
  
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the
@@ -613,7 +647,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
               $environment_id - Integer: An integer representing the ID of the environment in the database.
                      
               $values - Hash of keys matching TestCaseRun fields and the new values 
-              to set each field to.
+              to set each field to. See above.
  
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the

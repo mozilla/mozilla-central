@@ -76,8 +76,17 @@ sub create {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
-    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
+    my $plan = Bugzilla::Testopia::Plan->new($new_values->{'plan_id'});
+    ThrowUserError("testopia-create-denied", {'object' => 'Test Run', 'plan' => $plan}) unless ($plan->canedit);
+
+    if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product);
+        $new_values->{'build_id'} = $build->id;
+    }
+    if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $plan->product);
+        $new_values->{'environment_id'} = $environment->id;
+    }
 
     my $run = Bugzilla::Testopia::TestRun->create($new_values);
     
@@ -94,6 +103,15 @@ sub update {
     
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $run_id}) unless $run;
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
+    
+    if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product);
+        $new_values->{'build_id'} = $build->id;
+    }
+    if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $plan->product);
+        $new_values->{'environment_id'} = $environment->id;
+    }
        
     my $timestamp;
     $timestamp = $run->stop_date;
@@ -101,12 +119,12 @@ sub update {
     $timestamp = get_time_stamp() if $new_values->{'status'} == 0 && !$run->stop_date;
  
     $run->set_summary(trim($new_values->{'summary'})) if exists $new_values->{'summary'};
-    $run->set_product_version($new_values->{'product_version')) if $new_values->{'product_version'};
-    $run->set_plan_text_version($new_values->{'plan_text_version')) if $new_values->{'plan_text_version'};
-    $run->set_build($new_values->{'build_id')) if $new_values->{'build_id'};
-    $run->set_environment($new_values->{'environment_id')) if $new_values->{'environment_id'};
-    $run->set_manager($new_values->{'manager_id')) if $new_values->{'manager_id'};
-    $run->set_notes($new_values->{'notes')} if exists $cgi->{'notes'};
+    $run->set_product_version($new_values->{'product_version'}) if $new_values->{'product_version'};
+    $run->set_plan_text_version($new_values->{'plan_text_version'}) if $new_values->{'plan_text_version'};
+    $run->set_build($new_values->{'build_id'}) if $new_values->{'build_id'};
+    $run->set_environment($new_values->{'environment_id'}) if $new_values->{'environment_id'};
+    $run->set_manager($new_values->{'manager_id'}) if $new_values->{'manager_id'};
+    $run->set_notes($new_values->{'notes'}} if exists $cgi->{'notes'};
     $run->set_stop_date($timestamp) if $new_values->{'status'};
     
     $run->update();
@@ -184,7 +202,7 @@ sub lookup_environment_id_by_name {
 }
 
 sub lookup_environment_name_by_id {
-    return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use Environment::get instead'};
+    return { FAILED => 1, message => 'This method has been depricated. Please use Environment::get instead'};
 }
 
 sub add_tag {
@@ -287,8 +305,20 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
               
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test run to be created. 
+  +-------------------+----------------+-----------+------------------------------------+
+  | Field             | Type           | Null      | Description                        |
+  +-------------------+----------------+-----------+------------------------------------+
+  | plan_id           | Integer        | Required  | ID of test plan                    |
+  | environment_id    | Integer/String | Required  | ID or Name of Environment          |
+  | build_id          | Integer/String | Required  | ID or Name of Build                |
+  | manager_id        | Integer/String | Required  | ID or Login of run manager         |
+  | summary           | String         | Required  |                                    |
+  | product_version   | String         | Optional  | Defaults to plan's version         |
+  | plan_text_version | Integer        | Optional  |                                    |
+  | notes             | String         | Optional  |                                    |
+  | status            | Integer        | Optional  | 0:STOPPED 1: RUNNING (default 1)   |
+  +-------------------+----------------+-----------+------------------------------------+
               
- 
  Returns:     The newly created object hash.
  
 =item C<get($run_id)>
@@ -354,25 +384,6 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
               
  Params:      $query - Hash: keys must match valid search fields.
 
-build	A fine Build indeed
-ctype	json
-current_tab	run
-environment	1183153988 PerlUnit Test for Testopia API -- Environment.create -- PLEASE IGNORE
-limit	25
-manager	
-manager_type	substring
-milestone	3.0
-notes	
-notes_type	allwordssubstr
-plan_id	
-product_id	2
-run_id	
-run_status	0
-summary	
-summary_type	allwordssubstr
-tags	
-tags_type	anyexact
-version	2.20
     +--------------------------------------------------------+
     |                 Run Search Parameters                  |
     +--------------------------------------------------------+
@@ -474,7 +485,20 @@ version	2.20
  Params:      $ids - Integer: A single TestRun ID.
                      
               $values - Hash of keys matching TestRun fields and the new values 
-              to set each field to.
+              to set each field to. See L<create> for description
+                      +-------------------+----------------+
+                      | Field             | Type           |
+                      +-------------------+----------------+
+                      | plan_id           | Integer        |
+                      | environment_id    | Integer/String |
+                      | build_id          | Integer/String |
+                      | manager_id        | Integer/String |
+                      | summary           | String         |
+                      | product_version   | String         |
+                      | plan_text_version | Integer        |
+                      | notes             | String         |
+                      | status            | Integer        |
+                      +-------------------+----------------+
  
  Returns:     Hash: The updated test run object.
 

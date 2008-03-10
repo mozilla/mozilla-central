@@ -166,10 +166,10 @@ sub get_versions {
 }
 
 sub lookup_name_by_id {
-    return {FAILED => 1, message=> 'This method id depricated. Use Product->get instead.'};
+    return {FAILED => 1, message=> 'This method id depricated. Use Product::get instead.'};
 }
 sub lookup_id_by_name {
-    return {FAILED => 1, message=> 'This method id depricated. Use check_product instead.'};
+    return {FAILED => 1, message=> 'This method id depricated. Use Product::check_product instead.'};
 }
 
 1;

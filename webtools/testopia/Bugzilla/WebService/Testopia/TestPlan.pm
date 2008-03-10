@@ -324,7 +324,15 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
               
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test plan to be created. 
-              
+  +-------------------------+----------------+-----------+------------------------------------+
+  | Field                   | Type           | Null      | Description                        |
+  +-------------------------+----------------+-----------+------------------------------------+
+  | product_id              | Integer/String | Required  | ID or Name of product              |
+  | name                    | String         | Required  |                                    |
+  | type_id                 | Integer/String | Required  | ID or name of plan type            |
+  | default_product_version | String         | Required  |                                    |
+  | isactive                | Boolean        | Optional  | 0: Archived 1: Active (Default 1)  |
+  +-------------------------+----------------+-----------+------------------------------------+
  
  Returns:     The newly created object hash.
  
@@ -498,6 +506,14 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
                      
               $values - Hash of keys matching TestPlan fields and the new values 
               to set each field to.
+                      +-------------------------+----------------+
+                      | Field                   | Type           |
+                      +-------------------------+----------------+
+                      | name                    | String         |
+                      | type_id                 | Integer/String |
+                      | default_product_version | String         |
+                      | isactive                | Boolean        |
+                      +-------------------------+----------------+
  
  Returns:     Hash: The updated test plan object.
 

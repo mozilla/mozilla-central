@@ -157,11 +157,12 @@ sub _check_manager {
     }
 }
 
+#TODO: Check that version is in plan versions
 sub _check_plan_text_version {
     my ($invocant, $version) = @_;
     trick_taint($version);
     ThrowUserError('testopia-missing-required-field', {'field' => 'plan_version'}) unless $version;
-    return $version
+    return $version;
 }
 
 sub _check_notes {

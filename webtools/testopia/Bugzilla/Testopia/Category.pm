@@ -62,7 +62,14 @@ sub _check_product {
     
     ThrowUserError("testopia-create-denied", {'object' => 'category'}) unless Bugzilla->user->in_group('Testers');
     
-    my $product = Bugzilla::Testopia::Product->new($product_id);
+    my $product;
+    if (trim($product_id) !~ /^\d+$/ ){
+        $product = Bugzilla::Product::check_product($product_id);
+    }
+    else {
+        $product = Bugzilla::Testopia::Product->new($product_id);
+    }
+
     
     if (ref $invocant){
         $invocant->{'product'} = $product; 

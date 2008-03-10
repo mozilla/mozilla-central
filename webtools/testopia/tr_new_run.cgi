@@ -73,7 +73,7 @@ ThrowUserError("testopia-create-denied", {'object' => 'Test Run', 'plan' => $pla
 
 if ($action eq 'add'){
     Bugzilla->error_mode(ERROR_MODE_AJAX);
-    
+    my $prod_version = $cgi->param('prod_version') ? $cgi->param('prod_version') : $plan->product_version();
     my $build    = trim($cgi->param('build'));
     my $env      = trim($cgi->param('environment'));
     
@@ -101,7 +101,7 @@ if ($action eq 'add'){
             'plan_id'           => $plan->id,
             'environment_id'    => $env,
             'build_id'          => $build,
-            'product_version'   => $cgi->param('prod_version'),
+            'product_version'   => $prod_version,
             'plan_text_version' => $plan->version,
             'manager_id'        => $cgi->param('manager'),
             'summary'           => $cgi->param('summary'),

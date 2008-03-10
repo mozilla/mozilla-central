@@ -96,8 +96,16 @@ sub _check_product {
 
     $product_id = trim($product_id);
     
-    my $product = Bugzilla::Testopia::Product->new($product_id);
+    my $product;
+    if (trim($product_id) !~ /^\d+$/ ){
+        $product = Bugzilla::Product::check_product($product_id);
+    }
+    else {
+        $product = Bugzilla::Testopia::Product->new($product_id);
+    }
+
     ThrowUserError("testopia-create-denied", {'object' => 'environment'}) unless $product->canedit;
+    
     if (ref $invocant){
         $invocant->{'product'} = $product; 
         return $product->id;

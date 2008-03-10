@@ -168,6 +168,35 @@ Provides methods for automated scripts to manipulate Testopia Environments
 
 =over
 
+=item C<check_environment($name, $product)>
+ 
+ Description: Looks up and returns an environment by name.
+              
+ Params:      $name - String: name of the environment.
+              $product - Integer/String/Object
+                         Integer: product_id of the product in the Database
+                         String: Product name
+                         Object: Blessed Bugzilla::Product object
+ 
+ Returns:     Hash: Matching Environment object hash or error if not found.
+ 
+=item C<create($values)>
+ 
+ Description: Creates a new environment object and stores it in the database
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the environment to be created. 
+  +-------------+----------------+-----------+------------------------------------+
+  | Field       | Type           | Null      | Description                        |
+  +-------------+----------------+-----------+------------------------------------+
+  | product_id  | Integer/String | Required  | ID or Name of product              |
+  | name        | String         | Required  |                                    |
+  | isactive    | Boolean        | Optional  | Defaults to True (1)               |
+  +-------------+----------------+-----------+------------------------------------+
+
+ 
+ Returns:     The newly created object hash.
+ 
 =item C<get($id)>
 
  Description: Used to load an existing Environment from the database.
@@ -175,6 +204,22 @@ Provides methods for automated scripts to manipulate Testopia Environments
  Params:      $id - An integer representing the ID in the database
                        
  Returns:     A blessed Bugzilla::Testopia::Environment object hash
+ 
+=item C<get_caseruns($id)>
+ 
+ Description: Returns the list of case-runs that this Environment is used in.
+              
+ Params:      $id -  Integer: Environment ID.
+ 
+ Returns:     Array: List of case-run object hashes.
+ 
+=item C<get_runs($id)>
+ 
+ Description: Returns the list of runs that this Environment is used in.
+              
+ Params:      $id -  Integer: Environment ID.
+ 
+ Returns:     Array: List of run object hashes.
  
 =item C<list($query)>
  
@@ -203,46 +248,14 @@ Provides methods for automated scripts to manipulate Testopia Environments
                      
               $values - Hash of keys matching Environment fields and the new values 
               to set each field to.
- 
+                      +-------------+----------------+
+                      | Field       | Type           |
+                      +-------------+----------------+
+                      | name        | String         |
+                      | isactive    | Boolean        |
+                      +-------------+----------------+
+
  Returns:     Hash: The updated environment object hash.
- 
-=item C<check_environment($name, $product)>
- 
- Description: Looks up and returns an environment by name.
-              
- Params:      $name - String: name of the environment.
-              $product - Integer/String/Object
-                         Integer: product_id of the product in the Database
-                         String: Product name
-                         Object: Blessed Bugzilla::Product object
- 
- Returns:     Hash: Matching Environment object hash or error if not found.
- 
-=item C<create($values)>
- 
- Description: Creates a new environment object and stores it in the database
-              
- Params:      $values - Hash: A reference to a hash with keys and values  
-              matching the fields of the environment to be created. 
-              See Bugzilla::Testopia::Environment for a list of required fields.
- 
- Returns:     The newly created object hash.
- 
-=item C<get_runs($id)>
- 
- Description: Returns the list of runs that this Environment is used in.
-              
- Params:      $id -  Integer: Environment ID.
- 
- Returns:     Array: List of run object hashes.
- 
-=item C<get_caseruns($id)>
- 
- Description: Returns the list of case-runs that this Environment is used in.
-              
- Params:      $id -  Integer: Environment ID.
- 
- Returns:     Array: List of case-run object hashes.
  
 =back
 
@@ -251,7 +264,6 @@ Provides methods for automated scripts to manipulate Testopia Environments
 =over
 
 L<Bugzilla::Testopia::Environment>
-
 L<Bugzilla::Webservice> 
 
 =back

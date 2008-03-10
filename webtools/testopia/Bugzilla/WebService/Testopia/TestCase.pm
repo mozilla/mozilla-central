@@ -106,11 +106,21 @@ sub create {
     if (ref $new_values->{'bugs'} eq 'ARRAY'){
         push @bug_ids, @{$new_values->{'bugs'}};
     }
+    my @dependson;
+    if (ref $new_values->{'dependson'} eq 'ARRAY'){
+        push @dependson, @{$new_values->{'dependson'}};
+    }
+    my @blocks;
+    if (ref $new_values->{'blocks'} eq 'ARRAY'){
+        push @blocks, @{$new_values->{'blocks'}};
+    }
     
     $new_values->{'plans'} = \@plans;
     $new_values->{'author'} = Bugzilla->user->id;
     $new_values->{'runs'} = join(',', @run_ids) if scalar @run_ids;
     $new_values->{'bugs'} = join(',', @bug_ids) if scalar @bug_ids;
+    $new_values->{'dependson'} = join(',', @dependson) if scalar @dependson;
+    $new_values->{'blocks'} = join(',', @blocks) if scalar @blocks;
     
     my $case = Bugzilla::Testopia::TestCase->create($new_values);
     
@@ -124,6 +134,16 @@ sub update {
     Bugzilla->login(LOGIN_REQUIRED);
 
     my @ids = Bugzilla::Testopia::Util::process_list($ids);
+    my @dependson;
+    if (ref $new_values->{'dependson'} eq 'ARRAY'){
+        push @dependson, @{$new_values->{'dependson'}};
+    }
+    my @blocks;
+    if (ref $new_values->{'blocks'} eq 'ARRAY'){
+        push @blocks, @{$new_values->{'blocks'}};
+    }
+    $new_values->{'dependson'} = join(',', @dependson) if scalar @dependson;
+    $new_values->{'blocks'} = join(',', @blocks) if scalar @blocks;
 
     my @cases;
     foreach my $id (@ids){
@@ -707,7 +727,32 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test case to be created. 
-              
+  +-------------------+----------------+-----------+------------------------+
+  | Field             | Type           | Null      | Description            |
+  +-------------------+----------------+-----------+------------------------+
+  | case_status_id    | Integer/String | Required  | ID or Name of status   |
+  | category_id       | Integer/String | Required  | ID or Name of Category |
+  | priority_id       | Integer/String | Required  | ID or Name of Priority |
+  | summary           | String         | Required  |                        |
+  | default_tester_id | Integer/String | Optional  | ID or Login of tester  |
+  | estimated_time    | String         | Optional  | HH:MM:SS Format        |
+  | isautomated       | Boolean        | Optional  | Defaults to False (0)  |
+  | sortkey           | Integer        | Optional  |                        |
+  | script            | String         | Optional  |                        |
+  | arguments         | String         | Optional  |                        |
+  | requirement       | String         | Optional  |                        |
+  | alias             | String         | Optional  | Must be unique         |
+  | action            | String         | Optional  |                        |
+  | effect            | String         | Optional  | ExpectedResult         |
+  | setup             | String         | Optional  |                        |
+  | breakdown         | String         | Optional  |                        |
+  | dependson         | Array/String   | Optional  | String Comma separated |
+  | blocks            | Array/String   | Optional  | String Comma separated |
+  | tags              | Array/String   | Optional  | String Comma separated |
+  | bugs              | Array/String   | Optional  | String Comma separated |
+  | plans             | Array/String   | Optional  | String Comma separated |
+  | components        | Array/String   | Optional  | String Comma separated |
+  +-------------------+----------------+-----------+------------------------+
  
  Returns:     The newly created object hash.
  
@@ -990,7 +1035,25 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               list was passed, it returns an array of case hashes. If the
               update on any particular case failed, the has will contain a 
               FAILED key and the message as to why it failed.
-
+                      +-------------------+----------------+
+                      | Field             | Type           |
+                      +-------------------+----------------+
+                      | case_status_id    | Integer/String |
+                      | category_id       | Integer/String |
+                      | priority_id       | Integer/String |
+                      | default_tester_id | Integer/String |
+                      | estimated_time    | String         |
+                      | isautomated       | Boolean        |
+                      | sortkey           | Integer        |
+                      | script            | String         |
+                      | arguments         | String         |
+                      | summary           | String         |
+                      | requirement       | String         |
+                      | alias             | String         |
+                      | dependson         | Array/String   |
+                      | blocks            | Array/String   |
+                      +-------------------+----------------+
+                    
 =back
 
 =head1 SEE ALSO

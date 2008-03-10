@@ -116,7 +116,14 @@ sub _check_product {
     }
     
     $product_id = trim($product_id);
-    my $product = Bugzilla::Testopia::Product->new($product_id);
+    my $product;
+    if ($product_id !~ /^\d+$/ ){
+        $product = Bugzilla::Product::check_product($product_id);
+    }
+    else {
+        $product = Bugzilla::Testopia::Product->new($product_id);
+    }
+
     ThrowUserError("invalid-test-id-non-existent", {'id' => $product_id, 'type' => 'product'}) unless $product;
     ThrowUserError("testopia-create-denied", {'object' => 'plan'}) unless $product->canedit;
     if (ref $invocant){

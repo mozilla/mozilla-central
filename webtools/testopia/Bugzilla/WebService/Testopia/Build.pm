@@ -75,7 +75,7 @@ sub create{
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    $new_values->{'milestone'} ||= '---';
+    $new_values->{'milestone'} ||= $product->default_milestone;
 
     my $build = Bugzilla::Testopia::Build->create($new_values);
     
@@ -186,14 +186,6 @@ Provides methods for automated scripts to manipulate Testopia Builds
 
 =over
 
-=item C<get($id)>
-
- Description: Used to load an existing build from the database.
- 
- Params:      $id - An integer representing the ID in the database
-                       
- Returns:     A blessed Bugzilla::Testopia::Build object hash
- 
 =item C<check_build($name, $product)>
  
  Description: Looks up and returns a build by name.
@@ -206,6 +198,36 @@ Provides methods for automated scripts to manipulate Testopia Builds
  
  Returns:     Hash: Matching Build object hash or error if not found.
  
+=item C<create($values)>
+ 
+ Description: Creates a new build object and stores it in the database
+              
+ Params:      $values - Hash: A reference to a hash with keys and values  
+              matching the fields of the build to be created. 
+  +-------------+----------------+-----------+------------------------------------+
+  | Field       | Type           | Null      | Description                        |
+  +-------------+----------------+-----------+------------------------------------+
+  | product_id  | Integer/String | Required  | ID or Name of product              |
+  | name        | String         | Required  |                                    |
+  | milestone   | String         | Optional  | Defaults to product's default MS   |
+  | description | String         | Optional  |                                    |
+  | isactive    | Boolean        | Optional  | Defaults to True (1)               |
+  +-------------+----------------+-----------+------------------------------------+
+ 
+ Returns:     The newly created object hash.
+ 
+=item C<get($id)>
+
+ Description: Used to load an existing build from the database.
+ 
+ Params:      $id - An integer representing the ID in the database
+                       
+ Returns:     A blessed Bugzilla::Testopia::Build object hash
+ 
+=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Build::check_build instead
+ 
+=item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
+               
 =item C<update($ids, $values)>
  
  Description: Updates the fields of the selected build or builds.
@@ -218,25 +240,19 @@ Provides methods for automated scripts to manipulate Testopia Builds
                      
               $values - Hash of keys matching Build fields and the new values 
               to set each field to.
+                        +-------------+----------------+
+                        | Field       | Type           |
+                        +-------------+----------------+
+                        | name        | String         |
+                        | milestone   | String         |
+                        | description | String         |
+                        | isactive    | Boolean        |
+                        +-------------+----------------+
  
  Returns:     Hash/Array: In the case of a single build it is returned. If a 
               list was passed, it returns an array of build hashes. If the
               update on any particular build failed, the hash will contain a 
               FAILED key and the message as to why it failed.
- 
-=item C<create($values)>
- 
- Description: Creates a new build object and stores it in the database
-              
- Params:      $values - Hash: A reference to a hash with keys and values  
-              matching the fields of the build to be created. 
-              See Bugzilla::Testopia::Build for a list of required fields.
- 
- Returns:     The newly created object hash.
- 
-=item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
-              
-=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Build::check_build instead
  
 =back
 
