@@ -37,16 +37,11 @@
 #ifndef __nssrenam_h_
 #define __nssrenam_h_
 
-#define CERT_NewTempCertificate __CERT_NewTempCertificate
 #define CERT_AddTempCertToPerm __CERT_AddTempCertToPerm
 #define PK11_CreateContextByRawKey __PK11_CreateContextByRawKey
-#define PK11_GetKeyData __PK11_GetKeyData
 #define CERT_ClosePermCertDB __CERT_ClosePermCertDB
 #define CERT_DecodeDERCertificate __CERT_DecodeDERCertificate
 #define CERT_TraversePermCertsForNickname __CERT_TraversePermCertsForNickname
 #define CERT_TraversePermCertsForSubject __CERT_TraversePermCertsForSubject
-#define PBE_CreateContext __PBE_CreateContext
-#define PBE_DestroyContext __PBE_DestroyContext
-#define PBE_GenerateBits __PBE_GenerateBits
 
 #endif /* __nssrenam_h_ */

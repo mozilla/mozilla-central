@@ -39,9 +39,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.110 2008-03-06 20:16:22 wtc%google.com Exp $ */
+/* $Id: ssl3con.c,v 1.111 2008-03-10 00:01:28 wtc%google.com Exp $ */
 
-#include "nssrenam.h"
 #include "cert.h"
 #include "ssl.h"
 #include "cryptohi.h"	/* for DSAU_ stuff */

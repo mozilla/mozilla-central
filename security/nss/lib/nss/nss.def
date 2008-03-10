@@ -922,6 +922,7 @@ CERT_FindCRLEntryReasonExten;
 CERT_FindCRLNumberExten;
 CERT_FindNameConstraintsExten;
 CERT_GetValidDNSPatternsFromCert;
+CERT_NewTempCertificate;
 CERT_SetOCSPTimeout;
 CERT_PKIXVerifyCert;
 HASH_GetType;

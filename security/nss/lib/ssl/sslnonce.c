@@ -36,9 +36,8 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslnonce.c,v 1.24 2008-03-06 20:16:22 wtc%google.com Exp $ */
+/* $Id: sslnonce.c,v 1.25 2008-03-10 00:01:28 wtc%google.com Exp $ */
 
-#include "nssrenam.h"
 #include "cert.h"
 #include "pk11pub.h"
 #include "secitem.h"

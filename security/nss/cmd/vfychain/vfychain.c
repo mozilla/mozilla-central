@@ -50,7 +50,6 @@
 
 #include "prerror.h"
 
-#include "nssrenam.h"
 #include "pk11func.h"
 #include "seccomon.h"
 #include "secutil.h"

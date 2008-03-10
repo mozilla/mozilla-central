@@ -38,10 +38,8 @@
 /*
  * PKCS7 encoding.
  *
- * $Id: p7encode.c,v 1.12 2006-02-08 06:14:19 rrelyea%redhat.com Exp $
+ * $Id: p7encode.c,v 1.13 2008-03-10 00:01:26 wtc%google.com Exp $
  */
-
-#include "nssrenam.h"
 
 #include "p7local.h"
 

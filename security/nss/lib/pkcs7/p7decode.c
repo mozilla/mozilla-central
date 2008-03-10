@@ -38,10 +38,8 @@
 /*
  * PKCS7 decoding, verification.
  *
- * $Id: p7decode.c,v 1.24 2007-01-25 00:52:25 alexei.volkov.bugs%sun.com Exp $
+ * $Id: p7decode.c,v 1.25 2008-03-10 00:01:26 wtc%google.com Exp $
  */
-
-#include "nssrenam.h"
 
 #include "p7local.h"
 

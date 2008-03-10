@@ -34,7 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nssrenam.h"
 #include "cmmf.h"
 #include "cmmfi.h"
 

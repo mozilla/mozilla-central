@@ -38,10 +38,8 @@
 /*
  * CMS miscellaneous utility functions.
  *
- * $Id: cmsutil.c,v 1.14 2006-02-08 06:13:43 rrelyea%redhat.com Exp $
+ * $Id: cmsutil.c,v 1.15 2008-03-10 00:01:27 wtc%google.com Exp $
  */
-
-#include "nssrenam.h"
 
 #include "cmslocal.h"
 

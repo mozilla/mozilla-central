@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: sslsnce.c,v 1.44 2008-03-06 20:16:22 wtc%google.com Exp $ */
+/* $Id: sslsnce.c,v 1.45 2008-03-10 00:01:28 wtc%google.com Exp $ */
 
 /* Note: ssl_FreeSID() in sslnonce.c gets used for both client and server 
  * cache sids!
@@ -73,7 +73,6 @@
  *     PRBool                   ticketKeysValid;
  * } cacheMemCacheData;
  */
-#include "nssrenam.h"
 #include "seccomon.h"
 
 #if (defined(XP_UNIX) || defined(XP_WIN32) || defined (XP_OS2) || defined(XP_BEOS)) && !defined(_WIN32_WCE)

@@ -40,9 +40,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* ECC code moved here from ssl3con.c */
-/* $Id: ssl3ecc.c,v 1.21 2008-03-06 20:16:22 wtc%google.com Exp $ */
+/* $Id: ssl3ecc.c,v 1.22 2008-03-10 00:01:28 wtc%google.com Exp $ */
 
-#include "nssrenam.h"
 #include "nss.h"
 #include "cert.h"
 #include "ssl.h"
