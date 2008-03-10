@@ -138,6 +138,7 @@ calDavCalendar.prototype = {
 
         this.mMemoryCalendar.superCalendar = this;
         this.mObserver = new calDavObserver(this);
+        this.mMemoryCalendar.addObserver(this.mObserver);
         this.mMemoryCalendar.setProperty("relaxedMode", true);
     },
 
@@ -619,9 +620,7 @@ calDavCalendar.prototype = {
             // 204 = HTTP "No content"
             //
             if (status == 204) {
-                thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
                 thisCalendar.mMemoryCalendar.deleteItem(aItem, aListener);
-                thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
                 delete thisCalendar.mHrefIndex[eventUri.path];
                 delete thisCalendar.mItemInfoCache[aItem.id];
                 LOG("Item deleted successfully.");
@@ -937,9 +936,7 @@ calDavCalendar.prototype = {
         reportListener.onOperationComplete = function(aStatusCode, aResource,
                                                       aOperation, aClosure) {
             LOG("refresh completed with status " + aStatusCode);
-            thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
             thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
-            thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
         };
 
         // convert this into a form the WebDAV service can use
@@ -1146,9 +1143,7 @@ calDavCalendar.prototype = {
                 // update views if something has been deleted server-side
                 if (!aRefreshEvent.itemsNeedFetching.length) {
                     if (needsRefresh) {
-                        thisCalendar.mMemoryCalendar.addObserver(thisCalendar.mObserver);
                         thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
-                        thisCalendar.mMemoryCalendar.removeObserver(thisCalendar.mObserver);
                     }
                     return;
                 }

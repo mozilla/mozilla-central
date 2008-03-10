@@ -634,12 +634,18 @@ var calendarManagerCompositeObserver = {
     onEndBatch: function cMO_onEndBatch() { },
     onLoad: function cMO_onLoad() { },
 
+    // TODO: remove these temporary caldav exclusions when it is safe to do so
+    // needed to allow cadav refresh() to update w/o forcing visibility    
     onAddItem: function cMO_onAddItem(aItem) {
-        ensureCalendarVisible(aItem.calendar);
+        if (aItem.calendar.type != "caldav") {
+            ensureCalendarVisible(aItem.calendar);
+        }
     },
 
     onModifyItem: function cMO_onModifyItem(aNewItem, aOldItem) {
-        ensureCalendarVisible(aNewItem.calendar);
+        if (aNewItem.calendar.type != "caldav") {
+            ensureCalendarVisible(aNewItem.calendar);
+        }
     },
 
     onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
@@ -738,12 +744,18 @@ var calendarManagerObserver = {
     onEndBatch: function cMO_onEndBatch() { },
     onLoad: function cMO_onLoad() { },
 
+    // TODO: remove these temporary caldav exclusions when it is safe to do so
+    // needed to allow cadav refresh() to update w/o forcing visibility    
     onAddItem: function cMO_onAddItem(aItem) {
-        ensureCalendarVisible(aItem.calendar);
+        if (aItem.calendar.type != "caldav") {
+            ensureCalendarVisible(aItem.calendar);
+        }
     },
 
     onModifyItem: function cMO_onModifyItem(aNewItem, aOldItem) {
-        ensureCalendarVisible(aNewItem.calendar);
+        if (aNewItem.calendar.type != "caldav") {
+            ensureCalendarVisible(aNewItem.calendar);
+        }
     },
 
     onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
