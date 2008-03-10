@@ -1,1 +1,1 @@
-Clobbering to see if it fixes unit test failures
+Clobbering to force rebuild with updated CFLAGS and CXXFLAGS in mozconfig
