@@ -373,7 +373,7 @@ nsNetscapeProfileMigratorBase::SetCookie(PrefTransform* aTransform,
   return NS_OK;
 }
 
-// XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
+// XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
 // activate this code.
 #ifdef SUITE_USING_TOOLKIT_DM
 nsresult

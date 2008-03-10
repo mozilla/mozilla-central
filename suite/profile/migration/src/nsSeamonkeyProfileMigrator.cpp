@@ -623,7 +623,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
     "bidi.",
     "browser.chrome.",
     "browser.display.",
-  // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
+  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifndef SUITE_USING_TOOLKIT_DM
     "browser.download.",

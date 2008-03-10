@@ -127,7 +127,7 @@ public:
   static nsresult SetInt(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetImage(PrefTransform* aTransform, nsIPrefBranch* aBranch);
   static nsresult SetCookie(PrefTransform* aTransform, nsIPrefBranch* aBranch);
-  // XXX Bug 381159 When suite uses Toolkit's DM backend, we need to
+  // XXX Bug 381157 When suite uses Toolkit's DM backend, we need to
   // activate this code.
 #ifdef SUITE_USING_TOOLKIT_DM
   static nsresult SetDownloadManager(PrefTransform* aTransform,
