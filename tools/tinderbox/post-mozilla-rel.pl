@@ -1096,7 +1096,7 @@ sub pushit {
     }
 
     if ( $cachebuild && $datedir ne '') {
-      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server 'cd $remote_path && if [ ! -h $short_ud ]; then ln -s ${datedir}${short_ud} .; fi'");
+      push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server ln -sv ${datedir}${short_ud} $remote_path/");
     }
   } elsif ( $Settings::ReleaseToLatest ) {
     push(@cmds,"ssh $ssh_opts -l $Settings::ssh_user $ssh_server mkdir -p $remote_path/latest-$Settings::milestone");
