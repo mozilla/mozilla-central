@@ -1,1 +1,1 @@
-Clobber OS X nightly for bug 358379, as per request from mconnor.
+trigger a nightly to push the fix to bug 421841 to users
