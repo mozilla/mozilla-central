@@ -418,7 +418,7 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
     char *certPrefix = NULL, *keyPrefix = NULL;
     char *tokdes = NULL, *ptokdes = NULL, *pupdtokdes = NULL;
     char *slotdes = NULL, *pslotdes = NULL;
-    char *fslotdes = NULL, *ftokdes = NULL, *fupdtokdes = NULL;
+    char *fslotdes = NULL, *ftokdes = NULL;
     char *minPW = NULL;
     index = sftk_argStrip(param);
 
@@ -480,7 +480,7 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
 	    tokens[index].slotdes = fslotdes;
 	    fslotdes = NULL;
 	    ftokdes = NULL;
-	    fupdtokdes = NULL;
+	    pupdtokdes = NULL;
 	} else {
 	    tokens[index].tokdes = ptokdes;
 	    tokens[index].updtokdes = pupdtokdes;
@@ -508,7 +508,6 @@ loser:
     FREE_CLEAR(pslotdes);
     FREE_CLEAR(fslotdes);
     FREE_CLEAR(ftokdes);
-    FREE_CLEAR(fupdtokdes);
     FREE_CLEAR(minPW);
     return CKR_OK;
 }
