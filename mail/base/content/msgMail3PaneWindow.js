@@ -1478,11 +1478,10 @@ function GetSelectedFolders()
 function GetSelectedMsgFolders()
 {
     var folderArray = [];
-    var k = 0;
     var folderTree = GetFolderTree();
     var rangeCount = folderTree.view.selection.getRangeCount();
 
-    for(var i = 0; i < rangeCount; i++)
+    for (var i = 0; i < rangeCount; i++)
     {
         var startIndex = {};
         var endIndex = {};
@@ -1490,11 +1489,8 @@ function GetSelectedMsgFolders()
         for (var j = startIndex.value; j <= endIndex.value; j++)
         {
           var folderResource = GetFolderResource(folderTree, j);
-          if (folderResource.Value != "http://home.netscape.com/NC-rdf#PageTitleFakeAccount") {
-            var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-            if(msgFolder)
-              folderArray[k++] = msgFolder;
-          }
+          var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          folderArray.push(msgFolder);
         }
     }
 
