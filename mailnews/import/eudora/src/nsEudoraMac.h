@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -74,8 +75,12 @@ public:
   static PRBool  ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
   static PRBool  FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
 
+  static PRBool  FindFiltersFile( nsIFile **pFiltersFile);
+
 private:
-  static PRBool    FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
+  static PRBool  FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
+  static PRBool  FindEudoraLocation( nsIFile **pFolder, PRBool findIni, const char *specialDirName );
+  static PRBool  VerifyEudoraLocation( nsIFile **pFolder, PRBool findIni );
 
 
   nsresult  ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
@@ -83,9 +88,9 @@ private:
   nsresult  FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
   nsresult  FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
 
-  PRBool     IsValidMailFolderName( nsCString& name);
-  PRBool     IsValidMailboxName( nsCString& fName);
-  PRBool     IsValidMailboxFile( nsIFile *pFile);
+  PRBool    IsValidMailFolderName( nsCString& name);
+  PRBool    IsValidMailboxName( nsCString& fName);
+  PRBool    IsValidMailboxFile( nsIFile *pFile);
 
   PRBool    CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
 
@@ -96,13 +101,13 @@ private:
   static PRBool  BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
   static void    SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
   static void    SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
-  static PRBool   GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
+  static PRBool  GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
 
 
 private:
-  PRUint32                m_depth;
-        nsCOMPtr <nsILocalFile>      m_mailImportLocation;
-        PRBool HasResourceFork(FSSpec *fsSpec);
+  PRUint32 m_depth;
+  nsCOMPtr <nsILocalFile> m_mailImportLocation;
+  PRBool HasResourceFork(FSSpec *fsSpec);
 };
 
 

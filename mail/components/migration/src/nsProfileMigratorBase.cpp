@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *  Scott MacGregor <mscott@mozilla.org>
+ *  Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,6 +53,7 @@
 #include "nsIMailProfileMigrator.h"
 
 #include "nsIImportSettings.h"
+#include "nsIImportFilters.h"
 
 #define kPersonalAddressbookUri "moz-abmdbdirectory://abook.mab"
 
@@ -171,9 +173,34 @@ nsresult nsProfileMigratorBase::FinishCopyingMailFolders()
   index.AppendInt(nsIMailProfileMigrator::MAILDATA);
   NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
 
-  // migration is now done...notify the UI.
-  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
-  return NS_OK;
+  // now kick off the filters migration code
+  return ImportFilters(mImportModule);
 }
 
+nsresult nsProfileMigratorBase::ImportFilters(nsIImportModule * aImportModule)
+{
+  nsresult rv = NS_OK;
+
+  nsCOMPtr<nsIImportFilters> importFilters;
+  nsresult rv2 = aImportModule->GetImportInterface(NS_IMPORT_FILTERS_STR, getter_AddRefs(importFilters));
+
+  if (NS_SUCCEEDED(rv2))
+  {
+    nsAutoString index;
+    index.AppendInt(nsIMailProfileMigrator::FILTERS);
+    NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
+
+    PRBool importedFilters = PR_FALSE;
+    PRUnichar* error;
+
+    rv = importFilters->Import(&error, &importedFilters);
+
+    NOTIFY_OBSERVERS(MIGRATION_ITEMAFTERMIGRATE, index.get());
+  }
+
+  // migration is now done...notify the UI.
+  NOTIFY_OBSERVERS(MIGRATION_ENDED, nsnull);
+
+  return rv;
+}
 

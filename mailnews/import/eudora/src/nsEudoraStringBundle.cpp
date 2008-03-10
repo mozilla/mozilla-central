@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -45,6 +46,7 @@
 #include "nsIServiceManager.h"
 #include "nsIProxyObjectManager.h"
 #include "nsIURI.h"
+#include "nsTextFormatter.h"
 
 #define EUDORA_MSGS_URL       "chrome://messenger/locale/eudoraImportMsgs.properties"
 
@@ -55,16 +57,14 @@ nsIStringBundle *nsEudoraStringBundle::GetStringBundle( void)
   if (m_pBundle)
     return( m_pBundle);
 
-  nsresult      rv;
-  char*        propertyURL = EUDORA_MSGS_URL;
+  nsresult          rv;
+  char*             propertyURL = EUDORA_MSGS_URL;
   nsIStringBundle*  sBundle = nsnull;
-
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
            do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
+  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService))
     rv = sBundleService->CreateBundle(propertyURL, &sBundle);
-  }
 
   m_pBundle = sBundle;
   return( sBundle);
@@ -94,11 +94,11 @@ void nsEudoraStringBundle::GetStringByID( PRInt32 stringID, nsString& result, ns
 
 PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle)
 {
-  if (!pBundle) {
+  if (!pBundle)
     pBundle = GetStringBundle();
-  }
 
-  if (pBundle) {
+  if (pBundle)
+  {
     PRUnichar *ptrv = nsnull;
     nsresult rv = pBundle->GetStringFromID(stringID, &ptrv);
 
@@ -111,6 +111,24 @@ PRUnichar *nsEudoraStringBundle::GetStringByID(PRInt32 stringID, nsIStringBundle
   resultString.AppendLiteral("?]");
 
   return ToNewUnicode(resultString);
+}
+
+nsString nsEudoraStringBundle::FormatString(PRInt32 stringID, ...)
+{
+  // Yeah, I know.  This causes an extra string buffer allocation, but there's no guarantee
+  // that nsString's free and nsTextFormatter::smprintf_free deallocate memory the same way.
+  nsAutoString format;
+  GetStringByID(stringID, format);
+
+  va_list args;
+  va_start(args, stringID);
+
+  PRUnichar *pText = nsTextFormatter::vsmprintf(format.get(), args);
+  va_end(args);
+
+  nsString result(pText);
+  nsTextFormatter::smprintf_free(pText);
+  return result;
 }
 
 void nsEudoraStringBundle::Cleanup( void)

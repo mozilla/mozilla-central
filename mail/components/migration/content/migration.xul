@@ -76,6 +76,12 @@
 
       <radio id="dogbert"   label="&importFromNetscape4.label;" accesskey="&importFromNetscape4.accesskey;"/>
 
+#ifdef XP_UNIX
+#ifdef XP_MACOSX
+      <radio id="eudora"    label="&importFromEudora.label;"    accesskey="&importFromEudora.accesskey;"/>
+#endif
+#endif
+
 #ifdef XP_WIN
       <radio id="eudora"    label="&importFromEudora.label;"    accesskey="&importFromEudora.accesskey;"/>
 #endif

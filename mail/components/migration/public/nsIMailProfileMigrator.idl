@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *     Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,7 +41,7 @@ interface nsISupportsArray;
 interface nsIProfileStartup;
 
 [scriptable, uuid(C3CB4343-2E8B-40fd-A639-A65731BED3AE)]
-interface nsIMailProfileMigrator : nsISupports 
+interface nsIMailProfileMigrator : nsISupports
 {
   /**
    * profile items to migrate. use with migrate().
@@ -54,18 +55,19 @@ interface nsIMailProfileMigrator : nsISupports
   const unsigned short OTHERDATA        = 0x0020;
   const unsigned short NEWSDATA         = 0x0040;
   const unsigned short MAILDATA         = 0x0080;
+  const unsigned short FILTERS          = 0x0100;
 
   /**
    * Copy user profile information to the current active profile.
    * @param aItems   list of data items to migrate. see above for values.
-   * @param aReplace replace or append current data where applicable. 
+   * @param aReplace replace or append current data where applicable.
    * @param aProfile profile to migrate from, if there is more than one.
    */
   void migrate(in unsigned short aItems, in nsIProfileStartup aStartup, in wstring aProfile);
 
   /**
    * A bit field containing profile items that this migrator
-   * offers for import. 
+   * offers for import.
    * @param   aProfile the profile that we are looking for available data
    *          to import
    * @param   aStarting "true" if the profile is not currently being used.
@@ -73,23 +75,23 @@ interface nsIMailProfileMigrator : nsISupports
    */
   unsigned short getMigrateData(in wstring aProfile, in boolean aDoingStartup);
 
-  /** 
-   * Whether or not there is any data that can be imported from this 
+  /**
+   * Whether or not there is any data that can be imported from this
    * browser (i.e. whether or not it is installed, and there exists
    * a user profile)
    */
   readonly attribute boolean          sourceExists;
 
-  /** 
+  /**
    * Whether or not the import source implementing this interface
    * has multiple user profiles configured.
    */
   readonly attribute boolean sourceHasMultipleProfiles;
 
-  /** 
-   * An enumeration of available profiles. If the import source does 
+  /**
+   * An enumeration of available profiles. If the import source does
    * not support profiles, this attribute is null.
    */
   readonly attribute nsISupportsArray sourceProfiles;
-};  
+};
 

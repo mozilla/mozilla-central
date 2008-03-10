@@ -54,7 +54,9 @@ REQUIRES	= xpcom \
 		  intl \
 		  necko \
 		  addrbook \
+		  pref \
 		  mork \
+		  mime \
 		  msgcompose \
 		  msgbase \
 		  dom \
@@ -75,15 +77,16 @@ CPPSRCS		= \
 		nsEudoraEditor.cpp \
 		nsEudoraCompose.cpp \
 		nsEudoraAddress.cpp \
+		nsEudoraFilters.cpp \
 		$(NULL)
 
 ifeq ($(OS_ARCH),WINNT)
-CPPSRCS += nsEudoraWin32.cpp 
+CPPSRCS += nsEudoraWin32.cpp
 endif
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 REQUIRES += macmorefiles
-CPPSRCS += nsEudoraMac.cpp 
+CPPSRCS += nsEudoraMac.cpp
 endif
 
 # we don't want the shared lib, but we want to force the creation of a static lib.

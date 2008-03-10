@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *     Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -57,7 +58,8 @@ interface nsIImportModule : nsISupports
 
 
 %{ C++
-#define NS_IMPORT_MAIL_STR    "mail"
-#define NS_IMPORT_ADDRESS_STR  "addressbook"
-#define  NS_IMPORT_SETTINGS_STR  "settings"
+#define NS_IMPORT_MAIL_STR      "mail"
+#define NS_IMPORT_ADDRESS_STR   "addressbook"
+#define NS_IMPORT_SETTINGS_STR  "settings"
+#define NS_IMPORT_FILTERS_STR   "filters"
 %}

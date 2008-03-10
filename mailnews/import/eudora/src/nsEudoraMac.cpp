@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -22,6 +22,8 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Jeff Beckley <beckley@qualcomm.com>
+ *   Steve Dorner <sdorner@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -86,36 +88,91 @@ PRBool nsEudoraMac::FindMailFolder( nsIFile **pFolder)
 PRBool nsEudoraMac::FindEudoraLocation( nsIFile **pFolder, PRBool findIni, nsIFile *pLookIn)
 {
   PRBool result = PR_FALSE;
-  // The "default" eudora folder is in the system folder named
-  // "Eudora Folder" (not sure if this is true for intl versions of Eudora)
+  // Modern versions of Eudora make the Eudora Folder in ~/Documents
+  // The last versions that ran MacOS Classic made the Eudora folder in the user's documents folder
+  // Early versions made the Eudora Folder in the System Folder
+  // Eudora searches those three locations, earliest first (System Folder:Eudora Folder), and uses the first Eudora Folder
+  // it finds.  However, it's not clear that any version of OSX can actually *find* the Classic "Documents" folder,
+  // even if there was one before the machine was updated to OSX.
+  // The name "Eudora Folder" should not be localized.  Early localized versions of Eudora did localize the name; later
+  // localized versions looked for the localized name and changed it back.  We will therefore not
+  // worry about the folder name being localized.  Japan may be an issue, though.
+  // SD 11/2006
 
-  nsCOMPtr <nsIFile> searchDir;
   if (!pLookIn)
   {
-    nsresult rv = NS_GetSpecialDirectory(NS_OS_SYSTEM_DIR, getter_AddRefs(searchDir));
-    if (NS_FAILED(rv))
-      return (PR_FALSE);
-
-    searchDir->AppendNative(NS_LITERAL_CSTRING("Eudora Folder"));
+    result = FindEudoraLocation( pFolder, findIni, NS_OS_SYSTEM_DIR );
+    if ( !result )
+    {
+      result = FindEudoraLocation( pFolder, findIni, NS_MAC_DOCUMENTS_DIR );
+      if ( !result )
+        result = FindEudoraLocation( pFolder, findIni, NS_OSX_USER_DOCUMENTS_DIR );
+    }
   }
   else
-    searchDir = pLookIn;
+  {
+    *pFolder = pLookIn;
+    result = VerifyEudoraLocation( pFolder, findIni );
+  }
 
-  PRBool  exists = PR_FALSE;
-  nsresult rv = searchDir->Exists( &exists);
-  PRBool  isFolder = PR_FALSE;
+  return result;
+}
+
+PRBool nsEudoraMac::FindEudoraLocation( nsIFile **pFolder, PRBool findIni, const char *specialDirName )
+{
+  nsCOMPtr <nsIFile> searchDir;
+  nsresult rv = NS_GetSpecialDirectory( specialDirName, getter_AddRefs(searchDir) );
+  if (NS_FAILED(rv))
+    return (PR_FALSE);
+
+  // Turn it into a mac file, so we can resolve aliases
+  nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(searchDir);
+  if (!macFile)
+    return (PR_FALSE);
+  macFile->SetFollowLinks(PR_TRUE);
+
+  // It's always called "Eudora Folder", so add that to the path
+  macFile->AppendNative( NS_LITERAL_CSTRING( "Eudora Folder"  ) );
+
+  // If it's an alias, the "target" will be the real file.  Fetch this as a string
+  // and set is back as the file
+  nsCString path;
+  macFile->GetNativeTarget(path);
+  macFile->InitWithNativePath(path);
+
+  // Resolve any unix-style symlinks (this won't do MacOS aliases, hence the machinations above)
+  PRBool link = PR_FALSE;
+  rv = searchDir->IsSymlink( &link);
+  if (NS_SUCCEEDED( rv) && link)
+  {
+    rv = macFile->SetFollowLinks(PR_TRUE);
+    if (NS_FAILED( rv))
+      return( PR_FALSE);
+  }
+
+  // Check for existence and directoriness
+  PRBool exists = PR_FALSE;
+  rv = searchDir->Exists( &exists);
+  PRBool isFolder = PR_FALSE;
   if (NS_SUCCEEDED( rv) && exists)
     rv = searchDir->IsDirectory( &isFolder);
   if (!exists || !isFolder)
     return( PR_FALSE);
 
+  NS_IF_ADDREF(*pFolder = searchDir);
 
+  return PR_TRUE;
+}
+
+PRBool nsEudoraMac::VerifyEudoraLocation( nsIFile **pFolder, PRBool findIni )
+{
+  PRBool result = PR_FALSE;
   PRBool foundPref = PR_FALSE;
 
 
   PRBool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
-  rv = searchDir->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  nsresult rv = (*pFolder)->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   directoryEnumerator->HasMoreElements(&hasMore);
@@ -131,59 +188,58 @@ PRBool nsEudoraMac::FindEudoraLocation( nsIFile **pFolder, PRBool findIni, nsIFi
     directoryEnumerator->HasMoreElements(&hasMore);
 
 
-            // find a file with TEXT, CSOm that isn't the nicknames file
-            // or just cheat and look for more than 1 file?
+    // find a file with TEXT, CSOm that isn't the nicknames file
+    // or just cheat and look for more than 1 file?
+    {
+      nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(entry, &rv);
+      if (NS_SUCCEEDED(rv))
+      {
+        macFile->GetFileCreator(&creator);
+        macFile->GetFileType(&type);
+      }
+    }
+    if (NS_SUCCEEDED( rv))
+    {
+      if ((type == 'TEXT') && (creator == 'CSOm'))
+        count++;
+      else if ((type == 'PREF') && (creator == 'CSOm'))
+      {
+        if (!foundPref)
+        {
+          prefFile = entry;
+          foundPref = PR_TRUE;
+        }
+        else
+        {
+          // does one of them end in ".bkup"?
+          nsCString leafName;
+          entry->GetNativeLeafName(leafName);
+          PRBool isBk = PR_FALSE;
+          isBk = StringEndsWith(leafName, NS_LITERAL_CSTRING(".bkup"));
+          if (!isBk)
           {
-            nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(entry, &rv);
-            if (NS_SUCCEEDED(rv))
+            prefFile->GetNativeLeafName(leafName);
+            isBk = StringEndsWith(leafName, NS_LITERAL_CSTRING(".bkup"));
+            if (isBk)
+              prefFile = entry;
+            else
             {
-              macFile->GetFileCreator(&creator);
-              macFile->GetFileType(&type);
-            }
-          }
-            if (NS_SUCCEEDED( rv)) {
-              if ((type == 'TEXT') && (creator == 'CSOm'))
-                count++;
-              else if ((type == 'PREF') && (creator == 'CSOm'))
-              {
-                if (!foundPref)
-                {
-                  prefFile = entry;
-                  foundPref = PR_TRUE;
-                }
-                else
-                {
-                  // does one of them end in ".bkup"?
-                  nsCString leafName;
-                  entry->GetNativeLeafName(leafName);
-                  PRBool isBk = PR_FALSE;
-                  isBk = StringEndsWith(leafName, NS_LITERAL_CSTRING(".bkup"));
-                  if (!isBk)
-                  {
-                    prefFile->GetNativeLeafName(leafName);
-                    isBk = StringEndsWith(leafName, NS_LITERAL_CSTRING(".bkup"));
-                    if (isBk)
-                    {
-                      prefFile = entry;
-                    }
-                    else
-                    {
-                      // Neither of the pref files was named .bkup
-                      // Pick the newest one?
-                      PRInt64 modDate1, modDate2;
+              // Neither of the pref files was named .bkup
+              // Pick the newest one?
+              PRInt64 modDate1, modDate2;
 
-                      entry->GetLastModifiedTime(&modDate2);
-                      prefFile->GetLastModifiedTime(&modDate1);
-                      if (modDate2 > modDate1)
-                        prefFile = entry;
-                    }
-                  }
-                }
-              }
+              entry->GetLastModifiedTime(&modDate2);
+              prefFile->GetLastModifiedTime(&modDate1);
+              if (modDate2 > modDate1)
+                prefFile = entry;
             }
           }
-      if (count >= 2)
-        result = PR_TRUE;
+        }
+      }
+    }
+  }
+  if (count >= 2)
+    result = PR_TRUE;
 
   if (!findIni)
     return( result);
@@ -191,17 +247,17 @@ PRBool nsEudoraMac::FindEudoraLocation( nsIFile **pFolder, PRBool findIni, nsIFi
   if (!foundPref)
     return( PR_FALSE);
 
-NS_IF_ADDREF(*pFolder = prefFile);
+  NS_IF_ADDREF(*pFolder = prefFile);
 
   return( PR_TRUE);
 }
 
 
-
 nsresult nsEudoraMac::FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray)
 {
   nsresult rv = NS_NewISupportsArray( ppArray);
-  if (NS_FAILED( rv)) {
+  if (NS_FAILED( rv))
+  {
     IMPORT_LOG0( "FAILED to allocate the nsISupportsArray\n");
     return( rv);
   }
@@ -211,7 +267,7 @@ nsresult nsEudoraMac::FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray)
     return( rv);
 
   m_depth = 0;
-   m_mailImportLocation = do_QueryInterface(pRoot);
+  m_mailImportLocation = do_QueryInterface(pRoot);
 
   return( ScanMailDir( pRoot, *ppArray, impSvc));
 }
@@ -265,33 +321,32 @@ nsresult nsEudoraMac::IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray
     {
       if (isFolder)
       {
-        if (IsValidMailFolderName( fName)) {
+        if (IsValidMailFolderName( fName))
+        {
           rv = FoundMailFolder( entry, fName.get(), pArray, pImport);
-          if (NS_SUCCEEDED( rv)) {
+          if (NS_SUCCEEDED( rv))
+          {
             rv = ScanMailDir( entry, pArray, pImport);
-            if (NS_FAILED( rv)) {
+            if (NS_FAILED( rv))
               IMPORT_LOG0( "*** Error scanning mail directory\n");
-            }
           }
         }
       }
       else if (isFile)
       {
-          type = 0;
-          creator = 0;
+        type = 0;
+        creator = 0;
+        {
+          nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(entry, &rv);
+          if (NS_SUCCEEDED(rv))
           {
-            nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(entry, &rv);
-            if (NS_SUCCEEDED(rv))
-            {
-              macFile->GetFileCreator(&creator);
-              macFile->GetFileType(&type);
-            }
-          }
-          if ((type == 'TEXT') && IsValidMailboxName( fName) && IsValidMailboxFile( entry)) {
-            rv = FoundMailbox( entry, fName.get(), pArray, pImport);
+            macFile->GetFileCreator(&creator);
+            macFile->GetFileType(&type);
           }
         }
-
+        if ((type == 'TEXT') && IsValidMailboxName( fName) && IsValidMailboxFile( entry))
+          rv = FoundMailbox( entry, fName.get(), pArray, pImport);
+      }
     }
   }
   return( rv);
@@ -317,17 +372,18 @@ nsresult nsEudoraMac::FoundMailbox( nsIFile *mailFile, const char *pName, nsISup
 #endif
 
   nsresult rv = pImport->CreateNewMailboxDescriptor( getter_AddRefs( desc));
-  if (NS_SUCCEEDED( rv)) {
+  if (NS_SUCCEEDED( rv))
+  {
     PRInt64    sz = 0;
     mailFile->GetFileSize( &sz);
     desc->SetDisplayName( displayName.get());
     desc->SetDepth( m_depth);
-                nsCOMPtr <nsILocalFile> pLocalFile;
-                desc->GetFile(getter_AddRefs(pLocalFile));
-                if (pLocalFile)
-                {
-                  nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
-                  pLocalFile->InitWithFile(localMailFile);
+    nsCOMPtr <nsILocalFile> pLocalFile;
+    desc->GetFile(getter_AddRefs(pLocalFile));
+    if (pLocalFile)
+    {
+      nsCOMPtr <nsILocalFile> localMailFile = do_QueryInterface(mailFile);
+      pLocalFile->InitWithFile(localMailFile);
     }
     rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
     pArray->AppendElement( pInterface);
@@ -357,7 +413,8 @@ nsresult nsEudoraMac::FoundMailFolder( nsILocalFile *mailFolder, const char *pNa
 #endif
 
   nsresult rv = pImport->CreateNewMailboxDescriptor( getter_AddRefs( desc));
-  if (NS_SUCCEEDED( rv)) {
+  if (NS_SUCCEEDED( rv))
+  {
     PRInt64    sz = 0;
     desc->SetDisplayName( displayName.get());
     desc->SetDepth( m_depth);
@@ -365,7 +422,7 @@ nsresult nsEudoraMac::FoundMailFolder( nsILocalFile *mailFolder, const char *pNa
     nsCOMPtr <nsILocalFile> pFile;
     desc->GetFile(getter_AddRefs(pFile));
     if (pFile)
-                  pFile->InitWithFile( mailFolder);
+      pFile->InitWithFile( mailFolder);
     rv = desc->QueryInterface( kISupportsIID, (void **) &pInterface);
     pArray->AppendElement( pInterface);
     pInterface->Release();
@@ -376,43 +433,47 @@ nsresult nsEudoraMac::FoundMailFolder( nsILocalFile *mailFolder, const char *pNa
 
 PRBool nsEudoraMac::CreateTocFromResource( nsIFile *pMail, nsIFile **pToc)
 {
-        short resFile = -1;
-        {
-          nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pMail);
+  short resFile = -1;
 
-          FSSpec fsSpec;
-          nsresult rv = macFile->GetFSSpec(&fsSpec);
+  {
+    nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pMail);
+
+    FSSpec fsSpec;
+    nsresult rv = macFile->GetFSSpec(&fsSpec);
     if (NS_FAILED(rv))
-            return PR_FALSE;
+      return PR_FALSE;
 
-          resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
-        }
+    resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
+  }
+
   if (resFile == -1)
     return( PR_FALSE);
   Handle  resH = nil;
   short max = Count1Resources( 'TOCF');
-  if (max) {
+  if (max)
     resH = Get1IndResource( 'TOCF', 1);
-  }
   PRBool   result = PR_FALSE;
-  if (resH) {
+  if (resH)
+  {
     PRInt32 sz = (PRInt32) GetHandleSize( resH);
-    if (sz) {
-            // Create the new TOC file
-            nsCOMPtr<nsIFile> tempDir;
-            nsresult rv = NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(tempDir));
-            if (NS_FAILED(rv))
-              return (PR_FALSE);
+    if (sz)
+    {
+      // Create the new TOC file
+      nsCOMPtr<nsIFile> tempDir;
+      nsresult rv = NS_GetSpecialDirectory(NS_OS_TEMP_DIR, getter_AddRefs(tempDir));
+      if (NS_FAILED(rv))
+        return (PR_FALSE);
 
-            nsCOMPtr <nsIOutputStream> outputStream;
-            rv = tempDir->Clone(pToc);
+      nsCOMPtr <nsIOutputStream> outputStream;
+        rv = tempDir->Clone(pToc);
       if (NS_SUCCEEDED( rv))
         rv = (*pToc)->AppendNative( NS_LITERAL_CSTRING("temp.toc"));
       if (NS_SUCCEEDED( rv))
         rv = (*pToc)->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
       if (NS_SUCCEEDED( rv))
-                             rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), (*pToc));
-      if (NS_SUCCEEDED( rv)) {
+        rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), (*pToc));
+      if (NS_SUCCEEDED( rv))
+      {
         HLock( resH);
         PRUint32 written = 0;
         rv = outputStream->Write( *resH, sz, &written);
@@ -438,7 +499,7 @@ nsresult nsEudoraMac::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBo
 
   *pDeleteToc = PR_FALSE;
   *ppTOCFile = nsnull;
-        nsCString leaf;
+  nsCString leaf;
   rv = pMailFile->GetNativeLeafName(leaf);
   if (NS_FAILED( rv))
     return( rv);
@@ -457,13 +518,14 @@ nsresult nsEudoraMac::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBo
     rv = (*ppTOCFile)->Exists( &exists);
   if (NS_SUCCEEDED( rv) && exists)
     rv = (*ppTOCFile)->IsFile( &isFile);
-  if (isFile) {
-                  nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(*ppTOCFile);
-                  if (macFile)
-                  {
-                    macFile->GetFileCreator(&creator);
-                    macFile->GetFileType(&type);
-                  }
+  if (isFile)
+  {
+    nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(*ppTOCFile);
+    if (macFile)
+    {
+      macFile->GetFileCreator(&creator);
+      macFile->GetFileType(&type);
+    }
   }
 
 
@@ -471,7 +533,8 @@ nsresult nsEudoraMac::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBo
     return( NS_OK);
 
   // try and create the file from a resource.
-  if (CreateTocFromResource( pMailFile, ppTOCFile)) {
+  if (CreateTocFromResource( pMailFile, ppTOCFile))
+  {
     *pDeleteToc = PR_TRUE;
     return( NS_OK);
   }
@@ -485,14 +548,14 @@ nsresult nsEudoraMac::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBo
 //  3 - the pop server
 //  4 - Return address
 //  5 - Full name
-//   6 - Leave mail on server
-#define  kNumSettingStrs      6
-#define  kSmtpServerStr      0
-#define  kPopAccountNameStr    1
-#define  kPopServerStr      2
-#define kReturnAddressStr    3
-#define  kFullNameStr      4
-#define kLeaveOnServerStr    5
+//  6 - Leave mail on server
+#define kNumSettingStrs     6
+#define kSmtpServerStr      0
+#define kPopAccountNameStr  1
+#define kPopServerStr       2
+#define kReturnAddressStr   3
+#define kFullNameStr        4
+#define kLeaveOnServerStr   5
 
 // resource IDs
 #define kSmtpServerID         4
@@ -507,31 +570,33 @@ PRBool nsEudoraMac::GetSettingsFromResource( nsIFile *pSettings, short resId, ns
   nsresult rv;
   *pIMAP = PR_FALSE;
   // Get settings from the resources...
-        short resFile = -1;
-        {
-          nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pSettings, &rv);
+  short resFile = -1;
+  {
+    nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pSettings, &rv);
     if (NS_FAILED(rv))
-            return PR_FALSE;
+      return PR_FALSE;
 
-          FSSpec fsSpec;
-          rv = macFile->GetFSSpec(&fsSpec);
+    FSSpec fsSpec;
+    rv = macFile->GetFSSpec(&fsSpec);
     if (NS_FAILED(rv))
-            return PR_FALSE;
+      return PR_FALSE;
 
-          resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
-        }
+    resFile = FSpOpenResFile( &fsSpec, fsRdPerm);
+  }
   if (resFile == -1)
     return( PR_FALSE);
 
   // smtp server, STR# 1000, 4
   Handle  resH = Get1Resource( 'STR#', resId /* 1000 */);
   int    idx;
-  if (resH) {
+  if (resH)
+  {
     ReleaseResource( resH);
     StringPtr  pStr[5];
     StringPtr   theStr;
     short    i;
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++)
+    {
       pStr[i] = (StringPtr) new PRUint8[256];
       (pStr[i])[0] = 0;
     }
@@ -543,57 +608,54 @@ PRBool nsEudoraMac::GetSettingsFromResource( nsIFile *pSettings, short resId, ns
     CloseResFile( resFile);
 
     theStr = pStr[0];
-    if (*theStr) {
+    if (*theStr)
       pStrs[0]->Append( (const char *) (theStr + 1), *theStr);
-    }
     theStr = pStr[1];
-    if (*theStr) {
+    if (*theStr)
+    {
       idx = 1;
-      while (idx <= *theStr) {
+      while (idx <= *theStr)
+      {
         if (theStr[idx] == '@')
           break;
         else
           idx++;
       }
-      if (idx <= *theStr) {
+      if (idx <= *theStr)
+      {
         PRUint8  save = *theStr;
         *theStr = idx - 1;
-        if (*theStr) {
+        if (*theStr)
           pStrs[1]->Append( (const char *) (theStr + 1), *theStr);
-        }
         *theStr = save;
       }
       else
         idx = 0;
       theStr[idx] = theStr[0] - idx;
-      if (theStr[idx]) {
+      if (theStr[idx])
         pStrs[2]->Append( (const char *) (theStr + idx + 1), *(theStr + idx));
-      }
     }
     theStr = pStr[2];
-    if ( *theStr) {
+    if ( *theStr)
       pStrs[3]->Append( (const char *) (theStr + 1), *theStr);
-    }
     theStr = pStr[3];
-    if ( *theStr) {
+    if ( *theStr)
       pStrs[4]->Append( (const char *) (theStr + 1), *theStr);
-    }
     theStr = pStr[4];
-    if ( *theStr) {
-      if (theStr[1] == 'y') {
+    if ( *theStr)
+    {
+      if (theStr[1] == 'y')
         *(pStrs[5]) = "Y";
-      }
-      else {
+      else
         *(pStrs[5]) = "N";
-      }
     }
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++)
       delete pStr[i];
-    }
 
     return( PR_TRUE);
   }
-  else {
+  else
+  {
     CloseResFile( resFile);
     return( PR_FALSE);
   }
@@ -605,7 +667,8 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
 
   nsCOMPtr<nsIMsgAccountManager> accMgr =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
-    if (NS_FAILED(rv)) {
+  if (NS_FAILED(rv))
+  {
     IMPORT_LOG0( "*** Failed to create a account manager!\n");
     return( PR_FALSE);
   }
@@ -614,9 +677,8 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
   nsCString **pStrs = new nsCString *[kNumSettingStrs];
   int    i;
 
-  for (i = 0; i < kNumSettingStrs; i++) {
+  for (i = 0; i < kNumSettingStrs; i++)
     pStrs[i] = new nsCString;
-  }
 
   nsString accName(NS_LITERAL_STRING("Eudora Settings"));
   nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_ACCOUNTNAME, accName);
@@ -630,38 +692,45 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
   int        accounts = 0;
   nsIMsgAccount *  pAccount;
 
-  while (baseResId) {
+  while (baseResId)
+  {
     isIMAP = PR_FALSE;
-    if (GetSettingsFromResource( pIniFile, baseResId, pStrs, &isIMAP)) {
+    if (GetSettingsFromResource( pIniFile, baseResId, pStrs, &isIMAP))
+    {
       pAccount = nsnull;
-      if (!isIMAP) {
+      if (!isIMAP)
+      {
         // This is a POP account
-        if (BuildPOPAccount( accMgr, pStrs, &pAccount, accName)) {
+        if (BuildPOPAccount( accMgr, pStrs, &pAccount, accName))
+        {
           accounts++;
           popCount++;
-          if (popCount > 1) {
-            if (localMailAccount && *localMailAccount) {
+          if (popCount > 1)
+          {
+            if (localMailAccount && *localMailAccount)
+            {
               NS_RELEASE( *localMailAccount);
               *localMailAccount = nsnull;
             }
           }
-          else {
-            if (localMailAccount) {
+          else
+          {
+            if (localMailAccount)
+            {
               *localMailAccount = pAccount;
               NS_IF_ADDREF( pAccount);
             }
           }
         }
       }
-      else {
+      else
+      {
         // This is an IMAP account
-        if (BuildIMAPAccount( accMgr, pStrs, &pAccount, accName)) {
+        if (BuildIMAPAccount( accMgr, pStrs, &pAccount, accName))
           accounts++;
-        }
       }
-      if (pAccount && (baseResId == 1000)) {
+      if (pAccount && (baseResId == 1000))
         accMgr->SetDefaultAccount( pAccount);
-      }
 
       NS_IF_RELEASE( pAccount);
     }
@@ -669,10 +738,10 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
     baseResId = 0;
     // Set the next account name???
 
-    if (baseResId) {
-      for (i = 0; i < kNumSettingStrs; i++) {
+    if (baseResId)
+    {
+      for (i = 0; i < kNumSettingStrs; i++)
         pStrs[i]->Truncate();
-      }
     }
   }
 
@@ -680,12 +749,24 @@ PRBool nsEudoraMac::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMail
   rv = accMgr->SaveAccountInfo();
   NS_ASSERTION(NS_SUCCEEDED(rv), "Can't save account info to pref file");
 
-  for (i = 0; i < kNumSettingStrs; i++) {
+  for (i = 0; i < kNumSettingStrs; i++)
     delete pStrs[i];
-  }
   delete pStrs;
 
   return( accounts != 0);
+}
+
+PRBool nsEudoraMac::FindFiltersFile( nsIFile **pFiltersFile)
+{
+  PRBool result = FindEudoraLocation( pFiltersFile, PR_FALSE);
+
+  if (result)
+  {
+    (*pFiltersFile)->AppendNative( NS_LITERAL_CSTRING("Eudora Filters") );
+    (*pFiltersFile)->IsFile(&result);
+  }
+
+  return result;
 }
 
 
@@ -704,10 +785,12 @@ PRBool nsEudoraMac::BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **p
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = accMgr->FindServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
-  if (NS_FAILED( rv) || (in == nsnull)) {
+  if (NS_FAILED( rv) || (in == nsnull))
+  {
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("pop3"), getter_AddRefs( in));
-    if (NS_SUCCEEDED( rv) && in) {
+    if (NS_SUCCEEDED( rv) && in)
+    {
       rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
       // rv = in->SetHostName( pStrs[kPopServerStr]->get());
       // rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
@@ -719,7 +802,8 @@ PRBool nsEudoraMac::BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **p
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount>  account;
       rv = accMgr->CreateAccount( getter_AddRefs( account));
-      if (NS_SUCCEEDED( rv) && account) {
+      if (NS_SUCCEEDED( rv) && account)
+      {
         rv = account->SetIncomingServer( in);
 
         IMPORT_LOG0( "Created a new account and set the incoming server to the POP3 server.\n");
@@ -752,10 +836,12 @@ PRBool nsEudoraMac::BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **
 
   nsCOMPtr<nsIMsgIncomingServer>  in;
   nsresult rv = accMgr->FindServer(*(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
-  if (NS_FAILED( rv) || (in == nsnull)) {
+  if (NS_FAILED( rv) || (in == nsnull))
+  {
     // Create the incoming server and an account for it?
     rv = accMgr->CreateIncomingServer( *(pStrs[kPopAccountNameStr]), *(pStrs[kPopServerStr]), NS_LITERAL_CSTRING("imap"), getter_AddRefs( in));
-    if (NS_SUCCEEDED( rv) && in) {
+    if (NS_SUCCEEDED( rv) && in)
+    {
       rv = in->SetType(NS_LITERAL_CSTRING("imap"));
       // rv = in->SetHostName( pStrs[kPopServerStr]->get());
       // rv = in->SetUsername( pStrs[kPopAccountNameStr]->get());
@@ -767,7 +853,8 @@ PRBool nsEudoraMac::BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **
       // We have a server, create an account.
       nsCOMPtr<nsIMsgAccount>  account;
       rv = accMgr->CreateAccount( getter_AddRefs( account));
-      if (NS_SUCCEEDED( rv) && account) {
+      if (NS_SUCCEEDED( rv) && account)
+      {
         rv = account->SetIncomingServer( in);
 
         IMPORT_LOG0( "Created an account and set the IMAP server as the incoming server\n");
@@ -793,16 +880,17 @@ void nsEudoraMac::SetIdentities(nsIMsgAccountManager *accMgr, nsIMsgAccount *acc
 
   nsCOMPtr<nsIMsgIdentity> id;
   rv = accMgr->CreateIdentity( getter_AddRefs( id));
-  if (id) {
+  if (id)
+  {
     nsAutoString fullName;
     if (pStrs[kFullNameStr]->Length())
       CopyASCIItoUTF16(pStrs[kFullNameStr]->get(), fullName);
     id->SetFullName(fullName);
     id->SetIdentityName(fullName);
-    if (pStrs[kReturnAddressStr]->Length()) {
+    if (pStrs[kReturnAddressStr]->Length())
       id->SetEmail(*(pStrs[kReturnAddressStr]));
-    }
-    else {
+    else
+    {
       nsCAutoString emailAddress;
       emailAddress = userName;
       emailAddress += "@";
@@ -824,25 +912,28 @@ void nsEudoraMac::SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc
   nsresult  rv;
 
   nsCOMPtr<nsISmtpService> smtpService(do_GetService(NS_SMTPSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && smtpService) {
+  if (NS_SUCCEEDED(rv) && smtpService)
+  {
     nsCOMPtr<nsISmtpServer>    foundServer;
 
     rv = smtpService->FindServer( pUser, pServer, getter_AddRefs( foundServer));
-    if (NS_SUCCEEDED( rv) && foundServer) {
+    if (NS_SUCCEEDED( rv) && foundServer)
+    {
       IMPORT_LOG1( "SMTP server already exists: %s\n", pServer);
       return;
     }
     nsCOMPtr<nsISmtpServer>    smtpServer;
 
     rv = smtpService->CreateSmtpServer( getter_AddRefs( smtpServer));
-    if (NS_SUCCEEDED( rv) && smtpServer) {
+    if (NS_SUCCEEDED( rv) && smtpServer)
+    {
       smtpServer->SetHostname( pServer);
       if (pUser)
         smtpServer->SetUsername( pUser);
 
       IMPORT_LOG1( "Created new SMTP server: %s\n", pServer);
     }
-   }
+  }
 }
 
 
@@ -869,7 +960,8 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
     str.Right( fileNum, 10);
     if ((fileNum.CharAt( 0) == '(') && (fileNum.CharAt( 9) == ')'))
     {
-      for (i = 1; i < 9; i++) {
+      for (i = 1; i < 9; i++)
+      {
         fNum *= 16;
         c = fileNum.CharAt( i);
         if ((c >= '0') && (c <= '9'))
@@ -923,7 +1015,8 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
     nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     pLocalFile->InitWithNativePath(str);
-    if (NS_FAILED(rv)) {
+    if (NS_FAILED(rv))
+    {
       IMPORT_LOG0("\tfailed to set native path\n");
       return rv;
     }
@@ -931,13 +1024,15 @@ nsresult nsEudoraMac::GetAttachmentInfo( const char *pFileName, nsIFile *pFile, 
     pFile->GetNativeLeafName( aAttachment);
 
     nsCOMPtr<nsILocalFileMac> macFile = do_QueryInterface(pFile, &rv);
-    if (NS_FAILED(rv)) {
+    if (NS_FAILED(rv))
+    {
       IMPORT_LOG0("\tfailed to get local mac file\n");
       return rv;
     }
 
     rv = macFile->GetFSSpec(&spec);
-    if (NS_FAILED(rv)) {
+    if (NS_FAILED(rv))
+    {
       IMPORT_LOG0("\tfailed to get FSSpec\n");
       return rv;
     }
@@ -967,7 +1062,8 @@ PRBool nsEudoraMac::HasResourceFork(FSSpec *fsSpec)
 
 
 #define    kNumBadFolderNames    7
-const char *cBadFolderNames[kNumBadFolderNames] = {
+const char *cBadFolderNames[kNumBadFolderNames] =
+{
   "Attachments Folder",
   "Eudora Items",
   "Nicknames Folder",
@@ -982,7 +1078,8 @@ PRBool nsEudoraMac::IsValidMailFolderName( nsCString& name)
   if (m_depth > 1)
     return( PR_TRUE);
 
-  for (int i = 0; i < kNumBadFolderNames; i++) {
+  for (int i = 0; i < kNumBadFolderNames; i++)
+  {
     if (name.Equals( cBadFolderNames[i], nsCaseInsensitiveCStringComparator()))
       return( PR_FALSE);
   }
@@ -1005,11 +1102,12 @@ PRBool nsEudoraMac::IsValidMailboxFile( nsIFile *pFile)
 {
   PRInt64  size = 0;
   nsresult rv = pFile->GetFileSize( &size);
-  if (size) {
+  if (size)
+  {
     if (size < 10)
       return( PR_FALSE);
-          nsCOMPtr <nsIInputStream> inputStream;
-          rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile);
+    nsCOMPtr <nsIInputStream> inputStream;
+    rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile);
     if (NS_FAILED( rv))
       return( PR_FALSE);
     PRUint32  read = 0;

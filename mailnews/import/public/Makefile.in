@@ -55,6 +55,7 @@ XPIDLSRCS	= \
 		nsIImportSettings.idl				\
 		nsIImportMimeEncode.idl				\
 		nsIImportFieldMap.idl				\
+		nsIImportFilters.idl				\
                 $(NULL)
                 
 include $(topsrcdir)/config/rules.mk

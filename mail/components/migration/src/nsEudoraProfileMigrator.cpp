@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *  Scott MacGregor <mscott@mozilla.org>
+ *  Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -138,7 +139,7 @@ nsEudoraProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 {
   // There's no harm in assuming everything is available.
   *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA |
-             nsIMailProfileMigrator::MAILDATA;
+             nsIMailProfileMigrator::MAILDATA | nsIMailProfileMigrator::FILTERS;
   return NS_OK;
 }
 

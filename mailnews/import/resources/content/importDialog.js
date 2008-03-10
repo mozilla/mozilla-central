@@ -21,6 +21,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *     Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -91,7 +92,15 @@ function SetUpImportType()
 {
   // set dialog title
   document.getElementById("importFields").value = importType;
-
+  
+  // Mac migration not working right now, so disable it
+  if (navigator.platform.match("^Mac"))
+  {
+    document.getElementById("allRadio").setAttribute("disabled", "true");
+    if (importType == "all")
+      document.getElementById("importFields").value = "addressbook";
+  }
+  
   ListModules();
 }
 
@@ -151,11 +160,11 @@ function ImportDialogOKButton()
     {
       // Fix for Bug 57839 & 85219
       // We use localFoldersServer(in nsIMsgAccountManager) to check if Local Folder exists.
-      // We need to check localFoldersServer before importing "mail" or "settings".
+      // We need to check localFoldersServer before importing "mail", "settings", or "filters".
       // Reason: We will create an account with an incoming server of type "none" after 
       // importing "mail", so the localFoldersServer is valid even though the Local Folder 
       // is not created.
-      if (importType == "mail" || importType == "settings")
+      if (importType == "mail" || importType == "settings" || importType == "filters")
         CheckIfLocalFolderExists();
 
       var meterText = "";
@@ -265,6 +274,26 @@ function ImportDialogOKButton()
           }
           else
             ShowImportResultsRaw(gImportMsgsBundle.getFormattedString('ImportSettingsSuccess', [ name ]), null, true);
+          break;
+
+        case "filters":
+          var error = new Object();
+          error.value = null;
+          if (!ImportFilters( module, error))
+          {
+            if (error.value)
+              ShowImportResultsRaw(gImportMsgsBundle.getFormattedString('ImportFiltersFailed', [ name ]), error.value, false);
+            // the user canceled the operation, shoud we dismiss
+            // this dialog or not?
+            return false;
+          }
+          else
+          {
+            if (error.value)
+              ShowImportResultsRaw(gImportMsgsBundle.getFormattedString('ImportFiltersPartial', [ name ]), error.value, true);
+            else
+              ShowImportResultsRaw(gImportMsgsBundle.getFormattedString('ImportFiltersSuccess', [ name ]), null, true);
+          }
           break;
       }
     }
@@ -784,16 +813,20 @@ function ImportAddress( module, success, error) {
     // Determine if we need to ask for a directory
     // or a single file.
     var file = null;
+    var fileIsDirectory = false;
     if (addInterface.GetStatus( "supportsMultiple") != 0) {
       // ask for dir
       try {
         filePicker.init( top.window, gImportMsgsBundle.getString('ImportSelectAddrDir'), Components.interfaces.nsIFilePicker.modeGetFolder);
         filePicker.appendFilters( Components.interfaces.nsIFilePicker.filterAll);
         filePicker.show();
-        if (filePicker.file && (filePicker.file.path.length > 0))
+        if (filePicker.file && (filePicker.file.path.length > 0)) {
           file = filePicker.file;
-        else
+          fileIsDirectory = true;
+        }
+        else {
           file = null;
+        }
       } catch( ex) {
         file = null;
       }
@@ -831,7 +864,7 @@ function ImportAddress( module, success, error) {
       return( false);
     }
 
-    if (file.fileSize == 0) {
+    if ( !fileIsDirectory && (file.fileSize == 0) ) {
       var errorText = gImportMsgsBundle.getFormattedString('ImportEmptyAddressBook', [path]);
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
 
@@ -892,6 +925,31 @@ function ImportAddress( module, success, error) {
       return( false);
     }
   }
+}
+
+/*
+  Import filters from a specific module.
+  Returns false if it failed and true if it succeeded.
+  An error string is returned as error.value.
+*/
+function ImportFilters( module, error)
+{
+  if (top.progressInfo.importInterface || top.progressInfo.intervalState) {
+    error.data = gImportMsgsBundle.getString('ImportAlreadyInProgress');
+    return( false);
+  }
+
+  top.progressInfo.importSuccess = false;
+
+  var filtersInterface = module.GetImportInterface("filters");
+  if (filtersInterface != null)
+    filtersInterface = filtersInterface.QueryInterface(Components.interfaces.nsIImportFilters);
+  if (filtersInterface == null) {
+    error.data = gImportMsgsBundle.getString('ImportFiltersBadModule');
+    return( false);
+  }
+  
+  return filtersInterface.Import(error);
 }
 
 function SwitchType( newType)

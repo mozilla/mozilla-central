@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -19,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,12 +45,13 @@ class nsIStringBundle;
 
 class nsEudoraStringBundle {
 public:
-  static PRUnichar     *    GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
-  static void          GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static PRUnichar       *  GetStringByID(PRInt32 stringID, nsIStringBundle *pBundle = nsnull);
+  static void               GetStringByID(PRInt32 stringID, nsString& result, nsIStringBundle *pBundle = nsnull);
+  static nsString           FormatString(PRInt32 stringID, ...);
   static nsIStringBundle *  GetStringBundle( void); // don't release
   static nsIStringBundle *  GetStringBundleProxy( void); // release
-  static void          FreeString( PRUnichar *pStr) { NS_Free( pStr);}
-  static void          Cleanup( void);
+  static void               FreeString( PRUnichar *pStr) { NS_Free( pStr);}
+  static void               Cleanup( void);
 
 private:
   static nsIStringBundle *  m_pBundle;
@@ -56,19 +59,19 @@ private:
 
 
 
-#define  EUDORAIMPORT_NAME                               2000
-#define  EUDORAIMPORT_DESCRIPTION                        2001
+#define EUDORAIMPORT_NAME                               2000
+#define EUDORAIMPORT_DESCRIPTION                        2001
 #define EUDORAIMPORT_MAILBOX_SUCCESS                    2002
 #define EUDORAIMPORT_MAILBOX_BADPARAM                   2003
 #define EUDORAIMPORT_MAILBOX_BADSOURCEFILE              2004
 #define EUDORAIMPORT_MAILBOX_CONVERTERROR               2005
 #define EUDORAIMPORT_ACCOUNTNAME                        2006
 
-#define  EUDORAIMPORT_NICKNAMES_NAME                     2007
-#define  EUDORAIMPORT_ADDRESS_SUCCESS                    2008
-#define  EUDORAIMPORT_ADDRESS_BADPARAM                   2009
-#define  EUDORAIMPORT_ADDRESS_BADSOURCEFILE              2010
-#define  EUDORAIMPORT_ADDRESS_CONVERTERROR               2011
+#define EUDORAIMPORT_NICKNAMES_NAME                     2007
+#define EUDORAIMPORT_ADDRESS_SUCCESS                    2008
+#define EUDORAIMPORT_ADDRESS_BADPARAM                   2009
+#define EUDORAIMPORT_ADDRESS_BADSOURCEFILE              2010
+#define EUDORAIMPORT_ADDRESS_CONVERTERROR               2011
 #define EUDORAIMPORT_ADDRESS_LABEL_HOMEMOBILE           2012
 #define EUDORAIMPORT_ADDRESS_LABEL_WORKMOBILE           2013
 #define EUDORAIMPORT_ADDRESS_LABEL_HOMEFAX              2014
@@ -77,6 +80,12 @@ private:
 #define EUDORAIMPORT_ADDRESS_LABEL_OTHERPHONE           2017
 #define EUDORAIMPORT_ADDRESS_LABEL_OTHERWEB             2018
 
-
+#define EUDORAIMPORT_FILTERS_WARN_OUTGOING              2019
+#define EUDORAIMPORT_FILTERS_WARN_ACTION                2020
+#define EUDORAIMPORT_FILTERS_WARN_VERB                  2021
+#define EUDORAIMPORT_FILTERS_WARN_EMPTY_HEADER          2022
+#define EUDORAIMPORT_FILTERS_WARN_NEGATE_VERB           2023
+#define EUDORAIMPORT_FILTERS_WARN_META_HEADER           2024
+#define EUDORAIMPORT_FILTERS_WARN_MAILBOX_MISSING       2025
 
 #endif /* nsEudoraStringBundle_H__ */
