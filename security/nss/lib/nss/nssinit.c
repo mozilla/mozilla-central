@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.91 2008-02-23 05:29:39 nelson%bolyard.com Exp $ */
+/* $Id: nssinit.c,v 1.92 2008-03-10 20:16:45 rrelyea%redhat.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -421,7 +421,10 @@ static CERTCertificate dummyCert;
 
 static SECStatus
 nss_Init(const char *configdir, const char *certPrefix, const char *keyPrefix,
-		 const char *secmodName, PRBool readOnly, PRBool noCertDB, 
+		 const char *secmodName, const char *updateDir, 
+		 const char *updCertPrefix, const char *updKeyPrefix,
+		 const char *updateID, const char *updateName,
+			PRBool readOnly, PRBool noCertDB, 
 			PRBool noModDB, PRBool forceOpen, PRBool noRootInit,
 			PRBool optimizeSpace, PRBool noSingleThreadedModules,
 			PRBool allowAlreadyInitializedModules,
@@ -434,6 +437,11 @@ nss_Init(const char *configdir, const char *certPrefix, const char *keyPrefix,
     char *lcertPrefix = NULL;
     char *lkeyPrefix = NULL;
     char *lsecmodName = NULL;
+    char *lupdateDir = NULL;
+    char *lupdCertPrefix = NULL;
+    char *lupdKeyPrefix = NULL;
+    char *lupdateID = NULL;
+    char *lupdateName = NULL;
     PKIX_UInt32 actualMinorVersion = 0;
     PKIX_Error *pkixError = NULL;;
 
@@ -480,6 +488,26 @@ nss_Init(const char *configdir, const char *certPrefix, const char *keyPrefix,
     if (lsecmodName == NULL) {
 	goto loser;
     }
+    lupdateDir = nss_doubleEscape(updateDir);
+    if (lupdateDir == NULL) {
+	goto loser;
+    }
+    lupdCertPrefix = nss_doubleEscape(updCertPrefix);
+    if (lupdCertPrefix == NULL) {
+	goto loser;
+    }
+    lupdKeyPrefix = nss_doubleEscape(updKeyPrefix);
+    if (lupdKeyPrefix == NULL) {
+	goto loser;
+    }
+    lupdateID = nss_doubleEscape(updateID);
+    if (lupdateID == NULL) {
+	goto loser;
+    }
+    lupdateName = nss_doubleEscape(updateName);
+    if (lupdateName == NULL) {
+	goto loser;
+    }
     if (noSingleThreadedModules || allowAlreadyInitializedModules ||
         dontFinalizeModules) {
         pk11_setGlobalOptions(noSingleThreadedModules,
@@ -487,10 +515,15 @@ nss_Init(const char *configdir, const char *certPrefix, const char *keyPrefix,
                               dontFinalizeModules);
     }
 
-    moduleSpec = PR_smprintf("name=\"%s\" parameters=\"configdir='%s' certPrefix='%s' keyPrefix='%s' secmod='%s' flags=%s %s\" NSS=\"flags=internal,moduleDB,moduleDBOnly,critical\"",
+    moduleSpec = PR_smprintf(
+     "name=\"%s\" parameters=\"configdir='%s' certPrefix='%s' keyPrefix='%s' "
+     "secmod='%s' flags=%s updatedir='%s' updateCertPrefix='%s' "
+     "updateKeyPrefix='%s' updateid='%s' updateTokenDescription='%s' %s\" "
+     "NSS=\"flags=internal,moduleDB,moduleDBOnly,critical\"",
 		pk11_config_name ? pk11_config_name : NSS_DEFAULT_MOD_NAME,
 		lconfigdir,lcertPrefix,lkeyPrefix,lsecmodName,flags,
-		pk11_config_strings ? pk11_config_strings : "");
+		lupdateDir, lupdCertPrefix, lupdKeyPrefix, lupdateID, 
+		lupdateName, pk11_config_strings ? pk11_config_strings : "");
 
 loser:
     PORT_Free(flags);
@@ -498,6 +531,11 @@ loser:
     if (lcertPrefix) PORT_Free(lcertPrefix);
     if (lkeyPrefix) PORT_Free(lkeyPrefix);
     if (lsecmodName) PORT_Free(lsecmodName);
+    if (lupdateDir) PORT_Free(lupdateDir);
+    if (lupdCertPrefix) PORT_Free(lupdCertPrefix);
+    if (lupdKeyPrefix) PORT_Free(lupdKeyPrefix);
+    if (lupdateID) PORT_Free(lupdateID);
+    if (lupdateName) PORT_Free(lupdateName);
 
     if (moduleSpec) {
 	SECMODModule *module = SECMOD_LoadModule(moduleSpec,NULL,PR_TRUE);
@@ -555,15 +593,17 @@ loser:
 SECStatus
 NSS_Init(const char *configdir)
 {
-    return nss_Init(configdir, "", "", SECMOD_DB, PR_TRUE, 
-		PR_FALSE, PR_FALSE, PR_FALSE, PR_FALSE, PR_TRUE, PR_FALSE, PR_FALSE, PR_FALSE);
+    return nss_Init(configdir, "", "", SECMOD_DB, "", "", "", "", "",
+		PR_TRUE, PR_FALSE, PR_FALSE, PR_FALSE, PR_FALSE, 
+		PR_TRUE, PR_FALSE, PR_FALSE, PR_FALSE);
 }
 
 SECStatus
 NSS_InitReadWrite(const char *configdir)
 {
-    return nss_Init(configdir, "", "", SECMOD_DB, PR_FALSE, 
-		PR_FALSE, PR_FALSE, PR_FALSE, PR_FALSE, PR_TRUE, PR_FALSE, PR_FALSE, PR_FALSE);
+    return nss_Init(configdir, "", "", SECMOD_DB, "", "", "", "", "",
+		PR_FALSE, PR_FALSE, PR_FALSE, PR_FALSE, PR_FALSE, 
+		PR_TRUE, PR_FALSE, PR_FALSE, PR_FALSE);
 }
 
 /*
@@ -618,7 +658,28 @@ SECStatus
 NSS_Initialize(const char *configdir, const char *certPrefix, 
 	const char *keyPrefix, const char *secmodName, PRUint32 flags)
 {
-    return nss_Init(configdir, certPrefix, keyPrefix, secmodName, 
+    return nss_Init(configdir, certPrefix, keyPrefix, secmodName,
+	"", "", "", "", "",
+	((flags & NSS_INIT_READONLY) == NSS_INIT_READONLY),
+	((flags & NSS_INIT_NOCERTDB) == NSS_INIT_NOCERTDB),
+	((flags & NSS_INIT_NOMODDB) == NSS_INIT_NOMODDB),
+	((flags & NSS_INIT_FORCEOPEN) == NSS_INIT_FORCEOPEN),
+	((flags & NSS_INIT_NOROOTINIT) == NSS_INIT_NOROOTINIT),
+	((flags & NSS_INIT_OPTIMIZESPACE) == NSS_INIT_OPTIMIZESPACE),
+        ((flags & NSS_INIT_PK11THREADSAFE) == NSS_INIT_PK11THREADSAFE),
+        ((flags & NSS_INIT_PK11RELOAD) == NSS_INIT_PK11RELOAD),
+        ((flags & NSS_INIT_NOPK11FINALIZE) == NSS_INIT_NOPK11FINALIZE));
+}
+
+SECStatus
+NSS_InitWithMerge(const char *configdir, const char *certPrefix, 
+	const char *keyPrefix, const char *secmodName, 
+	const char *updateDir, const char *updCertPrefix,
+	const char *updKeyPrefix, const char *updateID, 
+	const char *updateName, PRUint32 flags)
+{
+    return nss_Init(configdir, certPrefix, keyPrefix, secmodName,
+	updateDir, updCertPrefix, updKeyPrefix, updateID, updateName,
 	((flags & NSS_INIT_READONLY) == NSS_INIT_READONLY),
 	((flags & NSS_INIT_NOCERTDB) == NSS_INIT_NOCERTDB),
 	((flags & NSS_INIT_NOMODDB) == NSS_INIT_NOMODDB),
@@ -636,7 +697,7 @@ NSS_Initialize(const char *configdir, const char *certPrefix,
 SECStatus
 NSS_NoDB_Init(const char * configdir)
 {
-      return nss_Init("","","","",
+      return nss_Init("","","","", "", "", "", "", "",
 			PR_TRUE,PR_TRUE,PR_TRUE,PR_TRUE,PR_TRUE,PR_TRUE,
 			PR_FALSE,PR_FALSE,PR_FALSE);
 }

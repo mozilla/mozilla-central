@@ -71,12 +71,18 @@ SECStatus sftkdb_AddSecmodDB(SDBType dbType, const char *appName,
 /* keydb functions */
 
 SECStatus sftkdb_PWIsInitialized(SFTKDBHandle *keydb);
-SECStatus sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw);
+SECStatus sftkdb_CheckPassword(SFTKSlot * slot, SFTKDBHandle *keydb, const char *pw);
 SECStatus sftkdb_PWCached(SFTKDBHandle *keydb);
 SECStatus sftkdb_HasPasswordSet(SFTKDBHandle *keydb);
 SECStatus sftkdb_ResetKeyDB(SFTKDBHandle *keydb);
-SECStatus sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin);
+SECStatus sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb, 
+				char *oldPin, char *newPin);
 SECStatus sftkdb_ClearPassword(SFTKDBHandle *keydb);
+SECStatus sftkdb_InUpdateMerge(SFTKDBHandle *keydb);
+SECStatus sftkdb_NeedUpdateDBPassword(SFTKDBHandle *keydb);
+const char *sftkdb_GetUpdateID(SFTKDBHandle *keydb);
+SECItem *sftkdb_GetUpdatePasswordKey(SFTKDBHandle *keydb);
+void sftkdb_FreeUpdatePasswordKey(SFTKDBHandle *keydb);
 
 /* Utility functions */
 /*
@@ -96,8 +102,10 @@ SECStatus sftkdb_ClearPassword(SFTKDBHandle *keydb);
  * forceOpen - Continue to force initializations even if the databases cannot
  *                      be opened.
  */
-CK_RV sftk_DBInit(const char *configdir, const char *certPrefix, 
-	 	const char *keyPrefix, PRBool readOnly, PRBool noCertDB, 
+CK_RV sftk_DBInit(const char *configdir, const char *certPrefix,
+	 	const char *keyPrefix, const char *updatedir, 
+		const char *updCertPrefix, const char *updKeyPrefix,
+		const char *updateID, PRBool readOnly, PRBool noCertDB, 
 		PRBool noKeyDB, PRBool forceOpen, 
 		SFTKDBHandle **certDB, SFTKDBHandle **keyDB);
 CK_RV sftkdb_Shutdown(void);

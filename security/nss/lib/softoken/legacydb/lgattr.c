@@ -638,10 +638,12 @@ lg_FindPublicKeyAttribute(LGObjectCache *obj, CK_ATTRIBUTE_TYPE type,
     case CKA_MODIFIABLE:
     case CKA_EXTRACTABLE:
 	return LG_CLONE_ATTR(attribute,type,lg_StaticTrueAttr);
+    case CKA_SUBJECT:
+	   return LG_CLONE_ATTR(attribute,type,lg_StaticNullAttr);
     case CKA_LABEL:
         label = lg_FindKeyNicknameByPublicKey(obj->sdb, &obj->dbKey);
 	if (label == NULL) {
-	   return LG_CLONE_ATTR(attribute,type,lg_StaticOneAttr);
+	   return LG_CLONE_ATTR(attribute,type,lg_StaticNullAttr);
 	}
 	crv = lg_CopyAttribute(attribute,type,label,PORT_Strlen(label));
 	PORT_Free(label);
@@ -652,6 +654,9 @@ lg_FindPublicKeyAttribute(LGObjectCache *obj, CK_ATTRIBUTE_TYPE type,
 
     key = lg_GetPublicKey(obj);
     if (key == NULL) {
+	if (type == CKA_ID) {
+	   return LG_CLONE_ATTR(attribute,type,lg_StaticNullAttr);
+	}
 	return CKR_OBJECT_HANDLE_INVALID;
     }
 
@@ -1603,6 +1608,19 @@ done:
 }
 
 static CK_RV
+lg_SetPublicKeyAttribute(LGObjectCache *obj, CK_ATTRIBUTE_TYPE type, 
+			const void *value, unsigned int len, 
+			PRBool *writePrivate)
+{
+    /* we can't change the ID and we don't store the subject, but let the
+     * upper layers feel better about the fact we tried to set these */
+    if ((type == CKA_ID) || (type == CKA_SUBJECT) || (type == CKA_LABEL)) {
+	return CKR_OK;
+    }
+    return  CKR_ATTRIBUTE_READ_ONLY;
+}
+
+static CK_RV
 lg_SetTrustAttribute(LGObjectCache *obj, const CK_ATTRIBUTE *attr)
 {
     unsigned int flags;
@@ -1613,11 +1631,15 @@ lg_SetTrustAttribute(LGObjectCache *obj, const CK_ATTRIBUTE *attr)
     SECStatus rv;
     CK_RV crv;
 
+    if (attr->type == CKA_LABEL) {
+	return CKR_OK;
+    }
+
     crv = lg_GetULongAttribute(attr->type, attr, 1, &trust);
     if (crv != CKR_OK) {
 	return crv;
     }
-    flags = lg_MapTrust(trust, (PRBool) (attr->type == CKA_TRUST_SERVER_AUTH));
+    flags = lg_MapTrust(trust, (PRBool) (attr->type == CKA_TRUST_CLIENT_AUTH));
 
     certHandle = lg_getCertDB(obj->sdb);
 
@@ -1702,6 +1724,10 @@ lg_SetSingleAttribute(LGObjectCache *obj, const CK_ATTRIBUTE *attr,
     case CKO_PRIVATE_KEY:
     case CKO_SECRET_KEY:
 	crv = lg_SetPrivateKeyAttribute(obj,attr->type,
+			attr->pValue,attr->ulValueLen, writePrivate);
+	break;
+    case CKO_PUBLIC_KEY:
+	crv = lg_SetPublicKeyAttribute(obj,attr->type,
 			attr->pValue,attr->ulValueLen, writePrivate);
 	break;
     }

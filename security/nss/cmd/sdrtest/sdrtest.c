@@ -37,7 +37,7 @@
 /*
  * Test program for SDR (Secret Decoder Ring) functions.
  *
- * $Id: sdrtest.c,v 1.13 2004-04-25 15:02:52 gerv%gerv.net Exp $
+ * $Id: sdrtest.c,v 1.14 2008-03-10 20:16:44 rrelyea%redhat.com Exp $
  */
 
 #include "nspr.h"
@@ -61,8 +61,9 @@ static void
 synopsis (char *program_name)
 {
     PR_fprintf (pr_stderr, 
-"Usage: %s [-d <dir>] [-v] [-t <text>] [-a] -i <input-file>\n"
-"       %s [-d <dir>] [-v] [-t <text>] [-a] -o <output-file>\n",
+"Usage: %s [<common>] -i <input-file>\n"
+"       %s [<common>]  -o <output-file>\n"
+"       <common> [-d dir] [-v] [-t text] [-a] [-f pwfile | -p pwd]\n",
 	program_name, program_name);
 }
 
@@ -93,6 +94,12 @@ long_usage (char *program_name)
     PR_fprintf (pr_stderr,
 		"  %-13s Find security databases in \"dbdir\"\n",
 		"-d dbdir");
+    PR_fprintf (pr_stderr,
+		"  %-13s read the password from \"pwfile\"\n",
+		"-f pwfile");
+    PR_fprintf (pr_stderr,
+		"  %-13s supply \"password\" on the command line\n",
+		"-p password");
 }
 
 int 
@@ -180,6 +187,7 @@ main (int argc, char **argv)
     SECItem     result = {0, 0, 0};
     SECItem     text;
     PRBool      ascii = PR_FALSE;
+    secuPWData  pwdata = { PW_NONE, 0 };
 
     pr_stderr = PR_STDERR;
     result.data = 0;
@@ -188,7 +196,7 @@ main (int argc, char **argv)
     program_name = PL_strrchr(argv[0], '/');
     program_name = program_name ? (program_name + 1) : argv[0];
 
-    optstate = PL_CreateOptState (argc, argv, "?Had:i:o:t:v");
+    optstate = PL_CreateOptState (argc, argv, "?Had:i:o:t:vf:p:");
     if (optstate == NULL) {
 	SECU_PrintError (program_name, "PL_CreateOptState failed");
 	return -1;
@@ -223,6 +231,26 @@ main (int argc, char **argv)
           case 't':
             value = optstate->value;
             break;
+
+	  case 'f':
+	    if (pwdata.data) {
+		PORT_Free(pwdata.data);
+		short_usage(program_name);
+		return -1;
+	    }
+	    pwdata.source = PW_FROMFILE;
+	    pwdata.data = PORT_Strdup(optstate->value);
+	    break;
+
+	  case 'p':
+	    if (pwdata.data) {
+		PORT_Free(pwdata.data);
+		short_usage(program_name);
+		return -1;
+	    }
+	    pwdata.source = PW_PLAINTEXT;
+	    pwdata.data = PORT_Strdup(optstate->value);
+	    break;
 
           case 'v':
             verbose = PR_TRUE;
@@ -298,7 +326,17 @@ main (int argc, char **argv)
       /* sigh, initialize the key database */
       slot = PK11_GetInternalKeySlot();
       if (slot && PK11_NeedUserInit(slot)) {
-        rv = SECU_ChangePW(slot, "", 0);
+	switch (pwdata.source) {
+	case PW_FROMFILE:
+	    rv = SECU_ChangePW(slot, 0, pwdata.data);
+	    break;
+	case PW_PLAINTEXT:
+	    rv = SECU_ChangePW(slot, pwdata.data, 0);
+	    break;
+	default:
+            rv = SECU_ChangePW(slot, "", 0);
+	    break;
+	}
         if (rv != SECSuccess) {
             SECU_PrintError(program_name, "Failed to initialize slot \"%s\"",
                                     PK11_GetSlotName(slot));
@@ -309,7 +347,7 @@ main (int argc, char **argv)
 	PK11_FreeSlot(slot);
       }
 
-      rv = PK11SDR_Encrypt(&keyid, &data, &result, 0);
+      rv = PK11SDR_Encrypt(&keyid, &data, &result, &pwdata);
       if (rv != SECSuccess) {
         if (verbose) 
 	  SECU_PrintError(program_name, "Encrypt operation failed\n");
@@ -380,7 +418,7 @@ main (int argc, char **argv)
     }
 
     /* Decrypt the value */
-    rv = PK11SDR_Decrypt(&result, &text, 0);
+    rv = PK11SDR_Decrypt(&result, &text, &pwdata);
     if (rv != SECSuccess) {
       if (verbose) SECU_PrintError(program_name, "Decrypt operation failed\n");
       retval = -1; 
@@ -406,5 +444,8 @@ loser:
 
 prdone:
     PR_Cleanup ();
+    if (pwdata.data) {
+	PORT_Free(pwdata.data);
+    }
     return retval;
 }

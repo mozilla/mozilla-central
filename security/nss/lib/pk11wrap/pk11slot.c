@@ -1495,6 +1495,12 @@ PK11_IsHW(PK11SlotInfo *slot)
 }
 
 PRBool
+PK11_IsRemovable(PK11SlotInfo *slot)
+{
+    return !slot->isPerm;
+}
+
+PRBool
 PK11_IsInternal(PK11SlotInfo *slot)
 {
     return slot->isInternal;

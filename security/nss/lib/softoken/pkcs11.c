@@ -478,11 +478,11 @@ void ForkedChild(void)
 #endif
 
 static char *
-sftk_setStringName(const char *inString, char *buffer, int buffer_length)
+sftk_setStringName(const char *inString, char *buffer, int buffer_length, 		PRBool nullTerminate)
 {
     int full_length, string_length;
 
-    full_length = buffer_length -1;
+    full_length = nullTerminate ? buffer_length -1 : buffer_length;
     string_length = PORT_Strlen(inString);
     /* 
      *  shorten the string, respecting utf8 encoding
@@ -522,7 +522,9 @@ sftk_setStringName(const char *inString, char *buffer, int buffer_length)
 	}
     }
     PORT_Memset(buffer,' ',full_length);
-    buffer[full_length] = 0;
+    if (nullTerminate) {
+	buffer[full_length] = 0;
+    }
     PORT_Memcpy(buffer,inString,string_length);
     return buffer;
 }
@@ -536,11 +538,12 @@ sftk_configure(const char *man, const char *libdes)
     /* make sure the internationalization was done correctly... */
     if (man) {
 	manufacturerID = sftk_setStringName(man,manufacturerID_space,
-						sizeof(manufacturerID_space));
+					sizeof(manufacturerID_space), PR_TRUE);
     }
     if (libdes) {
 	libraryDescription = sftk_setStringName(libdes,
-		libraryDescription_space, sizeof(libraryDescription_space));
+		libraryDescription_space, sizeof(libraryDescription_space), 
+		PR_TRUE);
     }
 
     return CKR_OK;
@@ -554,13 +557,13 @@ sftk_configure(const char *man, const char *libdes)
  * see if the key DB password is enabled
  */
 static PRBool
-sftk_hasNullPassword(SFTKDBHandle *keydb)
+sftk_hasNullPassword(SFTKSlot *slot, SFTKDBHandle *keydb)
 {
     PRBool pwenabled;
    
     pwenabled = PR_FALSE;
     if (sftkdb_HasPasswordSet(keydb) == SECSuccess) {
-	return (sftkdb_CheckPassword(keydb, "") == SECSuccess);
+	return (sftkdb_CheckPassword(slot, keydb, "") == SECSuccess);
     }
 
     return pwenabled;
@@ -2028,8 +2031,8 @@ sftk_RegisterSlot(SFTKSlot *slot, int moduleIndex)
  *
  */
 CK_RV
-SFTK_SlotReInit(SFTKSlot *slot,
-	char *configdir,sftk_token_parameters *params, int moduleIndex)
+SFTK_SlotReInit(SFTKSlot *slot, char *configdir, char *updatedir, 
+	char *updateID, sftk_token_parameters *params, int moduleIndex)
 {
     PRBool needLogin = !params->noKeyDB;
     CK_RV crv;
@@ -2048,15 +2051,21 @@ SFTK_SlotReInit(SFTKSlot *slot,
     slot->readOnly = params->readOnly;
     sftk_setStringName(params->tokdes ? params->tokdes : 
 	sftk_getDefTokName(slot->slotID), slot->tokDescription, 
-						sizeof(slot->tokDescription));
+					sizeof(slot->tokDescription),PR_TRUE);
+    sftk_setStringName(params->updtokdes ? params->updtokdes : " ", 
+				slot->updateTokDescription, 
+				sizeof(slot->updateTokDescription),PR_TRUE);
 
     if ((!params->noCertDB) || (!params->noKeyDB)) {
 	SFTKDBHandle * certHandle = NULL;
 	SFTKDBHandle *keyHandle = NULL;
 	crv = sftk_DBInit(params->configdir ? params->configdir : configdir,
-		params->certPrefix, params->keyPrefix, params->readOnly,
-		params->noCertDB, params->noKeyDB, params->forceOpen, 
-						&certHandle, &keyHandle);
+		params->certPrefix, params->keyPrefix, 
+		params->updatedir ? params->updatedir : updatedir,
+		params->updCertPrefix, params->updKeyPrefix,
+		params->updateID  ? params->updateID : updateID, 
+		params->readOnly, params->noCertDB, params->noKeyDB,
+		params->forceOpen, &certHandle, &keyHandle);
 	if (crv != CKR_OK) {
 	    goto loser;
 	}
@@ -2067,7 +2076,7 @@ SFTK_SlotReInit(SFTKSlot *slot,
     if (needLogin) {
 	/* if the data base is initialized with a null password,remember that */
 	slot->needLogin = 
-		(PRBool)!sftk_hasNullPassword(slot->keyDB);
+		(PRBool)!sftk_hasNullPassword(slot, slot->keyDB);
 	if ((params->minPW >= 0) && (params->minPW <= SFTK_MAX_PIN)) {
 	    slot->minimumPinLen = params->minPW;
 	}
@@ -2092,7 +2101,8 @@ loser:
  * initialize one of the slot structures. figure out which by the ID
  */
 CK_RV
-SFTK_SlotInit(char *configdir,sftk_token_parameters *params, int moduleIndex)
+SFTK_SlotInit(char *configdir, char *updatedir, char *updateID,
+		sftk_token_parameters *params, int moduleIndex)
 {
     unsigned int i;
     CK_SLOT_ID slotID = params->slotID;
@@ -2155,11 +2165,12 @@ SFTK_SlotInit(char *configdir,sftk_token_parameters *params, int moduleIndex)
     slot->slotID = slotID;
     sftk_setStringName(params->slotdes ? params->slotdes : 
 	      sftk_getDefSlotName(slotID), slot->slotDescription, 
-						sizeof(slot->slotDescription));
+					sizeof(slot->slotDescription), PR_TRUE);
 
     /* call the reinit code to set everything that changes between token
      * init calls */
-    crv = SFTK_SlotReInit(slot, configdir, params, moduleIndex);
+    crv = SFTK_SlotReInit(slot, configdir, updatedir, updateID,
+			   params, moduleIndex);
     if (crv != CKR_OK) {
 	goto loser;
     }
@@ -2177,7 +2188,7 @@ loser:
 }
 
 
-static CK_RV sft_CloseAllSession(SFTKSlot *slot)
+CK_RV sftk_CloseAllSessions(SFTKSlot *slot)
 {
     SFTKSession *session;
     unsigned int i;
@@ -2268,7 +2279,7 @@ SFTK_ShutdownSlot(SFTKSlot *slot)
      * the sessHashSize variable guarentees we have all the session
      * mechanism set up */
     if (slot->head) {
-	sft_CloseAllSession(slot);
+	sftk_CloseAllSessions(slot);
      }
 
     /* clear all objects.. session objects are cleared as a result of
@@ -2518,8 +2529,8 @@ CK_RV nsc_CommonInitialize(CK_VOID_PTR pReserved, PRBool isFIPS)
 
 	for (i=0; i < paramStrings.token_count; i++) {
 	    crv = SFTK_SlotInit(paramStrings.configdir, 
-			&paramStrings.tokens[i],
-			moduleIndex);
+			paramStrings.updatedir, paramStrings.updateID,
+			&paramStrings.tokens[i], moduleIndex);
 	    if (crv != CKR_OK) {
                 nscFreeAllSlots(moduleIndex);
                 break;
@@ -2660,13 +2671,28 @@ CK_RV NSC_GetSlotInfo(CK_SLOT_ID slotID, CK_SLOT_INFO_PTR pInfo)
     pInfo->firmwareVersion.major = 0;
     pInfo->firmwareVersion.minor = 0;
 
-    PORT_Memcpy(pInfo->manufacturerID,manufacturerID,32);
-    PORT_Memcpy(pInfo->slotDescription,slot->slotDescription,64);
+    PORT_Memcpy(pInfo->manufacturerID,manufacturerID,
+		sizeof(pInfo->manufacturerID));
+    PORT_Memcpy(pInfo->slotDescription,slot->slotDescription,
+		sizeof(pInfo->slotDescription));
     pInfo->flags = (slot->present) ? CKF_TOKEN_PRESENT : 0;
+
     /* all user defined slots are defined as removable */
     if (slotID >= SFTK_MIN_USER_SLOT_ID) {
 	pInfo->flags |= CKF_REMOVABLE_DEVICE;
+    } else {
+	/* In the case where we are doing a merge update, we need
+	 * the DB slot to be removable so the token name can change
+	 * appropriately. */
+	SFTKDBHandle *handle = sftk_getKeyDB(slot);
+	if (handle) { 
+	    if (sftkdb_InUpdateMerge(handle)) {
+		pInfo->flags |= CKF_REMOVABLE_DEVICE;
+	    }
+            sftk_freeDB(handle);
+	}
     }
+
     /* ok we really should read it out of the keydb file. */
     /* pInfo->hardwareVersion.major = NSSLOWKEY_DB_FILE_VERSION; */
     pInfo->hardwareVersion.major = SOFTOKEN_VMAJOR;
@@ -2684,8 +2710,20 @@ sftk_checkNeedLogin(SFTKSlot *slot, SFTKDBHandle *keyHandle)
     if (sftkdb_PWCached(keyHandle) == SECSuccess) {
 	return slot->needLogin;
     }
-    slot->needLogin = (PRBool)!sftk_hasNullPassword(keyHandle);
+    slot->needLogin = (PRBool)!sftk_hasNullPassword(slot, keyHandle);
     return (slot->needLogin);
+}
+
+static PRBool
+sftk_isBlank(const char *s, int len)
+{
+    int i;
+    for (i=0; i < len; i++) {
+	if (s[i] != ' ') {
+	    return PR_FALSE;
+	}
+    }
+    return PR_TRUE;
 }
 
 /* NSC_GetTokenInfo obtains information about a particular token in 
@@ -2711,7 +2749,7 @@ CK_RV NSC_GetTokenInfo(CK_SLOT_ID slotID,CK_TOKEN_INFO_PTR pInfo)
     pInfo->ulRwSessionCount = slot->rwSessionCount;
     pInfo->firmwareVersion.major = 0;
     pInfo->firmwareVersion.minor = 0;
-    PORT_Memcpy(pInfo->label,slot->tokDescription,32);
+    PORT_Memcpy(pInfo->label,slot->tokDescription,sizeof(pInfo->label));
     handle = sftk_getKeyDB(slot);
     pInfo->flags = CKF_RNG | CKF_DUAL_CRYPTO_OPERATIONS;
     if (handle == NULL) {
@@ -2740,6 +2778,27 @@ CK_RV NSC_GetTokenInfo(CK_SLOT_ID slotID,CK_TOKEN_INFO_PTR pInfo)
 	    pInfo->flags |= CKF_USER_PIN_INITIALIZED;
 	} else {
 	    pInfo->flags |= CKF_LOGIN_REQUIRED | CKF_USER_PIN_INITIALIZED;
+	/* 
+         * if we are doing a merge style update, and we need to get the password
+	 * of our source database (the database we are updating from), make sure we
+         * return a token name that will match the database we are prompting for.
+	 */
+	if (sftkdb_NeedUpdateDBPassword(handle)) {
+	    /* if we have an update tok description, use it. otherwise
+             * use the updateID for this database */
+	    if (!sftk_isBlank(slot->updateTokDescription,
+						sizeof(pInfo->label))) {
+		PORT_Memcpy(pInfo->label,slot->updateTokDescription,
+				sizeof(pInfo->label));
+	    } else {
+		/* build from updateID */
+		const char *updateID = sftkdb_GetUpdateID(handle);
+		if (updateID) {
+		    sftk_setStringName(updateID, (char *)pInfo->label,
+				 sizeof(pInfo->label), PR_FALSE);
+		}
+	    }
+	}
 	}
 	pInfo->ulMaxPinLen = SFTK_MAX_PIN;
 	pInfo->ulMinPinLen = (CK_ULONG)slot->minimumPinLen;
@@ -2988,7 +3047,7 @@ CK_RV NSC_InitPIN(CK_SESSION_HANDLE hSession,
     /* build the hashed pins which we pass around */
 
     /* change the data base */
-    rv = sftkdb_ChangePassword(handle, NULL, newPinStr);
+    rv = sftkdb_ChangePassword(slot, handle, NULL, newPinStr);
     sftk_freeDB(handle);
     handle = NULL;
 
@@ -3067,7 +3126,7 @@ CK_RV NSC_SetPIN(CK_SESSION_HANDLE hSession, CK_CHAR_PTR pOldPin,
 
     /* change the data base password */
     PR_Lock(slot->pwCheckLock);
-    rv = sftkdb_ChangePassword(handle, oldPinStr, newPinStr);
+    rv = sftkdb_ChangePassword(slot, handle, oldPinStr, newPinStr);
     sftk_freeDB(handle);
     handle = NULL;
     if ((rv != SECSuccess) && (slot->slotID == FIPS_SLOT_ID)) {
@@ -3205,7 +3264,7 @@ CK_RV NSC_CloseAllSessions (CK_SLOT_ID slotID)
     slot = sftk_SlotFromID(slotID, PR_FALSE);
     if (slot == NULL) return CKR_SLOT_ID_INVALID;
 
-    return sft_CloseAllSession(slot);
+    return sftk_CloseAllSessions(slot);
 }
 
 
@@ -3313,17 +3372,21 @@ CK_RV NSC_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
 
     /* build the hashed pins which we pass around */
     PR_Lock(slot->pwCheckLock);
-    rv = sftkdb_CheckPassword(handle,pinStr);
-    sftk_freeDB(handle);
-    handle = NULL;
+    rv = sftkdb_CheckPassword(slot,handle,pinStr);
     if ((rv != SECSuccess) && (slot->slotID == FIPS_SLOT_ID)) {
 	PR_Sleep(loginWaitTime);
     }
     PR_Unlock(slot->pwCheckLock);
     if (rv == SECSuccess) {
 	PZ_Lock(slot->slotLock);
-	slot->isLoggedIn = PR_TRUE;
+	/* make sure the login state matches the underlying
+	 * database state */
+	slot->isLoggedIn = sftkdb_PWCached(handle) == SECSuccess ?
+		PR_TRUE : PR_FALSE;
 	PZ_Unlock(slot->slotLock);
+
+ 	sftk_freeDB(handle);
+	handle = NULL;
 
 	/* update all sessions */
 	sftk_update_all_states(slot);
@@ -3450,9 +3513,11 @@ static CK_RV sftk_CreateNewSlot(SFTKSlot *slot, CK_OBJECT_CLASS class,
 
     if (newSlot) {
 	crv = SFTK_SlotReInit(newSlot, paramStrings.configdir, 
+			paramStrings.updatedir, paramStrings.updateID,
 			&paramStrings.tokens[0], moduleIndex);
     } else {
 	crv = SFTK_SlotInit(paramStrings.configdir, 
+			paramStrings.updatedir, paramStrings.updateID,
 			&paramStrings.tokens[0], moduleIndex);
     }
     if (crv != CKR_OK) {

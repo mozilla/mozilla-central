@@ -97,7 +97,7 @@ run_tests()
 	done
 }
 
-tests="cipher perf libpkix cert dbtests tools fips sdr crmf smime ssl ocsp"
+tests="cipher perf libpkix cert dbtests tools fips sdr crmf smime ssl ocsp merge"
 if [ -z "$BUILD_LIBPKIX_TESTS" ] ; then
 	tests=`echo "${tests}" | sed -e "s/libpkix//"`
 fi
@@ -132,6 +132,7 @@ env_backup > ${ENV_BACKUP}
 
 # standard tests, no pkix, no sharedb
 if [ -z "$NSS_TEST_DISABLE_STANDARD" ] ; then
+	TEST_MODE=STANDARD
 	run_tests
 fi
 
@@ -152,6 +153,7 @@ if [ -z "$NSS_TEST_DISABLE_PKIX" ] ; then
 	
 	TESTS=`echo "${ALL_TESTS}" | sed -e "s/cipher//" -e "s/libpkix//" \
 		-e "s/dbupgrade//"`
+	TEST_MODE=PKIX
 	run_tests
 	
 	. ${ENV_BACKUP}
@@ -161,6 +163,7 @@ fi
 if [ -z "$NSS_TEST_DISABLE_UPGRADE_DB" ] ; then
 	# upgrade certs dbs to shared db 
 	TESTS="dbupgrade"
+	TEST_MODE=UPGRADE_DB
 	run_tests
 	
 	TABLE_ARGS="bgcolor=pink"
@@ -193,6 +196,7 @@ if [ -z "$NSS_TEST_DISABLE_SHARED_DB" ] ; then
 	
 	# run the tests for native sharedb support
 	TESTS=`echo "${ALL_TESTS}" | sed -e "s/libpkix//" -e "s/dbupgrade//"`
+	TEST_MODE=SHARED_DB
 	run_tests
 	
 	. ${ENV_BACKUP}

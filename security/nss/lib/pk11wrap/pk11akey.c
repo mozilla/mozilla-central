@@ -87,6 +87,12 @@ pk11_MakeIDFromPublicKey(SECKEYPublicKey *pubKey)
 
 /*
  * import a public key into the desired slot
+ *
+ * This function takes a public key structure and creates a public key in a 
+ * given slot. If isToken is set, then a persistant public key is created.
+ *
+ * Note: it is possible for this function to return a handle for a key which
+ * is persistant, even if isToken is not set.
  */
 CK_OBJECT_HANDLE
 PK11_ImportPublicKey(PK11SlotInfo *slot, SECKEYPublicKey *pubKey, 
@@ -113,10 +119,12 @@ PK11_ImportPublicKey(PK11SlotInfo *slot, SECKEYPublicKey *pubKey,
     /* free the existing key */
     if (pubKey->pkcs11Slot != NULL) {
 	PK11SlotInfo *oSlot = pubKey->pkcs11Slot;
-	PK11_EnterSlotMonitor(oSlot);
-	(void) PK11_GETTAB(oSlot)->C_DestroyObject(oSlot->session,
+	if (!PK11_IsPermObject(pubKey->pkcs11Slot,pubKey->pkcs11ID)) {
+	    PK11_EnterSlotMonitor(oSlot);
+	    (void) PK11_GETTAB(oSlot)->C_DestroyObject(oSlot->session,
 							pubKey->pkcs11ID);
-	PK11_ExitSlotMonitor(oSlot);
+	    PK11_ExitSlotMonitor(oSlot);
+	}
 	PK11_FreeSlot(oSlot);
 	pubKey->pkcs11Slot = NULL;
     }
@@ -1888,6 +1896,15 @@ PK11_MakeIDFromPubKey(SECItem *pubKeyData)
     PK11Context *context;
     SECItem *certCKA_ID;
     SECStatus rv;
+
+    if (pubKeyData->len <= SHA1_LENGTH) {
+	/* probably an already hashed value. The strongest known public
+	 * key values <= 160 bits would be less than 40 bit symetric in
+	 * strength. Don't hash them, just return the value. There are
+	 * none at the time of this writing supported by previous versions
+	 * of NSS, so change is binary compatible safe */
+	return SECITEM_DupItem(pubKeyData);
+    }
 
     context = PK11_CreateDigestContext(SEC_OID_SHA1);
     if (context == NULL) {

@@ -66,6 +66,7 @@ CSRCS = \
 	pk11list.c \
 	pk11load.c \
 	pk11mech.c \
+	pk11merge.c \
 	pk11nobj.c \
 	pk11obj.c \
 	pk11pars.c \

@@ -46,9 +46,13 @@ struct SFTKDBHandleStr {
     CK_OBJECT_HANDLE  type;
     SECItem passwordKey;
     SECItem *newKey;
+    SECItem *oldKey;
+    SECItem *updatePasswordKey;
     PZLock *passwordLock;
     SFTKDBHandle *peerDB;
     SDB   *update;
+    char  *updateID;
+    PRBool updateDBIsInit;
 };
 
 #define SFTK_KEYDB_TYPE 0x40000000

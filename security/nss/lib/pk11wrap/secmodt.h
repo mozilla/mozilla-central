@@ -465,4 +465,38 @@ typedef enum {
 #define CRL_IMPORT_DEFAULT_OPTIONS 0x00000000
 #define CRL_IMPORT_BYPASS_CHECKS   0x00000001
 
+
+/*
+ * Merge Error Log
+ */
+typedef struct PK11MergeLogStr PK11MergeLog;
+typedef struct PK11MergeLogNodeStr PK11MergeLogNode;
+
+/* These need to be global, leave some open fields so we can 'expand'
+ * these without breaking binary compatibility */
+struct PK11MergeLogNodeStr {
+    PK11MergeLogNode *next;   /* next entry in the list */
+    PK11MergeLogNode *prev;   /* last entry in the list */
+    PK11GenericObject *object; /* object that failed */
+    int	error;		       /* what the error was */
+    CK_RV reserved1;
+    unsigned long reserved2; /* future flags */
+    unsigned long reserved3; /* future scalar */
+    void *reserved4; 	      /* future pointer */
+    void *reserved5;	      /* future expansion pointer */
+};
+
+struct PK11MergeLogStr {
+    PK11MergeLogNode *head;
+    PK11MergeLogNode *tail;
+    PRArenaPool *arena;
+    int version;
+    unsigned long reserved1;
+    unsigned long reserved2;
+    unsigned long reserved3;
+    void *reserverd4;
+    void *reserverd5;
+};
+    
+
 #endif /*_SECMODT_H_ */

@@ -551,6 +551,114 @@ sftkdb_switchKeys(SFTKDBHandle *keydb, SECItem *passKey)
 }
 
 /*
+ * returns true if we are in a middle of a merge style update.
+ */
+PRBool
+sftkdb_InUpdateMerge(SFTKDBHandle *keydb)
+{
+    return keydb->updateID ? PR_TRUE : PR_FALSE;
+}
+
+/*
+ * returns true if we are looking for the password for the user's old source
+ * database as part of a merge style update.
+ */
+PRBool
+sftkdb_NeedUpdateDBPassword(SFTKDBHandle *keydb)
+{
+    if (!sftkdb_InUpdateMerge(keydb)) {
+	return PR_FALSE;
+    }
+    if (keydb->updateDBIsInit && !keydb->updatePasswordKey) {
+	return PR_TRUE;
+    }
+    return PR_FALSE;
+}
+
+/*
+ * fetch an update password key from a handle.
+ */
+SECItem *
+sftkdb_GetUpdatePasswordKey(SFTKDBHandle *handle)
+{
+    SECItem *key = NULL;
+
+    /* if we're a cert db, fetch it from our peer key db */
+    if (handle->type == SFTK_CERTDB_TYPE) {
+	handle = handle->peerDB;
+    }
+
+    /* don't have one */
+    if (!handle) {
+	return NULL;
+    }
+
+    PZ_Lock(handle->passwordLock);
+    if (handle->updatePasswordKey) {
+	key = SECITEM_DupItem(handle->updatePasswordKey);
+    }
+    PZ_Unlock(handle->passwordLock);
+
+    return key;
+}
+
+/*
+ * free the update password key from a handle.
+ */
+void
+sftkdb_FreeUpdatePasswordKey(SFTKDBHandle *handle)
+{
+    SECItem *key = NULL;
+
+    /* if we're a cert db, we don't have one */
+    if (handle->type == SFTK_CERTDB_TYPE) {
+	return;
+    }
+
+    /* don't have one */
+    if (!handle) {
+	return;
+    }
+
+    PZ_Lock(handle->passwordLock);
+    if (handle->updatePasswordKey) {
+	key = handle->updatePasswordKey;
+	handle->updatePasswordKey = NULL;
+    }
+    PZ_Unlock(handle->passwordLock);
+
+    if (key) {
+	SECITEM_ZfreeItem(key, PR_TRUE);
+    }
+
+    return;
+}
+
+/*
+ * what password db we use depends heavily on the update state machine
+ * 
+ *  1) no update db, return the normal database.
+ *  2) update db and no merge return the update db.
+ *  3) update db and in merge: 
+ *      return the update db if we need the update db's password, 
+ *      otherwise return our normal datbase.
+ */
+static SDB *
+sftk_getPWSDB(SFTKDBHandle *keydb)
+{
+    if (!keydb->update) {
+	return keydb->db;
+    }
+    if (!sftkdb_InUpdateMerge(keydb)) {
+	return keydb->update;
+    }
+    if (sftkdb_NeedUpdateDBPassword(keydb)) {
+	return keydb->update;
+    }
+    return keydb->db;
+}
+
+/*
  * return success if we have a valid password entry.
  * This is will show up outside of PKCS #11 as CKF_USER_PIN_INIT
  * in the token flags.
@@ -568,7 +676,7 @@ sftkdb_HasPasswordSet(SFTKDBHandle *keydb)
 	return SECFailure;
     }
 
-    db = SFTK_GET_SDB(keydb);
+    db = sftk_getPWSDB(keydb);
     if (db == NULL) {
 	return SECFailure;
     }
@@ -588,7 +696,7 @@ sftkdb_HasPasswordSet(SFTKDBHandle *keydb)
  * check if the supplied password is valid
  */
 SECStatus  
-sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
+sftkdb_CheckPassword(SFTKSlot *slot, SFTKDBHandle *keydb, const char *pw)
 {
     SECStatus rv;
     SECItem salt, value;
@@ -603,7 +711,7 @@ sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
 	return SECFailure;
     }
 
-    db = SFTK_GET_SDB(keydb);
+    db = sftk_getPWSDB(keydb);
     if (db == NULL) {
 	return SECFailure;
     }
@@ -621,27 +729,133 @@ sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
     crv = (*db->sdb_GetMetaData)(db, "password", &salt, &value);
     if (crv != CKR_OK) {
 	rv = SECFailure;
-	goto loser;
+	goto done;
     }
 
     /* get our intermediate key based on the entry salt value */
     rv = sftkdb_passwordToKey(keydb, &salt, pw, &key);
     if (rv != SECSuccess) {
-	goto loser;
+	goto done;
     }
 
     /* decrypt the entry value */
     rv = sftkdb_DecryptAttribute(&key, &value, &result);
     if (rv != SECSuccess) {
-	goto loser;
+	goto done;
     }
 
     /* if it's what we expect, update our key in the database handle and
      * return Success */
     if ((result->len == SFTK_PW_CHECK_LEN) &&
       PORT_Memcmp(result->data, SFTK_PW_CHECK_STRING, SFTK_PW_CHECK_LEN) == 0){
+	/*
+	 * We have a password, now lets handle any potential update cases..
+	 * 
+	 * First, the normal case: no update. In this case we only need the
+	 *  the password for our only DB, which we now have, we switch 
+	 *  the keys and fall through.
+	 * Second regular (non-merge) update: The target DB does not yet have
+	 *  a password initialized, we now have the password for the source DB,
+	 *  so we can switch the keys and simply update the target database.
+	 * Merge update case: This one is trickier.
+	 *   1) If we need the source DB password, then we just got it here.
+	 *       We need to save that password,
+	 *       then we need to check to see if we need or have the target 
+	 *         database password.
+	 *       If we have it (it's the same as the source), or don't need 
+	 *         it (it's not set or is ""), we can start the update now.
+	 *       If we don't have it, we need the application to get it from 
+	 *         the user. Clear our sessions out to simulate a token 
+	 *         removal. C_GetTokenInfo will change the token description 
+	 *         and the token will still appear to be logged out.
+	 *   2) If we already have the source DB  password, this password is 
+	 *         for the target database. We can now move forward with the 
+	 *         update, as we now have both required passwords.
+	 *
+	 */
+        PZ_Lock(keydb->passwordLock);
+	if (sftkdb_NeedUpdateDBPassword(keydb)) {
+	    /* Squirrel this special key away.
+	     * This has the side effect of turning sftkdb_NeedLegacyPW off,
+	     * as well as changing which database is returned from 
+	     * SFTK_GET_PW_DB (thus effecting both sftkdb_CheckPassword()
+	     * and sftkdb_HasPasswordSet()) */
+	    keydb->updatePasswordKey = SECITEM_DupItem(&key);
+	    PZ_Unlock(keydb->passwordLock);
+	    if (keydb->updatePasswordKey == NULL) {
+		/* PORT_Error set by SECITEM_DupItem */
+		rv = SECFailure;
+		goto done;
+	    }
+
+	    /* Simulate a token removal -- we need to do this any
+             * any case at this point so the token name is correct. NOTE: if 
+	     * slot is NULL, then we were called from the database init code,
+	     * there are no sessions, so there is no need to close them. */
+	    if (slot) {
+		sftk_CloseAllSessions(slot);
+	    }
+
+	    /* 
+	     * OK, we got the update DB password, see if we need a password
+	     * for the target...
+	     */
+	    if (sftkdb_HasPasswordSet(keydb) == SECSuccess) {
+		/* We have a password, do we know what the password is?
+		 *  check 1) for the password the user supplied for the 
+		 *           update DB,
+		 *    and 2) for the null password.
+		 *
+		 * RECURSION NOTE: we are calling ourselves here. This means
+		 *  any updates, switchKeys, etc will have been completed
+		 *  if these functions return successfully, in those cases
+		 *  just exit returning Success. We don't recurse infinitely
+		 *  because we are making this call from a NeedUpdateDBPassword
+		 *  block and we've already set that update password at this
+		 *  point.  */
+		rv = sftkdb_CheckPassword(slot, keydb, pw);
+		if (rv == SECSuccess) {
+		    /* source and target databases have the same password, we 
+		     * are good to go */
+		    goto done;
+		}
+		sftkdb_CheckPassword(slot, keydb, "");
+
+		/*
+		 * Important 'NULL' code here. At this point either we 
+		 * succeeded in logging in with "" or we didn't.
+                 *
+                 *  If we did succeed at login, our machine state will be set
+		 * to logged in appropriately. The application will find that 
+		 * it's logged in as soon as it opens a new session. We have 
+		 * also completed the update. Life is good.
+		 * 
+		 *  If we did not succeed, well the user still successfully
+		 * logged into the update database, since we faked the token 
+		 * removal it's just like the user logged into his smart card 
+		 * then removed it. the actual login work, so we report that 
+		 * success back to the user, but we won't actually be
+		 * logged in. The application will find this out when it
+		 * checks it's login state, thus triggering another password
+		 * prompt so we can get the real target DB password.
+		 *
+		 * summary, we exit from here with SECSuccess no matter what.
+		 */
+		rv = SECSuccess;
+		goto done;
+	    } else {
+		/* there is no password, just fall through to update.
+		 * update will write the source DB's password record
+		 * into the target DB just like it would in a non-merge
+		 * update case. */
+	    }
+	} else {
+	    PZ_Unlock(keydb->passwordLock);
+	}
 	/* load the keys, so the keydb can parse it's key set */
 	sftkdb_switchKeys(keydb, &key);
+
+	/* we need to update, do it now */
 	if (keydb->update) {
 	    /* update the peer certdb if it exists */
 	    if (keydb->peerDB) {
@@ -654,7 +868,7 @@ sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw)
 	/*PORT_SetError( bad password); */
     }
 
-loser:
+done:
     if (key.data) {
 	PORT_ZFree(key.data,key.len);
     }
@@ -951,7 +1165,8 @@ sftkdb_convertObjects(SFTKDBHandle *handle, CK_ATTRIBUTE *template,
  * change the database password.
  */
 SECStatus
-sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
+sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb, 
+                      char *oldPin, char *newPin)
 {
     SECStatus rv = SECSuccess;
     SECItem plainText;
@@ -987,7 +1202,7 @@ sftkdb_ChangePassword(SFTKDBHandle *keydb, char *oldPin, char *newPin)
     value.len = sizeof(valueData);
     crv = (*db->sdb_GetMetaData)(db, "password", &salt, &value);
     if (crv == CKR_OK) {
-	rv = sftkdb_CheckPassword(keydb, oldPin);
+	rv = sftkdb_CheckPassword(slot, keydb, oldPin);
 	if (rv == SECFailure) {
 	    goto loser;
 	}

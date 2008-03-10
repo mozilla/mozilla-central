@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1994-2000
+ * Portions created by the Initial Developer are Copyright (C) 1994-2007
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -344,9 +344,15 @@ sftk_parseTokenParameters(char *param, sftk_token_parameters *parsed)
 
     while (*index) {
 	SFTK_HANDLE_STRING_ARG(index,parsed->configdir,"configDir=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updatedir,"updateDir=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updCertPrefix,"updateCertPrefix=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updKeyPrefix,"updateKeyPrefix=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updateID,"updateID=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->certPrefix,"certPrefix=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->keyPrefix,"keyPrefix=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->tokdes,"tokenDescription=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updtokdes,
+						"updateTokenDescription=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->slotdes,"slotDescription=",;)
 	SFTK_HANDLE_STRING_ARG(index,tmp,"minPWLen=", 
 			if(tmp) { parsed->minPW=atoi(tmp); PORT_Free(tmp); })
@@ -410,9 +416,9 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
     char *tmp;
     char *index;
     char *certPrefix = NULL, *keyPrefix = NULL;
-    char *tokdes = NULL, *ptokdes = NULL;
+    char *tokdes = NULL, *ptokdes = NULL, *pupdtokdes = NULL;
     char *slotdes = NULL, *pslotdes = NULL;
-    char *fslotdes = NULL, *fpslotdes = NULL;
+    char *fslotdes = NULL, *ftokdes = NULL, *fupdtokdes = NULL;
     char *minPW = NULL;
     index = sftk_argStrip(param);
 
@@ -420,6 +426,8 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
 
     while (*index) {
 	SFTK_HANDLE_STRING_ARG(index,parsed->configdir,"configDir=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updatedir,"updateDir=",;)
+	SFTK_HANDLE_STRING_ARG(index,parsed->updateID,"updateID=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->secmodName,"secmod=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->man,"manufacturerID=",;)
 	SFTK_HANDLE_STRING_ARG(index,parsed->libdes,"libraryDescription=",;)
@@ -431,7 +439,8 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
         SFTK_HANDLE_STRING_ARG(index,slotdes,"cryptoSlotDescription=",;)
         SFTK_HANDLE_STRING_ARG(index,pslotdes,"dbSlotDescription=",;)
         SFTK_HANDLE_STRING_ARG(index,fslotdes,"FIPSSlotDescription=",;)
-        SFTK_HANDLE_STRING_ARG(index,fpslotdes,"FIPSTokenDescription=",;)
+        SFTK_HANDLE_STRING_ARG(index,ftokdes,"FIPSTokenDescription=",;)
+	SFTK_HANDLE_STRING_ARG(index,pupdtokdes, "updateTokenDescription=",;)
 	SFTK_HANDLE_STRING_ARG(index,minPW,"minPWLen=",;)
 
 	SFTK_HANDLE_STRING_ARG(index,tmp,"flags=", 
@@ -466,18 +475,22 @@ sftk_parseParameters(char *param, sftk_parameters *parsed, PRBool isFIPS)
 	certPrefix = NULL;
 	keyPrefix = NULL;
 	if (isFIPS) {
-	    tokens[index].tokdes = fslotdes;
-	    tokens[index].slotdes = fpslotdes;
+	    tokens[index].tokdes = ftokdes;
+	    tokens[index].updtokdes = pupdtokdes;
+	    tokens[index].slotdes = fslotdes;
 	    fslotdes = NULL;
-	    fpslotdes = NULL;
+	    ftokdes = NULL;
+	    fupdtokdes = NULL;
 	} else {
 	    tokens[index].tokdes = ptokdes;
+	    tokens[index].updtokdes = pupdtokdes;
 	    tokens[index].slotdes = pslotdes;
 	    tokens[0].slotID = NETSCAPE_SLOT_ID;
 	    tokens[0].tokdes = tokdes;
 	    tokens[0].slotdes = slotdes;
 	    tokens[0].noCertDB = PR_TRUE;
 	    tokens[0].noKeyDB = PR_TRUE;
+	    pupdtokdes = NULL;
 	    ptokdes = NULL;
 	    pslotdes = NULL;
 	    tokdes = NULL;
@@ -490,10 +503,12 @@ loser:
     FREE_CLEAR(keyPrefix);
     FREE_CLEAR(tokdes);
     FREE_CLEAR(ptokdes);
+    FREE_CLEAR(pupdtokdes);
     FREE_CLEAR(slotdes);
     FREE_CLEAR(pslotdes);
     FREE_CLEAR(fslotdes);
-    FREE_CLEAR(fpslotdes);
+    FREE_CLEAR(ftokdes);
+    FREE_CLEAR(fupdtokdes);
     FREE_CLEAR(minPW);
     return CKR_OK;
 }

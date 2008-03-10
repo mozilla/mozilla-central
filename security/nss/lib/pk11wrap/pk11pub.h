@@ -114,6 +114,7 @@ char * PK11_GetSlotName(PK11SlotInfo *slot);
 PRBool PK11_NeedLogin(PK11SlotInfo *slot);
 PRBool PK11_IsFriendly(PK11SlotInfo *slot);
 PRBool PK11_IsHW(PK11SlotInfo *slot);
+PRBool PK11_IsRemovable(PK11SlotInfo *slot);
 PRBool PK11_NeedUserInit(PK11SlotInfo *slot);
 PRBool PK11_ProtectedAuthenticationPath(PK11SlotInfo *slot);
 int PK11_GetSlotSeries(PK11SlotInfo *slot);
@@ -183,6 +184,7 @@ PK11SlotInfo *PK11_GetBestSlotMultiple(CK_MECHANISM_TYPE *type, int count,
 PK11SlotInfo *PK11_GetBestSlot(CK_MECHANISM_TYPE type, void *wincx);
 CK_MECHANISM_TYPE PK11_GetBestWrapMechanism(PK11SlotInfo *slot);
 int PK11_GetBestKeyLength(PK11SlotInfo *slot, CK_MECHANISM_TYPE type);
+
 /*
  * Open a new database using the softoken. The caller is responsible for making
  * sure the module spec is correct and usable. The caller should ask for one
@@ -234,6 +236,20 @@ int PK11_GetBestKeyLength(PK11SlotInfo *slot, CK_MECHANISM_TYPE type);
  */
 PK11SlotInfo *SECMOD_OpenUserDB(const char *moduleSpec);
 SECStatus SECMOD_CloseUserDB(PK11SlotInfo *slot);
+
+/*
+ * merge the permanent objects from on token to another 
+ */
+SECStatus PK11_MergeTokens(PK11SlotInfo *targetSlot, PK11SlotInfo *sourceSlot,
+                PK11MergeLog *log, void *targetPwArg, void *sourcePwArg);
+
+/*
+ * create and destroy merge logs needed by PK11_MergeTokens
+ */
+PK11MergeLog * PK11_CreateMergeLog();
+void PK11_DestroyMergeLog(PK11MergeLog *log);
+
+
 
 /*********************************************************************
  *       Mechanism Mapping functions
@@ -288,6 +304,15 @@ PK11SymKey *PK11_GetWrapKey(PK11SlotInfo *slot, int wrap,
  */
 void PK11_SetWrapKey(PK11SlotInfo *slot, int wrap, PK11SymKey *wrapKey);
 CK_MECHANISM_TYPE PK11_GetMechanism(PK11SymKey *symKey);
+/*
+ * import a public key into the desired slot
+ *  
+ * This function takes a public key structure and creates a public key in a 
+ * given slot. If isToken is set, then a persistant public key is created.
+ *
+ * Note: it is possible for this function to return a handle for a key which
+ * is persistant, even if isToken is not set.
+ */
 CK_OBJECT_HANDLE PK11_ImportPublicKey(PK11SlotInfo *slot, 
 				SECKEYPublicKey *pubKey, PRBool isToken);
 PK11SymKey *PK11_KeyGen(PK11SlotInfo *slot,CK_MECHANISM_TYPE type,

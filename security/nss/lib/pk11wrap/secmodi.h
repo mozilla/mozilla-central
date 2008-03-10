@@ -164,6 +164,8 @@ CK_OBJECT_HANDLE pk11_FindPrivateKeyFromCertID(PK11SlotInfo *slot,
 							SECItem *keyID);
 SECKEYPrivateKey *PK11_MakePrivKey(PK11SlotInfo *slot, KeyType keyType, 
 			PRBool isTemp, CK_OBJECT_HANDLE privID, void *wincx);
+CERTCertificate *PK11_MakeCertFromHandle(PK11SlotInfo *slot,
+			CK_OBJECT_HANDLE certID, CK_ATTRIBUTE *privateLabel);
 
 SECItem *pk11_GenerateNewParamWithKeyLen(CK_MECHANISM_TYPE type, int keyLen);
 SECItem *pk11_ParamFromIVWithLen(CK_MECHANISM_TYPE type, 

@@ -106,7 +106,7 @@ static CERTSignedCrl *FindCRL
     return (crl);
 }
 
-static void DisplayCRL (CERTCertDBHandle *certHandle, char *nickName, int crlType)
+static SECStatus DisplayCRL (CERTCertDBHandle *certHandle, char *nickName, int crlType)
 {
     CERTSignedCrl *crl = NULL;
 
@@ -115,7 +115,9 @@ static void DisplayCRL (CERTCertDBHandle *certHandle, char *nickName, int crlTyp
     if (crl) {
 	SECU_PrintCRLInfo (stdout, &crl->crl, "CRL Info:\n", 0);
 	SEC_DestroyCrl (crl);
+	return SECSuccess;
     }
+    return SECFailure;
 }
 
 static void ListCRLNames (CERTCertDBHandle *certHandle, int crlType, PRBool deletecrls)
@@ -211,12 +213,14 @@ static void ListCRLNames (CERTCertDBHandle *certHandle, int crlType, PRBool dele
     PORT_FreeArena (arena, PR_FALSE);
 }
 
-static void ListCRL (CERTCertDBHandle *certHandle, char *nickName, int crlType)
+static SECStatus ListCRL (CERTCertDBHandle *certHandle, char *nickName, int crlType)
 {
-    if (nickName == NULL)
+    if (nickName == NULL) {
 	ListCRLNames (certHandle, crlType, PR_FALSE);
-    else
-	DisplayCRL (certHandle, nickName, crlType);
+	return SECSuccess;
+    } 
+
+    return DisplayCRL (certHandle, nickName, crlType);
 }
 
 
@@ -1041,7 +1045,7 @@ int main(int argc, char **argv)
 	if (deleteCRL) 
 	    DeleteCRL (certHandle, nickName, crlType);
 	else if (listCRL) {
-	    ListCRL (certHandle, nickName, crlType);
+	    rv = ListCRL (certHandle, nickName, crlType);
 	}
 	else if (importCRL) {
 	    rv = ImportCRL (certHandle, url, crlType, inFile, importOptions,
