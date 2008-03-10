@@ -884,13 +884,9 @@ function GetMessagesForInboxOnServer(server)
   // if the server doesn't support an inbox it could be an RSS server or some other server type..
   // just use the root folder and the server implementation can figure out what to do.
   if (!inboxFolder)
-    inboxFolder = server.rootFolder;    
+    inboxFolder = server.rootFolder;
 
-  var folders = new Array(1);
-  folders[0] = inboxFolder;
-
-  var compositeDataSource = GetCompositeDataSource("GetNewMessages");
-  GetNewMessages(folders, server, compositeDataSource);
+  GetNewMessages([inboxFolder], server);
 }
 
 function MsgGetMessage()
@@ -1786,11 +1782,10 @@ function MsgMarkReadByDate()
 
 function MsgMarkAllRead()
 {
-    var compositeDataSource = GetCompositeDataSource("MarkAllMessagesRead");
     var folder = GetMsgFolderFromUri(GetSelectedFolderURI(), true);
 
-    if(folder)
-        MarkAllMessagesRead(compositeDataSource, folder);
+    if (folder)
+      folder.markAllMessagesRead();
 }
 
 function MsgDownloadFlagged()
@@ -2250,8 +2245,7 @@ function GetFolderMessages()
   var folders = new Array(1);
   folders[0] = folder;
 
-  var compositeDataSource = GetCompositeDataSource("GetNewMessages");
-  GetNewMessages(folders, folder.server, compositeDataSource);
+  GetNewMessages(folders, folder.server);
 }
 
 function SendUnsentMessages()

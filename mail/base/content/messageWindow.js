@@ -44,9 +44,6 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 
 /* globals for a particular window */
 
-var compositeDataSourceContractID = "@mozilla.org/rdf/datasource;1?name=composite-datasource";
-
-var gCompositeDataSource;
 var gCurrentMessageUri;
 var gCurrentFolderUri;
 var gThreadPaneCommandUpdater = null;
@@ -272,7 +269,6 @@ function delayedOnLoadMessageWindow()
   ShowMenus();
   MailOfflineMgr.init();
   CreateMailWindowGlobals();
-  CreateMessageWindowGlobals();
   verifyAccounts(null);
 
   InitMsgWindow();
@@ -566,12 +562,6 @@ function OnUnloadMessageWindow()
   OnMailWindowUnload();
 }
 
-function CreateMessageWindowGlobals()
-{
-  gCompositeDataSource = Components.classes[compositeDataSourceContractID].createInstance();
-  gCompositeDataSource = gCompositeDataSource.QueryInterface(Components.interfaces.nsIRDFCompositeDataSource);
-}
-
 function InitializeDataSources()
 {
   AddDataSources();
@@ -650,11 +640,6 @@ function ClearMessageSelection()
   gCurrentMessageUri = null;
   gCurrentFolderUri = null;
   UpdateMailToolbar("clear msg, std alone window");
-}
-
-function GetCompositeDataSource(command)
-{
-  return gCompositeDataSource;
 }
 
 function SetNextMessageAfterDelete()
