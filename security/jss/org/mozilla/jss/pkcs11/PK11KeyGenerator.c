@@ -52,17 +52,6 @@
 #include <pk11func.h>
 #include <secoid.h>
 
-PBEBitGenContext *
-PBE_CreateContext(SECOidTag hashAlgorithm, PBEBitGenID bitGenPurpose,
-        SECItem *pwitem, SECItem *salt, unsigned int bitsNeeded,
-        unsigned int iterations);
-
-SECItem *
-PBE_GenerateBits(PBEBitGenContext *context);
-
-void
-PBE_DestroyContext(PBEBitGenContext *context);
-
 /***********************************************************************
  *
  * PK11KeyGenerator.generateNormal
