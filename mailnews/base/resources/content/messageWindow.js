@@ -611,6 +611,7 @@ var MessageWindowController =
       case "cmd_killThread":
       case "cmd_watchThread":
       case "button_delete":
+      case "button_shiftDelete":
       case "button_junk":
       case "cmd_shiftDelete":
       case "cmd_saveAsFile":
@@ -695,11 +696,12 @@ var MessageWindowController =
       case "cmd_createFilterFromMenu":
         loadedFolder = GetLoadedMsgFolder();
         return (loadedFolder && loadedFolder.server.canHaveFilters);
-			case "cmd_delete":
+      case "cmd_delete":
         UpdateDeleteCommand();
         // fall through
-			case "button_delete":
-			case "cmd_shiftDelete":
+      case "button_delete":
+      case "cmd_shiftDelete":
+      case "button_shiftDelete":
         loadedFolder = GetLoadedMsgFolder();
         return gCurrentMessageUri && loadedFolder && (loadedFolder.canDeleteMessages || isNewsURI(gCurrentFolderUri));
       case "button_junk":
@@ -858,9 +860,11 @@ var MessageWindowController =
         MsgCreateFilter();
         break;        
       case "cmd_delete":
+      case "button_delete":
         MsgDeleteMessage(false);
         break;
       case "cmd_shiftDelete":
+      case "button_shiftDelete":
         MsgDeleteMessage(true);
         break;
       case "button_junk":

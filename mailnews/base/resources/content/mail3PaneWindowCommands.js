@@ -51,6 +51,7 @@ var FolderPaneController =
 			case "cmd_delete":
 			case "cmd_shiftDelete":
 			case "button_delete":
+			case "button_shiftDelete":
 			//case "cmd_selectAll": the folder pane currently only handles single selection
 			case "cmd_cut":
 			case "cmd_copy":
@@ -76,6 +77,7 @@ var FolderPaneController =
 			case "cmd_delete":
 			case "cmd_shiftDelete":
 			case "button_delete":
+			case "button_shiftDelete":
 			if ( command == "cmd_delete" )
 				goSetMenuValue(command, 'valueFolder');
       var folderTree = GetFolderTree();
@@ -128,6 +130,8 @@ var FolderPaneController =
 		{
 			case "cmd_delete":
 			case "cmd_shiftDelete":
+			case "button_delete":
+			case "button_shiftDelete":
 				MsgDeleteFolder();
 				break;
 		}
@@ -162,10 +166,11 @@ var DefaultController =
 			case "cmd_forwardAttachment":
 			case "cmd_editAsNew":
       case "cmd_createFilterFromMenu":
-			case "cmd_delete":
-			case "button_delete":
+      case "cmd_delete":
+      case "cmd_shiftDelete":
+      case "button_delete":
+      case "button_shiftDelete":
       case "button_junk":
-			case "cmd_shiftDelete":
 			case "cmd_nextMsg":
       case "button_next":
 			case "cmd_nextUnreadMsg":
@@ -266,6 +271,7 @@ var DefaultController =
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteMsg, enabled, checkStatus);
         return enabled.value;
       case "cmd_shiftDelete":
+      case "button_shiftDelete":
         if (gDBView)
           gDBView.getCommandStatus(nsMsgViewCommandType.deleteNoTrash, enabled, checkStatus);
         return enabled.value;
@@ -501,9 +507,11 @@ var DefaultController =
         CreateFilter(document.popupNode);
         break;
       case "cmd_delete":
+      case "button_delete":
         MsgDeleteMessage(false);
         break;
       case "cmd_shiftDelete":
+      case "button_shiftDelete":
         MsgDeleteMessage(true);
         break;
       case "cmd_killThread":
