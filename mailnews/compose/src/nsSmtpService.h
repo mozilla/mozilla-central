@@ -40,7 +40,7 @@
 
 #include "nscore.h"
 #include "nsCOMPtr.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsISmtpService.h"
 #include "nsISmtpServer.h"
 #include "nsIProtocolHandler.h"
@@ -76,14 +76,14 @@ protected:
 
     
 private:
-    static PRBool findServerByKey (nsISupports *element, void *aData);
-    static PRBool findServerByHostname (nsISupports* element, void *aData);
+    static PRBool findServerByKey(nsISmtpServer *aServer, void *aData);
+    static PRBool findServerByHostname(nsISmtpServer *aServer, void *aData);
     
     nsresult createKeyedServer(const char* key,
                                nsISmtpServer **aResult = nsnull);
     nsresult saveKeyList();
     
-    nsCOMPtr<nsISupportsArray> mSmtpServers;
+    nsCOMArray<nsISmtpServer> mSmtpServers;
     nsCOMPtr<nsISmtpServer> mDefaultSmtpServer;
     nsCOMPtr<nsISmtpServer> mSessionDefaultServer;
 

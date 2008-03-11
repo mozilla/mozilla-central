@@ -50,7 +50,7 @@
 #include "nsIMsgMailSession.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
-
+#include "nsArrayEnumerator.h"
 #include "nsSmtpUrl.h"
 #include "nsSmtpProtocol.h"
 #include "nsCOMPtr.h"
@@ -103,7 +103,6 @@ nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest **
 nsSmtpService::nsSmtpService() :
     mSmtpServersLoaded(PR_FALSE)
 {
-    NS_NewISupportsArray(getter_AddRefs(mSmtpServers));
 }
 
 nsSmtpService::~nsSmtpService()
@@ -366,29 +365,24 @@ NS_IMETHODIMP nsSmtpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 
 
 NS_IMETHODIMP
-nsSmtpService::GetSmtpServers(nsISupportsArray ** aResult)
+nsSmtpService::GetSmtpServers(nsISimpleEnumerator **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  nsresult rv;
-  
   // now read in the servers from prefs if necessary
-  PRUint32 serverCount;
-  rv = mSmtpServers->Count(&serverCount);
-  if (NS_FAILED(rv)) return rv;
+  PRUint32 serverCount = mSmtpServers.Count();
 
-  if (serverCount<=0) loadSmtpServers();
+  if (serverCount <= 0)
+    loadSmtpServers();
 
-  *aResult = mSmtpServers;
-  NS_ADDREF(*aResult);
-
-  return NS_OK;
+  return NS_NewArrayEnumerator(aResult, mSmtpServers);
 }
 
 nsresult
 nsSmtpService::loadSmtpServers()
 {
-    if (mSmtpServersLoaded) return NS_OK;
+    if (mSmtpServersLoaded)
+      return NS_OK;
     
     nsresult rv;
     nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -544,7 +538,7 @@ nsSmtpService::createKeyedServer(const char *key, nsISmtpServer** aResult)
     if (NS_FAILED(rv)) return rv;
     
     server->SetKey(key);
-    mSmtpServers->AppendElement(server);
+    mSmtpServers.AppendObject(server);
 
     if (mServerKeyList.IsEmpty())
         mServerKeyList = key;
@@ -583,13 +577,12 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
 {
   NS_ENSURE_ARG_POINTER(aServer);
 
-  nsresult rv;
-
   loadSmtpServers();
   
   *aServer = nsnull;
   // always returns NS_OK, just leaving *aServer at nsnull
   if (!mDefaultSmtpServer) {
+      nsresult rv;
       nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
       if (NS_FAILED(rv)) return rv;
 
@@ -603,29 +596,25 @@ nsSmtpService::GetDefaultServer(nsISmtpServer **aServer)
           rv = GetServerByKey(defaultServerKey.get(),
                               getter_AddRefs(mDefaultSmtpServer));
       } else {
-          // no pref set, so just return the first one, and set the pref
-      
-          PRUint32 count=0;
-          nsCOMPtr<nsISupportsArray> smtpServers;
-          rv = GetSmtpServers(getter_AddRefs(smtpServers));
-          rv = smtpServers->Count(&count);
+        // no pref set, so just return the first one, and set the pref
 
-          // nothing in the array, we had better create a new server
-          // (which will add it to the array & prefs anyway)
-          if (count == 0)
-              return nsnull;//if there are no smtp servers then don't create one for the default.
-          else
-              rv = mSmtpServers->QueryElementAt(0, NS_GET_IID(nsISmtpServer),
-                                                (void **)getter_AddRefs(mDefaultSmtpServer));
+        // Ensure the list of servers is loaded
+        loadSmtpServers();
 
-          if (NS_FAILED(rv)) return rv;
-          NS_ENSURE_TRUE(mDefaultSmtpServer, NS_ERROR_UNEXPECTED);
+        // nothing in the array, we had better create a new server
+        // (which will add it to the array & prefs anyway)
+        if (mSmtpServers.Count() == 0)
+          // if there are no smtp servers then don't create one for the default.
+          return nsnull;
+
+        mDefaultSmtpServer = mSmtpServers[0];
+        NS_ENSURE_TRUE(mDefaultSmtpServer, NS_ERROR_NULL_POINTER);
           
-          // now we have a default server, set the prefs correctly
-          nsCString serverKey;
-          mDefaultSmtpServer->GetKey(getter_Copies(serverKey));
-          if (NS_SUCCEEDED(rv))
-              prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey.get());
+        // now we have a default server, set the prefs correctly
+        nsCString serverKey;
+        mDefaultSmtpServer->GetKey(getter_Copies(serverKey));
+        if (NS_SUCCEEDED(rv))
+          prefBranch->SetCharPref(PREF_MAIL_SMTP_DEFAULTSERVER, serverKey.get());
       }
   }
 
@@ -656,25 +645,22 @@ nsSmtpService::SetDefaultServer(nsISmtpServer *aServer)
 }
 
 PRBool
-nsSmtpService::findServerByKey (nsISupports *element, void *aData)
+nsSmtpService::findServerByKey(nsISmtpServer *aServer, void *aData)
 {
-    nsresult rv;
-    nsCOMPtr<nsISmtpServer> server = do_QueryInterface(element, &rv);
-    if (NS_FAILED(rv)) return PR_TRUE;
-    
-    findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
+  findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
 
-    nsCString key;
-    rv = server->GetKey(getter_Copies(key));
-    if (NS_FAILED(rv)) return PR_TRUE;
-
-    if (key.Equals(entry->key)) 
-    {
-        entry->server = server;
-        return PR_FALSE;
-    }
-    
+  nsCString key;
+  nsresult rv = aServer->GetKey(getter_Copies(key));
+  if (NS_FAILED(rv))
     return PR_TRUE;
+
+  if (key.Equals(entry->key)) 
+  {
+    entry->server = aServer;
+    return PR_FALSE;
+  }
+    
+  return PR_TRUE;
 }
 
 NS_IMETHODIMP
@@ -698,7 +684,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
         entry.key = key.get();
         entry.server = nsnull;
 
-        mSmtpServers->EnumerateForwards(findServerByKey, (void *)&entry);
+        mSmtpServers.EnumerateForwards(findServerByKey, (void *)&entry);
         if (!entry.server) unique=PR_TRUE;
         
     } while (!unique);
@@ -722,7 +708,7 @@ nsSmtpService::GetServerByKey(const char* aKey, nsISmtpServer **aResult)
     findServerByKeyEntry entry;
     entry.key = aKey;
     entry.server = nsnull;
-    mSmtpServers->EnumerateForwards(findServerByKey, (void *)&entry);
+    mSmtpServers.EnumerateForwards(findServerByKey, (void *)&entry);
 
     if (entry.server) {
         NS_ADDREF(*aResult = entry.server);
@@ -738,17 +724,14 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
 {
     if (!aServer) return NS_OK;
 
-    nsresult rv;
-
-    PRInt32 idx = 0;
-    rv = mSmtpServers->GetIndexOf(aServer, &idx);
-    if (NS_FAILED(rv) || idx==-1)
-        return NS_OK;
+    PRInt32 idx = mSmtpServers.IndexOf(aServer);
+    if (idx == -1)
+      return NS_OK;
 
     nsCString serverKey;
     aServer->GetKey(getter_Copies(serverKey));
     
-    rv = mSmtpServers->DeleteElementAt(idx);
+    nsresult rv = mSmtpServers.RemoveObjectAt(idx);
 
     if (mDefaultSmtpServer.get() == aServer)
         mDefaultSmtpServer = nsnull;
@@ -781,33 +764,32 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
 }
 
 PRBool
-nsSmtpService::findServerByHostname(nsISupports *element, void *aData)
+nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
 {
-    nsresult rv;
-    
-    nsCOMPtr<nsISmtpServer> server = do_QueryInterface(element, &rv);
-    if (NS_FAILED(rv)) return PR_TRUE;
+  findServerByHostnameEntry *entry = (findServerByHostnameEntry*)aData;
 
-    findServerByHostnameEntry *entry = (findServerByHostnameEntry*)aData;
-
-    nsCString hostname;
-    rv = server->GetHostname(getter_Copies(hostname));
-    if (NS_FAILED(rv)) return PR_TRUE;
-
-   nsCString username;
-    rv = server->GetUsername(getter_Copies(username));
-    if (NS_FAILED(rv)) return PR_TRUE;
-
-    PRBool checkHostname = !entry->hostname.IsEmpty();
-    PRBool checkUsername = !entry->username.IsEmpty();
-    
-    if ((!checkHostname || (entry->hostname.Equals(hostname, nsCaseInsensitiveCStringComparator())) &&
-        (!checkUsername || entry->username.Equals(username, nsCaseInsensitiveCStringComparator()))))
-    {
-        entry->server = server;
-        return PR_FALSE;        // stop when found
-    }
+  nsCString hostname;
+  nsresult rv = aServer->GetHostname(getter_Copies(hostname));
+  if (NS_FAILED(rv))
     return PR_TRUE;
+
+  nsCString username;
+  rv = aServer->GetUsername(getter_Copies(username));
+  if (NS_FAILED(rv))
+    return PR_TRUE;
+
+  PRBool checkHostname = !entry->hostname.IsEmpty();
+  PRBool checkUsername = !entry->username.IsEmpty();
+    
+  if ((!checkHostname ||
+       (entry->hostname.Equals(hostname, nsCaseInsensitiveCStringComparator())) &&
+       (!checkUsername ||
+        entry->username.Equals(username, nsCaseInsensitiveCStringComparator()))))
+  {
+    entry->server = aServer;
+    return PR_FALSE;        // stop when found
+  }
+  return PR_TRUE;
 }
 
 NS_IMETHODIMP
@@ -821,7 +803,7 @@ nsSmtpService::FindServer(const char *aUsername,
     entry.hostname = aHostname;
     entry.username = aUsername;
 
-    mSmtpServers->EnumerateForwards(findServerByHostname, (void *)&entry);
+    mSmtpServers.EnumerateForwards(findServerByHostname, (void *)&entry);
 
     // entry.server may be null, but that's ok.
     // just return null if no server is found

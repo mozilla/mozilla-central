@@ -39,7 +39,6 @@
 #define MSGCOMP_TRACE_PERFORMANCE 1
 
 #include "nsIMsgComposeService.h"
-#include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIObserver.h"

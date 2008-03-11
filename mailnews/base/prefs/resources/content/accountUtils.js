@@ -238,9 +238,11 @@ function msgOpenAccountWizard()
 
   loadInboxForNewAccount();
 
-  //For the first account we need to reset the default smtp server in the panel.
+  // For the first account we need to reset the default smtp server in the
+  // panel, by accessing smtpServers we are actually ensuring the smtp server
+  // list is loaded.
   var smtpService = Components.classes["@mozilla.org/messengercompose/smtp;1"].getService(Components.interfaces.nsISmtpService);
-  var serverCount = smtpService.smtpServers.Count();
+  var servers = smtpService.smtpServers;
   try{ReloadSmtpPanel();}
   catch(ex){}
 }

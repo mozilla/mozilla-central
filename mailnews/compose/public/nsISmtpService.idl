@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -41,14 +41,14 @@
 interface nsISmtpServer;
 interface nsIURI;
 interface nsIUrlListener;
-interface nsISupportsArray;
 interface nsIMsgIdentity;
 interface nsIInterfaceRequestor;
 interface nsIFile;
 interface nsIMsgStatusFeedback;
 interface nsIRequest;
+interface nsISimpleEnumerator;
 
-[scriptable, uuid(2B7FA4A1-A73E-4B7A-A789-7D0CFBE5AC97)]
+[scriptable, uuid(77887b49-6d03-4c52-9f7b-6653e44c8197)]
 interface nsISmtpService : nsISupports {
   
   ///////////////////////////////////////////////////////////////////////////
@@ -90,7 +90,7 @@ interface nsISmtpService : nsISupports {
   /**
    * A copy of the array of SMTP servers, as stored in the preferences
    */
-  readonly attribute nsISupportsArray smtpServers;
+  readonly attribute nsISimpleEnumerator smtpServers;
 
   /**
    * The default server, across sessions of the app
@@ -107,31 +107,33 @@ interface nsISmtpService : nsISupports {
   attribute nsISmtpServer sessionDefaultServer;
 
   /**
-   * create a new SMTP server.
+   * Create a new SMTP server.
    * Use this instead of createInstance(), so that the SMTP Service can
    * be aware of this server
    */
   nsISmtpServer createSmtpServer();
 
   /**
-   * find the server with the given hostname.
-   * @param hostname the hostname of the server
-   * @returns null if no server is found
+   * Find the first server with the given hostname and/or username.
+   * Note: if either username or hostname is empty, then that parameter will
+   * not be used in the matching process.
+   * @param username  the username for the server
+   * @param hostname  the hostname of the server
+   * @returns         null if no server is found
    */
   nsISmtpServer findServer(in string username, in string hostname);
 
   /**
-   * look up the server with the given key
-   * if the server does not exist, create it and add it to our list
+   * Look up the server with the given key
+   * If the server does not exist, create it and add it to our list
    */
   nsISmtpServer getServerByKey(in string key);
   
   /**
-   * delete the given server from the server list.
-   * does nothing if the server does not exist
-   * @param server the server to delete. Use findServer() if you only know
-   *   the hostname
+   * Delete the given server from the server list - does nothing if the server
+   * does not exist
+   * @param server   the server to delete. Use findServer() if you only know
+   *                 the hostname
    */
   void deleteSmtpServer(in nsISmtpServer server);
-
 };

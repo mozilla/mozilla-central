@@ -164,17 +164,20 @@ var gSmtpServerListWindow =
 
   fillSmtpServers: function(aListBox, aServers, aDefaultServer)
   {
-    if (!aListBox || !aServers) 
+    if (!aListBox || !aServers)
       return;
 
-    var serverCount = aServers.Count();
-    for (var i=0; i < serverCount; i++) 
+    while (aServers.hasMoreElements())
     {
-      var server = aServers.QueryElementAt(i, Components.interfaces.nsISmtpServer);
-      var isDefault = (aDefaultServer.key == server.key);
+      var server = aServers.getNext();
 
-      var listitem = this.createSmtpListItem(server, isDefault);
-      aListBox.appendChild(listitem);
+      if (server instanceof Components.interfaces.nsISmtpServer)
+      {
+        var isDefault = (aDefaultServer.key == server.key);
+
+        var listitem = this.createSmtpListItem(server, isDefault);
+        aListBox.appendChild(listitem);
+      }
     }
   },
 

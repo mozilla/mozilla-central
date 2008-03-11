@@ -345,20 +345,24 @@ function fillSmtpServers(smtpServerList, servers, defaultServer)
   while (smtpPopup.lastChild.nodeName != "menuseparator")
     smtpPopup.removeChild(smtpPopup.lastChild);
 
-  var serverCount = servers.Count();
-  for (var i = 0; i < serverCount; i++) 
+  while (servers.hasMoreElements())
   {
-    var server = servers.QueryElementAt(i, Components.interfaces.nsISmtpServer);
-    var serverName = "";
-    if (server.description)
-      serverName = server.description + ' - ';
-    else if (server.username)
-      serverName = server.username + ' - ';
-    serverName += server.hostname;
+    var server = servers.getNext();
 
-    if (defaultServer.key == server.key)
-      serverName += " " + document.getElementById("bundle_messenger").getString("defaultServerTag");
+    if (server instanceof Components.interfaces.nsISmtpServer &&
+        !server.redirectorType)
+    {
+      var serverName = "";
+      if (server.description)
+        serverName = server.description + ' - ';
+      else if (server.username)
+        serverName = server.username + ' - ';
+      serverName += server.hostname;
 
-    smtpServerList.appendItem(serverName, server.key);
+      if (defaultServer.key == server.key)
+        serverName += " " + document.getElementById("bundle_messenger").getString("defaultServerTag");
+
+      smtpServerList.appendItem(serverName, server.key);
+    }
   }
 }
