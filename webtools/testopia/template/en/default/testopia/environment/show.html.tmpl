@@ -17,7 +17,7 @@
   #
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #                 Scott Sudweeks <ssudweeks@novell.com>
-  #					Andrew Nelson <anelson@novell.com>
+  #                    Andrew Nelson <anelson@novell.com>
   #%]
 
 [%# INTERFACE:
@@ -85,60 +85,60 @@ Ext.onReady(function(){
         loader: new Tree.TreeLoader({
             url: "tr_show_environment.cgi",
             listeners: {'beforeload':function(l, node) {
-             	l.baseParams.action = 'getChildren'; 
-             	l.baseParams.id = node.attributes.id; 
-             	l.baseParams.type = node.attributes.type;
-             	l.baseParams.env_id = node.attributes.id;
-             	l.baseParams.environmentPanel = 'true'; 
-             	l.baseParams.environmentId = '[% environment.id %]';
+                 l.baseParams.action = 'getChildren'; 
+                 l.baseParams.id = node.attributes.id; 
+                 l.baseParams.type = node.attributes.type;
+                 l.baseParams.env_id = node.attributes.id;
+                 l.baseParams.environmentPanel = 'true'; 
+                 l.baseParams.environmentId = '[% environment.id %]';
             }}
         }),
         listeners:{
             "textchange": function(node, text, oldText){
-            	var httpRequest = new Ext.data.Connection();
-            	httpRequest.request({
-                	url: 'tr_show_environment.cgi', 
-                	params:{
-                		action: 'rename',
-                		name: text, 
-                		env_id: node.id,
-                		isactive: true
-                	}, 
-                	success:function(object){
-                		TestopiaUtil.notify.msg('Test Environment updated', 'Environment renamed successfully');
-                	}, 
-                	failure: testopiaError
-            	});  	
+                var httpRequest = new Ext.data.Connection();
+                httpRequest.request({
+                    url: 'tr_show_environment.cgi', 
+                    params:{
+                        action: 'rename',
+                        name: text, 
+                        env_id: node.id,
+                        isactive: true
+                    }, 
+                    success:function(object){
+                        TestopiaUtil.notify.msg('Test Environment updated', 'Environment renamed successfully');
+                    }, 
+                    failure: testopiaError
+                });      
             },
-            "contextmenu": function(node, event){	
-            	if(node.attributes.type == 'category' || node.attributes.type == 'element'){
-            		var context = new Ext.menu.Menu({
-                		id: 'context menu', 
-                		items: [{
-                			text: 'Remove ' + node.attributes.text,
-                			id: node.attributes.id, 
-                			type: node.attributes.type,
-                			handler: deleteNode  		
-                		}]
-            		});
-            	}
-            	else if(node.attributes.type == 'validexp'){
-            		var context = new Ext.menu.Menu({
-                		id: 'context menu', 
-                		items: [{
-                			text: 'Select ' + node.attributes.text,
-                			id: node.attributes.id, 
-                			type: node.attributes.type,
-                			value: node.attributes.value, 
-                			handler: changeNode	
-                		}]
-            		});
-            	}
-            	
-            	else
-            		return;
-            		
-            	context.showAt([event.getPageX(), event.getPageY()]);
+            "contextmenu": function(node, event){    
+                if(node.attributes.type == 'category' || node.attributes.type == 'element'){
+                    var context = new Ext.menu.Menu({
+                        id: 'context menu', 
+                        items: [{
+                            text: 'Remove ' + node.attributes.text,
+                            id: node.attributes.id, 
+                            type: node.attributes.type,
+                            handler: deleteNode          
+                        }]
+                    });
+                }
+                else if(node.attributes.type == 'validexp'){
+                    var context = new Ext.menu.Menu({
+                        id: 'context menu', 
+                        items: [{
+                            text: 'Select ' + node.attributes.text,
+                            id: node.attributes.id, 
+                            type: node.attributes.type,
+                            value: node.attributes.value, 
+                            handler: changeNode    
+                        }]
+                    });
+                }
+                
+                else
+                    return;
+                    
+                context.showAt([event.getPageX(), event.getPageY()]);
             }
             }
     });
@@ -162,10 +162,10 @@ Ext.onReady(function(){
         loader: new Tree.TreeLoader({
             url: "tr_show_environment.cgi",
             listeners: {"beforeload": function(l, node) {
-             	l.baseParams.action = 'getChildren'; 
-             	l.baseParams.id = node.attributes.id; 
-             	l.baseParams.type = node.attributes.type;
-             	l.baseParams.env_id = node.attributes.id;
+                 l.baseParams.action = 'getChildren'; 
+                 l.baseParams.id = node.attributes.id; 
+                 l.baseParams.type = node.attributes.type;
+                 l.baseParams.env_id = node.attributes.id;
            }}
         }),
         root: new Tree.AsyncTreeNode({
@@ -178,29 +178,29 @@ Ext.onReady(function(){
         }),
         listeners: {
             "textchange": function(node, text, oldText){
-            	var nodeText = node.text;
-            	var id = node.attributes.id; 
-            	var type = node.attributes.type;
-            	var httpRequest = new Ext.data.Connection();
-            	
-            	httpRequest.request({
-                	url: 'tr_show_environment.cgi', 
-                	params:{
-                		action: 'edit',
-                		text: text, 
-                		id: id, 
-                		type:type,
-                		value: oldText,  
-                		isactive: true
-                	}, 
-                	success:function(object){
-                		if(object.responseText != "action successful")
-                		    Ext.MessageBox.alert("response", object.responseText);
-                	}, 
-                	failure:function(){
-                    	alert("Failure");
-                	}
-            	});  	
+                var nodeText = node.text;
+                var id = node.attributes.id; 
+                var type = node.attributes.type;
+                var httpRequest = new Ext.data.Connection();
+                
+                httpRequest.request({
+                    url: 'tr_show_environment.cgi', 
+                    params:{
+                        action: 'edit',
+                        text: text, 
+                        id: id, 
+                        type:type,
+                        value: oldText,  
+                        isactive: true
+                    }, 
+                    success:function(object){
+                        if(object.responseText != "action successful")
+                            Ext.MessageBox.alert("response", object.responseText);
+                    }, 
+                    failure:function(){
+                        alert("Failure");
+                    }
+                });      
            
             }
             
@@ -226,349 +226,349 @@ Ext.onReady(function(){
  * Functions
  */
     function deleteNode(item){
-    	if(item.type == 'category' || item.type == 'element'){
-    		var node = etree.getNodeById(item.id);    		
-    		if(item.type == 'category'){
-    			node.expand(false, true, expandCallBack);
-    			return;
-       		}
-    		
-    		else if(item.type == 'element'){
-    			if(node.getDepth() > 2){
-    				Ext.MessageBox.alert("response", "only first-level elements can be deleted from your environment");
-    				return;
-    			}
-    		}
-    	}
-    	
-    	else{
-    		Ext.MessageBox.alert("response", "only first-level elements can be deleted from your environment");
-    		return;
-    	}
+        if(item.type == 'category' || item.type == 'element'){
+            var node = etree.getNodeById(item.id);            
+            if(item.type == 'category'){
+                node.expand(false, true, expandCallBack);
+                return;
+               }
+            
+            else if(item.type == 'element'){
+                if(node.getDepth() > 2){
+                    Ext.MessageBox.alert("response", "only first-level elements can be deleted from your environment");
+                    return;
+                }
+            }
+        }
+        
+        else{
+            Ext.MessageBox.alert("response", "only first-level elements can be deleted from your environment");
+            return;
+        }
     
-    	var httpRequest = new Ext.data.Connection();
-    	
-    	httpRequest.request({
-        	url: 'tr_show_environment.cgi', 
-        	params:{
-        		action: 'removeNode',
-        		id: item.id, 
-        		type: item.type, 
-        		isactive: true, 
-        		environmentId: [% environment.id %]
-        	}, 
-        	success:function(object){
-        		if(object.responseText != "action successful")
-        		{
-        			Ext.MessageBox.alert("response", object.responseText);
-        			return;
-        		}
-        		
-        		var node = etree.getNodeById(item.id);
-        		if(node != null)
-        			node.remove();
-        			
-        	}, 
-        	failure:function(){
-            	alert("Failure");
-        	}
-    	});  	
+        var httpRequest = new Ext.data.Connection();
+        
+        httpRequest.request({
+            url: 'tr_show_environment.cgi', 
+            params:{
+                action: 'removeNode',
+                id: item.id, 
+                type: item.type, 
+                isactive: true, 
+                environmentId: [% environment.id %]
+            }, 
+            success:function(object){
+                if(object.responseText != "action successful")
+                {
+                    Ext.MessageBox.alert("response", object.responseText);
+                    return;
+                }
+                
+                var node = etree.getNodeById(item.id);
+                if(node != null)
+                    node.remove();
+                    
+            }, 
+            failure:function(){
+                alert("Failure");
+            }
+        });      
     }
     
      function changeNode(item){
-		var httpRequest = new Ext.data.Connection();
-    	
-    	httpRequest.request({
-        	url: 'tr_show_environment.cgi', 
-        	params:{
-        		action: 'set_selected',
-        		id: item.id, 
-        		type: item.type, 
-        		isactive: true, 
-        		environmentId: [% environment.id %],
-        		value: item.value
-        	}, 
-        	success:function(object){
-        		if(object.responseText != "action successful"){
-        			Ext.MessageBox.alert("response", object.responseText);
-        			return;
-        		}
-        		
-        		var node = etree.getNodeById(item.id);
-        		var parentNode = node.parentNode;
-        		var children = parentNode.childNodes;
-        		for(i=0; i<children.length; i++){
-        			var c = children[i].getUI();
-        			c.removeClass(["validexpYellow"]);
-        			c.addClass(["validexp"]);
-        		}
-        		var c = node.getUI();
-        		c.removeClass(["validexp"]);
-        		c.addClass(["validexpYellow"]); 			
-        	}, 
-        	failure:function(){
-            	alert("Failure");
-        	}
-    	}); 
-	}
-	
+        var httpRequest = new Ext.data.Connection();
+        
+        httpRequest.request({
+            url: 'tr_show_environment.cgi', 
+            params:{
+                action: 'set_selected',
+                id: item.id, 
+                type: item.type, 
+                isactive: true, 
+                environmentId: [% environment.id %],
+                value: item.value
+            }, 
+            success:function(object){
+                if(object.responseText != "action successful"){
+                    Ext.MessageBox.alert("response", object.responseText);
+                    return;
+                }
+                
+                var node = etree.getNodeById(item.id);
+                var parentNode = node.parentNode;
+                var children = parentNode.childNodes;
+                for(i=0; i<children.length; i++){
+                    var c = children[i].getUI();
+                    c.removeClass(["validexpYellow"]);
+                    c.addClass(["validexp"]);
+                }
+                var c = node.getUI();
+                c.removeClass(["validexp"]);
+                c.addClass(["validexpYellow"]);             
+            }, 
+            failure:function(){
+                alert("Failure");
+            }
+        }); 
+    }
+    
     function expandCallBack(node){
-    	var children = node.childNodes;
-    	for(i=0;i<children.length;i++){
-    		var child = children[i];
-    		checkAndRemoveNode(child);     				
-    	}
-		node.remove();
-		return;    	
+        var children = node.childNodes;
+        for(i=0;i<children.length;i++){
+            var child = children[i];
+            checkAndRemoveNode(child);                     
+        }
+        node.remove();
+        return;        
     }
         
     function checkAndRemoveNode(node){
-    	if(node.attributes.type != 'element')
-    		return;
-    	if(node.getDepth() > 2)
-    		return;
-    	
-    	var item = {};
-    	item.id = node.attributes.id; 
-    	item.type = node.attributes.type; 
-    	deleteNode(item);
+        if(node.attributes.type != 'element')
+            return;
+        if(node.getDepth() > 2)
+            return;
+        
+        var item = {};
+        item.id = node.attributes.id; 
+        item.type = node.attributes.type; 
+        deleteNode(item);
     }       
         
-    vtree.on("contextmenu", function(node, event){	
-    	
-    	if(node.attributes.type == 'product'){
-    		var context = new Ext.menu.Menu({
-        		id: 'context menu', 
-        		items: [{
-        			text: 'Add category to ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: addNode  		
-        		}]
+    vtree.on("contextmenu", function(node, event){    
+        
+        if(node.attributes.type == 'product'){
+            var context = new Ext.menu.Menu({
+                id: 'context menu', 
+                items: [{
+                    text: 'Add category to ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: addNode          
+                }]
             });
-    	}
-    	    	
-    	else if(node.attributes.type == 'category'){
-    		var context = new Ext.menu.Menu({
-        		id: 'context menu', 
-        		items: [{
-        			text: 'Add element to ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: addNode 		
-        		},{
-        			text: 'Delete ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: deleteElement 		
-        		},{
-        			text: 'Rename ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: renameElement 		
-        		}]
-    		});
-    	}
-    	
-    	else if(node.attributes.type == 'element'){
-    		var context = new Ext.menu.Menu({
-        		id: 'context menu', 
-        		items: [{
-        			text: 'Add element to ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: addNode, 
-        			property: 'false' 		
-        		},{
-        			text: 'Add property to ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: addNode, 
-        			property: 'true'  		
-        		},{
-        			text: 'Delete ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: deleteElement 		
-        		},{
-        			text: 'Rename ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: renameElement 		
-        		}]
-    		});
-    	}
-    	
-    	else if(node.attributes.type == 'property'){
-    		var context = new Ext.menu.Menu({
-        		id: 'context menu', 
-        		items: [{
-        			text: 'Add Value to ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: addNode, 
-        			property: 'false' 		
-        		},{
-        			text: 'Delete ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: deleteElement 		
-        		},{
-        			text: 'Rename ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: renameElement 		
-        		}]
-    		});
-    	}
-    	
-    	else if(node.attributes.type == 'validexp'){
-    		var context = new Ext.menu.Menu({
-        		id: 'context menu', 
-        		items: [{
-        			text: 'Delete ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: deleteElement, 
-        			value: node.attributes.value 		
-        		},{
-        			text: 'Rename ' + node.attributes.text,
-        			nodeId: node.attributes.id, 
-        			type: node.attributes.type,
-        			handler: renameElement 		
-        		}]
-    		});
-    	}
-    	
-    	else
-    		return;
-    	
-    	context.showAt([event.getPageX(), event.getPageY()]);
-    	    	
+        }
+                
+        else if(node.attributes.type == 'category'){
+            var context = new Ext.menu.Menu({
+                id: 'context menu', 
+                items: [{
+                    text: 'Add element to ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: addNode         
+                },{
+                    text: 'Delete ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: deleteElement         
+                },{
+                    text: 'Rename ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: renameElement         
+                }]
+            });
+        }
+        
+        else if(node.attributes.type == 'element'){
+            var context = new Ext.menu.Menu({
+                id: 'context menu', 
+                items: [{
+                    text: 'Add element to ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: addNode, 
+                    property: 'false'         
+                },{
+                    text: 'Add property to ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: addNode, 
+                    property: 'true'          
+                },{
+                    text: 'Delete ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: deleteElement         
+                },{
+                    text: 'Rename ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: renameElement         
+                }]
+            });
+        }
+        
+        else if(node.attributes.type == 'property'){
+            var context = new Ext.menu.Menu({
+                id: 'context menu', 
+                items: [{
+                    text: 'Add Value to ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: addNode, 
+                    property: 'false'         
+                },{
+                    text: 'Delete ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: deleteElement         
+                },{
+                    text: 'Rename ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: renameElement         
+                }]
+            });
+        }
+        
+        else if(node.attributes.type == 'validexp'){
+            var context = new Ext.menu.Menu({
+                id: 'context menu', 
+                items: [{
+                    text: 'Delete ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: deleteElement, 
+                    value: node.attributes.value         
+                },{
+                    text: 'Rename ' + node.attributes.text,
+                    nodeId: node.attributes.id, 
+                    type: node.attributes.type,
+                    handler: renameElement         
+                }]
+            });
+        }
+        
+        else
+            return;
+        
+        context.showAt([event.getPageX(), event.getPageY()]);
+                
     });
      
     function addNode(item){
-    	if(item.type == 'category' || item.type == 'element' || item.type == 'product' || item.type == 'property'){
-    		var node = vtree.getNodeById(item.nodeId);
-    	}
-    	
-    	else{
-    		Ext.MessageBox.alert("response", "Elements can only be added to categories or elements");
-    		return;
-    	}
+        if(item.type == 'category' || item.type == 'element' || item.type == 'product' || item.type == 'property'){
+            var node = vtree.getNodeById(item.nodeId);
+        }
+        
+        else{
+            Ext.MessageBox.alert("response", "Elements can only be added to categories or elements");
+            return;
+        }
     
-    	var httpRequest = new Ext.data.Connection();
-    	var type = item.type; 
-    	if(type == 'element' && item.property == 'false'){
-    		type = 'child';
-    	}
-    	
-    	httpRequest.request({
-        	url: 'tr_show_environment.cgi', 
-        	params:{
-        		action: 'createChild',
-        		id: item.nodeId, 
-        		type: type, 
-        		isactive: true, 
-        		environmentId: [% environment.id %]
-        	}, 
-        	success:function(object){
-        		var node = vtree.getNodeById(item.nodeId);
-        		node.leaf = false;
-        		var json = new Ext.data.JsonReader();
-        		var newNode = new Ext.tree.TreeNode(Ext.util.JSON.decode(object.responseText));
-        		node.appendChild(newNode);
-        	}, 
-        	failure:function(){
-            	alert("Failure");
-        	}
-    	});  	
+        var httpRequest = new Ext.data.Connection();
+        var type = item.type; 
+        if(type == 'element' && item.property == 'false'){
+            type = 'child';
+        }
+        
+        httpRequest.request({
+            url: 'tr_show_environment.cgi', 
+            params:{
+                action: 'createChild',
+                id: item.nodeId, 
+                type: type, 
+                isactive: true, 
+                environmentId: [% environment.id %]
+            }, 
+            success:function(object){
+                var node = vtree.getNodeById(item.nodeId);
+                node.leaf = false;
+                var json = new Ext.data.JsonReader();
+                var newNode = new Ext.tree.TreeNode(Ext.util.JSON.decode(object.responseText));
+                node.appendChild(newNode);
+            }, 
+            failure:function(){
+                alert("Failure");
+            }
+        });      
     }
     
     function deleteElement(item){
-    	if(item.type == 'category' || item.type == 'element' || item.type == 'product' || item.type == 'property' || item.type == 'validexp'){
-    		var node = vtree.getNodeById(item.nodeId);
-    	}
-    	
-    	else{
-    		Ext.MessageBox.alert("response", "Error handling delete");
-    		return;
-    	}
-    	
-    	var httpRequest = new Ext.data.Connection();
-    	
-    	httpRequest.request({
-        	url: 'tr_show_environment.cgi', 
-        	params:{
-        		action: 'deleteElement',
-        		id: item.nodeId, 
-        		type: item.type, 
-        		isactive: true, 
-        		environmentId: [% environment.id %],
-        		value: item.value
-        	}, 
-        	success:function(object){
-        		if(object.responseText == 'action successful')
-        		{
-        			var node = vtree.getNodeById(item.nodeId);
-        			node.remove();
-        		}
-        		
-        		else
-        			Ext.MessageBox.alert("response", object.responseText);
-        		
-        	}, 
-        	failure:function(){
-            	alert("Failure");
-        	}
-    	}); 
+        if(item.type == 'category' || item.type == 'element' || item.type == 'product' || item.type == 'property' || item.type == 'validexp'){
+            var node = vtree.getNodeById(item.nodeId);
+        }
+        
+        else{
+            Ext.MessageBox.alert("response", "Error handling delete");
+            return;
+        }
+        
+        var httpRequest = new Ext.data.Connection();
+        
+        httpRequest.request({
+            url: 'tr_show_environment.cgi', 
+            params:{
+                action: 'deleteElement',
+                id: item.nodeId, 
+                type: item.type, 
+                isactive: true, 
+                environmentId: [% environment.id %],
+                value: item.value
+            }, 
+            success:function(object){
+                if(object.responseText == 'action successful')
+                {
+                    var node = vtree.getNodeById(item.nodeId);
+                    node.remove();
+                }
+                
+                else
+                    Ext.MessageBox.alert("response", object.responseText);
+                
+            }, 
+            failure:function(){
+                alert("Failure");
+            }
+        }); 
     }
     function renameElement(item){
-    	var node = vtree.getNodeById(item.nodeId);
-    	var el = node.getUI().getTextEl();
-    	itemTreeEditor.startEdit(el);    	
+        var node = vtree.getNodeById(item.nodeId);
+        var el = node.getUI().getTextEl();
+        itemTreeEditor.startEdit(el);        
     }
     
     
     function copyNode(node){
-   		var copy = new Tree.TreeNode(Ext.apply({}, node.attributes));
-    	for(var i=0; i < node.childNodes.length; i++){
-			n = node.childNodes[i];
-			if(n){
-				copy.appendChild(copyNode(n));
-			}
-		}
-		return copy; 
+           var copy = new Tree.TreeNode(Ext.apply({}, node.attributes));
+        for(var i=0; i < node.childNodes.length; i++){
+            n = node.childNodes[i];
+            if(n){
+                copy.appendChild(copyNode(n));
+            }
+        }
+        return copy; 
     };
    
     itemTreeEditor.on("beforestartedit", function(editor, element, value){
-   		if(!editor.editNode)
-   			return true;
-   		var type = editor.editNode.attributes.type;
-   		if(type == 'product' || type == 'classification')
-   			return false;
+           if(!editor.editNode)
+               return true;
+           var type = editor.editNode.attributes.type;
+           if(type == 'product' || type == 'classification')
+               return false;
     });
    
     environmentTreeEditor.on('beforestartedit', function(editor, element, value){
         if(editor.editNode.attributes.type != "environment")
-   	        return false;
+               return false;
     }); 
     
     vtree.on("enddrag", function(treePanel, node, dd, e){
-    	var connection = new Ext.data.Connection;
-    	connection.request({
-        	url: 'tr_show_environment.cgi',
-        	method: 'POST',
-        	params: {element_id: node.id, environment_id: [%environment.id%], type: node.attributes.type, action: 'move'},
-         	failure: function() {
+        var connection = new Ext.data.Connection;
+        connection.request({
+            url: 'tr_show_environment.cgi',
+            method: 'POST',
+            params: {element_id: node.id, environment_id: [%environment.id%], type: node.attributes.type, action: 'move'},
+             failure: function() {
                 Ext.Msg.alert('Status', '"the item could not be added to the list"');
-         	}
-		});
+             }
+        });
     }, this); 
     
     etree.on("beforenodedrop", function(event){
-    	//alert("please let it fire");
-    	event.dropNode = copyNode(event.dropNode);
+        //alert("please let it fire");
+        event.dropNode = copyNode(event.dropNode);
     });
         
 

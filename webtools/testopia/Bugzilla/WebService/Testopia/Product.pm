@@ -43,7 +43,7 @@ sub _validate {
         $product = Bugzilla::Testopia::Product->new($product->id);
     }
     
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $id}) unless $product;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $product}) unless $product;
     ThrowUserError('testopia-permission-denied', {'object' => $product}) if $product && !$product->canedit;
 
     return $product;
@@ -195,149 +195,144 @@ Provides methods for automated scripts to expose Testopia Product data.
 =item C<get($id)>
 
  Description: Used to load an existing product from the database.
- 
+
  Params:      $id - An integer representing the ID in the database
-                       
+
  Returns:     A blessed Bugzilla::Testopia::Product object hash
- 
+
 =item C<check_product($name, $product)>
- 
+
  Description: Looks up and returns a validated product.
-              
+
  Params:      $name - String: name of the product.
               $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
- 
+
  Returns:     Hash: Matching Product object hash or error if not found.
- 
+
 =item C<get_builds($product, $active)>
- 
+
  Description: Get the list of builds associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
               $active  - Boolean: True to only include builds where isactive is true. 
-              
+
  Returns:     Array: Returns an array of Build objects.
- 
+
 =item C<get_cases($product)>
- 
+
  Description: Get the list of cases associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of TestCase objects.
- 
+
 =item C<get_categories($product)>
- 
+
  Description: Get the list of categories associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Case Category objects.
- 
+
 =item C<get_components($product)>
- 
+
  Description: Get the list of components associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Component objects.
- 
+
 =item C<get_environments($product)>
- 
+
  Description: Get the list of environments associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Environment objects.
- 
+
 =item C<get_milestones($product)>
- 
+
  Description: Get the list of milestones associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Milestone objects.
- 
+
 =item C<get_plans($product)>
- 
+
  Description: Get the list of plans associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Test Plan objects.
- 
+
 =item C<get_runs($product)>
- 
+
  Description: Get the list of runs associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Test Run objects.
- 
+
 =item C<get_tags($product)>
- 
+
  Description: Get the list of tags associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Tags objects.
- 
+
 =item C<get_versions($product)>
- 
+
  Description: Get the list of versions associated with this product.
-              
+
  Params:      $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
-                     
+
  Returns:     Array: Returns an array of Version objects.
- 
+
 =item C<lookup_name_by_id> B<DEPRICATED> Use Product::get instead
-              
+
 =item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Product::check_product instead
- 
+
 =back
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::Product>
-
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

@@ -46,7 +46,7 @@ use Bugzilla::Config;
 use Bugzilla::Error;
 use Bugzilla::Constants;
 use Bugzilla::Util;
-use Bugzilla::Testopia::TestPlan;
+#use Bugzilla::Testopia::TestPlan;
 
 ### Methods ###
 

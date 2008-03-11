@@ -105,11 +105,11 @@ sub update {
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
     
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
-        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product);
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product);
         $new_values->{'build_id'} = $build->id;
     }
     if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
-        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $plan->product);
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product);
         $new_values->{'environment_id'} = $environment->id;
     }
        
@@ -124,7 +124,7 @@ sub update {
     $run->set_build($new_values->{'build_id'}) if $new_values->{'build_id'};
     $run->set_environment($new_values->{'environment_id'}) if $new_values->{'environment_id'};
     $run->set_manager($new_values->{'manager_id'}) if $new_values->{'manager_id'};
-    $run->set_notes($new_values->{'notes'}} if exists $cgi->{'notes'};
+    $run->set_notes($new_values->{'notes'}) if exists $new_values->{'notes'};
     $run->set_stop_date($timestamp) if $new_values->{'status'};
     
     $run->update();
@@ -225,7 +225,7 @@ sub add_tag {
         }
         eval {
             $run->add_tag($tags);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -289,20 +289,20 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
 =item C<add_tag($run_ids, $tags)>
 
  Description: Add one or more tags to the selected test runs.
- 
+
  Params:      $run_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of run_ids or aliases, or a string of comma separated run_ids.
-              
+
               $tags - String/Array - A single tag, an array of tags,
                   or a comma separated list of tags. 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<create($values)>
- 
+
  Description: Creates a new Test Run object and stores it in the database.
-              
+
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test run to be created. 
   +-------------------+----------------+-----------+------------------------------------+
@@ -318,70 +318,70 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
   | notes             | String         | Optional  |                                    |
   | status            | Integer        | Optional  | 0:STOPPED 1: RUNNING (default 1)   |
   +-------------------+----------------+-----------+------------------------------------+
-              
+
  Returns:     The newly created object hash.
- 
+
 =item C<get($run_id)>
 
  Description: Used to load an existing test run from the database.
- 
+
  Params:      $id - Integer/String: An integer representing the ID in the database
                     for this run.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::TestRun object hash
- 
+
 =item C<get_change_history($run_id)>
 
  Description: Get the list of changes to the fields of this run.
- 
+
  Params:      $run_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this run.
-                       
+
  Returns:     Array: An array of hashes with changed fields and their details.
- 
+
 =item C<get_tags($run_id)>
 
  Description: Get the list of tags attached to this run.
- 
+
  Params:      $run_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this run.
-                       
+
  Returns:     Array: An array of tag object hashes.
- 
+
 =item C<get_test_case_runs($run_id, $current)>
 
  Description: Get the list of cases that this run is linked to.
- 
+
  Params:      $run_id - Integer/String: An integer representing the ID in the database
                     for this run.
-              
+
               $current - Boolean: 1 to only include the current set (what is displayed
                     in the web page) 0: to return all, current and historical.
-                       
+
  Returns:     Array: An array of test case object hashes.
- 
+
 =item C<get_test_cases($run_id)>
 
  Description: Get the list of cases that this run is linked to.
- 
+
  Params:      $run_id - Integer/String: An integer representing the ID in the database
                     for this run.
-                       
+
  Returns:     Array: An array of test case object hashes.
- 
+
 =item C<get_test_plan($run_id)>
 
  Description: Get the plan that this run is associated with.
- 
+
  Params:      $run_id - Integer/String: An integer representing the ID in the database
                     for this run.
-                       
+
  Returns:     Hash: A plan object hash.
- 
+
 =item C<list($query)>
- 
+
  Description: Performs a search and returns the resulting list of test runs.
-              
+
  Params:      $query - Hash: keys must match valid search fields.
 
     +--------------------------------------------------------+
@@ -409,7 +409,7 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
     | type_id             | Integer                          |
     | version             | String: Product version          |
     +--------------------------------------------------------+
-    
+
     +--------------------------------------------------------+
     |                Paging and Sorting                      |
     +--------------------------------------------------------+
@@ -425,7 +425,7 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
     +--------------------------------------------------------+
     | viewall        | 1: returns all records 0: first 25    |
     +--------------------------------------------------------+
-    
+
     +----------------------------------------------------+
     |                 query_variants                     |
     +----------------+-----------------------------------+
@@ -439,7 +439,7 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
     | regexp         | matches the regexp                |
     | notregexp      | doesn't match the regexp          |
     +----------------+-----------------------------------+
-    
+
             +-------------------------------------+
             |            email_variants           |
             +--------------+----------------------+
@@ -449,7 +449,7 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
             | regexp       | matches regexp       |
             | notregexp    | doesn't match regexp |
             +--------------+----------------------+
-    
+
     +----------------------------------------------------+
     |                    tag_variants                    |
     +----------------+-----------------------------------+
@@ -465,25 +465,25 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
     | anywords       | contains any of the words         |
     | nowords        | contains none of the words        | 
     +----------------------------------------------------+
-    
+
  Returns:     Array: Matching test runs are retuned in a list of hashes.
- 
+
 =item C<remove_tag($run_id, $tag)>
 
  Description: Remove a tag from a run.
- 
+
  Params:      $run_id - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $tag - String - A single tag to be removed. 
-                       
+
  Returns:     0 on success.
 
 =item C<update($ids, $values)>
- 
+
  Description: Updates the fields of the selected test run.
-              
+
  Params:      $ids - Integer: A single TestRun ID.
-                     
+
               $values - Hash of keys matching TestRun fields and the new values 
               to set each field to. See L<create> for description
                       +-------------------+----------------+
@@ -499,19 +499,15 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
                       | notes             | String         |
                       | status            | Integer        |
                       +-------------------+----------------+
- 
+
  Returns:     Hash: The updated test run object.
 
 =back
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::TestRun>
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

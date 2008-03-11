@@ -31,7 +31,6 @@ use Bugzilla::Version;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestRun;
-use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::Category;
 use Bugzilla::Testopia::Build;
 use Bugzilla::Testopia::TestTag;
@@ -77,7 +76,7 @@ use constant DB_COLUMNS => qw(
 use constant REQUIRED_CREATE_FIELDS => qw(product_id author_id type_id default_product_version name);
 use constant UPDATE_COLUMNS         => qw(product_id type_id default_product_version name isactive);
 
-use constant VALIDATORS => {
+sub VALIDATORS {
     product_id => \&_check_product,
     author_id  => \&_check_author,
     type_id    => \&_check_type,

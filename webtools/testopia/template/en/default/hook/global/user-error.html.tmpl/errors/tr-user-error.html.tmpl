@@ -29,8 +29,8 @@
     You are not authorized to delete [% object.type FILTER html %]&nbsp;[% object.id FILTER html %]
     [% IF user.in_group('admin') %]
     If you are the administrator, you can check that your installation
-    allows deletion of Testopia objects in the 
-    <a href="editparams.cgi">paramaters </a>.
+    allows deletion of Testopia objects in the <a href="editparams.cgi">paramaters </a>
+    and then add delete rights to your plan on the "Permissions" tab.
     [% END %]
   [% ELSIF error == "testopia-create-denied" %]
     [% title = "Cannot Create Object" %]
@@ -152,5 +152,12 @@
   [% ELSIF error == "testopia-regexp-too-inclusive" %]
     You are attempting to allow access to your test plan to more people than the limit set by your administrator allows.
     Please contatct your administrator.
+  [% ELSIF error == "testopia-unknown-tab" %]
+    I don't know what a [% tab FILTER html %] is.
+  [% ELSIF error == "testopia_component_attached" %]
+    The component you are attemting to add is already attached to this case.
+  [% ELSIF error == "testopia-no-action" %]
+    I give up. What were you trying to do?
+    Either there was no action specified, or I didn't recognize it.
   [% END %]
   

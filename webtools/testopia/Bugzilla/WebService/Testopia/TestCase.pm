@@ -253,7 +253,7 @@ sub attach_bug {
         }
         eval {
             $case->attach_bug($bug_ids);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -314,7 +314,7 @@ sub add_component {
         }
         eval {
             $case->add_component($component_ids);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -375,7 +375,7 @@ sub add_tag {
         }
         eval {
             $case->add_tag($tags);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -456,7 +456,7 @@ sub link_plan {
         }
         eval {
             $case->link_plan($test_plan_id);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -468,7 +468,7 @@ sub link_plan {
 
 sub unlink_plan {
     my $self = shift;
-    my ($case_id, $test_plan_id) = @_;
+    my ($case_id, $plan_id) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
     
@@ -477,7 +477,7 @@ sub unlink_plan {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
     ThrowUserError("testopia-read-only", {'object' => 'case'}) unless ($case->can_unlink_plan($plan_id));
     
-    $case->unlink_plan($test_plan_id);
+    $case->unlink_plan($plan_id);
     
     # Result is list of plans for test case on success, otherwise an exception will be thrown
     return $case->plans;
@@ -503,7 +503,7 @@ sub add_to_run {
         }
         eval {
             $case->add_to_run($run_ids);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -652,79 +652,79 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 =item C<add_component($case_ids, $component_ids)>
 
  Description: Adds one or more components to the selected test cases.
- 
+
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of case_ids or aliases, or a string of comma separated case_ids.
-              
+
               $component_ids - Integer/Array/String - The component ID, an array of Component IDs,
                   or a comma separated list of component IDs 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
- 
+
 =item C<add_tag($case_ids, $tags)>
 
  Description: Add one or more tags to the selected test cases.
- 
+
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of case_ids or aliases, or a string of comma separated case_ids.
-              
+
               $tags - String/Array - A single tag, an array of tags,
                   or a comma separated list of tags. 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<add_to_run($case_ids, $run_ids)>
 
  Description: Add one or more cases to the selected test runs.
- 
+
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of case_ids or aliases, or a string of comma separated case_ids.
-              
+
               $run_ids - Integer/Array/String: An integer representing the ID in the database
                   an array of IDs, or a comma separated list of IDs. 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<attach_bug($case_ids, $bug_ids)>
 
  Description: Add one or more bugs to the selected test cases.
- 
+
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of case_ids or aliases, or a string of comma separated case_ids.
-              
+
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<calculate_average_time($case_id)>
 
  Description: Returns an average time for completion accross all runs.
- 
+
  Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
-                                     
+
  Returns:     String: Time in "HH:MM:SS" format.
 
 =item C<check_category($name, $product)>
- 
+
  Description: Looks up and returns a category by name.
-              
+
  Params:      $name - String: name of the category.
               $product - Integer/String/Object
                  Integer: product_id of the product in the Database
                  String: Product name
                  Object: Blessed Bugzilla::Product object
- 
+
  Returns:     Hash: Matching Category object hash or error if not found.
- 
+
 =item C<create($values)>
- 
+
  Description: Creates a new Test Case object and stores it in the database.
-              
+
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test case to be created. 
   +-------------------+----------------+-----------+------------------------+
@@ -753,112 +753,112 @@ Provides methods for automated scripts to manipulate Testopia TestCases
   | plans             | Array/String   | Optional  | String Comma separated |
   | components        | Array/String   | Optional  | String Comma separated |
   +-------------------+----------------+-----------+------------------------+
- 
+
  Returns:     The newly created object hash.
- 
+
 =item C<detach_bug($case_id, $bug_id)>
 
  Description: Remove a bug from a test case.
- 
+
  Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
-                       
+
  Returns:     0 on success.
 
 =item C<get($case_id)>
 
  Description: Used to load an existing test case from the database.
- 
+
  Params:      $id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::TestCase object hash
- 
+
 =item C<get_bugs($case_id)>
 
  Description: Get the list of bugs that are associated with this test case.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of bug object hashes.
- 
+
 =item C<get_case_run_history($case_id)>
 
  Description: Get the list of case-runs for all runs this case appears in.
               To limit this list by build or other attribute, see TestCaseRun::list.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of case-run object hashes.
- 
+
 =item C<get_change_history($case_id)>
 
  Description: Get the list of changes to the fields of this case.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of hashes with changed fields and their details.
- 
+
 =item C<get_components($case_id)>
 
  Description: Get the list of components attached to this case.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of component object hashes.
- 
+
 =item C<get_plans($case_id)>
 
  Description: Get the list of plans that this case is linked to.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of test plan object hashes.
- 
+
 =item C<get_tags($case_id)>
 
  Description: Get the list of tags attached to this case.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-                       
+
  Returns:     Array: An array of tag object hashes.
- 
+
 =item C<get_text($case_id, $version)>
 
  Description: The associated large text fields: Action, Expected Results, Setup, Breakdown
               for a given version.
- 
+
  Params:      $case_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this case.
-              
+
               $version - Integer: (OPTIONAL) The version of the text you want returned.
                     Defaults to the latest.
-                       
+
  Returns:     Hash: Text fields and values.
- 
+
 =item C<link_plan($case_ids, $plan_id)>
 
  Description: Link test cases to the given plan.
- 
+
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of case_ids or aliases, or a string of comma separated case_ids.
-              
+
               $plan_id - Integer: An integer or alias representing the ID in the database.
-                       
+
  Returns:     undef/Hash: undef on success, hash of failures if not.
- 
+
 =item C<list($query)>
- 
+
  Description: Performs a search and returns the resulting list of test cases.
-              
+
  Params:      $query - Hash: keys must match valid search fields.
 
     +--------------------------------------------------------+
@@ -896,7 +896,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     | tceffect            | String                           |
     | tceffect_type       | (select from query_variants)     |
     +--------------------------------------------------------+
-    
+
     +---------------------------------------------------+
     |                Paging and Sorting                 |
     +---------------------------------------------------+
@@ -912,7 +912,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     +---------------------------------------------------+
     | viewall        | 1: returns all records           |
     +---------------------------------------------------+
-    
+
     +----------------------------------------------------+
     |                 query_variants                     |
     +----------------+-----------------------------------+
@@ -926,7 +926,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     | regexp         | matches the regexp                |
     | notregexp      | doesn't match the regexp          |
     +----------------+-----------------------------------+
-    
+
             +-------------------------------------+
             |            email_variants           |
             +--------------+----------------------+
@@ -936,7 +936,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
             | regexp       | matches regexp       |
             | notregexp    | doesn't match regexp |
             +--------------+----------------------+
-    
+
     +----------------------------------------------------+
     |                    tag_variants                    |
     +----------------+-----------------------------------+
@@ -952,85 +952,85 @@ Provides methods for automated scripts to manipulate Testopia TestCases
     | anywords       | contains any of the words         |
     | nowords        | contains none of the words        | 
     +----------------------------------------------------+
-    
+
  Returns:     Array: Matching test cases are retuned in a list of hashes.
- 
+
 =item C<lookup_category_name_by_id> 
 
  Params:      $id - Integer: ID of the case status to return
- 
+
  Returns:     String: the status name.
-              
+
 =item C<lookup_category_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use check_category instead
- 
+
 =item C<lookup_priority_name_by_id>
 
  Params:      $id - Integer: ID of the case status to return
- 
+
  Returns:     String: the status name.
-              
+
 =item C<lookup_priority_id_by_name>
 
  Params:      $name - String: the status name. 
- 
+
  Returns:     Integer: ID of the case status.
- 
+
 =item C<lookup_status_name_by_id>
 
  Params:      $id - Integer: ID of the case status to return
- 
+
  Returns:     String: the status name.
 
 =item C<lookup_status_id_by_name> 
 
  Params:      $name - String: the status name. 
- 
+
  Returns:     Integer: ID of the case status.
 
 =item C<remove_component($case_id, $component_id)>
 
  Description: Removes selected component from the selected test case.
- 
+
  Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $component_id - Integer: - The component ID to be removed.
-                       
+
  Returns:     0 on success.
- 
+
 =item C<remove_tag($case_id, $tag)>
 
  Description: Remove a tag from a case.
- 
+
  Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $tag - String - A single tag to be removed. 
-                       
+
  Returns:     0 on success.
 
 =item C<unlink_plan($case_id, $plan_id)>
 
  Description: Unlink a test case from the given plan. If only one plan is linked, this will delete
               the test case.
- 
+
  Params:      $case_ids - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $plan_id - Integer: An integer representing the ID in the database.
-                       
+
  Returns:     undef/Array: Array of plans still linked if any, undef if not.
- 
+
 =item C<update($ids, $values)>
- 
+
  Description: Updates the fields of the selected case or cases.
-              
+
  Params:      $ids - Integer/String/Array
                      Integer: A single TestCase ID.
                      String:  A comma separates string of TestCase IDs for batch
                               processing.
                      Array:   An array of case IDs for batch mode processing
-                     
+
               $values - Hash of keys matching TestCase fields and the new values 
               to set each field to.
- 
+
  Returns:     Hash/Array: In the case of a single case it is returned. If a 
               list was passed, it returns an array of case hashes. If the
               update on any particular case failed, the has will contain a 
@@ -1053,17 +1053,13 @@ Provides methods for automated scripts to manipulate Testopia TestCases
                       | dependson         | Array/String   |
                       | blocks            | Array/String   |
                       +-------------------+----------------+
-                    
+
 =back
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::TestCase>
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

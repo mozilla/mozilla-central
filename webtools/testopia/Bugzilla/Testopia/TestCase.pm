@@ -85,7 +85,7 @@ use constant UPDATE_COLUMNS         => qw(case_status_id category_id priority_id
                                           isautomated sortkey script arguments summary requirement
                                           alias estimated_time dependson blocks runs tags components);
 
-use constant VALIDATORS => {
+sub VALIDATORS {
     case_status_id    => \&_check_status,
     category_id       => \&_check_category,
     priority_id       => \&_check_priority,
@@ -883,7 +883,7 @@ sub add_to_run {
     my $runs = $self->_check_runs($runids);
      
     foreach my $run (@$runs){
-    	$run->add_case_run($self->id);
+        $run->add_case_run($self->id);
     }
 }
 
@@ -894,24 +894,24 @@ Adds a list of test cases to the current test cases being blocked by the testcas
 =cut
 
 sub add_blocks {
-	my $self     = shift;
-	my $case_ids = shift;
-	
-	my $cases    = $self->_check_cases($case_ids);
-	my @blocks;
-	
+    my $self     = shift;
+    my $case_ids = shift;
+    
+    my $cases    = $self->_check_cases($case_ids);
+    my @blocks;
+    
     my $dbh      = Bugzilla->dbh();
-	
-	# Get a list of the cases this test case currently blocks
-	my $current_blocks = $dbh->selectcol_arrayref("SELECT blocked
-	                                               FROM   test_case_dependencies
-	                                               WHERE  dependson = ?",
-	                                              undef,
-	                                              $self->id());
+    
+    # Get a list of the cases this test case currently blocks
+    my $current_blocks = $dbh->selectcol_arrayref("SELECT blocked
+                                                   FROM   test_case_dependencies
+                                                   WHERE  dependson = ?",
+                                                  undef,
+                                                  $self->id());
     
     # update the list of items
     foreach (@$cases) {
-    	push @blocks, $_->id();
+        push @blocks, $_->id();
     }
     
     push @blocks, @$current_blocks;
@@ -929,22 +929,22 @@ Removes a list of test cases from being blocked by the testcase
 =cut
 
 sub remove_blocks {
-	my $self     = shift;
-	my $case_ids = shift;
-	
-	return 0 if ($case_ids eq '' or !defined $case_ids);
-	
-	my $dbh = Bugzilla->dbh();
-	
-	my @cases;
-	
-	foreach my $case (split /,/, $case_ids)
-	{
-		detaint_natural($case);
-		push @cases, $case;
-	}
-	
-	my $query =<<QUERY;
+    my $self     = shift;
+    my $case_ids = shift;
+    
+    return 0 if ($case_ids eq '' or !defined $case_ids);
+    
+    my $dbh = Bugzilla->dbh();
+    
+    my @cases;
+    
+    foreach my $case (split /,/, $case_ids)
+    {
+        detaint_natural($case);
+        push @cases, $case;
+    }
+    
+    my $query =<<QUERY;
        DELETE
        FROM   test_case_dependencies
        WHERE  dependson = ?
@@ -964,24 +964,24 @@ Adds a list of test cases to the current test cases depended on by the testcase
 =cut
 
 sub add_dependson {
-	my $self     = shift;
-	my $case_ids = shift;
-	
-	my $cases    = $self->_check_cases($case_ids);
-	my @dependson;
-	
+    my $self     = shift;
+    my $case_ids = shift;
+    
+    my $cases    = $self->_check_cases($case_ids);
+    my @dependson;
+    
     my $dbh      = Bugzilla->dbh();
-	
-	# Get a list of the cases this test case currently blocks
-	my $current_dependson = $dbh->selectcol_arrayref("SELECT dependson
-	                                                  FROM   test_case_dependencies
-	                                                  WHERE  blocked = ?",
-	                                                  undef,
-	                                                  $self->id());
+    
+    # Get a list of the cases this test case currently blocks
+    my $current_dependson = $dbh->selectcol_arrayref("SELECT dependson
+                                                      FROM   test_case_dependencies
+                                                      WHERE  blocked = ?",
+                                                      undef,
+                                                      $self->id());
     
     # update the list of items
     foreach (@$cases) {
-    	push @dependson, $_->id();
+        push @dependson, $_->id();
     }
     
     push @dependson, @$current_dependson;
@@ -999,22 +999,22 @@ Adds a list of test cases to the current test cases depended on by the testcase
 =cut
 
 sub remove_dependson {
-	my $self     = shift;
-	my $case_ids = shift;
-	
-	return 0 if ($case_ids eq '' or !defined $case_ids);
-	
-	my $dbh = Bugzilla->dbh();
-	
-	my @cases;
-	
-	foreach my $case (split /,/, $case_ids)
-	{
-		detaint_natural($case);
-		push @cases, $case;
-	}
-	
-	my $query =<<QUERY;
+    my $self     = shift;
+    my $case_ids = shift;
+    
+    return 0 if ($case_ids eq '' or !defined $case_ids);
+    
+    my $dbh = Bugzilla->dbh();
+    
+    my @cases;
+    
+    foreach my $case (split /,/, $case_ids)
+    {
+        detaint_natural($case);
+        push @cases, $case;
+    }
+    
+    my $query =<<QUERY;
        DELETE
        FROM   test_case_dependencies
        WHERE  blocked = ?

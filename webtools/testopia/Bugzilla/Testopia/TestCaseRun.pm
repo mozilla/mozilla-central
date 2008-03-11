@@ -83,7 +83,7 @@ use constant DB_COLUMNS => qw(
 use constant REQUIRED_CREATE_FIELDS => qw(case_id run_id build_id environment_id case_run_status_id);
 use constant UPDATE_COLUMNS         => qw(case_run_status_id case_text_version notes sortkey);
 
-use constant VALIDATORS => {
+sub VALIDATORS {
     case_id            => \&_check_case_id,
     build_id           => \&_check_build_id,
     run_id             => \&_check_run_id,

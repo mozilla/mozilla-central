@@ -27,6 +27,7 @@ use base qw(Bugzilla::WebService);
 
 use Bugzilla::Constants;
 use Bugzilla::Testopia::Build;
+use Bugzilla::Testopia::Product;
 
 sub get {
     my $self = shift;
@@ -109,7 +110,7 @@ sub update{
             next;
         }
         unless ($build->product->canedit){
-            ThrowUserError('testopia-read-only', {'object' => $product}) if scalar @ids == 1;
+            ThrowUserError('testopia-read-only', {'object' => $build->product}) if scalar @ids == 1;
             push @builds, {FAILED => 1, message => "You do not have rights to view this product"};
             next;
         }
@@ -187,21 +188,21 @@ Provides methods for automated scripts to manipulate Testopia Builds
 =over
 
 =item C<check_build($name, $product)>
- 
+
  Description: Looks up and returns a build by name.
-              
+
  Params:      $name - String: name of the build.
               $product - Integer/String/Object
                          Integer: product_id of the product in the Database
                          String: Product name
                          Object: Blessed Bugzilla::Product object
- 
+
  Returns:     Hash: Matching Build object hash or error if not found.
- 
+
 =item C<create($values)>
- 
+
  Description: Creates a new build object and stores it in the database
-              
+
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the build to be created. 
   +-------------+----------------+-----------+------------------------------------+
@@ -213,31 +214,31 @@ Provides methods for automated scripts to manipulate Testopia Builds
   | description | String         | Optional  |                                    |
   | isactive    | Boolean        | Optional  | Defaults to True (1)               |
   +-------------+----------------+-----------+------------------------------------+
- 
+
  Returns:     The newly created object hash.
- 
+
 =item C<get($id)>
 
  Description: Used to load an existing build from the database.
- 
+
  Params:      $id - An integer representing the ID in the database
-                       
+
  Returns:     A blessed Bugzilla::Testopia::Build object hash
- 
+
 =item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Build::check_build instead
- 
+
 =item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
-               
+
 =item C<update($ids, $values)>
- 
+
  Description: Updates the fields of the selected build or builds.
-              
+
  Params:      $ids - Integer/String/Array
                      Integer: A single build ID.
                      String:  A comma separates string of Build IDs for batch
                               processing.
                      Array:   An array of build IDs for batch mode processing
-                     
+
               $values - Hash of keys matching Build fields and the new values 
               to set each field to.
                         +-------------+----------------+
@@ -248,22 +249,18 @@ Provides methods for automated scripts to manipulate Testopia Builds
                         | description | String         |
                         | isactive    | Boolean        |
                         +-------------+----------------+
- 
+
  Returns:     Hash/Array: In the case of a single build it is returned. If a 
               list was passed, it returns an array of build hashes. If the
               update on any particular build failed, the hash will contain a 
               FAILED key and the message as to why it failed.
- 
+
 =back
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::Build>
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

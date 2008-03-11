@@ -72,27 +72,27 @@ sub products_to_json {
     $disable_move = ',"addChild","move"' if $disable_move;
     my $products = $self->user_visible_products;
 
-	
-	my @values; 
+    
+    my @values; 
     
     foreach my $product (@$products)
-    {   	
-    	my $leaf; 
-    	
-    	if(scalar @{$product->environment_categories}> 0)
-    	{
-    		$leaf = "false";
-    	}
-     	else
-     	{
-     		$leaf = "true";
-     	}
-     	
-        	push @values, {text=> $product->{'name'}, id=> $product->{'id'} . ' product', type=> 'product', leaf=>$leaf, draggable => 'false', cls => 'product'};
+    {       
+        my $leaf; 
+        
+        if(scalar @{$product->environment_categories}> 0)
+        {
+            $leaf = "false";
+        }
+         else
+         {
+             $leaf = "true";
+         }
+         
+            push @values, {text=> $product->{'name'}, id=> $product->{'id'} . ' product', type=> 'product', leaf=>$leaf, draggable => 'false', cls => 'product'};
     }
     
-	
-	return $json->objToJson(\@values);
+    
+    return $json->objToJson(\@values);
 
 #    my $json = "[";
 #    foreach my $obj (@{$products}){

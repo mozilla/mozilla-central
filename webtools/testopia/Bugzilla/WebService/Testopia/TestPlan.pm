@@ -32,7 +32,6 @@ use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
 
-
 sub get {
     my $self = shift;
     my ($plan_id) = @_;
@@ -244,7 +243,7 @@ sub add_tag {
         }
         eval {
             $plan->add_tag($tags);
-        }
+        };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
@@ -308,20 +307,20 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 =item C<add_tag($plan_ids, $tags)>
 
  Description: Add one or more tags to the selected test plans.
- 
+
  Params:      $plan_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of plan_ids or aliases, or a string of comma separated plan_ids.
-              
+
               $tags - String/Array - A single tag, an array of tags,
                   or a comma separated list of tags. 
-                       
+
  Returns:     undef/Array: undef on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<create($values)>
- 
+
  Description: Creates a new Test Plan object and stores it in the database.
-              
+
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test plan to be created. 
   +-------------------------+----------------+-----------+------------------------------------+
@@ -333,71 +332,71 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
   | default_product_version | String         | Required  |                                    |
   | isactive                | Boolean        | Optional  | 0: Archived 1: Active (Default 1)  |
   +-------------------------+----------------+-----------+------------------------------------+
- 
+
  Returns:     The newly created object hash.
- 
+
 =item C<get($plan_id)>
 
  Description: Used to load an existing test plan from the database.
- 
+
  Params:      $id - Integer/String: An integer representing the ID in the database
                     for this plan.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::TestPlan object hash
- 
+
 =item C<get_change_history($plan_id)>
 
  Description: Get the list of changes to the fields of this plan.
- 
+
  Params:      $plan_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this plan.
-                       
+
  Returns:     Array: An array of hashes with changed fields and their details.
- 
+
 =item C<get_tags($plan_id)>
 
  Description: Get the list of tags attached to this plan.
- 
+
  Params:      $plan_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this plan.
-                       
+
  Returns:     Array: An array of tag object hashes.
- 
+
 =item C<get_test_cases($plan_id)>
 
  Description: Get the list of cases that this plan is linked to.
- 
+
  Params:      $plan_id - Integer/String: An integer representing the ID in the database
                     for this plan.
-                       
+
  Returns:     Array: An array of test case object hashes.
- 
+
 =item C<get_test_runs($plan_id)>
 
  Description: Get the list of runs in this plan.
- 
+
  Params:      $plan_id - Integer/String: An integer representing the ID in the database
                     for this plan.
-                       
+
  Returns:     Array: An array of test run object hashes.
- 
+
 =item C<get_text($plan_id, $version)>
 
  Description: The associated large text fields: Action, Expected Results, Setup, Breakdown
               for a given version.
- 
+
  Params:      $plan_id - Integer/String: An integer representing the ID in the database
                     or a string representing the unique alias for this plan.
-              
+
               $version - Integer: (OPTIONAL) The version of the text you want returned.
                     Defaults to the latest.
-                       
+
  Returns:     Hash: Text fields and values.
- 
+
 =item C<list($query)>
- 
+
  Description: Performs a search and returns the resulting list of test plans.
-              
+
  Params:      $query - Hash: keys must match valid search fields.
 
     +--------------------------------------------------------+
@@ -417,7 +416,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     | type_id             | Integer                          |
     | version             | String: Product version          |
     +--------------------------------------------------------+
-    
+
     +--------------------------------------------------------+
     |                Paging and Sorting                      |
     +--------------------------------------------------------+
@@ -433,7 +432,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     +--------------------------------------------------------+
     | viewall        | 1: returns all records 0: first 25    |
     +--------------------------------------------------------+
-    
+
     +----------------------------------------------------+
     |                 query_variants                     |
     +----------------+-----------------------------------+
@@ -447,7 +446,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     | regexp         | matches the regexp                |
     | notregexp      | doesn't match the regexp          |
     +----------------+-----------------------------------+
-    
+
             +-------------------------------------+
             |            email_variants           |
             +--------------+----------------------+
@@ -457,7 +456,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
             | regexp       | matches regexp       |
             | notregexp    | doesn't match regexp |
             +--------------+----------------------+
-    
+
     +----------------------------------------------------+
     |                    tag_variants                    |
     +----------------+-----------------------------------+
@@ -473,37 +472,37 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     | anywords       | contains any of the words         |
     | nowords        | contains none of the words        | 
     +----------------------------------------------------+
-    
+
  Returns:     Array: Matching test plans are retuned in a list of hashes.
- 
+
 =item C<lookup_type_id_by_name>
 
  Params:      $name - String: the status name. 
- 
+
  Returns:     Integer: ID of the plan type.
- 
+
 =item C<lookup_type_name_by_id>
 
  Params:      $id - Integer: ID of the plan stype to return
- 
+
  Returns:     String: the type name.
 
 =item C<remove_tag($plan_id, $tag)>
 
  Description: Remove a tag from a plan.
- 
+
  Params:      $plan_id - Integer/String: An integer or alias representing the ID in the database.
-              
+
               $tag - String - A single tag to be removed. 
-                       
+
  Returns:     0 on success.
 
 =item C<update($ids, $values)>
- 
+
  Description: Updates the fields of the selected test plan.
-              
+
  Params:      $ids - Integer: A single TestPlan ID.
-                     
+
               $values - Hash of keys matching TestPlan fields and the new values 
               to set each field to.
                       +-------------------------+----------------+
@@ -514,19 +513,15 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
                       | default_product_version | String         |
                       | isactive                | Boolean        |
                       +-------------------------+----------------+
- 
+
  Returns:     Hash: The updated test plan object.
 
 =back
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::TestPlan>
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

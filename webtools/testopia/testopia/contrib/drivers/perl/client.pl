@@ -62,13 +62,7 @@ my $Bugzilla_login;
 my $Bugzilla_password;
 my $soapresult;
 
-sub SOAP::Transport::HTTP::Client::get_basic_credentials 
-{ 
-	return $Bugzilla_login => $Bugzilla_password;
-}
-
-sub show_results
-{
+sub show_results {
 	my $plan;
 	my $key;
 
@@ -86,8 +80,7 @@ sub show_results
 
 	my $result = $soapresult->result;
 
-	if (ref($result) eq 'ARRAY')
-	{
+	if (ref($result) eq 'ARRAY') {
 		my $ct = 0;
 	
 		print "Array Results (size = " . scalar(@$result). "):\n";
@@ -102,17 +95,14 @@ sub show_results
 			$ct++;
 		}
 	}
-	elsif (ref($result) eq 'HASH')
-	{
+	elsif (ref($result) eq 'HASH'){
 		print "Hash Results:\n";
 		
-		foreach (keys(%$result)) 
-		{
+		foreach (keys(%$result)){
 	        	print "$_: $$result{$_}\n";
 		}
 	}
-	else
-	{
+	else{
 		print "Simple Result: " . $result . "\n";
 	}
 }

@@ -22,7 +22,7 @@
     <a href="tr_query.cgi?current_tab=case">Search existing test cases</a><br>
     <a href="tr_admin_environment.cgi">Manage run environments</a></p>
   [% ELSE %]
-    You must <a href="[% script_name FILTER html %]">login to Bugzilla</a> to see Testopia features.
+    You must <a href="relogin.cgi">login to [% terms.Bugzilla %]</a> to see Testopia features.
   [% END %]
     </td>
   </tr>

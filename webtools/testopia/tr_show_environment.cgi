@@ -21,7 +21,7 @@
 #                 Brian Kramer <bkramer@novell.com>
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.com>
-#				  Andrew Nelson <anelson@novell.com>
+#                  Andrew Nelson <anelson@novell.com>
 
 use strict;
 use lib ".";
@@ -101,7 +101,7 @@ elsif ($action eq 'toggle'){
 elsif ($action eq 'rename'){
     my $env = Bugzilla::Testopia::Environment->new($env_id);
     ThrowUserError("testopia-read-only", {'object' => $env}) unless $env->canedit;
-	
+    
     $env->set_name($cgi->param('name'));
     $env->update();
     
@@ -163,8 +163,8 @@ elsif ($action eq 'getChildren'){
     
     if($environmentId != undef && $type =~ /category/)
     {
-    	get_environmentPanel_elements($environmentId, $id);
-    	exit;
+        get_environmentPanel_elements($environmentId, $id);
+        exit;
     }
                
     
@@ -187,7 +187,7 @@ elsif($action eq 'removeNode'){
     my $id = $cgi->param('id');
     $id = return_numeric_value($id);
     my $type = $cgi->param('type');
-	
+    
     detaint_natural($env_id) unless $type =~ /validexp/;
     detaint_natural($id);
     trick_taint($type);
@@ -201,7 +201,7 @@ elsif($action eq 'removeNode'){
     
     if(!$env->element_is_mapped($id))
     {
-    	print 'the element is not mapped on this environment';
+        print 'the element is not mapped on this environment';
     }
         
     $env->delete_element($id);
@@ -287,9 +287,9 @@ elsif($action eq 'move'){
 #    my $element_id = $element->{'objectId'};
 #    my $environment_id = $env_tree->{'objectId'};
 
-	my $element_id = $cgi->param('element_id');
-	my $environment_id = $cgi->param('environment_id');
-	my $type = $cgi->param('type');
+    my $element_id = $cgi->param('element_id');
+    my $environment_id = $cgi->param('environment_id');
+    my $type = $cgi->param('type');
     trick_taint($element_id);
     trick_taint($environment_id);
     
@@ -298,42 +298,42 @@ elsif($action eq 'move'){
             
     if($type eq "element")
     {
-   	 	my $env = Bugzilla::Testopia::Environment->new($environment_id);
-    	unless ($env->canedit){
-       		print "false";
-        	exit;
-    	}
-    	my $element = Bugzilla::Testopia::Environment::Element->new($element_id);
-    	my $properties = $element->get_properties;
-    	if (scalar @$properties == 0){
-        	my $success = $env->store_property_value(0, $element_id, "");
-    	}
-    	foreach my $property (@$properties){
-        	my $success = $env->store_property_value($property->{'property_id'}, $element_id, "");
-        	if ($success == 0){print "{error:\"error\"";exit;}
-    	}
+            my $env = Bugzilla::Testopia::Environment->new($environment_id);
+        unless ($env->canedit){
+               print "false";
+            exit;
+        }
+        my $element = Bugzilla::Testopia::Environment::Element->new($element_id);
+        my $properties = $element->get_properties;
+        if (scalar @$properties == 0){
+            my $success = $env->store_property_value(0, $element_id, "");
+        }
+        foreach my $property (@$properties){
+            my $success = $env->store_property_value($property->{'property_id'}, $element_id, "");
+            if ($success == 0){print "{error:\"error\"";exit;}
+        }
     }
     
     #incoming type is a category
     else
     {
-    	my $env = Bugzilla::Testopia::Environment->new($environment_id);
-    	unless ($env->canedit){
-       		print "false";
-        	exit;
-    	}
-    	
-    	my $category = Bugzilla::Testopia::Environment::Category->new($element_id);
-    	my $elements = $category->get_elements_by_category();
-    	
-    	foreach my $element (@$elements)
-    	{
-    		print $element->id;
-    		#bless $element, Bugzilla::Testopia::Environment::Element; 
-    		$env->store_property_value(0, $element->id, "");
-    	}
-    	
-    	
+        my $env = Bugzilla::Testopia::Environment->new($environment_id);
+        unless ($env->canedit){
+               print "false";
+            exit;
+        }
+        
+        my $category = Bugzilla::Testopia::Environment::Category->new($element_id);
+        my $elements = $category->get_elements_by_category();
+        
+        foreach my $element (@$elements)
+        {
+            print $element->id;
+            #bless $element, Bugzilla::Testopia::Environment::Element; 
+            $env->store_property_value(0, $element->id, "");
+        }
+        
+        
     }
     print "true";
     exit;
@@ -382,74 +382,74 @@ sub display {
 ###########################
 
 sub get_environmentPanel_elements{
-	my ($environmentId, $categoryId) = (@_);
-	my $category = Bugzilla::Testopia::Environment::Category->new($categoryId);
-	my $category_elements = $category->get_elements_by_category();
-	my $environment = Bugzilla::Testopia::Environment->new($environmentId);
-	my $environment_elements = $environment->get_elements_for_environment();
-	
-	my @elements_to_be_printed;
-	
-	 my $json = new JSON;
-	for my $element (@$category_elements)
-	{
-		for my $mapped_element (@$environment_elements)
-		{
-			if($element->id == $mapped_element->id)
-			{
-				my $leaf;
-    			if($element->check_for_children || $element->check_for_properties)
-    			{
-    				$leaf = 'false';
-    			}
-    			
-    			else
-    			{
-    				$leaf = 'true';
-    			}
-    	
-				push @elements_to_be_printed, {
-				    text => $element->{'name'}, 
-				    id   => $element->{'element_id'}, 
-				    type => 'element', 
-				    leaf => $leaf, 
-				    cls  =>'element',
-				};
-			}
-		}
-	}
-	
-	print $json->objToJson(\@elements_to_be_printed);
-	
+    my ($environmentId, $categoryId) = (@_);
+    my $category = Bugzilla::Testopia::Environment::Category->new($categoryId);
+    my $category_elements = $category->get_elements_by_category();
+    my $environment = Bugzilla::Testopia::Environment->new($environmentId);
+    my $environment_elements = $environment->get_elements_for_environment();
+    
+    my @elements_to_be_printed;
+    
+     my $json = new JSON;
+    for my $element (@$category_elements)
+    {
+        for my $mapped_element (@$environment_elements)
+        {
+            if($element->id == $mapped_element->id)
+            {
+                my $leaf;
+                if($element->check_for_children || $element->check_for_properties)
+                {
+                    $leaf = 'false';
+                }
+                
+                else
+                {
+                    $leaf = 'true';
+                }
+        
+                push @elements_to_be_printed, {
+                    text => $element->{'name'}, 
+                    id   => $element->{'element_id'}, 
+                    type => 'element', 
+                    leaf => $leaf, 
+                    cls  =>'element',
+                };
+            }
+        }
+    }
+    
+    print $json->objToJson(\@elements_to_be_printed);
+    
 }
 sub get_root_categories{
-	  my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});
-   	  my $toplevel;
-   	  my $anyProduct = 'false';  
-   	  if (Bugzilla->params->{'useclassification'}){
-        	$vars->{'allhaschild'} = $category->get_all_child_count;
+      my $category = Bugzilla::Testopia::Environment::Category->new({'id' => 0});
+         my $toplevel;
+         my $anyProduct = 'false';  
+         if (Bugzilla->params->{'useclassification'}){
+            $vars->{'allhaschild'} = $category->get_all_child_count;
             $toplevel = Bugzilla->user->get_selectable_classifications;
-        	$vars->{'type'} = 'classification';
-        	$anyProduct = 'true';
+            $vars->{'type'} = 'classification';
+            $anyProduct = 'true';
       }
-   	  else {
-        	$vars->{'toplevel'} = $category->get_env_product_list;
-        	$vars->{'type'} = 'product';
+         else {
+            $vars->{'toplevel'} = $category->get_env_product_list;
+            $vars->{'type'} = 'product';
       }
             
         my @products;
         
         if ($anyProduct == 'true')
-     	{
-      		push @products, {id => '0 product', text => '-ANY PRODUCT-', type=> 'product', cls => 'classification'};
-      	}
+         {
+              push @products, {id => '0 product', text => '-ANY PRODUCT-', type=> 'product', cls => 'classification'};
+          }
         foreach my $p (@$toplevel){
             push @products, {id => $p->id, text => $p->name, type=> $vars->{'type'}, cls=> 'classification'};
         }
         my $json = new JSON;
         print $json->objToJson(\@products);
-	
-	
+    
+    
 }
 
 sub get_products{
@@ -501,9 +501,9 @@ sub get_validexp_json {
 }
 
 sub return_numeric_value{
-	my ($value) = (@_);
-	$value =~ s/\D+//;
-	return $value;
+    my ($value) = (@_);
+    $value =~ s/\D+//;
+    return $value;
 }
 
 #####################
@@ -516,11 +516,11 @@ sub edit_category{
     my ($id) = (@_);
     $id =~ s/\D+//;
     my $category = Bugzilla::Testopia::Environment::Category->new($id);
-	if($product_id)
-	{
-		$product_id = $category->produict_id();
-	}
-	return unless $category->canedit;
+    if($product_id)
+    {
+        $product_id = $category->produict_id();
+    }
+    return unless $category->canedit;
     
     trick_taint($name);
     detaint_natural($product_id);
@@ -537,8 +537,8 @@ sub edit_category{
     $category->set_product($product_id);
     
     if($category->check_for_elements()){
-    	print "error: Category has children, it CANNOT be renamed";
-    	exit;
+        print "error: Category has children, it CANNOT be renamed";
+        exit;
     }        
     unless ($category->set_name($name)) {
         print 'error:Name already used. Please choose another';
@@ -564,13 +564,13 @@ sub edit_element{
     my $element = Bugzilla::Testopia::Environment::Element->new($id);
     return unless $element->canedit;
     
-	#my $cat_id = $cgi->param('parentCategoryID');
-	#my $parent_id = $cgi->param('parentElementID');
+    #my $cat_id = $cgi->param('parentCategoryID');
+    #my $parent_id = $cgi->param('parentElementID');
     my $name = $cgi->param('text');
     my $parent;
     
-	#detaint_natural($cat_id);
-	#detaint_natural($parent_id);
+    #detaint_natural($cat_id);
+    #detaint_natural($parent_id);
     trick_taint($name);
     
 #    if ($cat_id){
@@ -590,10 +590,10 @@ sub edit_element{
 #        exit;
 #    }
 
-	if($element->isMapped())
+    if($element->isMapped())
     {
-    	print "The element is mapped you CANNOT edit it";
-    	exit;
+        print "The element is mapped you CANNOT edit it";
+        exit;
     }
     
     unless ($element->update_element_name($name)){
@@ -616,22 +616,22 @@ sub edit_property{
     
     if($element_id)
     {
-    	detaint_natural($element_id);
-    	my $error_mode_cache = Bugzilla->error_mode;
-    	Bugzilla->error_mode(ERROR_MODE_DIE);
-    	eval{
-        	validate_selection($element_id, 'element_id', 'test_environment_element');
-    	};
-    	Bugzilla->error_mode($error_mode_cache);
-    	if ($@){
-        	print 'Invalid element';
-        	exit;
-    	}
-    	$property->set_element($element_id);
-    	}
-    	unless ($property->set_name($name)) {
-        	print 'Name already used. Please choose another';
-        	exit;
+        detaint_natural($element_id);
+        my $error_mode_cache = Bugzilla->error_mode;
+        Bugzilla->error_mode(ERROR_MODE_DIE);
+        eval{
+            validate_selection($element_id, 'element_id', 'test_environment_element');
+        };
+        Bugzilla->error_mode($error_mode_cache);
+        if ($@){
+            print 'Invalid element';
+            exit;
+        }
+        $property->set_element($element_id);
+        }
+        unless ($property->set_name($name)) {
+            print 'Name already used. Please choose another';
+            exit;
     } 
      
     print "action successful"; 
@@ -649,20 +649,20 @@ sub edit_validexp{
     my $name = $cgi->param('text');
     trick_taint($name);
     my $expressions = $property->validexp();
-	
-	my @newValues;
-	my $matched = 1; 
-	foreach my $v(split /\|/, $expressions)
-	{ 
-		if($v eq $value and $matched)
-		{
-			$matched = 0;
-			$v = $name;
-		}
-		push @newValues, $v;
-	}
-	
-	my $newExpression = join("|", @newValues);	
+    
+    my @newValues;
+    my $matched = 1; 
+    foreach my $v(split /\|/, $expressions)
+    { 
+        if($v eq $value and $matched)
+        {
+            $matched = 0;
+            $v = $name;
+        }
+        push @newValues, $v;
+    }
+    
+    my $newExpression = join("|", @newValues);    
     $property->update_property_validexp($newExpression);
     print "action successful";
 }
@@ -683,10 +683,10 @@ sub add_category{
     my $new_cid = $category->store();
     
     my $category_json = {text=> $category->{'name'}, id=> $new_cid . ' category', type=> 'category', leaf => 'false', cls=> 'category'};
-		
-	my $json = new JSON;
-	 
-	print $json->objToJson($category_json);
+        
+    my $json = new JSON;
+     
+    print $json->objToJson($category_json);
         
     
 }
@@ -713,10 +713,10 @@ sub add_element{
     my $new_eid = $element->store();
     
     my $element_json = {text=> $element->{'name'}, id=> $new_eid . ' element', type=> 'element', leaf => 'false', cls=> 'element'};
-		
-	my $json = new JSON;
-	 
-	print $json->objToJson($element_json);
+        
+    my $json = new JSON;
+     
+    print $json->objToJson($element_json);
 }
 
 sub add_property{
@@ -734,10 +734,10 @@ sub add_property{
     my $new_pid = $property->store();
     
     my $property_json = {text=> $property->{'name'}, id=> $new_pid . ' property', type=> 'property', leaf => 'false', cls=> 'property'};
-		
-	my $json = new JSON;
-	 
-	print $json->objToJson($property_json); 
+        
+    my $json = new JSON;
+     
+    print $json->objToJson($property_json); 
 }
 
 sub add_validexp{
@@ -763,8 +763,8 @@ sub delete_category{
     my $category = Bugzilla::Testopia::Environment::Category->new($id);
     if($category->check_for_elements())
     {
-    	print "You CANNOT delete a category that has children";
-    	return;
+        print "You CANNOT delete a category that has children";
+        return;
     }
     return unless $category->candelete;
     my $success = $category->obliterate;
@@ -776,7 +776,7 @@ sub delete_element{
     my $element = Bugzilla::Testopia::Environment::Element->new($id);
     if($element->isMapped())
     {
-    	print "You CANNOT delete an element that is mapped";
+        print "You CANNOT delete an element that is mapped";
     }
     return unless $element->candelete;
     my $success = $element->obliterate;
@@ -797,8 +797,8 @@ sub delete_validexp{
     my $property = Bugzilla::Testopia::Environment::Property->new($id);
     if(!$property->candelete)
     {
-    	print "you CANNOT delete a property that is mapped";
-    	return;	
+        print "you CANNOT delete a property that is mapped";
+        return;    
     }
     my %values;
     foreach my $v (split /\|/, $property->validexp){

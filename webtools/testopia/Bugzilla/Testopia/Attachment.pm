@@ -236,8 +236,8 @@ sub store {
 }
 
 sub to_json {
-	my $self = shift;
-	my $cgi  = shift;
+    my $self = shift;
+    my $cgi  = shift;
     my $obj;
     my $json = new JSON;
     

@@ -150,7 +150,7 @@ sub init {
     my $type;
     
     my $obj = trim($cgi->param('current_tab')) || ThrowUserError('testopia-missing-parameter', {'param' => 'current_tab'});
-    ThrowUserError('unknown-tab') if $obj !~ '^(case|plan|run|case_run|environment)$';
+    ThrowUserError('testopia-unknown-tab', {tab => $obj}) if $obj !~ '^(case|plan|run|case_run|environment)$';
     trick_taint($obj);
     
     # If what we intend to do is generate a report, we need some tables

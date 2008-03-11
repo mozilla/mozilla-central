@@ -290,24 +290,22 @@ sub valid_exp_to_json {
    
     my @validexpressions = split(/\|/, @$validexp[0]);
     
-    my $json = '[';
-    
         
     my @validExpressionsArray;
     foreach (@validexpressions)
-    {	
-    	my $class;
-    	if ($env && $env->get_value_selected($env->id, $self->element_id, $self->id) eq $_)
-    	{
+    {    
+        my $class;
+        if ($env && $env->get_value_selected($env->id, $self->element_id, $self->id) eq $_)
+        {
             $class = "validexpYellow";
         }
- 		else
- 		{
- 			$class = "validexp";
- 		}
-    	
+         else
+         {
+             $class = "validexp";
+         }
+        
          push @validExpressionsArray, {text=> $_, id=> $self->id . ' ' . $_ . ' validexp', value => $_, type=> 'validexp', leaf => 'true', cls=> $class};
-	}
+    }
     
     my $json = new JSON;
     return $json->objToJson(\@validExpressionsArray);

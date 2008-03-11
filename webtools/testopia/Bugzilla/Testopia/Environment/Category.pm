@@ -19,7 +19,7 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.c
-#				  Andrew Nelson  <anelson@novell.com>
+#                   Andrew Nelson  <anelson@novell.com>
 
 =head1 NAME
 
@@ -280,23 +280,23 @@ sub product_categories_to_json {
     
     my $categories = $self->get_element_categories_by_product($product_id);
     
-	my @values; 
+    my @values; 
     
-    	foreach my $cat (@$categories)
-    	{
-    		my $leaf;
-    		if($cat->check_for_elements)
-    		{
-    			$leaf = 'false';
-    		}
-    		
-    		else
-    		{
-    			$leaf = 'true';
-    		}
-    	
-    		push @values, {text=> $cat->{'name'}, id=> $cat->id . ' category', type=> 'category', leaf => $leaf, cls=> 'category'};
-    	}
+        foreach my $cat (@$categories)
+        {
+            my $leaf;
+            if($cat->check_for_elements)
+            {
+                $leaf = 'false';
+            }
+            
+            else
+            {
+                $leaf = 'true';
+            }
+        
+            push @values, {text=> $cat->{'name'}, id=> $cat->id . ' category', type=> 'category', leaf => $leaf, cls=> 'category'};
+        }
     
     return $json->objToJson(\@values);
 
@@ -371,27 +371,27 @@ sub elements_to_json {
     my $elements = $self->get_parent_elements;
     my $json = '[';
     
-	my @values; 
+    my @values; 
     
-    	foreach my $element (@$elements)
-    	{
-    		my $leaf;
-    		if($element->check_for_children || $element->check_for_properties)
-    		{
-    			$leaf = 'false';
-    		}
-    		
-    		else
-    		{
-    			$leaf = 'true';
-    		}
-    	
-    		push @values, {text=> $element->{'name'}, id=> ($element->{'element_id'}) . ' element', type=> 'element', leaf => $leaf, cls=> 'element'};
-    	}
-    	
-    	$json = new JSON();
-    	return $json->objToJson(\@values);
-	 
+        foreach my $element (@$elements)
+        {
+            my $leaf;
+            if($element->check_for_children || $element->check_for_properties)
+            {
+                $leaf = 'false';
+            }
+            
+            else
+            {
+                $leaf = 'true';
+            }
+        
+            push @values, {text=> $element->{'name'}, id=> ($element->{'element_id'}) . ' element', type=> 'element', leaf => $leaf, cls=> 'element'};
+        }
+        
+        $json = new JSON();
+        return $json->objToJson(\@values);
+     
 #    foreach my $element (@$elements)
 #    {
 #        $json .= '{title:"'. $element->{'name'} .'",';

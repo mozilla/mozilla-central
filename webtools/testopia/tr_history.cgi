@@ -46,26 +46,26 @@ my $id     = trim($cgi->param("id"));
 
 if ($action eq 'diff')
 {
-	if ($type eq 'plan')
-	{
-		print $cgi->header;
-		
-	    my $plan = Bugzilla::Testopia::TestPlan->new($id);
-	    
-	    ThrowUserError("testopia-permission-denied", {'object' => $plan}) unless $plan->canview;
-	    
-	    $vars->{'plan'} = $plan; 
-	    $vars->{'diff'} = $plan->diff_plan_doc($cgi->param('new'),$cgi->param('old'));
-	    $vars->{'new'}  = $cgi->param('new');
-	    $vars->{'old'}  = $cgi->param('old');
-	    
-	    $template->process("testopia/plan/history.html.tmpl", $vars)
-	      || ThrowTemplateError($template->error());
-	}
-	elsif ($type eq 'case')
-	{
-		
-	}
+    if ($type eq 'plan')
+    {
+        print $cgi->header;
+        
+        my $plan = Bugzilla::Testopia::TestPlan->new($id);
+        
+        ThrowUserError("testopia-permission-denied", {'object' => $plan}) unless $plan->canview;
+        
+        $vars->{'plan'} = $plan; 
+        $vars->{'diff'} = $plan->diff_plan_doc($cgi->param('new'),$cgi->param('old'));
+        $vars->{'new'}  = $cgi->param('new');
+        $vars->{'old'}  = $cgi->param('old');
+        
+        $template->process("testopia/plan/history.html.tmpl", $vars)
+          || ThrowTemplateError($template->error());
+    }
+    elsif ($type eq 'case')
+    {
+        
+    }
 }
 
 elsif ($action eq 'showdoc'){

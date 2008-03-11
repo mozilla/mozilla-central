@@ -19,7 +19,7 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com>
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.com>
-#				  Andrew Nelson  <anelson@novell.com>
+#                  Andrew Nelson  <anelson@novell.com>
 
 =head1 NAME
 
@@ -136,7 +136,7 @@ Checks to see if the element has en environment mapping
 =cut
 
 sub isMapped{
-	my $dbh = Bugzilla->dbh;
+    my $dbh = Bugzilla->dbh;
     my $self = shift;
     
     my $id = $self->id;
@@ -147,7 +147,7 @@ sub isMapped{
     foreach my $val  (@$ref){
         if($id == $val)
         {
-        	return 1;
+            return 1;
         }
     }   
     
@@ -288,26 +288,25 @@ my @values;
     
     foreach my $element (@$elements)
     {
-    	my $leaf;
-    	if($element->check_for_children || $element->check_for_properties)
-    	{
-    		$leaf = 'false';
-    	}
-    		
-    	else
-    	{
-    		$leaf = 'true';
-    	}
-    	
-    	push @values, {text=> $element->{'name'}, id=> $element->{'element_id'} . ' element', type=> 'element', leaf => $leaf, cls =>'element'};
+        my $leaf;
+        if($element->check_for_children || $element->check_for_properties)
+        {
+            $leaf = 'false';
+        }
+            
+        else
+        {
+            $leaf = 'true';
+        }
+        
+        push @values, {text=> $element->{'name'}, id=> $element->{'element_id'} . ' element', type=> 'element', leaf => $leaf, cls =>'element'};
     }
     
     foreach my $property (@$properties)
-    {    	
-    	push @values, {text=> $property->{'name'}, id=> $property->id . ' property', type=> 'property', leaf => 'false', cls =>'property'};
+    {        
+        push @values, {text=> $property->{'name'}, id=> $property->id . ' property', type=> 'property', leaf => 'false', cls =>'property'};
     }
     
-    my $json = new JSON; 
     return $json->objToJson(\@values);
 
 
@@ -367,19 +366,19 @@ sub new_element_count{
 
 sub this_to_json
 {
-	my $self = shift; 
-	
-	my $element = {
-	    text=> $self->{'name'}, 
-	    id=> $self->{'element_id'} . ' element', 
-	    type=> 'element', 
-	    leaf => 'true', 
-	    cls =>'element',
-	    allowDrop => 'false',
-	    disabled => 'true'
-	};
-	my $json = new JSON();
-	print $json->objToJson($element);
+    my $self = shift; 
+    
+    my $element = {
+        text=> $self->{'name'}, 
+        id=> $self->{'element_id'} . ' element', 
+        type=> 'element', 
+        leaf => 'true', 
+        cls =>'element',
+        allowDrop => 'false',
+        disabled => 'true'
+    };
+    my $json = new JSON();
+    print $json->objToJson($element);
 
 }
 =head2 check_for_properties
@@ -572,9 +571,9 @@ sub get_parent {
 }
 
 sub is_parent_a_category{
-	my $self = shift;
+    my $self = shift;
     if ($self->{'parent_id'}){
-    	return 0;
+        return 0;
     }
     return 1;
 }

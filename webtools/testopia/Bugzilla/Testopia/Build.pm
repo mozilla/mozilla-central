@@ -24,8 +24,6 @@ use strict;
 
 use Bugzilla::Util;
 use Bugzilla::Error;
-use Bugzilla::Testopia::TestPlan;
-use Bugzilla::Testopia::TestCase;
 use JSON;
 
 use base qw(Exporter Bugzilla::Object);

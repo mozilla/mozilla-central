@@ -27,10 +27,10 @@ use strict;
 use Bugzilla::Util;
 use Bugzilla::User;
 use Bugzilla::Constants;
-use Bugzilla::Testopia::Constants;
-use Bugzilla::Config;
-use Bugzilla::Testopia::Environment;
 use Bugzilla::Bug;
+use Bugzilla::Config;
+use Bugzilla::Testopia::Constants;
+use Bugzilla::Testopia::Environment;
 
 use JSON;
 use base qw(Exporter Bugzilla::Object);
@@ -85,7 +85,7 @@ use constant UPDATE_COLUMNS         => qw(environment_id build_id product_versio
                                           summary manager_id plan_text_version notes
                                           stop_date);
 
-use constant VALIDATORS => {
+sub VALIDATORS {
     plan_id           => \&_check_plan,
     environment_id    => \&_check_env,
     build_id          => \&_check_build,

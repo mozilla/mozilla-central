@@ -105,7 +105,7 @@ sub update {
     Bugzilla->login(LOGIN_REQUIRED);
     
     my @caseruns;
-    my @ids = use Bugzilla::Testopia::Util::process_list($run_id);
+    my @ids = Bugzilla::Testopia::Util::process_list($run_id);
     if (ref $case_id eq 'HASH' && !$build_id){
         $new_values = $case_id;
         foreach my $id (@ids){
@@ -181,8 +181,8 @@ sub update {
         }
         
         # Remove assignee user object and replace with just assignee id
-        if (ref $caserun{'assignee'} eq 'Bugzilla::User'){
-            $caserun{assignee} = $caserun{assignee}->id();
+        if (ref $caserun->{'assignee'} eq 'Bugzilla::User'){
+            $caserun->{assignee} = $caserun->{assignee}->id();
         }
     
         # Result is modified test case run on success, otherwise an exception will be thrown
@@ -264,7 +264,7 @@ sub detach_bug {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case Run', id => $run_id}) unless $caserun;
     ThrowUserError('testopia-read-only', {'object' => $caserun}) unless $caserun->canedit;
     
-    $caserun->detach_bug($bug_ids);
+    $caserun->detach_bug($bug_id);
     
     # Result 0 on success, otherwise an exception will be thrown
     return 0;
@@ -321,7 +321,7 @@ Provides methods for automated scripts to manipulate Testopia TestCaseRuns.
 Test case-runs are the mapping of a test case in a given run for a particular 
 build and environment. There are therefore two ways to refer to a given 
 case-run:
-    
+
     By ID: The unique case_run_id
     By Combination: $run_id, $case_id, $build_id, $environment_id
 
@@ -340,32 +340,32 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
 =item C<attach_bug($caserun_id, $bug_ids)>
 
  Description: Add one or more bugs to the selected test case-runs.
- 
+
  Params:      $case_run_id - Integer: An integer representing the ID in the database.
-              
+
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
-                       
+
  Returns:     undef.
 
 =item C<attach_bug($run_id, $case_id, $build_id, $environment_id, $bug_ids)>
 
  Description: Add one or more bugs to the selected test case-runs.
- 
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-              
+
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
-                       
+
  Returns:     undef.
 
 =item C<create($values)>
- 
+
  Description: Creates a new Test Case Run object and stores it in the database.
-              
+
  Params:      $values - Hash: A reference to a hash with keys and values  
               matching the fields of the test case to be created. 
   +--------------------+----------------+-----------+------------------------------------------------+
@@ -382,18 +382,18 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
   | sortkey            | Integer        | Optional  | a.k.a. Index                                   |
   +--------------------+----------------+-----------+------------------------------------------------+
     Valid statuses include: IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED
-    
+
  Returns:     The newly created object hash.
- 
+
 =item C<detach_bug($caserun_id, $bug_id)>
 
  Description: Remove a bug from a test case-run.
- 
+
  Params:      $caserun_id - Integer: An integer representing the ID in the database.
-              
+
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
-                       
+
  Returns:     undef.
 
 =item C<detach_bug($run_id, $case_id, $build_id, $environment_id, $bug_id)>
@@ -404,98 +404,98 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-              
+
               $bug_id - Integer: An integer or alias representing the ID of 
                   the bug in the database,
-                       
+
  Returns:     undef.
 
 =item C<get($caserun_id)>
 
  Description: Used to load an existing test case-run from the database.
- 
+
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::TestCase object hash
- 
+
 =item C<get($run_id, $case_id, $build_id, $environment_id)>
 
  Description: Used to load an existing test case from the database.
- 
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::TestCase object hash
- 
+
 =item C<get_bugs($caserun_id)>
 
  Description: Get the list of bugs that are associated with this test case.
- 
+
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
-                       
+
  Returns:     Array: An array of bug object hashes.
- 
+
 =item C<get_bugs($run_id, $case_id, $build_id, $environment_id)>
 
  Description: Get the list of bugs that are associated with this test case.
- 
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-                       
+
  Returns:     Array: An array of bug object hashes.
- 
+
 =item C<get_completion_time($caserun_id)>
 
  Description: Get the list of components attached to this case.
- 
+
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
-                       
+
  Returns:     Array: An array of component object hashes.
- 
+
 =item C<get_completion_time($run_id, $case_id, $build_id, $environment_id)>
 
  Description: Get the list of components attached to this case.
- 
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-                       
+
  Returns:     Array: An array of component object hashes.
- 
+
 =item C<get_history($caserun_id)>
 
  Description: Get the list of case-runs for all runs this case appears in.
               To limit this list by build or other attribute, see TestCaseRun::list.
- 
+
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
-                       
+
  Returns:     Array: An array of case-run object hashes.
- 
+
 =item C<get_history($run_id, $case_id, $build_id, $environment_id)>
 
  Description: Get the list of case-runs for all runs this case appears in.
               To limit this list by build or other attribute, see TestCaseRun::list.
- 
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-                       
+
  Returns:     Array: An array of case-run object hashes.
- 
+
 =item C<list($query)>
- 
+
  Description: Performs a search and returns the resulting list of test cases.
-              
+
  Params:      $query - Hash: keys must match valid search fields.
 
     +--------------------------------------------------------+
@@ -537,7 +537,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
     | testedby            | A bugzilla login (email address) |
     | testedby_type       | (select from email_variants)     |
     +--------------------------------------------------------+
-        
+
     +---------------------------------------------------+
     |                Paging and Sorting                 |
     +---------------------------------------------------+
@@ -553,7 +553,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
     +---------------------------------------------------+
     | viewall        | 1: returns all records           |
     +---------------------------------------------------+
-    
+
     +----------------------------------------------------+
     |                 query_variants                     |
     +----------------+-----------------------------------+
@@ -567,7 +567,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
     | regexp         | matches the regexp                |
     | notregexp      | doesn't match the regexp          |
     +----------------+-----------------------------------+
-    
+
             +-------------------------------------+
             |            email_variants           |
             +--------------+----------------------+
@@ -577,7 +577,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
             | regexp       | matches regexp       |
             | notregexp    | doesn't match regexp |
             +--------------+----------------------+
-    
+
     +----------------------------------------------------+
     |                    tag_variants                    |
     +----------------+-----------------------------------+
@@ -593,31 +593,31 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
     | anywords       | contains any of the words         |
     | nowords        | contains none of the words        | 
     +----------------------------------------------------+
-    
+
  Returns:     Array: Matching test cases are retuned in a list of hashes.
- 
+
 =item C<lookup_status_name_by_id> 
 
  Params:      $id - Integer: ID of the case status to return
- 
+
  Returns:     String: the status name.
-             
+
 =item C<lookup_status_id_by_name>
 
  Params:      $name - String: the status name. 
- 
+
  Returns:     Integer: ID of the case status.
-             
+
 =item C<update($caserun_ids, $values)>
- 
+
  Description: Updates the fields of the selected case-runs.
-              
+
  Params:      $caserun_ids - Integer/String/Array
                      Integer: A single TestCaseRun ID.
                      String:  A comma separates string of TestCaseRun IDs for batch
                               processing.
                      Array:   An array of TestCaseRun IDs for batch mode processing
-                     
+
               $values - Hash of keys matching TestCaseRun fields and the new values 
               to set each field to.
                       +--------------------+----------------+
@@ -631,24 +631,24 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
                       | sortkey            | Integer        |
                       | update_bugs        | Boolean        | 1: Reopen bugs on FAILED 0: Don't change bug status 
                       +--------------------+----------------+ 
- 
+
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the
               update on any particular object failed, the hash will contain a 
               FAILED key and the message as to why it failed.
 
 =item C<update($run_id, $case_id, $build_id, $environment_id, $values)>
- 
+
  Description: Updates the fields of the selected case-run.
-              
+
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
-                     
+
               $values - Hash of keys matching TestCaseRun fields and the new values 
               to set each field to. See above.
- 
+
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the
               update on any particular object failed, the hash will contain a 
@@ -658,12 +658,8 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
 
 =head1 SEE ALSO
 
-=over
-
 L<Bugzilla::Testopia::TestCaseRun>
 L<Bugzilla::Webservice> 
-
-=back
 
 =head1 AUTHOR
 

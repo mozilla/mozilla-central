@@ -281,8 +281,7 @@ sub canedit {
 }
 
 sub to_json {
-	my $self = shift;
-	my $cgi  = shift;
+    my $self = shift;
     my $obj;
     my $json = new JSON;
     
