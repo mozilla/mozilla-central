@@ -37,20 +37,22 @@ use base 'Litmus::DBI';
 
 Litmus::DB::TestDay->table('testdays');
 
-Litmus::DB::TestDay->columns(All => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev/);
-Litmus::DB::TestDay->columns(Essential => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev/);
+Litmus::DB::TestDay->columns(All => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev creator_id creation_date/);
+Litmus::DB::TestDay->columns(Essential => qw/testday_id last_updated start_timestamp finish_timestamp description product_id testgroup_id build_id branch_id locale_abbrev creator_id creation_date/);
 Litmus::DB::TestDay->utf8_columns(qw/description locale_abbrev/);
-Litmus::DB::TestDay->columns(TEMP => qw /subgroups/);
+Litmus::DB::TestDay->columns(TEMP => qw /subgroups creator/);
 
 Litmus::DB::TestDay->column_alias("product_id", "product");
 Litmus::DB::TestDay->column_alias("testgroup_id", "testgroup");
 Litmus::DB::TestDay->column_alias("branch_id", "branch");
 Litmus::DB::TestDay->column_alias("locale_abbrev", "locale");
+Litmus::DB::TestDay->column_alias("creator_id", "creator");
 
 Litmus::DB::TestDay->has_a(product => "Litmus::DB::Product");
 Litmus::DB::TestDay->has_a(branch => "Litmus::DB::Branch");
 Litmus::DB::TestDay->has_a(testgroup => "Litmus::DB::Testgroup");
 Litmus::DB::TestDay->has_a(locale => "Litmus::DB::Locale");
+Litmus::DB::TestDay->has_a(creator => "Litmus::DB::User");
 
 Litmus::DB::TestDay->set_sql('daterange' => qq {
 	SELECT __ESSENTIAL__ 

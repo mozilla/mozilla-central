@@ -114,6 +114,8 @@ if ($c->param("delete_testgroup_button")) {
   requireField('product', $c->param('product'));
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
+  my $now = &UnixDate("today","%q");
+  my $user_id = Litmus::Auth::getCurrentUser();
 
   if ($c->param("mode") eq "add") {
     Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $c->param('product'));
@@ -122,6 +124,8 @@ if ($c->param("delete_testgroup_button")) {
                 product_id => $c->param('product'),
                 enabled => $enabled,
                 branch_id => $c->param('branch'),
+                creation_date => $now,
+                creator_id => $user_id,
                );
     my $new_testgroup = 
       Litmus::DB::Testgroup->create(\%hash);

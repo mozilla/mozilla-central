@@ -37,12 +37,13 @@ use base 'Litmus::DBI';
 
 Litmus::DB::Product->table('products');
 
-Litmus::DB::Product->columns(All => qw/product_id name iconpath enabled/);
-Litmus::DB::Product->columns(Essential => qw/product_id name iconpath enabled/);
+Litmus::DB::Product->columns(All => qw/product_id name iconpath enabled creation_date last_updated creator_id/);
+Litmus::DB::Product->columns(Essential => qw/product_id name iconpath enabled creation_date last_updated creator_id/);
 Litmus::DB::Product->utf8_columns(qw/name iconpath/);
-Litmus::DB::Product->columns(TEMP => qw //);
+Litmus::DB::Product->columns(TEMP => qw /creator/);
 
 Litmus::DB::Product->column_alias("product_id", "productid");
+Litmus::DB::Product->column_alias("creator_id", "creator");
 
 Litmus::DB::Product->has_many(testcases => "Litmus::DB::Testcase", 
                               { order_by => 'testcase_id' });
@@ -53,6 +54,7 @@ Litmus::DB::Product->has_many(testgroups => "Litmus::DB::Testgroup",
 Litmus::DB::Product->has_many(branches => "Litmus::DB::Branch",
                               { order_by => 'name' });
 Litmus::DB::Product->has_many(groups => ["Litmus::DB::GroupProductMap" => 'group_id']);
+Litmus::DB::Product->has_a(creator => "Litmus::DB::User");
 
 __PACKAGE__->set_sql(ByPlatform => qq{
                                       SELECT pr.* 

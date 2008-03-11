@@ -37,16 +37,18 @@ use base 'Litmus::DBI';
 
 Litmus::DB::Testgroup->table('testgroups');
 
-Litmus::DB::Testgroup->columns(All => qw/testgroup_id product_id name enabled branch_id/);
-Litmus::DB::Testgroup->columns(Essential => qw/testgroup_id product_id name enabled branch_id/);
+Litmus::DB::Testgroup->columns(All => qw/testgroup_id product_id name enabled branch_id last_updated creation_date creator_id/);
+Litmus::DB::Testgroup->columns(Essential => qw/testgroup_id product_id name enabled branch_id last_updated creation_date creator_id/);
 Litmus::DB::Testgroup->utf8_columns(qw/name/);
-Litmus::DB::Testgroup->columns(TEMP => qw //);
+Litmus::DB::Testgroup->columns(TEMP => qw/creator/);
 
 Litmus::DB::Testgroup->column_alias("product_id", "product");
 Litmus::DB::Testgroup->column_alias("branch_id", "branch");
+Litmus::DB::Testgroup->column_alias("creator_id", "creator");
 
 Litmus::DB::Testgroup->has_a(product => "Litmus::DB::Product");
 Litmus::DB::Testgroup->has_a(branch => "Litmus::DB::Branch");
+Litmus::DB::Testgroup->has_a(creator => "Litmus::DB::User");
 
 __PACKAGE__->set_sql(EnabledByBranch => qq{
 SELECT tg.* 

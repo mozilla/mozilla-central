@@ -38,15 +38,17 @@ use CGI;
 
 Litmus::DB::Platform->table('platforms');
 
-Litmus::DB::Platform->columns(All => qw/platform_id name detect_regexp iconpath/);
-Litmus::DB::Platform->columns(Essential => qw/platform_id name detect_regexp iconpath/);
+Litmus::DB::Platform->columns(All => qw/platform_id name detect_regexp iconpath creation_date last_updated creator_id/);
+Litmus::DB::Platform->columns(Essential => qw/platform_id name detect_regexp iconpath creation_date last_updated creator_id/);
 Litmus::DB::Platform->utf8_columns(qw/name detect_regexp iconpath/);
-Litmus::DB::Platform->columns(TEMP => qw //);
+Litmus::DB::Platform->columns(TEMP => qw /creator/);
 
 Litmus::DB::Platform->column_alias("platform_id", "platformid");
+Litmus::DB::Platform->column_alias("creator_id", "creator");
 
 Litmus::DB::Platform->has_many(opsyses => "Litmus::DB::Opsys",
                               {order_by => 'name ASC'});
+Litmus::DB::Platform->has_a(creator => "Litmus::DB::User");
 
 Litmus::DB::Platform->set_sql(ByProduct => qq{
   SELECT pl.* 

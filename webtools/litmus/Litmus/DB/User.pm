@@ -39,7 +39,8 @@ use base 'Litmus::DBI';
 
 Litmus::DB::User->table('users');
 
-Litmus::DB::User->columns(All => qw/user_id bugzilla_uid email password realname irc_nickname enabled authtoken/);
+Litmus::DB::User->columns(All => qw/user_id bugzilla_uid email password realname irc_nickname enabled authtoken last_updated creation_date/);
+Litmus::DB::User->columns(Essential => qw/user_id bugzilla_uid email password realname irc_nickname enabled authtoken last_updated creation_date/);
 Litmus::DB::User->utf8_columns(qw/email realname irc_nickname authtoken/);
 Litmus::DB::User->columns(TEMP => qw/is_admin_old num_results/);
 
@@ -52,6 +53,17 @@ Litmus::DB::User->column_alias("email", "username");
 Litmus::DB::User->has_many(test_results => "Litmus::DB::Testresult");
 Litmus::DB::User->has_many(sessions => "Litmus::DB::Session");
 Litmus::DB::User->has_many(groups => ["Litmus::DB::UserGroupMap" => 'group']);
+
+# Admin users can own components.
+Litmus::DB::User->has_many(branches => "Litmus::DB::Branch");
+Litmus::DB::User->has_many(opsyses => "Litmus::DB::Opsys");
+Litmus::DB::User->has_many(platforms => "Litmus::DB::Platform");
+Litmus::DB::User->has_many(products => "Litmus::DB::Product");
+Litmus::DB::User->has_many(subgroups => "Litmus::DB::Subgroup");
+Litmus::DB::User->has_many(testcases => "Litmus::DB::Testcase");
+Litmus::DB::User->has_many(testdays => "Litmus::DB::TestDay");
+Litmus::DB::User->has_many(testgroups => "Litmus::DB::Testgroup");
+Litmus::DB::User->has_many(test_runs => "Litmus::DB::TestRun");
 
 # ZLL: only load BugzillaUser if Bugzilla Auth is actually enabled
 if ($Litmus::Config::bugzilla_auth_enabled) {

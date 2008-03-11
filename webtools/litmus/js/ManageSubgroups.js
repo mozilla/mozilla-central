@@ -174,6 +174,10 @@ function populateSubgroup(data) {
                                                      subgroup.testcases[i].testcase_id);
   }
 
+  document.getElementById('creation_date').innerHTML = subgroup.creation_date;
+  document.getElementById('last_updated').innerHTML = subgroup.last_updated;
+  document.getElementById('created_by').innerHTML = subgroup.creator.email
+
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('subgroup_display_div').style.display = 'block';
   enableModeButtons();
@@ -201,7 +205,10 @@ function blankSubgroupForm(formid) {
 function switchToAdd() {
   disableModeButtons();
   blankSubgroupForm('edit_subgroup_form');
-  document.getElementById('subgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new subgroup</em>';
+  document.getElementById('subgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
+  document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
+  document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
+  document.getElementById('created_by').innerHTML = 'You!';
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new subgroup does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroup to testgroups after the new subgroup is created.</em>';
   document.getElementById('submit').value = 'Add Subgroup';
   document.getElementById('mode').value = 'add';

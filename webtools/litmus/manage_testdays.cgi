@@ -40,6 +40,7 @@ use Litmus::Error;
 use Litmus::FormWidget;
 
 use CGI;
+use Date::Manip;
 use JSON;
 use Time::Piece::MySQL;
 
@@ -77,11 +78,16 @@ if ($c->param) {
       $message = "Testday ID# $testday_id does not exist. (Already deleted?)";
     }
   } elsif ($c->param("edit_testday_form_mode")) {
+    my $now = &UnixDate("today","%q");
+    my $user_id = Litmus::Auth::getCurrentUser();
+
     if ($c->param("edit_testday_form_mode") eq "add") {
       my %hash = ( 
                   description => $c->param('edit_testday_form_desc'),
                   start_timestamp => $c->param('edit_testday_form_start_timestamp'),
                   finish_timestamp => $c->param('edit_testday_form_finish_timestamp'),
+                  creation_date => $now,
+                  creator_id => $user_id,
                  );
       my @subgroups;
       
@@ -109,8 +115,8 @@ if ($c->param) {
       # Search for other testdays that overlap this one and let the user
       # know about them:
       my @overlap = Litmus::DB::TestDay->search_daterange(
-                                                          $hash{finish_timestamp},
-                                                          $hash{start_timestamp}
+                                                          $hash{'finish_timestamp'},
+                                                          $hash{'start_timestamp'}
                                                          );
       
       my $new_testday = 

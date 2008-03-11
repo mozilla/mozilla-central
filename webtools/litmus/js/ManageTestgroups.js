@@ -152,6 +152,10 @@ function populateTestgroup(data) {
                                                      testgroup.subgroups[i].subgroup_id);
   }
 
+  document.getElementById('creation_date').innerHTML = testgroup.creation_date;
+  document.getElementById('last_updated').innerHTML = testgroup.last_updated;
+  document.getElementById('created_by').innerHTML = testgroup.creator.email
+
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('testgroup_display_div').style.display = 'block';
   enableModeButtons();
@@ -188,7 +192,10 @@ function switchToAdd() {
   blankTestgroupForm('edit_testgroup_form');
   document.getElementById('submit').value = 'Add Testgroup';
   document.getElementById('mode').value = 'add';
-  document.getElementById('testgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new testgroup</em>';
+  document.getElementById('testgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
+  document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
+  document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
+  document.getElementById('created_by').innerHTML = 'You!';
   enableForm('edit_testgroup_form');
   document.getElementById('editform_div').style.display = 'block';
 }

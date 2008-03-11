@@ -279,6 +279,67 @@ $dbtool->AddKey('security_groups', 'idtype (group_id, grouptype)', '');
 
 $dbtool->RenameField("locale_lookup", "abbrev", "locale_abbrev");
 
+$dbtool->AddField('branches','creator_id','int(11) not null');
+$dbtool->AddField('branches','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('branches','creation_date','timestamp not null');
+$dbtool->AddKey('branches', 'creator_id (creator_id)', '');
+$dbtool->AddKey('branches', 'last_updated (last_updated)', '');
+$dbtool->AddKey('branches', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('opsyses','creator_id','int(11) not null');
+$dbtool->AddField('opsyses','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('opsyses','creation_date','timestamp not null');
+$dbtool->AddKey('opsyses', 'creator_id (creator_id)', '');
+$dbtool->AddKey('opsyses', 'last_updated (last_updated)', '');
+$dbtool->AddKey('opsyses', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('platforms','creator_id','int(11) not null');
+$dbtool->AddField('platforms','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('platforms','creation_date','timestamp not null');
+$dbtool->AddKey('platforms', 'creator_id (creator_id)', '');
+$dbtool->AddKey('platforms', 'last_updated (last_updated)', '');
+$dbtool->AddKey('platforms', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('products','creator_id','int(11) not null');
+$dbtool->AddField('products','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('products','creation_date','timestamp not null');
+$dbtool->AddKey('products', 'creator_id (creator_id)', '');
+$dbtool->AddKey('products', 'last_updated (last_updated)', '');
+$dbtool->AddKey('products', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('subgroups','creator_id','int(11) not null');
+$dbtool->AddField('subgroups','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('subgroups','creation_date','timestamp not null');
+$dbtool->AddKey('subgroups', 'creator_id (creator_id)', '');
+$dbtool->AddKey('subgroups', 'last_updated (last_updated)', '');
+$dbtool->AddKey('subgroups', 'creation_date (creation_date)', '');
+
+$dbtool->ChangeFieldType("test_result_bugs", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+$dbtool->ChangeFieldType("test_result_comments", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+$dbtool->ChangeFieldType("test_result_logs", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+$dbtool->ChangeFieldType("test_results", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+$dbtool->ChangeFieldType("test_runs", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+$dbtool->ChangeFieldType("testcases", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+$dbtool->ChangeFieldType("testdays", "last_updated", "timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+$dbtool->AddField('testdays','creator_id','int(11) not null');
+$dbtool->AddField('testdays','creation_date','timestamp not null');
+$dbtool->AddKey('testdays', 'creator_id (creator_id)', '');
+$dbtool->AddKey('testdays', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('testgroups','creator_id','int(11) not null');
+$dbtool->AddField('testgroups','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('testgroups','creation_date','timestamp not null');
+$dbtool->AddKey('testgroups', 'creator_id (creator_id)', '');
+$dbtool->AddKey('testgroups', 'last_updated (last_updated)', '');
+$dbtool->AddKey('testgroups', 'creation_date (creation_date)', '');
+
+$dbtool->AddField('users','last_updated','timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
+$dbtool->AddField('users','creation_date','timestamp not null');
+$dbtool->AddKey('users', 'last_updated (last_updated)', '');
+$dbtool->AddKey('users', 'creation_date (creation_date)', '');
+
 print "Schema update complete.\n\n";
 
 print "Done.\n";

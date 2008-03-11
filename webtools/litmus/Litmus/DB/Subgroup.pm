@@ -40,17 +40,19 @@ use Time::Piece::MySQL;
 
 Litmus::DB::Subgroup->table('subgroups');
 
-Litmus::DB::Subgroup->columns(All => qw/subgroup_id name enabled product_id branch_id/);
-Litmus::DB::Subgroup->columns(Essential => qw/subgroup_id name enabled product_id branch_id/);
+Litmus::DB::Subgroup->columns(All => qw/subgroup_id name enabled product_id branch_id creation_date last_updated creator_id/);
+Litmus::DB::Subgroup->columns(Essential => qw/subgroup_id name enabled product_id branch_id creation_date last_updated creator_id/);
 Litmus::DB::Subgroup->utf8_columns(qw/name/);
-Litmus::DB::Subgroup->columns(TEMP => qw /num_testcases/);
+Litmus::DB::Subgroup->columns(TEMP => qw /num_testcases creator/);
 
 Litmus::DB::Subgroup->column_alias("subgroup_id", "subgroupid");
 Litmus::DB::Subgroup->column_alias("product_id", "product");
 Litmus::DB::Subgroup->column_alias("branch_id", "branch");
+Litmus::DB::Subgroup->column_alias("creator_id", "creator");
 
 Litmus::DB::Subgroup->has_a(product => "Litmus::DB::Product");
 Litmus::DB::Subgroup->has_a(branch => "Litmus::DB::Branch");
+Litmus::DB::Subgroup->has_a(creator => "Litmus::DB::User");
 
 __PACKAGE__->set_sql(EnabledByTestgroup => qq{
 SELECT sg.* 

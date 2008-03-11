@@ -50,6 +50,10 @@ function populateBranch(data) {
     enabled_em.checked = false;
   }
 
+  document.getElementById('edit_branch_form_creation_date').innerHTML = branch.creation_date;
+  document.getElementById('edit_branch_form_last_updated').innerHTML = branch.last_updated;
+  document.getElementById('edit_branch_form_created_by').innerHTML = branch.creator.email
+
   document.getElementById('edit_branch_form_div').style.display = 'block';
   disableForm('edit_branch_form');
   enableBranchModeButtons();
@@ -58,6 +62,9 @@ function populateBranch(data) {
 function blankBranchForm(formid) {
   blankForm(formid);
   document.getElementById('edit_branch_form_branch_id_display').innerHTML = '';
+  document.getElementById('edit_branch_form_creation_date').innerHTML = '';
+  document.getElementById('edit_branch_form_last_updated').innerHTML = '';
+  document.getElementById('edit_branch_form_created_by').innerHTML = '';
 }
 
 function switchBranchFormToAdd() {
@@ -65,6 +72,10 @@ function switchBranchFormToAdd() {
   blankBranchForm('edit_branch_form');
   document.getElementById('edit_branch_form_submit').value = 'Add Branch';
   document.getElementById('edit_branch_form_mode').value = 'add';
+  document.getElementById('edit_branch_form_branch_id_display').innerHTML = "<em>Automatically generated for a new Branch.</em>";
+  document.getElementById('edit_branch_form_creation_date').innerHTML = "<em>Automatically generated for a new Branch.</em>";
+  document.getElementById('edit_branch_form_last_updated').innerHTML = "<em>Automatically generated for a new Branch.</em>";
+  document.getElementById('edit_branch_form_created_by').innerHTML = "You!";
   enableForm('edit_branch_form');
   document.getElementById('edit_branch_form_div').style.display = 'block';
 }
@@ -164,6 +175,9 @@ function populateOpsys(data) {
   document.getElementById('edit_opsys_form_detect_regexp').value = opsys.detect_regexp;
   var platformBox = document.getElementById('edit_opsys_form_platform_id');
   var found_platform = setSelected(platformBox,opsys.platform_id.platform_id);
+  document.getElementById('edit_opsys_form_creation_date').innerHTML = opsys.creation_date;
+  document.getElementById('edit_opsys_form_last_updated').innerHTML = opsys.last_updated;
+  document.getElementById('edit_opsys_form_created_by').innerHTML = opsys.creator.email;
 
   document.getElementById('edit_opsys_form_div').style.display = 'block';
   disableForm('edit_opsys_form');
@@ -173,6 +187,9 @@ function populateOpsys(data) {
 function blankOpsysForm(formid) {
   blankForm(formid);
   document.getElementById('edit_opsys_form_opsys_id_display').innerHTML = '';
+  document.getElementById('edit_opsys_form_creation_date').innerHTML = '';
+  document.getElementById('edit_opsys_form_last_updated').innerHTML = '';
+  document.getElementById('edit_opsys_form_created_by').innerHTML = '';
 }
 
 function switchOpsysFormToAdd() {
@@ -180,6 +197,10 @@ function switchOpsysFormToAdd() {
   blankOpsysForm('edit_opsys_form');
   document.getElementById('edit_opsys_form_submit').value = 'Add Opsys';
   document.getElementById('edit_opsys_form_mode').value = 'add';
+  document.getElementById('edit_opsys_form_opsys_id_display').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
+  document.getElementById('edit_opsys_form_creation_date').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
+  document.getElementById('edit_opsys_form_last_updated').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
+  document.getElementById('edit_opsys_form_created_by').innerHTML = "You!";
   enableForm('edit_opsys_form');
   document.getElementById('edit_opsys_form_div').style.display = 'block';
 }
@@ -256,6 +277,10 @@ function populatePlatform(data) {
 		   platform.products[i].product_id);
   }
 
+  document.getElementById('edit_platform_form_creation_date').innerHTML = platform.creation_date;
+  document.getElementById('edit_platform_form_last_updated').innerHTML = platform.last_updated;
+  document.getElementById('edit_platform_form_created_by').innerHTML = platform.creator.email;
+
   document.getElementById('edit_platform_form_div').style.display = 'block';
   disableForm('edit_platform_form');
   enablePlatformModeButtons();
@@ -264,6 +289,9 @@ function populatePlatform(data) {
 function blankPlatformForm(formid) {
   blankForm(formid);
   document.getElementById('edit_platform_form_platform_id_display').innerHTML = '';
+  document.getElementById('edit_platform_form_creation_date').innerHTML = '';
+  document.getElementById('edit_platform_form_last_updated').innerHTML = '';
+  document.getElementById('edit_platform_form_created_by').innerHTML = '';
 
   var selectBoxProduct = document.getElementById('edit_platform_form_platform_products');
   selectBoxProduct.options.length = 0;
@@ -276,6 +304,10 @@ function switchPlatformFormToAdd() {
   blankPlatformForm('edit_platform_form');
   document.getElementById('edit_platform_form_submit').value = 'Add Platform';
   document.getElementById('edit_platform_form_mode').value = 'add';
+  document.getElementById('edit_platform_form_platform_id_display').innerHTML = "<em>Automatically generated for a new Platform.</em>";
+  document.getElementById('edit_platform_form_creation_date').innerHTML = "<em>Automatically generated for a new Platform.</em>";
+  document.getElementById('edit_platform_form_last_updated').innerHTML = "<em>Automatically generated for a new Platform.</em>";
+  document.getElementById('edit_platform_form_created_by').innerHTML = "You!";
   enableForm('edit_platform_form');
   document.getElementById('edit_platform_form_div').style.display = 'block';
 }
@@ -348,6 +380,10 @@ function populateProduct(data) {
     enabled_em.checked = false;
   }
 
+  document.getElementById('edit_product_form_creation_date').innerHTML = product.creation_date;
+  document.getElementById('edit_product_form_last_updated').innerHTML = product.last_updated;
+  document.getElementById('edit_product_form_created_by').innerHTML = product.creator.email;
+
   document.getElementById('edit_product_form_div').style.display = 'block';
   disableForm('edit_product_form');
   enableProductModeButtons();
@@ -356,6 +392,9 @@ function populateProduct(data) {
 function blankProductForm(formid) {
   blankForm(formid);
   document.getElementById('edit_product_form_product_id_display').innerHTML = '';
+  document.getElementById('edit_product_form_creation_date').innerHTML = '';
+  document.getElementById('edit_product_form_last_updated').innerHTML = '';
+  document.getElementById('edit_product_form_created_by').innerHTML = '';
 }
 
 function switchProductFormToAdd() {
@@ -363,6 +402,10 @@ function switchProductFormToAdd() {
   blankProductForm('edit_product_form');
   document.getElementById('edit_product_form_submit').value = 'Add Product';
   document.getElementById('edit_product_form_mode').value = 'add';
+  document.getElementById('edit_product_form_product_id_display').innerHTML = "<em>Automatically generated for a new Product.</em>";
+  document.getElementById('edit_product_form_creation_date').innerHTML = "<em>Automatically generated for a new Product.</em>";
+  document.getElementById('edit_product_form_last_updated').innerHTML = "<em>Automatically generated for a new Product.</em>";
+  document.getElementById('edit_product_form_created_by').innerHTML = "You!";
   enableForm('edit_product_form');
   document.getElementById('edit_product_form_div').style.display = 'block';
 }

@@ -40,6 +40,7 @@ use Litmus::Error;
 use Litmus::FormWidget;
 
 use CGI;
+use Date::Manip;
 use JSON;
 use Time::Piece::MySQL;
 
@@ -64,6 +65,9 @@ if ($c->param) {
   	$c->param("edit_opsys_form_opsys_id"))) {
   		Litmus::Auth::requireAdmin("manage_categories.cgi");
   	}
+
+  my $now = &Date::Manip::UnixDate("now","%q");
+  my $user_id = Litmus::Auth::getCurrentUser();
   	
   # Process product changes.
   if ($c->param("delete_product_button") and 
@@ -90,6 +94,9 @@ if ($c->param) {
                   name => $c->param('edit_product_form_name'),
                   iconpath => $c->param('edit_product_form_iconpath'),
                   enabled => $enabled,
+                  creation_date => $now,
+                  last_updated => $now,
+                  creator_id => $user_id,
                  );
       my $new_product = 
         Litmus::DB::Product->create(\%hash);
@@ -157,6 +164,9 @@ if ($c->param) {
                   name => $c->param('edit_platform_form_name'),
                   iconpath => $c->param('edit_platform_form_iconpath'),
                   detect_regexp => $c->param('edit_platform_form_detect_regexp'),
+                  creation_date => $now,
+                  last_updated => $now,
+                  creator_id => $user_id,
                  );
       my $new_platform = 
         Litmus::DB::Platform->create(\%hash);
@@ -219,6 +229,9 @@ if ($c->param) {
                   name => $c->param('edit_opsys_form_name'),
                   platform_id => $c->param('edit_opsys_form_platform_id'),
                   detect_regexp => $c->param('edit_opsys_form_detect_regexp'),
+                  creation_date => $now,
+                  last_updated => $now,
+                  creator_id => $user_id,
                  );
       my $new_opsys = 
         Litmus::DB::Opsys->create(\%hash);
@@ -286,6 +299,9 @@ if ($c->param) {
                   product_id => $c->param('edit_branch_form_product_id'),
                   detect_regexp => $c->param('edit_branch_form_detect_regexp'),
                   enabled => $enabled,
+                  creation_date => $now,
+                  last_updated => $now,
+                  creator_id => $user_id,
                  );
       my $new_branch = 
         Litmus::DB::Branch->create(\%hash);

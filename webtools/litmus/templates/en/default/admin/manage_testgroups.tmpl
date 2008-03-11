@@ -68,7 +68,7 @@ var subgroups=[% IF subgroups_js %][% subgroups_js %][% ELSE %]{}[% END %];
 	<table border="0" cellspacing="0" cellpadding="5">
 	<tr>
         <td>
-	[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_id" placeholder=1 size=10 onchange="loadTestgroup();" %]
+	[% INCLUDE form_widgets/select_testgroup_id.tmpl name="testgroup_id" placeholder=1 size=10 display_id=1 onchange="loadTestgroup();" %]
         </td>
         </tr>
         <tr>        

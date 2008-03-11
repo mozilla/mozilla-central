@@ -15,7 +15,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=Firefox 3.0 Catch-All Test Run</td>
+	<td>link=Thunderbird Trunk Catch-All Test Run</td>
 	<td></td>
 </tr>
 <tr>
@@ -45,12 +45,12 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>document.form.testgroup[4]</td>
+	<td>document.form.testgroup[1]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>document.form.subgroup_54[2]</td>
+	<td>subgroup_42</td>
 	<td></td>
 </tr>
 <tr>
@@ -75,12 +75,12 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>document.form.testresult_3972[1]</td>
+	<td>testresult_2820_pass</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>document.form.testresult_3973[1]</td>
+	<td>testresult_2798_fail</td>
 	<td></td>
 </tr>
 <tr>
@@ -90,7 +90,7 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>Submit3973</td>
+	<td>Submit2798</td>
 	<td></td>
 </tr>
 <tr>
@@ -111,11 +111,11 @@
 <tr>
 	<td>verifyText</td>
 	<td>//td[1]</td>
-	<td>Firefox 3.0 Catch-All Test Run</td>
+	<td>Thunderbird Trunk Catch-All Test Run</td>
 </tr>
 <tr>
-	<td>verifyText</td>
-	<td>//tr[4]/td[2]</td>
+	<td>verifyTable</td>
+	<td>//td/table.3.1</td>
 	<td>Build ID: 2007112718, Platform: Mac (Intel), Operating System: Mac OS 10.4</td>
 </tr>
 <tr>
@@ -125,13 +125,23 @@
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//div/table/tbody/tr/td[1]/strong</td>
+	<td>//div/table/tbody/tr[1]/td[1]/strong</td>
+	<td>exact:Fail:</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div/table/tbody/tr[1]/td[2]</td>
+	<td>1</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>//div/table/tbody/tr[2]/td[1]/strong</td>
 	<td>exact:Pass:</td>
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//div[3]/div/table/tbody/tr/td[2]</td>
-	<td>2</td>
+	<td>//div[3]/div/table/tbody/tr[2]/td[2]</td>
+	<td>1</td>
 </tr>
 
 </tbody></table>

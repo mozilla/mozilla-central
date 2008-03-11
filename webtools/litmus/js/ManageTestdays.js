@@ -73,6 +73,10 @@ function populateTestday(data) {
     setSelected(localeBox,"");
   }
 
+  document.getElementById('edit_testday_form_creation_date').innerHTML = testday.creation_date;
+  document.getElementById('edit_testday_form_last_updated').innerHTML = testday.last_updated;
+  document.getElementById('edit_testday_form_created_by').innerHTML = testday.creator.email
+
   document.getElementById('edit_testday_form_div').style.display = 'block';
   disableForm('edit_testday_form');
   enableTestdayModeButtons();
@@ -91,7 +95,10 @@ function blankTestdayForm(formid) {
 function switchTestdayFormToAdd() {
   disableTestdayModeButtons();
   blankTestdayForm('edit_testday_form');
-  document.getElementById('edit_testday_form_testday_id_display').innerHTML = '<em>Automatically generated for a new testday</em>';
+  document.getElementById('edit_testday_form_testday_id_display').innerHTML = '<em>Automatically generated for a new Testday</em>';
+  document.getElementById('edit_testday_form_creation_date').innerHTML = '<em>Automatically generated for a new Testday</em>';
+  document.getElementById('edit_testday_form_last_updated').innerHTML = '<em>Automatically generated for a new Testday</em>';
+  document.getElementById('edit_testday_form_testday_id_display').innerHTML = 'You!';
   document.getElementById('edit_testday_form_submit').value = 'Add Testday';
   document.getElementById('edit_testday_form_mode').value = 'add';
   enableForm('edit_testday_form');

@@ -38,7 +38,7 @@ $table{audit_trail} =
     KEY `action_type` (action_type),
     KEY `sql_log` (sql_log(255)),
     KEY `bind_values` (bind_values(255))
-    ';
+   ';
 
 $table{branches} = 
    'branch_id smallint(6) not null primary key auto_increment,
@@ -46,12 +46,18 @@ $table{branches} =
     name varchar(64) not null,
     detect_regexp varchar(255),
     enabled tinyint(1) default 1,
+    creator_id int(11) not null,
+    last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    creation_date timestamp not null,
     
     index(product_id),
     index(name),
     index(detect_regexp),
-    index(enabled)
-';
+    index(enabled),
+    index(creator_id),
+    index(last_updated),
+    index(creation_date)
+   ';
 
 $table{build_type_lookup} = 
 	'build_type_id tinyint(4) not null primary key auto_increment,
@@ -82,10 +88,17 @@ $table{opsyses} =
 	 platform_id smallint(6) not null,
 	 name varchar(64) not null,
 	 detect_regexp varchar(255),
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
+         creator_id int(11) not null,
 	 
 	 index(platform_id),
 	 index(name),
-	 index(detect_regexp)';
+	 index(detect_regexp),
+         index(last_updated),
+         index(creation_date),
+         index(creator_id)
+        ';
 
 $table{platform_products} = 
         'platform_id smallint(6) not null,
@@ -98,20 +111,34 @@ $table{platforms} =
 	 name varchar(64) not null,
 	 detect_regexp varchar(255),
 	 iconpath varchar(255),
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
+         creator_id int(11) not null,
 	 
 	 index(name),
 	 index(detect_regexp),
-	 index(iconpath)';
+	 index(iconpath),
+         index(last_updated),
+         index(creation_date),
+         index(creator_id)
+        ';
 
 $table{products} = 
 	'product_id tinyint not null primary key auto_increment,
 	 name varchar(64) not null,
 	 iconpath varchar(255),
 	 enabled tinyint(1) default \'1\',
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
+         creator_id int(11) not null,
 	 
 	 unique key(name),
          index(iconpath),
-	 index(enabled)';
+	 index(enabled),
+         index(last_updated),
+         index(creation_date),
+         index(creator_id)
+        ';
 
 $table{related_testcases} = 
         'testcase_id int(11) not null,
@@ -143,11 +170,18 @@ $table{subgroups} =
          enabled tinyint(1) default "1",
          product_id tinyint(4) not null,
          branch_id smallint(6) not null,	 
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
+         creator_id int(11) not null,
 	 
 	 index(name),
          index(enabled),
          index(product_id),
-         index(branch_id)';
+         index(branch_id),
+         index(last_updated),
+         index(creation_date),
+         index(creator_id)
+        ';
 
 $table{tags} =
         'tag_id int(11) not null primary key auto_increment,
@@ -167,7 +201,7 @@ $table{test_format_lookup} =
 
 $table{test_result_bugs} =
 	'test_result_id int(11) not null,
-	 last_updated datetime not null,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	 submission_time datetime not null,
 	 user_id int(11),
 	 bug_id int(11) not null,
@@ -181,7 +215,7 @@ $table{test_result_bugs} =
 $table{test_result_comments} = 
 	'comment_id int(11) not null primary key auto_increment,
 	 test_result_id int(11) not null,
-	 last_updated datetime not null,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	 submission_time datetime not null,
 	 user_id int(11),
 	 comment text,
@@ -193,7 +227,7 @@ $table{test_result_comments} =
 	 
 $table{test_result_logs} = 
 	'log_id int(11) not null primary key auto_increment,
-	 last_updated datetime not null,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	 submission_time datetime not null,
          log_text longtext,
 	 log_type_id tinyint(4) not null default \'1\',
@@ -201,7 +235,7 @@ $table{test_result_logs} =
 	 index(last_updated),
 	 index(submission_time),
 	 index(log_type_id),
-     index(log_text(255))';
+         index(log_text(255))';
 
 $table{testresult_logs_join} = 
 	'test_result_id int(11) not null,
@@ -223,7 +257,7 @@ $table{test_result_status_lookup} =
 $table{test_results} = 
 	'testresult_id int(11) not null primary key auto_increment,
 	 testcase_id int(11) not null,
-	 last_updated datetime,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	 submission_time datetime,
 	 user_id int(11),
 	 opsys_id smallint(6),
@@ -294,8 +328,8 @@ $table{test_runs} =
          recommended tinyint(1) not null default "0",
          product_id tinyint(4) not null,
          branch_id smallint(6) not null,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
          creation_date timestamp not null,
-         last_updated timestamp not null,
          author_id int(11) not null,
          version smallint(6) not null default "1",
 
@@ -342,8 +376,8 @@ $table{testcases} =
 	 steps longtext,
 	 expected_results longtext,
 	 author_id int(11) not null,
-	 creation_date datetime not null,
-	 last_updated datetime not null,
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
 	 version smallint(6) not null default \'1\',
          product_id tinyint(4) not null,
          branch_id smallint(6) not null,	 
@@ -356,15 +390,16 @@ $table{testcases} =
 	 index(steps(255)),
 	 index(expected_results(255)),
 	 index(author_id),
-	 index(creation_date),
 	 index(last_updated),
+	 index(creation_date),
          index(product_id),
          index(branch_id),
          fulltext index text_search (summary,steps,expected_results)';
 
 $table{testdays} = 
         'testday_id smallint(6) not null primary key auto_increment,
-         last_updated timestamp(14),
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
          start_timestamp timestamp(14) not null,
          finish_timestamp timestamp(14) not null,
          description varchar(255) not null,
@@ -373,7 +408,10 @@ $table{testdays} =
 	 build_id int(10) unsigned,         
          branch_id smallint(6),
 	 locale_abbrev varchar(16),
+         creator_id int(11) not null,
          
+         index(last_updated),
+         index(creation_date),
          index(start_timestamp),
          index(finish_timestamp),
          index(description),
@@ -381,7 +419,8 @@ $table{testdays} =
          index(testgroup_id),
          index(build_id),
          index(branch_id),
-         index(locale_abbrev)';
+         index(locale_abbrev).
+         index(creator_id)';
 
 $table{testday_subgroups} =
         'testday_id smallint(6) not null default \'0\',
@@ -394,11 +433,17 @@ $table{testgroups} =
 	 name varchar(64) not null,
 	 enabled tinyint(1) default "1",
          branch_id smallint(6) not null,	 
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
+         creator_id int(11) not null,
 
 	 index(product_id),
 	 index(name),
 	 index(enabled),
-         index(branch_id)';
+         index(branch_id),
+         index(last_updated),
+         index(creation_date),
+         index(creator_id)';
 	 
 $table{users} = 
 	'user_id int(11) not null primary key auto_increment,
@@ -410,6 +455,8 @@ $table{users} =
 	 enabled tinyint(1),
 	 is_admin tinyint(1),
 	 authtoken varchar(255),
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
 	 
 	 index(bugzilla_uid),
 	 unique index(email),
@@ -419,7 +466,9 @@ $table{users} =
          index(enabled),
 	 index(is_admin),
 	 index contact_info (email, realname, irc_nickname),
-	 fulltext index contact_info_fulltext (email, realname, irc_nickname)';
+ 	 fulltext index contact_info_fulltext (email, realname, irc_nickname),
+         index(last_updated),
+         index(creation_date)';
 	 
 $table{security_groups} = 
 	'group_id mediumint not null primary key auto_increment,
