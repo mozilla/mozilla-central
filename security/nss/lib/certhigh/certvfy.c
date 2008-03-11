@@ -865,7 +865,7 @@ cert_VerifyCertChain(CERTCertDBHandle *handle, CERTCertificate *cert,
                      SECCertUsage certUsage, int64 t, void *wincx,
                      CERTVerifyLog *log, PRBool* revoked)
 {
-    if (cert_UsePKIXValidation()) {
+    if (CERT_GetUsePKIXForValidation()) {
         return cert_VerifyCertChainPkix(cert, checkSig, certUsage, t,
                                         wincx, log, sigerror, revoked);
     }

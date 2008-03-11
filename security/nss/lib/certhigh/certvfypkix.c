@@ -79,7 +79,7 @@ cert_PrintCertChain(PKIX_List *pkixCertChain, void *plContext);
 static PRBool usePKIXValidationEngine = PR_FALSE;
 
 /*
- * FUNCTION: cert_SetPKIXValidation
+ * FUNCTION: CERT_SetUsePKIXForValidation
  * DESCRIPTION:
  *
  * Enables or disables use of libpkix for certificate validation
@@ -94,14 +94,14 @@ static PRBool usePKIXValidationEngine = PR_FALSE;
  *  Returns SECSuccess if successfully enabled
  */
 SECStatus
-cert_SetPKIXValidation(PRBool enable)
+CERT_SetUsePKIXForValidation(PRBool enable)
 {
     usePKIXValidationEngine = (enable > 0) ? PR_TRUE : PR_FALSE;
     return SECSuccess;
 }
 
 /*
- * FUNCTION: cert_UsePKIXValidationEng
+ * FUNCTION: CERT_GetUsePKIXForValidation
  * DESCRIPTION:
  *
  * Checks if libpkix building function should be use for certificate
@@ -115,7 +115,7 @@ cert_SetPKIXValidation(PRBool enable)
  *  Returns PR_TRUE if libpkix should be used. PR_FALSE otherwise.
  */
 PRBool
-cert_UsePKIXValidation()
+CERT_GetUsePKIXForValidation()
 {
     return usePKIXValidationEngine;
 }

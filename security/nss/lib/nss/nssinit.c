@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.92 2008-03-10 20:16:45 rrelyea%redhat.com Exp $ */
+/* $Id: nssinit.c,v 1.93 2008-03-11 20:48:53 alexei.volkov.bugs%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -581,7 +581,7 @@ loser:
 	} else {
             char *ev = getenv("NSS_ENABLE_PKIX_VERIFY");
             if (ev && ev[0]) {
-                cert_SetPKIXValidation(PR_TRUE);
+                CERT_SetUsePKIXForValidation(PR_TRUE);
             }
         }
     }

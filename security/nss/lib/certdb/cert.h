@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.64 2008-02-16 01:17:43 julien.pierre.boogz%sun.com Exp $
+ * $Id: cert.h,v 1.65 2008-03-11 20:48:52 alexei.volkov.bugs%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1627,6 +1627,16 @@ extern SECStatus CERT_PKIXVerifyCert(
  * setting the value in paramsIn.
  */
 extern SECStatus CERT_PKIXSetDefaults(CERTValInParam *paramsIn);
+
+/* Makes old cert validation APIs(CERT_VerifyCert, CERT_VerifyCertificate)
+ * to use libpkix validation engine. The function should be called ones at
+ * application initialization time.
+ * Function is not thread safe.*/
+SECStatus CERT_SetUsePKIXForValidation(PRBool enable);
+
+/* The function return PR_TRUE if cert validation should use
+ * libpkix cert validation engine. */
+PRBool CERT_GetUsePKIXForValidation();
 
 SEC_END_PROTOS
 

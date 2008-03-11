@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.22 2007-11-10 04:23:25 julien.pierre.boogz%sun.com Exp $
+ * $Id: certi.h,v 1.23 2008-03-11 20:48:52 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -275,14 +275,6 @@ SECStatus DPCache_GetCRLEntry(CRLDPCache* cache, PRBool readlocked,
  * PORT_SetError(); to the appropriate SEC_ERROR value.
  */
 void CERT_MapStanError();
-
-/* Programatical interface to switch to and from libpkix cert
- * validation engine. */
-SECStatus cert_SetPKIXValidation(PRBool enable);
-
-/* The function return PR_TRUE if cert validation should go
- * through libpkix cert validation engine. */
-PRBool cert_UsePKIXValidation();
 
 /* Interface function for libpkix cert validation engine:
  * cert_verify wrapper. */
