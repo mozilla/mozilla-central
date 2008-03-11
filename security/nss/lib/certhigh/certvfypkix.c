@@ -405,6 +405,10 @@ cert_ProcessingParamsSetKuAndEku(
                                                   plContext),
         PKIX_COMCERTSELPARAMSSETEXTKEYUSAGEFAILED);
 
+    PKIX_CHECK(
+        PKIX_PL_EkuChecker_Create(procParams, plContext),
+        PKIX_EKUCHECKERINITIALIZEFAILED);
+
 cleanup:
     PKIX_DECREF(extKeyUsage);
     PKIX_DECREF(certSelector);
@@ -529,13 +533,6 @@ cert_CreatePkixProcessingParams(
         PKIX_ProcessingParams_SetTargetCertConstraints(procParams,
                                                        certSelector, plContext),
         PKIX_PROCESSINGPARAMSSETTARGETCERTCONSTRAINTSFAILED);
-
-#ifdef PKIX_NOTDEF
-    /* Code should be enabled after patch for 390532 is integrated. */
-    PKIX_CHECK(
-        PKIX_PL_EkuChecker_Create(procParams, plContext),
-        PKIX_EKUCHECKERINITIALIZEFAILED);
-#endif /* PKIX_NOTDEF */
 
     PKIX_CHECK(
         PKIX_PL_Pk11CertStore_Create(&certStore, plContext),
