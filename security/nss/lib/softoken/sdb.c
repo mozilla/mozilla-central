@@ -698,8 +698,14 @@ sdb_FindObjectsInit(SDB *sdb, const CK_ATTRIBUTE *template, CK_ULONG count,
     sqlerr = sqlite3_prepare_v2(sqlDB, newStr, -1, &findstmt, NULL);
     sqlite3_free(newStr);
     for (i=0; sqlerr == SQLITE_OK && i < count; i++) {
-	sqlerr = sqlite3_bind_blob(findstmt, i+1, template[i].pValue, 
-				template[i].ulValueLen, SQLITE_TRANSIENT);
+	const void *blobData = template[i].pValue;
+	unsigned int blobSize = template[i].ulValueLen;
+	if (blobSize == 0) {
+	    blobSize = SQLITE_EXPLICIT_NULL_LEN;
+	    blobData = SQLITE_EXPLICIT_NULL;
+	}
+	sqlerr = sqlite3_bind_blob(findstmt, i+1, blobData, blobSize,
+				   SQLITE_TRANSIENT);
     }
     if (sqlerr == SQLITE_OK) {
 	*find = PORT_New(SDBFind);
@@ -1081,7 +1087,7 @@ sdb_CreateObject(SDB *sdb, CK_OBJECT_HANDLE *object_id,
     char *newStr = NULL;
     int sqlerr = SQLITE_OK;
     CK_RV error = CKR_OK;
-    CK_OBJECT_HANDLE this_object;
+    CK_OBJECT_HANDLE this_object = CK_INVALID_HANDLE;
     int retry = 0;
     int i;
 
@@ -1408,11 +1414,6 @@ sdb_GetMetaData(SDB *sdb, const char *id, SECItem *item1, SECItem *item2)
     int found = 0;
     int retry = 0;
 
-    /* currently only Key databases have meta data entries */
-    if (sdb_p->type != SDB_KEY) {
-	return CKR_OBJECT_HANDLE_INVALID;
-    }
-
     LOCK_SQLITE()  
     error = sdb_openDBLocal(sdb_p, &sqlDB, NULL);
     if (error != CKR_OK) {
@@ -1441,16 +1442,18 @@ sdb_GetMetaData(SDB *sdb, const char *id, SECItem *item1, SECItem *item2)
 	}
 	if (sqlerr == SQLITE_ROW) {
 	    const char *blobData;
+	    unsigned int len = item1->len;
 	    item1->len = sqlite3_column_bytes(stmt, 1);
-	    if (item1->len > SDB_MAX_META_DATA_LEN) {
+	    if (item1->len > len) {
 		error = CKR_BUFFER_TOO_SMALL;
 		continue;
 	    }
 	    blobData = sqlite3_column_blob(stmt, 1);
 	    PORT_Memcpy(item1->data,blobData, item1->len);
 	    if (item2) {
+		len = item2->len;
 		item2->len = sqlite3_column_bytes(stmt, 2);
-		if (item2->len > SDB_MAX_META_DATA_LEN) {
+		if (item2->len > len) {
 		    error = CKR_BUFFER_TOO_SMALL;
 		    continue;
 		}
@@ -1500,11 +1503,6 @@ sdb_PutMetaData(SDB *sdb, const char *id, const SECItem *item1,
     CK_RV error = CKR_OK;
     int retry = 0;
     const char *cmd = PW_CREATE_CMD;
-
-    /* only Key databases have password entries */
-    if (sdb_p->type != SDB_KEY) {
-	return CKR_OBJECT_HANDLE_INVALID;
-    }
 
     LOCK_SQLITE()  
     error = sdb_openDBLocal(sdb_p, &sqlDB, NULL);
@@ -1979,7 +1977,7 @@ s_open(const char *directory, const char *certPrefix, const char *keyPrefix,
 
     /*
      * open the key data base: 
-     *  NOTE:is we want to implement a single database, we open
+     *  NOTE:if we want to implement a single database, we open
      *  the same database file as the certificate here.
      *
      *  cert an key db's have different tables, so they will not
