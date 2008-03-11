@@ -62,7 +62,7 @@
       <treechildren id="appearanceChildren">
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-fonts.xul" label="&fonts.label;"/> 
+            <treecell label="(Migrated: &fonts.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>

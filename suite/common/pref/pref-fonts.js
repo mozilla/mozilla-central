@@ -23,6 +23,9 @@
  *   Gervase Markham <gerv@gerv.net>
  *   Tuukka Tolvanen <tt@lament.cjb.net>
  *   Stefan Borggraefe <Stefan.Borggraefe@gmx.de>
+ *   Ben Goodger <ben@mozilla.org>
+ *   Asaf Romano <mozilla.mano@sent.com>
+ *   Ian Neal <iann_bugzilla@blueyonder.co.uk>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,463 +41,220 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var fontEnumerator = null;
-var globalFonts = null;
-var fontTypes   = ["serif", "sans-serif", "cursive", "fantasy", "monospace"];
-var defaultFont, variableSize, fixedSize, minSize, languageList;
-var languageData = [];
-var currentLanguage;
-var gPrefutilitiesBundle;
+var gAllFonts = null;
+var gFontEnumerator = null;
+var gDisabled = false;
 
-// manual data retrieval function for PrefWindow
-function GetFields()
+function GetFontEnumerator()
+{
+  if (!gFontEnumerator)
   {
-    var dataObject = parent.hPrefWindow.wsm.dataManager.pageData["chrome://communicator/content/pref/pref-fonts.xul"];
+    gFontEnumerator = Components.classes["@mozilla.org/gfx/fontenumerator;1"]
+                                .createInstance(Components.interfaces.nsIFontEnumerator);
+  }
+  return gFontEnumerator;
+}
 
-    // store data for language independent widgets
-    if( !( "dataEls" in dataObject ) )
-      dataObject.dataEls = [];
-    dataObject.dataEls[ "selectLangs" ] = [];
-    dataObject.dataEls[ "selectLangs" ].value = document.getElementById( "selectLangs" ).value;
-
-    dataObject.useDocFonts = document.getElementById( "browserUseDocumentFonts" ).checked ? 1 : 0;
-
-    // save current state for language dependent fields and store
-    saveState();
-    dataObject.languageData = languageData;
-
-    return dataObject;
+function BuildFontList(aLanguage, aFontType, aMenuList, aPreference)
+{
+  var defaultFont = null;
+  // Load Font Lists
+  var fonts = GetFontEnumerator().EnumerateFonts(aLanguage, aFontType, {});
+  if (fonts.length)
+  {
+    defaultFont = GetFontEnumerator().getDefaultFont(aLanguage, aFontType);
+  }
+  else
+  {
+    fonts = GetFontEnumerator().EnumerateFonts(aLanguage, "", {});
+    if (fonts.length)
+      defaultFont = GetFontEnumerator().getDefaultFont(aLanguage, "");
   }
 
-// manual data setting function for PrefWindow
-function SetFields( aDataObject )
+  if (!gAllFonts)
+    gAllFonts = GetFontEnumerator().EnumerateAllFonts({});
+
+  // Reset the list
+  while (aMenuList.hasChildNodes())
+    aMenuList.removeChild(aMenuList.firstChild);
+
+  // Build the UI for the Default Font and Fonts for this CSS type.
+  var popup = document.createElement("menupopup");
+  var separator;
+  if (fonts.length)
   {
-    languageData = "languageData" in aDataObject ? aDataObject.languageData : languageData ;
-    currentLanguage = "currentLanguage" in aDataObject ? aDataObject.currentLanguage : null ;
+    if (defaultFont)
+    {
+      var bundlePreferences = document.getElementById("bundlePreferences");
+      var label = bundlePreferences.getFormattedString("labelDefaultFont", [defaultFont]);
+      var menuitem = document.createElement("menuitem");
+      menuitem.setAttribute("label", label);
+      menuitem.setAttribute("value", ""); // Default Font has a blank value
+      popup.appendChild(menuitem);
 
-    var element = document.getElementById( "selectLangs" );
-    if( "dataEls" in aDataObject )
-      {
-        element.selectedItem = element.getElementsByAttribute( "value", aDataObject.dataEls[ "selectLangs" ].value )[0];
-      }
-    else
-      {
-        var prefstring = element.getAttribute( "prefstring" );
-        var preftype = element.getAttribute( "preftype" );
-        if( prefstring && preftype )
-          {
-            var prefvalue = parent.hPrefWindow.getPref( preftype, prefstring );
-            element.selectedItem = element.getElementsByAttribute( "value", prefvalue )[0];
-          }
-      }
+      separator = document.createElement("menuseparator");
+      popup.appendChild(separator);
+    }
 
-    var useDocFontsCheckbox = document.getElementById( "browserUseDocumentFonts" );
-    if( "useDocFonts" in aDataObject && aDataObject.useDocFonts != undefined )
-      useDocFontsCheckbox.checked = aDataObject.useDocFonts ? true : false;
-    else
-      {
-        prefvalue = parent.hPrefWindow.getPref( "int", "browser.display.use_document_fonts" );
-        if( prefvalue != "!/!ERROR_UNDEFINED_PREF!/!" )
-          useDocFontsCheckbox.checked = prefvalue ? true : false ;
-      }
-    if ( parent.hPrefWindow.getPrefIsLocked( "browser.display.use_document_fonts" ) ) {
-        useDocFontsCheckbox.disabled = true;
+    for (var i = 0; i < fonts.length; ++i)
+    {
+      menuitem = document.createElement("menuitem");
+      menuitem.setAttribute("value", fonts[i]);
+      menuitem.setAttribute("label", fonts[i]);
+      popup.appendChild(menuitem);
     }
   }
 
-function Startup()
+  // Build the UI for the remaining fonts.
+  if (gAllFonts.length > fonts.length)
   {
-    defaultFont  = document.getElementById( "proportionalFont" );
-    variableSize = document.getElementById( "sizeVar" );
-    fixedSize    = document.getElementById( "sizeMono" );
-    minSize      = document.getElementById( "minSize" );
-    languageList = document.getElementById( "selectLangs" );
+    // Both lists are sorted, and the Fonts-By-Type list is a subset of the
+    // All-Fonts list, so walk both lists side-by-side, skipping values we've
+    // already created menu items for.
 
-    gPrefutilitiesBundle = document.getElementById("bundle_prefutilities");
+    if (fonts.length)
+    {
+      separator = document.createElement("menuseparator");
+      popup.appendChild(separator);
+    }
 
-    // register our ok callback function
-    parent.hPrefWindow.registerOKCallbackFunc( saveFontPrefs );
-
-    // eventually we should detect the default language and select it by default
-    selectLanguage();
-    
-    // This prefstring is a contrived pref whose sole purpose is to lock some
-    // elements in this panel.  The value of the pref is not used and does not matter.
-    if ( parent.hPrefWindow.getPrefIsLocked( "browser.display.languageList" ) ) {
-      disableAllFontElements();
+    for (i = 0; i < gAllFonts.length; ++i)
+    {
+      if (fonts.lastIndexOf(gAllFonts[i], 0) == 0)
+      {
+        fonts.shift(); //Remove matched font from array
+      }
+      else
+      {
+        menuitem = document.createElement("menuitem");
+        menuitem.setAttribute("value", gAllFonts[i]);
+        menuitem.setAttribute("label", gAllFonts[i]);
+        popup.appendChild(menuitem);
+      }
     }
   }
+  aMenuList.appendChild(popup);
 
-function getFontEnumerator()
+  // Fully populated so re-enable menulist before setting preference,
+  // unless panel is locked.
+  if (!gDisabled)
+    aMenuList.disabled = false;
+  aMenuList.setAttribute("preference", aPreference.id);
+  aPreference.setElementValue(aMenuList);
+}
+
+function ReadFontLanguageGroup()
+{
+  var prefs = [{format: "default",       type: "string",  element: "defaultFontType", fonttype: ""          },
+               {format: "name.",         type: "unichar", element: "serif",           fonttype: "serif"     },
+               {format: "name.",         type: "unichar", element: "sans-serif",      fonttype: "sans-serif"},
+               {format: "name.",         type: "unichar", element: "monospace",       fonttype: "monospace" },
+               {format: "name.",         type: "unichar", element: "cursive",         fonttype: "cursive"   },
+               {format: "name.",         type: "unichar", element: "fantasy",         fonttype: "fantasy"   },
+               {format: "name-list.",    type: "unichar", element: null,              fonttype: "serif"     },
+               {format: "name-list.",    type: "unichar", element: null,              fonttype: "sans-serif"},
+               {format: "name-list.",    type: "unichar", element: null,              fonttype: "monospace" },
+               {format: "name-list.",    type: "unichar", element: null,              fonttype: "cursive"   },
+               {format: "name-list.",    type: "unichar", element: null,              fonttype: "fantasy"   },
+               {format: "size.variable", type: "int",     element: "sizeVar",         fonttype: ""          },
+               {format: "size.fixed",    type: "int",     element: "sizeMono",        fonttype: ""          },
+               {format: "minimum-size",  type: "int",     element: "minSize",         fonttype: ""          }];
+  gDisabled = document.getElementById("browser.display.languageList").locked;
+  var fontLanguage = document.getElementById("font.language.group");
+  if (gDisabled)
+    fontLanguage.disabled = true;
+  var languageGroup = fontLanguage.value;
+  var preferences = document.getElementById("fonts_preferences");
+  for (var i = 0; i < prefs.length; ++i)
   {
-    if (!fontEnumerator)
+    var name = "font."+ prefs[i].format + prefs[i].fonttype + "." + languageGroup;
+    var preference = document.getElementById(name);
+    if (!preference)
+    {
+      preference = document.createElement("preference");
+      preference.id = name;
+      preference.setAttribute("name", name);
+      preference.setAttribute("type", prefs[i].type);
+      preferences.appendChild(preference);
+    }
+
+    if (!prefs[i].element)
+      continue;
+
+    var element = document.getElementById(prefs[i].element);
+    if (element)
+    {
+      if (prefs[i].fonttype)
       {
-        fontEnumerator = Components.classes["@mozilla.org/gfx/fontenumerator;1"]
-                        .createInstance()
-                        .QueryInterface(Components.interfaces.nsIFontEnumerator);
+        // Set an empty label so it does not jump when items are added.
+        element.setAttribute("label", "");
+        // Disable menulist for the moment.
+        element.disabled = true;
+        // Lazily populate font lists, each gets re-enabled at the end.
+        window.setTimeout(BuildFontList, 0, languageGroup,
+                          prefs[i].fonttype, element, preference);
       }
-    return fontEnumerator;
+      else
+      {
+        // Unless the panel is locked, make sure these elements are not
+        // disabled just in case they were in the last language group.
+        element.disabled = gDisabled;
+        element.setAttribute("preference", preference.id);
+        preference.setElementValue(element);
+      }
+    }
+  }
+}
+
+function ReadFontSelection(aElement)
+{
+  // Determine the appropriate value to select, for the following cases:
+  // - there is no setting 
+  // - the font selected by the user is no longer present (e.g. deleted from
+  //   fonts folder)
+  var preference = document.getElementById(aElement.getAttribute("preference"));
+  if (preference.value)
+  {
+    var fontItems = aElement.getElementsByAttribute("value", preference.value);
+
+    // There is a setting that actually is in the list. Respect it.
+    if (fontItems.length)
+      return undefined;
   }
 
-function listElement( aListID )
+  var defaultValue = aElement.firstChild.firstChild.getAttribute("value");
+  var languagePref = document.getElementById("font.language.group");
+  preference = document.getElementById("font.name-list." + aElement.id + "." + languagePref.value);
+  if (!preference || !preference.hasUserValue)
+    return defaultValue;
+
+  var fontNames = preference.value.split(",");
+
+  for (var i = 0; i < fontNames.length; ++i)
   {
-    this.listElement = document.getElementById( aListID );
+    var fontName = fontNames[i].replace(/^\s+|\s+$/g, "");
+    fontItems = aElement.getElementsByAttribute("value", fontName);
+    if (fontItems.length)
+      return fontItems[0].getAttribute("value");
   }
+  return defaultValue;
+}
 
-listElement.prototype =
-  {
-    clearList:
-      function ()
-        {
-          // remove the menupopup node child of the menulist.
-          this.listElement.removeChild( this.listElement.firstChild );
-        },
+function ReadFontPref(aElement, aDefaultValue)
+{
+  // Check to see if preference value exists,
+  // if not return given default value.
+  var preference = document.getElementById(aElement.getAttribute("preference"));
+  return preference.value || aDefaultValue;
+}
 
-    appendFontNames: 
-      function ( aLanguage, aFontType )
-        {
-          var i;
-          var defaultFont = null;
-          var count = { value: 0 };
-          var fonts = getFontEnumerator().EnumerateFonts( aLanguage, aFontType, count );
-          if (fonts.length > 0)
-            {
-              defaultFont = getFontEnumerator().getDefaultFont( aLanguage, aFontType );
-            }
-          else
-            {
-              // if no specific fonts, relax 'aFontType' and try to get other
-              // fonts for this language so that we can group them on top
-              fonts = getFontEnumerator().EnumerateFonts( aLanguage, "", count );
-              if (fonts.length > 0)
-                {
-                  defaultFont = getFontEnumerator().getDefaultFont( aLanguage, "" );
-                }
-            }
-
-          var itemNode = null;
-          var separatorNode = null;
-          var popupNode = document.createElement( "menupopup" ); 
-
-          if (fonts.length > 0)
-            {
-              // always put the default font at the front of the list
-              if (defaultFont)
-                {
-                  var label = gPrefutilitiesBundle
-                    .getString("labelDefaultFont")
-                    .replace(/%font_family%/, defaultFont);
-                  itemNode = document.createElement( "menuitem" );
-                  itemNode.setAttribute( "label", label );
-                  itemNode.setAttribute( "value", "" ); // special blank value
-                  popupNode.appendChild( itemNode );
-
-                  separatorNode = document.createElement( "menuseparator" );
-                  popupNode.appendChild( separatorNode );
-                }
-
-              for (i = 0; i < fonts.length; i++)
-                {
-                  itemNode = document.createElement( "menuitem" );
-                  itemNode.setAttribute( "value", fonts[i] );
-                  itemNode.setAttribute( "label", fonts[i] );
-                  popupNode.appendChild( itemNode );
-                }
-            }
-
-            // get all the fonts to complete the font lists
-            if (!globalFonts)
-              {
-                globalFonts = getFontEnumerator().EnumerateAllFonts( count );
-              }
-
-          // since the lists are sorted, we can get unique entries by just walking
-          // both lists linearly side-by-side, skipping those values already in
-          // the popup list
-          if (globalFonts.length > fonts.length)
-            {
-              var menuItem = separatorNode ? separatorNode.nextSibling : popupNode.firstChild; 
-              var menuValue = menuItem ? menuItem.getAttribute( "value" ) : null;
-
-              separatorNode = document.createElement( "menuseparator" );
-              popupNode.appendChild( separatorNode );
-
-              for (i = 0; i < globalFonts.length; i++)
-                {
-                  if (globalFonts[i] != menuValue)
-                    {
-                      itemNode = document.createElement( "menuitem" );
-                      itemNode.setAttribute( "value", globalFonts[i] );
-                      itemNode.setAttribute( "label", globalFonts[i] );
-                      popupNode.appendChild( itemNode );
-                    }
-                  else
-                    {
-                      menuItem = menuItem.nextSibling;
-                      menuValue = menuItem ? menuItem.getAttribute( "value" ) : null;
-                    }
-                }
-            }
-
-          this.listElement.appendChild( popupNode ); 
-
-          return popupNode.firstChild;
-        } 
-  };
-
-function lazyAppendFontNames( i )
-  {
-     // schedule the build of the next font list
-     if (i+1 < fontTypes.length)
-       {
-         window.setTimeout(lazyAppendFontNames, 100, i+1);
-       }
-
-     // now build and populate the fonts for the requested font type
-     var defaultItem;
-     var selectElement = new listElement( fontTypes[i] );
-     selectElement.clearList();
-     try
-       {
-         defaultItem = selectElement.appendFontNames( languageList.value, fontTypes[i] );
-       }
-     catch(e) {
-         dump("pref-fonts.js: " + e + "\nFailed to build the font list for " + fontTypes[i] + "\n");
-         return;
-       }
-
-     // now set the selected font item for the drop down list
-
-     if (!defaultItem)
-       return; // nothing to select, so no need to bother
-
-     // the item returned by default is our last resort fall-back
-     var selectedItem = defaultItem;
-     var dataEls;
-     if( languageList.value in languageData )
-       {
-         // data exists for this language, pre-select items based on this information
-         var dataVal = languageData[languageList.value].types[fontTypes[i]];
-         if (dataVal.length) // else: special blank means the default
-           dataEls = selectElement.listElement.getElementsByAttribute("value", dataVal);
-       }
-     else
-       {
-         try
-           {
-             var fontPrefString = "font.name." + fontTypes[i] + "." + languageList.value;
-             var selectVal = parent.hPrefWindow.pref.getComplexValue( fontPrefString, Components.interfaces.nsISupportsString ).data;
-             dataEls = selectElement.listElement.getElementsByAttribute("value", selectVal);
-
-             // we need to honor name-list in case name is unavailable 
-             if (!dataEls.item(0)) {
-                 var fontListPrefString = "font.name-list." + fontTypes[i] + "." + languageList.value;
-                 var nameList = parent.hPrefWindow.pref.getComplexValue( fontListPrefString, Components.interfaces.nsISupportsString ).data;
-                 var fontNames = nameList.split(",");
-
-                 for (j = 0; j < fontNames.length; j++) {
-                   selectVal = fontNames[j].replace(/^\s+|\s+$/, "");
-                   dataEls = selectElement.listElement.getElementsByAttribute("value", selectVal);
-                   if (dataEls.item(0))  
-                     break;  // exit loop if we find one
-                 }
-             }
-           }
-         catch(e) {
-           }
-       }
-     if (dataEls && dataEls.item(0))
-       selectedItem = dataEls[0];
-
-     selectElement.listElement.selectedItem = selectedItem;
-     selectElement.listElement.removeAttribute( "disabled" );
-  }
-
-function saveFontPrefs()
-  {
-    // saving font prefs
-    var dataObject = parent.hPrefWindow.wsm.dataManager.pageData["chrome://communicator/content/pref/pref-fonts.xul"];
-    var pref = parent.hPrefWindow.pref;
-    for( var language in dataObject.languageData )
-      {
-        for( var type in dataObject.languageData[language].types )
-          {
-            var fontPrefString = "font.name." + type + "." + language;
-            var currValue = "";
-            try
-              {
-                currValue = pref.getComplexValue( fontPrefString, Components.interfaces.nsISupportsString ).data;
-              }
-            catch(e)
-              {
-              }
-
-            var dataValue = dataObject.languageData[language].types[type];
-            if( currValue != dataValue )
-              {
-                if (dataValue)
-                  {
-                    parent.hPrefWindow.setPref( "string", fontPrefString, dataValue );
-                  }
-                else
-                  {
-                    // A font name can't be blank. The special blank means the default.
-                    // Unset the pref entirely, letting Gfx to decide. GfxXft will use what
-                    // Xft says, whereas GfxWin and others will use the built-in settings
-                    // that are shipped for font.name and font.name-list.
-                    try
-                      {
-                        // ClearUserPref throws an exception...
-                        pref.clearUserPref( fontPrefString );
-                      }
-                    catch(e)
-                      {
-                      }
-                  }
-              }
-          }
-        var defaultFontPref = "font.default." + language;
-        var variableSizePref = "font.size.variable." + language;
-        var fixedSizePref = "font.size.fixed." + language;
-        var minSizePref = "font.minimum-size." + language;
-        var currDefaultFont = "serif", currVariableSize = 12, currFixedSize = 12, minSizeVal = 0;
-        try
-          {
-            currDefaultFont = parent.hPrefWindow.getPref( "string", defaultFontPref );
-            currVariableSize = pref.getIntPref( variableSizePref );
-            currFixedSize = pref.getIntPref( fixedSizePref );
-            minSizeVal = pref.getIntPref( minSizePref );
-          }
-        catch(e)
-          {
-          }
-        if( currDefaultFont != dataObject.languageData[language].defaultFont )
-          parent.hPrefWindow.setPref( "string", defaultFontPref, dataObject.languageData[language].defaultFont );
-        if( currVariableSize != dataObject.languageData[language].variableSize )
-          pref.setIntPref( variableSizePref, dataObject.languageData[language].variableSize );
-        if( currFixedSize != dataObject.languageData[language].fixedSize )
-          pref.setIntPref( fixedSizePref, dataObject.languageData[language].fixedSize );
-        if( minSizeVal != dataObject.languageData[language].minSize ) {
-          pref.setIntPref ( minSizePref, dataObject.languageData[language].minSize );
-        }
-      }
-
-    // font scaling
-    var documentFonts = dataObject.useDocFonts;
-    var defaultFont   = dataObject.defaultFont;
-
-    try
-      {
-        var currFonts = pref.getIntPref( "browser.display.use_document_fonts" );
-      }
-    catch(e)
-      {
-      }
-    if( currFonts != documentFonts )
-      pref.setIntPref( "browser.display.use_document_fonts", documentFonts );
-  }
-
-function saveState()
-  {
-    for( var i = 0; i < fontTypes.length; i++ )
-      {
-        // preliminary initialisation
-        if( currentLanguage && !( currentLanguage in languageData ) )
-          languageData[currentLanguage] = [];
-        if( currentLanguage && !( "types" in languageData[currentLanguage] ) )
-          languageData[currentLanguage].types = [];
-        // save data for the previous language
-        if( currentLanguage && currentLanguage in languageData &&
-            "types" in languageData[currentLanguage] )
-          languageData[currentLanguage].types[fontTypes[i]] = document.getElementById( fontTypes[i] ).value;
-      }
-
-    if( currentLanguage && currentLanguage in languageData &&
-        "types" in languageData[currentLanguage] )
-      {
-        languageData[currentLanguage].defaultFont = defaultFont.value;
-        languageData[currentLanguage].variableSize = parseInt( variableSize.value );
-        languageData[currentLanguage].fixedSize = parseInt( fixedSize.value );
-        languageData[currentLanguage].minSize = parseInt( minSize.value );
-      }
-  }
-
-// Selects size (or the nearest entry that exists in the list)
-// in the menulist minSize
-function minSizeSelect(size)
-  {
-    var items = minSize.getElementsByAttribute( "value", size );
-    if (items.item(0))
-      minSize.selectedItem = items[0];
-    else if (size < 6)
-      minSizeSelect(6);
-    else if (size > 24)
-      minSizeSelect(24);
-    else
-      minSizeSelect(size - 1);
-  }
-
-function selectLanguage()
-  {
-    // save current state
-    saveState();
-
-    if( !currentLanguage )
-      currentLanguage = languageList.value;
-    else if( currentLanguage == languageList.value )
-      return; // same as before, nothing changed
-
-    // lazily populate the successive font lists at 100ms intervals.
-    // (Note: the third parameter to setTimeout() is going to be
-    // passed as argument to the callback function.)
-    window.setTimeout(lazyAppendFontNames, 100, 0);
-
-    // in the meantime, disable the menu lists
-    for( var i = 0; i < fontTypes.length; i++ )
-      {
-        var listElement = document.getElementById( fontTypes[i] );
-        listElement.setAttribute( "value", "" );
-        listElement.setAttribute( "label", "" );
-        listElement.setAttribute( "disabled", "true" );
-      }
-
-    // and set the default font type and the font sizes
-    try
-      {
-        defaultFont.value = parent.hPrefWindow.getPref("string", "font.default." + languageList.value);
-
-        var variableSizePref = "font.size.variable." + languageList.value;
-        var sizeVarVal = parent.hPrefWindow.pref.getIntPref( variableSizePref );
-        variableSize.selectedItem = variableSize.getElementsByAttribute( "value", sizeVarVal )[0];
-
-        var fixedSizePref = "font.size.fixed." + languageList.value;
-        var sizeFixedVal = parent.hPrefWindow.pref.getIntPref( fixedSizePref );
-        fixedSize.selectedItem = fixedSize.getElementsByAttribute( "value", sizeFixedVal )[0];
-      }
-    catch(e) { } // font size lists can simply default to the first entry
-
-    var minSizeVal = 0;
-    try 
-      {
-        var minSizePref = "font.minimum-size." + languageList.value;
-        minSizeVal = parent.hPrefWindow.pref.getIntPref( minSizePref );
-      }
-    catch(e) { }
-    minSizeSelect( minSizeVal );
-
-    currentLanguage = languageList.value;
-  }
-
-// disable font items, but not the browserUseDocumentFonts checkbox
-function disableAllFontElements()
-  {
-      var doc_ids = [ "selectLangs", "proportionalFont",
-                      "sizeVar", "serif", "sans-serif",
-                      "cursive", "fantasy", "monospace",
-                      "sizeMono", "minSize" ];
-      for (i=0; i<doc_ids.length; i++) {
-          element = document.getElementById( doc_ids[i] );
-          element.disabled = true;
-      }
-  }
-
+function ReadUseDocumentFonts()
+{
+  var preference = document.getElementById("browser.display.use_document_fonts");
+  return preference.value == 1;
+}
+ 
+function WriteUseDocumentFonts(aUseDocumentFonts)
+{
+  return aUseDocumentFonts.checked ? 1 : 0;
+}

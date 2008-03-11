@@ -85,10 +85,11 @@
                     prefpane="content_pane"
                     helpTopic="appearance_pref_content"
                     url="chrome://communicator/content/pref/pref-content.xul"/>
-<!-- commenting out yet unmigrated panels
-          <treeitem label="&fonts.label;"
+          <treeitem id="fontsItem"
+                    label="&fonts.label;"
+                    prefpane="fonts_pane"
+                    helpTopic="appearance_pref_fonts"
                     url="chrome://communicator/content/pref/pref-fonts.xul"/>
--->
           <treeitem id="colorsItem"
                     label="&colors.label;"
                     prefpane="colors_pane"
