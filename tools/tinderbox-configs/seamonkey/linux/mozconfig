@@ -4,8 +4,8 @@
 #
 
 # symbols for breakpad
-export CFLAGS="-gstabs+ -march=i486 -mtune=generic"
-export CXXFLAGS="-gstabs+ -march=i486 -mtune=generic"
+export CFLAGS="-gstabs+"
+export CXXFLAGS="-gstabs+"
 
 export MOZILLA_OFFICIAL=1
 

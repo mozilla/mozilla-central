@@ -1,1 +1,1 @@
-Clobbering to force rebuild with updated CFLAGS and CXXFLAGS in mozconfig
+Clobbering to force rebuild with reverted CFLAGS and CXXFLAGS in mozconfig
