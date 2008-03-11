@@ -50,16 +50,16 @@ class MozillaStageUpload(ShellCommand):
         @type  releaseToDated: bool
         @param releaseToDated: If True, builds will be pushed to
                 'remoteBasePath'/nightly/yyyy/mm/yyyy-mm-dd-hh-milestone. This
-                directory will also be symlinked in 'remoteBasePath'. Generally,
-                this should be True for nightlies. Default: True
+                directory will also be symlinked in 'remoteBasePath'/nightly/. 
+                Generally, this should be True for nightlies. Default: True
 
         @type  releaseToLatest: bool
         @param releaseToLatest: If True, builds will be pushed to
                 'remoteBasePath'/nightly/latest-milestone. If
                 releaseToDated=True, builds will be copied from
-                'remoteBasePath'/yyyy/mm/yyyy-mm-dd-hh-milestone. Otherwise,
-                builds will be uploaded from the slave. Generally, this should
-                be True for nightlies. Default: True
+                'remoteBasePath'/nightly/yyyy/mm/yyyy-mm-dd-hh-milestone.
+                Otherwise, builds will be uploaded from the slave. Generally,
+                this should be True for nightlies. Default: True
 
         @type  releaseToTinderboxBuilds: bool
         @param releaseToTinderboxBuilds: If True, builds will be pushed to
@@ -212,13 +212,14 @@ class MozillaStageUpload(ShellCommand):
                ' rsync -av ' + src + ' ' + dst 
 
     def symlinkDateDirCommand(self, datedDir):
-        # Tinderbox client tests for existence rather than forcibly re-linking.
-        # Because ShellCommand's get passed through cmd.exe, which has
-        # weird and awful quoting rules we cannot do anything that requires
-        # quotes, ie. no 'if [ ! -h ... ]'
+        # Make a relative symlink, absolute symlinks break ftp
+        # unless you are careful to get the right root
+        # eg ln -fs 2008/03/2008-03-01-01-mozilla-central
+        #                          /home/ftp/pub/firefox/nightly/
+        targetDir = path.join(self.remoteBasePath, 'nightly','')
+        datedDir.replace(targetDir, '')
         return self._getBaseCommand(ssh=True) + ' ' + self.remoteHost + \
-               ' ln -fs ' + datedDir + ' ' + path.join(self.remoteBasePath,
-                                                       'nightly')
+               ' ln -fs ' + datedDir + ' ' + targetDir
 
     def start(self):
         datedDir = self.getLongDatedPath()
