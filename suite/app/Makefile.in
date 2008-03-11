@@ -128,7 +128,7 @@ NSDISTMODE = copy
 include $(topsrcdir)/config/config.mk
 
 ifdef _MSC_VER
-WIN32_EXE_LDFLAGS += -ENTRY:wmainCRTStartup
+WIN32_EXE_LDFLAGS += -ENTRY:mainWCRTStartup
 endif
 
 ifndef BUILD_STATIC_LIBS
