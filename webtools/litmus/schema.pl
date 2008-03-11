@@ -322,14 +322,14 @@ $table{test_runs} =
 	'test_run_id int(11) not null primary key auto_increment,
          name varchar(64) not null,
          description varchar(255),
+         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+         creation_date timestamp not null,
          start_timestamp timestamp not null,
          finish_timestamp timestamp not null,
          enabled tinyint(1) not null default "1",
          recommended tinyint(1) not null default "0",
          product_id tinyint(4) not null,
          branch_id smallint(6) not null,
-         last_updated timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-         creation_date timestamp not null,
          author_id int(11) not null,
          version smallint(6) not null default "1",
 
@@ -419,7 +419,7 @@ $table{testdays} =
          index(testgroup_id),
          index(build_id),
          index(branch_id),
-         index(locale_abbrev).
+         index(locale_abbrev),
          index(creator_id)';
 
 $table{testday_subgroups} =
