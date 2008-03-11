@@ -1027,7 +1027,8 @@ function calWcapCalendar_getItem(id, listener)
                 listener.onOperationComplete(
                     this_.superCalendar, getResultCode(err),
                     calIOperationListener.GET,
-                    item.id, err ? err : item);
+                    item ? item.id : null,
+                    err || item);
             }
             if (err)
                 this_.notifyError(err);
