@@ -83,7 +83,7 @@
     </td>
   </tr>
 
-[% IF defaultemail AND ! print %]
+[% IF defaultemail AND ! managing AND ! print %]
 <!-- Only allow the user to submit a single result if they are already 
      logged in. -->
   <tr>
