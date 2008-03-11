@@ -78,8 +78,8 @@ SECStatus sftkdb_ResetKeyDB(SFTKDBHandle *keydb);
 SECStatus sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb, 
 				char *oldPin, char *newPin);
 SECStatus sftkdb_ClearPassword(SFTKDBHandle *keydb);
-SECStatus sftkdb_InUpdateMerge(SFTKDBHandle *keydb);
-SECStatus sftkdb_NeedUpdateDBPassword(SFTKDBHandle *keydb);
+PRBool sftkdb_InUpdateMerge(SFTKDBHandle *keydb);
+PRBool sftkdb_NeedUpdateDBPassword(SFTKDBHandle *keydb);
 const char *sftkdb_GetUpdateID(SFTKDBHandle *keydb);
 SECItem *sftkdb_GetUpdatePasswordKey(SFTKDBHandle *keydb);
 void sftkdb_FreeUpdatePasswordKey(SFTKDBHandle *keydb);
