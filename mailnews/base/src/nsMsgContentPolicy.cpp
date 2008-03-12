@@ -619,9 +619,8 @@ NS_IMETHODIMP nsMsgCookiePolicy::SetAccess(nsIURI         *aURI,
 }
 
 NS_IMETHODIMP nsMsgCookiePolicy::CanAccess(nsIURI         *aURI,
-                                            nsIURI         *aFirstURI,
-                                            nsIChannel     *aChannel,
-                                            nsCookieAccess *aResult)
+                                           nsIChannel     *aChannel,
+                                           nsCookieAccess *aResult)
 {
   // by default we deny all cookies in mail
   *aResult = ACCESS_DENY;
@@ -634,14 +633,14 @@ NS_IMETHODIMP nsMsgCookiePolicy::CanAccess(nsIURI         *aURI,
   PRInt32 itemType;
   docShellTreeItem->GetItemType(&itemType);
 
-  // allow chome docshells to set cookies
+  // allow chrome docshells to set cookies
   if (itemType == nsIDocShellTreeItem::typeChrome)
     *aResult = ACCESS_DEFAULT;
   else // allow RSS articles in content to access cookies
   {
-  NS_ENSURE_TRUE(aFirstURI, NS_OK);  
+  NS_ENSURE_TRUE(aURI, NS_OK);  
   PRBool isRSS = PR_FALSE;
-  IsRSSArticle(aFirstURI, &isRSS);
+  IsRSSArticle(aURI, &isRSS);
   if (isRSS)
     *aResult = ACCESS_DEFAULT;
   }
@@ -658,6 +657,12 @@ NS_IMETHODIMP nsMsgCookiePolicy::CanSetCookie(nsIURI     *aURI,
 {
   *aResult = PR_TRUE;
   return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgCookiePolicy::GetOriginatingURI(nsIChannel  *aChannel,
+                                                   nsIURI     **aURI)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 #endif
