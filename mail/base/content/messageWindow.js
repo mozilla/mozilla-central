@@ -274,7 +274,7 @@ function delayedOnLoadMessageWindow()
   InitMsgWindow();
 
   messenger.setWindow(window, msgWindow);
-  InitializeDataSources();
+  AddDataSources();
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
@@ -560,14 +560,6 @@ function OnUnloadMessageWindow()
   OnUnloadMsgHeaderPane();
   gPhishingDetector.shutdown();
   OnMailWindowUnload();
-}
-
-function InitializeDataSources()
-{
-  AddDataSources();
-  //Now add datasources to composite datasource
-  gCompositeDataSource.AddDataSource(accountManagerDataSource);
-  gCompositeDataSource.AddDataSource(folderDataSource);
 }
 
 function GetSelectedMsgFolders()
