@@ -837,7 +837,7 @@ wallet_Encrypt(const nsCString& text, nsCString& crypt) {
   /* encrypt text to crypt */
   char * cryptCString = nsnull;
   nsresult rv = EncryptString(text.get(), cryptCString);
-  if NS_FAILED(rv) {
+  if (NS_FAILED(rv)) {
     return rv;
   }
   crypt = cryptCString;
@@ -851,7 +851,7 @@ wallet_Decrypt(const nsCString& crypt, nsCString& text) {
   /* decrypt crypt to text */
   char * textCString = nsnull;
   nsresult rv = DecryptString(crypt.get(), textCString);
-  if NS_FAILED(rv) {
+  if (NS_FAILED(rv)) {
     return rv;
   }
 
