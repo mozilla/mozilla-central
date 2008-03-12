@@ -69,26 +69,6 @@
 	<td>label=2.0 Branch*</td>
 </tr>
 <tr>
-	<td>verifyElementPresent</td>
-	<td>testgroup_new_1</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>subgroup_new_1</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>remove_row_new_1</td>
-	<td></td>
-</tr>
-<tr>
-	<td>verifyElementPresent</td>
-	<td>add_row_new_1</td>
-	<td></td>
-</tr>
-<tr>
 	<td>click</td>
 	<td>enabled</td>
 	<td></td>
@@ -102,6 +82,11 @@
 	<td>type</td>
 	<td>regression_bug_id</td>
 	<td>666</td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>author_id</td>
+	<td>ccooper@deadsquid.com</td>
 </tr>
 <tr>
 	<td>verifyElementPresent</td>
@@ -227,6 +212,21 @@
 	<td>verifyElementPresent</td>
 	<td>link=Install, shutdown, uninstall (417)</td>
 	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>edit_testcase_button</td>
+	<td></td>
+</tr>
+<tr>
+	<td>verifySelectedLabel</td>
+	<td>author_id</td>
+	<td>ccooper@deadsquid.com</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>testcase_id_display_edit</td>
+	<td>regexp:\d+</td>
 </tr>
 
 </tbody></table>
