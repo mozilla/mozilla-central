@@ -273,6 +273,7 @@ function switchToAdd() {
     for (var i=0; i<branchBox.options.length; i++) {
       if (branchBox.options[i].value == branchId) {
         branchBox.options[i].selected = true;
+        changeBranchForTestcase();
         break;
       }
     }
