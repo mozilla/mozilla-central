@@ -2809,7 +2809,7 @@ CK_RV NSC_GetTokenInfo(CK_SLOT_ID slotID,CK_TOKEN_INFO_PTR pInfo)
 #ifdef SHDB_FIXME
 	pInfo->hardwareVersion.major = CERT_DB_FILE_VERSION;
 	pInfo->hardwareVersion.minor = handle->version;
-else
+#else
 	pInfo->hardwareVersion.major = 0;
 	pInfo->hardwareVersion.minor = 0;
 #endif
