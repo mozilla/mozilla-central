@@ -558,5 +558,5 @@ class CreateProfile(ShellCommand):
     descriptionDone = ["create profile complete"]
     command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/bin/firefox'
 
-class CreateProfileWin(createProfile):
+class CreateProfileWin(CreateProfile):
     command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --binary mozilla\objdir\dist\bin\firefox.exe'
