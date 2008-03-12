@@ -52,8 +52,8 @@ FILES := \
 	$(NULL)
 
 libs:: $(FILES)
-	$(INSTALL) $^ $(DIST)/bin/defaults/profile
-	$(INSTALL) $^ $(DIST)/bin/defaults/profile/US
+	$(SYSINSTALL) $^ $(DIST)/bin/defaults/profile
+	$(SYSINSTALL) $^ $(DIST)/bin/defaults/profile/US
 
 install:: $(FILES)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile
