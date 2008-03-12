@@ -379,8 +379,6 @@ var BookmarksMenuDNDObserver = {
     // (see bug 143031)
     if (this.isContainer(target) && 
         target.getAttribute("group") != "true") {
-      if (this.isPlatformNotSupported) 
-        return;
       if (!aEvent.shiftKey && !aEvent.altKey && !aEvent.ctrlKey)
         return;
       // menus open on mouse down
@@ -401,11 +399,6 @@ var BookmarksMenuDNDObserver = {
       this.onDragExit(aEvent, aDragSession);
       this.onDragEnter(aEvent, aDragSession);
     }
-    if (this.isPlatformNotSupported)
-      return;
-    if (this.isTimerSupported || !aDragSession.sourceNode)
-      return;
-    this.onDragOverCheckTimers();
   },
 
   onDragEnter: function (aEvent, aDragSession)
@@ -530,16 +523,11 @@ var BookmarksMenuDNDObserver = {
   ////////////////////////////////////
 
   springLoadedMenuDelay: 350, // milliseconds
-  isPlatformNotSupported: navigator.platform.indexOf("Mac") != -1, // see bug 136524
-  // Needs to be dynamically overridden (to |true|) in the case of an external drag: see bug 232795.
-  isTimerSupported: navigator.platform.indexOf("Win") == -1,
 
   mCurrentDragOverTarget: null,
   mCurrentDropPosition: null,
   loadTimer  : null,
   closeTimer : null,
-  loadTarget : null,
-  closeTarget: null,
 
   _observers : null,
   get mObservers ()
@@ -608,61 +596,24 @@ var BookmarksMenuDNDObserver = {
       aTarget.lastChild.showPopup(aTarget);
   },
 
-  onDragOverCheckTimers: function ()
-  {
-    var now = new Date().getTime();
-    if (this.closeTimer && now-this.springLoadedMenuDelay>this.closeTimer) {
-      this.onDragCloseTarget();
-      this.closeTimer = null;
-    }
-    if (this.loadTimer && (now-this.springLoadedMenuDelay>this.loadTimer)) {
-      this.onDragLoadTarget(this.loadTarget);
-      this.loadTimer = null;
-    }
-  },
-
   onDragEnterSetTimer: function (aTarget, aDragSession)
   {
-    if (this.isPlatformNotSupported)
+    clearTimeout(this.loadTimer);
+
+    if (aTarget == aDragSession.sourceNode)
       return;
-    if (this.isTimerSupported || !aDragSession.sourceNode) {
-      var targetToBeLoaded = aTarget;
-      clearTimeout(this.loadTimer);
-      if (aTarget == aDragSession.sourceNode)
-        return;
-      var This = this;
-      this.loadTimer=setTimeout(function () {This.onDragLoadTarget(targetToBeLoaded)}, This.springLoadedMenuDelay);
-    } else {
-      var now = new Date().getTime();
-      this.loadTimer  = now;
-      this.loadTarget = aTarget;
-    }
+
+    var This = this;
+    var targetToBeLoaded = aTarget;
+    this.loadTimer = setTimeout(function() { This.onDragLoadTarget(targetToBeLoaded); }, This.springLoadedMenuDelay);
   },
 
   onDragExitSetTimer: function (aTarget, aDragSession)
   {
-    if (this.isPlatformNotSupported)
-      return;
-    var This = this;
-    if (this.isTimerSupported || !aDragSession.sourceNode) {
-      clearTimeout(this.closeTimer)
-      this.closeTimer=setTimeout(function () {This.onDragCloseTarget()}, This.springLoadedMenuDelay);
-    } else {
-      var now = new Date().getTime();
-      this.closeTimer  = now;
-      this.closeTarget = aTarget;
-      this.loadTimer = null;
+    clearTimeout(this.closeTimer);
 
-      // If the user isn't rearranging within the menu, close it
-      // To do so, we exploit a Mac bug: timeout set during
-      // drag and drop on Windows and Mac are fired only after that the drop is released.
-      // timeouts will pile up, we may have a better approach but for the moment, this one
-      // correctly close the menus after a drop/cancel outside the personal toolbar.
-      // The if statement in the function has been introduced to deal with rare but reproducible
-      // missing Exit events.
-      if (aDragSession.sourceNode.localName != "menuitem" && aDragSession.sourceNode.localName != "menu")
-        setTimeout(function () { if (This.mCurrentDragOverTarget) {This.onDragRemoveFeedBack(This.mCurrentDragOverTarget); This.mCurrentDragOverTarget=null} This.loadTimer=null; This.onDragCloseTarget() }, 0);
-    }
+    var This = this;
+    this.closeTimer = setTimeout(function() { This.onDragCloseTarget(); }, This.springLoadedMenuDelay);
   },
 
   onDragSetFeedBack: function (aTarget, aOrientation)
