@@ -133,7 +133,7 @@ if ($c->param("delete_subgroup_button")) {
                 branch_id => $c->param('branch'),
                 enabled => $enabled,
                 creation_date => $now,
-                creator_id => $user_id,
+                creator_id => $c->param('created_by'),
                );
     my $new_subgroup = 
       Litmus::DB::Subgroup->create(\%hash);
@@ -159,6 +159,7 @@ if ($c->param("delete_subgroup_button")) {
       $subgroup->branch_id($c->param('branch'));
       $subgroup->enabled($enabled);
       $subgroup->name($c->param('name'));
+      $subgroup->creator_id($c->param('created_by'));
       $rv = $subgroup->update();
       if ($rv) {
         my @selected_testcases = $c->param("subgroup_testcases");
@@ -192,6 +193,7 @@ my $branches = Litmus::FormWidget->getBranches();
 my $testgroups = Litmus::FormWidget->getTestgroups(0);
 my $subgroups = Litmus::FormWidget->getSubgroups(0,'name');
 my $testcases = Litmus::FormWidget->getTestcases(0,'name');
+my $authors = Litmus::FormWidget->getAuthors();
 
 # only allow the user access to the products they are product admins for
 my %authorized_products;
@@ -253,6 +255,7 @@ $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
 $vars->{'subgroups_js'} = $subgroups_js;
 $vars->{'testcases_js'} = $testcases_js;
+$vars->{'authors'} = $authors;
 
 $vars->{'user'} = Litmus::Auth::getCurrentUser();
 

@@ -52,7 +52,7 @@ function populateBranch(data) {
 
   document.getElementById('edit_branch_form_creation_date').innerHTML = branch.creation_date;
   document.getElementById('edit_branch_form_last_updated').innerHTML = branch.last_updated;
-  document.getElementById('edit_branch_form_created_by').innerHTML = branch.creator.email
+  setAuthor(document.getElementById('edit_branch_form_created_by'),branch.creator_id.user_id);
 
   document.getElementById('edit_branch_form_div').style.display = 'block';
   disableForm('edit_branch_form');
@@ -64,7 +64,6 @@ function blankBranchForm(formid) {
   document.getElementById('edit_branch_form_branch_id_display').innerHTML = '';
   document.getElementById('edit_branch_form_creation_date').innerHTML = '';
   document.getElementById('edit_branch_form_last_updated').innerHTML = '';
-  document.getElementById('edit_branch_form_created_by').innerHTML = '';
 }
 
 function switchBranchFormToAdd() {
@@ -75,7 +74,7 @@ function switchBranchFormToAdd() {
   document.getElementById('edit_branch_form_branch_id_display').innerHTML = "<em>Automatically generated for a new Branch.</em>";
   document.getElementById('edit_branch_form_creation_date').innerHTML = "<em>Automatically generated for a new Branch.</em>";
   document.getElementById('edit_branch_form_last_updated').innerHTML = "<em>Automatically generated for a new Branch.</em>";
-  document.getElementById('edit_branch_form_created_by').innerHTML = "You!";
+  setAuthor(document.getElementById('edit_branch_form_created_by'),current_user_id);
   enableForm('edit_branch_form');
   document.getElementById('edit_branch_form_div').style.display = 'block';
 }
@@ -92,7 +91,8 @@ function checkBranchForm(f) {
   return (
           checkString(f.edit_branch_form_name,"Branch Name",false) &&
           checkString(f.edit_branch_form_detect_regexp,"Branch Detect Regexp",true) &&
-          verifySelected(f.edit_branch_form_product_id, "Product")
+          verifySelected(f.edit_branch_form_product_id, "Product") &&
+          verifySelected(f.edit_branch_form_created_by, "Created By")
          );
 }
 
@@ -177,7 +177,7 @@ function populateOpsys(data) {
   var found_platform = setSelected(platformBox,opsys.platform_id.platform_id);
   document.getElementById('edit_opsys_form_creation_date').innerHTML = opsys.creation_date;
   document.getElementById('edit_opsys_form_last_updated').innerHTML = opsys.last_updated;
-  document.getElementById('edit_opsys_form_created_by').innerHTML = opsys.creator.email;
+  setAuthor(document.getElementById('edit_opsys_form_created_by'),opsys.creator_id.user_id);
 
   document.getElementById('edit_opsys_form_div').style.display = 'block';
   disableForm('edit_opsys_form');
@@ -189,7 +189,6 @@ function blankOpsysForm(formid) {
   document.getElementById('edit_opsys_form_opsys_id_display').innerHTML = '';
   document.getElementById('edit_opsys_form_creation_date').innerHTML = '';
   document.getElementById('edit_opsys_form_last_updated').innerHTML = '';
-  document.getElementById('edit_opsys_form_created_by').innerHTML = '';
 }
 
 function switchOpsysFormToAdd() {
@@ -200,7 +199,7 @@ function switchOpsysFormToAdd() {
   document.getElementById('edit_opsys_form_opsys_id_display').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
   document.getElementById('edit_opsys_form_creation_date').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
   document.getElementById('edit_opsys_form_last_updated').innerHTML = "<em>Automatically generated for a new Operating System.</em>";
-  document.getElementById('edit_opsys_form_created_by').innerHTML = "You!";
+  setAuthor(document.getElementById('edit_opsys_form_created_by'),current_user_id);
   enableForm('edit_opsys_form');
   document.getElementById('edit_opsys_form_div').style.display = 'block';
 }
@@ -217,7 +216,8 @@ function checkOpsysForm(f) {
   return (
           checkString(f.edit_opsys_form_name,"Operating System Name",false) &&
           checkString(f.edit_opsys_form_detect_regexp,"Operating System Detect Regexp",true) &&
-          verifySelected(f.edit_opsys_form_platform_id, "Platform")
+          verifySelected(f.edit_opsys_form_platform_id, "Platform") &&
+          verifySelected(f.edit_opsys_form_created_by, "Created By")
          );
 }
 
@@ -279,7 +279,7 @@ function populatePlatform(data) {
 
   document.getElementById('edit_platform_form_creation_date').innerHTML = platform.creation_date;
   document.getElementById('edit_platform_form_last_updated').innerHTML = platform.last_updated;
-  document.getElementById('edit_platform_form_created_by').innerHTML = platform.creator.email;
+  setAuthor(document.getElementById('edit_platform_form_created_by'),platform.creator_id.user_id);
 
   document.getElementById('edit_platform_form_div').style.display = 'block';
   disableForm('edit_platform_form');
@@ -291,7 +291,6 @@ function blankPlatformForm(formid) {
   document.getElementById('edit_platform_form_platform_id_display').innerHTML = '';
   document.getElementById('edit_platform_form_creation_date').innerHTML = '';
   document.getElementById('edit_platform_form_last_updated').innerHTML = '';
-  document.getElementById('edit_platform_form_created_by').innerHTML = '';
 
   var selectBoxProduct = document.getElementById('edit_platform_form_platform_products');
   selectBoxProduct.options.length = 0;
@@ -307,7 +306,7 @@ function switchPlatformFormToAdd() {
   document.getElementById('edit_platform_form_platform_id_display').innerHTML = "<em>Automatically generated for a new Platform.</em>";
   document.getElementById('edit_platform_form_creation_date').innerHTML = "<em>Automatically generated for a new Platform.</em>";
   document.getElementById('edit_platform_form_last_updated').innerHTML = "<em>Automatically generated for a new Platform.</em>";
-  document.getElementById('edit_platform_form_created_by').innerHTML = "You!";
+  setAuthor(document.getElementById('edit_platform_form_created_by'),current_user_id);
   enableForm('edit_platform_form');
   document.getElementById('edit_platform_form_div').style.display = 'block';
 }
@@ -323,8 +322,9 @@ function switchPlatformFormToEdit() {
 function checkPlatformForm(f) {
   return (
           checkString(f.edit_platform_form_name,"Platform name",false) &&
-          checkString(f.edit_platform_form_iconpath,"Platform icon path",true &&
-	  checkString(f.edit_platform_form_detect_regexp,"Platform detect regexp",true))
+          checkString(f.edit_platform_form_iconpath,"Platform icon path",true) &&
+	  checkString(f.edit_platform_form_detect_regexp,"Platform detect regexp",true) &&
+          verifySelected(f.edit_platform_form_created_by, "Created By")
          );
 }
 
@@ -382,7 +382,7 @@ function populateProduct(data) {
 
   document.getElementById('edit_product_form_creation_date').innerHTML = product.creation_date;
   document.getElementById('edit_product_form_last_updated').innerHTML = product.last_updated;
-  document.getElementById('edit_product_form_created_by').innerHTML = product.creator.email;
+  setAuthor(document.getElementById('edit_product_form_created_by'),product.creator_id.user_id);
 
   document.getElementById('edit_product_form_div').style.display = 'block';
   disableForm('edit_product_form');
@@ -394,7 +394,7 @@ function blankProductForm(formid) {
   document.getElementById('edit_product_form_product_id_display').innerHTML = '';
   document.getElementById('edit_product_form_creation_date').innerHTML = '';
   document.getElementById('edit_product_form_last_updated').innerHTML = '';
-  document.getElementById('edit_product_form_created_by').innerHTML = '';
+  setAuthor(document.getElementById('edit_product_form_created_by'),0);
 }
 
 function switchProductFormToAdd() {
@@ -405,7 +405,7 @@ function switchProductFormToAdd() {
   document.getElementById('edit_product_form_product_id_display').innerHTML = "<em>Automatically generated for a new Product.</em>";
   document.getElementById('edit_product_form_creation_date').innerHTML = "<em>Automatically generated for a new Product.</em>";
   document.getElementById('edit_product_form_last_updated').innerHTML = "<em>Automatically generated for a new Product.</em>";
-  document.getElementById('edit_product_form_created_by').innerHTML = "You!";
+  setAuthor(document.getElementById('edit_product_form_created_by'),current_user_id);
   enableForm('edit_product_form');
   document.getElementById('edit_product_form_div').style.display = 'block';
 }
@@ -421,7 +421,8 @@ function switchProductFormToEdit() {
 function checkProductForm(f) {
   return (
           checkString(f.edit_product_form_name,"product name",false) &&
-          checkString(f.edit_product_form_iconpath,"product icon path",true)
+          checkString(f.edit_product_form_iconpath,"product icon path",true) &&
+          verifySelected(f.edit_product_form_created_by, "Created By")
          );
 }
 
@@ -432,4 +433,8 @@ function resetProduct() {
   } else {
     switchProductFormToAdd();   
   }
+}
+
+function setAuthor(authorBox, user_id) {
+  setSelected(authorBox,user_id);;
 }

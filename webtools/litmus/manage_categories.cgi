@@ -96,7 +96,7 @@ if ($c->param) {
                   enabled => $enabled,
                   creation_date => $now,
                   last_updated => $now,
-                  creator_id => $user_id,
+                  creator_id => $c->param('edit_product_form_created_by'),
                  );
       my $new_product = 
         Litmus::DB::Product->create(\%hash);
@@ -124,6 +124,7 @@ if ($c->param) {
         $product->name($c->param('edit_product_form_name'));
         $product->iconpath($c->param('edit_product_form_iconpath') ? $c->param('edit_product_form_iconpath') : '');
         $product->enabled($enabled);
+        $product->creator_id($c->param('edit_product_form_created_by'));
         $rv = $product->update();
         if ($rv) {
           $status = "success";
@@ -166,7 +167,7 @@ if ($c->param) {
                   detect_regexp => $c->param('edit_platform_form_detect_regexp'),
                   creation_date => $now,
                   last_updated => $now,
-                  creator_id => $user_id,
+                  creator_id => $c->param('edit_platform_form_created_by'),
                  );
       my $new_platform = 
         Litmus::DB::Platform->create(\%hash);
@@ -187,6 +188,7 @@ if ($c->param) {
         $platform->name($c->param('edit_platform_form_name'));
         $platform->iconpath($c->param('edit_platform_form_iconpath') ? $c->param('edit_platform_form_iconpath') : '');
         $platform->detect_regexp($c->param('edit_platform_form_detect_regexp') ? $c->param('edit_platform_form_detect_regexp') : '');
+        $platform->creator_id($c->param('edit_platform_form_created_by'));
         $rv = $platform->update();
         if ($rv) {
           my @selected_products = $c->param("edit_platform_form_platform_products");
@@ -231,7 +233,7 @@ if ($c->param) {
                   detect_regexp => $c->param('edit_opsys_form_detect_regexp'),
                   creation_date => $now,
                   last_updated => $now,
-                  creator_id => $user_id,
+                  creator_id => $c->param('edit_opsys_form_created_by'),
                  );
       my $new_opsys = 
         Litmus::DB::Opsys->create(\%hash);
@@ -250,6 +252,7 @@ if ($c->param) {
         $opsys->name($c->param('edit_opsys_form_name'));
         $opsys->platform_id($c->param('edit_opsys_form_platform_id'));
         $opsys->detect_regexp($c->param('edit_opsys_form_detect_regexp') ? $c->param('edit_opsys_form_detect_regexp') : '');
+        $opsys->creator_id($c->param('edit_opsys_form_created_by'));
         $rv = $opsys->update();
         if ($rv) {
           $status = "success";
@@ -301,7 +304,7 @@ if ($c->param) {
                   enabled => $enabled,
                   creation_date => $now,
                   last_updated => $now,
-                  creator_id => $user_id,
+                  creator_id => $c->param('edit_branch_form_created_by'),
                  );
       my $new_branch = 
         Litmus::DB::Branch->create(\%hash);
@@ -325,6 +328,7 @@ if ($c->param) {
         $branch->product_id($c->param('edit_branch_form_product_id'));
         $branch->detect_regexp($c->param('edit_branch_form_detect_regexp') ? $c->param('edit_branch_form_detect_regexp') : '');
         $branch->enabled($enabled);
+        $branch->creator_id($c->param('edit_branch_form_created_by'));
         $rv = $branch->update();
         if ($rv) {
           $status = "success";
@@ -349,6 +353,7 @@ my $branches = Litmus::FormWidget->getBranches();
 my $testgroups = Litmus::FormWidget->getTestgroups();
 my $opsyses = Litmus::FormWidget->getOpsyses();
 my $locales = Litmus::FormWidget->getLocales;
+my $authors = Litmus::FormWidget->getAuthors();
 
 # if the user is not a superuser, only allow them access to the 
 # branches they are product admins for
@@ -384,6 +389,8 @@ my $vars = {
 $vars->{'products_js'} = $products_js;
 $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
+$vars->{'authors'} = $authors;
+$vars->{'user'} = Litmus::Auth::getCurrentUser();
 
 if ($status and $message) {
   $vars->{'onload'} = "toggleMessage('$status','$message');";

@@ -110,6 +110,7 @@ function populateSubgroup(data) {
 
   document.getElementById('editform_subgroup_id').value = subgroup.subgroup_id;
   document.getElementById('subgroup_id_display').innerHTML = subgroup.subgroup_id;
+  document.getElementById('subgroup_id_display_edit').innerHTML = subgroup.subgroup_id;
   document.getElementById('name').value = subgroup.name;
   document.getElementById('name_text').innerHTML = subgroup.name;
 
@@ -176,7 +177,7 @@ function populateSubgroup(data) {
 
   document.getElementById('creation_date').innerHTML = subgroup.creation_date;
   document.getElementById('last_updated').innerHTML = subgroup.last_updated;
-  document.getElementById('created_by').innerHTML = subgroup.creator.email
+  setSelected(document.getElementById('created_by'),subgroup.creator_id.user_id);
 
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('subgroup_display_div').style.display = 'block';
@@ -208,7 +209,7 @@ function switchToAdd() {
   document.getElementById('subgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
   document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
   document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new Subgroup</em>';
-  document.getElementById('created_by').innerHTML = 'You!';
+  setSelected(document.getElementById('created_by'),current_user_id);
   document.getElementById('testgroups_link_display').innerHTML = '<em>A new subgroup does not belong to any testgroups by default.<br/>Use the <a target="manage_testgroups" href="manage_testgroups.cgi">Manage Testgroups</a> interface to assign the subgroup to testgroups after the new subgroup is created.</em>';
   document.getElementById('submit').value = 'Add Subgroup';
   document.getElementById('mode').value = 'add';
@@ -265,7 +266,8 @@ function checkFormContents(f) {
   return (
           checkString(f.name, 'Name') &&
           verifySelected(f.product, 'Product') &&
-          verifySelected(f.branch, 'Branch')
+          verifySelected(f.branch, 'Branch') &&
+          verifySelected(f.created_by, "Created By")
          );
 }
 

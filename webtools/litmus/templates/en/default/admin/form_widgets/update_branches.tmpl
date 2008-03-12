@@ -76,10 +76,10 @@
 	  <td colspan="2" id="edit_branch_form_last_updated"></td>
 	  </tr>
 
-	  <tr>
-	  <td class="headerleft">Created by:</td>
-	  <td colspan="2" id="edit_branch_form_created_by"></td>
-	  </tr>
+          <tr>
+            <td class="headerleft">Created By:</div></td>
+            <td>[% INCLUDE form_widgets/select_author.tmpl name="edit_branch_form_created_by" disabled=1 placeholder=1 %]
+          </tr>
 
 	  <tr>
           <td colspan="3" align="right"><input id="edit_branch_form_reset" class="button" type="button" value="Reset" disabled onclick="resetBranch();" />&nbsp;<input class="button" type="submit" id="edit_branch_form_submit" name="edit_branch_form_submit" value="Submit Edits" disabled /></div>

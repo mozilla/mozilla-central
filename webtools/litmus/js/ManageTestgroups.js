@@ -104,6 +104,7 @@ function populateTestgroup(data) {
   testgroup=data;
   document.getElementById('editform_testgroup_id').value = testgroup.testgroup_id;
   document.getElementById('testgroup_id_display').innerHTML = testgroup.testgroup_id;
+  document.getElementById('testgroup_id_display_edit').innerHTML = testgroup.testgroup_id;
   document.getElementById('name').value = testgroup.name;
   document.getElementById('name_text').innerHTML = testgroup.name;
 
@@ -154,7 +155,7 @@ function populateTestgroup(data) {
 
   document.getElementById('creation_date').innerHTML = testgroup.creation_date;
   document.getElementById('last_updated').innerHTML = testgroup.last_updated;
-  document.getElementById('created_by').innerHTML = testgroup.creator.email
+  setSelected(document.getElementById('created_by'),testgroup.creator_id.user_id);
 
   document.getElementById('editform_div').style.display = 'none';
   document.getElementById('testgroup_display_div').style.display = 'block';
@@ -195,7 +196,7 @@ function switchToAdd() {
   document.getElementById('testgroup_id_display_edit').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
   document.getElementById('creation_date').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
   document.getElementById('last_updated').innerHTML = '<em>Automatically generated for a new Testgroup</em>';
-  document.getElementById('created_by').innerHTML = 'You!';
+  setSelected(document.getElementById('created_by'),current_user_id);
   enableForm('edit_testgroup_form');
   document.getElementById('editform_div').style.display = 'block';
 }
@@ -254,7 +255,8 @@ function checkFormContents(f) {
   return (
           checkString(f.name, 'Name') &&
           verifySelected(f.product, 'Product') &&
-          verifySelected(f.branch, 'Branch')
+          verifySelected(f.branch, 'Branch') &&
+          verifySelected(f.created_by, "Created By")
          );
 }
 

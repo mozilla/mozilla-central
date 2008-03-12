@@ -75,7 +75,7 @@ function populateTestday(data) {
 
   document.getElementById('edit_testday_form_creation_date').innerHTML = testday.creation_date;
   document.getElementById('edit_testday_form_last_updated').innerHTML = testday.last_updated;
-  document.getElementById('edit_testday_form_created_by').innerHTML = testday.creator.email
+  setSelected(document.getElementById('edit_testday_form_created_by'),testday.creator_id.user_id);
 
   document.getElementById('edit_testday_form_div').style.display = 'block';
   disableForm('edit_testday_form');
@@ -98,7 +98,7 @@ function switchTestdayFormToAdd() {
   document.getElementById('edit_testday_form_testday_id_display').innerHTML = '<em>Automatically generated for a new Testday</em>';
   document.getElementById('edit_testday_form_creation_date').innerHTML = '<em>Automatically generated for a new Testday</em>';
   document.getElementById('edit_testday_form_last_updated').innerHTML = '<em>Automatically generated for a new Testday</em>';
-  document.getElementById('edit_testday_form_testday_id_display').innerHTML = 'You!';
+  setSelected(document.getElementById('edit_testday_form_created_by'),current_user_id);
   document.getElementById('edit_testday_form_submit').value = 'Add Testday';
   document.getElementById('edit_testday_form_mode').value = 'add';
   enableForm('edit_testday_form');
@@ -117,7 +117,8 @@ function checkTestdayForm(f) {
   return (
           checkString(f.edit_testday_form_name,"testday description",false) &&
           checkTimestamp(f.edit_testday_form_start_timestamp,false) &&
-          checkTimestamp(f.edit_testday_form_finish_timestamp,false)
+          checkTimestamp(f.edit_testday_form_finish_timestamp,false) &&
+          verifySelected(f.edit_testday_form_created_by, "Created By")
          );
 }
 

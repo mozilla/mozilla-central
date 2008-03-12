@@ -40,7 +40,10 @@ Litmus::DB::Branch->table('branches');
 Litmus::DB::Branch->columns(All => qw/branch_id product_id name detect_regexp enabled creation_date last_updated creator_id/);
 Litmus::DB::Branch->columns(Essential => qw/branch_id product_id name detect_regexp enabled creation_date last_updated creator_id/);
 Litmus::DB::Branch->utf8_columns(qw/name detect_regexp/);
-Litmus::DB::Branch->columns(TEMP => qw/creator/);
+Litmus::DB::Branch->columns(TEMP => qw//);
+
+Litmus::DB::Branch->column_alias("creator_id", "creator");
+Litmus::DB::Branch->column_alias("product_id", "product");
 
 Litmus::DB::Branch->has_many(test_results => 'Litmus::DB::Testresult');
 Litmus::DB::Branch->has_a(product_id=>'Litmus::DB::Product');

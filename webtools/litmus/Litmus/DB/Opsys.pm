@@ -40,7 +40,7 @@ Litmus::DB::Opsys->table('opsyses');
 Litmus::DB::Opsys->columns(All => qw/opsys_id platform_id name detect_regexp creation_date last_updated creator_id/);
 Litmus::DB::Opsys->columns(Essential => qw/opsys_id platform_id name detect_regexp creation_date last_updated creator_id/);
 Litmus::DB::Opsys->utf8_columns(qw/name detect_regexp/);
-Litmus::DB::Opsys->columns(TEMP => qw /creator/);
+Litmus::DB::Opsys->columns(TEMP => qw//);
 
 Litmus::DB::Opsys->column_alias("platform_id", "platform");
 Litmus::DB::Opsys->column_alias("creator_id", "creator");

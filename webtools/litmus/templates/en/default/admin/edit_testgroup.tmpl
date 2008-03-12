@@ -67,19 +67,17 @@
         </tr>
 
         <tr>
-	  <td class="headerleft">Creation Date:</td>
-	  <td colspan="2" name="creation_date" id="creation_date"></td>
-	</tr>
-
-	<tr>
-	  <td class="headerleft">Last Updated:</td>
-	  <td colspan="2" name="last_updated" id="last_updated"></td>
-	</tr>
-
-	<tr>
-	  <td class="headerleft">Created by:</td>
-	  <td colspan="2" name="created_by" id="created_by"></td>
-	</tr>
+          <td class="headerleft">Created By:</div></td>
+          <td>[% INCLUDE form_widgets/select_author.tmpl name="created_by" disabled=1 placeholder=1 %]
+        </tr>
+        <tr>
+          <td class="headerleft">Creation Date:</div></td>
+          <td name="creation_date" id="creation_date"></td>
+        </tr>
+        <tr>
+          <td class="headerleft">Last Updated:</div></td>
+          <td name="last_updated" id="last_updated"></td>
+        </tr>
 
 	<tr>
 	<td colspan="3"><hr/></td>

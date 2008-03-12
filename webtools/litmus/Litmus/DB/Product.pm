@@ -40,7 +40,7 @@ Litmus::DB::Product->table('products');
 Litmus::DB::Product->columns(All => qw/product_id name iconpath enabled creation_date last_updated creator_id/);
 Litmus::DB::Product->columns(Essential => qw/product_id name iconpath enabled creation_date last_updated creator_id/);
 Litmus::DB::Product->utf8_columns(qw/name iconpath/);
-Litmus::DB::Product->columns(TEMP => qw /creator/);
+Litmus::DB::Product->columns(TEMP => qw //);
 
 Litmus::DB::Product->column_alias("product_id", "productid");
 Litmus::DB::Product->column_alias("creator_id", "creator");

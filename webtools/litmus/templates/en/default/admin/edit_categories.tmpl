@@ -29,6 +29,7 @@
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
+var current_user_id=[% user.user_id %];
 var products=[% products_js %];
 var branches=[% branches_js %];
 var testgroups=[% testgroups_js %];
@@ -41,7 +42,7 @@ var testgroups=[% testgroups_js %];
 
   <div id="content">
 
-	[% IF defaultemail.isSuperUser %]
+    [% IF defaultemail.isSuperUser %]
       [% INCLUDE admin/form_widgets/update_products.tmpl %]
       [% INCLUDE admin/form_widgets/update_platforms.tmpl %]
       [% INCLUDE admin/form_widgets/update_opsyses.tmpl %]

@@ -87,7 +87,7 @@ if ($c->param) {
                   start_timestamp => $c->param('edit_testday_form_start_timestamp'),
                   finish_timestamp => $c->param('edit_testday_form_finish_timestamp'),
                   creation_date => $now,
-                  creator_id => $user_id,
+                  creator_id => $c->param('edit_testday_form_created_by'),
                  );
       my @subgroups;
       
@@ -145,6 +145,7 @@ if ($c->param) {
         $testday->description($c->param('edit_testday_form_desc'));
         $testday->start_timestamp($c->param('edit_testday_form_start_timestamp'));
         $testday->finish_timestamp($c->param('edit_testday_form_finish_timestamp'));
+        $testday->creator_id($c->param('edit_testday_form_created_by'));
         if ($c->param('product')) {
           Litmus::Auth::requireProductAdmin("manage_testdays.cgi", $c->param('product'));
           $testday->product_id($c->param('product'));
@@ -191,6 +192,7 @@ my $testgroups = Litmus::FormWidget->getTestgroups();
 my $subgroups = Litmus::FormWidget->getSubgroups();
 my $testdays = Litmus::FormWidget->getTestdays();
 my $locales = Litmus::FormWidget->getLocales;
+my $authors = Litmus::FormWidget->getAuthors();
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
 my $products_js = $json->objToJson($products);
@@ -211,6 +213,8 @@ $vars->{'products_js'} = $products_js;
 $vars->{'branches_js'} = $branches_js;
 $vars->{'testgroups_js'} = $testgroups_js;
 $vars->{'subgroups_js'} = $subgroups_js;
+$vars->{'authors'} = $authors;
+$vars->{'user'} = Litmus::Auth::getCurrentUser();
 
 if ($status and $message) {
   $vars->{'onload'} = "toggleMessage('$status','$message');";

@@ -78,8 +78,6 @@ if ($c->param("testcase_id")) {
   my @testcases = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
   $subgroup->{'testgroups'} = \@testgroups;
   $subgroup->{'testcases'} = \@testcases;
-  my $creator = Litmus::DB::User->retrieve($subgroup->creator_id->user_id);
-  $subgroup->{'creator'} = $creator;
   $js = $json->objToJson($subgroup);
 } elsif ($c->param("testgroup_id")) {
   my $testgroup_id = $c->param("testgroup_id");
@@ -88,8 +86,6 @@ if ($c->param("testcase_id")) {
   $testgroup->{'subgroups'} = \@subgroups;
   my @branches = Litmus::DB::Branch->search_ByTestgroup($testgroup_id);
   $testgroup->{'branches'} = \@branches;
-  my $creator = Litmus::DB::User->retrieve($testgroup->creator_id->user_id);
-  $testgroup->{'creator'} = $creator;
   $js = $json->objToJson($testgroup);
 } elsif ($c->param("test_run_id")) {
   my $test_run_id = $c->param("test_run_id");
@@ -177,36 +173,26 @@ if ($c->param("testcase_id")) {
 } elsif ($c->param("product_id")) {
   my $product_id = $c->param("product_id");
   my $product = Litmus::DB::Product->retrieve($product_id);
-  my $creator = Litmus::DB::User->retrieve($product->creator_id->user_id);
-  $product->{'creator'} = $creator;
   $js = $json->objToJson($product);
 } elsif ($c->param("platform_id")) {
   my $platform_id = $c->param("platform_id");
   my $platform = Litmus::DB::Platform->retrieve($platform_id);
-  my $creator = Litmus::DB::User->retrieve($platform->creator_id->user_id);
-  $platform->{'creator'} = $creator;
   my @products = Litmus::DB::Product->search_ByPlatform($platform_id);
   $platform->{'products'} = \@products;
   $js = $json->objToJson($platform);
 } elsif ($c->param("branch_id")) {
   my $branch_id = $c->param("branch_id");
   my $branch = Litmus::DB::Branch->retrieve($branch_id);
-  my $creator = Litmus::DB::User->retrieve($branch->creator_id->user_id);
-  $branch->{'creator'} = $creator;
   $js = $json->objToJson($branch);
 } elsif ($c->param("opsys_id")) {
   my $opsys_id = $c->param("opsys_id");
   my $opsys = Litmus::DB::Opsys->retrieve($opsys_id);
-  my $creator = Litmus::DB::User->retrieve($opsys->creator_id->user_id);
-  $opsys->{'creator'} = $creator;
   $js = $json->objToJson($opsys);
 } elsif ($c->param("testday_id")) {
   use Litmus::DB::TestDay;
   my $testday_id = $c->param("testday_id");
   my $testday = Litmus::DB::TestDay->retrieve($testday_id);
-  my $creator = Litmus::DB::User->retrieve($testday->creator_id->user_id);
-  $testday->{'creator'} = $creator;
- my @subgroups = Litmus::DB::Subgroup->search_ByTestDay($testday_id);
+  my @subgroups = Litmus::DB::Subgroup->search_ByTestDay($testday_id);
   $testday->{'subgroups'} = \@subgroups;
   $js = $json->objToJson($testday);
 } elsif ($c->param("products")) {
