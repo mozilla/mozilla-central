@@ -904,6 +904,7 @@ function PrefWindow()
     this.tooltipShowing = false;
     this.tooltipShowDelay = 1000;
     this.tooltipHideDelay = 20000;
+    this.tooltipBug418798 = false;
 }
 PrefWindow.prototype.TYPE = "PrefWindow";
 
@@ -1309,9 +1310,22 @@ function pwin_onTooltipPopupShowing(popup)
     ttt.firstChild.nodeValue = this.tooltipTitle;
     var ttl = document.getElementById("czPrefTipLabel");
     ttl.firstChild.nodeValue = this.tooltipText;
-    
-    popup.sizeTo(popup.boxObject.width, fChild.boxObject.height + diff);
-    
+
+    /* In Gecko 1.9, the popup has done no layout at this point, unlike in
+     * earlier versions. As a result, the box object of all the elements
+     * within it are 0x0. It also means the height of the labels isn't
+     * updated. To deal with this, we avoid calling sizeTo with the box
+     * object (as it's 0) and instead just force the popup height to 0 -
+     * otherwise it will only ever get bigger each time, never smaller.
+     */
+    if (popup.boxObject.width == 0)
+        this.tooltipBug418798 = true;
+
+    if (this.tooltipBug418798)
+        popup.height = 0;
+    else
+        popup.sizeTo(popup.boxObject.width, fChild.boxObject.height + diff);
+
     return true;
 }
 
