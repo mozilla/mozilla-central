@@ -165,7 +165,7 @@ function publishItemArray(aItemArray, aPath, aProgressDialog) {
         icsURL.scheme = 'http';
     if (icsURL.schemeIs('webcals'))
         icsURL.scheme = 'https';
-        
+
     switch(icsURL.scheme) {
         case 'http':
         case 'https':
@@ -190,10 +190,14 @@ function publishItemArray(aItemArray, aPath, aProgressDialog) {
     storageStream.init(32768, 0xffffffff, null);
     outputStream = storageStream.getOutputStream(0);
 
-    var exporter = Components.classes["@mozilla.org/calendar/export;1?type=ics"]
-                             .getService(Components.interfaces.calIExporter);
-    exporter.exportToStream(outputStream,
-                            aItemArray.length, aItemArray, null);
+    var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                               .createInstance(Components.interfaces.calIIcsSerializer);
+    serializer.addItems(aItemArray, aItemArray.length);
+    // Outlook requires METHOD:PUBLISH property:
+    var methodProp = getIcsService().createIcalProperty("METHOD");
+    methodProp.value = "PUBLISH";
+    serializer.addProperty(methodProp);
+    serializer.serializeToStream(outputStream);
     outputStream.close();
 
     inputStream = storageStream.newInputStream(0);
