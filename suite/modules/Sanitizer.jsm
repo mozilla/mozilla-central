@@ -39,7 +39,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["Sanitizer"];
+var EXPORTED_SYMBOLS = ["Sanitizer"];
 
 var Sanitizer = {
   get _prefs() {
