@@ -3539,15 +3539,13 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
           NS_ASSERTION(str, "Failed to get current draft id url");
           if (str)
           {
-            nsMsgKeyArray messageID;
             nsCAutoString srcStr(str+1);
-            PRInt32 num=0, err;
-            num = srcStr.ToInteger(&err);
-            if (num != PRInt32(nsMsgKey_None))
+            PRInt32 err;
+            nsMsgKey num = srcStr.ToInteger(&err);
+            if (num != nsMsgKey_None)
             {
-              messageID.Add(num);
-              rv = imapFolder->StoreImapFlags(kImapMsgDeletedFlag, PR_TRUE, messageID.GetArray(),
-                                                messageID.GetSize(), nsnull);
+              rv = imapFolder->StoreImapFlags(kImapMsgDeletedFlag, PR_TRUE,
+                                              &num, 1, nsnull);
             }
           }
         }

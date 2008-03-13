@@ -357,17 +357,6 @@ void nsMsgSearchNews::PreExitFunction (URL_Struct * /*url*/, int status, MWConte
 }
 #endif // 0
 
-PRBool nsMsgSearchNews::DuplicateHit(PRUint32 artNum)
-{
-  // Assert that m_hits is sorted!
-  PRUint32 size = m_hits.GetSize();
-  for (PRUint32 index = 0; index < size; ++index)
-    if (artNum == m_hits.ElementAt(index))
-      return PR_TRUE;
-  return PR_FALSE;
-}
-
-
 void nsMsgSearchNews::CollateHits()
 {
   // Since the XPAT commands are processed one at a time, the result set for the
@@ -382,34 +371,22 @@ void nsMsgSearchNews::CollateHits()
   // on a given article we got
   m_candidateHits.QuickSort(CompareArticleNumbers);
 
-  PRUint32 candidate = m_candidateHits.ElementAt(0);
-
-  if (m_ORSearch)
+  // For an OR search we only need to count the first occurrence of a candidate.
+  PRUint32 termCount = 1;
+  if (!m_ORSearch)
   {
-    // first candidate, so just add it
-    m_hits.Add(candidate);
-    for (PRUint32 index = 1; index < size; ++index)
-    {
-      candidate = m_candidateHits.ElementAt(index);
-      if (!DuplicateHit(candidate)) // if not a dup, add it to the hit list
-        m_hits.Add(candidate);
-    }
-    return;
+    // We have a traditional AND search which must be collated. In order to
+    // get promoted into the hits list, a candidate article number must appear
+    // in the results of each XPAT command. So if we fire 3 XPAT commands (one
+    // per search term), the article number must appear 3 times. If it appears
+    // fewer than 3 times, it matched some search terms, but not all.
+    m_searchTerms->Count(&termCount);
   }
-
-  // otherwise we have a traditional AND search which must be collated
-
-  // In order to get promoted into the hits list, a candidate article number
-  // must appear in the results of each XPAT command. So if we fire 3 XPAT
-  // commands (one per search term), the article number must appear 3 times.
-  // If it appears less than 3 times, it matched some search terms, but not all.
-
-  PRUint32 termCount;
-  m_searchTerms->Count(&termCount);
   PRUint32 candidateCount = 0;
+  PRUint32 candidate = m_candidateHits[0];
   for (PRUint32 index = 0; index < size; ++index)   
   {
-    PRUint32 possibleCandidate = m_candidateHits.ElementAt(index);
+    PRUint32 possibleCandidate = m_candidateHits[index];
     if (candidate == possibleCandidate)
     {
       ++candidateCount;
