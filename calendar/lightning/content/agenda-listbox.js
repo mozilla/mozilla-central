@@ -55,17 +55,21 @@ function initAgendaListbox() {
     this.agendaListboxControl.removeAttribute("suppressonselect");
     this.newalldayeventlistItem = document.getElementById("richlistitem-container").firstChild;
     this.eventlistItem = this.newalldayeventlistItem.nextSibling;
-    this.today = new Synthetic(true, 1);
+    var showTodayHeader = (document.getElementById("today-header-hidden").getAttribute("checked") == "true");
+    var showTomorrowHeader = (document.getElementById("tomorrow-header-hidden").getAttribute("checked") == "true");
+    var showSoonHeader = (document.getElementById("nextweek-header-hidden").getAttribute("checked") == "true");
+    this.today = new Synthetic(showTodayHeader, 1);
     this.addPeriodListItem(this.today, "today-header");
-    this.tomorrow = new Synthetic(false, 1);
-    this.soon = new Synthetic(false, 5);
+    this.tomorrow = new Synthetic(showTomorrowHeader, 1);
+    this.soon = new Synthetic(showSoonHeader, 5);
     this.periods = [this.today, this.tomorrow, this.soon];
 };
 
 agendaListbox.addPeriodListItem =
 function addPeriodListItem(aPeriod, aItemId) {
-    aPeriod.listItem = document.getElementById(aItemId).cloneNode(true);
+    aPeriod.listItem = document.getElementById(aItemId + "-hidden").cloneNode(true);
     agendaListbox.agendaListboxControl.appendChild(aPeriod.listItem);
+    aPeriod.listItem.id = aItemId;
     aPeriod.listItem.getCheckbox().setChecked(aPeriod.open);
     aPeriod.listItem.getCheckbox().addEventListener("CheckboxStateChange", this.onCheckboxChange, true);
 }
@@ -85,6 +89,7 @@ function onCheckboxChange(event) {
     var listItem = getParentNode(periodCheckbox, "agenda-checkbox-richlist-item");
     var period = listItem.getItem();
     period.open= lopen;
+    document.getElementById(listItem.id + "-hidden").setAttribute("checked", lopen);
     if (lopen) {
         agendaListbox.refreshCalendarQuery(period.start, period.end);
     } else {
@@ -483,7 +488,6 @@ function refreshPeriodDates(newDate) {
         curPeriod.end = newDate.clone();
         curPeriod.listItem.setItem(curPeriod, this.showstoday);
     }
-    this.periods[0].listItem.getCheckbox().setChecked(true);
     this.refreshCalendarQuery();
 };
 
