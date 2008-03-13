@@ -24,10 +24,11 @@ use strict;
 
 use Bugzilla::Util;
 use Bugzilla::Error;
+use Bugzilla::Testopia::Product;
 use JSON;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Testopia::Build::EXPORT = qw(check_build check_build_by_name);
+@Bugzilla::Testopia::Build::EXPORT = qw(check_build);
 
 ###############################
 ####    Initialization     ####
@@ -134,6 +135,7 @@ sub set_milestone {
 }
 sub set_name { 
     my ($self, $value) = @_;
+    
     $value = $self->_check_name($value, $self->product);
     $self->set('name', $value); 
 }
@@ -186,24 +188,17 @@ sub create {
 ####      Functions        ####
 ###############################
 sub check_build {
-    my ($name, $product) = @_;
+    my ($name, $product, $throw) = @_;
     my $dbh = Bugzilla->dbh;
     my $is = $dbh->selectrow_array(
         "SELECT build_id FROM test_builds 
          WHERE name = ? AND product_id = ?",
          undef, $name, $product->id);
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $name}) unless $is;
+    if ($throw){
+        ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $name}) unless $is;
+        return Bugzilla::Testopia::Build->new($is);
+    }
     return $is;
-}
-
-sub check_build_by_name {
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    my $id = $dbh->selectrow_array(
-        "SELECT build_id FROM test_builds 
-         WHERE name = ?", undef, $name);
- 
-    return $id;
 }
 
 ###############################
@@ -395,16 +390,6 @@ Boolean - Determines whether to show this build in lists for selection.
  
  Params:      name - string representing the name to check for.
               product_id - the product to lookup the build in.
-                       
- Returns:     The id of the build if one matches.
-              undef if it does not match any build.
- 
-=item C<check_build_by_name($name)> DEPRECATED
-
- Description: Checks if a build of a given name exists. DEPRECATED please use
-              check_build($name, $product_id) instead.
- 
- Params:      name - string representing the name to check for.
                        
  Returns:     The id of the build if one matches.
               undef if it does not match any build.

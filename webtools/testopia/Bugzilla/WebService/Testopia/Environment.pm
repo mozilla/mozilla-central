@@ -26,6 +26,7 @@ use strict;
 use base qw(Bugzilla::WebService);
 
 use Bugzilla::Constants;
+use Bugzilla::Error;
 use Bugzilla::Testopia::Environment;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
@@ -46,6 +47,7 @@ sub get {
 }
 
 sub check_environment {
+    my $self = shift;
     my ($name, $product) = @_;
     
     Bugzilla->login(LOGIN_REQUIRED);
@@ -60,10 +62,10 @@ sub check_environment {
         $product = Bugzilla::Product::check_product($product);
         $product = Bugzilla::Testopia::Product->new($product->id);
     }
-    
+
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    return Bugzilla::Testopia::Build->new(check_environment($name, $product->id));
+    return Bugzilla::Testopia::Environment::check_environment($name, $product);
 }
 
 sub list {
@@ -94,6 +96,10 @@ sub create {
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
+    if (! exists $new_values->{'isactive'}){
+         $new_values->{'isactive'} = 1;
+    }
+    
     my $environment = Bugzilla::Testopia::Environment->create($new_values);
     
     # Result is new environment
@@ -110,8 +116,8 @@ sub update {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $environment_id}) unless $environment;
     ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canedit;
     
-    $environment->set_name($new_values->{'name'});
-    $environment->set_isactive($new_values->{'isactive'});
+    $environment->set_name($new_values->{'name'}) if $new_values->{'name'};
+    $environment->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
     
     $environment->update();
 

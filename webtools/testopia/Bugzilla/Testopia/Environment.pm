@@ -366,6 +366,7 @@ sub categories_to_json {
 
     my $firstloop = 1;
     print "[";
+    
     for my $key (keys %categoryHash){    
         if($firstloop == 0){
             print ",";
@@ -534,7 +535,7 @@ Returns environment id if environment exists
 =cut
 
 sub check_environment{
-    my ($name, $product_id) = (@_);
+    my ($name, $product, $throw) = (@_);
   
     my $dbh = Bugzilla->dbh;
 
@@ -542,8 +543,12 @@ sub check_environment{
         "SELECT environment_id 
            FROM test_environments
           WHERE name = ? AND product_id = ?",
-          undef, ($name, $product_id));
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $name}) unless $used;
+          undef, ($name, $product->id));
+    if ($throw){
+        ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $name}) unless $used;
+        return Bugzilla::Testopia::Environment->new($used);
+    }
+    
     return $used;             
 }
 

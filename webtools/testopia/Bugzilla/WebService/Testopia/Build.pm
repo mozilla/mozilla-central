@@ -25,6 +25,7 @@ use strict;
 
 use base qw(Bugzilla::WebService);
 
+use Bugzilla::Error;
 use Bugzilla::Constants;
 use Bugzilla::Testopia::Build;
 use Bugzilla::Testopia::Product;
@@ -47,6 +48,7 @@ sub get {
 }
 
 sub check_build {
+    my $self = shift;
     my ($name, $product) = @_;
     
     Bugzilla->login(LOGIN_REQUIRED);
@@ -64,20 +66,23 @@ sub check_build {
     
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    return Bugzilla::Testopia::Build->new(Bugzilla::Testopia::Build::check_build($name, $product));
+    return Bugzilla::Testopia::Build::check_build($name, $product, "THROWERROR");
 }
 
 sub create{
     my $self = shift;
     my ($new_values) = @_;  # Required: name, product_id
-    
+
     Bugzilla->login(LOGIN_REQUIRED);
     
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
-    
+  
     $new_values->{'milestone'} ||= $product->default_milestone;
-
+    if (! exists $new_values->{'isactive'}){
+         $new_values->{'isactive'} = 1;
+    }
+    
     my $build = Bugzilla::Testopia::Build->create($new_values);
     
     # Result is new build
@@ -86,61 +91,22 @@ sub create{
 
 sub update{
     my $self = shift;
-    my ($ids, $new_values) = @_;
+    my ($id, $new_values) = @_;
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my @ids;
-    if (ref $ids eq 'ARRAY'){
-        @ids = @$ids;
-    }
-    elsif ($ids =~ /,/){
-        @ids = split(/[\s,]+/, $ids);
-    }
-    else {
-        push @ids, $ids;
-    }
+    my $build = new Bugzilla::Testopia::Build($id);
+    ThrowUserError("invalid-test-id-non-existent", {'id' => $id, 'type' => 'Build'}) unless $build;
+    ThrowUserError('testopia-read-only', {'object' => $build->product}) unless $build->product->canedit;
 
-    my @builds;
-    foreach my $id (@ids){
-        my $build = new Bugzilla::Testopia::Build($id);
-        unless ($build){
-            ThrowUserError("invalid-test-id-non-existent", {'id' => $id, 'type' => 'Build'}) if scalar @ids == 1;
-            push @builds, {FAILED => 1, message => "Build $id does not exist"};
-            next;
-        }
-        unless ($build->product->canedit){
-            ThrowUserError('testopia-read-only', {'object' => $build->product}) if scalar @ids == 1;
-            push @builds, {FAILED => 1, message => "You do not have rights to view this product"};
-            next;
-        }
-        if (exists $new_values->{'name'}){
-            check_build($new_values->{'name'}, $build->product) if scalar @ids == 1;
-            eval {check_build($new_values->{'name'}, $build->product)};
-            if ($@){
-                push @builds, {FAILED => 1, message => "A Build named " . $new_values->{'name'} . " already exists in the selected product."};
-                next;
-            }
-        }
-        if (exists $new_values->{'milestone'}){
-            Bugzilla::Milestone::check_milestone($build->product, $new_values->{'milestone'}) if scalar @ids == 1;
-            eval {Bugzilla::Milestone::check_milestone($build->product, $new_values->{'milestone'})};
-            if ($@){
-                push @builds, {FAILED => 1, message => "Invalid milestone"};
-                next;
-            }
-        }
+    $build->set_name($new_values->{'name'}) if $new_values->{'name'};
+    $build->set_description($new_values->{'description'}) if exists $new_values->{'description'};
+    $build->set_milestone($new_values->{'milestone'}) if $new_values->{'milestone'};
+    $build->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
+    
+    $build->update;
 
-        $build->set_name($new_values->{'name'}) if $new_values->{'name'};
-        $build->set_description($new_values->{'description'}) if exists $new_values->{'description'};
-        $build->set_milestone($new_values->{'milestone'}) if $new_values->{'milestone'};
-        $build->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
-        
-        $build->update;
-        return $build if scalar @ids == 1;
-    }
-
-    return @builds;
+    return $build;
 }
 
 # DEPRECATED use Build::get instead
@@ -229,15 +195,11 @@ Provides methods for automated scripts to manipulate Testopia Builds
 
 =item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
 
-=item C<update($ids, $values)>
+=item C<update($id, $values)>
 
  Description: Updates the fields of the selected build or builds.
 
- Params:      $ids - Integer/String/Array
-                     Integer: A single build ID.
-                     String:  A comma separates string of Build IDs for batch
-                              processing.
-                     Array:   An array of build IDs for batch mode processing
+ Params:      $id - Integer: A single build ID.
 
               $values - Hash of keys matching Build fields and the new values 
               to set each field to.
@@ -250,10 +212,7 @@ Provides methods for automated scripts to manipulate Testopia Builds
                         | isactive    | Boolean        |
                         +-------------+----------------+
 
- Returns:     Hash/Array: In the case of a single build it is returned. If a 
-              list was passed, it returns an array of build hashes. If the
-              update on any particular build failed, the hash will contain a 
-              FAILED key and the message as to why it failed.
+ Returns:     Hash: The updated Build object hash.
 
 =back
 

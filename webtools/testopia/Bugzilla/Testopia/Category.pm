@@ -63,6 +63,7 @@ sub _check_product {
     my $product;
     if (trim($product_id) !~ /^\d+$/ ){
         $product = Bugzilla::Product::check_product($product_id);
+        $product = Bugzilla::Testopia::Product->new($product->id);
     }
     else {
         $product = Bugzilla::Testopia::Product->new($product_id);
@@ -168,7 +169,6 @@ sub check_case_category {
         "SELECT category_id FROM test_case_categories 
          WHERE name = ? AND product_id = ?",
          undef, $name, $product->id);
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Case Category', id => $name}) unless $is;
     return $is;
 }
 

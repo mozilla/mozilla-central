@@ -83,7 +83,7 @@ use constant DB_COLUMNS => qw(
 use constant REQUIRED_CREATE_FIELDS => qw(case_id run_id build_id environment_id case_run_status_id);
 use constant UPDATE_COLUMNS         => qw(case_run_status_id case_text_version notes sortkey);
 
-sub VALIDATORS {
+use constant VALIDATORS => {
     case_id            => \&_check_case_id,
     build_id           => \&_check_build_id,
     run_id             => \&_check_run_id,
@@ -206,6 +206,8 @@ sub create {
     $field_values->{iscurrent} = 1;
     
     my $self = $class->SUPER::insert_create_data($field_values);
+    
+    $self->set_as_current;
 
     return $self;
 }
@@ -602,12 +604,13 @@ Attaches the specified bug to this test case-run
 sub attach_bug {
     my $self = shift;
     my ($bugs, $caserun_id) = @_;
-    my @bugs = Bugzilla::Testopia::TestCase::_check_bugs($bugs);
+    $bugs = Bugzilla::Testopia::TestCase->_check_bugs($bugs, "ATTACH");
+
     $caserun_id ||= $self->{'case_run_id'};
     my $dbh = Bugzilla->dbh;
     
     $dbh->bz_lock_tables('test_case_bugs WRITE');
-    foreach my $bug (@bugs){ 
+    foreach my $bug (@$bugs){ 
         my ($exists) = $dbh->selectrow_array(
                 "SELECT bug_id 
                    FROM test_case_bugs 

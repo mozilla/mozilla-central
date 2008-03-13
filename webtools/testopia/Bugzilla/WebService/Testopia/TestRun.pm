@@ -28,6 +28,7 @@ use base qw(Bugzilla::WebService);
 use Bugzilla::Constants;
 use Bugzilla::Product;
 use Bugzilla::User;
+use Bugzilla::Util;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
@@ -45,8 +46,7 @@ sub get {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $run_id}) unless $run;
     ThrowUserError('testopia-permission-denied', {'object' => $run}) unless $run->canview;
         
-    $run->test_run_count();
-    $run->test_case_count();
+    $run->{'case_count'} = $run->case_count();
 
     return $run;
 }
@@ -76,15 +76,17 @@ sub create {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my $plan = Bugzilla::Testopia::Plan->new($new_values->{'plan_id'});
+    my $plan = Bugzilla::Testopia::TestPlan->new($new_values->{'plan_id'});
     ThrowUserError("testopia-create-denied", {'object' => 'Test Run', 'plan' => $plan}) unless ($plan->canedit);
+    
+    $new_values->{'plan_text_version'} ||= $plan->version;
 
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
-        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product);
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
     }
     if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
-        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $plan->product);
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $plan->product, "THROWERROR");
         $new_values->{'environment_id'} = $environment->id;
     }
 
@@ -105,18 +107,18 @@ sub update {
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
     
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
-        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product);
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
     }
     if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
-        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product);
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'environment_id'} = $environment->id;
     }
        
     my $timestamp;
     $timestamp = $run->stop_date;
     $timestamp = undef if $new_values->{'status'};
-    $timestamp = get_time_stamp() if $new_values->{'status'} == 0 && !$run->stop_date;
+    $timestamp = Bugzilla::Testopia::Util::get_time_stamp() if $new_values->{'status'} == 0 && !$run->stop_date;
  
     $run->set_summary(trim($new_values->{'summary'})) if exists $new_values->{'summary'};
     $run->set_product_version($new_values->{'product_version'}) if $new_values->{'product_version'};
@@ -262,8 +264,12 @@ sub get_tags {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $run_id}) unless $run;
     ThrowUserError('testopia-permission-denied', {'object' => $run}) unless $run->canview;
 
+    my @results;
+    foreach my $tag (@{$run->tags}){
+        push @results, $tag->name;
+    }
     # Result list of tags otherwise an exception will be thrown
-    return $run->tags;
+    return \@results;
 }
 
 1;

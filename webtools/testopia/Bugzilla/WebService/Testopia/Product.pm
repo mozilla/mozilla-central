@@ -25,6 +25,7 @@ use strict;
 
 use base qw(Bugzilla::WebService);
 
+use Bugzilla::Error;
 use Bugzilla::Constants;
 use Bugzilla::Testopia::Product;
 
@@ -71,6 +72,50 @@ sub check_product {
     my $product = _validate($name);
     
     return $product;
+}
+
+sub check_category {
+    my $self = shift;
+    my ($name, $product) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    if (ref $product){
+        $product = $product;
+    }
+    elsif ($product =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($product);
+    }
+    else {
+        $product = Bugzilla::Product::check_product($product);
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+    
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
+    require Bugzilla::Testopia::Category;
+    return Bugzilla::Testopia::Category->new(Bugzilla::Testopia::Category::check_case_category($name, $product));
+}
+
+sub check_component {
+    my $self = shift;
+    my ($name, $product) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    if (ref $product){
+        $product = $product;
+    }
+    elsif ($product =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($product);
+    }
+    else {
+        $product = Bugzilla::Product::check_product($product);
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+    
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
+    require Bugzilla::Component;
+    return Bugzilla::Component::check_component($product,$name);
 }
 
 sub get_builds {
@@ -192,13 +237,29 @@ Provides methods for automated scripts to expose Testopia Product data.
 
 =over
 
-=item C<get($id)>
+=item C<check_category($name, $product)>
 
- Description: Used to load an existing product from the database.
+ Description: Looks up and returns a category by name.
 
- Params:      $id - An integer representing the ID in the database
+ Params:      $name - String: name of the category.
+              $product - Integer/String/Object
+                 Integer: product_id of the product in the Database
+                 String: Product name
+                 Object: Blessed Bugzilla::Product object
 
- Returns:     A blessed Bugzilla::Testopia::Product object hash
+ Returns:     Hash: Matching Category object hash or error if not found.
+
+=item C<check_component($name, $product)>
+
+ Description: Looks up and returns a component by name.
+
+ Params:      $name - String: name of the category.
+              $product - Integer/String/Object
+                 Integer: product_id of the product in the Database
+                 String: Product name
+                 Object: Blessed Bugzilla::Product object
+
+ Returns:     Hash: Matching component object hash or error if not found.
 
 =item C<check_product($name, $product)>
 
@@ -211,6 +272,14 @@ Provides methods for automated scripts to expose Testopia Product data.
                          Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching Product object hash or error if not found.
+
+=item C<get($id)>
+
+ Description: Used to load an existing product from the database.
+
+ Params:      $id - An integer representing the ID in the database
+
+ Returns:     A blessed Bugzilla::Testopia::Product object hash
 
 =item C<get_builds($product, $active)>
 

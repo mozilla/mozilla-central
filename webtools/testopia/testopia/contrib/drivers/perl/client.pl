@@ -55,6 +55,8 @@ use Pod::Usage;
 use XMLRPC::Lite;
 use File::Basename qw(dirname);
 use HTTP::Cookies;
+use Carp;
+use Data::Dumper;
 
 my $help;
 my $Bugzilla_uri;
@@ -78,47 +80,19 @@ sub show_results {
 
 	die_on_fault($soapresult);
 
-	my $result = $soapresult->result;
+    print Dumper($soapresult->result);
 
-	if (ref($result) eq 'ARRAY') {
-		my $ct = 0;
-	
-		print "Array Results (size = " . scalar(@$result). "):\n";
-
-		foreach $plan (@$result)
-		{
-			foreach $key (keys(%$plan))
-			{
-				print "(object " . $ct . ") " . $key . ": " . $$plan{$key} . "\n";
-			}
-			
-			$ct++;
-		}
-	}
-	elsif (ref($result) eq 'HASH'){
-		print "Hash Results:\n";
-		
-		foreach (keys(%$result)){
-	        	print "$_: $$result{$_}\n";
-		}
-	}
-	else{
-		print "Simple Result: " . $result . "\n";
-	}
 }
 
-sub die_on_fault 
-{
+sub die_on_fault {
     my $soapresult = shift;
 
-    if ($soapresult->fault) 
-    {
-        die 'Fault: ' . $soapresult->faultcode . ' ' . $soapresult->faultstring;
+    if ($soapresult->fault){
+        confess 'Fault: ' . $soapresult->faultcode . ' ' . $soapresult->faultstring;
     }
 }
 
-sub syntaxhelp 
-{
+sub syntaxhelp {
     my $msg = shift;
 
     print "Error: $msg\n";
@@ -147,12 +121,6 @@ my $cookie_jar =
 
 my $proxy = XMLRPC::Lite->proxy($Bugzilla_uri,
                                 'cookie_jar' => $cookie_jar);
-
-my $query = {
-          'field0-0-0' => 'author',
-          'type0-0-0'  => 'substring',
-          'value0-0-0' => 'Second'
-         };
 
 if (defined($Bugzilla_login)) {
     if ($Bugzilla_login ne '') {

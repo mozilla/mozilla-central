@@ -27,6 +27,8 @@ use base qw(Bugzilla::WebService);
 
 use Bugzilla::User;
 use Bugzilla::Constants;
+use Bugzilla::Error;
+use Bugzilla::Util;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
@@ -73,16 +75,16 @@ sub create {
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my $run = Bugzilla::Testopia::TestCaseRun->new($new_values->{'run_id'});
+    my $run = Bugzilla::Testopia::TestRun->new($new_values->{'run_id'});
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $new_values->{'run_id'}}) unless $run;
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
     
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
-        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product);
+        my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
     }
     if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
-        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product);
+        my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'environment_id'} = $environment->id;
     }
     
@@ -136,6 +138,7 @@ sub update {
     }
 
     my @results;
+   
     foreach my $caserun (@caseruns){
         if ($caserun->{'FAILED'}){
             push @results, $caserun;
@@ -148,8 +151,8 @@ sub update {
 
         $run_id = $caserun->run_id;
         $case_id = $caserun->case_id;
-        $build_id ||= $caserun->build_id;
-        $env_id ||= $caserun->env_id;
+        $build_id ||= $caserun->build->id;
+        $env_id ||= $caserun->environment->id;
     
         # Check to see what has changed then use set methods
         # The order is important. We need to check if the build or environment has 
@@ -237,7 +240,7 @@ sub attach_bug {
 
     #Result is a test case run hash map
     my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
-    
+
     # If we have just the id, the third arg will not be set.
     $bug_ids = $case_id unless $build_id;
     

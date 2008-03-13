@@ -85,7 +85,7 @@ use constant UPDATE_COLUMNS         => qw(environment_id build_id product_versio
                                           summary manager_id plan_text_version notes
                                           stop_date);
 
-sub VALIDATORS {
+use constant VALIDATORS => {
     plan_id           => \&_check_plan,
     environment_id    => \&_check_env,
     build_id          => \&_check_build,
@@ -321,7 +321,10 @@ sub add_tag {
     my $dbh = Bugzilla->dbh;
     my @tags;
     foreach my $t (@_){
-         push @tags, split(',', $t);
+        if (ref $t eq 'ARRAY'){
+            push @tags, $_ foreach @$t;
+        }
+        push @tags, split(',', $t);
     }
 
     foreach my $name (@tags){
@@ -959,6 +962,7 @@ is assoceated with
 sub plan {
     my $self = shift;
     return $self->{'plan'} if exists $self->{'plan'};
+    require Bugzilla::Testopia::TestPlan;
     $self->{'plan'} = Bugzilla::Testopia::TestPlan->new($self->{'plan_id'});
     return $self->{'plan'};
 }

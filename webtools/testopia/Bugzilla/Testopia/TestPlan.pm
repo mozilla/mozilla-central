@@ -41,6 +41,7 @@ use Text::Diff;
 use JSON;
 
 use base qw(Exporter Bugzilla::Object);
+@Bugzilla::Testopia::TestCase::EXPORT = qw(lookup_type_by_name);
 
 ###############################
 ####    Initialization     ####
@@ -76,7 +77,7 @@ use constant DB_COLUMNS => qw(
 use constant REQUIRED_CREATE_FIELDS => qw(product_id author_id type_id default_product_version name);
 use constant UPDATE_COLUMNS         => qw(product_id type_id default_product_version name isactive);
 
-sub VALIDATORS {
+use constant VALIDATORS => {
     product_id => \&_check_product,
     author_id  => \&_check_author,
     type_id    => \&_check_type,
@@ -118,6 +119,7 @@ sub _check_product {
     my $product;
     if ($product_id !~ /^\d+$/ ){
         $product = Bugzilla::Product::check_product($product_id);
+        $product = Bugzilla::Testopia::Product->new($product->id);
     }
     else {
         $product = Bugzilla::Testopia::Product->new($product_id);
@@ -148,7 +150,10 @@ sub _check_author {
 sub _check_type {
     my ($invocant, $type_id) = @_;
     $type_id = trim($type_id);
-    detaint_natural($type_id);
+    trick_taint($type_id);
+    if ($type_id !~ /^\d+$/){
+        $type_id = lookup_type_by_name($type_id) || $type_id;
+    }
     Bugzilla::Testopia::Util::validate_selection($type_id, 'type_id', 'test_plan_types');
     return $type_id;
 }
@@ -165,8 +170,12 @@ sub _check_product_version {
 
 sub _check_isactive {
     my ($invocant, $isactive) = @_;
-    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
-    return $isactive;
+    if ((defined $isactive && $isactive == 0 ) || (ref $invocant && $invocant->isactive == 0)){
+        return 0;
+    }
+    else {
+        return 1;
+    } 
 }
 
 ###############################
@@ -248,7 +257,7 @@ sub create {
              'description' => 'Default product category for test cases',
              'product_id' => $self->product->id });
     }
-    
+    delete $self->{'product'};
     return $self;
 }
 
@@ -355,7 +364,10 @@ sub add_tag {
     my $dbh = Bugzilla->dbh;
     my @tags;
     foreach my $t (@_){
-         push @tags, split(',', $t);
+        if (ref $t eq 'ARRAY'){
+            push @tags, $_ foreach @$t;
+        }
+        push @tags, split(',', $t);
     }
 
     foreach my $name (@tags){
@@ -676,10 +688,8 @@ Returns the id of the type name passed.
 =cut
 
 sub lookup_type_by_name {
-    my $self = shift;
     my ($name) = @_;
     my $dbh = Bugzilla->dbh;
-    
     my ($value) = $dbh->selectrow_array(
             "SELECT type_id
              FROM test_plan_types

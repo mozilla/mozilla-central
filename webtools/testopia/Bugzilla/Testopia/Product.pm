@@ -26,7 +26,6 @@ use strict;
 use base "Bugzilla::Product";
 
 use Bugzilla;
-use Bugzilla::Testopia::Environment;
 
 sub environments {
     my $self = shift;
@@ -49,6 +48,7 @@ sub environments {
     }
 
     my @objs;
+    require Bugzilla::Testopia::Environment;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Environment->new($id);
     }
@@ -82,6 +82,7 @@ sub builds {
     }
 
     my @objs;
+    require Bugzilla::Testopia::Build;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Build->new($id);
     }
@@ -100,6 +101,7 @@ sub categories {
                  ORDER BY name",
                     undef, $self->{'id'});
     my @objs;
+    require Bugzilla::Testopia::Category;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Category->new($id);
     }
@@ -118,6 +120,7 @@ sub plans {
                  ORDER BY name",
                     undef, $self->{'id'});
     my @objs;
+    require Bugzilla::Testopia::TestPlan;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::TestPlan->new($id);
     }
@@ -135,6 +138,7 @@ sub cases {
           WHERE test_plans.product_id = ?", 
          undef, $self->id);
     my @cases;
+    require Bugzilla::Testopia::TestCase;
     foreach my $id (@{$caseids}){
         push @cases, Bugzilla::Testopia::TestCase->new($id);
     }
@@ -154,6 +158,7 @@ sub runs {
           WHERE test_plans.product_id = ?", 
          undef, $self->id);
     my @runs;
+    require Bugzilla::Testopia::TestRun;
     foreach my $id (@{$runids}){
         push @runs, Bugzilla::Testopia::TestRun->new($id);
     }
@@ -172,6 +177,7 @@ sub environment_categories {
                     WHERE product_id = ?",
                     undef, $self->id);
     my @objs;
+    require Bugzilla::Testopia::Environment::Category;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Environment::Category->new($id);
     }
@@ -245,6 +251,7 @@ sub tags {
      ORDER BY name", undef, ($self->id,$self->id,$self->id));
     
     my @product_tags;
+    require Bugzilla::Testopia::TestTag;
     foreach my $id (@$ref){
         push @product_tags, Bugzilla::Testopia::TestTag->new($id);
     }

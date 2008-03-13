@@ -85,9 +85,8 @@ use constant UPDATE_COLUMNS         => qw(case_status_id category_id priority_id
                                           isautomated sortkey script arguments summary requirement
                                           alias estimated_time dependson blocks runs tags components);
 
-sub VALIDATORS {
+use constant VALIDATORS => {
     case_status_id    => \&_check_status,
-    category_id       => \&_check_category,
     priority_id       => \&_check_priority,
     default_tester_id => \&_check_tester,
     isautomated       => \&_check_automated,
@@ -171,13 +170,14 @@ sub _check_category{
     if (ref $invocant){
         $product = $invocant->product;
     }    
+
     $category = trim($category);
     my $category_id;
     if ($category =~ /^\d+$/){
         $category_id = Bugzilla::Testopia::Util::validate_selection($category, 'category_id', 'test_case_categories');
     }
     else {
-        $category_id = Bugzilla::Testopia::Category::check_case_category($category, $product->id)->id;
+        $category_id = Bugzilla::Testopia::Category::check_case_category($category, $product);
     }
     
     return $category_id;
@@ -308,6 +308,7 @@ sub _check_dependency{
 
 sub _check_plans {
     my ($invocant, $plans) = @_;
+    # $plans is a reference to an array of Testopia::TestPlan objects.    
     ThrowUserError('plan_needed') unless scalar @$plans > 0;
     return $plans;
 }
@@ -327,6 +328,9 @@ sub _check_cases {
 sub _check_runs {
     my ($invocant, $runids) = @_;
     my @runs;
+    if (ref $runids eq 'ARRAY'){
+        $runids = join(',' ,@$runids);
+    }
     foreach my $runid (split(/[\s,]+/, $runids)){
         Bugzilla::Testopia::Util::validate_test_id($runid, 'run');
         push @runs, Bugzilla::Testopia::TestRun->new($runid);
@@ -371,11 +375,11 @@ sub _check_components {
 }
 
 sub _check_bugs {
-    my ($invocant, $bugids) = @_;
+    my ($invocant, $bugids, $attach) = @_;
     my @bugids;
     my @ids;
     my $dbh = Bugzilla->dbh;
-    
+  
     if (ref $bugids eq 'ARRAY'){
         push @ids, @$bugids;
     }
@@ -386,7 +390,7 @@ sub _check_bugs {
     foreach my $bug (@ids){
         trick_taint($bug);
         Bugzilla::Bug::ValidateBugID($bug);
-        if (ref $invocant){
+        if (ref $invocant && $attach){
             my ($exists) = $dbh->selectrow_array(
                     "SELECT bug_id 
                        FROM test_case_bugs 
@@ -439,6 +443,16 @@ sub new {
     my $self = $class->SUPER::new(@_);
     
     return $self; 
+}
+
+sub run_create_validators {
+    my $class  = shift;
+    my $params = $class->SUPER::run_create_validators(@_);
+    my $product = $params->{plans}->[0]->product;
+    
+    $params->{category_id} = $class->_check_category($params->{category_id}, $product);
+    
+    return $params;
 }
 
 sub create {
@@ -516,16 +530,6 @@ sub update {
     }
 
     $dbh->bz_unlock_tables();
-}
-
-sub run_create_validators {
-    my $class  = shift;
-    my $params = $class->SUPER::run_create_validators(@_);
-    my $product = $params->{plans}->[0]->product;
-    
-    $params->{category_id} = $class->_check_gategory($params->{category}, $product);
-    
-    return $params;
 }
 
 ###############################
@@ -785,7 +789,10 @@ sub add_tag {
     my $dbh = Bugzilla->dbh;
     my @tags;
     foreach my $t (@_){
-         push @tags, split(',', $t);
+        if (ref $t eq 'ARRAY'){
+            push @tags, $_ foreach @$t;
+        }
+        push @tags, split(',', $t);
     }
 
     foreach my $name (@tags){
@@ -824,7 +831,7 @@ sub attach_bug {
     my $dbh = Bugzilla->dbh;
     
     $case_id ||= $self->{'case_id'};
-    $bugids = $self->_check_bugs($bugids);
+    $bugids = $self->_check_bugs($bugids, "ATTACH");
     
     $dbh->bz_lock_tables('test_case_bugs WRITE');
     
@@ -1222,7 +1229,7 @@ sub link_plan {
     
     # Update the plans array to include new plan added.
         
-       push @{$self->{'plans'}}, Bugzilla::Testopia::TestPlan->new($plan_id);
+   push @{$self->{'plans'}}, Bugzilla::Testopia::TestPlan->new($plan_id);
 
 }
 

@@ -31,8 +31,7 @@ use Bugzilla;
 use Bugzilla::Constants;
 use Bugzilla::WebService;
 
-# To be used in version 2.23/3.0 of Bugzilla
-Bugzilla->usage_mode(Bugzilla::Constants::USAGE_MODE_WEBSERVICE);
+Bugzilla->usage_mode(USAGE_MODE_WEBSERVICE);
 
 die 'Content-Type must be "text/xml" when using API' unless
     $ENV{'CONTENT_TYPE'} eq 'text/xml';
@@ -45,7 +44,6 @@ my $response = Bugzilla::WebService::XMLRPC::Transport::HTTP::CGI
                      'Product'     => 'Bugzilla::WebService::Testopia::Product',
                      'Environment' => 'Bugzilla::WebService::Testopia::Environment',
                      'Build'       => 'Bugzilla::WebService::Testopia::Build',
-                     'Component'   => 'Bugzilla::WebService::Component',
                      'User'        => 'Bugzilla::WebService::User',
                     })
     ->handle;

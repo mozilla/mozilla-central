@@ -116,7 +116,7 @@ sub create {
     }
     
     $new_values->{'plans'} = \@plans;
-    $new_values->{'author'} = Bugzilla->user->id;
+    $new_values->{'author_id'} ||= Bugzilla->user->id;
     $new_values->{'runs'} = join(',', @run_ids) if scalar @run_ids;
     $new_values->{'bugs'} = join(',', @bug_ids) if scalar @bug_ids;
     $new_values->{'dependson'} = join(',', @dependson) if scalar @dependson;
@@ -204,11 +204,16 @@ sub get_text {
 
 sub store_text {
     my $self = shift;
-    my ($case_id, $author_id, $action, $effect, $setup, $breakdown) = @_;
+    my ($case_id, $action, $effect, $setup, $breakdown, $author_id,) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
     
     my $case = new Bugzilla::Testopia::TestCase($case_id);
+
+    $author_id ||= Bugzilla->user->id;
+    if ($author_id !~ /^\d+$/){
+        $author_id = Bugzilla::User::login_to_id($author_id, "THROWERROR");
+    }
 
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
     ThrowUserError('testopia-read-only', {'object' => $case}) unless $case->canedit;
@@ -273,7 +278,7 @@ sub detach_bug {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
     ThrowUserError('testopia-read-only', {'object' => $case}) unless $case->canedit;
 
-    $case->detach_bugs($bugids);
+    $case->detach_bug($bugids);
 
     # Result 0 on success, otherwise an exception will be thrown
     return 0;
@@ -320,24 +325,36 @@ sub add_component {
         }
     }
     # @results will be empty if successful
-    return @results;
+    return \@results;
 }
 
 sub remove_component {
     my $self = shift;
-    my ($case_id, $component_id) = @_;
+    my ($case_ids, $component_id) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
-    
-    my $case = new Bugzilla::Testopia::TestCase($case_id);
 
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
-    ThrowUserError('testopia-read-only', {'object' => $case}) unless $case->canedit;
-
-    $case->remove_component($component_id);
-
-    # Result 0 on success, otherwise an exception will be thrown
-    return 0;
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
+    my @results;
+    foreach my $id (@ids){
+        my $case = new Bugzilla::Testopia::TestCase($id);
+        unless ($case){
+            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            next;
+        }
+        unless ($case->canedit){
+            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            next;
+        }
+        eval {
+            $case->remove_component($component_id);
+        };
+        if ($@){
+            push @results, {FAILED => 1, message => $@};
+        }
+    }
+    # @results will be empty if successful
+    return \@results;
 }
 
 sub get_components {
@@ -381,65 +398,13 @@ sub add_tag {
         }
     }
     # @results will be empty if successful
-    return @results;
+    return \@results;
 }
 
 sub remove_tag {
     my $self = shift;
-    my ($case_id, $tag_name) = @_;
+    my ($case_ids, $tag_name) = @_;
 
-    Bugzilla->login(LOGIN_REQUIRED);
-    
-    my $case = new Bugzilla::Testopia::TestCase($case_id);
-
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
-    ThrowUserError('testopia-read-only', {'object' => $case}) unless $case->canedit;
-
-    $case->remove_tag($tag_name);
-
-    # Result 0 on success, otherwise an exception will be thrown
-    return 0;
-}
-
-sub get_tags {
-    my $self = shift;
-    my ($case_id) = @_;
-
-    Bugzilla->login(LOGIN_REQUIRED);
-    
-    my $case = new Bugzilla::Testopia::TestCase($case_id);
-
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
-    ThrowUserError('testopia-permission-denied', {'object' => $case}) unless $case->canview;
-
-    # Result list of tags otherwise an exception will be thrown
-    return $case->tags;
-}
-
-sub check_category {
-    my ($name, $product) = @_;
-    
-    Bugzilla->login(LOGIN_REQUIRED);
-    
-    if (ref $product){
-        $product = $product;
-    }
-    elsif ($product =~ /^\d+$/){
-        $product = Bugzilla::Testopia::Product->new($product);
-    }
-    else {
-        $product = Bugzilla::Product::check_product($product);
-        $product = Bugzilla::Testopia::Product->new($product->id);
-    }
-    
-    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
-    
-    return Bugzilla::Testopia::Category->new(check_case_category($name, $product));
-}
-
-sub link_plan {
-    my $self = shift;
-    my ($case_ids, $test_plan_id) = @_;
     Bugzilla->login(LOGIN_REQUIRED);
     
     my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
@@ -455,15 +420,66 @@ sub link_plan {
             next;
         }
         eval {
-            $case->link_plan($test_plan_id);
+            $case->remove_tag($tag_name);
         };
         if ($@){
             push @results, {FAILED => 1, message => $@};
         }
     }
+    # @results will be empty if successful
+    return \@results;
+}
+
+sub get_tags {
+    my $self = shift;
+    my ($case_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my $case = new Bugzilla::Testopia::TestCase($case_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Test Case', id => $case_id}) unless $case;
+    ThrowUserError('testopia-permission-denied', {'object' => $case}) unless $case->canview;
+
+    my @results;
+    foreach my $tag (@{$case->tags}){
+        push @results, $tag->name;
+    }
+    # Result list of tags otherwise an exception will be thrown
+    return \@results;
+}
+
+sub link_plan {
+    my $self = shift;
+    my ($case_ids, $plan_ids) = @_;
+    Bugzilla->login(LOGIN_REQUIRED);
+    my @plans;
+    if (ref $plan_ids eq 'ARRAY'){
+        $plan_ids = join(',', @$plan_ids);
+    }
+    foreach my $id (split(',', $plan_ids)){
+        my $plan = Bugzilla::Testopia::TestPlan->new($id);
+        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
+        push @plans, $plan;
+    }
+    ThrowUserError('missing-plans-list') unless scalar @plans;
+    
+    my @ids = Bugzilla::Testopia::Util::process_list($case_ids);
+    my @results;
+    foreach my $id (@ids){
+        my $case = new Bugzilla::Testopia::TestCase($id);
+        foreach my $plan (@plans){
+            eval {
+                $case->link_plan($plan->id);
+            };
+            if ($@){
+                push @results, {FAILED => 1, message => $@};
+            }
+        }
+    }
     
     # Result is list of plans for test case on success, otherwise an exception will be thrown
-    return @results;
+    return \@results;
 }
 
 sub unlink_plan {
@@ -509,7 +525,7 @@ sub add_to_run {
         }
     }
     # @results will be empty if successful
-    return @results;
+    return \@results;
 }
 
 sub get_case_run_history {
@@ -557,23 +573,11 @@ sub calculate_average_time {
 }
 
 sub lookup_category_id_by_name {
-    return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use TestCase::check_catagory instead'};
+    return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use Testopia::Product::check_catagory instead'};
 }
 
 sub lookup_category_name_by_id {
-    my $self = shift;
-    my ($id) = @_;
-    
-    Bugzilla->login(LOGIN_REQUIRED);
-
-    my $result = lookup_category($id);
-
-    if (!defined $result){
-      $result = 0;
-    };
-    
-    # Result is test case category name for the given test case category id
-    return $result;
+    return { FAILED => 1, message => 'This method has been depricated. Please use Testopia::Product::check_catagory instead'};
 }
 
 sub lookup_priority_id_by_name {
@@ -606,7 +610,7 @@ sub lookup_status_id_by_name {
     my $self = shift;
     my ($name) = @_;
     
-    $self->login;
+    Bugzilla->login(LOGIN_REQUIRED);
 
     # Result is test case status id for the given test case status name
     return lookup_status_by_name($name);
@@ -616,13 +620,12 @@ sub lookup_status_name_by_id {
     my $self = shift;
     my ($id) = @_;
     
-    $self->login;
-
+    Bugzilla->login(LOGIN_REQUIRED);
      
     my $result = lookup_status($id);
 
     if (!defined $result){
-      $result = 0;
+       $result = 0;
     };
     
     # Result is test case status name for the given test case status id
@@ -709,18 +712,6 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 
  Returns:     String: Time in "HH:MM:SS" format.
 
-=item C<check_category($name, $product)>
-
- Description: Looks up and returns a category by name.
-
- Params:      $name - String: name of the category.
-              $product - Integer/String/Object
-                 Integer: product_id of the product in the Database
-                 String: Product name
-                 Object: Blessed Bugzilla::Product object
-
- Returns:     Hash: Matching Category object hash or error if not found.
-
 =item C<create($values)>
 
  Description: Creates a new Test Case object and stores it in the database.
@@ -734,6 +725,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
   | category_id       | Integer/String | Required  | ID or Name of Category |
   | priority_id       | Integer/String | Required  | ID or Name of Priority |
   | summary           | String         | Required  |                        |
+  | plans             | Array/String   | Required  | List of plan_ids       |
   | default_tester_id | Integer/String | Optional  | ID or Login of tester  |
   | estimated_time    | String         | Optional  | HH:MM:SS Format        |
   | isautomated       | Boolean        | Optional  | Defaults to False (0)  |
@@ -851,9 +843,10 @@ Provides methods for automated scripts to manipulate Testopia TestCases
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of case_ids or aliases, or a string of comma separated case_ids.
 
-              $plan_id - Integer: An integer or alias representing the ID in the database.
+              $plan_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of plan_ids, or a string of comma separated plan_ids.
 
- Returns:     undef/Hash: undef on success, hash of failures if not.
+ Returns:     Array: Array of failure codes or an empty array.
 
 =item C<list($query)>
 
@@ -955,13 +948,9 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 
  Returns:     Array: Matching test cases are retuned in a list of hashes.
 
-=item C<lookup_category_name_by_id> 
+=item C<lookup_category_name_by_id> B<DEPRICATED - CONSIDERED HARMFUL> Use Testopia::Product::check_category instead 
 
- Params:      $id - Integer: ID of the case status to return
-
- Returns:     String: the status name.
-
-=item C<lookup_category_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use check_category instead
+=item C<lookup_category_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Testopia::Product::check_category instead
 
 =item C<lookup_priority_name_by_id>
 
@@ -991,21 +980,34 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 
  Description: Removes selected component from the selected test case.
 
- Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
+ Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of case_ids or aliases, or a string of comma separated case_ids.
 
               $component_id - Integer: - The component ID to be removed.
 
- Returns:     0 on success.
+ Returns:     Array: Empty on success.
 
 =item C<remove_tag($case_id, $tag)>
 
  Description: Remove a tag from a case.
 
- Params:      $case_id - Integer/String: An integer or alias representing the ID in the database.
+ Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+                  an array of case_ids or aliases, or a string of comma separated case_ids.
 
               $tag - String - A single tag to be removed. 
 
- Returns:     0 on success.
+ Returns:     Array: Empty on success.
+
+=item C<store_text($case_id, $action, $effect, $setup, $breakdown, [$author_id])>
+
+ Description: Update the large text fields of a case.
+
+ Params:      $case_id - Integer: An integer or alias representing the ID in the database.
+              $action, $effect, $setup, $breakdown - String: Text for these fields.
+              [$author_id] = Integer/String: (OPTIONAL) The numeric ID or the login of the author. 
+                  Defaults to logged in user
+
+ Returns:     Array: Empty on success.
 
 =item C<unlink_plan($case_id, $plan_id)>
 

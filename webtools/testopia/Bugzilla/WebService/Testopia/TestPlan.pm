@@ -75,9 +75,10 @@ sub create {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
-    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
-
+    # Canedit check is performed in TestPlan::_check_product
+    
+    $new_values->{'author_id'} ||= Bugzilla->user->id;
+    
     my $plan = Bugzilla::Testopia::TestPlan->create($new_values);
     
     return $plan;
@@ -122,16 +123,21 @@ sub get_text {
 
 sub store_text {
     my $self = shift;
-    my ($plan_id, $author_id, $text) = @_;
+    my ($plan_id, $text, $author_id) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
     
     my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
+    
+    $author_id ||= Bugzilla->user->id;
+    if ($author_id !~ /^\d+$/){
+        $author_id = Bugzilla::User::login_to_id($author_id, "THROWERROR");
+    }
 
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
     ThrowUserError('testopia-read-only', {'object' => $plan}) unless $plan->canedit;
 
-    my $version = $plan->store_text($plan_id, $author_id);
+    my $version = $plan->store_text($plan_id, $author_id, $text);
     
     # Result is new test plan doc version on success, otherwise an exception will be thrown
     return $version;
@@ -154,6 +160,7 @@ sub get_test_cases {
 }
 
 sub get_test_runs {
+    my $self = shift;
     my ($plan_id) = @_;
     
     Bugzilla->login(LOGIN_REQUIRED);
@@ -161,7 +168,7 @@ sub get_test_runs {
     # Result is a plan object hash
     my $plan = new Bugzilla::Testopia::TestPlan($plan_id);
 
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $plan_id}) unless $plan;
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Plan', id => $plan_id}) unless $plan;
     ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
     
     # Result is list of test runs for the given test plan
@@ -217,10 +224,8 @@ sub lookup_type_id_by_name {
     
     Bugzilla->login(LOGIN_REQUIRED);
 
-    my $test_plan = new Bugzilla::Testopia::TestPlan({});
-    
     # Result is test plan type id for the given test plan type name
-    return $test_plan->lookup_type_by_name($name);
+    return Bugzilla::Testopia::TestPlan::lookup_type_by_name($name);
 }
 
 sub add_tag {
@@ -280,8 +285,12 @@ sub get_tags {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
     ThrowUserError('testopia-permission-denied', {'object' => $plan}) unless $plan->canview;
 
+    my @results;
+    foreach my $tag (@{$plan->tags}){
+        push @results, $tag->name;
+    }
     # Result list of tags otherwise an exception will be thrown
-    return $plan->tags;
+    return \@results;
 }
 
 1;
@@ -496,6 +505,17 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
               $tag - String - A single tag to be removed. 
 
  Returns:     0 on success.
+
+=item C<store_text($plan_id, $text, [$author_id])>
+
+ Description: Update the document field of a plan.
+
+ Params:      $plan_id - Integer: An integer representing the ID in the database.
+              $text - String: Text for the document. Can contain HTML.
+              [$author_id] = Integer/String: (OPTIONAL) The numeric ID or the login of the author. 
+                  Defaults to logged in user.
+
+ Returns:     Array: Empty on success.
 
 =item C<update($ids, $values)>
 
