@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Berend Cornelius <berend.cornelius@sun.com>
  *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Lars Wohlfahrt <thetux.moz@googlemail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -162,6 +163,10 @@
 
 #calendar-new-event-button {
   -moz-user-focus: normal;
+}
+
+#calendar-new-event-button > .toolbarbutton-text {
+ padding-left: 5px;
 }
 
 #agenda-listbox {
