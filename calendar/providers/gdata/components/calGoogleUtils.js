@@ -1099,6 +1099,23 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             }
         }
 
+        // gd:recurrenceException
+        for each (var exception in aXMLEntry.gd::recurrenceException.(@specialized == "true").gd::entryLink.entry) {
+            // We only want specialized exceptions, mainly becuase I haven't
+            // quite found out if a non-specialized exception also corresponds
+            // to a normal exception as libical knows it.
+            var excItem = XMLEntryToItem(exception, aTimezone, aCalendar);
+
+            // Google uses the status field to reflect negative exceptions.
+            if (excItem.status == "CANCELED") {
+                item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
+            } else {
+                excItem.calendar = aCalendar;
+                excItem.parentItem = item;
+                item.recurrenceInfo.modifyException(excItem);
+            }
+        }
+
         // gd:extendedProperty (alarmLastAck)
         var alarmLastAck = aXMLEntry.gd::extendedProperty
                            .(@name == "X-MOZ-LASTACK")
@@ -1158,7 +1175,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         if (aXMLEntry.gd::originalEvent.toString().length > 0) {
             var rId = aXMLEntry.gd::originalEvent.gd::when.@startTime;
             item.recurrenceId = fromRFC3339(rId.toString(), aTimezone);
-            // XXX Also set parentItem, but how?
         }
 
         // gd:visibility
@@ -1180,7 +1196,6 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         item.setProperty("LAST-MODIFIED", fromRFC3339(aXMLEntry.updated,
                                                       aTimezone));
 
-        // TODO gd:recurrenceException: Enhancement tracked in bug 362650
         // TODO gd:comments: Enhancement tracked in bug 362653
 
         // XXX Google currently has no priority support. See
@@ -1212,7 +1227,7 @@ function LOGitem(item) {
     if (item.recurrenceInfo) {
         var ritems = item.recurrenceInfo.getRecurrenceItems({});
         for each (var ritem in ritems) {
-            rstr += "\n\t\t" + ritem.icalProperty.icalString;
+            rstr += "\t\t" + ritem.icalProperty.icalString;
         }
     }
 
@@ -1235,7 +1250,7 @@ function LOGitem(item) {
         "\n\tisOccurrence: " + item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE") +
         "\n\tOrganizer: " + LOGattendee(item.organizer) +
         "\n\tAttendees: " + attendeeString +
-        "\n\trecurrence: " + (rstr ? "yes: " + rstr : "no"));
+        "\n\trecurrence: " + (rstr ? "yes:\n" + rstr : "no"));
 }
 
 function LOGattendee(aAttendee, asString) {

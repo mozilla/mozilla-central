@@ -373,13 +373,18 @@ calGoogleCalendar.prototype = {
                 this.findSession();
             }
 
+            var extradata = {
+                listener: aListener,
+                id: aId
+            };
+
             this.mSession.getItem(this,
                                   aId,
                                   this.getItem_response,
-                                  aListener);
+                                  extradata);
         } catch (e) {
-            LOG("getItem failed before request " + aItem.title + "(" + aItem.id
-                + "):\n" + e);
+            LOG("getItem failed before request " + aId + "):\n" + e);
+                
 
             if (aListener != null) {
                 aListener.onOperationComplete(this.superCalendar,
@@ -567,11 +572,77 @@ calGoogleCalendar.prototype = {
     getItem_response: function cGC_getItem_response(aRequest,
                                                     aStatus,
                                                     aResult) {
-        // our general response does it all for us. I hope.
-        this.general_response(Components.interfaces.calIOperationListener.GET,
-                              aResult,
-                              aStatus,
-                              aRequest.extraData);
+        // XXX Due to google issue 399, we need to parse a full feed here.
+        try {
+            if (!Components.isSuccessCode(aStatus)) {
+                throw new Components.Exception(aResult, aStatus);
+            }
+
+            // Prepare Namespaces
+            var gCal = new Namespace("gCal",
+                                     "http://schemas.google.com/gCal/2005");
+            var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+            var atom = new Namespace("", "http://www.w3.org/2005/Atom");
+            default xml namespace = atom;
+
+            // A feed was passed back, parse it. Due to bug 336551 we need to
+            // filter out the <?xml...?> part.
+            var xml = new XML(aResult.substring(38));
+            var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
+            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+
+            // This line is needed, otherwise the for each () block will never
+            // be entered. It may seem strange, but if you don't believe me, try
+            // it!
+            xml.link.(@rel);
+
+            // We might be able to get the full name through this feed's author
+            // tags. We need to make sure we have a session for that.
+            if (!this.mSession) {
+                this.findSession();
+            }
+
+            // Get the item entry by id
+            var itemEntry = xml.entry.(id.substring(id.lastIndexOf('/') + 1) == aRequest.extraData.id);
+            var item = XMLEntryToItem(itemEntry, timezone, this);
+
+            if (item.recurrenceInfo) {
+                // If this item is recurring, get all exceptions for this item.
+                for each (var entry in xml.entry.gd::originalEvent.(@id == aRequest.extraData.id)) {
+                    var excItem = XMLEntryToItem(entry.parent(), timezone, this);
+                    
+                    // Google uses the status field to reflect negative
+                    // exceptions.
+                    if (excItem.status == "CANCELED") {
+                        item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
+                    } else {
+                        excItem.calendar = this;
+                        excItem.parentItem = item;
+                        item.recurrenceInfo.modifyException(excItem);
+                    }
+                }
+            }
+            // We are done, notify the listener of our result and that we are
+            // done.
+            aRequest.extraData.listener.onGetResult(this.superCalendar,
+                                                    Components.results.NS_OK,
+                                                    Components.interfaces.calIEvent,
+                                                    null,
+                                                    1,
+                                                    [item]);
+            aRequest.extraData.listener.onOperationComplete(this.superCalendar,
+                                                            Components.results.NS_OK,
+                                                            Components.interfaces.calIOperationListener.GET,
+                                                            null,
+                                                            null);
+        } catch (e) {
+            LOG("Error getting item " + aRequest.id + ":\n" + e);
+            aRequest.extraData.listener.onOperationComplete(this.superCalendar,
+                                                            e.result,
+                                                            Components.interfaces.calIOperationListener.GET,
+                                                            null,
+                                                            e.message);
+        }
     },
 
     /**
@@ -586,7 +657,7 @@ calGoogleCalendar.prototype = {
      */
     getItems_response: function cGC_getItems_response(aRequest,
                                                       aStatus,
-                                                      aResult) {
+                                                       aResult) {
         LOG("Recieved response for " + aRequest.uri);
         try {
             // Check if the call succeeded
@@ -660,25 +731,16 @@ calGoogleCalendar.prototype = {
                                                      timezone,
                                                      this);
                         if (excItem) {
-                            // set the remaining properties and modify the exception
-                            excItem.parentItem = item;
-                            excItem.calendar = this;
-                            item.recurrenceInfo.modifyException(excItem);
-
-                            LOG("item " + item.title + " has an exception on " +
-                                excItem.recurrenceId);
-                        } else {
-                            // In this case the exception is a deleted
-                            // occurrence. We want to remove the occurrence with
-                            // this recurrenceId
-                            var rid = fromRFC3339(oid.gd::when
-                                                     .@startTime.toString(),
-                                                  timezone);
-                            item.recurrenceInfo.removeOccurrenceAt(rid);
-
-                            LOG("item " + item.title + " has a negative " +
-                                "exception on " + rid);
-                       }
+                            // Google uses the status field to reflect negative
+                            // exceptions.
+                            if (excItem.status == "CANCELED") {
+                                item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
+                            } else {
+                                excItem.calendar = this;
+                                excItem.parentItem = item;
+                                item.recurrenceInfo.modifyException(excItem);
+                            }
+                        }
                     }
                 }
 

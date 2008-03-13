@@ -516,15 +516,19 @@ calGoogleSession.prototype = {
                                   aResponseListener,
                                   aExtraData) {
 
-        var request = new calGoogleRequest(this);
-
-        request.type = request.GET;
-        request.uri = aCalendar.fullUri.spec + "/" + aId;
-        request.setResponseListener(aCalendar, aResponseListener);
-        request.extraData = aExtraData;
-        request.calendar = aCalendar;
-
-        this.asyncItemRequest(request);
+        
+        // XXX Due to google issue 399, there is no efficient way to get the
+        // by item id with all exceptions and an edit url. Therefore, just use
+        // getItems and add the id to the extradata.
+        //
+        return this.getItems(aCalendar,
+                             null,
+                             null,
+                             null,
+                             false,
+                             aResponseListener,
+                             aExtraData,
+                             null);
     },
 
     /**
