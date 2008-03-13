@@ -44,3 +44,4 @@ pref("extensions.{a62ef8ec-5fdc-40c2-873c-223b8a6925cc}.name",
 pref("calendar.google.useHTTPMethodOverride", true);
 pref("calendar.google.alarmClosest", true);
 pref("calendar.google.sendEventNotifications", false);
+pref("calendar.google.enableAttendees", false);

@@ -614,58 +614,62 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     entry.gd::where.@valueString = aItem.getProperty("LOCATION") || "";
 
     // gd:who
-    var attendees = aItem.getAttendees({});
-    if (aItem.organizer) {
-        // Taking care of the organizer is the same as taking care of any other
-        // attendee. Add the organizer to the local attendees list.
-        attendees.push(aItem.organizer);
-    }
-
-    const attendeeStatusMap = {
-        "REQ-PARTICIPANT": "required",
-        "OPT-PARTICIPANT": "optional",
-        "NON-PARTICIPANT": null,
-        "CHAIR": null,
-
-        "NEEDS-ACTION": "invited",
-        "ACCEPTED": "accepted",
-        "DECLINED": "declined",
-        "TENTATIVE": "tentative",
-        "DELEGATED": "tentative"
-    };
-
-    for each (var attendee in attendees) {
-        if (attendee.userType && attendee.userType != "INDIVIDUAL") {
-            // We can only take care of individuals.
-            continue;
+    if (getPrefSafe("calendar.google.enableAttendees", false)) {
+        // XXX Only parse attendees if they are enabled, due to bug 407961
+            
+        var attendees = aItem.getAttendees({});
+        if (aItem.organizer) {
+            // Taking care of the organizer is the same as taking care of any other
+            // attendee. Add the organizer to the local attendees list.
+            attendees.push(aItem.organizer);
         }
 
-        var xmlAttendee = <gd:who xmlns:gd={gd}/>;
+        const attendeeStatusMap = {
+            "REQ-PARTICIPANT": "required",
+            "OPT-PARTICIPANT": "optional",
+            "NON-PARTICIPANT": null,
+            "CHAIR": null,
 
-        // Strip "mailto:" part
-        xmlAttendee.@email = attendee.id.substring(7);
+            "NEEDS-ACTION": "invited",
+            "ACCEPTED": "accepted",
+            "DECLINED": "declined",
+            "TENTATIVE": "tentative",
+            "DELEGATED": "tentative"
+        };
 
-        if (attendee.isOrganizer) {
-            xmlAttendee.@rel = kEVENT_SCHEMA + "organizer";
-        } else {
-            xmlAttendee.@rel = kEVENT_SCHEMA + "attendee";
+        for each (var attendee in attendees) {
+            if (attendee.userType && attendee.userType != "INDIVIDUAL") {
+                // We can only take care of individuals.
+                continue;
+            }
+
+            var xmlAttendee = <gd:who xmlns:gd={gd}/>;
+
+            // Strip "mailto:" part
+            xmlAttendee.@email = attendee.id.substring(7);
+
+            if (attendee.isOrganizer) {
+                xmlAttendee.@rel = kEVENT_SCHEMA + "organizer";
+            } else {
+                xmlAttendee.@rel = kEVENT_SCHEMA + "attendee";
+            }
+
+            if (attendee.commonName) {
+                xmlAttendee.@valueString = attendee.commonName;
+            }
+
+            if (attendeeStatusMap[attendee.role]) {
+                xmlAttendee.gd::attendeeType.@value =
+                    attendeeStatusMap[attendee.role];
+            }
+
+            if (attendeeStatusMap[attendee.participationStatus]) {
+                xmlAttendee.gd::attendeeStatus.@value =
+                    attendeeStatusMap[attendee.participationStatus];
+            }
+
+            entry.gd::who += xmlAttendee;
         }
-
-        if (attendee.commonName) {
-            xmlAttendee.@valueString = attendee.commonName;
-        }
-
-        if (attendeeStatusMap[attendee.role]) {
-            xmlAttendee.gd::attendeeType.@value =
-                attendeeStatusMap[attendee.role];
-        }
-
-        if (attendeeStatusMap[attendee.participationStatus]) {
-            xmlAttendee.gd::attendeeStatus.@value =
-                attendeeStatusMap[attendee.participationStatus];
-        }
-
-        entry.gd::who += xmlAttendee;
     }
 
     // Don't notify attendees by default. Use a preference in case the user
@@ -1133,41 +1137,44 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         item.setProperty("LOCATION",
                          aXMLEntry.gd::where.@valueString.toString());
         // gd:who
+        if (getPrefSafe("calendar.google.enableAttendees", false)) {
+            // XXX Only parse attendees if they are enabled, due to bug 407961
 
-        // This object can easily translate the Google's values to our values.
-        const attendeeStatusMap = {
-            // role
-            "event.optional": "OPT-PARTICIPANT",
-            "event.required": "REQ-PARTICIPANT",
+            // This object can easily translate the Google's values to our values.
+            const attendeeStatusMap = {
+                // role
+                "event.optional": "OPT-PARTICIPANT",
+                "event.required": "REQ-PARTICIPANT",
 
-            // Participation Statii
-            "event.accepted": "ACCEPTED",
-            "event.declined": "DECLINED",
-            "event.invited": "NEEDS-ACTION",
-            "event.tentative": "TENTATIVE"
-        };
+                // Participation Statii
+                "event.accepted": "ACCEPTED",
+                "event.declined": "DECLINED",
+                "event.invited": "NEEDS-ACTION",
+                "event.tentative": "TENTATIVE"
+            };
 
-        // Iterate all attendee tags.
-        for each (var who in aXMLEntry.gd::who) {
-            var attendee = createAttendee();
+            // Iterate all attendee tags.
+            for each (var who in aXMLEntry.gd::who) {
+                var attendee = createAttendee();
 
-            var rel = who.@rel.toString().substring(33);
-            var type = who.gd::attendeeType.@value.toString().substring(33);
-            var status = who.gd::attendeeStatus.@value.toString().substring(33);
+                var rel = who.@rel.toString().substring(33);
+                var type = who.gd::attendeeType.@value.toString().substring(33);
+                var status = who.gd::attendeeStatus.@value.toString().substring(33);
 
-            attendee.id = "mailto:" + who.@email.toString();
-            attendee.commonName = who.@valueString.toString();
-            attendee.rsvp = false;
-            attendee.userType = "INDIVIDUAL";
-            attendee.isOrganizer = (rel == "event.organizer");
-            attendee.participationStatus = attendeeStatusMap[status];
-            attendee.role = attendeeStatusMap[type]
-            attendee.makeImmutable();
+                attendee.id = "mailto:" + who.@email.toString();
+                attendee.commonName = who.@valueString.toString();
+                attendee.rsvp = false;
+                attendee.userType = "INDIVIDUAL";
+                attendee.isOrganizer = (rel == "event.organizer");
+                attendee.participationStatus = attendeeStatusMap[status];
+                attendee.role = attendeeStatusMap[type]
+                attendee.makeImmutable();
 
-            if (attendee.isOrganizer) {
-                item.organizer = attendee;
-            } else {
-                item.addAttendee(attendee);
+                if (attendee.isOrganizer) {
+                    item.organizer = attendee;
+                } else {
+                    item.addAttendee(attendee);
+                }
             }
         }
 
