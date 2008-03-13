@@ -344,9 +344,9 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
   if (!newThread && foundThread->m_keys[0] == msgKey)
   {
     if (viewIndexOfThread != nsMsgKey_None)
-      m_keys.SetAt(viewIndexOfThread, msgKey);
+      m_keys[viewIndexOfThread] = msgKey;
     if (GroupViewUsesDummyRow())
-      foundThread->m_keys.SetAt(1, msgKey); // replace the old duplicate dummy header.
+      foundThread->m_keys[1] = msgKey; // replace the old duplicate dummy header.
   }
 
   return foundThread;
@@ -592,7 +592,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
     }
     else if (rootDeleted && viewIndexOfThread > 0)
     {
-      m_keys.SetAt(viewIndexOfThread - 1, m_keys[viewIndexOfThread]);
+      m_keys[viewIndexOfThread - 1] = m_keys[viewIndexOfThread];
       OrExtraFlag(viewIndexOfThread - 1, MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_ISTHREAD);
     }
   }

@@ -200,7 +200,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
     fNumberDeleted--;
   for (counter = msgIndex; counter < (PRUint32) fNumberOfMessagesAdded; counter++)
   {
-    fUids.SetAt(counter, fUids[counter + 1]);                               
+    fUids[counter] = fUids[counter + 1];                               
     fFlags[counter] = fFlags[counter + 1];                                  
   }
 
@@ -230,7 +230,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
       return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  fUids.SetAt(zeroBasedIndex, uid);
+  fUids[zeroBasedIndex] = uid;
   fFlags[zeroBasedIndex] = flags;
   if (flags & kImapMsgDeletedFlag)
     fNumberDeleted++;

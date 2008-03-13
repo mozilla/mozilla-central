@@ -770,7 +770,7 @@ nsresult nsMsgDBView::SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyAr
   nsMsgKey msgKey;
   for (PRInt32 index = 0; index < numIndices; index++)
   {
-    msgKey = m_keys.GetAt(selection[index]);
+    msgKey = m_keys[selection[index]];
     aMsgKeyArray[index] = msgKey;
   }
 
@@ -2549,7 +2549,7 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
   for (int32 i = 0; i < numIndices; i++)
   {
     if (thisIsImapFolder && command != nsMsgViewCommandType::markThreadRead)
-      imapUids.SetAt(i, GetAt(indices[i]));
+      imapUids[i] = GetAt(indices[i]);
 
     switch (command)
     {
@@ -3170,7 +3170,7 @@ nsresult nsMsgDBView::ReverseThreads()
         PRInt32 saveEndThread = endThread;
         while (endThread >= sourceIndex)
         {
-            newKeyArray.SetAt(destIndex, m_keys[endThread]);
+            newKeyArray[destIndex] = m_keys[endThread];
             newFlagArray[destIndex] = m_flags[endThread];
             newLevelArray[destIndex] = m_levels[endThread];
             endThread--;
@@ -3206,8 +3206,8 @@ nsresult nsMsgDBView::ReverseSort()
 
         // swap keys
         nsMsgKey tempKey = m_keys[i];
-        m_keys.SetAt(i, m_keys[end]);
-        m_keys.SetAt(end, tempKey);
+        m_keys[i] = m_keys[end];
+        m_keys[end] = tempKey;
 
         if (folders)
         {
@@ -4017,7 +4017,7 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
   // now put the IDs into the array in proper order
   for (PRUint32 i = 0; i < numSoFar; i++)
   {
-    m_keys.SetAt(i, pPtrBase[i]->id);
+    m_keys[i] = pPtrBase[i]->id;
     m_flags[i] = pPtrBase[i]->bits;
 
     if (folders)
@@ -4817,7 +4817,7 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
       msgHdr->GetMessageKey(&msgKey);
       msgHdr->GetFlags(&msgFlags);
       AdjustReadFlag(msgHdr, &msgFlags);
-      m_keys.SetAt(*viewIndex, msgKey);
+      m_keys[*viewIndex] = msgKey;
       // ### TODO - how about hasChildren flag?
       m_flags[*viewIndex] = msgFlags & ~MSG_VIEW_FLAGS;
       // ### TODO this is going to be tricky - might use enumerators
@@ -4868,7 +4868,7 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
         msgHdr->GetMessageKey(&msgKey);
         msgHdr->GetFlags(&msgFlags);
         AdjustReadFlag(msgHdr, &msgFlags);
-        m_keys.SetAt(viewIndex, msgKey);
+        m_keys[viewIndex] = msgKey;
         m_flags[viewIndex] = msgFlags & ~MSG_VIEW_FLAGS;
         // here, we're either flat, or we're grouped - in either case, level is 1
         // turn off thread or elided bit if they got turned on (maybe from new only view?)

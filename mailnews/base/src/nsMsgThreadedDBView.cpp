@@ -179,7 +179,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
     {
       if (numThreads < i)
       {
-        m_keys.SetAt(numThreads, m_keys[i]);
+        m_keys[numThreads] = m_keys[i];
         m_flags[numThreads] = m_flags[i];
       }
       m_levels[numThreads] = 0;
@@ -646,7 +646,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
         {
           // if we have a collapsed thread which just got a new
           // top of thread, change the keys array.
-          m_keys.SetAt(threadIndex, newKey);
+          m_keys[threadIndex] = newKey;
         }
         // note change, to update the parent thread's unread and total counts
         NoteChange(threadIndex, 1, nsMsgViewNotificationCode::changed);
@@ -806,9 +806,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
     rv = threadHdr->GetChildHdrAt(0, getter_AddRefs(msgHdr));
     if (msgHdr != nsnull)
     {
-      nsMsgKey msgKey;
-      msgHdr->GetMessageKey(&msgKey);
-      m_keys.SetAt(index, msgKey);
+      msgHdr->GetMessageKey(&m_keys[index]);
       
       PRUint32 flag = 0;
       msgHdr->GetFlags(&flag);

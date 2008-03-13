@@ -98,7 +98,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
         {
           srcDB->GetNextPseudoMsgKey(&pseudoKey);
           pseudoKey--;
-          m_dupKeyArray.SetAt(i,pseudoKey);
+          m_dupKeyArray[i] = pseudoKey;
           rv = srcDB->CopyHdrFromExistingHdr(pseudoKey,
             srcHdr, PR_FALSE,
             getter_AddRefs(copySrcHdr));
@@ -466,7 +466,7 @@ nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKe
 
       srcDB->GetNextPseudoMsgKey(&pseudoKey);
       pseudoKey--;
-      m_dupKeyArray.SetAt(0, pseudoKey);
+      m_dupKeyArray[0] = pseudoKey;
       rv = srcDB->CopyHdrFromExistingHdr(pseudoKey, srcHdr, PR_FALSE, getter_AddRefs(copySrcHdr));
       if (NS_SUCCEEDED(rv)) 
       {
