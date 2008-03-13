@@ -231,7 +231,12 @@
           if ((item.alarmOffset || item.parentItem.alarmOffset) &&
               getPrefSafe("calendar.alarms.indicator.show", true)) {
               var alarmImage = document.getAnonymousElementByAttribute(this, "anonid", "alarm-image");
-              if (item.calendar.getProperty("suppressAlarms")) {
+              if (item.calendar.getProperty("suppressAlarms") &&
+                  item.calendar.getProperty("capabilities.alarms.popup.supported") !== false) {
+                  // Only show the suppressed icon if alarms are suppressed and
+                  // popup alarms are supported. This keeps us from making the
+                  // alarm look disabled when the server supports only email
+                  // alarms (e.g. currently WCAP).
                   alarmImage.setAttribute("suppressed", "true");
               }
               alarmImage.removeAttribute("hidden");

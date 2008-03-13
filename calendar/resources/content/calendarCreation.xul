@@ -22,6 +22,7 @@
    -                 Michiel van Leeuwen <mvl@exedo.nl>
    -                 Simon Paquet <bugzilla@babylonsounds.com>
    -                 Gary van der Merwe <garyvdm@gmail.com>
+   -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -74,6 +75,7 @@
                next="customizePage"
                label="&wizard.label;"
                onpageshow="initLocationPage();"
+               onpageadvanced="prepareCreateCalendar()"
                description="&wizard.description;">
         <description>&locationpage.description;</description>
         <grid>
@@ -114,7 +116,7 @@
                description="&custompage.shortdescription;"
                label="&wizard.label;"
                next="finishPage"
-               onpageshow="initNameFromURI(); checkRequired();"
+               onpageshow="initCustomizePage()"
                onpageadvanced="doCreateCalendar();">
         <description>&custompage.longdescription;</description>
         <grid>
@@ -122,13 +124,13 @@
                 <column/>
                 <column flex="1"/>
             </columns>
-            <rows>
-                <row align="center">
+            <rows id="customize-rows">
+                <row id="customize-name-row" align="center">
                     <label value="&calendarproperties.name.label;" control="calendar-name"/>
                     <textbox id="calendar-name"
                              required="true" oninput="checkRequired();"/>
                 </row>
-                <row align="center">
+                <row id="customize-color-row" align="center">
                     <label value="&calendarproperties.color.label;" control="calendar-color"/>
                     <hbox align="center">
                         <colorpicker id="calendar-color"
@@ -137,7 +139,7 @@
                                      palettename="standard"/>
                     </hbox>
                 </row>
-                <row>
+                <row id="customize-suppressAlarms-row">
                     <label value="&calendarproperties.firealarms.label;:" control="fire-alarms"/>
                     <checkbox id="fire-alarms" checked="true"/>
                 </row>

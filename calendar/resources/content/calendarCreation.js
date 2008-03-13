@@ -19,7 +19,9 @@
  * Portions created by the Initial Developer are Copyright (C) 2005
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Gary van der Merwe <garyvdm@gmail.com>
+ * Contributor(s):
+ *   Gary van der Merwe <garyvdm@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,9 +37,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var gCalendar;
+
 function initLocationPage()
 {
     checkRequired();
+}
+
+function initCustomizePage() {
+    initNameFromURI();
+    checkRequired();
+
+    var suppressAlarmsRow = document.getElementById("customize-suppressAlarms-row");
+    suppressAlarmsRow.hidden =
+        (gCalendar && gCalendar.getProperty("capabilities.alarms.popup.supported") === false);
 }
 
 function checkRequired() {
@@ -63,13 +76,14 @@ function onInitialAdvance() {
         page.next = 'locationPage';
 }
 
-function doCreateCalendar()
-{
-    var cal_name = document.getElementById("calendar-name").value;
-    var cal_color = document.getElementById('calendar-color').color;
-    var type = document.getElementById('calendar-type').selectedItem.value;
+/**
+ * Create the calendar, so that the customize page can already check for
+ * calendar capabilities of the provider.
+ */
+function prepareCreateCalendar() {
     var provider;
     var uri;
+    var type = document.getElementById('calendar-type').selectedItem.value;
     if (type == 'local') {
         provider = 'storage';
         uri = 'moz-profile-calendar://?id=2';
@@ -93,26 +107,31 @@ function doCreateCalendar()
         }
     } while (already.length);
 
-    dump(cal_name + "\n");
-    dump(cal_color + "\n");
-    dump(uri + "\n");
-    dump(provider + "\n");
-
     try {
-        var newCalendar = calManager.createCalendar(provider, makeURL(uri));
+        gCalendar = calManager.createCalendar(provider, makeURL(uri));
     } catch (ex) {
         dump(ex);
         return false;
     }
-    calManager.registerCalendar(newCalendar);
 
-    newCalendar.name = cal_name;
+    return true;
+}
 
-    newCalendar.setProperty('color', cal_color);
+/**
+ * The actual process of registering the created calendar.
+ */
+function doCreateCalendar() {
+    var cal_name = document.getElementById("calendar-name").value;
+    var cal_color = document.getElementById('calendar-color').color;
+    var calManager = getCalendarManager();
 
-    var fireAlarms = document.getElementById("fire-alarms").checked;
-    if (!fireAlarms) {
-        newCalendar.setProperty('suppressAlarms', true);
+    calManager.registerCalendar(gCalendar);
+
+    gCalendar.name = cal_name;
+    gCalendar.setProperty('color', cal_color);
+
+    if (!document.getElementById("fire-alarms").checked) {
+        gCalendar.setProperty('suppressAlarms', true);
     }
 
     return true;

@@ -2527,7 +2527,8 @@
             onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
                 switch (aName) {
                     case "suppressAlarms":
-                        if (!getPrefSafe("calendar.alarms.indicator.show", true)) {
+                        if (!getPrefSafe("calendar.alarms.indicator.show", true) ||
+                            aCalendar.getProperty("capabilities.alarms.popup.supported") === false ) {
                             break;
                         }
                         // else fall through

@@ -201,11 +201,10 @@ calWcapCalendar.prototype = {
                 value = false;
             }
             break;
-        case "suppressAlarms":
+        case "capabilities.alarms.popup.supported":
             // CS cannot store X-props reliably (thus writing X-MOZ stamps etc is not possible).
             // Popup alarms not available no matter what; wtf.
-            value = true;
-            break;
+            value = false;
         }
         return value;
     },

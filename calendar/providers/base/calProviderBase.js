@@ -159,19 +159,26 @@ calProviderBase.prototype = {
                 if (ret !== null) {
                     // xxx todo: work around value types here unless we save into the prefs...
                     switch (aName) {
-                    case "readOnly":
-                    case "relaxedMode":
-                    case "cache.supported":
-                    case "cache.enabled":
-                    case "suppressAlarms":
-                    case "calendar-main-in-composite":
-                    case "calendar-main-default":
-                        ret = (ret == "true");
-                        break;
-                    case "backup-time":
-                    case "cache.updateTimer":
-                        ret = Number(ret);
-                        break;
+                        case "suppressAlarms":
+                            if (this.getProperty("capabilities.alarms.popup.supported") === false) {
+                                // If popup alarms are not supported,
+                                // automatically suppress alarms
+                                ret = true;
+                                break;
+                            }
+                            // Otherwise fall through to fix the type
+                        case "readOnly":
+                        case "relaxedMode":
+                        case "cache.supported":
+                        case "cache.enabled":
+                        case "calendar-main-in-composite":
+                        case "calendar-main-default":
+                            ret = (ret == "true");
+                            break;
+                        case "backup-time":
+                        case "cache.updateTimer":
+                            ret = Number(ret);
+                            break;
                     }
                 }
             }

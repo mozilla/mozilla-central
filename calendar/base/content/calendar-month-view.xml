@@ -1658,6 +1658,7 @@
 
           onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
             if (aName == "suppressAlarms" &&
+                aCalendar.getProperty("capabilities.alarms.popup.supported") !== false &&
                 getPrefSafe("calendar.alarms.indicator.show", true)) {
               this.calView.refresh();
             }

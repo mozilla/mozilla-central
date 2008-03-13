@@ -108,10 +108,13 @@ function calAlarmService() {
         onError: function(aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
             if (aName == "suppressAlarms") {
-                if (aOldValue && !aValue) {
-                    this.alarmService.initAlarms([aCalendar]);
-                } else if (!aOldValue && aValue) {
+                // While in the UI it should be assured that suppressAlarms is
+                // not changed if popup alarms are unsupported, be robust here.
+                if ((!aOldValue && aValue) ||
+                    aCalendar.getProperty("capabilities.alarms.popup.supported") === false) {
                     this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
+                } else if (aOldValue && !aValue) {
+                    this.alarmService.initAlarms([aCalendar]);
                 }
             }
         },
@@ -575,7 +578,8 @@ calAlarmService.prototype = {
 
         for each(var calendar in calendars) {
             // assuming that suppressAlarms does not change anymore until refresh:
-            if (!calendar.getProperty("suppressAlarms")) {
+            if (!calendar.getProperty("suppressAlarms") &&
+                calendar.getProperty("capabilities.alarms.popup.supported") !== false) {
                 calendar.getItems(filter, 0, start, until, getListener);
             }
         }
@@ -594,7 +598,8 @@ calAlarmService.prototype = {
     },
 
     alarmFired: function cas_alarmFired(event) {
-        if (event.calendar.getProperty("suppressAlarms")) {
+        if (event.calendar.getProperty("suppressAlarms") ||
+            event.calendar.getProperty("capabilities.alarms.popup.supported") === false) {
             return;
         }
         this.notifyObservers("onAlarm", [event]);
