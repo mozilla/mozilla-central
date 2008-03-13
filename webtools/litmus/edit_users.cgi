@@ -89,6 +89,7 @@ if (Litmus::Auth::istrusted($cookie)) {
     }
     my @groups = Litmus::DB::SecurityGroup->retrieve_all();
     my $vars = {
+                current_user => $cookie,
 		user => $user,
 		groups => \@groups,
     };
@@ -97,8 +98,8 @@ if (Litmus::Auth::istrusted($cookie)) {
   } elsif ($c->param('user_id')) {
     # process changes to a user:
     my $user = Litmus::DB::User->retrieve($c->param('user_id'));
-    print $c->header();
     if (! $user) {
+      print $c->header();
       invalidInputError("Invalid user ID: " . $c->param('user_id'));
     }
     $user->bugzilla_uid($c->param('bugzilla_uid'));
@@ -136,22 +137,32 @@ if (Litmus::Auth::istrusted($cookie)) {
     		Litmus::DB::UserGroupMap->remove($user, $group);
     	}
     }
-    
 
     $user->authtoken($c->param('authtoken'));
     $user->update();
 
-   if ($revoke_sessions) {
-     Litmus::DB::Session->search(user_id => $user->{'user_id'})->delete_all; 
-   }
+    if ($revoke_sessions) {
+      Litmus::DB::Session->search(user_id => $user->{'user_id'})->delete_all; 
+    }
 
+    # Did we just change the current user? Redirect them to the login page if
+    # so. They should get a JS confirmation dialog to tell them as much when
+    # they submit the form.
+    if ($cookie->user_id == $user->{'user_id'}) {
+      print $c->redirect("/login.cgi");
+      exit;
+    }
+
+    print $c->header();
     my $vars = {
-		user => $user,
+                user => $user,
                 onload => "toggleMessage('success','User information updated successfully.');",
                 groups => \@allgroups,
                };
     Litmus->template()->process("admin/edit_users/search_users.html.tmpl", $vars) || 
       internalError(Litmus->template()->error()); 
+    exit;
+    
   } else {
     # we're here for the first time, so display the search form
     my @groups = Litmus::DB::SecurityGroup->retrieve_all();

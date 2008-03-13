@@ -28,7 +28,14 @@
 [% INCLUDE global/litmus_header.tmpl %]
 
 <script type="text/javascript">
+var current_user_id=[% current_user.user_id %];
 function checkFormContents(f) {
+  if (current_user_id == f.user_id.value) {
+    if (! confirm('You are updating yourself. This will require you to login again. Continue?')) {
+      return false;
+    }
+  }
+
 [% IF show_admin %]
   return (
           comparePasswords(f.edit_password,f.edit_confirm_password,true)

@@ -59,8 +59,8 @@ Litmus::Auth::requireLogin("index.cgi");
 # if we end up here, it means the user was already logged in 
 # for some reason, so we should send a redirect to index.cgi:
 print $c->start_html(-title=>'Please Wait', 
-								-head=>$c->meta({-http_equiv=> 'refresh', -content=>'0;url=index.cgi'})
-							   );
+                      -head=>$c->meta({-http_equiv=> 'refresh', -content=>'0;url=index.cgi'})
+                    );
 print $c->end_html();	
 	
 exit;
