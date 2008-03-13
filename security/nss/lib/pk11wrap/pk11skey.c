@@ -666,15 +666,16 @@ PK11_DeleteTokenSymKey(PK11SymKey *symKey)
 }
 
 SECItem *
-__PK11_GetKeyData(PK11SymKey *symKey)
+PK11_GetKeyData(PK11SymKey *symKey)
 {
     return &symKey->data;
 }
 
+/* This symbol is exported for backward compatibility. */
 SECItem *
-PK11_GetKeyData(PK11SymKey *symKey)
+__PK11_GetKeyData(PK11SymKey *symKey)
 {
-    return __PK11_GetKeyData(symKey);
+    return PK11_GetKeyData(symKey);
 }
 
 /* return the keylength if possible.  '0' if not */
