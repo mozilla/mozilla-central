@@ -38,6 +38,9 @@
 // This global keeps the session Objects for the usernames
 var g_sessionMap;
 
+// Sandbox for evaluating extendedProperties.
+var gGoogleSandbox;
+
 /**
  * setCalendarPref
  * Helper to set an independant Calendar Preference, since I cannot use the
@@ -708,7 +711,14 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
         gdReminder.@minutes = discreteValue;
         gdReminder.@method = "alert";
-        entry.gd::when.gd::reminder += gdReminder;
+
+        if (aItem.recurrenceInfo) {
+            // On recurring items, set the reminder directly in the <entry> tag.
+            entry.gd::reminder += gdReminder;
+        } else {
+            // Otherwise, its a child of the gd:when element
+            entry.gd::when.gd::reminder += gdReminder;
+        }
     }
 
     // saved alarms
@@ -739,6 +749,31 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     gdAlarmSnoozeTime.@name = "X-MOZ-SNOOZE-TIME";
     gdAlarmSnoozeTime.@value = toRFC3339(icalSnoozeTime);
     entry.gd::extendedProperty += gdAlarmSnoozeTime;
+
+    // gd:extendedProperty (snooze recurring alarms)
+    var snoozeValue = "";
+    if (aItem.recurrenceInfo) {
+        // This is an evil workaround since we don't have a really good system
+        // to save the snooze time for recurring alarms or even retrieve them
+        // from the event. This should change when we have multiple alarms
+        // support.
+        var snoozeObj = {};
+        var enumerator = aItem.propertyEnumerator;
+        while (enumerator.hasMoreElements()) {
+            var prop = enumerator.getNext().QueryInterface(Components.interfaces.nsIProperty);
+            if (prop.name.substr(0, 18) == "X-MOZ-SNOOZE-TIME-") {
+                // We have a snooze time for a recurring event, add it to our object
+                snoozeObj[prop.name.substr(18)] = prop.value;
+            }
+        }
+        snoozeValue = snoozeObj.toSource();
+    }
+    // Now save the snooze object in source format as an extended property. Do
+    // so always, since its currently impossible to unset extended properties.
+    var gdAlarmRecurSnooze = <gd:extendedProperty xmlns:gd={gd}/>;
+    gdAlarmRecurSnooze.@name = "X-GOOGLE-SNOOZE-RECUR";
+    gdAlarmRecurSnooze.@value = snoozeValue;
+    entry.gd::extendedProperty += gdAlarmRecurSnooze;
 
     // gd:visibility
     var privacy = aItem.privacy || "default";
@@ -965,29 +1000,22 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         item.status = aXMLEntry.gd::eventStatus.@value.toString()
                                .substring(39).toUpperCase();
 
-        // gd:when
-        var recurrenceInfo = aXMLEntry.gd::recurrence.toString();
-        if (recurrenceInfo.length == 0) {
-            // If no recurrence information is given, then there will only be
-            // one gd:when tag. Otherwise, we will be parsing the startDate from
-            // the recurrence information.
-            var when = aXMLEntry.gd::when;
-            item.startDate = fromRFC3339(when.@startTime, aTimezone);
-            item.endDate = fromRFC3339(when.@endTime, aTimezone);
+        // gd:reminder (preparation)
+        // Google's alarms are always related to the start
+        item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
 
-            if (!item.endDate) {
-                // We have a zero-duration event
-                item.endDate = item.startDate.clone();
-            }
-
-            // gd:reminder
-
-            // Google's alarms are always related to the start
-            item.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
-
+        /**
+         * Helper function to parse all reminders in a tagset. This sets the
+         * item's alarm, and also saves all other alarms using the
+         * X-GOOGLE-OTHERALARMS property.
+         * 
+         * @param reminderTags      The tagset to parse.
+         */
+        function parseReminders(reminderTags) {
             var lastAlarm;
             var otherAlarms = [];
-            for each (var reminder in when.gd::reminder) {
+            // Go through all reminder tags given and pick the best alarm.
+            for each (var reminder in reminderTags) {
                 // We are only intrested in "alert" reminders. Other types
                 // include sms and email alerts, but thats not the point here.
                 if (reminder.@method == "alert") {
@@ -1005,6 +1033,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                     } else if (reminder.@minutes.toString()) {
                         alarmOffset.minutes = -reminder.@minutes;
                     } else {
+                        // Invalid alarm, skip it
                         continue;
                     }
                     alarmOffset.normalize();
@@ -1037,6 +1066,25 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 
             // Save other alarms that were set so we don't loose them
             item.setProperty("X-GOOGLE-OTHERALARMS", otherAlarms);
+        }
+
+        // gd:when
+        var recurrenceInfo = aXMLEntry.gd::recurrence.toString();
+        if (recurrenceInfo.length == 0) {
+            // If no recurrence information is given, then there will only be
+            // one gd:when tag. Otherwise, we will be parsing the startDate from
+            // the recurrence information.
+            var when = aXMLEntry.gd::when;
+            item.startDate = fromRFC3339(when.@startTime, aTimezone);
+            item.endDate = fromRFC3339(when.@endTime, aTimezone);
+
+            if (!item.endDate) {
+                // We have a zero-duration event
+                item.endDate = item.startDate.clone();
+            }
+
+            // gd:reminder
+            parseReminders(aXMLEntry.gd::when.gd::reminder);
         } else {
             if (!item.recurrenceInfo) {
                 item.recurrenceInfo = createRecurrenceInfo(item);
@@ -1101,6 +1149,11 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                 // event. See gdata issue 353.
                 item.recurrenceInfo = null;
             }
+
+            // gd:reminder (for recurring events)
+            // This element is supplied as a direct child to the <entry> element
+            // for recurring items.
+            parseReminders(aXMLEntry.gd::reminder);
         }
 
         // gd:recurrenceException
@@ -1133,6 +1186,27 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         var snoozeProperty = (dtSnoozeTime ? dtSnoozeTime.icalString : null);
         item.setProperty("X-MOZ-SNOOZE-TIME", snoozeProperty);
 
+        // gd:extendedProperty (snooze recurring alarms)
+        if (item.recurrenceInfo) { 
+            if (!gGoogleSandbox) {
+                // Initialize sandbox if it does not already exist
+                gGoogleSandbox = Components.utils.Sandbox("about:blank");
+            }
+
+            // Transform back the string into our snooze properties
+            var snoozeString = aXMLEntry.gd::extendedProperty
+                                        .(@name == "X-GOOGLE-SNOOZE-RECUR")
+                                        .@value.toString();
+            var snoozeObj = Components.utils.evalInSandbox(snoozeString,
+                                                           gGoogleSandbox);
+            if (snoozeObj) {
+                for (var rid in snoozeObj) {
+                    item.setProperty("X-MOZ-SNOOZE-TIME-" + rid,
+                                     snoozeObj[rid]);
+                }
+            }
+        }
+
         // gd:where
         item.setProperty("LOCATION",
                          aXMLEntry.gd::where.@valueString.toString());
@@ -1140,7 +1214,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         if (getPrefSafe("calendar.google.enableAttendees", false)) {
             // XXX Only parse attendees if they are enabled, due to bug 407961
 
-            // This object can easily translate the Google's values to our values.
+            // This object can easily translate Google's values to our values.
             const attendeeStatusMap = {
                 // role
                 "event.optional": "OPT-PARTICIPANT",
