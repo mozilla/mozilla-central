@@ -108,6 +108,7 @@
       <checkbox id="server.useServerFilter" label="&ispHeaders.label;"
                 accesskey="&ispHeaders.accesskey;"
                 genericattr="true" pref="true" wsm_persist="true" preftype="bool"
+                oncommand="onServerFilterToggle(this.checked);"
                 prefstring="mail.server.%serverkey%.useServerFilter"/>
       <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"/>
     </hbox>

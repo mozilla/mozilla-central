@@ -85,6 +85,10 @@ function onInit(aPageId, aServerId)
     serverFilterList.selectedIndex = 0;
    
   updateMoveTargetMode(document.getElementById('server.moveOnSpam').checked);
+
+  // enable or disable the useServerFilter checkbox
+  var checked = document.getElementById("server.useServerFilter").checked;
+  onServerFilterToggle(checked);
 }
 
 function onPreInit(account, accountValues)
@@ -127,6 +131,17 @@ function onServerFilterListChange()
 {
   document.getElementById('server.serverFilterName').value =
     document.getElementById("useServerFilterList").value;
+}
+
+/**
+ * Called when someone checks or unchecks the server-filter checkbox.  We need
+ * to enable or disable the menulist accordingly
+ *
+ * @param  the boolean value of the checkbox
+ */
+function onServerFilterToggle(aValue)
+{
+  document.getElementById("useServerFilterList").disabled = !aValue;
 }
 
 function onSave()
