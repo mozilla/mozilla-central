@@ -327,3 +327,14 @@ function getTrashFolderName()
   }
   return trashFolderName;
 }
+
+/**
+ * Called when someone changes the biff-minutes value.  We'll check whether it's
+ * zero, and if so, disable the biff checkbox as well, otherwise enable the box
+ *
+ * @param aValue  the new value for the textbox
+ */
+function onBiffMinChange(aValue)
+{
+  document.getElementById("server.doBiff").checked = (aValue != 0);
+}

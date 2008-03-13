@@ -163,7 +163,8 @@
               prefattribute="value"
               prefstring="mail.server.%serverkey%.check_new_mail"/>
     <textbox wsm_persist="true" id="server.biffMinutes" size="3"
-             preftype="int"
+             preftype="int" type="number"
+             onchange="onBiffMinChange(this.value);"
              prefstring="mail.server.%serverkey%.check_time"/>
     <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
   </hbox>
