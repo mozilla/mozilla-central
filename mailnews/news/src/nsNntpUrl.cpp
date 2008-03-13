@@ -57,8 +57,6 @@
 #include "nsIMsgDatabase.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgNewsCID.h"
-#include "nsIRDFService.h"
-#include "rdf.h"
 #include "nsIMsgFolder.h"
 #include "nsINntpService.h"
 #include "nsIMsgMessageService.h"

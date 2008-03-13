@@ -51,8 +51,6 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgHdr.h"
 
-#include "nsIRDFService.h"
-#include "rdf.h"
 #include "nsIMsgFolder.h"
 #include "prprf.h"
 #include "prmem.h"

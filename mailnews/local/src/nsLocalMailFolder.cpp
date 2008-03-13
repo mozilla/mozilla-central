@@ -64,8 +64,6 @@
 #include "nsIMsgWindow.h"
 #include "nsCOMPtr.h"
 #include "nsIRDFService.h"
-#include "nsIRDFDataSource.h"
-#include "nsRDFCID.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgUtils.h"
 #include "nsLocalUtils.h"
@@ -3183,7 +3181,6 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
         rv = popurl->GetMessageUri(getter_Copies(messageuri));
         if (NS_SUCCEEDED(rv))
         {
-          nsCOMPtr<nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1", &rv);
           NS_ENSURE_SUCCESS(rv, rv);
           nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
           rv = GetMsgDBHdrFromURI(messageuri.get(), getter_AddRefs(msgDBHdr));

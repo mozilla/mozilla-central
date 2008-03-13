@@ -78,7 +78,6 @@
 #include "nsIIOService.h"
 #include "nsNetCID.h"
 #include "nsIPrompt.h"
-#include "nsIRDFService.h"
 #include "nsNewsDownloader.h"
 #include "prprf.h"
 #include "nsICacheService.h"

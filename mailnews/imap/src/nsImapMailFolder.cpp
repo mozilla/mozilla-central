@@ -49,7 +49,6 @@
 #include "nsCOMPtr.h"
 #include "nsAutoPtr.h"
 #include "nsIRDFService.h"
-#include "nsIRDFDataSource.h"
 #include "nsRDFCID.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgFolderFlags.h"

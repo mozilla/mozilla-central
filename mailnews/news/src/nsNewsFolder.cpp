@@ -57,7 +57,6 @@
 #include "nsIFolderListener.h"
 #include "nsCOMPtr.h"
 #include "nsIRDFService.h"
-#include "nsIRDFDataSource.h"
 #include "nsRDFCID.h"
 #include "nsMsgDBCID.h"
 #include "nsMsgNewsCID.h"

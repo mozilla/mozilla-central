@@ -52,7 +52,6 @@
 #include "nsIMsgWindow.h"
 
 #include "nsIRDFService.h"
-#include "nsIRDFDataSource.h"
 #include "nsRDFCID.h"
 #include "nsIDirectoryService.h"
 #include "nsAppDirectoryServiceDefs.h"
