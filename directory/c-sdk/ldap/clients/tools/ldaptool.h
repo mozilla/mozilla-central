@@ -199,6 +199,7 @@ int ldaptool_boolean_str2value ( const char *s, int strict );
 int ldaptool_parse_ctrl_arg ( char *ctrl_arg, char sep, char **ctrl_oid, 
 	    int *ctrl_criticality, char **ctrl_value, int *vlen);
 FILE *ldaptool_open_file ( const char *filename, const char * mode);
+int ldaptool_check_ferror( FILE * stream, const int ldap_err, const char *msg );
 
 
 #ifdef __cplusplus

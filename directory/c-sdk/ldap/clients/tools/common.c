@@ -2743,3 +2743,31 @@ ldaptool_open_file(const char *filename, const char *mode)
 	return fopen(filename, mode);
 #endif
 }
+
+/*
+ * check for and report input or output error on named stream
+ * return ldap_err or ferror() (ldap_err takes precedence)
+ * assume that fflush() already has been called if needed.
+ * don't want to fflush() an input stream.
+ */
+int
+ldaptool_check_ferror(FILE * stream, const int ldap_err, const char *msg)
+{
+	int err = 0;
+	if ((err = ferror(stream)) != 0 ) {
+		fprintf(stderr, "%s: ERROR: ", ldaptool_progname);
+		perror(msg);
+		err = LDAP_LOCAL_ERROR;
+		}
+
+	/*
+	 * reporting LDAP_ error code is more important than
+	 * reporting errors from ferror()
+	 */
+	if (LDAP_SUCCESS == ldap_err) {
+		return(err);
+		}
+	else {
+		return(ldap_err);
+		}
+}

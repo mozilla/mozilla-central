@@ -147,6 +147,9 @@ main( int argc, char **argv )
     if ( typeval != NULL ) free( typeval );
     if ( bv.bv_val != NULL ) free( bv.bv_val );
 
+    /* check for and report output error */
+    fflush( stdout );
+    rc = ldaptool_check_ferror( stdout, rc, "output error (output might be incomplete)" );
     return( rc );
 }
 

@@ -122,6 +122,10 @@ main( int argc, char **argv )
 
     ldaptool_reset_control_array( ldaptool_request_ctrls );
     ldaptool_cleanup( ld );
+
+    /* check for and report output error */
+    fflush( stdout );
+    rc = ldaptool_check_ferror( stdout, rc, "output error (output might be incomplete)" );
     return( rc );
 }
 

@@ -331,6 +331,11 @@ main( int argc, char **argv )
     if ( (free_filtpattern != 0) && (filtpattern != NULL) ) {
 		free (filtpattern);
     }
+
+
+    /* check for and report output error */
+    fflush( stdout );
+    rc = ldaptool_check_ferror( stdout, rc, "output error (output might be incomplete)" );
     return( rc );
 }
 
