@@ -378,6 +378,8 @@ breakout:
         CERTValInParam cvin[5];
         SECOidTag oidTag;
         int inParamIndex = 0;
+        CERTRevocationFlags rev;
+        PRUint64 revFlags[1];
 
         if (oidStr) {
             PRArenaPool *arena;
@@ -429,9 +431,23 @@ breakout:
 	cvin[inParamIndex].value.scalar.time = time;
 	inParamIndex++;
 
+        revFlags[cert_revocation_method_crl] = 
+            CERT_REV_M_TEST_USING_THIS_METHOD;
+
+        rev.leafTests.number_of_defined_methods = cert_revocation_method_crl +1;
+        rev.leafTests.cert_rev_flags_per_method = revFlags;
+        rev.leafTests.number_of_preferred_methods = 0;
+        rev.leafTests.preferred_methods = 0;
+        rev.leafTests.cert_rev_method_independent_flags = 0;
+      
+        rev.chainTests.number_of_defined_methods = cert_revocation_method_crl +1;
+        rev.chainTests.cert_rev_flags_per_method = revFlags;
+        rev.chainTests.number_of_preferred_methods = 0;
+        rev.chainTests.preferred_methods = 0;
+        rev.chainTests.cert_rev_method_independent_flags = 0;
+
         cvin[inParamIndex].type = cert_pi_revocationFlags;
-        cvin[inParamIndex].value.scalar.ul = CERT_REV_FAIL_SOFT_CRL |
-                                  CERT_REV_FLAG_CRL;
+        cvin[inParamIndex].value.pointer.revocation = &rev;
 	inParamIndex++;
 
         cvin[inParamIndex].type = cert_pi_end;
