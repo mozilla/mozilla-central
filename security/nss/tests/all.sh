@@ -97,7 +97,7 @@ run_tests()
 	done
 }
 
-tests="cipher perf libpkix cert dbtests tools fips sdr crmf smime ssl ocsp"
+tests="cipher perf libpkix cert dbtests tools fips sdr crmf smime ssl ocsp merge"
 if [ -z "$BUILD_LIBPKIX_TESTS" ] ; then
 	tests=`echo "${tests}" | sed -e "s/libpkix//"`
 fi

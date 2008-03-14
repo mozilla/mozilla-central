@@ -65,6 +65,11 @@ dbupgrade_init()
 		cd ${QADIR}/cert 
 		. ./cert.sh
 	fi
+
+	if [ ! -d ${HOSTDIR}/SDR ]; then  # we also need sdr as well
+		cd ${QADIR}/sdr
+		. ./sdr.sh
+	fi
 	
 	SCRIPTNAME=dbupgrade.sh
 	if [ -z "${CLEANUP}" ] ; then     # if nobody else is responsible for

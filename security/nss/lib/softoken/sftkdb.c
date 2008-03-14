@@ -2313,8 +2313,8 @@ sftk_DBInit(const char *configdir, const char *certPrefix,
 	      /* old dbs exist? */
 	      && sftk_hasLegacyDB(updatedir, updCertPrefix, updKeyPrefix, 8, 3) 
 	      /* and they have not yet been updated? */
-	      && (noKeyDB || !sftkdb_hasUpdate("key", keySDB, updateID)) 
-	      && (noCertDB || !sftkdb_hasUpdate("cert", certSDB, updateID)) ) {
+	      && ((noKeyDB || !sftkdb_hasUpdate("key", keySDB, updateID)) 
+	      || (noCertDB || !sftkdb_hasUpdate("cert", certSDB, updateID)))) {
 	    /* we need to update */
 	    confdir = updatedir;
 	    certPrefix = updCertPrefix;

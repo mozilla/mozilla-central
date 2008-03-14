@@ -111,6 +111,7 @@ unpadBlock(SECItem *data, int blockSize, SECItem *result)
 {
   SECStatus rv = SECSuccess;
   int padLength;
+  int i;
 
   result->data = 0;
   result->len = 0;
@@ -120,6 +121,14 @@ unpadBlock(SECItem *data, int blockSize, SECItem *result)
 
   padLength = data->data[data->len-1];
   if (padLength > blockSize) { rv = SECFailure; goto loser; }
+
+  /* verify padding */
+  for (i=data->len - padLength; i < data->len; i++) {
+    if (data->data[i] != padLength) {
+	rv = SECFailure;
+	goto loser;
+    }
+  }
 
   result->len = data->len - padLength;
   result->data = (unsigned char *)PORT_Alloc(result->len);
