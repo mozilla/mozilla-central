@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.42 2008-03-06 19:51:38 rrelyea%redhat.com Exp $
+ * $Id: certt.h,v 1.43 2008-03-14 23:28:46 kaie%kuix.de Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -936,7 +936,7 @@ typedef enum {
 				 * value '0' indicates 'now'. default is '0' */
    cert_pi_revocationFlags = 9, /* Specify what revocation checking to do.
 				 * See CERT_REV_FLAG_* macros below
-				 * Set in value.scalar.ul */
+				 * Set in value.pointer.revocation */
    cert_pi_certStores      = 10,/* Bitmask of Cert Store flags (see below)
 				 * Set in value.scalar.ui */
    cert_pi_trustAnchors    = 11,/* specify the list of trusted roots to 
@@ -992,6 +992,181 @@ typedef enum {
 
 } CERTValParamOutType;
 
+typedef enum {
+    cert_revocation_method_crl = 0,
+    cert_revocation_method_ocsp,
+    cert_revocation_method_count
+} CERTRevocationMethodIndex;
+
+
+/*
+ * The following flags are supposed to be used to control bits in
+ * each integer contained in the array pointed to be:
+ *     CERTRevocationTests.cert_rev_flags_per_method
+ * All Flags are prefixed by CERT_REV_M_, where _M_ indicates
+ * this is a method dependent flag.
+ */
+
+/*
+ * Whether or not to use a method for revocation testing.
+ * If set to "do not test", then all other flags are ignored.
+ */
+#define CERT_REV_M_DO_NOT_TEST_USING_THIS_METHOD     0L
+#define CERT_REV_M_TEST_USING_THIS_METHOD            1L
+
+/*
+ * Whether or not NSS is allowed to attempt to fetch fresh information
+ *         from the network.
+ * (Although fetching will never happen if fresh information for the
+ *           method is already locally available.)
+ */
+#define CERT_REV_M_ALLOW_NETWORK_FETCHING            0L
+#define CERT_REV_M_FORBID_NETWORK_FETCHING           2L
+
+/*
+ * Example for an implicit default source:
+ *         The globally configured default OCSP responder.
+ * IGNORE means:
+ *        ignore the implicit default source, whether it's configured or not.
+ * ALLOW means:
+ *       if an implicit default source is configured, 
+ *          then it overrides any available or missing source in the cert.
+ *       if no implicit default source is configured,
+ *          then we continue to use what's available (or not available) 
+ *          in the certs.
+ */ 
+#define CERT_REV_M_ALLOW_IMPLICIT_DEFAULT_SOURCE     0L
+#define CERT_REV_M_IGNORE_IMPLICIT_DEFAULT_SOURCE    4L
+
+/*
+ * Defines the behavior if no fresh information is available,
+ *   fetching from the network is allowed, but the source of revocation
+ *   information is unknown (even after considering implicit sources,
+ *   if allowed by other flags).
+ * SKIPT_TEST means:
+ *          We ignore that no fresh information is available and 
+ *          skip this test.
+ * REQUIRE_INFO means:
+ *          We still require that fresh information is available.
+ *          Other flags define what happens on missing fresh info.
+ */
+#define CERT_REV_M_SKIP_TEST_ON_MISSING_SOURCE       0L
+#define CERT_REV_M_REQUIRE_INFO_ON_MISSING_SOURCE    8L
+
+/*
+ * Defines the behavior if we are unable to obtain fresh information.
+ * INGORE means:
+ *        Return "test succeded, not revoked"
+ * FAIL means:
+ *      Return "cert revoked".
+ */
+#define CERT_REV_M_IGNORE_MISSING_FRESH_INFO         0L
+#define CERT_REV_M_FAIL_ON_MISSING_FRESH_INFO        16L
+
+/*
+ * What should happen if we were able to find fresh information using
+ * this method, and the data indicated the cert is good?
+ * STOP_TESTING means:
+ *              Our success is sufficient, do not continue testing
+ *              other methods.
+ * CONTINUE_TESTING means:
+ *                  We will continue and test the next allowed
+ *                  specified method.
+ */
+#define CERT_REV_M_STOP_TESTING_ON_FRESH_INFO        0L
+#define CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO    32L
+
+/*
+ * The following flags are supposed to be used to control bits in
+ *     CERTRevocationTests.cert_rev_method_independent_flags
+ * All Flags are prefixed by CERT_REV_M_, where _M_ indicates
+ * this is a method independent flag.
+ */
+
+/*
+ * This defines the order to checking.
+ * EACH_METHOD_SEPARATELY means:
+ *      Do all tests related to a particular allowed method
+ *      (both local information and network fetching) in a single step.
+ *      Only after testing for a particular method is done,
+ *      then switching to the next method will happen.
+ * ALL_LOCAL_INFORMATION_FIRST means:
+ *      Start by testing the information for all allowed methods
+ *      which are already locally available. Only after that is done
+ *      consider to fetch from the network (as allowed by other flags).
+ */
+#define CERT_REV_MI_TEST_EACH_METHOD_SEPARATELY       0L
+#define CERT_REV_MI_TEST_ALL_LOCAL_INFORMATION_FIRST  1L
+
+/*
+ * Use this flag to specify that it's necessary that fresh information
+ * is available for at least one of the allowed methods, but it's
+ * irrelevant which of the mechanisms succeeded.
+ * NO_OVERALL_INFO_REQUIREMENT means:
+ *     We strictly follow the requirements for each individual method.
+ * REQUIRE_SOME_FRESH_INFO_AVAILABLE means:
+ *     After the individual tests have been executed, we must have
+ *     been able to find fresh information using at least one method.
+ *     If we were unable to find fresh info, it's a failure.
+ */
+#define CERT_REV_MI_NO_OVERALL_INFO_REQUIREMENT       0L
+#define CERT_REV_MI_REQUIRE_SOME_FRESH_INFO_AVAILABLE 2L
+
+
+typedef struct {
+    /*
+     * The size of the array that cert_rev_flags_per_method points to,
+     * meaning, the number of methods that are known and defined
+     * by the caller.
+     */
+    PRUint32 number_of_defined_methods;
+
+    /*
+     * A pointer to an array of integers.
+     * Each integer defines revocation checking for a single method,
+     *      by having individual CERT_REV_M_* bits set or not set.
+     * The meaning of index numbers into this array are defined by 
+     *     enum CERTRevocationMethodIndex
+     * The size of the array must be specified by the caller in the separate
+     *     variable number_of_defined_methods.
+     * The size of the array may be smaller than 
+     *     cert_revocation_method_count, it can happen if a caller
+     *     is not yet aware of the latest revocation methods
+     *     (or does not want to use them).
+     */ 
+    PRUint64 *cert_rev_flags_per_method;
+
+    /*
+     * How many preferred methods are specified?
+     * This is equivalent to the size of the array that 
+     *      preferred_revocation_methods points to.
+     * It's allowed to set this value to zero,
+     *      then NSS will decide which methods to prefer.
+     */
+    PRUint32 number_of_preferred_methods;
+
+    /* Array that may specify an optional order of preferred methods.
+     * Each array entry shall contain a method identifier as defined
+     *   by CERTRevocationMethodIndex.
+     * The entry at index [0] specifies the method with highest preferrence.
+     * These methods will be tested first for locally available information.
+     * Methods allowed for downloading will be attempted in the same order.
+     */
+    CERTRevocationMethodIndex *preferred_methods;
+
+    /*
+     * An integer which defines certain aspects of revocation checking
+     * (independent of individual methods) by having individual
+     * CERT_REV_MI_* bits set or not set.
+     */
+    PRUint64 cert_rev_method_independent_flags;
+} CERTRevocationTests;
+
+typedef struct {
+    CERTRevocationTests leafTests;
+    CERTRevocationTests chainTests;
+} CERTRevocationFlags;
+
 typedef struct CERTValParamInValueStr {
     union {
         PRBool   b;
@@ -1006,6 +1181,7 @@ typedef struct CERTValParamInValueStr {
         const char*    s;
         const CERTCertificate* cert;
 	const CERTCertList *chain;
+        const CERTRevocationFlags *revocation;
     } pointer;
     union {
         const PRInt32  *pi;
@@ -1057,20 +1233,6 @@ typedef struct {
 #define CERT_POLICY_FLAG_NO_MAPPING    1
 #define CERT_POLICY_FLAG_EXPLICIT      2
 #define CERT_POLICY_FLAG_NO_ANY        4
-
-/*
- * revocation flags 
- */
-#define CERT_REV_FLAG_OCSP              1
-#define CERT_REV_FLAG_OCSP_LEAF_ONLY    2
-#define CERT_REV_FLAG_CRL               4
-#define CERT_REV_FLAG_CRL_LEAF_ONLY     8
-/* set if we don't want to fail because we were unable to get revocation
- * data */
-#define CERT_REV_FAIL_SOFT_OCSP         0x10
-#define CERT_REV_FAIL_SOFT_CRL          0x20
-/* REV_NIST is CRL and !CRL_LEAF_ONLY and !FAIL_SOFT_CRL */
-#define CERT_REV_NIST		   (CERT_REV_FLAG_CRL)
 
 /*
  * CertStore flags
