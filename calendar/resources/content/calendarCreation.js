@@ -70,10 +70,12 @@ function checkRequired() {
 function onInitialAdvance() {
     var type = document.getElementById('calendar-type').selectedItem.value;
     var page = document.getElementsByAttribute('pageid', 'initialPage')[0];
-    if (type == 'local')
+    if (type == 'local') {
+        prepareCreateCalendar();
         page.next = 'customizePage';
-    else
+    } else {
         page.next = 'locationPage';
+    }
 }
 
 /**
