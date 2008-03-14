@@ -563,7 +563,12 @@ sftk_hasNullPassword(SFTKSlot *slot, SFTKDBHandle *keydb)
    
     pwenabled = PR_FALSE;
     if (sftkdb_HasPasswordSet(keydb) == SECSuccess) {
-	return (sftkdb_CheckPassword(slot, keydb, "") == SECSuccess);
+	PRBool tokenRemoved = PR_FALSE;
+    	SECStatus rv = sftkdb_CheckPassword(keydb, "", &tokenRemoved);
+	if (tokenRemoved) {
+	    sftk_CloseAllSessions(slot);
+	}
+	return (rv  == SECSuccess);
     }
 
     return pwenabled;
@@ -2997,6 +3002,7 @@ CK_RV NSC_InitPIN(CK_SESSION_HANDLE hSession,
     char newPinStr[SFTK_MAX_PIN+1];
     SECStatus rv;
     CK_RV crv = CKR_SESSION_HANDLE_INVALID;
+    PRBool tokenRemoved = PR_FALSE;
 
     CHECK_FORK();
     
@@ -3047,7 +3053,10 @@ CK_RV NSC_InitPIN(CK_SESSION_HANDLE hSession,
     /* build the hashed pins which we pass around */
 
     /* change the data base */
-    rv = sftkdb_ChangePassword(slot, handle, NULL, newPinStr);
+    rv = sftkdb_ChangePassword(handle, NULL, newPinStr, &tokenRemoved);
+    if (tokenRemoved) {
+	sftk_CloseAllSessions(slot);
+    }
     sftk_freeDB(handle);
     handle = NULL;
 
@@ -3080,6 +3089,7 @@ CK_RV NSC_SetPIN(CK_SESSION_HANDLE hSession, CK_CHAR_PTR pOldPin,
     char newPinStr[SFTK_MAX_PIN+1],oldPinStr[SFTK_MAX_PIN+1];
     SECStatus rv;
     CK_RV crv = CKR_SESSION_HANDLE_INVALID;
+    PRBool tokenRemoved = PR_FALSE;
 
     CHECK_FORK();
     
@@ -3126,7 +3136,10 @@ CK_RV NSC_SetPIN(CK_SESSION_HANDLE hSession, CK_CHAR_PTR pOldPin,
 
     /* change the data base password */
     PR_Lock(slot->pwCheckLock);
-    rv = sftkdb_ChangePassword(slot, handle, oldPinStr, newPinStr);
+    rv = sftkdb_ChangePassword(handle, oldPinStr, newPinStr, &tokenRemoved);
+    if (tokenRemoved) {
+	sftk_CloseAllSessions(slot);
+    }
     sftk_freeDB(handle);
     handle = NULL;
     if ((rv != SECSuccess) && (slot->slotID == FIPS_SLOT_ID)) {
@@ -3296,6 +3309,7 @@ CK_RV NSC_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
     SECStatus rv;
     CK_RV crv;
     char pinStr[SFTK_MAX_PIN+1];
+    PRBool tokenRemoved = PR_FALSE;
 
     CHECK_FORK();
 
@@ -3372,7 +3386,10 @@ CK_RV NSC_Login(CK_SESSION_HANDLE hSession, CK_USER_TYPE userType,
 
     /* build the hashed pins which we pass around */
     PR_Lock(slot->pwCheckLock);
-    rv = sftkdb_CheckPassword(slot,handle,pinStr);
+    rv = sftkdb_CheckPassword(handle,pinStr, &tokenRemoved);
+    if (tokenRemoved) {
+	sftk_CloseAllSessions(slot);
+    }
     if ((rv != SECSuccess) && (slot->slotID == FIPS_SLOT_ID)) {
 	PR_Sleep(loginWaitTime);
     }

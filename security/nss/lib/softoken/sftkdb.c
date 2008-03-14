@@ -2375,6 +2375,7 @@ sftk_DBInit(const char *configdir, const char *certPrefix,
 		updateCert->app_private = (*certDB);
 	    }
 	    if (*keyDB) {
+		PRBool tokenRemoved = PR_FALSE;
 		(*keyDB)->update = updateKey;
 		(*keyDB)->updateID = updateID && *updateID ? 
 					PORT_Strdup(updateID) : NULL;
@@ -2385,7 +2386,7 @@ sftk_DBInit(const char *configdir, const char *certPrefix,
 			 PR_TRUE : PR_FALSE;
 		/* if the password on the key db is NULL, kick off our update
 		 * chain of events */
-		sftkdb_CheckPassword(NULL, (*keyDB), "");
+		sftkdb_CheckPassword((*keyDB), "", &tokenRemoved);
 	    } else {
 		/* we don't have a key DB, update the certificate DB now */
 		sftkdb_Update(*certDB, NULL);

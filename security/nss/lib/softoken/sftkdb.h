@@ -71,12 +71,14 @@ SECStatus sftkdb_AddSecmodDB(SDBType dbType, const char *appName,
 /* keydb functions */
 
 SECStatus sftkdb_PWIsInitialized(SFTKDBHandle *keydb);
-SECStatus sftkdb_CheckPassword(SFTKSlot * slot, SFTKDBHandle *keydb, const char *pw);
+SECStatus sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw,
+			       PRBool *tokenRemoved);
 SECStatus sftkdb_PWCached(SFTKDBHandle *keydb);
 SECStatus sftkdb_HasPasswordSet(SFTKDBHandle *keydb);
 SECStatus sftkdb_ResetKeyDB(SFTKDBHandle *keydb);
-SECStatus sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb, 
-				char *oldPin, char *newPin);
+SECStatus sftkdb_ChangePassword(SFTKDBHandle *keydb, 
+				char *oldPin, char *newPin,
+				PRBool *tokenRemoved);
 SECStatus sftkdb_ClearPassword(SFTKDBHandle *keydb);
 PRBool sftkdb_InUpdateMerge(SFTKDBHandle *keydb);
 PRBool sftkdb_NeedUpdateDBPassword(SFTKDBHandle *keydb);

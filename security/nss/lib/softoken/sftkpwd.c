@@ -696,7 +696,7 @@ sftkdb_HasPasswordSet(SFTKDBHandle *keydb)
  * check if the supplied password is valid
  */
 SECStatus  
-sftkdb_CheckPassword(SFTKSlot *slot, SFTKDBHandle *keydb, const char *pw)
+sftkdb_CheckPassword(SFTKDBHandle *keydb, const char *pw, PRBool *tokenRemoved)
 {
     SECStatus rv;
     SECItem salt, value;
@@ -789,12 +789,8 @@ sftkdb_CheckPassword(SFTKSlot *slot, SFTKDBHandle *keydb, const char *pw)
 	    }
 
 	    /* Simulate a token removal -- we need to do this any
-             * any case at this point so the token name is correct. NOTE: if 
-	     * slot is NULL, then we were called from the database init code,
-	     * there are no sessions, so there is no need to close them. */
-	    if (slot) {
-		sftk_CloseAllSessions(slot);
-	    }
+             * any case at this point so the token name is correct. */
+	    *tokenRemoved = PR_TRUE;
 
 	    /* 
 	     * OK, we got the update DB password, see if we need a password
@@ -813,13 +809,13 @@ sftkdb_CheckPassword(SFTKSlot *slot, SFTKDBHandle *keydb, const char *pw)
 		 *  because we are making this call from a NeedUpdateDBPassword
 		 *  block and we've already set that update password at this
 		 *  point.  */
-		rv = sftkdb_CheckPassword(slot, keydb, pw);
+		rv = sftkdb_CheckPassword(keydb, pw, tokenRemoved);
 		if (rv == SECSuccess) {
 		    /* source and target databases have the same password, we 
 		     * are good to go */
 		    goto done;
 		}
-		sftkdb_CheckPassword(slot, keydb, "");
+		sftkdb_CheckPassword(keydb, "", tokenRemoved);
 
 		/*
 		 * Important 'NULL' code here. At this point either we 
@@ -1165,8 +1161,8 @@ sftkdb_convertObjects(SFTKDBHandle *handle, CK_ATTRIBUTE *template,
  * change the database password.
  */
 SECStatus
-sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb, 
-                      char *oldPin, char *newPin)
+sftkdb_ChangePassword(SFTKDBHandle *keydb, 
+                      char *oldPin, char *newPin, PRBool *tokenRemoved)
 {
     SECStatus rv = SECSuccess;
     SECItem plainText;
@@ -1202,7 +1198,7 @@ sftkdb_ChangePassword(SFTKSlot *slot, SFTKDBHandle *keydb,
     value.len = sizeof(valueData);
     crv = (*db->sdb_GetMetaData)(db, "password", &salt, &value);
     if (crv == CKR_OK) {
-	rv = sftkdb_CheckPassword(slot, keydb, oldPin);
+	rv = sftkdb_CheckPassword(keydb, oldPin, tokenRemoved);
 	if (rv == SECFailure) {
 	    goto loser;
 	}
