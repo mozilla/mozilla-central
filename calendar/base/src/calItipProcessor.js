@@ -422,7 +422,7 @@ calItipProcessor.prototype = {
             onOperationComplete:
             function (aCalendar, aStatus, aOperationType, aId, aDetail) {
                 // If there is no item, we get this call with a failure error
-                if (aStatus == Components.results.NS_ERROR_FAILURE &&
+                if (!Components.isSuccessCode(aStatus) &&
                     !this.itipProcessor._handledID) {
                     // Cache the id so that we know we've handled this one.
                     this.itipProcessor._handledID = aCalItem.id;

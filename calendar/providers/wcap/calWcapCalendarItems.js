@@ -61,7 +61,10 @@ function calWcapCalendar_encodeAttendee(att)
     var params = encodeAttr(att.rsvp ? "TRUE" : "FALSE", "RSVP", "");
     params = encodeAttr(att.participationStatus, "PARTSTAT", params);
     params = encodeAttr(att.role, "ROLE", params);
-    params = encodeAttr(att.commonName.replace(/[;:]/g, " "), "CN", params);
+    var cn = att.commonName;
+    if (cn) {
+        params = encodeAttr(cn.replace(/[;:]/g, " "), "CN", params);
+    }
     return encodeAttr(att.id, null, params);
 };
 
@@ -1061,7 +1064,8 @@ function calWcapCalendar_getItem(id, listener)
             request,
             function fetchEventById_resp(err, icalRootComp) {
                 if (err) {
-                    if (!checkErrorCode(err, calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED)) {
+                    if (!checkErrorCode(err, calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED) &&
+                        !checkErrorCode(err, calIWcapErrors.WCAP_COMPONENT_NOT_FOUND)) {
                         throw err;
                     }
                     // try todos:
