@@ -1447,7 +1447,7 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
     PKIX_List *policyOIDList = NULL;
     PKIX_RevocationChecker *ocspChecker = NULL;
     PKIX_List *certListPkix = NULL;
-    PRUint64 flags;
+    const CERTRevocationFlags *flags;
     SECErrorCodes errCode = SEC_ERROR_INVALID_ARGS;
     const CERTCertList *certList = NULL;
     CERTCertListNode *node;
@@ -1503,9 +1503,84 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
             break;
 
         case cert_pi_revocationFlags:
-            flags = param->value.scalar.ul;
-            if (((flags & CERT_REV_FLAG_OCSP) == 0) || 
-                (flags & CERT_REV_FLAG_OCSP_LEAF_ONLY)) {
+        {
+            PRBool ocspTurnedOnForLeaf = PR_FALSE;
+            PRBool ocspTurnedOnForChain = PR_FALSE;
+            PRBool crlTurnedOnForLeaf = PR_FALSE;
+            PRBool crlTurnedOnForChain = PR_FALSE;
+            PRBool crlHardFailure = PR_FALSE;
+
+            flags = param->value.pointer.revocation;
+            if (!flags) {
+                PORT_SetError(errCode);
+                r = SECFailure;
+                break;
+            }
+
+            if (
+                /* caller did define OCSP leaf behavior */
+                (flags->leafTests.number_of_defined_methods >
+                    cert_revocation_method_ocsp)
+                &&
+                /* caller allows OCSP testing for the leaf */
+                (flags->leafTests.cert_rev_flags_per_method
+                    [cert_revocation_method_ocsp]
+                    & CERT_REV_M_TEST_USING_THIS_METHOD)) {
+                ocspTurnedOnForLeaf = PR_TRUE;
+            }
+
+            if (
+                /* caller did define OCSP chain behavior */
+                (flags->chainTests.number_of_defined_methods >
+                    cert_revocation_method_ocsp)
+                &&
+                /* caller allows OCSP testing for the chain */
+                (flags->chainTests.cert_rev_flags_per_method
+                    [cert_revocation_method_ocsp]
+                    & CERT_REV_M_TEST_USING_THIS_METHOD)) {
+                ocspTurnedOnForChain = PR_TRUE;
+            }
+
+            if (
+                /* caller did define CRL leaf behavior */
+                (flags->leafTests.number_of_defined_methods >
+                    cert_revocation_method_crl)
+                &&
+                /* caller allows CRL testing for the chain */
+                (flags->leafTests.cert_rev_flags_per_method
+                    [cert_revocation_method_crl]
+                    & CERT_REV_M_TEST_USING_THIS_METHOD)) {
+                crlTurnedOnForLeaf = PR_TRUE;
+            }
+
+            if (
+                /* caller did define CRL chain behavior */
+                (flags->chainTests.number_of_defined_methods >
+                    cert_revocation_method_crl)
+                &&
+                /* caller allows CRL testing for the chain */
+                (flags->chainTests.cert_rev_flags_per_method
+                    [cert_revocation_method_crl]
+                    & CERT_REV_M_TEST_USING_THIS_METHOD)) {
+                crlTurnedOnForChain = PR_TRUE;
+            }
+
+            if (
+                /* caller did define CRL chain behavior */
+                (flags->chainTests.number_of_defined_methods >
+                    cert_revocation_method_crl)
+                &&
+                /* caller requests hard failure on missing (fresh) CRL */
+                (flags->chainTests.cert_rev_flags_per_method
+                    [cert_revocation_method_crl]
+                    & CERT_REV_M_FAIL_ON_MISSING_FRESH_INFO)) {
+                /* FIXME: should also consider flag
+                 *        CERT_REV_M_SKIP_TEST_ON_MISSING_SOURCE
+                 */
+                crlHardFailure = PR_TRUE;
+            }
+
+            if (!ocspTurnedOnForChain) {
                 /* OCSP off either because: 
                  * 1) we didn't  turn ocsp on, or
                  * 2) we are only checking ocsp on the leaf cert only.
@@ -1516,6 +1591,8 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
                 error = PKIX_ProcessingParams_SetRevocationCheckers(procParams,
                         NULL, plContext);
             } else {
+                /* FIXME: What should be done if !ocspTurnedOnForLeaf ? */
+
                 /* OCSP is on for the whole chain */
                 if (date == NULL) {
                     error = PKIX_ProcessingParams_GetDate
@@ -1536,14 +1613,13 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
                 PKIX_PL_Object_DecRef((PKIX_PL_Object *)ocspChecker, plContext);
                 ocspChecker=NULL;
 
-                /* add  CERT_REV_FLAG_FAIL_SOFT_OCSP when underlying pkix
-                 * supports it */
+                /* FIXME: add support for other revocation flags when underlying
+                 * pkix supports it */
             }
             if (error != NULL) {
                 break;
             }
-            if (((flags & CERT_REV_FLAG_CRL) == 0) || 
-                (flags & CERT_REV_FLAG_CRL_LEAF_ONLY)) {
+            if (!crlTurnedOnForChain) {
                 /* CRL checking is off either because: 
                  * 1) we didn't turn crl checking on, or
                  * 2) we are only checking crls on the leaf cert only.
@@ -1560,21 +1636,21 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
                 error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
                         (procParams, PKIX_FALSE, plContext);
             } else {
+                /* FIXME: What should be done if !crlTurnedOnForLeaf ? */
+
                 /* CRL checking is on for the whole chain */
                 error = PKIX_ProcessingParams_SetRevocationEnabled(procParams,
                         PKIX_TRUE, plContext);
                 if (error != NULL) {
                     break;
                 }
-                if (flags & CERT_REV_FAIL_SOFT_CRL) {
-                    error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
-                        (procParams, PKIX_FALSE, plContext);
-                } else {
-                    error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
-                        (procParams, PKIX_TRUE, plContext);
-                }
+                error = PKIX_ProcessingParams_SetNISTRevocationPolicyEnabled
+                    (procParams, 
+                     crlHardFailure ? PKIX_TRUE : PKIX_FALSE,
+                     plContext);
             }
-            break;
+        }
+        break;
 
         case cert_pi_trustAnchors:
             certList = param->value.pointer.chain;
@@ -1642,6 +1718,194 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
     return r; 
 
 }
+
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_LeafFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD 
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+};
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_ChainFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  0
+};
+
+static CERTRevocationMethodIndex 
+certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_Method_Preference = {
+  cert_revocation_method_crl
+};
+
+static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy = {
+  {
+    /* leafTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_LeafFlags,
+    1,
+    &certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_Method_Preference,
+    0
+  },
+  {
+    /* chainTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_ChainFlags,
+    0,
+    0,
+    0
+  }
+};
+
+extern const CERTRevocationFlags*
+CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Soft_Policy()
+{
+    return &certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy;
+}
+
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_LeafFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD 
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FAIL_ON_MISSING_FRESH_INFO
+};
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_ChainFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  0
+};
+
+static CERTRevocationMethodIndex 
+certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_Method_Preference = {
+  cert_revocation_method_crl
+};
+
+static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy = {
+  {
+    /* leafTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_LeafFlags,
+    1,
+    &certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_Method_Preference,
+    0
+  },
+  {
+    /* chainTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy_ChainFlags,
+    0,
+    0,
+    0
+  }
+};
+
+extern const CERTRevocationFlags*
+CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Hard_Policy()
+{
+    return &certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy;
+}
+
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Disabled_Policy_LeafFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  0
+};
+
+static PRUint64 certRev_NSS_3_11_Ocsp_Disabled_Policy_ChainFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FORBID_NETWORK_FETCHING
+  | CERT_REV_M_CONTINUE_TESTING_ON_FRESH_INFO,
+  /* ocsp */
+  0
+};
+
+static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Disabled_Policy = {
+  {
+    /* leafTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Disabled_Policy_LeafFlags,
+    0,
+    0,
+    0
+  },
+  {
+    /* chainTests */
+    2,
+    certRev_NSS_3_11_Ocsp_Disabled_Policy_ChainFlags,
+    0,
+    0,
+    0
+  }
+};
+
+extern const CERTRevocationFlags*
+CERT_GetPKIXVerifyNSS_3_11_OCSP_Disbled_Policy()
+{
+    return &certRev_NSS_3_11_Ocsp_Disabled_Policy;
+}
+
+
+static PRUint64 certRev_PKIX_Verify_Nist_Policy_LeafFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FAIL_ON_MISSING_FRESH_INFO
+  | CERT_REV_M_REQUIRE_INFO_ON_MISSING_SOURCE,
+  /* ocsp */
+  0
+};
+
+static PRUint64 certRev_PKIX_Verify_Nist_Policy_ChainFlags[2] = {
+  /* crl */
+  CERT_REV_M_TEST_USING_THIS_METHOD
+  | CERT_REV_M_FAIL_ON_MISSING_FRESH_INFO
+  | CERT_REV_M_REQUIRE_INFO_ON_MISSING_SOURCE,
+  /* ocsp */
+  0
+};
+
+static const CERTRevocationFlags certRev_PKIX_Verify_Nist_Policy = {
+  {
+    /* leafTests */
+    2,
+    certRev_PKIX_Verify_Nist_Policy_LeafFlags,
+    0,
+    0,
+    0
+  },
+  {
+    /* chainTests */
+    2,
+    certRev_PKIX_Verify_Nist_Policy_ChainFlags,
+    0,
+    0,
+    0
+  }
+};
+
+extern const CERTRevocationFlags*
+CERT_GetPKIXVerifyNistRevocationPolicy()
+{
+    return &certRev_PKIX_Verify_Nist_Policy;
+}
+
 
 /*
  * CERT_PKIXVerifyCert
