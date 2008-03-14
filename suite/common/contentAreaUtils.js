@@ -51,14 +51,34 @@ function isContentFrame(aFocusedWindow)
   return (aFocusedWindow.top == window.content);
 }
 
-function urlSecurityCheck(aPrincipal, aURI, aFlags)
+/**
+ * urlSecurityCheck: JavaScript wrapper for checkLoadURIWithPrincipal
+ * and checkLoadURIStrWithPrincipal.
+ * If |aPrincipal| is not allowed to link to |aURL|, this function throws with
+ * an error message.
+ *
+ * @param aURI
+ *        The URL a page has linked to. This could be passed either as a string
+ *        or as an nsIURI object.
+ * @param aPrincipal
+ *        The principal of the node from which aURL came.
+ * @param aFlags
+ *        Flags to be passed to checkLoadURIStrWithPrincipal.
+ *        nsIScriptSecurityManager.STANDARD is the default value.
+ */
+function urlSecurityCheck(aURI, aPrincipal, aFlags)
 {
   // URL Loading Security Check
-  const nsIScriptSecurityManager = Components.interfaces.nsIScriptSecurityManager;
+  const nsIScriptSecurityManager =
+    Components.interfaces.nsIScriptSecurityManager;
   var secMan = Components.classes["@mozilla.org/scriptsecuritymanager;1"]
                          .getService(nsIScriptSecurityManager);
+
   try {
-    secMan.checkLoadURIStrWithPrincipal(aPrincipal, aURI, aFlags);
+    if (aURI instanceof Components.interfaces.nsIURI)
+      secMan.checkLoadURIWithPrincipal(aPrincipal, aURI, aFlags);
+    else
+      secMan.checkLoadURIStrWithPrincipal(aPrincipal, aURI, aFlags);
   } catch (e) {
     throw "Load of " + aURI + " denied.";
   }
@@ -104,7 +124,7 @@ function openNewTabWindowOrExistingWith(aType, aURL, aDoc, aLoadInBackground)
 {
   // Make sure we are allowed to open this url
   if (aDoc)
-    urlSecurityCheck(aDoc.nodePrincipal, aURL,
+    urlSecurityCheck(aURL, aDoc.nodePrincipal,
                      Components.interfaces.nsIScriptSecurityManager.STANDARD);
 
   // get referrer, if as external should be null

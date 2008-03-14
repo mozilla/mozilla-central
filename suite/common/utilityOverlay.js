@@ -828,7 +828,7 @@ function isValidFeed(aData, aPrincipal, aIsFeed)
 
   if (aIsFeed) {
     try {
-      urlSecurityCheck(aPrincipal, aData.href,
+      urlSecurityCheck(aData.href, aPrincipal,
                        Components.interfaces.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL);
     }
     catch(ex) {

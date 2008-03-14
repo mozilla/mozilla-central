@@ -48,6 +48,7 @@ add_makefiles "
   suite/common/Makefile
   suite/common/public/Makefile
   suite/common/src/Makefile
+  suite/common/tests/Makefile
   suite/installer/Makefile
   suite/installer/windows/Makefile
   suite/locales/Makefile

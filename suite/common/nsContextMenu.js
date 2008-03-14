@@ -671,7 +671,7 @@ nsContextMenu.prototype = {
     },
     // Reload image
     reloadImage : function () {
-        urlSecurityCheck( this.target.nodePrincipal, this.imageURL,
+        urlSecurityCheck( this.imageURL, this.target.nodePrincipal,
                           Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         if (this.target instanceof Components.interfaces.nsIImageLoadingContent)
           this.target.forceReload();
@@ -683,14 +683,14 @@ nsContextMenu.prototype = {
           viewURL = this.target.toDataURL();
         else {
           viewURL = this.imageURL;
-          urlSecurityCheck( this.target.nodePrincipal, viewURL,
+          urlSecurityCheck( viewURL, this.target.nodePrincipal,
                             Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         }
         openTopWin( viewURL, this.target.ownerDocument.defaultView );
     },
     // Change current window to the URL of the background image.
     viewBGImage : function () {
-        urlSecurityCheck( this.target.nodePrincipal, this.bgImageURL,
+        urlSecurityCheck( this.bgImageURL, this.target.nodePrincipal,
                           Components.interfaces.nsIScriptSecurityManager.ALLOW_CHROME );
         openTopWin( this.bgImageURL, this.target.ownerDocument.defaultView );
     },

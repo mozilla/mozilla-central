@@ -171,7 +171,7 @@ function(event)
   // We have to do a security check here, because we are loading URIs given
   // to us by a web page from chrome, which is privileged.
   try {
-    urlSecurityCheck(content.document.nodePrincipal, destURL,
+    urlSecurityCheck(destURL, content.document.nodePrincipal,
                      Components.interfaces.nsIScriptSecurityManager.STANDARD);
     loadURI(destURL, content.document.documentURIObject);
   } catch (e) {
