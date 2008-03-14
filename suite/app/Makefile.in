@@ -54,6 +54,12 @@ DEFINES += \
 	-DGRE_BUILDID=$(GRE_BUILDID) \
 	$(NULL)
 
+ifdef MOZ_MEMORY
+ifneq ($(OS_ARCH),WINNT)
+LIBS += -ljemalloc
+endif
+endif
+
 ifeq ($(USE_SHORT_LIBNAME), 1)
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
