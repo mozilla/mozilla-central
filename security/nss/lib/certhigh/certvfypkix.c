@@ -1004,7 +1004,9 @@ cert_GetBuildResults(
     PKIX_TrustAnchor    *trustAnchor = NULL;
     PKIX_PL_Cert        *trustedCert = NULL;
     PKIX_List           *pkixCertChain = NULL;
+#ifdef DEBUG_volkov
     PKIX_Error          *tmpPkixError = NULL;
+#endif /* DEBUG */
             
     PKIX_ENTER(CERTVFYPKIX, "cert_GetBuildResults");
     if (buildResult == NULL && error == NULL) {
@@ -1273,11 +1275,19 @@ cleanup:
     if (certSelector != NULL) 
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
 
+    if (error != NULL) {
+	SECErrorCodes nssErr;
+
+	cert_PkixErrorToNssCode(error, &nssErr, plContext);
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
+	PORT_SetError(nssErr);
+    }
+
     return r;
 }
 
-PKIX_List *
-CERT_GetCertStores(void *plContext)
+static PKIX_List *
+cert_GetCertStores(void *plContext)
 {
     PKIX_CertStore *certStore = NULL;
     PKIX_List *certStores = NULL;
@@ -1303,6 +1313,14 @@ cleanup:
 
     if (certStore != NULL) 
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)certStore, plContext);
+
+    if (error != NULL) {
+	SECErrorCodes nssErr;
+
+	cert_PkixErrorToNssCode(error, &nssErr, plContext);
+        PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
+	PORT_SetError(nssErr);
+    }
 
     return r;
 }
@@ -1366,7 +1384,10 @@ PKIX_List *cert_PKIXMakeOIDList(const SECOidTag *oids, int oidCount, void *plCon
     PKIX_Error *error = NULL;
     int i;
 
-    PKIX_List_Create(&policyList, plContext);
+    error = PKIX_List_Create(&policyList, plContext);
+    if (error != NULL) {
+	goto cleanup;
+    }
 
     for (i=0; i<oidCount; i++) {
         policyOID = CERT_PKIXOIDFromNSSOid(oids[i],plContext);
@@ -1449,6 +1470,11 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
 
             policyOIDList = cert_PKIXMakeOIDList(param->value.array.oids,
                                 param->value.arraySize,plContext);
+	    if (policyOIDList == NULL) {
+		r = SECFailure;
+		PORT_SetError(SEC_ERROR_INVALID_ARGS);
+		break;
+	    }
 
             error = PKIX_ProcessingParams_SetInitialPolicies(
                                 procParams,policyOIDList,plContext);
@@ -1457,6 +1483,10 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
         case cert_pi_date:
             if (param->value.scalar.time == 0) {
                 error = PKIX_PL_Date_Create_UTCTime(NULL, &date, plContext);
+                if (error != NULL) {
+                    errCode = SEC_ERROR_INVALID_TIME;
+                    break;
+                }
             } else {
                 error = pkix_pl_Date_CreateFromPRTime(param->value.scalar.time,
                                                        &date, plContext);
@@ -1657,7 +1687,6 @@ SECStatus CERT_PKIXVerifyCert(
     PKIX_VerifyNode     * verifyNode = NULL;
     PKIX_TrustAnchor *    trustAnchor = NULL;
     PKIX_PL_Cert *        trustAnchorCert = NULL;
-    CERTValInParam *      param = NULL;
     CERTValOutParam *     oparam = NULL;
     int i=0;
 
@@ -1702,13 +1731,19 @@ SECStatus CERT_PKIXVerifyCert(
 
 
     certSelector = cert_GetTargetCertConstraints(cert, plContext);
+    if (certSelector == NULL) {
+        goto cleanup;
+    }
     error = PKIX_ProcessingParams_SetTargetCertConstraints
         (procParams, certSelector, plContext);
     if (error != NULL) {
         goto cleanup;
     }
 
-    certStores = CERT_GetCertStores(plContext);
+    certStores = cert_GetCertStores(plContext);
+    if (certStores == NULL) {
+        goto cleanup;
+    }
     error = PKIX_ProcessingParams_SetCertStores
         (procParams, certStores, plContext);
     if (error != NULL) {
