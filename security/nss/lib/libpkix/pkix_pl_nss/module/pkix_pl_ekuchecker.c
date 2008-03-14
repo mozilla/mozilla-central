@@ -328,7 +328,6 @@ pkix_pl_EkuChecker_Check(
         void *plContext)
 {
         pkix_pl_EkuChecker *state = NULL;
-        PKIX_List *certEkuList = NULL;
         PKIX_Boolean checkPassed = PKIX_TRUE;
 
         PKIX_ENTER(EKUCHECKER, "pkix_pl_EkuChecker_Check");
@@ -357,7 +356,6 @@ pkix_pl_EkuChecker_Check(
 
 cleanup:
 
-        PKIX_DECREF(certEkuList);
         PKIX_DECREF(state);
 
         PKIX_RETURN(EKUCHECKER);

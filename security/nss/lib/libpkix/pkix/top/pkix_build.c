@@ -1038,6 +1038,7 @@ cleanup:
             goto cleanup; \
         } \
         if (verifyNode) { \
+            PKIX_DECREF(verifyNode->error); \
             PKIX_INCREF(pkixErrorResult); \
             verifyNode->error = pkixErrorResult; \
         } \

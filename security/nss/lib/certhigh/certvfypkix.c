@@ -835,7 +835,7 @@ cert_PkixErrorToNssCode(
         }
         if (pkixLog) {
             PR_LOG(pkixLog, 1, ("Error at level %d: %s\n", errLevel,
-                                PKIX_ErrorText[error->errCode]));
+                                PKIX_ErrorText[errPtr->errCode]));
         }
         errPtr = errPtr->cause;
         errLevel += 1; 
