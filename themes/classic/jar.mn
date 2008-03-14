@@ -186,11 +186,9 @@ classic.jar:
   skin/classic/global/netError.css                                      (global/netError.css)
   skin/classic/global/plugins.css                                       (/toolkit/empty-file)
   skin/classic/global/printing.css                                      (global/printing.css)
-# chrome://global/skin/nativescrollbars.css is used on Mac
-  skin/classic/global/nativescrollbars.css                              (global/mac/nativescrollbars.css)
-# chrome://global/skin/xulscrollbars.css is used on non-Mac platforms
+  skin/classic/global/scrollbars.css                                    (global/mac/nativescrollbars.css)
 #ifdef XP_OS2
-  skin/classic/global/xulscrollbars.css                                 (global/os2/xulscrollbars.css)
+  skin/classic/global/scrollbars.css                                    (global/os2/xulscrollbars.css)
   skin/classic/global/arrow/arrow-dn-dis.gif                            (global/os2/arrow/arrow-dn-dis.gif)
   skin/classic/global/arrow/arrow-dn.gif                                (global/os2/arrow/arrow-dn.gif)
   skin/classic/global/arrow/arrow-lft-dis.gif                           (global/os2/arrow/arrow-lft-dis.gif)
@@ -202,7 +200,7 @@ classic.jar:
   skin/classic/global/scrollbar/thumb-hrz.gif                           (global/os2/scrollbar/thumb-hrz.gif)
   skin/classic/global/scrollbar/thumb-vrt.gif                           (global/os2/scrollbar/thumb-vrt.gif)
 #else
-  skin/classic/global/xulscrollbars.css                                 (global/win/scrollbars.css)
+  skin/classic/global/scrollbars.css                                    (global/win/scrollbars.css)
   skin/classic/global/scrollbar/slider.gif                              (global/win/scrollbar/slider.gif)
   skin/classic/global/arrow/arrow-dn-dis.gif                            (global/arrow/arrow-dn-dis.gif)
   skin/classic/global/arrow/arrow-dn-hov.gif                            (global/arrow/arrow-dn-hov.gif)
