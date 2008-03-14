@@ -111,12 +111,12 @@ sub update {
     if (ref $case_id eq 'HASH' && !$build_id){
         $new_values = $case_id;
         foreach my $id (@ids){
-            my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id);
+            my $caserun = new Bugzilla::Testopia::TestCaseRun($id);
             if ($caserun){
                 push @caseruns, $caserun;
             }
             else {
-                push @caseruns, {FAILED => 1, message => 'Case-run does not exist'};
+                push @caseruns, {ERROR => 1, message => 'Case-run does not exist'};
             }
         } 
     }
@@ -127,7 +127,7 @@ sub update {
                 push @caseruns, $caserun;
             }
             else {
-                push @caseruns, {FAILED => 1, message => 'Case-run does not exist'};
+                push @caseruns, {ERROR => 1, message => 'Case-run does not exist'};
             }
         } 
     }
@@ -140,12 +140,12 @@ sub update {
     my @results;
    
     foreach my $caserun (@caseruns){
-        if ($caserun->{'FAILED'}){
+        if ($caserun->{'ERROR'}){
             push @results, $caserun;
             next;
         }
         unless ($caserun->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
 
@@ -166,7 +166,8 @@ sub update {
         elsif ($new_values->{'environment_id'}){
             $caserun = $caserun->switch($build_id, $new_values->{'environment_id'}, $run_id, $case_id);
         }
-    
+
+        # Now that we know we are working with the right record, update it.
         if ($new_values->{'assignee'}){
             $caserun->set_assignee($new_values->{'assignee'});
         }
@@ -191,7 +192,7 @@ sub update {
         # Result is modified test case run on success, otherwise an exception will be thrown
         push @results, $caserun;
     }
-    return @results;
+    return \@results;
 }
 
 sub lookup_status_id_by_name {
@@ -638,7 +639,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the
               update on any particular object failed, the hash will contain a 
-              FAILED key and the message as to why it failed.
+              ERROR key and the message as to why it failed.
 
 =item C<update($run_id, $case_id, $build_id, $environment_id, $values)>
 
@@ -655,7 +656,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
  Returns:     Hash/Array: In the case of a single object, it is returned. If a 
               list was passed, it returns an array of object hashes. If the
               update on any particular object failed, the hash will contain a 
-              FAILED key and the message as to why it failed.
+              ERROR key and the message as to why it failed.
 
 =back
 

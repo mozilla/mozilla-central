@@ -124,13 +124,13 @@ sub lookup_name_by_id {
   
   my $result = defined $build ? $build->name : '';
   
-  # Result is build name string or empty string if failed
+  # Result is build name string or empty string if ERROR
   return $result;
 }
 
 # DEPRECATED use Build::check_build($name, $product) instead
 sub lookup_id_by_name {
-  return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use Build::check_build instead'};
+  return { ERROR => 1, message => 'This method is considered harmful and has been depricated. Please use Build::check_build instead'};
 }
 
 1;

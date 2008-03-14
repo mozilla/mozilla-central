@@ -150,12 +150,12 @@ sub update {
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
             ThrowUserError("invalid-test-id-non-existent", {'id' => $id, 'type' => 'Case'}) if scalar @ids == 1;
-            push @cases, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @cases, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
             ThrowUserError('testopia-read-only', {'object' => $case}) if scalar @ids == 1;
-            push @cases, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @cases, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
@@ -176,7 +176,7 @@ sub update {
         };
         
         if ($@){
-            push @cases, {FAILED => 1, message => $@};
+            push @cases, {ERROR => 1, message => $@};
         }
         
         $case->update;
@@ -249,22 +249,22 @@ sub attach_bug {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->attach_bug($bug_ids);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
-    return @results;
+    return \@results;
 }
 
 sub detach_bug {
@@ -310,18 +310,18 @@ sub add_component {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->add_component($component_ids);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
@@ -339,18 +339,18 @@ sub remove_component {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->remove_component($component_id);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
@@ -383,18 +383,18 @@ sub add_tag {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->add_tag($tags);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
@@ -412,18 +412,18 @@ sub remove_tag {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->remove_tag($tag_name);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
@@ -473,7 +473,7 @@ sub link_plan {
                 $case->link_plan($plan->id);
             };
             if ($@){
-                push @results, {FAILED => 1, message => $@};
+                push @results, {ERROR => 1, message => $@};
             }
         }
     }
@@ -510,18 +510,18 @@ sub add_to_run {
     foreach my $id (@ids){
         my $case = new Bugzilla::Testopia::TestCase($id);
         unless ($case){
-            push @results, {FAILED => 1, message => "TestCase $id does not exist"};
+            push @results, {ERROR => 1, message => "TestCase $id does not exist"};
             next;
         }
         unless ($case->canedit){
-            push @results, {FAILED => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
             next;
         }
         eval {
             $case->add_to_run($run_ids);
         };
         if ($@){
-            push @results, {FAILED => 1, message => $@};
+            push @results, {ERROR => 1, message => $@};
         }
     }
     # @results will be empty if successful
@@ -573,11 +573,11 @@ sub calculate_average_time {
 }
 
 sub lookup_category_id_by_name {
-    return { FAILED => 1, message => 'This method is considered harmful and has been depricated. Please use Testopia::Product::check_catagory instead'};
+    return { ERROR => 1, message => 'This method is considered harmful and has been depricated. Please use Testopia::Product::check_catagory instead'};
 }
 
 sub lookup_category_name_by_id {
-    return { FAILED => 1, message => 'This method has been depricated. Please use Testopia::Product::check_catagory instead'};
+    return { ERROR => 1, message => 'This method has been depricated. Please use Testopia::Product::check_catagory instead'};
 }
 
 sub lookup_priority_id_by_name {
@@ -1036,7 +1036,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
  Returns:     Hash/Array: In the case of a single case it is returned. If a 
               list was passed, it returns an array of case hashes. If the
               update on any particular case failed, the has will contain a 
-              FAILED key and the message as to why it failed.
+              ERROR key and the message as to why it failed.
                       +-------------------+----------------+
                       | Field             | Type           |
                       +-------------------+----------------+
