@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.67 2008-03-15 01:21:18 kaie%kuix.de Exp $
+ * $Id: cert.h,v 1.68 2008-03-15 02:15:34 alexei.volkov.bugs%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1514,11 +1514,6 @@ CERT_UnlockCertTrust(CERTCertificate *cert);
 extern SECItem *
 CERT_GetSPKIDigest(PRArenaPool *arena, const CERTCertificate *cert,
                    SECOidTag digestAlg, SECItem *fill);
-
-/*
- * fill in nsCertType field of the cert based on the cert extension
- */
-extern SECStatus cert_GetCertType(CERTCertificate *cert);
 
 
 SECStatus CERT_CheckCRL(CERTCertificate* cert, CERTCertificate* issuer,

@@ -38,7 +38,7 @@
 /*
  * Certificate handling code
  *
- * $Id: certdb.c,v 1.90 2008-02-16 04:38:05 julien.pierre.boogz%sun.com Exp $
+ * $Id: certdb.c,v 1.91 2008-03-15 02:15:34 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "nssilock.h"
@@ -559,18 +559,30 @@ findOIDinOIDSeqByTagNum(CERTOidSequence *seq, SECOidTag tagnum)
 SECStatus
 cert_GetCertType(CERTCertificate *cert)
 {
+    PRUint32 nsCertType;
+
+    if (cert->nsCertType) {
+        /* once set, no need to recalculate */
+        return SECSuccess;
+    }
+    nsCertType = cert_ComputeCertType(cert);
+
+    /* Assert that it is safe to cast &cert->nsCertType to "PRInt32 *" */
+    PORT_Assert(sizeof(cert->nsCertType) == sizeof(PRInt32));
+    PR_AtomicSet((PRInt32 *)&cert->nsCertType, nsCertType);
+    return SECSuccess;
+}
+
+PRUint32
+cert_ComputeCertType(CERTCertificate *cert)
+{
     SECStatus rv;
     SECItem tmpitem;
     SECItem encodedExtKeyUsage;
     CERTOidSequence *extKeyUsage = NULL;
     PRBool basicConstraintPresent = PR_FALSE;
     CERTBasicConstraints basicConstraint;
-    unsigned int nsCertType = 0;
-
-    if (cert->nsCertType) {
-        /* once set, no need to recalculate */
-        return SECSuccess;
-    }
+    PRUint32 nsCertType = 0;
 
     tmpitem.data = NULL;
     CERT_FindNSCertTypeExtension(cert, &tmpitem);
@@ -677,22 +689,20 @@ cert_GetCertType(CERTCertificate *cert)
 	    nsCertType |= EXT_KEY_USAGE_STATUS_RESPONDER;
 	}
     } else {
-	/* if no extension, then allow any ssl or email (no ca or object
-	 * signing)
-	 */
-	nsCertType = NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_SSL_SERVER |
-	    NS_CERT_TYPE_EMAIL;
-
+	/* If no NS Cert Type extension and no EKU extension, then */
+	nsCertType = 0;
+	if (CERT_IsCACert(cert, &nsCertType))
+	    nsCertType |= EXT_KEY_USAGE_STATUS_RESPONDER;
 	/* if the basic constraint extension says the cert is a CA, then
 	   allow SSL CA and EMAIL CA and Status Responder */
-	if ((basicConstraintPresent == PR_TRUE)
-	    && (basicConstraint.isCA)) {
-		nsCertType |= NS_CERT_TYPE_SSL_CA;
-		nsCertType |= NS_CERT_TYPE_EMAIL_CA;
-		nsCertType |= EXT_KEY_USAGE_STATUS_RESPONDER;
-	} else if (CERT_IsCACert(cert, NULL) == PR_TRUE) {
-		nsCertType |= EXT_KEY_USAGE_STATUS_RESPONDER;
+	if (basicConstraintPresent && basicConstraint.isCA ) {
+	    nsCertType |= (NS_CERT_TYPE_SSL_CA   |
+		           NS_CERT_TYPE_EMAIL_CA |
+		           EXT_KEY_USAGE_STATUS_RESPONDER);
 	}
+	/* allow any ssl or email (no ca or object signing. */
+	nsCertType |= NS_CERT_TYPE_SSL_CLIENT | NS_CERT_TYPE_SSL_SERVER |
+	              NS_CERT_TYPE_EMAIL;
 
 	/* if the cert is a fortezza CA cert, then allow SSL CA and EMAIL CA */
 	if (fortezzaIsCA(cert)) {
@@ -707,10 +717,7 @@ cert_GetCertType(CERTCertificate *cert)
     if (extKeyUsage != NULL) {
 	CERT_DestroyOidSequence(extKeyUsage);
     }
-    /* Assert that it is safe to cast &cert->nsCertType to "PRInt32 *" */
-    PORT_Assert(sizeof(cert->nsCertType) == sizeof(PRInt32));
-    PR_AtomicSet((PRInt32 *)&cert->nsCertType, nsCertType);
-    return(SECSuccess);
+    return nsCertType;
 }
 
 /*

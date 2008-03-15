@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.23 2008-03-11 20:48:52 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certi.h,v 1.24 2008-03-15 02:15:34 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -291,6 +291,17 @@ cert_VerifyCertChainPkix(CERTCertificate *cert,
 SECStatus cert_InitLocks(void);
 
 SECStatus cert_DestroyLocks(void);
+
+/*
+ * fill in nsCertType field of the cert based on the cert extension
+ */
+extern SECStatus cert_GetCertType(CERTCertificate *cert);
+
+/*
+ * compute and return the value of nsCertType for cert, but do not 
+ * update the CERTCertificate.
+ */
+extern PRUint32 cert_ComputeCertType(CERTCertificate *cert);
 
 #endif /* _CERTI_H_ */
 

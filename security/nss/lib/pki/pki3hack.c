@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pki3hack.c,v $ $Revision: 1.93 $ $Date: 2007-07-14 06:01:03 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pki3hack.c,v $ $Revision: 1.94 $ $Date: 2008-03-15 02:15:36 $";
 #endif /* DEBUG */
 
 /*
@@ -70,6 +70,7 @@ static const char CVS_ID[] = "@(#) $RCSfile: pki3hack.c,v $ $Revision: 1.93 $ $D
 #include "certdb.h"
 #include "certt.h"
 #include "cert.h"
+#include "certi.h"
 #include "pk11func.h"
 #include "pkistore.h"
 #include "secmod.h"
@@ -810,6 +811,14 @@ fill_CERTCertificateFields(NSSCertificate *c, CERTCertificate *cc, PRBool forced
     cc->isperm = PR_TRUE;  /* by default */
     /* pointer back */
     cc->nssCertificate = c;
+    if (trust) {
+	/* force the cert type to be recomputed to include trust info */
+	PRUint32 nsCertType = cert_ComputeCertType(cc);
+
+	/* Assert that it is safe to cast &cc->nsCertType to "PRInt32 *" */
+	PORT_Assert(sizeof(cc->nsCertType) == sizeof(PRInt32));
+	PR_AtomicSet((PRInt32 *)&cc->nsCertType, nsCertType);
+    }
 }
 
 static CERTCertificate *

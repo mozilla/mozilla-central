@@ -405,11 +405,9 @@ cert_ProcessingParamsSetKuAndEku(
                                                   plContext),
         PKIX_COMCERTSELPARAMSSETEXTKEYUSAGEFAILED);
 
-/*  Enable the following call when bug 390381 is fixed.
- *   PKIX_CHECK(
- *       PKIX_PL_EkuChecker_Create(procParams, plContext),
- *       PKIX_EKUCHECKERINITIALIZEFAILED);
- */
+    PKIX_CHECK(
+        PKIX_PL_EkuChecker_Create(procParams, plContext),
+        PKIX_EKUCHECKERINITIALIZEFAILED);
 
 cleanup:
     PKIX_DECREF(extKeyUsage);
