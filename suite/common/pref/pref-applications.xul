@@ -113,9 +113,7 @@
     <separator class="thin"/>
 
     <listbox id="handlersView" persist="lastSelectedType" flex="1"
-             preference="pref.downloads.disable_button.edit_actions"
-             onselect="gApplicationsPane.onSelectionChanged();"
-             oncommand="gApplicationsPane.onSelectAction(event.originalTarget);">
+             preference="pref.downloads.disable_button.edit_actions">
       <listcols>
         <listcol width="1" flex="1"/>
         <listcol width="1" flex="1"/>

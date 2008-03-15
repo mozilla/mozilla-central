@@ -137,7 +137,9 @@ const PREF_AUDIO_FEED_SELECTED_READER = "browser.audioFeeds.handler.default";
 // the actions the application can take with content of various types.
 // But since nsIHandlerInfo doesn't support plugins, there's no value
 // identifying the "use plugin" action, so we use this constant instead.
-const kActionUsePlugin = 5;
+const kActionUsePlugin = -3;
+const kActionChooseApp = -2;
+const kActionManageApp = -1;
 
 //****************************************************************************//
 // Utilities
@@ -914,6 +916,10 @@ var gApplicationsPane = {
     // Listen for window unload so we can remove our preference observers.
     window.addEventListener("unload", this, false);
 
+    // Listen for user events on the listbox and its children
+    this._list.addEventListener("select", this, false);
+    this._list.addEventListener("command", this, false);
+
     // Figure out how we should be sorting the list.  We persist sort settings
     // across sessions, so we can't assume the default sort column/direction.
     this._sortColumn = document.getElementById("typeColumn");
@@ -934,6 +940,8 @@ var gApplicationsPane = {
   },
 
   destroy: function() {
+    this._list.removeEventListener("command", this, false);
+    this._list.removeEventListener("select", this, false);
     window.removeEventListener("unload", this, false);
     prefSvc.removeObserver(PREF_SHOW_PLUGINS_IN_LIST, this);
     prefSvc.removeObserver(PREF_HIDE_PLUGINS_WITHOUT_EXTENSIONS, this);
@@ -990,8 +998,40 @@ var gApplicationsPane = {
   // nsIDOMEventListener
 
   handleEvent: function(aEvent) {
-    if (aEvent.type == "unload") {
-      this.destroy();
+    switch (aEvent.type) {
+      case "unload":
+        this.destroy();
+        break;
+      case "select":
+        if (this._list.selectedItem)
+          this._list.setAttribute("lastSelectedType",
+                                  this._list.selectedItem.type);
+        break;
+      case "command":
+        var target = aEvent.originalTarget;
+        switch (target.localName) {
+          case "listitem":
+            if (!this._list.disabled &&
+                target.type == this._list.getAttribute("lastSelectedType"))
+              this._list.selectedItem = target;
+            break;
+          case "listcell":
+            this.rebuildActionsMenu();
+            break;
+          case "menuitem":
+            switch (parseInt(target.value)) {
+              case kActionChooseApp:
+                this.chooseApp();
+                break;
+              case kActionManageApp:
+                this.manageApp();
+                break;
+              default:
+                this.onSelectAction(target);
+                break;
+            }
+            break;
+        }
     }
   },
 
@@ -1313,9 +1353,9 @@ var gApplicationsPane = {
       menuPopup.removeChild(menuPopup.lastChild);
 
     {
-      var askMenuItem = document.createElement("menuitem");
+      let askMenuItem = document.createElement("menuitem");
       askMenuItem.setAttribute("class", "handler-action");
-      askMenuItem.setAttribute("alwaysAsk", "true");
+      askMenuItem.setAttribute("value", nsIHandlerInfo.alwaysAsk);
       let label;
       if (isFeedType(handlerInfo.type))
         label = this._prefsBundle.getFormattedString("previewInApp",
@@ -1334,9 +1374,9 @@ var gApplicationsPane = {
     // available to feeds, since the feed code doesn't implement the capability.
     if ((handlerInfo.wrappedHandlerInfo instanceof nsIMIMEInfo) &&
         !isFeedType(handlerInfo.type)) {
-      var saveMenuItem = document.createElement("menuitem");
+      let saveMenuItem = document.createElement("menuitem");
       saveMenuItem.setAttribute("class", "handler-action");
-      saveMenuItem.setAttribute("action", nsIHandlerInfo.saveToDisk);
+      saveMenuItem.setAttribute("value", nsIHandlerInfo.saveToDisk);
       let label = this._prefsBundle.getString("saveFile");
       saveMenuItem.setAttribute("label", label);
       saveMenuItem.setAttribute("tooltiptext", label);
@@ -1347,9 +1387,9 @@ var gApplicationsPane = {
     // If this is the feed type, add a Live Bookmarks item.
     // XXX-SeaMonkey: remove the | && false| once we support live bookmarks!
     if (isFeedType(handlerInfo.type) && false) {
-      var internalMenuItem = document.createElement("menuitem");
+      let internalMenuItem = document.createElement("menuitem");
       internalMenuItem.setAttribute("class", "handler-action");
-      internalMenuItem.setAttribute("action", nsIHandlerInfo.handleInternally);
+      internalMenuItem.setAttribute("value", nsIHandlerInfo.handleInternally);
       let label = this._prefsBundle.getFormattedString("addLiveBookmarksInApp",
                                                        [this._brandShortName]);
       internalMenuItem.setAttribute("label", label);
@@ -1360,14 +1400,14 @@ var gApplicationsPane = {
 
     // Add a separator to distinguish these items from the helper app items
     // that follow them.
-    let menuItem = document.createElement("menuseparator");
-    menuPopup.appendChild(menuItem);
+    let menuSeparator = document.createElement("menuseparator");
+    menuPopup.appendChild(menuSeparator);
 
     // Create a menu item for the OS default application, if any.
     if (handlerInfo.hasDefaultHandler) {
-      var defaultMenuItem = document.createElement("menuitem");
+      let defaultMenuItem = document.createElement("menuitem");
       defaultMenuItem.setAttribute("class", "handler-action");
-      defaultMenuItem.setAttribute("action", nsIHandlerInfo.useSystemDefault);
+      defaultMenuItem.setAttribute("value", nsIHandlerInfo.useSystemDefault);
       let label = this._prefsBundle.getFormattedString("useDefault",
                                                        [handlerInfo.defaultDescription]);
       defaultMenuItem.setAttribute("label", label);
@@ -1392,7 +1432,7 @@ var gApplicationsPane = {
 
       let menuItem = document.createElement("menuitem");
       menuItem.setAttribute("class", "handler-action");
-      menuItem.setAttribute("action", nsIHandlerInfo.useHelperApp);
+      menuItem.setAttribute("value", nsIHandlerInfo.useHelperApp);
       let label;
       if (possibleApp instanceof nsILocalHandlerApp)
         label = getDisplayNameForFile(possibleApp.executable);
@@ -1417,9 +1457,9 @@ var gApplicationsPane = {
 
     // Create a menu item for the plugin.
     if (handlerInfo.plugin) {
-      var pluginMenuItem = document.createElement("menuitem");
+      let pluginMenuItem = document.createElement("menuitem");
       pluginMenuItem.setAttribute("class", "handler-action");
-      pluginMenuItem.setAttribute("action", kActionUsePlugin);
+      pluginMenuItem.setAttribute("value", kActionUsePlugin);
       let label = this._prefsBundle.getFormattedString("usePluginIn",
                                                        [handlerInfo.plugin.name,
                                                         this._brandShortName]);
@@ -1439,7 +1479,7 @@ var gApplicationsPane = {
     {
       let menuItem = document.createElement("menuitem");
       menuItem.setAttribute("class", "handler-action");
-      menuItem.setAttribute("oncommand", "document.getElementById('applications_pane').gApplicationsPane.chooseApp(event)");
+      menuItem.setAttribute("value", kActionChooseApp);
       let label = this._prefsBundle.getString("useOtherApp");
       menuItem.setAttribute("label", label);
       menuItem.setAttribute("tooltiptext", label);
@@ -1452,7 +1492,7 @@ var gApplicationsPane = {
       menuPopup.appendChild(menuItem);
       menuItem = document.createElement("menuitem");
       menuItem.setAttribute("class", "handler-action");
-      menuItem.setAttribute("oncommand", "document.getElementById('applications_pane').gApplicationsPane.manageApp(event)");
+      menuItem.setAttribute("value", kActionManageApp);
       menuItem.setAttribute("label", this._prefsBundle.getString("manageApp"));
       menuPopup.appendChild(menuItem);
     }
@@ -1462,26 +1502,13 @@ var gApplicationsPane = {
     // the item identified by the preferred action (when the preferred action
     // is to use a helper app, we have to pick the specific helper app item).
     if (handlerInfo.alwaysAskBeforeHandling)
-      menu.selectedItem = askMenuItem;
-    else switch (handlerInfo.preferredAction) {
-      case nsIHandlerInfo.handleInternally:
-        menu.selectedItem = internalMenuItem;
-        break;
-      case nsIHandlerInfo.useSystemDefault:
-        menu.selectedItem = defaultMenuItem;
-        break;
-      case nsIHandlerInfo.useHelperApp:
-        if (preferredApp)
-          menu.selectedItem = 
-            possibleAppMenuItems.filter(function(v) v.handlerApp.equals(preferredApp))[0];
-        break;
-      case kActionUsePlugin:
-        menu.selectedItem = pluginMenuItem;
-        break;
-      case nsIHandlerInfo.saveToDisk:
-        menu.selectedItem = saveMenuItem;
-        break;
-    }
+      menu.value = nsIHandlerInfo.alwaysAsk;
+    else if (handlerInfo.preferredAction == nsIHandlerInfo.useHelperApp &&
+             preferredApp)
+      menu.selectedItem = 
+        possibleAppMenuItems.filter(function(v) v.handlerApp.equals(preferredApp))[0];
+    else
+      menu.value = handlerInfo.preferredAction;
   },
 
 
@@ -1583,33 +1610,28 @@ var gApplicationsPane = {
     var typeItem = this._list.selectedItem;
     var handlerInfo = this._handledTypes[typeItem.type];
 
-    if (aActionItem.hasAttribute("alwaysAsk")) {
-      handlerInfo.alwaysAskBeforeHandling = true;
-    }
-    else if (aActionItem.hasAttribute("action")) {
-      let action = parseInt(aActionItem.getAttribute("action"));
+    let action = parseInt(aActionItem.getAttribute("value"));
 
-      // Set the plugin state if we're enabling or disabling a plugin.
-      if (action == kActionUsePlugin)
-        handlerInfo.enablePluginType();
-      else if (handlerInfo.plugin && !handlerInfo.isDisabledPluginType)
-        handlerInfo.disablePluginType();
+    // Set the plugin state if we're enabling or disabling a plugin.
+    if (action == kActionUsePlugin)
+      handlerInfo.enablePluginType();
+    else if (handlerInfo.plugin && !handlerInfo.isDisabledPluginType)
+      handlerInfo.disablePluginType();
 
-      // Set the preferred application handler.
-      // We leave the existing preferred app in the list when we set
-      // the preferred action to something other than useHelperApp so that
-      // legacy datastores that don't have the preferred app in the list
-      // of possible apps still include the preferred app in the list of apps
-      // the user can choose to handle the type.
-      if (action == nsIHandlerInfo.useHelperApp)
-        handlerInfo.preferredApplicationHandler = aActionItem.handlerApp;
+    // Set the preferred application handler.
+    // We leave the existing preferred app in the list when we set
+    // the preferred action to something other than useHelperApp so that
+    // legacy datastores that don't have the preferred app in the list
+    // of possible apps still include the preferred app in the list of apps
+    // the user can choose to handle the type.
+    if (action == nsIHandlerInfo.useHelperApp)
+      handlerInfo.preferredApplicationHandler = aActionItem.handlerApp;
 
-      // Set the "always ask" flag.
-      handlerInfo.alwaysAskBeforeHandling = false;
+    // Set the preferred action.
+    handlerInfo.preferredAction = action;
 
-      // Set the preferred action.
-      handlerInfo.preferredAction = action;
-    }
+    // Set the "always ask" flag.
+    handlerInfo.alwaysAskBeforeHandling = action == nsIHandlerInfo.alwaysAsk;
 
     handlerInfo.store();
 
@@ -1629,11 +1651,7 @@ var gApplicationsPane = {
     }
   },
 
-  manageApp: function(aEvent) {
-    // Don't let the normal "on select action" handler get this event,
-    // as we handle it specially ourselves.
-    aEvent.stopPropagation();
-
+  manageApp: function() {
     var typeItem = this._list.selectedItem;
     var handlerInfo = this._handledTypes[typeItem.type];
 
@@ -1656,11 +1674,7 @@ var gApplicationsPane = {
     }
   },
 
-  chooseApp: function(aEvent) {
-    // Don't let the normal "on select action" handler get this event,
-    // as we handle it specially ourselves.
-    aEvent.stopPropagation();
-
+  chooseApp: function() {
     var handlerApp;
 
 #ifdef XP_WIN
@@ -1736,14 +1750,6 @@ var gApplicationsPane = {
         }
       }
     }
-  },
-
-  // Mark which item in the list was last selected so we can reselect it
-  // when we rebuild the list or when the user returns to the prefpane.
-  onSelectionChanged: function() {
-    if (this._list.selectedItem)
-      this._list.setAttribute("lastSelectedType",
-                              this._list.selectedItem.getAttribute("type"));
   },
 
   _setIconClassForPreferredAction: function(aHandlerInfo, aElement) {

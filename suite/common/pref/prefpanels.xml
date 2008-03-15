@@ -52,11 +52,7 @@
   <binding id="handler" extends="chrome://global/content/bindings/listbox.xml#listitem">
     <implementation>
       <constructor>
-        <![CDATA[
-          if (!this.parentNode.disabled &&
-              this.type == this.parentNode.getAttribute("lastSelectedType"))
-            this.parentNode.selectedItem = this;
-        ]]>
+        this.doCommand();
       </constructor>
       <property name="type" readonly="true">
         <getter>
@@ -81,7 +77,7 @@
 
     <implementation>
       <constructor>
-        document.getElementById('applications_pane').gApplicationsPane.rebuildActionsMenu();
+        this.doCommand();
       </constructor>
     </implementation>
   </binding>
