@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.66 2008-03-14 23:29:04 kaie%kuix.de Exp $
+ * $Id: cert.h,v 1.67 2008-03-15 01:21:18 kaie%kuix.de Exp $
  */
 
 #ifndef _CERT_H_
@@ -1613,19 +1613,19 @@ CERT_GetPKIXVerifyNistRevocationPolicy();
  * Returns a pointer to a static structure.
  */
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Soft_Policy();
+CERT_GetClassicOCSPEnabledSoftFailurePolicy();
 
 /*
  * Returns a pointer to a static structure.
  */
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Hard_Policy();
+CERT_GetClassicOCSPEnabledHardFailurePolicy();
 
 /*
  * Returns a pointer to a static structure.
  */
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Disabled_Policy();
+CERT_GetClassicOCSPDisabledPolicy();
 
 /*
  * Verify a Cert with libpkix

@@ -1763,7 +1763,7 @@ static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy = {
 };
 
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Soft_Policy()
+CERT_GetClassicOCSPEnabledSoftFailurePolicy()
 {
     return &certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy;
 }
@@ -1813,7 +1813,7 @@ static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy = {
 };
 
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Enabled_Hard_Policy()
+CERT_GetClassicOCSPEnabledHardFailurePolicy()
 {
     return &certRev_NSS_3_11_Ocsp_Enabled_Hard_Policy;
 }
@@ -1857,7 +1857,7 @@ static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Disabled_Policy = {
 };
 
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Disabled_Policy()
+CERT_GetClassicOCSPDisabledPolicy()
 {
     return &certRev_NSS_3_11_Ocsp_Disabled_Policy;
 }
