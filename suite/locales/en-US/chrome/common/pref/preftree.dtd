@@ -5,7 +5,6 @@
 <!ENTITY content.label "Content">
 <!ENTITY fonts.label "Fonts">
 <!ENTITY colors.label "Colors">
-<!ENTITY locales.label "Languages">
 <!ENTITY navigator.label "Browser">
 <!ENTITY history.label "History">
 <!ENTITY bidi.label "Bidi Options">

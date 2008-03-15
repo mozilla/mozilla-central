@@ -57,7 +57,7 @@
   <treechildren id="panelChildren">
     <treeitem container="true" id="appearance">
       <treerow>   
-        <treecell url="chrome://communicator/content/pref/pref-appearance.xul" label="&appear.label;"/> 
+        <treecell label="(Migrated: &appear.label;)"/> 
       </treerow>
       <treechildren id="appearanceChildren">
         <treeitem>
@@ -68,11 +68,6 @@
         <treeitem>
           <treerow>
             <treecell label="(Migrated: &colors.label;)"/> 
-          </treerow>
-        </treeitem>
-        <treeitem>
-          <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-locales.xul" label="&locales.label;"/>
           </treerow>
         </treeitem>
       </treechildren>

@@ -8,21 +8,14 @@
 <overlay id="mailPrefsOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var panel;
-    if (panel != undefined) {
-      switch(panel) 
-      {
-      case "chrome://communicator/content/pref/pref-appearance.xul":
-        _elementIDs.push("generalStartupMail");
-        _elementIDs.push("generalStartupAddressBook");
-        break;
-      }
-    }
-  ]]>
-  </script>         
-
+  <preferences id="appearance_preferences">
+    <preference id="general.startup.mail"
+                name="general.startup.mail"
+                type="bool"/>
+    <preference id="general.startup.addressbook"
+                name="general.startup.addressbook"
+                type="bool"/>
+  </preferences>
   <preferences id="scripts_preferences">
     <preference id="javascript.allow.mailnews"
                 name="javascript.allow.mailnews"
@@ -49,17 +42,17 @@
   </groupbox>
 
   <!-- mail startup toggle -->
-  <groupbox id="generalStartupPreferences">           
-    <checkbox id="generalStartupMail" wsm_persist="true"
+  <groupbox id="generalStartupPreferences">
+    <checkbox id="generalStartupMail"
               insertafter="generalStartupBrowser"
-              label="&mail.label;" accesskey="&mail.accesskey;"
-              pref="true" preftype="bool" prefstring="general.startup.mail"
-              prefattribute="checked"/>
-    <checkbox id="generalStartupAddressBook" wsm_persist="true"
+              label="&mail.label;"
+              accesskey="&mail.accesskey;"
+              preference="general.startup.mail"/>
+    <checkbox id="generalStartupAddressBook"
               insertafter="generalStartupEditor,generalStartupMail"
-              label="&addressbook.label;" accesskey="&addressbook.accesskey;"
-              pref="true" preftype="bool" prefstring="general.startup.addressbook"
-              prefattribute="checked"/>         
+              label="&addressbook.label;"
+              accesskey="&addressbook.accesskey;"
+              preference="general.startup.addressbook"/>
   </groupbox>
 
   <!-- category tree entries for mail/news -->

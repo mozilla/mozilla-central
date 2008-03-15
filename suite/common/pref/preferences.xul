@@ -73,13 +73,14 @@
 
     <treechildren id="prefsPanelChildren">
       <treeitem label="READ THIS!" prefpane="temp_readthis_pane"/>
-<!-- commenting out yet unmigrated panels
+      <!-- Appearance items -->
       <treeitem container="true"
-                id="appearance"
+                id="appearanceItem"
                 label="&appear.label;"
+                prefpane="appearance_pane"
+                helpTopic="appearance_pref"
                 url="chrome://communicator/content/pref/pref-appearance.xul">
         <treechildren id="appearanceChildren">
--->
           <treeitem id="contentItem"
                     label="&content.label;"
                     prefpane="content_pane"
@@ -95,12 +96,9 @@
                     prefpane="colors_pane"
                     helpTopic="appearance_pref_colors"
                     url="chrome://communicator/content/pref/pref-colors.xul"/>
-<!--
-          <treeitem label="&locales.label;"
-                    url="chrome://communicator/content/pref/pref-locales.xul"/>
         </treechildren>
       </treeitem>
--->
+
       <!-- Browser items -->
       <treeitem container="true"
                 id="navigator"
