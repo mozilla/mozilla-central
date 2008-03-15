@@ -485,14 +485,14 @@ breakout:
     	rv = 1;
     } else {
     	fprintf(stderr, "Chain is good!\n");
-    	if (issuerCert && verbose) {
+    	if (issuerCert) {
     	   if (verbose > 1) {
                rv = SEC_PrintCertificateAndTrust(issuerCert, "Root Certificate",
                                                  NULL);
                if (rv != SECSuccess) {
 		 SECU_PrintError(progName, "problem printing certificate");
                }
-    	   } else {
+    	   } else if (verbose > 0) {
     	      SECU_PrintName(stdout, &issuerCert->subject, "Root "
                              "Certificate Subject:", 0);
     	   }
