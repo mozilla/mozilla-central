@@ -1857,7 +1857,7 @@ static const CERTRevocationFlags certRev_NSS_3_11_Ocsp_Disabled_Policy = {
 };
 
 extern const CERTRevocationFlags*
-CERT_GetPKIXVerifyNSS_3_11_OCSP_Disbled_Policy()
+CERT_GetPKIXVerifyNSS_3_11_OCSP_Disabled_Policy()
 {
     return &certRev_NSS_3_11_Ocsp_Disabled_Policy;
 }
