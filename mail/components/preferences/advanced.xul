@@ -235,7 +235,7 @@
 
         <!-- Certificates -->
         <tabpanel orient="vertical">
-          <description>&certificatesInfo.label;</description>
+          <description>&certificatesInfo2.label;</description>
           <separator class="thin"/>
           <description class="indent">
             <button label="&viewCertificates.label;" accesskey="&viewCertificates.accesskey;"
@@ -244,7 +244,8 @@
             <button label="&viewCRLs.label;" accesskey="&viewCRLs.accesskey;"
                     oncommand="gAdvancedPane.showCRLs();"
                     preference="security.OCSP.disable_button.managecrl"/>
-            <button label="&viewOCSP.label;" accesskey="&viewOCSP.accesskey;"
+            <button label="&validation.label;"
+                    accesskey="&validation.accesskey;"
                     oncommand="gAdvancedPane.showOCSP();"/>
             <button label="&viewSecurityDevices.label;" accesskey="&viewSecurityDevices.accesskey;"
                     oncommand="gAdvancedPane.showSecurityDevices();"

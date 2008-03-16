@@ -68,12 +68,12 @@
 <!ENTITY kb.label "KB">
 
 <!-- Certificates -->
-<!ENTITY certificatesInfo.label         "Manage certificates, revocation lists, certificate verification and security devices.">
+<!ENTITY certificatesInfo2.label        "Manage certificates, revocation lists, certificate validation and security devices.">
 <!ENTITY viewCertificates.label         "View Certificates">
 <!ENTITY viewCertificates.accesskey     "a">
 <!ENTITY viewCRLs.label                 "Revocation Lists">
 <!ENTITY viewCRLs.accesskey             "e">
-<!ENTITY viewOCSP.label                 "Verification">
-<!ENTITY viewOCSP.accesskey             "f">
+<!ENTITY validation.label               "Validation">
+<!ENTITY validation.accesskey           "d">
 <!ENTITY viewSecurityDevices.label      "Security Devices">
 <!ENTITY viewSecurityDevices.accesskey  "u">
