@@ -7519,12 +7519,12 @@ nsImapMailFolder::PlaybackCoalescedOperations()
   if (m_moveCoalescer)
   {
     nsMsgKeyArray *junkKeysToClassify = m_moveCoalescer->GetKeyBucket(0);
-    nsMsgKeyArray *nonJunkKeysToClassify = m_moveCoalescer->GetKeyBucket(1);
     if (junkKeysToClassify && junkKeysToClassify->GetSize() > 0)
       StoreCustomKeywords(m_moveCoalescer->GetMsgWindow(), NS_LITERAL_CSTRING("Junk"), EmptyCString(), junkKeysToClassify->GetArray(), junkKeysToClassify->GetSize(), nsnull);
+    junkKeysToClassify->RemoveAll();
+    nsMsgKeyArray *nonJunkKeysToClassify = m_moveCoalescer->GetKeyBucket(1);
     if (nonJunkKeysToClassify && nonJunkKeysToClassify->GetSize() > 0)
       StoreCustomKeywords(m_moveCoalescer->GetMsgWindow(), NS_LITERAL_CSTRING("NonJunk"), EmptyCString(), nonJunkKeysToClassify->GetArray(), nonJunkKeysToClassify->GetSize(), nsnull);
-    junkKeysToClassify->RemoveAll();
     nonJunkKeysToClassify->RemoveAll();
     return m_moveCoalescer->PlaybackMoves(ShowPreviewText());
   }
