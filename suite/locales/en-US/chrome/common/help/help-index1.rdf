@@ -1004,8 +1004,8 @@
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="languages:Appearance_preferences"
-         nc:name="Appearance preferences"
-         nc:link="cs_nav_prefs_appearance.xhtml#locales"/>
+         nc:name="User interface languages"
+         nc:link="cs_nav_prefs_appearance.xhtml#appearance"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>
@@ -1522,9 +1522,9 @@
          nc:link="cs_nav_prefs_appearance.xhtml#colors"/>
      </rdf:li>
      <rdf:li>
-       <rdf:Description ID="preferences:locales"
-         nc:name="User Interface languages preferences"
-         nc:link="cs_nav_prefs_appearance.xhtml#locales"/>
+       <rdf:Description ID="preferences:content"
+         nc:name="content preferences"
+         nc:link="cs_nav_prefs_appearance.xhtml#content"/>
      </rdf:li>
      <rdf:li>
        <rdf:Description ID="preferences:cookies"
