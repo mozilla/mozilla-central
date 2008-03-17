@@ -494,7 +494,7 @@ sub create {
     }
     
     foreach my $run (@$runs){
-        $run->add_case_run($self->id);
+        $run->add_case_run($self->id, $self->sortkey);
     }
     
     $self->add_component($component, "VALIDATED");
@@ -890,7 +890,7 @@ sub add_to_run {
     my $runs = $self->_check_runs($runids);
      
     foreach my $run (@$runs){
-        $run->add_case_run($self->id);
+        $run->add_case_run($self->id, $self->sortkey);
     }
 }
 

@@ -211,10 +211,10 @@ sub get_versions {
 }
 
 sub lookup_name_by_id {
-    return {ERROR => 1, message=> 'This method id depricated. Use Product::get instead.'};
+    return {ERROR=> 'This method id deprecated. Use Product::get instead.'};
 }
 sub lookup_id_by_name {
-    return {ERROR => 1, message=> 'This method id depricated. Use Product::check_product instead.'};
+    return {ERROR=> 'This method id deprecated. Use Product::check_product instead.'};
 }
 
 1;
@@ -392,9 +392,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Returns:     Array: Returns an array of Version objects.
 
-=item C<lookup_name_by_id> B<DEPRICATED> Use Product::get instead
+=item C<lookup_name_by_id> B<DEPRECATED> Use Product::get instead
 
-=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Product::check_product instead
+=item C<lookup_id_by_name> B<DEPRECATED - CONSIDERED HARMFUL> Use Product::check_product instead
 
 =back
 

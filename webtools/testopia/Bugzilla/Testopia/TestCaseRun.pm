@@ -37,6 +37,7 @@ use Date::Format;
 use Date::Parse;
 
 use base qw(Exporter Bugzilla::Object);
+@Bugzilla::Testopia::TestCase::EXPORT = qw(lookup_status lookup_status_by_name);
 
 ###############################
 ####    Initialization     ####
@@ -448,43 +449,6 @@ sub set_assignee {
     $note   .= " for build '". $self->build->name;
     $note   .= "' and environment '". $self->environment->name;
     $self->append_note($note);
-}
-
-=head2 lookup_status
-
-Returns the status name of the given case_run_status_id
-
-=cut
-
-sub lookup_status {
-    my $self = shift;
-    my ($status_id) = @_;
-    detaint_natural($status_id);
-    my $dbh = Bugzilla->dbh;
-    my ($status) = $dbh->selectrow_array(
-            "SELECT name 
-               FROM test_case_run_status 
-              WHERE case_run_status_id = ?",
-              undef, $status_id);
-   return $status;
-}
-
-=head2 lookup_status_by_name
-
-Returns the id of the status name passed.
-
-=cut
-
-sub lookup_status_by_name {
-    my ($name) = @_;
-    my $dbh = Bugzilla->dbh;
-    
-    my ($value) = $dbh->selectrow_array(
-            "SELECT case_run_status_id
-             FROM test_case_run_status
-             WHERE name = ?",
-             undef, $name);
-    return $value;
 }
 
 =head2 append_note
@@ -1099,6 +1063,46 @@ sub completion_time {
         return $seconds;
     } 
     return 0;
+}
+
+###############################
+####      Functions        ####
+###############################
+
+=head2 lookup_status
+
+Returns the status name of the given case_run_status_id
+
+=cut
+
+sub lookup_status {
+    my ($status_id) = @_;
+    detaint_natural($status_id);
+    my $dbh = Bugzilla->dbh;
+    my ($status) = $dbh->selectrow_array(
+            "SELECT name 
+               FROM test_case_run_status 
+              WHERE case_run_status_id = ?",
+              undef, $status_id);
+   return $status;
+}
+
+=head2 lookup_status_by_name
+
+Returns the id of the status name passed.
+
+=cut
+
+sub lookup_status_by_name {
+    my ($name) = @_;
+    my $dbh = Bugzilla->dbh;
+    
+    my ($value) = $dbh->selectrow_array(
+            "SELECT case_run_status_id
+             FROM test_case_run_status
+             WHERE name = ?",
+             undef, $name);
+    return $value;
 }
 
 1;

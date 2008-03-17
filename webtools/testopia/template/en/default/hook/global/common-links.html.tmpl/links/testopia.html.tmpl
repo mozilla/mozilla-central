@@ -29,7 +29,7 @@
   <li><a href="tr_show_product.cgi">Product Dashboard</a></li>
   <li><span class="separator">| </span><a href="tr_new_plan.cgi">New Plan</a></li>
 [% END %]
-  <li><span class="separator">| </span><a href="tr_new_case.cgi?plan_id=[% plan_id FILTER none %]">New Case</a></li>
+  <li>[% UNLESS user.in_group('Testers') %]<span class="separator">| [% END %]</span><a href="tr_new_case.cgi?plan_id=[% plan_id FILTER none %]">New Case</a></li>
   <li><span class="separator">| </span><a href="tr_new_run.cgi?plan_id=[% plan_id FILTER none %]&case_status_id=2">New Run</a></li>
   <li><span class="separator">| </span><a href="tr_query.cgi">Search</a></li>
 

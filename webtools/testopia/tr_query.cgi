@@ -33,6 +33,7 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Classification;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestRun;
+use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::Environment::Category;
 use Bugzilla::Testopia::Environment::Element;
 use Bugzilla::Testopia::Environment::Property;

@@ -130,7 +130,7 @@ sub lookup_name_by_id {
 
 # DEPRECATED use Build::check_build($name, $product) instead
 sub lookup_id_by_name {
-  return { ERROR => 1, message => 'This method is considered harmful and has been depricated. Please use Build::check_build instead'};
+  return { ERROR => 'This method is considered harmful and has been deprecated. Please use Build::check_build instead'};
 }
 
 1;
@@ -191,9 +191,9 @@ Provides methods for automated scripts to manipulate Testopia Builds
 
  Returns:     A blessed Bugzilla::Testopia::Build object hash
 
-=item C<lookup_id_by_name> B<DEPRICATED - CONSIDERED HARMFUL> Use Build::check_build instead
+=item C<lookup_id_by_name> B<DEPRECATED - CONSIDERED HARMFUL> Use Build::check_build instead
 
-=item C<lookup_name_by_id> B<DEPRICATED> Use Build::get instead
+=item C<lookup_name_by_id> B<DEPRECATED> Use Build::get instead
 
 =item C<update($id, $values)>
 

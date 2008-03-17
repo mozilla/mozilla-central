@@ -118,7 +118,7 @@ if ($action eq 'update'){
 
         # Add to runs
         foreach my $run (@runs){
-            $run->add_case_run($case->id) if $run->canedit;
+            $run->add_case_run($case->id, $case->sortkey) if $run->canedit;
         }
         # Clone
         if ($cgi->param('copymethod') eq 'copy'){

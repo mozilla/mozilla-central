@@ -239,18 +239,18 @@ sub add_tag {
     foreach my $id (@ids){
         my $plan = new Bugzilla::Testopia::TestPlan($id);
         unless ($plan){
-            push @results, {ERROR => 1, message => "TestPlan $id does not exist"};
+            push @results, {ERROR => "TestPlan $id does not exist"};
             next;
         }
         unless ($plan->canedit){
-            push @results, {ERROR => 1, message => "You do not have rights to edit this test plan"};
+            push @results, {ERROR => "You do not have rights to edit this test plan"};
             next;
         }
         eval {
             $plan->add_tag($tags);
         };
         if ($@){
-            push @results, {ERROR => 1, message => $@};
+            push @results, {ERROR => $@};
         }
     }
     # @results will be empty if successful

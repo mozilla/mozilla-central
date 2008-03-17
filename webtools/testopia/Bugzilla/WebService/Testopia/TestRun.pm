@@ -200,11 +200,11 @@ sub get_test_plan {
 }
 
 sub lookup_environment_id_by_name {
-    return { ERROR => 1, message => 'This method is considered harmful and has been depricated. Please use Environment::check_environment instead'};
+    return { ERROR => 'This method is considered harmful and has been deprecated. Please use Environment::check_environment instead'};
 }
 
 sub lookup_environment_name_by_id {
-    return { ERROR => 1, message => 'This method has been depricated. Please use Environment::get instead'};
+    return { ERROR => 'This method has been deprecated. Please use Environment::get instead'};
 }
 
 sub add_tag {
@@ -218,18 +218,18 @@ sub add_tag {
     foreach my $id (@ids){
         my $run = new Bugzilla::Testopia::TestRun($id);
         unless ($run){
-            push @results, {ERROR => 1, message => "TestRun $id does not exist"};
+            push @results, {ERROR => "TestRun $id does not exist"};
             next;
         }
         unless ($run->canedit){
-            push @results, {ERROR => 1, message => "You do not have rights to edit this test run"};
+            push @results, {ERROR => "You do not have rights to edit this test run"};
             next;
         }
         eval {
             $run->add_tag($tags);
         };
         if ($@){
-            push @results, {ERROR => 1, message => $@};
+            push @results, {ERROR => $@};
         }
     }
     # @results will be empty if successful

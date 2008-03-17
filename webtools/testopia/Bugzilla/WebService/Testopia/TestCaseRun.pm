@@ -116,7 +116,7 @@ sub update {
                 push @caseruns, $caserun;
             }
             else {
-                push @caseruns, {ERROR => 1, message => 'Case-run does not exist'};
+                push @caseruns, {ERROR => 'Case-run does not exist'};
             }
         } 
     }
@@ -127,7 +127,7 @@ sub update {
                 push @caseruns, $caserun;
             }
             else {
-                push @caseruns, {ERROR => 1, message => 'Case-run does not exist'};
+                push @caseruns, {ERROR => 'Case-run does not exist'};
             }
         } 
     }
@@ -145,7 +145,7 @@ sub update {
             next;
         }
         unless ($caserun->canedit){
-            push @results, {ERROR => 1, message => "You do not have rights to edit this test case"};
+            push @results, {ERROR => "You do not have rights to edit this test case"};
             next;
         }
 
