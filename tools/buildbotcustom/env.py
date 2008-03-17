@@ -33,7 +33,8 @@ MozillaEnvironments['win32-ref-platform'] = {
                'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + \
                'D:\\msvs8\\VC\\INCLUDE;' + \
                'D:\\msvs8\\VC\\PlatformSDK\\include',
-    "LIB": 'D:\\msvs8\\VC\\ATLMFC\\LIB;' + \
+    "LIB": 'D:\\sdks\\v6.0\\lib;' + \
+           'D:\\msvs8\\VC\\ATLMFC\\LIB;' + \
            'D:\\msvs8\\VC\\LIB;' + \
            'D:\\msvs8\\VC\\PlatformSDK\\lib',
     "SDKDIR": 'D:\\sdks\\v6.0'
