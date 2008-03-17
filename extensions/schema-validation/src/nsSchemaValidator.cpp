@@ -2656,15 +2656,13 @@ nsSchemaValidator::IsValidSchemaDate(const nsAString & aNodeValue,
 
  /*
     http://www.w3.org/TR/xmlschema-2/#date
-    (-)CCYY-MM-DDT
-      then either: Z
-      or [+/-]hh:mm
+    (-)CCYY-MM-DD
+      then optionally either: 
+        Z
+        or [+/-]hh:mm
   */
 
-  // append 'T' to end to make ParseSchemaDate happy.
-  dateString.Append('T');
-
-  isValid = nsSchemaValidatorUtils::ParseSchemaDate(dateString, aResult);
+  isValid = nsSchemaValidatorUtils::ParseSchemaDate(dateString, PR_TRUE, aResult);
 
   return isValid;
 }

@@ -468,6 +468,8 @@
         validate("-2004-02-28T12:21:03.434Z", "datetime-test-1", true);
         validate("-2004-02-28T12:21:03-04:00", "datetime-test-1", true);
         validate("-2004-02-30T12:21:03Z", "datetime-test-1", false);
+        validate("2004-02-28ZT24:21:03Z", "datetime-test-1", false);
+        validate("2004-02-28+06:00T24:21:03Z", "datetime-test-1", false);
 
         validate("2004-02-11T12:21:03Z", "datetime-test-2", true);
         validate("2004-02-18T00:00:00Z", "datetime-test-2", true);
@@ -501,6 +503,15 @@
         // leap year test
         validate("2000-02-29", "date-test-1", true);
         validate("2001-02-29", "date-test-1", false);
+        // timezone test
+        validate("2001-01-18Z", "date-test-1", true);
+        validate("2001-01-18A", "date-test-1", false);
+        validate("2001-01-18Z2", "date-test-1", false);
+        validate("2007-01-01-06:00", "date-test-1", true);
+        validate("2007-01-01+06:00", "date-test-1", true);
+        validate("2007-01-01A06:00", "date-test-1", false);
+        validate("2007-01-01-06:00Z", "date-test-1", false);
+        validate("2007-01-01Z-06:00", "date-test-1", false);
 
         validate("2004-02-17", "date-test-2", true);
         validate("2004-02-18", "date-test-2", false);
