@@ -254,7 +254,7 @@ $update_aus_host = 'aus2-community.mozilla.org';
 
 $crashreporter_buildsymbols = 1;
 $crashreporter_pushsymbols = 1;
-$ENV{SYMBOL_SERVER_HOST} = 'stage.mozilla.org';
+$ENV{SYMBOL_SERVER_HOST} = 'dm-symbolpush01.mozilla.org';
 $ENV{SYMBOL_SERVER_USER}   = 'calbld';
 $ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_sbrd/';
 $ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/calbld_dsa";
