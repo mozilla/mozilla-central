@@ -344,10 +344,15 @@
               if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p)
-                    p.onProgressChange(aWebProgress, aRequest,
-                                       aCurSelfProgress, aMaxSelfProgress,
-                                       aCurTotalProgress, aMaxTotalProgress);
+                  if (p) {
+                    try {
+                      p.onProgressChange(aWebProgress, aRequest,
+                                         aCurSelfProgress, aMaxSelfProgress,
+                                         aCurTotalProgress, aMaxTotalProgress);
+                    } catch (e) {
+                      Components.utils.reportError(e);
+                    }
+                  }
                 }
               }
             },
@@ -438,8 +443,14 @@
               if (!oldBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p)
-                    p.onStateChange(aWebProgress, aRequest, aStateFlags, aStatus);
+                  if (p) {
+                    try {
+                      p.onStateChange(aWebProgress, aRequest, aStateFlags,
+                                      aStatus);
+                    } catch (e) {
+                      Components.utils.reportError(e);
+                    }
+                  }
                 }
               }
             },
@@ -471,8 +482,13 @@
               if (!this.mBlank && this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p)
-                    p.onLocationChange(aWebProgress, aRequest, aLocation);
+                  if (p) {
+                    try {
+                      p.onLocationChange(aWebProgress, aRequest, aLocation);
+                    } catch (e) {
+                      Components.utils.reportError(e);
+                    }
+                  }
                 }
               }
             },
@@ -485,8 +501,14 @@
               if (this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p)
-                    p.onStatusChange(aWebProgress, aRequest, aStatus, aMessage);
+                  if (p) {
+                    try {
+                      p.onStatusChange(aWebProgress, aRequest, aStatus,
+                                       aMessage);
+                    } catch (e) {
+                      Components.utils.reportError(e);
+                    }
+                  }
                 }
               }
             },
@@ -496,8 +518,13 @@
               if (this.mTabBrowser.mCurrentTab == this.mTab) {
                 for (var i = 0; i < this.mTabBrowser.mProgressListeners.length; i++) {
                   var p = this.mTabBrowser.mProgressListeners[i];
-                  if (p)
-                    p.onSecurityChange(aWebProgress, aRequest, aState);
+                  if (p) {
+                    try {
+                      p.onSecurityChange(aWebProgress, aRequest, aState);
+                    } catch (e) {
+                      Components.utils.reportError(e);
+                    }
+                  }
                 }
               }
             },
@@ -589,7 +616,8 @@
           <![CDATA[
             try {
               aURI = this.mURIFixup.createExposableURI(aURI);
-            } catch(ex) { }
+            } catch (e) {
+            }
             return aURI.resolve("/favicon.ico");
           ]]>
         </body>
@@ -601,7 +629,8 @@
           <![CDATA[
             try {
               aURI = this.mURIFixup.createExposableURI(aURI);
-            } catch(ex) { }
+            } catch (e) {
+            }
             return (aURI && this.mPrefs.getBoolPref("browser.chrome.site_icons") &&
                     this.mPrefs.getBoolPref("browser.chrome.favicons") &&
                     ("schemeIs" in aURI) && (aURI.schemeIs("http") || aURI.schemeIs("https")));
@@ -696,7 +725,8 @@
                 else if (uri.host)
                   newTitle = uri.prePath + sep + newTitle;
               }
-            } catch (e) {}
+            } catch (e) {
+            }
 
             this.ownerDocument.title = newTitle;
           ]]>
@@ -784,15 +814,20 @@
             for (i = 0; i < this.mProgressListeners.length; i++) {
               p = this.mProgressListeners[i];
               if (p) {
-                p.onLocationChange(webProgress, null, loc);
-                if (securityUI)
-                  p.onSecurityChange(webProgress, null, securityUI.state);
-                var listener = this.mTabListeners[this.mTabContainer.selectedIndex];
-                if (listener.mIcon && 'onLinkIconAvailable' in p)
-                  p.onLinkIconAvailable(listener.mIcon);
-                if ('onFeedAvailable' in p) {
-                  for (var j = 0; j < listener.mFeeds.length; j++)
-                    p.onFeedAvailable(listener.mFeeds[j]);
+                try {
+                  p.onLocationChange(webProgress, null, loc);
+                  if (securityUI)
+                    p.onSecurityChange(webProgress, null, securityUI.state);
+                  var listener = this.mTabListeners[this.mTabContainer
+                                                        .selectedIndex];
+                  if (listener.mIcon && 'onLinkIconAvailable' in p)
+                    p.onLinkIconAvailable(listener.mIcon);
+                  if ('onFeedAvailable' in p) {
+                    for (var j = 0; j < listener.mFeeds.length; j++)
+                      p.onFeedAvailable(listener.mFeeds[j]);
+                  }
+                } catch (e) {
+                  Components.utils.reportError(e);
                 }
               }
             }
@@ -808,8 +843,16 @@
               webProgress = this.mCurrentBrowser.webProgress;
               for (i = 0; i < this.mProgressListeners.length; i++) {
                 p = this.mProgressListeners[i];
-                if (p)
-                  p.onStateChange(webProgress, null, nsIWebProgressListener.STATE_START | nsIWebProgressListener.STATE_IS_NETWORK, 0);
+                if (p) {
+                  try {
+                    p.onStateChange(webProgress, null,
+                                    nsIWebProgressListener.STATE_START |
+                                    nsIWebProgressListener.STATE_IS_NETWORK,
+                                    0);
+                  } catch (e) {
+                    Components.utils.reportError(e);
+                  }
+                }
               }
             }
 
@@ -820,8 +863,16 @@
               webProgress = this.mCurrentBrowser.webProgress;
               for (i = 0; i < this.mProgressListeners.length; i++) {
                 p = this.mProgressListeners[i];
-                if (p)
-                  p.onStateChange(webProgress, null, nsIWebProgressListener.STATE_STOP | nsIWebProgressListener.STATE_IS_NETWORK, 0);
+                if (p) {
+                  try {
+                    p.onStateChange(webProgress, null,
+                                    nsIWebProgressListener.STATE_STOP |
+                                    nsIWebProgressListener.STATE_IS_NETWORK,
+                                    0);
+                  } catch (e) {
+                    Components.utils.reportError(e);
+                  }
+                }
               }
             }
 
@@ -937,16 +988,23 @@
               try {
                 secMan.checkLoadURIWithPrincipal(event.target.nodePrincipal, uri,
                                                  nsIScriptSecurityManager.DISALLOW_SCRIPT);
-              } catch(e) {
+              } catch (e) {
                 return;
               }
 
               if (isFeed) {
                 this.mTabListeners[i].addFeed(event.originalTarget);
-                if (this.browsers[i] == this.mCurrentBrowser)
-                  for each (var p in this.mProgressListeners)
-                    if (p && 'onFeedAvailable' in p)
-                      p.onFeedAvailable(event.originalTarget);
+                if (this.browsers[i] == this.mCurrentBrowser) {
+                  for each (var p in this.mProgressListeners) {
+                    if (p && 'onFeedAvailable' in p) {
+                      try {
+                        p.onFeedAvailable(event.originalTarget);
+                      } catch (e) {
+                        Components.utils.reportError(e);
+                      }
+                    }
+                  }
+                }
               }
 
               if (!isIcon)
@@ -958,7 +1016,7 @@
                 var contentPolicy =
                   Components.classes['@mozilla.org/layout/content-policy;1']
                             .getService(nsIContentPolicy);
-              } catch(e) {
+              } catch (e) {
                 return; // Refuse to load if we can't do a security check.
               }
 
@@ -969,10 +1027,17 @@
                                            event.target.type,
                                            null) == nsIContentPolicy.ACCEPT) {
                 this.mTabListeners[i].setIcon(href);
-                if (this.browsers[i] == this.mCurrentBrowser)
-                  for each (var p in this.mProgressListeners)
-                    if (p && 'onLinkIconAvailable' in p)
-                      p.onLinkIconAvailable(href);
+                if (this.browsers[i] == this.mCurrentBrowser) {
+                  for each (var p in this.mProgressListeners) {
+                    if (p && 'onLinkIconAvailable' in p) {
+                      try {
+                        p.onLinkIconAvailable(href);
+                      } catch (e) {
+                        Components.utils.reportError(e);
+                      }
+                    }
+                  }
+                }
               }
               return;
             }
@@ -1010,8 +1075,7 @@
               if (browser.currentURI.spec) {
                 try {
                   title = this.mURIFixup.createExposableURI(browser.currentURI).spec;
-                }
-                catch(ex) {
+                } catch (e) {
                   title = browser.currentURI.spec;
                 }
               }
@@ -1025,8 +1089,7 @@
                   const textToSubURI = Components.classes["@mozilla.org/intl/texttosuburi;1"]
                                                  .getService(Components.interfaces.nsITextToSubURI);
                   title = textToSubURI.unEscapeNonAsciiURI(characterSet, title);
-                }
-                catch(ex) {
+                } catch (e) {
                   // Do nothing.
                 }
 
