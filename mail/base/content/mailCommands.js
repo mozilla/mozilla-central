@@ -328,6 +328,16 @@ function CreateNewSubfolder(chromeWindowURL, preselectedMsgFolder,
                       okCallback:callBackFunctionName});
 }
 
+function NewFolder(name, uri)
+{
+  if (!uri || !name)
+    return;
+
+  var folder = RDF.GetResource(uri);
+  folder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
+  folder.createSubfolder(name, msgWindow);
+}
+
 function UnSubscribe(folder)
 {
   // Unsubscribe the current folder from the newsserver, this assumes any confirmation has already
