@@ -79,7 +79,7 @@ function initMenus()
         params.sourceWindow = window;
         params.source = "menu";
 
-        dispatch(commandName, params);
+        dispatch(commandName, params, true);
 
         delete client.menuManager.cx;
     };

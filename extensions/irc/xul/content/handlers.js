@@ -685,7 +685,7 @@ function onInputCompleteLine(e)
         /* color codes */
         if (client.prefs["outgoing.colorCodes"])
             e.line = replaceColorCodes(e.line);
-        client.sayToCurrentTarget (e.line);
+        client.sayToCurrentTarget(e.line, true);
     }
 }
 

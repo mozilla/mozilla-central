@@ -24,6 +24,7 @@
  *   Robert Ginda, <rginda@netscape.com>, original author
  *   Chiaki Koufugata chiaki@mozilla.gr.jp UI i18n
  *   Samuel Sieb, samuel@sieb.net, MIRC color codes, munger menu, and various
+ *   James Ross, silver@warwickcompsoc.co.uk
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -3723,18 +3724,18 @@ function cli_load(url, scope)
 }
 
 client.sayToCurrentTarget =
-function cli_say(msg)
+function cli_say(msg, isInteractive)
 {
     if ("say" in client.currentObject)
     {
-        client.currentObject.dispatch("say", {message: msg});
+        client.currentObject.dispatch("say", {message: msg}, isInteractive);
         return;
     }
 
     switch (client.currentObject.TYPE)
     {
         case "IRCClient":
-            dispatch("eval", {expression: msg});
+            dispatch("eval", {expression: msg}, isInteractive);
             break;
 
         default:
