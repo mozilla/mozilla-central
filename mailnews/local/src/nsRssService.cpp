@@ -38,7 +38,7 @@
 #include "nsIRssIncomingServer.h"
 #include "nsCOMPtr.h"
 #include "nsILocalFile.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 
 nsRssService::nsRssService()
 {

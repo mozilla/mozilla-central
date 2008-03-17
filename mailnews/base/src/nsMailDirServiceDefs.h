@@ -49,8 +49,14 @@
 //=============================================================================
 
 // ----------------------------------------------------------------------------
-// Files and directories that exist on a per- basis.
+// Files and directories that exist on a per-profile basis.
 // ----------------------------------------------------------------------------
+
+#define NS_APP_MAIL_50_DIR                      "MailD"
+#define NS_APP_IMAP_MAIL_50_DIR                 "IMapMD"
+#define NS_APP_NEWS_50_DIR                      "NewsD"
+
+#define NS_APP_MESSENGER_FOLDER_CACHE_50_FILE   "MFCaF"
 
 #define ISP_DIRECTORY_LIST                 "ISPDL"
       

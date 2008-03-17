@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -34,7 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
 #include "nsMailDirProvider.h"
 #include "nsMailDirServiceDefs.h"
 #include "nsXULAppAPI.h"
@@ -43,8 +43,27 @@
 #include "nsCOMArray.h"
 #include "nsEnumeratorUtils.h"
 #include "nsDirectoryServiceDefs.h"
+#include "nsAppDirectoryServiceDefs.h"
 #include "nsIChromeRegistry.h"
 #include "nsICategoryManager.h"
+
+#define MAIL_DIR_50_NAME             "Mail"
+#define IMAP_MAIL_DIR_50_NAME        "ImapMail"
+#define NEWS_DIR_50_NAME             "News"
+#define MSG_FOLDER_CACHE_DIR_50_NAME "panacea.dat"
+
+nsresult
+nsMailDirProvider::EnsureDirectory(nsIFile *aDirectory)
+{
+  PRBool exists;
+  nsresult rv = aDirectory->Exists(&exists);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!exists)
+    rv = aDirectory->Create(nsIFile::DIRECTORY_TYPE, 0700);
+
+  return rv;
+}
 
 NS_IMPL_ISUPPORTS2(nsMailDirProvider,
 		   nsIDirectoryServiceProvider,
@@ -54,7 +73,49 @@ NS_IMETHODIMP
 nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
 			       nsIFile* *aResult)
 {
+  // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
+  // call, so be careful not to cause infinite recursion.
+  // i.e. the check for supported files must come first.
+  const char* leafName = nsnull;
+  PRBool isDirectory = PR_TRUE;
+
+  if (!strcmp(aKey, NS_APP_MAIL_50_DIR))
+    leafName = MAIL_DIR_50_NAME;
+  else if (!strcmp(aKey, NS_APP_IMAP_MAIL_50_DIR))
+    leafName = IMAP_MAIL_DIR_50_NAME;
+  else if (!strcmp(aKey, NS_APP_NEWS_50_DIR))
+    leafName = NEWS_DIR_50_NAME;
+  else if (!strcmp(aKey, NS_APP_MESSENGER_FOLDER_CACHE_50_FILE)) {
+    isDirectory = PR_FALSE;
+    leafName = MSG_FOLDER_CACHE_DIR_50_NAME;
+  }
+  else
   return NS_ERROR_FAILURE;
+
+  nsCOMPtr<nsIFile> parentDir;
+  nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
+                                       getter_AddRefs(parentDir));
+  if (NS_FAILED(rv))
+    return rv;
+
+  nsCOMPtr<nsIFile> file;
+  rv = parentDir->Clone(getter_AddRefs(file));
+  if (NS_FAILED(rv))
+    return rv;
+
+  nsDependentCString leafStr(leafName);
+  rv = file->AppendNative(leafStr);
+  if (NS_FAILED(rv))
+    return rv;
+
+  PRBool exists;
+  if (isDirectory && NS_SUCCEEDED(file->Exists(&exists)) && !exists)
+    rv = EnsureDirectory(file);
+
+  *aPersist = PR_TRUE;
+  file.swap(*aResult);
+
+  return rv;
 }
 
 NS_IMETHODIMP
@@ -185,7 +246,8 @@ nsMailDirProvider::Register(nsIComponentManager* aCompMgr,
 
   return catMan->AddCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
 				"mail-directory-provider",
-				NS_MAILDIRPROVIDER_CONTRACTID, PR_TRUE, PR_TRUE, nsnull);
+                                  NS_MAILDIRPROVIDER_CONTRACTID, PR_TRUE,
+                                  PR_TRUE, nsnull);
 }
 
 NS_METHOD

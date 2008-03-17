@@ -52,7 +52,7 @@
 #include "nsMsgUtils.h"
 
 #include "nsIDirectoryService.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 
 #define PREF_MAIL_ROOT_NONE "mail.root.none"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_NONE_REL "mail.root.none-rel"

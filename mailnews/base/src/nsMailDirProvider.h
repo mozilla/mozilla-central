@@ -1,3 +1,4 @@
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -61,6 +62,8 @@ public:
 			      const nsModuleComponentInfo *aInfo);
 
 private:
+  nsresult EnsureDirectory(nsIFile *aDirectory);
+
   class AppendingEnumerator : public nsISimpleEnumerator
   {
   public:

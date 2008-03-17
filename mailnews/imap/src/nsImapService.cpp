@@ -71,7 +71,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsISubscribableServer.h"
 #include "nsIDirectoryService.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "nsIWebNavigation.h"
 #include "nsImapStringBundle.h"
 #include "plbase64.h"

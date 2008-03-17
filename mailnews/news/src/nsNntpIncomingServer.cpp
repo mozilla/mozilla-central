@@ -50,7 +50,7 @@
 #include "nsMsgNewsCID.h"
 #include "nsNNTPProtocol.h"
 #include "nsIDirectoryService.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "nsInt64.h"
 #include "nsMsgUtils.h"
 #include "nsIPrompt.h"

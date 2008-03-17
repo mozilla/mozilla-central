@@ -73,6 +73,7 @@
 #include "nsIMsgMailSession.h"
 #include "nsIDirectoryService.h"
 #include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
@@ -860,7 +861,8 @@ NS_IMETHODIMP nsMsgAccountManager::GetFolderCache(nsIMsgFolderCache* *aFolderCac
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIFile> cacheFile;
-    rv = NS_GetSpecialDirectory(NS_APP_MESSENGER_FOLDER_CACHE_50_DIR, getter_AddRefs(cacheFile));
+    rv = NS_GetSpecialDirectory(NS_APP_MESSENGER_FOLDER_CACHE_50_FILE,
+                                getter_AddRefs(cacheFile));
     NS_ENSURE_SUCCESS(rv, rv);
     m_msgFolderCache->Init(cacheFile);
   }

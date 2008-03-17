@@ -54,7 +54,7 @@
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
 #include "nsIDirectoryService.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "prprf.h"
 #include "nsEscape.h"
 #include "nsMsgUtils.h"

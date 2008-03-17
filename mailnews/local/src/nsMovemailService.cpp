@@ -59,7 +59,7 @@
 #include "nsIPrompt.h"
 
 #include "nsILocalFile.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "nsMsgUtils.h"
 
 #include "nsMsgLocalCID.h"

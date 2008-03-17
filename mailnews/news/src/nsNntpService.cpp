@@ -73,7 +73,7 @@
 #include "nsIWindowMediator.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsIMsgSearchSession.h"
-#include "nsAppDirectoryServiceDefs.h"
+#include "nsMailDirServiceDefs.h"
 #include "nsIWebNavigation.h"
 #include "nsIIOService.h"
 #include "nsNetCID.h"
