@@ -363,14 +363,6 @@ var BookmarksMenuDNDObserver = {
     if (!this.canDrop(aEvent))
       return;
 
-    // Prevent dragging out of menupopups on non Win32 platforms. 
-    // a) on Mac drag from menus is generally regarded as being satanic
-    // b) on Linux, this causes an X-server crash, (bug 151336)
-    // c) on Windows, there is no hang or crash associated with this, so we'll leave 
-    // the functionality there. 
-    if (navigator.platform != "Win32" && target.localName != "toolbarbutton")
-      return;
-
     // bail if dragging from the empty area of the bookmarks toolbar
     if (target.id == "bookmarks-ptf")
       return
