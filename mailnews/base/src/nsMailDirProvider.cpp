@@ -66,12 +66,12 @@ nsMailDirProvider::EnsureDirectory(nsIFile *aDirectory)
 }
 
 NS_IMPL_ISUPPORTS2(nsMailDirProvider,
-		   nsIDirectoryServiceProvider,
-		   nsIDirectoryServiceProvider2)
+                   nsIDirectoryServiceProvider,
+                   nsIDirectoryServiceProvider2)
 
 NS_IMETHODIMP
 nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
-			       nsIFile* *aResult)
+                           nsIFile **aResult)
 {
   // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
   // call, so be careful not to cause infinite recursion.
@@ -90,7 +90,7 @@ nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
     leafName = MSG_FOLDER_CACHE_DIR_50_NAME;
   }
   else
-  return NS_ERROR_FAILURE;
+    return NS_ERROR_FAILURE;
 
   nsCOMPtr<nsIFile> parentDir;
   nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR,
@@ -120,7 +120,7 @@ nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
 
 NS_IMETHODIMP
 nsMailDirProvider::GetFiles(const char *aKey,
-				nsISimpleEnumerator* *aResult)
+                            nsISimpleEnumerator **aResult)
 {
   if (strcmp(aKey, ISP_DIRECTORY_LIST) != 0)
     return NS_ERROR_FAILURE;
@@ -148,8 +148,8 @@ nsMailDirProvider::GetFiles(const char *aKey,
   nsCOMPtr<nsISimpleEnumerator> extensionsEnum;
 
   rv = dirSvc->Get(XRE_EXTENSIONS_DIR_LIST,
-			    NS_GET_IID(nsISimpleEnumerator),
-			    getter_AddRefs(extensionsEnum));
+                   NS_GET_IID(nsISimpleEnumerator),
+                   getter_AddRefs(extensionsEnum));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = NS_NewUnionEnumerator(getter_AddRefs(combinedEnumerator), directoryEnumerator, extensionsEnum);
@@ -160,7 +160,7 @@ nsMailDirProvider::GetFiles(const char *aKey,
 }
 
 NS_IMPL_ISUPPORTS1(nsMailDirProvider::AppendingEnumerator,
-		   nsISimpleEnumerator)
+                   nsISimpleEnumerator)
 
 NS_IMETHODIMP
 nsMailDirProvider::AppendingEnumerator::HasMoreElements(PRBool *aResult)
@@ -235,9 +235,9 @@ nsMailDirProvider::AppendingEnumerator::AppendingEnumerator
 
 NS_METHOD
 nsMailDirProvider::Register(nsIComponentManager* aCompMgr,
-				nsIFile* aPath, const char *aLoaderStr,
-				const char *aType,
-				const nsModuleComponentInfo *aInfo)
+                            nsIFile* aPath, const char *aLoaderStr,
+                            const char *aType,
+                            const nsModuleComponentInfo *aInfo)
 {
   nsCOMPtr<nsICategoryManager> catMan =
     do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
@@ -245,16 +245,16 @@ nsMailDirProvider::Register(nsIComponentManager* aCompMgr,
     return NS_ERROR_FAILURE;
 
   return catMan->AddCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-				"mail-directory-provider",
+                                  "mail-directory-provider",
                                   NS_MAILDIRPROVIDER_CONTRACTID, PR_TRUE,
                                   PR_TRUE, nsnull);
 }
 
 NS_METHOD
 nsMailDirProvider::Unregister(nsIComponentManager* aCompMgr,
-				  nsIFile* aPath,
-				  const char *aLoaderStr,
-				  const nsModuleComponentInfo *aInfo)
+                              nsIFile* aPath,
+                              const char *aLoaderStr,
+                              const nsModuleComponentInfo *aInfo)
 {
   nsCOMPtr<nsICategoryManager> catMan =
     do_GetService(NS_CATEGORYMANAGER_CONTRACTID);
@@ -262,6 +262,6 @@ nsMailDirProvider::Unregister(nsIComponentManager* aCompMgr,
     return NS_ERROR_FAILURE;
 
   return catMan->DeleteCategoryEntry(XPCOM_DIRECTORY_PROVIDER_CATEGORY,
-				   "mail-directory-provider",
-				   PR_TRUE);
+                                     "mail-directory-provider",
+                                     PR_TRUE);
 }
