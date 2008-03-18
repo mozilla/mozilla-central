@@ -8,8 +8,3 @@ gdata-provider.jar:
     content/calendarCreation.xul                 (content/calendarCreation.xul)
     content/gdata-calendar-event-dialog.xul      (content/gdata-calendar-event-dialog.xul)
     content/gcal.png                             (content/gcal.png)
-
-gdata-provider-@AB_CD@.jar:
-% locale gdata-provider @AB_CD@ %locale/@AB_CD@/
-    locale/@AB_CD@/gdata.properties              (/calendar/locales/@AB_CD@/chrome/calendar/providers/gdata/gdata.properties)
-    locale/@AB_CD@/gdata.dtd                     (/calendar/locales/@AB_CD@/chrome/calendar/providers/gdata/gdata.dtd)
