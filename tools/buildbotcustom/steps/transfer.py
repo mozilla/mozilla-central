@@ -217,9 +217,9 @@ class MozillaStageUpload(ShellCommand):
         # eg ln -fs 2008/03/2008-03-01-01-mozilla-central
         #                          /home/ftp/pub/firefox/nightly/
         targetDir = path.join(self.remoteBasePath, 'nightly','')
-        datedDir.replace(targetDir, '')
+        shortDatedDir = datedDir.replace(targetDir, '')
         return self._getBaseCommand(ssh=True) + ' ' + self.remoteHost + \
-               ' ln -fs ' + datedDir + ' ' + targetDir
+               ' ln -fs ' + shortDatedDir + ' ' + targetDir
 
     def start(self):
         datedDir = self.getLongDatedPath()
