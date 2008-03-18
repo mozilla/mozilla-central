@@ -1258,8 +1258,8 @@
               var dragState = col.mDragState;
               col.fgboxes.dragbox.removeAttribute("dragging");
               col.fgboxes.box.removeAttribute("dragging");
-              window.removeEventListener("mousemove", col.onEventSweepMouseMove, true);
-              window.removeEventListener("mouseup", col.onEventSweepMouseUp, true);
+              window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
+              window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
               document.calendarEventColumnDragging = null;
               col.mDragState = null;
               
@@ -1429,8 +1429,8 @@
           col.fgboxes.dragbox.removeAttribute("dragging");
           col.fgboxes.box.removeAttribute("dragging");
 
-          window.removeEventListener("mousemove", col.onEventSweepMouseMove, true);
-          window.removeEventListener("mouseup", col.onEventSweepMouseUp, true);
+          window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
+          window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
 
           document.calendarEventColumnDragging = null;
 
