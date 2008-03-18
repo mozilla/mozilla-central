@@ -365,10 +365,7 @@ function AbPrintCardInternal(doPrintPreview, msgType)
      }
   }
 
-  if (!gPrintSettings)
-  {
-    gPrintSettings = PrintUtils.getPrintSettings();
-  }
+  gPrintSettings = PrintUtils.getPrintSettings();
 
   printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                          "",
@@ -413,9 +410,7 @@ function AbPrintAddressBookInternal(doPrintPreview, msgType)
   var abURIArr = uri.split("://");
   var printUrl = "addbook://" + abURIArr[0] + "/" + abURIArr[1] + "?action=print"
 
-  if (!gPrintSettings) {
-    gPrintSettings = PrintUtils.getPrintSettings();
-  }
+  gPrintSettings = PrintUtils.getPrintSettings();
 
   printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                     "",

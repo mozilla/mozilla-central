@@ -2008,9 +2008,7 @@ function PrintEnginePrintInternal(messageList, numMessages, doPrintPreview, msgT
         return false;
     }
 
-    if (gPrintSettings == null) {
-      gPrintSettings = PrintUtils.getPrintSettings();
-    }
+    gPrintSettings = PrintUtils.getPrintSettings();
     printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                           "",
                                           "chrome,dialog=no,all,centerscreen",
