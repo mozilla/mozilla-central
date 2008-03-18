@@ -102,7 +102,9 @@ function onLoad() {
   </ul>
 </fieldset>
 
-<p>Due to the number of suggestions and comments that are received, you should not expect a direct response. But your views are important to us, so please do let us know what you think.</p>
+<p>
+Information from this form will be published to a newsgroup or mailing list so project contributors can read it. <b>Do not submit private information.</b> Your email address will be obfuscated to make life difficult for spammers.
+</p>
 
 <form id="feedback-form" method="POST">
   <table id="feedback-table">
@@ -154,7 +156,7 @@ function onLoad() {
     </tr>
     <tr>
       <td class="label">
-        What is 5 + 2?: 
+        What is 1 + 6?: 
       </td>
       <td class="widget">
         <input id="captcha" name="captcha" type="text"
@@ -181,8 +183,6 @@ function onLoad() {
   <input type="hidden" name="action" value="submit"/>  
 </form>
 
-<p>
-Information from this form will be published to a newsgroup or mailing list so project contributors can read it. Do not submit any information unless you wish it to be made public. Your email address will be obfuscated to make life difficult for spammers.
-</p>
+<p>Due to the number of suggestions and comments that are received, you should not expect a direct response. But your views are important to us, so please do let us know what you think.</p>
 
 [% PROCESS footer.html.tmpl %]
