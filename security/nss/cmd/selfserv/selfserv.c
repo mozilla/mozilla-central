@@ -93,9 +93,23 @@ static int handle_connection( PRFileDesc *, PRFileDesc *, int );
 static const char envVarName[] = { SSL_ENV_VAR_NAME };
 static const char inheritableSockName[] = { "SELFSERV_LISTEN_SOCKET" };
 
-static PRBool logStats = PR_FALSE;
+#define DEFAULT_BULK_TEST 16384
+#define MAX_BULK_TEST     1048576 /* 1 MB */
+static PRBool testBulk;
+static PRUint32 testBulkSize       = DEFAULT_BULK_TEST;
+static PRUint32 testBulkTotal;
+static char* testBulkBuf;
+static PRDescIdentity log_layer_id = PR_INVALID_IO_LAYER;
+static PRFileDesc *loggingFD;
+static PRIOMethods loggingMethods;
+
+static PRBool logStats;
+static PRBool loggingLayer;
 static int logPeriod = 30;
-static PRUint32 loggerOps = 0;
+static PRUint32 loggerOps;
+static PRUint32 loggerBytes;
+static PRUint32 loggerBytesTCP;
+static PRUint32 bulkSentChunks;
 
 const int ssl2CipherSuites[] = {
     SSL_EN_RC4_128_WITH_MD5,			/* A */
@@ -175,21 +189,21 @@ Usage(const char *progName)
 {
     fprintf(stderr, 
 
-"Usage: %s -n rsa_nickname -p port [-3BDENRSTblmrsvx] [-w password] [-t threads]\n"
-#ifdef NSS_ENABLE_ECC
-"         [-i pid_file] [-c ciphers] [-d dbdir] [-e ec_nickname] \n"
+"Usage: %s -n rsa_nickname -p port [-3BDENRSTbjlmrsuvx] [-w password]\n"
+"         [-t threads] [-i pid_file] [-c ciphers] [-d dbdir] [-g numblocks]\n"
 "         [-f fortezza_nickname] [-L [seconds]] [-M maxProcs] [-P dbprefix]\n"
+#ifdef NSS_ENABLE_ECC
+"         [-C SSLCacheEntries] [-e ec_nickname]\n"
 #else
-"         [-i pid_file] [-c ciphers] [-d dbdir] [-f fortezza_nickname] \n"
-"         [-L [seconds]] [-M maxProcs] [-P dbprefix] [-C SSLCacheEntries]\n"
+"         [-C SSLCacheEntries]\n"
 #endif /* NSS_ENABLE_ECC */
 "-S means disable SSL v2\n"
 "-3 means disable SSL v3\n"
+"-T means disable TLS\n"
 "-B bypasses the PKCS11 layer for SSL encryption and MACing\n"
 "-q checks for bypassability\n"
 "-D means disable Nagle delays in TCP\n"
 "-E means disable export ciphersuites and SSL step down key gen\n"
-"-T means disable TLS\n"
 "-R means disable detection of rollback from TLS to SSL3\n"
 "-b means try binding to the port and exit\n"
 "-m means test the model-socket feature of SSL_ImportFD.\n"
@@ -208,7 +222,11 @@ Usage(const char *progName)
 "-t threads -- specify the number of threads to use for connections.\n"
 "-i pid_file file to write the process id of selfserve\n"
 "-l means use local threads instead of global threads\n"
-"-C SSLCacheEntries sets the maximum number of entries in the SSL session cache\n"
+"-g numblocks means test throughput by sending total numblocks chunks\n"
+"    of size 16kb to the client, 0 means unlimited (default=0)\n"
+"-j means measure TCP throughput (for use with -g option)\n"
+"-C SSLCacheEntries sets the maximum number of entries in the SSL\n" 
+"    session cache\n"
 "-c ciphers   Letter(s) chosen from the following list\n"
 "A    SSL2 RC4 128 WITH MD5\n"
 "B    SSL2 RC4 128 EXPORT40 WITH MD5\n"
@@ -632,20 +650,63 @@ logger(void *arg)
     PRIntervalTime latestTime;
     PRUint32 previousOps;
     PRUint32 ops;
-    PRIntervalTime logPeriodTicks = PR_SecondsToInterval(logPeriod);
-    PRFloat64 secondsPerTick = 1.0 / (PRFloat64)PR_TicksPerSecond();
+    PRIntervalTime logPeriodTicks = PR_TicksPerSecond();
+    PRFloat64 secondsPerTick = 1.0 / (PRFloat64)logPeriodTicks;
+    int iterations = 0;
+    int secondsElapsed = 0;
+    static PRUint64 totalPeriodBytes = 0;
+    static PRUint64 totalPeriodBytesTCP = 0;
 
     previousOps = loggerOps;
     previousTime = PR_IntervalNow();
  
     for (;;) {
-    	PR_Sleep(logPeriodTicks);
+        /* OK, implementing a new sleep algorithm here... always sleep 
+         * for 1 second but print out info at the user-specified interval.
+         * This way, we don't overflow all of our PR_Atomic* functions and 
+         * we don't have to use locks. 
+         */
+        PR_Sleep(logPeriodTicks);
+        secondsElapsed++;
+        totalPeriodBytes +=  PR_AtomicSet(&loggerBytes, 0);
+        totalPeriodBytesTCP += PR_AtomicSet(&loggerBytesTCP, 0);
+        if (secondsElapsed != logPeriod) {
+            continue;
+        }
+        /* when we reach the user-specified logging interval, print out all
+         * data 
+         */
+        secondsElapsed = 0;
         latestTime = PR_IntervalNow();
         ops = loggerOps;
         period = latestTime - previousTime;
         seconds = (PRFloat64) period*secondsPerTick;
         opsPerSec = (ops - previousOps) / seconds;
-        printf("%.2f ops/second, %d threads\n", opsPerSec, threadCount);
+
+        if (testBulk) {
+            if (iterations == 0) {
+                if (loggingLayer == PR_TRUE) {
+                    printf("Conn.--------App Data--------TCP Data\n");
+                } else {
+                    printf("Conn.--------App Data\n");
+                }
+            }
+            if (loggingLayer == PR_TRUE) {
+                printf("%4.d       %5.3f MB/s      %5.3f MB/s\n", ops, 
+                    totalPeriodBytes / (seconds * 1048576.0), 
+                    totalPeriodBytesTCP / (seconds * 1048576.0));
+            } else {
+                printf("%4.d       %5.3f MB/s\n", ops, 
+                    totalPeriodBytes / (seconds * 1048576.0));
+            }
+            totalPeriodBytes = 0;
+            totalPeriodBytesTCP = 0;
+            /* Print the "legend" every 20 iterations */
+            iterations = (iterations + 1) % 20; 
+        } else {
+            printf("%.2f ops/second, %d threads\n", opsPerSec, threadCount);
+        }
+
         fflush(stdout);
         previousOps = ops;
         previousTime = latestTime;
@@ -939,6 +1000,7 @@ handle_connection(
     char               buf[10240];
     char               fileName[513];
     char               proto[128];
+    PRDescIdentity     aboveLayer = PR_INVALID_IO_LAYER;
 
     pBuf   = buf;
     bufRem = sizeof buf;
@@ -963,6 +1025,23 @@ handle_connection(
 	}
     } else {
 	ssl_sock = tcp_sock;
+    }
+
+    if (loggingLayer) {
+        /* find the layer where our new layer is to be pushed */
+        aboveLayer = PR_GetLayersIdentity(ssl_sock->lower);
+        if (aboveLayer == PR_INVALID_IO_LAYER) {
+            errExit("PRGetUniqueIdentity");
+        }
+        /* create the new layer - this is a very cheap operation */
+        loggingFD = PR_CreateIOLayerStub(log_layer_id, &loggingMethods);
+        if (!loggingFD)
+            errExit("PR_CreateIOLayerStub");
+        /* push the layer below ssl but above TCP */
+        rv = PR_PushIOLayer(ssl_sock, aboveLayer, loggingFD);
+        if (rv != PR_SUCCESS) {
+            errExit("PR_PushIOLayer");
+        }
     }
 
     if (noDelay) {
@@ -1182,19 +1261,37 @@ handle_connection(
 	    iovs[numIOVs].iov_base = buf;
 	    iovs[numIOVs].iov_len  = reqLen;
 	    numIOVs++;
-
-/*	    printSecurityInfo(ssl_sock); */
 	}
 
-	iovs[numIOVs].iov_base = (char *)EOFmsg;
-	iovs[numIOVs].iov_len  = sizeof EOFmsg - 1;
-	numIOVs++;
+        /* Don't add the EOF if we want to test bulk encryption */
+        if (!testBulk) {
+            iovs[numIOVs].iov_base = (char *)EOFmsg;
+            iovs[numIOVs].iov_len  = sizeof EOFmsg - 1;
+            numIOVs++;
+        }
 
 	rv = PR_Writev(ssl_sock, iovs, numIOVs, PR_INTERVAL_NO_TIMEOUT);
 	if (rv < 0) {
 	    errWarn("PR_Writev");
 	    break;
 	}
+
+        /* Send testBulkTotal chunks to the client. Unlimited if 0. */
+        if (testBulk) {
+            while (0 < (rv = PR_Write(ssl_sock, testBulkBuf, testBulkSize))) {
+                PR_AtomicAdd(&loggerBytes, rv);
+                PR_AtomicIncrement(&bulkSentChunks);
+                if ((bulkSentChunks > testBulkTotal) && (testBulkTotal != 0))
+                    break;
+            }
+
+            /* There was a write error, so close this connection. */
+            if (bulkSentChunks <= testBulkTotal) {
+                errWarn("PR_Write");
+            }
+            PR_AtomicDecrement(&loggerOps);
+            break;
+        }
     } while (0);
 
 cleanup:
@@ -1277,7 +1374,7 @@ do_accepts(
         VLOG(("selfserv: do_accept: Got connection\n"));
 
         if (logStats) {
-            loggerOps++;
+            PR_AtomicIncrement(&loggerOps);
         }
 
 	PZ_Lock(qLock);
@@ -1380,6 +1477,65 @@ getBoundListenSocket(unsigned short port)
     return listen_sock;
 }
 
+PRInt32 PR_CALLBACK 
+logWritev (
+    PRFileDesc     *fd,
+    const PRIOVec  *iov,
+    PRInt32         size, 
+    PRIntervalTime  timeout )
+{
+    PRInt32 rv = (fd->lower->methods->writev)(fd->lower, iov, size, 
+        timeout);
+    /* Add the amount written, but not if there's an error */
+    if (rv > 0) 
+        PR_AtomicAdd(&loggerBytesTCP, rv);
+    return rv;
+}
+    
+PRInt32 PR_CALLBACK 
+logWrite (
+    PRFileDesc  *fd, 
+    const void  *buf, 
+    PRInt32      amount)
+{   
+    PRInt32 rv = (fd->lower->methods->write)(fd->lower, buf, amount);
+    /* Add the amount written, but not if there's an error */
+    if (rv > 0) 
+        PR_AtomicAdd(&loggerBytesTCP, rv);
+    
+    return rv;
+}
+
+PRInt32 PR_CALLBACK 
+logSend (
+    PRFileDesc     *fd, 
+    const void     *buf, 
+    PRInt32         amount, 
+    PRIntn          flags, 
+    PRIntervalTime  timeout)
+{
+    PRInt32 rv = (fd->lower->methods->send)(fd->lower, buf, amount, 
+        flags, timeout);
+    /* Add the amount written, but not if there's an error */
+    if (rv > 0) 
+        PR_AtomicAdd(&loggerBytesTCP, rv);
+    return rv;
+}
+ 
+void initLoggingLayer(void)
+{   
+    /* get a new layer ID */
+    log_layer_id = PR_GetUniqueIdentity("Selfserv Logging");
+    if (log_layer_id == PR_INVALID_IO_LAYER)
+        errExit("PR_GetUniqueIdentity");
+    
+    /* setup the default IO methods with my custom write methods */
+    memcpy(&loggingMethods, PR_GetDefaultIOMethods(), sizeof(PRIOMethods));
+    loggingMethods.writev = logWritev;
+    loggingMethods.write  = logWrite;
+    loggingMethods.send   = logSend;
+}
+
 void
 server_main(
     PRFileDesc *        listen_sock,
@@ -1409,18 +1565,11 @@ server_main(
     }
 
     /* do SSL configuration. */
-    /* all suites except RSA_NULL_MD5 are enabled by default */
-
-#if 0
-    /* This is supposed to be true by default.
-    ** Setting it explicitly should not be necessary.
-    ** Let's test and make sure that's true.
-    */
-    rv = SSL_OptionSet(model_sock, SSL_SECURITY, 1);
+    rv = SSL_OptionSet(model_sock, SSL_SECURITY,
+        !(disableSSL2 && disableSSL3 && disableTLS));
     if (rv < 0) {
 	errExit("SSL_OptionSet SSL_SECURITY");
     }
-#endif
 
     rv = SSL_OptionSet(model_sock, SSL_ENABLE_SSL3, !disableSSL3);
     if (rv != SECSuccess) {
@@ -1710,8 +1859,9 @@ main(int argc, char **argv)
     PRBool               debugCache = PR_FALSE; /* bug 90518 */
     char                 emptyString[] = { "" };
     char*                certPrefix = emptyString;
-    PRUint32		 protos = 0;
+    PRUint32             protos = 0;
     SSL3Statistics      *ssl3stats;
+    int                  i;
  
     tmp = strrchr(argv[0], '/');
     tmp = tmp ? tmp + 1 : argv[0];
@@ -1724,7 +1874,7 @@ main(int argc, char **argv)
     ** numbers, then capital letters, then lower case, alphabetical. 
     */
     optstate = PL_CreateOptState(argc, argv, 
-        "2:3BC:DEL:M:NP:RSTbc:d:e:f:hi:lmn:op:qrst:uvw:xy");
+        "2:3BC:DEL:M:NP:RSTbc:d:e:f:g:hi:jlmn:op:qrst:uvw:xy");
     while ((status = PL_GetNextOpt(optstate)) == PL_OPT_OK) {
 	++optionsFound;
 	switch(optstate->option) {
@@ -1775,9 +1925,19 @@ main(int argc, char **argv)
 
 	case 'f': fNickName = PORT_Strdup(optstate->value); break;
 
+        case 'g': 
+            testBulk = PR_TRUE;
+            testBulkTotal = PORT_Atoi(optstate->value);
+            break;
+
 	case 'h': Usage(progName); exit(0); break;
 
 	case 'i': pidFile = optstate->value; break;
+
+        case 'j': 
+            initLoggingLayer(); 
+            loggingLayer = PR_TRUE;
+            break;
 
         case 'l': useLocalThreads = PR_TRUE; break;
 
@@ -1875,6 +2035,15 @@ main(int argc, char **argv)
 	    fprintf(tmpfile,"%d",getpid());
 	    fclose(tmpfile);
 	}
+    }
+
+    /* allocate and initialize app data for bulk encryption testing */
+    if (testBulk) {
+        testBulkBuf = PORT_Malloc(testBulkSize);
+        if (testBulkBuf == NULL)
+            errExit("Out of memory: testBulkBuf");
+        for (i = 0; i < testBulkSize; i++)
+            testBulkBuf[i] = i;
     }
 
     envString = getenv(envVarName);
