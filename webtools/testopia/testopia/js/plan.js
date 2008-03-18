@@ -104,7 +104,9 @@ PlanGrid = function(params,cfg){
                 Ext.getCmp('new_case_button').enable();
                 Ext.getCmp('edit_plan_list_btn').enable();
                 if (sm.getCount() > 1){
-                    Ext.getCmp('plan_add_run_mnu').disable();
+                    if (Ext.getCmp('plan_add_run_mnu')){
+                        Ext.getCmp('plan_add_run_mnu').disable();
+                    }
                     Ext.getCmp('new_run_button').disable();
                 }
             },'rowdeselect': function(sm,i,r){
