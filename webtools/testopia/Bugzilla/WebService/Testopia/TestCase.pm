@@ -618,7 +618,7 @@ sub lookup_category_id_by_name {
 }
 
 sub lookup_category_name_by_id {
-    return { ERROR => 'This method has been deprecated. Please use Testopia::Product::check_catagory instead'};
+    return { ERROR => 'This method has been deprecated. Please use Testopia::Product::get_category instead'};
 }
 
 sub lookup_priority_id_by_name {
@@ -977,7 +977,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 
  Returns:     Array: Matching test cases are retuned in a list of hashes.
 
-=item C<lookup_category_name_by_id> B<DEPRECATED - CONSIDERED HARMFUL> Use Testopia::Product::check_category instead 
+=item C<lookup_category_name_by_id> B<DEPRECATED - CONSIDERED HARMFUL> Use Testopia::Product::get_category instead 
 
 =item C<lookup_category_id_by_name> B<DEPRECATED - CONSIDERED HARMFUL> Use Testopia::Product::check_category instead
 

@@ -311,23 +311,23 @@ and are associated with a milestone if targetmilestones are used in Bugzilla.
 =head1 SYNOPSIS
 
 =head2 Creating
- 
+
  $build = Bugzilla::Testopia::Build->new($build_id);
  $build = Bugzilla::Testopia::Build->new({name => $name});
-  
+
  $new_build = Bugzilla::Testopia::Build->create({name => $name, 
                                                  description => $desc
                                                  ... });
 
 =head2 Updating
- 
+
  $build->set_name($name);
  $build->set_description($name);
  $build->set_milestone($milestone);
  $build->set_isactive($isactive);
- 
+
  $build->update();
- 
+
 =head2 Accessors
 
  my $id            = $build->id;
@@ -387,13 +387,13 @@ Boolean - Determines whether to show this build in lists for selection.
 =item C<check_build($name, $product_id)>
 
  Description: Checks if a build of a given name exists for a given product.
- 
+
  Params:      name - string representing the name to check for.
               product_id - the product to lookup the build in.
-                       
+
  Returns:     The id of the build if one matches.
               undef if it does not match any build.
- 
+
 =back
 
 =head1 METHODS
@@ -403,65 +403,65 @@ Boolean - Determines whether to show this build in lists for selection.
 =item C<new($param)>
 
  Description: Used to load an existing build from the database.
- 
+
  Params:      $param - An integer representing the ID in the database
                        or a hash with the "name" key representing the named
                        build in the database.
-                       
+
  Returns:     A blessed Bugzilla::Testopia::Build object
- 
+
 =item C<create()>
- 
+
  Description: Creates a new build object and stores it in the database
-              
+
  Params:      A hash with keys and values matching the fields of the build to 
               be created.
- 
+
  Returns:     The newly created object.
- 
+
 =item C<set_description()>
- 
+
  Description: Replaces the current build's description. Must call update to 
               store the change in the database.
-              
+
  Params:      text - the new description.
- 
+
  Returns:     nothing.
- 
+
 =item C<set_isactive()>
- 
+
  Description: Sets the isactive field. 
-              
+
  Params:      boolean - 1 for active 0 for inactive.
- 
+
  Returns:     nothing.
- 
+
 =item C<set_milestone()>
- 
+
  Description: Assigns this build to a different milestone
-              
+
  Params:      string - the new milestone value
- 
+
  Returns:     nothing.
- 
+
 =item C<set_name()>
- 
+
  Description: Renames the current build. If the new name is already in use
               by another build in this product, an error will be thrown.
               The update method must be called to make the change in the database.
-              
+
  Params:      string - the new name
- 
+
  Returns:     nothing.
- 
+
 =item C<to_json()>
 
  Description: Outputs a JSON representation of the object.
- 
+
  Params:      none
-          
+
  Returns:     A JSON string.
- 
+
 =back
 
 =head1 ACCESSORS
@@ -469,41 +469,41 @@ Boolean - Determines whether to show this build in lists for selection.
 =over
 
 =item C<case_run_count()>
-  
+
  Params:      case_run_status_id - optional; 
- 
+
  Returns:     The number of case-runs in this build. Optionally for a given status.
- 
+
 =item C<description()>
-  
+
  Returns the description of this build.
- 
+
 =item C<id()>
-  
+
  Returns the id of the build
- 
+
 =item C<isactive()>
-  
+
  Returns 1 if this build is visible in pick lists for runs and caserund and 0 if not.
- 
+
 =item C<milestone()>
-  
+
  Returns the milestone value that this build is associated with.
- 
+
 =item C<name()>
-  
+
  Returns the name of this build
- 
+
 =item C<product()>
-  
+
  Returns a Bugzilla::Testopia::Product object of the product this build is of.
- 
+
 =item C<product_id()>
-  
+
  Returns the product id of the build.
- 
+
 =item C<run_count()>
-  
+
  Returns an integer representing the number of runs this build is associated to.
  
 =back
@@ -513,9 +513,7 @@ Boolean - Determines whether to show this build in lists for selection.
 =over
 
 L<Bugzilla::Testopia::Product>
-
 L<Bugzilla::Testopia::TestRun> 
-
 L<Bugzilla::Object> 
 
 =back

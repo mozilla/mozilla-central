@@ -24,7 +24,6 @@ The following methods have been added:
 - Build.check_build
 - Environment.check_environment
 - Environment.get_caseruns
-- Product._validate
 - Product.check_category
 - Product.check_component
 - Product.check_product
