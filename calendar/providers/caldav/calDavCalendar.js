@@ -489,19 +489,6 @@ calDavCalendar.prototype = {
         var eventUri = this.mCalendarUri.clone();
         eventUri.spec = this.makeUri(this.mItemInfoCache[aNewItem.id].locationPath);
 
-        // It seems redundant to use generation when we have etags
-        // but until the idl is changed we do it.
-        if (aOldItem.parentItem.generation != aNewItem.generation) {
-            if (aListener) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              Components.results.NS_ERROR_FAILURE,
-                                              aListener.MODIFY,
-                                              aNewItem.id,
-                                              "generation mismatch in modifyItem");
-            }
-            return;
-        }
-
         var modListener = {};
         var thisCalendar = this;
 

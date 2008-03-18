@@ -506,19 +506,22 @@ calStorageCalendar.prototype = {
             }
             aOldItem = aOldItem.parentItem;
         } else {
-            if (!aOldItem || !this.getItemById(aOldItem.id)) {
+            var storedOldItem = (aOldItem ? this.getItemById(aOldItem.id) : null);
+            if (!aOldItem || !storedOldItem) {
                 // no old item found?  should be using addItem, then.
                 return reportError("ID does not already exist for modifyItem");
             }
             aOldItem = aOldItem.parentItem;
 
-            if (aOldItem.generation != aNewItem.generation) {
+            if (aOldItem.generation != storedOldItem.generation) {
                 return reportError("generation too old for for modifyItem");
             }
 
-            // Only take care of incrementing the generation if relaxed mode is
-            // off. Users of relaxed mode need to take care of this themselves.
-            modifiedItem.generation += 1;
+            if (aOldItem.generation == modifiedItem.generation) { // has been cloned and modified
+                // Only take care of incrementing the generation if relaxed mode is
+                // off. Users of relaxed mode need to take care of this themselves.
+                modifiedItem.generation += 1;
+            }
         }
 
         modifiedItem.makeImmutable();

@@ -232,19 +232,22 @@ calMemoryCalendar.prototype = {
             }
 
             aOldItem = aOldItem.parentItem;
+            var storedOldItem = this.mItems[aOldItem.id];
 
             // compareItems is not suitable here. See bug 418805.
-            if (this.mItems[aOldItem.id].icalString != aOldItem.icalString) {
+            if (storedOldItem.icalString != aOldItem.icalString) {
                 return reportError("old item mismatch in modifyItem");
             }
 
-            if (aOldItem.generation != modifiedItem.generation) {
+            if (aOldItem.generation != storedOldItem.generation) {
                 return reportError("generation mismatch in modifyItem");
             }
 
-            // Only take care of incrementing the generation if relaxed mode is
-            // off. Users of relaxed mode need to take care of this themselves.
-            modifiedItem.generation += 1;
+            if (aOldItem.generation == modifiedItem.generation) { // has been cloned and modified
+                // Only take care of incrementing the generation if relaxed mode is
+                // off. Users of relaxed mode need to take care of this themselves.
+                modifiedItem.generation += 1;
+            }
         }
 
         modifiedItem.makeImmutable();
