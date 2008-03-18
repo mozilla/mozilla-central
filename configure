@@ -20118,6 +20118,8 @@ if test `echo "$MOZ_EXTENSIONS" | grep -c python` -ne 0; then
         MOZ_PYTHON_INCLUDES="-I$MOZ_PYTHON_PREFIX/include/python$MOZ_PYTHON_VER_DOTTED"
                                                                                                 if test -f "$MOZ_PYTHON_PREFIX/lib/libpython$MOZ_PYTHON_VER_DOTTED.so.1.0"; then
             MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib -lpython$MOZ_PYTHON_VER_DOTTED"
+        elif test -f "$MOZ_PYTHON_PREFIX/lib64/libpython$MOZ_PYTHON_VER_DOTTED.so.1.0"; then
+            MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib64 -lpython$MOZ_PYTHON_VER_DOTTED"
         elif test -f "$MOZ_PYTHON_PREFIX/lib/libpython$MOZ_PYTHON_VER_DOTTED.so"; then
             MOZ_PYTHON_LIBS="-L$MOZ_PYTHON_PREFIX/lib -lpython$MOZ_PYTHON_VER_DOTTED"
         elif test -f "$MOZ_PYTHON_PREFIX/libpython$MOZ_PYTHON_VER_DOTTED.so"; then
@@ -20389,14 +20391,14 @@ ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$a
 cross_compiling=$ac_cv_prog_cc_cross
 
     cat > conftest.$ac_ext <<EOF
-#line 20393 "configure"
+#line 20395 "configure"
 #include "confdefs.h"
 #include <gmodule.h>
 int main() {
  int x = 1; x++; 
 ; return 0; }
 EOF
-if { (eval echo configure:20400: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:20402: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   :
 else
   echo "configure: failed program was:" >&5
@@ -20710,7 +20712,7 @@ if test "$MOZ_X11"; then
                 _SAVE_CFLAGS=$CFLAGS
     CFLAGS="$CFLAGS $XCFLAGS"
     cat > conftest.$ac_ext <<EOF
-#line 20714 "configure"
+#line 20716 "configure"
 #include "confdefs.h"
 
         #include <stdio.h>
@@ -20727,7 +20729,7 @@ int main() {
     
 ; return 0; }
 EOF
-if { (eval echo configure:20731: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+if { (eval echo configure:20733: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   :
 else
   echo "configure: failed program was:" >&5
