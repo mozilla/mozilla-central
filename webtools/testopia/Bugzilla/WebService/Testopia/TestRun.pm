@@ -29,6 +29,7 @@ use Bugzilla::Constants;
 use Bugzilla::Product;
 use Bugzilla::User;
 use Bugzilla::Util;
+use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;
@@ -78,6 +79,14 @@ sub create {
     
     my $plan = Bugzilla::Testopia::TestPlan->new($new_values->{'plan_id'});
     ThrowUserError("testopia-create-denied", {'object' => 'Test Run', 'plan' => $plan}) unless ($plan->canedit);
+
+    $new_values->{'manager_id'} ||= $new_values->{'manager'};
+    $new_values->{'build_id'} ||= $new_values->{'build'};
+    $new_values->{'environment_id'} ||= $new_values->{'environment'};
+    
+    delete $new_values->{'manager'};
+    delete $new_values->{'build'};
+    delete $new_values->{'environment'};        
     
     $new_values->{'plan_text_version'} ||= $plan->version;
 
@@ -105,7 +114,11 @@ sub update {
     
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $run_id}) unless $run;
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
-    
+
+    $new_values->{'manager_id'} ||= $new_values->{'manager'};
+    $new_values->{'build_id'} ||= $new_values->{'build'};
+    $new_values->{'environment_id'} ||= $new_values->{'environment'};
+
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
         my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
@@ -272,6 +285,63 @@ sub get_tags {
     return \@results;
 }
 
+sub get_completion_report {
+    my $self = shift;
+    my ($runs) = @_;
+    my $vars;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    my @run_ids;
+    if (ref $runs eq 'ARRAY'){
+        push @run_ids, @$runs
+    }
+    elsif ($runs =~ /,/){
+        push @run_ids, split(/[\s,]+/, $runs);
+    }
+    else{
+        push @run_ids, $runs;
+    }
+    
+    my @runs;
+    foreach my $g (@run_ids){
+        my $obj = Bugzilla::Testopia::TestRun->new($g);
+        push @runs, $obj if $obj && $obj->canview;
+    }
+
+    unless (scalar @runs){
+        die "No runs found";
+    }
+    
+    my $total = $runs[0]->case_run_count(undef, \@runs);
+    my $passed = $runs[0]->case_run_count(PASSED, \@runs);
+    my $failed = $runs[0]->case_run_count(FAILED, \@runs);
+    my $blocked = $runs[0]->case_run_count(BLOCKED, \@runs);
+
+    my $completed = $passed + $failed + $blocked;
+    
+    my $unfinished = $total - $completed;
+    my $unpassed = $completed - $passed;
+    my $unfailed = $completed - $failed;
+    my $unblocked = $completed - $blocked;
+
+    $vars->{'total'} = $total;
+    $vars->{'completed'} = $completed;
+    $vars->{'passed'} = $passed;
+    $vars->{'failed'} = $failed;
+    $vars->{'blocked'} = $blocked;
+    $vars->{'idle'} = $runs[0]->case_run_count(IDLE, \@runs);
+    $vars->{'running'} = $runs[0]->case_run_count(RUNNING, \@runs);
+    $vars->{'paused'} = $runs[0]->case_run_count(PAUSED, \@runs);
+
+    $vars->{'percent_completed'} = calculate_percent($total, $completed);
+    $vars->{'percent_passed'} = calculate_percent($completed, $passed);
+    $vars->{'percent_failed'} = calculate_percent($completed, $failed);
+    $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
+    
+    return $vars;    
+}
+
 1;
 
 __END__
@@ -315,9 +385,9 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
   | Field             | Type           | Null      | Description                        |
   +-------------------+----------------+-----------+------------------------------------+
   | plan_id           | Integer        | Required  | ID of test plan                    |
-  | environment_id    | Integer/String | Required  | ID or Name of Environment          |
-  | build_id          | Integer/String | Required  | ID or Name of Build                |
-  | manager_id        | Integer/String | Required  | ID or Login of run manager         |
+  | environment       | Integer/String | Required  | ID or Name of Environment          |
+  | build             | Integer/String | Required  | ID or Name of Build                |
+  | manager           | Integer/String | Required  | ID or Login of run manager         |
   | summary           | String         | Required  |                                    |
   | product_version   | String         | Optional  | Defaults to plan's version         |
   | plan_text_version | Integer        | Optional  |                                    |
@@ -344,6 +414,17 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
                     or a string representing the unique alias for this run.
 
  Returns:     Array: An array of hashes with changed fields and their details.
+
+=item C<get_completion_report($runs)>
+
+ Description: Get a report of the current status of the selected runs combined.
+
+ Params:      $runs - Integer/Array/String: An integer representing the ID in the database
+                    an array of integers or a comma separated list of integers.
+
+ Returns:     Hash: A hash containing counts and percentages of the combined totals of 
+                    case-runs in the run. Counts only the most recently statused case-run 
+                    for a given build and environment. 
 
 =item C<get_tags($run_id)>
 
@@ -496,9 +577,9 @@ Provides methods for automated scripts to manipulate Testopia TestRuns
                       | Field             | Type           |
                       +-------------------+----------------+
                       | plan_id           | Integer        |
-                      | environment_id    | Integer/String |
-                      | build_id          | Integer/String |
-                      | manager_id        | Integer/String |
+                      | environment       | Integer/String |
+                      | build             | Integer/String |
+                      | manager           | Integer/String |
                       | summary           | String         |
                       | product_version   | String         |
                       | plan_text_version | Integer        |

@@ -79,6 +79,12 @@ sub create {
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Run', id => $new_values->{'run_id'}}) unless $run;
     ThrowUserError('testopia-read-only', {'object' => $run}) unless $run->canedit;
     
+    $new_values->{'build_id'} ||= $new_values->{'build'};
+    $new_values->{'environment_id'} ||= $new_values->{'environment'};
+    
+    delete $new_values->{'build'};
+    delete $new_values->{'environment'};
+    
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
         my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
@@ -136,6 +142,9 @@ sub update {
         $new_values->{'case_run_status_id'} = Bugzilla::Testopia::TestCaseRun::lookup_status_by_name($new_values->{'status'});
         delete $new_values->{'status'};
     }
+
+    $new_values->{'build_id'} ||= $new_values->{'build'};
+    $new_values->{'environment_id'} ||= $new_values->{'environment'};
 
     my @results;
    
@@ -377,8 +386,8 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
   +--------------------+----------------+-----------+------------------------------------------------+
   | run_id             | Integer        | Required  | Test Run Number                                |
   | case_id            | Integer/String | Required  | ID or alias of test case                       |
-  | build_id           | Integer/String | Required  | ID or name of a Build in plan's product        |
-  | environment_id     | Integer/String | Required  | ID or name of an Environment in plan's product |
+  | build              | Integer/String | Required  | ID or name of a Build in plan's product        |
+  | environment        | Integer/String | Required  | ID or name of an Environment in plan's product |
   | assignee           | Integer/String | Optional  | Defaults to test case default tester           |
   | status             | String         | Optional  | Defaults to "IDLE"                             |
   | case_text_version  | Integer        | Optional  |                                                |
@@ -627,8 +636,8 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
                       +--------------------+----------------+
                       | Field              | Type           |
                       +--------------------+----------------+
-                      | build_id           | Integer/String |
-                      | environment_id     | Integer/String |
+                      | build              | Integer/String |
+                      | environment        | Integer/String |
                       | assignee           | Integer/String |
                       | status             | String         |
                       | notes              | String         |

@@ -130,6 +130,16 @@ sub create {
             push @blocks, @{$new_values->{'blocks'}};
         }
         
+        $new_values->{'case_status_id'} ||= $new_values->{'status'};
+        $new_values->{'priority_id'} ||= $new_values->{'priority'};
+        $new_values->{'default_tester_id'} ||= $new_values->{'default_tester'};
+        $new_values->{'category_id'} ||= $new_values->{'category'};
+        
+        delete $new_values->{'default_tester'};
+        delete $new_values->{'status'};
+        delete $new_values->{'priority'};        
+        delete $new_values->{'category'};
+        
         $new_values->{'plans'} = \@plans;
         $new_values->{'author_id'} ||= Bugzilla->user->id;
         $new_values->{'runs'} = join(',', @run_ids) if scalar @run_ids;
@@ -183,6 +193,12 @@ sub update {
             push @cases, {ERROR => "You do not have rights to edit this test case"};
             next;
         }
+
+        $new_values->{'case_status_id'} ||= $new_values->{'status'};
+        $new_values->{'priority_id'} ||= $new_values->{'priority'};
+        $new_values->{'default_tester_id'} ||= $new_values->{'default_tester'};
+        $new_values->{'category_id'} ||= $new_values->{'category'};
+        
         eval {
             $case->set_case_status($new_values->{'case_status_id'}) if exists $new_values->{'case_status_id'};
             $case->set_category($new_values->{'category_id'}) if exists $new_values->{'category_id'};
@@ -732,12 +748,12 @@ Provides methods for automated scripts to manipulate Testopia TestCases
   +-------------------+----------------+-----------+------------------------+
   | Field             | Type           | Null      | Description            |
   +-------------------+----------------+-----------+------------------------+
-  | case_status_id    | Integer/String | Required  | ID or Name of status   |
-  | category_id       | Integer/String | Required  | ID or Name of Category |
-  | priority_id       | Integer/String | Required  | ID or Name of Priority |
+  | status            | Integer/String | Required  | ID or Name of status   |
+  | category          | Integer/String | Required  | ID or Name of Category |
+  | priority          | Integer/String | Required  | ID or Name of Priority |
   | summary           | String         | Required  |                        |
   | plans             | Array/String   | Required  | List of plan_ids       |
-  | default_tester_id | Integer/String | Optional  | ID or Login of tester  |
+  | default_tester    | Integer/String | Optional  | ID or Login of tester  |
   | estimated_time    | String         | Optional  | HH:MM:SS Format        |
   | isautomated       | Boolean        | Optional  | Defaults to False (0)  |
   | sortkey           | Integer        | Optional  |                        |
@@ -1053,10 +1069,10 @@ Provides methods for automated scripts to manipulate Testopia TestCases
                       +-------------------+----------------+
                       | Field             | Type           |
                       +-------------------+----------------+
-                      | case_status_id    | Integer/String |
-                      | category_id       | Integer/String |
-                      | priority_id       | Integer/String |
-                      | default_tester_id | Integer/String |
+                      | status            | Integer/String |
+                      | category          | Integer/String |
+                      | priority          | Integer/String |
+                      | default_tester    | Integer/String |
                       | estimated_time    | String         |
                       | isautomated       | Boolean        |
                       | sortkey           | Integer        |

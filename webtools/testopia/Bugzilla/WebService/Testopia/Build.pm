@@ -75,6 +75,9 @@ sub create{
 
     Bugzilla->login(LOGIN_REQUIRED);
     
+    $new_values->{'product_id'} ||= $new_values->{'product'};
+    delete $new_values->{'product'};
+    
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
   
@@ -174,7 +177,7 @@ Provides methods for automated scripts to manipulate Testopia Builds
   +-------------+----------------+-----------+------------------------------------+
   | Field       | Type           | Null      | Description                        |
   +-------------+----------------+-----------+------------------------------------+
-  | product_id  | Integer/String | Required  | ID or Name of product              |
+  | product     | Integer/String | Required  | ID or Name of product              |
   | name        | String         | Required  |                                    |
   | milestone   | String         | Optional  | Defaults to product's default MS   |
   | description | String         | Optional  |                                    |

@@ -128,6 +128,42 @@ sub get_builds {
     
 }
 
+sub get_category {
+    my $self = shift;
+    my ($id) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    require Bugzilla::Testopia::Category;
+    
+    my $category = Bugzilla::Testopia::Category->new($id); 
+    
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Category', id => $id}) unless $category;
+    ThrowUserError('testopia-permission-denied', {'object' => $category->product}) unless $category->product->canedit;
+    
+    return  $category;
+}
+
+sub get_component {
+    my $self = shift;
+    my $self = shift;
+    my ($id) = @_;
+    
+    Bugzilla->login(LOGIN_REQUIRED);
+    
+    require Bugzilla::Component;
+    
+    my $component = Bugzilla::Testopia::Component->new($id); 
+    
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Component', id => $id}) unless $component;
+    
+    my $product = Bugzilla::Testopia::Product->new(component->product->id);
+    
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canedit;
+    
+    return  $component;
+}
+
 sub get_cases {
     my $self = shift;
     my ($product) = @_;
@@ -314,6 +350,22 @@ Provides methods for automated scripts to expose Testopia Product data.
                          Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Case Category objects.
+
+=item C<get_category($id)>
+
+ Description: Get the category matching the given id.
+
+ Params:      $id - Integer: ID of the category in the database.
+
+ Returns:     Hash: Category object hash.
+
+=item C<get_component($id)>
+
+ Description: Get the component matching the given id.
+
+ Params:      $id - Integer: ID of the component in the database.
+
+ Returns:     Hash: Component object hash.
 
 =item C<get_components($product)>
 

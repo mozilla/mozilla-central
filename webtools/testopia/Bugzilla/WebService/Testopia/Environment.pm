@@ -93,6 +93,10 @@ sub create {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
+    # Setup field name aliasing
+    $new_values->{'product_id'} ||= $new_values->{'product'};
+    delete $new_values->{'product'};
+
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     

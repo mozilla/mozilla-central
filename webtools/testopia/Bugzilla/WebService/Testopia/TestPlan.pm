@@ -75,10 +75,14 @@ sub create {
 
     Bugzilla->login(LOGIN_REQUIRED);
     
-    # Canedit check is performed in TestPlan::_check_product
+    $new_values->{'product_id'} ||= $new_values->{'product'};
+    $new_values->{'type_id'} ||= $new_values->{'type'};
+    delete $new_values->{'product'};
+    delete $new_values->{'type'};
     
     $new_values->{'author_id'} ||= Bugzilla->user->id;
     
+    # Canedit check is performed in TestPlan::_check_product    
     my $plan = Bugzilla::Testopia::TestPlan->create($new_values);
     
     return $plan;
@@ -94,7 +98,9 @@ sub update {
     
     ThrowUserError('invalid-test-id-non-existent', {type => 'Test Plan', id => $plan_id}) unless $plan;
     ThrowUserError('testopia-read-only', {'object' => $plan}) unless $plan->canedit;
-       
+
+    $new_values->{'type_id'} ||= $new_values->{'type'};
+    
     $plan->set_name(trim($new_values->{'name'}));
     $plan->set_default_product_version($new_values->{'default_product_version'});
     $plan->set_type($new_values->{'type_id'});
@@ -335,9 +341,9 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
   +-------------------------+----------------+-----------+------------------------------------+
   | Field                   | Type           | Null      | Description                        |
   +-------------------------+----------------+-----------+------------------------------------+
-  | product_id              | Integer/String | Required  | ID or Name of product              |
+  | product                 | Integer/String | Required  | ID or Name of product              |
   | name                    | String         | Required  |                                    |
-  | type_id                 | Integer/String | Required  | ID or name of plan type            |
+  | type                    | Integer/String | Required  | ID or name of plan type            |
   | default_product_version | String         | Required  |                                    |
   | isactive                | Boolean        | Optional  | 0: Archived 1: Active (Default 1)  |
   +-------------------------+----------------+-----------+------------------------------------+
@@ -529,7 +535,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
                       | Field                   | Type           |
                       +-------------------------+----------------+
                       | name                    | String         |
-                      | type_id                 | Integer/String |
+                      | type                    | Integer/String |
                       | default_product_version | String         |
                       | isactive                | Boolean        |
                       +-------------------------+----------------+
