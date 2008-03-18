@@ -39,7 +39,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: ssl3con.c,v 1.111 2008-03-10 00:01:28 wtc%google.com Exp $ */
+/* $Id: ssl3con.c,v 1.112 2008-03-18 01:32:18 julien.pierre.boogz%sun.com Exp $ */
 
 #include "cert.h"
 #include "ssl.h"
@@ -782,7 +782,7 @@ ssl3_NegotiateVersion(sslSocket *ss, SSL3ProtocolVersion peerVersion)
 static SECStatus
 ssl3_GetNewRandom(SSL3Random *random)
 {
-    PRIntervalTime gmt = PR_IntervalToSeconds(PR_IntervalNow());
+    PRUint32 gmt = ssl_Time();
     SECStatus rv;
 
     random->rand[0] = (unsigned char)(gmt >> 24);
