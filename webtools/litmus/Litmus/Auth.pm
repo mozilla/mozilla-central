@@ -400,7 +400,7 @@ sub processLoginForm {
       $nickname = undef;
     }
     
-    my $time = &Date::Manip::UnixDate("now","%q");
+    my $now = &Date::Manip::UnixDate("now","%q");
     my $userobj = 
       Litmus::DB::User->create({email => $email, 
                                 password => bz_crypt($password),
