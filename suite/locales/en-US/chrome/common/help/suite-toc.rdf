@@ -660,7 +660,9 @@
         <rdf:li> <rdf:Description ID="cust-toolbar" nc:name="Toolbars"  nc:link="customize_help.xhtml#toolbars"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-bkmk" nc:name="Bookmarks"  nc:link="customize_help.xhtml#bookmarks"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-page" nc:name="Specifying How &brandShortName; Starts Up"  nc:link="customize_help.xhtml#specifying_how_mozilla_starts_up"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="nav-settings" nc:name="Browser Settings"  nc:link="cs_nav_prefs_appearance.xhtml#navigator_settings"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="appearance_pref" nc:name="Appearance Preferences" nc:link="cs_nav_prefs_appearance.xhtml"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="navigator_pref_navigator" nc:name="Browser Preferences" nc:link="cs_nav_prefs_navigator.xhtml"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="advanced_pref_advanced" nc:name="Advanced Preferences" nc:link="cs_nav_prefs_advanced.xhtml"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
@@ -734,17 +736,6 @@
         <rdf:li> <rdf:Description ID="cust-startpage" nc:name="Specifying a Starting Page"  nc:link="customize_help.xhtml#specifying_a_starting_page"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-home" nc:name="Changing Your Home Page"  nc:link="customize_help.xhtml#changing_your_home_page"/> </rdf:li>
         <rdf:li> <rdf:Description ID="cust-start" nc:name="Specifying Which Components Open at Launch"  nc:link="customize_help.xhtml#specifying_which_components_open_at_launch"/> </rdf:li>
-      </rdf:Seq>
-    </nc:subheadings>
-  </rdf:Description>
-
-<rdf:Description about="#nav-settings">
-    <nc:subheadings>
-      <rdf:Seq>
-        <rdf:li><rdf:Description ID="appearance_pref" nc:name="Appearance" nc:link="cs_nav_prefs_appearance.xhtml#appearance_preferences"/> </rdf:li>
-        <rdf:li><rdf:Description ID="navigator_pref_navigator" nc:name="Browser" nc:link="cs_nav_prefs_navigator.xhtml#navigator_preferences"/> </rdf:li>
-        <rdf:li><rdf:Description ID="advanced_pref_advanced" nc:name="Advanced" nc:link="cs_nav_prefs_advanced.xhtml"/> </rdf:li>
-
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
