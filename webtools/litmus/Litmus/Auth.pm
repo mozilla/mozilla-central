@@ -48,6 +48,7 @@ use Litmus::Memoize;
 use Litmus::Mailer;
 
 use CGI;
+use Date::Manip;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw();
@@ -399,6 +400,7 @@ sub processLoginForm {
       $nickname = undef;
     }
     
+    my $time = &Date::Manip::UnixDate("now","%q");
     my $userobj = 
       Litmus::DB::User->create({email => $email, 
                                 password => bz_crypt($password),
@@ -406,7 +408,8 @@ sub processLoginForm {
                                 realname => $name,
                                 enabled => 1, 
                                 is_admin => 0,
-                                irc_nickname => $nickname
+                                irc_nickname => $nickname,
+                                creation_date => $now
                                });
     
     my $session = makeSession($userobj);
