@@ -1042,6 +1042,7 @@
 		DE74F7630AB2612700FD1D5B /* OpenFeed.nib in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7600AB2612700FD1D5B /* OpenFeed.nib */; };
 		DE74F7650AB2618200FD1D5B /* feed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7640AB2618200FD1D5B /* feed.tiff */; };
 		DE74F7660AB2618200FD1D5B /* feed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE74F7640AB2618200FD1D5B /* feed.tiff */; };
+		DE846DA90D84D03400009C6A /* libimgicon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE846DA80D84D03400009C6A /* libimgicon.a */; };
 		DE878FCC0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE878FCB0C175ABB00153511 /* dom_offline.xpt */; };
 		DE878FCD0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DE878FCB0C175ABB00153511 /* dom_offline.xpt */; };
 		DE8AD6A00ADB4E38009D44F6 /* bm_horizontal_separator.tiff in Resources */ = {isa = PBXBuildFile; fileRef = DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tiff */; };
@@ -1074,6 +1075,9 @@
 		DEC87B120C288337002EB106 /* storage.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEC87B110C288337002EB106 /* storage.xpt */; };
 		DEC87B130C288337002EB106 /* storage.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DEC87B110C288337002EB106 /* storage.xpt */; };
 		DEC87B150C288403002EB106 /* libstoragecomps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DEC87B140C288403002EB106 /* libstoragecomps.a */; };
+		DED015FA0D84C5B00017CFE5 /* libimgicon.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = DED015F90D84C5B00017CFE5 /* libimgicon.dylib */; };
+		DED0160C0D84C9810017CFE5 /* imgicon.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DED0160B0D84C9810017CFE5 /* imgicon.xpt */; };
+		DED0160D0D84C9810017CFE5 /* imgicon.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = DED0160B0D84C9810017CFE5 /* imgicon.xpt */; };
 		DEDDE2930ABFB4B400D415F2 /* libchardet.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = DEDDE22D0ABFB21A00D415F2 /* libchardet.dylib */; };
 		DEDDE3CC0ABFB97A00D415F2 /* libchardet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DEDDE3310ABFB7E500D415F2 /* libchardet.a */; };
 		DEE34A570B84F5E100BCD687 /* FileChangeWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = DEE34A560B84F5E100BCD687 /* FileChangeWatcher.m */; settings = {COMPILER_FLAGS = "-fobjc-exceptions"; }; };
@@ -1414,6 +1418,7 @@
 				3F44ACFB05BDFB9F00CB4B08 /* libhtmlpars.dylib in Copy Component Libraries */,
 				3F44ACFC05BDFB9F00CB4B08 /* libjar50.dylib in Copy Component Libraries */,
 				3F44ACFD05BDFB9F00CB4B08 /* libnecko.dylib in Copy Component Libraries */,
+				DED015FA0D84C5B00017CFE5 /* libimgicon.dylib in Copy Component Libraries */,
 				3F44AD0B05BDFB9F00CB4B08 /* libimglib2.dylib in Copy Component Libraries */,
 				3F44AD0C05BDFB9F00CB4B08 /* libpref.dylib in Copy Component Libraries */,
 				3F44AD0E05BDFB9F00CB4B08 /* librdf.dylib in Copy Component Libraries */,
@@ -1484,6 +1489,7 @@
 				DE878FCD0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */,
 				0098B19F0CAEAB0100DA0F2F /* exthandler.xpt in Copy Component XPTs */,
 				3F44ACE605BDFB9F00CB4B08 /* gfx.xpt in Copy Component XPTs */,
+				DED0160C0D84C9810017CFE5 /* imgicon.xpt in Copy Component XPTs */,
 				3F44ACF005BDFB9F00CB4B08 /* mimetype.xpt in Copy Component XPTs */,
 				3F44ACF105BDFB9F00CB4B08 /* txtsvc.xpt in Copy Component XPTs */,
 				3F44ACF205BDFB9F00CB4B08 /* webBrowser_core.xpt in Copy Component XPTs */,
@@ -1766,6 +1772,7 @@
 				DE878FCC0C175ABB00153511 /* dom_offline.xpt in Copy Component XPTs */,
 				0098B1A00CAEAB1500DA0F2F /* exthandler.xpt in Copy Component XPTs */,
 				3F44AF1C05BDFBA000CB4B08 /* gfx.xpt in Copy Component XPTs */,
+				DED0160D0D84C9810017CFE5 /* imgicon.xpt in Copy Component XPTs */,
 				3F44AF1D05BDFBA000CB4B08 /* mimetype.xpt in Copy Component XPTs */,
 				3F44AF1E05BDFBA000CB4B08 /* txtsvc.xpt in Copy Component XPTs */,
 				3F44AF1F05BDFBA000CB4B08 /* webBrowser_core.xpt in Copy Component XPTs */,
@@ -2517,6 +2524,7 @@
 		DE74F7540AB25EDA00FD1D5B /* FeedServiceController.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = FeedServiceController.mm; path = src/browser/FeedServiceController.mm; sourceTree = "<group>"; };
 		DE74F7610AB2612700FD1D5B /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = resources/localized/English.lproj/OpenFeed.nib; sourceTree = "<group>"; };
 		DE74F7640AB2618200FD1D5B /* feed.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = feed.tiff; path = resources/images/chrome/feed.tiff; sourceTree = SOURCE_ROOT; };
+		DE846DA80D84D03400009C6A /* libimgicon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimgicon.a; path = ../staticlib/components/libimgicon.a; sourceTree = SOURCE_ROOT; };
 		DE878FCB0C175ABB00153511 /* dom_offline.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = dom_offline.xpt; path = ../dist/Embed/components/dom_offline.xpt; sourceTree = SOURCE_ROOT; };
 		DE8AD69F0ADB4E38009D44F6 /* bm_horizontal_separator.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = bm_horizontal_separator.tiff; path = resources/images/chrome/bm_horizontal_separator.tiff; sourceTree = SOURCE_ROOT; };
 		DE8C61FE0AB67CDA00078871 /* hidemanager.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = hidemanager.tiff; path = resources/images/toolbar/hidemanager.tiff; sourceTree = SOURCE_ROOT; };
@@ -2540,6 +2548,8 @@
 		DEC87B0F0C2882DC002EB106 /* libstoragecomps.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libstoragecomps.dylib; path = ../dist/bin/components/libstoragecomps.dylib; sourceTree = SOURCE_ROOT; };
 		DEC87B110C288337002EB106 /* storage.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = storage.xpt; path = ../dist/bin/components/storage.xpt; sourceTree = SOURCE_ROOT; };
 		DEC87B140C288403002EB106 /* libstoragecomps.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libstoragecomps.a; path = ../staticlib/components/libstoragecomps.a; sourceTree = SOURCE_ROOT; };
+		DED015F90D84C5B00017CFE5 /* libimgicon.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libimgicon.dylib; path = ../dist/bin/components/libimgicon.dylib; sourceTree = SOURCE_ROOT; };
+		DED0160B0D84C9810017CFE5 /* imgicon.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = imgicon.xpt; path = ../dist/bin/components/imgicon.xpt; sourceTree = SOURCE_ROOT; };
 		DEDDE22D0ABFB21A00D415F2 /* libchardet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libchardet.dylib; path = ../dist/Embed/components/libchardet.dylib; sourceTree = SOURCE_ROOT; };
 		DEDDE3310ABFB7E500D415F2 /* libchardet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libchardet.a; path = ../intl/chardet/src/libchardet.a; sourceTree = SOURCE_ROOT; };
 		DEE34A530B84F5C600BCD687 /* FileChangeWatcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = FileChangeWatcher.h; path = src/download/FileChangeWatcher.h; sourceTree = "<group>"; };
@@ -3081,6 +3091,7 @@
 				33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */,
 				7B64B7E30CCFDA860098406C /* Sparkle.framework in Frameworks */,
 				7B9A26190D411275008CDB39 /* libnssutil3.dylib in Frameworks */,
+				DE846DA90D84D03400009C6A /* libimgicon.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3179,6 +3190,7 @@
 				F6BD63E101B313EE01A962F7 /* libhtmlpars.dylib */,
 				F6BD63E201B313EE01A962F7 /* libjar50.dylib */,
 				F6BD63E401B313EE01A962F7 /* libnecko.dylib */,
+				DED015F90D84C5B00017CFE5 /* libimgicon.dylib */,
 				F6BD640E01B3156701A962F7 /* libimglib2.dylib */,
 				F5D3F1CE0209235A014E447F /* libmork.dylib */,
 				F6BD641201B3156701A962F7 /* libpref.dylib */,
@@ -3233,6 +3245,7 @@
 				F6BD644D01B315FA01A962F7 /* embed_base.xpt */,
 				0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */,
 				F6BD63A401B3131201A962F7 /* gfx.xpt */,
+				DED0160B0D84C9810017CFE5 /* imgicon.xpt */,
 				F6BD644E01B315FA01A962F7 /* imglib2.xpt */,
 				0FCCE56707D6D7DA006DD3D1 /* intl.xpt */,
 				F6BD63DA01B313EE01A962F7 /* jar.xpt */,
@@ -4268,6 +4281,7 @@
 				F56F244502AC714601A967F3 /* libcaps.a */,
 				DEDDE3310ABFB7E500D415F2 /* libchardet.a */,
 				F56F244602AC714601A967F3 /* libchrome.a */,
+				DE846DA80D84D03400009C6A /* libimgicon.a */,
 				F56F244902AC714601A967F3 /* libhtmlpars.a */,
 				F56F244D02AC714601A967F3 /* libimglib2.a */,
 				F56F245002AC714601A967F3 /* libpref.a */,

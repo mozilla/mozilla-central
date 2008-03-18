@@ -69,6 +69,7 @@
     MODULE(nsRDFModule) \
     MODULE(nsParserModule) \
     MODULE(nsGfxModule) \
+    MODULE(nsIconDecoderModule) \
     MODULE(nsImageLib2Module) \
     MODULE(nsPluginModule) \
     MODULE(nsWidgetMacModule) \
