@@ -132,9 +132,8 @@
                           accesskey="&pref.autorefresh.accesskey;"/>
                 <textbox id="refreshtimeout"
                          preference="calendar.autorefresh.timeout"
-                         maxlength="3"
                          size="3"
-                         oninput="validateNaturalNums(event);"/>
+                         oninput="validateIntegerRange(event, 1, 0x7FFFF);"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
         </groupbox>
