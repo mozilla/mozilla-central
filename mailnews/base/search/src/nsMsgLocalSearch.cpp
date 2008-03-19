@@ -715,9 +715,10 @@ void nsMsgSearchOfflineMail::CleanUpScope()
     m_listContext = nsnull;
     m_db->Close(PR_FALSE);
   }
-
   m_db = nsnull;
-  m_scope->SetInputStream(nsnull);
+
+  if (m_scope)
+    m_scope->SetInputStream(nsnull);
 }
 
 NS_IMETHODIMP nsMsgSearchOfflineMail::AddResultElement (nsIMsgDBHdr *pHeaders)
