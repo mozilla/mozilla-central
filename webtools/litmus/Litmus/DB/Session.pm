@@ -54,18 +54,19 @@ sub makeExpire {
 }
 
 sub isValid {
-	my $self = shift;
-	
-	if ($self->expires() <= localtime()) {
-    	$self->makeExpire();
-    	return 0;
-    }
+  my $self = shift;
+   
+  my $now = localtime();
+  if ($self->expires() ge $now->mysql_datetime) {
+    $self->makeExpire();
+    return 0;
+  }
     
-    if (!$self->user_id()->enabled() || $self->user_id()->enabled() == 0) {
-    	$self->makeExpire();
-    	return 0;
-    }
-    return 1;
+  if (!$self->user_id()->enabled() || $self->user_id()->enabled() == 0) {
+    $self->makeExpire();
+    return 0;
+  }
+  return 1;
 }
 
 1;
