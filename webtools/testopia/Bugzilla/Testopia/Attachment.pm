@@ -62,7 +62,7 @@ sub _validate_data {
     my $data = shift;
     my $maxsize = Bugzilla->params->{"maxattachmentsize"};
     $maxsize *= 1024; # Convert from K
-        
+
     # Make sure the attachment does not exceed the maximum permitted size
     my $len = $data ? length($data) : 0;
     if ($maxsize && $len > $maxsize) {
@@ -102,7 +102,7 @@ sub _check_filename {
 
     trick_taint($filename);
     return $filename;    
-    
+
 }
 
 ###############################
@@ -116,7 +116,7 @@ sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
     my $param = shift;
-    
+
     # We want to be able to supply an empty object to the templates for numerous
     # lists etc. This is much cleaner than exporting a bunch of subroutines and
     # adding them to $vars one by one. Probably just Laziness shining through.
@@ -126,27 +126,27 @@ sub new {
             return $param;
         }
     }
-    
+
     unshift @_, $param;
     my $self = $class->SUPER::new(@_);
-    
+
     return $self; 
 }
 
 sub create {
     my ($class, $params) = @_;
     my $dbh = Bugzilla->dbh;
-    
+
     $class->SUPER::check_required_create_fields($params);
-    
+
     # This is an either/or operation. We need either a plan or a case
     # to attach this to.
     if (!$params->{'case_id'} && !$params->{'plan_id'}){
         ThrowCodeError("testopia-missing-attachment-key");
     }
-    
+
     my $field_values = $class->run_create_validators($params);
-    
+
     # Windows screenshots are usually uncompressed BMP files which
     # makes for a quick way to eat up disk space. Let's compress them. 
     # We do this before we check the size since the uncompressed version
@@ -161,26 +161,26 @@ sub create {
       $field_values->{'contents'} = $imgdata;
       $field_values->{'mime_type'} = 'image/png';
     }
-    
+
     $field_values->{contents} = _validate_data($field_values->{contents});
     $field_values->{creation_ts} = Bugzilla::Testopia::Util::get_time_stamp();
-    
+
     my $contents   = $field_values->{contents};
     my $case_id    = $field_values->{case_id};
     my $plan_id    = $field_values->{plan_id};
     my $caserun_id = $field_values->{caserun_id};
-    
+
     delete $field_values->{contents};
     delete $field_values->{case_id};
     delete $field_values->{plan_id};
     delete $field_values->{caserun_id};
-    
+
     my $self = $class->SUPER::insert_create_data($field_values);
-    
+
     # Store the data
     $dbh->do("INSERT INTO test_attachment_data (attachment_id, contents) VALUES(?,?)",
               undef, $self->id, $contents);
-    
+
     # Link it to the case or plan
     if ($case_id){
         $dbh->do("INSERT INTO test_case_attachments (attachment_id, case_id, case_run_id)
@@ -192,7 +192,7 @@ sub create {
                   VALUES (?,?)",
                   undef, ($self->id, $plan_id));
     }
-    
+
     return $self;
 }
 
@@ -215,7 +215,7 @@ sub store {
     $dbh->do("INSERT INTO test_attachments ($columns) VALUES (?,?,?,?,?)",
               undef, ($self->{'submitter_id'}, $self->{'description'},
               $self->{'filename'}, $timestamp, $self->{'mime_type'}));
- 
+
     my $key = $dbh->bz_last_key( 'test_attachments', 'attachment_id' );
     $dbh->do("INSERT INTO test_attachment_data (attachment_id, contents) VALUES(?,?)",
               undef, $key, $self->{'contents'});
@@ -240,20 +240,20 @@ sub to_json {
     my $cgi  = shift;
     my $obj;
     my $json = new JSON;
-    
+
     $json->autoconv(0);
-    
+
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
-    
+
     # Add the calculated fields
     $obj->{'isviewable'} = $self->is_browser_safe($cgi);
     $obj->{'datasize'}   = $self->datasize;
     $obj->{'submitter'}  = $self->submitter->name if $self->submitter;
     $obj->{'canedit'}    = $self->canedit;
     $obj->{'candelete'}  = $self->candelete;
-    
+
     return $json->objToJson($obj); 
 }
 
@@ -266,12 +266,12 @@ sub is_browser_safe {
   my $self = shift;
   my $cgi = shift;
   my $contenttype = $self->mime_type;
-    
+
   # We assume we can view all text and image types  
   if ($contenttype =~ /^(text|image)\//) {
     return 1;
   }
-  
+
   # Mozilla can view XUL. Note the trailing slash on the Gecko detection to
   # avoid sending XUL to Safari.
   if (($contenttype =~ /^application\/vnd\.mozilla\./) &&
@@ -283,11 +283,11 @@ sub is_browser_safe {
   # If it's not one of the above types, we check the Accept: header for any 
   # types mentioned explicitly.
   my $accept = join(",", $cgi->Accept());
-  
+
   if ($accept =~ /^(.*,)?\Q$contenttype\E(,.*)?$/) {
     return 1;
   }
-  
+
   return 0;
 }
 
@@ -295,7 +295,7 @@ sub obliterate {
     my $self = shift;
     return 0 unless $self->candelete;
     my $dbh = Bugzilla->dbh;
-    
+
     $dbh->do("DELETE FROM test_attachment_data 
               WHERE attachment_id = ?", undef, $self->{'attachment_id'});
     $dbh->do("DELETE FROM test_case_attachments 
@@ -352,7 +352,7 @@ sub link_case {
               undef, ($self->id, $case_id));
     $dbh->bz_unlock_tables();
 }
-    
+
 sub unlink_plan {
     my $self = shift;
     my ($plan_id) = @_;
@@ -375,7 +375,7 @@ sub unlink_case {
     my $self = shift;
     my ($case_id) = @_;
     my $dbh = Bugzilla->dbh;
-    
+
     my ($refcount) = $dbh->selectrow_array(
         "SELECT COUNT(*) 
            FROM test_case_attachments 
@@ -527,30 +527,30 @@ an optional id for the case_run in which it was linked.
 =head1 SYNOPSIS
 
 =head2 Creating
- 
+
  $attachment = Bugzilla::Testopia::Attachment->new($attachment_id);
- $attachment = Bugzilla::Testopia::Build->new({name => $name});
-  
- $new_attachment = Bugzilla::Testopia::Build->create({name => $name, 
+ $attachment = Bugzilla::Testopia::Attachment->new({name => $name});
+
+ $new_attachment = Bugzilla::Testopia::Attachment->create({name => $name, 
                                                  description => $desc
                                                  ... });
 
 =head3 Deprecated
 
- $attachment = Bugzilla::Testopia::Build->new({name => $name,
+ $attachment = Bugzilla::Testopia::Attachment->new({name => $name,
                                           description => $desc,
                                           ...
                                           PREVALIDATED => 1});
  my $id = $attachment->store();
- 
+
 =head2 Updating
- 
+
  $attachment->set_filename($name);
  $attachment->set_description($desc);
  $attachment->set_mime_type($mime_type);
- 
+
  $attachment->update();
- 
+
 =head2 Accessors
 
  my $id            = $attachment->id;
@@ -562,6 +562,26 @@ an optional id for the case_run in which it was linked.
  my $submitter     = $attachment->submitter;
 
 =head1 FIELDS
+    
+    Table test_attachments
+    +---------------+------------------+------+-----+---------------------+----------------+
+    | Field         | Type             | Null | Key | Default             | Extra          |
+    +---------------+------------------+------+-----+---------------------+----------------+
+    | attachment_id | int(10) unsigned | NO   | PRI | NULL                | auto_increment |
+    | submitter_id  | mediumint(9)     | NO   | MUL | 0                   |                |
+    | description   | mediumtext       | YES  |     | NULL                |                |
+    | filename      | mediumtext       | YES  |     | NULL                |                |
+    | creation_ts   | datetime         | NO   |     | 0000-00-00 00:00:00 |                |
+    | mime_type     | varchar(100)     | NO   |     |                     |                |
+    +---------------+------------------+------+-----+---------------------+----------------+
+    
+    Table test_attachment_data
+    +---------------+----------+------+-----+---------+-------+
+    | Field         | Type     | Null | Key | Default | Extra |
+    +---------------+----------+------+-----+---------+-------+
+    | attachment_id | int(11)  | NO   | MUL |         |       |
+    | contents      | longblob | YES  |     | NULL    |       |
+    +---------------+----------+------+-----+---------+-------+
 
 =over
 
@@ -572,7 +592,7 @@ The unique id of this attachment in the database.
 =item C<creation_ts>
 
 Timestamp - when this attachment was created
- 
+
 =item C<description>
 
 A description of this attachment. Becomes the link on the plan and case pages. 
@@ -586,17 +606,13 @@ The file name from the users harddrive before uploading with its path removed.
 The MIME type associated with this attachment. This is used to determine if the 
 attachment if viewable in a browser.
 
-=item C<milestone>
-
-The value from the Bugzilla product milestone table this build is associated with.
-
-=item C<isactive>
-
-Boolean - determines whether to show this build in lists for selection.  
-
 =item C<test_attachment_data.contents>
 
 The actual attachment data. This is stored in a separate table to reduce lookup times.
+
+=item C<submitter_id>
+
+The ID of the person that uploaded the attachment.
 
 =back
 
@@ -607,138 +623,146 @@ The actual attachment data. This is stored in a separate table to reduce lookup 
 =item C<new($param)>
 
  Description: Used to load an existing attachment from the database.
- 
+
  Params:      $param - An integer representing the ID in the database
                        or a hash with the "name" key representing the named
                        attachment in the database.
-                       
- Returns:     A blessed Bugzilla::Testopia::Build object
- 
+
+ Returns:     A blessed Bugzilla::Testopia::Attachment object
+
 =item C<candelete()>
- 
+
  Description: Check that the current attachment can be safely deleted and that 
               the current user has rights to do so.
-              
+
  Params:      none.
- 
+
  Returns:     0 if the user does not have rights to delete this attachment.
               1 if the user does have rights.
 
 =item C<canedit()>
- 
+
  Description: Check that the current user has rights to edit this attachment.
-              
+
  Params:      none.
- 
+
  Returns:     0 if the user does not have rights.
               1 if the user does have rights.
- 
+
 =item C<canview()>
- 
- Description: Chec that the current user has righte to view this attachment.
-              
+
+ Description: Chec that the current user has rights to view this attachment.
+
  Params:      none.
- 
+
  Returns:     0 if the user does not have rights.
               1 if the user does have rights.
- 
+
 =item C<create()>
- 
+
  Description: Creates a new attachment object and stores it in the database.
               Also links the associated plans or cases to the object. 
-              
+
  Params:      A hash with keys and values matching the fields of the attachment to 
               be created.
- 
+
  Returns:     The newly created object.
- 
+
 =item C<is_browser_safe()>
- 
+
  Description: Checks that the attachment is viewable in the browser based on
               its mime_type.
-              
+
  Params:      CGI - a Bugzilla::CGI object.
- 
+
  Returns:     1 if this attachment can be viewed inline in the browser.
               0 if the attachment must be downloaded for viewing in an external
                 application.
- 
+
 =item C<link_case()>
- 
+
  Description: Links this attachment to the specified case.
-              
+
  Params:      case_id - id of the case to link to.
- 
+
  Returns:     nothing.
- 
+
 =item C<link_plan()>
- 
+
  Description: Links this attachment to the specified plan.
-              
+
  Params:      plan_id - id of the plan to link to.
- 
+
  Returns:     nothing.
- 
+
 =item C<obliterate()>
- 
+
  Description: Completely removes this attachment from the database and clears
               references to it.
-              
+
  Params:      none.
- 
+
  Returns:     nothing.
- 
+
 =item C<set_description()>
- 
+
  Description: Replaces the current attachment's description. Must call update to 
               store the change in the database.
-              
+
  Params:      text - the new description.
- 
+
  Returns:     nothing.
- 
+
 =item C<set_filename()>
- 
+
  Description: Sets the isactive field. 
-              
+
  Params:      string - the new filename
- 
+
  Returns:     nothing.
- 
+
 =item C<set_mime_type()>
- 
+
  Description: Changes the assigned mime_type
-              
+
  Params:      string - the new mime_type
- 
+
  Returns:     nothing.
 
 =item C<store()> DEPRECATED
- 
+
  Description: Similar to create except validation is not performed during store. 
-              
+
  Params:      none.
- 
+
  Returns:     The id of the newly stored attachment.
 
+=item C<to_json()>
+
+ Description: Outputs a JSON representation of the object.
+
+ Params:      none
+
+ Returns:     A JSON string.
+
 =item C<unlink_case()>
- 
+
  Description: Unlinks the this attachment from the specified test case. If only
               attached to a single case, delete the attachment instead.
-              
+
  Params:      case_id - id of the case to unlink.
- 
+
  Returns:     nothing.
- 
+
 =item C<unlink_plan()>
- 
+
  Description: Unlinks the this attachment from the specified test plan. If only
               attached to a single plan, delete the attachment instead.
-              
+
  Params:      plan_id - id of the plan to unlink.
- 
+
  Returns:     nothing.
- 
+
 =back
 
 =head1 ACCESSORS
@@ -748,7 +772,7 @@ The actual attachment data. This is stored in a separate table to reduce lookup 
 =item C<cases()>
 
  Returns a list of TestCase objects that this attachment is associated with.
-  
+
 =item C<contents()>
 
  Returns the content data of this attachment.
@@ -762,18 +786,18 @@ The actual attachment data. This is stored in a separate table to reduce lookup 
  Returns the size in byts of the contents of this attachment.
 
 =item C<description()>
-  
+
  Returns the description of this attachment.
- 
+
 =item C<filename()>
 
  Returns the filename from the users harddrive that was uploaded when the 
  attachemnt was created with any path information stripped off.
 
 =item C<id()>
-  
+
  Returns the id of the attachment.
- 
+
 =item C<mime_type()>
 
  Returns the MIME type of this attachment.
@@ -797,9 +821,7 @@ The actual attachment data. This is stored in a separate table to reduce lookup 
 =over
 
 L<Bugzilla::Testopia::TestCase>
-
 L<Bugzilla::Testopia::TestPlan> 
-
 L<Bugzilla::Object> 
 
 =back

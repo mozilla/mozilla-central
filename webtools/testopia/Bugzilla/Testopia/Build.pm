@@ -204,19 +204,6 @@ sub check_build {
 ###############################
 ####       Methods         ####
 ###############################
-sub store {
-    my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'build_id'} DB_COLUMNS);
-
-    $dbh->do("INSERT INTO test_builds ($columns) VALUES (?,?,?,?,?)",
-              undef, ($self->{'product_id'}, $self->{'name'},
-              $self->{'description'}, $self->{'milestone'}, $self->{'isactive'}));
-    my $key = $dbh->bz_last_key( 'test_builds', 'build_id' );
-    return $key;
-}
-
 sub to_json {
     my $self = shift;
     my $obj;
@@ -368,6 +355,7 @@ The id of the Bugzilla product this build is attached to.
 =item C<milestone> I<OPTIONAL>
 
 The value from the Bugzilla product milestone table this build is associated with.
+Defautlts to the product default milestone.
 
 =item C<description> I<OPTIONAL>
 

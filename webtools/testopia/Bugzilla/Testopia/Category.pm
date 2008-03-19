@@ -299,6 +299,16 @@ Every plan in a product will have access to that product's categories.
 
 =head1 FIELDS
 
+    Table test_case_categories
+    +-------------+----------------------+------+-----+---------+----------------+
+    | Field       | Type                 | Null | Key | Default | Extra          |
+    +-------------+----------------------+------+-----+---------+----------------+
+    | category_id | smallint(5) unsigned | NO   | PRI | NULL    | auto_increment |
+    | product_id  | smallint(6)          | NO   | MUL | 0       |                |
+    | name        | varchar(240)         | NO   | MUL |         |                |
+    | description | mediumtext           | YES  |     | NULL    |                |
+    +-------------+----------------------+------+-----+---------+----------------+
+
 =over
 
 =item C<category_id> 
