@@ -306,9 +306,9 @@ if __name__ == '__main__':
 
     # If buildbot is not installed or configured, try to do it.
     # Note - no error handling here, the script will exit if something goes wrong.
-    if not exists(b.prefix):
-        b.checkForUpdates('buildbot', BUILDBOT_SOURCE)
-        b.installBuildbot()
+    #if not exists(b.prefix):
+    #    b.checkForUpdates('buildbot', BUILDBOT_SOURCE)
+    #    b.installBuildbot()
     if not exists(b.basedir):
         print "basedir does not exist, creating"
         mkdir(b.basedir)
@@ -323,7 +323,7 @@ if __name__ == '__main__':
     # unless it looks like the user wants to quit (KeyboardInterrupt)
     while True:
         try: 
-            b.updateBuildbot()
+            #b.updateBuildbot()
             if isMaster:
                 b.updateConfig()
             if not b.isRunning():
