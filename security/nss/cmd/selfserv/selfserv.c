@@ -654,8 +654,8 @@ logger(void *arg)
     PRFloat64 secondsPerTick = 1.0 / (PRFloat64)logPeriodTicks;
     int iterations = 0;
     int secondsElapsed = 0;
-    static PRUint64 totalPeriodBytes = 0;
-    static PRUint64 totalPeriodBytesTCP = 0;
+    static PRInt64 totalPeriodBytes = 0;
+    static PRInt64 totalPeriodBytesTCP = 0;
 
     previousOps = loggerOps;
     previousTime = PR_IntervalNow();
@@ -1861,7 +1861,7 @@ main(int argc, char **argv)
     char*                certPrefix = emptyString;
     PRUint32             protos = 0;
     SSL3Statistics      *ssl3stats;
-    int                  i;
+    PRUint32             i;
  
     tmp = strrchr(argv[0], '/');
     tmp = tmp ? tmp + 1 : argv[0];
