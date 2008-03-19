@@ -2680,11 +2680,7 @@ public:
 //
 // nsISupports
 //
-NS_IMPL_ISUPPORTS4(nsDelAttachListener,
-                   nsIStreamListener,
-                   nsIRequestObserver,
-                   nsIUrlListener,
-                   nsIMsgCopyServiceListener)
+NS_IMPL_ISUPPORTS3(nsDelAttachListener,nsIStreamListener,nsIUrlListener,nsIMsgCopyServiceListener)
 
 //
 // nsIRequestObserver

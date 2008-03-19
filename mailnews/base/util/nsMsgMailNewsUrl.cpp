@@ -785,9 +785,7 @@ protected:
 
 };
 
-NS_IMPL_ISUPPORTS2(nsMsgSaveAsListener,
-                   nsIStreamListener,
-                   nsIRequestObserver)
+NS_IMPL_ISUPPORTS1(nsMsgSaveAsListener, nsIStreamListener)
 
 nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFile *aFile, PRBool addDummyEnvelope)
 {

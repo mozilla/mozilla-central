@@ -72,10 +72,7 @@
 #include "nsMsgMimeCID.h"
 #include "nsComposeStrings.h"
 
-NS_IMPL_ISUPPORTS3(nsMsgSendLater,
-                   nsIMsgSendLater,
-                   nsIRequestObserver,
-                   nsIStreamListener)
+NS_IMPL_ISUPPORTS2(nsMsgSendLater, nsIMsgSendLater, nsIStreamListener)
 
 nsMsgSendLater::nsMsgSendLater()
 {

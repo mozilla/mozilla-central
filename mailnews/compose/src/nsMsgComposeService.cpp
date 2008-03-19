@@ -881,10 +881,7 @@ public:
   char mLastBlockChars[3];
 };
 
-NS_IMPL_ISUPPORTS3(nsMsgTemplateReplyHelper,
-                   nsIStreamListener,
-                   nsIRequestObserver,
-                   nsIUrlListener)
+NS_IMPL_ISUPPORTS2(nsMsgTemplateReplyHelper, nsIStreamListener, nsIUrlListener)
 
 nsMsgTemplateReplyHelper::nsMsgTemplateReplyHelper()
 {

@@ -61,14 +61,7 @@
 #include "nsIStreamConverterService.h"
 #include "nsIMsgProgress.h"
 
-NS_IMPL_ISUPPORTS7(nsURLFetcher,
-                   nsIURLFetcher,
-                   nsIStreamListener,
-                   nsIRequestObserver,
-                   nsIURIContentListener,
-                   nsIInterfaceRequestor,
-                   nsIWebProgressListener,
-                   nsISupportsWeakReference)
+NS_IMPL_ISUPPORTS6(nsURLFetcher, nsIURLFetcher, nsIStreamListener, nsIURIContentListener, nsIInterfaceRequestor, nsIWebProgressListener, nsISupportsWeakReference)
 
 
 /* 

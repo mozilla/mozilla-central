@@ -47,9 +47,7 @@
 #include "nsISupportsPrimitives.h"
 #include "nsIComponentManager.h"
 
-NS_IMPL_ISUPPORTS2(nsMsgComposeProgress,
-                   nsIMsgComposeProgress,
-                   nsIWebProgressListener)
+NS_IMPL_ISUPPORTS1(nsMsgComposeProgress, nsIMsgComposeProgress)
 
 nsMsgComposeProgress::nsMsgComposeProgress()
 {
