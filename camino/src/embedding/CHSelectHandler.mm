@@ -97,90 +97,77 @@
   nsCOMPtr<nsIDOMDocument> domDocument;
   mSelectElt->GetOwnerDocument(getter_AddRefs(domDocument));
   nsCOMPtr<nsIDOMDocumentEvent> docEvent(do_QueryInterface(domDocument));
-  
+
   docEvent->CreateEvent(NS_LITERAL_STRING("Events"), getter_AddRefs(event));
   if (event) {
     event->InitEvent(NS_LITERAL_STRING("change"), PR_TRUE, PR_TRUE);
     PRBool noDefault;
     nsCOMPtr<nsIDOMEventTarget> target(do_QueryInterface(mSelectElt));
     target->DispatchEvent(event, &noDefault);
-  }  
+  }
 }
 
 @end
 
-NS_IMPL_ISUPPORTS2(CHSelectHandler,
-                   nsIDOMMouseListener,
-                   nsIDOMKeyListener)
+#pragma mark -
 
-nsresult ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel);
-
-CHSelectHandler::CHSelectHandler()
+@interface CHSelectPopupDisplayer : NSObject
 {
+  nsIDOMHTMLSelectElement* mSelectElement;
 }
 
-CHSelectHandler::~CHSelectHandler()
++ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement *)aSelectElement;
+- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSelectElement;
+- (void)showNativePopupMenu;
+
+@end
+
+@implementation CHSelectPopupDisplayer
+
++ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement *)aSelectElement
 {
+  CHSelectPopupDisplayer* displayer = [[CHSelectPopupDisplayer alloc] initWithSelect:aSelectElement];
+  [displayer performSelector:@selector(showNativePopupMenu)
+                  withObject:nil
+                  afterDelay:0
+                     inModes:[NSArray arrayWithObjects:NSDefaultRunLoopMode, NSEventTrackingRunLoopMode, nil]];
+  // The delayed performSelector will retain the object until after it fires,
+  // which is as long as we need it, so don't retain ownership.
+  [displayer release];
 }
 
-NS_IMETHODIMP
-CHSelectHandler::MouseDown(nsIDOMEvent* aEvent)
+- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSelectElement
 {
-  nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
-  if (!mouseEvent) return NS_ERROR_FAILURE;
-  
-  PRUint16 button;
-  mouseEvent->GetButton(&button);
-  // only show popup on left button
-  if (button != 0)
-    return NS_OK;
-
-  nsCOMPtr<nsIDOMEventTarget> target;
-  mouseEvent->GetTarget(getter_AddRefs(target));
-  if (!target)
-    return NS_OK;
-
-  nsCOMPtr<nsIDOMHTMLSelectElement> sel(do_QueryInterface(target));
-  if (!sel)
-    return NS_OK;
-
-  return ShowNativeMenuForSelect(sel);
+  if ((self = [super init])) {
+    mSelectElement = aSelectElement;
+    NS_IF_ADDREF(mSelectElement);
+  }
+  return self;
 }
 
-NS_IMETHODIMP
-CHSelectHandler::KeyDown(nsIDOMEvent* aKeyEvent)
-{  
-  nsCOMPtr<nsIDOMKeyEvent> keyEvent(do_QueryInterface(aKeyEvent));
-  if (!keyEvent)
-    return NS_ERROR_FAILURE;
-
-  PRUint32 keyCode;
-  keyEvent->GetKeyCode(&keyCode);
-  // We only care about spaces
-  if (keyCode != nsIDOMKeyEvent::DOM_VK_SPACE)
-    return NS_OK;
-
-  nsCOMPtr<nsIDOMEventTarget> target;
-  keyEvent->GetTarget(getter_AddRefs(target));
-  if (!target)
-    return NS_OK;
-
-  nsCOMPtr<nsIDOMHTMLSelectElement> sel(do_QueryInterface(target));
-  if (!sel)
-    return NS_OK;
-
-  return ShowNativeMenuForSelect(sel);
+- (void)dealloc
+{
+  NS_IF_RELEASE(mSelectElement);
+  [super dealloc];
 }
 
-nsresult
-ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
+- (void)showNativePopupMenu
 {
   PRInt32 size = 0;
-  sel->GetSize(&size);
+  mSelectElement->GetSize(&size);
   PRBool multiple = PR_FALSE;
-  sel->GetMultiple(&multiple);
-  if(size > 1 || multiple)
-    return NS_OK;
+  mSelectElement->GetMultiple(&multiple);
+  if (size > 1 || multiple)
+    return;
+
+  // If the select has been removed from the document between the time it was
+  // clicked and now, it won't have a document anymore, so check that first.
+  nsCOMPtr<nsIContent> selContent = do_QueryInterface(mSelectElement);
+  if (!selContent)
+    return;
+  nsCOMPtr<nsIDocument> doc = selContent->GetDocument();
+  if (!doc)
+    return;
 
   // the call to popUpContextMenu: is synchronous so we don't need to
   // worry about retaining the menu for later.
@@ -188,10 +175,10 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
 
   // We'll set the disabled state as the options are created, so disable
   // auto-enabling via NSMenuValidation.
-  [menu setAutoenablesItems: NO];
+  [menu setAutoenablesItems:NO];
 
   nsCOMPtr<nsIDOMHTMLOptionsCollection> options;
-  sel->GetOptions(getter_AddRefs(options));
+  mSelectElement->GetOptions(getter_AddRefs(options));
   PRUint32 count;
   options->GetLength(&count);
   PRInt32 selIndex = 0;   // currently unused
@@ -201,7 +188,7 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
   nsCOMPtr<nsISupportsArray> option_pool;
   nsresult rv = NS_NewISupportsArray(getter_AddRefs(option_pool));
   if (NS_FAILED(rv))
-    return rv;
+    return;
 
   nsCOMPtr<nsIDOMHTMLOptGroupElement> curOptGroup;
 
@@ -216,14 +203,13 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
     nsCOMPtr<nsIDOMNode> parentNode;
     option->GetParentNode(getter_AddRefs(parentNode));
     nsCOMPtr<nsIDOMHTMLOptGroupElement> parentOptGroup = do_QueryInterface(parentNode);
-    if (parentOptGroup && (parentOptGroup != curOptGroup))
-    {
+    if (parentOptGroup && (parentOptGroup != curOptGroup)) {
       // insert optgroup item
       parentOptGroup->GetLabel(itemLabel);
-      NSString* title = [[NSString stringWith_nsAString: itemLabel] stringByTruncatingTo:75 at:kTruncateAtMiddle];
-      NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle: title action: NULL keyEquivalent: @""] autorelease];
-      [menu addItem: menuItem];
-      [menuItem setEnabled: NO];
+      NSString* title = [[NSString stringWith_nsAString:itemLabel] stringByTruncatingTo:75 at:kTruncateAtMiddle];
+      NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle:title action:NULL keyEquivalent:@""] autorelease];
+      [menu addItem:menuItem];
+      [menuItem setEnabled:NO];
 
       curOptGroup = parentOptGroup;
     }
@@ -232,54 +218,51 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
     if (itemLabel.IsEmpty())
       option->GetText(itemLabel);
 
-    NSString* title = [[NSString stringWith_nsAString: itemLabel] stringByTruncatingTo:75 at:kTruncateAtMiddle];
-    
+    NSString* title = [[NSString stringWith_nsAString:itemLabel] stringByTruncatingTo:75 at:kTruncateAtMiddle];
+
     // indent items in optgroup
     if (parentOptGroup)
       title = [@"  " stringByAppendingString:title];
 
-    NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle: title action: NULL keyEquivalent: @""] autorelease];
-    [menu addItem: menuItem];
+    NSMenuItem* menuItem = [[[NSMenuItem alloc] initWithTitle:title action:NULL keyEquivalent:@""] autorelease];
+    [menu addItem:menuItem];
     option_pool->AppendElement(option);  // refcount the option.
     [menuItem setRepresentedObject:[NSValue valueWithPointer:option.get()]];
 
     PRBool selected;
     option->GetSelected(&selected);
     if (selected) {
-      [menuItem setState: NSOnState];
+      [menuItem setState:NSOnState];
       selIndex = i;
     }
     PRBool disabled;
     option->GetDisabled(&disabled);
     if (disabled)
-      [menuItem setEnabled: NO];
-    CHOptionSelector* optSelector = [[[CHOptionSelector alloc] initWithSelect: sel] autorelease];
-    [menuItem setTarget: optSelector];									// retains
+      [menuItem setEnabled:NO];
+    CHOptionSelector* optSelector = [[[CHOptionSelector alloc] initWithSelect:mSelectElement] autorelease];
+    [menuItem setTarget:optSelector];									// retains
     if (!selected)
       [menuItem setAction:@selector(selectOption:)];
   }
-  
-  nsCOMPtr<nsIContent> selContent = do_QueryInterface(sel);
-  nsCOMPtr<nsIDocument> doc = selContent->GetDocument();
 
   NSEvent*  event = [NSApp currentEvent];
   NSWindow* hostWindow = [event window];
-  
+
   // get the frame location
   nsIPresShell* presShell = doc->GetPrimaryShell();
   if (!presShell)
-    return NS_ERROR_FAILURE;
+    return;
 
   nsIFrame* selectFrame = presShell->GetPrimaryFrameFor(selContent);
   if (!selectFrame)
-    return NS_ERROR_FAILURE;
-  
+    return;
+
   nsIntRect selectRect = selectFrame->GetScreenRectExternal();
   NSRect selectScreenRect = NSMakeRect(selectRect.x, selectRect.y, selectRect.width, selectRect.height);
-  
+
   NSScreen* mainScreen = [[NSScreen screens] firstObject];  // NSArray category method
   if (!mainScreen)
-    return NS_ERROR_FAILURE;
+    return;
 
   // y-flip and subtract the control height to convert to cocoa coords
   NSRect mainScreenFrame = [mainScreen frame];
@@ -299,13 +282,80 @@ ShowNativeMenuForSelect(nsIDOMHTMLSelectElement* sel)
   const float kMenuPopupHeight = 20.0;         // height of a popup in aqua
 
   NSRect bounds = NSMakeRect(0, 0, kMenuWidth, kMenuPopupHeight);
-  
+
   NSPopUpButtonCell* popupCell = [[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO];
-  [popupCell setMenu: menu];
+  [popupCell setMenu:menu];
   [popupCell setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
   [popupCell trackMouse:event inRect:bounds ofView:hostView untilMouseUp:YES];
   [popupCell release];
 
   [hostView removeFromSuperview];   // this releases it
+  return;
+}
+
+@end
+
+#pragma mark -
+
+NS_IMPL_ISUPPORTS2(CHSelectHandler,
+                   nsIDOMMouseListener,
+                   nsIDOMKeyListener)
+
+CHSelectHandler::CHSelectHandler()
+{
+}
+
+CHSelectHandler::~CHSelectHandler()
+{
+}
+
+NS_IMETHODIMP
+CHSelectHandler::MouseDown(nsIDOMEvent* aEvent)
+{
+  nsCOMPtr<nsIDOMMouseEvent> mouseEvent(do_QueryInterface(aEvent));
+  if (!mouseEvent) return NS_ERROR_FAILURE;
+
+  PRUint16 button;
+  mouseEvent->GetButton(&button);
+  // only show popup on left button
+  if (button != 0)
+    return NS_OK;
+
+  nsCOMPtr<nsIDOMEventTarget> target;
+  mouseEvent->GetTarget(getter_AddRefs(target));
+  if (!target)
+    return NS_OK;
+
+  nsCOMPtr<nsIDOMHTMLSelectElement> sel(do_QueryInterface(target));
+  if (!sel)
+    return NS_OK;
+
+  [CHSelectPopupDisplayer showNativePopupMenuAsynchronouslyForSelect:sel];
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+CHSelectHandler::KeyDown(nsIDOMEvent* aKeyEvent)
+{
+  nsCOMPtr<nsIDOMKeyEvent> keyEvent(do_QueryInterface(aKeyEvent));
+  if (!keyEvent)
+    return NS_ERROR_FAILURE;
+
+  PRUint32 keyCode;
+  keyEvent->GetKeyCode(&keyCode);
+  // We only care about spaces
+  if (keyCode != nsIDOMKeyEvent::DOM_VK_SPACE)
+    return NS_OK;
+
+  nsCOMPtr<nsIDOMEventTarget> target;
+  keyEvent->GetTarget(getter_AddRefs(target));
+  if (!target)
+    return NS_OK;
+
+  nsCOMPtr<nsIDOMHTMLSelectElement> sel(do_QueryInterface(target));
+  if (!sel)
+    return NS_OK;
+
+  [CHSelectPopupDisplayer showNativePopupMenuAsynchronouslyForSelect:sel];
   return NS_OK;
 }
