@@ -54,23 +54,25 @@ if ($c->param("testcase_id")) {
   my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
   my @testgroups = Litmus::DB::Testgroup->search_UniqueByTestcase($testcase_id);
   my @subgroups = Litmus::DB::Subgroup->search_ByTestcase($testcase_id);
-  $testcase->{'testgroups'} = \@testgroups;
-  $testcase->{'subgroups'} = \@subgroups;
+  if ($testcase) {
+    $testcase->{'testgroups'} = \@testgroups;
+    $testcase->{'subgroups'} = \@subgroups;
   
-  # apply markdown formatting to the steps and expected results:
-  eval {
-    $testcase->{'steps_formatted'} = Text::Markdown::markdown($testcase->steps());
-  };
-  if ($@) {
-    $testcase->{'steps_formatted'} = $testcase->steps();
+    # apply markdown formatting to the steps and expected results:
+    eval {
+      $testcase->{'steps_formatted'} = Text::Markdown::markdown($testcase->steps);
+    };
+    if ($@) {
+      $testcase->{'steps_formatted'} = $testcase->steps;
+    }
+    eval {
+      $testcase->{'expected_results_formatted'} = Text::Markdown::markdown($testcase->expected_results);
+    };
+    if ($@) {
+      $testcase->{'expected_results_formatted'} = $testcase->expected_results;
+    }
+    $js = $json->objToJson($testcase);
   }
-  eval {
-    $testcase->{'expected_results_formatted'} = Text::Markdown::markdown($testcase->expected_results());
-  };
-  if ($@) {
-    $testcase->{'expected_results_formatted'} = $testcase->expected_results();
-  }
-  $js = $json->objToJson($testcase);
 } elsif ($c->param("subgroup_id")) {
   my $subgroup_id = $c->param("subgroup_id");
   my $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
@@ -224,16 +226,20 @@ if ($c->param("testcase_id")) {
   $js = $json->objToJson(\%stats);
 }
 
-if (utf8::is_utf8($js)) {
-  utf8::encode($js);
+if ($js) {
+  if (utf8::is_utf8($js)) {
+    utf8::encode($js);
+  }
+  print $js;
+} else {
+  # We don't have anything to return.
+  return undef;
 }
-
-print $js;
 
 exit 0;
 
 #########################################################################
-sub displayJsonErrorMessage($) {
+sub displayJsonErrorMessage {
   my ($error_msg) = @_; 
   my %error_obj;  
   $error_obj{'error'} = $error_msg; 
