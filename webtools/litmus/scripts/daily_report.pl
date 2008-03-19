@@ -249,23 +249,23 @@ td {
     } else {
       $class = 'odd';
     }
-    $message .= '<tr class="' . $class . 
-                '"><td align="center"><a href="http://litmus.mozilla.org/single_result.cgi?id=' .
+    $message .= '<tr class="' . $class . '">' . "\n";
+    $message .= '<td align="center"><a href="http://litmus.mozilla.org/single_result.cgi?id=' .
                 $hashref->{'testresult_id'} . '">' .
-                $hashref->{'testresult_id'} . '</a></td>';
+                $hashref->{'testresult_id'} . "</a></td>\n";
     
-    $message .= '<td align="center">' . $hashref->{'product'} . '</td>';
-    $message .= '<td align="center">' . $hashref->{'branch'} . '</td>';
-    $message .= '<td align="center">' . $hashref->{'platform'} . '</td>';
-    $message .= '<td align="center">' . $hashref->{'opsys'} . '</td>';
-    $message .= '<td align="center">' . $hashref->{'email'} . '</td>';
-    $message .= '<td>' . $hashref->{'summary'} . '</td>';	   
+    $message .= '<td align="center">' . $hashref->{'product'} . "</td>\n";
+    $message .= '<td align="center">' . $hashref->{'branch'} . "</td>\n";
+    $message .= '<td align="center">' . $hashref->{'platform'} . "</td>\n";
+    $message .= '<td align="center">' . $hashref->{'opsys'} . "</td>\n";
+    $message .= '<td align="center">' . $hashref->{'email'} . "</td>\n";
+    $message .= '<td>' . $hashref->{'summary'} . "</td>\n";	   
 
-    $message .= '</tr>';
+    $message .= "</tr>\n";
   }
 
-  $message .= "</table>";
-  $message .= "<p>Visit Litmus: <a href=\"http:/litmus.mozilla.org/\">http:/litmus.mozilla.org/</a></p>";
+  $message .= "</table>\n";
+  $message .= "<p>Visit Litmus: <a href=\"http:/litmus.mozilla.org/\">http:/litmus.mozilla.org/</a></p>\n";
 
   $message .= "</body>\n</html>\n\n";
 
