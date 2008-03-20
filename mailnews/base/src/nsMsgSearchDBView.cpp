@@ -190,7 +190,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsISupports *f
   if (msgKey != nsMsgKey_None)
   {
     msgHdr->GetFlags(&msgFlags);
-    m_keys.Add(msgKey);
+    m_keys.AppendElement(msgKey);
     m_levels.AppendElement(0);
     m_flags.AppendElement(msgFlags);
     
@@ -250,7 +250,7 @@ nsMsgSearchDBView::OnNewSearch()
   m_dbToUseList.Clear();
 
   m_folders->Clear();
-  m_keys.RemoveAll();
+  m_keys.Clear();
   m_levels.Clear();
   m_flags.Clear();
 
@@ -600,7 +600,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgView
         return NS_OK;
 
     nsMsgKey preservedKey;
-    nsMsgKeyArray preservedSelection;
+    nsAutoTArray<nsMsgKey, 1> preservedSelection;
     SaveAndClearSelection(&preservedKey, preservedSelection);
 
     rv = nsMsgDBView::Sort(sortType,sortOrder);

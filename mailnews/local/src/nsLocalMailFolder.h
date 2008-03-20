@@ -214,7 +214,7 @@ protected:
 
   // copy message helper
   nsresult DisplayMoveCopyStatusMsg();
-  nsresult SortMessagesBasedOnKey(nsISupportsArray *messages, nsMsgKeyArray &aKeyArray, nsIMsgFolder *srcFolder);
+  nsresult SortMessagesBasedOnKey(nsISupportsArray *messages, nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder);
 
   nsresult CopyMessageTo(nsISupports *message, nsIMsgFolder *dstFolder,
                          nsIMsgWindow *msgWindow, PRBool isMove);
@@ -242,7 +242,7 @@ protected:
   PRPackedBool m_parsingFolder;
   nsCOMPtr<nsIUrlListener> mReparseListener;
   PRInt32 mNumFilterClassifyRequests;
-  nsMsgKeyArray mSpamKeysToMove;
+  nsTArray<nsMsgKey> mSpamKeysToMove;
   nsCString mSpamFolderURI;
   nsresult setSubfolderFlag(const nsAString& aFolderName, PRUint32 flags);
 

@@ -488,9 +488,8 @@ NS_IMETHODIMP nsMailboxUrl::SetCharsetOverRide(const char * aCharacterSet)
 /* void setMoveCopyMsgKeys (out nsMsgKey keysToFlag, in long numKeys); */
 NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys)
 {
-  m_keys.RemoveAll();
-  m_keys.Add(keysToFlag, numKeys);
-  if (m_keys.GetSize() > 0 && m_messageKey == nsMsgKey_None)
+  m_keys.ReplaceElementsAt(0, m_keys.Length(), keysToFlag, numKeys);
+  if (!m_keys.IsEmpty() && m_messageKey == nsMsgKey_None)
     m_messageKey = m_keys[0];
   return NS_OK;
 }
@@ -498,7 +497,7 @@ NS_IMETHODIMP nsMailboxUrl::SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 num
 NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr)
 {
   NS_ENSURE_ARG(msgHdr);
-  if (msgIndex < m_keys.GetSize())
+  if (msgIndex < m_keys.Length())
   {
     nsMsgKey nextKey = m_keys[msgIndex];
     return GetMsgHdrForKey(nextKey, msgHdr);
@@ -509,7 +508,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgD
 NS_IMETHODIMP nsMailboxUrl::GetNumMoveCopyMsgs(PRUint32 *numMsgs)
 {
   NS_ENSURE_ARG(numMsgs);
-  *numMsgs = m_keys.GetSize();
+  *numMsgs = m_keys.Length();
   return NS_OK;
 }
 

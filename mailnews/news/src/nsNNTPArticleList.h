@@ -42,7 +42,8 @@
 #include "nsINNTPArticleList.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsIMsgDatabase.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 
 class nsNNTPArticleList : public nsINNTPArticleList
 {
@@ -54,11 +55,11 @@ public:
     NS_DECL_NSINNTPARTICLELIST
 
 protected:
-    nsMsgKeyArray m_idsInDB;
+    nsTArray<nsMsgKey> m_idsInDB;
 
 #ifdef DEBUG
-    nsMsgKeyArray m_idsOnServer;
-    nsMsgKeyArray m_idsDeleted;
+    nsTArray<nsMsgKey> m_idsOnServer;
+    nsTArray<nsMsgKey> m_idsDeleted;
 #endif
 
     nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;

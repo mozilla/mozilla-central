@@ -42,7 +42,7 @@
 #include "nsMsgKeySet.h"
 #include "prprf.h"
 #include "prmem.h"
-#include "nsMsgKeyArray.h"
+#include "nsTArray.h"
 
 #if defined(DEBUG_seth_) || defined(DEBUG_sspitzer_)
 #define DEBUG_MSGKEYSET 1
@@ -1173,13 +1173,13 @@ nsMsgKeySet::LastMissingRange(PRInt32 min, PRInt32 max,
 }
 
 /**
- * Return a copy of this as an nsMsgKeyArray, which is much easier for
+ * Return a copy of this as an nsTArray<nsMsgKey>, which is much easier for
  * callers to manipulate.  Normal XPCOM calling conventions, although the
  * array itself isn't refcounted, so the caller should free when done
  * using NS_DELETEXPCOM().
  */
 nsresult 
-nsMsgKeySet::ToMsgKeyArray(nsMsgKeyArray **aArray)
+nsMsgKeySet::ToMsgKeyArray(nsTArray<nsMsgKey> **aArray)
 {
     PRInt32 size;
     PRInt32 *head;
@@ -1187,8 +1187,8 @@ nsMsgKeySet::ToMsgKeyArray(nsMsgKeyArray **aArray)
     PRInt32 *end;
     PRInt32 last_art = -1;
 
-    nsMsgKeyArray *array;
-    NS_NEWXPCOM(array, nsMsgKeyArray);
+    nsTArray<nsMsgKey> *array;
+    NS_NEWXPCOM(array, nsTArray<nsMsgKey>);
     if (!array) 
         return NS_ERROR_OUT_OF_MEMORY;
 
@@ -1220,10 +1220,10 @@ nsMsgKeySet::ToMsgKeyArray(nsMsgKeyArray **aArray)
         if (from <= to) {
             if (from < to) {
                 for (PRInt32 i = from; i <= to ; ++i ) {
-                    array->Add(i);
+                    array->AppendElement(i);
                 }
             } else {
-                array->Add(from);
+                array->AppendElement(from);
             }
             last_art = to;
         }

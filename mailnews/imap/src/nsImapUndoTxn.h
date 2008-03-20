@@ -45,7 +45,7 @@
 #include "nsIUrlListener.h"
 #include "nsIEventTarget.h"
 #include "nsMsgTxn.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsIMsgOfflineImapOperation.h"
 #include "nsCOMPtr.h"
@@ -62,7 +62,7 @@ public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IMAPMOVECOPYMSGTXN_IID)
 
   nsImapMoveCopyMsgTxn();
-  nsImapMoveCopyMsgTxn(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
+  nsImapMoveCopyMsgTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                        const char* srcMsgIdString, nsIMsgFolder* dstFolder,
                        PRBool idsAreUids, PRBool isMove, 
                        nsIEventTarget *eventTarget, 
@@ -76,11 +76,11 @@ public:
 
   // helper
   nsresult SetCopyResponseUid(const char *msgIdString);
-  nsresult GetSrcKeyArray(nsMsgKeyArray& srcKeyArray);
+  nsresult GetSrcKeyArray(nsTArray<nsMsgKey>& srcKeyArray);
   nsresult AddDstKey(nsMsgKey aKey);
   nsresult UndoMailboxDelete();
   nsresult RedoMailboxDelete();
-  nsresult Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
+  nsresult Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                 const char* srcMsgIdString, nsIMsgFolder* dstFolder,
                 PRBool idsAreUids, PRBool isMove, 
                 nsIEventTarget *eventTarget, 
@@ -90,8 +90,8 @@ protected:
 
   nsWeakPtr m_srcFolder;
   nsCOMPtr<nsISupportsArray> m_srcHdrs;
-  nsMsgKeyArray m_dupKeyArray;
-  nsMsgKeyArray m_srcKeyArray;
+  nsTArray<nsMsgKey> m_dupKeyArray;
+  nsTArray<nsMsgKey> m_srcKeyArray;
   nsCString m_srcMsgIdString;
   nsWeakPtr m_dstFolder;
   nsCString m_dstMsgIdString;
@@ -110,7 +110,7 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsImapMoveCopyMsgTxn, NS_IMAPMOVECOPYMSGTXN_IID)
 class nsImapOfflineTxn : public nsImapMoveCopyMsgTxn
 {
 public:
-  nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
+  nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                        nsIMsgFolder* dstFolder,
                        PRBool isMove,
                        nsOfflineImapOperationType opType,

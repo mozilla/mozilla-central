@@ -44,7 +44,7 @@
 #include "nsStringGlue.h"
 #include "MailNewsTypes.h"
 #include "mdb.h"
-#include "nsMsgKeyArray.h"
+#include "nsTArray.h"
 #include "nsIDBFolderInfo.h"
 #include <time.h>
 
@@ -87,7 +87,7 @@ public:
   nsresult	GetUint32PropertyWithToken(mdb_token aProperty, PRUint32 &propertyValue, PRUint32 defaultValue = 0);
   nsresult	GetInt32PropertyWithToken(mdb_token aProperty, PRInt32 &propertyValue, PRInt32 defaultValue = 0);
 
-  nsMsgKeyArray m_lateredKeys;		// list of latered messages
+  nsTArray<nsMsgKey> m_lateredKeys; // list of latered messages
   
 protected:
   

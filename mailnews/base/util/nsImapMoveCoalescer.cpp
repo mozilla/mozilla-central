@@ -71,7 +71,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
     if (supports)
     {
       PRInt32 folderIndex = m_destFolders->IndexOf(supports);
-      nsMsgKeyArray *keysToAdd = nsnull;
+      nsTArray<nsMsgKey> *keysToAdd = nsnull;
       if (folderIndex >= 0)
       {
         keysToAdd = &(m_sourceKeyArrays[folderIndex]);
@@ -83,8 +83,8 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
         if (!keysToAdd)
           return NS_ERROR_OUT_OF_MEMORY;
       }
-      if (keysToAdd->IndexOf(key) == -1)
-        keysToAdd->Add(key);
+      if (keysToAdd->IndexOf(key) == kNotFound)
+        keysToAdd->AppendElement(key);
       return NS_OK;
     }
     else
@@ -116,15 +116,15 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
       do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      nsMsgKeyArray &keysToAdd = m_sourceKeyArrays[i];
+      nsTArray<nsMsgKey>& keysToAdd = m_sourceKeyArrays[i];
       PRInt32 numNewMessages = 0;
-      PRInt32 numKeysToAdd = keysToAdd.GetSize();
+      PRInt32 numKeysToAdd = keysToAdd.Length();
       if (numKeysToAdd == 0)
         continue;
 
       nsCOMPtr<nsISupportsArray> messages;
       NS_NewISupportsArray(getter_AddRefs(messages));
-      for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.GetSize(); keyIndex++)
+      for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
       {
         nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
         rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
@@ -155,11 +155,11 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
         oldNewMessageCount = 0;
 
       m_sourceFolder->SetNumNewMessages(oldNewMessageCount);
-      
+
       nsCOMPtr <nsISupports> sourceSupports = do_QueryInterface(m_sourceFolder, &rv);
       nsCOMPtr <nsIUrlListener> urlListener(do_QueryInterface(sourceSupports));
-      
-      keysToAdd.RemoveAll();
+
+      keysToAdd.Clear();
       nsCOMPtr<nsIMsgCopyService> copySvc = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID);
       if (copySvc)
       {
@@ -171,7 +171,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
             listener = do_QueryInterface(copyListener);
         }
         rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, PR_TRUE,
-                                    listener, m_msgWindow, PR_FALSE /*allowUndo*/);
+                                   listener, m_msgWindow, PR_FALSE /*allowUndo*/);
         if (NS_SUCCEEDED(rv))
           m_outstandingMoves++;
       }
@@ -200,7 +200,7 @@ nsImapMoveCoalescer::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   return NS_OK;
 }
 
-nsMsgKeyArray *nsImapMoveCoalescer::GetKeyBucket(PRUint32 keyArrayIndex)
+nsTArray<nsMsgKey> *nsImapMoveCoalescer::GetKeyBucket(PRUint32 keyArrayIndex)
 {
   if (keyArrayIndex >= m_keyBuckets.Length() &&
       !m_keyBuckets.SetLength(keyArrayIndex + 1))

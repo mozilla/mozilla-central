@@ -295,7 +295,7 @@ protected:
   PRUint32                    m_curFolderIndex;
   PRUint32                    m_numFilters;
   PRUint32                    m_numFolders;
-  nsMsgKeyArray               m_searchHits;
+  nsTArray<nsMsgKey>          m_searchHits;
   nsCOMPtr <nsISupportsArray> m_searchHitHdrs;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
 };
@@ -410,7 +410,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFo
   NS_ENSURE_ARG_POINTER(header);
   nsMsgKey msgKey;
   header->GetMessageKey(&msgKey);
-  m_searchHits.Add(msgKey);
+  m_searchHits.AppendElement(msgKey);
   m_searchHitHdrs->AppendElement(header);
   return NS_OK;
 }
@@ -423,14 +423,14 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchDone(nsresult status)
     continueExecution = ContinueExecutionPrompt();
 
   if (continueExecution)
-    return (m_searchHits.GetSize() > 0) ? ApplyFilter() : RunNextFilter();
+    return m_searchHits.IsEmpty() ? RunNextFilter() : ApplyFilter();
   else
     return OnEndExecution(rv);
 }
 
 NS_IMETHODIMP nsMsgFilterAfterTheFact::OnNewSearch()
 {
-  m_searchHits.RemoveAll();
+  m_searchHits.Clear();
   m_searchHitHdrs->Clear();
   return NS_OK;
 }
@@ -478,7 +478,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
 
       if (loggingEnabled)
       {
-          for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+          for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
           {
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -560,7 +560,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
       case nsMsgFilterAction::KillThread:
       case nsMsgFilterAction::WatchThread:
         {
-          for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+          for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
           {
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -585,7 +585,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
           {
               nsMsgPriorityValue filterPriority;
               filterAction->GetPriority(&filterPriority);
-              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
               {
                 nsCOMPtr <nsIMsgDBHdr> msgHdr;
                 m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -629,7 +629,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
             nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
             if (compService)
             {
-              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
               {
                 nsCOMPtr <nsIMsgDBHdr> msgHdr;
                 m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -654,7 +654,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
             nsCOMPtr <nsIMsgComposeService> compService = do_GetService (NS_MSGCOMPOSESERVICE_CONTRACTID) ;
             if (compService)
             {
-              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+              for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
               {
                 nsCOMPtr <nsIMsgDBHdr> msgHdr;
                 m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -676,7 +676,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
             nsCOMPtr <nsISupportsArray> partialMsgs;
             // Delete the partial headers. They're useless now
             // that the server copy is being deleted.
-            for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+            for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
             {
               nsCOMPtr <nsIMsgDBHdr> msgHdr;
               m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
@@ -705,7 +705,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
           {
             nsCOMPtr<nsISupportsArray> messages = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
-            for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.GetSize(); msgIndex++)
+            for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
             {
               nsCOMPtr <nsIMsgDBHdr> msgHdr;
               m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));

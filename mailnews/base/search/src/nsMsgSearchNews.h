@@ -37,7 +37,8 @@
 
 #ifndef _nsMsgSearchNews_h__
 #include "nsMsgSearchAdapter.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 
 //-----------------------------------------------------------------------------
 //---------- Adapter class for searching online (news) folders ----------------
@@ -62,14 +63,13 @@ public:
   void ReportHits ();
     void CollateHits ();
     void ReportHit (nsIMsgDBHdr *pHeaders, nsIMsgFolder *folder);
-    static int PR_CALLBACK CompareArticleNumbers (const void *v1, const void *v2, void *data);
 
 protected:
   nsCString m_encoding;
   PRBool m_ORSearch; // set to true if any of the search terms contains an OR for a boolean operator.
 
-  nsMsgKeyArray m_candidateHits;
-  nsMsgKeyArray m_hits;
+  nsTArray<nsMsgKey> m_candidateHits;
+  nsTArray<nsMsgKey> m_hits;
 
   static const char *m_kNntpFrom;
   static const char *m_kNntpSubject;

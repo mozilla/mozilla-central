@@ -42,7 +42,8 @@
 #include "nsMsgMailNewsUrl.h"
 #include "nsIFile.h"
 #include "nsCOMPtr.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsISupportsObsolete.h"
 
 class nsMailboxUrl : public nsIMailboxUrl, public nsMsgMailNewsUrl, public nsIMsgMessageUrl, public nsIMsgI18NUrl
@@ -104,7 +105,7 @@ protected:
   nsresult ParseSearchPart();
 
   // for multiple msg move/copy
-  nsMsgKeyArray m_keys;
+  nsTArray<nsMsgKey> m_keys;
   PRInt32 m_curMsgIndex;
 
   // truncated message support

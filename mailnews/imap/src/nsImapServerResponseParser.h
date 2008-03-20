@@ -42,7 +42,8 @@
 #include "nsIMAPHostSessionList.h"
 #include "nsImapSearchResults.h"
 #include "nsString.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsImapUtils.h"
 
 class nsIMAPNamespace;
@@ -288,7 +289,7 @@ private:
   nsImapProtocol &fServerConnection;
 
   nsIImapHostSessionList *fHostSessionList;
-  nsMsgKeyArray fCopyResponseKeyArray;
+  nsTArray<nsMsgKey> fCopyResponseKeyArray;
 };
 
 #endif

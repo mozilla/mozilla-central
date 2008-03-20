@@ -331,12 +331,12 @@ public:
 protected:
   // Helper methods
 
-  void FindKeysToAdd(const nsMsgKeyArray &existingKeys, nsMsgKeyArray
+  void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, PRUint32 &numNewUnread, nsIImapFlagAndUidState *flagState);
-  void FindKeysToDelete(const nsMsgKeyArray &existingKeys, nsMsgKeyArray
+  void FindKeysToDelete(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>
     &keysToFetch, nsIImapFlagAndUidState *flagState);
   void PrepareToAddHeadersToMailDB(nsIImapProtocol* aProtocol, const
-    nsMsgKeyArray &keysToFetch,
+    nsTArray<nsMsgKey> &keysToFetch,
     nsIMailboxSpec *boxSpec);
   void TweakHeaderFlags(nsIImapProtocol* aProtocol, nsIMsgDBHdr *tweakMe);
 
@@ -350,10 +350,10 @@ protected:
 
   void EndOfflineDownload();
 
-  nsresult MarkMessagesImapDeleted(nsMsgKeyArray *keyArray, PRBool deleted, nsIMsgDatabase *db);
+  nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, PRBool deleted, nsIMsgDatabase *db);
 
   void UpdatePendingCounts();
-  void SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsMsgKeyArray &msgids, PRBool markDeleted);
+  void SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, PRBool markDeleted);
   virtual PRBool ShowDeletedMessages();
   virtual PRBool DeleteIsMoveToTrash();
   nsresult GetFolder(const nsACString& name, nsIMsgFolder **pFolder);
@@ -375,7 +375,7 @@ protected:
 
   nsMsgIMAPFolderACL * GetFolderACL();
   nsresult CreateACLRightsStringForFolder(nsAString& rightsString);
-  nsresult GetBodysToDownload(nsMsgKeyArray *keysOfMessagesToDownload);
+  nsresult GetBodysToDownload(nsTArray<nsMsgKey> *keysOfMessagesToDownload);
   // Uber message copy service
   nsresult CopyMessagesWithStream(nsIMsgFolder* srcFolder,
                                     nsISupportsArray* messages,
@@ -395,7 +395,7 @@ protected:
                           nsIMsgWindow *msgWindow,
                           PRBool allowUndo);
   nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
-  nsresult BuildIdsAndKeyArray(nsISupportsArray* messages, nsCString& msgIds, nsMsgKeyArray& keyArray);
+  nsresult BuildIdsAndKeyArray(nsISupportsArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);

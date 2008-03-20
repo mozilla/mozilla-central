@@ -85,10 +85,10 @@ NS_IMETHODIMP
 nsNNTPArticleList::AddArticleKey(PRInt32 key)
 {
 #ifdef DEBUG
-  m_idsOnServer.Add(key);
+  m_idsOnServer.AppendElement(key);
 #endif
 
-  if (m_dbIndex < m_idsInDB.GetSize())
+  if (m_dbIndex < m_idsInDB.Length())
   {
     PRInt32 idInDBToCheck = m_idsInDB[m_dbIndex];
     // if there are keys in the database that aren't in the newsgroup
@@ -98,9 +98,9 @@ nsNNTPArticleList::AddArticleKey(PRInt32 key)
     {
       m_newsFolder->RemoveMessage(idInDBToCheck);
 #ifdef DEBUG
-      m_idsDeleted.Add(idInDBToCheck);
+      m_idsDeleted.AppendElement(idInDBToCheck);
 #endif
-      if (m_dbIndex >= m_idsInDB.GetSize())
+      if (m_dbIndex >= m_idsInDB.Length())
         break;
       idInDBToCheck = m_idsInDB[++m_dbIndex];
     }
@@ -115,20 +115,20 @@ nsNNTPArticleList::FinishAddingArticleKeys()
 {
   // if the last n messages in the group are cancelled, they won't have gotten removed
   // so we have to go an removed them now.
-  PRUint32 totalCount = m_idsInDB.GetSize();
+  PRUint32 totalCount = m_idsInDB.Length();
   PRUint32 i;
 
   for (i = m_dbIndex; i < totalCount; i++) {
     m_newsFolder->RemoveMessage(m_idsInDB[i]);
 #ifdef DEBUG
-    m_idsDeleted.Add(m_idsInDB[i]);
+    m_idsDeleted.AppendElement(m_idsInDB[i]);
 #endif
   }
 
 #ifdef DEBUG
   // make sure none of the deleted turned up on the idsOnServer list
-  for (i = 0; i < m_idsDeleted.GetSize(); i++) {
-    NS_ASSERTION(m_idsOnServer.FindIndex((nsMsgKey)(m_idsDeleted[i]), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
+  for (i = 0; i < m_idsDeleted.Length(); i++) {
+    NS_ASSERTION(m_idsOnServer.IndexOf((nsMsgKey)(m_idsDeleted[i]), 0) == nsMsgViewIndex_None, "a deleted turned up on the idsOnServer list");
   }
 #endif
   return NS_OK;

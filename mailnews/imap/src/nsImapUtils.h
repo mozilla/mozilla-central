@@ -40,7 +40,8 @@
 
 #include "nsString.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsIMailboxSpec.h"
 
 class nsImapFlagAndUidState;
@@ -67,7 +68,7 @@ extern nsresult
 nsCreateImapBaseMessageURI(const nsACString& baseURI, nsCString& baseMessageURI);
 
 void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount, nsImapFlagAndUidState *flagState, nsCString &returnString);
-void ParseUidString(const char *uidString, nsMsgKeyArray &keys);
+void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys);
 void AppendUid(nsCString &msgIds, PRUint32 uid);
 
 

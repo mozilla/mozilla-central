@@ -88,7 +88,7 @@ protected:
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;
   nsCOMPtr <nsILocalFile> m_curTempFile;
   
-  nsMsgKeyArray	m_CurrentKeys;
+  nsTArray<nsMsgKey> m_CurrentKeys;
   PRUint32      m_KeyIndex;
   nsCOMPtr <nsIMsgDatabase> m_currentDB;
   nsCOMPtr <nsIUrlListener> m_listener;

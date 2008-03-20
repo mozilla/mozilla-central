@@ -423,7 +423,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
   }
 }
 
-void ParseUidString(const char *uidString, nsMsgKeyArray &keys)
+void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
 {
   // This is in the form <id>,<id>, or <id1>:<id2>
   char curChar = *uidString;
@@ -444,9 +444,9 @@ void ParseUidString(const char *uidString, nsMsgKeyArray &keys)
     if (isRange)
     {
       while (saveStartToken < curToken)
-        keys.Add(saveStartToken++);
+        keys.AppendElement(saveStartToken++);
     }
-    keys.Add(curToken);
+    keys.AppendElement(curToken);
     isRange = (curChar == ':');
     if (isRange)
       saveStartToken = curToken + 1;

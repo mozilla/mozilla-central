@@ -57,12 +57,12 @@
 // if pIds is not null, download the articles whose id's are passed in. Otherwise,
 // which articles to download is determined by nsNewsDownloader object,
 // or subclasses thereof. News can download marked objects, for example.
-nsresult nsNewsDownloader::DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsMsgKeyArray *pIds)
+nsresult nsNewsDownloader::DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsTArray<nsMsgKey> *pIds)
 {
   if (pIds != nsnull)
-    m_keysToDownload.InsertAt(0, pIds);
+    m_keysToDownload.InsertElementsAt(0, pIds->Elements(), pIds->Length());
 
-  if (m_keysToDownload.GetSize() > 0)
+  if (!m_keysToDownload.IsEmpty())
     m_downloadFromKeys = PR_TRUE;
 
   m_folder = folder;
@@ -187,12 +187,12 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
   nsresult rv;
   if (m_downloadFromKeys)
   {
-    if (m_numwrote >= (PRInt32) m_keysToDownload.GetSize())
+    if (m_numwrote >= (PRInt32) m_keysToDownload.Length())
       return PR_FALSE;
 
     m_keyToDownload = m_keysToDownload[m_numwrote++];
     PRInt32 percent;
-    percent = (100 * m_numwrote) / (PRInt32) m_keysToDownload.GetSize();
+    percent = (100 * m_numwrote) / (PRInt32) m_keysToDownload.Length();
 
     PRInt64 nowMS = LL_ZERO;
     if (percent < 100)  // always need to do 100%
@@ -219,7 +219,7 @@ PRBool nsNewsDownloader::GetNextHdrToRetrieve()
     nsAutoString firstStr;
     firstStr.AppendInt(m_numwrote);
     nsAutoString totalStr;
-    totalStr.AppendInt(m_keysToDownload.GetSize());
+    totalStr.AppendInt(m_keysToDownload.Length());
     nsString prettiestName;
     nsString statusString;
 
@@ -298,14 +298,14 @@ NS_IMETHODIMP nsNewsDownloader::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFolder *f
   {
     nsMsgKey key;
     header->GetMessageKey(&key);
-    m_keysToDownload.Add(key);
+    m_keysToDownload.AppendElement(key);
   }
   return NS_OK;
 }
 
 NS_IMETHODIMP nsNewsDownloader::OnSearchDone(nsresult status)
 {
-  if (m_keysToDownload.GetSize() == 0)
+  if (m_keysToDownload.IsEmpty())
   {
     if (m_listener)
       return m_listener->OnStopRunningUrl(nsnull, NS_OK);
@@ -519,7 +519,7 @@ nsresult DownloadMatchingNewsArticlesToNewsDB::RunSearch(nsIMsgFolder *folder, n
   m_newsDB = newsDB;
   m_searchSession = searchSession;
 
-  m_keysToDownload.RemoveAll();
+  m_keysToDownload.Clear();
   nsresult rv;
   NS_ENSURE_ARG(searchSession);
   NS_ENSURE_ARG(folder);

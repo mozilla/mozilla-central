@@ -39,7 +39,8 @@
 #include "msgCore.h"
 #include "nsCOMArray.h"
 #include "nsIMsgThread.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgDBView.h"
@@ -78,7 +79,7 @@ protected:
   PRUint32        m_flags;
   nsMsgKey        m_threadRootKey;
   PRUint32        m_newestMsgDate;
-  nsMsgKeyArray   m_keys;
+  nsTArray<nsMsgKey> m_keys;
   PRBool          m_dummy; // top level msg is a dummy, e.g., grouped by age.
   nsCOMPtr <nsIMsgDatabase> m_db; // should we make a weak ref or just a ptr?
 };

@@ -59,7 +59,6 @@
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsIMsgDatabase.h"
 
-static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 //////////////////////////////////////////////////////////////////////////////
 // nsFolderCompactState
 //////////////////////////////////////////////////////////////////////////////
@@ -289,10 +288,10 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->SetNativeLeafName(NS_LITERAL_CSTRING("nstmp"));
   m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
   m_window = aMsgWindow;
-  m_keyArray.RemoveAll();
+  m_keyArray.Clear();
   InitDB(db);
 
-  m_size = m_keyArray.GetSize();
+  m_size = m_keyArray.Length();
   m_curIndex = 0;
   
   rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_fileStream), m_file, -1, 00600);

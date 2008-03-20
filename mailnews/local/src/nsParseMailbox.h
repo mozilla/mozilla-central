@@ -40,7 +40,6 @@
 
 #include "nsIURI.h"
 #include "nsIMsgParseMailMsgState.h"
-#include "nsMsgKeyArray.h"
 #include "nsVoidArray.h"
 #include "nsIStreamListener.h"
 #include "nsMsgLineBuffer.h"

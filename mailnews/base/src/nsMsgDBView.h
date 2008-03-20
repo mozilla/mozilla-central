@@ -47,7 +47,8 @@
 #include "nsIMsgDatabase.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgLineBuffer.h" // for nsByteArray
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsIDBChangeListener.h"
 #include "nsITreeView.h"
 #include "nsITreeBoxObject.h"
@@ -120,7 +121,7 @@ public:
   NS_DECL_NSITREEVIEW
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
 
-  nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsMsgKeyArray &keys,
+  nsMsgViewIndex GetInsertIndexHelper(nsIMsgDBHdr *msgHdr, nsTArray<nsMsgKey> &keys,
                                         nsMsgViewSortOrderValue sortOrder,
                                         nsMsgViewSortTypeValue sortType);
   PRInt32  SecondarySort(nsMsgKey key1, nsISupports *folder1, nsMsgKey key2, nsISupports *folder2,
@@ -205,8 +206,8 @@ protected:
   // When you are done changing the view, 
   // call RestoreSelection passing in the same array
   // and we'll restore the selection AND unfreeze selection in the UI.
-  nsresult SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsMsgKeyArray &aMsgKeyArray);
-  nsresult RestoreSelection(nsMsgKey aCurrentmsgKey, nsMsgKeyArray &aMsgKeyArray);
+  nsresult SaveAndClearSelection(nsMsgKey *aCurrentMsgKey, nsTArray<nsMsgKey> &aMsgKeyArray);
+  nsresult RestoreSelection(nsMsgKey aCurrentmsgKey, nsTArray<nsMsgKey> &aMsgKeyArray);
 
   // this is not safe to use when you have a selection
   // RowCountChanged() will call AdjustSelection() 
@@ -251,7 +252,8 @@ protected:
   nsresult PersistFolderInfo(nsIDBFolderInfo **dbFolderInfo);
   void     SetMRUTimeForFolder(nsIMsgFolder *folder);
 
-  nsMsgKey		GetAt(nsMsgViewIndex index) ;
+  nsMsgKey		GetAt(nsMsgViewIndex index)
+                      {return m_keys.SafeElementAt(index, nsMsgKey_None);}
   nsMsgViewIndex	FindViewIndex(nsMsgKey  key) 
 					  {return FindKey(key, PR_FALSE);}
   nsMsgViewIndex        FindHdr(nsIMsgDBHdr *msgHdr);
@@ -264,7 +266,7 @@ protected:
   nsresult ListUnreadIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
   nsMsgViewIndex FindParentInThread(nsMsgKey parentKey, nsMsgViewIndex startOfThreadViewIndex);
   nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey parentKey, PRInt32 level, nsMsgViewIndex *viewIndex, PRUint32 *pNumListed);
-  PRInt32  GetSize(void) {return(m_keys.GetSize());}
+  PRInt32  GetSize(void) {return(m_keys.Length());}
 
   // notification api's
   void	EnableChangeUpdates();
@@ -289,7 +291,7 @@ protected:
                                nsMsgJunkStatus aNewClassification);
   nsresult ToggleReadByIndex(nsMsgViewIndex index);
   nsresult SetReadByIndex(nsMsgViewIndex index, PRBool read);
-  nsresult SetThreadOfMsgReadByIndex(nsMsgViewIndex index, nsMsgKeyArray &keysMarkedRead, PRBool read);
+  nsresult SetThreadOfMsgReadByIndex(nsMsgViewIndex index, nsTArray<nsMsgKey> &keysMarkedRead, PRBool read);
   nsresult SetFlaggedByIndex(nsMsgViewIndex index, PRBool mark);
   nsresult SetLabelByIndex(nsMsgViewIndex index, nsMsgLabelValue label);
   nsresult OrExtraFlag(nsMsgViewIndex index, PRUint32 orflag);
@@ -328,8 +330,8 @@ protected:
   nsresult FindPrevUnread(nsMsgKey startKey, nsMsgKey *pResultKey, nsMsgKey *resultThreadId);
   nsresult FindFirstFlagged(nsMsgViewIndex *pResultIndex);
   nsresult FindPrevFlagged(nsMsgViewIndex startIndex, nsMsgViewIndex *pResultIndex);
-  nsresult MarkThreadOfMsgRead(nsMsgKey msgId, nsMsgViewIndex msgIndex, nsMsgKeyArray &idsMarkedRead, PRBool bRead);
-  nsresult MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex threadIndex, nsMsgKeyArray &idsMarkedRead, PRBool bRead);
+  nsresult MarkThreadOfMsgRead(nsMsgKey msgId, nsMsgViewIndex msgIndex, nsTArray<nsMsgKey> &idsMarkedRead, PRBool bRead);
+  nsresult MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex threadIndex, nsTArray<nsMsgKey> &idsMarkedRead, PRBool bRead);
   PRBool IsValidIndex(nsMsgViewIndex index);
   nsresult ToggleIgnored(nsMsgViewIndex * indices, PRInt32 numIndices, nsMsgViewIndex *resultIndex, PRBool *resultToggleState);
   PRBool OfflineMsgSelected(nsMsgViewIndex * indices, PRInt32 numIndices);
@@ -348,7 +350,7 @@ protected:
   PRBool AdjustReadFlag(nsIMsgDBHdr *msgHdr, PRUint32 *msgFlags);
   void FreeAll(nsVoidArray *ptrs);
   void ClearHdrCache();
-  nsMsgKeyArray m_keys;
+  nsTArray<nsMsgKey> m_keys;
   nsTArray<PRUint32> m_flags;
   nsTArray<PRUint8> m_levels;
   nsMsgImapDeleteModel mDeleteModel;

@@ -51,7 +51,7 @@ nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
 }
 
 nsresult
-nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray, 
+nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
                            const char* srcMsgIdString, nsIMsgFolder* dstFolder,
                            PRBool idsAreUids, PRBool isMove,
                            nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
@@ -66,8 +66,8 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
   m_eventTarget = eventTarget;
   if (urlListener)
     m_urlListener = do_QueryInterface(urlListener, &rv);
-  m_srcKeyArray.CopyArray(srcKeyArray);
-  m_dupKeyArray.CopyArray(srcKeyArray);
+  m_srcKeyArray = *srcKeyArray;
+  m_dupKeyArray = *srcKeyArray;
   nsCString uri;
   rv = srcFolder->GetURI(uri);
   nsCString protocolType(uri);
@@ -76,7 +76,7 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray,
   if (protocolType.LowerCaseEqualsLiteral("mailbox"))
   {
     m_srcIsPop3 = PR_TRUE;
-    PRUint32 i, count = m_srcKeyArray.GetSize();
+    PRUint32 i, count = m_srcKeyArray.Length();
     nsCOMPtr<nsIMsgDatabase> srcDB;
     rv = srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(srcDB));
     if (NS_FAILED(rv)) return rv;
@@ -177,8 +177,8 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
 
       // protect against a bogus undo txn without any source keys
       // see bug #179856 for details
-      NS_ASSERTION(m_srcKeyArray.GetSize(), "no source keys");
-      if (!m_srcKeyArray.GetSize())
+      NS_ASSERTION(!m_srcKeyArray.IsEmpty(), "no source keys");
+      if (m_srcKeyArray.IsEmpty())
         return NS_ERROR_UNEXPECTED;
 
       if (NS_SUCCEEDED(rv) && deleteModel == nsMsgImapDeleteModels::IMAPDelete)
@@ -259,8 +259,8 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       
       // protect against a bogus undo txn without any source keys
       // see bug #179856 for details
-      NS_ASSERTION(m_srcKeyArray.GetSize(), "no source keys");
-      if (!m_srcKeyArray.GetSize())
+      NS_ASSERTION(!m_srcKeyArray.IsEmpty(), "no source keys");
+      if (m_srcKeyArray.IsEmpty())
         return NS_ERROR_UNEXPECTED;
       
       if (NS_SUCCEEDED(rv) && deleteModel == nsMsgImapDeleteModels::IMAPDelete)
@@ -337,9 +337,9 @@ nsImapMoveCopyMsgTxn::SetCopyResponseUid(const char* aMsgIdString)
 }
 
 nsresult
-nsImapMoveCopyMsgTxn::GetSrcKeyArray(nsMsgKeyArray& srcKeyArray)
+nsImapMoveCopyMsgTxn::GetSrcKeyArray(nsTArray<nsMsgKey>& srcKeyArray)
 {
-    srcKeyArray.CopyArray(&m_srcKeyArray);
+    srcKeyArray = m_srcKeyArray;
     return NS_OK;
 }
 
@@ -372,7 +372,7 @@ nsImapMoveCopyMsgTxn::UndoMailboxDelete()
         rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
         if (NS_FAILED(rv)) return rv;
         
-        PRUint32 count = m_srcKeyArray.GetSize();
+        PRUint32 count = m_srcKeyArray.Length();
         PRUint32 i;
         nsCOMPtr<nsIMsgDBHdr> oldHdr;
         nsCOMPtr<nsIMsgDBHdr> newHdr;
@@ -441,7 +441,7 @@ nsresult nsImapMoveCopyMsgTxn::GetImapDeleteModel(nsIMsgFolder *aFolder, nsMsgIm
   return rv;
 }
 
-nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsMsgKeyArray* srcKeyArray, 
+nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
 	nsIMsgFolder* dstFolder, PRBool isMove, nsOfflineImapOperationType opType,
         nsIMsgDBHdr *srcHdr,
 	nsIEventTarget* eventTarget, nsIUrlListener* urlListener)

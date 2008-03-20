@@ -895,8 +895,8 @@ MsgMapiListContext::DeleteMessage(nsMsgKey key)
   if (!m_db)
     return FALSE;
   
-  nsMsgKeyArray messageKeys;      
-  messageKeys.InsertAt(0, key);
+  nsAutoTArray<nsMsgKey, 1> messageKeys;      
+  messageKeys.AppendElement(key);
   
   if ( !IsIMAPHost() )
   {

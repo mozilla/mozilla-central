@@ -38,7 +38,8 @@
 #ifndef nsImapFlagAndUidState_h___
 #define nsImapFlagAndUidState_h___
 
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsIImapFlagAndUidState.h"
 
 const PRInt32 kImapFlagAndUidStateSize =	100;
@@ -71,7 +72,7 @@ private:
     PRInt32                 fNumberOfMessagesAdded;
     PRInt32                 fNumberOfMessageSlotsAllocated;
     PRInt32                 fNumberDeleted;
-    nsMsgKeyArray           fUids;
+    nsTArray<nsMsgKey>      fUids;
     imapMessageFlagsType    *fFlags;
     nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;	// Hash table, mapping uids to extra flags
     PRUint16                fSupportedUserFlags;

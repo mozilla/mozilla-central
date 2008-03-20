@@ -324,14 +324,14 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pN
 
     nsMsgViewIndex insertIndex = GetInsertIndex(msgHdr);
     if (insertIndex == nsMsgViewIndex_None)
-      insertIndex = m_keys.GetSize();
-    m_keys.InsertAt(insertIndex, msgKey);
+      insertIndex = m_keys.Length();
+    m_keys.InsertElementAt(insertIndex, msgKey);
     m_flags.InsertElementAt(insertIndex, msgFlags | MSG_VIEW_FLAG_ISTHREAD | MSG_FLAG_ELIDED);
     m_levels.InsertElementAt(insertIndex, 0);
     // if grouped by date, insert dummy header for "age"
     if (GroupViewUsesDummyRow())
     {
-      foundThread->m_keys.InsertAt(0, msgKey /* nsMsgKey_None */);
+      foundThread->m_keys.InsertElementAt(0, msgKey /* nsMsgKey_None */);
       // the previous code made it look like hashKey in this case was always an integer
       foundThread->m_threadKey = atoi(NS_LossyConvertUTF16toASCII(hashKey).get());
     }
@@ -391,7 +391,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
   }
   // go through the view updating the flags for threads with more than one message...
   // and if grouped by date, expanding threads that were expanded before.
-  for (PRUint32 viewIndex = 0; viewIndex < m_keys.GetSize(); viewIndex++)
+  for (PRUint32 viewIndex = 0; viewIndex < m_keys.Length(); viewIndex++)
   {
     nsCOMPtr <nsIMsgThread> thread;
     GetThreadContainingIndex(viewIndex, getter_AddRefs(thread));
@@ -413,7 +413,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
       }
     }
   }
-  *aCount = m_keys.GetSize();
+  *aCount = m_keys.Length();
   return rv;
 }
 
@@ -425,14 +425,14 @@ nsresult nsMsgGroupView::HandleDayChange()
   {
     PRInt32 count;
     m_dayChanged = PR_FALSE;
-    nsMsgKeyArray preservedSelection;
+    nsAutoTArray<nsMsgKey, 1> preservedSelection;
     nsMsgKey curSelectedKey;
     SaveAndClearSelection(&curSelectedKey, preservedSelection);
     InternalClose();
     PRInt32 oldSize = GetSize();
     // this is important, because the tree will ask us for our
     // row count, which get determine from the number of keys.
-    m_keys.RemoveAll();
+    m_keys.Clear();
     // be consistent
     m_flags.Clear();
     m_levels.Clear();
@@ -449,8 +449,8 @@ nsresult nsMsgGroupView::HandleDayChange()
     NS_ENSURE_SUCCESS(rv,rv);
 
     // now, restore our desired selection
-    nsMsgKeyArray keyArray;
-    keyArray.Add(curSelectedKey);
+    nsAutoTArray<nsMsgKey, 1> keyArray;
+    keyArray.AppendElement(curSelectedKey);
 
     return RestoreSelection(curSelectedKey, keyArray);
   }
@@ -513,7 +513,7 @@ nsresult nsMsgGroupView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, P
             msgKey = thread->m_keys[msgIndexInThread];
           }
 
-          m_keys.InsertAt(threadIndex + msgIndexInThread, msgKey);
+          m_keys.InsertElementAt(threadIndex + msgIndexInThread, msgKey);
           m_flags.InsertElementAt(threadIndex + msgIndexInThread, msgFlags);
           if (msgIndexInThread > 0)
           {
@@ -596,7 +596,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
       OrExtraFlag(viewIndexOfThread - 1, MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_ISTHREAD);
     }
   }
-  if (!groupThread->m_keys.GetSize())
+  if (!groupThread->m_keys.Length())
   {
     nsString hashKey;
     rv = HashHdr(aHdrDeleted, hashKey);

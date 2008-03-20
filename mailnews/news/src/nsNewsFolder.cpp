@@ -95,7 +95,6 @@
 #include "nsIMsgAccountManager.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
-static NS_DEFINE_CID(kCNewsDB, NS_NEWSDB_CID);
 
 // ###tw  This really ought to be the most
 // efficient file reading size for the current
@@ -1529,7 +1528,7 @@ NS_IMETHODIMP nsMsgNewsFolder::SetSaveArticleOffline(PRBool aBool)
 
 NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow)
 {
-  nsMsgKeyArray srcKeyArray;
+  nsTArray<nsMsgKey> srcKeyArray;
   SetSaveArticleOffline(PR_TRUE);
   nsresult rv;
 
@@ -1553,7 +1552,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
           pHeader->GetMessageKey(&msgKey);
           MsgFitsDownloadCriteria(msgKey, &shouldStoreMsgOffline);
           if (shouldStoreMsgOffline)
-            srcKeyArray.Add(msgKey);
+            srcKeyArray.AppendElement(msgKey);
         }
       }
     }
@@ -1567,7 +1566,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
 
 NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsISupportsArray *messages, nsIMsgWindow *window)
 {
-  nsMsgKeyArray srcKeyArray;
+  nsTArray<nsMsgKey> srcKeyArray;
   SetSaveArticleOffline(PR_TRUE); // ### TODO need to clear this when we've finished
   PRUint32 count = 0;
   PRUint32 i;
@@ -1582,7 +1581,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsISupportsArray *mess
     if (msgDBHdr)
       rv = msgDBHdr->GetMessageKey(&key);
     if (NS_SUCCEEDED(rv))
-      srcKeyArray.Add(key);
+      srcKeyArray.AppendElement(key);
   }
   DownloadNewsArticlesToOfflineStore *downloadState = new DownloadNewsArticlesToOfflineStore(window, mDatabase, this);
   if (!downloadState)

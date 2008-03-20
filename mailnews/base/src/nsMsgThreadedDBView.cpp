@@ -125,10 +125,10 @@ nsresult nsMsgThreadedDBView::InitThreadedView(PRInt32 *pCount)
 {
   nsresult rv;
   
-  m_keys.RemoveAll();
+  m_keys.Clear();
   m_flags.Clear();
   m_levels.Clear(); 
-  m_prevKeys.RemoveAll();
+  m_prevKeys.Clear();
   m_prevFlags.Clear();
   m_prevLevels.Clear();
   m_havePrevView = PR_FALSE;
@@ -173,7 +173,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   // messages in the view, and then call nsMsgDBView::Sort(sortType, sortOrder).
   // Then, we expand the threads in the result array that were expanded in the original view (perhaps by copying
   // from the original view, but more likely just be calling expand).
-  for (PRUint32 i = 0; i < m_keys.GetSize(); i++)
+  for (PRUint32 i = 0; i < m_keys.Length(); i++)
   {
     if (m_flags[i] & MSG_VIEW_FLAG_ISTHREAD)
     {
@@ -186,7 +186,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
       numThreads++;
     }
   }
-  m_keys.SetSize(numThreads);
+  m_keys.SetLength(numThreads);
   m_flags.SetLength(numThreads);
   m_levels.SetLength(numThreads);
   //m_viewFlags &= ~nsMsgViewFlagsType::kThreadedDisplay;
@@ -198,7 +198,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   // and expand the thread. We have to update MSG_VIEW_FLAG_HAS_CHILDREN because
   // we may be going from a flat sort, which doesn't maintain that flag,
   // to a threaded sort, which requires that flag.
-  for (PRUint32 j = 0; j < m_keys.GetSize(); j++)
+  for (PRUint32 j = 0; j < m_keys.Length(); j++)
   {
     PRUint32 flags = m_flags[j];
     if ((flags & (MSG_VIEW_FLAG_HASCHILDREN | MSG_FLAG_ELIDED)) == MSG_VIEW_FLAG_HASCHILDREN)
@@ -238,7 +238,7 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
 {
   PRInt32	numAdded = 0;
   // Allocate enough space first to avoid memory allocation/deallocation.
-  m_keys.AllocateSpace(numKeysToAdd+m_keys.GetSize());
+  m_keys.SetCapacity(m_keys.Length() + numKeysToAdd);
   m_flags.SetCapacity(m_flags.Length() + numKeysToAdd);
   m_levels.SetCapacity(m_levels.Length() + numKeysToAdd);
   for (PRInt32 i = 0; i < numKeysToAdd; i++)
@@ -255,14 +255,14 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
       flag |= MSG_FLAG_ELIDED;
     // should this be persistent? Doesn't seem to need to be.
     flag |= MSG_VIEW_FLAG_ISTHREAD;
-    m_keys.Add(pKeys[i]);
+    m_keys.AppendElement(pKeys[i]);
     m_flags.AppendElement(flag);
     m_levels.AppendElement(pLevels[i]);
     numAdded++;
     // we expand as we build the view, which allows us to insert at the end of the key array,
     // instead of the middle, and is much faster.
     if ((!(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay) || m_viewFlags & nsMsgViewFlagsType::kExpandAll) && flag & MSG_FLAG_ELIDED)
-       ExpandByIndex(m_keys.GetSize() - 1, NULL);
+       ExpandByIndex(m_keys.Length() - 1, NULL);
   }
   return numAdded;
 }
@@ -291,7 +291,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
     sortType = nsMsgViewSortType::byId;
 
   nsMsgKey preservedKey;
-  nsMsgKeyArray preservedSelection;
+  nsAutoTArray<nsMsgKey, 1> preservedSelection;
   SaveAndClearSelection(&preservedKey, preservedSelection);
   // if the client wants us to forget our cached id arrays, they
   // should build a new view. If this isn't good enough, we
@@ -307,8 +307,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
       if ( m_havePrevView)
       {
         // restore saved id array and flags array
-        m_keys.RemoveAll();
-        m_keys.InsertAt(0, &m_prevKeys);
+        m_keys = m_prevKeys;
         m_flags = m_prevFlags;
         m_levels = m_prevLevels;
         m_sortValid = PR_TRUE;
@@ -351,8 +350,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
       else
       {
         // going from SortByThread to non-thread sort - must build new key, level,and flags arrays 
-        m_prevKeys.RemoveAll();
-        m_prevKeys.InsertAt(0, &m_keys);
+        m_prevKeys = m_keys;
         m_prevFlags = m_flags;
         m_prevLevels = m_levels;
         // do this before we sort, so that we'll use the cheap method
@@ -502,7 +500,7 @@ void	nsMsgThreadedDBView::OnExtraFlagChanged(nsMsgViewIndex index, PRUint32 extr
     if (m_havePrevView)
     {
       nsMsgKey keyChanged = m_keys[index];
-      nsMsgViewIndex prevViewIndex = m_prevKeys.FindIndex(keyChanged);
+      nsMsgViewIndex prevViewIndex = m_prevKeys.IndexOf(keyChanged);
       if (prevViewIndex != nsMsgViewIndex_None)
       {
         PRUint32 prevFlag = m_prevFlags[prevViewIndex];
@@ -537,7 +535,7 @@ void nsMsgThreadedDBView::OnHeaderAddedOrDeleted()
 
 void nsMsgThreadedDBView::ClearPrevIdArray()
 {
-  m_prevKeys.RemoveAll();
+  m_prevKeys.Clear();
   m_prevLevels.Clear();
   m_prevFlags.Clear();
   m_havePrevView = PR_FALSE;
@@ -624,7 +622,7 @@ nsresult nsMsgThreadedDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentK
             level = m_levels[parentIndex] + 1;
             insertIndex = GetInsertInfoForNewHdr(newHdr, parentIndex, level);
           }
-          m_keys.InsertAt(insertIndex, newKey);
+          m_keys.InsertElementAt(insertIndex, newKey);
           m_flags.InsertElementAt(insertIndex, newFlags);
           m_levels.InsertElementAt(insertIndex, level);
 

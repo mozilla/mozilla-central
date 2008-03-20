@@ -120,7 +120,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages, PRUint16 
 	  fNumberOfMessageSlotsAllocated = kImapFlagAndUidStateSize;
   fFlags = (imapMessageFlagsType*) PR_Malloc(sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
   
-  fUids.SetSize(fNumberOfMessageSlotsAllocated);
+  fUids.InsertElementsAt(0, fNumberOfMessageSlotsAllocated, 0);
   memset(fFlags, 0, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
   fNumberDeleted = 0;
@@ -134,7 +134,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(const nsImapFlagAndUidState& state,
   
   fNumberOfMessageSlotsAllocated = state.fNumberOfMessageSlotsAllocated;
   fFlags = (imapMessageFlagsType*) PR_Malloc(sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
-  fUids.CopyArray((nsMsgKeyArray *) &state.fUids);
+  fUids = state.fUids;
 
   memcpy(fFlags, state.fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated);
   fSupportedUserFlags = flags;
@@ -200,7 +200,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::ExpungeByIndex(PRUint32 msgIndex)
     fNumberDeleted--;
   for (counter = msgIndex; counter < (PRUint32) fNumberOfMessagesAdded; counter++)
   {
-    fUids[counter] = fUids[counter + 1];                               
+    fUids[counter] = fUids[counter + 1];
     fFlags[counter] = fFlags[counter + 1];                                  
   }
 
@@ -224,7 +224,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::AddUidFlagPair(PRUint32 uid, imapMessageFla
   if (fNumberOfMessagesAdded >= fNumberOfMessageSlotsAllocated)
   {
     fNumberOfMessageSlotsAllocated += kImapFlagAndUidStateSize;
-    fUids.SetSize(fNumberOfMessageSlotsAllocated);
+    fUids.InsertElementsAt(fUids.Length(), kImapFlagAndUidStateSize, 0);
     fFlags = (imapMessageFlagsType*) PR_REALLOC(fFlags, sizeof(imapMessageFlagsType) * fNumberOfMessageSlotsAllocated); // new imapMessageFlagsType[fNumberOfMessageSlotsAllocated];
     if (!fFlags)
       return NS_ERROR_OUT_OF_MEMORY;

@@ -86,7 +86,7 @@ protected:
   nsCOMPtr<nsIMsgDatabase> m_db; // new database for the compact folder
   nsCOMPtr <nsILocalFile> m_file; // new mailbox for the compact folder
   nsCOMPtr <nsIOutputStream> m_fileStream; // output file stream for writing
-  nsMsgKeyArray m_keyArray; // all message keys need to be copied over
+  nsTArray<nsMsgKey> m_keyArray; // all message keys need to be copied over
   PRInt32 m_size; // size of the message key array
   PRInt32 m_curIndex; // index of the current copied message key in key array
   nsMsgKey m_startOfNewMsg; // offset in mailbox of new message

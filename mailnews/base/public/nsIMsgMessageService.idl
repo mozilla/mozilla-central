@@ -48,10 +48,11 @@ interface nsIMsgDBHdr;
 interface nsIStreamConverter;
 
 %{C++
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 %}
 
-[ref] native nsMsgKeyArrayRef(nsMsgKeyArray);
+[ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 
 
 [scriptable, uuid(e39c2eab-ad6c-4560-b642-7f98ba2c0c35)]

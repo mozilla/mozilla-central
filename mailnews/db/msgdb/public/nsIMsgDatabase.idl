@@ -41,7 +41,7 @@
 #include "nsIMsgDBView.idl"
 
 %{C++
-#include "nsMsgKeyArray.h"
+#include "nsTArray.h"
 %}
 
 interface nsIDBChangeListener;
@@ -103,8 +103,8 @@ interface nsMsgDBCommitType
   const long kCompressCommit = 3;
 };
 
-[ref] native nsMsgKeyArrayRef(nsMsgKeyArray);
-[ptr] native nsMsgKeyArrayPtr(nsMsgKeyArray);
+[ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
+[ptr] native nsMsgKeyArrayPtr(nsTArray<nsMsgKey>);
 
 [scriptable, uuid(03223c50-1e88-45e8-ba1a-7ce792dc3fc3)]
 interface nsIMsgDBService : nsISupports

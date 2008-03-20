@@ -215,12 +215,12 @@ protected:
   // want to run junk controls on. This is in addition to "new" hdrs
   // in the db, which might get cleared because the user clicked away
   // from the folder.
-  nsMsgKeyArray m_saveNewMsgs;
+  nsTArray<nsMsgKey> m_saveNewMsgs;
 
   // These are the set of new messages for a folder who has had
   // its db closed, without the user reading the folder. This 
   // happens with pop3 mail filtered to a different local folder.
-  nsMsgKeyArray m_newMsgs;
+  nsTArray<nsMsgKey> m_newMsgs;
 
   //
   // stuff from the uri

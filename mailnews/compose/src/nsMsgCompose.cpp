@@ -3541,11 +3541,11 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
           {
             nsCAutoString srcStr(str+1);
             PRInt32 err;
-            nsMsgKey num = srcStr.ToInteger(&err);
-            if (num != nsMsgKey_None)
+            nsMsgKey messageID = srcStr.ToInteger(&err);
+            if (messageID != nsMsgKey_None)
             {
               rv = imapFolder->StoreImapFlags(kImapMsgDeletedFlag, PR_TRUE,
-                                              &num, 1, nsnull);
+                                              &messageID, 1, nsnull);
             }
           }
         }

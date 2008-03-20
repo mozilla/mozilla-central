@@ -1766,12 +1766,12 @@ NS_IMETHODIMP nsMsgDatabase::DeleteMessage(nsMsgKey key, nsIDBChangeListener *in
 }
 
 
-NS_IMETHODIMP nsMsgDatabase::DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator)
 {
   nsresult  err = NS_OK;
 
   PRUint32 kindex;
-  for (kindex = 0; kindex < nsMsgKeys->GetSize(); kindex++)
+  for (kindex = 0; kindex < nsMsgKeys->Length(); kindex++)
   {
     nsMsgKey key = nsMsgKeys->ElementAt(kindex);
     nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -1922,7 +1922,7 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
-  if (m_newSet.GetSize() > 0 && m_newSet[m_newSet.GetSize() - 1] == key || m_newSet.IndexOfSorted(key) != kNotFound)
+  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != kNotFound)
     statusFlags |= MSG_FLAG_NEW;
   else
     statusFlags &= ~MSG_FLAG_NEW;
@@ -2065,7 +2065,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkHasAttachments(nsMsgKey key, PRBool bHasAttachm
 }
 
 NS_IMETHODIMP
-nsMsgDatabase::MarkThreadRead(nsIMsgThread *thread, nsIDBChangeListener *instigator, nsMsgKeyArray *thoseMarked)
+nsMsgDatabase::MarkThreadRead(nsIMsgThread *thread, nsIDBChangeListener *instigator, nsTArray<nsMsgKey> *thoseMarked)
 {
   if (!thread)
     return NS_ERROR_NULL_POINTER;
@@ -2088,7 +2088,7 @@ nsMsgDatabase::MarkThreadRead(nsIMsgThread *thread, nsIDBChangeListener *instiga
         {
           nsMsgKey key;
           if (NS_SUCCEEDED(child->GetMessageKey(&key)))
-            thoseMarked->Add(key);
+            thoseMarked->AppendElement(key);
         }
         MarkHdrRead(child, PR_TRUE, instigator);
       }
@@ -2368,7 +2368,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrMarked(nsIMsgDBHdr *msgHdr, PRBool mark,
 }
 
 
-NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
+NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
 {
   nsresult    rv;
   nsMsgHdr  *pHeader;
@@ -2395,7 +2395,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
       {
         nsMsgKey key;
         (void)pHeader->GetMessageKey(&key);
-        thoseMarked->Add(key);
+        thoseMarked->AppendElement(key);
       }
       rv = MarkHdrRead(pHeader, PR_TRUE, nsnull);   // ### dmb - blow off error?
     }
@@ -2412,7 +2412,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, nsMsgKeyArray *markedIds)
+NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, nsTArray<nsMsgKey> *markedIds)
 {
   nsresult rv;
   nsMsgHdr  *pHeader;
@@ -2448,7 +2448,7 @@ NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, n
       {
         numChanged++;
         if (markedIds)
-          markedIds->Add(key);
+          markedIds->AppendElement(key);
         rv = MarkHdrRead(pHeader, PR_TRUE, NULL);  // ### dmb - blow off error?
       }
     }
@@ -2463,9 +2463,8 @@ NS_IMETHODIMP nsMsgDatabase::MarkReadByDate (PRTime startDate, PRTime endDate, n
 NS_IMETHODIMP nsMsgDatabase::AddToNewList(nsMsgKey key)
 {
   // we add new keys in increasing order...
-  if (m_newSet.GetSize() == 0
-      || (m_newSet[m_newSet.GetSize() - 1] < key))
-    m_newSet.Add(key);
+  if (m_newSet.IsEmpty() || (m_newSet[m_newSet.Length() - 1] < key))
+    m_newSet.AppendElement(key);
   return NS_OK;
 }
 
@@ -2473,15 +2472,14 @@ NS_IMETHODIMP nsMsgDatabase::AddToNewList(nsMsgKey key)
 NS_IMETHODIMP nsMsgDatabase::ClearNewList(PRBool notify /* = FALSE */)
 {
   nsresult err = NS_OK;
-  if (notify && m_newSet.GetSize() > 0)  // need to update view
+  if (notify && !m_newSet.IsEmpty())  // need to update view
   {
-    nsMsgKeyArray saveNewSet;
-    saveNewSet.CopyArray(m_newSet);
+    nsTArray<nsMsgKey> saveNewSet;
     // clear m_newSet so that the code that's listening to the key change
     // doesn't think we have new messages and send notifications all over
     // that we have new messages.
-    m_newSet.RemoveAll();
-    for (PRUint32 elementIndex = saveNewSet.GetSize() - 1; ; elementIndex--)
+    saveNewSet.SwapElements(m_newSet);
+    for (PRUint32 elementIndex = saveNewSet.Length() - 1; ; elementIndex--)
     {
       nsMsgKey lastNewKey = saveNewSet.ElementAt(elementIndex);
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -2505,7 +2503,7 @@ NS_IMETHODIMP nsMsgDatabase::HasNew(PRBool *_retval)
 {
   if (!_retval) return NS_ERROR_NULL_POINTER;
 
-  *_retval = (m_newSet.GetSize() > 0);
+  *_retval = (m_newSet.Length() > 0);
   return NS_OK;
 }
 
@@ -2728,7 +2726,7 @@ nsMsgDatabase::SyncCounts()
 
 
 // resulting output array is sorted by key.
-NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsMsgKeyArray &outputKeys)
+NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsTArray<nsMsgKey> &outputKeys)
 {
   nsresult  err = NS_OK;
   nsIMdbTableRowCursor *rowCursor;
@@ -2745,11 +2743,11 @@ NS_IMETHODIMP nsMsgDatabase::ListAllKeys(nsMsgKeyArray &outputKeys)
       if (outPos < 0 || outOid.mOid_Id == (mdb_id) -1)
         break;
       if (err == NS_OK)
-        outputKeys.Add(outOid.mOid_Id);
+        outputKeys.AppendElement(outOid.mOid_Id);
     }
     rowCursor->Release();
   }
-  outputKeys.QuickSort();
+  outputKeys.Sort();
   return err;
 }
 
@@ -3343,7 +3341,7 @@ nsresult nsMsgDatabase::CharPtrToRowCellColumn(nsIMdbRow *row, mdb_token columnT
   return row->AddColumn(GetEnv(),  columnToken, &yarn);
 }
 
-// caller must PR_FREEIF result
+// caller must NS_Free result
 nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnToken, char **result)
 {
   nsresult  err = NS_ERROR_NULL_POINTER;
@@ -3354,13 +3352,12 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
     err = row->AliasCellYarn(GetEnv(), columnToken, &yarn);
     if (err == NS_OK)
     {
-      *result = (char *) PR_CALLOC(yarn.mYarn_Fill + 1);
+      *result = (char *)NS_Alloc(yarn.mYarn_Fill + 1);
       if (*result)
       {
         if (yarn.mYarn_Fill > 0)
           memcpy(*result, yarn.mYarn_Buf, yarn.mYarn_Fill);
-        else
-          **result = 0;
+        result[yarn.mYarn_Fill] = '\0';
       }
       else
         err = NS_ERROR_OUT_OF_MEMORY;
@@ -4214,7 +4211,7 @@ nsresult nsMsgDatabase::GetIntPref(const char *prefName, PRInt32 *result)
 }
 
 
-nsresult nsMsgDatabase::ListAllThreads(nsMsgKeyArray *threadIds)
+nsresult nsMsgDatabase::ListAllThreads(nsTArray<nsMsgKey> *threadIds)
 {
   nsresult rv;
   nsMsgThread *pThread;
@@ -4232,7 +4229,7 @@ nsresult nsMsgDatabase::ListAllThreads(nsMsgKeyArray *threadIds)
     if (threadIds) {
       nsMsgKey key;
       (void)pThread->GetThreadKey(&key);
-      threadIds->Add(key);
+      threadIds->AppendElement(key);
     }
     // NS_RELEASE(pThread);
     pThread = nsnull;
@@ -4259,7 +4256,7 @@ NS_IMETHODIMP  nsMsgDatabase::RemoveOfflineOp(nsIMsgOfflineImapOperation *op)
 }
 
 
-NS_IMETHODIMP nsMsgDatabase::ListAllOfflineMsgs(nsMsgKeyArray *outputKeys)
+NS_IMETHODIMP nsMsgDatabase::ListAllOfflineMsgs(nsTArray<nsMsgKey> *outputKeys)
 {
   nsCOMPtr <nsISimpleEnumerator> enumerator;
   PRUint32 flag = MSG_FLAG_OFFLINE;
@@ -4283,11 +4280,11 @@ NS_IMETHODIMP nsMsgDatabase::ListAllOfflineMsgs(nsMsgKeyArray *outputKeys)
       {
         nsMsgKey msgKey;
         dbMessage->GetMessageKey(&msgKey);
-        outputKeys->Add(msgKey);
+        outputKeys->AppendElement(msgKey);
       }
     }
   }
-  outputKeys->QuickSort();
+  outputKeys->Sort();
 
   return rv;
 }
@@ -4298,13 +4295,13 @@ NS_IMETHODIMP nsMsgDatabase::EnumerateOfflineOps(nsISimpleEnumerator **enumerato
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgDatabase::ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds)
+NS_IMETHODIMP nsMsgDatabase::ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpIds)
 {
   NS_ASSERTION(PR_FALSE, "overridden by nsMailDatabase");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgDatabase::ListAllOfflineDeletes(nsMsgKeyArray *offlineDeletes)
+NS_IMETHODIMP nsMsgDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineDeletes)
 {
   nsresult ret = NS_OK;
   if (!offlineDeletes)
@@ -4366,9 +4363,9 @@ nsresult nsMsgDatabase::DumpContents()
   nsMsgKey key;
   PRUint32 i;
 
-  nsMsgKeyArray keys;
+  nsTArray<nsMsgKey> keys;
   nsresult rv = ListAllKeys(keys);
-  for (i = 0; i < keys.GetSize(); i++) {
+  for (i = 0; i < keys.Length(); i++) {
     key = keys[i];
     nsIMsgDBHdr *msg = NULL;
     rv = GetMsgHdrForKey(key, &msg);
@@ -4385,9 +4382,9 @@ nsresult nsMsgDatabase::DumpContents()
       NS_RELEASE(msgHdr);
     }
   }
-  nsMsgKeyArray threads;
+  nsTArray<nsMsgKey> threads;
   rv = ListAllThreads(&threads);
-  for ( i = 0; i < threads.GetSize(); i++)
+  for ( i = 0; i < threads.Length(); i++)
   {
     key = threads[i];
     printf("thread key = %u\n", key);
@@ -4639,7 +4636,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
   nsMsgHdr *pHeader;
   nsCOMPtr <nsISimpleEnumerator> hdrs;
   rv = EnumerateMessages(getter_AddRefs(hdrs));
-  nsMsgKeyArray keysToDelete;
+  nsTArray<nsMsgKey> keysToDelete;
 
   if (NS_FAILED(rv))
     return rv;
@@ -4684,7 +4681,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
     {
       nsMsgKey msgKey;
       pHeader->GetMessageKey(&msgKey);
-      keysToDelete.Add(msgKey);
+      keysToDelete.AppendElement(msgKey);
       if (hdrsToDelete)
         hdrsToDelete->AppendElement(pHeader);
     }
@@ -4695,9 +4692,9 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
   {
     DeleteMessages(&keysToDelete, nsnull);
 
-    if (keysToDelete.GetSize() > 10) // compress commit if we deleted more than 10
+    if (keysToDelete.Length() > 10) // compress commit if we deleted more than 10
       Commit(nsMsgDBCommitType::kCompressCommit);
-    else if (keysToDelete.GetSize() > 0)
+    else if (!keysToDelete.IsEmpty())
       Commit(nsMsgDBCommitType::kLargeCommit);
   }
   return rv;
@@ -4713,7 +4710,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool ke
   if (NS_FAILED(rv))
     return rv;
   PRBool hasMore = PR_FALSE;
-  nsMsgKeyArray keysToDelete;
+  nsTArray<nsMsgKey> keysToDelete;
 
   mdb_count numHdrs = 0;
   if (m_mdbAllMsgHeadersTable)
@@ -4745,7 +4742,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool ke
     {
       nsMsgKey msgKey;
       pHeader->GetMessageKey(&msgKey);
-      keysToDelete.Add(msgKey);
+      keysToDelete.AppendElement(msgKey);
       numHdrs--;
       if (hdrsToDelete)
         hdrsToDelete->AppendElement(pHeader);
@@ -4755,7 +4752,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool ke
 
   if (!hdrsToDelete)
   {
-    PRInt32 numKeysToDelete = keysToDelete.GetSize();
+    PRInt32 numKeysToDelete = keysToDelete.Length();
     if (numKeysToDelete > 0)
     {
       DeleteMessages(&keysToDelete, nsnull);
@@ -5003,13 +5000,13 @@ nsMsgDatabase::GetNewList(PRUint32 *aCount, PRUint32 **aNewKeys)
     NS_ENSURE_ARG_POINTER(aCount);
     NS_ENSURE_ARG_POINTER(aNewKeys);
 
-    *aCount = m_newSet.GetSize();
+    *aCount = m_newSet.Length();
     if (*aCount > 0)
     {
       *aNewKeys = static_cast<PRUint32 *>(nsMemory::Alloc(*aCount * sizeof(PRUint32)));
       if (!*aNewKeys)
         return NS_ERROR_OUT_OF_MEMORY;
-      memcpy(*aNewKeys, m_newSet.GetArray(), *aCount * sizeof(PRUint32));
+      memcpy(*aNewKeys, m_newSet.Elements(), *aCount * sizeof(PRUint32));
       return NS_OK;
     }
     // if there were no new messages, signal this by returning a null pointer
@@ -5062,7 +5059,7 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, PRUint32
 
   PRUint32 rowCount;
   table->GetCount(GetEnv(), &rowCount);
-  nsMsgKeyArray staleHits;
+  nsTArray<nsMsgKey> staleHits;
   // should assert that each array is sorted
   while (newHitIndex < aNumKeys || tableRowIndex < rowCount)
   {
@@ -5109,19 +5106,19 @@ NS_IMETHODIMP nsMsgDatabase::RefreshCache(const char *aSearchFolderUri, PRUint32
     }
     else if (newHitIndex >= aNumKeys || aNewHits[newHitIndex] > tableRowKey)
     {
-      staleHits.Add(tableRowKey);
+      staleHits.AppendElement(tableRowKey);
       table->CutOid(GetEnv(), &oid);
       rowCount--;
       continue; // don't increment tableRowIndex since we removed that row.
     }
    }
-   *aNumBadHits = staleHits.GetSize();
+   *aNumBadHits = staleHits.Length();
    if (*aNumBadHits)
    {
      *aStaleHits = static_cast<PRUint32 *>(nsMemory::Alloc(*aNumBadHits * sizeof(PRUint32)));
      if (!*aStaleHits)
        return NS_ERROR_OUT_OF_MEMORY;
-     memcpy(*aStaleHits, staleHits.GetArray(), *aNumBadHits * sizeof(PRUint32));
+     memcpy(*aStaleHits, staleHits.Elements(), *aNumBadHits * sizeof(PRUint32));
    }
    else
      *aStaleHits = nsnull;

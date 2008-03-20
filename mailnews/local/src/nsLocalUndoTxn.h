@@ -42,7 +42,7 @@
 #include "nsIMsgFolder.h"
 #include "nsMailboxService.h"
 #include "nsMsgTxn.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
 #include "nsTArray.h"
 #include "nsCOMPtr.h"
 #include "nsIUrlListener.h"
@@ -81,16 +81,16 @@ public:
           nsIMsgFolder* dstFolder,
           PRBool isMove);
     nsresult UndoImapDeleteFlag(nsIMsgFolder* aFolder,
-                                nsMsgKeyArray& aKeyArray,
+                                nsTArray<nsMsgKey>& aKeyArray,
                                 PRBool deleteFlag);
     nsresult UndoTransactionInternal();
 
 private:
     nsWeakPtr m_srcFolder;
-    nsMsgKeyArray m_srcKeyArray; // used when src is local or imap
+    nsTArray<nsMsgKey> m_srcKeyArray; // used when src is local or imap
     nsTArray<PRUint32> m_srcStatusOffsetArray; // used when src is local
     nsWeakPtr m_dstFolder;
-    nsMsgKeyArray m_dstKeyArray;
+    nsTArray<nsMsgKey> m_dstKeyArray;
     PRBool m_isMove;
     PRBool m_srcIsImap4;
     nsTArray<PRUint32> m_dstSizeArray;

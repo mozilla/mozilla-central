@@ -296,7 +296,7 @@ NS_IMETHODIMP nsMsgDBFolder::EndFolderLoading(void)
 
   //GGGG       check for new mail here and call SetNewMessages...?? -- ONE OF THE 2 PLACES
   if(mDatabase)
-    m_newMsgs.RemoveAll();
+    m_newMsgs.Clear();
 
   return NS_OK;
 }
@@ -448,12 +448,12 @@ NS_IMETHODIMP nsMsgDBFolder::ClearNewMessages()
     rv = mDatabase->GetNewList(&numNewKeys, &newMessageKeys);
     if (NS_SUCCEEDED(rv) && newMessageKeys)
     {
-      m_saveNewMsgs.RemoveAll();
-      m_saveNewMsgs.Add(newMessageKeys, numNewKeys);
+      m_saveNewMsgs.Clear();
+      m_saveNewMsgs.AppendElements(newMessageKeys, numNewKeys);
     }
     mDatabase->ClearNewList(PR_TRUE);
   }
-  m_newMsgs.RemoveAll();
+  m_newMsgs.Clear();
   mNumNewBiffMessages = 0;
   return rv;
 }
@@ -463,7 +463,7 @@ void nsMsgDBFolder::UpdateNewMessages()
   if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
   {
     PRBool hasNewMessages = PR_FALSE;
-    for (PRUint32 keyIndex = 0; keyIndex < m_newMsgs.GetSize(); keyIndex++)
+    for (PRUint32 keyIndex = 0; keyIndex < m_newMsgs.Length(); keyIndex++)
     {
       PRBool containsKey = PR_FALSE;
       mDatabase->ContainsKey(m_newMsgs[keyIndex], &containsKey);
@@ -779,8 +779,8 @@ nsMsgDBFolder::SetMsgDatabase(nsIMsgDatabase *aMsgDatabase)
       nsresult rv = mDatabase->GetNewList(&numNewKeys, &newMessageKeys);
       if (NS_SUCCEEDED(rv) && newMessageKeys)
       {
-        m_newMsgs.RemoveAll();
-        m_newMsgs.Add(newMessageKeys, numNewKeys);
+        m_newMsgs.Clear();
+        m_newMsgs.AppendElements(newMessageKeys, numNewKeys);
       }
       nsMemory::Free(newMessageKeys);
     }
@@ -1212,7 +1212,7 @@ nsMsgDBFolder::MarkAllMessagesRead(void)
 {
   // ### fix me need nsIMsgWindow
   nsresult rv = GetDatabase(nsnull);
-  m_newMsgs.RemoveAll();
+  m_newMsgs.Clear();
   if(NS_SUCCEEDED(rv))
   {
     EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
@@ -1863,13 +1863,13 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   rv = mDatabase->GetNewList(&numNewKeys, &newKeys);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsMsgKeyArray newMessageKeys;
+  nsTArray<nsMsgKey> newMessageKeys;
+  newMessageKeys.SwapElements(m_saveNewMsgs);
   if (numNewKeys)
-    newMessageKeys.Add(newKeys, numNewKeys);
+    newMessageKeys.AppendElements(newKeys, numNewKeys);
 
-  newMessageKeys.InsertAt(0, &m_saveNewMsgs);
   // if there weren't any, just return
-  if (!newMessageKeys.GetSize())
+  if (newMessageKeys.IsEmpty())
     return NS_OK;
 
   spamSettings->GetUseWhiteList(&useWhiteList);
@@ -1911,8 +1911,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
 
   // build up list of keys to classify
   nsCString uri;
-  nsMsgKeyArray keysToClassify;
-  PRUint32 numNewMessages = newMessageKeys.GetSize();
+  nsTArray<nsMsgKey> keysToClassify;
+  PRUint32 numNewMessages = newMessageKeys.Length();
   for ( PRUint32 i=0 ; i < numNewMessages ; ++i )
   {
     nsCString junkScore;
@@ -1970,12 +1970,12 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         }
       }
     }
-    keysToClassify.Add(newMessageKeys[i]);
+    keysToClassify.AppendElement(newMessageKeys[i]);
   }
 
-  if (keysToClassify.GetSize() > 0)
+  if (!keysToClassify.IsEmpty())
   {
-    PRUint32 numMessagesToClassify = keysToClassify.GetSize();
+    PRUint32 numMessagesToClassify = keysToClassify.Length();
     char ** messageURIs = (char **) PR_MALLOC(sizeof(const char *) * numMessagesToClassify);
     if (!messageURIs)
       return NS_ERROR_OUT_OF_MEMORY;
@@ -1996,7 +1996,6 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       PR_Free(messageURIs[freeIndex]);
     PR_Free(messageURIs);
   }
-  m_saveNewMsgs.RemoveAll();
   return rv;
 }
 

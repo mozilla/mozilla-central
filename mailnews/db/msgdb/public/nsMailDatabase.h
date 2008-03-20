@@ -41,9 +41,9 @@
 #include "nsMsgDatabase.h"
 #include "nsMsgMessageFlags.h"
 #include "nsILocalFile.h"
+#include "nsTArray.h"
 
 // This is the subclass of nsMsgDatabase that handles local mail messages.
-class nsMsgKeyArray;
 class nsIOFileStream;
 class nsILocalFile;
 class nsOfflineImapOperation;
@@ -55,7 +55,7 @@ public:
   virtual ~nsMailDatabase();
   NS_IMETHOD  Open(nsILocalFile *aFolderName, PRBool create, PRBool upgrading);
   NS_IMETHOD  ForceClosed();
-  NS_IMETHOD DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator);
+  NS_IMETHOD DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator);
 
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();
@@ -73,8 +73,8 @@ public:
   NS_IMETHOD  GetSummaryValid(PRBool *valid);
 	
   NS_IMETHOD    EnumerateOfflineOps(nsISimpleEnumerator **enumerator);
-  NS_IMETHOD    ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds);
-  NS_IMETHOD    ListAllOfflineDeletes(nsMsgKeyArray *offlineDeletes);
+  NS_IMETHOD    ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpIds);
+  NS_IMETHOD    ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineDeletes);
 
   NS_IMETHOD SetFolderStream(nsIOutputStream *aFileStream);
   NS_IMETHOD GetFolderStream(nsIOutputStream **aFileStream);

@@ -253,7 +253,7 @@ PRBool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
     return PR_TRUE;
 }
 
-NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsMsgKeyArray *thoseMarked)
+NS_IMETHODIMP nsNewsDatabase::MarkAllRead(nsTArray<nsMsgKey> *thoseMarked)
 {
   nsMsgKey lowWater = nsMsgKey_None, highWater;
   nsCString knownArts;

@@ -160,7 +160,7 @@ nsresult nsMsgXFVirtualFolderDBView::InsertHdrFromFolder(nsIMsgDBHdr *msgHdr, ns
   PRUint32 msgFlags;
   msgHdr->GetMessageKey(&msgKey);
   msgHdr->GetFlags(&msgFlags);
-  m_keys.InsertAt(insertIndex, msgKey);
+  m_keys.InsertElementAt(insertIndex, msgKey);
   m_flags.InsertElementAt(insertIndex, msgFlags);
   m_folders->InsertElementAt(folder, insertIndex);
   m_levels.InsertElementAt(insertIndex, 0);
@@ -203,15 +203,14 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
   if (m_curFolderGettingHits)
   {
     PRUint32 count = m_hdrHits.Count();
-    nsMsgKeyArray newHits;
+    nsTArray<nsMsgKey> newHits;
+    newHits.SetLength(count);
     for (PRUint32 i = 0; i < count; i++)
     {
-      nsMsgKey key;
-      m_hdrHits[i]->GetMessageKey(&key);
-      newHits.Add(key);
+      m_hdrHits[i]->GetMessageKey(&newHits[i]);
     }
-    newHits.QuickSort();
-    UpdateCacheAndViewForFolder(m_curFolderGettingHits, newHits.GetArray(), newHits.GetSize());
+    newHits.Sort();
+    UpdateCacheAndViewForFolder(m_curFolderGettingHits, newHits.Elements(), newHits.Length());
   }
 
   while (m_foldersSearchingOver.Count() > 0)
@@ -252,7 +251,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *fold
     UpdateCacheAndViewForPrevSearchedFolders(folder);
     m_curFolderGettingHits = folder;
     m_hdrHits.Clear();
-    m_curFolderStartKeyIndex = m_keys.GetSize();
+    m_curFolderStartKeyIndex = m_keys.Length();
   }
   PRBool hdrInCache = PR_FALSE;
   nsCString searchUri;
@@ -321,7 +320,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   m_doingSearch = PR_TRUE;
 
   m_folders->Clear();
-  m_keys.RemoveAll();
+  m_keys.Clear();
   m_levels.Clear();
   m_flags.Clear();
 

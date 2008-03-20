@@ -68,7 +68,7 @@ public:
 
 protected:
   nsWeakPtr m_searchSession;
-  nsMsgKeyArray m_origKeys;
+  nsTArray<nsMsgKey> m_origKeys;
   PRBool    m_usingCachedHits;
   PRBool    m_cacheEmpty;
   nsCOMArray <nsIMsgDBHdr> m_hdrHits;

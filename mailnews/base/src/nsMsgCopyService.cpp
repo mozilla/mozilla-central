@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgCopyService.h"
-#include "nsMsgKeyArray.h"
 #include "nsCOMArray.h"
 #include "nspr.h"
 #include "nsIFile.h"

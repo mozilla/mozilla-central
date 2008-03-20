@@ -109,13 +109,13 @@ NS_IMETHODIMP nsMsgGroupThread::GetSubject(nsACString& result)
 NS_IMETHODIMP nsMsgGroupThread::GetNumChildren(PRUint32 *aNumChildren)
 {
   NS_ENSURE_ARG_POINTER(aNumChildren);
-  *aNumChildren = m_keys.GetSize(); // - ((m_dummy) ? 1 : 0);
+  *aNumChildren = m_keys.Length(); // - ((m_dummy) ? 1 : 0);
   return NS_OK;
 }
 
 PRUint32 nsMsgGroupThread::NumRealChildren()
 {
-  return m_keys.GetSize() - ((m_dummy) ? 1 : 0);
+  return m_keys.Length() - ((m_dummy) ? 1 : 0);
 }
 
 NS_IMETHODIMP nsMsgGroupThread::GetNumUnreadChildren (PRUint32 *aNumUnreadChildren)
@@ -153,7 +153,7 @@ nsresult nsMsgGroupThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgD
   {
     // move the  root hdr to pos 0 by removing it and adding it at 0.
     m_keys.RemoveElement(newRoot);
-    m_keys.InsertAt(0, newRoot);
+    m_keys.InsertElementAt(0, newRoot);
     ancestorHdr->SetThreadParent(nsMsgKey_None);
   }
   return rv;
@@ -175,7 +175,7 @@ nsresult nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView 
   PRUint32 insertIndex = 0;
   // since we're sorted by date, we could do a binary search for the 
   // insert point. Or, we could start at the end...
-  if (m_keys.GetSize() > 0)
+  if (m_keys.Length() > 0)
   {
     nsMsgViewSortTypeValue  sortType;
     nsMsgViewSortOrderValue sortOrder;
@@ -188,7 +188,7 @@ nsresult nsMsgGroupThread::AddMsgHdrInDateOrder(nsIMsgDBHdr *child, nsMsgDBView 
     // sort by date within group
     insertIndex = view->GetInsertIndexHelper(child, m_keys, threadSortOrder, nsMsgViewSortType::byDate);
   }
-  m_keys.InsertAt(insertIndex, newHdrKey);
+  m_keys.InsertElementAt(insertIndex, newHdrKey);
   if (!insertIndex)
     m_threadRootKey = newHdrKey;
   return ret;
@@ -260,7 +260,7 @@ nsresult nsMsgGroupThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelH
 NS_IMETHODIMP nsMsgGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  if (aIndex >= m_keys.GetSize())
+  if (aIndex >= m_keys.Length())
     return NS_ERROR_INVALID_ARG;
   *aResult = m_keys[aIndex];
   return NS_OK;
@@ -268,7 +268,7 @@ NS_IMETHODIMP nsMsgGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 
 NS_IMETHODIMP nsMsgGroupThread::GetChildAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex >= m_keys.GetSize())
+  if (aIndex >= m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   return m_db->GetMsgHdrForKey(m_keys[aIndex], aResult);
 }
@@ -289,16 +289,14 @@ NS_IMETHODIMP nsMsgGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aRes
 
 NS_IMETHODIMP nsMsgGroupThread::RemoveChildAt(PRInt32 aIndex)
 {
-  m_keys.RemoveAt(aIndex);
+  m_keys.RemoveElementAt(aIndex);
   return NS_OK;
 }
 
 
 nsresult nsMsgGroupThread::RemoveChild(nsMsgKey msgKey)
 {
-  PRUint32 childIndex = m_keys.IndexOf(msgKey);
-  if (childIndex != kNotFound)
-    m_keys.RemoveAt(childIndex);
+  m_keys.RemoveElement(msgKey);
   return NS_OK;
 }
 
@@ -329,7 +327,7 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   nsresult rv = RemoveChild(key);
  // if we're deleting the root of a dummy thread, need to update the threadKey
  // and the dummy header at position 0
- if (m_dummy && keyWasFirstKey && m_keys.GetSize() > 1)
+ if (m_dummy && keyWasFirstKey && m_keys.Length() > 1)
     m_keys[0] = m_keys[1];
 
  return rv;

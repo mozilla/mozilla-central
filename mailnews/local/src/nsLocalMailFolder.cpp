@@ -109,7 +109,6 @@
 #include "nsLocalStrings.h"
 
 static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
-static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 
 //////////////////////////////////////////////////////////////////////////////
 // nsLocal
@@ -1543,13 +1542,13 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, PRBool moveCopySu
 }
 
 nsresult
-nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsMsgKeyArray &aKeyArray, nsIMsgFolder *srcFolder)
+nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder)
 {
   nsresult rv = NS_OK;
   PRUint32 numMessages = 0;
   rv = messages->Count(&numMessages);
   NS_ENSURE_SUCCESS(rv,rv);
-  NS_ASSERTION ((numMessages == aKeyArray.GetSize()), "message array and key array size are not same");
+  NS_ASSERTION ((numMessages == aKeyArray.Length()), "message array and key array size are not same");
   rv = messages->Clear();
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
@@ -2773,9 +2772,9 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
 
   if (NS_SUCCEEDED(rv) && mCopyState->m_messageService)
   {
-    nsMsgKeyArray keyArray;
     PRUint32 numMessages = 0;
     messages->Count(&numMessages);
+    nsTArray<nsMsgKey> keyArray(numMessages);
     for (PRUint32 i = 0; i < numMessages; i++)
     {
       nsCOMPtr<nsIMsgDBHdr> aMessage = do_QueryElementAt(messages, i, &rv);
@@ -2783,10 +2782,10 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
       {
         nsMsgKey key;
         aMessage->GetMessageKey(&key);
-        keyArray.Add(key);
+        keyArray.AppendElement(key);
       }
     }
-    keyArray.QuickSort();
+    keyArray.Sort();
     rv = SortMessagesBasedOnKey(messages, keyArray, srcFolder);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -3373,7 +3372,7 @@ NS_IMETHODIMP
 nsMsgLocalMailFolder::NotifyCompactCompleted()
 {
   mExpungedBytes = 0;
-  m_newMsgs.RemoveAll(); // if compacted, m_newMsgs probably aren't valid.
+  m_newMsgs.Clear(); // if compacted, m_newMsgs probably aren't valid.
   (void) RefreshSizeOnDisk();
   (void) CloseDBIfFolderNotOpen();
   nsCOMPtr <nsIAtom> compactCompletedAtom;
@@ -3466,7 +3465,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
         {
           rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
           NS_ENSURE_SUCCESS(rv,rv);
-          mSpamKeysToMove.Add(msgKey);
+          mSpamKeysToMove.AppendElement(msgKey);
           willMoveMessage = PR_TRUE;
         }
         else
@@ -3476,7 +3475,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
           // the listener should do
           // rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
           // NS_ENSURE_SUCCESS(rv,rv);
-          // mSpamKeysToMove.Add(msgKey);
+          // mSpamKeysToMove.AppendElement(msgKey);
           // willMoveMessage = PR_TRUE;
           rv = GetOrCreateFolder(mSpamFolderURI, nsnull /* aListener */);
           NS_ASSERTION(NS_SUCCEEDED(rv), "GetOrCreateFolder failed");
@@ -3489,7 +3488,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
 
   if (mNumFilterClassifyRequests == 0)
   {
-    if (mSpamKeysToMove.GetSize() > 0)
+    if (!mSpamKeysToMove.IsEmpty())
     {
       if (!mSpamFolderURI.IsEmpty())
       {
@@ -3498,7 +3497,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
         if (NS_SUCCEEDED(rv) && folder) {
           nsCOMPtr<nsISupportsArray> messages;
           NS_NewISupportsArray(getter_AddRefs(messages));
-          for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.GetSize(); keyIndex++)
+          for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.Length(); keyIndex++)
           {
             nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
             rv = GetMessageHeader(mSpamKeysToMove.ElementAt(keyIndex), getter_AddRefs(mailHdr));
@@ -3526,8 +3525,8 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
     }
     PRInt32 numNewMessages;
     GetNumNewMessages(PR_FALSE, &numNewMessages);
-    SetNumNewMessages(numNewMessages - mSpamKeysToMove.GetSize());
-    mSpamKeysToMove.RemoveAll();
+    SetNumNewMessages(numNewMessages - mSpamKeysToMove.Length());
+    mSpamKeysToMove.Clear();
     // check if this is the inbox first...
     if (mFlags & MSG_FOLDER_FLAG_INBOX)
       PerformBiffNotifications();

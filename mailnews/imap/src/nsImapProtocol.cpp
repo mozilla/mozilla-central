@@ -4731,11 +4731,11 @@ nsImapProtocol::Store(const nsCString &messageList, const char * messageData,
   // turn messageList back into key array and then back into a message id list,
   // but use the flag state to handle ranges correctly.
   nsCString messageIdList;
-  nsMsgKeyArray msgKeys;
+  nsTArray<nsMsgKey> msgKeys;
   if (idsAreUid)
     ParseUidString(messageList.get(), msgKeys);
 
-  PRInt32 msgCountLeft = msgKeys.GetSize();
+  PRInt32 msgCountLeft = msgKeys.Length();
   PRUint32 msgsHandled = 0;
   do
   {
@@ -4743,7 +4743,7 @@ nsImapProtocol::Store(const nsCString &messageList, const char * messageData,
 
     PRUint32 msgsToHandle = msgCountLeft;
     if (idsAreUid)
-      AllocateImapUidString(msgKeys.GetArray() + msgsHandled, msgsToHandle, m_flagState, idString);  // 20 * 200
+      AllocateImapUidString(msgKeys.Elements() + msgsHandled, msgsToHandle, m_flagState, idString);  // 20 * 200
     else
       idString.Assign(messageList);
 
@@ -7134,11 +7134,11 @@ void nsImapProtocol::Copy(const char * messageList,
   // turn messageList back into key array and then back into a message id list,
   // but use the flag state to handle ranges correctly.
   nsCString messageIdList;
-  nsMsgKeyArray msgKeys;
+  nsTArray<nsMsgKey> msgKeys;
   if (idsAreUid)
     ParseUidString(messageList, msgKeys);
 
-  PRInt32 msgCountLeft = msgKeys.GetSize();
+  PRInt32 msgCountLeft = msgKeys.Length();
   PRUint32 msgsHandled = 0;
   const char *formatString;
   formatString = (idsAreUid)
@@ -7151,7 +7151,7 @@ void nsImapProtocol::Copy(const char * messageList,
 
     PRUint32 msgsToHandle = msgCountLeft;
     if (idsAreUid)
-      AllocateImapUidString(msgKeys.GetArray() + msgsHandled, msgsToHandle, m_flagState, idString);
+      AllocateImapUidString(msgKeys.Elements() + msgsHandled, msgsToHandle, m_flagState, idString);
     else
       idString.Assign(messageList);
 

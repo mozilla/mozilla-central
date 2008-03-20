@@ -46,7 +46,8 @@
 #include "nsMailboxProtocol.h"
 #include "nsIMsgDatabase.h"
 #include "nsMsgDBCID.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
+#include "nsTArray.h"
 #include "nsLocalUtils.h"
 #include "nsMsgLocalCID.h"
 #include "nsMsgBaseCID.h"
@@ -127,7 +128,7 @@ nsresult nsMailboxService::CopyMessage(const char * aSrcMailboxURI,
   return FetchMessage(aSrcMailboxURI, aMailboxCopyHandler, aMsgWindow, aUrlListener, nsnull, mailboxAction, nsnull, aURL);
 }
 
-nsresult nsMailboxService::CopyMessages(nsMsgKeyArray &msgKeys,
+nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
                               nsIMsgFolder *srcFolder,
                               nsIStreamListener * aMailboxCopyHandler,
                               PRBool moveMessage,
@@ -162,7 +163,7 @@ nsresult nsMailboxService::CopyMessages(nsMsgKeyArray &msgKeys,
         nsCOMPtr<nsIMailboxUrl> mailboxUrl (do_QueryInterface(url));
         msgUrl->SetMsgWindow(aMsgWindow);
 
-        mailboxUrl->SetMoveCopyMsgKeys(msgKeys.GetArray(), msgKeys.GetSize());
+        mailboxUrl->SetMoveCopyMsgKeys(msgKeys.Elements(), msgKeys.Length());
         rv = RunMailboxUrl(url, aMailboxCopyHandler);
       }
     }

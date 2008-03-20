@@ -125,7 +125,7 @@ nsLocalMoveCopyMsgTxn::SetDstFolder(nsIMsgFolder* dstFolder)
 nsresult
 nsLocalMoveCopyMsgTxn::AddSrcKey(nsMsgKey aKey)
 {
-  m_srcKeyArray.Add(aKey);
+  m_srcKeyArray.AppendElement(aKey);
   return NS_OK;
 }
 
@@ -140,7 +140,7 @@ nsLocalMoveCopyMsgTxn::AddSrcStatusOffset(PRUint32 aStatusOffset)
 nsresult
 nsLocalMoveCopyMsgTxn::AddDstKey(nsMsgKey aKey)
 {
-  m_dstKeyArray.Add(aKey);
+  m_dstKeyArray.AppendElement(aKey);
   return NS_OK;
 }
 
@@ -153,7 +153,7 @@ nsLocalMoveCopyMsgTxn::AddDstMsgSize(PRUint32 msgSize)
 
 nsresult
 nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder, 
-                                          nsMsgKeyArray& keyArray,
+                                          nsTArray<nsMsgKey>& keyArray,
                                           PRBool deleteFlag)
 {
   nsresult rv = NS_ERROR_FAILURE;
@@ -163,7 +163,7 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
     NS_ENSURE_SUCCESS(rv, rv);
     nsCOMPtr<nsIUrlListener> urlListener;
     nsCString msgIds;
-    PRUint32 i, count = keyArray.GetSize();
+    PRUint32 i, count = keyArray.Length();
     urlListener = do_QueryInterface(folder, &rv);
     for (i=0; i < count; i++)
     {
@@ -268,7 +268,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
   rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
-  PRUint32 count = m_srcKeyArray.GetSize();
+  PRUint32 count = m_srcKeyArray.Length();
   PRUint32 i;
   nsCOMPtr<nsIMsgDBHdr> oldHdr;
   nsCOMPtr<nsIMsgDBHdr> newHdr;
@@ -344,7 +344,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
   rv = dstFolder->GetMsgDatabase(nsnull, getter_AddRefs(dstDB));
   if (NS_FAILED(rv)) return rv;
 
-  PRUint32 count = m_srcKeyArray.GetSize();
+  PRUint32 count = m_srcKeyArray.Length();
   PRUint32 i;
   nsCOMPtr<nsIMsgDBHdr> oldHdr;
   nsCOMPtr<nsIMsgDBHdr> newHdr;
@@ -384,8 +384,8 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
     {
       // protect against a bogus undo txn without any source keys
       // see bug #179856 for details
-      NS_ASSERTION(m_srcKeyArray.GetSize(), "no source keys");
-      if (!m_srcKeyArray.GetSize())
+      NS_ASSERTION(!m_srcKeyArray.IsEmpty(), "no source keys");
+      if (m_srcKeyArray.IsEmpty())
         return NS_ERROR_UNEXPECTED;
     
       PRBool deleteFlag = PR_FALSE; //message is un-deleted- we are trying to redo

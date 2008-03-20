@@ -42,11 +42,11 @@
 #include "nsISupportsArray.h"
 #include "nsIMsgWindow.h"
 #include "nsCOMPtr.h"
-#include "nsMsgKeyArray.h"
+#include "MailNewsTypes.h"
 #include "nsTArray.h"
 
 // imap move coalescer class - in order to keep nsImapMailFolder from growing like Topsy
-// Logically, we want to keep track of an nsMsgKeyArray per nsIMsgFolder, and then
+// Logically, we want to keep track of an nsTArray<nsMsgKey> per nsIMsgFolder, and then
 // be able to retrieve them one by one and play back the moves.
 // This utility class will be used by both the filter code and the offline playback code,
 // to avoid multiple moves to the same folder.
@@ -66,18 +66,18 @@ public:
   nsresult PlaybackMoves(PRBool doNewMailNotification = PR_FALSE);
   // this lets the caller store keys in an arbitrary number of buckets. If the bucket
   // for the passed in index doesn't exist, it will get created.
-  nsMsgKeyArray *GetKeyBucket(PRUint32 keyArrayIndex);
+  nsTArray<nsMsgKey> *GetKeyBucket(PRUint32 keyArrayIndex);
   nsIMsgWindow *GetMsgWindow() {return m_msgWindow;}
   PRBool HasPendingMoves() {return m_hasPendingMoves;}
 protected:
   // m_sourceKeyArrays and m_destFolders are parallel arrays.
-  nsTArray<nsMsgKeyArray> m_sourceKeyArrays;
+  nsTArray<nsTArray<nsMsgKey> > m_sourceKeyArrays;
   nsCOMPtr <nsISupportsArray> m_destFolders;
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFolder> m_sourceFolder;
   PRBool m_doNewMailNotification;
   PRBool m_hasPendingMoves;
-  nsTArray<nsMsgKeyArray> m_keyBuckets;
+  nsTArray<nsTArray<nsMsgKey> > m_keyBuckets;
   PRInt32 m_outstandingMoves;
 };
 

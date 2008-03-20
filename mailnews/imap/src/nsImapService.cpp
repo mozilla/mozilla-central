@@ -769,7 +769,7 @@ NS_IMETHODIMP nsImapService::CopyMessage(const char *aSrcMailboxURI,
   return rv;
 }
 
-NS_IMETHODIMP nsImapService::CopyMessages(nsMsgKeyArray &keys, 
+NS_IMETHODIMP nsImapService::CopyMessages(nsTArray<nsMsgKey> &keys, 
                                           nsIMsgFolder *srcFolder, 
                                           nsIStreamListener *aMailboxCopy, 
                                           PRBool moveMessage,
@@ -798,8 +798,8 @@ NS_IMETHODIMP nsImapService::CopyMessages(nsMsgKeyArray &keys,
       srcFolder->GenerateMessageURI(keys[0], uri);
 
       nsCString messageIds;
-      PRUint32 numKeys = keys.GetSize();
-      AllocateImapUidString(keys.GetArray(), numKeys, nsnull, messageIds);
+      PRUint32 numKeys = keys.Length();
+      AllocateImapUidString(keys.Elements(), numKeys, nsnull, messageIds);
       nsCOMPtr<nsIImapUrl> imapUrl;
       nsCAutoString urlSpec;
       PRUnichar hierarchySeparator = GetHierarchyDelimiter(folder);

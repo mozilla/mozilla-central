@@ -39,9 +39,9 @@
 
 #include "nsMsgDatabase.h"
 #include "nsINewsDatabase.h"
+#include "nsTArray.h"
 
 class nsIDBChangeListener;
-class nsMsgKeyArray;
 class MSG_RetrieveArtInfo;
 class MSG_PurgeInfo;
 // news group database
@@ -66,7 +66,7 @@ public:
 
   NS_IMETHOD         GetHighWaterArticleNum(nsMsgKey *key);
   NS_IMETHOD         GetLowWaterArticleNum(nsMsgKey *key);
-  NS_IMETHOD         MarkAllRead(nsMsgKeyArray *thoseMarked);
+  NS_IMETHOD         MarkAllRead(nsTArray<nsMsgKey> *thoseMarked);
 
   virtual nsresult    ExpireUpTo(nsMsgKey expireKey);
   virtual nsresult    ExpireRange(nsMsgKey startRange, nsMsgKey endRange);

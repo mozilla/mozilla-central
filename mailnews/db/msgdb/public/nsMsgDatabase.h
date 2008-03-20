@@ -53,8 +53,8 @@
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
 #include "pldhash.h"
+#include "nsTArray.h"
 class ListContext;
-class nsMsgKeyArray;
 class nsMsgKeySet;
 class nsMsgThread;
 class nsIMsgThread;
@@ -96,7 +96,7 @@ public:
   nsresult         GetSearchResultsTable(const char *searchFolderUri, PRBool createIfMissing, nsIMdbTable **table);
 
   // this might just be for debugging - we'll see.
-  nsresult ListAllThreads(nsMsgKeyArray *threadIds);
+  nsresult ListAllThreads(nsTArray<nsMsgKey> *threadIds);
   //////////////////////////////////////////////////////////////////////////////
   // nsMsgDatabase methods:
   nsMsgDatabase();
@@ -241,7 +241,7 @@ protected:
   nsIMdbTable   *m_mdbAllMsgHeadersTable;
   nsIMdbTable   *m_mdbAllThreadsTable;
   nsCString     m_dbName;
-  nsMsgKeyArray m_newSet;  // new messages since last open.
+  nsTArray<nsMsgKey> m_newSet;  // new messages since last open.
   PRBool        m_mdbTokensInitialized;
   nsCOMPtr <nsISupportsArray>  m_ChangeListeners;
   mdb_token     m_hdrRowScopeToken;

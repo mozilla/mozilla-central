@@ -59,7 +59,7 @@ public:
   NS_DECL_NSIURLLISTENER
   NS_DECL_NSIMSGSEARCHNOTIFY
 
-  virtual nsresult DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsMsgKeyArray *pKeyArray);
+  virtual nsresult DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsTArray<nsMsgKey> *pKeyArray);
 
   PRBool ShouldAbort() const { return m_abort; }
 
@@ -73,7 +73,7 @@ protected:
   virtual PRInt32  StartDownload() {return 0;}
   virtual nsresult ShowProgress(const PRUnichar *progressString, PRInt32 percent);
 
-  nsMsgKeyArray      m_keysToDownload;
+  nsTArray<nsMsgKey>      m_keysToDownload;
   nsCOMPtr <nsIMsgFolder>  m_folder;
   nsCOMPtr <nsIMsgDatabase> m_newsDB;
   nsCOMPtr <nsIUrlListener> m_listener;

@@ -165,7 +165,7 @@ NS_IMETHODIMP nsMailDatabase::EndBatch()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsMsgKeyArray* nsMsgKeys, nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMailDatabase::DeleteMessages(nsTArray<nsMsgKey>* nsMsgKeys, nsIDBChangeListener *instigator)
 {
   nsresult rv;
   if (!m_folderStream && m_folder)
@@ -594,7 +594,7 @@ NS_IMETHODIMP nsMailDatabase::EnumerateOfflineOps(nsISimpleEnumerator **enumerat
 }
 
 
-NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds)
+NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpIds)
 {
   NS_ENSURE_ARG(offlineOpIds);
   nsresult rv = GetAllOfflineOpsTable();
@@ -617,7 +617,7 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds)
         break;
       if (err == NS_OK)
       {
-        offlineOpIds->Add(outOid.mOid_Id);
+        offlineOpIds->AppendElement(outOid.mOid_Id);
         if (PR_LOG_TEST(IMAPOffline, PR_LOG_ALWAYS))
         {
           nsCOMPtr <nsIMsgOfflineImapOperation> offlineOp;
@@ -636,11 +636,11 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineOpIds(nsMsgKeyArray *offlineOpIds)
     rowCursor->Release();
   }
   
-  offlineOpIds->QuickSort();
+  offlineOpIds->Sort();
   return rv;
 }
 
-NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsMsgKeyArray *offlineDeletes)
+NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineDeletes)
 {
   if (!offlineDeletes)
     return NS_ERROR_NULL_POINTER;
@@ -676,7 +676,7 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsMsgKeyArray *offlineDelete
           if (opType & nsIMsgOfflineImapOperation::kMsgMoved || 
             ((opType & nsIMsgOfflineImapOperation::kFlagsChanged) 
             && (newFlags & nsIMsgOfflineImapOperation::kMsgMarkedDeleted)))
-            offlineDeletes->Add(outOid.mOid_Id);
+            offlineDeletes->AppendElement(outOid.mOid_Id);
           NS_RELEASE(offlineOp);
         }
         offlineOpRow->Release();

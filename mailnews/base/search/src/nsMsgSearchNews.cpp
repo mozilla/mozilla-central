@@ -322,7 +322,7 @@ nsresult nsMsgSearchNews::Encode (nsCString *outEncoding)
 
 NS_IMETHODIMP nsMsgSearchNews::AddHit(nsMsgKey key)
 {
-  m_candidateHits.Add (key);
+  m_candidateHits.AppendElement(key);
   return NS_OK;
 }
 
@@ -363,13 +363,13 @@ void nsMsgSearchNews::CollateHits()
   // entire query is the intersection of results for each XPAT command if an AND search,
   // otherwise we want the union of all the search hits (minus the duplicates of course).
 
-  PRUint32 size = m_candidateHits.GetSize();
+  PRUint32 size = m_candidateHits.Length();
   if (!size)
     return;
 
   // Sort the article numbers first, so it's easy to tell how many hits
   // on a given article we got
-  m_candidateHits.QuickSort(CompareArticleNumbers);
+  m_candidateHits.Sort();
 
   // For an OR search we only need to count the first occurrence of a candidate.
   PRUint32 termCount = 1;
@@ -397,7 +397,7 @@ void nsMsgSearchNews::CollateHits()
       candidate = possibleCandidate;
     }
     if (candidateCount == termCount)
-      m_hits.Add(candidate);
+      m_hits.AppendElement(candidate);
   }
 }
 
@@ -415,7 +415,7 @@ void nsMsgSearchNews::ReportHits ()
 
   if (db)
   {
-    PRUint32 size = m_hits.GetSize();
+    PRUint32 size = m_hits.Length();
     for (PRUint32 i = 0; i < size; ++i)
     {
       nsCOMPtr <nsIMsgDBHdr> header;
@@ -440,17 +440,6 @@ void nsMsgSearchNews::ReportHit (nsIMsgDBHdr *pHeaders, nsIMsgFolder *folder)
     m_scope->GetSearchSession(getter_AddRefs(session));
     if (session)
       session->AddSearchHit (pHeaders, scopeFolder);
-}
-
-
-
-int PR_CALLBACK nsMsgSearchNews::CompareArticleNumbers (const void *v1, const void *v2, void *data)
-{
-  // QuickSort callback to compare article numbers
-
-  uint32 i1 = *(uint32*) v1;
-  uint32 i2 = *(uint32*) v2;
-  return i1 - i2;
 }
 
 nsresult nsMsgSearchValidityManager::InitNewsTable()
