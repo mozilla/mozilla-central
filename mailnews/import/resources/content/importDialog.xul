@@ -66,11 +66,11 @@
   
   <hbox class="box-header" id="header"
        title="&importTitle.label;"
-       description="&importDesc.label;"/>
+       description="&importShortDesc.label;"/>
 
   <deck id="stateDeck" selectedIndex="0">
     <vbox class="wizard-box">
-      <description>&importDescription.label;</description>
+      <description>&importDescription1.label;</description>
       <description>&importDescription2.label;</description>
       <separator/>
       <radiogroup id="importFields">

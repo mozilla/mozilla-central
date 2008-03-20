@@ -60,7 +60,7 @@
               label="&importSource.title;"
               onpageadvanced="MigrationWizard.onImportSourcePageAdvanced();">
 #ifdef XP_WIN
-    <description>&importFrom.label;</description>
+    <description>&importFromWin.label;</description>
 #else
     <description>&importFromUnix.label;</description>
 #endif
