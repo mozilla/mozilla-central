@@ -861,7 +861,7 @@ function onImageSelect()
   else
   {
     previewBox.collapsed     = false;
-    mediaSaveBox.collapsed   = false;
+    mediaSaveBox.collapsed   = true;
     mediaSaveButton.disabled = false;
     splitter.collapsed       = false;
     tree.flex = 0;
