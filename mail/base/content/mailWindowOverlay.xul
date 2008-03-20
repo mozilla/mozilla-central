@@ -74,6 +74,13 @@
   <stringbundle id="bundle_offlinePrompts" src="chrome://messenger/locale/offline.properties"/>
 </stringbundleset>
 
+#ifdef XP_MACOSX
+<!-- See bug 382138 - Widget: Cocoa broke the way we override the commandsets
+     for globalEditMenuItems and selectEditMenuItems with our own versions
+     which know not to update multiple times while a message is being loaded,
+     so on OS X we just live with the multiple updates.
+-->
+#else
 <!-- Performance optimization...we include utilityOverlay.xul which defines some command sets
      which are updated based on events like focus and select. We have our own custom events
      which we use to optmize when we do command updating. To avoid unnecessary command updating,
@@ -91,6 +98,7 @@
             oncommandupdate="goUpdateSelectEditMenuItems()"/>
 
 <!-- End command set merging -->
+#endif
 
 <commandset id="mailFileMenuItems"
             commandupdater="true"
