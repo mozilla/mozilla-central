@@ -167,15 +167,9 @@ use constant MP1 => ( exists $ENV{MOD_PERL} and
 # export the following functions..
 our @EXPORT = (qw(  utf8_all_columns utf8_columns ));
 
-our $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
-Litmus::DBI->connection($dsn,
-                        $Litmus::Config::db_user,
-                        $Litmus::Config::db_pass,
-                        {mysql_enable_utf8 => 1,
-                         wait_timeout => 60*60*8}
-);
-
-our $readonly_dbh;
+# Our handles
+our $_dbh;
+our $_ro_dbh;
 
 our %column_aliases;
 
@@ -183,6 +177,9 @@ Litmus::DBI->autoupdate(0);
 
 # add an accessor to store which columns are utf8-enabled
 Class::DBI->mk_classdata('_utf8_columns');
+
+__PACKAGE__->db_Main();
+__PACKAGE__->db_ReadOnly();
 
 # In some cases, we have column names that make sense from a database perspective
 # (i.e. subgroup_id), but that don't make sense from a class/object perspective 
@@ -264,23 +261,44 @@ sub _auto_increment_value {
 	return $id;
 }
 
-sub db_ReadOnly() {
-    my $class = shift;    
+__PACKAGE__->_remember_handle('Main'); # so dbi_commit works
+ 
+# override default to avoid using Ima::DBI closure
+sub db_Main {
+  my $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
 
-    if (defined $Litmus::Config::db_host_ro) {
-      if (!$readonly_dbh or
-          !$readonly_dbh->ping()) {
-        my $readonly_dsn = "dbi:mysql:database=$Litmus::Config::db_name_ro;host=$Litmus::Config::db_host_ro;port=$Litmus::Config::db_port_ro";
-        $readonly_dbh = DBI->connect($readonly_dsn,
+  if ( !$_dbh or !$_dbh->ping()) {
+    # $config is my config object. replace with your own settings...
+    $_dbh = DBI->connect_cached($dsn,
+                                $Litmus::Config::db_user,
+                                $Litmus::Config::db_pass,
+                                { mysql_enable_utf8 => 1,
+                                  wait_timeout => 60*60*8,
+                                  mysql_auto_reconnect => 1 }
+                               ); 
+  }
+  return $_dbh;
+}
+
+sub db_ReadOnly() {
+  my $dsn = "dbi:mysql(RootClass=AuditDBI):database=$Litmus::Config::db_name;host=$Litmus::Config::db_host;port=$Litmus::Config::db_port";
+
+  if (defined $Litmus::Config::db_host_ro) {
+    if ( !$_ro_dbh or !$_ro_dbh->ping()) {
+      # $config is my config object. replace with your own settings...
+      $_ro_dbh = DBI->connect_cached($dsn,
                                      $Litmus::Config::db_user_ro,
                                      $Litmus::Config::db_pass_ro,
-                                     {ReadOnly => 1}
-                                    );
-      }
+                                     { ReadOnly => 1,
+                                       mysql_enable_utf8 => 1,
+                                       wait_timeout => 60*60*8,
+                                       mysql_auto_reconnect => 1 }
+                                    ); 
     }
-    return $readonly_dbh if ($readonly_dbh);
-
-    return $class->db_Main();
+    return $_ro_dbh;
+  }
+  
+  return __PACKAGE__->db_Main();
 }
 
 sub utf8_all_columns {
