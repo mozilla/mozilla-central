@@ -1,5 +1,6 @@
 # -*- Python -*-
 
+from buildbot import buildset
 from buildbot.process import step
 from buildbot.process.buildstep import BuildStep
 from buildbot.buildset import BuildSet
@@ -46,6 +47,24 @@ MozillaEnvironments['mac'] = {
     # for extracting dmg's
     "PAGER": '/bin/cat',
 }
+
+class MultiBuildScheduler(Scheduler):
+    def __init__(self, numberOfBuildsToTrigger=3, **kwargs):
+        self.numberOfBuildsToTrigger = numberOfBuildsToTrigger
+        Scheduler.__init__(self, **kwargs)
+
+    def fireTimer(self):
+        self.timer = None
+        self.nextBuildTime = None
+        changes = self.importantChanges + self.unimportantChanges
+        self.importantChanges = []
+        self.unimportantChanges = []
+
+        # submit
+        for i in range(0, self.numberOfBuildsToTrigger):
+            bs = buildset.BuildSet(self.builderNames, SourceStamp(changes=changes))
+            self.submit(bs)
+
 
 class LatestFileURL:
     sortByDateString = "?C=M;O=A"
