@@ -46,7 +46,7 @@
 /* ::::: toolbar icons ::::: */
 
 #HelpToolbar > toolbarbutton {
-  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png");
+  list-style-image: url("chrome://communicator/skin/icons/communicatoricons.png") !important;
 }
 
 #help-back-button toolbarbutton,
