@@ -792,6 +792,8 @@ function onPrefChanged(prefName, newValue, oldValue)
 
         case "timestamps":
         case "timestamps.display":
+        case "collapseActions":
+        case "collapseMsgs":
             client.dispatch("sync-timestamp");
             break;
 
@@ -879,6 +881,8 @@ function onNetworkPrefChanged(network, prefName, newValue, oldValue)
 
         case "timestamps":
         case "timestamps.display":
+        case "collapseActions":
+        case "collapseMsgs":
             network.dispatch("sync-timestamp");
             break;
 
@@ -943,6 +947,8 @@ function onChannelPrefChanged(channel, prefName, newValue, oldValue)
 
         case "timestamps":
         case "timestamps.display":
+        case "collapseActions":
+        case "collapseMsgs":
             channel.dispatch("sync-timestamp");
             break;
 
@@ -988,6 +994,8 @@ function onUserPrefChanged(user, prefName, newValue, oldValue)
 
         case "timestamps":
         case "timestamps.display":
+        case "collapseActions":
+        case "collapseMsgs":
             user.dispatch("sync-timestamp");
             break;
 
@@ -1030,6 +1038,8 @@ function onDCCUserPrefChanged(user, prefName, newValue, oldValue)
 
             case "timestamps":
             case "timestamps.display":
+            case "collapseActions":
+            case "collapseMsgs":
                 view.dispatch("sync-timestamp");
                 break;
 
