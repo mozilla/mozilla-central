@@ -3357,7 +3357,7 @@ nsresult nsMsgDatabase::RowCellColumnToCharPtr(nsIMdbRow *row, mdb_token columnT
       {
         if (yarn.mYarn_Fill > 0)
           memcpy(*result, yarn.mYarn_Buf, yarn.mYarn_Fill);
-        result[yarn.mYarn_Fill] = '\0';
+        (*result)[yarn.mYarn_Fill] = '\0';
       }
       else
         err = NS_ERROR_OUT_OF_MEMORY;
