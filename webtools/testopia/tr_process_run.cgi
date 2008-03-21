@@ -30,6 +30,9 @@ use Bugzilla::Constants;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestRun;
+use Bugzilla::Testopia::TestCaseRun;
+use Bugzilla::Testopia::TestCase;
+
 use JSON;
 
 Bugzilla->error_mode(ERROR_MODE_AJAX);

@@ -29,8 +29,10 @@ use Bugzilla::User;
 use Bugzilla::Constants;
 use Bugzilla::Bug;
 use Bugzilla::Config;
+
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Environment;
+use Bugzilla::Testopia::Build;
 
 use JSON;
 use base qw(Exporter Bugzilla::Object);
@@ -220,6 +222,8 @@ sub run_create_validators {
 
 sub create {
     my ($class, $params) = @_;
+    require Bugzilla::Testopia::TestPlan;
+    
     $class->SUPER::check_required_create_fields($params);
     my $field_values = $class->run_create_validators($params);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
@@ -1226,6 +1230,9 @@ sub current_caseruns {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     return $self->{'current_caseruns'} if exists $self->{'current_caseruns'};
+    
+    require Bugzilla::Testopia::TestCaseRun;
+    
     my $ref = $dbh->selectcol_arrayref(
         "SELECT case_run_id FROM test_case_runs
          WHERE run_id=? AND iscurrent=1", undef,
@@ -1250,6 +1257,9 @@ sub caseruns {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     return $self->{'caseruns'} if exists $self->{'caseruns'};
+    
+    require Bugzilla::Testopia::TestCaseRun;
+    
     my $ref = $dbh->selectcol_arrayref(
         "SELECT case_run_id FROM test_case_runs
          WHERE run_id=?", undef, $self->{'run_id'});

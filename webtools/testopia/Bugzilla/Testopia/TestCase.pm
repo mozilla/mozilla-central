@@ -39,12 +39,14 @@ use Bugzilla::User;
 use Bugzilla::Config;
 use Bugzilla::Error;
 use Bugzilla::Constants;
+
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::Category;
+use Bugzilla::Testopia::Attachment;
 
 use JSON;
 use Text::Diff;
@@ -355,7 +357,7 @@ sub _check_components {
         @comp_ids = @$components;
     }
     else {
-        @comp_ids = split(',', $components);
+        @comp_ids = split(/[\s,]+/, $components);
     }
     foreach my $id (@comp_ids){
         Bugzilla::Testopia::Util::validate_selection($id, 'id', 'components');
@@ -617,15 +619,6 @@ sub lookup_default_tester {
 ###############################
 ####       Methods         ####
 ###############################
-
-
-=head2 get_selectable_components
-
-Returns a reference to a list of selectable components not already
-associated with this case. 
-
-=cut
-
 sub get_selectable_components {
     my $self = shift;
     my ($byid) = @_;
@@ -792,7 +785,7 @@ sub add_tag {
         if (ref $t eq 'ARRAY'){
             push @tags, $_ foreach @$t;
         }
-        push @tags, split(',', $t);
+        push @tags, split(/[\s,]+/, $t);
     }
 
     foreach my $name (@tags){
@@ -945,17 +938,14 @@ sub remove_blocks {
     
     my @cases;
     
-    foreach my $case (split /,/, $case_ids)
-    {
+    foreach my $case (split /[\s,]+/, $case_ids){
         detaint_natural($case);
         push @cases, $case;
     }
     
-    my $query =<<QUERY;
-       DELETE
+    my $query ="DELETE
        FROM   test_case_dependencies
-       WHERE  dependson = ?
-QUERY
+       WHERE  dependson = ?";
 
     $query .= "AND (";
     $query .= join(" or ", map {"blocked = ?"} @cases);
@@ -1015,17 +1005,17 @@ sub remove_dependson {
     
     my @cases;
     
-    foreach my $case (split /,/, $case_ids)
+    foreach my $case (split /[\s,]+/, $case_ids)
     {
         detaint_natural($case);
         push @cases, $case;
     }
     
-    my $query =<<QUERY;
+    my $query = "
        DELETE
        FROM   test_case_dependencies
-       WHERE  blocked = ?
-QUERY
+       WHERE  blocked = ?";
+
 
     $query .= "AND (";
     $query .= join(" or ", map {"dependson = ?"} @cases);

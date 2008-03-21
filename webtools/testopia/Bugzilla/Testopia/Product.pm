@@ -34,6 +34,8 @@ sub environments {
     
     return $self->{'environments'} if defined $self->{'environments'};
     
+    require Bugzilla::Testopia::Environment;    
+    
     my $query = "SELECT environment_id"; 
        $query .= " FROM test_environments";
        $query .= " WHERE product_id = ?";
@@ -48,10 +50,10 @@ sub environments {
     }
 
     my @objs;
-    require Bugzilla::Testopia::Environment;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Environment->new($id);
     }
+
     $self->{'environments'} = \@objs;
     return $self->{'environments'};
 }
@@ -60,6 +62,8 @@ sub builds {
     my $self = shift;
     my($active, $current) = @_;
     my $dbh = Bugzilla->dbh;
+
+    require Bugzilla::Testopia::Build;    
     
     my $query = "SELECT build_id FROM test_builds WHERE product_id = ?";
     if ($active && $current){
@@ -82,10 +86,10 @@ sub builds {
     }
 
     my @objs;
-    require Bugzilla::Testopia::Build;
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::Build->new($id);
     }
+
     $self->{'builds'} = \@objs;
     return $self->{'builds'};
 }
@@ -113,6 +117,10 @@ sub plans {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     
+    return $self->{'plans'} if exists $self->{'plans'};
+    
+    require Bugzilla::Testopia::TestPlan;
+    
     my $ref = $dbh->selectcol_arrayref(
                    "SELECT plan_id 
                     FROM test_plans 
@@ -120,7 +128,7 @@ sub plans {
                  ORDER BY name",
                     undef, $self->{'id'});
     my @objs;
-    require Bugzilla::Testopia::TestPlan;
+    
     foreach my $id (@{$ref}){
         push @objs, Bugzilla::Testopia::TestPlan->new($id);
     }
@@ -132,13 +140,16 @@ sub cases {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
     return $self->{'cases'} if exists $self->{'cases'};
+    
+    require Bugzilla::Testopia::TestCase;
+    
     my $caseids = $dbh->selectcol_arrayref(
         "SELECT case_id FROM test_case_plans
           INNER JOIN test_plans on test_case_plans.plan_id = test_plans.plan_id
           WHERE test_plans.product_id = ?", 
          undef, $self->id);
+
     my @cases;
-    require Bugzilla::Testopia::TestCase;
     foreach my $id (@{$caseids}){
         push @cases, Bugzilla::Testopia::TestCase->new($id);
     }
@@ -152,13 +163,15 @@ sub runs {
     my $dbh = Bugzilla->dbh;
     return $self->{'runs'} if exists $self->{'runs'};
 
+    require Bugzilla::Testopia::TestRun;
+    
     my $runids = $dbh->selectcol_arrayref(
         "SELECT run_id FROM test_runs
           INNER JOIN test_plans ON test_runs.plan_id = test_plans.plan_id
           WHERE test_plans.product_id = ?", 
          undef, $self->id);
+
     my @runs;
-    require Bugzilla::Testopia::TestRun;
     foreach my $id (@{$runids}){
         push @runs, Bugzilla::Testopia::TestRun->new($id);
     }
@@ -227,6 +240,9 @@ sub milestones {
 sub tags {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
+    
+    require Bugzilla::Testopia::TestTag;
+    
     my $ref = $dbh->selectcol_arrayref(
     "(SELECT test_tags.tag_id, test_tags.tag_name AS name 
          FROM test_tags
@@ -251,7 +267,6 @@ sub tags {
      ORDER BY name", undef, ($self->id,$self->id,$self->id));
     
     my @product_tags;
-    require Bugzilla::Testopia::TestTag;
     foreach my $id (@$ref){
         push @product_tags, Bugzilla::Testopia::TestTag->new($id);
     }
@@ -260,24 +275,11 @@ sub tags {
     return $self->{'tags'};
 }
 
-=head2 type
-
-Returns 'product'
-
-=cut
-
 sub type {
     my $self = shift;
     $self->{'type'} = 'product';
     return $self->{'type'};
 }
-
-=head2 type
-
-Returns true if logged in user has rights to edit Testopia objects
-associated with this product.
-
-=cut
 
 sub canedit {
     my $self = shift;

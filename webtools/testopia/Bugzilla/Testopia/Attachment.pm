@@ -455,7 +455,7 @@ sub contents {
 sub datasize {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
-#    return $self->{'datasize'} if exists $self->{'datasize'};
+    return $self->{'datasize'} if exists $self->{'datasize'};
 
     my ($datasize) = $dbh->selectrow_array("SELECT LENGTH(contents) 
                                            FROM test_attachment_data
@@ -468,6 +468,9 @@ sub datasize {
 sub cases {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
+    
+    require Bugzilla::Testopia::TestCase;
+    
     return $self->{'cases'} if exists $self->{'cases'};
     my $caseids = $dbh->selectcol_arrayref(
             "SELECT case_id FROM test_case_attachments
@@ -485,6 +488,9 @@ sub cases {
 sub plans {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
+    
+    require Bugzilla::Testopia::TestPlan;
+    
     return $self->{'plans'} if exists $self->{'plans'};
     my $planids = $dbh->selectcol_arrayref(
             "SELECT plan_id FROM test_plan_attachments

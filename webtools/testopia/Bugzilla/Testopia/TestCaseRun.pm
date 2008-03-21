@@ -26,12 +26,15 @@ use strict;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::User;
+use Bugzilla::Bug;
 use Bugzilla::Config;
 use Bugzilla::Constants;
+
 use Bugzilla::Testopia::Util;
+use Bugzilla::Testopia::Environment;
+use Bugzilla::Testopia::Build;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Attachment;
-use Bugzilla::Bug;
 
 use Date::Format;
 use Date::Parse;
@@ -812,6 +815,7 @@ Returns the TestRun object that this case-run is associated with
 sub run {
     my $self = shift;
     return $self->{'run'} if exists $self->{'run'};
+    require Bugzilla::Testopia::TestRun;
     $self->{'run'} = Bugzilla::Testopia::TestRun->new($self->{'run_id'});
     return $self->{'run'};
 }
@@ -826,6 +830,7 @@ Returns the TestCase object that this case-run is associated with
 sub case {
     my $self = shift;
     return $self->{'case'} if exists $self->{'case'};
+    require Bugzilla::Testopia::TestCase;
     $self->{'case'} = Bugzilla::Testopia::TestCase->new($self->{'case_id'});
     return $self->{'case'};
 }

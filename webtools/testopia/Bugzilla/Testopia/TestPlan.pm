@@ -28,14 +28,13 @@ use Bugzilla::Error;
 use Bugzilla::Config;
 use Bugzilla::Constants;
 use Bugzilla::Version;
+use Bugzilla::Bug;
+
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
-use Bugzilla::Testopia::TestRun;
-use Bugzilla::Testopia::Category;
-use Bugzilla::Testopia::Build;
 use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::Product;
-use Bugzilla::Bug;
+use Bugzilla::Testopia::Attachment;
 
 use Text::Diff;
 use JSON;
@@ -252,6 +251,7 @@ sub create {
     
     # Create default category
     unless (scalar @{$self->product->categories}){
+        require Bugzilla::Testopia::Category;
         my $category = Bugzilla::Testopia::Category->create(
             {'name' => '--default--',
              'description' => 'Default product category for test cases',
@@ -1170,6 +1170,9 @@ sub test_cases {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
     return $self->{'test_cases'} if exists $self->{'test_cases'};
+    
+    require Bugzilla::Testopia::TestCase;
+    
     my $caseids = $dbh->selectcol_arrayref(
             "SELECT case_id FROM test_case_plans
               WHERE plan_id = ?", 
@@ -1265,6 +1268,9 @@ sub builds_seen {
     my $self = shift;
     my ($status_id) = @_;
     my $dbh = Bugzilla->dbh;
+    
+    require Bugzilla::Testopia::Build;
+    
     my $ref = $dbh->selectcol_arrayref(
         "SELECT DISTINCT test_case_runs.build_id 
            FROM test_case_runs
@@ -1283,6 +1289,9 @@ sub environments_seen {
     my $self = shift;
     my ($status_id) = @_;
     my $dbh = Bugzilla->dbh;
+    
+    require Bugzilla::Testopia::Environment;
+    
     my $ref = $dbh->selectcol_arrayref(
         "SELECT DISTINCT test_case_runs.environment_id 
            FROM test_case_runs

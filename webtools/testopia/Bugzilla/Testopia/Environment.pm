@@ -96,9 +96,12 @@ sub _check_product {
 
     $product_id = trim($product_id);
     
+    require Bugzilla::Testopia::Product;
+    
     my $product;
     if (trim($product_id) !~ /^\d+$/ ){
         $product = Bugzilla::Product::check_product($product_id);
+        $product = Bugzilla::Testopia::Product->new($product_id);
     }
     else {
         $product = Bugzilla::Testopia::Product->new($product_id);
@@ -913,10 +916,9 @@ sub product {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     return $self->{'product'} if exists $self->{'product'};
-    
+    require Bugzilla::Testopia::Product;
     $self->{'product'} = Bugzilla::Product->new($self->{'product_id'});
     return $self->{'product'};
-    
 }
 
 =head2 runs
@@ -929,7 +931,9 @@ sub runs {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
     return $self->{'runs'} if exists $self->{'runs'};
-
+    
+    require Bugzilla::Testopia::TestRun;
+    
     my $runids = $dbh->selectcol_arrayref("SELECT run_id FROM test_runs
                                           WHERE environment_id = ?", 
                                           undef, $self->id);
@@ -952,6 +956,8 @@ sub caseruns {
     my ($self) = @_;
     my $dbh = Bugzilla->dbh;
     return $self->{'caseruns'} if exists $self->{'caseruns'};
+    
+    require Bugzilla::Testopia::TestCaseRun;
 
     my $ids = $dbh->selectcol_arrayref("SELECT case_run_id FROM test_case_runs
                                           WHERE environment_id = ?", 
