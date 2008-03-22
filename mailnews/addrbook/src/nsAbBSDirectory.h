@@ -65,6 +65,7 @@ public:
 	NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
 
 protected:
+  nsresult EnsureInitialized();
 	nsresult CreateDirectoriesFromFactory(const nsACString &aURI,
                                         DIR_Server* aServer, PRBool aNotify);
 

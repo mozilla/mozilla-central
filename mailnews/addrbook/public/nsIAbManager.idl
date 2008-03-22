@@ -44,6 +44,7 @@ interface nsIAbCard;
 interface nsIAbDirectoryProperties;
 interface nsIRDFDataSource;
 interface nsILocalFile;
+interface nsISimpleEnumerator;
 
 /**
  * nsIAbManager is an interface to the main address book mananger
@@ -52,9 +53,15 @@ interface nsILocalFile;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(39cf5303-73ab-4f28-9ea5-fd38e86893b3)]
+[scriptable, uuid(d4d1cc52-1bca-4096-bf77-31ff1334a4ea)]
 interface nsIAbManager : nsISupports 
 {
+  /**
+   * Returns an enumerator containing all the top-level directories
+   * (non-recursive)
+   */
+  readonly attribute nsISimpleEnumerator directories;
+
   /**
    * Creates a new address book.
    *

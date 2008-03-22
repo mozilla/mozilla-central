@@ -75,7 +75,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
                                                        PRBool aNotify)
 {
   nsresult rv;
-  
+
   // Get the directory factory service
   nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
     do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
@@ -114,9 +114,9 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
     // Define a relationship between the preference
     // entry and the directory
     mServers.Put(childDir, aServer);
-    
+
     mSubDirectories.AppendObject(childDir);
-    
+
     // Inform the listener, i.e. the RDF directory data
     // source that a new address book has been added
     if (aNotify && abManager)
@@ -128,60 +128,70 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
 
 NS_IMETHODIMP nsAbBSDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
 {
-  if (!mInitialized) 
-  {
-    nsresult rv;
-    nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
-      do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
-    NS_ENSURE_SUCCESS (rv, rv);
-    
-    nsVoidArray *directories = DIR_GetDirectories();
-    if (!directories)
-      return NS_ERROR_FAILURE;
-    
-    PRInt32 count = directories->Count();
-    for (PRInt32 i = 0; i < count; i++)
-    {
-      DIR_Server *server = (DIR_Server *)(directories->ElementAt(i));
-      
-      // if this is a 4.x, local .na2 addressbook (PABDirectory)
-      // we must skip it.
-      // mozilla can't handle 4.x .na2 addressbooks
-      // note, the filename might be na2 for 4.x LDAP directories
-      // (we used the .na2 file for replication), and we don't want to skip
-      // those.  see bug #127007
-      PRUint32 fileNameLen = strlen(server->fileName);
-      if (((fileNameLen > kABFileName_PreviousSuffixLen) && 
-        strcmp(server->fileName + fileNameLen - kABFileName_PreviousSuffixLen, kABFileName_PreviousSuffix) == 0) &&
-        (server->dirType == PABDirectory))
-        continue;
-      
-      // Set the uri property
-      nsCAutoString URI (server->uri);
-      // This is in case the uri is never set
-      // in the nsDirPref.cpp code.
-      if (!server->uri) 
-      {
-        URI = NS_LITERAL_CSTRING(kMDBDirectoryRoot);
-        URI += nsDependentCString(server->fileName);
-      }
-      
-      /*
-      * Check that we are not converting from a
-      * a 4.x address book file e.g. pab.na2
-      * check if the URI ends with ".na2"
-      */
-      if (StringEndsWith(URI, NS_LITERAL_CSTRING(kABFileName_PreviousSuffix))) 
-        URI.Replace(kMDBDirectoryRootLen, URI.Length() - kMDBDirectoryRootLen, server->fileName);
-      
-      // Create the directories
-      rv = CreateDirectoriesFromFactory(URI, server, PR_FALSE /* notify */);
-    }
-    
-    mInitialized = PR_TRUE;
-    // sort directories by position...
-  }
+  nsresult rv = EnsureInitialized();
+  NS_ENSURE_SUCCESS(rv, rv);
+
   return NS_NewArrayEnumerator(aResult, mSubDirectories);
+}
+
+nsresult nsAbBSDirectory::EnsureInitialized()
+{
+  if (mInitialized)
+    return NS_OK;
+
+  nsresult rv;
+  nsCOMPtr<nsIAbDirFactoryService> dirFactoryService = 
+    do_GetService(NS_ABDIRFACTORYSERVICE_CONTRACTID,&rv);
+  NS_ENSURE_SUCCESS (rv, rv);
+    
+  nsVoidArray *directories = DIR_GetDirectories();
+  if (!directories)
+    return NS_ERROR_FAILURE;
+    
+  PRInt32 count = directories->Count();
+  for (PRInt32 i = 0; i < count; i++)
+  {
+    DIR_Server *server = (DIR_Server *)(directories->ElementAt(i));
+      
+    // if this is a 4.x, local .na2 addressbook (PABDirectory)
+    // we must skip it.
+    // mozilla can't handle 4.x .na2 addressbooks
+    // note, the filename might be na2 for 4.x LDAP directories
+    // (we used the .na2 file for replication), and we don't want to skip
+    // those.  see bug #127007
+    PRUint32 fileNameLen = strlen(server->fileName);
+    if (((fileNameLen > kABFileName_PreviousSuffixLen) && 
+      strcmp(server->fileName + fileNameLen - kABFileName_PreviousSuffixLen,
+             kABFileName_PreviousSuffix) == 0) &&
+      (server->dirType == PABDirectory))
+      continue;
+      
+    // Set the uri property
+    nsCAutoString URI (server->uri);
+    // This is in case the uri is never set
+    // in the nsDirPref.cpp code.
+    if (!server->uri) 
+    {
+      URI = NS_LITERAL_CSTRING(kMDBDirectoryRoot);
+      URI += nsDependentCString(server->fileName);
+    }
+      
+    /*
+     * Check that we are not converting from a
+     * a 4.x address book file e.g. pab.na2
+     * check if the URI ends with ".na2"
+     */
+    if (StringEndsWith(URI, NS_LITERAL_CSTRING(kABFileName_PreviousSuffix))) 
+      URI.Replace(kMDBDirectoryRootLen, URI.Length() - kMDBDirectoryRootLen, server->fileName);
+      
+    // Create the directories
+    rv = CreateDirectoriesFromFactory(URI, server, PR_FALSE /* notify */);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+    
+  mInitialized = PR_TRUE;
+  // sort directories by position...
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
@@ -189,6 +199,9 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
                                                   PRUint32 aType,
                                                   nsACString &aResult)
 {
+  nsresult rv = EnsureInitialized();
+  NS_ENSURE_SUCCESS(rv, rv);
+
   /*
    * TODO
    * This procedure is still MDB specific
@@ -208,8 +221,8 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
    *
    */
   DIR_Server* server = nsnull;
-  nsresult rv = DIR_AddNewAddressBook(aDirName, EmptyCString(), URI,
-                                      (DirectoryType)aType, &server);
+  rv = DIR_AddNewAddressBook(aDirName, EmptyCString(), URI,
+                             (DirectoryType)aType, &server);
   NS_ENSURE_SUCCESS (rv, rv);
   
   if (aType != LDAPDirectory) {
@@ -228,7 +241,8 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
 NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayName,
                                                     const nsACString &aURI)
 {
-  nsresult rv = NS_OK;
+  nsresult rv = EnsureInitialized();
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString fileName;
   if (StringBeginsWith(aURI, NS_LITERAL_CSTRING(kMDBDirectoryRoot)))
@@ -267,17 +281,10 @@ GetDirectories_getDirectory(nsISupports *aKey, DIR_Server* aData, void* aClosure
 
 NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
 {
-  nsresult rv;
-
   NS_ENSURE_ARG_POINTER(directory);
 
-  // if addressbook is not launched yet mSevers will not be initialized
-  // calling GetChildNodes will initialize mServers
-  if (!mInitialized) {
-    nsCOMPtr<nsISimpleEnumerator> subDirectories;
-    rv = GetChildNodes(getter_AddRefs(subDirectories));
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
+  nsresult rv = EnsureInitialized();
+  NS_ENSURE_SUCCESS(rv, rv);
 
   DIR_Server *server;
   mServers.Get(directory, &server);
@@ -327,7 +334,10 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
 {
   if (!hasDir)
     return NS_ERROR_NULL_POINTER;
-  
+
+  nsresult rv = EnsureInitialized();
+  NS_ENSURE_SUCCESS(rv, rv);
+
   DIR_Server *dirServer;
   mServers.Get(dir, &dirServer);
   return DIR_ContainsServer(dirServer, hasDir);
