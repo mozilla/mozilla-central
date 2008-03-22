@@ -1,4 +1,4 @@
-# The registation of the overlays specific to SeaMonkey below should match
+# The registration of the overlays specific to SeaMonkey below should match
 # the ../xul/content/sm/contents.rdf file.
 chatzilla.jar:
 % content chatzilla-sm %content/chatzilla/sm/
