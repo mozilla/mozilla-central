@@ -165,9 +165,9 @@ const int kSortReverse = 1;
   NSPopUpButtonCell *popupButtonCell = [mPermissionColumn dataCell];
   [popupButtonCell setEditable:YES];
   [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:
-    [self localizedStringForKey:@"Allow"],
-    [self localizedStringForKey:@"Allow for Session"],
-    [self localizedStringForKey:@"Deny"],
+    NSLocalizedString(@"Allow", nil),
+    NSLocalizedString(@"Allow for Session", nil),
+    NSLocalizedString(@"Deny", nil),
     nil]];
 }
 

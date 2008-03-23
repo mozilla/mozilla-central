@@ -1,13 +1,6 @@
 "PreferencePanelLabel" = "Privacy";
 
-"Allow" = "Allow";
-"Allow for Session" = "Allow for Session";
-"Deny" = "Deny";
-"yes" = "yes";
-"no" = "no";
-
 "CookieExpiresOnQuit" = "On Quit";
-
 "DontRemoveButtonText"  = "Don’t Remove";
 
 /* cookie removal warning */

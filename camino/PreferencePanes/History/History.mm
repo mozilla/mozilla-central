@@ -108,10 +108,10 @@ static const int kDefaultExpireDays = 9;
 - (IBAction)clearDiskCache:(id)aSender
 {
   NSAlert* clearCacheAlert = [[[NSAlert alloc] init] autorelease];
-  [clearCacheAlert setMessageText:[self localizedStringForKey:@"EmptyCacheTitle"]];
-  [clearCacheAlert setInformativeText:[self localizedStringForKey:@"EmptyCacheMessage"]];
-  [clearCacheAlert addButtonWithTitle:[self localizedStringForKey:@"EmptyCacheButtonText"]];
-  NSButton* dontEmptyButton = [clearCacheAlert addButtonWithTitle:[self localizedStringForKey:@"DontEmptyButtonText"]];
+  [clearCacheAlert setMessageText:NSLocalizedString(@"EmptyCacheTitle", nil)];
+  [clearCacheAlert setInformativeText:NSLocalizedString(@"EmptyCacheMessage", nil)];
+  [clearCacheAlert addButtonWithTitle:NSLocalizedString(@"EmptyCacheButtonText", nil)];
+  NSButton* dontEmptyButton = [clearCacheAlert addButtonWithTitle:NSLocalizedString(@"DontEmptyButtonText", nil)];
   [dontEmptyButton setKeyEquivalent:@"\e"]; // escape
 
   [clearCacheAlert setAlertStyle:NSCriticalAlertStyle];
@@ -125,10 +125,10 @@ static const int kDefaultExpireDays = 9;
 - (IBAction)clearGlobalHistory:(id)sender
 {
   NSAlert* clearGlobalHistoryAlert = [[[NSAlert alloc] init] autorelease];
-  [clearGlobalHistoryAlert setMessageText:[self localizedStringForKey:@"ClearHistoryTitle"]];
-  [clearGlobalHistoryAlert setInformativeText:[self localizedStringForKey:@"ClearHistoryMessage"]];
-  [clearGlobalHistoryAlert addButtonWithTitle:[self localizedStringForKey:@"ClearHistoryButtonText"]];
-  NSButton* dontClearButton = [clearGlobalHistoryAlert addButtonWithTitle:[self localizedStringForKey:@"DontClearButtonText"]];
+  [clearGlobalHistoryAlert setMessageText:NSLocalizedString(@"ClearHistoryTitle", nil)];
+  [clearGlobalHistoryAlert setInformativeText:NSLocalizedString(@"ClearHistoryMessage", nil)];
+  [clearGlobalHistoryAlert addButtonWithTitle:NSLocalizedString(@"ClearHistoryButtonText", nil)];
+  NSButton* dontClearButton = [clearGlobalHistoryAlert addButtonWithTitle:NSLocalizedString(@"DontClearButtonText", nil)];
   [dontClearButton setKeyEquivalent:@"\e"]; // escape
 
   [clearGlobalHistoryAlert setAlertStyle:NSCriticalAlertStyle];

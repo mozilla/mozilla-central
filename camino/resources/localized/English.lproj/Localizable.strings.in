@@ -401,13 +401,13 @@
 /* Most likely the only thing you need to do here is change the ordering. The string should only include the name of the day of the week (%A), day of the month as a number (%d), and name of the month (%B). */
 "HistoryMenuDateFormat" = "%A, %B %d";
 
-/* Empty cache messages (note that these are duplicated in the History prefs panel) */
+/* Empty cache messages */
 "EmptyCacheTitle" = "Are you sure you want to empty the cache?";
 "EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits.\n\nYou cannot undo this action.\n";
 "EmptyCacheButtonText" = "Empty Cache";
 "DontEmptyButtonText" = "Don’t Empty";
 
-/* Clear history message (note that these are duplicated in the History prefs panel) */
+/* Clear history message */
 "ClearHistoryMenuItem" = "Clear History…";
 "ClearHistoryTitle" = "Are you sure you want to clear the history?";
 "ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar.\n\nYou cannot undo this action.\n";

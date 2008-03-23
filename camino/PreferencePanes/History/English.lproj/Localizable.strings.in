@@ -1,13 +1,1 @@
 "PreferencePanelLabel" = "History";
-
-/* Empty cache messages (note that these are duplicates from the main bundle) */
-"EmptyCacheTitle" = "Are you sure you want to empty the cache?";
-"EmptyCacheMessage" = "Camino saves the contents of web pages you visit in a cache so that they load more quickly on future visits.\n\nYou cannot undo this action.\n";
-"EmptyCacheButtonText" = "Empty Cache";
-"DontEmptyButtonText" = "Don’t Empty";
-
-/* Clear history message (note that these are duplicates from the main bundle) */
-"ClearHistoryTitle" = "Are you sure you want to clear the history?";
-"ClearHistoryMessage" = "Clearing your history will erase the list of sites that you have visited. You won’t be able to autocomplete the URLs of these sites when typing in the location bar.\n\nYou cannot undo this action.\n";
-"ClearHistoryButtonText" = "Clear History";
-"DontClearButtonText" = "Don’t Clear";

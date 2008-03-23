@@ -127,8 +127,8 @@ const int kAnnoyancePrefSome = 3;
   // Set up policy popups
   NSPopUpButtonCell *popupButtonCell = [mPolicyColumn dataCell];
   [popupButtonCell setEditable:YES];
-  [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:[self localizedStringForKey:@"Allow"],
-                                                                [self localizedStringForKey:@"Deny"],
+  [popupButtonCell addItemsWithTitles:[NSArray arrayWithObjects:NSLocalizedString(@"Allow", nil),
+                                                                NSLocalizedString(@"Deny", nil),
                                                                 nil]];
 
   // Set tab focus popup.
