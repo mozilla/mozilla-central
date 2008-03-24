@@ -22,7 +22,7 @@ class BootstrapFactory(BuildFactory):
 
     @type  bootstrap_config: string
     @param bootstrap_config: The location of the bootstrap.cfg file on the 
-                             master. This will be uploaded to "bootstrap.cfg"
+                             slave. This will be copied to "bootstrap.cfg"
                              in the builddir on the slave.
         """
         BuildFactory.__init__(self)
@@ -38,14 +38,15 @@ class BootstrapFactory(BuildFactory):
                   '-d', 'build', cvsmodule],
          haltOnFailure=1,
         )
-        self.addStep(FileDownload, 
-         mastersrc=bootstrap_config, 
-         slavedest="bootstrap.cfg", 
-         workdir="build",
+        self.addStep(ShellCommand, 
+         description='copy bootstrap.cfg',
+         command=['cp', bootstrap_config, 'bootstrap.cfg'],
+         haltOnFailure=1,
         )
         self.addStep(ShellCommand, 
          description='echo bootstrap.cfg',
          command=['cat', 'bootstrap.cfg'],
+         haltOnFailure=1,
         )
         self.addStep(ShellCommand, 
          description='(re)create logs area',
