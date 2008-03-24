@@ -46,6 +46,10 @@ RunGrid = function(params, cfg){
            {name: "case_count", mapping:"case_count"},
            {name: "product_version", mapping:"product_version"},
            {name: "product_id", mapping:"product_id"},
+           {name: "passed_pct", mapping:"passed_pct"},
+           {name: "failed_pct", mapping:"failed_pct"},
+           {name: "blocked_pct", mapping:"blocked_pct"},
+           {name: "complete_pct", mapping:"complete_pct"},
            {name: "plan_version", mapping:"plan_version"}
         ],
         remoteSort: true
@@ -133,7 +137,25 @@ RunGrid = function(params, cfg){
                  }
              }}
         ),renderer: TestopiaComboRenderer.createDelegate(this)
-        }
+        },
+        {header: "Complete", width: 100, dataIndex:"complete_pct",sortable: false, hideable: true,
+        renderer: function(v,m,r){
+            var val = '';
+            val = val + '<div class="x-progress-wrap" style="width: 98px; height: 15;">';
+            val = val + '    <div style="position: relative;">';
+            val = val + '    <div class="x-progress-bar-green" style="width: ' + Math.floor(r.get('passed_pct')*100) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-bar-red" style="width: ' + Math.floor(r.get('failed_pct')*100) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-bar-orange" style="width: ' + Math.floor(r.get('blocked_pct')*100) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-text-main x-hidden" style="font-weight: bold; z-index: 99;">';
+            val = val + '        <div style="width: 100px; height: 12px;">' + v + '</div>';
+            val = val + '    </div>';
+            val = val + '    <div class="x-progress-text-main x-progress-text-back-main" style="font-weight: bold;">';
+            val = val + '        <div style="width: 100px; height: 12px;">' + v + '</div>';
+            val = val + '    </div>';
+            val = val + '    </div>';
+            val = val + '</div>';
+            return val;
+        }}
     ];
     
     this.form = new Ext.form.BasicForm('testopia_helper_frm', {});

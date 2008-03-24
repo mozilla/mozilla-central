@@ -541,6 +541,7 @@ sub to_json {
     my $self = shift;
     my $obj;
     my $json = new JSON;
+    my $rc = $self->case_run_count;
     
     $json->autoconv(0);
     
@@ -560,7 +561,11 @@ sub to_json {
     $obj->{'type'}          = $self->type;
     $obj->{'id'}            = $self->id;
     $obj->{'product_id'}    = $self->plan->product_id if $self->plan;
-
+    $obj->{'passed_pct'}    = $self->case_run_count(PASSED) / $rc if $rc; 
+    $obj->{'failed_pct'}    = $self->case_run_count(FAILED) / $rc if $rc;
+    $obj->{'blocked_pct'}   = $self->case_run_count(BLOCKED) / $rc if $rc;
+    $obj->{'complete_pct'}  = $self->percent_complete() . '%';
+    
     return $json->objToJson($obj); 
 }
 
