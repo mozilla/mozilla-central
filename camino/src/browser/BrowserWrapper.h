@@ -262,6 +262,7 @@ class nsIArray;
 - (void)setTitle:(NSString *)title;
 - (void)sizeBrowserTo:(NSSize)dimensions;
 - (CHBrowserView*)createBrowserWindow:(unsigned int)mask;
+- (void)sendBrowserWindowToBack;
 
 @end
 

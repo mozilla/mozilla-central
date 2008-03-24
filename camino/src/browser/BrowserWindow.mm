@@ -41,6 +41,7 @@
 
 #import "BrowserWindow.h"
 #import "BrowserWindowController.h"
+#import "MainController.h"
 #import "AutoCompleteTextField.h"
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
@@ -69,6 +70,19 @@ static const int kEscapeKeyCode = 53;
 
   //NSLog(@"Old FR %@, new FR %@, responder %@, made %d", oldResponder, [self firstResponder], responder, madeFirstResponder);
   return madeFirstResponder;
+}
+
+// The opposite of makeKeyAndOrderFront; used to support window.blur()
+- (void)resignKeyAndOrderBack
+{
+  NSArray *browserWindows = [(MainController*)[NSApp delegate] browserWindows];
+  if ([browserWindows count] > 1) {
+    // If we are key we need to pass key status to the window that will become
+    // frontmost, but if we aren't then don't mess with the key status.
+    if ([self isKeyWindow])
+      [(NSWindow*)[browserWindows objectAtIndex:1] makeKeyAndOrderFront:nil];
+    [self orderWindow:NSWindowBelow relativeTo:[[browserWindows lastObject] windowNumber]];
+  }
 }
 
 // this gets called when the user hits the Escape key

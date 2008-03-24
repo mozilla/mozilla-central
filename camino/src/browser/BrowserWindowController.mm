@@ -3388,6 +3388,11 @@ public:
   [[SessionManager sharedInstance] windowStateChanged];
 }
 
+- (void)sendBrowserWindowToBack:(BrowserWrapper*)inBrowser
+{
+  [(BrowserWindow*)[self window] resignKeyAndOrderBack];
+}
+
 - (void)willShowPromptForBrowser:(BrowserWrapper*)inBrowser
 {
   // Remember where the user was, so we can come back.

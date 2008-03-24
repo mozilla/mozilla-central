@@ -50,6 +50,8 @@
 
 - (BOOL)makeFirstResponder:(NSResponder*) responder;
 
+- (void)resignKeyAndOrderBack;
+
 // mozWindow protocol
 - (BOOL)suppressMakeKeyFront;
 - (void)setSuppressMakeKeyFront:(BOOL)inSuppress;

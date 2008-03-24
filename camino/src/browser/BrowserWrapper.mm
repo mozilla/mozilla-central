@@ -917,6 +917,17 @@ enum StatusPriority {
   [[mWindow delegate] closeBrowserWindow:self];
 }
 
+//
+// sendBrowserWindowToBack
+//
+// Send the window the back of the window stack, and unfocus it if it's the key
+// window.
+//
+- (void)sendBrowserWindowToBack
+{
+  [[mWindow delegate] sendBrowserWindowToBack:self];
+}
+
 
 //
 // willShowPrompt

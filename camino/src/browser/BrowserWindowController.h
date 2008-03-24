@@ -297,6 +297,7 @@ typedef enum  {
 -(BrowserTabViewItem*)createNewTabItem;
 
 - (void)closeBrowserWindow:(BrowserWrapper*)inBrowser;
+- (void)sendBrowserWindowToBack:(BrowserWrapper*)inBrowser;
 
 - (void)willShowPromptForBrowser:(BrowserWrapper*)inBrowser;
 - (void)didDismissPromptForBrowser:(BrowserWrapper*)inBrowser;

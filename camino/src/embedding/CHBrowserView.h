@@ -133,6 +133,9 @@ typedef enum {
 // behavior.
 - (void)closeBrowserWindow;
 
+// Handle window.blur; send the window to the back and resign focus.
+- (void)sendBrowserWindowToBack;
+
 // Called before and after a prompt is shown for the contained view
 - (void)willShowPrompt;
 - (void)didDismissPrompt;
