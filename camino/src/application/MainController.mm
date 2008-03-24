@@ -113,6 +113,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)setupRendezvous;
 - (void)checkDefaultBrowser;
 - (void)checkForProblemAddOns;
+- (void)prelaunchHelperApps;
 - (BOOL)bookmarksItemsEnabled;
 - (void)adjustBookmarkMenuItems;
 - (void)updateDockMenuBookmarkFolder;
@@ -358,6 +359,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   [self ensureInitializationCompleted];
 
   [self checkForProblemAddOns];
+  [self prelaunchHelperApps];
 
   // open a new browser window if we don't already have one or we have a specific
   // start URL we need to show
@@ -619,6 +621,47 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       [prefManager setPref:"camino.last_addon_check_version" toString:vendorSubString];
     }
   }
+}
+
+// If it hasn't been done yet for this version, pre-launches the feed handlers
+// (in the background) so that Launch Services will recognize that they exist
+// and they won't show a first-run warning when used.
+- (void)prelaunchHelperApps
+{
+  PreferenceManager* prefManager = [PreferenceManager sharedInstance];
+  NSString* lastPrelaunchVersion = [prefManager getStringPref:"camino.last_feed_prelaunch_version"
+                                                     withSuccess:NULL];
+  NSString* currentVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+  if (![lastPrelaunchVersion isEqualToString:currentVersion]) {
+    [NSThread detachNewThreadSelector:@selector(doBackgroundPrelaunch:)
+                             toTarget:self
+                           withObject:nil];
+    [prefManager setPref:"camino.last_feed_prelaunch_version" toString:currentVersion];
+  }
+}
+
+- (void)doBackgroundPrelaunch:(id)ignored
+{
+  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+  NSString* feedHandlersPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"FeedHandlers"];
+  NSArray* handlers = [[NSFileManager defaultManager] directoryContentsAtPath:feedHandlersPath];
+  NSEnumerator* handlerEnumerator = [handlers objectEnumerator];
+  NSString* handler;
+  while ((handler = [handlerEnumerator nextObject])) {
+    NSString* fullPath = [feedHandlersPath stringByAppendingPathComponent:handler];
+
+    LSLaunchURLSpec launchSpec = {
+      (CFURLRef)[NSURL fileURLWithPath:fullPath],
+      NULL,
+      NULL,
+      kLSLaunchDontSwitch,
+      NULL
+    };
+    LSOpenFromURLSpec(&launchSpec, NULL);
+  }
+
+  [pool release];
 }
 
 //

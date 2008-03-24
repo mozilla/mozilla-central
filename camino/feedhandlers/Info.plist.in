@@ -44,7 +44,7 @@
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
-	<key>LSUIElement</key>
+	<key>LSBackgroundOnly</key>
 	<string>1</string>
 </dict>
 </plist>

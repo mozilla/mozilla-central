@@ -1022,12 +1022,12 @@
 		DE1EBDC30D066F5100BE9ECC /* mathfontSTIXSize1.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBB0D066F5100BE9ECC /* mathfontSTIXSize1.properties */; };
 		DE1EBDC40D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBC0D066F5100BE9ECC /* mathfontSTIXNonUnicode.properties */; };
 		DE1EBDC50D066F5100BE9ECC /* mathfontStandardSymbolsL.properties in Copy Gecko Fonts */ = {isa = PBXBuildFile; fileRef = DE1EBDBD0D066F5100BE9ECC /* mathfontStandardSymbolsL.properties */; };
-		DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
-		DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
-		DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
-		DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
-		DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
-		DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Resources */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
+		DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
+		DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
+		DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
+		DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFB0D43FB790057C437 /* BloglinesFeedHandler.app */; };
+		DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFC0D43FB790057C437 /* GoogleFeedHandler.app */; };
+		DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Copy Feed Handlers */ = {isa = PBXBuildFile; fileRef = DE579FFD0D43FB790057C437 /* MyYahooFeedHandler.app */; };
 		DE62E4300B72B3D200142851 /* libauth.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = DE62E42F0B72B3D200142851 /* libauth.dylib */; };
 		DE62E4320B72B50C00142851 /* libauth.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DE62E4310B72B50C00142851 /* libauth.a */; };
 		DE6D27E70C1A014D00292043 /* CHPermissionManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = DE6D27E60C1A014D00292043 /* CHPermissionManager.mm */; };
@@ -1437,6 +1437,32 @@
 				0098B1230CAEA77500DA0F2F /* nsHandlerService.js in Copy Component Libraries */,
 			);
 			name = "Copy Component Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33819D740D98189700CA9F52 /* Copy Feed Handlers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = FeedHandlers;
+			dstSubfolderSpec = 7;
+			files = (
+				DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Copy Feed Handlers */,
+				DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Copy Feed Handlers */,
+				DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Copy Feed Handlers */,
+			);
+			name = "Copy Feed Handlers";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		33819D750D98189700CA9F52 /* Copy Feed Handlers */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = FeedHandlers;
+			dstSubfolderSpec = 7;
+			files = (
+				DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Copy Feed Handlers */,
+				DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Copy Feed Handlers */,
+				DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Copy Feed Handlers */,
+			);
+			name = "Copy Feed Handlers";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		3386CD380CB18D6A00B8E89D /* Copy Component Libraries */ = {
@@ -4644,6 +4670,7 @@
 				3F44AD6005BDFB9F00CB4B08 /* Copy Libraries */,
 				3F44AD6A05BDFB9F00CB4B08 /* Copy Security Components */,
 				3F44AD6F05BDFB9F00CB4B08 /* Copy Security Chrome */,
+				33819D740D98189700CA9F52 /* Copy Feed Handlers */,
 				3F44AD7705BDFB9F00CB4B08 /* Copy Frameworks */,
 				3365CA1F0D073ECA00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AD7A05BDFB9F00CB4B08 /* Copy Plugins */,
@@ -4776,6 +4803,7 @@
 				3F44AF7B05BDFBA000CB4B08 /* Copy Security Components */,
 				3F44AF7E05BDFBA000CB4B08 /* Copy Security Chrome */,
 				3F44AF8605BDFBA000CB4B08 /* Copy Libraries */,
+				33819D750D98189700CA9F52 /* Copy Feed Handlers */,
 				3F44AF9005BDFBA000CB4B08 /* Copy Frameworks */,
 				3365CA0F0D07197E00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AF9205BDFBA000CB4B08 /* Copy Plugins */,
@@ -5030,9 +5058,6 @@
 				C7FF536D0D35281F00194776 /* search_editor_action.png in Resources */,
 				C7FF53720D35285400194776 /* SearchEngineEditor.nib in Resources */,
 				C7FF53760D35286800194776 /* WebSearchEngines.plist in Resources */,
-				DE579FFE0D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
-				DE579FFF0D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
-				DE57A0000D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
 				00BBBF1F0D6A149900C2D916 /* FindBarTextured.nib in Resources */,
 				00BBBFE80D70A6E400C2D916 /* tab_loading.tiff in Resources */,
 			);
@@ -5225,9 +5250,6 @@
 				C7FF536F0D35281F00194776 /* search_editor_action.png in Resources */,
 				C7FF53730D35285400194776 /* SearchEngineEditor.nib in Resources */,
 				C7FF53770D35286800194776 /* WebSearchEngines.plist in Resources */,
-				DE57A0010D43FB790057C437 /* BloglinesFeedHandler.app in Resources */,
-				DE57A0020D43FB790057C437 /* GoogleFeedHandler.app in Resources */,
-				DE57A0030D43FB790057C437 /* MyYahooFeedHandler.app in Resources */,
 				00BBBF1E0D6A149900C2D916 /* FindBarTextured.nib in Resources */,
 				00BBBFE70D70A6E400C2D916 /* tab_loading.tiff in Resources */,
 			);
