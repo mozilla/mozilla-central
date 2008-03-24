@@ -42,7 +42,7 @@
         <rdf:li> <rdf:Description ID="nav-doc-search" nc:name="Searching the Web" nc:link="nav_help.xhtml#searching_the_web"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav-doc-printsave" nc:name="Copying, Saving, and Printing Pages" nc:link="nav_help.xhtml#copying_saving_and_printing_pages"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav-doc-language" nc:name="Using Languages and International Content" nc:link="nav_help.xhtml#using_languages_and_international_content"/> </rdf:li>
-        <rdf:li> <rdf:Description ID="nav-doc-plugins" nc:name="Plugins and Downloads" nc:link="nav_help.xhtml#plugins_and_downloads"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="nav-doc-pluginsdownloads" nc:name="Plugins and Downloads" nc:link="nav_help.xhtml#plugins_and_downloads"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav-doc-ses" nc:name="Improving Speed and Efficiency" nc:link="nav_help.xhtml#improving_speed_and_efficiency"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav-proxies" nc:name="Proxies" nc:link="nav_help.xhtml#proxies"/> </rdf:li>
         <rdf:li> <rdf:Description ID="nav-page-info" nc:name="Viewing Page Info" nc:link="page_info_help.xhtml"/> </rdf:li>
@@ -99,7 +99,7 @@
     </nc:subheadings>
   </rdf:Description>
 
-  <rdf:Description about="#nav-doc-plugins">
+  <rdf:Description about="#nav-doc-pluginsdownloads">
     <nc:subheadings>
       <rdf:Seq>
         <rdf:li> <rdf:Description ID="nav-doc-plugins" nc:name="Plugins" nc:link="nav_help.xhtml#plugins"/> </rdf:li>
