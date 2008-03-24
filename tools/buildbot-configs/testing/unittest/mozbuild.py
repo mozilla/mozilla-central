@@ -105,6 +105,7 @@ MozillaEnvironments['mozbuild'] = {
             'C:\\mozilla-build\\msys\\bin;' + \
             'C:\\Python24;' + \
             'C:\\Python24\\Scripts;' + \
+            'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\bin;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\BIN;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\Tools;' + \
@@ -117,12 +118,15 @@ MozillaEnvironments['mozbuild'] = {
             'C:\\WINDOWS;' + \
             'C:\\WINDOWS\\System32\\Wbem;' + \
             'C:\\mozilla-build\\moztools\\bin;',
-    "INCLUDE": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
+    "INCLUDE": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include;' + \
+               'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include\\atl;' + \
+               'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\include;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\include;' + \
                '%INCLUDE%',
-    "LIB": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
+    "LIB": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\lib;' + \
+           'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\lib;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\lib;',
