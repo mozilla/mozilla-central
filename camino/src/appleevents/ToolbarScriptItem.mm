@@ -114,7 +114,7 @@ NSString * const kScriptItemIdentifierPrefix = @"ScriptItem:";
   
   // Run the script.
   NSAppleEventDescriptor *result = [script executeAndReturnError:&errDict];
-  if (!result) {
+  if (!result && [[errDict objectForKey:NSAppleScriptErrorNumber] intValue] != userCanceledErr) {
     NSBeep();
     NSLog(@"Error running script at %@: %@", [self scriptPath], [errDict valueForKey:NSAppleScriptErrorMessage]);
   }
