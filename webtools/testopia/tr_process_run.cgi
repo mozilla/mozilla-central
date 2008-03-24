@@ -119,7 +119,7 @@ elsif ($action eq 'clone'){
         }
     }
     my @rows;
-    if ($copysort){
+    if ($copysort && scalar @case_ids){
         my $ref = $dbh->selectall_arrayref(
                 "SELECT case_id, sortkey
                    FROM test_case_runs

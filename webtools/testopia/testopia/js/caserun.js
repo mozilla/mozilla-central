@@ -378,7 +378,7 @@ CaseRunGrid = function(params, run){
         allowBlank: false,
         typeAhead: true,
         disabled: true,
-        params: {product_id: run.plan.product_id}
+        params: {product_id: run.plan.product_id, activeonly: 1}
     });
     var envCombo = new EnvironmentCombo({
         id: 'tb_environment',
@@ -390,7 +390,7 @@ CaseRunGrid = function(params, run){
         allowBlank: false,
         typeAhead: true,
         disabled: true,
-        params: {product_id: run.plan.product_id}
+        params: {product_id: run.plan.product_id, isactive: 1}
     });
     buildCombo.on('select',function(c,r,i){
         params = {
@@ -416,11 +416,11 @@ CaseRunGrid = function(params, run){
          )},
         {header: "Build", width: 50, dataIndex: 'build', sortable: true,
          editor: new Ext.grid.GridEditor(
-             new BuildCombo({params: {product_id: run.plan.product_id}})
+             new BuildCombo({params: {product_id: run.plan.product_id, activeonly: 1}})
          ),renderer: TestopiaComboRenderer.createDelegate(this)},
         {header: "Environment", width: 50, dataIndex: 'environment', sortable: true,
          editor: new Ext.grid.GridEditor(
-             new EnvironmentCombo({params: {product_id: run.plan.product_id}})
+             new EnvironmentCombo({params: {product_id: run.plan.product_id, isactive: 1}})
          ),renderer: envRenderer.createDelegate(this)},
 		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee_name',
          editor: new Ext.grid.GridEditor(
@@ -607,7 +607,7 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                                     layout: 'form',
                                     bodyStyle: 'padding: 5px',
                                     items: [new BuildCombo({
-                                        params: {product_id: grid.run.plan.product_id},
+                                        params: {product_id: grid.run.plan.product_id, activeonly: 1},
                                         fieldLabel: 'Build',
                                         id: 'multi_build'
                                     }),
@@ -649,7 +649,7 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                                     layout: 'form',
                                     bodyStyle: 'padding: 5px',
                                     items: [new EnvironmentCombo({
-                                        params: {product_id: grid.run.plan.product_id},
+                                        params: {product_id: grid.run.plan.product_id, isactive: 1},
                                         fieldLabel: 'Environment',
                                         id: 'multi_env'
                                     }),

@@ -75,7 +75,7 @@ elsif ($action eq 'edit'){
     $build->set_name($cgi->param('name')) if $cgi->param('name');
     $build->set_description($cgi->param('description')) if $cgi->param('description');
     $build->set_milestone($cgi->param('milestone')) if $cgi->param('milestone');
-    $build->set_isactive($cgi->param('isactive') ? 1 : 0) if $cgi->param('isactive');
+    $build->set_isactive($cgi->param('isactive') =~ /(1|true)/ ? 1 : 0) if $cgi->param('isactive');
     
     $build->update();
     print "{success: true}";
