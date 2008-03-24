@@ -17,8 +17,8 @@ class BootstrapFactory(BuildFactory):
     @param automation_tag: The CVS Tag to use for checking out Bootstrap.
 
     @type  logdir: string
-    @param logdir: The log directory for Bootstrap to use. Note - must already
-                   exist on the slave.
+    @param logdir: The log directory for Bootstrap to use. 
+                   Note - will be created if it does not already exist.
 
     @type  bootstrap_config: string
     @param bootstrap_config: The location of the bootstrap.cfg file on the 
@@ -47,6 +47,12 @@ class BootstrapFactory(BuildFactory):
          description='echo bootstrap.cfg',
          command=['cat', 'bootstrap.cfg'],
         )
+        self.addStep(ShellCommand, 
+         description='(re)create logs area',
+         command=['mkdir', '-p', logdir], 
+         haltOnFailure=1,
+        )
+
         self.addStep(ShellCommand, 
          description='clean logs area',
          command=['bash', '-c', 'rm -rf ' + logdir + '/*.log'], 
