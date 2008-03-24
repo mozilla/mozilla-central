@@ -548,7 +548,6 @@ NS_IMETHODIMP nsImportGenericMail::BeginImport(nsISupportsString *successLog, ns
 
   NS_IF_ADDREF(m_pThreadData->stringBundle = m_stringBundle);
 
-
   PRThread *pThread = PR_CreateThread( PR_USER_THREAD, &ImportMailThread, m_pThreadData,
                   PR_PRIORITY_NORMAL,
                   PR_LOCAL_THREAD,
@@ -931,12 +930,26 @@ ImportMailThread( void *stuff)
 
         pData->currentSize = 0;
         pData->currentTotal += size;
+        
+        // commit to the db synchronously, but using a proxy since it doesn't like being used
+        // elsewhere than from the main thread.
+        nsCOMPtr<nsIMsgFolder> newFolderProxy;
+        rv = proxyObjMgr->GetProxyForObject(NS_PROXY_TO_MAIN_THREAD,
+                                            NS_GET_IID(nsIMsgFolder),
+                                            newFolder,
+                                            NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                                            getter_AddRefs(newFolderProxy));
 
+        if (NS_SUCCEEDED(rv) && newFolderProxy) {
           // OK, we've copied the actual folder/file over if the folder size is not 0
           // (ie, the msg summary is no longer valid) so close the msg database so that
           // when the folder is reopened the folder db can be reconstructed (which
           // validates msg summary and forces folder to be reparsed).
-        newFolder->ForceDBClosed();
+          newFolderProxy->ForceDBClosed();
+        }
+        else
+          // probably a fatal error if you can't commit the mailbox, right?
+          fatalError = PR_TRUE;
 
         if (fatalError) {
           IMPORT_LOG1( "*** ImportMailThread: ImportMailbox returned fatalError, mailbox #%d\n", (int) i);
