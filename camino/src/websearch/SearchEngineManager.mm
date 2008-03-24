@@ -38,6 +38,7 @@
 #import "SearchEngineManager.h"
 #import "PreferenceManager.h"
 #import "XMLSearchPluginParser.h"
+#import "NSFileManager+Utils.h"
 
 NSString *const kInstalledSearchEnginesDidChangeNotification = @"InstalledSearchEnginesChangedNotificationName";
 
@@ -165,6 +166,15 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   if (!savedSearchEngineInfoDict || 
       [[savedSearchEngineInfoDict objectForKey:kListOfSearchEnginesKey] count] == 0)
   {
+    // We couldn't load the engines, but if a file actually did exist at |pathToSavedEngineInfo|,
+    // move it aside before clobbering it with the defaults.
+    if ([[NSFileManager defaultManager] fileExistsAtPath:pathToSavedEngineInfo]) {
+      NSString *corruptedPath = [[NSFileManager defaultManager] backupFileNameFromPath:pathToSavedEngineInfo
+                                                                            withSuffix:@"-corrupted"];
+      [[NSFileManager defaultManager] copyPath:pathToSavedEngineInfo toPath:corruptedPath handler:nil];
+      NSLog(@"Moved corrupted search engines file to '%@'", corruptedPath);
+    }
+
 #if DEBUG
     NSLog(@"No search engines found in the profile directory; loading the defaults");
 #endif
