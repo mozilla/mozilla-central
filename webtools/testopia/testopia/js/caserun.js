@@ -907,6 +907,13 @@ CaseRun = function(){
         ])
     });
     var store = this.store;
+    store.on('load', function(s,r){
+        Ext.getCmp('action_editor').setValue(r[0].get('action'));
+        Ext.getCmp('effect_editor').setValue(r[0].get('results'));
+        Ext.getCmp('setup_editor').setValue(r[0].get('setup'));
+        Ext.getCmp('breakdown_editor').setValue(r[0].get('breakdown'));
+    });
+    
     appendNote = function(){
         var form = new Ext.form.BasicForm('testopia_helper_frm',{});
         form.submit({
@@ -918,6 +925,24 @@ CaseRun = function(){
             failure: testopiaError
         });
     };
+    processText = function(){
+        var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
+        var params = {};
+        params.tcsetup = Ext.getCmp('setup_editor').getValue();
+        params.tcbreakdown = Ext.getCmp('breakdown_editor').getValue();
+        params.tcaction = Ext.getCmp('action_editor').getValue();
+        params.tceffect = Ext.getCmp('effect_editor').getValue();
+        params.case_id = Ext.getCmp('caserun_grid').getSelectionModel().getSelected().get('case_id');
+        params.action = 'update_doc';
+        testopia_form.submit({
+            url: 'tr_process_case.cgi',
+            params: params,
+            success: function(){
+                TestopiaUtil.notify.msg('Test case updated', 'Test Case {0} was updated successfully', 'Document');
+            },
+            failure: testopiaError
+        });
+    }
     CaseRun.superclass.constructor.call(this,{
         id: 'case_details_panel',
         layout: 'fit',
@@ -935,66 +960,81 @@ CaseRun = function(){
             title:'Details',
             width: 200,
             items: [{
-                title:'Action & Expected Results',
-                id: 'caserun_action_panel',
-                border:false,
-                bodyBorder: false,
-                layout: 'fit',
-                autoScroll: true,
-                items:[{
-                    xtype: 'dataview',
-                    bodyBorder: false,
-                    store: store,
-                    itemSelector: 'div.actiondiv',
-                    loadingText: 'Loading...',
-                    tpl: new Ext.XTemplate(
-                        '<tpl for=".">',
-                          '<table style="width: 100%"><tr>',
-                            '<td valign="top" width="50%" class="ae_s">',
-                            '<div style="overflow:auto" >',
-                              '<b>Action:</b><br/>{action}',
-                            '</div>',
-                            '</td>',
-                            '<td valign="top" align="left" width="50%" class="ae_s">',
-                            '<div style="overflow:auto">',
-                              '<b>Expected Results:</b><br/>{results}',
-                            '</div>',
-                            '</td>',
-                          '</tr></table>',
-                        '</tpl>',
-                        '<div class="x-clear"></div>'
-                    )
+                layout: 'column',
+                title: 'Action / Expected Results',
+                id: 'action_panel',
+                items: [{
+                    columnWidth:0.5,
+                    layout:'fit',
+                    items:{
+                        title: 'Action',
+                        height: 230,
+                        bodyBorder: false,
+                        border: false,
+                        layout: 'fit',
+                        autoScroll: true,
+                        items:[{
+                            id: 'action_editor',
+                            xtype:'htmleditor'
+                        }]
+                    }
+                },{
+                    columnWidth:0.5,
+                    layout:'fit',
+                    items:{
+                        title: 'Expected Results',
+                        height: 230,
+                        bodyBorder: false,
+                        border: false,
+                        autoScroll: true,
+                        layout: 'fit',
+                        items:[{
+                            id: 'effect_editor',
+                            xtype:'htmleditor'
+                        }]  
+                    }
+                }],
+                buttons: [{ 
+                    text: 'Update Action/Results',
+                    handler: processText.createDelegate(this)
                 }]
             },{
-                title:'Setup & Breakdown',
-                id: 'caserun_setup_panel',
-                border:false,
-                bodyBorder: false,
-                layout: 'fit',
-                autoScroll: true,
-                items:[{
-                    xtype: 'dataview',
-                    bodyBorder: false,
-                    store: store,
-                    itemSelector: 'div.actiondiv',
-                    loadingText: 'Loading...',
-                    tpl: new Ext.XTemplate(
-                        '<tpl for=".">',
-                          '<table style="width: 100%"><tr>',
-                            '<td valign="top" width="50%" class="ae_s">',
-                            '<div style="overflow:auto" >',
-                              '<b>Setup:</b><br/>{setup}',
-                            '</div>',
-                            '</td>',
-                            '<td valign="top" align="left" width="50%" class="ae_s">',
-                            '<div style="overflow:auto">',
-                              '<b>Breakdown:</b><br/>{breakdown}',
-                            '</div>',
-                            '</td>',
-                          '</tr></table>',
-                        '</tpl>',
-                        '<div class="x-clear"></div>'
-                    )
+                layout: 'column',
+                title: 'Set Up / Break Down',
+                items: [{
+                    columnWidth:0.5,
+                    layout:'fit',
+                    items:{
+                        title: 'Setup',
+                        height: 230,
+                        bodyBorder: false,
+                        autoScroll: true,
+                        border: false,
+                        layout: 'fit',
+                        items:[{
+                            id: 'setup_editor',
+                            xtype:'htmleditor'
+                        }]
+                    }
+                },{
+                    columnWidth:0.5,
+                    layout:'fit',
+                    items:{
+                        title: 'Breakdown',
+                        height: 230,
+                        bodyBorder: false,
+                        autoScroll: true,
+                        border: false,
+                        layout: 'fit',
+                        items:[{
+                            id: 'breakdown_editor',
+                            xtype:'htmleditor'
+                        }]
+                    }
+                }],
+                buttons: [{ 
+                    text: 'Update Setup/Breakdown',
+                    handler: processText.createDelegate(this)
                 }]
             },{
                 title:'Notes',
