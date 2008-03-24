@@ -400,6 +400,14 @@ CHBrowserListener::ExitModalEventLoop(nsresult aStatus)
 NS_IMETHODIMP
 CHBrowserListener::Blur()
 {
+  // don't use -nativeWindow here so background tabs can't change focus
+  NSWindow* window = [mView window];
+  if (!window) 
+    return NS_ERROR_FAILURE;
+
+  if ([window isVisible])
+    [mContainer sendBrowserWindowToBack];
+
   return NS_OK;
 }
 
