@@ -67,6 +67,7 @@ PlanSearch = function(params){
             text: 'Submit',
             handler: function(){
                 var form = new Ext.form.BasicForm('plan_search_form');
+                var values = form.getValues();
                 var searchnum = Math.round(Math.random()*100);
                 try {
                     // EXT BUG - Closing always causes an error: 
@@ -83,7 +84,7 @@ PlanSearch = function(params){
                         listeners: { 'render': function(){
                             this.load({
                                 url: 'tr_plan_reports.cgi',
-                                params: form.getValues()
+                                params: values
                             });
                         }},
                         tbar:[new Ext.Toolbar.Fill(),
@@ -94,7 +95,7 @@ PlanSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Save this report',
                             handler: function(b,e){
-                                saveSearch('plan', form.getValues());
+                                saveSearch('plan', values);
                             }
                         },{
                             xtype: 'button',
@@ -103,14 +104,14 @@ PlanSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Create a link to this report',
                             handler: function(b,e){
-                                linkPopup(form.getValues());
+                                linkPopup(values);
                             }
                         }]
                     }));
                     Ext.getCmp('object_panel').activate('plan_search' + searchnum);
                 }
                 else{
-                    Ext.getCmp('object_panel').add(new PlanGrid(form.getValues(),{
+                    Ext.getCmp('object_panel').add(new PlanGrid(values,{
                         id: 'plan_search' + searchnum, 
                         closable: true,
                         title: 'Plan Search'
@@ -145,11 +146,12 @@ CaseSearch = function(params){
             text: 'Submit',
             handler: function(){
                 var form = new Ext.form.BasicForm('case_search_form');
+                var values = form.getValues();
                 var searchnum = Math.round(Math.random()*100);
                 try {
                     // EXT BUG - Closing always causes an error: 
                     // http://extjs.com/forum/showthread.php?t=20930
-                    Ext.getCmp('search_win').close();
+                    Ext.getCmp('search_win').hide();
                 }
                 catch(err){}
                 if (params.report){
@@ -161,7 +163,7 @@ CaseSearch = function(params){
                         listeners: { 'render': function(){
                             this.load({
                                 url: 'tr_case_reports.cgi',
-                                params: form.getValues()
+                                params: values
                             });
                         }},
                         tbar:[new Ext.Toolbar.Fill(),
@@ -172,7 +174,7 @@ CaseSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Save this report',
                             handler: function(b,e){
-                                saveSearch('case', form.getValues());
+                                saveSearch('case', values);
                             }
                         },{
                             xtype: 'button',
@@ -181,14 +183,14 @@ CaseSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Create a link to this report',
                             handler: function(b,e){
-                                linkPopup(form.getValues());
+                                linkPopup(values);
                             }
                         }]
                     }));
                     Ext.getCmp('object_panel').activate('plan_search' + searchnum);
                 }
                 else{
-                    Ext.getCmp('object_panel').add(new CaseGrid(form.getValues(),{
+                    Ext.getCmp('object_panel').add(new CaseGrid(values,{
                         id: 'case_search' + searchnum, 
                         closable: true,
                         title: 'Case Search'
@@ -223,6 +225,7 @@ RunSearch = function(params){
             text: 'Submit',
             handler: function(){
                 var form = new Ext.form.BasicForm('run_search_form');
+                var values = form.getValues();
                 var searchnum = Math.round(Math.random()*100);
                 try {
                     // EXT BUG - Closing always causes an error: 
@@ -239,7 +242,7 @@ RunSearch = function(params){
                         listeners: { 'render': function(){
                             this.load({
                                 url: 'tr_run_reports.cgi',
-                                params: form.getValues()
+                                params: values
                             });
                         }},
                         tbar:[new Ext.Toolbar.Fill(),
@@ -250,7 +253,7 @@ RunSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Save this report',
                             handler: function(b,e){
-                                saveSearch('run', form.getValues());
+                                saveSearch('run', values);
                             }
                         },{
                             xtype: 'button',
@@ -259,14 +262,14 @@ RunSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Create a link to this report',
                             handler: function(b,e){
-                                linkPopup(form.getValues());
+                                linkPopup(values);
                             }
                         }]
                     }));
                     Ext.getCmp('object_panel').activate('run_search' + searchnum);
                 }
                 else{
-                    Ext.getCmp('object_panel').add(new RunGrid(form.getValues(),{
+                    Ext.getCmp('object_panel').add(new RunGrid(values,{
                         id: 'run_search' + searchnum, 
                         closable: true,
                         title: 'Run Search'
@@ -301,6 +304,7 @@ CaseRunSearch = function(params){
             text: 'Submit',
             handler: function(){
                 var form = new Ext.form.BasicForm('case_run_search_form');
+                var values = form.getValues();
                 var searchnum = Math.round(Math.random()*100);
                 try {
                     // EXT BUG - Closing always causes an error: 
@@ -317,7 +321,7 @@ CaseRunSearch = function(params){
                         listeners: { 'render': function(){
                             this.load({
                                 url: 'tr_caserun_reports.cgi',
-                                params: form.getValues()
+                                params: values
                             });
                         }},
                         tbar:[new Ext.Toolbar.Fill(),
@@ -328,7 +332,7 @@ CaseRunSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Save this report',
                             handler: function(b,e){
-                                saveSearch('caserun', form.getValues());
+                                saveSearch('caserun', values);
                             }
                         },{
                             xtype: 'button',
@@ -337,14 +341,14 @@ CaseRunSearch = function(params){
                             iconCls: 'img_button_16x',
                             tooltip: 'Create a link to this report',
                             handler: function(b,e){
-                                linkPopup(form.getValues());
+                                linkPopup(values);
                             }
                         }]
                     }));
                     Ext.getCmp('object_panel').activate('case_run_search' + searchnum);
                 }
                 else{
-                    Ext.getCmp('object_panel').add(new CaseRunListGrid(form.getValues(),{
+                    Ext.getCmp('object_panel').add(new CaseRunListGrid(values,{
                         id: 'case_run_search' + searchnum, 
                         closable: true,
                         title: 'Case-Run Search'

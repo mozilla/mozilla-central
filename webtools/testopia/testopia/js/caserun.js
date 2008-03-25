@@ -920,6 +920,7 @@ CaseRun = function(){
             url: 'tr_caserun.cgi',
             params: {action: 'update_note', note: Ext.getCmp('caserun_append_note_fld').getValue(), caserun_id: this.caserun_id},
             success: function(){
+                Ext.getCmp('caserun_append_note_fld').reset();
                 store.reload();
             },
             failure: testopiaError
