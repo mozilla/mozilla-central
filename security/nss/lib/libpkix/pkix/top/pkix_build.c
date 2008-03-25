@@ -1537,6 +1537,7 @@ pkix_Build_ValidationCheckers(
 
 cleanup:
 
+        PKIX_DECREF(oid);
         PKIX_DECREF(reversedCertChain);
         PKIX_DECREF(buildCheckedCritExtOIDsList);
         PKIX_DECREF(checkers);

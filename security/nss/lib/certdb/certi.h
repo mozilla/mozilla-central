@@ -36,7 +36,7 @@
 /*
  * certi.h - private data structures for the certificate library
  *
- * $Id: certi.h,v 1.24 2008-03-15 02:15:34 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certi.h,v 1.25 2008-03-25 22:13:25 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTI_H_
 #define _CERTI_H_
@@ -302,6 +302,10 @@ extern SECStatus cert_GetCertType(CERTCertificate *cert);
  * update the CERTCertificate.
  */
 extern PRUint32 cert_ComputeCertType(CERTCertificate *cert);
+
+void cert_AddToVerifyLog(CERTVerifyLog *log,CERTCertificate *cert,
+                         unsigned long errorCode, unsigned int depth,
+                         void *arg);
 
 #endif /* _CERTI_H_ */
 
