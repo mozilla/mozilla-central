@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
 use strict;
+use Bugzilla::Testopia::TestCase;
+
 my $vars = Bugzilla->hook_args->{vars};
 my $cgi = Bugzilla->cgi;
 
