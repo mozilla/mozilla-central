@@ -40,11 +40,11 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1.0</string>
+	<key>LSBackgroundOnly</key>
+	<string>1</string>
 	<key>LSHasLocalizedDisplayName</key>
 	<true/>
 	<key>LSRequiresCarbon</key>
 	<true/>
-	<key>LSBackgroundOnly</key>
-	<string>1</string>
 </dict>
 </plist>
