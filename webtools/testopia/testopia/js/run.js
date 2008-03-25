@@ -138,7 +138,7 @@ RunGrid = function(params, cfg){
              }}
         ),renderer: TestopiaComboRenderer.createDelegate(this)
         },
-        {header: "Complete", width: 100, dataIndex:"complete_pct",sortable: false, hideable: true,
+        {header: "Complete", width: 110, dataIndex:"complete_pct",sortable: false, hideable: true,
         renderer: function(v,m,r){
             var val = '';
             val = val + '<div class="x-progress-wrap" style="width: 98px; height: 15;">';
@@ -686,7 +686,7 @@ RunClonePopup = function(run,caselist){
         id: 'run-clone-win',
         closable:true,
         width: 600,
-        height: 'auto',
+        height: '500',
         plain: true,
         shadow: false,
         layout: 'fit',

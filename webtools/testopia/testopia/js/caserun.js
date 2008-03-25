@@ -222,7 +222,7 @@ CaseRunListGrid = function(params, cfg){
                {name: "run_id", mapping: "run_id"},
                {name: "build", mapping:"build_name"},
                {name: "environment", mapping:"env_name"},
-               {name: "assignee_name", mapping:"assignee_name"},
+               {name: "assignee", mapping:"assignee_name"},
                {name: "testedby", mapping:"testedby"},
                {name: "status", mapping:"status"},
                {name: "category", mapping:"category"},
@@ -244,7 +244,7 @@ CaseRunListGrid = function(params, cfg){
          renderer: tutil.runLink },
         {header: "Build", width: 50, dataIndex: 'build', sortable: true, id: 'caserun_list_build_col'},
         {header: "Environment", width: 50, dataIndex: 'environment', sortable: true},
-		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee_name'},
+		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee'},
         {header: "Tested By", width: 150, sortable: true, dataIndex: 'testedby'},
 		{header: "Status", width: 30, sortable: true, dataIndex: 'status', groupRenderer: function(v){return v;}, renderer: tutil.statusIcon},		
         {header: "Priority", width: 60, sortable: true, dataIndex: 'priority'},
@@ -345,7 +345,7 @@ CaseRunGrid = function(params, run){
                {name: "build", mapping:"build_name"},
                {name: "environment", mapping:"env_name"},
                {name: "env_id", mapping:"env_id"},
-               {name: "assignee_name", mapping:"assignee_name"},
+               {name: "assignee", mapping:"assignee_name"},
                {name: "testedby", mapping:"testedby"},
                {name: "status", mapping:"status"},
                {name: "requirement", mapping:"requirement"},
@@ -422,7 +422,7 @@ CaseRunGrid = function(params, run){
          editor: new Ext.grid.GridEditor(
              new EnvironmentCombo({params: {product_id: run.plan.product_id, isactive: 1}})
          ),renderer: envRenderer.createDelegate(this)},
-		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee_name',
+		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee',
          editor: new Ext.grid.GridEditor(
              new UserLookup({id: 'caserun_assignee'})
          ),renderer: TestopiaComboRenderer.createDelegate(this)},
@@ -814,7 +814,7 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
             myparams.action = 'update_environment';
             myparams.caserun_env = gevent.value;
             break;
-        case 'assignee_name':
+        case 'assignee':
             myparams.action = 'update_assignee';
             myparams.assignee = gevent.value;
             break;
@@ -1208,7 +1208,7 @@ CaseBugsGrid = function(id){
             for (var i=0; i<store.fields.keys.length; i++){
                 url = url + store.fields.keys[i] + '=' + escape(store.getAt(0).get(store.fields.keys[i])) + '&';
             }
-            window.open(url);
+            window.open(url, 'New Bug');
         });
     };
     var ds = this.store;
