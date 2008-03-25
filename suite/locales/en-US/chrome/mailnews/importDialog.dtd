@@ -36,6 +36,7 @@
  ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY importDialog.windowTitle "Import">
+<!ENTITY importDialog.allTitle    "Import everything">
 <!ENTITY importDialog.mailTitle   "Mail">
 <!ENTITY importDialog.addressbookTitle "Address Books">
 <!ENTITY importDialog.settingsTitle "Settings">
@@ -43,11 +44,11 @@
 <!ENTITY  window.width            "40em">
 <!ENTITY  window.macWidth         "45em">
 
-<!ENTITY importTitle.label        "&brandShortName; Mail Import Wizard">
+<!ENTITY importTitle.label        "&brandShortName; Import Wizard">
 <!ENTITY importDesc.label         "Import Mail, Address Books and Settings from other programs">
 
-<!ENTITY importDescription.label  "This wizard will import mail messages, address book entries, and/or preferences from other mail programs and common address book formats into &brandShortName; Mail.">
-<!ENTITY importDescription2.label "Once they have been imported, you will be able to access them from within &brandShortName; Mail and/or Address Book.">
+<!ENTITY importDescription.label  "This wizard will import mail messages, address book entries, and/or preferences from other mail programs and common address book formats into &brandShortName;.">
+<!ENTITY importDescription2.label "Once they have been imported, you will be able to access them from within &brandShortName;.">
 
 <!ENTITY selectDescription.label  "Please select the type of file that you would like to import:">
 
@@ -56,7 +57,7 @@
 <!ENTITY finish.label             "Finish">
 <!ENTITY cancel.label             "Cancel">
 
-<!ENTITY select.label             "Select the type of material to import:">
+<!ENTITY select.label             "or select the type of material to import:">
 
 <!ENTITY title.label              "Title">
 <!ENTITY processing.label         "Importing…">
