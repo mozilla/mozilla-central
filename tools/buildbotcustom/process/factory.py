@@ -50,7 +50,7 @@ class BootstrapFactory(BuildFactory):
         )
         self.addStep(ShellCommand, 
          description='(re)create logs area',
-         command=['mkdir', '-p', logdir], 
+         command=['bash', '-c', 'mkdir -p ' + logdir], 
          haltOnFailure=1,
         )
 
