@@ -1425,6 +1425,7 @@ searchToJson = function(url){
             }
             else{
                 params[pair[0]] = new Array(params[pair[0]]);
+                params[pair[0]].push(unescape(pair[1]));
             }
         }
         else{

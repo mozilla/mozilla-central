@@ -143,9 +143,9 @@ RunGrid = function(params, cfg){
             var val = '';
             val = val + '<div class="x-progress-wrap" style="width: 98px; height: 15;">';
             val = val + '    <div style="position: relative;">';
-            val = val + '    <div class="x-progress-bar-green" style="width: ' + Math.floor(r.get('passed_pct')*100) + 'px; height: 14;"></div>';
-            val = val + '    <div class="x-progress-bar-red" style="width: ' + Math.floor(r.get('failed_pct')*100) + 'px; height: 14;"></div>';
-            val = val + '    <div class="x-progress-bar-orange" style="width: ' + Math.floor(r.get('blocked_pct')*100) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-bar-green" style="width: ' + Math.floor(r.get('passed_pct')*98) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-bar-red" style="width: ' + Math.floor(r.get('failed_pct')*98) + 'px; height: 14;"></div>';
+            val = val + '    <div class="x-progress-bar-orange" style="width: ' + Math.floor(r.get('blocked_pct')*98) + 'px; height: 14;"></div>';
             val = val + '    <div class="x-progress-text-main x-hidden" style="font-weight: bold; z-index: 99;">';
             val = val + '        <div style="width: 100px; height: 12px;">' + v + '</div>';
             val = val + '    </div>';
