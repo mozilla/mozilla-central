@@ -951,7 +951,7 @@ CaseRun = function(){
         border: false,
         bodyBorder: false,
         collapsible: true,
-        height: 250,
+        height: 300,
         items:[{
             xtype: 'tabpanel',
             bodyBorder: false,

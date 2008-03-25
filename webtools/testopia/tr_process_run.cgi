@@ -158,7 +158,7 @@ elsif ($action eq 'save_filter'){
     
     my $qname = '__run_id_' . $run->id . '_' . $cgi->param('query_name');
     my $query = $cgi->canonicalise_query('action');   
-print STDERR $query;
+
     trick_taint($query);
     trick_taint($qname);
     

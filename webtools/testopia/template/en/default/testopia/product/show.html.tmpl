@@ -245,7 +245,7 @@ Ext.onReady(function(){
                             p.store.load();
                         }
                         Ext.getCmp('producttags').store.load({params: {product_id: product_id}});
-                        document.cookie = "TESTOPIA_PRODUCT_ID=" + product_id + "; path=[% cookiepath %];";
+                        document.cookie = "TESTOPIA_PRODUCT_ID=" + product_id + "; path=[% cookiepath %]; expires=Fri, 01 Jan 2038 00:00:04 GMT";
                     }
                 },
                 'contextmenu': function(node, e){

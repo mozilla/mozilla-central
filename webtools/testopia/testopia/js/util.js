@@ -20,7 +20,7 @@
  *                 Daniel Parker <dparker1@novell.com>
  */
 
-Ext.state.Manager.setProvider(new Ext.state.CookieProvider());
+Ext.state.Manager.setProvider(new Ext.state.CookieProvider({expires: new Date(new Date().getTime()+(1000*60*60*24*30))}));
 Ext.data.Connection.timeout = 120000;
 Ext.Updater.defaults.timeout = 120000;
 Ext.Ajax.timeout = 120000;

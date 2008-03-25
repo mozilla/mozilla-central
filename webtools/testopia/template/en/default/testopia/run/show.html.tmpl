@@ -177,7 +177,7 @@ Ext.onReady(function(){
         applyTo: 'run-body-div',
         monitorResize: true,
         id: 'runpanel',
-        height: 1000,
+        height: Ext.state.Manager.get('run_height', 1200),
         footer: true,
         items:[{
             split: true,
@@ -370,6 +370,7 @@ Ext.onReady(function(){
     resizer.on('resize', function(r,w,h,e){
         runpanel.setHeight(h);
         runpanel.doLayout();
+        Ext.state.Manager.set('run_height', h);
     });
   [% IF run.case_run_count == 0 %]
     Ext.getCmp('run_progress').updateProgress(0,0,0,'0%');

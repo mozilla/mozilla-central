@@ -686,7 +686,7 @@ RunClonePopup = function(run,caselist){
         id: 'run-clone-win',
         closable:true,
         width: 600,
-        height: '500',
+        height: 500,
         plain: true,
         shadow: false,
         layout: 'fit',
