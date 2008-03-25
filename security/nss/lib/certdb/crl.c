@@ -37,7 +37,7 @@
 /*
  * Moved from secpkcs7.c
  *
- * $Id: crl.c,v 1.58 2008-02-08 02:50:43 julien.pierre.boogz%sun.com Exp $
+ * $Id: crl.c,v 1.59 2008-03-25 05:02:22 julien.pierre.boogz%sun.com Exp $
  */
  
 #include "cert.h"
@@ -2320,6 +2320,7 @@ static CERTSignedCrl* GetBestCRL(CRLDPCache* cache, PRBool entries)
     if (0 == cache->ncrls)
     {
         /* empty cache*/
+        PORT_SetError(SEC_ERROR_CRL_NOT_FOUND);
         return NULL;
     }    
 
@@ -2345,6 +2346,7 @@ static CERTSignedCrl* GetBestCRL(CRLDPCache* cache, PRBool entries)
         }
     }
 
+    PORT_SetError(SEC_ERROR_CRL_NOT_FOUND);
     return NULL;
 }
 
