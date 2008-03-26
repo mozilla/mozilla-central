@@ -306,7 +306,7 @@ Ext.onReady(function(){
   [% END %]
     var s = searchToJson(window.location.search);
     if (s.tab){
-        Ext.getCmp('object_panel').activate(s.tab + '_grid');
+        Ext.getCmp('object_panel').activate('product_' + s.tab + '_grid');
     }
     else{
         Ext.getCmp('object_panel').activate(Ext.state.Manager.get('product_active_tab', 0));
