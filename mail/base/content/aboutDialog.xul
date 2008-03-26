@@ -50,6 +50,7 @@
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         id="aboutDialog"
 #ifdef XP_MACOSX
+        windowtype="Mail:About"
         buttons="extra2"
         align="end"
 #else

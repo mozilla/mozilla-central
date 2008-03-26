@@ -232,7 +232,17 @@ function SetBusyCursor(window, enable)
 function openAboutDialog()
 {
 #ifdef XP_MACOSX
-  window.open("chrome://messenger/content/aboutDialog.xul", "About", "centerscreen,chrome,resizable=no");
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator);
+  var win = wm.getMostRecentWindow("Mail:About");
+  if (win)  // If we have an open about dialog, just focus it.
+    win.focus();
+  else {
+    // Define minimizable=no although it does nothing on OS X
+    // (see Bug 287162); remove this comment once Bug 287162 is fixed...
+    window.open("chrome://messenger/content/aboutDialog.xul", "About",
+                "chrome, resizable=no, minimizable=no");
+  }
 #else
   window.openDialog("chrome://messenger/content/aboutDialog.xul", "About", "modal,centerscreen,chrome,resizable=no");
 #endif
