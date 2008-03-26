@@ -1030,7 +1030,7 @@ pkix_CheckChain(
         *pNBIOContext = NULL;
 
 cleanup:
-        if (PKIX_ERROR_RECEIVED) {
+        if (PKIX_ERROR_RECEIVED && cert) {
             pkixErrorReceived = PKIX_TRUE;
             pkixErrorCode = pkixErrorResult->errCode;
             checkCertError = pkixErrorResult;

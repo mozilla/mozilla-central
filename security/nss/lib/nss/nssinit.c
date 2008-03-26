@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: nssinit.c,v 1.93 2008-03-11 20:48:53 alexei.volkov.bugs%sun.com Exp $ */
+/* $Id: nssinit.c,v 1.94 2008-03-26 18:49:04 alexei.volkov.bugs%sun.com Exp $ */
 
 #include <ctype.h>
 #include "seccomon.h"
@@ -573,7 +573,7 @@ loser:
 
     if (SECSuccess == rv) {
 	pkixError = PKIX_Initialize
-	    (PKIX_FALSE, PKIX_FALSE, PKIX_MAJOR_VERSION, PKIX_MINOR_VERSION,
+	    (PKIX_FALSE, PKIX_MAJOR_VERSION, PKIX_MINOR_VERSION,
 	    PKIX_MINOR_VERSION, &actualMinorVersion, &plContext);
 
 	if (pkixError != NULL) {

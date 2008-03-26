@@ -190,6 +190,13 @@ ifdef BUILD_LIBPKIX_TESTS
 DEFINES += -DBUILD_LIBPKIX_TESTS
 endif
 
+# Avoid building object leak test code for optimized library
+ifndef BUILD_OPT
+ifdef PKIX_OBJECT_LEAK_TEST
+DEFINES += -DPKIX_OBJECT_LEAK_TEST
+endif
+endif
+
 # This allows all library and tools code to use the util function
 # implementations directly from libnssutil3, rather than the wrappers
 # in libnss3 which are present for binary compatibility only

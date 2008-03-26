@@ -204,10 +204,10 @@ pkix_OcspChecker_Check(
                         }
                         goto cleanup;
                 }
-
                 PKIX_INCREF(cert);
+                PKIX_DECREF(checker->cert);
                 checker->cert = cert;
-                
+
                 /* create request */
                 PKIX_CHECK(pkix_pl_OcspRequest_Create
                         (cert,
@@ -301,7 +301,9 @@ cleanup:
 
         PKIX_DECREF(cid);
         PKIX_DECREF(request);
-        PKIX_DECREF(checker->response);
+        if (checker) {
+            PKIX_DECREF(checker->response);
+        }
 
         PKIX_RETURN(OCSPCHECKER);
 

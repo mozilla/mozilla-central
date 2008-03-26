@@ -145,7 +145,7 @@ PKIX_PL_OcspCertID_Create(
         PKIX_PL_OcspCertID **object,
         void *plContext)
 {
-        PKIX_PL_OcspCertID *cid;
+        PKIX_PL_OcspCertID *cid = NULL;
         int64 time = 0;
 
         PKIX_ENTER(DATE, "PKIX_PL_OcspCertID_Create");

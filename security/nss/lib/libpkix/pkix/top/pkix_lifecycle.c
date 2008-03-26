@@ -43,8 +43,7 @@
 
 #include "pkix_lifecycle.h"
 
-static PKIX_Boolean pkixIsInitialized = PKIX_FALSE;
-static PKIX_Boolean pkixInitInProgress = PKIX_FALSE;
+static PKIX_Boolean pkixIsInitialized;
 
 /* Lock used by Logger - is reentrant by the same thread */
 extern PKIX_PL_MonitorLock *pkixLoggerLock;
@@ -82,7 +81,6 @@ extern PKIX_List *pkixLoggersDebugTrace;
 PKIX_Error *
 PKIX_Initialize(
         PKIX_Boolean platformInitNeeded,
-        PKIX_Boolean useArenas,
         PKIX_UInt32 desiredMajorVersion,
         PKIX_UInt32 minDesiredMinorVersion,
         PKIX_UInt32 maxDesiredMinorVersion,
@@ -95,18 +93,6 @@ PKIX_Initialize(
         PKIX_NULLCHECK_ONE(pPlContext);
 
         /*
-         * This function can only be called once, except for a special-situation
-         * recursive call. If platformInitNeeded is TRUE, this function
-         * initializes the platform support layer, such as NSS. But that
-         * layer expects to initialize us! So we return immediately if we
-         * recognize that we are in this nested call situation.
-         */
-
-        if (pkixInitInProgress && (platformInitNeeded == PKIX_FALSE)) {
-                goto cleanup;
-        }
-
-        /*
          * If we are called a second time other than in the situation handled
          * above, we return a positive status.
          */
@@ -115,10 +101,8 @@ PKIX_Initialize(
                 PKIX_RETURN(LIFECYCLE);
         }
 
-        pkixInitInProgress = PKIX_TRUE;
-
         PKIX_CHECK(PKIX_PL_Initialize
-                (platformInitNeeded, useArenas, &plContext),
+                (platformInitNeeded, PKIX_FALSE, &plContext),
                 PKIX_INITIALIZEFAILED);
 
         *pPlContext = plContext;
@@ -134,43 +118,62 @@ PKIX_Initialize(
 
         *pActualMinorVersion = PKIX_MINOR_VERSION;
 
-        pkixInitInProgress = PKIX_FALSE;
-        pkixIsInitialized = PKIX_TRUE;
-
-        /* Create Cache Tables */
+        /* Create Cache Tables
+         * Do not initialize hash tables for object leak test */
+#if !defined(PKIX_OBJECT_LEAK_TEST)
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (32, 0, &cachedCertSigTable, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                   (32, 0, &cachedCertSigTable, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (32, 0, &cachedCrlSigTable, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                   (32, 0, &cachedCrlSigTable, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (32, 10, &cachedCertChainTable, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                       (32, 10, &cachedCertChainTable, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (32, 10, &cachedCertTable, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                       (32, 10, &cachedCertTable, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (32, 10, &cachedCrlEntryTable, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                   (32, 10, &cachedCrlEntryTable, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (5, 5, &aiaConnectionCache, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                   (5, 5, &aiaConnectionCache, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         PKIX_CHECK(PKIX_PL_HashTable_Create
-                    (5, 5, &httpSocketCache, plContext),
-                    PKIX_HASHTABLECREATEFAILED);
-
+                   (5, 5, &httpSocketCache, plContext),
+                   PKIX_HASHTABLECREATEFAILED);
+        
         if (pkixLoggerLock == NULL) {
-                PKIX_CHECK(PKIX_PL_MonitorLock_Create
-                        (&pkixLoggerLock, plContext),
-                        PKIX_MONITORLOCKCREATEFAILED);
+            PKIX_CHECK(PKIX_PL_MonitorLock_Create
+                       (&pkixLoggerLock, plContext),
+                       PKIX_MONITORLOCKCREATEFAILED);
         }
+#else
+        fnInvTable = PL_NewHashTable(0, pkix_ErrorGen_Hash,
+                                     PL_CompareValues,
+                                     PL_CompareValues, NULL, NULL);
+        if (!fnInvTable) {
+            PKIX_ERROR(PKIX_HASHTABLECREATEFAILED);
+        }
+        
+        fnStackNameArr = PORT_ZNewArray(char*, MAX_STACK_DEPTH);
+        if (!fnStackNameArr) {
+            PKIX_ERROR(PKIX_HASHTABLECREATEFAILED);
+        }
+
+        fnStackInvCountArr = PORT_ZNewArray(PKIX_UInt32, MAX_STACK_DEPTH);
+        if (!fnStackInvCountArr) {
+            PKIX_ERROR(PKIX_HASHTABLECREATEFAILED);
+        }
+#endif /* PKIX_OBJECT_LEAK_TEST */
+
+        pkixIsInitialized = PKIX_TRUE;
 
 cleanup:
 
@@ -193,6 +196,8 @@ PKIX_Shutdown(void *plContext)
                 /* The library was not initialized */
                 PKIX_RETURN(LIFECYCLE);
         }
+
+        pkixIsInitialized = PKIX_FALSE;
 
         if (pkixLoggers) {
                 savedPkixLoggers = pkixLoggers;
@@ -225,7 +230,11 @@ PKIX_Shutdown(void *plContext)
         PKIX_CHECK(PKIX_PL_Shutdown(plContext),
                 PKIX_SHUTDOWNFAILED);
 
-        pkixIsInitialized = PKIX_FALSE;
+#ifdef PKIX_OBJECT_LEAK_TEST
+        PORT_Free(fnStackInvCountArr);
+        PORT_Free(fnStackNameArr);
+        PL_HashTableDestroy(fnInvTable);
+#endif
 
 cleanup:
 

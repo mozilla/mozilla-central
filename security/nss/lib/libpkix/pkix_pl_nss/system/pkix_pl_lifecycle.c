@@ -86,8 +86,25 @@ PKIX_Error* PKIX_ALLOC_ERROR(void)
     return &pkix_Alloc_Error_Data.error;
 }
 
-static PKIX_UInt32
-pkix_pl_lifecycle_ObjectLeakCheck()
+#ifdef PKIX_OBJECT_LEAK_TEST
+SECStatus
+pkix_pl_lifecycle_ObjectTableUpdate(int *objCountTable)
+{
+    int   typeCounter = 0;
+
+    for (; typeCounter < PKIX_NUMTYPES; typeCounter++) {
+        pkix_ClassTable_Entry *entry = &systemClasses[typeCounter];
+
+        objCountTable[typeCounter] = entry->objCounter;
+    }
+
+    return SECSuccess;
+}
+#endif /* PKIX_OBJECT_LEAK_TEST */
+
+
+PKIX_UInt32
+pkix_pl_lifecycle_ObjectLeakCheck(int *initObjCountTable)
 {
         int   typeCounter = 0;
         PKIX_UInt32 numObjects = 0;
@@ -96,10 +113,17 @@ pkix_pl_lifecycle_ObjectLeakCheck()
 
         for (; typeCounter < PKIX_NUMTYPES; typeCounter++) {
                 pkix_ClassTable_Entry *entry = &systemClasses[typeCounter];
+                PKIX_UInt32 objCountDiff = entry->objCounter;
 
-                numObjects += entry->objCounter;
+                if (initObjCountTable) {
+                    PKIX_UInt32 initialCount = initObjCountTable[typeCounter];
+                    objCountDiff = (entry->objCounter > initialCount) ?
+                        entry->objCounter - initialCount : 0;
+                }
+
+                numObjects += objCountDiff;
                 
-                if (!pkixLog || !entry->objCounter) {
+                if (!pkixLog || !objCountDiff) {
                     continue;
                 }
                 className = entry->description;
@@ -111,8 +135,8 @@ pkix_pl_lifecycle_ObjectLeakCheck()
 
                 PR_LOG(pkixLog, 1, ("Class %s leaked %d objects of "
                         "size %d bytes, total = %d bytes\n", className, 
-                        entry->objCounter, entry->typeObjectSize,
-                        entry->objCounter * entry->typeObjectSize));
+                        objCountDiff, entry->typeObjectSize,
+                        objCountDiff * entry->typeObjectSize));
         }
  
         return numObjects;
@@ -265,15 +289,10 @@ PKIX_PL_Shutdown(void *plContext)
 
         pkix_pl_HttpCertStore_Shutdown(plContext);
 
-        numLeakedObjects = pkix_pl_lifecycle_ObjectLeakCheck();
-
-        /* Turn this code on again after bug 397832 get fixed.
-         * if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
-         *   
-         *    PORT_Assert(numLeakedObjects == 0);
-         *    
-         * }
-         */ 
+        numLeakedObjects = pkix_pl_lifecycle_ObjectLeakCheck(NULL);
+        if (PR_GetEnv("NSS_STRICT_SHUTDOWN")) {
+           PORT_Assert(numLeakedObjects == 0);
+        }
 
         if (plContext != NULL) {
                 PKIX_PL_NssContext_Destroy(plContext);

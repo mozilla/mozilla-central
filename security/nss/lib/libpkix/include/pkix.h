@@ -116,9 +116,6 @@ extern "C" {
  *  "platformInitNeeded"
  *      Boolean indicating whether the platform layer initialization code
  *      has previously been run, or should be called from this function.
- *  "useArenas"
- *      Boolean indicating whether allocation is to be done using arenas or
- *      individual allocation (malloc).
  *  "desiredMajorVersion"
  *      The major version of the libpkix API the application wishes to use.
  *  "minDesiredMinorVersion"
@@ -142,7 +139,6 @@ extern "C" {
 PKIX_Error *
 PKIX_Initialize(
         PKIX_Boolean platformInitNeeded,
-        PKIX_Boolean useArenas,
         PKIX_UInt32 desiredMajorVersion,
         PKIX_UInt32 minDesiredMinorVersion,
         PKIX_UInt32 maxDesiredMinorVersion,

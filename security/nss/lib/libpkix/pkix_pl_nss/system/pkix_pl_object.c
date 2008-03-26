@@ -140,6 +140,10 @@ pkix_pl_Object_GetHeader(
 #endif /* PKIX_USER_OBJECT_TYPE */
         }
 
+#ifdef PKIX_OBJECT_LEAK_TEST
+        PORT_Assert(header && header->magicHeader == PKIX_MAGIC_HEADER);
+#endif /* PKIX_OBJECT_LEAK_TEST */
+
         if ((header == NULL)||
             (header->magicHeader != PKIX_MAGIC_HEADER)) {
                 PKIX_ERROR_ALLOC_ERROR();
@@ -181,15 +185,19 @@ pkix_pl_Object_Destroy(
         PKIX_ENTER(OBJECT, "pkix_pl_Object_Destroy");
         PKIX_NULLCHECK_ONE(object);
 
+#ifdef PKIX_OBJECT_LEAK_TEST
+        PKIX_CHECK_FATAL(pkix_pl_Object_GetHeader(object, &objectHeader, plContext),
+                    PKIX_RECEIVEDCORRUPTEDOBJECTARGUMENT);
+#else
         PKIX_CHECK(pkix_pl_Object_GetHeader(object, &objectHeader, plContext),
                     PKIX_RECEIVEDCORRUPTEDOBJECTARGUMENT);
+#endif /* PKIX_OBJECT_LEAK_TEST */
 
         /* Attempt to delete an object still being used */
         if (objectHeader->references != 0) {
                 PKIX_ERROR_FATAL(PKIX_OBJECTSTILLREFERENCED);
         }
 
-        objectHeader->magicHeader = 0;
         PKIX_DECREF(objectHeader->stringRep);
 
         /* Destroy this object's lock */
@@ -198,9 +206,18 @@ pkix_pl_Object_Destroy(
         objectHeader->lock = NULL;
         object = NULL;
 
+        objectHeader->magicHeader = PKIX_MAGIC_HEADER_DESTROYED;
+
+#ifdef PKIX_OBJECT_LEAK_TEST
+        memset(objectHeader, 0xbf, systemClasses[PKIX_OBJECT_TYPE].typeObjectSize);
+#endif
+
         PKIX_FREE(objectHeader);
 
 cleanup:
+#ifdef PKIX_OBJECT_LEAK_TEST
+fatal:
+#endif
 
         PKIX_RETURN(OBJECT);
 }
@@ -589,8 +606,14 @@ PKIX_PL_Object_Alloc(
         PORT_Assert(size == ctEntry->typeObjectSize);
 
         /* Allocate space for the object header and the requested size */
+#ifdef PKIX_OBJECT_LEAK_TEST       
+        PKIX_CHECK(PKIX_PL_Calloc
+                    (1,
+                     ((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
+#else
         PKIX_CHECK(PKIX_PL_Malloc
                     (((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
+#endif /* PKIX_OBJECT_LEAK_TEST */
                     (void **)&object,
                     plContext),
                     PKIX_MALLOCFAILED);
@@ -602,7 +625,6 @@ PKIX_PL_Object_Alloc(
         object->stringRep = NULL;
         object->hashcode = 0;
         object->hashcodeCached = 0;
-
 
         /* Cannot use PKIX_PL_Mutex because it depends on Object */
         /* Using NSPR Locks instead */
@@ -841,7 +863,7 @@ PKIX_PL_Object_DecRef(
         PKIX_Int32 refCount = 0;
         PKIX_PL_Object *objectHeader = NULL;
         PKIX_PL_NssContext *context = NULL;
-
+            
         PKIX_ENTER(OBJECT, "PKIX_PL_Object_DecRef");
         PKIX_NULLCHECK_ONE(object);
 

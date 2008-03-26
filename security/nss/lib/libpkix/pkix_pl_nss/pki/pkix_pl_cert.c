@@ -1432,7 +1432,7 @@ pkix_pl_Cert_CreateWithNSSCert(
 {
         PKIX_PL_Cert *cert = NULL;
 
-        PKIX_ENTER(CERT, "PKIX_PL_Cert_CreateWithNSSCert");
+        PKIX_ENTER(CERT, "pkix_pl_Cert_CreateWithNSSCert");
         PKIX_NULLCHECK_TWO(pCert, nssCert);
 
         /* create a PKIX_PL_Cert object */
@@ -1534,25 +1534,26 @@ pkix_pl_Cert_CreateToList(
         PKIX_ENTER(CERT, "pkix_pl_Cert_CreateToList");
         PKIX_NULLCHECK_TWO(derCertItem, certList);
 
-        PKIX_PL_NSSCALLRV(CERT, nssCert, CERT_DecodeDERCertificate,
-                (derCertItem, PR_TRUE, NULL));
-
-        if (nssCert) {
-                PKIX_CHECK_ONLY_FATAL(pkix_pl_Cert_CreateWithNSSCert
-                        (nssCert, &cert, plContext),
-                        PKIX_CERTCREATEWITHNSSCERTFAILED);
-
-                /* skip bad certs and append good ones */
-                if (!PKIX_ERROR_RECEIVED) {
-                        PKIX_CHECK(PKIX_List_AppendItem
-                                (certList, (PKIX_PL_Object *) cert, plContext),
-                                PKIX_LISTAPPENDITEMFAILED);
-                }
-
-                PKIX_DECREF(cert);
+        nssCert = CERT_DecodeDERCertificate(derCertItem, PR_TRUE, NULL);
+        if (!nssCert) {
+            goto cleanup;
         }
 
+        PKIX_CHECK(pkix_pl_Cert_CreateWithNSSCert
+                   (nssCert, &cert, plContext),
+                   PKIX_CERTCREATEWITHNSSCERTFAILED);
+
+        nssCert = NULL;
+
+        PKIX_CHECK(PKIX_List_AppendItem
+                   (certList, (PKIX_PL_Object *) cert, plContext),
+                   PKIX_LISTAPPENDITEMFAILED);
+
 cleanup:
+        if (nssCert) {
+            CERT_DestroyCertificate(nssCert);
+        }
+
         PKIX_DECREF(cert);
         PKIX_RETURN(CERT);
 }
@@ -2184,9 +2185,10 @@ PKIX_PL_Cert_GetSubjectPublicKey(
         *pPublicKey = cert->publicKey;
 
 cleanup:
-	PKIX_OBJECT_UNLOCK(lockedObject);
-        if (PKIX_ERROR_RECEIVED){
+
+        if (PKIX_ERROR_RECEIVED && pkixPubKey){
                 PKIX_DECREF(pkixPubKey);
+                cert->publicKey = NULL;
         }
         PKIX_RETURN(CERT);
 }

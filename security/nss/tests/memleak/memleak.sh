@@ -845,12 +845,32 @@ run_ocsp()
 	stat_print "Ocspclnt"
 }
 
+############################### run_pkix ###############################
+# local shell function to run ocsp tests
+########################################################################
+run_pkix()
+{
+         [ -z "$PKIX_OBJECT_LEAK_TEST" ] && return
+	stat_clear
+	
+	cd ${QADIR}/libpkix
+	. ./libpkix.sh
+	
+	stat_print "Libpkix"
+}
+
 ################################# main #################################
 
 memleak_init
 
-run_ciphers_server
-run_ciphers_client
+# Can not run pkix object/memory leak tests with server/client tests.
+# Pkix test is single-threaded by design. OCSP tests are ok.
+if [ -z "$PKIX_OBJECT_LEAK_TEST" ]; then
+   run_ciphers_server
+   run_ciphers_client
+else
+   run_pkix
+fi
 run_ocsp
 
 cnt_total
