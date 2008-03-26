@@ -1,7 +1,6 @@
 penelope.jar:
 % content penelope %content/penelope/ xpcnativewrappers=yes
 % overlay    chrome://global/content/globalOverlay.xul                          chrome://penelope/content/globalOverlay.xul
-% overlay    chrome://messenger/content/mailTasksOverlay.xul                    chrome://penelope/content/globalOverlay.xul
 % overlay    chrome://messenger/content/mailWindowOverlay.xul                   chrome://penelope/content/globalOverlay.xul
 % overlay    chrome://messenger/content/messageWindow.xul                       chrome://penelope/content/globalOverlay.xul
 % overlay    chrome://messenger/content/messengercompose/messengercompose.xul   chrome://penelope/content/globalOverlay.xul
