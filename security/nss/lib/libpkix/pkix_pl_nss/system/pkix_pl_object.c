@@ -609,14 +609,17 @@ PKIX_PL_Object_Alloc(
 #ifdef PKIX_OBJECT_LEAK_TEST       
         PKIX_CHECK(PKIX_PL_Calloc
                     (1,
-                     ((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
-#else
-        PKIX_CHECK(PKIX_PL_Malloc
-                    (((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
-#endif /* PKIX_OBJECT_LEAK_TEST */
+                    ((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
                     (void **)&object,
                     plContext),
                     PKIX_MALLOCFAILED);
+#else
+        PKIX_CHECK(PKIX_PL_Malloc
+                    (((PKIX_UInt32)sizeof (PKIX_PL_Object))+size,
+                    (void **)&object,
+                    plContext),
+                    PKIX_MALLOCFAILED);
+#endif /* PKIX_OBJECT_LEAK_TEST */
 
         /* Initialize all object fields */
         object->magicHeader = PKIX_MAGIC_HEADER;
