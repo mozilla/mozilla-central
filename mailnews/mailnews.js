@@ -291,7 +291,7 @@ pref("mailnews.force_ascii_search",        false);
 
 pref("mailnews.send_default_charset",       "chrome://messenger/locale/messenger.properties");
 pref("mailnews.view_default_charset",       "chrome://messenger/locale/messenger.properties");
-pref("mailnews.force_charset_override",     false);
+pref("mailnews.force_charset_override",     false); // ignore specified MIME encoding and use the default encoding for display
 pref("mailnews.reply_in_default_charset",   false);
 
 pref("mailnews.search_date_format",        "chrome://messenger/locale/messenger.properties");
@@ -312,17 +312,17 @@ pref("ldap_2.autoComplete.useAddressBooks", true);
 pref("ldap_2.autoComplete.skipDirectoryIfLocalMatchFound", true);
 pref("ldap_2.autoComplete.directoryServer", "");
 
-pref("ldap_2.servers.pab.position",								1);
-pref("ldap_2.servers.pab.description",							"chrome://messenger/locale/addressbook/addressBook.properties");
-pref("ldap_2.servers.pab.dirType",								2);
-pref("ldap_2.servers.pab.filename",                             "abook.mab");
-pref("ldap_2.servers.pab.isOffline",							false);
+pref("ldap_2.servers.pab.position", 1);
+pref("ldap_2.servers.pab.description", "chrome://messenger/locale/addressbook/addressBook.properties");
+pref("ldap_2.servers.pab.dirType", 2);
+pref("ldap_2.servers.pab.filename", "abook.mab");
+pref("ldap_2.servers.pab.isOffline", false);
 
-pref("ldap_2.servers.history.position",							2);
-pref("ldap_2.servers.history.description",						"chrome://messenger/locale/addressbook/addressBook.properties");
-pref("ldap_2.servers.history.dirType",							2);
-pref("ldap_2.servers.history.filename",                         "history.mab");
-pref("ldap_2.servers.history.isOffline",						false);
+pref("ldap_2.servers.history.position", 2);
+pref("ldap_2.servers.history.description", "chrome://messenger/locale/addressbook/addressBook.properties");
+pref("ldap_2.servers.history.dirType", 2);
+pref("ldap_2.servers.history.filename", "history.mab");
+pref("ldap_2.servers.history.isOffline", false);
 
 // default mapping of addressbook properties to ldap attributes
 pref("ldap_2.servers.default.attrmap.FirstName", "givenName");
@@ -363,8 +363,8 @@ pref("ldap_2.servers.default.attrmap.Notes", "description,notes");
 pref("ldap_2.servers.default.attrmap.PreferMailFormat", "mozillaUseHtmlMail,xmozillausehtmlmail");
 pref("ldap_2.servers.default.attrmap.LastModifiedDate", "modifytimestamp");
 
-pref("ldap_2.user_id",											0);
-pref("ldap_2.version",											3); /* Update kCurrentListVersion in include/dirprefs.h if you change this */
+pref("ldap_2.user_id", 0);
+pref("ldap_2.version", 3); /* Update kCurrentListVersion in include/dirprefs.h if you change this */
 
 pref("mailnews.confirm.moveFoldersToTrash", true);
 
@@ -438,7 +438,6 @@ pref("mail.server.default.download_on_biff", false);
 pref("mail.server.default.check_time", 10);
 pref("mail.server.default.delete_by_age_from_server", false);
 pref("mail.server.default.num_days_to_leave_on_server", 7);
-// "mail.server.default.check_new_mail" now lives in the protocol info
 pref("mail.server.default.dot_fix", true);
 pref("mail.server.default.limit_offline_message_size", false);
 pref("mail.server.default.max_size", 50);

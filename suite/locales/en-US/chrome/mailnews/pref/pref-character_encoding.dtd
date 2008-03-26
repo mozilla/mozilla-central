@@ -41,8 +41,6 @@
 <!ENTITY messageDisplay.caption          "Message Display">
 <!ENTITY viewDefaultCharset.label        "Default Character Encoding:">
 <!ENTITY viewDefaultCharset.accesskey    "D">
-<!ENTITY forceCharsetOverride.label      "Always use this default character encoding when messages are displayed (ignore character encoding specified by MIME header).">
-<!ENTITY forceCharsetOverride.accesskey  "A">
 
 <!ENTITY composingMessages.caption       "Composing Messages">
 <!ENTITY useMIME.label                   "For messages that contain 8-bit characters, use 'quoted printable' MIME encoding. Leave unchecked to send the messages as is.">

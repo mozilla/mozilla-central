@@ -11,7 +11,7 @@
 
   <script type="application/x-javascript">
   <![CDATA[
-    var _elementIDs = ["viewDefaultCharsetList", "forceCharsetOverride",
+    var _elementIDs = ["viewDefaultCharsetList",
                        "strictlyMime", "sendDefaultCharsetList",
                        "replyInDefaultCharset"];
     var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -35,11 +35,6 @@
         </template>
       </menulist>
     </hbox>
-
-    <checkbox id="forceCharsetOverride" label="&forceCharsetOverride.label;"
-              prefstring="mailnews.force_charset_override"
-              accesskey="&forceCharsetOverride.accesskey;"/>
-
   </groupbox>
 
   <!-- Composing Mail -->

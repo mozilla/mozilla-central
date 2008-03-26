@@ -63,7 +63,7 @@
 #endif
 
   <prefpane id="FontsDialogPane" onpaneload="gFontsDialog._init();">
-  
+
     <preferences id="fontPreferences">
       <preference id="font.language.group"  name="font.language.group"  type="wstring"/>
       <preference id="browser.display.use_document_fonts"
@@ -72,14 +72,13 @@
       <preference id="intl.charset.default" name="intl.charset.default" type="wstring"/>
       <preference id="mailnews.send_default_charset" name="mailnews.send_default_charset" type="wstring"/>
       <preference id="mailnews.view_default_charset" name="mailnews.view_default_charset" type="wstring"/>
-      <preference id="mailnews.force_charset_override" name="mailnews.force_charset_override" type="bool"/>
       <preference id="mailnews.reply_in_default_charset" name="mailnews.reply_in_default_charset" type="bool"/>      
     </preferences>
 
     <stringbundle id="bundlePreferences" src="chrome://messenger/locale/preferences/preferences.properties"/>
     <script type="application/x-javascript" src="chrome://mozapps/content/preferences/fontbuilder.js"/>
     <script type="application/x-javascript" src="chrome://messenger/content/preferences/fonts.js"/>
-    
+
     <groupbox>
       <caption>
         <hbox align="center">
@@ -138,14 +137,14 @@
             <hbox align="center" pack="end">
               <label accesskey="&proportional.accesskey;" control="defaultFontType">&proportional.label;</label>
             </hbox>
-            
+
             <menulist id="defaultFontType" flex="1" style="width: 0px;">
               <menupopup>
                 <menuitem value="serif" label="&useDefaultFontSerif.label;"/>
                 <menuitem value="sans-serif" label="&useDefaultFontSansSerif.label;"/>
               </menupopup>
             </menulist>
-   
+
             <hbox align="center" pack="end">
               <label value="&sizes.label;"
                      accesskey="&proportionalSize.accesskey;"
@@ -317,9 +316,6 @@
 
       <separator class="thin"/>
 
-      <checkbox id="forceCharsetOverride" label="&forceCharsetOverride.label;"
-                preference="mailnews.force_charset_override"
-                accesskey="&forceCharsetOverride.accesskey;"/>
       <checkbox id="replyInDefaultCharset" label="&replyInDefaultCharset.label;"
                 preference="mailnews.reply_in_default_charset"
                 accesskey="&replyInDefaultCharset.accesskey;"/>
