@@ -1832,20 +1832,9 @@ nsMsgComposeAndSend::GetBodyFromEditor()
         PRBool needToCheckCharset;
         mCompFields->GetNeedToCheckCharset(&needToCheckCharset);
         if (needToCheckCharset) {
-          nsCOMPtr<nsIPrompt> prompt;
-          GetDefaultPrompt(getter_AddRefs(prompt));
-          PRInt32 answer = nsMsgAskAboutUncoveredCharacters(prompt);
-          switch (answer) {
-            case 0 : // convert to UTF-8
-              CopyUTF16toUTF8(bodyText, outCString);
-              mCompFields->SetCharacterSet("UTF-8"); // tag as UTF-8
-              break;
-            case 1 : // return to the editor
-              Recycle(bodyText);
-              return NS_ERROR_MSG_MULTILINGUAL_SEND;
-            case 2 : // send anyway
-              break;
-          }
+          // Just use UTF-8 and be done with it.
+          CopyUTF16toUTF8(bodyText, outCString);
+          mCompFields->SetCharacterSet("UTF-8");
         }
       }
       // re-label to the fallback charset

@@ -1083,24 +1083,14 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
         isAsciiOnly = PR_FALSE;
       if (NS_SUCCEEDED(rv) && !outCString.IsEmpty())
       {
-        // body contains characters outside the repertoire of the current
-        // charset. ask whether to convert to UTF-8 or go back to reset
-        // charset with a wider repertoire. (bug 233361) (if not mapi blind send)
+        // If the body contains characters outside the repertoire of the current
+        // charset, just convert to UTF-8 and be done with it.
         if (NS_ERROR_UENC_NOMAPPING == rv && m_editor) {
           PRBool needToCheckCharset;
           m_compFields->GetNeedToCheckCharset(&needToCheckCharset);
           if (needToCheckCharset) {
-            PRInt32 answer = nsMsgAskAboutUncoveredCharacters(prompt);
-            switch (answer) {
-              case 0 : // convert to UTF-8
-                CopyUTF16toUTF8(msgBody.get(), outCString);
-                m_compFields->SetCharacterSet("UTF-8");
-                break;
-              case 1 : // return to the editor
-                return NS_ERROR_MSG_MULTILINGUAL_SEND;
-              case 2 : // send anyway
-                break;
-            }
+            CopyUTF16toUTF8(msgBody.get(), outCString);
+            m_compFields->SetCharacterSet("UTF-8");
           }
         }
         // re-label to the fallback charset

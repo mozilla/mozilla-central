@@ -54,8 +54,6 @@
 #define NS_MSG_SENDING_MESSAGE                      12550
 #define NS_MSG_POSTING_MESSAGE                      12551
 
-#define NS_ERROR_MSG_MULTILINGUAL_SEND              NS_MSG_GENERATE_FAILURE(12553)
-
 /* 12554 is taken by NS_ERROR_NNTP_NO_CROSS_POSTING.  use 12555 as the next one */
 
 #define NS_MSG_CANCELLING                           NS_MSG_GENERATE_SUCCESS(12555)

@@ -141,7 +141,7 @@ NS_IMETHODIMP nsMsgSendReport::SetCurrentProcess(PRInt32 aCurrentProcess)
   mCurrentProcess = aCurrentProcess;
   if (mProcessReport[mCurrentProcess])
     mProcessReport[mCurrentProcess]->SetProceeded(PR_TRUE);
-  
+
   return NS_OK;
 }
 
@@ -178,10 +178,10 @@ NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, PRBool proceeded)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
-    
+
   if (process == process_Current)
     process = mCurrentProcess;
-    
+
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
 
@@ -193,10 +193,10 @@ NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, PRBo
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
-  
+
   if (process == process_Current)
     process = mCurrentProcess;
-    
+
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
 
@@ -213,10 +213,10 @@ NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *mess
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
-    
+
   if (process == process_Current)
     process = mCurrentProcess;
-    
+
   if (!mProcessReport[process])
     return NS_ERROR_NOT_INITIALIZED;
 
@@ -237,7 +237,7 @@ NS_IMETHODIMP nsMsgSendReport::GetProcessReport(PRInt32 process, nsIMsgProcessRe
 
   if (process == process_Current)
     process = mCurrentProcess;
-    
+
   NS_IF_ADDREF(*_retval = mProcessReport[process]);
   return NS_OK;
 }
@@ -250,13 +250,13 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
   nsresult currError = NS_OK;
   mProcessReport[mCurrentProcess]->GetError(&currError);
   *_retval = currError;
-  
+
   if (dontShowReportTwice && mAlreadyDisplayReport)
     return NS_OK;
-  
+
   if (showErrorOnly && NS_SUCCEEDED(currError))
     return NS_OK;
-  
+
   nsString currMessage;
   mProcessReport[mCurrentProcess]->GetMessage(getter_Copies(currMessage));
 
@@ -280,7 +280,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     //TODO display a success error message
     return NS_OK;
   }
-  
+
   //Do we have an explanation of the error? if no, try to build one...
   if (currMessage.IsEmpty())
   {
@@ -295,17 +295,12 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       case NS_MSG_UNABLE_TO_SAVE_TEMPLATE:
         //Ignore, don't need to repeat ourself.
         break;
-      case NS_ERROR_MSG_MULTILINGUAL_SEND:
-        // already displayed an alert, no additional message is needed
-        // return to the compose window
-        mAlreadyDisplayReport = PR_TRUE;
-        return NS_OK;
       default:
         nsMsgBuildErrorMessageByID(currError, currMessage);
         break;
     }
   }
-  
+
   if (mDeliveryMode == nsIMsgCompDeliverMode::Now || mDeliveryMode == nsIMsgCompDeliverMode::SendUnsent)
   {
     // SMTP is taking care of it's own error message and will return NS_ERROR_BUT_DONT_SHOW_ALERT as error code.
@@ -315,7 +310,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       mAlreadyDisplayReport = PR_TRUE;
       return NS_OK;
     }
-  
+
     bundle->GetStringFromID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
 
     PRInt32 preStrId = NS_ERROR_SEND_FAILED;
@@ -356,7 +351,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
       //we don't have an error description but we can put a generic explanation
       bundle->GetStringFromID(NS_MSG_GENERIC_FAILURE_EXPLANATION, getter_Copies(currMessage));
     }
-    
+
     if (!currMessage.IsEmpty())
     {
       //Don't need to repeat ourself!
@@ -367,7 +362,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
         dialogMessage.Append(currMessage);
       }
     }
-      
+
     if (askToGoBackToCompose)
     {
       PRBool oopsGiveMeBackTheComposeWindow = PR_TRUE;
@@ -432,7 +427,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     }
     nsMsgDisplayMessageByString(prompt, dialogMessage.get(), dialogTitle.get());
   }
-  
+
   mAlreadyDisplayReport = PR_TRUE;
   return NS_OK;
 }

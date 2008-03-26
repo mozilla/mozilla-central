@@ -1825,30 +1825,10 @@ function GenericSendMessage( msgType )
         msgType == nsIMsgCompDeliverMode.SaveAsTemplate) 
       {
         var fallbackCharset = new Object;
-        if (gPromptService && 
-            !gMsgCompose.checkCharsetConversion(getCurrentIdentity(), fallbackCharset)) 
-        {
-          var dlgTitle = sComposeMsgsBundle.getString("initErrorDlogTitle");
-          var dlgText = sComposeMsgsBundle.getString("12553");  // NS_ERROR_MSG_MULTILINGUAL_SEND
-          var result3 = gPromptService.confirmEx(window, dlgTitle, dlgText,
-              (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_0) +
-              (gPromptService.BUTTON_TITLE_CANCEL * gPromptService.BUTTON_POS_1) +
-              (gPromptService.BUTTON_TITLE_IS_STRING * gPromptService.BUTTON_POS_2),
-              sComposeMsgsBundle.getString('sendInUTF8'), 
-              null,
-              sComposeMsgsBundle.getString('sendAnyway'), null, {value:0}); 
-          switch(result3)
-          {
-            case 0: 
-              fallbackCharset.value = "UTF-8";
-              break;
-            case 1:  // cancel
-              return;
-            case 2:  // send anyway
-              msgCompFields.needToCheckCharset = false;
-              break;
-          }
-        }
+        // Check encoding, switch to UTF-8 if the default encoding doesn't fit.
+        if (!gMsgCompose.checkCharsetConversion(getCurrentIdentity(), fallbackCharset))
+          fallbackCharset.value = "UTF-8";
+
         if (fallbackCharset && 
             fallbackCharset.value && fallbackCharset.value != "")
           gMsgCompose.SetDocumentCharset(fallbackCharset.value);
@@ -1864,7 +1844,7 @@ function GenericSendMessage( msgType )
         msgcomposeWindow.dispatchEvent(event);
         if (event.getPreventDefault())
           throw Components.results.NS_ERROR_ABORT;
-        
+
         gAutoSaving = (msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft);
         // disable the ui if we're not auto-saving
         if (!gAutoSaving)
