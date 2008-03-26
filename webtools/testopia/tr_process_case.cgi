@@ -199,7 +199,14 @@ elsif ($action eq 'getbugs'){
     ThrowUserError("testopia-permission-denied", {'object' => $case}) unless $case->canview;
     my @bugs;
     foreach my $bug (@{$case->bugs}){
-        push @bugs, { bug_id => $bug->bug_id, summary => $bug->short_desc };
+        push @bugs, { bug_id => $bug->bug_id, 
+                      summary => $bug->short_desc,
+                      status => $bug->bug_status,
+                      resolution => $bug->resolution,
+                      assignee => $bug->assigned_to->name,
+                      severity => $bug->bug_severity,
+                      priority => $bug->priority,
+                    };
     }
     my $json = new JSON;
     print "{'bugs':" .  $json->objToJson(\@bugs) . "}";

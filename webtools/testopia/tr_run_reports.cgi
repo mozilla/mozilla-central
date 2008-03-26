@@ -114,6 +114,47 @@ elsif ($type eq 'bar'){
     exit;
     
 }
+elsif ($type eq 'bug'){
+    print $cgi->header;
+    my @run_ids  = $cgi->param('run_ids');
+    my @plan_ids = $cgi->param('plan_ids');
+    my @runs;
+    my $dbh = Bugzilla->dbh;
+     
+    foreach my $g (@plan_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestPlan->new($id);
+            push @runs, @{$obj->test_runs} if $obj && $obj->canview;
+        }
+    }
+    foreach my $g (@run_ids){
+        foreach my $id (split(',', $g)){
+            my $obj = Bugzilla::Testopia::TestRun->new($id);
+            push @runs, $obj if $obj && $obj->canview;
+        }
+    }
+    
+    unless (scalar @runs){
+        print "<b>No runs found</b>";
+        exit;
+    }
+    my @ids;
+    foreach my $r (@runs){
+        push @ids, $r->id;
+    }
+    my $ref = $dbh->selectall_arrayref("
+        SELECT tcb.bug_id, tcr.run_id, tcr.case_id 
+          FROM test_case_bugs AS tcb
+    INNER JOIN test_case_runs AS tcr ON tcr.case_id = tcb.case_id
+         WHERE tcr.run_id in (" . join (',',@ids) . ")",
+         {"Slice" =>{}});
+    
+    my $json = new JSON;
+    print "{Result:";
+    print $json->objToJson($ref);
+    print "}";
+    exit;
+}
 
 $cgi->param('current_tab', 'run');
 $cgi->param('viewall', 1);

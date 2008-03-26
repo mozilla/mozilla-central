@@ -316,6 +316,7 @@ sub to_json {
     $obj->{'type'}         = $self->type;
     $obj->{'id'}           = $self->id;
     $obj->{'sortkey'}      = $self->sortkey;
+    $obj->{'bug_list'}     = $self->case->bug_list;
     
     return $json->objToJson($obj); 
 }

@@ -50,7 +50,8 @@ RunGrid = function(params, cfg){
            {name: "failed_pct", mapping:"failed_pct"},
            {name: "blocked_pct", mapping:"blocked_pct"},
            {name: "complete_pct", mapping:"complete_pct"},
-           {name: "plan_version", mapping:"plan_version"}
+           {name: "plan_version", mapping:"plan_version"},
+           {name: "bug_list", mapping:"bug_list"}
         ],
         remoteSort: true
     });
@@ -282,6 +283,24 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                                         url: newPortlet.url
                                     });
 
+                                }
+                            },{
+                                text: 'New Bug Report',
+                                handler: function(){
+                                    Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
+                                    var bug_list = new Testopia.BugReport({
+                                            run_ids: getSelectedObjects(grid, 'run_id')
+                                        });
+                                    var newPortlet = new Ext.ux.Portlet({
+                                        title: 'Bug Report',
+                                        closable: true,
+                                        autoScroll: true,
+                                        tools: PortalTools,
+                                        items: bug_list
+                                    });
+                                    Ext.getCmp('dashboard_leftcol').add(newPortlet);
+                                    Ext.getCmp('dashboard_leftcol').doLayout();
+                                    bug_list.store.load();
                                 }
                             }]
                         }
@@ -574,7 +593,7 @@ var NewRunForm = function(plan){
             }]
         }],
         buttons: [{
-            text: 'Add Case',
+            text: 'Create New Case',
             handler: function(){
                 var tutil = new TestopiaUtil();
                 tutil.newCaseForm(plan.plan_id, plan.product_id);
@@ -618,7 +637,10 @@ var NewRunForm = function(plan){
                         if (Ext.getCmp('plan_run_grid')){
                             Ext.getCmp('plan_run_grid').store.reload();
                         }
-                        Ext.getCmp('newrun-win').close();
+                        try {
+                            Ext.getCmp('newrun-win').close();
+                        }
+                        catch (err){}
                     },
                     failure: testopiaError
                 });
@@ -628,7 +650,10 @@ var NewRunForm = function(plan){
             type: 'reset',
             handler: function(){
                 Ext.getCmp('newrunsouth').getForm().reset();
-                Ext.getCmp('newRun-win').close();
+                try {
+                    Ext.getCmp('newrun-win').close();
+                }
+                catch (err){}
             }
         }]
     });
@@ -908,3 +933,38 @@ Ext.extend(RunFilterGrid, Ext.grid.GridPanel, {
         }
     }
 });
+
+Testopia.BugReport = function(params){
+    params.type = 'bug';
+    this.store = new Ext.data.GroupingStore({
+        url: 'tr_run_reports.cgi',
+        baseParams: params,
+        reader: new Ext.data.JsonReader({
+            root: 'Result',
+            fields: [
+               {name: "case_id", mapping:"case_id"},
+               {name: "run_id", mapping:"run_id"},
+               {name: "bug_id", mapping:"bug_id"}
+
+        ]}),
+        remoteSort: true,
+        sortInfo: {field: 'run_id', direction: "ASC"},
+        groupField: 'run_id'
+    });
+    this.view = new Ext.grid.GroupingView({
+        forceFit:true,
+        groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})'
+    });
+    this.columns = [
+        {header: 'Case', dataIndex: 'case_id', sortable: true, hideable: true},
+        {header: 'Bug', dataIndex: 'bug_id', sortable: true, hideable: true},
+        {header: 'Run', dataIndex: 'run_id', sortable: true, hideable: true}
+    ];
+    Testopia.BugReport.superclass.constructor.call(this,{
+        sm: new Ext.grid.RowSelectionModel(),
+        layout: 'fit',
+        height: 250,
+        autoScroll: true
+    });
+};
+Ext.extend(Testopia.BugReport, Ext.grid.GridPanel);

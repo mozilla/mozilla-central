@@ -227,6 +227,7 @@ CaseRunListGrid = function(params, cfg){
                {name: "status", mapping:"status"},
                {name: "category", mapping:"category"},
                {name: "priority", mapping:"priority"},
+               {name: "close_date", mapping:"close_date"},
                {name: "bug_count", mapping:"bug_count"},
                {name: "case_summary", mapping:"case_summary"},
                {name: "component", mapping:"component"}
@@ -247,6 +248,7 @@ CaseRunListGrid = function(params, cfg){
 		{header: "Assignee", width: 150, sortable: true, dataIndex: 'assignee'},
         {header: "Tested By", width: 150, sortable: true, dataIndex: 'testedby'},
 		{header: "Status", width: 30, sortable: true, dataIndex: 'status', groupRenderer: function(v){return v;}, renderer: tutil.statusIcon},		
+        {header: "Closed", width: 60, sortable: true, dataIndex: 'close_date'},
         {header: "Priority", width: 60, sortable: true, dataIndex: 'priority'},
         {header: "Category", width: 100, sortable: true,dataIndex: 'category'},
         {header: "Component", width: 100, sortable: true,dataIndex: 'component'}
@@ -355,7 +357,8 @@ CaseRunGrid = function(params, run){
                {name: "case_summary", mapping:"case_summary"},
                {name: "type", mapping:"type"},
                {name: "id", mapping:"id"},
-               {name: "component", mapping:"component"}
+               {name: "component", mapping:"component"},
+               {name: "bug_list", mapping:"bug_list"}
                
         ]}),
         remoteSort: true,
@@ -437,7 +440,22 @@ CaseRunGrid = function(params, run){
              new CaseCategoryCombo({id: 'caserun_category', params: {product_id: run.plan.product_id}})
          ),renderer: TestopiaComboRenderer.createDelegate(this)},
         {header: "Requirement", width: 150, sortable: true, dataIndex: 'requirement', hidden: true},
-        {header: "Component", width: 100, sortable: true,dataIndex: 'component'}
+        {header: "Component", width: 100, sortable: true,dataIndex: 'component'},
+        {
+            header: "Bugs",
+            width: 100,
+            dataIndex: "bug_list",
+            sortable: false,
+            hideable: true,
+            renderer: function(v){
+                var bugs = v.split(',');
+                var rets = '';
+                for (var i=0; i< bugs.length; i++){
+                    rets = rets + '<a href="show_bug.cgi?id=' + bugs[i] +'">' + bugs[i] + '</a> '
+                }
+                return rets;
+            }
+        }
     ];
 
     var imgButtonTpl = new Ext.Template(
@@ -1146,7 +1164,12 @@ CaseBugsGrid = function(id){
         id: 'bug_id',
         fields: [
             {name: 'summary', mapping: 'summary'},
-            {name: 'bug_id', mapping: 'bug_id'}
+            {name: 'bug_id', mapping: 'bug_id'},
+            {name: 'status', mapping: 'status'},
+            {name: 'resolution', mapping: 'resolution'},
+            {name: 'assignee', mapping: 'assignee'},
+            {name: 'severity', mapping: 'severity'},
+            {name: 'priority', mapping: 'priority'}
         ]
     });
     addbug = function(){
@@ -1215,7 +1238,12 @@ CaseBugsGrid = function(id){
     var ds = this.store;
     this.columns = [
         {header: "ID", width: 150, dataIndex: 'bug_id', sortable: true, renderer: bug_link},
-        {id: 'bugs_summary', header: "Summary", width: 150, dataIndex: 'summary', sortable: true}
+        {id: 'bugs_summary', header: "Summary", width: 150, dataIndex: 'summary', sortable: true},
+        {header: "Status", width: 150, dataIndex: 'status', sortable: true},
+        {header: "Resolution", width: 150, dataIndex: 'resolution', sortable: true},
+        {header: "Severity", width: 150, dataIndex: 'severity', sortable: true},
+        {header: "Asignee", width: 150, dataIndex: 'assignee', sortable: true},
+        {header: "Priority", width: 150, dataIndex: 'priority', sortable: true}
     ];
     CaseBugsGrid.superclass.constructor.call(this,{
         tbar: [new Ext.form.TextField({

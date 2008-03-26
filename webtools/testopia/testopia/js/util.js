@@ -25,6 +25,8 @@ Ext.data.Connection.timeout = 120000;
 Ext.Updater.defaults.timeout = 120000;
 Ext.Ajax.timeout = 120000;
 
+var Testopia = {};
+
 //check column widget
 Ext.grid.CheckColumn = function(config){
     Ext.apply(this, config);

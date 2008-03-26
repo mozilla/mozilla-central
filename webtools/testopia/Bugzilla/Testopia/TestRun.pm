@@ -543,6 +543,8 @@ sub to_json {
     my $json = new JSON;
     my $rc = $self->case_run_count;
     
+    $self->bugs();
+    
     $json->autoconv(0);
     
     foreach my $field ($self->DB_COLUMNS){
@@ -565,6 +567,7 @@ sub to_json {
     $obj->{'failed_pct'}    = $self->case_run_count(FAILED) / $rc if $rc;
     $obj->{'blocked_pct'}   = $self->case_run_count(BLOCKED) / $rc if $rc;
     $obj->{'complete_pct'}  = $self->percent_complete() . '%';
+    $obj->{'bug_list'}      = $self->{'bug_list'};
     
     return $json->objToJson($obj); 
 }

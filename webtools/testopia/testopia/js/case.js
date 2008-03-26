@@ -259,6 +259,14 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
     onContextClick: function(grid, index, e){
         grid.selindex = index;
         if(!this.menu){ // create context menu on first right click
+            var hasplan;
+            try{
+                hasplan = plan ? false : true;
+            }
+            catch (err){
+                hasplan = true;
+            }
+                
             this.menu = new Ext.menu.Menu({
                 id:'case_list_ctx_menu',
                 items: [{
@@ -274,6 +282,36 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                                         TestopiaUpdateMultiple('case', {requirement: text, ids: getSelectedObjects(grid,'case_id')}, grid);
                                     }
                                 });
+                            }
+                        },{
+                            text: 'Category',
+                            disabled: hasplan,
+                            handler: function(){
+                                var win = new Ext.Window({
+                                    title: 'Edit Category',
+                                    id: 'status-win',
+                                    plain: true,
+                                    shadow: false,
+                                    width: 300,
+                                    height: 150,
+                                    items: [new CaseCategoryCombo({
+                                        fieldLabel: 'Category',
+                                        params: {product_id: plan.product_id}
+                                    })],
+                                    buttons: [{
+                                        text:'Submit',
+                                        handler: function(){
+                                            TestopiaUpdateMultiple('case', {category: Ext.getCmp('case_category_combo').getValue(), ids: getSelectedObjects(grid,'case_id')}, grid);
+                                            win.close();
+                                        }
+                                    },{
+                                        text: 'Close',
+                                        handler: function(){
+                                            win.close();
+                                        }
+                                    }]
+                                });
+                                win.show(this);
                             }
                         },{
                             text: 'Status',
@@ -714,6 +752,7 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                     fieldLabel: '<b>Status</b>',
                     hiddenName: 'status',
                     mode: 'local',
+                    value: DEFAULT_CASE_STATUS,
                     allowBlank: false,
                     id: 'ncf-casestatus'
                 }),
@@ -906,7 +945,10 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                         else if (Ext.getCmp('product_case_grid')){
                             Ext.getCmp('product_case_grid').store.reload();
                         }
-                        Ext.getCmp('newcase-win').close();
+                        try {
+                            Ext.getCmp('newcase-win').close();
+                        }
+                        catch (err){}
                     },
                     failure: testopiaError
                 });
@@ -914,7 +956,11 @@ NewCaseForm = function(plan_ids, product_id, run_id){
         },{
             text: 'Cancel',
             handler: function(){
-                Ext.getCmp('newcase-win').close();
+                Ext.getCmp('newcaseform').getForm().reset();
+                try {
+                    Ext.getCmp('newcase-win').close();
+                }
+                catch (err){}
             }
         }]
     });

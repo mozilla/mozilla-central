@@ -422,7 +422,10 @@ NewPlanForm = function(product_id){
                                 }
                             }
                         });
-                        Ext.getCmp('newplan-win').close();
+                        try{
+                            Ext.getCmp('newplan-win').close();
+                        }
+                        catch(err){}
                     },
                     failure: testopiaError
                 });
