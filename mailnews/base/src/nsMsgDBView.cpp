@@ -1230,16 +1230,13 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
 
   nsCString junkScoreStr;
   msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-  if (!junkScoreStr.IsEmpty())
-  {
-    // I set the cut off at 50. this may change
-    // it works for our bayesian plugin, as "0" is good, and "100" is junk
-    // but it might need tweaking for other plugins
-    properties->AppendElement(atoi(junkScoreStr.get()) > 50 ? kJunkMsgAtom : kNotJunkMsgAtom);
+  if (!junkScoreStr.IsEmpty()) {
+    properties->AppendElement(junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE ?
+                              kJunkMsgAtom : kNotJunkMsgAtom);
+    NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
   }
 
   nsCString keywords;
-
   FetchKeywords(msgHdr, keywords);
   if (!keywords.IsEmpty())
     AppendKeywordProperties(keywords.get(), properties, PR_TRUE);
@@ -1552,8 +1549,13 @@ NS_IMETHODIMP nsMsgDBView::GetCellValue(PRInt32 aRow, nsITreeColumn* aCol, nsASt
       {
         nsCString junkScoreStr;
         msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        aValue.Assign(GetString((!junkScoreStr.IsEmpty() && (atoi(junkScoreStr.get()) > 50)) ?
-         NS_LITERAL_STRING("messageJunk").get() : EmptyString().get()));
+        // Only need to assing a real value for junk, it's empty already
+        // as it should be for non-junk.
+        if (!junkScoreStr.IsEmpty() &&
+            (junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE))
+          aValue.AssignLiteral("messageJunk");
+
+        NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
       }
       break;
     case 't':
@@ -1921,10 +1923,12 @@ NS_IMETHODIMP nsMsgDBView::CycleCell(PRInt32 row, nsITreeColumn* col)
       {
         nsCString junkScoreStr;
         rv = msgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        if (junkScoreStr.IsEmpty() || (atoi(junkScoreStr.get()) < 50))
+        if (junkScoreStr.IsEmpty() || (junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_HAM_SCORE))
           ApplyCommandToIndices(nsMsgViewCommandType::junk, (nsMsgViewIndex *) &row, 1);
         else
           ApplyCommandToIndices(nsMsgViewCommandType::unjunk, (nsMsgViewIndex *) &row, 1);
+
+        NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
       }
     }
     break;
@@ -2877,16 +2881,17 @@ nsresult nsMsgDBView::SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin,
     nsMsgJunkStatus oldUserClassification;
     if (oldOriginStr.get()[0] != 'u') {
         oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-    } else {
+    }
+    else {
         // otherwise, pass the actual user classification
-        //
-        if (junkScoreStr.IsEmpty()) {
-            oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
-        } else if (atoi(junkScoreStr.get()) > 50) {
-            oldUserClassification = nsIJunkMailPlugin::JUNK;
-        } else {
-            oldUserClassification = nsIJunkMailPlugin::GOOD;
-        }
+        if (junkScoreStr.IsEmpty())
+          oldUserClassification = nsIJunkMailPlugin::UNCLASSIFIED;
+        else if (junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)
+          oldUserClassification = nsIJunkMailPlugin::JUNK;
+        else
+          oldUserClassification = nsIJunkMailPlugin::GOOD;
+
+        NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
     }
 
     // get the URI for this message so we can pass it to the plugin
@@ -2910,10 +2915,12 @@ nsresult nsMsgDBView::SetAsJunkByIndex(nsIJunkMailPlugin *aJunkPlugin,
     NS_ASSERTION(NS_SUCCEEDED(rv), "SetStringPropertyByIndex failed");
 
     // set the junk score on the message itself
-    //
-    rv = SetStringPropertyByIndex(
-        aIndex, "junkscore",
-        aNewClassification == nsIJunkMailPlugin::JUNK ? "100" : "0");
+
+    nsCAutoString msgJunkScore;
+    msgJunkScore.AppendInt(aNewClassification == nsIJunkMailPlugin::JUNK ?
+          nsIJunkMailPlugin::IS_SPAM_SCORE:
+          nsIJunkMailPlugin::IS_HAM_SCORE);
+    rv = SetStringPropertyByIndex(aIndex, "junkscore", msgJunkScore.get());
     NS_ENSURE_SUCCESS(rv, rv);
 
     return rv;

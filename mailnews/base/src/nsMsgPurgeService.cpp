@@ -490,21 +490,17 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
   nsresult rv = aMsgHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("junkScore=%s (if empty or <= 50, don't add to list delete)", junkScoreStr.get()));
+  PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("junkScore=%s (if empty or != nsIJunkMailPlugin::IS_SPAM_SCORE, don't add to list delete)", junkScoreStr.get()));
 
   // if "junkscore" is not set, don't delete the message
   if (junkScoreStr.IsEmpty())
     return NS_OK;
 
-  // I set the cut off at 50. this may change
-  // it works for our bayesian plugin, as "0" is good, and "100" is junk
-  // but it might need tweaking for other plugins
-  if (atoi(junkScoreStr.get()) > 50) {
+  if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_SPAM_SCORE) {
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("added message to delete"));
     return mHdrsToDelete->AppendElement(aMsgHdr);
   }
-  else
-    return NS_OK;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)

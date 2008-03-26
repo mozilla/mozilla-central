@@ -88,6 +88,13 @@ interface nsIJunkMailPlugin : nsIMsgFilterPlugin
     const nsMsgJunkStatus JUNK = 2;
 
     /**
+     * Message junk score constants. Junkscore can only be on of these two
+     * values (or not set).
+     */
+    const nsMsgJunkScore IS_SPAM_SCORE = 100; // junk
+    const nsMsgJunkScore IS_HAM_SCORE = 0; // not junk
+
+    /**
      * Given a message URI, determine what its current classification is
      * according to the current training set.
      */

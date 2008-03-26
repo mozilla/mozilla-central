@@ -3420,7 +3420,11 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
   rv = msgHdr->GetMessageKey(&msgKey);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mDatabase->SetStringProperty(msgKey, "junkscore", (aClassification == nsIJunkMailPlugin::JUNK) ? "100" : "0");
+  nsCAutoString msgJunkScore;
+  msgJunkScore.AppendInt(aClassification == nsIJunkMailPlugin::JUNK ?
+        nsIJunkMailPlugin::IS_SPAM_SCORE:
+        nsIJunkMailPlugin::IS_HAM_SCORE);
+  mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
   mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
 
   nsCOMPtr<nsISpamSettings> spamSettings;

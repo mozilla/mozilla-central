@@ -1938,7 +1938,10 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, trustedMailDomains))
       {
         // mark this msg as non-junk, because we whitelisted it.
-        mDatabase->SetStringProperty(msgKey, "junkscore", "0");
+
+        nsCAutoString msgJunkScore;
+        msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
+        mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
         mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
         continue; // skip this msg since it's in the white list
       }

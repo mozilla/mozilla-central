@@ -90,6 +90,7 @@
 #include "nsICryptoHash.h"
 #include "nsIStringBundle.h"
 #include "nsLocalStrings.h"
+#include "nsIMsgFilterPlugin.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -2003,7 +2004,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         PRInt32 junkScore;
         filterAction->GetJunkScore(&junkScore);
         junkScoreStr.AppendInt(junkScore);
-        if (junkScore > 50)
+        if (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE)
           msgIsNew = PR_FALSE;
         nsMsgKey msgKey;
         msgHdr->GetMessageKey(&msgKey);
@@ -2372,7 +2373,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
       {
         nsCString junkScoreStr;
         (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        if (atoi(junkScoreStr.get()) < 50)
+        if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
         {
           newHdr->OrFlags(MSG_FLAG_NEW, &newFlags);
           destMailDB->AddToNewList(newMsgPos);

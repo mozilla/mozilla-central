@@ -619,8 +619,8 @@ function analyzeMessageForJunk(aMsgHdr, aMsgIndex, aJunkMsgIndices, aLastMessage
             // XXX TODO
             // make the cut off 50, like in nsMsgSearchTerm.cpp
 
-            var score =
-                aClassification == nsIJunkMailPlugin.JUNK ? "100" : "0";
+            var score = (aClassification == nsIJunkMailPlugin.JUNK) ?
+              nsIJunkMailPlugin.IS_SPAM_SCORE : nsIJunkMailPlugin.IS_HAM_SCORE;
 
             // set these props via the db (instead of the message header
             // directly) so that the nsMsgDBView knows to update the UI
@@ -796,7 +796,7 @@ function deleteJunkInFolder()
     var messageUri = view.getURIForViewIndex(i);
     var msgHdr = messenger.msgHdrFromURI(messageUri);
     var junkScore = msgHdr.getStringProperty("junkscore");
-    var isJunk = ((junkScore != "") && (junkScore != "0"));
+    var isJunk = ((junkScore != "") && (junkScore != nsIJunkMailPlugin.IS_HAM_SCORE));
     // if the message is junk, select it.
     if (isJunk)
     {

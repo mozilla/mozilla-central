@@ -3170,13 +3170,17 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           junkScoreStr.AppendInt(junkScore);
           mDatabase->SetStringProperty(msgKey, "junkscore", junkScoreStr.get());
           mDatabase->SetStringProperty(msgKey, "junkscoreorigin", /* ### should this be plugin? */"plugin");
-          if (junkScore == 100 || !junkScore) // if score is 0 or 100, set up to store junk status on server.
+
+          // If score is available, set up to store junk status on server.
+          if (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE ||
+              junkScore == nsIJunkMailPlugin::IS_HAM_SCORE)
           {
-            nsTArray<nsMsgKey> *keysToClassify = m_moveCoalescer->GetKeyBucket((junkScore == 100) ? 0 : 1);
+            nsTArray<nsMsgKey> *keysToClassify = m_moveCoalescer->GetKeyBucket(
+                       (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE) ? 0 : 1);
             NS_ASSERTION(keysToClassify, "error getting key bucket");
             if (keysToClassify)
               keysToClassify->AppendElement(msgKey);
-            if (junkScore == 100)
+            if (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE)
               msgIsNew = PR_FALSE;
           }
         }
@@ -3983,13 +3987,19 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
   PRBool messageClassified = PR_TRUE;
   // Mac Mail uses "NotJunk"
   if (keywords.Find("NonJunk", PR_TRUE /* ignore case */) != -1 || keywords.Find("NotJunk", PR_TRUE /* ignore case */) != -1)
-    mDatabase->SetStringProperty(uidOfMessage, "junkscore", "0");
+  {
+    nsCAutoString msgJunkScore;
+    msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
+    mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
+  }
   // ### TODO: we really should parse the keywords into space delimited keywords before checking
   else if (keywords.Find("Junk", PR_TRUE /* ignore case */) != -1)
   {
     PRUint32 newFlags;
     dbHdr->AndFlags(~MSG_FLAG_NEW, &newFlags);
-    mDatabase->SetStringProperty(uidOfMessage, "junkscore", "100");
+    nsCAutoString msgJunkScore;
+    msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_SPAM_SCORE);
+    mDatabase->SetStringProperty(uidOfMessage, "junkscore", msgJunkScore.get());
   }
   else
     messageClassified = PR_FALSE;
@@ -7564,7 +7574,11 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aCla
   rv = msgHdr->GetMessageKey(&msgKey);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mDatabase->SetStringProperty(msgKey, "junkscore", (aClassification == nsIJunkMailPlugin::JUNK) ? "100" : "0");
+  nsCAutoString msgJunkScore;
+  msgJunkScore.AppendInt(aClassification == nsIJunkMailPlugin::JUNK ?
+        nsIJunkMailPlugin::IS_SPAM_SCORE:
+        nsIJunkMailPlugin::IS_HAM_SCORE);
+  mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
   mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
 
   GetMoveCoalescer();

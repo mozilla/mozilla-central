@@ -154,7 +154,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUi
     {
       nsCString junkScoreStr;
       (void) aHdrChanged->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-      if (atoi(junkScoreStr.get()) > 50)
+      if (junkScoreStr.ToInteger((PRInt32*)&rv) == nsIJunkMailPlugin::IS_SPAM_SCORE)
       {
         nsCString originStr;
         (void) aHdrChanged->GetStringProperty("junkscoreorigin", 
@@ -177,6 +177,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrChange(nsIMsgDBHdr *aHdrChanged, PRUi
           }
         }
       }
+      NS_ASSERTION(NS_SUCCEEDED(rv), "Converting junkScore to integer failed.");
     }
   }
   else if (m_viewFolder && (aOldFlags & MSG_FLAG_READ) != (aNewFlags & MSG_FLAG_READ))

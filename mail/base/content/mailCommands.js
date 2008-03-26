@@ -613,7 +613,8 @@ messageClassifier.prototype =
     // XXX TODO
     // make the cut off 50, like in nsMsgSearchTerm.cpp
 
-    var score = aClassification == nsIJunkMailPlugin.JUNK ? "100" : "0";
+    var score = (aClassification == nsIJunkMailPlugin.JUNK) ?
+      nsIJunkMailPlugin.IS_SPAM_SCORE : nsIJunkMailPlugin.IS_HAM_SCORE;
 
     // set these props via the db (instead of the message header
     // directly) so that the nsMsgDBView knows to update the UI
@@ -791,7 +792,7 @@ function deleteJunkInFolder()
     catch (ex) {continue;} // blow off errors for dummy rows
     var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
     var junkScore = msgHdr.getStringProperty("junkscore");
-    var isJunk = ((junkScore != "") && (junkScore != "0"));
+    var isJunk = ((junkScore != "") && (junkScore != nsIJunkMailPlugin.IS_HAM_SCORE));
     // if the message is junk, select it.
     if (isJunk)
     {

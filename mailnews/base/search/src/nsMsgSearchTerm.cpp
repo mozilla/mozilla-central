@@ -1241,14 +1241,10 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, PRBool *pResul
 
   nsMsgJunkStatus junkStatus;
   if (aJunkScore && *aJunkScore) {
-      // cut off set at 50. this may change
-      // it works for our bayesian plugin, as "0" is good, and "100" is junk
-      // but it might need tweaking for other plugins
-      if ( atoi(aJunkScore) > 50 ) {
-          junkStatus = nsIJunkMailPlugin::JUNK;
-      } else {
-          junkStatus = nsIJunkMailPlugin::GOOD;
-      }
+      junkStatus = (atoi(aJunkScore) == nsIJunkMailPlugin::IS_SPAM_SCORE) ?
+          nsIJunkMailPlugin::JUNK :
+          nsIJunkMailPlugin::GOOD;
+
   }
   else {
     // the in UI, we only show "junk" or "not junk"
