@@ -2012,3 +2012,16 @@ nsSchemaValidatorUtils::FindCharInSet(const nsAString & aString,
   return kNotFound;
 }
 
+PRBool
+nsSchemaValidatorUtils::IsGMT(const nsAString & aDateTime)
+{
+  if (!aDateTime.IsEmpty()) {
+    PRInt32 end = aDateTime.Length() - 1;
+    PRUnichar c = aDateTime.CharAt(end);
+    if (c == 'Z') {
+      return PR_TRUE;
+    }
+  }
+
+  return PR_FALSE;
+}
