@@ -57,9 +57,9 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
 - (void)saveSearchEngineInformation;
 - (void)setInstalledSearchEngines:(NSMutableArray *)newSearchEngines;
 - (void)installedSearchEnginesChanged;
-- (void)filterDuplicatesFromEngines:(NSMutableArray *)searchEngines;
+- (BOOL)filterDuplicatesFromEngines:(NSMutableArray *)searchEngines;
 - (void)setPreferredSearchEngine:(NSString *)newPreferredSearchEngine sendingChangeNotification:(BOOL)shouldNotify;
-- (NSDictionary *)defaultSearchEngineInformationFromBundle;
+- (void)loadDefaultSearchEngineInformationFromBundle;
 - (NSString *)uniqueNameForEngine:(NSString *)engineName;
 
 @end
@@ -178,11 +178,14 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
 #if DEBUG
     NSLog(@"No search engines found in the profile directory; loading the defaults");
 #endif
-    savedSearchEngineInfoDict = [self defaultSearchEngineInformationFromBundle];
+    [self loadDefaultSearchEngineInformationFromBundle];
+    [self saveSearchEngineInformation];
+    return;
   }
 
   NSMutableArray *savedSearchEngines = [NSMutableArray arrayWithArray:[savedSearchEngineInfoDict objectForKey:kListOfSearchEnginesKey]];
-  [self filterDuplicatesFromEngines:savedSearchEngines];
+
+  BOOL duplicatesWereRemoved = [self filterDuplicatesFromEngines:savedSearchEngines];
   [self setInstalledSearchEngines:savedSearchEngines];
 
   // Validate and set the saved preferred engine name.
@@ -192,8 +195,9 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   else
     [self setPreferredSearchEngine:[[self installedSearchEngineNames] objectAtIndex:0] sendingChangeNotification:NO];
 
-  // Update the saved engines with any modifications that were made during loading.
-  [self saveSearchEngineInformation];
+  // Update the saved engines if any modifications were made during loading.
+  if (duplicatesWereRemoved || ![[self preferredSearchEngine] isEqualToString:savedPreferredEngine])
+    [self saveSearchEngineInformation];
 }
 
 - (void)saveSearchEngineInformation
@@ -220,7 +224,8 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
   [[NSNotificationCenter defaultCenter] postNotificationName:kInstalledSearchEnginesDidChangeNotification object:self];
 }
 
-- (void)filterDuplicatesFromEngines:(NSMutableArray *)searchEngines;
+// Return value indicates if any engines were removed from |searchEngines|.
+- (BOOL)filterDuplicatesFromEngines:(NSMutableArray *)searchEngines;
 {
   NSMutableSet *engineNamesAlreadySeen = [NSMutableSet setWithCapacity:[searchEngines count]];
   // Enumerate a copy, since we can't remove directly from an enumerated collection
@@ -234,12 +239,17 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
     else
       [engineNamesAlreadySeen addObject:currentEngineName];
   }
+  // Determine if we removed an engine
+  return ([enumeratingSearchEngines count] != [searchEngines count]);
 }
 
-- (NSDictionary *)defaultSearchEngineInformationFromBundle
+- (void)loadDefaultSearchEngineInformationFromBundle
 {
   NSString *pathToDefaultEnginesInBundle = [[NSBundle mainBundle] pathForResource:@"WebSearchEngines" ofType:@"plist"];
-  return [NSDictionary dictionaryWithContentsOfFile:pathToDefaultEnginesInBundle];
+  NSDictionary *defaultEngineInfo = [NSDictionary dictionaryWithContentsOfFile:pathToDefaultEnginesInBundle];
+
+  [self setInstalledSearchEngines:[defaultEngineInfo objectForKey:kListOfSearchEnginesKey]];
+  [self setPreferredSearchEngine:[defaultEngineInfo objectForKey:kPreferredSearchEngineNameKey]];
 }
 
 - (NSString *)uniqueNameForEngine:(NSString *)engineName
@@ -419,10 +429,7 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
 
 - (void)revertToDefaultSearchEngines
 {
-  NSDictionary *searchEngineInfoDict = [self defaultSearchEngineInformationFromBundle];
-  [self setInstalledSearchEngines:[searchEngineInfoDict objectForKey:kListOfSearchEnginesKey]];
-  [self setPreferredSearchEngine:[searchEngineInfoDict objectForKey:kPreferredSearchEngineNameKey]
-       sendingChangeNotification:NO];
+  [self loadDefaultSearchEngineInformationFromBundle];
   [self installedSearchEnginesChanged];
 }
 
