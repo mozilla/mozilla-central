@@ -122,6 +122,42 @@ span.moz-txt-formfeed {
   color: #7777FF; /* light blue */
 }
 
+/* ::::: vcard ::::: */
+
+.moz-vcard-table {
+  -moz-border-radius: 8px;
+  border: thin solid gray;
+  margin-top: 10px;
+  background: url("chrome://communicator/skin/toolbar/prtb-bg-noline.gif") repeat-x;
+  background-position: 0px -1px;
+}
+
+.moz-vcard-property {
+  font-size: 80%;
+  color: gray;
+}
+
+.moz-vcard-title-property {
+  padding-bottom: 10px;
+}
+
+.moz-vcard-badge {
+  height: 30px;
+  width: 30px;
+  display: block;
+  background-image: url("chrome://messenger/skin/icons/btn1.gif");
+  background-position: -5px -308px;
+}
+
+.moz-vcard-badge:hover {
+  background-position: -55px -308px;
+  -moz-outline: 1px dotted -moz-use-text-color;
+}
+
+.moz-vcard-badge:hover:active {
+  background-position: -105px -308px;
+}
+
 /* ::::: attached images ::::: */
 .moz-attached-image[overflowing="true"] { 
   cursor: -moz-zoom-out;
