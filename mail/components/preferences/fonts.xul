@@ -316,9 +316,9 @@
 
       <separator class="thin"/>
 
-      <checkbox id="replyInDefaultCharset" label="&replyInDefaultCharset.label;"
+      <checkbox id="replyInDefaultCharset" label="&replyInDefaultCharset2.label;"
                 preference="mailnews.reply_in_default_charset"
-                accesskey="&replyInDefaultCharset.accesskey;"/>
+                accesskey="&replyInDefaultCharset2.accesskey;"/>
     </groupbox>
     <separator/>
   </prefpane>
