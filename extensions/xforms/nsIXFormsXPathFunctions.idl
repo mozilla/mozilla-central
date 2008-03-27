@@ -40,7 +40,7 @@
 #include "nsISupports.idl"
 #include "txIFunctionEvaluationContext.idl"
 
-[scriptable, uuid(4c92138c-5d7d-4f82-99d7-3a1aa0167a56)]
+[scriptable, uuid(5c8e8334-1ec6-42d9-8a15-4aef98ae19fa)]
 interface nsIXFormsXPathFunctions : nsISupports
 {
     double avg(in txINodeSet aNodeSet);
@@ -64,4 +64,5 @@ interface nsIXFormsXPathFunctions : nsISupports
     double power(in double aBase, in double aExponent);
     double random(in boolean aSeed);
     double compare(in DOMString aString1, in DOMString aString2);
+    boolean isCardNumber(in DOMString aNumber);
 };

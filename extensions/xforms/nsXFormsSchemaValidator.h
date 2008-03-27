@@ -104,6 +104,9 @@ public:
   // Returns if the string is a valid XForms list of listitems
   PRBool IsValidSchemaListItems(const nsAString & aValue);
 
+  // Returns if the string is a valid XForms card-number.
+  PRBool IsValidSchemaCardNumber(const nsAString & aValue);
+
 protected:
   nsCOMPtr<nsISchemaValidator> mSchemaValidator;
 };

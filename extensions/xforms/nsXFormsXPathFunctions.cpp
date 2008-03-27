@@ -616,3 +616,15 @@ nsXFormsXPathFunctions::Compare(const nsAString &aString1,
     return NS_OK;
 }
 
+NS_IMETHODIMP
+nsXFormsXPathFunctions::IsCardNumber(const nsAString & aNumber,
+                                     PRBool *aResult)
+{
+  if (aNumber.IsEmpty()) {
+    *aResult = PR_FALSE;
+  } else {
+    *aResult = nsXFormsUtils::IsCardNumber(aNumber);
+  }
+
+  return NS_OK;
+}

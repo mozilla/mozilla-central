@@ -808,6 +808,14 @@ public:
                                          const nsAString& aSrc,
                                          nsIURI** aURI);
 
+  /**
+   * Use the Luhn algorithm to determine if a number is a valid credit
+   * card number.
+   *
+   * @param aNumber The card number to be checked.
+   */
+   static NS_HIDDEN_(PRBool) IsCardNumber(const nsAString& aNumber);
+
 private:
   /**
    * Do same origin checks on aBaseDocument and aTestURI. Hosts can be

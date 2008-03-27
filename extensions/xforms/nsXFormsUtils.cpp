@@ -3155,3 +3155,32 @@ nsXFormsUtils::GetNewURI(nsIDocument* aDoc, const nsAString& aSrc,
   NS_ADDREF(*aURI = uri);
   return rv;
 }
+
+/* static */ PRBool
+nsXFormsUtils::IsCardNumber(const nsAString& aNumber)
+{
+  nsXFormsSchemaValidator validator;
+  if (!validator.ValidateString(aNumber,
+                                NS_LITERAL_STRING("card-number"),
+                                NS_LITERAL_STRING(NS_NAMESPACE_XFORMS)))
+    return PR_FALSE;
+
+  // Now check if the card number is a valid Luhn number.
+  PRInt32 sum = 0;
+  PRBool alt = false;
+  for (PRInt32 i = aNumber.Length() - 1; i >= 0; --i) {
+    PRUnichar currentChar = aNumber[i];
+    PRInt32 digit = abs(currentChar - '0');
+
+    if (alt) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+    sum += digit;
+    alt = !alt;
+  }
+
+  return sum % 10 == 0;
+}
