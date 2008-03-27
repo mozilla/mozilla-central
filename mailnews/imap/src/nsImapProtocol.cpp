@@ -318,36 +318,34 @@ static PRBool gExpungeAfterDelete = PR_FALSE;
 static PRBool gCheckDeletedBeforeExpunge = PR_FALSE; //bug 235004
 static PRInt32 gExpungeThreshold = 20;
 static PRInt32 gResponseTimeout = 60;
-static nsCStringArray gCustomDBHeaders;
 
-nsresult nsImapProtocol::GlobalInitialization()
+nsresult nsImapProtocol::GlobalInitialization(nsIPrefBranch *aPrefBranch)
 {
     gInitialized = PR_TRUE;
-    nsresult rv;
-    nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
 
-    prefBranch->GetIntPref("mail.imap.chunk_fast", &gTooFastTime);   // secs we read too little too fast
-    prefBranch->GetIntPref("mail.imap.chunk_ideal", &gIdealTime);    // secs we read enough in good time
-    prefBranch->GetIntPref("mail.imap.chunk_add", &gChunkAddSize);   // buffer size to add when wasting time
-    prefBranch->GetIntPref("mail.imap.chunk_size", &gChunkSize);
-    prefBranch->GetIntPref("mail.imap.min_chunk_size_threshold", &gChunkThreshold);
-    prefBranch->GetIntPref("mail.imap.max_chunk_size", &gMaxChunkSize);
-    prefBranch->GetBoolPref("mail.imap.hide_other_users",
-                            &gHideOtherUsersFromList);
-    prefBranch->GetBoolPref("mail.imap.hide_unused_namespaces",
-                            &gHideUnusedNamespaces);
-    prefBranch->GetIntPref("mail.imap.noop_check_count", &gPromoteNoopToCheckCount);
-    prefBranch->GetBoolPref("mail.imap.use_envelope_cmd",
-                            &gUseEnvelopeCmd);
-    prefBranch->GetBoolPref("mail.imap.use_literal_plus", &gUseLiteralPlus);
-    prefBranch->GetBoolPref("mail.imap.expunge_after_delete", &gExpungeAfterDelete);
-    prefBranch->GetBoolPref("mail.imap.check_deleted_before_expunge", &gCheckDeletedBeforeExpunge);
-    prefBranch->GetIntPref("mail.imap.expunge_threshold_number", &gExpungeThreshold);
-    prefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
-    nsCString customDBHeaders;
-    prefBranch->GetCharPref("mailnews.customDBHeaders", getter_Copies(customDBHeaders));
-    gCustomDBHeaders.ParseString(customDBHeaders.get(), " ");
+    aPrefBranch->GetIntPref("mail.imap.chunk_fast", &gTooFastTime);   // secs we read too little too fast
+    aPrefBranch->GetIntPref("mail.imap.chunk_ideal", &gIdealTime);    // secs we read enough in good time
+    aPrefBranch->GetIntPref("mail.imap.chunk_add", &gChunkAddSize);   // buffer size to add when wasting time
+    aPrefBranch->GetIntPref("mail.imap.chunk_size", &gChunkSize);
+    aPrefBranch->GetIntPref("mail.imap.min_chunk_size_threshold",
+                            &gChunkThreshold);
+    aPrefBranch->GetIntPref("mail.imap.max_chunk_size", &gMaxChunkSize);
+    aPrefBranch->GetBoolPref("mail.imap.hide_other_users",
+                             &gHideOtherUsersFromList);
+    aPrefBranch->GetBoolPref("mail.imap.hide_unused_namespaces",
+                             &gHideUnusedNamespaces);
+    aPrefBranch->GetIntPref("mail.imap.noop_check_count",
+                            &gPromoteNoopToCheckCount);
+    aPrefBranch->GetBoolPref("mail.imap.use_envelope_cmd",
+                             &gUseEnvelopeCmd);
+    aPrefBranch->GetBoolPref("mail.imap.use_literal_plus", &gUseLiteralPlus);
+    aPrefBranch->GetBoolPref("mail.imap.expunge_after_delete",
+                             &gExpungeAfterDelete);
+    aPrefBranch->GetBoolPref("mail.imap.check_deleted_before_expunge",
+                             &gCheckDeletedBeforeExpunge);
+    aPrefBranch->GetIntPref("mail.imap.expunge_threshold_number",
+                            &gExpungeThreshold);
+    aPrefBranch->GetIntPref("mailnews.tcptimeout", &gResponseTimeout);
     return NS_OK;
 }
 
@@ -366,19 +364,27 @@ nsImapProtocol::nsImapProtocol() : nsMsgProtocol(nsnull),
   m_flagState = nsnull;
   m_fetchBodyIdList = nsnull;
 
-  if (!gInitialized)
-    GlobalInitialization();
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  NS_ASSERTION(prefBranch, "FAILED to create the preference service");
 
   // read in the accept languages preference
-  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefBranch)
   {
+    if (!gInitialized)
+      GlobalInitialization(prefBranch);
+
     nsCOMPtr<nsIPrefLocalizedString> prefString;
     prefBranch->GetComplexValue("intl.accept_languages",
                                 NS_GET_IID(nsIPrefLocalizedString),
                                 getter_AddRefs(prefString));
     if (prefString)
       prefString->ToString(getter_Copies(mAcceptLanguages));
+
+    nsCString customDBHeaders;
+    prefBranch->GetCharPref("mailnews.customDBHeaders",
+                            getter_Copies(customDBHeaders));
+
+    mCustomDBHeaders.ParseString(customDBHeaders.get(), " ");
   }
 
     // ***** Thread support *****
@@ -3011,13 +3017,13 @@ nsImapProtocol::FetchMessage(const nsCString &messageIds,
         const char *dbHeaders = (gUseEnvelopeCmd) ? IMAP_DB_HEADERS : IMAP_ENV_AND_DB_HEADERS;
         nsCString arbitraryHeaders;
         GetArbitraryHeadersToDownload(arbitraryHeaders);
-        for (PRInt32 i = 0; i < gCustomDBHeaders.Count(); i++)
+        for (PRInt32 i = 0; i < mCustomDBHeaders.Count(); i++)
         {
-          if (arbitraryHeaders.Find(* (gCustomDBHeaders[i]), PR_TRUE) == kNotFound)
+          if (arbitraryHeaders.Find(* (mCustomDBHeaders[i]), PR_TRUE) == kNotFound)
           {
             if (!arbitraryHeaders.IsEmpty())
               arbitraryHeaders.Append(' ');
-            arbitraryHeaders.Append(gCustomDBHeaders[i]->get());
+            arbitraryHeaders.Append(mCustomDBHeaders[i]->get());
           }
         }
         if (arbitraryHeaders.IsEmpty())

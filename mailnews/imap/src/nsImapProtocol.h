@@ -86,6 +86,7 @@
 
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;
+class nsIPrefBranch;
 
 #define kDownLoadCacheSize 16000 // was 1536 - try making it bigger
 
@@ -526,7 +527,7 @@ private:
     const char *newParentMailboxName);
   PRBool RetryUrl();
 
-  nsresult GlobalInitialization();
+  nsresult GlobalInitialization(nsIPrefBranch *aPrefBranch);
   nsresult Configure(PRInt32 TooFastTime, PRInt32 IdealTime,
     PRInt32 ChunkAddSize, PRInt32 ChunkSize, PRInt32 ChunkThreshold,
     PRBool FetchByChunks, PRInt32 MaxChunkSize);
@@ -536,6 +537,7 @@ private:
   // Quota support
   void GetQuotaDataIfSupported(const char *aBoxName);
 
+  nsCStringArray mCustomDBHeaders;
   PRBool  m_trackingTime;
   PRTime  m_startTime;
   PRTime  m_endTime;
