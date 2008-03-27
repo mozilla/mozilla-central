@@ -679,6 +679,7 @@ cert_PkixToNssCertsChain(
     }
     PR_INIT_CLIST(&validChain->list);
     validChain->arena = arena;
+    arena = NULL;
 
     PKIX_CHECK(
         PKIX_List_GetLength(pkixCertChain, &length, plContext),
@@ -706,7 +707,6 @@ cert_PkixToNssCertsChain(
         PR_INSERT_BEFORE(&node->links, &validChain->list);
 
         node->cert = nssCert;
-
         nssCert = NULL;
 
         PKIX_DECREF(certItem);
@@ -725,8 +725,8 @@ cleanup:
             CERT_DestroyCertificate(nssCert);
         }
     }
-
     PKIX_DECREF(certItem);
+
     PKIX_RETURN(CERTVFYPKIX);
 }
 
@@ -2142,8 +2142,9 @@ do {
 
 cleanup:
     if (verifyNode) {
+        /* Return validation log only upon error. */
         oparam = cert_pkix_FindOutputParam(paramsOut, cert_po_errorLog);
-        if (oparam != NULL) {
+        if (r && oparam != NULL) {
             PKIX_Error *tmpError =
                 cert_GetLogFromVerifyNode(oparam->value.pointer.log,
                                           verifyNode, plContext);

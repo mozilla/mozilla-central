@@ -1124,9 +1124,13 @@ pkix_Build_VerifyCertificate(
         PKIX_INCREF(state->candidateCert);
         candidateCert = state->candidateCert;
 
-        PKIX_CHECK(PKIX_PL_Cert_IsCertTrusted
-                (candidateCert, &trusted, plContext),
-                PKIX_CERTISCERTTRUSTEDFAILED);
+        /* If user defined trust anchor list is not empty, do not
+         * trust any certs except to the ones that are in the list */
+        if (!state->buildConstants.numAnchors) {
+            PKIX_CHECK(PKIX_PL_Cert_IsCertTrusted
+                       (candidateCert, &trusted, plContext),
+                       PKIX_CERTISCERTTRUSTEDFAILED);
+        }
 
         *pTrusted = trusted;
 
