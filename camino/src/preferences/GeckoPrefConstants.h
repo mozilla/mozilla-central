@@ -38,6 +38,8 @@
 
 #import <Foundation/Foundation.h>
 
+#pragma GCC visibility push(default)
+
 #pragma mark Tab Behavior
 
 // Controls whether the tab bar is show even when there is only one tab.
@@ -304,3 +306,5 @@ extern const char* const kGeckoPrefUserAgentLocaleOverride;            // string
 
 // An extra suffix for the user agent identifying the multilingual build
 extern const char* const kGeckoPrefUserAgentMultiLangAddition;         // string
+
+#pragma GCC visibility pop

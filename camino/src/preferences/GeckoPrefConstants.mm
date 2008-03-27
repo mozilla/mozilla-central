@@ -40,6 +40,53 @@
 
 #import "nsIBrowserDOMWindow.h"
 
+// Xcode 2.x's ld likes to dead-strip symbols that the pref panes need.
+asm(".no_dead_strip _kGeckoPrefLinkColor");
+asm(".no_dead_strip _kGeckoPrefPageBackgroundColor");
+asm(".no_dead_strip _kGeckoPrefPageForegroundColor");
+asm(".no_dead_strip _kGeckoPrefUnderlineLinks");
+asm(".no_dead_strip _kGeckoPrefUsePageColors");
+asm(".no_dead_strip _kGeckoPrefUsePageFonts");
+asm(".no_dead_strip _kGeckoPrefVisitedLinkColor");
+asm(".no_dead_strip _kGeckoPrefCookieLifetimePolicy");
+asm(".no_dead_strip _kGeckoPrefDefaultCertificateBehavior");
+asm(".no_dead_strip _kGeckoPrefBlockPopups");
+asm(".no_dead_strip _kGeckoPrefEnableJava");
+asm(".no_dead_strip _kGeckoPrefImageAnimationBehavior");
+asm(".no_dead_strip _kGeckoPrefPreventDOMStatusChange");
+asm(".no_dead_strip _kGeckoPrefPreventDOMWindowFocus");
+asm(".no_dead_strip _kGeckoPrefPreventDOMWindowResize");
+asm(".no_dead_strip _kGeckoPrefTabFocusBehavior");
+asm(".no_dead_strip _kStartPageBlank");
+asm(".no_dead_strip _kStartPageHome");
+asm(".no_dead_strip _kPersonalCertificateAlwaysAsk");
+asm(".no_dead_strip _kPersonalCertificateSelectAutomatically");
+asm(".no_dead_strip _kExternalLoadOpensNewWindow");
+asm(".no_dead_strip _kExternalLoadOpensNewTab");
+asm(".no_dead_strip _kExternalLoadReusesWindow");
+asm(".no_dead_strip _kSingleWindowModeUseDefault");
+asm(".no_dead_strip _kSingleWindowModeUseCurrentTab");
+asm(".no_dead_strip _kSingleWindowModeUseNewTab");
+asm(".no_dead_strip _kSingleWindowModeUseNewWindow");
+asm(".no_dead_strip _kSingleWindowModeApplyAlways");
+asm(".no_dead_strip _kSingleWindowModeApplyNever");
+asm(".no_dead_strip _kSingleWindowModeApplyOnlyToUnfeatured");
+asm(".no_dead_strip _kImageAnimationLoop");
+asm(".no_dead_strip _kImageAnimationOnce");
+asm(".no_dead_strip _kImageAnimationNone");
+asm(".no_dead_strip _kTabFocusesForms");
+asm(".no_dead_strip _kTabFocusesLinks");
+asm(".no_dead_strip _kTabFocusesTextFields");
+asm(".no_dead_strip _kBackspaceActionBack");
+asm(".no_dead_strip _kBackspaceActionNone");
+asm(".no_dead_strip _kCookieAcceptAll");
+asm(".no_dead_strip _kCookieAcceptFromOriginatingServer");
+asm(".no_dead_strip _kCookieAcceptNone");
+asm(".no_dead_strip _kCookieLifetimeAsk");
+asm(".no_dead_strip _kCookieLifetimeNormal");
+asm(".no_dead_strip _kCookieLifetimeSession");
+
+
 #pragma mark Tab Behavior
 
 const char* const kGeckoPrefAlwaysShowTabBar = "camino.tab_bar_always_visible";
