@@ -69,14 +69,14 @@
   nsIDOMHTMLSelectElement* mSelectElt;
 }
 
-- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSel;
+- (id)initWithSelect:(nsIDOMHTMLSelectElement*)aSel;
 - (IBAction)selectOption:(id)aSender;
 
 @end
 
 @implementation CHOptionSelector
 
-- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSel
+- (id)initWithSelect:(nsIDOMHTMLSelectElement*)aSel
 {
   if ((self = [super init])) {
     mSelectElt = aSel;
@@ -114,19 +114,22 @@
 @interface CHSelectPopupDisplayer : NSObject
 {
   nsIDOMHTMLSelectElement* mSelectElement;
+  NSEvent*                 mTriggerEvent;
 }
 
-+ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement *)aSelectElement;
-- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSelectElement;
++ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement*)aSelectElement;
+- (id)initWithSelect:(nsIDOMHTMLSelectElement*)aSelectElement
+               event:(NSEvent*)triggerEvent;
 - (void)showNativePopupMenu;
 
 @end
 
 @implementation CHSelectPopupDisplayer
 
-+ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement *)aSelectElement
++ (void)showNativePopupMenuAsynchronouslyForSelect:(nsIDOMHTMLSelectElement*)aSelectElement
 {
-  CHSelectPopupDisplayer* displayer = [[CHSelectPopupDisplayer alloc] initWithSelect:aSelectElement];
+  CHSelectPopupDisplayer* displayer = [[CHSelectPopupDisplayer alloc] initWithSelect:aSelectElement
+                                                                               event:[NSApp currentEvent]];
   [displayer performSelector:@selector(showNativePopupMenu)
                   withObject:nil
                   afterDelay:0
@@ -136,11 +139,13 @@
   [displayer release];
 }
 
-- (id)initWithSelect:(nsIDOMHTMLSelectElement *)aSelectElement
+- (id)initWithSelect:(nsIDOMHTMLSelectElement*)aSelectElement
+               event:(NSEvent*)triggerEvent
 {
   if ((self = [super init])) {
     mSelectElement = aSelectElement;
     NS_IF_ADDREF(mSelectElement);
+    mTriggerEvent = [triggerEvent retain];
   }
   return self;
 }
@@ -148,6 +153,7 @@
 - (void)dealloc
 {
   NS_IF_RELEASE(mSelectElement);
+  [mTriggerEvent release];
   [super dealloc];
 }
 
@@ -245,8 +251,9 @@
       [menuItem setAction:@selector(selectOption:)];
   }
 
-  NSEvent*  event = [NSApp currentEvent];
-  NSWindow* hostWindow = [event window];
+  NSWindow* hostWindow = [mTriggerEvent window];
+  if (!hostWindow)
+    return;
 
   // get the frame location
   nsIPresShell* presShell = doc->GetPrimaryShell();
@@ -286,7 +293,7 @@
   NSPopUpButtonCell* popupCell = [[NSPopUpButtonCell alloc] initTextCell:@"" pullsDown:NO];
   [popupCell setMenu:menu];
   [popupCell setFont:[NSFont systemFontOfSize:[NSFont systemFontSize]]];
-  [popupCell trackMouse:event inRect:bounds ofView:hostView untilMouseUp:YES];
+  [popupCell trackMouse:mTriggerEvent inRect:bounds ofView:hostView untilMouseUp:YES];
   [popupCell release];
 
   [hostView removeFromSuperview];   // this releases it
