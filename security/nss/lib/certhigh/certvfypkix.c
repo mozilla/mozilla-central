@@ -2004,6 +2004,7 @@ SECStatus CERT_PKIXVerifyCert(
     PKIX_VerifyNode     * verifyNode = NULL;
     PKIX_TrustAnchor *    trustAnchor = NULL;
     PKIX_PL_Cert *        trustAnchorCert = NULL;
+    PKIX_List *           builtCertList = NULL;
     CERTValOutParam *     oparam = NULL;
     int i=0;
 
@@ -2138,6 +2139,20 @@ do {
                 cert_NSSCertFromPKIXCert(trustAnchorCert,plContext);
     }
 
+    error = PKIX_BuildResult_GetCertChain( buildResult, &builtCertList,
+                                                plContext);
+    if (error != NULL) {
+        goto cleanup;
+    }
+
+    oparam = cert_pkix_FindOutputParam(paramsOut, cert_po_certList);
+    if (oparam != NULL) {
+        error = cert_PkixToNssCertsChain(builtCertList,
+                                         &oparam->value.pointer.chain,
+                                         plContext);
+        if (error) goto cleanup;
+    }
+
     r = SECSuccess;
 
 cleanup:
@@ -2176,12 +2191,16 @@ cleanup:
     if (certSelector != NULL) 
        PKIX_PL_Object_DecRef((PKIX_PL_Object *)certSelector, plContext);
 
+    if (builtCertList != NULL) 
+       PKIX_PL_Object_DecRef((PKIX_PL_Object *)builtCertList, plContext);
+
     if (error != NULL) {
         SECErrorCodes         nssErrorCode = 0;
 
         cert_PkixErrorToNssCode(error, &nssErrorCode, plContext);
         PORT_SetError(nssErrorCode);
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
+        /* XXX Destroy output params in case of error. See bug 425516. */
     }
 
     PKIX_PL_NssContext_Destroy(plContext);

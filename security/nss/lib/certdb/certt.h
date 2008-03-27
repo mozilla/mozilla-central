@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.43 2008-03-14 23:28:46 kaie%kuix.de Exp $
+ * $Id: certt.h,v 1.44 2008-03-27 21:56:24 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -1180,7 +1180,7 @@ typedef struct CERTValParamInValueStr {
         const void*    p;
         const char*    s;
         const CERTCertificate* cert;
-	const CERTCertList *chain;
+        const CERTCertList *chain;
         const CERTRevocationFlags *revocation;
     } pointer;
     union {
@@ -1188,7 +1188,7 @@ typedef struct CERTValParamInValueStr {
         const PRUint32 *pui;
         const PRInt64  *pl;
         const PRUint64 *pul;
-	const SECOidTag *oids;
+        const SECOidTag *oids;
     } array;
     int arraySize;
 } CERTValParamInValue;
@@ -1206,13 +1206,13 @@ typedef struct CERTValParamOutValueStr {
     union {
         void*    p;
         char*    s;
-	CERTVerifyLog *log;
+        CERTVerifyLog *log;
         CERTCertificate* cert;
-	CERTCertList *chain;
+        CERTCertList *chain;
     } pointer;
     union {
-	void 	  *p;
-	SECOidTag *oids;
+        void 	  *p;
+        SECOidTag *oids;
     } array;
     int arraySize;
 } CERTValParamOutValue;

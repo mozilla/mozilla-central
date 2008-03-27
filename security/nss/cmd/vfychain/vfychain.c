@@ -283,6 +283,7 @@ main(int argc, char *argv[], char *envp[])
     int                  rv           = 1;
     int                  usage;
     CERTVerifyLog        log;
+    CERTCertList        *builtChain = NULL;
 
     PR_Init( PR_SYSTEM_THREAD, PR_PRIORITY_NORMAL, 1);
 
@@ -374,7 +375,7 @@ breakout:
                                            &log, /* error log */
                                            NULL);/* returned usages */
     } else do {
-        CERTValOutParam cvout[3];
+        CERTValOutParam cvout[4];
         CERTValInParam cvin[5];
         SECOidTag oidTag;
         int inParamIndex = 0;
@@ -453,13 +454,14 @@ breakout:
         cvin[inParamIndex].type = cert_pi_end;
         
         cvout[0].type = cert_po_trustAnchor;
+        cvout[1].type = cert_po_certList;
 
         /* setting pointer to CERTVerifyLog. Initialized structure
          * will be used CERT_PKIXVerifyCert */
-        cvout[1].type = cert_po_errorLog;
-        cvout[1].value.pointer.log = &log;
+        cvout[2].type = cert_po_errorLog;
+        cvout[2].value.pointer.log = &log;
 
-        cvout[2].type = cert_po_end;
+        cvout[3].type = cert_po_end;
         
         secStatus = CERT_PKIXVerifyCert(firstCert, certUsage,
                                         cvin, cvout, NULL);
@@ -467,6 +469,7 @@ breakout:
             break;
         }
         issuerCert = cvout[0].value.pointer.cert;
+        builtChain = cvout[1].value.pointer.chain;
     } while (0);
 
     /* Display validation results */
@@ -498,6 +501,20 @@ breakout:
     	   }
     	   CERT_DestroyCertificate(issuerCert);
     	}
+         if (builtChain) {
+            CERTCertListNode *node;
+            int count = 0;
+            char buff[256];
+
+            if (verbose) { 
+                for(node = CERT_LIST_HEAD(builtChain); !CERT_LIST_END(node, builtChain);
+                    node = CERT_LIST_NEXT(node), count++ ) {
+                    sprintf(buff, "Certificate %d Subject", count + 1);
+                    SECU_PrintName(stdout, &node->cert->subject, buff, 0);
+                }
+            }
+            CERT_DestroyCertList(builtChain);
+         }
 	rv = 0;
     }
 
