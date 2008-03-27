@@ -161,6 +161,7 @@ sub _check_status{
         $status_id = Bugzilla::Testopia::Util::validate_selection($status, 'case_status_id', 'test_case_status');
     }
     else {
+        trick_taint($status);
         $status_id = lookup_status_by_name($status);
     }
     ThrowUserError('invalid_status') unless $status_id;

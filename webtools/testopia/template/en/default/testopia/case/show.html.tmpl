@@ -123,6 +123,7 @@ Ext.onReady(function(){
         params.action = 'update_doc';
         testopia_form.submit({
             url: 'tr_process_case.cgi',
+            method: 'POST',
             params: params,
             success: function(){
                 TestopiaUtil.notify.msg('Test case updated', 'Test Case {0} was updated successfully', 'Document');

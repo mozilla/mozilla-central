@@ -918,6 +918,7 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                     return;
                 }
                 Ext.getCmp('newcaseform').getForm().submit({
+                    method: 'POST',
                     success: function(form, data){
                         if (data.result.err){
                             alert('One or more attachments were either too large or were empty. These have been ignored.');
