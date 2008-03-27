@@ -22,7 +22,7 @@
  *
  * Contributor(s):
  *   Jan Varga <varga@ku.sk>
- *   Håkan Waara (hwaara@chello.se)
+ *   HÃ¥kan Waara (hwaara@chello.se)
  *   Jeremy Morton (bugzilla@game-point.net)
  *
  * Alternatively, the contents of this file may be used under the terms of

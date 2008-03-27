@@ -22,7 +22,7 @@
  *
  * Contributor(s):
  *   Jan Varga <varga@ku.sk>
- *   Håkan Waara (hwaara@chello.se)
+ *   HÃ¥kan Waara (hwaara@chello.se)
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
