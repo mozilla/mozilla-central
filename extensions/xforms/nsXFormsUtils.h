@@ -816,6 +816,17 @@ public:
    */
    static NS_HIDDEN_(PRBool) IsCardNumber(const nsAString& aNumber);
 
+   /**
+    * Translate XPath function names to their internal name. For example,
+    * context() is a valid XPath function but its internal name is
+    * contextNode() because context is a reserved word in .idl.
+    *
+    * @param aExpression      XPath expression that may need to be translated.
+    * @param aResult          Translated expression.
+    */
+   static NS_HIDDEN_(nsresult) TranslateExpression(const nsAString& aExpression,
+                                                   nsAString& aResult);
+
 private:
   /**
    * Do same origin checks on aBaseDocument and aTestURI. Hosts can be

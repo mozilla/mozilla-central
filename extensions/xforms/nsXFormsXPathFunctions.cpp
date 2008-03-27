@@ -57,6 +57,8 @@
 #include "nsIXFormsActionModuleElement.h"
 #include "nsIXFormsContextInfo.h"
 #include "prrng.h"
+#include "nsIXFormsControl.h"
+#include "nsIInstanceElementPrivate.h"
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
 
@@ -692,6 +694,53 @@ nsXFormsXPathFunctions::SecondsToDateTime(double aSeconds, nsAString &aResult)
   PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%SZ", &et);
 
   aResult.AssignLiteral(ctime);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::ContextNode(txIFunctionEvaluationContext *aContext,
+                                    txINodeSet **aResult)
+{
+  *aResult = nsnull;
+
+  // Get xforms node that contained the context() expression.
+  nsCOMPtr<nsIXFormsXPathState> state;
+  aContext->GetState(getter_AddRefs(state));
+  nsCOMPtr<nsIDOMNode> xfNode;
+  state->GetXformsNode(getter_AddRefs(xfNode));
+  NS_ENSURE_TRUE(xfNode, NS_ERROR_FAILURE);
+
+  // Get the context node of the xforms node.
+  nsCOMPtr<nsIDOMNode> contextNode;
+  PRUint32 contextNodesetSize = 0;
+  PRInt32 contextPosition;
+  nsCOMPtr<nsIModelElementPrivate> model;
+  nsCOMPtr<nsIDOMElement> bindElement;
+  nsCOMPtr<nsIXFormsControl> parentControl;
+  PRBool outerBind;
+
+  nsCOMPtr<nsIDOMElement> element(do_QueryInterface(xfNode));
+  nsresult rv =
+    nsXFormsUtils::GetNodeContext(element,
+                                  nsXFormsUtils::ELEMENT_WITH_MODEL_ATTR,
+                                  getter_AddRefs(model),
+                                  getter_AddRefs(bindElement),
+                                  &outerBind,
+                                  getter_AddRefs(parentControl),
+                                  getter_AddRefs(contextNode),
+                                  &contextPosition,
+                                  (PRInt32*)&contextNodesetSize,
+                                  PR_FALSE);
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  nsCOMPtr<txINodeSet> result =
+    do_CreateInstance("@mozilla.org/transformiix-nodeset;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  result->Add(contextNode);
+  result.swap(*aResult);
 
   return NS_OK;
 }
