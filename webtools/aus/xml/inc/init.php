@@ -51,4 +51,5 @@ require_once('aus.class.php');    // Generic object definition.
 require_once('xml.class.php');    // XML class for output generation.
 require_once('update.class.php');   // Update class for each update.
 require_once('patch.class.php');   // Patch class for update patches.
+require_once('memcaching.php');  // Class for memcache.
 ?>

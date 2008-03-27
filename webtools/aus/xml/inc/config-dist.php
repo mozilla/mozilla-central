@@ -103,6 +103,25 @@ $productBranchVersions = array(
     )
 );
 
+// Config for memcache.
+define('MEMCACHE_NAMESPACE', 'aus'); // set memcache namespace.  Keep this string as short and simple as possible.
+define('MEMCACHE_EXPIRE', 1800); // how long items are stored in memcache
+define('MEMCACHE_ON', true); // whether or not to cache ever
+
+/**
+ * Memcache configuration.
+ * See http://php.oregonstate.edu/memcache for info.
+ */
+$memcache_config = array(
+    'localhost' => array(
+       'port' => '11211',
+       'persistent' => true,
+       'weight' => '1',
+       'timeout' => '1',
+       'retry_interval' => 15
+    )
+);
+
 // Array that defines which %OS_VERSION% values are no longer supported.
 // For incoming URIs containing these as their platformVersion, no updates
 // will be offered.
