@@ -47,5 +47,5 @@
 <!ENTITY useMIME.accesskey               "F">
 <!ENTITY sendDefaultCharset.label        "Default Character Encoding:">
 <!ENTITY sendDefaultCharset.accesskey    "C">
-<!ENTITY replyInDefaultCharset.label     "Always use this default character encoding in replies. (When unchecked, only new messages use this default.)">
-<!ENTITY replyInDefaultCharset.accesskey "w">
+<!ENTITY replyInDefaultCharset2.label    "When possible, use this default character encoding in replies. (When unchecked, only new messages use this default.)">
+<!ENTITY replyInDefaultCharset2.accesskey "W">
