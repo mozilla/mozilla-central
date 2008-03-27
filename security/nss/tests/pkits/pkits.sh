@@ -72,6 +72,16 @@ pkits_init()
       . ./init.sh
   fi
 
+  if [ -z "${PKITS_DATA}" ]; then
+      echo "${SCRIPTNAME}: PKITS data directory not defined, skipping."
+      exit 0
+  fi      
+
+  if [ ! -d "${PKITS_DATA}" ]; then
+      echo "${SCRIPTNAME}: PKITS data directory ${PKITS_DATA} doesn't exist, skipping."
+      exit 0
+  fi
+
   PKITSDIR=${HOSTDIR}/pkits
 
   COPYDIR=${PKITSDIR}/copydir
@@ -79,12 +89,6 @@ pkits_init()
   mkdir -p ${PKITSDIR}
   mkdir -p ${COPYDIR}
   mkdir -p ${PKITSDIR}/html
-
-  if [ ! -d "${PKITS_DATA}" ]; then
-      PKITS_DATA=../../../../PKITS_DATA
-  fi
-
-  export PKITS_DATA
 
   certs=${PKITS_DATA}/certs
   crls=${PKITS_DATA}/crls
