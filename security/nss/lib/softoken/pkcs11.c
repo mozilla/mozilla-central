@@ -4171,7 +4171,7 @@ CK_RV NSC_FindObjects(CK_SESSION_HANDLE hSession,
     transfer = ((int)ulMaxObjectCount > left) ? left : ulMaxObjectCount;
     if (transfer > 0) {
 	PORT_Memcpy(phObject,&search->handles[search->index],
-                                        transfer*sizeof(CK_OBJECT_HANDLE_PTR));
+                                        transfer*sizeof(CK_OBJECT_HANDLE));
     } else {
        *phObject = CK_INVALID_HANDLE;
     }
