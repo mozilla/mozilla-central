@@ -628,3 +628,71 @@ nsXFormsXPathFunctions::IsCardNumber(const nsAString & aNumber,
 
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::DaysToDate(double aDays, nsAString &aResult)
+{
+  // This function returns a string containing a lexical xsd:date that
+  // corresponds to the number of days passed as the parameter. The aDays
+  // parameter represents the difference between the desired date and
+  // 1970-01-01.
+  aResult.Truncate();
+
+  if (TX_DOUBLE_IS_NaN(aDays))
+    return NS_OK;
+
+  // Round total number of days to the nearest whole number.
+  PRTime t_days;
+  LL_I2L(t_days, floor(aDays+0.5));
+
+  PRTime t_secs, t_secs_per_day, t_usec, usec_per_sec;
+  // Calculate total number of seconds in aDays.
+  LL_I2L(t_secs_per_day, 86400UL);
+  LL_MUL(t_secs, t_days, t_secs_per_day);
+  // Convert total seconds to usecs.
+  LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
+  LL_MUL(t_usec, t_secs, usec_per_sec);
+
+  // Convert the time to xsd:date format.
+  PRExplodedTime et;
+  PR_ExplodeTime(t_usec, PR_GMTParameters, &et);
+  char ctime[60];
+  PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%d", &et);
+
+  aResult.AssignLiteral(ctime);
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsXFormsXPathFunctions::SecondsToDateTime(double aSeconds, nsAString &aResult)
+{
+  // This function returns a string containing a lexical xsd:dateTime that
+  // corresponds to the number of seconds passed as the parameter. The aSeconds
+  // parameter represents the difference between the desired UTC dateTime and
+  // 1970-01-01T00:00:00Z.
+  aResult.Truncate();
+
+  if (TX_DOUBLE_IS_NaN(aSeconds))
+    return NS_OK;
+
+  // Round total number of seconds to the nearest whole number.
+  PRTime t_secs;
+  LL_I2L(t_secs, floor(aSeconds+0.5));
+
+  // Convert total seconds to usecs.
+  PRTime t_usec, usec_per_sec;
+  LL_I2L(usec_per_sec, PR_USEC_PER_SEC);
+  LL_MUL(t_usec, t_secs, usec_per_sec);
+
+  // Convert the time to xsd:dateTime format.
+  PRExplodedTime et;
+  PR_ExplodeTime(t_usec, PR_GMTParameters, &et);
+  char ctime[60];
+  PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%SZ", &et);
+
+  aResult.AssignLiteral(ctime);
+
+  return NS_OK;
+}
+
