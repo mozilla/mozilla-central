@@ -43,16 +43,13 @@
 #import "CHPermissionManager.h"
 #import "ExtendedTableView.h"
 #import "KeychainDenyList.h"
+#import "GeckoPrefConstants.h"
 
 @interface CookieDateFormatter : NSDateFormatter
 @end
 
 // prefs for keychain password autofill
 static const char* const kUseKeychainPref = "chimera.store_passwords_with_keychain";
-
-// network.cookie.lifetimePolicy settings
-const int kAcceptCookiesNormally = 0;
-const int kWarnAboutCookies = 1;
 
 // sort order indicators
 const int kSortReverse = 1;
@@ -139,20 +136,20 @@ const int kSortReverse = 1;
 {
   // Hook up cookie prefs.
   BOOL gotPref = NO;
-  int acceptCookies = [self getIntPref:"network.cookie.cookieBehavior"
+  int acceptCookies = [self getIntPref:kGeckoPrefCookieDefaultAcceptPolicy
                            withSuccess:&gotPref];
   if (!gotPref)
-    acceptCookies = eAcceptAllCookies;
+    acceptCookies = kCookieAcceptAll;
   [self mapCookiePrefToGUI:acceptCookies];
 
   // lifetimePolicy now controls asking about cookies, despite being totally unintuitive
-  int lifetimePolicy = [self getIntPref:"network.cookie.lifetimePolicy"
+  int lifetimePolicy = [self getIntPref:kGeckoPrefCookieLifetimePolicy
                             withSuccess:&gotPref];
   if (!gotPref)
-    lifetimePolicy = kAcceptCookiesNormally;
-  if (lifetimePolicy == kWarnAboutCookies)
+    lifetimePolicy = kCookieLifetimeNormal;
+  if (lifetimePolicy == kCookieLifetimeAsk)
     [mAskAboutCookies setState:NSOnState];
-  else if (lifetimePolicy == kAcceptCookiesNormally)
+  else if (lifetimePolicy == kCookieLifetimeNormal)
     [mAskAboutCookies setState:NSOffState];
   else
     [mAskAboutCookies setState:NSMixedState];
@@ -174,16 +171,16 @@ const int kSortReverse = 1;
 - (IBAction)clickCookieBehavior:(id)sender
 {
   int row = [mCookieBehavior selectedRow];
-  [self setPref:"network.cookie.cookieBehavior" toInt:row];
+  [self setPref:kGeckoPrefCookieDefaultAcceptPolicy toInt:row];
   [self mapCookiePrefToGUI:row];
 }
 
 - (IBAction)clickAskAboutCookies:(id)sender
 {
   [sender setAllowsMixedState:NO];
-  [self setPref:"network.cookie.lifetimePolicy"
-          toInt:([sender state] == NSOnState) ? kWarnAboutCookies
-                                              : kAcceptCookiesNormally];
+  [self setPref:kGeckoPrefCookieLifetimePolicy
+          toInt:([sender state] == NSOnState) ? kCookieLifetimeAsk
+                                              : kCookieLifetimeNormal];
 }
 
 - (IBAction)clickStorePasswords:(id)sender
@@ -207,8 +204,8 @@ const int kSortReverse = 1;
 - (void)mapCookiePrefToGUI:(int)pref
 {
   [mCookieBehavior selectCellWithTag:pref];
-  [mAskAboutCookies setEnabled:(pref == eAcceptAllCookies ||
-                                pref == eAcceptCookiesFromOriginatingServer)];
+  [mAskAboutCookies setEnabled:(pref == kCookieAcceptAll ||
+                                pref == kCookieAcceptFromOriginatingServer)];
 }
 
 #pragma mark -

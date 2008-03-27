@@ -42,15 +42,6 @@
 
 @class ExtendedTableView;
 
-// network.cookie.cookieBehavior settings
-// these are the defaults, overriden by whitelist/blacklist
-typedef enum ECookieBehaviorSettings
-{
-  eAcceptAllCookies,
-  eAcceptCookiesFromOriginatingServer,
-  eDenyAllCookies
-} ECookieBehaviorSettings;
-
 // for the "Policy" column in the Exceptions List
 typedef enum ECookiePolicyPopupIndex
 {

@@ -41,6 +41,8 @@
 #import "History.h"
 #import "NSString+Utils.h"
 
+#import "GeckoPrefConstants.h"
+
 #include "nsCOMPtr.h"
 #include "nsIServiceManager.h"
 #include "nsIBrowserHistory.h"
@@ -86,7 +88,7 @@ static const int kDefaultExpireDays = 9;
 - (void)mainViewDidLoad
 {
   BOOL gotPref;
-  int expireDays = [self getIntPref:"browser.history_expire_days" withSuccess:&gotPref];
+  int expireDays = [self getIntPref:kGeckoPrefHistoryLifetimeDays withSuccess:&gotPref];
   if (!gotPref)
     expireDays = kDefaultExpireDays;
   
@@ -96,12 +98,12 @@ static const int kDefaultExpireDays = 9;
 
 - (void)didUnselect
 {
-  [self setPref:"browser.history_expire_days" toInt:[textFieldHistoryDays intValue]];
+  [self setPref:kGeckoPrefHistoryLifetimeDays toInt:[textFieldHistoryDays intValue]];
 }
 
 - (IBAction)historyDaysModified:(id)sender
 {
-  [self setPref:"browser.history_expire_days" toInt:[sender intValue]];
+  [self setPref:kGeckoPrefHistoryLifetimeDays toInt:[sender intValue]];
 }
 
 // Clear the user's disk cache

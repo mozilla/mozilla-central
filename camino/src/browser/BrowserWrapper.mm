@@ -422,7 +422,7 @@ enum StatusPriority {
     [self setFrame:tabContentRect resizingBrowserViewIfHidden:YES];
   }
 
-  if ([[PreferenceManager sharedInstance] getBooleanPref:"keyword.enabled" withSuccess:NULL])
+  if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableURLFixup withSuccess:NULL])
     flags |= NSLoadFlagsAllowThirdPartyFixup;
 
   [self setPendingActive:focusContent];
@@ -643,7 +643,7 @@ enum StatusPriority {
         // immediately update the site icon (to the cached one, or the default)
         [self updateSiteIconImage:cachedImage withURI:cachedImageURI loadError:NO];
 
-        if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.chrome.favicons" withSuccess:NULL])
+        if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL])
         {
           // note that this is the only time we hit the network for site icons.
           // note also that we may get a site icon from a link element later,
@@ -758,7 +758,8 @@ enum StatusPriority {
 - (void)updatePluginsEnabledState
 {
   BOOL gotPref;
-  BOOL pluginsEnabled = [[PreferenceManager sharedInstance] getBooleanPref:"camino.enable_plugins" withSuccess:&gotPref];
+  BOOL pluginsEnabled = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnablePlugins
+                                                               withSuccess:&gotPref];
 
   // If we can't get the pref, ensure we leave plugins enabled.
   [mBrowserView setProperty:nsIWebBrowserSetup::SETUP_ALLOW_PLUGINS toValue:(gotPref ? pluginsEnabled : YES)];
@@ -814,7 +815,7 @@ enum StatusPriority {
 // Called when a "shortcut icon" link element is noticed
 - (void)onFoundShortcutIcon:(NSString*)inIconURI
 {
-  BOOL useSiteIcons = [[PreferenceManager sharedInstance] getBooleanPref:"browser.chrome.favicons" withSuccess:NULL];
+  BOOL useSiteIcons = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL];
   if (!useSiteIcons)
     return;
   
@@ -876,10 +877,10 @@ enum StatusPriority {
   if ([mBrowserView isTextFieldFocused] || [mBrowserView isPluginFocused])
     return;
 
-  int backspaceAction = [[PreferenceManager sharedInstance] getIntPref:"browser.backspace_action"
+  int backspaceAction = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefBackspaceAction
                                                            withSuccess:NULL];
 
-  if (backspaceAction == 0) { // map to back/forward
+  if (backspaceAction == kBackspaceActionBack) {
     if ([[NSApp currentEvent] modifierFlags] & NSShiftKeyMask)
       [mBrowserView goForward];
     else
@@ -997,8 +998,9 @@ enum StatusPriority {
 - (CHBrowserView*)reuseExistingBrowserWindow:(unsigned int)aMask
 {
   CHBrowserView* viewToUse = mBrowserView;
-  int openNewWindow = [[PreferenceManager sharedInstance] getIntPref:"browser.link.open_newwindow" withSuccess:NULL];
-  if (openNewWindow == nsIBrowserDOMWindow::OPEN_NEWTAB) {
+  int openNewWindow = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefSingleWindowModeTargetBehavior
+                                                         withSuccess:NULL];
+  if (openNewWindow == kSingleWindowModeUseNewTab) {
     // If browser.tabs.loadDivertedInBackground isn't set, we decide whether or
     // not to open the new tab in the background based on whether we're the fg
     // tab. If we are, we assume the user wants to see the new tab because it's 
@@ -1006,7 +1008,7 @@ enum StatusPriority {
     // be bothered with a bg tab throwing things up in their face. We know
     // we're in the bg if our delegate is nil.
     BOOL loadInBackground;
-    if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadDivertedInBackground" withSuccess:NULL])
+    if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefSingleWindowModeTabsOpenInBackground withSuccess:NULL])
       loadInBackground = YES;
     else
       loadInBackground = (mDelegate == nil);
@@ -1024,16 +1026,18 @@ enum StatusPriority {
 //
 - (BOOL)shouldReuseExistingWindow
 {
-  int openNewWindow = [[PreferenceManager sharedInstance] getIntPref:"browser.link.open_newwindow" withSuccess:NULL];
-  BOOL shouldReuse = (openNewWindow == nsIBrowserDOMWindow::OPEN_CURRENTWINDOW ||
-                      openNewWindow == nsIBrowserDOMWindow::OPEN_NEWTAB);
+  int openNewWindow = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefSingleWindowModeTargetBehavior
+                                                         withSuccess:NULL];
+  BOOL shouldReuse = (openNewWindow == kSingleWindowModeUseCurrentTab ||
+                      openNewWindow == kSingleWindowModeUseNewTab);
   return shouldReuse;
 }
 
 // Checks to see if we should allow window.open calls with specified size/position to open new windows (regardless of SWM)
 - (int)respectWindowOpenCallsWithSizeAndPosition
 {
-  return ([[PreferenceManager sharedInstance] getIntPref:"browser.link.open_newwindow.restriction" withSuccess:NULL] == 2);
+  return ([[PreferenceManager sharedInstance] getIntPref:kGeckoPrefSingleWindowModeRestriction
+                                             withSuccess:NULL] == kSingleWindowModeApplyOnlyToUnfeatured);
 }
 
 - (CHBrowserView*)browserView

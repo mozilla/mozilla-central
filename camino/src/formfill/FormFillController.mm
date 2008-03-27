@@ -541,7 +541,8 @@ NS_IMETHODIMP FormFillListener::HandleEvent(nsIDOMEvent* aEvent)
   if (NS_FAILED(inputElement->GetReadOnly(&isReadOnly)) || isReadOnly)
     return;
 
-  PRBool autoCompleteOverride = [[PreferenceManager sharedInstance] getBooleanPref:"wallet.crypto.autocompleteoverride" withSuccess:NULL];
+  PRBool autoCompleteOverride = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefIgnoreAutocompleteOff
+                                                                       withSuccess:NULL];
 
   if (!autoCompleteOverride) {
     nsAutoString autocomplete;

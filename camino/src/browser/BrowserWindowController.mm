@@ -175,7 +175,6 @@ static NSString* const FormFillToolbarItemIdentifier    = @"Form Fill Toolbar It
 static NSString* const HistoryToolbarItemIdentifier     = @"History Toolbar Item";
 
 int TabBarVisiblePrefChangedCallback(const char* pref, void* data);
-static const char* const gTabBarVisiblePref = "camino.tab_bar_always_visible";
 
 const float kMinimumLocationBarWidth = 250.0;
 const float kMinimumURLAndSearchBarWidth = 128.0;
@@ -736,7 +735,7 @@ public:
   if (mWindowClosesQuietly)
     return YES;
 
-  if ([[PreferenceManager sharedInstance] getBooleanPref:"camino.warn_when_closing" withSuccess:NULL]) {
+  if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefWarnWhenClosingWindows withSuccess:NULL]) {
     unsigned int numberOfTabs = [mTabBrowser numberOfTabViewItems];
     if (numberOfTabs > 1) {
       NSString* closeMultipleTabWarning = NSLocalizedString(@"CloseWindowWithMultipleTabsExplFormat", @"");
@@ -760,8 +759,10 @@ public:
       @catch (id exception) {
       }
       
-      if (dontShowAgain)
-        [[PreferenceManager sharedInstance] setPref:"camino.warn_when_closing" toBoolean:NO];
+      if (dontShowAgain) {
+        [[PreferenceManager sharedInstance] setPref:kGeckoPrefWarnWhenClosingWindows
+                                          toBoolean:NO];
+      }
       
       if (result != NSAlertDefaultReturn)
         return NO;
@@ -794,7 +795,7 @@ public:
 
   nsCOMPtr<nsIPref> pref(do_GetService(NS_PREF_CONTRACTID));
   if (pref)
-    pref->UnregisterCallback(gTabBarVisiblePref, TabBarVisiblePrefChangedCallback, self);
+    pref->UnregisterCallback(kGeckoPrefAlwaysShowTabBar, TabBarVisiblePrefChangedCallback, self);
       
   // Tell the BrowserTabView the window is closed
   [mTabBrowser windowClosed];
@@ -965,11 +966,12 @@ public:
                         !(mChromeMask & nsIWebBrowserChrome::CHROME_PERSONAL_TOOLBAR)))
       allowTabBar = NO;
     if (allowTabBar) {
-      BOOL tabBarAlwaysVisible = [[PreferenceManager sharedInstance] getBooleanPref:gTabBarVisiblePref withSuccess:nil];
+      BOOL tabBarAlwaysVisible = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefAlwaysShowTabBar
+                                                                        withSuccess:NULL];
       [mTabBrowser setBarAlwaysVisible:tabBarAlwaysVisible];
       nsCOMPtr<nsIPref> pref(do_GetService(NS_PREF_CONTRACTID));
       if (pref)
-        pref->RegisterCallback(gTabBarVisiblePref, TabBarVisiblePrefChangedCallback, self);
+        pref->RegisterCallback(kGeckoPrefAlwaysShowTabBar, TabBarVisiblePrefChangedCallback, self);
     }
 
     // remove the dummy tab view
@@ -1261,7 +1263,7 @@ public:
   BOOL loadInBackground = NO;
   if (destination == eDestinationNewTab) {
     loadInBackground =
-      [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadInBackground"
+      [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsInBackground
                                              withSuccess:NULL];
   }
 
@@ -2096,7 +2098,7 @@ public:
 // 
 -(BOOL)shouldWarnBeforeOpeningFeed
 {
-  return [[PreferenceManager sharedInstance] getBooleanPref:"camino.warn_before_opening_feed" withSuccess:NULL];
+  return [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefWarnBeforeOpeningFeeds withSuccess:NULL];
 }
 
 // -openFeedInExternalApp
@@ -2478,7 +2480,7 @@ public:
     viewSource = [kViewSourceProtocolString stringByAppendingString:urlStr];
   }
 
-  if ([[PreferenceManager sharedInstance] getBooleanPref:"camino.viewsource_in_tab" withSuccess:NULL]) {
+  if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefViewSourceInTab withSuccess:NULL]) {
     if (desc)
       [self openNewTabWithDescriptor:desc displayType:nsIWebPageDescriptor::DISPLAY_AS_SOURCE loadInBackground:loadInBackground];
     else
@@ -2613,7 +2615,8 @@ public:
   BOOL loadInBackground = NO;
   // do search in a new window/tab if Command is held down
   if (modifiers & NSCommandKeyMask) {
-    BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+    BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                            withSuccess:NULL];
     destination = loadInTab ? eDestinationNewTab : eDestinationNewWindow;
     loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:destination
                                                                               sender:nil];
@@ -3422,9 +3425,8 @@ public:
     BOOL loadHomepage = NO;
     if (contents == eNewTabHomepage)
     {
-      // 0 = about:blank, 1 = home page, 2 = last page visited
-      int newTabPage = [[PreferenceManager sharedInstance] getIntPref:"browser.tabs.startPage" withSuccess:NULL];
-      loadHomepage = (newTabPage == 1);
+      int newTabPage = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefNewTabStartPage withSuccess:NULL];
+      loadHomepage = (newTabPage == kStartPageHome);
     }
 
     [newTab setLabel: (loadHomepage ? NSLocalizedString(@"TabLoading", @"") : NSLocalizedString(@"UntitledPageTitle", @""))];
@@ -4210,7 +4212,8 @@ public:
   // Create command and command-shift alternates for applicable menu items
   if (needsAlternates) {
     NSArray* menuArray = [result itemArray];
-    BOOL inNewTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+    BOOL inNewTab = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                           withSuccess:NULL];
 
     for (int i = [menuArray count] - 1; i >= 0; i--) {
       NSMenuItem* menuItem = [menuArray objectAtIndex:i];
@@ -4677,7 +4680,8 @@ public:
     unsigned int modifiers = [aSender keyEquivalentModifierMask];
 
     if (modifiers & NSCommandKeyMask) {
-      BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+      BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                              withSuccess:NULL];
       BOOL loadInBG = [BrowserWindowController shouldLoadInBackgroundForDestination:(loadInTab ? eDestinationNewTab
                                                                                                : eDestinationNewWindow)
                                                                              sender:nil];
@@ -5012,12 +5016,13 @@ public:
 - (BOOL)handleCommandReturn:(BOOL)aShiftIsDown
 {
   // determine whether to load in tab or window
-  BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+  BOOL loadInTab = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                          withSuccess:NULL];
 
   // determine whether to load in background
   BOOL loadInBG = NO;
   if (loadInTab)
-    loadInBG = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadInBackground" withSuccess:NULL];
+    loadInBG = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsInBackground withSuccess:NULL];
   if (aShiftIsDown)  // if shift is being held down, do the opposite of the pref
     loadInBG = !loadInBG;
 
@@ -5191,8 +5196,9 @@ static Boolean movieControllerFilter(MovieController mc, short action, void *par
 //
 int TabBarVisiblePrefChangedCallback(const char* inPref, void* inBWC)
 {
-  if (strcmp(inPref, gTabBarVisiblePref) == 0) {
-    BOOL newValue = [[PreferenceManager sharedInstance] getBooleanPref:gTabBarVisiblePref withSuccess:nil];
+  if (strcmp(inPref, kGeckoPrefAlwaysShowTabBar) == 0) {
+    BOOL newValue = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefAlwaysShowTabBar
+                                                           withSuccess:NULL];
     BrowserWindowController* bwc = (BrowserWindowController*)inBWC;
     [[bwc tabBrowser] setBarAlwaysVisible:newValue];
   }

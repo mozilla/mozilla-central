@@ -245,7 +245,7 @@ static FeedServiceController* sInstance = nil;
 //
 -(void)shouldWarnWhenOpeningFeed:(BOOL)inState
 {
-  [[PreferenceManager sharedInstance] setPref:"camino.warn_before_opening_feed" toBoolean:inState];
+  [[PreferenceManager sharedInstance] setPref:kGeckoPrefWarnBeforeOpeningFeeds toBoolean:inState];
 }
 
 //

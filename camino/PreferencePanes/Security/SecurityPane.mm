@@ -37,6 +37,8 @@
  
 #import "SecurityPane.h"
 
+#import "GeckoPrefConstants.h"
+
 // prefs for showing security dialogs
 #define LEAVE_SITE_PREF      "security.warn_leaving_secure"
 #define MIXEDCONTENT_PREF    "security.warn_viewing_mixed"
@@ -61,12 +63,12 @@ const unsigned int kAskEveryTimeMatrixRowValue        = 1;
   [mViewMixed setState:(viewMixed ? NSOnState : NSOffState)];
 
   BOOL gotPref;
-  NSString* certificateBehavior = [self getStringPref:"security.default_personal_cert"
+  NSString* certificateBehavior = [self getStringPref:kGeckoPrefDefaultCertificateBehavior
                                           withSuccess:&gotPref];
   if (gotPref) {
-    if ([certificateBehavior isEqual:@"Select Automatically"])
+    if ([certificateBehavior isEqual:kPersonalCertificateSelectAutomatically])
       [mCertificateBehavior selectCellAtRow:kSelectAutomaticallyMatrixRowValue column:0];
-    else if ([certificateBehavior isEqual:@"Ask Every Time"])
+    else if ([certificateBehavior isEqual:kPersonalCertificateAlwaysAsk])
       [mCertificateBehavior selectCellAtRow:kAskEveryTimeMatrixRowValue column:0];
   }
 
@@ -108,9 +110,9 @@ const unsigned int kAskEveryTimeMatrixRowValue        = 1;
   unsigned int row = [mCertificateBehavior selectedRow];
 
   if (row == kSelectAutomaticallyMatrixRowValue)
-    [self setPref:"security.default_personal_cert" toString:@"Select Automatically"];
+    [self setPref:kGeckoPrefDefaultCertificateBehavior toString:kPersonalCertificateSelectAutomatically];
   else // row == kAskEveryTimeMatrixRowValue
-    [self setPref:"security.default_personal_cert" toString:@"Ask Every Time"];
+    [self setPref:kGeckoPrefDefaultCertificateBehavior toString:kPersonalCertificateAlwaysAsk];
 }
 
 - (IBAction)showCertificates:(id)sender

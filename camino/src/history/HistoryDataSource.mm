@@ -411,7 +411,8 @@ static int HistoryItemSort(id firstItem, id secondItem, void* context)
 
   // Read the history cutoff so that we don't create too many folders
   BOOL gotPref = NO;
-  int expireDays = [[PreferenceManager sharedInstance] getIntPref:"browser.history_expire_days" withSuccess:&gotPref];
+  int expireDays = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefHistoryLifetimeDays
+                                                      withSuccess:&gotPref];
   if (!gotPref)
     expireDays = kDefaultExpireDays;
   else if (expireDays == 0) {
@@ -701,7 +702,8 @@ NS_IMPL_ISUPPORTS1(nsHistoryObserver, nsIHistoryObserver);
                                                  name:SiteIconLoadNotificationName
                                                object:nil];
 
-    mShowSiteIcons = [[PreferenceManager sharedInstance] getBooleanPref:"browser.chrome.favicons" withSuccess:NULL];
+    mShowSiteIcons = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons
+                                                            withSuccess:NULL];
   }
 
   return self;

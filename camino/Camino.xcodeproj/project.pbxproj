@@ -229,6 +229,8 @@
 		3316F44C0D11F1900025ED19 /* TabButtonView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3316F4480D11F1900025ED19 /* TabButtonView.mm */; };
 		337F2BA50CA200D100572F7D /* ContentDispatchChooser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 337F2BA30CA200D100572F7D /* ContentDispatchChooser.mm */; };
 		337F2BA70CA200D100572F7D /* ContentDispatchChooser.mm in Sources */ = {isa = PBXBuildFile; fileRef = 337F2BA30CA200D100572F7D /* ContentDispatchChooser.mm */; };
+		33819AD70D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33819AD30D938A2D00CA9F52 /* GeckoPrefConstants.mm */; };
+		33819AD80D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */ = {isa = PBXBuildFile; fileRef = 33819AD30D938A2D00CA9F52 /* GeckoPrefConstants.mm */; };
 		33B775AA0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B775AB0C4EAC1E00A6D67F /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
 		33B7763C0C4EB32C00A6D67F /* libsqlite3.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */; };
@@ -2326,6 +2328,8 @@
 		335639140C84DBDA00DC4D06 /* ViewCertificateDialogController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ViewCertificateDialogController.h; path = src/security/ViewCertificateDialogController.h; sourceTree = "<group>"; };
 		337F2BA20CA200D100572F7D /* ContentDispatchChooser.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = ContentDispatchChooser.h; path = src/browser/ContentDispatchChooser.h; sourceTree = "<group>"; };
 		337F2BA30CA200D100572F7D /* ContentDispatchChooser.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = ContentDispatchChooser.mm; path = src/browser/ContentDispatchChooser.mm; sourceTree = "<group>"; };
+		33819AD20D938A2D00CA9F52 /* GeckoPrefConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GeckoPrefConstants.h; path = src/preferences/GeckoPrefConstants.h; sourceTree = "<group>"; };
+		33819AD30D938A2D00CA9F52 /* GeckoPrefConstants.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = GeckoPrefConstants.mm; path = src/preferences/GeckoPrefConstants.mm; sourceTree = "<group>"; };
 		33B775A90C4EAC1E00A6D67F /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = ../dist/lib/libsqlite3.dylib; sourceTree = SOURCE_ROOT; };
 		33B777950C55851800A6D67F /* libmozlcms.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmozlcms.dylib; path = ../dist/bin/libmozlcms.dylib; sourceTree = SOURCE_ROOT; };
 		33B777E10C5588E500A6D67F /* libmozlcms.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmozlcms.a; path = ../dist/lib/libmozlcms.a; sourceTree = SOURCE_ROOT; };
@@ -4045,6 +4049,8 @@
 				DEE9EBA60AF5C390002BC511 /* SessionManager.mm */,
 				0FC4B33D08941B4F009C5F41 /* ChimeraUtils.h */,
 				F5C8D55203A2A42401A8016F /* ChimeraUIConstants.h */,
+				33819AD20D938A2D00CA9F52 /* GeckoPrefConstants.h */,
+				33819AD30D938A2D00CA9F52 /* GeckoPrefConstants.mm */,
 				F55C4DD302D2864D0130B065 /* UserDefaults.h */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 				33563A5A0C84EF3B00DC4D06 /* Gecko Support */,
@@ -5449,6 +5455,7 @@
 				DE963D1C0D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 				00BBBC860D66C13400C2D916 /* CHGradient.m in Sources */,
 				001D4A270D75B0B100464BE4 /* MoveCommand.mm in Sources */,
+				33819AD70D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5628,6 +5635,7 @@
 				DE963D200D43EFCF007D44EE /* KeychainAutoCompleteSession.mm in Sources */,
 				00BBBC850D66C13400C2D916 /* CHGradient.m in Sources */,
 				001D4A260D75B0B100464BE4 /* MoveCommand.mm in Sources */,
+				33819AD80D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

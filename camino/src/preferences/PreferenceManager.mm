@@ -669,16 +669,16 @@ static BOOL gMadePrefManager;
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
 
   // Get the base auto-update manifest URL
-  NSString* baseURL = [self getStringPref:"app.update.url.override"
+  NSString* baseURL = [self getStringPref:kGeckoPrefUpdateURLOverride
                               withSuccess:NULL];
   if (![baseURL length])
-    baseURL = [self getStringPref:"app.update.url" withSuccess:NULL];
+    baseURL = [self getStringPref:kGeckoPrefUpdateURL withSuccess:NULL];
 
   // An empty manifestURL will tell Sparkle not to check for updates.
   NSString* manifestURL = @"";
   if ([baseURL length]) {
     // Append the parameters we might be interested in.
-    NSString* intlUAString = [self getStringPref:"general.useragent.extra.multilang"
+    NSString* intlUAString = [self getStringPref:kGeckoPrefUserAgentMultiLangAddition
                                      withSuccess:NULL];
     NSArray* languages = [[NSBundle mainBundle] localizations];
     NSString* currentLanguage = [[NSBundle preferredLocalizationsFromArray:languages] firstObject];
@@ -776,10 +776,10 @@ static BOOL gMadePrefManager;
   // fix up the cookie prefs. If 'p3p' or 'accept foreign cookies' are on,
   // remap them to something that chimera can deal with.
   PRInt32 acceptCookies = 0;
-  static const char* kCookieBehaviorPref = "network.cookie.cookieBehavior";
+  static const char* kCookieBehaviorPref = kGeckoPrefCookieDefaultAcceptPolicy;
   mPrefs->GetIntPref(kCookieBehaviorPref, &acceptCookies);
   if (acceptCookies == 3) {     // p3p, assume all cookies on
-    acceptCookies = 0;
+    acceptCookies = kCookieAcceptAll;
     mPrefs->SetIntPref(kCookieBehaviorPref, acceptCookies);
   }
 
@@ -789,23 +789,23 @@ static BOOL gMadePrefManager;
   [self setLocalePref];
 
   // load up the default stylesheet (is this the best place to do this?)
-  if ([self getBooleanPref:"camino.enable_ad_blocking" withSuccess:NULL])
+  if ([self getBooleanPref:kGeckoPrefBlockAds withSuccess:NULL])
     [self refreshAdBlockingStyleSheet:YES];
 
   // Load flashblock if enabled.  Test dependencies to avoid conflicts
   BOOL flashBlockAllowed = [self isFlashBlockAllowed];	
-  if (flashBlockAllowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:NULL])
+  if (flashBlockAllowed && [self getBooleanPref:kGeckoPrefBlockFlash withSuccess:NULL])
     [self refreshFlashBlockStyleSheet:YES];
 
   // Make sure the homepage has been set up.
   nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(mPrefs);
   if (prefBranch) {
     PRInt32 homepagePrefExists;
-    if (NS_FAILED(prefBranch->PrefHasUserValue("browser.startup.homepage", &homepagePrefExists)) || !homepagePrefExists) {
+    if (NS_FAILED(prefBranch->PrefHasUserValue(kGeckoPrefHomepageURL, &homepagePrefExists)) || !homepagePrefExists) {
       NSString* defaultHomepage = NSLocalizedStringFromTable(@"HomePageDefault", @"WebsiteDefaults", nil);
       // Check that we actually got a sane value back before storing it.
       if (![defaultHomepage isEqualToString:@"HomePageDefault"])
-        [self setPref:"browser.startup.homepage" toString:defaultHomepage];
+        [self setPref:kGeckoPrefHomepageURL toString:defaultHomepage];
     }
   }
 }
@@ -815,11 +815,11 @@ static BOOL gMadePrefManager;
   // Determine if the user specified their own language override. If so
   // use it. If not work out the languages from the system preferences.
   BOOL userProvidedLangOverride = NO;
-  NSString* userLanguageOverride = [self getStringPref:"camino.accept_languages"
+  NSString* userLanguageOverride = [self getStringPref:kGeckoPrefAcceptLanguagesOverride
                                            withSuccess:&userProvidedLangOverride];
 
   if (userProvidedLangOverride && [userLanguageOverride length] > 0)
-    [self setPref:"intl.accept_languages" toString:userLanguageOverride];
+    [self setPref:kGeckoPrefAcceptLanguages toString:userLanguageOverride];
   else {
     NSUserDefaults* defs = [NSUserDefaults standardUserDefaults];
     NSArray* languages = [defs objectForKey:@"AppleLanguages"];
@@ -868,12 +868,12 @@ static BOOL gMadePrefManager;
         [acceptableLanguages removeObjectsInRange:dropRange];
       }
       NSString* acceptLangHeader = [acceptableLanguages componentsJoinedByString:@","];
-      [self setPref:"intl.accept_languages" toString:acceptLangHeader];
+      [self setPref:kGeckoPrefAcceptLanguages toString:acceptLangHeader];
     }
     else {
       // Fall back to the "en-us, en" default from all-camino.js - clear
       // any existing user pref
-      [self clearPref:"intl.accept_languages"];
+      [self clearPref:kGeckoPrefAcceptLanguages];
     }
   }
 }
@@ -881,8 +881,8 @@ static BOOL gMadePrefManager;
 - (void)setLocalePref
 {
   // Use the user-selected pref for the user agent locale if it exists
-  NSString* uaLocale = [self getStringPref:"camino.useragent.locale"
-                               withSuccess:nil];
+  NSString* uaLocale = [self getStringPref:kGeckoPrefUserAgentLocaleOverride
+                               withSuccess:NULL];
 
   if (![uaLocale length]) {
     // Find the active localization nib's name and make sure it's in
@@ -901,13 +901,13 @@ static BOOL gMadePrefManager;
   }
 
   if (uaLocale && [uaLocale length]) {
-    [self setPref:"general.useragent.locale" toString:uaLocale];
+    [self setPref:kGeckoPrefUserAgentLocale toString:uaLocale];
   }
   else {
     NSLog(@"Unable to determine user interface locale\n");
     // Fall back to the "en-US" default from all.js.  Clear any existing
     // user pref.
-    [self clearPref:"general.useragent.locale"];
+    [self clearPref:kGeckoPrefUserAgentLocale];
   }
 }
 
@@ -988,9 +988,9 @@ typedef enum EProxyConfig {
 
 - (void)readSystemProxySettings
 {
-  // if the user has set "camino.use_system_proxy_settings" to false, they want
+  // if the user has set kGeckoPrefProxyUsesSystemSettings to false, they want
   // to specify their own proxies (or a PAC), so don't read the OS proxy settings
-  if (![self getBooleanPref:"camino.use_system_proxy_settings" withSuccess:NULL])
+  if (![self getBooleanPref:kGeckoPrefProxyUsesSystemSettings withSuccess:NULL])
     return;
   
   PRInt32 curProxyType, newProxyType;
@@ -1007,7 +1007,7 @@ typedef enum EProxyConfig {
   mPrefs->ClearUserPref("network.proxy.gopher_port");
   mPrefs->ClearUserPref("network.proxy.socks");
   mPrefs->ClearUserPref("network.proxy.socks_port");
-  mPrefs->ClearUserPref("network.proxy.no_proxies_on");
+  mPrefs->ClearUserPref(kGeckoPrefProxyBypassList);
 
   // get proxies from SystemConfiguration
   NSDictionary* proxyConfigDict = (NSDictionary*)SCDynamicStoreCopyProxies(NULL);
@@ -1017,7 +1017,7 @@ typedef enum EProxyConfig {
     NSString* proxyURLString  = (NSString*)[proxyConfigDict objectForKey:(NSString*)kSCPropNetProxiesProxyAutoConfigURLString];
     if ([proxyAutoConfig intValue] != 0 && [proxyURLString length] > 0) {
       NSLog(@"Using Proxy Auto-Config (PAC) file %@", proxyURLString);
-      [self setPref:"network.proxy.autoconfig_url" toString:proxyURLString];
+      [self setPref:kGeckoPrefProxyAutoconfigURL toString:proxyURLString];
       newProxyType = eProxyConfig_PAC;
     }
     else {
@@ -1055,7 +1055,7 @@ typedef enum EProxyConfig {
         if (exceptions) {
           NSString* sitesList = [exceptions componentsJoinedByString:@", "];
           if ([sitesList length] > 0)
-            [self setPref:"network.proxy.no_proxies_on" toString:sitesList];
+            [self setPref:kGeckoPrefProxyBypassList toString:sitesList];
         }
       }
       else {
@@ -1075,7 +1075,7 @@ typedef enum EProxyConfig {
 
 - (void)adBlockingPrefChanged:(NSNotification*)inNotification
 {
-  BOOL adBlockingEnabled = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:nil];
+  BOOL adBlockingEnabled = [self getBooleanPref:kGeckoPrefBlockAds withSuccess:NULL];
   [self refreshAdBlockingStyleSheet:adBlockingEnabled];
 }
 
@@ -1083,7 +1083,7 @@ typedef enum EProxyConfig {
 {
   BOOL allowed = [self isFlashBlockAllowed];
  
-  BOOL flashBlockEnabled = allowed && [self getBooleanPref:"camino.enable_flashblock" withSuccess:nil];
+  BOOL flashBlockEnabled = allowed && [self getBooleanPref:kGeckoPrefBlockFlash withSuccess:NULL];
   [self refreshFlashBlockStyleSheet:flashBlockEnabled];
 }
 
@@ -1242,19 +1242,15 @@ typedef enum EProxyConfig {
   if (!mPrefs)
     return @"about:blank";
 
-  PRInt32 mode = 1;
-  
-  // In some cases, we need to check browser.startup.page to see if
-  // we want to use the homepage or if the user wants a blank window.
-  // mode 0 is blank page, mode 1 is home page. 2 is "last page visited"
-  // but we don't care about that. Default to 1 unless |checkStartupPagePref|
-  // is true.
-  nsresult rv = NS_OK;
+  // If |checkStartupPagePref|, always return the homepage, otherwise check the
+  // user's pref for new windows.
+  BOOL success = NO;
+  int mode = kStartPageHome;
   if (checkStartupPagePref)
-    rv = mPrefs->GetIntPref("browser.startup.page", &mode);
+    mode = [self getIntPref:kGeckoPrefNewWindowStartPage withSuccess:&success];
 
-  if (NS_FAILED(rv) || mode == 1) {
-    NSString* homepagePref = [self getStringPref:"browser.startup.homepage" withSuccess:NULL];
+  if (!success || mode == kStartPageHome) {
+    NSString* homepagePref = [self getStringPref:kGeckoPrefHomepageURL withSuccess:NULL];
     if (!homepagePref)
       homepagePref = NSLocalizedStringFromTable(@"HomePageDefault", @"WebsiteDefaults", nil);
 
@@ -1391,8 +1387,8 @@ typedef enum EProxyConfig {
 -(BOOL) isFlashBlockAllowed
 {
   BOOL gotPref = NO;
-  BOOL jsEnabled = [self getBooleanPref:"javascript.enabled" withSuccess:&gotPref] && gotPref;
-  BOOL pluginsEnabled = [self getBooleanPref:"camino.enable_plugins" withSuccess:&gotPref] || !gotPref;
+  BOOL jsEnabled = [self getBooleanPref:kGeckoPrefEnableJavascript withSuccess:&gotPref] && gotPref;
+  BOOL pluginsEnabled = [self getBooleanPref:kGeckoPrefEnablePlugins withSuccess:&gotPref] || !gotPref;
 
   return jsEnabled && pluginsEnabled;
 }

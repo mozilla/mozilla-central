@@ -236,7 +236,7 @@ const long kOpenInTabsTag = 0xBEEF;
                                                        action:@selector(openMenuBookmark:)
                                                 keyEquivalent:@""];
     NSMenuItem* altMenuItem;
-    if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL])
+    if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick withSuccess:NULL])
       altMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Open in New Tabs", nil)
                                                action:@selector(openMenuBookmark:)
                                         keyEquivalent:@""];

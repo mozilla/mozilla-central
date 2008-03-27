@@ -505,7 +505,7 @@ static id gSharedProgressController = nil;
   // looking around to see what happened. We always want the download window to come to the
   // front on a new download (unless they set a user_pref);
   BOOL gotPref = NO;
-  BOOL bringToFront = [[PreferenceManager sharedInstance] getBooleanPref:"browser.download.progressDnldDialog.bringToFront" withSuccess:&gotPref];
+  BOOL bringToFront = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefFocusDownloadManagerOnDownload withSuccess:&gotPref];
   if (gotPref && bringToFront)
     [[self window] makeKeyAndOrderFront:self];
   
@@ -547,7 +547,8 @@ static id gSharedProgressController = nil;
   if ([self numDownloadsInProgress] == 0)
   {
     BOOL gotPref;
-    BOOL keepDownloadsOpen = [[PreferenceManager sharedInstance] getBooleanPref:"browser.download.progressDnldDialog.keepAlive" withSuccess:&gotPref];
+    BOOL keepDownloadsOpen = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefLeaveDownloadManagerOpen
+                                                                    withSuccess:&gotPref];
     if (gotPref && !keepDownloadsOpen)
     {
       // don't call -performClose: on the window, because we don't want Cocoa to look
@@ -815,10 +816,10 @@ static id gSharedProgressController = nil;
 // Return true if the pref is set to remove downloads when the application quits
 -(BOOL)shouldRemoveDownloadsOnQuit
 {
-  int downloadRemovalPolicy = [[PreferenceManager sharedInstance] getIntPref:"browser.download.downloadRemoveAction" 
+  int downloadRemovalPolicy = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefDownloadCleanupPolicy 
                                                                  withSuccess:NULL];
   
-  return downloadRemovalPolicy == kRemoveDownloadsOnQuitPrefValue ? YES : NO;
+  return downloadRemovalPolicy == kRemoveDownloadsOnQuit ? YES : NO;
 }
 
 // Get the downloads.plist path

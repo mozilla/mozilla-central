@@ -39,6 +39,8 @@
  
 #import "Appearance.h"
 
+#import "GeckoPrefConstants.h"
+
 @interface OrgMozillaCaminoPreferenceAppearance(Private)
 
 - (void)setupFontRegionPopup;
@@ -143,17 +145,17 @@
 {
   BOOL gotPref;
   [mUnderlineLinksCheckbox setState:
-      [self getBooleanPref:"browser.underline_anchors" withSuccess:&gotPref]];
+      [self getBooleanPref:kGeckoPrefUnderlineLinks withSuccess:&gotPref]];
   [mUseMyColorsCheckbox setState:
-      ![self getBooleanPref:"browser.display.use_document_colors" withSuccess:&gotPref]];
+      ![self getBooleanPref:kGeckoPrefUsePageColors withSuccess:&gotPref]];
 
   // should save and restore this
   [[NSColorPanel sharedColorPanel] setContinuous:NO];
   
-  [mBackgroundColorWell     setColor:[self getColorPref:"browser.display.background_color"  withSuccess:&gotPref]];
-  [mTextColorWell           setColor:[self getColorPref:"browser.display.foreground_color"  withSuccess:&gotPref]];
-  [mUnvisitedLinksColorWell setColor:[self getColorPref:"browser.anchor_color"              withSuccess:&gotPref]];
-  [mVisitedLinksColorWell   setColor:[self getColorPref:"browser.visited_color"             withSuccess:&gotPref]];
+  [mBackgroundColorWell     setColor:[self getColorPref:kGeckoPrefPageBackgroundColor  withSuccess:&gotPref]];
+  [mTextColorWell           setColor:[self getColorPref:kGeckoPrefPageForegroundColor  withSuccess:&gotPref]];
+  [mUnvisitedLinksColorWell setColor:[self getColorPref:kGeckoPrefLinkColor            withSuccess:&gotPref]];
+  [mVisitedLinksColorWell   setColor:[self getColorPref:kGeckoPrefVisitedLinkColor     withSuccess:&gotPref]];
   
   [mUseMyFontsCheckbox setState:[self useMyFontsPref]];
 
@@ -193,9 +195,9 @@
 - (IBAction)buttonClicked:(id)sender
 {
   if (sender == mUnderlineLinksCheckbox)
-    [self setPref:"browser.underline_anchors" toBoolean:[sender state]];
+    [self setPref:kGeckoPrefUnderlineLinks toBoolean:[sender state]];
   else if (sender == mUseMyColorsCheckbox)
-    [self setPref:"browser.display.use_document_colors" toBoolean:![sender state]];
+    [self setPref:kGeckoPrefUsePageColors toBoolean:![sender state]];
 }
 
 - (IBAction)colorChanged:(id)sender
@@ -203,13 +205,13 @@
   const char* prefName = NULL;
   
   if (sender == mBackgroundColorWell)
-  	prefName = "browser.display.background_color";
+  	prefName = kGeckoPrefPageBackgroundColor;
   else if (sender == mTextColorWell)
-  	prefName = "browser.display.foreground_color";
+  	prefName = kGeckoPrefPageForegroundColor;
   else if (sender == mUnvisitedLinksColorWell)
-  	prefName = "browser.anchor_color";
+  	prefName = kGeckoPrefLinkColor;
   else if (sender == mVisitedLinksColorWell)
-  	prefName = "browser.visited_color";
+  	prefName = kGeckoPrefVisitedLinkColor;
 
   if (prefName)
     [self setPref:prefName toColor:[sender color]];
@@ -467,13 +469,13 @@
 - (BOOL)useMyFontsPref
 {
   BOOL gotPref;
-  return [self getIntPref:"browser.display.use_document_fonts" withSuccess:&gotPref] == 0;
+  return [self getIntPref:kGeckoPrefUsePageFonts withSuccess:&gotPref] == 0;
 }
 
 - (void)setUseMyFontsPref:(BOOL)checkboxState
 {
   int useDocumentFonts = checkboxState ? 0 : 1;
-  [self setPref:"browser.display.use_document_fonts" toInt:useDocumentFonts];
+  [self setPref:kGeckoPrefUsePageFonts toInt:useDocumentFonts];
 }
 
 #pragma mark -
@@ -730,24 +732,24 @@ const int kDefaultFontSansSerifTag = 1;
 // Reset the "Colors and Links" tab to application factory defaults.
 - (IBAction)resetColorsToDefaults:(id)sender
 {
-  [self clearPref:"browser.underline_anchors"];
-  [self clearPref:"browser.display.use_document_colors"];
-  [self clearPref:"browser.display.background_color"];
-  [self clearPref:"browser.display.foreground_color"];
-  [self clearPref:"browser.anchor_color"];
-  [self clearPref:"browser.visited_color"];
+  [self clearPref:kGeckoPrefUnderlineLinks];
+  [self clearPref:kGeckoPrefUsePageColors];
+  [self clearPref:kGeckoPrefPageBackgroundColor];
+  [self clearPref:kGeckoPrefPageForegroundColor];
+  [self clearPref:kGeckoPrefLinkColor];
+  [self clearPref:kGeckoPrefVisitedLinkColor];
   
   // update the UI of the Appearance pane
   int state;
-  state = [self getBooleanPref:"browser.underline_anchors" withSuccess:NULL] ? NSOnState : NSOffState;
+  state = [self getBooleanPref:kGeckoPrefUnderlineLinks withSuccess:NULL] ? NSOnState : NSOffState;
   [mUnderlineLinksCheckbox setState:state];
-  state = [self getBooleanPref:"browser.display.use_document_colors" withSuccess:NULL] ? NSOffState : NSOnState;
+  state = [self getBooleanPref:kGeckoPrefUsePageColors withSuccess:NULL] ? NSOffState : NSOnState;
   [mUseMyColorsCheckbox setState:state];
   
-  [mBackgroundColorWell setColor:[self getColorPref:"browser.display.background_color" withSuccess:NULL]];
-  [mTextColorWell setColor:[self getColorPref:"browser.display.foreground_color" withSuccess:NULL]];
-  [mUnvisitedLinksColorWell setColor:[self getColorPref:"browser.anchor_color" withSuccess:NULL]];
-  [mVisitedLinksColorWell setColor:[self getColorPref:"browser.visited_color" withSuccess:NULL]];
+  [mBackgroundColorWell setColor:[self getColorPref:kGeckoPrefPageBackgroundColor withSuccess:NULL]];
+  [mTextColorWell setColor:[self getColorPref:kGeckoPrefPageForegroundColor withSuccess:NULL]];
+  [mUnvisitedLinksColorWell setColor:[self getColorPref:kGeckoPrefLinkColor withSuccess:NULL]];
+  [mVisitedLinksColorWell setColor:[self getColorPref:kGeckoPrefVisitedLinkColor withSuccess:NULL]];
 }
 
 // Reset the Fonts tab to application factory defaults.
@@ -767,7 +769,7 @@ const int kDefaultFontSansSerifTag = 1;
     [regionDict setObject:[NSMutableDictionary dictionary] forKey:@"defaultFontType"];
   }
   
-  [self clearPref:"browser.display.use_document_fonts"];
+  [self clearPref:kGeckoPrefUsePageFonts];
 
   // commit the changes
   // first, we clear the preferences by saving them. This clears the values that are returned by

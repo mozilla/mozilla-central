@@ -1477,7 +1477,8 @@ nsresult FindUsernamePasswordFields(nsIDOMHTMLFormElement* inFormElement,
     return NS_ERROR_FAILURE;
   *outUsername = *outPassword = nsnull;
 
-  PRBool autoCompleteOverride = [[PreferenceManager sharedInstance] getBooleanPref:"wallet.crypto.autocompleteoverride" withSuccess:NULL];
+  PRBool autoCompleteOverride = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefIgnoreAutocompleteOff
+                                                                       withSuccess:NULL];
 
   // pages can specify that they don't want autofill by setting a
   // "autocomplete=off" attribute on the form.

@@ -153,7 +153,8 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   // make sure the tab view is removed
   [(BrowserTabViewItem *)tabViewItem willBeRemoved];
   if ([self selectedTabViewItem] == tabViewItem) {
-    BOOL tabJumpbackPref = [[PreferenceManager sharedInstance] getBooleanPref:"camino.enable_tabjumpback" withSuccess:NULL];
+    BOOL tabJumpbackPref = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableTabJumpback
+                                                                  withSuccess:NULL];
 
     if (tabJumpbackPref && mJumpbackTab)
       [mJumpbackTab selectTab:self]; 

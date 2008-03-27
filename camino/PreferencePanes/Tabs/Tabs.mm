@@ -39,10 +39,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 #import "Tabs.h"
-#import "nsIBrowserDOMWindow.h"
 
-const int kOpenExternalLinksInNewWindow = 0;
-const int kOpenExternalLinksInNewTab = 1;
+#import "GeckoPrefConstants.h"
 
 @implementation OrgMozillaCaminoPreferenceTabs
 
@@ -64,26 +62,28 @@ const int kOpenExternalLinksInNewTab = 1;
 
   BOOL gotPref;
 
-  [mCheckboxOpenTabsForCommand setState:([self getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:&gotPref] ? NSOnState : NSOffState)];
+  [mCheckboxOpenTabsForCommand setState:([self getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                  withSuccess:&gotPref] ? NSOnState : NSOffState)];
 
-  int externalLinksPref = [self getIntPref:"browser.reuse_window" withSuccess:&gotPref];
-  if (externalLinksPref == kOpenExternalLinksInNewWindow)
+  int externalLinksPref = [self getIntPref:kGeckoPrefExternalLoadBehavior withSuccess:&gotPref];
+  if (externalLinksPref == kExternalLoadOpensNewWindow)
     [mCheckboxOpenTabsForExternalLinks setState:NSOffState];
-  else if (externalLinksPref == kOpenExternalLinksInNewTab)
+  else if (externalLinksPref == kExternalLoadOpensNewTab)
     [mCheckboxOpenTabsForExternalLinks setState:NSOnState];
   else
     [mCheckboxOpenTabsForExternalLinks setState:NSMixedState];
 
-  int swmBehavior = [self getIntPref:"browser.link.open_newwindow" withSuccess:&gotPref];
-  if (swmBehavior == nsIBrowserDOMWindow::OPEN_NEWWINDOW)
+  int swmBehavior = [self getIntPref:kGeckoPrefSingleWindowModeTargetBehavior withSuccess:&gotPref];
+  if (swmBehavior == kSingleWindowModeUseNewWindow)
     [mSingleWindowMode setState:NSOffState];
-  else if (swmBehavior == nsIBrowserDOMWindow::OPEN_NEWTAB)
+  else if (swmBehavior == kSingleWindowModeUseNewTab)
     [mSingleWindowMode setState:NSOnState];
   else
     [mSingleWindowMode setState:NSMixedState];
 
-  [mCheckboxLoadTabsInBackground setState:([self getBooleanPref:"browser.tabs.loadInBackground" withSuccess:&gotPref] ? NSOnState : NSOffState)];
-  [mTabBarVisiblity setState:([self getBooleanPref:"camino.tab_bar_always_visible" withSuccess:&gotPref] ? NSOnState : NSOffState)];
+  [mCheckboxLoadTabsInBackground setState:([self getBooleanPref:kGeckoPrefOpenTabsInBackground
+                                                    withSuccess:&gotPref] ? NSOnState : NSOffState)];
+  [mTabBarVisiblity setState:([self getBooleanPref:kGeckoPrefAlwaysShowTabBar withSuccess:&gotPref] ? NSOnState : NSOffState)];
 }
 
 - (IBAction)checkboxClicked:(id)sender
@@ -92,22 +92,23 @@ const int kOpenExternalLinksInNewTab = 1;
     return;
 
   if (sender == mCheckboxOpenTabsForCommand)
-    [self setPref:"browser.tabs.opentabfor.middleclick" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefOpenTabsForMiddleClick toBoolean:([sender state] == NSOnState)];
   else if (sender == mCheckboxOpenTabsForExternalLinks) {
     [sender setAllowsMixedState:NO];
-    [self setPref:"browser.reuse_window" toInt:([sender state] == NSOnState ? kOpenExternalLinksInNewTab : kOpenExternalLinksInNewWindow)];
+    [self setPref:kGeckoPrefExternalLoadBehavior toInt:([sender state] == NSOnState ? kExternalLoadOpensNewTab
+                                                                                    : kExternalLoadOpensNewWindow)];
   }
   else if (sender == mSingleWindowMode) {
     [sender setAllowsMixedState:NO];
-    // Cast to avoid "enumeral mismatch" warning - thanks a lot, xpidl.
-    int newState = ([sender state] == NSOnState) ? (int)nsIBrowserDOMWindow::OPEN_NEWTAB : (int)nsIBrowserDOMWindow::OPEN_NEWWINDOW;
-    [self setPref:"browser.link.open_newwindow" toInt:newState];
+    int newState = ([sender state] == NSOnState) ? kSingleWindowModeUseNewTab
+                                                 : kSingleWindowModeUseNewWindow;
+    [self setPref:kGeckoPrefSingleWindowModeTargetBehavior toInt:newState];
   }
 
   else if (sender == mCheckboxLoadTabsInBackground)
-    [self setPref:"browser.tabs.loadInBackground" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefOpenTabsInBackground toBoolean:([sender state] == NSOnState)];
   else if (sender == mTabBarVisiblity)
-    [self setPref:"camino.tab_bar_always_visible" toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefAlwaysShowTabBar toBoolean:([sender state] == NSOnState)];
 }
 
 @end

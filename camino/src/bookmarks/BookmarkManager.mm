@@ -232,7 +232,8 @@ static BookmarkManager* gBookmarkManager = nil;
     mBookmarkFaviconURLMap  = [[NSMutableDictionary alloc] initWithCapacity:50];
 
     mBookmarksLoaded        = NO;
-    mShowSiteIcons          = [[PreferenceManager sharedInstance] getBooleanPref:"browser.chrome.favicons" withSuccess:NULL];
+    mShowSiteIcons          = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons
+                                                                     withSuccess:NULL];
 
     mNotificationsSuppressedLock = [[NSRecursiveLock alloc] init];
   }
@@ -375,7 +376,7 @@ static BookmarkManager* gBookmarkManager = nil;
   // ten every three seconds to avoid locking up the UI with large bookmark lists.
   // XXX probably want a better way to do this. This sets up a timer (internally) for every
   // bookmark
-  if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.chrome.favicons" withSuccess:NULL]) {
+  if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL]) {
     float delay = 3.0; //default value
     int count = [allBookmarks count];
     for (int i = 0; i < count; ++i) {

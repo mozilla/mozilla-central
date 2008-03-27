@@ -203,7 +203,8 @@ static NSString* const kExpandedHistoryStatesDefaultsKey = @"history_expand_stat
     return;
   }
 
-  BOOL openInTabs       = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+  BOOL openInTabs       = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                                 withSuccess:NULL];
   BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:(openInTabs ? eDestinationNewTab
                                                                                                     : eDestinationNewWindow)
                                                                                  sender:sender];

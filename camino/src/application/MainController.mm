@@ -95,12 +95,6 @@ extern const nsModuleComponentInfo* GetAppComponents(unsigned int* outNumCompone
 
 static const char* ioServiceContractID = "@mozilla.org/network/io-service;1";
 
-// Constants on how to behave when we are asked to open a URL from
-// another application. These are values of the "browser.reuse_window" pref.
-const int kOpenNewWindowOnAE = 0;
-const int kOpenNewTabOnAE = 1;
-const int kReuseWindowOnAE = 2;
-
 // Key in the defaults system used to determine if we crashed last time.
 NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTerminatedNormally";
 
@@ -292,7 +286,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // bring up the JS console service
   PreferenceManager* prefManager = [PreferenceManager sharedInstance];
-  if ([prefManager getBooleanPref:"chimera.log_js_to_console" withSuccess:NULL])
+  if ([prefManager getBooleanPref:kGeckoPrefLogJSToConsole withSuccess:NULL])
     [JSConsole sharedJSConsole];
 
   [self setupRendezvous];
@@ -314,9 +308,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   BOOL shouldRestoreWindowState = NO;
   if ([[SessionManager sharedInstance] hasSavedState]) {
     if (previousSessionTerminatedNormally) {
-      shouldRestoreWindowState = [prefManager getBooleanPref:"camino.remember_window_state" withSuccess:NULL];
+      shouldRestoreWindowState = [prefManager getBooleanPref:kGeckoPrefSessionSaveEnabled withSuccess:NULL];
     }
-    else if ([prefManager getBooleanPref:"browser.sessionstore.resume_from_crash" withSuccess:NULL]) {
+    else if ([prefManager getBooleanPref:kGeckoPrefSessionSaveRestoreAfterCrash withSuccess:NULL]) {
       NSAlert* restoreAfterCrashAlert = [[[NSAlert alloc] init] autorelease];
       [restoreAfterCrashAlert addButtonWithTitle:NSLocalizedString(@"RestoreAfterCrashActionButton", nil)];
       [restoreAfterCrashAlert addButtonWithTitle:NSLocalizedString(@"RestoreAfterCrashCancelButton", nil)];
@@ -384,7 +378,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   if (!prefManager)
     return NSTerminateNow;    // we didn't fully launch
 
-  if ([prefManager getBooleanPref:"camino.warn_when_closing" withSuccess:NULL]) {
+  if ([prefManager getBooleanPref:kGeckoPrefWarnWhenClosingWindows withSuccess:NULL]) {
     NSString* quitAlertMsg = nil;
     NSString* quitAlertExpl = nil;
 
@@ -422,7 +416,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       }
 
       if (dontShowAgain)
-        [prefManager setPref:"camino.warn_when_closing" toBoolean:NO];
+        [prefManager setPref:kGeckoPrefWarnWhenClosingWindows toBoolean:NO];
 
       if (!confirmed)
         return NSTerminateCancel;
@@ -453,7 +447,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // If there's no pref manager then we didn't really start up, so we do nothing.
   PreferenceManager* prefManager = [PreferenceManager sharedInstanceDontCreate];
   if (prefManager) {
-    if ([prefManager getBooleanPref:"camino.remember_window_state" withSuccess:NULL])
+    if ([prefManager getBooleanPref:kGeckoPrefSessionSaveEnabled withSuccess:NULL])
       [[SessionManager sharedInstance] saveWindowState];
     else
       [[SessionManager sharedInstance] clearSavedState];
@@ -501,10 +495,11 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     return;
   // for non-nightly builds, show a special start page
   PreferenceManager* prefManager = [PreferenceManager sharedInstance];
-  NSString* vendorSubString = [prefManager getStringPref:"general.useragent.vendorSub" withSuccess:NULL];
+  NSString* vendorSubString = [prefManager getStringPref:kGeckoPrefUserAgentAppVersion withSuccess:NULL];
   if ([vendorSubString rangeOfString:@"pre"].location == NSNotFound) {
     // has the user seen this already?
-    NSString* newVersionPageRev = [prefManager getStringPref:"browser.startup_page_override.version" withSuccess:NULL];
+    NSString* newVersionPageRev = [prefManager getStringPref:kGeckoPrefNewVersionHomepageOverrideVersion
+                                                 withSuccess:NULL];
     if (![vendorSubString isEqualToString:newVersionPageRev]) {
       NSString* newVersionPage = NSLocalizedStringFromTable(@"NewVersionPage", @"WebsiteDefaults", nil);
       if ([newVersionPage length] && ![newVersionPage isEqualToString:@"NewVersionPage"]) {
@@ -512,14 +507,14 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
         mStartURL = [newVersionPage retain];
       }
       // set the pref to say they've seen it
-      [prefManager setPref:"browser.startup_page_override.version" toString:vendorSubString];
+      [prefManager setPref:kGeckoPrefNewVersionHomepageOverrideVersion toString:vendorSubString];
     }
   }
 }
 
 - (void)setupRendezvous // aka "Bonjour"
 {
-  if ([[PreferenceManager sharedInstance] getBooleanPref:"camino.disable_bonjour" withSuccess:NULL]) {
+  if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefDisableBonjour withSuccess:NULL]) {
     // remove rendezvous items
     int itemIndex;
     while ((itemIndex = [mBookmarksMenu indexOfItemWithTag:kRendezvousRelatedItemTag]) != -1)
@@ -537,12 +532,12 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)checkDefaultBrowser
 {
   BOOL prefSet;
-  BOOL allowPrompt = [[PreferenceManager sharedInstance] getBooleanPref:"camino.check_default_browser"
+  BOOL allowPrompt = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefCheckDefaultBrowserAtLaunch
                                                             withSuccess:&prefSet];
   // Don't show the default browser alert on the very first launch (indicated by
   // the absence of any setting for camino.check_default_browser). 
   if (!prefSet) {
-    [[PreferenceManager sharedInstance] setPref:"camino.check_default_browser"
+    [[PreferenceManager sharedInstance] setPref:kGeckoPrefCheckDefaultBrowserAtLaunch
                                       toBoolean:YES];
     return;
   }
@@ -571,7 +566,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       if (result == NSAlertDefaultReturn)
         [[NSWorkspace sharedWorkspace] setDefaultBrowserWithIdentifier:myIdentifier];
 
-      [[PreferenceManager sharedInstance] setPref:"camino.check_default_browser" toBoolean:!dontAskAgain];
+      [[PreferenceManager sharedInstance] setPref:kGeckoPrefCheckDefaultBrowserAtLaunch
+                                        toBoolean:!dontAskAgain];
       [controller release];
     }
   }
@@ -581,9 +577,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 {
   // See if we need to show the once-per-release warning about problem add-ons.
   PreferenceManager* prefManager = [PreferenceManager sharedInstance];
-  NSString* vendorSubString = [prefManager getStringPref:"general.useragent.vendorSub" withSuccess:NULL];
+  NSString* vendorSubString = [prefManager getStringPref:kGeckoPrefUserAgentAppVersion withSuccess:NULL];
   if ([vendorSubString rangeOfString:@"pre"].location == NSNotFound) {
-    NSString* lastWarningVersion = [prefManager getStringPref:"camino.last_addon_check_version"
+    NSString* lastWarningVersion = [prefManager getStringPref:kGeckoPrefLastAddOnWarningVersion
                                                  withSuccess:NULL];
     if (![vendorSubString isEqualToString:lastWarningVersion]) {
       // Check by class for each of the add-ons that are known to have
@@ -618,7 +614,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
         [addOnAlert runModal];
       }
 
-      [prefManager setPref:"camino.last_addon_check_version" toString:vendorSubString];
+      [prefManager setPref:kGeckoPrefLastAddOnWarningVersion toString:vendorSubString];
     }
   }
 }
@@ -794,7 +790,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 // opening a new window or tab (observing the user's pref) if it's not already open
 - (void)showURL:(NSString*)aURL
 {
-  int reuseWindow = [[PreferenceManager sharedInstance] getIntPref:"browser.reuse_window" withSuccess:NULL];
+  int reuseWindow = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefExternalLoadBehavior
+                                                       withSuccess:NULL];
 
   // Check to see if we already have the URL somewhere, and just show it if we do.
   NSEnumerator* windowEnumerator = [[NSApp orderedWindows] objectEnumerator];
@@ -818,9 +815,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   if (controller) {
     BOOL tabOrWindowIsAvailable = ([[controller browserWrapper] isEmpty] && ![[controller browserWrapper] isBusy]);
 
-    if (tabOrWindowIsAvailable || reuseWindow == kReuseWindowOnAE)
+    if (tabOrWindowIsAvailable || reuseWindow == kExternalLoadReusesWindow)
       [controller loadURL:aURL];
-    else if (reuseWindow == kOpenNewTabOnAE)
+    else if (reuseWindow == kExternalLoadOpensNewTab)
       [controller openNewTabWithURL:aURL referrer:nil loadInBackground:NO allowPopups:NO setJumpback:NO];
     else
       controller = [controller openNewWindowWithURL:aURL referrer:nil loadInBackground:NO allowPopups:NO];
@@ -865,7 +862,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   BOOL openInNewTab = NO;
   BOOL newTabInBackground = NO;
 
-  BOOL loadNewTabsInBackgroundPref = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.loadInBackground" withSuccess:NULL];
+  BOOL loadNewTabsInBackgroundPref = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsInBackground
+                                                                            withSuccess:NULL];
 
   // if the caller requests it, reverse the "open new tab/window in background" behavior.
   if (reverseBackgroundPref)
@@ -875,7 +873,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   switch (behavior) {
     case eBookmarkOpenBehavior_NewPreferred:
-      if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL]) {
+      if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick withSuccess:NULL]) {
         openInNewTab = YES;
         newTabInBackground = loadNewTabsInBackgroundPref;
       }
@@ -1186,8 +1184,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     [browserController newTab:aSender];
   else {
     // follow the pref about what to load in a new tab (even though we're making a new window)
-    int newTabPage = [[PreferenceManager sharedInstance] getIntPref:"browser.tabs.startPage" withSuccess:NULL];
-    BOOL loadHomepage = (newTabPage == 1);
+    int newTabPage = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefNewTabStartPage withSuccess:NULL];
+    BOOL loadHomepage = (newTabPage == kStartPageHome);
 
     NSString* urlToLoad = @"about:blank";
     if (loadHomepage)
@@ -1296,7 +1294,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   BOOL doCloseWindows = YES;
   PreferenceManager* prefManager = [PreferenceManager sharedInstance];
 
-  if ([prefManager getBooleanPref:"camino.warn_when_closing" withSuccess:NULL]) {
+  if ([prefManager getBooleanPref:kGeckoPrefWarnWhenClosingWindows withSuccess:NULL]) {
     NSString* closeAlertMsg = nil;
     NSString* closeAlertExpl = nil;
 
@@ -1338,7 +1336,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       }
 
       if (dontShowAgain)
-        [prefManager setPref:"camino.warn_when_closing" toBoolean:NO];
+        [prefManager setPref:kGeckoPrefWarnWhenClosingWindows toBoolean:NO];
     }
   }
 
@@ -1503,10 +1501,10 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (IBAction)toggleAutoCharsetDetection:(id)aSender
 {
-  NSString* detectorValue = [[PreferenceManager sharedInstance] getStringPref:"intl.charset.detector" withSuccess:NULL];
-  BOOL universalChardetOn = [detectorValue isEqualToString:@"universal_charset_detector"];
-  NSString* newValue = universalChardetOn ? @"" : @"universal_charset_detector";
-  [[PreferenceManager sharedInstance] setPref:"intl.charset.detector" toString:newValue];
+  NSString* detectorValue = [[PreferenceManager sharedInstance] getStringPref:kGeckoPrefCharsetDetector withSuccess:NULL];
+  BOOL universalChardetOn = [detectorValue isEqualToString:kCharsetDetectorUniversal];
+  NSString* newValue = universalChardetOn ? kCharsetDetectorNone : kCharsetDetectorUniversal;
+  [[PreferenceManager sharedInstance] setPref:kGeckoPrefCharsetDetector toString:newValue];
   // and reload
   [self reload:nil];
 }
@@ -1759,7 +1757,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // key alternates
   if (action == @selector(openMenuBookmark:) && [aMenuItem isAlternate]) {
-    if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL])
+    if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick withSuccess:NULL])
       [aMenuItem setTitle:NSLocalizedString(@"Open in New Tabs", nil)];
     else
       [aMenuItem setTitle:NSLocalizedString(@"Open in Tabs in New Window", nil)];
@@ -1859,8 +1857,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   }
 
   // update the state of the autodetect item
-  NSString* detectorValue = [[PreferenceManager sharedInstance] getStringPref:"intl.charset.detector" withSuccess:NULL];
-  BOOL universalChardetOn = [detectorValue isEqualToString:@"universal_charset_detector"];
+  NSString* detectorValue = [[PreferenceManager sharedInstance] getStringPref:kGeckoPrefCharsetDetector withSuccess:NULL];
+  BOOL universalChardetOn = [detectorValue isEqualToString:kCharsetDetectorUniversal];
   [[mTextEncodingsMenu itemWithTag:kEncodingMenuAutodetectItemTag] setState:(universalChardetOn ? NSOnState : NSOffState)];
 }
 

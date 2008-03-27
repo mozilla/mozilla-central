@@ -338,7 +338,7 @@ static const unsigned int kMaxTitleLength = 50;
     BrowserWindowController* bwc = [(MainController *)[NSApp delegate] mainWindowBrowserController];
     if (bwc) {
       if ([sender keyEquivalentModifierMask] & NSCommandKeyMask) {
-        BOOL openInTab = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick"
+        BOOL openInTab = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
                                                                 withSuccess:NULL];
         BOOL backgroundLoad = [BrowserWindowController shouldLoadInBackgroundForDestination:(openInTab ? eDestinationNewTab
                                                                                                        : eDestinationNewWindow)

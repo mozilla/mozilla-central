@@ -38,10 +38,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import <Carbon/Carbon.h>
-#import <Cocoa/Cocoa.h>
-
 #import "Downloads.h"
+
+#import "GeckoPrefConstants.h"
 
 #include "nsCOMPtr.h"
 #include "nsILocalFileMac.h"
@@ -102,11 +101,10 @@ private:
   if (!mPrefService)
     return;
 
-  BOOL gotPref;
-  
-  [mAutoCloseDLManager setState:![self getBooleanPref:"browser.download.progressDnldDialog.keepAlive" withSuccess:&gotPref]];
-  [mEnableHelperApps setState:[self getBooleanPref:"browser.download.autoDispatch" withSuccess:&gotPref]];
-  [mDownloadRemovalPolicy selectItem:[[mDownloadRemovalPolicy menu] itemWithTag:[self getIntPref:"browser.download.downloadRemoveAction" withSuccess:&gotPref]]];
+  [mAutoCloseDLManager setState:![self getBooleanPref:kGeckoPrefLeaveDownloadManagerOpen withSuccess:NULL]];
+  [mEnableHelperApps setState:[self getBooleanPref:kGeckoPrefAutoOpenDownloads withSuccess:NULL]];
+  [mDownloadRemovalPolicy selectItem:[[mDownloadRemovalPolicy menu] itemWithTag:[self getIntPref:kGeckoPrefDownloadCleanupPolicy
+                                                                                     withSuccess:NULL]]];
 
   NSString* downloadFolderDesc = [self downloadFolderDescription];
   if ([downloadFolderDesc length] == 0)
@@ -123,10 +121,10 @@ private:
     return;
 
   if (sender == mAutoCloseDLManager) {
-    [self setPref:"browser.download.progressDnldDialog.keepAlive" toBoolean:![sender state]];
+    [self setPref:kGeckoPrefLeaveDownloadManagerOpen toBoolean:![sender state]];
   }
   if (sender == mEnableHelperApps) {
-    [self setPref:"browser.download.autoDispatch" toBoolean:[sender state]];
+    [self setPref:kGeckoPrefAutoOpenDownloads toBoolean:[sender state]];
   }
 }
 
@@ -240,7 +238,7 @@ private:
   // The three options in the popup contains tags 0-2, set the pref according to the 
   // selected menu item's tag.
   int selectedTagValue = [mDownloadRemovalPolicy selectedTag];
-  [self setPref:"browser.download.downloadRemoveAction" toInt:selectedTagValue];
+  [self setPref:kGeckoPrefDownloadCleanupPolicy toInt:selectedTagValue];
 }
 
 // called when the user closes the open panel sheet for selecting a new d/l folder.

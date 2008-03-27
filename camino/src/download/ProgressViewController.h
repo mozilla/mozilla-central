@@ -62,12 +62,6 @@ typedef enum {
   DownloadSelectByExtending
 } DownloadSelectionBehavior;
 
-// Define these auto remove download pref values here
-// becase both ProgressViewController and ProgressDlgController
-// need to use them. Note that the manual removal pref value is 0.
-const int kRemoveDownloadsOnQuitPrefValue = 1;
-const int kRemoveUponSuccessfulDownloadPrefValue = 2;
-
 //
 // interface ProgressViewController
 //

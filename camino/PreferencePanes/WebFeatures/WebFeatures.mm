@@ -44,15 +44,11 @@
 #import "NSString+Utils.h"
 #import "CHPermissionManager.h"
 #import "ExtendedTableView.h"             
+#import "GeckoPrefConstants.h"
 
 // need to match the strings in PreferenceManager.mm
 static NSString* const AdBlockingChangedNotificationName = @"AdBlockingChanged";
 static NSString* const kFlashBlockChangedNotificationName = @"FlashBlockChanged";
-
-// for accessibility.tabfocus
-const int kFocusTextFields = (1 << 0);
-const int kFocusForms      = (1 << 1);
-const int kFocusLinks      = (1 << 2);
 
 // for annoyance blocker prefs
 const int kAnnoyancePrefNone = 1;
@@ -87,18 +83,18 @@ const int kAnnoyancePrefSome = 3;
   BOOL gotPref = NO;
 
   // Set initial value on JavaScript checkbox.
-  BOOL jsEnabled = [self getBooleanPref:"javascript.enabled" withSuccess:&gotPref] && gotPref;
+  BOOL jsEnabled = [self getBooleanPref:kGeckoPrefEnableJavascript withSuccess:&gotPref] && gotPref;
   [mEnableJS setState:jsEnabled];
 
   // Set initial value on Java checkbox, and disable it if plugins are off
-  BOOL pluginsEnabled = [self getBooleanPref:"camino.enable_plugins" withSuccess:&gotPref] || !gotPref;
+  BOOL pluginsEnabled = [self getBooleanPref:kGeckoPrefEnablePlugins withSuccess:&gotPref] || !gotPref;
   [mEnableJava setEnabled:pluginsEnabled];
-  BOOL javaEnabled = pluginsEnabled && [self getBooleanPref:"security.enable_java" withSuccess:NULL];
+  BOOL javaEnabled = pluginsEnabled && [self getBooleanPref:kGeckoPrefEnableJava withSuccess:NULL];
   [mEnableJava setState:javaEnabled];
 
   // set initial value on popup blocking checkbox and disable the whitelist
   // button if it's off
-  BOOL enablePopupBlocking = [self getBooleanPref:"dom.disable_open_during_load" withSuccess:&gotPref] && gotPref;  
+  BOOL enablePopupBlocking = [self getBooleanPref:kGeckoPrefBlockPopups withSuccess:&gotPref] && gotPref;  
   [mEnablePopupBlocking setState:enablePopupBlocking];
   [mEditWhitelist setEnabled:enablePopupBlocking];
 
@@ -112,7 +108,7 @@ const int kAnnoyancePrefSome = 3;
 
   [mPreventAnimation setState:[self preventAnimationCheckboxState]];
 
-  BOOL enableAdBlock = [self getBooleanPref:"camino.enable_ad_blocking" withSuccess:&gotPref];
+  BOOL enableAdBlock = [self getBooleanPref:kGeckoPrefBlockAds withSuccess:&gotPref];
   [mEnableAdBlocking setState:enableAdBlock];
 
   // Only allow FlashBlock if dependencies are set correctly
@@ -120,7 +116,7 @@ const int kAnnoyancePrefSome = 3;
   [mEnableFlashBlock setEnabled:flashBlockAllowed];
  
   if (flashBlockAllowed) {
-    BOOL enableFlashBlock = [self getBooleanPref:"camino.enable_flashblock" withSuccess:nil];
+    BOOL enableFlashBlock = [self getBooleanPref:kGeckoPrefBlockFlash withSuccess:NULL];
     [mEnableFlashBlock setState:(enableFlashBlock ? NSOnState : NSOffState)];
   }
 
@@ -143,7 +139,7 @@ const int kAnnoyancePrefSome = 3;
 //
 -(IBAction) clickEnableJS:(id)sender
 {
-  [self setPref:"javascript.enabled" toBoolean:([sender state] == NSOnState)];
+  [self setPref:kGeckoPrefEnableJavascript toBoolean:([sender state] == NSOnState)];
 
   // FlashBlock depends on Javascript so make sure to update the FlashBlock settings
   [self updateFlashBlock];
@@ -156,7 +152,7 @@ const int kAnnoyancePrefSome = 3;
 //
 -(IBAction) clickEnableJava:(id)sender
 {
-  [self setPref:"security.enable_java" toBoolean:([sender state] == NSOnState)];
+  [self setPref:kGeckoPrefEnableJava toBoolean:([sender state] == NSOnState)];
 }
 
 //
@@ -167,7 +163,7 @@ const int kAnnoyancePrefSome = 3;
 //
 - (IBAction)clickEnableAdBlocking:(id)sender
 {
-  [self setPref:"camino.enable_ad_blocking" toBoolean:([sender state] == NSOnState)];
+  [self setPref:kGeckoPrefBlockAds toBoolean:([sender state] == NSOnState)];
   [[NSNotificationCenter defaultCenter] postNotificationName:AdBlockingChangedNotificationName object:nil]; 
 }
 
@@ -179,7 +175,7 @@ const int kAnnoyancePrefSome = 3;
 //
 - (IBAction)clickEnablePopupBlocking:(id)sender
 {
-  [self setPref:"dom.disable_open_during_load" toBoolean:([sender state] == NSOnState)];
+  [self setPref:kGeckoPrefBlockPopups toBoolean:([sender state] == NSOnState)];
   [mEditWhitelist setEnabled:[sender state]];
 }
 
@@ -191,7 +187,8 @@ const int kAnnoyancePrefSome = 3;
 -(IBAction) clickPreventAnimation:(id)sender
 {
   [sender setAllowsMixedState:NO];
-  [self setPref:"image.animation_mode" toString:([sender state] ? @"once" : @"normal")];
+  [self setPref:kGeckoPrefImageAnimationBehavior
+       toString:([sender state] ? kImageAnimationOnce : kImageAnimationLoop)];
 }
 
 //
@@ -202,7 +199,7 @@ const int kAnnoyancePrefSome = 3;
 //
 -(IBAction) clickEnableFlashBlock:(id)sender
 {
-  [self setPref:"camino.enable_flashblock" toBoolean:([sender state] == NSOnState)];
+  [self setPref:kGeckoPrefBlockFlash toBoolean:([sender state] == NSOnState)];
   [[NSNotificationCenter defaultCenter] postNotificationName:kFlashBlockChangedNotificationName object:nil];
 }
 
@@ -356,27 +353,25 @@ const int kAnnoyancePrefSome = 3;
 // tabFocusBehaviorChanged:
 //
 // Enable and disable tabbing to various elements. We expose only three options,
-// but internally it's a bitwise additive pref:
-// bit 0 adds focus for text fields (kFocusTextFields)
-// bit 1 adds focus for other form elements (kFocusForms)
-// bit 2 adds links and linked images (kFocusLinks)
+// but internally it's a bitwise additive pref of text fields, other form
+// elements, and links
 //
 - (IBAction)tabFocusBehaviorChanged:(id)sender
 {
   int tabFocusValue = 0;
   switch ([sender indexOfSelectedItem]) {
     case 0:
-      tabFocusValue = kFocusTextFields;
+      tabFocusValue = kTabFocusesTextFields;
       break;
     case 1:
-      tabFocusValue = kFocusTextFields | kFocusForms;
+      tabFocusValue = kTabFocusesTextFields | kTabFocusesForms;
       break;
     case 2:
-      tabFocusValue = kFocusTextFields | kFocusForms | kFocusLinks;
+      tabFocusValue = kTabFocusesTextFields | kTabFocusesForms | kTabFocusesLinks;
       break;
   }
 
-  [self setPref:"accessibility.tabfocus" toInt:tabFocusValue];
+  [self setPref:kGeckoPrefTabFocusBehavior toInt:tabFocusValue];
 }
 
 //
@@ -387,10 +382,10 @@ const int kAnnoyancePrefSome = 3;
 // of showing an over-inclusive item.
 //
 - (int)popupIndexForCurrentTabFocusPref {
-  int tabFocusValue = [self getIntPref:"accessibility.tabfocus" withSuccess:NULL];
-  if (tabFocusValue & kFocusLinks)
+  int tabFocusValue = [self getIntPref:kGeckoPrefTabFocusBehavior withSuccess:NULL];
+  if (tabFocusValue & kTabFocusesLinks)
     return 2;
-  else if (tabFocusValue & kFocusForms)
+  else if (tabFocusValue & kTabFocusesForms)
     return 1;
   else
     return 0;
@@ -419,16 +414,16 @@ const int kAnnoyancePrefSome = 3;
 //
 -(void) setAnnoyingWindowPrefsTo:(BOOL)inValue
 {
-    [self setPref:"dom.disable_window_move_resize" toBoolean:inValue];
-    [self setPref:"dom.disable_window_status_change" toBoolean:inValue];
-    [self setPref:"dom.disable_window_flip" toBoolean:inValue];
+    [self setPref:kGeckoPrefPreventDOMWindowResize toBoolean:inValue];
+    [self setPref:kGeckoPrefPreventDOMStatusChange toBoolean:inValue];
+    [self setPref:kGeckoPrefPreventDOMWindowFocus toBoolean:inValue];
 }
 
 - (int)annoyingWindowPrefs
 {
-  BOOL disableStatusChangePref = [self getBooleanPref:"dom.disable_window_status_change" withSuccess:NULL];
-  BOOL disableMoveResizePref = [self getBooleanPref:"dom.disable_window_move_resize" withSuccess:NULL];
-  BOOL disableWindowFlipPref = [self getBooleanPref:"dom.disable_window_flip" withSuccess:NULL];
+  BOOL disableStatusChangePref = [self getBooleanPref:kGeckoPrefPreventDOMStatusChange withSuccess:NULL];
+  BOOL disableMoveResizePref = [self getBooleanPref:kGeckoPrefPreventDOMWindowResize withSuccess:NULL];
+  BOOL disableWindowFlipPref = [self getBooleanPref:kGeckoPrefPreventDOMWindowFocus withSuccess:NULL];
 
   if(disableStatusChangePref && disableMoveResizePref && disableWindowFlipPref)
     return kAnnoyancePrefAll;
@@ -440,10 +435,10 @@ const int kAnnoyancePrefSome = 3;
 
 - (int)preventAnimationCheckboxState
 {
-  NSString* preventAnimation = [self getStringPref:"image.animation_mode" withSuccess:NULL];
-  if ([preventAnimation isEqualToString:@"once"])
+  NSString* preventAnimation = [self getStringPref:kGeckoPrefImageAnimationBehavior withSuccess:NULL];
+  if ([preventAnimation isEqualToString:kImageAnimationOnce])
     return NSOnState;
-  else if ([preventAnimation isEqualToString:@"normal"])
+  else if ([preventAnimation isEqualToString:kImageAnimationLoop])
     return NSOffState;
   else
     return NSMixedState;
@@ -460,8 +455,8 @@ const int kAnnoyancePrefSome = 3;
 -(BOOL) isFlashBlockAllowed
 {
   BOOL gotPref = NO;
-  BOOL jsEnabled = [self getBooleanPref:"javascript.enabled" withSuccess:&gotPref] && gotPref;
-  BOOL pluginsEnabled = [self getBooleanPref:"camino.enable_plugins" withSuccess:&gotPref] || !gotPref;
+  BOOL jsEnabled = [self getBooleanPref:kGeckoPrefEnableJavascript withSuccess:&gotPref] && gotPref;
+  BOOL pluginsEnabled = [self getBooleanPref:kGeckoPrefEnablePlugins withSuccess:&gotPref] || !gotPref;
 
   return jsEnabled && pluginsEnabled;
 }
@@ -478,7 +473,7 @@ const int kAnnoyancePrefSome = 3;
 
   // FlashBlock state can only change if it's already enabled 
   // since changing dependencies won't have affect on disabled FlashBlock
-  if (![self getBooleanPref:"camino.enable_flashblock" withSuccess:nil])
+  if (![self getBooleanPref:kGeckoPrefBlockFlash withSuccess:NULL])
     return;
 
   // FlashBlock preference is enabled.  Checkbox is on if FlashBlock also allowed

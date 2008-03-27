@@ -38,6 +38,9 @@
 #import <AppKit/AppKit.h>
 #import <Carbon/Carbon.h>
 
+// Pull in the constants so all the consumers don't have to do so explicitly.
+#import "GeckoPrefConstants.h"
+
 class nsProfileDirServiceProvider;
 class nsIPref;
 

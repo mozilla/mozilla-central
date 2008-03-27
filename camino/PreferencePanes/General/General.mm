@@ -38,22 +38,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#import <Cocoa/Cocoa.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <Sparkle/Sparkle.h>
 
 #import "NSWorkspace+Utils.h"
 #import "AppListMenuFactory.h"
 #import "UserDefaults.h"
+#import "GeckoPrefConstants.h"
 
 #import "General.h"
-
-static const char kHomepagePrefName[] = "browser.startup.homepage";
-static const char kNewPageActionPrefName[] = "browser.startup.page";
-static const char kNewTabActionPrefName[] = "browser.tabs.startPage";
-static const char kCheckDefaultBrowserPrefName[] = "camino.check_default_browser";
-static const char kWarnWhenClosingPrefName[] = "camino.warn_when_closing";
-static const char kRememberWindowStatePrefName[] = "camino.remember_window_state";
 
 @interface OrgMozillaCaminoPreferenceGeneral(Private)
 
@@ -90,21 +83,20 @@ static const char kRememberWindowStatePrefName[] = "camino.remember_window_state
 
   BOOL gotPref;
 
-  // 0: blank page. 1: home page. 2: last page visited. Our behaviour here should
-  // match what the browser does when the prefs don't exist.
-  if (([self getIntPref:kNewPageActionPrefName withSuccess:&gotPref] == 1) || !gotPref)
+  // Our behaviour here should match what the browser does when the prefs don't exist.
+  if (([self getIntPref:kGeckoPrefNewWindowStartPage withSuccess:&gotPref] == kStartPageHome) || !gotPref)
     [checkboxNewWindowBlank setState:NSOnState];
 
-  if (([self getIntPref:kNewTabActionPrefName withSuccess:&gotPref] == 1))
+  if (([self getIntPref:kGeckoPrefNewTabStartPage withSuccess:&gotPref] == kStartPageHome))
     [checkboxNewTabBlank setState:NSOnState];
 
-  if ([self getBooleanPref:kCheckDefaultBrowserPrefName withSuccess:&gotPref] || !gotPref)
+  if ([self getBooleanPref:kGeckoPrefCheckDefaultBrowserAtLaunch withSuccess:&gotPref] || !gotPref)
     [checkboxCheckDefaultBrowserOnLaunch setState:NSOnState];
 
-  if ([self getBooleanPref:kWarnWhenClosingPrefName withSuccess:&gotPref])
+  if ([self getBooleanPref:kGeckoPrefWarnWhenClosingWindows withSuccess:&gotPref])
     [checkboxWarnWhenClosing setState:NSOnState];
 
-  if ([self getBooleanPref:kRememberWindowStatePrefName withSuccess:&gotPref])
+  if ([self getBooleanPref:kGeckoPrefSessionSaveEnabled withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
 
   if ([[[NSUserDefaults standardUserDefaults] stringForKey:SUFeedURLKey] length] == 0) {
@@ -137,11 +129,11 @@ static const char kRememberWindowStatePrefName[] = "camino.remember_window_state
   if (!mPrefService)
     return;
   
-  [self setPref:kHomepagePrefName toString:[textFieldHomePage stringValue]];
+  [self setPref:kGeckoPrefHomepageURL toString:[textFieldHomePage stringValue]];
   
   // ensure that the prefs exist
-  [self setPref:kNewPageActionPrefName toInt:[checkboxNewWindowBlank state] ? 1 : 0];
-  [self setPref:kNewTabActionPrefName toInt:[checkboxNewTabBlank state] ? 1 : 0];
+  [self setPref:kGeckoPrefNewWindowStartPage toInt:[checkboxNewWindowBlank state] ? kStartPageHome : kStartPageBlank];
+  [self setPref:kGeckoPrefNewTabStartPage toInt:[checkboxNewTabBlank state] ? kStartPageHome : kStartPageBlank];
 }
 
 - (IBAction)checkboxStartPageClicked:(id)sender
@@ -151,30 +143,30 @@ static const char kRememberWindowStatePrefName[] = "camino.remember_window_state
 
   const char* prefName = NULL;
   if (sender == checkboxNewTabBlank)
-    prefName = kNewTabActionPrefName;
+    prefName = kGeckoPrefNewTabStartPage;
   else if (sender == checkboxNewWindowBlank)
-    prefName = kNewPageActionPrefName;
+    prefName = kGeckoPrefNewWindowStartPage;
 
   if (prefName)
-    [self setPref:prefName toInt: [sender state] ? 1 : 0];
+    [self setPref:prefName toInt: [sender state] ? kStartPageHome : kStartPageBlank];
 }
 
 - (IBAction)warningCheckboxClicked:(id)sender
 {
   if (sender == checkboxWarnWhenClosing)
-    [self setPref:kWarnWhenClosingPrefName toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefWarnWhenClosingWindows toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)rememberWindowStateCheckboxClicked:(id)sender
 {
   if (sender == checkboxRememberWindowState)
-    [self setPref:kRememberWindowStatePrefName toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefSessionSaveEnabled toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)checkDefaultBrowserOnLaunchClicked:(id)sender
 {
   if (sender == checkboxCheckDefaultBrowserOnLaunch)
-    [self setPref:kCheckDefaultBrowserPrefName toBoolean:([sender state] == NSOnState)];
+    [self setPref:kGeckoPrefCheckDefaultBrowserAtLaunch toBoolean:([sender state] == NSOnState)];
 }
 
 - (IBAction)autoUpdateCheckboxClicked:(id)sender
@@ -194,7 +186,7 @@ static const char kRememberWindowStatePrefName[] = "camino.remember_window_state
 - (NSString*)currentHomePage
 {
   BOOL gotPref;
-  return [self getStringPref:kHomepagePrefName withSuccess:&gotPref];
+  return [self getStringPref:kGeckoPrefHomepageURL withSuccess:&gotPref];
 }
 
 // called when the users changes the selection in the default browser menu

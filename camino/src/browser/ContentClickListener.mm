@@ -114,7 +114,8 @@ ContentClickListener::MouseClick(nsIDOMEvent* aEvent)
     // The Command key is down or we got a middle-click.
     // Open the link in a new window or tab if it's an internally handled, non-Javascript link.
     if (![hrefScheme isEqualToString:@"javascript"] && GeckoUtils::isProtocolInternal([hrefScheme UTF8String])) {
-      BOOL useTab           = [[PreferenceManager sharedInstance] getBooleanPref:"browser.tabs.opentabfor.middleclick" withSuccess:NULL];
+      BOOL useTab           = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
+                                                                     withSuccess:NULL];
       BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:(useTab ? eDestinationNewTab
                                                                                                     : eDestinationNewWindow)
                                                                                      sender:nil];

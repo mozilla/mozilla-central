@@ -389,7 +389,7 @@ enum {
 -(void)launchFileIfAppropriate
 {
   if (!mIsFileSave && !mUserCancelled && !mDownloadFailed) {
-    if ([[PreferenceManager sharedInstance] getBooleanPref:"browser.download.autoDispatch" withSuccess:NULL]) {
+    if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefAutoOpenDownloads withSuccess:NULL]) {
       [[NSWorkspace sharedWorkspace] openFile:mDestPath];
     }
   }
@@ -399,9 +399,9 @@ enum {
 {
   if (![self hasSucceeded])
     return NO;
-  int downloadRemoveActionValue = [[PreferenceManager sharedInstance] getIntPref:"browser.download.downloadRemoveAction" 
+  int downloadRemoveActionValue = [[PreferenceManager sharedInstance] getIntPref:kGeckoPrefDownloadCleanupPolicy 
                                                                      withSuccess:NULL];
-  return (downloadRemoveActionValue == kRemoveUponSuccessfulDownloadPrefValue);
+  return (downloadRemoveActionValue == kRemoveDownloadsOnSuccess);
 }
 
 // this handles lots of things - all of the status updates
