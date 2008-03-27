@@ -5511,7 +5511,8 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
   }
 done:
   PR_Free(dataBuffer);
-  fileInputStream->Close();
+  if (fileInputStream)
+    fileInputStream->Close();
 }
 
 //caller must free using PR_Free
