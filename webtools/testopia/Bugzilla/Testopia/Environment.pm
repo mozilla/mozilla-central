@@ -539,14 +539,14 @@ Returns environment id if environment exists
 
 sub check_environment{
     my ($name, $product, $throw) = (@_);
-  
+    my $pid = ref $product ? $product->id : $product;
     my $dbh = Bugzilla->dbh;
 
     my ($used) = $dbh->selectrow_array(
         "SELECT environment_id 
            FROM test_environments
           WHERE name = ? AND product_id = ?",
-          undef, ($name, $product->id));
+          undef, ($name, $pid));
     if ($throw){
         ThrowUserError('invalid-test-id-non-existent', {type => 'Environment', id => $name}) unless $used;
         return Bugzilla::Testopia::Environment->new($used);
@@ -591,7 +591,7 @@ sub store {
     my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
 
     #Verify Environment isn't already in use.
-    return undef if check_environment($self->{'name'}, $self->{'product_id'});
+    return undef if check_environment($self->{'name'}, $self->product);
     
     my $dbh = Bugzilla->dbh;
     $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",

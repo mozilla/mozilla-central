@@ -45,6 +45,8 @@ use strict;
 use Bugzilla::Util;
 use Bugzilla::Error;
 
+use JSON;
+
 use base qw(Exporter Bugzilla::Object);
 
 ###############################

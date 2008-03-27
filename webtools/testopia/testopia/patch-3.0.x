@@ -305,3 +305,26 @@ diff -u -r1.49 Mysql.pm
  
                      print "Converting $table.$name to be stored as UTF-8...\n";
                      my $col_info = 
+Index: Bugzilla/Bug.pm
+===================================================================
+RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/Bug.pm,v
+retrieving revision 1.171.2.2
+diff -u -r1.171.2.2 Bug.pm
+--- Bugzilla/Bug.pm	17 Oct 2007 22:50:22 -0000	1.171.2.2
++++ Bugzilla/Bug.pm	27 Mar 2008 22:03:25 -0000
+@@ -1314,6 +1314,14 @@
+         "SELECT bug_id FROM bugs WHERE alias = ?", undef, $alias);
+ }
+ 
++sub get_test_case_count {
++      my $self = shift;
++      my $dbh = Bugzilla->dbh;
++      my $row_count = $dbh->selectall_arrayref(
++              "SELECT DISTINCT case_id FROM test_case_bugs WHERE bug_id = ?",
++              undef, $self->bug_id);
++      return scalar @$row_count;
++}
+ #####################################################################
+ # Subroutines
+ #####################################################################
+                     
