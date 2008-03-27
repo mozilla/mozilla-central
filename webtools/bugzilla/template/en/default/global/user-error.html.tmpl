@@ -1324,7 +1324,7 @@
     [% title = BLOCK %]Product has [% terms.Bugs %][% END %]
     [% admindocslinks = {'products.html' => 'Administering products'} %]
     There are [% nb FILTER html %] [%+ terms.bugs %] entered for this product!
-    You must reassign those [% terms.bugs %] to another product before you
+    You must move those [% terms.bugs %] to another product before you
     can delete this one.
 
   [% ELSIF error == "product_must_have_description" %]
