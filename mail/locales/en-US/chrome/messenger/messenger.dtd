@@ -420,23 +420,6 @@
 <!ENTITY filtersApply.label "Run Filters on Folder">
 <!ENTITY filtersApply.accesskey "R">
 
-<!-- Help Menu -->
-<!ENTITY helpMenu.label "Help">
-<!ENTITY helpMenu.accesskey "H">
-<!-- LOCALIZATION NOTE some localizations of Windows use "?"
-                       for the help button in the menubar but Gnome does not.   -->
-<!ENTITY helpMenuWin.label        "Help">
-<!ENTITY helpMenuWin.accesskey    "H">
-<!ENTITY releaseCmd.label "Release Notes">
-<!ENTITY releaseCmd.accesskey "R">
-<!ENTITY hintsAndTips.label "&brandFullName; Help">
-<!ENTITY hintsAndTipsMac.commandkey "?">
-<!ENTITY hintsAndTips.accesskey "h">
-<!ENTITY updateCmd.label      "Check for Updates…">
-<!ENTITY updateCmd.accesskey  "o">
-<!ENTITY aboutCmd.label "About &brandFullName;">
-<!ENTITY aboutCmd.accesskey "A">
-
 <!-- Mail Toolbar -->
 <!ENTITY getMsgButton.label "Get Mail">
 <!ENTITY newMsgButton.label "Write">

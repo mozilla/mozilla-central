@@ -44,6 +44,7 @@
 #ifdef XP_MACOSX
 <?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
 #endif
+<?xul-overlay href="chrome://messenger/content/baseMenuOverlay.xul"?>
 
 <!DOCTYPE overlay [
   <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
@@ -437,14 +438,16 @@
   <key id="key_mail"  key="&messengerCmd.commandkey;" oncommand="toMessengerWindow();" modifiers="accel"/>
   <key id="key_addressbook"  key="&addressBookCmd.commandkey;" oncommand="toAddressBook();" modifiers="accel"/>
 #ifdef XP_MACOSX
-  <!-- Mac Window and Help menu keys -->
+  <!-- Mac Window menu keys -->
   <key id="key_minimizeWindow" command="minimizeWindow" key="&minimizeWindow.key;" modifiers="accel"/>
-  <key id="key_macHelp" key="&hintsAndTipsMac.commandkey;" oncommand="openRegionURL('mailnews.hints_and_tips.url');" modifiers="accel"/>
     <!-- the following 3 keys are used in the application menu on Mac OS X Cocoa widgets -->
   <key id="key_preferencesCmdMac" key="&preferencesCmdMac.commandkey;" modifiers="&preferencesCmdMac.modifiers;"/>
   <key id="key_hideThisAppCmdMac" key="&hideThisAppCmdMac.commandkey;" modifiers="&hideThisAppCmdMac.modifiers;"/>
   <key id="key_hideOtherAppsCmdMac" key="&hideOtherAppsCmdMac.commandkey;" modifiers="&hideOtherAppsCmdMac.modifiers;"/>
 #endif
+
+  <!-- Common keys for the base menu overlay -->
+  <keyset id="baseMenuKeyset"/>
 </keyset>
 
   <popup id="threadPaneContext" onpopupshowing="return fillThreadPaneContextMenu();"
@@ -1844,35 +1847,7 @@
 #endif
 
       <!-- Help -->
-#ifdef XP_WIN
-      <menu id="menu_HelpWin" label="&helpMenuWin.label;"
-            accesskey="&helpMenuWin.accesskey;">
-#else
-      <menu id="menu_Help" label="&helpMenu.label;"
-            accesskey="&helpMenu.accesskey;">
-#endif
-     <menupopup id="menu_HelpPopup" onpopupshowing="buildHelpMenu();">
-#ifdef XP_MACOSX
-          <menuitem id="hintsAndTips" label="&hintsAndTips.label;" key="key_macHelp" oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
-          <menuitem id="releaseNotes" accesskey="&releaseCmd.accesskey;" label="&releaseCmd.label;" oncommand="openFormattedURL('app.releaseNotesURL');"/>
-#else
-          <menuitem id="releaseNotes" accesskey="&releaseCmd.accesskey;" label="&releaseCmd.label;" oncommand="openFormattedURL('app.releaseNotesURL');"/>
-          <menuitem id="hintsAndTips" accesskey="&hintsAndTips.accesskey;" label="&hintsAndTips.label;" oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
-#endif
-          <menuseparator id="menu_HelpAboutSeparator"/>
-          <menuitem id="checkForUpdates" accesskey="&updateCmd.accesskey;" class="menuitem-iconic"
-                    label="&updateCmd.label;" oncommand="checkForUpdates();"/>
-#ifndef XP_MACOSX
-          <menuseparator id="menu_HelpAfterUpdatesSeparator"/>
-#endif
-          <menuitem id="aboutName" accesskey="&aboutCmd.accesskey;"
-                    label="&aboutCmd.label;"
-#ifdef XP_MACOSX
-                    hidden="true"
-#endif
-                    oncommand="openAboutDialog();"/>
-        </menupopup>
-      </menu>
+      <menu id="helpMenu"/>
 
       <spacer id="menubar_spacer" flex="100%"/>
       </menubar>

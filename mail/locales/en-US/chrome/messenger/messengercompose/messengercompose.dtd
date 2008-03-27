@@ -182,18 +182,7 @@
 <!ENTITY minimizeWindow.label "Minimize">
 <!ENTITY bringAllToFront.label "Bring All to Front">
 <!ENTITY zoomWindow.label "Zoom"> 
-<!ENTITY windowMenu.label "Window"> 
-
-<!-- Help Menu -->
-<!ENTITY helpMenu.label "Help">
-<!ENTITY helpMenu.accesskey "H"> 
-<!ENTITY releaseCmd.label "Release Notes">
-<!ENTITY releaseCmd.accesskey "R"> 
-<!ENTITY hintsAndTips.label "&brandShortName; Help">
-<!ENTITY hintsAndTips.accesskey "h"> 
-<!ENTITY hintsAndTipsMac.commandkey "?">
-<!ENTITY aboutCmd.label "About &brandShortName;">
-<!ENTITY aboutCmd.accesskey "A">
+<!ENTITY windowMenu.label "Window">
 
 <!-- Mail Toolbar -->
 <!ENTITY sendButton.label "Send">

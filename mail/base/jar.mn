@@ -117,6 +117,7 @@ messenger.jar:
 #ifdef XP_MACOSX
     content/messenger/macMenuOverlay.xul            (content/macMenuOverlay.xul)
 #endif
+*   content/messenger/baseMenuOverlay.xul           (content/baseMenuOverlay.xul)
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
 *   content/messenger/customizeToolbarSheet.js      (content/customizeToolbarSheet.js)
 #endif

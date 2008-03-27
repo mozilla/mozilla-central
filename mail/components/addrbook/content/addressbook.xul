@@ -43,6 +43,7 @@
 #ifdef XP_MACOSX
 <?xul-overlay href="chrome://messenger/content/macMenuOverlay.xul"?>
 #endif
+<?xul-overlay href="chrome://messenger/content/baseMenuOverlay.xul"?>
 
 <!DOCTYPE window [
 <!ENTITY % abMainWindowDTD SYSTEM "chrome://messenger/locale/addressbook/abMainWindow.dtd" >
@@ -185,9 +186,10 @@
 #ifdef XP_MACOSX
   <!-- Mac Window keys -->
   <key id="key_minimizeWindow" command="minimizeWindow" key="&minimizeWindow.key;" modifiers="accel"/>
-  <key id="key_macHelp" key="&hintsAndTipsMac.commandkey;" oncommand="openRegionURL('mailnews.hints_and_tips.url');" modifiers="accel"/>
 #endif
 </keyset>
+
+<keyset id="baseMenuKeyset"/>
 
 <popup id="dirTreeContext">
   <menuitem id="dirTreeContext-properties"
@@ -491,24 +493,9 @@
 <!-- Mac window menu -->
 #include ../../../../toolkit/content/macWindowMenu.inc
 #endif
-        <menu label="&helpMenu.label;" accesskey="&helpMenu.accesskey;">
-          <menupopup id="menu_HelpPopup">
-#ifdef XP_MACOSX
-          <menuitem id="hintsAndTips" label="&hintsAndTips.label;" key="key_macHelp" oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
-          <menuitem id="releaseNotes" accesskey="&releaseCmd.accesskey;" label="&releaseCmd.label;" oncommand="openFormattedURL('app.releaseNotesURL');"/>
-#else
-            <menuitem id="releaseNotes" accesskey="&releaseCmd.accesskey;" label="&releaseCmd.label;" oncommand="openFormattedURL('app.releaseNotesURL');"/>
-            <menuitem id="hintsAndTips" accesskey="&hintsAndTips.accesskey;" label="&hintsAndTips.label;" oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
-            <menuseparator id="menu_HelpAboutSeparator"/>
-#endif
-            <menuitem id="aboutName" accesskey="&aboutCmd.accesskey;"
-                      label="&aboutCmd.label;"
-#ifdef XP_MACOSX
-                      hidden="true"
-#endif
-                      oncommand="openAboutDialog();"/>
-          </menupopup>
-        </menu>
+
+      <!-- Help -->
+      <menu id="helpMenu"/>
     </menubar>
    </toolbaritem>
   </toolbar>
