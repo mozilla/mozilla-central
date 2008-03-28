@@ -52,8 +52,8 @@
 #include "nsMsgI18N.h"
 #include "nsUnicharUtils.h"
 #include "nsRDFResource.h"
-#include "nsAbBaseCID.h"
-#include "nsIAbManager.h"
+#include "nsRDFCID.h"
+#include "nsIRDFService.h"
 #include "nsIAbDirectory.h"
 
 #include "nsIPrefService.h"
@@ -132,13 +132,19 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
   *aABListCount = 0;
 
   nsresult rv;
-  nsCOMPtr<nsAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
-  if (NS_FAILED(rv))
-    return E_FAIL;
+  nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
+  if(NS_FAILED(rv)) return E_FAIL;
+
+  // Parent nsIABDirectory is "moz-abdirectory://".
+  nsCOMPtr <nsIRDFResource> resource;
+  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"), getter_AddRefs(resource));
+  if(NS_FAILED(rv)) return E_FAIL;
+
+  nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
+  if(NS_FAILED(rv)) return E_FAIL;
 
   nsCOMPtr<nsISimpleEnumerator> subDirectories;
-  if (NS_SUCCEEDED(abManager->GetDirectories(getter_AddRefs(subDirectories))) &&
-      subDirectories)
+  if (NS_SUCCEEDED(directory->GetChildNodes(getter_AddRefs(subDirectories))) && subDirectories)
   {
     // Get the total number of addrbook.
     PRInt16 count=0;
@@ -148,21 +154,21 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
     {
         if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
         {
-	  nsCOMPtr <nsIAbDirectory> directory(do_QueryInterface(item, &rv));
+          nsCOMPtr <nsIAbDirectory> subDirectory = do_QueryInterface(item, &rv);
           if (NS_SUCCEEDED(rv))
           {
               nsCAutoString fileName;
-              rv = directory->GetFileName(fileName);
+              rv = subDirectory->GetFileName(fileName);
               if(NS_FAILED(rv)) 
                 continue;
               PRInt32 dirType;
-              rv = directory->GetDirType(&dirType);
+              rv = subDirectory->GetDirType(&dirType);
               if(NS_FAILED(rv)) 
                 continue;
 
               PRBool disableThisAB;
-              rv = directory->GetBoolValue("disablePalmSync",
-					   PR_FALSE, &disableThisAB);
+              rv = subDirectory->GetBoolValue("disablePalmSync",
+                                              PR_FALSE, &disableThisAB);
               if (NS_FAILED(rv))
                 continue;
 
@@ -188,10 +194,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
     *aDirFlagsList = dirFlagsList;
     *aABCatIndexList = catIndexList;
 
-    // reset enumerator
-    if (NS_FAILED(abManager->GetDirectories(getter_AddRefs(subDirectories)))
-	return E_FAIL;
-
+    directory->GetChildNodes(getter_AddRefs(subDirectories)); // reset enumerator
     // For each valid addrbook collect info.
     while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
