@@ -9,9 +9,6 @@ $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 # package NSIS installer using 7zip
 $ENV{MOZ_INSTALLER_USE_7ZIP} = '1';
 
-# Ship the MSVC8 runtime libs
-$ENV{WIN32_REDIST_DIR} = 'D:\msvs8\VC\redist\x86\Microsoft.VC80.CRT';
-
 # Enable Building of the Palm Sync extension.
 $ENV{BUILD_PALMSYNC} = '1';
 $ENV{PALM_CDK_DIR} = 'C:\PALMCDK403';
