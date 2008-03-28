@@ -2567,8 +2567,9 @@ function allowRemoteContentForSender()
     return;
   
   // search through all of our local address books looking for a match.
-  var parentDir = RDF.GetResource("moz-abdirectory://").QueryInterface(Components.interfaces.nsIAbDirectory);
-  var enumerator = parentDir.childNodes;
+  var enumerator = Components.classes["@mozilla.org/abmanager;1"]
+                             .getService(Components.interfaces.nsIAbManager)
+                             .directories;
   var cardForEmailAddress;
   var addrbook;
   while (!cardForEmailAddress && enumerator.hasMoreElements())
