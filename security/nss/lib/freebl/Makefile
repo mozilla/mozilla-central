@@ -376,6 +376,7 @@ else
 	    ASFILES  = arcfour-amd64-sun.s mpi_amd64_sun.s sha-fast-amd64-sun.s
  	    ASFILES += mp_comba_amd64_sun.s mpcpucache_amd64.s
 	    ASFLAGS += -xarch=generic64 -K PIC
+            SOL_CFLAGS += -xprefetch=no
 	    SHA_SRCS =
  	    MPCPU_SRCS =
 	endif
