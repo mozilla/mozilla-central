@@ -272,7 +272,30 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                                     url: newPortlet.url
                                 });
                             }
-                        }]
+                        },{
+                                text: 'New Bug Report',
+                                handler: function(){
+                                    Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
+                                    var bug_list = new Testopia.BugReport({
+                                            plan_ids: getSelectedObjects(grid, 'plan_id')
+                                        });
+                                    var newPortlet = new Ext.ux.Portlet({
+                                        title: 'Bug Report',
+                                        closable: true,
+                                        autoScroll: true,
+                                        tools: [{
+                                            id:'close',
+                                            handler: function(e, target, panel){
+                                                panel.ownerCt.remove(panel, true);
+                                            }
+                                        }],
+                                        items: bug_list
+                                    });
+                                    Ext.getCmp('dashboard_leftcol').add(newPortlet);
+                                    Ext.getCmp('dashboard_leftcol').doLayout();
+                                    bug_list.store.load();
+                                }
+                            }]
                     }
                 },{
                     text: 'Refresh List', 

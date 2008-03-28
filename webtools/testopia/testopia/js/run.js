@@ -295,7 +295,12 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                                         title: 'Bug Report',
                                         closable: true,
                                         autoScroll: true,
-                                        tools: PortalTools,
+                                        tools: [{
+                                            id:'close',
+                                            handler: function(e, target, panel){
+                                                panel.ownerCt.remove(panel, true);
+                                            }
+                                        }],
                                         items: bug_list
                                     });
                                     Ext.getCmp('dashboard_leftcol').add(newPortlet);
@@ -638,7 +643,7 @@ var NewRunForm = function(plan){
                             Ext.getCmp('plan_run_grid').store.reload();
                         }
                         try {
-                            Ext.getCmp('newrun-win').close();
+                            Ext.getCmp('newRun-win').close();
                         }
                         catch (err){}
                     },
@@ -651,7 +656,7 @@ var NewRunForm = function(plan){
             handler: function(){
                 Ext.getCmp('newrunsouth').getForm().reset();
                 try {
-                    Ext.getCmp('newrun-win').close();
+                    Ext.getCmp('newRun-win').close();
                 }
                 catch (err){}
             }
@@ -949,7 +954,7 @@ Testopia.BugReport = function(params){
         ]}),
         remoteSort: true,
         sortInfo: {field: 'run_id', direction: "ASC"},
-        groupField: 'run_id'
+        groupField: 'bug_id'
     });
     this.view = new Ext.grid.GroupingView({
         forceFit:true,

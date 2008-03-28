@@ -143,7 +143,7 @@ elsif ($type eq 'bug'){
         push @ids, $r->id;
     }
     my $ref = $dbh->selectall_arrayref("
-        SELECT tcb.bug_id, tcr.run_id, tcr.case_id 
+        SELECT DISTINCT tcb.bug_id, tcr.run_id, tcr.case_id 
           FROM test_case_bugs AS tcb
     INNER JOIN test_case_runs AS tcr ON tcr.case_id = tcb.case_id
          WHERE tcr.run_id in (" . join (',',@ids) . ")",
