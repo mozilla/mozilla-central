@@ -62,7 +62,7 @@
 #ifdef XP_WIN
     <description>&importFromWin.label;</description>
 #else
-    <description>&importFromUnix.label;</description>
+    <description>&importFromNonWin.label;</description>
 #endif
     
     <radiogroup id="importSourceGroup">
