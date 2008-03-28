@@ -78,7 +78,7 @@ sub _check_product {
 }
 
 sub _check_name {
-    my ($invocant, $name, $product_id) = @_;
+    my ($invocant, $name, $product) = @_;
     $name = clean_text($name) if $name;
 
     if (!defined $name || $name eq '') {
@@ -88,7 +88,7 @@ sub _check_name {
     trick_taint($name);
 
     # Check that we don't already have a build with that name in this product.    
-    my $orig_id = check_case_category($name, $product_id);
+    my $orig_id = check_case_category($name, $product);
     my $notunique;
 
     if (ref $invocant){
@@ -112,7 +112,7 @@ sub _check_name {
 sub set_description { $_[0]->set('description', $_[1]); }
 sub set_name { 
     my ($self, $value) = @_;
-    $value = $self->_check_name($value, $self->product_id);
+    $value = $self->_check_name($value, $self->product);
     $self->set('name', $value); 
 }
 
@@ -223,6 +223,15 @@ sub id              { return $_[0]->{'category_id'};  }
 sub product_id      { return $_[0]->{'product_id'};   }
 sub name            { return $_[0]->{'name'};         }
 sub description     { return $_[0]->{'description'};  }
+
+sub product {
+    my ($self) = @_;
+    
+    return $self->{'product'} if exists $self->{'product'};
+
+    $self->{'product'} = Bugzilla::Testopia::Product->new($self->product_id);
+    return $self->{'product'};
+}
 
 sub case_count {
     my ($self) = @_;
