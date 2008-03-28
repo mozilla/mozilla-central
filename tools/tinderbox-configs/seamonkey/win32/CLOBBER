@@ -1,1 +1,1 @@
-Clobber for enabling jemalloc (bug 423703).
+Clobber for enabling jemalloc once again, so mozcrt is picked up (bug 423703).
