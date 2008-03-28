@@ -20,6 +20,7 @@
  the Initial Developer. All Rights Reserved.
 
  Contributor(s):
+     Jeff Beckley <beckley@qualcomm.com>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -40,14 +41,15 @@
 <!ENTITY importDialog.mailTitle   "Mail">
 <!ENTITY importDialog.addressbookTitle "Address Books">
 <!ENTITY importDialog.settingsTitle "Settings">
+<!ENTITY importDialog.filtersTitle "Filters">
 
 <!ENTITY  window.width            "40em">
 <!ENTITY  window.macWidth         "45em">
 
 <!ENTITY importTitle.label        "&brandShortName; Import Wizard">
-<!ENTITY importDesc.label         "Import Mail, Address Books and Settings from other programs">
+<!ENTITY importShortDesc.label    "Import Mail, Address Books, Settings, and Filters from other programs">
 
-<!ENTITY importDescription.label  "This wizard will import mail messages, address book entries, and/or preferences from other mail programs and common address book formats into &brandShortName;.">
+<!ENTITY importDescription1.label "This wizard will import mail messages, address book entries, preferences, and/or filters from other mail programs and common address book formats into &brandShortName;.">
 <!ENTITY importDescription2.label "Once they have been imported, you will be able to access them from within &brandShortName;.">
 
 <!ENTITY selectDescription.label  "Please select the type of file that you would like to import:">
