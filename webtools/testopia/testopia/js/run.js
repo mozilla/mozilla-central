@@ -941,6 +941,7 @@ Ext.extend(RunFilterGrid, Ext.grid.GridPanel, {
 
 Testopia.BugReport = function(params){
     params.type = 'bug';
+    var tutil = new TestopiaUtil();
     this.store = new Ext.data.GroupingStore({
         url: 'tr_run_reports.cgi',
         baseParams: params,
@@ -949,21 +950,29 @@ Testopia.BugReport = function(params){
             fields: [
                {name: "case_id", mapping:"case_id"},
                {name: "run_id", mapping:"run_id"},
-               {name: "bug_id", mapping:"bug_id"}
+               {name: "bug_id", mapping:"bug_id"},
+               {name: "case_status", mapping:"case_status"},
+               {name: "bug_status", mapping:"bug_status"},
+               {name: "severity", mapping:"bug_severity"}
 
         ]}),
         remoteSort: true,
         sortInfo: {field: 'run_id', direction: "ASC"},
         groupField: 'bug_id'
     });
+    this.store.isTreport = true;
     this.view = new Ext.grid.GroupingView({
         forceFit:true,
         groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})'
     });
     this.columns = [
-        {header: 'Case', dataIndex: 'case_id', sortable: true, hideable: true},
-        {header: 'Bug', dataIndex: 'bug_id', sortable: true, hideable: true},
-        {header: 'Run', dataIndex: 'run_id', sortable: true, hideable: true}
+        {header: 'Run', dataIndex: 'run_id', sortable: true, hideable: true, groupRenderer: function(v){return v;}, renderer: tutil.runLink},
+        {header: 'Case', dataIndex: 'case_id', sortable: true, hideable: true, groupRenderer: function(v){return v;}, renderer: tutil.caseLink},
+        {header: 'Bug', dataIndex: 'bug_id', sortable: true, hideable: true, groupRenderer: function(v){return v;}, renderer: tutil.bugLink},
+        {header: 'Bug Status', dataIndex: 'bug_status', sortable: true, hideable: true},
+        {header: 'Case Status', dataIndex: 'case_status', sortable: true, hideable: true},
+        {header: 'Severity', dataIndex: 'severity', sortable: true, hideable: true}
+        
     ];
     Testopia.BugReport.superclass.constructor.call(this,{
         sm: new Ext.grid.RowSelectionModel(),

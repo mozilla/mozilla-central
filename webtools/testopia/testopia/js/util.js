@@ -64,14 +64,25 @@ TestopiaUtil = function(){
     this.statusIcon =  function (name){
         return '<img src="testopia/img/' + name + '_small.gif" alt="'+ name +'" title="'+ name +'">';
     };
-    this.caseLink = function(id){
+    this.caseLink = function(id,m,r,ri,ci,s){
+        if (s.isTreport === true)
+            return '<a href="tr_show_case.cgi?case_id=' + id + '" target="_blank">' + id +'</a>';
         return '<a href="tr_show_case.cgi?case_id=' + id +'">' + id +'</a>';
     };
-    this.runLink = function(id){
+    this.runLink = function(id,m,r,ri,ci,s){
+        if (s.isTreport === true)
+            return '<a href="tr_show_run.cgi?run_id=' + id +'" target="_blank">' + id +'</a>';
         return '<a href="tr_show_run.cgi?run_id=' + id +'">' + id +'</a>';
     };
-    this.planLink = function(id){
+    this.planLink = function(id,m,r,ri,ci,s){
+        if (s.isTreport === true)
+            return '<a href="tr_show_plan.cgi?plan_id=' + id +'" target="_blank">' + id +'</a>';
         return '<a href="tr_show_plan.cgi?plan_id=' + id +'">' + id +'</a>';
+    };
+    this.bugLink = function(id,m,r,ri,ci,s){
+        if (s.isTreport === true)
+            return '<a href="show_bug.cgi?id=' + id +'" target="_blank">' + id +'</a>';
+        return '<a href="show_bug.cgi?id=' + id +'">' + id +'</a>';
     };
 
     this.newRunPopup = function(plan){

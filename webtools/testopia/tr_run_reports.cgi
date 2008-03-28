@@ -143,10 +143,12 @@ elsif ($type eq 'bug'){
         push @ids, $r->id;
     }
     my $ref = $dbh->selectall_arrayref("
-        SELECT DISTINCT tcb.bug_id, tcr.run_id, tcr.case_id 
+        SELECT DISTINCT tcb.bug_id, bugs.bug_status, bugs.bug_severity, tcr.run_id, tcr.case_id, tcrs.name AS case_status 
           FROM test_case_bugs AS tcb
     INNER JOIN test_case_runs AS tcr ON tcr.case_id = tcb.case_id
-         WHERE tcr.run_id in (" . join (',',@ids) . ")",
+    INNER JOIN bugs on tcb.bug_id = bugs.bug_id
+    INNER JOIN test_case_run_status AS tcrs ON tcr.case_run_status_id = tcrs.case_run_status_id
+         WHERE tcr.run_id in (" . join (',',@ids) . ") AND tcr.iscurrent = 1",
          {"Slice" =>{}});
     
     my $json = new JSON;
