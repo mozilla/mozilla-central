@@ -134,6 +134,69 @@ MozillaEnvironments['mozbuild'] = {
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB'
 }
 
+MozillaEnvironments['mozbuild_pgo'] = {
+    "MOZ_NO_REMOTE": '1',
+    "NO_EM_RESTART": '1',
+    "MOZ_AIRBAG": '1',
+    "MOZ_CRASHREPORTER_NO_REPORT": '1',
+    "XPCOM_DEBUG_BREAK": 'warn',
+    "VCVARS": 'D:\\msvs8\\VC\\bin\\vcvars32.bat',
+    "MOZ_MSVCVERSION": '8',
+    "MOZILLABUILD": 'D:\\mozilla-build',
+    "MOZILLABUILDDRIVE": 'D:',
+    "MOZILLABUILDPATH": '\\mozilla-build\\',
+    "MOZ_TOOLS": 'D:\\mozilla-build\\moztools',
+    "CVS_RSH": 'ssh',
+    "VSINSTALLDIR": 'D:\\msvs8',
+    "VCINSTALLDIR": 'D:\\msvs8\\VC',
+    "FrameworkDir": 'C:\\WINDOWS\\Microsoft.NET\\Framework',
+    "FrameworkVersion": 'v2.0.50727',
+    "FrameworkSDKDir": 'D:\\msvs8\\SDK\\v2.0',
+    "MSVCDir": 'D:\\msvs8\\VC',
+    "DevEnvDir": "D:\\msvs8\\Common7\\IDE",
+    "PATH": 'D:\\mozilla-build\\msys\\local\\bin;' + 
+            'D:\\mozilla-build\\wget;' + 
+            'D:\\mozilla-build\\7zip;' + 
+            'D:\\mozilla-build\\blat261\\full;' + 
+            'D:\\mozilla-build\\svn-win32-1.4.2\\bin;' + 
+            'D:\\mozilla-build\\upx203w;' + 
+            'D:\\mozilla-build\\xemacs\\XEmacs-21.4.19\\i586-pc-win32;' + 
+            'D:\\mozilla-build\\info-zip;' + 
+            'D:\\mozilla-build\\nsis-2.22;' + 
+            '.;' + 
+            'D:\\mozilla-build\\msys\\bin;' + 
+            'D:\\buildbot\\python24;' + 
+            'D:\\buildbot\\python24\\scripts;' + 
+            #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\bin;' + 
+            'D:\\msvs8\\Common7\\IDE;' + 
+            'D:\\msvs8\\VC\\BIN;' + 
+            'D:\\msvs8\\Common7\\Tools;' + 
+            'D:\\msvs8\\Common7\\Tools\\bin;' + 
+            'D:\\msvs8\\VC\\PlatformSDK\\bin;' + 
+            'D:\\msvs8\\SDK\\v2.0\\bin;' + 
+            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + 
+            'D:\\msvs8\\VC\\VCPackages;' + 
+            'C:\\WINDOWS\\System32;' + 
+            'C:\\WINDOWS;' + 
+            'C:\\WINDOWS\\System32\\Wbem;' + 
+            'D:\\mozilla-build\\moztools\\bin;',
+    "INCLUDE": #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\include;' + 
+               #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\include\\atl;' + 
+               'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + 
+               'D:\\msvs8\\VC\\INCLUDE;' + 
+               'D:\\msvs8\\VC\\PlatformSDK\\include;' + 
+               'D:\\msvs8\\SDK\\v2.0\\include;' + 
+               '%INCLUDE%',
+    "LIB": #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\lib;' + 
+           'D:\\msvs8\\VC\\ATLMFC\\LIB;' + 
+           'D:\\msvs8\\VC\\LIB;' + 
+           'D:\\msvs8\\VC\\PlatformSDK\\lib;' + 
+           'D:\\msvs8\\SDK\\v2.0\\lib;',
+    "LIBPATH": 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + 
+               'D:\\msvs8\\VC\\ATLMFC\\LIB'
+}
+
+
 cvsCoLog = "cvsco.log"
 tboxClobberCvsCoLog = "tbox-CLOBBER-cvsco.log"
 buildbotClobberCvsCoLog = "buildbot-CLOBBER-cvsco.log"
