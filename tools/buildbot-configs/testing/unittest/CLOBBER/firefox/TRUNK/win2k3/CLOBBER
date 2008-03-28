@@ -1,1 +1,1 @@
-Seems to have linking indigestion with nsAboutBloat for some reason
+.mozconfig contains errant PGO bits from PGO slave setup.
