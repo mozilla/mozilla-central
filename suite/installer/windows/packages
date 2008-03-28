@@ -43,10 +43,14 @@ bin\xpcom_core.dll
 bin\nspr4.dll
 bin\xul.dll
 bin\components\jar50.dll
+#ifndef MOZ_MEMORY
 bin\Microsoft.VC80.CRT.manifest
 bin\msvcm80.dll
 bin\msvcp80.dll
 bin\msvcr80.dll
+#else
+bin\mozcrt19.dll
+#endif
 
 [browser]
 ; files listed in xpcom (missing in this section) will be installed as part of the browser
