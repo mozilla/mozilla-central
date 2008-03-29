@@ -185,12 +185,13 @@ nsresult nsAbPalmHotSync::GetABInterface()
 
   // Check each valid addrbook.
   nsCOMPtr<nsISupports> item;
+  nsCOMPtr<nsIAbDirectory> directory;
   PRBool hasMore;
   while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
   {
     if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
     {
-      nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(item, &rv));
+      directory = do_QueryInterface(item, &rv);
       if (NS_SUCCEEDED(rv))
       {
         // TODO: may need to skip mailing list?? but maybe not since there's no mailing list on the top level.
