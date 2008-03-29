@@ -189,8 +189,8 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
     *aABCatIndexList = catIndexList;
 
     // reset enumerator
-    if (NS_FAILED(abManager->GetDirectories(getter_AddRefs(subDirectories)))
-	return E_FAIL;
+    if (NS_FAILED(abManager->GetDirectories(getter_AddRefs(subDirectories))))
+      return E_FAIL;
 
     // For each valid addrbook collect info.
     while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
