@@ -148,7 +148,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
     {
         if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
         {
-	  nsCOMPtr <nsIAbDirectory> directory(do_QueryInterface(item, &rv));
+          nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(item, &rv));
           if (NS_SUCCEEDED(rv))
           {
               nsCAutoString fileName;
@@ -162,7 +162,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
 
               PRBool disableThisAB;
               rv = directory->GetBoolValue("disablePalmSync",
-					   PR_FALSE, &disableThisAB);
+                                           PR_FALSE, &disableThisAB);
               if (NS_FAILED(rv))
                 continue;
 
@@ -197,7 +197,7 @@ STDMETHODIMP CPalmSyncImp::nsGetABList(BOOL aIsUnicode, short * aABListCount,
     {
       if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
       {
-        directory = do_QueryInterface(item, &rv);
+        nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(item, &rv));
         if (NS_SUCCEEDED(rv))
         {
           // We don't have to skip mailing list since there's no mailing lists at the top level.
