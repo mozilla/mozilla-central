@@ -108,8 +108,6 @@ function check_ab(abConfig) {
     do_check_eq(gPref.getCharPref(abConfig.dirPrefID + ".stringtest"), "tyu");
     do_check_eq(AB.getStringValue("stringtest", ""), "tyu");
 
-    cleanup();
-
   } catch (e) {
     throw "FAILED in AB \"" + abConfig.dirName + "\" in test #" +
           testnum + ": " + e;
@@ -122,4 +120,6 @@ function run_test() {
 
   // Check the default collected address book
   check_ab(kCABData);
+
+  cleanup();
 };

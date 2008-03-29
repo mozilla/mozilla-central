@@ -356,8 +356,6 @@ function run_test()
 
     modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
 
-    //Force GC; See abCleanup.js for why.
-    gc();
     cleanup();
 
   } catch (e) {

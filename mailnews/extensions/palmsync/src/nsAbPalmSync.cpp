@@ -171,23 +171,16 @@ nsresult nsAbPalmHotSync::GetABInterface()
 {
   // Use GetChildNodes() call here.
   nsresult rv;
-  nsCOMPtr<nsIRDFService> rdfService = do_GetService (NS_RDF_CONTRACTID "/rdf-service;1", &rv);
-  if(NS_FAILED(rv)) return E_FAIL;
-    
-  // Parent nsIABDirectory is "moz-abdirectory://".
-  nsCOMPtr <nsIRDFResource> resource;
-  rv = rdfService->GetResource(NS_LITERAL_CSTRING("moz-abdirectory://"), getter_AddRefs(resource));
-  if(NS_FAILED(rv)) return E_FAIL;
-
-  nsCOMPtr <nsIAbDirectory> directory = do_QueryInterface(resource, &rv);
-  if(NS_FAILED(rv)) return E_FAIL;
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  if (NS_FAILED(rv))
+    return E_FAIL;
 
   nsString description;
   nsCString fileName, uri, prefName;
   PRUint32 palmSyncTimeStamp;
   PRInt32 dirType, palmCategoryIndex;
   nsCOMPtr<nsISimpleEnumerator> subDirectories;
-  if (NS_FAILED(directory->GetChildNodes(getter_AddRefs(subDirectories))) || !subDirectories)
+  if (NS_FAILED(abManager->GetDirectories(getter_AddRefs(subDirectories))) || !subDirectories)
     return E_FAIL;
 
   // Check each valid addrbook.
@@ -197,7 +190,7 @@ nsresult nsAbPalmHotSync::GetABInterface()
   {
     if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
     {
-      directory = do_QueryInterface(item, &rv);
+      nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(item, &rv));
       if (NS_SUCCEEDED(rv))
       {
         // TODO: may need to skip mailing list?? but maybe not since there's no mailing list on the top level.
