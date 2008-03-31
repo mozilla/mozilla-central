@@ -2613,7 +2613,7 @@ public:
 {
   NSString *searchString = [inSearchField stringValue];
   NSMutableString *searchURL = [[[inSearchField currentSearchURL] mutableCopy] autorelease];
-  
+
   // If we have an about: type URL, remove " site:%d" from the search string
   // This is a fix to deal with Google's Search this Site feature
   // If other sites use %d to search the site, we'll have to have specific rules
@@ -2621,24 +2621,24 @@ public:
   if ([[[self browserWrapper] currentURI] hasPrefix:@"about:"]) {
     NSRange domainStringRange = [searchURL rangeOfString:@" site:%d"
                                                  options:NSBackwardsSearch];
-    
+
     NSRange notFoundRange = NSMakeRange(NSNotFound, 0);
     if (NSEqualRanges(domainStringRange, notFoundRange) == NO)
       [searchURL deleteCharactersInRange:domainStringRange];
   }
-  
+
   // If they didn't type anything in the search field, visit the domain of
   // the search site, i.e. www.google.com for the Google site
   if ([searchString isEqualToString:@""]) {
-    const char *urlSpec = [searchURL lossyCString];
-    
+    const char *urlSpec = [searchURL UTF8String];
+
     nsCOMPtr<nsIURI> searchURI;
     if (NS_NewURI(getter_AddRefs(searchURI), urlSpec) == NS_OK) {
       nsCAutoString spec;
       searchURI->GetHost(spec);
-      
+
       NSString *searchDomain = [NSString stringWithUTF8String:spec.get()];
-      
+
       if (inDest == eDestinationNewTab)
         [self openNewTabWithURL:searchDomain referrer:nil loadInBackground:inLoadInBG allowPopups:NO setJumpback:NO];
       else if (inDest == eDestinationNewWindow)
@@ -2648,25 +2648,25 @@ public:
     } 
   } else {
     const char *urlSpec = [[[self browserWrapper] currentURI] UTF8String];
-    
+
     // Get the domain so that we can replace %d in our searchURL
     NSString *currentDomain = @"";
     nsCOMPtr<nsIURI> currentURI;
     if (NS_NewURI(getter_AddRefs(currentURI), urlSpec) == NS_OK) {
       nsCAutoString spec;
       currentURI->GetHost(spec);
-      
+
       currentDomain = [NSString stringWithUTF8String:spec.get()];
     }
-    
+
     // Escape the search string so the user can search for strings with
     // special characters ("&", "+", etc.) List from RFC2396.
     NSString *escapedSearchString = (NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)searchString, NULL, CFSTR(";?:@&=+$,"), kCFStringEncodingUTF8);
-    
+
     // replace the conversion specifiers (%d, %s) in the search string
     [self transformFormatString:searchURL domain:currentDomain search:escapedSearchString];
     [escapedSearchString release];
-    
+
     if (inDest == eDestinationNewTab)
       [self openNewTabWithURL:searchURL referrer:nil loadInBackground:inLoadInBG allowPopups:NO setJumpback:NO];
     else if (inDest == eDestinationNewWindow)

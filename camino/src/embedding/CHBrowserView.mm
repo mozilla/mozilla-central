@@ -1639,7 +1639,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   // set charset on document then reload the page (hopefully not hitting the network)
   nsCOMPtr<nsIDocCharset> charset ( do_QueryInterface([self docShell]) );
   if ( charset && inCharset ) {
-    charset->SetCharset([inCharset cString]);
+    charset->SetCharset([inCharset UTF8String]);
     [self reload:nsIWebNavigation::LOAD_FLAGS_CHARSET_CHANGE];
   }
 }

@@ -944,8 +944,8 @@ static void SCProxiesChangedCallback(SCDynamicStoreRef store, CFArrayRef changed
     NSString* protocolProxy = [configDict objectForKey:urlKey];
     int proxyPort = [[configDict objectForKey:portKey] intValue];
     if ([protocolProxy length] > 0 && proxyPort != 0) {
-      [self setPref:[[NSString stringWithFormat:@"network.proxy.%@", protocol] cString] toString:protocolProxy];
-      [self setPref:[[NSString stringWithFormat:@"network.proxy.%@_port", protocol] cString] toInt:proxyPort];
+      [self setPref:[[NSString stringWithFormat:@"network.proxy.%@", protocol] UTF8String] toString:protocolProxy];
+      [self setPref:[[NSString stringWithFormat:@"network.proxy.%@_port", protocol] UTF8String] toInt:proxyPort];
       gotProxy = YES;
     }
   }
@@ -1147,7 +1147,7 @@ typedef enum EProxyConfig {
 
   if ([colorString hasPrefix:@"#"] && [colorString length] == 7) {
     unsigned int redInt, greenInt, blueInt;
-    sscanf([colorString cString], "#%02x%02x%02x", &redInt, &greenInt, &blueInt);
+    sscanf([colorString UTF8String], "#%02x%02x%02x", &redInt, &greenInt, &blueInt);
     
     float redFloat    = ((float)redInt / 255.0);
     float greenFloat  = ((float)greenInt / 255.0);

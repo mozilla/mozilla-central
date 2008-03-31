@@ -338,7 +338,7 @@
   NSString *fontPrefName = [NSString stringWithFormat:@"font.name.%@.%@", fontType, regionCode];
 
   BOOL gotPref;
-  NSString *fontName = [self getStringPref:[fontPrefName cString] withSuccess:&gotPref];
+  NSString *fontName = [self getStringPref:[fontPrefName UTF8String] withSuccess:&gotPref];
 
   if (gotPref)
     [fontDict setObject:fontName forKey:@"fontfamily"];
@@ -352,7 +352,7 @@
   NSString *prefName = [NSString stringWithFormat:@"font.default.%@", regionCode];
 
   BOOL gotPref;
-  NSString *fontType = [self getStringPref:[prefName cString] withSuccess:&gotPref];
+  NSString *fontType = [self getStringPref:[prefName UTF8String] withSuccess:&gotPref];
 
   if (gotPref)
     [fontTypeDict setObject:fontType forKey:@"type"];
@@ -369,9 +369,9 @@
   NSString *minSizePref = [NSString stringWithFormat:@"font.minimum-size.%@", regionCode];
 
   BOOL gotFixed, gotVariable, gotMinSize;
-  int variableSize = [self getIntPref:[variableSizePref cString] withSuccess:&gotVariable];
-  int fixedSize = [self getIntPref:[fixedSizePref cString] withSuccess:&gotFixed];
-  int minSize = [self getIntPref:[minSizePref cString] withSuccess:&gotMinSize];
+  int variableSize = [self getIntPref:[variableSizePref UTF8String] withSuccess:&gotVariable];
+  int fixedSize = [self getIntPref:[fixedSizePref UTF8String] withSuccess:&gotFixed];
+  int minSize = [self getIntPref:[minSizePref UTF8String] withSuccess:&gotMinSize];
 
   if (gotVariable)
     [fontDict setObject:[NSNumber numberWithInt:variableSize] forKey:@"variable"];
@@ -412,10 +412,10 @@
   NSString *fontPrefName = [NSString stringWithFormat:@"font.name.%@.%@", fontType, regionCode];
 
   if (fontName)
-    [self setPref:[fontPrefName cString] toString:fontName];
+    [self setPref:[fontPrefName UTF8String] toString:fontName];
   else
     // If the preferences were reset to defaults, this key could be gone.
-    [self clearPref:[fontPrefName cString]];
+    [self clearPref:[fontPrefName UTF8String]];
 }
 
 - (void)saveFontSizePrefsForRegion:(NSDictionary*)regionDict
@@ -434,19 +434,19 @@
 
   // If the preferences were reset to defaults, these keys could be gone.
   if (variableSize)
-    [self setPref:[variableSizePref cString] toInt:variableSize];
+    [self setPref:[variableSizePref UTF8String] toInt:variableSize];
   else
-    [self clearPref:[variableSizePref cString]];
+    [self clearPref:[variableSizePref UTF8String]];
 
   if (fixedSize)
-    [self setPref:[fixedSizePref cString] toInt:fixedSize];
+    [self setPref:[fixedSizePref UTF8String] toInt:fixedSize];
   else
-    [self clearPref:[fixedSizePref cString]];
+    [self clearPref:[fixedSizePref UTF8String]];
 
   if (minSize)
-    [self setPref:[minSizePref cString] toInt:minSize];
+    [self setPref:[minSizePref UTF8String] toInt:minSize];
   else
-    [self clearPref:[minSizePref cString]];
+    [self clearPref:[minSizePref UTF8String]];
 }
 
 - (void)saveDefaultFontTypePrefForRegion:(NSDictionary*)regionDict
@@ -458,9 +458,9 @@
 
   // If the preferences were reset to defaults, this key could be gone.
   if (value)
-    [self setPref:[prefName cString] toString:value];
+    [self setPref:[prefName UTF8String] toString:value];
   else
-    [self clearPref:[prefName cString]];
+    [self clearPref:[prefName UTF8String]];
 }
 
 // The exposed "Use My Fonts" pref has reverse logic from the internal pref 

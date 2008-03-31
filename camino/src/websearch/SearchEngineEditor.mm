@@ -270,7 +270,7 @@ static NSString *const kSearchEngineEditorDraggedEngineType = @"SearchEngineEdit
 
 #pragma mark -
 
-- (BOOL)validateMenuItem:(id <NSMenuItem>)menuItem
+- (BOOL)validateMenuItem:(NSMenuItem*)menuItem
 {
   if ([menuItem action] == @selector(removeSelectedSearchEngines:))
     return ([mSearchEnginesTableView numberOfSelectedRows] > 0);

@@ -50,7 +50,7 @@ static void SetupRuntimeOptions(int argc, const char *argv[])
   }
 }
 
-static void SetMaxFileDescriptors(int target)
+static void SetMaxFileDescriptors(unsigned int target)
 {
   struct rlimit rl;
   if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
@@ -67,7 +67,7 @@ int main(int argc, const char *argv[])
 {
   SetupRuntimeOptions(argc, argv);
 
-  // Because of a nasty file descriptor leak when viewing flash
+  // Because of a nasty file descriptor leak when viewing Flash
   // (bug 397053), bump up our limit up to 1024 so that it takes longer for
   // the world to end.
   SetMaxFileDescriptors(1024);
