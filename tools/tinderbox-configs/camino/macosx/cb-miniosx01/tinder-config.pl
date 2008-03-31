@@ -258,7 +258,7 @@ $archive       = 1;
 #$update_product = "Firefox";
 #$update_version = "trunk";
 #$update_platform = "WINNT_x86-msvc";
-#$update_hash = "md5";
+#$update_hash = "sha1";
 #$update_filehost = "ftp.mozilla.org";
 # use $update_appv and $update_extv to set app and extension version explicitly, or
 # use $update_ver_file to read a value for either/both from a file (relative to topsrcdir). 
