@@ -155,13 +155,14 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 - (nsIDocShell*)docShell;    // does NOT addref
 - (NSString*)selectedText;
 - (already_AddRefed<nsIDOMWindow>)focussedDOMWindow;
+- (already_AddRefed<nsIDOMElement>)focusedDOMElement;
+- (already_AddRefed<nsIFocusController>)focusController;
+- (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI;
 - (NSString*)locationFromDOMWindow:(nsIDOMWindow*)inDOMWindow;
 - (void)ensurePrintSettings;
 - (void)savePrintSettings;
 - (BOOL)isPasswordFieldFocused;
 - (void)collapseSelection;
-
-- (already_AddRefed<nsISecureBrowserUI>)secureBrowserUI;
 
 @end
 
@@ -653,7 +654,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 
 }
 
-- (nsIFocusController*)focusController
+// Returns the focus controller, AddRef'd.
+- (already_AddRefed<nsIFocusController>)focusController
 {
   if (!_webBrowser)
     return nsnull;
@@ -667,9 +669,10 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return focusController;
 }
 
-- (nsIDOMElement*)focusedDOMElement
+// Returns the currently focused DOM element, AddRef'd.
+- (already_AddRefed<nsIDOMElement>)focusedDOMElement
 {
-  nsCOMPtr<nsIFocusController> controller = dont_AddRef([self focusController]);
+  nsCOMPtr<nsIFocusController> controller = [self focusController];
   if (!controller)
     return nsnull;
   nsCOMPtr<nsIDOMElement> focusedItem;
@@ -1292,7 +1295,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 {
   BOOL isFocused = NO;
 
-  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
+  nsCOMPtr<nsIDOMElement> focusedItem = [self focusedDOMElement];
 
   nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
   if (input) {
@@ -1314,7 +1317,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 {
   BOOL isFocused = NO;
   
-  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
+  nsCOMPtr<nsIDOMElement> focusedItem = [self focusedDOMElement];
   
   // we got it, now check if it's what we care about
   nsCOMPtr<nsIDOMHTMLInputElement> input = do_QueryInterface(focusedItem);
@@ -1331,7 +1334,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     isFocused = YES;
   }
   else { // check for Midas
-    nsCOMPtr<nsIFocusController> controller = dont_AddRef([self focusController]);
+    nsCOMPtr<nsIFocusController> controller = [self focusController];
     if (controller) {
       nsCOMPtr<nsIDOMWindowInternal> winInternal;
       controller->GetFocusedWindow(getter_AddRefs(winInternal));
@@ -1360,7 +1363,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 //
 - (BOOL)isPluginFocused
 {
-  nsCOMPtr<nsIDOMElement> focusedItem = dont_AddRef([self focusedDOMElement]);
+  nsCOMPtr<nsIDOMElement> focusedItem = [self focusedDOMElement];
   
   // we got it, now check if it's what we care about
   nsCOMPtr<nsIDOMHTMLEmbedElement> embed = do_QueryInterface(focusedItem);

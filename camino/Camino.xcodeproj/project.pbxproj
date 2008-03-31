@@ -61,6 +61,8 @@
 		008115430B180F35001CB3F0 /* libthebes.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 008115420B180F35001CB3F0 /* libthebes.dylib */; };
 		008115440B181032001CB3F0 /* libthebes.dylib in Copy Libraries */ = {isa = PBXBuildFile; fileRef = 008115420B180F35001CB3F0 /* libthebes.dylib */; };
 		008115480B1811F0001CB3F0 /* libgkgfxthebes.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 008115470B1811F0001CB3F0 /* libgkgfxthebes.dylib */; };
+		0095FAC90D9C99880039B3D8 /* CHBrowserView+Spelling.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0095FAC80D9C99880039B3D8 /* CHBrowserView+Spelling.mm */; };
+		0095FACA0D9C99880039B3D8 /* CHBrowserView+Spelling.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0095FAC80D9C99880039B3D8 /* CHBrowserView+Spelling.mm */; };
 		0098B1230CAEA77500DA0F2F /* nsHandlerService.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */; };
 		0098B12A0CAEA81700DA0F2F /* nsHandlerService.js in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */; };
 		0098B1800CAEA9DC00DA0F2F /* XPCOMUtils.jsm in Copy Gecko Modules */ = {isa = PBXBuildFile; fileRef = 0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */; };
@@ -2180,6 +2182,8 @@
 		0081150C0B180DFA001CB3F0 /* libgkgfxthebes.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgkgfxthebes.a; path = ../gfx/src/thebes/libgkgfxthebes.a; sourceTree = SOURCE_ROOT; };
 		008115420B180F35001CB3F0 /* libthebes.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libthebes.dylib; path = ../dist/Embed/libthebes.dylib; sourceTree = SOURCE_ROOT; };
 		008115470B1811F0001CB3F0 /* libgkgfxthebes.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.bundle"; name = libgkgfxthebes.dylib; path = ../dist/Embed/components/libgkgfxthebes.dylib; sourceTree = SOURCE_ROOT; };
+		0095FAC70D9C99880039B3D8 /* CHBrowserView+Spelling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "CHBrowserView+Spelling.h"; path = "src/embedding/CHBrowserView+Spelling.h"; sourceTree = "<group>"; };
+		0095FAC80D9C99880039B3D8 /* CHBrowserView+Spelling.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "CHBrowserView+Spelling.mm"; path = "src/embedding/CHBrowserView+Spelling.mm"; sourceTree = "<group>"; };
 		0098B11D0CAEA75700DA0F2F /* nsHandlerService.js */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.javascript; name = nsHandlerService.js; path = ../dist/bin/components/nsHandlerService.js; sourceTree = SOURCE_ROOT; };
 		0098B17F0CAEA9CF00DA0F2F /* XPCOMUtils.jsm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text; name = XPCOMUtils.jsm; path = ../dist/bin/modules/XPCOMUtils.jsm; sourceTree = SOURCE_ROOT; };
 		0098B19E0CAEAAE800DA0F2F /* exthandler.xpt */ = {isa = PBXFileReference; lastKnownFileType = file; name = exthandler.xpt; path = ../dist/bin/components/exthandler.xpt; sourceTree = SOURCE_ROOT; };
@@ -3603,6 +3607,8 @@
 			children = (
 				F5DE10E70209DC0601A967DF /* CHBrowserView.h */,
 				F5DE10EA0209DC0601A967DF /* CHBrowserView.mm */,
+				0095FAC70D9C99880039B3D8 /* CHBrowserView+Spelling.h */,
+				0095FAC80D9C99880039B3D8 /* CHBrowserView+Spelling.mm */,
 				F5DE10E80209DC0601A967DF /* CHBrowserService.h */,
 				F5DE10EB0209DC0601A967DF /* CHBrowserService.mm */,
 				F558B1F0030F6E470166970F /* CHBrowserListener.h */,
@@ -5444,6 +5450,7 @@
 				00BBBC860D66C13400C2D916 /* CHGradient.m in Sources */,
 				001D4A270D75B0B100464BE4 /* MoveCommand.mm in Sources */,
 				33819AD70D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */,
+				0095FACA0D9C99880039B3D8 /* CHBrowserView+Spelling.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5624,6 +5631,7 @@
 				00BBBC850D66C13400C2D916 /* CHGradient.m in Sources */,
 				001D4A260D75B0B100464BE4 /* MoveCommand.mm in Sources */,
 				33819AD80D938A3B00CA9F52 /* GeckoPrefConstants.mm in Sources */,
+				0095FAC90D9C99880039B3D8 /* CHBrowserView+Spelling.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

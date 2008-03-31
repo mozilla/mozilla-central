@@ -52,14 +52,12 @@ class nsIDOMWindow;
 class nsIWebBrowser;
 class nsIDocShell;
 class nsIDOMNode;
-class nsIDOMElement;
 class nsIDOMPopupBlockedEvent;
 class nsIDOMEvent;
 class nsIPrintSettings;
 class nsIURI;
 class nsISupports;
 class nsISecureBrowserUI;
-class nsIFocusController;
 
 // Protocol implemented by anyone interested in progress
 // related to a BrowserView. A listener should explicitly
@@ -281,10 +279,6 @@ typedef enum {
 
 - (BOOL)isTextFieldFocused;
 - (BOOL)isPluginFocused;
-// Returns the currently focused DOM element, addref'd
-- (nsIDOMElement*)focusedDOMElement;
-// Returns the focus controller, addref'd
-- (nsIFocusController*)focusController;
 
 - (NSString*)focusedURLString;
 
