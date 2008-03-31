@@ -11,3 +11,5 @@ with the following changes:
   change on our part when we switch to trunk)
 - Bug 412837: keep updates out of the quarantine
 - In support of bug 413709: let an empty value for SUFeedURLKey disable updates
+- Bug 426001: fix build error with 10.5 SDK in SUUnarchiver.m (already part of
+  Sparkle trunk)
