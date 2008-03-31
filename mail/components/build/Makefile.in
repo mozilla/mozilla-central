@@ -48,7 +48,13 @@ SHORT_LIBNAME	= mailcmp
 EXPORT_LIBRARY	= 1
 IS_COMPONENT	= 1
 MODULE_NAME	= nsMailCompsModule
+ifdef BUILD_STATIC_LIBS
 MOZILLA_INTERNAL_API = 1
+else
+ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
+MOZILLA_INTERNAL_API = 1
+endif
+endif
 
 REQUIRES = \
 	xpcom \
@@ -84,10 +90,18 @@ ifneq (,$(filter windows mac cocoa gtk2, $(MOZ_WIDGET_TOOLKIT)))
 SHARED_LIBRARY_LIBS += ../shell/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
 endif
 
+ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS += \
 	$(LIBXUL_DIST)/../modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
+else
+EXTRA_DSO_LDOPTS += \
+	$(LIBXUL_DIST)/../modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
+	$(LIBXUL_DIST)/lib/$(LIB_PREFIX)xpcomglue_s.$(LIB_SUFFIX) \
+	$(MOZ_COMPONENT_LIBS) \
+	$(NULL)
+endif
 
 # Mac: Need to link to CoreFoundation for Mac shell service
 # GTK2: Need to link with glib for GNOME shell service

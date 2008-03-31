@@ -52,7 +52,6 @@
 #include "nsIURL.h"
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsNetUtil.h"
-#include "nsReadableUtils.h"
 #include "prtime.h"
 #include "prprf.h"
 #include "nsVoidArray.h"
@@ -366,10 +365,17 @@ nsNetscapeProfileMigratorBase::LocateSignonsFile(char** aResult)
     nsCAutoString extn;
     url->GetFileExtension(extn);
 
+#ifdef MOZILLA_INTERNAL_API
     if (extn.EqualsIgnoreCase("s")) {
       url->GetFileName(fileName);
       break;
     }
+#else
+    if (extn.Equals("s", CaseInsensitiveCompare)) {
+      url->GetFileName(fileName);
+      break;
+    }
+#endif
   }
   while (1);
 

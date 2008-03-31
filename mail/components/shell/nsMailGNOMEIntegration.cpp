@@ -50,6 +50,7 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsEmbedCID.h"
+#include "nsMemory.h"
 
 #include <glib.h>
 #include <limits.h>
@@ -220,7 +221,8 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
                                     unsigned int aLength)
 {
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
-  nsCAutoString appKeyValue(mAppPath + NS_LITERAL_CSTRING(" \"%s\""));
+  nsCAutoString appKeyValue(mAppPath);
+  appKeyValue.AppendLiteral(" \"%s\"");
 
   for (unsigned int i = 0; i < aLength; ++i) {
     nsresult rv = gconf->SetAppForProtocol(nsDependentCString(aProtocols[i]),

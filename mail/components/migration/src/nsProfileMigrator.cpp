@@ -46,14 +46,14 @@
 #include "nsIWindowWatcher.h"
 #include "nsISupportsPrimitives.h"
 #include "nsISupportsArray.h"
-
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsIProperties.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsProfileMigrator.h"
 #include "nsMailMigrationCID.h"
 
 #include "NSReg.h"
-#include "nsReadableUtils.h"
-#include "nsString.h"
 #ifdef XP_WIN
 #include <windows.h>
 #endif

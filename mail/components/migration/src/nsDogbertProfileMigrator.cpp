@@ -58,6 +58,7 @@
 #include "prenv.h"
 #include "NSReg.h"
 #include "msgCore.h"
+#include "nsDirectoryServiceUtils.h"
 
 // lots of includes required for the nsPrefMigration.cpp code that we copied:
 #include "nsICharsetConverterManager.h"
@@ -1720,8 +1721,7 @@ nsresult nsDogbertProfileMigrator::DetermineOldPath(nsILocalFile *profilePath, c
   if (NS_FAILED(rv)) return rv;
 
   nsString localizedDirName;
-  nsAutoString entityName;
-  CopyASCIItoUTF16(oldPathEntityName, entityName);
+  NS_ConvertASCIItoUTF16 entityName(oldPathEntityName);
   rv = bundle->GetStringFromName(entityName.get(), getter_Copies(localizedDirName));
   if (NS_FAILED(rv)) return rv;
 
@@ -1972,35 +1972,20 @@ nsresult nsDogbertProfileMigrator::ComputeSpaceRequirements(PRInt64 DriveArray[M
 static PRBool
 nsCStringEndsWith(nsCString& name, const char *ending)
 {
-  if (!ending) return PR_FALSE;
+  if (!ending || name.IsEmpty())
+    return PR_FALSE;
 
-  PRInt32 len = name.Length();
-  if (len == 0) return PR_FALSE;
-
-  PRInt32 endingLen = PL_strlen(ending);
-  if (len > endingLen && name.RFind(ending, PR_TRUE) == len - endingLen) {
-        return PR_TRUE;
-  }
-  else {
-        return PR_FALSE;
-  }
+  return StringTail(name, PL_strlen(ending)).Equals(nsDependentCString(ending));
 }
 
 #ifdef NEED_TO_COPY_AND_RENAME_NEWSRC_FILES
 static PRBool
 nsCStringStartsWith(nsCString& name, const char *starting)
 {
-	if (!starting) return PR_FALSE;
-	PRInt32	len = name.Length();
-	if (len == 0) return PR_FALSE;
+  if (!starting || name.IsEmpty())
+    return PR_FALSE;
 
-	PRInt32 startingLen = PL_strlen(starting);
-	if (len > startingLen && name.RFind(starting, PR_TRUE) == 0) {
-		return PR_TRUE;
-	}
-	else {
-		return PR_FALSE;
-	}
+  return StringHead(name, PL_strlen(starting)).Equals(nsDependentCString(starting));
 }
 #endif
 

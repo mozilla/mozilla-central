@@ -55,7 +55,11 @@ void SetProxyPref(const nsACString& aHostPort, const char* aPref,
                                  hostPort.Length() - (portDelimOffset + 1)));
 
     aPrefs->SetCharPref(aPref, host.get());
+#ifdef MOZILLA_INTERNAL_API
     PRInt32 stringErr;
+#else
+    PRUint32 stringErr;
+#endif
     PRInt32 portValue = port.ToInteger(&stringErr);
     aPrefs->SetIntPref(aPortPref, portValue);
   }

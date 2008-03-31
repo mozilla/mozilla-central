@@ -8,7 +8,13 @@ include $(DEPTH)/config/autoconf.mk
 MODULE=mailprofilemigration
 LIBRARY_NAME = profilemigration_s
 MODULE_NAME = nsMailProfileMigratorModule
+ifdef BUILD_STATIC_LIBS
 MOZILLA_INTERNAL_API = 1
+else
+ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
+MOZILLA_INTERNAL_API = 1
+endif
+endif
 
 REQUIRES = \
 	string \

@@ -41,7 +41,7 @@
 
 #include "nsILocalFile.h"
 #include "nsIStringBundle.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIFile;
 class nsIPrefBranch;
@@ -64,8 +64,8 @@ public:
   typedef nsresult(*prefConverter)(void*, nsIPrefBranch*);
 
   struct PrefTransform {
-    char*         sourcePrefName;
-    char*         targetPrefName;
+    const char*   sourcePrefName;
+    const char*   targetPrefName;
     prefConverter prefGetterFunc;
     prefConverter prefSetterFunc;
     PRBool        prefHasValue;

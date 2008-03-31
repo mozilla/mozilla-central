@@ -393,10 +393,10 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
 #define F(a) nsSeamonkeyProfileMigrator::a
 
 #define MAKEPREFTRANSFORM(pref, newpref, getmethod, setmethod) \
-  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, -1 }
+  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, { -1 } }
 
 #define MAKESAMETYPEPREFTRANSFORM(pref, method) \
-  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, -1 }
+  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, { -1 } }
 
 
 static
@@ -887,6 +887,26 @@ static PRUint32 StringHash(const char *ubuf)
   }
   return h;
 }
+#ifndef MOZILLA_INTERNAL_API
+/// @see nsString::FindCharInSet
+PRInt32 nsString_FindCharInSet(const nsACString& aString,
+                               const char *aPattern, PRInt32 aOffset = 0)
+{
+  const char *begin, *end;
+  aString.BeginReading(&begin, &end);
+  for (const char *current = begin + aOffset; current < end; ++current)
+  {
+    for (const char *pattern = aPattern; *pattern; ++pattern)
+    {
+      if (NS_UNLIKELY(*current == *pattern))
+      {
+        return current - begin;
+      }
+    }
+  }
+  return -1;
+}
+#endif
 
 nsresult NS_MsgHashIfNecessary(nsCString &name)
 {
@@ -899,15 +919,17 @@ nsresult NS_MsgHashIfNecessary(nsCString &name)
 #else
   #error need_to_define_your_max_filename_length
 #endif
-  nsCAutoString illegalChars(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS);
   nsCAutoString str(name);
 
   // Given a filename, make it safe for filesystem
   // certain filenames require hashing because they
   // are too long or contain illegal characters
-  PRInt32 illegalCharacterIndex = str.FindCharInSet(illegalChars);
   char hashedname[MAX_LEN + 1];
-  if (illegalCharacterIndex == kNotFound)
+#ifdef MOZILLA_INTERNAL_API
+  if (str.FindCharInSet(NS_LITERAL_CSTRING(FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS)) == kNotFound)
+#else
+  if (nsString_FindCharInSet(str, FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS) == -1)
+#endif
   {
     // no illegal chars, it's just too long
     // keep the initial part of the string, but hash to make it fit

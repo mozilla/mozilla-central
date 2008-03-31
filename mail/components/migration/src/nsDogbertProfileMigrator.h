@@ -43,7 +43,6 @@
 #include "nsIObserverService.h"
 #include "nsISupportsArray.h"
 #include "nsNetscapeProfileMigratorBase.h"
-#include "nsString.h"
 #include "nsITimer.h"
 
 #include "nsIPrefBranch.h"

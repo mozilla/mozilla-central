@@ -58,7 +58,8 @@
 
 #include "nsIPrefBranch.h"
 #include "nsIFile.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsCOMPtr.h"
 class nsIProfileStartup;
 
 // Proxy utilities shared by the Opera and IE migrators

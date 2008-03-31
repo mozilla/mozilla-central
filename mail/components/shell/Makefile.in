@@ -47,7 +47,13 @@ DIRS = public
 MODULE = shellservice
 LIBRARY_NAME = shellservice_s
 MODULE_NAME = nsMailShellModule
+ifdef BUILD_STATIC_LIBS
 MOZILLA_INTERNAL_API = 1
+else
+ifneq ($(MOZ_WIDGET_TOOLKIT), gtk2)
+MOZILLA_INTERNAL_API = 1
+endif
+endif
 
 
 REQUIRES = \
