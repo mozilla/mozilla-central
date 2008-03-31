@@ -308,11 +308,7 @@ static FeedServiceController* sInstance = nil;
 {
   NSArray* feedApps = [[NSWorkspace sharedWorkspace] installedFeedViewerIdentifiers];
 
-  int handlerCount = [feedApps count];
-  if ([feedApps indexOfObject:@"com.apple.safari"] != NSNotFound)
-    --handlerCount;
-  
-  return (handlerCount > 0);
+  return ([feedApps count] > 0);
 }
 
 //

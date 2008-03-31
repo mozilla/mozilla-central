@@ -48,11 +48,6 @@ applications found, display a sheet that warns the user and allows them to
 select a application. If there are feed applications found, run a sheet that 
 allows the user to choose a new default feed viewer, and open or cancel the 
 opening action.
-
-Note that in 10.3.9, the version of Safari that is shipped registers itself as
-an application that can handle feeds, but does not actually have any RSS support.
-Due to this issue, we have to check the users OS version to make sure they are
-not trying to open a feed with a useless RSS viewer.
 */
 
 @interface FeedServiceController : NSObject 

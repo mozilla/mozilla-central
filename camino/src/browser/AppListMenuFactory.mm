@@ -121,10 +121,6 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
   NSEnumerator* feedAppsEnum = [feedApps objectEnumerator];
   NSString* curBundleID = nil;
   while ((curBundleID = [feedAppsEnum nextObject])) {
-    // Don't add Safari.
-    if ([curBundleID isEqualToString:@"com.apple.Safari"])
-      continue;
-    
     NSURL* appURL = [[NSWorkspace sharedWorkspace] urlOfApplicationWithIdentifier:curBundleID];
     if (!appURL)
       continue;
@@ -149,7 +145,7 @@ static AppListMenuFactory* sAppListMenuFactoryInstance = nil;
   // or has no application selected
   if (!insertedDefaultApp) {
     NSURL* defaultFeedAppURL = nil;
-    if (defaultFeedViewerID && ([NSWorkspace isTigerOrHigher] || ![defaultFeedViewerID isEqualToString:@"com.apple.Safari"]))
+    if (defaultFeedViewerID)
       defaultFeedAppURL = [[NSWorkspace sharedWorkspace] urlOfApplicationWithIdentifier:defaultFeedViewerID];
     if (defaultFeedAppURL) {
       NSMenuItem* menuItem = [self menuItemForAppURL:defaultFeedAppURL
