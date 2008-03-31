@@ -88,18 +88,14 @@
 		035A498F079DCA100084B05F /* History.mm in Sources */ = {isa = PBXBuildFile; fileRef = 035A4989079DCA100084B05F /* History.mm */; };
 		035A4990079DCA100084B05F /* History.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 035A498A079DCA100084B05F /* History.tiff */; };
 		035A4AA0079DCB0B0084B05F /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		035A4AA3079DCB0B0084B05F /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		0382B4DA07303CCA00A0228A /* dl_manager.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0382B4D907303CCA00A0228A /* dl_manager.tiff */; };
 		0382B4DB07303CCA00A0228A /* dl_manager.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 0382B4D907303CCA00A0228A /* dl_manager.tiff */; };
-		03C5AC3507722FA200EAF77D /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F52D5CDB027D412A01A80166 /* Carbon.framework */; };
 		03C5AC3607722FA200EAF77D /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		03C5AC3707722FA200EAF77D /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		03E2D86F0771F8D100BD2443 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 03E2D85A0771F78500BD2443 /* Localizable.strings */; };
 		03E2D8700771F8D100BD2443 /* Tabs.nib in Resources */ = {isa = PBXBuildFile; fileRef = 03E2D85C0771F78500BD2443 /* Tabs.nib */; };
 		03E2D8710771F8D100BD2443 /* Tabs.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 03E2D8600771F78500BD2443 /* Tabs.tiff */; };
 		03E2D8720771F8EC00BD2443 /* Tabs.mm in Sources */ = {isa = PBXBuildFile; fileRef = 03E2D85F0771F78500BD2443 /* Tabs.mm */; };
 		03E2D8750771F90B00BD2443 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
-		03E2D8760771F90B00BD2443 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		0E6A98A1097E0091007962C1 /* libucvmath.dylib in Copy Component Libraries */ = {isa = PBXBuildFile; fileRef = 0E6A9882097DFF9A007962C1 /* libucvmath.dylib */; };
 		0E6A98A2097E00A6007962C1 /* mathml.css in Copy Gecko Resources */ = {isa = PBXBuildFile; fileRef = 0E6A9886097DFFD4007962C1 /* mathml.css */; };
 		0E6A98A3097E00BB007962C1 /* mathml.dtd in Copy Gecko DTDs */ = {isa = PBXBuildFile; fileRef = 0E6A9888097DFFF4007962C1 /* mathml.dtd */; };
@@ -539,13 +535,11 @@
 		3F44AD9205BDFB9F00CB4B08 /* RegionNames.strings in Resources */ = {isa = PBXBuildFile; fileRef = F56F837402E47DB401EF35C9 /* RegionNames.strings */; };
 		3F44AD9305BDFB9F00CB4B08 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F5384906034977A101A80166 /* Localizable.strings */; };
 		3F44AD9605BDFB9F00CB4B08 /* Appearance.mm in Sources */ = {isa = PBXBuildFile; fileRef = F5A8CE4F02DFF167013CA8EC /* Appearance.mm */; };
-		3F44AD9905BDFB9F00CB4B08 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		3F44AD9A05BDFB9F00CB4B08 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		3F44ADA505BDFB9F00CB4B08 /* General.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F52627D8027E984501000102 /* General.tiff */; };
 		3F44ADA605BDFB9F00CB4B08 /* General.nib in Resources */ = {isa = PBXBuildFile; fileRef = F507A85B0311895401026D5D /* General.nib */; };
 		3F44ADA705BDFB9F00CB4B08 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F5FCDD5F03A035E501A9666E /* Localizable.strings */; };
 		3F44ADAA05BDFB9F00CB4B08 /* General.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52627D5027E982201000102 /* General.mm */; };
-		3F44ADAD05BDFB9F00CB4B08 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 29B97325FDCFA39411CA2CEA /* Foundation.framework */; };
 		3F44ADAE05BDFB9F00CB4B08 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 		3F44ADB105BDFB9F00CB4B08 /* layout_printing.xpt in Copy Component XPTs */ = {isa = PBXBuildFile; fileRef = F6BD63F201B313EE01A962F7 /* layout_printing.xpt */; };
 		3F44ADC705BDFBA000CB4B08 /* Privacy.nib in Resources */ = {isa = PBXBuildFile; fileRef = F507A85D0311948201026D5D /* Privacy.nib */; };
@@ -2944,7 +2938,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				035A4AA0079DCB0B0084B05F /* Cocoa.framework in Frameworks */,
-				035A4AA3079DCB0B0084B05F /* Foundation.framework in Frameworks */,
 				7B479B7D0D0DD5EB00780567 /* libxpcom_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2953,9 +2946,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				03C5AC3507722FA200EAF77D /* Carbon.framework in Frameworks */,
 				03C5AC3607722FA200EAF77D /* Cocoa.framework in Frameworks */,
-				03C5AC3707722FA200EAF77D /* Foundation.framework in Frameworks */,
 				7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2965,7 +2956,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				03E2D8750771F90B00BD2443 /* Cocoa.framework in Frameworks */,
-				03E2D8760771F90B00BD2443 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3003,7 +2993,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F44AD9905BDFB9F00CB4B08 /* Foundation.framework in Frameworks */,
 				3F44AD9A05BDFB9F00CB4B08 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3012,7 +3001,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3F44ADAD05BDFB9F00CB4B08 /* Foundation.framework in Frameworks */,
 				3F44ADAE05BDFB9F00CB4B08 /* Cocoa.framework in Frameworks */,
 				7B64B7EE0CCFDAAF0098406C /* Sparkle.framework in Frameworks */,
 			);
@@ -6167,14 +6155,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = ../dist/include;
 				INFOPLIST_FILE = "Info-AppearancePrefPane.plist";
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = Appearance;
 			};
 			name = Development;
@@ -6183,7 +6164,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = ../dist/include;
 				INFOPLIST_FILE = "Info-AppearancePrefPane.plist";
 				PRODUCT_NAME = Appearance;
 			};
@@ -6194,14 +6174,7 @@
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = sparkle/build/Release;
-				HEADER_SEARCH_PATHS = ../dist/include;
 				INFOPLIST_FILE = "Info-GeneralPrefPane.plist";
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = General;
 			};
 			name = Development;
@@ -6211,7 +6184,6 @@
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = sparkle/build/Release;
-				HEADER_SEARCH_PATHS = ../dist/include;
 				INFOPLIST_FILE = "Info-GeneralPrefPane.plist";
 				PRODUCT_NAME = General;
 			};
@@ -6221,7 +6193,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-PrivacyPrefPane.plist";
 				PRODUCT_NAME = Privacy;
 			};
@@ -6231,7 +6202,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-PrivacyPrefPane.plist";
 				PRODUCT_NAME = Privacy;
 			};
@@ -6241,7 +6211,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-SecurityPrefPane.plist";
 				PRODUCT_NAME = Security;
 			};
@@ -6251,7 +6220,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-SecurityPrefPane.plist";
 				PRODUCT_NAME = Security;
 			};
@@ -6261,7 +6229,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-WebFeaturesPrefPane.plist";
 				PRODUCT_NAME = WebFeatures;
 			};
@@ -6271,7 +6238,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "Info-WebFeaturesPrefPane.plist";
 				PRODUCT_NAME = WebFeatures;
 			};
@@ -6281,19 +6247,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/dom,
-					../dist/include/nspr,
-					../dist/include/xpcom,
-				);
 				INFOPLIST_FILE = "Info-TabsPrefPane.plist";
-				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
 				PRODUCT_NAME = Tabs;
 			};
 			name = Development;
@@ -6302,12 +6256,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/dom,
-					../dist/include/nspr,
-					../dist/include/xpcom,
-				);
 				INFOPLIST_FILE = "Info-TabsPrefPane.plist";
 				PRODUCT_NAME = Tabs;
 			};
@@ -6317,6 +6265,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
+				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"OSTYPE=Darwin1.4",
+					"OSARCH=Darwin",
+					"MOZILLA_INTERNAL_API=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					../dist/include,
 					../dist/include/nspr,
@@ -6326,12 +6280,20 @@
 				INFOPLIST_FILE = "Info-DownloadsPrefPane.plist";
 				LIBRARY_SEARCH_PATHS = ../dist/lib;
 				OTHER_CFLAGS = (
-					"$(OTHER_CFLAGS)",
+					"-fshort-wchar",
 					"-DDEBUG",
 					"-DMOZ_DEBUG",
 					"-DTRACING",
 				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CPLUSPLUSFLAGS)",
+					"-Wno-non-virtual-dtor",
+				);
 				PRODUCT_NAME = Downloads;
+				WARNING_CFLAGS = (
+					"$(WARNING_CFLAGS)",
+					"-Wno-four-char-constants",
+				);
 			};
 			name = Development;
 		};
@@ -6339,6 +6301,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
+				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"OSTYPE=Darwin1.4",
+					"OSARCH=Darwin",
+					"MOZILLA_INTERNAL_API=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					../dist/include,
 					../dist/include/nspr,
@@ -6347,7 +6315,16 @@
 				);
 				INFOPLIST_FILE = "Info-DownloadsPrefPane.plist";
 				LIBRARY_SEARCH_PATHS = ../dist/lib;
+				OTHER_CFLAGS = "-fshort-wchar";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CPLUSPLUSFLAGS)",
+					"-Wno-non-virtual-dtor",
+				);
 				PRODUCT_NAME = Downloads;
+				WARNING_CFLAGS = (
+					"$(WARNING_CFLAGS)",
+					"-Wno-four-char-constants",
+				);
 			};
 			name = Deployment;
 		};
@@ -6355,6 +6332,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
+				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"OSTYPE=Darwin1.4",
+					"OSARCH=Darwin",
+					"MOZILLA_INTERNAL_API=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					../dist/include,
 					../dist/include/docshell,
@@ -6367,9 +6350,14 @@
 				INFOPLIST_FILE = "Info-HistoryPrefPane.plist";
 				LIBRARY_SEARCH_PATHS = ../dist/lib;
 				OTHER_CFLAGS = (
+					"-fshort-wchar",
 					"-DDEBUG",
 					"-DMOZ_DEBUG",
 					"-DTRACING",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CPLUSPLUSFLAGS)",
+					"-Wno-non-virtual-dtor",
 				);
 				PRODUCT_NAME = History;
 			};
@@ -6379,6 +6367,12 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
+				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"OSTYPE=Darwin1.4",
+					"OSARCH=Darwin",
+					"MOZILLA_INTERNAL_API=1",
+				);
 				HEADER_SEARCH_PATHS = (
 					../dist/include,
 					../dist/include/docshell,
@@ -6390,8 +6384,16 @@
 				);
 				INFOPLIST_FILE = "Info-HistoryPrefPane.plist";
 				LIBRARY_SEARCH_PATHS = ../dist/lib;
-				OTHER_CFLAGS = "";
+				OTHER_CFLAGS = "-fshort-wchar";
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CPLUSPLUSFLAGS)",
+					"-Wno-non-virtual-dtor",
+				);
 				PRODUCT_NAME = History;
+				WARNING_CFLAGS = (
+					"$(WARNING_CFLAGS)",
+					"-Wno-four-char-constants",
+				);
 			};
 			name = Deployment;
 		};
