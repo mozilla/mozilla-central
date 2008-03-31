@@ -80,8 +80,9 @@ extern NSString* const NSMenuClosedNotification;
 // the param should be the [NSNotification object]
 - (BOOL)isTargetOfMenuDisplayNotification:(id)inObject;
 
-// add command and shift-command alternate menu items with attributes matching the input param
-- (void)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem;
+// add command and shift-command alternate menu items with attributes matching
+// the input param. Returns the number of alternates added.
+- (int)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem;
 
 @end
 

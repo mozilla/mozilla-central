@@ -300,7 +300,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
   return ([inObject pointerValue] == _NSGetCarbonMenu(self));
 }
 
-- (void)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem
+- (int)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem
 {
   // Find the item we are adding alternates for. Since this is generally used
   // when building a menu, check the last item first as an optimization.
@@ -308,7 +308,7 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
   if (![[self itemAtIndex:itemIndex] isEqual:inMenuItem])
     itemIndex = [self indexOfItem:inMenuItem];
   if (itemIndex == -1)
-    return;
+    return 0;
 
   [inMenuItem setKeyEquivalentModifierMask:0]; // Needed since by default NSMenuItems have NSCommandKeyMask
 
@@ -335,6 +335,8 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
   [altMenuItem setImage:image];
   [self insertItem:altMenuItem atIndex:(itemIndex + 2)];
   [altMenuItem release];
+
+  return 2;
 }
 
 @end
