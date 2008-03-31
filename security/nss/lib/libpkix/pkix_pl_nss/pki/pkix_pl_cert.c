@@ -2968,6 +2968,8 @@ PKIX_PL_Cert_CheckValidity(
 {
         SECCertTimeValidity val;
         PRTime timeToCheck;
+        PKIX_Boolean allowOverride;
+        SECCertificateUsage requiredUsages;
 
         PKIX_ENTER(CERT, "PKIX_PL_Cert_CheckValidity");
         PKIX_NULLCHECK_ONE(cert);
@@ -2981,8 +2983,11 @@ PKIX_PL_Cert_CheckValidity(
                 timeToCheck = PR_Now();
         }
 
-        PKIX_CERT_DEBUG("\t\tCalling CERT_CheckCertValidTimes).\n");
-        val = CERT_CheckCertValidTimes(cert->nssCert, timeToCheck, PKIX_FALSE);
+        requiredUsages = ((PKIX_PL_NssContext*)plContext)->certificateUsage;
+        allowOverride =
+            (PRBool)((requiredUsages & certificateUsageSSLServer) ||
+                     (requiredUsages & certificateUsageSSLServerWithStepUp));
+        val = CERT_CheckCertValidTimes(cert->nssCert, timeToCheck, allowOverride);
         if (val != secCertTimeValid){
                 PKIX_ERROR(PKIX_CERTCHECKCERTVALIDTIMESFAILED);
         }
