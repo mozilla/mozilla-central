@@ -1772,6 +1772,31 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
 
 }
 
+void
+cert_pkixDestroyValOutParam(CERTValOutParam *params)
+{
+    CERTValOutParam *i;
+
+    if (params == NULL) {
+        return;
+    }
+    for (i = params; i->type != cert_po_end; i++) {
+        switch (i->type) {
+        case cert_po_trustAnchor:
+            if (i->value.pointer.cert) {
+                CERT_DestroyCertificate(i->value.pointer.cert);
+                i->value.pointer.cert = NULL;
+            }
+            break;
+
+        case cert_po_certList:
+            if (i->value.pointer.chain) {
+                CERT_DestroyCertList(i->value.pointer.chain);
+                i->value.pointer.chain = NULL;
+            }
+        }
+    }
+}
 
 static PRUint64 certRev_NSS_3_11_Ocsp_Enabled_Soft_Policy_LeafFlags[2] = {
   /* crl */
@@ -2198,9 +2223,9 @@ cleanup:
         SECErrorCodes         nssErrorCode = 0;
 
         cert_PkixErrorToNssCode(error, &nssErrorCode, plContext);
+        cert_pkixDestroyValOutParam(paramsOut);
         PORT_SetError(nssErrorCode);
         PKIX_PL_Object_DecRef((PKIX_PL_Object *)error, plContext);
-        /* XXX Destroy output params in case of error. See bug 425516. */
     }
 
     PKIX_PL_NssContext_Destroy(plContext);
