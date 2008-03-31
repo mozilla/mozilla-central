@@ -538,7 +538,7 @@ sub get_history {
          INNER JOIN test_builds tb ON tcr.build_id = tb.build_id
          INNER JOIN test_environments te ON tcr.environment_id = te.environment_id
          INNER JOIN test_case_run_status tcrs ON tcr.case_run_status_id = tcrs.case_run_status_id
-         INNER JOIN profiles p ON tcr.testedby = p.userid 
+         LEFT JOIN profiles p ON tcr.testedby = p.userid 
               WHERE case_id = ? AND run_id = ?", {'Slice' =>{}},
              ($self->{'case_id'}, $self->{'run_id'}));
 

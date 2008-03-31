@@ -565,7 +565,9 @@ Ext.extend(CaseCategoryCombo, Ext.form.ComboBox);
  * EnvironmentCombo
  */
 EnvironmentCombo = function(cfg){
-    cfg.params.viewall = 1;
+    if (cfg.params) {
+        cfg.params.viewall = 1;
+    }
     EnvironmentCombo.superclass.constructor.call(this,{
         id: cfg.id || 'environment_combo',
         store: cfg.transform ? false : new EnvironmentStore(cfg.params, cfg.mode == 'local'? true : false),

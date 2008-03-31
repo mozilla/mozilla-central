@@ -313,7 +313,7 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                         text: 'Edit',
                         menu: {
                              items: [{
-                                 text: 'Manger',
+                                 text: 'Manager',
                                  handler: function(){
                                    var win = new Ext.Window({
                                        title: 'Change Run Manager',
