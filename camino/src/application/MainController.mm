@@ -212,28 +212,12 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   mInitialized = flag;
 }
 
-// Shockwave for Director refuses to load if the host has no resource fork
-// (bug 151677), but AppleScript is confused by the presence of a rsrc file
-// that doesn't have an aete resource (bug 184449), so we set up a dummy
-// resource on the fly to placate Shockwave.
-// This is based on WebKit's solution for the same issue, which in turn
-// seems to be based on an older description of OmniWeb's workaround.
-- (void)initializeDummyResource
-{
-  short currentResourceFile = CurResFile();
-  UseResFile(kSystemResFile);
-  LMSetCurApRefNum(CurResFile());
-  UseResFile(currentResourceFile);
-}
-
 - (void)ensureInitializationCompleted
 {
   if ([self isInitialized])
     return;
 
   [self ensureGeckoInitted];
-
-  [self initializeDummyResource];
 
   // To work around bugs on Tiger caused by the view hookup order having been
   // changed from postfix to prefix order, we need to set a user default to
