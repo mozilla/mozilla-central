@@ -323,9 +323,9 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
 //
 // -writeBookmarksMetaDatatoPath:
 //
-// Writes out the meta data for this bookmark to a file with the name of this item's UUID
-// in the given path. Using the suffix "webbookmark" allows us to pick up on the Spotlight
-// importer already on Tiger for Safari.
+// Writes out the meta data for this bookmark to a file with the name of this
+// item's UUID in the given path. Using the suffix "webbookmark" allows us to
+// piggyback on Safari's bookmark Spotlight importer.
 //
 - (void)writeBookmarksMetadataToPath:(NSString*)inPath
 {

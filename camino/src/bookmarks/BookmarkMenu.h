@@ -66,6 +66,6 @@
 - (NSMenuItem*)itemBeforeCustomItems;
 
 // do an explicit rebuild
-- (void)rebuildMenuIncludingSubmenus:(BOOL)includeSubmenus withAlternates:(BOOL)includeAlternates;
+- (void)rebuildMenuIncludingSubmenus:(BOOL)includeSubmenus;
 
 @end

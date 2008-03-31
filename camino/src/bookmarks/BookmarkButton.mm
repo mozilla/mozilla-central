@@ -313,8 +313,7 @@
   [pboard setPropertyList:pointerArray forType:kCaminoBookmarkListPBoardType];
 
   // If the drag results in the bookmark button being (re)moved, it could get
-  // deallocated too soon.  This occurs with SDK >= 10.3, but not earlier.
-  // Change in cleanup strategy?  Hold on tight.
+  // deallocated too soon.
   [[self retain] autorelease];
   [self dragImage:[NSImage dragImageWithIcon:[self image]
                                        title:([item isSeparator] ? @"" : title)]

@@ -1960,12 +1960,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (NSMenu*)applicationDockMenu:(NSApplication*)sender
 {
-  // The OS check is needed because 10.3 can't handle alternates in dock menus.  Remove it (and the |withAlternates| params
-  // that exist to deal with it) once we're 10.4+
-  BOOL isTigerOrHigher = [NSWorkspace isTigerOrHigher];
-
   // the dock menu doesn't get the usual show notifications, so we rebuild it explicitly here
-  [mDockMenu rebuildMenuIncludingSubmenus:YES withAlternates:isTigerOrHigher];
+  [mDockMenu rebuildMenuIncludingSubmenus:YES];
   return mDockMenu;
 }
 

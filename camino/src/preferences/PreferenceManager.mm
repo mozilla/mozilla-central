@@ -78,21 +78,6 @@ NSString* const kPrefChangedPrefNameUserInfoKey = @"pref_name";
 static NSString* const AdBlockingChangedNotificationName = @"AdBlockingChanged";
 static NSString* const kFlashBlockChangedNotificationName = @"FlashBlockChanged";
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4
-// These are supposedly not available before the 10.4 SDK, but some of the
-// keys are present in the 10.3.9 SDK.   The feature is in 10.3.2 and later;
-// the strings were obtained by inspection.  Handle these as #undef/#define
-// to avoid bad interactions with what the SDK might have provided.  This is
-// in MAC_OS_X_VERSION_MIN_REQUIRED because the constants may externs, hence,
-// we're interested in the library version at runtime.
-#undef  kSCPropNetProxiesProxyAutoConfigEnable
-#define kSCPropNetProxiesProxyAutoConfigEnable    @"ProxyAutoConfigEnable"
-#undef  kSCPropNetProxiesProxyAutoConfigURLString
-#define kSCPropNetProxiesProxyAutoConfigURLString @"ProxyAutoConfigURLString"
-#undef  kSCPropNetProxiesProxyAutoDiscoveryEnable
-#define kSCPropNetProxiesProxyAutoDiscoveryEnable @"ProxyAutoDiscoveryEnable"
-#endif
-
 // This is an arbitrary version stamp that gets written to the prefs file.
 // It can be used to detect when a new version of Camino is run that needs
 // some prefs to be upgraded.
@@ -682,19 +667,10 @@ static BOOL gMadePrefManager;
                                      withSuccess:NULL];
     NSArray* languages = [[NSBundle mainBundle] localizations];
     NSString* currentLanguage = [[NSBundle preferredLocalizationsFromArray:languages] firstObject];
-    if (currentLanguage) {
-      // Once 10.4+, use +[NSLocale canonicalLocaleIdentifierFromString:]
-      CFStringRef canonicalLanguage =
-        CFLocaleCreateCanonicalLocaleIdentifierFromString(kCFAllocatorDefault,
-                                                          (CFStringRef)currentLanguage);
-      if (canonicalLanguage) {
-        currentLanguage = [NSString stringWithString:(NSString*)canonicalLanguage];
-        CFRelease(canonicalLanguage);
-      }
-    }
-    else {
+    if (currentLanguage)
+      currentLanguage = [NSLocale canonicalLocaleIdentifierFromString:currentLanguage];
+    else
       currentLanguage = @"en";
-    }
     manifestURL = [NSString stringWithFormat:@"%@?os=%@&arch=%@&version=%@&intl=%d&lang=%@",
                    baseURL,
                    [NSWorkspace osVersionString],

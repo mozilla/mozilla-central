@@ -98,11 +98,7 @@ static void GradientComputation(void* inInfo, float const* inData, float* outDat
   CGFunctionRef function = CGFunctionCreate(colors, 1, NULL, 4, NULL,
                                             &callbacks);
   
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_4
-  CGColorSpaceRef colorspace = CGColorSpaceCreateDeviceRGB();
-#else
   CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(kCGColorSpaceGenericRGB);
-#endif
   CGShadingRef shading = CGShadingCreateAxial(colorspace,
                                               startPoint,
                                               endPoint,

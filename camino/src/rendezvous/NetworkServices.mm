@@ -51,18 +51,6 @@
 #import "NetworkServices.h"
 
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-
-@interface NSNetService(PreTigerUtils)
-
-+ (NSDictionary *)dictionaryFromTXTRecordData:(NSData *)txtData;
-- (BOOL)setTXTRecordData:(NSData *)recordData;
-- (NSData *)TXTRecordData;
-
-@end
-
-#endif
-
 @class NSNetServiceBrowser;
 
 // client notifications
@@ -323,62 +311,19 @@ static inline u_int ns_get16(u_char* buffer)
           }
           
           NSString* path = @"";
-          // use the Tiger goodness if we can
-          if ([netService respondsToSelector:@selector(TXTRecordData)])
+          NSDictionary* TXTRecordDict = [NSNetService dictionaryFromTXTRecordData:[netService TXTRecordData]];
+          NSData* pathData = [TXTRecordDict objectForKey:@"path"];
+          if (pathData)
           {
-            NSDictionary* TXTRecordDict = [NSNetService dictionaryFromTXTRecordData:[netService TXTRecordData]];
-            NSData* pathData = [TXTRecordDict objectForKey:@"path"];
-            if (pathData)
-            {
-              unsigned int dataLen = [pathData length];
-              char* pathBuff = (char*)calloc(dataLen + 1, 1);
-              
-              [pathData getBytes:pathBuff length:dataLen];
-              pathBuff[dataLen] = '\0';
-              
-              path = [NSString stringWithUTF8String:pathBuff];
+            unsigned int dataLen = [pathData length];
+            char* pathBuff = (char*)calloc(dataLen + 1, 1);
+            
+            [pathData getBytes:pathBuff length:dataLen];
+            pathBuff[dataLen] = '\0';
+            
+            path = [NSString stringWithUTF8String:pathBuff];
 
-              free(pathBuff);
-            }
-          }
-          else
-          {
-            NSString* serviceTextRecord = [netService protocolSpecificInformation];
-            if (serviceTextRecord)
-            {
-              // The text record can contain a series of name/value pairs separated by '\1'.
-              // We need to search in there for a "path=" (case insensitive).
-              const char* serviceText = [serviceTextRecord cString];
-              const char* textPtr = serviceText;
-              const char* textEnd = textPtr + strlen(textPtr);
-              
-              char pathBuffer[1024 + 1];
-              pathBuffer[0] = '\0';
-              
-              BOOL chunkStart = YES;
-              while (textPtr < textEnd)
-              {
-                if (chunkStart && strncasecmp(textPtr, "path=", 5) == 0)
-                {
-                  const char* pathStart = textPtr;
-                  
-                  // find the end
-                  while (*textPtr && (*textPtr != '\1'))
-                    textPtr ++;
-                  
-                  int length = textPtr - pathStart;
-                  if (length > 1024)
-                    length = 1024;
-                  strncpy(pathBuffer, pathStart, length);
-                  pathBuffer[length] = '\0';
-                  break;
-                }
-                
-                chunkStart = (*textPtr == '\1');
-                textPtr ++;
-              }
-              path = [NSString stringWithUTF8String:pathBuffer];
-            }
+            free(pathBuff);
           }
           
           NSString* urlString = nil;

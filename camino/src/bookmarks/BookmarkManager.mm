@@ -90,22 +90,6 @@ enum {
   kHistoryContainerIndex = 2,
 };
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_4
-// These are only used for bookmark error logging on 10.4, but
-// we need them defined to keep the compiler happy on 10.3 SDKs
-enum {
-  NSAtomicWrite = 1
-};
-
-@interface NSData(TigerErrorLogging)
-- (BOOL)writeToFile:(NSString*)path options:(unsigned int)mask error:(NSError**)errorPtr;
-@end
-
-@interface NSError(TigerErrorLogging)
-- (NSString*)localizedFailureReason;
-@end
-#endif
-
 @interface BookmarkManager (Private)
 
 + (NSString*)canonicalBookmarkURL:(NSString*)inBookmarkURL;
@@ -1141,8 +1125,7 @@ static BookmarkManager* gBookmarkManager = nil;
     return;
 
   if ([bmItem isKindOfClass:[Bookmark class]]) {
-    if ([NSWorkspace supportsSpotlight])
-      [bmItem writeBookmarksMetadataToPath:mMetadataPath];
+    [bmItem writeBookmarksMetadataToPath:mMetadataPath];
 
     [self registerBookmarkForLoads:(Bookmark*)bmItem];
   }
@@ -1166,8 +1149,7 @@ static BookmarkManager* gBookmarkManager = nil;
     return;
 
   if ([bmItem isKindOfClass:[Bookmark class]]) {
-    if ([NSWorkspace supportsSpotlight])
-      [bmItem removeBookmarksMetadataFromPath:mMetadataPath];
+    [bmItem removeBookmarksMetadataFromPath:mMetadataPath];
 
     [self unregisterBookmarkForLoads:(Bookmark*)bmItem ignoringURL:YES];
   }
@@ -1192,7 +1174,7 @@ static BookmarkManager* gBookmarkManager = nil;
 
   if ([item isKindOfClass:[Bookmark class]]) {
     // update Spotlight metadata
-    if ([NSWorkspace supportsSpotlight] && (changeFlags & kBookmarkItemSignificantChangeFlagsMask))
+    if (changeFlags & kBookmarkItemSignificantChangeFlagsMask)
       [item writeBookmarksMetadataToPath:mMetadataPath];
 
     // and re-register in the maps if the url changed
@@ -1227,19 +1209,16 @@ static BookmarkManager* gBookmarkManager = nil;
 //
 // -writeBookmarksMetadataForSpotlight
 //
-// If we're running on Tiger, write out a flat list of all bookmarks in the caches folder
-// so that Spotlight can parse them. We don't need to write our own metadata plugin, we piggyback
-// the one that Safari uses which launches the default browser when selected. This blows
-// away any previous cache and ensures that everything is up-to-date.
+// Write out a flat list of all bookmarks in the caches folder so that Spotlight
+// can parse them. We don't need to write our own metadata plugin, we piggyback
+// the one that Safari uses which launches the default browser when selected.
+// This blows away any previous cache and ensures that everything is up-to-date.
 //
 // Note that this is called on a thread, so it takes pains to ensure that the data
 // it's working with won't be changing on the UI thread
 //
 - (void)writeBookmarksMetadataForSpotlight
 {
-  if (![NSWorkspace supportsSpotlight])
-    return;
-
   // XXX if we quit while this thread is still running, we'll end up with incomplete metadata
   // on disk, but it will get rebuilt on the next launch.
 
@@ -1958,28 +1937,23 @@ static BookmarkManager* gBookmarkManager = nil;
   }
 
   NSString* stdPath = [pathToFile stringByStandardizingPath];
-  // Use the more roundabout NSPropertyListSerialization/NSData method when possible
-  // for now to try to get useful error data for bug 337750
-  BOOL success;
-  if ([NSData instancesRespondToSelector:@selector(writeToFile:options:error:)]) {
-    NSString* errorString = nil;
-    NSData* bookmarkData = [NSPropertyListSerialization dataFromPropertyList:dict
-                                                                     format:NSPropertyListXMLFormat_v1_0
-                                                           errorDescription:&errorString];
-    if (!bookmarkData) {
-      NSLog(@"writePropertyListFile: dataFromPropertyList returned nil data: %@", errorString);
-      [errorString release];
-      return;
-    }
-    NSError* error = nil;
-    success = [bookmarkData writeToFile:stdPath options:NSAtomicWrite error:&error];
-    if (!success)
-      NSLog(@"writePropertyListFile: %@ (%@)",
-            [error localizedDescription], [error localizedFailureReason]);
+  // Use the more roundabout NSPropertyListSerialization/NSData method to try to
+  // get useful error data for bug 337750
+  NSString* errorString = nil;
+  NSData* bookmarkData = [NSPropertyListSerialization dataFromPropertyList:dict
+                                                                    format:NSPropertyListXMLFormat_v1_0
+                                                          errorDescription:&errorString];
+  if (!bookmarkData) {
+    NSLog(@"writePropertyListFile: dataFromPropertyList returned nil data: %@", errorString);
+    [errorString release];
+    return;
   }
-  else {
-    success = [dict writeToFile:stdPath atomically:YES];
-  }
+  NSError* error = nil;
+  BOOL success = [bookmarkData writeToFile:stdPath options:NSAtomicWrite error:&error];
+  if (!success)
+    NSLog(@"writePropertyListFile: %@ (%@)",
+          [error localizedDescription], [error localizedFailureReason]);
+
   if (!success)
     NSLog(@"writePropertyList: Failed to write file %@", pathToFile);
 }

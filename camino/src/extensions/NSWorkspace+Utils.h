@@ -59,9 +59,6 @@
 // OS feature checks
 + (NSString*)osVersionString;
 + (BOOL)isLeopardOrHigher;
-+ (BOOL)isTigerOrHigher;
-+ (BOOL)supportsSpotlight;
-+ (BOOL)supportsUnifiedToolbar;
 
 @end
 

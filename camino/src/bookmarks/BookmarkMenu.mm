@@ -57,7 +57,7 @@ const long kOpenInTabsTag = 0xBEEF;
 
 - (void)setupBookmarkMenu;
 - (void)menuWillBeDisplayed;
-- (void)appendBookmarkItem:(BookmarkItem *)inItem buildingSubmenus:(BOOL)buildSubmenus withAlternates:(BOOL)withAlternates;
+- (void)appendBookmarkItem:(BookmarkItem *)inItem buildingSubmenus:(BOOL)buildSubmenus;
 - (void)addLastItems;
 
 @end
@@ -148,10 +148,10 @@ const long kOpenInTabsTag = 0xBEEF;
 
 - (void)menuWillBeDisplayed
 {
-  [self rebuildMenuIncludingSubmenus:NO withAlternates:YES];
+  [self rebuildMenuIncludingSubmenus:NO];
 }
 
-- (void)rebuildMenuIncludingSubmenus:(BOOL)includeSubmenus withAlternates:(BOOL)includeAlternates
+- (void)rebuildMenuIncludingSubmenus:(BOOL)includeSubmenus
 {
   if (mDirty) {
     // remove everything after the "before" item
@@ -160,7 +160,7 @@ const long kOpenInTabsTag = 0xBEEF;
     NSEnumerator* childEnum = [[mFolder childArray] objectEnumerator];
     BookmarkItem* curItem;
     while ((curItem = [childEnum nextObject])) {
-      [self appendBookmarkItem:curItem buildingSubmenus:includeSubmenus withAlternates:includeAlternates];
+      [self appendBookmarkItem:curItem buildingSubmenus:includeSubmenus];
     }
 
     [self addLastItems];
@@ -172,13 +172,13 @@ const long kOpenInTabsTag = 0xBEEF;
     for (int i = firstCustomItemIndex; i < [self numberOfItems]; i++) {
       NSMenuItem* curItem = [self itemAtIndex:i];
       if ([curItem hasSubmenu] && [[curItem submenu] isKindOfClass:[BookmarkMenu class]]) {
-        [(BookmarkMenu*)[curItem submenu] rebuildMenuIncludingSubmenus:includeSubmenus withAlternates:includeAlternates];
+        [(BookmarkMenu*)[curItem submenu] rebuildMenuIncludingSubmenus:includeSubmenus];
       }
     }
   }
 }
 
-- (void)appendBookmarkItem:(BookmarkItem *)inItem buildingSubmenus:(BOOL)buildSubmenus withAlternates:(BOOL)withAlternates
+- (void)appendBookmarkItem:(BookmarkItem *)inItem buildingSubmenus:(BOOL)buildSubmenus
 {
   NSString *title = [[inItem title] stringByTruncatingTo:MENU_TRUNCATION_CHARS at:kTruncateAtMiddle];
   NSMenuItem *menuItem;
@@ -196,8 +196,7 @@ const long kOpenInTabsTag = 0xBEEF;
     [menuItem setAction:@selector(openMenuBookmark:)];
     [menuItem setImage:[inItem icon]];
 
-    if (withAlternates)
-      [self addCommandKeyAlternatesForMenuItem:menuItem];
+    [self addCommandKeyAlternatesForMenuItem:menuItem];
   }
   else if ([inItem isKindOfClass:[BookmarkFolder class]]) {
     BookmarkFolder* curFolder = (BookmarkFolder*)inItem;
@@ -207,7 +206,7 @@ const long kOpenInTabsTag = 0xBEEF;
       BookmarkMenu* subMenu = [[BookmarkMenu alloc] initWithTitle:title bookmarkFolder:curFolder];
       // if building "deep", build submenu; otherwise it will get built lazily on display
       if (buildSubmenus)
-        [subMenu rebuildMenuIncludingSubmenus:buildSubmenus withAlternates:withAlternates];
+        [subMenu rebuildMenuIncludingSubmenus:buildSubmenus];
 
       [menuItem setSubmenu:subMenu];
       [subMenu release];
@@ -217,8 +216,7 @@ const long kOpenInTabsTag = 0xBEEF;
       [menuItem setAction:@selector(openMenuBookmark:)];
       [menuItem setImage:[inItem icon]];
 
-      if (withAlternates)
-        [self addCommandKeyAlternatesForMenuItem:menuItem];
+      [self addCommandKeyAlternatesForMenuItem:menuItem];
     }
   }
 

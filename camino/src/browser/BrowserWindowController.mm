@@ -1855,8 +1855,8 @@ public:
   }
 }
 
-// Get the title's maximal width manually and truncate the title ourselves to work around
-// 10.3's crappy title truncation.  Also, this way we can middle-truncate, which 10.4 doesn't do
+// Get the title's maximal width manually and truncate the title ourselves so
+// that we can middle-truncate, which 10.4 doesn't do.
 - (void)updateWindowTitle:(NSString*)title
 {
   if (!title)
