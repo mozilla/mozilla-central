@@ -54,6 +54,9 @@
       <preference id="browser.chrome.favicons"
                   name="browser.chrome.favicons"
                   type="bool"/>
+      <preference id="browser.chrome.load_toolbar_icons"
+                  name="browser.chrome.load_toolbar_icons"
+                  type="int"/>
       <preference id="general.smoothScroll"
                   name="general.smoothScroll"
                   type="bool"/>
@@ -78,6 +81,22 @@
                 label="&useFavIcons.label;"
                 accesskey="&useFavIcons.accesskey;"
                 preference="browser.chrome.favicons"/>
+
+      <separator class="thin"/>
+      <description>&tbIconsDescription.label;</description>
+      <radiogroup id="loadToolbarIcons"
+                  class="indent"
+                  preference="browser.chrome.load_toolbar_icons">
+        <radio value="0"
+               label="&tbIconsNever.label;"
+               accesskey="&tbIconsNever.accesskey;"/>
+        <radio value="1"
+               label="&tbIconsCache.label;"
+               accesskey="&tbIconsCache.accesskey;"/>
+        <radio value="2"
+               label="&tbIconsAlways.label;"
+               accesskey="&tbIconsAlways.accesskey;"/>
+      </radiogroup>
     </groupbox>
 
     <separator class="thin"/>
