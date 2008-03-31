@@ -865,6 +865,30 @@ enum StatusPriority {
   [[mWindow delegate] onShowContextMenu:flags domEvent:aEvent domNode:aNode];
 }
 
+- (BOOL)performKeyEquivalent:(NSEvent*)theEvent
+{
+  // Catch Command-back/forward, and map them to history back/forward unless
+  // there is a text area or plugin focused in the Gecko view.
+  if (([theEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask ==
+       NSCommandKeyMask | NSNumericPadKeyMask | NSFunctionKeyMask) &&
+      !([mBrowserView isTextFieldFocused] || [mBrowserView isPluginFocused]))
+  {
+    NSString* characters = [theEvent charactersIgnoringModifiers];
+    if ([characters length] > 0) {
+      unichar keyChar = [characters characterAtIndex:0];
+      if (keyChar == NSLeftArrowFunctionKey) {
+        [mBrowserView goBack];
+        return YES;
+      }
+      else if (keyChar == NSRightArrowFunctionKey) {
+        [mBrowserView goForward];
+        return YES;
+      }
+    }
+  }
+  return [super performKeyEquivalent:theEvent];
+}
+
 // -deleteBackward:
 //
 // map backspace key to Back according to browser.backspace_action pref

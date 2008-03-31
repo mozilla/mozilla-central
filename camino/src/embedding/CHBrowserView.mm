@@ -80,6 +80,7 @@
 #include "nsIWebBrowserFocus.h"
 #include "nsIDOMNSDocument.h"
 #include "nsIDOMHTMLDocument.h"
+#include "nsIDOMNSHTMLDocument.h"
 #include "nsIDOMLocation.h"
 #include "nsIWebBrowserPersist.h"
 #include "nsIProperties.h"
@@ -1307,9 +1308,8 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
 // -isTextFieldFocused
 //
 // Determine if a text field in the content area has focus. Returns YES if the
-// focus is in a <input type="text"> or <textarea>
+// focus is in a <input type="text">, input type="password", or <textarea>
 //
-// XXX - should we be counting Midas here as well?
 - (BOOL)isTextFieldFocused
 {
   BOOL isFocused = NO;
@@ -1324,10 +1324,32 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     input->GetType(type);
     if (type == NS_LITERAL_STRING("text"))
       isFocused = YES;
+    if (type == NS_LITERAL_STRING("password"))
+      isFocused = YES;
   }
-  else if (textArea)
+  else if (textArea) {
     isFocused = YES;
-  
+  }
+  else { // check for Midas
+    nsCOMPtr<nsIFocusController> controller = dont_AddRef([self focusController]);
+    if (controller) {
+      nsCOMPtr<nsIDOMWindowInternal> winInternal;
+      controller->GetFocusedWindow(getter_AddRefs(winInternal));
+      nsCOMPtr<nsIDOMWindow> focusedWindow(do_QueryInterface(winInternal));
+      if (focusedWindow) {
+        nsCOMPtr<nsIDOMDocument> domDoc;
+        focusedWindow->GetDocument(getter_AddRefs(domDoc));
+        nsCOMPtr<nsIDOMNSHTMLDocument> htmlDoc(do_QueryInterface(domDoc));
+        if (htmlDoc) {
+          nsAutoString designMode;
+          htmlDoc->GetDesignMode(designMode);
+          if (designMode.EqualsLiteral("on"))
+            isFocused = YES;
+        }
+      }
+    }
+  }
+
   return isFocused;
 }
 

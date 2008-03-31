@@ -3287,18 +3287,6 @@ public:
     [self loadURL:frameURL];
 }
 
-// map command-left arrow to 'back'
-- (void)moveToBeginningOfLine:(id)sender
-{
-  [self back:sender];
-}
-
-// map command-right arrow to 'forward'
-- (void)moveToEndOfLine:(id)sender
-{
-  [self forward:sender];
-}
-
 //
 // -currentEditor:
 //
