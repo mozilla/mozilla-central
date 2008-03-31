@@ -869,8 +869,8 @@ enum StatusPriority {
 {
   // Catch Command-back/forward, and map them to history back/forward unless
   // there is a text area or plugin focused in the Gecko view.
-  if (([theEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask ==
-       NSCommandKeyMask | NSNumericPadKeyMask | NSFunctionKeyMask) &&
+  if ((([theEvent modifierFlags] & NSDeviceIndependentModifierFlagsMask) ==
+       (NSCommandKeyMask | NSNumericPadKeyMask | NSFunctionKeyMask)) &&
       !([mBrowserView isTextFieldFocused] || [mBrowserView isPluginFocused]))
   {
     NSString* characters = [theEvent charactersIgnoringModifiers];
