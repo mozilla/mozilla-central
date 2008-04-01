@@ -241,17 +241,6 @@
     { 0xa4, 0x49, 0xf7, 0x9a, 0xb1, 0xc7, 0xd8, 0xfc }}
 
 //
-// nsSmtpDelegateFactory
-//
-#define NS_SMTPDELEGATEFACTORY_CONTRACTID \
-  NS_RDF_DELEGATEFACTORY_CONTRACTID_PREFIX "smtpserver" "&scheme=smtp"
-
-// {0C612141-25FE-11d4-9A27-0010A4E03656}
-#define NS_SMTPDELEGATEFACTORY_CID \
-{ 0xc612141, 0x25fe, 0x11d4, \
- { 0x9a, 0x27, 0x0, 0x10, 0xa4, 0xe0, 0x36, 0x56 } }
-
-//
 // nsURLFetcher
 //
 #define NS_URLFETCHER_CONTRACTID  \

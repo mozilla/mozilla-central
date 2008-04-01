@@ -48,7 +48,6 @@
 
 #include "pratom.h"
 #include "nsMsgCompCID.h"
-#include "rdf.h"
 
 /* Include all of the interfaces our factory can generate components for */
 #include "nsMsgSendLater.h"
@@ -65,7 +64,6 @@
 #include "nsMsgQuote.h"
 #include "nsURLFetcher.h"
 #include "nsSmtpServer.h"
-#include "nsSmtpDelegateFactory.h"
 #include "nsMsgRecipientArray.h"
 #include "nsMsgCompUtils.h"
 
@@ -86,7 +84,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgQuoteListener)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMailtoUrl)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgRecipientArray)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsSmtpDelegateFactory)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsURLFetcher)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgCompUtils)
 
@@ -201,10 +198,6 @@ static const nsModuleComponentInfo components[] =
     NS_MSGRECIPIENTARRAY_CID,
     NS_MSGRECIPIENTARRAY_CONTRACTID,
     nsMsgRecipientArrayConstructor },
-  { "SMTP Delegate Factory",
-    NS_SMTPDELEGATEFACTORY_CID,
-    NS_SMTPDELEGATEFACTORY_CONTRACTID,
-    nsSmtpDelegateFactoryConstructor },
   { "URL Fetcher",
     NS_URLFETCHER_CID,
     NS_URLFETCHER_CONTRACTID,
