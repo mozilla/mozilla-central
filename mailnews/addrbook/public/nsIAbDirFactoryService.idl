@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -42,26 +42,21 @@
 
 interface nsIAbDirFactory;
 
-[scriptable, uuid(BE2075A8-1DD1-11B2-99BA-BCB9DB1D77CC)]
+[scriptable, uuid(154a951b-a310-400c-b98f-d769cc5d575f)]
 interface nsIAbDirFactoryService : nsISupports
 {
-    /**
-     * Obtain a directory factory component
-     * given a uri representing an address book
-     *
-     * The scheme is extracted from the uri and
-     * contract id is generated of the form:
-     * @mozilla.org/addressbook/directory-factory;1?type=<scheme>
-     * 
-     * This id is used to instantiate a registered
-     * component which implemented the nsIAbDirFactory
-     * interface
-     *
-     * @param uri
-     *        The uri which contains the scheme that
-     *        defines what directory factory instance
-     *        is returned
-     */
-    nsIAbDirFactory getDirFactory (in string uri);
+  /**
+   * Obtain a directory factory component given a uri representing an address
+   * book. The scheme is extracted from the uri and contract id is generated
+   * of the form:
+   * @mozilla.org/addressbook/directory-factory;1?type=<scheme>
+   * 
+   * This id is used to instantiate a registered component which implemented
+   * the nsIAbDirFactory interface.
+   *
+   * @param aURI  The uri which contains the scheme that defines what directory
+   *              factory instance is returned
+   */
+  nsIAbDirFactory getDirFactory(in ACString aURI);
 };
 

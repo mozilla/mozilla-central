@@ -83,8 +83,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
 		
   // Get the directory factory from the URI
   nsCOMPtr<nsIAbDirFactory> dirFactory;
-  rv = dirFactoryService->GetDirFactory(nsCString(aURI).get(),
-                                        getter_AddRefs(dirFactory));
+  rv = dirFactoryService->GetDirFactory(aURI, getter_AddRefs(dirFactory));
   NS_ENSURE_SUCCESS (rv, rv);
   
   // Create the directories
@@ -316,8 +315,8 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
       abManager->NotifyDirectoryDeleted(this, d);
 
     nsCOMPtr<nsIRDFResource> resource(do_QueryInterface (d, &rv));
-    const char* uri;
-    resource->GetValueConst(&uri);
+    nsCString uri;
+    resource->GetValueUTF8(uri);
 
     nsCOMPtr<nsIAbDirFactory> dirFactory;
     rv = dirFactoryService->GetDirFactory(uri, getter_AddRefs(dirFactory));

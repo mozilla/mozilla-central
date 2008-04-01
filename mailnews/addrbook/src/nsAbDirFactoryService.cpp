@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -62,32 +62,26 @@ nsAbDirFactoryService::~nsAbDirFactoryService()
 
 /* nsIAbDirFactory getDirFactory (in string uri); */
 NS_IMETHODIMP
-nsAbDirFactoryService::GetDirFactory(const char* aURI,
+nsAbDirFactoryService::GetDirFactory(const nsACString &aURI,
                                      nsIAbDirFactory** aDirFactory)
 {
-    nsresult rv;
+  NS_ENSURE_ARG_POINTER(aDirFactory);
 
-    NS_PRECONDITION(aURI != nsnull, "null ptr");
-    if (!aURI)
-        return NS_ERROR_NULL_POINTER;
+  nsresult rv;
 
-    NS_PRECONDITION(aDirFactory != nsnull, "null ptr");
-    if (!aDirFactory)
-        return NS_ERROR_NULL_POINTER;
-
-    // Obtain the network IO service
-    nsCOMPtr<nsIIOService> nsService = do_GetService (NS_IOSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+  // Obtain the network IO service
+  nsCOMPtr<nsIIOService> nsService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv,rv);
     
-    // Extract the scheme
-    nsCAutoString scheme;
-    rv = nsService->ExtractScheme (nsDependentCString(aURI), scheme);
-    NS_ENSURE_SUCCESS(rv,rv);
+  // Extract the scheme
+  nsCAutoString scheme;
+  rv = nsService->ExtractScheme(aURI, scheme);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // Try to find a factory using the component manager.
-    nsCAutoString contractID;
-    contractID.AppendLiteral(NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX);
-    contractID.Append(scheme);
+  // Try to find a factory using the component manager.
+  nsCAutoString contractID;
+  contractID.AssignLiteral(NS_AB_DIRECTORY_FACTORY_CONTRACTID_PREFIX);
+  contractID.Append(scheme);
 
-    return CallCreateInstance(contractID.get(), aDirFactory);
+  return CallCreateInstance(contractID.get(), aDirFactory);
 }
