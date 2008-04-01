@@ -354,7 +354,6 @@ nsMessengerOSXIntegration::OnItemEvent(nsIMsgFolder *, nsIAtom *)
 NS_IMETHODIMP
 nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIRDFResource *aItem, nsIAtom *aProperty, PRInt32 aOldValue, PRInt32 aNewValue)
 {
-  nsresult rv;
   // if we got new mail bounce the Dock icon and/or apply badge to Dock icon
   if (mBiffStateAtom == aProperty && mFoldersWithNewMail)
   {

@@ -162,7 +162,7 @@ Initialize(MimeObject *obj)
   if (NS_FAILED(rv) || !ssobj->innerScriptable)
     return -1;
   ssobj->buffer = new nsCString();
-  int status = ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
+  ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
   return 0;
 }
 

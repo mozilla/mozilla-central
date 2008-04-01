@@ -318,7 +318,6 @@ static int BeginVCard (MimeObject *obj)
 
 static int WriteOutVCard (MimeObject * aMimeObj, VObject* aVcard)
 {
-  int status = 0;
   BeginVCard (aMimeObj);
 
   GenerateVCardData(aMimeObj, aVcard);
@@ -448,7 +447,6 @@ static int OutputBasicVcard(MimeObject *aMimeObj, VObject *aVcard, nsACString& v
 
 static int OutputVcardAttribute(MimeObject *aMimeObj, VObject *aVcard, const char* id, nsACString& vCardOutput)
 {
-  int status = 0;
   VObject *prop = NULL;
   nsCAutoString string;
 

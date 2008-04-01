@@ -371,8 +371,6 @@ NS_IMETHODIMP nsAbRDFDataSource::AddObserver(nsIRDFObserver* observer)
     return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  nsresult rv;
-
   // Lock the whole method
   nsAutoLock lockGuard (mLock);
 

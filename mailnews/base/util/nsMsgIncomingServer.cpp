@@ -1402,6 +1402,7 @@ NS_IMETHODIMP nsMsgIncomingServer::SetDownloadSettings(nsIMsgDownloadSettings *s
   m_downloadSettings->GetDownloadByDate(&downloadByDate);
   m_downloadSettings->GetAgeLimitOfMsgsToDownload(&ageLimitOfMsgsToDownload);
   nsresult rv = SetBoolValue("downloadUnreadOnly", downloadUnreadOnly);
+  NS_ENSURE_SUCCESS(rv, rv);
   SetBoolValue("downloadByDate", downloadByDate);
   return SetIntValue("ageLimit", ageLimitOfMsgsToDownload);
 }

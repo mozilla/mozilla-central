@@ -3562,8 +3562,6 @@ nsMsgComposeAndSend::DeliverFileAsMail()
            do_GetService(NS_ABADDRESSCOLLECTER_CONTRACTID);
 
   PRBool collectAddresses = (collectOutgoingAddresses && addressCollecter);
-  PRBool forcePlainText = mCompFields->GetForcePlainText();
-  PRBool useMultipartAlternative = mCompFields->GetUseMultipartAlternative();
   PRUint32 sendFormat = nsIAbPreferMailFormat::unknown;
 
   // this code is not ready yet
@@ -3571,6 +3569,8 @@ nsMsgComposeAndSend::DeliverFileAsMail()
   // so for now, just pass in nsIAbPreferMailFormat::unknown
   // which will have no effect on the "prefers" attribute in the ab
 #if 0
+  PRBool forcePlainText = mCompFields->GetForcePlainText();
+  PRBool useMultipartAlternative = mCompFields->GetUseMultipartAlternative();
   // see GenericSendMessage() in MsgComposeCommands.js for the reverse logic
   // if we choose to send both (html and plain) remember html.
   if (forcePlainText && !useMultipartAlternative)

@@ -86,7 +86,7 @@ void nsMsgGroupView::InternalClose()
   if (m_db && (m_sortType == nsMsgViewSortType::byDate) || (m_sortType == nsMsgViewSortType::byReceived))
   {
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
-    nsresult rv = m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
+    m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
     if (dbFolderInfo)
     {
       PRUint32 expandFlags = 0;
@@ -97,11 +97,11 @@ void nsMsgGroupView::InternalClose()
         if (m_flags[i] & MSG_VIEW_FLAG_ISTHREAD && ! (m_flags[i] & MSG_FLAG_ELIDED))
         {
           nsCOMPtr <nsIMsgDBHdr> msgHdr;
-          nsresult rv = GetMsgHdrForViewIndex(i, getter_AddRefs(msgHdr));
+          GetMsgHdrForViewIndex(i, getter_AddRefs(msgHdr));
           if (msgHdr)
           {
             PRUint32 ageBucket;
-            rv = GetAgeBucketValue(msgHdr, &ageBucket, rcvDate);
+            nsresult rv = GetAgeBucketValue(msgHdr, &ageBucket, rcvDate);
             if (NS_SUCCEEDED(rv))
               expandFlags |=  1 << ageBucket;
           }
@@ -169,8 +169,6 @@ nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAge
     if ( !bGotConstants )
     {
       // seeds
-      PRInt64 secondsPerDay;
-
       LL_I2L  ( microSecondsPerSecond,  PR_USEC_PER_SEC );
       LL_UI2L ( secondsPerDay,          60 * 60 * 24 );
 
@@ -385,6 +383,7 @@ NS_IMETHODIMP nsMsgGroupView::OpenWithHdrs(nsISimpleEnumerator *aHeaders, nsMsgV
   {
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
     nsresult rv = m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
+    NS_ENSURE_SUCCESS(rv, rv);
     if (dbFolderInfo)
       dbFolderInfo->GetUint32Property("dateGroupFlags",  0, &expandFlags);
 

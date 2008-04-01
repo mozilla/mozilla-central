@@ -141,7 +141,6 @@ PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
   }
 
   // m_fH = UFile::CreateFile( oFile, kMacNoCreator, kMacTextFile);
-  PRBool  open = PR_FALSE;
         if (!m_outputStream)
         {
           nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(m_outputStream),

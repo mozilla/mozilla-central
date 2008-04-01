@@ -8238,7 +8238,6 @@ nsresult nsImapMockChannel::ReadFromMemCache(nsICacheEntryDescriptor *entry)
 {
   NS_ENSURE_ARG(entry);
 
-  PRUint32 annotationLength = 0;
   nsCString annotation;
   nsCAutoString entryKey;
   nsCAutoString contentType;

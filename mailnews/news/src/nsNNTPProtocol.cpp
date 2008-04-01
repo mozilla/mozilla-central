@@ -4527,7 +4527,7 @@ PRInt32 nsNNTPProtocol::ListPrettyNames()
   char outputBuffer[OUTPUT_BUFFER_SIZE];
   PRInt32 status = 0;
 
-  nsresult rv = m_newsFolder->GetRawName(group_name);
+  m_newsFolder->GetRawName(group_name);
   PR_snprintf(outputBuffer,
     OUTPUT_BUFFER_SIZE,
     "LIST PRETTYNAMES %.512s" CRLF,

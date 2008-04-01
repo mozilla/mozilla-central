@@ -4841,7 +4841,7 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
     // the server is specified as one where where we download msg bodies automatically.
     // Or if we autosyncing all offline folders.
     nsCOMPtr<nsIImapIncomingServer> imapServer;
-    nsresult rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+    GetImapIncomingServer(getter_AddRefs(imapServer));
 
     PRBool autoDownloadNewHeaders = PR_FALSE;
     PRBool autoSyncOfflineStores = PR_FALSE;

@@ -939,7 +939,6 @@ nsOfflineStoreCompactState::FinishCompact()
     // rename the copied folder to be the original folder 
   m_file->MoveToNative((nsIFile *) nsnull, leafName);
 
-  PRUnichar emptyStr = 0;
   ShowStatusMsg(EmptyString());
   if (m_compactAll)
     rv = CompactNextFolder();

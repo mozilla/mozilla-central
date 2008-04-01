@@ -114,13 +114,13 @@ NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFile *location)
 NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, PRBool *_retval)
 {
   NS_PRECONDITION( _retval != nsnull, "null ptr");
-  nsresult  rv;
 
   *_retval = PR_FALSE;
 
   // Get the settings file if it doesn't exist
   if (!m_pLocation) {
 #if defined(XP_WIN) || defined(XP_OS2)
+    nsresult  rv;
                 m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv)) {
       if (!nsEudoraWin32::FindSettingsFile(getter_AddRefs(m_pLocation))) {

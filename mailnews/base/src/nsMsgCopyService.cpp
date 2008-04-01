@@ -650,7 +650,6 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
     {
       // check if this copy request is done by making sure all the
       // sources have been processed.
-      nsCopySource* copySource = nsnull;
       PRInt32 sourceIndex, sourceCount;
       sourceCount = copyRequest->m_copySourceArray.Count();
       for (sourceIndex = 0; sourceIndex < sourceCount; sourceIndex++)
