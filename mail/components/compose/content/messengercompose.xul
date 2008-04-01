@@ -660,7 +660,7 @@
   </toolbox>
 
   <hbox flex="1">
-    <vbox id="sidebar-box" persist="sidebarVisible" hidden="true">
+    <vbox id="sidebar-box" persist="sidebarVisible width" hidden="true">
       <sidebarheader align="center">
         <label id="sidebar-title" value="&addressesSidebarTitle.label;"/>
         <spacer flex="1"/>
