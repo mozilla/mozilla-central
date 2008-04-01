@@ -476,3 +476,13 @@
 
 /* Auto-Update */
 "AutoUpdateDisabledToolTip" = "Automatic updates are available in official builds";
+
+/* Protocol Handling */
+"UnknownContentHandler" = "Unknown Application";
+"OpenExternalHandlerTitle" = "Open this link with “%@”?";
+"OpenExternalHandlerText" = "Camino cannot open “%@” links. Do you want to open this link with the application “%@”?";
+"OpenExternalHandlerRemember" = "Always open “%@” links without asking";
+"OpenExternalHandlerOpenButon" = "Open with “%@”";
+"OpenExternalHandlerCancelButton" = "Don’t Open";
+"NoExternalHandlerTitle" = "Unknown link type";
+"NoExternalHandlerText" = "Camino cannot open “%@” links, and there are no applications installed that can open “%@” links.";
