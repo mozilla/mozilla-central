@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -39,18 +40,17 @@
 #include "nsMsgFolderCacheElement.h"
 #include "prmem.h"
 #include "nsISupportsObsolete.h"
+#include "mozIStorageStatement.h"
 
-nsMsgFolderCacheElement::nsMsgFolderCacheElement()
+nsMsgFolderCacheElement::nsMsgFolderCacheElement(mozIStorageConnection *connection,
+                                                 const nsACString &key)
+: m_dbConnection(connection),
+  m_folderKey(key)
 {
-  m_mdbRow = nsnull;
-  m_owningCache = nsnull;
 }
 
 nsMsgFolderCacheElement::~nsMsgFolderCacheElement()
 {
-  NS_IF_RELEASE(m_mdbRow);
-  // circular reference, don't do it.
-  // NS_IF_RELEASE(m_owningCache);
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgFolderCacheElement, nsIMsgFolderCacheElement)
@@ -67,94 +67,92 @@ NS_IMETHODIMP nsMsgFolderCacheElement::SetKey(const nsACString& aFolderKey)
   return NS_OK;
 }
 
-void nsMsgFolderCacheElement::SetOwningCache(nsMsgFolderCache *owningCache)
-{
-  m_owningCache = owningCache;
-  // circular reference, don't do it.
-  //  if (owningCache)
-  //    NS_ADDREF(owningCache);
-}
-
 NS_IMETHODIMP nsMsgFolderCacheElement::GetStringProperty(const char *propertyName, nsACString& result)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  NS_ENSURE_TRUE(m_mdbRow && m_owningCache, NS_ERROR_FAILURE);
+  PRBool connReady;
+  m_dbConnection->GetConnectionReady(&connReady);
+  NS_ASSERTION(connReady, "The database was already closed!");
 
-  mdb_token property_token;
-  nsresult ret = m_owningCache->GetStore()->StringToToken(m_owningCache->GetEnv(),  propertyName, &property_token);
-  if (NS_SUCCEEDED(ret))
-    ret = m_owningCache->RowCellColumnToCharPtr(m_mdbRow, property_token, result);
-  return ret;
+  nsCOMPtr<mozIStorageStatement> statement;
+  nsresult rv = m_dbConnection->CreateStatement(NS_LITERAL_CSTRING(
+        "SELECT value FROM entries WHERE folderKey=?1 AND propertyName=?2"),
+      getter_AddRefs(statement));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = statement->BindUTF8StringParameter(0, m_folderKey);
+  NS_ENSURE_SUCCESS(rv,rv);
+  rv = statement->BindUTF8StringParameter(1, nsDependentCString(propertyName));
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  PRBool hasKey;
+  rv = statement->ExecuteStep(&hasKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (hasKey)
+    return statement->GetUTF8String(0, result);
+
+  result.Truncate();
+  return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsMsgFolderCacheElement::GetInt32Property(const char *propertyName, PRInt32 *aResult)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
   NS_ENSURE_ARG_POINTER(aResult);
-  NS_ENSURE_TRUE(m_mdbRow, NS_ERROR_FAILURE);
 
-  nsCString resultStr;
+  nsCAutoString resultStr;
   GetStringProperty(propertyName, resultStr);
   if (resultStr.IsEmpty())
     return NS_ERROR_FAILURE;
 
-  PRInt32 result = 0;
-  for (PRUint32 index = 0; index < resultStr.Length(); index++)
-  {
-    char C = resultStr.CharAt(index);
-    PRInt8 unhex = ((C >= '0' && C <= '9') ? C - '0' :
-    ((C >= 'A' && C <= 'F') ? C - 'A' + 10 :
-     ((C >= 'a' && C <= 'f') ? C - 'a' + 10 : -1)));
-    if (unhex < 0)
-      break;
-    result = (result << 4) | unhex;
-  }
-  *aResult = result;
-  return NS_OK;
+  // eww, ToInteger wants a PRInt32 whereas nsresult is a PRUint32...
+  PRInt32 err;
+  *aResult = resultStr.ToInteger(&err);
+  return err;
 }
 
 NS_IMETHODIMP nsMsgFolderCacheElement::SetStringProperty(const char *propertyName, const nsACString& propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  NS_ENSURE_TRUE(m_mdbRow, NS_ERROR_FAILURE);
-  nsresult rv = NS_OK;
-  mdb_token property_token;
+  PRBool connReady;
+  m_dbConnection->GetConnectionReady(&connReady);
+  NS_ASSERTION(connReady, "The database was already closed!");
 
-  if (m_owningCache)
+  nsCOMPtr<mozIStorageStatement> statement;
+
+  // Find the current property value
+  nsCString currentValue;
+  nsresult rv = GetStringProperty(propertyName, currentValue);
+  // Update it if it exists...
+  if (NS_SUCCEEDED(rv))
   {
-    rv = m_owningCache->GetStore()->StringToToken(m_owningCache->GetEnv(), propertyName, &property_token);
-    if (NS_SUCCEEDED(rv))
-    {
-      struct mdbYarn yarn;
-
-      yarn.mYarn_Grow = NULL;
-      if (m_mdbRow)
-      {
-        nsCString propertyVal (propertyValue);
-        yarn.mYarn_Buf = (void *) propertyVal.get();
-        yarn.mYarn_Size = strlen((const char *) yarn.mYarn_Buf) + 1;
-        yarn.mYarn_Fill = yarn.mYarn_Size - 1;
-        yarn.mYarn_Form = 0; // what to do with this? we're storing csid in the msg hdr...
-        rv = m_mdbRow->AddColumn(m_owningCache->GetEnv(), property_token, &yarn);
-        return rv;
-      }
-    }
+    // Commented out to prevent large spamming of output.
+    //NS_ASSERTION(!currentValue.Equals(propertyValue), "Should only set non-equal values");
+    if (currentValue.Equals(propertyValue))
+      return NS_OK;
+    rv = m_dbConnection->CreateStatement(NS_LITERAL_CSTRING(
+        "UPDATE entries SET value=?3 WHERE folderKey=?1 AND propertyName=?2"),
+      getter_AddRefs(statement));
   }
-  return rv;
+  else
+    rv = m_dbConnection->CreateStatement(NS_LITERAL_CSTRING(
+        "INSERT INTO entries VALUES (?1, ?2, ?3)"), getter_AddRefs(statement));
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = statement->BindUTF8StringParameter(0, m_folderKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = statement->BindUTF8StringParameter(1, nsCString(propertyName));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = statement->BindUTF8StringParameter(2, propertyValue);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = statement->Execute();
+  NS_ENSURE_SUCCESS(rv, rv);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFolderCacheElement::SetInt32Property(const char *propertyName, PRInt32 propertyValue)
 {
   NS_ENSURE_ARG_POINTER(propertyName);
-  NS_ENSURE_TRUE(m_mdbRow, NS_ERROR_FAILURE);
   nsCAutoString propertyStr;
-  propertyStr.AppendInt(propertyValue, 16);
+  propertyStr.AppendInt(propertyValue, 10);
   return SetStringProperty(propertyName, propertyStr);
-}
-
-void nsMsgFolderCacheElement::SetMDBRow(nsIMdbRow *row)
-{
-  if (m_mdbRow)
-    NS_RELEASE(m_mdbRow);
-  NS_IF_ADDREF(m_mdbRow = row);
 }

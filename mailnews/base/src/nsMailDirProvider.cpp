@@ -50,7 +50,7 @@
 #define MAIL_DIR_50_NAME             "Mail"
 #define IMAP_MAIL_DIR_50_NAME        "ImapMail"
 #define NEWS_DIR_50_NAME             "News"
-#define MSG_FOLDER_CACHE_DIR_50_NAME "panacea.dat"
+#define MSG_FOLDER_CACHE_DIR_50_NAME "msgFolderCache.sqlite"
 
 nsresult
 nsMailDirProvider::EnsureDirectory(nsIFile *aDirectory)

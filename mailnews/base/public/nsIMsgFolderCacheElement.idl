@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,12 +39,61 @@
 
 #include "nsISupports.idl"
 
+/**
+ * An element of the folder cache.
+ *
+ * By convention, a separate element is used for each .msf file in the account
+ * manager.
+ *
+ * Since the folder cache is expected to be backed by a database, each method
+ * of this cache element (the key excluded) may throw a database-based error.
+ */
 [scriptable, uuid(D7ED2508-A608-46cd-AA01-FBB019B0FA44)]
 interface nsIMsgFolderCacheElement : nsISupports 
 {
+  /**
+   * The key of this element.
+   *
+   * By convention, this key is the name and path of the summary file that this
+   * cache element represents.
+   */
   attribute ACString key;
+  /**
+   * Gets a string for the named property.
+   *
+   * @param propertyName  The name of the property to get.
+   * @return              The property value, or "" if it does not exist.
+   *
+   * @throws NS_ERROR_NULL_POINTER if propertyName is null.
+   * @throws NS_ERROR_FAILURE      if the property does not exist.
+   */
   ACString getStringProperty(in string propertyName);
+  /**
+   * Gets a long for the named property.
+   *
+   * @param propertyName  The name of the property to get.
+   * @return              The property value, or 0 if it does not exist.
+   *
+   * @throws NS_ERROR_NULL_POINTER if propertyName is null.
+   * @throws NS_ERROR_FAILURE      if the property does not exist.
+   */
   long getInt32Property(in string propertyName);
+  /**
+   * Sets the named property.
+   *
+   * @param propertyValue The new value of the property to set.
+   * @param propertyName  The name of the property to set.
+   *
+   * @throws NS_ERROR_NULL_POINTER if propertyName is null.
+   */
   void setStringProperty(in string propertyName, in ACString propertyValue);
+  /**
+   * Sets the named property.
+   *
+   * @param propertyValue The new value of the property to set.
+   * @param propertyName  The name of the property to set.
+   *
+   * @throws NS_ERROR_NULL_POINTER if propertyName is null.
+   */
   void setInt32Property(in string propertyName, in long propertyValue);
 };
