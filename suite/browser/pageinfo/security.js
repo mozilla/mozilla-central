@@ -69,9 +69,11 @@ var security = {
     var isBroken = false;
     if (ui) {
       isBroken = (ui.state == Components.interfaces.nsIWebProgressListener.STATE_IS_BROKEN);
-      sp = ui.QueryInterface(nsISSLStatusProvider);
-      if (sp)
-        status = sp.SSLStatus;
+      if (!(ui.state & Components.interfaces.nsIWebProgressListener.STATE_IS_INSECURE)) {
+        sp = ui.QueryInterface(nsISSLStatusProvider);
+        if (sp)
+          status = sp.SSLStatus;
+      }
     }
     if (status) {
       status = status.QueryInterface(nsISSLStatus);
