@@ -146,12 +146,6 @@ NS_IMETHODIMP nsAbMDBDirProperty::AddDirectory(const char *uriName, nsIAbDirecto
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-/* string getDirUri (); */
-NS_IMETHODIMP nsAbMDBDirProperty::GetDirUri(char **_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 /* [noscript] void removeElementsFromAddressList (); */
 NS_IMETHODIMP nsAbMDBDirProperty::RemoveElementsFromAddressList()
 {

@@ -83,7 +83,6 @@ public:
   NS_IMETHOD RemoveElementsFromAddressList();
   NS_IMETHOD RemoveEmailAddressAt(PRUint32 aIndex);
   NS_IMETHOD AddDirectory(const char *uriName, nsIAbDirectory **childDir);
-  NS_IMETHOD GetDirUri(char **uri);
   NS_IMETHOD GetDatabaseFile(nsILocalFile **aResult);
   NS_IMETHOD GetDatabase(nsIAddrDatabase **aResult);
   NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,

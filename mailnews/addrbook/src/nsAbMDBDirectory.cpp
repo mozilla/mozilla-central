@@ -361,19 +361,6 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::GetDirUri(char **uri)
-{
-  NS_ENSURE_ARG_POINTER(uri);
-  NS_ASSERTION(!mURI.IsEmpty(), "Not initialized?");
-
-  *uri = ToNewCString(mURI);
-
-  if (!*uri)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsAbMDBDirectory::GetDatabaseFile(nsILocalFile **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);

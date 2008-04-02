@@ -4241,11 +4241,8 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
           if (NS_SUCCEEDED(directory->GetIsMailList(&bIsMailList)) && bIsMailList)
             continue;
 
-          nsCOMPtr<nsIRDFResource> source(do_QueryInterface(directory));
-
           nsCString uri;
-          // rv = directory->GetDirUri(getter_Copies(uri));
-          rv = source->GetValue(getter_Copies(uri));
+          rv = directory->GetURI(uri);
           NS_ENSURE_SUCCESS(rv, rv);
 
           PRInt32 pos;

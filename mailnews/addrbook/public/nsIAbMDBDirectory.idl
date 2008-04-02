@@ -48,16 +48,13 @@ interface nsIAddrDatabase;
 #define kMDBDirectoryRootLen       21
 %}
 
-[scriptable, uuid(12d379c8-d4e5-41ea-91bb-7bb51d728164)]
+[scriptable, uuid(705a6b63-118c-402d-a835-b07347de5a53)]
 interface nsIAbMDBDirectory : nsISupports {
 
 	// Creates an RDF directory component from the
 	// uriName, adds it to its children and returns
 	// the component
 	nsIAbDirectory addDirectory(in string uriName);
-
-	// This just returns the uri on the RDF resource
-	string getDirUri();
 
   /**
    * Supplies a nsILocalFile point to the database file for this directory

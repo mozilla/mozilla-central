@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -69,6 +69,7 @@
 #include "nsIFileStreams.h"
 #include "nsUnicharUtils.h"
 #include "nsIAbCard.h"
+#include "nsIAbDirectory.h"
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
 //---------------------------------------------------------------------------
@@ -867,10 +868,16 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
 
   if (mDirectory)
   {
-    nsCString dirURI;
-    mDirectory->GetDirUri(getter_Copies(dirURI));
-    if (strcmp(dirURI.get(), m_value.string))
-      mDirectory = nsnull; // clear out the directory....we are no longer pointing to the right one
+    nsCOMPtr<nsIAbDirectory> dir(do_QueryInterface(mDirectory, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCString uri;
+    rv = dir->GetURI(uri);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (uri.Equals(m_value.string))
+      // clear out the directory....we are no longer pointing to the right one
+      mDirectory = nsnull;
   }
   if (!mDirectory)
   {
