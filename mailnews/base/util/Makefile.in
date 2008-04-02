@@ -100,7 +100,6 @@ CPPSRCS		= \
 		nsMsgMailNewsUrl.cpp \
 		nsMsgTxn.cpp \
 		nsMsgI18N.cpp \
-		nsAdapterEnumerator.cpp \
 		nsImapMoveCoalescer.cpp \
                 nsMsgFileStream.cpp \
 		$(NULL)
@@ -116,7 +115,6 @@ EXPORTS		= \
 		nsMsgMailNewsUrl.h \
 		nsMsgTxn.h \
 		nsMsgI18N.h \
-		nsAdapterEnumerator.h \
 		nsImapMoveCoalescer.h \
 		$(NULL)
 

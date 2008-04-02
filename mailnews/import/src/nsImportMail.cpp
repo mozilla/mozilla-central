@@ -757,7 +757,7 @@ ImportMailThread( void *stuff)
   nsCOMPtr<nsIMsgFolder>          newFolder;
   nsCOMPtr<nsILocalFile>          outBox;
   nsCOMPtr<nsISupports>           subFolder;
-  nsCOMPtr<nsIEnumerator>     enumerator;
+  nsCOMPtr<nsISimpleEnumerator>   enumerator;
 
   PRBool            exists;
 
@@ -1042,7 +1042,7 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
     if (localRootFolder) {
       // we need to call GetSubFolders() so that the folders get initialized
       // if they are not initialized yet.
-      nsCOMPtr <nsIEnumerator> aEnumerator;
+      nsCOMPtr<nsISimpleEnumerator> aEnumerator;
       rv = localRootFolder->GetSubFolders(getter_AddRefs(aEnumerator));
       if (NS_SUCCEEDED(rv)) {
         // check if the folder name we picked already exists.

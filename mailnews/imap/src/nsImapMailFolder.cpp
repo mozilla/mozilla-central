@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -569,10 +569,13 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsIEnumerator* *result)
+// XXX When GetSubFoldersObsolete goes away (bug 420614), this can be merged
+// into GetSubFolders (see also note at return statement).
+nsresult nsImapMailFolder::GetSubFoldersMain()
 {
   PRBool isServer;
   nsresult rv = GetIsServer(&isServer);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (!m_initialized)
   {
@@ -616,7 +619,28 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsIEnumerator* *result)
     UpdateSummaryTotals(PR_FALSE);
     if (NS_FAILED(rv)) return rv;
   }
-  return mSubFolders->Enumerate(result);
+  // XXX When GetSubFoldersObsolete goes away, this return can be replaced by:
+  // return NS_NewArrayEnumerator(aResult, mSubFolders);
+  return rv;
+}
+
+NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
+{
+  nsresult rv = GetSubFoldersMain();
+  if (NS_FAILED(rv))
+    return rv;
+
+  return NS_NewArrayEnumerator(aResult, mSubFolders);
+}
+
+// XXX GetSubFoldersObsolete will be going away soon (bug 420614)
+NS_IMETHODIMP nsImapMailFolder::GetSubFoldersObsolete(nsIEnumerator **aResult)
+{
+  nsresult rv = GetSubFoldersMain();
+  if (NS_FAILED(rv))
+    return rv;
+
+  return mSubFolders->Enumerate(aResult);
 }
 
 //Makes sure the database is open and exists.  If the database is valid then
@@ -1285,12 +1309,12 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
     rv = trashFolder->GetHasSubFolders(&hasSubfolders);
     if (hasSubfolders)
     {
-      nsCOMPtr<nsIEnumerator> aEnumerator;
+      nsCOMPtr<nsIEnumerator> enumerator;
       nsCOMPtr<nsISupports> aSupport;
       nsCOMPtr<nsIMsgFolder> aFolder;
       nsCOMPtr<nsISupportsArray> aSupportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
       NS_ENSURE_TRUE(aSupportsArray, rv);
-      rv = trashFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+      rv = trashFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
       PRBool confirmDeletion;
       nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
       NS_ENSURE_SUCCESS(rv, rv);
@@ -1311,11 +1335,11 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
         }
         rv = IMAPGetStringBundle(getter_AddRefs(bundle));
         NS_ENSURE_SUCCESS(rv, rv);
-        rv = aEnumerator->First();
+        rv = enumerator->First();
         while(NS_SUCCEEDED(rv))
         {
           PRInt32 dlgResult  = -1;
-          rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+          rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
           if (confirmDeletion)
           {
             nsString confirmText;
@@ -1336,7 +1360,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
           {
             if (dlgResult == 1)
               return NS_BINDING_ABORTED;
-            rv = aEnumerator->Next();
+            rv = enumerator->Next();
           }
         }
       }
@@ -1354,18 +1378,18 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
       return rv;
     if (hasSubfolders)
     {
-      nsCOMPtr<nsIEnumerator> aEnumerator;
+      nsCOMPtr<nsIEnumerator> enumerator;
       nsCOMPtr<nsISupports> aSupport;
       nsCOMPtr<nsIMsgFolder> aFolder;
       nsCOMPtr<nsISupportsArray> aSupportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
       NS_ENSURE_TRUE(aSupportsArray, rv);
-      rv = trashFolder->GetSubFolders(getter_AddRefs(aEnumerator));
-      rv = aEnumerator->First();
+      rv = trashFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
+      rv = enumerator->First();
       while(NS_SUCCEEDED(rv))
       {
-        aEnumerator->CurrentItem(getter_AddRefs(aSupport));
-                                 aSupportsArray->AppendElement(aSupport);
-        rv = aEnumerator->Next();
+        enumerator->CurrentItem(getter_AddRefs(aSupport));
+        aSupportsArray->AppendElement(aSupport);
+        rv = enumerator->Next();
       }
       PRUint32 cnt = 0;
       aSupportsArray->Count(&cnt);
@@ -2000,7 +2024,6 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsISupportsArray *messages,
                                                PRBool allowUndo)
 {
   // *** jt - assuming delete is move to the trash folder for now
-  nsCOMPtr<nsIEnumerator> aEnumerator;
   nsCOMPtr<nsIRDFResource> res;
   nsCAutoString uri;
   PRBool deleteImmediatelyNoTrash = PR_FALSE;
@@ -7072,19 +7095,19 @@ NS_IMETHODIMP nsImapMailFolder::ResetNamespaceReferences()
   m_folderIsNamespace = m_namespace ? nsIMAPNamespaceList::GetFolderIsNamespace(serverKey.get(), onlineName.get(), 
                                                                                 (char) hierarchyDelimiter, m_namespace) : PR_FALSE;
 
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  GetSubFolders(getter_AddRefs(aEnumerator));
-  if (!aEnumerator)
+  nsCOMPtr<nsIEnumerator> enumerator;
+  GetSubFoldersObsolete(getter_AddRefs(enumerator));
+  if (!enumerator)
     return NS_OK;
   nsCOMPtr<nsISupports> aSupport;
-  nsresult rv = aEnumerator->First();
+  nsresult rv = enumerator->First();
   while (NS_SUCCEEDED(rv))
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+    rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
     nsCOMPtr<nsIMsgImapMailFolder> folder = do_QueryInterface(aSupport, &rv);
     if (NS_FAILED(rv)) return rv;
     folder->ResetNamespaceReferences();
-    rv = aEnumerator->Next();
+    rv = enumerator->Next();
   }
   return rv;
 }
@@ -7098,21 +7121,21 @@ NS_IMETHODIMP nsImapMailFolder::FindOnlineSubFolder(const nsACString& targetOnli
 
   if (onlineName.Equals(targetOnlineName))
     return QueryInterface(NS_GET_IID(nsIMsgImapMailFolder), (void **) aResultFolder);
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  GetSubFolders(getter_AddRefs(aEnumerator));
-  if (!aEnumerator)
+  nsCOMPtr<nsIEnumerator> enumerator;
+  GetSubFoldersObsolete(getter_AddRefs(enumerator));
+  if (!enumerator)
     return NS_OK;
   nsCOMPtr<nsISupports> aSupport;
-  rv = aEnumerator->First();
+  rv = enumerator->First();
   while (NS_SUCCEEDED(rv))
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+    rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
     nsCOMPtr<nsIMsgImapMailFolder> folder = do_QueryInterface(aSupport, &rv);
     if (NS_FAILED(rv)) return rv;
     rv = folder->FindOnlineSubFolder(targetOnlineName, aResultFolder);
     if (*aResultFolder)
      return rv;
-    rv = aEnumerator->Next();
+    rv = enumerator->Next();
   }
   return rv;
 }
@@ -7298,13 +7321,13 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
 {
   nsresult rv = NS_OK;
   m_initialized = PR_TRUE;
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  oldFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsIEnumerator> enumerator;
+  oldFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
   nsCOMPtr<nsISupports> aSupport;
-  rv = aEnumerator->First();
+  rv = enumerator->First();
   while (NS_SUCCEEDED(rv))
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+    rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
 
     nsCOMPtr<nsIMsgFolder>msgFolder = do_QueryInterface(aSupport);
     nsCOMPtr<nsIMsgImapMailFolder> folder = do_QueryInterface(msgFolder, &rv);
@@ -7378,7 +7401,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsg
        msgFolder->AlertFilterChanged(msgWindow);
      child->RenameSubFolders(msgWindow, msgFolder);
     }
-    rv = aEnumerator->Next();
+    rv = enumerator->Next();
   }
   return rv;
 }

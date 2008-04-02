@@ -1573,20 +1573,17 @@ nsresult nsImapIncomingServer::DeleteNonVerifiedFolders(nsIMsgFolder *curFolder)
   if (NS_SUCCEEDED(rv))
     prefBranch->GetBoolPref("mail.imap.auto_unsubscribe_from_noselect_folders", &autoUnsubscribeFromNoSelectFolders);
 
-  nsCOMPtr<nsIEnumerator> subFolders;
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
 
   rv = curFolder->GetSubFolders(getter_AddRefs(subFolders));
   if(NS_SUCCEEDED(rv))
   {
-    nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-    if (simpleEnumerator == nsnull)
-      return NS_ERROR_OUT_OF_MEMORY;
     PRBool moreFolders;
 
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders)
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) && moreFolders)
     {
       nsCOMPtr<nsISupports> child;
-      rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+      rv = subFolders->GetNext(getter_AddRefs(child));
       if (NS_SUCCEEDED(rv) && child)
       {
         PRBool childVerified = PR_FALSE;
@@ -1620,7 +1617,6 @@ nsresult nsImapIncomingServer::DeleteNonVerifiedFolders(nsIMsgFolder *curFolder)
         }
       }
     }
-    delete simpleEnumerator;
   }
 
   nsCOMPtr<nsIMsgFolder> parent;
@@ -1639,19 +1635,16 @@ nsresult nsImapIncomingServer::DeleteNonVerifiedFolders(nsIMsgFolder *curFolder)
 PRBool nsImapIncomingServer::NoDescendentsAreVerified(nsIMsgFolder *parentFolder)
 {
   PRBool nobodyIsVerified = PR_TRUE;
-  nsCOMPtr<nsIEnumerator> subFolders;
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
   nsresult rv = parentFolder->GetSubFolders(getter_AddRefs(subFolders));
   if(NS_SUCCEEDED(rv))
   {
-    nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-    if (simpleEnumerator == nsnull)
-      return NS_ERROR_OUT_OF_MEMORY;
-
     PRBool moreFolders;
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders && nobodyIsVerified)
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) &&
+           moreFolders && nobodyIsVerified)
     {
       nsCOMPtr<nsISupports> child;
-      rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+      rv = subFolders->GetNext(getter_AddRefs(child));
       if (NS_SUCCEEDED(rv) && child)
       {
         PRBool childVerified = PR_FALSE;
@@ -1664,7 +1657,6 @@ PRBool nsImapIncomingServer::NoDescendentsAreVerified(nsIMsgFolder *parentFolder
         }
       }
     }
-    delete simpleEnumerator;
   }
   return nobodyIsVerified;
 }
@@ -1673,19 +1665,16 @@ PRBool nsImapIncomingServer::NoDescendentsAreVerified(nsIMsgFolder *parentFolder
 PRBool nsImapIncomingServer::AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder)
 {
   PRBool allDescendentsAreNoSelect = PR_TRUE;
-  nsCOMPtr<nsIEnumerator> subFolders;
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
   nsresult rv = parentFolder->GetSubFolders(getter_AddRefs(subFolders));
   if(NS_SUCCEEDED(rv))
   {
-    nsAdapterEnumerator *simpleEnumerator =	new nsAdapterEnumerator(subFolders);
-    if (simpleEnumerator == nsnull)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-      PRBool moreFolders;
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders && allDescendentsAreNoSelect)
+    PRBool moreFolders;
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) &&
+           moreFolders && allDescendentsAreNoSelect)
     {
       nsCOMPtr<nsISupports> child;
-      rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+      rv = subFolders->GetNext(getter_AddRefs(child));
       if (NS_SUCCEEDED(rv) && child)
       {
         PRBool childIsNoSelect = PR_FALSE;
@@ -1700,7 +1689,6 @@ PRBool nsImapIncomingServer::AllDescendentsAreNoSelect(nsIMsgFolder *parentFolde
         }
       }
     }
-    delete simpleEnumerator;
   }
 #if 0
   int numberOfSubfolders = parentFolder->GetNumSubFolders();
@@ -1868,19 +1856,18 @@ nsresult nsImapIncomingServer::ResetFoldersToUnverified(nsIMsgFolder *parentFold
   }
   else
   {
-    nsCOMPtr<nsIEnumerator> subFolders;
+    nsCOMPtr<nsISimpleEnumerator> subFolders;
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(parentFolder, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     rv = imapFolder->SetVerifiedAsOnlineFolder(PR_FALSE);
     rv = parentFolder->GetSubFolders(getter_AddRefs(subFolders));
     NS_ENSURE_SUCCESS(rv, rv);
-    nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-    NS_ENSURE_TRUE(simpleEnumerator, NS_ERROR_OUT_OF_MEMORY);
+
     PRBool moreFolders = PR_FALSE;
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders)
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) && moreFolders)
     {
       nsCOMPtr<nsISupports> child;
-      rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+      rv = subFolders->GetNext(getter_AddRefs(child));
       if (NS_SUCCEEDED(rv) && child)
       {
         nsCOMPtr<nsIMsgFolder> childFolder = do_QueryInterface(child, &rv);
@@ -1892,7 +1879,6 @@ nsresult nsImapIncomingServer::ResetFoldersToUnverified(nsIMsgFolder *parentFold
         }
       }
     }
-    delete simpleEnumerator;
   }
   return rv;
 }
@@ -1942,20 +1928,17 @@ nsresult nsImapIncomingServer::GetUnverifiedSubFolders(nsIMsgFolder *parentFolde
         (*aNumUnverifiedFolders)++;
     }
   }
-  nsCOMPtr<nsIEnumerator> subFolders;
 
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
   rv = parentFolder->GetSubFolders(getter_AddRefs(subFolders));
   if(NS_SUCCEEDED(rv))
   {
-    nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-    if (!simpleEnumerator)
-      return NS_ERROR_OUT_OF_MEMORY;
     PRBool moreFolders;
 
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders)
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) && moreFolders)
     {
       nsCOMPtr<nsISupports> child;
-      rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+      rv = subFolders->GetNext(getter_AddRefs(child));
       if (NS_SUCCEEDED(rv) && child)
       {
         nsCOMPtr <nsIMsgFolder> childFolder = do_QueryInterface(child, &rv);
@@ -1967,7 +1950,6 @@ nsresult nsImapIncomingServer::GetUnverifiedSubFolders(nsIMsgFolder *parentFolde
         }
       }
     }
-    delete simpleEnumerator;
   }
   return rv;
 }
@@ -2851,22 +2833,22 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
   }
 
   // Loop through all subfolders to get new messages for them.
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  retval = aFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsIEnumerator> enumerator;
+  retval = aFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
   if (NS_FAILED(retval))
     return retval;
 
-  nsresult more = aEnumerator->First();
+  nsresult more = enumerator->First();
 
   while (NS_SUCCEEDED(more))
   {
     nsCOMPtr<nsISupports> aSupport;
-    nsresult rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+    nsresult rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
     NS_ASSERTION((NS_SUCCEEDED(rv) && aSupport), "CurrentItem() failed.");
     nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(aSupport, &rv);
     NS_ASSERTION((NS_SUCCEEDED(rv) && msgFolder), "nsIMsgFolder service not found.");
     retval = GetNewMessagesForNonInboxFolders(msgFolder, aWindow, forceAllFolders, performingBiff);
-    more = aEnumerator->Next();
+    more = enumerator->Next();
   }
 
   if (isServer)

@@ -135,11 +135,6 @@ nsNntpIncomingServer::~nsNntpIncomingServer()
 {
     nsresult rv;
 
-    if (mGroupsEnumerator) {
-        delete mGroupsEnumerator;
-        mGroupsEnumerator = nsnull;
-    }
-
     if (mNewsrcSaveTimer) {
         mNewsrcSaveTimer->Cancel();
         mNewsrcSaveTimer = nsnull;
@@ -330,7 +325,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
         if (NS_FAILED(rv))
           return rv;
 
-        nsCOMPtr<nsIEnumerator> subFolders;
+        nsCOMPtr<nsISimpleEnumerator> subFolders;
         nsCOMPtr<nsIMsgFolder> rootFolder;
         rv = GetRootFolder(getter_AddRefs(rootFolder));
         if (NS_FAILED(rv)) return rv;
@@ -370,14 +365,12 @@ nsNntpIncomingServer::WriteNewsrcFile()
         rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
         if (NS_FAILED(rv)) return rv;
 
-        nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-        if (simpleEnumerator == nsnull) return NS_ERROR_OUT_OF_MEMORY;
-
         PRBool moreFolders;
 
-        while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders) {
+        while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) &&
+               moreFolders) {
             nsCOMPtr<nsISupports> child;
-            rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+            rv = subFolders->GetNext(getter_AddRefs(child));
             if (NS_SUCCEEDED(rv) && child) {
                 newsFolder = do_QueryInterface(child, &rv);
                 if (NS_SUCCEEDED(rv) && newsFolder) {
@@ -390,7 +383,6 @@ nsNntpIncomingServer::WriteNewsrcFile()
                 }
             }
         }
-        delete simpleEnumerator;
 
         newsrcStream->Close();
 
@@ -633,15 +625,7 @@ nsNntpIncomingServer::GetNumGroupsNeedingCounts(PRInt32 *aNumGroupsNeedingCounts
         return NS_OK;
     }
 
-    rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
-    if (NS_FAILED(rv)) return rv;
-
-    if (mGroupsEnumerator) {
-        delete mGroupsEnumerator;
-        mGroupsEnumerator = nsnull;
-    }
-    mGroupsEnumerator = new nsAdapterEnumerator(subFolders);
-    if (mGroupsEnumerator == nsnull) return NS_ERROR_OUT_OF_MEMORY;
+    rv = rootFolder->GetSubFolders(getter_AddRefs(mGroupsEnumerator));
 
   PRUint32 count = 0;
   rv = rootFolder->Count(&count);
@@ -667,7 +651,6 @@ nsNntpIncomingServer::GetFirstGroupNeedingCounts(nsISupports **aFirstGroupNeedin
   if (!moreFolders)
   {
     *aFirstGroupNeedingCounts = nsnull;
-    delete mGroupsEnumerator;
     mGroupsEnumerator = nsnull;
     return NS_OK; // this is not an error - it just means we reached the end of the groups.
   }
@@ -1407,21 +1390,19 @@ nsNntpIncomingServer::ForgetPassword()
     NS_ENSURE_SUCCESS(rv,rv);
 
     // clear password of all child folders
-    nsCOMPtr<nsIEnumerator> subFolders;
+    nsCOMPtr<nsISimpleEnumerator> subFolders;
 
     rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
     NS_ENSURE_SUCCESS(rv,rv);
-
-    nsAdapterEnumerator *simpleEnumerator = new nsAdapterEnumerator(subFolders);
-    if (!simpleEnumerator) return NS_ERROR_OUT_OF_MEMORY;
 
     PRBool moreFolders = PR_FALSE;
 
     nsresult return_rv = NS_OK;
 
-    while (NS_SUCCEEDED(simpleEnumerator->HasMoreElements(&moreFolders)) && moreFolders) {
+    while (NS_SUCCEEDED(subFolders->HasMoreElements(&moreFolders)) &&
+           moreFolders) {
         nsCOMPtr<nsISupports> child;
-        rv = simpleEnumerator->GetNext(getter_AddRefs(child));
+        rv = subFolders->GetNext(getter_AddRefs(child));
         if (NS_SUCCEEDED(rv) && child) {
             newsFolder = do_QueryInterface(child, &rv);
             if (NS_SUCCEEDED(rv) && newsFolder) {
@@ -1435,7 +1416,6 @@ nsNntpIncomingServer::ForgetPassword()
             }
         }
     }
-    delete simpleEnumerator;
 
     return return_rv;
 }
@@ -2093,7 +2073,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   rv = GetRootMsgFolder(getter_AddRefs(serverFolder));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = serverFolder->GetSubFolders(getter_AddRefs(subFolders));
+  rv = serverFolder->GetSubFoldersObsolete(getter_AddRefs(subFolders));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsStringArray groupList;

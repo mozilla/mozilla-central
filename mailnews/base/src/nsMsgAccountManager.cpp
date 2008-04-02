@@ -929,7 +929,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
            if (isImap && cleanupInboxOnExit)
            {
              nsCOMPtr<nsIEnumerator> enumerator;
-             folder->GetSubFolders(getter_AddRefs(enumerator));
+             folder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
              nsCOMPtr<nsISupports> supports;
              rv = enumerator->First();
              while (NS_SUCCEEDED(rv))

@@ -96,7 +96,7 @@ function compareFolderSortKey(folder1, folder2)
 
 function GetSubFoldersInFolderPaneOrder(folder)
 {
-  var subFolderEnumerator = folder.GetSubFolders();
+  var subFolderEnumerator = folder.subFoldersObsolete;
   var done = false;
   var msgFolders = Array();
 

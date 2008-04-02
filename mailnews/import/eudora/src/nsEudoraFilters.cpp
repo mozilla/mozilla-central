@@ -367,8 +367,8 @@ nsresult nsEudoraFilters::Init()
 
   // we need to call GetSubFolders() so that the folders get initialized
   // if they are not initialized yet.
-  nsCOMPtr <nsIEnumerator> aEnumerator;
-  rv = localRootFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = localRootFolder->GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> subFolder;

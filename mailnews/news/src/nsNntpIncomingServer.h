@@ -48,7 +48,6 @@
 #include "plstr.h"
 #include "prprf.h"
 
-#include "nsAdapterEnumerator.h" 
 #include "nsIMsgWindow.h"
 #include "nsISubscribableServer.h"
 #include "nsITimer.h"
@@ -134,7 +133,7 @@ private:
     nsresult AddGroupOnServer(const nsACString &name);
 
     PRBool mNewsrcHasChanged;
-    nsAdapterEnumerator *mGroupsEnumerator;
+    nsCOMPtr<nsISimpleEnumerator> mGroupsEnumerator;
     PRBool mHostInfoLoaded;
     PRBool mHostInfoHasChanged;
     nsCOMPtr <nsILocalFile> mHostInfoFile;

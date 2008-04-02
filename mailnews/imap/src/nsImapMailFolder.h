@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -213,7 +213,8 @@ public:
   NS_IMETHOD Enumerate(nsIEnumerator **result);
 
   // nsIMsgFolder methods:
-  NS_IMETHOD GetSubFolders(nsIEnumerator* *result);
+  NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
+  NS_IMETHOD GetSubFoldersObsolete(nsIEnumerator* *result);
 
   NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
@@ -329,6 +330,9 @@ public:
   nsresult SetSupportedUserFlags(PRUint32 userFlags);
   nsresult GetSupportedUserFlags(PRUint32 *userFlags);
 protected:
+    // XXX Bug 420614 Temporary function.
+    nsresult GetSubFoldersMain();
+
   // Helper methods
 
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>

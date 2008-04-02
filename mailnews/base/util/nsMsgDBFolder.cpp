@@ -1135,7 +1135,7 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
   if (!deep)
     return rv;
 
-  rv = GetSubFolders(getter_AddRefs(aEnumerator));
+  rv = GetSubFoldersObsolete(getter_AddRefs(aEnumerator));
   if(NS_FAILED(rv))
     return rv;
 
@@ -2258,9 +2258,15 @@ typedef PRBool
 ////////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetSubFolders(nsIEnumerator* *result)
+nsMsgDBFolder::GetSubFoldersObsolete(nsIEnumerator* *result)
 {
   return mSubFolders->Enumerate(result);
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetSubFolders(nsISimpleEnumerator **aResult)
+{
+  return NS_NewArrayEnumerator(aResult, mSubFolders);
 }
 
 NS_IMETHODIMP
@@ -2784,7 +2790,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildWithURI(const nsACString& uri, PRBool deep,
   // will return nsnull if we can't find it
   *child = nsnull;
   nsCOMPtr <nsIEnumerator> enumerator;
-  nsresult rv = GetSubFolders(getter_AddRefs(enumerator));
+  nsresult rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
   if (NS_FAILED(rv))
     return rv;
 
@@ -3104,7 +3110,7 @@ nsMsgDBFolder::CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder 
 {
   NS_ENSURE_ARG_POINTER(parentFolder);
   nsCOMPtr<nsIEnumerator> subfolders;
-  nsresult rv = parentFolder->GetSubFolders(getter_AddRefs(subfolders));
+  nsresult rv = parentFolder->GetSubFoldersObsolete(getter_AddRefs(subfolders));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = subfolders->First();    //will fail if no subfolders
   while (NS_SUCCEEDED(rv))
@@ -3652,7 +3658,7 @@ nsresult nsMsgDBFolder::ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *arr
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
   nsCOMPtr <nsIEnumerator> enumerator;
-  rv = GetSubFolders(getter_AddRefs(enumerator));
+  rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = mSubFolders->Count(&cnt);
@@ -3690,7 +3696,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlag(PRUint32 flags, PRUint32 results
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
   nsCOMPtr <nsIEnumerator> enumerator;
-  rv = GetSubFolders(getter_AddRefs(enumerator));
+  rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = mSubFolders->Count(&cnt);

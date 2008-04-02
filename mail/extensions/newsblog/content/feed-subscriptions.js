@@ -357,7 +357,7 @@ var gFeedSubscriptionsWindow = {
     // if a feed has any sub folders, we should add them to the list of children
     if (aFolder.hasSubFolders)
     {
-      var folderEnumerator = aFolder.GetSubFolders();
+      var folderEnumerator = aFolder.subFoldersObsolete;
       var done = false;
 
       while (!done) 
@@ -432,7 +432,7 @@ var gFeedSubscriptionsWindow = {
 
     if (this.mRSSServer.rootFolder.hasSubFolders)
     {
-      var folderEnumerator = this.mRSSServer.rootFolder.GetSubFolders();
+      var folderEnumerator = this.mRSSServer.rootFolder.subFoldersObsolete;
       var done = false;
 
       while (!done) 
@@ -942,7 +942,7 @@ var gFeedSubscriptionsWindow = {
   
   generateOutline: function(baseFolder, parent, indentLevel)
   {
-    var folderEnumerator = baseFolder.GetSubFolders();
+    var folderEnumerator = baseFolder.subFoldersObsolete;
     var done = false;
 
     // pretty printing

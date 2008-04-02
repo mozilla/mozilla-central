@@ -68,7 +68,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(F80B5683-0891-4cf9-9ED1-11F1C89A5674)]
+[scriptable, uuid(8e052b65-b073-4b3b-af84-cfe1921c3a0f)]
 interface nsIMsgFolder : nsICollection {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -419,7 +419,19 @@ interface nsIMsgFolder : nsICollection {
   nsISupports getChildNamed(in AString name);
   attribute nsIMsgFolder parent;
 
-  nsIEnumerator GetSubFolders();
+  // OBSOLETE, don't use this, use subFolders instead, this interface will
+  // be going away soon.
+  [deprecated] readonly attribute nsIEnumerator subFoldersObsolete;
+
+  /**
+   * Returns an enumerator containing a list of nsIMsgFolder items that are
+   * subfolders of the instance this is called on.
+   */
+  readonly attribute nsISimpleEnumerator subFolders;
+
+  /**
+   * Returns true if this folder has sub folders.
+   */
   readonly attribute boolean hasSubFolders;
 
   void AddFolderListener(in nsIFolderListener listener);

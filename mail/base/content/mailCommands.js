@@ -742,7 +742,7 @@ function deleteAllInFolder(commandName)
                   .createInstance(Components.interfaces.nsISupportsArray);
 
   // Delete sub-folders.
-  var iter = folder.GetSubFolders();
+  var iter = folder.subFoldersObsolete;
   while (true) {
     try {
       children.AppendElement(iter.currentItem());

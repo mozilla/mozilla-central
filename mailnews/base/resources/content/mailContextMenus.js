@@ -734,7 +734,7 @@ function OpenMessageByHeader(messageHeader, openInNewWindow)
 function SearchForMessageIdInSubFolder(folder, messageId)
 {
   var messageHeader;
-  var subFolders = folder.GetSubFolders();
+  var subFolders = folder.subFoldersObsolete;
 
   // search in folder
   if (!folder.isServer)

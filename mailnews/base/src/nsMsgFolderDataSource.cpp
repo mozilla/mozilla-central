@@ -50,7 +50,6 @@
 #include "nsRDFCID.h"
 #include "nsIRDFNode.h"
 #include "nsEnumeratorUtils.h"
-#include "nsAdapterEnumerator.h"
 
 #include "nsString.h"
 #include "nsCOMPtr.h"
@@ -452,18 +451,7 @@ NS_IMETHODIMP nsMsgFolderDataSource::GetTargets(nsIRDFResource* source,
   {
     if ((kNC_Child == property))
     {
-      nsCOMPtr<nsIEnumerator> subFolders;
-      rv = folder->GetSubFolders(getter_AddRefs(subFolders));
-      if(NS_SUCCEEDED(rv))
-      {
-        nsAdapterEnumerator* cursor =
-          new nsAdapterEnumerator(subFolders);
-        if (cursor == nsnull)
-          return NS_ERROR_OUT_OF_MEMORY;
-        NS_ADDREF(cursor);
-        *targets = cursor;
-        rv = NS_OK;
-      }
+      rv = folder->GetSubFolders(targets);
     }
     else if ((kNC_Name == property) ||
       (kNC_Open == property) ||
@@ -1372,7 +1360,7 @@ nsMsgFolderDataSource::createFolderOpenNode(nsIMsgFolder *folder, nsIRDFNode **t
 
   // call GetSubFolders() to ensure mFlags is set correctly
   // from the folder cache on startup
-  nsCOMPtr<nsIEnumerator> subFolders;
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
   nsresult rv = folder->GetSubFolders(getter_AddRefs(subFolders));
   if (NS_FAILED(rv))
     return NS_RDF_NO_VALUE;
@@ -1896,7 +1884,7 @@ nsMsgFolderDataSource::createFolderChildNode(nsIMsgFolder *folder,
                                              nsIRDFNode **target)
 {
   nsCOMPtr<nsIEnumerator> subFolders;
-  nsresult rv = folder->GetSubFolders(getter_AddRefs(subFolders));
+  nsresult rv = folder->GetSubFoldersObsolete(getter_AddRefs(subFolders));
   if (NS_FAILED(rv))
     return NS_RDF_NO_VALUE;
 
@@ -2256,7 +2244,7 @@ NS_IMETHODIMP nsMsgFlatFolderDataSource::GetTargets(nsIRDFResource* source,
           server->GetRootFolder(getter_AddRefs(rootFolder));
           if (rootFolder)
           {
-            nsCOMPtr<nsIEnumerator> subFolders;
+            nsCOMPtr<nsISimpleEnumerator> subFolders;
             rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
 
             PRUint32 lastEntry;
@@ -2462,7 +2450,7 @@ PRBool nsMsgRecentFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
           server->GetRootFolder(getter_AddRefs(rootFolder));
           if (rootFolder)
           {
-            nsCOMPtr<nsIEnumerator> subFolders;
+            nsCOMPtr<nsISimpleEnumerator> subFolders;
             rv = rootFolder->GetSubFolders(getter_AddRefs(subFolders));
 
             PRUint32 lastEntry;

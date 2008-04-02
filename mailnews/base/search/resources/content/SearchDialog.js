@@ -439,7 +439,7 @@ function onSearch()
 function AddSubFolders(folder) {
   if (folder.hasSubFolders)
   {
-    var subFolderEnumerator = folder.GetSubFolders();
+    var subFolderEnumerator = folder.subFoldersObsolete;
     var done = false;
     while (!done)
     {
@@ -471,7 +471,7 @@ function AddSubFoldersToURI(folder)
   var returnString = "";
   if (folder.hasSubFolders)
   {
-    var subFolderEnumerator = folder.GetSubFolders();
+    var subFolderEnumerator = folder.subFoldersObsolete;
     var done = false;
     while (!done)
     {

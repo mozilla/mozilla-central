@@ -254,7 +254,7 @@ nsresult nsMessengerBootstrap::DiscoverFoldersIfNeeded(nsIMsgFolder *folder)
     folder->GetServer(getter_AddRefs(server));
     nsresult rv = server->GetRootFolder(getter_AddRefs(parent));
     NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsIEnumerator> enumerator;
+    nsCOMPtr<nsISimpleEnumerator> enumerator;
     parent->GetSubFolders(getter_AddRefs(enumerator));
   }
   return NS_OK;

@@ -47,7 +47,6 @@
 #include "nsIStringBundle.h"
 #include "nsISubscribableServer.h"
 #include "nsIUrlListener.h"
-#include "nsAdapterEnumerator.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsCOMArray.h"
 

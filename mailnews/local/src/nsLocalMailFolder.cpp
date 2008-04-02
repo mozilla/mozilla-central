@@ -344,8 +344,10 @@ nsMsgLocalMailFolder::Enumerate(nsIEnumerator* *result)
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP
-nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
+// XXX When GetSubFoldersObsolete goes away (bug 420614), this can be merged
+// into GetSubFolders.
+nsresult
+nsMsgLocalMailFolder::GetSubFoldersMain()
 {
   PRBool isServer;
   nsresult rv = GetIsServer(&isServer);
@@ -418,7 +420,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
       rv = mSubFolders->Count(&cnt);
       if (NS_SUCCEEDED(rv))
       {
-        nsCOMPtr<nsIEnumerator> enumerator;
+        nsCOMPtr<nsISimpleEnumerator> enumerator;
         for (PRUint32 i = 0; i < cnt; i++)
         {
           nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(mSubFolders, i, &rv);
@@ -432,6 +434,27 @@ nsMsgLocalMailFolder::GetSubFolders(nsIEnumerator* *result)
     }
     UpdateSummaryTotals(PR_FALSE);
   }
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
+{
+  nsresult rv = GetSubFoldersMain();
+  if (NS_FAILED(rv))
+    return rv;
+
+  return NS_NewArrayEnumerator(aResult, mSubFolders);
+}
+
+// XXX GetSubFoldersObsolete will be going away soon (bug 420614)
+NS_IMETHODIMP
+nsMsgLocalMailFolder::GetSubFoldersObsolete(nsIEnumerator* *result)
+{
+  nsresult rv = GetSubFoldersMain();
+  if (NS_FAILED(rv))
+    return rv;
+
   return mSubFolders->Enumerate(result);
 }
 
@@ -862,10 +885,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EmptyTrash(nsIMsgWindow *msgWindow,
 
     if (totalMessages <= 0)
     {
-      nsCOMPtr<nsIEnumerator> aEnumerator;
-      rv =trashFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+      nsCOMPtr<nsIEnumerator> enumerator;
+      rv = trashFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
       NS_ENSURE_SUCCESS(rv,rv);
-      rv = aEnumerator->First();    //will fail if no subfolders
+      rv = enumerator->First();    //will fail if no subfolders
       if (NS_FAILED(rv))
         return NS_OK;
     }
@@ -1166,13 +1189,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
   oldFolder->GetFlags(&flags);
   SetFlags(flags);
 
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  oldFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsIEnumerator> enumerator;
+  oldFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
   nsCOMPtr<nsISupports> aSupport;
-  rv = aEnumerator->First();
+  rv = enumerator->First();
   while (NS_SUCCEEDED(rv))
   {
-     rv = aEnumerator->CurrentItem(getter_AddRefs(aSupport));
+     rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
      nsCOMPtr<nsIMsgFolder>msgFolder = do_QueryInterface(aSupport);
      nsString folderName;
      rv = msgFolder->GetName(folderName);
@@ -1187,7 +1210,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
          msgFolder->AlertFilterChanged(msgWindow);
        newFolder->RenameSubFolders(msgWindow, msgFolder);
      }
-     rv = aEnumerator->Next();
+     rv = enumerator->Next();
   }
   return NS_OK;
 }
@@ -1785,16 +1808,16 @@ nsMsgLocalMailFolder::CopyAllSubFolders(nsIMsgFolder *srcFolder,
                                       nsIMsgCopyServiceListener *listener )
 {
   nsresult rv;
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  srcFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsIEnumerator> enumerator;
+  srcFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
   nsCOMPtr<nsIMsgFolder>folder;
   nsCOMPtr<nsISupports> aSupports;
-  rv = aEnumerator->First();
+  rv = enumerator->First();
   while (NS_SUCCEEDED(rv))
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(aSupports));
+    rv = enumerator->CurrentItem(getter_AddRefs(aSupports));
     folder = do_QueryInterface(aSupports);
-    rv = aEnumerator->Next();
+    rv = enumerator->Next();
     if (folder)
       CopyFolderAcrossServer(folder, msgWindow, listener);
   }
@@ -1935,17 +1958,17 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   if (changed)
     srcFolder->AlertFilterChanged(msgWindow);
 
-  nsCOMPtr<nsIEnumerator> aEnumerator;
-  srcFolder->GetSubFolders(getter_AddRefs(aEnumerator));
+  nsCOMPtr<nsIEnumerator> enumerator;
+  srcFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
   nsCOMPtr<nsIMsgFolder>folder;
   nsCOMPtr<nsISupports> supports;
-  rv = aEnumerator->First();
+  rv = enumerator->First();
   nsresult copyStatus = NS_OK;
   while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(copyStatus))
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(supports));
+    rv = enumerator->CurrentItem(getter_AddRefs(supports));
     folder = do_QueryInterface(supports);
-    rv = aEnumerator->Next();
+    rv = enumerator->Next();
     if (folder)
     {
       nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(newMsgFolder);
