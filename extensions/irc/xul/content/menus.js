@@ -113,7 +113,7 @@ function initMenus()
     var Mozilla    = "(client.host == 'Mozilla')";
     var NotMozilla = "(client.host != 'Mozilla')";
     var Toolkit    = NotMozilla;
-    var XULRunner  = "(client.host == 'XULrunner')";
+    var XULRunner  = "(client.host == 'XULRunner')";
 
     // Useful combinations
     var ToolkitOnLinux    = "(" + Toolkit + " and " + Linux + ")";
@@ -471,7 +471,7 @@ function createMenus()
         comBar.collapsed = false;
     }
 
-    if (client.host == "XULrunner")
+    if (client.host == "XULRunner")
     {
         // This is a hack to work around Gecko bug 98997, which means that
         // :empty causes menus to be hidden until we force a reflow.

@@ -310,7 +310,7 @@ function initStatic()
         // Use the XUL host app info, and Gecko build ID.
         if (app.ID == "{" + __cz_guid + "}")
         {
-            // We ARE the app, in other words, we're running in XULrunner.
+            // We ARE the app, in other words, we're running in XULRunner.
             // Because of this, we must disregard app.(name|vendor|version).
             // "XULRunner 1.7+/2005071506"
             ua = "XULRunner " + app.platformVersion + "/" + app.platformBuildID;
@@ -428,8 +428,8 @@ function initApplicationCompatibility()
                 client.host = "Firefox";
                 break;
             case "{" + __cz_guid + "}":
-                // We ARE the app, in other words, we're running in XULrunner.
-                client.host = "XULrunner";
+                // We ARE the app, in other words, we're running in XULRunner.
+                client.host = "XULRunner";
                 break;
             case "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}": // SeaMonkey
                 client.host = "Mozilla";
@@ -2058,7 +2058,7 @@ function initOfflineIcon()
                                      "nsIPrefBranch");
             // Let the app-specific hacks begin:
             try {
-                if (client.host == "XULrunner")
+                if (client.host == "XULRunner")
                     isOffline = !prefSvc.getBoolPref("network.online");
                 else // Toolkit based, but not standalone
                     isOffline = prefSvc.getBoolPref("browser.offline");
@@ -2079,7 +2079,7 @@ function initOfflineIcon()
                                      "nsIPrefBranch");
             // Let the app-specific hacks begin:
             try {
-                if (client.host == "XULrunner")
+                if (client.host == "XULRunner")
                     prefSvc.setBoolPref("network.online", !isOffline);
                 else // Toolkit based, but not standalone
                     prefSvc.setBoolPref("browser.offline", isOffline);

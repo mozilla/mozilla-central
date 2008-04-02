@@ -87,7 +87,7 @@ function initPrefs()
 
     var gotos = ["goto-url",        "goto-url-newwin",
                  "goto-url-newtab", "goto-url-newtab"];
-    if (client.host == "XULrunner")
+    if (client.host == "XULRunner")
     {
         gotos = ["goto-url-external", "goto-url-external",
                  "goto-url-external", "goto-url-external"];

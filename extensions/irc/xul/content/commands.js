@@ -2303,7 +2303,7 @@ function cmdGotoURL(e)
         return;
     }
 
-    if ((e.command.name == "goto-url-external") || (client.host == "XULrunner"))
+    if ((e.command.name == "goto-url-external") || (client.host == "XULRunner"))
     {
         const extProtoSvc = getService(EXT_PROTO_SVC,
                                        "nsIExternalProtocolService");
