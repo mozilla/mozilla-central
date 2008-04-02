@@ -302,7 +302,8 @@ pkix_pl_PrimHashTable_Remove(
         void *key,
         PKIX_UInt32 hashCode,
         PKIX_PL_EqualsCallback keyComp,
-        void **pResult,
+        void **pKey,
+        void **pValue,
         void *plContext)
 {
         pkix_pl_HT_Elem *element = NULL;
@@ -310,7 +311,10 @@ pkix_pl_PrimHashTable_Remove(
         PKIX_Boolean compResult;
 
         PKIX_ENTER(HASHTABLE, "pkix_pl_PrimHashTable_Remove");
-        PKIX_NULLCHECK_THREE(ht, key, pResult);
+        PKIX_NULLCHECK_FOUR(ht, key, pKey, pValue);
+
+        *pKey = NULL;
+        *pValue = NULL;
 
         for (element = ht->buckets[hashCode%ht->size], prior = element;
             (element != NULL);
@@ -344,7 +348,8 @@ pkix_pl_PrimHashTable_Remove(
                         } else {
                                 ht->buckets[hashCode%ht->size] = element->next;
                         }
-                        *pResult = element->value;
+                        *pKey = element->key;
+                        *pValue = element->value;
                         element->key = NULL;
                         element->value = NULL;
                         element->next = NULL;
@@ -352,9 +357,6 @@ pkix_pl_PrimHashTable_Remove(
                         goto cleanup;
                 }
         }
-
-        /* if we've reached here, specified key doesn't exist in hashtable */
-        *pResult = NULL;
 
 cleanup:
 

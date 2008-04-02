@@ -304,7 +304,8 @@ PKIX_PL_HashTable_Remove(
         void *plContext)
 {
         PKIX_PL_Mutex  *lockedMutex = NULL;
-        PKIX_PL_Object *result = NULL;
+        PKIX_PL_Object *origKey = NULL;
+        PKIX_PL_Object *value = NULL;
         PKIX_UInt32 hashCode;
         PKIX_PL_EqualsCallback keyComp;
 
@@ -335,15 +336,15 @@ PKIX_PL_HashTable_Remove(
                 (void *)key,
                 hashCode,
                 keyComp,
-                (void **)&result,
+                (void **)&origKey,
+                (void **)&value,
                 plContext),
                 PKIX_PRIMHASHTABLEREMOVEFAILED);
 
         PKIX_MUTEX_UNLOCK(ht->tableLock);
 
-        if (result != NULL) {
-                PKIX_DECREF(result);
-        }
+        PKIX_DECREF(origKey);
+        PKIX_DECREF(value);
 
         /*
          * we don't call PKIX_PL_InvalidateCache here b/c we have
@@ -405,9 +406,7 @@ PKIX_PL_HashTable_Lookup(
 
         PKIX_MUTEX_UNLOCK(ht->tableLock);
 
-        if (result != NULL) {
-                PKIX_INCREF(result);
-        }
+        PKIX_INCREF(result);
         *pResult = result;
 
 cleanup:

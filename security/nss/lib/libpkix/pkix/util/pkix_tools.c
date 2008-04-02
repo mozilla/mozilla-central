@@ -834,7 +834,6 @@ pkix_CacheCertChain_Add(
         PKIX_List *cachedValues = NULL;
         PKIX_List *cachedKeys = NULL;
         PKIX_Error *cachedCertChainError = NULL;
-        PKIX_PL_Date *date = NULL;
         PKIX_PL_Date *cacheValidUntilDate = NULL;
 
         PKIX_ENTER(BUILD, "pkix_CacheCertChain_Add");
@@ -894,7 +893,6 @@ cleanup:
         PKIX_DECREF(cachedKeys);
         PKIX_DECREF(cachedCertChainError);
         PKIX_DECREF(cacheValidUntilDate);
-        PKIX_DECREF(date);
 
         PKIX_RETURN(BUILD);
 }

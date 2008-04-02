@@ -95,7 +95,8 @@ pkix_pl_PrimHashTable_Remove(
         void *key,
         PKIX_UInt32 hashCode,
         PKIX_PL_EqualsCallback keyComp,
-        void **pResult,
+        void **pKey,
+        void **pValue,
         void *plContext);
 
 PKIX_Error *
