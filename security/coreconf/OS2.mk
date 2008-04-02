@@ -100,7 +100,11 @@ endif   #NO_SHARED_LIB
 OS_CFLAGS          = -Wall -W -Wno-unused -Wpointer-arith -Wcast-align -Wno-switch -Zomf -DDEBUG -DTRACING -g
 
 ifdef BUILD_OPT
-OPTIMIZER		= -O2 -s
+ifeq (11,$(ALLOW_OPT_CODE_SIZE)$(OPT_CODE_SIZE))
+	OPTIMIZER += -Os -s
+else
+	OPTIMIZER += -O2 -s
+endif
 DEFINES 		+= -UDEBUG -U_DEBUG -DNDEBUG
 DLLFLAGS		= -DLL -OUT:$@ -MAP:$(@:.dll=.map) $(HIGHMEM_LDFLAG)
 EXEFLAGS    		= -PMTYPE:VIO -OUT:$@ -MAP:$(@:.exe=.map) -nologo -NOE $(HIGHMEM_LDFLAG)
