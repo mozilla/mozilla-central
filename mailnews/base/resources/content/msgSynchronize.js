@@ -124,7 +124,8 @@ function selectCancelButton()
 
 function selectOnLoad()
 {
-    gMsgWindow = Components.classes[msgWindowContractID].createInstance(Components.interfaces.nsIMsgWindow);
+    gMsgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"]
+                           .createInstance(Components.interfaces.nsIMsgWindow);
     gMsgWindow.domWindow = window;
     gMsgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
 
