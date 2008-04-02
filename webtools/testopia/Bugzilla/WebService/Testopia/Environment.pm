@@ -100,7 +100,7 @@ sub create {
     my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    if (! exists $new_values->{'isactive'}){
+    if (! defined $new_values->{'isactive'}){
          $new_values->{'isactive'} = 1;
     }
     
@@ -121,7 +121,7 @@ sub update {
     ThrowUserError('testopia-read-only', {'object' => $environment}) unless $environment->canedit;
     
     $environment->set_name($new_values->{'name'}) if $new_values->{'name'};
-    $environment->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
+    $environment->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if defined $new_values->{'isactive'};
     
     $environment->update();
 

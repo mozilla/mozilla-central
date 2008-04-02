@@ -28,6 +28,8 @@ use base qw(Bugzilla::WebService);
 use Bugzilla::Constants;
 use Bugzilla::User;
 use Bugzilla::Util;
+use Bugzilla::Error;
+
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::Search;
 use Bugzilla::Testopia::Table;

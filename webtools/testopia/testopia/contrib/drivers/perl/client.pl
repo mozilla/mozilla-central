@@ -64,6 +64,10 @@ my $Bugzilla_login;
 my $Bugzilla_password;
 my $soapresult;
 
+sub SOAP::Transport::HTTP::Client::get_basic_credentials { 
+	return $Bugzilla_login => $Bugzilla_password;
+}
+
 sub show_results {
 	my $plan;
 	my $key;
@@ -212,7 +216,9 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCase.remove_tag', 278, 'fish');
 #$soapresult = $proxy->call('TestCase.store_text', 278, 'vrb@novell.com', 'FOO', 'FISH', 'FIGHT', 'FUN');
 #$soapresult = $proxy->call('TestCase.unlink_plan', 278, 78);
-#$soapresult = $proxy->call('TestCase.update', 278,{priority_id => 'P2 - High', case_status_id=>3 ,summary=>'This was Entering bugs'});
+#$soapresult = $proxy->call('TestCase.update', 278,{priority_id => 'P2 - High', case_status_id=>3 ,summary=>'This was Entering bugs', category_id => '142'});
+$soapresult = $proxy->call('TestCase.update',435838 ,{ summary => 'API TEST', category_id => '1666'});
+
 
 ###########################
 ### TestCaseRun Methods ###

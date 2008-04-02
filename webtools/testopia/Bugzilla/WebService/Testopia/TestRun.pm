@@ -29,6 +29,8 @@ use Bugzilla::Constants;
 use Bugzilla::Product;
 use Bugzilla::User;
 use Bugzilla::Util;
+use Bugzilla::Error;
+
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::Search;
@@ -133,13 +135,13 @@ sub update {
     $timestamp = undef if $new_values->{'status'};
     $timestamp = Bugzilla::Testopia::Util::get_time_stamp() if $new_values->{'status'} == 0 && !$run->stop_date;
  
-    $run->set_summary(trim($new_values->{'summary'})) if exists $new_values->{'summary'};
+    $run->set_summary(trim($new_values->{'summary'})) if defined $new_values->{'summary'};
     $run->set_product_version($new_values->{'product_version'}) if $new_values->{'product_version'};
     $run->set_plan_text_version($new_values->{'plan_text_version'}) if $new_values->{'plan_text_version'};
     $run->set_build($new_values->{'build_id'}) if $new_values->{'build_id'};
     $run->set_environment($new_values->{'environment_id'}) if $new_values->{'environment_id'};
     $run->set_manager($new_values->{'manager_id'}) if $new_values->{'manager_id'};
-    $run->set_notes($new_values->{'notes'}) if exists $new_values->{'notes'};
+    $run->set_notes($new_values->{'notes'}) if defined $new_values->{'notes'};
     $run->set_stop_date($timestamp) if $new_values->{'status'};
     
     $run->update();

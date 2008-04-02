@@ -82,7 +82,7 @@ sub create{
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
   
     $new_values->{'milestone'} ||= $product->default_milestone;
-    if (! exists $new_values->{'isactive'}){
+    if (! defined $new_values->{'isactive'}){
          $new_values->{'isactive'} = 1;
     }
     
@@ -103,9 +103,9 @@ sub update{
     ThrowUserError('testopia-read-only', {'object' => $build->product}) unless $build->product->canedit;
 
     $build->set_name($new_values->{'name'}) if $new_values->{'name'};
-    $build->set_description($new_values->{'description'}) if exists $new_values->{'description'};
+    $build->set_description($new_values->{'description'}) if defined $new_values->{'description'};
     $build->set_milestone($new_values->{'milestone'}) if $new_values->{'milestone'};
-    $build->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if exists $new_values->{'isactive'};
+    $build->set_isactive($new_values->{'isactive'} =~ /(true|1|yes)/i ? 1 : 0) if defined $new_values->{'isactive'};
     
     $build->update;
 

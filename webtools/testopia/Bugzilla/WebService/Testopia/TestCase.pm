@@ -25,6 +25,8 @@ use strict;
 
 use Bugzilla::User;
 use Bugzilla::Constants;
+use Bugzilla::Error;
+
 use Bugzilla::Testopia::TestCase;
 use Bugzilla::Testopia::Category;
 use Bugzilla::Testopia::Search;
@@ -200,23 +202,24 @@ sub update {
         $new_values->{'category_id'} ||= $new_values->{'category'};
         
         eval {
-            $case->set_case_status($new_values->{'case_status_id'}) if exists $new_values->{'case_status_id'};
-            $case->set_category($new_values->{'category_id'}) if exists $new_values->{'category_id'};
-            $case->set_priority($new_values->{'priority_id'}) if exists $new_values->{'priority_id'};
-            $case->set_default_tester($new_values->{'default_tester_id'}) if exists $new_values->{'default_tester_id'};
-            $case->set_sortkey($new_values->{'sortkey'}) if exists $new_values->{'sortkey'};
-            $case->set_requirement($new_values->{'requirement'}) if exists $new_values->{'requirement'};
-            $case->set_isautomated($new_values->{'isautomated'}) if exists $new_values->{'isautomated'};
-            $case->set_script($new_values->{'script'}) if exists $new_values->{'script'};
-            $case->set_arguments($new_values->{'arguments'}) if exists $new_values->{'arguments'};
-            $case->set_summary($new_values->{'summary'}) if exists $new_values->{'summary'};
-            $case->set_alias($new_values->{'alias'}) if exists $new_values->{'alias'};
-            $case->set_estimated_time($new_values->{'estimated_time'}) if exists $new_values->{'estimated_time'};
-            $case->set_dependson($new_values->{'dependson'}) if exists $new_values->{'dependson'};
-            $case->set_blocks($new_values->{'blocks'}) if exists $new_values->{'blocks'};
+            $case->set_case_status($new_values->{'case_status_id'}) if defined $new_values->{'case_status_id'};
+            $case->set_category($new_values->{'category_id'}) if defined $new_values->{'category_id'};
+            $case->set_priority($new_values->{'priority_id'}) if defined $new_values->{'priority_id'};
+            $case->set_default_tester($new_values->{'default_tester_id'}) if defined $new_values->{'default_tester_id'};
+            $case->set_sortkey($new_values->{'sortkey'}) if defined $new_values->{'sortkey'};
+            $case->set_requirement($new_values->{'requirement'}) if defined $new_values->{'requirement'};
+            $case->set_isautomated($new_values->{'isautomated'}) if defined $new_values->{'isautomated'};
+            $case->set_script($new_values->{'script'}) if defined $new_values->{'script'};
+            $case->set_arguments($new_values->{'arguments'}) if defined $new_values->{'arguments'};
+            $case->set_summary($new_values->{'summary'}) if defined $new_values->{'summary'};
+            $case->set_alias($new_values->{'alias'}) if defined $new_values->{'alias'};
+            $case->set_estimated_time($new_values->{'estimated_time'}) if defined $new_values->{'estimated_time'};
+            $case->set_dependson($new_values->{'dependson'}) if defined $new_values->{'dependson'};
+            $case->set_blocks($new_values->{'blocks'}) if defined $new_values->{'blocks'};
         };
         
         if ($@){
+            return $@ if (scalar @ids == 1);
             push @cases, {ERROR => $@};
         }
         
