@@ -50,12 +50,15 @@
 <?xul-overlay href="chrome://chatzilla/content/menus.xul"?>
 
 <window id="chatzilla-window"
+  xmlns:html="http://www.w3.org/1999/xhtml"
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   xmlns:aaa="http://www.w3.org/2005/07/aaa"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   orient="vertical" onload="onLoad();" onunload="onUnload();"
   onclose="return onClose();" onmouseover="onMouseOver(event);"
   persist="width height screenX screenY sizemode" windowtype="irc:chatzilla">
+  
+  <html:link rel="icon" href="chrome://chatzilla/skin/images/logo.png"/>
   
   <overlaytarget id="scripts-overlay-target"/>
   <overlaytarget id="popup-overlay-target"/>
