@@ -20,6 +20,7 @@
  *                 Daniel Parker <dparker1@novell.com>
  */
 
+Testopia.TestPlan = {};
 
 PlanGrid = function(params,cfg){
     params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
@@ -469,54 +470,248 @@ NewPlanForm = function(product_id){
 
 Ext.extend(NewPlanForm, Ext.form.FormPanel);
 
-PlanClonePanel = function(plan){
-    var form = new Ext.form.BasicForm('plan_clone_frm',{});
-    form.on('beforeaction',function(f,a){
-        f.el.mask('Processing...');
+Testopia.TestPlan.ClonePanel = function(plan){
+    var pbox = new ProductCombo({
+        hiddenName: 'product_id',
+        fieldLabel: 'Copy To Product',
+        mode: 'local',
+        width: 550,
+        value: plan.product_id
     });
-
-    doClone = function(f,a){
-        form.submit({
-            url: 'tr_process_plan.cgi',
-            success: function(f,a){
-                var data = a.response;
-                Ext.getCmp('plan-clone-win').close();
-                window.location="tr_show_plan.cgi?plan_id=" + a.result.plan_id;
+    var vbox = new ProductVersionCombo({
+        id: 'clone_version',
+        hiddenName: 'prod_version',
+        fieldLabel: 'Product Version',
+        params: {product_id: plan.product_id},
+        allowBlank: false
+    });
+    var bbox  = new BuildCombo({
+        fieldLabel: 'Select a Build',
+        id: 'plan_clone_build_chooser',
+        mode: 'local',
+        hiddenName: 'new_run_build',
+        params: {product_id: plan.product_id}
+    });
+    var ebox = new EnvironmentCombo({
+        fieldLabel: 'Select an Environment',
+        id: 'plan_clone_environment_chooser',
+        mode: 'local',
+        hiddenName: 'new_run_env',
+        params: {product_id: plan.product_id}
+    });
+    pbox.on('select', function(c,r,i){
+        vbox.reset();
+        vbox.store.baseParams.product_id = r.id;
+        Ext.getCmp('plan_clone_build_chooser').store.baseParams.product_id = r.id;
+        Ext.getCmp('plan_clone_environment_chooser').store.baseParams.product_id = r.id;
+        Ext.getCmp('plan_clone_build_chooser').store.load();
+        Ext.getCmp('plan_clone_environment_chooser').store.load();
+        if (r.id == plan.product_id){
+            Ext.getCmp('copy_categories').disable();
+        }
+        else{
+            Ext.getCmp('copy_categories').enable();
+        }
+        
+        vbox.store.load();
+        vbox.enable();
+    });
+    function doSubmit(){
+        var form = this.getForm();
+        var p = form.getValues();
+        if (form.isValid()){
+            form.submit({
+                success: function(f,a){
+                    Ext.Msg.show({
+                        title:'Plan Copied',
+                        msg: 'Plan ' + a.result.plan_id + ' Created. Would you like to go there now?',
+                        buttons: Ext.Msg.YESNO,
+                        icon: Ext.MessageBox.QUESTION,
+                        fn: function(btn){
+                            if (btn == 'yes'){
+                                window.location = 'tr_show_plan.cgi?plan_id=' + a.result.plan_id;
+                            }
+                        }
+                    });
+                },
+                failure: testopiaError
+            })
+        }
+    }
+    Testopia.TestPlan.ClonePanel.superclass.constructor.call(this, {
+        id: 'plan_clone_panel',
+        url: 'tr_process_plan.cgi',
+        baseParams: {action: 'clone'},
+        bodyStyle: 'padding: 10px',
+        border: false,
+        autoScroll: true,
+        width: 600,
+        items:[{
+            layout:'table',
+            border: false,
+            layoutConfig: {
+                columns: 2,
+                width: '100%'
             },
-            failure: testopiaError
-        });
-    };
-    
-    PlanClonePanel.superclass.constructor.call(this, {
-        id: 'plan-clone-panel',
-        contentEl: 'plan-clone-div',
+            items:[{
+                colspan: 2,
+                layout: 'form',
+                border: false,
+                items: [{
+                    id:'plan_clone_name',
+                    xtype:'textfield',
+                    fieldLabel: '<b>New Plan Name</b>',
+                    name: 'plan_name',
+                    allowBlank: false,
+                    width: 550
+                },pbox, vbox ]
+            },{
+                layout: 'form',
+                border: false,
+                items: [{
+                    xtype: 'checkbox',
+                    name: 'copy_attachments',
+                    checked: false,
+                    boxLabel: 'Copy Plan Attachments',
+                    hideLabel: true
+                },{
+                    xtype: 'checkbox',
+                    name: 'copy_doc',
+                    checked: true,
+                    boxLabel: 'Copy Plan Document',
+                    hideLabel: true
+                },{
+                    xtype: 'hidden',
+                    name: 'plan_id',
+                    value: plan.plan_id
+                }]
+
+            },{
+                layout: 'form',
+                border: false,
+                items: [{
+                    xtype: 'checkbox',
+                    name: 'copy_tags',
+                    checked: true,
+                    boxLabel: 'Copy Plan Tags',
+                    hideLabel: true
+                },{
+                    xtype: 'checkbox',
+                    name: 'copy_perms',
+                    checked: true,
+                    boxLabel: 'Copy Plan Permissions',
+                    hideLabel: true
+                }]
+
+            },{
+                layout: 'form',
+                border: false,
+                colspan: 2,
+                items: [{
+                    xtype: 'checkbox',
+                    name: 'keep_plan_author',
+                    checked: false,
+                    boxLabel: 'Maintain original author (unchecking will make me the author of the new plan)',
+                    hideLabel: true
+                },{
+                    xtype: 'fieldset',
+                    autoHeight: true,
+                    checkboxToggle: true,
+                    checkboxName: 'copy_cases',
+                    id: 'copy_cases',
+                    title: 'Copy Test Cases',
+                    collapsed: true,
+                    items: [{
+                        xtype: 'checkbox',
+                        id: 'case_copy_plan_ids',
+                        name: 'make_copy',
+                        boxLabel: 'Create a copy (Unchecking will create a link to selected plans)',
+                        hideLabel: true,
+                        listeners: {'check':function(box, checked){
+                            if (checked === true){
+                                Ext.getCmp('copy_cases_keep_author').enable();
+                                Ext.getCmp('copy_run_cases_cbox').disable();
+                            }
+                            else {
+                                Ext.getCmp('copy_cases_keep_author').disable();
+                                Ext.getCmp('copy_run_cases_cbox').enable();
+                            }
+                        }}
+                    },{
+                        xtype: 'checkbox',
+                        name: 'keep_case_authors',
+                        id: 'copy_cases_keep_author',
+                        checked: false,
+                        disabled: true,
+                        boxLabel: 'Maintain original authors (unchecking will make me the author of the copied cases)',
+                        hideLabel: true
+                    },{
+                        xtype: 'checkbox',
+                        name: 'copy_categories',
+                        id: 'copy_categories',
+                        checked: false,
+                        disabled: true,
+                        boxLabel: 'Copy Categories to new product (unchecking will place copied cases in the default category for the selected product)',
+                        hideLabel: true                        
+                    }]
+                },{
+                    xtype: 'fieldset',
+                    autoHeight: true,
+                    checkboxToggle: true,
+                    checkboxName: 'copy_runs',
+                    id: 'copy_runs',
+                    title: 'Copy Test Runs',
+                    collapsed: true,
+                    items: [{
+                        xtype: 'checkbox',
+                        name: 'keep_run_managers',
+                        checked: false,
+                        boxLabel: 'Maintain managers (unchecking will make me the manager of the new runs)',
+                        hideLabel: true
+                    },{
+                        xtype: 'checkbox',
+                        name: 'copy_run_tags',
+                        checked: true,
+                        boxLabel: 'Copy tags from the old run to the new run',
+                        hideLabel: true
+                    },{
+                        xtype: 'checkbox',
+                        name: 'copy_run_cases',
+                        id: 'copy_run_cases_cbox',
+                        checked: true,
+                        boxLabel: 'Link cases in copied run to original test cases (unchecking will produce an empty test run)',
+                        hideLabel: true
+                    },bbox, ebox]
+                }]
+
+            }]
+        }],
         buttons: [{
             text: 'Submit',
-            handler: doClone
+            handler: doSubmit.createDelegate(this)
         },{
             text: 'Cancel',
             handler: function(){
-                Ext.getCmp('plan-clone-win').hide();
+                Ext.getCmp('plan-clone-win').close();
             }
         }]
     });
 };
-Ext.extend(PlanClonePanel, Ext.Panel);
+Ext.extend(Testopia.TestPlan.ClonePanel, Ext.form.FormPanel);
 
 PlanClonePopup = function(plan){
-    if (!this.window){
-        var win = new Ext.Window({
-            id: 'plan-clone-win',
-            closable: true,
-            width: 800,
-            height: 550,
-            plain: true,
-            shadow: false,
-            closable: false,
-            layout: 'fit',
-            items: [new PlanClonePanel(plan)]
-        });
-        this.window = win;
-    }
-    return this;
+    
+    var win = new Ext.Window({
+        id: 'plan-clone-win',
+        closable: true,
+        width: 750,
+        title: 'Create a Copy of Plan ' + plan.plan_id,
+        height: 500,
+        plain: true,
+        shadow: false,
+        closable: true,
+        layout: 'fit',
+        items: [new Testopia.TestPlan.ClonePanel(plan)]
+    });
+    win.show();
 };

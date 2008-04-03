@@ -30,6 +30,7 @@ use Bugzilla::Util;
 use Bugzilla::User;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Product;
+use Bugzilla::Testopia::TestPlan;
 
 use vars qw($vars);
 

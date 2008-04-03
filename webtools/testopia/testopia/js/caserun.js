@@ -733,6 +733,35 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                                 win.show(this);
                             }
                         },{
+                            text: 'Category',
+                            handler: function(){
+                                var win = new Ext.Window({
+                                    title: 'Edit Category',
+                                    id: 'status-win',
+                                    plain: true,
+                                    shadow: false,
+                                    width: 300,
+                                    height: 150,
+                                    items: [new CaseCategoryCombo({
+                                        fieldLabel: 'Category',
+                                        params: {product_id: run.product_id}
+                                    })],
+                                    buttons: [{
+                                        text:'Submit',
+                                        handler: function(){
+                                            TestopiaUpdateMultiple('case', {category: Ext.getCmp('case_category_combo').getValue(), ids: getSelectedObjects(grid,'case_id')}, grid);
+                                            win.close();
+                                        }
+                                    },{
+                                        text: 'Close',
+                                        handler: function(){
+                                            win.close();
+                                        }
+                                    }]
+                                });
+                                win.show(this);
+                            }
+                        },{
                             text: 'Assignee',
                             handler: function(){
                                 var win = new Ext.Window({

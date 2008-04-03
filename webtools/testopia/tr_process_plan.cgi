@@ -32,6 +32,7 @@ use Bugzilla::Testopia::Table;
 use Bugzilla::Testopia::TestPlan;
 use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::Category;
+use Bugzilla::Testopia::Build;
 use Bugzilla::Testopia::Attachment;
 use JSON;
 
@@ -65,14 +66,20 @@ elsif ($action eq 'clone'){
     my $plan_name = $cgi->param('plan_name');
     my $product_id = $cgi->param('product_id');
     my $version = $cgi->param('prod_version');
-
+    my $product = Bugzilla::Testopia::Product->new($product_id);
+    $product ||= $plan->product;
+    
     trick_taint($plan_name);
     trick_taint($version);
     detaint_natural($product_id);
-    validate_selection($product_id,'id','products');
-    Bugzilla::Version::check_version(Bugzilla::Product->new($product_id),$version);
-    
-    my $author = $cgi->param('keepauthor') ? $plan->author->id : Bugzilla->user->id;
+    Bugzilla::Version::check_version($product,$version);
+    if ($cgi->param('copy_runs')){
+        ThrowUserError("invalid-test-id-non-existent", 
+            {'id' => $cgi->param('new_run_build'), 'type' => 'Build'}) unless $cgi->param('new_run_build');
+        ThrowUserError("invalid-test-id-non-existent", 
+            {'id' => $cgi->param('new_run_env'), 'type' => 'Environment'}) unless $cgi->param('new_run_env');
+    }    
+    my $author = $cgi->param('keep_plan_author') ? $plan->author->id : Bugzilla->user->id;
     my $newplanid = $plan->clone($plan_name, $author, $product_id, $version, $cgi->param('copy_doc'));
     my $newplan = Bugzilla::Testopia::TestPlan->new($newplanid);
 
@@ -88,7 +95,7 @@ elsif ($action eq 'clone'){
     }
     if ($cgi->param('copy_perms')){
         $plan->copy_permissions($newplanid);
-        $newplan->add_tester($author, TR_READ | TR_WRITE | TR_DELETE | TR_ADMIN ) unless $cgi->param('keepauthor');
+        $newplan->add_tester($author, TR_READ | TR_WRITE | TR_DELETE | TR_ADMIN ) unless ($cgi->param('keep_plan_author'));
         $newplan->derive_regexp_testers($plan->tester_regexp);
     }
     else {
@@ -99,24 +106,52 @@ elsif ($action eq 'clone'){
         $newplan->derive_regexp_testers(Bugzilla->params->{'testopia-default-plan-testers-regexp'})
     } 
     if ($cgi->param('copy_cases')){
-        my @case_ids;
-
-        foreach my $id ($cgi->param('clone_categories')){
-            detaint_natural($id);
-            validate_selection($id,'category_id','test_case_categories');
-            my $category = Bugzilla::Testopia::Category->new($id);
-            push @case_ids, @{$category->plan_case_ids($plan->id)};
-        }
-        
-        my $total = scalar @case_ids;
-        foreach my $id (@case_ids){
-            my $case = Bugzilla::Testopia::TestCase->new($id);
+        my @cases = @{$plan->test_cases};
+        my $total = scalar @cases;
+        foreach my $case (@cases){
             # Copy test cases creating new ones
-            if ($cgi->param('copy_cases') == 2 ){
-                my $caseid = $case->copy($newplan->id, $author, 1);
+            if ($cgi->param('make_copy')){
+                my $case_author = $cgi->param('keep_case_authors') ? $case->author->id : Bugzilla->user->id;
+                my $category;
+                if ($cgi->param('copy_categories')){
+                    my $category_id = check_case_category($case->category->name, $product);
+                    if (! $category_id){
+                        $category = Bugzilla::Testopia::Category->create({
+                            product_id  => $product->id,
+                            name        => $case->category->name,
+                            description => $case->category->description,
+                        });
+                    }
+                    else {
+                       $category = Bugzilla::Testopia::Category->new($category_id); 
+                    }
+                    
+                }
+                else {
+                    if ($product->id == $plan->product_id){
+                        $category = $case->category;
+                    }
+                    else{
+                        my @categories = @{$product->categories};
+                        if (scalar @categories < 1){
+                            $category = Bugzilla::Testopia::Category->create({
+                                product_id  => $product->id,
+                                name        => '--default--',
+                                description => 'Default product category for test cases',
+                            });
+                             
+                        }
+                        else{
+                            $category = $categories[0];
+                        }
+                    }
+                }
+                
+                my $caseid = $case->copy($newplan->id, $case_author, 1, $category->id);
                 my $newcase = Bugzilla::Testopia::TestCase->new($caseid);
-                $case->link_plan($newplan->id, $caseid);
-
+                
+                $newcase->link_plan($newplan->id, $caseid);
+                
                 foreach my $tag (@{$case->tags}){
                     $newcase->add_tag($tag->name);
                 }
@@ -133,9 +168,23 @@ elsif ($action eq 'clone'){
     }
     if ($cgi->param('copy_runs')){
         foreach my $run (@{$plan->test_runs}){
-            my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($run->summary, $run->manager->id, $newplan->id, $run->build->id));
-            foreach my $id (@{$run->case_ids}){
-                $newrun->add_case_run($id);
+            my $manager = $cgi->param('keep_run_managers') ? $run->manager->id : Bugzilla->user->id;
+            
+            my $build = Bugzilla::Testopia::Build->new($cgi->param('new_run_build'));
+            my $env = Bugzilla::Testopia::Build->new($cgi->param('new_run_env'));
+            
+            my $run_id = $run->clone($run->summary, $manager, $newplan->id, $build->id, $env->id);
+            
+            my $newrun = Bugzilla::Testopia::TestRun->new($run_id);
+            if($cgi->param('copy_run_tags')){
+                foreach my $tag (@{$run->tags}){
+                    $newrun->add_tag($tag->name);
+                }
+            }
+            if($cgi->param('copy_run_cases')){
+                foreach my $cr (@{$run->current_caseruns}){
+                    $newrun->add_case_run($cr->case_id, $cr->sortkey);
+                }
             }
         }
     }

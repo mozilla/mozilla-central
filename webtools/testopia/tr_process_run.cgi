@@ -83,7 +83,7 @@ elsif ($action eq 'clone'){
     detaint_natural($build);
     validate_test_id($plan_id, 'plan');
 
-    my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build));
+    my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build, $run->environment->id));
 
     if($cgi->param('copy_tags')){
         foreach my $tag (@{$run->tags}){

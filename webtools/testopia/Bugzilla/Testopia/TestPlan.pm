@@ -829,6 +829,12 @@ sub add_tester {
     my $self = shift;
     my ($userid, $perms) = @_;
     my $dbh = Bugzilla->dbh;
+    my ($is) = $dbh->selectrow_array(
+        "SELECT userid 
+           FROM test_plan_permissions
+           WHERE userid = ? AND plan_id = ? AND grant_type = ?", 
+           undef, ($userid, $self->id, GRANT_DIRECT));
+    return if $is;
     
     $dbh->do("INSERT INTO test_plan_permissions
               (userid, plan_id, permissions, grant_type) 

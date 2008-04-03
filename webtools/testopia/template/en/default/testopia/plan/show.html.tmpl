@@ -88,7 +88,6 @@ Ext.onReady(function(){
     var tgrid = new TestopiaObjectTags('plan', plan.plan_id);
     var attachGrid = new AttachGrid(plan);
     var t = new TestopiaUtil();
-    var clone = new PlanClonePopup(plan);
     
     var fileMenu = new Ext.menu.Menu({
         id: 'plan-file-menu',
@@ -117,7 +116,7 @@ Ext.onReady(function(){
             icon: 'testopia/img/copy.png',
             iconCls: 'img_button_16x',
             handler: function(){
-                clone.window.show();
+                PlanClonePopup(plan);
             }
         },{
             text: "Print",
@@ -197,7 +196,7 @@ Ext.onReady(function(){
         iconCls: 'img_button_16x',
         tooltip: 'Clone this Test Plan',
         handler: function(){
-                clone.window.show();
+            PlanClonePopup(plan);        
         }
     }
 [% END %]
@@ -431,10 +430,6 @@ Ext.onReady(function(){
     </tr>
   </tbody>
 </table>
-</div>
-
-<div id="plan-clone-div" class="x-hidden">
-    [% PROCESS testopia/plan/clone.html.tmpl %]
 </div>
 
 <div id="plan-permissions-div" class="x-hidden">

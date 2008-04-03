@@ -1150,7 +1150,7 @@ CaseClonePanel = function(tcase){
             frame: true,
             bodyStyle: 'padding: 10px',
             labelWidth: 250,
-            height: 260,
+            height: 280,
             items: [{
                 xtype: 'fieldset',
                 autoHeight: true,

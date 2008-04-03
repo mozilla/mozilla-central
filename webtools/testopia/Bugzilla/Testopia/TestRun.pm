@@ -429,15 +429,15 @@ and the build id to use.
 
 sub clone {
     my $self = shift;
-    my ($summary, $manager, $plan_id, $build) = @_;
+    my ($summary, $manager, $plan_id, $build_id, $env_id) = @_;
     my $dbh = Bugzilla->dbh;
     # Exclude the auto-incremented field from the column list.
     my $columns = join(", ", grep {$_ ne 'run_id'} DB_COLUMNS);
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
 
     $dbh->do("INSERT INTO test_runs ($columns) VALUES (?,?,?,?,?,?,?,?,?,?)",
-              undef, ($plan_id, $self->{'environment_id'},
-              $self->{'product_version'}, $build, 
+              undef, ($plan_id, $env_id,
+              $self->{'product_version'}, $build_id, 
               $self->{'plan_text_version'}, $manager, 
               $timestamp, undef, $summary, undef));
     my $key = $dbh->bz_last_key( 'test_runs', 'run_id' );
