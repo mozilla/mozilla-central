@@ -69,8 +69,8 @@ static const float kButtonRectVPadding = 4.0f;
 - (NSRect)insertionHiliteRectForButton:(NSView*)aButton position:(int)aPosition;
 - (BookmarkButton*)makeNewButtonWithItem:(BookmarkItem*)aItem;
 - (void)managerStarted:(NSNotification*)inNotify;
-- (BOOL)anchorFoundAtPoint:(NSPoint)testPoint forButton:(NSButton*)sourceButton;
-- (BOOL)anchorFoundScanningFromPoint:(NSPoint)testPoint withStep:(int)step;
+- (BOOL)findDropAnchorAtPoint:(NSPoint)testPoint;
+- (BOOL)findDropAnchorScanningFromPoint:(NSPoint)testPoint withStep:(int)step;
 - (void)drawBackgroundInRect:(NSRect)rect;
 - (void)drawInsertionHighlightForButtonRect:(NSRect)rect;
 
@@ -509,35 +509,52 @@ static const int kBMBarScanningStep = 5;
   NSButton* sourceButton  = [sender draggingSource];
 
   mDragInsertionButton = nil;
-  mDragInsertionPosition = CHInsertAfter;
+  mDragInsertionPosition = CHInsertNone;
 
-  // check for a button at current location to use as an anchor
-  if ([self anchorFoundAtPoint:superviewLoc forButton:sourceButton]) return;
-  // otherwise see if there's a view around it to use as an anchor point
-  if ([self anchorFoundScanningFromPoint:superviewLoc withStep:(kBMBarScanningStep * -1)]) return;
-  if ([self anchorFoundScanningFromPoint:superviewLoc withStep:kBMBarScanningStep]) return;
+  // Try to find a drop anchor at or around the point until something works.
+  // These methods will set mDragInsertion* as side-effects if they work.
+  if (!([self findDropAnchorAtPoint:superviewLoc] ||
+        [self findDropAnchorScanningFromPoint:superviewLoc withStep:(kBMBarScanningStep * -1)] ||
+        [self findDropAnchorScanningFromPoint:superviewLoc withStep:kBMBarScanningStep]))
+  {
+    // If there's nothing on the line, then the point is probably the dead zone
+    // between lines; treat that zone as the line above, and try again.
+    superviewLoc.y += kBMBarScanningStep;
+    if (!([self findDropAnchorAtPoint:superviewLoc] ||
+          [self findDropAnchorScanningFromPoint:superviewLoc withStep:(kBMBarScanningStep * -1)] ||
+          [self findDropAnchorScanningFromPoint:superviewLoc withStep:kBMBarScanningStep]))
+    {
+      // If nothing else worked, just toss it on the end.
+      mDragInsertionButton = ([mButtons count] > 0) ? [mButtons objectAtIndex:[mButtons count] - 1] : 0;
+      mDragInsertionPosition = CHInsertAfter;
+    }
+  }
 
-  // if neither worked, it's probably the dead zone between lines.
-  // treat that zone as the line above, and try everything again
-  superviewLoc.y += kBMBarScanningStep;
-  if ([self anchorFoundAtPoint:superviewLoc forButton:sourceButton]) return;
-  if ([self anchorFoundScanningFromPoint:superviewLoc withStep:(kBMBarScanningStep * -1)]) return;
-  if ([self anchorFoundScanningFromPoint:superviewLoc withStep:kBMBarScanningStep]) return;
-
-  // if nothing works, just throw it in at the end
-  mDragInsertionButton = ([mButtons count] > 0) ? [mButtons objectAtIndex:[mButtons count] - 1] : 0;
-  mDragInsertionPosition = CHInsertAfter;
+  // If the insertion is on or next to the source button, it shouldn't be
+  // treated an actual drag.
+  if (mDragInsertionButton == sourceButton) {
+    mDragInsertionButton = nil;
+    mDragInsertionPosition = CHInsertNone;
+  }
+  else if (mDragInsertionPosition == CHInsertBefore ||
+           mDragInsertionPosition == CHInsertAfter)
+  {
+    unsigned int targetButtonIndex = [mButtons indexOfObject:mDragInsertionButton];
+    targetButtonIndex += (mDragInsertionPosition == CHInsertAfter) ? 1 : -1;
+    if (targetButtonIndex >= 0 && targetButtonIndex < [mButtons count] &&
+        [mButtons objectAtIndex:targetButtonIndex] == sourceButton)
+    {
+      mDragInsertionButton = nil;
+      mDragInsertionPosition = CHInsertNone;
+    }
+  }
 }
 
-- (BOOL)anchorFoundAtPoint:(NSPoint)testPoint forButton:(NSButton*)sourceButton
+- (BOOL)findDropAnchorAtPoint:(NSPoint)testPoint
 {
   NSView* foundView = [self hitTest:testPoint];
   if (foundView && [foundView isMemberOfClass:[BookmarkButton class]]) {
     BookmarkButton* targetButton = (BookmarkButton*)foundView;
-
-    // if over current position, leave mDragInsertButton unset but return success so nothing happens
-    if (targetButton == sourceButton)
-      return YES;
 
     mDragInsertionButton = targetButton;
     if ([[targetButton bookmarkItem] isKindOfClass:[BookmarkFolder class]])
@@ -551,7 +568,7 @@ static const int kBMBarScanningStep = 5;
   return NO;
 }
 
-- (BOOL)anchorFoundScanningFromPoint:(NSPoint)testPoint withStep:(int)step
+- (BOOL)findDropAnchorScanningFromPoint:(NSPoint)testPoint withStep:(int)step
 {
   NSView* foundView;
   // scan horizontally until we find a bookmark or leave the view
