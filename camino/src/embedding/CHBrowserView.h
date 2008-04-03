@@ -255,6 +255,9 @@ typedef enum {
 - (BOOL)canMakeTextSmaller;
 - (BOOL)isTextDefaultSize;
 
+- (void)pageUp;
+- (void)pageDown;
+
 // Verifies that the browser view can be unloaded (e.g., validates
 // onbeforeunload handlers). Should be called before any action that would
 // destroy the browser view.

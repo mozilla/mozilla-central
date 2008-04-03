@@ -1274,6 +1274,16 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
   return (fabsf([self textZoom] - DEFAULT_TEXT_ZOOM) < .001);
 }
 
+- (void)pageUp
+{
+  [self doCommand:"cmd_scrollPageUp"];
+}
+
+- (void)pageDown
+{
+  [self doCommand:"cmd_scrollPageDown"];
+}
+
 - (BOOL)shouldUnload
 {
   nsCOMPtr<nsIContentViewer> contentViewer = dont_AddRef([self contentViewer]);

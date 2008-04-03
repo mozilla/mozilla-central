@@ -684,6 +684,23 @@ public:
   mMoveReentrant = NO;
 }
 
+// Undocumented method for handling multi-touch swipe events in 10.5.
+// The worst that's likely to happen is that this would just stop being
+// called if the gesture system changes in a future version.
+- (void)swipeWithEvent:(NSEvent*)event
+{
+  // Map forward and back to history; left is positive, right is negative (!)
+  if ([event deltaX] > 0.5)
+    [self back:nil];
+  else if ([event deltaX] < -0.5)
+    [self forward:nil];
+  // Map up and down to page up/down
+  else if ([event deltaY] > 0.5)
+    [[mBrowserView browserView] pageUp];
+  else if ([event deltaY] < -0.5)
+    [[mBrowserView browserView] pageDown];
+}
+
 -(void)autosaveWindowFrame
 {
   if (mShouldAutosave) {
