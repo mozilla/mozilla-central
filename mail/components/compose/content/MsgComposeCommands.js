@@ -1456,7 +1456,7 @@ function ComposeLoad()
 
     if (other_headers) {
       var selectNode = document.getElementById('addressCol1#1');
-      var other_headers_Array = sOther_headers.split(",");
+      var other_headers_Array = other_headers.split(",");
       for (var i = 0; i < other_headers_Array.length; i++)
         selectNode.appendItem(other_headers_Array[i] + ":", "addr_other");
     }
