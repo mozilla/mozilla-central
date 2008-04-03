@@ -111,14 +111,18 @@ Ext.onReady(function(){
                     failure: testopiaError
                 });
             }
-        },{
+        }
+        [% IF user.in_group('Testers') %]
+        ,{
             text: 'Clone',
             icon: 'testopia/img/copy.png',
             iconCls: 'img_button_16x',
             handler: function(){
                 PlanClonePopup(plan);
             }
-        },{
+        }
+        [% END %]
+        ,{
             text: "Print",
             handler: function(){
                 window.location='tr_show_plan.cgi?&plan_id=[% plan.id FILTER none %]&ctype=print';

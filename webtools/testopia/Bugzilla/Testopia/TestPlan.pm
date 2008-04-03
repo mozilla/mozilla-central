@@ -329,7 +329,7 @@ sub clone {
               $self->{'type_id'}, $version, $name,
               $timestamp, 1));
     my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );
-    my $text = $store_doc ? $self->text : ''; 
+    my $text = $store_doc ? $self->text->{'plan_text'} : ''; 
     $self->store_text($key, $self->{'author_id'}, $text, $timestamp);
     return $key;
     

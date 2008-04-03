@@ -133,6 +133,7 @@ elsif ($action eq 'link') {
         ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
         push @plans, $plan;
     }
+    ThrowUserError('missing-plans-list') unless scalar @plans;
     
     foreach my $plan (@plans){
         $case->link_plan($plan->id);
