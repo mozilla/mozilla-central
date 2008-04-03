@@ -1002,7 +1002,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
 
 NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow)
 {
-  NS_ENSURE_ARG_POINTER(msgWindow);
   nsresult rv;
   PRBool isChildOfTrash;
   IsChildOfTrash(&isChildOfTrash);
@@ -1021,7 +1020,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsISupportsArray *folders, 
   if (NS_SUCCEEDED(rv))
   {
     if (folder)
-      trashFolder->CopyFolder(folder, PR_TRUE, msgWindow, nsnull);
+      rv = trashFolder->CopyFolder(folder, PR_TRUE, msgWindow, nsnull);
   }
   return rv;
 }
@@ -1852,10 +1851,15 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     // don't confirm for rss folders.
     if (isMoveFolder)
     {
-      PRBool okToDelete = PR_FALSE;
-      ConfirmFolderDeletion(msgWindow, &okToDelete);
-      if (!okToDelete)
-        return NS_MSG_ERROR_COPY_FOLDER_ABORTED;
+      // if there's a msgWindow, confirm the deletion
+      if (msgWindow) 
+      {
+
+        PRBool okToDelete = PR_FALSE;
+        ConfirmFolderDeletion(msgWindow, &okToDelete);
+        if (!okToDelete)
+          return NS_MSG_ERROR_COPY_FOLDER_ABORTED;
+      }
       // if we are moving a favorite folder to trash, we should clear the favorites flag
       // so it gets removed from the view.
       srcFolder->ClearFlag(MSG_FOLDER_FLAG_FAVORITE);
@@ -1863,7 +1867,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
 
     PRBool match = PR_FALSE;
     rv = srcFolder->MatchOrChangeFilterDestination(nsnull, PR_FALSE, &match);
-    if (match)
+    if (match && msgWindow)
     {
       PRBool confirmed = PR_FALSE;
       srcFolder->ConfirmFolderDeletionForFilter(msgWindow, &confirmed);
