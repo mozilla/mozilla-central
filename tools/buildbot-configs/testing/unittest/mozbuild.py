@@ -167,27 +167,27 @@ MozillaEnvironments['mozbuild_pgo'] = {
             'D:\\mozilla-build\\msys\\bin;' + 
             'D:\\buildbot\\python24;' + 
             'D:\\buildbot\\python24\\scripts;' + 
-            #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\bin;' + 
+            'D:\\sdks\\v6.0\\Bin;' + 
             'D:\\msvs8\\Common7\\IDE;' + 
             'D:\\msvs8\\VC\\BIN;' + 
             'D:\\msvs8\\Common7\\Tools;' + 
             'D:\\msvs8\\Common7\\Tools\\bin;' + 
             'D:\\msvs8\\VC\\PlatformSDK\\bin;' + 
-            'D:\\msvs8\\SDK\\v2.0\\bin;' + 
+            'D:\\msvs8\\SDK\\v2.0\\Bin;' + 
             'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + 
             'D:\\msvs8\\VC\\VCPackages;' + 
             'C:\\WINDOWS\\System32;' + 
             'C:\\WINDOWS;' + 
             'C:\\WINDOWS\\System32\\Wbem;' + 
             'D:\\mozilla-build\\moztools\\bin;',
-    "INCLUDE": #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\include;' + 
-               #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\include\\atl;' + 
+    "INCLUDE": 'D:\\sdks\\v6.0\\Include;' + 
+               'D:\\sdks\\v6.0\\Include\gl;' + 
                'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + 
                'D:\\msvs8\\VC\\INCLUDE;' + 
                'D:\\msvs8\\VC\\PlatformSDK\\include;' + 
                'D:\\msvs8\\SDK\\v2.0\\include;' + 
                '%INCLUDE%',
-    "LIB": #'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.1\\lib;' + 
+    "LIB": 'D:\\sdks\\v6.0\\lib;' + 
            'D:\\msvs8\\VC\\ATLMFC\\LIB;' + 
            'D:\\msvs8\\VC\\LIB;' + 
            'D:\\msvs8\\VC\\PlatformSDK\\lib;' + 
