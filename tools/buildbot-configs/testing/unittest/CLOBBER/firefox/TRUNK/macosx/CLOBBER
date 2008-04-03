@@ -1,1 +1,1 @@
-CLOBBER file test
+Clobbering to clear a corrupted source tree from bug 425367
