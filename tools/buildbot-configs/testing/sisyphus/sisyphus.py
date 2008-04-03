@@ -5,6 +5,7 @@ import re
 MozillaEnvironments = {}
 
 MozillaEnvironments['linux'] = {
+    "TEST_DIR": '/work/mozilla/mozilla.com/test.mozilla.com/www',
     "DISPLAY": ':0',
     "MOZ_NO_REMOTE": '1',
     "CVSROOT": r':ext:unittest@cvs.mozilla.org:/cvsroot',
@@ -12,12 +13,14 @@ MozillaEnvironments['linux'] = {
 }
 
 MozillaEnvironments['macosxppc'] = {
+    "TEST_DIR": '/work/mozilla/mozilla.com/test.mozilla.com/www',
     "MOZ_NO_REMOTE": '1',
     "CVSROOT": r':ext:unittest@cvs.mozilla.org:/cvsroot',
     "CVS_RSH": 'ssh'
 }
 
 MozillaEnvironments['windows'] = {
+    "TEST_DIR": '/work/mozilla/mozilla.com/test.mozilla.com/www',
     "MOZ_NO_REMOTE": '1',
     "NO_EM_RESTART": '1',
     "XPCOM_DEBUG_BREAK": 'warn',
@@ -54,7 +57,7 @@ class SisyphusJSTest(ShellCommand):
         ShellCommand.__init__(self, **kwargs)
     
     def start(self):
-        self.setCommand(["./tests/mozilla.org/js/runtests.sh",
+        self.setCommand(["tests/mozilla.org/js/runtests.sh",
                "-p", self.product, "-b", self.branch, "-T", self.buildType,
                "-B", "checkout build", "-c", "-S"])
         ShellCommand.start(self)
@@ -75,7 +78,7 @@ class SisyphusBrowserTest(SisyphusJSTest):
     product = "firefox"
     
     def start(self):
-        self.setCommand(["./tests/mozilla.org/js/runtests.sh",
+        self.setCommand(["tests/mozilla.org/js/runtests.sh",
                "-p", self.product, "-b", self.branch, "-T", self.buildType,
                "-B", "checkout build", "-c", "-R", "-S"])
         ShellCommand.start(self)
@@ -108,7 +111,7 @@ class SisyphusJSTestWin(CygwinBashShellCommand):
         ShellCommand.__init__(self, **kwargs)
     
     def start(self):
-        self.command = ["./tests/mozilla.org/js/runtests.sh",
+        self.command = ["tests/mozilla.org/js/runtests.sh",
                    "-p", self.product, "-b", self.branch,
                    "-T", self.buildType, "-B", "checkout-build", "-c", "-S"]
         CygwinBashShellCommand.start(self)
@@ -129,7 +132,7 @@ class SisyphusBrowserTestWin(SisyphusJSTestWin):
     product = "firefox"
 
     def start(self):
-        self.command = ["./tests/mozilla.org/js/runtests.sh",
+        self.command = ["tests/mozilla.org/js/runtests.sh",
                    "-p", self.product, "-b", self.branch,
                    "-T", self.buildType, "-B", "checkout-build", "-c", "-R", "-S"]
         CygwinBashShellCommand.start(self)
