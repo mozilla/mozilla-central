@@ -22,7 +22,7 @@ HelperAppDlg.prototype = {
         aLauncher.saveToDisk( null, false );
     },
     
-    promptForSaveToFile: function(aLauncher, aContext, aDefaultFile, aSuggestedFileExtension) {
+    promptForSaveToFile: function(aLauncher, aContext, aDefaultFile, aSuggestedFileExtension, aForcePrompt) {
 
         var result = "";
 

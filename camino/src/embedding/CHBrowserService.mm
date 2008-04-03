@@ -320,7 +320,8 @@ CHBrowserService::Show(nsIHelperAppLauncher* inLauncher, nsISupports* inContext,
 }
 
 NS_IMETHODIMP
-CHBrowserService::PromptForSaveToFile(nsIHelperAppLauncher* aLauncher, nsISupports *aWindowContext, const PRUnichar *aDefaultFile, const PRUnichar *aSuggestedFileExtension, nsILocalFile **_retval)
+CHBrowserService::PromptForSaveToFile(nsIHelperAppLauncher* aLauncher,
+nsISupports *aWindowContext, const PRUnichar *aDefaultFile, const PRUnichar *aSuggestedFileExtension, PRBool aForcePrompt, nsILocalFile **_retval)
 {
   NSString* filename = [NSString stringWithPRUnichars:aDefaultFile];
   NSSavePanel *thePanel = [NSSavePanel savePanel];
