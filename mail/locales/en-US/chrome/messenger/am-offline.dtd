@@ -9,18 +9,18 @@
 <!ENTITY daysOld.label "days old">
 <!ENTITY message.label "messages">
 <!ENTITY nntpNotDownloadRead.label "Read messages">
-<!ENTITY nntpNotDownloadRead.accesskey "R">
+<!ENTITY nntpNotDownloadRead.accesskey "d">
 <!ENTITY nntpDownloadMsg.label "Messages more than">
 <!ENTITY nntpDownloadMsg.accesskey "e">
 <!ENTITY retentionCleanup.label "To recover disk space, old messages can be permanently deleted">
 <!ENTITY retentionKeepMsg.label "Delete messages more than">
-<!ENTITY retentionKeepMsg.accesskey "m">
+<!ENTITY retentionKeepMsg.accesskey "t">
 <!ENTITY retentionKeepAll.label "Don't delete any messages">
-<!ENTITY retentionKeepAll.accesskey "A">
+<!ENTITY retentionKeepAll.accesskey "n">
 <!ENTITY retentionKeepNew.label "Delete all but the last">
-<!ENTITY retentionKeepNew.accesskey "l">
+<!ENTITY retentionKeepNew.accesskey "b">
 <!ENTITY retentionKeepUnread.label "Always delete read messages">
-<!ENTITY retentionKeepUnread.accesskey "r">
+<!ENTITY retentionKeepUnread.accesskey "w">
 <!ENTITY nntpRemoveBody.label "Only message bodies less than">
 <!ENTITY nntpRemoveBody.accesskey "O">
 <!ENTITY offlineSelectNntp.label "Select newsgroups for offline use…">
@@ -29,6 +29,6 @@
 <!ENTITY offlineSelectImap.accesskey "S">
 <!ENTITY offlineDesc.label "You can download your messages locally so that they are available when you are working offline.">
 <!ENTITY makeInboxMsgsAvailable.label "Make the messages in my Inbox available when I am working offline">
-<!ENTITY makeInboxMsgsAvailable.accesskey "b">
+<!ENTITY makeInboxMsgsAvailable.accesskey "k">
 <!ENTITY offlineGroupTitle.label "Offline">
 <!ENTITY diskspaceGroupTitle.label "Disk Space">
