@@ -5,7 +5,7 @@
 <!ENTITY fccMailFolder.label "Place a copy in:">
 <!ENTITY fccMailFolder.accesskey "P">
 <!ENTITY fccReplyFollowsParent.label "Place replies in the folder of the message being replied to">
-<!ENTITY fccReplyFollowsParent.accesskey "l">
+<!ENTITY fccReplyFollowsParent.accesskey "c">
 <!ENTITY chooseFolderButton.label "Choose Folder…">
 <!-- LOCALIZATION NOTE (bccAddress.label): do not translate "Bcc" in below line -->
 <!ENTITY bccAddress.label "Bcc these email addresses:">
@@ -14,10 +14,10 @@
 <!ENTITY draftMailFolder.label "Keep message drafts in:">
 <!ENTITY templateMailFolder.label "Keep message templates in:">
 <!ENTITY saveMessageDlg.label "Show confirmation dialog when messages are saved">
-<!ENTITY saveMessageDlg.accesskey "S">
+<!ENTITY saveMessageDlg.accesskey "w">
 <!-- LOCALIZATION NOTE (sentFolderOn.label): OK to translate this, bug #57440 -->
 <!ENTITY sentFolderOn.label "&quot;Sent&quot; Folder on:">
-<!ENTITY sentFolderOn.accesskey "e">
+<!ENTITY sentFolderOn.accesskey "S">
 <!ENTITY sentInOtherFolder.label "Other:">
 <!ENTITY sentInOtherFolder.accesskey "O">
 <!-- LOCALIZATION NOTE (draftsFolderOn.label): OK to translate this, bug #57440 -->
@@ -29,7 +29,7 @@
 <!ENTITY templatesFolderOn.label "&quot;Templates&quot; Folder on:">
 <!ENTITY templatesFolderOn.accesskey "m">
 <!ENTITY templateInOtherFolder.label "Other:">
-<!ENTITY templateInOtherFolder.accesskey "r">
+<!ENTITY templateInOtherFolder.accesskey "e">
 <!ENTITY specialFoldersTitle.label "Drafts and Templates">
 <!ENTITY keepDrafts.label "Keep message drafts in:">
 <!ENTITY keepTempltes.label "Keep message templates in:">
