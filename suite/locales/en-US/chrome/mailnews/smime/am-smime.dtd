@@ -13,9 +13,9 @@
 <!ENTITY digitalSign.certificate_clear.button "Clear">
 <!ENTITY digitalSign.certificate_clear.accesskey "C">
 <!ENTITY encryption.certificate.button "Select…">
-<!ENTITY encryption.certificate.accesskey "e">
+<!ENTITY encryption.certificate.accesskey "t">
 <!ENTITY encryption.certificate_clear.button "Clear">
-<!ENTITY encryption.certificate_clear.accesskey "r">
+<!ENTITY encryption.certificate_clear.accesskey "e">
 <!ENTITY signingGroupTitle.label "Digital Signing">
 <!ENTITY signMessage.label "Digitally sign messages (by default)">
 <!ENTITY signMessage.accesskey "D">
