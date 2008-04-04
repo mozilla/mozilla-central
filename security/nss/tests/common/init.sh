@@ -223,7 +223,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
             MSG_ID=`expr ${MSG_ID} + 1`
             echo ${MSG_ID} > ${MSG_ID_FILE}
             html "<TR><TD>#${MSG_ID}: $* ${HTML_FAILED_CORE}"
-            echo "${SCRIPTNAME}: #${MSG_ID}: $* - Core file is detected."
+            echo "${SCRIPTNAME}: #${MSG_ID}: $* - Core file is detected - FAILED"
             return 1
         fi
         return 0
@@ -627,6 +627,10 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         IOPR=1
     fi
     #################################################
+
+    if [ "${OS_ARCH}" != "WINNT" ]; then
+        ulimit -c unlimited
+    fi 
 
     SCRIPTNAME=$0
     INIT_SOURCED=TRUE   #whatever one does - NEVER export this one please
