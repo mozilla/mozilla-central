@@ -54,9 +54,19 @@ function CustomizeMailToolbar(id)
 
   var toolbox = document.getElementById(id);
 
+  var customizeURL = "chrome://global/content/customizeToolbar.xul";
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
   var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
   sheetFrame.hidden = false;
+
+  // The document might not have been loaded yet, if this is the first time.
+  // If it is already loaded, reload it so that the onload intialization code
+  // re-runs.
+  if (sheetFrame.getAttribute("src") == customizeURL)
+    sheetFrame.contentWindow.location.reload()
+  else
+    sheetFrame.setAttribute("src", customizeURL);
+
   var sheetWidth = sheetFrame.style.width.match(/([0-9]+)px/)[1];
   document.getElementById("customizeToolbarSheetPopup")
           .openPopup(toolbox, "after_start",
@@ -65,7 +75,7 @@ function CustomizeMailToolbar(id)
   var wintype = document.documentElement.getAttribute("windowtype");
   wintype = wintype.replace(/:/g, "");
 
-  window.openDialog("chrome://global/content/customizeToolbar.xul",
+  window.openDialog(customizeURL,
                     "CustomizeToolbar"+wintype,
                     "chrome,all,dependent", toolbox);
 #endif
