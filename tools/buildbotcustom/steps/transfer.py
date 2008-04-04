@@ -9,7 +9,7 @@ class MozillaStageUpload(ShellCommand):
                  remoteBasePath, group=None, chmodMode=755, sshKey=None,
                  releaseToDated=True, releaseToLatest=True,
                  releaseToTinderboxBuilds=True, tinderboxBuildsDir=None, 
-                 dependToDated=True, **kwargs):
+                 dependToDated=True, uploadCompleteMar=True, **kwargs):
         """
         @type  objdir: string
         @param objdir: The obj directory used for the build. This is needed to
@@ -82,6 +82,12 @@ class MozillaStageUpload(ShellCommand):
                               tinderbox-builds dir. For example:
                               tinderbox-builds/builder/1203094573. The option
                               defaults to True.
+
+        @type  uploadCompleteMar: bool
+        @param uploadCompleteMar: When True, the MozillaStageUpload will upload
+                                  the complete mar file found in dist/update to
+                                  the datedDir. This option only applies when
+                                  releaseToDated is True.
         """
 
         ShellCommand.__init__(self, **kwargs)
@@ -101,7 +107,8 @@ class MozillaStageUpload(ShellCommand):
                                      releaseToLatest=releaseToLatest,
                                      releaseToTinderboxBuilds=releaseToTinderboxBuilds,
                                      tinderboxBuildsDir=tinderboxBuildsDir,
-                                     dependToDated=dependToDated)
+                                     dependToDated=dependToDated,
+                                     uploadCompleteMar=uploadCompleteMar)
 
         assert platform in ('win32', 'linux', 'macosx')
         self.objdir = objdir
@@ -118,6 +125,7 @@ class MozillaStageUpload(ShellCommand):
         self.releaseToTinderboxBuilds = releaseToTinderboxBuilds
         self.tinderboxBuildsDir = tinderboxBuildsDir
         self.dependToDated = dependToDated
+        self.uploadCompleteMar = uploadCompleteMar
 
         self.description = ["uploading package(s) to", remoteHost]
         self.descriptionDone = ["upload package(s) to", remoteHost]
@@ -221,6 +229,12 @@ class MozillaStageUpload(ShellCommand):
         return self._getBaseCommand(ssh=True) + ' ' + self.remoteHost + \
                ' ln -fs ' + shortDatedDir + ' ' + targetDir
 
+    def uploadCompleteMarCommand(self, dir)
+        packageGlob = '%s/dist/update/*.complete.mar' % self.objdir
+        return self._getBaseCommand(scp=True) + ' ' + packageGlob + \
+                 ' ' + self.username + '@' + self.remoteHost + ':' + \
+                 dir
+
     def start(self):
         datedDir = self.getLongDatedPath()
         latestDir = self.getLatestPath()
@@ -240,6 +254,8 @@ class MozillaStageUpload(ShellCommand):
             if self.group:
                 cmd += " && " + self.chgrpCommand(datedDir)
             cmd += " && " + self.symlinkDateDirCommand(datedDir)
+            if self.uploadCompleteMar:
+                cmd += " && " + self.uploadCompleteMarCommand(datedDir)
             commands.append(cmd)
 
         if self.releaseToLatest:
