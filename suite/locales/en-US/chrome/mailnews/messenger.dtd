@@ -86,8 +86,6 @@
 <!ENTITY compactFolder.accesskey		"F">
 <!ENTITY emptyTrashCmd.label "Empty Trash">
 <!ENTITY emptyTrashCmd.accesskey		"y">
-<!ENTITY importCmd.label "Import…">
-<!ENTITY importCmd.accesskey "I">
 <!ENTITY offlineMenu.label "Offline">
 <!ENTITY offlineMenu.accesskey "l">
 <!ENTITY synchronizeOfflineCmd.label "Download/Sync Now…">
@@ -133,10 +131,6 @@
 <!ENTITY selectFlaggedCmd.accesskey "F">
 <!ENTITY selectInvertCmd.label ".Invert Selection">
 <!ENTITY selectInvertCmd.accesskey "I">
-<!ENTITY filtersCmd.label "Message Filters…">
-<!ENTITY filtersCmd.accesskey "F">
-<!ENTITY filtersApply.label "Run Filters on Folder">
-<!ENTITY filtersApply.accesskey "R">
 <!ENTITY folderPropsCmd.label "Properties…">
 <!ENTITY folderPropsFolderCmd.label "Folder Properties…">
 <!ENTITY folderPropsNewsgroupCmd.label "Newsgroup Properties…">
@@ -297,10 +291,6 @@
 <!ENTITY searchParentParentCmd.label ".Search in &lt;parent parent&gt;">
 <!ENTITY searchParentParentCmd.accesskey "">
 
-<!ENTITY searchMailCmd.label "Search Messages…">
-<!ENTITY searchMailCmd.accesskey "M">
-<!ENTITY searchMailCmd.key "s">
-
 <!-- Go Menu -->
 
 <!ENTITY goMenu.label "Go">
@@ -449,6 +439,23 @@
 <!ENTITY openMessageWindowCmd.accesskey "O">
 <!ENTITY openMessageWindowCmd.key "o">
 
+<!-- Tools Menu -->
+<!ENTITY searchMailCmd.label "Search Messages…">
+<!ENTITY searchMailCmd.accesskey "M">
+<!ENTITY searchMailCmd.key "s">
+<!ENTITY searchAddressesCmd.label "Search Addresses…">
+<!ENTITY searchAddressesCmd.accesskey "S">
+<!ENTITY filtersCmd.label "Message Filters…">
+<!ENTITY filtersCmd.accesskey "F">
+<!ENTITY filtersApply.label "Run Filters on Folder">
+<!ENTITY filtersApply.accesskey "R">
+<!ENTITY runJunkControls.label "Run Junk Mail Controls on Folder">
+<!ENTITY runJunkControls.accesskey "u">
+<!ENTITY deleteJunk.label "Delete Mail Marked as Junk in Folder">
+<!ENTITY deleteJunk.accesskey "e">
+<!ENTITY importCmd.label "Import…">
+<!ENTITY importCmd.accesskey "I">
+
 <!-- Folder Pane -->
 <!ENTITY nameColumn.label "Name">
 <!ENTITY unreadColumn.label "Unread">
@@ -574,18 +581,6 @@
 
 <!ENTITY all.label "All">
 <!ENTITY all.accesskey "A">
-
-<!ENTITY searchAddressesCmd.label "Search Addresses…">
-<!ENTITY searchAddressesCmd.accesskey "S">
-
-<!ENTITY junkMailCmd.label "Junk Mail Controls…">
-<!ENTITY junkMailCmd.accesskey "J">
-
-<!ENTITY runJunkControls.label "Run Junk Mail Controls on Folder">
-<!ENTITY runJunkControls.accesskey "u">
-
-<!ENTITY deleteJunk.label "Delete Mail Marked as Junk in Folder">
-<!ENTITY deleteJunk.accesskey "e">
 
 <!-- Junk Bar -->
 <!ENTITY junkBarMessage.label "&brandShortName; thinks this message is junk.">
