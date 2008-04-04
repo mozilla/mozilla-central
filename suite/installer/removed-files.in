@@ -68,6 +68,12 @@ components/venkman-service.js
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 res/cmessage.txt
 #ifdef XP_WIN
+#ifdef MOZ_MEMORY
+Microsoft.VC80.CRT.manifest
+msvcm80.dll
+msvcp80.dll
+msvcr80.dll
+#endif
 xpicleanup.exe
 #else
 xpicleanup
