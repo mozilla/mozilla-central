@@ -630,10 +630,12 @@ Testopia.TestPlan.ClonePanel = function(plan){
                         listeners: {'check':function(box, checked){
                             if (checked === true){
                                 Ext.getCmp('copy_cases_keep_author').enable();
+                                Ext.getCmp('copy_cases_keep_tester').enable();
                                 Ext.getCmp('copy_run_cases_cbox').disable();
                             }
                             else {
                                 Ext.getCmp('copy_cases_keep_author').disable();
+                                Ext.getCmp('copy_cases_keep_tester').disable();
                                 Ext.getCmp('copy_run_cases_cbox').enable();
                             }
                         }}
@@ -645,6 +647,13 @@ Testopia.TestPlan.ClonePanel = function(plan){
                         disabled: true,
                         boxLabel: 'Maintain original authors (unchecking will make me the author of the copied cases)',
                         hideLabel: true
+                    },{
+                        xtype: 'checkbox',
+                        id: 'copy_cases_keep_tester',
+                        boxLabel: 'Keep Default Tester (unchecking will make you the default tester of copied cases)',
+                        hideLabel: true,
+                        name: 'keep_tester',
+                        checked: true
                     },{
                         xtype: 'checkbox',
                         name: 'copy_categories',

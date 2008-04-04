@@ -139,7 +139,7 @@ Ext.onReady(function(){
             icon: 'testopia/img/copy.png',
             iconCls: 'img_button_16x',
             handler: function(){
-                caseClonePopup(tcase);
+                caseClonePopup(tcase.product_id, tcase.case_id);
             }
         },{
             text: "Print",
@@ -184,7 +184,7 @@ Ext.onReady(function(){
         iconCls: 'img_button_16x',
         tooltip: 'Clone this Test Case',
         handler: function(){
-                caseClonePopup(tcase);
+            caseClonePopup(tcase.product_id, tcase.case_id);
         }
     }
 [% IF case.candelete %]

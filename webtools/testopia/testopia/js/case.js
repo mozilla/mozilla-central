@@ -493,60 +493,10 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                         });
                     }
                 },{
-                    text: 'Link Selected Test Cases to Plan... ',
+                    text: 'Copy or Link Selected Test Cases to Plan(s)... ',
                     handler: function(){
-                        Ext.Msg.prompt('Link Cases to Plan Number...', '', function(btn, text){
-                            if (btn == 'ok'){
-                                TestopiaUpdateMultiple('case', {linkplans: text, copymethod: 'link', ids: getSelectedObjects(grid,'case_id')}, grid);
-                                win.close();
-                            }
-                        });
-                    }
-                },{
-                    text: 'Copy Selected Test Cases to Plan Number... ',
-                    handler: function(){
-                                var win = new Ext.Window({
-                                    title: 'Change Default Tester',
-                                    id: 'def_tester_win',
-                                    layout: 'fit',
-                                    split: true,
-                                    plain: true,
-                                    shadow: false,
-                                    width: 350,
-                                    height: 150,
-                                    items: [
-                                        new Ext.FormPanel({
-                                            labelWidth: '40',
-                                            id: 'copy_multiple_form',
-                                            bodyStyle: 'padding: 5px',
-                                            items: [new Ext.form.TextField({
-                                                name: 'linkplans',
-                                                fieldLabel: 'Plans'
-                                            }),
-                                            new Ext.form.Checkbox({
-                                                name: 'newauthor',
-                                                checked: true,
-                                                fieldLabel: 'Make me the author of new cases'
-                                            })]
-                                        })
-                                    ],
-                                    buttons: [{
-                                        text:'Copy',
-                                        handler: function(){
-                                            params = Ext.getCmp('copy_multiple_form').getForm().getValues();
-                                            params.ids = getSelectedObjects(grid,'case_id');
-                                            params.copymethod = 'copy';
-                                            TestopiaUpdateMultiple('case', params, grid);
-                                            win.close();
-                                        }
-                                    },{
-                                        text: 'Cancel',
-                                        handler: function(){
-                                            win.close();
-                                        }
-                                    }]
-                                });
-                                win.show();
+                        var r = grid.getSelectionModel().getSelected();
+                        caseClonePopup(r.get('product_id'), getSelectedObjects(grid,'case_id'));
                     }
                 },{
                     text: 'Add or Remove Tags from Selected Cases...',
@@ -1121,17 +1071,8 @@ Ext.extend(CasePlans, Ext.grid.GridPanel, {
     }
 });
 
-CaseClonePanel = function(tcase){
-    var pgrid = new PlanGrid({product_id: tcase.product_id},{id: 'plan_clone_grid'});
-    pgrid.store.on('load',function(){
-        var sel = [];
-        for (var i=0; i < tcase.plan_ids.length; i++){
-            var index = pgrid.store.find('plan_id',tcase.plan_ids[i]);
-            if (index >= 0)
-               sel.push(index);
-        }
-        pgrid.getSelectionModel().selectRows(sel);
-    });
+CaseClonePanel = function(product_id, cases){
+    var pgrid = new PlanGrid({product_id: product_id},{id: 'plan_clone_grid'});
     CaseClonePanel.superclass.constructor.call(this,{
         id: 'case-clone-panel',
         layout: 'border',
@@ -1155,6 +1096,7 @@ CaseClonePanel = function(tcase){
                 xtype: 'fieldset',
                 autoHeight: true,
                 checkboxToggle: true,
+                checkboxName: 'copy_cases',
                 title: 'Create a copy (Unchecking will create a link to selected plans)',
                 id: 'case_copy_method',
                 collapsed: true,
@@ -1163,28 +1105,52 @@ CaseClonePanel = function(tcase){
                     id: 'case_copy_plan_ids',
                     name: 'plan_ids'
                 },{
+                    xtype: 'hidden',
+                    id: 'case_clone_product_id',
+                    value: product_id,
+                    name: 'product_id'
+                },{
                     xtype: 'checkbox',
-                    fieldLabel: 'Keep Author (unchecking will make you the author of copied cases)',
-                    name: 'keepauthor',
+                    boxLabel: 'Keep Author (unchecking will make you the author of copied cases)',
+                    hideLabel: true,
+                    name: 'keep_author',
                     checked: true
                 },{
                     xtype: 'checkbox',
-                    fieldLabel: 'Copy case document (action, expected results, etc.)',
+                    boxLabel: 'Keep Default Tester (unchecking will make you the default tester of copied cases)',
+                    hideLabel: true,
+                    name: 'keep_tester',
+                    checked: true
+                },{
+                    xtype: 'checkbox',
+                    boxLabel: 'Copy case document (action, expected results, etc.)',
+                    hideLabel: true,
                     name: 'copy_doc',
                     checked: true
                 },{
                     xtype: 'checkbox',
-                    fieldLabel: 'Copy Attachments',
+                    boxLabel: 'Copy Attachments',
+                    hideLabel: true,
                     name: 'copy_attachments'
                 },{
                     xtype: 'checkbox',
-                    fieldLabel: 'Copy Tags',
+                    boxLabel: 'Copy Tags',
+                    hideLabel: true,
                     name: 'copy_tags',
                     checked: true
                 },{
                     xtype: 'checkbox',
-                    fieldLabel: 'Copy components',
+                    boxLabel: 'Copy components',
+                    hideLabel: true,
                     name: 'copy_comps',
+                    checked: true
+                },{
+                    xtype: 'checkbox',
+                    boxLabel: 'Copy category to new product',
+                    hideLabel: true,
+                    disabled: true,
+                    id: 'case_clone_category_box',
+                    name: 'copy_category',
                     checked: true
                 }]
             }]
@@ -1193,19 +1159,42 @@ CaseClonePanel = function(tcase){
             text: 'Submit',
             handler: function(){
                 Ext.getCmp('case_copy_plan_ids').setValue(getSelectedObjects(Ext.getCmp('plan_clone_grid'), 'plan_id'));
-                var form = new Ext.form.BasicForm('testopia_helper_frm',{});
-                var params = Ext.getCmp('case_clone_frm').getForm().getValues();
+                var form = Ext.getCmp('case_clone_frm').getForm();
+                var params = form.getValues();
                 var foo = Ext.getCmp('case_copy_method');
-                params.action = Ext.getCmp('case_copy_method').collapsed ? 'link' : 'clone';
-                params.case_id = tcase.id;
+                params.action = 'clone';
+                params.ids = cases;
                 form.submit({
-                    url: 'tr_process_case.cgi',
+                    url: 'tr_list_cases.cgi',
                     params: params,
                     success: function(form, data){
-                        if (params.action == 'clone'){
+                        if (params.copy_cases){
+                            if (data.result.tclist.length ==1){
+                                Ext.Msg.show({
+                                    title:'Test Case Copied',
+                                    msg: 'Test case ' + data.result.tclist[0] + ' Copied from Case ' + cases + '. Would you like to go there now?',
+                                    buttons: Ext.Msg.YESNO,
+                                    icon: Ext.MessageBox.QUESTION,
+                                    fn: function(btn){
+                                        if (btn == 'yes'){
+                                            window.location = 'tr_show_case.cgi?case_id=' + data.result.tclist[0];
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                Ext.Msg.show({
+                                    title:'Test Case Copied',
+                                    msg: 'Test cases ' + data.result.tclist.join(',') + ' Copied successfully',
+                                    buttons: Ext.Msg.OK,
+                                    icon: Ext.MessageBox.INFO
+                                });
+                            }
+                        }
+                        else {
                             Ext.Msg.show({
-                                title:'Test Case Copied',
-                                msg: 'Test cases ' + data.result.tclist + ' Copied from Case ' + tcase.case_id + '.',
+                                title:'Test Case(s) Linked',
+                                msg: 'Test cases ' + cases + ' Linked successfully',
                                 buttons: Ext.Msg.OK,
                                 icon: Ext.MessageBox.INFO
                             });
@@ -1227,7 +1216,7 @@ CaseClonePanel = function(tcase){
 };
 Ext.extend(CaseClonePanel, Ext.Panel);
 
-caseClonePopup = function(tcase){
+caseClonePopup = function(product_id, cases){
     var win = new Ext.Window({
         id: 'case-clone-win',
         closable:true,
@@ -1236,7 +1225,7 @@ caseClonePopup = function(tcase){
         plain: true,
         shadow: false,
         layout: 'fit',
-        items: [new CaseClonePanel(tcase)]
+        items: [new CaseClonePanel(product_id, cases)]
     });
     var pg = Ext.getCmp('plan_clone_grid');
     Ext.apply(pg,{title: 'Select plans to clone cases to'});
@@ -1246,9 +1235,16 @@ caseClonePopup = function(tcase){
     for (var i=0; i < items.length; i++){
         items[i].destroy();
     }
-    var pchooser = new ProductCombo({mode: 'local', value: tcase.product_id});
+    var pchooser = new ProductCombo({mode: 'local', value: product_id});
     pchooser.on('select', function(c,r,i){
         pg.store.baseParams = {ctype: 'json', product_id: r.get('id')};
+        if (r.get('id') != product_id){
+            Ext.getCmp('case_clone_category_box').enable();
+        }
+        else {
+            Ext.getCmp('case_clone_category_box').disable();
+        }
+        Ext.getCmp('case_clone_product_id').setValue(r.get('id'));
         pg.store.load();
     });
     pg.getTopToolbar().add(new Ext.menu.TextItem('Product: '), pchooser);

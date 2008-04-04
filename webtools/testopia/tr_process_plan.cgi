@@ -112,6 +112,7 @@ elsif ($action eq 'clone'){
             # Copy test cases creating new ones
             if ($cgi->param('make_copy')){
                 my $case_author = $cgi->param('keep_case_authors') ? $case->author->id : Bugzilla->user->id;
+                my $case_tester = $cgi->param('keep_tester') ? $case->default_tester->id : Bugzilla->user->id;
                 my $category;
                 if ($cgi->param('copy_categories')){
                     my $category_id = check_case_category($case->category->name, $product);
@@ -147,7 +148,7 @@ elsif ($action eq 'clone'){
                     }
                 }
                 
-                my $caseid = $case->copy($newplan->id, $case_author, 1, $category->id);
+                my $caseid = $case->copy($case_author, $case_tester, 1, $category->id);
                 my $newcase = Bugzilla::Testopia::TestCase->new($caseid);
                 
                 $newcase->link_plan($newplan->id, $caseid);

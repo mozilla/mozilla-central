@@ -1273,7 +1273,7 @@ a boolean representing whether to copy the case document as well.
 sub copy {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-    my ($planid, $author, $copydoc, $category_id) = @_;
+    my ($author, $tester, $copydoc, $category_id) = @_;
     # Exclude the auto-incremented field from the column list.
     my $columns = join(", ", grep {$_ ne 'case_id'} DB_COLUMNS);
     my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
@@ -1285,7 +1285,7 @@ sub copy {
                $category_id,                 # category_id
                $self->{'priority_id'},       # priority_id 
                $author,                      # author_id 
-               $self->{'default_tester_id'}, # default_tester_id
+               $tester,                      # default_tester_id
                $timestamp,                   # creation_date 
                $self->{'estimated_time'},    # estimated_time 
                $self->{'isautomated'},       # isautomated 

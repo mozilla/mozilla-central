@@ -30,6 +30,7 @@ use Bugzilla::Error;
 use Bugzilla::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Category;
 use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::TestTag;
 use Bugzilla::Testopia::Attachment;
@@ -86,62 +87,6 @@ elsif ($action eq 'update_doc'){
     if($case->diff_case_doc($newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown) ne ''){
         $case->store_text($case->id, Bugzilla->user->id, $newtcaction, $newtceffect, $newtcsetup, $newtcbreakdown);
     }
-}
-
-elsif ($action eq 'clone'){
-    print $cgi->header;
-    my @plans;
-    foreach my $id (split(',', $cgi->param('plan_ids'))){
-        my $plan = Bugzilla::Testopia::TestPlan->new($id);
-        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
-        push @plans, $plan;
-    }
-    ThrowUserError('missing-plans-list') unless scalar @plans;
-    
-    my @newcases;
-    my $author = $cgi->param('keepauthor') ? $case->author->id : Bugzilla->user->id;
-    foreach my $p (@plans){
-        my $newcaseid = $case->copy($p->id, $author, $cgi->param('copy_doc') eq 'on' ? 1 : 0);
-        $case->link_plan($p->id, $newcaseid);
-        my $newcase = Bugzilla::Testopia::TestCase->new($newcaseid);
-        push @newcases,  $newcase->id;
-        
-        if ($cgi->param('copy_attachments')){
-            foreach my $att (@{$case->attachments}){
-                $att->link_case($newcaseid);
-            }
-        }
-        if ($cgi->param('copy_tags')){
-            foreach my $tag (@{$case->tags}){
-                $newcase->add_tag($tag->name);
-            }
-        }
-        if ($cgi->param('copy_comps')){
-            foreach my $comp (@{$case->components}){
-                $newcase->add_component($comp->{'id'});
-            }
-        }
-    }
-    print "{'success': true, 'tclist': '". join(", ", @newcases) ."'}";
-}
-
-elsif ($action eq 'link') {
-    print $cgi->header;
-    my @plans;
-    foreach my $id (split(',', $cgi->param('plan_ids'))){
-        my $plan = Bugzilla::Testopia::TestPlan->new($id);
-        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
-        push @plans, $plan;
-    }
-    ThrowUserError('missing-plans-list') unless scalar @plans;
-    
-    foreach my $plan (@plans){
-        $case->link_plan($plan->id);
-    }
-    
-    delete $case->{'plans'};
-    
-    print "{'success': true}";
 }
 
 elsif ($action eq 'unlink'){

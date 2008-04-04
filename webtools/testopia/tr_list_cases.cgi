@@ -66,16 +66,8 @@ if ($action eq 'update'){
 
     my @uneditable;
     my @runs;
-    my %planseen;
     my @components;
     
-    foreach my $planid (split(",", $cgi->param('linkplans'))){
-        validate_test_id($planid, 'plan');
-        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
-        next unless $plan->canedit;
-        $planseen{$planid} = 1;
-    }
-
     foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
         validate_test_id($runid, 'run');
         push @runs, Bugzilla::Testopia::TestRun->new($runid);
@@ -93,7 +85,10 @@ if ($action eq 'update'){
             push @remcomponents, $id;
         }
     }
-
+    
+    my $product = Bugzilla::Testopia::Product->new($cgi->param('product_id'));
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $cgi->param('product_id')}) unless $product;
+    
     foreach my $p (@case_ids){
         my $case = Bugzilla::Testopia::TestCase->new($p);
         next unless $case;
@@ -108,7 +103,8 @@ if ($action eq 'update'){
         $case->set_priority($cgi->param('priority')) if $cgi->param('priority');
         $case->set_isautomated($cgi->param('isautomated') eq 'on' ? 1 : 0) if $cgi->param('isautomated');
         $case->set_script($cgi->param('script')) if $cgi->param('script');
-        $case->set_arguments($cgi->param('arguments')) if $cgi->param('arguments');    
+        $case->set_arguments($cgi->param('arguments')) if $cgi->param('arguments');
+        $case->set_category($cgi->param('category')) if $cgi->param('category');    
         $case->set_default_tester($cgi->param('tester')) if $cgi->param('tester');
         
         $case->update();
@@ -120,30 +116,114 @@ if ($action eq 'update'){
         foreach my $run (@runs){
             $run->add_case_run($case->id, $case->sortkey) if $run->canedit;
         }
+    }
+    ThrowUserError('testopia-update-failed', {'object' => 'plan', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
+    print "{'success': true}";    
+
+}
+
+elsif ($action eq 'clone'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    print $cgi->header;
+
+    my @case_ids = split(',', $cgi->param('ids'));
+    ThrowUserError('testopia-none-selected', {'object' => 'case'}) unless (scalar @case_ids);
+    
+    my %planseen;
+    foreach my $planid (split(",", $cgi->param('plan_ids'))){
+        validate_test_id($planid, 'plan');
+        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
+        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
+        $planseen{$planid} = 1;
+    }
+    
+    ThrowUserError('missing-plans-list') unless scalar keys %planseen;
+    
+    my $product = Bugzilla::Testopia::Product->new($cgi->param('product_id'));
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $cgi->param('product_id')}) unless $product;
+    
+    if ($cgi->param('copy_categories')){
+        ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
+    }
+    
+    my @newcases;
+    foreach my $id (@case_ids){
+        my $case = Bugzilla::Testopia::TestCase->new($id);
+        next unless $case;
+        next unless ($case->canview);
+    
         # Clone
-        if ($cgi->param('copymethod') eq 'copy'){
-            foreach my $planid (keys %planseen){
-                my $author = $cgi->param('newauthor') ? Bugzilla->user->id : $case->author->id;
-                my $newcaseid = $case->copy($planid, $author, 1);
-                $case->link_plan($planid, $newcaseid);
-                my $newcase = Bugzilla::Testopia::TestCase->new($newcaseid);
-                foreach my $tag (@{$case->tags}){
-                    $newcase->add_tag($tag);
+        if ($cgi->param('copy_cases')){
+            # Copy test cases creating new ones
+            my $case_author = $cgi->param('keep_author') ? $case->author->id : Bugzilla->user->id;
+            my $case_tester = $cgi->param('keep_tester') ? $case->default_tester->id : Bugzilla->user->id;
+            my $category;
+            if ($cgi->param('copy_categories')){
+                my $category_id = check_case_category($case->category->name, $product);
+                if (! $category_id){
+                    $category = Bugzilla::Testopia::Category->create({
+                        product_id  => $product->id,
+                        name        => $case->category->name,
+                        description => $case->category->description,
+                    });
                 }
+                else {
+                   $category = Bugzilla::Testopia::Category->new($category_id); 
+                }
+                
+            }
+            else {
+                if ($product->id == $case->category->product_id){
+                    $category = $case->category;
+                }
+                else{
+                    my @categories = @{$product->categories};
+                    if (scalar @categories < 1){
+                        $category = Bugzilla::Testopia::Category->create({
+                            product_id  => $product->id,
+                            name        => '--default--',
+                            description => 'Default product category for test cases',
+                        });
+                         
+                    }
+                    else{
+                        $category = $categories[0];
+                    }
+                }
+            }
+            
+            my $caseid = $case->copy($case_author, $case_tester, $cgi->param('copy_doc') eq 'on' ? 1 : 0, $category->id);
+            my $newcase = Bugzilla::Testopia::TestCase->new($caseid);
+            push @newcases,  $newcase->id;
+            
+            foreach my $plan_id (keys %planseen){
+                $newcase->link_plan($plan_id, $caseid);
+            }
+            
+            if ($cgi->param('copy_attachments')){
+                foreach my $att (@{$case->attachments}){
+                    $att->link_case($newcase->id);
+                }
+            }
+            if ($cgi->param('copy_tags')){
+                foreach my $tag (@{$case->tags}){
+                    $newcase->add_tag($tag->name);
+                }
+            }
+            if ($cgi->param('copy_comps')){
                 foreach my $comp (@{$case->components}){
                     $newcase->add_component($comp->{'id'});
                 }
             }
         }
-        elsif ($cgi->param('copymethod') eq 'link'){
-            foreach my $planid (keys %planseen){
-                $case->link_plan($planid);
+        # Just create a link
+        else {
+            foreach my $plan_id (keys %planseen){
+                $case->link_plan($plan_id);
             }
         }
     }
-    ThrowUserError('testopia-update-failed', {'object' => 'plan', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
-    print "{'success': true}";    
-
+    print "{'success': true, 'tclist': [". join(", ", @newcases) ."]}";
 }
 
 elsif ($action eq 'delete'){

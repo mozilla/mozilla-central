@@ -826,6 +826,12 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                         RunClonePopup(grid.run,getSelectedObjects(grid,'case_id'));
                     }
                 },{
+                    text: 'Copy or Link Selected Test Cases to Plan(s)... ',
+                    handler: function(){
+                        var r = grid.getSelectionModel().getSelected();
+                        caseClonePopup(grid.run.product_id, getSelectedObjects(grid,'case_id'));
+                    }
+                },{
                     text: 'Refresh List', 
                     handler: function(){
                         grid.store.reload();
