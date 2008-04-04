@@ -77,7 +77,7 @@
       <label value="&languagePopup.label;" control="languageMenuList"
              accesskey="&languagePopup.accessKey;"/>
       <menulist id="languageMenuList" oncommand="SelectLanguage(event.target)"
-                preftype="localizedstring" prefstring="spellchecker.dictionary">
+                preftype="string" prefstring="spellchecker.dictionary">
         <menupopup onpopupshowing="InitLanguageMenu();">
           <!-- dynamic content populated by JS -->
           <menuseparator/>

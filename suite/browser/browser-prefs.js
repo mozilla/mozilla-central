@@ -197,7 +197,6 @@ pref("wallet.miscPanel.hide",               false);
 pref("mail.signature_file",             "");
 pref("mail.directory",                  "");
 pref("news.directory",                  "");
-pref("spellchecker.dictionary", "");
 pref("spellchecker.dictionaries.download.url", "chrome://branding/locale/brand.properties");
 
 // this will automatically enable inline spellchecking (if it is available) for
