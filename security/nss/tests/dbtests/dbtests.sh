@@ -155,6 +155,22 @@ dbtest_main()
       html_passed "Dbtest readonly didn't work in an empty dir $ret" 
     fi
     rm -rf $EMPTY_DIR/* 2>/dev/null
+    ${BINDIR}/dbtest -i -d $EMPTY_DIR
+    ret=$?
+    if [ $ret -ne 0 ]; then
+      html_failed "Dbtest logout after empty DB Init looses key $ret"
+    else
+      html_passed "Dbtest logout after empty DB Init has key" 
+    fi
+    rm -rf $EMPTY_DIR/* 2>/dev/null
+    ${BINDIR}/dbtest -i -p pass -d $EMPTY_DIR
+    ret=$?
+    if [ $ret -ne 0 ]; then
+      html_failed "Dbtest password DB Init looses needlogin state $ret"
+    else
+      html_passed "Dbtest password DB Init maintains needlogin state" 
+    fi
+    rm -rf $EMPTY_DIR/* 2>/dev/null
     ${BINDIR}/certutil -D -n xxxx -d $EMPTY_DIR #created DB
     ret=$?
     if [ $ret -ne 255 ]; then 

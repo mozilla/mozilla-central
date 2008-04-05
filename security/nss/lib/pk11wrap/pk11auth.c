@@ -460,11 +460,13 @@ done:
     if (rv == SECSuccess) {
         /* update our view of the world */
         PK11_InitToken(slot,PR_TRUE);
-	PK11_EnterSlotMonitor(slot);
-    	PK11_GETTAB(slot)->C_Login(slot->session,CKU_USER,
+	if (slot->needLogin) {
+	    PK11_EnterSlotMonitor(slot);
+	    PK11_GETTAB(slot)->C_Login(slot->session,CKU_USER,
 						(unsigned char *)userpw,len);
-	slot->lastLoginCheck = 0;
-	PK11_ExitSlotMonitor(slot);
+	    slot->lastLoginCheck = 0;
+	    PK11_ExitSlotMonitor(slot);
+	}
     }
     return rv;
 }
