@@ -669,6 +669,7 @@ NS_INTERFACE_MAP_BEGIN(nsXFormsModelElement)
   NS_INTERFACE_MAP_ENTRY(nsISVSchemaErrorHandler)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEventListener)
   NS_INTERFACE_MAP_ENTRY(nsIXFormsContextControl)
+  NS_INTERFACE_MAP_ENTRY(nsIXFormsControlBase)
 NS_INTERFACE_MAP_END_INHERITING(nsXFormsStubElement)
 
 NS_IMPL_ADDREF_INHERITED(nsXFormsModelElement, nsXFormsStubElement)
