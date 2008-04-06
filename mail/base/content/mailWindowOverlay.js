@@ -1836,7 +1836,7 @@ function MsgFilters(emailAddress, folder)
             var account = accountManager.getAccount(accountKey);
             if (account)
             {
-              server = account.incomingServer;
+              var server = account.incomingServer;
               if (server)
                 folder = server.rootFolder;
             }
