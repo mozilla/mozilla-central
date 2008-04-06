@@ -2122,6 +2122,22 @@ nsMsgDatabase::MarkThreadIgnored(nsIMsgThread *thread, nsMsgKey threadKey, PRBoo
 }
 
 NS_IMETHODIMP
+nsMsgDatabase::MarkHeaderKilled(nsIMsgDBHdr *msg, PRBool bIgnored,
+                           nsIDBChangeListener *instigator)
+{
+  PRUint32 msgFlags;
+  msg->GetFlags(&msgFlags);
+  PRUint32 oldFlags = msgFlags;
+  if (bIgnored)
+    msgFlags |= MSG_FLAG_IGNORED;
+  else
+    msgFlags &= ~MSG_FLAG_IGNORED;
+  msg->SetFlags(msgFlags);
+
+  return NotifyHdrChangeAll(msg, oldFlags, msgFlags, instigator);
+}
+
+NS_IMETHODIMP
 nsMsgDatabase::MarkThreadWatched(nsIMsgThread *thread, nsMsgKey threadKey, PRBool bWatched,
                                  nsIDBChangeListener *instigator)
 {

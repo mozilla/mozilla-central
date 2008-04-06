@@ -142,6 +142,7 @@ protected:
   static nsIAtom* kHasUnreadAtom;
   static nsIAtom* kWatchThreadAtom;
   static nsIAtom* kIgnoreThreadAtom;
+  static nsIAtom* kIgnoreSubthreadAtom;
   static nsIAtom* kHasImageAtom;
 
 #ifdef SUPPORT_PRIORITY_COLORS
@@ -303,6 +304,7 @@ protected:
   nsresult ToggleWatched( nsMsgViewIndex* indices,	PRInt32 numIndices);
   nsresult SetThreadWatched(nsIMsgThread *thread, nsMsgViewIndex index, PRBool watched);
   nsresult SetThreadIgnored(nsIMsgThread *thread, nsMsgViewIndex threadIndex, PRBool ignored);
+  nsresult SetSubthreadKilled(nsIMsgDBHdr *header, nsMsgViewIndex msgIndex, PRBool ignored);
   nsresult DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices);
   nsresult DownloadFlaggedForOffline(nsIMsgWindow *window);
   nsMsgViewIndex	GetThreadFromMsgIndex(nsMsgViewIndex index, nsIMsgThread **threadHdr);
@@ -334,6 +336,7 @@ protected:
   nsresult MarkThreadRead(nsIMsgThread *threadHdr, nsMsgViewIndex threadIndex, nsTArray<nsMsgKey> &idsMarkedRead, PRBool bRead);
   PRBool IsValidIndex(nsMsgViewIndex index);
   nsresult ToggleIgnored(nsMsgViewIndex * indices, PRInt32 numIndices, nsMsgViewIndex *resultIndex, PRBool *resultToggleState);
+  nsresult ToggleMessageKilled(nsMsgViewIndex * indices, PRInt32 numIndices, nsMsgViewIndex *resultIndex, PRBool *resultToggleState);
   PRBool OfflineMsgSelected(nsMsgViewIndex * indices, PRInt32 numIndices);
   PRBool NonDummyMsgSelected(nsMsgViewIndex * indices, PRInt32 numIndices);
   PRUnichar * GetString(const PRUnichar *aStringName);

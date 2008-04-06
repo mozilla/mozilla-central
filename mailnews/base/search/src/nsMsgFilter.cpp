@@ -873,6 +873,7 @@ static struct RuleActionsTableEntry ruleActionsTable[] =
   { nsMsgFilterAction::Delete,          nsMsgFilterType::All,   0,  "Delete"},
   { nsMsgFilterAction::MarkRead,        nsMsgFilterType::All,   0,  "Mark read"},
   { nsMsgFilterAction::KillThread,      nsMsgFilterType::All,   0,  "Ignore thread"},
+  { nsMsgFilterAction::KillSubthread,   nsMsgFilterType::All,   0,  "Ignore subthread"},
   { nsMsgFilterAction::WatchThread,     nsMsgFilterType::All,   0,  "Watch thread"},
   { nsMsgFilterAction::MarkFlagged,     nsMsgFilterType::All,   0,  "Mark flagged"},
   { nsMsgFilterAction::Label,           nsMsgFilterType::All,   0,  "Label"},

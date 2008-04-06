@@ -91,6 +91,7 @@ nsIAtom * nsMsgDBView::kAttachMsgAtom = nsnull;
 nsIAtom * nsMsgDBView::kHasUnreadAtom = nsnull;
 nsIAtom * nsMsgDBView::kWatchThreadAtom = nsnull;
 nsIAtom * nsMsgDBView::kIgnoreThreadAtom = nsnull;
+nsIAtom * nsMsgDBView::kIgnoreSubthreadAtom = nsnull;
 nsIAtom * nsMsgDBView::kHasImageAtom = nsnull;
 
 nsIAtom * nsMsgDBView::kJunkMsgAtom = nsnull;
@@ -199,6 +200,7 @@ void nsMsgDBView::InitializeAtomsAndLiterals()
   kHasUnreadAtom = NS_NewAtom("hasUnread");
   kWatchThreadAtom = NS_NewAtom("watch");
   kIgnoreThreadAtom = NS_NewAtom("ignore");
+  kIgnoreSubthreadAtom = NS_NewAtom("ignoreSubthread");
   kHasImageAtom = NS_NewAtom("hasimage");
   kJunkMsgAtom = NS_NewAtom("junk");
   kNotJunkMsgAtom = NS_NewAtom("notjunk");
@@ -248,6 +250,7 @@ nsMsgDBView::~nsMsgDBView()
     NS_IF_RELEASE(kHasUnreadAtom);
     NS_IF_RELEASE(kWatchThreadAtom);
     NS_IF_RELEASE(kIgnoreThreadAtom);
+    NS_IF_RELEASE(kIgnoreSubthreadAtom);
     NS_IF_RELEASE(kHasImageAtom);
     NS_IF_RELEASE(kJunkMsgAtom);
     NS_IF_RELEASE(kNotJunkMsgAtom);
@@ -1206,6 +1209,9 @@ NS_IMETHODIMP nsMsgDBView::GetCellProperties(PRInt32 aRow, nsITreeColumn *col, n
 
   if (flags & MSG_FLAG_NEW)
     properties->AppendElement(kNewMsgAtom);
+
+  if (flags & MSG_FLAG_IGNORED)
+    properties->AppendElement(kIgnoreSubthreadAtom);
 
   nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
 
@@ -4697,6 +4703,11 @@ nsresult  nsMsgDBView::AddHdr(nsIMsgDBHdr *msgHdr)
       if (flags & MSG_FLAG_IGNORED)
         return NS_OK;
     }
+
+    PRBool ignored;
+    msgHdr->GetIsKilled(&ignored);
+    if (ignored)
+       return NS_OK;
   }
 
   nsMsgKey msgKey, threadId;
@@ -4804,7 +4815,18 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
         rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
         break;
       }
+
       msgHdr = do_QueryInterface(supports);
+      if (!(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
+      {
+        PRBool ignored;
+        msgHdr->GetIsKilled(&ignored);
+        // We are not going to process subthreads, horribly invalidating the
+        // numChildren characteristic
+        if (ignored)
+          continue;
+      }
+
       nsMsgKey msgKey;
       PRUint32 msgFlags, newFlags;
       msgHdr->GetMessageKey(&msgKey);
@@ -4849,13 +4871,26 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
   }
   else
   {
+    PRUint32 ignoredHeaders = 0;
     // if we're not threaded, just list em out in db order
     for (i = 1; i <= numChildren; i++)
     {
       nsCOMPtr <nsIMsgDBHdr> msgHdr;
       threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
+
       if (msgHdr != nsnull)
       {
+        if (!(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
+        {
+          PRBool killed;
+          msgHdr->GetIsKilled(&killed);
+          if (killed)
+          {
+            ignoredHeaders++;
+            continue;
+          }
+        }
+
         nsMsgKey msgKey;
         PRUint32 msgFlags, newFlags;
         msgHdr->GetMessageKey(&msgKey);
@@ -4871,19 +4906,24 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
         viewIndex++;
       }
     }
+    if (ignoredHeaders + *pNumListed < numChildren)
+    {
+      NS_NOTREACHED("thread corrupt in db");
+      // if we've listed fewer messages than are in the thread, then the db
+      // is corrupt, and we should invalidate it.
+      // we'll use this rv to indicate there's something wrong with the db
+      // though for now it probably won't get paid attention to.
+      m_db->SetSummaryValid(PR_FALSE);
+      rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
+    }
   }
+
+  // We may have added too many elements (i.e., subthreads were cut)
   if (*pNumListed < numChildren)
   {
-    NS_NOTREACHED("thread corrupt in db");
     m_keys.RemoveElementsAt(viewIndex, numChildren - *pNumListed);
     m_flags.RemoveElementsAt(viewIndex, numChildren - *pNumListed);
     m_levels.RemoveElementsAt(viewIndex, numChildren - *pNumListed);
-    // if we've listed fewer messages than are in the thread, then the db
-    // is corrupt, and we should invalidate it.
-    // we'll use this rv to indicate there's something wrong with the db
-    // though for now it probably won't get paid attention to.
-    m_db->SetSummaryValid(PR_FALSE);
-    rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
   }
   return rv;
 }
@@ -4944,6 +4984,14 @@ nsresult nsMsgDBView::ListUnreadIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIn
     threadHdr->GetChildHdrAt(i, getter_AddRefs(msgHdr));
     if (msgHdr != nsnull)
     {
+      if (!(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
+      {
+        PRBool killed;
+        msgHdr->GetIsKilled(&killed);
+        if (killed)
+          continue;
+      }
+
       nsMsgKey msgKey;
       PRUint32 msgFlags;
       msgHdr->GetMessageKey(&msgKey);
@@ -5466,6 +5514,24 @@ nsresult nsMsgDBView::NavigateFromPos(nsMsgNavigationTypeValue motion, nsMsgView
                     return NS_OK;
                 }
             }
+        case nsMsgNavigationType::toggleSubthreadKilled:
+            {
+                PRBool resultKilled;
+                nsMsgViewIndexArray selection;
+                GetSelectedIndices(selection);
+                ToggleMessageKilled(selection.Elements(), selection.Length(),
+                    &threadIndex, &resultKilled);
+                if (resultKilled)
+                {
+                    return NavigateFromPos(nsMsgNavigationType::nextUnreadMessage, threadIndex, pResultKey, pResultIndex, pThreadIndex, PR_TRUE);
+                }
+                else
+                {
+                    *pResultIndex = nsMsgViewIndex_None;
+                    *pResultKey = nsMsgKey_None;
+                    return NS_OK;
+                }
+            }
           // check where navigate says this will take us. If we have the message in the view,
           // return it. Otherwise, return an error.
       case nsMsgNavigationType::back:
@@ -5787,6 +5853,41 @@ nsresult nsMsgDBView::ToggleIgnored(nsMsgViewIndex * indices, PRInt32 numIndices
   return NS_OK;
 }
 
+nsresult nsMsgDBView::ToggleMessageKilled(nsMsgViewIndex * indices, PRInt32 numIndices, nsMsgViewIndex *resultIndex, PRBool *resultToggleState)
+{
+  nsCOMPtr <nsIMsgDBHdr> header;
+  nsresult rv;
+
+  // Ignored state is toggled based on the first selected message
+  rv = GetMsgHdrForViewIndex(indices[0], getter_AddRefs(header));
+  PRUint32 msgFlags;
+  header->GetFlags(&msgFlags);
+  PRUint32 ignored = msgFlags & MSG_FLAG_IGNORED;
+
+  // Process messages in reverse order
+  // Otherwise the indices may be invalidated...
+  nsMsgViewIndex msgIndex = nsMsgViewIndex_None;
+  while (numIndices)
+  {
+    numIndices--;
+    if (indices[numIndices] < msgIndex)
+    {
+      msgIndex = indices[numIndices];
+      rv = GetMsgHdrForViewIndex(msgIndex, getter_AddRefs(header));
+      header->GetFlags(&msgFlags);
+      if ((msgFlags & MSG_FLAG_IGNORED) == ignored)
+        SetSubthreadKilled(header, msgIndex, !ignored);
+    }
+  }
+
+  if (resultIndex)
+    *resultIndex = msgIndex;
+  if (resultToggleState)
+    *resultToggleState = !ignored;
+
+  return NS_OK;
+}
+
 nsMsgViewIndex  nsMsgDBView::GetThreadFromMsgIndex(nsMsgViewIndex index,
                                                    nsIMsgThread **threadHdr)
 {
@@ -5851,6 +5952,57 @@ nsresult nsMsgDBView::SetThreadIgnored(nsIMsgThread *thread, nsMsgViewIndex thre
     CollapseByIndex(threadIndex, nsnull);
   }
   return m_db->MarkThreadIgnored(thread, m_keys[threadIndex], ignored, this);
+}
+
+nsresult nsMsgDBView::SetSubthreadKilled(nsIMsgDBHdr *header, nsMsgViewIndex msgIndex, PRBool ignored)
+{
+  if (!IsValidIndex(msgIndex))
+    return NS_MSG_INVALID_DBVIEW_INDEX;
+
+  NoteChange(msgIndex, 1, nsMsgViewNotificationCode::changed);
+  nsresult rv;
+
+  rv = m_db->MarkHeaderKilled(header, ignored, this);
+  NS_ENSURE_SUCCESS(rv, rv);
+ 
+  if (ignored)
+  {
+    nsCOMPtr <nsIMsgThread> thread;
+    nsresult rv;
+    rv = m_db->GetThreadContainingMsgHdr(header, getter_AddRefs(thread));
+    if (NS_FAILED(rv))
+      return NS_OK; // So we didn't mark threads read
+
+    PRUint32 children, current;
+    thread->GetNumChildren(&children);
+
+    nsMsgKey headKey;
+    header->GetMessageKey(&headKey);
+
+    for (current = 0; current < children; current++)
+    {
+       nsMsgKey newKey;
+       thread->GetChildKeyAt(current, &newKey);
+       if (newKey == headKey)
+         break;
+    }
+
+    // Process all messages, starting with this message.
+    for (; current < children; current++)
+    {
+       nsCOMPtr <nsIMsgDBHdr> nextHdr;
+       PRBool isKilled;
+       
+       thread->GetChildHdrAt(current, getter_AddRefs(nextHdr));
+       nextHdr->GetIsKilled(&isKilled);
+       
+       // Ideally, the messages should stop processing here.
+       // However, the children are ordered not by thread...
+       if (isKilled)
+         nextHdr->MarkRead(PR_TRUE);
+    }
+  }
+  return NS_OK;
 }
 
 nsresult nsMsgDBView::SetThreadWatched(nsIMsgThread *thread, nsMsgViewIndex index, PRBool watched)

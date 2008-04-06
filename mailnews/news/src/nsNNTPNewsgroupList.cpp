@@ -691,7 +691,15 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       case nsMsgFilterAction::KillThread:
         {
           PRUint32 newFlags;
-          // The db will check for this flag when a hdr gets added to the db, and set the flag appropriately on the thread object
+          nsCOMPtr<nsIMsgThread> thread;
+          m_newsDB->GetThreadContainingMsgHdr(m_newMsgHdr, getter_AddRefs(thread) );
+          thread->GetFlags(&newFlags);
+          thread->SetFlags(newFlags | MSG_FLAG_IGNORED);
+        }
+        break;
+      case nsMsgFilterAction::KillSubthread:
+        {
+          PRUint32 newFlags;
           m_newMsgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
         }
         break;

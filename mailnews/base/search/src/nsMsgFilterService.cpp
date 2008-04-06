@@ -581,6 +581,17 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
           }
         }
         break;
+      case nsMsgFilterAction::KillSubthread:
+        {
+          for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
+          {
+            nsCOMPtr <nsIMsgDBHdr> msgHdr;
+            m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
+            if (msgHdr)
+              m_curFolderDB->MarkHeaderKilled(msgHdr, PR_TRUE, nsnull);
+          }
+        }
+        break;
       case nsMsgFilterAction::ChangePriority:
           {
               nsMsgPriorityValue filterPriority;

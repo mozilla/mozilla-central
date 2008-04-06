@@ -240,6 +240,7 @@ interface nsMsgNavigationType
   const nsMsgNavigationTypeValue firstNew = 20;
   const nsMsgNavigationTypeValue editUndo = 21;
   const nsMsgNavigationTypeValue editRedo = 22;
+  const nsMsgNavigationTypeValue toggleSubthreadKilled = 23;
 };
 
 

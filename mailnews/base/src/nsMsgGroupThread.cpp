@@ -206,7 +206,7 @@ nsresult nsMsgGroupThread::AddChildFromGroupView(nsIMsgDBHdr *child, nsMsgDBView
   if (msgDate > m_newestMsgDate)
     SetNewestMsgDate(msgDate);
 
-  child->AndFlags(~(MSG_FLAG_WATCHED | MSG_FLAG_IGNORED), &newHdrFlags);
+  child->AndFlags(~(MSG_FLAG_WATCHED), &newHdrFlags);
   PRUint32 numChildren;
   
   // get the num children before we add the new header.

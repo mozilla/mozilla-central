@@ -249,6 +249,18 @@ nsresult nsMsgThreadedDBView::AddKeys(nsMsgKey *pKeys, PRInt32 *pFlags, const ch
     // skip ignored threads.
     if ((threadFlag & MSG_FLAG_IGNORED) && !(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
       continue;
+    
+    // skip ignored subthreads
+    nsCOMPtr <nsIMsgDBHdr> msgHdr;
+    m_db->GetMsgHdrForKey(pKeys[i], getter_AddRefs(msgHdr));
+    if (!(m_viewFlags & nsMsgViewFlagsType::kShowIgnored))
+    {
+      PRBool killed;
+      msgHdr->GetIsKilled(&killed);
+      if (killed)
+        continue;
+    }
+
     // by default, make threads collapsed, unless we're in only viewing new msgs
     
     if (flag & MSG_VIEW_FLAG_HASCHILDREN)
@@ -453,7 +465,7 @@ nsresult nsMsgThreadedDBView::ListThreadIds(nsMsgKey *startMsg, PRBool unreadOnl
         pOutput[numListed] = msgKey;
         pLevels[numListed] = 0;
         // turn off these flags on msg hdr - they belong in thread
-        msgHdr->AndFlags(~(MSG_FLAG_WATCHED | MSG_FLAG_IGNORED), &newMsgFlags);
+        msgHdr->AndFlags(~(MSG_FLAG_WATCHED), &newMsgFlags);
         AdjustReadFlag(msgHdr, &msgFlags);
         // try adding in MSG_VIEW_FLAG_ISTHREAD flag for unreadonly view.
         pFlags[numListed] = msgFlags | MSG_VIEW_FLAG_ISTHREAD | threadFlags;
@@ -716,7 +728,12 @@ nsresult nsMsgThreadedDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, n
   PRUint32 threadFlags;
   threadHdr->GetFlags(&threadFlags);
   if (!(threadFlags & MSG_FLAG_IGNORED))
-    rv = AddHdr(msgHdr);
+  {
+    PRBool msgKilled;
+    msgHdr->GetIsKilled(&msgKilled);
+    if (!msgKilled)
+      rv = AddHdr(msgHdr);
+  }
   return rv;
 }
 

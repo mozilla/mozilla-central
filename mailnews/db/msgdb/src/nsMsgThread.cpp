@@ -236,13 +236,10 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   if (msgDate > m_newestMsgDate)
     SetNewestMsgDate(msgDate);
 
-  if (newHdrFlags & MSG_FLAG_IGNORED)
-    SetFlags(m_flags | MSG_FLAG_IGNORED);
-
   if (newHdrFlags & MSG_FLAG_WATCHED)
     SetFlags(m_flags | MSG_FLAG_WATCHED);
 
-  child->AndFlags(~(MSG_FLAG_WATCHED | MSG_FLAG_IGNORED), &newHdrFlags);
+  child->AndFlags(~(MSG_FLAG_WATCHED), &newHdrFlags);
   PRUint32 numChildren;
   PRUint32 childIndex = 0;
 
@@ -394,7 +391,9 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   }
 
   // do this after we've put the new hdr in the thread
-  if (m_flags & MSG_FLAG_IGNORED && m_mdbDB)
+  PRBool isKilled;
+  child->GetIsKilled(&isKilled);
+  if ((m_flags & MSG_FLAG_IGNORED || isKilled) && m_mdbDB)
     m_mdbDB->MarkHdrRead(child, PR_TRUE, nsnull);
 
 #ifdef DEBUG_bienvenu1

@@ -47,7 +47,7 @@
 
 interface nsIMsgFolder;
 
-[scriptable, uuid(B5212A60-F93F-11d2-951C-006097222B83)]
+[scriptable, uuid(56515ecb-5ad2-4b3e-9877-c6df26bb9443)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -63,6 +63,9 @@ interface nsIMsgDBHdr : nsISupports
     // accessors, to make our JS cleaner
     readonly attribute boolean isRead;
     readonly attribute boolean isFlagged;
+
+    // Special accessor that checks if a message is part of an ignored subthread
+    readonly attribute boolean isKilled;
 
     // Mark message routines
     void markRead(in boolean read);

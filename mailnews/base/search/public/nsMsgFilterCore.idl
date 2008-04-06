@@ -83,5 +83,6 @@ interface nsMsgFilterAction {
     const long FetchBodyFromPop3Server=15;
     const long CopyToFolder=16;
     const long AddTag=17;
+    const long KillSubthread=18;
 };
 

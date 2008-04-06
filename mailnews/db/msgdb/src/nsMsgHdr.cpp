@@ -203,7 +203,7 @@ NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
   else
     *result = m_flags;
 #ifdef DEBUG_bienvenu
-  NS_ASSERTION(! (*result & (MSG_FLAG_ELIDED | MSG_FLAG_IGNORED)), "shouldn't be set in db");
+  NS_ASSERTION(! (*result & (MSG_FLAG_ELIDED)), "shouldn't be set in db");
 #endif
   return NS_OK;
 }
@@ -211,7 +211,7 @@ NS_IMETHODIMP nsMsgHdr::GetFlags(PRUint32 *result)
 NS_IMETHODIMP nsMsgHdr::SetFlags(PRUint32 flags)
 {
 #ifdef DEBUG_bienvenu
-  NS_ASSERTION(! (flags & (MSG_FLAG_ELIDED | MSG_FLAG_IGNORED)), "shouldn't set this flag on db");
+  NS_ASSERTION(! (flags & (MSG_FLAG_ELIDED)), "shouldn't set this flag on db");
 #endif
   m_initedValues |= FLAGS_INITED;
   m_flags = flags;
@@ -852,5 +852,29 @@ NS_IMETHODIMP nsMsgHdr::GetIsFlagged(PRBool *isFlagged)
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
   *isFlagged = m_flags & MSG_FLAG_MARKED;
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
+{
+  NS_ENSURE_ARG_POINTER(isKilled);
+  if (!(m_initedValues & FLAGS_INITED))
+    InitFlags();
+  *isKilled = m_flags & MSG_FLAG_IGNORED;
+
+  if (!*isKilled)
+  {
+    nsMsgKey threadParent;
+    GetThreadParent(&threadParent);
+
+    if (threadParent != nsMsgKey_None)
+    {
+      nsCOMPtr <nsIMsgDBHdr> parentHdr;
+      (void) m_mdb->GetMsgHdrForKey(threadParent, getter_AddRefs(parentHdr));
+
+      if (parentHdr)
+        return parentHdr->GetIsKilled(isKilled);
+    }
+  }
   return NS_OK;
 }

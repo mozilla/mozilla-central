@@ -203,6 +203,8 @@ interface  nsIMsgDatabase : nsIDBChangeAnnouncer {
                                in nsIDBChangeListener instigator);
   void MarkThreadWatched(in nsIMsgThread thread, in nsMsgKey threadKey, in boolean bWatched,
                                in nsIDBChangeListener instigator);
+  void MarkHeaderKilled(in nsIMsgDBHdr msg, in boolean bIgnored,
+                        in nsIDBChangeListener instigator);
 
   boolean IsRead(in nsMsgKey key);
   boolean IsIgnored(in nsMsgKey key);
