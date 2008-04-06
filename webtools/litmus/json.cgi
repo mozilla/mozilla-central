@@ -154,10 +154,13 @@ if ($c->param("testcase_id")) {
   if ($c->param("locale")) {
     $args{"locale"} = $c->param("locale");
   }
-  if ($c->param("start_timestamp") and
-      $c->param("finish_timestamp")) {
+  if ($c->param("start_timestamp")) {
     $args{"start_timestamp"} = UnixDate(ParseDateString($c->param("start_timestamp")),"%q");
-    $args{"finish_timestamp"} = UnixDate(ParseDateString($c->param("finish_timestamp")),"%q");
+    if ($c->param("finish_timestamp")) {
+      $args{"finish_timestamp"} = UnixDate(ParseDateString($c->param("finish_timestamp")),"%q");
+    } else {
+      $args{"finish_timestamp"} = UnixDate("today","%q");
+    }
     if (!$args{"start_timestamp"} or 
         !$args{"finish_timestamp"} or 
         $args{"start_timestamp"} >= $args{"finish_timestamp"}) {
