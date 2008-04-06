@@ -177,11 +177,12 @@
                 </vbox>
                 <notificationbox flex="1" collapsed="true" class="sidebar-notificationbox browser-notificationbox">
                   <browser flex="1" class="browser-sidebar" src="about:blank"
-                           hidden="true" collapsed="true" content="?content"/>
+                           hidden="true" collapsed="true" content="?content"
+                           disablehistory="true"/>
                   <browser flex="1" class="browser-sidebar" src="about:blank"
                            hidden="true" collapsed="true" content="?content"
                            type="content" context="contentAreaContextMenu"
-                           tooltip="aHTMLTooltip"/>
+                           disablehistory="true" tooltip="aHTMLTooltip"/>
                 </notificationbox>
               </vbox>
             </action>
