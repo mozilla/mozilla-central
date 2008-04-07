@@ -129,8 +129,8 @@
         <menuitem label="&CopyEmailAddress.label;"
                   accesskey="&CopyEmailAddress.accesskey;"
                   oncommand="CopyEmailAddress(document.popupNode)"/>
-        <menuitem label="&CreateFilter.label;"
-                  accesskey="&CreateFilter.accesskey;"
+        <menuitem label="&CreateFilterFrom.label;"
+                  accesskey="&CreateFilterFrom.accesskey;"
                   oncommand="CreateFilter(document.popupNode)"
                   observes="cmd_createFilterFromPopup"/>
     </popup>
