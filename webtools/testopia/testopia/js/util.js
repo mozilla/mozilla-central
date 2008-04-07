@@ -322,7 +322,7 @@ Ext.extend(CaseStatusStore, Ext.data.JsonStore);
 CaseRunStatusStore = function(auto){
     CaseRunStatusStore.superclass.constructor.call(this,{
         url: 'tr_quicksearch.cgi',
-        root: 'status',
+        root: 'statuses',
         baseParams: {action: 'getcaserunstatus'},
         autoLoad: auto,
         id: 'id',

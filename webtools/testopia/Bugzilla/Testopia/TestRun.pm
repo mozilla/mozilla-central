@@ -364,7 +364,8 @@ the test_case_runs table
 
 sub add_case_run {
     my $self = shift;
-    my ($case_id, $sortkey) = @_;
+    my ($case_id, $sortkey, $status) = @_;
+    $status ||=IDLE;
     trick_taint($case_id);
     return 0 if $self->check_case($case_id);
     my $case = Bugzilla::Testopia::TestCase->new($case_id);
@@ -377,7 +378,7 @@ sub add_case_run {
         'case_text_version'  => $case->version,
         'build_id'           => $self->build->id,
         'environment_id'     => $self->environment_id,
-        'case_run_status_id' => IDLE,
+        'case_run_status_id' => $status,
         'sortkey'            => $sortkey,
     });
 }

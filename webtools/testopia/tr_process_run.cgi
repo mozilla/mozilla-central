@@ -32,6 +32,8 @@ use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestRun;
 use Bugzilla::Testopia::TestCaseRun;
 use Bugzilla::Testopia::TestCase;
+use Bugzilla::Testopia::Search;
+use Bugzilla::Testopia::Table;
 
 use JSON;
 
@@ -71,78 +73,67 @@ if ($action eq 'edit'){
 }
 
 elsif ($action eq 'clone'){
-    ThrowUserError("testopia-read-only", {'object' => $run->plan}) unless $run->plan->canedit;
+    my %planseen;
+    foreach my $planid (split(",", $cgi->param('plan_ids'))){
+        validate_test_id($planid, 'plan');
+        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
+        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
+        $planseen{$planid} = 1;
+    }
+    
+    ThrowUserError('missing-plans-list') unless scalar keys %planseen;
+    
     my $dbh = Bugzilla->dbh;
-    my $summary = $cgi->param('summary');
-    my $build = $cgi->param('build');
-    my $plan_id = $cgi->param('plan_id');
+    my $summary = $cgi->param('new_run_summary');
+    my $build = $cgi->param('new_run_build');
+    my $env = $cgi->param('new_run_environment');
     my $manager = $cgi->param('keepauthor') ? $run->manager->id : Bugzilla->user->id;
-    my $copysort = $cgi->param('copy_sortkey') ? 1 : 0;
     
     trick_taint($summary);
     detaint_natural($build);
-    validate_test_id($plan_id, 'plan');
-
-    my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build, $run->environment->id));
-
-    if($cgi->param('copy_tags')){
-        foreach my $tag (@{$run->tags}){
-            $newrun->add_tag($tag->name);
-        }
-    }
+    detaint_natural($env);
+    validate_test_id($build, 'build');
+    validate_test_id($env, 'environment');
     
-    my @case_ids;
-    if ($cgi->param('case_list')){
-        foreach my $id (split(",", $cgi->param('case_list'))){
-            my $case = Bugzilla::Testopia::TestCase->new($id);
-            ThrowUserError('testopia-permission-denied', {'object' => $case}) unless ($case->canview);
-            push @case_ids, $case->id
-        }
-    }
-    elsif ($cgi->param('copy_test_cases')){
-        if ($cgi->param('status') || $cgi->param('copy_sortkey')){
-            my @status = $cgi->param('status');
-            foreach my $s (@status){
-                detaint_natural($s);
+    my @caseruns;
+    if ($cgi->param('copy_cases')){
+        if ($cgi->param('case_list')){
+            foreach my $id (split(",", $cgi->param('case_list'))){
+                my $caserun = Bugzilla::Testopia::TestCaseRun->new($id);
+                ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless ($caserun->canview);
+                push @caseruns, $caserun;
             }
-            my $ref = $dbh->selectcol_arrayref(
-                "SELECT case_id
-                   FROM test_case_runs
-                  WHERE run_id = ?
-                    AND case_run_status_id IN (". join(",", @status) .")
-                    AND iscurrent = 1", undef, $run->id);
-
-            push @case_ids, @$ref;
         }
-        else {
-            push @case_ids, @{$run->case_ids};
+        else{
+            $cgi->param('current_tab', 'case_run');
+            $cgi->param('view_all', 1);
+            $cgi->param('isactive', 1);
+            $cgi->param('distinct', 1);
+            my $search = Bugzilla::Testopia::Search->new($cgi);
+            my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_list_caseruns.cgi', $cgi, undef, $search->query);
+            @caseruns = @{$table->list};
         }
+        
     }
-    my @rows;
-    if ($copysort && scalar @case_ids){
-        my $ref = $dbh->selectall_arrayref(
-                "SELECT case_id, sortkey
-                   FROM test_case_runs
-                  WHERE run_id = ?
-                    AND case_id IN (". join(",", @case_ids) .")
-                    AND iscurrent = 1", {'Slice' => {}}, $run->id);
+    my @newruns;
+    foreach my $plan_id (keys %planseen){
+        
+        my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build, $env));
     
-        @rows = @$ref;
-    }
-    else{
-        @rows = @case_ids;
-    }
-    
-    foreach my $row (@rows){
-        if ($cgi->param('copy_sortkey')){
-            $newrun->add_case_run($row->{'case_id'}, $row->{'sortkey'});
+        if($cgi->param('copy_tags')){
+            foreach my $tag (@{$run->tags}){
+                $newrun->add_tag($tag->name);
+            }
         }
-        else {
-            $newrun->add_case_run($row);
-        }
-    }
 
-    print "{success: true, 'run_id': " . $newrun->id . "}";
+        foreach my $cr (@caseruns){
+            $newrun->add_case_run($cr->case_id, 
+                $cgi->param('keep_indexes') ? $cr->sortkey : undef,
+                $cgi->param('keep_statuses') ? $cr->status_id : undef);
+        }
+        push @newruns, $newrun->id;
+    }
+    print "{success: true, 'runlist': [". join(", ", @newruns) ."]}";
 }
 
 elsif ($action eq 'delete'){

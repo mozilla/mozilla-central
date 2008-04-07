@@ -669,38 +669,203 @@ var NewRunForm = function(plan){
 Ext.extend(NewRunForm, Ext.Panel);
 
 RunClonePanel = function(run, caselist){
-
-    doClone = function(f,a){
-        var form = new Ext.form.BasicForm('run_clone_frm',{});
-        form.on('beforeaction', function(f,a){
-            f.el.mask('Processing...');
-        });
-
-        form.submit({
-            url: 'tr_process_run.cgi',
-            timeout: 120,
-            success: function(f,a){
-                Ext.getCmp('run-clone-win').close();
-                window.location="tr_show_run.cgi?run_id=" + a.result.run_id;
-            },
-            failure: testopiaError
-        });
-    };
+    var pgrid = new PlanGrid({product_id: run.product_id},{id: 'run_clone_plan_grid'});
+    var vbox = new ProductVersionCombo({
+        id: 'run_clone_version_chooser',
+        mode: 'local',
+        hiddenName: 'new_run_prod_version',
+        fieldLabel: '<b>Product Version</b>',
+        params: {product_id: run.product_id},
+        allowBlank: false
+    });
+    var bbox  = new BuildCombo({
+        fieldLabel: '<b>Select a Build</b>',
+        id: 'run_clone_build_chooser',
+        mode: 'local',
+        hiddenName: 'new_run_build',
+        params: {product_id: run.product_id},
+        allowBlank: false
+    });
+    var ebox = new EnvironmentCombo({
+        fieldLabel: '<b>Select an Environment</b>',
+        id: 'run_clone_environment_chooser',
+        mode: 'local',
+        hiddenName: 'new_run_env',
+        params: {product_id: run.product_id},
+        allowBlank: false
+    });
+    
+    function doSubmit(){
+        var form = Ext.getCmp('run_clone_frm').getForm();
+        form.baseParams = {};
+        if (Ext.getCmp('copy_cases_radio_group').getGroupValue() == 'copy_filtered_cases') {
+            form.baseParams = Ext.getCmp('caserun_search').form.getValues();
+        }
+        else if (Ext.getCmp('copy_cases_radio_group').getGroupValue() == 'copy_selected_cases') {
+            form.baseParams.case_list = getSelectedObjects(Ext.getCmp('caserun_grid'), 'caserun_id');
+        }
+        form.baseParams.action = 'clone';
+        form.baseParams.new_run_build = bbox.getValue();
+        form.baseParams.new_run_environment = ebox.getValue();
+        form.baseParams.plan_ids = getSelectedObjects(pgrid, 'plan_id');
+        var p = form.getValues();
+        
+        if (form.isValid()){
+            form.submit({
+                success: function(f,a){
+                    if (a.result.runlist.length == 1){
+                        Ext.Msg.show({
+                            title:'Run Copied',
+                            msg: 'Run ' + a.result.runlist[0] + ' Created. Would you like to go there now?',
+                            buttons: Ext.Msg.YESNO,
+                            icon: Ext.MessageBox.QUESTION,
+                            fn: function(btn){
+                                if (btn == 'yes'){
+                                    window.location = 'tr_show_run.cgi?run_id=' + a.result.runlist[0];
+                                }
+                            }
+                        });
+                    }
+                    else {
+                        Ext.Msg.show({
+                            title:'Test Run Copied',
+                            msg: 'Test runs ' + a.result.runlist.join(',') + ' Copied successfully',
+                            buttons: Ext.Msg.OK,
+                            icon: Ext.MessageBox.INFO
+                        });
+                    }
+                },
+                failure: testopiaError
+            })
+        }
+    }
 
     RunClonePanel.superclass.constructor.call(this,{
-        id: 'run-clone-panel',
-        title: 'Select Clone Options',
-        listeners: {'render':function(p){
-            p.load({
-                url: 'tr_process_run.cgi',
-                params: {action: 'getcloneform', case_list: caselist, run_id: run.run_id}
-            });
-        }},
-        bodyStyle: 'padding: 10px',
-        autoShow: true,
+        id: 'run_clone_form',
+        border: false,
+        width: 600,
+        layout: 'border',
+        items:[{
+            region: 'north',
+            layout: 'fit',
+            border: false,
+            height: 300,
+            items:[pgrid]
+        },{
+            region: 'center',
+            xtype: 'form',
+            url: 'tr_process_run.cgi',
+            title:'Clone Options',
+            autoScroll: true,
+            id: 'run_clone_frm',
+            border: false,
+            frame: true,
+            bodyStyle: 'padding: 10px',
+            labelWidth: 160,
+            height: 350,
+            items:[{
+                layout: 'table',
+                border: false,
+                autoScroll: true,
+                layoutConfig: {
+                    columns: 2,
+                    width: '100%'
+                },
+                items: [{
+                    colspan: 2,
+                    layout: 'form',
+                    border: false,
+                    items: [{
+                        id: 'run_clone_name',
+                        xtype: 'textfield',
+                        fieldLabel: '<b>New Run Summary</b>',
+                        name: 'new_run_summary',
+                        allowBlank: false,
+                        width: 500
+                    }]
+                },{
+                    layout: 'form',
+                    border: false,
+                    items: [
+                         vbox, bbox, ebox
+                     ]
+                },{
+                    layout: 'form',
+                    border: false,
+                    items: [{
+                        xtype: 'checkbox',
+                        name: 'copy_tags',
+                        checked: true,
+                        boxLabel: 'Copy Run Tags',
+                        hideLabel: true
+                    },{
+                        xtype: 'hidden',
+                        name: 'run_id',
+                        value: run.run_id
+                    },{
+                        xtype: 'hidden',
+                        id: 'run_clone_product_id',
+                        name: 'product_id',
+                        value: run.product_id
+                    }]
+                },{
+                    colspan: 2,
+                    layout: 'form',
+                    border: false,
+                    items: [{
+                        xtype: 'checkbox',
+                        name: 'keep_run_manager',
+                        checked: false,
+                        boxLabel: 'Maintain original manager (unchecking will make me the manager of the new run)',
+                        hideLabel: true
+                    },{
+                        xtype: 'fieldset',
+                        autoHeight: true,
+                        checkboxToggle: true,
+                        checkboxName: 'copy_cases',
+                        id: 'run_copy_cases',
+                        title: 'Copy Test Cases',
+                        collapsed: caselist ? false : true,
+                        items: [{
+                            xtype: 'radio',
+                            name: 'copy_cases_options',
+                            id: 'copy_cases_radio_group',
+                            inputValue: 'copy_all_cases',
+                            checked: true,
+                            boxLabel: 'Include all cases in run '+ run.run_id,
+                            hideLabel: true
+                        },{
+                            xtype: 'radio',
+                            name: 'copy_cases_options',
+                            inputValue: 'copy_filtered_cases',
+                            boxLabel: 'Only include cases that match the selected filter',
+                            hideLabel: true
+                        },{
+                            xtype: 'radio',
+                            name: 'copy_cases_options',
+                            inputValue: 'copy_selected_cases',
+                            boxLabel: 'Only include cases that are currently selected',
+                            checked: caselist ? true: false,
+                            hideLabel: true                            
+                        },{
+                            xtype: 'checkbox',
+                            name: 'keep_indexes',
+                            checked: true,
+                            boxLabel: 'Copy Case Indexes',
+                            hideLabel: true
+                        },{
+                            xtype: 'checkbox',
+                            name: 'keep_statuses',
+                            boxLabel: 'Maintain status of copied cases (unchecking will set case copies to IDLE)',
+                            hideLabel: true
+                        }]
+                    }]
+                }]
+            }]
+        }],
         buttons: [{
             text: 'Submit',
-            handler:  doClone
+            handler: doSubmit.createDelegate(this)
         },{
             text: 'Cancel',
             handler: function(){
@@ -722,8 +887,38 @@ RunClonePopup = function(run,caselist){
         layout: 'fit',
         items: [new RunClonePanel(run,caselist)]
     });
-    
+    var pg = Ext.getCmp('run_clone_plan_grid');
+    Ext.apply(pg,{title: 'Select plans to clone runs to'});
     win.show(this);
+    
+    var items = pg.getTopToolbar().items.items;
+    for (var i=0; i < items.length; i++){
+        items[i].destroy();
+    }
+    var pchooser = new ProductCombo({mode: 'local', value: run.product_id});
+    pchooser.on('select', function(c,r,i){
+        pg.store.baseParams = {ctype: 'json', product_id: r.get('id')};
+
+        Ext.getCmp('run_clone_version_chooser').reset();
+        Ext.getCmp('run_clone_build_chooser').reset();
+        Ext.getCmp('run_clone_environment_chooser').reset();
+
+        Ext.getCmp('run_clone_version_chooser').store.baseParams.product_id = r.id;
+        Ext.getCmp('run_clone_build_chooser').store.baseParams.product_id = r.id;
+        Ext.getCmp('run_clone_environment_chooser').store.baseParams.product_id = r.id;
+        
+        Ext.getCmp('run_clone_version_chooser').store.load();
+        Ext.getCmp('run_clone_build_chooser').store.load();
+        Ext.getCmp('run_clone_environment_chooser').store.load();
+        
+
+        Ext.getCmp('run_clone_product_id').setValue(r.get('id'));
+        pg.store.load();
+    });
+    pg.getTopToolbar().add(new Ext.menu.TextItem('Product: '), pchooser);
+    pg.getSelectionModel().un('rowselect', pg.getSelectionModel().events['rowselect'].listeners[0].fn);
+    pg.getSelectionModel().un('rowdeselect', pg.getSelectionModel().events['rowdeselect'].listeners[0].fn);
+    pg.store.load();
 };
 
 AddCaseToRunForm = function(run){

@@ -107,6 +107,8 @@ sub init {
     $pagesize ||= 25;
     my $sortdir = $cgi->param('dir') eq 'ASC' ? 'ASC' : 'DESC';
     
+    my $distinct = $cgi->param('distinct') ? 'DISTINCT' : '';
+    
     my @specialchart;
     my @supptables;
     my @wherepart;
@@ -1306,10 +1308,10 @@ sub init {
 
     my $query;
     if ($self->{'fields'}){
-        $query = "SELECT ". join(",", @{$self->{'fields'}});
+        $query = "SELECT $distinct". join(",", @{$self->{'fields'}});
     }
     else {
-        $query = "SELECT test_". $obj ."s.". $obj. "_id";
+        $query = "SELECT $distinct test_". $obj ."s.". $obj. "_id";
     }
     $query .= " FROM $suppstring";
     $query .= " WHERE " . join(' AND ', (@wherepart, @andlist));

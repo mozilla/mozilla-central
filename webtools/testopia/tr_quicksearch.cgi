@@ -360,6 +360,14 @@ else{
         print $json->objToJson($plan->get_status_list());
         print "}";
     }
+    elsif ($action eq 'getcaserunstatus'){
+        my $plan = Bugzilla::Testopia::TestCaseRun->new({});
+        my $json = new JSON;
+        print "{statuses:";
+        print $json->objToJson($plan->get_status_list());
+        print "}";
+    }
+    
     elsif ($action eq 'getproducts'){
         my $products;
         my $json = new JSON;
