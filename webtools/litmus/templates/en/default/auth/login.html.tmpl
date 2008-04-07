@@ -170,11 +170,14 @@ primary email address if this concerns you.</p>
         <td>
           <div class="login_form_newuser">
 
-            <form name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkNewAccountFormContents(this);">
+            <form autocomplete=off id="litmus_login" name="litmus_login" action="[% return_to | none %]" method="post" onSubmit="return checkNewAccountFormContents(this);">
               <input name="login_type" type="hidden" value="newaccount">
               <input name="login_loc" type="hidden" value="[% return_to | html %]">
 
               [% INCLUDE create_hidden_fields params=params %]
+
+              <input id="name_throwaway" name="name_throwaway" type="hidden" />
+              <input id="password_throwaway" name="password_throwaway" type="password" style="display: none" />
 
               <table cellpadding="0" width="100%" border=0>
                 <tr>
@@ -185,24 +188,24 @@ primary email address if this concerns you.</p>
                 </tr>
 
                <tr>
-                 <td>Email:</td>
-                 <td><input name="email" type="text" size="25"></td>
-               </tr>
-               <tr>
                  <td>Real Name:</td>
-                 <td><input name="realname" type="text" size="25"></td>
+                 <td><input autocomplete=off id="realname" name="realname" type="text" size="25"></td>
                </tr>
                <tr>
                  <td>IRC Nickname:</td>
-                 <td><input name="irc_nickname" type="text" size="25"></td>
+                 <td><input autocomplete=off id=="irc_nickname" name="irc_nickname" type="text" size="25"></td>
+               </tr>
+               <tr>
+                 <td>Email:</td>
+                 <td><input autocomplete=off id="email" name="email" type="text" size="25"></td>
                </tr>
                <tr>
                  <td>Password:</td>
-                 <td><input name="password" type="password" size="25"></td>
+                 <td><input autocomplete=off id="password" name="password" type="password" size="25"></td>
                </tr>
                <tr>
                  <td>Confirm Password:</td>
-                 <td><input name="password_confirm" type="password" size="25"></td>
+                 <td><input autocomplete=off id="password_confirm" name="password_confirm" type="password" size="25"></td>
                </tr>
              </table>
              <br/>

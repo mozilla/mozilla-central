@@ -59,6 +59,8 @@ function checkFormContents(f) {
 <div class="section-full">
 <form action="edit_users.cgi" method="post" name="edit_user_form" id="edit_user_form" autocomplete="off" onSubmit="return checkFormContents(this);">
 <input type="hidden" name="user_id" value="[% user.user_id | html %]" />
+<input id="name_throwaway" name="name_throwaway" type="hidden" />
+<input id="password_throwaway" name="password_throwaway" type="password" style="display: none" />
 <table class="manage">
   <tr>
      <td class="headerleft">User ID:</td>
@@ -69,16 +71,16 @@ function checkFormContents(f) {
      <td>[% IF show_admin %]<input name="bugzilla_uid" size="15" value="[% user.bugzilla_uid | html %]" />[% ELSE %][% user.bugzilla_uid | html %][% END %]</td>
   </tr>
   <tr>
-     <td class="headerleft">Email:</td>
-     <td><input name="edit_email" size="30" value="[% user.email | html %]" /></td>
-  </tr>
-  <tr>
     <td class="headerleft">Real Name:</td>
     <td><input name="realname" size="30" value="[% user.realname | html %]" /></td>
   </tr>
   <tr>
     <td class="headerleft">IRC Nickname:</td>
     <td><input name="irc_nickname" size="15" value="[% user.irc_nickname | html %]" /></td>
+  </tr>
+  <tr>
+     <td class="headerleft">Email:</td>
+     <td><input name="edit_email" size="30" value="[% user.email | html %]" /></td>
   </tr>
   [% IF show_admin %]
   <tr>
