@@ -229,7 +229,7 @@ class MozillaStageUpload(ShellCommand):
         return self._getBaseCommand(ssh=True) + ' ' + self.remoteHost + \
                ' ln -fs ' + shortDatedDir + ' ' + targetDir
 
-    def uploadCompleteMarCommand(self, dir)
+    def uploadCompleteMarCommand(self, dir):
         packageGlob = '%s/dist/update/*.complete.mar' % self.objdir
         return self._getBaseCommand(scp=True) + ' ' + packageGlob + \
                  ' ' + self.username + '@' + self.remoteHost + ':' + \
