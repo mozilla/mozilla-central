@@ -1,7 +1,61 @@
+# ***** BEGIN LICENSE BLOCK *****
+# Version: MPL 1.1
+#
+# The contents of this file are subject to the Mozilla Public License Version
+# 1.1 (the "License"); you may not use this file except in compliance with
+# the License. You may obtain a copy of the License at
+# http://www.mozilla.org/MPL/
+#
+# Software distributed under the License is distributed on an "AS IS" basis,
+# WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+# for the specific language governing rights and limitations under the
+# License.
+#
+# The Original Code is Mozilla-specific Buildbot steps.
+#
+# The Initial Developer of the Original Code is
+# Mozilla Corporation.
+# Portions created by the Initial Developer are Copyright (C) 2007
+# the Initial Developer. All Rights Reserved.
+#
+# Contributor(s):
+#   Ben Hearsum <bhearsum@mozilla.com>
+#   Rob Campbell <rcampbell@mozilla.com>
+#   Chris Cooper <ccooper@mozilla.com>
+# ***** END LICENSE BLOCK *****
+
 import buildbot
 from buildbot.process.buildstep import LoggedRemoteCommand, LoggingBuildStep
 from buildbot.steps.shell import ShellCommand
 from buildbot.status.builder import FAILURE, SUCCESS
+
+class CreateDir(ShellCommand):
+    name = "create dir"
+    haltOnFailure = False
+    warnOnFailure = True
+
+    def __init__(self, **kwargs):
+        if not 'platform' in kwargs:
+            return FAILURE
+        self.platform = kwargs['platform']
+        if 'dir' in kwargs:
+            self.dir = kwargs['dir']
+        if self.platform.startswith('win'):
+            self.command = r'if not exist ' + self.dir + r' mkdir ' + self.dir
+        else:
+            self.command = ['mkdir', '-p', self.dir]
+        ShellCommand.__init__(self, **kwargs)
+
+class TinderboxShellCommand(ShellCommand):
+    haltOnFailure = False
+    
+    """This step is really just a 'do not care' buildstep for executing a
+       slave command and ignoring the results.
+       Always returns SUCCESS
+    """
+    
+    def evaluateCommand(self, cmd):
+       return SUCCESS
 
 class GetBuildID(ShellCommand):
     """Retrieves the BuildID from a Mozilla tree (using platform.ini) and sets
