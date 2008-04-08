@@ -144,15 +144,9 @@ function setTitleFromFolder(msgfolder, subject)
           middle = gMessengerBundle.getString("titleNewsPreHost");
           end = server.hostName;
         } else {
-          var identity;
-          try {
-            var identities = accountManager.GetIdentitiesForServer(server);
-
-            identity = identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
-            // <folder> for <email>
-            middle = gMessengerBundle.getString("titleMailPreHost");
-            end = identity.email;
-          } catch (ex) {}
+          // <folder> for <accountname>
+          middle = gMessengerBundle.getString("titleMailPreHost");
+          end = server.prettyName;
         }
         if (middle) title += " " + middle;
         if (end) title += " " + end;
