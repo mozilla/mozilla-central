@@ -354,7 +354,7 @@
 		3F44AC9905BDFB9E00CB4B08 /* PreferenceManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */; };
 		3F44AC9A05BDFB9E00CB4B08 /* HistoryDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52F87CD027D75C301A80165 /* HistoryDataSource.mm */; };
 		3F44AC9C05BDFB9E00CB4B08 /* PageProxyIcon.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E2939FF027F33604B000102 /* PageProxyIcon.mm */; };
-		3F44AC9D05BDFB9E00CB4B08 /* GoMenu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E748B73029A448D4B000102 /* GoMenu.mm */; };
+		3F44AC9D05BDFB9E00CB4B08 /* HistoryMenu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E748B73029A448D4B000102 /* HistoryMenu.mm */; };
 		3F44AC9D85BDFB9E00CB4B08 /* nsStaticComponents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */; };
 		3F44AC9E05BDFB9E00CB4B08 /* BookmarkInfoController.mm in Sources */ = {isa = PBXBuildFile; fileRef = F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */; };
 		3F44AC9F05BDFB9E00CB4B08 /* BrowserWindow.mm in Sources */ = {isa = PBXBuildFile; fileRef = F632AF8402B9AEBB01000103 /* BrowserWindow.mm */; };
@@ -633,7 +633,7 @@
 		3F44AED205BDFBA000CB4B08 /* PreferenceManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52D5CD8027D3D5001A80166 /* PreferenceManager.mm */; };
 		3F44AED305BDFBA000CB4B08 /* HistoryDataSource.mm in Sources */ = {isa = PBXBuildFile; fileRef = F52F87CD027D75C301A80165 /* HistoryDataSource.mm */; };
 		3F44AED505BDFBA000CB4B08 /* PageProxyIcon.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E2939FF027F33604B000102 /* PageProxyIcon.mm */; };
-		3F44AED605BDFBA000CB4B08 /* GoMenu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E748B73029A448D4B000102 /* GoMenu.mm */; };
+		3F44AED605BDFBA000CB4B08 /* HistoryMenu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 2E748B73029A448D4B000102 /* HistoryMenu.mm */; };
 		3F44AED705BDFBA000CB4B08 /* nsStaticComponents.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F56F241F02AC6D0401A967F3 /* nsStaticComponents.cpp */; };
 		3F44AED805BDFBA000CB4B08 /* BookmarkInfoController.mm in Sources */ = {isa = PBXBuildFile; fileRef = F53E012C02AEE93601A967F3 /* BookmarkInfoController.mm */; };
 		3F44AED905BDFBA000CB4B08 /* AppDirServiceProvider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F59236C002C89AC90100012B /* AppDirServiceProvider.cpp */; };
@@ -2303,8 +2303,8 @@
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		2E2939FF027F33604B000102 /* PageProxyIcon.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = PageProxyIcon.mm; path = src/browser/PageProxyIcon.mm; sourceTree = "<group>"; };
 		2E293A00027F33604B000102 /* PageProxyIcon.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PageProxyIcon.h; path = src/browser/PageProxyIcon.h; sourceTree = "<group>"; };
-		2E748B72029A448D4B000102 /* GoMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = GoMenu.h; path = src/browser/GoMenu.h; sourceTree = "<group>"; };
-		2E748B73029A448D4B000102 /* GoMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = GoMenu.mm; path = src/browser/GoMenu.mm; sourceTree = "<group>"; };
+		2E748B72029A448D4B000102 /* HistoryMenu.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = HistoryMenu.h; path = src/browser/HistoryMenu.h; sourceTree = "<group>"; };
+		2E748B73029A448D4B000102 /* HistoryMenu.mm */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.objcpp; name = HistoryMenu.mm; path = src/browser/HistoryMenu.mm; sourceTree = "<group>"; };
 		3312BF340C84C2B4000E6965 /* arrow.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = arrow.gif; path = ../dist/Embed/res/arrow.gif; sourceTree = SOURCE_ROOT; };
 		3312BF350C84C2B4000E6965 /* arrowd.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; name = arrowd.gif; path = ../dist/Embed/res/arrowd.gif; sourceTree = SOURCE_ROOT; };
 		3316F4470D11F1900025ED19 /* TabButtonView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = TabButtonView.h; path = src/browser/TabButtonView.h; sourceTree = "<group>"; };
@@ -3681,8 +3681,8 @@
 		33563A540C84ED5800DC4D06 /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				2E748B72029A448D4B000102 /* GoMenu.h */,
-				2E748B73029A448D4B000102 /* GoMenu.mm */,
+				2E748B72029A448D4B000102 /* HistoryMenu.h */,
+				2E748B73029A448D4B000102 /* HistoryMenu.mm */,
 				335638FD0C84D82200DC4D06 /* HistoryOutlineViewDelegate.h */,
 				0FBC0EDC0798F9B400E8E0E2 /* HistoryOutlineViewDelegate.mm */,
 			);
@@ -5337,7 +5337,7 @@
 				3F44AC9905BDFB9E00CB4B08 /* PreferenceManager.mm in Sources */,
 				3F44AC9A05BDFB9E00CB4B08 /* HistoryDataSource.mm in Sources */,
 				3F44AC9C05BDFB9E00CB4B08 /* PageProxyIcon.mm in Sources */,
-				3F44AC9D05BDFB9E00CB4B08 /* GoMenu.mm in Sources */,
+				3F44AC9D05BDFB9E00CB4B08 /* HistoryMenu.mm in Sources */,
 				3F44AC9D85BDFB9E00CB4B08 /* nsStaticComponents.cpp in Sources */,
 				3F44AC9E05BDFB9E00CB4B08 /* BookmarkInfoController.mm in Sources */,
 				3F44AC9F05BDFB9E00CB4B08 /* BrowserWindow.mm in Sources */,
@@ -5518,7 +5518,7 @@
 				3F44AED205BDFBA000CB4B08 /* PreferenceManager.mm in Sources */,
 				3F44AED305BDFBA000CB4B08 /* HistoryDataSource.mm in Sources */,
 				3F44AED505BDFBA000CB4B08 /* PageProxyIcon.mm in Sources */,
-				3F44AED605BDFBA000CB4B08 /* GoMenu.mm in Sources */,
+				3F44AED605BDFBA000CB4B08 /* HistoryMenu.mm in Sources */,
 				3F44AED705BDFBA000CB4B08 /* nsStaticComponents.cpp in Sources */,
 				3F44AED805BDFBA000CB4B08 /* BookmarkInfoController.mm in Sources */,
 				3F44AED905BDFBA000CB4B08 /* AppDirServiceProvider.cpp in Sources */,

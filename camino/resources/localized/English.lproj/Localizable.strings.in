@@ -392,7 +392,7 @@
 /* History labels */
 "Tomorrow" = "Tomorrow";
 "Today" = "Today";
-"GoMenuEarlierToday" = "Earlier Today";
+"TopLevelHistoryMenuEarlierToday" = "Earlier Today";
 "Yesterday" = "Yesterday";
 "HistoryMoreThanAWeek" = "More than a week ago";
 "LocalFilesCategoryTitle" = "Local Files";

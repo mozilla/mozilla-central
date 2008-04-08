@@ -127,13 +127,7 @@
             LANGUAGE = ObjC; 
             SUPERCLASS = NSObject; 
         }, 
-        {CLASS = GoMenu; LANGUAGE = ObjC; SUPERCLASS = HistoryMenu; }, 
-        {
-            CLASS = HistoryMenu; 
-            LANGUAGE = ObjC; 
-            OUTLETS = {mItemBeforeHistoryItems = NSMenuItem; }; 
-            SUPERCLASS = NSMenu; 
-        }, 
+        {CLASS = HistorySubmenu; LANGUAGE = ObjC; SUPERCLASS = NSMenu; }, 
         {
             ACTIONS = {
                 aboutPlugins = id; 
@@ -231,6 +225,12 @@
             LANGUAGE = ObjC; 
             OUTLETS = {mBrowserView = id; mWindow = id; }; 
             SUPERCLASS = NSObject; 
+        }, 
+        {
+            CLASS = TopLevelHistoryMenu; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {mItemBeforeHistoryItems = NSMenuItem; }; 
+            SUPERCLASS = HistorySubmenu; 
         }
     ); 
     IBVersion = 1; 
