@@ -270,8 +270,8 @@ class MozillaMochitest(ShellCommand):
     warnOnFailure = True
     description = ["mochitest"]
     descriptionDone = ["mochitest complete"]
-    command = ["perl",
-               "runtests.pl",
+    command = ["python",
+               "runtests.py",
                "--appname=../../../dist/bin/firefox",
                "--autorun",
                "--console-level=INFO",
@@ -310,11 +310,11 @@ class MozillaMochitest(ShellCommand):
         return SUCCESS
 
 class MozillaWin32Mochitest(MozillaMochitest):
-    command = ['perl runtests.pl --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
+    command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
 
 class MozillaOSXMochitest(MozillaMochitest):
     command = ["perl",
-               "runtests.pl",
+               "runtests.py",
                "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
                "--autorun",
                "--console-level=INFO",
@@ -325,8 +325,8 @@ class MozillaMochichrome(ShellCommand):
     warnOnFailure = True
     description = ["mochichrome"]
     descriptionDone = ["mochichrome complete"]
-    command = ["perl",
-              "runtests.pl",
+    command = ["python",
+              "runtests.py",
               "--appname=../../../dist/bin/firefox",
               "--chrome",
               "--autorun",
@@ -365,11 +365,11 @@ class MozillaMochichrome(ShellCommand):
     
 
 class MozillaWin32Mochichrome(MozillaMochichrome):
-   command = ['perl runtests.pl --appname=..\\..\\..\\dist\\bin\\firefox.exe --chrome --autorun --console-level=INFO --close-when-done']
+   command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --chrome --autorun --console-level=INFO --close-when-done']
 
 class MozillaOSXMochichrome(MozillaMochichrome):
-   command = ["perl",
-              "runtests.pl",
+   command = ["python",
+              "runtests.py",
               "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
               "--chrome",
               "--autorun",
@@ -381,8 +381,8 @@ class MozillaBrowserChromeTest(ShellCommand):
     warnOnFailure = True
     description = ["browser chrome test"]
     descriptionDone = ["browser chrome test complete"]
-    command = ["perl",
-               "runtests.pl",
+    command = ["python",
+               "runtests.py",
                "--appname=../../../dist/bin/firefox",
                "--autorun",
                "--browser-chrome", 
@@ -417,11 +417,11 @@ class MozillaBrowserChromeTest(ShellCommand):
         return SUCCESS
     
 class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
-    command = ['perl runtests.pl --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
+    command = ['python runtests.py --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
 
 class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
-    command = ["perl",
-               "runtests.pl",
+    command = ["python",
+               "runtests.py",
                "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
                "--autorun",
                "--browser-chrome",
