@@ -13,8 +13,6 @@ const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
 const nsIAbListener = Components.interfaces.nsIAbListener;
 const numListenerOptions = 4;
 
-var testnum = 0;
-
 var gAbManager = Components.classes[abManagerContractID]
                              .getService(nsIAbManager);
 
@@ -50,10 +48,8 @@ abL.prototype = {
 
 function checkDirs(dirs, dirArray) {
     while (dirs.hasMoreElements()) {
-      dump("has elements\n");
       var dir = dirs.getNext().QueryInterface(nsIAbDirectory);
       var loc = dirArray.indexOf(dir.URI);
-      dump(dir.URI + " " + loc + "\n");
 
       if (loc == -1)
         do_throw("Unexpected directory " + dir.URI + " found in address book list");
@@ -110,70 +106,65 @@ function removeDirectory(directory) {
 }
 
 function run_test() {
-  try {
-    var i;
+  var i;
 
-    // Set up listeners
-    gAblAll = new abL;
-    gAbManager.addAddressBookListener(gAblAll, nsIAbListener.all);
+  // Set up listeners
+  gAblAll = new abL;
+  gAbManager.addAddressBookListener(gAblAll, nsIAbListener.all);
 
-    for (i = 0; i < numListenerOptions; ++i) {
-      gAblSingle[i] = new abL;
-      gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
-    }
-
-    ++testnum; // Test 1 - Check initial directories
-
-    checkDirs(gAbManager.directories, [kPABData.URI, kCABData.URI]);
-
-    ++testnum; // Test 2 - Add a directory
-
-    var newDirectory1 = addDirectory("testAb1");
-
-    // Check new directory list
-    checkDirs(gAbManager.directories,
-              [kPABData.URI, kCABData.URI, newDirectory1.URI]);
-
-    ++testnum; // Test 3 - Repeat
-
-    var newDirectory2 = addDirectory("testAb2");
-
-    // Check new directory list
-    checkDirs(gAbManager.directories,
-              [kPABData.URI, kCABData.URI,
-               newDirectory1.URI, newDirectory2.URI]);
-
-    ++testnum; // Test 4 - Remove a directory
-
-    removeDirectory(newDirectory1);
-    newDirectory1 = null;
-
-    // Check new directory list
-    checkDirs(gAbManager.directories,
-              [kPABData.URI, kCABData.URI, newDirectory2.URI]);
-
-    ++testnum; // Test 5 - Repeat
-
-    removeDirectory(newDirectory2);
-    newDirectory2 = null;
-
-    // Check new directory list
-    checkDirs(gAbManager.directories,
-              [kPABData.URI, kCABData.URI]);
-
-    ++testnum; // Test 6 - Clear everything down
-
-    gAbManager.removeAddressBookListener(gAblAll);
-    gAblAll = null;
-
-    for (i = 0; i < numListenerOptions; ++i) {
-      gAbManager.removeAddressBookListener(gAblSingle[i]);
-      gAblSingle[i] = null;
-    }
-
-    cleanup();
+  for (i = 0; i < numListenerOptions; ++i) {
+    gAblSingle[i] = new abL;
+    gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
   }
-  catch (e) {
-    throw "FAILED in test #" + testnum + " : " + e;
+
+  // Test 1 - Check initial directories
+
+  checkDirs(gAbManager.directories, [kPABData.URI, kCABData.URI]);
+
+  // Test 2 - Add a directory
+
+  var newDirectory1 = addDirectory("testAb1");
+
+  // Check new directory list
+  checkDirs(gAbManager.directories,
+            [kPABData.URI, kCABData.URI, newDirectory1.URI]);
+
+  // Test 3 - Repeat
+
+  var newDirectory2 = addDirectory("testAb2");
+
+  // Check new directory list
+  checkDirs(gAbManager.directories,
+            [kPABData.URI, kCABData.URI,
+             newDirectory1.URI, newDirectory2.URI]);
+
+  // Test 4 - Remove a directory
+
+  removeDirectory(newDirectory1);
+  newDirectory1 = null;
+
+  // Check new directory list
+  checkDirs(gAbManager.directories,
+            [kPABData.URI, kCABData.URI, newDirectory2.URI]);
+
+  // Test 5 - Repeat
+
+  removeDirectory(newDirectory2);
+  newDirectory2 = null;
+
+  // Check new directory list
+  checkDirs(gAbManager.directories,
+            [kPABData.URI, kCABData.URI]);
+
+  // Test 6 - Clear everything down
+
+  gAbManager.removeAddressBookListener(gAblAll);
+  gAblAll = null;
+
+  for (i = 0; i < numListenerOptions; ++i) {
+    gAbManager.removeAddressBookListener(gAblSingle[i]);
+    gAblSingle[i] = null;
   }
+
+  cleanup();
 };

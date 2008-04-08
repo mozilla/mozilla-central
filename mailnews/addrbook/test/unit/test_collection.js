@@ -11,8 +11,6 @@ do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
 
 const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;
 
-var testnum = 0;
-
 // Source fields (emailHeader/mailFormat) and expected results for use for
 // testing the addition of new addresses to the database.
 //
@@ -254,111 +252,101 @@ var collectChecker = {
 
 function run_test()
 {
-  try {
-    ++testnum; // Test 1 - Get the address collecter
+  // Test 1 - Get the address collecter
 
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                .getService(Components.interfaces.nsIPrefBranch);
+  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
+                              .getService(Components.interfaces.nsIPrefBranch);
 
-    // XXX Getting the top level and then the child nodes ensures we create all
-    // ABs because the address collecter can't currently create ABs itself
-    // (bug 314448).
-    var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                        .getService(Components.interfaces.nsIRDFService);
-    do_check_true(rdf != null);
+  // XXX Getting the top level and then the child nodes ensures we create all
+  // ABs because the address collecter can't currently create ABs itself
+  // (bug 314448).
+  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                      .getService(Components.interfaces.nsIRDFService);
 
-    // Must get the top level and its child nodes to initialise the mailing
-    // lists. This isn't idea, but its how we currently work.
-    var temp = rdf.GetResource("moz-abdirectory:///")
-                  .QueryInterface(Components.interfaces.nsIAbDirectory)
-                  .childNodes;
+  // Must get the top level and its child nodes to initialise the mailing
+  // lists. This isn't idea, but its how we currently work.
+  var temp = rdf.GetResource("moz-abdirectory:///")
+                .QueryInterface(Components.interfaces.nsIAbDirectory)
+                .childNodes;
 
-    // Get the actual AB for the collector so we can check cards have been
-    // added.
-    collectChecker.AB =
-      rdf.GetResource(prefService.getCharPref("mail.collect_addressbook"))
-         .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+  // Get the actual AB for the collector so we can check cards have been
+  // added.
+  collectChecker.AB =
+    rdf.GetResource(prefService.getCharPref("mail.collect_addressbook"))
+       .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
-    do_check_true(collectChecker.AB != null);
+  // Get the actual collecter
+  collectChecker.addressCollect =
+    Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
+              .getService(Components.interfaces.nsIAbAddressCollecter);
 
-    // Get the actual collecter
-    collectChecker.addressCollect =
-      Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
-                .getService(Components.interfaces.nsIAbAddressCollecter);
+  // Test 2 - Addition of header without email address.
 
-    do_check_true(collectChecker.addressCollect != null);
+  collectChecker.addressCollect.collectAddress("MyTest <>", true,
+                                               nsIAbPMF.unknown);
 
-    ++testnum; // Test 2 - Addition of header without email address.
+  var CAB = collectChecker.AB.QueryInterface(Components.interfaces.nsIAbDirectory);
 
-    collectChecker.addressCollect.collectAddress("MyTest <>", true,
-                                                 nsIAbPMF.unknown);
+  // Address book should have no cards present.
+  do_check_false(CAB.childCards.hasMoreElements());
 
-    var CAB = collectChecker.AB.QueryInterface(Components.interfaces.nsIAbDirectory);
+  // Test 3 - Email doesn't exist, but don't add it.
 
-    // Address book should have no cards present.
-    do_check_false(CAB.childCards.hasMoreElements());
+  // As we've just set everything up, we know we haven't got anything in the
+  // AB, so just try and collect without adding.
+  collectChecker.addressCollect.collectAddress(addEmailChecks[0].emailHeader,
+                                               false,
+                                               addEmailChecks[0].mailFormat);
 
-    ++testnum; // Test 3 - Email doesn't exist, but don't add it.
+  var card = collectChecker.AB.cardForEmailAddress(addEmailChecks[0].emailHeader);
 
-    // As we've just set everything up, we know we haven't got anything in the
-    // AB, so just try and collect without adding.
-    collectChecker.addressCollect.collectAddress(addEmailChecks[0].emailHeader,
-                                                 false,
-                                                 addEmailChecks[0].mailFormat);
+  do_check_true(card == null);
 
-    var card = collectChecker.AB.cardForEmailAddress(addEmailChecks[0].emailHeader);
+  // Test 4 - Try and collect various emails and formats.
 
-    do_check_true(card == null);
+  collectChecker.part = 0;
 
-    ++testnum; // Test 4 - Try and collect various emails and formats.
+  addEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
 
-    collectChecker.part = 0;
+  // Test 5 - Do all emails at the same time.
 
-    addEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
-
-    ++testnum; // Test 5 - Do all emails at the same time.
-
-    // First delete all existing cards
-    var childCards = CAB.childCards;
-    var cardsToDelete = Components.classes["@mozilla.org/array;1"]
-                                  .createInstance(Components.interfaces.nsIMutableArray);
-    while (childCards.hasMoreElements()) {
-      cardsToDelete.appendElement(childCards.getNext(), false);
-    }
-
-    CAB.deleteCards(cardsToDelete);
-
-    //Null these directly, so gc() will purge them
-    childCards = null;
-    cardsToDelete = null;
-
-    // Address book should have no cards present.
-    do_check_false(CAB.childCards.hasMoreElements());
-
-    do_check_eq(collectChecker.AB.cardForEmailAddress(addEmailChecks[0].emailHeader), null);
-
-    // Now do all emails at the same time.
-    collectChecker.checkAll(addEmailChecks);
-
-    ++testnum; // Test 6 - Try and modify various emails and formats.
-
-    // Add a basic card with just primary and second email to allow testing
-    // of the case where we don't modify when second email is matching.
-    card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]
-                     .createInstance(Components.interfaces.nsIAbCard);
-
-    card.primaryEmail = "userprim\u00D0@invalid.com";
-    card.secondEmail = "usersec\u00D0@invalid.com";
-
-    CAB.addCard(card);
-
-    collectChecker.part = 0;
-
-    modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
-
-    cleanup();
-
-  } catch (e) {
-    throw "FAILED in address collector tests in test #" + testnum + ": " + e;
+  // First delete all existing cards
+  var childCards = CAB.childCards;
+  var cardsToDelete = Components.classes["@mozilla.org/array;1"]
+                                .createInstance(Components.interfaces.nsIMutableArray);
+  while (childCards.hasMoreElements()) {
+    cardsToDelete.appendElement(childCards.getNext(), false);
   }
+
+  CAB.deleteCards(cardsToDelete);
+
+  // Null these directly, so gc() will purge them
+  childCards = null;
+  cardsToDelete = null;
+
+  // Address book should have no cards present.
+  do_check_false(CAB.childCards.hasMoreElements());
+
+  do_check_eq(collectChecker.AB.cardForEmailAddress(addEmailChecks[0].emailHeader), null);
+
+  // Now do all emails at the same time.
+  collectChecker.checkAll(addEmailChecks);
+
+  // Test 6 - Try and modify various emails and formats.
+
+  // Add a basic card with just primary and second email to allow testing
+  // of the case where we don't modify when second email is matching.
+  card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]
+                   .createInstance(Components.interfaces.nsIAbCard);
+
+  card.primaryEmail = "userprim\u00D0@invalid.com";
+  card.secondEmail = "usersec\u00D0@invalid.com";
+
+  CAB.addCard(card);
+
+  collectChecker.part = 0;
+
+  modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
+
+  cleanup();
 };
