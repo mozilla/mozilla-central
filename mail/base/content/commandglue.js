@@ -97,7 +97,7 @@ function setTitleFromFolder(msgfolder, subject)
     var title; 
 
     // If we are showing the mail:3pane. Never include the subject of the selected
-    // message in the title. ("Inbox for greenlantern@mozilla.org - Mozilla Thunderbird")
+    // message in the title. ("Inbox - My Mail - Mozilla Thunderbird")
     // If we are a stand alone message window, we should show the Subject
     // and the product but not the account name: "Re: New window Title - Mozilla Thunderbird"
 
@@ -116,15 +116,16 @@ function setTitleFromFolder(msgfolder, subject)
             // <folder> on <hostname>
             middle = gMessengerBundle.getString("titleNewsPreHost");
             end = server.hostName;
-        } else {
+        }
+        else {
             var identity;
             try {
                 var identities = accountManager.GetIdentitiesForServer(server);
 
                 identity = identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
-                // <folder> for <email>
-                middle = gMessengerBundle.getString("titleMailPreHost");
-                end = identity.email;
+                // <folder> - <server.prettyName>
+                middle = "-";
+                end = server.prettyName;
           } catch (ex) {}
             }
         if (middle) title += " " + middle;
@@ -133,7 +134,7 @@ function setTitleFromFolder(msgfolder, subject)
     }
 
 #ifndef XP_MACOSX
-    title += " - " + gBrandBundle.getString("brandShortName");
+    title += " - " + gBrandBundle.getString("brandFullName");
 #endif
     document.title = title;
 }
