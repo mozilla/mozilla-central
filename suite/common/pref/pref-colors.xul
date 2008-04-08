@@ -22,6 +22,7 @@
 
  Contributor(s):
    Ben Goodger <ben@netscape.com>
+   Ian Neal <iann_bugzilla@blueyonder.co.uk>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -43,7 +44,8 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="colors_pane"
-            label="&pref.colors.title;">
+            label="&pref.colors.title;"
+            script="chrome://communicator/content/pref/pref-colors.js">
 
     <preferences id="colors_preferences">
       <preference id="browser.display.foreground_color"
@@ -54,7 +56,8 @@
                   type="string"/>
       <preference id="browser.display.use_system_colors"
                   name="browser.display.use_system_colors"
-                  type="bool"/>
+                  type="bool"
+                  onchange="ToggleCustomColorPickers(this.value);"/>
       <preference id="browser.anchor_color"
                   name="browser.anchor_color"
                   type="string"/>
@@ -75,13 +78,15 @@
       <groupbox flex="1" id="pageColours">
         <caption label="&color;"/>
         <hbox align="center">
-          <label control="foregroundText" value="&textColor.label;"
+          <label id="foregroundTextLabel"
+                 control="foregroundText" value="&textColor.label;"
                  accesskey="&textColor.accesskey;" flex="1"/>
           <colorpicker type="button" id="foregroundText" palettename="standard"
                        preference="browser.display.foreground_color"/> 
         </hbox>
         <hbox align="center" style="margin-top: 5px">
-          <label control="background" value="&backgroundColor.label;"
+          <label id="backgroundLabel"
+                 control="background" value="&backgroundColor.label;"
                  accesskey="&backgroundColor.accesskey;" flex="1"/>
           <colorpicker type="button" id="background" palettename="standard"
                        preference="browser.display.background_color"/>
