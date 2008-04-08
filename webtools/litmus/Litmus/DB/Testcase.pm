@@ -491,19 +491,59 @@ sub update_subgroups() {
   my $self = shift;
   my $new_subgroup_ids = shift;
 
-  # We always want to delete the existing subgroups. 
-  # Failing to delete subgroups is _not_ fatal when adding a new testcase.
-  my $rv = $self->delete_from_subgroups();
+  # If we're given an empty subgroup list, assume the user is deleting all
+  # subgroup references.
+  if (!scalar @$new_subgroup_ids) {
+    return $self->delete_from_subgroups();
+  }
+
+  my $dbh = __PACKAGE__->db_Main();
+
+  # First we look up a list of existing subgroups. This is important so we can
+  # preserve existing subgroup membership, but also remove any subgroups *NOT*
+  # in the new list.
+  my $sql = "SELECT subgroup_id FROM testcase_subgroups WHERE testcase_id=?";
+  my $sth = $dbh->prepare($sql);
+  $sth->execute($self->testcase_id);
+  my $existing_subgroups;
+  while (my ($subgroup_id) = $sth->fetchrow_array) {
+    $existing_subgroups->{$subgroup_id} = 1;
+  }
+  $sth->finish;
+
+  $sql = "SELECT MAX(sort_order) FROM testcase_subgroups WHERE subgroup_id=?";
+  $sth = $dbh->prepare($sql);
+
+  my $insert_sql = "INSERT INTO testcase_subgroups (testcase_id,subgroup_id,sort_order) VALUES (?,?,?)";
+  foreach my $new_subgroup_id (@$new_subgroup_ids) {
+    if ($existing_subgroups->{$new_subgroup_id}) {
+      # Toggle already existing subgroups so we don't delete them later.
+      $existing_subgroups->{$new_subgroup_id} = 0;
+    } else {
+      # This testcase is being added to a new subgroup, so add it at the end
+      # of the current sort order.
+      $sth->execute($new_subgroup_id);
+      my ($sort_order) = $sth->fetchrow_array;
+      if (!$sort_order) {
+        $sort_order = 1;
+      } else {
+        $sort_order++;
+      }
+
+      my $rows = $dbh->do($insert_sql, 
+                          undef,
+                          $self->testcase_id,
+                          $new_subgroup_id,
+                          $sort_order
+		         );
+    }
+  }
+  $sth->finish;
   
-  if (scalar @$new_subgroup_ids) {
-    my $dbh = __PACKAGE__->db_Main();
-    my $sql = "INSERT INTO testcase_subgroups (testcase_id,subgroup_id,sort_order) VALUES (?,?,1)";
-    foreach my $new_subgroup_id (@$new_subgroup_ids) {
-      my $rows = $dbh->do($sql, 
-			  undef,
-			  $self->testcase_id,
-			  $new_subgroup_id
-			 );
+  # Delete any "existing" subgroups that were not in the new listing.
+  foreach my $subgroup_id (keys %$existing_subgroups) {
+    if ($existing_subgroups->{$subgroup_id}) {
+        $self->delete_from_subgroup($subgroup_id);
     }
   }
 }
