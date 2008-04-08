@@ -35,7 +35,7 @@ MozillaEnvironments['win32-ref-platform'] = {
     "FrameworkSDKDir": 'D:\\msvs8\\SDK\\v2.0',
     "DevEnvDir": "D:\\msvs8\\VC\\Common7\\IDE",
     "MSVCDir": 'D:\\msvs8\\VC',
-    "PATH": 'd:\\sdks\\v6.0\\bin' + \
+    "PATH": 'd:\\sdks\\v6.0\\bin;' + \
             'D:\\msvs8\\Common7\\IDE;' + \
             'D:\\msvs8\\VC\\bin;' + \
             'C:\\msvs8\\SDK\\bin;' + \
