@@ -641,7 +641,7 @@
         <menuitem id="threadPaneContext-tagCustomize"
                   label="&tagCustomize.label;"
                   accesskey="&tagCustomize.accesskey;"
-                  oncommand="goPreferences('mailnews', 'chrome://messenger/content/pref-labels.xul', 'mailtagspref');"/>
+                  oncommand="goPreferences('tags_pane');"/>
       </menupopup>
     </menu>
     <menu id="threadPaneContext-mark" label="&markMenu.label;" accesskey="&markMenu.accesskey;">
@@ -1019,7 +1019,7 @@
         <menuitem id="messagePaneContext-tagCustomize"
                   label="&tagCustomize.label;"
                   accesskey="&tagCustomize.accesskey;"
-                  oncommand="goPreferences('mailnews', 'chrome://messenger/content/pref-labels.xul', 'mailtagspref');"/>
+                  oncommand="goPreferences('tags_pane');"/>
       </menupopup>
     </menu>
     <menu id="messagePaneContext-mark" label="&markMenu.label;" accesskey="&markMenu.accesskey;">
@@ -1310,7 +1310,7 @@
                 label="&accountManagerCmd.label;"
                 accesskey="&accountManagerCmd.accesskey;"
                 oncommand="MsgAccountManager(null);"/>
-      <menuitem id="menu_preferences" oncommand="goPreferences('mail_prefs_general')"/>
+      <menuitem id="menu_preferences" oncommand="goPreferences('mailnews_pane')"/>
     </menupopup>
   </menu>
 
@@ -1855,7 +1855,7 @@
         <menuitem id="tagMenu-tagCustomize"
                   label="&tagCustomize.label;"
                   accesskey="&tagCustomize.accesskey;"
-                  oncommand="goPreferences('mailnews', 'chrome://messenger/content/pref-labels.xul', 'mailtagspref');"/>
+                  oncommand="goPreferences('tags_pane');"/>
       </menupopup>
     </menu>
     <menu id="markMenu" label="&markMenu.label;" accesskey="&markMenu.accesskey;">

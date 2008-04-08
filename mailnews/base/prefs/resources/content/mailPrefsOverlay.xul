@@ -57,12 +57,20 @@
 
   <!-- category tree entries for mail/news -->
   <treechildren id="prefsPanelChildren">
-    <treeitem container="true" id="mailnews" label="&mail.label;"
-              prefpane="mail_prefs_general" insertafter="navigator"
+    <treeitem container="true"
+              id="mailnewsItem"
+              insertafter="navigator"
+              label="&mail.label;"
+              prefpane="mailnews_pane"
               url="chrome://messenger/content/pref-mailnews.xul"
               helpTopic="mail_prefs_general">
       <treechildren id="messengerChildren">
         <!-- XXX Move pref panes from below to here as they are migrated -->
+        <treeitem id="tagsItem"
+                  label="&tags.label;"
+                  prefpane="tags_pane"
+                  url="chrome://messenger/content/pref-tags.xul"
+                  helpTopic="mail-prefs-tags"/>
       </treechildren>
     </treeitem>
   </treechildren>
@@ -107,7 +115,7 @@
         </treeitem>
         <treeitem id="mailtagspref">
           <treerow>
-            <treecell url="chrome://messenger/content/pref-labels.xul" label="&tags.label;"/>
+            <treecell label="(Migrated: &tags.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>

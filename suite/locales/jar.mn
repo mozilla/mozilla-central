@@ -279,7 +279,7 @@
   locale/@AB_CD@/messenger/prefs.properties                                 (%chrome/mailnews/pref/prefs.properties)
   locale/@AB_CD@/messenger/pref-character_encoding.dtd                      (%chrome/mailnews/pref/pref-character_encoding.dtd)
   locale/@AB_CD@/messenger/pref-junk.dtd                                    (%chrome/mailnews/pref/pref-junk.dtd)
-  locale/@AB_CD@/messenger/pref-labels.dtd                                  (%chrome/mailnews/pref/pref-labels.dtd)
+  locale/@AB_CD@/messenger/pref-tags.dtd                                    (%chrome/mailnews/pref/pref-tags.dtd)
   locale/@AB_CD@/messenger/pref-mailnews.dtd                                (%chrome/mailnews/pref/pref-mailnews.dtd)
   locale/@AB_CD@/messenger/pref-notifications.dtd                           (%chrome/mailnews/pref/pref-notifications.dtd)
   locale/@AB_CD@/messenger/pref-offline.dtd                                 (%chrome/mailnews/pref/pref-offline.dtd)

@@ -50,7 +50,7 @@
 ]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <prefpane id="mail_prefs_general"
+  <prefpane id="mailnews_pane"
             label="&pref.mailnews.title;"
             script="chrome://messenger/content/pref-mailnews.js">
 
