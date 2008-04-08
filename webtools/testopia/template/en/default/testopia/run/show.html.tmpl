@@ -114,7 +114,7 @@ Ext.onReady(function(){
             icon: 'testopia/img/copy.png',
             iconCls: 'img_button_16x',
             handler: function(){
-                RunClonePopup(run);
+                RunClonePopup(run.product_id, run.run_id);
             }
         },{
             text: "Delete",
@@ -149,7 +149,7 @@ Ext.onReady(function(){
         iconCls: 'img_button_16x',
         tooltip: 'Clone this Test Run',
         handler: function(){
-            RunClonePopup(run);
+            RunClonePopup(run.product_id, run.run_id);
         }
     }
 [% IF run.candelete %]

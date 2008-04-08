@@ -381,6 +381,7 @@ sub add_case_run {
         'case_run_status_id' => $status,
         'sortkey'            => $sortkey,
     });
+    return 1;
 }
 
 =head2 store

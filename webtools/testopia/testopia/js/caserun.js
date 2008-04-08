@@ -823,7 +823,7 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                 },{
                     text: 'Clone Run with Selected Cases', 
                     handler: function(){
-                        RunClonePopup(grid.run,getSelectedObjects(grid,'case_id'));
+                        RunClonePopup(grid.run, true);
                     }
                 },{
                     text: 'Copy or Link Selected Test Cases to Plan(s)... ',
@@ -837,9 +837,14 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                         grid.store.reload();
                     } 
                 },{
-                    text: 'View Test Case in a New Tab',
+                    text: 'View Test Case in a New Window',
                     handler: function(){
                         window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(grid.selindex).get('case_id'));
+                    }
+                },{
+                    text: 'List Run\'s Test Cases in a New Window',
+                    handler: function(){
+                        window.open('tr_list_cases.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
                     }
                 }]
             });

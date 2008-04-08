@@ -357,6 +357,14 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                             }]
                         }
                     },{
+                    text: 'Clone Selected Test Runs',
+                    icon: 'testopia/img/copy.png',
+                    iconCls: 'img_button_16x',
+                    handler: function(){
+                        RunClonePopup(grid.getSelectionModel().getSelected().get('product_id'), getSelectedObjects(grid,'run_id'));
+                    }
+
+                },{
                     text: 'Delete Selected Test Runs',
                     icon: 'testopia/img/delete.png',
                     iconCls: 'img_button_16x',
@@ -368,9 +376,14 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                         grid.store.reload();
                     } 
                 },{
-                    text: 'View Test Run in a New Tab',
+                    text: 'View Test Run in a New Window',
                     handler: function(){
                         window.open('tr_show_run.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
+                    }
+                },{
+                    text: 'View Run\'s Test Cases in a New Window',
+                    handler: function(){
+                        window.open('tr_list_cases.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
                     }
                 }]
             });
@@ -668,14 +681,14 @@ var NewRunForm = function(plan){
 };
 Ext.extend(NewRunForm, Ext.Panel);
 
-RunClonePanel = function(run, caselist){
-    var pgrid = new PlanGrid({product_id: run.product_id},{id: 'run_clone_plan_grid'});
+RunClonePanel = function(product_id, runs, caselist){
+    var pgrid = new PlanGrid({product_id: product_id},{id: 'run_clone_plan_grid'});
     var vbox = new ProductVersionCombo({
         id: 'run_clone_version_chooser',
         mode: 'local',
         hiddenName: 'new_run_prod_version',
         fieldLabel: '<b>Product Version</b>',
-        params: {product_id: run.product_id},
+        params: {product_id: product_id},
         allowBlank: false
     });
     var bbox  = new BuildCombo({
@@ -683,7 +696,7 @@ RunClonePanel = function(run, caselist){
         id: 'run_clone_build_chooser',
         mode: 'local',
         hiddenName: 'new_run_build',
-        params: {product_id: run.product_id},
+        params: {product_id: product_id},
         allowBlank: false
     });
     var ebox = new EnvironmentCombo({
@@ -691,7 +704,7 @@ RunClonePanel = function(run, caselist){
         id: 'run_clone_environment_chooser',
         mode: 'local',
         hiddenName: 'new_run_env',
-        params: {product_id: run.product_id},
+        params: {product_id: product_id},
         allowBlank: false
     });
     
@@ -705,6 +718,7 @@ RunClonePanel = function(run, caselist){
             form.baseParams.case_list = getSelectedObjects(Ext.getCmp('caserun_grid'), 'caserun_id');
         }
         form.baseParams.action = 'clone';
+        form.baseParams.ids = runs;
         form.baseParams.new_run_build = bbox.getValue();
         form.baseParams.new_run_environment = ebox.getValue();
         form.baseParams.plan_ids = getSelectedObjects(pgrid, 'plan_id');
@@ -714,9 +728,10 @@ RunClonePanel = function(run, caselist){
             form.submit({
                 success: function(f,a){
                     if (a.result.runlist.length == 1){
+                        var msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
                         Ext.Msg.show({
                             title:'Run Copied',
-                            msg: 'Run ' + a.result.runlist[0] + ' Created. Would you like to go there now?',
+                            msg: msg + 'Run ' + a.result.runlist[0] + ' Created. Would you like to go there now?',
                             buttons: Ext.Msg.YESNO,
                             icon: Ext.MessageBox.QUESTION,
                             fn: function(btn){
@@ -727,9 +742,10 @@ RunClonePanel = function(run, caselist){
                         });
                     }
                     else {
+                        var msg = a.result.failures.length > 0 ? 'Test cases ' + a.result.failures.join(',') + ' were not included. They are either DISABLED or PROPOSED. <br>' : '';
                         Ext.Msg.show({
                             title:'Test Run Copied',
-                            msg: 'Test runs ' + a.result.runlist.join(',') + ' Copied successfully',
+                            msg: msg + 'Test runs ' + a.result.runlist.join(',') + ' Copied successfully. <a href="tr_list_runs.cgi?run_id=' + a.result.runlist.join(',') +'">View as List</a>',
                             buttons: Ext.Msg.OK,
                             icon: Ext.MessageBox.INFO
                         });
@@ -754,7 +770,7 @@ RunClonePanel = function(run, caselist){
         },{
             region: 'center',
             xtype: 'form',
-            url: 'tr_process_run.cgi',
+            url: 'tr_list_runs.cgi',
             title:'Clone Options',
             autoScroll: true,
             id: 'run_clone_frm',
@@ -800,13 +816,9 @@ RunClonePanel = function(run, caselist){
                         hideLabel: true
                     },{
                         xtype: 'hidden',
-                        name: 'run_id',
-                        value: run.run_id
-                    },{
-                        xtype: 'hidden',
                         id: 'run_clone_product_id',
                         name: 'product_id',
-                        value: run.product_id
+                        value: product_id
                     }]
                 },{
                     colspan: 2,
@@ -832,7 +844,7 @@ RunClonePanel = function(run, caselist){
                             id: 'copy_cases_radio_group',
                             inputValue: 'copy_all_cases',
                             checked: true,
-                            boxLabel: 'Include all cases in run '+ run.run_id,
+                            boxLabel: 'Include all CONFIRMED cases in selected run(s)',
                             hideLabel: true
                         },{
                             xtype: 'radio',
@@ -876,7 +888,7 @@ RunClonePanel = function(run, caselist){
 };
 Ext.extend(RunClonePanel, Ext.Panel);
 
-RunClonePopup = function(run,caselist){
+RunClonePopup = function(product_id, runs, caselist){
     var win = new Ext.Window({
         id: 'run-clone-win',
         closable:true,
@@ -885,7 +897,7 @@ RunClonePopup = function(run,caselist){
         plain: true,
         shadow: false,
         layout: 'fit',
-        items: [new RunClonePanel(run,caselist)]
+        items: [new RunClonePanel(product_id, runs, caselist)]
     });
     var pg = Ext.getCmp('run_clone_plan_grid');
     Ext.apply(pg,{title: 'Select plans to clone runs to'});
@@ -895,7 +907,7 @@ RunClonePopup = function(run,caselist){
     for (var i=0; i < items.length; i++){
         items[i].destroy();
     }
-    var pchooser = new ProductCombo({mode: 'local', value: run.product_id});
+    var pchooser = new ProductCombo({mode: 'local', value: product_id});
     pchooser.on('select', function(c,r,i){
         pg.store.baseParams = {ctype: 'json', product_id: r.get('id')};
 

@@ -72,70 +72,6 @@ if ($action eq 'edit'){
 
 }
 
-elsif ($action eq 'clone'){
-    my %planseen;
-    foreach my $planid (split(",", $cgi->param('plan_ids'))){
-        validate_test_id($planid, 'plan');
-        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
-        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
-        $planseen{$planid} = 1;
-    }
-    
-    ThrowUserError('missing-plans-list') unless scalar keys %planseen;
-    
-    my $dbh = Bugzilla->dbh;
-    my $summary = $cgi->param('new_run_summary');
-    my $build = $cgi->param('new_run_build');
-    my $env = $cgi->param('new_run_environment');
-    my $manager = $cgi->param('keepauthor') ? $run->manager->id : Bugzilla->user->id;
-    
-    trick_taint($summary);
-    detaint_natural($build);
-    detaint_natural($env);
-    validate_test_id($build, 'build');
-    validate_test_id($env, 'environment');
-    
-    my @caseruns;
-    if ($cgi->param('copy_cases')){
-        if ($cgi->param('case_list')){
-            foreach my $id (split(",", $cgi->param('case_list'))){
-                my $caserun = Bugzilla::Testopia::TestCaseRun->new($id);
-                ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless ($caserun->canview);
-                push @caseruns, $caserun;
-            }
-        }
-        else{
-            $cgi->param('current_tab', 'case_run');
-            $cgi->param('view_all', 1);
-            $cgi->param('isactive', 1);
-            $cgi->param('distinct', 1);
-            my $search = Bugzilla::Testopia::Search->new($cgi);
-            my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_list_caseruns.cgi', $cgi, undef, $search->query);
-            @caseruns = @{$table->list};
-        }
-        
-    }
-    my @newruns;
-    foreach my $plan_id (keys %planseen){
-        
-        my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build, $env));
-    
-        if($cgi->param('copy_tags')){
-            foreach my $tag (@{$run->tags}){
-                $newrun->add_tag($tag->name);
-            }
-        }
-
-        foreach my $cr (@caseruns){
-            $newrun->add_case_run($cr->case_id, 
-                $cgi->param('keep_indexes') ? $cr->sortkey : undef,
-                $cgi->param('keep_statuses') ? $cr->status_id : undef);
-        }
-        push @newruns, $newrun->id;
-    }
-    print "{success: true, 'runlist': [". join(", ", @newruns) ."]}";
-}
-
 elsif ($action eq 'delete'){
     ThrowUserError("testopia-no-delete", {'object' => $run}) unless ($run->candelete);
     $run->obliterate;
@@ -206,18 +142,6 @@ elsif ($action eq 'getfilters'){
         $f->{'name'} =~ s/^__run_id_\d+_//;
     }
     print "{'filters':" . objToJson($filters) . "}";
-}
-
-elsif ($action eq 'getcloneform'){
-    my $vars;
-    $vars->{'caserun'} = Bugzilla::Testopia::TestCaseRun->new({});
-    $vars->{'run'} = $run;
-    $vars->{'case_list'} = $cgi->param('case_list');
-    
-    print $cgi->header;
-
-    Bugzilla->template->process("testopia/run/clone.html.tmpl", $vars) ||
-        ThrowTemplateError(Bugzilla->template->error());
 }
 
 else {

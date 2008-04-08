@@ -39,7 +39,6 @@ my $vars = {};
 my $cgi = Bugzilla->cgi;
 my $template = Bugzilla->template;
 
-Bugzilla->error_mode(ERROR_MODE_AJAX);
 Bugzilla->login(LOGIN_REQUIRED);
 
 # Determine the format in which the user would like to receive the output.
@@ -53,6 +52,7 @@ $::SIG{PIPE} = 'DEFAULT';
 
 my $action = $cgi->param('action') || '';
 if ($action eq 'update'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
     print $cgi->header;
     
     my @run_ids = split(',', $cgi->param('ids'));
@@ -78,6 +78,84 @@ if ($action eq 'update'){
     ThrowUserError('testopia-update-failed', {'object' => 'run', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
     print "{'success': true}";    
     
+}
+
+elsif ($action eq 'clone'){
+    print $cgi->header;
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    
+    my @run_ids = split(',', $cgi->param('ids'));
+    ThrowUserError('testopia-none-selected', {'object' => 'run'}) unless (scalar @run_ids);
+    
+    my %planseen;
+    foreach my $planid (split(",", $cgi->param('plan_ids'))){
+        validate_test_id($planid, 'plan');
+        my $plan = Bugzilla::Testopia::TestPlan->new($planid);
+        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit;
+        $planseen{$planid} = 1;
+    }
+    
+    ThrowUserError('missing-plans-list') unless scalar keys %planseen;
+    
+    my $dbh = Bugzilla->dbh;
+    my $summary = $cgi->param('new_run_summary');
+    my $build = $cgi->param('new_run_build');
+    my $env = $cgi->param('new_run_environment');
+    
+    trick_taint($summary);
+    detaint_natural($build);
+    detaint_natural($env);
+    validate_test_id($build, 'build');
+    validate_test_id($env, 'environment');
+    my @newruns;
+    my @failures;
+    foreach my $run_id (@run_ids){
+        my $run = Bugzilla::Testopia::TestRun->new($run_id);
+        next unless $run->canview;
+        
+        my $manager = $cgi->param('keep_run_manager') ? $run->manager->id : Bugzilla->user->id;
+        my @caseruns;
+        if ($cgi->param('copy_cases')){
+            if ($cgi->param('case_list')){
+                foreach my $id (split(",", $cgi->param('case_list'))){
+                    my $caserun = Bugzilla::Testopia::TestCaseRun->new($id);
+                    ThrowUserError('testopia-permission-denied', {'object' => $caserun}) unless ($caserun->canview);
+                    push @caseruns, $caserun;
+                }
+            }
+            else{
+                $cgi->param('current_tab', 'case_run');
+                $cgi->param('run_id', $run->id);
+                $cgi->param('viewall', 1);
+                $cgi->param('distinct', 1);
+                my $search = Bugzilla::Testopia::Search->new($cgi);
+                my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_list_caseruns.cgi', $cgi, undef, $search->query);
+                @caseruns = @{$table->list};
+            }
+            
+        }
+        
+        foreach my $plan_id (keys %planseen){
+            my $newrun = Bugzilla::Testopia::TestRun->new($run->clone($summary, $manager, $plan_id, $build, $env));
+        
+            if($cgi->param('copy_tags')){
+                foreach my $tag (@{$run->tags}){
+                    $newrun->add_tag($tag->name);
+                }
+            }
+    
+            foreach my $cr (@caseruns){
+                my $result = $newrun->add_case_run($cr->case_id, 
+                    $cgi->param('keep_indexes') ? $cr->sortkey : undef,
+                    $cgi->param('keep_statuses') ? $cr->status_id : undef);
+                if ($result == 0){
+                    push @failures, $cr->case_id;
+                }
+            }
+            push @newruns, $newrun->id;
+        }
+    }
+    print "{'success': true, 'runlist': [". join(", ", @newruns) ."], 'failures': [". join(", ", @failures) ."]}";
 }
 
 elsif ($action eq 'delete'){
