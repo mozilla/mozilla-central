@@ -78,6 +78,11 @@ a:active {
     color: #000000;
 }
 
+a.highlighted {
+    background-color: inherit;
+    color: #aa0000;
+}
+
 /* 3) Mozilla ******************************************************************* */
 
 #mozilla-org {

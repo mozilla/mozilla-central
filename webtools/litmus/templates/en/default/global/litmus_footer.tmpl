@@ -29,9 +29,11 @@
     Search test results: <a href="search_results.cgi?order_by_created=DESC&amp;timespan=all&amp;result_status=fail&amp;limit=50">Recent&nbsp;Failures</a> | <a href="search_results.cgi?order_by_created=DESC&amp;timespan=all&amp;result_status=unclear&amp;limit=50">Recently&nbsp;Unclear</a> |
     <a href="common_results.cgi?status=fail">Most&nbsp;Common Failures</a> | <a href="common_results.cgi?status=unclear">Testcases&nbsp;Most&nbsp;Frequently&nbsp;Marked&nbsp;As&nbsp;Unclear</a> |
     <a href="aggregate_results.cgi"> Testgroup&nbsp;Popularity</a> | <a href="search_results.cgi?has_comments=1">Results&nbsp;with&nbsp;Comments</a><br/>
-    Search testcases: <a href="show_test.cgi?searchType=recent&amp;recently=added">Recently&nbsp;Added</a> |
+    Search testcases: <a class="highlighted" target="bugzilla" title="Search Bugzilla for open bugs that need Litmus testcases" href="https://bugzilla.mozilla.org/buglist.cgi?query_format=advanced&short_desc_type=allwordssubstr&short_desc=&long_desc_type=substring&long_desc=&bug_file_loc_type=allwordssubstr&bug_file_loc=&status_whiteboard_type=allwordssubstr&status_whiteboard=&keywords_type=allwords&keywords=&resolution=DUPLICATE&resolution=---&emailassigned_to1=1&emailtype1=exact&email1=&emailassigned_to2=1&emailreporter2=1&emailqa_contact2=1&emailtype2=exact&email2=&bugidtype=include&bug_id=&votes=&chfieldfrom=&chfieldto=Now&chfieldvalue=&cmdtype=doit&order=Importance&field0-0-0=flagtypes.name&type0-0-0=equals&value0-0-0=in-litmus%3F"><strong>Testcases needed!</strong></a> |
+    <a href="show_test.cgi?searchType=recent&amp;recently=added">Recently&nbsp;Added</a> |
     <a href="show_test.cgi?searchType=recent&amp;recently=changed">Recently&nbsp;Changed</a>[% IF defaultemail && defaultemail.isInAdminGroup() %] |
-    <a href="show_test.cgi?searchType=ungrouped">Ungrouped</a> | <strong>By ID:</strong>&nbsp;<input type="text" id="id" name="id" size="6" onChange="document.forms['footerIDSearch'].submit();"/>[% END %]
+    <a href="show_test.cgi?searchType=ungrouped">Ungrouped</a>[% END %] |
+    <strong>By ID:</strong>&nbsp;<input type="text" id="id" name="id" size="6" onChange="document.forms['footerIDSearch'].submit();"/>
     </form> 
     </div>
 
