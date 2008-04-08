@@ -38,7 +38,7 @@ $CleanProfile             = 1;
 $ProductName              = "Thunderbird";
 #$VendorName               = '';
 
-#$RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
+$RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
 #$RegxpcomTest             = 1;
 #$AliveTest                = 1;
 #$JavaTest                 = 0;
