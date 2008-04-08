@@ -117,10 +117,7 @@ unpadBlock(SECItem *data, int blockSize, SECItem *result)
   result->len = 0;
 
   /* Remove the padding from the end if the input data */
-  if (data->len == 0 || data->len % blockSize  != 0) { 
-	rv = SECFailure; 
-	goto loser;
-  }
+  if (data->len == 0 || data->len % blockSize  != 0) { rv = SECFailure; goto loser; }
 
   padLength = data->data[data->len-1];
   if (padLength > blockSize) { rv = SECFailure; goto loser; }
@@ -138,13 +135,6 @@ unpadBlock(SECItem *data, int blockSize, SECItem *result)
   if (!result->data) { rv = SECFailure; goto loser; }
 
   PORT_Memcpy(result->data, data->data, result->len);
-
-  /* There's a chance that we could decrypt a block that 'accidentally'
-   * returns a padLength of one (1 in 256). Return to the caller, just in case
-   * we need to search for a better key */
-  if (padLength <= 2) {
-      rv = SECWouldBlock;
-  }
 
 loser:
   return rv;
@@ -299,6 +289,7 @@ pk11Decrypt(PK11SlotInfo *slot, PLArenaPool *arena,
 
   /* Remove the padding */
   rv = unpadBlock(&paddedResult, PK11_GetBlockSize(type, 0), result);
+  if (rv) goto loser;
 
 loser:
   if (ctx) PK11_DestroyContext(ctx, PR_TRUE);
@@ -318,7 +309,6 @@ PK11SDR_Decrypt(SECItem *data, SECItem *result, void *cx)
   PK11SymKey *key = 0;
   CK_MECHANISM_TYPE type;
   SDRResult sdrResult;
-  SECItem possibleResult = { 0, NULL, 0};
   SECItem *params = 0;
   PLArenaPool *arena = 0;
 
@@ -351,17 +341,6 @@ PK11SDR_Decrypt(SECItem *data, SECItem *result, void *cx)
 	rv = pk11Decrypt(slot, arena, type, key, params, 
 			&sdrResult.data, result);
   }
-
-  /*
-   * if the pad value was too small (1), then it's statistically
-   * 'likely' that (1 in 256) that we may not have the correct key.
-   * Check the other keys for a better match. If we find none, use
-   * this result.
-   */
-  if (rv == SECWouldBlock) {
-	possibleResult = sdrResult.data;
-  }
-
   /*
    * handle the case where your key indicies may have been broken
    */
@@ -376,18 +355,6 @@ PK11SDR_Decrypt(SECItem *data, SECItem *result, void *cx)
 			     &sdrResult.data, result);
 	    if (rv == SECSuccess) {
 		break;
-	    } 
-	    /* found a close match. If it's our first remember it */
-	    if (rv == SECWouldBlock) {
-		if (possibleResult.data) {
-		    /* this is unlikely but possible. If we hit this condition,
-		     * we have no way of knowing which possibility to prefer.
-		     * in this case we just match the key the application
-		     * thought was the right one */
-		    SECITEM_ZfreeItem(&sdrResult.data, PR_FALSE);
-		} else {
-		    possibleResult = sdrResult.data;
-		}
 	    }
 	}
 
@@ -398,18 +365,13 @@ PK11SDR_Decrypt(SECItem *data, SECItem *result, void *cx)
 	}
   }
 
-  /* we didn't find a better key, use the one with a small pad value */
-  if ((rv != SECSuccess) && (possibleResult.data)) {
-	sdrResult.data = possibleResult;
-	possibleResult.data = NULL;
-	rv = SECSuccess;
-  }
+
 
 loser:
+  /* SECITEM_ZfreeItem(&paddedResult, PR_FALSE); */
   if (arena) PORT_FreeArena(arena, PR_TRUE);
   if (key) PK11_FreeSymKey(key);
   if (params) SECITEM_ZfreeItem(params, PR_TRUE);
-  if (possibleResult.data) SECITEM_ZfreeItem(&possibleResult, PR_FALSE);
   if (slot) PK11_FreeSlot(slot);
 
   return rv;
