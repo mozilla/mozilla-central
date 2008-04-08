@@ -211,10 +211,6 @@ agenda-allday-richlist-item {
   padding-bottom: 4px;
 }
 
-.agenda-checkbox {
-  margin-left: 4px;
-  margin-right: 4px;
-}
 
 .agenda-container-box[selected="true"],
 .agenda-allday-container-box[selected="true"],
@@ -266,45 +262,4 @@ agenda-allday-richlist-item {
   margin-left: 4px;
   width: 10px;
   height: 10px;
-}
-
-agenda-checkbox {
-  -moz-binding: url("chrome://lightning/content/agenda-listbox.xml#agenda-checkbox");
-}
-
-agenda-checkbox {
-  -moz-box-align: center;
-  padding: 4px 2px 4px 4px;
-  font-weight: bold;
-  border-bottom: 1px dotted #c0c0c0;
-}
-
-.checkbox-label-box {
-  -moz-margin-start: 4px;
-}
-
-.checkbox-icon {
-  -moz-margin-end: 2px;
-}
-
-.checkbox-label {
-  margin: 0 !important;
-}
-
-agenda-checkbox > .checkbox-label-center-box > .checkbox-label-box > .checkbox-label {
-  font-weight: bold;
-  border-bottom: 1px solid -moz-Dialog;
-}
-
-agenda-checkbox[checked="true"] > .checkbox-check {
-  background-image: url("chrome://global/skin/tree/twisty-open.png");
-}
-
-agenda-checkbox > .checkbox-check {
-  -moz-appearance: none;
-  -moz-box-align: center;
-  border: none;
-  width: 9px; /* The image's width is 9 pixels */
-  height: 9px;
-  background-image: url("chrome://global/skin/tree/twisty-clsd.png");
 }

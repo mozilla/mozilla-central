@@ -321,8 +321,8 @@
 <!ENTITY calendar.tasks.view.calendarlist.label        "Calendar List">
 <!ENTITY calendar.tasks.view.calendarlist.accesskey    "L">
 
-<!ENTITY calendar.tasks.view.sorttasks.label           "Sort Tasks">
-<!ENTITY calendar.tasks.view.sorttasks.accesskey       "S">
+<!ENTITY calendar.tasks.view.filtertasks.label           "Filter Tasks">
+<!ENTITY calendar.tasks.view.filtertasks.accesskey       "F">
 
 <!-- Calendar Alarm Dialog -->
 

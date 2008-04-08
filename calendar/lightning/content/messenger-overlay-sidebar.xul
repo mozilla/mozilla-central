@@ -45,7 +45,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay 
+<!DOCTYPE overlay
 [
   <!ENTITY % dtd1 SYSTEM "chrome://lightning/locale/lightning.dtd" > %dtd1;
   <!ENTITY % dtd2 SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %dtd2;
@@ -70,8 +70,8 @@
 <overlay id="ltnSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-<!-- All JS files that messenger-overlay-sidebar.xul wishes to include *must* go into the 
-     calendar-scripts.inc file (all scripts shared with Sunbird) or lightning-scripts.inc 
+<!-- All JS files that messenger-overlay-sidebar.xul wishes to include *must* go into the
+     calendar-scripts.inc file (all scripts shared with Sunbird) or lightning-scripts.inc
      file (scripts relevant for Lightning-only). -->
 #include ../../base/content/calendar-scripts.inc
 #include lightning-scripts.inc
@@ -135,9 +135,9 @@
              observes="calendar_new_todo_command"
              position="3"/>
    <menuseparator id="afterltnNewTask" position="4"/>
-   <menuseparator id="beforenewAccountMenuItem" 
+   <menuseparator id="beforenewAccountMenuItem"
                   mode="mail"
-                  insertbefore="newAccountMenuItem"/>  
+                  insertbefore="newAccountMenuItem"/>
   <menuitem id="ltnNewCalendar" label="&lightning.menupopup.new.calendar.label;"
              command="calendar_new_calendar_command"
              observes="calendar_new_calendar_command"
@@ -242,22 +242,25 @@
                mode="calendar"
                key="month-view-key"
                observes="calendar_month-view_command"/>
-     <menuseparator id="before-task-View-Section" mode="task"/>
+     <menuseparator id="before-task-View-Section" mode="calendar,task"/>
       <menuitem id="tasks-view-minimonth"
-                disabled="true"
-                mode="task"
+                type="checkbox"
+                mode="calendar,task"
                 label="&calendar.tasks.view.minimonth.label;"
-                accesskey="&calendar.tasks.view.minimonth.accesskey;"/>
+                accesskey="&calendar.tasks.view.minimonth.accesskey;"
+                command="calendar_toggle_minimonthpane_command"/>
+      <menuitem id="tasks-view-filtertasks"
+                type="checkbox"
+                mode="task"
+                label="&calendar.tasks.view.filtertasks.label;"
+                accesskey="&calendar.tasks.view.filtertasks.accesskey;"
+                command="calendar_toggle_filter_command"/>
       <menuitem id="tasks-view-calendarlist"
-                disabled="true"
-                mode="task"
+                type="checkbox"
+                mode="calendar,task"
                 label="&calendar.tasks.view.calendarlist.label;"
-                accesskey="&calendar.tasks.view.calendarlist.accesskey;"/>
-      <menuitem id="tasks-view-sorttasks"
-                disabled="true"
-                mode="task"
-                label="&calendar.tasks.view.sorttasks.label;"
-                accesskey="&calendar.tasks.view.sorttasks.accesskey;"/>
+                accesskey="&calendar.tasks.view.calendarlist.accesskey;"
+                command="calendar_toggle_calendarlist_command"/>
    </menupopup>
  <menupopup id="view_toolbars_popup">
    <menuitem id="ltnCalendarToolbar"
@@ -289,7 +292,7 @@
 
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="is_editable" hidden="false"/>
-    <broadcaster id="modeBroadcaster" checked="true"/>
+    <broadcaster id="modeBroadcaster" mode="mail"/>
   </broadcasterset>
 
   <!-- Be sure to keep these sets, since they will be overlayed by
@@ -350,10 +353,10 @@
                 accesskey="&lightning.context.newevent.accesskey;"/>
     </popup>
     <popup id="calendar-item-context-menu" onpopupshowing="return true;">
-      <menuitem label="&calendar.context.modifyitem.label;" 
-                accesskey="&calendar.context.modifyitem.accesskey;" 
+      <menuitem label="&calendar.context.modifyitem.label;"
+                accesskey="&calendar.context.modifyitem.accesskey;"
                 observes="lightning_modify_item_command"/>
-      <menuitem label="&calendar.context.deleteitem.label;" 
+      <menuitem label="&calendar.context.deleteitem.label;"
                 accesskey="&calendar.context.deleteitem.accesskey;"
                 observes="lightning_delete_item_command"/>
     </popup>
@@ -391,7 +394,7 @@
                  accesskey="&addressBookCmd.accesskey;"
                  key="key_addressbook"
                  oncommand="toAddressBook();"/>
-    </menupopup>    
+    </menupopup>
     <menupopup id="calendarCalendarPopupMenu">
         <menuitem id="ltnNewEvent2" label="&event.new.event;"
              accesskey="&event.new.event.accesskey;"
@@ -433,7 +436,7 @@
   <tooltip id="itemTooltip" noautohide="true"/>
 
 </window>
-    
+
 #ifdef MOZILLA_1_8_BRANCH
 <hbox id="mailContent" flex="1">
 #else
@@ -451,43 +454,52 @@
             ondraggesture="nsDragAndDrop.startDrag(event, calendarViewDNDObserver);"
             ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
             ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
-        <hbox id="ltnMinimonthBox">
-          <spacer flex="1"/>
-          <minimonth id="ltnMinimonth" onchange="ltnMinimonthPick(this);" flex="2"/>
-          <spacer flex="1"/>
-        </hbox>
-        <hbox id="ltnDateTextPickerBox">
-          <spacer flex="1"/>
-          <datepicker id="ltnDateTextPicker" onchange="ltnMinimonthPick(this)"/>
-          <spacer flex="1"/>
-        </hbox>
+        <modevbox id="minimonth-pane" mode="calendar,task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_minimonthpane_command">
+            <hbox id="ltnMinimonthBox">
+              <spacer flex="1"/>
+              <minimonth id="ltnMinimonth" onchange="ltnMinimonthPick(this);" flex="2"/>
+              <spacer flex="1"/>
+            </hbox>
+            <hbox id="ltnDateTextPickerBox">
+              <spacer flex="1"/>
+              <datepicker id="ltnDateTextPicker" onchange="ltnMinimonthPick(this)"/>
+              <spacer flex="1"/>
+            </hbox>
+        </modevbox>
         <separator/>
         <vbox id="calendar-panel" flex="1">
-          <agenda-checkbox id="task-tree-filter-header"
-                           checked="true"
-                           persist="checked"
-                           class="agenda-checkbox"
-                           label="&calendar.task.filter.title.label;"/>
-          <radiogroup id="task-tree-filter"
-                      collapsable="true"
-                      persist="value,collapsed">
-            <radio label="&calendar.task.filter.all.label;" value="all" onclick="taskViewUpdateFilter(event)"/>
-            <radio label="&calendar.task.filter.today.label;" value="today" onclick="taskViewUpdateFilter(event)"/>
-            <radio label="&calendar.task.filter.next7days.label;" value="next7days" onclick="taskViewUpdateFilter(event)"/>
-            <radio label="&calendar.task.filter.notstarted.label;" value="notstarted" onclick="taskViewUpdateFilter(event)"/>
-            <radio label="&calendar.task.filter.overdue.label;" value="overdue" onclick="taskViewUpdateFilter(event)"/>
-            <radio label="&calendar.task.filter.completed.label;" value="completed" onclick="taskViewUpdateFilter(event)"/>
-          </radiogroup>
-          <agenda-checkbox id="calendar-list-header"
-                           checked="true"
-                           persist="checked"
-                           class="agenda-checkbox"
-                           label="&calendar.list.header.label;"/>
-          <!-- This will be overlayed by calendar-calendars-list.xul -->
-          <tree id="calendar-list-tree"
-                flex="1"
-                collapsable="true"
-                persist="collapsed"/>
+          <modevbox id="task-filter-pane" mode="task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_filter_command">
+            <treenode-checkbox id="task-tree-filter-header"
+                             checked="true"
+                             persist="checked"
+                             class="treenode-checkbox"
+                             label="&calendar.task.filter.title.label;"/>
+            <modevbox id="task-filtertree-pane" flex="1" mode="task" broadcaster="modeBroadcaster" refcontrol="task-tree-filter-header">
+               <radiogroup id="task-tree-filter"
+                           persist="value">
+                  <radio label="&calendar.task.filter.all.label;" value="all" onclick="taskViewUpdateFilter(event)"/>
+                  <radio label="&calendar.task.filter.today.label;" value="today" onclick="taskViewUpdateFilter(event)"/>
+                  <radio label="&calendar.task.filter.next7days.label;" value="next7days" onclick="taskViewUpdateFilter(event)"/>
+                  <radio label="&calendar.task.filter.notstarted.label;" value="notstarted" onclick="taskViewUpdateFilter(event)"/>
+                  <radio label="&calendar.task.filter.overdue.label;" value="overdue" onclick="taskViewUpdateFilter(event)"/>
+                  <radio label="&calendar.task.filter.completed.label;" value="completed" onclick="taskViewUpdateFilter(event)"/>
+                </radiogroup>
+            </modevbox>
+          </modevbox>
+          <modevbox id="calendar-list-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
+                    refcontrol="calendar_toggle_calendarlist_command">
+            <treenode-checkbox id="calendar-list-header"
+                             checked="true"
+                             persist="checked"
+                             class="treenode-checkbox"
+                             label="&calendar.list.header.label;"/>
+            <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
+                      refcontrol="calendar-list-header">
+              <!-- This will be overlayed by calendar-calendars-list.xul -->
+              <tree id="calendar-list-tree"
+                flex="1"/>
+            </modevbox>
+        </modevbox>
         </vbox>
         <label id="invitations"
                class="text-link calendar-invitations-sidebar-label"
@@ -506,7 +518,7 @@
     <toolbox id="mode-toolbox" location="bottom" mode="full">
       <toolbarpalette id="mode-toolbox-palette">
         <toolbarbutton class="toolbarbutton-2"
-                       mode="mode" 
+                       mode="mode"
                        id="mail-switch-button"
                        label="&lightning.toolbar.mail.label;"
                        command="switch2mail"
@@ -514,7 +526,7 @@
                        ondragover="nsDragAndDrop.dragOver(event, calendarMailButtonDNDObserver);"
                        ondragdrop="nsDragAndDrop.drop(event, calendarMailButtonDNDObserver);"/>
         <toolbarbutton class="toolbarbutton-2"
-                       mode="mode" 
+                       mode="mode"
                        id="calendar-switch-button"
                        label="&lightning.toolbar.calendar.label;"
                        command="switch2calendar"
@@ -522,7 +534,7 @@
                        ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
                        ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);"/>
         <toolbarbutton class="toolbarbutton-2"
-                       mode="mode" 
+                       mode="mode"
                        id="task-switch-button"
                        label="&lightning.toolbar.task.label;"
                        command="switch2task"
@@ -538,7 +550,7 @@
                persist="collapsed"/>
       <toolbarset id="custom-toolbars"/>
     </toolbox>
-    
+
   </vbox>
 </hbox>
 

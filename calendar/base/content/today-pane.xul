@@ -46,6 +46,8 @@
 ]>
 
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -53,7 +55,7 @@
 <script type="application/x-javascript" src="chrome://calendar/content/today-pane.js"/>
 <script type="application/x-javascript" src="chrome://lightning/content/agenda-listbox.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
-<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/> 
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
 
 <script type="application/x-javascript">
   var todaylabel = "&calendar.context.button.label;";
