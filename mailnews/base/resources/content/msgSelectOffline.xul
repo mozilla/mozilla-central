@@ -55,8 +55,7 @@
         onload="selectOnLoad();"
         ondialogaccept="return selectOkButton();"
         ondialogcancel="return selectCancelButton();">
-		
-<script src="chrome://global/content/strres.js"/>
+
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindowOverlay.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
 <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>

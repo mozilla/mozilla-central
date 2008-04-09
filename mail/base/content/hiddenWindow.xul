@@ -41,7 +41,6 @@
 #ifdef XP_MACOSX
 
 <!-- Overlays from messenger.xul.  -->
-<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailWindowOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
@@ -59,6 +58,7 @@
      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
      onload="hiddenWindowStartup();">
 
+<script type="application/javascript" src="chrome://global/content/globalOverlay.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/commandglue.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/shareglue.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/mailWindow.js"/>

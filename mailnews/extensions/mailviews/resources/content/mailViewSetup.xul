@@ -60,8 +60,6 @@
     <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
   </stringbundleset>
 
-  <!-- XXX: only mailWidgets.xml requires strres.js (<script> isn't valid in XBL yet - see hyatt)-->
-  <script type="application/x-javascript" src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/mailViewSetup.js"/>
 

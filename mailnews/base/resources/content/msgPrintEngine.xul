@@ -56,8 +56,6 @@
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   </stringbundleset>
 
-  <!-- XXX: utilityOverlay.xul uses strres.js - once it is converted, this should be  removed-->
-  <script src="chrome://global/content/strres.js"/>
   <script type="application/x-javascript" src="chrome://global/content/printUtils.js"/>
   <script src="chrome://messenger/content/msgPrintEngine.js"/>
 

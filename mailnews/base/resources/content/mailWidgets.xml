@@ -900,9 +900,11 @@
            extends="chrome://messenger/content/mailWidgets.xml#search-menulist-abstract">
     <implementation>
       <field name="stringBundle">
-          <![CDATA[
-           srGetStrBundle("chrome://messenger/locale/search-attributes.properties");
-          ]]>
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://messenger/locale/search-attributes.properties")
+        ]]>
       </field>
       <property name="valueIds" readonly="true">
         <getter>
@@ -926,9 +928,11 @@
     <implementation>
       <field name="searchAttribute">Components.interfaces.nsMsgSearchAttrib.Default</field>
       <field name="stringBundle">
-          <![CDATA[
-            srGetStrBundle("chrome://messenger/locale/search-operators.properties");
-          ]]>
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://messenger/locale/search-operators.properties")
+        ]]>
       </field>
       <property name="valueIds" readonly="true">
         <getter>
@@ -1282,7 +1286,9 @@
       <constructor>
       <![CDATA[
         // initialize strings
-        var bundle = srGetStrBundle("chrome://messenger/locale/messenger.properties");
+        var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                       .getService(Components.interfaces.nsIStringBundleService)
+                       .createBundle("chrome://messenger/locale/messenger.properties");
 
         // intialize the priority picker
         this.initialize(document.getAnonymousNodes(this)[1], bundle);
@@ -1387,9 +1393,11 @@
         ]]>
       </field>
       <field name="stringBundle">
-          <![CDATA[
-             srGetStrBundle("chrome://messenger/locale/search.properties");
-          ]]>
+        <![CDATA[
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://messenger/locale/search.properties")
+        ]]>
       </field>
       <property name="booleanAnd" onget="return this.internalBooleanAnd">
         <setter>
