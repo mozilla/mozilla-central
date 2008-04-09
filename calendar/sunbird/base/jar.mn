@@ -11,6 +11,7 @@ calendar.jar:
 *  content/calendar/customizeToolbar.xul         (content/customizeToolbar.xul)
 #else
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar.css
+% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-toolbar.css
 #endif
 *  content/calendar/hiddenWindow.xul             (content/hiddenWindow.xul)
 *  content/calendar/hiddenWindow.js              (content/hiddenWindow.js)
