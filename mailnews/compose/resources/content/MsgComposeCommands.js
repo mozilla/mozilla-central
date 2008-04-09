@@ -413,6 +413,7 @@ var defaultController =
 
       //Edit Menu
       case "cmd_delete":
+      case "cmd_renameAttachment":
       case "cmd_selectAll":
       case "cmd_openAttachment":
       case "cmd_account":
@@ -461,6 +462,8 @@ var defaultController =
       //Edit Menu
       case "cmd_delete":
         return MessageGetNumSelectedAttachments() > 0;
+      case "cmd_renameAttachment":
+        return MessageGetNumSelectedAttachments() == 1;
       case "cmd_selectAll":
         return MessageHasAttachments();
       case "cmd_openAttachment":
@@ -521,6 +524,7 @@ var defaultController =
 
       //Edit Menu
       case "cmd_delete"             : if (MessageGetNumSelectedAttachments() > 0) RemoveSelectedAttachment();  break;
+      case "cmd_renameAttachment"   : if (MessageGetNumSelectedAttachments() == 1) RenameSelectedAttachment(); break;
       case "cmd_selectAll"          : if (MessageHasAttachments()) SelectAllAttachments();                     break;
       case "cmd_openAttachment"     : if (MessageGetNumSelectedAttachments() == 1) OpenSelectedAttachment();   break;
       case "cmd_account"            : MsgAccountManager(null); break;
@@ -640,6 +644,7 @@ function updateEditItems()
   goUpdateCommand("cmd_pasteNoFormatting");
   goUpdateCommand("cmd_pasteQuote");
   goUpdateCommand("cmd_delete");
+  goUpdateCommand("cmd_renameAttachment");
   goUpdateCommand("cmd_selectAll");
   goUpdateCommand("cmd_openAttachment");
   goUpdateCommand("cmd_find");
@@ -2604,10 +2609,7 @@ function MessageHasAttachments()
 function MessageGetNumSelectedAttachments()
 {
   var bucketList = document.getElementById("attachmentBucket");
-
-  if (bucketList)
-    return bucketList.selectedItems.length;
-  return 0;
+  return (bucketList) ? bucketList.selectedItems.length : 0;
 }
 
 function AttachPage()
@@ -2674,6 +2676,32 @@ function RemoveSelectedAttachment()
       // Let's release the attachment object hold by the node else it won't go away until the window is destroyed
       child.attachment = null;
     }
+    gContentChanged = true;
+  }
+}
+
+function RenameSelectedAttachment()
+{
+  var bucket = document.getElementById("attachmentBucket");
+  if (bucket.selectedItems.length != 1)
+    return; // not one attachment selected
+
+  var item = bucket.getSelectedItem(0);
+  var attachmentName = {value: item.attachment.name};
+  if (gPromptService.prompt(
+                     window,
+                     sComposeMsgsBundle.getString("renameAttachmentTitle"),
+                     sComposeMsgsBundle.getString("renameAttachmentMessage"),
+                     attachmentName,
+                     null,
+                     {value: 0}))
+  {
+    var modifiedAttachmentName = attachmentName.value;
+    if (modifiedAttachmentName == "")
+      return; // name was not filled, bail out
+
+    item.label = modifiedAttachmentName;
+    item.attachment.name = modifiedAttachmentName;
     gContentChanged = true;
   }
 }

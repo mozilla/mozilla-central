@@ -219,6 +219,8 @@
 <!ENTITY openAttachment.accesskey "O">
 <!ENTITY delete.label "Delete">
 <!ENTITY delete.accesskey "D">
+<!ENTITY renameAttachment.label "Rename…">
+<!ENTITY renameAttachment.accesskey "R">
 <!ENTITY selectAll.label "Select All">
 <!ENTITY selectAll.accesskey "A">
 <!ENTITY attachFile.label "Attach File(s)…">
