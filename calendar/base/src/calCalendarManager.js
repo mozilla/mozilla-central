@@ -61,6 +61,7 @@ function onCalCalendarManagerLoad() {
 
 function calCalendarManager() {
     this.wrappedJSObject = this;
+    this.mObservers = new calListenerBag(Components.interfaces.calICalendarManagerObserver);
     this.setUpStartupObservers();
 }
 
@@ -526,11 +527,7 @@ calCalendarManager.prototype = {
     },
 
     notifyObservers: function(functionName, args) {
-        function notify(obs) {
-            try { obs[functionName].apply(obs, args);  }
-            catch (e) { }
-        }
-        this.mObservers.forEach(notify);
+        this.mObservers.notify(functionName, args);
     },
 
     /**
@@ -782,20 +779,13 @@ calCalendarManager.prototype = {
         this.mDeletePref.reset();
     },
     
-    mObservers: Array(),
+    mObservers: null,
     addObserver: function(aObserver) {
-        if (this.mObservers.indexOf(aObserver) != -1)
-            return;
-
-        this.mObservers.push(aObserver);
+        this.mObservers.add(aObserver);
     },
 
     removeObserver: function(aObserver) {
-        function notThis(v) {
-            return v != aObserver;
-        }
-        
-        this.mObservers = this.mObservers.filter(notThis);
+        this.mObservers.remove(aObserver);
     }
 };
 

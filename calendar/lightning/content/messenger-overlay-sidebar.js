@@ -241,8 +241,7 @@ function ltnOnLoad(event)
     alarmSvc.startup();
 
     // Add an unload function to the window so we don't leak any listeners
-    document.getElementById("messengerWindow")
-            .addEventListener("unload", ltnFinish, false);
+    window.addEventListener("unload", ltnFinish, false);
 
     document.getElementById("displayDeck")
             .addEventListener("dayselect", observeViewDaySelect, false);
@@ -446,7 +445,6 @@ function LtnObserveDisplayDeckChange(event) {
 
 function ltnFinish() {
     getCalendarManager().removeObserver(gInvitationsCalendarManagerObserver);
-    getCompositeCalendar().removeObserver(agendaTreeView.calendarObserver);
 
     unloadCalendarManager();
 
@@ -772,6 +770,8 @@ var gInvitationsOperationListener = {
         if (!Components.isSuccessCode(aStatus)) {
             var invitationsBox = document.getElementById("invitations");
             invitationsBox.setAttribute("hidden", "true");
+            LOG("INVI IS HIDDEN FAIL" + aStatus + " - " + aDetail);
+            debugger;
         }
     },
 
@@ -788,6 +788,7 @@ var gInvitationsOperationListener = {
         var value = invitationsLabel + " (" + aCount + ")";
         invitationsBox.setAttribute("value", value);
         invitationsBox.removeAttribute("hidden");
+        LOG("INVI IS HIDDEN ITEMS" + aItems[0].title);
     }
 };
 
