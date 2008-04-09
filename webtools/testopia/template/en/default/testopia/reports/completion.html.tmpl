@@ -19,9 +19,18 @@
   #%]
 
 <style type="text/css">
+#completion_report td {
+    font-weight: bold;
+    width: 30px;
+    text-align: center;
+}
+#completion_report a {
+    color: black;
+}
 .report_header {
     font-weight: bold;
     background-color: #DCDCDC;
+    text-align: left;
 }
 
 .passed_cell{
@@ -44,6 +53,12 @@
 }
 .complete_cell{
     border: 1px solid black;
+    background-color: #B8A0D2;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.idle_cell{
+    border: 1px solid black;
     background-color: #858aef;
     padding-left: 5px;
     padding-right: 5px;
@@ -56,14 +71,18 @@
     <tr>
       <td>
         <table style="height:200px; cell-padding: 3px; margin-right: 10px; border: 1px solid black">
-          <tr><td class="report_header">Total:</td><td colspan="2" align="center">[% total FILTER none %]</td></tr>
-          <tr><td class="report_header">Completed:</td><td class="complete_cell">[% completed FILTER none %]</td><td class="complete_cell">[% percent_completed || 0 FILTER none %]%</td></tr>
-          <tr><td class="report_header">PASSED:</td><td class="passed_cell">[% passed FILTER none %]</td><td class="passed_cell">[% percent_passed  || 0 FILTER none %]%</td></tr>
-          <tr><td class="report_header">FAILED:</td><td class="failed_cell">[% failed FILTER none %]</td><td class="failed_cell">[% percent_failed  || 0 FILTER none %]%</td></tr>
-          <tr><td class="report_header">BLOCKED:</td><td class="blocked_cell">[% blocked FILTER none %]</td><td class="blocked_cell">[% percent_blocked  || 0 FILTER none %]%</td></tr>
+          <tr><th class="report_header">Total:</th><td colspan="2" align="center"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]" target="_blank">[% total FILTER none %]</a></td></tr>
+          <tr><th class="report_header">Completed:</th><td class="complete_cell"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]&case_run_status=PASSED&case_run_status=FAILED&case_run_status=BLOCKED" target="_blank">[% completed FILTER none %]</a></td><td class="complete_cell">[% percent_completed || 0 FILTER none %]%</td></tr>
+          <tr><th class="report_header">IDLE:</th><td class="idle_cell"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]&case_run_status=IDLE" target="_blank">[% idle FILTER none %]</a></td><td class="idle_cell">[% percent_idle  || 0 FILTER none %]%</td></tr>
+          <tr><th class="report_header">PASSED:</th><td class="passed_cell"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]&case_run_status=PASSED" target="_blank">[% passed FILTER none %]</a></td><td class="passed_cell">[% percent_passed  || 0 FILTER none %]%</td></tr>
+          <tr><th class="report_header">FAILED:</th><td class="failed_cell"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]&case_run_status=FAILED" target="_blank">[% failed FILTER none %]</a></td><td class="failed_cell">[% percent_failed  || 0 FILTER none %]%</td></tr>
+          <tr><th class="report_header">BLOCKED:</th><td class="blocked_cell"><a href="tr_list_caseruns.cgi?run_id=[% runs FILTER url_quote %]&case_run_status=BLOCKED" target="_blank">[% blocked FILTER none %]</a></td><td class="blocked_cell">[% percent_blocked  || 0 FILTER none %]%</td></tr>
         </table>
       </td>
       <td><img src="tr_run_reports.cgi?type=bar&t=[% total FILTER none %]&c=[% completed FILTER none %]&p=[% passed FILTER none %]&f=[% failed FILTER none %]&b=[% blocked FILTER none %]"></td>
+    </tr>
+    <tr>
+        <td><a href="buglist.cgi?bug_id=[% bugs FILTER none %]" target="_blank">[% bug_count FILTER none %]&nbsp;Bug[% bug_count == 1 ? '':'s' %] Found</a></td>
     </tr>
   </table>
 </div>

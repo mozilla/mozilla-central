@@ -28,7 +28,6 @@ CaseRunPanel = function(params, run){
     this.store = cgrid.store;
     this.params = params;
     this.caserun = cr;
-    var selected;
     
     CaseRunPanel.superclass.constructor.call(this, {
         layout: 'border',
@@ -39,72 +38,6 @@ CaseRunPanel = function(params, run){
         items: [filter, cgrid, cr]
     });
     cr.disable();
-    cgrid.getSelectionModel().on('rowdeselect', function (sm,n,r){
-        if (sm.getCount() < 1){
-            cr.disable();
-            Ext.getCmp('tb_build').disable();
-            Ext.getCmp('tb_environment').disable();
-            Ext.getCmp('update_bugs').disable();
-
-            var items = this.grid.getTopToolbar().items.items;
-            for (var i=0; i < items.length; i++){
-                if ((items[i].id == 'add_case_to_run_btn' || items[i].id == 'run_progress')){
-                    if (Ext.getCmp('run_status_cycle').text == 'RUNNING'){
-                        items[i].enable();
-                    }
-                }
-                else{
-                    items[i].disable();
-                }
-            }
-        }
-    });
-    cgrid.getSelectionModel().on('rowselect', function (sm,n,r){
-        cr.enable();
-        Ext.getCmp('tb_build').enable();
-        Ext.getCmp('tb_environment').enable();
-        Ext.getCmp('update_bugs').enable();
-        if (Ext.getCmp('run_status_cycle').text == 'RUNNING'){
-            var items = sm.grid.getTopToolbar().items.items;
-            for (var i=0; i < items.length; i++){
-                items[i].enable();
-            }
-        }
-        if (n == selected){
-            return;
-        }
-        var sel = [];
-        for (var i=0; i< sm.grid.store.data.items.length; i++){
-            if (sm.grid.getSelectionModel().isSelected(i)){
-                sel.push(sm.grid.store.getAt(i).get('case_id'));
-            }
-        }
-        sm.grid.selectedRows = sel;
-        if (sm.getCount() > 1){
-            return;
-        }
-
-        Ext.getCmp('case_bugs_panel').tcid = r.get('case_id');
-        Ext.getCmp('case_comps_panel').tcid = r.get('case_id');
-        Ext.getCmp('attachments_panel').object = r.data;
-        cr.caserun_id = r.get('caserun_id');
-        
-        var tab = Ext.getCmp('caserun_center_region').getActiveTab();
-        Ext.getCmp(tab.id).fireEvent('activate');
-        if (Ext.getCmp('case_bugs_panel')){
-            Ext.getCmp('case_bugs_panel').case_id = r.get('case_id');
-        }
-        if (Ext.getCmp('case_bugs_panel')){
-            Ext.getCmp('case_bugs_panel').case_id = r.get('case_id');
-        }
-        cr.store.load({
-            params: {
-                caserun_id: r.get('caserun_id'), 
-                action: 'gettext'
-            }
-        });
-        selected = n;
-    });
     this.on('activate', this.onActivate, this);
 };
 Ext.extend(CaseRunPanel, Ext.Panel, {
@@ -211,7 +144,7 @@ CaseRunListGrid = function(params, cfg){
     this.params = params;
     this.store = new Ext.data.GroupingStore({
         url: 'tr_list_caseruns.cgi',
-        baseParams: {ctype: 'json', viewall:1, isactive:1},
+        baseParams: {ctype: 'json', isactive:1},
         reader: new Ext.data.JsonReader({
             totalProperty: 'totalResultsAvailable',
             root: 'Result',
@@ -233,13 +166,14 @@ CaseRunListGrid = function(params, cfg){
                {name: "component", mapping:"component"}
                
         ]}),
-        remoteSort: false,
+        remoteSort: true,
         sortInfo: {field: 'run_id', direction: "ASC"},
         groupField: 'run_id'
     });
     this.store.paramNames.sort = 'order';
+    this.bbar = new TestopiaPager('caserun', this.store);
     this.columns = [
-        {header: "Case", width: 50, dataIndex: 'case_id', sortable: true, hidden:true},
+        {header: "Case", width: 50, dataIndex: 'case_id', sortable: true},
         {header: "Run", width: 50, dataIndex: 'run_id', sortable: true, 
          groupRenderer: function(v){return v;},
          renderer: tutil.runLink },
@@ -321,6 +255,7 @@ CaseRunGrid = function(params, run){
     this.params = params;
     this.run = run;
     var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
+    var selected;
     
     envRenderer = function(v,md,r,ri,ci,s){
         f = this.getColumnModel().getCellEditor(ci,ri).field;
@@ -583,7 +518,72 @@ CaseRunGrid = function(params, run){
         autoExpandColumn: "case_summary",
         autoScroll: true,
         sm: new Ext.grid.RowSelectionModel({
-            singleSelect: false
+            singleSelect: false,
+            listeners: {'rowdeselect': function (sm,n,r){
+                if (sm.getCount() < 1){
+                    Ext.getCmp('case_details_panel').disable();
+                    Ext.getCmp('tb_build').disable();
+                    Ext.getCmp('tb_environment').disable();
+                    Ext.getCmp('update_bugs').disable();
+        
+                    var items = this.grid.getTopToolbar().items.items;
+                    for (var i=0; i < items.length; i++){
+                        if ((items[i].id == 'add_case_to_run_btn' || items[i].id == 'run_progress')){
+                            if (Ext.getCmp('run_status_cycle').text == 'RUNNING'){
+                                items[i].enable();
+                            }
+                        }
+                        else{
+                            items[i].disable();
+                        }
+                    }
+                }
+            },'rowselect': function (sm,n,r){
+                Ext.getCmp('case_details_panel').enable();
+                Ext.getCmp('tb_build').enable();
+                Ext.getCmp('tb_environment').enable();
+                Ext.getCmp('update_bugs').enable();
+                if (Ext.getCmp('run_status_cycle').text == 'RUNNING'){
+                    var items = sm.grid.getTopToolbar().items.items;
+                    for (var i=0; i < items.length; i++){
+                        items[i].enable();
+                    }
+                }
+                if (n == selected){
+                    return;
+                }
+                var sel = [];
+                for (var i=0; i< sm.grid.store.data.items.length; i++){
+                    if (sm.grid.getSelectionModel().isSelected(i)){
+                        sel.push(sm.grid.store.getAt(i).get('case_id'));
+                    }
+                }
+                sm.grid.selectedRows = sel;
+                if (sm.getCount() > 1){
+                    return;
+                }
+        
+                Ext.getCmp('case_bugs_panel').tcid = r.get('case_id');
+                Ext.getCmp('case_comps_panel').tcid = r.get('case_id');
+                Ext.getCmp('attachments_panel').object = r.data;
+                Ext.getCmp('case_details_panel').caserun_id = r.get('caserun_id');
+                
+                var tab = Ext.getCmp('caserun_center_region').getActiveTab();
+                Ext.getCmp(tab.id).fireEvent('activate');
+                if (Ext.getCmp('case_bugs_panel')){
+                    Ext.getCmp('case_bugs_panel').case_id = r.get('case_id');
+                }
+                if (Ext.getCmp('case_bugs_panel')){
+                    Ext.getCmp('case_bugs_panel').case_id = r.get('case_id');
+                }
+                Ext.getCmp('case_details_panel').store.load({
+                    params: {
+                        caserun_id: r.get('caserun_id'), 
+                        action: 'gettext'
+                    }
+                });
+                selected = n;
+            }}
         }),
         viewConfig: {
             forceFit:true,

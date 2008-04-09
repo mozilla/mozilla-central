@@ -62,10 +62,19 @@ if ($type eq 'completion'){
         print "<b>No runs found</b>";
         exit;
     }
+    @run_ids = ();
+    my @bug_ids;
+    foreach my $r (@runs){
+        $r->bugs;
+        push @run_ids, $r->id;
+        push @bug_ids, $r->{'bug_list'};
+    }
+    
     my $total = $runs[0]->case_run_count(undef, \@runs);
     my $passed = $runs[0]->case_run_count(PASSED, \@runs);
     my $failed = $runs[0]->case_run_count(FAILED, \@runs);
     my $blocked = $runs[0]->case_run_count(BLOCKED, \@runs);
+    my $idle = $runs[0]->case_run_count(IDLE, \@runs);
 
     my $completed = $passed + $failed + $blocked;
     
@@ -79,12 +88,17 @@ if ($type eq 'completion'){
     $vars->{'passed'} = $passed;
     $vars->{'failed'} = $failed;
     $vars->{'blocked'} = $blocked;
+    $vars->{'idle'} = $idle;
 
     $vars->{'percent_completed'} = calculate_percent($total, $completed);
     $vars->{'percent_passed'} = calculate_percent($completed, $passed);
     $vars->{'percent_failed'} = calculate_percent($completed, $failed);
     $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
+    $vars->{'percent_idle'} = calculate_percent($total, $idle);
     
+    $vars->{'runs'} = join(',',@run_ids);
+    $vars->{'bugs'} = join(',',@bug_ids);
+    $vars->{'bug_count'} = scalar split(',', $vars->{'bugs'});
     
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());
@@ -98,7 +112,7 @@ elsif ($type eq 'bar'){
 #        [ $cgi->param('t'), $cgi->param('c'), $cgi->param('p'), $cgi->param('f'), $cgi->param('b') ],
 #    ];
     
-    $vars->{'colors'} = (['#858aef', '#56e871', '#ed3f58','#e17a56']);
+    $vars->{'colors'} = (['#B8A0D2', '#56e871', '#ed3f58','#e17a56']);
     $vars->{'legend'} = ["Complete", "PASSED", "FAILED", "BLOCKED"]; 
     $vars->{'data'} = [
         ["CASES"],

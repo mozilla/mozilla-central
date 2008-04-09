@@ -394,7 +394,7 @@ else{
             $node =~ s/\D*//;
             my @products;
             my $classification = Bugzilla::Testopia::Classification->new($node);
-            foreach my $p (@{$classification->products}){
+            foreach my $p (@{$classification->user_visible_products}){
                 push @products, {id => $p->id, text => $p->name, leaf => 'true', attributes =>{ defaultmilestone => $p->default_milestone}};
             }
             my $json = new JSON;

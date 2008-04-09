@@ -133,10 +133,8 @@ else {
     my $search = Bugzilla::Testopia::Search->new($cgi);
     my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_list_caseruns.cgi', $cgi, undef, $search->query);
     
-    if ($cgi->param('ctype') eq 'json'){
-        print $cgi->header;
-        $vars->{'json'} = $table->to_ext_json;
-        $template->process($format->{'template'}, $vars)
-            || ThrowTemplateError($template->error());
-    }
+    print $cgi->header;
+    $vars->{'json'} = $table->to_ext_json;
+    $template->process($format->{'template'}, $vars)
+        || ThrowTemplateError($template->error());
 }
