@@ -616,13 +616,22 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     [NSThread detachNewThreadSelector:@selector(doBackgroundPrelaunch:)
                              toTarget:self
                            withObject:nil];
-    [prefManager setPref:"camino.last_feed_prelaunch_version" toString:currentVersion];
   }
+}
+
+- (void)helperAppPrelaunchComplete
+{
+  NSString* currentVersion = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+  [[PreferenceManager sharedInstance] setPref:"camino.last_feed_prelaunch_version"
+                                     toString:currentVersion];
 }
 
 - (void)doBackgroundPrelaunch:(id)ignored
 {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+  // Sleep briefly so that we aren't fighting with app launch tasks.
+  [NSThread sleepUntilDate:[NSDate dateWithTimeIntervalSinceNow:10]];
 
   NSString* feedHandlersPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"FeedHandlers"];
   NSArray* handlers = [[NSFileManager defaultManager] directoryContentsAtPath:feedHandlersPath];
@@ -640,6 +649,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
     };
     LSOpenFromURLSpec(&launchSpec, NULL);
   }
+  [self performSelectorOnMainThread:@selector(helperAppPrelaunchComplete)
+                         withObject:nil
+                      waitUntilDone:NO];
 
   [pool release];
 }
