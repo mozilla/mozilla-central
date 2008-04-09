@@ -1039,8 +1039,8 @@
               var modifier = (sortDirection == "descending") ? -1 : 1;
               switch(selectedColumn) {
                   case "calendar-task-tree-col-priority":  // 0-9
-                      // No priority set (0) sorts before high priority (1).
-                      return compareNumber(a.priority, b.priority) * modifier;
+                      // No priority set (0) should be weighted as "normal" (5).
+                      return compareNumber(a.priority || 5, b.priority || 5) * modifier;
                   case "calendar-task-tree-col-title":
                       return compareString(a.title.toLowerCase(), b.title.toLowerCase()) * modifier;
                   case "calendar-task-tree-col-startdate":
