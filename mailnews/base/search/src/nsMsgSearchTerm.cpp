@@ -195,6 +195,9 @@ nsresult NS_MsgGetStringForAttribute(PRInt16 attrib, const char **string)
       break;
     }
   }
+  if (!found)
+    *string = '\0'; // don't leave the string uninitialized
+
   // we no longer return invalid attribute. If we cannot find the string in the table,
   // then it is an arbitrary header. Return success regardless if found or not
   return NS_OK;
@@ -496,7 +499,7 @@ nsresult nsMsgSearchTerm::OutputValue(nsCString &outputStr)
 
 NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
 {
-  const char  *attrib, *operatorStr;
+  const char *operatorStr;
   nsCAutoString  outputStr;
   nsresult  ret;
 
@@ -505,9 +508,6 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
     outStream = "ALL";
     return NS_OK;
   }
-  ret = NS_MsgGetStringForAttribute(m_attribute, &attrib);
-  if (ret != NS_OK)
-    return ret;
 
   if (m_attribute > nsMsgSearchAttrib::OtherHeader && m_attribute < nsMsgSearchAttrib::kNumMsgSearchAttributes)  // if arbitrary header, use it instead!
   {
@@ -515,8 +515,13 @@ NS_IMETHODIMP nsMsgSearchTerm::GetTermAsString (nsACString &outStream)
     outputStr += m_arbitraryHeader;
     outputStr += "\"";
   }
-  else
+  else {
+    const char *attrib;
+    ret = NS_MsgGetStringForAttribute(m_attribute, &attrib);
+    if (ret != NS_OK)
+      return ret;
     outputStr = attrib;
+  }
 
   outputStr += ',';
 
