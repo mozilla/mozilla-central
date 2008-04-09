@@ -11,15 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is the Calendar code
+# The Original Code is Sun Microsystems code.
 #
 # The Initial Developer of the Original Code is
-#  Michiel van Leeuwen <mvl@exedo.nl>.
-# Portions created by the Initial Developer are Copyright (C) 2007
+#   Philipp Kewisch <mozilla@kewis.ch>
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,24 +43,7 @@ DIST_UNI = $(DIST_PPC)/universal
 OBJDIR = $(OBJDIR_PPC)
 endif
 
-include $(OBJDIR)/config/autoconf.mk
-
+# This is fine as long as the gdata provider has no binary components.
 postflight_all:
 	mkdir -p $(DIST_UNI)/xpi-stage
-	rm -rf $(DIST_UNI)/xpi-stage/lightning*
-	cp -R $(DIST_PPC)/xpi-stage/lightning $(DIST_UNI)/xpi-stage
-	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
-		$(DIST_PPC)/xpi-stage/lightning`; \
-	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
-	mv $(DIST_UNI)/xpi-stage/lightning/components/*.dylib \
-		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
-	platform=`$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/get-platform.py \
-		$(DIST_X86)/xpi-stage/lightning`; \
-	mkdir -p $(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components; \
-	cp $(DIST_X86)/xpi-stage/lightning/components/*.dylib \
-		$(DIST_UNI)/xpi-stage/lightning/platform/$$platform/components
-	$(PYTHON) $(TOPSRCDIR)/calendar/lightning/build/merge-installrdf.py \
-		$(DIST_PPC)/xpi-stage/lightning \
-		$(DIST_X86)/xpi-stage/lightning \
-		> $(DIST_UNI)/xpi-stage/lightning/install.rdf
-	cd $(DIST_UNI)/xpi-stage/lightning && $(ZIP) -qr ../lightning.xpi *
+	cp $(DIST_PPC)/xpi-stage/gdata-provider.xpi $(DIST_UNI)/xpi-stage
