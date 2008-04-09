@@ -129,11 +129,10 @@ nsresult nsAbLDAPDirectory::Initiate()
 
 NS_IMETHODIMP nsAbLDAPDirectory::GetURI(nsACString &aURI)
 {
-  // For LDAP directories, the resource uri is of the form:
-  // moz-abldapdirectory://<dir pref id>
-  aURI.AssignLiteral(kLDAPDirectoryRoot);
-  aURI.Append(m_DirPrefId);
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
 
+  aURI = mURI;
   return NS_OK;
 }
 

@@ -107,8 +107,6 @@ public:
   // nsIAbDirSearchListener methods
   NS_DECL_NSIABDIRSEARCHLISTENER
 
-  PRBool IsMailingList(){ return (mIsMailingList == 1); }
-
 protected:
   nsresult NotifyPropertyChanged(nsIAbDirectory *list, const char *property, const PRUnichar* oldValue, const PRUnichar* newValue);
   nsresult NotifyItemAdded(nsISupports *item);
@@ -120,8 +118,6 @@ protected:
   nsCOMPtr<nsIAddrDatabase> mDatabase;  
 
   nsCOMArray<nsIAbDirectory> mSubDirectories;
-  PRBool mInitialized;
-  PRInt16 mIsMailingList;
 
   PRInt32 mContext;
   PRBool mPerformingQuery;

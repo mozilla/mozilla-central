@@ -65,13 +65,8 @@
 #include "nsMemory.h"
 #include "nsArrayUtils.h"
 
-// XXX todo
-// fix this -1,0,1 crap, use an enum or #define
-
 nsAbMDBDirectory::nsAbMDBDirectory(void):
      nsAbDirectoryRDFResource(),
-     mInitialized(PR_FALSE),
-     mIsMailingList(-1),
      mPerformingQuery(PR_FALSE)
 {
   mSearchCache.Init();
@@ -93,13 +88,13 @@ NS_IMPL_ISUPPORTS_INHERITED5(nsAbMDBDirectory, nsAbDirectoryRDFResource,
 NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
 {
   // We need to ensure  that the m_DirPrefId is initialized properly
-  nsCAutoString uri;
-  uri = aUri;
+  nsDependentCString uri(aUri);
 
-  mIsMailingList = (uri.Find("MailList") == -1) ? 0 : 1;
+  if (uri.Find("MailList") != -1)
+    m_IsMailList = PR_TRUE;
 
   // Mailing lists don't have their own prefs.
-  if (m_DirPrefId.IsEmpty() && !mIsMailingList)
+  if (m_DirPrefId.IsEmpty() && !m_IsMailList)
   {
     // Find the first ? (of the search params) if there is one.
     // We know we can start at the end of the moz-abmdbdirectory:// because
@@ -224,8 +219,7 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
 
 NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
 {
-  if (!directory)
-    return NS_ERROR_FAILURE;
+  NS_ENSURE_ARG_POINTER(directory);
 
   nsCOMPtr<nsIAddrDatabase> database;
   nsresult rv = GetDatabase(getter_AddRefs(database));
@@ -241,7 +235,6 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   rv = mSubDirectories.RemoveObject(directory);
 
   NotifyItemDeleted(directory);
-
   return rv;
 }
 
@@ -344,6 +337,9 @@ NS_IMETHODIMP nsAbMDBDirectory::AddDirectory(const char *uriName, nsIAbDirectory
   if (!childDir || !uriName)
     return NS_ERROR_NULL_POINTER;
 
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
+
   nsresult rv = NS_OK;
   nsCOMPtr<nsIRDFService> rdf(do_GetService("@mozilla.org/rdf/rdf-service;1", &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -409,16 +405,10 @@ NS_IMETHODIMP nsAbMDBDirectory::GetDatabase(nsIAddrDatabase **aResult)
 
 NS_IMETHODIMP nsAbMDBDirectory::GetURI(nsACString &aURI)
 {
-  nsresult rv = GetStringValue("uri", EmptyCString(), aURI);
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
 
-  if (aURI.IsEmpty())
-  {
-    rv = GetFileName(aURI);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    aURI.Insert(kMDBDirectoryRoot, 0);
-  }
-
+  aURI = mURI;
   return NS_OK;
 }
 
@@ -427,7 +417,6 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildNodes(nsISimpleEnumerator* *aResult)
   if (mIsQueryURI)
     return NS_NewEmptyEnumerator(aResult);
 
-  mInitialized = PR_TRUE;
   return NS_NewArrayEnumerator(aResult, mSubDirectories);
 }
 
@@ -442,9 +431,10 @@ enumerateSearchCache(nsISupports *aKey, nsCOMPtr<nsIAbCard> &aData, void* aClosu
 
 NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
 {
+  nsresult rv;
+
   if (mIsQueryURI)
   {
-    nsresult rv;
     rv = StartSearch();
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -456,32 +446,13 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
     return NS_NewArrayEnumerator(result, array);
   }
 
-  NS_ASSERTION(!mURI.IsEmpty(), "Not Initialized?");
-  if (mIsMailingList == -1)
-  {
-    /* directory URIs are of the form
-     * moz-abmdbdirectory://foo
-     * mailing list URIs are of the form
-     * moz-abmdbdirectory://foo/bar
-     */
-    NS_ENSURE_TRUE(mURI.Length() > kMDBDirectoryRootLen, NS_ERROR_UNEXPECTED);
-    if (strchr(mURI.get() + kMDBDirectoryRootLen, '/'))
-      mIsMailingList = 1;
-    else
-      mIsMailingList = 0;
-  }
+  rv = GetAbDatabase();
 
-  nsresult rv = GetAbDatabase();
+  if (NS_FAILED(rv) || !mDatabase)
+    return rv;
 
-  if (NS_SUCCEEDED(rv) && mDatabase)
-  {
-    if (mIsMailingList == 0)
-      rv = mDatabase->EnumerateCards(this, result);
-    else if (mIsMailingList == 1)
-      rv = mDatabase->EnumerateListAddresses(this, result);
-  }
-
-  return rv;
+  return m_IsMailList ? mDatabase->EnumerateListAddresses(this, result) :
+                        mDatabase->EnumerateCards(this, result);
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
@@ -534,7 +505,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 
       if (card)
       {
-        if (IsMailingList())
+        if (m_IsMailList)
         {
           mDatabase->DeleteCardFromMailList(this, card, PR_TRUE);
 
@@ -701,7 +672,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
   {
     nsCOMPtr<nsIAddrDBListener> listener(do_QueryInterface(newList, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     rv = mDatabase->AddListener(listener);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -744,7 +715,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddCard(nsIAbCard* card, nsIAbCard **addedCard)
   }
 
   dbcard->SetAbDatabase (mDatabase);
-  if (mIsMailingList == 1)
+  if (m_IsMailList)
     mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, PR_TRUE /* notify */);
   else
     mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE);
@@ -779,17 +750,6 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
 
   nsresult rv = NS_OK;
 
-  NS_ASSERTION(!mURI.IsEmpty(), "Not initialized?");
-  if (mIsMailingList == -1)
-  {
-    /* directory URIs are of the form
-     * moz-abmdbdirectory://foo
-     * mailing list URIs are of the form
-     * moz-abmdbdirectory://foo/bar
-     */
-    NS_ENSURE_TRUE(mURI.Length() > kMDBDirectoryRootLen, NS_ERROR_UNEXPECTED);
-    mIsMailingList = (strchr(mURI.get() + kMDBDirectoryRootLen, '/')) ? 1 : 0;
-  }
   if (!mDatabase)
     rv = GetAbDatabase();
 
@@ -817,7 +777,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
 
   dbcard->SetAbDatabase(mDatabase);
 
-  if (mIsMailingList == 1) {
+  if (m_IsMailList) {
     if (needToCopyCard) {
       nsCOMPtr <nsIMdbRow> cardRow;
       // if card doesn't exist in db, add the card to the directory that 
@@ -843,7 +803,7 @@ NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(nsIAbCard *listCard)
   if (mIsQueryURI)
     return NS_ERROR_NOT_IMPLEMENTED;
 
-  if (!mIsMailingList)
+  if (!m_IsMailList)
     return NS_ERROR_UNEXPECTED;
 
   nsresult rv = GetAbDatabase();
@@ -1004,14 +964,15 @@ NS_IMETHODIMP nsAbMDBDirectory::OnSearchFoundCard(nsIAbCard* card)
 
 nsresult nsAbMDBDirectory::GetAbDatabase()
 {
-  NS_ASSERTION(!mURI.IsEmpty(), "Not initialized?");
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
 
   if (mDatabase)
     return NS_OK;
 
   nsresult rv;
 
-  if (mIsMailingList)
+  if (m_IsMailList)
   {
     // Get the database of the parent directory.
     nsCString parentURI(mURINoQuery);

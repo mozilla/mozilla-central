@@ -488,9 +488,10 @@ nsAbOSXDirectory::Init(const char *aUri)
 NS_IMETHODIMP
 nsAbOSXDirectory::GetURI(nsACString &aURI)
 {
-  aURI.AssignLiteral(NS_ABOSXDIRECTORY_URI_PREFIX);
-  aURI.AppendLiteral("/");
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
 
+  aURI = mURI;
   return NS_OK;
 }
 

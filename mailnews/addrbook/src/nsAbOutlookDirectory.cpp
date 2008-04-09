@@ -209,11 +209,11 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
   prefix.Append(unichars);
 
   if (objectType == MAPI_DISTLIST) {
-    SetIsMailList(PR_TRUE);
+    m_IsMailList = PR_TRUE;
     SetDirName(unichars);
   }
   else {
-    SetIsMailList(PR_FALSE);
+    m_IsMailList = PR_FALSE;
     SetDirName(prefix);
   }
 
@@ -224,16 +224,10 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 
 NS_IMETHODIMP nsAbOutlookDirectory::GetURI(nsACString &aURI)
 {
-  nsresult rv = GetStringValue("uri", EmptyCString(), aURI);
+  if (mURI.IsEmpty())
+    return NS_ERROR_NOT_INITIALIZED;
 
-  if (aURI.IsEmpty())
-  {
-    rv = GetFileName(aURI);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    aURI.Insert(kMDBDirectoryRoot, 0);
-  }
-
+  aURI = mURI;
   return NS_OK;
 }
 
