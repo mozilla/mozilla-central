@@ -956,6 +956,8 @@ pkix_List_AppendList(
 
 cleanup:
 
+        PKIX_DECREF(item);
+
         PKIX_RETURN(LIST);
 }
 

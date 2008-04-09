@@ -939,7 +939,7 @@ pkix_CheckChain(
                     continue;
                 }
 
-#ifdef PR_LOGGING
+#ifdef DEBUG_kaie
                 pkix_trace_dump_cert("pkix_CheckChain", cert, plContext);
 #endif
 

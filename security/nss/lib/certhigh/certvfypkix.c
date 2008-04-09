@@ -1200,7 +1200,7 @@ do {
         pkix_pl_lifecycle_ObjectTableUpdate(objCountTable); 
     }
 
-    PR_LOG(pkixLog, 1, ("Memory leak test: Loop %d\n", memLeakLoopCount));
+    PR_LOG(pkixLog, 1, ("Memory leak test: Loop %d\n", memLeakLoopCount++));
 #endif /* PKIX_OBJECT_LEAK_TEST */
 
     error =
@@ -2072,7 +2072,7 @@ do {
         pkix_pl_lifecycle_ObjectTableUpdate(objCountTable);
     }
 
-    PR_LOG(pkixLog, 1, ("Memory leak test: Loop %d\n", memLeakLoopCount));
+    PR_LOG(pkixLog, 1, ("Memory leak test: Loop %d\n", memLeakLoopCount++));
 #endif /* PKIX_OBJECT_LEAK_TEST */
 
     error = PKIX_PL_NssContext_Create(

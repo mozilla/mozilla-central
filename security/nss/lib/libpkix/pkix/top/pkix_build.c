@@ -48,12 +48,10 @@
 
 extern PRLogModuleInfo *pkixLog;
 
-#ifdef PR_LOGGING
+#ifdef DEBUG_kaie
 void
 pkix_trace_dump_cert(const char *info, PKIX_PL_Cert *cert, void *plContext)
 {
-        PKIX_ENTER(FORWARDBUILDERSTATE, "pkix_trace_dump_cert");
-
         if (pkixLog && PR_LOG_TEST(pkixLog, PR_LOG_DEBUG)) {
             PKIX_PL_String *unString;
             char *unAscii;
@@ -1555,6 +1553,7 @@ cleanup:
         PKIX_DECREF(policyChecker);
         PKIX_DECREF(userChecker);
         PKIX_DECREF(userCheckersList);
+        PKIX_DECREF(userCheckerExtOIDs);
 
         PKIX_RETURN(BUILD);
 }
@@ -2673,7 +2672,7 @@ pkix_BuildForwardDepthFirstSearch(
                                     PKIX_VERIFYNODECREATEFAILED);
                     }
 
-#ifdef PR_LOGGING
+#ifdef DEBUG_kaie
                     pkix_trace_dump_cert(
                       "pkix_BuildForwardDepthFirstSearch calling pkix_Build_VerifyCertificate",
                       state->candidateCert, plContext);
