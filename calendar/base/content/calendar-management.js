@@ -52,7 +52,7 @@ function getCompositeCalendar() {
 }
 
 function getSelectedCalendar() {
-    var tree = document.getElementById("calendar-list-tree");
+    var tree = document.getElementById("calendar-list-tree-widget");
     return (tree.currentIndex > -1) &&
            calendarListTreeView.mCalendarList[tree.currentIndex] || null;
 }
@@ -125,7 +125,7 @@ function loadCalendarManager() {
     calendarListInitCategoryColors();
 
     // Set up the tree view
-    var tree = document.getElementById("calendar-list-tree");
+    var tree = document.getElementById("calendar-list-tree-widget");
     calendarListTreeView.tree = tree;
     tree.view = calendarListTreeView;
 

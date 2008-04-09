@@ -296,10 +296,6 @@ description.tooltipBody {
   background: white;
 }
 
-#task-tree-filter {
-  margin-left: 12px;
-}
-
-#calendar-list-tree {
-  margin-left: 12px;
+.task-tree-subpane {
+  -moz-margin-start: 12px;
 }

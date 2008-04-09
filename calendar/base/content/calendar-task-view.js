@@ -295,7 +295,7 @@ function taskViewObserveDisplayDeckChange(event) {
     // In case we find that the task view has been made visible, we refresh the view.
     if (id == "calendar-task-box") {
         taskViewUpdate(
-            document.getElementById("task-tree-filter").value || "all");
+            document.getElementById("task-tree-filtergroup").value || "all");
     }
 }
 

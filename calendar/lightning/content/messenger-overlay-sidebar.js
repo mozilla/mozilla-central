@@ -260,7 +260,7 @@ function ltnOnLoad(event)
 
     getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
 
-    var filter = document.getElementById("task-tree-filter");
+    var filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
 }
 

@@ -471,11 +471,10 @@
           <modevbox id="task-filter-pane" mode="task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_filter_command">
             <treenode-checkbox id="task-tree-filter-header"
                              checked="true"
-                             persist="checked"
                              class="treenode-checkbox"
                              label="&calendar.task.filter.title.label;"/>
             <modevbox id="task-filtertree-pane" flex="1" mode="task" broadcaster="modeBroadcaster" refcontrol="task-tree-filter-header">
-               <radiogroup id="task-tree-filter"
+               <radiogroup id="task-tree-filtergroup" class="task-tree-subpane"
                            persist="value">
                   <radio label="&calendar.task.filter.all.label;" value="all" onclick="taskViewUpdateFilter(event)"/>
                   <radio label="&calendar.task.filter.today.label;" value="today" onclick="taskViewUpdateFilter(event)"/>
@@ -490,13 +489,12 @@
                     refcontrol="calendar_toggle_calendarlist_command">
             <treenode-checkbox id="calendar-list-header"
                              checked="true"
-                             persist="checked"
                              class="treenode-checkbox"
                              label="&calendar.list.header.label;"/>
             <modevbox id="calendar-listtree-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"
                       refcontrol="calendar-list-header">
               <!-- This will be overlayed by calendar-calendars-list.xul -->
-              <tree id="calendar-list-tree"
+              <tree id="calendar-list-tree-widget"  class="task-tree-subpane"
                 flex="1"/>
             </modevbox>
         </modevbox>

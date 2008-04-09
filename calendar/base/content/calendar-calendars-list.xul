@@ -79,7 +79,7 @@
     </popup>
   </popupset>
 
-  <tree id="calendar-list-tree"
+  <tree id="calendar-list-tree-widget"
         hidecolumnpicker="true"
         seltype="single"
         onkeypress="calendarListTreeView.onKeyPress(event);"
