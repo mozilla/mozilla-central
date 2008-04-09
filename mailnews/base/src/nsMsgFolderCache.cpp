@@ -21,7 +21,6 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
- *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,96 +40,224 @@
 #include "nsIMsgAccountManager.h"
 #include "nsMsgFolderCacheElement.h"
 #include "nsMsgFolderCache.h"
+#include "nsMorkCID.h"
+#include "nsIMdbFactoryFactory.h"
 #include "nsMsgBaseCID.h"
 
-#include "mozStorageCID.h"
-#include "mozIStorageService.h"
-#include "mozIStorageStatement.h"
+const char *kFoldersScope = "ns:msg:db:row:scope:folders:all";	// scope for all folders table
+const char *kFoldersTableKind = "ns:msg:db:table:kind:folders";
 
 nsMsgFolderCache::nsMsgFolderCache()
-: m_dbConnection(nsnull)
 {
+  m_mdbEnv = nsnull;
+  m_mdbStore = nsnull;
+  m_mdbAllFoldersTable = nsnull;
 }
+
+// should this, could this be an nsCOMPtr ?
+static nsIMdbFactory *gMDBFactory = nsnull;
 
 nsMsgFolderCache::~nsMsgFolderCache()
 {
-  // Clear the cache elements first, for good measure.
-  m_cacheElements.Clear();
-  if (m_dbConnection)
-  {
-    // If this still exists, roll it back
-    m_dbConnection->RollbackTransaction();
-    m_dbConnection->Close();
-  }
+  m_cacheElements.Clear(); // make sure the folder cache elements are released before we release our m_mdb objects...
+  if (m_mdbAllFoldersTable)
+    m_mdbAllFoldersTable->Release();
+  if (m_mdbStore)
+    m_mdbStore->Release();
+  NS_IF_RELEASE(gMDBFactory);
+  if (m_mdbEnv)
+    m_mdbEnv->Release();
 }
+
 
 NS_IMPL_ISUPPORTS1(nsMsgFolderCache, nsIMsgFolderCache)
 
-nsresult nsMsgFolderCache::OpenSQL(nsIFile * dbFile, PRBool create)
+void nsMsgFolderCache::GetMDBFactory(nsIMdbFactory ** aMdbFactory)
 {
-  // If we have an old connection, this is bad. We'll just clean up as neatly
-  // as possible and hope for the best.
-  NS_ASSERTION(!m_dbConnection, "Should not reuse for multiple SQL files!");
-  if (m_dbConnection)
+  if (!mMdbFactory)
   {
-    m_dbConnection->RollbackTransaction();
-    m_dbConnection->Close();
+    nsresult rv;
+    nsCOMPtr <nsIMdbFactoryService> mdbFactoryService = do_GetService(NS_MORK_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv) && mdbFactoryService)
+      rv = mdbFactoryService->GetMdbFactory(getter_AddRefs(mMdbFactory));
   }
+  NS_IF_ADDREF(*aMdbFactory = mMdbFactory);
+}
 
-  nsresult rv;
-  nsCOMPtr<mozIStorageService> storageService = do_GetService(MOZ_STORAGE_SERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = storageService->OpenDatabase(dbFile, getter_AddRefs(m_dbConnection));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRBool connectionReady;
-  m_dbConnection->GetConnectionReady(&connectionReady);
-  if (!connectionReady)
-    return NS_ERROR_FAILURE;
-
-  /***************************************************************************
-   *                      BIG BOLD NOTE TO PAY ATTENTION TO                  *
-   ***************************************************************************
-   * If changing the schema, change the schema version and add handling to   *
-   * the bottom part of the if statement.                                    *
-   ***************************************************************************/
-  if (create)
+// initialize the various tokens and tables in our db's env
+nsresult nsMsgFolderCache::InitMDBInfo()
+{
+  nsresult err = NS_OK;
+  if (GetStore())
   {
-    // XXX: drop table if exists?
-    rv = m_dbConnection->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
-          "CREATE TABLE entries ("
-          "folderKey CHAR,"
-          "propertyName CHAR,"
-          "value CHAR)"));
-    NS_ENSURE_SUCCESS(rv, rv);
+    err = GetStore()->StringToToken(GetEnv(), kFoldersScope, &m_folderRowScopeToken);
+    if (NS_SUCCEEDED(err))
+    {
+      err = GetStore()->StringToToken(GetEnv(), kFoldersTableKind, &m_folderTableKindToken);
+      if (NS_SUCCEEDED(err))
+      {
+        // The table of all message hdrs will have table id 1.
+        m_allFoldersTableOID.mOid_Scope = m_folderRowScopeToken;
+        m_allFoldersTableOID.mOid_Id = 1;
+      }
+    }
+  }
+  return err;
+}
+
+// set up empty tables, dbFolderInfo, etc.
+nsresult nsMsgFolderCache::InitNewDB()
+{
+  nsresult err = InitMDBInfo();
+  if (NS_SUCCEEDED(err))
+  {
+    nsIMdbStore *store = GetStore();
+    // create the unique table for the dbFolderInfo.
+    mdb_err mdberr;
+    mdberr = (nsresult) store->NewTable(GetEnv(), m_folderRowScopeToken,
+    m_folderTableKindToken, PR_FALSE, nsnull, &m_mdbAllFoldersTable);
+  }
+  return err;
+}
+
+nsresult nsMsgFolderCache::InitExistingDB()
+{
+  nsresult err = InitMDBInfo();
+  if (NS_FAILED(err))
+    return err;
+
+  err = GetStore()->GetTable(GetEnv(), &m_allFoldersTableOID, &m_mdbAllFoldersTable);
+  if (NS_SUCCEEDED(err) && m_mdbAllFoldersTable)
+  {
+    nsIMdbTableRowCursor* rowCursor = nsnull;
+    err = m_mdbAllFoldersTable->GetTableRowCursor(GetEnv(), -1, &rowCursor);
+    if (NS_SUCCEEDED(err) && rowCursor)
+    {
+      // iterate over the table rows and create nsMsgFolderCacheElements for each.
+      while (PR_TRUE)
+      {
+        nsresult rv;
+        nsIMdbRow* hdrRow;
+        mdb_pos rowPos;
+
+        rv = rowCursor->NextRow(GetEnv(), &hdrRow, &rowPos);
+        if (NS_FAILED(rv) || !hdrRow)
+          break;
+
+        rv = AddCacheElement(EmptyCString(), hdrRow, nsnull);
+        hdrRow->Release();
+        if (NS_FAILED(rv))
+          return rv;
+      }
+      rowCursor->Release();
+    }
   }
   else
-  {
-    // Get the schema version
-    PRInt32 schemaVersion;
-    rv = m_dbConnection->GetSchemaVersion(&schemaVersion);
-    NS_ENSURE_SUCCESS(rv, rv);
-    NS_ENSURE_TRUE(schemaVersion == 0, NS_ERROR_FAILURE);
-  }
+    err = NS_ERROR_FAILURE;
 
-  // Preload all cache entries...
-  nsCOMPtr<mozIStorageStatement> folderQuery;
-  rv = m_dbConnection->CreateStatement(NS_LITERAL_CSTRING(
-        "SELECT DISTINCT folderKey FROM entries"), getter_AddRefs(folderQuery));
-  NS_ENSURE_SUCCESS(rv, rv);
+  return err;
+}
 
-  PRBool hasMore;
-  nsCString value;
-  while (NS_SUCCEEDED(folderQuery->ExecuteStep(&hasMore)) && hasMore)
+nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, PRBool exists)
+{
+  nsresult ret=NS_OK;
+  nsCOMPtr<nsIMdbFactory> mdbFactory;
+  GetMDBFactory(getter_AddRefs(mdbFactory));
+  if (mdbFactory)
   {
-    folderQuery->GetUTF8String(0, value);
-    nsMsgFolderCacheElement* element = new nsMsgFolderCacheElement(
-        this->m_dbConnection, value);
-    m_cacheElements.Put(value, element);
+    ret = mdbFactory->MakeEnv(nsnull, &m_mdbEnv);
+    if (NS_SUCCEEDED(ret))
+    {
+      nsIMdbThumb *thumb = nsnull;
+      nsIMdbHeap* dbHeap = 0;
+      mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
+
+      if (m_mdbEnv)
+        m_mdbEnv->SetAutoClear(PR_TRUE);
+      if (exists)
+      {
+        mdbOpenPolicy inOpenPolicy;
+        mdb_bool canOpen;
+        mdbYarn outFormatVersion;
+
+        nsIMdbFile* oldFile = 0;
+        ret = mdbFactory->OpenOldFile(m_mdbEnv, dbHeap, nsCString(dbName).get(),
+          dbFrozen, &oldFile);
+        if ( oldFile )
+        {
+          if (NS_SUCCEEDED(ret))
+          {
+            ret = mdbFactory->CanOpenFilePort(m_mdbEnv, oldFile, // file to investigate
+              &canOpen, &outFormatVersion);
+            if (NS_SUCCEEDED(ret) && canOpen)
+            {
+              inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
+              inOpenPolicy.mOpenPolicy_MinMemory = 0;
+              inOpenPolicy.mOpenPolicy_MaxLazy = 0;
+
+              ret = mdbFactory->OpenFileStore(m_mdbEnv, NULL, oldFile, &inOpenPolicy,
+                &thumb);
+            }
+            else
+              ret = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
+          }
+          NS_RELEASE(oldFile); // always release our file ref, store has own
+        }
+      }
+      if (NS_SUCCEEDED(ret) && thumb)
+      {
+        mdb_count outTotal;    // total somethings to do in operation
+        mdb_count outCurrent;  // subportion of total completed so far
+        mdb_bool outDone = PR_FALSE;      // is operation finished?
+        mdb_bool outBroken;     // is operation irreparably dead and broken?
+        do
+        {
+          ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
+          if (ret != 0)
+          {// mork isn't really doing NS errors yet.
+            outDone = PR_TRUE;
+            break;
+          }
+        }
+        while (NS_SUCCEEDED(ret) && !outBroken && !outDone);
+        // m_mdbEnv->ClearErrors(); // ### temporary...
+        if (NS_SUCCEEDED(ret) && outDone)
+        {
+          ret = mdbFactory->ThumbToOpenStore(m_mdbEnv, thumb, &m_mdbStore);
+          if (NS_SUCCEEDED(ret) && m_mdbStore)
+            ret = InitExistingDB();
+        }
+#ifdef DEBUG_bienvenu1
+        DumpContents();
+#endif
+      }
+      else // ### need error code saying why open file store failed
+      {
+        nsIMdbFile* newFile = 0;
+        ret = mdbFactory->CreateNewFile(m_mdbEnv, dbHeap, nsCString(dbName).get(), &newFile);
+        if ( newFile )
+        {
+          if (NS_SUCCEEDED(ret))
+          {
+            mdbOpenPolicy inOpenPolicy;
+
+            inOpenPolicy.mOpenPolicy_ScopePlan.mScopeStringSet_Count = 0;
+            inOpenPolicy.mOpenPolicy_MinMemory = 0;
+            inOpenPolicy.mOpenPolicy_MaxLazy = 0;
+
+            ret = mdbFactory->CreateNewFileStore(m_mdbEnv, dbHeap,
+              newFile, &inOpenPolicy, &m_mdbStore);
+            if (NS_SUCCEEDED(ret))
+              ret = InitNewDB();
+          }
+          NS_RELEASE(newFile); // always release our file ref, store has own
+        }
+
+      }
+      NS_IF_RELEASE(thumb);
+    }
   }
-  m_dbConnection->BeginTransaction();
-  return NS_OK;
+  return ret;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
@@ -142,36 +269,26 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
   PRBool exists;
   aFile->Exists(&exists);
 
-#ifdef DEBUG
-  printf("Initializing folder cache\n");
-#endif
-
-  nsresult rv = OpenSQL(aFile, !exists);
-
-  // If we can't open a database, let's destroy it and rebuild it...
+  nsCAutoString dbPath;
+  aFile->GetNativePath(dbPath);
+  // ### evil cast until MDB supports file streams.
+  nsresult rv = OpenMDB(dbPath, exists);
+  // if this fails and panacea.dat exists, try blowing away the db and recreating it
   if (NS_FAILED(rv) && exists)
   {
-    // If we got halfway, close it.
-    if (m_dbConnection)
-    {
-      m_dbConnection->Close();
-      m_dbConnection = nsnull;
-    }
-#ifdef DEBUG
-    printf("Initialization failed, recreating database\n");
-#endif
+    if (m_mdbStore)
+      m_mdbStore->Release();
     aFile->Remove(PR_FALSE);
-    rv = OpenSQL(aFile, PR_TRUE);
+    rv = OpenMDB(dbPath, PR_FALSE);
   }
   return rv;
 }
 
-NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey,
-    PRBool createIfMissing, nsIMsgFolderCacheElement **result)
+NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBool createIfMissing,
+                                                nsIMsgFolderCacheElement **result)
 {
   NS_ENSURE_ARG_POINTER(result);
   NS_ENSURE_TRUE(!pathKey.IsEmpty(), NS_ERROR_FAILURE);
-  NS_ENSURE_TRUE(m_dbConnection, NS_ERROR_NOT_INITIALIZED);
 
   nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl;
   m_cacheElements.Get(pathKey, getter_AddRefs(folderCacheEl));
@@ -179,72 +296,115 @@ NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey,
 
   if (*result)
     return NS_OK;
-  
-  if (createIfMissing)
+  else if (createIfMissing)
   {
-    folderCacheEl = new nsMsgFolderCacheElement(this->m_dbConnection, pathKey);
-    
-    // Copy a new hash key for storage purposes
-    m_cacheElements.Put(nsDependentCString(pathKey), folderCacheEl);
-    folderCacheEl.swap(*result);
+    nsIMdbRow* hdrRow;
+
+    if (GetStore())
+    {
+      mdb_err err = GetStore()->NewRow(GetEnv(), m_folderRowScopeToken,   // row scope for row ids
+        &hdrRow);
+      if (NS_SUCCEEDED(err) && hdrRow)
+      {
+        m_mdbAllFoldersTable->AddRow(GetEnv(), hdrRow);
+        nsresult ret = AddCacheElement(pathKey, hdrRow, result);
+        if (*result)
+          (*result)->SetStringProperty("key", pathKey);
+        hdrRow->Release();
+        return ret;
+      }
+    }
   }
   return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::RemoveElement(const nsACString& key)
 {
-  NS_ENSURE_TRUE(m_dbConnection, NS_ERROR_NOT_INITIALIZED);
-#ifdef DEBUG
-  printf("Removing element %s from cache.\n", PromiseFlatCString(key).get());
-#endif
   nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl;
-  if (!m_cacheElements.Get(key, getter_AddRefs(folderCacheEl)))
+  m_cacheElements.Get(key, getter_AddRefs(folderCacheEl));
+  if (!folderCacheEl)
     return NS_ERROR_FAILURE;
+  nsMsgFolderCacheElement *element = static_cast<nsMsgFolderCacheElement *>(static_cast<nsISupports *>(folderCacheEl.get())); // why the double cast??
+  m_mdbAllFoldersTable->CutRow(GetEnv(), element->m_mdbRow);
   m_cacheElements.Remove(key);
-
-  nsCOMPtr<mozIStorageStatement> statement;
-  nsresult rv = m_dbConnection->CreateStatement(NS_LITERAL_CSTRING(
-        "DELETE FROM entries WHERE folderKey=?1"), getter_AddRefs(statement));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = statement->BindUTF8StringParameter(0, key);
-  NS_ENSURE_SUCCESS(rv, rv);
-  return statement->Execute();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Clear()
 {
-  NS_ENSURE_TRUE(m_dbConnection, NS_ERROR_NOT_INITIALIZED);
-#ifdef DEBUG
-  printf("Clearing cache\n");
-#endif
   m_cacheElements.Clear();
-
-  return m_dbConnection->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
-        "DELETE FROM entries"));
+  if (m_mdbAllFoldersTable)
+    m_mdbAllFoldersTable->CutAllRows(GetEnv());
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Close()
 {
-  nsresult rv = Commit(PR_TRUE);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  rv = m_dbConnection->Close();
-  m_dbConnection = nsnull;
-  return rv;
+  return Commit(PR_TRUE);
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Commit(PRBool compress)
 {
-  NS_ENSURE_TRUE(m_dbConnection, NS_ERROR_NOT_INITIALIZED);
-  nsresult rv = m_dbConnection->CommitTransaction();
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (compress)
+  nsresult ret = NS_OK;
+  nsIMdbThumb *commitThumb = nsnull;
+  if (m_mdbStore)
   {
-    rv = m_dbConnection->ExecuteSimpleSQL(NS_LITERAL_CSTRING("VACUUM"));
-    NS_ENSURE_SUCCESS(rv, rv);
+    if (compress)
+      ret = m_mdbStore->CompressCommit(GetEnv(), &commitThumb);
+    else
+      ret = m_mdbStore->LargeCommit(GetEnv(), &commitThumb);
   }
 
-  // Reinitiate our transaction
-  return m_dbConnection->BeginTransaction();
+  if (commitThumb)
+  {
+    mdb_count outTotal = 0;    // total somethings to do in operation
+    mdb_count outCurrent = 0;  // subportion of total completed so far
+    mdb_bool outDone = PR_FALSE;      // is operation finished?
+    mdb_bool outBroken = PR_FALSE;     // is operation irreparably dead and broken?
+    while (!outDone && !outBroken && NS_SUCCEEDED(ret))
+      ret = commitThumb->DoMore(GetEnv(), &outTotal, &outCurrent, &outDone, &outBroken);
+    NS_IF_RELEASE(commitThumb);
+  }
+  // ### do something with error, but clear it now because mork errors out on commits.
+  if (GetEnv())
+    GetEnv()->ClearErrors();
+  return ret;
+}
+
+nsresult nsMsgFolderCache::AddCacheElement(const nsACString& key, nsIMdbRow *row, nsIMsgFolderCacheElement **result)
+{
+  nsMsgFolderCacheElement *cacheElement = new nsMsgFolderCacheElement;
+  NS_ENSURE_TRUE(cacheElement, NS_ERROR_OUT_OF_MEMORY);
+  nsCOMPtr<nsIMsgFolderCacheElement> folderCacheEl(do_QueryInterface(cacheElement));
+
+  cacheElement->SetMDBRow(row);
+  cacheElement->SetOwningCache(this);
+  nsCString hashStrKey(key);
+  // if caller didn't pass in key, try to get it from row.
+  if (key.IsEmpty())
+    folderCacheEl->GetStringProperty("key", hashStrKey);
+  folderCacheEl->SetKey(hashStrKey);
+  m_cacheElements.Put(hashStrKey, folderCacheEl);
+  if (result)
+    folderCacheEl.swap(*result);
+  return NS_OK;
+}
+
+nsresult nsMsgFolderCache::RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, nsACString& resultStr)
+{
+  nsresult err = NS_OK;
+  nsIMdbCell *hdrCell;
+  if (hdrRow) // ### probably should be an error if hdrRow is NULL...
+  {
+    err = hdrRow->GetCell(GetEnv(), columnToken, &hdrCell);
+    if (NS_SUCCEEDED(err) && hdrCell)
+    {
+      struct mdbYarn yarn;
+      hdrCell->AliasYarn(GetEnv(), &yarn);
+      resultStr.Assign((const char *)yarn.mYarn_Buf, yarn.mYarn_Fill);
+      resultStr.SetLength(yarn.mYarn_Fill); // ensure the string is null terminated.
+      hdrCell->Release(); // always release ref
+    }
+  }
+  return err;
 }

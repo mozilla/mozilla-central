@@ -42,12 +42,14 @@
 #include "nsIMsgFolderCacheElement.h"
 #include "nsInterfaceHashtable.h"
 #include "nsCOMPtr.h"
-#include "mozIStorageConnection.h"
+#include "mdb.h"
 
 class nsMsgFolderCache : public nsIMsgFolderCache
 {
 
 public:
+  friend class nsMsgFolderCacheElement;
+
   nsMsgFolderCache();
   virtual ~nsMsgFolderCache();
 
@@ -55,9 +57,25 @@ public:
   NS_DECL_NSIMSGFOLDERCACHE
 
 protected:
-  nsresult OpenSQL(nsIFile * file, PRBool create);
+  void GetMDBFactory(nsIMdbFactory ** aMdbFactory);
+  nsresult AddCacheElement(const nsACString& key, nsIMdbRow *row, nsIMsgFolderCacheElement **result);
+  nsresult RowCellColumnToCharPtr(nsIMdbRow *hdrRow, mdb_token columnToken, nsACString& resultPtr);
+  nsresult InitMDBInfo();
+  nsresult InitNewDB();
+  nsresult InitExistingDB();
+  nsresult OpenMDB(const nsACString& dbName, PRBool create);
+  nsIMdbEnv *GetEnv() {return m_mdbEnv;}
+  nsIMdbStore *GetStore() {return m_mdbStore;}
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgFolderCacheElement> m_cacheElements;
-  nsCOMPtr<mozIStorageConnection> m_dbConnection;
+  // mdb stuff
+  nsIMdbEnv           *m_mdbEnv; // to be used in all the db calls.
+  nsIMdbStore         *m_mdbStore;
+  nsIMdbTable         *m_mdbAllFoldersTable;
+  mdb_token           m_folderRowScopeToken;
+  mdb_token           m_folderTableKindToken;
+  nsCOMPtr<nsIMdbFactory> mMdbFactory;
+
+  struct mdbOid       m_allFoldersTableOID;
 };
 
 #endif

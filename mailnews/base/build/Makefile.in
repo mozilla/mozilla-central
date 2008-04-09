@@ -72,7 +72,6 @@ REQUIRES	= xpcom \
 		  mailnews \
 		  addrbook \
 		  mork \
-		  storage \
 		  txmgr \
 		  pref \
 		  msgcompose \

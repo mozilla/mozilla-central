@@ -84,7 +84,6 @@ REQUIRES	= xpcom \
 		  msgdb \
 		  mime \
 		  mork \
-		  storage \
 		  necko \
 		  nkcache \
 		  pref \

@@ -60,7 +60,7 @@ function run_test() {
   const items = [ { key: "MailD", value: "Mail" },
                   { key: "IMapMD", value: "ImapMail" },
                   { key: "NewsD", value: "News" },
-                  { key: "MFCaF", value: "msgFolderCache.sqlite" } ];
+                  { key: "MFCaF", value: "panacea.dat" } ];
 
   items.forEach(function(item) {
     var dir = dirSvc.get(item.key, nsIFile);

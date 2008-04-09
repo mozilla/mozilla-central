@@ -77,7 +77,7 @@ REQUIRES	= xpcom \
 		  pref \
 		  msglocal \
 		  msgimap \
-		  storage \
+		  mork \
 		  msgnews \
 		  addrbook \
 		  mime \

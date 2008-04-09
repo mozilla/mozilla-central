@@ -40,18 +40,26 @@
 
 #include "nsIMsgFolderCacheElement.h"
 #include "nsMsgFolderCache.h"
+#include "mdb.h"
 
 class nsMsgFolderCacheElement : public nsIMsgFolderCacheElement
 {
 public:
-  nsMsgFolderCacheElement(mozIStorageConnection *connection, const nsACString &key);
+  nsMsgFolderCacheElement();
   virtual ~nsMsgFolderCacheElement();
+  friend class nsMsgFolderCache;
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGFOLDERCACHEELEMENT
 
+  void SetMDBRow(nsIMdbRow *row);
+  void SetOwningCache(nsMsgFolderCache *owningCache);
 protected:
-  nsCOMPtr<mozIStorageConnection> m_dbConnection;
+  nsIMdbRow *m_mdbRow;
+
+  nsMsgFolderCache *m_owningCache; // this will be ref-counted. Is this going to be a problem?
+  // I want to avoid circular references, but since this is
+  // scriptable, I think I have to ref-count it.
   nsCString m_folderKey;
 };
 

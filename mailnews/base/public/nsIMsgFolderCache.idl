@@ -20,7 +20,6 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Joshua Cranmer <Pidgeot18@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,65 +41,13 @@
 interface nsIFile;
 interface nsIMsgFolderCacheElement;
 
-/**
- * An interface representing the message folder cache.
- *
- * The default cache is a SQLite file, msgFolderCache.sqlite, located in the
- * profile root directory. This can be specified with the key
- * NS_APP_MESSENGER_FOLDER_CACHE_50_FILE ("MFCaF") through a directory service
- * provider. This is the default schema:
- * <code>
- *  CREATE TABLE entries (
- *    folderKey CHAR,
- *    propertyName CHAR,
- *    value CHAR
- *  );
- * </code>
- *
- * All methods, except (obviously) Init, will throw a NS_ERROR_NOT_INITIALIZED
- * if the Init function has not been called. They may also throw underlying
- * errors from the backing database should a database error occur.
- */
 [scriptable, uuid(78C2B6A2-E29F-44de-9543-10DBB51E245C)]
 interface nsIMsgFolderCache : nsISupports 
 {
-  /**
-   * Initializes the folder cache with the specified file.
-   * Do not call multiple times.
-   */
   void Init(in nsIFile aFile);
-  /**
-   * Returns an element of the folder cache.
-   * 
-   * @param key             The name of cache element to get.
-   * @param createIfMissing If true, create the cache if it does not exist.
-   *
-   * @exception NS_ERROR_FAILURE if the key does not exist and is not created.
-   */
-  nsIMsgFolderCacheElement GetCacheElement(in ACString key,
-    in boolean createIfMissing);
-  /**
-   * Clears the cache.
-   */
+  nsIMsgFolderCacheElement GetCacheElement(in ACString key, in boolean createIfMissing);
   void clear();
-  /**
-   * Closes the cache.
-   *
-   * This will cause a compressed commit to occur.
-   */
   void close();
-  /**
-   * Commits the cache.
-   *
-   * @param compress        If true, compress the changes.
-   */
   void commit(in boolean compress);
-  /**
-   * Removes the named element.
-   *
-   * @param key             The name of cache element to get.
-   *
-   * @exception NS_ERROR_FAILURE if the key does not exist.
-   */
   void removeElement(in ACString key);
 };
