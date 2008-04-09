@@ -437,7 +437,7 @@ function boxInitializeHeaderGrid(box)
 function boxAppendLabeledText(box, labelProperty, textString)
 {
   var labelText = calGetString('calendar', labelProperty);
-  var rows = box.getElementsByTagName("rows")[0];
+  var rows = box.getElementsByTagNameNS(box.namespaceURI, "rows")[0];
   { 
     var row = document.createElement("row");
     {
