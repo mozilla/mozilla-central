@@ -47,6 +47,7 @@ messenger.jar:
 *   content/messenger/tabmail.xml                   (content/tabmail.xml)
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
+    content/messenger/mail-folder-bindings.xml      (content/mail-folder-bindings.xml)
 #ifdef MOZ_USE_GENERIC_BRANDING
 % content branding %content/branding/ xpcnativewrappers=yes
     content/branding/about-credits.png              (content/about-credits.png)

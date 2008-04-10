@@ -844,11 +844,6 @@ function SelectedMessagesAreFlagged()
     return isFlagged;
 }
 
-function getMsgToolbarMenu_init()
-{
-    document.commandDispatcher.updateCommands('create-menu-getMsgToolbar');
-}
-
 function GetFirstSelectedMsgFolder()
 {
     var result = null;
@@ -960,14 +955,21 @@ function MsgGetMessagesForAllAuthenticatedAccounts()
 /**
   * Get messages for the account selected from Menu dropdowns.
   * if offline, prompt for getting messages.
+  *
+  * @param aFolder (optional) a folder in the account for which messages should
+  *                           be retrieved.  If null, all accounts will be used.
   */
-function MsgGetMessagesForAccount(aEvent)
+function MsgGetMessagesForAccount(aFolder)
 {
-  if (!aEvent)
+  if (!aFolder) {
+    MsgGetMessagesForAllServers();
     return;
+  }
 
-  if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail())
-    GetMessagesForAccount(aEvent);
+  if (MailOfflineMgr.isOnline() || MailOfflineMgr.getNewMail()) {
+    var server = aFolder.server;
+    GetMessagesForInboxOnServer(server);
+  }
 }
 
 // if offline, prompt for getNextNMessages
@@ -2333,15 +2335,6 @@ function GetMessagesForAllAuthenticatedAccounts()
       dump(ex + "\n");
   }
 }
-
-function GetMessagesForAccount(aEvent)
-{
-  var uri = aEvent.target.id;
-  var server = GetServer(uri);
-  GetMessagesForInboxOnServer(server);
-  aEvent.stopPropagation();
-}
-
 
 function CommandUpdate_UndoRedo()
 {

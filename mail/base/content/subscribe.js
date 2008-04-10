@@ -103,9 +103,9 @@ function SetServerTypeSpecificTextValues()
     }
 }
 
-function onServerClick(event)
+function onServerClick(aFolder)
 {
-  gServerURI = event.target.id;
+  gServerURI = aFolder.server.serverURI;
 
   SetServerTypeSpecificTextValues();
   ShowCurrentList();
@@ -255,6 +255,7 @@ function SubscribeOnLoad()
     var folder = GetMsgFolderFromUri(uri, true);
     //dump("folder="+folder+"\n");
     //dump("folder.server="+folder.server+"\n");
+    serverMenu.menupopup.selectFolder(folder);
     try {
                         CleanUpSearchView();
       gSubscribableServer = folder.server.QueryInterface(Components.interfaces.nsISubscribableServer);
@@ -273,11 +274,11 @@ function SubscribeOnLoad()
   if (!gServerURI) {
     //dump("subscribe: no uri\n");
     //dump("xxx todo:  use the default news server.  right now, I'm just using the first server\n");
-    var serverMenu = document.getElementById("serverMenu");
-    var menuitems = serverMenu.getElementsByTagName("menuitem");
 
-    if (menuitems.length > 1) {
-      gServerURI = menuitems[1].id;
+    serverMenu.selectedIndex = 0;
+
+    if (serverMenu.selectedItem) {
+      gServerURI = serverMenu.selectedItem.getAttribute("id");
     }
     else {
       //dump("xxx todo none of your servers are subscribable\n");

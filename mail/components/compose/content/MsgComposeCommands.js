@@ -1959,7 +1959,7 @@ function MessageFcc(menuItem)
     return;
 
   // Get the uri for the folder to FCC into.
-  var fccUri = menuItem.getAttribute("fccUri");
+  var fccURI = aFolder.URI;
   msgCompFields.fcc2 = (msgCompFields.fcc2 == fccUri) ? "nocopy://" : fccUri;
 }
 

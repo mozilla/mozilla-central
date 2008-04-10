@@ -201,71 +201,10 @@
         <button id="fileMessageButton" type="menu" label="&fileButton.label;"
                 accesskey="&fileButton.accesskey;"
                 observes="file_message_button"
-                oncommand="MoveMessageInSearch(event.target)" 
-                sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                sortDirection="ascending"
-                datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                ref="msgaccounts:/">
-        <menupopup/>
-        <template> 
-        <rule nc:NoSelect="true" iscontainer="true" isempty="false">
-          <menupopup>
-            <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name">
-              <menupopup>
-                <menuitem label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;" disabled="true"/>
-                <menuseparator/>
-              </menupopup>
-            </menu>
-          </menupopup>
-        </rule> 
-        <rule nc:NoSelect="true">
-          <menupopup>
-            <menuitem uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name" disabled="true"/>
-          </menupopup>
-        </rule>
-          <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
-            <menupopup>
-              <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                <menupopup>
-                  <menuitem file-uri="..." label="&fileHereMenu.label;" accesskey="&fileHereMenu.accesskey;" />
-                  <menuseparator/>
-                </menupopup>
-              </menu>
-            </menupopup>
-          </rule>
-          <rule nc:CanFileMessagesOnServer="false">
-            <!-- don't show servers (nntp & any others) which does not allow message filing -->
-            <!-- File, Move & Copy menus -->
-          </rule>
-          <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
-          <!-- note, there is no "file here" -->
-            <menupopup>
-              <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                <menupopup/>
-              </menu>
-            </menupopup>
-          </rule>
-          <rule nc:CanFileMessages="true">
-            <menupopup>
-              <menuitem uri="..." class="folderMenuItem menuitem-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-               SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-               BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-               IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-               IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-               ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"/>
-            </menupopup>
-          </rule>
-        </template>
+                oncommand="MoveMessageInSearch(event.target)">
+        <menupopup type="folder" showFileHereLabel="true"
+                   fileHereLabel="&fileHereMenu.label;"
+                   fileHereAccessKey="&fileHereMenu.accesskey;"/>
       </button>
 
       <button label="&deleteButton.label;" id="deleteButton" command="button_delete" accesskey="&deleteButton.accesskey;"/>

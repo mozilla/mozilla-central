@@ -470,56 +470,11 @@
             </menupopup>
           </menu>
           <menu id="fccMenu" label="&fileCarbonCopyCmd.label;" 
-             accesskey="&fileCarbonCopyCmd.accesskey;" 
-             sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-             sortDirection="ascending"
-             datasources="rdf:msgaccountmanager rdf:mailnewsfolders" 
-             ref="msgaccounts:/"
-             oncommand="MessageFcc(event.target);">
-            <menupopup/>
-            <template> 
-              <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
-                <menupopup>
-                  <!--menuitem label="[current selection]" disabled="true"/>
-                  <menuseparator/-->
-                  <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                        SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                        BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                        IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                        IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                        ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                    <menupopup>
-                      <menuitem label="&fileHereMenu.label;" fccUri="rdf:*"/>
-                      <menuseparator/>
-                    </menupopup>
-                  </menu>
-                </menupopup>
-              </rule>
-              <rule nc:CanFileMessagesOnServer="false"/>
-              <rule nc:CanFileMessages="false" iscontainer="true" isempty="false">
-                <menupopup>
-                  <menu uri="..."  class="folderMenuItem menu-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                        SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                        BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                        IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                        IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                        ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType">
-                    <menupopup/>
-                  </menu>
-                </menupopup>
-              </rule>
-              <rule nc:CanFileMessages="true">
-                <menupopup>
-                  <menuitem uri="..." class="folderMenuItem menuitem-iconic" label="rdf:http://home.netscape.com/NC-rdf#Name"
-                            SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
-                            BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
-                            IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
-                            IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
-                            ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
-                            fccUri="rdf:*"/>
-                </menupopup>
-              </rule>
-            </template>
+                accesskey="&fileCarbonCopyCmd.accesskey;" 
+                oncommand="MessageFcc(event.target._folder)">
+            <menupopup type="folder" mode="filing" showFileHereLabel="true"
+                       fileHereLabel="&fileHereMenu.label;"
+                       fileHereAccessKey="&fileHereMenu.accesskey;"/>
           </menu>    
         </menupopup>
       </menu>

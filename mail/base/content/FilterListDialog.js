@@ -175,11 +175,15 @@ function onCancel()
 }
 */
 
-function onFilterServerClick(selection)
+/**
+ * Called when a user selects a server in the list, so we can update the filters
+ * that are displayed
+ *
+ * @param aURI  the uri of the server that was selected
+ */
+function onFilterServerClick(aURI)
 {
-    var itemURI = selection.getAttribute('itemUri');
-
-    if (itemURI == gCurrentServerURI)
+    if (!aURI || aURI == gCurrentServerURI)
       return;
 
     // Save the current filters to disk before switching because
@@ -188,7 +192,7 @@ function onFilterServerClick(selection)
     if (filterList)
       filterList.saveToDefaultFile();
 
-    selectServer(itemURI);
+    selectServer(aURI);
 }
 
 function CanRunFiltersAfterTheFact(aServer)

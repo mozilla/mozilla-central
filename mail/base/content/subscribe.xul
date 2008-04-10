@@ -38,6 +38,7 @@
 # ***** END LICENSE BLOCK *****
 
 <?xml-stylesheet href="chrome://messenger/skin/subscribe.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://messenger/locale/subscribe.dtd">
 
@@ -78,17 +79,8 @@
               <hbox pack="end" align="center">
                 <label value="&server.label;" accesskey="&server.accesskey;" control="serverMenu"/>
               </hbox>
-              <menulist oncommand="onServerClick(event);" id="serverMenu"
-                        datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
-                        sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
-                        sortDirection="ascending" ref="msgaccounts:/" flex="1">
-                <template>
-                  <rule NC:CanSubscribe="true">
-                    <menupopup>
-                      <menuitem class="subscribeMenuItem menuitem-iconic" uri="..." label="rdf:http://home.netscape.com/NC-rdf#Name" ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType" IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"/>
-                    </menupopup>
-                  </rule>
-                </template>
+              <menulist oncommand="onServerClick(event.target._folder);" id="serverMenu" flex="1">
+                <menupopup type="folder" mode="subscribe" expandFolders="false"/>
               </menulist>
             </row>
             <row align="center">

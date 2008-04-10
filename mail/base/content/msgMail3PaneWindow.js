@@ -981,12 +981,6 @@ function InitializeDataSources()
 {
   //Setup common mailwindow stuff.
   AddDataSources();
-
-  //To threadpane move context menu
-  SetupMoveCopyMenus('threadPaneContext-moveMenu', accountManagerDataSource, folderDataSource);
-
-  //To threadpane copy content menu
-  SetupMoveCopyMenus('threadPaneContext-copyMenu', accountManagerDataSource, folderDataSource);
 }
 
 function OnFolderUnreadColAttrModified(event)

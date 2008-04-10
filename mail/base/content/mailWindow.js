@@ -186,19 +186,6 @@ function AddDataSources()
 {
   accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
   folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-  //to move menu item
-  SetupMoveCopyMenus('moveMenu', accountManagerDataSource, folderDataSource);
-
-  //to copy menu item
-  SetupMoveCopyMenus('copyMenu', accountManagerDataSource, folderDataSource);
-
-
-  //To FileButton menu
-  SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
-
-  //To move and copy menus in message pane context
-  SetupMoveCopyMenus("messagePaneContext-copyMenu", accountManagerDataSource, folderDataSource);
-  SetupMoveCopyMenus("messagePaneContext-moveMenu", accountManagerDataSource, folderDataSource);
 
   //Add statusFeedback
 
@@ -210,17 +197,6 @@ function AddDataSources()
   {
     msgDS = viewDataSources[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
     msgDS.window = msgWindow;
-  }
-}
-
-function SetupMoveCopyMenus(menuid, accountManagerDataSource, folderDataSource)
-{
-  var menu = document.getElementById(menuid);
-  if(menu)
-  {
-    menu.database.AddDataSource(accountManagerDataSource);
-    menu.database.AddDataSource(folderDataSource);
-    menu.setAttribute('ref', 'msgaccounts:/');
   }
 }
 
