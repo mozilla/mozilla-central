@@ -6,11 +6,12 @@ from twisted.web.util import Redirect
 import re, urllib, time
 from twisted.python import log
 from buildbot import interfaces
-from buildbot.status.web.base import HtmlResource, make_row, OneLineMixin
+from buildbot.status.web.base import HtmlResource, make_row, \
+     make_force_build_form, OneLineMixin
 from buildbot.process.base import BuildRequest
 from buildbot.sourcestamp import SourceStamp
 
-from buildbot.status.web.build import BuildsResource
+from buildbot.status.web.build import BuildsResource, StatusResourceBuild
 
 # /builders/$builder
 class StatusResourceBuilder(HtmlResource, OneLineMixin):
@@ -28,12 +29,25 @@ class StatusResourceBuilder(HtmlResource, OneLineMixin):
         buildnum = build.getNumber()
         buildurl = req.childLink("builds/%d" % buildnum)
         data = '<a href="%s">#%d</a> ' % (buildurl, buildnum)
+
         when = build.getETA()
         if when is not None:
             when_time = time.strftime("%H:%M:%S",
                                       time.localtime(time.time() + when))
             data += "ETA %ds (%s) " % (when, when_time)
-        data += "[%s]" % build.getCurrentStep().getName()
+        step = build.getCurrentStep()
+        if step:
+            data += "[%s]" % step.getName()
+        else:
+            data += "[waiting for Lock]"
+            # TODO: is this necessarily the case?
+
+        if self.builder_control is not None:
+            stopURL = urllib.quote(req.childLink("builds/%d/stop" % buildnum))
+            data += '''
+<form action="%s" class="command stopbuild" style="display:inline">
+  <input type="submit" value="Stop Build" />
+</form>''' % stopURL
         return data
 
     def body(self, req):
@@ -93,23 +107,7 @@ class StatusResourceBuilder(HtmlResource, OneLineMixin):
 
         if control is not None and connected_slaves:
             forceURL = urllib.quote(req.childLink("force"))
-            data += (
-                """
-                <form action='%(forceURL)s' class='command forcebuild'>
-                <p>To force a build, fill out the following fields and
-                push the 'Force Build' button</p>"""
-                + make_row("Your name:",
-                           "<input type='text' name='username' />")
-                + make_row("Reason for build:",
-                           "<input type='text' name='comments' />")
-                + make_row("Branch to build:",
-                           "<input type='text' name='branch' />")
-                + make_row("Revision to build:",
-                           "<input type='text' name='revision' />")
-                + """
-                <input type='submit' value='Force Build' />
-                </form>
-                """) % {"forceURL": forceURL}
+            data += make_force_build_form(forceURL)
         elif control is not None:
             data += """
             <p>All buildslaves appear to be offline, so it's not possible
@@ -152,9 +150,9 @@ class StatusResourceBuilder(HtmlResource, OneLineMixin):
         if not re.match(r'^[\w\.\-\/]*$', revision):
             log.msg("bad revision '%s'" % revision)
             return Redirect("..")
-        if branch == "":
+        if not branch:
             branch = None
-        if revision == "":
+        if not revision:
             revision = None
 
         # TODO: if we can authenticate that a particular User pushed the
@@ -168,12 +166,12 @@ class StatusResourceBuilder(HtmlResource, OneLineMixin):
             # TODO: tell the web user that their request could not be
             # honored
             pass
-        return Redirect("../..")
+        return Redirect("../../waterfall")
 
     def ping(self, req):
         log.msg("web ping of builder '%s'" % self.builder_status.getName())
         self.builder_control.ping() # TODO: there ought to be an ISlaveControl
-        return Redirect("../..")
+        return Redirect("../../waterfall")
 
     def getChild(self, path, req):
         if path == "force":
@@ -204,6 +202,57 @@ class StatusResourceBuilder(HtmlResource, OneLineMixin):
             return BuildsResource(self.builder_status, self.builder_control)
 
         return HtmlResource.getChild(self, path, req)
+
+
+# /builders/_all
+class StatusResourceAllBuilders(HtmlResource, OneLineMixin):
+
+    def __init__(self, status, control):
+        HtmlResource.__init__(self)
+        self.status = status
+        self.control = control
+
+    def getChild(self, path, req):
+        if path == "force":
+            return self.force(req)
+        if path == "stop":
+            return self.stop(req)
+
+        return HtmlResource.getChild(self, path, req)
+
+    def force(self, req):
+        for bname in self.status.getBuilderNames():
+            builder_status = self.status.getBuilder(bname)
+            builder_control = None
+            c = self.getControl(req)
+            if c:
+                builder_control = c.getBuilder(bname)
+            build = StatusResourceBuilder(builder_status, builder_control)
+            build.force(req)
+        return Redirect("../../waterfall")
+
+    def stop(self, req):
+        for bname in self.status.getBuilderNames():
+            builder_status = self.status.getBuilder(bname)
+            builder_control = None
+            c = self.getControl(req)
+            if c:
+                builder_control = c.getBuilder(bname)
+            (state, current_builds) = builder_status.getState()
+            if state != "building":
+                continue
+            for b in current_builds:
+                build_status = builder_status.getBuild(b.number)
+                if not build_status:
+                    continue
+                if builder_control:
+                    build_control = builder_control.getBuild(b.number)
+                else:
+                    build_control = None
+                build = StatusResourceBuild(build_status, build_control,
+                                            builder_control)
+                build.stop(req)
+        return Redirect("../../waterfall")
 
 
 # /builders
@@ -237,6 +286,9 @@ class BuildersResource(HtmlResource):
             if c:
                 builder_control = c.getBuilder(path)
             return StatusResourceBuilder(builder_status, builder_control)
+        if path == "_all":
+            return StatusResourceAllBuilders(self.getStatus(req),
+                                             self.getControl(req))
 
         return HtmlResource.getChild(self, path, req)
 

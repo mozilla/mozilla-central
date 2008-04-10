@@ -1,3 +1,502 @@
+2008-03-29  Brian Warner  <warner@lothar.com>
+
+	* buildbot/__init__.py (version): Releasing buildbot-0.7.7
+	* docs/buildbot.texinfo: same
+
+2008-03-29  Brian Warner  <warner@lothar.com>
+
+	* NEWS: update with all changes since the last release. I left the
+	bugs-fixed section somewhat terse, but there's a link to the Trac
+	page with more details.
+	* CREDITS: update
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource):
+	accept category= arguments in the query-arg portion of the URL.
+	These behave like the builder= queryargs: if any category=
+	queryargs are present, we'll only show Builders that fit into one
+	of the specified categories. Using multiple category= arguments
+	will show more Builders. Thanks to Jerome Davann (hollowman) for
+	the idea and the patch. Closes #117.
+	* docs/buildbot.texinfo (Buildbot Web Resources): document it
+
+	* buildbot/changes/svnpoller.py (SVNPoller.create_changes): pass
+	revision as a string, not an int. This fixes a problem in
+	MailNotifier, which expects a string. Thanks to Dan Locks for the
+	patch, and Dustin Mitchell for the test fixups. Closes #208.
+	* buildbot/steps/source.py (Source.commandComplete): treat
+	got_revision as a string too.
+	* buildbot/test/test_svnpoller.py: update test to match
+	* buildbot/test/test_vc.py: same
+
+2008-03-27  Brian Warner  <warner@lothar.com>
+
+	* buildbot/scripts/runner.py (doCheckConfig): patch from Ben
+	Hearsum to implement 'buildbot checkconfig': validate that your
+	master.cfg is good without actually touching the buildmaster.
+	Closes #37. Thanks!
+	* buildbot/scripts/checkconfig.py: same
+	* docs/buildbot.texinfo (Testing the Config File): document it
+
+2008-03-22  Brian Warner  <warner@lothar.com>
+
+	* buildbot/test/test_vc.py (Mercurial.serveHTTP): another attempt
+	to make Mercurial.testCheckoutHTTP not fail on heavily loaded
+	machines: avoid overlapping poll() calls.
+
+	* NEWS: preliminary list of changes for the upcoming release.
+	Needs editing and explanations.
+
+	* buildbot/status/web/base.py (make_stop_form): add a label=
+	argument so that the button says "Stop Builds" or "Stop Build" as
+	appropriate. It used to say "Stop Builder", which was wrong.
+	* buildbot/status/web/baseweb.py (OneLinePerBuild.body): same
+	(OneBoxPerBuilder.body): same
+
+	* buildbot/process/builder.py (Builder): use self.old_building to
+	track Builds from a previous version of this Builder and are still
+	running. This makes it possible for IBuilderControl to get at
+	them, allowing the "Stop Build" button to work after a
+	Builder-replacing reconfig. Closes #22.
+	(Builder.consumeTheSoulOfYourPredecessor): grab weakrefs from the
+	old Builder's self.building attribute, instead of strongrefs,
+	since there's no good place to explicitly forget about them.
+	(Builder.getBuild): factor this out of BuilderControl
+
+	* buildbot/process/buildstep.py (LogLineObserver.setMaxLineLength):
+	new method to override the default 16KiB line length. Lines that
+	are longer than this will cause the rest of the log file to be
+	ignored. Thanks to Greg Ward for the patch. Closes #201.
+	* buildbot/test/test_buildstep.py: new tests for log observers
+	* docs/buildbot.texinfo (Adding LogObservers): document it
+
+	* buildbot/slave/commands.py (ShellCommand): record more
+	information in the 'header' section: how much we write into stdin,
+	do we close stdin, are we using a PTY. There are lingering
+	problems with PTYs and with closing stdin (see #198 and #158).
+	This doesn't fix those problems, but it should provide more
+	information to developers.
+
+	* buildbot/status/client.py: hush pyflakes, log.msg vs log
+	* buildbot/status/mail.py: same
+
+	* buildbot/locks.py (debuglog): hush pyflakes
+
+	* buildbot/steps/source.py (SVN.__init__): fix pyflakes: it
+	doesn't like a variable named 'warnings' that shadows the import
+
+	* buildbot/test/test_web.py: fix some pyflakes warnings, caused by
+	having a variable name shadow a top-level import
+
+	* buildbot/test/test_run.py (Disconnect.testBuild2): fix old
+	cut-and-paste typo that was causing us to run the wrong callback
+
+	* Makefile (pyflakes): sort+uniqify, since newer pyflakes isn't
+	smart enough to do this on its own
+	* buildbot/test/runutils.py (myGetProcessOutputAndValue): move this
+	method out from test_vc.py, hush pyflakes complaints
+
+	* buildbot/test/test_vc.py (Mercurial.serveHTTP): wait for the 'hg
+	serve' command to be ready, by polling with twisted.web's
+	client.getPage . Unfortunately mercurial doesn't flush its stdout
+	at startup, so we can't just wait for the 'listening at..' line to
+	be printed. This should fix the sporadic "connection refused" test
+	failures I've seen on the metabuildbot when the buildslave is
+	overloaded and 'hg serve' takes a while to start up.
+
+	* buildbot/steps/python_twisted.py (TrialTestCaseCounter): modify
+	regexp to count "Doctest:" lines as well as normal tests. Thanks to
+	Martin Geisler for the patch. Closes #196.
+
+2008-03-20  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/waterfall.py (CurrentBox.formatETA): apply
+	patch from TedMielczarek to display hours/minutes/seconds in the
+	ETA display. Thanks Ted! Also make 'next build starts in' box use
+	the same format. Closes #95.
+
+	* buildbot/process/buildstep.py (render_properties): more cleanup:
+	rename 'render' to 'render_properties'.
+	* buildbot/steps/shell.py: same
+	(ShellCommand._interpolateProperties): tolerate None in the value,
+	clean up the isinstance checks, stop using the 'types' module
+
+	* buildbot/steps/transfer.py (FileUpload.start): same, other cleanups
+
+	* buildbot/steps/shell.py (render): oops, remove redundant
+	definition that probably crept in during a merge conflict
+
+	* buildbot/scheduler.py (Triggerable): cleanup: wrap docstring
+	* buildbot/steps/trigger.py (Trigger): cleanup: rename schedulers=
+	to schedulerNames=, make updateSourceStamp=True by default, tolerate
+	missing got_revision property (i.e. if updateSourceStamp=True but
+	there was no checkout/update step run), add TODO notes for further
+	cleanup.
+	* buildbot/test/test_run.py (Triggers): update to match
+	* docs/buildbot.texinfo (Build Dependencies): same
+
+	* buildbot/slave/commands.py (SVN.doVCFull): merge Dustin's patch:
+	add --no-auth-cache option to svn invocations to avoid caching
+	buildbot's credentials. This also helps when users run a
+	buildslave from their personal account, to keep the buildslave
+	from clobbering their manually-provided svn password. Closes #188.
+	(SVN.doVCUpdate): do it for 'svn update' too.
+
+	* buildbot/steps/shell.py: merge Greg Ward's patch (via Dustin):
+	refactor WithProperties handling, allow WithProperties in more
+	places. Closes #115.
+	* buildbot/process/buildstep.py: same
+	* buildbot/steps/transfer.py: same, allow WithProperties in filenames
+
+	* buildbot/steps/trigger.py: remove unused imports to hush pyflakes
+
+	* docs/buildbot.texinfo (Build Properties): fix up nodes+menus
+
+2008-03-19  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/xmlrpc.py (XMLRPCServer.xmlrpc_getAllBuilders):
+	merge Etienne Pierre's patch (via Dustin): add new XMLRPC methods.
+	(XMLRPCServer.xmlrpc_getStatus): same
+	(XMLRPCServer.xmlrpc_getLastBuilds): same, returns the last N
+	completed builds for a given Builder
+
+	* buildbot/test/test_config.py (ConfigTest.setUp): merge Dustin's
+	patch: suppress DeprecationWarnings in our tests of deprecated
+	features that aren't scheduled for removal quite yet. In the long
+	run, we'll remove the old features and the tests.
+
+	* NEWS: add a deprecation schedule
+	* buildbot/changes/freshcvsmail.py: remove this file, it was
+	replaced by mail.FCMaildirSource in the previous release.
+
+	* buildbot/test/runutils.py: set usePTY=False everywhere we aren't
+	explicitly testing =True, to avoid SIGHUP-based failures that I
+	now see about 10% of the time.
+
+	* buildbot/scheduler.py (Triggerable): merge Dustin's patch: add
+	"Triggerable" Schedulers, to start builds at specific phases of
+	other builds rather than in response to source code changes or
+	periodic timers. These phases are marked by "Trigger" steps, which
+	are configured with a list of Triggerable schedulers that they
+	should fire. Closes #56.
+	* buildbot/steps/trigger.py (Trigger): buildstep to match
+	* buildbot/test/test_run.py (Triggers): test for it
+	* docs/buildbot.texinfo (Build Dependencies): document it
+	(Triggering Schedulers): same
+
+2008-03-18  Brian Warner  <warner@lothar.com>
+
+	* buildbot/interfaces.py (ISourceStamp.getAbsoluteSourceStamp):
+	merge patch from Dustin to add "absolute source stamps": just like
+	normal SourceStamp instances except that they have a .revision
+	attribute copied out of the got_revision property of a build. If
+	the input SourceStamp says .revision=None (i.e. HEAD), and the
+	build is done when the tree is at r1234, then the "absolute"
+	SourceStamp should have .revision=1234 .
+	* buildbot/sourcestamp.py (SourceStamp.getAbsoluteSourceStamp): same
+	* buildbot/status/builder.py (BuildStatus.getSourceStamp): add
+	absolute= argument
+
+	* buildbot/test/runutils.py (SetTestFlagStep): test utility class,
+	adding 'flags' that can be set by specific buildsteps. This makes
+	it easier to write tests that detect whether certain buildsteps
+	have been reached or not. Patch by Dustin Mitchell.
+	* buildbot/test/test_run.py (TestFlag.testTestFlag): test for it.
+
+	* buildbot/buildslave.py (BuildSlave.__repr__): protect against
+	.botmaster being empty, to allow pretty-printing of configuration
+	files before the twisted reactor starts. Patch from Dustin
+	Mitchell.
+
+	* docs/buildbot.texinfo (Shutdown): make it clear that 'buildbot
+	reconfig' (which uses SIGHUP) doesn't work on windows. Acknowledge
+	the occasional failures in reconfig (and suggest 'buildbot
+	restart' as a fallback). Closes #105.
+
+	* buildbot/steps/shell.py (ShellCommand._interpolateProperties):
+	apply patch from Albert Hofkamp to allow WithProperties in
+	environment variables and the workdir= argument. Closes #52.
+	* buildbot/test/test_properties.py (Interpolate.testCustomBuildStep):
+	remove this test, it was pretty weird and didn't work with the
+	new _interpolateProperties approach.
+
+	* buildbot/test/test_vc.py (VCBase.connectSlave): turn off usePTY
+	for all slave commands: I'm seeing 'cp' and 'rm' fail with SIGHUP,
+	probably when we close stdin. This happens on my debian/sid
+	system, but not on older unixes, so I suspect some change in
+	behavior in the kernel or glibc or something similar.
+
+2008-02-05  Brian Warner  <warner@lothar.com>
+
+	* buildbot/buildslave.py (BuildSlave._missing_timer_fired): add a
+	To: header to the email message we're composing. Oops. Thanks
+	to Zandr Milewski for the catch.
+	* buildbot/test/test_slaves.py (BuildSlave.test_mail_on_missing):
+	test for it
+
+2007-12-31  Brian Warner  <warner@lothar.com>
+
+	* buildbot/test/test_transfer.py (Upload.testLotsOfBlocks): remove
+	the short timeouts, these can cause false test failures on slow
+	systems, and were only needed while developing the recent patch
+	(Download.testLotsOfBlocks): same
+
+	* buildbot/scripts/reconfig.py (Reconfigurator.run): if we're on
+	windows, make 'buildbot reconfig' emit a warning message (since
+	there's no SIGHUP to be had) rather than just hanging. Addresses
+	#105, but we still need to document this somewhere. Thanks to
+	Ben Hearsum for the patch.
+
+	* buildbot/slave/commands.py (SlaveFileUploadCommand.start):
+	rewrite the main loop to avoid tail recursion, since Deferreds
+	don't optimize those out. Without this, at the end of the transfer
+	we'd hit a stack depth of about two or three frames per block
+	transferred, and for large transfers this would run into a "stack
+	depth exceeded" error. Closes #106.
+	(SlaveFileDownloadCommand.start): same, for downloads.
+	* buildbot/test/test_transfer.py (Upload.testLotsOfBlocks): test it
+	(Download.testLotsOfBlocks): same
+
+2007-12-22  Brian Warner  <warner@lothar.com>
+
+	* buildbot/steps/shell.py (TreeSize): This never worked properly.
+	Fix it. Also, stash the tree size in a build property named
+	'tree-size-kb'. Note that this records size in KiB (1024 bytes),
+	not KB (1000 bytes), because that's what du will give us. This
+	closes #47.
+	* docs/buildbot.texinfo (TreeSize): document it
+	* buildbot/test/test_steps.py (TreeSize.testTreeSize): test it
+
+	* buildbot/steps/shell.py (WarningCountingShellCommand): utility
+	subclass which uses a regular expression to count warning messages
+	in the output. This also puts warning messages in a new 'warnings'
+	logfile, sets the 'warnings-count' build property with the total
+	count, and marks the step results as WARNINGS if there are any
+	warnings. Thanks to Roch Gadsdon (rochg) for the patch. Closes
+	#74.
+	(Compile): derive from WarningCountingShellCommand
+	(Test): same
+	* docs/buildbot.texinfo (Compile): document it
+	* buildbot/test/test_steps.py (Warnings): test it
+
+	* buildbot/slave/commands.py (ShellCommand._chunkForSend): don't
+	send more than 128kB of stdout/stderr/logfile text in a single PB
+	string, since PB has a hardwired limit of 640kB. This should fix
+	crashes that occur when the test process generates output very
+	very quickly. Patch by chops@demiurgestudios.com, thanks! I
+	haven't been able to reproduce this locally, but the potential bug
+	is clear. This should close #129.
+
+2007-12-21  Brian Warner  <warner@lothar.com>
+
+	* buildbot/scripts/startup.py (start): check to see if there's a
+	buildbot.tac before doing anything else. This improves the error
+	message when you do 'buildbot start' in the wrong directory.
+
+	* buildbot/scripts/logwatcher.py (LogWatcher.start): rewrite to
+	spawn /usr/bin/tail to follow the target's twistd.log . It turns
+	out that OS-X file EOF semantics are different, and the naive
+	read-then-read-again approach I was using doesn't work (the first
+	EOF we hit is sticky). tail gets it right, so rely upon it instead
+	of reimplementing the wheel. This should make 'buildbot start'
+	correctly follow the logfile on OS-X, thus closing #141.
+
+2007-12-14  Brian Warner  <warner@lothar.com>
+
+	* buildbot/steps/shell.py (ShellCommand.__init__): stash the
+	RemoteShellCommands args too, so things like 'workdir' and 'env'
+	and 'timeout' are preserved. This ought to fix #150.
+	* buildbot/test/test_steps.py (Steps.testClone): test it
+
+2007-12-11  Brian Warner  <warner@lothar.com>
+
+	* buildbot/scripts/startup.py (launch): use twisted.__version__,
+	rather than twisted.version, since the latter didn't appear until
+	Twisted-2.4.0 . This unbreaks 'buildbot start' on older Twisteds.
+
+2007-12-08  Brian Warner  <warner@lothar.com>
+
+	* docs/buildbot.texinfo (Git): document the fact that we require
+	Git 1.2.0 or later, and that the one shipped in dapper is too old.
+
+	* buildbot/scripts/startup.py (launch): twisted-2.5.0 and later
+	doesn't need twisted.scripts._twistw.run; instead, it uses
+	twisted.scripts.twistd.run on all platforms. Closes #53.
+
+2007-11-30  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/builder.py (BuilderStatus): small docs patches
+	from Greg Ward.. thanks!
+	* buildbot/process/base.py (Build): same
+
+2007-11-29  Brian Warner  <warner@lothar.com>
+
+	* buildbot/slave/commands.py (Mercurial._maybeFallback): add an
+	_abandonOnFailure call to the fallback, to skip the 'update' step
+	if the checkout fails.
+	(Mercurial._maybeFallback): More fixes: look for error messages
+	generated by every version of hg from 0.7 to the current 0.9.5,
+	including development versions as of rev 92991422a847. Also make
+	sure to return the exit code of non-fallbackable errors so that
+	other steps can attempt a workaround.
+
+2007-11-28  Brian Warner  <warner@lothar.com>
+
+	* buildbot/slave/commands.py (Mercurial._maybeFallback): improve
+	hg fallback so that it works when the client hg is new and the
+	server hg is old (the error message is different in this case).
+
+2007-11-27  Brian Warner  <warner@lothar.com>
+
+	* buildbot/test/test_p4poller.py: hush pyflakes warning
+
+	* buildbot/slave/commands.py (Mercurial._maybeFallback): when hg
+	is doing a 'clone' operation, to a remote repository (e.g. over
+	HTTP), and either the server or the client is hg-0.9.1 or older,
+	'hg clone' cannot accept a --rev argument: instead, you have to
+	clone the tip and then update back to the desired revision. Added
+	code to detect this failure mode and fall back to the clone+update
+	scheme. Closes #122 and #103.
+	(ShellCommand.__init__): add a keepStderr= flag to support this
+
+	* buildbot/test/test_vc.py (VCBase._do_vctest_clobber_2): add a
+	test that does a checkout to a specific version, to exercise the
+	mercurial limitation workaround.
+	(Mercurial.serveHTTP): add code to test hg checkout over HTTP,
+	using mercurial's built-in 'hg serve' command. Because of
+	limitations in hg, this code uses a randomly-selected TCP
+	port (rather than claiming a free one), so every once in a while
+	this test is going to fail because of a port-number collision.
+
+	* buildbot/test/test_vc.py (GitHelper.capable): skip Git tests if
+	the version of Git installed is older than 1.2.x . Git 1.1.3
+	doesn't accept 'git init' (it wants 'git init-db' instead) and the
+	branch tests fail. I know that Git 1.5.3.6 works. I don't know
+	what the dividing line is.. if someone can figure it out, please
+	update this check. Also, if someone can make buildbot's git
+	support handle older versions, please do that too! Addresses #130.
+
+2007-11-21  Brian Warner  <warner@lothar.com>
+
+	* lots: improve Git support, AMAZING patch from Haavard
+	Skinnemoen, complete with unit tests and docs, thanks! Closes #130.
+	* buildbot/scripts/tryclient.py (GitExtractor): add 'try' support
+	* buildbot/slave/commands.py (Git): accept branch and revisions,
+	and use 'git' instead of the 'cogito' wrapper
+	* buildbot/steps/source.py (Git.__init__): same
+	* buildbot/test/test_vc.py (BaseHelper.runCommand): offer control
+	over env=
+	(BaseHelper.do): same
+	(BaseHelper.dovc): same
+	(Git): unit tests for Git support. Wow!
+	* docs/buildbot.texinfo (Git): docs for Git support. Double Wow!
+	* contrib/git_buildbot.py: commit-hook script for git
+
+
+	* buildbot/changes/p4poller.py (P4Source._finished): don't let a
+	failure cause us to stop polling. Thanks to John Backstrand for
+	the patch. Closes #135.
+	* buildbot/test/test_p4poller.py (TestP4Poller.testFailedChanges):
+	change this to match
+	(TestP4Poller.testFailedDescribe): same
+
+	* buildbot/status/web/waterfall.py (WaterfallStatusResource.body):
+	fix timezone calculation, we were always emitting DST, even in
+	winter. Thanks to Charles Lepple and John Saxton for the patch.
+	Closes #137.
+	* buildbot/test/test_web.py (Waterfall.test_waterfall._check1): same
+
+
+	* lots: a whole batch of patches from Benoit Sigoure, referenced
+	in ticket #138. Thanks!
+
+	* buildbot/master.py (BuildMaster.loadConfig): builder names that
+	begin with an underscore are now reserved, so prohibit them from
+	appearing in the config file.
+	* NEWS: announce this change.
+
+	* buildbot/status/web/base.py: add buttons (to one_line_per_build
+	and one_box_per_builder) to force/stop builds on all Builders at
+	once.
+	* buildbot/status/web/baseweb.py: same
+	(OneBoxPerBuilder.body): add links to the per-Builder page
+
+	* buildbot/status/web/builder.py: same
+
+	* buildbot/status/web/builder.py (StatusResourceBuilder.body):
+	factor out force/stop form generation
+	* buildbot/status/web/base.py: same
+	* buildbot/status/web/build.py: same
+
+	* buildbot/status/web/builder.py (StatusResourceBuilder.force):
+	simplify some 'if' statements
+	(StatusResourceBuilder.build_line): add a 'Stop Build' button next
+	to the 'Force Build' button, so you can start and stop a build
+	from the same place.
+	(StatusResourceBuilder.force): redirect back to the waterfall,
+	rather than the index page
+	(StatusResourceBuilder.ping): same
+	* buildbot/status/web/build.py (StatusResourceBuild.stop): same
+
+	* buildbot/slave/bot.py (Bot.remote_setBuilderList): don't
+	consider the 'info' directory as a leftover directory. Patch from
+	Benoit Sigoure, ticket #138.
+	(others): remove trailing whitespace
+
+2007-11-01  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/builder.py (StatusResourceBuilder.build_line):
+	if there's no current step, don't try to display its description.
+	Same crash as in #96, this time in the web page. Closes #111.
+
+	* buildbot/status/web/base.py (OneLineMixin.make_line): tolerate
+	results == None (i.e. when the build hasn't finished yet);
+	previously this code exploded when trying to find a CSS class for
+	that results value. Patch from Greg Ward. Closes #118.
+
+	* buildbot/status/client.py (RemoteBuildStep.remote_getLogs):
+	IBuildStepStatus.getLogs() returns a list, not a dict. Patch from
+	Fabrice Crestois. Closes #121.
+
+2007-10-31  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/words.py (Contact.emit_status): if there's no
+	current step, don't try to display its description. This should
+	fix the crash when asking the irc bot about builds which are
+	waiting for a build-wide Lock. Closes #96.
+
+	* buildbot/status/tinderbox.py (TinderboxMailNotifier): add
+	'columnName' argument, from a patch by Ben Hearsum. Closes #120.
+
+2007-10-16  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/web/slaves.py (BuildSlavesResource.body): fix
+	timestamp, I was using %M (minutes) where I meant to be using
+	%b (abbreviated month name). Closes #109.
+
+2007-10-13  Brian Warner  <warner@lothar.com>
+
+	* README (COPYING): make it clear that buildbot is distributed under
+	the GPL (version 2)
+	* COPYING: add a copy of the GPLv2 to the source tree
+	* MANIFEST.in: .. and to the source distribution too
+
+2007-10-10  Brian Warner  <warner@lothar.com>
+
+	* buildbot/status/builder.py (Status.getURLForThing): update this
+	to match new URL layout, I completely forgot about it. Closes #112.
+	* buildbot/test/test_web.py (GetURL): add unit tests
+
+	* buildbot/status/web/build.py (BuildsResource.getChild): fix
+	silly typo which prevented the Build page from ever offering
+	control options like 'Stop Build'. Thanks to Aaron Hsieh for the
+	catch. Closes #114.
+	* buildbot/test/test_webparts.py (Webparts._do_page_tests): it'd
+	be nice to test this
+
+	* buildbot/__init__.py (version): bump to 0.7.6+ while between
+	releases
+	* docs/buildbot.texinfo: same
+
 2007-09-30  Brian Warner  <warner@lothar.com>
 
 	* buildbot/__init__.py (version): Releasing buildbot-0.7.6

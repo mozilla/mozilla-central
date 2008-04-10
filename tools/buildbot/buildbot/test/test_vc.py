@@ -2,12 +2,12 @@
 
 import sys, os, time, re
 from email.Utils import mktime_tz, parsedate_tz
-from cStringIO import StringIO
 
 from twisted.trial import unittest
-from twisted.internet import defer, reactor, utils, protocol, error
+from twisted.internet import defer, reactor, utils, protocol, task, error
 from twisted.python import failure
 from twisted.python.procutils import which
+from twisted.web import client, static, server
 
 #defer.Deferred.debug = True
 
@@ -23,7 +23,7 @@ from buildbot.steps import source
 from buildbot.changes import changes
 from buildbot.sourcestamp import SourceStamp
 from buildbot.scripts import tryclient
-from buildbot.test.runutils import SignalMixin
+from buildbot.test.runutils import SignalMixin, myGetProcessOutputAndValue
 
 #step.LoggedRemoteCommand.debug = True
 
@@ -51,41 +51,6 @@ from twisted.internet.defer import waitForDeferred, deferredGenerator
 # Perforce starts the daemon running on localhost. Unfortunately, it must
 # use a predetermined Internet-domain port number, unless we want to go
 # all-out: bind the listen socket ourselves and pretend to be inetd.
-
-class _PutEverythingGetter(protocol.ProcessProtocol):
-    def __init__(self, deferred, stdin):
-        self.deferred = deferred
-        self.outBuf = StringIO()
-        self.errBuf = StringIO()
-        self.outReceived = self.outBuf.write
-        self.errReceived = self.errBuf.write
-        self.stdin = stdin
-
-    def connectionMade(self):
-        if self.stdin is not None:
-            self.transport.write(self.stdin)
-            self.transport.closeStdin()
-
-    def processEnded(self, reason):
-        out = self.outBuf.getvalue()
-        err = self.errBuf.getvalue()
-        e = reason.value
-        code = e.exitCode
-        if e.signal:
-            self.deferred.errback((out, err, e.signal))
-        else:
-            self.deferred.callback((out, err, code))
-
-def myGetProcessOutputAndValue(executable, args=(), env={}, path='.',
-                               reactor=None, stdin=None):
-    """Like twisted.internet.utils.getProcessOutputAndValue but takes
-    stdin, too."""
-    if reactor is None:
-        from twisted.internet import reactor
-    d = defer.Deferred()
-    p = _PutEverythingGetter(d, stdin)
-    reactor.spawnProcess(p, executable, (executable,)+tuple(args), env, path)
-    return d
 
 config_vc = """
 from buildbot.process import factory
@@ -342,7 +307,8 @@ class BaseHelper:
         self.branch.append(rev)
         self.allrevs.append(rev)
 
-    def runCommand(self, basedir, command, failureIsOk=False, stdin=None):
+    def runCommand(self, basedir, command, failureIsOk=False,
+                   stdin=None, env=None):
         # all commands passed to do() should be strings or lists. If they are
         # strings, none of the arguments may have spaces. This makes the
         # commands less verbose at the expense of restricting what they can
@@ -355,7 +321,9 @@ class BaseHelper:
             print " in basedir %s" % basedir
             if stdin:
                 print " STDIN:\n", stdin, "\n--STDIN DONE"
-        env = os.environ.copy()
+
+        if not env:
+            env = os.environ.copy()
         env['LC_ALL'] = "C"
         d = myGetProcessOutputAndValue(command[0], command[1:],
                                        env=env, path=basedir,
@@ -379,19 +347,19 @@ class BaseHelper:
         d.addCallback(check)
         return d
 
-    def do(self, basedir, command, failureIsOk=False, stdin=None):
+    def do(self, basedir, command, failureIsOk=False, stdin=None, env=None):
         d = self.runCommand(basedir, command, failureIsOk=failureIsOk,
-                            stdin=stdin)
+                            stdin=stdin, env=env)
         return waitForDeferred(d)
 
-    def dovc(self, basedir, command, failureIsOk=False, stdin=None):
+    def dovc(self, basedir, command, failureIsOk=False, stdin=None, env=None):
         """Like do(), but the VC binary will be prepended to COMMAND."""
         if isinstance(command, (str, unicode)):
             command = self.vcexe + " " + command
         else:
             # command is a list
             command = [self.vcexe] + command
-        return self.do(basedir, command, failureIsOk, stdin)
+        return self.do(basedir, command, failureIsOk, stdin, env)
 
 class VCBase(SignalMixin):
     metadir = None
@@ -436,7 +404,7 @@ class VCBase(SignalMixin):
     def connectSlave(self):
         port = self.master.slavePort._port.getHost().port
         slave = bot.BuildSlave("localhost", port, "bot1", "sekrit",
-                               self.slavebase, keepalive=0, usePTY=1)
+                               self.slavebase, keepalive=0, usePTY=False)
         self.slave = slave
         slave.startService()
         d = self.master.botmaster.waitUntilBuilderAttached("vc")
@@ -456,8 +424,6 @@ class VCBase(SignalMixin):
 
     def serveHTTP(self):
         # launch an HTTP server to serve the repository files
-        from twisted.web import static, server
-        from twisted.internet import reactor
         self.root = static.File(self.helper.repbase)
         self.site = server.Site(self.root)
         self.httpServer = reactor.listenTCP(0, self.site)
@@ -517,7 +483,7 @@ class VCBase(SignalMixin):
 
     def checkGotRevision(self, bs, expected):
         if self.has_got_revision:
-            self.failUnlessEqual(bs.getProperty("got_revision"), expected)
+            self.failUnlessEqual(bs.getProperty("got_revision"), str(expected))
 
     def checkGotRevisionIsLatest(self, bs):
         expected = self.helper.trunk[-1]
@@ -556,11 +522,13 @@ class VCBase(SignalMixin):
         d.addCallback(lambda res: self.loadConfig(config % 'copy'))
         d.addCallback(lambda res: log.msg("testing copy"))
         d.addCallback(self._do_vctest_copy)
+        d.addCallback(lambda res: log.msg("did copy test"))
         if self.metadir:
             d.addCallback(lambda res: log.msg("doing export"))
             d.addCallback(lambda res: self.loadConfig(config % 'export'))
             d.addCallback(lambda res: log.msg("testing export"))
             d.addCallback(self._do_vctest_export)
+            d.addCallback(lambda res: log.msg("did export test"))
         return d
 
     def _do_vctest_clobber(self, res):
@@ -584,6 +552,25 @@ class VCBase(SignalMixin):
         return d
     def _do_vctest_clobber_2(self, res):
         self.shouldNotExist(self.workdir, "newfile")
+        # do a checkout to a specific version. Mercurial-over-HTTP (when
+        # either client or server is older than hg-0.9.2) cannot do this
+        # directly, so it must checkout HEAD and then update back to the
+        # requested revision.
+        d = self.doBuild(ss=SourceStamp(revision=self.helper.trunk[0]))
+        d.addCallback(self._do_vctest_clobber_3)
+        return d
+    def _do_vctest_clobber_3(self, bs):
+        self.shouldExist(self.workdir, "main.c")
+        self.shouldExist(self.workdir, "version.c")
+        self.shouldExist(self.workdir, "subdir", "subdir.c")
+        if self.metadir:
+            self.shouldExist(self.workdir, self.metadir)
+        self.failUnlessEqual(bs.getProperty("revision"), self.helper.trunk[0])
+        self.failUnlessEqual(bs.getProperty("branch"), None)
+        self.checkGotRevision(bs, self.helper.trunk[0])
+        # leave the tree at HEAD
+        return self.doBuild()
+
 
     def _do_vctest_update(self, res):
         log.msg("_do_vctest_update")
@@ -676,10 +663,12 @@ class VCBase(SignalMixin):
         pass
 
     def _do_vctest_copy(self, res):
+        log.msg("_do_vctest_copy 1")
         d = self.doBuild() # copy rebuild clobbers new files
         d.addCallback(self._do_vctest_copy_1)
         return d
     def _do_vctest_copy_1(self, bs):
+        log.msg("_do_vctest_copy 2")
         if self.metadir:
             self.shouldExist(self.workdir, self.metadir)
         self.shouldNotExist(self.workdir, "newfile")
@@ -692,6 +681,7 @@ class VCBase(SignalMixin):
         d.addCallback(self._do_vctest_copy_2)
         return d
     def _do_vctest_copy_2(self, bs):
+        log.msg("_do_vctest_copy 3")
         if self.metadir:
             self.shouldExist(self.workdir, self.metadir)
         self.shouldNotExist(self.workdir, "newfile")
@@ -2416,6 +2406,12 @@ class MercurialHelper(BaseHelper):
     def vc_try_finish(self, workdir):
         rmdirRecursive(workdir)
 
+class MercurialServerPP(protocol.ProcessProtocol):
+    def outReceived(self, data):
+        log.msg("hg-serve-stdout: %s" % (data,))
+    def errReceived(self, data):
+        print "HG-SERVE-STDERR:", data
+        log.msg("hg-serve-stderr: %s" % (data,))
 
 class Mercurial(VCBase, unittest.TestCase):
     vc_name = "hg"
@@ -2425,6 +2421,8 @@ class Mercurial(VCBase, unittest.TestCase):
     vctype = "source.Mercurial"
     vctype_try = "hg"
     has_got_revision = True
+    _hg_server = None
+    _wait_for_server_poller = None
 
     def testCheckout(self):
         self.helper.vcargs = { 'repourl': self.helper.rep_trunk }
@@ -2446,17 +2444,68 @@ class Mercurial(VCBase, unittest.TestCase):
         d = self.do_branch()
         return d
 
+    def serveHTTP(self):
+        # the easiest way to publish hg over HTTP is by running 'hg serve' as
+        # a child process while the test is running. (you can also use a CGI
+        # script, which sounds difficult, or you can publish the files
+        # directly, which isn't well documented).
+
+        # grr.. 'hg serve' doesn't let you use --port=0 to mean "pick a free
+        # port", instead it uses it as a signal to use the default (port
+        # 8000). This means there is no way to make it choose a free port, so
+        # we are forced to make it use a statically-defined one, making it
+        # harder to avoid collisions.
+        self.httpPort = 8300 + (os.getpid() % 200)
+        args = [self.helper.vcexe,
+                "serve", "--port", str(self.httpPort), "--verbose"]
+
+        # in addition, hg doesn't flush its stdout, so we can't wait for the
+        # "listening at" message to know when it's safe to start the test.
+        # Instead, poll every second until a getPage works.
+
+        pp = MercurialServerPP() # logs+discards everything
+        # this serves one tree at a time, so we serve trunk. TODO: test hg's
+        # in-repo branches, for which a single tree will hold all branches.
+        self._hg_server = reactor.spawnProcess(pp, self.helper.vcexe, args,
+                                               os.environ,
+                                               self.helper.rep_trunk)
+        log.msg("waiting for hg serve to start")
+        done_d = defer.Deferred()
+        def poll():
+            d = client.getPage("http://localhost:%d/" % self.httpPort)
+            def success(res):
+                log.msg("hg serve appears to have started")
+                self._wait_for_server_poller.stop()
+                done_d.callback(None)
+            def ignore_connection_refused(f):
+                f.trap(error.ConnectionRefusedError)
+            d.addCallbacks(success, ignore_connection_refused)
+            d.addErrback(done_d.errback)
+            return d
+        self._wait_for_server_poller = task.LoopingCall(poll)
+        self._wait_for_server_poller.start(0.5, True)
+        return done_d
+
+    def tearDown(self):
+        if self._wait_for_server_poller:
+            if self._wait_for_server_poller.running:
+                self._wait_for_server_poller.stop()
+        if self._hg_server:
+            try:
+                self._hg_server.signalProcess("KILL")
+            except error.ProcessExitedAlready:
+                pass
+            self._hg_server = None
+        return VCBase.tearDown(self)
+
     def testCheckoutHTTP(self):
-        self.serveHTTP()
-        repourl = "http://localhost:%d/Mercurial-Repository/trunk/.hg" % self.httpPort
-        self.helper.vcargs =  { 'repourl': repourl }
-        d = self.do_vctest(testRetry=False)
+        d = self.serveHTTP()
+        def _started(res):
+            repourl = "http://localhost:%d/" % self.httpPort
+            self.helper.vcargs =  { 'repourl': repourl }
+            return self.do_vctest(testRetry=False)
+        d.addCallback(_started)
         return d
-    # TODO: The easiest way to publish hg over HTTP is by running 'hg serve'
-    # as a child process while the test is running. (you can also use a CGI
-    # script, which sounds difficult, or you can publish the files directly,
-    # which isn't well documented).
-    testCheckoutHTTP.skip = "not yet implemented, use 'hg serve'"
 
     def testTry(self):
         self.helper.vcargs = { 'baseURL': self.helper.hg_base + "/",
@@ -2465,6 +2514,159 @@ class Mercurial(VCBase, unittest.TestCase):
         return d
 
 VCS.registerVC(Mercurial.vc_name, MercurialHelper())
+
+class GitHelper(BaseHelper):
+    branchname = "branch"
+    try_branchname = "branch"
+
+    def capable(self):
+        gitpaths = which('git')
+        if not gitpaths:
+            return (False, "GIT is not installed")
+        d = utils.getProcessOutput(gitpaths[0], ["--version"], env=os.environ)
+        d.addCallback(self._capable, gitpaths[0])
+        return d
+
+    def _capable(self, v, vcexe):
+        m = re.search(r'\b([\d\.]+)\b', v)
+        if not m:
+            log.msg("couldn't identify git version number in output:")
+            log.msg("'''%s'''" % v)
+            log.msg("skipping tests")
+            return (False,
+                    "Found git (%s) but couldn't identify its version" % vcexe)
+        ver_s = m.group(1)
+        ver = tuple([int(num) for num in ver_s.split(".")])
+
+        # git-1.1.3 (as shipped with Dapper) doesn't understand 'git
+        # init' (it wants 'git init-db'), and fails unit tests that
+        # involve branches. git-1.5.3.6 (on my debian/unstable system)
+        # works. I don't know where the dividing point is: if someone can
+        # figure it out (or figure out how to make buildbot support more
+        # versions), please update this check.
+        if ver < (1,2):
+            return (False, "Found git (%s) but it is older than 1.2.x" % vcexe)
+        self.vcexe = vcexe
+        return (True, None)
+
+    def createRepository(self):
+        self.createBasedir()
+        self.gitrepo = os.path.join(self.repbase,
+                                   "GIT-Repository")
+        tmp = os.path.join(self.repbase, "gittmp")
+
+        env = os.environ.copy()
+        env['GIT_DIR'] = self.gitrepo
+        w = self.dovc(self.repbase, "init", env=env)
+        yield w; w.getResult()
+
+        self.populate(tmp)
+        w = self.dovc(tmp, "init")
+        yield w; w.getResult()
+        w = self.dovc(tmp, ["add", "."])
+        yield w; w.getResult()
+        w = self.dovc(tmp, ["commit", "-m", "initial_import"])
+        yield w; w.getResult()
+
+        w = self.dovc(tmp, ["checkout", "-b", self.branchname])
+        yield w; w.getResult()
+        self.populate_branch(tmp)
+        w = self.dovc(tmp, ["commit", "-a", "-m", "commit_on_branch"])
+        yield w; w.getResult()
+
+        w = self.dovc(tmp, ["rev-parse", "master", self.branchname])
+        yield w; out = w.getResult()
+        revs = out.splitlines()
+        self.addTrunkRev(revs[0])
+        self.addBranchRev(revs[1])
+
+        w = self.dovc(tmp, ["push", self.gitrepo, "master", self.branchname])
+        yield w; w.getResult()
+
+        rmdirRecursive(tmp)
+    createRepository = deferredGenerator(createRepository)
+
+    def vc_revise(self):
+        tmp = os.path.join(self.repbase, "gittmp")
+        rmdirRecursive(tmp)
+        log.msg("vc_revise" + self.gitrepo)
+        w = self.dovc(self.repbase, ["clone", self.gitrepo, "gittmp"])
+        yield w; w.getResult()
+
+        self.version += 1
+        version_c = VERSION_C % self.version
+        open(os.path.join(tmp, "version.c"), "w").write(version_c)
+
+        w = self.dovc(tmp, ["commit", "-m", "revised_to_%d" % self.version,
+                            "version.c"])
+        yield w; w.getResult()
+        w = self.dovc(tmp, ["rev-parse", "master"])
+        yield w; out = w.getResult()
+        self.addTrunkRev(out.strip())
+
+        w = self.dovc(tmp, ["push", self.gitrepo, "master"])
+        yield w; out = w.getResult()
+        rmdirRecursive(tmp)
+    vc_revise = deferredGenerator(vc_revise)
+
+    def vc_try_checkout(self, workdir, rev, branch=None):
+        assert os.path.abspath(workdir) == workdir
+        if os.path.exists(workdir):
+            rmdirRecursive(workdir)
+
+        w = self.dovc(self.repbase, ["clone", self.gitrepo, workdir])
+        yield w; w.getResult()
+
+        if branch is not None:
+            w = self.dovc(workdir, ["checkout", "-b", branch,
+                                    "origin/%s" % branch])
+            yield w; w.getResult()
+
+        # Hmm...why do nobody else bother to check out the correct
+        # revision?
+        w = self.dovc(workdir, ["reset", "--hard", rev])
+        yield w; w.getResult()
+
+        try_c_filename = os.path.join(workdir, "subdir", "subdir.c")
+        open(try_c_filename, "w").write(TRY_C)
+    vc_try_checkout = deferredGenerator(vc_try_checkout)
+
+    def vc_try_finish(self, workdir):
+        rmdirRecursive(workdir)
+
+class Git(VCBase, unittest.TestCase):
+    vc_name = "git"
+
+    # No 'export' mode yet...
+    # metadir = ".git"
+    vctype = "source.Git"
+    vctype_try = "git"
+    has_got_revision = True
+
+    def testCheckout(self):
+        self.helper.vcargs = { 'repourl': self.helper.gitrepo }
+        d = self.do_vctest()
+        return d
+
+    def testPatch(self):
+        self.helper.vcargs = { 'repourl': self.helper.gitrepo,
+                               'branch': "master" }
+        d = self.do_patch()
+        return d
+
+    def testCheckoutBranch(self):
+        self.helper.vcargs = { 'repourl': self.helper.gitrepo,
+                               'branch': "master" }
+        d = self.do_branch()
+        return d
+
+    def testTry(self):
+        self.helper.vcargs = { 'repourl': self.helper.gitrepo,
+                               'branch': "master" }
+        d = self.do_getpatch()
+        return d
+
+VCS.registerVC(Git.vc_name, GitHelper())
 
 
 class Sources(unittest.TestCase):

@@ -1,6 +1,6 @@
 # -*- test-case-name: buildbot.test.test_vc -*-
 
-import warnings
+from warnings import warn
 from email.Utils import formatdate
 from twisted.python import log
 from buildbot.process.buildstep import LoggingBuildStep, LoggedRemoteCommand
@@ -186,7 +186,7 @@ class Source(LoggingBuildStep):
     def commandComplete(self, cmd):
         got_revision = None
         if cmd.updates.has_key("got_revision"):
-            got_revision = cmd.updates["got_revision"][-1]
+            got_revision = str(cmd.updates["got_revision"][-1])
         self.setProperty("got_revision", got_revision)
 
 
@@ -376,8 +376,7 @@ class SVN(Source):
 
         if not kwargs.has_key('workdir') and directory is not None:
             # deal with old configs
-            warnings.warn("Please use workdir=, not directory=",
-                          DeprecationWarning)
+            warn("Please use workdir=, not directory=", DeprecationWarning)
             kwargs['workdir'] = directory
 
         self.svnurl = svnurl
@@ -571,15 +570,25 @@ class Git(Source):
 
     name = "git"
 
-    def __init__(self, repourl, **kwargs):
+    def __init__(self, repourl, branch="master", **kwargs):
         """
         @type  repourl: string
         @param repourl: the URL which points at the git repository
+
+        @type  branch: string
+        @param branch: The branch or tag to check out by default. If
+                       a build specifies a different branch, it will
+                       be used instead of this.
         """
-        self.branch = None # TODO
         Source.__init__(self, **kwargs)
-        self.addFactoryArguments(repourl=repourl)
-        self.args['repourl'] = repourl
+        self.addFactoryArguments(repourl=repourl, branch=branch)
+        self.args.update({'repourl': repourl,
+                          'branch': branch})
+
+    def computeSourceRevision(self, changes):
+        if not changes:
+            return None
+        return changes[-1].revision
 
     def startVC(self, branch, revision, patch):
         self.args['branch'] = branch

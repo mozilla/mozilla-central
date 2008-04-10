@@ -15,7 +15,7 @@ from buildbot.slave.registry import registerSlaveCommand
 # this used to be a CVS $-style "Revision" auto-updated keyword, but since I
 # moved to Darcs as the primary repository, this is updated manually each
 # time this file is changed. The last cvs_ver that was here was 1.51 .
-command_version = "2.3"
+command_version = "2.5"
 
 # version history:
 #  >=1.17: commands are interruptable
@@ -34,7 +34,9 @@ command_version = "2.3"
 #          keepStdinOpen=) and no longer accepts stdin=)
 #          (release 0.7.4)
 #  >= 2.2: added monotone, uploadFile, and downloadFile (release 0.7.5)
-#  >= 2.3: added bzr
+#  >= 2.3: added bzr (release 0.7.6)
+#  >= 2.4: Git understands 'revision' and branches
+#  >= 2.5: workaround added for remote 'hg clone --rev REV' when hg<0.9.2
 
 class CommandInterrupted(Exception):
     pass
@@ -220,12 +222,13 @@ class ShellCommand:
     notreally = False
     BACKUP_TIMEOUT = 5
     KILL = "KILL"
+    CHUNK_LIMIT = 128*1024
 
     def __init__(self, builder, command,
                  workdir, environ=None,
                  sendStdout=True, sendStderr=True, sendRC=True,
                  timeout=None, initialStdin=None, keepStdinOpen=False,
-                 keepStdout=False,
+                 keepStdout=False, keepStderr=False,
                  logfiles={}):
         """
 
@@ -233,6 +236,7 @@ class ShellCommand:
                            that we've seen. This copy is available in
                            self.stdout, which can be read after the command
                            has finished.
+        @param keepStderr: same, for stderr
 
         """
 
@@ -269,6 +273,7 @@ class ShellCommand:
         self.timeout = timeout
         self.timer = None
         self.keepStdout = keepStdout
+        self.keepStderr = keepStderr
 
         # usePTY=True is a convenience for cleaning up all children and
         # grandchildren of a hung command. Fall back to usePTY=False on
@@ -298,6 +303,8 @@ class ShellCommand:
         # completes
         if self.keepStdout:
             self.stdout = ""
+        if self.keepStderr:
+            self.stderr = ""
         self.deferred = defer.Deferred()
         try:
             self._startCommand()
@@ -370,6 +377,22 @@ class ShellCommand:
         log.msg(" environment: %s" % (self.environ,))
         self.sendStatus({'header': msg})
 
+        if self.initialStdin:
+            msg = " writing %d bytes to stdin" % len(self.initialStdin)
+            log.msg(" " + msg)
+            self.sendStatus({'header': msg+"\n"})
+
+        if self.keepStdinOpen:
+            msg = " leaving stdin open"
+        else:
+            msg = " closing stdin"
+        log.msg(" " + msg)
+        self.sendStatus({'header': msg+"\n"})
+
+        msg = " using PTY: %s" % bool(self.usePTY)
+        log.msg(" " + msg)
+        self.sendStatus({'header': msg+"\n"})
+
         # this will be buffered until connectionMade is called
         if self.initialStdin:
             self.pp.writeStdin(self.initialStdin)
@@ -407,9 +430,17 @@ class ShellCommand:
             w.start()
 
 
+    def _chunkForSend(self, data):
+        # limit the chunks that we send over PB to 128k, since it has a
+        # hardwired string-size limit of 640k.
+        LIMIT = self.CHUNK_LIMIT
+        for i in range(0, len(data), LIMIT):
+            yield data[i:i+LIMIT]
+
     def addStdout(self, data):
         if self.sendStdout:
-            self.sendStatus({'stdout': data})
+            for chunk in self._chunkForSend(data):
+                self.sendStatus({'stdout': chunk})
         if self.keepStdout:
             self.stdout += data
         if self.timer:
@@ -417,12 +448,16 @@ class ShellCommand:
 
     def addStderr(self, data):
         if self.sendStderr:
-            self.sendStatus({'stderr': data})
+            for chunk in self._chunkForSend(data):
+                self.sendStatus({'stderr': chunk})
+        if self.keepStderr:
+            self.stderr += data
         if self.timer:
             self.timer.reset(self.timeout)
 
     def addLogfile(self, name, data):
-        self.sendStatus({'log': (name, data)})
+        for chunk in self._chunkForSend(data):
+            self.sendStatus({'log': (name, chunk)})
         if self.timer:
             self.timer.reset(self.timeout)
 
@@ -707,7 +742,7 @@ class SlaveFileUploadCommand(Command):
         self.rc = 0
 
     def start(self):
-	if self.debug:
+        if self.debug:
             log.msg('SlaveFileUploadCommand started')
 
         # Open file
@@ -729,20 +764,36 @@ class SlaveFileUploadCommand(Command):
         self.sendStatus({'header': "sending %s" % self.path})
 
         d = defer.Deferred()
-        d.addCallback(self._writeBlock)
+        reactor.callLater(0, self._loop, d)
+        def _close(res):
+            # close the file, but pass through any errors from _loop
+            d1 = self.writer.callRemote("close")
+            d1.addErrback(log.err)
+            d1.addCallback(lambda ignored: res)
+            return d1
+        d.addBoth(_close)
         d.addBoth(self.finished)
-        reactor.callLater(0, d.callback, None)
         return d
 
-    def _writeBlock(self, res):
-        """
-        Write a block of data to the remote writer
-        """
+    def _loop(self, fire_when_done):
+        d = defer.maybeDeferred(self._writeBlock)
+        def _done(finished):
+            if finished:
+                fire_when_done.callback(None)
+            else:
+                self._loop(fire_when_done)
+        def _err(why):
+            fire_when_done.errback(why)
+        d.addCallbacks(_done, _err)
+        return None
+
+    def _writeBlock(self):
+        """Write a block of data to the remote writer"""
+
         if self.interrupted or self.fp is None:
             if self.debug:
                 log.msg('SlaveFileUploadCommand._writeBlock(): end')
-            d = self.writer.callRemote('close')
-            return d
+            return True
 
         length = self.blocksize
         if self.remaining is not None and length > self.remaining:
@@ -761,14 +812,14 @@ class SlaveFileUploadCommand(Command):
             log.msg('SlaveFileUploadCommand._writeBlock(): '+
                     'allowed=%d readlen=%d' % (length, len(data)))
         if len(data) == 0:
-            d = self.writer.callRemote('close')
-            return d
+            log.msg("EOF: callRemote(close)")
+            return True
 
         if self.remaining is not None:
             self.remaining = self.remaining - len(data)
             assert self.remaining >= 0
         d = self.writer.callRemote('write', data)
-        d.addCallback(self._writeBlock)
+        d.addCallback(lambda res: False)
         return d
 
     def interrupt(self):
@@ -819,7 +870,7 @@ class SlaveFileDownloadCommand(Command):
         self.rc = 0
 
     def start(self):
-	if self.debug:
+        if self.debug:
             log.msg('SlaveFileDownloadCommand starting')
 
         # Open file
@@ -848,20 +899,36 @@ class SlaveFileDownloadCommand(Command):
                 log.msg('Cannot open file %r for download' % self.path)
 
         d = defer.Deferred()
-        d.addCallback(self._readBlock)
+        reactor.callLater(0, self._loop, d)
+        def _close(res):
+            # close the file, but pass through any errors from _loop
+            d1 = self.reader.callRemote('close')
+            d1.addErrback(log.err)
+            d1.addCallback(lambda ignored: res)
+            return d1
+        d.addBoth(_close)
         d.addBoth(self.finished)
-        reactor.callLater(0, d.callback, None)
         return d
 
-    def _readBlock(self, res):
-        """
-        Read a block of data from the remote reader
-        """
+    def _loop(self, fire_when_done):
+        d = defer.maybeDeferred(self._readBlock)
+        def _done(finished):
+            if finished:
+                fire_when_done.callback(None)
+            else:
+                self._loop(fire_when_done)
+        def _err(why):
+            fire_when_done.errback(why)
+        d.addCallbacks(_done, _err)
+        return None
+
+    def _readBlock(self):
+        """Read a block of data from the remote reader."""
+
         if self.interrupted or self.fp is None:
             if self.debug:
                 log.msg('SlaveFileDownloadCommand._readBlock(): end')
-            d = self.reader.callRemote('close')
-            return d
+            return True
 
         length = self.blocksize
         if self.bytes_remaining is not None and length > self.bytes_remaining:
@@ -872,26 +939,24 @@ class SlaveFileDownloadCommand(Command):
                 self.stderr = 'Maximum filesize reached, truncating file %r' \
                                 % self.path
                 self.rc = 1
-            d = self.reader.callRemote('close')
+            return True
         else:
             d = self.reader.callRemote('read', length)
             d.addCallback(self._writeData)
-        return d
+            return d
 
     def _writeData(self, data):
         if self.debug:
             log.msg('SlaveFileDownloadCommand._readBlock(): readlen=%d' %
                     len(data))
         if len(data) == 0:
-            d = self.reader.callRemote('close')
-            return d
+            return True
 
         if self.bytes_remaining is not None:
             self.bytes_remaining = self.bytes_remaining - len(data)
             assert self.bytes_remaining >= 0
         self.fp.write(data)
-        d = self._readBlock(None) # setup call back for next block (or finish)
-        return d
+        return False
 
     def interrupt(self):
         if self.debug:
@@ -1469,7 +1534,7 @@ class SVN(SourceBase):
         # update: possible for mode in ('copy', 'update')
         d = os.path.join(self.builder.basedir, self.srcdir)
         command = [self.vcexe, 'update', '--revision', str(revision),
-                   '--non-interactive']
+                   '--non-interactive', '--no-auth-cache']
         c = ShellCommand(self.builder, command, d,
                          sendRC=False, timeout=self.timeout,
                          keepStdout=True)
@@ -1481,12 +1546,12 @@ class SVN(SourceBase):
         d = self.builder.basedir
         if self.mode == "export":
             command = [self.vcexe, 'export', '--revision', str(revision),
-                       '--non-interactive',
+                       '--non-interactive', '--no-auth-cache',
                        self.svnurl, self.srcdir]
         else:
             # mode=='clobber', or copy/update on a broken workspace
             command = [self.vcexe, 'checkout', '--revision', str(revision),
-                       '--non-interactive',
+                       '--non-interactive', '--no-auth-cache',
                        self.svnurl, self.srcdir]
         c = ShellCommand(self.builder, command, d,
                          sendRC=False, timeout=self.timeout,
@@ -1718,7 +1783,9 @@ class Git(SourceBase):
     """Git specific VC operation. In addition to the arguments
     handled by SourceBase, this command reads the following keys:
 
-    ['repourl'] (required): the Cogito repository string
+    ['repourl'] (required): the upstream GIT repository string
+    ['branch'] (optional): which version (i.e. branch or tag) to
+                           retrieve. Default: "master".
     """
 
     header = "git operation"
@@ -1726,31 +1793,75 @@ class Git(SourceBase):
     def setup(self, args):
         SourceBase.setup(self, args)
         self.repourl = args['repourl']
-        #self.sourcedata = "" # TODO
+        self.branch = args.get('branch')
+        if not self.branch:
+            self.branch = "master"
+        self.sourcedata = "%s %s\n" % (self.repourl, self.branch)
+
+    def _fullSrcdir(self):
+        return os.path.join(self.builder.basedir, self.srcdir)
+
+    def _commitSpec(self):
+        if self.revision:
+            return self.revision
+        return self.branch
 
     def sourcedirIsUpdateable(self):
-        if os.path.exists(os.path.join(self.builder.basedir,
-                                       self.srcdir, ".buildbot-patched")):
+        if os.path.exists(os.path.join(self._fullSrcdir(),
+                                       ".buildbot-patched")):
             return False
-        return os.path.isdir(os.path.join(self.builder.basedir,
-                                          self.srcdir, ".git"))
+        return os.path.isdir(os.path.join(self._fullSrcdir(), ".git"))
+
+    def _didFetch(self, res):
+        if self.revision:
+            head = self.revision
+        else:
+            head = 'FETCH_HEAD'
+
+        command = ['git-reset', '--hard', head]
+        c = ShellCommand(self.builder, command, self._fullSrcdir(),
+                         sendRC=False, timeout=self.timeout)
+        self.command = c
+        return c.start()
 
     def doVCUpdate(self):
-        d = os.path.join(self.builder.basedir, self.srcdir)
-        command = ['cg-update']
-        c = ShellCommand(self.builder, command, d,
+        command = ['git-fetch', self.repourl, self.branch]
+        self.sendStatus({"header": "fetching branch %s from %s\n"
+                                        % (self.branch, self.repourl)})
+        c = ShellCommand(self.builder, command, self._fullSrcdir(),
                          sendRC=False, timeout=self.timeout)
         self.command = c
-        return c.start()
+        d = c.start()
+        d.addCallback(self._abandonOnFailure)
+        d.addCallback(self._didFetch)
+        return d
+
+    def _didInit(self, res):
+        return self.doVCUpdate()
 
     def doVCFull(self):
-        d = os.path.join(self.builder.basedir, self.srcdir)
-        os.mkdir(d)
-        command = ['cg-clone', '-s', self.repourl]
-        c = ShellCommand(self.builder, command, d,
+        os.mkdir(self._fullSrcdir())
+        c = ShellCommand(self.builder, ['git-init'], self._fullSrcdir(),
                          sendRC=False, timeout=self.timeout)
         self.command = c
-        return c.start()
+        d = c.start()
+        d.addCallback(self._abandonOnFailure)
+        d.addCallback(self._didInit)
+        return d
+
+    def parseGotRevision(self):
+        command = ['git-rev-parse', 'HEAD']
+        c = ShellCommand(self.builder, command, self._fullSrcdir(),
+                         sendRC=False, keepStdout=True)
+        c.usePTY = False
+        d = c.start()
+        def _parse(res):
+            hash = c.stdout.strip()
+            if len(hash) != 40:
+                return None
+            return hash
+        d.addCallback(_parse)
+        return d
 
 registerSlaveCommand("git", Git, command_version)
 
@@ -2124,14 +2235,74 @@ class Mercurial(SourceBase):
         return res
 
     def doVCFull(self):
-        d = os.path.join(self.builder.basedir, self.srcdir)
+        newdir = os.path.join(self.builder.basedir, self.srcdir)
         command = [self.vcexe, 'clone']
         if self.args['revision']:
             command.extend(['--rev', self.args['revision']])
-        command.extend([self.repourl, d])
+        command.extend([self.repourl, newdir])
+        c = ShellCommand(self.builder, command, self.builder.basedir,
+                         sendRC=False, keepStdout=True, keepStderr=True,
+                         timeout=self.timeout)
+        self.command = c
+        d = c.start()
+        d.addCallback(self._maybeFallback, c)
+        return d
+
+    def _maybeFallback(self, res, c):
+        # to do 'hg clone -r REV' (i.e. to check out a specific revision)
+        # from a remote (HTTP) repository, both the client and the server
+        # need to be hg-0.9.2 or newer. If this caused a checkout failure, we
+        # fall back to doing a checkout of HEAD (spelled 'tip' in hg
+        # parlance) and then 'hg update' *backwards* to the desired revision.
+        if res == 0:
+            return res
+
+        errmsgs = [
+            # hg-0.6 didn't even have the 'clone' command
+            # hg-0.7
+            "hg clone: option --rev not recognized",
+            # hg-0.8, 0.8.1, 0.9
+            "abort: clone -r not supported yet for remote repositories.",
+            # hg-0.9.1
+            ("abort: clone by revision not supported yet for "
+             "remote repositories"),
+            # hg-0.9.2 and later say this when the other end is too old
+            ("abort: src repository does not support revision lookup "
+             "and so doesn't support clone by revision"),
+            ]
+
+        fallback_is_useful = False
+        for errmsg in errmsgs:
+            # the error message might be in stdout if we're using PTYs, which
+            # merge stdout and stderr.
+            if errmsg in c.stdout or errmsg in c.stderr:
+                fallback_is_useful = True
+                break
+        if not fallback_is_useful:
+            return res # must be some other error
+
+        # ok, do the fallback
+        newdir = os.path.join(self.builder.basedir, self.srcdir)
+        command = [self.vcexe, 'clone']
+        command.extend([self.repourl, newdir])
         c = ShellCommand(self.builder, command, self.builder.basedir,
                          sendRC=False, timeout=self.timeout)
         self.command = c
+        d = c.start()
+        d.addCallback(self._abandonOnFailure)
+        d.addCallback(self._updateToDesiredRevision)
+        return d
+
+    def _updateToDesiredRevision(self, res):
+        assert self.args['revision']
+        newdir = os.path.join(self.builder.basedir, self.srcdir)
+        # hg-0.9.1 and earlier (which need this fallback) also want to see
+        # 'hg update REV' instead of 'hg update --rev REV'. Note that this is
+        # the only place we use 'hg update', since what most VC tools mean
+        # by, say, 'cvs update' is expressed as 'hg pull --update' instead.
+        command = [self.vcexe, 'update', self.args['revision']]
+        c = ShellCommand(self.builder, command, newdir,
+                         sendRC=False, timeout=self.timeout)
         return c.start()
 
     def parseGotRevision(self):

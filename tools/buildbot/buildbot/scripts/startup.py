@@ -64,6 +64,12 @@ stop it, fix the config file, and restart.
 
 def start(config):
     os.chdir(config['basedir'])
+    if (not os.path.exists("buildbot.tac") and
+        not os.path.exists("Makefile.buildbot")):
+        print "This doesn't look like a buildbot base directory:"
+        print "No buildbot.tac or Makefile.buildbot file."
+        print "Giving up!"
+        sys.exit(1)
     if config['quiet']:
         return launch(config)
 
@@ -105,8 +111,14 @@ def launch(config):
             argv.append("--reactor=win32")
         sys.argv = argv
 
-        # this is copied from bin/twistd. twisted-2.0.0 uses _twistw.
-        if platformType == "win32":
+        # this is copied from bin/twistd. twisted-2.0.0 through 2.4.0 use
+        # _twistw.run . Twisted-2.5.0 and later use twistd.run, even for
+        # windows.
+        from twisted import __version__
+        major, minor, ignored = __version__.split(".", 2)
+        major = int(major)
+        minor = int(minor)
+        if (platformType == "win32" and (major == 2 and minor < 5)):
             from twisted.scripts import _twistw
             run = _twistw.run
         else:

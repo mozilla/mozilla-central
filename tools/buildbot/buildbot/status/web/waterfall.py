@@ -20,13 +20,22 @@ class CurrentBox(components.Adapter):
     # this provides the "current activity" box, just above the builder name
     implements(ICurrentBox)
 
-    def formatETA(self, eta):
+    def formatETA(self, prefix, eta):
         if eta is None:
             return []
         if eta < 0:
             return ["Soon"]
+        eta_parts = []
+        eta_secs = eta
+        if eta_secs > 3600:
+            eta_parts.append("%d hrs" % (eta_secs / 3600))
+            eta_secs %= 3600
+        if eta_secs > 60:
+            eta_parts.append("%d mins" % (eta_secs / 60))
+            eta_secs %= 60
+        eta_parts.append("%d secs" % eta_secs)
         abstime = time.strftime("%H:%M:%S", time.localtime(util.now()+eta))
-        return ["ETA in", "%d secs" % eta, "at %s" % abstime]
+        return [prefix, ", ".join(eta_parts), "at %s" % abstime]
 
     def getBox(self, status):
         # getState() returns offline, idle, or building
@@ -51,8 +60,7 @@ class CurrentBox(components.Adapter):
             if builds:
                 for b in builds:
                     eta = b.getETA()
-                    if eta:
-                        text.extend(self.formatETA(eta))
+                    text.extend(self.formatETA("ETA in", eta))
         elif state == "offline":
             color = "red"
             text = ["offline"]
@@ -77,16 +85,8 @@ class CurrentBox(components.Adapter):
         if pbs:
             text.append("%d pending" % len(pbs))
         for t in upcoming:
-            text.extend(["next at", 
-                         time.strftime("%H:%M:%S", time.localtime(t)),
-                         "[%d secs]" % (t - util.now()),
-                         ])
-            # TODO: the upcoming-builds box looks like:
-            #  ['waiting', 'next at', '22:14:15', '[86 secs]']
-            # while the currently-building box is reversed:
-            #  ['building', 'ETA in', '2 secs', 'at 22:12:50']
-            # consider swapping one of these to make them look the same. also
-            # consider leaving them reversed to make them look different.
+            eta = t - util.now()
+            text.extend(self.formatETA("next in", eta))
         return Box(text, color=color, class_="Activity " + state)
 
 components.registerAdapter(CurrentBox, builder.BuilderStatus, ICurrentBox)
@@ -453,21 +453,29 @@ class WaterfallStatusResource(HtmlResource):
         phase = request.args.get("phase",["2"])
         phase = int(phase[0])
 
+        # we start with all Builders available to this Waterfall: this is
+        # limited by the config-file -time categories= argument, and defaults
+        # to all defined Builders.
+        allBuilderNames = status.getBuilderNames(categories=self.categories)
+        builders = [status.getBuilder(name) for name in allBuilderNames]
+
+        # but if the URL has one or more builder= arguments (or the old show=
+        # argument, which is still accepted for backwards compatibility), we
+        # use that set of builders instead. We still don't show anything
+        # outside the config-file time set limited by categories=.
         showBuilders = request.args.get("show", [])
         showBuilders.extend(request.args.get("builder", []))
-        allBuilders = status.getBuilderNames(categories=self.categories)
         if showBuilders:
-            builderNames = []
-            for b in showBuilders:
-                if b not in allBuilders:
-                    continue
-                if b in builderNames:
-                    continue
-                builderNames.append(b)
-        else:
-            builderNames = allBuilders
-        builders = map(lambda name: status.getBuilder(name),
-                       builderNames)
+            builders = [b for b in builders if b.name in showBuilders]
+
+        # now, if the URL has one or category= arguments, use them as a
+        # filter: only show those builders which belong to one of the given
+        # categories.
+        showCategories = request.args.get("category", [])
+        if showCategories:
+            builders = [b for b in builders if b.category in showCategories]
+
+        builderNames = [b.name for b in builders]
 
         if phase == -1:
             return self.body0(request, builders)
@@ -500,7 +508,7 @@ class WaterfallStatusResource(HtmlResource):
         data += " </tr>\n"
         
         data += " <tr>\n"
-        TZ = time.tzname[time.daylight]
+        TZ = time.tzname[time.localtime()[-1]]
         data += td("time (%s)" % TZ, align="center", class_="Time")
         data += td('<a href="%s">changes</a>' % request.childLink("../changes"),
                    align="center", class_="Change")

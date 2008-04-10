@@ -66,9 +66,12 @@ class BuildSlave(NewCredPerspective, service.MultiService):
         self.max_builds = new.max_builds
 
     def __repr__(self):
-        builders = self.botmaster.getBuildersForSlave(self.slavename)
-        return "<BuildSlave '%s', current builders: %s>" % \
+        if self.botmaster:
+            builders = self.botmaster.getBuildersForSlave(self.slavename)
+            return "<BuildSlave '%s', current builders: %s>" % \
                (self.slavename, ','.join(map(lambda b: b.name, builders)))
+        else:
+            return "<BuildSlave '%s', (no builders yet)>" % self.slavename
 
     def setBotmaster(self, botmaster):
         assert not self.botmaster, "BuildSlave already has a botmaster"
@@ -222,6 +225,7 @@ class BuildSlave(NewCredPerspective, service.MultiService):
         m['Subject'] = "Buildbot: buildslave %s was lost" % self.slavename
         m['From'] = st.fromaddr
         recipients = self.notify_on_missing
+        m['To'] = ", ".join(recipients)
         d = st.sendMessage(m, recipients)
         # return the Deferred for testing purposes
         return d

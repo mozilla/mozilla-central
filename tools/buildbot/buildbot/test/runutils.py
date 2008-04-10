@@ -1,7 +1,8 @@
 
 import signal
 import shutil, os, errno
-from twisted.internet import defer, reactor
+from cStringIO import StringIO
+from twisted.internet import defer, reactor, protocol
 from twisted.python import log, util
 
 from buildbot import master, interfaces
@@ -12,6 +13,42 @@ from buildbot.process.base import BuildRequest, Build
 from buildbot.process.buildstep import BuildStep
 from buildbot.sourcestamp import SourceStamp
 from buildbot.status import builder
+
+
+
+class _PutEverythingGetter(protocol.ProcessProtocol):
+    def __init__(self, deferred, stdin):
+        self.deferred = deferred
+        self.outBuf = StringIO()
+        self.errBuf = StringIO()
+        self.outReceived = self.outBuf.write
+        self.errReceived = self.errBuf.write
+        self.stdin = stdin
+
+    def connectionMade(self):
+        if self.stdin is not None:
+            self.transport.write(self.stdin)
+            self.transport.closeStdin()
+
+    def processEnded(self, reason):
+        out = self.outBuf.getvalue()
+        err = self.errBuf.getvalue()
+        e = reason.value
+        code = e.exitCode
+        if e.signal:
+            self.deferred.errback((out, err, e.signal))
+        else:
+            self.deferred.callback((out, err, code))
+
+def myGetProcessOutputAndValue(executable, args=(), env={}, path='.',
+                               _reactor_ignored=None, stdin=None):
+    """Like twisted.internet.utils.getProcessOutputAndValue but takes
+    stdin, too."""
+    d = defer.Deferred()
+    p = _PutEverythingGetter(d, stdin)
+    reactor.spawnProcess(p, executable, (executable,)+tuple(args), env, path)
+    return d
+
 
 class MyBot(bot.Bot):
     def remote_getSlaveInfo(self):
@@ -48,7 +85,7 @@ class RunMixin:
         os.mkdir("slavebase-%s" % slavename)
         slave = MyBuildSlave("localhost", port, slavename, "sekrit",
                              "slavebase-%s" % slavename,
-                             keepalive=0, usePTY=1, debugOpts=opts)
+                             keepalive=0, usePTY=False, debugOpts=opts)
         slave.info = {"admin": "one"}
         self.slaves[slavename] = slave
         slave.startService()
@@ -84,7 +121,7 @@ class RunMixin:
         os.mkdir("slavebase-bot2")
         # this uses bot1, really
         slave = MyBuildSlave("localhost", port, "bot1", "sekrit",
-                             "slavebase-bot2", keepalive=0, usePTY=1)
+                             "slavebase-bot2", keepalive=0, usePTY=False)
         slave.info = {"admin": "two"}
         self.slaves['bot2'] = slave
         slave.startService()
@@ -95,7 +132,7 @@ class RunMixin:
         self.rmtree("slavebase-bot1")
         os.mkdir("slavebase-bot1")
         slave = MyBuildSlave("localhost", port, "bot1", "sekrit",
-                             "slavebase-bot1", keepalive=2, usePTY=1,
+                             "slavebase-bot1", keepalive=2, usePTY=False,
                              keepaliveTimeout=1)
         slave.info = {"admin": "one"}
         self.slaves['bot1'] = slave
@@ -340,7 +377,10 @@ class LocalWrapper:
         self.target = target
 
     def callRemote(self, name, *args, **kwargs):
-        d = defer.maybeDeferred(self._callRemote, name, *args, **kwargs)
+        # callRemote is not allowed to fire its Deferred in the same turn
+        d = defer.Deferred()
+        d.addCallback(self._callRemote, *args, **kwargs)
+        reactor.callLater(0, d.callback, name)
         return d
 
     def _callRemote(self, name, *args, **kwargs):
@@ -420,3 +460,45 @@ class StepTester:
     def filterArgs(self, args):
         # this can be overridden
         return args
+
+# ----------------------------------------
+
+_flags = {}
+
+def setTestFlag(flagname, value):
+    _flags[flagname] = value
+
+class SetTestFlagStep(BuildStep):
+    """
+    A special BuildStep to set a named flag; this can be used with the
+    TestFlagMixin to monitor what has and has not run in a particular
+    configuration.
+    """
+    def __init__(self, flagname='flag', value=1, **kwargs):
+        BuildStep.__init__(self, **kwargs)
+        self.flagname = flagname
+        self.value = value
+
+    def start(self):
+        _flags[self.flagname] = self.value
+        self.finished(builder.SUCCESS)
+
+class TestFlagMixin:
+    def clearFlags(self):
+        """
+        Set up for a test by clearing all flags; call this from your test
+        function.
+        """
+        _flags.clear()
+
+    def failIfFlagSet(self, flagname, msg=None):
+        if not msg: msg = "flag '%s' is set" % flagname
+        self.failIf(_flags.has_key(flagname), msg=msg)
+
+    def failIfFlagNotSet(self, flagname, msg=None):
+        if not msg: msg = "flag '%s' is not set" % flagname
+        self.failUnless(_flags.has_key(flagname), msg=msg)
+
+    def getFlag(self, flagname):
+        self.failIfFlagNotSet(flagname, "flag '%s' not set" % flagname)
+        return _flags.get(flagname)

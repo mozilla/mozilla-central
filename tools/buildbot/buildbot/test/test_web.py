@@ -232,7 +232,7 @@ c['status'] = [html.Waterfall(http_port=0, robots_txt=%s)]
             self.failUnless(page)
             self.failUnlessIn("current activity", page)
             self.failUnlessIn("<html", page)
-            TZ = time.tzname[time.daylight]
+            TZ = time.tzname[time.localtime()[-1]]
             self.failUnlessIn("time (%s)" % TZ, page)
 
             # phase=0 is really for debugging the waterfall layout
@@ -362,14 +362,14 @@ class GetURL(RunMixin, unittest.TestCase):
     def _testMissingBase_1(self, res):
         s = self.status
         self.assertNoURL(s)
-        builder = s.getBuilder("b1")
-        self.assertNoURL(builder)
+        builder_s = s.getBuilder("b1")
+        self.assertNoURL(builder_s)
 
     def testBase(self):
         s = self.status
         self.assertURLEqual(s, "")
-        builder = s.getBuilder("b1")
-        self.assertURLEqual(builder, "b1")
+        builder_s = s.getBuilder("b1")
+        self.assertURLEqual(builder_s, "builders/b1")
 
     def testChange(self):
         s = self.status
@@ -389,15 +389,15 @@ class GetURL(RunMixin, unittest.TestCase):
 
     def _testBuild_1(self, res):
         s = self.status
-        builder = s.getBuilder("b1")
-        build = builder.getLastFinishedBuild()
-        self.assertURLEqual(build, "b1/builds/0")
+        builder_s = s.getBuilder("b1")
+        build_s = builder_s.getLastFinishedBuild()
+        self.assertURLEqual(build_s, "builders/b1/builds/0")
         # no page for builder.getEvent(-1)
-        step = build.getSteps()[0]
-        self.assertURLEqual(step, "b1/builds/0/step-remote%20dummy")
+        step = build_s.getSteps()[0]
+        self.assertURLEqual(step, "builders/b1/builds/0/steps/remote%20dummy")
         # maybe page for build.getTestResults?
         self.assertURLEqual(step.getLogs()[0],
-                            "b1/builds/0/step-remote%20dummy/0")
+                            "builders/b1/builds/0/steps/remote%20dummy/logs/0")
 
 
 

@@ -53,6 +53,42 @@ def make_row(label, field):
     label = html.escape(label)
     return ROW_TEMPLATE % {"label": label, "field": field}
 
+def make_stop_form(stopURL, on_all=False, label="Build"):
+    if on_all:
+        data = """<form action="%s" class='command stopbuild'>
+          <p>To stop all builds, fill out the following fields and
+          push the 'Stop' button</p>\n""" % stopURL
+    else:
+        data = """<form action="%s" class='command stopbuild'>
+          <p>To stop this build, fill out the following fields and
+          push the 'Stop' button</p>\n""" % stopURL
+    data += make_row("Your name:",
+                     "<input type='text' name='username' />")
+    data += make_row("Reason for stopping build:",
+                     "<input type='text' name='comments' />")
+    data += '<input type="submit" value="Stop %s" /></form>\n' % label
+    return data
+
+def make_force_build_form(forceURL, on_all=False):
+    if on_all:
+        data = """<form action="%s" class="command forcebuild">
+          <p>To force a build on all Builders, fill out the following fields
+          and push the 'Force Build' button</p>""" % forceURL
+    else:
+        data = """<form action="%s" class="command forcebuild">
+          <p>To force a build, fill out the following fields and
+          push the 'Force Build' button</p>""" % forceURL
+    return (data
+      + make_row("Your name:",
+                 "<input type='text' name='username' />")
+      + make_row("Reason for build:",
+                 "<input type='text' name='comments' />")
+      + make_row("Branch to build:",
+                 "<input type='text' name='branch' />")
+      + make_row("Revision to build:",
+                 "<input type='text' name='revision' />")
+      + '<input type="submit" value="Force Build" /></form>\n')
+
 colormap = {
     'green': '#72ff75',
     }
@@ -149,7 +185,7 @@ class Box:
         if parms.has_key('show_idle'):
             del parms['show_idle']
             self.show_idle = 1
-            
+
         self.parms = parms
         # parms is a dict of HTML parameters for the <td> element that will
         # represent this Event in the waterfall display.
@@ -313,10 +349,11 @@ class OneLineMixin:
         if len(rev) > 20:
             rev = "version is too-long"
         root = self.path_to_root(req)
-        values = {'class': css_classes[results],
+        css_class = css_classes.get(results, "")
+        values = {'class': css_class,
                   'builder_name': builder_name,
                   'buildnum': build.getNumber(),
-                  'results': css_classes[results],
+                  'results': css_class,
                   'text': " ".join(build.getText()),
                   'buildurl': (root +
                                "builders/%s/builds/%d" % (builder_name,
