@@ -3,9 +3,6 @@
 # N.B.: don't import anything that might pull in a reactor yet. Some of our
 # subcommands want to load modules that need the gtk reactor.
 import os, sys, stat, re, time
-from shutil import copy, rmtree
-from tempfile import mkdtemp
-from os.path import isfile
 import traceback
 from twisted.python import usage, util, runtime
 
@@ -813,37 +810,6 @@ def doTryServer(config):
     os.rename(tmpfile, newfile)
 
 
-from buildbot import master
-
-class ConfigLoader(master.BuildMaster):
-    def __init__(self, configFileName="master.cfg"):
-        master.BuildMaster.__init__(self, ".", configFileName)
-        dir = os.getcwd()
-        # Use a temporary directory since loadConfig() creates a bunch of
-        # directories and compiles .py files
-        tempdir = mkdtemp()
-        file = configFileName
-        try:
-            copy(configFileName, tempdir)
-            for entry in os.listdir("."):
-                # Any code in a subdirectory will _not_ be copied! This is a bug
-                if isfile(entry):
-                    copy(entry, tempdir)
-        except:
-            raise Exception("Error copying file %s" % file)
-
-        try:
-            os.chdir(tempdir)
-            # Add the temp directory to the library path so local modules work
-            sys.path.append(tempdir)
-            configFile = open(configFileName, "r")
-            self.loadConfig(configFile)
-        except:
-            raise
-        finally:
-            os.chdir(dir)
-            rmtree(tempdir)
-
 class CheckConfigOptions(usage.Options):
     optFlags = [
         ['quiet', 'q', "Don't display error messages or tracebacks"],
@@ -864,6 +830,7 @@ def doCheckConfig(config):
     quiet = config.get('quiet')
     configFile = config.get('configFile')
     try:
+        from buildbot.scripts.checkconfig import ConfigLoader
         ConfigLoader(configFile)
     except:
         if not quiet:

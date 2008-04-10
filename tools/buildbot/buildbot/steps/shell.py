@@ -1,43 +1,13 @@
 # -*- test-case-name: buildbot.test.test_steps,buildbot.test.test_properties -*-
 
-import types, re
+import re
 from twisted.python import log
-from buildbot import util
-from buildbot.process.buildstep import LoggingBuildStep, RemoteShellCommand
+from buildbot.process.buildstep import LoggingBuildStep, RemoteShellCommand, \
+     render_properties
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE
 
-class _BuildPropertyDictionary:
-    def __init__(self, build):
-        self.build = build
-    def __getitem__(self, name):
-        p = self.build.getProperty(name)
-        if p is None:
-            p = ""
-        return p
-
-class WithProperties(util.ComparableMixin):
-    """This is a marker class, used in ShellCommand's command= argument to
-    indicate that we want to interpolate a build property.
-    """
-
-    compare_attrs = ('fmtstring', 'args')
-
-    def __init__(self, fmtstring, *args):
-        self.fmtstring = fmtstring
-        self.args = args
-
-    def render(self, build):
-        if self.args:
-            strings = []
-            for name in self.args:
-                p = build.getProperty(name)
-                if p is None:
-                    p = ""
-                strings.append(p)
-            s = self.fmtstring % tuple(strings)
-        else:
-            s = self.fmtstring % _BuildPropertyDictionary(build)
-        return s
+# for existing configurations that import WithProperties from here
+from buildbot.process.buildstep import WithProperties
 
 class ShellCommand(LoggingBuildStep):
     """I run a single shell command on the buildslave. I return FAILURE if
@@ -57,9 +27,9 @@ class ShellCommand(LoggingBuildStep):
       - a command= parameter to my constructor (overrides .command)
       - set explicitly with my .setCommand() method (overrides both)
 
-    @ivar command: a list of argv strings (or WithProperties instances).
-                   This will be used by start() to create a
-                   RemoteShellCommand instance.
+    @ivar command: a list of renderable objects (typically strings or
+                   WithProperties instances). This will be used by start()
+                   to create a RemoteShellCommand instance.
 
     @ivar logfiles: a dict mapping log NAMEs to workdir-relative FILENAMEs
                     of their corresponding logfiles. The contents of the file
@@ -111,12 +81,13 @@ class ShellCommand(LoggingBuildStep):
         self.addFactoryArguments(workdir=workdir,
                                  description=description,
                                  descriptionDone=descriptionDone,
-                                 command=command,
-                                 **kwargs)
+                                 command=command)
 
         # everything left over goes to the RemoteShellCommand
         kwargs['workdir'] = workdir # including a copy of 'workdir'
         self.remote_kwargs = kwargs
+        # we need to stash the RemoteShellCommand's args too
+        self.addFactoryArguments(**kwargs)
 
     def setDefaultWorkdir(self, workdir):
         rkw = self.remote_kwargs
@@ -148,9 +119,10 @@ class ShellCommand(LoggingBuildStep):
             return self.description
 
         words = self.command
-        # TODO: handle WithProperties here
-        if isinstance(words, types.StringTypes):
+        if isinstance(words, (str, unicode)):
             words = words.split()
+        # render() each word to handle WithProperties objects
+        words = [render_properties(word, self.build) for word in words]
         if len(words) < 1:
             return ["???"]
         if len(words) == 1:
@@ -159,22 +131,34 @@ class ShellCommand(LoggingBuildStep):
             return ["'%s" % words[0], "%s'" % words[1]]
         return ["'%s" % words[0], "%s" % words[1], "...'"]
 
-    def _interpolateProperties(self, command):
-        # interpolate any build properties into our command
-        if not isinstance(command, (list, tuple)):
-            return command
-        command_argv = []
-        for argv in command:
-            if isinstance(argv, WithProperties):
-                command_argv.append(argv.render(self.build))
-            else:
-                command_argv.append(argv)
-        return command_argv
+    def _interpolateProperties(self, value):
+        """
+        Expand the L{WithProperties} objects in L{value}
+        """
+        if isinstance(value, (str, unicode, bool, int, float, type(None))):
+            return value
+
+        if isinstance(value, list):
+            return [self._interpolateProperties(val) for val in value]
+
+        if isinstance(value, tuple):
+            return tuple([self._interpolateProperties(val) for val in value])
+
+        if isinstance(value, dict):
+            new_dict = { }
+            for key, val in value.iteritems():
+                new_key = self._interpolateProperties(key)
+                new_dict[new_key] = self._interpolateProperties(val)
+            return new_dict
+
+        # To make sure we catch anything we forgot
+        assert isinstance(value, WithProperties), \
+               "%s (%s) is not a WithProperties" % (value, type(value))
+
+        return value.render(self.build)
 
     def _interpolateWorkdir(self, workdir):
-        if isinstance(workdir, WithProperties):
-            return workdir.render(self.build)
-        return workdir
+        return render_properties(workdir, self.build)
 
     def setupEnvironment(self, cmd):
         # merge in anything from Build.slaveEnvironment . Earlier steps
@@ -185,7 +169,7 @@ class ShellCommand(LoggingBuildStep):
         if slaveEnv:
             if cmd.args['env'] is None:
                 cmd.args['env'] = {}
-            cmd.args['env'].update(slaveEnv)
+            cmd.args['env'].update(self._interpolateProperties(slaveEnv))
             # note that each RemoteShellCommand gets its own copy of the
             # dictionary, so we shouldn't be affecting anyone but ourselves.
 
@@ -218,7 +202,7 @@ class ShellCommand(LoggingBuildStep):
         command = self._interpolateProperties(self.command)
         assert isinstance(command, (list, tuple, str))
         # create the actual RemoteShellCommand instance now
-        kwargs = self.remote_kwargs
+        kwargs = self._interpolateProperties(self.remote_kwargs)
         kwargs['workdir'] = self._interpolateWorkdir(kwargs['workdir'])
         kwargs['command'] = command
         kwargs['logfiles'] = self.logfiles
@@ -232,25 +216,26 @@ class ShellCommand(LoggingBuildStep):
 
 class TreeSize(ShellCommand):
     name = "treesize"
-    command = ["du", "-s", "."]
-    kb = None
+    command = ["du", "-s", "-k", "."]
+    kib = None
 
     def commandComplete(self, cmd):
-        out = cmd.log.getText()
+        out = cmd.logs['stdio'].getText()
         m = re.search(r'^(\d+)', out)
         if m:
-            self.kb = int(m.group(1))
+            self.kib = int(m.group(1))
+            self.setProperty("tree-size-KiB", self.kib)
 
     def evaluateCommand(self, cmd):
         if cmd.rc != 0:
             return FAILURE
-        if self.kb is None:
+        if self.kib is None:
             return WARNINGS # not sure how 'du' could fail, but whatever
         return SUCCESS
 
     def getText(self, cmd, results):
-        if self.kb is not None:
-            return ["treesize", "%d kb" % self.kb]
+        if self.kib is not None:
+            return ["treesize", "%d KiB" % self.kib]
         return ["treesize", "unknown"]
 
 class Configure(ShellCommand):
@@ -261,7 +246,70 @@ class Configure(ShellCommand):
     descriptionDone = ["configure"]
     command = ["./configure"]
 
-class Compile(ShellCommand):
+class WarningCountingShellCommand(ShellCommand):
+    warnCount = 0
+    warningPattern = '.*warning[: ].*'
+
+    def __init__(self, **kwargs):
+        # See if we've been given a regular expression to use to match
+        # warnings. If not, use a default that assumes any line with "warning"
+        # present is a warning. This may lead to false positives in some cases.
+        wp = None
+        if kwargs.has_key('warningPattern'):
+            wp = kwargs['warningPattern']
+            del kwargs['warningPattern']
+            self.warningPattern = wp
+
+        # And upcall to let the base class do its work
+        ShellCommand.__init__(self, **kwargs)
+
+        if wp:
+            self.addFactoryArguments(warningPattern=wp)
+
+    def createSummary(self, log):
+        self.warnCount = 0
+
+        # Now compile a regular expression from whichever warning pattern we're
+        # using
+        if not self.warningPattern:
+            return
+
+        wre = self.warningPattern
+        if isinstance(wre, str):
+            wre = re.compile(wre)
+
+        # Check if each line in the output from this command matched our
+        # warnings regular expressions. If did, bump the warnings count and
+        # add the line to the collection of lines with warnings
+        warnings = []
+        # TODO: use log.readlines(), except we need to decide about stdout vs
+        # stderr
+        for line in log.getText().split("\n"):
+            if wre.match(line):
+                warnings.append(line)
+                self.warnCount += 1
+
+        # If there were any warnings, make the log if lines with warnings
+        # available
+        if self.warnCount:
+            self.addCompleteLog("warnings", "\n".join(warnings) + "\n")
+
+        try:
+            old_count = self.getProperty("warnings-count")
+        except KeyError:
+            old_count = 0
+        self.setProperty("warnings-count", old_count + self.warnCount)
+
+
+    def evaluateCommand(self, cmd):
+        if cmd.rc != 0:
+            return FAILURE
+        if self.warnCount:
+            return WARNINGS
+        return SUCCESS
+
+
+class Compile(WarningCountingShellCommand):
 
     name = "compile"
     haltOnFailure = 1
@@ -274,11 +322,12 @@ class Compile(ShellCommand):
     # traversed (assuming 'make' is being used)
 
     def createSummary(self, cmd):
-        # TODO: grep for the characteristic GCC warning/error lines and
+        # TODO: grep for the characteristic GCC error lines and
         # assemble them into a pair of buffers
+        WarningCountingShellCommand.createSummary(self, cmd)
         pass
 
-class Test(ShellCommand):
+class Test(WarningCountingShellCommand):
 
     name = "test"
     warnOnFailure = 1

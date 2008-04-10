@@ -109,11 +109,11 @@ class TinderboxMailNotifier(mail.MailNotifier):
                                    subject=subject,
                                    extraRecipients=extraRecipients,
                                    sendToInterestedUsers=False)
-        self.errorparser = errorparser
         self.tree = tree
         self.binaryURL = binaryURL
         self.logCompression = logCompression
         self.useChangeTime = useChangeTime
+        self.errorparser = errorparser
         assert columnName is None or type(columnName) is str \
             or isinstance(columnName, WithProperties), \
             "columnName must be None, a string, or a WithProperties instance"
