@@ -122,7 +122,7 @@ elsif ($action eq 'gettags'){
             $obj = Bugzilla::Testopia::TestRun->new($id);
         }
 
-        ThowUserError("unkown-type", {type => $type}) unless ($obj);
+        ThrowUserError("unkown-type", {type => $type}) unless ($obj);
         ThrowUserError("testopia-permission-denied", {'object' => $obj}) unless $obj->canview;
         
         $tags = $obj->tags;

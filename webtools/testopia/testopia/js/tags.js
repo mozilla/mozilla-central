@@ -20,21 +20,34 @@
  *                 Daniel Parker <dparker1@novell.com>
  */
 
-TestopiaObjectTags = function(obj, id){
+TestopiaObjectTags = function(obj, obj_id){
+    this.orig_id = obj_id;
+    this.obj_id = obj_id;
     this.remove = function(){
         var form = new Ext.form.BasicForm('testopia_helper_frm',{});
         form.submit({
             url: 'tr_tags.cgi',
-            params: {action: 'removetag', type: obj, id: id, tag: getSelectedObjects(Ext.getCmp(obj + 'tagsgrid'), 'tag_name')},
+            params: {action: 'removetag', type: obj, id: this.obj_id, tag: getSelectedObjects(Ext.getCmp(obj + 'tagsgrid'), 'tag_name')},
             success: function(){
-                ds.load();
+                ds.reload();
+            },
+            failure: testopiaError
+        });
+    };
+    this.add = function(){
+        var form = new Ext.form.BasicForm('testopia_helper_frm',{});
+        form.submit({
+            url: 'tr_tags.cgi',
+            params: {action: 'addtag', type: obj, id: this.obj_id, tag: Ext.getCmp(obj + 'tag_lookup').getRawValue()},
+            success: function(){
+                ds.reload();
             },
             failure: testopiaError
         });
     };
     this.store = new Ext.data.JsonStore({
         url: 'tr_tags.cgi',
-        baseParams: {action: 'gettags', type: obj, id: id},
+        baseParams: {action: 'gettags', type: obj},
         root: 'tags',
         id: 'tag_id',
         fields: [
@@ -58,17 +71,7 @@ TestopiaObjectTags = function(obj, id){
         id: 'tag_add_btn',
         icon: 'testopia/img/add.png',
         iconCls: 'img_button_16x',
-        handler: function(){
-            var form = new Ext.form.BasicForm('testopia_helper_frm',{});
-            form.submit({
-                url: 'tr_tags.cgi',
-                params: {action: 'addtag', type: obj, id: id, tag: Ext.getCmp('tag_lookup').getRawValue()},
-                success: function(){
-                    ds.load();
-                },
-                failure: testopiaError
-            });
-        }
+        handler: this.add.createDelegate(this)
     });
     
     var deleteButton = new Ext.Button({
@@ -95,7 +98,7 @@ TestopiaObjectTags = function(obj, id){
             forceFit:true
         },
         tbar: [
-            new TagLookup({}), addButton, deleteButton
+            new TagLookup({id: obj + 'tag_lookup'}), addButton, deleteButton
         ]
     });
 
@@ -131,8 +134,8 @@ Ext.extend(TestopiaObjectTags, Ext.grid.GridPanel, {
     },
 
     onActivate: function(event){
-        if (!this.store.getCount()){
-            this.store.load();
+        if (!this.store.getCount() || this.orig_id != this.obj_id){
+            this.store.load({params:{id: this.obj_id}});
         }
     }
 });

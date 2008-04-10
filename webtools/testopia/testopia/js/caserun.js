@@ -567,6 +567,7 @@ CaseRunGrid = function(params, run){
                 Ext.getCmp('case_comps_panel').tcid = r.get('case_id');
                 Ext.getCmp('attachments_panel').object = r.data;
                 Ext.getCmp('case_details_panel').caserun_id = r.get('caserun_id');
+                Ext.getCmp('casetagsgrid').obj_id = r.get('case_id');
                 
                 var tab = Ext.getCmp('caserun_center_region').getActiveTab();
                 Ext.getCmp(tab.id).fireEvent('activate');
@@ -830,6 +831,15 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                     handler: function(){
                         var r = grid.getSelectionModel().getSelected();
                         caseClonePopup(grid.run.product_id, getSelectedObjects(grid,'case_id'));
+                    }
+                },{
+                    text: 'Add Selected Test Cases to Run... ',
+                    handler: function(){
+                        Ext.Msg.prompt('Add to runs', '', function(btn, text){
+                            if (btn == 'ok'){
+                                TestopiaUpdateMultiple('case', {addruns: text, ids: getSelectedObjects(grid,'case_id')}, grid);
+                            }
+                        });
                     }
                 },{
                     text: 'Refresh List', 
@@ -1129,7 +1139,8 @@ CaseRun = function(){
             new CaseRunHistory(), 
             new AttachGrid({id: 0, type: 'caserun'}),
             new CaseBugsGrid(),
-            new CaseComponentsGrid()]
+            new CaseComponentsGrid(),
+            new TestopiaObjectTags('case', 0)]
         }]
     });
 };

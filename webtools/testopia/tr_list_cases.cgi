@@ -86,9 +86,6 @@ if ($action eq 'update'){
         }
     }
     
-    my $product = Bugzilla::Testopia::Product->new($cgi->param('product_id'));
-    ThrowUserError('invalid-test-id-non-existent', {type => 'Product', id => $cgi->param('product_id')}) unless $product;
-    
     foreach my $p (@case_ids){
         my $case = Bugzilla::Testopia::TestCase->new($p);
         next unless $case;
