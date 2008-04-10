@@ -477,6 +477,24 @@ sub packit {
   return ($status)?0:1;
 }
 
+sub pack_sdk {
+  my ($packaging_dir, $package_location, $stagedir) = @_;
+  TinderUtils::run_shell_command("make -C $packaging_dir make-sdk");
+
+  if (TinderUtils::is_windows() || TinderUtils::is_os2()) {
+    TinderUtils::run_shell_command("cp $package_location/../*.sdk.zip $stagedir/");
+  } elsif (TinderUtils::is_mac()) {
+    TinderUtils::run_shell_command("mkdir -p $package_location");
+    TinderUtils::run_shell_command("cp $package_location/../*.sdk.tar.* $stagedir/");
+  } else {
+    my $archive_loc = "$package_location/..";
+    if ($Settings::package_creation_path eq "/xpinstall/packager") {
+      $archive_loc = "$archive_loc/dist";
+    }
+    TinderUtils::run_shell_command("cp $archive_loc/*.sdk.tar.* $stagedir/");
+  }
+}
+
 sub get_buildid {
   my %args = @_;
 
@@ -1413,6 +1431,13 @@ sub main {
     unless (packit($package_creation_path,$package_location,$url_path,$local_build_dir,$objdir,$cachebuild)) {
       cleanup();
       return returnStatus("Packaging failed", ("testfailed"));
+    }
+    if ($Settings::BuildSDK) {
+      pack_sdk($package_creation_path,$package_location,$local_build_dir);
+      if ($Settings::MacUniversalBinary) {
+        my $i386objdir = $objdir . '/../i386';
+        pack_sdk($i386objdir . $Settings::package_creation_path,$i386objdir . '/dist/install',$local_build_dir);
+      }
     }
   }
 

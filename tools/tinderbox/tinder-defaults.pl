@@ -37,6 +37,7 @@ $BuildEmbed        = 0;      # After building seamonkey, go build embed app.
 $SkipMozilla       = 0;      # Use to debug post-mozilla.pl scripts.
 $SkipCheckout      = 0;      # Use to debug build process without checking out new source.
 $BuildLocales      = 0;      # Do l10n packaging?
+$BuildSDK          = 0;      # Build the SDK
 $ForceRebuild      = 0;      # Do a full re-build even when in depend mode; used
                              # internally; you probably shouldn't set this
 

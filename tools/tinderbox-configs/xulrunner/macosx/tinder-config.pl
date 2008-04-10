@@ -52,6 +52,7 @@ $BuildAdministrator = "build\@mozilla.org";
 #$BuildEmbed        = 0;      # After building seamonkey, go build embed app.
 #$SkipMozilla       = 0;      # Use to debug post-mozilla.pl scripts.
 #$BuildLocales      = 0;      # Do l10n packaging?
+$BuildSDK           = 1;      # Build the SDK
 
 # Only used when $BuildLocales = 1
 %WGetFiles         = ();  # Pull files from the web, URL => Location
