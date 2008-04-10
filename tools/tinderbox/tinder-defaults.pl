@@ -304,7 +304,7 @@ $ENV{NO_EM_RESTART} = '1';
 # config options. Wildcards can be used. These variables are mainly used by
 # post-mozilla-rel.pl
 @ReleaseExtensions = (); # set to e.g. ('lightning*.xpi', 'gdata-provider.xpi')
-$ReleaseExtensionSubdir = "" # set to e.g. "xpi"; if not specified, <os>-xpi will be used.
+$ReleaseExtensionSubdir = ""; # set to e.g. "xpi"; if not specified, <os>-xpi will be used.
 
 # Build Mac OS X universal binaries (must be used with an objdir and
 # universal support from mozilla/build/macosx/universal)
