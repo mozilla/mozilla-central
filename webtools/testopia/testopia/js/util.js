@@ -1040,7 +1040,11 @@ Ext.override(Ext.form.Field, {
     }
 });// End Override
 
-var TestopiaPager = function(type, store){
+var TestopiaPager = function(type, store, cfg){
+    if (! cfg){
+        cfg = {};
+    }
+     
     function doUpdate(){
         this.updateInfo();
     }
@@ -1126,7 +1130,7 @@ var TestopiaPager = function(type, store){
         }
     });
     TestopiaPager.superclass.constructor.call(this,{
-        id: 'testopia_pager',
+        id: cfg.id || 'testopia_pager',
         pageSize: Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25),
         displayInfo: true,
         displayMsg: 'Displaying test ' + type + 's {0} - {1} of {2}',

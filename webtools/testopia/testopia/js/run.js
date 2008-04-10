@@ -989,6 +989,7 @@ AddCaseToRunForm = function(run){
                     params.plan_id = run.plan_id;
                     params.exclude  = run.run_id;
                     params.status = 'CONFIRMED';
+                    params.limit = Ext.getCmp('case_pager').pageSize;
                     casegrid.store.baseParams = params;
                     casegrid.store.load();
                 }

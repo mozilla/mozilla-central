@@ -168,7 +168,7 @@ CaseGrid = function(params, cfg){
     });
 
     this.form = new Ext.form.BasicForm('testopia_helper_frm', {});
-    this.bbar = new TestopiaPager('case', this.store);
+    this.bbar = new TestopiaPager('case', this.store, {id: 'case_pager'});
     CaseGrid.superclass.constructor.call(this, {
         title: 'Test Cases',
         id: cfg.id || 'case_grid',
