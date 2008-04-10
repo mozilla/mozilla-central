@@ -42,7 +42,7 @@
 <script type="text/javascript">
 Ext.onReady(function(){
     Ext.QuickTips.init();
-    var form = new NewCaseForm([% tc.plans %], [% product_id FILTER none %]);
+    var form = new NewCaseForm('[% tc.plans %]', [% product_id FILTER none %]);
     form.render('caseform');
     [% IF tc.summary %]
     Ext.getCmp('ncf-summary').setValue('[% tc.summary FILTER js %]');

@@ -27,6 +27,8 @@ Ext.Ajax.timeout = 120000;
 
 var Testopia = {};
 
+Testopia.Util = {};
+
 //check column widget
 Ext.grid.CheckColumn = function(config){
     Ext.apply(this, config);
@@ -1503,3 +1505,40 @@ TestopiaUtil.notify = function(){
         }
     };
 }();
+
+Testopia.Util.PlanSelector = function(product_id, cfg){
+    var single = cfg.action.match('case') ? false : true;
+    var pg = new PlanGrid({product_id: product_id},{id: 'plan_selector_grid', height:300, single: single});    
+    
+    var pchooser = new ProductCombo({mode: 'local', value: product_id});
+    pchooser.on('select', function(c,r,i){
+        pg.store.baseParams = {ctype: 'json', product_id: r.get('id')};
+        pg.store.load();
+    });
+
+    Testopia.Util.PlanSelector.superclass.constructor.call(this,{
+        items: [pg],
+        buttons: [{
+            text: 'Use Selected',
+            handler: function(){
+                var loc = cfg.action + '?plan_id=' + getSelectedObjects(pg,'plan_id');
+                if (cfg.bug_id){
+                    loc = loc + 'bug=' + cfg.bug_id;
+                }
+                window.location = loc;
+            }
+        }]
+    });
+    
+    pg.on('render',function(){
+    var items = pg.getTopToolbar().items.items;
+        for (var i=0; i < items.length; i++){
+            items[i].destroy();
+        }
+        pg.getTopToolbar().add(new Ext.menu.TextItem('Product: '), pchooser);
+        pg.getSelectionModel().un('rowselect', pg.getSelectionModel().events['rowselect'].listeners[0].fn);
+        pg.getSelectionModel().un('rowdeselect', pg.getSelectionModel().events['rowdeselect'].listeners[0].fn);
+        pg.store.load();        
+    });
+}
+Ext.extend(Testopia.Util.PlanSelector, Ext.Panel);

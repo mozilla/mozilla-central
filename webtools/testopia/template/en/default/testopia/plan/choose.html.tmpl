@@ -21,32 +21,35 @@
   #%]
 
 [% PROCESS global/variables.none.tmpl %]
+[% PROCESS testopia/blocks.html.tmpl %]
+[% PROCESS testopia/style.none.tmpl %]
+
+[% javascript_urls.push("testopia/js/plan.js") %]
 
 [% PROCESS global/header.html.tmpl
-   style_urls = ['testopia.css']
    title = "Choose a Test Plan"
  %]
 
+<script type="text/javascript">
+Ext.onReady(function(){
+    
+    var chooser = new Testopia.Util.PlanSelector([% product.id || 'null' FILTER none %], {action: '[% form_action FILTER js %]', bug_id: [% bug_id || 'null' FILTER none %]});
+    chooser.render('plan_chooser');
+}); 
+</script>
+
 <form method="get" action="[% form_action %]">
   <p>
-    [% IF form_action == 'tr_new_run.cgi' %]
-      <input type="hidden" name="case_status_id" value="2" />
-    [% END %]
-    [% IF type %]
-      <input type="hidden" name="type" value="[% type FILTER html %]" />
-    [% END %]
-    [% IF product %]
+    [% IF bug_id %]
       <input type="hidden" name="bug" value="[% bug_id FILTER none %]" />
-      [% PROCESS testopia/blocks.html.tmpl %]
-      [% PROCESS select sel = { name      => 'plan_id',
-                                list      =>  product.plans,
-                                accesskey => 'p' }%]
-    [% ELSE %]
+    [% END %]
       Please enter a plan id:
       <input name="plan_id" size="6">
-    [% END %]
       <input type="submit" value="Use This Test Plan">
   </p>
 </form>
+
+<b>OR</b> Select from the following:
+<div id="plan_chooser"></div>
 
 [% PROCESS global/footer.html.tmpl %]

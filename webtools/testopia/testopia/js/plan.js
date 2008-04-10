@@ -90,7 +90,7 @@ PlanGrid = function(params,cfg){
         autoExpandColumn: "plan_name",
         autoScroll: true,
         sm: new Ext.grid.RowSelectionModel({
-            singleSelect: false,
+            singleSelect: cfg.single || false,
             listeners: {'rowselect':function(sm,i,r){
                 if (Ext.getCmp('plan_add_run_mnu')){
                     Ext.getCmp('plan_add_run_mnu').enable();
