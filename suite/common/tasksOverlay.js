@@ -103,23 +103,30 @@ function toOpenWindow( aWindow )
 
 function toOpenWindowByType( inType, uri )
 {
-  // Recently opened one.
+  // don't do several loads in parallel
   if (uri in window)
     return;
 
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(nsIWindowMediator);
-
-  var topWindow = windowManager.getMostRecentWindow( inType );
-
+  var topWindow = Components.classes['@mozilla.org/appshell/window-mediator;1']
+                            .getService(nsIWindowMediator)
+                            .getMostRecentWindow(inType);
   if ( topWindow )
     toOpenWindow( topWindow );
   else
   {
-    function newWindowLoaded(event) {
+    // open the requested window, but block it until it's fully loaded
+    function newWindowLoaded(event)
+    {
+      // make sure that this handler is called only once
+      window.removeEventListener("unload", newWindowLoaded, false);
+      window[uri].removeEventListener("load", newWindowLoaded, false);
       delete window[uri];
     }
+    // remember the newly loading window until it's fully loaded
+    // or until the current window passes away
     window[uri] = window.openDialog(uri, "", "all,dialog=no");
     window[uri].addEventListener("load", newWindowLoaded, false);
+    window.addEventListener("unload", newWindowLoaded, false);
   }
 }
 
