@@ -490,7 +490,6 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             socketID = tName;
         }
         
-        @Override
         public void run() {
             
             try {

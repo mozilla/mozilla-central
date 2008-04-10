@@ -308,7 +308,6 @@ public class JSS_SelfServServer  {
             this.socketCntr = cntr;
         }
         
-        @Override
         public void run() {
             
             try {

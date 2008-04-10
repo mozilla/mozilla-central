@@ -177,7 +177,6 @@ public class JSS_FileUploadServer  {
             this.socketCntr = cntr;
         }
         
-        @Override
         public void run() {
             
             try {
