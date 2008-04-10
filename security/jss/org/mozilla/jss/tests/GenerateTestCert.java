@@ -196,7 +196,7 @@ public class GenerateTestCert {
             if (certs.length > 0) {
                 System.out.println(caCertNick + " already exists!");
                 System.exit(1);
-            };
+            }
             
             if (args.length > 7) {
                 serverCertNick = args[6];
@@ -205,7 +205,7 @@ public class GenerateTestCert {
             if (certs.length > 0) {
                 System.out.println(serverCertNick + " already exists!");
                 System.exit(1);
-            };
+            }
             
             if (args.length == 8) {
                 clientCertNick = args[7];
@@ -214,7 +214,7 @@ public class GenerateTestCert {
             if (certs.length > 0) {
                 System.out.println(clientCertNick + " already exists!");
                 System.exit(1);
-            };
+            }
             
             // generate CA cert
             java.security.KeyPairGenerator kpg =
@@ -276,17 +276,17 @@ public class GenerateTestCert {
             if (certs.length == 0) {
                 System.out.println(caCertNick + " should exist!");
                 System.exit(1);
-            };
+            }
             certs = cm.findCertsByNickname(serverCertNick);
             if (certs.length == 0) {
                 System.out.println(serverCertNick + " should exist!");
                 System.exit(1);
-            };
+            }
             certs = cm.findCertsByNickname(clientCertNick);
             if (certs.length == 0) {
                 System.out.println(clientCertNick + " should exist!");
                 System.exit(1);
-            };
+            }
             
         } catch(Exception e) {
             e.printStackTrace();

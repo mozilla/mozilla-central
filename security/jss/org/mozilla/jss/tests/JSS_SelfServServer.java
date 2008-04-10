@@ -94,7 +94,8 @@ public class JSS_SelfServServer  {
         try {
             (new JSS_SelfServServer()).doIt(args);
         } catch (Exception e) {
-            System.out.println("Exception " + e.getMessage());
+            System.out.println("JSS_SelfServServer exiting with Exception " + 
+                    e.getMessage());
             System.exit(1);
         }
         System.exit(0);
@@ -221,11 +222,11 @@ public class JSS_SelfServServer  {
         
         // open the server socket and bind to the port
         if (bVerbose)
-            System.out.println("Server about .... to create socket");
+            System.out.println("JSS_SelfServServ about .... to create socket");
         
         if (TestInetAddress) {
             if (bVerbose)
-                System.out.println("the HostName " + fServerHost +
+                System.out.println("JSS_SelfServServ HostName " + fServerHost +
                     " the Inet Address " +
                     InetAddress.getByName(fServerHost));
             serverSock = new SSLServerSocket(port, 5,
@@ -237,9 +238,9 @@ public class JSS_SelfServServer  {
         }
         
         if (bVerbose)
-            System.out.println("Server created socket");
+            System.out.println("JSS_SelfServServ created socket");
         
-        serverSock.setSoTimeout(300*1000);  // Set timeout for 5 minutes
+        serverSock.setSoTimeout(600*1000);  // Set timeout for 10 minutes
         serverSock.requireClientAuth(SSLSocket.SSL_REQUIRE_NO_ERROR);
         
         serverSock.setServerCertNickname("Server_ECDSA");
@@ -247,24 +248,49 @@ public class JSS_SelfServServer  {
         serverSock.setServerCertNickname("Server_DSS");
         
         if (bVerbose)
-            System.out.println("Server specified cert by nickname");
+            System.out.println("JSS_SelfServServ specified cert by nickname");
         
-        System.out.println("Server " + fServerHost +
+        System.out.println("JSS_SelfServServ " + fServerHost +
             " ready to accept connections on " + port);
         int socketCntr = 0;
-        while ( true ) {
-            // accept the connection
-            sock = (SSLSocket) serverSock.accept();
-            sock.addHandshakeCompletedListener(
-                new HandshakeListener("server", this));
-            socketCntr++;
-            sock.setSoTimeout(300*1000);
-            if (bVerbose) {
-                System.out.println("Timeout value for sockets: " +
-                    sock.getSoTimeout());
+        try {
+            while ( true ) {
+                // accept the connection
+                sock = (SSLSocket) serverSock.accept();
+                sock.addHandshakeCompletedListener(
+                    new HandshakeListener("server", this));
+
+                socketCntr++;
+                sock.setSoTimeout(300*1000);
+                if (bVerbose) {
+                    System.out.println("Timeout value for SSL sockets: " +
+                        sock.getSoTimeout() + " milliseconds");
+                }
+                readWriteThread rwThread = new readWriteThread(sock, socketCntr);
+                rwThread.start();
             }
-            readWriteThread rwThread = new readWriteThread(sock, socketCntr);
-            rwThread.start();
+        } catch (SocketTimeoutException ex) {
+            
+            if (socketCntr == 0) {
+                System.out.println("JSS_SelfServServ No Client attempted to " +
+                        "connect! If " +
+                        "test ran from all.pl check the client execution " +
+                        "for errors.");
+            } else {
+                System.out.println("JSS_SelfServServ there has been " + 
+                        socketCntr + " client " +
+                        " connections but the server Accept has timed out!");
+            }
+            System.out.println("JSS_SelfServServ Timeout value: " +
+                        serverSock.getSoTimeout() + " milliseconds");
+            ex.printStackTrace();
+            System.out.println("JSS_SelfServServ exiting due to timeout.");
+            System.exit(1);
+        } catch (Exception ex) {
+            System.out.println("JSS_SelfServServ Exception:");
+            ex.printStackTrace();
+            System.out.println("JSS_SelfServServ exiting.");
+            System.exit(1);
         }
     }
     
@@ -282,6 +308,7 @@ public class JSS_SelfServServer  {
             this.socketCntr = cntr;
         }
         
+        @Override
         public void run() {
             
             try {
@@ -335,7 +362,6 @@ public class JSS_SelfServServer  {
                             " timed out: " +  ste.toString());
                         break;
                     } catch (IOException ex) {
-                        if (bVerbose) ex.printStackTrace();
                         break;
                     }
                 }

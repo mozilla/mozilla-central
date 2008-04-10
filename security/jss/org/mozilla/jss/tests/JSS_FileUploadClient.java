@@ -42,13 +42,9 @@ import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.asn1.*;
 import org.mozilla.jss.pkix.primitive.*;
 import org.mozilla.jss.pkix.cert.*;
-import org.mozilla.jss.pkix.cert.Certificate;
 import org.mozilla.jss.util.PasswordCallback;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.security.*;
-import java.security.PrivateKey;
 import java.net.*;
 import java.io.*;
 
@@ -196,6 +192,7 @@ public class JSS_FileUploadClient {
             socketCntr = cntr;
         }
         
+        @Override
         public void run() {
             
             try {
@@ -428,7 +425,7 @@ public class JSS_FileUploadClient {
         System.out.println("All " + socketCntr + " sockets created. Exiting");
         // Sleep for 5 min
         try {
-            Thread.currentThread().sleep(300*1000);
+            Thread.sleep(300*1000);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
             System.exit(1);

@@ -38,9 +38,6 @@ package org.mozilla.jss.tests;
 
 import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.CryptoManager;
-import org.mozilla.jss.util.Assert;
-import org.mozilla.jss.util.Password;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 
 /**

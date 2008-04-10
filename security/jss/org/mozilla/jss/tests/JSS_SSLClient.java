@@ -42,13 +42,9 @@ import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.asn1.*;
 import org.mozilla.jss.pkix.primitive.*;
 import org.mozilla.jss.pkix.cert.*;
-import org.mozilla.jss.pkix.cert.Certificate;
 import org.mozilla.jss.util.PasswordCallback;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.security.*;
-import java.security.PrivateKey;
 import java.net.*;
 import java.io.*;
 
@@ -416,7 +412,7 @@ public class JSS_SSLClient {
                         // Put the main thread to sleep.  In case we do not
                         // get any response within 10 sec, then we shutdown.
                         try {
-                            Thread.currentThread().sleep(1000);
+                            Thread.sleep(1000);
                         } catch (InterruptedException e) {
                             System.out.println("Thread Interrupted ...\n");
                         }
@@ -435,7 +431,7 @@ public class JSS_SSLClient {
                     // Put the main thread to sleep.  In case we do not
                     // get any response within 10 sec, then we shutdown.
                     try {
-                        Thread.currentThread().sleep(1000);
+                        Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         System.out.println("Thread Interrupted ...\n");
                     }
@@ -451,7 +447,7 @@ public class JSS_SSLClient {
                             // Put the main thread to sleep.  In case we do not
                             // get any response within 10 sec, then we shutdown.
                             try {
-                                Thread.currentThread().sleep(1000);
+                                Thread.sleep(1000);
                             } catch (InterruptedException e) {
                                 System.out.println("Thread Interrupted ...\n");
                             }

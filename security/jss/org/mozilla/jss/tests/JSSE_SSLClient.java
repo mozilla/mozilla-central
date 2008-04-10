@@ -145,7 +145,7 @@ public class JSSE_SSLClient {
         for (int i = 0 ; i < 20 ; i++) {
             try {
                 
-                Thread.currentThread().sleep(1000);
+                Thread.sleep(1000);
                            System.out.println("Testing Connection:" +
                     host + ":" + port);
                 socket = (SSLSocket)factory.createSocket(host, port);

@@ -36,8 +36,6 @@
 
 package org.mozilla.jss.tests;
 
-import org.mozilla.jss.CryptoManager;
-
 public class JSSPackageTest {
 
     public static void main(String[] args) {

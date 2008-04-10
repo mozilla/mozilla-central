@@ -43,16 +43,11 @@ import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.asn1.*;
 import org.mozilla.jss.pkix.primitive.*;
 import org.mozilla.jss.pkix.cert.*;
-import org.mozilla.jss.pkix.cert.Certificate;
 import org.mozilla.jss.util.PasswordCallback;
 
-import org.mozilla.jss.tests.*;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Vector;
 import java.security.*;
-import java.security.PrivateKey;
 import java.net.InetAddress;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -74,7 +69,7 @@ public class JSS_SSLServer  {
         // Put the main thread to sleep.  In case we do not get any
         // response within 35 sec, then we shutdown the server.
         try {
-            Thread.currentThread().sleep(3500);
+            Thread.sleep(3500);
             sock.close();
             serverSock.close();
         } catch (InterruptedException e) {

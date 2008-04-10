@@ -37,7 +37,6 @@
 package org.mozilla.jss.tests;
 
 import java.security.*;
-import java.security.cert.X509Certificate;
 import java.io.*;
 import org.mozilla.jss.util.*;
 import org.mozilla.jss.*;

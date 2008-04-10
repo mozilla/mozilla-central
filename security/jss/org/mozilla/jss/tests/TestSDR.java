@@ -37,13 +37,11 @@
 package org.mozilla.jss.tests;
 
 import java.security.*;
-import java.security.cert.Certificate;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.SecretDecoderRing.*;
 import java.io.*;
 import javax.crypto.*;
-import org.mozilla.jss.asn1.ASN1Util;
 
 /**
 * Secret Decoder ring tests.

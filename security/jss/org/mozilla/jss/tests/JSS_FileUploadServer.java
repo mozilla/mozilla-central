@@ -43,27 +43,16 @@ import org.mozilla.jss.crypto.*;
 import org.mozilla.jss.asn1.*;
 import org.mozilla.jss.pkix.primitive.*;
 import org.mozilla.jss.pkix.cert.*;
-import org.mozilla.jss.pkix.cert.Certificate;
 import org.mozilla.jss.util.PasswordCallback;
 
-import org.mozilla.jss.tests.*;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Vector;
 import java.security.*;
-import java.security.PrivateKey;
 import java.net.InetAddress;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.EOFException;
 import java.io.InputStreamReader;
 import java.io.InputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.FileReader;
 
 public class JSS_FileUploadServer  {
     
@@ -188,6 +177,7 @@ public class JSS_FileUploadServer  {
             this.socketCntr = cntr;
         }
         
+        @Override
         public void run() {
             
             try {

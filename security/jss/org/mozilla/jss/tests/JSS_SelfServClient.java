@@ -38,7 +38,6 @@ package org.mozilla.jss.tests;
 
 import org.mozilla.jss.CertDatabaseException;
 import org.mozilla.jss.KeyDatabaseException;
-import org.mozilla.jss.asn1.INTEGER;
 import org.mozilla.jss.ssl.*;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.crypto.*;
@@ -491,6 +490,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             socketID = tName;
         }
         
+        @Override
         public void run() {
             
             try {
@@ -600,7 +600,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 s = createSSLSocket();
                 if (s != null) break;
                 
-                Thread.currentThread().sleep(1000);
+                Thread.sleep(1000);
             }
             if (s != null) {
                 s.close();
@@ -654,14 +654,8 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         
         try {
             SSLSocket s;
-            Iterator sIter = sockList.iterator();
             long start = System.currentTimeMillis();
-            while (sIter.hasNext()) {
-                s = (SSLSocket) sIter.next();
-                s.close();
-            }
-            
-            sIter = sockList.iterator();
+            Iterator sIter = sockList.iterator();
             while (sIter.hasNext()) {
                 s = (SSLSocket) sIter.next();
                 s.close();
@@ -670,7 +664,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
             System.out.println("Waiting till all threads are dead");
             int i = 0;
             while (socketThreads.activeCount() > 0) {
-                Thread.currentThread().sleep(10);
+                Thread.sleep(10);
                 System.out.println("ActiveCount" + socketThreads.activeCount());
                 //This loop should always exit but it has the potential
                 //to hang the QA tests so...
@@ -935,7 +929,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         boolean bVerbose = false;
         String server = "JSS";
         try {
-            Thread.currentThread().sleep(3*1000);
+            Thread.sleep(3*1000);
         } catch (InterruptedException ex) {
             ex.printStackTrace();
         }
@@ -1029,8 +1023,10 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
                 jssTest.setPasswordFile(passwdFile);
             
             if (!jssTest.isServerAlive()) {
-                System.out.println("Unable to connect to " + testhost + ":" +
-                        testport + " exiting.");
+                System.out.println("Server " + testhost + ":" +
+                        testport + " is not Alive.\nIf this test was ran by " +
+                        "all.pl look at the server invocation for failures " +
+                        "and check network issues.");
                 System.exit(1);
             }
             
@@ -1063,7 +1059,7 @@ public class JSS_SelfServClient implements ConstantsBase, Constants {
         if (jssTest.getTestCiphers()) {
             try {
                 //Sleep for 30 seconds
-                Thread.currentThread().sleep(30*1000);
+                Thread.sleep(30*1000);
             } catch (InterruptedException ex) {
                 ex.printStackTrace();
                 System.exit(1);

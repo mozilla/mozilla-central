@@ -40,7 +40,6 @@ import java.security.*;
 import java.security.spec.*;
 import org.mozilla.jss.CryptoManager;
 import org.mozilla.jss.crypto.CryptoToken;
-import java.util.Iterator;
 import org.mozilla.jss.util.PasswordCallback;
 
 abstract class TestValues {
@@ -196,7 +195,7 @@ public class KeyFactoryTest {
 	    System.exit(0);
     }
 
-    public void genPrivKeyFromSpec(TestValues vals) throws Throwable {
+    void genPrivKeyFromSpec(TestValues vals) throws Throwable {
 
         // generate the key pair
         KeyPairGenerator kpg =
@@ -242,7 +241,7 @@ public class KeyFactoryTest {
         }
     }
 
-    public void genPubKeyFromSpec(TestValues vals) throws Throwable {
+    void genPubKeyFromSpec(TestValues vals) throws Throwable {
         // generate a key pair
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(vals.keyGenAlg,
             vals.provider);

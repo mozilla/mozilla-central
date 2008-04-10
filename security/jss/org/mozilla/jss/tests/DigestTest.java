@@ -37,7 +37,6 @@ package org.mozilla.jss.tests;
 
 import java.io.*;
 import org.mozilla.jss.CryptoManager;
-import org.mozilla.jss.util.Password;
 import org.mozilla.jss.util.Debug;
 import java.security.MessageDigest;
 import java.security.Provider;
