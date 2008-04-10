@@ -361,7 +361,7 @@
        <menu id="menu_Tools"
              label="&toolsMenu.label;"
              accesskey="&toolsMenu.accesskey;">
-         <menupopup id="toolsPopup">
+         <menupopup id="menu_ToolsPopup">
            <menuitem id="addonsManager"
                      label="&calendar.addons.label;"
                      accesskey="&calendar.addons.accesskey;"
