@@ -59,22 +59,22 @@ var itemConversion = {
         setDefaultAlarmValues(aItem);
 
         function addAttendees(aEmailAddresses) {
-            if (msgHeaderParser) {
-                var addresses = {};
-                var fullNames = {};
-                var names = {};
-                var numAddresses =  0;
-                numAddresses = msgHeaderParser.parseHeadersWithArray(
-                    aEmailAddresses, addresses, names, fullNames);
-                for (var i = 0; i < numAddresses; i++) {
-                    var attendee = createAttendee();
-                    attendee.id = addresses.value[i];
-                    attendee.commonName = names.value[i];
-                    attendee.role = "REQ-PARTICIPANT";
-                    attendee.participationStatus = "NEEDS-ACTION";
-                    attendee.rsvp = true;
-                    aItem.addAttendee(attendee);
-                }
+            var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                         .getService(Components.interfaces.nsIMsgHeaderParser);
+            var addresses = {};
+            var fullNames = {};
+            var names = {};
+            var numAddresses =  0;
+            numAddresses = headerParser.parseHeadersWithArray(
+                aEmailAddresses, addresses, names, fullNames);
+            for (var i = 0; i < numAddresses; i++) {
+                var attendee = createAttendee();
+                attendee.id = addresses.value[i];
+                attendee.commonName = names.value[i];
+                attendee.role = "REQ-PARTICIPANT";
+                attendee.participationStatus = "NEEDS-ACTION";
+                attendee.rsvp = true;
+                aItem.addAttendee(attendee);
             }
         }
 
