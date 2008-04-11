@@ -1,6 +1,4 @@
 balsa-18branch|Depend
-bl-bldlnx01|perf test|production-prometheus-vm
-bl-bldxp01|perf test|prod-pacifica-vm
 production-prometheus-vm|Depend
 bm-xserve05|Fx-Nightly
 bm-xserve02|Tb-Nightly
