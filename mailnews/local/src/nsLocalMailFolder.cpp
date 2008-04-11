@@ -1059,6 +1059,10 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, P
 
 NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msgWindow)
 {
+  // Renaming to the same name is easy
+  if (mName.Equals(aNewName))
+    return NS_OK;
+
   nsCOMPtr<nsILocalFile> oldPathFile;
   nsCOMPtr<nsIAtom> folderRenameAtom;
   nsresult rv = GetFilePath(getter_AddRefs(oldPathFile));
