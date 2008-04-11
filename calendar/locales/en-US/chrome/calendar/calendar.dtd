@@ -365,6 +365,7 @@
 
 <!-- Sunbird Help -->
 <!ENTITY calendar.help.label               "Help Contents">
+<!ENTITY calendar.help.accesskey           "H">
 
 <!-- Calendar Publish Dialog -->
 <!ENTITY calendar.publish.dialog.title              "Publish Calendar">
