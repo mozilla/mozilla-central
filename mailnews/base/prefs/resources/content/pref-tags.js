@@ -120,11 +120,13 @@ function AppendTagEntry(aTagInfo, aRefChild)
   var tagCell = document.createElement('listcell');
   var textbox = document.createElement('textbox');
   textbox.setAttribute('flex', 1);
+  textbox.setAttribute('value', aTagInfo.tag);
   tagCell.appendChild(textbox);
 
   var colorCell = document.createElement('listcell');
   var colorpicker = document.createElement('colorpicker');
   colorpicker.setAttribute('type', 'button');
+  colorpicker.setAttribute('color', aTagInfo.color || 'inherit')
   colorCell.appendChild(colorpicker);
 
   var entry = document.createElement('listitem');
@@ -136,7 +138,6 @@ function AppendTagEntry(aTagInfo, aRefChild)
   entry.appendChild(colorCell);
 
   gTagList.insertBefore(entry, aRefChild);
-  UpdateTagEntry(aTagInfo, entry);
   return entry;
 }
 
