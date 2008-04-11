@@ -142,6 +142,7 @@ prefpane button {
 }
 
 prefpane .groupbox-body {
+    -moz-appearance: none;
     border: none !important;
     -moz-border-radius: 0px !important;
     background-image: none !important;
