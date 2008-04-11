@@ -469,8 +469,7 @@
                 accesskey="&fileCarbonCopyCmd.accesskey;" 
                 oncommand="MessageFcc(event.target._folder)">
             <menupopup type="folder" mode="filing" showFileHereLabel="true"
-                       fileHereLabel="&fileHereMenu.label;"
-                       fileHereAccessKey="&fileHereMenu.accesskey;"/>
+                       fileHereLabel="&fileHereMenu.label;"/>
           </menu>    
         </menupopup>
       </menu>
