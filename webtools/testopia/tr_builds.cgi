@@ -49,12 +49,12 @@ print $cgi->header;
 ThrowUserError("testopia-missing-parameter", {param => "product_id"}) unless $product_id;
 
 my $product = Bugzilla::Testopia::Product->new($product_id);
-ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
 
 ######################
 ### Create a Build ###
 ######################
 if ($action eq 'add'){
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $build = Bugzilla::Testopia::Build->create({
                   product_id  => $product->id,
                   name        => $cgi->param('name') || '',
@@ -70,6 +70,7 @@ if ($action eq 'add'){
 ### Edit a Build ###
 ####################
 elsif ($action eq 'edit'){
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $build = Bugzilla::Testopia::Build->new($cgi->param('build_id'));
     
     $build->set_name($cgi->param('name')) if $cgi->param('name');
@@ -82,6 +83,7 @@ elsif ($action eq 'edit'){
 }
 
 elsif ($action eq 'list'){
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canview;
     my $json = new JSON;
     my @builds;
     my $activeonly = $cgi->param('activeonly');
@@ -103,6 +105,7 @@ elsif ($action eq 'list'){
 }
 
 elsif ($action eq 'report'){
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canview;
     my $vars = {};
     my $template = Bugzilla->template;
     
@@ -110,11 +113,14 @@ elsif ($action eq 'report'){
     
     my @build_ids  = $cgi->param('build_ids');
     my @builds;
+    my @bug_ids;
     
     foreach my $g (@build_ids){
         foreach my $id (split(',', $g)){
             my $obj = Bugzilla::Testopia::Build->new($id);
-            push @builds, $obj if $obj->product->canedit;
+            push @builds, $obj if $obj->product->canview;
+            $obj->bugs;
+            push @bug_ids, $obj->{'bug_list'};
         }
     }
     
@@ -122,7 +128,8 @@ elsif ($action eq 'report'){
     my $passed = $builds[0]->case_run_count(PASSED, \@builds);
     my $failed = $builds[0]->case_run_count(FAILED, \@builds);
     my $blocked = $builds[0]->case_run_count(BLOCKED, \@builds);
-
+    my $idle = $builds[0]->case_run_count(IDLE, \@builds);
+    
     my $completed = $passed + $failed + $blocked;
     
     my $unfinished = $total - $completed;
@@ -135,11 +142,17 @@ elsif ($action eq 'report'){
     $vars->{'passed'} = $passed;
     $vars->{'failed'} = $failed;
     $vars->{'blocked'} = $blocked;
+    $vars->{'idle'} = $idle;
 
     $vars->{'percent_completed'} = calculate_percent($total, $completed);
     $vars->{'percent_passed'} = calculate_percent($completed, $passed);
     $vars->{'percent_failed'} = calculate_percent($completed, $failed);
     $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
+    $vars->{'percent_idle'} = calculate_percent($total, $idle);
+    
+    $vars->{'builds'} = join(',',@build_ids);
+    $vars->{'bugs'} = join(',',@bug_ids);
+    $vars->{'bug_count'} = scalar split(',', $vars->{'bugs'});
     
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());

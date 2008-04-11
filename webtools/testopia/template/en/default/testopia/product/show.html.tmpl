@@ -109,7 +109,7 @@ Ext.onReady(function(){
         },{
             text: 'New Environment',
             handler: function(){
-                window.location = 'tr_new_environment.cgi?product_id=' + Ext.getCmp('products-pane').getSelectionModel().getSelectedNode().id;
+                window.location = 'tr_new_environment.cgi?product_id=' + Ext.getCmp('products_pane').getSelectionModel().getSelectedNode().id;
             }
         }]
     });
@@ -130,14 +130,12 @@ Ext.onReady(function(){
             handler: function(){
                 SearchPopup('run');
             }
-        }
-//       ,{
-//            text: 'Test Results Search',
-//            handler: function(){
-//                SearchPopup('case_run');
-//            }
-//        }
-        ]
+        },{
+            text: 'Test Results Search',
+            handler: function(){
+                SearchPopup('case_run');
+            }
+        }]
     });
 
     var report_menu = new Ext.menu.Menu({
@@ -198,7 +196,7 @@ Ext.onReady(function(){
             title: 'Products',
             width: 212,
             maxsize: 400,
-            id: 'products-pane',
+            id: 'products_pane',
             xtype: 'treepanel',
             loader: new Ext.tree.TreeLoader({
               dataUrl:'tr_quicksearch.cgi',
@@ -292,11 +290,11 @@ Ext.onReady(function(){
         }]
     });
   [% IF product %]
-    Ext.getCmp('products-pane').getLoader().on('load', function(l,n,r){
+    Ext.getCmp('products_pane').getLoader().on('load', function(l,n,r){
         if (n.isExpanded() && n.id != 'classes'){
             return;
         }
-        var tree = Ext.getCmp('products-pane');
+        var tree = Ext.getCmp('products_pane');
         var cnode = tree.getNodeById('c[% product.classification_id FILTER none %]');
         cnode.expand(1,true,function(n){
             tree.getNodeById('[% product.id FILTER none %]').select();

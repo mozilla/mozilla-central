@@ -821,17 +821,16 @@ Attaches the specified bug to this test case
 
 sub attach_bug {
     my $self = shift;
-    my ($bugids, $case_id) = @_;
+    my ($bugids, $caserun_id) = @_;
     my $dbh = Bugzilla->dbh;
     
-    $case_id ||= $self->{'case_id'};
     $bugids = $self->_check_bugs($bugids, "ATTACH");
     
     $dbh->bz_lock_tables('test_case_bugs WRITE');
     
     foreach my $bug (@$bugids){
         $dbh->do("INSERT INTO test_case_bugs (bug_id, case_run_id, case_id)
-                  VALUES(?,?,?)", undef, ($bug, undef, $self->id));
+                  VALUES(?,?,?)", undef, ($bug, $caserun_id, $self->id));
     }
 
     $dbh->bz_unlock_tables();

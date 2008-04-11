@@ -386,8 +386,6 @@ else{
         print "{products:" . $json->objToJson(\@prods) . "}";
     }
     
-    elsif ($action eq 'getproductstree'){
-    }
     elsif ($action eq 'getclassificationstree'){
         my $node = $cgi->param('node');
         if ($node && $node ne 'classes'){
@@ -395,7 +393,14 @@ else{
             my @products;
             my $classification = Bugzilla::Testopia::Classification->new($node);
             foreach my $p (@{$classification->user_visible_products}){
-                push @products, {id => $p->id, text => $p->name, leaf => 'true', attributes =>{ defaultmilestone => $p->default_milestone}};
+                push @products, {
+                    id => $p->id, 
+                    text => $p->name, 
+                    leaf => 'true', 
+                    attributes =>{ 
+                        defaultmilestone => $p->default_milestone, 
+                        canedit => $p->canedit ? 'true':'false'
+                    }};
             }
             my $json = new JSON;
             print $json->objToJson(\@products);

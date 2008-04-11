@@ -8,6 +8,7 @@ my $cgi = Bugzilla->cgi;
 
 if ($cgi->param('case_id')) {
     my $case = Bugzilla::Testopia::TestCase->new($cgi->param('case_id'));
+    ThrowUserError("testopia-read-only", {'object' => $case}) unless $case->canedit;
     
     $case->attach_bug($vars->{'id'});
 
@@ -15,6 +16,7 @@ if ($cgi->param('case_id')) {
 }
 if ($cgi->param('caserun_id')) {
     my $caserun = Bugzilla::Testopia::TestCaseRun->new($cgi->param('caserun_id'));
+    ThrowUserError("testopia-read-only", {'object' => $caserun}) unless $caserun->canedit;
     
     $caserun->attach_bug($vars->{'id'});
 

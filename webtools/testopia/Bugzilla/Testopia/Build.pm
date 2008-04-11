@@ -228,6 +228,25 @@ sub description     { return $_[0]->{'description'};}
 sub milestone       { return $_[0]->{'milestone'};}
 sub isactive        { return $_[0]->{'isactive'};}
 
+sub bugs {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'bugs'} if exists $self->{'bugs'};
+    my $ref = $dbh->selectcol_arrayref(
+          "SELECT DISTINCT bug_id
+             FROM test_case_bugs b
+             JOIN test_case_runs r ON r.case_run_id = b.case_run_id
+            WHERE r.build_id = ?", 
+           undef, $self->id);
+    my @bugs;
+    foreach my $id (@{$ref}){
+        push @bugs, Bugzilla::Bug->new($id, Bugzilla->user->id);
+    }
+    $self->{'bugs'} = \@bugs if @bugs;
+    $self->{'bug_list'} = join(',', @$ref);
+    return $self->{'bugs'};
+}
+
 sub product {
     my ($self) = @_;
     

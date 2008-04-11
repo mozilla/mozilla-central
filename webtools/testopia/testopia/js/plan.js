@@ -190,6 +190,7 @@ Ext.extend(PlanGrid, Ext.grid.EditorGridPanel, {
                 id:'plan-ctx-menu',
                 items: [{
                     text: 'Create a New Test Plan',
+                    id: 'plan_menu_new_plan',
                     icon: 'testopia/img/new.png',
                     iconCls: 'img_button_16x',
                     handler: this.newPlan.createDelegate(this)

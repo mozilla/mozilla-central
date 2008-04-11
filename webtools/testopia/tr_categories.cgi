@@ -46,13 +46,13 @@ print $cgi->header;
 ThrowUserError("testopia-missing-parameter", {param => "product_id"}) unless $product_id;
 
 my $product = Bugzilla::Testopia::Product->new($product_id);
-ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
 
 #########################
 ### Create a Category ###
 #########################
 
 if ($action eq 'add'){
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $category = Bugzilla::Testopia::Category->create({
                           product_id  => $product->id,
                           name        => $cgi->param('name'),
@@ -66,6 +66,7 @@ if ($action eq 'add'){
 ### Edit a Category ###
 #######################
 elsif ($action eq 'edit'){
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     
     $category->set_name($cgi->param('name')) if $cgi->param('name');
@@ -79,6 +80,7 @@ elsif ($action eq 'edit'){
 ### Delete a Category ###
 #########################
 elsif ($action eq 'delete'){
+    ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $category = Bugzilla::Testopia::Category->new($cgi->param('category_id'));
     ThrowUserError("testopia-non-zero-case-count") unless $category->candelete;
     
@@ -89,6 +91,7 @@ elsif ($action eq 'delete'){
 }
 
 elsif ($action eq 'list'){
+    ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canview;
     my $json = new JSON;
     
     my $out;

@@ -281,6 +281,14 @@ sub type {
     return $self->{'type'};
 }
 
+sub canview {
+    my $self = shift;
+    my ($user) = @_;
+    $user ||= Bugzilla->user;
+    return 1 if $user->can_see_product($self->name);
+    return 0;
+}
+
 sub canedit {
     my $self = shift;
     my ($user) = @_;

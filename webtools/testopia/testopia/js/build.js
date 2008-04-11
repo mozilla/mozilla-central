@@ -42,7 +42,7 @@ BuildGrid = function(product_id){
       editor: new Ext.grid.GridEditor(
           mbox,{listeners: {
                  'startedit' : function(){
-                     var pid = Ext.getCmp('products-pane').getSelectionModel().getSelectedNode().id;
+                     var pid = Ext.getCmp('products_pane').getSelectionModel().getSelectedNode().id;
                      if (mbox.store.baseParams.product_id != pid){
                          mbox.store.baseParams.product_id = pid;
                          mbox.store.load();
@@ -107,7 +107,7 @@ Ext.extend(BuildGrid, Ext.grid.EditorGridPanel, {
         ]);
         var b = new NewBuild({
             name: '',
-            milestone: Ext.getCmp('products-pane').getSelectionModel().getSelectedNode().attributes.attributes.defaultmilestone,
+            milestone: Ext.getCmp('products_pane').getSelectionModel().getSelectedNode().attributes.attributes.defaultmilestone,
             description: '',
             isactive: true
         });
@@ -191,7 +191,7 @@ Ext.extend(BuildGrid, Ext.grid.EditorGridPanel, {
         else{
             myparams.action = "add";
             myparams.name = e.value;
-            myparams.milestone = Ext.getCmp('products-pane').getSelectionModel().getSelectedNode().attributes.attributes.defaultmilestone;
+            myparams.milestone = Ext.getCmp('products_pane').getSelectionModel().getSelectedNode().attributes.attributes.defaultmilestone;
             myparams.isactive = 1;
         }
         this.form.submit({

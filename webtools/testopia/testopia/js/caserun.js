@@ -1225,9 +1225,13 @@ CaseBugsGrid = function(id){
     });
     addbug = function(){
         tcid = this.tcid;
+        var tcrid;
+        if (Ext.getCmp('caserun_grid')){
+            tcrid = Ext.getCmp('caserun_grid').getSelectionModel().getSelected().get('caserun_id');
+        }
         testopia_form.submit({
             url: 'tr_process_case.cgi',
-            params: {action: 'edit', bugs: Ext.getCmp('attachbug').getValue(), case_id: this.tcid},
+            params: {action: 'edit', bugs: Ext.getCmp('attachbug').getValue(), case_id: this.tcid, caserun_id: tcrid},
             success: function(){
                 ds.load({
                     params: {case_id: tcid}
@@ -1283,6 +1287,7 @@ CaseBugsGrid = function(id){
             for (var i=0; i<store.fields.keys.length; i++){
                 url = url + store.fields.keys[i] + '=' + escape(store.getAt(0).get(store.fields.keys[i])) + '&';
             }
+            url = url + 'caserun_id=' + caserun_id;
             window.open(url, 'New Bug');
         });
     };

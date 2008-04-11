@@ -67,7 +67,7 @@ if ($action eq 'edit'){
     
     $case->add_to_run($cgi->param('addruns'));
     $case->add_tag($cgi->param('newtag'));
-    $case->attach_bug($cgi->param('bugs'));
+    $case->attach_bug($cgi->param('bugs'),$cgi->param('caserun_id'));
     
     $case->update();
 
