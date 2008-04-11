@@ -50,15 +50,22 @@ GRE_BUILDID = $(shell $(PYTHON) $(topsrcdir)/config/printconfigsetting.py $(LIBX
 PLATFORM_LICENSE_FILE = $(topsrcdir)/toolkit/content/license.html
 MAIL_LICENSE_HTML_FILE = ../license.html
 MAIL_LICENSE_TXT_FILE = $(topsrcdir)/mail/LICENSE.txt
+MAIL_APP_LICENSE_FILE = $(srcdir)/app-license.html
 
 DEFINES += \
   -DTHUNDERBIRD_ICO=\"$(DIST)/branding/thunderbird.ico\" \
   -DAB_CD=$(AB_CD) \
   -DGRE_MILESTONE=$(GRE_MILESTONE) \
   -DGRE_BUILDID=$(GRE_BUILDID) \
+  -DAPP_EULA_BLOCK=$(MAIL_APP_LICENSE_FILE) \
    $(NULL)
 
 DIRS		= profile
+
+GARBAGE += \
+	$(MAIL_LICENSE_HTML_FILE) \
+	$(FINAL_TARGET)/license.html \
+	$(NULL)
 
 PREF_JS_EXPORTS = \
     $(srcdir)/profile/all-thunderbird.js \
@@ -368,8 +375,9 @@ clean clobber::
 	rm -rf $(DIST)/$(APP_NAME).app
 endif
 
-$(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE)
-	sed -e "s/about:license\#/\#/" $< > $@
+$(MAIL_LICENSE_HTML_FILE): $(PLATFORM_LICENSE_FILE) $(MAIL_APP_LICENSE_FILE)
+	$(PYTHON) $(MOZILLA_DIR)/config/Preprocessor.py $(DEFINES) $< | \
+	sed -e "s/about:license\#/\#/" > $@
 
 libs:: $(MAIL_LICENSE_TXT_FILE) $(MAIL_LICENSE_HTML_FILE)
 ifeq ($(OS_ARCH),WINNT)
@@ -386,7 +394,3 @@ libs:: $(srcdir)/profile/prefs.js
 
 install:: $(srcdir)/profile/prefs.js
 	$(SYSINSTALL) $(IFLAGS1) $^  $(DESTDIR)$(mozappdir)/defaults/profile
-
-clean clobber::
-	rm -rf ../license.html
-	rm -rf $(FINAL_TARGET)/license.html
