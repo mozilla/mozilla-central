@@ -123,8 +123,8 @@
 #ifdef XP_MACOSX
            <menuitem id="menu_FileQuitItem"
                      label="&calendar.quit.label.mac;"
-                     key="key_quitCmdMac"
-                     oncommand="goQuitApplication()"/>
+                     key="key_quitApplication"
+                     command="cmd_quitApplication"/>
 #else
            <menuseparator id="calendar-print-sep"/>
 #ifdef XP_WIN
@@ -136,7 +136,8 @@
            <menuitem id="calendar-quit-menu"
                      label="&calendar.quit.label;"
                      accesskey="&calendar.quit.accesskey;"
-                     oncommand="goQuitApplication()"/>
+                     key="key_quitApplication"
+                     command="cmd_quitApplication"/>
 #endif
 #endif
          </menupopup>

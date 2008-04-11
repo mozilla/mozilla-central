@@ -70,7 +70,8 @@
   <command id="open_local_calendar_command" oncommand="openLocalCalendar()"/>
 
   <command id="go_date_command" oncommand="gCalendarWindow.pickAndGoToDate()"/>
-
+  <command id="cmd_quitApplication"     oncommand="goQuitApplication()"/>
+	
   <command id="close_calendar_command" oncommand="closeCalendar()"/>
 
 #ifdef XP_MACOSX
@@ -119,9 +120,11 @@
 #ifdef XP_MACOSX
   <key id="key_minimizeWindow"   key="&minimizeWindow.key;"              command="minimizeWindow"               modifiers="accel"/>
   <key id="key_preferencesCmdMac" key="&preferencesCmdMac.commandkey;" modifiers="&preferencesCmdMac.modifiers;"/>
-  <key id="key_quitCmdMac" key="&calendar.quit.key.mac;" modifiers="&calendar.quit.modifiers.mac;"/>
   <key id="key_hideThisAppCmdMac" key="&hideThisAppCmdMac.commandkey;" modifiers="&hideThisAppCmdMac.modifiers;"/>
   <key id="key_hideOtherAppsCmdMac" key="&hideOtherAppsCmdMac.commandkey;" modifiers="&hideOtherAppsCmdMac.modifiers;"/>
+#endif
+#ifdef XP_UNIX
+  <key id="key_quitApplication" key="&calendar.quit.key;" command="cmd_quitApplication" modifiers="accel"/>
 #endif
 </keyset>
 

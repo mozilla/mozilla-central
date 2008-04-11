@@ -116,8 +116,8 @@
 
 <!ENTITY calendar.quit.label                    "Quit">
 <!ENTITY calendar.quit.accesskey                "Q">
+<!ENTITY calendar.quit.key                      "Q">
 <!ENTITY calendar.quit.label.mac                "Quit &brandShortName;">
-<!ENTITY calendar.quit.key.mac                  "Q">
 <!ENTITY calendar.quit.modifiers.mac            "accel">
 
 <!ENTITY calendar.exit.label                    "Exit">
