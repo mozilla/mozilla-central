@@ -65,7 +65,7 @@
   -moz-appearance: none;
   -moz-user-focus: ignore;
   -moz-box-pack: center;
-  margin: 0px 1px !important;
+  margin: 0px 1px 0px 1px !important;
   border: none !important;
   padding: 0px !important;
   min-width: 0;
@@ -110,10 +110,7 @@ column.tooltipValueColumn {
 label.tooltipHeaderLabel {
   font-weight: bold;
   text-align: right;
-  margin-top: 0;
-  margin-bottom: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 1em; /* 1em space before value */
+  margin: 0em 1em 0em 0em; /* 1em space before value */
 }
 
 description.tooltipHeaderDescription {
@@ -144,7 +141,7 @@ toolbar[printpreview="true"] {
  *-------------------------------------------------------------------*/
 
 calendar-navigation-buttons { 
-  padding: 0px 0px 2px;
+  padding: 0px 0px 2px 0px;
 }
 
 .title-label-box button {
@@ -166,10 +163,7 @@ calendar-navigation-buttons {
 }
 
 .next-button:hover:active {
-    margin-top: 6px;
-    margin-bottom: 4px;
-    -moz-margin-start: 16px;
-    -moz-margin-end: 14px;
+    margin: 6px 14px 4px 16px;
 }
 
 .nav-buttons[direction="prev"] {
@@ -179,16 +173,13 @@ calendar-navigation-buttons {
 }
 
 .prev-button:hover:active {
-    margin-top: 6px;
-    margin-bottom: 4px;
-    -moz-margin-start: 16px;
-    -moz-margin-end: 14px;
+    margin: 6px 14px 4px 16px;
 }
 
 .title-container {
     -moz-box-align: center;
     -moz-box-pack: center;
-    margin: 0px 15px;
+    margin: 0px 15px 0px 15px;
 }
 
 .title2 {
