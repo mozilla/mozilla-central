@@ -48,7 +48,10 @@ prefwindow {
 }
 
 .prefWindow-dlgbuttons {
-    margin: 0 12px 8px 12px;
+    margin-top: 0;
+    margin-bottom: 8px;
+    -moz-margin-start: 12px;
+    -moz-margin-end: 12px;
 }
 
 #CalendarPreferences .prefWindow-dlgbuttons {
@@ -61,7 +64,7 @@ prefwindow {
 }
 
 prefpane {
-    padding: 12px 12px 0 12px;
+    padding: 12px 12px 0;
 }
 
 .paneSelector {
@@ -75,7 +78,7 @@ prefpane {
 .paneSelector radio {
     border-right: 1px solid transparent;
     border-left: 1px solid transparent;
-    padding: 3px 0 3px 0;
+    padding: 3px 0;
     margin: 0;
     -moz-appearance: none !important;
 }
@@ -146,7 +149,7 @@ prefpane .groupbox-body {
     border: none !important;
     -moz-border-radius: 0px !important;
     background-image: none !important;
-    padding: 8px 4px 4px 4px;
+    padding: 8px 4px 4px;
 }
 
 prefpane .groupbox-title {
@@ -155,8 +158,11 @@ prefpane .groupbox-title {
 }
 
 caption {
-    border-bottom: 1px solid #ececec;
-    padding: 4px 4px 0px 0px !important;
+    border-bottom: 1px solid #ececec;    
+    padding-top: 4px !important;
+    padding-bottom: 0 !important;
+    -moz-padding-start: 4px !important;
+    -moz-padding-end: 0 !important;
 }
 
 #paneAdvanced description {
@@ -172,7 +178,7 @@ prefpane description {
 }
 
 #alarmSoundFileField {
-    margin-left: 2em;
+    -moz-margin-start: 2em;
 }
 
 .dayOffCheckbox {
@@ -195,6 +201,6 @@ prefpane description {
 }
 
 tabpanels {
-    padding: 18px 10px 10px 10px;
-    margin: 0 6px 6px 6px;
+    padding: 18px 10px 10px;
+    margin: 0 6px 6px;
 }

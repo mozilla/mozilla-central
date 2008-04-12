@@ -81,7 +81,10 @@ calendar-todo-item[selected="true"] {
 }
 
 .next-button:hover:active {
-    margin: 6px 14px 4px 16px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    -moz-margin-start: 16px;
+    -moz-margin-end: 14px;
 }
 
 .nav-buttons[direction="prev"] {
@@ -91,13 +94,16 @@ calendar-todo-item[selected="true"] {
 }
 
 .prev-button:hover:active {
-    margin: 6px 14px 4px 16px;
+    margin-top: 6px;
+    margin-bottom: 4px;
+    -moz-margin-start: 16px;
+    -moz-margin-end: 14px;
 }
 
 .title-container {
     -moz-box-align: center;
     -moz-box-pack: center;
-    margin: 0px 15px 0px 15px;
+    margin: 0px 15px;
 }
 
 .title2 {
@@ -160,7 +166,7 @@ radio[pane=paneLightning] {
 /* ::::: mode toolbar buttons ::::: */
 
 #mode-toolbar {
-  padding: 5px 2px 5px 2px;
+  padding: 5px 2px;
   border-top: 1px solid ThreeDShadow !important;
 }
 
@@ -274,7 +280,10 @@ column.tooltipValueColumn {
 label.tooltipHeaderLabel {
   font-weight: bold;
   text-align: right;
-  margin: 0em 1em 0em 0em; /* 1em space before value */
+  margin-top: 0;
+  margin-bottom: 0;
+  -moz-margin-start: 0;
+  -moz-margin-end: 1em; /* 1em space before value */
 }
 
 description.tooltipHeaderDescription {

@@ -71,7 +71,7 @@
               document.getAnonymousElementByAttribute(
                   this, "anonid", "content");
           content.setAttribute("style",
-                               "margin-left: " + (-val) + "px;");
+                               "-moz-margin-start: " + (-val) + "px;");
           return val;
         ]]></setter>
       </property>

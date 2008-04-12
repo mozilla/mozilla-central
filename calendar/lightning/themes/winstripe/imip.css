@@ -40,8 +40,8 @@ table {
        border: 3px solid black;
        border-collapse: collapse;
        width: 40em;
-       margin-left: auto;
-       margin-right: auto;
+       -moz-margin-start: auto;
+       -moz-margin-end: auto;
 }
 td {
        padding: 3px;

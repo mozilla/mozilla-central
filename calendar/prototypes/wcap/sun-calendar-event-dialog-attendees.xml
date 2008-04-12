@@ -1649,7 +1649,7 @@
 
           // Set the styles based on the calculations above for the 'selection-bar'.
           var style = "width: " + this.mWidth +
-                      "px; margin-left: " + this.mMargin +
+                      "px; -moz-margin-start: " + this.mMargin +
                       "px; margin-top: " + this.mHeaderHeight + "px;";
           this.mSelectionbar.setAttribute("style", style);
 

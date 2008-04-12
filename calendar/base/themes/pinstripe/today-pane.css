@@ -72,7 +72,7 @@
 }
 
 .monthlabel {
-  margin-right: 0px;
+  -moz-margin-end: 0px;
 }
 
 .dateValue {
@@ -84,7 +84,7 @@
 }
 
 .miniday-nav-buttons {
-  margin: 2px 0px 0px 0px;
+  margin: 2px 0px 0px;
   padding: 1px;
   list-style-image: url("chrome://calendar/skin/mini-day-nav-buttons.png");
 }
@@ -166,7 +166,7 @@
 }
 
 #calendar-new-event-button > .toolbarbutton-text {
- padding-left: 5px;
+ -moz-padding-start: 5px;
 }
 
 #agenda-listbox {
@@ -194,16 +194,16 @@ agenda-allday-richlist-item {
 
 .agenda-container-box {
   border-bottom: 1px dotted #C0C0C0;
-  margin-left: 4px;
-  margin-right: 4px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
   padding-top: 2px;
   padding-bottom: 2px;
 }
 
 .agenda-allday-container-box {
   border-bottom: 1px dotted #C0C0C0;
-  margin-left: 4px;
-  margin-right: 4px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
 }
@@ -255,7 +255,6 @@ agenda-allday-richlist-item {
 .agenda-calendar-image {
   list-style-image: url("chrome://calendar/skin/calendar-overlay.png");
   margin-top: 3px;
-  margin-left: 4px;
+  -moz-margin-start: 4px;
   width: 10px;
   height: 10px;
-}

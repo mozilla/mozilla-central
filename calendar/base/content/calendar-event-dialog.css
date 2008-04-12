@@ -40,7 +40,7 @@ calendar-attendee-list {
   -moz-binding: url(chrome://calendar/content/calendar-attendee-list.xml#calendar-attendee-list);
   background: white;
   -moz-user-focus: normal;
-  margin-left: 2px;
+  -moz-margin-start: 2px;
   border: 1px solid black;
 }
 

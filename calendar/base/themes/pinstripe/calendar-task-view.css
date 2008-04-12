@@ -71,7 +71,7 @@
 }
 
 #calendar-task-details-grid-right {
-    margin-left: 3em;
+    -moz-margin-start: 3em;
 }
 
 #calendar-task-details-title {

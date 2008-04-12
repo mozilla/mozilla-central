@@ -48,12 +48,12 @@
  * ***** END LICENSE BLOCK **** */
 
 .calendar-unifinder-event-indent {
-    padding-left: 30px;
+    -moz-padding-start: 30px;
 }
 
 .unifinder-treecell-box-class {
     padding: 2px;
-    padding-left: 4px;
+    -moz-padding-start: 4px;
     font-family: Arial, Helvetica, sans-serif;
     -moz-box-align: start;
 }

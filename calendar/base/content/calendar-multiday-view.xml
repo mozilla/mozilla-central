@@ -2254,8 +2254,8 @@
           // Only do this if the long weekdays are visible and we haven't already cached.
           if (!this.longWeekdayPixels && !longName.hasAttribute("hidden")) {
             this.longWeekdayPixels = longName.boxObject.width +
-                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("margin-left")) +
-                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("margin-right"));
+                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("-moz-margin-start")) +
+                                     parseInt(document.defaultView.getComputedStyle(longName, null).getPropertyValue("-moz-margin-end"));
           }
         ]]></body>
       </method>

@@ -56,7 +56,7 @@ treechildren::-moz-tree-cell(calendar-list-tree-color) {
 }
 
 treechildren::-moz-tree-cell(calendar-list-tree-calendar) {
-    margin-left: 1px;
+    -moz-margin-start: 1px;
 }
 
 treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, black) {

@@ -71,7 +71,7 @@ vbox[anonid="time-picker-grids"] {
   background-color : #ffffff;
   font-size        : 8pt;
   margin-bottom    : 1px;
-  margin-right     : 1px;
+  -moz-margin-end     : 1px;
 }
 
 /* Grid for hours */
@@ -145,14 +145,14 @@ grid[anonid="time-picker-hour-grid"] {
 
 vbox[anonid="time-picker-five-minute-grid-box"] {
   min-width   : 195px;
-  margin-left : 1px;
+  -moz-margin-start : 1px;
 }
 
 /* five minute grid */
 
 grid[anonid="time-picker-five-minute-grid"] {
   margin-top       : 2px;
-  margin-right     : 1px;
+  -moz-margin-end     : 1px;
   border-top       : 1px solid ThreeDShadow; 
   border-left      : 1px solid ThreeDShadow; 
   border-right     : 1px solid ThreeDShadow; 
@@ -187,14 +187,14 @@ grid[anonid="time-picker-five-minute-grid"] {
 
 vbox[anonid="time-picker-one-minute-grid-box"] {
   min-width   : 195px;
-  margin-left : 1px;
+  -moz-margin-start : 1px;
 }
 
 /* one minute grid */
 
 grid[anonid="time-picker-one-minute-grid"] {
   margin-top       : 2px;
-  margin-right     : 1px;
+  -moz-margin-end     : 1px;
   border-top       : 1px solid ThreeDShadow;
   border-left      : 1px solid ThreeDShadow;
   border-right     : 1px solid ThreeDShadow;
@@ -258,5 +258,5 @@ grid[anonid="time-picker-one-minute-grid"] {
   background-color : -moz-Dialog;
   color            : -moz-DialogText;
   border           : 1px solid ThreeDShadow;
-  margin-right     : 1px;
+  -moz-margin-end     : 1px;
 }

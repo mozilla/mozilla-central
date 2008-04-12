@@ -44,8 +44,8 @@ calendar-subscriptions-richlistbox {
   border: 1px solid black;
   margin-top: 2px;
   margin-bottom: 2px;
-  margin-left: 4px;
-  margin-right: 4px;
+  -moz-margin-start: 4px;
+  -moz-margin-end: 4px;
   padding-top: 2px;
   padding-bottom: 3px;
   -moz-padding-start: 4px;
@@ -58,7 +58,7 @@ calendar-subscriptions-richlistitem[selected="true"] {
 }
 
 .calendar-subscriptions-richlistitem-checkbox {
-  margin-right: 0px;
+  -moz-margin-end: 0px;
 }
 
 .calendar-subscriptions-richlistitem-checkbox > .checkbox-label-box {
@@ -72,7 +72,7 @@ calendar-subscriptions-richlistitem[selected="true"] {
 .calendar-subscriptions-status-box {
   margin-top: 2px;
   margin-bottom: 2px;
-  margin-left: 4px;
+  -moz-margin-start: 4px;
 }
 
 .calendar-subscriptions-status-icon {

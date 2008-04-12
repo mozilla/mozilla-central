@@ -139,13 +139,13 @@ listbox {
     clip: rect(0px 0px 0px 0px);
 }
 
-/* margin-right 1px is needed to take border-right from the grid elements into account */
+/* -moz-margin-end 1px is needed to take border-right from the grid elements into account */
 .freebusy-timebar-title {
-    margin-right: 1px;
+    -moz-margin-end: 1px;
 }
 
 .freebusy-timebar-hour {
-    margin-right: 1px;
+    -moz-margin-end: 1px;
     margin-bottom: 5px;
 }
 

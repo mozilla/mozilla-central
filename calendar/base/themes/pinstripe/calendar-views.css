@@ -164,11 +164,11 @@ calendar-header-container[weekend="true"][selected="true"],
 }
 
 .calendar-event-box-container[has-category="true"] {
-  margin-right: 0px;
+  -moz-margin-end: 0px;
 }
 
 .calendar-event-details {
-  padding-left: 2px;
+  -moz-padding-start: 2px;
 }
 
 .calendar-event-details-core {
@@ -342,7 +342,7 @@ calendar-month-day-box {
 
 calendar-month-day-box-item { 
   margin: 1px;
-  padding: 0px 1px 0px 1px;
+  padding: 0px 1px;
 }
 
 calendar-month-day-box-item[selected="true"] .calendar-event-selection {
@@ -356,13 +356,13 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
 }
 
 .calendar-month-day-box-item-label[time="true"] {
-  margin-right: 4px;
+  -moz-margin-end: 4px;
 }
 
 .calendar-month-day-box-item-image {
   list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
   margin: 2px;
-  margin-right: 4px;
+  -moz-margin-end: 4px;
   display: none;
 }
 
@@ -390,8 +390,8 @@ calendar-month-view-column-header {
   font-weight: bold;
   /* Override label margins to use full box width,
      for long localized weekday names or narrow screen. */
-  margin-left: 0px !important;
-  margin-right: 0px !important;
+  -moz-margin-start: 0px !important;
+  -moz-margin-end: 0px !important;
   padding: 3px 1px;
 }
 
@@ -404,7 +404,7 @@ box[dropbox="true"] {
   background-color: blue !important;
   height: 1.2em;
   margin: 1px;
-  padding: 0px 1px 0px 1px;
+  padding: 0px 1px;
   opacity: 0.5;
 }
 

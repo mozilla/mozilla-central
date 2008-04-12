@@ -43,6 +43,6 @@
 
 .field-label-box-class {
   text-align   : right;
-  margin-right : 3px;
+  -moz-margin-end : 3px;
 }
 
