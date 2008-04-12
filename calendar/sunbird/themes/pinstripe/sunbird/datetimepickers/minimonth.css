@@ -62,7 +62,7 @@
   font-weight: bold;
   color: #000000;
   text-align: center;
-  margin-left: 4px;
+  -moz-margin-start: 4px;
   padding: 1px;
   border: 1px solid #EEEEEE;
 }
@@ -144,8 +144,8 @@
 }
 
 .minimonth-list {
-  padding-left: 1em;
-  padding-right: 1em;
+  -moz-padding-start: 1em;
+  -moz-padding-end: 1em;
 }
 
 .minimonth-list[current="true"] {
