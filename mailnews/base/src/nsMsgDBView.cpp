@@ -2941,7 +2941,9 @@ nsMsgDBView::GetFolderFromMsgURI(const char *aMsgURI, nsIMsgFolder **aFolder)
 
 NS_IMETHODIMP
 nsMsgDBView::OnMessageClassified(const char *aMsgURI,
-                                 nsMsgJunkStatus aClassification)
+                                 nsMsgJunkStatus aClassification,
+                                 PRUint32 aJunkPercent)
+
 {
   // Note: we know all messages in a batch have the same
   // classification, since unlike OnMessageClassified

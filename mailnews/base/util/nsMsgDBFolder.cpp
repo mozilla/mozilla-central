@@ -1942,7 +1942,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
         nsCAutoString msgJunkScore;
         msgJunkScore.AppendInt(nsIJunkMailPlugin::IS_HAM_SCORE);
         mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
-        mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
+        mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
         continue; // skip this msg since it's in the white list
       }
     }
@@ -1968,7 +1968,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
           NS_RELEASE(cardForAddress);
           // mark this msg as non-junk, because we whitelisted it.
           mDatabase->SetStringProperty(msgKey, "junkscore", "0");
-          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
+          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "whitelist");
           continue; // skip this msg since it's in the white list
         }
       }
@@ -4112,7 +4112,7 @@ nsMsgDBFolder::SetJunkScoreForMessages(nsISupportsArray *aMessages, const nsACSt
       NS_ENSURE_SUCCESS(rv, rv);
       (void) message->GetMessageKey(&msgKey);
       mDatabase->SetStringProperty(msgKey, "junkscore", nsCString(junkScore).get());
-      mDatabase->SetStringProperty(msgKey, "junkscoreorigin", /* ### should this be plugin? */"plugin");
+      mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "filter");
     }
   }
   return rv;

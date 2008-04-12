@@ -118,6 +118,7 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsIExternalProtocolService.h"
 #include "nsCExternalHandlerService.h"
+#include "prprf.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -3200,7 +3201,7 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
           filterAction->GetJunkScore(&junkScore);
           junkScoreStr.AppendInt(junkScore);
           mDatabase->SetStringProperty(msgKey, "junkscore", junkScoreStr.get());
-          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", /* ### should this be plugin? */"plugin");
+          mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "filter");
 
           // If score is available, set up to store junk status on server.
           if (junkScore == nsIJunkMailPlugin::IS_SPAM_SCORE ||
@@ -4036,12 +4037,11 @@ nsresult nsImapMailFolder::HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr 
     messageClassified = PR_FALSE;
   if (messageClassified)
   {
-    // only set the junkscore origin if it wasn't set before. We assume plugin since we
-    // think that's the more common scenario.
+    // only set the junkscore origin if it wasn't set before. 
     nsCString existingProperty;
     dbHdr->GetStringProperty("junkscoreorigin", getter_Copies(existingProperty));
     if (existingProperty.IsEmpty())
-      dbHdr->SetStringProperty("junkscoreorigin", "plugin");
+      dbHdr->SetStringProperty("junkscoreorigin", "imapflag");
   }
   return dbHdr->SetStringProperty("keywords", keywords.get());
 }
@@ -6315,14 +6315,17 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
         if (mDatabase && msgDBHdr)
         {
           nsMsgLabelValue label;
-          nsCString junkScore, junkScoreOrigin;
+          nsCString junkScore, junkScoreOrigin, junkPercent;
           nsMsgPriorityValue priority;
           msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
           msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
+          msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
           if (!junkScore.IsEmpty()) // ignore already scored messages.
             mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
           if (!junkScoreOrigin.IsEmpty())
             mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
+          if (!junkPercent.IsEmpty())
+            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
           msgDBHdr->GetLabel(&label);
           if (label != 0)
           {
@@ -7591,7 +7594,9 @@ nsImapMailFolder::SetJunkScoreForMessages(nsISupportsArray *aMessages, const nsA
 }
 
 NS_IMETHODIMP
-nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aClassification)
+nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
+  nsMsgJunkStatus aClassification,
+  PRUint32 aJunkPercent)
 {
   nsCString spamFolderURI;
   nsCOMPtr <nsIMsgIncomingServer> server;
@@ -7611,6 +7616,10 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI, nsMsgJunkStatus aCla
         nsIJunkMailPlugin::IS_HAM_SCORE);
   mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
   mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
+
+  char* strScore = PR_smprintf("%u", aJunkPercent);
+  mDatabase->SetStringProperty(msgKey, "junkpercent", strScore);
+  PR_smprintf_free(strScore);
 
   GetMoveCoalescer();
   if (m_moveCoalescer)

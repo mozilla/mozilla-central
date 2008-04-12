@@ -1117,12 +1117,14 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
     // see bug #194238
     if (listener && !mGoodCount && !mGoodTokens.countTokens()) {
       PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no good tokens, assume junk"));
-      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::JUNK));
+      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::JUNK),
+        nsIJunkMailPlugin::IS_SPAM_SCORE);
       return;
     }
     if (listener && !mBadCount && !mBadTokens.countTokens()) {
       PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("no bad tokens, assume good"));
-      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::GOOD));
+      listener->OnMessageClassified(messageURI, nsMsgJunkStatus(nsIJunkMailPlugin::GOOD),
+        nsIJunkMailPlugin::IS_HAM_SCORE);
       return;
     }
 
@@ -1210,12 +1212,15 @@ void nsBayesianFilter::classifyMessage(Tokenizer& tokenizer, const char* message
         prob = 0.5;
 
     PRBool isJunk = (prob >= mJunkProbabilityThreshold);
+    PRUint32 junkPercent = prob*100. + .5;
     PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS, ("%s is junk probability = (%f)  HAM SCORE:%f SPAM SCORE:%f", messageURI, prob,H,S));
 
     delete[] tokens;
 
     if (listener)
-        listener->OnMessageClassified(messageURI, isJunk ? nsMsgJunkStatus(nsIJunkMailPlugin::JUNK) : nsMsgJunkStatus(nsIJunkMailPlugin::GOOD));
+        listener->OnMessageClassified(messageURI, isJunk ?
+          nsMsgJunkStatus(nsIJunkMailPlugin::JUNK) : nsMsgJunkStatus(nsIJunkMailPlugin::GOOD),
+          junkPercent);
 }
 
 /* void shutdown (); */
@@ -1342,23 +1347,26 @@ void nsBayesianFilter::observeMessage(Tokenizer& tokenizer, const char* messageU
     }
 
 
+    PRUint32 junkPercent;
     switch (newClassification) {
     case nsIJunkMailPlugin::JUNK:
         // put tokens into junk corpus.
         ++mBadCount;
         rememberTokens(mBadTokens, tokens);
         mTrainingDataDirty = PR_TRUE;
+        junkPercent = nsIJunkMailPlugin::IS_SPAM_SCORE;
         break;
     case nsIJunkMailPlugin::GOOD:
         // put tokens into good corpus.
         ++mGoodCount;
         rememberTokens(mGoodTokens, tokens);
         mTrainingDataDirty = PR_TRUE;
+        junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
         break;
     }
 
     if (listener)
-        listener->OnMessageClassified(messageURL, newClassification);
+        listener->OnMessageClassified(messageURL, newClassification, junkPercent);
 
     if (mTrainingDataDirty && !trainingDataWasDirty && ( mTimer != nsnull ))
     {

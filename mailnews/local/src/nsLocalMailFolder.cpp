@@ -2372,6 +2372,8 @@ void nsMsgLocalMailFolder::CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDB
   destHdr->SetStringProperty("junkscore", sourceString.get());
   srcHdr->GetStringProperty("junkscoreorigin", getter_Copies(sourceString));
   destHdr->SetStringProperty("junkscoreorigin", sourceString.get());
+  srcHdr->GetStringProperty("junkpercent", getter_Copies(sourceString));
+  destHdr->SetStringProperty("junkpercent", sourceString.get());
   srcHdr->GetStringProperty("keywords", getter_Copies(sourceString));
   destHdr->SetStringProperty("keywords", sourceString.get());
 
@@ -3435,7 +3437,10 @@ nsMsgLocalMailFolder::SpamFilterClassifyMessages(const char **aURIArray, PRUint3
 
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus aClassification)
+nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
+  nsMsgJunkStatus aClassification,
+  PRUint32 aJunkPercent)
+
 {
   if (mNumFilterClassifyRequests > 0)
     --mNumFilterClassifyRequests;
@@ -3457,6 +3462,10 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI, nsMsgJunkStatus a
         nsIJunkMailPlugin::IS_HAM_SCORE);
   mDatabase->SetStringProperty(msgKey, "junkscore", msgJunkScore.get());
   mDatabase->SetStringProperty(msgKey, "junkscoreorigin", "plugin");
+
+  char* strScore = PR_smprintf("%u", aJunkPercent);
+  mDatabase->SetStringProperty(msgKey, "junkpercent", strScore);
+  PR_smprintf_free(strScore);
 
   nsCOMPtr<nsISpamSettings> spamSettings;
   PRBool moveOnSpam = PR_FALSE;

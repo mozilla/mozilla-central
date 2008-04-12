@@ -2021,7 +2021,7 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         nsMsgKey msgKey;
         msgHdr->GetMessageKey(&msgKey);
         msgHdr->SetStringProperty("junkscore", junkScoreStr.get());
-        msgHdr->SetStringProperty("junkscoreorigin", "plugin");
+        msgHdr->SetStringProperty("junkscoreorigin", "filter");
         break;
       }
       case nsMsgFilterAction::Forward:

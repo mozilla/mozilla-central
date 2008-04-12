@@ -609,15 +609,12 @@ function getJunkmailComponent()
 function analyzeMessageForJunk(aMsgHdr, aMsgIndex, aJunkMsgIndices, aLastMessage, aWhiteListDirectory)
 {
     var listener = {
-        onMessageClassified: function(aClassifiedMsgURI, aClassification)
+        onMessageClassified: function(aClassifiedMsgURI, aClassification, aJunkPercent)
         {
             // XXX TODO
             // update status bar, or a progress dialog
             // running junk mail controls manually, on a large folder
             // can take a while, and the user doesn't know when we are done.
-
-            // XXX TODO
-            // make the cut off 50, like in nsMsgSearchTerm.cpp
 
             var score = (aClassification == nsIJunkMailPlugin.JUNK) ?
               nsIJunkMailPlugin.IS_SPAM_SCORE : nsIJunkMailPlugin.IS_HAM_SCORE;
@@ -629,6 +626,7 @@ function analyzeMessageForJunk(aMsgHdr, aMsgIndex, aJunkMsgIndices, aLastMessage
             db.setStringProperty(aMsgHdr.messageKey, "junkscore", score);
             db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin",
                                  "plugin");
+            db.setStringProperty(aMsgHdr.messageKey, "junkpercent", aJunkPercent);
 
             if (aClassification == nsIJunkMailPlugin.JUNK)
               aJunkMsgIndices.push(aMsgIndex);
