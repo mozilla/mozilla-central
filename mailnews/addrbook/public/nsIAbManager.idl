@@ -53,7 +53,7 @@ interface nsISimpleEnumerator;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(d4d1cc52-1bca-4096-bf77-31ff1334a4ea)]
+[scriptable, uuid(a5be4ab5-5bf4-4559-ae79-d0cee9e45380)]
 interface nsIAbManager : nsISupports 
 {
   /**
@@ -61,6 +61,14 @@ interface nsIAbManager : nsISupports
    * (non-recursive)
    */
   readonly attribute nsISimpleEnumerator directories;
+
+  /**
+   * Returns the directory that represents the supplied URI.
+   *
+   * @param  aURI       The URI of the address book to find.
+   * @return            The found address book.
+   */
+  nsIAbDirectory getDirectory(in ACString aURI);
 
   /**
    * Creates a new address book.

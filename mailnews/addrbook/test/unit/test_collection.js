@@ -257,23 +257,18 @@ function run_test()
   var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                               .getService(Components.interfaces.nsIPrefBranch);
 
-  // XXX Getting the top level and then the child nodes ensures we create all
-  // ABs because the address collecter can't currently create ABs itself
-  // (bug 314448).
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
+  var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
 
-  // Must get the top level and its child nodes to initialise the mailing
-  // lists. This isn't idea, but its how we currently work.
-  var temp = rdf.GetResource("moz-abdirectory:///")
-                .QueryInterface(Components.interfaces.nsIAbDirectory)
-                .childNodes;
+  // XXX Getting all directories ensures we create all ABs because the
+  // address collecter can't currently create ABs itself (bug 314448).
+  var temp = abManager.directories;
 
   // Get the actual AB for the collector so we can check cards have been
   // added.
   collectChecker.AB =
-    rdf.GetResource(prefService.getCharPref("mail.collect_addressbook"))
-       .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+    abManager.getDirectory(prefService.getCharPref("mail.collect_addressbook"))
+             .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
   // Get the actual collecter
   collectChecker.addressCollect =

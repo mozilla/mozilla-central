@@ -18,11 +18,11 @@ function run_test() {
   testAB.copyTo(profileDir, kPABData.fileName);
 
   // Test 1 - Get the directory
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
+  var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
 
-  var AB = rdf.GetResource(kPABData.URI)
-              .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+  var AB = abManager.getDirectory(kPABData.URI)
+                .QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
   // Test 2 - Check that a null string succeeds and does not
   // return a card (bug 404264)

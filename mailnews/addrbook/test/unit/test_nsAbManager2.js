@@ -51,6 +51,8 @@ function checkDirs(dirs, dirArray) {
       var dir = dirs.getNext().QueryInterface(nsIAbDirectory);
       var loc = dirArray.indexOf(dir.URI);
 
+      do_check_eq(gAbManager.getDirectory(dir.URI), dir);
+
       if (loc == -1)
         do_throw("Unexpected directory " + dir.URI + " found in address book list");
       else

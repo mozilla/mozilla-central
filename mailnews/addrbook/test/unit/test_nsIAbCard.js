@@ -21,11 +21,11 @@ function run_test() {
 
   // Test 1 - Get the full card.
 
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
+  // Test 1 - Get the directory
+  var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
 
-  var AB = rdf.GetResource(kPABData.URI)
-              .QueryInterface(Components.interfaces.nsIAbDirectory);
+  var AB = abManager.getDirectory(kPABData.URI);
 
   var childCards = AB.childCards;
   var fullCard = null;

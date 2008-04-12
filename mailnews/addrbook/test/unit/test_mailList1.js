@@ -42,18 +42,14 @@ function run_test() {
 
   // Part 1 - Get the directory.
 
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
+  var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
 
-  // XXX Getting the top level and then the child nodes ensures we create all
-  // ABs because the backend can't deal with mailing lists correctly
-  // (partially bug 314448).
-  var temp = rdf.GetResource("moz-abdirectory:///")
-                .QueryInterface(Components.interfaces.nsIAbDirectory)
-                .childNodes;
+  // XXX Getting all directories ensures we create all ABs because mailing
+  // lists need help initialising themselves
+  var temp = abManager.directories;
 
-  var AB = rdf.GetResource(kPABData.URI)
-              .QueryInterface(Components.interfaces.nsIAbDirectory);
+  var AB = abManager.getDirectory(kPABData.URI);
 
   // Part 2 - Check all the expected mailing lists exist.
 

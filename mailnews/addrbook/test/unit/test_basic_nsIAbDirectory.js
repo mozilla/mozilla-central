@@ -32,11 +32,10 @@ do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
 function check_ab(abConfig) {
   // Test 1 - Get the directory
 
-  var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                      .getService(Components.interfaces.nsIRDFService);
+  var abManager = Components.classes["@mozilla.org/abmanager;1"]
+                            .getService(Components.interfaces.nsIAbManager);
 
-  var AB = rdf.GetResource(abConfig.URI)
-              .QueryInterface(Components.interfaces.nsIAbDirectory);
+  var AB = abManager.getDirectory(abConfig.URI);
 
   // Test 2 - Is it the right type?
 

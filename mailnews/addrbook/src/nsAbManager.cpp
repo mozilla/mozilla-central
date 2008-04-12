@@ -184,6 +184,22 @@ NS_IMETHODIMP nsAbManager::GetDirectories(nsISimpleEnumerator **aResult)
   return directory->GetChildNodes(aResult);
 }
 
+NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
+                                        nsIAbDirectory **aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  nsresult rv;
+  nsCOMPtr<nsIRDFService> rdfService(do_GetService(NS_RDF_CONTRACTID "/rdf-service;1", &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIRDFResource> dirResource;
+  rv = rdfService->GetResource(aURI, getter_AddRefs(dirResource));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return CallQueryInterface(dirResource, aResult);
+}
+
 NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
                                             const nsACString &aURI,
                                             const PRUint32 aType,
