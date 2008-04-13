@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.385 $ ';
+$::UtilsVersion = '$Revision: 1.386 $ ';
 
 package TinderUtils;
 
@@ -487,11 +487,6 @@ sub SetupEnv {
     $ENV{DISPLAY} = $Settings::DisplayServer;
     $ENV{MOZCONFIG} = "$Settings::BaseDir/$Settings::MozConfigFileName"
         if $Settings::MozConfigFileName ne '' and -e $Settings::MozConfigFileName;
-
-    # Mail test needs build-time env set.  -mcafee
-    if($Settings::MailBloatTest) {
-        $ENV{BUILD_MAIL_SMOKETEST} = "1";
-    }
 
     # Codesighs/codesize test needs this to pull the right stuff.
     if ($Settings::CodesizeTest or $Settings::EmbedCodesizeTest) {
@@ -2351,48 +2346,36 @@ sub run_all_tests {
                      '""');
         }
 
-        $test_result = BloatTest2($binary, $build_dir, $Settings::BloatTestTimeout);
+        $test_result = BloatTest2($binary, $build_dir, $Settings::BloatTestTimeout, [], '');
     }
 
     # Mail bloat/leak test.
     # Needs:
-    #   BUILD_MAIL_SMOKETEST=1 set in environment
-    #   $Settings::CleanProfile = 0
+    #   mozilla/testing/mailnews checked out
     #
     # Manual steps for this test:
-    # 1) Create pop account qatest03/Ne!sc-pe
-    # 2) Login to this mail account, type in password, and select
-    #    "remember password with password manager".
-    # 3) Add first recipient of new Inbox to AB, select "receives plaintext"
-    # 4) If mail send fails, sometimes nsmail-2 flakes, may need
-    #    an occasional machine reboot.
+    # See http://wiki.mozilla.org/MailNews:Memory_Bloat_and_Leak_Tests
     #
     if ($Settings::MailBloatTest and $test_result eq 'success'
        and $Settings::UseMozillaProfile) {
 
         print_log "______________MailBloatTest______________\n";
 
-        my $inbox_dir = "Mail/nsmail-2";
+        chdir("$Settings::TopsrcdirFull/testing/mailnews/bloat/");
 
-        chdir("$profile_dir/$inbox_dir");
+        system("python setUpBloatTest.py --binary-dir=$binary_dir --profile-dir=$profile_dir");
 
-        # Download new, test Inbox on top of existing one.
-        # wget will not re-download, using -N to check timestamps.
-        system("wget -N -T 60 http://www.mozilla.org/mailnews/bloat_Inbox");
-
-        # Replace the Inbox file.
-        unlink("Inbox");
-        system("cp bloat_Inbox Inbox");
-
-        # Remove the Inbox.msf file.
-        # unlink("Inbox.msf");
+        chdir("$build_dir");
 
         if ($talkback_installed) {
             setTestnameForTalkbackReport($talkback_ini_path,"MailBloattest");
         }
 
-        $test_result = BloatTest($binary, $build_dir, ["-mail"], "mail",
+        $test_result = BloatTest($binary, $build_dir, ["-mail"], 'Mail',
                                  $Settings::MailBloatTestTimeout);
+
+        $test_result = BloatTest2($binary, $build_dir,
+                                  $Settings::BloatTestTimeout, ["-mail"], 'Mail');
 
         # back to build_dir
         chdir($build_dir);
@@ -3463,7 +3446,7 @@ sub BloatTest {
     my $testname_prefix = "";
     unless($bloatdiff_label eq "") {
         $label_prefix = "$bloatdiff_label ";
-        $testname_prefix = "$bloatdiff_label" . "_";
+        $testname_prefix = lc($bloatdiff_label)."_";
     }
 
     # Figure out testnames to send to server
@@ -3630,11 +3613,12 @@ sub PrintSize($$) {
 }
 
 sub BloatTest2 {
-    my ($binary, $build_dir, $timeout_secs) = @_;
+    my ($binary, $build_dir, $timeout_secs, $bloat_args, $bloat_prefix) = @_;
     my $binary_basename = File::Basename::basename($binary);
     my $binary_dir = File::Basename::dirname($binary);
     my $PERL = $^X;
-    if (is_windows() && $build_dir !~ m/^.:\//) {
+    my $platform = is_windows() ? 'windows' : 'unix';
+    if ($platform eq 'windows' && $build_dir !~ m/^.:\//) {
         if ($^O eq 'cygwin') {
             chomp($build_dir = `cygpath -w $build_dir`);
           }
@@ -3650,35 +3634,41 @@ sub BloatTest2 {
     my $sdleak_diff_log = "$build_dir/sdleak.diff.log";
     local $_;
 
-    unless (-e "$binary_dir/bloaturls.txt") {
-        print_log "Error: bloaturls.txt does not exist.\n";
-        return 'testfailed';
-    }
+    # Anything other than '' doesn't need bloaturls.txt
+    if ($bloat_prefix ne '') {
+        unless (-e "$binary_dir/bloaturls.txt") {
+            print_log "Error: bloaturls.txt does not exist.\n";
+            return 'testfailed';
+        }
 
-    my $platform = is_windows() ? 'windows' : 'unix';
-    # If on Windows, make sure the urls file has dos lineendings, or
-    # mozilla won't parse the file correctly
-    if ($platform eq 'windows') {
-	my $bu = "$binary_dir/bloaturls.txt";
-        open(IN,"$bu") || die ("$bu: $!\n");
-        open(OUT,">$bu.new") || die ("$bu.new: $!\n");
-        while (<IN>) {
-	    if (! m/\r\n$/) {
-                s/\n$/\r\n/;
+        # If on Windows, make sure the urls file has dos lineendings, or
+        # mozilla won't parse the file correctly
+        if ($platform eq 'windows') {
+            my $bu = "$binary_dir/bloaturls.txt";
+            open(IN,"$bu") || die ("$bu: $!\n");
+            open(OUT,">$bu.new") || die ("$bu.new: $!\n");
+            while (<IN>) {
+                if (! m/\r\n$/) {
+                    s/\n$/\r\n/;
+                }
+                print OUT "$_";
             }
-	    print OUT "$_";
-        } 
-        close(IN);
-        close(OUT);
-        File::Copy::move("$bu.new", "$bu") or die("move: $!\n");
+            close(IN);
+            close(OUT);
+            File::Copy::move("$bu.new", "$bu") or die("move: $!\n");
+        }
     }
 
     rename($sdleak_log, $old_sdleak_log);
 
     my @args;
-    if($Settings::BinaryName eq "TestGtkEmbed" ||
-       $Settings::BinaryName =~ /^firefox/ ||
-       $Settings::BinaryName =~ /^seamonkey/) {
+    # Anything other than '' doesn't need bloaturls.txt
+    if ($bloat_prefix ne '') {
+      @args = ($binary, "-P", $Settings::MozProfileName, @$bloat_args,
+               "--trace-malloc", $malloc_log);
+    } elsif ($Settings::BinaryName eq "TestGtkEmbed" ||
+             $Settings::BinaryName =~ /^firefox/ ||
+             $Settings::BinaryName =~ /^seamonkey/) {
       @args = ($binary, "-P", $Settings::MozProfileName,
                "resource:///res/bloatcycle.html",
                "--trace-malloc", $malloc_log);
@@ -3740,18 +3730,27 @@ sub BloatTest2 {
       $embed_prefix = "m";
     }
 
-    my $leaks_testname       = "trace_malloc_leaks";
+
+    my $leaks_testname = "trace_malloc_leaks";
+    my $maxheap_testname = "trace_malloc_maxheap";
+    my $allocs_testname = "trace_malloc_allocs";
+
+    if ($bloat_prefix ne '') {
+        $embed_prefix = $bloat_prefix." ".$embed_prefix;
+        $leaks_testname = lc($bloat_prefix)."_".$leaks_testname;
+        $maxheap_testname = lc($bloat_prefix)."_".$maxheap_testname;
+        $allocs_testname = lc($bloat_prefix)."_".$allocs_testname;
+    }
+
     print_log_test_result_bytes($leaks_testname, $leaks_testname_label,
                                 $newstats->{'leaks'},
                                 $embed_prefix . 'Lk', 3);
 
-    my $maxheap_testname       = "trace_malloc_maxheap";
     print_log_test_result_bytes($maxheap_testname,
                                 $maxheap_testname_label,
                                 $newstats->{'mhs'},
                                 $embed_prefix . 'MH', 3);
 
-    my $allocs_testname       = "trace_malloc_allocs";
     print_log_test_result_count($allocs_testname, $allocs_testname_label,
                                 $newstats->{'allocs'},
                                 $embed_prefix . 'A', 3);
