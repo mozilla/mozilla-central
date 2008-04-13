@@ -901,7 +901,7 @@ sidebarheader {
 }
 
 #sidebar-throbber[loading="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
 #searchInput #sidebar {

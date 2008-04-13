@@ -72,7 +72,7 @@ toolbar[printpreview="true"] {
 }
 
 #navigator-throbber[busy="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
 toolbar[iconsize="small"] #navigator-throbber,
@@ -82,7 +82,7 @@ toolbar[mode="text"] #navigator-throbber {
 }
 toolbar[iconsize="small"] #navigator-throbber[busy="true"],
 toolbar[mode="text"] #navigator-throbber[busy="true"] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.gif");
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 
 /* ::::: online/offline icons ::::: */
