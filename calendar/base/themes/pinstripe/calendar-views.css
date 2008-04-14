@@ -176,14 +176,6 @@ calendar-header-container[weekend="true"][selected="true"],
   margin: 0px;
 }
 
-textbox.editable-label { 
-  font-size: x-small;
-  background-color: transparent !important;
-  border: none;
-  padding: 0px;
-  -moz-appearance: none;
-}
-
 calendar-event-box[selected="true"] .calendar-event-selection {
   color: #000000 !important;
   background-color: #ffdb67 !important;

@@ -191,13 +191,6 @@ calendar-navigation-buttons {
     border: 0px;
 }
 
-.view-title-label-box
-{
-    width: 10em !important;
-    -moz-box-align: center;
-    -moz-box-pack: end;
-}
-
 #offline-status {
     list-style-image: url(chrome://calendar/skin/offline-online.png);
     -moz-image-region: rect(0px, 28px, 14px, 14px);

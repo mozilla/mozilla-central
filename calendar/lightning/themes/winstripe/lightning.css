@@ -38,28 +38,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* Skin-domain style rules for lightning UI (winstripe version) */
-
-calendar-todo-list {
-    background-color: -moz-Field;
-    color: -moz-FieldText;
-}
-
-calendar-todo-list[disabled="true"] {
-    color: GrayText;
-}
-
-calendar-todo-item {
-  -moz-box-align: center;
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-calendar-todo-item[selected="true"] {
-  background-color: Highlight;
-  color: HighlightText;
-}
-
 /* Calendar list rules */
 
 #calendar-panel {
@@ -114,13 +92,6 @@ calendar-todo-item[selected="true"] {
     font-weight:bold;
     -moz-appearance: none;
     border: 0px;
-}
-
-.view-title-label-box
-{
-    width: 10em !important;
-    -moz-box-align: center;
-    -moz-box-pack: end;
 }
 
 .title-label-box button {

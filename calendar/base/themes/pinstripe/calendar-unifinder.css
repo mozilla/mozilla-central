@@ -47,17 +47,6 @@
  *
  * ***** END LICENSE BLOCK **** */
 
-.calendar-unifinder-event-indent {
-    -moz-padding-start: 30px;
-}
-
-.unifinder-treecell-box-class {
-    padding: 2px;
-    -moz-padding-start: 4px;
-    font-family: Arial, Helvetica, sans-serif;
-    -moz-box-align: start;
-}
-
 /* only format Unifinder lists */
 #unifinder-search-results-tree > treechildren::-moz-tree-row {
     border-bottom: 1px dotted #AAA;
