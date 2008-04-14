@@ -653,6 +653,7 @@ sub init {
          },
          
          "^tags," => sub {
+             if ($t !~ 'notag'){
                if ($obj eq 'case_run'){
                    push(@supptables,
                       "INNER JOIN test_cases " .
@@ -672,7 +673,8 @@ sub init {
                           "INNER JOIN test_tags " .
                           "ON ". $obj ."_tags.tag_id = test_tags.tag_id");
                    }
-               $f = "test_tags.tag_name";
+             }
+             $f = "test_tags.tag_name";
          },
          "^requirement," => sub {
              if ($obj eq 'case_run'){
@@ -887,6 +889,9 @@ sub init {
              if (@list) {
                  $term = "NOT (" . join(" OR ", @list) . ")";
              }
+         },
+         ",notag" => sub {
+             $term = "test_". $obj ."s.". $obj ."_id NOT IN (SELECT junc.". $obj ."_id FROM test_". $obj ."_tags AS junc JOIN test_tags AS junc_tags ON junc.tag_id = junc_tags.tag_id WHERE junc_tags.tag_name = " . $q .")";
          },
      );
 

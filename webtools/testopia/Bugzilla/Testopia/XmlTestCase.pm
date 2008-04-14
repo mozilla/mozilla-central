@@ -256,7 +256,7 @@ sub store {
     foreach my $testplan (@testplan) {
         my $category = $testplan->product->categories->[0];
 
-        my $categoryid = check_case_category($self->category, $testplan->product_id) if ( defined($category) );
+        my $categoryid = check_case_category($self->category, new Bugzilla::Testopia::Product($testplan->product_id)) if ( defined($category) );
         if ( ! defined($categoryid) ) {
             my $new_category = Bugzilla::Testopia::Category->create({
                 product_id  => $testplan->product_id,

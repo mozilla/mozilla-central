@@ -188,7 +188,7 @@ Ext.extend(CaseCategoryGrid, Ext.grid.EditorGridPanel, {
     }
 });
 
-confirmCaseCategoryDelete = function(product_id){
+confirmCaseCategoryDelete = function(){
     if (!Ext.getCmp('category_grid').getSelectionModel().getSelected().get('category_id')){
         Ext.getCmp('category_grid').store.reload();
         return;
@@ -204,7 +204,7 @@ confirmCaseCategoryDelete = function(product_id){
                 var testopia_form = new Ext.form.BasicForm('testopia_helper_frm');
                 testopia_form.submit({
                     url: 'tr_categories.cgi',
-                    params: {category_id: Ext.getCmp('category_grid').getSelectionModel().getSelected().get('category_id'), action:'delete', product_id: product_id},
+                    params: {category_id: Ext.getCmp('category_grid').getSelectionModel().getSelected().get('category_id'), action:'delete', product_id: Ext.getCmp('category_grid').product_id},
                     success: function(data){
                         Ext.Msg.show({
                             msg: "Test case category deleted",
