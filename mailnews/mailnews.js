@@ -388,6 +388,7 @@ pref("mail.toolbars.showbutton.junk", true);
 pref("mail.toolbars.showbutton.print",false);
 pref("mail.toolbars.showbutton.stop", false);
 
+// if true, any click on a column header other than the thread column will unthread the view
 pref("mailnews.thread_pane_column_unthreads", false);
 
 pref("mailnews.account_central_page.url", "chrome://messenger/locale/messenger.properties");

@@ -206,9 +206,6 @@ pref("mailnews.headers.minNumHeaders", 0); // 0 means we ignore this pref
 // 0-Accept, 1-dontAcceptForeign, 2-dontUse
 pref("network.cookie.cookieBehavior", 0);
 
-// if true, any click on a column header other than the thread column will unthread the view
-pref("mailnews.thread_pane_column_unthreads", true);
-
 // clear the SeaMonkey pref, so we don't hear about how we don't have a chrome
 // package registered for editor-region while opening about:config
 pref("editor.throbber.url", "");
