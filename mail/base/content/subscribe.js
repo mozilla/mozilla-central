@@ -255,6 +255,7 @@ function SubscribeOnLoad()
     var folder = GetMsgFolderFromUri(uri, true);
     //dump("folder="+folder+"\n");
     //dump("folder.server="+folder.server+"\n");
+    var serverMenu = document.getElementById("serverMenu");
     serverMenu.menupopup.selectFolder(folder);
     try {
                         CleanUpSearchView();
