@@ -1,6 +1,6 @@
 #ifdef MOZ_SUITE
 messenger.jar:
-% content messenger %content/messenger/ xpcnativewrappers=yes
+% content messenger %content/messenger/ xpcnativewrappers=yes contentaccessible=yes
 % content messenger-region %content/messenger-region/
 % overlay chrome://communicator/content/pref/preftree.xul                      chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/preferences.xul                   chrome://messenger/content/mailPrefsOverlay.xul
