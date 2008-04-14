@@ -80,24 +80,10 @@ calendar-todo-item[selected="true"] {
     cursor:pointer;
 }
 
-.next-button:hover:active {
-    margin-top: 6px;
-    margin-bottom: 4px;
-    -moz-margin-start: 16px;
-    -moz-margin-end: 14px;
-}
-
 .nav-buttons[direction="prev"] {
     -moz-box-align:start;
     -moz-image-region: rect(0px 18px 18px 0px);
     cursor:pointer;
-}
-
-.prev-button:hover:active {
-    margin-top: 6px;
-    margin-bottom: 4px;
-    -moz-margin-start: 16px;
-    -moz-margin-end: 14px;
 }
 
 .title-container {
