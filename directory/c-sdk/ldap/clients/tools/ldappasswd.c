@@ -83,6 +83,7 @@ main( int argc, char **argv )
 	int	optind;
 	int	rc = LDAP_SUCCESS; /* being superoptimistic for -n */
 	LDAP	*ld;
+	LDAPControl *ldctrl;
 		
 #ifdef notdef
 #ifdef HPUX11
@@ -114,12 +115,20 @@ main( int argc, char **argv )
 	if ( ldaptool_nobind && (userid.bv_val == NULL) && (userid.bv_len == 0) ) {
 		usage();
 	}
-		
+
+	if ((ldctrl = ldaptool_create_manage_dsait_control()) != NULL) {
+		ldaptool_add_control_to_array(ldctrl, ldaptool_request_ctrls);
+	}
+
+	if ((ldctrl = ldaptool_create_proxyauth_control(ld)) != NULL) {
+		ldaptool_add_control_to_array(ldctrl, ldaptool_request_ctrls);
+	}
+
 	if ( !ldaptool_not ) {
 		rc = ldap_passwd_s( ld, userid.bv_val ? &userid : NULL, 
 								oldpasswd.bv_val ? &oldpasswd : NULL, 
 								newpasswd.bv_val ? &newpasswd : NULL, 
-								&genpasswd, NULL, NULL );
+								&genpasswd, ldaptool_request_ctrls, NULL );
 		if ( rc != LDAP_SUCCESS ) {
 			ldap_perror( ld, ldaptool_progname );
 		} else {
