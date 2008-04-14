@@ -294,7 +294,7 @@ function MsgSortByThread()
     return;
   dbview.viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
   dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-  MsgSortThreadPane(nsMsgViewSortType.byId);
+  MsgSortThreadPane(nsMsgViewSortType.byDate);
 }
 
 function MsgSortThreadPane(sortType)
