@@ -1,7 +1,6 @@
 calendar.jar:
 +  skin/classic/calendar/calendar.css
    skin/classic/calendar/offline-online.png
-   skin/classic/calendar/prevnextarrow.png
    skin/classic/calendar/Throbber.png
    skin/classic/calendar/Throbber.gif
 +  skin/classic/calendar/datetimepickers/minimonth.css         (datetimepickers/minimonth.css)

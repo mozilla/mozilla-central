@@ -48,7 +48,6 @@
 # ***** END LICENSE BLOCK *****
 */
 
-
 /*--------------------------------------------------------------------
  *   MAIN view deck - contains nav buttons and views
  *-------------------------------------------------------------------*/
@@ -87,42 +86,6 @@ toolbar[iconsize="small"] #navigator-throbber[busy="true"] {
 }
 
 /*--------------------------------------------------------------------
- * tooltips
- *-------------------------------------------------------------------*/
-vbox.tooltipBox {
-  max-width: 40em;
-}
-
-column.tooltipValueColumn {
-  max-width: 35em; /* tooltipBox max-width minus space for label */
-}
-
-label.tooltipHeaderLabel {
-  font-weight: bold;
-  text-align: right;
-  margin-top: 0;
-  margin-bottom: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 1em; /* 1em space before value */
-}
-
-description.tooltipHeaderDescription {
-  font-weight: normal;
-  text-align: left;
-  margin: 0px;
-}
-
-separator.tooltipBodySeparator {
-  height: 1ex; /* 1ex space above body text, below last header. */
-}
-
-description.tooltipBody {
-  font-weight: normal;
-  white-space: pre-wrap;
-  margin: 0px;
-}
-
-/*--------------------------------------------------------------------
  * print preview
  *-------------------------------------------------------------------*/
 toolbar[printpreview="true"] {
@@ -130,66 +93,8 @@ toolbar[printpreview="true"] {
 }
 
 /*--------------------------------------------------------------------
- * View controls
+ * Offline Status
  *-------------------------------------------------------------------*/
-
-calendar-navigation-buttons { 
-  padding: 0px 0px 2px;
-}
-
-.title-label-box button {
-  background-color: transparent;
-  /* Override button min-width so views can be narrow on narrow screen. */
-  min-width: 1px;
-  /* Allow overflow, so long localized month names don't prevent narrow view */
-  overflow-x: hidden;
-}
-
-.nav-buttons{
-    list-style-image: url("chrome://calendar/skin/prevnextarrow.png");
-}
-
-.nav-buttons[direction="next"] {
-    -moz-box-align:end;
-    -moz-image-region: rect(18px 18px 36px 0px);
-    cursor:pointer;
-}
-
-.nav-buttons[direction="prev"] {
-    -moz-box-align:start;
-    -moz-image-region: rect(0px 18px 18px 0px);
-    cursor:pointer;
-}
-
-.title-container {
-    -moz-box-align: center;
-    -moz-box-pack: center;
-    margin: 0px 15px;
-}
-
-.title2 {
-    font-size:1.2em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title1 {
-    font-size:1.5em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title0 {
-    font-size:2.0em;
-    color: #2e4e73;
-    font-weight:bold;
-    -moz-appearance: none;
-    border: 0px;
-}
 
 #offline-status {
     list-style-image: url(chrome://calendar/skin/offline-online.png);

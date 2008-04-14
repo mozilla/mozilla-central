@@ -114,6 +114,7 @@ calendar.jar:
 #expand    skin/classic/calendar/calendar-daypicker.css  (themes/__THEME__/calendar-daypicker.css)
 #expand    skin/classic/calendar/calendar-task-tree.css  (themes/__THEME__/calendar-task-tree.css)
 #expand    skin/classic/calendar/calendar-task-view.css  (themes/__THEME__/calendar-task-view.css)
+#expand    skin/classic/calendar/prevnextarrow.png       (themes/__THEME__/prevnextarrow.png)
     skin/classic/calendar/calendar-readOnly.png  (themes/common/calendar-readOnly.png)
     skin/classic/calendar/event-grippy-bottom.png  (themes/common/event-grippy-bottom.png)
     skin/classic/calendar/event-grippy-left.png  (themes/common/event-grippy-left.png)
