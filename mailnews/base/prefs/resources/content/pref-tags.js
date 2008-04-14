@@ -58,7 +58,7 @@ var gDeleteButton = null;
 var gRaiseButton  = null;
 var gLowerButton  = null;
 
-var gDeletedTags  = null; // tags marked for deletion in non-instant apply mode
+var gDeletedTags  = {}; // tags marked for deletion in non-instant apply mode
 
 
 function Startup()
