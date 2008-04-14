@@ -91,7 +91,7 @@
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
-                           hidden="true" height="1px"/>
+                           height="1px"/>
               </xul:stack>
             </xul:box>
             <xul:calendar-category-box anonid="category-box"/>
@@ -107,15 +107,9 @@
     </content>
     <implementation>
       <constructor><![CDATA[
-        var gradient = document.getAnonymousElementByAttribute(this,
-                                                               "anonid",
-                                                               "gradient");
         var container = document.getAnonymousElementByAttribute(this,
                                                                 "anonid",
                                                                 "event-container");
-        if (gradient) {
-          gradient.removeAttribute("hidden");
-        }
 
         container.setAttribute("class", "calendar-item");
         container.setAttribute("class", this.getAttribute("class"));
@@ -377,6 +371,7 @@
       <method name="addItem">
         <parameter name="aItem"/>
         <body><![CDATA[
+          // XXX This scales badly for adding lots of items: O(N^2)
           for each (ed in this.mItemData) {
             if (aItem.hashId == ed.item.hashId)
             {
@@ -385,7 +380,7 @@
             }
           }
 
-          function comptor(a, b) {
+          function dayboxItemComparator(a, b) {
             var aIsEvent = isEvent(a.item);
             var aIsTodo = isToDo(a.item);
 
@@ -436,11 +431,32 @@
           // Note: don't use Array.Sort, because that's quicksort, which
           // is not good for an already mostly-sorted array
           var newItem = {item: aItem};
-          for (i = 0; i<this.mItemData.length; ++i) {
-            if (comptor(this.mItemData[i], newItem) > 0)
-              break;
+
+          // A binary search into the array. That's possible here, because the
+          // array is always sorted
+          function binarySearch(itemArray, low, high, newItem, comptor) {
+            // Are we done yet?
+            if (low == high) {
+              return low + (comptor(newItem, itemArray[low]) < 0 ? 0 : 1);
+            }
+
+            var mid = Math.floor(low + ((high - low) / 2));
+            var q = comptor(newItem, itemArray[mid]);
+            if (q > 0)
+              return binarySearch(itemArray, mid + 1, high, newItem, comptor);
+            else if (q < 0)
+              return binarySearch(itemArray, low, mid, newItem, comptor);
+            return mid;
           }
-          this.mItemData.splice(i, 0, newItem);
+
+          var newIndex;
+          if (this.mItemData.length == 0) {
+            newIndex = 0;
+          } else {
+            newIndex = binarySearch(this.mItemData, 0, this.mItemData.length - 1,
+                                    newItem, dayboxItemComparator);
+          }
+          this.mItemData.splice(newIndex, 0, newItem);
 
           this.relayout();
         ]]></body>
