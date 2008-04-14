@@ -53,7 +53,7 @@ $CodesizeTest             = 1;  # Z,  require mozilla/tools/codesighs
 #$XULWindowOpenTest        = 0;  # Txul
 #$StartupPerformanceTest   = 0;  # Ts
 
-#$TestsPhoneHome           = 0;  # Should test report back to server?
+$TestsPhoneHome           = 1;  # Should test report back to server?
 #$results_server           = "axolotl.mozilla.org"; # was tegu
 #$pageload_server          = "spider";  # localhost
 
