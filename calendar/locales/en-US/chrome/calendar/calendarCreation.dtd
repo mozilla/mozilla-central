@@ -47,7 +47,7 @@
 <!ENTITY locationpage.password.label      "Password:" >
 
 <!ENTITY custompage.shortdescription  "Customize your calendar" >
-<!ENTITY custompage.longdescription   "You can give your calendar a nickname and colorize the events from this calendar" >
+<!ENTITY custompage.longdescription   "You can give your calendar a nickname and colorize the events from this calendar." >
 
 <!ENTITY finishpage.shortdescription  "Calendar Created" >
-<!ENTITY finishpage.longdescription   "Your calendar has been created" >
+<!ENTITY finishpage.longdescription   "Your calendar has been created." >
