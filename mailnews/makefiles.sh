@@ -105,9 +105,6 @@ mailnews/extensions/smime/Makefile
 mailnews/extensions/smime/build/Makefile
 mailnews/extensions/smime/src/Makefile
 mailnews/extensions/smime/public/Makefile
-mailnews/extensions/smoketest/Makefile
-mailnews/extensions/smoketest/resources/Makefile
-mailnews/extensions/smoketest/resources/content/Makefile
 mailnews/extensions/mdn/Makefile
 mailnews/extensions/mdn/src/Makefile
 mailnews/extensions/mdn/build/Makefile

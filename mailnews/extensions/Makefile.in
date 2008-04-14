@@ -53,10 +53,6 @@ ifdef BUILD_SMIME
 DIRS		+= smime
 endif
 
-ifdef BUILD_MAIL_SMOKETEST
-DIRS		+= smoketest
-endif
-
 ifdef BUILD_PALMSYNC
 DIRS		+= palmsync
 endif
