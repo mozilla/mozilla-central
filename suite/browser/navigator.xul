@@ -66,8 +66,7 @@
         titlemodifier="&mainWindow.titlemodifier;" 
         titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
         windowtype="navigator:browser"
-        width="610" height="450"
-        screenX="4" screenY="4"
+        style="width: 70ch; height: 45em;"
         persist="screenX screenY width height sizemode"> 
 
   <!-- Generic Utility -->
