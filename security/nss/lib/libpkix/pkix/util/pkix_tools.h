@@ -210,7 +210,6 @@ extern PLHashNumber PR_CALLBACK pkix_ErrorGen_Hash (const void *key);
                                                           funcName, &errorSetFlag, \
                                                           plContext); \
             if (pkixErrorResult) { \
-                 printf("Error in fn: %s\n", myFuncName); \
                  PR_LOG(pkixLog, 5, \
                     ("%s%*s<- %s(%d) - %s\n", (errorGenerated ? "*" : " "), \
                               stackPosition, " ", fnStackNameArr[stackPosition], \
