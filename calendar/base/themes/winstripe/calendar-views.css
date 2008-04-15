@@ -55,7 +55,6 @@ calendar-event-column[orient="vertical"] {
 calendar-header-container {
   background-color: #FFFFFF;
   border-left: 1px solid #3F7D91;
-  border-top: 1px solid #3F7D91;
 }
 
 calendar-header-container[weekend="true"],
@@ -78,6 +77,10 @@ calendar-header-container[weekend="true"][relation="today"],
 .calendar-event-column-linebox[weekend="true"][relation="today"],
 .calendar-event-column-linebox[off-time="true"][relation="today"] {
   background-color: #d6dfe9;
+}
+
+calendar-header-container[orient="horizontal"] {
+  border-bottom: 1px solid #3F7D91;
 }
 
 calendar-header-container[weekend="true"][selected="true"],
@@ -110,13 +113,16 @@ calendar-header-container[weekend="true"][selected="true"],
   border-right: 2px solid #3F7D91;
 }
 
-/* Bold the line separating all-day events from scrollable area. */
 .calendar-header-day-box[orient="horizontal"] {
-  border-bottom: 2px solid #3F7D91;
   border-right: 1px solid #3F7D91;
+  border-top: 1px solid #3F7D91;
+  border-bottom: 2px solid #3F7D91;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 120px;
 }
 .calendar-header-day-box[orient="vertical"] {
-  border-bottom: 1px solid #3F7D91;
+  border-top: 1px solid #3F7D91;
   border-right: 2px solid #3F7D91;
 }
 
@@ -124,6 +130,7 @@ calendar-header-container[weekend="true"][selected="true"],
 .calendar-day-box[orient="horizontal"] {
   border-right: 1px solid #3F7D91;
 }
+
 .calendar-day-box[orient="vertical"] {
   border-bottom: 1px solid #3F7D91;
 }
@@ -206,7 +213,7 @@ box[anonid="labelbox"][orient="horizontal"] {
   height: 30px;
 }
 box[anonid="headerbox"][orient="horizontal"] {
-  height: 50px;
+  min-height: 50px;
 }
 box[anonid="labelbox"][orient="horizontal"] > box[anonid="labeltimespacer"],
 box[anonid="headertimespacer"][orient="horizontal"],
@@ -219,7 +226,7 @@ box[anonid="labelbox"][orient="vertical"] {
   width: 30px;
 }
 box[anonid="headerbox"][orient="vertical"] {
-  width: 60px;
+  width: 120px;
 }
 box[anonid="labelbox"][orient="vertical"] > box[anonid="labeltimespacer"],
 box[anonid="headertimespacer"][orient="vertical"],

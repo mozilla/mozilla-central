@@ -1940,6 +1940,21 @@
       <handler event="click" button="0"><![CDATA[
         this.calendarView.setSelectedItems(0, []);
       ]]></handler>
+      <handler event="DOMMouseScroll"><![CDATA[
+        if (this.getAttribute("orient") == "vertical") {
+            // In vertical view (normal), don't let the parent multiday view
+            // handle the scrolling in its bubbling phase. The default action
+            // will make the box scroll here.
+
+            // TODO We could scroll by the height of exactly one event box, but
+            // since a normal box's boxObject doesn't implement nsIScrollBoxObject,
+            // there is no way to scroll by pixels. Using a xul:scrollbox has
+            // problems since the equalsize attribute isn't inherited by the
+            // inner box, and even if that is worked around, something makes the
+            // rotated view look bad in that case.
+            event.stopPropagation();
+        }
+      ]]></handler>
     </handlers>
   </binding>
 
@@ -2311,6 +2326,7 @@
         var alarmService = Components.classes['@mozilla.org/calendar/alarm-service;1']
                            .getService(Components.interfaces.calIAlarmService);
         alarmService.addObserver(this.mObserver);
+
       ]]></constructor>
 
       <destructor><![CDATA[
@@ -3118,6 +3134,8 @@
                   child = child.nextSibling;
               }
           }
+
+          // Refresh
           this.refresh();
         ]]></body>
       </method>
@@ -3354,10 +3372,7 @@
                col.column.endLayoutBatchChange();
           }
 
-          // adjust scrollbar spacers
-          // XXX For performance reasons this method call can be moved to the
-          // XXX constructor and the reorient method as soon as the views
-          // XXX are constructed statically (24 hrs).
+          // Adjust scrollbar spacers
           this.adjustScrollBarSpacers();
         ]]></body>
       </method>
@@ -3442,6 +3457,20 @@
         ]]></body>
       </method>
 
+      <method name="adjustScrollbarSpacersForAlldayEvents">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          var startDate = calGetStartDate(aEvent);
+          var endDate = calGetEndDate(aEvent);
+          if (startDate && startDate.isDate ||
+              endDate && endDate.isDate) {
+              // If this is an all day event, then the header with allday
+              // events could possibly get a scrollbar. Readjust them.
+              this.adjustScrollBarSpacers();
+          }
+        ]]></body>
+      </method>
+
       <method name="doAddEvent">
         <parameter name="aEvent"/>
         <body><![CDATA[
@@ -3461,6 +3490,8 @@
                   column.addEvent(aEvent);
               }
           }
+
+          this.adjustScrollbarSpacersForAlldayEvents(aEvent);
         ]]></body>
       </method>
 
@@ -3495,6 +3526,8 @@
           if (found) {
               this.fireEvent("itemselect", this.mSelectedItems);
           }
+
+          this.adjustScrollbarSpacersForAlldayEvents(aEvent);
         ]]></body>
       </method>
 
@@ -3567,11 +3600,28 @@
                          this, "anonid", "childbox");
           var propertyValue = childbox.boxObject.firstChild
                               .boxObject[propertyName];
+          // Check if we need to show the headerScrollbarSpacer at all
+          var headerPropertyValue = propertyValue;
+          var headerDayBox = document.getAnonymousElementByAttribute(
+                             this, "anonid", "headerdaybox");
+          if (headerDayBox) {
+            // Only do this when there are multiple days
+            var headerDayBoxMaxHeight = parseInt(document.defaultView.getComputedStyle(headerDayBox, null)
+                                                         .getPropertyValue("max-height"), 10);
+            if (this.getAttribute("orient") == "vertical" &&
+                headerDayBox.boxObject.height >= headerDayBoxMaxHeight) {
+                // If the headerDayBox is just as high as the max-height, then
+                // there is already a scrollbar and we don't need to show the
+                // headerScrollbarSpacer. This is only valid for the non-rotated
+                // view.
+                headerPropertyValue = 0;
+            }
+          }
 
           // set the same width/height for the label and header box spacers
           var headerScrollBarSpacer = document.getAnonymousElementByAttribute(
                                       this, "anonid", "headerscrollbarspacer");
-          headerScrollBarSpacer.setAttribute(propertyName, propertyValue);
+          headerScrollBarSpacer.setAttribute(propertyName, headerPropertyValue);
           var labelScrollBarSpacer = document.getAnonymousElementByAttribute(
                                      this, "anonid", "labelscrollbarspacer");
           labelScrollBarSpacer.setAttribute(propertyName, propertyValue);
@@ -3664,7 +3714,8 @@
     </implementation>
 
     <handlers>
-      <handler event="DOMMouseScroll"><![CDATA[
+      <handler event="DOMMouseScroll" phase="bubbling"><![CDATA[
+      debugger;
         if (!event.ctrlKey &&
             !event.shiftKey &&
             !event.altKey &&
