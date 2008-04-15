@@ -10,7 +10,9 @@
 $ENV{NO_EM_RESTART} = '1';
 $ENV{CVS_RSH} = "ssh";
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+# Both these two variables are for source server support
 $ENV{PDBSTR_PATH} = 'C:\\Program Files\\Debugging Tools for Windows\\sdk\\srcsrv\\pdbstr.exe';
+$ENV{SRCSRV_ROOT} = ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot';
 
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
