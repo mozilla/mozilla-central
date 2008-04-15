@@ -71,8 +71,20 @@ static void Output(const char *fmt, ... )
   va_end(ap);
 }
 
+/**
+ * A helper class which calls NS_LogInit/NS_LogTerm in its scope.
+ */
+class ScopedLogging
+{
+public:
+  ScopedLogging() { NS_LogInit(); }
+  ~ScopedLogging() { NS_LogTerm(); }
+};
+
 int main(int argc, char* argv[])
 {
+  ScopedLogging log;
+
   nsCOMPtr<nsILocalFile> appini;
   nsresult rv = XRE_GetBinaryPath(argv[0], getter_AddRefs(appini));
   if (NS_FAILED(rv)) {
