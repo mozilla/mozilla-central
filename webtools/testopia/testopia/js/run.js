@@ -892,8 +892,8 @@ RunClonePopup = function(product_id, runs, caselist){
     var win = new Ext.Window({
         id: 'run-clone-win',
         closable:true,
-        width: 600,
-        height: 500,
+        width: 800,
+        height: 600,
         plain: true,
         shadow: false,
         layout: 'fit',

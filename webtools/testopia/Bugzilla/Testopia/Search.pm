@@ -1337,7 +1337,7 @@ sub init {
             push(@groupby, $field) if !grep($_ eq $field, @groupby);
         }
     }
-    if (scalar @groupby){
+    if (scalar @groupby && $cgi->param('report')){
         $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id", join(', ', @groupby));
     }
     elsif ($cgi->param('report')) {
