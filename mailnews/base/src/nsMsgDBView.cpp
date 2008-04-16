@@ -1017,11 +1017,14 @@ NS_IMETHODIMP nsMsgDBView::SelectionChanged()
 
   PRUint32 numSelected = 0;
 
+#ifdef DEBUG
   GetNumSelected(&numSelected);
+#endif
   nsMsgViewIndexArray selection;
   GetSelectedIndices(selection);
   nsMsgViewIndex *indices = selection.Elements();
   NS_ASSERTION(numSelected == selection.Length(), "selected indices is not equal to num of msg selected!!!");
+  numSelected = selection.Length();
 
   PRBool commandsNeedDisablingBecauseOfSelection = PR_FALSE;
 
