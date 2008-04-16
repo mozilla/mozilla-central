@@ -44,7 +44,8 @@
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/messengercompose/sendProgress.dtd">
 
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<dialog id="sendProgress"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&sendWindow.title;"
         style="width: 36em;"
         onload="onLoad()"
