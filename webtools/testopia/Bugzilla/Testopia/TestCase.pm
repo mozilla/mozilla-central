@@ -823,6 +823,7 @@ sub attach_bug {
     my $self = shift;
     my ($bugids, $caserun_id) = @_;
     my $dbh = Bugzilla->dbh;
+    trick_taint($caserun_id);
     
     $bugids = $self->_check_bugs($bugids, "ATTACH");
     

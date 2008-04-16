@@ -144,7 +144,7 @@ CaseRunListGrid = function(params, cfg){
     this.params = params;
     this.store = new Ext.data.GroupingStore({
         url: 'tr_list_caseruns.cgi',
-        baseParams: {ctype: 'json', isactive:1},
+        baseParams: {ctype: 'json'},
         reader: new Ext.data.JsonReader({
             totalProperty: 'totalResultsAvailable',
             root: 'Result',
