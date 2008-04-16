@@ -1209,15 +1209,15 @@ mime_image_make_image_html(void *image_closure)
   else
     url = mid->url;
 
-  buf = (char *) PR_MALLOC (strlen(prefix) + strlen(suffix) +
-                            strlen(url) + 20) ;
+  PRUint32 buflen = strlen(prefix) + strlen(suffix) + strlen(url) + 20;
+  buf = (char *) PR_MALLOC (buflen);
   if (!buf)
     return 0;
   *buf = 0;
 
-  PL_strcat (buf, prefix);
-  PL_strcat (buf, url);
-  PL_strcat (buf, suffix);
+  PL_strcatn (buf, buflen, prefix);
+  PL_strcatn (buf, buflen, url);
+  PL_strcatn (buf, buflen, suffix);
   return buf;
 }
 

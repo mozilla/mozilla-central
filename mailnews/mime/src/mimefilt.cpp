@@ -185,14 +185,13 @@ test_image_make_image_html(void *image_data)
             "an inlined image would have gone here for<BR>");
   const char *suffix = "</TD></TR></TABLE></CENTER><P>";
 #endif
-  char *buf;
-  buf = (char *) PR_MALLOC (strlen (prefix) + strlen (suffix) +
-               strlen (url) + 20);
+  PRUint32 buflen = strlen (prefix) + strlen (suffix) + strlen (url) + 20;
+  char *buf = (char *) PR_MALLOC (buflen);
   if (!buf) return 0;
   *buf = 0;
-  PL_strcat (buf, prefix);
-  PL_strcat (buf, url);
-  PL_strcat (buf, suffix);
+  PL_strcatn (buf, buflen, prefix);
+  PL_strcatn (buf, buflen, url);
+  PL_strcatn (buf, buflen, suffix);
   return buf;
 }
 

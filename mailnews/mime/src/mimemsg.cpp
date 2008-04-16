@@ -244,7 +244,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
       char *s = (char *)PR_MALLOC(length + MSG_LINEBREAK_LEN + 1);
       if (!s) return MIME_OUT_OF_MEMORY;
       memcpy(s, line, length);
-      PL_strcpy(s + length, MSG_LINEBREAK);
+      PL_strncpyz(s + length, MSG_LINEBREAK, MSG_LINEBREAK_LEN);
       status = kid->clazz->parse_buffer (s, length + MSG_LINEBREAK_LEN, kid);
       PR_Free(s);
       return status;

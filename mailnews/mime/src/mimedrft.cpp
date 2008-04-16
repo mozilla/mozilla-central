@@ -1507,13 +1507,14 @@ mime_parse_stream_complete (nsMIMESession *stream)
                 bodyLen = strlen(body);
               }
 
-              char* newbody = (char *)PR_MALLOC (bodyLen + 12); //+11 chars for <pre> & </pre> tags
+              PRUint32 newbodylen = bodyLen + 12; //+11 chars for <pre> & </pre> tags
+              char* newbody = (char *)PR_MALLOC (newbodylen);
               if (newbody)
               {
                 *newbody = 0;
-                PL_strcat(newbody, "<PRE>");
-                PL_strcat(newbody, body);
-                PL_strcat(newbody, "</PRE>");
+                PL_strcatn(newbody, newbodylen, "<PRE>");
+                PL_strcatn(newbody, newbodylen, body);
+                PL_strcatn(newbody, newbodylen, "</PRE>");
                 PR_Free(body);
                 body = newbody;
               }

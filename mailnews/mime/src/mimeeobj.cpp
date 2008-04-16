@@ -160,7 +160,8 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     else
     {
       const char *p = "Part ";
-      char *s = (char *)PR_MALLOC(strlen(p) + strlen(id) + 1);
+      PRUint32 slen = strlen(p) + strlen(id) + 1;
+      char *s = (char *)PR_MALLOC(slen);
       if (!s)
       {
         PR_Free(id);
@@ -170,8 +171,8 @@ MimeExternalObject_parse_begin (MimeObject *obj)
       // we have a valid id
       if (id)
         id_name = mime_find_suggested_name_of_part(id, obj);
-      PL_strcpy(s, p);
-      PL_strcat(s, id);
+      PL_strncpyz(s, p, slen);
+      PL_strcatn(s, slen, id);
       PR_Free(id);
       id = s;
     }

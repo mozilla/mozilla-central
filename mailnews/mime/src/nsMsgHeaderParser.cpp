@@ -1422,6 +1422,7 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
   char **a_array1 = 0, **a_array2 = 0, **a_array3 = 0;
   char **n_array1 = 0,                 **n_array3 = 0;
   int i, j;
+  PRUint32 addedlen = 0;
 
   count1 = msg_parse_Header_addresses(addrs, &names1, &addrs1);
   if (count1 < 0) goto FAIL;
@@ -1531,8 +1532,9 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
       if (count3 > count1) break;
     }
   }
-
-  output = (char *)PR_Malloc(size3 + 1);
+  
+  PRUint32 outlen = size3 + 1;
+  output = (char *)PR_Malloc(outlen);
   if (!output) goto FAIL;
 
   *output = 0;
@@ -1540,15 +1542,19 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
   s2 = output;
   for (i = 0; i < count3; i++)
   {
-    PL_strcpy(out, a_array3[i]);
-    out += strlen(out);
+    PL_strncpyz(out, a_array3[i], outlen);
+    addedlen = strlen(out);
+    outlen -= addedlen;
+    out += addedlen;
     *out++ = 0;
   }
   s1 = out;
   for (i = 0; i < count3; i++)
   {
-    PL_strcpy(out, n_array3[i]);
-    out += strlen(out);
+    PL_strncpyz(out, n_array3[i], outlen);
+    addedlen = strlen(out);
+    outlen -= addedlen;
+    out += addedlen;
     *out++ = 0;
   }
   result = msg_format_Header_addresses(s1, s2, count3, PR_FALSE);
@@ -1580,26 +1586,34 @@ msg_make_full_address(const char* name, const char* addr)
   int nl = name ? strlen (name) : 0;
   int al = addr ? strlen (addr) : 0;
   char *buf, *s;
+  PRUint32 buflen, slen;
   int L;
   if (al == 0)
     return 0;
-  buf = (char *)PR_Malloc((nl * 2) + (al * 2) + 20);
+
+  buflen = (nl * 2) + (al * 2) + 25;
+  buf = (char *)PR_Malloc(buflen);
   if (!buf)
     return 0;
   if (nl > 0)
   {
-    PL_strcpy(buf, name);
+    PL_strncpyz(buf, name, buflen);
     L = msg_quote_phrase_or_addr(buf, nl, PR_FALSE);
     s = buf + L;
-    *s++ = ' ';
-    *s++ = '<';
+    slen = buflen - L;
+    if ( slen > 2 ) {
+        *s++ = ' ';
+        *s++ = '<';
+        slen -= 2; // for ' ' and '<'
+    }
   }
   else
   {
     s = buf;
+    slen = buflen;
   }
 
-  PL_strcpy(s, addr);
+  PL_strncpyz(s, addr, slen);
   L = msg_quote_phrase_or_addr(s, al, PR_TRUE);
   s += L;
   if (nl > 0)

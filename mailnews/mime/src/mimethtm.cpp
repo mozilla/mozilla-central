@@ -116,7 +116,8 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
     if (base_hdr)
     {
-      char *buf = (char *) PR_MALLOC(strlen(base_hdr) + 20);
+      PRUint32 buflen = strlen(base_hdr) + 20;
+      char *buf = (char *) PR_MALLOC(buflen);
       const char *in;
       char *out;
       if (!buf)
@@ -129,7 +130,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
         mail header to be wrapped reasonably.  Creators are supposed
         to insert whitespace every 40 characters or less.
       */
-      PL_strcpy(buf, "<BASE HREF=\"");
+      PL_strncpyz(buf, "<BASE HREF=\"", buflen);
       out = buf + strlen(buf);
 
       for (in = base_hdr; *in; in++)

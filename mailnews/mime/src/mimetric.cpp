@@ -120,11 +120,12 @@ MimeRichtextConvert (const char *line, PRInt32 length,
     if (!IS_SPACE (*this_start)) break;
     if (this_start >= line + length) /* blank line */
     {
-      PL_strcpy (*obufferP, "<BR>");
+      PL_strncpyz (*obufferP, "<BR>", *obuffer_sizeP);
       return output_fn (*obufferP, strlen(*obufferP), closure);
     }
   }
 
+  PRUint32 outlen = (PRUint32) *obuffer_sizeP;
   out = *obufferP;
   *out = 0;
 
@@ -132,6 +133,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
   last_end = line;
   this_start = last_end;
   this_end = this_start;
+  PRUint32 addedlen = 0;
   while (this_end < data_end)
   {
     /* Skip forward to next special character. */
@@ -161,24 +163,34 @@ MimeRichtextConvert (const char *line, PRInt32 length,
       memcpy (out, last_end, this_start - last_end);
       out += this_start - last_end;
       *out = 0;
+      outlen -= (this_start - last_end);
     }
 
     if (this_start >= data_end)
     break;
     else if (*this_start == '&')
     {
-      PL_strcpy (out, "&amp;"); out += strlen (out);
+      PL_strncpyz (out, "&amp;", outlen); 
+      addedlen = strlen(out);
+      outlen -= addedlen; 
+      out += addedlen;
     }
     else if (*this_start == '>')
     {
-      PL_strcpy (out, "&gt;"); out += strlen (out);
+      PL_strncpyz (out, "&gt;", outlen); 
+      addedlen = strlen(out); 
+      outlen -= addedlen; 
+      out += addedlen;
     }
     else if (enriched_p &&
          this_start < data_end + 1 &&
          this_start[0] == '<' &&
          this_start[1] == '<')
     {
-      PL_strcpy (out, "&lt;"); out += strlen (out);
+      PL_strncpyz (out, "&lt;", outlen); 
+      addedlen = strlen(out); 
+      outlen -= addedlen; 
+      out += addedlen;
     }
     else if (this_start != this_end)
     {
@@ -312,13 +324,17 @@ MimeRichtextConvert (const char *line, PRInt32 length,
 
       if (this_start[1] == '/')
       {
-        if (tag_close) PL_strcpy (out, tag_close);
-        out += strlen (out);
+        if (tag_close) PL_strncpyz (out, tag_close, outlen);
+        addedlen = strlen (out);
+        outlen -= addedlen;
+        out += addedlen;
       }
       else
       {
-        if (tag_open) PL_strcpy (out, tag_open);
-        out += strlen (out);
+        if (tag_open) PL_strncpyz (out, tag_open, outlen);
+        addedlen = strlen (out);
+        outlen -= addedlen;
+        out += addedlen;
       }
     }
 

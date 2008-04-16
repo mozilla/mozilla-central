@@ -203,7 +203,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
   char  encodedword_head[kMAX_CSNAME+4+1];
   nsCAutoString _charset;
   char  *pUTF8Head = nsnull, cUTF8Tmp = 0;
-  PRInt32   olen = 0, offset, linelen = output_carryoverlen, convlen = 0;
+  PRInt32   olen = 0, obufsize = outlen, offset, linelen = output_carryoverlen, convlen = 0;
   PRInt32   encodedword_headlen = 0, encodedword_taillen = foldingonly ? 0 : 2; // "?="
   nsresult rv;
 
@@ -324,18 +324,20 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
     }
     else {
       /* no folding needed, let's fall thru */
-      strcpy(o, encodedword_head);
+      PL_strncpyz(o, encodedword_head, obufsize);
       olen += encodedword_headlen;
       linelen += encodedword_headlen;
+      obufsize -= encodedword_headlen;
       o += encodedword_headlen;
       if (!foldingonly)
         *pUCS2 = 0;
     }
   }
   else {
-    strcpy(o, "\r\n ");
+    PL_strncpyz(o, "\r\n ", obufsize);
     olen += 3;
     o += 3;
+    obufsize -= 3;
     linelen = 1;
   }
 
@@ -344,9 +346,10 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
   */
 
   while ((foldingonly ? *pUTF8 : *pUCS2) && (olen < outlen)) {
-    strcpy(o, encodedword_head);
+    PL_strncpyz(o, encodedword_head, obufsize);
     olen += encodedword_headlen;
     linelen += encodedword_headlen;
+    obufsize -= encodedword_headlen;
     o += encodedword_headlen;
     olen += encodedword_taillen;
     if (foldingonly)
@@ -393,8 +396,9 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
 process_lastline:
         PRInt32 enclen;
         if (foldingonly) {
-          strcpy(o, pUTF8Head);
+          PL_strncpyz(o, pUTF8Head, obufsize);
           enclen = strlen(o);
+          obufsize -= enclen;
           o += enclen;
           *pUTF8 = cUTF8Tmp;
         }
@@ -405,12 +409,15 @@ process_lastline:
             enclen = intlmime_encode_q((const unsigned char *)ibuf, strlen(ibuf), o);
           PR_Free(ibuf);
           o += enclen;
-          strcpy(o, "?=");
+          obufsize -= enclen;
+          PL_strncpyz(o, "?=", obufsize);
         }
         o += encodedword_taillen;
+        obufsize -= encodedword_taillen;
         olen += enclen;
         if (foldingonly ? *pUTF8 : *pUCS2) { /* not last line */
-          strcpy(o, "\r\n ");
+          PL_strncpyz(o, "\r\n ", obufsize);
+          obufsize -= 3;
           o += 3;
           olen += 3;
           linelen = 1;
@@ -676,7 +683,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
           break;
         }
         if (list->next) {
-          strcpy(outputtail, ", ");
+          PL_strncpyz(outputtail, ", ", outputlen);
           cursor += 2;
           outputtail += 2;
           outputlen -= 2;
@@ -705,7 +712,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
       if (cursor + skiplen + overhead < foldlen) {
         char tmp = *(spacepos + 1);
         *(spacepos + 1) = '\0';
-        strcpy(output, src);
+        PL_strncpyz(output, src, outputlen);
         output += skiplen;
         outputlen -= skiplen;
         cursor += skiplen;
