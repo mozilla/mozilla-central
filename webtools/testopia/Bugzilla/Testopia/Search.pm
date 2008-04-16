@@ -382,11 +382,9 @@ sub init {
         push @supptables, "INNER JOIN versions ON versions.value = test_plans.default_product_version";
         push @orderby, 'versions.value';
     }
-    elsif($order eq 'plan_id'){
-        if ($obj eq 'case_run'){
-            push @supptables, "INNER JOIN test_case_plans AS case_plans ON test_cases.case_id = case_plans.case_id";
-            push @orderby, 'case_plans.plan_id';
-        }
+    elsif($order eq 'plan_id' && $obj eq 'case_run'){
+        push @supptables, "INNER JOIN test_case_plans AS case_plans ON test_cases.case_id = case_plans.case_id";
+        push @orderby, 'case_plans.plan_id';
     }
     elsif ($order eq 'priority') {
         if ($obj eq 'case_run'){
@@ -1342,7 +1340,7 @@ sub init {
     if (scalar @groupby){
         $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id", join(', ', @groupby));
     }
-    else {
+    elsif ($cgi->param('report')) {
         $query .= " " . $dbh->sql_group_by("test_${obj}s.${obj}_id");
     }
 
