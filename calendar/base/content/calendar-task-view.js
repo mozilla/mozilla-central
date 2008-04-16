@@ -123,10 +123,12 @@ var taskDetailsView = {
                         break;
                     case "COMPLETED":
                         if (item.completedDate) {
+                            var completedDate = item.completedDate.getInTimezone(
+                                                    calendarDefaultTimezone());
                             statusDetails.value = calGetString(
                                 "calendar",
                                 "taskDetailsStatusCompletedOn",
-                                [dateFormatter.formatDateTime(item.completedDate)]);
+                                [dateFormatter.formatDateTime(completedDate)]);
                         }
                         break;
                     case "CANCELLED":
