@@ -4,6 +4,7 @@
  * getting the list of directories..
  */
 
+do_import_script("mailnews/test/resources/mailDirService.js");
 do_import_script("mailnews/addrbook/test/resources/abSetup.js");
 do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
 

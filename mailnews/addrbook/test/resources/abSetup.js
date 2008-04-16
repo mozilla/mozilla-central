@@ -7,63 +7,6 @@
  * Note there are further configuration setup items below this.
  */
 
-const NS_APP_USER_PROFILE_50_DIR = "ProfD";
-const Ci = Components.interfaces;
-const Cc = Components.classes;
-const Cr = Components.results;
-
-// Various functions common to the tests.
-const AbTest = {
-
-  /*
-   * makeDirectoryService
-   *
-   */
-  makeDirectoryService : function () {
-    // Register our own provider for the profile directory.
-    // It will simply return the current directory.
-    const provider = {
-      getFile : function(prop, persistent) {
-        persistent.value = true;
-        if (prop == NS_APP_USER_PROFILE_50_DIR) {
-          var processDir = dirSvc.get("CurProcD", Ci.nsIFile);
-
-          processDir.append("addrbook");
-
-          if (!processDir.exists())
-            processDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0700);
-
-          return processDir;
-        }
-        throw Cr.NS_ERROR_FAILURE;
-      },
-
-      QueryInterface : function(iid) {
-        if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
-            iid.equals(Ci.nsISupports)) {
-          return this;
-        }
-        throw Cr.NS_ERROR_NO_INTERFACE;
-      }
-    };
-
-    dirSvc.QueryInterface(Ci.nsIDirectoryService).registerProvider(provider);
-  }
-};
-
-
-// If there's no location registered for the profile direcotry, register one
-var dirSvc = Cc["@mozilla.org/file/directory_service;1"].
-             getService(Ci.nsIProperties);
-try {
-    var profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
-} catch (e) { }
-
-if (!profileDir) {
-  AbTest.makeDirectoryService();
-  profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
-}
-
 /**
  * General Configuration Data that applies to the address book.
  */

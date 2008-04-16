@@ -3,58 +3,7 @@
  * Test suite for nsMsgMailSession functions relating to listeners.
  */
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
-const nsIFile = Components.interfaces.nsIFile;
-const NS_APP_USER_PROFILE_50_DIR = "ProfD";
-
-// Various functions common to the tests.
-const DirServiceTest = {
-
-  /*
-   * makeDirectoryService
-   *
-   */
-  makeDirectoryService : function () {
-    // Register our own provider for the profile directory.
-    // It will simply return the current directory.
-    const provider = {
-      getFile : function(prop, persistent) {
-        persistent.value = true;
-        if (prop == NS_APP_USER_PROFILE_50_DIR) {
-          var processDir = dirSvc.get("CurProcD", nsIFile);
-
-          processDir.append("mailtest");
-
-          if (!processDir.exists())
-            processDir.create(nsIFile.DIRECTORY_TYPE, 0700);
-
-          return processDir;
-        }
-        throw Components.results.NS_ERROR_FAILURE;
-      },
-
-      QueryInterface :
-        XPCOMUtils.generateQI([Components.interfaces.nsIDirectoryServiceProvider])
-    };
-
-    dirSvc.QueryInterface(Components.interfaces.nsIDirectoryService)
-          .registerProvider(provider);
-  }
-};
-
-
-// If there's no location registered for the profile direcotry, register one
-var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties);
-try {
-    var profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, nsIFile);
-} catch (e) { }
-
-if (!profileDir) {
-  DirServiceTest.makeDirectoryService();
-  profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, nsIFile);
-}
+do_import_script("mailnews/test/resources/mailDirService.js");
 
 function run_test() {
   const items = [ { key: "MailD", value: "Mail" },

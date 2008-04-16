@@ -7,6 +7,7 @@
  *
  * Uses: cardForEmail.mab
  */
+do_import_script("mailnews/test/resources/mailDirService.js");
 do_import_script("mailnews/addrbook/test/resources/abSetup.js");
 do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
 
