@@ -72,14 +72,14 @@
 
 <popup id="attachmentListContext" onpopupshowing="return onShowAttachmentContextMenu();">
   <menuitem id="context-openAttachment" label="&openAttachmentCmd.label;" accesskey="&openAttachmentCmd.accesskey;"
-     oncommand="handleAttachmentSelection('openAttachment');"/>
+            oncommand="HandleSelectedAttachments('open');"/>
   <menuitem id="context-saveAttachment" label="&saveAsAttachmentCmd.label;" accesskey="&saveAsAttachmentCmd.accesskey;"
-     oncommand="handleAttachmentSelection('saveAttachment');"/>
+            oncommand="HandleSelectedAttachments('saveAs');"/>
   <menuseparator id="context-menu-separator"/>
   <menuitem id="context-detachAttachment" label="&detachAttachmentCmd.label;" 
-     oncommand="handleAttachmentSelection('detachAttachment');"/>
+            oncommand="HandleSelectedAttachments('detach');"/>
   <menuitem id="context-deleteAttachment" label="&deleteAttachmentCmd.label;" 
-     oncommand="handleAttachmentSelection('deleteAttachment');"/>
+            oncommand="HandleSelectedAttachments('delete');"/>
   <menuitem id="context-saveAllAttachments" oncommand="HandleAllAttachments('save');" 
     label="&saveAllAttachmentsCmd.label;" accesskey="&saveAllAttachmentsCmd.accesskey;"/>
   <menuitem id="context-detachAllAttachments" oncommand="HandleAllAttachments('detach');" 

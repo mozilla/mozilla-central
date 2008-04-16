@@ -1089,26 +1089,12 @@ function createNewAttachmentInfo(contentType, url, displayName, uri, isExternalA
   this.isExternalAttachment = isExternalAttachment;
 }
 
-function dofunc(aFunctionName, aFunctionArg)
-{
-  if (aFunctionName == "saveAttachment")
-    saveAttachment(aFunctionArg);
-  else if (aFunctionName == "openAttachment")
-    openAttachment(aFunctionArg);
-  else if (aFunctionName == "printAttachment")
-    printAttachment(aFunctionArg);
-  else if (aFunctionName == "deleteAttachment")
-    detachAttachment(aFunctionArg, false);
-  else if (aFunctionName == "detachAttachment")
-    detachAttachment(aFunctionArg, true);
-}
-
 function saveAttachment(aAttachment)
 {
   messenger.saveAttachment(aAttachment.contentType,
                            aAttachment.url,
                            encodeURIComponent(aAttachment.displayName),
-                           aAttachment.messageUri, aAttachment.isExternalAttachment);
+                           aAttachment.uri, aAttachment.isExternalAttachment);
 }
 
 function openAttachment(aAttachment)
@@ -1116,7 +1102,7 @@ function openAttachment(aAttachment)
   messenger.openAttachment(aAttachment.contentType,
                            aAttachment.url,
                            encodeURIComponent(aAttachment.displayName),
-                           aAttachment.messageUri, aAttachment.isExternalAttachment);
+                           aAttachment.uri, aAttachment.isExternalAttachment);
 }
 
 function printAttachment(aAttachment)
@@ -1125,7 +1111,7 @@ function printAttachment(aAttachment)
   messenger.printAttachment(aAttachment.contentType,
                             aAttachment.url,
                             encodeURIComponent(aAttachment.displayName),
-                            aAttachment.messageUri);
+                            aAttachment.uri);
   */
 }
 
@@ -1134,7 +1120,7 @@ function detachAttachment(aAttachment, aSaveFirst)
   messenger.detachAttachment(aAttachment.contentType,
                            aAttachment.url,
                            encodeURIComponent(aAttachment.displayName),
-                           aAttachment.messageUri, aSaveFirst);
+                           aAttachment.uri, aSaveFirst);
 }
 
 function CanDetachAttachments()
@@ -1217,32 +1203,9 @@ function attachmentListClick(event)
     var target = event.target;
     if (target.localName == "descriptionitem")
     {
-      dofunc("openAttachment", target.attachment);
+      openAttachment(target.attachment);
     }
   }
-}
-
-// on command handlers for the attachment list context menu...
-// commandPrefix matches one of our existing functions
-// (openAttachment, saveAttachment, etc.)
-function handleAttachmentSelection(commandPrefix)
-{
-  var attachmentList = document.getElementById('attachmentList');
-  var selectedAttachments = attachmentList.selectedItems;
-
-  // loop over all of the selected attachments...
-
-  // XXX hack alert. If we sit in tight loop and call doFunc for multiple attachments,
-  // we get chrome errors in layout as we start loading the first helper app dialog
-  // then before it loads, we kick off the next one and the next one. Subsequent helper app dialogs
-  // were failing because we were still loading the chrome files for the first attempt (error about the xul cache
-  // being empty). For now, work around this by doing the first helper app dialog right away, then waiting a bit
-  // before we launch the rest.
-  for (var i = 0; i < selectedAttachments.length; i++)
-    if (!i)
-      dofunc(commandPrefix, selectedAttachments[i].attachment);
-    else
-      setTimeout(dofunc, 100, commandPrefix, selectedAttachments[i].attachment);
 }
 
 function cloneAttachment(aAttachment)
@@ -1251,7 +1214,7 @@ function cloneAttachment(aAttachment)
   obj.contentType = aAttachment.contentType;
   obj.url = aAttachment.url;
   obj.displayName = aAttachment.displayName;
-  obj.messageUri = aAttachment.uri;
+  obj.uri = aAttachment.uri;
   obj.isExternalAttachment = aAttachment.isExternalAttachment;
   return obj;
 }
@@ -1506,6 +1469,22 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
 
 function HandleAllAttachments(action)
 {
+  HandleMultipleAttachments(currentAttachments, action);
+}
+
+function HandleSelectedAttachments(action)
+{
+  var attachmentList = document.getElementById('attachmentList');
+  var selectedAttachments = new Array();
+  for (var i in attachmentList.selectedItems)
+    selectedAttachments.push(attachmentList.selectedItems[i].attachment);
+
+  HandleMultipleAttachments(selectedAttachments, action);
+}
+
+// supported actions: open, save, saveAs, detach, delete
+function HandleMultipleAttachments(attachments, action)
+{
  try
  {
    // convert our attachment data into some c++ friendly structs
@@ -1516,10 +1495,10 @@ function HandleAllAttachments(action)
 
    // populate these arrays..
    var actionIndex = 0;
-   for (var index in currentAttachments)
+   for (var index in attachments)
    {
      // exclude all attachments already deleted
-     var attachment = currentAttachments[index];
+     var attachment = attachments[index];
      if ( attachment.contentType != 'text/x-moz-deleted' )
      {
        attachmentContentTypeArray[actionIndex] = attachment.contentType;
@@ -1545,13 +1524,30 @@ function HandleAllAttachments(action)
                                     attachmentContentTypeArray, attachmentUrlArray,
                                     attachmentDisplayNameArray, attachmentMessageUriArray,
                                     false); // don't save
+   else if ( action == 'open'|| action == 'saveAs' ) {
+     // XXX hack alert. If we sit in tight loop and open/save multiple attachments,
+     // we get chrome errors in layout as we start loading the first helper app dialog
+     // then before it loads, we kick off the next one and the next one. Subsequent helper
+     // app dialogs were failing because we were still loading the chrome files for the
+     // first attempt (error about the xul cache being empty). For now, work around this
+     // by doing the first helper app dialog right away, then waiting a bit before we
+     // launch the rest.
+     var actionFunction = (action == 'open') ? openAttachment : saveAttachment;
+     for (var i = 0; i < attachments.length; i++)
+     {
+       if (i == 0)
+         actionFunction(attachments[i]);
+       else
+         setTimeout(actionFunction, 100, attachments[i]);
+     }
+   }
    else
-     dump ("** unknown HandleAllAttachments action: " + action + "**\n");
-   }
-   catch (ex)
-   {
-   dump ("** failed to handle all attachments **\n");
-   }
+     dump ("** unknown HandleMultipleAttachments action: " + action + "**\n");
+ }
+ catch (ex)
+ {
+   dump ("** failed to handle multiple attachments **\n");
+ }
 }
 
 function ClearAttachmentList()
