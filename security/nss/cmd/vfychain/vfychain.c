@@ -321,7 +321,7 @@ main(int argc, char *argv[], char *envp[])
 	case 'o' : oidStr = PL_strdup(optstate->value);       break;
 	case 'p' : usePkix += 1;                              break;
 	case 'r' : isAscii  = PR_FALSE;                       break;
-        case 's' : revConfig  = PL_strdup(optstate->value);   break;
+	case 's' : revConfig  = PL_strdup(optstate->value);   break;
 	case 'u' : usage    = PORT_Atoi(optstate->value);
 	           if (usage < 0 || usage > 62) Usage(progName);
 		   certUsage = ((SECCertificateUsage)1) << usage; 
@@ -569,6 +569,11 @@ punt:
 	SECU_PrintError(progName, "NSS_Shutdown");
 	rv = 1;
     }
+    PORT_Free(progName);
+    PORT_Free(certDir);
+    PORT_Free(oidStr);
+    PORT_Free(revConfig);
+    PORT_Free(password);
     PR_Cleanup();
     return rv;
 }
