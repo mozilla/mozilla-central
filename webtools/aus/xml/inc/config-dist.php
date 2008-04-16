@@ -107,7 +107,7 @@ $productBranchVersions = array(
 // Config for memcache.
 define('MEMCACHE_NAMESPACE', 'aus'); // set memcache namespace.  Keep this string as short and simple as possible.
 define('MEMCACHE_EXPIRE', 1800); // how long items are stored in memcache
-define('MEMCACHE_ON', true); // whether or not to cache ever
+define('MEMCACHE_ON', false); // whether or not to cache ever
 
 /**
  * Memcache configuration.
