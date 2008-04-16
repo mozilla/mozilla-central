@@ -2811,6 +2811,7 @@ function HandleMDNResponse(aUrl)
 
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
+  const MSG_FLAG_MDN_REPORT_SENT = 0x800000;
   var msgFlags = msgHdr.flags;
   if ((msgFlags & MSG_FLAG_IMAP_DELETED) || (msgFlags & MSG_FLAG_MDN_REPORT_SENT))
     return;
@@ -2828,7 +2829,6 @@ function HandleMDNResponse(aUrl)
 
   // Reset mark msg MDN "Sent" and "Not Needed".
   const MSG_FLAG_MDN_REPORT_NEEDED = 0x400000;
-  const MSG_FLAG_MDN_REPORT_SENT = 0x800000
   msgHdr.flags = (msgFlags & ~MSG_FLAG_MDN_REPORT_NEEDED);
   msgHdr.OrFlags(MSG_FLAG_MDN_REPORT_SENT);
 
