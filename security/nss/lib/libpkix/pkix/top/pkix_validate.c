@@ -173,7 +173,6 @@ pkix_CheckCert(
         PKIX_UInt32 numCheckers;
         PKIX_UInt32 numUnresCritExtOIDs = 0;
         PKIX_UInt32 checkerIndex = 0;
-        PKIX_Error *checkerError = NULL;
         void *nbioContext = NULL;
 
         PKIX_ENTER(VALIDATE, "pkix_CheckCert");
@@ -204,16 +203,9 @@ pkix_CheckCert(
                         (checker, &checkerCheck, plContext),
                         PKIX_CERTCHAINCHECKERGETCHECKCALLBACKFAILED);
 
-                checkerError = checkerCheck
-                        (checker,
-                        cert,
-                        unresCritExtOIDs,
-                        &nbioContext,
-                        plContext);
-
-                if (checkerError) {
-                        goto cleanup;
-                }
+                PKIX_CHECK(checkerCheck(checker, cert, unresCritExtOIDs,
+                                        &nbioContext,  plContext),
+                           PKIX_CERTCHAINCHECKERCHECKFAILED);
 
                 if (nbioContext != NULL) {
                         *pCheckerIndex = checkerIndex;
@@ -271,27 +263,6 @@ cleanup:
 
         PKIX_DECREF(checker);
         PKIX_DECREF(unresCritExtOIDs);
-
-        if (checkerError) {
-                PKIX_PL_String *errorDesc = NULL;
-                void *enc = NULL;
-                PKIX_UInt32 len = 0;
-                (void)PKIX_Error_GetDescription
-                    (checkerError, &errorDesc, plContext);
-                (void)PKIX_PL_String_GetEncoded
-                    (errorDesc, PKIX_ESCASCII, &enc, &len, plContext);
-                if (pkixLoggersErrors) {
-                        pkix_Logger_Check
-                                (pkixLoggersErrors,
-                                enc,
-                                NULL,
-                                pkixType,
-                                PKIX_LOGGER_LEVEL_ERROR,
-                                plContext);
-                }
-                PKIX_DECREF(errorDesc);
-                return (checkerError);
-        }
 
         PKIX_RETURN(VALIDATE);
 
