@@ -1533,7 +1533,8 @@ msg_remove_duplicate_addresses(const char *addrs, const char *other_addrs,
     }
   }
   
-  PRUint32 outlen = size3 + 1;
+  PRUint32 outlen;
+  outlen = size3 + 1;
   output = (char *)PR_Malloc(outlen);
   if (!output) goto FAIL;
 
