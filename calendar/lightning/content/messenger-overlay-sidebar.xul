@@ -168,37 +168,55 @@
                    mode="calendar"
                    command="calendar_toggle_orientation_command"
                    observes="calendar_toggle_orientation_command"/>
+         <observes element="filterBroadcaster" attribute="value" onbroadcast="checkRadioControl(this.parentNode, document.getElementById(this.getAttribute('element')).getAttribute('value'));"/>
          <menuitem id="tasks-view-filter-all"
-                   disabled="true"
+                   name="filtergroup"
+                   value="all"
+                   type="radio"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.all.label;"
                    accesskey="&calendar.task.filter.all.accesskey;"/>
          <menuitem id="tasks-view-filter-today"
-                   disabled="true"
+                   name="filtergroup"
+                   value="today"
+                   type="radio"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.today.label;"
                    accesskey="&calendar.task.filter.today.accesskey;"/>
          <menuitem id="tasks-view-filter-next7days"
-                   disabled="true"
+                   name="filtergroup"
+                   value="next7days"
+                   type="radio"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.next7days.label;"
                    accesskey="&calendar.task.filter.next7days.accesskey;"/>
          <menuitem id="tasks-view-filter-notstartedtasks"
-                   disabled="true"
+                   name="filtergroup"
+                   value="notstarted"
+                   type="radio"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.notstarted.label;"
                    accesskey="&calendar.task.filter.notstarted.accesskey;"/>
          <menuitem id="tasks-view-filter-overdue"
-                   disabled="true"
+                   name="filtergroup"
+                   value="overdue"
+                   type="radio"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.overdue.label;"
                    accesskey="&calendar.task.filter.overdue.accesskey;"/>
          <menuitem id="tasks-view-filter-completed"
-                   disabled="true"
+                   name="filtergroup"
+                   type="radio"
+                   value="completed"
+                   command="calendar_task_filter_command"
                    mode="task"
                    label="&calendar.task.filter.completed.label;"
                    accesskey="&calendar.task.filter.completed.accesskey;"/>
-
        </menupopup>
      </menu>
      <menuseparator id="before-Unifinder-Section" mode="calendar"/>
@@ -293,7 +311,8 @@
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="is_editable" hidden="false"/>
     <broadcaster id="modeBroadcaster" mode="mail"/>
-  </broadcasterset>
+    <broadcaster id="filterBroadcaster" value="all"/>
+</broadcasterset>
 
   <!-- Be sure to keep these sets, since they will be overlayed by
        calendar/base/content/calendar-common-sets.xul -->
@@ -476,13 +495,16 @@
             <modevbox id="task-filtertree-pane" flex="1" mode="task" broadcaster="modeBroadcaster" refcontrol="task-tree-filter-header">
                <radiogroup id="task-tree-filtergroup" class="task-tree-subpane"
                            persist="value">
-                  <radio label="&calendar.task.filter.all.label;" value="all" onclick="taskViewUpdateFilter(event)"/>
-                  <radio label="&calendar.task.filter.today.label;" value="today" onclick="taskViewUpdateFilter(event)"/>
-                  <radio label="&calendar.task.filter.next7days.label;" value="next7days" onclick="taskViewUpdateFilter(event)"/>
-                  <radio label="&calendar.task.filter.notstarted.label;" value="notstarted" onclick="taskViewUpdateFilter(event)"/>
-                  <radio label="&calendar.task.filter.overdue.label;" value="overdue" onclick="taskViewUpdateFilter(event)"/>
-                  <radio label="&calendar.task.filter.completed.label;" value="completed" onclick="taskViewUpdateFilter(event)"/>
-                </radiogroup>
+                 <observes element="filterBroadcaster" 
+                           attribute="value" 
+                           onbroadcast="checkRadioControl(this.parentNode, document.getElementById('filterBroadcaster').getAttribute('value'));"/>
+                 <radio id="opt_all_filter" label="&calendar.task.filter.all.label;" value="all" command="calendar_task_filter_command"/>
+                 <radio id="opt_today_filter" label="&calendar.task.filter.today.label;" value="today" command="calendar_task_filter_command"/>
+                 <radio id="opt_next7days_filter" label="&calendar.task.filter.next7days.label;" value="next7days" command="calendar_task_filter_command"/>
+                 <radio id="opt_notstarted_filter" label="&calendar.task.filter.notstarted.label;" value="notstarted" command="calendar_task_filter_command"/>
+                 <radio id="opt_overdue_filter" label="&calendar.task.filter.overdue.label;" value="overdue" command="calendar_task_filter_command"/>
+                 <radio id="opt_completed_filter" label="&calendar.task.filter.completed.label;" value="completed" command="calendar_task_filter_command"/>
+               </radiogroup>
             </modevbox>
           </modevbox>
           <modevbox id="calendar-list-pane" flex="1" mode="calendar,task" broadcaster="modeBroadcaster"

@@ -183,7 +183,7 @@ var taskDetailsView = {
 };
 
 function taskViewUpdate(filter) {
-
+    document.getElementById("filterBroadcaster").setAttribute("value", filter);
     var percentCompleted = function(item) {
         var percent = 0;
         var property = item.getProperty("PERCENT-COMPLETE");
@@ -245,11 +245,6 @@ function taskViewUpdate(filter) {
     }
 
     tree.refresh();
-}
-
-function taskViewUpdateFilter(event) {
-
-    taskViewUpdate(event.target.value);
 }
 
 function sendMailToOrganizer() {

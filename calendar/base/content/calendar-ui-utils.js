@@ -303,6 +303,37 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
     return item;
 }
 
+/**
+ * checks a radio control or a radio-menuitem.
+ *
+ * @param aParent  the parent node of the 'radio controls', either radios
+ *                  or menuitems of the type 'radio'.
+ * @param avalue   the value of the radio control bound to be checked.
+ * @return         true or false depending on if the a 'radio control' with the
+ *                  given value could be checked.
+ */
+function checkRadioControl(aParent, aValue) {
+    for (var i = 0; i < aParent.childNodes.length; i++) {
+        var element = aParent.childNodes[i];
+        if (element.hasAttribute("value")) {
+            var compValue = element.getAttribute("value");
+            if (compValue == aValue) {
+                if (element.localName == "menuitem") {
+                    if (element.getAttribute("type") == "radio") {
+                        element.setAttribute("checked", "true");
+                        return true;
+                    }
+                }
+                else if (element.localName == "radio") {
+                    element.radioGroup.selectedItem = element;
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 function setCategory(aItem, aMenuElement) {
     // Category
     var category = getElementValue(aMenuElement);
