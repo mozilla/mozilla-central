@@ -361,7 +361,8 @@ calGoogleRequest.prototype = {
             (Components.interfaces.nsIAuthPrompt2 &&
              aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
             return new calAuthPrompt();
-        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider)) {
+        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
+                   aIID.equals(Components.interfaces.nsIPrompt)) {
             return Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                              .getService(Components.interfaces.nsIWindowWatcher)
                              .getNewPrompter(null);
