@@ -290,7 +290,10 @@ calWcapSession.prototype = {
                 });
         }
     },
-    
+
+    // this is a server limit for recurrencies; default is 60
+    recurrenceBound: 60,
+
     getSessionId_: function calWcapSession_getSessionId_(request, respFunc)
     {
         var this_ = this;
@@ -446,6 +449,14 @@ calWcapSession.prototype = {
                             "missing X-NSCP-WCAP-SESSION-ID in\n" + str);
                     }
                     sessionId = prop.value;
+                    prop = icalRootComp.getFirstProperty("X-NSCP-RECURRENCE-BOUND");
+                    if (prop) {
+                        var val = parseInt(prop.value);
+                        if (!isNaN(val)) {
+                            this_.recurrenceBound = val;
+                            log("X-NSCP-RECURRENCE-BOUND:" + this_.recurrenceBound);
+                        }
+                    }
                     log("login succeeded: " + sessionId, this_);
                 }
                 catch (exc) {

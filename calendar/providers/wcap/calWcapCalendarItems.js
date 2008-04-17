@@ -830,7 +830,9 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     case calICalendar.ITEM_FILTER_TYPE_EVENT:
         componentType = "VEVENT"; break;
     }
-    
+
+    var recurrenceBound = this.session.recurrenceBound;
+
     var this_ = this;
     forEachIcalComponent(
         icalRootComp, componentType,
@@ -924,6 +926,14 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                     excItems.push(item);
                 }
                 else if (item.recurrenceInfo) {
+                    // cs bug: workaround missing COUNT
+                    var recItems = item.recurrenceInfo.getRecurrenceItems({});
+                    for each (var recItem in recItems) {
+                        if (!recItem.isFinite && !recItem.isNegative &&
+                            (recItem instanceof Components.interfaces.calIRecurrenceRule)) {
+                            recItem.count = recurrenceBound;
+                        }
+                    }
                     unexpandedItems.push(item);
                     uid2parent[item.id] = item;
                 }
