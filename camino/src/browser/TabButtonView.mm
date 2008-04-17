@@ -44,7 +44,6 @@
 #import "NSString+Utils.h"
 
 #import "BrowserTabViewItem.h"
-#import "BrowserWindowController.h"
 #import "BrowserWrapper.h"
 #import "RolloverImageButton.h"
 #import "TruncatingTextAndImageCell.h"
@@ -360,27 +359,17 @@ static NSImage* sTabButtonDividerImage = nil;
   }
 }
 
-- (BOOL)shouldAcceptDragFrom:(id)sender
-{
-  if ((sender == self) || (sender == mTabViewItem))
-    return NO;
-
-  NSWindowController *windowController = [[[mTabViewItem view] window] windowController];
-  if ([windowController isMemberOfClass:[BrowserWindowController class]]) {
-    if (sender == [(BrowserWindowController *)windowController proxyIconView])
-      return NO;
-  }
-
-  return YES;
-}
-
 // NSDraggingDestination destination methods
-- (unsigned int)draggingEntered:(id <NSDraggingInfo>)sender
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
-  if (![self shouldAcceptDragFrom:[sender draggingSource]])
+  if (![mTabViewItem shouldAcceptDrag:sender])
     return NSDragOperationNone;
 
   [self setDragTarget:YES];
+
+  if ([sender draggingSourceOperationMask] & NSDragOperationCopy)
+    return NSDragOperationCopy;
+
   return NSDragOperationGeneric;
 }
 
@@ -398,11 +387,7 @@ static NSImage* sTabButtonDividerImage = nil;
 {
   [self setDragTarget:NO];
 
-  if (![self shouldAcceptDragFrom:[sender draggingSource]])
-    return NO;
-
-  // let the tab view handle it
-  return [[mTabViewItem tabView] performDragOperation:sender];
+  return [mTabViewItem handleDrop:sender];
 }
 
 #pragma mark -

@@ -48,8 +48,6 @@ extern NSString* const kTabBarBackgroundDoubleClickedNotification;
 @interface BrowserTabView : NSTabView
 {
   BOOL mBarAlwaysVisible;
-  BOOL mIsDropTarget;
-  BOOL mLastClickIsPotentialDrag;
   BOOL mVisible; // YES if the view is in the hierarchy
   IBOutlet BrowserTabBarView * mTabBar;
   
@@ -78,6 +76,12 @@ extern NSString* const kTabBarBackgroundDoubleClickedNotification;
 - (void)setVisible:(BOOL)show;
 - (BOOL)windowShouldClose;
 - (void)windowClosed;
+
+// Returns YES if |dragInfo| is a valid drag for a tab or the tab bar, NO if not.
+- (BOOL)shouldAcceptDrag:(id <NSDraggingInfo>)dragInfo;
+// Handle drag and drop of one or more URLs; returns YES if the drop was valid.
+// If |targetTab| is nil, then the drop is on the tab bar background.
+- (BOOL)handleDrop:(id <NSDraggingInfo>)dragInfo onTab:(NSTabViewItem*)targetTab;
 
 // get and set the "jumpback tab", the tab that is jumped to when the currently
 // visible tab is closed. Reset automatically when switching tabs or after

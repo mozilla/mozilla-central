@@ -97,6 +97,7 @@ const int kBookmarksContextMenuArrangeSeparatorTag = 100;
 
 + (NSArray*)serializableArrayWithBookmarkItems:(NSArray*)bmArray;
 + (NSArray*)bookmarkItemsFromSerializableArray:(NSArray*)bmArray;
++ (NSArray*)bookmarkURLsFromSerializableArray:(NSArray*)bmArray;
 
 // Getters/Setters
 - (BookmarkFolder *)rootBookmarks;

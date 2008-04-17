@@ -184,6 +184,21 @@ static BookmarkManager* gBookmarkManager = nil;
   return itemsArray;
 }
 
++ (NSArray*)bookmarkURLsFromSerializableArray:(NSArray*)dataArray
+{
+  NSArray* bookmarkItems = [self bookmarkItemsFromSerializableArray:dataArray];
+  NSMutableArray* bookmarkURLs = [NSMutableArray arrayWithCapacity:[bookmarkItems count]];
+  NSEnumerator* enumerator = [bookmarkItems objectEnumerator];
+  BookmarkItem* aBookmark;
+  while ((aBookmark = [enumerator nextObject])) {
+    if ([aBookmark isKindOfClass:[Bookmark class]] && ![aBookmark isSeparator])
+      [bookmarkURLs addObject:[(Bookmark*)aBookmark url]];
+    else if ([aBookmark isKindOfClass:[BookmarkFolder class]])
+      [bookmarkURLs addObjectsFromArray:[(BookmarkFolder*)aBookmark childURLs]];
+  }
+  return bookmarkURLs;
+}
+
 // return a string with the "canonical" bookmark url (strip trailing slashes, lowercase)
 + (NSString*)canonicalBookmarkURL:(NSString*)inBookmarkURL
 {

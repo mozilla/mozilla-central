@@ -719,8 +719,11 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 #pragma mark -
 
 // NSDraggingDestination destination methods
--(unsigned int)draggingEntered:(id <NSDraggingInfo>)sender
+-(NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
+  if (![mTabView shouldAcceptDrag:sender])
+    return NSDragOperationNone;
+
   mDragOverBar = YES;
   [self setNeedsDisplay:YES];
 
@@ -738,7 +741,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
 
 -(BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender
 {
-  return [mTabView prepareForDragOperation:sender];
+  return YES;
 }
 
 -(BOOL)performDragOperation:(id <NSDraggingInfo>)sender
@@ -746,7 +749,7 @@ static const float kScrollButtonInterval = 0.15;  // time (in seconds) between f
   mDragOverBar = NO;
   [self setNeedsDisplay:YES];
 
-  return [mTabView performDragOperation:sender];
+  return [mTabView handleDrop:sender onTab:nil];
 }
 
 @end

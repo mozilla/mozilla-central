@@ -85,4 +85,9 @@ extern NSString* const kTabWillChangeNotifcation;
 + (NSImage*)closeIconPressed;
 + (NSImage*)closeIconHover;
 
+// Returns YES if |sender| is a valid drag for a tab, NO if not.
+- (BOOL)shouldAcceptDrag:(id <NSDraggingInfo>)dragInfo;
+// Handle drag and drop of one or more URLs; returns YES if the drop was valid.
+- (BOOL)handleDrop:(id <NSDraggingInfo>)dragInfo;
+
 @end

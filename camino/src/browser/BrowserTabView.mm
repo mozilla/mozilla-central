@@ -44,8 +44,6 @@
 #import "BrowserTabViewItem.h"
 #import "TabButtonView.h"
 #import "BrowserWrapper.h"
-#import "BookmarkFolder.h"
-#import "Bookmark.h"
 #import "BookmarkManager.h"
 #import "BrowserTabBarView.h"
 #import "BrowserWindowController.h"
@@ -64,16 +62,10 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
 
 @interface BrowserTabView (Private)
 - (void)showOrHideTabsAsAppropriate;
-- (void)handleDropOnTab:(NSTabViewItem*)targetTab withURLs:(NSArray*)urls;
-- (BrowserTabViewItem*)getTabViewItemFromWindowPoint:(NSPoint)point;
-- (void)showDragDestinationIndicator;
-- (void)hideDragDestinationIndicator;
-
+- (NSArray*)urlsFromPasteboard:(NSPasteboard*)pasteboard;
 @end
 
 #pragma mark -
-
-#define kTabDropTargetHeight  18.0
 
 @implementation BrowserTabView
 
@@ -95,9 +87,6 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
     mBarAlwaysVisible = NO;
     mVisible = YES;
     [self showOrHideTabsAsAppropriate];
-    [self registerForDraggedTypes:[NSArray arrayWithObjects:
-        kCaminoBookmarkListPBoardType, kWebURLsWithTitlesPboardType,
-        NSStringPboardType, NSFilenamesPboardType, NSURLPboardType, nil]];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(tabWillChange:)
         name:kTabWillChangeNotifcation object:nil];
 }
@@ -111,21 +100,6 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
 /******************************************/
 /*** Overridden Methods                 ***/
 /******************************************/
-
-- (void)drawRect:(NSRect)aRect
-{
-  if (mIsDropTarget)
-  {
-    NSRect	hilightRect = aRect;
-    hilightRect.size.height = kTabDropTargetHeight;		// no need to move origin.y; our coords are flipped
-    NSBezierPath* dropTargetOutline = [NSBezierPath bezierPathWithRect:hilightRect];
-
-    [[[NSColor colorForControlTint:NSDefaultControlTint] colorWithAlphaComponent:0.5] set];
-    [dropTargetOutline fill];
-  }
-
-  [super drawRect:aRect];
-}
 
 - (void)addTabViewItem:(NSTabViewItem *)tabViewItem
 {
@@ -344,122 +318,40 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
     [self showOrHideTabsAsAppropriate];
 }
 
-- (BrowserTabViewItem*)getTabViewItemFromWindowPoint:(NSPoint)point
-{
-  NSPoint         localPoint      = [self convertPoint: point fromView: nil];
-  NSTabViewItem*  overTabViewItem = [self tabViewItemAtPoint: localPoint];
-  return (BrowserTabViewItem*)overTabViewItem;
-}
-
-- (void)showDragDestinationIndicator
-{
-  if (!mIsDropTarget)
-  {
-    NSRect invalidRect = [self bounds];
-    invalidRect.size.height = kTabDropTargetHeight;
-    [self setNeedsDisplayInRect:invalidRect];
-    mIsDropTarget = YES;
-  }
-}
-
-- (void)hideDragDestinationIndicator
-{
-  if (mIsDropTarget)
-  {
-    NSRect invalidRect = [self bounds];
-    invalidRect.size.height = kTabDropTargetHeight;
-    [self setNeedsDisplayInRect:invalidRect];
-    mIsDropTarget = NO;
-  }
-}
-
 #pragma mark -
+// Drag helpers for tabs and the tab bar.
 
-// NSDraggingDestination ///////////
-
-- (unsigned int)draggingEntered:(id <NSDraggingInfo>)sender
+// Private method to extract recognized URL types from the pasteboard.
+- (NSArray*)urlsFromPasteboard:(NSPasteboard*)pasteboard
 {
-  NSPoint         localPoint      = [self convertPoint: [sender draggingLocation] fromView: nil];
-  NSTabViewItem*  overTabViewItem = [self tabViewItemAtPoint: localPoint];
-
-  if (overTabViewItem)
-    return NSDragOperationNone;	// the tab will handle it
-  
-  [self showDragDestinationIndicator];	// XXX optimize
-  return NSDragOperationGeneric;
-}
-
-- (unsigned int)draggingUpdated:(id <NSDraggingInfo>)sender
-{  
-  NSPoint         localPoint      = [self convertPoint: [sender draggingLocation] fromView: nil];
-  NSTabViewItem*  overTabViewItem = [self tabViewItemAtPoint: localPoint];
-
-  if (overTabViewItem)
-    return NSDragOperationNone;	// the tab will handle it
-
-  [self showDragDestinationIndicator];
-  return NSDragOperationGeneric;
-}
-
-- (void)draggingExited:(id <NSDraggingInfo>)sender
-{
-  [self hideDragDestinationIndicator];
-}
-
-- (BOOL)prepareForDragOperation:(id <NSDraggingInfo>)sender
-{
-  return YES;
-}
-
-- (BOOL)performDragOperation:(id <NSDraggingInfo>)sender
-{
-  [self hideDragDestinationIndicator];
-
   NSArray* urls = nil;
-  NSArray* pasteBoardTypes = [[sender draggingPasteboard] types];
+  NSArray* pasteBoardTypes = [pasteboard types];
   if ([pasteBoardTypes containsObject:kCaminoBookmarkListPBoardType]) {
-    NSArray* bookmarkUUIDs = [[sender draggingPasteboard] propertyListForType:kCaminoBookmarkListPBoardType];
-    NSArray* draggedItems = [BookmarkManager bookmarkItemsFromSerializableArray:bookmarkUUIDs];
-    
-    NSMutableArray* bookmarkURLs = [NSMutableArray arrayWithCapacity:[draggedItems count]];
-    BookmarkItem* aBookmark;
-    NSEnumerator* enumerator = [draggedItems objectEnumerator];
-    while ((aBookmark = [enumerator nextObject])) {
-      if ([aBookmark isKindOfClass:[Bookmark class]] && ![aBookmark isSeparator])
-        [bookmarkURLs addObject:[(Bookmark*)aBookmark url]];
-      else if ([aBookmark isKindOfClass:[BookmarkFolder class]])
-        [bookmarkURLs addObjectsFromArray:[(BookmarkFolder*)aBookmark childURLs]];
-    }
-    urls = bookmarkURLs;
+    NSArray* bookmarkUUIDs = [pasteboard propertyListForType:kCaminoBookmarkListPBoardType];
+    urls = [BookmarkManager bookmarkURLsFromSerializableArray:bookmarkUUIDs];
   }
-  else if ([[sender draggingPasteboard] containsURLData]) {
+  else if ([pasteboard containsURLData]) {
     NSArray* titles; // discarded
-    [[sender draggingPasteboard] getURLs:&urls andTitles:&titles];
+    [pasteboard getURLs:&urls andTitles:&titles];
   }
+  return urls;
+}
 
-  if (!urls || [urls count] == 0)
+- (BOOL)shouldAcceptDrag:(id <NSDraggingInfo>)dragInfo
+{
+  // This must stay in sync with the behavior of urlsForDrag:; we don't just
+  // call through to it because it does more work than we need for a yes/no.
+  NSArray* pasteBoardTypes = [[dragInfo draggingPasteboard] types];
+  return ([pasteBoardTypes containsObject:kCaminoBookmarkListPBoardType] ||
+          [[dragInfo draggingPasteboard] containsURLData]);
+}
+
+- (BOOL)handleDrop:(id <NSDraggingInfo>)dragInfo onTab:(NSTabViewItem*)targetTab
+{
+  NSArray* urls = [self urlsFromPasteboard:[dragInfo draggingPasteboard]];
+  if ([urls count] == 0)
     return NO;
 
-  // determine if we are over a tab or the content area
-  NSPoint localPoint = [self convertPoint:[sender draggingLocation] fromView: nil];
-  NSTabViewItem* targetTab;
-  if (NSPointInRect(localPoint, [self contentRect])) // drop is on content area
-    targetTab = [self selectedTabViewItem];
-  else
-    targetTab = [self tabViewItemAtPoint:localPoint];
-  // if there's no tabviewitem at the point within our view, check the tab bar.
-  if (!targetTab)
-    targetTab = [mTabBar tabViewItemAtPoint:[sender draggingLocation]];
-  
-  [self handleDropOnTab:targetTab withURLs:urls];
-  
-  return YES;    
-}
-
-// Private method to handle drag and drop of one or more URLs. If |targetTab| is nil,
-// then the drop is on the tab bar background, as opposed to a tab or its content area.
-- (void)handleDropOnTab:(NSTabViewItem*)targetTab withURLs:(NSArray*)urls
-{
   if ([urls count] == 1) {
     NSString* url = [urls objectAtIndex:0];
     BOOL loadInBackground = [BrowserWindowController shouldLoadInBackgroundForDestination:eDestinationNewTab
@@ -477,6 +369,7 @@ NSString* const kTabBarBackgroundDoubleClickedNotification = @"kTabBarBackground
   else {
     [[[self window] windowController] openURLArray:urls tabOpenPolicy:(targetTab ? eReplaceTabs : eAppendTabs) allowPopups:NO];
   }
+  return YES;
 }
 
 #pragma mark -

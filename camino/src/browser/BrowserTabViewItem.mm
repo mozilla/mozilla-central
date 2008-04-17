@@ -44,6 +44,7 @@
 #import "BrowserTabView.h"
 #import "TabButtonView.h"
 
+#import "BrowserWindowController.h"
 #import "BrowserWrapper.h"
 #import "TruncatingTextAndImageCell.h"
 
@@ -209,6 +210,27 @@ const int kMenuTruncationChars = 60;
   if ( !sCloseIconHover )
     sCloseIconHover = [[NSImage imageNamed:@"tab_close_hover"] retain];
   return sCloseIconHover;
+}
+
+#pragma mark -
+
+- (BOOL)shouldAcceptDrag:(id <NSDraggingInfo>)dragInfo
+{
+  id dragSource = [dragInfo draggingSource];
+  if ((dragSource == self) || (dragSource == mTabButtonView))
+    return NO;
+
+  // TODO: find another way to do this that doesn't involve knowledge about BWC.
+  BrowserWindowController *windowController = (BrowserWindowController *)[[[self view] window] windowController];
+  if (dragSource == [windowController proxyIconView])
+    return NO;
+
+  return [(BrowserTabView*)[self tabView] shouldAcceptDrag:dragInfo];
+}
+
+- (BOOL)handleDrop:(id <NSDraggingInfo>)dragInfo
+{
+  return [(BrowserTabView*)[self tabView] handleDrop:dragInfo onTab:self];
 }
 
 @end

@@ -618,7 +618,7 @@ static const int kBMBarScanningStep = 5;
 
 // NSDraggingDestination ///////////
 
-- (unsigned int)draggingEntered:(id <NSDraggingInfo>)sender
+- (NSDragOperation)draggingEntered:(id <NSDraggingInfo>)sender
 {
   // we have to set the drag target before we can test for drop validation
   [self setButtonInsertionPoint:sender];
@@ -648,7 +648,7 @@ static const int kBMBarScanningStep = 5;
   mDragInsertionPosition = CHInsertNone;
 }
 
-- (unsigned int)draggingUpdated:(id <NSDraggingInfo>)sender
+- (NSDragOperation)draggingUpdated:(id <NSDraggingInfo>)sender
 {
   if (mDragInsertionPosition)
     [self setNeedsDisplayInRect:[self insertionHiliteRectForButton:mDragInsertionButton position:mDragInsertionPosition]];
