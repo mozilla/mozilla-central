@@ -873,16 +873,24 @@ enum StatusPriority {
        (NSCommandKeyMask | NSNumericPadKeyMask | NSFunctionKeyMask)) &&
       !([mBrowserView isTextFieldFocused] || [mBrowserView isPluginFocused]))
   {
-    NSString* characters = [theEvent charactersIgnoringModifiers];
-    if ([characters length] > 0) {
-      unichar keyChar = [characters characterAtIndex:0];
-      if (keyChar == NSLeftArrowFunctionKey) {
-        [mBrowserView goBack];
-        return YES;
-      }
-      else if (keyChar == NSRightArrowFunctionKey) {
-        [mBrowserView goForward];
-        return YES;
+    // ... but only if the content area is focused, so we don't interefere with
+    // chrome shortcuts.
+    NSResponder* responder = [[self window] firstResponder];
+    while (responder && responder != self) {
+      responder = [responder nextResponder];
+    }
+    if (responder == self) {
+      NSString* characters = [theEvent charactersIgnoringModifiers];
+      if ([characters length] > 0) {
+        unichar keyChar = [characters characterAtIndex:0];
+        if (keyChar == NSLeftArrowFunctionKey) {
+          [mBrowserView goBack];
+          return YES;
+        }
+        else if (keyChar == NSRightArrowFunctionKey) {
+          [mBrowserView goForward];
+          return YES;
+        }
       }
     }
   }
