@@ -45,3 +45,4 @@ pref("calendar.google.useHTTPMethodOverride", true);
 pref("calendar.google.alarmClosest", true);
 pref("calendar.google.sendEventNotifications", false);
 pref("calendar.google.enableAttendees", false);
+pref("calendar.google.migrate", true);

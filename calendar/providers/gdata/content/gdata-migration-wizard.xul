@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -11,11 +12,11 @@
    - for the specific language governing rights and limitations under the
    - License.
    -
-   - The Original Code is Google Calendar Provider code.
+   - The Original Code is provider for Google Calendar code.
    -
    - The Initial Developer of the Original Code is
    -   Philipp Kewisch <mozilla@kewis.ch>
-   - Portions created by the Initial Developer are Copyright (C) 2006
+   - Portions created by the Initial Developer are Copyright (C) 2008
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
@@ -34,14 +35,26 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY gdata-provider.label "Google Calendar">
+<!DOCTYPE dialog SYSTEM "chrome://gdata-provider/locale/gdata.dtd">
 
-<!ENTITY gdata.privacy.default.label "Google Default">
-<!ENTITY gdata.privacy.default.accesskey "D">
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 
-<!ENTITY gdata.migration.title "Migrate read-only calendars">
-<!ENTITY gdata.migration.description "The Provider for Google Calendar has detected that you have existing calendars that are only capable of accessing Google Calendar in read-only mode. If you would like to upgrade any of these calendars, please select them below">
-<!ENTITY gdata.migration.upgrade.label "Upgrade">
-<!ENTITY gdata.migration.upgrade.accesskey "U">
-<!ENTITY gdata.migration.showagain.label "Always check ">
+<dialog id="gdata-migration-wizard"
+        title="&gdata.migration.title;"
+        buttons="accept,cancel"
+        acceptLabel="&gdata.migration.upgrade.label;"
+        acceptKey="&gdata.migration.upgrade.accesskey;"
+        ondialogaccept="migrateSelectedCalendars(); return true;"
+        ondialogcancel="window.close()"
+        onload="gdata_migration_loader()"
+        width="300"
+        height="300"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script type="application/x-javascript" src="chrome://gdata-provider/content/gdata-migration.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>
 
+  <description>&gdata.migration.description;</description>
+  <listbox id="calendars-listbox" flex="1"/>
+  <checkbox id="showagain-checkbox" label="&gdata.migration.showagain.label;"/>
+</dialog>
