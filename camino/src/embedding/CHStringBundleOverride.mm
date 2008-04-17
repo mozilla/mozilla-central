@@ -36,6 +36,7 @@
 
 #import "CHStringBundleOverride.h"
 #import "NSString+Gecko.h"
+#import "NSString+Utils.h"
 #import <Foundation/Foundation.h>
 
 NS_IMPL_ISUPPORTS1(CHStringBundleOverride, nsIStringBundleOverride);
@@ -61,7 +62,14 @@ NS_IMETHODIMP CHStringBundleOverride::GetStringFromName(const nsACString& url, c
    * defined in the bundled chrome resource.
    */
   NSString* keyStr = [NSString stringWith_nsACString:key];
-  NSString* overrideStr = NSLocalizedString(keyStr, nil);  
+  NSString* tableName = [NSString stringWith_nsACString:url];
+  // Stip off the chrome:// prefix (9 characters) if it's there
+  if ([tableName hasPrefix:@"chrome://"])
+    tableName = [tableName substringFromIndex:9];
+  NSCharacterSet* replacementSet = [NSCharacterSet characterSetWithCharactersInString:@"/."];
+  tableName = [tableName stringByReplacingCharactersInSet:replacementSet
+                                               withString:@"_"];
+  NSString* overrideStr = NSLocalizedStringFromTable(keyStr, tableName, nil);  
   if (!overrideStr || [overrideStr isEqualToString:keyStr])
     return NS_ERROR_FAILURE;
     
