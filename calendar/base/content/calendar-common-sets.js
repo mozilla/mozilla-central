@@ -59,6 +59,7 @@ var calendarController = {
         "calendar_publish_calendar_command": true,
         "calendar_publish_selected_events_command": true,
 
+        "calendar_task_filter_command": true,
         "calendar_reload_remote_calendars": true,
         "calendar_percentComplete-0_command": true,
         "calendar_percentComplete-25_command": true,
@@ -117,6 +118,8 @@ var calendarController = {
             case "calendar_modify_todo_command":
                 return this.todo_items_selected &&
                        this.todo_tasktree_focused;
+            case "calendar_task_filter_command":
+                return true;
             case "calendar_delete_todo_command":
             case "calendar_percentComplete-0_command":
             case "calendar_percentComplete-25_command":
