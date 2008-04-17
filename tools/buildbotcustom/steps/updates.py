@@ -32,13 +32,18 @@ class CreateCompleteUpdateSnippet(BuildStep):
         self.mode = None
         self.blocksize = 4096
 
-    def _getDatedDirName(self):
+    def _getDatedDirPath(self):
         buildid = self.getProperty('buildid')
-        return "%s-%s-%s-%s-%s" % (buildid[0:4],
-                                   buildid[4:6],
-                                   buildid[6:8],
-                                   buildid[8:10],
-                                   self.milestone)
+        year  = buildid[0:4]
+        month = buildid[4:6]
+        day   = buildid[6:8]
+        hour  = buildid[8:10]
+        datedDir = "%s-%s-%s-%s-%s" % (year,
+                                       month,
+                                       day,
+                                       hour,
+                                       self.milestone)
+        return "%s/%s/%s" % (year, month, datedDir)
 
     def generateSnippet(self):
         # interpolate the baseurl, if necessary
@@ -47,7 +52,7 @@ class CreateCompleteUpdateSnippet(BuildStep):
         # now build the URL
         downloadURL = self.baseurl + '/'
         if self.appendDatedDir:
-            downloadURL += self._getDatedDirName() + '/'
+            downloadURL += self._getDatedDirPath() + '/'
         downloadURL += self.getProperty('completeMarFilename')
 
         # type of update (partial vs complete)
