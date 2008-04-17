@@ -41,10 +41,7 @@
 #import "Downloads.h"
 
 #import "GeckoPrefConstants.h"
-
-#include "nsCOMPtr.h"
-#include "nsILocalFileMac.h"
-#include "nsDirectoryServiceDefs.h"
+#import "PreferenceManager.h"
 
 // handly stack-based class to start and stop an Internet Config session
 class StInternetConfigSession
@@ -77,7 +74,6 @@ private:
 
 @interface OrgMozillaChimeraPreferenceDownloads(Private)
 
-- (NSString*)downloadFolderDescription;
 - (void)setupDownloadMenuWithPath:(NSString*)inDLPath;
 - (void)setDownloadFolder:(NSString*)inNewFolder;
 
@@ -106,13 +102,11 @@ private:
   [mDownloadRemovalPolicy selectItem:[[mDownloadRemovalPolicy menu] itemWithTag:[self getIntPref:kGeckoPrefDownloadCleanupPolicy
                                                                                      withSuccess:NULL]]];
 
-  NSString* downloadFolderDesc = [self downloadFolderDescription];
+  NSString* downloadFolderDesc = [[PreferenceManager sharedInstance] downloadDirectoryPath];
   if ([downloadFolderDesc length] == 0)
     downloadFolderDesc = [self localizedStringForKey:@"MissingDlFolder"];
   
   [self setupDownloadMenuWithPath:downloadFolderDesc];
-  
-//  [mDownloadFolder setStringValue:[self downloadFolderDescription]];
 }
 
 - (IBAction)checkboxClicked:(id)sender
@@ -126,27 +120,6 @@ private:
   if (sender == mEnableHelperApps) {
     [self setPref:kGeckoPrefAutoOpenDownloads toBoolean:[sender state]];
   }
-}
-
-- (NSString*)downloadFolderDescription
-{
-  NSString* downloadStr = @"";
-  nsCOMPtr<nsIFile> downloadsDir;
-  NS_GetSpecialDirectory(NS_MAC_DEFAULT_DOWNLOAD_DIR, getter_AddRefs(downloadsDir));
-	if (!downloadsDir)
-    return downloadStr;
-
-  nsCOMPtr<nsILocalFileMac> macDir = do_QueryInterface(downloadsDir);
-  if (!macDir)
-    return downloadStr;
-
-  FSRef folderRef;
-  nsresult rv = macDir->GetFSRef(&folderRef);
-  if (NS_FAILED(rv))
-    return downloadStr;
-  UInt8 utf8path[PATH_MAX + 1];
-  ::FSRefMakePath(&folderRef, utf8path, PATH_MAX);
-  return [NSString stringWithUTF8String:(const char*)utf8path];
 }
 
 // Sets the IC download pref to the given path. We write to Internet Config
@@ -217,7 +190,7 @@ private:
 // display a file picker sheet allowing the user to set their new download folder
 - (IBAction)chooseDownloadFolder:(id)sender
 {
-  NSString* oldDLFolder = [self downloadFolderDescription];
+  NSString* oldDLFolder = [[PreferenceManager sharedInstance] downloadDirectoryPath];
   NSOpenPanel* panel = [NSOpenPanel openPanel];
   [panel setCanChooseFiles:NO];
   [panel setCanChooseDirectories:YES];

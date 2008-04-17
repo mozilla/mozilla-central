@@ -66,6 +66,7 @@
 #include "nsNetUtil.h"
 #include "nsStaticComponents.h"
 #include "nsILocalFileMac.h"
+#include "nsDirectoryServiceDefs.h"
 #include "nsINIParser.h"
 
 #define CUSTOM_PROFILE_DIR  "CAMINO_PROFILE_DIR"
@@ -213,6 +214,8 @@ WriteVersion(nsIFile* aProfileDir, const nsACString& aVersion,
 - (void)refreshFlashBlockStyleSheet:(BOOL)inLoad;
 - (void)refreshStyleSheet:(nsIURI *)cssFileURI load:(BOOL)inLoad;
 - (BOOL)isFlashBlockAllowed;
+
+- (NSString*)pathForSpecialDirectory:(const char*)specialDirectory;
 
 @end
 
@@ -1247,32 +1250,31 @@ typedef enum EProxyConfig {
 //
 - (NSString*)profilePath
 {
-  if (!mProfilePath) {
-    nsCOMPtr<nsIFile> profileDir;
-    nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILES_ROOT_DIR,
-                                         getter_AddRefs(profileDir));
-    if (NS_FAILED(rv))
-      return nil;
-    nsCAutoString nativePath;
-    rv = profileDir->GetNativePath(nativePath);
-    if (NS_FAILED(rv))
-      return nil;
-    mProfilePath = [NSString stringWithUTF8String:nativePath.get()];
-    [mProfilePath retain];
-  }
-  
+  if (!mProfilePath)
+    mProfilePath = [[self pathForSpecialDirectory:NS_APP_USER_PROFILES_ROOT_DIR] retain];
+
   return mProfilePath;
 }
 
 - (NSString*)cacheParentDirPath
 {
-  nsCOMPtr<nsIFile> cacheParentDir;
-  nsresult rv = NS_GetSpecialDirectory(NS_APP_CACHE_PARENT_DIR,
-                                       getter_AddRefs(cacheParentDir));
+  return [self pathForSpecialDirectory:NS_APP_CACHE_PARENT_DIR];
+}
+
+- (NSString*)downloadDirectoryPath
+{
+  return [self pathForSpecialDirectory:NS_MAC_DEFAULT_DOWNLOAD_DIR];
+}
+
+- (NSString*)pathForSpecialDirectory:(const char*)specialDirectory
+{
+  nsCOMPtr<nsIFile> directoryFile;
+  nsresult rv = NS_GetSpecialDirectory(specialDirectory,
+                                       getter_AddRefs(directoryFile));
   if (NS_FAILED(rv))
     return nil;
   nsCAutoString nativePath;
-  rv = cacheParentDir->GetNativePath(nativePath);
+  rv = directoryFile->GetNativePath(nativePath);
   if (NS_FAILED(rv))
     return nil;
   return [NSString stringWithUTF8String:nativePath.get()];

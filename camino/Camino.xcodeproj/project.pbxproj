@@ -919,7 +919,6 @@
 		7B0B57D20D4A519B003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */; };
 		7B0B57D30D4A51AA003BC853 /* SharedMenusCocoa.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 7B0B57CC0D4A516A003BC853 /* SharedMenusCocoa.framework */; };
 		7B479B7D0D0DD5EB00780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
-		7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F12FC56072E8ECB00995ED9 /* libxpcom_core.dylib */; };
 		7B5073000D11E88400458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
 		7B5073010D11E89600458384 /* KeyEquivView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7B5072FD0D11E83B00458384 /* KeyEquivView.mm */; };
 		7B64B7E10CCFDA640098406C /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7B64B7CA0CCFD9F50098406C /* Sparkle.framework */; };
@@ -2951,7 +2950,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				03C5AC3607722FA200EAF77D /* Cocoa.framework in Frameworks */,
-				7B479CD90D0DD66800780567 /* libxpcom_core.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -6273,35 +6271,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"OSTYPE=Darwin1.4",
-					"OSARCH=Darwin",
-					"MOZILLA_INTERNAL_API=1",
-				);
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/nspr,
-					../dist/include/xpcom,
-					"$(SYSTEM_DEVELOPER_DIR)/Headers/FlatCarbon",
-				);
 				INFOPLIST_FILE = "Info-DownloadsPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
-				OTHER_CFLAGS = (
-					"-fshort-wchar",
-					"-DDEBUG",
-					"-DMOZ_DEBUG",
-					"-DTRACING",
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CPLUSPLUSFLAGS)",
-					"-Wno-non-virtual-dtor",
-				);
 				PRODUCT_NAME = Downloads;
-				WARNING_CFLAGS = (
-					"$(WARNING_CFLAGS)",
-					"-Wno-four-char-constants",
-				);
 			};
 			name = Development;
 		};
@@ -6309,30 +6280,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 332377D10C4D88D300A34879 /* PrefPane.xcconfig */;
 			buildSettings = {
-				GCC_PREFIX_HEADER = src/includes/ChimeraPrefix.h;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"OSTYPE=Darwin1.4",
-					"OSARCH=Darwin",
-					"MOZILLA_INTERNAL_API=1",
-				);
-				HEADER_SEARCH_PATHS = (
-					../dist/include,
-					../dist/include/nspr,
-					../dist/include/xpcom,
-					"$(SYSTEM_DEVELOPER_DIR)/Headers/FlatCarbon",
-				);
 				INFOPLIST_FILE = "Info-DownloadsPrefPane.plist";
-				LIBRARY_SEARCH_PATHS = ../dist/lib;
-				OTHER_CFLAGS = "-fshort-wchar";
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CPLUSPLUSFLAGS)",
-					"-Wno-non-virtual-dtor",
-				);
 				PRODUCT_NAME = Downloads;
-				WARNING_CFLAGS = (
-					"$(WARNING_CFLAGS)",
-					"-Wno-four-char-constants",
-				);
 			};
 			name = Deployment;
 		};

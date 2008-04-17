@@ -88,6 +88,8 @@ extern NSString* const kPrefChangedPrefNameUserInfoKey;   // NSString
 - (NSString*)profilePath;
 // the path to Camino's cache root folder
 - (NSString*)cacheParentDirPath;
+// the path to the user's download folder
+- (NSString*)downloadDirectoryPath;
 
 // turn notifications on and off when the given pref changes. 
 // if not nil, inObject is used at the 'object' of the resulting notification.
