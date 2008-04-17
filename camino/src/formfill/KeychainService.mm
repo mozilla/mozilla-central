@@ -1340,7 +1340,7 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
     // If the server specifies a value attribute, only autofill the password if
     // what we have in keychain matches what the server supplies (bug 169760).
     nsAutoString userValue;
-    usernameElement->GetAttribute(NS_LITERAL_STRING("value"), userValue);
+    usernameElement->GetValue(userValue);
     if (!userValue.Length() || userValue.Equals(user, nsCaseInsensitiveStringComparator())) {
       rv = usernameElement->SetValue(user);
       rv = passwordElement->SetValue(pwd);
