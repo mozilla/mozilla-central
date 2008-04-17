@@ -1,5 +1,9 @@
 # tools/buildbot-configs/testing/unittest/mozconfig-win2k3-pgo
 
+export CFLAGS="-GL -wd4624 -wd4952" 
+export CXXFLAGS="-GL -wd4624 -wd4952"
+export LDFLAGS="-LTCG"
+
 mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-places
 ac_add_options --disable-installer
@@ -21,4 +25,3 @@ ac_add_options --enable-logrefcnt
 # mozilla/testing/tools needed for buildbot profile (re)creation
 mk_add_options MOZ_CO_MODULE="mozilla/testing/tools"
 mk_add_options PROFILE_GEN_SCRIPT='$(PYTHON) $(MOZ_OBJDIR)/_profile/pgo/profileserver.py'
-
