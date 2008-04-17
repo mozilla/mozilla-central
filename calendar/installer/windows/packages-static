@@ -243,6 +243,7 @@ bin\components\calStorageCalendarModule.js
 bin\components\calWcapCalendarModule.js
 bin\components\jsconsole-clhandler.js
 bin\components\pluginGlue.js
+bin\js\calAlarm.js
 bin\js\calAlarmService.js
 bin\js\calAlarmMonitor.js
 bin\js\calAttachment.js

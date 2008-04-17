@@ -85,6 +85,7 @@ EXTRA_COMPONENTS = \
     $(NULL)
 
 EXTRA_SCRIPTS = \
+    calAlarm.js \
     calAlarmService.js \
     calAlarmMonitor.js \
     calAttachment.js \

@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Sebastian Schwieger <sebo.moz@googlemail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -64,11 +65,17 @@ function floating() {
     return floating.mObject;
 }
 
-function createDate(aYear, aMonth, aDay) {
+function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]
              .createInstance(Ci.calIDateTime);
-    cd.resetTo(aYear, aMonth, aDay, 0, 0, 0, UTC());
-    cd.isDate = true;
+    cd.resetTo(aYear,
+               aMonth,
+               aDay,
+               aHour || 0,
+               aMinute || 0,
+               aSecond || 0,
+               aTimezone || UTC());
+    cd.isDate = !aHasTime;
     return cd;
 }
 
