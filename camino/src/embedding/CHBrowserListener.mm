@@ -425,12 +425,15 @@ CHBrowserListener::SetDimensions(PRUint32 flags, PRInt32 x, PRInt32 y, PRInt32 c
   if (!window)
     return NS_ERROR_FAILURE;
 
+  // Scale factor to adjust between view (Gecko) and window frame coordinates.
+  float scaleFactor = [window userSpaceScaleFactor];
+
   if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION)
   {
     // websites assume the origin is the topleft of the window and that the screen origin
     // is "topleft" (quickdraw coordinates). As a result, we have to convert it.
     CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
-    NSPoint origin = NSMakePoint(x, screenRect.size.height - y);
+    NSPoint origin = NSMakePoint(x * scaleFactor, screenRect.size.height - y * scaleFactor);
     
     [window setFrameTopLeftPoint:origin];
   }
@@ -443,9 +446,9 @@ CHBrowserListener::SetDimensions(PRUint32 flags, PRInt32 x, PRInt32 y, PRInt32 c
     // than some min size here?
     
     // keep the top of the window in the same place
-    frame.origin.y += (frame.size.height - (float)cy);
-    frame.size.width = (float)cx;
-    frame.size.height = (float)cy;
+    frame.origin.y += (frame.size.height - cy * scaleFactor);
+    frame.size.width = cx * scaleFactor;
+    frame.size.height = cy * scaleFactor;
     [window setFrame:frame display:YES];
   }
   else if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER)
@@ -453,6 +456,7 @@ CHBrowserListener::SetDimensions(PRUint32 flags, PRInt32 x, PRInt32 y, PRInt32 c
     NSSize size;
     size.width = (float)cx;
     size.height = (float)cy;
+    // setContentSize: takes scaled coordinates, so no adjustment is necessary.
     [window setContentSize:size];
   }
 
@@ -470,23 +474,26 @@ CHBrowserListener::GetDimensions(PRUint32 flags,  PRInt32 *x,  PRInt32 *y, PRInt
   if (!window)
     return NS_ERROR_FAILURE;
 
+  // Scale factor to adjust between view (Gecko) and window frame coordinates.
+  float scaleFactor = [window userSpaceScaleFactor];
+
   NSRect frame = [window frame];
   if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_POSITION) {
     if ( x )
-      *x = (PRInt32)frame.origin.x;
+      *x = (PRInt32)(frame.origin.x / scaleFactor);
     if ( y ) {
       // websites (and gecko) expect the |y| value to be in "quickdraw" coordinates 
       // (topleft of window, origin is topleft of main device). Convert from cocoa -> 
       // quickdraw coord system.
       CGRect screenRect = CGDisplayBounds(CGMainDisplayID());
-      *y = (PRInt32)(screenRect.size.height - NSMaxY(frame));
+      *y = (PRInt32)((screenRect.size.height - NSMaxY(frame)) / scaleFactor);
     }
   }
   if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_OUTER) {
     if ( cx )
-      *cx = (PRInt32)frame.size.width;
+      *cx = (PRInt32)(frame.size.width / scaleFactor);
     if ( cy )
-      *cy = (PRInt32)frame.size.height;
+      *cy = (PRInt32)(frame.size.height / scaleFactor);
   }
   else if (flags & nsIEmbeddingSiteWindow::DIM_FLAGS_SIZE_INNER) {
     NSView* contentView = [window contentView];

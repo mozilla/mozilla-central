@@ -995,8 +995,10 @@ enum StatusPriority {
 
   NSRect frame = [[self window] frame];
   NSPoint topLeft = NSMakePoint(NSMinX(frame), NSMaxY(frame));
-  frame.size.width += dx;
-  frame.size.height += dy;
+  // Convert scaled view deltas to unscaled window frame coordinates.
+  float scaleFactor = [[self window] userSpaceScaleFactor];
+  frame.size.width += dx * scaleFactor;
+  frame.size.height += dy * scaleFactor;
   
   // if we just call setFrame, it will change the top-left corner of the
   // window as it pulls the extra space from the top and right sides of the window,
