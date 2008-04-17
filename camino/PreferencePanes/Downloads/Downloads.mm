@@ -94,9 +94,6 @@ private:
 
 - (void)mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-
   [mAutoCloseDLManager setState:![self getBooleanPref:kGeckoPrefLeaveDownloadManagerOpen withSuccess:NULL]];
   [mEnableHelperApps setState:[self getBooleanPref:kGeckoPrefAutoOpenDownloads withSuccess:NULL]];
   [mDownloadRemovalPolicy selectItem:[[mDownloadRemovalPolicy menu] itemWithTag:[self getIntPref:kGeckoPrefDownloadCleanupPolicy
@@ -111,9 +108,6 @@ private:
 
 - (IBAction)checkboxClicked:(id)sender
 {
-  if (!mPrefService)
-    return;
-
   if (sender == mAutoCloseDLManager) {
     [self setPref:kGeckoPrefLeaveDownloadManagerOpen toBoolean:![sender state]];
   }

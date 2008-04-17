@@ -1207,7 +1207,7 @@ typedef enum EProxyConfig {
 - (void)setPref:(const char*)prefName toBoolean:(BOOL)value
 {
   if (mPrefs)
-    (void)mPrefs->SetBoolPref(prefName, (PRBool)value);
+    (void)mPrefs->SetBoolPref(prefName, value ? PR_TRUE : PR_FALSE);
 }
 
 - (void)clearPref:(const char*)prefName

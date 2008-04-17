@@ -77,9 +77,6 @@ const int kAnnoyancePrefSome = 3;
 
 - (void)mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-
   BOOL gotPref = NO;
 
   // Set initial value on JavaScript checkbox.

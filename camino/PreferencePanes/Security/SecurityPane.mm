@@ -77,9 +77,6 @@ const unsigned int kAskEveryTimeMatrixRowValue        = 1;
 
 - (void)mainViewDidLoad
 {
-  if ( !mPrefService )
-    return;
-
   [self updateButtons];
 }
 

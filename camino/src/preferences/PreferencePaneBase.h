@@ -38,8 +38,6 @@
 
 #import <PreferencePanes/PreferencePanes.h>
 
-class nsIPref;
-
 
 // optional methods that our prefs panes can implement
 @interface NSObject(CaminoPreferencePane)
@@ -52,7 +50,6 @@ class nsIPref;
 
 @interface PreferencePaneBase : NSPreferencePane 
 {
-  nsIPref* 				mPrefService;					// strong, but can't use a comptr here
 }
 
 - (NSString*)getStringPref: (const char*)prefName withSuccess:(BOOL*)outSuccess;

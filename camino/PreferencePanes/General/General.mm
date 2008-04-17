@@ -78,9 +78,6 @@
 
 - (void)mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-
   BOOL gotPref;
 
   // Our behaviour here should match what the browser does when the prefs don't exist.
@@ -126,9 +123,6 @@
 
 - (void) didUnselect
 {
-  if (!mPrefService)
-    return;
-  
   [self setPref:kGeckoPrefHomepageURL toString:[textFieldHomePage stringValue]];
   
   // ensure that the prefs exist
@@ -138,9 +132,6 @@
 
 - (IBAction)checkboxStartPageClicked:(id)sender
 {
-  if (!mPrefService)
-    return;
-
   const char* prefName = NULL;
   if (sender == checkboxNewTabBlank)
     prefName = kGeckoPrefNewTabStartPage;

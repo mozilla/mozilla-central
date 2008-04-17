@@ -38,103 +38,54 @@
 
 #import "PreferencePaneBase.h"
 
-#include "nsCOMPtr.h"
-#include "nsIServiceManager.h"
-#include "nsIPref.h"
+#import "PreferenceManager.h"
 
 @implementation PreferencePaneBase
 
-- (void) dealloc
+- (id)initWithBundle:(NSBundle*)bundle
 {
-  NS_IF_RELEASE(mPrefService);
-  [super dealloc];
-}
+  self = [super initWithBundle:bundle];
 
-- (id) initWithBundle:(NSBundle *) bundle
-{
-  self = [super initWithBundle:bundle] ;
-  
-  nsCOMPtr<nsIPref> prefService ( do_GetService(NS_PREF_CONTRACTID) );
-  NS_ASSERTION(prefService, "Could not get pref service, pref panel left uninitialized");
-  mPrefService = prefService.get();
-  NS_IF_ADDREF(mPrefService);
-    
+  // Grab the shared PreferenceManager to be sure it's inited. We use
+  // sharedInstanceDontCreate everywhere else in case we live past Gecko teardown
+  [PreferenceManager sharedInstance];
+
   return self;
 }
 
 #pragma mark -
 
-- (NSString*)getStringPref: (const char*)prefName withSuccess:(BOOL*)outSuccess
+- (NSString*)getStringPref:(const char*)prefName withSuccess:(BOOL*)outSuccess
 {
-  NSString *prefValue = @"";
-  
-  char *buf = nsnull;
-  nsresult rv = mPrefService->GetCharPref(prefName, &buf);
-  if (NS_SUCCEEDED(rv) && buf) {
-    // prefs are UTF-8
-    prefValue = [NSString stringWithUTF8String:buf];
-    free(buf);
-    if (outSuccess) *outSuccess = YES;
-  } else {
-    if (outSuccess) *outSuccess = NO;
-  }
-  
-  return prefValue;
+  return [[PreferenceManager sharedInstanceDontCreate] getStringPref:prefName
+                                                         withSuccess:outSuccess];
 }
 
-- (NSColor*)getColorPref: (const char*)prefName withSuccess:(BOOL*)outSuccess
+- (NSColor*)getColorPref:(const char*)prefName withSuccess:(BOOL*)outSuccess
 {
-  // colors are stored in HTML-like #FFFFFF strings
-  NSString* colorString = [self getStringPref:prefName withSuccess:outSuccess];
-  NSColor* 	returnColor = [NSColor blackColor];
-
-  if ([colorString hasPrefix:@"#"] && [colorString length] == 7)
-  {
-    unsigned int redInt, greenInt, blueInt;
-    sscanf([colorString UTF8String], "#%02x%02x%02x", &redInt, &greenInt, &blueInt);
-    
-    float redFloat 		= ((float)redInt / 255.0);
-    float	greenFloat 	= ((float)greenInt / 255.0);
-    float blueFloat 	= ((float)blueInt / 255.0);
-    
-    returnColor = [NSColor colorWithCalibratedRed:redFloat green:greenFloat blue:blueFloat alpha:1.0f];
-  }
-  else
-  {
-    *outSuccess = NO;
-  }
-
-  return returnColor;
+  return [[PreferenceManager sharedInstanceDontCreate] getColorPref:prefName
+                                                        withSuccess:outSuccess];
 }
 
-- (BOOL)getBooleanPref: (const char*)prefName withSuccess:(BOOL*)outSuccess
+- (BOOL)getBooleanPref:(const char*)prefName withSuccess:(BOOL*)outSuccess
 {
-  PRBool boolPref = PR_FALSE;
-  nsresult rv = mPrefService->GetBoolPref(prefName, &boolPref);
-  if (outSuccess)
-    *outSuccess = NS_SUCCEEDED(rv);
-
-  return boolPref ? YES : NO;
+  return [[PreferenceManager sharedInstanceDontCreate] getBooleanPref:prefName
+                                                          withSuccess:outSuccess];
 }
 
-- (int)getIntPref: (const char*)prefName withSuccess:(BOOL*)outSuccess
+- (int)getIntPref:(const char*)prefName withSuccess:(BOOL*)outSuccess
 {
-  PRInt32 intPref = 0;
-  nsresult rv = mPrefService->GetIntPref(prefName, &intPref);
-  if (outSuccess)
-    *outSuccess = NS_SUCCEEDED(rv);
-  return intPref;
+  return [[PreferenceManager sharedInstanceDontCreate] getIntPref:prefName
+                                                      withSuccess:outSuccess];
 }
 
-- (void)setPref: (const char*)prefName toString:(NSString*)value
+- (void)setPref:(const char*)prefName toString:(NSString*)value
 {
-  // prefs are UTF-8
-  if (mPrefService) {
-    mPrefService->SetCharPref(prefName, [value UTF8String]);
-  }
+  [[PreferenceManager sharedInstanceDontCreate] setPref:prefName
+                                               toString:value];
 }
 
-- (void)setPref: (const char*)prefName toColor:(NSColor*)value
+- (void)setPref:(const char*)prefName toColor:(NSColor*)value
 {
   // make sure we have a color in the RGB colorspace
   NSColor*	rgbColor = [value colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
@@ -147,26 +98,21 @@
   [self setPref:prefName toString:colorString];
 }
 
-- (void)setPref: (const char*)prefName toBoolean:(BOOL)value
+- (void)setPref:(const char*)prefName toBoolean:(BOOL)value
 {
-  if (mPrefService) {
-    mPrefService->SetBoolPref(prefName, value ? PR_TRUE : PR_FALSE);
-  }
+  [[PreferenceManager sharedInstanceDontCreate] setPref:prefName
+                                              toBoolean:value];
 }
 
-- (void)setPref: (const char*)prefName toInt:(int)value
+- (void)setPref:(const char*)prefName toInt:(int)value
 {
-  if (mPrefService) {
-    PRInt32 prefValue = value;
-    mPrefService->SetIntPref(prefName, prefValue);
-  }
+  [[PreferenceManager sharedInstanceDontCreate] setPref:prefName
+                                                  toInt:value];
 }
 
-- (void)clearPref: (const char*)prefName
+- (void)clearPref:(const char*)prefName
 {
-  if (mPrefService) {
-    mPrefService->ClearUserPref(prefName);
-  }
+  [[PreferenceManager sharedInstanceDontCreate] clearPref:prefName];
 }
 
 - (NSString*)localizedStringForKey:(NSString*)key

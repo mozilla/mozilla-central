@@ -57,9 +57,6 @@
 
 - (void)mainViewDidLoad
 {
-  if (!mPrefService)
-    return;
-
   BOOL gotPref;
 
   [mCheckboxOpenTabsForCommand setState:([self getBooleanPref:kGeckoPrefOpenTabsForMiddleClick
@@ -88,9 +85,6 @@
 
 - (IBAction)checkboxClicked:(id)sender
 {
-  if (!mPrefService)
-    return;
-
   if (sender == mCheckboxOpenTabsForCommand)
     [self setPref:kGeckoPrefOpenTabsForMiddleClick toBoolean:([sender state] == NSOnState)];
   else if (sender == mCheckboxOpenTabsForExternalLinks) {
