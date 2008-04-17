@@ -225,13 +225,16 @@ InvitationsManager.prototype = {
                                 });
                             var listener;
                             while ((listener = this.mInvitationsManager.mOperationListeners.shift())) {
-                                listener.onGetResult(
-                                    null,
-                                    Components.results.NS_OK,
-                                    Components.interfaces.calIItemBase,
-                                    null,
-                                    this.mInvitationsManager.mItemList.length,
-                                    this.mInvitationsManager.mItemList);
+                                if (this.mInvitationsManager.mItemList.length) {
+                                    // Only call if there are actually items
+                                    listener.onGetResult(
+                                        null,
+                                        Components.results.NS_OK,
+                                        Components.interfaces.calIItemBase,
+                                        null,
+                                        this.mInvitationsManager.mItemList.length,
+                                        this.mInvitationsManager.mItemList);
+                                }
                                 listener.onOperationComplete(
                                     null,
                                     Components.results.NS_OK,

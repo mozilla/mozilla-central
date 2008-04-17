@@ -770,8 +770,6 @@ var gInvitationsOperationListener = {
         if (!Components.isSuccessCode(aStatus)) {
             var invitationsBox = document.getElementById("invitations");
             invitationsBox.setAttribute("hidden", "true");
-            LOG("INVI IS HIDDEN FAIL" + aStatus + " - " + aDetail);
-            debugger;
         }
     },
 
@@ -788,7 +786,6 @@ var gInvitationsOperationListener = {
         var value = invitationsLabel + " (" + aCount + ")";
         invitationsBox.setAttribute("value", value);
         invitationsBox.removeAttribute("hidden");
-        LOG("INVI IS HIDDEN ITEMS" + aItems[0].title);
     }
 };
 

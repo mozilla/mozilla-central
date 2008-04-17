@@ -3715,7 +3715,6 @@
 
     <handlers>
       <handler event="DOMMouseScroll" phase="bubbling"><![CDATA[
-      debugger;
         if (!event.ctrlKey &&
             !event.shiftKey &&
             !event.altKey &&
