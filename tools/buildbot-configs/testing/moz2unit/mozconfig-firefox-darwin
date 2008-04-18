@@ -1,0 +1,4 @@
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
+ac_add_options --disable-debug
+ac_add_options --enable-tests

@@ -1,0 +1,8 @@
+ac_add_options --enable-application=browser
+mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
+ac_add_options --enable-optimize="-Os"
+ac_add_options --disable-debug
+ac_add_options --enable-tests
+
+CC=/tools/gcc/bin/gcc
+CXX=/tools/gcc/bin/g++
