@@ -90,6 +90,7 @@ class OneLinePerBuild(HtmlResource, OneLineMixin):
 
     def body(self, req):
         status = self.getStatus(req)
+        control = self.getControl(req)
         numbuilds = int(req.args.get("numbuilds", [self.numbuilds])[0])
         builders = req.args.get("builder", [])
         branches = [b for b in req.args.get("branch", []) if b]
@@ -121,12 +122,13 @@ class OneLinePerBuild(HtmlResource, OneLineMixin):
             data += " <li>No matching builds found</li>\n"
         data += "</ul>\n"
 
-        if building:
-            stopURL = "builders/_all/stop"
-            data += make_stop_form(stopURL, True, "Builds")
-        if online:
-            forceURL = "builders/_all/force"
-            data += make_force_build_form(forceURL, True)
+        if control is not None:
+            if building:
+                stopURL = "builders/_all/stop"
+                data += make_stop_form(stopURL, True, "Builds")
+            if online:
+                forceURL = "builders/_all/force"
+                data += make_force_build_form(forceURL, True)
 
         return data
 
@@ -169,7 +171,7 @@ class OneLinePerBuildOneBuilder(HtmlResource, OneLineMixin):
 # /one_box_per_builder
 #  accepts builder=, branch=
 class OneBoxPerBuilder(HtmlResource):
-    """This shows a narrow table with one row per build. The leftmost column
+    """This shows a narrow table with one row per builder. The leftmost column
     contains the builder name. The next column contains the results of the
     most recent build. The right-hand column shows the builder's current
     activity.
@@ -182,6 +184,7 @@ class OneBoxPerBuilder(HtmlResource):
 
     def body(self, req):
         status = self.getStatus(req)
+        control = self.getControl(req)
 
         builders = req.args.get("builder", status.getBuilderNames())
         branches = [b for b in req.args.get("branch", []) if b]
@@ -230,12 +233,13 @@ class OneBoxPerBuilder(HtmlResource):
 
         data += "</table>\n"
 
-        if building:
-            stopURL = "builders/_all/stop"
-            data += make_stop_form(stopURL, True, "Builds")
-        if online:
-            forceURL = "builders/_all/force"
-            data += make_force_build_form(forceURL, True)
+        if control is not None:
+            if building:
+                stopURL = "builders/_all/stop"
+                data += make_stop_form(stopURL, True, "Builds")
+            if online:
+                forceURL = "builders/_all/force"
+                data += make_force_build_form(forceURL, True)
 
         return data
 
