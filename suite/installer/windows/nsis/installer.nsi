@@ -258,6 +258,15 @@ Section "-Application" Section1
 
   ; Custom installs.
   ${If} $InstallType != 1
+
+    ; If ChatZilla is installed and this install includes ChatZilla remove it
+    ; from the installation directory. This will remove it if the user
+    ; deselected ChatZilla on the components page.
+    ${If} ${FileExists} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+      RmDir /r "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    ${EndIf}
+
     ; If DOMi is installed and this install includes DOMi remove it from
     ; the installation directory. This will remove it if the user deselected
     ; DOMi on the components page.
@@ -394,6 +403,7 @@ Section "-Application" Section1
   Call DoCopyFiles
 
   ${If} $InstallType != 4
+    Call installChatZilla
     Call installInspector
     Call installVenkman
   ${EndIf}
@@ -548,24 +558,42 @@ Section "-Application" Section1
   System::Call "shell32::SHChangeNotify(i, i, i, i) v (0x08000000, 0, 0, 0)"
 SectionEnd
 
-Section /o "Developer Tools" Section2
+Section /o "IRC Client" Section2
+  Call installChatZilla
+SectionEnd
+
+Section /o "Developer Tools" Section3
   Call installInspector
 SectionEnd
 
-Section /o "Debug and QA Tools" Section3
+Section /o "Debug and QA Tools" Section4
   Call installDebugQA
 SectionEnd
 
-Section /o "Palm Address Book Synchronization Tool" Section4
+Section /o "Palm Address Book Synchronization Tool" Section5
   Call installPalmSync
 SectionEnd
 
-Section /o "JavaScript Debugger" Section5
+Section /o "JavaScript Debugger" Section6
   Call installVenkman
 SectionEnd
 
 ################################################################################
 # Helper Functions
+
+Function installChatZilla
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    SetDetailsPrint textonly
+    DetailPrint $(STATUS_INSTALL_OPTIONAL)
+    SetDetailsPrint none
+    ${RemoveDir} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    ClearErrors
+    ${LogHeader} "Installing IRC Client"
+    StrCpy $R0 "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    StrCpy $R1 "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    Call DoCopyFiles
+  ${EndIf}
+FunctionEnd
 
 Function installInspector
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
@@ -916,48 +944,59 @@ Function preComponents
 FunctionEnd
 
 Function leaveComponents
-  ; If DOMi exists then it will be Field 2.
-  ; If DOMi doesn't exist then debugQA will be Field 2 (when DOMI and debugQA
-  ; don't exist, palm sync will be Field 2).
+  ; If ChatZilla exists then it will be Field 2.
+  ; If ChatZilla doesn't exist then DOMi will be Field 2 (when ChatZilla and DOMi
+  ; don't exist, debugQA will be Field 2).
   StrCpy $R1 2
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
+  
+ ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
     SectionSetFlags 1 $R0
     IntOp $R1 $R1 + 1
   ${Else}
-    SectionSetFlags 1 0 ; Disable install for DOMi
+    SectionSetFlags 1 0 ; Disable install for chatzilla
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
     SectionSetFlags 2 $R0
     IntOp $R1 $R1 + 1
   ${Else}
-    SectionSetFlags 2 0 ; Disable install for debugQA
+    SectionSetFlags 2 0 ; Disable install for DOMi
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
     SectionSetFlags 3 $R0
     IntOp $R1 $R1 + 1
   ${Else}
-    SectionSetFlags 3 0 ; Disable install for palmsync
+    SectionSetFlags 3 0 ; Disable install for debugQA
   ${EndIf}
 
-  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
     ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
     ; State will be 1 for checked and 0 for unchecked so we can use that to set
     ; the section flags for installation.
     SectionSetFlags 4 $R0
     IntOp $R1 $R1 + 1
   ${Else}
-    SectionSetFlags 4 0 ; Disable install for venkman
+    SectionSetFlags 4 0 ; Disable install for palmsync
+  ${EndIf}
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
+    ${MUI_INSTALLOPTIONS_READ} $R0 "components.ini" "Field $R1" "State"
+    ; State will be 1 for checked and 0 for unchecked so we can use that to set
+    ; the section flags for installation.
+    SectionSetFlags 5 $R0
+    IntOp $R1 $R1 + 1
+  ${Else}
+    SectionSetFlags 5 0 ; Disable install for venkman
   ${EndIf}
 FunctionEnd
 

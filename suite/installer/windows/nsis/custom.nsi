@@ -37,7 +37,8 @@
 
 !macro checkSuiteComponents
   ; If no extensions are available skip the components page
-  ${Unless} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
+  ${Unless} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+  ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\p@m"
   ${AndUnless} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
@@ -50,16 +51,35 @@
   WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Text   "$(OPTIONAL_COMPONENTS_LABEL)"
   WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Left   "0"
   WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Right  "-1"
-  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Top    "5"
+  WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Top    "0"
   WriteINIStr "$PLUGINSDIR\components.ini" "Field 1" Bottom "15"
 
   StrCpy $R1 2
   ; Top of checkbox
-  StrCpy $R2 20
+  StrCpy $R2 15
   ; Bottom of checkbox
-  StrCpy $R3 30
+  StrCpy $R3 25
   ; Seperation between titles/text
   StrCpy $R4 25
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "checkbox"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(CHATZILLA_TITLE)"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Left   "15"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Top    "$R2"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Bottom "$R3"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
+    ${GetSize} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}" "/S=0K" $0 $8 $9
+    SectionSetSize 1 $0
+    IntOp $R1 $R1 + 1
+    IntOp $R2 $R2 + $R4
+    IntOp $R3 $R3 + $R4
+  ${Else}
+    ; Hide ChatZilla in the components page if it isn't available.
+    SectionSetText 1 ""
+  ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
     ; Set the details for DOMI
@@ -72,13 +92,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\inspector@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 1 $0
+    SectionSetSize 2 $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide DOMi in the components page if it isn't available.
-    SectionSetText 1 ""
+    SectionSetText 2 ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\debugQA@mozilla.org"
@@ -91,13 +111,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\debugQA@mozilla.org" "/S=0K" $0 $8 $9
-    SectionSetSize 2 $0
+    SectionSetSize 3 $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide debugQA in the components page if it isn't available.
-    SectionSetText 2 ""
+    SectionSetText 3 ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\p@m"
@@ -110,13 +130,13 @@
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" State  "1"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Flags  "GROUP"
     ${GetSize} "$EXEDIR\optional\extensions\p@m" "/S=0K" $0 $8 $9
-    SectionSetSize 3 $0
+    SectionSetSize 4 $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide Palm Sync in the components page if it isn't available.
-    SectionSetText 3 ""
+    SectionSetText 4 ""
   ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\{f13b157f-b174-47e7-a34d-4815ddfdfeb8}"
@@ -133,20 +153,32 @@
       ${GetSize} "$EXEDIR\optional\extensions\langpack-${AB_CD}@venkman.mozilla.org" "/S=0K" $1 $8 $9
       IntOp $0 $0 + $1
     ${EndIf}
-    SectionSetSize 4 $0
+    SectionSetSize 5 $0
     IntOp $R1 $R1 + 1
     IntOp $R2 $R2 + $R4
     IntOp $R3 $R3 + $R4
   ${Else}
     ; Hide Venkman in the components page if it isn't available.
-    SectionSetText 4 ""
+    SectionSetText 5 ""
   ${EndIf}
 
   ; Set new values for the top and bottom of labels
   ; Top of label box
-  StrCpy $R2 32
+  StrCpy $R2 27
   ; Bottom of label box
-  StrCpy $R3 52
+  StrCpy $R3 47
+
+  ${If} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "label"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Text   "$(CHATZILLA_TEXT)"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Left   "30"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Right  "-1"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Top    "$R2"
+    WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Bottom "$R3"
+    IntOp $R1 $R1 + 1
+    IntOp $R2 $R2 + $R4
+    IntOp $R3 $R3 + $R4
+  ${EndIf}
 
   ${If} ${FileExists} "$EXEDIR\optional\extensions\inspector@mozilla.org"
     WriteINIStr "$PLUGINSDIR\components.ini" "Field $R1" Type   "label"

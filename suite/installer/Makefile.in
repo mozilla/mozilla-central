@@ -62,7 +62,6 @@ MOZ_NONLOCALIZED_PKG_LIST = \
 	xpcom \
 	browser \
 	mail \
-	chatzilla \
 	reporter \
 	$(NULL)
 
@@ -71,6 +70,7 @@ MOZ_LOCALIZED_PKG_LIST = \
 	$(NULL)
 
 MOZ_OPTIONAL_PKG_LIST = \
+	chatzilla \
 	debugqa \
 	inspector \
 	palmsync \
