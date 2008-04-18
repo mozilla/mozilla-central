@@ -763,8 +763,8 @@ function serv_flush()
 CIRCServer.prototype.login =
 function serv_login(nick, name, desc)
 {
-    nick = nick.replace(" ", "_");
-    name = name.replace(" ", "_");
+    nick = nick.replace(/ /g, "_");
+    name = name.replace(/ /g, "_");
 
     if (!nick)
         nick = "nick";

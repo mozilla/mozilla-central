@@ -116,7 +116,7 @@ function initPrefs()
             var nick = en.get(vars[i]);
             if (nick)
             {
-                defaultNick = nick;
+                defaultNick = nick.replace(/ /g, "_");
                 break;
             }
         }

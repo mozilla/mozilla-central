@@ -2189,6 +2189,7 @@ function cmdNick(e)
         e.nickname = prompt(MSG_NICK_PROMPT, curNick);
         if (e.nickname == null)
             return;
+        e.nickname = e.nickname.replace(/ /g, "_");
     }
 
     if (e.server)
