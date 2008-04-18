@@ -64,7 +64,7 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <binding id="datetextpicker"
-           extends="chrome://calendar/content/datetimepickers/datetimepickers.xml#datetimepicker-base">
+           extends="chrome://calendar/content/datetimepickers/datetimepickers.xml#datetimepicker-base">               
     <content>
       <xul:hbox flex="1">
         <xul:textbox anonid="date-textbox" flex="1"
@@ -268,6 +268,9 @@
          popup to avoid freeze (bug 278877).]
          [this comment is outside the <content> so it won't become a
          node that interferes with navigation to interior nodes.] -->
+    <resources>
+      <stylesheet src="chrome://calendar/content/widgets/calendar-widget-bindings.css"/>
+    </resources>               
     <content>
       <xul:hbox flex="1" id="hbox" class="datepicker-box-class">
         <xul:menulist editable="true" sizetopopup="false"

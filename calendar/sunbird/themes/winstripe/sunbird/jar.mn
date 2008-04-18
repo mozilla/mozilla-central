@@ -3,7 +3,6 @@ calendar.jar:
    skin/classic/calendar/offline-online.png
    skin/classic/calendar/Throbber.png
    skin/classic/calendar/Throbber.gif
-+  skin/classic/calendar/datetimepickers/minimonth.css         (datetimepickers/minimonth.css)
    skin/classic/calendar/cal-icon32.png         (/calendar/base/themes/winstripe/cal-icon32.png)
 
 classic.jar:

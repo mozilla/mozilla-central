@@ -77,7 +77,7 @@ function ltnMinimonthPick(minimonth)
 
     var jsDate = minimonth.value;
     document.getElementById("ltnDateTextPicker").value = jsDate;
-    var cdt = jsDateToDateTime(jsDate);
+    var cdt = jsDateToDateTime(jsDate, floating());
 
     if (document.getElementById("displayDeck").selectedPanel !=
         document.getElementById("calendar-view-box")) {

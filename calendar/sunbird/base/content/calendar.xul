@@ -50,8 +50,8 @@
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
-
+<?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/calendar-view-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/calendar-toolbar.css" type="text/css"?>
@@ -245,10 +245,9 @@
         </tabs>
         <tabpanels flex="1">
           <tabpanel>
-            <vbox flex="1">
+            <vbox flex="1" align="center">
               <spacer id="spaceaboveleftminimonth" flex="1" orient="vertical"/>
               <minimonth id="lefthandcalendar"
-                         flex="8"
                          maxheight="300"
                          onchange="gCalendarWindow.goToDay( this.value );"/>
               <spacer id="spacebelowleftminimonth" flex="1" orient="vertical"/>

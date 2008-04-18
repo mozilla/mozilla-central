@@ -48,7 +48,7 @@
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/widgets/calendar-widgets.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/widgets/calendar-widget-bindings.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 

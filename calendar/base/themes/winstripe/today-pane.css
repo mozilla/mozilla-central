@@ -85,7 +85,7 @@
 
 .miniday-nav-buttons {
   margin-top: 2px;
-  list-style-image: url("chrome://calendar/skin/mini-day-nav-buttons.png");
+  list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
 }
 
 #previous-day-button {

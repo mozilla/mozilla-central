@@ -40,6 +40,9 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <binding id="recurrence-preview" extends="xul:box">
+    <resources>
+      <stylesheet src="chrome://calendar/content/widgets/calendar-widget-bindings.css"/>
+    </resources>               
     <content>
       <xul:box flex="1" style="overflow: hidden;">
         <xul:grid flex="1" anonid="mainbox">

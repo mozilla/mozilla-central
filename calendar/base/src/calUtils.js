@@ -840,6 +840,13 @@ function makeURL(aUriString) {
     return ioSvc.newURI(aUriString, null, null);
 }
 
+function getFloatingDate(aDate) {
+    var d = createDateTime();
+    d.timezone = floating();
+    d.jsDate = aDate;
+    return d.jsDate;
+}
+
 /**
  * Returns a calIDateTime that corresponds to the current time in the user's
  * default timezone.

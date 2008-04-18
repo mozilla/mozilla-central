@@ -60,7 +60,8 @@
 <?xml-stylesheet href="chrome://calendar/skin/calendar-views.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/menu.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/calendar-bindings.css" type="text/css"?>
-<?xml-stylesheet href="chrome://calendar/content/datetimepickers/minimonth.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/skin/widgets/minimonth.css" type="text/css"?>
+<?xml-stylesheet href="chrome://calendar/widgets/calendar-widget-bindings.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/content/datetimepickers/datetimepickers.css" type="text/css"?>
 <?xml-stylesheet href="chrome://calendar/skin/today-pane.css" type="text/css"?>
 
@@ -483,6 +484,7 @@
             ondragover="nsDragAndDrop.dragOver(event, calendarViewDNDObserver);"
             ondragdrop="nsDragAndDrop.drop(event, calendarViewDNDObserver);">
         <modevbox id="minimonth-pane" mode="calendar,task" broadcaster="modeBroadcaster" refcontrol="calendar_toggle_minimonthpane_command">
+          <vbox align="center">
             <hbox id="ltnMinimonthBox">
               <spacer flex="1"/>
               <minimonth id="ltnMinimonth" onchange="ltnMinimonthPick(this);" flex="2"/>
@@ -493,6 +495,7 @@
               <datepicker id="ltnDateTextPicker" onchange="ltnMinimonthPick(this)"/>
               <spacer flex="1"/>
             </hbox>
+          </vbox>
         </modevbox>
         <separator/>
         <vbox id="calendar-panel" flex="1">
