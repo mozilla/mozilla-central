@@ -264,3 +264,11 @@ toolbar[iconsize="small"] .cal-toolbarbutton-2 {
 }
 #button-importance-high[disabled="true"] {
 }
+
+/*--------------------------------------------------------------------
+ *   Recurrence dialog preview border
+ *-------------------------------------------------------------------*/
+#preview-border {
+    border: none;
+    padding: 0px;
+}

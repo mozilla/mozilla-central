@@ -516,10 +516,10 @@
   </groupbox>
 
   <!-- preview -->
-  <vbox id="recurrence-preview-box" flex="1">
+  <groupbox id="preview-border" flex="1">
     <label id="recurrence-preview-label"
            value="&event.recurrence.preview.label;"
            control="recurrence-preview"/>
     <recurrence-preview id="recurrence-preview" flex="1"/>
-  </vbox>
+  </groupbox>
 </dialog>
