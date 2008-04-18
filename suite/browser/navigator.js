@@ -1269,7 +1269,8 @@ function BrowserOpenTab()
           uriToLoad = "about:blank";
           break;
         case 1:
-          uriToLoad = pref.getCharPref("browser.startup.homepage");
+          uriToLoad = pref.getComplexValue("browser.startup.homepage",
+                                           Components.interfaces.nsIPrefLocalizedString).data;
           break;
         case 2:
           uriToLoad = getWebNavigation().currentURI.spec;
