@@ -67,6 +67,10 @@
 
   <menulist id="timezone-menulist" oncommand="updateTimezone()">
     <menupopup style="height: 460px;">
+      <menuitem label="&pref.timezone.localtime;"
+                value="floating"/>
+      <menuitem label="&pref.timezone.UTC;"
+                value="UTC"/>
       <menuitem label="&pref.timezone.Africa.Abidjan;"
                 value="/mozilla.org/20071231_1/Africa/Abidjan"/>
       <menuitem label="&pref.timezone.Africa.Accra;"

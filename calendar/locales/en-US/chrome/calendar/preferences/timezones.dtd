@@ -39,6 +39,8 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!ENTITY pref.calendar.timezones.list.caption "Select the closest city in your timezone:">
+<!ENTITY pref.timezone.localtime "Local Time" >
+<!ENTITY pref.timezone.UTC "UTC/GMT" >
 <!ENTITY pref.timezone.Africa.Abidjan "Africa/Abidjan" >
 <!ENTITY pref.timezone.Africa.Accra "Africa/Accra" >
 <!ENTITY pref.timezone.Africa.Addis_Ababa "Africa/Addis_Ababa" >

@@ -94,9 +94,15 @@ function updateTimezone() {
     time.timezone = floating();
     datetime.value = time.jsDate;
 
-    var subComp = tz.component;
-    var standard = subComp.getFirstSubcomponent("STANDARD");
-    var standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
+    // don't highlight any timezone in the map by default
+    var standardTZOffset = "none";
+    if (someTZ == "UTC") {
+        standardTZOffset = "+0000";
+    } else if (someTZ != "floating") {
+        var subComp = tz.component;
+        var standard = subComp.getFirstSubcomponent("STANDARD");
+        standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
+    }
 
     var stack = document.getElementById("timezone-stack");
     var numChilds = stack.childNodes.length;
