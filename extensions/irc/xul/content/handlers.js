@@ -1802,7 +1802,7 @@ function my_433 (e)
     {
         // Force a number, thanks.
         var nickIndex = 1 * arrayIndexOf(this.prefs["nicknameList"], nick);
-        var newnick;
+        var newnick = null;
 
         dd("433: failed with " + nick + " (" + nickIndex + ")");
 
@@ -1836,15 +1836,23 @@ function my_433 (e)
             if (!("_firstNick" in this))
                 this._firstNick = nickIndex;
         }
-        else
+        else if (this.NICK_RETRIES > 0)
         {
             newnick = this.INITIAL_NICK + "_";
+            this.NICK_RETRIES--;
             dd("     trying " + newnick);
         }
 
-        this.INITIAL_NICK = newnick;
-        this.display(getMsg(MSG_RETRY_NICK, [nick, newnick]), "433");
-        this.primServ.changeNick(newnick);
+        if (newnick)
+        {
+            this.INITIAL_NICK = newnick;
+            this.display(getMsg(MSG_RETRY_NICK, [nick, newnick]), "433");
+            this.primServ.changeNick(newnick);
+        }
+        else
+        {
+            this.display(getMsg(MSG_NICK_IN_USE, nick), "433");
+        }
     }
     else
     {
@@ -1873,6 +1881,8 @@ function my_sconnect (e)
         else
             display(MSG_IDENT_SERVER_NOT_POSSIBLE, MT_WARN);
     }
+
+    this.NICK_RETRIES = this.prefs["nicknameList"].length + 3;
 }
 
 CIRCNetwork.prototype.onError =
