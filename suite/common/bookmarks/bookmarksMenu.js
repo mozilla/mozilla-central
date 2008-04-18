@@ -401,7 +401,13 @@ var BookmarksMenuDNDObserver = {
       target = target.parentNode;
     if (aDragSession.canDrop) {
       this.onDragSetFeedBack(target, orientation);
-      this.onDragEnterSetTimer(target, aDragSession);
+
+      clearTimeout(this.loadTimer);
+      if (target != aDragSession.sourceNode) {
+        var This = this;
+        var targetToBeLoaded = target;
+        this.loadTimer = setTimeout(function() { This.onDragLoadTarget(targetToBeLoaded); }, This.springLoadedMenuDelay);
+      }
     }
     this.mCurrentDragOverTarget = target;
     this.mCurrentDropPosition   = orientation;
@@ -413,7 +419,17 @@ var BookmarksMenuDNDObserver = {
     if (target.localName == "menupopup" || target.id == "bookmarks-ptf")
       target = target.parentNode;
     this.onDragRemoveFeedBack(target);
-    this.onDragExitSetTimer(target, aDragSession);
+
+    clearTimeout(this.closeTimer);
+    if (this.mDidDrop) {
+      // Don't close target after dropping into it.
+      this.mDidDrop = false;
+    } else {
+      // Close target while dragging.
+      var This = this;
+      this.closeTimer = setTimeout(function() { This.onDragCloseTarget(); }, This.springLoadedMenuDelay);
+    }
+
     this.mCurrentDragOverTarget = null;
     this.mCurrentDropPosition = null;
   },
@@ -470,6 +486,8 @@ var BookmarksMenuDNDObserver = {
       var element = document.createElementNS(XUL_NS, "menuseparator");
       menuTarget.insertBefore(element, menuTarget.lastChild);
     }
+
+    this.mDidDrop = true;
   },
 
   canDrop: function (aEvent, aDragSession)
@@ -520,6 +538,7 @@ var BookmarksMenuDNDObserver = {
   mCurrentDropPosition: null,
   loadTimer  : null,
   closeTimer : null,
+  mDidDrop : false,
 
   _observers : null,
   get mObservers ()
@@ -588,26 +607,6 @@ var BookmarksMenuDNDObserver = {
       aTarget.lastChild.showPopup(aTarget);
   },
 
-  onDragEnterSetTimer: function (aTarget, aDragSession)
-  {
-    clearTimeout(this.loadTimer);
-
-    if (aTarget == aDragSession.sourceNode)
-      return;
-
-    var This = this;
-    var targetToBeLoaded = aTarget;
-    this.loadTimer = setTimeout(function() { This.onDragLoadTarget(targetToBeLoaded); }, This.springLoadedMenuDelay);
-  },
-
-  onDragExitSetTimer: function (aTarget, aDragSession)
-  {
-    clearTimeout(this.closeTimer);
-
-    var This = this;
-    this.closeTimer = setTimeout(function() { This.onDragCloseTarget(); }, This.springLoadedMenuDelay);
-  },
-
   onDragSetFeedBack: function (aTarget, aOrientation)
   {
    switch (aTarget.localName) {
@@ -667,11 +666,6 @@ var BookmarksMenuDNDObserver = {
       aTarget.removeAttribute("dragover-top");
       aTarget.removeAttribute("dragover-bottom");
     }
-  },
-
-  onDropSetFeedBack: function (aTarget)
-  {
-    //XXX Not yet...
   },
 
   isContainer: function (aTarget)
