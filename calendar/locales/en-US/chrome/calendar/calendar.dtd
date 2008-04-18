@@ -257,8 +257,9 @@
 <!ENTITY calendar.context.selectall.label             "Select All">
 <!ENTITY calendar.context.selectall.accesskey         "A">
 <!ENTITY calendar.context.gototoday.label             "Go to Today">
-<!ENTITY calendar.context.button.label                "Today Pane" >
 <!ENTITY calendar.context.gototoday.accesskey         "T">
+<!ENTITY calendar.context.button.label                "Today Pane" >
+<!ENTITY calendar.context.button.accesskey            "T" >
 <!ENTITY calendar.context.emailevent.label            "Email Selected Events…">
 <!ENTITY calendar.context.emailevent.accesskey        "i">
 

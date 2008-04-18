@@ -222,11 +222,8 @@ function deleteToDoCommand(aDoNotConfirm) {
 function getFocusedTaskTree() {
     // Which tree is focused depends on the mode.
     var taskTree;
-    if (isSunbird() || !gCurrentMode || gCurrentMode == "mail") {
-        taskTree = document.getElementById("unifinder-todo-tree");
-    } else if (!isSunbird() && gCurrentMode == "task") {
-        taskTree = document.getElementById("calendar-task-tree");
-    }
+    var focusedElement = document.commandDispatcher.focusedElement;
+    taskTree = getParentNode(focusedElement, "calendar-task-tree");
     return taskTree;
 }
 

@@ -279,6 +279,15 @@
                 label="&calendar.tasks.view.calendarlist.label;"
                 accesskey="&calendar.tasks.view.calendarlist.accesskey;"
                 command="calendar_toggle_calendarlist_command"/>
+      <menuseparator id="before-today-pane" mode="mail,calendar,task"/>
+      <menuitem id="ltnShowTodayPane"
+                label="&calendar.context.button.label;"
+                accesskey="&calendar.context.button.accesskey;"
+                type="checkbox"
+                key="todaypanekey"
+                mode="mail,calendar,task"
+                command="calendar_toggle_todaypane_command"/>
+
    </menupopup>
  <menupopup id="view_toolbars_popup">
    <menuitem id="ltnCalendarToolbar"
@@ -310,7 +319,7 @@
 
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="is_editable" hidden="false"/>
-    <broadcaster id="modeBroadcaster" mode="mail"/>
+    <broadcaster id="modeBroadcaster"/>
     <broadcaster id="filterBroadcaster" value="all"/>
 </broadcasterset>
 
@@ -338,7 +347,7 @@
   <keyset id="ltnKeys">
     <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
     <key id="openTasksKey" modifiers="accel" key="4" command="switch2task"/>
-    <key id="todaypanekey" command="cmd_toggleTodayPane" keycode="VK_F11"/>
+    <key id="todaypanekey" command="calendar_toggle_todaypane_command" keycode="VK_F11"/>
     <key id="newEventKey" key="I" modifiers="accel" command="calendar_new_event_command"/>
     <key id="newTaskKey" key="D" modifiers="accel" command="calendar_new_todo_command"/>
     <key id="day-view-key" key="1" modifiers="alt" command="calendar_day-view_command"/>
@@ -572,6 +581,12 @@
     </toolbox>
 
   </vbox>
+  <splitter id="today-splitter" collapse="after" resizebefore="closest" state="collapsed">
+      <grippy/>
+  </splitter>
+  <modevbox id="today-pane-panel"
+            addtoolbarbutton="true"
+            persist="width addtoolbarbutton"/>
 </hbox>
 
 <deck id="displayDeck">

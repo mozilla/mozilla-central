@@ -2,6 +2,8 @@
 
 calendar.jar:
 % content calendar %content/calendar/
+    content/calendar/agenda-listbox.js           (content/agenda-listbox.js)
+    content/calendar/agenda-listbox.xml          (content/agenda-listbox.xml)
 *   content/calendar/calendar-alarm-dialog.js    (content/calendar-alarm-dialog.js)
     content/calendar/calendar-alarm-dialog.xul   (content/calendar-alarm-dialog.xul)
     content/calendar/calendar-alarm-snooze-popup.xul   (content/calendar-alarm-snooze-popup.xul)

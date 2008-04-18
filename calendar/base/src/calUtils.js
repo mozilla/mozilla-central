@@ -2027,7 +2027,7 @@ function removeAnonymousElement(aParentNode, aId) {
 function getParentNode(aNode, aLocalName) {
   var node = aNode;
   do {
-      node = node.parentNode;
+      node = node && node.parentNode;      
   } while (node && (node.localName != aLocalName));
   return node;
 }

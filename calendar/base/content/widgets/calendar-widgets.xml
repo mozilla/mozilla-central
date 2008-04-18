@@ -138,10 +138,24 @@
         ]]></getter>
        </property>
 
-      <method name="setVisible">
+       <method name="isVisible">
+         <parameter name="aMode"/>
+         <body><![CDATA[
+             var lMode = aMode || this.currentMode;
+             var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
+             var modeIndex = collapsedModes.indexOf(this.currentMode);
+             return (modeIndex == -1);
+         ]]></body>
+      </method>
+
+       <method name="setVisible">
         <parameter name="aVisible"/>
-        <parameter name="aCheckModeCollapsed"/>
+        <parameter name="aPushModeCollapsedAttribute"/>
+        <parameter name="aNotifyRefControl"/>
         <body><![CDATA[
+            var notifyRefControl = ((aNotifyRefControl == null) || (aNotifyRefControl === true))
+            var pushModeCollapsedAttribute = ((aPushModeCollapsedAttribute == null)
+                                                 || (aPushModeCollapsedAttribute === true));
             var collapsedModes = [];
             var modeIndex = -1;
             var display = aVisible;
@@ -151,11 +165,11 @@
                 var modeIndex = collapsedModes.indexOf(this.currentMode);
                 collapsedInMode = (modeIndex > -1);
             }
-            if ((aVisible === true) && (aCheckModeCollapsed)){
+            if ((aVisible === true) && (pushModeCollapsedAttribute == false)){
                 display = (aVisible === true) && (!collapsedInMode);
             }
             setBooleanAttribute(this, "collapsed", (!display));
-            if (aCheckModeCollapsed == null) {
+            if (pushModeCollapsedAttribute) {
                 if (!display) {
                     if (modeIndex == -1) {
                         collapsedModes.push(this.currentMode);
@@ -170,7 +184,8 @@
                 if (id) {
                     document.persist(id, "collapsedinmodes");
                 }
-            } else if (aCheckModeCollapsed === true) {
+            }
+            if (notifyRefControl === true) {
                 if (this.hasAttribute("refcontrol")) {
                     var command =  document.getElementById(this.getAttribute("refcontrol"))
                     if (command) {
@@ -184,7 +199,7 @@
       <method name="_isVisibleInCurrentMode">
         <parameter name="aMode"/>
         <body><![CDATA[
-            var lMode = aMode || currentMode;
+            var lMode = aMode || this.currentMode;
             var display = true;
             var lModes = new Array();
             if (this.hasAttribute("mode")) {
@@ -204,7 +219,7 @@
         <body><![CDATA[
             if (aEvent.attrName == "mode") {
                 var display = aBinding._isVisibleInCurrentMode(aEvent.newValue);
-                aBinding.setVisible(display, true);
+                aBinding.setVisible(display, false, true);
             }
         ]]></body>
       </method>
@@ -215,7 +230,7 @@
             var command = aEvent.target;
             var newValue = (command.getAttribute("checked") == "true" ? "false" : "true");
             command.setAttribute("checked", newValue);
-            this.setVisible(newValue == "true");
+            this.setVisible(newValue == "true", true, true);
         ]]></body>
       </method>
 
@@ -224,7 +239,7 @@
         <parameter name="aBinding"/>
         <body><![CDATA[
             var newValue = aEvent.target.checked;
-            this.setVisible(newValue);
+            this.setVisible(newValue, true, true);
         ]]></body>
       </method>
       <method name="setAttribute">

@@ -261,7 +261,9 @@ function ltnOnLoad(event)
 
     var filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
-}
+    document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
+    ltnInitTodayPane();
+}    
 
 function onSelectionChanged(aEvent) {
     var selectedItems = aEvent.detail;
@@ -387,23 +389,6 @@ function ltnShowCalendarView(type)
     }
 
     ltnSelectCalendarView(type);
-}
-
-function toggleTodayPaneinMailMode()
-{
-  var oTodayPane = document.getElementById("today-pane-panel");
-  var todayPaneCommand = document.getElementById('cmd_toggleTodayPane');
-  if (oTodayPane.hasAttribute("collapsed")) {
-    oTodayPane.removeAttribute("collapsed");
-    oTodayPane.removeAttribute("collapsedinMailMode");
-    todayPaneCommand.setAttribute("checked","true");
-    document.getElementById("today-closer").setAttribute("checked", "false");
-  }
-  else {
-    oTodayPane.setAttribute("collapsed", true);
-    oTodayPane.setAttribute("collapsedinMailMode", "true");
-    todayPaneCommand.setAttribute("checked", "false");
-  }
 }
 
 
