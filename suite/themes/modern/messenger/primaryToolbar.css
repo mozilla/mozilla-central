@@ -158,36 +158,36 @@ toolbar[mode="text"] #button-getmsg > .toolbarbutton-menubutton-stack
 } 
 
 #button-goback {
-  -moz-image-region: rect(238px 49px 271px 0);
+  -moz-image-region: rect(578px 49px 611px 0);
 }
 
 #button-goback:hover {
-  -moz-image-region: rect(238px 99px 271px 50px);
+  -moz-image-region: rect(578px 99px 611px 50px);
 }
 
 #button-goback:hover:active {
--moz-image-region: rect(238px 149px 271px 100px);
-} 
+  -moz-image-region: rect(578px 149px 611px 100px);
+}
 
 #button-goback[disabled] {
-  -moz-image-region: rect(238px 199px 271px 150px) !important;
-} 
+  -moz-image-region: rect(578px 199px 611px 150px) !important;
+}
 
 #button-goforward {
-  -moz-image-region: rect(68px 49px 101px 0);
+  -moz-image-region: rect(612px 49px 645px 0);
 }
 
 #button-goforward:hover {
-  -moz-image-region: rect(68px 99px 101px 50px);
-} 
+  -moz-image-region: rect(612px 99px 645px 50px);
+}
 
 #button-goforward:hover:active {
-  -moz-image-region: rect(68px 149px 101px 100px);
-} 
+  -moz-image-region: rect(612px 149px 645px 100px);
+}
 
 #button-goforward[disabled] {
-  -moz-image-region: rect(68px 199px 101px 150px) !important;
-} 
+  -moz-image-region: rect(612px 199px 645px 150px) !important;
+}
 
 #button-next {
   -moz-image-region: rect(204px 49px 237px 0);
