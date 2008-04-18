@@ -162,6 +162,11 @@
               relativeDateString = calGetString("calendar",
                                                 "alarmTodayAt",
                                                 [formatter.formatTime(startDate)]);
+          } else if (sinceAlarm <= sinceDayStart - 86400 && sinceAlarm > sinceDayStart - 172800) {
+              // The alarm is tomorrow
+              relativeDateString = calGetString("calendar",
+                                                "alarmTomorrowAt",
+                                                [formatter.formatTime(startDate)]);
           } else if (sinceAlarm < sinceDayStart + 86400 && sinceAlarm > sinceDayStart) {
               // The alarm is yesterday
               relativeDateString = calGetString("calendar",
