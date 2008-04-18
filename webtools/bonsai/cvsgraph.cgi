@@ -191,6 +191,8 @@ if (!defined $::FORM{'image'}) {
 	    my $author = EmailFromUsername($::revision_author{$rev});
 	    my $rev_log = html_quote($::revision_log{$rev});
 	    $rev_log =~ s/\n/<br>\n/g;
+            # Convert Bug xxx to links.
+            $rev_log =~ s#(bug\s+(\d+)\b)#<a href="https://bugzilla.mozilla.org/show_bug.cgi?id=$2">$1</a>#gi;
 	    print qq{<div id="rev_$rev" class="log_msg" style="display:none">\n};
 	    print qq{<b>$rev</b> };
 	    print qq{&lt;<a href="mailto:$author">$author</a>&gt };
