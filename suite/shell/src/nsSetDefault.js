@@ -43,6 +43,7 @@
  */
 
 const nsIShellService = Components.interfaces.nsIShellService;
+const nsICommandLineHandler = Components.interfaces.nsICommandLineHandler;
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsSetDefault() {
@@ -74,7 +75,7 @@ nsSetDefault.prototype = {
   classDescription: "Set Default Suite Cmdline Handler",
   contractID: "@mozilla.org/suite/default-browser-clh;1",
   classID: Components.ID("{A3D5B950-690A-491F-A881-2C2CDCD241CB}"),
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsICommandLineHandler]),
+  QueryInterface: XPCOMUtils.generateQI([nsICommandLineHandler]),
    _xpcom_categories: [{
      category: "command-line-handler",
      entry: "m-setdefault"
