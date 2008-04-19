@@ -45,6 +45,13 @@ pref("browser.chromeURL", "chrome://messenger/content/messengercompose/messenger
 pref("mail.biff.animate_dock_icon", false);
 #endif
 
+// gtk2 (*nix) lacks transparent/translucent drag support (bug 376238), so we
+// want to disable it so people can see where they are dragging things.
+// (Stock gtk drag icons will be used instead.)
+#ifdef MOZ_WIDGET_GTK2
+pref("nglayout.enable_drag_images", false);
+#endif
+
 // App-specific update preferences
 
 // Whether or not app updates are enabled
