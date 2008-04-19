@@ -191,6 +191,7 @@ bin\components\related.xpt
 bin\components\satchel.dll
 bin\components\satchel.xpt
 bin\components\saxparser.xpt
+bin\components\shellservice.xpt
 bin\components\shistory.xpt
 bin\components\sidebar.xpt
 bin\components\signonviewer.xpt
@@ -273,6 +274,7 @@ bin\components\nsLoginManagerPrompter.js
 bin\components\nsPostUpdateWin.js
 bin\components\nsProxyAutoConfig.js
 bin\components\nsResetPref.js
+bin\components\nsSetDefault.js
 bin\components\nsSetDefaultBrowser.js
 bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
