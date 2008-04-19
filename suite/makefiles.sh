@@ -58,9 +58,6 @@ add_makefiles "
   suite/profile/migration/Makefile
   suite/profile/migration/public/Makefile
   suite/profile/migration/src/Makefile
-  suite/shell/Makefile
-  suite/shell/public/Makefile
-  suite/shell/src/Makefile
   suite/themes/Makefile
   suite/themes/modern/Makefile
   suite/themes/classic/Makefile

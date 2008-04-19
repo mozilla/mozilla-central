@@ -49,14 +49,12 @@
 
 #if defined(XP_WIN)
 #include "nsUrlWidget.h"
-#include "nsWindowsShellService.h"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(XP_WIN)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsUrlWidget, Init)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
 #endif // Windows
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
@@ -72,10 +70,6 @@ static const nsModuleComponentInfo components[] = {
 #ifdef XP_WIN
   { NS_IURLWIDGET_CLASSNAME, NS_IURLWIDGET_CID,
     NS_IURLWIDGET_CONTRACTID, nsUrlWidgetConstructor },
-  { "SeaMonkey Windows Integration",
-    NS_SUITEWININTEGRATION_CID,
-    NS_SUITEWININTEGRATION_CONTRACTID,
-    nsWindowsShellServiceConstructor },
 #endif // XP_WIN
 
   { "nsSuiteDirectoryProvider",

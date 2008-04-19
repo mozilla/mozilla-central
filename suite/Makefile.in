@@ -56,7 +56,6 @@ DIRS		+= \
 		modules \
 		themes \
 		profile \
-		shell \
 		build \
 		app \
 		$(NULL)

@@ -54,7 +54,6 @@ REQUIRES	= \
 		necko \
 		nkcache \
 		rdf \
-		shellservice \
 		string \
 		suitebrowser \
 		suitemigration \
@@ -67,26 +66,17 @@ CPPSRCS 	= \
 		nsSuiteModule.cpp \
 		$(NULL)
 
-ifeq ($(OS_ARCH),WINNT)
-OS_LIBS += $(call EXPAND_LIBNAME,ole32 shell32)
-endif
-
 LOCAL_INCLUDES += \
 		-I$(topsrcdir)/suite/profile \
 		-I$(topsrcdir)/suite/profile/migration/src \
 		-I$(topsrcdir)/suite/browser/src \
-		-I$(topsrcdir)/suite/shell/src \
 		$(NULL)
 
 SHARED_LIBRARY_LIBS = \
 	../profile/$(LIB_PREFIX)suiteprofile_s.$(LIB_SUFFIX) \
 	../profile/migration/src/$(LIB_PREFIX)suitemigration_s.$(LIB_SUFFIX) \
 	../browser/src/$(LIB_PREFIX)suitebrowser_s.$(LIB_SUFFIX) \
-	$(NULL)
-
-ifeq ($(OS_ARCH),WINNT)
-SHARED_LIBRARY_LIBS += ../shell/src/$(LIB_PREFIX)shellservice_s.$(LIB_SUFFIX)
-endif
+        $(NULL)
 
 # Link to gkgfx for GNOME shell service
 ifeq ($(MOZ_WIDGET_TOOLKIT), gtk2)
