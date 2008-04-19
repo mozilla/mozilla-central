@@ -3824,7 +3824,8 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
       return NS_OK;
     
     // for secondary sort, remember the sort order on a per column basis.
-    m_sortColumns[0].mSortOrder = sortOrder;
+    if (m_sortColumns.Length())
+      m_sortColumns[0].mSortOrder = sortOrder;
     SaveSortInfo(sortType, sortOrder);
     if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
