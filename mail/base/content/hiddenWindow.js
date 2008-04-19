@@ -41,7 +41,7 @@ function hiddenWindowStartup()
   // Disable menus which are not appropriate
   var disabledItems = ['newNewMsgCmd', 'menu_newFolder', 'newAccountMenuItem', 'menu_close', 'menu_saveAs',
              'menu_saveAsFile', 'menu_newVirtualFolder', 'menu_find', 'menu_findCmd', 'menu_findAgainCmd',
-                       'menu_sendunsentmsgs', 'menu_subscribe', 'menu_renameFolder', 'menu_select',
+             'menu_sendunsentmsgs', 'menu_subscribe', 'menu_renameFolder', 'menu_select',
              'menu_selectAll', 'menu_selectThread',
              'menu_favoriteFolder', 'menu_properties',
              'menu_Toolbars', 'menu_MessagePaneLayout', 'menu_showMessage', 'menu_FolderViews',
@@ -57,7 +57,7 @@ function hiddenWindowStartup()
              'markReadMenuItem', 'menu_markThreadAsRead', 'menu_markReadByDate', 'menu_markAllRead',
              'markFlaggedMenuItem', 'menu_markAsJunk', 'menu_markAsNotJunk', 'createFilter',
              'killThread', 'watchThread', 'applyFilters', 'runJunkControls', 'deleteJunk', 'menu_import',
-                       'searchMailCmd', 'searchAddressesCmd', 'filtersCmd', 'junkMailCmd',
+             'searchMailCmd', 'searchAddressesCmd', 'filtersCmd',
              'cmd_close', 'minimizeWindow', 'zoomWindow'];
   var id;
   var element;
