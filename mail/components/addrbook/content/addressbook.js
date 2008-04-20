@@ -46,7 +46,6 @@ var gSearchTimer = null;
 var gStatusText = null;
 var gQueryURIFormat = null;
 var gSearchInput;
-var gPrintSettings = null;
 var gDirTree;
 var gCardViewBox;
 var gCardViewBoxEmail1;
@@ -365,13 +364,11 @@ function AbPrintCardInternal(doPrintPreview, msgType)
      }
   }
 
-  gPrintSettings = PrintUtils.getPrintSettings();
-
   printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                          "",
                                          "chrome,dialog=no,all",
                                           totalCard, selectionArray, statusFeedback,
-                                          gPrintSettings, doPrintPreview, msgType);
+                                          doPrintPreview, msgType);
 
   return;
 }
@@ -410,12 +407,10 @@ function AbPrintAddressBookInternal(doPrintPreview, msgType)
   var abURIArr = uri.split("://");
   var printUrl = "addbook://" + abURIArr[0] + "/" + abURIArr[1] + "?action=print"
 
-  gPrintSettings = PrintUtils.getPrintSettings();
-
   printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                     "",
                     "chrome,dialog=no,all",
-                    1, [printUrl], statusFeedback, gPrintSettings, doPrintPreview, msgType);
+                    1, [printUrl], statusFeedback, doPrintPreview, msgType);
 
   return;
 }

@@ -80,7 +80,6 @@ var gOfflinePromptsBundle;
 var gOfflineManager;
 var gWindowManagerInterface;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
-var gPrintSettings = null;
 var gWindowReuse  = 0;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
 
@@ -1716,13 +1715,10 @@ function PrintEnginePrintInternal(messageList, numMessages, doPrintPreview, msgT
         return false;
     }
 
-    if (gPrintSettings == null) {
-      gPrintSettings = PrintUtils.getPrintSettings();
-    }
     printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                           "",
                                           "chrome,dialog=no,all,centerscreen",
-                                          numMessages, messageList, statusFeedback, gPrintSettings, doPrintPreview, msgType, window);
+                                          numMessages, messageList, statusFeedback, doPrintPreview, msgType, window);
     return true;
 
 }

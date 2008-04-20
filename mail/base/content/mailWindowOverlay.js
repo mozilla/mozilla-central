@@ -68,7 +68,6 @@ const kMsgNotificationRemoteImages = 3;
 
 var gMessengerBundle;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefService).getBranch(null);
-var gPrintSettings = null;
 var gMarkViewedMessageAsReadTimer = null; // if the user has configured the app to mark a message as read if it is viewed for more than n seconds
 
 // the user preference,
@@ -2010,11 +2009,10 @@ function PrintEnginePrintInternal(messageList, numMessages, doPrintPreview, msgT
         return false;
     }
 
-    gPrintSettings = PrintUtils.getPrintSettings();
     printEngineWindow = window.openDialog("chrome://messenger/content/msgPrintEngine.xul",
                                           "",
                                           "chrome,dialog=no,all,centerscreen",
-                                          numMessages, messageList, statusFeedback, gPrintSettings, doPrintPreview, msgType, window);
+                                          numMessages, messageList, statusFeedback, doPrintPreview, msgType, window);
     return true;
 
 }

@@ -59,6 +59,10 @@ function PrintEngineCreateGlobals()
   /* get the print engine instance */
   printEngine = Components.classes[printEngineContractID].createInstance();
   printEngine = printEngine.QueryInterface(Components.interfaces.nsIMsgPrintEngine);
+  printSettings = PrintUtils.getPrintSettings();
+  if (printSettings) {
+    printSettings.isCancelled = false;
+  }
 }
 
 function getWebNavigation()
@@ -153,28 +157,22 @@ function InitPrintEngineWindow()
     var numSelected = window.arguments[0];
     var uriArray = window.arguments[1];
     var statusFeedback = window.arguments[2];
-    if (window.arguments[3]) {
-      printSettings = window.arguments[3].QueryInterface(Components.interfaces.nsIPrintSettings);
-      if (printSettings) {
-        printSettings.isCancelled = false;
-      }
-    }
 
-    if (window.arguments[4]) {
-      printEngine.doPrintPreview = window.arguments[4];
+    if (window.arguments[3]) {
+      printEngine.doPrintPreview = window.arguments[3];
     } else {
       printEngine.doPrintPreview = false;
     }
     printEngine.showWindow(false);
 
-    if (window.arguments.length > 5) {
-      printEngine.setMsgType(window.arguments[5]);
+    if (window.arguments.length > 4) {
+      printEngine.setMsgType(window.arguments[4]);
     } else {
       printEngine.setMsgType(Components.interfaces.nsIMsgPrintEngine.MNAB_START);
     }
 
-    if (window.arguments.length > 6) {
-      printEngine.setParentWindow(window.arguments[6]);
+    if (window.arguments.length > 5) {
+      printEngine.setParentWindow(window.arguments[5]);
     } else {
       printEngine.setParentWindow(null);
     }
