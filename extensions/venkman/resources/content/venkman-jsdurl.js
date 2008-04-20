@@ -466,7 +466,7 @@ var keywords = {
     "abstract": 1, "boolean": 1, "break": 1, "byte": 1, "case": 1, "catch": 1,
     "char": 1, "class": 1, "const": 1, "continue": 1, "debugger": 1,
     "default": 1, "delete": 1, "do": 1, "double": 1, "else": 1, "enum": 1,
-    "export": 1, "export": 1, "extends": 1, "false": 1, "final": 1,
+    "export": 1, "extends": 1, "false": 1, "final": 1,
     "finally": 1, "float": 1, "for": 1, "function": 1, "goto": 1, "if": 1,
     "implements": 1, "import": 1, "in": 1, "instanceof": 1, "int": 1,
     "interface": 1, "long": 1, "native": 1, "new": 1, "null": 1,
