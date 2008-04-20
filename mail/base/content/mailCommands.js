@@ -73,11 +73,17 @@ function getBestIdentity(identities, optionalHint)
       // iterate over all of the identities
       var tempID;
 
+      var lengthOfLongestMatchingEmail = 0;
       for (id = 0; id < identitiesCount; ++id) {
         tempID = identities.GetElementAt(id).QueryInterface(Components.interfaces.nsIMsgIdentity);
         if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
-          identity = tempID;
-          break;
+          // Be careful, the user can have several adresses with the same
+          // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
+          // longest match.
+          if (tempID.email.length > lengthOfLongestMatchingEmail) {
+            identity = tempID;
+            lengthOfLongestMatchingEmail = tempID.email.length;
+          }
         }
       }
 
