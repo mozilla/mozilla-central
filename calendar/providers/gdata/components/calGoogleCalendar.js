@@ -602,8 +602,14 @@ calGoogleCalendar.prototype = {
                 this.findSession();
             }
 
-            // Get the item entry by id
-            var itemEntry = xml.entry.(id.substring(id.lastIndexOf('/') + 1) == aRequest.extraData.id);
+            // Get the item entry by id. Parse both normal ids and those that
+            // contain "@google.com".
+            var itemEntry = xml.entry.(id.substring(id.lastIndexOf('/') + 1) == aRequest.extraData.id ||
+                                       gCal::uid.@value == aRequest.extraData.id);
+            if (itemEntry.length() == 0) {
+                // Item wasn't found. Skip onGetResult and just complete.
+                throw new Components.Exception("Item not found", Components.results.NS_ERROR_FAILURE);
+            }
             var item = XMLEntryToItem(itemEntry, timezone, this);
 
             if (item.recurrenceInfo) {
@@ -636,7 +642,11 @@ calGoogleCalendar.prototype = {
                                                             null,
                                                             null);
         } catch (e) {
-            LOG("Error getting item " + aRequest.id + ":\n" + e);
+            if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
+                // Not finding an item isn't a user-important error, it may be a
+                // wanted case. (i.e itip)
+                LOG("Error getting item " + aRequest.id + ":\n" + e);
+            }
             aRequest.extraData.listener.onOperationComplete(this.superCalendar,
                                                             e.result,
                                                             Components.interfaces.calIOperationListener.GET,

@@ -959,8 +959,8 @@ function getItemEditURI(aItem) {
  */
 function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 
-    if (aXMLEntry == null) {
-        throw new Components.Exception("", Components.results.NS_ERROR_DOM_SYNTAX_ERR);
+    if (!aXMLEntry || typeof(aXMLEntry) != "xml" || aXMLEntry.length() == 0) {
+        throw new Components.Exception("", Components.results.NS_ERROR_FAILURE);
     }
 
     var gCal = new Namespace("gCal", "http://schemas.google.com/gCal/2005");
