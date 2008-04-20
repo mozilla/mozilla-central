@@ -347,7 +347,6 @@
                           this.kMinimonth.switchYear(value);
                       }
                       break;
-                  }
               }
           }
         ]]>
