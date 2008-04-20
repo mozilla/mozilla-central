@@ -61,7 +61,7 @@ nsSetDefault.prototype = {
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.MAIL);
     }
-    else if (aCmdline.handeFlag("setDefaultNews", false)) {
+    else if (aCmdline.handleFlag("setDefaultNews", false)) {
       var shell = Components.classes["@mozilla.org/browser/shell-service;1"]
                             .getService(nsIShellService);
       shell.setDefaultClient(true, true, nsIShellService.NEWS);
