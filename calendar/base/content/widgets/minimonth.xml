@@ -213,8 +213,7 @@
        </property>
        <property name="month">
          <setter><![CDATA[
-               document.getAnonymousElementByAttribute(this, "anonid", "monthheader").selectedIndex = val;
-           }
+           document.getAnonymousElementByAttribute(this, "anonid", "monthheader").selectedIndex = val;
          ]]></setter>
        </property>
        <property name="year">
@@ -263,25 +262,22 @@
                if (i == aDate.getMonth())
                    months[i].setAttribute("current", "true");
            }
-           return;
          ]]></body>
        </method>
        <method name="updateYearPopup">
          <parameter name="aDate"/>
          <body><![CDATA[
-               var years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
-               var year = new Date(aDate);
-               year.setFullYear(Math.max(1, aDate.getFullYear() - parseInt(years.length / 2) + 1));
-               for (var i = 1; i < years.length - 1; i++) {
-                   years[i].setAttribute("value", year.getFullYear());
-                   years[i].setAttribute("current", "false");
-                   if (year.getFullYear() == aDate.getFullYear()) {
-                       years[i].setAttribute("current", "true");
-                   }
-                   year.setFullYear(year.getFullYear() + 1);
+           var years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
+           var year = new Date(aDate);
+           year.setFullYear(Math.max(1, aDate.getFullYear() - parseInt(years.length / 2) + 1));
+           for (var i = 1; i < years.length - 1; i++) {
+               years[i].setAttribute("value", year.getFullYear());
+               years[i].setAttribute("current", "false");
+               if (year.getFullYear() == aDate.getFullYear()) {
+                   years[i].setAttribute("current", "true");
                }
+               year.setFullYear(year.getFullYear() + 1);
            }
-           return;
          ]]></body>
        </method>
        <method name="moveYears">
