@@ -867,6 +867,17 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
     nsMsgKey threadParent;
     GetThreadParent(&threadParent);
 
+    if (threadParent == m_messageKey)
+    {
+      // isKilled is false by virtue of the enclosing if statement
+      NS_ASSERTION(PR_FALSE, "Thread is parent of itself, please fix!");
+
+      // Something's wrong, but the problem happened some time ago, so erroring
+      // out now is probably not a good idea. Ergo, we'll pretend to be OK, show
+      // the user the thread (err on the side of caution), and let the assertion
+      // alert debuggers to a problem.
+      return NS_OK;
+    }
     if (threadParent != nsMsgKey_None)
     {
       nsCOMPtr <nsIMsgDBHdr> parentHdr;
