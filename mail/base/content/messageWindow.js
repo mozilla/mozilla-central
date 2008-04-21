@@ -564,7 +564,7 @@ function OnUnloadMessageWindow()
 
 function GetSelectedMsgFolders()
 {
-  var folderArray = new Array(1);
+  var folderArray = [];
   var msgFolder = GetLoadedMsgFolder();
   if (msgFolder)
     folderArray[0] = msgFolder;

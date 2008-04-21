@@ -2616,14 +2616,6 @@ function setMsgHdrPropertyAndReload(aProperty, aValue)
   }
 }
 
-function checkMsgHdrPropertyIsNot(aProperty, aValue)
-{
-  // we want to get the msg hdr for the currently selected message,
-  // get the appropiate property on it and then test against value.
-  var msgHdr = msgHdrForCurrentMessage();
-  return (msgHdr && msgHdr.getUint32Property(aProperty) != aValue);
-}
-
 function MarkCurrentMessageAsRead()
 {
   ClearPendingReadTimer();
@@ -2650,10 +2642,10 @@ function OnMsgParsed(aUrl)
   var findBar = document.getElementById("FindToolbar");
   if (!findBar.hidden)
     findBar.onFindAgainCommand(false);
-    
+
   // run the phishing detector on the message
   var msgHdr = msgHdrForCurrentMessage();
-  if (msgHdr.getUint32Property("notAPhishMessage"))
+  if (msgHdr && msgHdr.getUint32Property("notAPhishMessage"))
     gPhishingDetector.analyzeMsgForPhishingURLs(aUrl);
 
   // notify anyone (e.g., extensions) who's interested in when a message is loaded.
