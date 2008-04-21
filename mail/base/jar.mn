@@ -1,5 +1,7 @@
 messenger.jar:
-% content messenger %content/messenger/ xpcnativewrappers=yes contentaccessible=yes
+% content messagebody %content/messagebody/ contentaccessible=yes
+% content messenger %content/messenger/ xpcnativewrappers=yes
+% override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
 *   content/messenger/mailWindow.js                 (content/mailWindow.js)
 *   content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
 *   content/messenger/mailWindowOverlay.xul         (content/mailWindowOverlay.xul)

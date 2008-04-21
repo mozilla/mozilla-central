@@ -369,9 +369,8 @@ nsMimeHtmlDisplayEmitter::EndHeader()
       }
     }
 
-    // mscott --> we should refer to the style sheet used in msg display...this one is wrong i think.
     // Stylesheet info!
-    UtilityWriteCRLF("<link rel=\"important stylesheet\" href=\"chrome://messenger/skin/messageBody.css\">");
+    UtilityWriteCRLF("<link rel=\"important stylesheet\" href=\"chrome://messagebody/skin/messageBody.css\">");
 
     UtilityWriteCRLF("</head>");
     UtilityWriteCRLF("<body>");
