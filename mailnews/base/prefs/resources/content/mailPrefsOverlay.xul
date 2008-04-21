@@ -66,6 +66,11 @@
               helpTopic="mail_prefs_general">
       <treechildren id="messengerChildren">
         <!-- XXX Move pref panes from below to here as they are migrated -->
+        <treeitem id="viewingMessagesItem"
+                  label="&viewingMessages.label;"
+                  prefpane="viewing_messages_pane"
+                  url="chrome://messenger/content/pref-viewing_messages.xul"
+                  helpTopic="mail_prefs_display"/>
         <treeitem id="tagsItem"
                   label="&tags.label;"
                   prefpane="tags_pane"
@@ -85,7 +90,7 @@
       <treechildren id="messengerChildren">
         <treeitem>
           <treerow>
-            <treecell url="chrome://messenger/content/pref-viewing_messages.xul" label="&viewingMessages.label;"/> 
+            <treecell label="(Migrated: &viewingMessages.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>
