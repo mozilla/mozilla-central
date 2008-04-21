@@ -1,5 +1,6 @@
 comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes
+% override chrome://global/content/license.html chrome://communicator/content/license.html
 % override chrome://mozapps/content/profile/profileSelection.xul chrome://communicator/content/profile/profileSelection.xul
 % overlay chrome://communicator/content/contentAreaContextOverlay.xul chrome://communicator/content/permissions/imageContextOverlay.xul
 % overlay chrome://navigator/content/navigatorOverlay.xul chrome://communicator/content/permissions/permissionsNavigatorOverlay.xul
@@ -61,6 +62,8 @@ comm.jar:
    content/communicator/helpSecurityOverlay.xul
    content/communicator/helpOverlay.js
    content/communicator/helpOverlay.xul
+# the following file is a suite-specific override of the generic license.html, using suite/common/app-license.html as input:
+*  content/communicator/license.html                                (/toolkit/content/license.html)
    content/communicator/nsContextMenu.js
    content/communicator/openLocation.js
    content/communicator/openLocation.xul

@@ -54,7 +54,16 @@ EXTRA_COMPONENTS = \
 
 include $(topsrcdir)/config/rules.mk
 
+abs_srcdir = $(shell cd $(srcdir) && pwd)
+
+CHROME_DEPS += $(abs_srcdir)/app-license.html
+
 # DEFINES for preprocessing
+# Use suite/common/app-license.html as input when generating 
+# chrome://content/communicator/license.html to override 
+# chrome://global/content/license.html (about:license)
+DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html
+
 # once we support the shell service, define this for supported platforms
 #ifneq (,$(filter windows gtk2 mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
 #DEFINES += -DHAVE_SHELL_SERVICE=1
