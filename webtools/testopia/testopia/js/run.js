@@ -266,7 +266,7 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
                         text: "Reports",
                         menu: {
                             items: [{
-                                text: 'New Completion Report',
+                                text: 'New Run Completion Report',
                                 handler: function(){
                                     Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
                                     
@@ -285,7 +285,7 @@ Ext.extend(RunGrid, Ext.grid.EditorGridPanel, {
 
                                 }
                             },{
-                                text: 'New Bug Report',
+                                text: 'New Run Bug Report',
                                 handler: function(){
                                     Ext.getCmp('object_panel').setActiveTab('dashboardpanel');
                                     var bug_list = new Testopia.BugReport({

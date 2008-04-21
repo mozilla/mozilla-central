@@ -169,12 +169,8 @@ sub _check_product_version {
 
 sub _check_isactive {
     my ($invocant, $isactive) = @_;
-    if ((defined $isactive && $isactive == 0 ) || (ref $invocant && $invocant->isactive == 0)){
-        return 0;
-    }
-    else {
-        return 1;
-    } 
+    ThrowCodeError('bad_arg', {argument => 'isactive', function => 'set_isactive'}) unless ($isactive =~ /(1|0)/);
+    return $isactive;
 }
 
 ###############################
@@ -346,9 +342,11 @@ sub toggle_archive {
     my $dbh = Bugzilla->dbh;
     
     my $oldvalue = $self->isactive;
+print STDERR "OLD $oldvalue";
     my $newvalue = $oldvalue == 1 ? 0 : 1;
-    
+print STDERR "NEW $newvalue";
     $self->set_isactive($newvalue);
+print STDERR "UPDATED " . $self->isactive;    
     $self->update;
 }
 

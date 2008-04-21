@@ -67,7 +67,12 @@ if ($type eq 'completion'){
     foreach my $r (@runs){
         $r->bugs;
         push @run_ids, $r->id;
-        push @bug_ids, $r->{'bug_list'};
+        push @bug_ids, $_->bug_id foreach @{$r->bugs};
+    }
+    
+    my %bugs;
+    foreach my $b (@bug_ids){
+        $bugs{$b} = 1;
     }
     
     my $total = $runs[0]->case_run_count(undef, \@runs);
@@ -97,8 +102,8 @@ if ($type eq 'completion'){
     $vars->{'percent_idle'} = calculate_percent($total, $idle);
     
     $vars->{'runs'} = join(',',@run_ids);
-    $vars->{'bugs'} = join(',',@bug_ids);
-    $vars->{'bug_count'} = scalar split(',', $vars->{'bugs'});
+    $vars->{'bugs'} = join(',',keys %bugs);
+    $vars->{'bug_count'} = scalar keys %bugs;
     
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());
@@ -159,7 +164,7 @@ elsif ($type eq 'bug'){
     my $ref = $dbh->selectall_arrayref("
         SELECT DISTINCT tcb.bug_id, bugs.bug_status, bugs.bug_severity, tcr.run_id, tcr.case_id, tcrs.name AS case_status 
           FROM test_case_bugs AS tcb
-    INNER JOIN test_case_runs AS tcr ON tcr.case_id = tcb.case_id
+    INNER JOIN test_case_runs AS tcr ON tcr.case_run_id = tcb.case_run_id
     INNER JOIN bugs on tcb.bug_id = bugs.bug_id
     INNER JOIN test_case_run_status AS tcrs ON tcr.case_run_status_id = tcrs.case_run_status_id
          WHERE tcr.run_id in (" . join (',',@ids) . ") AND tcr.iscurrent = 1",
