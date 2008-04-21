@@ -73,6 +73,8 @@ function calDavCalendar() {
     this.mAuthScheme = null;
     this.mAuthRealm = null;
     this.mObserver = null;
+    this.mFirstRefreshDone = false;
+    this.mQueuedQueries = [];
 }
 
 // some shorthand
@@ -191,7 +193,6 @@ calDavCalendar.prototype = {
         this.mUri = aUri;
         this.initMemoryCalendar();
 
-        this.checkDavResourceType();
         return aUri;
     },
 
@@ -228,6 +229,10 @@ calDavCalendar.prototype = {
     mAuthScheme: null,
 
     mAuthRealm: null,
+
+    mFirstRefreshDone: false,
+
+    mQueuedQueries: null,
 
     get authRealm() {
         return this.mAuthRealm;
@@ -924,6 +929,13 @@ calDavCalendar.prototype = {
                                                       aOperation, aClosure) {
             LOG("refresh completed with status " + aStatusCode);
             thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
+            thisCalendar.mFirstRefreshDone = true;
+            while (thisCalendar.mQueuedQueries.length) {
+                var query = thisCalendar.mQueuedQueries.pop();
+                thisCalendar.mMemoryCalendar.getItems(query[0], query[1],
+                                                       query[2], query[3],
+                                                       query[4]);
+            }
         };
 
         // convert this into a form the WebDAV service can use
@@ -951,9 +963,16 @@ calDavCalendar.prototype = {
     getItems: function caldav_getItems(aItemFilter, aCount, aRangeStart,
                                        aRangeEnd, aListener) {
 
-
-        this.mMemoryCalendar.getItems(aItemFilter, aCount, aRangeStart,
-                                      aRangeEnd, aListener);
+        if (!this.mFirstRefreshDone) {
+            if (!this.mQueuedQueries.length) {
+                this.checkDavResourceType();
+            }
+            var query = [aItemFilter, aCount, aRangeStart, aRangeEnd, aListener];
+            this.mQueuedQueries.push(query);
+        } else {
+            this.mMemoryCalendar.getItems(aItemFilter, aCount, aRangeStart,
+                                          aRangeEnd, aListener);
+        }
     },
 
     refresh: function caldav_refresh() {
@@ -977,8 +996,8 @@ calDavCalendar.prototype = {
                 continue;
             }
             if (calendars[i].uri.prePath == this.uri.prePath &&
-            calendars[i].QueryInterface(calICalDavCalendar)
-                        .authRealm == this.mAuthRealm) {
+                calendars[i].QueryInterface(calICalDavCalendar)
+                            .authRealm == this.mAuthRealm) {
                 if (calendars[i].id == this.id) {
                     return true;
                 }
