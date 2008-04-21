@@ -236,7 +236,7 @@
 //
 - (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)command
 {
-  if (command == @selector(cancelOperation:)) {
+  if (command == @selector(cancelOperation:) || command == @selector(cancel:)) {
     [self hideFindBar:self];
     return YES;
   }
