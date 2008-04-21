@@ -25,7 +25,6 @@ ac_add_options --disable-tests
 ac_add_options --enable-official-branding
 ac_add_options --enable-static
 ac_add_options --disable-shared
-ac_add_app_options ppc --enable-prebinding
 
 ac_add_options --enable-update-packaging
 
