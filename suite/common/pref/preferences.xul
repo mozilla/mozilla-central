@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -54,6 +54,8 @@
             windowtype="mozilla:preferences"
             buttons="accept,cancel,help"
             autopanes="true"> 
+
+  <script type="application/x-javascript" src="chrome://communicator/content/pref/preferences.js"/>
 
   <stringbundle id="bundle_prefutilities"
                 src="chrome://communicator/locale/pref/prefutilities.properties"/>
