@@ -39,7 +39,7 @@
 PR_BEGIN_EXTERN_C
 
 /*
-** JNI uses strings to identity Java classes, fields, and methods. Rather
+** JNI uses strings to identify Java classes, fields, and methods. Rather
 ** than put lots of string constants in our JNI code, we define them once
 ** here.  This has two benefits: it reduces the probability of typos
 ** (we only have to type the names once), and it allows us to more
