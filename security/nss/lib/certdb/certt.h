@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.44 2008-03-27 21:56:24 alexei.volkov.bugs%sun.com Exp $
+ * $Id: certt.h,v 1.45 2008-04-21 22:38:32 alexei.volkov.bugs%sun.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -939,10 +939,13 @@ typedef enum {
 				 * Set in value.pointer.revocation */
    cert_pi_certStores      = 10,/* Bitmask of Cert Store flags (see below)
 				 * Set in value.scalar.ui */
-   cert_pi_trustAnchors    = 11,/* specify the list of trusted roots to 
+   cert_pi_trustAnchors    = 11,/* Specify the list of trusted roots to 
 				 * validate against. If the list in NULL all
 				 * default trusted roots are used.
 				 * Specified in value.pointer.chain */
+   cert_pi_useAIACertFetch = 12, /* Enables cert fetching using AIA extension.
+				 * Default is off.
+                                     * Value is in value.scalar.b */
    cert_pi_max                  /* SPECIAL: signifies maximum allowed value,
 				 *  can increase in future releases */
 } CERTValParamInType;

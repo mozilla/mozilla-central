@@ -1754,6 +1754,13 @@ cert_pkixSetParam(PKIX_ProcessingParams *procParams,
                                                       plContext);
             break;
 
+        case cert_pi_useAIACertFetch:
+            error =
+                PKIX_ProcessingParams_SetUseAIAForCertFetching(procParams,
+                                     (PRBool)(param->value.scalar.b != 0),
+                                                               plContext);
+            break;
+            
         default:
             PORT_SetError(errCode);
             r = SECFailure;

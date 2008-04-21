@@ -100,6 +100,7 @@ struct BuildConstantsStruct {
         PKIX_List *hintCerts;
         PKIX_CertChainChecker *crlChecker;
         PKIX_PL_AIAMgr *aiaMgr;
+        PKIX_Boolean useAIAForCertFetching;
 };
 
 struct PKIX_ForwardBuilderStateStruct{

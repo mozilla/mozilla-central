@@ -2501,7 +2501,8 @@ pkix_BuildForwardDepthFirstSearch(
                 }
             }
 
-            if (state->status == BUILD_AIAPENDING) {
+            if (state->status == BUILD_AIAPENDING &&
+                state->buildConstants.aiaMgr) {
                 PKIX_CHECK(PKIX_PL_AIAMgr_GetAIACerts
                         (state->buildConstants.aiaMgr,
                         state->prevCert,
@@ -4037,8 +4038,12 @@ pkix_Build_InitiateBuildChain(
                     }
             }
     
-            PKIX_CHECK(PKIX_PL_AIAMgr_Create(&aiaMgr, plContext),
-                    PKIX_AIAMGRCREATEFAILED);
+            /* Do not initialize AIA manager if we are not going to fetch
+             * cert using aia url. */
+            if (procParams->useAIAForCertFetching) {
+                PKIX_CHECK(PKIX_PL_AIAMgr_Create(&aiaMgr, plContext),
+                           PKIX_AIAMGRCREATEFAILED);
+            }
 
             /*
              * We initialize all the fields of buildConstants here, in one place,
