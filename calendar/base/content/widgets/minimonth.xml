@@ -174,12 +174,12 @@
            </xul:vbox>
          </xul:popup>
          <xul:popup anonid="years-popup" position="after_start"
-                    onpopupshowing="moveYears('reset'); event.stopPropagation();"
+                    onpopupshowing="moveYears('reset', 0); event.stopPropagation();"
                     onpopuphidden="firePopupListHidden();">
            <xul:vbox>
              <xul:autorepeatbutton class="autorepeatbutton-up"
                                    orient="vertical"
-                                   oncommand="moveYears('up');"/>
+                                   oncommand="moveYears('up', 1);"/>
              <xul:text class="minimonth-list"/>
              <xul:text class="minimonth-list"/>
              <xul:text class="minimonth-list"/>
@@ -191,7 +191,7 @@
              <xul:text class="minimonth-list"/>
              <xul:autorepeatbutton class="autorepeatbutton-down"
                                    orient="vertical"
-                                   oncommand="moveYears('down');"/>
+                                   oncommand="moveYears('down', 1);"/>
            </xul:vbox>
          </xul:popup>
        </xul:popupset>
@@ -199,12 +199,27 @@
      <implementation>
        <field name="kMinimonth">null</field>
        <field name="mPopup">null</field>
+       <field name="mScrollYearsHandler">{}</field>
        <constructor><![CDATA[
          this.kMinimonth = getParentNode(this, "minimonth");
          document.getAnonymousElementByAttribute(this, "anonid", "left-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "today-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "right-button").kMinimonth = this.kMinimonth;
+
+         this.mScrollYearsHandler =  {
+           binding: this,
+           handleEvent: function scrollYears_handleEvent(event) {
+             this.binding.scrollYears(event);
+           }
+         };
+
+         document.getAnonymousElementByAttribute(this, "anonid", "years-popup")
+                 .addEventListener("DOMMouseScroll", this.mScrollYearsHandler, true);
        ]]></constructor>
+       <destructor><![CDATA[
+         document.getAnonymousElementByAttribute(this, "anonid", "years-popup")
+                 .removeEventListener("DOMMouseScroll", this.mScrollYearsHandler, true);
+       ]]></destructor>
 
        <property name="EditorDate">
          <getter><![CDATA[
@@ -280,8 +295,28 @@
            }
          ]]></body>
        </method>
+
+       <method name="scrollYears">
+         <parameter name="event"/>
+         <body><![CDATA[
+           var numYears = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes.length;
+           if (event.detail == NSUIEvent.SCROLL_PAGE_UP) {
+             this.moveYears('up', numYears);
+           } else if (event.detail == NSUIEvent.SCROLL_PAGE_DOWN) {
+             this.moveYears('down', numYears);
+           } else if (event.detail < 0) {
+             this.moveYears('up', 1);
+           } else if (event.detail > 0) {
+             this.moveYears('down', 1);
+           }
+           event.stopPropagation();
+           event.preventDefault();
+         ]]></body>
+       </method>
+
        <method name="moveYears">
          <parameter name="direction"/>
+         <parameter name="scrollOffset"/>
          <body><![CDATA[
            // Update the year popup
            var years = document.getAnonymousElementByAttribute(this, "anonid", "years-popup").firstChild.childNodes;
@@ -297,10 +332,10 @@
                    }
                    break;
                case "up":
-                   offset = -1;
+                   offset = -Math.abs(scrollOffset) || -1;
                    break;
                case "down":
-                   offset = 1;
+                   offset = Math.abs(scrollOffset) || 1;
                    break;
            }
 
