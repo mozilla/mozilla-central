@@ -81,9 +81,6 @@ bin\components\content_xmldoc.xpt
 bin\components\content_xslt.xpt
 bin\components\content_xtf.xpt
 bin\components\cookie.xpt
-#ifndef MOZILLA_1_8_BRANCH
-bin\components\crashreporter.xpt
-#endif
 bin\components\docshell_base.xpt
 bin\components\dom.xpt
 bin\components\dom_base.xpt
