@@ -6440,8 +6440,8 @@ EOF
             LDFLAGS="$LDFLAGS -NXCOMPAT -SAFESEH"
                         PROFILE_GEN_CFLAGS="-GL"
             PROFILE_GEN_LDFLAGS="-LTCG:PGINSTRUMENT"
-            PROFILE_USE_CFLAGS="-GL"
-                        PROFILE_USE_LDFLAGS="-LTCG:PGUPDATE"
+                                                                                                PROFILE_USE_CFLAGS="-GL -wd4624 -wd4952"
+                                    PROFILE_USE_LDFLAGS="-LTCG:PGUPDATE"
             if test -n "$_USE_DYNAMICBASE"; then
                LDFLAGS="$LDFLAGS -DYNAMICBASE"
             fi
