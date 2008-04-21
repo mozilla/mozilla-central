@@ -21,7 +21,6 @@ calendar.jar:
     content/calendar/calendar-decorated-day-view.xml  (content/calendar-decorated-day-view.xml)
     content/calendar/calendar-decorated-week-view.xml  (content/calendar-decorated-week-view.xml)
     content/calendar/calendar-decorated-multiweek-view.xml  (content/calendar-decorated-multiweek-view.xml)
-# This ^^^ isn't currently used by Lightning, but it's here for completeness
     content/calendar/calendar-decorated-month-view.xml  (content/calendar-decorated-month-view.xml)
     content/calendar/calendar-dialog-utils.js    (content/calendar-dialog-utils.js)
 *   content/calendar/calendar-dnd-listener.js    (content/calendar-dnd-listener.js)
