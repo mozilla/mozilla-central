@@ -1146,7 +1146,10 @@ calWcapSession.prototype = {
                         for (var i = 0; i < nodeList.length; ++i) {
                             var node = nodeList.item(i);
                             var fbType = fbTypeMap[node.attributes.getNamedItem("FBTYPE").nodeValue];
-                            if (fbType & busyTypes) {
+                            if (!fbType || (fbType & busyTypes)) {
+                                if (!fbType) {
+                                    fbType = calIFreeBusyInterval.UNKNOWN;
+                                }
                                 var str = node.textContent;
                                 var slash = str.indexOf('/');
                                 var period = new CalPeriod();

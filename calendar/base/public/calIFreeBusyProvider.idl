@@ -81,6 +81,12 @@ interface calIFreeBusyInterval : nsISupports
     readonly attribute calIPeriod interval;
 
     /**
+     * The value UNKNOWN indicates that the free-busy information for the time interval is
+     * not known.
+     */
+    const unsigned long UNKNOWN = 0;
+
+    /**
      * The value FREE indicates that the time interval is free for scheduling.
      */
     const unsigned long FREE = 1;

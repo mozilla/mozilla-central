@@ -807,6 +807,7 @@
               for each (var entry in aEntries) {
                   var rangeStart = entry.interval.start.getInTimezone(kDefaultTimezone);
                   var rangeEnd = entry.interval.end.getInTimezone(kDefaultTimezone);
+                  var fbState = (entry.freeBusyType == Components.interfaces.calIFreeBusyInterval.UNKNOWN ? 0 : 2);
 
                   if (rangeStart.compare(start) >= 0 &&
                       rangeEnd.compare(end) < 0) {
@@ -888,9 +889,9 @@
                                             this.mStartHour,
                                             this.mZoomFactor);
 
-                          // Set all affected state slots to 'busy'
+                          // Set all affected state slots
                           for (var i = start_offset; i <= end_offset; i++) {
-                              this.mState[i] = 2;
+                              this.mState[i] = fbState;
                           }
                       }
                   }
