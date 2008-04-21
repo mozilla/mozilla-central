@@ -939,11 +939,6 @@ KeychainPrompt::ProcessPrompt(const PRUnichar* realmBlob, bool checked, PRUnicha
                                              withUsername:username
                                                  password:password];
       }
-      // TODO: this is just to upgrade pre-1.1 HTTPAuth items; at some point in
-      // the future remove from here...
-      if (realm && [[keychainEntry securityDomain] isEqualToString:@""])
-        [keychainEntry setSecurityDomain:realm];
-      // ... to here.
     }
   }
   else if (keychainEntry) {
@@ -1136,11 +1131,17 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
                                                                port:port
                                                              scheme:scheme];
     }
-    if (!keychainEntry && ![asciiHost isEqualToString:host]) {
-      keychainEntry = [keychain findWebFormKeychainEntryForUsername:username
-                                                            forHost:asciiHost
-                                                               port:port
-                                                             scheme:scheme];
+    if (![asciiHost isEqualToString:host]) {
+      if (keychainEntry) {
+        if ([[keychainEntry host] isEqualToString:host])
+          [keychainEntry setHost:asciiHost];
+      }
+      else {
+        keychainEntry = [keychain findWebFormKeychainEntryForUsername:username
+                                                              forHost:asciiHost
+                                                                 port:port
+                                                               scheme:scheme];
+      }
     }
     // If there's already an entry in the keychain for the username, check if the
     // password matches. If not, ask the user what they want to do and replace
@@ -1150,16 +1151,6 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
       // If it's an old-style entry, upgrade it now that we know what it goes with.
       if ([keychainEntry authenticationType] == kSecAuthenticationTypeHTTPDigest)
         [keychain upgradeLegacyKeychainEntry:keychainEntry withScheme:scheme isForm:YES];
-
-      // This is just to fix items touched in the pre-1.5 nightlies, before we
-      // discovered that using securityDomain for the action hosts broke Safari.
-      // At some point in the future remove from here...
-      if (![[keychainEntry securityDomain] isEqualToString:@""]) {
-        [keychain setAllowedActionHosts:[[keychainEntry securityDomain] componentsSeparatedByString:@";"]
-                                forHost:host];
-        [keychainEntry setSecurityDomain:@""];
-      }
-      // ... to here.
 
       if (![[keychainEntry password] isEqualToString:password]) {
         [keychain promptToUpdateKeychainItem:keychainEntry
@@ -1294,13 +1285,15 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
       keychainEntry = [keychain findDefaultWebFormKeychainEntryForHost:host
                                                                   port:port
                                                                 scheme:scheme];
-      // TODO: once a released version checks for punycode, anything found with
-      // the above search (and with a Camino creator code) should be fixed
-      // immediately to have the right host.
-      if (!keychainEntry && ![asciiHost isEqualToString:host]) {
-        keychainEntry = [keychain findDefaultWebFormKeychainEntryForHost:asciiHost
-                                                                    port:port
-                                                                  scheme:scheme];
+      if (![asciiHost isEqualToString:host]) {
+        if (keychainEntry) {
+          [keychainEntry setHost:asciiHost];
+        }
+        else {
+          keychainEntry = [keychain findDefaultWebFormKeychainEntryForHost:asciiHost
+                                                                      port:port
+                                                                    scheme:scheme];
+        }
       }
     }
     // If we don't have a password for the page, don't bother looking for

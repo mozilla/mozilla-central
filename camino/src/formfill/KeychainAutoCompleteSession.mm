@@ -107,11 +107,16 @@ void KeychainAutoCompleteDOMListener::FillPassword()
                                                                       forHost:host
                                                                          port:port
                                                                        scheme:scheme];
-  if (!keychainEntry && ![asciiHost isEqualToString:host]) {
-    keychainEntry = [keychain findWebFormKeychainEntryForUsername:username
-                                                          forHost:asciiHost
-                                                             port:port
-                                                           scheme:scheme];
+  if (![asciiHost isEqualToString:host]) {
+    if (keychainEntry) {
+      [keychainEntry setHost:asciiHost];
+    }
+    else {
+      keychainEntry = [keychain findWebFormKeychainEntryForUsername:username
+                                                            forHost:asciiHost
+                                                               port:port
+                                                             scheme:scheme];
+    }
   }
   if (!keychainEntry)
     return;
@@ -211,9 +216,14 @@ void KeychainAutoCompleteDOMListener::FillPassword()
   NSMutableArray* keychainEntries =
     [NSMutableArray arrayWithArray:[keychain allWebFormKeychainItemsForHost:host port:port scheme:scheme]];
 
-  // And add the keychain items for the punycode host.
-  if (![asciiHost isEqualToString:host])
-    [keychainEntries addObjectsFromArray:[keychain allWebFormKeychainItemsForHost:asciiHost port:port scheme:scheme]];
+  // Fix those entries, and add the keychain items for the punycode host.
+  if (![asciiHost isEqualToString:host]) {
+    [keychainEntries makeObjectsPerformSelector:@selector(setHost:) withObject:asciiHost];
+
+    [keychainEntries addObjectsFromArray:[keychain allWebFormKeychainItemsForHost:asciiHost
+                                                                             port:port
+                                                                           scheme:scheme]];
+  }
 
   NSEnumerator* keychainEnumerator = [keychainEntries objectEnumerator];
   KeychainItem* item;
