@@ -92,11 +92,11 @@
 <!ENTITY newtodo.priority.label             "Priority">
 <!ENTITY newtodo.priority.accesskey         "y">
 <!ENTITY priority.level.none                "Not specified">
-<!ENTITY priority.level.none.accesskey      "N">
+<!ENTITY priority.level.none.accesskey      "s">
 <!ENTITY priority.level.low                 "Low">
 <!ENTITY priority.level.low.accesskey       "L">
-<!ENTITY priority.level.medium              "Medium">
-<!ENTITY priority.level.medium.accesskey    "M">
+<!ENTITY priority.level.normal              "Normal">
+<!ENTITY priority.level.normal.accesskey    "N">
 <!ENTITY priority.level.high                "High">
 <!ENTITY priority.level.high.accesskey      "H">
 

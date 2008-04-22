@@ -188,8 +188,8 @@
                     observes="calendar_priority-9_command"/>
           <menuitem type="checkbox"
                     id="priority-5-menuitem"
-                    label="&priority.level.medium;"
-                    accesskey="&priority.level.medium.accesskey;"
+                    label="&priority.level.normal;"
+                    accesskey="&priority.level.normal.accesskey;"
                     command="calendar_priority-5_command"
                     observes="calendar_priority-5_command"/>
           <menuitem type="checkbox"

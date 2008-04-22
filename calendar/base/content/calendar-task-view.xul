@@ -97,7 +97,7 @@
                 <row id="calendar-task-details-priority-row"
                      align="top"
                      hidden="true">
-                  <label value="&calendar.task.details.priority.label;"
+                  <label value="&calendar.task.details.priority2.label;"
                          class="task-details-name"/>
                   <label id="calendar-task-details-priority-low"
                          value="&calendar.task.details.priority.low.label;"

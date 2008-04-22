@@ -207,7 +207,7 @@
 <!ENTITY calendar.task.details.entrydate.label       "Start Date:">
 <!ENTITY calendar.task.details.duedate.label         "Due Date:">
 <!ENTITY calendar.task.details.organizer.label       "From:">
-<!ENTITY calendar.task.details.priority.label        "Importance:">
+<!ENTITY calendar.task.details.priority2.label       "Priority:">
 <!ENTITY calendar.task.details.priority.low.label    "Low">
 <!ENTITY calendar.task.details.priority.normal.label "Normal">
 <!ENTITY calendar.task.details.priority.high.label   "High">

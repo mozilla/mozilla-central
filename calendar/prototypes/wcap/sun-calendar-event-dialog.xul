@@ -421,13 +421,13 @@
                             disable-on-readonly="true"/>
                   <menuseparator id="options-menuseparator1"/>
                   <menu id="options-priority-menu"
-                        label="&event.menu.options.priority.label;"
-                        accesskey="&event.menu.options.priority.accesskey;"
+                        label="&event.menu.options.priority2.label;"
+                        accesskey="&event.menu.options.priority2.accesskey;"
                         disable-on-readonly="true">
                       <menupopup id="options-priority-menupopup">
                           <menuitem id="options-priority-none-menuitem"
-                                    label="&event.menu.options.priority.none.label;"
-                                    accesskey="&event.menu.options.priority.none.accesskey;"
+                                    label="&event.menu.options.priority.notspecified.label;"
+                                    accesskey="&event.menu.options.priority.notspecified.accesskey;"
                                     type="checkbox"
                                     command="cmd_priority_none"
                                     disable-on-readonly="true"/>
