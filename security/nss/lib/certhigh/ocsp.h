@@ -37,7 +37,7 @@
 /*
  * Interface to the OCSP implementation.
  *
- * $Id: ocsp.h,v 1.11 2007-05-25 07:28:32 alexei.volkov.bugs%sun.com Exp $
+ * $Id: ocsp.h,v 1.12 2008-04-22 15:59:26 kaie%kuix.de Exp $
  */
 
 #ifndef _OCSP_H_
@@ -98,6 +98,12 @@ CERT_OCSPCacheSettings(PRInt32 maxCacheEntries,
  */
 extern SECStatus
 CERT_SetOCSPFailureMode(SEC_OcspFailureMode ocspFailureMode);
+
+/*
+ * Configure the maximum time NSS will wait for an OCSP response.
+ */
+extern SECStatus
+CERT_SetOCSPTimeout(PRUint32 seconds);
 
 /*
  * Removes all items currently stored in the OCSP cache.
