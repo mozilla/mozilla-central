@@ -346,14 +346,7 @@ calCalendarManager.prototype = {
     initDB: function() {
         var dbService = Components.classes[kStorageServiceContractID]
                                   .getService(kStorageServiceIID);
-
-        if ("getProfileStorage" in dbService) {
-            // 1.8 branch
-            this.mDB = dbService.getProfileStorage("profile");
-        } else {
-            // trunk
-            this.mDB = dbService.openSpecialDatabase("profile");
-        }
+        this.mDB = dbService.openSpecialDatabase("profile");
 
         var sqlTables = { cal_calendars: "id INTEGER PRIMARY KEY, type TEXT, uri TEXT",
                           cal_calendars_prefs: "id INTEGER PRIMARY KEY, calendar INTEGER, name TEXT, value TEXT",
