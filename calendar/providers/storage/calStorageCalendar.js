@@ -587,6 +587,7 @@ calStorageCalendar.prototype = {
                                            aListener.GET,
                                            aId,
                                            "ID doesn't exist for getItem");
+            return;
         }
 
         var item_iid = null;
