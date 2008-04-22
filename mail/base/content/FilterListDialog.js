@@ -657,7 +657,7 @@ function onFilterDoubleClick(event)
 function onFilterTreeKeyPress(event)
 {
   // for now, only do something on space key
-  if (event.keyCode != 0)
+  if (event.charCode != KeyEvent.DOM_VK_SPACE)
     return;
 
   var rangeCount = gFilterTree.view.selection.getRangeCount();
