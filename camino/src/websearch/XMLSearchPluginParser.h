@@ -66,7 +66,6 @@ extern NSString *const kOpenSearchMIMEType;
   NSString        *mSearchEngineName; // strong
   NSString        *mSearchEngineURL;  // strong
 
-  NSMutableData   *mDownloadedPluginDataBuffer;
   NSMutableString *mCurrentElementBuffer;
 }
 
