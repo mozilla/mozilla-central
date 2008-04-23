@@ -12,15 +12,19 @@
 	</dict>
 	<dict>
 		<key>code</key>
-		<string>x-cyrillic</string>
-	</dict>
-	<dict>
-		<key>code</key>
 		<string>x-baltic</string>
 	</dict>
 	<dict>
 		<key>code</key>
+		<string>x-cyrillic</string>
+	</dict>
+	<dict>
+		<key>code</key>
 		<string>el</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-cans</string>
 	</dict>
 	<dict>
 		<key>code</key>
@@ -36,11 +40,63 @@
 	</dict>
 	<dict>
 		<key>code</key>
-		<string>ko</string>
+		<string>x-armn</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-geor</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-ethi</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-devanagari</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-guru</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-gujr</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-knda</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-mlym</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-beng</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-orya</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-telu</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-tamil</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-sinh</string>
 	</dict>
 	<dict>
 		<key>code</key>
 		<string>th</string>
+	</dict>
+	<dict>
+		<key>code</key>
+		<string>x-khmr</string>
 	</dict>
 	<dict>
 		<key>code</key>
@@ -56,51 +112,11 @@
 	</dict>
 	<dict>
 		<key>code</key>
+		<string>ko</string>
+	</dict>
+	<dict>
+		<key>code</key>
 		<string>ja</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-devanagari</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-tamil</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-armn</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-beng</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-ethi</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-geor</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-gujr</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-guru</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-khmr</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-mlym</string>
-	</dict>
-	<dict>
-		<key>code</key>
-		<string>x-cans</string>
 	</dict>
 	<dict>
 		<key>code</key>
