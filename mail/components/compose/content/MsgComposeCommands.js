@@ -2257,6 +2257,9 @@ function FillIdentityList(menulist)
                       .getService(Components.interfaces.nsIMsgAccountManager);
   var accounts = queryISupportsArray(mgr.accounts,
                                      Components.interfaces.nsIMsgAccount);
+
+  // Ugly hack to work around bug 41133. :-(
+  accounts = accounts.filter(function isNonSuckyAccount(a) { return !!a.incomingServer; });
   function sortAccounts(a, b) {
     if (a.key == mgr.defaultAccount.key)
       return -1;
@@ -2280,9 +2283,6 @@ function FillIdentityList(menulist)
   accounts.sort(sortAccounts);
 
   for each (var account in accounts) {
-    var server = account.incomingServer;
-    if (!server)
-       continue;
     var identites = queryISupportsArray(account.identities,
                                         Components.interfaces.nsIMsgIdentity);
     for each (var identity in identites) {
