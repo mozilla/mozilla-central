@@ -316,7 +316,7 @@ sub to_json {
     $obj->{'type'}         = $self->type;
     $obj->{'id'}           = $self->id;
     $obj->{'sortkey'}      = $self->sortkey;
-    $obj->{'bug_list'}     = $self->case->bug_list;
+    $obj->{'bug_list'}     = $self->bug_list;
     
     return $json->objToJson($obj); 
 }
@@ -939,7 +939,7 @@ sub bug_list {
     return $self->{'bug_list'} if exists $self->{'bug_list'};
     my $dbh = Bugzilla->dbh;
     my @bugs;
-    my $bugids = $dbh->selectcol_arrayref("SELECT bug_id 
+    my $bugids = $dbh->selectcol_arrayref("SELECT DISTINCT bug_id 
                                      FROM test_case_bugs 
                                      WHERE case_run_id=?", 
                                      undef, $self->id);

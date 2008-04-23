@@ -1236,6 +1236,7 @@ CaseBugsGrid = function(id){
                 ds.load({
                     params: {case_id: tcid}
                 });
+                Ext.getCmp('attachbug').reset();
             },
             failure: testopiaError
         });

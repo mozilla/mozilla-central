@@ -77,7 +77,7 @@ TestopiaObjectTags = function(obj, obj_id){
     var deleteButton = new Ext.Button({
         icon: 'testopia/img/delete.png',
         iconCls: 'img_button_16x',
-        handler: this.remove
+        handler: this.remove.createDelegate(this)
     });
         
     TestopiaObjectTags.superclass.constructor.call(this, {

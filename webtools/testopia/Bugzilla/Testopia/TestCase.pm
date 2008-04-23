@@ -786,7 +786,7 @@ sub add_tag {
         if (ref $t eq 'ARRAY'){
             push @tags, $_ foreach @$t;
         }
-        push @tags, split(/[\s,]+/, $t);
+        push @tags, split(/,+/, $t);
     }
 
     foreach my $name (@tags){
