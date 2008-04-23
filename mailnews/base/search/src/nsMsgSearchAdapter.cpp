@@ -45,7 +45,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefLocalizedString.h"
-#include "nsReadableUtils.h"
 #include "nsMsgSearchTerm.h"
 #include "nsMsgSearchBoolExpression.h"
 #include "nsIIOService.h"
@@ -54,6 +53,9 @@
 #include "nsAutoPtr.h"
 #include "prmem.h"
 #include "MailNewsTypes.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
 
 // This stuff lives in the base class because the IMAP search syntax
 // is used by the Dredd SEARCH command as well as IMAP itself
@@ -277,7 +279,7 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
     {
       nsCString folderCharset;
       folder->GetCharset(folderCharset);
-      AppendASCIItoUTF16(folderCharset, dstCharset);
+      dstCharset.Append(NS_ConvertASCIItoUTF16(folderCharset));
     }
   }
   else

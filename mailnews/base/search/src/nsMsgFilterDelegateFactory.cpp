@@ -48,6 +48,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterList.h"
+#include "nsServiceManagerUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

@@ -38,7 +38,6 @@
 
 #include "MailNewsTypes.h"
 #include "nsMsgSearchValue.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsObsolete.h"
 
 nsMsgSearchValueImpl::nsMsgSearchValueImpl(nsMsgSearchValue *aInitialValue)
@@ -90,7 +89,7 @@ NS_IMETHODIMP
 nsMsgSearchValueImpl::GetStr(nsAString &aResult)
 {
     NS_ENSURE_TRUE(IS_STRING_ATTRIBUTE(mValue.attribute), NS_ERROR_ILLEGAL_VALUE);
-    CopyUTF8toUTF16(mValue.string, aResult);
+    CopyUTF8toUTF16(nsDependentCString(mValue.string), aResult);
     return NS_OK;
 }
 

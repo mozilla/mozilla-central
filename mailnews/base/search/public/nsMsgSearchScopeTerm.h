@@ -47,6 +47,7 @@
 #include "nsIMsgSearchSession.h"
 #include "nsCOMPtr.h"
 #include "nsIWeakReference.h"
+#include "nsIWeakReferenceUtils.h"
 
 class nsMsgSearchScopeTerm : public nsIMsgSearchScopeTerm
 {

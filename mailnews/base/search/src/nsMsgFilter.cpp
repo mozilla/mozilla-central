@@ -52,12 +52,13 @@
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsMsgSearchValue.h"
-#include "nsReadableUtils.h"
 #include "nsMsgI18N.h"
 #include "nsISupportsObsolete.h"
 #include "nsIOutputStream.h"
 #include "nsIStringBundle.h"
 #include "nsDateTimeFormatCID.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 #include "prmem.h"
 
 static const char *kImapPrefix = "//imap:";
@@ -488,9 +489,11 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
     (void)aMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectValue));
 
     nsCString buffer;
+#ifdef MOZILLA_INTERNAL_API
     // this is big enough to hold a log entry.
     // do this so we avoid growing and copying as we append to the log.
     buffer.SetCapacity(512);
+#endif
 
     nsCOMPtr<nsIStringBundleService> bundleService =
       do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
@@ -623,8 +626,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
     if (moveValue.Find(kImapPrefix) == 0)
     {
       PRInt32 prefixLen = PL_strlen(kImapPrefix);
-      nsCAutoString originalServerPath;
-      moveValue.Mid(originalServerPath, prefixLen, moveValue.Length() - prefixLen);
+      nsCAutoString originalServerPath(Substring(moveValue, prefixLen));
       if (filterVersion == k45Version)
       {
         nsAutoString unicodeStr;
@@ -679,7 +681,9 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
         nsCString destFolderUri;
         destFolderUri.Assign( localRootURI);
         // need to remove ".sbd" from moveValue, and perhaps escape it.
-        moveValue.ReplaceSubstring(".sbd/", "/");
+        PRInt32 offset = moveValue.Find(".sbd/");
+        if (offset != -1)
+          moveValue.Cut(offset, 4);
 
 #ifdef XP_MACOSX
         nsCString unescapedMoveValue;

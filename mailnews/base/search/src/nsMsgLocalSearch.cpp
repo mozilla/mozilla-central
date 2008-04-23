@@ -239,7 +239,7 @@ void nsMsgSearchBoolExpression::GenerateEncodeStr(nsCString * buffer)
         PRUint32 lastCharPos = buffer->Length() - 1;
         if (buffer->CharAt(lastCharPos) == ' ')
         {
-            buffer->Truncate(lastCharPos);
+            buffer->SetLength(lastCharPos);
         }
 
         *buffer += ')';

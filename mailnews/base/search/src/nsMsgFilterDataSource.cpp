@@ -43,8 +43,6 @@
 #include "nsIMsgFilter.h"
 #include "nsIMsgFilterList.h"
 
-#include "nsReadableUtils.h"
-
 #define NC_RDF_ENABLED NC_NAMESPACE_URI "Enabled"
 
 nsrefcnt nsMsgFilterDataSource::mGlobalRefCount = 0;
@@ -309,11 +307,7 @@ nsMsgFilterDataSource::getFilterListTargets(nsIMsgFilterList *aFilterList,
         rv = filter->GetFilterName(filterName);
         if (NS_FAILED(rv)) return rv;
 
-        nsAutoString filterString(filterName);
-
-        char *utf8Name = ToNewUTF8String(filterString);
-        filterUri.Append(utf8Name);
-        Recycle(utf8Name);
+        filterUri.Append(NS_ConvertUTF16toUTF8(filterName));
         
         nsCOMPtr<nsIRDFResource> filterResource;
         rv = getRDFService()->GetResource(filterUri,

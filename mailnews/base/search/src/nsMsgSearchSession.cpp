@@ -51,6 +51,8 @@
 #include "nsMsgBaseCID.h"
 #include "nsMsgFolderFlags.h"
 #include "nsMsgLocalSearch.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS3(nsMsgSearchSession, nsIMsgSearchSession, nsIUrlListener, nsISupportsWeakReference)
 

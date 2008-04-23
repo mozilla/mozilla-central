@@ -37,7 +37,6 @@
 #include "msgCore.h"
 #include "nsMsgSearchAdapter.h"
 #include "nsUnicharUtils.h"
-#include "nsReadableUtils.h"
 #include "nsMsgSearchScopeTerm.h"
 #include "nsMsgResultElement.h"
 #include "nsMsgSearchTerm.h"
@@ -46,6 +45,7 @@
 #include "nsIDBFolderInfo.h"
 #include "prprf.h"
 #include "nsIMsgDatabase.h"
+#include "nsMemory.h"
 
 // Implementation of search for IMAP mail folders
 

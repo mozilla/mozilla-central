@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsReadableUtils.h"
 #include "prmem.h"
 #include "nsMsgSearchCore.h"
 #include "nsIMsgSearchSession.h"
@@ -70,6 +69,10 @@
 #include "nsUnicharUtils.h"
 #include "nsIAbCard.h"
 #include "nsIAbDirectory.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
+
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
 //---------------------------------------------------------------------------
@@ -373,7 +376,7 @@ nsMsgSearchTerm::nsMsgSearchTerm (
 nsMsgSearchTerm::~nsMsgSearchTerm ()
 {
   if (IS_STRING_ATTRIBUTE (m_attribute) && m_value.string)
-    Recycle(m_value.string);
+    NS_Free(m_value.string);
 }
 
 NS_IMPL_ISUPPORTS1(nsMsgSearchTerm, nsIMsgSearchTerm)
@@ -738,10 +741,14 @@ nsresult nsMsgSearchTerm::MatchArbitraryHeader (nsIMsgSearchScopeTerm *scope,
     if (!isContinuationHeader)
     {
       PRUint32 colonPos = buf.FindChar(':');
-      buf.Left(curMsgHeader, colonPos);
+      curMsgHeader = StringHead(buf, colonPos);
     }
 
+#ifdef MOZILLA_INTERNAL_API
     if (curMsgHeader.Equals(m_arbitraryHeader, nsCaseInsensitiveCStringComparator()))
+#else
+    if (curMsgHeader.Equals(m_arbitraryHeader, CaseInsensitiveCompare))
+#endif
     {
       // value occurs after the header name or whitespace continuation char.
       const char * headerValue = buf.get() + (isContinuationHeader ? 1 : headerLength);
@@ -970,7 +977,7 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   {
     NS_ASSERTION(IsUTF8(nsDependentCString(m_value.string)),
                         "m_value.string is not UTF-8");
-    CopyUTF8toUTF16(m_value.string, needle);
+    CopyUTF8toUTF16(nsDependentCString(m_value.string), needle);
 
     if (charset != nsnull)
     {
@@ -980,28 +987,42 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
     else {
       NS_ASSERTION(IsUTF8(nsDependentCString(stringToMatch)),
                    "stringToMatch is not UTF-8");
-      CopyUTF8toUTF16(stringToMatch, utf16StrToMatch);
+      CopyUTF8toUTF16(nsDependentCString(stringToMatch), utf16StrToMatch);
     }
   }
 
   switch (m_operator)
   {
   case nsMsgSearchOp::Contains:
-    // When we move to frozen linkage, this should be:
-    // utf16StrToMatch.Find(needle, CaseInsensitiveCompare)  >= 0);
+#ifdef MOZILLA_INTERNAL_API
     if (CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+#else
+    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) != -1);
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::DoesntContain:
+#ifdef MOZILLA_INTERNAL_API
     if (!CaseInsensitiveFindInReadable(needle, utf16StrToMatch))
+#else
+    if (utf16StrToMatch.Find(needle, CaseInsensitiveCompare) == -1);
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Is:
+#ifdef MOZILLA_INTERNAL_API
     if(needle.Equals(utf16StrToMatch, nsCaseInsensitiveStringComparator()))
+#else
+    if(needle.Equals(utf16StrToMatch, CaseInsensitiveCompare))
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::Isnt:
+#ifdef MOZILLA_INTERNAL_API
     if(!needle.Equals(utf16StrToMatch, nsCaseInsensitiveStringComparator()))
+#else
+    if(!needle.Equals(utf16StrToMatch, CaseInsensitiveCompare))
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::IsEmpty:
@@ -1010,13 +1031,21 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::BeginsWith:
+#ifdef MOZILLA_INTERNAL_API
     if (StringBeginsWith(utf16StrToMatch, needle,
                          nsCaseInsensitiveStringComparator()))
+#else
+    if (StringBeginsWith(utf16StrToMatch, needle, CaseInsensitiveCompare))
+#endif
       result = PR_TRUE;
     break;
   case nsMsgSearchOp::EndsWith:
+#ifdef MOZILLA_INTERNAL_API
     if (StringEndsWith(utf16StrToMatch, needle,
                        nsCaseInsensitiveStringComparator()))
+#else
+    if (StringEndsWith(utf16StrToMatch, needle, CaseInsensitiveCompare))
+#endif
       result = PR_TRUE;
     break;
   default:

@@ -47,7 +47,7 @@
 #include "nsIMsgFilterHitNotify.h"
 #include "nsMsgUtils.h"
 #include "nsMsgSearchTerm.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFilterService.h"
 #include "nsMsgSearchScopeTerm.h"
@@ -541,7 +541,11 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
   do
   {
     nsCAutoString value;
+#ifdef MOZILLA_INTERNAL_API
     PRInt32 intToStringResult;
+#else
+    nsresult intToStringResult;
+#endif
 
     char curChar;
     curChar = LoadAttrib(attrib, aStream);
@@ -557,7 +561,11 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       break;
     case nsIMsgFilterList::attribVersion:
       m_fileVersion = value.ToInteger(&intToStringResult, 10);
+#ifdef MOZILLA_INTERNAL_API
       if (intToStringResult != 0)
+#else
+      if (NS_FAILED(intToStringResult))
+#endif
       {
         attrib = nsIMsgFilterList::attribNone;
         NS_ASSERTION(PR_FALSE, "error parsing filter file version");
@@ -573,6 +581,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         if (m_curFilter)
         {
           PRInt32 nextFilterStartPos = m_unparsedFilterBuffer.RFind("name");
+
           nsCAutoString nextFilterPart;
           nextFilterPart = Substring(m_unparsedFilterBuffer, nextFilterStartPos, m_unparsedFilterBuffer.Length());
           m_unparsedFilterBuffer.SetLength(nextFilterStartPos);
@@ -666,9 +675,17 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         else if (type == nsMsgFilterAction::Label)
         {
           // upgrade label to corresponding tag/keyword
+#ifdef MOZILLA_INTERNAL_API
           PRInt32 res;
+#else
+          nsresult res;
+#endif
           PRInt32 labelInt = value.ToInteger(&res, 10);
+#ifdef MOZILLA_INTERNAL_API
           if (res == 0)
+#else
+          if (NS_SUCCEEDED(res))
+#endif
           {
             nsCAutoString keyword("$label");
             keyword.Append('0' + labelInt);
@@ -678,9 +695,17 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         }
         else if (type == nsMsgFilterAction::JunkScore)
         {
+#ifdef MOZILLA_INTERNAL_API
           PRInt32 res;
+#else
+          nsresult res;
+#endif
           PRInt32 junkScore = value.ToInteger(&res, 10);
+#ifdef MOZILLA_INTERNAL_API
           if (!res)
+#else
+          if (NS_FAILED(res))
+#endif
             currentFilterAction->SetJunkScore(junkScore);
         }
         else if (type == nsMsgFilterAction::Forward || type == nsMsgFilterAction::Reply
@@ -1110,7 +1135,11 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
         if (NS_SUCCEEDED(rv) && !folderUri.IsEmpty())
            if (caseInsensitive)
           {
+#ifdef MOZILLA_INTERNAL_API
              if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
+#else
+             if (folderUri.Equals(oldFolderUri, CaseInsensitiveCompare))
+#endif
             {
               if (!newFolderUri.IsEmpty())  //if we just want to match the uri's, newFolderUri will be null
                 rv = filterAction->SetTargetFolderUri(newFolderUri);
@@ -1172,7 +1201,7 @@ nsresult nsMsgFilterList::ComputeArbitraryHeaders()
           {
             if (m_arbitraryHeaders.IsEmpty())
               m_arbitraryHeaders.Assign(arbitraryHeader);
-            else if (m_arbitraryHeaders.Find(arbitraryHeader, PR_TRUE) == kNotFound)
+            else if (m_arbitraryHeaders.Find(arbitraryHeader, PR_TRUE) == -1)
             {
               m_arbitraryHeaders.Append(" ");
               m_arbitraryHeaders.Append(arbitraryHeader);

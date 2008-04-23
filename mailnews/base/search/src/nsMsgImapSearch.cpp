@@ -36,7 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 #include "msgCore.h"
 #include "nsMsgSearchAdapter.h"
-#include "nsReadableUtils.h"
 #include "nsMsgSearchScopeTerm.h"
 #include "nsMsgResultElement.h"
 #include "nsMsgSearchTerm.h"

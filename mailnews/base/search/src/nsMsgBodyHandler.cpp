@@ -346,10 +346,15 @@ void nsMsgBodyHandler::StripHtml (nsCString &pBufInOut)
  */
 void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
 {
+#ifdef MOZILLA_INTERNAL_API
   if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Type:"),
       nsCaseInsensitiveCStringComparator()))
+#else
+  if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Type:"),
+      CaseInsensitiveCompare))
+#endif
   {
-    if (line.Find("text/html", PR_TRUE) != kNotFound)
+    if (line.Find("text/html", PR_TRUE) != -1)
       m_partIsHtml = PR_TRUE;
     // Strenuous edge case: a message/rfc822 is equivalent to the content type
     // of whatever the message is. Headers should be ignored here. Even more
@@ -360,8 +365,8 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
     // MIME type. message/rfc822 is best treated as a multipart with no proper
     // boundary; since we only use boundaries for retriggering the headers,
     // the lack of one can safely be ignored.
-    else if (line.Find("multipart/", PR_TRUE) != kNotFound ||
-        line.Find("message/", PR_TRUE) != kNotFound)
+    else if (line.Find("multipart/", PR_TRUE) != -1 ||
+        line.Find("message/", PR_TRUE) != -1)
     {
       if (m_isMultipart)
       {
@@ -373,29 +378,35 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
       }
       m_isMultipart = PR_TRUE;
     }
-    else if (line.Find("text/", PR_TRUE) == kNotFound)
+    else if (line.Find("text/", PR_TRUE) == -1)
       m_partIsText = PR_FALSE; // We have disproved our assumption
   }
 
   // TODO: make this work for nested multiparts (requires some redesign)
   if (m_isMultipart && boundary.IsEmpty() &&
-      line.Find("boundary=", PR_TRUE) != kNotFound)
+      line.Find("boundary=", PR_TRUE) != -1)
   {
     PRInt32 start=line.Find("boundary=", PR_TRUE);
     start += 9;
     if (line[start] == '\"')
       start++;
     PRInt32 end = line.RFindChar('\"');
-    if (end == kNotFound)
+    if (end == -1)
       end = line.Length();
 
     boundary.Assign("--");
     boundary.Append(Substring(line,start,end-start));
   }
 
+#ifdef MOZILLA_INTERNAL_API
   if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
       nsCaseInsensitiveCStringComparator()) &&
       line.Find("base64", PR_TRUE) != kNotFound)
+#else
+  if (StringBeginsWith(line, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
+      CaseInsensitiveCompare) &&
+      line.Find("base64", PR_TRUE) != -1)
+#endif
     m_base64part = PR_TRUE;
 }
 
@@ -411,5 +422,16 @@ void nsMsgBodyHandler::Base64Decode (nsCString &pBufInOut)
   char *decodedBody = PL_Base64Decode(pBufInOut.get(), pBufInOut.Length(), nsnull);
   if (decodedBody)
     pBufInOut.Adopt(decodedBody);
-  pBufInOut.ReplaceChar("\n\r",' '); // Searching does not like EOLs
+
+  PRInt32 offset = pBufInOut.FindChar('\n');
+  while (offset != -1) {
+    pBufInOut.Replace(offset, 1, ' ');
+    offset = pBufInOut.FindChar('\n', offset);
+  }
+  offset = pBufInOut.FindChar('\r');
+  while (offset != -1) {
+    pBufInOut.Replace(offset, 1, ' ');
+    offset = pBufInOut.FindChar('\r', offset);
+  } 
 }
+
