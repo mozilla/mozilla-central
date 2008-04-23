@@ -1883,20 +1883,22 @@ nsresult
 nsMsgFolderDataSource::createFolderChildNode(nsIMsgFolder *folder,
                                              nsIRDFNode **target)
 {
-  nsCOMPtr<nsIEnumerator> subFolders;
-  nsresult rv = folder->GetSubFoldersObsolete(getter_AddRefs(subFolders));
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
+  nsresult rv = folder->GetSubFolders(getter_AddRefs(subFolders));
   if (NS_FAILED(rv))
     return NS_RDF_NO_VALUE;
 
-  rv = subFolders->First();
-  if (NS_SUCCEEDED(rv))
-  {
-    nsCOMPtr<nsISupports> firstFolder;
-    rv = subFolders->CurrentItem(getter_AddRefs(firstFolder));
-    if (NS_SUCCEEDED(rv))
-      firstFolder->QueryInterface(NS_GET_IID(nsIRDFResource), (void**)target);
-  }
-  return NS_FAILED(rv) ? NS_RDF_NO_VALUE : rv;
+  PRBool hasMore;
+  rv = subFolders->HasMoreElements(&hasMore);
+  if (NS_FAILED(rv) || !hasMore)
+    return NS_RDF_NO_VALUE;
+
+  nsCOMPtr<nsISupports> firstFolder;
+  rv = subFolders->GetNext(getter_AddRefs(firstFolder));
+  if (NS_FAILED(rv))
+    return NS_RDF_NO_VALUE;
+
+  return CallQueryInterface(firstFolder, target);
 }
 
 

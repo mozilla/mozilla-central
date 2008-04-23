@@ -1110,8 +1110,7 @@ nsresult nsMsgDBFolder::FlushToFolderCache()
 
 NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, PRBool deep)
 {
-  nsCOMPtr <nsIEnumerator> aEnumerator;
-  nsresult rv;
+  nsresult rv = NS_OK;
 
   if (folderCache)
   {
@@ -1135,34 +1134,26 @@ NS_IMETHODIMP nsMsgDBFolder::WriteToFolderCache(nsIMsgFolderCache *folderCache, 
   if (!deep)
     return rv;
 
-  rv = GetSubFoldersObsolete(getter_AddRefs(aEnumerator));
-  if(NS_FAILED(rv))
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = GetSubFolders(getter_AddRefs(enumerator));
+  if (NS_FAILED(rv))
     return rv;
 
-  nsCOMPtr<nsISupports> aItem;
-  rv = aEnumerator->First();
-  if (NS_FAILED(rv))
-    return NS_OK; // it's OK, there are no sub-folders.
-
-  while(NS_SUCCEEDED(rv))
+  PRBool hasMore;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-    rv = aEnumerator->CurrentItem(getter_AddRefs(aItem));
-    if (NS_FAILED(rv)) break;
-    nsCOMPtr<nsIMsgFolder> aMsgFolder(do_QueryInterface(aItem, &rv));
-    if (NS_SUCCEEDED(rv))
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item));
+    if (!msgFolder)
+      continue;
+
+    if (folderCache)
     {
-      if (folderCache)
-      {
-        rv = aMsgFolder->WriteToFolderCache(folderCache, PR_TRUE);
-        if (NS_FAILED(rv))
-          break;
-      }
-    }
-    rv = aEnumerator->Next();
-    if (NS_FAILED(rv))
-    {
-      rv = NS_OK;
-      break;
+      rv = msgFolder->WriteToFolderCache(folderCache, PR_TRUE);
+      if (NS_FAILED(rv))
+        break;
     }
   }
   return rv;
@@ -2789,23 +2780,20 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildWithURI(const nsACString& uri, PRBool deep,
   NS_ENSURE_ARG_POINTER(child);
   // will return nsnull if we can't find it
   *child = nsnull;
-  nsCOMPtr <nsIEnumerator> enumerator;
-  nsresult rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  nsresult rv = GetSubFolders(getter_AddRefs(enumerator));
   if (NS_FAILED(rv))
     return rv;
 
-  nsCOMPtr<nsISupports> item;
-  rv = enumerator->First();
-  if (NS_FAILED(rv))
-    return NS_OK; // it's OK, there are no sub-folders.
-
-  while(NS_SUCCEEDED(rv))
+  PRBool hasMore;
+  while(NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-    rv = enumerator->CurrentItem(getter_AddRefs(item));
-    if (NS_FAILED(rv)) break;
-    nsCOMPtr<nsIRDFResource> folderResource = do_QueryInterface(item);
-    nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(item);
-    if (folderResource  && folder)
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIRDFResource> folderResource(do_QueryInterface(item));
+    nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
+    if (folderResource && folder)
     {
       const char *folderURI;
       rv = folderResource->GetValueConst(&folderURI);
@@ -2827,12 +2815,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildWithURI(const nsACString& uri, PRBool deep,
         if (*child)
           return NS_OK;
       }
-    }
-    rv = enumerator->Next();
-    if (NS_FAILED(rv))
-    {
-      rv = NS_OK;
-      break;
     }
   }
   return NS_OK;
@@ -3109,24 +3091,28 @@ nsresult
 nsMsgDBFolder::CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow)
 {
   NS_ENSURE_ARG_POINTER(parentFolder);
-  nsCOMPtr<nsIEnumerator> subfolders;
-  nsresult rv = parentFolder->GetSubFoldersObsolete(getter_AddRefs(subfolders));
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
+  nsresult rv = parentFolder->GetSubFolders(getter_AddRefs(subFolders));
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = subfolders->First();    //will fail if no subfolders
-  while (NS_SUCCEEDED(rv))
+
+  PRBool hasMore;
+  while (NS_SUCCEEDED(subFolders->HasMoreElements(&hasMore)) && hasMore)
   {
-    nsCOMPtr<nsISupports> supports;
-    subfolders->CurrentItem(getter_AddRefs(supports));
-    nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(supports);
+    nsCOMPtr<nsISupports> item;
+    rv = subFolders->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item));
+    if (!msgFolder)
+      break;
+
     nsString folderName;
-    if (msgFolder)
-      msgFolder->GetName(folderName);
+
+    msgFolder->GetName(folderName);
     if (folderName.Equals(newFolderName, nsCaseInsensitiveStringComparator()))
     {
       ThrowAlertMsg("folderExists", msgWindow);
       return NS_MSG_FOLDER_EXISTS;
     }
-    rv = subfolders->Next();
   }
   return NS_OK;
 }
@@ -3657,9 +3643,9 @@ nsresult nsMsgDBFolder::ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *arr
   PRUint32 cnt;
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
-  nsCOMPtr <nsIEnumerator> enumerator;
-  rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = GetSubFolders(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = mSubFolders->Count(&cnt);
   if (NS_SUCCEEDED(rv))
@@ -3695,9 +3681,9 @@ NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlag(PRUint32 flags, PRUint32 results
   PRUint32 cnt;
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
-  nsCOMPtr <nsIEnumerator> enumerator;
-  rv = GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = GetSubFolders(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = mSubFolders->Count(&cnt);
   if (NS_SUCCEEDED(rv))

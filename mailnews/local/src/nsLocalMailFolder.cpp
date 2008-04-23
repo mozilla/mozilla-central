@@ -885,11 +885,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EmptyTrash(nsIMsgWindow *msgWindow,
 
     if (totalMessages <= 0)
     {
-      nsCOMPtr<nsIEnumerator> enumerator;
-      rv = trashFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
+      nsCOMPtr<nsISimpleEnumerator> enumerator;
+      rv = trashFolder->GetSubFolders(getter_AddRefs(enumerator));
       NS_ENSURE_SUCCESS(rv,rv);
-      rv = enumerator->First();    //will fail if no subfolders
-      if (NS_FAILED(rv))
+      // Any folders to deal with?
+      PRBool hasMore;
+      rv = enumerator->HasMoreElements(&hasMore);
+      if (NS_FAILED(rv) || !hasMore)
         return NS_OK;
     }
     nsCOMPtr<nsIMsgFolder> parentFolder;
@@ -1192,28 +1194,33 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
   oldFolder->GetFlags(&flags);
   SetFlags(flags);
 
-  nsCOMPtr<nsIEnumerator> enumerator;
-  oldFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  nsCOMPtr<nsISupports> aSupport;
-  rv = enumerator->First();
-  while (NS_SUCCEEDED(rv))
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = oldFolder->GetSubFolders(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool hasMore;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-     rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
-     nsCOMPtr<nsIMsgFolder>msgFolder = do_QueryInterface(aSupport);
-     nsString folderName;
-     rv = msgFolder->GetName(folderName);
-     nsCOMPtr <nsIMsgFolder> newFolder;
-     AddSubfolder(folderName, getter_AddRefs(newFolder));
-     if (newFolder)
-     {
-       newFolder->SetPrettyName(folderName);
-       PRBool changed = PR_FALSE;
-       msgFolder->MatchOrChangeFilterDestination(newFolder, PR_TRUE /*caseInsenstive*/, &changed);
-       if (changed)
-         msgFolder->AlertFilterChanged(msgWindow);
-       newFolder->RenameSubFolders(msgWindow, msgFolder);
-     }
-     rv = enumerator->Next();
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item));
+    if (!msgFolder)
+      continue;
+
+    nsString folderName;
+    rv = msgFolder->GetName(folderName);
+    nsCOMPtr <nsIMsgFolder> newFolder;
+    AddSubfolder(folderName, getter_AddRefs(newFolder));
+    if (newFolder)
+    {
+      newFolder->SetPrettyName(folderName);
+      PRBool changed = PR_FALSE;
+      msgFolder->MatchOrChangeFilterDestination(newFolder, PR_TRUE /*caseInsenstive*/, &changed);
+      if (changed)
+        msgFolder->AlertFilterChanged(msgWindow);
+      newFolder->RenameSubFolders(msgWindow, msgFolder);
+    }
   }
   return NS_OK;
 }
@@ -1810,17 +1817,17 @@ nsMsgLocalMailFolder::CopyAllSubFolders(nsIMsgFolder *srcFolder,
                                       nsIMsgWindow *msgWindow,
                                       nsIMsgCopyServiceListener *listener )
 {
-  nsresult rv;
-  nsCOMPtr<nsIEnumerator> enumerator;
-  srcFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  nsCOMPtr<nsIMsgFolder>folder;
-  nsCOMPtr<nsISupports> aSupports;
-  rv = enumerator->First();
-  while (NS_SUCCEEDED(rv))
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  nsresult rv = srcFolder->GetSubFolders(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool hasMore;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-    rv = enumerator->CurrentItem(getter_AddRefs(aSupports));
-    folder = do_QueryInterface(aSupports);
-    rv = enumerator->Next();
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
     if (folder)
       CopyFolderAcrossServer(folder, msgWindow, listener);
   }
@@ -1966,36 +1973,38 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   if (changed)
     srcFolder->AlertFilterChanged(msgWindow);
 
-  nsCOMPtr<nsIEnumerator> enumerator;
-  srcFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  nsCOMPtr<nsIMsgFolder>folder;
-  nsCOMPtr<nsISupports> supports;
-  rv = enumerator->First();
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  rv = srcFolder->GetSubFolders(getter_AddRefs(enumerator));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsresult copyStatus = NS_OK;
-  while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(copyStatus))
+  PRBool hasMore;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore &&
+         NS_SUCCEEDED(copyStatus))
   {
-    rv = enumerator->CurrentItem(getter_AddRefs(supports));
-    folder = do_QueryInterface(supports);
-    rv = enumerator->Next();
-    if (folder)
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
+    if (!folder)
+      continue;
+
+    nsCOMPtr<nsIMsgLocalMailFolder> localFolder(do_QueryInterface(folder, &rv));
+    if (NS_FAILED(rv))
+      continue;
+
+    // PR_FALSE needed to avoid un-necessary deletions
+    copyStatus = localFolder->CopyFolderLocal(folder, PR_FALSE, msgWindow, listener);
+    // Test if the call succeeded, if not we have to stop recursive call
+    if (NS_FAILED(copyStatus))
     {
-      nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(newMsgFolder);
-      if (localFolder)
-      {
-        // PR_FALSE needed to avoid un-necessary deletions
-        copyStatus = localFolder->CopyFolderLocal(folder, PR_FALSE, msgWindow, listener);
-        // Test if the call succeeded, if not we have to stop recursive call
-        if (NS_FAILED(copyStatus))
-        {
-          // Copy failed we have to notify caller to handle the error and stop
-          // moving the folders. In case this happens to the topmost level of
-          // recursive call, then we just need to break from the while loop and
-          // go to error handling code.
-          if (!isMoveFolder)
-            return copyStatus;
-          break;
-        }
-      }
+      // Copy failed we have to notify caller to handle the error and stop
+      // moving the folders. In case this happens to the topmost level of
+      // recursive call, then we just need to break from the while loop and
+      // go to error handling code.
+      if (!isMoveFolder)
+        return copyStatus;
+      break;
     }
   }
 

@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -2785,7 +2785,6 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
                                                        PRBool performingBiff)
 {
   NS_ENSURE_ARG_POINTER(aFolder);
-  nsresult retval;
   static PRBool gGotStatusPref = PR_FALSE;
   static PRBool gUseStatus = PR_FALSE;
 
@@ -2803,8 +2802,7 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
     aFolder->SetGettingNewMessages(PR_TRUE);
     if (performingBiff)
     {
-      nsresult rv;
-      nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aFolder, &rv);
+      nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(aFolder));
       if (imapFolder)
         imapFolder->SetPerformingBiff(PR_TRUE);
     }
@@ -2833,22 +2831,25 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
   }
 
   // Loop through all subfolders to get new messages for them.
-  nsCOMPtr<nsIEnumerator> enumerator;
-  retval = aFolder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
-  if (NS_FAILED(retval))
-    return retval;
+  nsCOMPtr<nsISimpleEnumerator> enumerator;
+  nsresult rv = aFolder->GetSubFolders(getter_AddRefs(enumerator));
+  if (NS_FAILED(rv))
+    return rv;
 
-  nsresult more = enumerator->First();
-
-  while (NS_SUCCEEDED(more))
+  PRBool hasMore;
+  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
-    nsCOMPtr<nsISupports> aSupport;
-    nsresult rv = enumerator->CurrentItem(getter_AddRefs(aSupport));
-    NS_ASSERTION((NS_SUCCEEDED(rv) && aSupport), "CurrentItem() failed.");
-    nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(aSupport, &rv);
-    NS_ASSERTION((NS_SUCCEEDED(rv) && msgFolder), "nsIMsgFolder service not found.");
-    retval = GetNewMessagesForNonInboxFolders(msgFolder, aWindow, forceAllFolders, performingBiff);
-    more = enumerator->Next();
+    nsCOMPtr<nsISupports> item;
+    enumerator->GetNext(getter_AddRefs(item));
+
+    nsCOMPtr<nsIMsgFolder> msgFolder(do_QueryInterface(item));
+    if (!msgFolder)
+    {
+      NS_WARNING("Not an nsIMsgFolder");
+      continue;
+    }
+    GetNewMessagesForNonInboxFolders(msgFolder, aWindow, forceAllFolders,
+                                     performingBiff);
   }
 
   if (isServer)
@@ -2857,7 +2858,7 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
     if (folderCount > 0)
       m_foldersToStat[folderCount - 1]->UpdateStatus(this, nsnull);
   }
-  return retval;
+  return NS_OK;
 }
 
 NS_IMETHODIMP

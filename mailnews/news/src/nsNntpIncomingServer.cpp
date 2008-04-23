@@ -2067,32 +2067,30 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   // 3.Unsubscribe and then subscribe the existing groups to clean up the article numbers
   //   in the rc file (this is because the old and new servers may maintain different
   //   numbers for the same articles if both servers handle the same groups).
-  nsCOMPtr<nsIEnumerator> subFolders;
-
   nsCOMPtr <nsIMsgFolder> serverFolder;
   rv = GetRootMsgFolder(getter_AddRefs(serverFolder));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = serverFolder->GetSubFoldersObsolete(getter_AddRefs(subFolders));
+  nsCOMPtr<nsISimpleEnumerator> subFolders;
+  rv = serverFolder->GetSubFolders(getter_AddRefs(subFolders));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsStringArray groupList;
   nsString folderName;
-  nsCOMPtr<nsISupports> aItem;
-  nsCOMPtr <nsIMsgFolder> newsgroupFolder;
 
   // Prepare the group list
-  while (subFolders->IsDone() != NS_OK)
+  PRBool hasMore;
+  while (NS_SUCCEEDED(subFolders->HasMoreElements(&hasMore)) && hasMore)
   {
-    rv = subFolders->CurrentItem(getter_AddRefs(aItem));
-    NS_ENSURE_SUCCESS(rv,rv);
-    newsgroupFolder = do_QueryInterface(aItem, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsISupports> item;
+    subFolders->GetNext(getter_AddRefs(item));
+    nsCOMPtr<nsIMsgFolder> newsgroupFolder(do_QueryInterface(item));
+    if (!newsgroupFolder)
+      continue;
+
     rv = newsgroupFolder->GetName(folderName);
     NS_ENSURE_SUCCESS(rv,rv);
     groupList.AppendString(folderName);
-    if (! NS_SUCCEEDED(subFolders->Next()))
-      break;
   }
 
   // If nothing subscribed then we're done.
@@ -2122,6 +2120,5 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   groupList.Clear();
 
   // Force updating the rc file.
-  rv = CommitSubscribeChanges();
-  return rv;
+  return CommitSubscribeChanges();
 }

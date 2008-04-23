@@ -928,25 +928,31 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 
            if (isImap && cleanupInboxOnExit)
            {
-             nsCOMPtr<nsIEnumerator> enumerator;
-             folder->GetSubFoldersObsolete(getter_AddRefs(enumerator));
-             nsCOMPtr<nsISupports> supports;
-             rv = enumerator->First();
-             while (NS_SUCCEEDED(rv))
+             nsCOMPtr<nsISimpleEnumerator> enumerator;
+             rv = folder->GetSubFolders(getter_AddRefs(enumerator));
+             if (NS_SUCCEEDED(rv))
              {
-               rv = enumerator->CurrentItem(getter_AddRefs(supports));
-               nsCOMPtr<nsIMsgFolder> inboxFolder = do_QueryInterface(supports);
-               PRUint32 flags;
-               inboxFolder->GetFlags(&flags);
-               if (flags & MSG_FOLDER_FLAG_INBOX)
+               PRBool hasMore;
+               while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) &&
+                      hasMore)
                {
-                 rv = inboxFolder->Compact(urlListener, nsnull /* msgwindow */);
-                 if (NS_SUCCEEDED(rv))
-                   accountManager->SetFolderDoingCleanupInbox(inboxFolder);
-                 break;
-                }
-                else
-                  rv = enumerator->Next();
+                 nsCOMPtr<nsISupports> item;
+                 enumerator->GetNext(getter_AddRefs(item));
+ 
+                 nsCOMPtr<nsIMsgFolder> inboxFolder(do_QueryInterface(item));
+                 if (!inboxFolder)
+                   continue;
+
+                 PRUint32 flags;
+                 inboxFolder->GetFlags(&flags);
+                 if (flags & MSG_FOLDER_FLAG_INBOX)
+                 {
+                   rv = inboxFolder->Compact(urlListener, nsnull /* msgwindow */);
+                   if (NS_SUCCEEDED(rv))
+                     accountManager->SetFolderDoingCleanupInbox(inboxFolder);
+                   break;
+                 }
+               }
              }
            }
 
