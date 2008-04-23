@@ -810,7 +810,7 @@
                   var fbState = (entry.freeBusyType == Components.interfaces.calIFreeBusyInterval.UNKNOWN ? 0 : 2);
 
                   if (rangeStart.compare(start) >= 0 &&
-                      rangeEnd.compare(end) < 0) {
+                      rangeEnd.compare(end) <= 0) {
                       var rangeDuration = rangeEnd.subtractDate(rangeStart);
                       var rangeStartHour = rangeStart.hour;
                       var rangeEndHour = rangeStartHour + (rangeDuration.inSeconds / 3600);

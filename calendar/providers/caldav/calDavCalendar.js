@@ -1692,7 +1692,7 @@ calDavCalendar.prototype = {
                 var D = new Namespace("D", "DAV:");
 
                 if (str.substr(0,6) == "<?xml ") {
-                    str = str.substring(str.indexOf('\n'));
+                    str = str.substring(str.indexOf('<', 2));
                 }
                 str = str.replace(/\n\ /g, "");
                 str = str.replace(/\r/g, "");
@@ -1706,6 +1706,8 @@ calDavCalendar.prototype = {
                 if (status.substr(0,3) != "2.0") {
                     LOG("Got status " + status + " in response to freebusy query");
                 }
+                var period;
+                var interval;
                 var caldata = response..C::response..C::["calendar-data"];
                 var lines = caldata.split("\n");
                 for (var i = 0; i < lines.length; i++) {
@@ -1720,19 +1722,43 @@ calDavCalendar.prototype = {
                             begin.icalString = parts[0];
                             var end = new CalDateTime();
                             end.icalString = parts[1];
-                            var period = new CalPeriod();
+                            period = new CalPeriod();
                             period.start = begin;
                             period.end = end;
                             period.makeImmutable();
-                            var interval = {
-                                QueryInterface: function fbInterval_QueryInterface(iid) {
-                                    ensureIID([calIFreeBusyInterval, nsISupports], iid);
-                                    return this;
-                                },
-                                calId: aCalId,
-                                interval: period,
-                                freeBusyType: fbType
-                            };
+                            interval =
+                                thisCalendar.createInterval(aCalId, period,
+                                                            fbType);
+                            periodsToReturn.push(interval);
+                        }
+                    }
+                    if (lines[i].substr(0,7) == "DTSTART") {
+                        var dts = lines[i].split(":")[1];
+                        var replyRangeStart = new CalDateTime();
+                        replyRangeStart.icalString = dts;
+                        if (aRangeStart.compare(replyRangeStart) == -1) {
+                            period = new CalPeriod();
+                            period.start = aRangeStart;
+                            period.end = replyRangeStart;
+                            period.makeImmutable();
+                            interval =
+                                thisCalendar.createInterval(aCalId, period,
+                                                            calIFreeBusyInterval.UNKNOWN);
+                            periodsToReturn.push(interval);
+                        }
+                    }
+                    if (lines[i].substr(0,5) == "DTEND") {
+                        var dte = lines[i].split(":")[1];
+                        var replyRangeEnd = new CalDateTime();
+                        replyRangeEnd.icalString = dte;
+                        if (aRangeEnd.compare(replyRangeEnd) == 1) {
+                            period = new CalPeriod();
+                            period.start = replyRangeEnd;
+                            period.end = aRangeEnd;
+                            period.makeImmutable();
+                            interval =
+                                thisCalendar.createInterval(aCalId, period,
+                                                            calIFreeBusyInterval.UNKNOWN);
                             periodsToReturn.push(interval);
                         }
                     }
@@ -1754,7 +1780,20 @@ calDavCalendar.prototype = {
             streamLoader.init(streamListener);
             httpchannel.asyncOpen(streamLoader, httpchannel);
         }
+    },
 
+
+    createInterval: function caldav_createInterval(aCalId, aPeriod, aFbType) {
+        var interval = {
+            QueryInterface: function fbInterval_QueryInterface(iid) {
+                ensureIID([calIFreeBusyInterval, nsISupports], iid);
+                return this;
+                },
+            calId: aCalId,
+            interval: aPeriod,
+            freeBusyType: aFbType
+        };
+        return interval;
     },
 
     /**
