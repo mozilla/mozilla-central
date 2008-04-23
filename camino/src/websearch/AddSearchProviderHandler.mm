@@ -94,64 +94,71 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
   // sheets.
 
   NSString* searchDescriptionURL = [NSString stringWith_nsAString:aDescriptionURL];
-  SearchEngineManager* searchEngineManager = [SearchEngineManager sharedSearchEngineManager];
+  // Make sure we don't throw ObjC exceptions out into Gecko.
+  @try {
+    SearchEngineManager* searchEngineManager = [SearchEngineManager sharedSearchEngineManager];
 
-  // Make sure the user hasn't already installed this search plugin.
-  NSDictionary* existingEngineFromThisPlugin = [searchEngineManager searchEngineFromPluginURL:searchDescriptionURL];
-  if (existingEngineFromThisPlugin) {
+    // Make sure the user hasn't already installed this search plugin.
+    NSDictionary* existingEngineFromThisPlugin = [searchEngineManager searchEngineFromPluginURL:searchDescriptionURL];
+    if (existingEngineFromThisPlugin) {
+      NSString* explanatoryText =
+        [NSString stringWithFormat:NSLocalizedString(@"SearchPluginAlreadyInstalledMessage", nil),
+                                   [existingEngineFromThisPlugin objectForKey:kWebSearchEngineNameKey]];
+      NSAlert* alreadyInstalledAlert = [[[NSAlert alloc] init] autorelease];
+      [alreadyInstalledAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
+      [alreadyInstalledAlert setMessageText:NSLocalizedString(@"SearchPluginAlreadyInstalledTitle", nil)];
+      [alreadyInstalledAlert setInformativeText:explanatoryText];
+      [alreadyInstalledAlert setAlertStyle:NSWarningAlertStyle];
+
+      [NSMenu cancelAllTracking];
+      [alreadyInstalledAlert runModal];
+      return NS_OK;
+    }
+
+    XMLSearchPluginParser* pluginParser =
+      [XMLSearchPluginParser searchPluginParserWithMIMEType:kOpenSearchMIMEType];
+    if (![pluginParser parseSearchPluginAtURL:[NSURL URLWithString:searchDescriptionURL]]) {
+      NSString* explanatoryText =
+        [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil),
+                                   NSLocalizedString(@"UnknownSearchPluginName", nil)];
+      NSAlert* parseErrorAlert = [[[NSAlert alloc] init] autorelease];
+      [parseErrorAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
+      [parseErrorAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationErrorTitle", nil)];
+      [parseErrorAlert setInformativeText:explanatoryText];
+      [parseErrorAlert setAlertStyle:NSWarningAlertStyle];
+
+      [NSMenu cancelAllTracking];
+      [parseErrorAlert runModal];
+      return NS_OK;
+    }
+    NSString* engineName = [pluginParser searchEngineName];
+    NSString* engineURL = [pluginParser searchEngineURL];
+
+    // Confirm that the user really wants to add the new engine.
     NSString* explanatoryText =
-      [NSString stringWithFormat:NSLocalizedString(@"SearchPluginAlreadyInstalledMessage", nil),
-                                 [existingEngineFromThisPlugin objectForKey:kWebSearchEngineNameKey]];
-    NSAlert* alreadyInstalledAlert = [[[NSAlert alloc] init] autorelease];
-    [alreadyInstalledAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
-    [alreadyInstalledAlert setMessageText:NSLocalizedString(@"SearchPluginAlreadyInstalledTitle", nil)];
-    [alreadyInstalledAlert setInformativeText:explanatoryText];
-    [alreadyInstalledAlert setAlertStyle:NSWarningAlertStyle];
+      [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationConfirmationMessage", nil),
+                                 engineName];
+    NSAlert* addSearchAlert = [[[NSAlert alloc] init] autorelease];
+    [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationConfirmButton", nil)];
+    NSButton* cancelButton = [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationCancelButton", nil)];
+    [cancelButton setKeyEquivalent:@"\e"];  // Esc
+    [addSearchAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationConfirmationTitle", nil)];
+    [addSearchAlert setInformativeText:explanatoryText];
+    [addSearchAlert setAlertStyle:NSInformationalAlertStyle];
 
     [NSMenu cancelAllTracking];
-    [alreadyInstalledAlert runModal];
-    return NS_OK;
+    if ([addSearchAlert runModal] != NSAlertFirstButtonReturn)
+      return NS_OK;
+
+    // If we got this far, everything checked out, so add the engine.
+    [searchEngineManager addSearchEngineWithName:engineName
+                                       searchURL:engineURL
+                                       pluginURL:searchDescriptionURL];
   }
-
-  XMLSearchPluginParser* pluginParser =
-    [XMLSearchPluginParser searchPluginParserWithMIMEType:kOpenSearchMIMEType];
-  if (![pluginParser parseSearchPluginAtURL:[NSURL URLWithString:searchDescriptionURL]]) {
-    NSString* explanatoryText =
-      [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil),
-                                 NSLocalizedString(@"UnknownSearchPluginName", nil)];
-    NSAlert* parseErrorAlert = [[[NSAlert alloc] init] autorelease];
-    [parseErrorAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
-    [parseErrorAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationErrorTitle", nil)];
-    [parseErrorAlert setInformativeText:explanatoryText];
-    [parseErrorAlert setAlertStyle:NSWarningAlertStyle];
-
-    [NSMenu cancelAllTracking];
-    [parseErrorAlert runModal];
-    return NS_OK;
+  @catch (id exception) {
+    NSLog(@"Exception caught try to add search engine from '%@': %@",
+          searchDescriptionURL, exception);
   }
-  NSString* engineName = [pluginParser searchEngineName];
-  NSString* engineURL = [pluginParser searchEngineURL];
-
-  // Confirm that the user really wants to add the new engine.
-  NSString* explanatoryText =
-    [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationConfirmationMessage", nil),
-                               engineName];
-  NSAlert* addSearchAlert = [[[NSAlert alloc] init] autorelease];
-  [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationConfirmButton", nil)];
-  NSButton* cancelButton = [addSearchAlert addButtonWithTitle:NSLocalizedString(@"SearchPluginInstallationCancelButton", nil)];
-  [cancelButton setKeyEquivalent:@"\e"];  // Esc
-  [addSearchAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationConfirmationTitle", nil)];
-  [addSearchAlert setInformativeText:explanatoryText];
-  [addSearchAlert setAlertStyle:NSInformationalAlertStyle];
-
-  [NSMenu cancelAllTracking];
-  if ([addSearchAlert runModal] != NSAlertFirstButtonReturn)
-    return NS_OK;
-
-  // If we got this far, everything checked out, so add the engine.
-  [searchEngineManager addSearchEngineWithName:engineName
-                                     searchURL:engineURL
-                                     pluginURL:searchDescriptionURL];
 
   return NS_OK;
 }
