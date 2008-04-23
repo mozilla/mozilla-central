@@ -63,24 +63,37 @@
       <method name="getControlElement">
         <body>
           return {
-            __proto__: this.ownerDocument.
-              getAnonymousElementByAttribute(this, "anonid", "slider"),
-
             set readonly() {
               // XXX: bug 343523
             },
+
             get start() {
-              return this.min;
+              return this.slider.min;
             },
             set start(aValue) {
-              this.min = aValue;
+              this.slider.min = aValue;
             },
+
+            get step() {
+              return this.slider.step;
+            },
+            set step(aValue) {
+              this.slider.step = aValue;
+            },
+
             get end() {
-              return this.max;
+              return this.slider.max;
             },
             set end(aValue) {
-              this.max = aValue;
-            }
+              this.slider.max = aValue;
+            },
+
+            set: function set(aMin, aMax, aStep, aValue) {
+              this.slider.set(aMin, aMax, aStep, aValue);
+            },
+
+            slider: this.ownerDocument.
+              getAnonymousElementByAttribute(this, "anonid", "slider"),
           };
         </body>
       </method>
