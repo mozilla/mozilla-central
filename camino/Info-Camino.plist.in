@@ -153,6 +153,11 @@
 	<string>%CM_APP_VERSION_CFBUNDLE%</string>
 	<key>CGDisableCoalescedUpdates</key>
 	<true/>
+	<key>com.apple.PreferenceSync.ExcludeSyncKeys</key>
+	<array>
+		<string>SUFeedURL</string> 
+		<string>SULastCheckTime</string>
+	</array>
 	<key>LSFileQuarantineEnabled</key>
 	<true/>
 	<key>LSFileQuarantineExcludedPathPatterns</key>
