@@ -48,8 +48,10 @@
   NSTextView*   mTextView;
 }
 
-//  it expects a point relative to the top left coordinate of the screen
-- (void)showToolTipAtPoint:(NSPoint)point withString:(NSString*)string overWindow:(NSWindow*)inWindow;
+// Display a tooltip at |point| (in window coordinates) in |inWindow|.
+- (void)showToolTipAtPoint:(NSPoint)point
+                withString:(NSString*)string
+                overWindow:(NSWindow*)inWindow;
 - (void)closeToolTip;
 
 @end

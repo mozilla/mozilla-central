@@ -99,11 +99,14 @@ const float kVOffset = 20.0;
   [super dealloc];
 }
 
-- (void)showToolTipAtPoint:(NSPoint)point withString:(NSString*)string overWindow:(NSWindow*)inWindow
+- (void)showToolTipAtPoint:(NSPoint)windowPoint
+                withString:(NSString*)string
+                overWindow:(NSWindow*)inWindow
 {
   if ([string length] == 0)
     return;
 
+  NSPoint point = [inWindow convertBaseToScreen:windowPoint];
   NSScreen* screen = [NSScreen screenForPoint:point];
   if (!screen)
     screen = [NSScreen mainScreen];

@@ -768,12 +768,11 @@ enum StatusPriority {
 //
 // onShowTooltip:where:withText
 //
-// Unfortunately, we can't use cocoa's apis here because they rely on setting a region
-// and waiting. We already have waited and we just want to display the tooltip, so we
-// drop down to the Carbon help manager routines.
+// Unfortunately, we can't use cocoa's apis here because they rely on setting a
+// region and waiting. We already have waited and we just want to display the
+// tooltip, so we use our own custom tooltip implementation.
 //
-// |where| is relative to the browser view in QD coordinates (top left is (0,0)) 
-// and must be converted to global QD coordinates for the carbon help manager.
+// |where| is in Gecko view coordinates (0, 0 is the top-left of the browser view).
 //
 - (void)onShowTooltip:(NSPoint)where withText:(NSString*)text
 {
@@ -782,8 +781,9 @@ enum StatusPriority {
   if (![self window] || ![[self window] isMainWindow])
     return;
 
-  NSPoint point = [[self window] convertBaseToScreen:[self convertPoint: where toView:nil]];
-  [mToolTip showToolTipAtPoint: point withString: text overWindow:mWindow];
+  where.y += [mBrowserView frame].origin.y;
+  NSPoint windowLocation = [self convertPoint:where toView:nil];
+  [mToolTip showToolTipAtPoint:windowLocation withString:text overWindow:mWindow];
 }
 
 - (void)onHideTooltip
