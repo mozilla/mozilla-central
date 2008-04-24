@@ -961,7 +961,7 @@ function MsgGetMessagesForAllAuthenticatedAccounts()
 function MsgGetMessagesForAccount(aFolder)
 {
   if (!aFolder) {
-    MsgGetMessagesForAllServers();
+    goDoCommand('cmd_getNewMessages');
     return;
   }
 
