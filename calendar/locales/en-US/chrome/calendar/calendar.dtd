@@ -72,8 +72,7 @@
 <!ENTITY calendar.edit.button.tooltip             "Edit selected event" >
 
 <!ENTITY calendar.unifinder.todoitems.label       "Tasks" >
-<!ENTITY calendar.unifinder.hidecompletedtodos.label "Hide Completed Tasks">
-<!ENTITY calendar.unifinder.showcompletedtodos.label "Show Completed Tasks">
+<!ENTITY calendar.unifinder.showcompletedtodos.label "Show completed Tasks">
 
 <!ENTITY calendar.calendartab.label "Date">
 <!ENTITY calendar.listofcalendarstab.label "Calendars">

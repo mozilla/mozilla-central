@@ -574,6 +574,23 @@ function toggleTasksInView() {
 }
 
 /**
+ * Toggle the show completed in view checkbox and refresh the current view
+ */
+function toggleShowCompletedInView() {
+    var cmd = document.getElementById("calendar_toggle_show_completed_in_view_command");
+    var newValue = (cmd.getAttribute("checked") == "true" ? "false" : "true");
+    cmd.setAttribute("checked", newValue);
+
+    var deck = getViewDeck();
+    for each (var view in deck.childNodes) {
+        view.showCompleted = (newValue == "true");
+    }
+
+    // Refresh the current view
+    currentView().goToDay(currentView().selectedDay);
+}
+
+/**
  * Provides a neutral way to go to the current day
  */
 function goToDate(aDate) {
@@ -589,16 +606,17 @@ function initializeViews() {
     // because those will actually toggle the current value.
     const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
     const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
+    const kShowCompleted = "calendar_toggle_show_completed_in_view_command";
     const kOrientation = "calendar_toggle_orientation_command";
-    const kHideCompleted = "hide-completed-checkbox";
+    
     var workdaysOnly = (document.getElementById(kWorkdaysCommand)
                                 .getAttribute("checked") == "true");
-
     var tasksInView = (document.getElementById(kTasksInViewCommand)
                                .getAttribute("checked") == "true");
+    var showCompleted = (document.getElementById(kShowCompleted)
+                                 .getAttribute("checked") == "true");
     var rotated = (document.getElementById(kOrientation)
                            .getAttribute("checked") == "true");
-    var showCompleted = !document.getElementById(kHideCompleted).checked;
 
     var deck = getViewDeck();
     for each (var view in deck.childNodes) {
@@ -661,13 +679,17 @@ function selectAllEvents() {
     };
 
     var composite = getCompositeCalendar();
-    var filter = composite.ITEM_FILTER_COMPLETED_ALL |
-                 composite.ITEM_FILTER_CLASS_OCCURRENCES;
+    var filter = composite.ITEM_FILTER_CLASS_OCCURRENCES;
 
     if (currentView().tasksInView) {
         filter |= composite.ITEM_FILTER_TYPE_ALL; 
     } else {
         filter |= composite.ITEM_FILTER_TYPE_EVENT;
+    }
+    if (currentView().showCompleted) {
+        filter |= composite.ITEM_FILTER_COMPLETED_ALL;
+    } else {
+        filter |= composite.ITEM_FILTER_COMPLETED_NO;
     }
 
     // Need to move one day out to get all events

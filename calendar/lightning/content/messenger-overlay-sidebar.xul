@@ -163,6 +163,13 @@
                    mode="calendar"
                    observes="calendar_toggle_tasks_in_view_command"/>
          <menuitem type="checkbox"
+                   id="ltn-show-completed-in-view"
+                   persist="checked"
+                   label="&calendar.completedtasks.checkbox.label;"
+                   accesskey="&calendar.completedtasks.checkbox.accesskey;"
+                   mode="calendar"
+                   observes="calendar_toggle_show_completed_in_view_command"/>
+         <menuitem type="checkbox"
                    id="ltn-multiday-rotated"
                    label="&calendar.orientation.label;"
                    accesskey="&calendar.orientation.accesskey;"

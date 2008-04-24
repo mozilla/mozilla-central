@@ -284,6 +284,11 @@
                      label="&calendar.displaytodos.checkbox.label;"
                      accesskey="&calendar.displaytodos.checkbox.accesskey;"
                      observes="calendar_toggle_tasks_in_view_command"/>
+           <menuitem id="completed-tasks-inview-checkbox-1"
+                     type="checkbox"
+                     label="&calendar.completedtasks.checkbox.label;"
+                     accesskey="&calendar.completedtasks.checkbox.accesskey;"
+                     observes="calendar_toggle_show_completed_in_view_command"/>
            <menu id="menu-numberofweeks-inview"
                  label="&calendar.menu.numberofweeks.label;"
                  accesskey="&calendar.menu.numberofweeks.accesskey;"

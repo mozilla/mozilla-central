@@ -125,7 +125,7 @@
       <field name="mContextTask">null</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
-      <field name="mHideCompletedTasks">false</field>
+      <field name="mShowCompletedTasks">false</field>
       <field name="mFilterFunction">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
@@ -170,12 +170,12 @@
         ]]></getter>
       </property>
 
-      <property name="hideCompleted">
+      <property name="showCompleted">
         <getter><![CDATA[
-          return this.mHideCompletedTasks;
+          return this.mShowCompletedTasks;
         ]]></getter>
         <setter><![CDATA[
-          this.mHideCompletedTasks = val;
+          this.mShowCompletedTasks = val;
           return val;
         ]]></setter>
       </property>
@@ -252,7 +252,7 @@
            */
 
           addItem: function tTV_addItem(aItem) {
-              if (aItem.isCompleted && this.binding.hideCompleted) {
+              if (aItem.isCompleted && !this.binding.showCompleted) {
                   return;
               }
               var index = this.binding.mHash2Index[aItem.hashId];
@@ -300,7 +300,7 @@
                   // same holds true for the completed filter, which is
                   // currently modeled as an explicit boolean.
                   if (aNewItem.isCompleted != aOldItem.isCompleted) {
-                      if (aNewItem.isCompleted && this.binding.hideCompleted) {
+                      if (aNewItem.isCompleted && !this.binding.showCompleted) {
                           this.removeItem(aNewItem);
                           return;
                       }
@@ -866,7 +866,7 @@
           var refreshJob = {
               execute: function() {
                   var composite = getCompositeCalendar();
-                  var filter = aFilter || savedThis.mHideCompletedTasks ?
+                  var filter = aFilter || !savedThis.mShowCompletedTasks ?
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;
@@ -904,7 +904,7 @@
           var refreshJob = {
               execute: function() {
                   var composite = getCompositeCalendar();
-                  var filter = aFilter || savedThis.mHideCompletedTasks ?
+                  var filter = aFilter || !savedThis.mShowCompletedTasks ?
                       composite.ITEM_FILTER_COMPLETED_NO :
                       composite.ITEM_FILTER_COMPLETED_ALL;
                   filter |= composite.ITEM_FILTER_TYPE_TODO;

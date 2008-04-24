@@ -63,28 +63,10 @@ function prepareCalendarToDoUnifinder() {
 
 function toDoUnifinderRefresh() {
     // Set up hiding completed tasks for the unifinder-todo tree
-    var hideCompleted = document.getElementById("hide-completed-checkbox").checked;
+    var showCompleted = document.getElementById("show-completed-checkbox").checked;
     var tree = document.getElementById("unifinder-todo-tree");
-    tree.hideCompleted = hideCompleted;
+    tree.showCompleted = showCompleted;
     tree.refresh();
-
-    var deck = getViewDeck();
-    var curview = currentView();
-    var currentViewHideCompleted = !curview.showCompleted;
-    var selectedDay = getSelectedDay();
-
-    // Set up show completed for each view
-    for each (var view in deck.childNodes) {
-        view.showCompleted = !hideCompleted;
-    }
-
-    // Only update view if hide completed has actually changed and tasks are
-    // visible in the view.
-    if (selectedDay &&
-        currentViewHideCompleted != hideCompleted &&
-        curview.tasksInView) {
-        deck.selectedPanel.goToDay(selectedDay);
-    }
 }
 
 function getToDoFromEvent(event) {
