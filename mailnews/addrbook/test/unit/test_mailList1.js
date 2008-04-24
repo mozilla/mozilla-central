@@ -59,11 +59,6 @@ function run_test() {
 
   // Part 3 - Add a new list.
 
-  // XXX Bug 424570 means that these tests don't work correctly (crash on
-  // exit due to cycle collector) - no actual problems when running with
-  // full app.
-
-  /*
   var mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"]
                            .createInstance(Components.interfaces.nsIAbDirectory);
 
@@ -73,15 +68,22 @@ function run_test() {
   mailList.description = "test4description";
 
   AB.addMailList(mailList);
-  */
 
-  // Part 4 - Check all lists (including the new one exist).
+  // check them
+  checkLists(AB.childNodes, 4);
 
-  //checkLists(AB.childNodes, 4);
+  // Part 4 - Remove a list.
 
+  mailList = abManager.getDirectory(kPABData.URI + "/MailList4");
+
+  AB.deleteDirectory(mailList);
+
+  // check them
+  checkLists(AB.childNodes, 3);
+
+  mailList = null;
   AB = null;
   temp = null;
-  rdf = null;
   testAB = null;
 
   cleanup();

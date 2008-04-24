@@ -667,16 +667,12 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
 
   nsCOMPtr<nsIAbDirectory> newList;
   rv = AddDirectory(listUri.get(), getter_AddRefs(newList));
-  nsCOMPtr<nsIAbMDBDirectory> dbnewList(do_QueryInterface(newList));
   if (NS_SUCCEEDED(rv) && newList)
   {
-    nsCOMPtr<nsIAddrDBListener> listener(do_QueryInterface(newList, &rv));
+    nsCOMPtr<nsIAbMDBDirectory> dbnewList(do_QueryInterface(newList, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = mDatabase->AddListener(listener);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    dbnewList->CopyDBMailList (dblist);
+    dbnewList->CopyDBMailList(dblist);
     AddMailListToDirectory(newList);
     NotifyItemAdded(newList);
   }
