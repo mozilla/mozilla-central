@@ -1058,7 +1058,7 @@
                       flex="1"
                       collapsed="true"
                       pack="start">
-        <label value="&event.priority.label;"/>
+        <label value="&event.priority2.label;"/>
         <image id="button-importance-low"
                class="cal-statusbar-1"
                collapsed="true"

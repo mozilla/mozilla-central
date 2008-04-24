@@ -179,7 +179,7 @@
 <!ENTITY event.private.label                              "Private" >
 <!ENTITY event.public.label                               "Public" >
 <!ENTITY event.confidential.label                         "Time and Date Only" >
-<!ENTITY event.priority.label                             "Importance:">
+<!ENTITY event.priority2.label                            "Priority:">
 
 <!ENTITY event.reminder.none.label                        "No reminder " >
 <!ENTITY event.reminder.5minutes.before.label             "5 minutes before" >
