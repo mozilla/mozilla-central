@@ -38,7 +38,7 @@
 .today-subpane {
   padding: 0px;
   border: 1px solid ThreeDShadow;
-  margin: 5px;
+  margin: 3px;
 }
 
 #buttonspacer {
@@ -48,6 +48,10 @@
 #today-pane-panel {
   background-color: -moz-Dialog;
   border-left: 1px solid ThreeDShadow;
+}
+
+#agenda-panel {
+  margin: 3px;
 }
 
 #mini-day-image {
