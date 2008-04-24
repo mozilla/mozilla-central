@@ -2286,7 +2286,8 @@ function FillIdentityList(menulist)
     var identites = queryISupportsArray(account.identities,
                                         Components.interfaces.nsIMsgIdentity);
     for each (var identity in identites) {
-      var item = menulist.appendItem(identity.identityName, identity.key, server.prettyName);
+      var item = menulist.appendItem(identity.identityName, identity.key,
+                                     account.incomingServer.prettyName);
       item.setAttribute("accountkey", account.key);
     }
   }
