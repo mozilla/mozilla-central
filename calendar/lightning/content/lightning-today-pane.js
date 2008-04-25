@@ -34,94 +34,67 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var ltnTodaypaneButton = "mail-show-todaypane-button";
 
- var ltnTodaypaneButton = "mail-show-todaypane-button";
- 
- function ltnAddButtonToDefaultset(toolbarSetString) {
-     var mailToolbar = getMailBar();
-     var elementcount = mailToolbar.childNodes.length;
-     var buttonisWithinSet = false;
-     // by default the todaypane-button is to be placed before the first
-     // separator of the toolbar
-     for (var i = 0; i < elementcount; i++) {
-         var element = mailToolbar.childNodes[i];
-         if (element.localName == "toolbarseparator") {
-             var separatorindex = toolbarSetString.indexOf("separator");
-             if (separatorindex > -1) {
-                 var firstSubString = toolbarSetString.substring(0, separatorindex);
-                 var secondSubString = toolbarSetString.substring(separatorindex);
-                 toolbarSetString = firstSubString + ltnTodaypaneButton + "," + secondSubString;
-             }
-             buttonisWithinSet = true;
-             break;
-         }
-     }
-     if (!buttonisWithinSet) {
-         // in case there is no separator within the toolbar we append the
-         // todaypane-button
-         toolbarSetString += "," + ltnTodaypaneButton;
-     }
-     return toolbarSetString;
- }
- 
- function ltnAddButtonToToolbarset() {
-     var mailToolbar = getMailBar();
-     var elementcount = mailToolbar.childNodes.length;
-     var buttonisWithinSet = false;
-     // by default the todaypane-button is to be placed before the first
-     // separator of the toolbar
-     for (var i = 0; i < elementcount; i++) {
-         var element = mailToolbar.childNodes[i];
-         if (element.localName == "toolbarseparator") {
-             mailToolbar.insertItem(ltnTodaypaneButton, element, null, false);
-             buttonisWithinSet = true;
-             break;
-         }
-     }
-     if (!buttonisWithinSet) {
-         // in case there is no separator within the toolbar we append the
-         // todaypane-button
-         mailToolbar.insertItem(ltnTodaypaneButton, null, null, false);
-     }
- }
- 
- /**  ltnInitTodayPane()
- *    initializes TodayPane for Lightning and adds a toolbarbutton to mail-toolbar once
- */
- function ltnInitTodayPane() {
-     // set Lightning attributes for current mode and restore last PaneView
- 
-     // add a menuitem to the 'View/Layout' -menu. As the respective "Layout" menupopup
-     // carries no 'id' attribute it cannot be overlaid
-     var todayMenuItem = document.getElementById("ltnShowTodayPane");
-     todayMenuItem = todayMenuItem.cloneNode(false);
-     todayMenuItem.setAttribute("id", "ltnShowTodayPaneMailMode");
-     todayMenuItem.removeAttribute("mode");
-     var messagePaneMenu = document.getElementById("menu_MessagePaneLayout");
-     if (messagePaneMenu != null) {
-         var messagePanePopupMenu = messagePaneMenu.firstChild;
-         messagePanePopupMenu.appendChild(todayMenuItem);
-     }
- 
-     // add toolbar-button to mail-toolbar
-     var mailToolbar = getMailBar();
-     var addToolbarbutton = false;
-     var defaultSetString = mailToolbar.getAttribute("defaultset");
-     if (defaultSetString.indexOf(ltnTodaypaneButton) == -1) {
-         defaultSetString = ltnAddButtonToDefaultset(defaultSetString);
-         mailToolbar.setAttribute("defaultset", defaultSetString);
-     }
- 
-     // add the toolbarbutton to the toolbarpalette on first startup
-     var todaypanebox = document.getElementById("today-pane-panel");
-     if (todaypanebox.hasAttribute("addtoolbarbutton")) {
-         addToolbarbutton = (todaypanebox.getAttribute("addtoolbarbutton") == "true");
-     }
-     if (addToolbarbutton) {
-         var currentSetString = mailToolbar.getAttribute("currentset");
-         if (currentSetString.indexOf(ltnTodaypaneButton) == -1) {
-             ltnAddButtonToToolbarset();
+function ltnAddButtonToSetString(toolbarSetString) {
+    // by default the todaypane-button is to be placed before the first
+    // separator of the toolbar
+    var separatorindex = toolbarSetString.indexOf("separator");
+    if (separatorindex > -1) {
+        var firstSubString = toolbarSetString.substring(0, separatorindex);
+        var secondSubString = toolbarSetString.substring(separatorindex);
+        toolbarSetString = firstSubString + ltnTodaypaneButton + "," + secondSubString;
+    } else {
+        // in case there is no separator within the toolbar we append the
+        // todaypane-button
+        toolbarSetString += "," + ltnTodaypaneButton;
+    }
+    return toolbarSetString;
+}
+
+/**  ltnInitTodayPane()
+*    initializes TodayPane for Lightning and adds a toolbarbutton to mail-toolbar once
+*/
+function ltnInitTodayPane() {
+    // set Lightning attributes for current mode and restore last PaneView
+
+    // add a menuitem to the 'View/Layout' -menu. As the respective "Layout" menupopup
+    // carries no 'id' attribute it cannot be overlaid
+    var todayMenuItem = document.getElementById("ltnShowTodayPane");
+    todayMenuItem = todayMenuItem.cloneNode(false);
+    todayMenuItem.setAttribute("id", "ltnShowTodayPaneMailMode");
+    todayMenuItem.removeAttribute("mode");
+    var messagePaneMenu = document.getElementById("menu_MessagePaneLayout");
+    if (messagePaneMenu != null) {
+        var messagePanePopupMenu = messagePaneMenu.firstChild;
+        messagePanePopupMenu.appendChild(todayMenuItem);
+    }
+
+    // add toolbar-button to mail-toolbar
+    var mailToolbar = getMailBar();
+    var addToolbarbutton = false;
+    var defaultSetString = mailToolbar.getAttribute("defaultset");
+    if (defaultSetString.indexOf(ltnTodaypaneButton) == -1) {
+        defaultSetString = ltnAddButtonToSetString(defaultSetString);
+        mailToolbar.setAttribute("defaultset", defaultSetString);
+    }
+
+    // add the toolbarbutton to the toolbarpalette on first startup
+    var todaypanebox = document.getElementById("today-pane-panel");
+    if (todaypanebox.hasAttribute("addtoolbarbutton")) {
+        addToolbarbutton = (todaypanebox.getAttribute("addtoolbarbutton") == "true");
+    }
+    if (addToolbarbutton) {
+        var currentSetString = mailToolbar.getAttribute("currentset");
+        if (currentSetString.indexOf(ltnTodaypaneButton) == -1) {
+            if (currentSetString.length == 0) {
+                mailToolbar.currentSet = mailToolbar.getAttribute("defaultset");
+            } else {
+                mailToolbar.currentSet = ltnAddButtonToSetString(currentSetString);
+            }
+            mailToolbar.setAttribute("currentset", mailToolbar.currentSet);
+            document.persist(mailToolbar.id, "currentset");
         }
-         todaypanebox.setAttribute("addtoolbarbutton", "false");
-     }
- }
+        todaypanebox.setAttribute("addtoolbarbutton", "false");
+    }
+}
