@@ -177,13 +177,14 @@ MozillaEnvironments['win32-vc8-mozbuild-unittest'] = {
             'C:\\WINDOWS\\System32\\Wbem;' + \
             'D:\\mozilla-build\\moztools\\bin;' + \
             'D:\\Utilities;',
-    "INCLUDE": 'C:\\Program Files\\Microsoft SDKsD:\\SDKs\\v6.0\\include;' + \
-               'D:\\SDKs\\v6.0\\include\\atl;' + \
-               'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + \
-               'D:\\msvs8\\VC\\INCLUDE;' + \
-               'D:\\msvs8\\VC\\PlatformSDK\\include;' + \
-               'D:\\msvs8\\SDK\\v2.0\\include;' + \
-               '%INCLUDE%',
+    "INCLUDE": 'C:\\Program Files\\Microsoft SDKs;' + \
+            'D:\\SDKs\\v6.0\\include;' + \
+            'D:\\SDKs\\v6.0\\include\\atl;' + \
+            'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + \
+            'D:\\msvs8\\VC\\INCLUDE;' + \
+            'D:\\msvs8\\VC\\PlatformSDK\\include;' + \
+            'D:\\msvs8\\SDK\\v2.0\\include;' + \
+            '%INCLUDE%',
     "LIB": 'D:\\SDKs\\v6.0\\lib;' + \
            'D:\\msvs8\\VC\\ATLMFC\\LIB;' + \
            'D:\\msvs8\\VC\\LIB;' + \
