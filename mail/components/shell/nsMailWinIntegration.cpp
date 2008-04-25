@@ -655,10 +655,10 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
 #if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
   IApplicationAssociationRegistration* pAAR;
 
-  HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationReg,
+  HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationRegistration,
                                  NULL,
                                  CLSCTX_INPROC,
-                                 IID_IApplicationAssociationReg,
+                                 IID_IApplicationAssociationRegistration,
                                  (void**)&pAAR);
 
   if (SUCCEEDED(hr))
