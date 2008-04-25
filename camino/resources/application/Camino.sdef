@@ -304,5 +304,9 @@
 			<cocoa name="GetURLCommand" class="GetURLCommand"/>
 			<direct-parameter description="the URL to open" type="text" optional="yes"/>
 		</command>
+		<command name="DeprecatedOpenURL" code="WWW!OURL" description="Open a URL in Camino via the deprecated OpenURL AppleEvent. Included for compatibility purposes only; scripts should use &ldquo;open location&rdquo; instead." hidden="yes">
+			<cocoa name="DeprecatedOpenURLCommand" class="GetURLCommand"/>
+			<direct-parameter description="the URL to open" type="text" optional="yes"/>
+		</command>
 	</suite>
 </dictionary>
