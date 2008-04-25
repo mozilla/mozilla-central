@@ -44,10 +44,16 @@
 #ifndef __MINGW32__
 #include "nsIMapiSupport.h"
 #endif
-#include "shlobj.h"
 #include "windows.h"
 #include "shellapi.h"
 #include "nsILocalFile.h"
+
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0600
+#define INITGUID
+#include <shlobj.h>
 
 #include <mbstring.h>
 
@@ -643,54 +649,10 @@ nsWindowsShellService::setKeysForSettings(SETTING aSettings[], PRInt32 aSize, co
   }
 }
 
-// Support for versions of shlobj.h that don't include the Vista API's
-#if !defined(IApplicationAssociationRegistration)
-
-typedef enum tagASSOCIATIONLEVEL
-{
-  AL_MACHINE,
-  AL_EFFECTIVE,
-  AL_USER
-} ASSOCIATIONLEVEL;
-
-typedef enum tagASSOCIATIONTYPE
-{
-  AT_FILEEXTENSION,
-  AT_URLPROTOCOL,
-  AT_STARTMENUCLIENT,
-  AT_MIMETYPE
-} ASSOCIATIONTYPE;
-
-MIDL_INTERFACE("4e530b0a-e611-4c77-a3ac-9031d022281b")
-IApplicationAssociationRegistration : public IUnknown
-{
- public:
-  virtual HRESULT STDMETHODCALLTYPE QueryCurrentDefault(LPCWSTR pszQuery,
-                                                        ASSOCIATIONTYPE atQueryType,
-                                                        ASSOCIATIONLEVEL alQueryLevel,
-                                                        LPWSTR *ppszAssociation) = 0;
-  virtual HRESULT STDMETHODCALLTYPE QueryAppIsDefault(LPCWSTR pszQuery,
-                                                      ASSOCIATIONTYPE atQueryType,
-                                                      ASSOCIATIONLEVEL alQueryLevel,
-                                                      LPCWSTR pszAppRegistryName,
-                                                      BOOL *pfDefault) = 0;
-  virtual HRESULT STDMETHODCALLTYPE QueryAppIsDefaultAll(ASSOCIATIONLEVEL alQueryLevel,
-                                                         LPCWSTR pszAppRegistryName,
-                                                         BOOL *pfDefault) = 0;
-  virtual HRESULT STDMETHODCALLTYPE SetAppAsDefault(LPCWSTR pszAppRegistryName,
-                                                    LPCWSTR pszSet,
-                                                    ASSOCIATIONTYPE atSetType) = 0;
-  virtual HRESULT STDMETHODCALLTYPE SetAppAsDefaultAll(LPCWSTR pszAppRegistryName) = 0;
-  virtual HRESULT STDMETHODCALLTYPE ClearUserAssociations( void) = 0;
-};
-#endif
-
-static const CLSID CLSID_ApplicationAssociationReg = {0x591209C7,0x767B,0x42B2,{0x9F,0xBA,0x44,0xEE,0x46,0x15,0xF2,0xC7}};
-static const IID   IID_IApplicationAssociationReg  = {0x4e530b0a,0xe611,0x4c77,{0xa3,0xac,0x90,0x31,0xd0,0x22,0x28,0x1b}};
-
 PRBool
 nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps, PRBool* aIsDefaultClient)
 {
+#if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
   IApplicationAssociationRegistration* pAAR;
 
   HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationReg,
@@ -719,19 +681,20 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
     pAAR->Release();
     return PR_TRUE;
   }
-
+#endif
   return PR_FALSE;
 }
 
 PRBool
 nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
 {
+#if !defined(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
   IApplicationAssociationRegistration* pAAR;
 
-  HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationReg,
+  HRESULT hr = CoCreateInstance (CLSID_ApplicationAssociationRegistration,
                                  NULL,
                                  CLSCTX_INPROC,
-                                 IID_IApplicationAssociationReg,
+                                 IID_IApplicationAssociationRegistration,
                                  (void**)&pAAR);
 
   if (SUCCEEDED(hr))
@@ -744,6 +707,6 @@ nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
     pAAR->Release();
     return PR_TRUE;
   }
-
+#endif
   return PR_FALSE;
 }
