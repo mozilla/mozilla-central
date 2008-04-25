@@ -249,24 +249,43 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
   for (unsigned int i = 0; i < attrList->count; i++) {
     SecKeychainAttribute attr = attrList->attr[i];
-    if (attr.tag == kSecAccountItemAttr)
-      mUsername = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kSecServerItemAttr)
-      mHost = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kSecCommentItemAttr)
-      mComment = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kSecSecurityDomainItemAttr)
-      mSecurityDomain = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kRawKeychainLabelIndex || attr.tag == kSecLabelItemAttr)
-      mLabel = [[NSString alloc] initWithBytes:(char*)(attr.data) length:attr.length encoding:NSUTF8StringEncoding];
-    else if (attr.tag == kSecPortItemAttr)
-      mPort = *((UInt16*)(attr.data));
-    else if (attr.tag == kSecProtocolItemAttr)
-      mProtocol = *((SecProtocolType*)(attr.data));
-    else if (attr.tag == kSecAuthenticationTypeItemAttr)
-      mAuthenticationType = *((SecAuthenticationType*)(attr.data));
-    else if (attr.tag == kSecCreatorItemAttr)
+    if (attr.tag == kSecAccountItemAttr) {
+      mUsername = attr.data ? [[NSString alloc] initWithBytes:(char*)(attr.data)
+                                                       length:attr.length
+                                                     encoding:NSUTF8StringEncoding] : @"";
+    }
+    else if (attr.tag == kSecServerItemAttr) {
+      mHost = attr.data ? [[NSString alloc] initWithBytes:(char*)(attr.data)
+                                                   length:attr.length
+                                                 encoding:NSUTF8StringEncoding] : @"";
+    }
+    else if (attr.tag == kSecCommentItemAttr) {
+      mComment = attr.data ? [[NSString alloc] initWithBytes:(char*)(attr.data)
+                                                      length:attr.length
+                                                    encoding:NSUTF8StringEncoding] : @"";
+    }
+    else if (attr.tag == kSecSecurityDomainItemAttr) {
+      mSecurityDomain = attr.data ? [[NSString alloc] initWithBytes:(char*)(attr.data)
+                                                             length:attr.length
+                                                           encoding:NSUTF8StringEncoding] : @"";
+    }
+    else if (attr.tag == kRawKeychainLabelIndex || attr.tag == kSecLabelItemAttr) {
+      mLabel = attr.data ? [[NSString alloc] initWithBytes:(char*)(attr.data)
+                                                    length:attr.length
+                                                  encoding:NSUTF8StringEncoding] : @"";
+    }
+    else if (attr.tag == kSecPortItemAttr) {
+      mPort = attr.data ? *((UInt16*)(attr.data)) : kAnyPort;
+    }
+    else if (attr.tag == kSecProtocolItemAttr) {
+      mProtocol = attr.data ? *((SecProtocolType*)(attr.data)) : 0;
+    }
+    else if (attr.tag == kSecAuthenticationTypeItemAttr) {
+      mAuthenticationType = attr.data ? *((SecAuthenticationType*)(attr.data)) : 0;
+    }
+    else if (attr.tag == kSecCreatorItemAttr) {
       mCreator = attr.data ? *((OSType*)(attr.data)) : 0;
+    }
   }
   SecKeychainItemFreeAttributesAndData(attrList, NULL);
   mDataLoaded = YES;
