@@ -1728,7 +1728,7 @@ enum {
     cmd_Version,
     cmd_Batch,
     cmd_Merge,
-    cmd_UpgradeMerge, /* test only */
+    cmd_UpgradeMerge /* test only */
 };
 
 /*  Certutil options */
