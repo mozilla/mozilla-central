@@ -34,24 +34,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function calProtocolHandler() {
-    var ios = Components.classes["@mozilla.org/network/io-service;1"].
-                         getService(Components.interfaces.nsIIOService);
-    this.mHttpProtocol = ios.getProtocolHandler("http");
+function calProtocolHandler(contractid) {
+    this.scheme = contractid.substr("@mozilla.org/network/protocol;1?name=".length);
+    this.mHttpProtocol = getIOService().getProtocolHandler(this.scheme == "webcal" ? "http" : "https");
 }
 
 calProtocolHandler.prototype = {
     QueryInterface: function cph_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.nsIProtocolHandler)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-
-        return this;
+        return doQueryInterface(this, calProtocolHandler.prototype, aIID,
+                                [ Components.interfaces.nsIProtocolHandler, Components.interfaces.nsISupports ]);
     },
 
-    scheme: "webcal",
-    
     get defaultPort() {
         return this.mHttpProtocol.defaultPort;
     },
@@ -64,7 +57,7 @@ calProtocolHandler.prototype = {
         var uri = Components.classes["@mozilla.org/network/standard-url;1"].
                              createInstance(Components.interfaces.nsIStandardURL);
         uri.init(Components.interfaces.nsIStandardURL.URLTYPE_STANDARD, 
-                 80, aSpec, anOriginalCharset, aBaseURI);
+                 this.mHttpProtocol.defaultPort, aSpec, anOriginalCharset, aBaseURI);
         return uri;
     },
     
@@ -72,14 +65,9 @@ calProtocolHandler.prototype = {
         // make sure to clone the uri, because we are about to change
         // it, and we don't want to change the original uri.
         var uri = aUri.clone();
-        if (uri.scheme == 'webcal')
-            uri.scheme = 'http';
-        if (uri.scheme == 'webcals')
-            uri.scheme = 'https';
+        uri.scheme = this.mHttpProtocol.scheme;
 
-        var ios = Components.classes["@mozilla.org/network/io-service;1"].
-                             getService(Components.interfaces.nsIIOService);
-        var channel = ios.newChannelFromURI(uri, null);
+        var channel = getIOService().newChannelFromURI(uri, null);
         channel.originalURI = aUri;
         return channel;
     },

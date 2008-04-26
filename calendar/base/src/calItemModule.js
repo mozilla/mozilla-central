@@ -189,6 +189,11 @@ const componentData =
      script: "calProtocolHandler.js",
      constructor: "calProtocolHandler"},
 
+    {cid: Components.ID("{b2ee6f91-b061-4527-97a1-b85361775fc1}"),
+     contractid: "@mozilla.org/network/protocol;1?name=webcals",
+     script: "calProtocolHandler.js",
+     constructor: "calProtocolHandler"},
+
     {cid: Components.ID("{6fe88047-75b6-4874-80e8-5f5800f14984}"),
      contractid: "@mozilla.org/calendar/ics-parser;1",
      script: "calIcsParser.js",
@@ -279,7 +284,7 @@ var calItemModule = {
         }
     },
 
-    makeFactoryFor: function(constructor) {
+    makeFactoryFor: function(constructor, contractid) {
         var factory = {
             QueryInterface: function (aIID) {
                 if (!aIID.equals(Components.interfaces.nsISupports) &&
@@ -291,7 +296,7 @@ var calItemModule = {
             createInstance: function (outer, iid) {
                 if (outer != null)
                     throw Components.results.NS_ERROR_NO_AGGREGATION;
-                return (new constructor()).QueryInterface(iid);
+                return (new constructor(contractid)).QueryInterface(iid);
             }
         };
 
@@ -316,7 +321,9 @@ var calItemModule = {
                     eval(componentData[i].onComponentLoad);
                 }
                 // eval to get usual scope-walking
-                return this.makeFactoryFor(eval(componentData[i].constructor));
+                // somebody knows why we eval the constructor function's name?
+                return this.makeFactoryFor(eval(componentData[i].constructor),
+                                           componentData[i].contractid);
             }
         }
 
