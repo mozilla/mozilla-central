@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.68 2008-03-15 02:15:34 alexei.volkov.bugs%sun.com Exp $
+ * $Id: cert.h,v 1.69 2008-04-26 00:49:15 julien.pierre.boogz%sun.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -548,6 +548,14 @@ CERT_FindCertByIssuerAndSN (CERTCertDBHandle *handle, CERTIssuerAndSN *issuerAnd
 */
 extern CERTCertificate *
 CERT_FindCertBySubjectKeyID (CERTCertDBHandle *handle, SECItem *subjKeyID);
+
+/*
+** Encode Certificate SKID (Subject Key ID) extension.
+**
+*/
+extern SECStatus 
+CERT_EncodeSubjectKeyID(PRArenaPool *arena, const SECItem* srcString,
+                        SECItem *encodedValue);
 
 /*
 ** Find a certificate in the database by a nickname
