@@ -95,7 +95,7 @@ LIBRT=-lposix4
 endif
 
 ifdef USE_PTHREADS
-OS_LIBS			= -lpthread -lthread ${LIBRT} -lsocket -lnsl -ldl -lc
+OS_LIBS			= -lpthread ${LIBRT} -lsocket -lnsl -ldl -lc
 else
 ifdef LOCAL_THREADS_ONLY
 OS_LIBS			= -lsocket -lnsl -ldl -lc

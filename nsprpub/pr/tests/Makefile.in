@@ -334,7 +334,7 @@ ifeq ($(OS_ARCH), SunOS)
 
     ifneq ($(LOCAL_THREADS_ONLY),1)
         ifdef USE_PTHREADS
-            EXTRA_LIBS = -lpthread -lthread
+            EXTRA_LIBS = -lpthread
         else
             EXTRA_LIBS = -lthread
         endif
