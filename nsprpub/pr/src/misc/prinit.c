@@ -417,6 +417,8 @@ PR_IMPLEMENT(PRStatus) PR_Cleanup()
         _PR_CleanupDtoa();
         _PR_CleanupCallOnce();
 		_PR_ShutdownLinker();
+        _PR_CleanupNet();
+        _PR_CleanupIO();
         /* Release the primordial thread's private data, etc. */
         _PR_CleanupThread(me);
 
@@ -446,8 +448,6 @@ PR_IMPLEMENT(PRStatus) PR_Cleanup()
          * Ideally, for each _PR_InitXXX(), there should be a corresponding
          * _PR_XXXCleanup() that we can call here.
          */
-        _PR_CleanupNet();
-        _PR_CleanupIO();
 #ifdef WINNT
         _PR_CleanupCPUs();
 #endif
