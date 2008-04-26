@@ -207,6 +207,50 @@ extern PRInt32 _PR_ppc_AtomicSet(PRInt32 *val, PRInt32 newval);
 })
 #endif
 
+#if defined(__arm__) && defined(_PR_ARM_KUSER)
+#define _PR_HAVE_ATOMIC_OPS
+#define _MD_INIT_ATOMIC()
+
+/*
+ * The kernel provides this helper function at a fixed address with a fixed
+ * ABI signature, directly callable from user space.
+ *
+ * Definition:
+ * Atomically store newval in *ptr if *ptr is equal to oldval.
+ * Return zero if *ptr was changed or non-zero if no exchange happened.
+ */
+typedef int (__kernel_cmpxchg_t)(int oldval, int newval, volatile int *ptr);
+#define __kernel_cmpxchg (*(__kernel_cmpxchg_t *)0xffff0fc0)
+
+#define _MD_ATOMIC_INCREMENT(ptr) _MD_ATOMIC_ADD(ptr, 1)
+#define _MD_ATOMIC_DECREMENT(ptr) _MD_ATOMIC_ADD(ptr, -1)
+
+static inline PRInt32 _MD_ATOMIC_ADD(PRInt32 *ptr, PRInt32 n)
+{
+    PRInt32 ov, nv;
+    volatile PRInt32 *vp = ptr;
+
+    do {
+        ov = *vp;
+        nv = ov + n;
+    } while (__kernel_cmpxchg(ov, nv, vp));
+
+    return nv;
+}
+
+static inline PRInt32 _MD_ATOMIC_SET(PRInt32 *ptr, PRInt32 nv)
+{
+    PRInt32 ov;
+    volatile PRInt32 *vp = ptr;
+
+    do {
+        ov = *vp;
+    } while (__kernel_cmpxchg(ov, nv, vp));
+
+    return ov;
+}
+#endif
+
 #define USE_SETJMP
 #if defined(__GLIBC__) && __GLIBC__ >= 2
 #define _PR_POLL_AVAILABLE
