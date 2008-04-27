@@ -133,7 +133,7 @@
 <!ENTITY calendar.cut.button.tooltip            "Cut" >
 <!ENTITY calendar.copy.button.tooltip           "Copy" >
 <!ENTITY calendar.paste.button.tooltip          "Paste" >
-<!ENTITY calendar.print.button.tooltip          "Print Calendar" >
+<!ENTITY calendar.print.button.tooltip          "Print calendar" >
 
 <!ENTITY calendar.cut.button.label              "Cut" >
 <!ENTITY calendar.copy.button.label             "Copy" >
