@@ -442,8 +442,8 @@ extern void _MD_CleanupBeforeExit(void);
         _main();  \
     }  \
     _MD_GET_SP(_thread) = (unsigned char*) ((_sp) - 128); \
-	_thread->md.sp = _MD_GET_SP_PTR(_thread); \
-	_thread->md.fp = _MD_GET_FP_PTR(_thread); \
+    _thread->md.sp = _MD_GET_SP_PTR(_thread); \
+    _thread->md.fp = _MD_GET_FP_PTR(_thread); \
     _MD_SET_FP(_thread, 0); \
 }
 
@@ -469,8 +469,8 @@ extern void _MD_CleanupBeforeExit(void);
         _main();  \
     }  \
     _MD_GET_SP(_thread) = (_MD_SP_TYPE) ((_sp) - 64); \
-	_thread->md.sp = _MD_GET_SP_PTR(_thread); \
-	_thread->md.fp = _MD_GET_FP_PTR(_thread); \
+    _thread->md.sp = _MD_GET_SP_PTR(_thread); \
+    _thread->md.fp = _MD_GET_FP_PTR(_thread); \
     _MD_SET_FP(_thread, 0); \
 }
 
@@ -496,8 +496,8 @@ extern void _MD_CleanupBeforeExit(void);
 
 struct _MDThread {
     PR_CONTEXT_TYPE context;
-	void *sp;
-	void *fp;
+    void *sp;
+    void *fp;
     int id;
     int errcode;
 };
@@ -536,10 +536,10 @@ struct _MDCPU_Unix {
 #ifndef _PR_USE_POLL
     fd_set fd_read_set, fd_write_set, fd_exception_set;
     PRInt16 fd_read_cnt[_PR_MD_MAX_OSFD],fd_write_cnt[_PR_MD_MAX_OSFD],
-				fd_exception_cnt[_PR_MD_MAX_OSFD];
+            fd_exception_cnt[_PR_MD_MAX_OSFD];
 #else
-	struct pollfd *ioq_pollfds;
-	int ioq_pollfds_size;
+    struct pollfd *ioq_pollfds;
+    int ioq_pollfds_size;
 #endif	/* _PR_USE_POLL */
 };
 
@@ -560,7 +560,7 @@ struct _MDCPU_Unix {
 #define _PR_IOQ_MIN_POLLFDS_SIZE(_cpu)	32
 
 struct _MDCPU {
-	struct _MDCPU_Unix md_unix;
+    struct _MDCPU_Unix md_unix;
 };
 
 #define _MD_INIT_LOCKS()
@@ -600,7 +600,7 @@ extern PRIntervalTime _PR_UNIX_GetInterval(void);
 extern PRIntervalTime _PR_UNIX_TicksPerSecond(void);
 
 #define _MD_EARLY_INIT                  _MD_EarlyInit
-#define _MD_FINAL_INIT					_PR_UnixInit
+#define _MD_FINAL_INIT                  _PR_UnixInit
 #define _MD_GET_INTERVAL                _PR_UNIX_GetInterval
 #define _MD_INTERVAL_PER_SEC            _PR_UNIX_TicksPerSecond
 
