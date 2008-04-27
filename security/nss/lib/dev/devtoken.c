@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.45 $ $Date: 2008-04-23 16:37:19 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.46 $ $Date: 2008-04-27 02:13:52 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -70,6 +70,10 @@ nssToken_Destroy (
 	if (PR_AtomicDecrement(&tok->base.refCount) == 0) {
 	    PZ_DestroyLock(tok->base.lock);
 	    nssTokenObjectCache_Destroy(tok->cache);
+	    /* The token holds the first/last reference to the slot.
+	     * When the token is actually destroyed, that ref must go too.
+	     */
+	    (void)nssSlot_Destroy(tok->slot);
 	    return nssArena_Destroy(tok->base.arena);
 	}
     }

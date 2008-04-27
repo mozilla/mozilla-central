@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.56 $ $Date: 2007-11-16 18:57:54 $";
+static const char CVS_ID[] = "@(#) $RCSfile: trustdomain.c,v $ $Revision: 1.57 $ $Date: 2008-04-27 02:13:47 $";
 #endif /* DEBUG */
 
 #ifndef DEV_H
@@ -101,8 +101,10 @@ static void
 token_destructor(void *t)
 {
     NSSToken *tok = (NSSToken *)t;
-    /* in 3.4, also destroy the slot (managed separately) */
-    (void)nssSlot_Destroy(tok->slot);
+    /* The token holds the first/last reference to the slot.
+     * When the token is actually destroyed (ref count == 0), 
+     * the slot will also be destroyed.
+     */
     nssToken_Destroy(tok);
 }
 
