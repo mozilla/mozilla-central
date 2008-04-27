@@ -409,12 +409,12 @@ breakout:
                                            &log, /* error log */
                                            NULL);/* returned usages */
     } else do {
-        CERTValOutParam cvout[4];
-        CERTValInParam cvin[6];
+        static CERTValOutParam cvout[4];
+        static CERTValInParam cvin[6];
         SECOidTag oidTag;
         int inParamIndex = 0;
-        CERTRevocationFlags rev;
-        PRUint64 revFlags[2];
+        static CERTRevocationFlags rev;
+        static PRUint64 revFlags[2];
 
         if (oidStr) {
             PRArenaPool *arena;
