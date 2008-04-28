@@ -2219,7 +2219,7 @@ function sendItipInvitation(aItem) {
     // For this support, we'll need a real invitation manager component.
     var organizer = Components.classes["@mozilla.org/calendar/attendee;1"]
                               .createInstance(Components.interfaces.calIAttendee);
-    organizer.id = tranport.scheme + ":" + transport.defaultIdentity;
+    organizer.id = transport.scheme + ":" + transport.defaultIdentity;
     organizer.role = "REQ-PARTICIPANT";
     organizer.participationStatus = "ACCEPTED";
     organizer.isOrganizer = true;
