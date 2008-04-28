@@ -21,6 +21,7 @@
 # Contributor(s):
 #   Rob Campbell <rcampbell@mozilla.com>
 #   Chris Cooper <ccooper@mozilla.com>
+#   Ben Hearsum <bhearsum@mozilla.com>
 # ***** END LICENSE BLOCK *****
 
 import re
@@ -239,7 +240,7 @@ class MozillaOSXReftest(MozillaReftest):
                "reftest.list"]
 
 class MozillaWin32Reftest(MozillaReftest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest reftest.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest reftest.list']
 
 class MozillaCrashtest(MozillaReftest):
     name = "crashtest"
@@ -263,7 +264,7 @@ class MozillaOSXCrashtest(MozillaCrashtest):
                "crashtests.list"]
 
 class MozillaWin32Crashtest(MozillaCrashtest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtests.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest crashtests.list']
 
 class MozillaMochitest(ShellCommand):
     name = "mochitest"
@@ -417,7 +418,7 @@ class MozillaBrowserChromeTest(ShellCommand):
         return SUCCESS
     
 class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
-    command = ['python runtests.py --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
+    command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --browser-chrome --close-when-done']
 
 class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
     command = ["python",
