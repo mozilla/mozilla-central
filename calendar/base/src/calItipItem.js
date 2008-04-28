@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -144,6 +145,14 @@ calItipItem.prototype = {
     },
     set targetCalendar(aValue) {
         return (this.mTargetCalendar = aValue);
+    },
+
+    mIdentity: null,
+    get identity() {
+        return this.mIdentity;
+    },
+    set identity(aValue) {
+        return (this.mIdentity = aValue);
     },
 
     mLocalStatus: null,

@@ -23,6 +23,7 @@
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Mauro Cicognini <mcicogni@libero.it>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -187,14 +188,7 @@ ltnMimeConverter.prototype = {
                 var observer = Components.classes["@mozilla.org/observer-service;1"].
                                getService(Components.interfaces.nsIObserverService);
                 observer.notifyObservers(null, "onItipItemCreation", 0);
-            } else {
-                // Thunderbird 1.5.x case: We have no choice but to try
-                // sending the iTIP item directly with the notification
-                var observer = Components.classes["@mozilla.org/observer-service;1"].
-                               getService(Components.interfaces.nsIObserverService);
-                observer.notifyObservers(itipItem, "onItipItemCreation", 0);
             }
-
         } catch (e) {
             Components.utils.reportError("convertToHTML: " +
                                          "Cannot create itipItem: " + e);

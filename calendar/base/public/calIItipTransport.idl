@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,8 +52,18 @@ interface calIItipTransport : nsISupports
     /**
      * Default identity for me within this transport. For example, this is
      * your default email address in Thunderbird.
+     *
+     * XXX This should probably go away, using the default identity is far
+     * from practical. Only user right now is calUtils's sendItipInvitation.
+     * See bug 431126.
      */
     readonly attribute AUTF8String defaultIdentity;
+
+    /**
+     * Scheme to be used to prefix attendees. For example, the Email transport
+     * should reuturn "mailto".
+     */
+    readonly attribute AUTF8String scheme;
 
     /**
      * Sending identity. This can be set to change the "sender" identity from

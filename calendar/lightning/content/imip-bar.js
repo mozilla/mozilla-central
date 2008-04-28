@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -61,10 +62,6 @@ function checkForItipItem(subject)
             // This property was set by LightningTextCalendarConverter.js
             itipItem = sinkProps.getPropertyAsInterface("itipItem",
                                                         Components.interfaces.calIItipItem);
-        } else {
-            // With Thunderbird 1.5.x we have to use the subject to pass the
-            // iTIP item because we don't have sinkProps available.
-            itipItem = subject.QueryInterface(Components.interfaces.calIItipItem);
         }
     } catch (e) {
         // This will throw on every message viewed that doesn't have the
@@ -73,6 +70,9 @@ function checkForItipItem(subject)
         // XXX TODO: Only swallow the errors we need to. Throw all others.
         return;
     }
+
+    // Get the recipient identity and save it with the itip item.
+    itipItem.identity = getMsgRecipient();
 
     // We are only called upon receipt of an invite, so ensure that isSend
     // is false.
@@ -232,9 +232,23 @@ function getMsgRecipient()
     if (identities.Count() == 0) {
         // If we were not able to retrieve identities above, then we have no
         // choice but to revert to the default identity
-        var emailSvc = Components.classes["@mozilla.org/calendar/itip-transport;1?type=email"]
-                                 .getService(Components.interfaces.calIItipTransport);
-        emailMap[emailSvc.defaultIdentity.toLowerCase()] = true;
+        var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                .getService(Components.interfaces.nsIMsgAccountManager);
+        var identity = acctMgr.defaultAccount.defaultIdentity;
+        if (!identity) {
+            // If there isn't a default identity (i.e Local Folders is your
+            // default identity), then go ahead and use the first available
+            // identity.
+            var allIdentities = acctMgr.allIdentities;
+            if (allIdentities.Count() > 0) {
+                identity = allIdentities.GetElementAt(0)
+                                        .QueryInterface(Components.interfaces.nsIMsgIdentity);
+            } else {
+                // If there are no identities at all, we cannot get a recipient.
+                return null;
+            }
+        }
+        emailMap[identity.toLowerCase()] = true;
     } else {
         // Build a map of usable email addresses
         for (var i = 0; i < identities.Count(); i++) {
@@ -304,7 +318,7 @@ function getTargetCalendar()
  */
 function setAttendeeResponse(type, eventStatus)
 {
-    var myAddress = getMsgRecipient();
+    var myAddress = gItipItem.identity
     if (!myAddress) {
         // Bug 420516 -- we don't support delegation yet TODO: Localize this?
         throw new Error("setAttendeeResponse: " +
@@ -312,25 +326,30 @@ function setAttendeeResponse(type, eventStatus)
                         "is not supported yet.  See bug 420516 for details.");
     }
     if (type && gItipItem) {
-        // We set the attendee status appropriately
+        // Some methods need a target calendar. Prompt for it first.
         switch (type) {
             case "ACCEPTED":
             case "TENTATIVE":
-                gItipItem.setAttendeeStatus(myAddress, type);
-                // fall through
             case "REPLY":
             case "PUBLISH":
-                var targetCalendar = getTargetCalendar();
-                gItipItem.targetCalendar = targetCalendar;
-                doResponse(eventStatus);
-                break;
+                gItipItem.targetCalendar = getTargetCalendar();
+                if (!gItipItem.targetCalendar) {
+                    // The dialog was canceled, we are done.
+                    return;
+                }
+        }
+
+        // Now set the attendee status and perform the iTIP action. If the
+        // method is not mentioned here, no further action will be taken.
+        switch (type) {
+            case "ACCEPTED":
+            case "TENTATIVE":
             case "DECLINED":
                 gItipItem.setAttendeeStatus(myAddress, type);
+                // Fall through
+            case "REPLY":
+            case "PUBLISH":
                 doResponse(eventStatus);
-                break;
-            default:
-                // no-op. The attendee wishes to disregard the mail, so no
-                // further action is required.
                 break;
         }
     }
@@ -367,7 +386,7 @@ function doResponse(aLocalStatus)
     }
 
     var itipProc = Components.classes["@mozilla.org/calendar/itip-processor;1"]
-                             .createInstance(Components.interfaces.calIItipProcessor);
+                             .getService(Components.interfaces.calIItipProcessor);
 
     itipProc.processItipItem(gItipItem, operationListener);
 }

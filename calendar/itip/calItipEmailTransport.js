@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -64,6 +65,10 @@ calItipEmailTransport.prototype = {
     mDefaultIdentity: null,
     get defaultIdentity() {
         return this.mDefaultIdentity.email;
+    },
+
+    get scheme() {
+        return "mailto";
     },
 
     mSenderAddress: null,

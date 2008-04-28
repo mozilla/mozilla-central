@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -110,6 +111,13 @@ interface calIItipItem : nsISupports
      * stored in, if it should be stored onto a calendar. This is a calendar ID
      */
     attribute calICalendar targetCalendar;
+
+    /**
+     * The identity this item was received on. Helps to determine which
+     * attendee to manipulate. This should be the full email address of the
+     * attendee that is considered to be the local user.
+     */
+    attribute AUTF8String identity;
 
     /**
      * localStatus: The response that the user has made to the invitation in

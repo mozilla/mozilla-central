@@ -2180,10 +2180,10 @@ function sendItipInvitation(aItem) {
     // is worked into the event dialog (which has been done in the prototype
     // dialog to a degree) then we are going to simply hack in some attendee
     // support so that we can round-trip iTIP invitations.
-    // Since there is no way to determine the type of transport an
-    // attendee requires, we default to email
-    var emlSvc = Components.classes["@mozilla.org/calendar/itip-transport;1?type=email"]
-                           .createInstance(Components.interfaces.calIItipTransport);
+    var transportType = aItem.calendar.getProperty("itip.transportType") || "email";
+
+    var transport = Components.classes["@mozilla.org/calendar/itip-transport;1?type=" + transportType]
+                           .getService(Components.interfaces.calIItipTransport);
 
     var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
                              .createInstance(Components.interfaces.calIItipItem);
@@ -2219,7 +2219,7 @@ function sendItipInvitation(aItem) {
     // For this support, we'll need a real invitation manager component.
     var organizer = Components.classes["@mozilla.org/calendar/attendee;1"]
                               .createInstance(Components.interfaces.calIAttendee);
-    organizer.id = "mailto:" + emlSvc.defaultIdentity;
+    organizer.id = tranport.scheme + ":" + transport.defaultIdentity;
     organizer.role = "REQ-PARTICIPANT";
     organizer.participationStatus = "ACCEPTED";
     organizer.isOrganizer = true;
@@ -2251,9 +2251,9 @@ function sendItipInvitation(aItem) {
     var subject = sb.formatStringFromName("itipRequestSubject",
                                           [summary], 1);
     var body = sb.formatStringFromName("itipRequestBody",
-                                       [emlSvc.defaultIdentity, summary],
+                                       [transport.defaultIdentity, summary],
                                        2);
 
     // Send it!
-    emlSvc.sendItems(recipients.length, recipients, subject, body, itipItem);
+    transport.sendItems(recipients.length, recipients, subject, body, itipItem);
 }
