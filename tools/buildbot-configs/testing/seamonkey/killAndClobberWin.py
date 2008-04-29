@@ -47,9 +47,9 @@ def killAndClobber(slaveName, branchDir):
     try:
         # This may be redundant if the pskill on sh.exe succeeds, but we
         # want to be sure.
-        subprocess.call("C:\\Utilities\\pskill.exe -t sh.exe")
-        subprocess.call("C:\\Utilities\\pskill.exe -t make.exe")
-        subprocess.call("C:\\Utilities\\pskill.exe -t seamonkey")
+        subprocess.call("D:\\PsTools\\pskill.exe -t sh.exe")
+        subprocess.call("D:\\PsTools\\pskill.exe -t make.exe")
+        subprocess.call("D:\\PsTools\\pskill.exe -t seamonkey.eye")
         rmdirRecursive(mozDir);
     except Exception, err:
         print str(err)
@@ -86,7 +86,7 @@ def main(argv):
     if platform != "":
         branchDir = branch + "_" + platform
 
-    logDir = os.path.join('C:\\',
+    logDir = os.path.join('D:\\builds\\',
                           slaveName,
                           branchDir,
                           'logs')
