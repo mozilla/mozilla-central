@@ -21,6 +21,7 @@
    -
    - Contributor(s):
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -145,7 +146,7 @@
                            tooltiptext="&calendar.newevent.button.tooltip;"
                            oncommand="agendaListbox.createNewEvent(event)"/>
          </toolbar>
-         <popup id="agenda-menu" onpopupshowing="agendaListbox.buildAgendaPopupMenu(this);"/>
+         <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
          <vbox id="agenda-menu-box" hidden="true">
            <menuitem label="&calendar.context.modifyitem.label;"
              accesskey="&calendar.context.modifyitem.accesskey;"
@@ -153,6 +154,21 @@
            <menuitem label="&calendar.context.deleteitem.label;"
              accesskey="&calendar.context.deleteitem.accesskey;"
              observes="agenda_delete_event_command"/>
+           <menu id="agenda-context-menu-convert-menu"
+                 label="&calendar.context.convertmenu.label;"
+                 accesskey="&calendar.context.convertmenu.accesskey.calendar;">
+             <menupopup id="agenda-context-menu-convert-menupopup">
+               <menuitem id="agenda-context-menu-convert-message-menuitem"
+                         label="&calendar.context.convertmenu.message.label;"
+                         accesskey="&calendar.context.convertmenu.message.accesskey;"
+                         oncommand="calendarMailButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+               <menuitem id="agenda-context-menu-convert-task-menuitem"
+                         class="event-only"
+                         label="&calendar.context.convertmenu.task.label;"
+                         accesskey="&calendar.context.convertmenu.task.accesskey;"
+                         oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+             </menupopup>
+           </menu>
          </vbox>
          <vbox id="richlistitem-container" hidden="true">
             <agenda-allday-richlist-item/>

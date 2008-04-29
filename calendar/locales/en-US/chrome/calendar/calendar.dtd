@@ -304,12 +304,15 @@
 <!ENTITY calendar.context.properties.label             "Properties">
 <!ENTITY calendar.context.properties.accesskey         "P">
 
-<!ENTITY calendar.context.convert.label                "Convert to">
-<!ENTITY calendar.context.convert.accesskey            "v">
-<!ENTITY calendar.context.converttoevent.label         "Event">
-<!ENTITY calendar.context.converttoevent.accesskey     "E">
-<!ENTITY calendar.context.converttomessage.label       "Message">
-<!ENTITY calendar.context.converttomessage.accesskey   "M">
+<!ENTITY calendar.context.convertmenu.label              "Convert To">
+<!ENTITY calendar.context.convertmenu.accesskey.mail     "n">
+<!ENTITY calendar.context.convertmenu.accesskey.calendar "v">
+<!ENTITY calendar.context.convertmenu.event.label        "Event…">
+<!ENTITY calendar.context.convertmenu.event.accesskey    "E">
+<!ENTITY calendar.context.convertmenu.message.label      "Message…">
+<!ENTITY calendar.context.convertmenu.message.accesskey  "M">
+<!ENTITY calendar.context.convertmenu.task.label         "Task…">
+<!ENTITY calendar.context.convertmenu.task.accesskey     "T">
 
 <!ENTITY calendar.context.showeventsof.label           "Show Events of">
 <!ENTITY calendar.context.showeventsof.accesskey       "S">

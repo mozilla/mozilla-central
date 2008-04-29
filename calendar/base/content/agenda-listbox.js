@@ -550,6 +550,18 @@ function moveSelection() {
     }
 }
 
+agendaListbox.getSelectedItems =
+function getSelectedItems() {
+    var selindex = this.agendaListboxControl.selectedIndex;
+    var items = [];
+    if (this.isEventListItem(this.agendaListboxControl.selectedItem)) {
+        // If at some point we support selecting multiple items, this array can
+        // be expanded.
+        items = [this.agendaListboxControl.selectedItem.getItem()];
+    }
+    return items;
+}
+
 agendaListbox.isEventListItem =
 function isEventListItem(aListItem) {
     var isEventListItem = (aListItem != null);

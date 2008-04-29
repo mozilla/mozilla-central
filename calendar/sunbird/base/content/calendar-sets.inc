@@ -45,9 +45,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-<broadcasterset id="calendar_broadcasters">
-  <broadcaster id="is_editable" hidden="false"/>
-</broadcasterset>
+<broadcasterset id="calendar_broadcasters"/>
 
 <commandset id="calendar_commands">
   <!-- These commands already exist in thunderbird -->
@@ -80,9 +78,9 @@
 #endif
 </commandset>
 
-<keyset>
-  <key id="new_event_key"        key="&event.new.event.key;"             observes="calendar_new_event_command"  modifiers="accel"/>
-  <key id="new_todo_key"         key="&event.new.todo.key;"              observes="calendar_new_todo_command"   modifiers="accel"/>
+<keyset id="calendar-keys">
+  <key id="calendar-new-event-key" key="&event.new.event.key;"             observes="calendar_new_event_command"  modifiers="accel"/>
+  <key id="calendar-new-todo-key" key="&event.new.todo.key;"              observes="calendar_new_todo_command"   modifiers="accel"/>
   <key id="modify_event_key"     key="&event.edit.event.key;"            observes="calendar_modify_event_command"  modifiers="accel"/>
   <key id="new_calendar_key"     key="&calendar.new.server.key;"         observes="calendar_new_calendar_command"  modifiers="accel"/>
   <key id="open_calendar_key"    key="&calendar.open.file.key;"          observes="open_local_calendar_command" modifiers="accel"/>
@@ -101,12 +99,6 @@
   <key id="key_paste"            key="&calendar.paste.key;"              observes="cmd_paste"                   modifiers="accel"/>
   <key id="key_selectAll"        key="&calendar.selectall.key;"          observes="cmd_selectAll"               modifiers="accel"/>
 
-  <key id="view_day_key"         key="&calendar.dayView.key;"            observes="calendar_day-view_command"            modifiers="accel"/>
-  <key id="view_week_key"        key="&calendar.weekView.key;"           observes="calendar_week-view_command"           modifiers="accel"/>
-  <key id="view_multiweek_key"   key="&calendar.multiweekView.key;"      observes="calendar_multiweek-view_command"      modifiers="accel"/>
-  <key id="view_month_key"       key="&calendar.monthView.key;"          observes="calendar_month-view_command"          modifiers="accel"/>
-
-  <key id="go_to_today_key"      keycode="VK_DOWN"                       observes="calendar_go_to_today_command"            modifiers="accel"/>
   <key id="go_to_date_key"       keycode="VK_UP"                         observes="go_date_command"             modifiers="accel"/>
 
   <key id="import_key"           key="&calendar.import.key;"             observes="calendar_import_command"              modifiers="accel"/>

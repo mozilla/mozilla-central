@@ -144,6 +144,7 @@
 
         <!-- on mousedown here happens before onclick above -->
         <treechildren tooltip="eventTreeTooltip"
+                      context="calendar-item-context-menu"
                       onkeypress="if (event.keyCode == 13) unifinderEditCommand();"
                       ondragover="return( false );"
                       ondblclick="unifinderDoubleClick(event)"

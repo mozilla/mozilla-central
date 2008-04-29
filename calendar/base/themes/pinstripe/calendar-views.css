@@ -567,3 +567,14 @@ description.tooltipBody {
   white-space: -moz-pre-wrap;
   margin: 0pt;
 }
+
+#calendar-view-context-menu[type="event"] .todo-only,
+#calendar-view-context-menu[type="todo"] .event-only,
+#calendar-view-context-menu[type="mixed"] .event-only,
+#calendar-view-context-menu[type="mixed"] .todo-only,
+#calendar-item-context-menu[type="event"] .todo-only,
+#calendar-item-context-menu[type="todo"] .event-only,
+#calendar-item-context-menu[type="mixed"] .event-only,
+#calendar-item-context-menu[type="mixed"] .todo-only {
+  display: none;
+}

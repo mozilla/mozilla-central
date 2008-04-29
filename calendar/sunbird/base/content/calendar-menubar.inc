@@ -243,28 +243,28 @@
            <menuitem id="calendar-view-menu-day"
                      type="radio"
                      name="calendarMenuViews"
-                     key="view_day_key"
+                     key="calendar-day-view-key"
                      label="&calendar.flat.topbar.dayview;"
                      accesskey="&calendar.dayview.accesskey;"
                      observes="calendar_day-view_command"/>
            <menuitem id="calendar-view-menu-week"
                      type="radio"
                      name="calendarMenuViews"
-                     key="view_week_key"
+                     key="calendar-week-view-key"
                      label="&calendar.flat.topbar.weekview;"
                      accesskey="&calendar.weekview.accesskey;"
                      observes="calendar_week-view_command"/>
            <menuitem id="calendar-view-menu-multiweek"
                      type="radio"
                      name="calendarMenuViews"
-                     key="view_multiweek_key"
+                     key="calendar-multiweek-view-key"
                      label="&calendar.flat.topbar.multiweekview;"
                      accesskey="&calendar.multiweekview.accesskey;"
                      observes="calendar_multiweek-view_command"/>
            <menuitem id="calendar-view-menu-month"
                      type="radio"
                      name="calendarMenuViews"
-                     key="view_month_key"
+                     key="calendar-month-view-key"
                      label="&calendar.flat.topbar.monthview;"
                      accesskey="&calendar.monthview.accesskey;"
                      observes="calendar_month-view_command"/>
@@ -331,7 +331,7 @@
              accesskey="&goMenu.accesskey;">
          <menupopup id="mppView">
            <menuitem id="calendar-go-menu-today"
-                     key="go_to_today_key"
+                     key="calendar-go-to-today-key"
                      label="&goTodayCmd.label;"
                      accesskey="&goTodayCmd.accesskey;"
                      observes="calendar_go_to_today_command"/>
@@ -344,7 +344,6 @@
            <!-- Label is set appropriate to the variable newView in 
                 switchToView(newView) of calendarWindow.js -->
            <menuitem id="calendar-go-menu-previous"
-                     key="go_backward_key"
                      label=""
                      label-day-view="&goPreviousCmd.day.label;"
                      label-week-view="&goPreviousCmd.week.label;"
@@ -353,13 +352,12 @@
                      accesskey="&goPreviousCmd.accesskey;"
                      observes="calendar_view_prev_command"/>
            <menuitem id="calendar-go-menu-next"
-                     key="go_forward_key"
                      label=""
                      label-day-view="&goNextCmd.day.label;"
                      label-week-view="&goNextCmd.week.label;"
                      label-multiweek-view="&goNextCmd.week.label;"
                      label-month-view="&goNextCmd.month.label;"
-                     accesskey="&goNextCmd.accesskey;"
+                     accesskey="&goNextCmd.all.accesskey;"
                      observes="calendar_view_next_command"/>
          </menupopup>
        </menu>

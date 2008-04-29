@@ -495,3 +495,17 @@ function injectCalendarCommandController() {
 function removeCalendarCommandController() {
     top.controllers.removeController(calendarController);
 }
+
+function setupContextItemType(event, items) {
+    if (items.some(isEvent) && items.some(isToDo)) {
+        event.target.setAttribute("type", "mixed");
+    } else if (items.length && isEvent(items[0])) {
+        event.target.setAttribute("type", "event");
+    } else if (items.length && isToDo(items[0])) {
+        event.target.setAttribute("type", "todo");
+    } else {
+        event.target.removeAttribute("type");
+    }
+
+    return true;
+}

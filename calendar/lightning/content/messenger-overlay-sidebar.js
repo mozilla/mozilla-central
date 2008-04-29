@@ -324,12 +324,6 @@ function ltnSelectCalendarView(type) {
     // Sunbird/Lightning Common view switching code
     switchToView(type);
 
-    // Set the labels for the context-menu
-    var nextCommand = document.getElementById("context_next");
-    nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+type));
-    var previousCommand = document.getElementById("context_previous")
-    previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+type));
-
 }
 
 function toggleControlDisplay(aCommandId, aControlId) {

@@ -209,7 +209,7 @@
 <!ENTITY goNextCmd.day.label                    "Next Day">
 <!ENTITY goNextCmd.week.label                   "Next Week">
 <!ENTITY goNextCmd.month.label                  "Next Month">
-<!ENTITY goNextCmd.accesskey                    "N">
+<!ENTITY goNextCmd.all.accesskey                "e">
 
 <!ENTITY taskMenu.label                         "Tasks">
 <!ENTITY taskMenu.accesskey                     "k">

@@ -125,13 +125,13 @@
 <menupopup id="menu_NewPopup">
   <menuitem id="ltnNewEvent" label="&lightning.menupopup.new.event.label;"
              accesskey="&event.new.event.accesskey;"
-             key="newEventKey"
+             key="calendar-new-event-key"
              command="calendar_new_event_command"
              observes="calendar_new_event_command"
              position="2"/>
   <menuitem id="ltnNewTask" label="&lightning.menupopup.new.task.label;"
              accesskey="&event.new.todo.accesskey;"
-             key="newTaskKey"
+             key="calendar-new-todo-key"
              command="calendar_new_todo_command"
              observes="calendar_new_todo_command"
              position="3"/>
@@ -242,7 +242,7 @@
                type="radio"
                name="calendarMenuViews"
                mode="calendar"
-               key="day-view-key"
+               key="calendar-day-view-key"
                observes="calendar_day-view_command"/>
      <menuitem id="ltnChangeViewWeek"
                label="&lightning.toolbar.week.label;"
@@ -250,7 +250,7 @@
                type="radio"
                name="calendarMenuViews"
                mode="calendar"
-               key="week-view-key"
+               key="calendar-week-view-key"
                observes="calendar_week-view_command"/>
      <menuitem id="ltnChangeViewMultiweek"
                label="&lightning.toolbar.multiweek.label;"
@@ -258,7 +258,7 @@
                type="radio"
                name="calendarMenuViews"
                mode="calendar"
-               key="multiweek-view-key"
+               key="calendar-multiweek-view-key"
                observes="calendar_multiweek-view_command"/>
      <menuitem id="ltnChangeViewMonth"
                label="&lightning.toolbar.month.label;"
@@ -266,7 +266,7 @@
                type="radio"
                name="calendarMenuViews"
                mode="calendar"
-               key="month-view-key"
+               key="calendar-month-view-key"
                observes="calendar_month-view_command"/>
      <menuseparator id="before-task-View-Section" mode="calendar,task"/>
       <menuitem id="tasks-view-minimonth"
@@ -326,10 +326,9 @@
 <window id="messengerWindow">
 
   <broadcasterset id="calendar_broadcasters">
-    <broadcaster id="is_editable" hidden="false"/>
     <broadcaster id="modeBroadcaster"/>
     <broadcaster id="filterBroadcaster" value="all"/>
-</broadcasterset>
+  </broadcasterset>
 
   <!-- Be sure to keep these sets, since they will be overlayed by
        calendar/base/content/calendar-common-sets.xul -->
@@ -352,57 +351,22 @@
     <command id="lightning_modify_item_command" oncommand="goDoCommand('lightning_modify_item_command');"/>
   </commandset>
 
-  <keyset id="ltnKeys">
+  <keyset id="calendar-keys">
     <key id="openLightningKey" modifiers="accel" key="3" observes="switch2calendar"/>
     <key id="openTasksKey" modifiers="accel" key="4" command="switch2task"/>
     <key id="todaypanekey" command="calendar_toggle_todaypane_command" keycode="VK_F11"/>
-    <key id="newEventKey" key="I" modifiers="accel" command="calendar_new_event_command"/>
-    <key id="newTaskKey" key="D" modifiers="accel" command="calendar_new_todo_command"/>
-    <key id="day-view-key" key="1" modifiers="alt" command="calendar_day-view_command"/>
-    <key id="week-view-key" key="2" modifiers="alt" command="calendar_week-view_command"/>
-    <key id="multiweek-view-key" key="3" modifiers="alt" command="calendar_multiweek-view_command"/>
-    <key id="month-view-key" key="4" modifiers="alt" command="calendar_month-view_command"/>
-    <key id="gotoToday-key" keycode="VK_DOWN" modifiers="accel" command="calendar_go_to_today_command"/>
+    <key id="calendar-new-event-key" key="&lightning.keys.event.new;" modifiers="accel" command="calendar_new_event_command"/>
+    <key id="calendar-new-todo-key" key="&lightning.keys.todo.new;" modifiers="accel" command="calendar_new_todo_command"/>
   </keyset>
 
   <popupset id="calendar-popupset">
-    <popup id="calendar-view-context-menu" onpopupshowing="return true;">
-      <!-- These labels are set dynamically, based on the current view -->
-      <menuitem id="context_previous"
-                label=""
-                observes="calendar_view_prev_command"
-                label-day="&calendar.prevday.button.tooltip;"
-                label-week="&calendar.prevweek.button.tooltip;"
-                label-multiweek="&calendar.prevweek.button.tooltip;"
-                label-month="&calendar.prevmonth.button.tooltip;"
-                accesskey="&goPreviousCmd.accesskey;"/>
-      <menuitem id="context_next"
-                label=""
-                observes="calendar_view_next_command"
-                label-day="&calendar.nextday.button.tooltip;"
-                label-week="&calendar.nextweek.button.tooltip;"
-                label-multiweek="&calendar.nextweek.button.tooltip;"
-                label-month="&calendar.nextmonth.button.tooltip;"
-                accesskey="&goNextCmd.accesskey;"/>
-      <menuitem label="&calendar.context.newevent.label;"
-                observes="calendar_new_event_command"
-                accesskey="&lightning.context.newevent.accesskey;"/>
-    </popup>
-    <popup id="calendar-item-context-menu" onpopupshowing="return true;">
-      <menuitem label="&calendar.context.modifyitem.label;"
-                accesskey="&calendar.context.modifyitem.accesskey;"
-                observes="lightning_modify_item_command"/>
-      <menuitem label="&calendar.context.deleteitem.label;"
-                accesskey="&calendar.context.deleteitem.accesskey;"
-                observes="lightning_delete_item_command"/>
-    </popup>
     <menupopup id="calendar-GoPopupMenu">
        <menuitem id="ltnGoToToday"
                  label="&goTodayCmd.label;"
                  accesskey="&goTodayCmd.accesskey;"
                  mode="calendar"
                  observes="calendar_go_to_today_command"
-                 key="gotoToday-key"/>
+                 key="calendar-go-to-today-key"/>
        <menuseparator id="before-ModeMenuItems"/>
        <menuitem id="ltnMenu_mail"
                  type="radio"
@@ -434,13 +398,13 @@
     <menupopup id="calendarCalendarPopupMenu">
         <menuitem id="ltnNewEvent2" label="&event.new.event;"
              accesskey="&event.new.event.accesskey;"
-             key="newEventKey"
+             key="calendar-new-event-key"
              observes="calendar_new_event_command"
              command="calendar_new_event_command"
              position="2"/>
         <menuitem id="ltnNewTask2" label="&event.new.todo;"
              accesskey="&event.new.todo.accesskey;"
-             key="newTaskKey"
+             key="calendar-new-todo-key"
              observes="calendar_new_todo_command"
              command="calendar_new_todo_command"
              position="3"/>

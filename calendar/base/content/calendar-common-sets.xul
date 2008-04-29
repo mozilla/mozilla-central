@@ -37,10 +37,9 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay [
-  <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" >
-  <!ENTITY % eventDialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
-  %calendarDTD;
-  %eventDialogDTD;
+  <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" > %calendarDTD;
+  <!ENTITY % eventDialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd"> %eventDialogDTD;
+  <!ENTITY % menuOverlayDTD SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %menuOverlayDTD;
 ]>
 
 <overlay id="calendar-common-sets-overlay"
@@ -111,119 +110,234 @@
     <command id="calendar_go_to_today_command" oncommand="goToDate(now())"/>
   </commandset>
 
+  <keyset id="calendar-keys">
+    <key id="calendar-day-view-key" key="&calendar.dayView.key;" observes="calendar_day-view_command" modifiers="accel"/>
+    <key id="calendar-week-view-key" key="&calendar.weekView.key;" observes="calendar_week-view_command" modifiers="accel"/>
+    <key id="calendar-multiweek-view-key" key="&calendar.multiweekView.key;" observes="calendar_multiweek-view_command" modifiers="accel"/>
+    <key id="calendar-month-view-key" key="&calendar.monthView.key;" observes="calendar_month-view_command" modifiers="accel"/>
+    <key id="calendar-go-to-today-key" keycode="VK_DOWN" observes="calendar_go_to_today_command" modifiers="accel"/>
+
+  </keyset>
+
   <popupset id="calendar-popupset">
+    <!-- CALENDAR ITEM CONTEXT MENU -->
+    <popup id="calendar-item-context-menu" onpopupshowing="return setupContextItemType(event, currentView().getSelectedItems({}));">
+      <menuitem id="calendar-item-context-menu-newevent-menutitem"
+                label="&calendar.context.newevent.label;"
+                accesskey="&calendar.context.newevent.accesskey;"
+                key="calendar-new-event-key"
+                observes="calendar_new_event_command"/>
+      <menuitem id="calendar-item-context-menu-newtodo-menuitem"
+                label="&calendar.context.newtodo.label;"
+                accesskey="&calendar.context.newtodo.accesskey;"
+                key="calendar-new-todo-key"
+                observes="calendar_new_todo_command"/>
+      <menuitem id="calendar-item-context-menu-modify-menuitem"
+                label="&calendar.context.modifyitem.label;"
+                accesskey="&calendar.context.modifyitem.accesskey;"
+                observes="calendar_modify_event_command"/>
+      <menuitem id="calendar-item-context-menu-delete-menuitem"
+                label="&calendar.context.deleteitem.label;"
+                accesskey="&calendar.context.deleteitem.accesskey;"
+                observes="calendar_delete_event_command"/>
+      <menuseparator id="calendar-item-context-menuseparator-adddeletemodify"/>
+      <menuitem id="calendar-item-context-menu-cut-menuitem"
+                label="&calendar.context.cutevent.label;"
+                accesskey="&calendar.context.cutevent.accesskey;"
+                key="key_cut"
+                observes="cmd_cut"/>
+      <menuitem id="calendar-item-context-menu-copy-menuitem"
+                label="&calendar.context.copyevent.label;"
+                accesskey="&calendar.context.copyevent.accesskey;"
+                key="key_copy"
+                observes="cmd_copy"/>
+      <menuitem id="calendar-item-context-menu-paste-menuitem"
+                label="&calendar.context.pasteevent.label;"
+                accesskey="&calendar.context.pasteevent.accesskey;"
+                key="key_paste"
+                observes="cmd_paste"/>
+      <menuseparator id="calendar-item-context-separator-cutcopypaste"/>
+      <menu id="calendar-item-context-menu-convert-menu"
+            label="&calendar.context.convertmenu.label;"
+            accesskey="&calendar.context.convertmenu.accesskey.calendar;">
+        <menupopup id="calendar-item-context-menu-convert-menupopup">
+          <menuitem id="calendar-view-context-menu-convert-message-menuitem"
+                    label="&calendar.context.convertmenu.message.label;"
+                    accesskey="&calendar.context.convertmenu.message.accesskey;"
+                    oncommand="calendarMailButtonDNDObserver.onDropItems(currentView().getSelectedItems({}))"/>
+          <menuitem id="calendar-item-context-menu-convert-event-menuitem"
+                    class="todo-only"
+                    label="&calendar.context.convertmenu.event.label;"
+                    accesskey="&calendar.context.convertmenu.event.accesskey;"
+                    oncommand="calendarCalendarButtonDNDObserver.onDropItems(currentView().getSelectedItems({}))"/>
+          <menuitem id="calendar-item-context-menu-convert-task-menuitem"
+                    class="event-only"
+                    label="&calendar.context.convertmenu.task.label;"
+                    accesskey="&calendar.context.convertmenu.task.accesskey;"
+                    oncommand="calendarTaskButtonDNDObserver.onDropItems(currentView().getSelectedItems({}))"/>
+        </menupopup>
+      </menu>
+    </popup>
+
+    <!-- CALENDAR VIEW CONTEXT MENU -->
+    <popup id="calendar-view-context-menu">
+      <menuitem id="calendar-view-context-menu-newevent"
+                label="&calendar.context.newevent.label;"
+                observes="calendar_new_event_command"
+                accesskey="&calendar.context.newevent.accesskey;"
+                key="calendar-new-event-key"/>
+      <menuitem id="calendar-view-context-menu-newtodo"
+                label="&calendar.context.newtodo.label;"
+                observes="calendar_new_todo_command"
+                accesskey="&calendar.context.newtodo.accesskey;"
+                key="calendar-new-todo-key"/>
+      <!-- These labels are set dynamically, based on the current view -->
+      <menuitem id="calendar-view-context-menu-previous"
+                label=""
+                observes="calendar_view_prev_command"
+                label-day="&calendar.prevday.button.tooltip;"
+                label-week="&calendar.prevweek.button.tooltip;"
+                label-multiweek="&calendar.prevweek.button.tooltip;"
+                label-month="&calendar.prevmonth.button.tooltip;"
+                accesskey="&goPreviousCmd.accesskey;"/>
+      <menuitem id="calendar-view-context-menu-next"
+                label=""
+                observes="calendar_view_next_command"
+                label-day="&calendar.nextday.button.tooltip;"
+                label-week="&calendar.nextweek.button.tooltip;"
+                label-multiweek="&calendar.nextweek.button.tooltip;"
+                label-month="&calendar.nextmonth.button.tooltip;"
+                accesskey="&goNextCmd.all.accesskey;"/>
+      <menuseparator id="calendar-item-context-separator-cutcopypaste"/>
+      <!-- Cut and copy doesn't make sense in the views, but only showing paste
+           makes it look like something is missing. Disable by default. -->
+      <menuitem id="calendar-view-context-menu-cut-menuitem"
+                label="&calendar.context.cutevent.label;"
+                accesskey="&calendar.context.cutevent.accesskey;"
+                key="key_cut"
+                disabled="true"/>
+      <menuitem id="calendar-view-context-menu-copy-menuitem"
+                label="&calendar.context.copyevent.label;"
+                accesskey="&calendar.context.copyevent.accesskey;"
+                key="key_copy"
+                disabled="true"/>
+      <menuitem id="calendar-view-context-menu-paste-menuitem"
+                label="&calendar.context.pasteevent.label;"
+                accesskey="&calendar.context.pasteevent.accesskey;"
+                key="key_paste"
+                observes="cmd_paste"/>
+    </popup>
 
     <!-- TASK ITEM CONTEXT MENU -->
     <menupopup id="taskitem-context-menu" onpopupshowing="changeContextMenuForTask(event);">
-      <menuitem label="&calendar.context.newtodo.label;"
+      <menuitem id="task-context-menu-new"
+                label="&calendar.context.newtodo.label;"
                 accesskey="&calendar.context.newtodo.accesskey;"
-                id="task-context-menu-new"
+                key="calendar-new-todo-key"
                 command="calendar_new_todo_command"
                 observes="calendar_new_todo_command"/>
       <menuitem id="task-context-menu-modify"
                 label="&calendar.context.modifytask.label;"
                 accesskey="&calendar.context.modifytask.accesskey;"
                 command="calendar_modify_todo_command"/>
-      <menuitem label="&calendar.context.deletetask.label;"
+      <menuitem id="task-context-menu-delete"
+                label="&calendar.context.deletetask.label;"
                 accesskey="&calendar.context.deletetask.accesskey;"
-                id="task-context-menu-delete"
                 command="calendar_delete_todo_command"
                 observes="calendar_delete_todo_command"/>
       <menuseparator/>
-      <menuitem type="checkbox"
+      <menuitem id="calendar-context-markcompleted"
+                type="checkbox"
                 label="&calendar.context.markcompleted.label;"
                 accesskey="&calendar.context.markcompleted.accesskey;"
-                id="calendar-context-markcompleted"
                 oncommand="toggleCompleted(event)"/>
-      <menu label="&calendar.context.progress.label;"
-            accesskey="&calendar.context.progress.accesskey;"
-            id="task-context-menu-progress">
+      <menu id="task-context-menu-progress"
+            label="&calendar.context.progress.label;"
+            accesskey="&calendar.context.progress.accesskey;">
         <menupopup id="calendar.context.progress-menu" onpopupshowing="changeTaskProgressMenu(event);">
-          <menuitem type="checkbox"
-                    id="percent-0-menuitem"
+          <menuitem id="percent-0-menuitem"
+                    type="checkbox"
                     label="&progress.level.0;"
                     accesskey="&progress.level.0.accesskey;"
                     observes="calendar_percentComplete-0_command"
                     command="calendar_percentComplete-0_command"/>
-          <menuitem type="checkbox"
-                    id="percent-25-menuitem"
+          <menuitem id="percent-25-menuitem"
+                    type="checkbox"
                     label="&progress.level.25;"
                     accesskey="&progress.level.25.accesskey;"
                     observes="calendar_percentComplete-25_command"
                     command="calendar_percentComplete-25_command"/>
-          <menuitem type="checkbox"
-                    id="percent-50-menuitem"
+          <menuitem id="percent-50-menuitem"
+                    type="checkbox"
                     label="&progress.level.50;"
                     accesskey="&progress.level.50.accesskey;"
                     observes="calendar_percentComplete-50_command"
                     command="calendar_percentComplete-50_command"/>
-          <menuitem type="checkbox"
-                    id="percent-75-menuitem"
+          <menuitem id="percent-75-menuitem"
+                    type="checkbox"
                     label="&progress.level.75;"
                     accesskey="&progress.level.75.accesskey;"
                     observes="calendar_percentComplete-75_command"
                     command="calendar_percentComplete-75_command"/>
-          <menuitem type="checkbox"
-                    id="percent-100-menuitem"
+          <menuitem id="percent-100-menuitem"
+                    type="checkbox"
                     label="&progress.level.100;"
                     accesskey="&progress.level.100.accesskey;"
                     observes="calendar_percentComplete-100_command"
                     command="calendar_percentComplete-100_command"/>
         </menupopup>
       </menu>
-      <menu label="&calendar.context.priority.label;"
-            accesskey="&calendar.context.priority.accesskey;"
-            id="task-context-menu-priority">
+      <menu id="task-context-menu-priority"
+            label="&calendar.context.priority.label;"
+            accesskey="&calendar.context.priority.accesskey;">
         <menupopup id="calendar.context.priority-menu" onpopupshowing="changeTaskPriorityMenu(event)">
-          <menuitem type="checkbox"
-                    id="priority-0-menuitem"
+          <menuitem id="priority-0-menuitem"
+                    type="checkbox"
                     label="&priority.level.none;"
                     accesskey="&priority.level.none.accesskey;"
                     command="calendar_priority-0_command"
                     observes="calendar_priority-0_command"/>
-          <menuitem type="checkbox"
-                    id="priority-9-menuitem"
+          <menuitem id="priority-9-menuitem"
+                    type="checkbox"
                     label="&priority.level.low;"
                     accesskey="&priority.level.low.accesskey;"
                     command="calendar_priority-9_command"
                     observes="calendar_priority-9_command"/>
-          <menuitem type="checkbox"
-                    id="priority-5-menuitem"
+          <menuitem id="priority-5-menuitem"
+                    type="checkbox"
                     label="&priority.level.normal;"
                     accesskey="&priority.level.normal.accesskey;"
                     command="calendar_priority-5_command"
                     observes="calendar_priority-5_command"/>
-          <menuitem type="checkbox"
-                    id="priority-1-menuitem"
+          <menuitem id="priority-1-menuitem"
+                    type="checkbox"
                     label="&priority.level.high;"
                     accesskey="&priority.level.high.accesskey;"
                     command="calendar_priority-1_command"
                     observes="calendar_priority-1_command"/>
         </menupopup>
       </menu>
-      <menu label="&calendar.calendar.label;"
-            accesskey="&calendar.calendar.accesskey;"
-            id="calendar-context-calendar-menu">
-            <menupopup onpopupshowing="addCalendarNames(event);">
-            </menupopup>
+      <menu id="calendar-context-calendar-menu"
+            label="&calendar.calendar.label;"
+            accesskey="&calendar.calendar.accesskey;">
+            <menupopup id="calendar-context-calendar-menupopup"
+                       onpopupshowing="addCalendarNames(event);"/>
       </menu>
-      <menuseparator/>
-      <menu label="&calendar.context.convert.label;"
-            accesskey="&calendar.context.convert.accesskey;"
-            id="task-context-menu-convert">
-        <menupopup>
-          <menuitem label="&calendar.context.converttoevent.label;"
-                    accesskey="&calendar.context.converttoevent.accesskey;"
-                    id="calendar-context-converttoevent"
-                    oncommand="tasksToEvents()"/>
-          <menuitem label="&calendar.context.converttomessage.label;"
-                    accesskey="&calendar.context.converttomessage.accesskey;"
-                    id="calendar-context-converttomessage"
+      <menuseparator id="task-context-menu-separator-conversion"/>
+      <menu id="task-context-menu-convert"
+            label="&calendar.context.convertmenu.label;"
+            accesskey="&calendar.context.convertmenu.accesskey.calendar;">
+        <menupopup id="task-context-convert-menupopup">
+          <menuitem id="calendar-context-converttomessage"
+                    label="&calendar.context.convertmenu.message.label;"
+                    accesskey="&calendar.context.convertmenu.message.accesskey;"
                     oncommand="tasksToMail()"/>
+          <menuitem id="calendar-context-converttoevent"
+                    label="&calendar.context.convertmenu.event.label;"
+                    accesskey="&calendar.context.convertmenu.event.accesskey;"
+                    oncommand="tasksToEvents()"/>
         </menupopup>
       </menu>
     </menupopup>
   </popupset>
-
 </overlay>
-

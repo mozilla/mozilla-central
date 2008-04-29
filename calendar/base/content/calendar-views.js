@@ -296,6 +296,12 @@ function switchToView(aViewType) {
         }
     }
 
+    // Set the labels for the context-menu
+    var nextCommand = document.getElementById("calendar-view-context-menu-next");
+    nextCommand.setAttribute("label", nextCommand.getAttribute("label-"+aViewType));
+    var previousCommand = document.getElementById("calendar-view-context-menu-previous")
+    previousCommand.setAttribute("label", previousCommand.getAttribute("label-"+aViewType));
+
     // Disable the menuitem when not in day or week view.
     var rotated = document.getElementById("calendar_toggle_orientation_command");
     if (aViewType == "day" || aViewType == "week") {

@@ -99,79 +99,6 @@
 
 <!-- GENERAL CONTEXT MENU -->
 <popupset id="calendar-popupset">
-  <popup id="context-menu"
-         onpopupshowing="document.getElementById('is_editable').hidden = (document.popupNode.getAttribute('id') == 'lefthandcalendar')">
-
-    <menuitem label="&calendar.context.newevent.label;"
-              accesskey="&calendar.context.newevent.accesskey;"
-              id="general-context-menu-newevent"
-              observes="calendar_new_event_command"/>
-    <menuitem label="&calendar.context.newtodo.label;"
-              accesskey="&calendar.context.newtodo.accesskey;"
-              id="general-context-menu-newtodo"
-              observes="calendar_new_todo_command"/>
-    <menuitem label="&calendar.context.modifyevent.label;"
-              accesskey="&calendar.context.modifyevent.accesskey;"
-              id="general-context-menu-modify"
-              observes="calendar_modify_event_command" />
-    <menuitem label="&calendar.context.deleteevent.label;"
-              accesskey="&calendar.context.deleteevent.accesskey;"
-              id="general-context-menu-delete"
-              observes="calendar_delete_event_command"/>
-
-    <menuseparator/>
-    <menuitem label="&calendar.context.cutevent.label;"
-              accesskey="&calendar.context.cutevent.accesskey;"
-              id="general-context-menu-cut"
-              observes="cmd_cut">
-      <observes element="is_editable" attribute="hidden"/>
-    </menuitem>
-    <menuitem label="&calendar.context.copyevent.label;"
-              accesskey="&calendar.context.copyevent.accesskey;"
-              id="general-context-menu-copy"
-              observes="cmd_copy">
-      <observes element="is_editable" attribute="hidden"/>
-    </menuitem>
-    <menuitem label="&calendar.context.pasteevent.label;"
-              accesskey="&calendar.context.pasteevent.accesskey;"
-              id="general-context-menu-paste"
-              observes="cmd_paste">
-      <observes element="is_editable" attribute="hidden"/>
-    </menuitem>
-    <menuseparator>
-      <observes element="is_editable" attribute="hidden"/>
-    </menuseparator>
-    <menuitem label="&calendar.context.selectall.label;"
-              accesskey="&calendar.context.selectall.accesskey;"
-              id="general-context-menu-selectall"
-              observes="cmd_selectAll">
-      <observes element="is_editable" attribute="hidden"/>
-    </menuitem>
-    <menuseparator>
-      <observes element="is_editable" attribute="hidden"/>
-    </menuseparator>
-    <menuitem label="&calendar.context.gototoday.label;"
-              accesskey="&calendar.context.gototoday.accesskey;"
-              id="general-context-menu-gototoday"
-              observes="calendar_go_to_today_command"/>
-    <menuseparator/>
-    <menuitem id="only-workday-checkbox-2"
-              type="checkbox"
-              label="&calendar.onlyworkday.checkbox.label;"
-              accesskey="&calendar.onlyworkday.checkbox.accesskey;"
-              observes="calendar_toggle_workdays_only_command"/>
-    <menuitem id="display-todo-inview-checkbox-2"
-              type="checkbox"
-              label="&calendar.displaytodos.checkbox.label;"
-              accesskey="&calendar.displaytodos.checkbox.accesskey;"
-              observes="calendar_toggle_tasks_in_view_command"/>
-    <menuitem id="completed-tasks-inview-checkbox-2"
-              type="checkbox"
-              label="&calendar.completedtasks.checkbox.label;"
-              accesskey="&calendar.completedtasks.checkbox.accesskey;"
-              observes="calendar_toggle_show_completed_in_view_command"/>
-  </popup>
-
   <popup id="toolbar-context-menu">
     <menuitem command="cmd_CustomizeToolbars"
               id="toolbar-context-menu-customize"
@@ -233,7 +160,6 @@
 
 <vbox id="calendar-top-box"
       flex="1"
-      context="context-menu"
       ondraggesture="nsDragAndDrop.startDrag(event,calendarViewDNDObserver);"
       ondragover="nsDragAndDrop.dragOver(event,calendarViewDNDObserver);"
       ondragdrop="nsDragAndDrop.drop(event,calendarViewDNDObserver);">
@@ -278,13 +204,17 @@
     <vbox id="calendar-view-box" flex="1">
       <deck id="view-deck" flex="1" persist="selectedIndex">
           <calendar-decorated-day-view id="day-view" flex="1" 
-                                       context="context-menu"/>
+                                       context="calendar-view-context-menu"
+                                       item-context="calendar-item-context-menu"/>
           <calendar-decorated-week-view id="week-view" flex="1" 
-                                        context="context-menu"/>
+                                        context="calendar-view-context-menu"
+                                        item-context="calendar-item-context-menu"/>
           <calendar-decorated-multiweek-view id="multiweek-view" flex="1" 
-                                             context="context-menu"/>
+                                             context="calendar-view-context-menu"
+                                             item-context="calendar-item-context-menu"/>
           <calendar-decorated-month-view id="month-view" flex="1" 
-                                         context="context-menu"/>
+                                         context="calendar-view-context-menu"
+                                         item-context="calendar-item-context-menu"/>
       </deck>
     </vbox>
   </hbox> <!-- End: box with unifinder on left, calendar on right -->

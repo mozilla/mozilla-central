@@ -114,9 +114,9 @@
 <!ENTITY lightning.calendarproperties.showevents.inagenda.label "Show Events in Today Pane">
 <!ENTITY lightning.calendarproperties.showtasks.label           "Show Tasks in Today Pane and Task Mode">
 
-<!--Views' context menu-->
-<!-- This access key is in the same menu as 'Go to Next' which gets the 'N'-->
-<!ENTITY lightning.context.newevent.accesskey  "E">
-
 <!-- iMIP Bar (meeting support) -->
 <!ENTITY lightning.imipbar.description "This message contains an invitation to an event.">
+
+<!-- Lightning specific keybindings -->
+<!ENTITY lightning.keys.event.new "I">
+<!ENTITY lightning.keys.todo.new "D">
