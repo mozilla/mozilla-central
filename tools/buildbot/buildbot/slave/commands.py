@@ -2497,3 +2497,141 @@ class P4Sync(SourceBase):
         return self._doVC(force=True)
 
 registerSlaveCommand("p4sync", P4Sync, command_version)
+
+
+import os, platform, sha, sys
+from ConfigParser import ConfigParser
+from os import listdir, path
+from stat import ST_SIZE
+
+#### Mozilla Slave Commands
+class SetMozillaBuildProperties(Command):
+    def setup(self, args):
+        self.objdir = args['objdir']
+
+    def getPlatform(self):
+        # TODO: this should really be part of SlaveBuilder - or something
+        if platform.system() == "Linux":
+            return "linux"
+        elif platform.system() in ("Windows", "Microsoft"):
+            return "win32"
+        elif platform.system() == "Darwin":
+            return "macosx"
+
+    def getConfigSetting(self, file, section, setting):
+        try:
+            c = ConfigParser()
+            c.read([file])
+            return c.get(section, setting)
+        except:
+            return 'UNKNOWN'
+
+    def getFileHashAndSize(self, file):
+        sha1Hash = 'UNKNOWN'
+        size = 'UNKNOWN'
+        
+        try:
+            # open in binary mode to make sure we get consistent results
+            # across all platforms
+            f = open(file, "rb")
+            shaObj = sha.new(f.read())
+            sha1Hash = shaObj.hexdigest()
+
+            size = os.stat(file)[ST_SIZE]
+        except:
+            pass
+
+        return (sha1Hash, size)
+        
+    def start(self):
+        distDir = path.join(self.builder.builddir, self.objdir, 'dist')
+        appIni = path.join(distDir, 'bin', 'application.ini')
+        platformIni = path.join(distDir, 'bin', 'platform.ini')
+
+        buildid = 'UNKNOWN'
+        appVersion = 'UNKNOWN'
+        packageFilename = 'UNKNOWN'
+        packageHash = 'UNKNOWN'
+        packageSize = 'UNKNOWN'
+        installerFilename = 'UNKNOWN'
+        installerHash = 'UNKNOWN'
+        installerSize = 'UNKNOWN'
+        completeMarFilename = 'UNKNOWN'
+        completeMarHash = 'UNKNOWN'
+        completeMarSize = 'UNKNOWN'
+
+        # get the buildid and the app version
+        # use application.ini by default, fallback on platform.ini
+        if path.exists(appIni):
+            buildid = self.getConfigSetting(appIni, 'App', 'BuildID')
+            appVersion = self.getConfigSetting(appIni, 'App', 'Version')
+        elif path.exists(appIni):
+            buildid = self.getConfigSetting(platformIni, 'Build', 'BuildID')
+            appVersion = self.getConfigSetting(platformIni, 'Build',
+              'Milestone')
+
+        # This is pretty simple, actually. It's simply searching the dist
+        # directory for the package.
+        try:
+            for entry in listdir(distDir):
+                if path.isfile(path.join(distDir, entry)):
+                    if self.getPlatform() == "linux":
+                        if entry.endswith('.tar.bz2'):
+                            packageFilename = entry
+                    elif self.getPlatform() == "macosx":
+                        if entry.endswith('.dmg'):
+                            packageFilename = entry
+                    elif self.getPlatform() == "win32":
+                        if entry.endswith('.zip'):
+                            packageFilename = entry
+        except:
+            pass
+
+        (packageHash, packageSize) = self.getFileHashAndSize(
+          path.join(distDir, packageFilename))
+
+        # for win32 only, get the filename/hash/size of the installer as well
+        if self.getPlatform() == "win32":
+            try:
+                for entry in listdir(path.join(distDir, 'install', 'sea')):
+                    if path.isfile(path.join(distDir, 'install', 'sea', entry)):
+                        if entry.endswith('.exe'):
+                            installerFilename = entry
+            except:
+                pass
+
+        (installerHash, installerSize) = self.getFileHashAndSize(
+          path.join(distDir, 'install', 'sea', installerFilename))
+
+        
+        # gather the filename/hash/size of the complete update
+        try:
+            for entry in listdir(path.join(distDir, 'update')):
+                if path.isfile(path.join(distDir, 'update', entry)):
+                    if entry.endswith('complete.mar'):
+                        completeMarFilename = entry
+        except:
+            pass
+
+        (completeMarHash, completeMarSize) = self.getFileHashAndSize(
+          path.join(distDir, 'update', completeMarFilename))
+        
+        # we can't set build properties from here so we'll add them to a log
+        # and evaluateCommand() will take care of setting them
+        log = "buildid: %s\n" % buildid
+        log += "appVersion: %s\n" % appVersion
+        log += "packageFilename: %s\n" % packageFilename
+        log += "packageHash: %s\n" % packageHash
+        log += "packageSize: %s\n" % packageSize
+        log += "installerFilename: %s\n" % installerFilename
+        log += "installerHash: %s\n" % installerHash
+        log += "installerSize: %s\n" % installerSize
+        log += "completeMarFilename: %s\n" % completeMarFilename
+        log += "completeMarHash: %s\n" % completeMarHash
+        log += "completeMarSize: %s\n" % completeMarSize
+
+        self.sendStatus({'stdout': log})
+
+
+registerSlaveCommand("setMozillaBuildProperties",
+  SetMozillaBuildProperties, command_version)
