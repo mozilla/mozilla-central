@@ -67,7 +67,9 @@ if ($type eq 'completion'){
     foreach my $r (@runs){
         $r->bugs;
         push @run_ids, $r->id;
-        push @bug_ids, $_->bug_id foreach @{$r->bugs};
+        if ($r->bugs){
+            push @bug_ids, $_->bug_id foreach @{$r->bugs};
+        }
     }
     
     my %bugs;
