@@ -89,7 +89,10 @@ NS_IMETHODIMP
 nsMsgSearchValueImpl::GetStr(nsAString &aResult)
 {
     NS_ENSURE_TRUE(IS_STRING_ATTRIBUTE(mValue.attribute), NS_ERROR_ILLEGAL_VALUE);
-    CopyUTF8toUTF16(nsDependentCString(mValue.string), aResult);
+    if (mValue.string)
+        CopyUTF8toUTF16(nsDependentCString(mValue.string), aResult);
+    else
+        aResult.Truncate();
     return NS_OK;
 }
 
