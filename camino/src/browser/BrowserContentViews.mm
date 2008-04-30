@@ -94,6 +94,8 @@
     
 */
 
+static const float kMinBrowserViewHeight = 100.0;
+
 @implementation BrowserContentView
 
 - (void) dealloc
@@ -126,7 +128,17 @@
     if (![mBookmarksToolbar isHidden])
       bmToolbarHeight = NSHeight([mBookmarksToolbar frame]);
   }
-  
+
+  // enforce a minimum content size dynamically, based on the bars showing
+  float minContentHeight = kMinBrowserViewHeight + bmToolbarHeight + statusBarHeight;
+  NSSize currentContentSize = [NSWindow contentRectForFrameRect:[[self window] frame]
+                                                      styleMask:[[self window] styleMask]].size;
+  [[self window] setContentMinSize:NSMakeSize([[self window] contentMinSize].width,
+                                              minContentHeight)];
+  // if the bookmark reflow made the window too short, force it to grow
+  if (currentContentSize.height < minContentHeight)
+    [[self window] setContentSize:NSMakeSize(currentContentSize.width, minContentHeight)];
+
   // size/position the status bar, if present
   if (mStatusBar && ![mStatusBar isHidden]) {
     statusBarHeight = NSHeight([mStatusBar frame]);
