@@ -61,6 +61,9 @@
 #include "nsIImapServerSink.h"
 #include "nsIImapMessageSink.h"
 
+// UI Thread proxy helper
+#include "nsIImapProtocolSink.h"
+
 #include "nsImapServerResponseParser.h"
 #include "nsImapFlagAndUidState.h"
 #include "nsIMAPNamespace.h"
@@ -150,7 +153,7 @@ public:
 #define IMAP_ISSUED_LANGUAGE_REQUEST  0x00000020 // make sure we only issue the language request once per connection...
 
 class nsImapProtocol : public nsIImapProtocol, public nsIRunnable, public nsIInputStreamCallback,
- public nsSupportsWeakReference, public nsMsgProtocol
+ public nsSupportsWeakReference, public nsMsgProtocol, public nsIImapProtocolSink
 {
 public:
 
@@ -170,8 +173,11 @@ public:
   //////////////////////////////////////////////////////////////////////////////////
   NS_DECL_NSIIMAPPROTOCOL
 
-  void CloseStreams();
-
+  //////////////////////////////////////////////////////////////////////////////////
+  // we support the nsIImapProtocolSink interface
+  //////////////////////////////////////////////////////////////////////////////////
+  NS_DECL_NSIIMAPPROTOCOLSINK
+  
   // message id string utilities.
   PRUint32    CountMessagesInIdString(const char *idString);
   static  PRBool  HandlingMultipleMessages(const nsCString &messageIdString);
@@ -372,6 +378,7 @@ private:
   nsCOMPtr<nsIImapMailFolderSink>     m_imapMailFolderSink;
   nsCOMPtr<nsIImapMessageSink>        m_imapMessageSink;
   nsCOMPtr<nsIImapServerSink>         m_imapServerSink;
+  nsCOMPtr<nsIImapProtocolSink>       m_imapProtocolSink;
 
   // helper function to setup imap sink interface proxies
   void SetupSinkProxy();

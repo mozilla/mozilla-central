@@ -54,6 +54,7 @@ XPIDLSRCS	= \
 		nsIImapService.idl    \
 		nsIImapServerSink.idl \
 		nsIImapMessageSink.idl \
+		nsIImapProtocolSink.idl \
 		nsIImapIncomingServer.idl \
 		nsIImapFlagAndUidState.idl \
 		nsIImapMockChannel.idl \

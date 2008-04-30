@@ -108,6 +108,7 @@ PRLogModuleInfo *IMAP;
 #include "nsIProxyInfo.h"
 #include "nsISSLSocketControl.h"
 #include "nsProxyRelease.h"
+#include "nsDebug.h"
 
 #define ONE_SECOND ((PRUint32)1000)    // one second
 
@@ -300,6 +301,7 @@ NS_INTERFACE_MAP_BEGIN(nsImapProtocol)
    NS_INTERFACE_MAP_ENTRY(nsIImapProtocol)
    NS_INTERFACE_MAP_ENTRY(nsIInputStreamCallback)
    NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
+   NS_INTERFACE_MAP_ENTRY(nsIImapProtocolSink)
 NS_INTERFACE_MAP_END_THREADSAFE
 
 static PRInt32 gTooFastTime = 2;
@@ -630,6 +632,17 @@ nsImapProtocol::SetupSinkProxy()
                              getter_AddRefs(m_imapServerSink));
         NS_ASSERTION(NS_SUCCEEDED(res), "couldn't get proxies");
       }
+      if (!m_imapProtocolSink)
+      {
+        nsCOMPtr<nsIImapProtocolSink> anImapProxyHelper(do_QueryInterface(NS_ISUPPORTS_CAST(nsIImapProtocolSink*, this), &res));
+        if (NS_SUCCEEDED(res) && anImapProxyHelper)
+          res = proxyManager->GetProxyForObject(  m_sinkEventTarget,
+                             NS_GET_IID(nsIImapProtocolSink),
+                             anImapProxyHelper,
+                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
+                             getter_AddRefs(m_imapProtocolSink));
+        NS_ASSERTION(NS_SUCCEEDED(res), "couldn't get proxies");
+      }
     }
     else
       NS_ASSERTION(PR_FALSE, "can't get proxy service");
@@ -946,30 +959,30 @@ private:
 
 NS_IMETHODIMP nsImapProtocol::Run()
 {
-  nsImapProtocol *me = this;
-  NS_ASSERTION(me, "Yuk, me is null.\n");
-
   PR_CEnterMonitor(this);
-  NS_ASSERTION(me->m_imapThreadIsRunning == PR_FALSE,
+  NS_ASSERTION(m_imapThreadIsRunning == PR_FALSE,
                  "Oh. oh. thread is already running. What's wrong here?");
-    if (me->m_imapThreadIsRunning)
+    if (m_imapThreadIsRunning)
     {
-        PR_CExitMonitor(me);
+        PR_CExitMonitor(this);
         return NS_OK;
     }
 
-  me->m_imapThreadIsRunning = PR_TRUE;
-  PR_CExitMonitor(me);
+  m_imapThreadIsRunning = PR_TRUE;
+  PR_CExitMonitor(this);
 
   // call the platform specific main loop ....
-  me->ImapThreadMainLoop();
+  ImapThreadMainLoop();
 
-
-  me->m_runningUrl = nsnull;
-  CloseStreams();
-  me->m_sinkEventTarget = nsnull;
-  me->m_imapMailFolderSink = nsnull;
-  me->m_imapMessageSink = nsnull;
+  m_runningUrl = nsnull;
+  
+  // close streams via UI thread if it's not already done
+  if (m_imapProtocolSink)
+    m_imapProtocolSink->CloseStreams();
+    
+  m_sinkEventTarget = nsnull;
+  m_imapMailFolderSink = nsnull;
+  m_imapMessageSink = nsnull;
 
   // shutdown this thread, but do it from the main thread
   nsCOMPtr<nsIRunnable> ev = new nsImapThreadShutdownEvent(m_iThread);
@@ -979,11 +992,14 @@ NS_IMETHODIMP nsImapProtocol::Run()
   return NS_OK;
 }
 
-// called from UI thread.
-// XXXbz except this is called from TellThreadToDie, which can get called on
-// either the UI thread or the IMAP protocol thread, per comments.
-void nsImapProtocol::CloseStreams()
+//
+// Must be called from UI thread only 
+//
+NS_IMETHODIMP nsImapProtocol::CloseStreams()
 {
+  // make sure that it is called by the UI thread
+  NS_ABORT_IF_FALSE(NS_IsMainThread(), "CloseStreams() should not be called from an off UI thread");
+
   PR_CEnterMonitor(this);
   if (m_transport)
   {
@@ -994,15 +1010,11 @@ void nsImapProtocol::CloseStreams()
   }
   m_inputStream = nsnull;
   m_outputStream = nsnull;
-  // XXXbz given that this can get called from off the UI thread, does the
-  // release of m_channelListener need to be proxied?
   m_channelListener = nsnull;
   m_channelContext = nsnull;
   if (m_mockChannel)
   {
       m_mockChannel->Close();
-      // XXXbz given that this can get called from off the UI thread, does the
-      // release of m_mockChannel need to be proxied?
       m_mockChannel = nsnull;
   }
   m_channelInputStream = nsnull;
@@ -1024,6 +1036,7 @@ void nsImapProtocol::CloseStreams()
       me_server = nsnull;
   }
   m_server = nsnull;
+  return NS_OK;
 }
 
 
@@ -1089,7 +1102,12 @@ nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
         Logout(PR_TRUE, connectionIdle);
     }
   }
-  CloseStreams();
+  // close streams via UI thread
+  if (m_imapProtocolSink) 
+  {
+    m_imapProtocolSink->CloseStreams();
+    m_imapProtocolSink = nsnull;
+  }
   Log("TellThreadToDie", nsnull, "close socket connection");
 
   PR_EnterMonitor(m_threadDeathMonitor);
