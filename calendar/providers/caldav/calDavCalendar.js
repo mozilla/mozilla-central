@@ -833,6 +833,9 @@ calDavCalendar.prototype = {
                                                    .substr(thisCalendar.mLocationPath.length);
                                 if (!thisCalendar.mItemInfoCache[item.id]) {
                                     thisCalendar.mItemInfoCache[item.id] = {};
+                                    thisCalendar.mItemInfoCache[item.id].isNew = true;
+                                } else {
+                                    thisCalendar.mItemInfoCache[item.id].isNew = false;
                                 }
                                 thisCalendar.mItemInfoCache[item.id].locationPath =
                                     locationPath;
@@ -902,13 +905,13 @@ calDavCalendar.prototype = {
             if (errString) {
                 LOG("errString = " + errString);
             }
-
+            
             for (var i = 0; i < items.length; i++) {
-                if (thisCalendar.mItemInfoCache[items[i].id]) {
+                if (thisCalendar.mItemInfoCache[items[i].id].isNew) {
+                    thisCalendar.mMemoryCalendar.adoptItem(items[i], aListener);
+                } else {
                     thisCalendar.mMemoryCalendar.modifyItem(items[i], null,
                                                             aListener);
-                } else {
-                    thisCalendar.mMemoryCalendar.adoptItem(items[i], aListener);
                 }
             }
             return;
