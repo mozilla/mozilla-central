@@ -532,21 +532,20 @@ nsXFormsInsertDeleteElement::HandleAction(nsIDOMEvent            *aEvent,
         if ((!nodeset || nodesetSize < 1) ||
             (nodeset && nodesetSize > 0 && newNodeType != locationNodeType)) {
           Location location = eLocation_Before;
+          nsCOMPtr<nsIDOMNode> targetNode;
           if (newNodeType != nsIDOMNode::ATTRIBUTE_NODE) {
             // Target location is before the first child of location node. If the
             // location node is empty (has no children), it remains the location
             // node and the new node will become the first child of the location
             // node.
-            nsCOMPtr<nsIDOMNode> targetNode;
             locationNode->GetFirstChild(getter_AddRefs(targetNode));
-            if (targetNode) {
-              locationNode.swap(targetNode);
-            } else {
+            if (!targetNode) {
               // New node will become first child of locationNode.
               location = eLocation_FirstChild;
+              targetNode = locationNode;
             }
           }
-          InsertNode(locationNode, newNode, location, getter_AddRefs(resNode));
+          InsertNode(targetNode, newNode, location, getter_AddRefs(resNode));
         } else {
             // Step 6c - If insert location node is the root element of an
             // instance, then that instance root element location is the target
