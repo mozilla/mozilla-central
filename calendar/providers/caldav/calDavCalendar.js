@@ -421,9 +421,7 @@ calDavCalendar.prototype = {
         aItem.calendar = this.superCalendar;
         aItem.generation = 1;
 
-        // LOG("icalString = " + aItem.icalString);
-
-        var httpchannel = this.prepChannel(itemUri, aItem.icalString,
+        var httpchannel = this.prepChannel(itemUri, this.getSerializedItem(aItem),
                                            "text/calendar; charset=utf-8");
 
 
@@ -497,16 +495,7 @@ calDavCalendar.prototype = {
         var modListener = {};
         var thisCalendar = this;
 
-        var modifiedItem = getIcsService().createIcalComponent("VCALENDAR");
-        calSetProdidVersion(modifiedItem);
-        modifiedItem.addSubcomponent(aNewItem.icalComponent);
-        if (aNewItem.recurrenceInfo) {
-            var exceptions = aNewItem.recurrenceInfo.getExceptionIds({});
-            for each (var exc in exceptions) {
-                modifiedItem.addSubcomponent(aNewItem.recurrenceInfo.getExceptionFor(exc, true).icalComponent);
-            }
-        }
-        var modifiedItemICS = modifiedItem.serializeToICS();
+        var modifiedItemICS = this.getSerializedItem(aNewItem);
 
         modListener.onStreamComplete = function(aLoader, aContext, aStatus,
                                              aResultLength, aResult) {
@@ -1815,6 +1804,13 @@ calDavCalendar.prototype = {
             return bogusUri.path;
         }
         return aString;
+    },
+
+    getSerializedItem: function caldav_getSerializedItem(aItem) {
+        var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
+                            .createInstance(Components.interfaces.calIIcsSerializer);
+        serializer.addItems([aItem], 1);
+        return serializer.serializeToString();
     },
 
     // stubs to keep callbacks we don't support yet from throwing errors
