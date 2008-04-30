@@ -2,7 +2,6 @@
 
 calendar.jar:
 % content calendar %content/calendar/
-    content/calendar/attachFile.js (content/attachFile.js)
 *   content/calendar/calendar.js (content/calendar.js)
     content/calendar/calendarWindow.js (content/calendarWindow.js)
     content/calendar/calendarCreation.xul (content/calendarCreation.xul)
@@ -12,8 +11,6 @@ calendar.jar:
     content/calendar/clipboard.js (content/clipboard.js)
     content/calendar/goToDateDialog.js (content/goToDateDialog.js)
     content/calendar/goToDateDialog.xul (content/goToDateDialog.xul)
-    content/calendar/outlookImportDialog.xul (content/outlookImportDialog.xul)
-    content/calendar/outlookImportDialog.js (content/outlookImportDialog.js)
 *   content/calendar/printDialog.js  (content/printDialog.js)    
     content/calendar/printDialog.xul  (content/printDialog.xul)
     content/calendar/publish.js  (content/publish.js)
