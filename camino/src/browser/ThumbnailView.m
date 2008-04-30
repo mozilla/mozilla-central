@@ -50,6 +50,7 @@ static const int kThumbnailTitleHeight = 20;
   if ((self = [super initWithFrame:frame])) {
     mThumbnail = nil;
     mTitleCell = [[NSCell alloc] initTextCell:@""];
+    [mTitleCell setLineBreakMode:NSLineBreakByTruncatingTail];
     [mTitleCell setAlignment:NSCenterTextAlignment];
   }
 
@@ -67,6 +68,7 @@ static const int kThumbnailTitleHeight = 20;
 - (void)setTitle:(NSString*)title
 {
   [mTitleCell setTitle:title];
+  [self setToolTip:title];
 }
 
 - (void)setRepresentedObject:(id)object
