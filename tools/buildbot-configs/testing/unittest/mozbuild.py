@@ -623,7 +623,7 @@ class CreateProfile(ShellCommand):
     warnOnFailure = True
     description = ["create profile"]
     descriptionDone = ["create profile complete"]
-    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/bin/firefox'
+    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --clobber --binary mozilla/objdir/dist/bin/firefox'
 
 class CreateProfileWin(CreateProfile):
-    command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --binary mozilla\objdir\dist\bin\firefox.exe'
+    command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --clobber --binary mozilla\objdir\dist\bin\firefox.exe'
