@@ -54,7 +54,7 @@ sub check_build {
     Bugzilla->login(LOGIN_REQUIRED);
     
     if (ref $product){
-        $product = $product;
+        $product = Bugzilla::Testopia::Product->new($product->{id});
     }
     elsif ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);

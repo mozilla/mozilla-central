@@ -404,8 +404,7 @@ sub remove_field_list
     #
     if ( $tcdb )
     {
-        my @args = ( "-u -o " . $work_filename . " " . $work_filename );
-        system("sort", @args) == 0 or error("Could not sort $work_filename");
+        system("sort -u -o " . $work_filename . " " . $work_filename) == 0 or error("Could not sort $work_filename");
     }
     
     return $field_list;

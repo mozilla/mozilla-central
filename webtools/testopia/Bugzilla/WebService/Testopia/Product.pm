@@ -34,7 +34,7 @@ sub _validate {
     Bugzilla->login(LOGIN_REQUIRED);
     
     if (ref $product){
-        $product = $product;
+        $product = Bugzilla::Testopia::Product->new($product->{id});
     }
     elsif ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
@@ -81,7 +81,7 @@ sub check_category {
     Bugzilla->login(LOGIN_REQUIRED);
     
     if (ref $product){
-        $product = $product;
+        $product = Bugzilla::Testopia::Product->new($product->{id});
     }
     elsif ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
@@ -103,7 +103,7 @@ sub check_component {
     Bugzilla->login(LOGIN_REQUIRED);
     
     if (ref $product){
-        $product = $product;
+        $product = Bugzilla::Testopia::Product->new($product->{id});
     }
     elsif ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
