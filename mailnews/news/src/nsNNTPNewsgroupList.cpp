@@ -127,35 +127,6 @@ nsNNTPNewsgroupList::Initialize(nsINntpUrl *runningURL, nsIMsgNewsFolder *newsFo
   m_runningURL = runningURL;
   m_knownArts.set = nsMsgKeySet::Create();
 
-  nsresult rv;
-
-  nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = folder->GetFilterList(m_msgWindow, getter_AddRefs(m_filterList));
-  NS_ENSURE_SUCCESS(rv,rv);
-  nsCString ngHeaders;
-  m_filterList->GetArbitraryHeaders(ngHeaders);
-  m_filterHeaders.ParseString(ngHeaders.get(), " ");
-
-  nsCOMPtr<nsIMsgIncomingServer> server;
-  rv = folder->GetServer(getter_AddRefs(server));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = server->GetFilterList(m_msgWindow, getter_AddRefs(m_serverFilterList));
-  NS_ENSURE_SUCCESS(rv,rv);
-  nsCAutoString servHeaders;
-  m_serverFilterList->GetArbitraryHeaders(servHeaders);
-
-  nsCStringArray servArray;
-  servArray.ParseString(servHeaders.get(), " ");
-
-  // servArray may have duplicates already in m_filterHeaders.
-  for (PRInt32 i = 0; i < servArray.Count(); i++)
-  {
-    if (m_filterHeaders.IndexOf(*(servArray[i])) == -1)
-      m_filterHeaders.AppendCString(*(servArray[i]));
-  }
   return NS_OK;
 }
 
@@ -180,8 +151,9 @@ nsNNTPNewsgroupList::CleanUp()
         if (lastMissingCheck)
           firstKnown = lastMissingCheck + 1;
       }
+      PRBool done = firstKnown > lastKnown; // just in case...
       PRBool foundMissingArticle = PR_FALSE;
-      while (firstKnown <= lastKnown)
+      while (!done)
       {
         PRInt32 firstUnreadStart, firstUnreadEnd;
         m_set->FirstMissingRange(firstKnown, lastKnown, &firstUnreadStart, &firstUnreadEnd);
@@ -520,13 +492,12 @@ nsNNTPNewsgroupList::InitXOVER(PRInt32 first_msg, PRInt32 last_msg)
   m_firstMsgNumber = first_msg;
   m_lastMsgNumber = last_msg;
   m_lastProcessedNumber = first_msg > 1 ? first_msg - 1 : 1;
-  m_currentXHDRIndex = -1;
   return status;
 }
 
 // from RFC 822, don't translate
 #define FROM_HEADER "From: "
-#define SUBJECT_HEADER "Subject: "
+#define SUBECT_HEADER "Subject: "
 #define DATE_HEADER "Date: "
 
 nsresult
@@ -641,7 +612,136 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
 
   GET_TOKEN (); /* xref */
 
-  return m_newsDB->AddNewHdrToDB(newMsgHdr, PR_TRUE);
+  // apply filters
+  // XXX TODO
+  // do spam classification for news
+
+  nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
+
+  if (!m_filterList)
+  {
+    rv = folder->GetFilterList(m_msgWindow, getter_AddRefs(m_filterList));
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  if (!m_serverFilterList)
+  {
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    rv = folder->GetServer(getter_AddRefs(server));
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    rv = server->GetFilterList(m_msgWindow, getter_AddRefs(m_serverFilterList));
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  // flag for kill
+  // if the action is Delete, and we get a hit (see ApplyFilterHit())
+  // we set this to PR_FALSE.  if false, we won't add it to the db.
+  m_addHdrToDB = PR_TRUE;
+
+  PRUint32 filterCount = 0;
+  if (m_filterList) {
+    rv = m_filterList->GetFilterCount(&filterCount);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  PRUint32 serverFilterCount = 0;
+  if (m_serverFilterList) {
+    rv = m_serverFilterList->GetFilterCount(&serverFilterCount);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  // only do this if we have filters
+  if (filterCount || serverFilterCount)
+  {
+    // build up a "headers" for filter code
+    nsCString subject;
+    rv = newMsgHdr->GetSubject(getter_Copies(subject));
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    PRUint32 headersSize = 0;
+
+    // +1 to separate headers with a null byte
+    if (authorStr)
+      headersSize += strlen(FROM_HEADER) + strlen(authorStr) + 1;
+
+    if (!(subject.IsEmpty()))
+      headersSize += strlen(SUBECT_HEADER) + subject.Length() + 1;
+
+    if (dateStr)
+     headersSize += strlen(DATE_HEADER) + strlen(dateStr) + 1;
+
+    if (headersSize) {
+      char *headers = (char *)PR_Malloc(headersSize);
+      char *headerPos = headers;
+      if (!headers)
+        return NS_ERROR_OUT_OF_MEMORY;
+
+      if (authorStr) {
+        PL_strcpy(headerPos, FROM_HEADER);
+        headerPos += strlen(FROM_HEADER);
+
+        PL_strcpy(headerPos, authorStr);
+        headerPos += strlen(authorStr);
+
+        *headerPos = '\0';
+        headerPos++;
+      }
+
+      if (!(subject.IsEmpty())) {
+        PL_strcpy(headerPos, SUBECT_HEADER);
+        headerPos += strlen(SUBECT_HEADER);
+
+        PL_strcpy(headerPos, subject.get());
+        headerPos += subject.Length();
+
+        *headerPos = '\0';
+        headerPos++;
+      }
+
+      if (dateStr) {
+        PL_strcpy(headerPos, DATE_HEADER);
+        headerPos += strlen(DATE_HEADER);
+
+        PL_strcpy(headerPos, dateStr);
+        headerPos += strlen(dateStr);
+
+        *headerPos = '\0';
+        headerPos++;
+      }
+
+      // on a filter hit (see ApplyFilterHit()), we'll be modifying the header
+      // so keep track of the header
+      m_newMsgHdr = newMsgHdr;
+
+      // the per-newsgroup filters should probably go first. It doesn't matter
+      // right now since nothing stops filter execution for newsgroups, but if something
+      // does, like adding a "stop execution" action, then users should be able to
+      // override the global filters in the per-newsgroup filters.
+      if (filterCount)
+      {
+        rv = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB,
+          headers, headersSize, this, m_msgWindow, nsnull);
+      }
+      if (serverFilterCount)
+      {
+        rv = m_serverFilterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, newMsgHdr, folder, m_newsDB,
+          headers, headersSize, this, m_msgWindow, nsnull);
+      }
+
+      PR_Free ((void*) headers);
+      NS_ENSURE_SUCCESS(rv,rv);
+    }
+  }
+
+  // if we deleted it, don't add it
+  if (m_addHdrToDB) {
+    rv = m_newsDB->AddNewHdrToDB(newMsgHdr, PR_TRUE);
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgWindow *aMsgWindow, PRBool *aApplyMore)
@@ -829,13 +929,48 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
     PRInt32 numDownloaded = lastIndex;
     PRInt32 totIndex = m_lastMsgNumber - m_firstMsgNumber + 1;
 
+    PRInt32  percent = (totIndex) ? (PRInt32)(100.0 * (double)numDownloaded / (double)totalToDownload) : 0;
+
     PRTime elapsedTime;
 
     LL_SUB(elapsedTime, PR_Now(), m_lastStatusUpdate);
 
     if (LL_CMP(elapsedTime, >, MIN_STATUS_UPDATE_INTERVAL) ||
         lastIndex == totIndex)
-      UpdateStatus(PR_FALSE, numDownloaded, totalToDownload);
+    {
+      nsAutoString numDownloadedStr;
+      numDownloadedStr.AppendInt(numDownloaded);
+
+      nsAutoString totalToDownloadStr;
+      totalToDownloadStr.AppendInt(totalToDownload);
+
+      nsString statusString;
+      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      nsCOMPtr<nsIStringBundle> bundle;
+      rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      const PRUnichar *formatStrings[2] = { numDownloadedStr.get(), totalToDownloadStr.get() };
+      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingHeaders").get(), formatStrings, 2, getter_Copies(statusString));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+#ifdef DEBUG_NEWS
+      PRInt32 elapsed;
+      LL_L2I(elapsed, elapsedTime);
+      printf("usecs elapsed since last update: %d\n", elapsed);
+#endif
+
+      SetProgressStatus(statusString.get());
+      m_lastStatusUpdate = PR_Now();
+
+      // only update the progress meter if it has changed
+      if (percent != m_lastPercent) {
+        SetProgressBarPercent(percent);
+        m_lastPercent = percent;
+      }
+    }
   }
   return NS_OK;
 }
@@ -846,6 +981,22 @@ nsNNTPNewsgroupList::ResetXOVER()
   m_lastMsgNumber = m_firstMsgNumber;
   m_lastProcessedNumber = m_lastMsgNumber;
   return 0;
+}
+
+/* When we don't have XOVER, but use HEAD, this is called instead.
+   It reads lines until it has a whole header block, then parses the
+   headers; then takes selected headers and creates an XOVER line
+   from them.  This is more for simplicity and code sharing than
+   anything else; it means we end up parsing some things twice.
+   But if we don't have XOVER, things are going to be so horribly
+   slow anyway that this just doesn't matter.
+ */
+
+nsresult
+nsNNTPNewsgroupList::ProcessNonXOVER (const char * /*line*/)
+{
+  // ### dmb write me
+  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 nsresult
@@ -923,282 +1074,6 @@ nsNNTPNewsgroupList::ClearXOVERState()
     return NS_OK;
 }
 
-NS_IMETHODIMP
-nsNNTPNewsgroupList::InitXHDR(nsACString &header)
-{
-  ++m_currentXHDRIndex;
-  if (m_currentXHDRIndex >= m_filterHeaders.Count())
-    header.Truncate();
-  else
-    header.Assign(*m_filterHeaders[m_currentXHDRIndex]);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
-{
-  PRInt32 middle = line.FindChar(' ');
-  nsCString value, key = PromiseFlatCString(line);
-  if (middle == kNotFound)
-    return NS_OK;
-  value = Substring(line, middle+1);
-  key.Truncate((PRUint32)middle);
-
-  // According to RFC 2980, some will send (none) instead.
-  // So we don't treat this is an error.
-  if (key.CharAt(0) < '0' || key.CharAt(0) > '9')
-    return NS_OK;
-
-  PRInt32 code;
-  PRInt32 number = key.ToInteger(&code);
-  if (code != NS_OK)
-    return NS_ERROR_FAILURE;
-  // RFC 2980 specifies one or more spaces.
-  value.Trim(" ");
-
-  nsCOMPtr <nsIMsgDBHdr> header;
-  nsresult rv = m_newsDB->GetMsgHdrForKey(number, getter_AddRefs(header));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = header->SetStringProperty(m_filterHeaders[m_currentXHDRIndex]->get(), value.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  PRInt32 totalToDownload = m_lastMsgToDownload - m_firstMsgToDownload + 1;
-  PRInt32 numDownloaded = number - m_firstMsgNumber + 1;
-
-  PRTime elapsedTime;
-
-  LL_SUB(elapsedTime, PR_Now(), m_lastStatusUpdate);
-
-  if (elapsedTime > MIN_STATUS_UPDATE_INTERVAL)
-    UpdateStatus(PR_TRUE, numDownloaded, totalToDownload);
-  return rv;
-}
-
-NS_IMETHODIMP
-nsNNTPNewsgroupList::InitHEAD(PRInt32 number)
-{
-  nsresult rv;
-
-  if (m_newMsgHdr)
-  {
-    // Finish processing for this header
-    // If HEAD didn't properly return, then the header won't be set
-    if (m_addHdrToDB)
-    {
-      rv = m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
-
-    PRInt32 totalToDownload = m_lastMsgToDownload - m_firstMsgToDownload + 1;
-    PRInt32 lastIndex = m_lastProcessedNumber - m_firstMsgNumber + 1;
-    PRInt32 numDownloaded = lastIndex;
-    PRInt32 totIndex = m_lastMsgNumber - m_firstMsgNumber + 1;
-
-    PRTime elapsedTime;
-
-    LL_SUB(elapsedTime, PR_Now(), m_lastStatusUpdate);
-
-    if (LL_CMP(elapsedTime, >, MIN_STATUS_UPDATE_INTERVAL) ||
-        lastIndex == totIndex)
-      UpdateStatus(PR_FALSE, numDownloaded, totalToDownload);
-  }
-
-  if (number >= 0)
-  {
-    rv = m_newsDB->CreateNewHdr(number, getter_AddRefs(m_newMsgHdr));
-    m_addHdrToDB = PR_FALSE;
-    m_lastProcessedNumber = number;
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsNNTPNewsgroupList::ProcessHEADLine(const nsACString &line)
-{
-  PRInt32 colon = line.FindChar(':');
-  nsCString header = PromiseFlatCString(line), value;
-  if (colon != kNotFound)
-  {
-    value = Substring(line, colon+1);
-    header.Truncate((PRUint32)colon);
-  }
-  else if (line.CharAt(0) == ' ' || line.CharAt(0) == '\t') // We are continuing the header
-  {
-    m_thisLine += header; // Preserve whitespace (should we?)
-    return NS_OK;
-  }
-  else
-    return NS_OK; // We are malformed. Just ignore and hope for the best...
-  
-  nsresult rv;
-  if (!m_lastHeader.IsEmpty())
-  {
-    rv = AddHeader(m_lastHeader.get(), m_thisLine.get());
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-  
-  value.Trim(" ");
-
-  ToLowerCase(header, m_lastHeader);
-  m_thisLine.Assign(value);
-  return NS_OK;
-}
-
-nsresult
-nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
-{
-  nsresult rv = NS_OK;
-  // The From, Date, and Subject headers have special requirements.
-  if (PL_strcmp(header, "from") == 0)
-    rv = m_newMsgHdr->SetAuthor(value);
-  else if (PL_strcmp(header, "date") == 0)
-  {
-    PRTime date;
-    PRStatus status = PR_ParseTimeString (value, PR_FALSE, &date);
-    if (PR_SUCCESS == status)
-      rv = m_newMsgHdr->SetDate(date);
-  }
-  else if (PL_strcmp(header, "subject") == 0)
-  {
-    const char *subject = value;
-    PRUint32 subjectLen = strlen(value);
-
-    PRUint32 flags = 0;
-    // ### should call IsHeaderRead here...
-    /* strip "Re: " */
-    nsCString modifiedSubject;
-    if (NS_MsgStripRE(&subject, &subjectLen, getter_Copies(modifiedSubject)))
-      // this will make sure read flags agree with newsrc
-     (void) m_newMsgHdr->OrFlags(MSG_FLAG_HAS_RE, &flags);
-
-    if (! (flags & MSG_FLAG_READ))
-      rv = m_newMsgHdr->OrFlags(MSG_FLAG_NEW, &flags);
-
-    rv = m_newMsgHdr->SetSubject(modifiedSubject.IsEmpty() ? subject :
-      modifiedSubject.get());
-  }
-  else if (PL_strcmp(header, "message-id") == 0)
-  {
-    char * strippedId = PL_strdup(value);
-    char * freeable = strippedId;
-    if (strippedId[0] == '<')
-      strippedId++;
-    char * lastChar = strippedId + PL_strlen(strippedId) - 1;
-
-    if (*lastChar == '>')
-      *lastChar = '\0';
-
-    rv = m_newMsgHdr->SetMessageId(strippedId);
-    PL_strfree(freeable);
-  }
-  else if (PL_strcmp(header, "references") == 0)
-    rv = m_newMsgHdr->SetReferences(value);
-  else if (PL_strcmp(header, "bytes") == 0)
-    rv = m_newMsgHdr->SetMessageSize(atol(value));
-  else if (PL_strcmp(header, "lines") == 0)
-    rv = m_newMsgHdr->SetLineCount(atol(value));
-  else if (m_filterHeaders.IndexOf(nsDependentCString(header)) != -1)
-    rv = m_newMsgHdr->SetStringProperty(header, value);
-  return rv;
-}
-
-nsresult
-nsNNTPNewsgroupList::CallFilters()
-{
-  nsresult rv;
-  nsCString filterString;
-  
-  nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  PRUint32 filterCount = 0;
-  if (m_filterList)
-  {
-    rv = m_filterList->GetFilterCount(&filterCount);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-
-  PRUint32 serverFilterCount = 0;
-  if (m_serverFilterList)
-  {
-    rv = m_serverFilterList->GetFilterCount(&serverFilterCount);
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
-
-  if (filterCount == 0 && serverFilterCount == 0)
-    return NS_OK;
-
-  PRUint32 count = 0;
-  PRUint32 *keys;
-  rv = m_newsDB->GetNewList(&count, &keys);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  for (PRUint32 i = 0; i<count; i++)
-  {
-    m_addHdrToDB = PR_TRUE;
-    rv = m_newsDB->GetMsgHdrForKey(*keys++, getter_AddRefs(m_newMsgHdr));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // build up a "headers" for filter code
-    nsCString subject, author, date;
-    rv = m_newMsgHdr->GetSubject(getter_Copies(subject));
-    NS_ENSURE_SUCCESS(rv,rv);
-    rv = m_newMsgHdr->GetAuthor(getter_Copies(author));
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    nsCString fullHeaders;
-    if (!(author.IsEmpty()))
-    {
-      fullHeaders.AppendLiteral(FROM_HEADER);
-      fullHeaders += author;
-      fullHeaders += '\0';
-    }
-
-    if (!(subject.IsEmpty()))
-    {
-      fullHeaders.AppendLiteral(SUBJECT_HEADER);
-      fullHeaders += subject;
-      fullHeaders += '\0';
-    }
-
-    for (PRInt32 header = 0; header < m_filterHeaders.Count(); header++)
-    {
-      char *retValue;
-      m_newMsgHdr->GetStringProperty(m_filterHeaders[header]->get(), &retValue);
-      if (*retValue)
-      {
-        fullHeaders += *(m_filterHeaders[header]);
-        fullHeaders.AppendLiteral(": ");
-        fullHeaders += nsCString(retValue);
-        fullHeaders += '\0';
-      }
-    }
-
-    // the per-newsgroup filters should probably go first. It doesn't matter
-    // right now since nothing stops filter execution for newsgroups, but if something
-    // does, like adding a "stop execution" action, then users should be able to
-    // override the global filters in the per-newsgroup filters.
-    if (filterCount)
-    {
-      rv = m_filterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, m_newMsgHdr, folder, m_newsDB,
-        fullHeaders.get(), fullHeaders.Length(), this, m_msgWindow, nsnull);
-    }
-    if (serverFilterCount)
-    {
-      rv = m_serverFilterList->ApplyFiltersToHdr(nsMsgFilterType::NewsRule, m_newMsgHdr, folder, m_newsDB,
-        fullHeaders.get(), fullHeaders.Length(), this, m_msgWindow, nsnull);
-    }
-
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    if (!m_addHdrToDB)
-      m_newsDB->DeleteHeader(m_newMsgHdr, nsnull, PR_FALSE, PR_FALSE);
-  }
-  return NS_OK;
-}
-
 void
 nsNNTPNewsgroupList::SetProgressBarPercent(PRInt32 percent)
 {
@@ -1230,59 +1105,6 @@ nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
     if (feedback) {
       feedback->ShowStatusString(nsDependentString(message));
     }
-  }
-}
-
-void
-nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 totToDL)
-{
-  double ratio = filtering ? (m_currentXHDRIndex+1.0)/(m_filterHeaders.Count()+1)
-                           : 1.0/(m_filterHeaders.Count()+1);
-  PRInt32 percent = (PRInt32)(ratio * numDLed / totToDL);
-  
-  nsAutoString numDownloadedStr;
-  numDownloadedStr.AppendInt(numDLed);
-
-  nsAutoString totalToDownloadStr;
-  totalToDownloadStr.AppendInt(totToDL);
-
-  nsresult rv;
-  nsString statusString;
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (!NS_SUCCEEDED(rv))
-    return;
-
-  nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
-  if (!NS_SUCCEEDED(rv))
-    return;
-
-  if (filtering)
-  {
-    NS_ConvertUTF8toUTF16 header(*m_filterHeaders[m_currentXHDRIndex]);
-    const PRUnichar *formatStrings[3] = { header.get(),
-      numDownloadedStr.get(), totalToDownloadStr.get() };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingFilterHeaders").get(),
-      formatStrings, 3, getter_Copies(statusString));
-  }
-  else
-  {
-    const PRUnichar *formatStrings[2] = { numDownloadedStr.get(),
-      totalToDownloadStr.get() };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("downloadingHeaders").get(),
-      formatStrings, 2, getter_Copies(statusString));
-  }
-  if (!NS_SUCCEEDED(rv))
-    return;
-
-  SetProgressStatus(statusString.get());
-  m_lastStatusUpdate = PR_Now();
-
-  // only update the progress meter if it has changed
-  if (percent != m_lastPercent)
-  {
-    SetProgressBarPercent(percent);
-    m_lastPercent = percent;
   }
 }
 
