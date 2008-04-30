@@ -49,8 +49,11 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 - (KeychainItem*)initWithRef:(SecKeychainItemRef)ref;
 - (void)loadKeychainData;
 - (void)loadKeychainPassword;
-- (BOOL)setAttributeType:(SecKeychainAttrType)type toString:(NSString*)value;
-- (BOOL)setAttributeType:(SecKeychainAttrType)type toValue:(void*)valuePtr withLength:(UInt32)length;
+- (OSStatus)setAttributeType:(SecKeychainAttrType)type
+                    toString:(NSString*)value;
+- (OSStatus)setAttributeType:(SecKeychainAttrType)type
+                     toValue:(void*)valuePtr
+                  withLength:(UInt32)length;
 @end
 
 @implementation KeychainItem
@@ -117,15 +120,18 @@ static const unsigned int kRawKeychainLabelIndex = 7;
   searchCriteria.attr = attributes;
 
   SecKeychainSearchRef searchRef;
-  OSStatus status = SecKeychainSearchCreateFromAttributes(NULL, kSecInternetPasswordItemClass, &searchCriteria, &searchRef);
-  if (status != noErr) {
-    NSLog(@"Keychain search for host '%@' failed", host);
+  OSStatus result = SecKeychainSearchCreateFromAttributes(NULL,
+                                                          kSecInternetPasswordItemClass,
+                                                          &searchCriteria,
+                                                          &searchRef);
+  if (result != noErr) {
+    NSLog(@"Keychain search for host '%@' failed (error %d)", host, result);
     return nil;
   }
 
   NSMutableArray* matchingItems = [NSMutableArray array];
   SecKeychainItemRef keychainItemRef;
-  while ((status = SecKeychainSearchCopyNext(searchRef, &keychainItemRef)) == noErr) {
+  while ((result = SecKeychainSearchCopyNext(searchRef, &keychainItemRef)) == noErr) {
     [matchingItems addObject:[[[KeychainItem alloc] initWithRef:keychainItemRef] autorelease]];
   }
   CFRelease(searchRef);
@@ -168,7 +174,7 @@ static const unsigned int kRawKeychainLabelIndex = 7;
                                                    (UInt16)port, protocol, authType,
                                                    passwordLength, passwordData, &keychainItemRef);
   if (result != noErr) {
-    NSLog(@"Couldn't add keychain item");
+    NSLog(@"Couldn't add keychain item for %@ (error %d)", host, result);
     return nil;
   }
 
@@ -314,7 +320,7 @@ static const unsigned int kRawKeychainLabelIndex = 7;
   else {
     // Being denied access isn't a failure case, so don't log it.
     if (result != errSecAuthFailed)
-      NSLog(@"Couldn't load keychain data (%d)", result);
+      NSLog(@"Couldn't load keychain data (error %d)", result);
   }
   // Mark it as loaded either way, so that we can return nil password as an
   // indicator that the item is inaccessible.
@@ -348,17 +354,22 @@ static const unsigned int kRawKeychainLabelIndex = 7;
   attrList.attr = &user;
   const char* passwordData = [password UTF8String];
   UInt32 passwordLength = passwordData ? strlen(passwordData) : 0;
-  if (SecKeychainItemModifyAttributesAndData(mKeychainItemRef, &attrList, passwordLength, passwordData) != noErr)
-    NSLog(@"Couldn't update keychain item user and password for %@", username);
-  else {
-    [mUsername autorelease];
-    mUsername = [username copy];
-    [mPassword autorelease];
-    mPassword = [password copy];
-    NSString* currentLabel = [self label];
-    if (![currentLabel length] || [currentLabel isEqualToString:oldUsernameLabel])
-      [self setLabel:[KeychainItem labelForHost:[self host] username:username]];
+  OSStatus result = SecKeychainItemModifyAttributesAndData(mKeychainItemRef,
+                                                           &attrList,
+                                                           passwordLength,
+                                                           passwordData);
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item user and password for %@ (error %d)",
+          username, result);
+    return;
   }
+  [mUsername autorelease];
+  mUsername = [username copy];
+  [mPassword autorelease];
+  mPassword = [password copy];
+  NSString* currentLabel = [self label];
+  if (![currentLabel length] || [currentLabel isEqualToString:oldUsernameLabel])
+    [self setLabel:[KeychainItem labelForHost:[self host] username:username]];
 }
 
 - (NSString*)host
@@ -371,16 +382,16 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 - (void)setHost:(NSString*)host
 {
   NSString* oldHostLabel = [KeychainItem labelForHost:[self host] username:[self username]];
-  if ([self setAttributeType:kSecServerItemAttr toString:host]) {
-    [mHost autorelease];
-    mHost = [host copy];
-    NSString* currentLabel = [self label];
-    if (![currentLabel length] || [currentLabel isEqualToString:oldHostLabel])
-      [self setLabel:[KeychainItem labelForHost:host username:[self username]]];
+  OSStatus result = [self setAttributeType:kSecServerItemAttr toString:host];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item host (error %d)", result);
+    return;
   }
-  else {
-    NSLog(@"Couldn't update keychain item host");
-  }
+  [mHost autorelease];
+  mHost = [host copy];
+  NSString* currentLabel = [self label];
+  if (![currentLabel length] || [currentLabel isEqualToString:oldHostLabel])
+    [self setLabel:[KeychainItem labelForHost:host username:[self username]]];
 }
 
 - (UInt16)port
@@ -392,10 +403,14 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
 - (void)setPort:(UInt16)port
 {
-  if ([self setAttributeType:kSecPortItemAttr toValue:&port withLength:sizeof(UInt16)])
-    mPort = port;
-  else
-    NSLog(@"Couldn't update keychain item port");
+  OSStatus result = [self setAttributeType:kSecPortItemAttr
+                                   toValue:&port
+                                withLength:sizeof(UInt16)];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item port (error %d)", result);
+    return;
+  }
+  mPort = port;
 }
 
 - (SecProtocolType)protocol
@@ -407,10 +422,14 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
 - (void)setProtocol:(SecProtocolType)protocol
 {
-  if ([self setAttributeType:kSecProtocolItemAttr toValue:&protocol withLength:sizeof(SecProtocolType)])
-    mProtocol = protocol;
-  else
-    NSLog(@"Couldn't update keychain item protocol");
+  OSStatus result = [self setAttributeType:kSecProtocolItemAttr
+                                   toValue:&protocol
+                                withLength:sizeof(SecProtocolType)];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item protocol (error %d)", result);
+    return;
+  }
+  mProtocol = protocol;
 }
 
 - (SecAuthenticationType)authenticationType
@@ -422,21 +441,20 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
 - (void)setAuthenticationType:(SecAuthenticationType)authType
 {
-  if ([self setAttributeType:kSecAuthenticationTypeItemAttr
-                     toValue:&authType
-                  withLength:sizeof(SecAuthenticationType)])
-  {
-    mAuthenticationType = authType;
-    if (authType == kSecAuthenticationTypeHTMLForm) {
-      [self setAttributeType:kSecDescriptionItemAttr
-                    toString:NSLocalizedString(@"WebFormPassword", nil)];
-    }
-    else {
-      [self setAttributeType:kSecDescriptionItemAttr toString:nil];
-    }
+  OSStatus result = [self setAttributeType:kSecAuthenticationTypeItemAttr
+                                   toValue:&authType
+                                withLength:sizeof(SecAuthenticationType)];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item auth type (error %d)", result);
+    return;
+  }
+  mAuthenticationType = authType;
+  if (authType == kSecAuthenticationTypeHTMLForm) {
+    [self setAttributeType:kSecDescriptionItemAttr
+                  toString:NSLocalizedString(@"WebFormPassword", nil)];
   }
   else {
-    NSLog(@"Couldn't update keychain item auth type");
+    [self setAttributeType:kSecDescriptionItemAttr toString:nil];
   }
 }
 
@@ -449,10 +467,14 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
 - (void)setCreator:(OSType)creator
 {
-  if ([self setAttributeType:kSecCreatorItemAttr toValue:&creator withLength:sizeof(OSType)])
-    mCreator = creator;
-  else
-    NSLog(@"Couldn't update keychain item creator");
+  OSStatus result = [self setAttributeType:kSecCreatorItemAttr
+                                   toValue:&creator
+                                withLength:sizeof(OSType)];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item creator (error %d)", result);
+    return;
+  }
+  mCreator = creator;
 }
 
 - (NSString*)comment
@@ -464,13 +486,13 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
 - (void)setComment:(NSString*)comment
 {
-  if ([self setAttributeType:kSecCommentItemAttr toString:comment]) {
-    [mComment autorelease];
-    mComment = [comment copy];
+  OSStatus result = [self setAttributeType:kSecCommentItemAttr toString:comment];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item comment (error %d)", result);
+    return;
   }
-  else {
-    NSLog(@"Couldn't update keychain item comment");
-  }
+  [mComment autorelease];
+  mComment = [comment copy];
 }
 
 - (NSString*)securityDomain
@@ -482,13 +504,14 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
  - (void)setSecurityDomain:(NSString*)securityDomain
 {
-  if ([self setAttributeType:kSecSecurityDomainItemAttr toString:securityDomain]) {
-    [mSecurityDomain autorelease];
-    mSecurityDomain = [securityDomain copy];
+  OSStatus result = [self setAttributeType:kSecSecurityDomainItemAttr
+                                  toString:securityDomain];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item security domains (error %d)", result);
+    return;
   }
-  else {
-    NSLog(@"Couldn't update keychain item security domains");
-  }
+  [mSecurityDomain autorelease];
+  mSecurityDomain = [securityDomain copy];
 }
 
 - (NSString*)label
@@ -500,22 +523,26 @@ static const unsigned int kRawKeychainLabelIndex = 7;
 
  - (void)setLabel:(NSString*)label
 {
-  if ([self setAttributeType:kRawKeychainLabelIndex toString:label]) {
-    [mLabel autorelease];
-    mLabel = [label copy];
+  OSStatus result = [self setAttributeType:kRawKeychainLabelIndex toString:label];
+  if (result != noErr) {
+    NSLog(@"Couldn't update keychain item label (error %d)", result);
+    return;
   }
-  else {
-    NSLog(@"Couldn't update keychain item label");
-  }
+  [mLabel autorelease];
+  mLabel = [label copy];
 }
 
-- (BOOL)setAttributeType:(SecKeychainAttrType)type toString:(NSString*)value {
+- (OSStatus)setAttributeType:(SecKeychainAttrType)type
+                    toString:(NSString*)value
+{
   const char* cString = [value UTF8String];
   UInt32 length = cString ? strlen(cString) : 0;
   return [self setAttributeType:type toValue:(void*)cString withLength:length];
 }
 
-- (BOOL)setAttributeType:(SecKeychainAttrType)type toValue:(void*)valuePtr withLength:(UInt32)length
+- (OSStatus)setAttributeType:(SecKeychainAttrType)type
+                     toValue:(void*)valuePtr
+                  withLength:(UInt32)length
 {
   SecKeychainAttribute attr;
   attr.tag = type;
@@ -524,7 +551,8 @@ static const unsigned int kRawKeychainLabelIndex = 7;
   SecKeychainAttributeList attrList;
   attrList.count = 1;
   attrList.attr = &attr;
-  return (SecKeychainItemModifyAttributesAndData(mKeychainItemRef, &attrList, 0, NULL) == noErr);
+  return SecKeychainItemModifyAttributesAndData(mKeychainItemRef, &attrList,
+                                                0, NULL);
 }
 
 - (void)removeFromKeychain
