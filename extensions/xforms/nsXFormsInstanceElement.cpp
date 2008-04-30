@@ -22,6 +22,7 @@
  * Contributor(s):
  *  Brian Ryner <bryner@brianryner.com>
  *  Olli Pettay <Olli.Pettay@helsinki.fi>
+ *  Merle Sterling <msterlin@us.ibm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -90,8 +91,23 @@ nsXFormsInstanceElement::AttributeSet(nsIAtom *aName,
   if (!mInitialized || mLazy)
     return NS_OK;
 
+  // @src has precedence over inline content which has precedence
+  // over @resource.
   if (aName == nsXFormsAtoms::src) {
     LoadExternalInstance(aNewValue);
+  } else if (aName == nsXFormsAtoms::resource) {
+    // If @resource is set or changed, it only matters if there is
+    // no @src or inline content.
+    nsAutoString src;
+    mElement->GetAttribute(NS_LITERAL_STRING("src"), src);
+    if (src.IsEmpty()) {
+      // Check for inline content.
+      nsCOMPtr<nsIDOMNode> child;
+      GetFirstChildElement(getter_AddRefs(child));
+      if (!child) {
+        LoadExternalInstance(aNewValue);
+      }
+    }
   }
 
   return NS_OK;
@@ -103,6 +119,8 @@ nsXFormsInstanceElement::AttributeRemoved(nsIAtom *aName)
   if (!mInitialized || mLazy)
     return NS_OK;
 
+  // @src has precdence over inline content which has precedence
+  // over @resource.
   if (aName == nsXFormsAtoms::src) {
     PRBool restart = PR_FALSE;
     if (mChannel) {
@@ -114,19 +132,34 @@ nsXFormsInstanceElement::AttributeRemoved(nsIAtom *aName)
       mChannel = nsnull;
       mListener = nsnull;
     }
-    // We no longer have an external instance to use.  Reset our instance
-    // document to whatever inline content we have.
-    nsresult rv = CloneInlineInstance();
+
+    // We no longer have an external (@src) instance to use. Next in precedence
+    // would be inline content so we'll use that if it exists. If there is no
+    // inline content, then we'll look for @resource (the instance may have had
+    // both @src and @resource and no inline content).
+    nsresult rv;
+    nsCOMPtr<nsIDOMNode> child;
+    GetFirstChildElement(getter_AddRefs(child));
+    if (child) {
+      // Reset our instance document to whatever inline content we have.
+      rv = CloneInlineInstance(child);
+    } else {
+      nsAutoString resource;
+      mElement->GetAttribute(NS_LITERAL_STRING("resource"), resource);
+      if (!resource.IsEmpty()) {
+        LoadExternalInstance(resource);
+      }
+    }
 
     // if we had already started to load an external instance document, then
     // as part of that we would have told the model to wait for that external
     // document to load before it finishes the model construction.  Since we
     // aren't loading from an external document any longer, tell the model that
-    // there is need to wait for us anymore.
+    // there is no need to wait for us anymore.
     if (restart) {
       nsCOMPtr<nsIModelElementPrivate> model = GetModel();
       if (model) {
-        model->InstanceLoadFinished(PR_TRUE);
+        model->InstanceLoadFinished(PR_TRUE, EmptyString());
       }
     }
     return rv;
@@ -260,19 +293,21 @@ nsXFormsInstanceElement::OnStopRequest(nsIRequest *request, nsISupports *ctx,
         SetInstanceDocument(nsnull);
       }
     }
-  }
 
-  // Replace the principal for the loaded document
-  nsCOMPtr<nsIDocument> iDoc(do_QueryInterface(mDocument));
-  nsresult rv = ReplacePrincipal(iDoc);
-  if (NS_FAILED(rv)) {
-    SetInstanceDocument(nsnull);
-    return rv;
+    // Replace the principal for the loaded document
+    nsCOMPtr<nsIDocument> iDoc(do_QueryInterface(mDocument));
+    nsresult rv = ReplacePrincipal(iDoc);
+    if (NS_FAILED(rv)) {
+      SetInstanceDocument(nsnull);
+      return rv;
+    }
   }
 
   nsCOMPtr<nsIModelElementPrivate> model = GetModel();
   if (model) {
-    model->InstanceLoadFinished(succeeded);
+    nsCAutoString uri;
+    request->GetName(uri);
+    model->InstanceLoadFinished(succeeded, NS_ConvertASCIItoUTF16(uri));
   }
 
   mListener = nsnull;
@@ -458,7 +493,9 @@ nsXFormsInstanceElement::ParentChanged(nsIDOMElement *aNewParent)
   }
 
   // If we don't have a linked external instance, use our inline data.
-  nsresult rv = CloneInlineInstance();
+  nsCOMPtr<nsIDOMNode> child;
+  GetFirstChildElement(getter_AddRefs(child));
+  nsresult rv = CloneInlineInstance(child);
   if (NS_FAILED(rv))
     return rv;
   return BackupOriginalDocument();
@@ -475,48 +512,69 @@ nsXFormsInstanceElement::Initialize()
   }
 
   // Normal instance
-  nsAutoString src;
+  // If the src attribute is given, then it takes precedence over inline
+  // content and the resource attribute, and the XML data for the instance
+  // is obtained from the link. If the src attribute is omitted, then the
+  // data for the instance is obtained from inline content if it is given
+  // or the resource attribute otherwise. If both the resource attribute
+  // and inline content are provided, the inline content takes precedence.
+  nsresult rv = NS_OK;
+  nsAutoString src, resource;
   mElement->GetAttribute(NS_LITERAL_STRING("src"), src);
 
-  if (src.IsEmpty()) {
-    return CloneInlineInstance();
+  if (!src.IsEmpty()) {
+    LoadExternalInstance(src);
+  } else {
+    // If we have a first child element then we have inline content.
+    nsCOMPtr<nsIDOMNode> child;
+    GetFirstChildElement(getter_AddRefs(child));
+    if (child) {
+      rv = CloneInlineInstance(child);
+    } else {
+      // No @src or inline content, better have @resource
+      mElement->GetAttribute(NS_LITERAL_STRING("resource"), resource);
+      LoadExternalInstance(resource);
+    }
   }
 
-  LoadExternalInstance(src);
-  return NS_OK;
+  return rv;
 }
 
 // private methods
 
 nsresult
-nsXFormsInstanceElement::CloneInlineInstance()
+nsXFormsInstanceElement::CloneInlineInstance(nsIDOMNode *aChild)
 {
   // Clear out our existing instance data
   nsresult rv = CreateInstanceDocument(EmptyString());
   if (NS_FAILED(rv))
     return rv; // don't warn, we might just not be in the document yet
 
-  // look for our first child element (skip over text nodes, etc.)
-  nsCOMPtr<nsIDOMNode> child, temp;
-  mElement->GetFirstChild(getter_AddRefs(child));
-  while (child) {
-    PRUint16 nodeType;
-    child->GetNodeType(&nodeType);
 
-    if (nodeType == nsIDOMNode::ELEMENT_NODE)
-      break;
-
-    temp.swap(child);
-    temp->GetNextSibling(getter_AddRefs(child));
-  }
-
-  // There needs to be a child element, or it is not a valid XML document
-  if (!child) {
+  // aChild must be the first child element under xf:instance or it is not
+  // a valid XML document.
+  if (!aChild) {
     nsXFormsUtils::ReportError(NS_LITERAL_STRING("inlineInstanceNoChildError"),
                                mElement);
+
     nsCOMPtr<nsIModelElementPrivate> model(GetModel());
     nsCOMPtr<nsIDOMNode> modelNode(do_QueryInterface(model));
-    nsXFormsUtils::DispatchEvent(modelNode, eEvent_LinkException);
+    // Context Info: 'resource-uri'
+    // ID of the failed instance preceded by the # fragment identifier.
+    nsAutoString idStr;
+    mElement->GetAttribute(NS_LITERAL_STRING("id"), idStr);
+    if (!idStr.IsEmpty()) {
+      nsAutoString resourceURI;
+      resourceURI.AssignLiteral("#");
+      resourceURI.Append(idStr);
+      nsCOMPtr<nsXFormsContextInfo> contextInfo =
+        new nsXFormsContextInfo(mElement);
+      NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+      contextInfo->SetStringValue("resource-uri", resourceURI);
+      mContextInfo.AppendObject(contextInfo);
+    }
+    nsXFormsUtils::DispatchEvent(modelNode, eEvent_LinkException, nsnull,
+                                 mElement, &mContextInfo);
     nsXFormsUtils::HandleFatalError(mElement,
                                     NS_LITERAL_STRING("XFormsLinkException"));
     return NS_ERROR_FAILURE;
@@ -524,8 +582,8 @@ nsXFormsInstanceElement::CloneInlineInstance()
 
   // Check for siblings to first child element node. This is an error, since
   // the inline content is then not a well-formed XML document.
-  nsCOMPtr<nsIDOMNode> sibling;
-  child->GetNextSibling(getter_AddRefs(sibling));
+  nsCOMPtr<nsIDOMNode> sibling, temp;
+  aChild->GetNextSibling(getter_AddRefs(sibling));
   while (sibling) {
     PRUint16 nodeType;
     sibling->GetNodeType(&nodeType);
@@ -533,9 +591,25 @@ nsXFormsInstanceElement::CloneInlineInstance()
     if (nodeType == nsIDOMNode::ELEMENT_NODE) {
       nsXFormsUtils::ReportError(NS_LITERAL_STRING("inlineInstanceMultipleElementsError"),
                                  mElement);
+
       nsCOMPtr<nsIModelElementPrivate> model(GetModel());
       nsCOMPtr<nsIDOMNode> modelNode(do_QueryInterface(model));
-      nsXFormsUtils::DispatchEvent(modelNode, eEvent_LinkException);
+      // Context Info: 'resource-uri'
+      // ID of the failed instance preceded by the # fragment identifier.
+      nsAutoString idStr;
+      mElement->GetAttribute(NS_LITERAL_STRING("id"), idStr);
+      if (!idStr.IsEmpty()) {
+        nsAutoString resourceURI;
+        resourceURI.AssignLiteral("#");
+        resourceURI.Append(idStr);
+        nsCOMPtr<nsXFormsContextInfo> contextInfo =
+          new nsXFormsContextInfo(mElement);
+        NS_ENSURE_TRUE(contextInfo, NS_ERROR_OUT_OF_MEMORY);
+        contextInfo->SetStringValue("resource-uri", resourceURI);
+        mContextInfo.AppendObject(contextInfo);
+      }
+      nsXFormsUtils::DispatchEvent(modelNode, eEvent_LinkException, nsnull,
+                                   mElement, &mContextInfo);
       nsXFormsUtils::HandleFatalError(mElement,
                                       NS_LITERAL_STRING("XFormsLinkException"));
       return NS_ERROR_FAILURE;
@@ -547,7 +621,7 @@ nsXFormsInstanceElement::CloneInlineInstance()
 
   // Clone and insert content into new document
   nsCOMPtr<nsIDOMNode> newNode;
-  rv = mDocument->ImportNode(child, PR_TRUE, getter_AddRefs(newNode));
+  rv = mDocument->ImportNode(aChild, PR_TRUE, getter_AddRefs(newNode));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIDOMNode> nodeReturn;
@@ -565,9 +639,9 @@ nsXFormsInstanceElement::LoadExternalInstance(const nsAString &aSrc)
   PRBool restart = PR_FALSE;
   if (mChannel) {
     // probably hit this condition because someone changed the value of our
-    // src attribute while we are already trying to load the previously
-    // specified document.  We'll stop the current load effort and kick off the
-    // new attempt.
+    // src or resource attribute while we are already trying to load the
+    // previously specified document.  We'll stop the current load effort and
+    // kick off the new attempt.
     restart = PR_TRUE;
     mChannel->Cancel(NS_BINDING_ABORTED);
     mChannel = nsnull;
@@ -635,7 +709,9 @@ nsXFormsInstanceElement::LoadExternalInstance(const nsAString &aSrc)
       model->InstanceLoadStarted();
     }
     if (NS_FAILED(rv)) {
-      model->InstanceLoadFinished(PR_FALSE);
+      // Context Info: 'resource-uri'
+      // The resource URI of the link that failed.
+      model->InstanceLoadFinished(PR_FALSE, aSrc);
     }
   }
 }
@@ -687,6 +763,28 @@ nsXFormsInstanceElement::GetModel()
   if (parentNode)
     CallQueryInterface(parentNode, &model);
   return model;
+}
+
+nsresult
+nsXFormsInstanceElement::GetFirstChildElement(nsIDOMNode **aChild)
+{
+  // look for our first child element (skip over text nodes, etc.)
+  nsCOMPtr<nsIDOMNode> child, temp;
+  mElement->GetFirstChild(getter_AddRefs(child));
+  while (child) {
+    PRUint16 nodeType;
+    child->GetNodeType(&nodeType);
+
+    if (nodeType == nsIDOMNode::ELEMENT_NODE)
+      break;
+
+    temp.swap(child);
+    temp->GetNextSibling(getter_AddRefs(child));
+  }
+
+  NS_IF_ADDREF(*aChild = child);
+
+  return NS_OK;
 }
 
 nsresult

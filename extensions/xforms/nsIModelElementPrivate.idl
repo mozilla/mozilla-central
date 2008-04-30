@@ -48,7 +48,7 @@ interface nsISVSchemaBuiltinType;
  * Private interface implemented by the model element for other
  * elements to use.
  */
-[uuid(e0c08554-0509-45b4-b3e5-b25c6cad8153)]
+[uuid(bbc19255-4341-45fb-a9dc-23f4add8a7c3)]
 interface nsIModelElementPrivate : nsIXFormsModelElement
 {
   /**
@@ -63,9 +63,13 @@ interface nsIModelElementPrivate : nsIXFormsModelElement
    * Notification that an instance element has started or finished loading
    * its instance data.  Model construction cannot complete until all of
    * the instances have loaded their data.
+   *
+   * The 'uri' parameter for instanceLoadFinished is the uri of @src or
+   * @resource on the instance element and is needed to add the uri to
+   * the context info if the link fails.
    */
   void instanceLoadStarted();
-  void instanceLoadFinished(in boolean success);
+  void instanceLoadFinished(in boolean success, in AString uri);
 
   /**
    * Locate the instance element child with the given id.

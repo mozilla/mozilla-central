@@ -41,6 +41,7 @@
 
 #include "nsXFormsStubElement.h"
 #include "nsIDOMDocument.h"
+#include "nsCOMArray.h"
 #include "nsCOMPtr.h"
 #include "nsIModelElementPrivate.h"
 #include "nsIInstanceElementPrivate.h"
@@ -48,6 +49,7 @@
 #include "nsIStreamListener.h"
 #include "nsIChannelEventSink.h"
 #include "nsIInterfaceRequestor.h"
+#include "nsIXFormsContextInfo.h"
 
 class nsIDocument;
 class nsIDOMElement;
@@ -84,10 +86,11 @@ public:
   nsXFormsInstanceElement() NS_HIDDEN;
 
 private:
-  NS_HIDDEN_(nsresult) CloneInlineInstance();
+  NS_HIDDEN_(nsresult) CloneInlineInstance(nsIDOMNode *aChild);
   NS_HIDDEN_(void) LoadExternalInstance(const nsAString &aSrc);
   NS_HIDDEN_(nsresult) CreateInstanceDocument(const nsAString &aQualifiedName);
   NS_HIDDEN_(already_AddRefed<nsIModelElementPrivate>) GetModel();
+  NS_HIDDEN_(nsresult) GetFirstChildElement(nsIDOMNode **aChild);
 
   /**
    * Replace principal for document to be the same as for the owning document.
@@ -108,6 +111,8 @@ private:
   PRBool                      mInitialized;
   PRBool                      mLazy;
   nsCOMPtr<nsIChannel>        mChannel;
+  // Context Info for events.
+  nsCOMArray<nsIXFormsContextInfo> mContextInfo;
 };
 
 NS_HIDDEN_(nsresult)
