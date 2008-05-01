@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#ifndef __NSXFORMSDOMEVENT_H__
+#define __NSXFORMSDOMEVENT_H__
+
 #include "nsCOMPtr.h"
 #include "nsCOMArray.h"
 #include "nsInterfaceHashtable.h"
@@ -84,3 +87,5 @@ protected:
    */
   nsInterfaceHashtable<nsStringHashKey, nsIXFormsContextInfo> mContextInfo;
 };
+
+#endif

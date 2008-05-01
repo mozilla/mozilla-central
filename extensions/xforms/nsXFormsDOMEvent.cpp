@@ -43,7 +43,28 @@
  *
  */
 
-NS_IMPL_ISUPPORTS3(nsXFormsDOMEvent, nsIXFormsDOMEvent, nsIDOMNSEvent, nsIPrivateDOMEvent)
+// Setup the interface map so that an nsIXFormsDOMEvent can be QI'ed to
+// nsIDOMEvent, nsIDOMNSEvent, nsIPrivateDOMEvent, and nsISupports.
+//
+// nsISupports is ambiguous because all of the interfaces inherit from
+// nsISupports. NS_INTERFACE_MAP_ENTRY_AMBIGOUS will cast to the
+// nsISupports of nsXFormsDOMEvent.
+//
+// nsXFormsDOMEvent contains an nsIDOMEvent (mInner) and nsIDOMEvent
+// implements nsIDOMNSEvent and nsIPrivateDOMEvent. The event dispatcher
+// will QI to those interfaces. We use NS_INTERFACE_MAP_END_AGGREGATED to
+// forward QIs for those interfaces to mInner.
+
+NS_INTERFACE_MAP_BEGIN(nsXFormsDOMEvent)
+  NS_INTERFACE_MAP_ENTRY(nsIXFormsDOMEvent)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMEvent)
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNSEvent)
+  NS_INTERFACE_MAP_ENTRY(nsIPrivateDOMEvent)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIXFormsDOMEvent)
+NS_INTERFACE_MAP_END_AGGREGATED(mInner)
+
+NS_IMPL_ADDREF(nsXFormsDOMEvent)
+NS_IMPL_RELEASE(nsXFormsDOMEvent)
 
 nsXFormsDOMEvent::nsXFormsDOMEvent(nsIDOMEvent *aInner,
                                    nsCOMArray<nsIXFormsContextInfo> *aContextInfo)
