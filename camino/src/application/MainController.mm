@@ -280,10 +280,10 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   mCharsets = [[NSDictionary dictionaryWithContentsOfFile:charsetPath] retain];
 
   // Check whether Camino shut down normally last time...
-  [[NSUserDefaults standardUserDefaults] registerDefaults:[NSDictionary dictionaryWithObject:@"YES" forKey:kPreviousSessionTerminatedNormallyKey]];
+  [[NSUserDefaults standardUserDefaults] registerDefaults:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:kPreviousSessionTerminatedNormallyKey]];
   BOOL previousSessionTerminatedNormally = [[NSUserDefaults standardUserDefaults] boolForKey:kPreviousSessionTerminatedNormallyKey];
   // ... then reset the state for the next time around.
-  [[NSUserDefaults standardUserDefaults] setObject:@"NO" forKey:kPreviousSessionTerminatedNormallyKey];
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:kPreviousSessionTerminatedNormallyKey];
   [[NSUserDefaults standardUserDefaults] synchronize];
 
   // Determine if the previous session's window state should be restored.
@@ -457,7 +457,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
   // Indicate that Camino exited normally. Write the default to disk
   // immediately since we cannot wait for automatic synchronization.
-  [[NSUserDefaults standardUserDefaults] setObject:@"YES" forKey:kPreviousSessionTerminatedNormallyKey];
+  [[NSUserDefaults standardUserDefaults] setBool:YES forKey:kPreviousSessionTerminatedNormallyKey];
   [[NSUserDefaults standardUserDefaults] synchronize];
 
   // Cancel outstanding site icon loads
