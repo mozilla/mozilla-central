@@ -1,6 +1,6 @@
 import time
 from calendar import timegm
-from urllib2 import urlopen
+from urllib import urlopen
 from xml.dom import minidom, Node
 
 from twisted.python import log, failure
