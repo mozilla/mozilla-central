@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0"?> 
 
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -36,50 +36,22 @@
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
    - ***** END LICENSE BLOCK ***** -->
-   
+
+<?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 <!DOCTYPE overlay SYSTEM "chrome://chatzilla/locale/pref-irc.dtd">
 
-<overlay id="ovCZPrefs" 
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <!-- Tree entry (Mozilla/SeaMonkey 1.x) -->
-  <treechildren id="panelChildren">
-    <treeitem container="false" id="chatzillaItem" insertbefore="advancedItem">
-      <treerow>
-        <treecell url="chrome://chatzilla/content/pref-irc.xul" 
-            label="&pref-irc.window.title;"/>
-      </treerow>
-    </treeitem>
-  </treechildren>
-  <!-- Tree entry (SeaMonkey 2) -->
-  <treechildren id="prefsPanelChildren">
-    <treeitem id="chatzillaItem"
-              insertafter="editor,mailnews,navigator"
-              label="&pref-irc.window.title;"
-              prefpane="chatzilla_pane"
-              url="chrome://chatzilla/content/pref-irc-toolkit.xul"/>
-  </treechildren>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="chatzilla_pane"
+            label="&pref-irc.window.title;">
 
-  <!-- Startup code (Mozilla/SeaMonkey 1.x) -->
-  <script type="application/x-javascript">
-    <![CDATA[
-        var panel;
-        if (panel != undefined && 
-            (panel == "chrome://communicator/content/pref/pref-appearance.xul"))
-            _elementIDs.push("generalStartupChat");
-    ]]>
-  </script>
-  <!-- Startup preference (SeaMonkey 2) -->
-  <preferences id="appearance_preferences">
-    <preference id="general.startup.chat"
-                name="general.startup.chat"
-                type="bool"/>
-  </preferences>
-  <!-- Startup checkbox -->
-  <groupbox id="generalStartupPreferences">
-    <checkbox id="generalStartupChat" label="&startup.chat.label;"
-              accesskey="&startup.chat.accesskey;" pref="true" preftype="bool"
-              prefstring="general.startup.chat" prefattribute="checked"
-              wsm_persist="true" preference="general.startup.chat"/>
-  </groupbox>
+    <label>&pref-irc.open.desc;</label>
+    <separator/>
+    <hbox pack="center">
+      <button label="&pref-irc.open.label;" accesskey="&pref-irc.open.accesskey;"
+              oncommand="this.disabled = true;
+                         window.openDialog('chrome://chatzilla/content/config.xul',
+                                           '', 'chrome,modal,resizable');
+                         this.disabled = false;"/>
+    </hbox>
+  </prefpane>
 </overlay>
-

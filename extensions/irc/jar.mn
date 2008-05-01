@@ -4,7 +4,7 @@ chatzilla.jar:
 %       overlay chrome://browser/content/browser.xul chrome://chatzilla/content/browserOverlay.xul application={ec8030f7-c20a-464f-9b0e-13a3a9e97384}
 %       overlay chrome://songbird/content/xul/layoutBaseOverlay.xul chrome://chatzilla/content/browserOverlay.xul application=songbird@songbirdnest.com
 %       overlay chrome://editor/content/editorTasksOverlay.xul chrome://chatzilla/content/chatzillaOverlay.xul application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
-%       overlay chrome://communicator/content/pref/preftree.xul chrome://chatzilla/content/prefsOverlay.xul application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
+%       overlay chrome://communicator/content/pref/preferences.xul chrome://chatzilla/content/prefsOverlay.xul application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 %       overlay chrome://communicator/content/pref/pref-appearance.xul chrome://chatzilla/content/prefsOverlay.xul application={92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}
 %       style   chrome://browser/content/browser.xul chrome://chatzilla/skin/browserOverlay.css
 %       style   chrome://songbird/content/xul/layoutBaseOverlay.xul chrome://chatzilla/skin/browserOverlay.css
@@ -49,6 +49,7 @@ chatzilla.jar:
 	content/chatzilla/browserOverlay.xul         (xul/content/browserOverlay.xul) 
 	content/chatzilla/prefsOverlay.xul           (xul/content/prefsOverlay.xul)
 	content/chatzilla/pref-irc.xul               (xul/content/pref-irc.xul)
+	content/chatzilla/pref-irc-toolkit.xul       (xul/content/pref-irc-toolkit.xul)
 	content/chatzilla/config.xul                 (xul/content/config.xul)
 	content/chatzilla/config-add.xul             (xul/content/config-add.xul)
 	content/chatzilla/config.js                  (xul/content/config.js)
