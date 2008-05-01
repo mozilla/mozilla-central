@@ -824,14 +824,17 @@ nsresult
 nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
 {
   // Precedence:
-  // 1. If the submission element has a resource element as its first child,
-  // the URI can be specifed by either the 'value' attribute or the string
-  // content of the resource element. The resource element has precedence over
-  // both the 'resource' and 'action' attributes.
+  // 1. If the submission element has a resource element, the URI can be
+  // specifed by either the 'value' attribute or the string content of the
+  // resource element. If a submission has more than one resource child
+  // element, the first resource element child must be selected for use.
   //
-  // 2. If there is no resource element as the first child, the URI may be
-  // specified by either the 'resource' or 'action' attributes with 'resource'
-  // having precedence over 'action'.
+  // The resource element has precedence over both the 'resource' and
+  // 'action' attributes.
+  //
+  // 2. If there is no resource element, the URI may be specified by either
+  // the 'resource' or 'action' attributes with 'resource' having precedence
+  // over 'action'.
   //
   // If no URI is specified via any of the above mechanisms we write a warning
   // message to the error console.
@@ -839,7 +842,7 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
   nsresult rv = NS_OK;
   nsAutoString uri;
 
-  // First check if the first child element of submission is a resource.
+  // First check if submission has a resource child element.
   nsCOMPtr<nsIDOMNode> currentNode, node, resourceNode;
   mElement->GetFirstChild(getter_AddRefs(currentNode));
 
@@ -848,19 +851,15 @@ nsXFormsSubmissionElement::GetSubmissionURI(nsACString& aURI)
   while (currentNode) {
     currentNode->GetNodeType(&nodeType);
     if (nodeType == nsIDOMNode::ELEMENT_NODE) {
-      // Make sure the element is a resource element.
+      // Check if the element is a resource element.
       nsAutoString localName, namespaceURI;
       currentNode->GetLocalName(localName);
       currentNode->GetNamespaceURI(namespaceURI);
       if (localName.EqualsLiteral("resource") &&
           namespaceURI.EqualsLiteral(NS_NAMESPACE_XFORMS)) {
-        // First child element is a resource.
         resourceNode = currentNode;
+        break;
       }
-
-      // The resource element must be the first child, so we
-      // bail out as soon as we find any element.
-      break;
     }
 
     currentNode->GetNextSibling(getter_AddRefs(node));
