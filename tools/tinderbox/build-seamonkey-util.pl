@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.386 $ ';
+$::UtilsVersion = '$Revision: 1.387 $ ';
 
 package TinderUtils;
 
@@ -2352,6 +2352,7 @@ sub run_all_tests {
     # Mail bloat/leak test.
     # Needs:
     #   mozilla/testing/mailnews checked out
+    #   --enable-debug and --enable-trace-malloc in mozconfig
     #
     # Manual steps for this test:
     # See http://wiki.mozilla.org/MailNews:Memory_Bloat_and_Leak_Tests
@@ -2363,7 +2364,7 @@ sub run_all_tests {
 
         chdir("$Settings::TopsrcdirFull/testing/mailnews/bloat/");
 
-        system("python setUpBloatTest.py --binary-dir=$binary_dir --profile-dir=$profile_dir");
+        system("python setUpBloatTest.py --binary-dir=$binary_dir --profile-dir=\"$profile_dir\"");
 
         chdir("$build_dir");
 
@@ -3356,8 +3357,8 @@ sub BloatTest {
     my ($binary, $build_dir, $bloat_args, $bloatdiff_label, $timeout_secs) = @_;
     my $binary_basename = File::Basename::basename($binary);
     my $binary_dir = File::Basename::dirname($binary);
-    my $binary_log = "$build_dir/bloat-cur.log";
-    my $old_binary_log = "$build_dir/bloat-prev.log";
+    my $binary_log = "${build_dir}/${bloatdiff_label}bloat-cur.log";
+    my $old_binary_log = "${build_dir}/${bloatdiff_label}bloat-prev.log";
     local $_;
 
     rename($binary_log, $old_binary_log);
@@ -3416,7 +3417,7 @@ sub BloatTest {
     print_log "<a href=#bloat>\n######################## BLOAT STATISTICS\n";
     my $found_total_line = 0;
     my @total_line_array;
-    open DIFF, "perl $build_dir/../bloatdiff.pl $build_dir/bloat-prev.log $binary_log $bloatdiff_label|"
+    open DIFF, "perl $build_dir/../bloatdiff.pl $old_binary_log $binary_log $bloatdiff_label|"
         or die "Unable to run bloatdiff.pl";
     while (<DIFF>) {
         print_log $_;
@@ -3625,13 +3626,14 @@ sub BloatTest2 {
         $build_dir =~ s/\\/\//g;
         $PERL = "perl";
     }
-    my $binary_log = "$build_dir/bloattest2.log";
-    my $malloc_log = "$build_dir/malloc.log";
-    my $sdleak_log = "$build_dir/sdleak.log";
-    my $old_sdleak_log = "$build_dir/sdleak.log.old";
-    my $leakstats_log = "$build_dir/leakstats.log";
-    my $old_leakstats_log = "$build_dir/leakstats.log.old";
-    my $sdleak_diff_log = "$build_dir/sdleak.diff.log";
+    my $binary_log = "${build_dir}/${bloat_prefix}bloattest2.log";
+    my $malloc_log = "${build_dir}/${bloat_prefix}malloc.log";
+    my $sdleak_log = "${build_dir}/${bloat_prefix}sdleak.log";
+    my $old_sdleak_log = "${build_dir}/${bloat_prefix}sdleak.log.old";
+    my $leakstats_log = "${build_dir}/${bloat_prefix}leakstats.log";
+    my $old_leakstats_log = "${build_dir}/${bloat_prefix}leakstats.log.old";
+    my $sdleak_diff_log = "${build_dir}/${bloat_prefix}sdleak.diff.log";
+
     local $_;
 
     # Anything other than '' doesn't need bloaturls.txt
