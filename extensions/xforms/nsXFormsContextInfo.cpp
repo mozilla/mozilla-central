@@ -145,7 +145,7 @@ nsXFormsContextInfo::SetNodeValue(const char *aName, nsIDOMNode *aNode)
 {
   // Set the name of the context property.
   nsAutoString name;
-  name.AppendLiteral(aName);
+  name.Append(NS_ConvertASCIItoUTF16(aName));
   SetName(name);
 
   // Set the node value of the context property.
@@ -178,7 +178,7 @@ nsXFormsContextInfo::SetNodesetValue(const char *aName,
 {
   // Set the name of the context property.
   nsAutoString name;
-  name.AppendLiteral(aName);
+  name.Append(NS_ConvertASCIItoUTF16(aName));
   SetName(name);
 
   // Set the nodeset value of the context property.

@@ -661,7 +661,7 @@ nsXFormsXPathFunctions::DaysToDate(double aDays, nsAString &aResult)
   char ctime[60];
   PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%d", &et);
 
-  aResult.AssignLiteral(ctime);
+  aResult.Assign(NS_ConvertASCIItoUTF16(ctime));
 
   return NS_OK;
 }
@@ -693,7 +693,7 @@ nsXFormsXPathFunctions::SecondsToDateTime(double aSeconds, nsAString &aResult)
   char ctime[60];
   PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%SZ", &et);
 
-  aResult.AssignLiteral(ctime);
+  aResult.Assign(NS_ConvertASCIItoUTF16(ctime));
 
   return NS_OK;
 }

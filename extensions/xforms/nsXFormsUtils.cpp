@@ -2882,7 +2882,7 @@ nsXFormsUtils::GetTime(nsAString & aResult, PRBool aUTC)
 
     PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
 
-    aResult.AssignLiteral(ctime);
+    aResult.Assign(NS_ConvertASCIItoUTF16(ctime));
 
     if (aUTC) {
       aResult.AppendLiteral("Z");
