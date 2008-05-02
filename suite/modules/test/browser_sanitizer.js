@@ -79,11 +79,14 @@ var sanTests = {
   cookies: {
     desc: "Cookie",
     setup: function() {
+      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefBranch);
+      prefs.setIntPref("network.cookie.cookieBehavior", 0);
       var ios = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
       this.uri = ios.newURI("http://sanitizer.test/", null, null);
-      this.cs = Components.classes["@mozilla.org/cookieService;1"].
-                getService(Components.interfaces.nsICookieService);
+      this.cs = Components.classes["@mozilla.org/cookieService;1"]
+                          .getService(Components.interfaces.nsICookieService);
       this.cs.setCookieString(this.uri, null, "Sanitizer!", null);
       return this.check();
     },
@@ -102,7 +105,16 @@ var sanTests = {
 
       var history = Components.classes["@mozilla.org/browser/global-history;2"]
                               .getService(Components.interfaces.nsIBrowserHistory);
-      history.addPageWithDetails(uri, "Sanitizer!", (new Date()).getTime());
+      if (history.addPageWithDetails) {
+        // toolkit history interfaces can be used
+        history.addPageWithDetails(uri, "Sanitizer!", (new Date()).getTime());
+      }
+      else {
+        // old xpfe history implementation!
+        history.removeAllPages();
+        history.addURI(uri, false, true, null);
+        history.setPageTitle(uri, "Sanitizer!");
+      }
 
       // Open location dialog
       var supStr = Components.classes["@mozilla.org/supports-string;1"]
@@ -123,15 +135,25 @@ var sanTests = {
                                                 Components.interfaces.nsISupportsString).data == "Sanitizer!");
       } catch(ex) {}
 
-      var history = Components.classes["@mozilla.org/browser/nav-history-service;1"]
-                              .getService(Components.interfaces.nsINavHistoryService);
-      var options = history.getNewQueryOptions();
-      var query = history.getNewQuery();
-      query.searchTerms = "Sanitizer!";
-      var results = history.executeQuery(query, options).root;
-      results.containerOpen = true;
-      for (var i = 0; i < results.childCount; i++) {
-        if (results.getChild(i).uri == "http://sanitizer.test/" && locDialog)
+      if (Components.classes["@mozilla.org/browser/nav-history-service;1"]) {
+        // toolkit history interfaces can be used
+        var history = Components.classes["@mozilla.org/browser/nav-history-service;1"]
+                                .getService(Components.interfaces.nsINavHistoryService);
+        var options = history.getNewQueryOptions();
+        var query = history.getNewQuery();
+        query.searchTerms = "Sanitizer!";
+        var results = history.executeQuery(query, options).root;
+        results.containerOpen = true;
+        for (var i = 0; i < results.childCount; i++) {
+          if (results.getChild(i).uri == "http://sanitizer.test/" && locDialog)
+            return true;
+        }
+      }
+      else {
+        // old xpfe history implementation, having any entry set is counted as true
+        var history = Components.classes["@mozilla.org/browser/global-history;2"]
+                                .getService(Components.interfaces.nsIBrowserHistory);
+        if (history.count)
           return true;
       }
       return false;
