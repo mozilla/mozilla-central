@@ -236,8 +236,8 @@ endif # NS_USE_GCC
 endif
 
 ifeq ($(OS_ARCH),OS2)
-  EXTRA_LIBS = $(OS_LIBS)
-  LDOPTS = -Zomf -Zlinker /PM:VIO -Zlinker /ST:0x64000
+EXTRA_LIBS = $(OS_LIBS)
+LDOPTS = -Zomf -Zlinker /PM:VIO -Zlinker /ST:0x64000
 endif
 
 ifneq ($(OS_ARCH), WINNT)

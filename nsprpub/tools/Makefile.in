@@ -90,7 +90,7 @@ endif
 endif
 
 ifeq ($(OS_ARCH),OS2)
-  LDOPTS += -Zomf -Zlinker /PM:VIO
+LDOPTS += -Zomf -Zlinker /PM:VIO
 endif
 
 ifneq ($(OS_ARCH), WINNT)

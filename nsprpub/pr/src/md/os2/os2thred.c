@@ -37,9 +37,7 @@
 
 #include "primpl.h"
 #include <process.h>  /* for _beginthread() */
-
 #include <signal.h>
-
 #include <float.h>
 
 /* --- globals ------------------------------------------------ */

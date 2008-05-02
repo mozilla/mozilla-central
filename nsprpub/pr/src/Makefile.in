@@ -237,6 +237,7 @@ OBJS = \
 	threads/$(OBJDIR)/prrwlock.$(OBJ_SUFFIX) \
 	threads/$(OBJDIR)/prtpd.$(OBJ_SUFFIX) \
     linking/$(OBJDIR)/prlink.$(OBJ_SUFFIX) \
+    malloc/$(OBJDIR)/prmalloc.$(OBJ_SUFFIX) \
     malloc/$(OBJDIR)/prmem.$(OBJ_SUFFIX) \
     md/$(OBJDIR)/prosdep.$(OBJ_SUFFIX) \
     memory/$(OBJDIR)/prshm.$(OBJ_SUFFIX) \
@@ -255,7 +256,6 @@ OBJS = \
     misc/$(OBJDIR)/pripc.$(OBJ_SUFFIX) \
     misc/$(OBJDIR)/prlog2.$(OBJ_SUFFIX) \
     misc/$(OBJDIR)/prlong.$(OBJ_SUFFIX) \
-    malloc/$(OBJDIR)/prmalloc.$(OBJ_SUFFIX) \
     misc/$(OBJDIR)/prnetdb.$(OBJ_SUFFIX) \
     misc/$(OBJDIR)/prolock.$(OBJ_SUFFIX)	 \
     misc/$(OBJDIR)/prrng.$(OBJ_SUFFIX)	 \
