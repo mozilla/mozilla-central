@@ -1348,17 +1348,20 @@ function updateCloseItems()
   if (browser && browser.getStripVisibility()) {
     document.getElementById('menu_closeOtherTabs').hidden = false;
     if (browser.tabContainer.childNodes.length > 1) {
-      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.closeTab'));
+      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.closeTab.label'));
+      document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.closeTab.accesskey'));
       document.getElementById('cmd_closeOtherTabs').removeAttribute('disabled');
       document.getElementById('menu_closeWindow').hidden = false;
     }
     else {
-      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close'));
+      document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close.label'));
+      document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.close.accesskey'));
       document.getElementById('cmd_closeOtherTabs').setAttribute('disabled', 'true');
       document.getElementById('menu_closeWindow').hidden = true;
     }
   } else {
-    document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close'));
+    document.getElementById('menu_close').setAttribute('label', gNavigatorBundle.getString('tabs.close.label'));
+    document.getElementById('menu_close').setAttribute('accesskey', gNavigatorBundle.getString('tabs.close.accesskey'));
     document.getElementById('menu_closeWindow').hidden = true;
     document.getElementById('menu_closeOtherTabs').hidden = true;
   }
