@@ -320,6 +320,7 @@ pref("browser.chrome.site_icons", true);
 pref("browser.chrome.favicons", false);
 pref("browser.chrome.toolbar_tips",         true);
 pref("browser.xul.error_pages.enabled", true);
+pref("browser.xul.error_pages.expert_bad_cert", false);
 
 // Attachment download manager settings
 pref("mail.attachment.store.version", 0);

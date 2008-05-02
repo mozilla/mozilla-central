@@ -158,6 +158,7 @@ pref("camino.viewsource_in_tab", false);
 
 // use the html network errors rather than sheets
 pref("browser.xul.error_pages.enabled", true);
+pref("browser.xul.error_pages.expert_bad_cert", false);
 
 // map delete key to back button
 pref("browser.backspace_action", 0);
