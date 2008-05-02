@@ -139,13 +139,7 @@ endif
 endif
 
 ifeq ($(OS_ARCH),OS2)
-  ifeq ($(MOZ_OS2_TOOLS),VACPP)
-    LDOPTS = -NOE -DEBUG -nologo -PMTYPE:VIO
-    LIBPR = $(dist_libdir)/nspr$(MOD_MAJOR_VERSION).lib
-    LIBPLC = $(dist_libdir)/plc$(MOD_MAJOR_VERSION).lib
-  else
-    LDOPTS += -Zomf -Zlinker /PM:VIO -lstdcpp
-  endif
+  LDOPTS += -Zomf -Zlinker /PM:VIO -lstdcpp
 endif
 
 ifneq ($(OS_ARCH), WINNT)

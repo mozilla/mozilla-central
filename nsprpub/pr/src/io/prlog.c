@@ -44,9 +44,6 @@
  * Copyright (c) International Business Machines Corporation, 2000.
  * Modifications to Mozilla code or documentation identified per
  * MPL Section 3.3
- *
- * Date         Modified by     Description of modification
- * 04/10/2000   IBM Corp.       Added DebugBreak() definitions for OS/2
  */
 
 #include "primpl.h"
@@ -544,23 +541,6 @@ PR_IMPLEMENT(void) PR_Abort(void)
     abort();
 }
 
-#if defined(XP_OS2)
-/*
- * Added definitions for DebugBreak() for 2 different OS/2 compilers.
- * Doing the int3 on purpose for Visual Age so that a developer can
- * step over the instruction if so desired.  Not always possible if
- * trapping due to exception handling IBM-AKR
- */
-#if defined(XP_OS2_VACPP)
-#include <builtin.h>
-static void DebugBreak(void) { _interrupt(3); }
-#elif defined(XP_OS2_EMX)
-static void DebugBreak(void) { asm("int $3"); }
-#else
-static void DebugBreak(void) { }
-#endif
-#endif /* XP_OS2 */
-
 PR_IMPLEMENT(void) PR_Assert(const char *s, const char *file, PRIntn ln)
 {
     PR_LogPrint("Assertion failure: %s, at %s:%d\n", s, file, ln);
@@ -570,8 +550,11 @@ PR_IMPLEMENT(void) PR_Assert(const char *s, const char *file, PRIntn ln)
 #ifdef XP_MAC
     dprintf("Assertion failure: %s, at %s:%d\n", s, file, ln);
 #endif
-#if defined(WIN32) || defined(XP_OS2)
+#ifdef WIN32
     DebugBreak();
+#endif
+#ifdef XP_OS2
+    asm("int $3");
 #endif
 #ifndef XP_MAC
     abort();

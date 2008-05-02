@@ -48,21 +48,11 @@
 
 #include "primpl.h"
 
-#ifdef XP_OS2_EMX
- #include <sys/time.h> /* For timeval. */
-#endif
+#include <sys/time.h> /* For timeval. */
 
 #define _PR_INTERRUPT_CHECK_INTERVAL_SECS 5
 #define READ_FD   1
 #define WRITE_FD  2
-
-#ifdef XP_OS2_VACPP
-#define _OS2_WRITEV writev
-#define _OS2_IOCTL ioctl
-#else
-#define _OS2_WRITEV so_writev
-#define _OS2_IOCTL so_ioctl
-#endif
 
 /* --- SOCKET IO --------------------------------------------------------- */
 
@@ -105,7 +95,7 @@ _MD_SocketAvailable(PRFileDesc *fd)
 {
     PRInt32 result;
 
-    if (_OS2_IOCTL(fd->secret->md.osfd, FIONREAD, (char *) &result, sizeof(result)) < 0) {
+    if (so_ioctl(fd->secret->md.osfd, FIONREAD, (char *) &result, sizeof(result)) < 0) {
         PR_SetError(PR_BAD_DESCRIPTOR_ERROR, sock_errno());
         return -1;
     }
@@ -547,7 +537,7 @@ _PR_MD_WRITEV(PRFileDesc *fd, const PRIOVec *iov, PRInt32 iov_size,
         }
     }
 
-    while ((rv = _OS2_WRITEV(osfd, (const struct iovec*)iov, iov_size)) == -1) {
+    while ((rv = so_writev(osfd, (const struct iovec*)iov, iov_size)) == -1) {
         err = sock_errno();
         if ((err == EWOULDBLOCK))    {
             if (fd->secret->nonblocking) {
@@ -592,7 +582,6 @@ _PR_MD_SHUTDOWN(PRFileDesc *fd, PRIntn how)
     return rv;
 }
 
-#ifndef XP_OS2_VACPP
 PRInt32
 _PR_MD_SOCKETPAIR(int af, int type, int flags, PRInt32 *osfd)
 {
@@ -605,7 +594,6 @@ _PR_MD_SOCKETPAIR(int af, int type, int flags, PRInt32 *osfd)
     }
     return rv;
 }
-#endif
 
 PRStatus
 _PR_MD_GETSOCKNAME(PRFileDesc *fd, PRNetAddr *addr, PRUint32 *addrlen)
@@ -675,7 +663,7 @@ _MD_MakeNonblock(PRFileDesc *fd)
         return;
     }
 
-    err = _OS2_IOCTL( osfd, FIONBIO, (char *) &one, sizeof(one));
+    err = so_ioctl( osfd, FIONBIO, (char *) &one, sizeof(one));
     if ( err != 0 )
     {
         err = sock_errno();
