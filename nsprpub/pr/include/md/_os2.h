@@ -159,7 +159,7 @@ struct _MDNotified {
 };
 
 struct _MDLock {
-    HMTX mutex;                        /* this is recursive on NT */
+    HMTX mutex;
 
     /*
      * When notifying cvars, there is no point in actually
