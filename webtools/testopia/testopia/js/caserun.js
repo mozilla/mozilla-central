@@ -824,7 +824,7 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                 },{
                     text: 'Clone Run with Selected Cases', 
                     handler: function(){
-                        RunClonePopup(grid.run, true);
+                        RunClonePopup(grid.run.product_id,grid.run.run_id, getSelectedObjects(grid,'case_id'));
                     }
                 },{
                     text: 'Copy or Link Selected Test Cases to Plan(s)... ',
