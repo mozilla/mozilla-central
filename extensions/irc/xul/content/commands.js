@@ -2196,13 +2196,23 @@ function cmdNick(e)
         e.nickname = e.nickname.replace(/ /g, "_");
     }
 
-    if (e.server)
+    if (e.server && e.server.isConnected)
         e.server.changeNick(e.nickname);
 
     if (e.network)
     {
-        e.network.prefs["nickname"] = e.nickname;
-        e.network.preferredNick = e.nickname;
+        /* We want to save in all non-online cases, including NET_CONNECTING,
+         * as we will only get a NICK reply if we are completely connected.
+         */
+        if (e.network.state == NET_ONLINE)
+        {
+            e.network.pendingNickChange = e.nickname;
+        }
+        else
+        {
+            e.network.prefs["nickname"] = e.nickname;
+            e.network.preferredNick = e.nickname;
+        }
     }
     else
     {

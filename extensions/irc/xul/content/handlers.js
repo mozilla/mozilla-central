@@ -1083,6 +1083,9 @@ function my_showtonet (e)
             else
                 this.preferredNick = this.prefs["nickname"];
 
+            // Pretend this never happened.
+            delete this.pendingNickChange;
+
             str = e.decodeParam(2);
 
             break;
@@ -2158,6 +2161,14 @@ function my_cnick (e)
 {
     if (!ASSERT(userIsMe(e.user), "network nick event for third party"))
         return;
+
+    if (("pendingNickChange" in this) &&
+        (this.pendingNickChange == e.user.unicodeName))
+    {
+        this.prefs["nickname"] = e.user.unicodeName;
+        this.preferredNick = e.user.unicodeName;
+        delete this.pendingNickChange;
+    }
 
     if (getTabForObject(this))
     {
