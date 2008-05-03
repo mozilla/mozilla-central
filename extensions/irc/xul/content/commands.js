@@ -1016,15 +1016,26 @@ function cmdChanUserMode(e)
 
     var nicks;
     var user;
-    // Prefer pre-canonicalised list, then a normal list, then finally a
-    // sigular item (canon. or otherwise).
+    var nickList = new Array();
+    // Prefer pre-canonicalised list, then a * passed to the command directly,
+    // then a normal list, then finally a sigular item (canon. or otherwise).
     if (e.canonNickList)
     {
         nicks = combineNicks(e.canonNickList);
     }
+    else if (e.nickname && (e.nickname == "*"))
+    {
+        var me = e.server.me;
+        for (user in e.channel.users)
+        {
+            var user2 = e.channel.users[user];
+            if (user2.encodedName != me.encodedName)
+                nickList.push(user2.encodedName);
+        }
+        nicks = combineNicks(nickList);
+    }
     else if (e.nicknameList)
     {
-        var nickList = new Array();
         for (i = 0; i < e.nicknameList.length; i++)
         {
             user = e.channel.getUser(e.nicknameList[i]);
