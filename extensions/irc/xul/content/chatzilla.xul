@@ -72,8 +72,9 @@
         <vbox id="user-list-box" width="125" persist="collapsed width">
  
           <tree id="user-list" flex="1" hidecolumnpicker="true"
-                context="context:userlist" aaa:live="off"
-                aaa:relevant="additions removals text">
+                context="context:userlist" aaa:live="off" aria-live="off"
+                aaa:relevant="additions removals text"
+                aria-relevant="additions removals text">
             <treecols>
               <treecol id="usercol" hideheader="true" flex="1"/>
             </treecols>
