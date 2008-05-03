@@ -1384,7 +1384,16 @@ function pwin_onPrefBrowse(button)
     var rv;
     if (type == "folder")
     {
-        var current = getFileFromURLSpec(edit.value);
+        try
+        {
+            // if the user set the pref to an invalid folder, this will throw:
+            var current = getFileFromURLSpec(edit.value);
+        }
+        catch (ex)
+        {
+            // Just setting it to null will work:
+            current = null;
+        }
         rv = pickGetFolder(MSG_PREFS_BROWSE_TITLE, current);
     }
     else
