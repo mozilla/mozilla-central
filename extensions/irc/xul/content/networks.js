@@ -71,7 +71,7 @@ function initNetworks()
     networks["ircnet"] = {
         displayName:  "ircnet",
         isupportsKey: "",
-        servers: [{hostname: "irc.ircnet.com", port:6667}]};
+        servers: [{hostname: "irc.open-ircnet.net", port:6667}]};
     networks["freenode"] = {
         displayName:  "freenode",
         isupportsKey: "",
