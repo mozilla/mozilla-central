@@ -2203,6 +2203,14 @@ function my_netwallops(e)
     client.munger.getRule(".mailto").enabled = false;
 }
 
+/* unknown command reply */
+CIRCNetwork.prototype.on421 =
+function my_421(e)
+{
+    this.display(getMsg(MSG_ERR_UNKNOWN_COMMAND, e.params[2]), MT_ERROR);
+    return true;
+}
+
 CIRCNetwork.prototype.reclaimName =
 function my_reclaimname()
 {
