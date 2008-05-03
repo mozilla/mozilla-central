@@ -1915,21 +1915,13 @@ function cmdMe(e)
         display(getMsg(MSG_ERR_IMPROPER_VIEW, "me"), MT_ERROR);
         return;
     }
-
-    var msg = filterOutput(e.action, "ACTION", e.sourceObject);
-    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    e.sourceObject.display(msg, "ACTION", "ME!", e.sourceObject);
-    client.munger.getRule(".mailto").enabled = false;
-    e.sourceObject.act(msg);
+    _sendMsgTo(e.action, "ACTION", e.sourceObject);
 }
 
 function cmdDescribe(e)
 {
     var target = e.server.addTarget(e.target);
-
-    var msg = filterOutput(e.action, "ACTION", target);
-    e.sourceObject.display(msg, "ACTION", "ME!", target);
-    target.act(msg);
+    _sendMsgTo(e.action, "ACTION", target, e.sourceObject);
 }
 
 function cmdMode(e)
@@ -2139,11 +2131,7 @@ function cmdQuery(e)
     dispatch("set-current-view", { view: user });
 
     if (e.message)
-    {
-        e.message = filterOutput(e.message, "PRIVMSG", user);
-        user.display(e.message, "PRIVMSG", "ME!", user);
-        user.say(e.message);
-    }
+        _sendMsgTo(e.message, "PRIVMSG", user);
 
     return user;
 }
@@ -2156,22 +2144,38 @@ function cmdSay(e)
         return;
     }
 
-    var msg = filterOutput(e.message, "PRIVMSG", e.sourceObject);
-    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    e.sourceObject.display(msg, "PRIVMSG", "ME!", e.sourceObject);
-    client.munger.getRule(".mailto").enabled = false;
-    e.sourceObject.say(msg);
+    _sendMsgTo(e.message, "PRIVMSG", e.sourceObject)
 }
 
 function cmdMsg(e)
 {
     var target = e.server.addTarget(e.nickname);
+    _sendMsgTo(e.message, "PRIVMSG", target, e.sourceObject);
+}
 
-    var msg = filterOutput(e.message, "PRIVMSG", target);
-    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    e.sourceObject.display(msg, "PRIVMSG", "ME!", target);
-    client.munger.getRule(".mailto").enabled = false;
-    target.say(msg);
+function _sendMsgTo(message, msgType, target, displayObj)
+{
+    if (!displayObj)
+        displayObj = target;
+
+    var msg = filterOutput(message, msgType, target);
+
+    var o = getObjectDetails(target);
+    var lines = o.server.splitLinesForSending(msg);
+
+    for (var i = 0; i < lines.length; i++)
+    {
+        msg = lines[i];
+        client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
+        displayObj.display(msg, msgType, "ME!", target);
+        client.munger.getRule(".mailto").enabled = false;
+        if (msgType == "PRIVMSG")
+            target.say(msg);
+        else if (msgType == "NOTICE")
+            target.notice(msg);
+        else if (msgType == "ACTION")
+            target.act(msg);
+    }
 }
 
 function cmdNick(e)
@@ -2210,12 +2214,7 @@ function cmdNick(e)
 function cmdNotice(e)
 {
     var target = e.server.addTarget(e.nickname);
-
-    var msg = filterOutput(e.message, "NOTICE", target);
-    client.munger.getRule(".mailto").enabled = client.prefs["munger.mailto"];
-    e.sourceObject.display(msg, "NOTICE", "ME!", target);
-    client.munger.getRule(".mailto").enabled = false;
-    target.notice(msg);
+    _sendMsgTo(e.message, "NOTICE", target, e.sourceObject);
 }
 
 function cmdQuote(e)

@@ -3877,6 +3877,42 @@ function dccfile_getprefmgr()
     return this.user.prefManager;
 }
 
+// This is a copy of the splitting done in CIRCServer.prototype.messageTo
+// Please keep this in mind when editing:
+CIRCServer.prototype.splitLinesForSending =
+function my_splitlinesforsending(line)
+{
+    var lines = line.split("\n");
+    var realLines = new Array();
+    for (var i = 0; i < lines.length; i++)
+    {
+        if (lines[i])
+        {
+            while (lines[i].length > this.maxLineLength)
+            {
+                var extraLine = lines[i].substr(0, this.maxLineLength - 5);
+                var pos = extraLine.lastIndexOf(" ");
+
+                if ((pos >= 0) && (pos >= this.maxLineLength - 15))
+                {
+                    // Smart-split.
+                    extraLine = lines[i].substr(0, pos) + "...";
+                    lines[i] = "..." + lines[i].substr(extraLine.length - 2);
+                }
+                else
+                {
+                    // Dump-split.
+                    extraLine = lines[i].substr(0, this.maxLineLength);
+                    lines[i] = lines[i].substr(extraLine.length);
+                }
+                realLines.push(extraLine);
+            }
+            realLines.push(lines[i]);
+        }
+    }
+    return realLines;
+}
+
 CIRCNetwork.prototype.display =
 function net_display (message, msgtype, sourceObj, destObj)
 {
