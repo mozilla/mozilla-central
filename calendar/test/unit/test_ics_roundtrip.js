@@ -36,12 +36,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 function run_test() {
-    var eventClass = Cc["@mozilla.org/calendar/event;1"];
-    var eventIID = Ci.calIEvent;
-
-    // Create event
-    var event = eventClass.createInstance(eventIID);
-
     var ics_xmas =
         "BEGIN:VCALENDAR\n" +
         "PRODID:-//ORACLE//NONSGML CSDK 9.0.5 - CalDAVServlet 9.0.5//EN\n" +
@@ -110,8 +104,7 @@ function run_test() {
         "END:VEVENT\n" +
         "END:VCALENDAR\n\n";
 
-    // Setting ical string (xmas)
-    event.icalString = ics_xmas;
+    var event = createEventFromIcalString(ics_xmas);
 
     var expectedProps = {
         title: "Christmas",
@@ -134,15 +127,18 @@ function run_test() {
     checkProps(expectedProps, event.endDate);
 
     // Test for roundtrip of x-properties
-    event = eventClass.createInstance(eventIID);
-    event.icalString = "BEGIN:VEVENT\n" +
-                       "UID:1\n" +
-                       "DTSTART:20070521T100000Z\n" +
-                       "X-MAGIC:mymagicstring\n" +
-                       "END:VEVENT";
+    var ics_xprop = "BEGIN:VEVENT\n" +
+                    "UID:1\n" +
+                    "DTSTART:20070521T100000Z\n" +
+                    "X-MAGIC:mymagicstring\n" +
+                    "END:VEVENT";
+
+    event = createEventFromIcalString(ics_xprop);
+
     expectedProps = {
         "x-magic": "mymagicstring"
     };
+
     checkRoundtrip(expectedProps, event);
 }
 

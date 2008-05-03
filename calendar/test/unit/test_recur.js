@@ -79,20 +79,14 @@ function run_test() {
                []);
 }
 
-function test_recur(icalstring, expected) {
-    var eventClass = Cc["@mozilla.org/calendar/event;1"];
-    var eventIID = Ci.calIEvent;
+function test_recur(icalString, expected) {
+    // Make icalString a real VEVENT
+    var ics = "BEGIN:VEVENT\n" + icalString + "END:VEVENT\n";
 
     // Create event
-    var event = eventClass.createInstance(eventIID);
+    var event = createEventFromIcalString(ics);
 
-    // Make icalstring a real vevent
-    var ics = "BEGIN:VEVENT\n" + icalstring + "END:VEVENT\n";
-
-    // set ics string to event
-    event.icalString = ics;
-
-    // get recurrence dates
+    // Get recurrence dates
     var start = createDate(1990, 0, 1);
     var end = createDate(2010, 0, 1);
     var recdates = event.recurrenceInfo.getOccurrenceDates(start, end, 0, {});
@@ -100,7 +94,7 @@ function test_recur(icalstring, expected) {
     // Check number of items
     do_check_eq(recdates.length, expected.length);
 
-    // check each date
+    // Check each date
     for (var i in expected) {
         do_check_eq(recdates[i].icalString, expected[i]);
     }
