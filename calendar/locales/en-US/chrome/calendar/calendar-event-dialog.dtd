@@ -35,62 +35,12 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- LOCALIZATION NOTE This file contains UTF-8 encoded characters!
-   - If this ==> … <== doesn't look like an ellipsis (three dots in a row),
-   - your editor isn't using UTF-8 encoding and may munge up the document!
-  -->
-
 <!ENTITY event.title.label                  "Edit Item" >
 
-<!ENTITY newevent.title.label               "Title" >
-<!ENTITY newevent.title.accesskey           "i" >
-<!ENTITY newevent.itemType.event.label      "Event" >
-<!ENTITY newevent.itemType.todo.label       "Task" >
-<!ENTITY newevent.location.label            "Location" >
-<!ENTITY newevent.location.accesskey        "L" >
-
-<!-- LOCALIZATION NOTE In the following New Event/Task dialog only sections,
-   - all accesskeys MUST be different. See Bug 357027 Comment #14 for more
-   - details  -->
-<!-- The following entities are for New Event dialog only -->
 <!ENTITY newevent.from.label                "From" >
-<!ENTITY newevent.from.accesskey            "F" >
 <!ENTITY newevent.to.label                  "To" >
-<!ENTITY newevent.to.accesskey              "T" >
-<!ENTITY newevent.alldayevent.label         "All Day" >
-<!ENTITY newevent.alldayevent.accesskey     "A" >
-
-<!-- The following entities are for New Task dialog only -->
-<!ENTITY newevent.date.label                "Date" >
-<!ENTITY newevent.date.accesskey            "a" >
-<!ENTITY newtodo.duedate.label              "Due Date">
-<!ENTITY newtodo.duedate.accesskey          "t">
-
-<!ENTITY newevent.repeat2.label             "Repeat" >
-<!ENTITY newevent.repeat2.accesskey         "R" >
-<!ENTITY newevent.set.label                 "Set pattern…" >
-<!ENTITY newevent.set.accesskey             "n" >
-
-<!ENTITY newevent.server.label              "Calendar" >
-<!ENTITY newevent.server.accesskey          "C" >
-<!ENTITY newtodo.categories.label           "Category">
-<!ENTITY newtodo.categories.accesskey       "o">
-
-<!ENTITY newevent.description.label         "Description" >
-<!ENTITY newevent.description.accesskey     "D" >
-
-<!ENTITY newevent.attendees.label           "Attendees" >
-<!ENTITY newevent.attendees.accesskey       "e" >
 <!ENTITY newevent.attendees.sendEmail.label "Send attendees invitations via email">
 
-<!ENTITY newevent.privacy.label             "Privacy" >
-<!ENTITY newevent.privacy.accesskey         "P" >
-<!ENTITY newevent.public.label              "Public" >
-<!ENTITY newevent.private.label             "Private" >
-<!ENTITY newevent.confidential.label        "Confidential" >
-
-<!ENTITY newtodo.priority.label             "Priority">
-<!ENTITY newtodo.priority.accesskey         "y">
 <!ENTITY priority.level.none                "Not specified">
 <!ENTITY priority.level.none.accesskey      "s">
 <!ENTITY priority.level.low                 "Low">
@@ -104,47 +54,19 @@
 <!ENTITY newevent.status.accesskey          "S" >
 <!ENTITY newevent.status.none.label         "Not specified" >
 <!ENTITY newevent.status.cancelled.label    "Cancelled" >
-
-<!-- The following entities are for New Event dialog only -->
 <!ENTITY newevent.status.tentative.label    "Tentative" >
 <!ENTITY newevent.status.confirmed.label    "Confirmed" >
-
-<!-- The following entities are for New Task dialog only -->
 <!ENTITY newevent.status.needsaction.label  "Needs Action" >
 <!ENTITY newevent.status.inprogress.label   "In Process" >
 <!ENTITY newevent.status.completed.label    "Completed on" >
 
-<!ENTITY newevent.alarm.label               "Alarm" >
-<!ENTITY newevent.alarm.accesskey           "m" >
-<!ENTITY newevent.none.label                "none" >
-<!ENTITY newevent.15minutes.before.label    "15 minutes before" >
-<!ENTITY newevent.30minutes.before.label    "30 minutes before" >
-<!ENTITY newevent.custom.label              "Custom…" >
-
-<!ENTITY newevent.uri.label                 "URL" >
-<!ENTITY newevent.uri.accesskey             "U" >
-<!ENTITY newevent.uri.visit.label           "Visit URL" >
-<!ENTITY newevent.uri.visit.accesskey       "V" >
-
 <!-- The following entity is for New Task dialog only -->
 <!ENTITY newtodo.percentcomplete.label      "&#37; complete">
-
-<!ENTITY calendar.more.label                "More">
-<!ENTITY calendar.less.label                "Less">
 
 <!-- Alarm -->
 <!ENTITY alarm.units.minutes                "minutes" >
 <!ENTITY alarm.units.hours                  "hours" >
 <!ENTITY alarm.units.days                   "days" >
 
-<!ENTITY alarm.start.warning                "This alarm requires a starting date" >
-<!ENTITY alarm.due.warning                  "This alarm requires a due date" >
-
 <!ENTITY newevent.before.label              "before" >
 <!ENTITY newevent.after.label               "after" >
-
-<!-- Information messages -->
-<!ENTITY newevent.endtime.warning           "Your start time is after your end time.">
-<!ENTITY newevent.readonly.item.warning     "This item is in a read-only calendar.  You may not edit it.">
-<!ENTITY newevent.readonly.cal.warning      "This calendar is read-only.">
-<!ENTITY newtodo.repeatstart.warning        "Start date required for recurrence.">
