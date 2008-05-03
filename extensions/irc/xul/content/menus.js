@@ -330,7 +330,7 @@ function initMenus()
         label: MSG_MNU_USERCOMMANDS,
         items:
         [
-         ["query",    {visibleif: "cx.user"}],
+         ["query",    {visibleif: "cx.channel && cx.user"}],
          ["whois",    {visibleif: "cx.user"}],
          ["whowas",   {visibleif: "cx.nickname && !cx.user"}],
          ["ping",     {visibleif: "cx.user"}],
@@ -377,11 +377,11 @@ function initMenus()
          ["cmd-copy-link-url", {visibleif: urlenabled}],
          ["cmd-copy", {visibleif: "!" + urlenabled, enabledif: textselected }],
          ["cmd-selectall", {visibleif: "!" + urlenabled }],
-         ["-", {visibleif: "cx.channel && cx.nickname"}],
-         ["label-user", {visibleif: "cx.channel && cx.nickname", header: true}],
+         ["-", {visibleif: "cx.nickname"}],
+         ["label-user", {visibleif: "cx.nickname", header: true}],
          [">popup:opcommands", {visibleif: "cx.channel && cx.nickname",
                                 enabledif: isopish + "cx.user"}],
-         [">popup:usercommands", {visibleif: "cx.channel && cx.nickname"}],
+         [">popup:usercommands", {visibleif: "cx.nickname"}],
          ["-"],
          ["clear-view"],
          ["hide-view", {enabledif: "client.viewsArray.length > 1"}],
