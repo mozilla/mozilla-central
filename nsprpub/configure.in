@@ -1315,7 +1315,7 @@ tools are selected during the Xcode/Developer Tools installation.])
     if test "$DEFAULT_IMPL_STRATEGY" = "_EMU"; then
         USE_NSPR_THREADS=1
         USE_PTHREADS=
-        USE_USER_THREADS=
+        USE_USER_PTHREADS=
     elif test "$DEFAULT_IMPL_STRATEGY" = "_PTH"; then
         USE_PTHREADS=1
         if test "$USE_NSPR_THREADS"; then
@@ -1970,7 +1970,7 @@ mips-sony-newsos*)
     ;;
 
 *-solaris*)
-    if test -z "$USE_USER_THREADS" && test -z "$USE_NATIVE_THREADS"; then
+    if test -z "$USE_NSPR_THREADS"; then
         USE_PTHREADS=1
     fi
     AC_DEFINE(XP_UNIX)
@@ -2405,17 +2405,6 @@ case "$target" in
 	        USE_PTHREADS=
 	    fi])
     ;;
-
-*-solaris*)
-    AC_ARG_WITH(native-threads,
-    [  --with-native-threads   Use native system threads as thread subsystem
-                          (Solaris only)],
-    [ if test "$withval" = "yes"; then
-	    USE_NATIVE_THREADS=1
-	    USE_USER_PTHREADS=
-	    USE_PTHREADS=
-	  fi])
-    ;;
 esac
 
 fi # SKIP_LIBRARY_CHECKS
@@ -2625,14 +2614,10 @@ case "$target" in
     fi
     ;;
 *-solaris*)
-    if test -n "$USE_NATIVE_THREADS"; then
-        AC_DEFINE(_PR_GLOBAL_THREADS_ONLY)
-    else
-        if test -n "$USE_NSPR_THREADS"; then
-            AC_DEFINE(_PR_LOCAL_THREADS_ONLY)
-        fi
+    if test -n "$USE_NSPR_THREADS"; then
+        AC_DEFINE(_PR_LOCAL_THREADS_ONLY)
     fi
-    if test -z "$USE_NSPR_THREADS"; then
+    if test -n "$USE_PTHREADS"; then
         AC_DEFINE(_REENTRANT)
         AC_DEFINE(HAVE_POINTER_LOCALTIME_R)
         if test "$OS_TEST" = "i86pc"; then
@@ -2644,9 +2629,6 @@ case "$target" in
         else
             if test -n "$USE_64"; then
                 PR_MD_ASFILES=os_SunOS_sparcv9.s
-            fi
-            if test -n "$USE_NATIVE_THREADS"; then
-                PR_MD_ASFILES="$PR_MD_ASFILES os_SunOS.s"
             fi
         fi
     fi
@@ -2737,7 +2719,6 @@ AC_SUBST(ENABLE_STRIP)
 AC_SUBST(USE_PTHREADS)
 AC_SUBST(USE_BTHREADS)
 AC_SUBST(USE_USER_PTHREADS)
-AC_SUBST(USE_NATIVE_THREADS)
 AC_SUBST(USE_NSPR_THREADS)
 
 AC_SUBST(LIBNSPR)

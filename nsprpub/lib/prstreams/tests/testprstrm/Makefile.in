@@ -129,14 +129,6 @@ ifdef NS_USE_GCC
 LDOPTS += -Xlinker -R -Xlinker $(PWD)/$(dist_libdir)
 else
 LDOPTS += -R $(PWD)/$(dist_libdir)
-# CC on SunOS 5.4 and 5.5.x need to link with -lthread or -lpthread
-# (or use the -mt switch) even though we already linked with these
-# system libraries when we built libnspr.so.
-ifdef USE_PTHREADS
-EXTRA_LIBS = -lpthread
-else
-EXTRA_LIBS = -lthread
-endif # USE_PTHREADS
 endif # NS_USE_GCC
 endif # 4.1.3_U1
 endif # SunOS

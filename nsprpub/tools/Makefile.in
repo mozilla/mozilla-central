@@ -125,21 +125,6 @@ else
 LDOPTS += -R $(PWD)/$(dist_libdir)
 endif
 endif
-
-# SunOS 5.4 and 5.5 need to link with -lthread or -lpthread,
-# even though we already linked with these system libraries
-# when we built libnspr.so.
-ifeq ($(OS_RELEASE), 5.4)
-EXTRA_LIBS = -lthread
-endif
-
-ifeq ($(OS_RELEASE), 5.5)
-ifdef USE_PTHREADS
-EXTRA_LIBS = -lpthread
-else
-EXTRA_LIBS = -lthread
-endif
-endif
 endif # SunOS
 
 ifeq ($(OS_ARCH), NCR)
