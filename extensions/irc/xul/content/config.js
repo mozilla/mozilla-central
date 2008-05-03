@@ -1054,13 +1054,14 @@ function pwin_onLoad()
     if (("arguments" in window) && (0 in window.arguments) && ("client" in window.arguments[0]))
     {
         /* Make sure we survive this, external data could be bad. :) */
-        try {
+        try
+        {
             var czWin = window.arguments[0];
             var s;
             var n, c, u;
             this.ownerClient = czWin.client;
             this.ownerClient.configWindow = window;
-            
+
             /* Go nick the source window's view list. We can then show items in
              * the tree for the currently connected/shown networks, channels
              * and users even if they don't have any known prefs yet.
@@ -1071,7 +1072,7 @@ function pwin_onLoad()
             for (i = 0; i < czWin.client.viewsArray.length; i++)
             {
                 var view = czWin.client.viewsArray[i].source;
-                
+
                 // Network view...
                 if (view.TYPE == "IRCNetwork")
                 {
@@ -1079,10 +1080,14 @@ function pwin_onLoad()
                     if (view == czWin.client.currentObject)
                         currentView = n;
                 }
-                
+
                 if (view.TYPE.match(/^IRC(Channel|User)$/))
-                    s = client.networks[view.parent.parent.canonicalName].primServ;
-                
+                {
+                    n = new PrefNetwork(client, view.parent.parent.unicodeName,
+                                        false, true);
+                    s = n.primServ;
+                }
+
                 // Channel view...
                 if (view.TYPE == "IRCChannel")
                 {
@@ -1090,18 +1095,20 @@ function pwin_onLoad()
                     if (view == czWin.client.currentObject)
                         currentView = c;
                 }
-                
+
                 // User view...
                 if (view.TYPE == "IRCUser")
                 {
-                    u = new PrefUser(s, view.nick, false, true);
+                    u = new PrefUser(s, view.unicodeName, false, true);
                     if (view == czWin.client.currentObject)
                         currentView = u;
                 }
             }
-        } catch(ex) {}
+        }
+        catch(ex)
+        {}
     }
-    
+
     // Add the client object...
     this.prefObjects.addObject(client);
     // ...and everyone else.
