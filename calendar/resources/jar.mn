@@ -34,7 +34,6 @@ calendar.jar:
     skin/classic/calendar/preferences/preferences.css  (/calendar/base/themes/winstripe/preferences/preferences.css)
 #endif
     skin/classic/calendar/dialogOverlay.css (skin/classic/dialogOverlay.css)
-    skin/classic/calendar/synch_animated.gif (skin/classic/synch_animated.gif)
     skin/classic/calendar/datetimepickers/datetimepickers.css (skin/classic/datetimepickers/datetimepickers.css)
     skin/classic/calendar/unifinder/checkbox_checked.png (skin/classic/unifinder/checkbox_checked.png)
     skin/classic/calendar/unifinder/checkbox_unchecked.png (skin/classic/unifinder/checkbox_unchecked.png)
