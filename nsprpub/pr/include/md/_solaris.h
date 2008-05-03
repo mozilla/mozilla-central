@@ -176,7 +176,7 @@ NSPR_API(void)		_MD_EarlyInit(void);
 #else /* _PR_PTHREADS */
 
 /*
- * LOCAL_THREADS_ONLY implementation on Solaris
+ * _PR_LOCAL_THREADS_ONLY implementation on Solaris
  */
 
 #include "prthread.h"

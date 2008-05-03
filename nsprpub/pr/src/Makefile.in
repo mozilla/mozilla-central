@@ -89,11 +89,11 @@ else
 LIBRT=-lposix4
 endif
 
-ifdef LOCAL_THREADS_ONLY
-OS_LIBS			= -lsocket -lnsl -ldl -lc
-else
+ifdef USE_PTHREADS
 OS_LIBS			= -lpthread ${LIBRT} -lsocket -lnsl -ldl -lc
-endif	# LOCAL_THREADS_ONLY
+else
+OS_LIBS			= -lsocket -lnsl -ldl -lc
+endif	# USE_PTHREADS
 ifeq ($(OS_TEST),sun4u)
 ifndef USE_64
 DSO_LDOPTS	+= -Wl,-f,\$$ORIGIN/cpu/\$$ISALIST/lib$(ULTRASPARC_LIBRARY)$(LIBRARY_VERSION).so

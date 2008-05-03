@@ -328,9 +328,9 @@ ifeq ($(OS_ARCH), SunOS)
         endif
     endif
 
-    ifneq ($(LOCAL_THREADS_ONLY),1)
+    ifdef USE_PTHREADS
         EXTRA_LIBS = -lpthread
-    endif # LOCAL_THREADS_ONLY
+    endif
 endif # SunOS
 
 ifeq ($(OS_ARCH), NEC)
