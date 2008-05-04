@@ -1273,11 +1273,20 @@ function BrowserOpenTab()
                                            Components.interfaces.nsIPrefLocalizedString).data;
           break;
         case 2:
-          uriToLoad = getWebNavigation().currentURI.spec;
+          uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
+                               : Components.classes["@mozilla.org/browser/global-history;2"]
+                                           .getService(Components.interfaces.nsIBrowserHistory)
+                                           .lastPageVisited;
           break;
       }
     } catch(e) {
       uriToLoad = "about:blank";
+    }
+
+    // Open a new window if someone requests a new tab when no browser window is open
+    if (!gBrowser) {
+      openDialog(getBrowserURL(), "_blank", "chrome,all,dialog=no", uriToLoad);
+      return;
     }
 
     gBrowser.selectedTab = gBrowser.addTab(uriToLoad);
@@ -1713,7 +1722,7 @@ function hiddenWindowStartup()
   window.focus();
 
   // Disable menus which are not appropriate
-  var disabledItems = ['cmd_newNavigatorTab', 'cmd_close', 'Browser:SendPage',
+  var disabledItems = ['cmd_close', 'Browser:SendPage',
                        'Browser:EditPage', 'Browser:SavePage', 'cmd_printSetup',
                        'Browser:Print', 'canGoBack', 'canGoForward',
                        'Browser:AddBookmark', 'Browser:AddBookmarkAs',
