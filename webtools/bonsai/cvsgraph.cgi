@@ -131,7 +131,7 @@ if (defined $::FORM{'image'}) {
 else {
     push(@cvsgraph_cmd, "-i", "-M", "revmap"); # Include args to make map
     &print_top("CVS Graph for " . $file_tail);
-    print <<"--endquote--" if $::use_dom;
+    print <<"--endquote--";
 <script $::script_type><!--
 var r;
 function showMessage(rev) {
@@ -169,14 +169,6 @@ function hideMessage() {
 }
 </style>
 --endquote--
-
-    print <<"--endquote--" unless $::use_dom;
-<script $::script_type><!--
-// Dummy Functions to prevent script errors (this browser does not support DOM)
-function showMessage() { return false }
-function hideMessage() { return false }
-//--></script>
---endquote--
 }
 
 system(@cvsgraph_cmd, $rcs_filename);
@@ -184,22 +176,20 @@ system(@cvsgraph_cmd, $rcs_filename);
 if (!defined $::FORM{'image'}) {
     print qq{<img src="cvsgraph.cgi?file=$url_filename&image=1" };
     print qq{usemap="#revmap" alt="$filename" border="0" onclick="hideMessage()">\n};
-    if ($::use_dom) {
-	require 'cvsblame.pl';
-	&parse_cvs_file($full_rcs_filename);
-	foreach my $rev (keys %::revision_log) {
-	    my $author = EmailFromUsername($::revision_author{$rev});
-	    my $rev_log = html_quote($::revision_log{$rev});
-	    $rev_log =~ s/\n/<br>\n/g;
-	    # Convert Bug xxx to links.
-	    $rev_log = MarkUpText($rev_log);
-	    print qq{<div id="rev_$rev" class="log_msg" style="display:none">\n};
-	    print qq{<b>$rev</b> };
-	    print qq{&lt;<a href="mailto:$author">$author</a>&gt };
-	    print qq{<b>$::revision_ctime{$rev}</b><br>\n};
-	    print $rev_log;
-	    print qq{</div>\n};
-	}
+    require 'cvsblame.pl';
+    &parse_cvs_file($full_rcs_filename);
+    foreach my $rev (keys %::revision_log) {
+        my $author = EmailFromUsername($::revision_author{$rev});
+        my $rev_log = html_quote($::revision_log{$rev});
+        $rev_log =~ s/\n/<br>\n/g;
+        # Convert Bug xxx to links.
+        $rev_log = MarkUpText($rev_log);
+        print qq{<div id="rev_$rev" class="log_msg" style="display:none">\n};
+        print qq{<b>$rev</b> };
+        print qq{&lt;<a href="mailto:$author">$author</a>&gt };
+        print qq{<b>$::revision_ctime{$rev}</b><br>\n};
+        print $rev_log;
+        print qq{</div>\n};
     }
     &print_bottom;
 }

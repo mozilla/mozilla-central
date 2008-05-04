@@ -253,8 +253,7 @@ my $graph_cell = Param('cvsgraph') ? <<"--endquote--" : "";
 --endquote--
 
 print " (<A HREF='cvsblame.cgi?file=$url_filename&rev=$revision&root=$root'";
-print " onmouseover='return log(event,\"$::prev_revision{$revision}\",\"$revision\");'" if $::use_layers;
-print " onmouseover=\"showMessage('$revision','top')\" id=\"line_top\"" if $::use_dom;
+print " onmouseover=\"showMessage('$revision','top')\" id=\"line_top\"";
 print ">";
 print "$browse_revtag:" unless $browse_revtag eq 'HEAD';
 print $revision if $revision;
@@ -357,8 +356,7 @@ foreach $revision (@::revision_map)
 	} else {
 	  $output .= "<A HREF=\"cvsblame.cgi?file=$url_filename&rev=$revision&root=$root\"";
 	}
-	$output .= " onmouseover='return log(event,\"$::prev_revision{$revision}\",\"$revision\");'" if $::use_layers;
-        $output .= " onmouseover=\"showMessage('$revision','$line')\" id=\"line_$line\"" if $::use_dom;
+        $output .= " onmouseover=\"showMessage('$revision','$line')\" id=\"line_$line\"";
         $output .= ">";
 	my $author = $::revision_author{$revision};
 	$author =~ s/%.*$//;
@@ -387,36 +385,28 @@ foreach $revision (@::revision_map)
 }
 print "</DIV>\n";
 
-if ($::use_layers || $::use_dom) {
-  # Write out cvs log messages as a JS variables
-  # or hidden <div>'s
-  print qq|<SCRIPT $::script_type><!--\n| if $::use_layers;
-  while (my ($revision, $junk) = each %usedlog) {
-    
-    # Create a safe variable name for a revision log
-    my $revisionName = $revision;
-    $revisionName =~ tr/./_/;
-    
-    my $log = $::revision_log{$revision};
-    $log =~ s/([^\n\r]{80})([^\n\r]*)/$1\n$2/g if $::use_layers;
-    $log = html_quote($log);
-    $log = MarkUpText($log);
-    $log =~ s/\n|\r|\r\n/<BR>/g;
-    $log =~ s/"/\\"/g if $::use_layers;
-    
-    # Write JavaScript variable for log entry (e.g. log1_1 = "New File")
-    my $author = $::revision_author{$revision};
-    $author =~ tr/%/@/;
-    my $author_email = EmailFromUsername($author);
-    print "<div id=\"rev_$revision\" class=\"log_msg\" style=\"display:none\">" if $::use_dom;
-    print "log$revisionName = \"" if $::use_layers;
-    print "<b>$revision</b> &lt;<a href='mailto:$author_email'>$author</a>&gt;"
-	." <b>$::revision_ctime{$revision}</b><BR>"
-	  ."<SPACER TYPE=VERTICAL SIZE=5>$log";
-    print "\";\n" if $::use_layers;
-    print "</div>\n" if $::use_dom;
-  }
-  print "//--></SCRIPT>" if $::use_layers;
+# Write out cvs log messages as a JS variables
+# or hidden <div>'s
+while (my ($revision, $junk) = each %usedlog) {
+  
+  # Create a safe variable name for a revision log
+  my $revisionName = $revision;
+  $revisionName =~ tr/./_/;
+  
+  my $log = $::revision_log{$revision};
+  $log = html_quote($log);
+  $log = MarkUpText($log);
+  $log =~ s/\n|\r|\r\n/<BR>/g;
+  
+  # Write JavaScript variable for log entry (e.g. log1_1 = "New File")
+  my $author = $::revision_author{$revision};
+  $author =~ tr/%/@/;
+  my $author_email = EmailFromUsername($author);
+  print "<div id=\"rev_$revision\" class=\"log_msg\" style=\"display:none\">";
+  print "<b>$revision</b> &lt;<a href='mailto:$author_email'>$author</a>&gt;"
+      ." <b>$::revision_ctime{$revision}</b><BR>"
+      ."<SPACER TYPE=VERTICAL SIZE=5>$log";
+  print "</div>\n";
 }
 
 &print_bottom;
@@ -439,79 +429,7 @@ sub print_top {
 
     print "<HTML><HEAD><TITLE>CVS Blame $title_text</TITLE>";
 
-    print <<__TOP__ if $::use_layers;
-<SCRIPT $::script_type><!--
-var event = 0;	// Nav3.0 compatibility
-document.loaded = false;
-
-function finishedLoad() {
-    if (parseInt(navigator.appVersion) < 4 ||
-        navigator.userAgent.toLowerCase().indexOf("msie") != -1) {
-        return true;
-    }
-    document.loaded = true;
-    document.layers['popup'].visibility='hide';
-    
-    return true;
-}
-
-function revToName (rev) {
-    revName = rev + "";
-    revArray = revName.split(".");
-    return revArray.join("_");
-}
-
-function log(event, prev_rev, rev) {
-    if (parseInt(navigator.appVersion) < 4 ||
-        navigator.userAgent.toLowerCase().indexOf("msie") != -1) {
-        return true;
-    }
-
-    var l = document.layers['popup'];
-    var guide = document.layers['popup_guide'];
-
-    if (event.target.text.length > max_link_length) {
-      max_link_length = event.target.text.length;
-
-      guide.document.write("<PRE>" + event.target.text);
-      guide.document.close();
-
-      popup_offset = guide.clip.width;
-    }
-
-    if (document.loaded) {
-        l.document.write("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=3><TR><TD BGCOLOR=#F0A000>");
-        l.document.write("<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=6><TR><TD BGCOLOR=#FFFFFF><tt>");
-        l.document.write(eval("log" + revToName(rev)) + "</TD></TR></TABLE>");
-	l.document.write("</td></tr></table>");
-        l.document.close();
-    }
-
-    if(event.target.y > window.innerHeight + window.pageYOffset - l.clip.height) { 
-         l.top = (window.innerHeight + window.pageYOffset - (l.clip.height + 15));
-    } else {
-         l.top = event.target.y - 9;
-    }
-    l.left = event.target.x + popup_offset;
-
-    l.visibility="show";
-
-    return true;
-}
-
-file_tail = "$file_tail";
-popup_offset = 5;
-max_link_length = 0;
-
-initialLayer = "<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=3><TR><TD BGCOLOR=#F0A000><TABLE BORDER=0 CELLSPACING=0 CELLPADDING=6><TR><TD BGCOLOR=#FFFFFF><B>Page loading...please wait.</B></TD></TR></TABLE></td></tr></table>";
-
-//--></SCRIPT>
-</HEAD>
-<BODY onLoad="finishedLoad();" BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000EE" VLINK="#551A8B" ALINK="#F0A000">
-<LAYER SRC="javascript:initialLayer" NAME='popup' onMouseOut="this.visibility='hide';" LEFT=0 TOP=0 BGCOLOR='#FFFFFF' VISIBILITY='hide'></LAYER>
-<LAYER SRC="javascript:initialLayer" NAME='popup_guide' onMouseOut="this.visibility='hide';" LEFT=0 TOP=0 VISIBILITY='hide'></LAYER>
-__TOP__
-    print <<__TOP__ if $::use_dom;
+    print <<__TOP__;
 <script $::script_type><!--
 var r
 function showMessage(rev,line) {
@@ -584,7 +502,6 @@ pre {
 </head>
 <body onclick="hideMessage()">
 __TOP__
-  print '<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000EE" VLINK="#551A8B" ALINK="#F0A000">' if not ($::use_layers || $::use_dom);
 } # print_top
 
 sub print_usage {
