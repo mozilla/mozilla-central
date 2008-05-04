@@ -30,7 +30,7 @@
 	<key>CFBundleExecutable</key>
 	<string>sunbird-bin</string>
 	<key>CFBundleGetInfoString</key>
-	<string>@APP_NAME@ @APP_VERSION@, © 1998-2008 Contributors</string>
+	<string>%APP_NAME% %APP_VERSION%, © 1998-2008 Contributors</string>
 	<key>CFBundleIconFile</key>
 	<string>sunbird</string>
 	<key>CFBundleIdentifier</key>
@@ -38,13 +38,13 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>@APP_NAME@</string>
+	<string>%APP_NAME%</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>@APP_VERSION@</string>
+	<string>%APP_VERSION%</string>
 	<key>CFBundleSignature</key>
-	<string>@MAC_CREATOR_CODE@</string>
+	<string>%MAC_CREATOR_CODE%</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -65,7 +65,7 @@
 		</dict>	
 	</array>
 	<key>CFBundleVersion</key>
-	<string>@APP_VERSION@</string>
+	<string>%APP_VERSION%</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 </dict>
