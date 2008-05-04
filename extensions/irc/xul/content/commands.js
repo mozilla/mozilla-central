@@ -1020,7 +1020,7 @@ function cmdChanUserMode(e)
     var user;
     var nickList = new Array();
     // Prefer pre-canonicalised list, then a * passed to the command directly,
-    // then a normal list, then finally a sigular item (canon. or otherwise).
+    // then a normal list, then finally a singular item (canon. or otherwise).
     if (e.canonNickList)
     {
         nicks = combineNicks(e.canonNickList);
