@@ -117,6 +117,7 @@ client.incompleteLine = "";
 client.lastTabUp = new Date();
 client.awayMsgs = new Array();
 client.awayMsgCount = 5;
+client.statusMessages = new Array();
 
 CIRCNetwork.prototype.INITIAL_CHANNEL = "";
 CIRCNetwork.prototype.MAX_MESSAGES = 100;
@@ -214,7 +215,10 @@ function init()
     dispatch("help", { hello: true });
     dispatch("networks");
 
+    // Do this after the standard commands are run or we'll log them too!
     initInstrumentation();
+    client.ceip.logEvent({type: "client", event: "start"});
+
     setTimeout("dispatch('focus-input')", 0);
     setTimeout(processStartupURLs, 0);
 }
@@ -363,6 +367,7 @@ function initStatic()
     client.tabDragMarker = document.getElementById("tabs-drop-indicator");
 
     client.statusElement = document.getElementById("status-text");
+    client.currentStatus = "";
     client.defaultStatus = MSG_DEFAULT_STATUS;
 
     client.progressPanel = document.getElementById("status-progress-panel");
@@ -544,100 +549,39 @@ function initIcons()
 
 function initInstrumentation()
 {
-    // Make sure we assign the user a random key - this is not used for
-    // anything except percentage chance of participation.
+    /* Make sure we assign the user a random key - this is not used for
+     * anything except percentage chance of participation. The value is
+     * 1 through 10000, inclusive. 0 indicates unset.
+     */
     if (client.prefs["instrumentation.key"] == 0)
     {
-        var rand = 1 + Math.round(Math.random() * 10000);
+        var rand = 1 + Math.floor(Math.random() * 10000);
         client.prefs["instrumentation.key"] = rand;
     }
 
-    runInstrumentation("inst1");
-}
+    client.ceip = new CEIP();
 
-function runInstrumentation(name, firstRun)
-{
-    if (!/^inst\d+$/.test(name))
-        return;
-
-    // Values:
-    //   0 = not answered question
-    //   1 = allowed inst
-    //   2 = denied inst
-
-    if (client.prefs["instrumentation." + name] == 0)
+    if (!client.prefs["instrumentation.ceip"])
     {
-        // We only want 1% of people to be asked here.
-        if (client.prefs["instrumentation.key"] > 100)
+        /* We only want 1% of people to be asked here. Note: we select the 2nd
+         * percentile so we don't ask the same people we used for the pings.
+         */
+        var key = client.prefs["instrumentation.key"];
+        if ((key <= 100) || (key > 200))
             return;
 
         // User has not seen the info about this system. Show them the info.
-        var cmdYes = "allow-" + name;
-        var cmdNo = "deny-" + name;
-        var btnYes = getMsg(MSG_INST1_COMMAND_YES, cmdYes);
-        var btnNo  = getMsg(MSG_INST1_COMMAND_NO,  cmdNo);
+        var cmdYes = "allow-ceip";
+        var cmdNo = "deny-ceip";
+        var btnYes = getMsg(MSG_CEIP_COMMAND_YES, cmdYes);
+        var btnNo  = getMsg(MSG_CEIP_COMMAND_NO,  cmdNo);
         client.munger.getRule(".inline-buttons").enabled = true;
-        client.display(getMsg("msg." + name + ".msg1", [btnYes, btnNo]));
-        client.display(getMsg("msg." + name + ".msg2", [cmdYes, cmdNo]));
+        client.display(getMsg(MSG_CEIP_MSG1, [btnYes, btnNo]));
+        client.display(getMsg(MSG_CEIP_MSG2, [cmdYes, cmdNo]));
         client.munger.getRule(".inline-buttons").enabled = false;
 
         // Don't hide *client* if we're asking the user about the startup ping.
         client.lockView = true;
-        return;
-    }
-
-    if (client.prefs["instrumentation." + name] != 1)
-        return;
-
-    if (name == "inst1")
-        runInstrumentation1(firstRun);
-}
-
-function runInstrumentation1(firstRun)
-{
-    function inst1onLoad()
-    {
-        if (/OK/.test(req.responseText))
-            client.display(MSG_INST1_MSGRPLY2);
-        else
-            client.display(getMsg(MSG_INST1_MSGRPLY1, MSG_UNKNOWN));
-    };
-
-    function inst1onError()
-    {
-        client.display(getMsg(MSG_INST1_MSGRPLY1, req.statusText));
-    };
-
-    try
-    {
-        const baseURI = "http://silver.warwickcompsoc.co.uk/" +
-                        "mozilla/chatzilla/instrumentation/startup?";
-
-        if (firstRun)
-        {
-            // Do a first-run ping here.
-            var frReq = new XMLHttpRequest();
-            frReq.open("GET", baseURI + "first-run");
-            frReq.send(null);
-        }
-
-        var data = new Array();
-        data.push("ver=" + encodeURIComponent(CIRCServer.prototype.VERSION_RPLY));
-        data.push("host=" + encodeURIComponent(client.hostPlatform));
-        data.push("chost=" + encodeURIComponent(CIRCServer.prototype.HOST_RPLY));
-        data.push("cos=" + encodeURIComponent(CIRCServer.prototype.OS_RPLY));
-
-        var url = baseURI + data.join("&");
-
-        var req = new XMLHttpRequest();
-        req.onload = inst1onLoad;
-        req.onerror = inst1onError;
-        req.open("GET", url);
-        req.send(null);
-    }
-    catch (ex)
-    {
-        client.display(getMsg(MSG_INST1_MSGRPLY1, formatException(ex)));
     }
 }
 
@@ -886,20 +830,68 @@ function destroy()
     destroyPrefs();
 }
 
-function setStatus (str)
+function addStatusMessage(message)
 {
-    client.statusElement.setAttribute ("label", str);
+    const DELAY_SCALE = 100;
+    const DELAY_MINIMUM = 5000;
+
+    var delay = message.length * DELAY_SCALE;
+    if (delay < DELAY_MINIMUM)
+        delay = DELAY_MINIMUM;
+
+    client.statusMessages.push({ message: message, delay: delay });
+    updateStatusMessages();
+}
+
+function updateStatusMessages()
+{
+    if (client.statusMessages.length == 0)
+    {
+        var status = client.currentStatus || client.defaultStatus;
+        client.statusElement.setAttribute("label", status);
+        client.statusElement.removeAttribute("notice");
+        return;
+    }
+
+    var now = Number(new Date());
+    var currentMsg = client.statusMessages[0];
+    if ("expires" in currentMsg)
+    {
+        if (now >= currentMsg.expires)
+        {
+            client.statusMessages.shift();
+            setTimeout(updateStatusMessages, 0);
+        }
+        else
+        {
+            setTimeout(updateStatusMessages, 1000);
+        }
+    }
+    else
+    {
+        currentMsg.expires = now + currentMsg.delay;
+        client.statusElement.setAttribute("label", currentMsg.message);
+        client.statusElement.setAttribute("notice", "true");
+        setTimeout(updateStatusMessages, currentMsg.delay);
+    }
+}
+
+
+function setStatus(str)
+{
+    client.currentStatus = str;
+    updateStatusMessages();
     return str;
 }
 
-client.__defineSetter__ ("status", setStatus);
+client.__defineSetter__("status", setStatus);
 
-function getStatus ()
+function getStatus()
 {
-    return client.statusElement.getAttribute ("label");
+    return client.currentStatus;
 }
 
-client.__defineGetter__ ("status", getStatus);
+client.__defineGetter__("status", getStatus);
 
 function isVisible (id)
 {

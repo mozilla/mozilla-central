@@ -1061,6 +1061,7 @@ function pwin_onLoad()
             var n, c, u;
             this.ownerClient = czWin.client;
             this.ownerClient.configWindow = window;
+            client.ceip = this.ownerClient.ceip;
 
             /* Go nick the source window's view list. We can then show items in
              * the tree for the currently connected/shown networks, channels
@@ -1156,6 +1157,8 @@ function pwin_onLoad()
     // This allows [OK] to actually save, without this it'll just close.
     this.loaded = true;
     
+    client.ceip.logEvent({type: "dialog", dialog: "config", event: "open"});
+    
     // Force the window to be the right size now, not later.
     window.sizeToContent();
     
@@ -1173,6 +1176,7 @@ function pwin_onLoad()
 PrefWindow.prototype.onClose =
 function pwin_onClose()
 {
+    client.ceip.logEvent({type: "dialog", dialog: "config", event: "close"});
     if (this.ownerClient)
         delete this.ownerClient.configWindow;
     if (this.loaded)
@@ -1199,6 +1203,13 @@ function pwin_onApply()
     try {
         // Get an array of all the (XUL) items we have to save.
         var list = getPrefTags();
+        
+        // Log the application of preferences and how many, but not which.
+        if (list.length > 0)
+        {
+            client.ceip.logEvent({type: "dialog", dialog: "config",
+                                  event: "apply", prefs: list.length});
+        }
         
         //if (!confirm("There are " + list.length + " pref tags to save. OK?")) return false;
         
@@ -1602,6 +1613,9 @@ function pwin_onAddObject()
     if (!rv.ok)
         return;
     
+    client.ceip.logEvent({type: "dialog", dialog: "config", event: "add",
+                          prefType: rv.type});
+    
     /* Ok, so what type did they want again?
      * 
      * NOTE: The param |true| in the object creation calls is for |force|. It
@@ -1640,6 +1654,9 @@ function pwin_onDeleteObject()
     if (!confirm(getMsg(MSG_PREFS_OBJECT_DELETE, sel.parent.unicodeName)))
         return;
     
+    client.ceip.logEvent({type: "dialog", dialog: "config", event: "delete",
+                          prefType: sel.parent.TYPE});
+    
     // Select a new item BEFORE removing the current item, so the <tree> 
     // doesn't freak out on us.
     var prefTree = document.getElementById("pref-tree-object");
@@ -1674,6 +1691,9 @@ function pwin_onResetObject()
     // Check they want to go ahead.
     if (!confirm(getMsg(MSG_PREFS_OBJECT_RESET, sel.parent.unicodeName)))
         return;
+    
+    client.ceip.logEvent({type: "dialog", dialog: "config", event: "reset",
+                          prefType: sel.parent.TYPE});
     
     // Reset the prefs.
     sel.reset();

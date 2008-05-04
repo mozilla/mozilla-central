@@ -264,6 +264,7 @@ function initMenus()
          ["homepage"],
          ["faq"],
          ["-"],
+         ["ceip"],
          ["about"]
         ]
     };

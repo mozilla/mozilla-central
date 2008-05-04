@@ -37,7 +37,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function MenuManager (commandManager, menuSpecs, contextFunction, commandStr)
+function MenuManager(commandManager, menuSpecs, contextFunction, commandStr)
 {
     var menuManager = this;
 
@@ -46,13 +46,21 @@ function MenuManager (commandManager, menuSpecs, contextFunction, commandStr)
     this.contextFunction = contextFunction;
     this.commandStr = commandStr;
     this.repeatId = 0;
+    this.cxStore = new Object();
 
     this.onPopupShowing =
-        function mmgr_onshow (event) { return menuManager.showPopup (event); };
+        function mmgr_onshow(event) { return menuManager.showPopup(event); };
     this.onPopupHiding =
-        function mmgr_onhide (event) { return menuManager.hidePopup (event); };
+        function mmgr_onhide(event) { return menuManager.hidePopup(event); };
     this.onMenuCommand =
-        function mmgr_oncmd (event) { return menuManager.menuCommand (event); };
+        function mmgr_oncmd(event) { return menuManager.menuCommand(event); };
+
+    /* The code using us may override these with functions which will be called
+     * after all our internal processing is done. Both are called with the
+     * arguments 'event' (DOM), 'cx' (JS), 'popup' (DOM).
+     */
+    this.onCallbackPopupShowing = null;
+    this.onCallbackPopupHiding = null;
 }
 
 MenuManager.prototype.appendMenuItems =
@@ -304,19 +312,22 @@ function mmgr_showpop (event)
 
     var cx;
     var popup = event.originalTarget;
+    var menuName = popup.getAttribute("menuName");
 
     /* If the host provided a |contextFunction|, use it now.  Remember the
      * return result as this.cx for use if something from this menu is actually
-     * dispatched.  this.cx is deleted in |hidePopup|. */
+     * dispatched.  */
     if (typeof this.contextFunction == "function")
     {
-        cx = this.cx = this.contextFunction (popup.getAttribute("menuName"),
-                                             event);
+        cx = this.cx = this.contextFunction(menuName, event);
     }
     else
     {
         cx = this.cx = { menuManager: this, originalEvent: event };
     }
+
+    // Keep the context around by menu name. Removed in hidePopup.
+    this.cxStore[menuName] = cx;
 
     var menuitem = popup.firstChild;
     do
@@ -443,6 +454,9 @@ function mmgr_showpop (event)
         }
     } while ((menuitem = menuitem.nextSibling));
 
+    if (typeof this.onCallbackPopupShowing == "function")
+        this.onCallbackPopupShowing(event, cx, popup);
+
     return true;
 }
 
@@ -450,13 +464,20 @@ function mmgr_showpop (event)
  * Internal use only.
  *
  * |hidePopup| is called from the "onpopuphiding" event of menus
- * managed by the CommandManager.  Nothing to do here anymore.
- * We used to just clean up this.cx, but that's a problem for nested
- * menus.
+ * managed by the CommandManager.  Clean up this.cxStore, but
+ * not this.cx because that messes up nested menus.
  */
 MenuManager.prototype.hidePopup =
-function mmgr_hidepop (id)
+function mmgr_hidepop(event)
 {
+    var popup = event.originalTarget;
+    var menuName = popup.getAttribute("menuName");
+
+    if (typeof this.onCallbackPopupHiding == "function")
+        this.onCallbackPopupHiding(event, this.cxStore[menuName], popup);
+
+    delete this.cxStore[menuName];
+
     return true;
 }
 

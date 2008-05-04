@@ -10,4 +10,5 @@ chatzilla.jar:
   locale/@AB_CD@/chatzilla/chatzilla.dtd         (%chrome/chatzilla.dtd)
   locale/@AB_CD@/chatzilla/chatzilla.properties  (%chrome/chatzilla.properties)
   locale/@AB_CD@/chatzilla/config.dtd            (%chrome/config.dtd)
+  locale/@AB_CD@/chatzilla/ceip.dtd              (%chrome/ceip.dtd)
   locale/@AB_CD@/chatzilla/channels.dtd          (%chrome/channels.dtd)

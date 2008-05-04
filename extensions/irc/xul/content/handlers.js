@@ -154,6 +154,9 @@ function onUnload()
 
     // We don't trust anybody.
     client.hiddenDocument = null;
+    // Log client stop and shut down CEIP.
+    client.ceip.logEvent({type: "client", event: "stop"});
+    client.ceip.destroy();
     uninitOfflineIcon();
     uninitIdleAutoAway(client.prefs["awayIdleTime"]);
     destroy();
@@ -250,21 +253,14 @@ function onMouseOver (e)
         {
             status = target.getAttribute("href");
             if (!status)
-                status = target.getAttribute ("statusText");
+                status = target.getAttribute("statusText");
         }
         ++i;
         target = target.parentNode;
     }
 
-    if (status)
-    {
-        client.status = status;
-    }
-    else
-    {
-        if (client && "defaultStatus" in client)
-            client.status = client.defaultStatus;
-    }
+    // Setting client.status to "" will revert it to the default automatically.
+    client.status = status;
 }
 
 function onSecurityIconDblClick(e)

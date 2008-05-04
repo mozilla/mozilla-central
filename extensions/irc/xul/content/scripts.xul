@@ -83,6 +83,7 @@
     <script src="chrome://chatzilla/content/mungers.js"/>
     <script src="chrome://chatzilla/content/handlers.js"/>
     <script src="chrome://chatzilla/content/networks.js"/>
+    <script src="chrome://chatzilla/content/ceip/ceip.js"/>
 
   </overlaytarget>
 

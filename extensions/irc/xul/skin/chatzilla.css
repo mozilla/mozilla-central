@@ -305,6 +305,10 @@ progressmeter[mode="undetermined"] {
     min-height: 17px;
 }
 
+#status-text[notice="true"] {
+    font-weight: bold;
+}
+
 #security-button {
     min-width: 20px;
 }

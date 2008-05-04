@@ -112,6 +112,8 @@ function onLoad()
     network = window.arguments[0].network;
     network.joinDialog = window;
 
+    client.ceip.logEvent({type: "dialog", dialog: "channels", event: "open"});
+
     serverChannelPrefixes = network.primServ.channelTypes;
 
     window.dd = client.mainWindow.dd;
@@ -180,6 +182,7 @@ function onLoad()
 
 function onUnload()
 {
+    client.ceip.logEvent({type: "dialog", dialog: "channels", event: "close"});
     delete network.joinDialog;
 }
 
@@ -228,6 +231,15 @@ function joinChannel()
     var index = channelTreeView.selectedIndex;
     if (index == -1)
         return false;
+
+    /* Calculate the row index AS IF the 'create' row is visible. We're going
+     * to use this so that the index chosen by the user is always consistent,
+     * whatever the visibility of the 'create' row - an index of 0 is ALWAYS
+     * the 'create' row, and >= 1 is ALWAYS the searched rows.
+     */
+    var realIndex = index + (createChannelItem.isHidden ? 1 : 0);
+    client.ceip.logEvent({type: "dialog", dialog: "channels", event: "join",
+                          index: realIndex});
 
     var row = channelTreeView.childData.locateChildByVisualRow(index);
     network.dispatch("join", { channelName: row.name });
@@ -613,12 +625,31 @@ function processOpFilterStart(opData)
     opData.currentIndex = 0;
     opData.channelText = opData.text;
 
+    // Log the filter, indicating which features the user is using.
+    var filters = new Array();
+    if (opData.channelText)
+        filters.push("name");
+    if (opData.searchTopics)
+        filters.push("topics");
+    if (opData.minUsers)
+        filters.push("min-users");
+    if (opData.maxUsers)
+        filters.push("max-users");
+
     if (opData.channelText &&
         (arrayIndexOf(["#", "&", "+", "!"], opData.channelText[0]) == -1) &&
         (arrayIndexOf(serverChannelPrefixes, opData.channelText[0]) == -1))
     {
         opData.channelText = serverChannelPrefixes[0] + opData.channelText;
     }
+    else
+    {
+        // Log that user has specified an explicit prefix.
+        filters.push("prefix");
+    }
+
+    client.ceip.logEvent({type: "dialog", dialog: "channels", event: "filter",
+                          filters: filters.join(",")});
 
     // Update special "create channel" row, and select it.
     createChannelItem.name = opData.channelText;

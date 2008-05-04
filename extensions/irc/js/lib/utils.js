@@ -300,6 +300,12 @@ function ecmaUnescape(str)
     return str.replace(/%u?([\da-f]{1,4})/ig, replaceEscapes);
 }
 
+function encodeForXMLAttribute(value) {
+    return value.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+                .replace(/'/g, "&apos;");
+}
+
 function replaceVars(str, vars)
 {
     // replace "string $with a $variable", with
@@ -875,6 +881,17 @@ function randomRange (min, max)
 
     return Math.floor(Math.random() * (max - min + 1)) + min;
 
+}
+
+// Creates a random string of |len| characters from a-z, A-Z, 0-9.
+function randomString(len) {
+    var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    var rv = "";
+
+    for (var i = 0; i < len; i++)
+        rv += chars.substr(Math.floor(Math.random() * chars.length), 1);
+
+    return rv;
 }
 
 function getStackTrace ()
