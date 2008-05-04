@@ -75,6 +75,11 @@ a.chatzilla-link:visited {
     color: silver;
 }
 
+treechildren {
+    background: black;
+    color: white;
+}
+
 #splash {
     color: #444444;
 }
