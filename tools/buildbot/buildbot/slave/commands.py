@@ -2628,7 +2628,7 @@ class SetMozillaBuildProperties(Command):
         log += "installerSize: %s\n" % installerSize
         log += "completeMarFilename: %s\n" % completeMarFilename
         log += "completeMarHash: %s\n" % completeMarHash
-        log += "completeMarSize: %s\n" % completeMarSize
+        log += "completeMarSize: %s" % completeMarSize
 
         self.sendStatus({'stdout': log})
 
