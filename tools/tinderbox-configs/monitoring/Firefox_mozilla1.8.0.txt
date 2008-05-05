@@ -1,2 +1,1 @@
-/pub/mozilla.org/firefox/nightly/latest-mozilla1.8.0/firefox-1.5.0.12eol.en-US.linux-i686.complete.mar
 /pub/mozilla.org/firefox/nightly/latest-mozilla1.8.0/firefox-1.5.0.12eol.en-US.linux-i686.tar.gz
