@@ -127,7 +127,7 @@
              context="toolbar-context-menu"
              collapsed="true"
              collapsedinMode="false"
-             defaultset="task-new-event-button,task-new-task-button,task-button-address,calendar-show-todaypane-button,separator,task-category-button,task-progress-button,task-priority-button,separator,task-delete-button,task-print-button,separator,task-remote-reload-button,spring"
+             defaultset="task-new-event-button,task-new-task-button,task-button-address,task-show-todaypane-button,separator,task-category-button,task-progress-button,task-priority-button,separator,task-delete-button,task-print-button,separator,task-remote-reload-button,spring"
              persist="collapsedinMode"/>
   </toolbox>
 
