@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -50,7 +51,7 @@ pref("calendar.alarms.eventalarmlen", 15);
 pref("calendar.alarms.todoalarmlen", 15);
 pref("calendar.alarms.eventalarmunit", "minutes");
 pref("calendar.alarms.todoalarmunit", "minutes");
-pref("calendar.alarms.defaultsnoozelength", 60);
+pref("calendar.alarms.defaultsnoozelength", 5);
 pref("calendar.alarms.indicator.show", true);
 pref("calendar.alarms.indicator.totaltime", 3600);
 pref("calendar.autorefresh.enabled", true);
