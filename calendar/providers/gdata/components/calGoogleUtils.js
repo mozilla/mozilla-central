@@ -352,9 +352,10 @@ function toRFC3339(aDateTime) {
         return "";
     }
 
-    var tzoffset_hr = Math.floor(aDateTime.timezoneOffset / 3600);
+    var full_tzoffset = aDateTime.timezoneOffset;
+    var tzoffset_hr = Math.floor(Math.abs(full_tzoffset) / 3600);
 
-    var tzoffset_mn = ((aDateTime.timezoneOffset / 3600).toFixed(2) -
+    var tzoffset_mn = ((Math.abs(full_tzoffset) / 3600).toFixed(2) -
                        tzoffset_hr) * 60;
 
     var str = aDateTime.year + "-" +
@@ -368,9 +369,9 @@ function toRFC3339(aDateTime) {
                ("00" + aDateTime.minute).substr(-2) + ":" +
                ("00" + aDateTime.second).substr(-2);
         if (aDateTime.timezoneOffset != 0) {
-            str += (tzoffset_hr < 0 ? "-" : "+") +
-                   ("00" + Math.abs(tzoffset_hr)).substr(-2) + ":" +
-                   ("00" + Math.abs(tzoffset_mn)).substr(-2);
+            str += (full_tzoffset < 0 ? "-" : "+") +
+                   ("00" + tzoffset_hr).substr(-2) + ":" +
+                   ("00" + tzoffset_mn).substr(-2);
         } else if (aDateTime.timezone.isFloating) {
             // RFC3339 Section 4.3 Unknown Local Offset Convention
             str += "-00:00";

@@ -285,6 +285,9 @@ calGoogleCalendar.prototype = {
             request.operationListener = aListener;
             request.calendar = this;
 
+            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
+            request.addQueryParameter("ctz", ctz);
+
             this.session.asyncItemRequest(request);
             return request;
         } catch (e) {
@@ -371,6 +374,9 @@ calGoogleCalendar.prototype = {
             request.newItem = aNewItem;
             request.oldItem = aOldItem;
             request.calendar = this;
+
+            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
+            request.addQueryParameter("ctz", ctz);
 
             this.session.asyncItemRequest(request);
             return request;
@@ -471,6 +477,8 @@ calGoogleCalendar.prototype = {
             request.calendar = this;
 
             // Request Parameters
+            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
+            request.addQueryParameter("ctz", ctz);
             request.addQueryParameter("max-results", kMANY_EVENTS);
             request.addQueryParameter("singleevents", "false");
 
@@ -545,6 +553,8 @@ calGoogleCalendar.prototype = {
             request.itemFilter = aItemFilter;
 
             // Request Parameters
+            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
+            request.addQueryParameter("ctz", ctz);
             request.addQueryParameter("max-results",
                                       aCount ? aCount : kMANY_EVENTS);
             request.addQueryParameter("singleevents", "false");
