@@ -378,6 +378,7 @@ function scheduleMidnightUpdate(aRefreshCallback) {
     // stuck in an infinite loop.
     var udCallback = {
         notify: function(timer) {
+            LOG("scheduleMidnightUpdate -- timer shot.");
             aRefreshCallback();
         }
     };
@@ -386,8 +387,17 @@ function scheduleMidnightUpdate(aRefreshCallback) {
         // Observer for wake after sleep/hibernate/standby to create new timers and refresh UI
         var wakeObserver = {
            observe: function(aSubject, aTopic, aData) {
+               LOG("scheduleMidnightUpdate -- wakeObserver: " + aTopic);
                if (aTopic == "wake_notification") {
-                   aRefreshCallback();
+                   // postpone refresh for another couple of seconds to get netwerk ready:
+                   if (this.mTimer) {
+                       this.mTimer.cancel();
+                   } else {
+                       this.mTimer = Components.classes["@mozilla.org/timer;1"]
+                                               .createInstance(Components.interfaces.nsITimer);
+                   }
+                   this.mTimer.initWithCallback(udCallback, 10 * 1000,
+                                                Components.interfaces.nsITimer.TYPE_ONE_SHOT);
                }
            }
         };
@@ -402,12 +412,12 @@ function scheduleMidnightUpdate(aRefreshCallback) {
                                 function() {
                                     observerService.removeObserver(wakeObserver, "wake_notification");
                                 }, false);
-
         gMidnightTimer = Components.classes["@mozilla.org/timer;1"]
                                    .createInstance(Components.interfaces.nsITimer);
     } else {
         gMidnightTimer.cancel();
     }
+    LOG("scheduleMidnightUpdate -- init timer.");
     gMidnightTimer.initWithCallback(udCallback, msUntilTomorrow, gMidnightTimer.TYPE_ONE_SHOT);
 }
 

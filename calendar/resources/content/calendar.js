@@ -196,8 +196,12 @@ function handleCommandLine(aComLine) {
 
 /* Called at midnight to tell us to update the views and other ui bits */
 function refreshUIBits() {
-    currentView().goToDay(now());
-    refreshEventTree();
+    try {
+        currentView().goToDay(now());
+        refreshEventTree();
+    } catch (exc) {
+        ASSERT(false, exc);
+    }
 
     // and schedule again...
     scheduleMidnightUpdate(refreshUIBits);

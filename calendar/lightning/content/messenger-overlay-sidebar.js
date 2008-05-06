@@ -295,20 +295,24 @@ function onSelectionChanged(aEvent) {
  * this for normal refresh, since it also calls scheduleMidnightRefresh.
  */
 function refreshUIBits() {
-    document.getElementById("ltnMinimonth").refreshDisplay();
+    try {
+        getMinimonth().refreshDisplay();
 
-    // refresh the current view, if it has ever been shown
-    var cView = currentView();
-    if (cView.initialized) {
-        cView.goToDay(cView.selectedDay);
+        // refresh the current view, if it has ever been shown
+        var cView = currentView();
+        if (cView.initialized) {
+            cView.goToDay(cView.selectedDay);
+        }
+
+        if (!TodayPane.showsToday()) {
+            TodayPane.setDay(now());
+        }
+
+        // update the unifinder
+        refreshEventTree();
+    } catch (exc) {
+        ASSERT(false, exc);
     }
-
-    if (TodayPane.showsYesterday()) {
-      TodayPane.setDay(now());
-    }
-
-    // update the unifinder
-    refreshEventTree();
 
     // schedule our next update...
     scheduleMidnightUpdate(refreshUIBits);
