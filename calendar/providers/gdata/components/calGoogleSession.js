@@ -38,6 +38,54 @@
 // many events, the exact number is not important.
 const kMANY_EVENTS = 0x7FFFFFFF;
 
+function calGoogleSessionManager() {
+    this.wrappedJSObject = this;
+
+}
+
+calGoogleSessionManager.prototype = {
+    mSessionMap: {},
+
+    QueryInterface: function cGSM_QueryInterface(aIID) {
+        return doQueryInterface(this,
+                                calGoogleSessionManager.prototype,
+                                aIID,
+                                null,
+                                g_classInfo["calGoogleSessionManager"]);
+    },
+
+    /**
+     * getSessionByUsername
+     * Get a Session object for the specified username. If aCreate is false,
+     * null will be returned if the session doesn't exist. Otherwise, the
+     * session will be created.
+     *
+     * @param aUsername The username to get the session for
+     * @param aCreate   If true, the session will be created prior to returning
+     */
+    getSessionByUsername: function cGSM_getSessionByUsername(aUsername, aCreate) {
+        // If the username contains no @, assume @gmail.com
+        // XXX Maybe use accountType=GOOGLE and just pass the raw username?
+        if (aUsername.indexOf('@') == -1) {
+            aUsername += "@gmail.com";
+        }
+
+        // Check if the session exists
+        if (!this.mSessionMap.hasOwnProperty(aUsername)) {
+            if (!aCreate) {
+                return null;
+            }
+            LOG("Creating session for: " + aUsername);
+            this.mSessionMap[aUsername] = new calGoogleSession(aUsername);
+        } else {
+            LOG("Reusing session for: " + aUsername);
+        }
+
+        // XXX What happens if the username is "toSource" :)
+        return this.mSessionMap[aUsername];
+    }
+};
+
 /**
  * calGoogleSession
  * This Implements a Session object to communicate with google
@@ -49,14 +97,15 @@ function calGoogleSession(aUsername) {
 
     this.mItemQueue = new Array();
     this.mGoogleUser = aUsername;
+    this.wrappedJSObject = this;
 
     var username = { value: aUsername };
     var password = { value: null };
 
     // Try to get the password from the password manager
-    if (passwordManagerGet(aUsername, password)) {
+    if (aUsername && passwordManagerGet(aUsername, password)) {
         this.mGooglePass = password.value;
-        this.savePassword = true;
+        this.mPersistPassword = true;
         LOG("Retrieved Password for " + aUsername + " in constructor");
     }
 }
@@ -64,11 +113,11 @@ function calGoogleSession(aUsername) {
 calGoogleSession.prototype = {
 
     QueryInterface: function cGS_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsIInterfaceRequestor) &&
-            !aIID.equals(Components.interfaces.nsISupports)) {
-            throw Components.results.NS_ERROR_NO_INTERFACE;
-        }
-        return this;
+        return doQueryInterface(this,
+                                calGoogleSessionManager.prototype,
+                                aIID,
+                                null,
+                                g_classInfo["calGoogleSession"]);
     },
 
     /* Member Variables */
@@ -79,7 +128,7 @@ calGoogleSession.prototype = {
     mSessionID: null,
 
     mLoggingIn: false,
-    mSavePassword: false,
+    mPersistPassword: false,
     mItemQueue: null,
 
     mCalendarName: null,
@@ -94,50 +143,51 @@ calGoogleSession.prototype = {
     },
 
     /**
-     * attribute savePassword
+     * readonly attribute userName
      *
-     * Sets if the password for this user should be saved or not
+     * The username for this session. To get a session with a different
+     * username, use calIGoogleSessionManager.
      */
-    get savePassword cGS_getSavePassword() {
-        return this.mSavePassword;
-    },
-    set savePassword cGS_setSavePassword(v) {
-        return this.mSavePassword = v;
-    },
-
-    /**
-     * attribute googleFullName
-     *
-     * The Full Name of the user. If this is unset, it will return the
-     * this.googleUser, to ensure a non-zero value
-     */
-    get googleFullName cGS_getGoogleFullName() {
-        return (this.mGoogleFullName ? this.mGoogleFullName :
-                this.googleUser);
-    },
-    set googleFullName cGS_setGoogleFullName(v) {
-        return this.mGoogleFullName = v;
-    },
-
-    /**
-     * readonly attribute googleUser
-     *
-     * The username of the session. This does not necessarily have to be the
-     * email found in /calendar/feeds/email/private/full
-     */
-    get googleUser cGS_getGoogleUser() {
+    get userName cGS_getUserName() {
         return this.mGoogleUser;
     },
 
     /**
-     * attribute googlePassword
+     * attribute persist
      *
-     * Sets the password used for the login process
+     * If set, the password will persist across restarts.
      */
-    get googlePassword cGS_getGooglePassword() {
+    get persist cGS_getPersist() {
+        return this.mPersistPassword;
+    },
+    set persist cGS_setPersist(v) {
+        return this.mPersistPassword = v;
+    },
+
+    /**
+     * attribute AUTF8String fullName
+     *
+     * The user's full name, usually retrieved from the XML <author> fields. If
+     * unset, this will return the userName attribute.
+     */
+    get fullName cGS_getFullName() {
+        return (this.mGoogleFullName ? this.mGoogleFullName :
+                this.userName);
+    },
+    set fullName cGS_setFullName(v) {
+        return this.mGoogleFullName = v;
+    },
+
+    /**
+     * attribute AUTF8String password
+     *
+     * The password used to authenticate. It is only important to implement the
+     * setter here, since the password is only used internally.
+     */
+    get password cGS_getPassword() {
         return this.mGooglePass;
     },
-    set googlePassword cGS_setGooglePassword(v) {
+    set password cGS_setPassword(v) {
         return this.mGooglePass = v;
     },
 
@@ -148,8 +198,13 @@ calGoogleSession.prototype = {
     invalidate: function cGS_invalidate() {
         this.mAuthToken = null;
         this.mGooglePass = null;
+        this.persist = false;
 
         passwordManagerRemove(this.mGoogleUser);
+    },
+
+    getCalendars: function cGS_getCalendars(aListener) {
+        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
     },
 
     /**
@@ -163,8 +218,9 @@ calGoogleSession.prototype = {
     failQueue: function cGS_failQueue(aCode, aCalendar) {
         function cGS_failQueue_failInQueue(element, index, arr) {
             if (!aCalendar || (aCalendar && element.calendar == aCalendar)) {
-                element.fail(aCode);
+                element.fail(aCode, null);
                 return false;
+
             }
             return true;
         }
@@ -197,7 +253,7 @@ calGoogleSession.prototype = {
             if (!this.mGooglePass) {
                 var username= { value: this.mGoogleUser };
                 var password = { value: null };
-                var savePassword = { value: false };
+                var persist = { value: false };
 
                 // Try getting a new password, potentially switching sesssions.
                 var calendarName = (aRequest.calendar ?
@@ -207,7 +263,7 @@ calGoogleSession.prototype = {
                 if (getCalendarCredentials(calendarName,
                                            username,
                                            password,
-                                           savePassword)) {
+                                           persist)) {
 
                     LOG("Got the pw from the calendar credentials: " +
                         calendarName);
@@ -217,9 +273,11 @@ calGoogleSession.prototype = {
                     if (aRequest.calendar &&
                         username.value != this.mGoogleUser) {
 
-                        var newSession = getSessionByUsername(username.value);
+                        var newSession = getGoogleSessionManager()
+                                         .getSessionByUsername(username.value,
+                                                               true);
                         newSession.googlePassword = password.value;
-                        newSession.savePassword = savePassword.value;
+                        newSession.persist = persist.value;
                         setCalendarPref(aRequest.calendar,
                                         "googleUser",
                                         "CHAR",
@@ -228,13 +286,13 @@ calGoogleSession.prototype = {
                         // Set the new session for the calendar
                         aRequest.calendar.session = newSession;
                         LOG("Setting " + aRequest.calendar.name +
-                            "'s Session to " + newSession.googleUser);
+                            "'s Session to " + newSession.userName);
 
                         // Move all requests by this calendar to its new session
                         function cGS_login_moveToSession(element, index, arr) {
                             if (element.calendar == aRequest.calendar) {
                                 LOG("Moving " + element.uri + " to " +
-                                    newSession.googleUser);
+                                    newSession.userName);
                                 newSession.asyncItemRequest(element);
                                 return false;
                             }
@@ -253,7 +311,7 @@ calGoogleSession.prototype = {
                     // changed. Just adapt the password from the dialog and
                     // continue.
                     this.mGooglePass = password.value;
-                    this.savePassword = savePassword.value;
+                    this.persist = persist.value;
                 } else {
                     LOG("Could not get any credentials for " +
                         calendarName + " (" +
@@ -296,7 +354,8 @@ calGoogleSession.prototype = {
 
             request.type = request.LOGIN;
             request.extraData = aRequest;
-            request.setResponseListener(this, this.loginComplete);
+            request.responseListener = this;
+
             request.setUploadData("application/x-www-form-urlencoded",
                                   "Email=" + encodeURIComponent(this.mGoogleUser) +
                                   "&Passwd=" + encodeURIComponent(this.mGooglePass) +
@@ -314,12 +373,12 @@ calGoogleSession.prototype = {
             // If something went wrong, then this.loginComplete should handle
             // the error. We don't need to take care of aRequest, since it is
             // also in this.mItemQueue.
-            this.loginComplete(null, e.result, e.message);
+            this.onResult({ status: e.result}, e.message);
         }
     },
 
     /**
-     * loginComplete
+     * onResult (loginComplete)
      * Callback function that is called when the login request to Google
      * Accounts has finished
      *  - Retrieves the Authentication Token
@@ -327,34 +386,32 @@ calGoogleSession.prototype = {
      *  - Processes the Item Queue
      *
      * @private
-     * @param aRequest      The request object that initiated the login
-     * @param aStatus       The return status of the request.
-     * @param aResult       The (String) Result of the Request
+     * @param aOperation    The calIOperation that initiated the login
+     * @param aData         The (String) Result of the Request
      *                      (or an Error Message)
      */
-    loginComplete: function cGS_loginComplete(aRequest, aStatus, aResult) {
-
+     onResult: function cGS_onResult(aOperation, aData) {
         // About mLoggingIn: this should only be set to false when either
         // something went wrong or mAuthToken is set. This avoids redundant
         // logins to Google. Hence mLoggingIn is set three times in the course
         // of this function
 
-        if (!aResult || aStatus != Components.results.NS_OK) {
+        if (!aData || !Components.isSuccessCode(aOperation.status)) {
             this.mLoggingIn = false;
-            LOG("Login failed. Status: " + aStatus);
+            LOG("Login failed. Status: " + aOperation.status);
 
-            if (aStatus == kGOOGLE_LOGIN_FAILED) {
+            if (aOperation.status == kGOOGLE_LOGIN_FAILED) {
                 // If the login failed, then retry the login. This is not an
                 // error that should trigger failing the calICalendar's request.
                 // The login request's extraData contains the request object
                 // that triggered the login initially
                 this.loginAndContinue(aRequest.extraData);
             } else {
-                LOG("Failing queue with " + aStatus);
-                this.failQueue(aStatus);
+                LOG("Failing queue with " + aOperation.status);
+                this.failQueue(aOperation.status);
             }
         } else {
-            var start = aResult.indexOf("Auth=");
+            var start = aData.indexOf("Auth=");
             if (start == -1) {
                 // The Auth token could not be extracted
                 this.mLoggingIn = false;
@@ -363,12 +420,11 @@ calGoogleSession.prototype = {
                 // Retry login
                 this.loginAndContinue(aRequest.extraData);
             } else {
+                this.mAuthToken = aData.substring(start + 5, aData.length - 1);
 
-                this.mAuthToken = aResult.substring(start+5,
-                                                    aResult.length - 1);
                 this.mLoggingIn = false;
 
-                if (this.savePassword) {
+                if (this.persist) {
                     try {
                         passwordManagerSave(this.mGoogleUser,
                                             this.mGooglePass);
@@ -388,217 +444,6 @@ calGoogleSession.prototype = {
                 }
             }
         }
-    },
-
-    /**
-     * addItem
-     * Add a single item to google.
-     *
-     * @param   aCalendar               An instance of calIGoogleCalendar this
-     *                                  request belongs to. The event will be
-     *                                  added to this calendar.
-     * @param   aItem                   An instance of calIEvent to add
-     * @param   aResponseListener       The function in aCalendar to call at
-     *                                  completion.
-     * @param   aExtraData              Extra data to be passed to the response
-     *                                  listener
-     */
-    addItem: function cGS_addItem(aCalendar,
-                                  aItem,
-                                  aResponseListener,
-                                  aExtraData) {
-
-        var request = new calGoogleRequest(this);
-        var xmlEntry = ItemToXMLEntry(aItem,
-                                      this.mGoogleUser,
-                                      this.googleFullName);
-
-        request.type = request.ADD;
-        request.uri = aCalendar.fullUri.spec;
-        request.setUploadData("application/atom+xml; charset=UTF-8", xmlEntry);
-        request.setResponseListener(aCalendar, aResponseListener);
-        request.extraData = aExtraData;
-        request.calendar = aCalendar;
-
-        this.asyncItemRequest(request);
-    },
-
-    /**
-     * modifyItem
-     * Modify a single item from google.
-     *
-     * @param   aCalendar               An instance of calIGoogleCalendar this
-     *                                  request belongs to.
-     * @param   aOldItem                The instance of calIEvent before
-     *                                  modification.
-     * @param   aNewItem                The instance of calIEvent after
-     *                                  modification.
-     * @param   aResponseListener       The function in aCalendar to call at
-     *                                  completion.
-     * @param   aExtraData              Extra data to be passed to the response
-     *                                  listener
-     */
-    modifyItem: function cGS_modifyItem(aCalendar,
-                                        aOldItem,
-                                        aNewItem,
-                                        aResponseListener,
-                                        aExtraData) {
-
-        var request = new calGoogleRequest(this);
-
-        var xmlEntry = ItemToXMLEntry(aNewItem,
-                                      this.mGoogleUser,
-                                      this.googleFullName);
-
-        if (aOldItem.parentItem != aOldItem &&
-            !aOldItem.parentItem.recurrenceInfo.getExceptionFor(aOldItem.startDate, false)) {
-
-            // In this case we are modifying an occurence, not deleting it
-            request.type = request.ADD;
-            request.uri = aCalendar.fullUri.spec;
-        } else {
-            // We are  making a negative exception or modifying a parent item
-            request.type = request.MODIFY;
-            request.uri = getItemEditURI(aOldItem);
-        }
-
-        request.setUploadData("application/atom+xml; charset=UTF-8", xmlEntry);
-        request.setResponseListener(aCalendar, aResponseListener);
-        request.extraData = aExtraData;
-        request.calendar = aCalendar;
-
-        this.asyncItemRequest(request);
-    },
-
-    /**
-     * deleteItem
-     * Delete a single item from google.
-     *
-     * @param   aCalendar               An instance of calIGoogleCalendar this
-     *                                  request belongs to.
-     *                                  belongs to.
-     * @param   aItem                   An instance of calIEvent to delete
-     * @param   aResponseListener       The function in aCalendar to call at
-     *                                  completion.
-     * @param   aExtraData              Extra data to be passed to the response
-     *                                  listener
-     */
-    deleteItem: function cGS_deleteItem(aCalendar,
-                                        aItem,
-                                        aResponseListener,
-                                        aExtraData) {
-
-        var request = new calGoogleRequest(this);
-
-        request.type = request.DELETE;
-        request.uri = getItemEditURI(aItem);
-        request.setResponseListener(aCalendar, aResponseListener);
-        request.extraData = aExtraData;
-        request.calendar = aCalendar;
-
-        this.asyncItemRequest(request);
-    },
-
-    /**
-     * getItem
-     * Get a single item from google.
-     *
-     * @param   aCalendar               An instance of calIGoogleCalendar this
-     *                                  request belongs to.
-     * @param   aId                     The ID of the item requested
-     * @param   aResponseListener       The function in aCalendar to call at
-     *                                  completion.
-     * @param   aExtraData              Extra data to be passed to the response
-     *                                  listener
-     */
-    getItem: function cGS_getItem(aCalendar,
-                                  aId,
-                                  aResponseListener,
-                                  aExtraData) {
-
-        
-        // XXX Due to google issue 399, there is no efficient way to get the
-        // by item id with all exceptions and an edit url. Therefore, just use
-        // getItems and add the id to the extradata.
-        //
-        return this.getItems(aCalendar,
-                             null,
-                             null,
-                             null,
-                             false,
-                             aResponseListener,
-                             aExtraData,
-                             null);
-    },
-
-    /**
-     * getItems
-     * Get a Range of items from google.
-     *
-     * @param   aCalendar               An instance of calIGoogleCalendar this
-     *                                  request belongs to.
-     * @param   aCount                  The maximum number of items to return
-     * @param   aRangeStart             An instance of calIDateTime that limits
-     *                                  the start date.
-     * @param   aRangeEnd               An instance of calIDateTime that limits
-     *                                  the end date.
-     * @param   aItemReturnOccurrences  A boolean, wether to return single
-     *                                  occurrences or not.
-     * @param   aResponseListener       The function in aCalendar to call at
-     *                                  completion.
-     * @param   aExtraData              Extra data to be passed to the response
-     *                                  listener
-     * @param   aLastModified           If specified, only events that have been
-     *                                    modified since this date will be
-     *                                    returned. This will also include
-     *                                    deleted events. (optional)
-     */
-
-    getItems: function cGS_getItems(aCalendar,
-                                    aCount,
-                                    aRangeStart,
-                                    aRangeEnd,
-                                    aItemReturnOccurrences,
-                                    aResponseListener,
-                                    aExtraData,
-                                    aLastModified) {
-        // Requesting only a DATE returns items based on UTC. Therefore, we make
-        // sure both start and end dates include a time and timezone. This may
-        // not quite be what was requested, but I'd say its a shortcoming of
-        // rfc3339.
-        if (aRangeStart) {
-            aRangeStart = aRangeStart.clone();
-            aRangeStart.isDate = false;
-        }
-        if (aRangeEnd) {
-            aRangeEnd = aRangeEnd.clone();
-            aRangeEnd.isDate = false;
-        }
-
-        var rfcRangeStart = toRFC3339(aRangeStart);
-        var rfcRangeEnd = toRFC3339(aRangeEnd);
-
-        var request = new calGoogleRequest(this);
-
-        request.type = request.GET;
-        request.uri = aCalendar.fullUri.spec;
-        request.setResponseListener(aCalendar, aResponseListener);
-        request.extraData = aExtraData;
-        request.calendar = aCalendar;
-
-        // Request Parameters
-        request.addQueryParameter("max-results",
-                                  aCount ? aCount : kMANY_EVENTS);
-        request.addQueryParameter("singleevents", "false");
-        request.addQueryParameter("start-min", rfcRangeStart);
-        request.addQueryParameter("start-max", rfcRangeEnd);
-
-        if (aLastModified) {
-            var rfcLastModified = toRFC3339(aLastModified);
-            request.addQueryParameter("updated-min", rfcLastModified);
-        }
-
-        this.asyncItemRequest(request);
     },
 
     /**

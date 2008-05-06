@@ -11,11 +11,11 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Google Calendar Provider code.
+# The Original Code is Provider for Google Calendar code.
 #
 # The Initial Developer of the Original Code is
 #   Philipp Kewisch <mozilla@kewis.ch>
-# Portions created by the Initial Developer are Copyright (C) 2007
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -34,44 +34,18 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH = ../../..
-topsrcdir = @top_srcdir@
-srcdir = @srcdir@
-VPATH = @srcdir@
+DEPTH           = ../../../..
+topsrcdir       = @top_srcdir@
+srcdir          = @srcdir@
+VPATH           = @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE = gdata-provider
-
-export USE_EXTENSION_MANIFEST = 1
-export XPI_NAME = gdata-provider
-DIST_FILES = install.rdf
-XPI_PKGNAME = gdata-provider
-STRIP_XPI = 1
-
-CALENDAR_VERSION := $(shell cat $(topsrcdir)/calendar/sunbird/config/version.txt)
-DEFINES += -DAB_CD=$(AB_CD) \
-           -DCALENDAR_VERSION=$(CALENDAR_VERSION) \
-           $(NULL)
-
-PREF_JS_EXPORTS = $(srcdir)/defaults/preferences.js
-DIRS = components locales public
-
-# Get all directories in /l10n/*, that contain a
-# calendar/chrome/calendar/providers/gdata subdir.
-calendar_locales := $(subst /calendar/chrome/calendar/providers/gdata,,$(subst $(topsrcdir)/../l10n/,,$(wildcard $(topsrcdir)/../l10n/*/calendar/chrome/calendar/providers/gdata)))
-# Now make sure those dirs are in shipped-locales
-shipped_locales :=$(shell cat $(topsrcdir)/calendar/locales/shipped-locales)
-locales_to_build :=$(foreach locale,$(calendar_locales),$(if $(filter $(locale),$(shipped_locales)),$(locale)))
-
-ifneq ($(strip $(locales_to_build)),)
-# The l10n directory is checked out and contains supported locales, start building our locales
-
-libs:: $(addprefix libs-,$(locales_to_build))
-libs-%:
-	@echo - gdata locales to build -- $(locales_to_build)
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(XPI_NAME) USE_EXTENSION_MANIFEST=1
-
-endif
+MODULE          = gdata
+XPIDL_MODULE    = gdata
+XPIDLSRCS       = calIGoogleCalendar.idl \
+                  calIGoogleSession.idl \
+                  calIGoogleRequest.idl \
+                  $(NULL)
 
 include $(topsrcdir)/config/rules.mk

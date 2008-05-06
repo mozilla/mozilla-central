@@ -35,8 +35,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// This global keeps the session Objects for the usernames
-var g_sessionMap;
+/**
+ * getGoogleSessionManager
+ * Shortcut to the google session manager
+ */
+function getGoogleSessionManager() {
+    if (this.mObject === undefined) {
+        this.mObject =
+            Components.classes["@mozilla.org/calendar/providers/gdata/session-manager;1"]
+                      .createInstance(Components.interfaces.calIGoogleSessionManager);
+    }
+    return this.mObject;
+}
 
 // Sandbox for evaluating extendedProperties.
 var gGoogleSandbox;
@@ -105,38 +115,6 @@ function getFormattedString(aBundleName, aStringName, aFormatArgs, aComponent) {
     } else {
         return bundle.GetStringFromName(aStringName);
     }
-}
-
-/**
- * getSessionByUsername
- * Gets a session object for the passed username. This object will be created if
- * it does not exist.
- *
- * @param aUsername   This user's session will be returned
- * @return            The session object requested
- */
-function getSessionByUsername(aUsername) {
-
-    // Initialize the object
-    if (!g_sessionMap) {
-        g_sessionMap = {};
-    }
-
-    // If the username contains no @, assume @gmail.com
-    // XXX Maybe use accountType=GOOGLE and just pass the raw username?
-    if (aUsername.indexOf('@') == -1) {
-        aUsername += "@gmail.com";
-    }
-
-    // Check if the session exists
-    if (!g_sessionMap.hasOwnProperty(aUsername)) {
-        LOG("Creating session for: " + aUsername);
-        g_sessionMap[aUsername] = new calGoogleSession(aUsername);
-    } else {
-        LOG("Reusing session for: " + aUsername);
-    }
-
-    return g_sessionMap[aUsername];
 }
 
 /**
@@ -586,6 +564,15 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     entry.title.@type = "text";
     entry.title = aItem.title;
 
+    // gd:extendedProperty (id)
+    // If an id is set, lets save it in X-MOZ-SYNCID, since we cannot set the
+    // real event uid, gCal:syncEvent is only available for the default
+    // calendar, and also setting gCal:syncEvent cripples the event a bit.
+    var gdMozUid = <gd:extendedProperty xmlns:gd={gd}/>;
+    gdMozUid.@name = "X-MOZ-SYNCID";
+    gdMozUid.@value = aItem.id || "";
+    entry.gd::extendedProperty += gdMozUid;
+
     // atom:content
     entry.content = aItem.getProperty("DESCRIPTION") || "";
     entry.content.@type = "text";
@@ -804,7 +791,14 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
 
             // Add all recurrence items to the ical string
             for each (var ritem in recurrenceItems) {
-                icalString += ritem.icalProperty.icalString + kNEWLINE;
+                var prop = ritem.icalProperty;
+                if (ritem instanceof Components.interfaces.calIRecurrenceDate) {
+                    // EXDATES require special casing, since they might contain
+                    // a TZID. To avoid the need for conversion of TZID strings,
+                    // convert to UTC before serialization.
+                    prop.valueAsDatetime = ritem.date.getInTimezone(UTC());
+                }
+                icalString += prop.icalString;
             }
 
             // Put the ical string in a <gd:recurrence> tag
@@ -972,7 +966,10 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 
     try {
         // id
-        var id = aXMLEntry.id.toString();
+        var id = aXMLEntry.gd::extendedProperty
+                          .(@name == "X-MOZ-SYNCID")
+                          .@value.toString() ||
+                 aXMLEntry.id.toString();
         item.id = id.substring(id.lastIndexOf('/')+1);
 
         // link
@@ -1304,7 +1301,7 @@ function LOGitem(item) {
         attendeeString += "\n" + LOGattendee(a);
     }
 
-    var rstr = "";
+    var rstr = "\n";
     if (item.recurrenceInfo) {
         var ritems = item.recurrenceInfo.getRecurrenceItems({});
         for each (var ritem in ritems) {
@@ -1331,7 +1328,7 @@ function LOGitem(item) {
         "\n\tisOccurrence: " + item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE") +
         "\n\tOrganizer: " + LOGattendee(item.organizer) +
         "\n\tAttendees: " + attendeeString +
-        "\n\trecurrence: " + (rstr ? "yes:\n" + rstr : "no"));
+        "\n\trecurrence: " + (rstr.length > 1 ? "yes: " + rstr : "no"));
 }
 
 function LOGattendee(aAttendee, asString) {

@@ -44,22 +44,23 @@
 function calGoogleRequest(aSession) {
     this.mQueryParameters = new Array();
     this.mSession = aSession;
+    this.wrappedJSObject = this;
 }
 
 calGoogleRequest.prototype = {
 
     /* Members */
-    mMethod: null,
-    mUriString: null,
+    uri: null,
     mUploadContent: null,
     mUploadData: null,
-    mResponseListenerObject: null,
-    mResponseListenerFunc: null,
+    responseListener: null,
     mSession: null,
     mExtraData: null,
     mQueryParameters: null,
     mType: null,
     mCalendar: null,
+    mLoader: null,
+    mStatus: Components.results.NS_OK,
 
     /* Constants */
     LOGIN: 1,
@@ -68,18 +69,50 @@ calGoogleRequest.prototype = {
     MODIFY: 4,
     DELETE: 5,
 
+    /* Simple Attributes */
+    method: "GET",
+    id: null,
+    uri: null,
+    responseListener: null,
+    operationListener: null,
+
+    itemRangeStart: null,
+    itemRangeEnd: null,
+    itemFilter: null,
+    itemId: null,
+    calendar: null,
+    newItem: null,
+    oldItem: null,
+    destinationCal: null,
+
     QueryInterface: function cGR_QueryInterface(aIID) {
-        if (!aIID.equals(Components.interfaces.nsISupports) &&
-            !aIID.equals(Components.interfaces.nsIStreamLoaderObserver) &&
-            !aIID.equals(Components.interfaces.nsIDocShellTreeItem) &&
-            !aIID.equals(Components.interfaces.nsIInterfaceRequestor) &&
-            !aIID.equals(Components.interfaces.nsIChannelEventSink) &&
-            !aIID.equals(Components.interfaces.nsIProgressEventSink) &&
-            !aIID.equals(Components.interfaces.nsIHttpEventSink) &&
-            !aIID.equals(Components.interfaces.nsIStreamListener)) {
-                throw Components.results.NS_ERROR_NO_INTERFACE;
+        return doQueryInterface(this,
+                                calGoogleRequest.prototype,
+                                aIID,
+                                null,
+                                g_classInfo["calGoogleRequest"]);
+    },
+
+    /**
+     * Implement calIOperation
+     */
+    get isPending cGR_getIsPending() {
+        return (this.mLoader && this.mLoader.request != null);
+    },
+
+    get status cGR_status() {
+        if (this.isPending) {
+            return this.mLoader.request.status;
+        } else {
+            return this.mStatus;
         }
-        return this;
+    },
+
+    cancel: function cGR_cancel(aStatus) {
+        if (this.isPending) {
+            this.mLoader.request.cancel(aStatus);
+            this.mStatus = aStatus;
+        }
     },
 
     /**
@@ -93,22 +126,22 @@ calGoogleRequest.prototype = {
     set type cGR_setType(v) {
         switch (v) {
             case this.LOGIN:
-                this.mMethod = "POST";
-                this.mUriString = "https://www.google.com/accounts/ClientLogin";
+                this.method = "POST";
+                this.uri = "https://www.google.com/accounts/ClientLogin";
                 break;
             case this.META:
                 // Fall through
             case this.GET:
-                this.mMethod = "GET";
+                this.method = "GET";
                 break;
             case this.ADD:
-                this.mMethod = "POST";
+                this.method = "POST";
                 break;
             case this.MODIFY:
-                this.mMethod = "PUT";
+                this.method = "PUT";
                 break;
             case this.DELETE:
-                this.mMethod = "DELETE";
+                this.method = "DELETE";
                 break;
             default:
                 throw new Components.Exception("", Components.results.NS_ERROR_ILLEGAL_VALUE);
@@ -116,41 +149,6 @@ calGoogleRequest.prototype = {
         }
         this.mType = v;
         return v;
-    },
-
-    /**
-     * attribute method
-     * The Request Method to use (GET, POST, PUT, DELETE)
-     */
-    get method cGR_getMethod() {
-        return this.mMethod;
-    },
-    set method cGR_setMethod(v) {
-        return this.mMethod = v;
-    },
-
-    /**
-     * attribute uri
-     * The String representation of the uri to be requested
-     */
-    get uri cGR_getUri() {
-        return this.mUriString;
-    },
-    set uri cGR_setUri(v) {
-        return this.mUriString = v;
-    },
-
-    /**
-     * setResponseListener
-     * The Function and Object of the listener to be called on complete
-     * operation.
-     *
-     * @param aObj    The object for the callback
-     * @param aFunc   The function for the callback
-     */
-    setResponseListener: function cGR_setResponseListener(aObj, aFunc) {
-        this.mResponseListenerObject = aObj;
-        this.mResponseListenerFunc = aFunc;
     },
 
     /**
@@ -170,29 +168,6 @@ calGoogleRequest.prototype = {
                  content:aContentType,
                  data:aData});
         }
-    },
-
-    /**
-     * attribute extraData
-     * Extra Data to save with the request
-     */
-    get extraData cGR_getExtraData() {
-        return this.mExtraData;
-    },
-    set extraData cGR_setExtraData(v) {
-        return this.mExtraData = v;
-    },
-
-    /**
-     * attribute calendar
-     * The calendar that initiated this request. Will be used by the login
-     * response function to determine how and where to set passwords.
-     */
-    get calendar cGR_getCalendar() {
-        return this.mCalendar;
-    },
-    set calendar cGR_setCalendar(v) {
-        return this.mCalendar = v;
     },
 
     /**
@@ -226,17 +201,13 @@ calGoogleRequest.prototype = {
             // Set the session to request with
             if (aSession) {
                 this.mSession = aSession;
-                if (this.mType == this.META) {
-                    this.mUriString = aSession.uri.prePath + "/calendar/feeds/"
-                                      + encodeURIComponent(aSession.googleUser);
-                }
             }
 
             // create the channel
             var ioService = Components.classes["@mozilla.org/network/io-service;1"].
                             getService(Components.interfaces.nsIIOService);
 
-            var uristring = this.mUriString;
+            var uristring = this.uri;
             if (this.mQueryParameters.length > 0) {
                 uristring += "?" + this.mQueryParameters.join("&");
             }
@@ -248,10 +219,10 @@ calGoogleRequest.prototype = {
             channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
             channel.redirectionLimit = 3;
 
-            var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"].
-                               createInstance(Components.interfaces.nsIStreamLoader);
+            this.mLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
+                                     .createInstance(Components.interfaces.nsIStreamLoader);
 
-            LOG("calGoogleRequest: Requesting " + this.mMethod + " " +
+            LOG("calGoogleRequest: Requesting " + this.method + " " +
                 channel.URI.spec);
 
             channel.notificationCallbacks = this;
@@ -259,11 +230,11 @@ calGoogleRequest.prototype = {
             // Required to be trunk and branch compatible.
             if (Components.interfaces.nsIStreamLoader.number ==
                 "{31d37360-8e5a-11d3-93ad-00104ba0fd40}") {
-                streamLoader.init(channel, this, this);
+                this.mLoader.init(channel, this, this);
             } else if (Components.interfaces.nsIStreamLoader.number ==
                       "{8ea7e890-8211-11d9-8bde-f66bad1e3f3a}") {
-                streamLoader.init(this);
-                channel.asyncOpen(streamLoader, this);
+                this.mLoader.init(this);
+                channel.asyncOpen(this.mLoader, this);
             }
         } catch (e) {
             // Let the response function handle the error that happens here
@@ -280,10 +251,8 @@ calGoogleRequest.prototype = {
      *                  from calIGoogleErrors will be used.
      */
     fail: function cGR_fail(aCode, aMessage) {
-        this.mResponseListenerFunc.call(this.mResponseListenerObject,
-                                        this,
-                                        aCode,
-                                        aMessage);
+        this.mStatus = aCode;
+        this.responseListener.onResult(this, aMessage);
     },
 
     /**
@@ -325,13 +294,13 @@ calGoogleRequest.prototype = {
         // Depending on the preference, we will use X-HTTP-Method-Override to
         // get around some proxies. This will default to true.
         if (getPrefSafe("calendar.google.useHTTPMethodOverride", true) &&
-            (this.mMethod == "PUT" || this.mMethod == "DELETE")) {
+            (this.method == "PUT" || this.method == "DELETE")) {
 
             aChannel.requestMethod = "POST";
             aChannel.setRequestHeader("X-HTTP-Method-Override",
-                                      this.mMethod,
+                                      this.method,
                                       false);
-            if (this.mMethod == "DELETE") {
+            if (this.method == "DELETE") {
                 // DELETE has no body, set an empty one so that Google accepts
                 // the request.
                 aChannel.setRequestHeader("Content-Type",
@@ -340,7 +309,7 @@ calGoogleRequest.prototype = {
                 aChannel.setRequestHeader("Content-Length", 0, false);
             }
         } else {
-            aChannel.requestMethod = this.mMethod;
+            aChannel.requestMethod = this.method;
         }
 
         // Add Authorization
@@ -458,7 +427,7 @@ calGoogleRequest.prototype = {
             case 401: /* Authorization required. */
             case 403: /* Unsupported standard parameter, or authentication or
                          Authorization failed. */
-                LOG("Login failed for " + this.mSession.googleUser +
+                LOG("Login failed for " + this.mSession.userName +
                     " HTTP Status " + httpChannel.responseStatus );
 
                 // login failed. auth token must be invalid, password too

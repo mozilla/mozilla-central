@@ -51,7 +51,7 @@ var g_classInfo = {
             return ifaces;
         },
 
-        getHelperForLanguage: function (language) {
+        getHelperForLanguage: function cI_cGC_getHelperForLanguage(aLanguage) {
             return null;
         },
 
@@ -60,6 +60,81 @@ var g_classInfo = {
         classID:  Components.ID("{d1a6e988-4b4d-45a5-ba46-43e501ea96e3}"),
         implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
         constructor: "calGoogleCalendar",
+        flags: 0
+    },
+
+    calGoogleSession: {
+        getInterfaces: function cI_cGS_getInterfaces (aCount) {
+            var ifaces = [
+                Components.interfaces.nsISupports,
+                Components.interfaces.calIGoogleSession,
+                Components.interfaces.nsIClassInfo
+            ];
+            aCount.value = ifaces.length;
+            return ifaces;
+        },
+
+        getHelperForLanguage: function cI_cGS_getHelperForLanguage(aLanguage) {
+            return null;
+        },
+
+        classDescription: "Google Calendar Session",
+        contractID: "@mozilla.org/calendar/providers/gdata/session;1",
+        classID:  Components.ID("{652f6233-e03f-438a-bd3b-39877f68c0f4}"),
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        constructor: "calGoogleSession",
+        flags: 0
+    },
+
+    calGoogleSessionManager: {
+        getInterfaces: function cI_cGSM_getInterfaces (aCount) {
+            var ifaces = [
+                Components.interfaces.nsISupports,
+                Components.interfaces.calIGoogleSessionManager,
+                Components.interfaces.nsIClassInfo
+            ];
+            aCount.value = ifaces.length;
+            return ifaces;
+        },
+
+        getHelperForLanguage: function cI_cGSM_getHelperForLanguage(aLanguage) {
+            return null;
+        },
+
+        classDescription: "Google Calendar Session Manager",
+        contractID: "@mozilla.org/calendar/providers/gdata/session-manager;1",
+        classID:  Components.ID("{6a7ba1f0-f271-49b0-8e93-5ca33651b4af}"),
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        constructor: "calGoogleSessionManager",
+        flags: Components.interfaces.nsIClassInfo.SINGLETON
+    },
+    calGoogleRequest: {
+        getInterfaces: function cI_cGR_getInterfaces (aCount) {
+            var ifaces = [
+                Components.interfaces.nsISupports,
+                Components.interfaces.calIGoogleRequest,
+                Components.interfaces.nsIStreamLoaderObserver,
+                Components.interfaces.nsIDocShellTreeItem,
+                Components.interfaces.nsIInterfaceRequestor,
+                Components.interfaces.nsIChannelEventSink,
+                Components.interfaces.nsIProgressEventSink,
+                Components.interfaces.nsIHttpEventSink,
+                Components.interfaces.nsIStreamListener,
+                Components.interfaces.nsIClassInfo
+            ];
+            aCount.value = ifaces.length;
+            return ifaces;
+        },
+
+        getHelperForLanguage: function cI_cGR_getHelperForLanguage(aLanguage) {
+            return null;
+        },
+
+        classDescription: "Google Calendar Request",
+        contractID: "@mozilla.org/calendar/providers/gdata/request;1",
+        classID:  Components.ID("{53a3438a-21bc-4a0f-b813-77a8b4f19282}"),
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        constructor: "calGoogleRequest",
         flags: 0
     }
 };
