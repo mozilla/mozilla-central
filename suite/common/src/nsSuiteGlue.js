@@ -52,6 +52,9 @@ SuiteGlue.prototype = {
   observe: function(subject, topic, data)
   {
     switch(topic) {
+      case "xpcom-shutdown":
+        this._dispose();
+        break;
       case "quit-application":
         this._onProfileShutdown();
         break;
@@ -74,6 +77,7 @@ SuiteGlue.prototype = {
     // observer registration
     const osvr = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
+    osvr.addObserver(this, "xpcom-shutdown", false);
     osvr.addObserver(this, "quit-application", false);
     osvr.addObserver(this, "final-ui-startup", false);
     osvr.addObserver(this, "browser:purge-session-history", false);
@@ -85,6 +89,7 @@ SuiteGlue.prototype = {
     // observer removal
     const osvr = Components.classes["@mozilla.org/observer-service;1"]
                            .getService(Components.interfaces.nsIObserverService);
+    osvr.removeObserver(this, "xpcom-shutdown");
     osvr.removeObserver(this, "quit-application");
     osvr.removeObserver(this, "final-ui-startup");
     osvr.removeObserver(this, "browser:purge-session-history");
