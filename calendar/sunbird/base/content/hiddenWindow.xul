@@ -62,7 +62,7 @@
 #include sunbird-scripts.inc
 
   <toolbox id="calendar-toolbox" class="toolbox-top">
-    <toolbar type="menubar" id="main-menubar" class="chromeclass-menubar"
+    <toolbar type="menubar" id="main-toolbar" class="chromeclass-menubar"
              customizable="true" defaultset="menubar-items"
              mode="icons" iconsize="small"> <!-- context="toolbar-context-menu"> -->
       <toolbaritem id="menubar-items" align="center">
