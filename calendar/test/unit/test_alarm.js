@@ -348,8 +348,9 @@ function test_clone() {
         alarm[prop] = propMap[prop];
     }
     // Make a copy
-    alarm.makeImmutable();
     var newAlarm = alarm.clone();
+    newAlarm.makeImmutable();
+    newAlarm = newAlarm.clone();
     do_check_true(newAlarm.isMutable);
 
     // Check if item is still the same

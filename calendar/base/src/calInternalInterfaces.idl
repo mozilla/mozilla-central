@@ -46,6 +46,12 @@ interface calIItemBase;
 [scriptable, uuid(1903648f-a0ee-4ae1-84b0-d8e8d0b10506)]
 interface calIInternalShallowCopy : nsISupports
 {
+  /**
+   * create a proxy for this item; the returned item
+   * proxy will have parentItem set to this instance.
+   */
+  calIItemBase createProxy();
+
   // used by recurrenceInfo when cloning proxy objects to
   // avoid an infinite loop.  aNewParent is optional, and is
   // used to set the parent of the new item; it should be null

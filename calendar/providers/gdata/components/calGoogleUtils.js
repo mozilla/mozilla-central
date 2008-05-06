@@ -1165,8 +1165,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                 item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
             } else {
                 excItem.calendar = aCalendar;
-                excItem.parentItem = item;
-                item.recurrenceInfo.modifyException(excItem);
+                item.recurrenceInfo.modifyException(excItem, true);
             }
         }
 

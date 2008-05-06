@@ -188,7 +188,7 @@ interface calIItemBase : nsISupports
   // accessor attributes.  For example, "SUMMARY" is
   // promoted to the top-level "title" attribute.
   //
-  // If you use the has/get/getUnproxied/set/deleteProperty
+  // If you use the has/get/set/deleteProperty
   // methods, property names are case-insensitive.
   // 
   // For purposes of ICS serialization, all property names in
@@ -284,18 +284,8 @@ interface calIItemBase : nsISupports
    */
   readonly attribute calIItemBase previousOccurrence;
 
-  //
-  // proxy support
-  //
-
   /**
-   * create a proxy for this item; the returned item
-   * proxy will have parentItem set to this instance.
-   */
-  calIItemBase createProxy();
-
-  /**
-   * If this item is a proxy, parentItem will point upwards
+   * If this item is a proxy or overridden item, parentItem will point upwards
    * to our parent.  Otherwise, it will point to this.
    * parentItem can thus always be used for modifyItem() calls
    * to providers.
@@ -309,21 +299,4 @@ interface calIItemBase : nsISupports
    * consider it as readonly.
    */
   attribute calIDateTime recurrenceId;
-
-  /**
-   * Returns the given property value if it is natively set on the item,
-   * otherwise returns null.
-   */
-  nsIVariant getUnproxiedProperty(in AString name);
-
-  /**
-   * An enumerator that lets us walk down the list of properties
-   * that are actually changed by this proxy from the base.  If this
-   * item is not a proxy, then this list will be equivalent to the one
-   * returned from propertyEnumerator.
-   *
-   * The elements returned by the enumerator will be of type nsIProperty,
-   * as with a normal nsIPropertyBag enumerator.
-   */
-  readonly attribute nsISimpleEnumerator unproxiedPropertyEnumerator;
 };

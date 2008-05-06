@@ -104,19 +104,6 @@ calEvent.prototype = {
         return m;
     },
 
-    clone: function () {
-        var m;
-
-        if (this.mParentItem) {
-            var clonedParent = this.mParentItem.clone();
-            m = clonedParent.recurrenceInfo.getOccurrenceFor (this.recurrenceId);
-        } else {
-            m = this.cloneShallow(null);
-        }
-
-        return m;
-    },
-
     createProxy: function () {
         if (this.mIsProxy) {
             calDebug("Tried to create a proxy for an existing proxy!\n");
@@ -165,7 +152,7 @@ calEvent.prototype = {
         this.fillIcalComponentFromBase(icalcomp);
         this.mapPropsToICS(icalcomp, this.icsEventPropMap);
         
-        var bagenum = this.mProperties.enumerator;
+        var bagenum = this.propertyEnumerator;
         while (bagenum.hasMoreElements()) {
             var iprop = bagenum.getNext().
                 QueryInterface(Components.interfaces.nsIProperty);

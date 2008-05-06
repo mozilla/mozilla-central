@@ -954,7 +954,6 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
     for each (var item in excItems) {
         var parent = uid2parent[item.id];
         if (parent) {
-            item.parentItem = parent;
             var recStartDate = parent.recurrenceStartDate;
             if (recStartDate && recStartDate.isDate && !item.recurrenceId.isDate) {
                 // cs ought to return proper all-day RECURRENCE-ID!
@@ -963,8 +962,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 rid.isDate = true;
                 item.recurrenceId = rid;
             }
-            item.makeImmutable();
-            parent.recurrenceInfo.modifyException(item);
+            parent.recurrenceInfo.modifyException(item, true);
         }
         else {
             logError("parseItems(): no parent item for " + item.title +

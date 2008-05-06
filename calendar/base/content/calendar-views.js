@@ -166,8 +166,7 @@ var calendarViewController = {
             }
 
             // If the item contains attendees then they need to be notified
-            if (instance.hasProperty("X-MOZ-SEND-INVITATIONS") &&
-               (instance.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE")) {
+            if (instance.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE") {
                sendItipInvitation(instance);
             }
 

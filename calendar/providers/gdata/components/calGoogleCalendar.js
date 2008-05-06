@@ -611,7 +611,7 @@ calGoogleCalendar.prototype = {
             if (item) {
                 var oldItem = aOperation.oldItem;
                 if (item.parentItem != item) {
-                    item.parentItem.recurrenceInfo.modifyException(item);
+                    item.parentItem.recurrenceInfo.modifyException(item, false);
                     item = item.parentItem;
                     oldItem = oldItem.parentItem;
                 }
@@ -736,8 +736,7 @@ calGoogleCalendar.prototype = {
                             item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
                         } else {
                             excItem.calendar = this.calendar;
-                            excItem.parentItem = item;
-                            item.recurrenceInfo.modifyException(excItem);
+                            item.recurrenceInfo.modifyException(excItem, true);
                         }
                     }
                 }
@@ -863,8 +862,7 @@ calGoogleCalendar.prototype = {
                                     item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
                                 } else {
                                     excItem.calendar = this;
-                                    excItem.parentItem = item;
-                                    item.recurrenceInfo.modifyException(excItem);
+                                    item.recurrenceInfo.modifyException(excItem, true);
                                 }
                             }
                         }

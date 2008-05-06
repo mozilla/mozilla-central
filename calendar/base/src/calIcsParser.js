@@ -140,8 +140,7 @@ function ip_parseString(aICSString, aTzProvider) {
     for each (var item in excItems) {
         var parent = uid2parent[item.id];
         if (parent) {
-            item.parentItem = parent;
-            parent.recurrenceInfo.modifyException(item);
+            parent.recurrenceInfo.modifyException(item, true);
         } else { // a parentless one
             this.mParentlessItems.push(item);
         }

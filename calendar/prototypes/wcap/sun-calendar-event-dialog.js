@@ -362,23 +362,13 @@ function loadDialog(item) {
     updateTitle();
 
     var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
-    if (item.getProperty("X-MOZ-SEND-INVITATIONS") != null) {
-        sendInvitesCheckbox.checked = (item.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE");
-    } else {
-        sendInvitesCheckbox.checked = false;
-    }
+    sendInvitesCheckbox.checked = (item.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE");
 
     updateAttendees();
     updateRepeat();
     updateReminder();
 
-    // How easy would it be to just call hasProperty(), but unfortunately
-    // this is currently flawed and doesn't give us the answer we're longing for.
-    // hasProperty() unconditionally forwards the request to the parent item
-    // if the property doesn't exist at the occurrence. That's why we need to
-    // use this somewhat awkward construct.
-    gShowTimeAs = (item.getUnproxiedProperty("TRANSP") != null) ?
-        item.getUnproxiedProperty("TRANSP") : null;
+    gShowTimeAs = item.getProperty("TRANSP");
     updateShowTimeAs();
 }
 

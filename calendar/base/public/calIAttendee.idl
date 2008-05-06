@@ -92,7 +92,7 @@ interface calIAttendee : nsISupports
 
   readonly attribute nsISimpleEnumerator propertyEnumerator;
   
-  // If you use the has/get/getUnproxied/set/deleteProperty
+  // If you use the has/get/set/deleteProperty
   // methods, property names are case-insensitive.
   // 
   // For purposes of ICS serialization, all property names in

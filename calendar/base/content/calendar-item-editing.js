@@ -417,9 +417,7 @@ function checkForAttendees(aItem, aOriginalItem)
     }
 
     // Only send invitations if the user checked the checkbox.
-    if (!aItem.hasProperty("X-MOZ-SEND-INVITATIONS")) {
-        return;
-    } else if (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE") {
+    if (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE") {
         return;
     }
 

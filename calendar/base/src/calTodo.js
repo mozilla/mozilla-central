@@ -106,19 +106,6 @@ calTodo.prototype = {
         return m;
     },
 
-    clone: function () {
-        var m;
-
-        if (this.parentItem != this) {
-            var clonedParent = this.mParentItem.clone();
-            m = clonedParent.recurrenceInfo.getExceptionFor (this.recurrenceId, true);
-        } else {
-            m = this.cloneShallow(null);
-        }
-
-        return m;
-    },
-
     createProxy: function () {
         if (this.mIsProxy) {
             calDebug("Tried to create a proxy for an existing proxy!\n");
@@ -190,7 +177,7 @@ calTodo.prototype = {
         this.fillIcalComponentFromBase(icalcomp);
         this.mapPropsToICS(icalcomp, this.icsEventPropMap);
 
-        var bagenum = this.mProperties.enumerator;
+        var bagenum = this.propertyEnumerator;
         while (bagenum.hasMoreElements()) {
             var iprop = bagenum.getNext().
                 QueryInterface(Components.interfaces.nsIProperty);

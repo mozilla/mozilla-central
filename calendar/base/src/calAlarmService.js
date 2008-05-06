@@ -397,7 +397,7 @@ calAlarmService.prototype = {
             alarmDate = aItem.endDate || aItem.dueDate || aItem.entryDate;
         }
 
-        if (!aItem.alarmOffset && !aItem.parentItem.alarmOffset || !alarmDate) {
+        if (!aItem.alarmOffset || !alarmDate) {
             // If there is no alarm offset, or no date the alarm offset could be
             // relative to, then there is no valid alarm.
             return null;
@@ -413,7 +413,7 @@ calAlarmService.prototype = {
             alarmDate.isDate = false;
         }
 
-        var offset = aItem.alarmOffset || aItem.parentItem.alarmOffset;
+        var offset = aItem.alarmOffset;
 
         alarmDate.addDuration(offset);
         alarmDate = alarmDate.getInTimezone(UTC());

@@ -180,7 +180,7 @@ calAttendee.prototype = {
 
     get propertyEnumerator() { return this.mProperties.enumerator; },
 
-    // The has/get/getUnproxied/set/deleteProperty methods are case-insensitive.
+    // The has/get/set/deleteProperty methods are case-insensitive.
     getProperty: function (aName) {
         return this.mProperties.getProperty(aName.toUpperCase());
     },

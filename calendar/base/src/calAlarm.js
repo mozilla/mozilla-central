@@ -94,7 +94,9 @@ calAlarm.prototype = {
     },
 
     makeImmutable: function cA_makeImmutable() {
-        this.ensureMutable();
+        if (this.mImmutable) {
+            return;
+        }
 
         const objectMembers = ["mAbsoluteDate",
                                "mOffset",

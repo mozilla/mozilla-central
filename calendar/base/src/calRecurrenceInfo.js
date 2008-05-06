@@ -588,13 +588,9 @@ calRecurrenceInfo.prototype = {
 
     mExceptions: null,
 
-    modifyException: function (anItem) {
+    modifyException: function (anItem, aTakeOverOwnership) {
         if (!this.mBaseItem)
             throw Components.results.NS_ERROR_NOT_INITIALIZED;
-
-        // the item must be an occurrence
-        if (anItem.parentItem == anItem)
-            throw Components.results.NS_ERROR_UNEXPECTED;
 
         if (anItem.parentItem.calendar != this.mBaseItem.calendar &&
             anItem.parentItem.id != this.mBaseItem.id)
@@ -609,11 +605,13 @@ calRecurrenceInfo.prototype = {
         }
 
         var itemtoadd;
-        if (anItem.isMutable) {
+        if (!aTakeOverOwnership || anItem.isMutable) {
             itemtoadd = anItem.cloneShallow(this.mBaseItem);
             itemtoadd.makeImmutable();
         } else {
             itemtoadd = anItem;
+            itemtoadd.parentItem = this.mBaseItem;
+            itemtoadd.makeImmutable();
         }
 
         // we're going to assume that the recurrenceId is valid here,
@@ -728,9 +726,8 @@ calRecurrenceInfo.prototype = {
         for each (var exid in exceptions) {
             var ex = this.getExceptionFor(exid, false);
             if (ex) {
-                if (!ex.isMutable) {
-                    ex = ex.cloneShallow(this.item);
-                }
+                ex = ex.clone();
+                // xxx todo: isn't the below questionable w.r.t DST changes?
                 ex.recurrenceId.addDuration(timeDiff);
                 
                 modifiedExceptions.push(ex);
@@ -738,7 +735,7 @@ calRecurrenceInfo.prototype = {
             }
         }
         for each (var modifiedEx in modifiedExceptions) {
-            this.modifyException(modifiedEx);
+            this.modifyException(modifiedEx, true);
         }
 
         // also take RDATE's and EXDATE's into account.

@@ -115,8 +115,12 @@ interface calIRecurrenceInfo : nsISupports
    *
    * The item's parentItem must be equal to this RecurrenceInfo's
    * item. <-- XXX check this, compare by calendar/id only
+   *
+   * @param anItem exceptional/overridden item
+   * @param aTakeOverOwnership whether the recurrence info object can take over
+   *        the item or needs to clone it
    */
-  void modifyException (in calIItemBase anItem);
+  void modifyException (in calIItemBase anItem, in boolean aTakeOverOwnership);
 
   /**
    * Return an existing exception item for the given recurrence ID.

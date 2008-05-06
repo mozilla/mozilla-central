@@ -409,7 +409,7 @@ calStorageCalendar.prototype = {
         // if we were given an occurrence.  Later we can
         // optimize this.
         if (aItem.parentItem != aItem) {
-            aItem.parentItem.recurrenceInfo.modifyException(aItem);
+            aItem.parentItem.recurrenceInfo.modifyException(aItem, false);
         }
         aItem = aItem.parentItem;
 
@@ -487,10 +487,9 @@ calStorageCalendar.prototype = {
 
         // Ensure that we're looking at the base item if we were given an
         // occurrence.  Later we can optimize this.
-        var modifiedItem = aNewItem.clone();
-        if (modifiedItem.parentItem != modifiedItem) {
-            modifiedItem.parentItem.recurrenceInfo.modifyException(modifiedItem);
-            modifiedItem = modifiedItem.parentItem;
+        var modifiedItem = aNewItem.parentItem.clone();
+        if (aNewItem.parentItem != aNewItem) {
+            modifiedItem.recurrenceInfo.modifyException(aNewItem, false);
         }
 
         if (this.relaxedMode) {
@@ -1817,8 +1816,7 @@ calStorageCalendar.prototype = {
                 while (this.mSelectEventExceptions.step()) {
                     var row = this.mSelectEventExceptions.row;
                     var exc = this.getEventFromRow(row, {}, true /*isException*/);
-                    exc.parentItem = item;
-                    rec.modifyException(exc);
+                    rec.modifyException(exc, true);
                 }
                 this.mSelectEventExceptions.reset();
             } else if (item instanceof Components.interfaces.calITodo) {
@@ -1826,8 +1824,7 @@ calStorageCalendar.prototype = {
                 while (this.mSelectTodoExceptions.step()) {
                     var row = this.mSelectTodoExceptions.row;
                     var exc = this.getTodoFromRow(row, {}, true /*isException*/);
-                    exc.parentItem = item;
-                    rec.modifyException(exc);
+                    rec.modifyException(exc, true);
                 }
                 this.mSelectTodoExceptions.reset();
             } else {
@@ -1967,9 +1964,9 @@ calStorageCalendar.prototype = {
 
         this.setDateParamHelper(ip, "todo_entry", item.entryDate);
         this.setDateParamHelper(ip, "todo_due", item.dueDate);
-        this.setDateParamHelper(ip, "todo_completed", item.getUnproxiedProperty("COMPLETED"));
+        this.setDateParamHelper(ip, "todo_completed", item.getProperty("COMPLETED"));
 
-        ip.todo_complete = item.getUnproxiedProperty("PERCENT-COMPLETED");
+        ip.todo_complete = item.getProperty("PERCENT-COMPLETED");
 
         ip.flags = flags;
 
@@ -1985,15 +1982,15 @@ calStorageCalendar.prototype = {
 
         var tmp;
 
-        if ((tmp = item.getUnproxiedProperty("CREATED")))
+        if ((tmp = item.getProperty("CREATED")))
             ip.time_created = tmp.nativeTime;
-        if ((tmp = item.getUnproxiedProperty("LAST-MODIFIED")))
+        if ((tmp = item.getProperty("LAST-MODIFIED")))
             ip.last_modified = tmp.nativeTime;
 
-        ip.title = item.getUnproxiedProperty("SUMMARY");
-        ip.priority = item.getUnproxiedProperty("PRIORITY");
-        ip.privacy = item.getUnproxiedProperty("CLASS");
-        ip.ical_status = item.getUnproxiedProperty("STATUS");
+        ip.title = item.getProperty("SUMMARY");
+        ip.priority = item.getProperty("PRIORITY");
+        ip.privacy = item.getProperty("CLASS");
+        ip.ical_status = item.getProperty("STATUS");
 
         if (!item.parentItem)
             ip.event_stamp = item.stampTime.nativeTime;
@@ -2033,7 +2030,7 @@ calStorageCalendar.prototype = {
 
     writeProperties: function (item, olditem) {
         var ret = 0;
-        var propEnumerator = item.unproxiedPropertyEnumerator;
+        var propEnumerator = item.propertyEnumerator;
         while (propEnumerator.hasMoreElements()) {
             ret = CAL_ITEM_FLAG_HAS_PROPERTIES;
 

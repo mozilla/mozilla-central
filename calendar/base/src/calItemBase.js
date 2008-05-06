@@ -44,9 +44,6 @@
 // calItemBase.js
 //
 
-const ICAL = Components.interfaces.calIIcalComponent;
-
-
 function calItemBase() {
     ASSERT(false, "Inheriting objects call initItemBase!");
 }
@@ -106,7 +103,6 @@ calItemBase.prototype = {
     set parentItem(value) {
         if (this.mImmutable)
             throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
-        this.mIsProxy = true;
         this.mParentItem = value;
     },
 
@@ -149,8 +145,9 @@ calItemBase.prototype = {
     },
 
     makeItemBaseImmutable: function() {
-        if (this.mImmutable)
-            throw Components.results.NS_ERROR_OBJECT_IS_IMMUTABLE;
+        if (this.mImmutable) {
+            return;
+        }
 
         // make all our components immutable
         if (this.mRecurrenceInfo)
@@ -208,6 +205,10 @@ calItemBase.prototype = {
         this.mRecurrenceInfo = null;
 
         this.mAttachments = null;
+    },
+
+    clone: function () {
+        return this.cloneShallow(this.mParentItem);
     },
 
     // for subclasses to use; copies the ItemBase's values
@@ -281,6 +282,19 @@ calItemBase.prototype = {
         return m;
     },
 
+    get alarmOffset() {
+        if (this.mIsProxy && (this.mAlarmOffset === undefined)) {
+            return this.parentItem.alarmOffset;
+        } else {
+            return this.mAlarmOffset;
+        }
+    },
+
+    set alarmOffset(aValue) {
+        this.modify();
+        return (this.mAlarmOffset = aValue);
+    },
+
     get lastModifiedTime() {
         this.ensureNotDirty();
         return this.getProperty("LAST-MODIFIED");
@@ -302,80 +316,48 @@ calItemBase.prototype = {
         this.setProperty("DTSTAMP", jsDateToDateTime(new Date()));
     },
 
-    get unproxiedPropertyEnumerator() {
-        return this.mProperties.enumerator;
-    },
-
     get propertyEnumerator() {
         if (this.mIsProxy) {
-            // nsISimpleEnumerator sucks.  It really, really sucks.
-            // The interface is badly defined, it's not clear
-            // what happens if you just keep calling getNext() without
-            // calling hasMoreElements in between, which seems like more
-            // of an informational thing.  An interface with
-            // "advance()" which returns true or false, and with "item()",
-            // which returns the item the enumerator is pointing to, makes
-            // far more sense.  Right now we have getNext() doing both
-            // item returning and enumerator advancing, which makes
-            // no sense.
-            return {
-                firstEnumerator: this.mProperties.enumerator,
-                secondEnumerator: this.mParentItem.propertyEnumerator,
-                handledProperties: { },
+            ASSERT(this.parentItem != this);
+            return { // nsISimpleEnumerator:
+                mProxyEnum: this.mProperties.enumerator,
+                mParentEnum: this.mParentItem.propertyEnumerator,
+                mHandledProps: { },
+                mCurrentProp: null,
 
-                currentItem: null,
-
-                QueryInterface: function(aIID) {
-                    if (!aIID.equals(Components.interfaces.nsISimpleEnumerator) ||
-                        !aIID.equals(Components.interfaces.nsISupports))
-                    {
-                        throw Components.results.NS_ERROR_NO_INTERFACE;
-                    }
-                    return this;
-                },
-
-                hasMoreElements: function() {
-                    if (!this.secondEnumerator)
-                        return false;
-
-                    if (this.firstEnumerator) {
-                        var moreFirst = this.firstEnumerator.hasMoreElements();
-                        if (moreFirst) {
-                            this.currentItem = this.firstEnumerator.getNext();
-                            this.handledProperties[this.currentItem.name] = true;
-                            return true;
-                        }
-                        this.firstEnumerator = null;
-                    }
-
-                    var moreSecond = this.secondEnumerator.hasMoreElements();
-                    if (moreSecond) {
-                        while (this.currentItem.name in this.handledProperties &&
-                               this.secondEnumerator.hasMoreElements())
-                        do {
-                            this.currentItem = this.secondEnumerator.getNext();
-                        } while (this.currentItem.name in this.handledProperties &&
-                                 ((this.currentItem = null) == null) && // hack
-                                 this.secondEnumerator.hasMoreElements());
-
-                        if (!this.currentItem)
-                            return false;
-
+                hasMoreElements: function cib_pe_hasMoreElements() {
+                    if (this.mCurrentProp) {
                         return true;
                     }
-
-                    this.secondEnumerator = null;
-
+                    if (this.mProxyEnum) {
+                        while (this.mProxyEnum.hasMoreElements()) {
+                            var prop = this.mProxyEnum.getNext();
+                            this.mHandledProps[prop.name] = true;
+                            if (prop.value !== null) {
+                                this.mCurrentProp = prop;
+                                return true;
+                            } // else skip the deleted properties
+                        }
+                        this.mProxyEnum = null;
+                    }
+                    while (this.mParentEnum.hasMoreElements()) {
+                        var prop = this.mParentEnum.getNext();
+                        if (!this.mHandledProps[prop.name]) {
+                            this.mCurrentProp = prop;
+                            return true;
+                        }
+                    }
                     return false;
                 },
 
-                getNext: function() {
-                    if (!this.currentItem)
+                getNext: function cib_pe_getNext() {
+                    if (!this.hasMoreElements()) { // hasMoreElements is called by intention to skip yet deleted properties
+                        ASSERT(false, Components.results.NS_ERROR_UNEXPECTED);
                         throw Components.results.NS_ERROR_UNEXPECTED;
-
-                    var rval = this.currentItem;
-                    this.currentItem = null;
-                    return rval;
+                    }
+                    var ret = this.mCurrentProp;
+                    this.mCurrentProp = null;
+                    return ret;
                 }
             };
         } else {
@@ -383,18 +365,14 @@ calItemBase.prototype = {
         }
     },
 
-    // The has/get/getUnproxied/set/deleteProperty methods are case-insensitive.
+    // The has/get/set/deleteProperty methods are case-insensitive.
     getProperty: function (aName) {
         aName = aName.toUpperCase();
-        var aValue = this.mProperties.getProperty(aName);
-        if ((aValue === null) && this.mIsProxy) {
-            aValue = this.mParentItem.getProperty(aName);
+        var aValue = this.mProperties.getProperty_(aName);
+        if (aValue === undefined) {
+            aValue = (this.mIsProxy ? this.mParentItem.getProperty(aName) : null);
         }
         return aValue;
-    },
-
-    getUnproxiedProperty: function (aName) {
-        return this.mProperties.getProperty(aName.toUpperCase());
     },
 
     hasProperty: function (aName) {
@@ -407,12 +385,22 @@ calItemBase.prototype = {
         } else {
             this.modify();
         }
-        this.mProperties.setProperty(aName.toUpperCase(), aValue);
+        if (aValue === null) {
+            this.deleteProperty(aName);
+        } else {
+            this.mProperties.setProperty(aName.toUpperCase(), aValue);
+        }
     },
 
     deleteProperty: function (aName) {
         this.modify();
-        this.mProperties.deleteProperty(aName.toUpperCase());
+        if (this.mIsProxy) {
+            // deleting a proxy's property will mark the bag's item as null, so we could
+            // distinguish it when enumerating/getting properties from the undefined ones.
+            this.mProperties.setProperty(aName.toUpperCase(), null);
+        } else {
+            this.mProperties.deleteProperty(aName.toUpperCase());
+        }
     },
 
     getPropertyParameter: function getPP(aPropName, aParamName) {
@@ -477,7 +465,11 @@ calItemBase.prototype = {
 
     mCalendar: null,
     get calendar () {
-        return this.mCalendar;
+        if (!this.mCalendar && (this.parentItem != this)) {
+            return this.parentItem.calendar;
+        } else {
+            return this.mCalendar;
+        }
     },
 
     set calendar (v) {
@@ -511,7 +503,7 @@ calItemBase.prototype = {
     },
 
     // All of these property names must be in upper case for isPropertyPromoted to
-    // function correctly. The has/get/getUnproxied/set/deleteProperty interfaces
+    // function correctly. The has/get/set/deleteProperty interfaces
     // are case-insensitive, but these are not.
     itemBasePromotedProps: {
         "CREATED": true,
@@ -546,7 +538,7 @@ calItemBase.prototype = {
         for (var i = 0; i < propmap.length; i++) {
             var prop = propmap[i];
             var val = icalcomp[prop.ics];
-            if (val != null && val != ICAL.INVALID_VALUE)
+            if (val != null && val != Components.interfaces.calIIcalComponent.INVALID_VALUE)
                 this.setProperty(prop.cal, val);
         }
     },
@@ -555,7 +547,7 @@ calItemBase.prototype = {
         for (var i = 0; i < propmap.length; i++) {
             var prop = propmap[i];
             var val = this.getProperty(prop.cal);
-            if (val != null && val != ICAL.INVALID_VALUE)
+            if (val != null && val != Components.interfaces.calIIcalComponent.INVALID_VALUE)
                 icalcomp[prop.ics] = val;
         }
     },

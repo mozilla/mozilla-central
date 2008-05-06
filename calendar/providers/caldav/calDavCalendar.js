@@ -485,8 +485,9 @@ calDavCalendar.prototype = {
         }
 
         if (aNewItem.parentItem != aNewItem) {
-            aNewItem.parentItem.recurrenceInfo.modifyException(aNewItem);
-            aNewItem = aNewItem.parentItem;
+            var excItem = aNewItem;
+            aNewItem = aNewItem.parentItem.clone();
+            aNewItem.recurrenceInfo.modifyException(excItem, false);
         }
 
         var eventUri = this.mCalendarUri.clone();
@@ -869,7 +870,7 @@ calDavCalendar.prototype = {
                         LOG( "no parent item for rid=" + item.recurrenceId );
                     } else {
                         item.parentItem = parent;
-                        item.parentItem.recurrenceInfo.modifyException(item);
+                        item.parentItem.recurrenceInfo.modifyException(item, true);
                     }
                 }
                 // if we loop over both excItems and unexpandedItems using 'item'

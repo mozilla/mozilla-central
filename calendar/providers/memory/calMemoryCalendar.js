@@ -155,21 +155,7 @@ calMemoryCalendar.prototype = {
         }
 
         aItem.calendar = this.superCalendar;
-        var rec = aItem.recurrenceInfo;
-        if (rec) {
-            var exceptions = rec.getExceptionIds({});
-            for each (var exid in exceptions) {
-                var exception = rec.getExceptionFor(exid, false);
-                if (exception) {
-                    if (!exception.isMutable) {
-                        exception = exception.clone();
-                    }
-                    exception.calendar = this.superCalendar;
-                    rec.modifyException(exception);
-                }
-            }
-        }
-        
+
         aItem.makeImmutable();
         this.mItems[aItem.id] = aItem;
 
@@ -209,10 +195,9 @@ calMemoryCalendar.prototype = {
             return reportError(null, "ID for modifyItem item is null");
         }
 
-        var modifiedItem = aNewItem.clone();
-        if (modifiedItem.parentItem != modifiedItem) {
-            modifiedItem.parentItem.recurrenceInfo.modifyException(modifiedItem);
-            modifiedItem = modifiedItem.parentItem;
+        var modifiedItem = aNewItem.parentItem.clone();
+        if (aNewItem.parentItem != aNewItem) {
+            modifiedItem.recurrenceInfo.modifyException(aNewItem, false);
         }
 
         if (this.relaxedMode) {
