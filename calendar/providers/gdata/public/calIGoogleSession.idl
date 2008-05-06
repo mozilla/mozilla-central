@@ -43,6 +43,7 @@ interface calIDateTime;
 interface calIGenericOperationListener;
 interface calIOperationListener;
 interface calIGoogleRequest;
+interface calIOperation;
 
 interface nsIVariant;
 
