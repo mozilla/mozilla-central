@@ -4,6 +4,7 @@
 <!ENTITY pref.offline.title               "Offline &amp; Disk Space">
 <!ENTITY pref.offline.caption             "Offline">
 <!ENTITY textStartUp                      "When starting up:">
+<!ENTITY textStartUp.accesskey            "W">
 <!ENTITY menuitemRememberPrevState        "Remember previous online state">
 <!ENTITY menuitemAskMe                    "Ask me for online state at startup">
 <!ENTITY menuitemAlwaysOnline             "Always start up online">

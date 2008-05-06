@@ -76,6 +76,11 @@
                   prefpane="tags_pane"
                   url="chrome://messenger/content/pref-tags.xul"
                   helpTopic="mail-prefs-tags"/>
+        <treeitem id="offlineItem"
+                  label="&offline.label;"
+                  prefpane="offline_pane"
+                  url="chrome://messenger/content/pref-offline.xul"
+                  helpTopic="mail_prefs_offline"/>
       </treechildren>
     </treeitem>
   </treechildren>
@@ -135,7 +140,7 @@
         </treeitem>
         <treeitem>
           <treerow>
-            <treecell url="chrome://messenger/content/pref-offline.xul" label="&offline.label;"/> 
+            <treecell label="(Migrated: &offline.label;)"/>
           </treerow>
         </treeitem>
       </treechildren>

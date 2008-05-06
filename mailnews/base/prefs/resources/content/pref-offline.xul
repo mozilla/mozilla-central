@@ -43,88 +43,89 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/prefPanels.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://messenger/locale/pref-offline.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/pref-offline.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://messenger/content/pref-offline.xul');"
-      headertitle="&pref.offline.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="offline_pane"
+            label="&pref.offline.title;"
+            script="chrome://messenger/content/pref-offline.js">
 
-  <script type="application/x-javascript">
-  <![CDATA[
-    var _elementIDs = ["whenStartingUp", "whengoingOnlinestate", "whengoingOfflinestate", "offlineCompactFolder", "offlineCompactFolderMin"];
+    <preferences id="offline_preferences">
+      <preference id="offline.startup_state"
+                  name="offline.startup_state"
+                  type="int"/>
+      <preference id="offline.send.unsent_messages"
+                  name="offline.send.unsent_messages"
+                  type="int"/>
+      <preference id="offline.download.download_messages"
+                  name="offline.download.download_messages"
+                  type="int"/>
+      <preference id="mail.prompt_purge_threshhold"
+                  name="mail.prompt_purge_threshhold"
+                  type="bool"
+                  onchange="EnableMailPurgeThreshhold(this.value);"/>
+      <preference id="mail.purge_threshhold"
+                  name="mail.purge_threshhold"
+                  type="int"/>
+    </preferences>
 
-  function Startup()
-  {
-    enableField(document.getElementById("offlineCompactFolder"), false);
-  }
-
-  function enableField(aCheckbox, setFocus)
-  {
-    var folderMin = document.getElementById("offlineCompactFolderMin");
-    folderMin.disabled = (!aCheckbox.checked ||
-                          parent.hPrefWindow.getPrefIsLocked(folderMin.getAttribute("prefstring")));
-
-    if (!folderMin.disabled && setFocus)
-      folderMin.focus();
-  }
-  ]]>
-  </script>
-
-<groupbox>
-  <caption label="&pref.offline.caption;"/>
-
-  <hbox align="center">
-    <label value="&textStartUp;" control="whenStartingUp"/>
-    <menulist id="whenStartingUp" prefstring="offline.startup_state">
-      <menupopup>
-        <menuitem value="0" label="&menuitemRememberPrevState;"/>
-        <menuitem value="1" label="&menuitemAskMe;"/>
-        <menuitem value="2" label="&menuitemAlwaysOnline;"/>
-        <menuitem value="3" label="&menuitemAlwaysOffline;"/>
-        <menuitem value="4" label="&menuitemAutomatic;"/>
-      </menupopup>
-    </menulist>
-  </hbox>
-
-  <separator/>
-
-  <label value="&textGoingOnline;" control="whengoingOnlinestate"/>
-    <radiogroup id="whengoingOnlinestate"
-                orient="horizontal" class="indent"
-                prefstring="offline.send.unsent_messages">
-      <radio value="1" label="&radioAutoSend;"
-             accesskey="&radioAutoSend.accesskey;"/>
-      <radio value="2" label="&radioNotSend;"
-             accesskey="&radioNotSend.accesskey;"/>
-      <radio value="0" label="&radioAskUnsent;"
-             accesskey="&radioAskUnsent.accesskey;"/>
-    </radiogroup>
-
-  <separator/>
-
-  <label value="&textGoingOffline;" control="whengoingOfflinestate"/>
-    <radiogroup id="whengoingOfflinestate"
-                orient="horizontal" class="indent"
-                prefstring="offline.download.download_messages">
-      <radio value="1" label="&radioAutoDownload;"
-             accesskey="&radioAutoDownload.accesskey;"/>
-      <radio value="2" label="&radioNotDownload;"
-             accesskey="&radioNotDownload.accesskey;"/>
-      <radio value="0" label="&radioAskDownload;"
-             accesskey="&radioAskDownload.accesskey;"/>
-    </radiogroup>
-
-</groupbox>
-
-<groupbox>
-  <caption label="&Diskspace;"/>
-  <hbox align="center">
-    <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
-      prefstring="mail.prompt_purge_threshhold"
-      oncommand="enableField(this, true);"/> 
-    <textbox id="offlineCompactFolderMin" size="5" value="100"
-      preftype="int" prefstring="mail.purge_threshhold"/>
-    <label value="&kb.label;"/>
-  </hbox>
-</groupbox>
-</page>
+    <groupbox>
+      <caption label="&pref.offline.caption;"/>
+    
+      <hbox align="center">
+        <label value="&textStartUp;" control="whenStartingUp"
+               accesskey="&textStartUp.accesskey;"/>
+        <menulist id="whenStartingUp" preference="offline.startup_state">
+          <menupopup>
+            <menuitem value="0" label="&menuitemRememberPrevState;"/>
+            <menuitem value="1" label="&menuitemAskMe;"/>
+            <menuitem value="2" label="&menuitemAlwaysOnline;"/>
+            <menuitem value="3" label="&menuitemAlwaysOffline;"/>
+            <menuitem value="4" label="&menuitemAutomatic;"/>
+          </menupopup>
+        </menulist>
+      </hbox>
+    
+      <separator/>
+    
+      <label value="&textGoingOnline;" control="whengoingOnlinestate"/>
+        <radiogroup id="whengoingOnlinestate"
+                    orient="horizontal" class="indent"
+                    preference="offline.send.unsent_messages">
+          <radio value="1" label="&radioAutoSend;"
+                 accesskey="&radioAutoSend.accesskey;"/>
+          <radio value="2" label="&radioNotSend;"
+                 accesskey="&radioNotSend.accesskey;"/>
+          <radio value="0" label="&radioAskUnsent;"
+                 accesskey="&radioAskUnsent.accesskey;"/>
+        </radiogroup>
+    
+      <separator/>
+    
+      <label value="&textGoingOffline;" control="whengoingOfflinestate"/>
+        <radiogroup id="whengoingOfflinestate"
+                    orient="horizontal" class="indent"
+                    preference="offline.download.download_messages">
+          <radio value="1" label="&radioAutoDownload;"
+                 accesskey="&radioAutoDownload.accesskey;"/>
+          <radio value="2" label="&radioNotDownload;"
+                 accesskey="&radioNotDownload.accesskey;"/>
+          <radio value="0" label="&radioAskDownload;"
+                 accesskey="&radioAskDownload.accesskey;"/>
+        </radiogroup>
+    </groupbox>
+    
+    <groupbox>
+      <caption label="&Diskspace;"/>
+      <hbox align="center">
+        <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
+          preference="mail.prompt_purge_threshhold"
+          aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
+        <textbox id="offlineCompactFolderMin" size="5" value="100"
+                 preference="mail.purge_threshhold"
+                 aria-labelledby="offlineCompactFolder offlineCompactFolderMin kbLabel"/>
+        <label id="kbLabel" value="&kb.label;"/>
+      </hbox>
+    </groupbox>
+  </prefpane>
+</overlay>
