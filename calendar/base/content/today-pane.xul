@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Berend Cornelius <berend.cornelius@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Stefan Sitter <ssitter@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -96,9 +97,20 @@
                 </deck>
                 <spacer id="weekspacer" flex="1"/>
                 <hbox pack="end">
-                  <toolbarbutton id="previous-day-button" class="miniday-nav-buttons" oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="-1"/>
-                  <toolbarbutton id="today-button" class="miniday-nav-buttons" oncommand="TodayPane.setDay(now());"/>
-                  <toolbarbutton id="next-day-button" class="miniday-nav-buttons" oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));" dir="1"/>
+                  <toolbarbutton id="previous-day-button"
+                                 class="miniday-nav-buttons"
+                                 tooltiptext="&calendar.miniday.previous.button.tooltip;"
+                                 oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
+                                 dir="-1"/>
+                  <toolbarbutton id="today-button"
+                                 class="miniday-nav-buttons"
+                                 tooltiptext="&calendar.miniday.today.button.tooltip;"
+                                 oncommand="TodayPane.setDay(now());"/>
+                  <toolbarbutton id="next-day-button"
+                                 class="miniday-nav-buttons"
+                                 tooltiptext="&calendar.miniday.next.button.tooltip;"
+                                 oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
+                                 dir="1"/>
                 </hbox>
               </hbox>
               <hbox pack="start">
@@ -119,7 +131,10 @@
                 <spacer flex="1"/>
               </hbox>
             </vbox>
-            <toolbarbutton id="miniday-dropdown-button" popup="aMinimonthPopupset" class="toolbarbutton-menubutton-dropmarker"/>
+            <toolbarbutton id="miniday-dropdown-button"
+                           tooltiptext="&calendar.miniday.dropdown.button.tooltip;"
+                           popup="aMinimonthPopupset"
+                           class="toolbarbutton-menubutton-dropmarker"/>
             <popupset>
               <popup id="aMinimonthPopupset" position="after_start">
                 <minimonth id="todayMinimonth" flex="1"

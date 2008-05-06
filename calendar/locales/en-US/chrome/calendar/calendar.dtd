@@ -25,7 +25,7 @@
    -                 Eric Belhaire <belhaire@ief.u-psud.fr>
    -                 Matthew Willis <mattwillis@gmail.com>
    -                 Simon Paquet <bugzilla@babylonsounds.com>
-   -                 Stefan Sitter <ssitter@googlemail.com>
+   -                 Stefan Sitter <ssitter@gmail.com>
    -                 Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
@@ -218,6 +218,11 @@
 <!ENTITY calendar.task.complete.button.tooltip  "Mark selected tasks completed">
 <!ENTITY calendar.task.priority.button.tooltip  "Change the priority">
 <!ENTITY calendar.task.delete.button.tooltip    "Delete the selected task">
+
+<!ENTITY calendar.miniday.today.button.tooltip    "Display events for today">
+<!ENTITY calendar.miniday.next.button.tooltip     "Display events for next day">
+<!ENTITY calendar.miniday.previous.button.tooltip "Display events for previous day">
+<!ENTITY calendar.miniday.dropdown.button.tooltip "Display events for selected day">
 
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">
