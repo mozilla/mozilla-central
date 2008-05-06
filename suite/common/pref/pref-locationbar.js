@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Diego Biurrun   <diego@biurrun.de>
  *   Ian Neal        <bugzilla@arlen.demon.co.uk>
+ *   Stefan Hermes   <stefanh@inbox.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,48 +38,53 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function moreInfo()
+function Startup()
 {
-  var browserURL = null;
-  try {
-    browserURL = parent.hPrefWindow.getPref("string", "browser.chromeURL");
-  } catch(e) {
+  // On systems that has the file view component, autoFill and showPopup will
+  // return results from local browsing "history", even if autocomplete.enabled
+  // is turned off, so we'll need to remove the dependent look in the ui.
+
+  if ("@mozilla.org/autocomplete/search;1?name=file" in Components.classes)
+  {
+    // We indent the checkboxes with the class attribute set to "indent", so
+    // just remove the attribute.
+    document.getElementById("autoFill").removeAttribute("class");
+    document.getElementById("showPopup").removeAttribute("class");
   }
-  if (browserURL == null)
-    browserURL = "chrome://navigator/content/navigator.xul";
 
-  var formatter = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
-                            .getService(Components.interfaces.nsIURLFormatter);
-  window.openDialog(browserURL, "_blank", "chrome,all,dialog=no",
-                    formatter.formatURLPref("keyword.moreInfoURL"));
-}
-   
-function showACAdvanced()
-{
-  window.openDialog("chrome://communicator/content/pref/pref-smart_browsing-ac.xul", "", 
-                    "modal=yes,chrome,resizable=no",
-                    document.getElementById("browserUrlbarAutoFill").getAttribute("value"),
-                    document.getElementById("browserUrlbarShowPopup").getAttribute("value"),
-                    document.getElementById("browserUrlbarShowSearch").getAttribute("value"),
-                    document.getElementById("browserUrlbarMatchOnlyTyped").getAttribute("value"),
-                    document.getElementById("browserUrlbarAutoFill").getAttribute("disabled"),
-                    document.getElementById("browserUrlbarShowPopup").getAttribute("disabled"),
-                    document.getElementById("browserUrlbarShowSearch").getAttribute("disabled"),
-                    document.getElementById("browserUrlbarMatchOnlyTyped").getAttribute("disabled"));
+  updateDependent(document.getElementById("browser.urlbar.autocomplete.enabled").value);
 }
 
-function receiveACPrefs(aAutoFill, aShowPopup, aShowSearch, aAutoType)
+function updateDependent(aValue)
 {
-  document.getElementById("browserUrlbarAutoFill").setAttribute("value", aAutoFill);
-  document.getElementById("browserUrlbarShowPopup").setAttribute("value", aShowPopup);
-  document.getElementById("browserUrlbarShowSearch").setAttribute("value", aShowSearch);
-  document.getElementById("browserUrlbarMatchOnlyTyped").setAttribute("value", aAutoType);
+  // The matchOnlyTyped checkbox always depend on autocomplete.enabled.
+  updateMatchOnlyTyped();
+
+  // If autoFill has a class attribute, we don't have the file view component.
+  // We then need to update autoFill and showPopup.
+  if (document.getElementById("autoFill").hasAttribute("class"))
+  {
+    toggleCheckbox("autoFill", aValue);
+    toggleCheckbox("showPopup", aValue);
+  }
 }
 
- 
-function toggleAutoCompleteAdvancedButton()
+function toggleCheckbox(aCheckbox, aPrefValue)
 {
-  var browserAutoCompleteEnabled = document.getElementById("browserAutoCompleteEnabled");
-  var autoCompleteAdvancedButton = document.getElementById("autoCompleteAdvancedButton");
-  autoCompleteAdvancedButton.disabled = !browserAutoCompleteEnabled.checked;
+  if (!document.getElementById("browser.urlbar." + aCheckbox).locked)
+    document.getElementById(aCheckbox).disabled = !aPrefValue;
+}
+
+function updateMatchOnlyTyped()
+{
+  if (!document.getElementById("browser.urlbar.matchOnlyTyped").locked)
+  {
+    var autoCompletePref = document.getElementById("browser.urlbar.autocomplete.enabled");
+    var autoFillPref = document.getElementById("browser.urlbar.autoFill");
+    var showPopupPref = document.getElementById("browser.urlbar.showPopup");
+    // matchOnlyTyped doesn't makes sense if both autoFill and showPopup prefs
+    // are false or if autocomplete is turned off.
+    document.getElementById("matchOnlyTyped").disabled =
+      (!autoFillPref.value && !showPopupPref.value) || !autoCompletePref.value;
+  }
 }

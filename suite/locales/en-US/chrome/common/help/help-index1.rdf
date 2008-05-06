@@ -811,11 +811,6 @@
        <rdf:Description ID="intermediate_server_CA_certificates"
          nc:name="intermediate server CA certificates"
          nc:link="cert_dialog_help.xhtml#web_site_certified_by_an_unknown_authority"/>
-     </rdf:li>
-     <rdf:li>
-       <rdf:Description ID="Internet_Keywords"
-         nc:name="Internet Keywords"
-         nc:link="nav_help.xhtml#using_internet_keywords"/>
      </rdf:li></rdf:Seq>
    </nc:subheadings>
 </rdf:Description>

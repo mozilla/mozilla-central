@@ -31,7 +31,7 @@
     <li><a href="#history">History</a></li>
     <li><a href="#languages">Languages</a></li>
     <li><a href="#helper_applications">Helper Applications</a></li>
-    <li><a href="#smart_browsing">Smart Browsing</a></li>
+    <li><a href="#location_bar">Location Bar</a></li>
     <li><a href="#internet_search">Internet Search</a></li>
     <li><a href="#tabbed_browsing">Tabbed Browsing</a></li>
     <li><a href="#downloads">Downloads</a></li>
@@ -292,64 +292,79 @@
 
 <p>[<a href="#navigator_preferences">Return to beginning of section</a>]</p>
 
-<h2 id="smart_browsing">Browser Preferences - Smart Browsing</h2>
+<h2 id="location_bar">Browser Preferences - Location Bar</h2>
 
-<p>This section describes how to use the Smart Browsing preferences panel. If
+<p>This section describes how to use the Location Bar preferences panel. If
   you&apos;re not already viewing it, follow these steps:</p>
 
 <ol>
   <li>Open the <span class="mac">&brandShortName;</span>
     <span class="noMac">Edit</span> menu and choose Preferences.</li>
-  <li>Under the Browser category, click Smart Browsing. (If no subcategories
+  <li>Under the Browser category, click Location Bar. (If no subcategories
     are visible, double-click Browser to expand the list.)</li>
 </ol>
 
-<p>The Smart Browsing preferences panel allows you to better browse web pages
-  using Internet Keywords, Location Bar Autocomplete and Domain Guessing.</p>
+<p>The Location Bar Preferences panel lets you fine-tune the behavior of the
+  Location Bar.</p>
 
 <ul>
-  <li><strong>Internet Keywords</strong>:
+  <li id="location_bar_autocomplete"><strong>Autocomplete</strong>:
     <ul>
-      <li><strong>Enable Internet Keywords</strong>: Select this to enable fast
-        access to services such as stock quotes, search, and other information
-        from the Location bar.</li>
-      <li><strong>More Information</strong>: Click this to learn more about
-        using Internet Keywords.</li>
-    </ul>
-  </li>
-  <li id="location_bar_autocomplete"><strong>Location Bar
-    Autocomplete</strong>:
-    <ul>
-      <li><strong>Automatically complete text typed into Location bar</strong>:
-        Select this to automatically complete text you previously entered into
-        the Location bar.</li>
-      <li><strong>Advanced</strong>: Click this and select one or more of the
-        following options:
+      <li><strong>Autocomplete from your browsing history as you type</strong>:
+        Select this to let &brandShortName; automatically show suggestions from
+        your browsing history when you type in the Location Bar.
         <ul>
-          <li><strong>Autocomplete best match as you type</strong>: As you
+          <li><strong>Match only website&apos;s you&apos;ve typed
+            previously</strong>: Shows only websites that you&apos;ve typed in
+            the Location Bar and not sites that were opened in other ways, such
+            as clicking a link on a web page.</li>
+          <li><strong>Automatically prefill the best match</strong>: As you
             type in the Location Bar, &brandShortName; will automatically
             complete your web address using the visited website it most closely
-            matches.</li>
+            matches. <span class="unix"><strong>Note</strong>: Having this
+            option on will prefill local addresses (like paths to files on your
+            hard drive) even if you have turned off <q>Autocomplete from your
+            browsing history as you type</q>.</span></li>
           <li><strong>Show list of matching results</strong>: As you type in
             the Location Bar, &brandShortName; will show a drop-down list of
-            matching visited web addresses.</li>
-          <li><strong>Show internet search engine</strong>: Shows a drop-down
-            list item allowing you to search the default search engine for
-            words you enter.</li>
-          <li><strong>Match only website you&apos;ve typed previously</strong>:
-            Shows only websites that you&apos;ve typed in the Location Bar and
-            not sites that were opened in other ways, such as clicking a link
-            on a web page.</li>
-        </ul>
-      </li>
+            matching visited web addresses.
+            <span class="unix"><strong>Note</strong>: If you have turned off
+            <q>Autocomplete from your browsing history as you type</q>
+            matching results from locations on your hard drive will still be
+            shown in the drop-down list.</span></li>
+        </ul></li>
     </ul>
   </li>
-  <li><strong>Domain Guessing</strong>: Select this if you want
-    &brandShortName; to automatically add <tt>www.</tt> and <tt>.com</tt> to a
-    web page location that can&apos;t be found. For more detailed information
-    about the Domain Guessing feature, see the online document
-    <a href="http://www.mozilla.org/docs/end-user/domain-guessing.html">Domain
-    Guessing</a>.</li>
+  <li><strong>Internet Search Engine</strong>:
+    <ul>
+      <li><strong>Show default search engine</strong>: Shows a drop-down list item,
+        allowing you to search with the default search engine for words you
+        enter.</li>
+    </ul>
+  </li>
+  <li><strong>Unknown Locations</strong>
+    <ul>
+      <li><strong>Add <q>www.</q> and <q>.com</q> to the location if a web page
+        is not found</strong>: Select this if you want &brandShortName; to
+        automatically add <tt>www.</tt> to the beginning and <tt>.com</tt> to
+        the end of a web page location that can&apos;t be found. For more
+        detailed information about this feature, see the online document
+        <a href="http://www.mozilla.org/docs/end-user/domain-guessing.html">
+        Domain Guessing</a>.</li>
+      <li><strong>Perform a web search when entered text is not a web
+        location</strong>: Select this to let &brandShortName; automatically
+        search the web for text entered in the Location Bar. If the text
+        you&apos;ve typed is not a web location, &brandShortName; will do a web
+        search when you press <kbd class="noMac">Enter</kbd>
+        <kbd class="mac">Return</kbd> in the Location Bar. See the online
+        document
+        <a href="http://www.mozilla.org/docs/end-user/internet-keywords.html">
+        Internet Keywords</a> for a more technical description about this
+        feature. <strong>Note</strong>: The search engine used can not be
+        changed by the <a href="#internet_search">Internet Search
+        Preferences</a>.</li>
+    </ul>
+  </li>
 </ul>
 
 <p>[<a href="#navigator_preferences">Return to beginning of section</a>]</p>

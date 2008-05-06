@@ -122,9 +122,12 @@
                     prefpane="applications_pane"
                     helpTopic="navigator_pref_helper_applications"
                     url="chrome://communicator/content/pref/pref-applications.xul"/>
+          <treeitem id="locationBarItem"
+                    label="&locationBar.label;"
+                    prefpane="locationBar_pane"
+                    helpTopic="navigator_pref_location_bar"
+                    url="chrome://communicator/content/pref/pref-locationbar.xul"/>
 <!-- commenting out yet unmigrated panels
-          <treeitem label="&smartBrowse.label;"
-                    url="chrome://communicator/content/pref/pref-smart_browsing.xul"/>
           <treeitem label="&search.label;"
                     url="chrome://communicator/content/pref/pref-search.xul"/>
 -->

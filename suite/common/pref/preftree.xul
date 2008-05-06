@@ -94,7 +94,7 @@
         </treeitem> 
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-smart_browsing.xul" label="&smartBrowse.label;"/> 
+            <treecell label="(Migrated: &locationBar.label;)"/> 
           </treerow>
         </treeitem>
         <treeitem>

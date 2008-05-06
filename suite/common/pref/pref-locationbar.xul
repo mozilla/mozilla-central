@@ -23,6 +23,7 @@
  Contributor(s):
    Blake Ross <blakeross@telocity.com>
    Diego Biurrun <diego@biurrun.de>
+   Stefan Hermes <stefanh@inbox.com>
 
  Alternatively, the contents of this file may be used under the terms of
  either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -41,71 +42,82 @@
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://communicator/skin/prefpanels.css" type="text/css"?>
 
-<!DOCTYPE page [
-<!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
-%brandDTD;
-<!ENTITY % prefSmartBrowsingDTD SYSTEM "chrome://communicator/locale/pref/pref-smart_browsing.dtd" >
-%prefSmartBrowsingDTD;
-]>
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-locationbar.dtd">
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="parent.initPanel('chrome://communicator/content/pref/pref-smart_browsing.xul');"
-      headertitle="&pref.smartBrowsing.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://communicator/content/pref/pref-smart_browsing.js"/>
+  <prefpane id="locationBar_pane"
+            label="&pref.locationBar.title;"
+            script="chrome://communicator/content/pref/pref-locationbar.js">
 
-  <script type="application/x-javascript">
-  <![CDATA[
-  
-  var _elementIDs = ["browserGoBrowsingEnabled", "browserAutoCompleteEnabled",
-                     "browserUrlbarAutoFill", "browserUrlbarShowPopup", "browserUrlbarShowSearch",
-                     "browserUrlbarMatchOnlyTyped", "domainGuessingEnabled"];
-  
-  ]]>
-  </script>
-        
-  <groupbox>
-    <caption label="&internetKeywordsHeader.label;"/>
+    <preferences id="locationBar_preferences">
+      <preference id="browser.urlbar.autocomplete.enabled"
+                  name="browser.urlbar.autocomplete.enabled"
+                  type="bool"
+                  onchange="updateDependent(this.value);"/>
+      <preference id="browser.urlbar.matchOnlyTyped"
+                  name="browser.urlbar.matchOnlyTyped"
+                  type="bool"/>
+      <preference id="browser.urlbar.autoFill"
+                  name="browser.urlbar.autoFill"
+                  type="bool"
+                  onchange="updateMatchOnlyTyped();"/>
+      <preference id="browser.urlbar.showPopup"
+                  name="browser.urlbar.showPopup"
+                  type="bool"
+                  onchange="updateMatchOnlyTyped();"/>
+      <preference id="browser.urlbar.showSearch"
+                  name="browser.urlbar.showSearch"
+                  type="bool"/>
+      <preference id="browser.fixup.alternate.enabled"
+                  name="browser.fixup.alternate.enabled"
+                  type="bool"/>
+      <preference id="keyword.enabled"
+                  name="keyword.enabled"
+                  type="bool"/>
+    </preferences>
 
-    <description>&internetKeywordsDescription.label;</description>
-    
-    <hbox align="center">
-      <checkbox id="browserGoBrowsingEnabled" label="&keywordsEnabled.label;" accesskey="&keywordsEnabled.accesskey;"
-                prefstring="keyword.enabled"/>
-      <spacer flex="1"/>
-      <button label="&moreInformation.label;" accesskey="&moreInformation.accesskey;" oncommand="moreInfo();"
-        id="moreInformationButton"
-        prefstring="pref.browser.smartbrowsing.disable_button.more_info"/>
-    </hbox>
-    
-  </groupbox>
+    <groupbox>
+      <caption label="&autoComplete.label;"/>
+      <checkbox id="autoCompleteEnabled"
+                label="&enableAutoComplete.label;"
+                accesskey="&enableAutoComplete.accesskey;"
+                preference="browser.urlbar.autocomplete.enabled"/>
+      <checkbox id="matchOnlyTyped"
+                class="indent"
+                label="&autoCompleteMatchOnlyTyped.label;"
+                accesskey="&autoCompleteMatchOnlyTyped.accesskey;"
+                preference="browser.urlbar.matchOnlyTyped"/>
+      <checkbox id="autoFill"
+                class="indent"
+                label="&autoCompleteAutoFill.label;"
+                accesskey="&autoCompleteAutoFill.accesskey;"
+                preference="browser.urlbar.autoFill"/>
+      <checkbox id="showPopup"
+                class="indent"
+                label="&autoCompleteShowPopup.label;"
+                accesskey="&autoCompleteShowPopup.accesskey;"
+                preference="browser.urlbar.showPopup"/>
+    </groupbox>
 
-  <groupbox>
-    <caption label="&autoCompleteHeader.label;"/>
-      <hbox align="center">
-        <checkbox id="browserAutoCompleteEnabled" label="&autoCompleteEnabled.label;" 
-                  accesskey="&autoCompleteEnabled.accesskey;"
-                  prefstring="browser.urlbar.autocomplete.enabled"
-                  oncommand="toggleAutoCompleteAdvancedButton()" flex="1"/>
-      <button label="&autoCompleteAdvanced.label;" oncommand="showACAdvanced()" id="autoCompleteAdvancedButton"
-              accesskey="&autoCompleteAdvanced.accesskey;"/>
-      <data id="browserUrlbarAutoFill" preftype="bool" prefattribute="value"
-            prefstring="browser.urlbar.autoFill"/>
-      <data id="browserUrlbarShowPopup" preftype="bool" prefattribute="value"
-            prefstring="browser.urlbar.showPopup"/>
-      <data id="browserUrlbarShowSearch" preftype="bool" prefattribute="value"
-            prefstring="browser.urlbar.showSearch"/>
-      <data id="browserUrlbarMatchOnlyTyped" preftype="bool" prefattribute="value"
-            prefstring="browser.urlbar.matchOnlyTyped"/>
-    </hbox>
-  </groupbox>
+    <groupbox>
+      <caption label="&searchEngine.label;"/>
+      <checkbox id="showSearch"
+                label="&showSearchEngine.label;"
+                accesskey="&showSearchEngine.accesskey;"
+                preference="browser.urlbar.showSearch"/>
+    </groupbox>
 
-  <groupbox>
-    <caption label="&domainGuessingHeader.label;"/>
-
-    <checkbox id="domainGuessingEnabled"
-              label="&domainGuessingEnabled.label;"
-              accesskey="&domainGuessingEnabled.accesskey;"
-              prefstring="browser.fixup.alternate.enabled"/>
-  </groupbox>
-</page>
+    <groupbox>
+      <caption label="&unknownLocations.label;"/>
+      <checkbox id="domainGuessingEnabled"
+                label="&domainGuessing.label;"
+                accesskey="&domainGuessing.accesskey;"
+                preference="browser.fixup.alternate.enabled"/>
+      <checkbox id="browserGoBrowsingEnabled"
+                label="&keywords.label;"
+                accesskey="&keywords.accesskey;"
+                preference="keyword.enabled"/>
+    </groupbox>
+  </prefpane>
+</overlay>

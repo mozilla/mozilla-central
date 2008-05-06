@@ -1,30 +1,22 @@
-<!-- extracted from content/pref-smart_browsing.xul -->
+<!--LOCALIZATION NOTE : FILE The Location Bar prefs panel -->
+<!ENTITY pref.locationBar.title                "Location Bar">
 
-<!--LOCALIZATION NOTE : FILE The SmartBrowsing prefs dialog -->
-<!ENTITY pref.smartBrowsing.title              "Smart Browsing">
-
-<!--LOCALIZATION NOTE (internetKeywordsHeader.label): DONT_TRANSLATE -->
-<!ENTITY internetKeywordsHeader.label          "Internet Keywords">
-<!ENTITY internetKeywordsDescription.label     "Internet Keywords enable fast access to services such as stock quotes, search and other information from the Location bar.">
-<!ENTITY moreInformation.label                 "More Information…">
-<!ENTITY moreInformation.accesskey             "M">
-<!--LOCALIZATION NOTE (enableKeyCheck.label): Do not translate 'Internet Keywords' -->
-<!ENTITY keywordsEnabled.label                 "Enable Internet Keywords">
-<!ENTITY keywordsEnabled.accesskey             "K">
-
-<!ENTITY autoCompleteHeader.label              "Location Bar Autocomplete">
-<!ENTITY autoCompleteEnabled.label             "Automatically complete text typed into the Location bar">
-<!ENTITY autoCompleteEnabled.accesskey         "L">
-
-<!ENTITY autoCompleteAdvanced.label            "Advanced…">
-<!ENTITY autoCompleteAdvanced.accesskey        "A">
-<!ENTITY autoCompleteAdvanced.title            "Autocomplete Preferences">
-<!ENTITY autoCompleteAutoFill.label            "Autocomplete best match as you type">
+<!ENTITY autoComplete.label                    "Autocomplete">
+<!ENTITY enableAutoComplete.label              "Autocomplete from your browsing history as you type">
+<!ENTITY enableAutoComplete.accesskey          "A">
+<!ENTITY autoCompleteAutoFill.label            "Automatically prefill the best match">
+<!ENTITY autoCompleteAutoFill.accesskey        "u">
 <!ENTITY autoCompleteShowPopup.label           "Show list of matching results">
-<!ENTITY autoCompleteShowSearch.label          "Show internet search engine">
+<!ENTITY autoCompleteShowPopup.accesskey       "S">
 <!ENTITY autoCompleteMatchOnlyTyped.label      "Match only websites you've typed previously">
-<!ENTITY autocompletePreview.label             "Preview">
+<!ENTITY autoCompleteMatchOnlyTyped.accesskey  "M">
 
-<!ENTITY domainGuessingHeader.label            "Domain Guessing">
-<!ENTITY domainGuessingEnabled.label           "Automatically add &quot;www.&quot; and &quot;.com&quot; to the location if a web page isn't found">
-<!ENTITY domainGuessingEnabled.accesskey       "u">
+<!ENTITY searchEngine.label                    "Internet Search Engine">
+<!ENTITY showSearchEngine.label                "Show default search engine">
+<!ENTITY showSearchEngine.accesskey            "e">
+
+<!ENTITY unknownLocations.label                "Unknown Locations">
+<!ENTITY domainGuessing.label                  "Add &quot;www.&quot; and &quot;.com&quot; to the location if a web page is not found">
+<!ENTITY domainGuessing.accesskey              "d">
+<!ENTITY keywords.label                        "Perform a web search when entered text is not a web location">
+<!ENTITY keywords.accesskey                    "P">
