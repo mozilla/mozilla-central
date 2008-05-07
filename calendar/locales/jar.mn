@@ -8,7 +8,7 @@ calendar-@AB_CD@.jar:
     locale/@AB_CD@/calendar/calendar-event-dialog.dtd  (%chrome/calendar/calendar-event-dialog.dtd)
     locale/@AB_CD@/calendar/calendar-recurrence-dialog.dtd  (%chrome/calendar/calendar-recurrence-dialog.dtd)
     locale/@AB_CD@/calendar/categories.properties  (%chrome/calendar/categories.properties)
-    locale/@AB_CD@/calendar/wcap.properties      (%chrome/calendar/wcap.properties)
+    locale/@AB_CD@/calendar/wcap.properties      (%chrome/calendar/providers/wcap/wcap.properties)
     locale/@AB_CD@/calendar/dateFormat.properties  (%chrome/calendar/dateFormat.properties)
     locale/@AB_CD@/calendar/global.dtd           (%chrome/calendar/global.dtd)
     locale/@AB_CD@/calendar/menuOverlay.dtd      (%chrome/calendar/menuOverlay.dtd)
