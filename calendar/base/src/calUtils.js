@@ -2182,7 +2182,7 @@ calPropertyBagEnumerator.prototype = {
 };
 
 // Send iTIP invitation
-function sendItipInvitation(aItem) {
+function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
     // XXX Until we rethink attendee support and until such support
     // is worked into the event dialog (which has been done in the prototype
     // dialog to a degree) then we are going to simply hack in some attendee
@@ -2204,17 +2204,23 @@ function sendItipInvitation(aItem) {
     // We have to modify our item a little, so we clone it.
     var item = aItem.clone();
 
-    // Fix up our attendees for invitations using some good defaults
-    itemAtt = item.getAttendees({}); // reuse cloned attendees
-    item.removeAllAttendees();
-    for each (var attendee in itemAtt) {
-        attendee.role = "REQ-PARTICIPANT";
-        attendee.participationStatus = "NEEDS-ACTION";
-        attendee.rsvp = true;
-        item.addAttendee(attendee);
-        recipients.push(attendee);
+    if (aRecipientsList.length == 0)
+    {
+        // Fix up our attendees for invitations using some good defaults
+        itemAtt = item.getAttendees({}); // reuse cloned attendees
+        item.removeAllAttendees();
+        for each (var attendee in itemAtt) {
+            attendee.role = "REQ-PARTICIPANT";
+            attendee.participationStatus = "NEEDS-ACTION";
+            attendee.rsvp = true;
+            item.addAttendee(attendee);
+            recipients.push(attendee);
+        }
+    } else
+    {
+        recipients = aRecipientsList;
     }
-
+    
     // XXX The event dialog has no means to set us as the organizer
     // since we defaulted to email above, we know we need to prepend
     // mailto when we convert it to an attendee
@@ -2235,7 +2241,7 @@ function sendItipInvitation(aItem) {
     // have a mechanism for creating an item with a method, so let's add
     // that too while we're at it.  We'll also fake Sequence ID support.
     item.organizer = organizer;
-    item.setProperty("METHOD", "REQUEST");
+    item.setProperty("METHOD", aTypeOfInvitation);
     item.setProperty("SEQUENCE", item.generation);
 
     var summary
@@ -2248,16 +2254,28 @@ function sendItipInvitation(aItem) {
     // Initialize and set our properties on the item
     itipItem.init(item.icalString);
     itipItem.isSend = true;
-    itipItem.receivedMethod = "REQUEST";
-    itipItem.responseMethod = "REQUEST";
+    itipItem.receivedMethod = aTypeOfInvitation;
     itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
 
     // Get ourselves some default text - when we handle organizer properly
     // We'll need a way to configure the Common Name attribute and we should
     // use it here rather than the email address
-    var subject = sb.formatStringFromName("itipRequestSubject",
+    var subjectStringId = "";
+    var bodyStringId = "";
+    switch (aTypeOfInvitation) {
+        case 'REQUEST':
+            subjectStringId = "itipRequestSubject";
+            bodyStringId = "itipRequestBody";
+            break;
+        case 'CANCEL':
+            subjectStringId = "itipCancelSubject";
+            bodyStringId = "itipCancelBody";
+            break;
+    }
+    
+    var subject = sb.formatStringFromName(subjectStringId,
                                           [summary], 1);
-    var body = sb.formatStringFromName("itipRequestBody",
+    var body = sb.formatStringFromName(bodyStringId,
                                        [transport.defaultIdentity, summary],
                                        2);
 

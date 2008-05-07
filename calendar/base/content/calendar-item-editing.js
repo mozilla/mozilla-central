@@ -429,34 +429,41 @@ function checkForAttendees(aItem, aOriginalItem)
         return;
     }
 
-    var sendInvite = false;
     var itemAtt = aItem.getAttendees({});
+    var attMap = {};
+    var addedAttendees = [];
+    var canceledAttendees = [];
 
     if (itemAtt.length > 0) {
         var originalAtt = aOriginalItem.getAttendees({});
 
-        if ( (originalAtt.length > 0) &&
-             (originalAtt.length == itemAtt.length) )
-        {
-            for (var i=0; i < itemAtt.length; i++) {
-                if (originalAtt[i].id != itemAtt[i].id) {
-                    sendInvite = true;
-                    break;
-                }
+        for each (var att in originalAtt) {
+            attMap[att.id] = att;
+        }
+
+        for each (var att in itemAtt) {
+            if (att.id in attMap) {
+                // Attendee was in original item.
+                delete attMap[att.id]
+            } else {
+                // Attendee was not in original item
+                addedAttendees.push(att);
             }
-        } else {
-            // We have attendees on item, not on original, attendees were
-            // added.
-            sendInvite = true;
+        }
+
+        for each (var cancAtt in attMap) {
+            canceledAttendees.push(cancAtt);
         }
     }
 
     // Check to see if some part of the item was updated, if so, re-send invites
-    if (!sendInvite && (aItem.generation != aOriginalItem.generation))
-        sendInvite = true;
+    if (addedAttendees.length > 0 ||
+        (aItem.generation != aOriginalItem.generation)) {
+        sendItipInvitation(aItem, 'REQUEST', []);
+    }
 
-    if (sendInvite) {
-        // Now use calUtils.js to send these
-        sendItipInvitation(aItem);
+    // Cancel the event for all canceled attendees
+    if (canceledAttendees.length > 0) {
+        sendItipInvitation(aItem, 'CANCEL', canceledAttendees);
     }
 }
