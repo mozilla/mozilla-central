@@ -2262,7 +2262,7 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
 
     if (aRecipientsList.length == 0) {
         // Fix up our attendees for invitations using some good defaults
-        var itemAtt = item.getAttendees({}); // reuse cloned attendees
+        var itemAtt = item.getAttendees({});
         item.removeAllAttendees();
         for each (var attendee in itemAtt) {
             attendee = attendee.clone();

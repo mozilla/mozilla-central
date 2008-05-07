@@ -220,6 +220,7 @@ calItipEmailTransport.prototype = {
                 // To somehow have a last resort before sending spam, the user can choose to send the mail.
                 // XXX todo: We should consider a more sophisticated dialiog,
                 //           so the user could choose the account for sending.
+                // i.e. bug 432660
                 var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                               .getService(Components.interfaces.nsIPromptService);
                 var prefCompatMode = getPrefSafe("calendar.itip.compatSendMode", 0);
@@ -268,6 +269,7 @@ calItipEmailTransport.prototype = {
                     // xxx todo: add send/progress UI, maybe recycle
                     //           "@mozilla.org/messengercompose/composesendlistener;1"
                     //           and/or "chrome://messenger/content/messengercompose/sendProgress.xul"
+                    // i.e. bug 432662
                     var msgSend = Components.classes["@mozilla.org/messengercompose/send;1"]
                                             .createInstance(Components.interfaces.nsIMsgSend);
                     msgSend.sendMessageFile(this.mDefaultIdentity,
