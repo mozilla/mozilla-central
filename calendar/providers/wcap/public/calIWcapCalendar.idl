@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -52,7 +51,7 @@ interface calIWcapCalendar : calICalendar
      * User session this calendar instance belongs to.
      */
     readonly attribute calIWcapSession session;
-    
+
     /**
      * Current calId the calendar instance acts on; defaults to userId.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
@@ -64,37 +63,37 @@ interface calIWcapCalendar : calICalendar
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute string ownerId;
-    
+
     /**
      * Determines whether this calendar instance is the user's default calendar.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute boolean isDefaultCalendar;
-    
+
     /**
      * Whether the currently selected calendar belongs to user.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute boolean isOwnedCalendar;
-    
+
     /**
      * Calendar description.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute string description;
-    
+
     /**
      * Calendar display name.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute string displayName;
-    
+
     /**
      * Gets this calendar's (calId) default timezone.
      * @exception NS_ERROR_NOT_AVAILABLE if not logged in
      */
     readonly attribute string defaultTimezone;
-    
+
     /**
      * Tests whether the passed item corresponds to an invitation.
      *
@@ -102,7 +101,7 @@ interface calIWcapCalendar : calICalendar
      * @return whether the passed item corresponds to an invitation
      */
     boolean isInvitation(in calIItemBase item);
-    
+
     /**
      * Gets the invited attendee if the passed item corresponds to
      * an invitation.
@@ -111,7 +110,7 @@ interface calIWcapCalendar : calICalendar
      * @return attendee object else null
      */
     calIAttendee getInvitedAttendee(in calIItemBase item);
-    
+
     /**
      * Gets calendar properties.
      *
@@ -123,7 +122,7 @@ interface calIWcapCalendar : calICalendar
     void getCalendarProperties(in string propName,
                                out unsigned long count,
                                [array, size_is(count), retval] out string props);
-    
+
     /* xxx todo: additional filters sensible for calICalendar, too?
                  claiming bits 24-30 for now.
                  
@@ -140,49 +139,49 @@ interface calIWcapCalendar : calICalendar
     */
 
     /* xxx todo: limit to currently needed ones: NEEDS-ACTION */
-    
+
     /**
      * Scope: getItems only
      * Whether getItems should only return items that have alarms set for the
      * specified range.
      */
     const unsigned long ITEM_FILTER_BY_ALARM_RANGE = 1 << 23;
-    
+
 //     /**
 //      * Scope: Attendee
 //      * The event or todo is an invitation from another
 //      * user and the current user has declined the invitation.
 //      */
 //     const unsigned long ITEM_FILTER_REPLY_DECLINED = 1 << 24;
-    
+
 //     /**
 //      * Scope: Attendee
 //      * The event or todo is an invitation from another
 //      * user and the current user has accepted the invitation.
 //      */
 //     const unsigned long ITEM_FILTER_REPLY_ACCEPTED = 1 << 25;
-    
+
 //     /**
 //      * Scope: Organizer
 //      * The event or todo is an invitation from the current
 //      * user to other invitees, and all invitees have replied.
 //      */
 //     const unsigned long ITEM_FILTER_REQUEST_COMPLETED = 1 << 26;
-    
+
     /**
      * Scope: Attendee
      * The event or todo is an invitation from another
      * user and the current user has not replied to it yet.
      */
     const unsigned long ITEM_FILTER_REQUEST_NEEDS_ACTION = 1 << 27;
-    
+
     /**
      * Scope: Attendee
      * The event or todo is an invitation from another
      * user and the current user is not required to reply.
      */
     const unsigned long ITEM_FILTER_REQUEST_NEEDSNOACTION  = 1 << 28;
-    
+
 //     /**
 //      * Scope: Organizer
 //      * The event or todo is an invitation from the current
@@ -190,16 +189,16 @@ interface calIWcapCalendar : calICalendar
 //      * process of sending out invitations.
 //      */
 //     const unsigned long ITEM_FILTER_REQUEST_PENDING = 1 << 29;
-    
+
 //     /**
 //      * Scope: Organizer
 //      * The event or todo is an invitation from the current
 //      * user to other invitees, and is currently awaiting.
 //      */
 //     const unsigned long ITEM_FILTER_REQUEST_WAITFORREPLY = 1 << 30;
-    
+
     const unsigned long ITEM_FILTER_SUPPRESS_ONERROR = 1 << 31;
-    
+
     /* xxx todo sync feature: separate into own interface? */
     /** xxx todo: to be moved to calIOperationListener?
      */
@@ -243,39 +242,39 @@ interface calIWcapCalendar : calICalendar
        "add", "delete" and "modify".
        Does it make sense to separate "add" and "delete" out of "write"?
     */
-    
+
     /**
      * Whether it is allowed or denied to get availability information
      * (i.e. free-busy times).
      */
     const unsigned long AC_FREEBUSY = 1 << 0;
-    
+
     /**
      * Whether it is allowed or denied to invite a calendar's
      * owner placing an invitation into the calendar.
      */
     const unsigned long AC_SCHEDULE = 1 << 1;
-    
+
     /**
      * Whether it is allowed or denied to read components.
      */
     const unsigned long AC_COMP_READ = 1 << 2;
-    
+
     /**
      * Whether it is allowed or denied to add, modify or delete components.
      */
     const unsigned long AC_COMP_WRITE = 1 << 3;
-    
+
     /**
      * Whether it is allowed or denied to read properties.
      */
     const unsigned long AC_PROP_READ = 1 << 4;
-    
+
     /**
      * Whether it is allowed or denied to add, modify or delete properties.
      */
     const unsigned long AC_PROP_WRITE = 1 << 5;
-    
+
     /**
      * Full access, includes all of the above.
      */
@@ -285,7 +284,7 @@ interface calIWcapCalendar : calICalendar
                                    AC_COMP_WRITE  |
                                    AC_PROP_READ   |
                                    AC_PROP_WRITE);
-    
+
     /**
      * Checks whether the currently logged in user can perform the specified
      * actions. Clients should check these bits before performing operations
@@ -304,7 +303,7 @@ interface calIWcapCalendar : calICalendar
      * @return true if access is granted, false otherwise
      */
     boolean checkAccess(in unsigned long accessControlBits);
-    
+
 //     /**
 //      * Defines granted and denied permissions for a specific user or
 //      * user domain. Specific user entries precede over domain entries.

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -80,8 +79,7 @@ var CACHE_LAST_RESULTS_INVALIDATE = 120;
 // logging:
 var LOG_LEVEL = 0;
 
-function initWcapProvider()
-{
+function initWcapProvider() {
     try {
         // xxx todo: hack
         // the master password prompt is currently not guarded against
@@ -89,29 +87,23 @@ function initWcapProvider()
         var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
                                         .getService(Components.interfaces.nsIPasswordManager);
         var enumerator = passwordManager.enumerator;
-        if (enumerator.hasMoreElements())
+        if (enumerator.hasMoreElements()) {
             enumerator.getNext(); // actually prompts...
-    }
-    catch (exc) {
+        }
+    } catch (exc) {
     }
     
     try {        
         // ctors:
-        CalEvent = new Components.Constructor("@mozilla.org/calendar/event;1",
-                                              "calIEvent");
-        CalTodo = new Components.Constructor("@mozilla.org/calendar/todo;1",
-                                             "calITodo");
-        CalDateTime = new Components.Constructor("@mozilla.org/calendar/datetime;1",
-                                                 "calIDateTime");
-        CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1",
-                                                 "calIDuration");
-        CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1",
-                                               "calIPeriod");
-        Timer = new Components.Constructor("@mozilla.org/timer;1",
-                                           "nsITimer");
-        
+        CalEvent = new Components.Constructor("@mozilla.org/calendar/event;1", "calIEvent");
+        CalTodo = new Components.Constructor("@mozilla.org/calendar/todo;1", "calITodo");
+        CalDateTime = new Components.Constructor("@mozilla.org/calendar/datetime;1", "calIDateTime");
+        CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1", "calIDuration");
+        CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1", "calIPeriod");
+        Timer = new Components.Constructor("@mozilla.org/timer;1", "nsITimer");
+
         initLogging();
-        
+
         // some string resources:
         g_privateItemTitle = calGetString("wcap", "privateItem.title.text");
         g_confidentialItemTitle = calGetString("wcap", "confidentialItem.title.text");
@@ -120,18 +112,19 @@ function initWcapProvider()
 
         CACHE_LAST_RESULTS = getPref("calendar.wcap.cache_last_results", 4);
         CACHE_LAST_RESULTS_INVALIDATE = getPref("calendar.wcap.cache_last_results_invalidate", 120);
-    }
-    catch (exc) {
+    } catch (exc) {
         logError(exc, "error in init sequence");
     }
 }
 
 var calWcapCalendarFactory = { // nsIFactory:
-    lockFactory: function calWcapCalendarFactory_lockFactory(lock) {},
-    
+    lockFactory: function calWcapCalendarFactory_lockFactory(lock) {
+    },
+
     createInstance: function calWcapCalendarFactory_createInstance(outer, iid) {
-        if (outer)
+        if (outer) {
             throw Components.results.NS_ERROR_NO_AGGREGATION;
+        }
         return (new calWcapCalendar()).QueryInterface(iid);
     }
 };
@@ -143,15 +136,14 @@ var calWcapCalendarModule = { // nsIModule:
         contractID: "@mozilla.org/calendar/calendar;1?type=wcap",
         classID: Components.ID("{CF4D93E5-AF79-451a-95F3-109055B32EF0}")
     },
-    
+
     WcapSessionInfo: {
         classDescription: "Sun Java System Calendar Server WCAP Session",
         contractID: "@mozilla.org/calendar/wcap/session;1",
         classID: Components.ID("{CBF803FD-4469-4999-AE39-367AF1C7B077}")
     },
-    
-    registerSelf: function calWcapCalendarModule_registerSelf(compMgr, fileSpec, location, type)
-    {
+
+    registerSelf: function calWcapCalendarModule_registerSelf(compMgr, fileSpec, location, type) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
         compMgr.registerFactoryLocation(this.WcapCalendarInfo.classID,
                                         this.WcapCalendarInfo.classDescription,
@@ -162,26 +154,23 @@ var calWcapCalendarModule = { // nsIModule:
                                         this.WcapSessionInfo.contractID,
                                         fileSpec, location, type);
     },
-    
-    unregisterSelf: function calWcapCalendarModule_unregisterSelf(compMgr, fileSpec, location)
-    {
+
+    unregisterSelf: function calWcapCalendarModule_unregisterSelf(compMgr, fileSpec, location) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
         compMgr.unregisterFactoryLocation(this.WcapCalendarInfo.classID, fileSpec);
         compMgr.unregisterFactoryLocation(this.WcapSessionInfo.classID, fileSpec);
     },
-    
+
     m_scriptsLoaded: false,
-    getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid)
-    {
+    getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid) {
         if (!this.m_scriptsLoaded) {
             // loading extra scripts from ../js:
-            const scripts = [ "calUtils.js", "calProviderBase.js",
-                              "calWcapUtils.js", "calWcapErrors.js",
-                              "calWcapRequest.js", "calWcapSession.js",
-                              "calWcapCalendar.js", "calWcapCalendarItems.js" ];
-            var scriptLoader =
-                Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                          .createInstance(Components.interfaces.mozIJSSubScriptLoader);
+            const scripts = ["calUtils.js", "calProviderBase.js",
+                             "calWcapUtils.js", "calWcapErrors.js",
+                             "calWcapRequest.js", "calWcapSession.js",
+                             "calWcapCalendar.js", "calWcapCalendarItems.js"];
+            var scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                                         .createInstance(Components.interfaces.mozIJSSubScriptLoader);
             var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                       .getService(Components.interfaces.nsIIOService);
             var baseDir = __LOCATION__.parent.parent;
@@ -194,15 +183,19 @@ var calWcapCalendarModule = { // nsIModule:
             initWcapProvider();
             this.m_scriptsLoaded = true;
         }
-        
-        if (!iid.equals(Components.interfaces.nsIFactory))
+
+        if (!iid.equals(Components.interfaces.nsIFactory)) {
             throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-        if (!cid.equals(calWcapCalendar.prototype.classID))
+        }
+        if (!cid.equals(calWcapCalendar.prototype.classID)) {
             throw Components.results.NS_ERROR_NO_INTERFACE;
+        }
         return calWcapCalendarFactory;
     },
-    
-    canUnload: function calWcapCalendarModule_canUnload(compMgr) { return true; }
+
+    canUnload: function calWcapCalendarModule_canUnload(compMgr) {
+        return true;
+    }
 };
 
 /** module export */

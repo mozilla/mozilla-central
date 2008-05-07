@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -38,27 +37,23 @@
  * ***** END LICENSE BLOCK ***** */
 
 var g_bShutdown = false;
-var g_logTimezone = null;
-var g_logFilestream = null;
-var g_logPrefObserver = null;
 
-function initLogging()
-{
-    g_logTimezone = calendarDefaultTimezone();
-    if (g_logFilestream) {
+function initLogging() {
+    initLogging.mLogTimezone = calendarDefaultTimezone();
+    if (initLogging.mLogFilestream) {
         try {
-            g_logFilestream.close();
-        }
-        catch (exc) {
+            initLogging.mLogFilestream.close();
+        } catch (exc) {
             ASSERT(false, exc);
         }
-        g_logFilestream = null;
+        initLogging.mLogFilestream = null;
     }
     
     LOG_LEVEL = getPref("calendar.wcap.log_level", 0);
-    if (LOG_LEVEL < 1 && getPref("calendar.debug.log", false))
+    if (LOG_LEVEL < 1 && getPref("calendar.debug.log", false)) {
         LOG_LEVEL = 1; // at least basic logging when calendar.debug.log is set
-    
+    }
+
     if (LOG_LEVEL > 0) {
         var logFileName = getPref("calendar.wcap.log_file", null);
         if (logFileName) {
@@ -68,83 +63,81 @@ function initLogging()
                                         .createInstance(Components.interfaces.nsILocalFile);
                 logFile.initWithPath(logFileName);
                 // create output stream:
-                var logFileStream =
-                    Components.classes["@mozilla.org/network/file-output-stream;1"]
-                              .createInstance(Components.interfaces.nsIFileOutputStream);
-                logFileStream.init(
-                    logFile,
-                    0x02 /* PR_WRONLY */ |
-                    0x08 /* PR_CREATE_FILE */ |
-                    (getPref("calendar.wcap.log_file_append", false)
-                     ? 0x10 /* PR_APPEND */ : 0x20 /* PR_TRUNCATE */),
-                    0700 /* read, write, execute/search by owner */,
-                    0 /* unused */);
-                g_logFilestream = logFileStream;
-            }
-            catch (exc) {
+                var logFileStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                                              .createInstance(Components.interfaces.nsIFileOutputStream);
+                logFileStream.init(logFile,
+                                   0x02 /* PR_WRONLY */ |
+                                   0x08 /* PR_CREATE_FILE */ |
+                                   (getPref("calendar.wcap.log_file_append", false)
+                                    ? 0x10 /* PR_APPEND */ : 0x20 /* PR_TRUNCATE */),
+                                   0700 /* read, write, execute/search by owner */,
+                                   0 /* unused */);
+                initLogging.mLogFilestream = logFileStream;
+            } catch (exc) {
                 logError(exc, "init logging");
             }
         }
-        log("################################# NEW WCAP LOG #################################",
-            "init logging");
+        log("################################# NEW WCAP LOG #################################", "init logging");
         logWarning("WCAP logging enabled! level=" + LOG_LEVEL +
-                   (g_logFilestream ? (", file=" + logFileName) : ""));
+                   (initLogging.mLogFilestream ? (", file=" + logFileName) : ""));
     }
-    if (!g_logPrefObserver) {
-        g_logPrefObserver = { // nsIObserver:
+    if (!initLogging.mLogPrefObserver) {
+        initLogging.mLogPrefObserver = { // nsIObserver:
             observe: function logPrefObserver_observe(subject, topic, data) {
                 if (topic == "nsPref:changed") {
                     switch (data) {
-                    case "calendar.wcap.log_level":
-                    case "calendar.wcap.log_file":
-                    case "calendar.debug.log":
-                        initLogging();
-                        break;
+                        case "calendar.wcap.log_level":
+                        case "calendar.wcap.log_file":
+                        case "calendar.debug.log":
+                            initLogging();
+                            break;
                     }
                 }
             }
         };
         var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                                    .getService(Components.interfaces.nsIPrefBranch2);
-        prefBranch.addObserver("calendar.wcap.log_level", g_logPrefObserver, false);
-        prefBranch.addObserver("calendar.wcap.log_file", g_logPrefObserver, false);
-        prefBranch.addObserver("calendar.debug.log", g_logPrefObserver, false);
-        
+        prefBranch.addObserver("calendar.wcap.log_level", initLogging.mLogPrefObserver, false);
+        prefBranch.addObserver("calendar.wcap.log_file", initLogging.mLogPrefObserver, false);
+        prefBranch.addObserver("calendar.debug.log", initLogging.mLogPrefObserver, false);
+
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                         .getService(Components.interfaces.nsIObserverService);
         var appObserver = { // nsIObserver:
             observe: function app_observe(subject, topic, data) {
-                if (topic == "quit-application")
-                    prefBranch.removeObserver("calendar.", g_logPrefObserver);
+                if (topic == "quit-application") {
+                    prefBranch.removeObserver("calendar.", initLogging.mLogPrefObserver);
+                }
             }
         };
         observerService.addObserver(appObserver, "quit-application", false);
     }
 }
 
-function log(msg, context, bForce)
-{
+function log(msg, context, bForce) {
     if (bForce || LOG_LEVEL > 0) {
         var ret = "";
-        if (context)
+        if (context) {
             ret += ("[" + context + "]");
-        if (ret.length > 0)
+        }
+        if (ret.length > 0) {
             ret += "\n";
+        }
         ret += msg;
         var now = getTime();
-        if (now && g_logTimezone)
-            now = now.getInTimezone(g_logTimezone);
+        if (now && initLogging.mLogTimezone) {
+            now = now.getInTimezone(initLogging.mLogTimezone);
+        }
         var str = ("### WCAP log entry: " + now + "\n" + ret);
         getConsoleService().logStringMessage(str);
         str = ("\n" + str + "\n");
         dump(str);
-        if (g_logFilestream) {
+        if (initLogging.mLogFilestream) {
             try {
                 // xxx todo?
                 // assuming ANSI chars here, for logging sufficient:
-                g_logFilestream.write(str, str.length);
-            }
-            catch (exc) { // catching any io errors here:
+                initLogging.mLogFilestream.write(str, str.length);
+            } catch (exc) { // catching any io errors here:
                 var err = ("error writing log file: " + errorToString(exc));
                 Components.utils.reportError(exc);
                 getConsoleService().logStringMessage(err);
@@ -152,13 +145,12 @@ function log(msg, context, bForce)
             }
         }
         return ret;
-    }
-    else
+    } else {
         return msg;
+    }
 }
 
-function logWarning(err, context)
-{
+function logWarning(err, context) {
     var msg = errorToString(err);
     var scriptError = Components.classes["@mozilla.org/scripterror;1"]
                                 .createInstance(Components.interfaces.nsIScriptError);
@@ -170,71 +162,53 @@ function logWarning(err, context)
     return msg;
 }
 
-function logError(err, context)
-{
+function logError(err, context) {
     var msg = errorToString(err);
-    Components.utils.reportError(
-        log("error: " + msg + "\nstack:\n" + STACK(), context, true));
+    Components.utils.reportError(log("error: " + msg + "\nstack:\n" + STACK(), context, true));
     debugger;
     return msg;
 }
 
 // late-inited service accessors:
 
-var g_consoleService = null;
 function getConsoleService() {
-    if (!g_consoleService) {
-        g_consoleService =
-            Components.classes["@mozilla.org/consoleservice;1"]
-                      .getService(Components.interfaces.nsIConsoleService);
+    if (!getConsoleService.m_obj) {
+        getConsoleService.m_obj = Components.classes["@mozilla.org/consoleservice;1"]
+                                            .getService(Components.interfaces.nsIConsoleService);
     }
-    return g_consoleService;
+    return getConsoleService.m_obj;
 }
 
-var g_windowWatcher = null;
 function getWindowWatcher() {
-    if (!g_windowWatcher) {
-        g_windowWatcher =
-            Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                      .getService(Components.interfaces.nsIWindowWatcher);
+    if (!getWindowWatcher.m_obj) {
+        getWindowWatcher.m_obj = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                           .getService(Components.interfaces.nsIWindowWatcher);
     }
-    return g_windowWatcher;
+    return getWindowWatcher.m_obj;
 }
 
-var g_fbService = null;
 function getFreeBusyService() {
-    if (!g_fbService) {
-        g_fbService =
-            Components.classes["@mozilla.org/calendar/freebusy-service;1"]
-                      .getService(Components.interfaces.calIFreeBusyService);
+    if (!getFreeBusyService.m_obj) {
+        getFreeBusyService.m_obj = Components.classes["@mozilla.org/calendar/freebusy-service;1"]
+                                             .getService(Components.interfaces.calIFreeBusyService);
     }
-    return g_fbService;
+    return getFreeBusyService.m_obj;
 }
 
-var g_calendarSearchService = null;
 function getCalendarSearchService() {
-    if (!g_calendarSearchService) {
-        g_calendarSearchService =
-            Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
-                      .getService(Components.interfaces.calICalendarSearchService);
+    if (!getCalendarSearchService.m_obj) {
+        getCalendarSearchService.m_obj = Components.classes["@mozilla.org/calendar/calendarsearch-service;1"]
+                                                   .getService(Components.interfaces.calICalendarSearchService);
     }
-    return g_calendarSearchService;
+    return getCalendarSearchService.m_obj;
 }
 
-var g_domParser = null;
 function getDomParser() {
-    if (!g_domParser) {
-        g_domParser =
-            Components.classes["@mozilla.org/xmlextras/domparser;1"]
-                      .getService(Components.interfaces.nsIDOMParser);
+    if (!getDomParser.m_obj) {
+        getDomParser.m_obj = Components.classes["@mozilla.org/xmlextras/domparser;1"]
+                                       .getService(Components.interfaces.nsIDOMParser);
     }
-    return g_domParser;
-}
-
-function subClass(subCtor, baseCtor) {
-    subCtor.prototype = new baseCtor();
-    subCtor.prototype.constructor = subCtor;
-    subCtor.prototype.superClass = baseCtor;
+    return getDomParser.m_obj;
 }
 
 function isParent(item) {
@@ -244,37 +218,34 @@ function isParent(item) {
     return (!item.recurrenceId);
 }
 
-function forEachIcalComponent(icalRootComp, componentType, func, maxResults)
-{
+function forEachIcalComponent(icalRootComp, componentType, func, maxResults) {
     var itemCount = 0;
     // libical returns the vcalendar component if there is just
     // one vcalendar. If there are multiple vcalendars, it returns
     // an xroot component, with those vcalendar childs. We need to
     // handle both.
-    for ( var calComp = (icalRootComp.componentType == "VCALENDAR"
-                         ? icalRootComp
-                         : icalRootComp.getFirstSubcomponent("VCALENDAR"));
-          calComp != null && (!maxResults || itemCount < maxResults);
-          calComp = icalRootComp.getNextSubcomponent("VCALENDAR") )
-    {
-        for ( var subComp = calComp.getFirstSubcomponent(componentType);
-              subComp != null && (!maxResults || itemCount < maxResults);
-              subComp = calComp.getNextSubcomponent(componentType) )
-        {
-            func( subComp );
+    for (var calComp = (icalRootComp.componentType == "VCALENDAR"
+                        ? icalRootComp : icalRootComp.getFirstSubcomponent("VCALENDAR"));
+         calComp != null && (!maxResults || itemCount < maxResults);
+         calComp = icalRootComp.getNextSubcomponent("VCALENDAR")) {
+
+        for (var subComp = calComp.getFirstSubcomponent(componentType);
+             subComp != null && (!maxResults || itemCount < maxResults);
+             subComp = calComp.getNextSubcomponent(componentType)) {
+
+            func(subComp);
             ++itemCount;
         }
     }
 }
 
-function filterXmlNodes(name, rootNode)
-{
+function filterXmlNodes(name, rootNode) {
     var ret = [];
     if (rootNode) {
         var nodeList = rootNode.getElementsByTagName(name);
         for (var i = 0; i < nodeList.length; ++i) {
             var node = nodeList.item(i);
-            ret.push( trimString(node.textContent) );
+            ret.push(trimString(node.textContent));
         }
     }
     return ret;
@@ -285,28 +256,31 @@ function trimString(str) {
 }
 
 function getTime() {
-    if (g_bShutdown)
+    if (g_bShutdown) {
         return null;
+    }
     var ret = new CalDateTime();
     ret.jsDate = new Date();
     return ret;
 }
 
 function getIcalUTC(dt) {
-    if (!dt || !dt.isValid)
+    if (!dt || !dt.isValid) {
         return "0";
-    else {
+    } else {
         var dtz = dt.timezone;
-        if (dtz.isUTC || dtz.isFloating)
+        if (dtz.isUTC || dtz.isFloating) {
             return dt.icalString;
-        else
+        } else {
             return dt.getInTimezone(UTC()).icalString;
+        }
     }
 }
 
 function getDatetimeFromIcalString(val) {
-    if (!val || val.length == 0 || val == "0")
+    if (!val || val.length == 0 || val == "0") {
         return null;
+    }
     // assuming timezone is known:
     var dt = new CalDateTime();
     dt.icalString = val;
@@ -314,8 +288,9 @@ function getDatetimeFromIcalString(val) {
 }
 
 function getDatetimeFromIcalProp(prop) {
-    if (!prop)
+    if (!prop) {
         return null;
+    }
     return getDatetimeFromIcalString(prop.valueAsIcalString);
 }
 

@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -138,8 +137,7 @@ const g_nsNetErrorCodes = [
     "The specified socket type could not be created."
     ];
 
-function netErrorToString(rc)
-{
+function netErrorToString(rc) {
     if (!isNaN(rc) && getErrorModule(rc) == NS_ERROR_MODULE_NETWORK) {
         var i = 0;
         while (i < g_nsNetErrorCodes.length) {
@@ -150,8 +148,7 @@ function netErrorToString(rc)
             i += 2;
         }
     }
-    throw new Components.Exception("No known network error code: " + rc.toString(0x10),
-                                   NS_ERROR_INVALID_ARG);
+    throw new Components.Exception("No known network error code: " + rc.toString(0x10), NS_ERROR_INVALID_ARG);
 }
 
 
@@ -162,7 +159,7 @@ function netErrorToString(rc)
 const g_wcapErrorCodes = [
     /* -1 */ NS_OK, "Logout successful.",
     /*  0 */ NS_OK, "Command successful.",
-    /*  1 */ calIWcapErrors.WCAP_LOGIN_FAILED, "Login failed. Invalid session ID.",
+    /*  1 */ calIWcapErrors.WCAP_LOGIN_FAILED, calGetString("wcap", "loginFailed.text"),
     /*  2 */ calIWcapErrors.WCAP_LOGIN_OK_DEFAULT_CALENDAR_NOT_FOUND, "login.wcap was successful, but the default calendar for this user was not found. A new default calendar set to the userid was created.",
     /*  3 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
     /*  4 */ NS_ERROR_INVALID_ARG, "No WCAP error code.",
@@ -189,7 +186,7 @@ const g_wcapErrorCodes = [
     /* 25 */ calIWcapErrors.WCAP_CREATECALENDAR_ALREADY_EXISTS_FAILED, "The command createcalendar.wcap failed. A calendar with that name already exists in the database.",
     /* 26 */ calIWcapErrors.WCAP_SET_USERPREFS_FAILED, "WCAP_SET_USERPREFS_FAILED",
     /* 27 */ calIWcapErrors.WCAP_CHANGE_PASSWORD_FAILED, "WCAP_CHANGE_PASSWORD_FAILED",
-    /* 28 */ calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR, "Command failed. The user is denied access to a calendar.",
+    /* 28 */ calIWcapErrors.WCAP_ACCESS_DENIED_TO_CALENDAR, calGetString("wcap", "accessDenied.text"),
     /* 29 */ calIWcapErrors.WCAP_CALENDAR_DOES_NOT_EXIST, "Command failed. The requested calendar does not exist in the database.",
     /* 30 */ calIWcapErrors.WCAP_ILLEGAL_CALID_NAME, "createcalendar.wcap failed. Invalid calid passed in.",
     /* 31 */ calIWcapErrors.WCAP_CANNOT_MODIFY_LINKED_EVENTS, "storeevents.wcap failed. The event to modify was a linked event.",
@@ -280,70 +277,64 @@ const g_wcapErrorCodes = [
     /* 11008 */ calIWcapErrors.WCAP_CDWP_ERR_CHECKVERSION_FAILED, "DWP version check failed."
     ];
 
-function wcapErrorToString(rc)
-{
+function wcapErrorToString(rc) {
     if (isNaN(rc)) {
-        throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10),
-                                       NS_ERROR_INVALID_ARG);
+        throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10), NS_ERROR_INVALID_ARG);
     }
-    if (rc == calIWcapErrors.WCAP_NO_ERRNO)
+    if (rc == calIWcapErrors.WCAP_NO_ERRNO) {
         return "No WCAP errno (missing X-NSCP-WCAP-ERRNO).";
-    
+    }
+
     var index = (rc - calIWcapErrors.WCAP_ERROR_BASE + 1);
-    if (index >= 1 && index <= 108 &&
-        g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG)
-    {
+    if (index >= 1 && index <= 108 && g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG) {
         return g_wcapErrorCodes[(index * 2) + 1];
     }
-    throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10),
-                                   NS_ERROR_INVALID_ARG);
+    throw new Components.Exception("No known WCAP error code: " + rc.toString(0x10), NS_ERROR_INVALID_ARG);
 }
 
-function getWcapErrorCode(errno)
-{
-    if (errno == -5000) // semantically same error
+function getWcapErrorCode(errno) {
+    if (errno == -5000) { // semantically same error
         errno = 59;
+    }
     var index = -1;
-    if (errno >= -1 && errno <= 81)
+    if (errno >= -1 && errno <= 81) {
         index = (errno + 1);
-    else if (errno >= 11000 && errno <= 11008)
+    } else if (errno >= 11000 && errno <= 11008) {
         index = (errno - 11000 + 100 + 1);
-    if (index >= 0 &&
-        g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG)
-    {
+    }
+    if (index >= 0 && g_wcapErrorCodes[index * 2] != NS_ERROR_INVALID_ARG) {
         return g_wcapErrorCodes[index * 2];
     }
-    throw new Components.Exception("No known WCAP error no: " + errno,
-                                   NS_ERROR_INVALID_ARG);
+    throw new Components.Exception("No known WCAP error no: " + errno, NS_ERROR_INVALID_ARG);
 }
 
-function getWcapXmlErrno(xml)
-{
+function getWcapXmlErrno(xml) {
     var elem = xml.getElementsByTagName("X-NSCP-WCAP-ERRNO");
     if (elem) {
         elem = elem.item(0);
-        if (elem)
+        if (elem) {
             return parseInt(elem.textContent);
+        }
     }
     // some commands just respond with an empty calendar, no errno. WTF.
     // assume success:
     return undefined;
 }
 
-function getWcapIcalErrno(icalRootComp)
-{
+function getWcapIcalErrno(icalRootComp) {
     var prop = icalRootComp.getFirstProperty("X-NSCP-WCAP-ERRNO");
-    if (prop)
+    if (prop) {
         return parseInt(prop.value);
+    }
     // some commands just respond with an empty calendar, no errno. WTF.
     // assume success:
     return undefined;
 }
 
-function checkWcapErrno(errno, expectedErrno)
-{
-    if (expectedErrno === undefined)
+function checkWcapErrno(errno, expectedErrno) {
+    if (expectedErrno === undefined) {
         expectedErrno = 0; // i.e. Command successful.
+    }
     if (errno !== undefined && errno != expectedErrno) {
         var rc = getWcapErrorCode(errno);
         throw new Components.Exception(wcapErrorToString(rc), rc);
@@ -358,69 +349,72 @@ function checkWcapIcalErrno(icalRootComp, expectedErrno) {
     checkWcapErrno(getWcapIcalErrno(icalRootComp), expectedErrno);
 }
 
-function errorToString(err)
-{
+function errorToString(err) {
     if (err) {
-        if (typeof(err) == "string")
+        if (typeof(err) == "string") {
             return err;
-        if (err instanceof Error)
+        }
+        if (err instanceof Error) {
             return err.message;
-        if (err instanceof nsIException)
+        }
+        if (err instanceof nsIException) {
             return err.toString(); // xxx todo: or just message?
-        if (isNaN(err))
+        }
+        if (isNaN(err)) {
             return ("[" + err + "] unknown error.");
+        }
     }
     // numeric codes:
     switch (err) {
-    case undefined:
-    case null:
-    case NS_OK:
-        return "NS_OK";
-    case NS_ERROR_INVALID_ARG:
-        return "NS_ERROR_INVALID_ARG";
-    case Components.results.NS_ERROR_NO_INTERFACE:
-        return "NS_ERROR_NO_INTERFACE";
-    case Components.results.NS_ERROR_NOT_IMPLEMENTED:
-        return "NS_ERROR_NOT_IMPLEMENTED";
-    case Components.results.NS_ERROR_NOT_AVAILABLE:
-        return "NS_ERROR_NOT_AVAILABLE";
-    case Components.results.NS_ERROR_FAILURE:
-        return "NS_ERROR_FAILURE";
-    case Components.results.NS_ERROR_BASE:
-        return "NS_ERROR_BASE";
-    case Components.results.NS_ERROR_NOT_INITIALIZED:
-        return "NS_ERROR_NOT_INITIALIZED";
-    case Components.results.NS_ERROR_ALREADY_INITIALIZED:
-        return "NS_ERROR_ALREADY_INITIALIZED";
-    case Components.results.NS_ERROR_NULL_POINTER:
-        return "NS_ERROR_NULL_POINTER";
-    case Components.results.NS_ERROR_ABORT:
-        return "NS_ERROR_ABORT";
-    case Components.results.NS_ERROR_UNEXPECTED:
-        return "NS_ERROR_UNEXPECTED";
-    case Components.results.NS_ERROR_OUT_OF_MEMORY:
-        return "NS_ERROR_OUT_OF_MEMORY";
-    case Components.results.NS_ERROR_ILLEGAL_VALUE:
-        return "NS_ERROR_ILLEGAL_VALUE";
-    default:
-        // probe for WCAP error:
-        try {
-            return wcapErrorToString(err);
-        }
-        catch (exc) { // probe for netwerk error:
+        case undefined:
+        case null:
+        case NS_OK:
+            return "NS_OK";
+        case NS_ERROR_INVALID_ARG:
+            return "NS_ERROR_INVALID_ARG";
+        case Components.results.NS_ERROR_NO_INTERFACE:
+            return "NS_ERROR_NO_INTERFACE";
+        case Components.results.NS_ERROR_NOT_IMPLEMENTED:
+            return "NS_ERROR_NOT_IMPLEMENTED";
+        case Components.results.NS_ERROR_NOT_AVAILABLE:
+            return "NS_ERROR_NOT_AVAILABLE";
+        case Components.results.NS_ERROR_FAILURE:
+            return "NS_ERROR_FAILURE";
+        case Components.results.NS_ERROR_BASE:
+            return "NS_ERROR_BASE";
+        case Components.results.NS_ERROR_NOT_INITIALIZED:
+            return "NS_ERROR_NOT_INITIALIZED";
+        case Components.results.NS_ERROR_ALREADY_INITIALIZED:
+            return "NS_ERROR_ALREADY_INITIALIZED";
+        case Components.results.NS_ERROR_NULL_POINTER:
+            return "NS_ERROR_NULL_POINTER";
+        case Components.results.NS_ERROR_ABORT:
+            return "NS_ERROR_ABORT";
+        case Components.results.NS_ERROR_UNEXPECTED:
+            return "NS_ERROR_UNEXPECTED";
+        case Components.results.NS_ERROR_OUT_OF_MEMORY:
+            return "NS_ERROR_OUT_OF_MEMORY";
+        case Components.results.NS_ERROR_ILLEGAL_VALUE:
+            return "NS_ERROR_ILLEGAL_VALUE";
+        default:
+            // probe for WCAP error:
             try {
-                return netErrorToString(err);
-            }
-            catch (exc) {
-                if (err & calIErrors.ERROR_BASE) {
-                    for (var err_ in calIErrors) {
-                        if (calIErrors[err_] == err)
-                            return err_;
+                return wcapErrorToString(err);
+            } catch (exc) { // probe for netwerk error:
+                try {
+                    return netErrorToString(err);
+                } catch (exc) {
+                    if (err & calIErrors.ERROR_BASE) {
+                        for (var err_ in calIErrors) {
+                            if (calIErrors[err_] == err) {
+                                return err_;
+                            }
+                        }
                     }
+                    return ("[0x" + err.toString(0x10) + "] unknown error.");
                 }
-                return ("[0x" + err.toString(0x10) + "] unknown error.");
             }
-        }
+            break;
     }
 }
 
