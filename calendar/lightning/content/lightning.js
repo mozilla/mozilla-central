@@ -42,6 +42,9 @@
 pref("calendar.date.format", 0);
 pref("calendar.event.defaultlength", 60);
 
+// default transparency of allday items; could be switched to e.g. "OPAQUE":
+pref("calendar.allday.defaultTransparency", "TRANSPARENT");
+
 // alarm settings
 pref("calendar.alarms.show", true);
 pref("calendar.alarms.showmissed", true);

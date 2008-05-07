@@ -66,6 +66,9 @@ pref("calendar.view.visiblehours", 9);
 pref("calendar.weeks.inview", 4);
 pref("calendar.previousweeks.inview", 0);
 
+// default transparency of allday items; could be switched to e.g. "OPAQUE":
+pref("calendar.allday.defaultTransparency", "TRANSPARENT");
+
 // pref("startup.homepage_override_url","chrome://browser-region/locale/region.properties");
 pref("general.startup.calendar", true);
 

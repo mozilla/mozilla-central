@@ -1002,10 +1002,10 @@ function openNewCardDialog() {
         "chrome,resizable=no,titlebar,modal");
 }
 
-// automatically select "show time as free" if this
+// automatically select pref calendar.allday.defaultTransparency if this
 // event is said to be all-day.
 function setShowTimeAs(allDay) {
-    gShowTimeAs = allDay ? "TRANSPARENT" : "OPAQUE";
+    gShowTimeAs = (allDay ? getPrefSafe("calendar.allday.defaultTransparency", "TRANSPARENT") : "OPAQUE");
     updateShowTimeAs();
 }
 
