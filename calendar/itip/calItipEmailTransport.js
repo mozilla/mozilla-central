@@ -22,6 +22,7 @@
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,6 +37,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+
+function convertFromUnicode(aCharset, aSrc) {
+    var unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                     .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+    unicodeConverter.charset = aCharset;
+    return unicodeConverter.ConvertFromUnicode(aSrc);
+}
 
 /**
  * Constructor of calItipEmailTransport object
@@ -149,7 +157,7 @@ calItipEmailTransport.prototype = {
     sendItems: function cietSI(aCount, aRecipients, aSubject, aBody, aItem) {
         LOG("sendItems: Sending Email...");
         if (this.mHasXpcomMail) {
-            this._sendXpcomMail(aCount, aRecipients, aSubject, aBody, aItem);
+            this._sendXpcomMail(aRecipients, aSubject, aBody, aItem);
         } else {
             // Sunbird case: Call user's default mailer on system.
             throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
@@ -200,87 +208,82 @@ calItipEmailTransport.prototype = {
         }
     },
 
-    _sendXpcomMail: function cietSXM(aCount, aToList, aSubject, aBody, aItem) {
-        // Save calItipItem to a temporary file.
-        LOG("sendXpcomMail: Creating temp file for attachment.");
-        var msgAttachment = Components.classes["@mozilla.org/messengercompose/attachment;1"].
-                            createInstance(Components.interfaces.nsIMsgAttachment);
-        msgAttachment.url = this._createTempIcsFile(aItem);
-        if (!msgAttachment.url) {
-            LOG("sendXpcomMail: No writeable path in profile!");
-            // XXX Is there an "out of disk space" error?
-            throw Components.results.NS_ERROR_FAILURE;
-        }
-
-        msgAttachment.name =  "calendar.ics";
-        msgAttachment.contentType = "text/calendar";
-        msgAttachment.contentTypeParam = "method=" + aItem.responseMethod;
-        // Destroy the attachment after sending
-        msgAttachment.temporary = true;
-
-        // compose fields for message
-        var composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"].
-                            createInstance(Components.interfaces.nsIMsgCompFields);
-        composeFields.useMultipartAlternative = true;
-        composeFields.characterSet = "UTF-8";
-        // TODO: xxx make this use the currently selected mail account, if
-        // possible, and default to the default account if the selection
-        // is unclear.
-        var toList = "";
-        for each (var recipient in aToList) {
-            // Strip leading "mailto:" if it exists.
-            var rId = recipient.id.replace(/^mailto:/i, "");
-
-            // Prevent trailing commas.
-            if (toList.length > 0) {
-                toList += ",";
-            }
-
-            // Add this recipient id to the list.
-            toList += rId;
-        }
-        composeFields.to = toList;
-        composeFields.from = this.mDefaultIdentity.email;
-        composeFields.replyTo = this.mDefaultIdentity.replyTo;
-        composeFields.subject = aSubject;
-        composeFields.body = aBody;
-        composeFields.addAttachment(msgAttachment);
-
-        // Message paramaters
-        var composeParams = Components.classes["@mozilla.org/messengercompose/composeparams;1"].
-                            createInstance(Components.interfaces.nsIMsgComposeParams);
-        composeParams.composeFields = composeFields;
-        // TODO: xxx: Make this a pref or read the default pref
-        composeParams.format = Components.interfaces.nsIMsgCompFormat.PlainText;
-        composeParams.type = Components.interfaces.nsIMsgCompType.New;
-
-        var composeService = Components.classes["@mozilla.org/messengercompose;1"].
-                             getService(Components.interfaces.nsIMsgComposeService);
+    _sendXpcomMail: function cietSXM(aToList, aSubject, aBody, aItem) {
+        var compatMode = 0;
         switch (aItem.autoResponse) {
-            case (Components.interfaces.calIItipItem.USER):
-                LOG("sendXpcomMail: Found USER autoResponse type.");
-
-                // Open a compose window
-                var url = "chrome://messenger/content/messengercompose/messengercompose.xul"
-                composeService.OpenComposeWindowWithParams(url, composeParams);
-                break;
-            case (Components.interfaces.calIItipItem.AUTO):
+            case (Components.interfaces.calIItipItem.USER): {
+                LOG("sendXpcomMail: Found USER autoResponse type.\n" +
+                    "This type is currently unsupported, the compose API will always enter a text/plain\n" +
+                    "or text/html part as first part of the message.\n" +
+                    "This will disable OL (up to 2003) to consume the mail as an iTIP invitation showing\n" +
+                    "the usual calendar buttons.");
+                // To somehow have a last resort before sending spam, the user can choose to send the mail.
+                // XXX todo: We should consider a more sophisticated dialiog,
+                //           so the user could choose the account for sending.
+                var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                              .getService(Components.interfaces.nsIPromptService);
+                var prefCompatMode = getPrefSafe("calendar.itip.compatSendMode", 0);
+                var inoutCheck = { value: (prefCompatMode == 1) };
+                if (!promptService.confirmCheck(null,
+                                                calGetString("lightning", "imipSendMailTitle", null, "lightning"),
+                                                calGetString("lightning", "imipSendMail", null, "lightning"),
+                                                calGetString("lightning", "imipSendMailOutlook2000CompatMode", null, "lightning"),
+                                                inoutCheck)) {
+                    break;
+                } // else go on with auto sending for now
+                compatMode = (inoutCheck.value ? 1 : 0);
+                if (compatMode != prefCompatMode) {
+                    setPref("calendar.itip.compatSendMode", "INT", compatMode);
+                }
+            }
+            case (Components.interfaces.calIItipItem.AUTO): {
                 LOG("sendXpcomMail: Found AUTO autoResponse type.");
+                var toList = "";
+                for each (var recipient in aToList) {
+                    // Strip leading "mailto:" if it exists.
+                    var rId = recipient.id.replace(/^mailto:/i, "");
+                    // Prevent trailing commas.
+                    if (toList.length > 0) {
+                        toList += ", ";
+                    }
+                    // Add this recipient id to the list.
+                    toList += rId;
+                }
+                var mailFile = this._createTempImipFile(compatMode, toList, aSubject, aBody, aItem);
+                if (mailFile) {
+#ifdef MOZILLA_1_8_BRANCH
+                    var mailFileURL = getIOService().newFileURI(mailFile).spec;
+                    mailFile = Components.classes["@mozilla.org/filespec;1"]
+                                         .createInstance(Components.interfaces.nsIFileSpec);
+                    mailFile.URLString = mailFileURL;
+#endif
+                    // compose fields for message: from/to etc need to be specified both here and in the file
+                    var composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
+                                                  .createInstance(Components.interfaces.nsIMsgCompFields);
+                    composeFields.characterSet = "UTF-8";
+                    composeFields.to = toList;
+                    composeFields.from = this.mDefaultIdentity.email;
+                    composeFields.replyTo = this.mDefaultIdentity.replyTo;
 
-                var ww = Components.classes["@mozilla.org/embedcomp/window-watcher;1"].
-                         getService(Components.interfaces.nsIWindowWatcher);
-                var win = ww.activeWindow;
-                var msgCompose = Components.classes["@mozilla.org/messengercompose/compose;1"].
-                                 createInstance(Components.interfaces.nsIMsgCompose);
-                msgCompose.Initialize(win, composeParams);
-                // Fourth param is message window, fifth param is progress.
-                // TODO: xxx decide on whether or not we want progress window
-                msgCompose.SendMsg(Components.interfaces.nsIMsgCompDeliverMode.Now,
-                                   this.mDefaultIdentity,
-                                   this.mDefaultAccount.key,
-                                   null,
-                                   null);
+                    // xxx todo: add send/progress UI, maybe recycle
+                    //           "@mozilla.org/messengercompose/composesendlistener;1"
+                    //           and/or "chrome://messenger/content/messengercompose/sendProgress.xul"
+                    var msgSend = Components.classes["@mozilla.org/messengercompose/send;1"]
+                                            .createInstance(Components.interfaces.nsIMsgSend);
+                    msgSend.sendMessageFile(this.mDefaultIdentity,
+                                            this.mDefaultAccount.key,
+                                            composeFields,
+                                            mailFile,
+                                            true  /* deleteSendFileOnCompletion */,
+                                            false /* digest_p */,
+                                            Components.interfaces.nsIMsgSend.nsMsgDeliverNow,
+                                            null  /* nsIMsgDBHdr msgToReplace */,
+                                            null  /* nsIMsgSendListener aListener */,
+                                            null  /* nsIMsgStatusFeedback aStatusFeedback */,
+                                            ""    /* password */);
+                }
                 break;
+            }
             case (Components.interfaces.calIItipItem.NONE):
                 LOG("sendXpcomMail: Found NONE autoResponse type.");
 
@@ -294,35 +297,93 @@ calItipEmailTransport.prototype = {
         }
     },
 
-    _createTempIcsFile: function cietCTIF(aItem) {
-        var path;
-        var itemList = aItem.getItemList({ });
-        // This is a workaround until bug 353369 is fixed.
-        // Without it, we cannot roundtrip the METHOD property, so we must
-        // re-add it to the ICS data as we serialize it.
-        //
-        // Look at the implicit assumption in the code at:
-        // http://lxr.mozilla.org/seamonkey/source/calendar/base/src/calEvent.js#162
-        // and it's easy to see why.
-        itemList[0].setProperty("METHOD", aItem.responseMethod);
-        var calText = "";
-        for (var i = 0; i < itemList.length; i++) {
-            calText += itemList[i].icalString;
-        }
-
-        LOG("ICS to be emailed: " + calText);
-
+    _createTempImipFile: function cietCTIF(compatMode, aToList, aSubject, aBody, aItem) {
         try {
-            var dirUtils = Components.classes["@mozilla.org/file/directory_service;1"].
-                           createInstance(Components.interfaces.nsIProperties);
+            function encodeUTF8(text) {
+                return convertFromUnicode("UTF-8", text).replace(/(\r\n)|\n/g, "\r\n");
+            }
+            function encodeMimeHeader(header) {
+                var mimeConverter = Components.classes["@mozilla.org/messenger/mimeconverter;1"]
+                                              .createInstance(Components.interfaces.nsIMimeConverter);
+                return mimeConverter.encodeMimePartIIStr(encodeUTF8(header), false, "UTF-8", header.indexOf(":") + 2, 72);
+            }
+
+            var itemList = aItem.getItemList({});
+            var calText = "";
+            for (var i = 0; i < itemList.length; i++) {
+                var item = itemList[i].clone();
+                // This is a workaround until bug 353369 is fixed.
+                // Without it, we cannot roundtrip the METHOD property, so we must
+                // re-add it to the ICS data as we serialize it.
+                //
+                // Look at the implicit assumption in the code at:
+                // http://lxr.mozilla.org/seamonkey/source/calendar/base/src/calEvent.js#162
+                // and it's easy to see why.
+                item.setProperty("METHOD", aItem.responseMethod);
+                // xxx todo: should we consider to include exceptional/overridden items?
+                calText += item.icalString;
+            }
+            var utf8CalText = encodeUTF8(calText);
+
+            // Home-grown mail composition; I'd love to use nsIMimeEmitter, but it's not clear to me whether
+            // it can cope with nested attachments,
+            // like multipart/alternative with enclosed text/calendar and text/plain.
+            var mailText = ("MIME-version: 1.0\r\n" +
+                            (this.mDefaultIdentity.replyTo
+                             ? "Return-path: " + this.mDefaultIdentity.replyTo + "\r\n" : "") +
+                            "From: " + this.mDefaultIdentity.email + "\r\n" +
+                            "To: " + aToList + "\r\n" +
+                            encodeMimeHeader("Subject: " + aSubject) + "\r\n");
+            switch (compatMode) {
+                case 1:
+                    mailText += ("Content-class: urn:content-classes:calendarmessage\r\n" +
+                                 "Content-type: text/calendar; method=" + aItem.responseMethod + "; charset=UTF-8\r\n" +
+                                 "Content-transfer-encoding: 8BIT\r\n" +
+                                 "\r\n\r\n" +
+                                 utf8CalText +
+                                 "\r\n");
+                    break;
+                default:
+                    mailText += ("Content-type: multipart/mixed; boundary=\"Boundary_(ID_qyG4ZdjoAsiZ+Jo19dCbWQ)\"\r\n" +
+                                 "\r\n\r\n" +
+                                 "--Boundary_(ID_qyG4ZdjoAsiZ+Jo19dCbWQ)\r\n" +
+                                 "Content-type: multipart/alternative;\r\n" +
+                                 " boundary=\"Boundary_(ID_ryU4ZdJoASiZ+Jo21dCbwA)\"\r\n" +
+                                 "\r\n\r\n" +
+                                 "--Boundary_(ID_ryU4ZdJoASiZ+Jo21dCbwA)\r\n" +
+                                 "Content-type: text/plain; charset=UTF-8\r\n" +
+                                 "Content-transfer-encoding: 8BIT\r\n" +
+                                 "\r\n" +
+                                 encodeUTF8(aBody) +
+                                 "\r\n\r\n" +
+                                 "--Boundary_(ID_ryU4ZdJoASiZ+Jo21dCbwA)\r\n" +
+                                 "Content-type: text/calendar; method=" + aItem.responseMethod + "; charset=UTF-8\r\n" +
+                                 "Content-transfer-encoding: 8BIT\r\n" +
+                                 "\r\n" +
+                                 utf8CalText +
+                                 "\r\n\r\n" +
+                                 "--Boundary_(ID_ryU4ZdJoASiZ+Jo21dCbwA)--\r\n" +
+                                 "\r\n" +
+                                 "--Boundary_(ID_qyG4ZdjoAsiZ+Jo19dCbWQ)\r\n" +
+                                 "Content-type: application/ics; name=invite.ics\r\n" +
+                                 "Content-transfer-encoding: 8BIT\r\n" +
+                                 "Content-disposition: attachment; filename=invite.ics\r\n" +
+                                 "\r\n" +
+                                 utf8CalText +
+                                 "\r\n\r\n" +
+                                 "--Boundary_(ID_qyG4ZdjoAsiZ+Jo19dCbWQ)--\r\n");
+                    break;
+            }
+            LOG("mail text:\n" + mailText);
+
+            var dirUtils = Components.classes["@mozilla.org/file/directory_service;1"]
+                                     .createInstance(Components.interfaces.nsIProperties);
             var tempFile = dirUtils.get("TmpD", Components.interfaces.nsIFile);
             tempFile.append("itipTemp");
             tempFile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0600);
 
-            var outputStream = Components.classes["@mozilla.org/network/file-output-stream;1"].
-                               createInstance(Components.interfaces.nsIFileOutputStream);
-            var utf8CalText = this._convertFromUnicode("UTF-8", calText);
-
+            var outputStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                                         .createInstance(Components.interfaces.nsIFileOutputStream);
             // Let's write the file - constants from file-utils.js
             const MODE_WRONLY   = 0x02;
             const MODE_CREATE   = 0x08;
@@ -330,25 +391,15 @@ calItipEmailTransport.prototype = {
             outputStream.init(tempFile,
                               MODE_WRONLY | MODE_CREATE | MODE_TRUNCATE,
                               0600, 0);
-            outputStream.write(utf8CalText, utf8CalText.length);
+            outputStream.write(mailText, mailText.length);
             outputStream.close();
 
-            var ioService = Components.classes["@mozilla.org/network/io-service;1"].
-                            getService(Components.interfaces.nsIIOService);
-            path = ioService.newFileURI(tempFile).spec;
-        } catch (ex) {
-            LOG("createTempItipFile failed! " + ex);
-            path = null;
+            LOG("_createTempImipFile path: " + tempFile.path);
+            return tempFile;
+        } catch (exc) {
+            ASSERT(false, exc);
+            return null;
         }
-        LOG("createTempItipFile path: " + path);
-        return path;
-    },
-
-    _convertFromUnicode: function cietCFU(aCharset, aSrc) {
-        var unicodeConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
-                               createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-        unicodeConverter.charset = aCharset;
-        return unicodeConverter.ConvertFromUnicode(aSrc);
     }
 };
 

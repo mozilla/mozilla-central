@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Stefan Sitter <ssitter@googlemail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -68,6 +69,11 @@ pref("calendar.alarms.todoalarmunit", "minutes");
 pref("calendar.autorefresh.enabled", true);
 pref("calendar.autorefresh.timeout", 30);
 
+// iTIP compatibility send mode
+// 0 -- Outlook 2003 and following with text/plain and application/ics (default)
+// 1 -- all Outlook, but no text/plain nor application/ics
+// We may extend the compat mode if necessary.
+pref("calendar.itip.compatSendMode", 0);
 
 // 0=Sunday, 1=Monday, 2=Tuesday, etc.  One day we might want to move this to
 // a locale specific file.
