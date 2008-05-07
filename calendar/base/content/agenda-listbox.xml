@@ -22,6 +22,7 @@
    -
    - Contributor(s):
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -177,7 +178,7 @@
             var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
             var duration = "";
-            var start =  calGetStartDate(item).getInTimezone(calendarDefaultTimezone());
+            var start =  item[calGetStartDateProp(item)].getInTimezone(calendarDefaultTimezone());
             if (longFormat) {
                 duration = dateFormatter.formatDateTime(start);
             } else {

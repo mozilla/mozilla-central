@@ -389,7 +389,7 @@ function deleteItem(aItem, aMoveSelection) {
 agendaListbox.isSameEvent =
 function isSameEvent(aItem, aCompItem) {
     return ((aItem.id == aCompItem.id) &&
-            (calGetStartDate(aItem).compare(calGetStartDate(aCompItem)) == 0));
+            (aItem[calGetStartDateProp(aItem)].compare(aCompItem[calGetStartDateProp(aCompItem)]) == 0));
 }
 
 agendaListbox.isEventSelected =

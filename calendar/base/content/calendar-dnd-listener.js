@@ -42,20 +42,7 @@ var itemConversion = {
         aItem.calendar = getSelectedCalendar();
         aItem.title = aMessage.mime2DecodedSubject;
 
-        // The time for the event should default to the next full hour
-        if (isEvent(aItem)) {
-            aItem.startDate = now();
-            aItem.startDate.second = 0;
-            aItem.startDate.minute = 0;
-            aItem.startDate.hour++;
-            aItem.endDate = aItem.startDate.clone();
-            aItem.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
-        } else if (isToDo(aItem)) {
-            aItem.entryDate = now();
-            aItem.entryDate.second = 0;
-            aItem.entryDate.minute = 0;
-            aItem.entryDate.hour++;
-        }
+        setDefaultStartEndHour(aItem);
         setDefaultAlarmValues(aItem);
 
         function addAttendees(aEmailAddresses) {
@@ -182,10 +169,7 @@ var itemConversion = {
         // Dates and alarms
         item.startDate = aTask.entryDate;
         if (!item.startDate) {
-            item.startDate = now();
-            item.startDate.minute = 0;
-            item.startDate.second = 0;
-            item.startDate.hour++;
+            item.startDate = getDefaultStartDate();
         }
 
         item.endDate = aTask.dueDate;

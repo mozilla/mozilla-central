@@ -1288,6 +1288,48 @@ function ensureDateTime(aDate) {
     return newDate;
 }
 
+/**
+ * Get the default event start date. This is the next full hour, or 23:00 if it
+ * is past 23:00.
+ *
+ * @param aReferenceDate    If passed, the time of this date will be modified,
+ *                            keeping the date and timezone intact.
+ */
+function getDefaultStartDate(aReferenceDate) {
+    var startDate = now();
+    if (aReferenceDate) {
+        var savedHour = startDate.hour;
+        startDate = aReferenceDate;
+        if (!startDate.isMutable) {
+            startDate = startDate.clone();
+        }
+        startDate.isDate = false;
+        startDate.hour = savedHour;
+    }
+
+    startDate.second = 0;
+    startDate.minute = 0;
+    if (startDate.hour < 23) {
+        startDate.hour++;
+    }
+    return startDate;
+}
+
+/**
+ * Setup the default start and end hours of the given item. This can be a task
+ * or an event.
+ *
+ * @param aItem     The item to set up the start and end date for.
+ */
+function setDefaultStartEndHour(aItem) {
+    aItem[calGetStartDateProp(aItem)] = getDefaultStartDate();
+
+    if (isEvent(aItem)) {
+        aItem.endDate = aItem.startDate.clone();
+        aItem.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+    }
+}
+
 /****
  **** debug code
  ****/
@@ -1552,19 +1594,29 @@ function getContrastingTextColor(bgColor)
 }
 
 /**
- * Returns the start date of an item, ie either an event's start date or a task's entry date.
+ * Returns the property name used for the start date of an item, ie either an
+ * event's start date or a task's entry date.
  */
-function calGetStartDate(aItem)
-{
-    return (isEvent(aItem) ? aItem.startDate : aItem.entryDate);
+function calGetStartDateProp(aItem) {
+    if (isEvent(aItem)) {
+        return "startDate";
+    } else if (isToDo(aItem)) {
+        return "entryDate";
+    }
+    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /**
- * Returns the end date of an item, ie either an event's end date or a task's due date.
+ * Returns the property name used for the end date of an item, ie either an
+ * event's end date or a task's due date.
  */
-function calGetEndDate(aItem)
-{
-    return (isEvent(aItem) ? aItem.endDate : aItem.dueDate);
+function calGetEndDateProp(aItem) {
+    if (isEvent(aItem)) {
+        return "endDate";
+    } else if (isToDo(aItem)) {
+        return "dueDate";
+    }
+    throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
 }
 
 /**

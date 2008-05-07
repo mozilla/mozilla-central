@@ -92,39 +92,30 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event) {
     } else {
         event = createEvent();
 
-        if (!startDate) {
-            // Have we shown the calendar view yet? (Lightning)
-            if (currentView().initialized) {
-                startDate = currentView().selectedDay.clone();
-            } else {
-                startDate = jsDateToDateTime(new Date()).getInTimezone(kDefaultTimezone);
+        if (startDate) {
+            event.startDate = startDate.clone();
+            if (startDate.isDate) {
+                // This is a special case where the date is specified, but the
+                // time is not. To take care, we setup up the time to our
+                // default event start time.
+                event.startDate = getDefaultStartDate(event.startDate);
             }
-            startDate.isDate = true;
+        } else {
+            setDefaultStartEndHour(event);
         }
 
-        if (startDate.isDate) {
-            if (!startDate.isMutable) {
-                startDate = startDate.clone();
-            }
-            startDate.isDate = false;
-            // The time for the event should default to the next full hour
-            startDate.hour = now().hour + 1;
-            startDate.minute = 0;
-            startDate.second = 0;
+        if (endDate) {
+            event.endDate = endDate.clone();
+        } else {
+            event.endDate = event.startDate.clone();
+            event.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
         }
-
-        if (!endDate) {
-            endDate = startDate.clone();
-            endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
-        }
-
-        event.startDate = startDate.clone();
-        event.endDate = endDate.clone();
 
         event.calendar = calendar || getSelectedCalendar();
 
-        if (summary)
+        if (summary) {
             event.title = summary;
+        }
 
         setDefaultAlarmValues(event);
     }
