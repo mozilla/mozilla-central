@@ -297,7 +297,7 @@ class MozillaRunPerfTests(ShellCommand):
         if None != re.search('USAGE:', stdioText):
             return FAILURE
         if None != re.search('FAIL:', stdioText):
-            return WARNING
+            return WARNINGS
         return SUCCESS
 
 class MozillaInstallTarBz2(ShellCommand):
