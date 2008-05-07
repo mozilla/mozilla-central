@@ -534,7 +534,7 @@ Section "-Application" Section1
     ${LogUninstall} "File: $SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal}.lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal} ($(SAFE_MODE)).lnk" "$INSTDIR\${FileMainEXE}" "-safe-mode" "$INSTDIR\${FileMainEXE}" 0
     ${LogUninstall} "File: $SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal} ($(SAFE_MODE)).lnk"
-    CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal} $(MAILNEWS_TEXT).lnk" "-mail" "$INSTDIR\${FileMainEXE}" 0
+    CreateShortCut "$SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal} $(MAILNEWS_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-mail" "$INSTDIR\${FileMainEXE}" 0
     ${LogUninstall} "File: $SMPROGRAMS\$StartMenuDir\${BrandFullNameInternal} $(MAILNEWS_TEXT).lnk"
     CreateShortCut "$SMPROGRAMS\$StartMenuDir\$(PROFILE_TEXT).lnk" "$INSTDIR\${FileMainEXE}" "-profileManager" "$INSTDIR\${FileMainEXE}" 0
     ${LogUninstall} "File: $SMPROGRAMS\$StartMenuDir\$(PROFILE_TEXT).lnk"
