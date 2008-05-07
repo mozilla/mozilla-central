@@ -77,36 +77,11 @@ function calendarInit() {
     // set up the CalendarWindow instance
     gCalendarWindow = new CalendarWindow();
 
-    // set up the views
-    initializeViews();
-    currentView().goToDay(currentView().selectedDay);
-
-    // set up the unifinder
-    prepareCalendarToDoUnifinder();
-   
-    scheduleMidnightUpdate(refreshUIBits);
-
-    loadCalendarManager();
-
-    // fire up the alarm service
-    var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
-                   .getService(Components.interfaces.calIAlarmService);
-    alarmSvc.timezone = calendarDefaultTimezone();
-    alarmSvc.startup();
-
-    // a bit of a hack since the menulist doesn't remember the selected value
-    var value = document.getElementById('event-filter-menulist').value;
-    document.getElementById('event-filter-menulist').selectedItem =
-     document.getElementById('event-filter-' + value);
+    // Take care of common initialization
+    commonInitCalendar();
 
     var toolbox = document.getElementById("calendar-toolbox");
     toolbox.customizeDone = CalendarToolboxCustomizeDone;
-
-    getViewDeck().addEventListener("dayselect", observeViewDaySelect, false);
-    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
-
-    // Setup undo/redo menu for additional main windows
-    updateUndoRedoMenu();
 
     // Setup the offline manager
     calendarOfflineManager.init();
@@ -121,9 +96,6 @@ function calendarInit() {
         }
         handleCommandLine(cl);
     }
-
-    // Setup the command controller
-    injectCalendarCommandController();
 }
 
 function handleCommandLine(aComLine) {
@@ -208,21 +180,18 @@ function refreshUIBits() {
 }
 
 /** 
-* Called from calendar.xul window onunload.
-*/
-
-function calendarFinish()
-{
+ * Steps to be taken when the sunbird calendar window is unloaded.
+ */
+function calendarFinish() {
     // Workaround to make the selected tab persist. See bug 249552.
     var tabbox = document.getElementById("tablist");
     tabbox.setAttribute("selectedIndex", tabbox.selectedIndex);
 
-    unloadCalendarManager();
-
     // Finish the offline manager
     calendarOfflineManager.uninit();
 
-    removeCalendarCommandController();
+    // Common finish steps
+    commonFinishCalendar();
 }
 
 function closeCalendar()
@@ -309,12 +278,4 @@ function CalendarToolboxCustomizeDone(aToolboxChanged)
 
   // XXX Shouldn't have to do this, but I do
   window.focus();
-}
-
-/**
- * Update the undo and redo menu items
- */
-function updateUndoRedoMenu() {
-    goUpdateCommand("cmd_undo");
-    goUpdateCommand("cmd_redo");
 }

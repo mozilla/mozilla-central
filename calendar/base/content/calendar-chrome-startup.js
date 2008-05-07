@@ -11,23 +11,14 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is OEone Calendar Code, released October 31st, 2001.
+ * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * OEone Corporation.
- * Portions created by the Initial Developer are Copyright (C) 2001
+ *   Philipp Kewisch <mozilla@kewis.ch>
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
- * Contributor(s): Garth Smedley <garths@oeone.com>
- *                 Mike Potter <mikep@oeone.com>
- *                 Chris Charabaruk <coldacid@meldstar.com>
- *                 Colin Phillips <colinp@oeone.com>
- *                 ArentJan Banck <ajbanck@planet.nl>
- *                 Curtis Jewell <csjewell@mail.freeshell.org>
- *                 Eric Belhaire <eric.belhaire@ief.u-psud.fr>
- *                 Mark Swaffer <swaff@fudo.org>
- *                 Michael Buettner <michael.buettner@sun.com>
- *                 Philipp Kewisch <mozilla@kewis.ch>
+ * Contributor(s):
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,29 +35,42 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- *   Called when the calendar is loaded
+ * Common initialization steps for calendar chrome windows.
  */
+function commonInitCalendar() {
 
-function prepareCalendarToDoUnifinder() {
-    if (isSunbird()) {
-        document.getElementById("todo-label").removeAttribute("collapsed");
-    }
-    toDoUnifinderRefresh();
+    // Load the Calendar Manager
+    loadCalendarManager();
+
+    // Restore the last shown calendar view
+    selectCalendarView(getLastCalendarView());
+
+    // set up the unifinder
+    prepareCalendarToDoUnifinder();
+
+    // Make sure we update ourselves if the program stays open over midnight
+    scheduleMidnightUpdate(refreshUIBits);
+
+    // Set up the command controller from calendar-common-sets.js
+    injectCalendarCommandController();
+
+    // Set up item and day selection listeners
+    getViewDeck().addEventListener("dayselect", observeViewDaySelect, false);
+    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
+
+    // Start alarm service
+    Components.classes["@mozilla.org/calendar/alarm-service;1"]
+              .getService(Components.interfaces.calIAlarmService)
+              .startup();
 }
 
 /**
- *   Called by event observers to update the display
+ * Common unload steps for calendar chrome windows.
  */
+function commonFinishCalendar() {
+    // Unload the calendar manager
+    unloadCalendarManager();
 
-function toDoUnifinderRefresh() {
-    // Set up hiding completed tasks for the unifinder-todo tree
-    var showCompleted = document.getElementById("show-completed-checkbox").checked;
-    var tree = document.getElementById("unifinder-todo-tree");
-    tree.showCompleted = showCompleted;
-    tree.refresh();
-}
-
-function getToDoFromEvent(event) {
-   return document.getElementById(
-      "unifinder-todo-tree").getTaskFromEvent(event);
+    // Remove the command controller
+    removeCalendarCommandController();
 }

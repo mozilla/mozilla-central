@@ -2926,16 +2926,18 @@
 
       <property name="selectedDay">
         <getter><![CDATA[
-          if (this.numVisibleDates == 1)
-            return this.mDateColumns[0].date;
+          var selected;
+          if (this.numVisibleDates == 1) {
+              selected = this.mDateColumns[0].date;
+          } else if (this.mSelectedDay) {
+              selected = this.mSelectedDay;
+          } else if (this.mSelectedDayCol) {
+              selected = this.mSelectedDayCol.date;
+          }
 
-          if (this.mSelectedDay)
-            return this.mSelectedDay;
-
-          if (this.mSelectedDayCol)
-            return this.mSelectedDayCol.date;
-
-          return null;
+          // TODO Make sure the selected day is valid
+          // TODO select now if it is in the range?
+          return selected;
         ]]></getter>
         <setter><![CDATA[
           // ignore if just 1 visible, it's always selected,

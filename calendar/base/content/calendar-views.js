@@ -614,43 +614,18 @@ function goToDate(aDate) {
 }
 
 /**
- * Sets up menuitems for the views
+ * Returns the calendar view that was selected before restart, or the current
+ * calendar view if it has already been set in this session
  */
-function initializeViews() {
-    // Set up the checkbox variables. Do not use the typical toggle*() functions
-    // because those will actually toggle the current value.
-    const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
-    const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
-    const kShowCompleted = "calendar_toggle_show_completed_in_view_command";
-    const kOrientation = "calendar_toggle_orientation_command";
-    
-    var workdaysOnly = (document.getElementById(kWorkdaysCommand)
-                                .getAttribute("checked") == "true");
-    var tasksInView = (document.getElementById(kTasksInViewCommand)
-                               .getAttribute("checked") == "true");
-    var showCompleted = (document.getElementById(kShowCompleted)
-                                 .getAttribute("checked") == "true");
-    var rotated = (document.getElementById(kOrientation)
-                           .getAttribute("checked") == "true");
-
+function getLastCalendarView() {
     var deck = getViewDeck();
-    for each (var view in deck.childNodes) {
-        view.workdaysOnly = workdaysOnly;
-        view.tasksInView = tasksInView;
-        view.showCompleted = showCompleted;
-        view.rotated = rotated;
-    }
-
-    // Restore the last shown view
-    var deck = getViewDeck();
-    if (deck.selectedIndex < 0) {
-        // No deck item was selected beforehand, default to week view.
-        selectCalendarView("week");
-    } else {
+    if (deck.selectedIndex > -1) {
         var viewNode = deck.childNodes[deck.selectedIndex];
-        var viewName = viewNode.id.replace(/-view/, "");
-        selectCalendarView(viewName);
+        return viewNode.id.replace(/-view/, "");
     }
+
+    // No deck item was selected beforehand, default to week view.
+    return "week";
 }
 
 /**

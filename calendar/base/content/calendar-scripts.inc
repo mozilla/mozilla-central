@@ -55,6 +55,7 @@
   <script type="application/x-javascript" src="chrome://calendar/content/publish.js"/>
 
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-chrome-startup.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calUtils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/mouseoverPreviews.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-views.js"/>

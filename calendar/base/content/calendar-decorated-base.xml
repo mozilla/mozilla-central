@@ -138,6 +138,21 @@
         </content>
 
         <implementation implements="calIDecoratedView">
+          <constructor><![CDATA[
+            const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
+            const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
+            const kShowCompleted = "calendar_toggle_show_completed_in_view_command";
+            const kOrientation = "calendar_toggle_orientation_command";
+
+            this.workdaysOnly = (document.getElementById(kWorkdaysCommand)
+                                          .getAttribute("checked") == "true");
+            this.tasksInView = (document.getElementById(kTasksInViewCommand)
+                                        .getAttribute("checked") == "true");
+            this.rotated = (document.getElementById(kOrientation)
+                                    .getAttribute("checked") == "true");
+            this.showCompleted = (document.getElementById(kShowCompleted)
+                                          .getAttribute("checked") == "true");
+          ]]></constructor>
             <field name="mTasksInView">false</field>
             <field name="mShowCompleted">false</field>
             <field name="mWorkdaysOnly">false</field>

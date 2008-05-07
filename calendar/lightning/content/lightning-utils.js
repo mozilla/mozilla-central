@@ -21,9 +21,10 @@
  *   Vladimir Vukicevic <vladimir@pobox.com>
  *   Mike Shaver <shaver@mozilla.org>
  *   Joey Minta <jminta@gmail.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or 
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
  * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
  * in which case the provisions of the GPL or the LGPL are applicable instead
  * of those above. If you wish to allow use of your version of this file only
@@ -36,74 +37,33 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function ltnCreateInstance(cid, iface) {
-    if (!iface)
-        iface = "nsISupports";
-    try {
-        return Components.classes[cid].createInstance(Components.interfaces[iface]);
-    } catch(e) {
-        dump("#### ltnCreateInstance failed for: " + cid + "\n");
-        var frame = Components.stack;
-        for (var i = 0; frame && (i < 4); i++) {
-            dump(i + ": " + frame + "\n");
-            frame = frame.caller;
-        }
-        throw e;
-    }
-}
-
-function ltnGetService(cid, iface) {
-    if (!iface)
-        iface = "nsISupports";
-    try {
-        return Components.classes[cid].getService(Components.interfaces[iface]);
-    } catch(e) {
-        dump("#### ltnGetService failed for: " + cid + "\n");
-        var frame = Components.stack;
-        for (var i = 0; frame && (i < 4); i++) {
-            dump(i + ": " + frame + "\n");
-            frame = frame.caller;
-        }
-        throw e;
-    }
-}
-
-var atomSvc;
-function ltnGetAtom(str) {
-    if (!atomSvc) {
-        atomSvc = ltnGetService("@mozilla.org/atom-service;1", "nsIAtomService");
-    }
-
-    return atomSvc.getAtom(str);
-}
-
-var CalDateTime = new Components.Constructor("@mozilla.org/calendar/datetime;1",
-                                             Components.interfaces.calIDateTime);
-
-// Use these functions, since setting |element.collapsed = true| is NOT reliable
-function collapseElement(element) {
-    element.style.visibility = "collapse";
-}
-
-function uncollapseElement(element) {
-    element.style.visibility = "";
-}
-
-function updateUndoRedoMenu() {
-    //XXX give Lightning some undo/redo UI!
-}
-
 /**
- * Gets the value of a string in a .properties file
+ * Gets the value of a string in a .properties file from the lightning bundle
  *
  * @param aBundleName  the name of the properties file.  It is assumed that the
  *                     file lives in chrome://lightning/locale/
- * @param aStringName the name of the string within the properties file
+ * @param aStringName  the name of the string within the properties file
+ * @param aParams      optional array of parameters to format the string
  */
-function ltnGetString(aBundleName, aStringName)
-{
-    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-    var props = sbs.createBundle("chrome://lightning/locale/"+aBundleName+".properties");
-    return props.GetStringFromName(aStringName);
+function ltnGetString(aBundleName, aStringName, aParams) {
+    if (ltnGetString.mSBS === undefined) {
+        ltnGetString.mSBS = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                            .getService(Components.interfaces.nsIStringBundleService);
+    }
+
+    try {
+        var propName = "chrome://lightning/locale/"+aBundleName+".properties";
+        var props = ltnGetString.mSBS.createBundle(propName);
+
+        if (aParams && aParams.length) {
+            return props.formatStringFromName(aStringName, aParams, aParams.length);
+        } else {
+            return props.GetStringFromName(aStringName);
+        }
+    } catch (ex) {
+        var s = "Failed to read '" + aStringName + "' from " +
+                "'chrome://lightning/locale/" + aBundleName + ".properties'.";
+        Components.utils.reportError(s + " Error: " + ex);
+        return s;
+    }
 }

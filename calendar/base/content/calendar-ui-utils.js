@@ -111,6 +111,24 @@ function hideElement(aElement) {
 }
 
 /**
+ * Unconditionally show the element (collapsed attribute)
+ *
+ * @param aElement      ID of XUL element to set, or the element node itself
+ */
+function uncollapseElement(aElement) {
+    setElementValue(aElement, false, "collapsed");
+}
+
+/**
+ * Unconditionally hide the element (collapsed attribute)
+ *
+ * @param aElement      ID of XUL element to set, or the element node itself
+ */
+function collapseElement(aElement) {
+    setElementValue(aElement, "true", "collapsed");
+}
+
+/**
  * Unconditionally enable the element (hidden attribute)
  *
  * @param aElement      ID of XUL element to set, or the element node itself

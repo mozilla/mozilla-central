@@ -25,6 +25,7 @@
    - Contributor(s): 
    -   Garth Smedley <garths@oeone.com>
    -   Mike Potter <mikep@oeone.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -  
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -293,17 +294,18 @@
         <![CDATA[
           var hbox = document.getAnonymousNodes(this)[0];
           this.kTextBox = hbox.firstChild;
-          this.kTextBox.kDatePicker = this; // enable call back to method in Moz1.7
-          this.kTextBox.menupopup.kDatePicker = this;
-          this.kMinimonth = this.kTextBox.menupopup.firstChild;
-          this.mInPopup = false;
-          this.mValue = null;
+
           var val = this.getAttribute("value");
           if (val) {
             this.value = new Date(val); // setting value property calls update
           } else {
             this.value = new Date();
           }
+
+          this.kTextBox.kDatePicker = this; // enable call back to method in Moz1.7
+          this.kTextBox.menupopup.kDatePicker = this;
+          this.kMinimonth = this.kTextBox.menupopup.firstChild;
+          this.mInPopup = false;
           this.kMinimonth.addEventListener("select", this.clickDate, false);
 
           this.mUseReshowHack = true;
@@ -356,14 +358,14 @@
                 this.kTextBox.value = formattedValue;
                 if (aRefresh && dateChanged) {
                   this.fireEvent("change");
-                  return;
                 }
               }
-            }
-            // invalid date, revert to previous date
-            // set textBox.value property, not attribute
-            if (this.mValue) {
-              this.kTextBox.value = this.formatDate(this.mValue);
+            } else {
+              // invalid date, revert to previous date
+              // set textBox.value property, not attribute
+              if (this.mValue) {
+                this.kTextBox.value = this.formatDate(this.mValue);
+              }
             }
           ]]>
         </body>

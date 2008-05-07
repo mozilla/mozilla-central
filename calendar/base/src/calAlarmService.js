@@ -203,7 +203,7 @@ calAlarmService.prototype = {
     /* calIAlarmService APIs */
     mTimezone: null,
     get timezone() {
-        return this.mTimezone;
+        return this.mTimezone || calendarDefaultTimezone();
     },
 
     set timezone(aTimezone) {
@@ -270,10 +270,6 @@ calAlarmService.prototype = {
     startup: function cas_startup() {
         if (this.mStarted)
             return;
-
-        if (!this.mTimezone) {
-            throw Components.results.NS_ERROR_NOT_INITIALIZED;
-        }
 
         LOG("[calAlarmService] starting...");
 

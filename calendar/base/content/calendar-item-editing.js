@@ -399,6 +399,14 @@ function canRedo() {
 }
 
 /**
+ * Update the undo and redo menu items
+ */
+function updateUndoRedoMenu() {
+    goUpdateCommand("cmd_undo");
+    goUpdateCommand("cmd_redo");
+}
+
+/**
  * checkForAttendees
  * Checks to see if the attendees were added or changed between the original
  * and new item.  If there is a change, it launches the calIITipTransport

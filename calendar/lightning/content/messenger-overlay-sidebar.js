@@ -89,19 +89,8 @@ function ltnMinimonthPick(minimonth)
     currentView().goToDay(cdt);
 }
 
-function ltnGoToDate()
-{
-    var goToDate = document.getElementById("ltnDateTextPicker");
-    if (goToDate.value) {
-        ltnMinimonthPick(goToDate);
-    }
-}
-
 function ltnOnLoad(event)
 {
-    // Load the Calendar Manager
-    loadCalendarManager();
-
     // take the existing folderPaneBox (that's what thunderbird displays
     // at the left side of the application window) and stuff that inside
     // of the deck we're introducing with the contentPanel. this essentially
@@ -213,19 +202,8 @@ function ltnOnLoad(event)
                                                            modeBoxAttrModified,
                                                            true);
 
-    // Set up the views
-    initializeViews();
-
-    // Initialize Minimonth
-    gMiniMonthLoading = true;
-
-    var today = new Date();
-    var nextmo = nextMonth(today);
-
-    document.getElementById("ltnMinimonth").value = today;
-    document.getElementById("ltnDateTextPicker").value = today;
-
-    gMiniMonthLoading = false;
+    // Take care of common initialization
+    commonInitCalendar();
 
     // nuke the onload, or we get called every time there's
     // any load that occurs
@@ -234,30 +212,12 @@ function ltnOnLoad(event)
     // Hide the calendar view so it doesn't push the status-bar offscreen
     collapseElement(document.getElementById("calendar-view-box"));
 
-    // fire up the alarm service
-    var alarmSvc = Components.classes["@mozilla.org/calendar/alarm-service;1"]
-                   .getService(Components.interfaces.calIAlarmService);
-    alarmSvc.timezone = calendarDefaultTimezone();
-    alarmSvc.startup();
-
     // Add an unload function to the window so we don't leak any listeners
     window.addEventListener("unload", ltnFinish, false);
 
-    document.getElementById("displayDeck")
-            .addEventListener("dayselect", observeViewDaySelect, false);
-
-    prepareCalendarToDoUnifinder();
-
-    // Make sure we update ourselves if the program stays open over midnight
-    scheduleMidnightUpdate(refreshUIBits);
-
+    // Set up invitations manager
     scheduleInvitationsUpdate(FIRST_DELAY_STARTUP, REPEAT_DELAY);
     getCalendarManager().addObserver(gInvitationsCalendarManagerObserver);
-
-    // Set up the command controller from calendar-common-sets.js
-    injectCalendarCommandController();
-
-    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
 
     var filter = document.getElementById("task-tree-filtergroup");
     filter.value = filter.value || "all";
@@ -429,9 +389,8 @@ function LtnObserveDisplayDeckChange(event) {
 function ltnFinish() {
     getCalendarManager().removeObserver(gInvitationsCalendarManagerObserver);
 
-    unloadCalendarManager();
-
-    removeCalendarCommandController();
+    // Common finish steps
+    commonFinishCalendar();
 }
 
 // After 1.5 was released, the search box was moved into an optional toolbar

@@ -1104,7 +1104,7 @@ function sortArrayByLocaleCollator(aStringArray) {
 }
 
 /**
- * Gets the value of a string in a .properties file
+ * Gets the value of a string in a .properties file from the calendar bundle
  *
  * @param aBundleName  the name of the properties file.  It is assumed that the
  *                     file lives in chrome://calendar/locale/
@@ -1112,10 +1112,14 @@ function sortArrayByLocaleCollator(aStringArray) {
  * @param aParams      optional array of parameters to format the string
  */
 function calGetString(aBundleName, aStringName, aParams) {
-    try {
-        var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
+    if (calGetString.mSBS === undefined) {
+        calGetString.mSBS = Components.classes["@mozilla.org/intl/stringbundle;1"]
                             .getService(Components.interfaces.nsIStringBundleService);
-        var props = sbs.createBundle("chrome://calendar/locale/"+aBundleName+".properties");
+    }
+
+    try {
+        var propName = "chrome://calendar/locale/"+aBundleName+".properties";
+        var props = calGetString.mSBS.createBundle(propName);
 
         if (aParams && aParams.length) {
             return props.formatStringFromName(aStringName, aParams, aParams.length);

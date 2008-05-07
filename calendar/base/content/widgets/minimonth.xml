@@ -479,13 +479,14 @@
                 onget="return this.kDaysOfMonthBox.lastChild.lastChild.date;"/>
 
       <field name="mDaymap">null</field>
+      <field name="mValue">null</field>
       <field name="mEditorDate">null</field>
       <field name="mIsReadOnly">false</field>
       <field name="kMinimonthHeader">null</field>
       <constructor><![CDATA[
           this.mToday = false;
           this.mSelected = false;
-          this.mValue = null;
+          this.mValue = new Date() // Default to "today"
           // save references for convenience
           var mainBox = document.getAnonymousElementByAttribute(this, "anonid", "minimonth-mainbox");
           if (this.hasAttribute("readonly")) {
