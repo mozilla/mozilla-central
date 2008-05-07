@@ -297,6 +297,8 @@ class MozillaRunPerfTests(ShellCommand):
         for line in log.readlines():
             if "RETURN:" in line:
                 summary.append(line.replace("RETURN:", "TinderboxPrint:"))
+            if "FAIL:" in line:
+                summary.append(line.replace("FAIL:", "TinderboxPrint:FAIL:"))
         self.addCompleteLog('summary', "\n".join(summary))
     
     def start(self):
@@ -314,6 +316,8 @@ class MozillaRunPerfTests(ShellCommand):
             return FAILURE
         if None != re.search('USAGE:', stdioText):
             return FAILURE
+        if None != re.search('FAIL:', stdioText):
+            return WARNINGS
         return SUCCESS
 
 class MozillaInstallTarBz2(ShellCommand):
