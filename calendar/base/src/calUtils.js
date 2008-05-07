@@ -1110,15 +1110,19 @@ function sortArrayByLocaleCollator(aStringArray) {
  *                     file lives in chrome://calendar/locale/
  * @param aStringName  the name of the string within the properties file
  * @param aParams      optional array of parameters to format the string
+ * @param aComponent   optional stringbundle component name
  */
-function calGetString(aBundleName, aStringName, aParams) {
+function calGetString(aBundleName, aStringName, aParams, aComponent) {
     if (calGetString.mSBS === undefined) {
         calGetString.mSBS = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                            .getService(Components.interfaces.nsIStringBundleService);
+                                      .getService(Components.interfaces.nsIStringBundleService);
     }
 
     try {
-        var propName = "chrome://calendar/locale/"+aBundleName+".properties";
+        if (!aComponent) {
+            aComponent = "calendar";
+        }
+        var propName = "chrome://" + aComponent + "/locale/" + aBundleName + ".properties";
         var props = calGetString.mSBS.createBundle(propName);
 
         if (aParams && aParams.length) {
@@ -2256,23 +2260,22 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
     // We have to modify our item a little, so we clone it.
     var item = aItem.clone();
 
-    if (aRecipientsList.length == 0)
-    {
+    if (aRecipientsList.length == 0) {
         // Fix up our attendees for invitations using some good defaults
-        itemAtt = item.getAttendees({}); // reuse cloned attendees
+        var itemAtt = item.getAttendees({}); // reuse cloned attendees
         item.removeAllAttendees();
         for each (var attendee in itemAtt) {
+            attendee = attendee.clone();
             attendee.role = "REQ-PARTICIPANT";
             attendee.participationStatus = "NEEDS-ACTION";
             attendee.rsvp = true;
             item.addAttendee(attendee);
             recipients.push(attendee);
         }
-    } else
-    {
+    } else {
         recipients = aRecipientsList;
     }
-    
+
     // XXX The event dialog has no means to set us as the organizer
     // since we defaulted to email above, we know we need to prepend
     // mailto when we convert it to an attendee
