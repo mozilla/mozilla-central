@@ -303,8 +303,11 @@ calendar-month-view {
 
 calendar-month-day-box { 
   border: 1px solid #3F7D91;
-  overflow-x: hidden;
+}
+
+.calendar-month-day-box-items-box {
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .calendar-month-day-box-current-month {

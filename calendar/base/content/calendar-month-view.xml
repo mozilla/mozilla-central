@@ -264,11 +264,9 @@
   </binding>
 
   <binding id="calendar-month-day-box">
-    <content>
-      <xul:vbox flex="1">
-        <xul:label anonid="day-label" crop="end" class="calendar-month-day-box-date-label"/>
-        <xul:vbox anonid="day-items"/>
-      </xul:vbox>
+    <content orient="vertical">
+      <xul:label anonid="day-label" crop="end" class="calendar-month-day-box-date-label"/>
+      <xul:vbox anonid="day-items" class="calendar-month-day-box-items-box" flex="1"/>
     </content>
 
     <implementation>
@@ -717,6 +715,20 @@
 
       <handler event="click" button="0"><![CDATA[
         this.monthView.setSelectedItems(0, []);
+      ]]></handler>
+      <handler event="DOMMouseScroll"><![CDATA[
+        debugger;
+        if (event.originalTarget.getAttribute("anonid") != "day-label") {
+          // Finding out if the box is overflowing is tricky, but fortunately
+          // the height of the boxes is equal.
+          var childHeight = this.dayitems.firstChild.boxObject.height *
+                            this.dayitems.childNodes.length;
+          if (this.dayitems.boxObject.height < childHeight) {
+            // The box is overflowing. Stop propagation and let the default
+            // event handler take care of scrolling
+            event.stopPropagation();
+          }
+        }
       ]]></handler>
     </handlers>
   </binding>
