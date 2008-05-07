@@ -717,7 +717,6 @@
         this.monthView.setSelectedItems(0, []);
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
-        debugger;
         if (event.originalTarget.getAttribute("anonid") != "day-label") {
           // Finding out if the box is overflowing is tricky, but fortunately
           // the height of the boxes is equal.
