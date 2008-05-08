@@ -11,4 +11,5 @@ authList = [("win-vc8", "swordfish"),
             ("linux-3","swordfish"),
             ("mac-osx", "swordfish"),
             ("qm-xserve02", "swordfish"),
+            ("qm-xserve06", "swordfish"),
             ("qm-win2k3-pgo01", "swordfish")]
