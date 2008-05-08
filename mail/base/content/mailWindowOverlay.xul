@@ -22,6 +22,7 @@
 #
 # Contributor(s):
 #   Karsten Düsterloh <mnyromyr@tprac.de>
+#   Simon Paquet <bugzilla@babylonsounds.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -939,7 +940,7 @@
         <menuseparator id="editMenuAfterDeleteSeparator"/>
         <menu id="menu_select" label="&selectMenu.label;" accesskey="&selectMenu.accesskey;">
           <menupopup id="menu_SelectPopup">
-            <menuitem id="menu_SelectAll" label="&all.label;" 
+            <menuitem id="menu_SelectAll" label="&all.label;"
                       accesskey="&all.accesskey;" key="key_selectAll"
                       command="cmd_selectAll"/>
             <menuseparator id="selectMenuSeparator"/>
@@ -1352,173 +1353,333 @@
   </toolbar>
 
   <toolbarpalette id="MailToolbarPalette">
-      <toolbarbutton id="button-getmsg" type="menu-button"
-                     class="toolbarbutton-1"
-                     label="&getMsgButton.label;"
-                     tooltiptext="&getMsgButton.tooltip;"
-                     oncommand="MsgGetMessagesForAccount(event.target._folder)"
-                     observes="button_getNewMessages">
-        <menupopup type="folder" expandFolders="false" mode="getMail">
-          <menuitem label="&getAllNewMsgCmd.label;" accesskey="&getAllNewMsgCmd.key;"/>
-          <menuseparator/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton id="button-newmsg" class="toolbarbutton-1" label="&newMsgButton.label;" tooltiptext="&newMsgButton.tooltip;" oncommand="MsgNewMessage(event)"/>
-
-      <toolbarbutton id="button-reply" class="toolbarbutton-1" label="&replyButton.label;" tooltiptext="&replyButton.tooltip;" observes="button_reply" oncommand="MsgReplyMessage(event)"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-replyall" label="&replyAllButton.label;" tooltiptext="&replyAllButton.tooltip;" observes="button_replyall" oncommand="MsgReplyToAllMessage(event)"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-forward" label="&forwardButton.label;" tooltiptext="&forwardButton.tooltip;" observes="button_forward" oncommand="MsgForwardMessage(event)"/>
-
-      <toolbarbutton type="menu" id="button-file" class="toolbarbutton-1"
-                     label="&fileButton.label;" observes="button_file"
-                     oncommand="MsgMoveMessage(event.target._folder.URI)">
-        <menupopup type="folder" mode="filing" showRecent="true"
-                   showFileHereLabel="true" fileHereLabel="&fileHereMenu.label;"
-                   fileHereAccessKey="&fileHereMenu.accesskey;"
-                   recentLabel="&moveCopyMsgRecentMenu.label;"
-                   recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
-      </toolbarbutton>
-
-      <toolbarbutton class="toolbarbutton-1" type="menu-button" id="button-goback" label="&backButton1.label;" chromedir="&locale.dir;" oncommand="goDoCommand('cmd_goBack')" tooltiptext="&goBackButton.tooltip;" observes="button_goBack">
-         <menupopup onpopupshowing="backToolbarMenu_init(this)">
-          <menuitem label="&goBackCmd.label;" command="cmd_goBack"/>
-          <menuseparator/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton class="toolbarbutton-1" type="menu-button" id="button-goforward" label="&goForwardButton1.label;" chromedir="&locale.dir;" oncommand="goDoCommand('cmd_goForward')" tooltiptext="&goForwardButton.tooltip;" observes="button_goForward">
-        <menupopup onpopupshowing="forwardToolbarMenu_init(this)">
-          <menuitem label="&goForwardCmd.label;" command="cmd_goForward"/>
-          <menuseparator/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton class="toolbarbutton-1" id="button-previous" label="&previousButton.label;" chromedir="&locale.dir;" oncommand="goDoCommand('button_previous')" tooltiptext="&previousButton.tooltip;" observes="button_previous"/>
-      <toolbarbutton class="toolbarbutton-1" id="button-next"     label="&nextButton.label;" chromedir="&locale.dir;" oncommand="goDoCommand('button_next')" tooltiptext="&nextButton.tooltip;" observes="button_next"/>
-
-      <toolbaritem id="button-junk">
-        <deck id="junk-deck" observes="button_junk">
-          <toolbarbutton class="toolbarbutton-1 junk-button"
-                   label="&junkButton.label;"
-                   tooltiptext="&junkButton.tooltip;"
-                   observes="button_junk"
-                   oncommand="goDoCommand('button_junk')"/>
-          <toolbarbutton class="toolbarbutton-1 junk-button"
-                   label="&notJunkButton.label;"
-                   tooltiptext="&notJunkButton.tooltip;"
-                   observes="button_junk"
-                   oncommand="goDoCommand('button_junk')"/>
-        </deck>
-      </toolbaritem>
-
-      <toolbarbutton class="toolbarbutton-1" id="button-delete" label="&deleteButton.label;" tooltiptext="&deleteButton.tooltip;" observes="button_delete" oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
-
+    <toolbarbutton id="button-getmsg"
+                   type="menu-button"
+                   class="toolbarbutton-1"
+                   label="&getMsgButton.label;"
+                   tooltiptext="&getMsgButton.tooltip;"
+                   oncommand="MsgGetMessagesForAccount(event.target._folder)"
+                   observes="button_getNewMessages">
+      <menupopup id="button-getMsgPopup"
+                 type="folder"
+                 expandFolders="false"
+                 mode="getMail">
+        <menuitem id="button-getAllNewMsg"
+                  label="&getAllNewMsgCmd.label;"
+                  accesskey="&getAllNewMsgCmd.key;"/>
+        <menuseparator id="button-getAllNewMsgSeparator"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-newmsg"
+                   class="toolbarbutton-1"
+                   label="&newMsgButton.label;"
+                   tooltiptext="&newMsgButton.tooltip;"
+                   oncommand="MsgNewMessage(event)"/>
+    <toolbarbutton id="button-reply"
+                   class="toolbarbutton-1"
+                   label="&replyButton.label;"
+                   tooltiptext="&replyButton.tooltip;"
+                   observes="button_reply"
+                   oncommand="MsgReplyMessage(event)"/>
+    <toolbarbutton id="button-replyall"
+                   class="toolbarbutton-1"
+                   label="&replyAllButton.label;"
+                   tooltiptext="&replyAllButton.tooltip;"
+                   observes="button_replyall"
+                   oncommand="MsgReplyToAllMessage(event)"/>
+    <toolbarbutton id="button-forward"
+                   class="toolbarbutton-1"
+                   label="&forwardButton.label;"
+                   tooltiptext="&forwardButton.tooltip;"
+                   observes="button_forward"
+                   oncommand="MsgForwardMessage(event)"/>
+    <toolbarbutton id="button-file"
+                   type="menu"
+                   class="toolbarbutton-1"
+                   label="&fileButton.label;"
+                   observes="button_file"
+                   oncommand="MsgMoveMessage(event.target._folder.URI)">
+      <menupopup id="button-filePopup"
+                 type="folder"
+                 mode="filing"
+                 showRecent="true"
+                 showFileHereLabel="true"
+                 fileHereLabel="&fileHereMenu.label;"
+                 fileHereAccessKey="&fileHereMenu.accesskey;"
+                 recentLabel="&moveCopyMsgRecentMenu.label;"
+                 recentAccessKey="&moveCopyMsgRecentMenu.accesskey;"/>
+    </toolbarbutton>
+    <toolbarbutton id="button-goback"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&backButton1.label;"
+                   chromedir="&locale.dir;"
+                   oncommand="goDoCommand('cmd_goBack')"
+                   tooltiptext="&goBackButton.tooltip;"
+                   observes="button_goBack">
+      <menupopup id="button-goBackPopup" onpopupshowing="backToolbarMenu_init(this)">
+        <menuitem id="button-goBack" label="&goBackCmd.label;" command="cmd_goBack"/>
+        <menuseparator id="button-goBackSeparator"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-goforward"
+                   class="toolbarbutton-1"
+                   type="menu-button"
+                   label="&goForwardButton1.label;"
+                   chromedir="&locale.dir;"
+                   oncommand="goDoCommand('cmd_goForward')"
+                   tooltiptext="&goForwardButton.tooltip;"
+                   observes="button_goForward">
+      <menupopup id="button-goForwardPopup" onpopupshowing="forwardToolbarMenu_init(this)">
+        <menuitem id="button-goForward"
+                  label="&goForwardCmd.label;"
+                  command="cmd_goForward"/>
+        <menuseparator id="button-goForwardSeparator"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-previous"
+                   class="toolbarbutton-1"
+                   label="&previousButton.label;"
+                   chromedir="&locale.dir;"
+                   oncommand="goDoCommand('button_previous')"
+                   tooltiptext="&previousButton.tooltip;"
+                   observes="button_previous"/>
+    <toolbarbutton id="button-next"
+                   class="toolbarbutton-1"
+                   label="&nextButton.label;"
+                   chromedir="&locale.dir;"
+                   oncommand="goDoCommand('button_next')"
+                   tooltiptext="&nextButton.tooltip;"
+                   observes="button_next"/>
+    <toolbaritem id="button-junk">
+      <deck id="junk-deck" observes="button_junk">
+        <toolbarbutton id="button-isJunk"
+                       class="toolbarbutton-1 junk-button"
+                       label="&junkButton.label;"
+                       tooltiptext="&junkButton.tooltip;"
+                       observes="button_junk"
+                       oncommand="goDoCommand('button_junk')"/>
+        <toolbarbutton id="button-notJunk"
+                       class="toolbarbutton-1 junk-button"
+                       label="&notJunkButton.label;"
+                       tooltiptext="&notJunkButton.tooltip;"
+                       observes="button_junk"
+                       oncommand="goDoCommand('button_junk')"/>
+      </deck>
+    </toolbaritem>
+    <toolbarbutton id="button-delete"
+                   class="toolbarbutton-1"
+                   label="&deleteButton.label;"
+                   tooltiptext="&deleteButton.tooltip;"
+                   observes="button_delete"
+                   oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' : 'cmd_delete')"/>
 #ifdef XP_MACOSX
-      <toolbarbutton id="button-print"  class="toolbarbutton-1" label="&printButton.label;"
-                  observes="button_print" oncommand="goDoCommand('cmd_print')" tooltiptext="&printButton.tooltip;"/>
+    <toolbarbutton id="button-print"
+                   class="toolbarbutton-1"
+                   label="&printButton.label;"
+                   observes="button_print"
+                   oncommand="goDoCommand('cmd_print')"
+                   tooltiptext="&printButton.tooltip;"/>
 #else
-      <toolbarbutton id="button-print"  class="toolbarbutton-1" label="&printButton.label;"
-                  observes="button_print" oncommand="goDoCommand('cmd_print')" tooltiptext="&printButton.tooltip;" type="menu-button">
-        <menupopup id="printMenu" onpopupshowing="goUpdateCommand('cmd_printpreview');">
-          <menuitem label="&printCmd.label;" accesskey="&printCmd.accesskey;" default="true"/>
-          <menuitem label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;" command="cmd_printpreview"/>
-        </menupopup>
-      </toolbarbutton>
+    <toolbarbutton id="button-print"
+                   class="toolbarbutton-1"
+                   label="&printButton.label;"
+                   observes="button_print"
+                   oncommand="goDoCommand('cmd_print')"
+                   tooltiptext="&printButton.tooltip;"
+                   type="menu-button">
+      <menupopup id="printMenu" onpopupshowing="goUpdateCommand('cmd_printpreview');">
+        <menuitem id="button-printMenu"
+                  label="&printCmd.label;"
+                  accesskey="&printCmd.accesskey;"
+                  default="true"/>
+        <menuitem id="button-printPreviewMenu"
+                  label="&printPreviewCmd.label;"
+                  accesskey="&printPreviewCmd.accesskey;"
+                  command="cmd_printpreview"/>
+      </menupopup>
+    </toolbarbutton>
 #endif
-      <toolbarbutton id="button-mark" type="menu-button" class="toolbarbutton-1" label="&markButton.label;" oncommand="goDoCommand('button_mark')"
-                  observes="button_mark" tooltiptext="&markButton.tooltip;">
-            <menupopup onpopupshowing="InitMessageMark()">
-                <menuitem type="checkbox" key="key_toggleRead" id="markReadToolbarItem" label="&markAsReadCmd.label;" accesskey="&markAsReadCmd.accesskey;" command="cmd_markAsRead" />
-                <menuitem label="&markThreadAsReadCmd.label;" key="key_markThreadAsRead" accesskey="&markThreadAsReadCmd.accesskey;" command="cmd_markThreadAsRead"/>
-                <menuitem label="&markReadByDateCmd.label;" key="key_markReadByDate" accesskey="&markReadByDateCmd.accesskey;" command="cmd_markReadByDate"/>
-                <menuitem label="&markAllReadCmd.label;" key="key_markAllRead" accesskey="&markAllReadCmd.accesskey;" command="cmd_markAllRead"/>
-                <menuseparator/>
-                <menuitem type="checkbox" id="markFlaggedToolbarItem" label="&markStarredCmd.label;" accesskey="&markStarredCmd.accesskey;"
-                          key="key_toggleFlagged" command="cmd_markAsFlagged"/>
-            </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton id="button-tag" type="menu" class="toolbarbutton-1"
-                     label="&tagButton.label;" tooltiptext="&tagButton.tooltip;" command="cmd_tag">
-        <menupopup id="button-tagpopup" onpopupshowing="InitMessageTags(this)">
-          <menuitem id="button-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
-          <menuseparator/>
-          <menuseparator/>
-          <menuitem id="addNewTag" label="&addNewTag.label;" accesskey="&addNewTag.accesskey;"
-                    oncommand="AddTag();"/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton id="button-address" class="toolbarbutton-1" label="&addressBookButton.label;" oncommand="toAddressBook();" tooltiptext="&addressBookButton.tooltip;"/>
-
-      <toolbaritem id="throbber-box" title="&throbberItem.title;" align="center" pack="center">
-        <button id="navigator-throbber" disabled="true"/>
-      </toolbaritem>
-
-      <toolbarbutton class="toolbarbutton-1" id="button-stop" label="&stopButton.label;" tooltiptext="&stopButton.tooltip;" command="cmd_stop"/>
-
-      <toolbaritem id="search-container" title="&searchItem.title;" align="center" class="chromeclass-toolbar-additional">
-        <textbox id="searchInput" flex="1" onfocus="onSearchInputFocus(event);" onclick="onSearchInputClick(event);"
-                 onmousedown="onSearchInputMousedown(event);" onblur="onSearchInputBlur(event);"
-                 oninput="onSearchInput(false);"
-                 onkeypress="onSearchKeyPress(event);" chromedir="&locale.dir;">
-          <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
-            <menupopup id="quick-search-menupopup" value="2" persist="value" onpopupshowing="InitQuickSearchPopup();" popupalign="topleft" popupanchor="bottomleft">
-              <menuitem value="0" label="&searchSubjectMenu.label;" type="radio"
-                        oncommand="changeQuickSearchMode(this)"/>
-              <menuitem value="1" label="&searchFromMenu.label;" type="radio"
-                        oncommand="changeQuickSearchMode(this)" />
-              <menuitem value="2" label="&searchSubjectOrFromMenu.label;" type="radio"
-                        oncommand="changeQuickSearchMode(this)"/>
-              <menuitem value="5" label="&searchRecipient.label;" type="radio"
-                        oncommand="changeQuickSearchMode(this)"/>
-              <menuitem value="3" label="&searchMessageBody.label;" type="radio"
-                        oncommand="changeQuickSearchMode(this)"/>
-              <menuseparator/>
-              <!-- if the value for the save as virtual folder menu changes, please update the
-                   VK_DOWN key handler in searchbar.xml
-              -->
-              <menuitem value="5" id="quickSearchSaveAsVirtualFolder" label="&saveAsVirtualFolderMenu.label;"
-                        oncommand="saveViewAsVirtualFolder()"/>
-            </menupopup>
-          </button>
-        </textbox>
-      </toolbaritem>
-
-      <toolbaritem id ="folder-location-container" title="&folderLocationToolbarItem.title;"
-                   align="center" class="chromeclass-toolbar-additional">
-        <!--XXX The src attribute is there to give the menulist icon horizontal margin (bug 381364).
-                Remove it once bug 381548 is fixed. -->
-        <menulist id="locationFolders" class="folderMenuItem" label=" " src="" context="folderPaneContext" width="170" crop="center">
-          <menupopup id="folderLocationPopup" class="folderLocationPopup" height="400" flex="1"
-                     oncommand="OnLocationTreeSelect(this);"/>
-        </menulist>
-      </toolbaritem>
-
-      <toolbaritem id="mailviews-container" title="&mailViewsToolbarItem.title;" align="center" class="chromeclass-toolbar-additional">
-        <label value="&viewPicker.label;" control="viewPicker" accesskey="&viewPicker.accesskey;"/>
-        <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
-          <menupopup id="viewPickerPopup">
-            <menuitem id="viewPickerAll"    value="0" label="&viewAll.label;"/>
-            <menuitem id="viewPickerUnread" value="1" label="&viewUnread.label;"/>
-            <menuseparator/>
-            <menu id="viewPickerTags" label="&viewTags.label;">
-              <menupopup id="viewPickerTagsPopup"
-                         class="menulist-menupopup"
-                         onpopupshowing="RefreshTagsPopup(this, true);"/>
-            </menu>
-            <menu id="viewPickerCustomViews" label="&viewCustomViews.label;">
-              <menupopup id="viewPickerCustomViewsPopup"
-                         class="menulist-menupopup"
-                         onpopupshowing="RefreshCustomViewsPopup(this, true);"/>
-            </menu>
-            <menuseparator/>
-            <menuitem id="viewPickerVirtualFolder" value="7" label="&viewVirtualFolder.label;"/>
-            <menuitem id="viewPickerCustomize"     value="8" label="&viewCustomizeView.label;"/>
+    <toolbarbutton id="button-mark"
+                   type="menu-button"
+                   class="toolbarbutton-1"
+                   label="&markButton.label;"
+                   oncommand="goDoCommand('button_mark')"
+                   observes="button_mark"
+                   tooltiptext="&markButton.tooltip;">
+      <menupopup id="button-markPopup" onpopupshowing="InitMessageMark()">
+        <menuitem id="markReadToolbarItem"
+                  type="checkbox"
+                  key="key_toggleRead"
+                  label="&markAsReadCmd.label;"
+                  accesskey="&markAsReadCmd.accesskey;"
+                  command="cmd_markAsRead" />
+        <menuitem id="button-markThreadAsRead"
+                  label="&markThreadAsReadCmd.label;"
+                  key="key_markThreadAsRead"
+                  accesskey="&markThreadAsReadCmd.accesskey;"
+                  command="cmd_markThreadAsRead"/>
+        <menuitem id="button-markReadByDate"
+                  label="&markReadByDateCmd.label;"
+                  key="key_markReadByDate"
+                  accesskey="&markReadByDateCmd.accesskey;"
+                  command="cmd_markReadByDate"/>
+        <menuitem id="button-markAllRead"
+                  label="&markAllReadCmd.label;"
+                  key="key_markAllRead"
+                  accesskey="&markAllReadCmd.accesskey;"
+                  command="cmd_markAllRead"/>
+        <menuseparator id="button-markAllReadSeparator"/>
+        <menuitem id="markFlaggedToolbarItem"
+                  type="checkbox"
+                  label="&markStarredCmd.label;"
+                  accesskey="&markStarredCmd.accesskey;"
+                  key="key_toggleFlagged"
+                  command="cmd_markAsFlagged"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-tag"
+                   type="menu"
+                   class="toolbarbutton-1"
+                   label="&tagButton.label;"
+                   tooltiptext="&tagButton.tooltip;"
+                   command="cmd_tag">
+      <menupopup id="button-tagpopup" onpopupshowing="InitMessageTags(this)">
+        <menuitem id="button-tagRemoveAll" oncommand="RemoveAllMessageTags();"/>
+        <menuseparator id="button-afterTagRemoveAllSeparator"/>
+        <menuseparator id="beforeAddNewTagSeparator"/>
+        <menuitem id="addNewTag"
+                  label="&addNewTag.label;"
+                  accesskey="&addNewTag.accesskey;"
+                  oncommand="AddTag();"/>
+      </menupopup>
+    </toolbarbutton>
+    <toolbarbutton id="button-address"
+                   class="toolbarbutton-1"
+                   label="&addressBookButton.label;"
+                   oncommand="toAddressBook();"
+                   tooltiptext="&addressBookButton.tooltip;"/>
+    <toolbaritem id="throbber-box"
+                 title="&throbberItem.title;"
+                 align="center"
+                 pack="center">
+      <button id="navigator-throbber" disabled="true"/>
+    </toolbaritem>
+    <toolbarbutton id="button-stop"
+                   class="toolbarbutton-1"
+                   label="&stopButton.label;"
+                   tooltiptext="&stopButton.tooltip;"
+                   command="cmd_stop"/>
+    <toolbaritem id="search-container"
+                 title="&searchItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <textbox id="searchInput"
+               flex="1"
+               onfocus="onSearchInputFocus(event);"
+               onclick="onSearchInputClick(event);"
+               onmousedown="onSearchInputMousedown(event);"
+               onblur="onSearchInputBlur(event);"
+               oninput="onSearchInput(false);"
+               onkeypress="onSearchKeyPress(event);"
+               chromedir="&locale.dir;">
+        <button id="quick-search-button" type="menu" chromedir="&locale.dir;">
+          <menupopup id="quick-search-menupopup"
+                     value="2"
+                     persist="value"
+                     onpopupshowing="InitQuickSearchPopup();"
+                     popupalign="topleft"
+                     popupanchor="bottomleft">
+            <menuitem id="searchSubjectMenu"
+                      value="0"
+                      label="&searchSubjectMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchFromMenu"
+                      value="1"
+                      label="&searchFromMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)" />
+            <menuitem id="searchSubjectOrFromMenu"
+                      value="2"
+                      label="&searchSubjectOrFromMenu.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchRecipient"
+                      value="5"
+                      label="&searchRecipient.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuitem id="searchMessageBody"
+                      value="3"
+                      label="&searchMessageBody.label;"
+                      type="radio"
+                      oncommand="changeQuickSearchMode(this)"/>
+            <menuseparator id="afterSearchMessageBodySeparator"/>
+            <!-- if the value for the save as virtual folder menu changes,
+                 please update the VK_DOWN key handler in searchbar.xml
+            -->
+            <menuitem id="quickSearchSaveAsVirtualFolder"
+                      value="5"
+                      label="&saveAsVirtualFolderMenu.label;"
+                      oncommand="saveViewAsVirtualFolder()"/>
           </menupopup>
-        </menulist>
-      </toolbaritem>
+        </button>
+      </textbox>
+    </toolbaritem>
+    <toolbaritem id="folder-location-container"
+                 title="&folderLocationToolbarItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <!--XXX The src attribute is there to give the menulist icon horizontal
+          margin (bug 381364). Remove it once bug 381548 is fixed. -->
+      <menulist id="locationFolders"
+                class="folderMenuItem"
+                label=" "
+                src=""
+                context="folderPaneContext"
+                width="170"
+                crop="center">
+        <menupopup id="folderLocationPopup"
+                   class="folderLocationPopup"
+                   height="400"
+                   flex="1"
+                   oncommand="OnLocationTreeSelect(this);"/>
+      </menulist>
+    </toolbaritem>
+    <toolbaritem id="mailviews-container"
+                 title="&mailViewsToolbarItem.title;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <label id="viewPickerLabel"
+             value="&viewPicker.label;"
+             control="viewPicker"
+             accesskey="&viewPicker.accesskey;"/>
+      <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
+        <menupopup id="viewPickerPopup">
+          <menuitem id="viewPickerAll" value="0" label="&viewAll.label;"/>
+          <menuitem id="viewPickerUnread" value="1" label="&viewUnread.label;"/>
+          <menuseparator id="afterViewPickerUnreadSeparator"/>
+          <menu id="viewPickerTags" label="&viewTags.label;">
+            <menupopup id="viewPickerTagsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshTagsPopup(this, true);"/>
+          </menu>
+          <menu id="viewPickerCustomViews" label="&viewCustomViews.label;">
+            <menupopup id="viewPickerCustomViewsPopup"
+                       class="menulist-menupopup"
+                       onpopupshowing="RefreshCustomViewsPopup(this, true);"/>
+          </menu>
+          <menuseparator id="afterViewPickerCustomViewsSeparator"/>
+          <menuitem id="viewPickerVirtualFolder"
+                    value="7"
+                    label="&viewVirtualFolder.label;"/>
+          <menuitem id="viewPickerCustomize"
+                    value="8"
+                    label="&viewCustomizeView.label;"/>
+        </menupopup>
+      </menulist>
+    </toolbaritem>
   </toolbarpalette>
 
   <!-- If changes are made to the default set of toolbar buttons, you may need to rev the id
