@@ -54,7 +54,7 @@ interface nsILDAPURL;
  * XXX This should really inherit from nsIAbDirectory, and some day it will.
  * But for now, doing that complicates implementation.
  */
-[scriptable, uuid(684c8f3e-dcd1-4f16-9cfc-f0f77080a249)]
+[scriptable, uuid(2f689622-3d73-43aa-8580-6a7ba232be2b)]
 interface nsIAbLDAPDirectory : nsISupports
 {
   /**
@@ -77,7 +77,7 @@ interface nsIAbLDAPDirectory : nsISupports
   /**
    * The AuthDN to use to access the server.
    */
-  attribute ACString authDn;
+  attribute AUTF8String authDn;
 
   /**
    * The maximum number of matches that the server will return per a search.
