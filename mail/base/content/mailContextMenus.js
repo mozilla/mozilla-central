@@ -446,32 +446,23 @@ function OpenMessageByHeader(messageHeader, openInNewWindow)
 function SearchForMessageIdInSubFolder(folder, messageId)
 {
   var messageHeader;
-  var subFolders = folder.subFoldersObsolete;
+  var subFolders = folder.subFolders;
 
   // search in folder
   if (!folder.isServer)
     messageHeader = CheckForMessageIdInFolder(folder, messageId);
 
   // search subfolders recursively
-  var done = !folder.hasSubFolders;
-  while (!done && !messageHeader)
+  while (subFolders.hasMoreElements() && !messageHeader)
   {
     // search in current folder
-    var currentFolder = subFolders.currentItem().QueryInterface(Components.interfaces.nsIMsgFolder);
+    var currentFolder =
+      subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
     messageHeader = CheckForMessageIdInFolder(currentFolder, messageId);
 
     // search in its subfolder
     if (!messageHeader && currentFolder.hasSubFolders)
       messageHeader = SearchForMessageIdInSubFolder(currentFolder, messageId);
-
-    try
-    {
-      subFolders.next();
-    }
-    catch(e)
-    {
-      done = true;
-    }
   }
 
   return messageHeader;

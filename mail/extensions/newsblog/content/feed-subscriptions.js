@@ -355,24 +355,13 @@ var gFeedSubscriptionsWindow = {
                           container: true };
 
     // if a feed has any sub folders, we should add them to the list of children
-    if (aFolder.hasSubFolders)
+    var folderEnumerator = aFolder.subFolders;
+
+    while (folderEnumerator.hasMoreElements())
     {
-      var folderEnumerator = aFolder.subFoldersObsolete;
-      var done = false;
-
-      while (!done) 
-      {
-        var folder = folderEnumerator.currentItem().QueryInterface(Components.interfaces.nsIMsgFolder);
-        folderObject.children.push(this.makeFolderObject(folder, aCurrentLevel + 1));
-
-        try {
-          folderEnumerator.next();
-        } 
-        catch (ex)
-        {
-          done = true;
-        }        
-      }
+      var folder =
+        folderEnumerator.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+      folderObject.children.push(this.makeFolderObject(folder, aCurrentLevel + 1));
     }
 
     var feeds = this.getFeedsInFolder(aFolder);
@@ -430,27 +419,16 @@ var gFeedSubscriptionsWindow = {
     var numFolders = 0;
     this.mFeedContainers = [];
 
-    if (this.mRSSServer.rootFolder.hasSubFolders)
+    var folderEnumerator = this.mRSSServer.rootFolder.subFolders;
+
+    while (folderEnumerator.hasMoreElements())
     {
-      var folderEnumerator = this.mRSSServer.rootFolder.subFoldersObsolete;
-      var done = false;
-
-      while (!done) 
+      var folder = folderEnumerator.getNext()
+        .QueryInterface(Components.interfaces.nsIMsgFolder);
+      if (!folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
       {
-        var folder = folderEnumerator.currentItem().QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (folder && !folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
-        {
-          this.mFeedContainers.push(this.makeFolderObject(folder, 0));
-          numFolders++;
-        }
-
-        try {
-          folderEnumerator.next();
-        } 
-        catch (ex)
-        {
-          done = true;
-        }        
+        this.mFeedContainers.push(this.makeFolderObject(folder, 0));
+        numFolders++;
       }
     }
     this.mView.mRowCount = numFolders;
@@ -942,21 +920,21 @@ var gFeedSubscriptionsWindow = {
   
   generateOutline: function(baseFolder, parent, indentLevel)
   {
-    var folderEnumerator = baseFolder.subFoldersObsolete;
-    var done = false;
+    var folderEnumerator = baseFolder.subFolders;
 
     // pretty printing
     var indentString = "";
     for(i = 0; i < indentLevel; i++)
       indentString = indentString + " ";
  
-    while (!done) 
+    while (folderEnumerator.hasMoreElements())
     {
-      var folder = folderEnumerator.currentItem().QueryInterface(Components.interfaces.nsIMsgFolder);
-      if (folder && !folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
+      var folder = folderEnumerator.getNext()
+        .QueryInterface(Components.interfaces.nsIMsgFolder);
+      if (!folder.getFlag(MSG_FOLDER_FLAG_TRASH)) 
       {
         var outline;
-        if(folder.hasSubFolders)
+        if (folder.hasSubFolders)
         {
           // Make a mostly empty outline element
           outline = parent.ownerDocument.createElement("outline");
@@ -977,14 +955,6 @@ var gFeedSubscriptionsWindow = {
             parent.appendChild(outline);
           }
         }
-      }
-      
-      try {
-        folderEnumerator.next();
-      } 
-      catch (ex)
-      {
-        done = true;
       }
     }
   },

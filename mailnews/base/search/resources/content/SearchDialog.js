@@ -437,31 +437,18 @@ function onSearch()
 }
 
 function AddSubFolders(folder) {
-  if (folder.hasSubFolders)
+  var subFolders = folder.subFolders;
+  while (subFolders.hasMoreElements())
   {
-    var subFolderEnumerator = folder.subFoldersObsolete;
-    var done = false;
-    while (!done)
+    var nextFolder =
+      subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+
+    if (!(nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
     {
-      var next = subFolderEnumerator.currentItem();
-      if (next)
-      {
-        var nextFolder = next.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (nextFolder && ! (nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
-        {
-          if (!nextFolder.noSelect)
-            gSearchSession.addScopeTerm(GetScopeForFolder(nextFolder), nextFolder);
-          AddSubFolders(nextFolder);
-        }
-      }
-      try
-      {
-        subFolderEnumerator.next();
-       }
-       catch (ex)
-       {
-          done = true;
-       }
+      if (!nextFolder.noSelect)
+        gSearchSession.addScopeTerm(GetScopeForFolder(nextFolder), nextFolder);
+
+      AddSubFolders(nextFolder);
     }
   }
 }
@@ -469,42 +456,29 @@ function AddSubFolders(folder) {
 function AddSubFoldersToURI(folder) 
 {
   var returnString = "";
-  if (folder.hasSubFolders)
-  {
-    var subFolderEnumerator = folder.subFoldersObsolete;
-    var done = false;
-    while (!done)
-    {
-      var next = subFolderEnumerator.currentItem();
-      if (next)
-      {
-        var nextFolder = next.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (nextFolder && ! (nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
-        {
-          if (!nextFolder.noSelect && !nextFolder.isServer)
-          {
-            if (returnString.length > 0)
-              returnString += '|';
-            returnString += nextFolder.URI;
-          }
-          var subFoldersString = AddSubFoldersToURI(nextFolder);
-          if (subFoldersString.length > 0)
-          {
-            if (returnString.length > 0)
-              returnString += '|';
-            returnString += subFoldersString;
-          }
 
-        }
-      }
-      try
+  var subFolders = folder.subFolders;
+
+  while (subFolders.hasMoreElements())
+  {
+    var nextFolder =
+      subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+
+    if (!(nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
+    {
+      if (!nextFolder.noSelect && !nextFolder.isServer)
       {
-        subFolderEnumerator.next();
-       }
-       catch (ex)
-       {
-          done = true;
-       }
+        if (returnString.length > 0)
+          returnString += '|';
+        returnString += nextFolder.URI;
+      }
+      var subFoldersString = AddSubFoldersToURI(nextFolder);
+      if (subFoldersString.length > 0)
+      {
+        if (returnString.length > 0)
+          returnString += '|';
+        returnString += subFoldersString;
+      }
     }
   }
   return returnString;

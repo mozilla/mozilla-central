@@ -96,22 +96,13 @@ function compareFolderSortKey(folder1, folder2)
 
 function GetSubFoldersInFolderPaneOrder(folder)
 {
-  var subFolderEnumerator = folder.subFoldersObsolete;
-  var done = false;
+  var subFolders = folder.subFolders;
   var msgFolders = Array();
 
   // get all the subfolders
-  while (!done) {
-    try {
-      var element = subFolderEnumerator.currentItem();
-	  var msgFolder = element.QueryInterface(Components.interfaces.nsIMsgFolder);
-      msgFolders[msgFolders.length] = msgFolder;
-
-      subFolderEnumerator.next();
-    }
-    catch (ex) {
-      done = true;
-    }
+  while (subFolders.hasMoreElements()) {
+    msgFolders[msgFolders.length] =
+      subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
   }
 
   // sort the subfolders
