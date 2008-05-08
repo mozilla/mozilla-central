@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -365,6 +365,9 @@ NS_IMETHODIMP nsMsgTagService::DeleteKey(const nsACString &key)
 /* void getAllTags (out unsigned long count, [array, size_is (count), retval] out nsIMsgTag tagArray); */
 NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArray)
 {
+  NS_ENSURE_ARG_POINTER(aCount);
+  NS_ENSURE_ARG_POINTER(aTagArray);
+
   // preset harmless default values
   *aCount = 0;
   *aTagArray = nsnull;
@@ -382,7 +385,10 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
   // it's at max the same size as the preflist, but usually only about half
   *aTagArray = (nsIMsgTag**) NS_Alloc(sizeof(nsIMsgTag*) * prefCount);
   if (!*aTagArray)
+  {
+    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
     return NS_ERROR_OUT_OF_MEMORY;
+  }
   PRUint32 currentTagIndex = 0;
   nsMsgTag *newMsgTag;
   nsString tag;
@@ -503,7 +509,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
       ToLowerCase(key);
       AddTagForKey(key, tagStr, color, ordinal);
     }
-    NS_Free(tagArray);
+    NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(numTags, tagArray);
     gMigratingKeys = PR_FALSE;
   }
   else 
