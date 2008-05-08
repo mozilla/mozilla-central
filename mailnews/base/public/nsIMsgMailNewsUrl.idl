@@ -73,6 +73,14 @@ interface nsIMsgMailNewsUrl : nsIURL {
   void GetUrlState(out boolean runningUrl);
 
   readonly attribute nsIMsgIncomingServer server;
+
+  /**
+   * The folder associated with this url.
+   * 
+   * @exception NS_ERROR_FAILURE    May be thrown if the url does not
+   *                                relate to a folder, e.g. standalone
+   *                                .eml messages.
+   */
   attribute nsIMsgFolder folder;
 
   attribute nsIMsgStatusFeedback statusFeedback;
@@ -145,7 +153,14 @@ interface nsIMsgMessageUrl : nsISupports {
 
 [scriptable, uuid(D71E0785-2862-11d4-98C1-001083010E9B)]
 interface nsIMsgI18NUrl : nsISupports {
-  // the charset associated with a folder for this url.....
+
+  /**
+   * the charset associated with a folder for this url.
+   * 
+   * @exception NS_ERROR_FAILURE    May be thrown if the url does not
+   *                                relate to a folder, e.g. standalone
+   *                                .eml messages.
+   */
   readonly attribute string folderCharset;
   readonly attribute boolean folderCharsetOverride;
   // the charsetOverRide is a charset the user may have specified via the menu for
