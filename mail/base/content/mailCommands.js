@@ -746,15 +746,10 @@ function deleteAllInFolder(commandName)
                   .createInstance(Components.interfaces.nsISupportsArray);
 
   // Delete sub-folders.
-  var iter = folder.subFoldersObsolete;
-  while (true) {
-    try {
-      children.AppendElement(iter.currentItem());
-      iter.next();
-    } catch (ex) {
-      break;
-    }
-  }
+  var iter = folder.subFolders;
+  while (iter.hasMoreElements())
+    children.AppendElement(iter.getNext());
+
   for (var i = 0; i < children.Count(); ++i) {
     folder.propagateDelete(children.GetElementAt(i), true, msgWindow); 
   }
