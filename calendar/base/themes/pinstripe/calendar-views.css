@@ -40,6 +40,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* Core */
+calendar-category-box:not([categories]) {
+  display: none;
+}
+
 /* Multiday view */
 calendar-event-column {
   background-color: #FFFFFF;
@@ -171,7 +176,7 @@ calendar-header-container[weekend="true"][selected="true"],
   overflow: hidden;
 }
 
-.calendar-event-box-container[has-category="true"] {
+.calendar-event-box-container[categories] {
   -moz-margin-end: 0px;
 }
 
@@ -369,12 +374,12 @@ calendar-month-day-box-item[selected="true"] .calendar-event-selection {
   display: none;
 }
 
-.calendar-month-day-box-item-image[type="todo"] {
+.calendar-month-day-box-item-image[type="todo"]:not([progress]) {
   -moz-image-region: rect(0px 11px 11px 0px);
   display: inline;
 }
 
-.calendar-month-day-box-item-image[type="todo"][completed="true"] {
+.calendar-month-day-box-item-image[type="todo"][progress="completed"] {
   -moz-image-region: rect(0px 22px 11px 11px);
 }
 

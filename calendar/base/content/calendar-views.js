@@ -464,7 +464,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
         // For a category, set the category bar color.  Also note that
         // it uses the ~= selector, since there could be multiple categories.
         name = aObject;
-        selectorPrefix = "item-category~=";
+        selectorPrefix = "categories~=";
         ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
             var color = getPrefSafe("calendar.category.color."+name, null);
             if (color) {

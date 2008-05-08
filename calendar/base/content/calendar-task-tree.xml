@@ -338,39 +338,51 @@
               return this.binding.mTaskArray.length;
           },
           
-          // An atomized list of properties for a given cell. Each property, x, that the
-          // view gives back will cause the pseudoclass :moz-tree-cell-x to be matched
-          // on the ::moz-tree-cell pseudoelement. It is use here to color a particular
-          // row with a color given by the progress state of the task.
-          getCellProperties: function mTV_getCellProperties(aRow, aCol, aProps) { 
-              var task = this.binding.mTaskArray[aRow];
-              if (aCol.element.getAttribute("anonid") == "calendar-task-tree-col-priority") {
-                  if(task.priority > 0 && task.priority < 5) {
-                      aProps.AppendElement(getAtomFromService("highpriority"));
-                  }
-                  if(task.priority > 5 && task.priority < 10) {
-                      aProps.AppendElement(getAtomFromService("lowpriority"));
-                  }
-              }
-              aProps.AppendElement(getAtomFromService(this._progressAtom(task)));
+          // TODO this code is currently identical to the unifinder. We should
+          // create an itemTreeView that these tree views can inherit, that
+          // contains this code, and possibly other code related to sorting and
+          // storing items. See bug 432582 for more details.
+          getCellProperties: function mTV_getCellProperties(aRow, aCol, aProps) {
+              this.getRowProperties(aRow, aProps);
+              this.getColumnProperties(aCol, aProps);
+          },
+
+          // Called to get properties to paint a column background.
+          // For shading the sort column, etc.
+          getColumnProperties: function mTV_getColumnProperties(aCol, aProps) {
               if (aCol.element.hasAttribute("anonid")) {
                   aProps.AppendElement(getAtomFromService(aCol.element.getAttribute("anonid")));
               }
           },
-          
-          // Called to get properties to paint a column background.
-          // For shading the sort column, etc.
-          getColumnProperties: function mTV_getColumnProperties() {
-              return false;
-          },
-         
-          // An atomized list of properties for a given row. Each property, x, that the
-          // view gives back will cause the pseudoclass :moz-tree-row-x to be matched
-          // on the pseudoelement ::moz-tree-row. It is used here to color the background
-          // of a selected task with a color given by  the progress state of the task.
+
           getRowProperties: function mTV_getRowProperties(aRow, aProps) {
-              var task = this.binding.mTaskArray[aRow];
-              aProps.AppendElement(getAtomFromService(this._progressAtom(task)));
+              var item = this.binding.mTaskArray[aRow];
+              if (item.priority > 0 && item.priority < 5) {
+                  aProps.AppendElement(getAtomFromService("highpriority"));
+              } else if (item.priority > 5 && item.priority < 10) {
+                  aProps.AppendElement(getAtomFromService("lowpriority"));
+              }
+              aProps.AppendElement(getAtomFromService(getProgressAtom(item)));
+
+              // Add calendar name atom
+              var calendarAtom = "calendar-" + formatStringForCSSRule(item.calendar.name);
+              aProps.AppendElement(getAtomFromService(calendarAtom));
+
+              // Add item status atom
+              if (item.status) {
+                  aProps.AppendElement(getAtomFromService("status-" + item.status.toLowerCase()));
+              }
+
+              // Alarm status atom
+              if (item.alarmOffset) {
+                  aProps.AppendElement(getAtomFromService("alarm"));
+              }
+
+              // Task categories
+              var categories = categoriesStringToArray(item.getProperty("CATEGORIES"));
+              categories.map(formatStringForCSSRule)
+                        .map(getAtomFromService)
+                        .forEach(aProps.AppendElement, aProps);
           },
 
           // Called on the view when a cell in a non-selectable cycling
@@ -597,31 +609,6 @@
             return aRow && aRow.value > -1 && this.binding.mTaskArray[aRow.value];
           },
           
-          // This function return the progress state of a task :
-          // completed, overdue, duetoday, inprogress, future
-          _progressAtom: function tTV_progressAtom(aTask) {
-              var now = new Date();
-
-              if (aTask.isCompleted)
-                  return "completed";
-
-              if (aTask.dueDate && aTask.dueDate.isValid) {
-                  if (aTask.dueDate.jsDate.getTime() < now.getTime())
-                      return "overdue";
-                  else if (aTask.dueDate.year == now.getFullYear() &&
-                           aTask.dueDate.month == now.getMonth() &&
-                           aTask.dueDate.day == now.getDate())
-                      return "duetoday";
-              }
-
-              if (aTask.entryDate && aTask.entryDate.isValid &&
-                  aTask.entryDate.jsDate.getTime() < now.getTime())
-                  return "inprogress";
-
-              return "future";
-          },
-          
-
           // Helper function to display datetimes
           _formatDateTime: function tTV_formatDateTime(aDateTime) {
               var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]

@@ -819,14 +819,6 @@
                               chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
                           }
 
-                          if (!isCalendarWritable(chunk.event.calendar)) {
-                              chunkBox.setAttribute("readOnly", "true");
-                          }
-
-                          if (chunk.event.hashId in this.calendarView.mFlashingEvents) {
-                              chunkBox.setAttribute("flashing", "true");
-                          }
-
                           innerColumn.appendChild(chunkBox);
 
                           chunkBox.calendarView = this.calendarView;
@@ -1978,13 +1970,15 @@
           <xul:image anonid="shadow-left-if-vertical"
                      class="calendar-event-box-shadow-left"
                      hidden="true"/>
-          <xul:box anonid="event-container" xbl:inherits="orient" flex="1">
+          <xul:box anonid="event-container"
+                   xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories"
+                   flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
                          align="stretch"
                          class="calendar-event-box-container"
                          flex="1"
-                         xbl:inherits="context,parentorient=orient">
+                         xbl:inherits="context,parentorient=orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
                 <xul:vbox class="calendar-event-details">
                   <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
@@ -2018,7 +2012,7 @@
                      not be resizable using the gripbars. If you want to insert
                      additional elements, do so above the box with the gripbars. -->
               </xul:stack>
-              <xul:calendar-category-box anonid="category-box"/>
+              <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
             </xul:box>
           </xul:box>
           <xul:image anonid="shadow-bottom"
@@ -2099,7 +2093,7 @@
         onget="return this.mParentColumn;"
         onset="return (this.mParentColumn = val);"/>
 
-      <property name="startMinute">
+      <property name="startMinute" readonly="true">
         <getter><![CDATA[
             if (!this.mOccurrence)
                 return 0;
@@ -2108,7 +2102,7 @@
         ]]></getter>
       </property>
 
-      <property name="endMinute">
+      <property name="endMinute" readonly="true">
         <getter><![CDATA[
             if (!this.mOccurrence)
                 return 0;

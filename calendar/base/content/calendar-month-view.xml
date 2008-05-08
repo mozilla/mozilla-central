@@ -60,10 +60,12 @@
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
                          class="calendar-event-box-container"
+                         xbl:inherits="readonly,flashing,alarm,allday,priority,progress,status,calendar,categories"
                          flex="1">
                 <xul:hbox class="calendar-event-details">
                   <xul:image anonid="item-icon"
-                             class="calendar-month-day-box-item-image"/>
+                             class="calendar-month-day-box-item-image"
+                             xbl:inherits="progress,allday"/>
                   <xul:label anonid="item-label"
                              class="calendar-month-day-box-item-label"
                              xbl:inherits="context"/>
@@ -94,7 +96,7 @@
                            height="1px"/>
               </xul:stack>
             </xul:box>
-            <xul:calendar-category-box anonid="category-box"/>
+            <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
           <xul:image anonid="shadow-right-image" class="calendar-event-box-shadow-right"/>
         </xul:hbox>
@@ -124,13 +126,12 @@
             return this.mOccurrence;
         ]]></getter>
         <setter><![CDATA[
+          ASSERT(!this.mOccurrence, "Code changes needed to set the occurrence twice", true);
           this.mOccurrence = val;
           var icon = document.getAnonymousElementByAttribute(this,"anonid","item-icon");                                                              
           if (isEvent(val)) {
             icon.setAttribute("type", "event");
-            if (val.startDate.isDate) {
-              icon.setAttribute("type", "all-day");
-            } else {
+            if (!val.startDate.isDate) {
               var label = document.getAnonymousElementByAttribute(this,"anonid","item-label");
               var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
                        getService(Components.interfaces.calIDateTimeFormatter);
@@ -142,9 +143,6 @@
             }
           } else if (isToDo(val)) {
             icon.setAttribute("type", "todo");
-            if (val.isCompleted) {
-              icon.setAttribute("completed", "true");
-            }
           }
 
           this.setEditableLabel();
@@ -530,20 +528,6 @@
               box.setAttribute("class", "calendar-item");
               box.setAttribute("item-calendar", itd.item.calendar.uri.spec);
               box.setAttribute("tooltip", "itemTooltip");
-
-              if (itd.item.hashId in this.monthView.mFlashingEvents) {
-                box.setAttribute("flashing", "true");
-              }
-
-              var categoriesSelectorList = "";
-              var categoriesProperty = itd.item.getProperty("CATEGORIES");
-              if (categoriesProperty) {
-                var categoriesArray = categoriesStringToArray(categoriesProperty);
-                var cssClassesArray = categoriesArray.map(formatStringForCSSRule);
-                categoriesSelectorList = cssClassesArray.join(" ");
-              }
-
-              box.setAttribute("item-category", categoriesSelectorList);
 
               this.dayitems.insertBefore(box, before);
 

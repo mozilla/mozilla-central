@@ -1055,6 +1055,9 @@ function getPrefCategoriesArray() {
  * @return list of category names
  */
 function categoriesStringToArray(aCategories) {
+    if (!aCategories) {
+        return [];
+    }
     // \u001A is the unicode "SUBSTITUTE" character
     function revertCommas(name) { return name.replace(/\u001A/g, ","); }
     return aCategories.replace(/\\,/g, "\u001A").split(",").map(revertCommas);
@@ -1683,6 +1686,37 @@ function checkIfInRange(item, rangeStart, rangeEnd, returnDtstartOrDue)
         }
     }
     return null;
+}
+
+/**
+ * This function return the progress state of a task:
+ * completed, overdue, duetoday, inprogress, future
+ *
+ * @param aTask     The task to check.
+ * @return          The progress atom.
+ */
+function getProgressAtom(aTask) {
+    var now = new Date();
+
+    if (aTask.isCompleted)
+      return "completed";
+
+    if (aTask.dueDate && aTask.dueDate.isValid) {
+        if (aTask.dueDate.jsDate.getTime() < now.getTime()) {
+            return "overdue";
+        } else if (aTask.dueDate.year == now.getFullYear() &&
+                   aTask.dueDate.month == now.getMonth() &&
+                   aTask.dueDate.day == now.getDate()) {
+            return "duetoday";
+        }
+    }
+
+    if (aTask.entryDate && aTask.entryDate.isValid &&
+        aTask.entryDate.jsDate.getTime() < now.getTime()) {
+        return "inprogress";
+    }
+
+    return "future";
 }
 
 /**

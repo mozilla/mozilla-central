@@ -55,8 +55,9 @@
           <xul:box anonid="event-container" flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
-                         class="calendar-event-box-container"      
-                         flex="1">
+                         class="calendar-event-box-container"
+                         flex="1"
+                         xbl:inherits="readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
                 <xul:hbox class="calendar-event-details">
                   <xul:vbox align="left"
                             flex="1"
@@ -85,7 +86,7 @@
                            hidden="true" height="1px"/>
               </xul:stack>
             </xul:box>
-            <xul:calendar-category-box anonid="category-box"/>
+            <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
           <xul:image class="calendar-event-box-shadow-right"/>
         </xul:hbox>
@@ -199,33 +200,17 @@
 
       <method name="setCSSClasses">
         <body><![CDATA[
+          var item = this.mOccurrence
           var container = document.getAnonymousElementByAttribute(this,
                                                                   "anonid",
                                                                   "event-container");
-          var item = this.mOccurrence
           container.setAttribute("item-calendar", item.calendar.uri.spec);
 
-          var categoriesSelectorList = "";
           var categoriesProperty = item.getProperty("CATEGORIES");
           if (categoriesProperty) {
             var categoriesArray = categoriesStringToArray(categoriesProperty);
             var cssClassesArray = categoriesArray.map(formatStringForCSSRule);
-            categoriesSelectorList = cssClassesArray.join(" ");
-          }
-
-          var box = document.
-              getAnonymousElementByAttribute(this,"anonid","category-box");
-          if (box) {
-              box.categories = categoriesSelectorList;
-              box = document.
-                  getAnonymousElementByAttribute(this,"anonid","eventbox");
-              if (box) {
-                if (categoriesSelectorList.length > 0) {
-                  box.setAttribute("has-category","true");
-                } else {
-                  box.removeAttribute("has-category");
-                }
-              }
+            this.setAttribute("categories", cssClassesArray.join(" "));
           }
 
           if (item.alarmOffset && getPrefSafe("calendar.alarms.indicator.show", true)) {
@@ -240,6 +225,47 @@
               }
               alarmImage.removeAttribute("hidden");
           }
+
+          // Set up event box attributes for use in css selectors. Note if
+          // something is added here, it should also be xbl:inherited correctly
+          // in the <content> section of this binding, and all that inherit it.
+
+          // Event type specific properties
+          if (isEvent(item)) {
+              if (item.startDate.isDate) {
+                this.setAttribute("allday", "true");
+              }
+          } else if (isToDo(item)) {
+              // progress attribute
+              this.setAttribute("progress", getProgressAtom(item));
+          }
+
+          if (!isCalendarWritable(item.calendar)) {
+              this.setAttribute("readonly", "true");
+          }
+
+          if (item.hashId in this.calendarView.mFlashingEvents) {
+              this.setAttribute("flashing", "true");
+          }
+
+          if (item.alarmOffset) {
+              this.setAttribute("alarm", "true")
+          }
+
+          // priority
+          if (item.priority > 0 && item.priority < 5) {
+              this.setAttribute("priority", "high");
+          } else if (item.priority > 5 && item.priority < 10) {
+              this.setAttribute("priority", "low");
+          }
+
+          // status attribute
+          if (item.status) {
+              this.setAttribute("status", item.status.toLowerCase());
+          }
+
+          // calendar name
+          this.setAttribute("calendar", item.calendar.name.toLowerCase());
         ]]></body>
       </method>
 
@@ -413,29 +439,18 @@
   </binding>
 
   <binding id="calendar-category-box">
+    <!-- calendar-views.css makes this binding hide if the categories attribute
+         is not specified -->
     <content>
-      <xul:vbox anonid="category-box" hidden="true" class="calendar-item calendar-event-selection">
+      <xul:vbox anonid="category-box"
+                hidden="true"
+                class="calendar-item calendar-event-selection"
+                xbl:inherits="categories">
         <xul:hbox flex="1">
           <xul:image class="calendar-category-box-gradient" height="1"/>
         </xul:hbox>
         <xul:hbox height="1"/>
       </xul:vbox>
     </content>
-    <implementation>
-      <property name="categories">
-        <setter><![CDATA[
-          var box = document.getAnonymousElementByAttribute(this,
-                                                            "anonid",
-                                                            "category-box");
-          box.setAttribute("item-category", val);
-          if (val.length > 0) {
-            box.removeAttribute("hidden");
-          } else {
-            box.setAttribute("hidden","true");
-          }
-        ]]></setter>
-      </property>
-    </implementation>
   </binding>
-
 </bindings>
