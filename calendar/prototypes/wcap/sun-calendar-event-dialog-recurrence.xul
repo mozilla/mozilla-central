@@ -20,6 +20,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,11 +44,9 @@
 <!DOCTYPE dialog [
   <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd">
   <!ENTITY % sunDialogDTD SYSTEM "chrome://calendar/locale/sun-calendar-event-dialog.dtd">
-  <!ENTITY % recurrenceDTD SYSTEM "chrome://calendar/locale/calendar-recurrence-dialog.dtd">
   <!ENTITY % dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
   %globalDTD;
   %sunDialogDTD;
-  %recurrenceDTD;
   %dialogDTD;
 ]>
 
@@ -122,7 +121,7 @@
                            disable-on-readonly="true"
                            disable-on-occurrence="true"/>
                   <label id="daily-group-every-units-label"
-                         value="&repeat.units.days;"
+                         value="&repeat.units.days.both;"
                          disable-on-readonly="true"
                          disable-on-occurrence="true"/>
                   <spacer id="daily-group-spacer" flex="1"/>

@@ -21,6 +21,7 @@
    -   Michael Büttner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Stefan Sitter <ssitter@gmail.com>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -263,6 +264,7 @@
 <!ENTITY event.freebusy.legend.busy      "Busy" >
 <!ENTITY event.freebusy.legend.unknown   "No information" >
 
+<!ENTITY repeat.units.days.both          "Day(s)" >
 <!ENTITY repeat.units.weeks.both         "Week(s)" >
 <!ENTITY repeat.units.months.both        "Month(s)" >
 <!ENTITY repeat.units.years.both         "Year(s)" >
