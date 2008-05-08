@@ -40,30 +40,27 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-/// Shortcut to the timezone service
-function getTimezoneService() {
-    if (getTimezoneService.mObject === undefined) {
-        getTimezoneService.mObject = Cc["@mozilla.org/calendar/timezone-service;1"]
-                                     .getService(Ci.calITimezoneService);
-    }
-    return getTimezoneService.mObject;
+function loadChromeScript(aRelativePath) {
+    var ioSvc = Cc["@mozilla.org/network/io-service;1"]
+                .getService(Ci.nsIIOService);
+    var loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
+                 .getService(Ci.mozIJSSubScriptLoader);
+
+    var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
+                 .getService(Ci.nsIDirectoryServiceProvider);
+    var dir = dirSvc.getFile("CurWorkD", {}).parent.parent;
+    dir.append("dist");
+    dir.append("bin");
+    dir.append("chrome");
+    dir.append("calendar.jar");
+
+    var fileUri = ioSvc.newFileURI(dir);
+    var jarUri = ioSvc.newURI("jar: " + fileUri.spec + "!/" + aRelativePath, null, null);
+
+    loader.loadSubScript(jarUri.spec, null);
 }
 
-/// @return the UTC timezone.
-function UTC() {
-    if (UTC.mObject === undefined) {
-        UTC.mObject = getTimezoneService().UTC;
-    }
-    return UTC.mObject;
-}
-
-/// @return the floating timezone.
-function floating() {
-    if (floating.mObject === undefined) {
-        floating.mObject = getTimezoneService().floating;
-    }
-    return floating.mObject;
-}
+loadChromeScript("content/calendar/calUtils.js");
 
 function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]
@@ -209,7 +206,7 @@ function getProps(aItem, aProp) {
     }
 }
 
-function compareItems(aLeftItem, aRightItem, aPropArray) {
+function compareItemsSpecific(aLeftItem, aRightItem, aPropArray) {
     if (!aPropArray) {
         // left out:  "id", "calendar", "lastModifiedTime", "generation",
         // "stampTime" as these are expected to change

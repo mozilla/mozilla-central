@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -327,7 +328,7 @@ function run_test() {
                     if (aCount) {
                         count += aCount;
                         for (var i = 0; i < aCount; i++) {
-                            compareItems(aItems[i].parentItem, aItem);
+                            compareItemsSpecific(aItems[i].parentItem, aItem);
                         }
                     }
                 }
@@ -360,12 +361,12 @@ function run_test() {
                                               aDetail) {
                     do_check_eq(aStatus, 0);
                     if (aOperationType == Ci.calIOperationListener.ADD) {
-                        compareItems(aDetail, aItem);
+                        compareItemsSpecific(aDetail, aItem);
                         // perform getItem() on calendar
                         aCalendar.getItem(aId, listener);
                     } else if (aOperationType == Ci.calIOperationListener.GET) {
                         do_check_eq(count, 1);
-                        compareItems(returnedItem, aItem);
+                        compareItemsSpecific(returnedItem, aItem);
                     }
                 },
                 onGetResult: function(aCalendar,
