@@ -134,7 +134,7 @@ interface nsIAbBooleanConditionString : nsISupports
  * child conditions or expressions
  *
  */
-[scriptable, uuid(55096af9-78d1-4869-82ed-f1d2e1d97727)]
+[scriptable, uuid(223a9462-1aeb-4c1f-b069-5fc6278989b2)]
 interface nsIAbBooleanExpression: nsISupports
 {
     /**
@@ -151,18 +151,5 @@ interface nsIAbBooleanExpression: nsISupports
      *
      */
     attribute nsIArray expressions;
-
-    /**
-     * expressions attribute defined explicitly as an
-     * array of nsISupports
-     *
-     */
-    void asetExpressions (in unsigned long aExpressionsSize,
-        [array, size_is(aExpressionsSize)]
-        in nsISupports aExpressionsArray);
-    void agetExpressions (out unsigned long aExpressionsSize,
-        [retval, array, size_is(aExpressionsSize)]
-        out nsISupports aExpressionsArray);
-
 };
 

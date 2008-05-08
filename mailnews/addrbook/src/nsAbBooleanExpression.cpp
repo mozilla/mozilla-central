@@ -163,16 +163,3 @@ NS_IMETHODIMP nsAbBooleanExpression::SetExpressions(nsIArray *aExpressions)
 
   return NS_OK;
 }
-
-/* void asetExpressions (in unsigned long aExpressionsSize, [array, size_is (aExpressionsSize)] in nsISupports aExpressionsArray); */
-NS_IMETHODIMP nsAbBooleanExpression::AsetExpressions(PRUint32 aExpressionsSize, nsISupports **aExpressionsArray)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void agetExpressions (out unsigned long aExpressionsSize, [array, size_is (aExpressionsSize), retval] out nsISupports aExpressionsArray); */
-NS_IMETHODIMP nsAbBooleanExpression::AgetExpressions(PRUint32 *aExpressionsSize, nsISupports ***aExpressionsArray)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
