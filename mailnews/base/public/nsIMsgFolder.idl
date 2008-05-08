@@ -44,7 +44,6 @@
 #include "nsISupportsArray.idl"
 #include "nsIMsgCopyServiceListener.idl"
 #include "nsIUrlListener.idl"
-#include "nsIEnumerator.idl"
 #include "nsISimpleEnumerator.idl"
 
 [ptr] native octet_ptr(PRUint8);
@@ -68,7 +67,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(8e052b65-b073-4b3b-af84-cfe1921c3a0f)]
+[scriptable, uuid(13d4b3f5-6599-460e-97be-7489aea1538d)]
 interface nsIMsgFolder : nsICollection {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -418,10 +417,6 @@ interface nsIMsgFolder : nsICollection {
 
   nsISupports getChildNamed(in AString name);
   attribute nsIMsgFolder parent;
-
-  // OBSOLETE, don't use this, use subFolders instead, this interface will
-  // be going away soon.
-  [deprecated] readonly attribute nsIEnumerator subFoldersObsolete;
 
   /**
    * Returns an enumerator containing a list of nsIMsgFolder items that are

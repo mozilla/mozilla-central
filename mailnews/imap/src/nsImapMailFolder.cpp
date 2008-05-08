@@ -570,9 +570,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
   return rv;
 }
 
-// XXX When GetSubFoldersObsolete goes away (bug 420614), this can be merged
-// into GetSubFolders (see also note at return statement).
-nsresult nsImapMailFolder::GetSubFoldersMain()
+NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
   PRBool isServer;
   nsresult rv = GetIsServer(&isServer);
@@ -620,28 +618,8 @@ nsresult nsImapMailFolder::GetSubFoldersMain()
     UpdateSummaryTotals(PR_FALSE);
     if (NS_FAILED(rv)) return rv;
   }
-  // XXX When GetSubFoldersObsolete goes away, this return can be replaced by:
-  // return NS_NewArrayEnumerator(aResult, mSubFolders);
-  return rv;
-}
-
-NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
 
   return NS_NewArrayEnumerator(aResult, mSubFolders);
-}
-
-// XXX GetSubFoldersObsolete will be going away soon (bug 420614)
-NS_IMETHODIMP nsImapMailFolder::GetSubFoldersObsolete(nsIEnumerator **aResult)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
-
-  return mSubFolders->Enumerate(aResult);
 }
 
 //Makes sure the database is open and exists.  If the database is valid then

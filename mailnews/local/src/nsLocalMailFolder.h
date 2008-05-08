@@ -133,7 +133,6 @@ public:
 
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator* *aResult);
-  NS_IMETHOD GetSubFoldersObsolete(nsIEnumerator* *result);
   NS_IMETHOD GetMsgDatabase(nsIMsgWindow *aMsgWindow,
                               nsIMsgDatabase** aMsgDatabase);
 
@@ -200,9 +199,6 @@ public:
   NS_IMETHOD RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
 
 protected:
-  // XXX Bug 420614 Temporary function.
-  nsresult GetSubFoldersMain();
-
   nsresult CopyFolderAcrossServer(nsIMsgFolder *srcFolder, nsIMsgWindow *msgWindow,nsIMsgCopyServiceListener* listener);
 
   nsresult CreateSubFolders(nsIFile *path);

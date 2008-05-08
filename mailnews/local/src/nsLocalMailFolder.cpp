@@ -344,10 +344,8 @@ nsMsgLocalMailFolder::Enumerate(nsIEnumerator* *result)
   return NS_ERROR_FAILURE;
 }
 
-// XXX When GetSubFoldersObsolete goes away (bug 420614), this can be merged
-// into GetSubFolders.
-nsresult
-nsMsgLocalMailFolder::GetSubFoldersMain()
+NS_IMETHODIMP
+nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
   PRBool isServer;
   nsresult rv = GetIsServer(&isServer);
@@ -434,28 +432,8 @@ nsMsgLocalMailFolder::GetSubFoldersMain()
     }
     UpdateSummaryTotals(PR_FALSE);
   }
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
 
   return NS_NewArrayEnumerator(aResult, mSubFolders);
-}
-
-// XXX GetSubFoldersObsolete will be going away soon (bug 420614)
-NS_IMETHODIMP
-nsMsgLocalMailFolder::GetSubFoldersObsolete(nsIEnumerator* *result)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
-
-  return mSubFolders->Enumerate(result);
 }
 
 nsresult nsMsgLocalMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)

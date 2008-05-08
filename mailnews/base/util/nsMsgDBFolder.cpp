@@ -2249,12 +2249,6 @@ typedef PRBool
 ////////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP
-nsMsgDBFolder::GetSubFoldersObsolete(nsIEnumerator* *result)
-{
-  return mSubFolders->Enumerate(result);
-}
-
-NS_IMETHODIMP
 nsMsgDBFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
   return NS_NewArrayEnumerator(aResult, mSubFolders);

@@ -265,10 +265,9 @@ nsMsgNewsFolder::AddDirectorySeparator(nsILocalFile *path)
                   nsMsgDBFolder::AddDirectorySeparator(path);
 }
 
-// XXX When GetSubFoldersObsolete goes away (bug 420614), this can be merged
-// into GetSubFolders (see also note at return statement).
-nsresult
-nsMsgNewsFolder::GetSubFoldersMain()
+
+NS_IMETHODIMP
+nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
   if (!mInitialized)
   {
@@ -288,30 +287,8 @@ nsMsgNewsFolder::GetSubFoldersMain()
     // migration, but we continue on.  see #66018
     (void)UpdateSummaryTotals(PR_FALSE);
   }
-  // XXX When GetSubFoldersObsolete goes away, this return can be replaced by:
-  // return NS_NewArrayEnumerator(aResult, mSubFolders);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
 
   return NS_NewArrayEnumerator(aResult, mSubFolders);
-}
-
-// XXX GetSubFoldersObsolete will be going away soon (bug 420614)
-NS_IMETHODIMP
-nsMsgNewsFolder::GetSubFoldersObsolete(nsIEnumerator **aResult)
-{
-  nsresult rv = GetSubFoldersMain();
-  if (NS_FAILED(rv))
-    return rv;
-
-  return mSubFolders->Enumerate(aResult);
 }
 
 //Makes sure the database is open and exists.  If the database is valid then

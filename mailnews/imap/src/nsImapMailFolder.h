@@ -214,7 +214,6 @@ public:
 
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
-  NS_IMETHOD GetSubFoldersObsolete(nsIEnumerator* *result);
 
   NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
@@ -330,9 +329,6 @@ public:
   nsresult SetSupportedUserFlags(PRUint32 userFlags);
   nsresult GetSupportedUserFlags(PRUint32 *userFlags);
 protected:
-    // XXX Bug 420614 Temporary function.
-    nsresult GetSubFoldersMain();
-
   // Helper methods
 
   void FindKeysToAdd(const nsTArray<nsMsgKey> &existingKeys, nsTArray<nsMsgKey>

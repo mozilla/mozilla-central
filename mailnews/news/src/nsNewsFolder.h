@@ -67,7 +67,6 @@ public:
   NS_IMETHOD OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode);
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
-  NS_IMETHOD GetSubFoldersObsolete(nsIEnumerator **aResult);
 
   NS_IMETHOD GetMessages(nsIMsgWindow *aMsgWindow, nsISimpleEnumerator* *result);
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
@@ -159,10 +158,6 @@ protected:
   PRInt32 mSortOrder;
 
 private:
-  // XXX Bug 420614 Temporary function.
-  nsresult GetSubFoldersMain();
-
-
   nsresult CreateNewsgroupUsernameUrlForSignon(const nsACString& inUriStr, nsACString& result);
   nsresult CreateNewsgroupPasswordUrlForSignon(const nsACString& inUriStr, nsACString& result);
   nsresult CreateNewsgroupUrlForSignon(const nsACString& inUriStr, const char * ref, nsACString& result);
