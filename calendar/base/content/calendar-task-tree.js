@@ -181,7 +181,7 @@ function contextChangeTaskCalendar(aEvent) {
        var task = tasks[t];
        var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
        newTask.calendar = aEvent.target.calendar;
-       doTransaction('move', newTask, newTask.calendar, task, null);
+       doTransaction('modify', newTask, newTask.calendar, task, null);
     }
     endBatchTransaction();
 }

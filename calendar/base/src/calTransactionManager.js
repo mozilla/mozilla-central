@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -167,17 +168,18 @@ calTransaction.prototype = {
                 this.mCalendar.addItem(this.mItem, this);
                 break;
             case 'modify':
-                this.mCalendar.modifyItem(this.mItem,
-                                          this.mOldItem,
-                                          this);
+                if (this.mItem.calendar.id != this.mOldItem.calendar.id) {
+                    this.mOldCalendar = this.mOldItem.calendar;
+                    this.mOldCalendar.deleteItem(this.mOldItem, this);
+                    this.mCalendar.addItem(this.mItem, this);
+                } else {
+                    this.mCalendar.modifyItem(this.mItem,
+                                              this.mOldItem,
+                                              this);
+                }
                 break;
             case 'delete':
                 this.mCalendar.deleteItem(this.mItem, this);
-                break;
-            case 'move':
-                this.mOldCalendar = this.mOldItem.calendar;
-                this.mOldCalendar.deleteItem(this.mOldItem, this);
-                this.mCalendar.addItem(this.mItem, this);
                 break;
             default:
                 throw new Components.Exception("Invalid action specified",
@@ -193,14 +195,15 @@ calTransaction.prototype = {
                 this.mCalendar.deleteItem(this.mItem, this);
                 break;
             case 'modify':
-                this.mCalendar.modifyItem(this.mOldItem, this.mItem, this);
+                if (this.mOldItem.calendar.id != this.mItem.calendar.id) {
+                    this.mCalendar.deleteItem(this.mItem, this);
+                    this.mOldCalendar.addItem(this.mOldItem, this);
+                } else {
+                    this.mCalendar.modifyItem(this.mOldItem, this.mItem, this);
+                }
                 break;
             case 'delete':
                 this.mCalendar.addItem(this.mItem, this);
-                break;
-            case 'move':
-                this.mCalendar.deleteItem(this.mItem, this);
-                this.mOldCalendar.addItem(this.mOldItem, this);
                 break;
             default:
                 throw new Components.Exception("Invalid action specified",

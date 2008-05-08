@@ -69,11 +69,7 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event) {
         if (item.id) {
             // If the item already has an id, then this is the result of
             // saving the item without closing, and then saving again.
-            if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
-                doTransaction('modify', item, calendar, originalItem, innerListener);
-            } else {
-                doTransaction('move', item, calendar, originalItem, innerListener);
-            }
+            doTransaction('modify', item, calendar, originalItem, innerListener);
         } else {
             // Otherwise, this is an addition
             doTransaction('add', item, calendar, null, innerListener);
@@ -130,11 +126,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
         if (item.id) {
             // If the item already has an id, then this is the result of
             // saving the item without closing, and then saving again.
-            if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
-                doTransaction('modify', item, calendar, originalItem, innerListener);
-            } else {
-                doTransaction('move', item, calendar, originalItem, innerListener);
-            }
+            doTransaction('modify', item, calendar, originalItem, innerListener);
         } else {
             // Otherwise, this is an addition
             doTransaction('add', item, calendar, null, innerListener);
@@ -170,11 +162,7 @@ function modifyEventWithDialog(item, job) {
     var onModifyItem = function(item, calendar, originalItem, listener) {
         var innerListener = new opCompleteListener(originalItem, listener);
 
-        if (!originalItem.calendar || originalItem.calendar.id == calendar.id) {
-            doTransaction('modify', item, calendar, originalItem, innerListener);
-        } else {
-            doTransaction('move', item, calendar, originalItem, innerListener);
-        }
+        doTransaction('modify', item, calendar, originalItem, innerListener);
     };
 
     if (item) {
