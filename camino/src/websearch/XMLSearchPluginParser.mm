@@ -171,11 +171,11 @@ static NSDictionary const *sSubclassToPluginTypeMap = nil;
 
   NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithData:pluginData];
   [xmlParser setDelegate:self];
-  BOOL parsingFinishedWithoutErrors = [xmlParser parse];
+  [xmlParser parse]; // Due to bug 429718, ignore NSXMLParser errors and only determine success manually.
   [xmlParser release];
 
   // Check for parsing errors.
-  if (!parsingFinishedWithoutErrors || ![self searchEngineInformationWasFound]) {
+  if (![self searchEngineInformationWasFound]) {
     if (outError)
       *outError = [self parsingErrorWithCode:eXMLSearchPluginParserInvalidPluginFormatError];
     return NO;
