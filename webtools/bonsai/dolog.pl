@@ -510,4 +510,3 @@ sub shell_escape {
     $file =~ s/([ \"\'\?\$\&\|\!<>\(\)\[\]\;\:])/\\$1/g;
     return $file;
 }
-
