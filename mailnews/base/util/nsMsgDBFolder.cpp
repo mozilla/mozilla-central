@@ -2244,8 +2244,10 @@ nsMsgDBFolder::GetURI(nsACString& name)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+#if 0
 typedef PRBool
 (*nsArrayFilter)(nsISupports* element, void* data);
+#endif
 ////////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP
@@ -3713,6 +3715,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlag(PRUint32 flags, PRUint32 results
 
 NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
 {
+  NS_ENSURE_ARG_POINTER(expansionArray);
   // the application of flags in GetExpansionArray is subtly different
   // than in GetFoldersWithFlag
 
