@@ -152,7 +152,7 @@ sub PutsTrailer {
 <hr>
 <a href=\"toplevel.cgi$args\" target=_top>Back to the top of Bonsai</a><br>
 Found a bug or have a feature request?
-<a href=\"http://bugzilla.mozilla.org/enter_bug.cgi?product=Webtools&component=Bonsai\">File a bug report</a> about it.
+<a href=\"https://bugzilla.mozilla.org/enter_bug.cgi?product=Webtools&component=Bonsai\">File a bug report</a> about it.
 </html>
 ";
 }
@@ -270,7 +270,7 @@ sub cvsmenu {
      print "</dl>
 <p></tr><tr><td>
   Found a bug or have a feature request?
-  <a href=\"http://bugzilla.mozilla.org/enter_bug.cgi?product=Webtools&component=Bonsai\">File a bug report</a> about it.</td>
+  <a href=\"https://bugzilla.mozilla.org/enter_bug.cgi?product=Webtools&component=Bonsai\">File a bug report</a> about it.</td>
 </tr></table>
 ";
      
