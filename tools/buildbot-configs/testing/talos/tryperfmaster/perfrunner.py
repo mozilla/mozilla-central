@@ -49,7 +49,7 @@ MozillaEnvironments['mac'] = {
 
 class ApacheDirectory:
     sortByDateString = "?C=M;O=A"
-    lineParsingRegexp = r'<img.*?> <a.*?>(.*?)</a>[\s]+(\d\d-\w\w\w-\d\d\d\d \d\d:\d\d)\s+(.+?)\s'
+    lineParsingRegexp = r'.*<a href="\.*/*([^"]*)">.*'
     
     def __init__(self, url):
         self.page = []
@@ -69,7 +69,7 @@ class ApacheDirectory:
     
     def _buildPage(self, lines):
         for line in lines:
-            if line.startswith("<img src="):
+            if line.startswith('<tr><td valign="top"><img src="'):
                 match = self.lineParserRE.match(line)
                 self.page.append(match.groups())
     
