@@ -567,6 +567,33 @@ function Startup()
 
   //initConsoleListener();
 
+  // Set a sane starting width/height for all resolutions on new profiles.
+  if (!document.documentElement.hasAttribute("width")) {
+    var defaultHeight = screen.availHeight;
+    var defaultWidth= screen.availWidth;
+
+    // Create a narrower window for large or wide-aspect displays, to suggest
+    // side-by-side page view.
+    if (screen.availWidth >= 1440)
+      defaultWidth /= 2;
+
+    // Tweak sizes to be sure we don't grow outside the screen
+    defaultWidth = defaultWidth - 20;
+    defaultHeight = defaultHeight - 10;
+
+    // On X, we're not currently able to account for the size of the window
+    // border.  Use 28px as a guess (titlebar + bottom window border)
+    if (navigator.appVersion.indexOf("X11") != -1)
+      defaultHeight -= 28;
+
+    // On small screens, default to maximized state
+    if (defaultHeight <= 600)
+      document.documentElement.setAttribute("sizemode", "maximized");
+
+    document.documentElement.setAttribute("width", defaultWidth);
+    document.documentElement.setAttribute("height", defaultHeight);
+  }
+
   // hook up UI through progress listener
   getBrowser().addProgressListener(window.XULBrowserWindow, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
 
