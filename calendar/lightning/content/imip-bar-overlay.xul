@@ -73,6 +73,7 @@
                 <spacer flex="1"/>
                 <button id="imip-button1" hidden="true"/>
                 <button id="imip-button2" hidden="true"/>
+                <button id="imip-button3" hidden="true"/>
             </hbox>
         </hbox>
     </vbox>

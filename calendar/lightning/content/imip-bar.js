@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -43,6 +42,7 @@
  */
 
 var gItipItem;
+var gCalItemsArrayFound = [];
 
 const onItipItem = {
     observe: function observe(subject, topic, state) {
@@ -52,8 +52,25 @@ const onItipItem = {
     }
 };
 
-function checkForItipItem(subject)
-{
+/**
+ * Function to get a composite calendar of all registered read-write calendars.
+ *
+ * @return composite calendar
+ */
+function createItipCompositeCalendar() {
+    var compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
+                            .createInstance(Components.interfaces.calICompositeCalendar);
+    getCalendarManager().getCalendars({}).forEach(
+        function(cal) {
+            // we consider only read-writeable calendars since we need to add/modify items
+            if (!cal.readOnly) {
+                compCal.addCalendar(cal);
+            }
+        });
+    return compCal;
+}
+
+function checkForItipItem(subject) {
     var itipItem;
     try {
         if (!subject) {
@@ -107,8 +124,7 @@ addEventListener("messagepane-unloaded", imipOnUnload, true);
 /**
  * Add self to gMessageListeners defined in msgHdrViewOverlay.js
  */
-function imipOnLoad()
-{
+function imipOnLoad() {
     var listener = {};
     listener.onStartHeaders = onImipStartHeaders;
     listener.onEndHeaders = onImipEndHeaders;
@@ -120,8 +136,7 @@ function imipOnLoad()
     observerSvc.addObserver(onItipItem, "onItipItemCreation", false);
 }
 
-function imipOnUnload()
-{
+function imipOnUnload() {
     removeEventListener("messagepane-loaded", imipOnLoad, true);
     removeEventListener("messagepane-unloaded", imipOnUnload, true);
 
@@ -130,14 +145,15 @@ function imipOnUnload()
     observerSvc.removeObserver(onItipItem, "onItipItemCreation");
 
     gItipItem = null;
+    gCalItemsArrayFound = [];
 }
 
-function onImipStartHeaders()
-{
+function onImipStartHeaders() {
     var imipBar = document.getElementById("imip-bar");
     imipBar.setAttribute("collapsed", "true");
-    document.getElementById("imip-button1").setAttribute("hidden", "true");
-    document.getElementById("imip-button2").setAttribute("hidden", "true");
+    hideElement("imip-button1");
+    hideElement("imip-button2");
+    hideElement("imip-button3");
 
     // A new message is starting.
     // Clear our iMIP/iTIP stuff so it doesn't contain stale information.
@@ -148,13 +164,11 @@ function onImipStartHeaders()
 /**
  * Required by MessageListener. no-op
  */
-function onImipEndHeaders()
-{
+function onImipEndHeaders() {
     // no-op
 }
 
-function setupBar(imipMethod)
-{
+function setupBar(imipMethod) {
     // XXX - Bug 348666 - Currently we only do REQUEST requests
     // In the future this function will set up the proper actions
     // and attributes for the buttons as based on the iMIP Method
@@ -166,25 +180,20 @@ function setupBar(imipMethod)
         // Check if this is an update and display things accordingly
         isUpdateMsg();
     } else if (imipMethod.toUpperCase() == "REPLY") {
-        // Bug xxxx we currently cannot process REPLY messages so just let
-        // the user know what this is, and don't give them any options.
-        if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning",
-                                                       "imipBarReplyText");
-        }
+        // Check if this is an reply and display things accordingly
+        processReplyMsg(); 
+    } else if (imipMethod.toUpperCase() == "CANCEL") {
+        // Check if this is an cancel and display things accordingly
+        processCancelMsg();
     } else if (imipMethod.toUpperCase() == "PUBLISH") {
         if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning",
-                                                       "imipBarRequestText");
+            description.firstChild.data = ltnGetString("lightning", "imipBarRequestText");
         }
 
         var button = document.getElementById("imip-button1");
-        button.removeAttribute("hidden");
-        button.setAttribute("label", ltnGetString("lightning",
-                                                  "imipAddToCalendar.label"));
-        
-        button.setAttribute("oncommand",
-                            "setAttendeeResponse('PUBLISH', '');");
+        showElement(button);
+        button.setAttribute("label", ltnGetString("lightning", "imipAddToCalendar.label"));
+        button.setAttribute("oncommand", "setAttendeeResponse('PUBLISH', '');");
     } else {
         // Bug xxxx TBD: Something went wrong or we found a message we don't
         // support yet. We can show a "This method is not supported in this
@@ -197,18 +206,141 @@ function setupBar(imipMethod)
     }
 }
 
-function getMsgImipMethod()
-{
-    var imipMethod = "";
-    var msgURI = GetLoadedMessage();
-    var msgHdr = messenger.messageServiceFromURI(msgURI)
-                          .messageURIToMsgHdr(msgURI);
-    imipMethod = msgHdr.getStringProperty("imip_method");
-    return imipMethod;
+function processCancelMsg() {
+    var description = document.getElementById("imip-description");
+    if (description.firstChild.data) {
+        description.firstChild.data = ltnGetString("lightning", "imipBarCancelText");
+    }
+
+    var compCal = createItipCompositeCalendar();
+    // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
+    // same ID, this simplifies our searching, we can just look for Item[0].id
+    var itemList = gItipItem.getItemList({});
+    var onFindItemListener = {
+        onOperationComplete: function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            if (gCalItemsArrayFound.length > 0) {
+                displayCancel();
+            }
+        },
+
+        onGetResult: function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+            for each (var item in aItems) {
+                gCalItemsArrayFound.push(aItems[0]);
+            }
+        }
+    }
+    gCalItemsArrayFound = [];
+    // Search for item:
+    compCal.getItem(itemList[0].id, onFindItemListener);
 }
 
-function getMsgRecipient()
-{
+function processReplyMsg() {
+    var description = document.getElementById("imip-description");
+    if (description.firstChild.data) {
+        description.firstChild.data = ltnGetString("lightning", "imipBarReplyText");
+    }
+
+    var compCal = createItipCompositeCalendar();
+    // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
+    // same ID, this simplifies our searching, we can just look for Item[0].id
+    var itemList = gItipItem.getItemList({});
+    var itipItemDate = itemList[0].stampTime;
+    // check if ITIP DTSTAMP is in the future
+    var nowDate = jsDateToDateTime(new Date());
+    if (itipItemDate.compare(nowDate) > 0) {
+        itipItemDate = nowDate;
+    }
+
+    var onFindItemListener = {
+        onOperationComplete: function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            if (gCalItemsArrayFound.length > 0) {
+                displayReply();
+            }
+        },
+
+        onGetResult: function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+            for each (var item in aItems) {
+                if (itipItemDate.compare(item.stampTime) > 0) {
+                    gCalItemsArrayFound.push(aItems[0]);
+                }
+            }
+        }
+    };
+    gCalItemsArrayFound = [];
+    // Search for item:
+    compCal.getItem(itemList[0].id, onFindItemListener);
+}
+
+function displayCancel() {
+    var button = document.getElementById("imip-button1");
+    showElement(button);
+    button.setAttribute("label", ltnGetString("lightning", "imipCancelInvitation.label"));
+    button.setAttribute("oncommand", "deleteItemFromCancel()");
+}
+
+function displayReply() {
+    var button = document.getElementById("imip-button1");
+    showElement(button);
+    button.setAttribute("label", ltnGetString("lightning", "imipUpdateInvitation.label"));
+    button.setAttribute("oncommand", "updateItemStatusFromReply()");
+}
+
+function deleteItemFromCancel() {
+    var operationListener = {
+        onOperationComplete: function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            // Call finishItipAction to set the status of the operation
+            finishItipAction(aOperationType, aStatus, aDetail);
+        },
+
+        onGetResult: function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+        }
+    };
+
+    var itemArray = gItipItem.getItemList({});
+    for each (var calItemFound in gCalItemsArrayFound) {
+        calItemFound.calendar.deleteItem(calItemFound, operationListener);
+    }
+
+    return true;
+}
+
+function updateItemStatusFromReply() {
+    var operationListener = {
+        onOperationComplete: function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
+            // Call finishItipAction to set the status of the operation
+            finishItipAction(aOperationType, aStatus, aDetail);
+        },
+
+        onGetResult: function ogr(aCalendar, aStatus, aItemType, aDetail, aCount, aItems) {
+        }
+    };
+
+    // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
+    // same ID, this simplifies our searching, we can just look for Item[0].id
+    var itemArray = gItipItem.getItemList({});
+    var itipItem = itemArray[0];
+    for each (var calItemFound in gCalItemsArrayFound) {
+        var newItem = calItemFound.clone();
+        for each (var itipAttendee in itipItem.getAttendees({})) {
+            var att = newItem.getAttendeeById(itipAttendee.id);
+            if (att) {
+                var newAtt = att.clone();
+                newItem.removeAttendee(att);
+                newAtt.participationStatus = itipAttendee.participationStatus;
+                newItem.addAttendee(newAtt);
+            }
+        }
+        newItem.calendar.modifyItem(newItem, calItemFound, operationListener);
+    }
+
+    return true;
+}
+
+function getMsgImipMethod() {
+    return messenger.msgHdrFromURI(GetLoadedMessage()).getStringProperty("imip_method");
+}
+
+function getMsgRecipient() {
     var imipRecipient = "";
     var msgURI = GetLoadedMessage();
     var msgHdr = messenger.msgHdrFromURI(msgURI);
@@ -288,8 +420,7 @@ function getMsgRecipient()
 /**
  * Call the calendar picker
  */
-function getTargetCalendar()
-{
+function getTargetCalendar() {
     var calendarToReturn;
     var calendars = getCalendarManager().getCalendars({});
     calendars = calendars.filter(isCalendarWritable);
@@ -316,8 +447,7 @@ function getTargetCalendar()
  * Type is type of response
  * event_status is an optional directive to set the Event STATUS property
  */
-function setAttendeeResponse(type, eventStatus)
-{
+function setAttendeeResponse(type, eventStatus) {
     var myAddress = gItipItem.identity
     if (!myAddress) {
         // Bug 420516 -- we don't support delegation yet TODO: Localize this?
@@ -361,8 +491,7 @@ function setAttendeeResponse(type, eventStatus)
  * @param  aLocalStatus  optional parameter to set the event STATUS property.
  *         aLocalStatus can be empty, "TENTATIVE", "CONFIRMED", or "CANCELLED"
  */
-function doResponse(aLocalStatus)
-{
+function doResponse(aLocalStatus) {
     // calIOperationListener so that we can properly return status to the
     // imip-bar
     var operationListener = {
@@ -404,18 +533,22 @@ function doResponse(aLocalStatus)
  * on your calendar. It does not convey the success or failure of sending a
  * response to the ItipItem.
  */
-function finishItipAction(aOperationType, aStatus, aDetail)
-{
+function finishItipAction(aOperationType, aStatus, aDetail) {
     // For now, we just state the status for the user something very simple
     var desc = document.getElementById("imip-description");
     if (desc.firstChild != null) {
         if (Components.isSuccessCode(aStatus)) {
-            desc.firstChild.data = ltnGetString("lightning",
-                                                "imipAddedItemToCal");
-            document.getElementById("imip-button1").setAttribute("hidden",
-                                                                 true);
-            document.getElementById("imip-button2").setAttribute("hidden",
-                                                                 true);
+            if (aOperationType == Components.interfaces.calIOperationListener.ADD) {
+                desc.firstChild.data = ltnGetString("lightning", "imipAddedItemToCal");
+            } else if (aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
+                desc.firstChild.data = ltnGetString("lightning", "imipUpdatedItem");
+            } else if (aOperationType == Components.interfaces.calIOperationListener.DELETE) {
+                desc.firstChild.data = ltnGetString("lightning", "imipCanceledItem");
+            }
+
+            hideElement("imip-button1");
+            hideElement("imip-button2");
+            hideElement("imip-button3");
         } else {
             // Bug 348666: When we handle more iTIP methods, we need to create
             // more sophisticated error handling.
@@ -434,22 +567,14 @@ function finishItipAction(aOperationType, aStatus, aDetail)
  * Walks through the list of events in the iTipItem and discovers whether or not
  * these events already exist on a calendar. Calls determineUpdateType.
  */
-function isUpdateMsg()
-{
+function isUpdateMsg() {
     // According to the specification, we have to determine if the event ID
     // already exists on the calendar of the user - that means we have to search
     // them all. :-(
     var isUpdate = 0;
     var existingItemSequence = -1;
-    calendarList = getCalendarManager().getCalendars({});
 
-    // Create a composite
-    compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
-              .createInstance(Components.interfaces.calICompositeCalendar);
-
-    for(var i=0; i < calendarList.length; ++i) {
-        compCal.addCalendar(calendarList[i]);
-    }
+    var compCal = createItipCompositeCalendar();
 
     // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
     // same ID, this simplifies our searching, we can just look for Item[0].id
@@ -464,7 +589,6 @@ function isUpdateMsg()
     }
 
     var onFindItemListener = {
-        processedId: null,
         onOperationComplete:
         function ooc(aCalendar, aStatus, aOperationType, aId, aDetail) {
             if (!this.processedId){
@@ -528,55 +652,55 @@ function displayRequestMethod(updateValue) {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
             if (description.firstChild.data) {
-                description.firstChild.data = ltnGetString("lightning",
-                                                           "imipBarAlreadyAddedText");
+                description.firstChild.data = ltnGetString("lightning", "imipBarAlreadyAddedText");
             }
 
-            var button = document.getElementById("imip-button1");
-            button.setAttribute("hidden", "true");
-            button = document.getElementById("imip-button2");
-            button.setAttribute("hidden", "true");
+            hideElement("imip-button1");
+            hideElement("imip-button2");
+            hideElement("imip-button3");
         } else {
             // Legitimate update, let's offer the update path
             if (description.firstChild.data) {
-                description.firstChild.data = ltnGetString("lightning",
-                                                           "imipBarUpdateText");
+                description.firstChild.data = ltnGetString("lightning", "imipBarUpdateText");
              }
 
             var button = document.getElementById("imip-button1");
-            button.removeAttribute("hidden");
-            button.setAttribute("label", ltnGetString("lightning",
-                                                      "imipUpdateInvitation.label"));
-            button.setAttribute("oncommand", 
-                                "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
+            showElement(button);
+            button.setAttribute("label", ltnGetString("lightning", "imipUpdateInvitation.label"));
+            button.setAttribute("oncommand", "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
 
             // Create a DECLINE button (user chooses not to attend the updated event)
             button = document.getElementById("imip-button2");
-            button.removeAttribute("hidden");
-            button.setAttribute("label", ltnGetString("lightning",
-                                                      "imipDeclineInvitation.label"));
-            button.setAttribute("oncommand",
-                                "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+            showElement(button);
+            button.setAttribute("label", ltnGetString("lightning", "imipDeclineInvitation.label"));
+            button.setAttribute("oncommand", "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+
+            // Create a ACCEPT TENTATIVE button
+            button = document.getElementById("imip-button3");
+            showElement(button);
+            button.setAttribute("label", ltnGetString("lightning", "imipAcceptTentativeInvitation.label"));
+            button.setAttribute("oncommand", "setAttendeeResponse('TENTATIVE', 'CONFIRMED');");
         }
     } else {
         if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning",
-                                                       "imipBarRequestText");
+            description.firstChild.data = ltnGetString("lightning", "imipBarRequestText");
         }
 
         var button = document.getElementById("imip-button1");
-        button.removeAttribute("hidden");
-        button.setAttribute("label", ltnGetString("lightning",
-                                                  "imipAcceptInvitation.label"));
-        button.setAttribute("oncommand",
-                            "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
+        showElement(button);
+        button.setAttribute("label", ltnGetString("lightning", "imipAcceptInvitation.label"));
+        button.setAttribute("oncommand", "setAttendeeResponse('ACCEPTED', 'CONFIRMED');");
 
         // Create a DECLINE button
         button = document.getElementById("imip-button2");
-        button.removeAttribute("hidden");
-        button.setAttribute("label", ltnGetString("lightning",
-                                                  "imipDeclineInvitation.label"));
-        button.setAttribute("oncommand",
-                            "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+        showElement(button);
+        button.setAttribute("label", ltnGetString("lightning", "imipDeclineInvitation.label"));
+        button.setAttribute("oncommand", "setAttendeeResponse('DECLINED', 'CONFIRMED');");
+
+        // Create a ACCEPT TENTATIVE button
+        button = document.getElementById("imip-button3");
+        showElement(button);
+        button.setAttribute("label", ltnGetString("lightning", "imipAcceptTentativeInvitation.label"));
+        button.setAttribute("oncommand", "setAttendeeResponse('TENTATIVE', 'CONFIRMED');");
     }
 }
