@@ -649,7 +649,7 @@ var calendarManagerCompositeObserver = {
     },
 
     onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
-    onError: function cMO_onError(aErrNo, aMessage) { },
+    onError: function cMO_onError(aCalendar, aErrNo, aMessage) { },
 
     onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
                                                       aName,
@@ -759,7 +759,7 @@ var calendarManagerObserver = {
     },
 
     onDeleteItem: function cMO_onDeleteItem(aDeletedItem) { },
-    onError: function cMO_onError(aErrNo, aMessage) { },
+    onError: function cMO_onError(aCalendar, aErrNo, aMessage) { },
 
     onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
                                                       aName,

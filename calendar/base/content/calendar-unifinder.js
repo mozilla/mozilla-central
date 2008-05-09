@@ -163,7 +163,7 @@ var unifinderObserver = {
         unifinderTreeView.removeItems(items.filter(fixAlldayDates));
     },
 
-    onError: function uO_onError(aErrNo, aMessage) {},
+    onError: function uO_onError(aCalendar, aErrNo, aMessage) {},
 
     onPropertyChanged: function uO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
     onPropertyDeleting: function uO_onPropertyDeleting(aCalendar, aName) {},

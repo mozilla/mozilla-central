@@ -123,7 +123,8 @@ calWcapCalendar.prototype = {
         if (!suppressOnError) {
             this.notifyObservers("onError",
                                  err instanceof Components.interfaces.nsIException
-                                 ? [err.result, err.message] : [isNaN(err) ? -1 : err, msg]);
+                                 ? [this.superCalendar, err.result, err.message]
+                                 : [this.superCalendar, (isNaN(err) ? -1 : err), msg]);
         }
     },
     notifyError: function calWcapCalendar_notifyError(err, suppressOnError) {

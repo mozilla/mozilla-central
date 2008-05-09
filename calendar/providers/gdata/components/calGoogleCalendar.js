@@ -297,7 +297,7 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.addItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [e.result, e.message]);
+                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -389,7 +389,7 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.modifyItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [e.result, e.message]);
+                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -440,7 +440,7 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.deleteItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [e.result, e.message]);
+                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
             if (aListener != null) {
@@ -1019,7 +1019,7 @@ calGoogleCalendar.prototype = {
                 // The calendar is readonly, make sure this is set and
                 // notify the user.
                 this.readOnly = true;
-                this.mObservers.notify("onError", [e.result, e.message]);
+                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
             // Operation failed

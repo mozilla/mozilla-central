@@ -105,7 +105,7 @@ function calAlarmService() {
         onDeleteItem: function(aDeletedItem) {
             this.alarmService.removeAlarm(aDeletedItem);
         },
-        onError: function(aErrNo, aMessage) {},
+        onError: function(aCalendar, aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
             if (aName == "suppressAlarms") {
                 // While in the UI it should be assured that suppressAlarms is

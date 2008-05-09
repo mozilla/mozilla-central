@@ -214,7 +214,7 @@ calICSCalendar.prototype = {
         try {
             str = unicodeConverter.convertFromByteArray(result, result.length);
         } catch(e) {
-            this.mObserver.onError(calIErrors.CAL_UTF8_DECODING_FAILED, e.toString());
+            this.mObserver.onError(this.superCalendar, calIErrors.CAL_UTF8_DECODING_FAILED, e.toString());
             this.unlock();
             return;
         }
@@ -245,7 +245,7 @@ calICSCalendar.prototype = {
             this.unmappedProperties = parser.getProperties({});
         } catch(e) {
             LOG("Parsing the file failed:"+e);
-            this.mObserver.onError(e.result, e.toString());
+            this.mObserver.onError(this.superCalendar, e.result, e.toString());
         }
         this.mObserver.onEndBatch();
         this.mObserver.onLoad(this);
@@ -314,6 +314,7 @@ calICSCalendar.prototype = {
                         appStartup.exitLastWindowClosingSurvivalArea();
                     }
                     savedthis.mObserver.onError(
+                        this.superCalendar,
                         ex.result, "The calendar could not be saved; there " +
                         "was a failure: 0x" + ex.result.toString(16));
                     savedthis.unlock();
@@ -361,13 +362,15 @@ calICSCalendar.prototype = {
         }
 
         if (channel && !channel.requestSucceeded) {
-            ctxt.mObserver.onError(channel.requestSucceeded,
+            ctxt.mObserver.onError(this.superCalendar,
+                                   channel.requestSucceeded,
                                    "Publishing the calendar file failed\n" +
                                        "Status code: "+channel.responseStatus+": "+channel.responseStatusText+"\n");
         }
 
         else if (!channel && !Components.isSuccessCode(request.status)) {
-            ctxt.mObserver.onError(request.status,
+            ctxt.mObserver.onError(this.superCalendar,
+                                   request.status,
                                    "Publishing the calendar file failed\n" +
                                        "Status code: "+request.status.toString(16)+"\n");
         }
@@ -769,7 +772,7 @@ calICSObserver.prototype = {
     // the calendar to readOnly, and give up.
     acceptableErrorNums: [],
 
-    onError: function(aErrNo, aMessage) {
+    onError: function(aCalendar, aErrNo, aMessage) {
         var errorIsOk = false;
         for each (num in this.acceptableErrorNums) {
             if (num == aErrNo) {
@@ -779,7 +782,7 @@ calICSObserver.prototype = {
         }
         if (!errorIsOk)
             this.mCalendar.readOnly = true;
-        this.mCalendar.observers.notify("onError", [aErrNo, aMessage]);
+        this.mCalendar.observers.notify("onError", [this.mCalendar.superCalendar, aErrNo, aMessage]);
     }
 };
 

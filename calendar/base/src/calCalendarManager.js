@@ -853,7 +853,7 @@ calMgrCalendarObserver.prototype = {
     onAddItem: function(aItem) {},
     onModifyItem: function(aNewItem, aOldItem) {},
     onDeleteItem: function(aDeletedItem) {},
-    onError: function(aErrNo, aMessage) {
+    onError: function(aCalendar, aErrNo, aMessage) {
         this.announceError(aErrNo, aMessage);
     },
 

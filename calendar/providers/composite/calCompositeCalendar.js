@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -83,7 +82,7 @@ calCompositeCalendarObserverHelper.prototype = {
         this.compCalendar.mObservers.notify("onDeleteItem", arguments);
     },
 
-    onError: function(aErrNo, aMessage) {
+    onError: function(aCalendar, aErrNo, aMessage) {
         this.compCalendar.mObservers.notify("onError", arguments);
     },
 

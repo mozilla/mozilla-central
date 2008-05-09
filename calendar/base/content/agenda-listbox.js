@@ -736,7 +736,7 @@ function observer_onModifyItem(newItem, oldItem) {
     setCurrentEvent();
 };
 
-agendaListbox.calendarObserver.onError = function(errno, msg) {};
+agendaListbox.calendarObserver.onError = function(cal, errno, msg) {};
 
 agendaListbox.calendarObserver.onPropertyChanged = function(aCalendar, aName, aValue, aOldValue) {};
 

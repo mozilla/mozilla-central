@@ -690,7 +690,7 @@
               }
           },
           
-          onError: function tTO_onError(aErrNo, aMessage) {},
+          onError: function tTO_onError(aCalendar, aErrNo, aMessage) {},
           onPropertyChanged: function tTO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
           onPropertyDeleting: function tTO_onPropertyDeleting(aCalendar, aName) {},
 

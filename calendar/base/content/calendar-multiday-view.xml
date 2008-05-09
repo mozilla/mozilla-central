@@ -2532,7 +2532,7 @@
                     this.calView.doDeleteEvent(occ);
                 }
             },
-            onError: function onError(aErrNo, aMessage) { },
+            onError: function onError(aCalendar, aErrNo, aMessage) { },
 
             onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
                 switch (aName) {

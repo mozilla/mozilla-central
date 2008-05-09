@@ -282,7 +282,7 @@ InvitationsManager.prototype = {
                         this.mInvitationsManager.deleteItem(aDeletedItem);
                     },
 
-                    onError: function(aErrNo, aMessage) {
+                    onError: function(aCalendar, aErrNo, aMessage) {
                     },
 
                     onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {

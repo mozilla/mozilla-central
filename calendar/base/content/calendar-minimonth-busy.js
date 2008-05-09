@@ -150,7 +150,7 @@ var minimonthBusyListener = {
         this.setBusyDaysForItem(aNewItem, true);
     },
 
-    onError: function mBL_onError(aErrNo, aMessage) {},
+    onError: function mBL_onError(aCalendar, aErrNo, aMessage) {},
 
     onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
 

@@ -1666,7 +1666,7 @@
               this.calView.doDeleteItem(occ);
             }
           },
-          onError: function (aErrNo, aMessage) { },
+          onError: function (aCalendar, aErrNo, aMessage) { },
 
           onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
             if (aName == "suppressAlarms" &&

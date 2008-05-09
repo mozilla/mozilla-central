@@ -84,7 +84,7 @@ calCachedCalendarObserverHelper.prototype = {
         }
     },
 
-    onError: function(aErrNo, aMessage) {
+    onError: function(aCalendar, aErrNo, aMessage) {
         this.home.mObservers.notify("onError", arguments);
     },
 

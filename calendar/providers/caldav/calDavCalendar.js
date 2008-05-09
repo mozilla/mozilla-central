@@ -856,7 +856,7 @@ calDavCalendar.prototype = {
                                 }
                             }
                         } catch (ex) {
-                            thisCalendar.mObservers.notify("onError", [ex.result, ex.toString()]);
+                            thisCalendar.mObservers.notify("onError", [thisCalendar.superCalendar, ex.result, ex.toString()]);
                         }
                         subComp = calComp.getNextSubcomponent("ANY");
                     }
@@ -1217,7 +1217,7 @@ calDavCalendar.prototype = {
     // the calendar to readOnly, and give up.
     acceptableErrorNums: [],
 
-    onError: function caldav_onError(aErrNo, aMessage) {
+    onError: function caldav_onError(aCalendar, aErrNo, aMessage) {
         var errorIsOk = false;
         for each (num in this.acceptableErrorNums) {
             if (num == aErrNo) {
@@ -1354,7 +1354,7 @@ calDavCalendar.prototype = {
     },
 
     reportDavError: function caldav_rDE(aErrNo, aMessage) {
-        this.onError(aErrNo, calGetString("calendar", aMessage, [this.mUri.spec]));
+        this.onError(this.superCalendar, aErrNo, calGetString("calendar", aMessage, [this.mUri.spec]));
     },
 
     /**
@@ -1914,7 +1914,7 @@ calDavObserver.prototype = {
     // the calendar to readOnly, and give up.
     acceptableErrorNums: [],
 
-    onError: function(aErrNo, aMessage) {
+    onError: function(aCalendar, aErrNo, aMessage) {
         var errorIsOk = false;
         for each (num in this.acceptableErrorNums) {
             if (num == aErrNo) {
@@ -1924,7 +1924,7 @@ calDavObserver.prototype = {
         }
         if (!errorIsOk)
             this.mCalendar.readOnly = true;
-        this.mCalendar.observers.notify("onError", [aErrNo, aMessage]);
+        this.mCalendar.observers.notify("onError", [this.mCalendar.superCalendar, aErrNo, aMessage]);
     }
 };
 
