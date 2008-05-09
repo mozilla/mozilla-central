@@ -420,8 +420,9 @@ calAlarmService.prototype = {
     addAlarm: function cas_addAlarm(aItem) {
         // Get the alarm time
         var alarmTime = this.getAlarmDate(aItem);
-        if (!alarmTime) {
-            // If there is no alarm time, don't add the alarm.
+        if (!alarmTime || (isToDo(aItem) && aItem.isCompleted)) {
+            // If there is no alarm time, don't add the alarm. Also, if the item
+            // is a task and it is completed, don't add the alarm.
             return;
         }
 
