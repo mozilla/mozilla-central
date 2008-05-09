@@ -465,7 +465,7 @@
 /* Web Search Plug-ins */
 "InstallSearchPluginMenuItem" = "Add “%@”";
 "SearchPluginInstallationErrorTitle" = "Problem adding the search engine.";
-"SearchPluginInstallationErrorMessage" = "Camino was unable to add “%@” to the web search field. The search plug-in could be unavailable or in an unsupported format.";
+"SearchPluginInstallationErrorMessage" = "Camino was unable to add “%1$@” to the web search field. %2$@";
 "UnknownSearchPluginName" = "Unknown Plug-in";
 "SearchPluginInstallationConfirmationTitle" = "Add search engine?";
 "SearchPluginInstallationConfirmationMessage" = "Would you like to add the search engine “%@” to the search field?";
@@ -473,6 +473,12 @@
 "SearchPluginInstallationCancelButton" = "Don’t Add";
 "SearchPluginAlreadyInstalledTitle" = "Duplicate search engine.";
 "SearchPluginAlreadyInstalledMessage" = "The search engine “%@” is already installed.";
+
+/* XMLSearchPluginParser Error Descriptions: */
+"XMLSearchPluginParserInvalidPluginFormat" = "The search plug-in is in an unrecognized or unsupported format.";
+"XMLSearchPluginParserPluginNotFound" = "The search plug-in could not be found on the server.";
+"XMLSearchPluginParserUnsupportedSearchURL" = "The search method used by this plug-in is not yet supported.";
+"XMLSearchPluginParserUnknownError" = "The search plug-in could be unavailable or in an unsupported format.";
 
 /* Auto-Update */
 "AutoUpdateDisabledToolTip" = "Automatic updates are available in official builds";

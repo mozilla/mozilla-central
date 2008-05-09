@@ -115,12 +115,14 @@ static NSString *const kDefaultLanguage = @"*"; // '*' is defined in OS spec to 
     if (!method || [method isEqualToString:@""])
       method = @"GET";
 
-    if ([self browserSupportsSearchQueryURLWithMIMEType:mimeType requestMethod:method] &&
+    // The spec alows multiple <Url> elements, so we can't just abort parsing if this one isn't supported.
+    if ([self browserSupportsSearchQueryURLWithMIMEType:mimeType] &&
         [attributeDict objectForKey:@"template"])
     {
       NSMutableString *searchURLTemplate = [NSMutableString stringWithString:[attributeDict objectForKey:@"template"]];
       [self insertValuesForParametersInURLTemplate:searchURLTemplate];
       [self setSearchEngineURL:searchURLTemplate];
+      [self setSearchEngineURLRequestMethod:method];
     }
   }
   else if ([elementName isEqualToString:kSearchEngineURLParameterElement]) {

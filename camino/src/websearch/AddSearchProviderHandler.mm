@@ -117,10 +117,12 @@ NS_IMETHODIMP AddSearchProviderHandler::AddSearchProvider(const nsAString &aDesc
 
     XMLSearchPluginParser* pluginParser =
       [XMLSearchPluginParser searchPluginParserWithMIMEType:kOpenSearchMIMEType];
-    if (![pluginParser parseSearchPluginAtURL:[NSURL URLWithString:searchDescriptionURL]]) {
+    NSError *parsingError;
+    if (![pluginParser parseSearchPluginAtURL:[NSURL URLWithString:searchDescriptionURL] error:&parsingError]) {
       NSString* explanatoryText =
         [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil),
-                                   NSLocalizedString(@"UnknownSearchPluginName", nil)];
+                                   NSLocalizedString(@"UnknownSearchPluginName", nil),
+                                   [parsingError localizedDescription]];
       NSAlert* parseErrorAlert = [[[NSAlert alloc] init] autorelease];
       [parseErrorAlert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
       [parseErrorAlert setMessageText:NSLocalizedString(@"SearchPluginInstallationErrorTitle", nil)];

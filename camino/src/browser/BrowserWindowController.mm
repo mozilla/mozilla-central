@@ -4668,7 +4668,8 @@ public:
 - (IBAction)installSearchPlugin:(id)sender
 {
   id searchPlugin = [sender representedObject];
-  BOOL addedOK = [[SearchEngineManager sharedSearchEngineManager] addSearchEngineFromPlugin:searchPlugin];
+  NSError *parsingError;
+  BOOL addedOK = [[SearchEngineManager sharedSearchEngineManager] addSearchEngineFromPlugin:searchPlugin error:&parsingError];
 
   if (addedOK) {
     // Start using the installed engine.
@@ -4680,10 +4681,15 @@ public:
   }
   else {
     NSString* searchPluginName = [searchPlugin valueForKey:kWebSearchPluginNameKey];
+    if (!searchPluginName)
+      searchPluginName = NSLocalizedString(@"UnknownSearchPluginName", nil);
     NSAlert* alert = [[[NSAlert alloc] init] autorelease];
     [alert addButtonWithTitle:NSLocalizedString(@"OKButtonText", nil)];
     [alert setMessageText:NSLocalizedString(@"SearchPluginInstallationErrorTitle", nil)];
-    [alert setInformativeText:[NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil), searchPluginName]];
+    NSString* explanatoryText = [NSString stringWithFormat:NSLocalizedString(@"SearchPluginInstallationErrorMessage", nil),
+                                                           searchPluginName,
+                                                           [parsingError localizedDescription]];
+    [alert setInformativeText:explanatoryText];
     [alert setAlertStyle:NSWarningAlertStyle];
     if ([[self window] attachedSheet]) {
       [alert runModal];

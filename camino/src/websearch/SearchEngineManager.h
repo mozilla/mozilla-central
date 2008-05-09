@@ -77,7 +77,9 @@ extern NSString *const kWebSearchEngineWhereFromKey;
 
 // Adds the plugin to the end of |installedSearchEngines|.
 // Return value indicates whether the plugin was successfully parsed and a new engine added.
-- (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict;
+// If NO is returned, |outError| is populated with an NSError object containing a localized
+// description of the problem. Pass NULL if you do not want error information.
+- (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict error:(NSError**)error;
 
 - (BOOL)hasSearchEngineFromPluginURL:(NSString *)pluginURL;
 - (NSDictionary *)searchEngineFromPluginURL:(NSString *)pluginURL;

@@ -38,19 +38,24 @@
 #import "XMLSearchPluginParser.h"
 
 #import "OpenSearchParser.h"
+#import "NSString+Utils.h"
 
 NSString *const kWebSearchPluginNameKey = @"SearchPluginName";
 NSString *const kWebSearchPluginMIMETypeKey = @"SearchPluginMIMEType";
 NSString *const kWebSearchPluginURLKey = @"SearchPluginURL";
 
 #define PLUGIN_DOWNLOAD_TIMEOUT_INTERVAL 3.0
+#define HTTP_SUCCESS_STATUS_CODE 200
 
 NSString *const kOpenSearchMIMEType = @"application/opensearchdescription+xml";
 
+NSString *const kXMLSearchPluginParserErrorDomain = @"XMLSearchPluginParserErrorDomain";
+
 @interface XMLSearchPluginParser (PrivateToSuperclass)
 
-- (BOOL)parseSearchPluginData:(NSData *)pluginData;
+- (BOOL)parseSearchPluginData:(NSData *)pluginData error:(NSError **)outError;
 - (BOOL)searchEngineInformationWasFound;
+- (NSError *)parsingErrorWithCode:(EXMLSearchPluginParserErrorCode)errorCode;
 
 @end
 
@@ -113,39 +118,103 @@ static NSDictionary const *sSubclassToPluginTypeMap = nil;
   [mElementsToParseAttributesFor release];
   [mSearchEngineName release];
   [mSearchEngineURL release];
+  [mSearchEngineURLRequestMethod release];
   [super dealloc];
 }
 
 #pragma mark -
 
-- (BOOL)parseSearchPluginAtURL:(NSURL *)searchPluginURL
+- (BOOL)parseSearchPluginAtURL:(NSURL *)searchPluginURL error:(NSError **)outError
 {
+  if (outError)
+    *outError = nil;
+
+  if (!searchPluginURL) {
+    if (outError)
+      *outError = [self parsingErrorWithCode:eXMLSearchPluginParserPluginNotFoundError];
+    return NO;
+  }
+
   // |...WithContentsOfURL| methods throughout the Foundation will fail whenever the 
   // requested web server offers to return a gzipped data stream.  To work around 
   // this issue, we have to use NSURLConnection instead (which will automatically
   // decompress gzipped data when necessary).
-  if (!searchPluginURL)
-    return NO;
-
   NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:searchPluginURL];
   [urlRequest setCachePolicy:NSURLRequestReloadIgnoringCacheData];
   [urlRequest setTimeoutInterval:PLUGIN_DOWNLOAD_TIMEOUT_INTERVAL];
-  NSData *xmlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:NULL error:NULL];
+  NSURLResponse *urlResponse;
+  NSData *xmlData = [NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&urlResponse error:NULL];
 
-  BOOL parsedOK = [self parseSearchPluginData:xmlData];
-  return parsedOK;
+  // Check of the definition was found on the server.
+  // If it doesn't exist, +[NSURLConnection sendSync...] is allowed to redirect and return 
+  // the contents of the server's alternate (404) error page, instead of no data.
+  // So, we can't just rely on [data length] because there will often be information.
+  // Furthermore, the response object is not always an NSHTTPUrlResponse.  On errors though, it should
+  // be: "If the response is an NSHTTPURLResponse object, and the statusCode is 4xx or 5xx, then the server
+  // is attempting to redirect to an alternate error page. -ADC"
+  if ([xmlData length] == 0 ||
+      ([urlResponse respondsToSelector:@selector(statusCode)] &&
+      ([(NSHTTPURLResponse *)urlResponse statusCode] != HTTP_SUCCESS_STATUS_CODE)))
+  {
+    if (outError)
+      *outError = [self parsingErrorWithCode:eXMLSearchPluginParserPluginNotFoundError];
+    return NO;
+  }
+
+  return [self parseSearchPluginData:xmlData error:outError];
 }
 
-- (BOOL)parseSearchPluginData:(NSData *)pluginData
+- (BOOL)parseSearchPluginData:(NSData *)pluginData error:(NSError **)outError
 {
-  if (!pluginData)
-    return NO;
+  if (outError)
+    *outError = nil;
 
   NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithData:pluginData];
   [xmlParser setDelegate:self];
   BOOL parsingFinishedWithoutErrors = [xmlParser parse];
   [xmlParser release];
-  return (parsingFinishedWithoutErrors && [self searchEngineInformationWasFound]);
+
+  // Check for parsing errors.
+  if (!parsingFinishedWithoutErrors || ![self searchEngineInformationWasFound]) {
+    if (outError)
+      *outError = [self parsingErrorWithCode:eXMLSearchPluginParserInvalidPluginFormatError];
+    return NO;
+  }
+
+  // Check if our search fields support the specified method request type.
+  if (![self browserSupportsSearchQueryURLWithRequestMethod:[self searchEngineURLRequestMethod]]) { 
+    if (outError)
+      *outError = [self parsingErrorWithCode:eXMLSearchPluginParserUnsupportedSearchURLError];
+    return NO;
+  }
+
+  // If we got this far, parsing was successful.
+  return YES;
+}
+
+- (NSError *)parsingErrorWithCode:(EXMLSearchPluginParserErrorCode)errorCode
+{
+  NSString *localizedErrorDesc = nil;
+  switch (errorCode) {
+    case eXMLSearchPluginParserInvalidPluginFormatError:
+      localizedErrorDesc = NSLocalizedString(@"XMLSearchPluginParserInvalidPluginFormat", nil);
+      break;
+    case eXMLSearchPluginParserPluginNotFoundError:
+      localizedErrorDesc = NSLocalizedString(@"XMLSearchPluginParserPluginNotFound", nil);
+      break;
+    case eXMLSearchPluginParserUnsupportedSearchURLError:
+      localizedErrorDesc = NSLocalizedString(@"XMLSearchPluginParserUnsupportedSearchURL", nil);
+      break;
+    default:
+      localizedErrorDesc = NSLocalizedString(@"XMLSearchPluginParserUnknownError", nil);
+  }
+
+  NSDictionary *errorUserInfo = [NSDictionary dictionaryWithObject:localizedErrorDesc
+                                                            forKey:NSLocalizedDescriptionKey];
+
+  return [NSError errorWithDomain:kXMLSearchPluginParserErrorDomain
+                             code:errorCode 
+                         userInfo:errorUserInfo];
 }
 
 #pragma mark -
@@ -225,7 +294,7 @@ didStartElement:(NSString *)elementName
 
 - (NSString *)searchEngineName
 {
-  return mSearchEngineName;
+  return [[mSearchEngineName retain] autorelease];
 }
 
 - (void)setSearchEngineName:(NSString *)newSearchEngineName
@@ -238,7 +307,7 @@ didStartElement:(NSString *)elementName
 
 - (NSString *)searchEngineURL
 {
-  return mSearchEngineURL;
+  return [[mSearchEngineURL retain] autorelease];
 }
 
 - (void)setSearchEngineURL:(NSString *)newSearchEngineURL
@@ -249,24 +318,38 @@ didStartElement:(NSString *)elementName
   }
 }
 
+- (NSString *)searchEngineURLRequestMethod
+{
+  return [[mSearchEngineURLRequestMethod retain] autorelease]; 
+}
+
+- (void)setSearchEngineURLRequestMethod:(NSString *)newSearchEngineURLRequestMethod
+{
+  if (mSearchEngineURLRequestMethod != newSearchEngineURLRequestMethod) {
+    [mSearchEngineURLRequestMethod release];
+    mSearchEngineURLRequestMethod = [newSearchEngineURLRequestMethod retain];
+  }
+}
+
 #pragma mark -
 
-- (BOOL)browserSupportsSearchQueryURLWithMIMEType:(NSString *)mimeType requestMethod:(NSString *)method
+- (BOOL)browserSupportsSearchQueryURLWithMIMEType:(NSString *)mimeType
 {
-  BOOL isSupported = NO;
-  if ([mimeType isEqualToString:@"text/html"] &&
-      [method caseInsensitiveCompare:@"GET"] == NSOrderedSame)
-  {
-      isSupported = YES;
-  }
-  return isSupported;
+  return ([mimeType isEqualToString:@"text/html"]);
+}
+
+- (BOOL)browserSupportsSearchQueryURLWithRequestMethod:(NSString *)requestMethod
+{
+  return [requestMethod isEqualToStringIgnoringCase:@"GET"];
 }
 
 // NSXMLParser finishing without errors is not enough to know whether we successfully obtained enough
 // information for a new search engine. This method ensures a value was set for each required property.
 - (BOOL)searchEngineInformationWasFound;
 {
-  return ([[self searchEngineName] length] > 0 && [[self searchEngineURL] length] > 0);
+  return ([[self searchEngineName] length] > 0 && 
+          [[self searchEngineURL] length] > 0 &&
+          [[self searchEngineURLRequestMethod] length] > 0);
 }
 
 @end

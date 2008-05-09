@@ -298,14 +298,25 @@ static NSString *const kPreferredSearchEngineNameKey = @"PreferredSearchEngine";
     [self installedSearchEnginesChanged];
 }
 
-- (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict
+- (BOOL)addSearchEngineFromPlugin:(NSDictionary *)searchPluginInfoDict error:(NSError **)outError
 {
+  if (outError)
+    *outError = nil;
+
   XMLSearchPluginParser *pluginParser = [XMLSearchPluginParser searchPluginParserWithMIMEType:[searchPluginInfoDict objectForKey:kWebSearchPluginMIMETypeKey]];
-  if (!pluginParser)
+  if (!pluginParser) {
+    if (outError) {
+      NSDictionary *errorInfo = [NSDictionary dictionaryWithObject:NSLocalizedString(@"XMLSearchPluginParserInvalidPluginFormat", nil)
+                                                            forKey:NSLocalizedDescriptionKey];
+      *outError = [NSError errorWithDomain:kXMLSearchPluginParserErrorDomain 
+                                      code:eXMLSearchPluginParserInvalidPluginFormatError 
+                                  userInfo:errorInfo];
+    }
     return NO;
+  }
 
   NSURL *pluginURL = [searchPluginInfoDict objectForKey:kWebSearchPluginURLKey];
-  BOOL parsedOk = [pluginParser parseSearchPluginAtURL:pluginURL];
+  BOOL parsedOk = [pluginParser parseSearchPluginAtURL:pluginURL error:outError];
 
   if (parsedOk) {
     [self addSearchEngineWithName:[pluginParser searchEngineName]
