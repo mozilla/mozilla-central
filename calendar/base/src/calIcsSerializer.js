@@ -90,7 +90,7 @@ function is_serializeToStream(aStream) {
     // Convert the javascript string to an array of bytes, using the
     // UTF8 encoder
     var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .getService(Components.interfaces.nsIConverterOutputStream);
+                               .createInstance(Components.interfaces.nsIConverterOutputStream);
     convStream.init(aStream, 'UTF-8', 0, 0x0000);
 
     convStream.writeString(str);
