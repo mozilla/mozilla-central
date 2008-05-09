@@ -132,7 +132,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleDaily3",
-                          [ rule.interval ], 1);
+                          [ rule.interval ]);
                     }
                 }
             } else if (rule.type == 'WEEKLY') {
@@ -160,17 +160,16 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
-                          "repeatDetailsRuleWeekly1", [ weekdays ], 1);
+                          "repeatDetailsRuleWeekly1", [ weekdays ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
-                          "repeatDetailsRuleWeekly2", [ weekdays ], 1);
+                          "repeatDetailsRuleWeekly2", [ weekdays ]);
                     } else {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleWeekly3",
-                          [ rule.interval, weekdays ],
-                          2);
+                          [ rule.interval, weekdays ]);
                     }
                 } else {
                     if (rule.interval == 1) {
@@ -185,7 +184,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleWeekly6",
-                          [ rule.interval ], 1);
+                          [ rule.interval ]);
                     }
                 }
             } else if (rule.type == 'MONTHLY') {
@@ -205,20 +204,17 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly1",
-                          [ ordinal_string, day_string ],
-                          2);
+                          [ ordinal_string, day_string ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly2",
-                          [ ordinal_string, day_string ],
-                          2);
+                          [ ordinal_string, day_string ]);
                     } else {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly3",
-                          [ ordinal_string, day_string, rule.interval ],
-                          3);
+                          [ ordinal_string, day_string, rule.interval ]);
                     }
                 } else if (checkRecurrenceRule(rule, ['BYMONTHDAY'])) {
                     var component = rule.getComponent("BYMONTHDAY", {});
@@ -247,36 +243,34 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly4",
-                          [ day_string ], 1);
+                          [ day_string ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly5",
-                          [ day_string ], 1);
+                          [ day_string ]);
                     } else {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly6",
-                          [ day_string, rule.interval ],
-                          2);
+                          [ day_string, rule.interval ]);
                     }
                 } else {
                     if (rule.interval == 1) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly4",
-                          [ startDate.day ], 1);
+                          [ startDate.day ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly5",
-                          [ startDate.day ], 1);
+                          [ startDate.day ]);
                     } else {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleMonthly6",
-                          [ startDate.day, rule.interval ],
-                          2);
+                          [ startDate.day, rule.interval ]);
                     }
                 }
             } else if (rule.type == 'YEARLY') {
@@ -295,22 +289,19 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
                               "repeatDetailsRuleYearly1",
-                              [ month_string, bymonthday[0] ],
-                              2);
+                              [ month_string, bymonthday[0] ]);
                         } else if (rule.interval == 2) {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
                               "repeatDetailsRuleYearly2",
-                              [ month_string, bymonthday[0] ],
-                              2);
+                              [ month_string, bymonthday[0] ]);
                         } else {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
                               "repeatDetailsRuleYearly3",
                               [ month_string,
                                 bymonthday[0],
-                                rule.interval ],
-                              3);
+                                rule.interval ]);
                         }
                     }
                 } else if (checkRecurrenceRule(rule, ['BYMONTH']) &&
@@ -337,14 +328,12 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
                               "repeatDetailsRuleYearly4",
-                              [ ordinal_string, day_string, month_string ],
-                              3);
+                              [ ordinal_string, day_string, month_string ]);
                         } else if (rule.interval == 2) {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
                               "repeatDetailsRuleYearly5",
-                              [ ordinal_string, day_string, month_string ],
-                              3);
+                              [ ordinal_string, day_string, month_string ]);
                         } else {
                             ruleString = calGetString(
                               "sun-calendar-event-dialog",
@@ -352,8 +341,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                               [ ordinal_string,
                                 day_string,
                                 month_string,
-                                rule.interval ],
-                              4);
+                                rule.interval ]);
                         }
                     }
                 } else {
@@ -365,22 +353,19 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleYearly1",
-                          [ month_string, startDate.day ],
-                          2);
+                          [ month_string, startDate.day ]);
                     } else if (rule.interval == 2) {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleYearly2",
-                          [ month_string, startDate.day ],
-                          2);
+                          [ month_string, startDate.day ]);
                     } else {
                         ruleString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsRuleYearly3",
                           [ month_string,
                             startDate.day,
-                            rule.interval ],
-                          3);
+                            rule.interval ]);
                     }
                 }
             }
@@ -400,7 +385,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             "repeatDetailsCountAllDay",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
-                              rule.count ], 3);
+                              rule.count ]);
                     } else {
                         var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
                         detailsString = calGetString(
@@ -408,15 +393,14 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                             "repeatDetailsUntilAllDay",
                             [ ruleString,
                               dateFormatter.formatDateShort(startDate),
-                              dateFormatter.formatDateShort(untilDate) ],
-                            3);
+                              dateFormatter.formatDateShort(untilDate) ]);
                     }
                   } else {
                       detailsString = calGetString(
                           "sun-calendar-event-dialog",
                           "repeatDetailsInfiniteAllDay",
                           [ ruleString,
-                            dateFormatter.formatDateShort(startDate) ], 2);
+                            dateFormatter.formatDateShort(startDate) ]);
                   }
               } else {
                 if (rule.isFinite) {
@@ -428,7 +412,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                               dateFormatter.formatDateShort(startDate),
                               rule.count,
                               dateFormatter.formatTime(startDate),
-                              dateFormatter.formatTime(endDate) ], 5);
+                              dateFormatter.formatTime(endDate) ]);
                     } else {
                         var untilDate = rule.endDate.getInTimezone(kDefaultTimezone);
                         detailsString = calGetString(
@@ -438,7 +422,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                               dateFormatter.formatDateShort(startDate),
                               dateFormatter.formatDateShort(untilDate),
                               dateFormatter.formatTime(startDate),
-                              dateFormatter.formatTime(endDate) ], 5);
+                              dateFormatter.formatTime(endDate) ]);
                     }
                 } else {
                     detailsString = calGetString(
@@ -447,7 +431,7 @@ function recurrenceRule2String(recurrenceInfo, startDate, endDate, allDay) {
                         [ ruleString,
                           dateFormatter.formatDateShort(startDate),
                           dateFormatter.formatTime(startDate),
-                          dateFormatter.formatTime(endDate) ], 4);
+                          dateFormatter.formatTime(endDate) ]);
                 }
             }
             return detailsString;
