@@ -81,7 +81,7 @@ $RegxpcomTest             = 0;
 #$EmbedTest                = 0;  # Assumes you wanted $BuildEmbed=1
 $LayoutPerformanceTest    = 1;  # Tp
 #$LayoutPerformanceLocalTest   = 0;  # Tp2
-$DHTMLPerformanceTest     = 0;  # Tdhtml
+$DHTMLPerformanceTest     = 1;  # Tdhtml
 #$QATest                   = 0;  
 #$XULWindowOpenTest        = 0;  # Txul
 $StartupPerformanceTest   = 1;  # Ts
