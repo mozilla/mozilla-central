@@ -383,8 +383,9 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
 
   // build an array of nsIMsgTag elements from the orderered list
   // it's at max the same size as the preflist, but usually only about half
-  *aTagArray = (nsIMsgTag**) NS_Alloc(sizeof(nsIMsgTag*) * prefCount);
-  if (!*aTagArray)
+  nsIMsgTag** tagArray = (nsIMsgTag**) NS_Alloc(sizeof(nsIMsgTag*) * prefCount);
+
+  if (!tagArray)
   {
     NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
     return NS_ERROR_OUT_OF_MEMORY;
@@ -418,9 +419,12 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
             // store the tag info in our array
             newMsgTag = new nsMsgTag(key, tag, color, ordinal);
             if (!newMsgTag)
+            {
+              NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(currentTagIndex, tagArray);
+              NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
               return NS_ERROR_OUT_OF_MEMORY;
-            (*aTagArray)[currentTagIndex++] = newMsgTag;
-            NS_ADDREF(newMsgTag);
+            }
+            NS_ADDREF(tagArray[currentTagIndex++] = newMsgTag);
           }
         }
         lastKey = key;
@@ -429,12 +433,15 @@ NS_IMETHODIMP nsMsgTagService::GetAllTags(PRUint32 *aCount, nsIMsgTag ***aTagArr
   }
   NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(prefCount, prefList);
 
-  // return the number of tags
-  // (the idl's size_is(count) parameter ensures that the array is cut accordingly)
-  *aCount = currentTagIndex;
-
   // sort the non-null entries by ordinal
-  NS_QuickSort(*aTagArray, *aCount, sizeof(nsMsgTag*), CompareMsgTags, nsnull);
+  NS_QuickSort(tagArray, currentTagIndex, sizeof(nsMsgTag*), CompareMsgTags,
+               nsnull);
+
+  // All done, now return the values (the idl's size_is(count) parameter
+  // ensures that the array is cut accordingly).
+  *aCount = currentTagIndex;
+  *aTagArray = tagArray;
+
   return NS_OK;
 }
 
