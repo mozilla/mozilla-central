@@ -100,7 +100,7 @@ th:last-child {
   text-align: center;
 }
 
-table[order] > thead > tr > th:hover {
+th:hover > a {
   text-decoration: underline;
 }
 
