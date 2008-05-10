@@ -790,11 +790,13 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         break;
       case nsMsgFilterAction::KillThread:
         {
-          PRUint32 newFlags;
           nsCOMPtr<nsIMsgThread> thread;
-          m_newsDB->GetThreadContainingMsgHdr(m_newMsgHdr, getter_AddRefs(thread) );
-          thread->GetFlags(&newFlags);
-          thread->SetFlags(newFlags | MSG_FLAG_IGNORED);
+          rv = m_newsDB->GetThreadContainingMsgHdr(m_newMsgHdr, getter_AddRefs(thread) );
+          if (NS_SUCCEEDED(rv)) {
+            PRUint32 newFlags;
+            thread->GetFlags(&newFlags);
+            thread->SetFlags(newFlags | MSG_FLAG_IGNORED);
+          }
         }
         break;
       case nsMsgFilterAction::KillSubthread:
