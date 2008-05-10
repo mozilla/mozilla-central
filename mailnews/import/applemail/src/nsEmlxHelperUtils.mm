@@ -70,7 +70,7 @@ nsresult nsEmlxHelperUtils::ConvertToMozillaStatusFlags(const char *aXMLBufferSt
     return NS_ERROR_FAILURE;
 
   // find the <flags>...</flags> value and convert to int
-  const PRUint32 emlxMessageFlags = [[(NSDictionary *)plist objectForKey:@"flags"] integerValue];
+  const PRUint32 emlxMessageFlags = [[(NSDictionary *)plist objectForKey:@"flags"] intValue];
 
   if (emlxMessageFlags == 0)
     return NS_ERROR_FAILURE;
