@@ -47,6 +47,7 @@
 #include "msgCore.h"
 #include "nsTArray.h"
 #include "nsAppleMailImport.h"
+#include "prprf.h"
 
 #import <Cocoa/Cocoa.h>
 
