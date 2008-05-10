@@ -220,7 +220,7 @@
   locale/@AB_CD@/messenger/am-serverwithnoidentities.dtd                    (%chrome/mailnews/pref/am-serverwithnoidentities.dtd)
   locale/@AB_CD@/messenger/am-server-advanced.dtd                           (%chrome/mailnews/pref/am-server-advanced.dtd)
   locale/@AB_CD@/messenger/am-server-top.dtd                                (%chrome/mailnews/pref/am-server-top.dtd)
-  locale/@AB_CD@/messenger/appleMailImportMsgs.properties                   (%chrome/messenger/appleMailImportMsgs.properties)
+  locale/@AB_CD@/messenger/appleMailImportMsgs.properties                   (%chrome/mailnews/appleMailImportMsgs.properties)
   locale/@AB_CD@/messenger/comm4xMailImportMsgs.properties                  (%chrome/mailnews/comm4xMailImportMsgs.properties)
   locale/@AB_CD@/messenger/custom.properties                                (%chrome/mailnews/custom.properties)
   locale/@AB_CD@/messenger/CustomHeaders.dtd                                (%chrome/mailnews/CustomHeaders.dtd)
