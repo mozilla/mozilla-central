@@ -758,7 +758,7 @@ var gDownloadActionsWindow = {
       document.getElementById("clearFilter").disabled = false;
     }
     window.filterActions = filterActions;
-    this._filterTimeout = setTimeout("filterActions();", 500);
+    this._filterTimeout = setTimeout(filterActions, 500);
   },
   
   onFilterKeyPress: function (aEvent)

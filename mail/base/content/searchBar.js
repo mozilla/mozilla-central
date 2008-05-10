@@ -610,7 +610,7 @@ function onSearchInput(returnKeyHit)
     onEnterInSearchBar();
   }
   else {
-    gSearchTimer = setTimeout("onEnterInSearchBar();", 800);
+    gSearchTimer = setTimeout(onEnterInSearchBar, 800);
   }
 }
 
@@ -626,7 +626,7 @@ function onClearSearch()
     gIgnoreClick = true;
     // this needs to be on a timer otherwise we end up messing up the focus while the Search("") is still happening
     if (gQuickSearchFocusEl) // set in onSearchInputMouseDown
-      setTimeout("restoreSearchFocusAfterClear();", 0); 
+      setTimeout(restoreSearchFocusAfterClear, 0);
   }
 }
 

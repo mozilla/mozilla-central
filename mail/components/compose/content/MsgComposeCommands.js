@@ -1141,7 +1141,7 @@ function ComposeFieldsReady()
 
   // need timeout for reply to work
   if (gMsgCompose.composeHTML)
-    setTimeout("loadHTMLMsgPrefs();", 0);
+    setTimeout(loadHTMLMsgPrefs, 0);
 
   enableEditableFields();
   AdjustFocus();
@@ -1567,7 +1567,7 @@ function InitCharsetMenuCheckMark()
   // use setTimeout workaround to delay checkmark the menu
   // when onmenucomplete is ready then use it instead of oncreate
   // see bug #78290 for the details
-  setTimeout("UpdateMailEditCharset()", 0);
+  setTimeout(UpdateMailEditCharset, 0);
 
 }
 

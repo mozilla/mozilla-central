@@ -322,7 +322,7 @@ var MigrationWizard = {
         // We're done now.
         this._wiz.canAdvance = true;
         this._wiz.advance();
-        setTimeout("close()", 5000);
+        setTimeout(window.close, 5000);
       }
       else {
         this._wiz.canAdvance = true;

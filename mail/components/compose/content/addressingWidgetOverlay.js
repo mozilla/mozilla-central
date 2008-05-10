@@ -699,46 +699,30 @@ function awSetFocus(row, inputElement)
 {
   top.awRow = row;
   top.awInputElement = inputElement;
-  top.awFocusRetry = 0;
-  setTimeout("_awSetFocus();", 0);
+  setTimeout(_awSetFocus, 0);
 }
 
 function _awSetFocus()
 {
   var listbox = document.getElementById('addressingWidget');
-  //try
-  //{
-    var theNewRow = awGetListItem(top.awRow);
+  var theNewRow = awGetListItem(top.awRow);
 
-    //Warning: firstVisibleRow is zero base but top.awRow is one base!
-    var firstVisibleRow = listbox.getIndexOfFirstVisibleRow();
-    var numOfVisibleRows = listbox.getNumberOfVisibleRows();
+  // Warning: firstVisibleRow is zero base but top.awRow is one base!
+  var firstVisibleRow = listbox.getIndexOfFirstVisibleRow();
+  var numOfVisibleRows = listbox.getNumberOfVisibleRows();
 
-    //Do we need to scroll in order to see the selected row?
-    if (top.awRow <= firstVisibleRow)
-      listbox.scrollToIndex(top.awRow - 1);
-    else
-      if (top.awRow - 1 >= (firstVisibleRow + numOfVisibleRows))
-        listbox.scrollToIndex(top.awRow - numOfVisibleRows);
+  // Do we need to scroll in order to see the selected row?
+  if (top.awRow <= firstVisibleRow)
+    listbox.scrollToIndex(top.awRow - 1);
+  else if (top.awRow - 1 >= (firstVisibleRow + numOfVisibleRows))
+    listbox.scrollToIndex(top.awRow - numOfVisibleRows);
 
-    top.awInputElement.focus();
-  /*}
-  catch(ex)
-  {
-    top.awFocusRetry ++;
-    if (top.awFocusRetry < 3)
-    {
-      dump("_awSetFocus failed, try it again...\n");
-      setTimeout("_awSetFocus();", 0);
-    }
-    else
-      dump("_awSetFocus failed, forget about it!\n");
-  }*/
+  top.awInputElement.focus();
 }
 
 function awTabFromRecipient(element, event)
 {
-  //If we are the last element in the listbox, we don't want to create a new row.
+  // If we are the last element in the listbox, we don't want to create a new row.
   if (element == awGetInputElement(top.MAX_RECIPIENTS))
     top.doNotCreateANewRow = true;
 
