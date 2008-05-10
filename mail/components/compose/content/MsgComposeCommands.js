@@ -834,9 +834,8 @@ function setupLdapAutocompleteSession()
 
             // get the login to authenticate as, if there is one
             //
-            var login = "";
             try {
-                login = getPref(autocompleteDirectory + ".auth.dn", true);
+                LDAPSession.login = getPref(autocompleteDirectory + ".auth.dn", true);
             } catch (ex) {
                 // if we don't have this pref, no big deal
             }

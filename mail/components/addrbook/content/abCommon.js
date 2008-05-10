@@ -1172,9 +1172,8 @@ function setupLdapAutocompleteSession()
 
             // get the login to authenticate as, if there is one
             //
-            var login = "";
             try {
-                login = gPrefs.getComplexValue(
+		LDAPSession.login =gPrefs.getComplexValue(
                     autocompleteDirectory + ".auth.dn",
                     Components.interfaces.nsISupportsString).data;
             } catch (ex) {
