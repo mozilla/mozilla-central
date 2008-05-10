@@ -666,18 +666,6 @@ function GetSelectedAbCards()
 {
   var abView = gAbView;
 
-  // if sidebar is open, and addressbook panel is open and focused,
-  // then use the ab view from sidebar (gCurFrame is from sidebarOverlay.js)
-  const abPanelUrl = "chrome://messenger/content/addressbook/addressbook-panel.xul";
-  if (document.getElementById("sidebar-box")) {
-    if (gCurFrame &&
-        gCurFrame.getAttribute("src") == abPanelUrl &&
-        document.commandDispatcher.focusedWindow == gCurFrame.contentDocument.defaultView)
-    {
-      abView = gCurFrame.contentDocument.defaultView.gAbView;
-    }
-  }
-
   if (!abView)
     return null;
 
