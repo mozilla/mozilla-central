@@ -92,7 +92,6 @@
   locale/@AB_CD@/messenger/addressbook/abCardViewOverlay.dtd            (%chrome/messenger/addressbook/abCardViewOverlay.dtd)
   locale/@AB_CD@/messenger/addressbook/abDirTreeOverlay.dtd             (%chrome/messenger/addressbook/abDirTreeOverlay.dtd)
   locale/@AB_CD@/messenger/addressbook/abResultsPaneOverlay.dtd         (%chrome/messenger/addressbook/abResultsPaneOverlay.dtd)
-  locale/@AB_CD@/messenger/addressbook/abSelectAddressesDialog.dtd      (%chrome/messenger/addressbook/abSelectAddressesDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/abMailListDialog.dtd             (%chrome/messenger/addressbook/abMailListDialog.dtd)
   locale/@AB_CD@/messenger/addressbook/addressBook.properties           (%chrome/messenger/addressbook/addressBook.properties)
   locale/@AB_CD@/messenger/addressbook/ldapAutoCompErrs.properties      (%chrome/messenger/addressbook/ldapAutoCompErrs.properties)

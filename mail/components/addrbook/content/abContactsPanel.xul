@@ -70,7 +70,6 @@
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abDragDrop.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abCommon.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abResultsPane.js"/>
-  <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abSelectAddressesDialog.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
   <popup id="cardProperties">

@@ -401,7 +401,6 @@ var defaultController =
       case "cmd_showFormatToolbar":
 
       //Options Menu
-      case "cmd_selectAddress":
       case "cmd_outputFormat":
       case "cmd_quoteMessage":
         return true;
@@ -454,8 +453,6 @@ var defaultController =
         return composeHTML;
 
       //Options Menu
-      case "cmd_selectAddress":
-        return !gWindowLocked;
       case "cmd_outputFormat":
         return composeHTML;
       case "cmd_quoteMessage":
@@ -509,7 +506,6 @@ var defaultController =
       case "cmd_showFormatToolbar"  : goToggleToolbar('FormatToolbar', 'menu_showFormatToolbar');   break;
 
       //Options Menu
-      case "cmd_selectAddress"      : if (defaultController.isCommandEnabled(command)) SelectAddress();         break;
       case "cmd_quoteMessage"       : if (defaultController.isCommandEnabled(command)) QuoteSelectedMessage();  break;
       default:
 //        dump("##MsgCompose: don't know what to do with command " + command + "!\n");
@@ -2022,29 +2018,6 @@ function OutputFormatMenuSelect(target)
     toolbar.hidden = gHideMenus ||
       (show_menuitem.getAttribute("checked") == "false");
   }
-}
-
-function SelectAddress()
-{
-  var msgCompFields = gMsgCompose.compFields;
-
-  Recipients2CompFields(msgCompFields);
-
-  var toAddress = msgCompFields.to;
-  var ccAddress = msgCompFields.cc;
-  var bccAddress = msgCompFields.bcc;
-
-  window.openDialog("chrome://messenger/content/addressbook/abSelectAddressesDialog.xul",
-            "",
-            "chrome,resizable,titlebar,modal",
-            {composeWindow:top.window,
-             msgCompFields:msgCompFields,
-             toAddress:toAddress,
-             ccAddress:ccAddress,
-             bccAddress:bccAddress});
-  // We have to set focus to the addressingwidget because we seem to loose focus often 
-  // after opening the SelectAddresses Dialog- bug # 89950
-  AdjustFocus();
 }
 
 // walk through the recipients list and add them to the inline spell checker ignore list
