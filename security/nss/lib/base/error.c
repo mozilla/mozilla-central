@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: error.c,v $ $Revision: 1.7 $ $Date: 2005-12-19 17:53:28 $";
+static const char CVS_ID[] = "@(#) $RCSfile: error.c,v $ $Revision: 1.8 $ $Date: 2008-05-10 01:03:15 $";
 #endif /* DEBUG */
 
 /*
@@ -282,5 +282,20 @@ nss_ClearErrorStack ( void)
 
   es->header.count = 0;
   es->stack[0] = 0;
+  return;
+}
+
+/*
+ * nss_DestroyErrorStack
+ *
+ * This routine frees the calling thread's error stack.
+ */
+
+NSS_IMPLEMENT void
+nss_DestroyErrorStack ( void)
+{
+  if( 0 != error_stack_index ) {
+    PR_SetThreadPrivate(error_stack_index, NULL);
+  }
   return;
 }
