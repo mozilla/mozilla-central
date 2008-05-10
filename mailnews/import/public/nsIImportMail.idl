@@ -93,7 +93,7 @@ interface nsIImportMail : nsISupports
 
   /*
     Import a specific mailbox into the destination file supplied.  If an error
-    occurs that is non-fatal, the destination will be deleted and other mailbox's
+    occurs that is non-fatal, the destination will be deleted and other mailboxes
     will be imported.  If a fatal error occurs, the destination will be deleted
     and the import operation will abort.
   */

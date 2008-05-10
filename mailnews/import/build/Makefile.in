@@ -59,7 +59,7 @@ REQUIRES	= xpcom \
 		  $(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-REQUIRES += impEudra
+REQUIRES += impEudra impapplemail
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -83,6 +83,7 @@ SHARED_LIBRARY_LIBS = \
 
 ifneq (,$(filter mac cocoa, $(MOZ_WIDGET_TOOLKIT)))
 SHARED_LIBRARY_LIBS += ../eudora/src/$(LIB_PREFIX)impEudra_s.$(LIB_SUFFIX)
+SHARED_LIBRARY_LIBS += ../applemail/src/$(LIB_PREFIX)applmail_s.$(LIB_SUFFIX)
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -101,7 +102,9 @@ LOCAL_INCLUDES += -I$(srcdir)/../src \
 	$(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-LOCAL_INCLUDES += -I$(srcdir)/../eudora/src
+LOCAL_INCLUDES += -I$(srcdir)/../eudora/src \
+									-I$(srcdir)/../applemail/src \
+									$(NULL)
 endif
 
 ifeq ($(OS_ARCH),WINNT)
@@ -132,7 +135,9 @@ EXTRA_DSO_LDOPTS += \
 	$(NULL)
 
 ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
-EXTRA_DSO_LDOPTS += $(TK_LIBS)
+EXTRA_DSO_LDOPTS += -framework Cocoa  \
+										$(TK_LIBS) \
+										$(NULL)
 endif
 
 include $(topsrcdir)/config/rules.mk

@@ -65,6 +65,7 @@
 #define EMPTY_MESSAGE_LINE(buf) (buf[0] == '\r' || buf[0] == '\n' || buf[0] == '\0')
 
 /* blank filled header to store keyword/tags in the mailbox */
-#define X_MOZILLA_KEYWORDS HEADER_X_MOZILLA_KEYWORDS ":                                                                                 " MSG_LINEBREAK
+#define X_MOZILLA_KEYWORDS     "X-Mozilla-Keys" ":                                                                                 " MSG_LINEBREAK
+#define X_MOZILLA_KEYWORDS_LEN (sizeof(X_MOZILLA_KEYWORDS) - 1)
 
 #endif

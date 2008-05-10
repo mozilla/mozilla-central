@@ -1004,7 +1004,7 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
   nsString folderName;
   if (!m_pName.IsEmpty()) {
     const PRUnichar *moduleName[] = { m_pName.get() };
-    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ModuleFolderName").get(),
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ImportModuleFolderName").get(),
                                       moduleName, 1,
                                       getter_Copies(folderName));
   }

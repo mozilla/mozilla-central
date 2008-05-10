@@ -78,6 +78,15 @@ static NS_DEFINE_CID(kEudoraImportCID,      NS_EUDORAIMPORT_CID);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
+// Apple Mail import Include Files
+////////////////////////////////////////////////////////////////////////////////
+#if defined(XP_MACOSX)
+#include "nsAppleMailImport.h"
+
+static NS_DEFINE_CID(kAppleMailImportCID,      NS_APPLEMAILIMPORT_CID);
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 // outlook import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef XP_WIN
@@ -173,6 +182,32 @@ NS_METHOD EudoraRegister(nsIComponentManager *aCompMgr,
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
+// apple mail import factories
+////////////////////////////////////////////////////////////////////////////////
+#if defined(XP_MACOSX)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAppleMailImportModule)
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsAppleMailImportMail, Initialize)
+
+NS_METHOD AppleMailRegister(nsIComponentManager *aCompMgr,
+                         nsIFile *aPath, const char *registryLocation,
+                         const char *componentType,
+                         const nsModuleComponentInfo *info)
+{
+  nsresult rv;
+
+  nsCOMPtr<nsICategoryManager> catMan = do_GetService( NS_CATEGORYMANAGER_CONTRACTID, &rv);
+  if (NS_SUCCEEDED( rv)) {
+    nsCString replace;
+    char *theCID = kAppleMailImportCID.ToString();
+    rv = catMan->AddCategoryEntry( "mailnewsimport", theCID, kAppleMailSupportsString, PR_TRUE, PR_TRUE, getter_Copies( replace));
+    NS_Free( theCID);
+  }
+
+  return( rv);
+}
+#endif
+
+////////////////////////////////////////////////////////////////////////////////
 // outlook import factories
 ////////////////////////////////////////////////////////////////////////////////
 #ifdef XP_WIN
@@ -253,6 +288,16 @@ static const nsModuleComponentInfo components[] = {
 #if defined(XP_WIN) || defined(XP_MACOSX)
     ,{ "Text Import Component", NS_EUDORAIMPORT_CID,
     "@mozilla.org/import/import-eudora;1", nsEudoraImportConstructor, EudoraRegister, nsnull }
+#endif
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // apple mail import components
+    ////////////////////////////////////////////////////////////////////////////////
+#if defined(XP_MACOSX)
+        ,{ "Apple Mail Import Component", NS_APPLEMAILIMPORT_CID,
+        "@mozilla.org/import/import-applemail;1", nsAppleMailImportModuleConstructor, AppleMailRegister, nsnull },
+        { "Apple Mail Import Implementation", NS_APPLEMAILIMPL_CID,
+          NS_APPLEMAILIMPL_CONTRACTID, nsAppleMailImportMailConstructor },
 #endif
 
 #ifdef XP_WIN
