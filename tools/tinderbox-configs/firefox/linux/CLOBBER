@@ -1,1 +1,1 @@
-Trigger nightly no that bustage from bug 432492 is fixed by backout
+clobber to pick up backout of bug 393246 and lock down for RC1

@@ -1,1 +1,1 @@
-Spin new nightly with backout of 382392 and search bar fix 426329
+clobber to pick up backout of bug 393246 and lock down for RC1
