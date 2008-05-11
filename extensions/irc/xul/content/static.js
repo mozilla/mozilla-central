@@ -3173,6 +3173,7 @@ function getTabForObject(source, create)
         {
             source.userListShare = new Object();
             source.userList = new XULTreeView(source.userListShare);
+            source.userList.getRowProperties = ul_getrowprops;
             source.userList.getCellProperties = ul_getcellprops;
             source.userList.childData.setSortDirection(1);
         }
@@ -3266,6 +3267,20 @@ function updateTabAttributes()
                 tab.removeAttribute(attr);
         }
     }
+}
+
+// Properties getter for user list tree view
+function ul_getrowprops(index, properties)
+{
+    if ((index < 0) || (index >= this.childData.childData.length) ||
+        !properties)
+    {
+        return;
+    }
+
+    // See bug 432482 - work around Gecko deficiency.
+    if (!this.selection.isSelected(index))
+        properties.AppendElement(client.atomSvc.getAtom("unselected"));
 }
 
 // Properties getter for user list tree view
