@@ -46,15 +46,6 @@
 // calDavCalendar.js
 //
 
-// XXXdmose deal with generation goop
-
-// XXXdmose deal with locking
-
-// XXXdmose need to make and use better error reporting interface for webdav
-// (all uses of aStatusCode, probably)
-
-// XXXdmose use real calendar result codes, not NS_ERROR_FAILURE for everything
-
 const xmlHeader = '<?xml version="1.0" encoding="UTF-8"?>\n';
 
 function calDavCalendar() {
@@ -96,13 +87,13 @@ function getLocationPath(item) {
 
     var locPath = this.mItemInfoCache[item.id].locationPath;
     if (locPath) {
-        LOG("using locationPath: " + locPath);
+        LOG("CalDAV: using locationPath: " + locPath);
     } else {
         locPath = item.id;
         if (locPath) {
             locPath += ".ics";
         }
-        LOG("using locationPath: " + locPath);
+        LOG("CalDAV: using locationPath: " + locPath);
     }
     return locPath;
 }
@@ -381,18 +372,30 @@ calDavCalendar.prototype = {
         var locationPath = aItem.id + ".ics";
         var itemUri = this.mCalendarUri.clone();
         itemUri.spec = this.makeUri(locationPath);
-        LOG("itemUri.spec = " + itemUri.spec);
+        LOG("CalDAV: itemUri.spec = " + itemUri.spec);
 
         var addListener = {};
         var thisCalendar = this;
         addListener.onStreamComplete =
             function onPutComplete(aLoader, aContext, aStatus, aResultLength,
                                    aResult) {
-            var status = aContext.responseStatus;
+            var status;
+            try {
+                status = aContext.responseStatus;
+            } catch(ex) {
+                status = Components.interfaces.calIErrors.DAV_PUT_ERROR;
+            }
+            if (thisCalendar.verboseLogging()) {
+                try {
+                    LOG("CalDAV: recv: " + aResult);
+                } catch(ex) {
+                    LOG("CalDAV empty response");
+                }
+            }
             // 201 = HTTP "Created"
             //
             if (status == 201) {
-                LOG("Item added successfully");
+                LOG("CalDAV: Item added successfully");
 
                 var retVal = Components.results.NS_OK;
                 // Some CalDAV servers will modify items on PUT (add X-props,
@@ -400,21 +403,13 @@ calDavCalendar.prototype = {
                 // the current state of the item
                 // Observers will be notified in getUpdatedItem()
                 thisCalendar.getUpdatedItem(aItem, aListener);
-
-            } else if (status == 200) {
-                LOG("CalDAV: 200 received from server: server malfunction");
-                retVal = Components.results.NS_ERROR_FAILURE;
-            } else if (status == 412) {
-                LOG("CalDAV: etag exists on adopt item: server malfunction");
-                retVal = Components.results.NS_ERROR_FAILURE;
             } else {
                 if (status > 999) {
-                    status = "0x" + aStatusCode.toString(16);
+                    status = "0x" + status.toString(16);
                 }
-
-                // XXX real error handling
-                LOG("Error adding item: " + status);
-                retVal = Components.results.NS_ERROR_FAILURE;
+                LOG("CalDAV: Unexpected status adding item: " + status);
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
+                                            "itemPutError");
             }
         }
 
@@ -476,8 +471,8 @@ calDavCalendar.prototype = {
                                                   aItem.id,
                                                   "ID for modifyItem doesn't exist or is null");
                 } catch (ex) {
-                    LOG("modifyItem's onOperationComplete threw an"
-                          + " exception " + ex + "; ignoring");
+                    LOG("CalDAV: modifyItem's onOperationComplete threw an"
+                        + " exception " + ex + "; ignoring");
                 }
             }
 
@@ -503,9 +498,15 @@ calDavCalendar.prototype = {
             // 201 = HTTP "Created"
             // 204 = HTTP "No Content"
             //
-            var status = aContext.responseStatus;
+            var status;
+            try {
+                status = aContext.responseStatus;
+            } catch(ex) {
+                status = Components.interfaces.calIErrors.DAV_PUT_ERROR;
+            }
+            
             if (status == 204 || status == 201) {
-                LOG("Item modified successfully.");
+                LOG("CalDAV: Item modified successfully.");
                 var retVal = Components.results.NS_OK;
                 // Some CalDAV servers will modify items on PUT (add X-props,
                 // change location, etc) so we'd best re-fetch in order to know
@@ -519,20 +520,14 @@ calDavCalendar.prototype = {
                 if (status > 999) {
                     status = "0x " + status.toString(16);
                 }
-                LOG("Error modifying item: " + status);
-
-                // XXX deal with non-existent item here, other
-                // real error handling
-
-                // XXX aStatusCode will be 201 Created for a PUT on an item
-                // that didn't exist before.
+                LOG("CalDAV: Unexpected status on modifying item: " + status);
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
+                                            "itemPutError");
 
                 retVal = Components.results.NS_ERROR_FAILURE;
             }
             return;
         }
-
-        // XXX use etag as generation
 
         var httpchannel = this.prepChannel(eventUri, modifiedItemICS,
                                            "text/calendar; charset=utf-8");
@@ -543,7 +538,6 @@ calDavCalendar.prototype = {
                                          false);
         }
 
-        LOG("modifyItem: PUTting = " + modifiedItemICS);
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
                              .createInstance(Components.interfaces
                              .nsIStreamLoader);
@@ -597,15 +591,20 @@ calDavCalendar.prototype = {
 
         delListener.onStreamComplete =
         function caldavDLoSC(aLoader, aContext, aStatus, aResultLength, aResult) {
-
-            var status = aContext.responseStatus;
+            var status;
+            try {
+                status = aContext.responseStatus;
+            } catch(ex) {
+                status = Components.interfaces.calIErrors.DAV_REMOVE_ERROR;
+            }
+            
             // 204 = HTTP "No content"
             //
             if (status == 204) {
                 thisCalendar.mMemoryCalendar.deleteItem(aItem, aListener);
                 delete thisCalendar.mHrefIndex[eventUri.path];
                 delete thisCalendar.mItemInfoCache[aItem.id];
-                LOG("Item deleted successfully.");
+                LOG("CalDAV: Item deleted successfully.");
                 var retVal = Components.results.NS_OK;
             }
             else if (status == 412) {
@@ -626,8 +625,9 @@ calDavCalendar.prototype = {
                 }
 
             } else {
-                LOG("Error deleting item: " + status);
-                // XXX real error handling here
+                LOG("CalDAV: Unexpected status deleting item: " + status);
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REMOVE_ERROR,
+                                            "itemDeleteError");
                 retVal = Components.results.NS_ERROR_FAILURE;
             }
         }
@@ -644,7 +644,6 @@ calDavCalendar.prototype = {
             }
         }
 
-        // XXX check generation
         var httpchannel = this.prepChannel(eventUri, null, null);
         if (!aIgnoreEtag) {
             httpchannel.setRequestHeader("If-Match",
@@ -717,6 +716,10 @@ calDavCalendar.prototype = {
             </filter>
           </calendar-query>;
 
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryXml);
+        }
+
         this.reportInternal(xmlHeader + queryXml.toXMLString(), aItem, aListener);
         return;
 
@@ -761,6 +764,9 @@ calDavCalendar.prototype = {
                     .getService(Components.interfaces.nsIDOMSerializer);
                 // libical needs to see \r\n instead on \n\n in the case of "folded" lines
                 var response = xSerializer.serializeToString(aDetail).replace(/\n\n/g, "\r\n");
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: recv: " + response);
+                }
                 var responseElement = new XML(response);
 
                 // create calIItemBase from e4x object
@@ -867,7 +873,7 @@ calDavCalendar.prototype = {
                 for each (var item in excItems) {
                     var parent = uid2parent[item.id];
                     if (parent == null) {
-                        LOG( "no parent item for rid=" + item.recurrenceId );
+                        LOG("CalDAV: no parent item for rid=" + item.recurrenceId);
                     } else {
                         item.parentItem = parent;
                         item.parentItem.recurrenceInfo.modifyException(item, true);
@@ -897,16 +903,11 @@ calDavCalendar.prototype = {
                 }
 
             } else {
-                // XXX
-                LOG("aStatusCode = " + aStatusCode);
-                errString = "XXX";
+                 LOG("CalDAV: aStatusCode = " + aStatusCode + " on item retrieval");
+                 errString = "Error retrieving item";
                 rv = Components.results.NS_ERROR_FAILURE;
             }
 
-            if (errString) {
-                LOG("errString = " + errString);
-            }
-            
             for (var i = 0; i < items.length; i++) {
                 if (thisCalendar.mItemInfoCache[items[i].id].isNew) {
                     thisCalendar.mMemoryCalendar.adoptItem(items[i], aListener);
@@ -920,7 +921,7 @@ calDavCalendar.prototype = {
 
         reportListener.onOperationComplete = function(aStatusCode, aResource,
                                                       aOperation, aClosure) {
-            LOG("refresh completed with status " + aStatusCode);
+            LOG("CalDAV: refresh completed with status " + aStatusCode);
             thisCalendar.mObservers.notify("onLoad", [thisCalendar]);
             thisCalendar.mFirstRefreshDone = true;
             while (thisCalendar.mQueuedQueries.length) {
@@ -935,6 +936,9 @@ calDavCalendar.prototype = {
         var xParser = Components.classes['@mozilla.org/xmlextras/domparser;1']
                       .getService(Components.interfaces.nsIDOMParser);
         queryDoc = xParser.parseFromString(aQuery, "application/xml");
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + aQuery);
+        }
 
         // construct the resource we want to search against
         var calendarDirUri = this.mCalendarUri.clone();
@@ -1080,6 +1084,10 @@ calDavCalendar.prototype = {
         etagListener.onOperationDetail = function(aStatusCode, aResource,
                                                     aOperation, aDetail,
                                                     aClosure) {
+            if (aStatusCode != 200) {
+                LOG("CalDAV: Unexpected item status " + aStatusCode + " while fetching etags");
+            }
+            
             var xSerializer = Components.classes
                 ['@mozilla.org/xmlextras/xmlserializer;1']
                 .getService(Components.interfaces.nsIDOMSerializer);
@@ -1087,6 +1095,9 @@ calDavCalendar.prototype = {
             // "folded" lines
             var response = xSerializer.serializeToString(aDetail).
                                        replace(/\n\n/g, "\r\n");
+            if (thisCalendar.verboseLogging()) {
+                LOG("CalDAV: recv: " + response);
+            }
             var responseElement = new XML(response);
 
             var etag = responseElement..D::["getetag"];
@@ -1110,12 +1121,18 @@ calDavCalendar.prototype = {
             var needsRefresh = false;
             if (aRefreshEvent.queryStatuses.length == aRefreshEvent.typesCount) {
 
-               for each (var statusCode in aRefreshEvent.queryStatuses) {
-                    if (statusCode != 207) { // XXX better error checking
-                        LOG("error fetching item etags: " + statusCode);
+                var badFetch = false;
+                for each (var statusCode in aRefreshEvent.queryStatuses) {
+                    if (statusCode != 207) {
+                        LOG("CalDAV: error fetching item etags: " + statusCode);
+                        badFetch = true;
                     }
                 }
-
+                if (badFetch) {
+                    thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR,
+                                            "disabledMode");
+                    return;
+                }
                 // if an item has been deleted from the server, delete it here too
                 for (var path in  thisCalendar.mHrefIndex) {
                     if (aRefreshEvent.itemsReported.indexOf(path) < 0) {
@@ -1171,6 +1188,9 @@ calDavCalendar.prototype = {
         var xParser = Components.classes['@mozilla.org/xmlextras/domparser;1']
                       .getService(Components.interfaces.nsIDOMParser);
         queryDoc = xParser.parseFromString(queryString, "application/xml");
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryString);
+        }
 
         // construct the resource we want to search against
         var calendarDirUri = this.mCalendarUri.clone();
@@ -1247,10 +1267,6 @@ calDavCalendar.prototype = {
                             "_blank",
                             "chrome,dialog=yes",
                             paramBlock);
-
-        if (this.mDisabled) {
-            this.refresh();
-        }
     },
 
     /**
@@ -1258,6 +1274,7 @@ calDavCalendar.prototype = {
      *
      */
     checkDavResourceType: function checkDavResourceType() {
+
         var resourceTypeXml = null;
         var resourceType = kDavResourceTypeNone;
         var thisCalendar = this;
@@ -1268,7 +1285,9 @@ calDavCalendar.prototype = {
                             <D:resourcetype/>
                         </D:prop>
                         </D:propfind>;
-
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryXml);
+        }
         var httpchannel = this.prepChannel(this.mUri,queryXml,
                                            "text/xml; charset=utf-8");
         httpchannel.setRequestHeader("Depth", "0", false);
@@ -1283,19 +1302,32 @@ calDavCalendar.prototype = {
                                              .createInstance(Components
                                              .interfaces.nsIScriptableUnicodeConverter);
 
-            var wwwauth = aContext.getRequestHeader("Authorization");
+            try {
+                LOG("CalDAV: Status " + aContext.responseStatus +
+                    " on initial PROPFIND for calendar " + thisCalendar.name);
+            } catch(ex) {
+                LOG("CalDAV: Error without status on initial PROPFIND for calendar " +
+                    thisCalendar.name);
+            }
+            var wwwauth;
+            try {
+                wwwauth = aContext.getRequestHeader("Authorization");
+                thisCalendar.mAuthScheme = wwwauth.split(" ")[0];
+            } catch(ex) {
+                // no auth header could mean a public calendar
+                thisCalendar.mAuthScheme = "none";
+            }
 
             if (this.mUriParams) {
                 thisCalendar.mAuthScheme = "Ticket";
-            } else {
-                thisCalendar.mAuthScheme = wwwauth.split(" ")[0];
             }
-
+            LOG("CalDAV: Authentication scheme " + thisCalendar.mAuthScheme);
             // we only really need the authrealm for Digest auth
             // since only Digest is going to time out on us
             if (thisCalendar.mAuthScheme == "Digest") {
                 var realmChop = wwwauth.split("realm=\"")[1];
                 thisCalendar.mAuthRealm = realmChop.split("\", ")[0];
+                LOG("  realm " + thisCalendar.mAuthRealm);
             }
 
             resultConverter.charset = "UTF-8";
@@ -1303,10 +1335,21 @@ calDavCalendar.prototype = {
             try {
                 str = resultConverter.convertFromByteArray(aResult, aResultLength);
             } catch(e) {
-                LOG("Failed to determine resource type");
+                LOG("CalDAV: Failed to determine resource type");
             }
-            str = str.substring(str.indexOf('\n'));
-            var multistatus = new XML(str);
+            if (thisCalendar.verboseLogging()) {
+                LOG("CalDAV: recv: " + str);
+            }
+            if (str.substr(0,6) == "<?xml ") {
+                    str = str.substring(str.indexOf('<', 2));
+            }
+            try {
+                var multistatus = new XML(str);
+            } catch(ex) {
+                thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_NOT_DAV,
+                                            "dav_notDav");
+                return;
+            }
 
             var resourceTypeXml = multistatus..D::["resourcetype"];
             if (resourceTypeXml.length == 0) {
@@ -1321,12 +1364,14 @@ calDavCalendar.prototype = {
                 !thisCalendar.mDisabled) {
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_NOT_DAV,
                                             "dav_notDav");
+                return;
             }
 
             if ((resourceType == kDavResourceTypeCollection) &&
                 !thisCalendar.mDisabled) {
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_DAV_NOT_CALDAV,
                                             "dav_davNotCaldav");
+                return;
             }
 
             // if this calendar was previously offline we want to recover
@@ -1336,8 +1381,6 @@ calDavCalendar.prototype = {
                 thisCalendar.mReadOnly = false;
             }
 
-            // we've authenticated in the process of PROPFINDing and can flush
-            // the getItems request queue
             thisCalendar.setCalHomeSet();
             thisCalendar.checkServerCaps();
         }
@@ -1370,13 +1413,25 @@ calDavCalendar.prototype = {
         var httpchannel = this.prepChannel(homeSet, null, null);
 
         httpchannel.requestMethod = "OPTIONS";
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: OPTIONS");
+        }
 
         var streamListener = {};
 
         streamListener.onStreamComplete =
             function checkServerCaps_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
-            var dav = aContext.getResponseHeader("DAV");
+            var dav;
+            try {
+                var dav = aContext.getResponseHeader("DAV");
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: DAV header: " + dav);
+                }
+            } catch(ex) {
+                LOG("CalDAV: Error getting DAV header, status " + aContext.responseStatus);
+            }
+            
 
             if (dav.indexOf("calendar-schedule") != -1) {
                 thisCalendar.mHaveScheduling = true;
@@ -1386,7 +1441,7 @@ calDavCalendar.prototype = {
                 getFreeBusyService().addProvider(thisCalendar);
                 thisCalendar.findPrincipalNS();
             } else {
-                LOG("Server does not support CalDAV scheduling.");
+                LOG("CalDAV: Server does not support CalDAV scheduling.");
                 thisCalendar.refresh();
             }
         }
@@ -1419,6 +1474,9 @@ calDavCalendar.prototype = {
                     </D:prop>
                   </D:propfind>
 
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryXml);
+        }
         var httpchannel = this.prepChannel(homeSet, queryXml,
                                            "text/xml; charset=utf-8");
 
@@ -1430,6 +1488,11 @@ calDavCalendar.prototype = {
         streamListener.onStreamComplete =
             function findInOutBoxes_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
+            if (aContext.responseStatus != 207) {
+                LOG("CalDAV: Unexpected status " + aContext.responseStatus +
+                    " while querying principal namespace");
+            }
+            
             var resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
                                              .createInstance(Components
                                              .interfaces.nsIScriptableUnicodeConverter);
@@ -1438,10 +1501,16 @@ calDavCalendar.prototype = {
             var str;
             try {
                 str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: recv: " + str);
+                }
             } catch(e) {
-                LOG("Failed to propstat principal namespace");
+                LOG("CalDAV: Failed to propstat principal namespace");
             }
-            str = str.substring(str.indexOf('\n'));
+
+            if (str.substr(0,6) == "<?xml ") {
+                    str = str.substring(str.indexOf('<', 2));
+            }
             var multistatus = new XML(str);
             var pnsUri = thisCalendar.mUri.clone();
             var pcs = multistatus..D::["principal-collection-set"]..D::href;
@@ -1499,6 +1568,9 @@ calDavCalendar.prototype = {
                 </D:prop>
             </D:principal-property-search>;
 
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + queryXml);
+        }
         var httpchannel = this.prepChannel(pns, queryXml,
                                            "text/xml; charset=utf-8");
 
@@ -1510,6 +1582,8 @@ calDavCalendar.prototype = {
             function caldav_cPNS_oSC(aLoader, aContext, aStatus,
                                          aResultLength, aResult) {
             if (aContext.responseStatus != 207) {
+                LOG("CalDAV: Bad response to in/outbox query, status " +
+                    aContext.responseStatus);
                 thisCalendar.mHaveScheduling = false;
                 thisCalendar.mInBoxUrl = null;
                 thisCalendar.mOutBoxUrl = null;
@@ -1523,13 +1597,16 @@ calDavCalendar.prototype = {
             var str;
             try {
                 str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: recv: " + str);
+                }
             } catch(e) {
-                LOG("Failed to report principals namespace");
+                LOG("CalDAV: Failed to report principals namespace");
             }
             thisCalendar.mMailToUrl = thisCalendar.mCalendarUri.spec;
 
             if (str.substr(0,6) == "<?xml ") {
-                str = str.substring(str.indexOf('\n'));
+                    str = str.substring(str.indexOf('<', 2));
             }
             var multistatus = new XML(str);
 
@@ -1541,9 +1618,11 @@ calDavCalendar.prototype = {
                     responseCHS = response..D::["calendar-home-set"]..D::href[0];
                 }
 
-                if (responseCHS.charAt(responseCHS.toString().length -1) != "/") {
-                    responseCHS += "/";
-                }
+                try {
+                    if (responseCHS.charAt(responseCHS.toString().length -1) != "/") {
+                        responseCHS += "/";
+                    }
+                } catch(ex) {}
 
                 if (responseCHS  != thisCalendar.mCalHomeSet.path &&
                     responseCHS != thisCalendar.mCalHomeSet.spec) {
@@ -1577,6 +1656,10 @@ calDavCalendar.prototype = {
                 obUrl.path = thisCalendar.ensurePath(obPath);
                 thisCalendar.mOutBoxUrl = obUrl;
             }
+
+            if (!thisCalendar.mMailToUrl || !thisCalendar.mInBoxUrl || !thisCalendar.mOutBoxUrl) {
+                thisCalendar.mHaveScheduling = false;
+            }
             thisCalendar.refresh();
         }
 
@@ -1601,7 +1684,7 @@ calDavCalendar.prototype = {
         aCalId, aRangeStart, aRangeEnd, aBusyTypes, aListener) {
 
         if (!this.mHaveScheduling || !this.mOutBoxUrl || !this.mMailToUrl) {
-            LOG("Server does not support scheduling; freebusy query not possible");
+            LOG("CalDAV: Server does not support scheduling; freebusy query not possible");
             return;
         }
 
@@ -1644,6 +1727,9 @@ calDavCalendar.prototype = {
         fbQuery += "END:VCALENDAR\n";
         // RFC 2445 is specific about how lines end...
         fbQuery = fbQuery.replace(/\n/g, "\r\n");
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + fbQuery);
+        }
 
         var httpchannel = this.prepChannel(outBoxUri, fbQuery,
                                            "text/calendar; charset=utf-8");
@@ -1664,11 +1750,14 @@ calDavCalendar.prototype = {
             var str;
             try {
                 str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                if (thisCalendar.verboseLogging()) {
+                    LOG("CalDAV: recv: " + str);
+                }
             } catch(e) {
-                LOG("Failed to parse freebusy response");
+                LOG("CalDAV: Failed to parse freebusy response");
             }
 
-            if (aContext.responseStatus == 200) {  // XXX = better error handling
+            if (aContext.responseStatus == 200) {
                 var periodsToReturn = [];
                 var CalPeriod = new Components.
                                     Constructor("@mozilla.org/calendar/period;1",
@@ -1693,11 +1782,11 @@ calDavCalendar.prototype = {
                 var response = new XML(str);
                 var status = response..C::response..C::["request-status"];
                 if (status.substr(0,1) != 2) {
-                    LOG("Got status " + status + " in response to freebusy query");
+                    LOG("CalDAV: Got status " + status + " in response to freebusy query");
                     return;
                 }
                 if (status.substr(0,3) != "2.0") {
-                    LOG("Got status " + status + " in response to freebusy query");
+                    LOG("CalDAV: Got status " + status + " in response to freebusy query");
                 }
                 var period;
                 var interval;
@@ -1758,7 +1847,7 @@ calDavCalendar.prototype = {
                 }
                 aListener.onResult(null, periodsToReturn);
             } else {
-                LOG("Received status " + aContext.responseStatus + " from freebusy query");
+                LOG("CalDAV: Received status " + aContext.responseStatus + " from freebusy query");
             }
 
         }
@@ -1810,11 +1899,25 @@ calDavCalendar.prototype = {
         return aString;
     },
 
+     verboseLogging: function caldav_verboseLogging() {
+         var prefB = Components.classes["@mozilla.org/preferences-service;1"].
+                 getService(Components.interfaces.nsIPrefBranch);
+         var verboseLog = false;
+         try {
+             verboseLog = prefB.getBoolPref("calendar.debug.log.verbose");
+         } catch(ex) {}
+         return verboseLog;
+     },
+ 
     getSerializedItem: function caldav_getSerializedItem(aItem) {
         var serializer = Components.classes["@mozilla.org/calendar/ics-serializer;1"]
                             .createInstance(Components.interfaces.calIIcsSerializer);
         serializer.addItems([aItem], 1);
-        return serializer.serializeToString();
+        var serializedItem = serializer.serializeToString();
+        if (this.verboseLogging()) {
+            LOG("CalDAV: send: " + serializedItem);
+        }
+        return serializedItem;
     },
 
     // stubs to keep callbacks we don't support yet from throwing errors

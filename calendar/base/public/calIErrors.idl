@@ -123,5 +123,8 @@ interface calIErrors : nsISupports
   const unsigned long DAV_NOT_DAV = DAV_ERROR_BASE +  0;
   const unsigned long DAV_DAV_NOT_CALDAV = DAV_ERROR_BASE + 1;
   const unsigned long DAV_NO_PROPS = DAV_ERROR_BASE +  2;
+  const unsigned long DAV_PUT_ERROR = DAV_ERROR_BASE + 3;
+  const unsigned long DAV_REMOVE_ERROR = DAV_ERROR_BASE + 4;
+  const unsigned long DAV_REPORT_ERROR = DAV_ERROR_BASE + 5;
 };
 
