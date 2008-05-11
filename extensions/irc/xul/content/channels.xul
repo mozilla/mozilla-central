@@ -69,7 +69,9 @@
           onselect="onSelectionChange()">
         <treecols>
           <treecol label="&col.name;"  width="100" id="chanColName"/>
+          <splitter class="tree-splitter"/>
           <treecol label="&col.users;" width="50"  id="chanColUsers"/>
+          <splitter class="tree-splitter"/>
           <treecol label="&col.topic;" flex="1"    id="chanColTopic"/>
         </treecols>
         <treechildren flex="1"/>
