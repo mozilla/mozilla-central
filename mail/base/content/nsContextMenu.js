@@ -84,8 +84,8 @@ nsContextMenu.prototype = {
     this.initClipboardItems();
   },
   initSaveItems : function CM_initSaveItems() {
-    this.showItem("context-savelink", this.onSaveableLink);
-    this.showItem("context-saveimage", this.onLoadedImage);
+    this.showItem("messagePaneContext-savelink", this.onSaveableLink);
+    this.showItem("messagePaneContext-saveimage", this.onLoadedImage);
   },
   initClipboardItems : function CM_initClipboardItems() {
     // Copy depends on whether there is selected text.
@@ -94,11 +94,11 @@ nsContextMenu.prototype = {
 
     goUpdateGlobalEditMenuItems();
 
-    this.showItem("context-copy", this.isTextSelected || this.onTextInput);
-    this.showItem("context-selectall", true);
-    this.showItem("context-copyemail", this.onMailtoLink);
-    this.showItem("context-copylink", this.onLink);
-    this.showItem("context-copyimage", this.onImage);
+    this.showItem("messagePaneContext-copy", this.isTextSelected || this.onTextInput);
+    this.showItem("messagePaneContext-selectall", true);
+    this.showItem("messagePaneContext-copyemail", this.onMailtoLink);
+    this.showItem("messagePaneContext-copylink", this.onLink);
+    this.showItem("messagePaneContext-copyimage", this.onImage);
   },
 
   /**

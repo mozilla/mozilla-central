@@ -726,10 +726,10 @@ function fillMessagePaneContextMenu()
   SetupAddSenderToABMenuItem("messagePaneContext-addSenderToAddressBook", numSelected, (numSelected == 0 || hideMailItems));
   SetupAddAllToABMenuItem("messagePaneContext-addAllToAddressBook", numSelected, (numSelected == 0 || hideMailItems));
 
-  ShowMenuItem("context-addemail", gContextMenu.onMailtoLink );
-  ShowMenuItem("context-composeemailto", gContextMenu.onMailtoLink );
+  ShowMenuItem("messagePaneContext-addemail", gContextMenu.onMailtoLink );
+  ShowMenuItem("messagePaneContext-composeemailto", gContextMenu.onMailtoLink );
   
-  ShowMenuItem("reportPhishingURL", gContextMenu.onLink && !gContextMenu.onMailtoLink);
+  ShowMenuItem("messagePaneContext-reportPhishingURL", gContextMenu.onLink && !gContextMenu.onMailtoLink);
   
   // if we are on an image, go ahead and show this separator
   //if (gContextMenu.onLink && !gContextMenu.onMailtoLink)
