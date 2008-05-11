@@ -443,7 +443,6 @@
          is not specified -->
     <content>
       <xul:vbox anonid="category-box"
-                hidden="true"
                 class="calendar-item calendar-event-selection"
                 xbl:inherits="categories">
         <xul:hbox flex="1">
