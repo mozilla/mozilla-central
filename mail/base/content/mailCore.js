@@ -94,22 +94,18 @@ function MailToolboxCustomizeDone(aToolboxChanged)
   var menubar = document.getElementById("mail-menubar");
   for (var i = 0; i < menubar.childNodes.length; ++i)
     menubar.childNodes[i].setAttribute("disabled", false);
-  
-  // Update (or create) "File" button's tree
-  if (document.getElementById("button-file"))
-    SetupMoveCopyMenus('button-file', accountManagerDataSource, folderDataSource);
 
   // make sure the mail views search box is initialized
   if (document.getElementById("mailviews-container"))
     ViewPickerOnLoad();
-    
+
   // make sure the folder location picker is initialized
   if (document.getElementById("folder-location-container"))
   {
     loadFolderViewForTree(gCurrentFolderView, document.getElementById('folderLocationPopup').tree);
     UpdateFolderLocationPicker(gMsgFolderSelected);
   }
- 
+
   gSearchInput = null;
   if (document.getElementById("search-container"))
     GetSearchInput();
