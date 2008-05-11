@@ -806,6 +806,23 @@ function onInputKeyPressCallback (el)
         doPopup(null);
 }
 
+function onUserDoubleClick(event)
+{
+    if ((event.button != 0) ||
+        event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)
+    {
+        return;
+    }
+    var userList = document.getElementById("user-list");
+    if (!userList.view || !userList.view.selection)
+        return;
+    var currentIndex = userList.view.selection.currentIndex;
+    if (currentIndex < 0)
+        return;
+    var nickname = getNicknameForUserlistRow(currentIndex);
+    dispatch("query", {nickname: nickname});
+}
+
 CIRCChannel.prototype._updateConferenceMode =
 function my_updateconfmode()
 {

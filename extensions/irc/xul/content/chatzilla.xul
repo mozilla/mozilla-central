@@ -72,6 +72,7 @@
         <vbox id="user-list-box" width="125" persist="collapsed width">
  
           <tree id="user-list" flex="1" hidecolumnpicker="true"
+                ondblclick="onUserDoubleClick(event);"
                 context="context:userlist" aaa:live="off" aria-live="off"
                 aaa:relevant="additions removals text"
                 aria-relevant="additions removals text">
