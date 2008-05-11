@@ -1,5 +1,5 @@
 <!--LOCALIZATION NOTE messengercompose.dtd Main UI for message composition -->
-<!ENTITY msgComposeWindow.title "Compose: (no subject)">
+<!ENTITY msgComposeWindow.title "Write: (no subject)">
 
 <!-- File Menu -->
 <!ENTITY fileMenu.label "File"> 
