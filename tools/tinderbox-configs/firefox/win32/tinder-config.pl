@@ -199,6 +199,7 @@ $ReleaseBuild  = 1;
 $shiptalkback  = 0;
 $ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
+$DependToDated = 1; # Push the hourly to <host>-<milestone>/<build_start_time>?
 $build_hour    = "4";
 $package_creation_path = "/browser/installer";
 # needs setting for mac + talkback: $mac_bundle_path = "/browser/app";
