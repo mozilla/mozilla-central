@@ -24,15 +24,12 @@
 use strict;
 use Cwd;
 
-if (($#ARGV >= 0) && (-d $ARGV[0])) {
+if (($#ARGV > 0) && (-d $ARGV[0])) {
+     detaint $ARGV[0];
      chdir($ARGV[0]);
 } else {
-    my $bonsaidir = $0;
-    $bonsaidir =~ s:/[^/]*$::;      # Remove last word, and slash before it.
-    if ($bonsaidir eq "") {
-        $bonsaidir = ".";
-    }
-    chdir($bonsaidir);
+     my $bonsaidir = "@BONSAI_DIR@";
+     chdir $bonsaidir or die "Couldn't chdir to $bonsaidir";
 }
 
 my $time = time();
