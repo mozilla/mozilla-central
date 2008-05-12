@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.388 $ ';
+$::UtilsVersion = '$Revision: 1.389 $ ';
 
 package TinderUtils;
 
@@ -1281,7 +1281,8 @@ sub BuildIt {
         #
         if (((-e $external_build) and ($build_status eq 'success')) || 
             ($Settings::SkipMozilla)) {
-            ($build_status, $binary_url) = PostMozilla::main($build_dir);
+            ($build_status, $binary_url) = 
+             PostMozilla::main($build_dir, $start_time);
         }
 
 	# run_shell_command "rsync -av --delete $Settings::TopsrcdirFull/ $Settings::TopsrcdirLast";

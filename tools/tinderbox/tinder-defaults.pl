@@ -233,6 +233,7 @@ $LocaleProduct = "browser";
 $shiptalkback  = 1;
 $ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 $ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
+$DependToDated = 0; # Push the hourly to <host>-<milestone>/<build_start_time>?
 $OfficialBuildMachinery = 1; # Allow official clobber nightlies.  When false, $cachebuild in post-mozilla-rel.pl can never be true.
 $ReleaseGroup = ''; # group to set uploaded files to (if non-empty)
 $build_hour    = "8";

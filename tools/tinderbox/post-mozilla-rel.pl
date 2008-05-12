@@ -1035,6 +1035,7 @@ sub pushit {
   my $store_path = $args{'store_path'};
   my $store_path_packages = $args{'store_path_packages'};
   my $cachebuild = $args{'cachebuild'};
+  my $start_time = $args{'start_time'};
 
   my $upload_directory = $store_path . "/" . $store_path_packages;
 
@@ -1081,18 +1082,25 @@ sub pushit {
   # updated post-mozilla-rel.pl from CVS.
   #
   # Note that we traverse this code for "hourlies" as well as nightlies/clobbers
-  # $package_name, and hence $short_ud,  will be (eg) "fx-linux-tbox-trunk" and 
-  # "2007-09-27-04-trunk" respectively.
+  # $package_name, and hence $short_ud,  would be (eg) 
+  # "fx-linux-tbox-trunk/1202546936" if DependToDated is set, 
+  # "fx-linux-tbox-trunk/" otherwise, and "2008-02-09-00-trunk" for clobbers.
 
   $Settings::ReleaseToDated = 1 if !defined($Settings::ReleaseToDated);
   $Settings::ReleaseToLatest = 1 if !defined($Settings::ReleaseToLatest);
 
+  my $complete_remote_path; 
   if ( $Settings::ReleaseToDated ) {
     my $datedir = '';
     if( $cachebuild && ($short_ud =~ /^(\d{4})-(\d{2}).*/) ) {
       $datedir = "$1/$2/";
+      $complete_remote_path = $remote_path . "/" . $datedir . $short_ud;
+    } elsif (! $cachebuild && $Settings::DependToDated) {
+      $datedir = $start_time;
+      $complete_remote_path = $remote_path . "/" . $short_ud . "/" . $datedir;
+    } else {
+      $complete_remote_path = $remote_path . "/" . $short_ud;
     }
-    my $complete_remote_path = "$remote_path/" . $datedir . "$short_ud";
     my $makedirs = $complete_remote_path;
     if ($cachebuild && $Settings::ReleaseToLatest) {
       $makedirs .= " $remote_path/latest-$Settings::milestone";
@@ -1318,7 +1326,7 @@ sub unix2dos {
   
 sub main {
   # Get build directory from caller.
-  my ($mozilla_build_dir) = @_;
+  my ($mozilla_build_dir, $server_start_time) = @_;
   TinderUtils::print_log("Post-Build packaging/uploading commencing.\n");
 
   chdir $mozilla_build_dir;
@@ -1486,7 +1494,7 @@ sub main {
   }
 
   unless (pushit(server => $Settings::ssh_server, remote_path => $ftp_path, package_name => $package_dir,
-                 store_path => $store_home, store_path_packages => "packages", cachebuild => $cachebuild)) {
+                 store_path => $store_home, store_path_packages => "packages", cachebuild => $cachebuild, start_time => $server_start_time)) {
     cleanup();
     return returnStatus("Pushing package $local_build_dir failed", ("testfailed"));
   }
