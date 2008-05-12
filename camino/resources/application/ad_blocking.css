@@ -109,6 +109,7 @@ a:link[href*="specificclick.net"] img,
 a:link[href*="adremote.timeinc.net"] img,
 a:link[href*=".inetinteractive.com/"] img,
 a:link[href*="adgardener.com"] img,
+a:link[href*="ad.adtoma.com"] img,
 
 embed[src*="/us.yimg.com/a/"],
 embed[src*="/ai.yimg.jp/"],
@@ -201,6 +202,9 @@ embed[type="application/x-shockwave-flash"][src*="hstus.tradedoubler.com"],
 embed[type="application/x-shockwave-flash"][src*=".trafficmp.com"],
 object[type="application/x-shockwave-flash"][src*="ad.advertstream.com"],
 embed[type="application/x-shockwave-flash"][src*="2mdn.aolcdn.com"],
+embed[type="application/x-shockwave-flash"][src*="connextra.com"],
+embed[type="application/x-shockwave-flash"][src*="ad.adtoma.com"],
+embed[type="application/x-shockwave-flash"][src*="e-planning.net"],
 
 img[src*="googlesyndication.com"],
 img[src*=".doubleclick.net"],
@@ -274,6 +278,9 @@ img[src*="/RealMedia/ads/"],
 img[src*="mercuras.com"],
 img[src*="images.industrybrains.com/banner"],
 img[src*="home.edt02.net/emc/banner/"],
+img[src*="connextra.com"],
+img[src*="ad.adtoma.com"],
+img[src*="openx.foxnews.com"],
 
 iframe[src*="/ad."],
 iframe[src*="/ads."],
@@ -346,6 +353,7 @@ iframe[src*="/RealMedia/ads/"],
 iframe[src*="precisionclick.com/ad/"],
 iframe[src*="adsatt.espn.go.com"],
 iframe[src*="rcm.amazon.com"],
+iframe[src*="rcm-fr.amazon.com"],
 iframe[src*="adspace"],
 iframe[src*="AdPlaceholder"],
 iframe[src*="ffxcam.fairfax.com.au"],
@@ -380,6 +388,8 @@ iframe[src*="api.gestionpub.com"],
 iframe[src*=".comclick.com"],
 iframe[src*="mads.com.com"],
 iframe[src*="aserve.directorym.com"],
+iframe[src*="connextra.com"],
+iframe[src*="adaction.se"],
 
 table#overtureLinksWrapper,
 table.adbritetable,
@@ -425,7 +435,7 @@ div[id*="adSpot"],
 div[id*="StripAd"],
 div[id*="konaLayers"], 
 div[class="adPanel"],
-div[id*="ad-wrap"],
+div[id="ad-wrap"],
 div#textlinks>div[class*="sponsorship"],
 div#topjobs>div[class*="sponsorship"],
 div[id^="ad_links"],
@@ -476,14 +486,22 @@ div[id*="advst_special"],
 div[class="box"][id="dropin"],
 div[class*="textAds"],
 div[id^="bbccom_"],
-div[id^="advert_"]
+div[id^="advert_"],
+div[id="spColumnAd"],
+div[class^="adBlock"],
+div[class^="AdBorder"],
+div[class~="adcolumn"]
 
 { display: none ! important }
 
 @-moz-document domain(mail.google.com) {                                        
 div#rhc>div.rh,
 div.slwyWc {display: none ! important }                                    
-}                                                                               
+}
+
+@-moz-document domain(wunderground.com) { 
+div[style*="statefarm_bg.gif"][style*="width: 300px"] {display: none ! important }
+}
 
 /* turn some false positives back off */
 a:link[href*="download."] img,
@@ -512,4 +530,8 @@ div[id*="panel_content_ads"] {display: block !important }
 
 @-moz-document domain(slatev.com) {
 embed[type="application/x-shockwave-flash"][src*="slatev.com"] {display: inline !important }
+}
+
+@-moz-document domain(nationalgeographic.com) {
+embed[type="application/x-shockwave-flash"][src*="adserver"] {display: inline !important }
 }
