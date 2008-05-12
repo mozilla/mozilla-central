@@ -13,7 +13,8 @@
    -
    - The Original Code is calendar views.
    -
-   - The Initial Developer of the Original Code is Oracle Corporation
+   - The Initial Developer of the Original Code is
+   - Oracle Corporation.
    - Portions created by the Initial Developer are Copyright (C) 2005
    - the Initial Developer. All Rights Reserved.
    -
@@ -22,6 +23,7 @@
    -   Simon Paquet <bugzilla@babylonsounds.com>
    -   Matthew Willis <mattwillis@mac.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -31,12 +33,11 @@
    - under the terms of either the GPL or the LGPL, and not to allow others to
    - use your version of this file under the terms of the MPL, indicate your
    - decision by deleting the provisions above and replace them with the notice
-   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - and other provisions required by the LGPL or the GPL. If you do not delete
    - the provisions above, a recipient may use your version of this file under
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
-   - ***** END LICENSE BLOCK *****
--->
+   - ***** END LICENSE BLOCK ***** -->
 
 <!-- WARNING! This file contains UTF-8 encoded characters!
    - If this ==> … <== doesn't look like an ellipsis (three dots in a row),
@@ -59,20 +60,8 @@
 <!ENTITY lightning.menupopup.open.calendar.label      "Calendar File…">
 <!ENTITY lightning.menupopup.open.calendar.accesskey  "C">
 
-<!-- Agenda Tree View -->
-<!ENTITY agenda.treeview.label           "View:">
-<!ENTITY agenda.treeview.all.label       "All">
-<!ENTITY agenda.treeview.events.label    "Events">
-<!ENTITY agenda.treeview.tasks.label     "Tasks">
-<!ENTITY agenda.treeview.reminders.label "Reminders">
-<!ENTITY agenda.treeview.customize.label "Customize…">
-<!ENTITY agenda.treeview.item.label      "Item">
-<!ENTITY agenda.treeview.description     "Customize your views">
-
 <!-- Messenger Sidebar -->
-<!ENTITY lightning.sidebar.agenda.label      "Agenda">
-<!ENTITY lightning.sidebar.todo.label        "Todo">
-<!ENTITY lightning.sidebar.calendars.label   "Calendars">
+<!ENTITY lightning.sidebar.invitations.label "Invitations">
 <!ENTITY lightning.calendar.label            "Calendar">
 <!ENTITY lightning.calendar.accesskey        "C">
 <!ENTITY lightning.tasks.label               "Tasks">
@@ -97,10 +86,6 @@
 <!ENTITY customize.toolbar.location.bottom   "Bottom">
 
 <!-- Messenger Toolbar -->
-<!ENTITY lightning.toolbar.edit.calendar.label       "Edit selected calendar">
-<!ENTITY lightning.toolbar.edit.calendar.accesskey   "E">
-<!ENTITY lightning.toolbar.delete.calendar.label     "Delete selected calendar">
-<!ENTITY lightning.toolbar.delete.calendar.accesskey "t">
 <!ENTITY lightning.toolbar.day.label                 "Day">
 <!ENTITY lightning.toolbar.day.accesskey             "D">
 <!ENTITY lightning.toolbar.week.label                "Week">
