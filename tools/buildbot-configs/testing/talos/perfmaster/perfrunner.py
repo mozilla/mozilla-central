@@ -133,6 +133,48 @@ class LatestFileURL:
         self.dateFileDict = {}
         self._populateDict()
     
+class MozillaWgetLatestDated(ShellCommand):
+    """Download built Firefox client from dated staging directory."""
+    haltOnFailure = True
+    
+    def __init__(self, **kwargs):
+        assert kwargs['url'] != ""
+        assert kwargs['filenameSearchString'] != ""
+        self.changes = kwargs['build'].source.changes
+        self.url = kwargs['url'] + str(self.changes[0].when) + "/"
+        self.filenameSearchString = kwargs['filenameSearchString']
+        self.branch = "HEAD"
+        self.fileURL = ""
+        if 'branch' in kwargs:
+            self.branch = kwargs['branch']
+        if not 'command' in kwargs:
+            kwargs['command'] = ["wget"]
+        ShellCommand.__init__(self, **kwargs)
+    
+    def getFilename(self):
+        return self.filename
+    
+    def describe(self, done=False):
+        return ["Wget Download"]
+    
+    def start(self):
+        urlGetter = LatestFileURL(self.url, self.filenameSearchString)
+        self.filename = urlGetter.getLatestFilename()
+        self.fileURL = self.url + self.filename
+        if self.branch:
+            self.setProperty("fileURL", self.fileURL)
+            self.setProperty("filename", self.filename)
+        self.setCommand(["wget", "-nv", "-N", self.fileURL])
+        ShellCommand.start(self)
+    
+    def evaluateCommand(self, cmd):
+        superResult = ShellCommand.evaluateCommand(self, cmd)
+        if SUCCESS != superResult:
+            return FAILURE
+        if None != re.search('ERROR', cmd.logs['stdio'].getText()):
+            return FAILURE
+        return SUCCESS
+    
 
 class MozillaWgetLatest(ShellCommand):
     """Download built Firefox client from nightly staging directory."""
