@@ -342,7 +342,6 @@ nsresult nsMsgBiffManager::PerformBiff()
       // biffed into, leave this server in the biff array so it will fire next.
       if (targetFolderIndex == kNotFound)
       {
-        printf("EX MEMORY LEAK !!!!!!!!!!!!!! %d bytes\n****\n****\n****\n****\n", sizeof(nsBiffEntry));
         mBiffArray.RemoveElementAt(i);
         i--; //Because we removed it we need to look at the one that just moved up.
         SetNextBiffTime(current, currentTime);
