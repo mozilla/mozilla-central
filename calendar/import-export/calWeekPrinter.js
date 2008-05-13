@@ -187,7 +187,7 @@ function weekPrint_format(aStream, aStart, aEnd, aCount, aItems, aTitle) {
 
     // Stream out the resulting HTML
     var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .getService(Components.interfaces.nsIConverterOutputStream);
+                               .createInstance(Components.interfaces.nsIConverterOutputStream);
     convStream.init(aStream, 'UTF-8', 0, 0x0000);
     convStream.writeString(html.toXMLString());
 };

@@ -496,7 +496,7 @@ var gDataMigrator = {
                              .createInstance(Components.interfaces.nsIFileOutputStream);
                 stream.init(tempFile, 0x2A, 0600, 0);
                 var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                                .getService(Components.interfaces.nsIConverterOutputStream);
+                                .createInstance(Components.interfaces.nsIConverterOutputStream);
                 convStream.init(stream, 'UTF-8', 0, 0x0000);
                 convStream.writeString(str);
 

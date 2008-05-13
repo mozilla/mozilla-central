@@ -174,7 +174,6 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
             </div>
         );
 
-
         // Location
         if (item.getProperty('LOCATION')) {
             ev.appendChild(
@@ -222,7 +221,7 @@ function html_exportToStream(aStream, aCount, aItems, aTitle) {
     // Convert the javascript string to an array of bytes, using the
     // utf8 encoder
     var convStream = Components.classes["@mozilla.org/intl/converter-output-stream;1"]
-                               .getService(Components.interfaces.nsIConverterOutputStream);
+                               .createInstance(Components.interfaces.nsIConverterOutputStream);
     convStream.init(aStream, 'UTF-8', 0, 0x0000);
 
     var str = html.toXMLString()
