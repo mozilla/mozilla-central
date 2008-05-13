@@ -442,6 +442,7 @@
 <!ENTITY mailViewsToolbarItem.title "Mail Views">
 <!ENTITY folderLocationToolbarItem.title "Folder Location">
 <!ENTITY tagButton.label "Tag">
+<!ENTITY compactButton.label "Compact">
 
 <!-- Mail Toolbar Tooltips-->
 <!ENTITY advancedButton.tooltip "Advanced message search">
@@ -464,6 +465,7 @@
 <!ENTITY notJunkButton.tooltip "Mark the selected messages as not junk">
 <!ENTITY addressBookButton.tooltip "Go to the address book">
 <!ENTITY tagButton.tooltip "Tag messages">
+<!ENTITY compactButton.tooltip "Remove deleted messages from selected folder">
 
 <!-- Tags Menu Popup -->
 <!ENTITY addNewTag.label "New Tag…">

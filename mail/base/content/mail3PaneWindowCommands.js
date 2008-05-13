@@ -49,6 +49,7 @@ var FolderPaneController =
     {
       case "cmd_delete":
       case "button_delete":
+      case "button_compact":
       //case "cmd_selectAll": the folder pane currently only handles single selection
       case "cmd_cut":
       case "cmd_copy":
@@ -70,6 +71,7 @@ var FolderPaneController =
         return false;
       case "cmd_delete":
       case "button_delete":
+      case "button_compact":
       if ( command == "cmd_delete" )
         goSetMenuValue(command, 'valueFolder');
       var folderTree = GetFolderTree();
@@ -84,7 +86,7 @@ var FolderPaneController =
         try {
           var folderResource = GetFolderResource(folderTree, startIndex.value);
           specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
-          isServer = GetFolderAttribute(folderTree, folderResource, "IsServer");
+          isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == "true";
           serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
           if (serverType == "nntp") {
              if ( command == "cmd_delete" ) {
@@ -98,15 +100,16 @@ var FolderPaneController =
         }
         if (specialFolder == "Inbox" || specialFolder == "Trash" || specialFolder == "Drafts" ||
             specialFolder == "Sent" || specialFolder == "Templates" || specialFolder == "Unsent Messages" ||
-            (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer == "true")
+            (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI())) || isServer)
           canDeleteThisFolder = false;
         else
           canDeleteThisFolder = true;
-        return canDeleteThisFolder && isCommandEnabled(command);
+        return (command != "button_compact") ?
+          canDeleteThisFolder && isCommandEnabled(command) :
+          !isServer && IsCompactFolderEnabled();
       }
       else
         return false;
-
       default:
         return false;
     }
@@ -123,6 +126,9 @@ var FolderPaneController =
       case "cmd_delete":
       case "button_delete":
         MsgDeleteFolder();
+        break;
+      case "button_compact":
+        MsgCompactFolder(false);
         break;
     }
   },
@@ -219,6 +225,7 @@ var DefaultController =
       case "cmd_file":
       case "cmd_emptyTrash":
       case "cmd_compactFolder":
+      case "button_compact":
       case "cmd_settingsOffline":
       case "cmd_close":
       case "cmd_selectAll":
@@ -407,6 +414,7 @@ var DefaultController =
         return IsGetNextNMessagesEnabled();
       case "cmd_emptyTrash":
         return IsEmptyTrashEnabled();
+      case "button_compact":
       case "cmd_compactFolder":
         return IsCompactFolderEnabled();
       case "cmd_setFolderCharset":
@@ -657,6 +665,9 @@ var DefaultController =
         return;
       case "cmd_compactFolder":
         MsgCompactFolder(true);
+        return;
+      case "button_compact":
+        MsgCompactFolder(false);
         return;
       case "cmd_downloadFlagged":
           MsgDownloadFlagged();

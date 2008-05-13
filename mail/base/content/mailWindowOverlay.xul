@@ -259,8 +259,8 @@
   <command id="button_file"/>
   <command id="cmd_delete"/>
   <command id="button_junk"/>
+  <command id="button_compact"/>
 </commandset>
-
 
 <commandset id="mailGetMsgMenuItems"
             commandupdater="true"
@@ -1582,6 +1582,11 @@
                   command="cmd_markAsFlagged"/>
       </menupopup>
     </toolbarbutton>
+    <toolbarbutton id="button-compact" class="toolbarbutton-1"
+                   label="&compactButton.label;"
+                   tooltiptext="&compactButton.tooltip;"
+                   oncommand="goDoCommand('button_compact');"
+                   observes="button_compact"/>
     <toolbarbutton id="button-tag"
                    type="menu"
                    class="toolbarbutton-1"

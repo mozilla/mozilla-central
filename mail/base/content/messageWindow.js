@@ -465,6 +465,7 @@ function HideToolbarButtons()
     toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'search-container')[0]);
     toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'mailviews-container')[0]);
     toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'folder-location-container')[0]);
+    toolbarPalette.removeChild(toolbarPalette.getElementsByAttribute('id', 'button-compact')[0]);
   }
 }
 

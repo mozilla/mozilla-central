@@ -7423,6 +7423,7 @@ NS_IMETHODIMP nsImapMailFolder::IsCommandEnabled(const nsACString& command, PRBo
   NS_ENSURE_ARG_POINTER(result);
   *result = !(WeAreOffline() && (command.EqualsLiteral("cmd_renameFolder") ||
                                  command.EqualsLiteral("cmd_compactFolder") ||
+                                 command.EqualsLiteral("button_compact") ||
                                  command.EqualsLiteral("cmd_delete") ||
                                  command.EqualsLiteral("button_delete")));
   return NS_OK;

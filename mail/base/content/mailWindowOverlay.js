@@ -2097,7 +2097,8 @@ function IsEmptyTrashEnabled()
 function IsCompactFolderEnabled()
 {
   var server = GetServer(GetSelectedFolderURI());
-  return (server && 
+  return (server &&
+      (server.type != 'nntp') && // compact news folder is not supported
       ((server.type != 'imap') || server.canCompactFoldersOnServer) &&
       isCommandEnabled("cmd_compactFolder"));   // checks e.g. if IMAP is offline
 }

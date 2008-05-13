@@ -159,7 +159,19 @@ toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
 
 #button-delete[disabled] {
   -moz-image-region: rect(64px 224px 96px 192px) !important;
-} 
+}
+
+#button-compact {
+  -moz-image-region: rect(0px 576px 32px 544px);
+}
+
+#button-compact:hover {
+  -moz-image-region: rect(32px 576px 64px 544px);
+}
+
+#button-compact[disabled] {
+  -moz-image-region: rect(64px 576px 96px 544px) !important;
+}
 
 .junk-button {
   -moz-image-region: rect(0px 256px 32px 224px);
@@ -501,6 +513,18 @@ toolbar[iconsize="small"] #button-goforward:hover:active {
 
 toolbar[iconsize="small"] #button-goforward[disabled] {
   -moz-image-region: rect(48px 416px 72px 390px) !important;
+}
+
+toolbar[iconsize="small"] #button-compact {
+  -moz-image-region: rect(0px 440px 24px 416px);
+}
+
+toolbar[iconsize="small"] #button-compact:hover {
+  -moz-image-region: rect(24px 440px 48px 416px);
+}
+
+toolbar[iconsize="small"] #button-compact[disabled] {
+  -moz-image-region: rect(48px 440px 72px 416px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */

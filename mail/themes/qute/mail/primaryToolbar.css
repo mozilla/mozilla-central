@@ -134,7 +134,19 @@
 
 #button-delete[disabled] {
   -moz-image-region: rect(48px 168px 72px 144px) !important;
-} 
+}
+
+#button-compact {
+  -moz-image-region: rect(0px 432px 24px 408px);
+}
+
+#button-compact:hover {
+  -moz-image-region: rect(24px 432px 48px 408px);
+}
+
+#button-compact[disabled] {
+  -moz-image-region: rect(48px 432px 72px 408px) !important;
+}
 
 .junk-button {
   -moz-image-region: rect(0px 192px 24px 168px);
@@ -255,7 +267,7 @@
 
 #button-goforward[disabled], #button-goback[chromedir="rtl"][disabled] {
   -moz-image-region: rect(48px 408px 72px 384px) !important;
-} 
+}
 
 /* ::::: small primary toolbar buttons ::::: */
 
@@ -490,6 +502,18 @@ toolbar[iconsize="small"] #button-goforward:hover {
 
 toolbar[iconsize="small"] #button-goforward[disabled] {
   -moz-image-region: rect(32px 272px 48px 256px) !important;
+}
+
+toolbar[iconsize="small"] #button-compact {
+  -moz-image-region: rect(0px 288px 16px 272px);
+}
+
+toolbar[iconsize="small"] #button-compact:hover {
+  -moz-image-region: rect(16px 288px 32px 272px);
+}
+
+toolbar[iconsize="small"] #button-compact[disabled] {
+  -moz-image-region: rect(32px 288px 48px 272px) !important;
 }
 
 /* ::::: end small primary toolbar buttons ::::: */
