@@ -566,7 +566,7 @@ function updateReminderDetails() {
           [ reminder.length,
             unitString,
             relationString,
-            originString], 4);
+            originString]);
 
         var lines = detailsString.split("\n");
         reminderDetails.removeAttribute("collapsed");

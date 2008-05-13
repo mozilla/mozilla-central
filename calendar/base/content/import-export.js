@@ -106,7 +106,7 @@ function loadEventsFromFile(aCalendar)
         } catch(ex) {
             switch (ex.result) {
                 case Components.interfaces.calIErrors.INVALID_TIMEZONE:
-                    showError(calGetString("calendar", "timezoneError", [filePath] , 1));
+                    showError(calGetString("calendar", "timezoneError", [filePath]));
                     break;
                 default:
                     showError(calGetString("calendar", "unableToRead") + filePath + "\n"+ ex);
@@ -177,9 +177,9 @@ function putItemsIntoCal(destCal, aItems, aFilePath) {
             if (count == aItems.length) {
                 destCal.endBatch();
                 if (!failedCount && duplicateCount) {
-                    showError(calGetString("calendar", "duplicateError", [duplicateCount, aFilePath] , 2));
+                    showError(calGetString("calendar", "duplicateError", [duplicateCount, aFilePath]));
                 } else if (failedCount) {
-                    showError(calGetString("calendar", "importItemsFailed", [failedCount, lastError.toString()] , 2));
+                    showError(calGetString("calendar", "importItemsFailed", [failedCount, lastError.toString()]));
                 }
             }
         }

@@ -626,7 +626,7 @@ var gDataMigrator = {
         } catch(ex) {
             switch (ex.result) {
                 case Components.interfaces.calIErrors.INVALID_TIMEZONE:
-                    showError(calGetString("calendar", "timezoneError", [icsFile.path] , 1));
+                    showError(calGetString("calendar", "timezoneError", [icsFile.path]));
                     break;
                 default:
                     showError(calGetString("calendar", "unableToRead") + icsFile.path + "\n"+ ex);
