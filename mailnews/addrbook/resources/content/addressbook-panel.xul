@@ -57,6 +57,7 @@
       onunload="AbPanelUnload();"
       xmlns:nc="http://home.netscape.com/NC-rdf#"
       xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      title="&selectAddressWindow.title;"
       selectedaddresses="true">
 
   <stringbundleset id="stringbundleset">
@@ -90,7 +91,7 @@
   </popup>
   <vbox id="results_box" flex="1">
     <hbox id="panel-bar" class="toolbar" align="center">
-	  <label value="&lookIn.label;"/>
+	  <label value="&lookIn.label;" control="addressbookList" id="lookInLabel"/>
       <menulist id="addressbookList" 
                 oncommand="DirPaneSelectionChangeMenulist();" flex="1"
                 persist="value">
@@ -111,10 +112,11 @@
       </menulist>
     </hbox>
 	<hbox align="center">
-	  <label value="&for.label;"/> 
+	  <label value="&for.label;" id="forLabel" control="searchInput"/> 
 	  <textbox id="searchInput" flex="1"
-                   type="timed" timeout="800"
-                   oncommand="onEnterInSearchBar();"/>
+               type="timed" timeout="800"
+               aria-labelledby="lookInLabel addressbookList forLabel"
+               oncommand="onEnterInSearchBar();"/>
 	</hbox>
 
     <tree id="abResultsTree" flex="1" context="composeMail" onclick="AbResultsPaneOnClick(event);" class="plain"

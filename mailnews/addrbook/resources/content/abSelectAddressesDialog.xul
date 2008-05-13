@@ -127,7 +127,7 @@
      <!--<splitter id="bucket-splitter" collapse="before" persist="state"/>-->
         
       <vbox id="bucketBox" flex="1">
-        <label value="&addressMessageTo.label;"/>
+        <label value="&addressMessageTo.label;" control="addressBucket"/>
         <tree id="addressBucket" flex="1" hidecolumnpicker="true"
             ondragover="DragAddressOverTargetControl(event);"
             ondragdrop="DropAddressOverTargetControl(event);"

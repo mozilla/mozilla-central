@@ -44,8 +44,9 @@
         accesskey="&emailCollectionPicker.accesskey;"
         prefstring="mail.collect_email_address_outgoing"/>
    <menulist id="localDirectoriesList" flex="1"
-                  preftype="string" 
-                  prefstring="mail.collect_addressbook">
+             aria-labelledby="emailCollectionOutgoing"
+             preftype="string" 
+             prefstring="mail.collect_addressbook">
      <menupopup id="abPopup-menupopup" ref="moz-abdirectory://" 
                  datasources="rdf:addressdirectory"
                  sortActive="true"
@@ -86,8 +87,9 @@
                   oncommand="enableAutocomplete();"
                   accesskey="&directories.accesskey;"/>
        <menulist id="directoriesList" flex="1"
-                  preftype="string" 
-                  prefstring="ldap_2.autoComplete.directoryServer">
+                 aria-labelledby="autocompleteLDAP"
+                 preftype="string" 
+                 prefstring="ldap_2.autoComplete.directoryServer">
           <menupopup id="directoriesListPopup" 
             onpopupshowing="createDirectoriesList();">
           </menupopup>
