@@ -607,7 +607,6 @@ calWcapSession.prototype = {
                                 }
                             }
                             // do only once:
-                            defaultCal.setProperty("account_name", defaultCal.name);
                             defaultCal.setProperty("subscriptions_registered", true);
                         }
                     }

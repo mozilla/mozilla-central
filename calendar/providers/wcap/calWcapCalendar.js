@@ -320,16 +320,7 @@ calWcapCalendar.prototype = {
                 ar = [this.calId];
             }
         }
-        var name = ar[0];
-        var defaultCal = this.session.defaultCalendar;
-        if (defaultCal) {
-            var defName = (defaultCal.getProperty("account_name") ||
-                           defaultCal.getProperty("name"));
-            if (defName) {
-                name += (" (" + defName + ")");
-            }
-        }
-        return name;
+        return ar[0];
     },
 
     get isOwnedCalendar() {
