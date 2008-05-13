@@ -22,6 +22,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Sebastian Schwieger <sebo.moz@googlemail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,27 +41,13 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-function loadChromeScript(aRelativePath) {
-    var ioSvc = Cc["@mozilla.org/network/io-service;1"]
-                .getService(Ci.nsIIOService);
+function loadChromeScript(aPath) {
     var loader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
                  .getService(Ci.mozIJSSubScriptLoader);
-
-    var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIDirectoryServiceProvider);
-    var dir = dirSvc.getFile("CurWorkD", {}).parent.parent;
-    dir.append("dist");
-    dir.append("bin");
-    dir.append("chrome");
-    dir.append("calendar.jar");
-
-    var fileUri = ioSvc.newFileURI(dir);
-    var jarUri = ioSvc.newURI("jar: " + fileUri.spec + "!/" + aRelativePath, null, null);
-
-    loader.loadSubScript(jarUri.spec, null);
+    loader.loadSubScript("chrome://" + aPath);
 }
 
-loadChromeScript("content/calendar/calUtils.js");
+loadChromeScript("calendar/content/calUtils.js");
 
 function createDate(aYear, aMonth, aDay, aHasTime, aHour, aMinute, aSecond, aTimezone) {
     var cd = Cc["@mozilla.org/calendar/datetime;1"]
