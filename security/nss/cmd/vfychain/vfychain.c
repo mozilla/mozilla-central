@@ -194,17 +194,13 @@ forgetCerts(void)
 
 
 CERTCertificate *
-getCert(const char *name, PRBool isAscii)
+getCert(const char *name, PRBool isAscii, const char * progName)
 {
-    unsigned char * pb;
-    CERTCertificate * cert  = NULL;
-    CERTCertDBHandle *defaultDB = NULL;
+    CERTCertificate * cert;
+    CERTCertDBHandle *defaultDB;
     PRFileDesc*     fd;
-    PRInt32         cc      = -1;
-    PRInt32         total;
-    PRInt32         remaining;
-    SECItem         item;
-    static unsigned char certBuf[RD_BUF_SIZE];
+    SECStatus       rv;
+    SECItem         item        = {0, NULL, 0};
 
     defaultDB = CERT_GetDefaultCertDB();
 
@@ -223,39 +219,19 @@ getCert(const char *name, PRBool isAscii)
 	        name, err, SECU_Strerror(err));
 	return cert;
     }
-    /* read until EOF or buffer is full */
-    pb = certBuf;
-    while (0 < (remaining = (sizeof certBuf) - (pb - certBuf))) {
-	cc = PR_Read(fd, pb, remaining);
-	if (cc == 0) 
-	    break;
-	if (cc < 0) {
-	    PRIntn err = PR_GetError();
-	    fprintf(stderr, "read of %s failed, %d = %s\n", 
-	        name, err, SECU_Strerror(err));
-	    break;
-	}
-	/* cc > 0 */
-	pb += cc;
-    }
+
+    rv = SECU_ReadDERFromFile(&item, fd, isAscii);
     PR_Close(fd);
-    if (cc < 0)
-    	return cert;
-    if (!remaining || cc > 0) { /* file was too big. */
-	fprintf(stderr, "cert file %s was too big.\n", name);
+    if (rv != SECSuccess) {
+	fprintf(stderr, "%s: SECU_ReadDERFromFile failed\n", progName);
 	return cert;
     }
-    total = pb - certBuf;
-    if (!total) { /* file was empty */
+
+    if (!item.len) { /* file was empty */
 	fprintf(stderr, "cert file %s was empty.\n", name);
 	return cert;
     }
-    if (isAscii) {
-    	/* convert from Base64 to binary here ... someday */
-    }
-    item.type = siBuffer;
-    item.data = certBuf;
-    item.len  = total;
+
     cert = CERT_NewTempCertificate(defaultDB, &item, 
                                    NULL     /* nickname */, 
                                    PR_FALSE /* isPerm */, 
@@ -265,6 +241,7 @@ getCert(const char *name, PRBool isAscii)
 	fprintf(stderr, "couldn't import %s, %d = %s\n",
 	        name, err, SECU_Strerror(err));
     }
+    PORT_Free(item.data);
     return cert;
 }
 
@@ -372,7 +349,7 @@ breakout:
 	case 'r' : isAscii  = PR_FALSE;                       break;
 	case 't' : trusted  = PR_TRUE;                       break;
 	case  0  : /* positional parameter */
-	    cert = getCert(optstate->value, isAscii);
+	    cert = getCert(optstate->value, isAscii, progName);
 	    if (!cert) 
 	        goto punt;
 	    rememberCert(cert, trusted);
