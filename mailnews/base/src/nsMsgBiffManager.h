@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -41,7 +41,7 @@
 #include "msgCore.h"
 #include "nsIMsgBiffManager.h"
 #include "nsITimer.h"
-#include "nsVoidArray.h"
+#include "nsTArray.h"
 #include "nsTime.h"
 #include "nsCOMPtr.h"
 #include "nsIIncomingServerListener.h"
@@ -73,14 +73,14 @@ public:
 
 protected:
 	PRInt32 FindServer(nsIMsgIncomingServer *server);
-	nsresult SetNextBiffTime(nsBiffEntry *biffEntry, nsTime startTime);
+	nsresult SetNextBiffTime(nsBiffEntry &biffEntry, nsTime startTime);
 	nsresult SetupNextBiff();
-	nsresult AddBiffEntry(nsBiffEntry *biffEntry);
+	nsresult AddBiffEntry(nsBiffEntry &biffEntry);
 
 protected:
-	nsCOMPtr<nsITimer> mBiffTimer;
-	nsVoidArray *mBiffArray;
-	PRBool mHaveShutdown;
+  nsCOMPtr<nsITimer> mBiffTimer;
+  nsTArray<nsBiffEntry> mBiffArray;
+  PRBool mHaveShutdown;
   PRBool mInited;
 };
 
