@@ -430,7 +430,7 @@ class MozillaOSXReftest(MozillaReftest):
                "reftest.list"]
 
 class MozillaWin32Reftest(MozillaReftest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest reftest.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest reftest.list']
 
 class MozillaCrashtest(MozillaReftest):
     name = "crashtest"
@@ -454,7 +454,7 @@ class MozillaOSXCrashtest(MozillaCrashtest):
                "crashtests.list"]
 
 class MozillaWin32Crashtest(MozillaCrashtest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtests.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest crashtests.list']
 
 class MozillaMochitest(ShellCommand):
     name = "mochitest"
