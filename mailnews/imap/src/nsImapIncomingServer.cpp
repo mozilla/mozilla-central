@@ -2268,13 +2268,12 @@ NS_IMETHODIMP
 nsImapIncomingServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 {
   nsCOMPtr<nsISubscribeListener> listener;
-  nsresult rv = GetSubscribeListener(getter_AddRefs(listener));
-  NS_ENSURE_SUCCESS(rv, rv);
+  (void ) GetSubscribeListener(getter_AddRefs(listener));
 
-  rv = listener->OnDonePopulating();
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (listener)
+    listener->OnDonePopulating();
 
-  rv = EnsureInner();
+  nsresult rv = EnsureInner();
   NS_ENSURE_SUCCESS(rv,rv);
   return mInner->StopPopulating(aMsgWindow);
 }
