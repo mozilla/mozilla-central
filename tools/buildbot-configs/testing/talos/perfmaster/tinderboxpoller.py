@@ -62,7 +62,7 @@ class TinderboxParser:
             if line == "": continue
             elements = line.split('|')
             if elements[0] == 'State': continue
-            items = {'hostname': elements[2], 'status': elements[3], 'date': elements[4]}
+            items = {'hostname': elements[2], 'status': elements[3], 'date': elements[4], 'url': elements[5]}
             nodes.append(items)
         self.tinderboxResult = TinderboxResult(nodes)
     
@@ -201,6 +201,12 @@ class TinderboxPoller(base.ChangeSource):
                 # change too old
                 continue
             allBuildDates.append(buildDate)
+            # ignore if build is busted
+            if buildNode['status'] == 'busted':
+                continue
+            # ignore this if it is a nightly
+            if buildNode['url'] <> '':
+                continue
             c = changes.Change(who = buildNode['hostname'],
                                files = ['TODO: filename goes here'],
                                comments = buildNode['status'],
