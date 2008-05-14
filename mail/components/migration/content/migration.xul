@@ -60,9 +60,9 @@
               label="&importSource.title;"
               onpageadvanced="MigrationWizard.onImportSourcePageAdvanced();">
 #ifdef XP_WIN
-    <description>&importFromWin.label;</description>
+    <label control="importSourceGroup">&importFromWin.label;</label>
 #else
-    <description>&importFromNonWin.label;</description>
+    <label control="importSourceGroup">&importFromNonWin.label;</label>
 #endif
     
     <radiogroup id="importSourceGroup">
@@ -95,7 +95,7 @@
               onpageshow="return MigrationWizard.onSelectProfilePageShow();"
               onpagerewound="return MigrationWizard.onSelectProfilePageRewound();"
               onpageadvanced="return MigrationWizard.onSelectProfilePageAdvanced();">
-    <description>&selectProfile.label;</description>    
+    <label control="profiles">&selectProfile.label;</label>
     <radiogroup id="profiles" align="left"/>
   </wizardpage>
 
