@@ -263,7 +263,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     retCode = mIsQueryURI ? StartSearch() : GetChildCards(cardList, nsnull);
 
     if (NS_SUCCEEDED(retCode)) {
-        if (!m_AddressLists)
+        if (!m_AddressList)
         {
           retCode = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
           NS_ENSURE_SUCCESS(retCode, retCode);
