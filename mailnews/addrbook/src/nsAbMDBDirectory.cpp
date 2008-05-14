@@ -179,9 +179,12 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
   {
     rv = mDatabase->GetMailingListsFromDB(this);
     NS_ENSURE_SUCCESS(rv, rv);
-    // Ensure that the previous call did set the address list pointer
+
+    // If the previous call didn't gives us an m_AddressList (and succeeded)
+    // then we haven't got any mailing lists to try and remove the card from.
+    // So just return without doing anything
     if (!m_AddressList)
-      return NS_ERROR_NULL_POINTER;
+      return NS_OK;
   }
 
   rv = m_AddressList->Count(&listTotal);

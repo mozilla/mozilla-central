@@ -66,38 +66,6 @@ nsAbMDBDirFactory::~nsAbMDBDirFactory()
 {
 }
 
-static nsresult RemoveMailListDBListeners (nsIAddrDatabase* database, nsIAbDirectory* directory)
-{
-    nsresult rv;
-
-    nsCOMPtr<nsISupportsArray> pAddressLists;
-    rv = directory->GetAddressLists(getter_AddRefs(pAddressLists));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    PRUint32 total;
-    rv = pAddressLists->Count(&total);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    for (PRUint32 i = 0; i < total; i++)
-    {
-        nsCOMPtr<nsISupports> pSupport;
-        rv = pAddressLists->GetElementAt(i, getter_AddRefs(pSupport));
-        if (NS_FAILED(rv))
-            break;
-
-        nsCOMPtr<nsIAbDirectory> listDir(do_QueryInterface(pSupport, &rv));
-        if (NS_FAILED(rv))
-            break;
-        nsCOMPtr<nsIAddrDBListener> dbListener(do_QueryInterface(pSupport, &rv));
-        if (NS_FAILED(rv))
-            break;
-
-        database->RemoveListener(dbListener);
-    }
-
-    return NS_OK;
-}
-
 NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
                                                 const nsACString &aURI,
                                                 const nsACString &aPrefName,
@@ -145,19 +113,6 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = listDatabase->GetMailingListsFromDB(directory);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  /*
-   * This is a hack because of the way
-   * MDB databases reference MDB directories
-   * after the mail lists have been created.
-   *
-   * To stop assertions when the listDatabase
-   * goes out of scope it is necessary to remove
-   * all mail lists which have been added as
-   * listeners to the database
-   */
-  rv = RemoveMailListDBListeners (listDatabase, directory);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_NewSingletonEnumerator(_retval, directory);

@@ -709,11 +709,15 @@ nsresult
 nsAbOSXDirectory::UnassertDirectory(nsIAbManager *aManager,
                                     nsIAbDirectory *aDirectory)
 {
-  NS_ASSERTION(m_AddressList->IndexOf(aDirectory) >= 0, "Not found?");
-  
+  if (!m_AddressList)
+    return NS_ERROR_NULL_POINTER;
+
+  NS_ASSERTION(m_AddressList->IndexOf(aDirectory) >= 0,
+               "Not found?");
+
   nsresult rv = m_AddressList->RemoveElement(aDirectory);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   return aManager->NotifyDirectoryItemDeleted(this, aDirectory);
 }
 

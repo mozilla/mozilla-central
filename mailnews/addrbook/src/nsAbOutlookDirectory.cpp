@@ -263,6 +263,12 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     retCode = mIsQueryURI ? StartSearch() : GetChildCards(cardList, nsnull);
 
     if (NS_SUCCEEDED(retCode)) {
+        if (!m_AddressLists)
+        {
+          retCode = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+          NS_ENSURE_SUCCESS(retCode, retCode);
+        }
+
         // Fill the results array and update the card list
         // Also update the address list and notify any changes.
         PRUint32 nbCards = 0 ;
@@ -329,9 +335,10 @@ NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 
 NS_IMETHODIMP nsAbOutlookDirectory::HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory)
 {
-    if (!aDirectory || !aHasDirectory ) { return NS_ERROR_NULL_POINTER ; }
-    *aHasDirectory = (m_AddressList->IndexOf(aDirectory) >= 0) ;
-    return NS_OK ;
+  if (!aDirectory || !aHasDirectory)
+    return NS_ERROR_NULL_POINTER;
+  *aHasDirectory = m_AddressList && m_AddressList->IndexOf(aDirectory) >= 0;
+  return NS_OK;
 }
 
 static nsresult ExtractEntryFromUri(nsIRDFResource *aResource, nsCString &aEntry,
@@ -402,7 +409,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteCards(nsIArray *aCardList)
                 nsVoidKey key (static_cast<void *>(card));
                 
                 mCardList.Remove(&key) ;
-                if (m_IsMailList)
+                if (m_IsMailList && m_AddressList)
                   m_AddressList->RemoveElement(card);
                 retCode = NotifyItemDeletion(card);
                 NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -433,7 +440,8 @@ NS_IMETHODIMP nsAbOutlookDirectory::DeleteDirectory(nsIAbDirectory *aDirectory)
             PRINTF(("Cannot delete directory %s.\n", entryString.get())) ;
         }
         else {
-            m_AddressList->RemoveElement(aDirectory) ;
+            if (m_AddressList)
+              m_AddressList->RemoveElement(aDirectory) ;
             retCode = NotifyItemDeletion(aDirectory) ;
             NS_ENSURE_SUCCESS(retCode, retCode) ;
         }
@@ -466,6 +474,13 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddCard(nsIAbCard *aData, nsIAbCard **addedC
     nsVoidKey newKey (static_cast<void *>(*addedCard)) ;
     
     mCardList.Put(&newKey, *addedCard) ;
+
+    if (!m_AddressList)
+    {
+      retCode = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+      NS_ENSURE_SUCCESS(retCode, retCode);
+    }
+
     if (m_IsMailList) { m_AddressList->AppendElement(*addedCard) ; }
     NotifyItemAddition(*addedCard) ;
     return retCode ;
@@ -519,6 +534,13 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList)
         retCode = newList->EditMailListToDatabase(nsnull);
         NS_ENSURE_SUCCESS(retCode, retCode) ;
     }
+
+    if (!m_AddressList)
+    {
+      retCode = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+      NS_ENSURE_SUCCESS(retCode, retCode);
+    }
+
     m_AddressList->AppendElement(newList) ;
     NotifyItemAddition(newList) ;
     return retCode ;
@@ -1283,6 +1305,9 @@ nsresult nsAbOutlookDirectory::CommitAddressList(void)
 
   rv = GetChildCards(oldList, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!m_AddressList)
+    return NS_ERROR_NULL_POINTER;
 
   PRUint32 nbCards = 0;
   rv = m_AddressList->Count(&nbCards);
