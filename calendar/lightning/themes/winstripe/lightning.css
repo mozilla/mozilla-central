@@ -164,5 +164,5 @@ toolbar[iconsize="small"] #task-switch-button[disabled] {
 
 /* Lightining sidebar background in calendar and task mode */
 #ltnSidebar {
-  background: white;
+  background: -moz-field;
 }
