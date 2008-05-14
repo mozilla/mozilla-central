@@ -254,14 +254,17 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
     return NS_OK;
   }
 
-  // if aRequestingLocation is chrome or resource, allow aContentLocation to load
+  // if aRequestingLocation is chrome, resource or about,  allow
+  // aContentLocation to load
   PRBool isChrome;
   PRBool isRes;
+  PRBool isAbout;
 
   rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
   rv |= aRequestingLocation->SchemeIs("resource", &isRes);
+  rv |= aRequestingLocation->SchemeIs("about", &isAbout);
 
-  if (NS_SUCCEEDED(rv) && (isChrome || isRes))
+  if (NS_SUCCEEDED(rv) && (isChrome || isRes || isAbout))
     return rv;
 
   // Now default to reject so early returns via NS_ENSURE_SUCCESS 
