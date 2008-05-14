@@ -52,7 +52,7 @@
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
 <script type="application/x-javascript" src="am-identities-list.js"/>
 
-<description flex="1">&identitiesListDesc.label;</description>
+<label control="identitiesList" flex="1">&identitiesListDesc.label;</label>
 
 <separator class="thin"/>
 

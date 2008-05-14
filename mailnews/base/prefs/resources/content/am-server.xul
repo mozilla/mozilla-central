@@ -49,6 +49,7 @@
 <!DOCTYPE page SYSTEM "chrome://messenger/locale/am-server-top.dtd" >
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&serverSettings.label;"
       onload="parent.onPanelLoaded('am-server.xul');">
 
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
@@ -163,6 +164,7 @@
               prefattribute="value"
               prefstring="mail.server.%serverkey%.check_new_mail"/>
     <textbox wsm_persist="true" id="server.biffMinutes" size="3"
+             aria-labelledby="server.doBiff server.biffMinutes biffEnd"
              preftype="int" type="number"
              onchange="onBiffMinChange(this.value);"
              prefstring="mail.server.%serverkey%.check_time"/>
@@ -194,6 +196,7 @@
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.delete_by_age_from_server"/>
       <textbox wsm_persist="true" id="pop3.numDaysToLeaveOnServer" size="3" 
+               aria-labelledby="pop3.deleteByAgeFromServer pop3.numDaysToLeaveOnServer daysEnd"
                preftype="int"
                prefstring="mail.server.%serverkey%.num_days_to_leave_on_server"/>
       <label id="daysEnd" control="pop3.numDaysToLeaveOnServer" value="&daysEnd.label;"/>
@@ -240,6 +243,7 @@
                    value="1" label="&modelMoveToTrash.label;"
                    accesskey="&modelMoveToTrash.accesskey;"/>
             <menulist id="msgTrashFolderPicker"
+                      aria-labelledby="modelMoveToTrash"
                       oncommand="folderPickerChange('msgTrashFolderPicker')"/>
           </row>
           <row align="center">
@@ -287,9 +291,10 @@
               prefattribute="value"
               prefstring="mail.server.%serverkey%.notify.on"/>
     <textbox wsm_persist="true" id="nntp.maxArticles" size="6"
+             aria-labelledby="nntp.limitArticles nntp.maxArticles maxMessagesEnd"
              preftype="int"
              prefstring="mail.server.%serverkey%.max_articles"/>
-    <label control="nntp.maxArticles" value="&maxMessagesEnd.label;"/>
+    <label control="nntp.maxArticles" value="&maxMessagesEnd.label;" id="maxMessagesEnd"/>
   </hbox>
   <checkbox hidefor="pop3,imap,movemail" wsm_persist="true" id="nntp.pushAuth"
             label="&alwaysAuthenticate.label;"

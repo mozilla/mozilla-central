@@ -147,10 +147,10 @@
                       accesskey="&globalInbox.accesskey;"/>
             </row>
             <row>
-              <radio value="2" id = "deferToServer" label="&deferToServer.label;"
+              <radio value="2" id="deferToServer" label="&deferToServer.label;"
                      accesskey="&deferToServer.accesskey;"
                      oncommand="updateInboxAccount(true, true)"/>
-  	            <menulist id="deferedServerFolderPicker" />
+  	            <menulist id="deferedServerFolderPicker" aria-labelledby="deferToServer"/>
             </row>
           </rows>
         </radiogroup>

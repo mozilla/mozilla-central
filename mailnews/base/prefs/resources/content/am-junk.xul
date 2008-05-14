@@ -49,6 +49,7 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:nc="http://home.netscape.com/NC-rdf#"
       xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+      title="&junkSettings.label;"
       onload="parent.onPanelLoaded('am-junk.xul');">
 
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>
@@ -110,7 +111,8 @@
                 genericattr="true" pref="true" wsm_persist="true" preftype="bool"
                 oncommand="onServerFilterToggle(this.checked);"
                 prefstring="mail.server.%serverkey%.useServerFilter"/>
-      <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"/>
+      <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"
+                aria-labelledby="server.useServerFilter"/>
     </hbox>
   </vbox>
 
@@ -120,6 +122,7 @@
             prefstring="mail.server.%serverkey%.moveOnSpam"/>
             
       <radiogroup id="server.moveTargetMode"
+                  aria-labelledby="server.moveOnSpam"
                   prefstring="mail.server.%serverkey%.moveTargetMode"
                   wsm_persist="true" pref="true" preftype="int" genericattr="true"
                   prefvalue="value">
@@ -134,12 +137,14 @@
               <radio id="moveTargetMode0" value="0" label="&junkFolderOn.label;"
                      accesskey="&junkFolderOn.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetAccount" observes="broadcaster_moveMode"
+                        aria-labelledby="moveTargetMode0"
                         oncommand="onActionTargetChange(this, 'server.spamActionTargetAccount');" />
             </row>
             <row>
               <radio id="moveTargetMode1" value="1" label="&otherFolder.label;"
                      accesskey="&otherFolder.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetFolder" observes="broadcaster_moveMode"
+                        aria-labelledby="moveTargetMode1"
                         oncommand="onActionTargetChange(this, 'server.spamActionTargetFolder');"/>
             </row>
           </rows>
@@ -150,6 +155,7 @@
       <checkbox id="server.purgeSpam" genericattr="true" pref="true" wsm_persist="true" preftype="bool"
                 prefstring="mail.server.%serverkey%.purgeSpam" accesskey="&purge1.accesskey;" label="&purge1.label;"/>
       <textbox  size="3" id="server.purgeSpamInterval" genericattr="true" pref="true" wsm_persist="true" preftype="int"
+                aria-labelledby="server.purgeSpam server.purgeSpamInterval purgeLabel"
                 prefstring="mail.server.%serverkey%.purgeSpamInterval"/>
       <label id="purgeLabel" value="&purge2.label;" observes="broadcaster_moveMode" control="server.purgeSpamInterval"/>
     </hbox>

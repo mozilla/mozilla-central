@@ -7,6 +7,7 @@
 <!DOCTYPE page SYSTEM "chrome://messenger/locale/am-advanced.dtd" >
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&smtpServer.label;"
       onload="gSmtpServerListWindow.onLoad();">
   <script type="application/x-javascript" src="amUtils.js"/>
   <script type="application/x-javascript" src="am-smtp.js"/>
@@ -15,7 +16,7 @@
 
   <dialogheader title="&smtpServer.label;"/>
 
-  <description>&smtpDesc.label;</description>
+  <label control="smtpList">&smtpDesc.label;</label>
   <separator class="thin"/>
 
   <hbox>

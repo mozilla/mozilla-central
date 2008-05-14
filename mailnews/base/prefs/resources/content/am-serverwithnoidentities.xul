@@ -5,6 +5,7 @@
 <!DOCTYPE page SYSTEM "chrome://messenger/locale/am-serverwithnoidentities.dtd" >
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&accountTitle.label;"
       onload="parent.onPanelLoaded('am-serverwithnoidentities.xul');">
 
   <script type="application/x-javascript" src="chrome://messenger/content/am-serverwithnoidentities.js"/>

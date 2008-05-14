@@ -45,6 +45,7 @@
 <?xul-overlay href="chrome://messenger/content/am-addressingOverlay.xul"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&addressing.label;"
       onload="onLoad();">
   <dialogheader title="&addressing.label;"/>
   <vbox id="compositionAndAddressing"/>

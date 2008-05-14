@@ -5,6 +5,7 @@
 <!DOCTYPE page SYSTEM "chrome://messenger/locale/am-copies.dtd">
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&copyAndFolderTitle.label;"
       onload="parent.onPanelLoaded('am-copies.xul');">
 
   <script type="application/x-javascript" src="chrome://messenger/content/AccountManager.js"/>

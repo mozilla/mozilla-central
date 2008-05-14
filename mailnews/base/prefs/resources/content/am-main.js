@@ -49,7 +49,8 @@ function onInit(aPageId, aServerId)
     titleValue = defaultTitle;
 
   title.setAttribute("title",titleValue);
-    
+  document.title = titleValue;
+
   setupSignatureItems(); 
 }
 

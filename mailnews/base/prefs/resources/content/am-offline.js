@@ -116,6 +116,7 @@ function onPreInit(account, accountValues)
     var prefBundle = document.getElementById("bundle_prefs");
     var headertitle = document.getElementById("headertitle");
     headertitle.setAttribute('title',prefBundle.getString(titleStringID));
+    document.title = prefBundle.getString(titleStringID);
 
     if (gServerType == "pop3")
     {

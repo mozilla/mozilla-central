@@ -85,7 +85,7 @@
                   prefstring="mail.identity.%identitykey%.fcc"
                   oncommand="setupFccItems();"/>
       </hbox>
-        <radiogroup id="doFcc">
+        <radiogroup id="doFcc" aria-labelledby="identity.doFcc">
         <grid class="specialFolderPickerGrid">
           <columns>
             <column/>
@@ -98,9 +98,10 @@
                      accesskey="&sentFolderOn.accesskey;"
                      oncommand="setPickersState('msgFccAccountPicker', 'msgFccFolderPicker', event)" 
                      observes="broadcaster_doFcc"/>
-  	          <menulist id="msgFccAccountPicker"
-	                oncommand="noteSelectionChange('fcc_selectAccount')" 
-	                observes="broadcaster_doFcc"/>
+                <menulist id="msgFccAccountPicker"
+                          aria-labelledby="fcc_selectAccount"
+                          oncommand="noteSelectionChange('fcc_selectAccount')" 
+                          observes="broadcaster_doFcc"/>
             </row> 
             <row align="center">
               <radio id="fcc_selectFolder" 
@@ -108,9 +109,10 @@
                      accesskey="&sentInOtherFolder.accesskey;"
                      oncommand="setPickersState('msgFccFolderPicker', 'msgFccAccountPicker', event)" 
                      observes="broadcaster_doFcc"/>
-  	      <menulist id="msgFccFolderPicker" 
-	                oncommand="noteSelectionChange('fcc_selectFolder')" 
-		              observes="broadcaster_doFcc"/>
+                <menulist id="msgFccFolderPicker" 
+                          aria-labelledby="fcc_selectFolder"
+                          oncommand="noteSelectionChange('fcc_selectFolder')" 
+                          observes="broadcaster_doFcc"/>
             </row>
           </rows>
         </grid>
@@ -134,6 +136,7 @@
                   prefstring="mail.identity.%identitykey%.doBcc"/>
 
         <textbox wsm_persist="true" id="identity.doBccList" flex="1"
+                 aria-labelledby="identity.doBcc"
                  prefstring="mail.identity.%identitykey%.doBccList" class="uri-element"/>
       </hbox>
 
@@ -159,6 +162,7 @@
                      value="0" label="&draftsFolderOn.label;"
                      accesskey="&draftsFolderOn.accesskey;"/>
  	      <menulist id="msgDraftsAccountPicker" 
+	                aria-labelledby="draft_selectAccount"
 	                oncommand="noteSelectionChange('draft_selectAccount')"/>
             </row> 
             <row align="center">
@@ -167,6 +171,7 @@
                      value="1" label="&draftInOtherFolder.label;"
                      accesskey="&draftInOtherFolder.accesskey;"/>
   	      <menulist id="msgDraftsFolderPicker"
+                        aria-labelledby="draft_selectFolder"
                         oncommand="noteSelectionChange('draft_selectFolder')"/>
             </row>
           </rows>
@@ -189,6 +194,7 @@
                      value="0" label="&templatesFolderOn.label;"
                      accesskey="&templatesFolderOn.accesskey;"/>
   	      <menulist id="msgStationeryAccountPicker"
+                        aria-labelledby="tmpl_selectAccount"
                         oncommand="noteSelectionChange('tmpl_selectAccount')"/>
             </row> 
             <row align="center">
@@ -197,6 +203,7 @@
                      value="1" label="&templateInOtherFolder.label;"
                      accesskey="&templateInOtherFolder.accesskey;"/>
               <menulist id="msgStationeryFolderPicker"
+                        aria-labelledby="tmpl_selectFolder"
                         oncommand="noteSelectionChange('tmpl_selectFolder')"/>
             </row>
           </rows>

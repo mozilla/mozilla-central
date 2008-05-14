@@ -120,6 +120,7 @@
 
         <hbox align="center" class="indent">
           <textbox id="identity.signature" datatype="nsILocalFile" flex="1" name="identity.signature"
+                   aria-labelledby="identity.attachSignature"
                    observes="broadcaster_attachSignature" class="uri-element"/>
           <button class="push" name="browse" label="&choose.label;"
                   accesskey="&choose.accesskey;" 
