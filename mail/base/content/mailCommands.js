@@ -745,7 +745,7 @@ function deleteAllInFolder(commandName)
   // Delete sub-folders.
   var iter = folder.subFolders;
   while (iter.hasMoreElements())
-    folder.propagateDelete(iter.getNext(), true, msgWindow); 
+    folder.propagateDelete(iter.getNext(), true, msgWindow);
 
   var children = Components.classes["@mozilla.org/supports-array;1"]
                   .createInstance(Components.interfaces.nsISupportsArray);
