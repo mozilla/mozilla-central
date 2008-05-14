@@ -229,10 +229,10 @@ NS_IMETHODIMP nsAddrDatabase::NotifyCardAttribChange(PRUint32 abCode)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::NotifyCardEntryChange(PRUint32 abCode, nsIAbCard *card)
+NS_IMETHODIMP nsAddrDatabase::NotifyCardEntryChange(PRUint32 aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
 {
   NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(m_ChangeListeners, nsIAddrDBListener,
-                                     OnCardEntryChange, (abCode, card));
+                                     OnCardEntryChange, (aAbCode, aCard, aParent));
   return NS_OK;
 }
 
@@ -1407,24 +1407,24 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *newCard, PRBool notify /* = FALSE */)
+NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBool aNotify /* = FALSE */, nsIAbDirectory *aParent)
 {
   nsCOMPtr <nsIMdbRow> cardRow;
 
-  if (!newCard || !m_mdbPabTable || !m_mdbEnv)
+  if (!aNewCard || !m_mdbPabTable || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult rv = GetNewRow(getter_AddRefs(cardRow));
   if (NS_SUCCEEDED(rv) && cardRow)
   {
-    AddAttributeColumnsToRow(newCard, cardRow);
+    AddAttributeColumnsToRow(aNewCard, cardRow);
     AddRecordKeyColumnToRow(cardRow);
 
     // we need to do this for dnd
     PRUint32 key = 0;
     rv = GetIntColumn(cardRow, m_RecordKeyColumnToken, &key, 0);
     if (NS_SUCCEEDED(rv)) {
-      nsCOMPtr<nsIAbMDBCard> dbnewCard = do_QueryInterface(newCard);
+      nsCOMPtr<nsIAbMDBCard> dbnewCard = do_QueryInterface(aNewCard);
       if (dbnewCard)
         dbnewCard->SetKey(key);
     }
@@ -1437,9 +1437,9 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *newCard, PRBool
     return rv;
 
   //  do notification
-  if (notify)
+  if (aNotify)
   {
-    NotifyCardEntryChange(AB_NotifyInserted, newCard);
+    NotifyCardEntryChange(AB_NotifyInserted, aNewCard, aParent);
   }
   return rv;
 }
@@ -1501,26 +1501,26 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
   PRUint32 totalAddress = GetListAddressTotal(pListRow) + 1;
   SetListAddressTotal(pListRow, totalAddress);
   nsCOMPtr<nsIAbCard> pNewCard;
-  rv = AddListCardColumnsToRow(newCard, pListRow, totalAddress, getter_AddRefs(pNewCard), PR_TRUE /* aInMailingList */);
+  rv = AddListCardColumnsToRow(newCard, pListRow, totalAddress, getter_AddRefs(pNewCard), PR_TRUE /* aInMailingList */, aList);
   NS_ENSURE_SUCCESS(rv,rv);
 
   addressList->AppendElement(newCard);
 
   if (notify)
-    NotifyCardEntryChange(AB_NotifyInserted, newCard);
+    NotifyCardEntryChange(AB_NotifyInserted, newCard, aList);
 
     return rv;
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
-(nsIAbCard *pCard, nsIMdbRow *pListRow, PRUint32 pos, nsIAbCard** pNewCard, PRBool aInMailingList)
+(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *aParent)
 {
-  if (!pCard || !pListRow || !m_mdbStore || !m_mdbEnv)
+  if (!aPCard || !aPListRow || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult    err = NS_OK;
   nsString email;
-  pCard->GetPrimaryEmail(email);
+  aPCard->GetPrimaryEmail(email);
   if (!email.IsEmpty())
   {
     nsIMdbRow    *pCardRow = nsnull;
@@ -1549,7 +1549,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     NS_ENSURE_TRUE(pCardRow, NS_ERROR_NULL_POINTER);
 
     nsString name;
-    pCard->GetDisplayName(name);
+    aPCard->GetDisplayName(name);
     if (!name.IsEmpty()) {
       AddDisplayName(pCardRow, NS_ConvertUTF16toUTF8(name).get());
       err = m_mdbPabTable->AddRow(m_mdbEnv, pCardRow);
@@ -1557,23 +1557,29 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
 
     nsCOMPtr<nsIAbCard> newCard;
     CreateABCard(pCardRow, 0, getter_AddRefs(newCard));
-    NS_IF_ADDREF(*pNewCard = newCard);
+    NS_IF_ADDREF(*aPNewCard = newCard);
 
     if (cardWasAdded) {
-      NotifyCardEntryChange(AB_NotifyInserted, newCard);
+      NotifyCardEntryChange(AB_NotifyInserted, newCard, aParent);
     }
     else if (!aInMailingList) {
-      NotifyCardEntryChange(AB_NotifyInserted, pCard);
+      nsresult rv;
+      nsCOMPtr<nsIAddrDBListener> parentListener(do_QueryInterface(aParent, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      // Ensure the parent is in the listener list (and hence wants to be notified)
+      if (m_ChangeListeners.Contains(parentListener))
+        parentListener->OnCardEntryChange(AB_NotifyInserted, aPCard, aParent);
     }
     else {
-      NotifyCardEntryChange(AB_NotifyPropertyChanged, pCard);
+      NotifyCardEntryChange(AB_NotifyPropertyChanged, aPCard, aParent);
     }
 
     //add a column with address row id to the list row
     mdb_token listAddressColumnToken;
 
     char columnStr[COLUMN_STR_MAX];
-    PR_snprintf(columnStr, COLUMN_STR_MAX, kMailListAddressFormat, pos);
+    PR_snprintf(columnStr, COLUMN_STR_MAX, kMailListAddressFormat, aPos);
     m_mdbStore->StringToToken(m_mdbEnv,  columnStr, &listAddressColumnToken);
 
     mdbOid outOid;
@@ -1581,7 +1587,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     if (pCardRow->GetOid(m_mdbEnv, &outOid) == NS_OK)
     {
       //save address row ID to the list row
-      err = AddIntColumn(pListRow, listAddressColumnToken, outOid.mOid_Id);
+      err = AddIntColumn(aPListRow, listAddressColumnToken, outOid.mOid_Id);
     }
     NS_RELEASE(pCardRow);
 
@@ -1590,7 +1596,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
   return NS_OK;
 }
 
-nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIMdbRow *listRow)
+nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIMdbRow *listRow, nsIAbDirectory *aParent)
 {
     nsresult    err = NS_OK;
 
@@ -1659,7 +1665,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
             if (!email.IsEmpty())
             {
                 nsCOMPtr<nsIAbCard> pNewCard;
-                err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard);
+                err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard, aParent);
                 if (pNewCard)
                     pAddressLists->ReplaceElementAt(pNewCard, i);
             }
@@ -1706,9 +1712,9 @@ nsresult nsAddrDatabase::GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, ns
   return GetCardRowByRowID(rowID, cardRow);
 }
 
-NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *newList, PRBool notify /* = FALSE */)
+NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *aNewList, PRBool aNotify /* = FALSE */, nsIAbDirectory *aParent)
 {
-    if (!newList || !m_mdbPabTable || !m_mdbEnv)
+    if (!aNewList || !m_mdbPabTable || !m_mdbEnv)
         return NS_ERROR_NULL_POINTER;
 
     nsIMdbRow *listRow;
@@ -1716,7 +1722,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *newList, 
 
     if (NS_SUCCEEDED(err) && listRow)
     {
-        AddListAttributeColumnsToRow(newList, listRow);
+        AddListAttributeColumnsToRow(aNewList, listRow, aParent);
         AddRecordKeyColumnToRow(listRow);
         mdb_err merror = m_mdbPabTable->AddRow(m_mdbEnv, listRow);
         if (merror != NS_OK)
@@ -1724,7 +1730,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *newList, 
 
         nsCOMPtr<nsIAbCard> listCard;
         CreateABListCard(listRow, getter_AddRefs(listCard));
-        NotifyCardEntryChange(AB_NotifyInserted, listCard);
+        NotifyCardEntryChange(AB_NotifyInserted, listCard, aParent);
 
         NS_RELEASE(listRow);
         return NS_OK;
@@ -1763,14 +1769,14 @@ void nsAddrDatabase::DeleteCardFromAllMailLists(mdb_id cardRowID)
     }
 }
 
-NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *card, PRBool notify)
+NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDirectory *aParent)
 {
-  if (!card || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
+  if (!aCard || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult err = NS_OK;
   PRBool bIsMailList = PR_FALSE;
-  card->GetIsMailList(&bIsMailList);
+  aCard->GetIsMailList(&bIsMailList);
 
   // get the right row
   nsIMdbRow* pCardRow = nsnull;
@@ -1778,7 +1784,7 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *card, PRBool notify)
 
   rowOid.mOid_Scope = bIsMailList ? m_ListRowScopeToken : m_CardRowScopeToken;
 
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &err));
+  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(aCard, &err));
   NS_ENSURE_SUCCESS(err, err);
 
   dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
@@ -1790,7 +1796,7 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *card, PRBool notify)
 
   // Add the deleted card to the deletedcards table
   nsCOMPtr <nsIMdbRow> cardRow;
-  AddRowToDeletedCardsTable(card, getter_AddRefs(cardRow));
+  AddRowToDeletedCardsTable(aCard, getter_AddRefs(cardRow));
   err = DeleteRow(m_mdbPabTable, pCardRow);
 
   //delete the person card from all mailing list
@@ -1798,8 +1804,8 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *card, PRBool notify)
     DeleteCardFromAllMailLists(rowOid.mOid_Id);
 
   if (NS_SUCCEEDED(err)) {
-    if (notify)
-      NotifyCardEntryChange(AB_NotifyDeleted, card);
+    if (aNotify)
+      NotifyCardEntryChange(AB_NotifyDeleted, aCard, aParent);
   }
   else
     DeleteRowFromDeletedCardsTable(cardRow);
@@ -1857,6 +1863,7 @@ nsresult nsAddrDatabase::DeleteCardFromListRow(nsIMdbRow* pListRow, mdb_id cardR
       break;
     }
   }
+
   return NS_OK;
 }
 
@@ -1891,7 +1898,7 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCardFromMailList(nsIAbDirectory *mailList, n
 
   err = DeleteCardFromListRow(pListRow, cardRowID);
   if (NS_SUCCEEDED(err) && aNotify) {
-    NotifyCardEntryChange(AB_NotifyDeleted, card);
+    NotifyCardEntryChange(AB_NotifyDeleted, card, mailList);
   }
   NS_RELEASE(pListRow);
   return NS_OK;
@@ -2075,10 +2082,10 @@ NS_IMETHODIMP nsAddrDatabase::PurgeDeletedCardTable()
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *card, PRBool notify)
+NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDirectory *aParent)
 {
   // XXX make sure this isn't getting called when we're just editing one or two well known fields
-  if (!card || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
+  if (!aCard || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult err = NS_OK;
@@ -2090,8 +2097,8 @@ NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *card, PRBool notify)
   PRUint32 nowInSeconds;
   PRTime now = PR_Now();
   PRTime2Seconds(now, &nowInSeconds);
-  card->SetLastModifiedDate(nowInSeconds);
-  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(card, &err));
+  aCard->SetLastModifiedDate(nowInSeconds);
+  nsCOMPtr<nsIAbMDBCard> dbcard(do_QueryInterface(aCard, &err));
   NS_ENSURE_SUCCESS(err, err);
   dbcard->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
@@ -2101,11 +2108,11 @@ NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *card, PRBool notify)
   if (!cardRow)
     return NS_OK;
 
-  err = AddAttributeColumnsToRow(card, cardRow);
+  err = AddAttributeColumnsToRow(aCard, cardRow);
   NS_ENSURE_SUCCESS(err, err);
 
-  if (notify)
-    NotifyCardEntryChange(AB_NotifyPropertyChanged, card);
+  if (aNotify)
+    NotifyCardEntryChange(AB_NotifyPropertyChanged, aCard, aParent);
 
   return NS_OK;
 }
@@ -2178,7 +2185,7 @@ NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *
   mdbOid rowOid;
   rowOid.mOid_Scope = m_ListRowScopeToken;
 
-  nsCOMPtr<nsIAbMDBDirectory> dbmailList(do_QueryInterface(mailList,&err));
+  nsCOMPtr<nsIAbMDBDirectory> dbmailList(do_QueryInterface(mailList, &err));
   NS_ENSURE_SUCCESS(err, err);
   dbmailList->GetDbRowID((PRUint32*)&rowOid.mOid_Id);
 
@@ -2188,7 +2195,7 @@ NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *
   if (!pListRow)
     return NS_OK;
 
-  err = AddListAttributeColumnsToRow(mailList, pListRow);
+  err = AddListAttributeColumnsToRow(mailList, pListRow, mailList);
   NS_ENSURE_SUCCESS(err, err);
 
   if (notify)
@@ -2197,7 +2204,7 @@ NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *
 
     if (listCard)
     {
-      NotifyCardEntryChange(AB_NotifyPropertyChanged, listCard);
+      NotifyCardEntryChange(AB_NotifyPropertyChanged, listCard, mailList);
     }
   }
 

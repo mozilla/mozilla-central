@@ -210,12 +210,11 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
           nsCOMPtr<nsIAbCard> cardInList(do_QueryElementAt(pAddressLists, j, &rv));
           PRBool equals;
           nsresult rv = cardInList->Equals(card, &equals);  // should we checking email?
-          if (NS_SUCCEEDED(rv) && equals) {
+          if (NS_SUCCEEDED(rv) && equals)
             pAddressLists->RemoveElementAt(j);
         }
       }
     }
-  }
   }
   return NS_OK;
 }
@@ -533,7 +532,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
         }
         else
         {
-          mDatabase->DeleteCard(card, PR_TRUE);
+          mDatabase->DeleteCard(card, PR_TRUE, this);
           PRBool bIsMailList = PR_FALSE;
           card->GetIsMailList(&bIsMailList);
           if (bIsMailList)
@@ -654,10 +653,10 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list)
     dblist = do_QueryInterface(newlist, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     
-    mDatabase->CreateMailListAndAddToDB(newlist, PR_TRUE);
+    mDatabase->CreateMailListAndAddToDB(newlist, PR_TRUE, this);
   }
   else
-    mDatabase->CreateMailListAndAddToDB(list, PR_TRUE);
+    mDatabase->CreateMailListAndAddToDB(list, PR_TRUE, this);
 
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
@@ -717,7 +716,7 @@ NS_IMETHODIMP nsAbMDBDirectory::AddCard(nsIAbCard* card, nsIAbCard **addedCard)
   if (m_IsMailList)
     mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, PR_TRUE /* notify */);
   else
-    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE);
+    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE, this);
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
   NS_IF_ADDREF(*addedCard = newCard);
@@ -735,7 +734,7 @@ NS_IMETHODIMP nsAbMDBDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  rv = mDatabase->EditCard(aModifiedCard, PR_TRUE);
+  rv = mDatabase->EditCard(aModifiedCard, PR_TRUE, this);
   NS_ENSURE_SUCCESS(rv, rv);
   return mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 }
@@ -783,7 +782,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
       // contains the mailing list.
       mDatabase->FindRowByCard(newCard, getter_AddRefs(cardRow));
       if (!cardRow)
-        mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */);
+        mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */, this);
       else
         mDatabase->InitCardFromRow(newCard, cardRow);
     }
@@ -791,7 +790,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard
     mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, PR_FALSE /* notify */);
   }
   else {
-    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */);
+    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */, this);
   }
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
   return NS_OK;
@@ -814,6 +813,34 @@ NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(nsIAbCard *listCard)
   return NS_OK;
 }
 
+static PRBool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
+{
+  // If parent is a maillist, 'addressLists' contains AbCards.
+  PRBool bIsMailList = PR_FALSE;
+  nsresult rv = parent->GetIsMailList(&bIsMailList);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (bIsMailList)
+    return PR_FALSE;
+
+  nsCOMPtr <nsISupportsArray> pAddressLists;
+  parent->GetAddressLists(getter_AddRefs(pAddressLists));
+  if (pAddressLists)
+  {
+    PRUint32 total;
+    rv = pAddressLists->Count(&total);
+    for (PRUint32 i = total - 1; i >= 0; i--)
+    {
+      nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(pAddressLists, i, &rv));
+
+      if (directory == pList)
+          return PR_TRUE;
+    }
+  }
+
+  return PR_FALSE;
+}
+
 // nsIAddrDBListener methods
 
 NS_IMETHODIMP nsAbMDBDirectory::OnCardAttribChange(PRUint32 abCode)
@@ -822,13 +849,37 @@ NS_IMETHODIMP nsAbMDBDirectory::OnCardAttribChange(PRUint32 abCode)
 }
 
 NS_IMETHODIMP nsAbMDBDirectory::OnCardEntryChange
-(PRUint32 abCode, nsIAbCard *card)
+(PRUint32 aAbCode, nsIAbCard *aCard, nsIAbDirectory *aParent)
 {
-  NS_ENSURE_ARG_POINTER(card);
-  nsCOMPtr<nsISupports> cardSupports(do_QueryInterface(card));
+  // Don't notify AbManager unless we have the parent
+  if (!aParent)
+    return NS_OK;
+
+  NS_ENSURE_ARG_POINTER(aCard);
+  nsCOMPtr<nsISupports> cardSupports(do_QueryInterface(aCard));
   nsresult rv;
 
-  switch (abCode) {
+  // Notify when
+  // - any operation is done to a card belonging to this
+  //        => if <this> is <aParent>, or
+  // - a card belonging to a directory which is parent of this is deleted
+  //        => if aAbCode is AB_NotifyDeleted && <this> is child of <aParent>, or
+  // - a card belonging to a directory which is child of this is added/modified
+  //        => if aAbCode is !AB_NotifyDeleted && <this> is parent of <aParent>
+
+  if (aParent != this)
+  {
+    PRBool isChild = PR_FALSE;
+    if (aAbCode != AB_NotifyDeleted)
+      isChild = ContainsDirectory(this, aParent);
+    else
+      isChild = ContainsDirectory(aParent, this);
+
+    if (!isChild)
+      return NS_OK;
+  }
+
+  switch (aAbCode) {
   case AB_NotifyInserted:
     rv = NotifyItemAdded(cardSupports);
     break;

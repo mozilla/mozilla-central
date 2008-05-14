@@ -4576,7 +4576,8 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               if (NS_SUCCEEDED(existingCard->GetPopularityIndex(&popularityIndex)))
               {
                 existingCard->SetPopularityIndex(++popularityIndex);
-                abDataBase->EditCard(existingCard, PR_FALSE);
+                // Since we are not notifying anyway, send null
+                abDataBase->EditCard(existingCard, PR_FALSE, nsnull);
                 dirtyABDatabase = PR_TRUE;
               }
             }

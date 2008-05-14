@@ -1090,7 +1090,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
         //add card list
         pDb->AddListCardColumnsToRow(userCard,
           newListRow,idx+1,
-          getter_AddRefs(newCard),PR_TRUE);
+          getter_AddRefs(newCard),PR_TRUE, nsnull);
 
 
       }

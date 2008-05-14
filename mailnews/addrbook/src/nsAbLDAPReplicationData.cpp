@@ -301,7 +301,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
         return NS_OK;
     }
 
-    rv = mReplicationDB->CreateNewCardAndAddToDB(newCard, PR_FALSE);
+    rv = mReplicationDB->CreateNewCardAndAddToDB(newCard, PR_FALSE, nsnull);
     if(NS_FAILED(rv)) {
         Abort();
         return rv;
@@ -322,7 +322,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
         return rv;
     }
 
-    rv = mReplicationDB->EditCard(newCard, PR_FALSE);
+    rv = mReplicationDB->EditCard(newCard, PR_FALSE, nsnull);
     if(NS_FAILED(rv)) {
         Abort();
         return rv;
@@ -538,5 +538,5 @@ nsresult nsAbLDAPProcessReplicationData::DeleteCard(nsString & aDn)
     nsCOMPtr<nsIAbCard> cardToDelete;
     mReplicationDB->GetCardFromAttribute(nsnull, "_DN", NS_ConvertUTF16toUTF8(aDn),
                                          PR_FALSE, getter_AddRefs(cardToDelete));
-    return mReplicationDB->DeleteCard(cardToDelete, PR_FALSE);
+    return mReplicationDB->DeleteCard(cardToDelete, PR_FALSE, nsnull);
 }

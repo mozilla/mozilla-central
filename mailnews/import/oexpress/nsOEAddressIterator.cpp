@@ -239,7 +239,7 @@ nsresult nsOEAddressIterator::EnumList( const PRUnichar * pName, LPENTRYID pEid,
             m_database->InitCardFromRow(userCard,cardRow);
 
             m_database->AddListCardColumnsToRow(userCard, listRow, ++numListElems,
-                                        getter_AddRefs(newCard),PR_TRUE);
+                                        getter_AddRefs(newCard),PR_TRUE, nsnull);
           }
     m_pWab->FreeProperty( pProp);
           m_pWab->ReleaseUser( pUser);

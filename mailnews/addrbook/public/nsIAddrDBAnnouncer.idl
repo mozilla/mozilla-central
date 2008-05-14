@@ -37,18 +37,31 @@
 
 #include "nsISupports.idl"
 #include "nsIAbCard.idl"
+#include "nsIAbDirectory.idl"
 
 interface nsIAddrDBListener;
 
-[scriptable, uuid(0d8fe8e3-ad48-4dbd-b0c2-a1d374e39b93)] 
+[scriptable, uuid(166b19a1-1235-4613-9601-816dedc48c9e)]
 interface nsIAddrDBAnnouncer : nsISupports {
 
-	void addListener(in nsIAddrDBListener listener);
-	void removeListener(in nsIAddrDBListener listener);
+  void addListener(in nsIAddrDBListener listener);
+  void removeListener(in nsIAddrDBListener listener);
 
-	void notifyCardAttribChange(in unsigned long abCode);
-	void notifyCardEntryChange (in unsigned long abCode, 
-								in nsIAbCard card);
+  void notifyCardAttribChange(in unsigned long abCode);
 
-	void notifyAnnouncerGoingAway();
+  /**
+   * Notify all the listeners of the database about an event performed
+   * on a card entry.
+   *
+   * @param     aAbCode               The code to indicate the type of event
+   *                                  (see nsAddrDatabase.h AB_NOTIFY_CODE for values).
+   * @param     aCard                 The card entry on which the event occurred.
+   * @param     aParent               The parent of card entry. This is set by
+   *                                  object which performs the operation.
+   */
+  void notifyCardEntryChange(in unsigned long aAbCode,
+                             in nsIAbCard aCard,
+                             in nsIAbDirectory aParent);
+
+  void notifyAnnouncerGoingAway();
 };

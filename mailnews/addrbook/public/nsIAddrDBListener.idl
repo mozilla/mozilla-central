@@ -40,14 +40,29 @@
 
 interface nsIAddrDBAnnouncer;
 
-[scriptable, uuid(96876e1d-50a8-4264-8cd0-953d75d0e81b)] 
+[scriptable, uuid(5d7e5a7a-1ac9-46dc-abfd-758c98be26e9)]
 interface nsIAddrDBListener : nsISupports {
 
-	void onCardAttribChange(in unsigned long abCode);
-	void onCardEntryChange (in unsigned long abCode, 
-							in nsIAbCard card);
-	void onListEntryChange (in unsigned long abCode, 
-							in nsIAbDirectory list);
-    void onAnnouncerGoingAway();
+  void onCardAttribChange(in unsigned long abCode);
+
+  /**
+   * Handle the card entry change event.
+   *
+   * @param     aAbCode         The code to indicate the type of event
+   *                            (see nsAddrDatabase.h AB_NOTIFY_CODE for values).
+   * @param     aCard           The card entry on which the event occurred.
+   * @param     aParent         The parent of card entry.
+   *                            If set to null, the event can be ignored.
+   *                            This happens during import & sync operations when
+   *                            listeners of a database need not be notified about
+   *                            card entry changes.
+   */
+  void onCardEntryChange (in unsigned long aAbCode,
+                          in nsIAbCard aCard,
+                          in nsIAbDirectory aParent);
+
+  void onListEntryChange (in unsigned long abCode,
+                          in nsIAbDirectory list);
+  void onAnnouncerGoingAway();
 
 };

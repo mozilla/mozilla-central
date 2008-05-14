@@ -656,7 +656,7 @@ PRBool nsAbPalmHotSync::CardExistsInPalmList(nsAbIPCCard  * aIPCCard)
             if(!aIPCCard->GetRecordId()) 
             {
                 ConvertAssignPalmIDAttrib(palmRec->dwRecordId, aIPCCard);
-                mABDB->EditCard(aIPCCard, PR_FALSE);
+                mABDB->EditCard(aIPCCard, PR_FALSE, nsnull);
                 aIPCCard->SetRecordId(palmRec->dwRecordId);
             }
 
@@ -837,7 +837,7 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
             // Archived is the same as deleted in palm.
             if(palmRec->dwStatus & ATTR_DELETED || palmRec->dwStatus & ATTR_ARCHIVED) 
             {
-                mABDB->DeleteCard(existingCard, PR_FALSE);
+                mABDB->DeleteCard(existingCard, PR_FALSE, nsnull);
                 continue;
             }
             if(palmRec->dwStatus & ATTR_NEW)
@@ -851,7 +851,7 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
                 else 
                 {
                     existingCard->Copy(&ipcCard);
-                    rv = mABDB->EditCard(existingCard, PR_FALSE);
+                    rv = mABDB->EditCard(existingCard, PR_FALSE, nsnull);
                     continue;
                 }
             }
@@ -879,7 +879,7 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
             PRUint32 modTimeInSec;
             PRTime2Seconds(PR_Now(), &modTimeInSec);
             ipcCard.SetLastModifiedDate(modTimeInSec);
-            rv = mABDB->CreateNewCardAndAddToDB(newCard, PR_FALSE);
+            rv = mABDB->CreateNewCardAndAddToDB(newCard, PR_FALSE, nsnull);
             if(NS_SUCCEEDED(rv)) 
             {
                 // now set the attribute for the PalmRecID in the card in the DB
@@ -887,7 +887,7 @@ nsresult nsAbPalmHotSync::UpdateMozABWithPalmRecords()
                 dbCard->SetStringAttribute(CARD_ATTRIB_PALMID, NS_ConvertASCIItoUTF16(recordIDBuf).get());
                 newCard = do_QueryInterface(dbCard, &rv);
                 if(NS_SUCCEEDED(rv))
-                    rv = mABDB->EditCard(newCard, PR_FALSE);
+                    rv = mABDB->EditCard(newCard, PR_FALSE, nsnull);
             }
         }
     }
@@ -915,7 +915,7 @@ nsresult nsAbPalmHotSync::Done(PRBool aSuccess, PRInt32 aPalmCatIndex, PRUint32 
                 nsCOMPtr<nsIAbCard> newCard;
                 newCard = do_QueryInterface(dbCard, &rv);
                 if(NS_SUCCEEDED(rv))
-                    mABDB->EditCard(newCard, PR_FALSE);
+                    mABDB->EditCard(newCard, PR_FALSE, nsnull);
             }
         }
     }

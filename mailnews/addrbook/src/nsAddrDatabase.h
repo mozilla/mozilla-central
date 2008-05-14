@@ -73,14 +73,14 @@ public:
   NS_IMETHOD Commit(PRUint32 commitType);
   NS_IMETHOD ForceClosed();
 
-  NS_IMETHOD CreateNewCardAndAddToDB(nsIAbCard *newCard, PRBool notify);
+  NS_IMETHOD CreateNewCardAndAddToDB(nsIAbCard *newCard, PRBool notify, nsIAbDirectory *parent);
   NS_IMETHOD CreateNewListCardAndAddToDB(nsIAbDirectory *list, PRUint32 listRowID, nsIAbCard *newCard, PRBool notify);
-  NS_IMETHOD CreateMailListAndAddToDB(nsIAbDirectory *newList, PRBool notify);
+  NS_IMETHOD CreateMailListAndAddToDB(nsIAbDirectory *newList, PRBool notify, nsIAbDirectory *parent);
   NS_IMETHOD EnumerateCards(nsIAbDirectory *directory, nsISimpleEnumerator **result);
   NS_IMETHOD GetMailingListsFromDB(nsIAbDirectory *parentDir);
   NS_IMETHOD EnumerateListAddresses(nsIAbDirectory *directory, nsISimpleEnumerator **result);
-  NS_IMETHOD DeleteCard(nsIAbCard *newCard, PRBool notify);
-  NS_IMETHOD EditCard(nsIAbCard *card, PRBool notify);
+  NS_IMETHOD DeleteCard(nsIAbCard *newCard, PRBool notify, nsIAbDirectory *parent);
+  NS_IMETHOD EditCard(nsIAbCard *card, PRBool notify, nsIAbDirectory *parent);
   NS_IMETHOD ContainsCard(nsIAbCard *card, PRBool *hasCard);
   NS_IMETHOD DeleteMailList(nsIAbDirectory *mailList, PRBool notify);
   NS_IMETHOD EditMailList(nsIAbDirectory *mailList, nsIAbCard *listCard, PRBool notify);
@@ -304,7 +304,7 @@ public:
   PRUint32 GetListAddressTotal(nsIMdbRow* listRow);
   nsresult GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, nsIMdbRow** cardRow);
 
-    NS_IMETHOD AddListCardColumnsToRow(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList);
+    NS_IMETHOD AddListCardColumnsToRow(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *parent);
     NS_IMETHOD InitCardFromRow(nsIAbCard *aNewCard, nsIMdbRow* aCardRow);
     NS_IMETHOD SetListAddressTotal(nsIMdbRow* aListRow, PRUint32 aTotal);
     NS_IMETHOD FindRowByCard(nsIAbCard * card,nsIMdbRow **aRow);
@@ -332,7 +332,7 @@ protected:
   nsresult GetListFromDB(nsIAbDirectory *newCard, nsIMdbRow* listRow);
   nsresult AddRecordKeyColumnToRow(nsIMdbRow *pRow);
   nsresult AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *cardRow);
-  nsresult AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIMdbRow *listRow);
+  nsresult AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIMdbRow *listRow, nsIAbDirectory *parent);
   nsresult CreateCard(nsIMdbRow* cardRow, mdb_id listRowID, nsIAbCard **result);
   nsresult CreateCardFromDeletedCardsTable(nsIMdbRow* cardRow, mdb_id listRowID, nsIAbCard **result);
   nsresult DeleteCardFromListRow(nsIMdbRow* pListRow, mdb_id cardRowID);
