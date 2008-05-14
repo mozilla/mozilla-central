@@ -15,12 +15,12 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation.
-# Portions created by the Initial Developer are Copyright (C) 1998
+# Joshua Cranmer <Pidgeot18@gmail.com>
+#
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Spencer Murray <spence@netscape.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -36,22 +36,17 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
+DEPTH		= ../../..
 topsrcdir	= @top_srcdir@
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-DIRS		= public src
+# Module name for xpcshell tests.
+MODULE         = test_news
 
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
-endif
-
-ifdef ENABLE_TESTS
-DIRS += test
-endif
+XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk
 

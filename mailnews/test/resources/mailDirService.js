@@ -36,6 +36,10 @@ const MailTestDirServer = {
             processDir.create(nsIFile.DIRECTORY_TYPE, 0700);
 
           return processDir;
+        } else if (prop == "TmpD") {
+          throw Components.results.NS_ERROR_FAILURE;
+        } else {
+          dump("Wants directory: "+prop+"\n");
         }
         throw Components.results.NS_ERROR_FAILURE;
       },
@@ -49,7 +53,7 @@ const MailTestDirServer = {
   }
 };
 
-// If there's no location registered for the profile direcotry, register one
+// If there's no location registered for the profile directory, register one
 var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
                        .getService(Components.interfaces.nsIProperties);
 try {
