@@ -2344,12 +2344,14 @@ PRBool nsMsgDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, MsgFlags flag
 NS_IMETHODIMP nsMsgDatabase::MarkHdrRead(nsIMsgDBHdr *msgHdr, PRBool bRead,
                                          nsIDBChangeListener *instigator)
 {
-  nsresult rv = NS_OK;
-  PRBool  isRead = PR_TRUE;
-  PRBool        isReadInDB;
+  PRBool isReadInDB = PR_TRUE;
+  nsresult rv = nsMsgDatabase::IsHeaderRead(msgHdr, &isReadInDB);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsMsgDatabase::IsHeaderRead(msgHdr, &isReadInDB);
-  IsHeaderRead(msgHdr, &isRead);
+  PRBool isRead = PR_TRUE;
+  rv = IsHeaderRead(msgHdr, &isRead);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // if the flag is already correct in the db, don't change it.
   // Check msg flags as well as IsHeaderRead in case it's a newsgroup
   // and the msghdr flags are out of sync with the newsrc settings.
@@ -2365,9 +2367,9 @@ NS_IMETHODIMP nsMsgDatabase::MarkHdrRead(nsIMsgDBHdr *msgHdr, PRBool bRead,
     {
       threadHdr->MarkChildRead(bRead);
     }
-    rv = MarkHdrReadInDB(msgHdr, bRead, instigator);
+    return MarkHdrReadInDB(msgHdr, bRead, instigator);
   }
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDatabase::MarkHdrReplied(nsIMsgDBHdr *msgHdr, PRBool bReplied,
