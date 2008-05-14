@@ -87,11 +87,11 @@
       </radiogroup>
     </vbox>
     <vbox class="wizard-box">
-      <description control="moduleList">&selectDescription.label;</description>
+      <label control="moduleList">&selectDescription.label;</label>
       <listbox id="moduleList" flex="3"
                 onselect="ImportSelectionChanged(); enableAdvance();" 
                 style="height: 0px;"/>
-      <description id="description" class="box-padded" flex="1"/>
+      <description control="moduleList" id="description" class="box-padded" flex="1"/>
     </vbox>
     <vbox class="wizard-box">
       <spacer flex="1"/>

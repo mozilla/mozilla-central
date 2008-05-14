@@ -68,7 +68,7 @@
   </hbox>
 
   <separator class="thin"/>
-  <description>&fieldMapImport.text;</description>
+  <label control="fieldList">&fieldMapImport.text;</label>
   <separator class="thin"/>
 
   <!-- field list -->
