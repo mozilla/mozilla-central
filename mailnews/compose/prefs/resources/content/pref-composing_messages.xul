@@ -43,8 +43,9 @@
                 accesskey="&autoSave.accesskey;"
                 oncommand="EnableTextbox(this, gAutoSaveInterval, false);"/>
       <textbox id="autoSaveInterval" size="2" preftype="int"
+               aria-labelledby="autoSave autoSaveInterval autoSaveEnd"
                prefstring="mail.compose.autosaveinterval"/>
-      <label value="&autoSaveEnd.label;"/>
+      <label value="&autoSaveEnd.label;" id="autoSaveEnd"/>
     </hbox>
 
     <checkbox id="mailWarnOnSendAccelKey" label="&warnOnSendAccelKey.label;"
@@ -52,10 +53,11 @@
               accesskey="&warnOnSendAccelKey.accesskey;" />
 
     <hbox align="center">
-      <label value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength"/>
+      <label value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength" id="wrapOutLabel"/>
       <textbox id="wrapLength" size="3" preftype="int"
+               aria-labelledby="wrapOutLabel wrapLength wrapOutEnd"
                prefstring="mailnews.wraplength" prefattribute="value"/>
-      <label value="&char.label;"/>
+      <label value="&char.label;" id="wrapOutEnd"/>
     </hbox>
   </groupbox>
 

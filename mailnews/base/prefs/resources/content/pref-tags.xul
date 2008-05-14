@@ -68,7 +68,7 @@
 
     <groupbox flex="1">
       <caption label="&pref.tags.caption;"/>
-      <description>&pref.tags.description;</description>
+      <label control="tagList">&pref.tags.description;</label>
       <hbox flex="1">
         <listbox id="tagList" flex="1" onselect="UpdateButtonStates();">
           <listcols>

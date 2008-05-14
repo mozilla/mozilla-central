@@ -80,7 +80,8 @@
     </vbox>
     
     <hbox align="center" class="indent" id="newMailNotificationSoundSelectBox">
-      <radiogroup id="newMailNotificationType" prefstring="mail.biff.play_sound.type" orient="vertical">
+      <radiogroup id="newMailNotificationType" prefstring="mail.biff.play_sound.type"
+                  orient="vertical" aria-labelledby="newMailNotification">
         <radio id="system" class="iconic" value="0" oncommand="PlaySoundCheck()" 
                label="&systemsound.label;" accesskey="&systemsound.accesskey;"/>
         <radio id="custom" class="iconic" value="1" oncommand="PlaySoundCheck()"
@@ -90,7 +91,8 @@
 
     <hbox align="center" class="indent">
       <textbox readonly="true" flex="1" id="mailnewsSoundFileUrl" preftype="string"
-           prefstring="mail.biff.play_sound.url"/>
+               aria-labelledby="custom"
+               prefstring="mail.biff.play_sound.url"/>
       <hbox align="center">
         <button id="browse" label="&browse.label;" filepickertitle="&browse.title;"
                 accesskey="&browse.accesskey;" oncommand="Browse()"/>

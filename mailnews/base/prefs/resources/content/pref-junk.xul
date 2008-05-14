@@ -72,6 +72,7 @@
               oncommand="UpdateDependentElement(this, 'manualMarkMode')"/>
     <radiogroup id="manualMarkMode"
                 class="indent"
+                aria-labelledby="manualMark"
                 prefstring="mail.spam.manualMarkMode">
       <radio id="manualMarkMode0"
              label="&manualMarkModeMove.label;"
