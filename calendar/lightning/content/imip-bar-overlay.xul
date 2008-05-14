@@ -57,6 +57,8 @@
             src="chrome://lightning/content/imip-bar.js"/>
     <script type="application/x-javascript"
             src="chrome://calendar/content/calendar-management.js"/>
+    <script type="application/x-javascript"
+            src="chrome://calendar/content/calendar-ui-utils.js"/>
 
     <vbox id="messagepanebox">
         <hbox id="imip-bar" collapsed="true" insertbefore="msgHeaderView">
