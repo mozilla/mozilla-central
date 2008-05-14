@@ -45,6 +45,7 @@
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         class="color-dialog"
+        title="&newsblogTitle.label;"
         onload="parent.onPanelLoaded('am-newsblog.xul');"
         orient="vertical">
  
@@ -68,6 +69,7 @@
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.check_new_mail"/>
       <textbox wsm_persist="true" id="server.biffMinutes" size="3" 
+               aria-labelledby="server.doBiff server.biffMinutes biffEnd"
                preftype="int"
                prefstring="mail.server.%serverkey%.check_time"/>
       <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
