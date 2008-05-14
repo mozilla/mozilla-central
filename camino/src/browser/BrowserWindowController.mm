@@ -1531,9 +1531,8 @@ public:
   SEL action = [theItem action];
   // NSLog(@"Validating toolbar item %@ with selector %s", [theItem label], action);
   if (action == @selector(back:)) {
-    // if the bookmark manager is showing, we enable the back button so that
-    // they can click back to return to the webpage they were viewing.
-    BOOL enable = [[mBrowserView browserView] canGoBack];
+    // if the tabThumbnailGridView is showing, we disable the back button.
+    BOOL enable = ([[mBrowserView browserView] canGoBack] && ![mContentView tabThumbnailGridViewIsVisible]);
 
     // we have to handle all the enabling/disabling ourselves because this
     // toolbar button is a view item. Note the return value is ignored.
@@ -1558,7 +1557,8 @@ public:
   else if (action == @selector(forward:)) {
     // we have to handle all the enabling/disabling ourselves because this
     // toolbar button is a view item. Note the return value is ignored.
-    BOOL enable = [[mBrowserView browserView] canGoForward];
+    // if the tabThumbnailGridView is showing, we disable the forward button.
+    BOOL enable = ([[mBrowserView browserView] canGoForward] && ![mContentView tabThumbnailGridViewIsVisible]);
     [theItem setEnabled:enable];
 
     // set the tooltip to the next URL and title
@@ -1591,7 +1591,8 @@ public:
       [theItem setImage:[NSImage imageNamed:@"manager"]];
     }
 
-    return ![self bookmarkManagerIsVisible] || [self canHideBookmarks];
+    return (![self bookmarkManagerIsVisible] || [self canHideBookmarks]) &&
+           ![mContentView tabThumbnailGridViewIsVisible];
   }
 
   return [self validateActionBySelector:action];
@@ -1706,10 +1707,7 @@ public:
     return YES;
   }
 
-  // Disable all window-specific menu items while a sheet is showing.
-  // We don't do this in validateActionBySelector: because toolbar items shouldn't
-  // suddenly get a disabled look when a sheet appears (they aren't clickable anyway).
-  if ([[self window] attachedSheet])
+  if ([self shouldSuppressWindowActions])
     return NO;
 
   if (action == @selector(reloadSendersTab:)) {
@@ -1743,6 +1741,11 @@ public:
 
 - (BOOL)validateActionBySelector:(SEL)action
 {
+  // We don't use shouldSuppressWindowActions here because toolbar items
+  // shouldn't suddenly get a disabled look when a sheet appears (they aren't
+  // clickable anyway).
+  if ([mContentView tabThumbnailGridViewIsVisible])
+    return NO;
   if (action == @selector(back:))
     return [[mBrowserView browserView] canGoBack];
   if (action == @selector(forward:))
@@ -1797,6 +1800,11 @@ public:
   }
 
   return YES;
+}
+
+- (BOOL)shouldSuppressWindowActions
+{
+  return ([[self window] attachedSheet] || [mContentView tabThumbnailGridViewIsVisible]);
 }
 
 #pragma mark -
@@ -4185,8 +4193,8 @@ public:
     }
   }
 
-  // Disable context menu items if the window is currently showing a sheet.
-  if ([[self window] attachedSheet]) {
+  // Disable context menu items if the window doesn't want actions.
+  if ([self shouldSuppressWindowActions]) {
     NSArray* menuArray = [result itemArray];
     for (unsigned i = 0; i < [menuArray count]; i++) {
       [[menuArray objectAtIndex:i] setEnabled:NO];
@@ -4892,6 +4900,9 @@ public:
 - (IBAction)toggleTabThumbnailView:(id)sender
 {
   [mContentView toggleTabThumbnailGridView];
+
+  // Make sure the bookmark menu items get updated
+  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 @end

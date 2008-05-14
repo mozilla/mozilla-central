@@ -828,7 +828,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)loadApplicationPage:(NSString*)pageURL
 {
   BrowserWindowController* browserController = [self mainWindowBrowserController];
-  if (browserController && [[browserController window] attachedSheet])
+  if ([browserController shouldSuppressWindowActions])
     [self openBrowserWindowWithURL:pageURL andReferrer:nil behind:nil allowPopups:NO];
   else
     [self showURL:pageURL];
@@ -1707,10 +1707,8 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   BrowserWindowController* browserController = [self mainWindowBrowserController];
   SEL action = [aMenuItem action];
 
-  // NSLog(@"MainController validateMenuItem for %@ (%s)", [aMenuItem title], action);
-
-  // disable window-related menu items if a sheet is up
-  if (browserController && [[browserController window] attachedSheet] &&
+  // disable window-related menu items if necessary
+  if ([browserController shouldSuppressWindowActions] &&
       (action == @selector(openFile:) ||
        action == @selector(openLocation:) ||
        action == @selector(savePage:) ||
@@ -1805,7 +1803,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
       action == @selector(printDocument:) ||
       action == @selector(pageSetup:))
   {
-    if (browserController && [[browserController window] attachedSheet])
+    if ([browserController shouldSuppressWindowActions])
       return NO;
     return (browserController && [browserController validateActionBySelector:action]);
   }
@@ -1833,7 +1831,7 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 {
   BrowserWindowController* browserController = [self mainWindowBrowserController];
   if (browserController && ![browserController bookmarkManagerIsVisible] &&
-      ![[browserController window] attachedSheet] &&
+      ![browserController shouldSuppressWindowActions] &&
       [[[browserController browserWrapper] browserView] isTextBasedContent])
   {
     // enable all items

@@ -323,7 +323,7 @@ static const unsigned int kMaxTitleLength = 50;
 
   // disable history if a sheet is up
   if (action == @selector(openHistoryItem:))
-    return !(browserController && [[browserController window] attachedSheet]);
+    return !([browserController shouldSuppressWindowActions]);
 
   return YES;
 }

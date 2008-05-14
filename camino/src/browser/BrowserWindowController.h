@@ -239,6 +239,10 @@ typedef enum  {
 - (void)find:(id)aSender;
 
 - (BOOL)validateActionBySelector:(SEL)action;
+// Returs YES if window-targeting actions should be disabled/prevented
+// (e.g., if a sheet is attached to the window).
+- (BOOL)shouldSuppressWindowActions;
+
 - (BOOL)canMakeTextBigger;
 - (BOOL)canMakeTextSmaller;
 - (BOOL)canMakeTextDefaultSize;

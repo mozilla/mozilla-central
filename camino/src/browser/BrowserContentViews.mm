@@ -191,17 +191,18 @@ static const float kMinBrowserViewHeight = 100.0;
 {
   if (!mTabThumbnailGridView) {
     NSRect browserRect = [self bounds];
-    float bookmarkBarHeight = [mBookmarksToolbar isVisible] ? NSHeight([mBookmarksToolbar frame]) : 0;
-    NSRect newRect = NSMakeRect(0, 0, browserRect.size.width,browserRect.size.height - bookmarkBarHeight);
-    mTabThumbnailGridView = [[TabThumbnailGridView alloc] initWithFrame:newRect];
+    mTabThumbnailGridView = [[TabThumbnailGridView alloc] initWithFrame:browserRect];
   }
 
   mStatusBarWasHidden = [mStatusBar isHidden];
   [mStatusBar setHidden:YES];
+
+  mBookmarksToolbarWasHidden = [mBookmarksToolbar isHidden];
+  [mBookmarksToolbar setHidden:YES];
+
   [mBrowserContainerView setHidden:YES];
 
   [self addSubview:mTabThumbnailGridView];
-
 }
 
 - (void)hideTabThumbnailGridView
@@ -211,6 +212,8 @@ static const float kMinBrowserViewHeight = 100.0;
 
   if (!mStatusBarWasHidden)
     [mStatusBar setHidden:NO];
+  if (!mBookmarksToolbarWasHidden)
+    [mBookmarksToolbar setHidden:NO];
 
   [mTabThumbnailGridView release];
   mTabThumbnailGridView = nil;
@@ -224,20 +227,9 @@ static const float kMinBrowserViewHeight = 100.0;
     [self showTabThumbnailGridView];
 }
 
-//
-// Temporary, For testing purposes only
-//
-- (BOOL)performKeyEquivalent:(NSEvent *)theEvent
+- (BOOL)tabThumbnailGridViewIsVisible
 {
-  // Control+Command+T envokes tabpose
-  if ([theEvent modifierFlags] & NSControlKeyMask && NSCommandKeyMask) {
-    NSString *keystroke = [theEvent charactersIgnoringModifiers];
-    if ([keystroke isEqualToString:@"t"]) {
-      [self toggleTabThumbnailGridView];
-      return YES;
-    }
-  }
-  return [super performKeyEquivalent:theEvent];
+  return [mTabThumbnailGridView isDescendantOf:self];
 }
 
 @end

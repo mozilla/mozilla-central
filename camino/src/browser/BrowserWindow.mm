@@ -148,6 +148,19 @@ static const int kEscapeKeyCode = 53;
       handled = [windowController loadBookmarkBarIndex:(keyChar - '1') openBehavior:eBookmarkOpenBehavior_ForceReuse];
     }
   }
+  // Control+Command+T invokes tabpose
+  // TODO: remove this once there is a menu item; this is for testing only
+  // (which is why it's fine that this is broken for Dvorak-Qwerty)
+  if (keyChar == 't') {
+    if (([theEvent modifierFlags] & standardModifierKeys) == (NSControlKeyMask | NSCommandKeyMask)) {
+      // If someone assigns this shortcut to a menu, we want that to win.
+      if ([[NSApp mainMenu] performKeyEquivalent:theEvent])
+        return YES;
+
+      [windowController toggleTabThumbnailView:nil];
+      handled = YES;
+    }
+  }
   //Alpha shortcuts need to be handled differently because layouts like Dvorak-Qwerty Command give
   //completely different characters depending on whether or not you ignore the modifiers
   else {
