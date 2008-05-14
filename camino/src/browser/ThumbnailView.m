@@ -108,6 +108,16 @@ static const int kThumbnailTitleHeight = 20;
   if (mThumbnail) {
     [[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
     [mThumbnail setScalesWhenResized:YES];
+    // Adjust the target drawing area as necessary to preserve aspect ratio.
+    float xScaleFactor = thumbnailImageRect.size.width / [mThumbnail size].width;
+    float yScaleFactor = thumbnailImageRect.size.height / [mThumbnail size].height;
+    if (xScaleFactor < yScaleFactor) {
+      thumbnailImageRect.size.height = [mThumbnail size].height * xScaleFactor;
+    }
+    else {
+      thumbnailImageRect.size.width = [mThumbnail size].width * yScaleFactor;
+      thumbnailImageRect.origin.x = ([self bounds].size.width - thumbnailImageRect.size.width) / 2.0;
+    }
 
     [mThumbnail drawInRect:NSInsetRect(thumbnailImageRect, kShadowPadding, kShadowPadding)
                   fromRect:NSZeroRect
