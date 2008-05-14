@@ -1810,6 +1810,10 @@ public:
 
 - (void)loadingDone:(BOOL)activateContent
 {
+  // As Gecko juggles its internal views during page load, focus may fall back
+  // to the window; if that has happened, re-focus the content area.
+  if ([[self window] firstResponder] == [self window])
+    activateContent = YES;
   if (activateContent) {
     // if we're the front/key window, focus the content area. If we're not,
     // set gecko as the first responder so that it will be activated when
