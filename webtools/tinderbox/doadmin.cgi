@@ -131,6 +131,22 @@ sub create_tree {
         print "<h1>$errmsg</h1>\n";
         die "$errmsg";
     }
+    if ($treedata{use_bonsai}) {
+        unless (defined($treedata{bonsai_dir}) && -d "$treedata{bonsai_dir}") {
+            my $safe_bonsai_dir = value_encode($treedata{bonsai_dir});
+            my $errmsg = "Bonsai directory $safe_bonsai_dir does not exist.";
+            print "<h1>$errmsg</h1>\n";
+            die "$errmsg";
+        }
+        unless (defined($treedata{bonsai_tree}) &&
+                (-d "$treedata{bonsai_dir}/data/$treedata{bonsai_tree}" ||
+                 -l "$treedata{bonsai_dir}/data/$treedata{bonsai_tree}")) {
+            my $safe_bonsai_tree = value_encode($treedata{bonsai_tree});
+            my $errmsg = "Bonsai tree $safe_bonsai_tree does not exist.";
+            print "<h1>$errmsg</h1>\n";
+            die "$errmsg";
+        }
+    }
 
     if( -r $treename ){
         chmod(oct($dir_perm), $treename);
