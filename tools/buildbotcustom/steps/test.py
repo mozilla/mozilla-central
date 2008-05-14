@@ -37,42 +37,20 @@ class AliveTest(ShellCommand):
     description = ["alive test"]
     haltOnFailure = True
 
-    def __init__(self, profileDir=None, extraArgs=None, appOverride=None,
-                 testURL=None, timeout=45, logfile=None, logParser=None,
-                 **kwargs):
+    def __init__(self, extraArgs=None, logfile=None, **kwargs):
         ShellCommand.__init__(self, **kwargs)
 
-        self.addFactoryArguments(profileDir=profileDir,
-                                 extraArgs=extraArgs,
-                                 appOverride=appOverride,
-                                 testURL=testURL,
-                                 timeout=timeout,
-                                 logfile=logfile,
-                                 logParser=logParser)
-        self.profileDir = profileDir
+        self.addFactoryArguments(extraArgs=extraArgs,
+                                 logfile=logfile)
         self.extraArgs = extraArgs
-        self.appOverride = appOverride
-        self.testURL = testURL
-        self.timeout = timeout
         self.logfile = logfile
-        self.logParser = logParser
 
         # build the command
-        self.command = ['python', '../../build/pgo/automation.py',
-                        '-s', str(signal.SIGTERM)]
-        if self.profileDir:
-            self.command.extend(['-p', self.profileDir])
-        if self.appOverride:
-            self.command.extend(['-a', self.appOverride])
-        if testURL:
-            self.command.extend(['-u', testURL])
-        if timeout:
-            self.command.extend(['-t', str(timeout)])
+        self.command = ['python', 'leaktest.py']
         if logfile:
             self.command.extend(['-l', logfile])
         if extraArgs:
-            if extraArgs[0] != '--':
-                extraArgs.insert(0, '--')
+            self.command.append('--')
             self.command.extend(extraArgs)
 
 
