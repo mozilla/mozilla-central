@@ -1,4 +1,4 @@
-# -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+# -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -742,18 +742,13 @@ function deleteAllInFolder(commandName)
   if (!confirmToProceed(commandName))
     return;
 
-  var children = Components.classes["@mozilla.org/supports-array;1"]
-                  .createInstance(Components.interfaces.nsISupportsArray);
-
   // Delete sub-folders.
   var iter = folder.subFolders;
   while (iter.hasMoreElements())
-    children.AppendElement(iter.getNext());
+    folder.propagateDelete(iter.getNext(), true, msgWindow); 
 
-  for (var i = 0; i < children.Count(); ++i) {
-    folder.propagateDelete(children.GetElementAt(i), true, msgWindow); 
-  }
-  children.Clear();                                       
+  var children = Components.classes["@mozilla.org/supports-array;1"]
+                  .createInstance(Components.interfaces.nsISupportsArray);
   
   // Delete messages.
   iter = folder.getMessages(msgWindow);
