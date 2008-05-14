@@ -249,13 +249,6 @@ pref("signon.SignonFileName3",              "signons3.txt");
 
 pref("browser.hiddenWindowChromeURL", "chrome://messenger/content/hiddenWindow.xul");
 
-pref("general.startup.browser",             false);
-pref("general.startup.mail",                false);
-pref("general.startup.news",                false);
-pref("general.startup.editor",              false);
-pref("general.startup.compose",             false);
-pref("general.startup.addressbook",         false);
-
 pref("offline.startup_state",            2);
 // 0 Ask before sending unsent messages when going online
 // 1 Always send unsent messages when going online
@@ -312,12 +305,9 @@ pref("xpinstall.dialog.progress.type.chrome", "Extension:Manager");
 
 /////////////////////////////////////////////////////////////////
 // Generic browser related prefs. 
-// XXX: Need to scrub these to see which ones thunderbird really needs...
 /////////////////////////////////////////////////////////////////
 pref("browser.cache.memory.capacity",       4096);
 pref("browser.send_pings", false);
-pref("browser.chrome.site_icons", true);
-pref("browser.chrome.favicons", false);
 pref("browser.chrome.toolbar_tips",         true);
 pref("browser.xul.error_pages.enabled", true);
 pref("browser.xul.error_pages.expert_bad_cert", false);
@@ -355,8 +345,6 @@ pref("wallet.miscPanel.hide",               false);
 pref("mail.signature_file",             "");
 pref("mail.directory",                  "");
 pref("news.directory",                  "");
-pref("autoupdate.enabled",              true);
-pref("browser.editor.disabled", false);
 pref("spellchecker.dictionary", "");
 // Dictionary download preference
 pref("spellchecker.dictionaries.download.url", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/thunderbird/%VERSION%/dictionaries/");
