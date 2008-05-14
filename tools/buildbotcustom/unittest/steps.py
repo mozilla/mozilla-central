@@ -314,7 +314,7 @@ class MozillaWin32Mochitest(MozillaMochitest):
     command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
 
 class MozillaOSXMochitest(MozillaMochitest):
-    command = ["perl",
+    command = ["python",
                "runtests.py",
                "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
                "--autorun",
