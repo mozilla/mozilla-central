@@ -76,7 +76,7 @@
   <separator/>
 
   <vbox flex="1">
-    <label value="&conditionDesc.label;"/>
+    <label value="&conditionDesc.label;" control="booleanAndGroup"/>
     <hbox flex="1">
       <vbox id="searchTermListBox" flex="1"/>
     </hbox>

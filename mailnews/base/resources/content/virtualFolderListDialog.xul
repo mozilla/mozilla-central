@@ -58,7 +58,7 @@
 <script type="application/x-javascript" src="chrome://messenger/content/virtualFolderListDialog.js"/>
 <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
 
-  <description>&virtualFolderDesc.label;</description>
+  <label control="folderPickerTree">&virtualFolderDesc.label;</label>
 
     <tree id="folderPickerTree"
           flex="1"

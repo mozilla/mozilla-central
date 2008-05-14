@@ -136,7 +136,7 @@
         <separator/>
       </row>
       <row>
-        <description control="filterTree">&filterHeader.label;</description>
+        <label control="filterTree" id="filterHeader">&filterHeader.label;</label>
       </row>
 
 
