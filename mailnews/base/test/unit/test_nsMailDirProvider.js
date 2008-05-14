@@ -1,9 +1,8 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test suite for nsMsgMailSession functions relating to listeners.
+ * Test suite for nsMailDirProvider to check we get the right directories and
+ * files.
  */
-
-do_import_script("mailnews/test/resources/mailDirService.js");
 
 function run_test() {
   const items = [ { key: "MailD", value: "Mail" },

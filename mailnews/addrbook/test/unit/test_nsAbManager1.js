@@ -3,10 +3,6 @@
  * Test suite for nsAbManager functions relating to listeners.
  */
 
-do_import_script("mailnews/test/resources/mailDirService.js");
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
-do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
-
 const abManagerContractID = "@mozilla.org/abmanager;1";
 const nsIAbManager = Components.interfaces.nsIAbManager;
 const nsIAbListener = Components.interfaces.nsIAbListener;
@@ -55,7 +51,7 @@ function NotifyAbManager() {
 function run_test() {
   var i;
 
-  // Test 1 - Add a listener
+  // Test - Add a listener
 
   gAblAll = new abL;
 
@@ -66,7 +62,7 @@ function run_test() {
     gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
   }
 
-  // Test 2 - Notify listener on all available items
+  // Test - Notify listener on all available items
 
   NotifyAbManager();
 
@@ -81,7 +77,7 @@ function run_test() {
     gAblSingle[i].mAutoRemoveItem = true;
   }
 
-  // Test 3 - Remove Single Listeners as we go through the functions
+  // Test - Remove Single Listeners as we go through the functions
 
   // Check the for loop above for changes to the single listeners.
 
@@ -95,7 +91,7 @@ function run_test() {
     gAblSingle[i].mReceived = 0;
   }
 
-  // Test 4 - Ensure the single listeners have been removed.
+  // Test - Ensure the single listeners have been removed.
 
   NotifyAbManager();
 
@@ -106,9 +102,7 @@ function run_test() {
     do_check_eq(gAblSingle[i].mReceived, 0);
   }
 
-  // Test 5 - Remove main listener
+  // Test - Remove main listener
 
   gAbManager.removeAddressBookListener(gAblAll);
-
-  cleanup();
 };

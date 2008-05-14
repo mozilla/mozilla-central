@@ -16,7 +16,7 @@ function run_test() {
   var card = Components.classes["@mozilla.org/addressbook/cardproperty;1"]
                          .createInstance(Components.interfaces.nsIAbCard);
 
-  // Test 1 - Set First, Last and Display Names and Email Address
+  // Test - Set First, Last and Display Names and Email Address
   // via setCardValue, and check correctly saved via their
   // attributes. We're using firstName to check UTF-8 values.
   card.setCardValue("FirstName", kFNValue);
@@ -29,14 +29,14 @@ function run_test() {
   do_check_eq(card.displayName, kDNValue);
   do_check_eq(card.primaryEmail, kEmailValue);
 
-  // Test 2 - generateName. Note: if the addressBook.properties
+  // Test - generateName. Note: if the addressBook.properties
   // value changes, this will affect these tests.
 
   do_check_eq(card.generateName(0), kDNValue);
   do_check_eq(card.generateName(1), kLNValue + ", " + kFNValue);
   do_check_eq(card.generateName(2), kFNValue + " " + kLNValue);
 
-  // Test 3 - generateName, with missing items.
+  // Test - generateName, with missing items.
 
   card.displayName = "";
   do_check_eq(card.generateName(0), kEmailReducedValue);
@@ -58,7 +58,7 @@ function run_test() {
   do_check_eq(card.generateName(1), "");
   do_check_eq(card.generateName(2), "");
 
-  // Test 4 - generateNameWithBundle, most of this will have
+  // Test - generateNameWithBundle, most of this will have
   // been tested above.
 
   card.setCardValue("FirstName", kFNValue);
@@ -71,7 +71,7 @@ function run_test() {
 
   do_check_eq(card.generateName(1, bundle), kLNValue + ", " + kFNValue);
 
-  // Test 5 - generatePhoneticName
+  // Test - generatePhoneticName
 
   card.phoneticFirstName = kFNValue;
   card.phoneticLastName = kLNValue;

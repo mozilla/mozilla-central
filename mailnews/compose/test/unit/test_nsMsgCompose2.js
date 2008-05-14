@@ -1,12 +1,10 @@
 /* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /*
- * Test suite for nsMsgMailSession functions relating to listeners.
+ * Test suite for nsMsgCompose functions relating to send listeners.
  */
 
 const MsgComposeContractID = "@mozilla.org/messengercompose/compose;1";
 const nsIMsgCompose = Components.interfaces.nsIMsgCompose;
-
-var testnum = 0;
 
 var gMsgCompose = Components.classes[MsgComposeContractID]
                             .createInstance(nsIMsgCompose);
@@ -63,60 +61,55 @@ function NotifySendListeners() {
 }
 
 function run_test() {
-  try {
-    var i;
+  var i;
 
-    do_check_true(gMsgCompose != null);
+  do_check_true(gMsgCompose != null);
 
-    ++testnum; // Test 1 - Add a listener
+  // Test - Add a listener
 
-    for (i = 0; i < numSendListenerFunctions + 1; ++i) {
-      gSLAll[i] = new sendListener();
-      gMsgCompose.addMsgSendListener(gSLAll[i]);
-    }
+  for (i = 0; i < numSendListenerFunctions + 1; ++i) {
+    gSLAll[i] = new sendListener();
+    gMsgCompose.addMsgSendListener(gSLAll[i]);
+  }
 
-    ++testnum; // Test 2 - Notify all listeners
+  // Test - Notify all listeners
 
-    NotifySendListeners();
+  NotifySendListeners();
 
-    for (i = 0; i < numSendListenerFunctions + 1; ++i) {
+  for (i = 0; i < numSendListenerFunctions + 1; ++i) {
+    do_check_eq(gSLAll[i].mReceived, 0x3F);
+    gSLAll[i].mReceived = 0;
+
+    // And prepare for test 3.
+    gSLAll[i].mAutoRemoveItem = 1 << i;
+  }
+
+  // Test - Remove some listeners as we go
+
+  NotifySendListeners();
+
+  var currentReceived = 0;
+
+  for (i = 0; i < numSendListenerFunctions + 1; ++i) {
+    if (i < numSendListenerFunctions)
+      currentReceived += 1 << i;
+
+    do_check_eq(gSLAll[i].mReceived, currentReceived);
+    gSLAll[i].mReceived = 0;
+  }
+
+  // Test - Ensure the listeners have been removed.
+
+  NotifySendListeners();
+
+  for (i = 0; i < numSendListenerFunctions + 1; ++i) {
+    if (i < numSendListenerFunctions)
+      do_check_eq(gSLAll[i].mReceived, 0);
+    else
       do_check_eq(gSLAll[i].mReceived, 0x3F);
-      gSLAll[i].mReceived = 0;
+  }
 
-      // And prepare for test 3.
-      gSLAll[i].mAutoRemoveItem = 1 << i;
-    }
-
-    ++testnum; // Test 3 - Remove some listeners as we go
-
-    NotifySendListeners();
-
-    var currentReceived = 0;
-
-    for (i = 0; i < numSendListenerFunctions + 1; ++i) {
-      if (i < numSendListenerFunctions)
-        currentReceived += 1 << i;
-
-      do_check_eq(gSLAll[i].mReceived, currentReceived);
-      gSLAll[i].mReceived = 0;
-    }
-
-    ++testnum; // Test 4 - Ensure the listeners have been removed.
-
-    NotifySendListeners();
-
-    for (i = 0; i < numSendListenerFunctions + 1; ++i) {
-      if (i < numSendListenerFunctions)
-        do_check_eq(gSLAll[i].mReceived, 0);
-      else
-        do_check_eq(gSLAll[i].mReceived, 0x3F);
-    }
-
-    ++testnum; // Test 5 - Remove main listener
+  // Test - Remove main listener
     
-    gMsgCompose.removeMsgSendListener(gSLAll[numSendListenerFunctions]);
-  }
-  catch (e) {
-    throw "FAILED in test #" + testnum + ": i is " + i + " : " + e;
-  }
+  gMsgCompose.removeMsgSendListener(gSLAll[numSendListenerFunctions]);
 };

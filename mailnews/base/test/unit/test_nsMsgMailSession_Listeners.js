@@ -8,8 +8,6 @@ const nsIMsgMailSession = Components.interfaces.nsIMsgMailSession;
 const nsIFolderListener = Components.interfaces.nsIFolderListener;
 const numListenerFunctions = 8;
 
-var testnum = 0;
-
 var gMailSession = Components.classes[mailSessionContractID]
                              .getService(nsIMsgMailSession);
 var gMailSessionNotifier = gMailSession.QueryInterface(nsIFolderListener);
@@ -77,67 +75,61 @@ function NotifyMailSession() {
 }
 
 function run_test() {
-  try {
-    var i;
+  var i;
 
-    do_check_true(gMailSession != null);
+  do_check_true(gMailSession != null);
 
-    ++testnum; // Test 1 - Add a listener
+  // Test - Add a listener
 
-    gFLAll = new fL;
+  gFLAll = new fL;
 
-    gMailSession.AddFolderListener(gFLAll, nsIFolderListener.all);
+  gMailSession.AddFolderListener(gFLAll, nsIFolderListener.all);
 
-    for (i = 0; i < numListenerFunctions; ++i) {
-      gFLSingle[i] = new fL;
-      gMailSession.AddFolderListener(gFLSingle[i], Math.pow(2, i));
-    }
-
-    ++testnum; // Test 2 - Notify listener on all available items
-
-    NotifyMailSession();
-
-    do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
-    gFLAll.mReceived = 0;
-
-    for (i = 0; i < numListenerFunctions; ++i) {
-      do_check_eq(gFLSingle[i].mReceived, Math.pow(2, i));
-      gFLSingle[i].mReceived = 0;
-
-      // And prepare for test 3.
-      gFLSingle[i].mAutoRemoveItem = true;
-    }
-
-    ++testnum; // Test 3 - Remove Single Listeners as we go through the functions
-
-    // Check the for loop above for changes to the single listeners.
-
-    NotifyMailSession();
-
-    do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
-    gFLAll.mReceived = 0;
-
-    for (i = 0; i < numListenerFunctions; ++i) {
-      do_check_eq(gFLSingle[i].mReceived, Math.pow(2, i));
-      gFLSingle[i].mReceived = 0;
-    }
-
-    ++testnum; // Test 4 - Ensure the single listeners have been removed.
-
-    NotifyMailSession();
-
-    do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
-    gFLAll.mReceived = 0;
-
-    for (i = 0; i < numListenerFunctions; ++i) {
-      do_check_eq(gFLSingle[i].mReceived, 0);
-    }
-
-    ++testnum; // Test 5 - Remove main listener
-
-    gMailSession.RemoveFolderListener(gFLAll);
+  for (i = 0; i < numListenerFunctions; ++i) {
+    gFLSingle[i] = new fL;
+    gMailSession.AddFolderListener(gFLSingle[i], Math.pow(2, i));
   }
-  catch (e) {
-    throw "FAILED in test #" + testnum + ": i is " + i + " : " + e;
+
+  // Test - Notify listener on all available items
+
+  NotifyMailSession();
+
+  do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
+  gFLAll.mReceived = 0;
+
+  for (i = 0; i < numListenerFunctions; ++i) {
+    do_check_eq(gFLSingle[i].mReceived, Math.pow(2, i));
+    gFLSingle[i].mReceived = 0;
+
+    // And prepare for test 3.
+    gFLSingle[i].mAutoRemoveItem = true;
   }
+
+  // Test - Remove Single Listeners as we go through the functions
+
+  // Check the for loop above for changes to the single listeners.
+
+  NotifyMailSession();
+
+  do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
+  gFLAll.mReceived = 0;
+
+  for (i = 0; i < numListenerFunctions; ++i) {
+    do_check_eq(gFLSingle[i].mReceived, Math.pow(2, i));
+    gFLSingle[i].mReceived = 0;
+  }
+
+  // Test - Ensure the single listeners have been removed.
+
+  NotifyMailSession();
+
+  do_check_eq(gFLAll.mReceived, Math.pow(2, numListenerFunctions) - 1);
+  gFLAll.mReceived = 0;
+
+  for (i = 0; i < numListenerFunctions; ++i)
+    do_check_eq(gFLSingle[i].mReceived, 0);
+
+  // Test - Remove main listener
+
+  gMailSession.RemoveFolderListener(gFLAll);
 };

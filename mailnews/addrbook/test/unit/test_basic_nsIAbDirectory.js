@@ -24,25 +24,21 @@
  * - createDirectoryByURI
  */
 
-do_import_script("mailnews/test/resources/mailDirService.js");
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
-do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
-
 // Main function for the this test so we can check both personal and
 // collected books work correctly in an easy manner.
 function check_ab(abConfig) {
-  // Test 1 - Get the directory
+  // Test - Get the directory
 
   var abManager = Components.classes["@mozilla.org/abmanager;1"]
                             .getService(Components.interfaces.nsIAbManager);
 
   var AB = abManager.getDirectory(abConfig.URI);
 
-  // Test 2 - Is it the right type?
+  // Test - Is it the right type?
 
   do_check_true(AB instanceof Components.interfaces.nsIAbMDBDirectory);
 
-  // Test 3 - Check attributes
+  // Test - Check attributes
 
   do_check_eq(AB.propertiesChromeURI, kNormalPropertiesURI);
   do_check_eq(AB.operations,
@@ -61,7 +57,7 @@ function check_ab(abConfig) {
   do_check_eq(AB.supportsMailingLists, true);
   do_check_eq(AB.dirPrefId, abConfig.dirPrefID);
 
-  // Test 4 - check getting default preferences
+  // Test - check getting default preferences
 
   var gPref = Components.classes["@mozilla.org/preferences-service;1"]
                         .getService(Components.interfaces.nsIPrefBranch);
@@ -72,7 +68,7 @@ function check_ab(abConfig) {
   do_check_eq(AB.getLocalizedStringValue("random", "xyz"), "xyz");
 
 
-  // Test 5 - check get/set int preferences on nsIAbDirectory
+  // Test - check get/set int preferences on nsIAbDirectory
 
   AB.setIntValue("inttest", 12345);
   do_check_eq(gPref.getIntPref(abConfig.dirPrefID + ".inttest"), 12345);
@@ -82,7 +78,7 @@ function check_ab(abConfig) {
   do_check_eq(gPref.getIntPref(abConfig.dirPrefID + ".inttest"), 123456);
   do_check_eq(AB.getIntValue("inttest", -2), 123456);
 
-  // Test 6 - check get/set bool preferences on nsIAbDirectory
+  // Test - check get/set bool preferences on nsIAbDirectory
 
   AB.setBoolValue("booltest", true);
   do_check_eq(gPref.getBoolPref(abConfig.dirPrefID + ".booltest"), true);
@@ -93,7 +89,7 @@ function check_ab(abConfig) {
   do_check_eq(AB.getBoolValue("booltest", true), false);
 
 
-  // Test 7 - check get/set string preferences on nsIAbDirectory
+  // Test - check get/set string preferences on nsIAbDirectory
 
   AB.setStringValue("stringtest", "tyu");
   do_check_eq(gPref.getCharPref(abConfig.dirPrefID + ".stringtest"), "tyu");
@@ -106,6 +102,4 @@ function run_test() {
 
   // Check the default collected address book
   check_ab(kCABData);
-
-  cleanup();
 };

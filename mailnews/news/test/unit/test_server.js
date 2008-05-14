@@ -54,7 +54,7 @@ function testRFC977() {
     var prefix = "news://localhost:"+NNTP_PORT+"/";
     var transaction;
 
-    // Test 1 - group subscribe listing
+    // Test - group subscribe listing
     test = "news:*";
     setupProtocolTest(NNTP_PORT, prefix+"*");
     server.performTest();
@@ -62,7 +62,7 @@ function testRFC977() {
     do_check_transaction(transaction, ["MODE READER", "LIST"]);
 
     // GROUP_WANTED fails without UI
-    // Test 2 - getting group headers
+    // Test - getting group headers
     /*test = "news:test.empty";
     server.resetTest();
     setupProtocolTest(NNTP_PORT, prefix+"test.empty");
@@ -70,7 +70,7 @@ function testRFC977() {
     transaction = server.playTransaction();
     do_check_transaction(transaction, []);*/
 
-    // Test 3 - newsrc
+    // Test - newsrc
     test = "news:";
     server.resetTest();
     setupProtocolTest(NNTP_PORT, prefix+"");
@@ -79,7 +79,7 @@ function testRFC977() {
     do_check_transaction(transaction, ["MODE READER",
         "GROUP test.subscribe.empty", "GROUP test.subscribe.simple"]);
 
-    // Test 4 - getting an article
+    // Test - getting an article
     test = "news:MESSAGE_ID";
     server.resetTest();
     setupProtocolTest(NNTP_PORT, prefix+"TSS1@nntp.test");
@@ -89,7 +89,7 @@ function testRFC977() {
         "ARTICLE <TSS1@nntp.test>"]);
 
     // Broken because of folder brokenness
-    // Test 5 - news expiration
+    // Test - news expiration
     /*test = "news:GROUP/?list-ids";
     server.resetTest();
     setupProtocolTest(NNTP_PORT, prefix+"test.subscribe.empty/?list-ids");
@@ -98,7 +98,7 @@ function testRFC977() {
     do_check_transaction(transaction, ["MODE READER",
         "LISTGROUP test.subscribe.empty"]);*/
 
-    // Test 6 - posting
+    // Test - posting
     test = "news with post";
     server.resetTest();
     var url = create_post(prefix, "mailnews/news/test/postings/post1.eml");

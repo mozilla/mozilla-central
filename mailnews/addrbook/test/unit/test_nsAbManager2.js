@@ -4,10 +4,6 @@
  * getting the list of directories..
  */
 
-do_import_script("mailnews/test/resources/mailDirService.js");
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
-do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
-
 const abManagerContractID = "@mozilla.org/abmanager;1";
 const nsIAbManager = Components.interfaces.nsIAbManager;
 const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
@@ -120,54 +116,49 @@ function run_test() {
     gAbManager.addAddressBookListener(gAblSingle[i], 1 << i);
   }
 
-  // Test 1 - Check initial directories
+  // Test - Check initial directories
 
   checkDirs(gAbManager.directories, [kPABData.URI, kCABData.URI]);
 
-  // Test 2 - Add a directory
+  // Test - Add a directory
 
   var newDirectory1 = addDirectory("testAb1");
 
-  // Check new directory list
+  // Test - Check new directory list
   checkDirs(gAbManager.directories,
             [kPABData.URI, kCABData.URI, newDirectory1.URI]);
 
-  // Test 3 - Repeat
+  // Test - Repeat for a second directory
 
   var newDirectory2 = addDirectory("testAb2");
 
-  // Check new directory list
+  // Test - Check new directory list
   checkDirs(gAbManager.directories,
             [kPABData.URI, kCABData.URI,
              newDirectory1.URI, newDirectory2.URI]);
 
-  // Test 4 - Remove a directory
+  // Test - Remove a directory
 
   removeDirectory(newDirectory1);
   newDirectory1 = null;
 
-  // Check new directory list
+  // Test - Check new directory list
   checkDirs(gAbManager.directories,
             [kPABData.URI, kCABData.URI, newDirectory2.URI]);
 
-  // Test 5 - Repeat
+  // Test - Repeat the removal
 
   removeDirectory(newDirectory2);
   newDirectory2 = null;
 
-  // Check new directory list
+  // Test - Check new directory list
   checkDirs(gAbManager.directories,
             [kPABData.URI, kCABData.URI]);
 
-  // Test 6 - Clear everything down
+  // Test - Clear the listeners down
 
   gAbManager.removeAddressBookListener(gAblAll);
-  gAblAll = null;
 
-  for (i = 0; i < numListenerOptions; ++i) {
+  for (i = 0; i< numListenerOptions; ++i)
     gAbManager.removeAddressBookListener(gAblSingle[i]);
-    gAblSingle[i] = null;
-  }
-
-  cleanup();
 };

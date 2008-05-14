@@ -7,10 +7,6 @@
  * the <n> in the uri: moz-ab???directory://path/MailList<n>
  */
 
-do_import_script("mailnews/test/resources/mailDirService.js");
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
-do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
-
 function checkLists(childNodes, number) {
   var mailListArray = new Array(number);
 
@@ -41,7 +37,7 @@ function run_test() {
   // Copy the file to the profile directory for a PAB
   testAB.copyTo(profileDir, kPABData.fileName);
 
-  // Part 1 - Get the directory.
+  // Test - Get the directory.
 
   var abManager = Components.classes["@mozilla.org/abmanager;1"]
                             .getService(Components.interfaces.nsIAbManager);
@@ -52,12 +48,12 @@ function run_test() {
 
   var AB = abManager.getDirectory(kPABData.URI);
 
-  // Part 2 - Check all the expected mailing lists exist.
+  // Test - Check all the expected mailing lists exist.
 
   // There are three lists in abLists.mab by default.
   checkLists(AB.childNodes, 3);
 
-  // Part 3 - Add a new list.
+  // Test - Add a new list.
 
   var mailList = Components.classes["@mozilla.org/addressbook/directoryproperty;1"]
                            .createInstance(Components.interfaces.nsIAbDirectory);
@@ -72,7 +68,7 @@ function run_test() {
   // check them
   checkLists(AB.childNodes, 4);
 
-  // Part 4 - Remove a list.
+  // Test - Remove a list.
 
   mailList = abManager.getDirectory(kPABData.URI + "/MailList4");
 
@@ -80,11 +76,4 @@ function run_test() {
 
   // check them
   checkLists(AB.childNodes, 3);
-
-  mailList = null;
-  AB = null;
-  temp = null;
-  testAB = null;
-
-  cleanup();
 }

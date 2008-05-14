@@ -6,10 +6,6 @@
  * nsIAbAddressCollecter::getCardFromAttribute if its kept.
  */
 
-do_import_script("mailnews/test/resources/mailDirService.js");
-do_import_script("mailnews/addrbook/test/resources/abSetup.js");
-do_import_script("mailnews/addrbook/test/resources/abCleanup.js");
-
 const nsIAbPMF = Components.interfaces.nsIAbPreferMailFormat;
 
 // Source fields (emailHeader/mailFormat) and expected results for use for
@@ -253,7 +249,7 @@ var collectChecker = {
 
 function run_test()
 {
-  // Test 1 - Get the address collecter
+  // Test - Get the address collecter
 
   var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                               .getService(Components.interfaces.nsIPrefBranch);
@@ -276,7 +272,7 @@ function run_test()
     Components.classes["@mozilla.org/addressbook/services/addressCollecter;1"]
               .getService(Components.interfaces.nsIAbAddressCollecter);
 
-  // Test 2 - Addition of header without email address.
+  // Test - Addition of header without email address.
 
   collectChecker.addressCollect.collectAddress("MyTest <>", true,
                                                nsIAbPMF.unknown);
@@ -286,7 +282,7 @@ function run_test()
   // Address book should have no cards present.
   do_check_false(CAB.childCards.hasMoreElements());
 
-  // Test 3 - Email doesn't exist, but don't add it.
+  // Test - Email doesn't exist, but don't add it.
 
   // As we've just set everything up, we know we haven't got anything in the
   // AB, so just try and collect without adding.
@@ -298,13 +294,13 @@ function run_test()
 
   do_check_true(card == null);
 
-  // Test 4 - Try and collect various emails and formats.
+  // Test - Try and collect various emails and formats.
 
   collectChecker.part = 0;
 
   addEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
 
-  // Test 5 - Do all emails at the same time.
+  // Test - Do all emails at the same time.
 
   // First delete all existing cards
   var childCards = CAB.childCards;
@@ -328,7 +324,7 @@ function run_test()
   // Now do all emails at the same time.
   collectChecker.checkAll(addEmailChecks);
 
-  // Test 6 - Try and modify various emails and formats.
+  // Test - Try and modify various emails and formats.
 
   // Add a basic card with just primary and second email to allow testing
   // of the case where we don't modify when second email is matching.
@@ -343,6 +339,4 @@ function run_test()
   collectChecker.part = 0;
 
   modifyEmailChecks.forEach(collectChecker.checkAddress, collectChecker);
-
-  cleanup();
 };
