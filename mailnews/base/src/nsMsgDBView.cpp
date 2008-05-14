@@ -4799,6 +4799,10 @@ nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey par
   threadHdr->EnumerateMessages(parentKey, getter_AddRefs(msgEnumerator));
   PRUint32 numChildren;
   (void) threadHdr->GetNumChildren(&numChildren);
+  NS_ASSERTION(numChildren, "Empty thread in view/db");
+  if (!numChildren)
+    return NS_OK;  // bogus, but harmless.
+
   numChildren--; // account for the existing thread root
 
   // skip the first one.
@@ -4864,6 +4868,10 @@ nsresult nsMsgDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex st
 
   PRUint32 numChildren;
   threadHdr->GetNumChildren(&numChildren);
+  NS_ASSERTION(numChildren, "Empty thread in view/db");
+  if (!numChildren)
+    return NS_OK;
+
   numChildren--; // account for the existing thread root
   m_keys.InsertElementsAt(viewIndex, numChildren, 0);
   m_flags.InsertElementsAt(viewIndex, numChildren, 0);
