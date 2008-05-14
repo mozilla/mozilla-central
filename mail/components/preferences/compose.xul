@@ -160,10 +160,10 @@
             <hbox align="center">
               <label control="textColorButton" value="&fontColor.label;" accesskey="&fontColor.accesskey;"/>
               <colorpicker type="button" id="textColorButton" preference="msgcompose.text_color"/>
-              <spring/>
+              <separator orient="vertical" class="thin"/>
               <label control="backgroundColorButton" value="&bgColor.label;" accesskey="&bgColor.accesskey;"/>
               <colorpicker type="button" id="backgroundColorButton" preference="msgcompose.background_color"/>
-              <spring flex="1"/>
+              <spacer flex="1"/>
               <button label="&restoreHTMLDefaults.label;" accesskey="&restoreHTMLDefaults.accesskey;"
                       oncommand="gComposePane.restoreHTMLDefaults();"/>
             </hbox>
@@ -236,13 +236,15 @@
                   <!-- dynamic content populated by JS -->
                 </menupopup>
               </menulist>
-              <spring flex="1"/>
+              <spacer flex="1"/>
             </hbox>
 
             <separator/>
-
-            <label class="text-link" id="downloadDictionaries" value="&downloadDictionaries.label;"/>
-
+            <hbox>
+              <label id="downloadDictionaries" class="text-link"
+                     value="&downloadDictionaries.label;"/>
+              <spacer flex="1"/>
+            </hbox>
          </tabpanel>
        </tabpanels>
     </tabbox>  
