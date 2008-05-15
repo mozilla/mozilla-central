@@ -247,6 +247,7 @@ bin/components/xultmpl.xpt
 bin/components/FeedProcessor.js
 bin/components/jsconsole-clhandler.js
 bin/components/nsAboutAbout.js
+bin/components/nsAddonRepository.js
 bin/components/nsBlocklistService.js
 bin/components/nsBrowserContentHandler.js
 bin/components/nsComposerCmdLineHandler.js
