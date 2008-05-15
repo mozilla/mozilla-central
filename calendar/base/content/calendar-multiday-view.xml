@@ -1955,7 +1955,7 @@
     -->
   <binding id="calendar-event-box" extends="chrome://calendar/content/calendar-view-core.xml#calendar-editable-item">
 
-    <content>
+    <content tooltip="itemTooltip">
       <xul:box anonid="shadowbox"
                xbl:inherits="width,height">
         <xul:box anonid="shadow-left-box"
@@ -1971,6 +1971,7 @@
                      class="calendar-event-box-shadow-left"
                      hidden="true"/>
           <xul:box anonid="event-container"
+                   class="calendar-color-box"
                    xbl:inherits="orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories"
                    flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
@@ -2078,7 +2079,6 @@
 
               var eventbox = document.getAnonymousElementByAttribute(this, "anonid", "eventbox");
               eventbox.setAttribute("orient", val);
-              eventbox.setAttribute("class", "calendar-item calendar-event-box-" + val);
               var gb1 = document.getAnonymousElementByAttribute(this, "anonid", "gripbar1");
               gb1.parentorient = val;
               var gb2 = document.getAnonymousElementByAttribute(this, "anonid", "gripbar2");

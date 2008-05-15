@@ -48,11 +48,13 @@
     xmlns:xbl="http://www.mozilla.org/xbl">
 
   <binding id="calendar-editable-item">
-    <content>
+    <content tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
           <xul:image class="calendar-event-box-shadow-left"/>
-          <xul:box anonid="event-container" flex="1">
+          <xul:box anonid="event-container"
+                   class="calendar-color-box"
+                   flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
                          class="calendar-event-box-container"
@@ -83,7 +85,7 @@
                 </xul:hbox>
                 <xul:image anonid="gradient"
                            class="calendar-event-box-gradient"
-                           hidden="true" height="1px"/>
+                           height="1px"/>
               </xul:stack>
             </xul:box>
             <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
@@ -100,19 +102,6 @@
 
     <implementation>
       <constructor><![CDATA[
-         var gradient = document.getAnonymousElementByAttribute(this,
-                                                                "anonid",
-                                                                "gradient");
-         var container = document.getAnonymousElementByAttribute(this,
-                                                                 "anonid",
-                                                                 "event-container");
-         if (gradient) {
-           gradient.removeAttribute("hidden");
-         }
-
-         this.setAttribute("tooltip", "itemTooltip");
-         container.setAttribute("class", "calendar-item");
-
          var self = this;
          this.eventNameInput.onblur = function onBlur() { self.stopEditing(true); };
          this.eventNameInput.onkeypress = function onKeyPress(event) {
@@ -200,7 +189,7 @@
 
       <method name="setCSSClasses">
         <body><![CDATA[
-          var item = this.mOccurrence
+          var item = this.mOccurrence;
           var container = document.getAnonymousElementByAttribute(this,
                                                                   "anonid",
                                                                   "event-container");
@@ -244,7 +233,8 @@
               this.setAttribute("readonly", "true");
           }
 
-          if (item.hashId in this.calendarView.mFlashingEvents) {
+          if (this.calendarView &&
+              item.hashId in this.calendarView.mFlashingEvents) {
               this.setAttribute("flashing", "true");
           }
 
@@ -280,8 +270,9 @@
 
           this.eventNameTextbox.value = this.mOriginalTextLabel;
           this.eventNameTextbox.removeAttribute("hidden");
-          if (this.calendarView)
+          if (this.calendarView) {
               this.calendarView.activeInPlaceEdit = true;
+          }
           this.eventNameInput.focus();
           this.eventNameInput.select();
         ]]></body>
@@ -289,6 +280,9 @@
       <method name="select">
         <parameter name="event"/>
         <body><![CDATA[
+            if (!this.calendarView) {
+                return;
+            }
             var items;
             if (event.ctrlKey || event.metaKey) {
                 items = this.calendarView.mSelectedItems;
@@ -307,8 +301,9 @@
 
           this.mEditing = false;
 
-          if (this.calendarView)
+          if (this.calendarView) {
             this.calendarView.activeInPlaceEdit = false;
+          }
 
           if (saveChanges && (this.eventNameTextbox.value != this.mOriginalTextLabel)) {
               this.calendarView.controller.modifyOccurrence(this.mOccurrence, 
@@ -363,7 +358,7 @@
             this.editingTimer = null;
         }
 
-        if (this.calendarView.controller) {
+        if (this.calendarView && this.calendarView.controller) {
             var item = (event.ctrlKey) ? this.mOccurrence.parentItem : this.mOccurrence;
             this.calendarView.controller.modifyOccurrence(item);
         }
@@ -443,7 +438,7 @@
          is not specified -->
     <content>
       <xul:vbox anonid="category-box"
-                class="calendar-item calendar-event-selection"
+                class="category-color-box calendar-event-selection"
                 xbl:inherits="categories">
         <xul:hbox flex="1">
           <xul:image class="calendar-category-box-gradient" height="1"/>

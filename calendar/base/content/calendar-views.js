@@ -447,10 +447,11 @@ function getStyleSheet(aStyleSheetPath) {
  * equivalent to formatStringForCSSRule(categoryNameInUnicode)].
  */
 function updateStyleSheetForObject(aObject, aSheet) {
-    var selectorPrefix, name, ruleUpdaterFunc;
+    var selectorPrefix, name, ruleUpdaterFunc, classPrefix;
     if (aObject.uri) {
         // For a calendar, set background and contrasting text colors
         name = aObject.uri.spec;
+        classPrefix = ".calendar-color-box";
         selectorPrefix = "item-calendar=";
         ruleUpdaterFunc = function calendarRuleFunc(aRule, aIndex) {
             var color = aObject.getProperty('color');
@@ -465,6 +466,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
         // it uses the ~= selector, since there could be multiple categories.
         name = aObject;
         selectorPrefix = "categories~=";
+        classPrefix = ".category-color-box"
         ruleUpdaterFunc = function categoryRuleFunc(aRule, aIndex) {
             var color = getPrefSafe("calendar.category.color."+name, null);
             if (color) {
@@ -475,7 +477,7 @@ function updateStyleSheetForObject(aObject, aSheet) {
         };
     }
 
-    var selector = '.calendar-item[' + selectorPrefix + '"' + name + '"]';
+    var selector = classPrefix + '[' + selectorPrefix + '"' + name + '"]';
 
     // Now go find our rule
     var rule, ruleIndex;
