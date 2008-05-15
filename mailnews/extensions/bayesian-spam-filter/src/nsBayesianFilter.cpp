@@ -1060,9 +1060,9 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
     NS_ENSURE_SUCCESS(rv, rv);
 
     aAnalyzer->setSource(aMessageURI);
-    return msgService->StreamMessage(aMessageURI, aAnalyzer->mTokenListener, aMsgWindow,
-						nsnull, PR_TRUE /* convert data */,
-                                                "filter", nsnull);
+    return msgService->StreamMessage(aMessageURI, aAnalyzer->mTokenListener,
+                                     aMsgWindow, nsnull, PR_TRUE /* convert data */,
+                                     NS_LITERAL_CSTRING("filter"), nsnull);
 }
 
 PR_STATIC_CALLBACK(int) compareTokens(const void* p1, const void* p2, void* /* data */)

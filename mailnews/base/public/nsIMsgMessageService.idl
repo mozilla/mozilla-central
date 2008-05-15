@@ -55,7 +55,7 @@ interface nsIStreamConverter;
 [ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 
 
-[scriptable, uuid(e39c2eab-ad6c-4560-b642-7f98ba2c0c35)]
+[scriptable, uuid(e0b51637-c16e-4f23-b5e3-934df0d71515)]
 interface nsIMsgMessageService : nsISupports {
      
      /////////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ interface nsIMsgMessageService : nsISupports {
                     in nsIMsgWindow aMsgWindow,
                     in nsIUrlListener aUrlListener, 
                     in boolean aConvertData,
-                    in string aAdditionalHeader);
+                    in ACString aAdditionalHeader);
     /**
      * now the the message datasource is going away
      * we need away to go from message uri to go nsIMsgDBHdr

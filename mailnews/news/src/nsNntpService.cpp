@@ -1534,14 +1534,14 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
                               nsIMsgWindow *aMsgWindow,
                               nsIUrlListener *aUrlListener,
                               PRBool /* convertData */,
-                              const char *aAdditionalHeader,
+                              const nsACString &aAdditionalHeader,
                               nsIURI **aURL)
 {
     // The nntp protocol object will look for "header=filter" to decide if it wants to convert
     // the data instead of using aConvertData. It turns out to be way too hard to pass aConvertData
     // all the way over to the nntp protocol object.
     nsCAutoString aURIString(aMessageURI);
-    if (aAdditionalHeader)
+    if (!aAdditionalHeader.IsEmpty())
     {
       aURIString.FindChar('?') == kNotFound ? aURIString += "?" : aURIString += "&";
       aURIString += "header=";

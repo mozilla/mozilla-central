@@ -2993,14 +2993,10 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr<nsIUrlListener> listenerUrlListener = do_QueryInterface(listenerSupports, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  rv = mMessageService->StreamMessage(
-    messageUri,           // aMessageURI
-    listenerSupports,     // aConsumer
-    mMsgWindow,           // aMsgWindow
-    listenerUrlListener,  // aUrlListener
-    PR_TRUE,              // aConvertData
-    sHeader.get(),        // aAdditionalHeader
-    nsnull );             // requestUri
+
+  rv = mMessageService->StreamMessage(messageUri, listenerSupports, mMsgWindow,
+                                      listenerUrlListener, PR_TRUE, sHeader,
+                                      nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
   return NS_OK;

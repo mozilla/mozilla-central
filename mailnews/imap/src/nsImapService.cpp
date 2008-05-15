@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -1118,9 +1118,10 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
                                            nsIMsgWindow *aMsgWindow,
                                            nsIUrlListener *aUrlListener, 
                                            PRBool aConvertData,
-                                           const char *aAdditionalHeader,
+                                           const nsACString &aAdditionalHeader,
                                            nsIURI **aURL)
 {
+  NS_ENSURE_ARG_POINTER(aMessageURI);
   nsCOMPtr<nsIMsgFolder> folder;
   nsCAutoString msgKey;
   nsCAutoString mimePart;
@@ -1167,8 +1168,9 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
       if (hasMsgOffline)
         msgurl->SetMsgIsInLocalCache(PR_TRUE);
       
-      rv = FetchMessage(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder, imapMessageSink, aMsgWindow, 
-                        aConsumer, msgKey, aConvertData, nsDependentCString(aAdditionalHeader), aURL);
+      rv = FetchMessage(imapUrl, nsIImapUrl::nsImapMsgFetchPeek, folder,
+                        imapMessageSink, aMsgWindow, aConsumer, msgKey,
+                        aConvertData, aAdditionalHeader, aURL);
     }
   }
   return rv;

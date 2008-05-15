@@ -1127,8 +1127,10 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   nsCOMPtr<nsISupports> listenerSupports;
   helper->QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(listenerSupports));
 
-  return msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports, aMsgWindow,
-          helper, PR_FALSE /* convert data */,"", nsnull);
+  return msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports,
+                                   aMsgWindow, helper,
+                                   PR_FALSE, // convert data
+                                   EmptyCString(), nsnull);
 }
 
 
