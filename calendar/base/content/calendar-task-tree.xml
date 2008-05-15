@@ -97,7 +97,10 @@
                        flex="1" label="&calendar.unifinder.tree.completeddate.label;"/>
           <xul:splitter class="tree-splitter" ordinal="12"/>
           <xul:treecol anonid="calendar-task-tree-col-percentcomplete"
-                       flex="1" label="&calendar.unifinder.tree.percentcomplete.label;"/>
+                       flex="1"
+                       type="progressmeter"
+                       minwidth="19"
+                       label="&calendar.unifinder.tree.percentcomplete.label;"/>
           <xul:splitter class="tree-splitter" ordinal="14"/>
           <xul:treecol anonid="calendar-task-tree-col-categories"
                        flex="1" label="&calendar.unifinder.tree.categories.label;"/>
@@ -440,7 +443,7 @@
               var task = this.binding.mTaskArray[aRow];
               if (!task)
                   return false;
-              switch(aCol.element.getAttribute("anonid")) {
+              switch (aCol.element.getAttribute("anonid")) {
                   case "calendar-task-tree-col-title":
                       // return title, or "Untitled" if empty/null
                       return task.title || gCalendarBundle.getString("eventUntitled");
@@ -451,7 +454,7 @@
                   case "calendar-task-tree-col-completeddate":
                       return this._formatDateTime(task.completedDate);
                   case "calendar-task-tree-col-percentcomplete":
-                      return task.percentComplete+"%";
+                      return task.percentComplete + "%";
                   case "calendar-task-tree-col-categories":
                       return task.getProperty("CATEGORIES");
                   case "calendar-task-tree-col-location":
@@ -469,6 +472,14 @@
           
           // This method is only called for columns of type other than text.
           getCellValue: function mTV_getCellValue(aRow, aCol) {
+              var task = this.binding.mTaskArray[aRow];
+              if (!task) {
+                  return null;
+              }
+              switch (aCol.element.getAttribute("anonid")) {
+                  case "calendar-task-tree-col-percentcomplete":
+                      return task.percentComplete;
+              }
               return null;
           },
 
@@ -504,6 +515,12 @@
           isContainer: function mTV_isContainer(aRow) {
               return false;
           },
+          isContainerOpen: function mTV_isContainerOpen(aRow) {
+              return false;
+          },
+          isContainerEmpty: function mTV_isContainerEmpty(aRow) {
+              return false;
+          },
 
           // IsSeparator is used to determine if the row at index is a separator.
           // A value of true will result in the tree drawing a horizontal separator.
@@ -518,14 +535,38 @@
               return false;
           },
 
+          canDrop: function mTV_canDrop() { return false; },
+
+          drop: function mTV_drop(aRow, aOrientation) {},
+
+          getParentIndex: function mTV_getParentIndex(aRow) {
+              return -1;
+          },
+
           // The level is an integer value that represents the level of indentation.
           // It is multiplied by the width specified in the :moz-tree-indentation
           // pseudoelement to compute the exact indendation.
           getLevel: function mTV_getLevel(aRow) {
               return 0;
           },
-          
-          canDrop: function mTV_canDrop() { return false; },
+
+          // The image path for a given cell. For defining an icon for a cell.
+          // If the empty string is returned, the :moz-tree-image pseudoelement
+          // will be used.
+          getImgSrc: function mTV_getImgSrc(aRow, aCol) {
+              return null;
+          },
+
+          // The progress mode for a given cell. This method is only called for
+          // columns of type |progressmeter|.
+          getProgressMode: function mTV_getProgressMode(aRow, aCol) {
+              switch(aCol.element.getAttribute("anonid")) {
+                  case "calendar-task-tree-col-percentcomplete":
+                      return Components.interfaces.nsITreeView.PROGRESS_NORMAL;
+              }
+
+              return Components.interfaces.nsITreeView.PROGRESS_NONE;
+          },
           
           /**
            * Task Tree Events
@@ -549,12 +590,6 @@
                       createTodoWithDialog();
                   }
               }
-          },
-          
-          drop: function tTV_drop(aRow, aOrientation) {},
-          
-          getParentIndex: function tTV_getParentIndex(aRow) {
-              return -1;
           },
           
           onKeyPress: function tTV_onKeyPress(event) {
