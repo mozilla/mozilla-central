@@ -198,7 +198,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
     ConstructMessage(hInstance, appName, IDS_APP_TITLE_INSTALL, appTitle);
     ConstructMessage(hInstance, appName, IDS_CONFIRM_INSTALL, msgStr);
 
-    if (MessageBox(NULL, msgStr, appTitle, MB_YESNO) == IDYES) 
+    if (MessageBox(NULL, msgStr, appTitle, MB_YESNO | MB_TOPMOST) == IDYES) 
     {
       res = InstallConduit(hInstance, installDir, appName);
       if (!res)
