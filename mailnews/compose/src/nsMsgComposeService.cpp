@@ -523,26 +523,18 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
     if (NS_SUCCEEDED(rv))
     {
        MSG_ComposeFormat requestedComposeFormat = nsIMsgCompFormat::Default;
-       nsCString aToPart;
-       nsCString aCcPart;
-       nsCString aBccPart;
-       nsCString aSubjectPart;
-       nsCString aBodyPart;
-       nsCString aNewsgroup;
-       nsCString aRefPart;
-       nsCString aHTMLBodyPart;
+       nsCString toPart;
+       nsCString ccPart;
+       nsCString bccPart;
+       nsCString subjectPart;
+       nsCString bodyPart;
+       nsCString newsgroup;
+       nsCString refPart;
+       nsCString HTMLBodyPart;
 
-       // we are explictly not allowing attachments to be specified in mailto: urls
-       // as it's a potential security problem.
-       // see bug #99055
-       aMailtoUrl->GetMessageContents(getter_Copies(aToPart), getter_Copies(aCcPart),
-                                    getter_Copies(aBccPart), nsnull /* from part */,
-                                    nsnull /* follow */, nsnull /* organization */,
-                                    nsnull /* reply to part */, getter_Copies(aSubjectPart),
-                                    getter_Copies(aBodyPart), getter_Copies(aHTMLBodyPart) /* html part */,
-                                    getter_Copies(aRefPart), nsnull /* attachment part, must always null, see #99055 */,
-                                    nsnull /* priority */, getter_Copies(aNewsgroup), nsnull /* host */,
-                                    &requestedComposeFormat);
+       aMailtoUrl->GetMessageContents(toPart, ccPart, bccPart, subjectPart,
+                                      bodyPart, HTMLBodyPart, refPart,
+                                      newsgroup, &requestedComposeFormat);
 
       nsAutoString sanitizedBody;
 
@@ -554,12 +546,12 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
       // empty, but we are composing in HTML because of the user's prefs, the
       // 'body' param needs to be escaped, since it's supposed to be plain
       // text, but it then doesn't need to sanitized.
-      NS_ConvertUTF8toUTF16 rawBody(aHTMLBodyPart);
-      if (rawBody.IsEmpty())
+      nsString rawBody;
+      if (HTMLBodyPart.IsEmpty())
       {
         if (composeHTMLFormat)
         {
-          char *escaped = nsEscapeHTML(aBodyPart.get());
+          char *escaped = MsgEscapeHTML(bodyPart.get());
           if (!escaped)
             return NS_ERROR_OUT_OF_MEMORY;
 
@@ -567,8 +559,10 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
           nsMemory::Free(escaped);
         }
         else
-          CopyUTF8toUTF16(aBodyPart, rawBody);
+          CopyUTF8toUTF16(bodyPart, rawBody);
       }
+      else
+        CopyUTF8toUTF16(HTMLBodyPart, rawBody);
 
       if (!rawBody.IsEmpty() && composeHTMLFormat)
       {
@@ -616,12 +610,12 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
         if (pMsgCompFields)
         {
           //ugghh more conversion work!!!!
-          pMsgCompFields->SetTo(NS_ConvertUTF8toUTF16(aToPart));
-          pMsgCompFields->SetCc(NS_ConvertUTF8toUTF16(aCcPart));
-          pMsgCompFields->SetBcc(NS_ConvertUTF8toUTF16(aBccPart));
-          pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(aNewsgroup));
-          pMsgCompFields->SetReferences(aRefPart.get());
-          pMsgCompFields->SetSubject(NS_ConvertUTF8toUTF16(aSubjectPart));
+          pMsgCompFields->SetTo(NS_ConvertUTF8toUTF16(toPart));
+          pMsgCompFields->SetCc(NS_ConvertUTF8toUTF16(ccPart));
+          pMsgCompFields->SetBcc(NS_ConvertUTF8toUTF16(bccPart));
+          pMsgCompFields->SetNewsgroups(NS_ConvertUTF8toUTF16(newsgroup));
+          pMsgCompFields->SetReferences(refPart.get());
+          pMsgCompFields->SetSubject(NS_ConvertUTF8toUTF16(subjectPart));
           pMsgCompFields->SetBody(composeHTMLFormat ? sanitizedBody : rawBody);
           pMsgComposeParams->SetComposeFields(pMsgCompFields);
 

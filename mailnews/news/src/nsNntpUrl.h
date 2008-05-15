@@ -66,7 +66,6 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
 
 private:
-  virtual const char * GetUserName() { return nsnull; }
   nsresult DetermineNewsAction();
 
   nsINNTPNewsgroupPost *m_newsgroupPost;

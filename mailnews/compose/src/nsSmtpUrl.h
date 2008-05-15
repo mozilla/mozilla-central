@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -91,9 +91,6 @@ class nsSmtpUrl : public nsISmtpUrl, public nsMsgMailNewsUrl
 public:
 	NS_DECL_ISUPPORTS_INHERITED
 
-	// nsIURI over-ride...
-	NS_IMETHOD SetSpec(const nsACString &aSpec);
-
 	// From nsISmtpUrl
 	NS_DECL_NSISMTPURL
 
@@ -102,30 +99,26 @@ public:
 
 protected:
   virtual ~nsSmtpUrl();
-	
-  // protocol specific code to parse a url...
-  virtual nsresult ParseUrl();
-	virtual const char * GetUserName() { return m_userName.get();}
 
-	// data retrieved from parsing the url: (Note the url could be a post from file or it could be inthe url)
-  nsCString   m_toPart;
+  // data retrieved from parsing the url: (Note the url could be a post from
+  // file or it could be in the url)
+  nsCString m_toPart;
 
-	PRBool		m_isPostMessage;
-    PRBool      m_requestDSN;
+  PRBool m_isPostMessage;
+  PRBool m_requestDSN;
 
-	/* Smtp specific event sinks */
-	nsCString	m_userName;
-	nsCOMPtr<nsIFile> m_fileName;
-	nsCOMPtr<nsIMsgIdentity> m_senderIdentity;
-    nsCOMPtr<nsIPrompt> m_netPrompt;
-    nsCOMPtr<nsIAuthPrompt> m_netAuthPrompt;
-    nsCOMPtr<nsIInterfaceRequestor> m_callbacks;
-    nsCOMPtr<nsISmtpServer> m_smtpServer;
+  // Smtp specific event sinks
+  nsCOMPtr<nsIFile> m_fileName;
+  nsCOMPtr<nsIMsgIdentity> m_senderIdentity;
+  nsCOMPtr<nsIPrompt> m_netPrompt;
+  nsCOMPtr<nsIAuthPrompt> m_netAuthPrompt;
+  nsCOMPtr<nsIInterfaceRequestor> m_callbacks;
+  nsCOMPtr<nsISmtpServer> m_smtpServer;
 
-	// it is possible to encode the message to parse in the form of a url.
-	// This function is used to decompose the search and path part into the bare
-	// message components (to, fcc, bcc, etc.)
-	nsresult ParseMessageToPost(char * searchPart);
+  // it is possible to encode the message to parse in the form of a url.
+  // This function is used to decompose the search and path part into the bare
+  // message components (to, fcc, bcc, etc.)
+  nsresult ParseMessageToPost(char * searchPart);
 };
 
 #endif // nsSmtpUrl_h__

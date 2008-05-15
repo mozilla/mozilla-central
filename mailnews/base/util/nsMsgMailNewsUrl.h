@@ -81,9 +81,6 @@ public:
 protected:
   virtual ~nsMsgMailNewsUrl();
 
-  // a helper function I needed from derived urls...
-  virtual const char * GetUserName() = 0;
-
   nsCOMPtr<nsIURL> m_baseURL;
   nsWeakPtr m_statusFeedbackWeak;
   nsWeakPtr m_msgWindowWeak;

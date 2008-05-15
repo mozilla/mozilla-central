@@ -84,7 +84,6 @@ public:
 
 protected:
   virtual nsresult ParseUrl();
-  virtual const char * GetUserName() { return m_userName.get();}
 
   char *m_listOfMessageIds;
 

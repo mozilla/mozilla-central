@@ -84,7 +84,6 @@ public:
 protected:
   // protocol specific code to parse a url...
   virtual nsresult ParseUrl();
-  virtual const char * GetUserName() { return nsnull;}
   nsresult GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr);
 
   // mailboxurl specific state

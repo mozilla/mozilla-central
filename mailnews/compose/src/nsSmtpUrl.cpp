@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -336,51 +336,73 @@ nsresult nsMailtoUrl::ParseUrl()
   return rv;
 }
 
-NS_IMETHODIMP nsMailtoUrl::GetMessageContents(char ** aToPart, char ** aCcPart, char ** aBccPart, 
-		char ** aFromPart, char ** aFollowUpToPart, char ** aOrganizationPart, 
-		char ** aReplyToPart, char ** aSubjectPart, char ** aBodyPart, char ** aHtmlPart, 
-		char ** aReferencePart, char ** aAttachmentPart, char ** aPriorityPart, 
-		char ** aNewsgroupPart, char ** aNewsHostPart, MSG_ComposeFormat * aFormat)
+NS_IMETHODIMP
+nsMailtoUrl::GetMessageContents(nsACString &aToPart, nsACString &aCcPart,
+                                nsACString &aBccPart, nsACString &aSubjectPart,
+                                nsACString &aBodyPart, nsACString &aHtmlPart,
+                                nsACString &aReferencePart,
+                                nsACString &aNewsgroupPart,
+                                MSG_ComposeFormat *aFormat)
 {
-	if (aToPart)
-		*aToPart = ToNewCString(m_toPart);
-	if (aCcPart)
-		*aCcPart = ToNewCString(m_ccPart);
-	if (aBccPart)
-		*aBccPart = ToNewCString(m_bccPart);
-	if (aFromPart)
-		*aFromPart = ToNewCString(m_fromPart);
-	if (aFollowUpToPart)
-		*aFollowUpToPart = ToNewCString(m_followUpToPart);
-	if (aOrganizationPart)
-		*aOrganizationPart = ToNewCString(m_organizationPart);
-	if (aReplyToPart)
-		*aReplyToPart = ToNewCString(m_replyToPart);
-	if (aSubjectPart)
-		*aSubjectPart = ToNewCString(m_subjectPart);
-	if (aBodyPart)
-		*aBodyPart = ToNewCString(m_bodyPart);
-	if (aHtmlPart)
-		*aHtmlPart = ToNewCString(m_htmlPart);
-	if (aReferencePart)
-		*aReferencePart = ToNewCString(m_referencePart);
-	if (aAttachmentPart)
-		*aAttachmentPart = nsnull; // never pass out an attachment part as part of a mailto url
-	if (aPriorityPart)
-		*aPriorityPart = ToNewCString(m_priorityPart);
-	if (aNewsgroupPart)
-		*aNewsgroupPart = ToNewCString(m_newsgroupPart);
-	if (aNewsHostPart)
-		*aNewsHostPart = ToNewCString(m_newsHostPart);
-	if (aFormat)
-		*aFormat = mFormat;
-	return NS_OK;
+  NS_ENSURE_ARG_POINTER(aFormat);
+
+  aToPart = m_toPart;
+  aCcPart = m_ccPart;
+  aBccPart = m_bccPart;
+  aSubjectPart = m_subjectPart;
+  aBodyPart = m_bodyPart;
+  aHtmlPart = m_htmlPart;
+  aReferencePart = m_referencePart;
+  aNewsgroupPart = m_newsgroupPart;
+  *aFormat = mFormat;
+  return NS_OK;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-// Begin nsIURI support
-////////////////////////////////////////////////////////////////////////////////////
+NS_IMETHODIMP
+nsMailtoUrl::GetFromPart(nsACString &aResult)
+{
+  aResult = m_fromPart;
+  return NS_OK;
+}
 
+NS_IMETHODIMP
+nsMailtoUrl::GetFollowUpToPart(nsACString &aResult)
+{
+  aResult = m_followUpToPart;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::GetOrganizationPart(nsACString &aResult)
+{
+  aResult = m_organizationPart;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::GetReplyToPart(nsACString &aResult)
+{
+  aResult = m_replyToPart;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::GetPriorityPart(nsACString &aResult)
+{
+  aResult = m_priorityPart;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMailtoUrl::GetNewsHostPart(nsACString &aResult)
+{
+  aResult = m_newsHostPart;
+  return NS_OK;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Begin nsIURI support
+//////////////////////////////////////////////////////////////////////////////
 
 NS_IMETHODIMP nsMailtoUrl::GetSpec(nsACString &aSpec)
 {
@@ -541,29 +563,6 @@ NS_IMPL_ISUPPORTS_INHERITED1(nsSmtpUrl, nsMsgMailNewsUrl, nsISmtpUrl)
 
 ////////////////////////////////////////////////////////////////////////////////////
 
-NS_IMETHODIMP nsSmtpUrl::SetSpec(const nsACString &aSpec)
-{
-  nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
-  if (NS_SUCCEEDED(rv))
-    rv = ParseUrl();
-  return rv;
-}
-
-// mscott - i think this function can be obsoleted and its functionality
-// moved into SetSpec or an init method....
-nsresult nsSmtpUrl::ParseUrl()
-{
-  nsresult rv = NS_OK;
-  
-  // set the username
-  nsCAutoString userName;
-  rv = GetUsername(userName);
-  if (NS_FAILED(rv)) return rv; 
-  m_userName = userName;
-  
-  return NS_OK;
-}
-
 NS_IMETHODIMP
 nsSmtpUrl::SetRecipients(const char * aRecipientsList)
 {
@@ -573,7 +572,6 @@ nsSmtpUrl::SetRecipients(const char * aRecipientsList)
     nsUnescape(m_toPart.BeginWriting());
   return NS_OK;
 }
-
 
 NS_IMETHODIMP
 nsSmtpUrl::GetRecipients(char ** aRecipientsList)
@@ -590,13 +588,9 @@ NS_IMPL_GETSET(nsSmtpUrl, PostMessage, PRBool, m_isPostMessage)
 // the file name to post...
 NS_IMETHODIMP nsSmtpUrl::SetPostMessageFile(nsIFile * aFile)
 {
-  nsresult rv = NS_OK;
-  if (aFile)
-    m_fileName = aFile;
-  else
-    rv = NS_ERROR_NULL_POINTER;
-  
-  return rv;
+  NS_ENSURE_ARG_POINTER(aFile);
+  m_fileName = aFile;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFile ** aFile)
@@ -698,4 +692,3 @@ nsSmtpUrl::GetSmtpServer(nsISmtpServer ** aSmtpServer)
     NS_ADDREF(*aSmtpServer);
     return NS_OK;
 }
-

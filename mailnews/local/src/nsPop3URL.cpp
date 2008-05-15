@@ -94,14 +94,3 @@ nsPop3URL::SetMessageUri(const char *aMessageUri)
         m_messageUri = aMessageUri;
     return NS_OK;
 }
-
-nsresult nsPop3URL::ParseUrl(const nsString& aSpec)
-{
-  // mscott - i don't believe I'm going to need this
-  // method anymore..
-  NS_ASSERTION(0, "we shouldn't need to call this method anymore");
-    return NS_OK;
-}
-
-
-
