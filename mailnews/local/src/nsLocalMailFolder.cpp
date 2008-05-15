@@ -2467,11 +2467,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       mCopyState->m_parseMsgState->ParseAFolderLine(CRLF, MSG_LINEBREAK_LEN);
   }
 
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
   // CopyFileMessage() and CopyMessages() from servers other than mailbox
   if (mCopyState->m_parseMsgState)
   {
     nsCOMPtr<nsIMsgDatabase> msgDb;
-    nsCOMPtr<nsIMsgDBHdr> newHdr;
     mCopyState->m_parseMsgState->FinishHeader();
     GetDatabaseWOReparse(getter_AddRefs(msgDb));
     if (msgDb)
@@ -2564,6 +2564,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       }
 
     }
+    // Store whether the message is CopyMessages() or CopyFileMessage()
+    PRBool isCopyFileMessage = ! mCopyState->m_message;
     if(!mCopyState->m_isMove)
     {
       if (multipleCopiesFinished)
@@ -2587,6 +2589,13 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
         // enable the dest folder
         EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_FALSE /*dbBatching*/); //dest folder doesn't need db batching
       }
+    }
+    // if CopyFileMessage() then notify that an item has been added
+    if (isCopyFileMessage)
+    {
+      nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+      if (notifier)
+        notifier->NotifyItemAdded(newHdr);
     }
   }
   return rv;
