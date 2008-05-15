@@ -145,7 +145,7 @@ calGoogleCalendar.prototype = {
      */
     findSession: function cGC_findSession(aIgnoreExistingSession) {
         if (this.mSession && !aIgnoreExistingSession) {
-            return;
+            return true;
         }
 
         // We need to find out which Google account fits to this calendar.
@@ -176,6 +176,26 @@ calGoogleCalendar.prototype = {
                                 "googleUser",
                                 "CHAR",
                                 this.mSession.userName);
+            } else {
+                // The password dialog was canceled, disable the calendar.
+                this.setProperty("disabled", true);
+                return false;
+            }
+        }
+        return true;
+    },
+
+    /**
+     * ensureSession
+     * Make sure a session is available. If not, throw an exception
+     */
+    ensureSession: function cGC_ensureSession() {
+        if (!this.mSession ||
+            !this.mSession.password ||
+            this.mSession.password == "") {
+            if (!this.findSession) {
+                throw new Components.Exception("Session was canceled",
+                                               Components.results.NS_ERROR_FAILURE);
             }
         }
     },
@@ -259,9 +279,7 @@ calGoogleCalendar.prototype = {
 
             // Check if we have a session. If not, then the user has canceled
             // the login prompt.
-            if (!this.mSession) {
-                this.findSession();
-            }
+            this.ensureSession();
 
             // Add the calendar to the item, for later use.
             aItem.calendar = this.superCalendar;
@@ -328,9 +346,7 @@ calGoogleCalendar.prototype = {
 
             // Check if we have a session. If not, then the user has canceled
             // the login prompt.
-            if (!this.mSession) {
-                this.findSession();
-            }
+            this.ensureSession();
 
             // Check if enough fields have changed to warrant sending the event
             // to google. This saves network traffic.
@@ -414,9 +430,7 @@ calGoogleCalendar.prototype = {
 
             // Check if we have a session. If not, then the user has canceled
             // the login prompt.
-            if (!this.mSession) {
-                this.findSession();
-            }
+            this.ensureSession();
 
             // We need the item in the response, since google dosen't return any
             // item XML data on delete, and we need to call the observers.
@@ -461,9 +475,7 @@ calGoogleCalendar.prototype = {
 
             // Check if we have a session. If not, then the user has canceled
             // the login prompt.
-            if (!this.mSession) {
-                this.findSession();
-            }
+            this.ensureSession();
 
             // Set up the request
 
@@ -506,9 +518,7 @@ calGoogleCalendar.prototype = {
         try {
             // Check if we have a session. If not, then the user has canceled
             // the login prompt.
-            if (!this.mSession) {
-                this.findSession();
-            }
+            this.ensureSession();
 
             // item base type
             var wantEvents = ((aItemFilter &
@@ -719,9 +729,7 @@ calGoogleCalendar.prototype = {
 
                 // We might be able to get the full name through this feed's author
                 // tags. We need to make sure we have a session for that.
-                if (!this.calendar.session) {
-                    this.calendar.findSession();
-                }
+                this.calendar.ensureSession();
 
                 // Get the item entry by id. Parse both normal ids and those that
                 // contain "@google.com". If both are not found, check for
@@ -767,7 +775,7 @@ calGoogleCalendar.prototype = {
                 if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
                     // Not finding an item isn't a user-important error, it may be a
                     // wanted case. (i.e itip)
-                    LOG("Error getting item " + aRequest.id + ":\n" + e);
+                    LOG("Error getting item " + aOperation.itemId + ":\n" + e);
                     Components.utils.reportError(e);
                 }
                 aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
@@ -794,7 +802,7 @@ calGoogleCalendar.prototype = {
             LOG("Recieved response for " + aOperation.uri);
             try {
                 // Check if the call succeeded
-                if (!Components.isSuccessCode(aOperation)) {
+                if (!Components.isSuccessCode(aOperation.status)) {
                     throw new Components.Exception(aData, aOperation.status);
                 }
 
@@ -818,9 +826,7 @@ calGoogleCalendar.prototype = {
 
                 // We might be able to get the full name through this feed's author
                 // tags. We need to make sure we have a session for that.
-                if (!this.calendar.mSession) {
-                    this.calendar.findSession();
-                }
+                this.calendar.ensureSession();
 
                 if (xml.author.email == this.calendar.mSession.userName) {
                     // If the current entry contains the user's email, then we can

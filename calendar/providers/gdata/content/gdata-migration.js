@@ -54,6 +54,8 @@ function migrateSelectedCalendars() {
             newCal.name = item.calendar.name;
             newCal.setProperty("color",
                                item.calendar.getProperty("color"));
+            newCal.setProperty("disabled",
+                               item.calendar.getProperty("disabled"));
             newCal.setProperty("cache.enabled",
                                item.calendar.getProperty("cache.enabled"));
             newCal.setProperty("suppressAlarms",

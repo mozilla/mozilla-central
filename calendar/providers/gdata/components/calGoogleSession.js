@@ -233,10 +233,9 @@ calGoogleSession.prototype = {
      * Prepares a login request, then requests via #asyncRawRequest
      *
      *
-     * @param     aRequest      The request that initiated the login
+     * @param aCalendar    The calendar of the request that initiated the login.
      */
-    loginAndContinue: function cGS_loginAndContinue(aRequest) {
-
+    loginAndContinue: function cGS_loginAndContinue(aCalendar) {
         if (this.mLoggingIn) {
             LOG("loginAndContinue called while logging in");
             return;
@@ -251,13 +250,13 @@ calGoogleSession.prototype = {
             // Check if we have a password. If not, authentication may have
             // failed.
             if (!this.mGooglePass) {
-                var username= { value: this.mGoogleUser };
+                var username = { value: this.mGoogleUser };
                 var password = { value: null };
                 var persist = { value: false };
 
                 // Try getting a new password, potentially switching sesssions.
-                var calendarName = (aRequest.calendar ?
-                                    aRequest.calendar.googleCalendarName :
+                var calendarName = (aCalendar ?
+                                    aCalendar.googleCalendarName :
                                     this.mGoogleUser);
 
                 if (getCalendarCredentials(calendarName,
@@ -270,27 +269,25 @@ calGoogleSession.prototype = {
 
                     // If a different username was entered, switch sessions
 
-                    if (aRequest.calendar &&
-                        username.value != this.mGoogleUser) {
-
+                    if (aCalendar && username.value != this.mGoogleUser) {
                         var newSession = getGoogleSessionManager()
                                          .getSessionByUsername(username.value,
                                                                true);
                         newSession.googlePassword = password.value;
                         newSession.persist = persist.value;
-                        setCalendarPref(aRequest.calendar,
+                        setCalendarPref(aCalendar,
                                         "googleUser",
                                         "CHAR",
                                         username.value);
 
                         // Set the new session for the calendar
-                        aRequest.calendar.session = newSession;
-                        LOG("Setting " + aRequest.calendar.name +
+                        aCalendar.session = newSession;
+                        LOG("Setting " + aCalendar.name +
                             "'s Session to " + newSession.userName);
 
                         // Move all requests by this calendar to its new session
                         function cGS_login_moveToSession(element, index, arr) {
-                            if (element.calendar == aRequest.calendar) {
+                            if (element.calendar == aCalendar) {
                                 LOG("Moving " + element.uri + " to " +
                                     newSession.userName);
                                 newSession.asyncItemRequest(element);
@@ -317,21 +314,25 @@ calGoogleSession.prototype = {
                         calendarName + " (" +
                         this.mGoogleUser + ")");
 
+                    // First of all, disable the calendar so no further login
+                    // dialogs show up.
+                    aCalendar.setProperty("disabled", true);
+
                     // The User even canceled the login prompt asking for
                     // the user. This means we have to fail all requests
                     // that belong to that calendar and are in the queue. This
                     // will also include the request that initiated the login
                     // request, so that dosent need to be handled extra.
                     this.failQueue(Components.results.NS_ERROR_NOT_AVAILABLE,
-                                   aRequest.calendar);
+                                   aCalendar);
 
                     // Unset the session in the requesting calendar, if the user
                     // canceled the login dialog that also asks for the
                     // username, then the session is not valid. This also
                     // prevents multiple login windows.
-                    if (aRequest.calendar)
-                        aRequest.calendar.session = null;
-
+                    if (aCalendar) {
+                        aCalendar.session = null;
+                    }
                     return;
                 }
             }
@@ -353,7 +354,7 @@ calGoogleSession.prototype = {
             var request = new calGoogleRequest(this);
 
             request.type = request.LOGIN;
-            request.extraData = aRequest;
+            request.calendar = aCalendar;
             request.responseListener = this;
 
             request.setUploadData("application/x-www-form-urlencoded",
@@ -371,8 +372,8 @@ calGoogleSession.prototype = {
                  message: e.message});
 
             // If something went wrong, then this.loginComplete should handle
-            // the error. We don't need to take care of aRequest, since it is
-            // also in this.mItemQueue.
+            // the error. We don't need to take care of the request that
+            // initiated the login, since it is also in the item queue.
             this.onResult({ status: e.result}, e.message);
         }
     },
@@ -403,9 +404,7 @@ calGoogleSession.prototype = {
             if (aOperation.status == kGOOGLE_LOGIN_FAILED) {
                 // If the login failed, then retry the login. This is not an
                 // error that should trigger failing the calICalendar's request.
-                // The login request's extraData contains the request object
-                // that triggered the login initially
-                this.loginAndContinue(aRequest.extraData);
+                this.loginAndContinue(aOperation.calendar);
             } else {
                 LOG("Failing queue with " + aOperation.status);
                 this.failQueue(aOperation.status);
@@ -418,7 +417,7 @@ calGoogleSession.prototype = {
                 this.invalidate();
 
                 // Retry login
-                this.loginAndContinue(aRequest.extraData);
+                this.loginAndContinue(aOperation.calendar);
             } else {
                 this.mAuthToken = aData.substring(start + 5, aData.length - 1);
 
@@ -469,7 +468,7 @@ calGoogleSession.prototype = {
             // will be processed when the login is complete. Otherwise start
             // logging in.
             if (!this.mLoggingIn && this.mAuthToken == null) {
-                this.loginAndContinue(aRequest);
+                this.loginAndContinue(aRequest.calendar);
             }
         }
     },
