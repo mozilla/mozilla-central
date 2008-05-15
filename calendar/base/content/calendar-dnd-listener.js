@@ -226,7 +226,13 @@ calDNDBaseObserver.prototype = {
         var bestFlavor = new Object();
         var length = new Object();
         transferable.getAnyTransferData(bestFlavor, data, length);
-        data = data.value.QueryInterface(Components.interfaces.nsISupportsString);
+
+        try {
+            data = data.value.QueryInterface(Components.interfaces.nsISupportsString);
+        } catch (exc) {
+            // we currently only supports strings:
+            return;
+        }
 
         // Treat unicode data with VEVENT in it as text/calendar
         if (bestFlavor.value == "text/unicode" && data.toString().indexOf("VEVENT") != -1) {
