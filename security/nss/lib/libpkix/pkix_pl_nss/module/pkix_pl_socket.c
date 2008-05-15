@@ -75,7 +75,7 @@
 /* --Private-Socket-Functions---------------------------------- */
 
 #ifdef PKIX_SOCKETTRACE
-static PKIX_Boolean socketTraceFlag = PKIX_TRUE;
+static PKIX_Boolean socketTraceFlag = PKIX_FALSE;
 
 /*
  * FUNCTION: pkix_pl_socket_timestamp
