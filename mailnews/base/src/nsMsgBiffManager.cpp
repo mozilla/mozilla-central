@@ -303,7 +303,9 @@ nsresult nsMsgBiffManager::PerformBiff()
   PRUint32 count = mBiffArray.Length();
   for (PRUint32 i = 0; i < count; i++)
   {
-    nsBiffEntry &current = mBiffArray[i];
+    // Take a copy of the entry rather than the a reference so that we can
+    // remove and add if necessary, but keep the references and memory alive.
+    nsBiffEntry current = mBiffArray[i];
     if (current.nextBiffTime < currentTime)
     {
       PRBool serverBusy = PR_FALSE;
