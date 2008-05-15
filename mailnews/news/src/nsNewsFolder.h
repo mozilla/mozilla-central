@@ -60,8 +60,6 @@ public:
 
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_NSIMSGNEWSFOLDER
-  // nsICollection methods:
-  NS_IMETHOD Enumerate(nsIEnumerator* *result);
 
   // nsIUrlListener method
   NS_IMETHOD OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode);

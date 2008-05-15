@@ -336,14 +336,6 @@ nsMsgLocalMailFolder::GetMsgDatabase(nsIMsgWindow *aMsgWindow,
   return GetDatabaseWOReparse(aMsgDatabase);
 }
 
-
-NS_IMETHODIMP
-nsMsgLocalMailFolder::Enumerate(nsIEnumerator* *result)
-{
-  NS_ASSERTION(PR_FALSE, "isn't this obsolete?");
-  return NS_ERROR_FAILURE;
-}
-
 NS_IMETHODIMP
 nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {

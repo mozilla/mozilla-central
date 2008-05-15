@@ -262,13 +262,6 @@ NS_IMPL_QUERY_HEAD(nsImapMailFolder)
     NS_IMPL_QUERY_BODY(nsIJunkMailClassificationListener)
 NS_IMPL_QUERY_TAIL_INHERITING(nsMsgDBFolder)
 
-
-NS_IMETHODIMP nsImapMailFolder::Enumerate(nsIEnumerator* *result)
-{
-  NS_ASSERTION(PR_FALSE, "obsolete, right?");
-  return NS_ERROR_FAILURE;
-}
-
 nsresult nsImapMailFolder::AddDirectorySeparator(nsILocalFile *path)
 {
   if (mURI.Equals(kImapRootURI))
@@ -6515,16 +6508,22 @@ nsImapFolderCopyState::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
           // check if the source folder has children. If it does, list them
           // into m_srcChildFolders, and set m_destParents for the
           // corresponding indexes to the newly created folder.
-          PRUint32 childCount;
-          m_srcFolder->Count(&childCount);
-          for (PRUint32 childIndex = 0; childIndex < childCount; childIndex++)
+          nsCOMPtr<nsISimpleEnumerator> enumerator;
+          rv = m_srcFolder->GetSubFolders(getter_AddRefs(enumerator));
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          PRBool hasMore;
+          PRUint32 childIndex = 0;
+          while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
           {
-            nsCOMPtr <nsISupports> child = do_QueryElementAt(m_srcFolder, childIndex, &rv);
+            nsCOMPtr<nsISupports> child;
+            rv = enumerator->GetNext(getter_AddRefs(child));
             if (NS_SUCCEEDED(rv))
             {
               m_srcChildFolders->InsertElementAt(child, m_childIndex + childIndex + 1);
               m_destParents->InsertElementAt(newMsgFolder, m_childIndex + childIndex + 1);
             }
+            ++childIndex;
           }
 
           nsCOMPtr<nsISimpleEnumerator> messages;

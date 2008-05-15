@@ -610,26 +610,21 @@ nsNntpIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
 NS_IMETHODIMP
 nsNntpIncomingServer::GetNumGroupsNeedingCounts(PRInt32 *aNumGroupsNeedingCounts)
 {
-    nsCOMPtr<nsIEnumerator> subFolders;
-    nsCOMPtr<nsIMsgFolder> rootFolder;
+  nsCOMPtr<nsIMsgFolder> rootFolder;
 
-    nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
-    if (NS_FAILED(rv)) return rv;
+  nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
+  if (NS_FAILED(rv))
+    return rv;
 
-    PRBool hasSubFolders = PR_FALSE;
-    rv = rootFolder->GetHasSubFolders(&hasSubFolders);
-    if (NS_FAILED(rv)) return rv;
-
-    if (!hasSubFolders) {
-        *aNumGroupsNeedingCounts = 0;
-        return NS_OK;
-    }
-
-    rv = rootFolder->GetSubFolders(getter_AddRefs(mGroupsEnumerator));
+  // Ensure the sub folders are initialised.
+  rv = rootFolder->GetSubFolders(getter_AddRefs(mGroupsEnumerator));
+  if (NS_FAILED(rv))
+    return rv;
 
   PRUint32 count = 0;
-  rv = rootFolder->Count(&count);
-    if (NS_FAILED(rv)) return rv;
+  rv = rootFolder->GetNumSubFolders(&count);
+  if (NS_FAILED(rv))
+    return rv;
 
   *aNumGroupsNeedingCounts = (PRInt32) count;
   return NS_OK;

@@ -209,9 +209,6 @@ public:
 
   NS_DECL_ISUPPORTS_INHERITED
 
-  // nsICollection methods
-  NS_IMETHOD Enumerate(nsIEnumerator **result);
-
   // nsIMsgFolder methods:
   NS_IMETHOD GetSubFolders(nsISimpleEnumerator **aResult);
 

@@ -226,7 +226,7 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   if (NS_FAILED(rv)) return rv;
 
   PRUint32 numExistingGroups;
-  rv = Count(&numExistingGroups);
+  rv = mSubFolders->Count(&numExistingGroups);
   NS_ENSURE_SUCCESS(rv,rv);
 
   // add kNewsSortOffset (9000) to prevent this problem:  1,10,11,2,3,4,5
@@ -247,13 +247,6 @@ nsresult nsMsgNewsFolder::ParseFolder(nsILocalFile *path)
 {
   NS_ASSERTION(0,"ParseFolder not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsMsgNewsFolder::Enumerate(nsIEnumerator **result)
-{
-  NS_ASSERTION(PR_FALSE, "obsolete, right?");
-  return NS_ERROR_FAILURE;
 }
 
 nsresult

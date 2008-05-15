@@ -123,9 +123,6 @@ public:
   NS_DECL_ISUPPORTS_INHERITED
   // nsIRDFResource methods:
   NS_IMETHOD Init(const char *aURI);
-  
-  // nsICollection methods:
-  NS_IMETHOD Enumerate(nsIEnumerator* *result);
 
   // nsIUrlListener methods
   NS_IMETHOD OnStartRunningUrl(nsIURI * aUrl);

@@ -133,13 +133,9 @@ PRUnichar *nsMsgDBFolder::kLocalizedBrandShortName;
 
 nsrefcnt nsMsgDBFolder::mInstanceCount=0;
 
-NS_IMPL_ISUPPORTS_INHERITED6(nsMsgDBFolder, nsRDFResource,
-                                   nsISupportsWeakReference,
-                                   nsIMsgFolder,
-                                   nsICollection,
-                                   nsISerializable,
-                                   nsIDBChangeListener,
-                                   nsIUrlListener)
+NS_IMPL_ISUPPORTS_INHERITED4(nsMsgDBFolder, nsRDFResource, 
+                             nsISupportsWeakReference, nsIMsgFolder,
+                             nsIDBChangeListener, nsIUrlListener)
 
 const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
   { "FolderLoaded", &nsMsgDBFolder::mFolderLoadedAtom },
@@ -2172,71 +2168,6 @@ nsresult nsMsgDBFolder::CreateBaseMessageURI(const nsACString& aURI)
   return NS_OK;
 }
 
-  // nsISerializable methods:
-NS_IMETHODIMP
-nsMsgDBFolder::Read(nsIObjectInputStream *aStream)
-{
-  NS_NOTREACHED("nsMsgDBFolder::Read");
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::Write(nsIObjectOutputStream *aStream)
-{
-  NS_NOTREACHED("nsMsgDBFolder::Write");
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-  // nsICollection methods:
-NS_IMETHODIMP
-nsMsgDBFolder::Count(PRUint32 *result)
-{
-  return mSubFolders->Count(result);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::GetElementAt(PRUint32 i, nsISupports* *result)
-{
-  return mSubFolders->GetElementAt(i, result);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::QueryElementAt(PRUint32 i, const nsIID & iid, void * *result)
-{
-  return mSubFolders->QueryElementAt(i, iid, result);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::SetElementAt(PRUint32 i, nsISupports* value)
-{
-  return mSubFolders->SetElementAt(i, value);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::AppendElement(nsISupports *aElement)
-{
-  return mSubFolders->AppendElement(aElement);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::RemoveElement(nsISupports *aElement)
-{
-  return mSubFolders->RemoveElement(aElement);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::Enumerate(nsIEnumerator* *result)
-{
-  // nsMsgDBFolders only have subfolders, no message elements
-  return mSubFolders->Enumerate(result);
-}
-
-NS_IMETHODIMP
-nsMsgDBFolder::Clear(void)
-{
-  return mSubFolders->Clear();
-}
-
 NS_IMETHODIMP
 nsMsgDBFolder::GetURI(nsACString& name)
 {
@@ -2293,6 +2224,12 @@ nsMsgDBFolder::GetHasSubFolders(PRBool *_retval)
     return rv;
   *_retval = (cnt > 0);
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgDBFolder::GetNumSubFolders(PRUint32 *aResult)
+{
+  return mSubFolders->Count(aResult);
 }
 
 NS_IMETHODIMP nsMsgDBFolder::AddFolderListener(nsIFolderListener * listener)

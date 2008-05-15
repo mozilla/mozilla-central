@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsICollection.idl"
 #include "nsIFolderListener.idl"
 #include "nsIMsgThread.idl"
 #include "nsIMsgIncomingServer.idl"
@@ -67,8 +66,8 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(13d4b3f5-6599-460e-97be-7489aea1538d)]
-interface nsIMsgFolder : nsICollection {
+[scriptable, uuid(31fa97db-c073-4ea1-a4ad-f561269dcf8d)]
+interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
   const nsMsgBiffState nsMsgBiffState_NoMail =  1; // No new mail is waiting.
@@ -428,6 +427,11 @@ interface nsIMsgFolder : nsICollection {
    * Returns true if this folder has sub folders.
    */
   readonly attribute boolean hasSubFolders;
+
+  /**
+   * Returns the number of sub folders that this folder has.
+   */
+  readonly attribute unsigned long numSubFolders;
 
   void AddFolderListener(in nsIFolderListener listener);
   void RemoveFolderListener(in nsIFolderListener listener);
