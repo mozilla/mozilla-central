@@ -529,7 +529,7 @@ var calendarListTreeView = {
             return;
         }
         if (calendar) {
-            openCalendarProperties(calendar, null);
+            openCalendarProperties(calendar);
         } else {
             openCalendarWizard();
         }

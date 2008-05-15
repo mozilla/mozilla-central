@@ -807,12 +807,12 @@ function openCalendarWizard(aCallback) {
  * Opens the calendar properties window for aCalendar
  *
  * @param aCalendar  the calendar whose properties should be displayed
- * @param aCallback  function that should be run when the dialog is accepted
  */
-function openCalendarProperties(aCalendar, aCallback) {
-    openDialog("chrome://calendar/content/calendarProperties.xul",
-               "caEditServer", "chrome,titlebar,modal",
-               {calendar: aCalendar, onOk: aCallback});
+function openCalendarProperties(aCalendar) {
+    openDialog("chrome://calendar/content/calendar-properties-dialog.xul",
+               "calendar-properties-dialog",
+               "chrome,titlebar,modal",
+               {calendar: aCalendar});
 }
 
 /**
