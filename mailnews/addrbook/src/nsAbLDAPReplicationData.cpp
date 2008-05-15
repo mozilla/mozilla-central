@@ -518,14 +518,15 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(PRBool aCreate)
 
 void nsAbLDAPProcessReplicationData::Done(PRBool aSuccess)
 {
-   if(!mInitialized) 
+   if (!mInitialized) 
        return;
 
    mState = kReplicationDone;
 
-   mQuery->Done(aSuccess);
+   if (mQuery)
+     mQuery->Done(aSuccess);
 
-   if(mListener)
+   if (mListener)
        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, aSuccess);
 
    // since this is called when all is done here, either on success,
