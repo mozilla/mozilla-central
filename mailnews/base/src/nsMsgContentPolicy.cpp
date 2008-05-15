@@ -340,8 +340,13 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
   NS_ENSURE_SUCCESS(rv, NS_OK);
 
   nsAutoString windowType;
-  rv = windowEl->GetAttribute(NS_LITERAL_STRING("windowtype"), windowType);
-  NS_ENSURE_SUCCESS(rv, NS_OK);
+  // GetDocumentElement may succeed but return nsnull, if it does, we'll
+  // treat the window as a non-msgcompose window.
+  if (windowEl)
+  {
+    rv = windowEl->GetAttribute(NS_LITERAL_STRING("windowtype"), windowType);
+    NS_ENSURE_SUCCESS(rv, NS_OK);
+  }
 
   if (windowType.Equals(NS_LITERAL_STRING("msgcompose")))
     ComposeShouldLoad(rootDocShell, aRequestingContext, aContentLocation, aDecision);
