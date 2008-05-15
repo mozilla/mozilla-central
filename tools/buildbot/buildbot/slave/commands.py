@@ -2204,16 +2204,25 @@ class Mercurial(SourceBase):
         if os.path.exists(os.path.join(self.builder.basedir,
                                        self.srcdir, ".buildbot-patched")):
             return False
-        # like Darcs, to check out a specific (old) revision, we have to do a
-        # full checkout. TODO: I think 'hg pull' plus 'hg update' might work
-        if self.revision:
-            return False
         return os.path.isdir(os.path.join(self.builder.basedir,
                                           self.srcdir, ".hg"))
 
     def doVCUpdate(self):
         d = os.path.join(self.builder.basedir, self.srcdir)
-        command = [self.vcexe, 'pull', '--update', '--verbose']
+        command = [self.vcexe, 'pull', '--verbose']
+        c = ShellCommand(self.builder, command, d,
+                         sendRC=False, timeout=self.timeout,
+                         keepStdout=True)
+        self.command = c
+        d = c.start()
+        d.addCallback(self._doUpdate)
+        return d
+
+    def _doUpdate(self, res):
+        d = os.path.join(self.builder.basedir, self.srcdir)
+        # 'hg pull' has already been run, now we need to update to a specific
+        # revision if specified, or to the tip otherwise
+        command = [self.vcexe, 'update']
         if self.args['revision']:
             command.extend(['--rev', self.args['revision']])
         c = ShellCommand(self.builder, command, d,
