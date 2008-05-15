@@ -11,6 +11,9 @@ $ENV{CVSROOT}=":ext:tbirdbld\@cvs.mozilla.org:/cvsroot";
 $ENV{MOZ_INSTALLER_USE_7ZIP}="1";
 $ENV{MOZ_PACKAGE_MSI} = 0;
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+# Both these two variables are for source server support
+$ENV{PDBSTR_PATH} = 'C:\\Program Files\\Debugging Tools for Windows\\sdk\\srcsrv\\pdbstr.exe';
+$ENV{SRCSRV_ROOT} = ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot';
 
 #- PLEASE FILL THIS IN WITH YOUR PROPER EMAIL ADDRESS
 #$BuildAdministrator = "$ENV{USER}\@$ENV{HOST}";
