@@ -801,7 +801,9 @@ function DropRecipient(target, recipient)
 
 function _awSetAutoComplete(selectElem, inputElem)
 {
-  inputElem.disableAutocomplete = selectElem.value == 'addr_newsgroups' || selectElem.value == 'addr_followup' || selectElem.value == 'addr_other';
+  inputElem.disableAutoComplete = selectElem.value == 'addr_newsgroups' ||
+                                  selectElem.value == 'addr_followup' ||
+                                  selectElem.value == 'addr_other';
 }
 
 function awSetAutoComplete(rowNumber)
