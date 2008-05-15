@@ -58,7 +58,6 @@
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-alarm-snooze-popup.js"/>
 
 <radiogroup id="custom-menupopup-radiogroup"
-            onfocus="event.target.selectedIndex = 0;"
             onblur="radiogroupBlur(event, this)"
             onmouseover="radiogroupMouseOver(event, this)">
   <radio label="&calendar.alarm.snooze.5minutes.label;"
