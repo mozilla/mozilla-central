@@ -54,14 +54,11 @@ sub unlock_datafile {
     close $lock_fh;
 }
 
-if (($#ARGV >= 0) && (-d $ARGV[0])) {
+if (($#ARGV > 0) && (-d $ARGV[0])) {
      $bonsaidir = $ARGV[0];
 } else {
-    $bonsaidir = $0;
-    $bonsaidir =~ s:/[^/]*$::;      # Remove last word, and slash before it.
-    if (($bonsaidir eq "") || ($bonsaidir eq $0)) {
-        $bonsaidir = ".";
-    }
+     my $bonsaidir = "@BONSAI_DIR@";
+     chdir $bonsaidir or die "Couldn't chdir to $bonsaidir";    
 }
 
 $datadir = $bonsaidir . "/data";
