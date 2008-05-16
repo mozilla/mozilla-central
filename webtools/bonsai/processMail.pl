@@ -26,7 +26,7 @@ use strict;
 use FileHandle;
 use Fcntl qw(:DEFAULT :flock);
 
-my $bonsaidir;
+my $bonsaidir = "@BONSAI_DIR@";
 my $datadir;
 my $lockfile;
 my $debug = 0;
@@ -56,9 +56,6 @@ sub unlock_datafile {
 
 if (($#ARGV > 0) && (-d $ARGV[0])) {
      $bonsaidir = $ARGV[0];
-} else {
-     my $bonsaidir = "@BONSAI_DIR@";
-     chdir $bonsaidir or die "Couldn't chdir to $bonsaidir";    
 }
 
 $datadir = $bonsaidir . "/data";
