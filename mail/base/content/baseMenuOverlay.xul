@@ -59,7 +59,7 @@
     <menupopup id="menu_HelpPopup" onpopupshowing="buildHelpMenu();">
 #ifdef XP_MACOSX
       <menuitem id="hintsAndTips"
-                label="&openHelpMac.label;" key="key_openHelpMacFrontend"
+                label="&openHelpMac.label;" key="key_openHelp"
                 oncommand="openRegionURL('mailnews.hints_and_tips.url');"/>
 #else
       <menuitem id="hintsAndTips"
@@ -87,13 +87,10 @@
   </menu>
   <keyset id="baseMenuKeyset">
 #ifdef XP_MACOSX
-    <key id="key_openHelpMac"
+    <key id="key_openHelp"
          oncommand="openRegionURL('mailnews.hints_and_tips.url');"
-         key="&openHelpMac.commandkey;"
-         modifiers="&openHelpMac.modifiers;"/>
-    <key id="key_openHelpMacFrontend"
-         key="&openHelpMac.frontendCommandkey;"
-         modifiers="&openHelpMac.frontendModifiers;"/>
+         key="&openHelpMac2.commandkey;"
+         modifiers="&openHelpMac2.modifiers;"/>
 #else
     <key id="key_openHelp"
          oncommand="openRegionURL('mailnews.hints_and_tips.url');"
