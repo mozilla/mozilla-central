@@ -204,14 +204,12 @@ class TinderboxPoller(base.ChangeSource):
             # ignore if build is busted
             if buildNode['status'] == 'busted':
                 continue
-            # ignore this if it is a nightly
-            if buildNode['url'] <> '':
-                continue
             c = changes.Change(who = buildNode['hostname'],
                                files = ['TODO: filename goes here'],
                                comments = buildNode['status'],
                                branch = self.branch,
-                               when = buildDate)
+                               when = buildDate,
+                               links = buildNode['url'])
             self.parent.addChange(c)
         
         # do not allow repeats - count the last change as the largest

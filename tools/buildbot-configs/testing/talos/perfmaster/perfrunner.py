@@ -141,7 +141,11 @@ class MozillaWgetLatestDated(ShellCommand):
         assert kwargs['url'] != ""
         assert kwargs['filenameSearchString'] != ""
         self.changes = kwargs['build'].source.changes
-        self.url = kwargs['url'] + str(self.changes[0].when) + "/"
+        #if this change includes a link use it
+        if self.changes[0].links:
+            self.url = self.changes[0].links
+        else:
+           self.url = kwargs['url'] + str(self.changes[0].when) + "/"
         self.filenameSearchString = kwargs['filenameSearchString']
         self.branch = "HEAD"
         self.fileURL = ""
@@ -183,7 +187,11 @@ class MozillaWgetLatest(ShellCommand):
     def __init__(self, **kwargs):
         assert kwargs['url'] != ""
         assert kwargs['filenameSearchString'] != ""
-        self.url = kwargs['url']
+        #if this change includes a link use it
+        if self.changes[0].links:
+            self.url = self.changes[0].links
+        else:
+            self.url = kwargs['url']
         self.filenameSearchString = kwargs['filenameSearchString']
         self.branch = "HEAD"
         self.fileURL = ""
