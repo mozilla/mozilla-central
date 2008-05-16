@@ -150,7 +150,7 @@
          <xul:toolbarbutton anonid="left-button" class="minimonth-nav-btns" dir="-1"
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir')))"/>
          <xul:toolbarbutton anonid="today-button" class="minimonth-nav-btns" dir="0"
-                            oncommand="this.kMinimonth.selectDate(getFloatingDate(new Date()));"/>
+                            oncommand="this.kMinimonth.selectDate(new Date());"/>
          <xul:toolbarbutton anonid="right-button" class="minimonth-nav-btns" dir="1"
                             oncommand="this.kMinimonth.advanceMonth(parseInt(this.getAttribute('dir')))"/>
        </xul:hbox>
@@ -502,7 +502,7 @@
           // Find out which should be the first day of the week
           this.weekStart = getPrefSafe("calendar.week.start", 0);
           if (!this.mValue) {
-              this.mValue = getFloatingDate(new Date());
+              this.mValue = new Date();
           }
           this.setHeader();
           this.showMonth(this.mValue);
@@ -513,7 +513,7 @@
           // Reset the headers
           var header = document.getAnonymousNodes(this)[0].childNodes[1].childNodes[0];
           var dayList = new Array(7);
-          var tempDate = getFloatingDate(new Date());
+          var tempDate = new Date();
           var i, j;
           var useOSFormat;
           tempDate.setDate(tempDate.getDate() - (tempDate.getDay() - this.weekStart));
@@ -578,7 +578,7 @@
         <parameter name="aDate"/>
         <body><![CDATA[
             if (!aDate) {
-              aDate = getFloatingDate(new Date());
+              aDate = new Date();
             } else {
               aDate = new Date(aDate);
             }
@@ -613,7 +613,7 @@
             var date = this._getStartDate(aDate);
 
             // get today's date
-            var today = getFloatingDate(new Date());
+            var today = new Date();
 
             this.mDayMap = {};
             for (var k = 1; k < calbox.childNodes.length; k++) {

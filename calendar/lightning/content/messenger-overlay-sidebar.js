@@ -70,27 +70,22 @@ function nextMonth(dt)
 }
 
 var gMiniMonthLoading = false;
-function ltnMinimonthPick(minimonth)
-{
-    if (gMiniMonthLoading)
+function ltnMinimonthPick(minimonth) {
+    if (gMiniMonthLoading) {
         return;
-
-    var jsDate = minimonth.value;
-    document.getElementById("ltnDateTextPicker").value = jsDate;
-    var cdt = jsDateToDateTime(jsDate, floating());
-
+    }
     if (document.getElementById("displayDeck").selectedPanel !=
         document.getElementById("calendar-view-box")) {
         ltnShowCalendarView(gLastShownCalendarView);
     }
-
-    cdt = cdt.getInTimezone(currentView().timezone);
+    var jsDate = minimonth.value;
+    document.getElementById("ltnDateTextPicker").value = jsDate;
+    var cdt = jsDateToDateTime(jsDate, currentView().timezone);
     cdt.isDate = true;
     currentView().goToDay(cdt);
 }
 
-function ltnOnLoad(event)
-{
+function ltnOnLoad(event) {
     // take the existing folderPaneBox (that's what thunderbird displays
     // at the left side of the application window) and stuff that inside
     // of the deck we're introducing with the contentPanel. this essentially
