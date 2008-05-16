@@ -147,6 +147,8 @@ function AbPanelLoad()
 {
   InitCommonJS();
 
+  document.title = parent.document.getElementById("sidebar-title").value;
+
   LoadPreviouslySelectedAB();
 
   // Add a listener, so we can switch directories if the current directory is

@@ -540,7 +540,7 @@
   <hbox id="abContent" flex="1">
     <vbox id="dirTreeBox" persist="width collapsed">
       <sidebarheader id="abDirTreeHeader" align="center">
-        <label id="abDirTreeHeader-title" value="&dirTreeHeader.label;"/>
+        <label id="abDirTreeHeader-title" value="&dirTreeHeader.label;" control="dirTree"/>
       </sidebarheader>
 
       <!-- FIX ME - remove document.commandDispatcher.updateCommands() when tree selection calls this automatically -->
