@@ -1391,12 +1391,18 @@ nsMsgLocalMailFolder::DeleteMessages(nsISupportsArray *messages,
   if (deleteStorage && !isMove)
   {
     MarkMsgsOnPop3Server(messages, POP3_DELETE);
+  }
+
+  PRBool isTrashFolder = mFlags & MSG_FOLDER_FLAG_TRASH;
+
+  // notify on delete from trash and shift-delete
+  if ((deleteStorage && !isMove) || isTrashFolder)
+  {
     nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
     if (notifier)
         notifier->NotifyItemDeleted(messages);
   }
 
-  PRBool isTrashFolder = mFlags & MSG_FOLDER_FLAG_TRASH;
   if (!deleteStorage && !isTrashFolder)
   {
     nsCOMPtr<nsIMsgFolder> trashFolder;
