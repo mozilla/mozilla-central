@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -41,7 +41,6 @@
 
 #include "msgCore.h"
 #include "nsIImapIncomingServer.h"
-#include "nsISupportsArray.h"
 #include "nsMsgIncomingServer.h"
 #include "nsIImapServerSink.h"
 #include "nsIStringBundle.h"
@@ -102,9 +101,9 @@ public:
 protected:
   nsresult GetFolder(const nsACString& name, nsIMsgFolder** pFolder);
   nsresult ResetFoldersToUnverified(nsIMsgFolder *parentFolder);
-  nsresult GetUnverifiedSubFolders(nsIMsgFolder *parentFolder, nsISupportsArray *aFoldersArray, PRInt32 *aNumUnverifiedFolders);
-  nsresult GetUnverifiedFolders(nsISupportsArray *aFolderArray, PRInt32 *aNumUnverifiedFolders);
-
+  void GetUnverifiedSubFolders(nsIMsgFolder *parentFolder,
+                               nsCOMArray<nsIMsgImapMailFolder> &aFoldersArray);
+  void GetUnverifiedFolders(nsCOMArray<nsIMsgImapMailFolder> &aFolderArray);
   nsresult DeleteNonVerifiedFolders(nsIMsgFolder *parentFolder);
   PRBool NoDescendentsAreVerified(nsIMsgFolder *parentFolder);
   PRBool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
@@ -126,8 +125,8 @@ private:
   nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
   nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
 
-  nsCOMPtr<nsISupportsArray> m_connectionCache;
-  nsCOMPtr<nsISupportsArray> m_urlQueue;
+  nsCOMArray<nsIImapProtocol> m_connectionCache;
+  nsCOMArray<nsIImapUrl> m_urlQueue;
   nsCOMPtr<nsIStringBundle>	m_stringBundle;
   nsCOMArray<nsIMsgFolder> m_subscribeFolders; // used to keep folder resources around while subscribe UI is up.
   nsCOMArray<nsIMsgImapMailFolder> m_foldersToStat; // folders to check for new mail with Status
