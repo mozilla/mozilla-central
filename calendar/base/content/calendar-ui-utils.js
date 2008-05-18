@@ -308,10 +308,10 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
         var item = document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", "menuitem");
         item.setAttribute("label", aLabel);
         if (aValue) {
-            item.value = aValue;
+            item.setAttribute("value", aValue);
         }
         if (aCommand) {
-          item.command = aCommand;
+            item.command = aCommand;
         }
         aParent.appendChild(item);
     }
