@@ -78,6 +78,7 @@
 #include "nsNativeCharsetUtils.h"
 
 #include "nsToolkitCompsCID.h"
+#include <stdlib.h>
 #define PROFILE_COMMANDLINE_ARG " -profile "
 
 #define XP_SHSetUnreadMailCounts "SHSetUnreadMailCountW"
