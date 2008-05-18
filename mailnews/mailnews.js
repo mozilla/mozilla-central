@@ -710,9 +710,7 @@ pref("mail.enable_automatic_image_resizing", true);
 
 #ifdef XP_MACOSX
 pref("mail.notification.sound",             "");
-#endif
-
-#ifndef XP_MACOSX
+#else
 #ifdef XP_UNIX
 pref("mail.check_new_mail", true);
 pref("mail.signature_file", "~/.signature");
@@ -724,9 +722,16 @@ pref("news.cache_xover", false);
 pref("news.show_first_unread", false);
 pref("news.sash_geometry", "");
 pref("mail.signature_date", 0);
-
 # XP_UNIX
 #endif
+# XP_MACOSX, else
+#endif
+
+// gtk2 (*nix) lacks transparent/translucent drag support (bug 376238), so we
+// want to disable it so people can see where they are dragging things.
+// (Stock gtk drag icons will be used instead.)
+#ifdef MOZ_WIDGET_GTK2
+pref("nglayout.enable_drag_images", false);
 #endif
 
 #ifdef XP_OS2
