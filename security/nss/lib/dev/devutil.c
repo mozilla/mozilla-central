@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devutil.c,v $ $Revision: 1.30 $ $Date: 2008-05-17 00:13:38 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devutil.c,v $ $Revision: 1.31 $ $Date: 2008-05-18 01:51:45 $";
 #endif /* DEBUG */
 
 #ifndef DEVM_H
@@ -630,6 +630,8 @@ get_token_objects_for_cache (
 	    nssToken_AddRef(cache->objects[objectType][j]->object->token);
 	    nssArena_Destroy(cache->objects[objectType][j]->arena);
 	}
+	nss_ZFreeIf(cache->objects[objectType]);
+	cache->objects[objectType] = NULL;
 	nssCryptokiObjectArray_Destroy(objects);
     }
     cache->searchedObjectType[objectType] = PR_TRUE;
