@@ -156,7 +156,7 @@ var BookmarksCommand = {
   // This method constructs a menuitem for a context menu for the given command.
   // This is implemented by the client so that it can intercept menuitem naming
   // as appropriate.
-  createMenuItem: function (aDisplayName, aCommandName, aSelection)
+  createMenuItem: function (aCommandName, aSelection)
   {
     var xulElement = document.createElementNS(XUL_NS, "menuitem");
     xulElement.setAttribute("cmd", aCommandName);
@@ -169,10 +169,13 @@ var BookmarksCommand = {
       for (var i=0; i<aSelection.length; ++i)
         if (!aSelection.isExpanded[i])
           shouldCollapse = false;
-      aDisplayName =  shouldCollapse? BookmarksUtils.getLocaleString("cmd_bm_collapsefolder") : aDisplayName;
+      if (shouldCollapse)
+        cmd = "cmd_bm_collapsefolder";
     break;
     }
-    xulElement.setAttribute("label", aDisplayName);
+    xulElement.setAttribute("label", BookmarksUtils.getLocaleString(cmd + ".label"));
+    xulElement.setAttribute("accesskey", BookmarksUtils.getLocaleString(cmd + ".accesskey"));
+
     return xulElement;
   },
 
@@ -208,8 +211,7 @@ var BookmarksCommand = {
       var currCommand = commonCommands[i].QueryInterface(kRDFRSCIID).Value;
       var element = null;
       if (currCommand != NC_NS_CMD + "bm_separator") {
-        var commandName = this.getCommandName(currCommand);
-        element = this.createMenuItem(commandName, currCommand, aSelection);
+        element = this.createMenuItem(currCommand, aSelection);
       }
       else if (i != 0 && i < commonCommands.length-1) {
         // Never append a separator as the first or last element in a context
@@ -346,33 +348,6 @@ var BookmarksCommand = {
     return new CommandArrayEnumerator(valid);
   },
   
-  /////////////////////////////////////////////////////////////////////////////
-  // Retrieve the human-readable name for a particular command. Used when 
-  // manufacturing a UI to invoke commands.
-  getCommandName: function (aCommand) 
-  {
-    var cmdName = aCommand.substring(NC_NS_CMD.length);
-    return BookmarksUtils.getLocaleString ("cmd_" + cmdName);
-    /*
-    try {
-      // Note: this will succeed only if there's a string in the bookmarks
-      //       string bundle for this command name. Otherwise, <xul:stringbundle/>
-      //       will throw, we'll catch & stifle the error, and look up the command
-      //       name in the datasource. 
-      return BookmarksUtils.getLocaleString ("cmd_" + cmdName);
-    }
-    catch (e) {
-    }   
-    // XXX - WORK TO DO HERE! (rjc will cry if we don't fix this) 
-    // need to ask the ds for the commands for this node, however we don't
-    // have the right params. This is kind of a problem. 
-    dump("*** BAD! EVIL! WICKED! NO! ACK! ARGH! ORGH!"+aCommand+"\n");
-    const rName = RDF.GetResource(NC_NS + "Name");
-    const rSource = RDF.GetResource(aNodeID);
-    return BMDS.GetTarget(rSource, rName, true).Value;
-    */
-  },
-    
   ///////////////////////////////////////////////////////////////////////////
   // Execute a command with the given source and arguments
   doBookmarksCommand: function (aSource, aCommand, aArgumentsArray)
