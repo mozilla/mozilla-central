@@ -43,6 +43,8 @@
 #include "prprf.h"
 #include "prmem.h"
 #include "nsTArray.h"
+#include "nsMemory.h"
+#include <ctype.h>
 
 #if defined(DEBUG_seth_) || defined(DEBUG_sspitzer_)
 #define DEBUG_MSGKEYSET 1

@@ -175,6 +175,13 @@ NS_MSG_BASE nsresult MsgMailboxGetURI(const char *nativepath, nsCString &mailbox
 
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src);
 
+NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString);
+
+/*
+ * Utility function copied from nsReadableUtils
+ */
+NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString);
+
 /*
  * Utility functions that call functions from nsINetUtil
  */

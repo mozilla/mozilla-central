@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *    Prasad Sunkari <prasad@medhas.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -42,7 +43,11 @@
 #include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgWindow.h"
-#include "nsHashPropertyBag.h"
+#include "nsInterfaceHashtable.h"
+
+#include "nsIVariant.h"
+#include "nsIWritablePropertyBag.h"
+#include "nsIWritablePropertyBag2.h"
 
 #define NS_MESSAGETRANSACTION_IID \
 { /* da621b30-1efc-11d3-abe4-00805f8ac968 */ \
@@ -55,12 +60,15 @@
 #undef  IMETHOD_VISIBILITY
 #define IMETHOD_VISIBILITY NS_VISIBILITY_DEFAULT
 
-class NS_MSG_BASE nsMsgTxn : public nsITransaction, public nsHashPropertyBag
+class NS_MSG_BASE nsMsgTxn : public nsITransaction, 
+                             public nsIWritablePropertyBag,
+                             public nsIWritablePropertyBag2
 {
-    NS_DECL_ISUPPORTS_INHERITED
-
+public:
     nsMsgTxn();
     virtual ~nsMsgTxn();
+
+    nsresult Init();
 
     NS_IMETHOD DoTransaction(void);
 
@@ -76,7 +84,15 @@ class NS_MSG_BASE nsMsgTxn : public nsITransaction, public nsHashPropertyBag
     nsresult SetMsgWindow(nsIMsgWindow *msgWindow);
     nsresult SetTransactionType(PRUint32 txnType);
  
+    NS_DECL_ISUPPORTS
+    NS_DECL_NSIPROPERTYBAG
+    NS_DECL_NSIPROPERTYBAG2
+    NS_DECL_NSIWRITABLEPROPERTYBAG
+    NS_DECL_NSIWRITABLEPROPERTYBAG2
+
 protected:
+    // a hash table of string -> nsIVariant
+    nsInterfaceHashtable<nsStringHashKey, nsIVariant> mPropertyHash;
     nsCOMPtr<nsIMsgWindow> m_msgWindow;
     PRUint32 m_txnType;
     nsresult CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, PRBool *aResult);

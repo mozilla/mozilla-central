@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
+ *   Prasad Sunkari <prasad@medhas.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -39,8 +40,7 @@
 #include "msgCore.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
 #include "nsIImapUrl.h"
@@ -72,6 +72,7 @@
 #include "nsISignatureVerifier.h"
 #include "nsICryptoHash.h"
 #include "nsNativeCharsetUtils.h"
+#include "nsDirectoryServiceUtils.h"
 #include "nsIRssIncomingServer.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgMessageService.h"
@@ -98,13 +99,12 @@ nsresult GetMessageServiceContractIDForURI(const char *uri, nsCString &contractI
   //Find protocol
   nsCAutoString uriStr(uri);
   PRInt32 pos = uriStr.FindChar(':');
-  if(pos == kNotFound)
+  if (pos == -1)
     return NS_ERROR_FAILURE;
 
-  nsCAutoString protocol;
-  uriStr.Left(protocol, pos);
+  nsCAutoString protocol(StringHead(uriStr, pos));
 
-  if (protocol.Equals("file") && uriStr.Find("application/x-message-display") != kNotFound)
+  if (protocol.Equals("file") && uriStr.Find("application/x-message-display") != -1)
     protocol.Assign("mailbox");
   //Build message service contractid
   contractID = "@mozilla.org/messenger/messageservice;1?type=";
@@ -310,6 +310,59 @@ inline PRUint32 StringHash(const nsAutoString& str)
                       str.Length() * 2);
 }
 
+/* Utility functions used in a few places in this file */
+PRInt32
+FindCharInSet(const nsCString &aString, const char* aChars) 
+{
+  PRInt32 len = strlen(aChars);
+  PRInt32 index = -1;
+  for (int i = 0; i < len; i++) {
+    index = aString.FindChar(aChars[i]);
+    if (index != -1)
+      return index;
+  }
+  return -1;
+}
+
+PRInt32
+FindCharInSet(const nsString &aString, const char* aChars) 
+{
+  PRInt32 len = strlen(aChars);
+  PRInt32 index = -1;
+  for (int i = 0; i < len; i++) {
+    index = aString.FindChar(aChars[i]);
+    if (index != -1)
+      return index;
+  }
+  return -1;
+}
+
+PRInt32
+RFindCharInSet(const nsCString &aString, const char* aChars) 
+{
+  PRInt32 len = strlen(aChars);
+  PRInt32 index = -1;
+  for (int i = 0; i < len; i++) {
+    index = aString.RFindChar(aChars[i]);
+    if (index != -1)
+      return index;
+  }
+  return -1;
+}
+
+PRInt32
+RFindCharInSet(const nsString &aString, const char* aChars) 
+{
+  PRInt32 len = strlen(aChars);
+  PRInt32 index = -1;
+  for (int i = 0; i < len; i++) {
+    index = aString.RFindChar(aChars[i]);
+    if (index != -1)
+      return index;
+  }
+  return -1;
+}
+
 // XXX : this may have other clients, in which case we'd better move it to
 //       xpcom/io/nsNativeCharsetUtils with nsAString in place of nsAutoString
 static PRBool ConvertibleToNative(const nsAutoString& str)
@@ -333,32 +386,30 @@ static PRBool ConvertibleToNative(const nsAutoString& str)
 
 nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
 {
-  NS_NAMED_LITERAL_CSTRING (illegalChars,
-                            FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS ILLEGAL_FOLDER_CHARS);
   nsCAutoString str(name);
 
   // Given a filename, make it safe for filesystem
   // certain filenames require hashing because they
   // are too long or contain illegal characters
-  PRInt32 illegalCharacterIndex = str.FindCharInSet(illegalChars);
+  PRInt32 illegalCharacterIndex = FindCharInSet(str, 
+                                                FILE_PATH_SEPARATOR 
+                                                FILE_ILLEGAL_CHARACTERS 
+                                                ILLEGAL_FOLDER_CHARS);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
-  if (illegalCharacterIndex == kNotFound)
+  if (illegalCharacterIndex == -1)
   {
-  NS_NAMED_LITERAL_CSTRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
-  NS_NAMED_LITERAL_CSTRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
-
     PRInt32 lastIndex = str.Length() - 1;
-    if(str.FindCharInSet(illegalFirstChars) == 0)
-    illegalCharacterIndex = 0;
-  else if(str.RFindCharInSet(illegalLastChars) == lastIndex)
-    illegalCharacterIndex = lastIndex;
-  else
-    illegalCharacterIndex = -1;
+    if (NS_LITERAL_CSTRING(ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER).FindChar(str[0]) != -1)
+      illegalCharacterIndex = 0;
+    else if (NS_LITERAL_CSTRING(ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER).FindChar(str[lastIndex]) != -1)
+      illegalCharacterIndex = lastIndex;
+    else
+      illegalCharacterIndex = -1;
   }
 
   char hashedname[MAX_LEN + 1];
-  if (illegalCharacterIndex == kNotFound)
+  if (illegalCharacterIndex == -1)
   {
     // no illegal chars, it's just too long
     // keep the initial part of the string, but hash to make it fit
@@ -393,32 +444,30 @@ nsresult NS_MsgHashIfNecessary(nsCAutoString &name)
 // because MAX_LEN is defined rather conservatively in the first place.
 nsresult NS_MsgHashIfNecessary(nsAutoString &name)
 {
-  PRInt32 illegalCharacterIndex = name.FindCharInSet(
-                                  FILE_PATH_SEPARATOR FILE_ILLEGAL_CHARACTERS ILLEGAL_FOLDER_CHARS);
+  PRInt32 illegalCharacterIndex = FindCharInSet(name,
+                                                FILE_PATH_SEPARATOR 
+                                                FILE_ILLEGAL_CHARACTERS 
+                                                ILLEGAL_FOLDER_CHARS);
 
   // Need to check the first ('.') and last ('.', '~' and ' ') char
-  if (illegalCharacterIndex == kNotFound)
+  if (illegalCharacterIndex == -1)
   {
-  NS_NAMED_LITERAL_STRING (illegalFirstChars, ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER);
-  NS_NAMED_LITERAL_STRING (illegalLastChars, ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER);
-
     PRInt32 lastIndex = name.Length() - 1;
-    if(name.FindCharInSet(illegalFirstChars) == 0)
-    illegalCharacterIndex = 0;
-  else if(name.RFindCharInSet(illegalLastChars) == lastIndex)
-    illegalCharacterIndex = lastIndex;
-  else
-    illegalCharacterIndex = -1;
+    if (NS_LITERAL_STRING(ILLEGAL_FOLDER_CHARS_AS_FIRST_LETTER).FindChar(name[0]) != -1)
+      illegalCharacterIndex = 0;
+    else if (NS_LITERAL_STRING(ILLEGAL_FOLDER_CHARS_AS_LAST_LETTER).FindChar(name[lastIndex]) != -1)
+      illegalCharacterIndex = lastIndex;
+    else
+      illegalCharacterIndex = -1;
   }
 
   char hashedname[9];
   PRInt32 keptLength = -1;
-  if (illegalCharacterIndex != kNotFound)
-      keptLength = illegalCharacterIndex;
+  if (illegalCharacterIndex != -1)
+    keptLength = illegalCharacterIndex;
   else if (!ConvertibleToNative(name))
-      keptLength = 0;
-  else if (name.Length() > MAX_LEN)
-  {
+    keptLength = 0;
+  else if (name.Length() > MAX_LEN) {
     keptLength = MAX_LEN-8;
     // To avoid keeping only the high surrogate of a surrogate pair
     if (NS_IS_HIGH_SURROGATE(name.CharAt(keptLength-1)))
@@ -428,7 +477,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   if (keptLength >= 0) {
     PR_snprintf(hashedname, 9, "%08lx", (unsigned long) StringHash(name));
     name.SetLength(keptLength);
-    AppendASCIItoUTF16(hashedname, name);
+    name.Append(NS_ConvertASCIItoUTF16(hashedname));
   }
 
   return NS_OK;
@@ -442,7 +491,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
   // A file name has to be in native charset. Here we convert
   // to UTF-16 and check for 'unsafe' characters before converting
   // to native charset.
-  NS_ENSURE_TRUE(IsUTF8(nsDependentCString(aFolderURI)), NS_ERROR_UNEXPECTED);
+  NS_ENSURE_TRUE(MsgIsUTF8(nsDependentCString(aFolderURI)), NS_ERROR_UNEXPECTED);
   NS_ConvertUTF8toUTF16 oldPath(aFolderURI);
 
   nsAutoString pathPiece, path;
@@ -455,7 +504,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
   // trick to make sure we only add the path to the first n-1 folders
   PRBool haveFirst=PR_FALSE;
   while (startSlashPos != -1) {
-    oldPath.Mid(pathPiece, startSlashPos + 1, endSlashPos - startSlashPos);
+    pathPiece.Assign(Substring(oldPath, startSlashPos + 1, endSlashPos - startSlashPos));
     // skip leading '/' (and other // style things)
     if (!pathPiece.IsEmpty())
     {
@@ -488,7 +537,6 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
     if (startSlashPos >= endSlashPos)
       break;
   }
-
   return NS_CopyUnicodeToNative(path, aPathCString);
 }
 
@@ -520,8 +568,10 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
 
   // hardcoded "Re" so that noone can configure Mozilla standards incompatible
   nsCAutoString checkString("Re,RE,re,rE");
-  if (!localizedRe.IsEmpty())
-    checkString.Append(NS_LITERAL_CSTRING(",") + localizedRe);
+  if (!localizedRe.IsEmpty()) {
+    checkString.Append(',');
+    checkString.Append(localizedRe);
+  }
 
   // decode the string
   nsCString decodedString;
@@ -568,7 +618,7 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
         const char *s2 = s + tokenLength + 1; /* Skip over "Re[" */
 
         /* Skip forward over digits after the "[". */
-        while (s2 < (s_end - 2) && IS_DIGIT(*s2))
+        while (s2 < (s_end - 2) && isdigit((unsigned char)*s2))
           s2++;
 
         /* Now ensure that the following thing is "]:"
@@ -1442,6 +1492,82 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
   return mailboxUri.IsEmpty() ? NS_ERROR_FAILURE : NS_OK;
 }
 
+/*
+ * Function copied from nsReadableUtils.
+ * Migrating to frozen linkage is the only change done
+ */
+NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString)
+{
+  const char *done_reading = aString.EndReading();
+
+  PRInt32 state = 0;
+  PRBool overlong = PR_FALSE;
+  PRBool surrogate = PR_FALSE;
+  PRBool nonchar = PR_FALSE;
+  PRUint16 olupper = 0; // overlong byte upper bound.
+  PRUint16 slower = 0;  // surrogate byte lower bound.
+
+  const char *ptr = aString.BeginReading();
+
+  while (ptr < done_reading) {
+    PRUint8 c;
+    
+    if (0 == state) {
+
+      c = *ptr++;
+
+      if ((c & 0x80) == 0x00) 
+        continue;
+
+      if ( c <= 0xC1 ) // [80-BF] where not expected, [C0-C1] for overlong.
+        return PR_FALSE;
+      else if ((c & 0xE0) == 0xC0) 
+        state = 1;
+      else if ((c & 0xF0) == 0xE0) {
+        state = 2;
+        if ( c == 0xE0 ) { // to exclude E0[80-9F][80-BF] 
+          overlong = PR_TRUE;
+          olupper = 0x9F;
+        } else if ( c == 0xED ) { // ED[A0-BF][80-BF] : surrogate codepoint
+          surrogate = PR_TRUE;
+          slower = 0xA0;
+        } else if ( c == 0xEF ) // EF BF [BE-BF] : non-character
+          nonchar = PR_TRUE;
+      } else if ( c <= 0xF4 ) { // XXX replace /w UTF8traits::is4byte when it's updated to exclude [F5-F7].(bug 199090)
+        state = 3;
+        nonchar = PR_TRUE;
+        if ( c == 0xF0 ) { // to exclude F0[80-8F][80-BF]{2}
+          overlong = PR_TRUE;
+          olupper = 0x8F;
+        }
+        else if ( c == 0xF4 ) { // to exclude F4[90-BF][80-BF] 
+          // actually not surrogates but codepoints beyond 0x10FFFF
+          surrogate = PR_TRUE;
+          slower = 0x90;
+        }
+      } else
+        return PR_FALSE; // Not UTF-8 string
+    }
+    
+    while (ptr < done_reading && state) {
+      c = *ptr++;
+      --state;
+
+      // non-character : EF BF [BE-BF] or F[0-7] [89AB]F BF [BE-BF]
+      if ( nonchar &&  ( !state &&  c < 0xBE ||
+           state == 1 && c != 0xBF  ||
+           state == 2 && 0x0F != (0x0F & c) ))
+        nonchar = PR_FALSE;
+
+      if (!(c & 0xC0) == 0x80 || overlong && c <= olupper ||
+           surrogate && slower <= c || nonchar && !state )
+        return PR_FALSE; // Not UTF-8 string
+      overlong = surrogate = PR_FALSE;
+    }
+  }
+  return !state; // state != 0 at the end indicates an invalid UTF-8 seq. 
+}
+
 NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src)
 {
   // decode quoted printable text in place
@@ -1661,3 +1787,44 @@ NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
   return resultBuffer;
 }
 
+NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
+{
+#ifdef MOZILLA_INTERNAL_API
+  // Use the convenience function provided by the internal API.
+  aString.CompressWhitespace(PR_TRUE, PR_TRUE);
+#else
+  // This code is frozen linkage specific
+  aString.Trim(" \f\n\r\t\v");
+
+  char *start, *end;
+  aString.BeginWriting(&start, &end);
+
+  for (char *cur = start; cur < end; ++cur) {
+    if (!IS_SPACE(*cur))
+      continue;
+
+    *cur = ' ';
+
+    if (!IS_SPACE(*(cur + 1)))
+      continue;
+
+    // Loop through the white space
+    char *wend = cur + 2;
+    while (IS_SPACE(*wend)) 
+      ++wend;
+
+    PRUint32 wlen = wend - cur - 1;
+
+    // fix "end"
+    end -= wlen;
+
+    // move everything forwards a bit
+    for (char *m = cur + 1; m < end; ++m) {
+      *m = *(m + wlen);
+    }
+  }
+
+  // Set the new length.
+  aString.SetLength(end - start);
+#endif
+}

@@ -46,6 +46,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgImapMailFolder.h"
 #include "nsThreadUtils.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsImapMoveCoalescer, nsIUrlListener)
 
@@ -83,7 +84,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
         if (!keysToAdd)
           return NS_ERROR_OUT_OF_MEMORY;
       }
-      if (keysToAdd->IndexOf(key) == kNotFound)
+      if (keysToAdd->IndexOf(key) == -1)
         keysToAdd->AppendElement(key);
       return NS_OK;
     }
@@ -263,7 +264,8 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr <nsIURI> url;
         nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(m_coalescer);
-        nsIThread *thread = NS_GetCurrentThread();
+        nsCOMPtr <nsIThread> thread;
+        NS_GetCurrentThread(getter_AddRefs(thread));
         rv = imapService->SelectFolder(thread, m_destFolder, listener, nsnull, getter_AddRefs(url));
       }
     }

@@ -58,6 +58,7 @@
 #include "nsIPrefService.h"
 #include "prlog.h"
 #include "nsMsgFolderFlags.h"
+#include <stdlib.h>
 
 static PRLogModuleInfo *MsgPurgeLogModule = nsnull;
 

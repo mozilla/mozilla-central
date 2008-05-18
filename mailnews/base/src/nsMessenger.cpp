@@ -2424,8 +2424,8 @@ static int CompareAttachmentPartId(const char * aAttachUrlLeft, const char * aAt
   long idLeft, idRight;
   do
   {
-    NS_ABORT_IF_FALSE(partIdLeft && NS_IS_DIGIT(*partIdLeft), "Invalid character in part id string");
-    NS_ABORT_IF_FALSE(partIdRight && NS_IS_DIGIT(*partIdRight), "Invalid character in part id string");
+    NS_ABORT_IF_FALSE(partIdLeft && IS_DIGIT(*partIdLeft), "Invalid character in part id string");
+    NS_ABORT_IF_FALSE(partIdRight && IS_DIGIT(*partIdRight), "Invalid character in part id string");
 
     // if the part numbers are different then the numerically smaller one is first
     idLeft  = strtol(partIdLeft, &partIdLeft, 10);

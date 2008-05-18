@@ -42,6 +42,7 @@
 #include "nsIMsgIdentity.h"
 #include "nsIPrefBranch.h"
 #include "msgCore.h"
+#include "nsCOMPtr.h"
 
 
 class NS_MSG_BASE nsMsgIdentity : public nsIMsgIdentity

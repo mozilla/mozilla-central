@@ -41,8 +41,7 @@
 #include "msgCore.h" // for pre-compiled headers
 #include "nsMsgIdentity.h"
 #include "nsIPrefService.h"
-#include "nsReadableUtils.h"
-
+#include "nsStringGlue.h"
 #include "nsMsgCompCID.h"
 #include "nsIRDFService.h"
 #include "nsIRDFResource.h"
@@ -56,6 +55,8 @@
 #include "nsISupportsObsolete.h"
 #include "nsISupportsPrimitives.h"
 #include "nsMsgUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 

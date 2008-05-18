@@ -20,6 +20,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *    Prasad Sunkari <prasad@medhas.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,8 +39,22 @@
 #include "nsMsgTxn.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgDatabase.h"
+#include "nsCOMArray.h"
+#include "nsArrayEnumerator.h"
+#include "nsComponentManagerUtils.h"
+#include "nsIVariant.h"
+#include "nsIProperty.h"
 
-NS_IMPL_ISUPPORTS_INHERITED1(nsMsgTxn, nsHashPropertyBag, nsITransaction)
+NS_IMPL_THREADSAFE_ADDREF(nsMsgTxn)
+NS_IMPL_THREADSAFE_RELEASE(nsMsgTxn)
+NS_INTERFACE_MAP_BEGIN(nsMsgTxn)
+  NS_INTERFACE_MAP_ENTRY(nsIWritablePropertyBag)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsIPropertyBag, nsIWritablePropertyBag)
+  NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIWritablePropertyBag)
+  NS_INTERFACE_MAP_ENTRY(nsITransaction)
+  NS_INTERFACE_MAP_ENTRY(nsIPropertyBag2)
+  NS_INTERFACE_MAP_ENTRY(nsIWritablePropertyBag2)
+NS_INTERFACE_MAP_END
 
 nsMsgTxn::nsMsgTxn() 
 {
@@ -50,6 +65,211 @@ nsMsgTxn::~nsMsgTxn()
 {
 }
 
+nsresult nsMsgTxn::Init()
+{
+  return mPropertyHash.Init() ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
+}
+
+NS_IMETHODIMP nsMsgTxn::HasKey(const nsAString& name, PRBool *aResult)
+{
+  *aResult = mPropertyHash.Get(name, nsnull);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgTxn::Get(const nsAString& name, nsIVariant* *_retval)
+{
+  mPropertyHash.Get(name, _retval);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgTxn::GetProperty(const nsAString& name, nsIVariant* * _retval)
+{
+  return mPropertyHash.Get(name, _retval) ? NS_OK : NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsMsgTxn::SetProperty(const nsAString& name, nsIVariant *value)
+{
+  NS_ENSURE_ARG_POINTER(value);
+  return mPropertyHash.Put(name, value) ? NS_OK : NS_ERROR_FAILURE;
+}
+
+NS_IMETHODIMP nsMsgTxn::DeleteProperty(const nsAString& name)
+{
+  if (!mPropertyHash.Get(name, nsnull))
+    return NS_ERROR_FAILURE;
+
+  mPropertyHash.Remove(name);
+  return mPropertyHash.Get(name, nsnull) ? NS_ERROR_FAILURE : NS_OK;
+}
+
+//
+// nsSimpleProperty class and impl; used for GetEnumerator
+//
+
+class nsSimpleProperty : public nsIProperty 
+{
+public:
+  nsSimpleProperty(const nsAString& aName, nsIVariant* aValue)
+      : mName(aName), mValue(aValue)
+  {
+  }
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIPROPERTY
+protected:
+  nsString mName;
+  nsCOMPtr<nsIVariant> mValue;
+};
+
+NS_IMPL_ISUPPORTS1(nsSimpleProperty, nsIProperty)
+
+NS_IMETHODIMP nsSimpleProperty::GetName(nsAString& aName)
+{
+  aName.Assign(mName);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsSimpleProperty::GetValue(nsIVariant* *aValue)
+{
+  NS_IF_ADDREF(*aValue = mValue);
+  return NS_OK;
+}
+
+// end nsSimpleProperty
+
+PR_STATIC_CALLBACK(PLDHashOperator)
+PropertyHashToArrayFunc (const nsAString &aKey,
+                         nsIVariant* aData,
+                         void *userArg)
+{
+  nsCOMArray<nsIProperty> *propertyArray =
+      static_cast<nsCOMArray<nsIProperty> *>(userArg);
+  nsSimpleProperty *sprop = new nsSimpleProperty(aKey, aData);
+  propertyArray->AppendObject(sprop);
+  return PL_DHASH_NEXT;
+}
+
+NS_IMETHODIMP nsMsgTxn::GetEnumerator(nsISimpleEnumerator* *_retval)
+{
+  nsCOMArray<nsIProperty> propertyArray;
+  mPropertyHash.EnumerateRead(PropertyHashToArrayFunc, &propertyArray);
+  return NS_NewArrayEnumerator(_retval, propertyArray);
+}
+
+#define IMPL_GETSETPROPERTY_AS(Name, Type) \
+NS_IMETHODIMP \
+nsMsgTxn::GetPropertyAs ## Name (const nsAString & prop, Type *_retval) \
+{ \
+    nsIVariant* v = mPropertyHash.GetWeak(prop); \
+    if (!v) \
+        return NS_ERROR_NOT_AVAILABLE; \
+    return v->GetAs ## Name(_retval); \
+} \
+\
+NS_IMETHODIMP \
+nsMsgTxn::SetPropertyAs ## Name (const nsAString & prop, Type value) \
+{ \
+    nsresult rv; \
+    nsCOMPtr<nsIWritableVariant> var = do_CreateInstance(NS_VARIANT_CONTRACTID, &rv); \
+    NS_ENSURE_SUCCESS(rv, rv); \
+    var->SetAs ## Name(value); \
+    return SetProperty(prop, var); \
+}
+
+IMPL_GETSETPROPERTY_AS(Int32, PRInt32)
+IMPL_GETSETPROPERTY_AS(Uint32, PRUint32)
+IMPL_GETSETPROPERTY_AS(Int64, PRInt64)
+IMPL_GETSETPROPERTY_AS(Uint64, PRUint64)
+IMPL_GETSETPROPERTY_AS(Double, double)
+IMPL_GETSETPROPERTY_AS(Bool, PRBool)
+
+NS_IMETHODIMP nsMsgTxn::GetPropertyAsAString(const nsAString & prop, 
+                                             nsAString & _retval)
+{
+  nsIVariant* v = mPropertyHash.GetWeak(prop);
+  if (!v)
+    return NS_ERROR_NOT_AVAILABLE;
+  return v->GetAsAString(_retval);
+}
+
+NS_IMETHODIMP nsMsgTxn::GetPropertyAsACString(const nsAString & prop, 
+                                              nsACString & _retval)
+{
+  nsIVariant* v = mPropertyHash.GetWeak(prop);
+  if (!v)
+    return NS_ERROR_NOT_AVAILABLE;
+  return v->GetAsACString(_retval);
+}
+
+NS_IMETHODIMP nsMsgTxn::GetPropertyAsAUTF8String(const nsAString & prop, 
+                                                 nsACString & _retval)
+{
+  nsIVariant* v = mPropertyHash.GetWeak(prop);
+  if (!v)
+    return NS_ERROR_NOT_AVAILABLE;
+  return v->GetAsAUTF8String(_retval);
+}
+
+NS_IMETHODIMP nsMsgTxn::GetPropertyAsInterface(const nsAString & prop,
+                                               const nsIID & aIID,
+                                               void** _retval)
+{
+  nsIVariant* v = mPropertyHash.GetWeak(prop);
+  if (!v)
+    return NS_ERROR_NOT_AVAILABLE;
+  nsCOMPtr<nsISupports> val;
+  nsresult rv = v->GetAsISupports(getter_AddRefs(val));
+  if (NS_FAILED(rv))
+    return rv;
+  if (!val) {
+    // We have a value, but it's null
+    *_retval = nsnull;
+    return NS_OK;
+  }
+  return val->QueryInterface(aIID, _retval);
+}
+
+NS_IMETHODIMP nsMsgTxn::SetPropertyAsAString(const nsAString & prop, 
+                                             const nsAString & value)
+{
+  nsresult rv;
+  nsCOMPtr<nsIWritableVariant> var = do_CreateInstance(NS_VARIANT_CONTRACTID, &rv); 
+  NS_ENSURE_SUCCESS(rv, rv); 
+  var->SetAsAString(value);
+  return SetProperty(prop, var);
+}
+
+NS_IMETHODIMP nsMsgTxn::SetPropertyAsACString(const nsAString & prop, 
+                                              const nsACString & value)
+{
+  nsresult rv;
+  nsCOMPtr<nsIWritableVariant> var = do_CreateInstance(NS_VARIANT_CONTRACTID, &rv); 
+  NS_ENSURE_SUCCESS(rv, rv); 
+  var->SetAsACString(value);
+  return SetProperty(prop, var);
+}
+
+NS_IMETHODIMP nsMsgTxn::SetPropertyAsAUTF8String(const nsAString & prop, 
+                                                 const nsACString & value)
+{
+  nsresult rv;
+  nsCOMPtr<nsIWritableVariant> var = do_CreateInstance(NS_VARIANT_CONTRACTID, &rv); 
+  NS_ENSURE_SUCCESS(rv, rv); 
+  var->SetAsAUTF8String(value);
+  return SetProperty(prop, var);
+}
+
+NS_IMETHODIMP nsMsgTxn::SetPropertyAsInterface(const nsAString & prop, 
+                                               nsISupports* value)
+{
+  nsresult rv;
+  nsCOMPtr<nsIWritableVariant> var = do_CreateInstance(NS_VARIANT_CONTRACTID, &rv); 
+  NS_ENSURE_SUCCESS(rv, rv); 
+  var->SetAsISupports(value);
+  return SetProperty(prop, var);
+}
+
+/////////////////////// Transaction Stuff //////////////////
 NS_IMETHODIMP nsMsgTxn::DoTransaction(void)
 {
   return NS_OK;

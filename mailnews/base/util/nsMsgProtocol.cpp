@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsMsgProtocol.h"
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIStreamTransportService.h"
@@ -140,7 +140,9 @@ nsMsgProtocol::OpenNetworkSocketWithInfo(const char * aHostName,
   strans->SetSecurityCallbacks(callbacks);
 
   // creates cyclic reference!
-  strans->SetEventSink(this, NS_GetCurrentThread());
+  nsCOMPtr<nsIThread> currentThread;
+  NS_GetCurrentThread(getter_AddRefs(currentThread));
+  strans->SetEventSink(this, currentThread);
 
   m_socketIsOpen = PR_FALSE;
   m_transport = strans;

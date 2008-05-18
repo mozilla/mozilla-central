@@ -40,7 +40,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsILoadGroup.h"
 #include "nsIDocShell.h"
 #include "nsIWebProgress.h"
@@ -613,13 +613,9 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetFileExtension(nsACString &aFileExtension)
 {
   if (!mAttachmentFileName.IsEmpty())
   {
-    nsCAutoString extension;
     PRInt32 pos = mAttachmentFileName.RFindChar(PRUnichar('.'));
     if (pos > 0)
-      mAttachmentFileName.Right(extension,
-                                mAttachmentFileName.Length() -
-                                (pos + 1) /* skip the '.' */);
-    aFileExtension = extension;
+      aFileExtension = Substring(mAttachmentFileName, pos + 1 /* skip the '.' */);
     return NS_OK;
   }
   return m_baseURL->GetFileExtension(aFileExtension);

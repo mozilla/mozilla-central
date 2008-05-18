@@ -1921,7 +1921,7 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
       nsCAutoString domain;
       PRInt32 atPos = authorEmailAddress.FindChar('@');
       if (atPos >= 0)
-        authorEmailAddress.Right(domain, authorEmailAddress.Length() - atPos - 1);
+        domain = Substring(authorEmailAddress, atPos + 1);
       if (!domain.IsEmpty() && MsgHostDomainIsTrusted(domain, trustedMailDomains))
       {
         // mark this msg as non-junk, because we whitelisted it.
@@ -2694,8 +2694,13 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildNamed(const nsAString& name, nsISupports **
       nsString folderName;
       rv = folder->GetName(folderName);
       // case-insensitive compare is probably LCD across OS filesystems
+#ifdef MOZILLA_INTERNAL_API
       if (NS_SUCCEEDED(rv) &&
           folderName.Equals(name, nsCaseInsensitiveStringComparator()))
+#else
+      if (NS_SUCCEEDED(rv) &&
+          folderName.Equals(name, CaseInsensitiveCompare))
+#endif
       {
         NS_ADDREF(*aChild = folder);
         return NS_OK;
@@ -2731,8 +2736,13 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildWithURI(const nsACString& uri, PRBool deep,
       const char *folderURI;
       rv = folderResource->GetValueConst(&folderURI);
       if (NS_FAILED(rv)) return rv;
+#ifdef MOZILLA_INTERNAL_API
       PRBool equal = folderURI && (caseInsensitive ? uri.Equals(folderURI, nsCaseInsensitiveCStringComparator())
                                                    : uri.Equals(folderURI));
+#else
+      PRBool equal = folderURI && (caseInsensitive ? uri.Equals(folderURI, CaseInsensitiveCompare)
+                                                   : uri.Equals(folderURI));
+#endif
       if (equal)
       {
         *child = folder;
@@ -2924,6 +2934,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   rv = GetRootFolder(getter_AddRefs(rootFolder));
   if (NS_SUCCEEDED(rv) && rootFolder && (rootFolder.get() == (nsIMsgFolder *)this))
   {
+#ifdef MOZILLA_INTERNAL_API
     if (escapedName.LowerCaseEqualsLiteral("inbox"))
       uri += "Inbox";
     else if (escapedName.LowerCaseEqualsLiteral("unsent%20messages"))
@@ -2938,6 +2949,22 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
       uri +="Templates";
     else
       uri += escapedName.get();
+#else
+    if (escapedName.Equals("inbox", CaseInsensitiveCompare))
+      uri += "Inbox";
+    else if (escapedName.Equals("unsent%20messages", CaseInsensitiveCompare))
+      uri += "Unsent%20Messages";
+    else if (escapedName.Equals("drafts", CaseInsensitiveCompare))
+      uri += "Drafts";
+    else if (escapedName.Equals("trash", CaseInsensitiveCompare))
+      uri += "Trash";
+    else if (escapedName.Equals("sent", CaseInsensitiveCompare))
+      uri += "Sent";
+    else if (escapedName.Equals("templates", CaseInsensitiveCompare))
+      uri +="Templates";
+    else
+      uri += escapedName.get();
+#endif
   }
   else
     uri += escapedName.get();
@@ -3041,7 +3068,11 @@ nsMsgDBFolder::CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder 
     nsString folderName;
 
     msgFolder->GetName(folderName);
+#ifdef MOZILLA_INTERNAL_API
     if (folderName.Equals(newFolderName, nsCaseInsensitiveStringComparator()))
+#else
+    if (folderName.Equals(newFolderName, CaseInsensitiveCompare))
+#endif
     {
       ThrowAlertMsg("folderExists", msgWindow);
       return NS_MSG_FOLDER_EXISTS;
@@ -3111,11 +3142,11 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   if (!parentFolder)
     return NS_ERROR_FAILURE;
   nsCOMPtr<nsISupports> parentSupport = do_QueryInterface(parentFolder);
-  nsCOMPtr <nsILocalFile> oldSummaryFile;
+  nsCOMPtr<nsILocalFile> oldSummaryFile;
   rv = GetSummaryFileLocation(oldPathFile, getter_AddRefs(oldSummaryFile));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsILocalFile> dirFile;
+  nsCOMPtr<nsILocalFile> dirFile;
   PRUint32 cnt = 0;
   if (mSubFolders)
     mSubFolders->Count(&cnt);
@@ -3123,18 +3154,14 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   if (cnt > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
-  // convert from PRUnichar* to char* due to not having Rename(PRUnichar*)
-  // function in nsIFileSpec
-  nsAutoString safeName(aNewName);
-  NS_MsgHashIfNecessary(safeName);
-  nsCAutoString newDiskName;
-  if (NS_FAILED(NS_CopyUnicodeToNative(safeName, newDiskName)))
-    return NS_ERROR_FAILURE;
+  nsAutoString newDiskName(aNewName);
+  NS_MsgHashIfNecessary(newDiskName);
 
-  nsCAutoString oldLeafName;
-  oldPathFile->GetNativeLeafName(oldLeafName);
-
+#ifdef MOZILLA_INTERNAL_API
   if (mName.Equals(aNewName, nsCaseInsensitiveStringComparator()))
+#else
+  if (mName.Equals(aNewName, CaseInsensitiveCompare))
+#endif
   {
     rv = ThrowAlertMsg("folderExists", msgWindow);
     return NS_MSG_FOLDER_EXISTS;
@@ -3156,14 +3183,14 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
 
   ForceDBClosed();
 
-  nsCAutoString newNameDirStr(newDiskName);  //save of dir name before appending .msf
+  nsAutoString newNameDirStr(newDiskName);  //save of dir name before appending .msf
 
   if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
-    rv = oldPathFile->MoveToNative(nsnull, newDiskName);
+    rv = oldPathFile->MoveTo(nsnull, newDiskName);
   if (NS_SUCCEEDED(rv))
   {
-    newDiskName += SUMMARY_SUFFIX;
-    oldSummaryFile->MoveToNative(nsnull, newDiskName);
+    newDiskName.AppendLiteral(SUMMARY_SUFFIX);
+    oldSummaryFile->MoveTo(nsnull, newDiskName);
   }
   else
   {
@@ -3175,7 +3202,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   {
     // rename "*.sbd" directory
     newNameDirStr.AppendLiteral(".sbd");
-    dirFile->MoveToNative(nsnull, newNameDirStr);
+    dirFile->MoveTo(nsnull, newNameDirStr);
   }
 
   nsCOMPtr<nsIMsgFolder> newFolder;
@@ -4463,8 +4490,12 @@ nsMsgDBFolder::GetStringWithFolderNameFromBundle(const char * msgName, nsAString
       folderName.get(),
       kLocalizedBrandShortName
     };
+
+    nsString resultStr;
     rv = bundle->FormatStringFromName(NS_ConvertASCIItoUTF16(msgName).get(),
-                                      formatStrings, 2, getter_Copies(aResult));
+                                      formatStrings, 2, getter_Copies(resultStr));
+    if (NS_SUCCEEDED(rv))
+      aResult.Assign(resultStr);
   }
   return rv;
 }
@@ -4710,14 +4741,14 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
       // Mail.app doesn't wrap the boundary id in quotes so we need
       // to be sure to handle an unquoted boundary.
       PRInt32 boundaryIndex = curLine.Find("boundary=", PR_TRUE /* ignore case*/);
-      if (boundaryIndex != kNotFound)
+      if (boundaryIndex != -1)
       {
         boundaryIndex += 9;
         if (curLine[boundaryIndex] == '\"')
           boundaryIndex++;
 
         PRInt32 endBoundaryIndex = curLine.RFindChar('"');
-        if (endBoundaryIndex == kNotFound)
+        if (endBoundaryIndex == -1)
           endBoundaryIndex = curLine.Length(); // no trailing quote? assume the boundary runs to the end of the line
 
         // prepend "--" to boundary, and then boundary delimiter, minus the trailing "
@@ -4760,9 +4791,15 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
         inMsgBody = PR_TRUE;
         continue;
       }
+#ifdef MOZILLA_INTERNAL_API
       if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Type:"),
                            nsCaseInsensitiveCStringComparator()) ||
                            lookingForCharset)
+#else
+      if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Type:"),
+                           CaseInsensitiveCompare) ||
+                           lookingForCharset)
+#endif
       {
         // look for a charset in the Content-Type header line, we'll take the first one we find.
         nsCOMPtr<nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
@@ -4778,11 +4815,20 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
         else if (curLine.Find("multipart/", PR_TRUE) >= 0)
           lookingForBoundary = PR_TRUE;
       }
+#ifdef MOZILLA_INTERNAL_API
       else if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
                nsCaseInsensitiveCStringComparator()))
+#else
+      else if (StringBeginsWith(curLine, NS_LITERAL_CSTRING("Content-Transfer-Encoding:"),
+               CaseInsensitiveCompare))
+#endif
       {
-        curLine.Right(encoding, curLine.Length() - 27);
+        encoding = StringTail(curLine, curLine.Length() - 27);
+#ifdef MOZILLA_INTERNAL_API
         if (encoding.LowerCaseEqualsLiteral("base64"))
+#else
+        if (encoding.Equals("base64", CaseInsensitiveCompare))
+#endif
           isBase64 = PR_TRUE;
       }
     }
@@ -4812,7 +4858,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
 
   // finally, truncate the string based on aMaxOutputLen
   if (aMsgText.Length() > aMaxOutputLen) {
-    if (IsASCII(aMsgText))
+    if (NS_IsAscii(aMsgText.BeginReading()))
       aMsgText.SetLength(aMaxOutputLen);
     else
       nsMsgI18NShrinkUTF8Str(nsCString(aMsgText),
@@ -4833,7 +4879,11 @@ NS_IMETHODIMP nsMsgDBFolder::GetMsgTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputS
  */
 void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIsComplete, nsCString& aMsgSnippet)
 {
+#ifdef MOZILLA_INTERNAL_API
   if (aEncodingType.LowerCaseEqualsLiteral("base64"))
+#else
+  if (aEncodingType.Equals("base64", CaseInsensitiveCompare))
+#endif
   {
     PRInt32 base64Len = aMsgSnippet.Length();
     if (aIsComplete)
@@ -4843,10 +4893,17 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIs
       aMsgSnippet.Adopt(decodedBody);
 
     // base64 encoded message haven't had line endings converted to LFs yet.
-    aMsgSnippet.ReplaceChar('\r', '\n');
-
+    PRInt32 offset = aMsgSnippet.FindChar('\r');
+    while (offset != -1) {
+      aMsgSnippet.Replace(offset, 1, '\n');
+      offset = aMsgSnippet.FindChar('\r', offset);
+    }
   }
+#ifdef MOZILLA_INTERNAL_API
   else if (aEncodingType.LowerCaseEqualsLiteral("quoted-printable"))
+#else
+  else if (aEncodingType.Equals("quoted-printable", CaseInsensitiveCompare))
+#endif
   {
     // giant hack - decode in place, and truncate string.
     MsgStripQuotedPrintable((unsigned char *) aMsgSnippet.get());
@@ -4869,7 +4926,7 @@ void nsMsgDBFolder::compressQuotesInMsgSnippet(const nsString& aMsgSnippet, nsAS
   while (offset < msgBodyStrLen)
   {
     lineFeedPos = aMsgSnippet.FindChar('\n', offset);
-    if (lineFeedPos != kNotFound)
+    if (lineFeedPos != -1)
     {
       const nsAString& currentLine = Substring(aMsgSnippet, offset, lineFeedPos - offset);
       // this catches quoted text ("> "), nested quotes of any level (">> ", ">>> ", ...)
@@ -4941,8 +4998,9 @@ nsresult nsMsgDBFolder::GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInpu
 {
   nsCString msgBody;
   nsresult rv = GetMsgTextFromStream(msgHdr, stream, 2048, 255, PR_TRUE, msgBody);
-  // replaces all tabs and line returns with a space, then trims off leading and trailing white space
-  msgBody.CompressWhitespace(PR_TRUE, PR_TRUE);
+  // replaces all tabs and line returns with a space, 
+  // then trims off leading and trailing white space
+  MsgCompressWhitespace(msgBody);
   msgHdr->SetStringProperty("preview", msgBody.get());
   return rv;
 }
@@ -4955,7 +5013,6 @@ void nsMsgDBFolder::SetMRUTime()
   nowStr.AppendInt(seconds);
   SetStringProperty(MRU_TIME_PROPERTY, nowStr);
 }
-
 
 NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords)
 {

@@ -49,6 +49,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIMimeConverter.h"
 #include "msgCore.h"
+#include "nsMsgUtils.h"
 #include "nsMsgI18N.h"
 #include "nsMsgMimeCID.h"
 #include "nsILineInputStream.h"
@@ -56,8 +57,7 @@
 #include "nsIEntityConverter.h"
 #include "nsISaveAsCharset.h"
 #include "nsHankakuToZenkakuCID.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "prmem.h"
 #include "plstr.h"
 #include "nsUTF8Utils.h"
@@ -145,7 +145,7 @@ nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
     return NS_OK;
   }
   else if (!PL_strcasecmp(aCharset, "UTF-8")) {
-    if (IsUTF8(inString)) {
+    if (MsgIsUTF8(inString)) {
       nsAutoString tmp;
       CopyUTF8toUTF16(inString, tmp);
       if (!tmp.IsEmpty() && tmp.get()[0] == PRUnichar(0xFEFF))
@@ -364,13 +364,13 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
 
     ToUpperCase(curLine);
 
-    if (curLine.Find("/HEAD") != kNotFound) 
+    if (curLine.Find("/HEAD") != -1) 
       break; 
 
-    if (curLine.Find("META") != kNotFound && 
-       curLine.Find("HTTP-EQUIV") != kNotFound && 
-        curLine.Find("CONTENT-TYPE") != kNotFound && 
-       curLine.Find("CHARSET") != kNotFound) { 
+    if (curLine.Find("META") != -1 && 
+       curLine.Find("HTTP-EQUIV") != -1 && 
+        curLine.Find("CONTENT-TYPE") != -1 && 
+       curLine.Find("CHARSET") != -1) { 
       char *cp = (char *) PL_strstr(PL_strstr(curLine.get(), "CHARSET"), "=");
       char *token = nsnull;
       if (cp)
@@ -594,7 +594,7 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
     outString.Assign(inString);
     return NS_OK;
   }
-  NS_ASSERTION(IsUTF8(inString), "Invalid UTF-8 string is inputted");
+  NS_ASSERTION(MsgIsUTF8(inString), "Invalid UTF-8 string is inputted");
   const char* start = inString.get();
   const char* end = start + inString.Length();
   const char* last = start + aMaxLength;

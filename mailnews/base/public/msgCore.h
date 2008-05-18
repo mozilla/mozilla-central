@@ -42,7 +42,8 @@
 #define msgCore_h__
 
 #include "nscore.h"
-#include "nsCRT.h"
+#include "plstr.h"
+#include "nsCRTGlue.h"
 #include "nsVoidArray.h"
 
 class nsIMsgDBHdr;
@@ -95,9 +96,15 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #define NS_MSG_SUCCESS NS_MSG_GENERATE_SUCCESS(0)
 #define NS_MSG_FAILURE NS_MSG_GENERATE_FAILURE(0)
 
-#define IS_SPACE(VAL) NS_IS_SPACE(VAL)
-#define IS_DIGIT(i)   NS_IS_DIGIT(i)
-#define IS_ALPHA(VAL) NS_IS_ALPHA(VAL)
+#define IS_SPACE(VAL) \
+  (((((intn)(VAL)) & 0x7f) == ((intn)(VAL))) && isspace((intn)(VAL)))
+
+#define IS_DIGIT(i)   ((((unsigned int) (i)) > 0x7f) ? (int) 0 : isdigit(i))
+#if defined(XP_WIN) || defined(XP_OS2)
+#define IS_ALPHA(VAL) (isascii((int)(VAL)) && isalpha((int)(VAL)))
+#else
+#define IS_ALPHA(VAL) ((((unsigned int) (VAL)) > 0x7f) ? (int) 0 : isalpha((int)(VAL)))
+#endif
 
 /* for retrieving information out of messenger nsresults */
 
@@ -196,5 +203,27 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 #endif
 
 #endif // MOZ_STATIC_MAIL_BUILD
+
+/*
+ * Copied this from nsCRT.h
+ */
+#ifndef FILE_PATH_SEPARATOR
+#if defined(XP_MACOSX)
+  #define FILE_PATH_SEPARATOR       "/"
+  #define FILE_ILLEGAL_CHARACTERS   ":"
+#elif defined(XP_WIN) || defined(XP_OS2)
+  #define FILE_PATH_SEPARATOR       "\\"
+  #define FILE_ILLEGAL_CHARACTERS   "/:*?\"<>|"
+#elif defined(XP_UNIX) || defined(XP_BEOS)
+  #define FILE_PATH_SEPARATOR       "/"
+  #define FILE_ILLEGAL_CHARACTERS   ""
+#else
+  #error need_to_define_your_file_path_separator_and_illegal_characters
+#endif
+#endif
+
+#ifndef CRLF
+  #define CRLF "\015\012"
+#endif
 
 #endif

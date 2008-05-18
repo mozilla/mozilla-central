@@ -45,7 +45,7 @@
 
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsISupportsObsolete.h"
 #include "nsISupportsPrimitives.h"
 
@@ -973,7 +973,12 @@ nsMsgIncomingServer::Equals(nsIMsgIncomingServer *server, PRBool *_retval)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // compare the server keys
-  *_retval = key1.Equals(key2,nsCaseInsensitiveCStringComparator());
+#ifdef MOZILLA_INTERNAL_API
+  *_retval = key1.Equals(key2, nsCaseInsensitiveCStringComparator());
+#else
+  *_retval = key1.Equals(key2, CaseInsensitiveCompare);
+#endif
+
   return rv;
 }
 
@@ -1066,15 +1071,21 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
   nsCString hostname;
   hostname = aHostname;
   PRInt32 colonPos = hostname.FindChar(':');
-  if (colonPos != kNotFound)
+  if (colonPos != -1)
   {
-    nsCAutoString portString;
-    hostname.Right(portString, hostname.Length() - colonPos);
-    hostname.Truncate(colonPos);
+    nsCAutoString portString(StringTail(hostname, hostname.Length() - colonPos));
+    hostname.SetLength(colonPos);
+#ifdef MOZILLA_INTERNAL_API
     PRInt32 err;
     PRInt32 port = portString.ToInteger(&err);
     if (!err)
       SetPort(port);
+#else
+    nsresult err;
+    PRInt32 port = portString.ToInteger(&err);
+    if (NS_SUCCEEDED(err))
+      SetPort(port);
+#endif
   }
   return SetCharValue(prefName, hostname);
 }
@@ -1102,7 +1113,19 @@ nsMsgIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const ns
   rv = GetPrettyName(acctName);
   if (NS_SUCCEEDED(rv) && !acctName.IsEmpty())
   {
-    acctName.ReplaceSubstring(NS_ConvertASCIItoUTF16(oldName), NS_ConvertASCIItoUTF16(newName));
+    PRInt32 match = 0;
+    PRUint32 offset = 0;
+    nsString oldSubstr = NS_ConvertASCIItoUTF16(oldName);
+    nsString newSubstr = NS_ConvertASCIItoUTF16(newName);
+    while (offset < acctName.Length()) {
+        match = acctName.Find(oldSubstr, offset);
+        if (match == -1)
+            break;
+ 
+        acctName.Replace(offset + match, oldSubstr.Length(), newSubstr);
+        offset += (match + newSubstr.Length());
+    }
+
     SetPrettyName(acctName);
   }
 
@@ -1126,7 +1149,11 @@ nsMsgIncomingServer::SetRealHostName(const nsACString& aHostname)
   rv = InternalSetHostName(aHostname, "realhostname");
 
   // A few things to take care of if we're changing the hostname.
+#ifdef MOZILLA_INTERNAL_API
   if (!aHostname.Equals(oldName, nsCaseInsensitiveCStringComparator()))
+#else
+  if (!aHostname.Equals(oldName, CaseInsensitiveCompare))
+#endif
     rv = OnUserOrHostNameChanged(oldName, aHostname);
   return rv;
 }
@@ -1136,7 +1163,7 @@ nsMsgIncomingServer::GetHostName(nsACString& aResult)
 {
   nsresult rv;
   rv = GetCharValue("hostname", aResult);
-  if (aResult.FindChar(':') != kNotFound)
+  if (aResult.FindChar(':') != -1)
   {
     // gack, we need to reformat the hostname - SetHostName will do that
     SetHostName(aResult);
@@ -1156,7 +1183,7 @@ nsMsgIncomingServer::GetRealHostName(nsACString& aResult)
   if (aResult.IsEmpty())
     return GetHostName(aResult);
 
-  if (aResult.FindChar(':') != kNotFound)
+  if (aResult.FindChar(':') != -1)
   {
     SetRealHostName(aResult);
     rv = GetCharValue("realhostname", aResult);

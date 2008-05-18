@@ -118,6 +118,7 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsIExternalProtocolService.h"
 #include "nsCExternalHandlerService.h"
+#include "nsCOMArray.h"
 #include "prprf.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);

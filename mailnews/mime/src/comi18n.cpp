@@ -361,7 +361,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
       if (foldingonly) {
         ++pUTF8;
         for (;;) {
-          if (*pUTF8 == ' ' || *pUTF8 == TAB || !*pUTF8) {
+          if (*pUTF8 == ' ' || *pUTF8 == '\t' || !*pUTF8) {
             offset = pUTF8 - pUTF8Head;
             cUTF8Tmp = *pUTF8;
             *pUTF8 = 0;
@@ -423,7 +423,7 @@ process_lastline:
           linelen = 1;
           if (foldingonly) {
             pUTF8Head = nsnull;
-            if (*pUTF8 == ' ' || *pUTF8 == TAB) {
+            if (*pUTF8 == ' ' || *pUTF8 == '\t') {
               ++pUTF8;
               if (!*pUTF8)
                 return 0;
@@ -482,7 +482,7 @@ RFC822AddressList * construct_addresslist(char *s)
   if (!list)
     return nsnull;
 
-  while (*s == ' ' || *s == TAB)
+  while (*s == ' ' || *s == '\t')
     ++s;
 
   for (*list = listinit; *s; ++s) {
@@ -533,7 +533,7 @@ RFC822AddressList * construct_addresslist(char *s)
           addrspec = s;
           if (displayname) {
             char *e = s - 1, tmp;
-            while (*e == TAB || *e == ' ')
+            while (*e == '\t' || *e == ' ')
               --e;
             tmp = *++e;
             *e = '\0';
@@ -572,14 +572,14 @@ RFC822AddressList * construct_addresslist(char *s)
         *list = listinit;
         /* eat spaces */
         ++s;
-        while (*s == ' ' || *s == TAB)
+        while (*s == ' ' || *s == '\t')
           ++s;
-        if (*s == '\r' && *(s+1) == '\n' && (*(s+2) == ' ' || *(s+2) == TAB))
+        if (*s == '\r' && *(s+1) == '\n' && (*(s+2) == ' ' || *(s+2) == '\t'))
           s += 2;
         else
           --s;
       }
-      else if (!displayname && *s != ' ' && *s != TAB)
+      else if (!displayname && *s != ' ' && *s != '\t')
         displayname = s;
     }
   }
@@ -697,7 +697,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
     /* show some mercy to stupid ML systems which don't know
        how to respect MIME encoded subject */
     for (char *p = src; *p && !(*p & 0x80); p++) {
-      if (*p == 0x20 || *p == TAB)
+      if (*p == 0x20 || *p == '\t')
         spacepos = p;
     }
     if (spacepos) {
