@@ -53,6 +53,7 @@ CRCCheck on
 !system 'echo ; > options.ini'
 !system 'echo ; > components.ini'
 !system 'echo ; > shortcuts.ini'
+!system 'echo ; > summary.ini'
 
 Var TmpVal
 Var StartMenuDir
@@ -124,6 +125,7 @@ ShowInstDetails nevershow
 ReserveFile options.ini
 ReserveFile components.ini
 ReserveFile shortcuts.ini
+ReserveFile summary.ini
 
 ################################################################################
 # Modern User Interface - MUI
@@ -175,6 +177,9 @@ Page custom preShortcuts leaveShortcuts
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\Mozilla\${BrandFullNameInternal}\${AppVersion} (${AB_CD})\Main"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "Start Menu Folder"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuDir
+
+; Custom Summary Page
+Page custom preSummary
 
 ; Install Files Page
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE leaveInstFiles
@@ -1049,6 +1054,21 @@ Function preStartMenu
   ${EndIf}
 FunctionEnd
 
+Function preSummary
+  !insertmacro createSummaryINI
+  !insertmacro MUI_HEADER_TEXT "$(SUMMARY_PAGE_TITLE)" "$(SUMMARY_PAGE_SUBTITLE)"
+
+  ; The Summary custom page has a textbox that will automatically receive
+  ; focus. This sets the focus to the Install button instead.
+  !insertmacro MUI_INSTALLOPTIONS_INITDIALOG "summary.ini"
+  GetDlgItem $0 $HWNDPARENT 1
+  System::Call "user32::SetFocus(i r0, i 0x0007, i,i)i"
+
+  ${MUI_INSTALLOPTIONS_READ} $1 "summary.ini" "Field 2" "HWND"                  
+  SendMessage $1 ${WM_SETTEXT} 0 "STR:$INSTDIR"      
+  !insertmacro MUI_INSTALLOPTIONS_SHOW
+FunctionEnd
+
 Function leaveInstFiles
   FileClose $fhUninstallLog
   ; Diff and add missing entries from the previous file log if it exists
@@ -1207,6 +1227,7 @@ Function .onInit
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "options.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "components.ini"
   !insertmacro MUI_INSTALLOPTIONS_EXTRACT "shortcuts.ini"
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "summary.ini"
   !insertmacro createBasicCustomOptionsINI
   !insertmacro createSuiteComponentsINI
   !insertmacro createShortcutsINI
