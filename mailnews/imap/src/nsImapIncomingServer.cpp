@@ -84,7 +84,6 @@
 #include "nsArrayUtils.h"
 #include "nsITimer.h"
 #include "nsMsgUtils.h"
-#include <strings.h>
 
 #define PREF_TRASH_FOLDER_NAME "trash_folder_name"
 #define DEFAULT_TRASH_FOLDER_NAME "Trash"
@@ -1138,7 +1137,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
   else
     tokenStr.Assign(tempFolderName);
 
-  if ((strcasecmp(tokenStr.get(), "INBOX")==0) && (strcmp(tokenStr.get(), "INBOX") != 0))
+  if ((PRInt32(PL_strcasecmp(tokenStr.get(), "INBOX"))==0) && (strcmp(tokenStr.get(), "INBOX") != 0))
     changedStr.Append("INBOX");
   else
     changedStr.Append(tokenStr);
