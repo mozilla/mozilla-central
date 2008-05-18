@@ -255,7 +255,7 @@ interface calIDateTime : nsISupports
 
   /**
    * This object as either an iCalendar DATE or DATETIME string, as
-   * appropriate.
+   * appropriate and sets the timezone to either UTC or floating.
    */
   attribute ACString icalString;
 

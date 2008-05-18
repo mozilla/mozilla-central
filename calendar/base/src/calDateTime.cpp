@@ -400,7 +400,7 @@ calDateTime::SetIcalString(nsACString const& aIcalString)
     if (icaltime_is_null_time(icalt)) {
         return calIErrors::ICS_ERROR_BASE + icalerrno;
     }
-    FromIcalTime(&icalt, mTimezone);
+    FromIcalTime(&icalt, nsnull);
     return NS_OK;
 }
 

@@ -79,6 +79,15 @@ function createAttendee() {
            createInstance(Components.interfaces.calIAttendee);
 }
 
+/* Shortcut to the console service */
+function getConsoleService() {
+    if (getConsoleService.mObject === undefined) {
+        getConsoleService.mObject = Components.classes["@mozilla.org/consoleservice;1"]
+                                              .getService(Components.interfaces.nsIConsoleService);
+    }
+    return getConsoleService.mObject;
+}
+
 /* Shortcut to the io service */
 function getIOService() {
     if (getIOService.mObject === undefined) {
@@ -369,7 +378,6 @@ function guessSystemTimezone() {
 
     function findCurrentTimePeriod(tz, subComp, standardOrDaylight,
                                    isForNextTransitionDate) { 
-        periodStartCalDate.timezone = tz;
         // Iterate through 'STANDARD' declarations or 'DAYLIGHT' declarations
         // (periods in history with different settings.
         //  e.g., US changes daylight start in 2007 (from April to March).)
@@ -380,6 +388,7 @@ function guessSystemTimezone() {
              period;
              period = subComp.getNextSubcomponent(standardOrDaylight)) {
             periodStartCalDate.icalString = getIcalString(period, "DTSTART");
+            periodStartCalDate.timezone = tz;
             if (oneYrUTC.nativeTime < periodStartCalDate.nativeTime) {
                 continue; // period starts too far in future
             }
@@ -593,13 +602,8 @@ function guessSystemTimezone() {
                 // Or maybe user turned off DST in Date/Time control panel.
                 // Will look for a better matching tz, or fallback to floating.
                 // (Match OS so alarms go off at time indicated by OS clock.)
-                const consoleSvc =
-                    (Components.classes["@mozilla.org/consoleservice;1"]
-                     .getService(Components.interfaces.nsIConsoleService));
-                var msg = (calProperties.formatStringFromName
-                           ("WarningOSTZNoMatch",
-                            [osUserTimeZone, zoneInfoIdFromOSUserTimeZone], 2));
-                consoleSvc.logStringMessage(msg);
+                WARN(calProperties.formatStringFromName(
+                         "WarningOSTZNoMatch", [osUserTimeZone, zoneInfoIdFromOSUserTimeZone], 2));
                 break;
             case 1: case 2:
                 // inexact match: OS TZ and our ZoneInfo TZ matched imperfectly.
@@ -692,12 +696,9 @@ function guessSystemTimezone() {
 
     // If reach here, there were no score=3 matches, so Warn in console.
     try { 
-        const jsConsole = Components.classes["@mozilla.org/consoleservice;1"]
-                           .getService(Components.interfaces.nsIConsoleService);
         switch(probableTZScore) {
         case 0:
-            jsConsole.logStringMessage(calProperties.GetStringFromName
-                                       ("warningUsingFloatingTZNoMatch"));
+            WARN(calProperties.GetStringFromName("warningUsingFloatingTZNoMatch"));
             break;
         case 1: case 2:
             var tzId = probableTZId;
@@ -713,8 +714,8 @@ function guessSystemTimezone() {
                 // but transitions start on different weekday from os timezone.
                 function weekday(icsDate) {
                     var calDate = createDateTime();
-                    calDate.timezone = tz;
                     calDate.icalString = icsDate;
+                    calDate.timezone = tz;
                     return calDate.jsDate.toLocaleFormat("%a");
                 }
                 var standardStart = getIcalString(standard, "DTSTART");
@@ -745,7 +746,7 @@ function guessSystemTimezone() {
                               ("WarningUsingGuessedTZ",
                                [tzId, offsetString, warningDetail,
                                 probableTZSource], 4));
-            jsConsole.logStringMessage(warningMsg);
+            WARN(warningMsg);
             break;
         }
     } catch (ex) { // don't abort if error occurs warning user
@@ -1366,9 +1367,7 @@ function LOG(aArg) {
     }
  
     dump(string + '\n');
-    var consoleSvc = Components.classes["@mozilla.org/consoleservice;1"].
-                     getService(Components.interfaces.nsIConsoleService);
-    consoleSvc.logStringMessage(string);
+    getConsoleService().logStringMessage(string);
 }
 
 /**
@@ -1383,9 +1382,7 @@ function WARN(aMessage) {
     scriptError.init(aMessage, null, null, 0, 0,
                      Components.interfaces.nsIScriptError.warningFlag,
                      "component javascript");
-    var consoleSvc = Components.classes["@mozilla.org/consoleservice;1"]
-                               .getService(Components.interfaces.nsIConsoleService);
-    consoleSvc.logMessage(scriptError);
+    getConsoleService().logMessage(scriptError);
 }
 
 /**
