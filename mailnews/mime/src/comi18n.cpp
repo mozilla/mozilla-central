@@ -234,7 +234,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
     }
 
     // Prepare MIME encoded-word head with official charset name
-    if (PR_snprintf(encodedword_head, sizeof(encodedword_head)-1, "=?%s?%c?", charset, method) < 0) {
+    if (!PR_snprintf(encodedword_head, sizeof(encodedword_head)-1, "=?%s?%c?", charset, method)) {
       if (_pUCS2)
         nsMemory::Free(_pUCS2);
       return -1;
@@ -635,7 +635,13 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
           if (list->asciionly && list->addrspec) {
             PRInt32 len = cursor + strlen(list->displayname) + strlen(list->addrspec);
             if (foldlen < len && len < 998) { /* see RFC 2822 for magic number 998 */
-              PR_snprintf(outputtail, outputlen - 1, (list == listhead || cursor == 1) ? "%s %s%s" : "\r\n %s %s%s", list->displayname, list->addrspec, list->next ? ",\r\n " : "");
+              if (!PR_snprintf(outputtail, outputlen - 1, 
+                              (list == listhead || cursor == 1) ? "%s %s%s" : "\r\n %s %s%s", 
+                              list->displayname, list->addrspec, list->next ? ",\r\n " : ""))
+              {
+                PR_Free(output);
+                return nsnull;
+              }
               usedlen = strlen(outputtail);
               outputtail += usedlen;
               outputlen -= usedlen;
@@ -656,7 +662,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
         if (list->addrspec) {
           usedlen = strlen(list->addrspec);
           if (cursor + usedlen > foldlen) {
-            if (PR_snprintf(outputtail, outputlen - 1, "\r\n %s", list->addrspec) < 0) {
+            if (!PR_snprintf(outputtail, outputlen - 1, "\r\n %s", list->addrspec)) {
               PR_Free(output);
               destroy_addresslist(listhead);
               return nsnull;
@@ -665,7 +671,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
             cursor = usedlen - 2; /* \r\n */
           }
           else {
-            if (PR_snprintf(outputtail, outputlen - 1, list->displayname ? " %s" : "%s", list->addrspec) < 0) {
+            if (!PR_snprintf(outputtail, outputlen - 1, list->displayname ? " %s" : "%s", list->addrspec)) {
               PR_Free(output);
               destroy_addresslist(listhead);
               return nsnull;
@@ -703,7 +709,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
     if (spacepos) {
       char head[kMAX_CSNAME+4+1];
       PRInt32  overhead, skiplen;
-      if (PR_snprintf(head, sizeof(head) - 1, "=?%s?%c?", charset, method) < 0) {
+      if (!PR_snprintf(head, sizeof(head) - 1, "=?%s?%c?", charset, method)) {
         PR_Free(output);
         return nsnull;
       }
