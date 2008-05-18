@@ -387,9 +387,15 @@ calDavCalendar.prototype = {
             }
             if (thisCalendar.verboseLogging()) {
                 try {
-                    LOG("CalDAV: recv: " + aResult);
+                    var resultConverter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                                    .createInstance(Components
+                                                    .interfaces.nsIScriptableUnicodeConverter);
+                    resultConverter.charset = "UTF-8";
+                    var str;
+                    str = resultConverter.convertFromByteArray(aResult, aResultLength);
+                    LOG("CalDAV: recv: " + str);
                 } catch(ex) {
-                    LOG("CalDAV empty response");
+                    LOG("CalDAV: empty or unparseable response on add");
                 }
             }
             // 201 = HTTP "Created"
@@ -495,7 +501,7 @@ calDavCalendar.prototype = {
 
         modListener.onStreamComplete = function(aLoader, aContext, aStatus,
                                              aResultLength, aResult) {
-            // 201 = HTTP "Created"
+            // 200 = HTTP "OK"
             // 204 = HTTP "No Content"
             //
             var status;
@@ -505,7 +511,7 @@ calDavCalendar.prototype = {
                 status = Components.interfaces.calIErrors.DAV_PUT_ERROR;
             }
             
-            if (status == 204 || status == 201) {
+            if (status == 204 || status == 200) {
                 LOG("CalDAV: Item modified successfully.");
                 var retVal = Components.results.NS_OK;
                 // Some CalDAV servers will modify items on PUT (add X-props,
