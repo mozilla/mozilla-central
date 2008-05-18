@@ -109,7 +109,7 @@ pref("mailnews.default_view_flags", 0); // for Mail/RSS/... (nsMsgDatabase)
 pref("mailnews.default_news_view_flags", 1); // for News (nsNewsDatabase)
 
 // If true, delete will use the direction of the sort order
-// in determining the next message to select. 
+// in determining the next message to select.
 pref("mail.delete_matches_sort_order", false);
 
 // mailnews tcp read+write timeout in seconds.
@@ -118,9 +118,8 @@ pref("mailnews.tcptimeout", 60);
 pref("mailnews.headers.showSender", false);
 
 // Mail server preferences, pop by default
-pref("mail.server_type",	0); 	// 0 pop, 1 imap,
-					// (Unix only:)
-					// 2 movemail, 3 inbox          
+// 0 pop, 1 imap; (Unix only:) 2 movemail, 3 inbox.
+pref("mail.server_type", 0);
 pref("mail.auth_login", true);
 
 pref("mail.default_drafts", "");    // empty string use default Drafts name;
@@ -161,7 +160,7 @@ pref("mail.imap.expunge_threshold_number",  20);
 // is acting as a delegate for that folder, and wishes to use the other users
 // identity when acting on messages in other users folders.
 pref("mail.imap.delegateOtherUsersFolders", false);
-pref("mail.thread_without_re",	            true);  // if false, only thread by subject if Re:
+pref("mail.thread_without_re",              true); // if false, only thread by subject if Re:
 pref("mail.strict_threading",               false); // if true, don't thread by subject at all
 pref("mail.correct_threading",              false); // if true, makes sure threading works correctly always (see bug 181446)
 pref("mail.leave_on_server",                false);
@@ -190,8 +189,8 @@ pref("mail.strictly_mime",                  false);
 pref("mail.strictly_mime_headers",          true);
 // 0/1 (RFC 2047), 2(RFC 2231), 3/4(RFC 2231, but name param is encoded by RFC 2047)
 // 0/3 the name param is never separated to multiple lines.
-pref("mail.strictly_mime.parm_folding",     3);  
-pref("mail.label_ascii_only_mail_as_us_ascii", false); 
+pref("mail.strictly_mime.parm_folding",     3);
+pref("mail.label_ascii_only_mail_as_us_ascii", false);
 pref("mail.file_attach_binary",             false);
 pref("mail.show_headers",                   1); // some
 pref("mail.pane_config.dynamic",            0);
@@ -199,9 +198,9 @@ pref("mail.addr_book.mapit_url.format", "chrome://messenger-region/locale/region
 #ifdef MOZ_SUITE
 pref("mailnews.start_page.url", "chrome://messenger-region/locale/region.properties");
 pref("mail.addr_book.im.onlineCheckAllowed", false);
-pref("messenger.throbber.url","chrome://messenger-region/locale/region.properties");
-pref("compose.throbber.url","chrome://messenger-region/locale/region.properties");
-pref("addressbook.throbber.url","chrome://messenger-region/locale/region.properties");
+pref("messenger.throbber.url", "chrome://messenger-region/locale/region.properties");
+pref("compose.throbber.url", "chrome://messenger-region/locale/region.properties");
+pref("addressbook.throbber.url", "chrome://messenger-region/locale/region.properties");
 pref("mail.accountwizard.deferstorage", false);
 #endif
 
@@ -214,7 +213,7 @@ pref("mail.addr_book.quicksearchquery.format", "chrome://messenger/locale/messen
 
 // values for "mail.addr_book.lastnamefirst" are:
 //0=displayname, 1=lastname first, 2=firstname first
-pref("mail.addr_book.lastnamefirst", 0); 
+pref("mail.addr_book.lastnamefirst", 0);
 pref("mail.addr_book.displayName.autoGeneration", true);
 pref("mail.addr_book.displayName.lastnamefirst", "chrome://messenger/locale/messenger.properties");
 pref("mail.addr_book.show_phonetic_fields", "chrome://messenger/locale/messenger.properties");
@@ -223,13 +222,13 @@ pref("mail.html_compose",                   true);
 // you can specify multiple, option headers
 // this will show up in the address picker in the compose window
 // examples: "X-Face" or "Approved,X-No-Archive"
-pref("mail.compose.other.header",	    "");
+pref("mail.compose.other.header", "");
 pref("mail.compose.autosave", true);
 pref("mail.compose.autosaveinterval", 5); // in minutes
 pref("mail.fcc_folder",                     "");
 
 pref("mail.default_html_action", 0);          // 0=ask, 1=plain, 2=html, 3=both
-pref("mail.smtp.ssl",0);                      // 0 = no, 1 = try, 2 = must use SSL
+pref("mail.smtp.ssl", 0);                     // 0 = no, 1 = try, 2 = must use SSL
 
 pref("mail.mdn.report.not_in_to_cc", 2);               // 0: Never 1: Always 2: Ask me
 pref("mail.mdn.report.outside_domain", 2);             // 0: Never 1: Always 2: Ask me
@@ -286,7 +285,7 @@ pref("mail.purge.ask",                     true);
 pref("mailnews.offline_sync_mail",         false);
 pref("mailnews.offline_sync_news",         false);
 pref("mailnews.offline_sync_send_unsent",  true);
-pref("mailnews.offline_sync_work_offline", false);   
+pref("mailnews.offline_sync_work_offline", false);
 pref("mailnews.force_ascii_search",        false);
 
 pref("mailnews.send_default_charset",       "chrome://messenger/locale/messenger.properties");
@@ -301,7 +300,7 @@ pref("mailnews.search_date_leading_zeros", "chrome://messenger/locale/messenger.
 pref("mailnews.quotingPrefs.version",       0);  // used to decide whether to migrate global quoting prefs
 
 // the first time, we'll warn the user about the blind send, and they can disable the warning if they want.
-pref("mapi.blind-send.enabled",             true);  
+pref("mapi.blind-send.enabled",             true);
 
 pref("offline.autoDetect",                  false); // automatically move the user offline or online based on the network connection
 
@@ -380,12 +379,12 @@ pref("mailnews.start_page.enabled", true);
 pref("mailnews.remember_selected_message", true);
 pref("mailnews.scroll_to_new_message", true);
 
-/* file, print, and stop hidden by default.  
+/* file, print, and stop hidden by default.
    see http://bugzilla.mozilla.org/show_bug.cgi?id=197729#c3 */
 pref("mail.toolbars.showbutton.file", false);
 pref("mail.toolbars.showbutton.next", true);
 pref("mail.toolbars.showbutton.junk", true);
-pref("mail.toolbars.showbutton.print",false);
+pref("mail.toolbars.showbutton.print", false);
 pref("mail.toolbars.showbutton.stop", false);
 
 // if true, any click on a column header other than the thread column will unthread the view
@@ -396,21 +395,21 @@ pref("mailnews.account_central_page.url", "chrome://messenger/locale/messenger.p
 /* default prefs for Mozilla 5.0 */
 pref("mail.identity.default.compose_html", true);
 pref("mail.identity.default.valid", true);
-pref("mail.identity.default.fcc",true);
-pref("mail.identity.default.fcc_folder","mailbox://nobody@Local%20Folders/Sent");
+pref("mail.identity.default.fcc", true);
+pref("mail.identity.default.fcc_folder", "mailbox://nobody@Local%20Folders/Sent");
 pref("mail.identity.default.fcc_reply_follows_parent", false);
 pref("mail.identity.default.autocompleteToMyDomain", false);
 
 // keep these defaults for backwards compatibility and migration
 
 // but .doBcc and .doBccList are the right ones from now on.
-pref("mail.identity.default.bcc_self",false);
-pref("mail.identity.default.bcc_others",false);
-pref("mail.identity.default.bcc_list","");
+pref("mail.identity.default.bcc_self", false);
+pref("mail.identity.default.bcc_others", false);
+pref("mail.identity.default.bcc_list", "");
 
-pref("mail.identity.default.draft_folder","mailbox://nobody@Local%20Folders/Drafts");
-pref("mail.identity.default.stationery_folder","mailbox://nobody@Local%20Folders/Templates");
-pref("mail.identity.default.directoryServer","");
+pref("mail.identity.default.draft_folder", "mailbox://nobody@Local%20Folders/Drafts");
+pref("mail.identity.default.stationery_folder", "mailbox://nobody@Local%20Folders/Templates");
+pref("mail.identity.default.directoryServer", "");
 pref("mail.identity.default.overrideGlobal_Pref", false);
 pref("mail.identity.default.auto_quote", true);
 pref("mail.identity.default.reply_on_top", 0); // 0=bottom 1=top 2=select
@@ -428,9 +427,9 @@ pref("mail.collect_email_address_outgoing", true);
 pref("mail.collect_email_address_newsgroup", false);
 
 // by default, use the Personal Addressbook for collection
-pref("mail.collect_addressbook","moz-abmdbdirectory://abook.mab"); // the Personal addressbook.
+pref("mail.collect_addressbook", "moz-abmdbdirectory://abook.mab"); // the Personal addressbook.
 
-pref("mail.default_sendlater_uri","mailbox://nobody@Local%20Folders/Unsent%20Messages");
+pref("mail.default_sendlater_uri", "mailbox://nobody@Local%20Folders/Unsent%20Messages");
 
 pref("mail.server.default.port", -1);
 pref("mail.server.default.offline_support_level", -1);
@@ -445,7 +444,7 @@ pref("mail.server.default.max_size", 50);
 pref("mail.server.default.auth_login", true);
 pref("mail.server.default.delete_mail_left_on_server", false);
 pref("mail.server.default.valid", true);
-pref("mail.server.default.abbreviate",true);
+pref("mail.server.default.abbreviate", true);
 pref("mail.server.default.isSecure", false);
 pref("mail.server.default.useSecAuth", false);
 pref("mail.server.default.socketType", 0);
@@ -456,7 +455,7 @@ pref("mail.server.default.delete_model", 1);
 pref("mail.server.default.fetch_by_chunks", true);
 pref("mail.server.default.mime_parts_on_demand", true);
 
-pref("mail.server.default.always_authenticate",false);
+pref("mail.server.default.always_authenticate", false);
 pref("mail.server.default.singleSignon", true);
 pref("mail.server.default.max_articles", 500);
 pref("mail.server.default.notify.on", true);
@@ -478,27 +477,27 @@ pref("mail.server.default.canFileMessages", true);
 pref("mail.server.default.logon_fallback", true);
 
 // special enhancements for IMAP servers
-pref("mail.server.default.store_read_mail_in_pfc", false);  
-pref("mail.server.default.store_sent_mail_in_pfc", false);  
-pref("mail.server.default.use_idle", true); 
+pref("mail.server.default.store_read_mail_in_pfc", false);
+pref("mail.server.default.store_sent_mail_in_pfc", false);
+pref("mail.server.default.use_idle", true);
 // for spam
-pref("mail.server.default.spamLevel",100);  // 0 off, 100 on.  not doing bool since we might have real levels one day.
-pref("mail.server.default.moveOnSpam",false);
-pref("mail.server.default.moveTargetMode",0); // 0 == "Junk" on server, 1 == specific folder
-pref("mail.server.default.spamActionTargetAccount","");
-pref("mail.server.default.spamActionTargetFolder","");
-pref("mail.server.default.useWhiteList",true);
-pref("mail.server.default.whiteListAbURI","moz-abmdbdirectory://abook.mab");  // the Personal addressbook.
+pref("mail.server.default.spamLevel", 100); // 0 off, 100 on.  not doing bool since we might have real levels one day.
+pref("mail.server.default.moveOnSpam", false);
+pref("mail.server.default.moveTargetMode", 0); // 0 == "Junk" on server, 1 == specific folder
+pref("mail.server.default.spamActionTargetAccount", "");
+pref("mail.server.default.spamActionTargetFolder", "");
+pref("mail.server.default.useWhiteList", true);
+pref("mail.server.default.whiteListAbURI", "moz-abmdbdirectory://abook.mab"); // the Personal addressbook.
 pref("mail.server.default.useServerFilter", false);
 pref("mail.server.default.serverFilterName", "SpamAssassin");
 pref("mail.server.default.serverFilterTrustFlags", 1); // 1 == trust positives, 2 == trust negatives, 3 == trust both
-pref("mail.server.default.purgeSpam",false);
-pref("mail.server.default.purgeSpamInterval",14); // 14 days
+pref("mail.server.default.purgeSpam", false);
+pref("mail.server.default.purgeSpamInterval", 14); // 14 days
 
 // the probablilty threshold over which messages are classified as junk
 // this number is divided by 100 before it is used. The classifier can be fine tuned
-// by changing this pref. Typical values are .99, .95, .90, .5, etc. 
-pref("mail.adaptivefilters.junk_threshold", 90); 
+// by changing this pref. Typical values are .99, .95, .90, .5, etc.
+pref("mail.adaptivefilters.junk_threshold", 90);
 pref("mail.spam.version", 0); // used to determine when to migrate global spam settings
 pref("mail.spam.logging.enabled", false);
 pref("mail.spam.manualMark", false);
@@ -550,20 +549,20 @@ pref("mailnews.display.disable_format_flowed_support", false);
 pref("mailnews.nav_crosses_folders", 1); // prompt user when crossing folders
 
 // these two news.cancel.* prefs are for use by QA for automated testing.  see bug #31057
-pref("news.cancel.confirm",true);
-pref("news.cancel.alert_on_success",true);
-pref("mail.SpellCheckBeforeSend",false);
-pref("mail.spellcheck.inline",true);
+pref("news.cancel.confirm", true);
+pref("news.cancel.alert_on_success", true);
+pref("mail.SpellCheckBeforeSend", false);
+pref("mail.spellcheck.inline", true);
 pref("mail.phishing.detection.enabled", true); // enable / disable phishing detection for link clicks
 pref("mail.warn_on_send_accel_key", true);
-pref("mail.enable_autocomplete",true);
-pref("mailnews.html_domains","");
-pref("mailnews.plaintext_domains","");
-pref("mailnews.global_html_domains.version",1);
+pref("mail.enable_autocomplete", true);
+pref("mailnews.html_domains", "");
+pref("mailnews.plaintext_domains", "");
+pref("mailnews.global_html_domains.version", 1);
 
 /////////////////////////////////////////////////////////////////
 // Privacy Controls for Handling Remote Content
-///////////////////////////////////////////////////////////////// 
+/////////////////////////////////////////////////////////////////
 pref("mailnews.message_display.allow.plugins", false); // disable plugins by default
 pref("mailnews.message_display.disable_remote_image", true);
 
@@ -572,10 +571,10 @@ pref("mailnews.message_display.disable_remote_image", true);
 //
 // Specific domains can be white listed to bypass various privacy controls in Thunderbird
 // such as blocking remote images, the phishing detector, etc. This is particularly
-// useful for business deployments where images or links reference servers inside a 
+// useful for business deployments where images or links reference servers inside a
 // corporate intranet. For multiple domains, separate them with a comma. i.e.
 // pref("mail.trusteddomains", "mozilla.org,mozillafoundation.org");
-///////////////////////////////////////////////////////////////// 
+/////////////////////////////////////////////////////////////////
 pref("mail.trusteddomains", "");
 
 pref("mail.imap.use_status_for_biff", true);
@@ -589,21 +588,21 @@ pref("mail.imap.confirm_emptyTrashFolderDeletion", false);
 // Pref controlling the updates on the pre-configured accounts.
 // In order to add new pre-configured accounts (after a version),
 // increase the following version number besides updating the
-// pref mail.accountmanager.appendaccounts 
-pref("mailnews.append_preconfig_accounts.version",1);
+// pref mail.accountmanager.appendaccounts
+pref("mailnews.append_preconfig_accounts.version", 1);
 
 // Pref controlling the updates on the pre-configured smtp servers.
 // In order to add new pre-configured smtp servers (after a version),
 // increase the following version number besides updating the
 // pref mail.smtpservers.appendsmtpservers
-pref("mail.append_preconfig_smtpservers.version",1);
+pref("mail.append_preconfig_smtpservers.version", 1);
 
-pref("mail.biff.play_sound",true);
+pref("mail.biff.play_sound", true);
 // 0 == default system sound, 1 == user specified wav
-pref("mail.biff.play_sound.type",0);
+pref("mail.biff.play_sound.type", 0);
 // _moz_mailbeep is a magic key, for the default sound.
 // otherwise, this needs to be a file url
-pref("mail.biff.play_sound.url","");
+pref("mail.biff.play_sound.url", "");
 pref("mail.biff.show_alert", true);
 pref("mail.biff.show_tray_icon", true); // currently Windows-only
 pref("mail.biff.animate_dock_icon", false);
@@ -621,7 +620,7 @@ pref("mailnews.use_received_date", false);
 // for manual upgrades of certain UI features.
 // 1 -> 2 is for the folder pane tree landing, to hide the
 // unread and total columns, see msgMail3PaneWindow.js
-pref("mail.ui.folderpane.version", 1);                                          
+pref("mail.ui.folderpane.version", 1);
 
 // for manual upgrades of certain UI features.
 #ifdef MOZ_SUITE
@@ -634,24 +633,24 @@ pref("mailnews.ui.threadpane.version", 1);
 // 1 -> 2 is for the ab results pane tree landing
 // to hide the non default columns in the addressbook dialog
 // see abCommon.js and addressbook.js
-pref("mailnews.ui.addressbook_results.version", 1);                                          
+pref("mailnews.ui.addressbook_results.version", 1);
 // for manual upgrades of certain UI features.
 // 1 -> 2 is for the ab results pane tree landing
 // to hide the non default columns in the addressbook sidebar panel
 // see abCommon.js and addressbook-panel.js
-pref("mailnews.ui.addressbook_panel_results.version", 1);                                          
+pref("mailnews.ui.addressbook_panel_results.version", 1);
 // for manual upgrades of certain UI features.
 // 1 -> 2 is for the ab results pane tree landing
 // to hide the non default columns in the select addresses dialog
 // see abCommon.js and abSelectAddressesDialog.js
-pref("mailnews.ui.select_addresses_results.version", 1); 
+pref("mailnews.ui.select_addresses_results.version", 1);
 // for manual upgrades of certain UI features.
 // 1 -> 2 is for the ab results pane
 // to hide the non default columns in the advanced directory search dialog
 // see abCommon.js and ABSearchDialog.js
-pref("mailnews.ui.advanced_directory_search_results.version", 1);                                         
+pref("mailnews.ui.advanced_directory_search_results.version", 1);
 //If set to a number greater than 0, msg compose windows will be recycled in order to open them quickly
-pref("mail.compose.max_recycled_windows", 1); 
+pref("mail.compose.max_recycled_windows", 1);
 
 // default description and color prefs for tags
 // (we keep the .labels. names for backwards compatibility)
@@ -668,7 +667,7 @@ pref("mailnews.labels.color.5", "#993399"); // default: purple
 
 //default null headers
 //example "X-Warn: XReply", list of hdrs separated by ": "
-pref("mailnews.customHeaders", ""); 
+pref("mailnews.customHeaders", "");
 
 pref("mailnews.fakeaccount.show", false);
 pref("mailnews.fakeaccount.server", "");
@@ -691,11 +690,11 @@ pref("mail.compose.dontWarnMail2Newsgroup", false);
 // these prefs (in minutes) are here to help QA test this feature
 // "mail.purge.min_delay", never purge a junk folder more than once every 480 minutes (60 mins/hour * 8 hours)
 // "mail.purge.timer_interval", fire the purge timer every 5 minutes, starting 5 minutes after we load accounts
-pref("mail.purge.min_delay",480);
-pref("mail.purge.timer_interval",5); 
+pref("mail.purge.min_delay", 480);
+pref("mail.purge.timer_interval", 5);
 
 // set to true if viewing a message should mark it as read only if the msg is viewed for a specified time interval in seconds
-pref("mailnews.mark_message_read.delay", false); 
+pref("mailnews.mark_message_read.delay", false);
 pref("mailnews.mark_message_read.delay.interval", 5); // measured in seconds
 
 // require a password before showing imap or local headers in thread pane
