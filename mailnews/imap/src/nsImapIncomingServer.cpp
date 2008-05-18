@@ -84,6 +84,7 @@
 #include "nsArrayUtils.h"
 #include "nsITimer.h"
 #include "nsMsgUtils.h"
+#include <strings.h>
 
 #define PREF_TRASH_FOLDER_NAME "trash_folder_name"
 #define DEFAULT_TRASH_FOLDER_NAME "Trash"
