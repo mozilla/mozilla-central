@@ -606,7 +606,7 @@ calDavCalendar.prototype = {
             
             // 204 = HTTP "No content"
             //
-            if (status == 204) {
+            if (status == 204 || status == 200) {
                 thisCalendar.mMemoryCalendar.deleteItem(aItem, aListener);
                 delete thisCalendar.mHrefIndex[eventUri.path];
                 delete thisCalendar.mItemInfoCache[aItem.id];
