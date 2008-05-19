@@ -20,13 +20,20 @@
 #
 # Contributor(s): 
 
+use strict;
+
+my $bonsaidir = "@BONSAI_DIR@";
+if (($#ARGV > 0) && (-d $ARGV[0])) {
+     $bonsaidir = $ARGV[0];
+}
+
+chdir $bonsaidir;
+
 require 'globals.pl';
 
-use strict;
 use FileHandle;
 use Fcntl qw(:DEFAULT :flock);
 
-my $bonsaidir = "@BONSAI_DIR@";
 my $datadir;
 my $lockfile;
 my $debug = 0;
@@ -52,10 +59,6 @@ sub unlock_datafile {
 
     flock $lock_fh, LOCK_UN;  # Free the lock
     close $lock_fh;
-}
-
-if (($#ARGV > 0) && (-d $ARGV[0])) {
-     $bonsaidir = $ARGV[0];
 }
 
 $datadir = $bonsaidir . "/data";
