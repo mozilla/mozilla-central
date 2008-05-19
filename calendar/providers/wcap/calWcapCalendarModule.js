@@ -56,12 +56,8 @@ const calICalendarSearchProvider = Components.interfaces.calICalendarSearchProvi
 const calIErrors = Components.interfaces.calIErrors;
 
 // ctors:
-var CalEvent;
-var CalTodo;
-var CalDateTime;
 var CalDuration;
 var CalPeriod;
-var Timer;
 
 // some string resources:
 var g_privateItemTitle;
@@ -95,12 +91,8 @@ function initWcapProvider() {
     
     try {        
         // ctors:
-        CalEvent = new Components.Constructor("@mozilla.org/calendar/event;1", "calIEvent");
-        CalTodo = new Components.Constructor("@mozilla.org/calendar/todo;1", "calITodo");
-        CalDateTime = new Components.Constructor("@mozilla.org/calendar/datetime;1", "calIDateTime");
         CalDuration = new Components.Constructor("@mozilla.org/calendar/duration;1", "calIDuration");
         CalPeriod = new Components.Constructor("@mozilla.org/calendar/period;1", "calIPeriod");
-        Timer = new Components.Constructor("@mozilla.org/timer;1", "nsITimer");
 
         initLogging();
 
@@ -131,13 +123,13 @@ var calWcapCalendarFactory = { // nsIFactory:
 
 var calWcapCalendarModule = { // nsIModule:
     
-    WcapCalendarInfo: {
+    wcapCalendarInfo: {
         classDescription: "Sun Java System Calendar Server WCAP Provider",
         contractID: "@mozilla.org/calendar/calendar;1?type=wcap",
         classID: Components.ID("{CF4D93E5-AF79-451a-95F3-109055B32EF0}")
     },
 
-    WcapSessionInfo: {
+    wcapSessionInfo: {
         classDescription: "Sun Java System Calendar Server WCAP Session",
         contractID: "@mozilla.org/calendar/wcap/session;1",
         classID: Components.ID("{CBF803FD-4469-4999-AE39-367AF1C7B077}")
@@ -145,20 +137,20 @@ var calWcapCalendarModule = { // nsIModule:
 
     registerSelf: function calWcapCalendarModule_registerSelf(compMgr, fileSpec, location, type) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.WcapCalendarInfo.classID,
-                                        this.WcapCalendarInfo.classDescription,
-                                        this.WcapCalendarInfo.contractID,
+        compMgr.registerFactoryLocation(this.wcapCalendarInfo.classID,
+                                        this.wcapCalendarInfo.classDescription,
+                                        this.wcapCalendarInfo.contractID,
                                         fileSpec, location, type);
-        compMgr.registerFactoryLocation(this.WcapSessionInfo.classID,
-                                        this.WcapSessionInfo.classDescription,
-                                        this.WcapSessionInfo.contractID,
+        compMgr.registerFactoryLocation(this.wcapSessionInfo.classID,
+                                        this.wcapSessionInfo.classDescription,
+                                        this.wcapSessionInfo.contractID,
                                         fileSpec, location, type);
     },
 
     unregisterSelf: function calWcapCalendarModule_unregisterSelf(compMgr, fileSpec, location) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.unregisterFactoryLocation(this.WcapCalendarInfo.classID, fileSpec);
-        compMgr.unregisterFactoryLocation(this.WcapSessionInfo.classID, fileSpec);
+        compMgr.unregisterFactoryLocation(this.wcapCalendarInfo.classID, fileSpec);
+        compMgr.unregisterFactoryLocation(this.wcapSessionInfo.classID, fileSpec);
     },
 
     m_scriptsLoaded: false,

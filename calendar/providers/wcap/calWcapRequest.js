@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -79,10 +79,10 @@ calWcapRequest.prototype = {
     m_attachedRequests: null,
     m_locked: false,
 
-    get parentRequest() {
+    get parentRequest calWcapRequest_parentRequestGetter() {
         return this.m_parentRequest;
     },
-    set parentRequest(req) {
+    set parentRequest calWcapRequest_parentRequestSetter(req) {
         if (this.parentRequest) {
             logError("already has parent!", this);
         }
@@ -198,13 +198,13 @@ calWcapRequest.prototype = {
     },
 
     // calIOperation:
-    get id() {
+    get id calWcapRequest_idGetter() {
         return this.m_id;
     },
-    get isPending() {
+    get isPending calWcapRequest_isPendingGetter() {
         return this.m_isPending;
     },
-    get status() {
+    get status calWcapRequest_statusGetter() {
         return (this.m_status === null ? NS_OK : this.m_status);
     },
 
@@ -241,10 +241,10 @@ calWcapNetworkRequest.prototype = {
     },
 
     m_parentRequest: null,
-    get parentRequest() {
+    get parentRequest calWcapNetworkRequest_parentRequestGetter() {
         return this.m_parentRequest;
     },
-    set parentRequest(req) {
+    set parentRequest calWcapNetworkRequest_parentRequestSetter(req) {
         if (this.parentRequest) {
             logError("already has parent!", this);
         }
@@ -253,16 +253,16 @@ calWcapNetworkRequest.prototype = {
     },
 
     // calIOperation:
-    get id() {
+    get id calWcapNetworkRequest_idGetter() {
         return this.m_id;
     },
 
     m_isPending: true,
-    get isPending() {
+    get isPending calWcapNetworkRequest_isPendingGetter() {
         return this.m_isPending;
     },
 
-    get status() {
+    get status calWcapNetworkRequest_statusGetter() {
         return this.m_channel.status;
     },
 

@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -35,12 +35,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-var calWcapCalendar;
-if (!calWcapCalendar) {
-    calWcapCalendar = {};
-    calWcapCalendar.prototype = {};
-}
 
 calWcapCalendar.prototype.encodeAttendee =
 function calWcapCalendar_encodeAttendee(att) {
@@ -64,7 +58,7 @@ function calWcapCalendar_encodeAttendee(att) {
     params = encodeAttr(att.role, "ROLE", params);
     var cn = att.commonName;
     if (cn) {
-        params = encodeAttr(cn.replace(/[;:]/g, " "), "CN", params);
+        params = encodeAttr(cn.replace(/[;:]/g, " "), "CN", params); // remove ';' and ':' from CN
     }
     return encodeAttr(att.id, null, params);
 };
@@ -176,13 +170,7 @@ function calWcapCalendar_encodeRecurrenceParams(item, oldItem) {
     }
 
     function encodeList(list) {
-        var ret = "";
-        for each ( var str in list ) {
-            if (ret.length > 0)
-                ret += ";";
-            ret += str;
-        }
-        return ret;
+        return list.join(";");
     }
     var ret = "";
     if (rrules.value) {
@@ -649,7 +637,7 @@ function calWcapCalendar_tunnelXProps(destItem, srcItem) {
                         if (!alarmOffset) {
                             break; // alarm has been reset
                         }
-                        // fallthru intended:
+                        // fallthru intended
                     default:
                         if (LOG_LEVEL > 1) {
                             log("tunneling " + name + "=" + prop.value, this);
@@ -904,13 +892,13 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             switch (subComp.componentType) {
                 case "VEVENT": {
                     patchTimezone(subComp, "endTime", "X-NSCP-DTEND-TZID");
-                    item = new CalEvent();
+                    item = createEvent();
                     item.icalComponent = subComp;
                     break;
                 }
                 case "VTODO": {
                     patchTimezone(subComp, "dueTime", "X-NSCP-DUE-TZID");
-                    item = new CalTodo();
+                    item = createTodo();
                     item.icalComponent = subComp;
                     switch (itemFilter & calICalendar.ITEM_FILTER_COMPLETED_ALL) {
                         case calICalendar.ITEM_FILTER_COMPLETED_YES:
@@ -1058,12 +1046,6 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
 
 calWcapCalendar.prototype.getItem =
 function calWcapCalendar_getItem(id, listener) {
-    // xxx todo: test
-    // xxx todo: howto detect whether to call
-    //           fetchevents_by_id ot fetchtodos_by_id?
-    //           currently drag/drop is implemented for events only,
-    //           try events first, fallback to todos... in the future...
-    
     var this_ = this;
     var request = new calWcapRequest(
         function getItem_resp(request, err, item) {
@@ -1266,7 +1248,7 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                                     }
                                     var items = [];
                                     for each (var entry in result) {
-                                        var item = new CalEvent();
+                                        var item = createEvent();
                                         item.id = (g_busyPhantomItemUuidPrefix + getIcalUTC(entry.interval.start));
                                         item.calendar = this_.superCalendar;
                                         item.title = g_busyItemTitle;
@@ -1322,7 +1304,8 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
                             var freq = Math.min(20, // default: 20secs
                                                 Math.max(1, CACHE_LAST_RESULTS_INVALIDATE));
                             log("cached results sort out timer freq: " + freq, this_);
-                            this_.m_cachedResultsTimer = new Timer();
+                            this_.m_cachedResultsTimer = Components.classes["@mozilla.org/timer;1"]
+                                                                   .createInstance(Components.interfaces.nsITimer);
                             this_.m_cachedResultsTimer.initWithCallback(callback, freq * 1000,
                                                                         Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
                         }

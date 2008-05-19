@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *

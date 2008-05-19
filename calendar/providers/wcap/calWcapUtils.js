@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -171,14 +171,6 @@ function logError(err, context) {
 
 // late-inited service accessors:
 
-function getConsoleService() {
-    if (!getConsoleService.m_obj) {
-        getConsoleService.m_obj = Components.classes["@mozilla.org/consoleservice;1"]
-                                            .getService(Components.interfaces.nsIConsoleService);
-    }
-    return getConsoleService.m_obj;
-}
-
 function getWindowWatcher() {
     if (!getWindowWatcher.m_obj) {
         getWindowWatcher.m_obj = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
@@ -259,7 +251,7 @@ function getTime() {
     if (g_bShutdown) {
         return null;
     }
-    var ret = new CalDateTime();
+    var ret = createDateTime();
     ret.jsDate = new Date();
     return ret;
 }
@@ -282,7 +274,7 @@ function getDatetimeFromIcalString(val) {
         return null;
     }
     // assuming timezone is known:
-    var dt = new CalDateTime();
+    var dt = createDateTime();
     dt.icalString = val;
     return dt;
 }

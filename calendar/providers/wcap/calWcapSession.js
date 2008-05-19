@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -119,14 +119,14 @@ calWcapSession.prototype = {
         count.value = this.m_ifaces.length;
         return this.m_ifaces;
     },
-    get classDescription() {
-        return calWcapCalendarModule.WcapSessionInfo.classDescription;
+    get classDescription calWcapSession_classDescriptionGetter() {
+        return calWcapCalendarModule.wcapSessionInfo.classDescription;
     },
-    get contractID() {
-        return calWcapCalendarModule.WcapSessionInfo.contractID;
+    get contractID calWcapSession_contractIDGetter() {
+        return calWcapCalendarModule.wcapSessionInfo.contractID;
     },
-    get classID() {
-        return calWcapCalendarModule.WcapSessionInfo.classID;
+    get classID calWcapSession_classIDGetter() {
+        return calWcapCalendarModule.wcapSessionInfo.classID;
     },
     getHelperForLanguage:
     function calWcapSession_getHelperForLanguage(language) {
@@ -137,15 +137,7 @@ calWcapSession.prototype = {
 
     // nsIInterfaceRequestor:
     getInterface: function calWcapSession_getInterface(iid, instance) {
-        if (iid.equals(Components.interfaces.nsIAuthPrompt)) {
-            // use the window watcher service to get a nsIAuthPrompt impl
-            return getWindowWatcher().getNewAuthPrompter(null);
-        } else if (iid.equals(Components.interfaces.nsIPrompt)) {
-            // use the window watcher service to get a nsIPrompt impl
-            return getWindowWatcher().getNewPrompter(null);
-        }
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     toString: function calWcapSession_toString(msg) {
@@ -169,7 +161,7 @@ calWcapSession.prototype = {
 
     // calITimezoneProvider:
     m_serverTimezones: null,
-    get timezoneIds() {
+    get timezoneIds calWcapSession_timezoneIdsGetter() {
         var tzids = [];
         tzids.push("floating");
         tzids.push("UTC");
@@ -845,7 +837,7 @@ calWcapSession.prototype = {
     },
 
     m_credentials: null,
-    get credentials() {
+    get credentials calWcapSession_credentialsGetter() {
         if (!this.m_credentials) {
             this.m_credentials = {};
         }
@@ -857,18 +849,18 @@ calWcapSession.prototype = {
     m_contextId: null,
     m_uri: null,
     m_sessionUri: null,
-    get uri() {
+    get uri calWcapSession_uriGetter() {
         return this.m_uri;
     },
-    get sessionUri() {
+    get sessionUri calWcapSession_sessionUriGetter() {
         return this.m_sessionUri;
     },
 
-    get userId() {
+    get userId calWcapSession_userIdGetter() {
         return this.credentials.userId;
     },
 
-    get defaultCalId() {
+    get defaultCalId calWcapSession_defaultCalIdGetter() {
         var list = this.getUserPreferences("X-NSCP-WCAP-PREF-icsCalendar");
         var id = null;
         for each (var item in list) {
@@ -880,7 +872,7 @@ calWcapSession.prototype = {
         return (id ? id : this.credentials.userId);
     },
 
-    get isLoggedIn() {
+    get isLoggedIn calWcapSession_isLoggedInGetter() {
         return (this.m_sessionId != null);
     },
 
@@ -919,7 +911,7 @@ calWcapSession.prototype = {
         return prefs;
     },
 
-    get defaultAlarmStart() {
+    get defaultAlarmStart calWcapSession_defaultAlarmStartGetter() {
         var alarmStart = null;
         var ar = this.getUserPreferences("X-NSCP-WCAP-PREF-ceDefaultAlarmStart");
         if (ar.length > 0 && ar[0].length > 0) {

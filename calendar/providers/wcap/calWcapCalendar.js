@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- * Sun Microsystems, Inc.
+ *   Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2007
  * the Initial Developer. All Rights Reserved.
  *
@@ -62,14 +62,14 @@ calWcapCalendar.prototype = {
         count.value = this.m_ifaces.length;
         return this.m_ifaces;
     },
-    get classDescription() {
-        return calWcapCalendarModule.WcapCalendarInfo.classDescription;
+    get classDescription calWcapCalendar_classDescriptionGetter() {
+        return calWcapCalendarModule.wcapCalendarInfo.classDescription;
     },
-    get contractID() {
-        return calWcapCalendarModule.WcapCalendarInfo.contractID;
+    get contractID calWcapCalendar_contractIDGetter() {
+        return calWcapCalendarModule.wcapCalendarInfo.contractID;
     },
-    get classID() {
-        return calWcapCalendarModule.WcapCalendarInfo.classID;
+    get classID calWcapCalendar_classIDGetter() {
+        return calWcapCalendarModule.wcapCalendarInfo.classID;
     },
     getHelperForLanguage: function calWcapCalendar_getHelperForLanguage(language) {
         return null;
@@ -79,15 +79,7 @@ calWcapCalendar.prototype = {
 
     // nsIInterfaceRequestor:
     getInterface: function calWcapCalendar_getInterface(iid, instance) {
-        if (iid.equals(Components.interfaces.nsIAuthPrompt)) {
-            // use the window watcher service to get a nsIAuthPrompt impl
-            return getWindowWatcher().getNewAuthPrompter(null);
-        } else if (iid.equals(Components.interfaces.nsIPrompt)) {
-            // use the window watcher service to get a nsIPrompt impl
-            return getWindowWatcher().getNewPrompter(null);
-        }
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
-        return null;
+        throw Components.results.NS_ERROR_NO_INTERFACE;
     },
 
     toString: function calWcapCalendar_toString() {
@@ -132,7 +124,7 @@ calWcapCalendar.prototype = {
     },
 
     // calICalendarProvider:
-    get prefChromeOverlay() {
+    get prefChromeOverlay calWcapCalendar_prefChromeOverlayGetter() {
         return null;
     },
     // displayName attribute already part of calIWcapCalendar
@@ -158,13 +150,15 @@ calWcapCalendar.prototype = {
         return this.setProperty("name", aValue);
     },
 
-    get type() { return "wcap"; },
+    get type calWcapCalendar_typeGetter() {
+        return "wcap";
+    },
 
     m_uri: null,
-    get uri() {
+    get uri calWcapCalendar_uriGetter() {
         return this.m_uri;
     },
-    set uri(thatUri) {
+    set uri calWcapCalendar_uriSetter(thatUri) {
         this.m_uri = thatUri.clone();
         var path = thatUri.path;
         var qmPos = path.indexOf("?");
@@ -224,11 +218,11 @@ calWcapCalendar.prototype = {
         this.notifyObservers("onEndBatch");
     },
 
-    get sendItipInvitations() {
+    get sendItipInvitations calWcapCalendar_sendItipInvitationsGetter() {
         return false;
     },
 
-    get canRefresh() {
+    get canRefresh calWcapCalendar_canRefreshGetter() {
         return true;
     },
     refresh: function calWcapCalendar_refresh() {
@@ -265,7 +259,7 @@ calWcapCalendar.prototype = {
     // calIWcapCalendar:
 
     m_session: null,
-    get session() {
+    get session calWcapCalendar_sessionGetter() {
         if (!this.m_session) {
             var uri = this.uri;
             ASSERT(uri, "no URI set!");
@@ -281,15 +275,12 @@ calWcapCalendar.prototype = {
     },
 
     m_calId: null,
-    get calId() {
-        if (this.m_calId) {
-            return this.m_calId;
-        }
-        return this.session.defaultCalId;
+    get calId calWcapCalendar_calIdGetter() {
+        return (this.m_calId || this.session.defaultCalId);
     },
 
-    get ownerId() {
-        var ar = this.getCalProps("X-NSCP-CALPROPS-PRIMARY-OWNER");
+    get ownerId calWcapCalendar_ownerIdGetter() {
+        var ar = this.getCalendarProperties("X-NSCP-CALPROPS-PRIMARY-OWNER");
         if (ar.length == 0) {
             var calId = this.calId;
             log("cannot determine primary owner of calendar " + calId, this);
@@ -302,8 +293,8 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get description() {
-        var ar = this.getCalProps("X-NSCP-CALPROPS-DESCRIPTION");
+    get description calWcapCalendar_descriptionGetter() {
+        var ar = this.getCalendarProperties("X-NSCP-CALPROPS-DESCRIPTION");
         if (ar.length == 0) {
             // fallback to display name:
             return this.displayName;
@@ -311,11 +302,11 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get displayName() {
-        var ar = this.getCalProps("X-NSCP-CALPROPS-NAME");
+    get displayName calWcapCalendar_displayNameGetter() {
+        var ar = this.getCalendarProperties("X-NSCP-CALPROPS-NAME");
         if (ar.length == 0) {
             // fallback to common name:
-            ar = this.getCalProps("X-S1CS-CALPROPS-COMMON-NAME");
+            ar = this.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME");
             if (ar.length == 0) {
                 ar = [this.calId];
             }
@@ -323,33 +314,31 @@ calWcapCalendar.prototype = {
         return ar[0];
     },
 
-    get isOwnedCalendar() {
+    get isOwnedCalendar calWcapCalendar_isOwnedCalendarGetter() {
         if (this.isDefaultCalendar) {
             return true; // default calendar is owned
         }
         return (this.ownerId == this.session.userId);
     },
 
-    get isDefaultCalendar() {
+    get isDefaultCalendar calWcapCalendar_isDefaultCalendarGetter() {
         return !this.m_calId;
     },
 
-    getCalendarProperties: function calWcapCalendar_getCalendarProperties(propName, out_count) {
-        var ret = this.getCalProps(propName);
-        out_count.value = ret.length;
-        return ret;
-    },
-
     m_calProps: null,
-    getCalProps: function calWcapCalendar_getCalProps(propName) {
+    getCalendarProperties: function calWcapCalendar_getCalendarProperties(propName, out_count) {
         if (!this.m_calProps) {
             log("soft error: no calprops available, most possibly not logged in.", this);
         }
-        return filterXmlNodes(propName, this.m_calProps);
+        var ret = filterXmlNodes(propName, this.m_calProps);
+        if (out_count) {
+            out_count.value = ret.length;
+        }
+        return ret;
     },
 
-    get defaultTimezone() {
-        var tzid = this.getCalProps("X-NSCP-CALPROPS-TZID");
+    get defaultTimezone calWcapCalendar_defaultTimezoneGetter() {
+        var tzid = this.getCalendarProperties("X-NSCP-CALPROPS-TZID");
         if (tzid.length == 0) {
             logError("defaultTimezone: cannot get X-NSCP-CALPROPS-TZID!", this);
             return "UTC"; // fallback
