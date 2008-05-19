@@ -271,6 +271,10 @@ Section "-Application" Section1
     ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
       RmDir /r "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
     ${EndIf}
+    ${If} ${FileExists} "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+    ${AndIf} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+      RmDir /r "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+    ${EndIf}
 
     ; If DOMi is installed and this install includes DOMi remove it from
     ; the installation directory. This will remove it if the user deselected
@@ -592,11 +596,17 @@ Function installChatZilla
     DetailPrint $(STATUS_INSTALL_OPTIONAL)
     SetDetailsPrint none
     ${RemoveDir} "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
+    ${RemoveDir} "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
     ClearErrors
     ${LogHeader} "Installing IRC Client"
     StrCpy $R0 "$EXEDIR\optional\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
     StrCpy $R1 "$INSTDIR\extensions\{59c81df5-4b7a-477b-912d-4e0fdf64e5f2}"
     Call DoCopyFiles
+    ${If} ${FileExists} "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+      StrCpy $R0 "$EXEDIR\optional\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+      StrCpy $R1 "$INSTDIR\extensions\langpack-${AB_CD}@chatzilla.mozilla.org"
+      Call DoCopyFiles
+    ${EndIf}
   ${EndIf}
 FunctionEnd
 

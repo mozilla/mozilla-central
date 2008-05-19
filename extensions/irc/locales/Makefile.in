@@ -96,12 +96,22 @@ repackage-zip: $(STAGEDIST)
 ifneq (en-US,$(AB_CD))
 	$(RM) -rf $(STAGEDIST)/extensions/$(INSTALL_EXTENSION_ID)
 	mkdir $(STAGEDIST)/extensions/$(INSTALL_EXTENSION_ID)
-	$(RM) -r $(DIST)/xpi-stage/chatzilla-$(AB_CD)/chrome/chatzilla
+	$(RM) -r $(DIST)/xpi-stage/$(XPI_NAME)/chrome/chatzilla
 	# use tar for copying as cp doesn't portably preserve timestamps
-	cd $(DIST)/xpi-stage/chatzilla-$(AB_CD) && \
+	cd $(DIST)/xpi-stage/$(XPI_NAME) && \
 	  tar $(TAR_CREATE_FLAGS) - * | ( cd $(STAGEDIST)/extensions/$(INSTALL_EXTENSION_ID) && tar -xf - )
 	@echo "$(AB_CD)"
 endif
 
 repackage-zip-%: $(STAGEDIST)
 	@$(MAKE) repackage-zip AB_CD=$* STAGEDIST=$(STAGEDIST)
+
+repackage-win32-installer: $(STAGEDIST)
+ifneq (en-US,$(AB_CD))
+	mkdir -p $(STAGEDIST)/optional/extensions
+	mv $(DIST)/xpi-stage/$(XPI_NAME) $(STAGEDIST)/optional/extensions/$(INSTALL_EXTENSION_ID)
+endif
+
+repackage-win32-installer-%: $(STAGEDIST)
+	@$(MAKE) repackage-win32-installer AB_CD=$* STAGEDIST=$(STAGEDIST) 
+	

@@ -173,6 +173,7 @@ repackage-win32-installer: $(WIN32_INSTALLER_IN) $(SUBMAKEFILES)
 	$(RM) -rf $(DIST)/xpi-stage/locale-$(AB_CD)
 	$(MAKE) libs-$(AB_CD)
 	mv $(DIST)/xpi-stage/locale-$(AB_CD) l10n-stage/localized
+	$(MAKE) -C ../../extensions/irc/locales repackage-win32-installer-$(AB_CD) STAGEDIST=$(shell pwd)/l10n-stage
 	$(MAKE) -C ../../extensions/venkman/locales repackage-win32-installer-$(AB_CD) STAGEDIST=$(shell pwd)/l10n-stage
 	$(MAKE) -C ../installer/windows CONFIG_DIR=l10ngen l10ngen/setup.exe l10ngen/7zSD.sfx
 	cp ../installer/windows/l10ngen/setup.exe l10n-stage
