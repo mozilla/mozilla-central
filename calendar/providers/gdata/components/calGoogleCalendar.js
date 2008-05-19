@@ -45,12 +45,6 @@
  */
 function calGoogleCalendar() {
     this.initProviderBase();
-
-    this.addItem_response.calendar = this;
-    this.modifyItem_response.calendar = this;
-    this.deleteItem_response.calendar = this;
-    this.getItem_response.calendar = this;
-    this.getItems_response.calendar = this;
 }
 
 calGoogleCalendar.prototype = {
@@ -299,9 +293,15 @@ calGoogleCalendar.prototype = {
             request.type = request.ADD;
             request.uri = this.fullUri.spec;
             request.setUploadData("application/atom+xml; charset=UTF-8", xmlEntry);
-            request.responseListener = this.addItem_response;
             request.operationListener = aListener;
             request.calendar = this;
+
+            var calendar = this;
+            request.responseListener = {
+                onResult: function cGC_addItem_response_onResult(aOperation, aData) {
+                    calendar.addItem_response(aOperation, aData);
+                }
+            };
 
             var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
             request.addQueryParameter("ctz", ctz);
@@ -391,6 +391,13 @@ calGoogleCalendar.prototype = {
             request.oldItem = aOldItem;
             request.calendar = this;
 
+            var calendar = this;
+            request.responseListener = {
+                onResult: function cGC_modifyItem_response_onResult(aOperation, aData) {
+                    calendar.modifyItem_response(aOperation, aData);
+                }
+            };
+
             var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
             request.addQueryParameter("ctz", ctz);
 
@@ -438,10 +445,16 @@ calGoogleCalendar.prototype = {
 
             request.type = request.DELETE;
             request.uri = getItemEditURI(aItem);
-            request.responseListener = this.deleteItem_response;
             request.operationListener = aListener;
             request.oldItem = aItem;
             request.calendar = this;
+
+            var calendar = this;
+            request.responseListener = {
+                onResult: function cGC_deleteItem_response_onResult(aOperation, aData) {
+                    calendar.deleteItem_response(aOperation, aData);
+                }
+            };
 
             this.session.asyncItemRequest(request);
             return request;
@@ -484,9 +497,15 @@ calGoogleCalendar.prototype = {
             request.itemId = aId;
             request.type = request.GET;
             request.uri = this.fullUri.spec;
-            request.responseListener = this.getItem_response;
             request.operationListener = aListener;
             request.calendar = this;
+
+            var calendar = this;
+            request.responseListener = {
+                onResult: function cGC_getItem_response_onResult(aOperation, aData) {
+                    calendar.getItem_response(aOperation, aData);
+                }
+            };
 
             // Request Parameters
             var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
@@ -555,7 +574,6 @@ calGoogleCalendar.prototype = {
 
             request.type = request.GET;
             request.uri = this.fullUri.spec;
-            request.responseListener = this.getItems_response;
             request.operationListener = aListener;
             request.calendar = this;
             request.itemRangeStart = aRangeStart;
@@ -570,6 +588,13 @@ calGoogleCalendar.prototype = {
             request.addQueryParameter("singleevents", "false");
             request.addQueryParameter("start-min", rfcRangeStart);
             request.addQueryParameter("start-max", rfcRangeEnd);
+
+            var calendar = this;
+            request.responseListener = {
+                onResult: function cGC_getItems_response_onResult(aOperation, aData) {
+                    calendar.getItems_response(aOperation, aData);
+                }
+            };
 
             this.session.asyncItemRequest(request);
             return request;
@@ -590,197 +615,91 @@ calGoogleCalendar.prototype = {
     },
 
     /*
-     * Google Calendar Provider Response Listeners
+     * Google Calendar Provider Response Listener functions
      */
 
     /**
      * addItem_response
-     * Response listener, called by the session object when an item was added
+     * Response function, called by the session object when an item was added
      *
      * @param aOperation The calIGoogleRequest processing the request
      * @param aData      In case of an error, this is the error string, otherwise
      *                     an XML representation of the added item.
      */
-    addItem_response: {
-        calendar: null,
-        onResult: function cGC_addItem_response_onResult(aOperation, aData) {
-            var item = this.calendar.general_response(aOperation, aData);
+    addItem_response: function cGC_addItem_response(aOperation, aData) {
+        var item = this.general_response(aOperation, aData);
 
-            if (item) {
-                this.calendar.mObservers.notify("onAddItem", [item]);
-            }
+        if (item) {
+            this.mObservers.notify("onAddItem", [item]);
         }
     },
 
     /**
      * modifyItem_response
-     * Response listener, called by the session object when an item was modified
+     * Response function, called by the session object when an item was modified
      *
      * @param aOperation The calIGoogleRequest processing the request
      * @param aData      In case of an error, this is the error string, otherwise
      *                     an XML representation of the added item.
      */
-    modifyItem_response: {
-        calendar: null,
-        onResult: function cGC_modifyItem_response_onResult(aOperation,
-                                                            aData) {
-            var item = this.calendar.general_response(aOperation,
-                                                      aData,
-                                                      aOperation.newItem);
-            // Notify Observers
-            if (item) {
-                var oldItem = aOperation.oldItem;
-                if (item.parentItem != item) {
-                    item.parentItem.recurrenceInfo.modifyException(item, false);
-                    item = item.parentItem;
-                    oldItem = oldItem.parentItem;
-                }
-                this.calendar.mObservers.notify("onModifyItem", [item, oldItem]);
+    modifyItem_response: function cGC_modifyItem_response_onResult(aOperation,
+                                                                   aData) {
+        var item = this.general_response(aOperation,
+                                         aData,
+                                         aOperation.newItem);
+        // Notify Observers
+        if (item) {
+            var oldItem = aOperation.oldItem;
+            if (item.parentItem != item) {
+                item.parentItem.recurrenceInfo.modifyException(item, false);
+                item = item.parentItem;
+                oldItem = oldItem.parentItem;
             }
+            this.mObservers.notify("onModifyItem", [item, oldItem]);
         }
     },
 
     /**
      * deleteItem_response
-     * Response listener, called by the session object when an Item was deleted
+     * Response function, called by the session object when an Item was deleted
      *
      * @param aOperation The calIGoogleRequest processing the request
      * @param aData      In case of an error, this is the error string, otherwise
      *                     an XML representation of the added item.
      */
-    deleteItem_response: {
-        calendar: null,
-        onResult: function cGC_deleteItem_response_onResult(aOperation,
-                                                            aData) {
-            // The reason we are not using general_response here is because deleted
-            // items are not returned as xml from google. We need to pass the item
-            // we saved with the request.
+    deleteItem_response: function cGC_deleteItem_response_onResult(aOperation,
+                                                                   aData) {
+        // The reason we are not using general_response here is because deleted
+        // items are not returned as xml from google. We need to pass the item
+        // we saved with the request.
 
-            try {
-                // Check if the call succeeded
-                if (aOperation.status != Components.results.NS_OK) {
-                    throw new Components.Exception(aData, aOperation.status);
-                }
-
-                // All operations need to call onOperationComplete
-                if (aOperation.operationListener) {
-                    LOG("Deleting item " + aOperation.oldItem.id +
-                        " successful");
-
-                    aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
-                                                                     Components.results.NS_OK,
-                                                                     Components.interfaces.calIOperationListener.DELETE,
-                                                                     aOperation.oldItem.id,
-                                                                     aOperation.oldItem);
-                }
-
-                // Notify Observers
-                this.calendar.mObservers.notify("onDeleteItem", [aOperation.oldItem]);
-            } catch (e) {
-                LOG("Deleting item " + aOperation.oldItem.id + " failed");
-                // Operation failed
-                if (aOperation.operationListener) {
-                    aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
-                                                                     e.result,
-                                                                     Components.interfaces.calIOperationListener.DELETE,
-                                                                     null,
-                                                                     e.message);
-                }
+        try {
+            // Check if the call succeeded
+            if (aOperation.status != Components.results.NS_OK) {
+                throw new Components.Exception(aData, aOperation.status);
             }
-        }
-    },
 
-    /**
-     * getItem_response
-     * Response listener, called by the session object when a single Item was
-     * downloaded.
-     *
-     * @param aOperation The calIGoogleRequest processing the request
-     * @param aData      In case of an error, this is the error string, otherwise
-     *                     an XML representation of the added item.
-     */
-    getItem_response: {
-        calendar: null,
-        onResult: function cGC_getItem_response_onResult(aOperation,
-                                                         aData) {
-            // XXX Due to google issue 399, we need to parse a full feed here.
-            try {
-                if (!Components.isSuccessCode(aOperation.status)) {
-                    throw new Components.Exception(aData, aOperation.status);
-                }
+            // All operations need to call onOperationComplete
+            if (aOperation.operationListener) {
+                LOG("Deleting item " + aOperation.oldItem.id +
+                    " successful");
 
-                // Prepare Namespaces
-                var gCal = new Namespace("gCal",
-                                         "http://schemas.google.com/gCal/2005");
-                var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
-                var atom = new Namespace("", "http://www.w3.org/2005/Atom");
-                default xml namespace = atom;
-
-                // A feed was passed back, parse it. Due to bug 336551 we need to
-                // filter out the <?xml...?> part.
-                var xml = new XML(aData.substring(38));
-                var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-                var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
-
-                // This line is needed, otherwise the for each () block will never
-                // be entered. It may seem strange, but if you don't believe me, try
-                // it!
-                xml.link.(@rel);
-
-                // We might be able to get the full name through this feed's author
-                // tags. We need to make sure we have a session for that.
-                this.calendar.ensureSession();
-
-                // Get the item entry by id. Parse both normal ids and those that
-                // contain "@google.com". If both are not found, check for
-                // X-MOZ-SYNCID.
-                var itemEntry = xml.entry.(id.substring(id.lastIndexOf('/') + 1) == aOperation.itemId ||
-                                           gCal::uid.@value == aOperation.itemId ||
-                                           gd::extendedProperty.(@name == "X-MOZ-SYNCID").@value == aOperation.itemId);
-                if (itemEntry.length() == 0) {
-                    // Item wasn't found. Skip onGetResult and just complete.
-                    throw new Components.Exception("Item not found", Components.results.NS_ERROR_FAILURE);
-                }
-                var item = XMLEntryToItem(itemEntry, timezone, this.calendar);
-
-                if (item.recurrenceInfo) {
-                    // If this item is recurring, get all exceptions for this item.
-                    for each (var entry in xml.entry.gd::originalEvent.(@id == aOperation.itemId)) {
-                        var excItem = XMLEntryToItem(entry.parent(), timezone, this.calendar);
-
-                        // Google uses the status field to reflect negative
-                        // exceptions.
-                        if (excItem.status == "CANCELED") {
-                            item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
-                        } else {
-                            excItem.calendar = this.calendar;
-                            item.recurrenceInfo.modifyException(excItem, true);
-                        }
-                    }
-                }
-                // We are done, notify the listener of our result and that we are
-                // done.
-                aOperation.operationListener.onGetResult(this.calendar.superCalendar,
-                                                         Components.results.NS_OK,
-                                                         Components.interfaces.calIEvent,
-                                                         null,
-                                                         1,
-                                                         [item]);
-                aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
+                aOperation.operationListener.onOperationComplete(this.superCalendar,
                                                                  Components.results.NS_OK,
-                                                                 Components.interfaces.calIOperationListener.GET,
-                                                                 item.id,
-                                                                 null);
-            } catch (e) {
-                if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
-                    // Not finding an item isn't a user-important error, it may be a
-                    // wanted case. (i.e itip)
-                    LOG("Error getting item " + aOperation.itemId + ":\n" + e);
-                    Components.utils.reportError(e);
-                }
-                aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
+                                                                 Components.interfaces.calIOperationListener.DELETE,
+                                                                 aOperation.oldItem.id,
+                                                                 aOperation.oldItem);
+            }
+
+            // Notify Observers
+            this.mObservers.notify("onDeleteItem", [aOperation.oldItem]);
+        } catch (e) {
+            LOG("Deleting item " + aOperation.oldItem.id + " failed");
+            // Operation failed
+            if (aOperation.operationListener) {
+                aOperation.operationListener.onOperationComplete(this.superCalendar,
                                                                  e.result,
-                                                                 Components.interfaces.calIOperationListener.GET,
+                                                                 Components.interfaces.calIOperationListener.DELETE,
                                                                  null,
                                                                  e.message);
             }
@@ -788,169 +707,260 @@ calGoogleCalendar.prototype = {
     },
 
     /**
-     * getItems_response
-     * Response listener, called by the session object when an Item feed was
+     * getItem_response
+     * Response function, called by the session object when a single Item was
      * downloaded.
      *
      * @param aOperation The calIGoogleRequest processing the request
      * @param aData      In case of an error, this is the error string, otherwise
      *                     an XML representation of the added item.
      */
-    getItems_response: {
-        calendar: null,
-        onResult: function cGC_getItems_response_onResult(aOperation, aData) {
-            LOG("Recieved response for " + aOperation.uri);
-            try {
-                // Check if the call succeeded
-                if (!Components.isSuccessCode(aOperation.status)) {
-                    throw new Components.Exception(aData, aOperation.status);
+    getItem_response: function cGC_getItem_response_onResult(aOperation,
+                                                             aData) {
+        // XXX Due to google issue 399, we need to parse a full feed here.
+        try {
+            if (!Components.isSuccessCode(aOperation.status)) {
+                throw new Components.Exception(aData, aOperation.status);
+            }
+
+            // Prepare Namespaces
+            var gCal = new Namespace("gCal",
+                                     "http://schemas.google.com/gCal/2005");
+            var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+            var atom = new Namespace("", "http://www.w3.org/2005/Atom");
+            default xml namespace = atom;
+
+            // A feed was passed back, parse it. Due to bug 336551 we need to
+            // filter out the <?xml...?> part.
+            var xml = new XML(aData.substring(38));
+            var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
+            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+
+            // This line is needed, otherwise the for each () block will never
+            // be entered. It may seem strange, but if you don't believe me, try
+            // it!
+            xml.link.(@rel);
+
+            // We might be able to get the full name through this feed's author
+            // tags. We need to make sure we have a session for that.
+            this.ensureSession();
+
+            // Get the item entry by id. Parse both normal ids and those that
+            // contain "@google.com". If both are not found, check for
+            // X-MOZ-SYNCID.
+            var itemEntry = xml.entry.(id.substring(id.lastIndexOf('/') + 1) == aOperation.itemId ||
+                                       gCal::uid.@value == aOperation.itemId ||
+                                       gd::extendedProperty.(@name == "X-MOZ-SYNCID").@value == aOperation.itemId);
+            if (itemEntry.length() == 0) {
+                // Item wasn't found. Skip onGetResult and just complete.
+                throw new Components.Exception("Item not found", Components.results.NS_ERROR_FAILURE);
+            }
+            var item = XMLEntryToItem(itemEntry, timezone, this);
+
+            if (item.recurrenceInfo) {
+                // If this item is recurring, get all exceptions for this item.
+                for each (var entry in xml.entry.gd::originalEvent.(@id == aOperation.itemId)) {
+                    var excItem = XMLEntryToItem(entry.parent(), timezone, this);
+
+                    // Google uses the status field to reflect negative
+                    // exceptions.
+                    if (excItem.status == "CANCELED") {
+                        item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
+                    } else {
+                        excItem.calendar = this;
+                        item.recurrenceInfo.modifyException(excItem, true);
+                    }
+                }
+            }
+            // We are done, notify the listener of our result and that we are
+            // done.
+            aOperation.operationListener.onGetResult(this.superCalendar,
+                                                     Components.results.NS_OK,
+                                                     Components.interfaces.calIEvent,
+                                                     null,
+                                                     1,
+                                                     [item]);
+            aOperation.operationListener.onOperationComplete(this.superCalendar,
+                                                             Components.results.NS_OK,
+                                                             Components.interfaces.calIOperationListener.GET,
+                                                             item.id,
+                                                             null);
+        } catch (e) {
+            if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
+                // Not finding an item isn't a user-important error, it may be a
+                // wanted case. (i.e itip)
+                LOG("Error getting item " + aOperation.itemId + ":\n" + e);
+                Components.utils.reportError(e);
+            }
+            aOperation.operationListener.onOperationComplete(this.superCalendar,
+                                                             e.result,
+                                                             Components.interfaces.calIOperationListener.GET,
+                                                             null,
+                                                             e.message);
+        }
+    },
+
+    /**
+     * getItems_response
+     * Response function, called by the session object when an Item feed was
+     * downloaded.
+     *
+     * @param aOperation The calIGoogleRequest processing the request
+     * @param aData      In case of an error, this is the error string, otherwise
+     *                     an XML representation of the added item.
+     */
+    getItems_response: function cGC_getItems_response_onResult(aOperation, aData) {
+        LOG("Recieved response for " + aOperation.uri);
+        try {
+            // Check if the call succeeded
+            if (!Components.isSuccessCode(aOperation.status)) {
+                throw new Components.Exception(aData, aOperation.status);
+            }
+
+            // Prepare Namespaces
+            var gCal = new Namespace("gCal",
+                                     "http://schemas.google.com/gCal/2005");
+            var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+            var atom = new Namespace("", "http://www.w3.org/2005/Atom");
+            default xml namespace = atom;
+
+            // A feed was passed back, parse it. Due to bug 336551 we need to
+            // filter out the <?xml...?> part.
+            var xml = new XML(aData.substring(38));
+            var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
+            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+
+            // This line is needed, otherwise the for each () block will never
+            // be entered. It may seem strange, but if you don't believe me, try
+            // it!
+            xml.link.(@rel);
+
+            // We might be able to get the full name through this feed's author
+            // tags. We need to make sure we have a session for that.
+            this.ensureSession();
+
+            if (xml.author.email == this.mSession.userName) {
+                // If the current entry contains the user's email, then we can
+                // extract the user's full name also.
+                this.mSession.fullName = xml.author.name.toString();
+            }
+
+            // If this is a synchronization run (i.e updated-min was passed to
+            // google, then we also have a calendar to replay the changes on.
+            var destinationCal = aOperation.destinationCal;
+
+            // Parse all <entry> tags
+            for each (var entry in xml.entry) {
+                if (entry.gd::originalEvent.toString()) {
+                    // This is an exception. It will be parsed later so skip it
+                    // for now.
+                    // XXX this may be possible to filter via e4x, I just
+                    // haven't found out how
+                    continue;
+                }
+                LOG("Parsing entry:\n" + entry + "\n");
+
+                var item = XMLEntryToItem(entry, timezone, this.superCalendar);
+                if (item.status == "CANCELED") {
+                    if (destinationCal) {
+                        // When synchronizing, a "CANCELED" item is a deleted
+                        // event. Delete it from the destination calendar.
+                        destinationCal.deleteItem(item, null);
+                    }
+                    continue;
                 }
 
-                // Prepare Namespaces
-                var gCal = new Namespace("gCal",
-                                         "http://schemas.google.com/gCal/2005");
-                var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
-                var atom = new Namespace("", "http://www.w3.org/2005/Atom");
-                default xml namespace = atom;
+                var expandedItems;
+                item.calendar = this.superCalendar;
+                if (item.recurrenceInfo) {
+                    // This is a recurring item. It may have exceptions. Go
+                    // through all items that have this event as an original
+                    // event.
+                    for each (var oid in xml.entry.gd::originalEvent.(@id == item.id)) {
 
-                // A feed was passed back, parse it. Due to bug 336551 we need to
-                // filter out the <?xml...?> part.
-                var xml = new XML(aData.substring(38));
-                var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-                var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
-
-                // This line is needed, otherwise the for each () block will never
-                // be entered. It may seem strange, but if you don't believe me, try
-                // it!
-                xml.link.(@rel);
-
-                // We might be able to get the full name through this feed's author
-                // tags. We need to make sure we have a session for that.
-                this.calendar.ensureSession();
-
-                if (xml.author.email == this.calendar.mSession.userName) {
-                    // If the current entry contains the user's email, then we can
-                    // extract the user's full name also.
-                    this.calendar.mSession.fullName = xml.author.name.toString();
-                }
-
-                // If this is a synchronization run (i.e updated-min was passed to
-                // google, then we also have a calendar to replay the changes on.
-                var destinationCal = aOperation.destinationCal;
-
-                // Parse all <entry> tags
-                for each (var entry in xml.entry) {
-                    if (entry.gd::originalEvent.toString()) {
-                        // This is an exception. It will be parsed later so skip it
-                        // for now.
-                        // XXX this may be possible to filter via e4x, I just
-                        // haven't found out how
-                        continue;
-                    }
-                    LOG("Parsing entry:\n" + entry + "\n");
-
-                    var item = XMLEntryToItem(entry, timezone, this.calendar.superCalendar);
-                    if (item.status == "CANCELED") {
-                        if (destinationCal) {
-                            // When synchronizing, a "CANCELED" item is a deleted
-                            // event. Delete it from the destination calendar.
-                            destinationCal.deleteItem(item, null);
-                        }
-                        continue;
-                    }
-
-                    var expandedItems;
-                    item.calendar = this.calendar.superCalendar;
-                    if (item.recurrenceInfo) {
-                        // This is a recurring item. It may have exceptions. Go
-                        // through all items that have this event as an original
-                        // event.
-                        for each (var oid in xml.entry.gd::originalEvent.(@id == item.id)) {
-
-                            // Parse the exception and modify the current item
-                            var excItem = XMLEntryToItem(oid.parent(),
-                                                         timezone,
-                                                         this.calendar);
-                            if (excItem) {
-                                // Google uses the status field to reflect negative
-                                // exceptions.
-                                if (excItem.status == "CANCELED") {
-                                    item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
-                                } else {
-                                    excItem.calendar = this;
-                                    item.recurrenceInfo.modifyException(excItem, true);
-                                }
+                        // Parse the exception and modify the current item
+                        var excItem = XMLEntryToItem(oid.parent(),
+                                                     timezone,
+                                                     this);
+                        if (excItem) {
+                            // Google uses the status field to reflect negative
+                            // exceptions.
+                            if (excItem.status == "CANCELED") {
+                                item.recurrenceInfo.removeOccurrenceAt(excItem.recurrenceId);
+                            } else {
+                                excItem.calendar = this;
+                                item.recurrenceInfo.modifyException(excItem, true);
                             }
                         }
                     }
+                }
 
-                    item.makeImmutable();
-                    LOGitem(item);
-                    if (aOperation.itemFilter &
-                        Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) {
-                        var start = aOperation.itemRangeStart;
-                        var end = aOperation.itemRangeEnd;
-                        expandedItems = item.getOccurrencesBetween(start, end, {});
+                item.makeImmutable();
+                LOGitem(item);
+                if (aOperation.itemFilter &
+                    Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) {
+                    var start = aOperation.itemRangeStart;
+                    var end = aOperation.itemRangeEnd;
+                    expandedItems = item.getOccurrencesBetween(start, end, {});
 
-                        LOG("Expanded item " + item.title + " to " +
-                            expandedItems.length + " items");
-                    } else {
-                        expandedItems = [item];
+                    LOG("Expanded item " + item.title + " to " +
+                        expandedItems.length + " items");
+                } else {
+                    expandedItems = [item];
+                }
+
+                if (destinationCal) {
+                    // When synchronizing, instead of reporting to a listener,
+                    // we must just modify the item on the destination calendar.
+                    // Since relaxed mode is set on the destination calendar, we
+                    // can just call modifyItem, which will also handle
+                    // additions correctly.
+                    for each (var item in expandedItems) {
+                        destinationCal.modifyItem(item, null, null);
                     }
+                } else if (aOperation.operationListener) {
+                    // Otherwise, this in an uncached getItems call, notify the
+                    // listener that we got a result, but only if we actually
+                    // have a listener
+                    aOperation.operationListener.onGetResult(this.superCalendar,
+                                                             Components.results.NS_OK,
+                                                             Components.interfaces.calIEvent,
+                                                             null,
+                                                             expandedItems.length,
+                                                             expandedItems);
+                }
+            }
 
-                    if (destinationCal) {
-                        // When synchronizing, instead of reporting to a listener,
-                        // we must just modify the item on the destination calendar.
-                        // Since relaxed mode is set on the destination calendar, we
-                        // can just call modifyItem, which will also handle
-                        // additions correctly.
-                        for each (var item in expandedItems) {
-                            destinationCal.modifyItem(item, null, null);
-                        }
-                    } else if (aOperation.operationListener) {
-                        // Otherwise, this in an uncached getItems call, notify the
-                        // listener that we got a result, but only if we actually
-                        // have a listener
-                        aOperation.operationListener.onGetResult(this.calendar.superCalendar,
+            // Operation Completed successfully.
+            if (aOperation.operationListener instanceof Components.interfaces.calIOperationListener) {
+                aOperation.operationListener.onOperationComplete(this.superCalendar,
                                                                  Components.results.NS_OK,
-                                                                 Components.interfaces.calIEvent,
+                                                                 Components.interfaces.calIOperationListener.GET,
                                                                  null,
-                                                                 expandedItems.length,
-                                                                 expandedItems);
-                    }
-                }
+                                                                 null);
+            } else if (aOperation.operationListener instanceof Components.interfaces.calIGenericOperationListener) {
+                // The listener for synchronization is a
+                // calIGenericOperationListener. Call accordingly.
+                aOperation.operationListener.onResult(aOperation, null);
 
-                // Operation Completed successfully.
-                if (aOperation.operationListener instanceof Components.interfaces.calIOperationListener) {
-                    aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
-                                                                     Components.results.NS_OK,
-                                                                     Components.interfaces.calIOperationListener.GET,
-                                                                     null,
-                                                                     null);
-                } else if (aOperation.operationListener instanceof Components.interfaces.calIGenericOperationListener) {
-                    // The listener for synchronization is a
-                    // calIGenericOperationListener. Call accordingly.
-                    aOperation.operationListener.onResult(aOperation, null);
+                // Set the last updated timestamp to now.
+                LOG("Last sync date for " + this.name + " is now: " + aOperation.requestDate.toString());
 
-                    // Set the last updated timestamp to now.
-                    LOG("Last sync date for " + this.name + " is now: " + aOperation.requestDate.toString());
-
-                    this.setProperty("google.lastUpdated",
-                                     aOperation.requestDate.icalString);
-                }
-            } catch (e) {
-                LOG("Error getting items:\n" + e);
-                // Operation failed
-                if (aOperation.operationListener instanceof Components.interfaces.calIOperationListener) {
-                    aOperation.operationListener.onOperationComplete(this.calendar.superCalendar,
-                                                                     e.result,
-                                                                     Components.interfaces.calIOperationListener.GET,
-                                                                     null,
-                                                                     e.message);
-                } else if (aOperation.operationListener instanceof Components.interfaces.calIGenericOperationListener) {
-                    aOperation.operationListener.onResult({ status: e.result },
-                                                         e.message);
-                }
+                this.setProperty("google.lastUpdated",
+                                 aOperation.requestDate.icalString);
+            }
+        } catch (e) {
+            LOG("Error getting items:\n" + e);
+            // Operation failed
+            if (aOperation.operationListener instanceof Components.interfaces.calIOperationListener) {
+                aOperation.operationListener.onOperationComplete(this.superCalendar,
+                                                                 e.result,
+                                                                 Components.interfaces.calIOperationListener.GET,
+                                                                 null,
+                                                                 e.message);
+            } else if (aOperation.operationListener instanceof Components.interfaces.calIGenericOperationListener) {
+                aOperation.operationListener.onResult({ status: e.result },
+                                                     e.message);
             }
         }
     },
@@ -1077,7 +1087,7 @@ calGoogleCalendar.prototype = {
         request.destinationCal = aDestination;
         request.responseListener = this.getItems_response;
         request.operationListener = aListener;
-        request.calendar = this.calendar;
+        request.calendar = this;
 
         // Request Parameters
         request.addQueryParameter("max-results",
