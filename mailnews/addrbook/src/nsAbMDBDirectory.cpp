@@ -829,7 +829,7 @@ static PRBool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *director
   {
     PRUint32 total;
     rv = pAddressLists->Count(&total);
-    for (PRUint32 i = total - 1; i >= 0; i--)
+    for (PRUint32 i = 0; i < total; ++i)
     {
       nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(pAddressLists, i, &rv));
 
