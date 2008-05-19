@@ -480,7 +480,7 @@ function updateCheckUpdatesItem()
   else
     checkForUpdates.label = gUtilityBundle.getString("updatesItem_" + key + "Fallback");
 
-  checkForUpdates.accesskey = gUtilityBundle.getString("updatesItem_" + key + "AccessKey");
+  checkForUpdates.accessKey = gUtilityBundle.getString("updatesItem_" + key + "AccessKey"); 
 
   if (um.activeUpdate && updates.isDownloading)
     checkForUpdates.setAttribute("loading", "true");
