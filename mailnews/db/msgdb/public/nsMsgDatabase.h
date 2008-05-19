@@ -54,6 +54,7 @@
 #include "nsCOMArray.h"
 #include "pldhash.h"
 #include "nsTArray.h"
+#include "nsTObserverArray.h"
 class ListContext;
 class nsMsgKeySet;
 class nsMsgThread;
@@ -243,7 +244,7 @@ protected:
   nsCString     m_dbName;
   nsTArray<nsMsgKey> m_newSet;  // new messages since last open.
   PRBool        m_mdbTokensInitialized;
-  nsCOMPtr <nsISupportsArray>  m_ChangeListeners;
+  nsTObserverArray<nsCOMPtr<nsIDBChangeListener> > m_ChangeListeners;
   mdb_token     m_hdrRowScopeToken;
   mdb_token     m_threadRowScopeToken;
   mdb_token     m_hdrTableKindToken;

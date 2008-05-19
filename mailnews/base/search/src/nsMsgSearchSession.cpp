@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -132,22 +132,18 @@ nsMsgSearchSession::CreateTerm(nsIMsgSearchTerm **aResult)
 }
 
 /* void RegisterListener (in nsIMsgSearchNotify listener); */
-NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *listener)
+NS_IMETHODIMP nsMsgSearchSession::RegisterListener(nsIMsgSearchNotify *aListener)
 {
-  nsresult ret = NS_OK;
-  if (!m_listenerList)
-    ret = NS_NewISupportsArray(getter_AddRefs(m_listenerList));
-
-  if (NS_SUCCEEDED(ret) && m_listenerList)
-    m_listenerList->AppendElement(listener);
-  return ret;
+  NS_ENSURE_ARG_POINTER(aListener);
+  m_listenerList.AppendElement(aListener);
+  return NS_OK;
 }
 
 /* void UnregisterListener (in nsIMsgSearchNotify listener); */
-NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *listener)
+NS_IMETHODIMP nsMsgSearchSession::UnregisterListener(nsIMsgSearchNotify *aListener)
 {
-  if (m_listenerList)
-    m_listenerList->RemoveElement(listener);
+  NS_ENSURE_ARG_POINTER(aListener);
+  m_listenerList.RemoveElement(aListener);
   return NS_OK;
 }
 
@@ -258,23 +254,22 @@ nsMsgSearchSession::AddAllScopes(nsMsgSearchScopeValue attrib)
 /* void Search (); */
 NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
 {
-    nsresult err = Initialize ();
-    NS_ENSURE_SUCCESS(err,err);
-    if (m_listenerList) {
-        PRUint32 count;
-        m_listenerList->Count(&count);
-        for (PRUint32 i=0; i<count;i++) {
-            nsCOMPtr<nsIMsgSearchNotify> listener;
-            m_listenerList->QueryElementAt(i, NS_GET_IID(nsIMsgSearchNotify),
-                                           (void **)getter_AddRefs(listener));
-            if (listener)
-                listener->OnNewSearch();
-        }
-    }
-  m_msgWindowWeak = do_GetWeakReference(aWindow);
-  if (NS_SUCCEEDED(err))
-    err = BeginSearching ();
-  return err;
+  nsresult rv = Initialize();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
+  nsCOMPtr<nsIMsgSearchNotify> listener;
+  while (iter.HasMore())
+  {
+    listener = iter.GetNext();
+    listener->OnNewSearch();
+  }
+
+  m_msgWindowWeak = do_GetWeakReference(aWindow, &rv);
+  if (NS_FAILED(rv))
+    return rv;
+
+  return BeginSearching();
 }
 
 /* void InterruptSearch (); */
@@ -575,40 +570,27 @@ NS_IMETHODIMP nsMsgSearchSession::GetRunningAdapter (nsIMsgSearchAdapter **aSear
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *header, nsIMsgFolder *folder)
+NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *aHeader,
+                                               nsIMsgFolder *aFolder)
 {
-  if (m_listenerList)
+  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
+  nsCOMPtr<nsIMsgSearchNotify> listener;
+  while (iter.HasMore())
   {
-    PRUint32 count;
-    m_listenerList->Count(&count);
-    for (PRUint32 i = 0; i < count; i++)
-    {
-      nsCOMPtr<nsIMsgSearchNotify> pListener;
-      m_listenerList->QueryElementAt(i, NS_GET_IID(nsIMsgSearchNotify),
-                               (void **)getter_AddRefs(pListener));
-      if (pListener)
-        pListener->OnSearchHit(header, folder);
-
-    }
+    listener = iter.GetNext();
+    listener->OnSearchHit(aHeader, aFolder);
   }
   return NS_OK;
 }
 
-nsresult nsMsgSearchSession::NotifyListenersDone(nsresult status)
+nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 {
-  if (m_listenerList)
+  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
+  nsCOMPtr<nsIMsgSearchNotify> listener;
+  while (iter.HasMore())
   {
-    PRUint32 count;
-    m_listenerList->Count(&count);
-    for (PRUint32 i = 0; i < count; i++)
-    {
-      nsCOMPtr<nsIMsgSearchNotify> pListener;
-      m_listenerList->QueryElementAt(i, NS_GET_IID(nsIMsgSearchNotify),
-                               (void **)getter_AddRefs(pListener));
-      if (pListener)
-        pListener->OnSearchDone(status);
-
-    }
+    listener = iter.GetNext();
+    listener->OnSearchDone(aStatus);
   }
   return NS_OK;
 }

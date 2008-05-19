@@ -56,6 +56,7 @@
 #include "nsIOutputStream.h"
 #include "nsITransport.h"
 #include "nsIStringBundle.h"
+#include "nsTObserverArray.h"
 class nsIMsgFolderCacheElement;
 class nsIJunkMailPlugin;
 class nsICollation;
@@ -190,8 +191,8 @@ protected:
   PRBool mNotifyCountChanges;
   PRUint32 mExpungedBytes;
   nsCOMPtr<nsISupportsArray> mSubFolders;
-  nsVoidArray mListeners; //This can't be an nsISupportsArray because due to
-                          //ownership issues, listeners can't be AddRef'd
+  // This can't be refcounted due to ownsership issues
+  nsTObserverArray<nsIFolderListener*> mListeners;
 
   PRBool mInitializedFromCache;
   nsISupports *mSemaphoreHolder; // set when the folder is being written to

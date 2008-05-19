@@ -72,7 +72,7 @@
 #include "nsMsgLineBuffer.h" // we need this to use the nsMsgLineStreamBuffer helper class...
 #include "nsIInputStream.h"
 #include "nsIMsgIncomingServer.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsIThread.h"
 #include "nsIRunnable.h"
 #include "nsIImapMockChannel.h"
@@ -136,7 +136,7 @@ public:
   nsIImapHeaderInfo           *GetCurrentHdrInfo();
   // call when we've finished adding lines to current hdr
   void    FinishCurrentHdr();
-  nsCOMPtr <nsISupportsArray> m_hdrInfos;
+  nsCOMArray<nsIImapHeaderInfo> m_hdrInfos;
   PRInt32   m_nextFreeHdrInfo;
 };
 

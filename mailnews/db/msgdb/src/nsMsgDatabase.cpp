@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -555,169 +555,88 @@ nsMsgDatabase::CreateMsgHdr(nsIMdbRow* hdrRow, nsMsgKey key, nsIMsgDBHdr* *resul
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::AddListener(nsIDBChangeListener *listener)
+NS_IMETHODIMP nsMsgDatabase::AddListener(nsIDBChangeListener *aListener)
 {
-  if (m_ChangeListeners == nsnull)
-  {
-    NS_NewISupportsArray(getter_AddRefs(m_ChangeListeners));
-    if (!m_ChangeListeners)
-      return NS_ERROR_OUT_OF_MEMORY;
-  }
-  // check if this listener is already registered
-  // if already registered, do nothing (not an error)
-  else if (m_ChangeListeners->IndexOf(listener) != -1)
-    return NS_OK;
-  return m_ChangeListeners->AppendElement(listener);
-}
-
-NS_IMETHODIMP nsMsgDatabase::RemoveListener(nsIDBChangeListener *listener)
-{
-  if (m_ChangeListeners)
-    m_ChangeListeners->RemoveElement(listener);
+  NS_ENSURE_ARG_POINTER(aListener);
+  m_ChangeListeners.AppendElementUnlessExists(aListener);
   return NS_OK;
 }
+
+NS_IMETHODIMP nsMsgDatabase::RemoveListener(nsIDBChangeListener *aListener)
+{
+  NS_ENSURE_ARG_POINTER(aListener);
+  m_ChangeListeners.RemoveElement(aListener);
+  return NS_OK;
+}
+
+// XXX should we return rv for listener->propertyfunc_?
+#define NOTIFY_LISTENERS(propertyfunc_, params_) \
+  PR_BEGIN_MACRO \
+  nsTObserverArray<nsCOMPtr<nsIDBChangeListener> >::ForwardIterator iter(m_ChangeListeners); \
+  nsCOMPtr<nsIDBChangeListener> listener; \
+  while (iter.HasMore()) { \
+    listener = iter.GetNext(); \
+    listener->propertyfunc_ params_; \
+  } \
+  PR_END_MACRO
 
 // change announcer methods - just broadcast to all listeners.
-NS_IMETHODIMP nsMsgDatabase::NotifyHdrChangeAll(nsIMsgDBHdr *aHdrChanged, PRUint32 oldFlags, PRUint32 newFlags,
-  nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyHdrChangeAll(nsIMsgDBHdr *aHdrChanged,
+                                                PRUint32 aOldFlags,
+                                                PRUint32 aNewFlags,
+                                                nsIDBChangeListener *aInstigator)
 {
-  if (!m_ChangeListeners)
-    return NS_OK;
-
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-
-    nsresult rv = changeListener->OnHdrChange(aHdrChanged, oldFlags, newFlags, instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnHdrChange, (aHdrChanged, aOldFlags, aNewFlags, aInstigator));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::NotifyReadChanged(nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyReadChanged(nsIDBChangeListener *aInstigator)
 {
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-
-    nsresult rv = changeListener->OnReadChanged(instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnReadChanged, (aInstigator));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::NotifyJunkScoreChanged(nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyJunkScoreChanged(nsIDBChangeListener *aInstigator)
 {
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-
-    nsresult rv = changeListener->OnJunkScoreChanged(instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnJunkScoreChanged, (aInstigator));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::NotifyHdrDeletedAll(nsIMsgDBHdr *aHdrDeleted, nsMsgKey parentKey, PRInt32 flags,
-  nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyHdrDeletedAll(nsIMsgDBHdr *aHdrDeleted,
+                                                 nsMsgKey aParentKey,
+                                                 PRInt32 aFlags,
+                                                 nsIDBChangeListener *aInstigator)
 {
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-    nsresult rv = changeListener->OnHdrDeleted(aHdrDeleted, parentKey, flags, instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnHdrDeleted, (aHdrDeleted, aParentKey, aFlags, aInstigator));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::NotifyHdrAddedAll(nsIMsgDBHdr *aHdrAdded, nsMsgKey parentKey, PRInt32 flags,
-  nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyHdrAddedAll(nsIMsgDBHdr *aHdrAdded,
+                                               nsMsgKey aParentKey,
+                                               PRInt32 aFlags,
+                                               nsIDBChangeListener *aInstigator)
 {
 #ifdef DEBUG_bienvenu1
   printf("notifying add of %ld parent %ld\n", keyAdded, parentKey);
 #endif
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-
-    nsresult rv = changeListener->OnHdrAdded(aHdrAdded, parentKey, flags, instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnHdrAdded, (aHdrAdded, aParentKey, aFlags, aInstigator));
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDatabase::NotifyParentChangedAll(nsMsgKey keyReparented, nsMsgKey oldParent, nsMsgKey newParent,
-  nsIDBChangeListener *instigator)
+NS_IMETHODIMP nsMsgDatabase::NotifyParentChangedAll(nsMsgKey aKeyReparented,
+                                                    nsMsgKey aOldParent,
+                                                    nsMsgKey aNewParent,
+                                                    nsIDBChangeListener *aInstigator)
 {
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-
-  if (!count)
-    return NS_OK;
-
-  for (PRUint32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-    nsresult rv = changeListener->OnParentChanged(keyReparented, oldParent, newParent, instigator);
-    if (NS_FAILED(rv))
-      return rv;
-  }
+  NOTIFY_LISTENERS(OnParentChanged,
+                   (aKeyReparented, aOldParent, aNewParent, aInstigator));
   return NS_OK;
 }
 
 
 NS_IMETHODIMP nsMsgDatabase::NotifyAnnouncerGoingAway(void)
 {
-  if (m_ChangeListeners == nsnull)
-    return NS_OK;
-  // run loop backwards because listeners remove themselves from the list
-  // on this notification
-  PRUint32 count;
-  m_ChangeListeners->Count(&count);
-
-  if (!count)
-    return NS_OK;
-
-  for (PRUint32 i = count; i != 0 ; i--)
-  {
-    nsCOMPtr<nsIDBChangeListener> changeListener;
-    m_ChangeListeners->QueryElementAt(i - 1, NS_GET_IID(nsIDBChangeListener), (void **) getter_AddRefs(changeListener));
-    if (changeListener) {
-      nsresult rv = changeListener->OnAnnouncerGoingAway(this);
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
-  }
+  NOTIFY_LISTENERS(OnAnnouncerGoingAway, (this));
   return NS_OK;
 }
 
@@ -863,7 +782,7 @@ nsMsgDatabase::nsMsgDatabase()
         m_mdbEnv(nsnull), m_mdbStore(nsnull),
         m_mdbAllMsgHeadersTable(nsnull), m_mdbAllThreadsTable(nsnull),
         m_dbName(""),
-        m_mdbTokensInitialized(PR_FALSE), m_ChangeListeners(nsnull),
+        m_mdbTokensInitialized(PR_FALSE),
         m_hdrRowScopeToken(0),
         m_hdrTableKindToken(0),
         m_threadTableKindToken(0),
@@ -944,14 +863,9 @@ nsMsgDatabase::~nsMsgDatabase()
     m_mdbEnv->Release(); //??? is this right?
     m_mdbEnv = nsnull;
   }
-  if (m_ChangeListeners)
-  {
-    //better not be any listeners, because we're going away.
-    PRUint32 count;
-    m_ChangeListeners->Count(&count);
-    NS_ASSERTION(count == 0, "shouldn't have any listeners");
-    m_ChangeListeners = nsnull;
-  }
+
+  // Better not be any listeners, because we're going away.
+  NS_ASSERTION(m_ChangeListeners.IsEmpty(), "shouldn't have any listeners");
 }
 
 NS_IMPL_ADDREF(nsMsgDatabase)
@@ -1305,13 +1219,10 @@ NS_IMETHODIMP nsMsgDatabase::ForceClosed()
     m_mdbStore->Release();
     m_mdbStore = nsnull;
   }
-  if (m_ChangeListeners)
-  {
-    PRUint32 count;
-    m_ChangeListeners->Count(&count);
-    // better not be any listeners, because we're going away.
-    NS_ASSERTION(count == 0, "shouldn't have any listeners left");
-  }
+
+  // better not be any listeners, because we're going away.
+  NS_ASSERTION(m_ChangeListeners.IsEmpty(), "shouldn't have any listeners left");
+
   Release();
   return err;
 }

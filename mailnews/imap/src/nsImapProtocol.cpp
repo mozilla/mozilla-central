@@ -129,7 +129,6 @@ static const PRInt32 kNumHdrsToXfer=10;
 
 nsMsgImapHdrXferInfo::nsMsgImapHdrXferInfo()
 {
-  m_hdrInfos = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
   m_nextFreeHdrInfo = 0;
 }
 
@@ -145,10 +144,12 @@ NS_IMETHODIMP nsMsgImapHdrXferInfo::GetNumHeaders(PRInt32 *aNumHeaders)
 
 NS_IMETHODIMP nsMsgImapHdrXferInfo::GetHeader(PRInt32 hdrIndex, nsIImapHeaderInfo **aResult)
 {
-  if (m_hdrInfos)
-    return m_hdrInfos->QueryElementAt(hdrIndex, NS_GET_IID(nsIImapHeaderInfo), (void **) aResult);
-  else
-    return NS_ERROR_OUT_OF_MEMORY;
+  *aResult = m_hdrInfos.SafeObjectAt(hdrIndex);
+  if (!*aResult)
+    return NS_ERROR_NULL_POINTER;
+
+  NS_ADDREF(*aResult);
+  return NS_OK;
 }
 
 static const PRInt32 kInitLineHdrCacheSize = 512; // should be about right
@@ -160,7 +161,9 @@ nsresult nsMsgImapHdrXferInfo::GetFreeHeaderInfo(nsIImapHeaderInfo **aResult)
     *aResult = nsnull;
     return NS_ERROR_NULL_POINTER;
   }
-  nsresult rv = m_hdrInfos->QueryElementAt(m_nextFreeHdrInfo++, NS_GET_IID(nsIImapHeaderInfo), (void **) aResult);
+
+  *aResult = m_hdrInfos.SafeObjectAt(m_nextFreeHdrInfo++);
+  nsresult rv = NS_OK;
   if (!*aResult && m_nextFreeHdrInfo - 1 < kNumHdrsToXfer)
   {
       nsMsgImapLineDownloadCache *lineCache = new nsMsgImapLineDownloadCache();
@@ -168,7 +171,7 @@ nsresult nsMsgImapHdrXferInfo::GetFreeHeaderInfo(nsIImapHeaderInfo **aResult)
         return NS_ERROR_OUT_OF_MEMORY;
       rv = lineCache->GrowBuffer(kInitLineHdrCacheSize);
       NS_ADDREF(*aResult = lineCache);
-      m_hdrInfos->AppendElement(lineCache);
+      m_hdrInfos.AppendObject(lineCache);
   }
   return rv;
 }
@@ -186,11 +189,11 @@ void nsMsgImapHdrXferInfo::FinishCurrentHdr()
 
 void nsMsgImapHdrXferInfo::ResetAll()
 {
-  nsCOMPtr <nsIImapHeaderInfo> hdrInfo;
-  for (PRInt32 i = 0; i < kNumHdrsToXfer; i++)
+  PRInt32 count = m_hdrInfos.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsresult rv = GetHeader(i, getter_AddRefs(hdrInfo));
-    if (NS_SUCCEEDED(rv) && hdrInfo)
+    nsIImapHeaderInfo *hdrInfo = m_hdrInfos[i];
+    if (hdrInfo)
       hdrInfo->ResetCache();
   }
   m_nextFreeHdrInfo = 0;
@@ -198,7 +201,7 @@ void nsMsgImapHdrXferInfo::ResetAll()
 
 void nsMsgImapHdrXferInfo::ReleaseAll()
 {
-  m_hdrInfos->Clear();
+  m_hdrInfos.Clear();
   m_nextFreeHdrInfo = 0;
 }
 

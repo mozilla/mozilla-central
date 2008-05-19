@@ -4158,107 +4158,103 @@ NS_IMETHODIMP nsMsgDBFolder::CopyDataDone()
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::NotifyPropertyChanged(nsIAtom *property,
-                                   const nsACString& oldValue, const nsACString& newValue)
+nsMsgDBFolder::NotifyPropertyChanged(nsIAtom *aProperty,
+                                     const nsACString& aOldValue,
+                                     const nsACString& aNewValue)
 {
-  for (PRInt32 i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlisteners aren't refcounted.
-    nsIFolderListener* listener =(nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemPropertyChanged(this, property, nsCString(oldValue).get(), nsCString(newValue).get());
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemPropertyChanged,
+                                     (this, aProperty,
+                                      nsCString(aOldValue).get(),
+                                      nsCString(aNewValue).get()));
 
-  //Notify listeners who listen to every folder
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderListenerManager->OnItemPropertyChanged(this, property, nsCString(oldValue).get(), nsCString(newValue).get());
+  return folderListenerManager->OnItemPropertyChanged(this, aProperty,
+                                                      nsCString(aOldValue).get(),
+                                                      nsCString(aNewValue).get());
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::NotifyUnicharPropertyChanged(nsIAtom *property,
-                                          const nsAString& oldValue,
-                                          const nsAString& newValue)
+nsMsgDBFolder::NotifyUnicharPropertyChanged(nsIAtom *aProperty,
+                                          const nsAString& aOldValue,
+                                          const nsAString& aNewValue)
 {
-  nsresult rv;
-  for (PRInt32 i = 0; i < mListeners.Count(); i++)
-  {
-    // folderlisteners aren't refcounted in the array
-    nsIFolderListener* listener=(nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemUnicharPropertyChanged(this, property, nsString(oldValue).get(),
-                                           nsString(newValue).get());
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemUnicharPropertyChanged,
+                                     (this, aProperty,
+                                      nsString(aOldValue).get(),
+                                      nsString(aNewValue).get()));
 
   // Notify listeners who listen to every folder
+  nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   return folderListenerManager->OnItemUnicharPropertyChanged(this,
-                                                 property,
-                                                 nsString(oldValue).get(),
-                                                 nsString(newValue).get());
+                                                 aProperty,
+                                                 nsString(aOldValue).get(),
+                                                 nsString(aNewValue).get());
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::NotifyIntPropertyChanged(nsIAtom *property, PRInt32 oldValue, PRInt32 newValue)
+nsMsgDBFolder::NotifyIntPropertyChanged(nsIAtom *aProperty, PRInt32 aOldValue,
+                                        PRInt32 aNewValue)
 {
-  //Don't send off count notifications if they are turned off.
-  if (!mNotifyCountChanges && ((property == kTotalMessagesAtom) ||( property ==  kTotalUnreadMessagesAtom)))
+  // Don't send off count notifications if they are turned off.
+  if (!mNotifyCountChanges &&
+      ((aProperty == kTotalMessagesAtom) ||
+       (aProperty == kTotalUnreadMessagesAtom)))
     return NS_OK;
 
-  for (PRInt32 i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlisteners aren't refcounted.
-    nsIFolderListener* listener =(nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemIntPropertyChanged(this, property, oldValue, newValue);
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemIntPropertyChanged,
+                                     (this, aProperty, aOldValue, aNewValue));
 
-  //Notify listeners who listen to every folder
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderListenerManager->OnItemIntPropertyChanged(this, property, oldValue, newValue);
+  return folderListenerManager->OnItemIntPropertyChanged(this, aProperty,
+                                                         aOldValue, aNewValue);
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::NotifyBoolPropertyChanged(nsIAtom* property,
-                                       PRBool oldValue, PRBool newValue)
+nsMsgDBFolder::NotifyBoolPropertyChanged(nsIAtom* aProperty,
+                                         PRBool aOldValue, PRBool aNewValue)
 {
-  for (PRInt32 i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlisteners aren't refcounted.
-    nsIFolderListener* listener =(nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemBoolPropertyChanged(this, property, oldValue, newValue);
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemBoolPropertyChanged,
+                                     (this, aProperty, aOldValue, aNewValue));
 
-  //Notify listeners who listen to every folder
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderListenerManager->OnItemBoolPropertyChanged(this, property, oldValue, newValue);
+  return folderListenerManager->OnItemBoolPropertyChanged(this, aProperty,
+                                                          aOldValue, aNewValue);
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::NotifyPropertyFlagChanged(nsIMsgDBHdr *item, nsIAtom *property,
-                                       PRUint32 oldValue, PRUint32 newValue)
+nsMsgDBFolder::NotifyPropertyFlagChanged(nsIMsgDBHdr *aItem, nsIAtom *aProperty,
+                                         PRUint32 aOldValue, PRUint32 aNewValue)
 {
-  PRInt32 i;
-  for(i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlistener's aren't refcounted.
-    nsIFolderListener *listener = (nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemPropertyFlagChanged(item, property, oldValue, newValue);
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemPropertyFlagChanged,
+                                     (aItem, aProperty, aOldValue, aNewValue));
 
-  //Notify listeners who listen to every folder
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderListenerManager->OnItemPropertyFlagChanged(item, property, oldValue, newValue);
+  return folderListenerManager->OnItemPropertyFlagChanged(aItem, aProperty,
+                                                          aOldValue, aNewValue);
 }
 
 NS_IMETHODIMP nsMsgDBFolder::NotifyItemAdded(nsISupports *aItem)
@@ -4268,15 +4264,11 @@ NS_IMETHODIMP nsMsgDBFolder::NotifyItemAdded(nsISupports *aItem)
   if (!notify)
     return NS_OK;
 
-  PRInt32 i;
-  for(i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlistener's aren't refcounted.
-    nsIFolderListener *listener = (nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemAdded(this, aItem);
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemAdded,
+                                     (this, aItem));
 
-  //Notify listeners who listen to every folder
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
@@ -4284,32 +4276,26 @@ NS_IMETHODIMP nsMsgDBFolder::NotifyItemAdded(nsISupports *aItem)
   return folderListenerManager->OnItemAdded(this, aItem);
 }
 
-nsresult nsMsgDBFolder::NotifyItemRemoved(nsISupports *item)
+nsresult nsMsgDBFolder::NotifyItemRemoved(nsISupports *aItem)
 {
-  PRInt32 i;
-  for(i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlistener's aren't refcounted.
-    nsIFolderListener *listener = (nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemRemoved(this, item);
-  }
-  //Notify listeners who listen to every folder
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemRemoved,
+                                     (this, aItem));
+
+  // Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  return folderListenerManager->OnItemRemoved(this, item);
+  return folderListenerManager->OnItemRemoved(this, aItem);
 }
 
 nsresult nsMsgDBFolder::NotifyFolderEvent(nsIAtom* aEvent)
 {
-  PRInt32 i;
-  for(i = 0; i < mListeners.Count(); i++)
-  {
-    //Folderlistener's aren't refcounted.
-    nsIFolderListener *listener = (nsIFolderListener*)mListeners.ElementAt(i);
-    listener->OnItemEvent(this, aEvent);
-  }
+  NS_OBSERVER_ARRAY_NOTIFY_OBSERVERS(mListeners, nsIFolderListener,
+                                     OnItemEvent,
+                                     (this, aEvent));
+
   //Notify listeners who listen to every folder
   nsresult rv;
   nsCOMPtr<nsIFolderListener> folderListenerManager =

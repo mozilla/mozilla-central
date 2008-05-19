@@ -48,6 +48,7 @@
 #include "nsISupportsArray.h"
 #include "nsCOMArray.h"
 #include "nsWeakReference.h"
+#include "nsTObserverArray.h"
 
 class nsMsgSearchAdapter;
 class nsMsgSearchBoolExpression;
@@ -81,7 +82,7 @@ protected:
 
   nsMsgSearchScopeTermArray m_scopeList;
   nsCOMPtr <nsISupportsArray> m_termList;
-  nsCOMPtr <nsISupportsArray> m_listenerList;
+  nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> > m_listenerList;
 
   nsMsgResultArray m_resultList;
 

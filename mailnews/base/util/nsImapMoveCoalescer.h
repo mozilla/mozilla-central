@@ -39,7 +39,7 @@
 #define _nsImapMoveCoalescer_H
 
 #include "msgCore.h"
-#include "nsISupportsArray.h"
+#include "nsCOMArray.h"
 #include "nsIMsgWindow.h"
 #include "nsCOMPtr.h"
 #include "MailNewsTypes.h"
@@ -72,7 +72,7 @@ public:
 protected:
   // m_sourceKeyArrays and m_destFolders are parallel arrays.
   nsTArray<nsTArray<nsMsgKey> > m_sourceKeyArrays;
-  nsCOMPtr <nsISupportsArray> m_destFolders;
+  nsCOMArray<nsIMsgFolder> m_destFolders;
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFolder> m_sourceFolder;
   PRBool m_doNewMailNotification;

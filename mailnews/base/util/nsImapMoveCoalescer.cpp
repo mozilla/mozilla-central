@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -64,55 +64,44 @@ nsImapMoveCoalescer::~nsImapMoveCoalescer()
 nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
 {
   m_hasPendingMoves = PR_TRUE;
-  if (!m_destFolders)
-    NS_NewISupportsArray(getter_AddRefs(m_destFolders));
-  if (m_destFolders)
-  {
-    nsCOMPtr <nsISupports> supports = do_QueryInterface(folder);
-    if (supports)
-    {
-      PRInt32 folderIndex = m_destFolders->IndexOf(supports);
-      nsTArray<nsMsgKey> *keysToAdd = nsnull;
-      if (folderIndex >= 0)
-      {
-        keysToAdd = &(m_sourceKeyArrays[folderIndex]);
-      }
-      else
-      {
-        m_destFolders->AppendElement(supports);
-        keysToAdd = m_sourceKeyArrays.AppendElement();
-        if (!keysToAdd)
-          return NS_ERROR_OUT_OF_MEMORY;
-      }
-      if (keysToAdd->IndexOf(key) == -1)
-        keysToAdd->AppendElement(key);
-      return NS_OK;
-    }
-    else
-      return NS_ERROR_NULL_POINTER;
-  }
+  PRInt32 folderIndex = m_destFolders.IndexOf(folder);
+  nsTArray<nsMsgKey> *keysToAdd = nsnull;
+
+  if (folderIndex >= 0)
+    keysToAdd = &(m_sourceKeyArrays[folderIndex]);
   else
-    return NS_ERROR_OUT_OF_MEMORY;
-  
+  {
+    m_destFolders.AppendObject(folder);
+    keysToAdd = m_sourceKeyArrays.AppendElement();
+    if (!keysToAdd)
+      return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  if (keysToAdd->IndexOf(key) == -1)
+    keysToAdd->AppendElement(key);
+
+  return NS_OK;
 }
 
 nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR_FALSE */)
 {
-  PRUint32 numFolders;
+  PRInt32 numFolders = m_destFolders.Count();
+  // Nothing to do, so don't change the member variables.
+  if (numFolders == 0)
+    return NS_OK;
+
   nsresult rv = NS_OK;
-  if (!m_destFolders)
-    return NS_OK;  // nothing to do.
   m_hasPendingMoves = PR_FALSE;
   m_doNewMailNotification = doNewMailNotification;
-  m_destFolders->Count(&numFolders);
   m_outstandingMoves = 0;
-  for (PRUint32 i = 0; i < numFolders; i++)
+
+  for (PRInt32 i = 0; i < numFolders; ++i)
   {
     // XXX TODO
     // JUNK MAIL RELATED
     // is this the right place to make sure dest folder exists
     // (and has proper flags?), before we start copying?
-    nsCOMPtr <nsIMsgFolder> destFolder(do_QueryElementAt(m_destFolders, i));
+    nsCOMPtr <nsIMsgFolder> destFolder(m_destFolders[i]);
     nsCOMPtr<nsIImapService> imapService = 
       do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
