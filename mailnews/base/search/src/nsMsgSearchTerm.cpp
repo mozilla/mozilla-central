@@ -72,6 +72,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
+#include <ctype.h>
 
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
@@ -975,8 +976,8 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
   // Save some performance for opIsEmpty
   if(nsMsgSearchOp::IsEmpty != m_operator)
   {
-    NS_ASSERTION(IsUTF8(nsDependentCString(m_value.string)),
-                        "m_value.string is not UTF-8");
+    NS_ASSERTION(MsgIsUTF8(nsDependentCString(m_value.string)),
+                 "m_value.string is not UTF-8");
     CopyUTF8toUTF16(nsDependentCString(m_value.string), needle);
 
     if (charset != nsnull)
@@ -985,7 +986,7 @@ nsresult nsMsgSearchTerm::MatchString (const char *stringToMatch,
                        utf16StrToMatch);
     }
     else {
-      NS_ASSERTION(IsUTF8(nsDependentCString(stringToMatch)),
+      NS_ASSERTION(MsgIsUTF8(nsDependentCString(stringToMatch)),
                    "stringToMatch is not UTF-8");
       CopyUTF8toUTF16(nsDependentCString(stringToMatch), utf16StrToMatch);
     }
