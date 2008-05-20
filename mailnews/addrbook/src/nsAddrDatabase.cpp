@@ -1565,10 +1565,9 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     else if (!aInMailingList) {
       nsresult rv;
       nsCOMPtr<nsIAddrDBListener> parentListener(do_QueryInterface(aParent, &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
 
       // Ensure the parent is in the listener list (and hence wants to be notified)
-      if (m_ChangeListeners.Contains(parentListener))
+      if (NS_SUCCEEDED(rv) && m_ChangeListeners.Contains(parentListener))
         parentListener->OnCardEntryChange(AB_NotifyInserted, aPCard, aParent);
     }
     else {
@@ -1722,7 +1721,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *aNewList,
 
     if (NS_SUCCEEDED(err) && listRow)
     {
-        AddListAttributeColumnsToRow(aNewList, listRow, aParent);
+        AddListAttributeColumnsToRow(aNewList, listRow, aNewList);
         AddRecordKeyColumnToRow(listRow);
         mdb_err merror = m_mdbPabTable->AddRow(m_mdbEnv, listRow);
         if (merror != NS_OK)
