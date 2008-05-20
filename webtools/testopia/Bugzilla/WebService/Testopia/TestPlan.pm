@@ -370,6 +370,14 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Returns:     Array: An array of hashes with changed fields and their details.
 
+=item C<get_product($plan_id)>
+
+ Description: Get the Product the plan is assiciated with.
+
+ Params:      $plan_id - Integer: An integer representing the ID in the database.
+
+ Returns:     Hash: A blessed Bugzilla::Testopia::Product hash.
+
 =item C<get_tags($plan_id)>
 
  Description: Get the list of tags attached to this plan.

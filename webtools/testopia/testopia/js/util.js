@@ -28,6 +28,7 @@ Ext.Ajax.timeout = 120000;
 var Testopia = {};
 
 Testopia.Util = {};
+Testopia.Environment = {};
 
 //check column widget
 Ext.grid.CheckColumn = function(config){

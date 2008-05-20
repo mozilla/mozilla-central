@@ -512,7 +512,7 @@ sub export() {
         
         
         foreach my $element (@$elements) {
-            $element->get_children();
+            $element->get_child_elements();
             $xml .= $self->export_element_and_children(1, $element, $environment->{'environment_id'});
         }
         
@@ -575,7 +575,7 @@ sub export_element_and_children() {
     
     my $children = $element->{'children'};
     foreach my $child_element (@$children) {
-        $child_element->get_children();
+        $child_element->get_child_elements();
         $xml .= $self->export_element_and_children($depth, $child_element, $env_id);
     }
     $xml .= "</element>";

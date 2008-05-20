@@ -65,7 +65,7 @@ sub check_environment {
 
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
-    return Bugzilla::Testopia::Environment::check_environment($name, $product);
+    return Bugzilla::Testopia::Environment::check_environment($name, $product, 'THROWERROR');
 }
 
 sub list {

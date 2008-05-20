@@ -96,6 +96,14 @@
   [% ELSIF error == "testopia-unkown-object" %]
     [% title = "Unkown Object" %]
     Attempted to attach tags to something other than a Test Plan, Test Case or Test Run.
+  [% ELSIF error == "testopia-element-in-use" %]
+    [% title = "Element in Use" %]
+    The selected element is being used in one or more environments. 
+    Please [% IF NOT delete %]create a new one or [% END %]
+    remove it from existing environments before performing this operation.
+  [% ELSIF error == "testopia-invalid-char" %]
+    [% title = "Invalid Character" %]
+    Valid names for values cannot contain '|' characters.
   [% ELSIF error == "testiopia-alias-exists" %]
     [% title = "Alias Unavailable" %]
     The alias '[% alias FILTER html %]' is already in use by another test case, please

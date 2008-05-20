@@ -224,12 +224,12 @@ sub get_environment_elements{
     
     my $id = $self->{'environment_id'};
     
-    my $ref = $dbh->selectcol_arrayref(qq{
+    my $ref = $dbh->selectcol_arrayref("
             SELECT DISTINCT tee.element_id 
               FROM test_environment_map as tem
               JOIN test_environment_element as tee
-              ON tem.element_id = tee.element_id
-              WHERE tem.environment_id = ?},undef,$id);
+                ON tem.element_id = tee.element_id
+             WHERE tem.environment_id = ?",undef,$id);
     
     my @elements;
 
@@ -293,102 +293,82 @@ sub elements_to_json {
 #    return $json;   
 }
 
+sub element_categories {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;
+    
+    my $ref = $dbh->selectcol_arrayref(
+        "SELECT DISTINCT env_category_id 
+           FROM test_environment_element tee 
+     INNER JOIN test_environment_map tem 
+       		 ON tem.element_id = tee.element_id 
+          WHERE tem.environment_id = ?", undef, $self->id); 
+    
+    my @elements;
+    foreach my $val  (@$ref){
+        push @elements, Bugzilla::Testopia::Environment::Category->new($val);
+    }   
+    $self->{'categories'} = \@elements;
+     
+    return \@elements; 
+}
+
 sub categories_to_json {
     my $self = shift;
 
-    my $elements = $self->get_environment_elements;
-            
-    my @environments; 
-    my %categoryHash;
-    
-    foreach my $element (@$elements){
-        if ($element->is_parent_a_category()){
-            my $parent = $element->get_parent();
-            my $hash_key = $parent->id;
-             
-            #the category already exists in the hash
-            if(exists $categoryHash{$hash_key}){
-                #do nothing right now
-            }
-             
-            #otherwise make a new hash category
-            else{
-                my @elementsArray;
-                push @elementsArray, {text=> $parent->{'name'}, id=> $parent->id . ' category', type=> 'category', leaf=> 'false', cls => 'category'};
-                
-                my $leaf;
-                if($element->check_for_children || $element->check_for_properties){
-                    $leaf = 'false';
-                }
-                else{
-                    $leaf = 'true';
-                }
-                 
-                push @elementsArray, {
-                    text => $element->{'name'}, 
-                    id   => $element->{'id'} . ' element', 
-                    type => 'element', 
-                    leaf => $leaf,
-                    allowDrop => 'false',
-                    cls  => 'element'
-                }; 
-                 
-            $categoryHash{$hash_key} = \@elementsArray;                
-            }                     
-         }
-         
-         #push the element onto the hash without a category
-         else{
-             my @elementsArray;
-             my $leaf;
-             if ($element->check_for_children || $element->check_for_properties){
-                $leaf = 'false';
-             }
-             else{
-                $leaf = 'true';
-             }
-                 
-             push @elementsArray, {
-                 text => $element->{'name'}, 
-                 id   => $element->{'element_id'} . ' element', 
-                 type => 'element', 
-                 allowDrop => 'false',
-                 leaf => $leaf, 
-                 cls  => 'element'
-             };
-                
-             $categoryHash{$element->{'element_id'} . "e"} = \@elementsArray;        
-         }
+    my @elements_array; 
+    foreach my $category (@{$self->element_categories}){
+        push @elements_array, {
+            text => $category->{'name'}, 
+            id   => $category->id, 
+            type => 'category', 
+            leaf => 'false', 
+            cls  => 'category',
+            draggable => 'false',
+        };
     }
     
     my $json = new JSON; 
-
-    #use Data::Dumper;
-    #print Dumper(\%categoryHash);
-
-
-    my $firstloop = 1;
-    print "[";
-    
-    for my $key (keys %categoryHash){    
-        if($firstloop == 0){
-            print ",";
-        }
-
-        my @elementsArray = @{$categoryHash{$key}};
-        print $json->objToJson($elementsArray[0]);
-             
-        $firstloop = 0;
-    }
-    print "]";
-    return;
+    print $json->objToJson(\@elements_array);
+    return undef;
 }
 
-=head2 get_value_selected
-
-Returns a selected value for the specified environment element property instance. 
-
-=cut
+sub mapped_category_elements_to_json {
+    my $self = shift;
+    my ($cat_id) = @_;
+    
+    my $dbh = Bugzilla->dbh;
+    
+    trick_taint($cat_id);
+    my $ref = $dbh->selectcol_arrayref(
+        "SELECT DISTINCT tem.element_id 
+           FROM test_environment_map tem
+     INNER JOIN test_environment_element tee 
+             ON tee.element_id = tem.element_id
+           WHERE tee.env_category_id = ?
+           AND tee.element_id IN (SELECT element_id 
+                                    FROM test_environment_map 
+                                   WHERE environment_id = ?)", 
+           undef, ($cat_id, $self->id));
+    
+    my @elements;
+    foreach my $id (@$ref){
+        my $element = Bugzilla::Testopia::Environment::Element->new($id);
+        push @elements, {
+            text => $element->{'name'}, 
+            id   => $element->id, 
+            type => 'element', 
+            leaf => $element->check_for_children ? 'false' : 'true', 
+            cls  => 'element',
+            draggable => 'false',
+        }; 
+    }
+    
+    my $json = new JSON; 
+    print $json->objToJson(\@elements);
+    return undef;
+    
+}
 
 sub get_value_selected{
     my $dbh = Bugzilla->dbh;
@@ -406,12 +386,6 @@ sub get_value_selected{
     
     return $var;
 }
-
-=head2 get environment names
-
-Returns the list of environment names and ids
-
-=cut
 
 sub get_environments{
     my $dbh = Bugzilla->dbh;
@@ -531,12 +505,6 @@ sub get_elements_for_environment(){
        return \@elements;    
 }
 
-=head2 check environment name
-
-Returns environment id if environment exists
-
-=cut
-
 sub check_environment{
     my ($name, $product, $throw) = (@_);
     my $pid = ref $product ? $product->id : $product;
@@ -555,13 +523,6 @@ sub check_environment{
     return $used;             
 }
 
-
-=head2 Check Environment Element Property Value Selected
-
-Returns environment id if Environment Element Property Value Selected exists
-
-=cut
-
 sub check_value_selected {
     my $self = shift;
     my ($prop_id, $elem_id) = @_;
@@ -577,12 +538,6 @@ sub check_value_selected {
         
     return $used;
 }
-
-=head2 store
-
-Serializes this environment to the database
-
-=cut
 
 sub store {
     my $self = shift;
@@ -715,8 +670,6 @@ Updates the property of the element in the database
 =cut
 
 sub update_property_value {
-    
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     my $self = shift;
     my ($propID, $elemID, $valueSelected) = (@_);
     

@@ -61,11 +61,11 @@ use Bugzilla::Testopia::Environment::Element;
 =cut
 
 use constant DB_COLUMNS => qw(
-    property_id
-    element_id
-    name
-    validexp
-    );
+  property_id
+  element_id
+  name
+  validexp
+);
 
 ###############################
 ####       Methods         ####
@@ -81,9 +81,9 @@ Instantiates a new Property object
 
 sub new {
     my $invocant = shift;
-    my $class = ref($invocant) || $invocant;
-    my $self = {};
-    bless($self, $class);
+    my $class    = ref($invocant) || $invocant;
+    my $self     = {};
+    bless( $self, $class );
     return $self->_init(@_);
 }
 
@@ -94,32 +94,34 @@ Private constructor for the property class
 =cut
 
 sub _init {
-    my $self = shift;
+    my $self    = shift;
     my ($param) = (@_);
-    my $dbh = Bugzilla->dbh;
-    my $columns = join(", ", DB_COLUMNS);
+    my $dbh     = Bugzilla->dbh;
+    my $columns = join( ", ", DB_COLUMNS );
 
-    my $id = $param unless (ref $param eq 'HASH');
+    my $id = $param unless ( ref $param eq 'HASH' );
     my $obj;
 
-    if (defined $id && detaint_natural($id)) {
+    if ( defined $id && detaint_natural($id) ) {
 
-        $obj = $dbh->selectrow_hashref(qq{
+        $obj = $dbh->selectrow_hashref(
+            qq{
             SELECT $columns 
               FROM test_environment_property
-              WHERE property_id  = ?}, undef, $id);
-    } elsif (ref $param eq 'HASH'){
-         $obj = $param;   
+              WHERE property_id  = ?}, undef, $id
+        );
+    }
+    elsif ( ref $param eq 'HASH' ) {
+        $obj = $param;
     }
 
-    return undef unless (defined $obj);
+    return undef unless ( defined $obj );
 
-    foreach my $field (keys %$obj) {
+    foreach my $field ( keys %$obj ) {
         $self->{$field} = $obj->{$field};
     }
     return $self;
 }
-
 
 =head2 check_property
 
@@ -127,21 +129,23 @@ Returns id if a property exists
 
 =cut
 
-sub check_property{
+sub check_property {
     my $self = shift;
-    my ($name, $element_id) = @_;
+    my ( $name, $element_id ) = @_;
     my $dbh = Bugzilla->dbh;
 
-    unless ($name && $element_id) {
+    unless ( $name && $element_id ) {
         return "check_product must be passed a valid name and product_id";
     }
 
-    my ($used) = $dbh->selectrow_array(qq{
+    my ($used) = $dbh->selectrow_array(
+        qq{
         SELECT property_id 
           FROM test_environment_property
-          WHERE name = ? AND element_id = ?},undef,$name,$element_id);
+          WHERE name = ? AND element_id = ?}, undef, $name, $element_id
+    );
 
-    return $used;             
+    return $used;
 }
 
 =head2 check_for_validexp
@@ -150,17 +154,20 @@ Returns 1 if a validexp exist for the property
 
 =cut
 
-sub check_for_validexp{
+sub check_for_validexp {
     my $self = shift;
     my $name = (@_);
-    my $dbh = Bugzilla->dbh;
+    my $dbh  = Bugzilla->dbh;
 
-    my ($used) = $dbh->selectrow_array(qq{
+    my ($used) = $dbh->selectrow_array(
+        qq{
         SELECT 1 
           FROM test_environment_property
-          WHERE property_id = ? AND (validexp IS NOT NULL AND validexp <> '')},undef,$self->{'property_id'});
+          WHERE property_id = ? AND (validexp IS NOT NULL AND validexp <> '')},
+        undef, $self->{'property_id'}
+    );
 
-    return $used;             
+    return $used;
 }
 
 =head2 new_property_count
@@ -169,20 +176,21 @@ Returns the count + 1 of new properties
 
 =cut
 
-sub new_property_count{
+sub new_property_count {
     my $self = shift;
     my ($element_id) = @_;
     $element_id ||= $self->{'element_id'};
     my $dbh = Bugzilla->dbh;
-    
+
     my ($used) = $dbh->selectrow_array(
-       "SELECT COUNT(*) 
+        "SELECT COUNT(*) 
           FROM test_environment_property 
          WHERE name like 'New property%'
          AND element_id = ?",
-         undef, $element_id);
+        undef, $element_id
+    );
 
-    return $used + 1;             
+    return $used + 1;
 }
 
 =head2 get_validexp
@@ -191,19 +199,20 @@ Returns the validexp for the property
 
 =cut
 
-sub get_validexp{
+sub get_validexp {
     my $self = shift;
     my $name = (@_);
-    my $dbh = Bugzilla->dbh;
+    my $dbh  = Bugzilla->dbh;
 
-    my $validexp = $dbh->selectrow_arrayref(qq{
-        SELECT validexp 
-          FROM test_environment_property
-          WHERE property_id = ? },undef,$self->{'property_id'});
+    my ($validexp) = $dbh->selectrow_array(
+        "SELECT validexp 
+           FROM test_environment_property
+          WHERE property_id = ?",
+        undef, $self->{'property_id'}
+    );
 
-    return $validexp;     
+    return $validexp;
 }
-
 
 =head2 store
 
@@ -213,16 +222,19 @@ Serializes the new property to the database
 
 sub store {
     my $self = shift;
+
     # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'property_id'} DB_COLUMNS);
+    my $columns = join( ", ", grep { $_ ne 'property_id' } DB_COLUMNS );
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
- 
+
     # Verify name is available
-    return undef if $self->check_property($self->{'name'}, $self->{'element_id'});
-    
+    return undef
+      if $self->check_property( $self->{'name'}, $self->{'element_id'} );
+
     my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environment_property ($columns) VALUES (?,?,?)",
-             undef, ($self->{'element_id'}, $self->{'name'}, $self->{'validexp'}));
+    $dbh->do( "INSERT INTO test_environment_property ($columns) VALUES (?,?,?)",
+        undef,
+        ( $self->{'element_id'}, $self->{'name'}, $self->{'validexp'} ) );
     my $key = $dbh->bz_last_key( 'test_plans', 'plan_id' );
     return $key;
 }
@@ -234,17 +246,19 @@ Updates the property name in the database
 =cut
 
 sub set_name {
-    my $self = shift;
+    my $self      = shift;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    
+
     my ($name) = (@_);
-    
+
     my $dbh = Bugzilla->dbh;
-    $dbh->do("UPDATE test_environment_property 
-              SET name = ? WHERE property_id = ?",undef, ($name,$self->{'property_id'} ));          
+    $dbh->do(
+        "UPDATE test_environment_property 
+              SET name = ? WHERE property_id = ?", undef,
+        ( $name, $self->{'property_id'} )
+    );
     return 1;
 }
-
 
 =head2 set_element
 
@@ -253,14 +267,17 @@ Updates the elmnt_id in the database
 =cut
 
 sub set_element {
-    my $self = shift;
+    my $self      = shift;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    
+
     my ($id) = (@_);
-    
+
     my $dbh = Bugzilla->dbh;
-    $dbh->do("UPDATE test_environment_property 
-              SET element_id = ? WHERE property_id = ?",undef, ($id,$self->{'property_id'} ));          
+    $dbh->do(
+        "UPDATE test_environment_property 
+              SET element_id = ? WHERE property_id = ?", undef,
+        ( $id, $self->{'property_id'} )
+    );
     return 1;
 }
 
@@ -271,46 +288,53 @@ Updates the property valid expression in the database
 =cut
 
 sub update_property_validexp {
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    my $self = shift;
+    my $timestamp  = Bugzilla::Testopia::Util::get_time_stamp();
+    my $self       = shift;
     my ($validexp) = (@_);
-    
+
     my $dbh = Bugzilla->dbh;
-    $dbh->do("UPDATE test_environment_property 
-              SET validexp = ? WHERE property_id = ?",undef, ($validexp,$self->{'property_id'} ));          
+    $dbh->do(
+        "UPDATE test_environment_property 
+              SET validexp = ? WHERE property_id = ?", undef,
+        ( $validexp, $self->{'property_id'} )
+    );
     return 1;
 }
 
-sub valid_exp_to_json {
+sub value_to_json {
     my $self = shift;
-    my ($disable_move, $env_id) = @_;
+    my ($env_id) = @_;
+
     my $env = Bugzilla::Testopia::Environment->new($env_id) if $env_id;
-    $disable_move = $disable_move ? ',"addChild","move","remove"' : '';
-    my $validexp = $self->get_validexp;
-   
-    my @validexpressions = split(/\|/, @$validexp[0]);
-    
-        
-    my @validExpressionsArray;
-    foreach (@validexpressions)
-    {    
+    my @values = split( /\|/, $self->get_validexp );
+
+    my @json;
+    foreach (@values) {
         my $class;
-        if ($env && $env->get_value_selected($env->id, $self->element_id, $self->id) eq $_)
+        if ( $env
+            && $env->get_value_selected( $env->id, $self->element_id,
+                $self->id ) eq $_ )
         {
             $class = "validexpYellow";
         }
-         else
-         {
-             $class = "validexp";
-         }
-        
-         push @validExpressionsArray, {text=> $_, id=> $self->id . ' ' . $_ . ' validexp', value => $_, type=> 'validexp', leaf => 'true', cls=> $class};
+        else {
+            $class = "validexp";
+        }
+        push @json,
+          {
+            text  => $_,
+            id    => " $_",
+            property_id => $self->id,
+            type  => 'value',
+            leaf  => 'true',
+            cls   => $class,
+            draggable => 'false',
+          };
     }
-    
+
     my $json = new JSON;
-    return $json->objToJson(\@validExpressionsArray);
-    
-    
+    return $json->objToJson( \@json );
+
 }
 
 =head2 obliterate
@@ -321,27 +345,47 @@ Completely removes the element property entry from the database.
 
 sub obliterate {
     my $self = shift;
-    my $dbh = Bugzilla->dbh;
-    
-    $dbh->do("DELETE FROM test_environment_map
-               WHERE property_id = ?", undef, $self->id);
-    $dbh->do("DELETE FROM test_environment_property 
-              WHERE property_id = ?", undef, $self->id);
-    
+    my $dbh  = Bugzilla->dbh;
+
+    $dbh->do(
+        "DELETE FROM test_environment_map
+               WHERE property_id = ?", undef, $self->id
+    );
+    $dbh->do(
+        "DELETE FROM test_environment_property 
+              WHERE property_id = ?", undef, $self->id
+    );
+
     return 1;
-    
+
 }
+
+sub is_mapped {
+    my $self = shift;
+    my $dbh  = Bugzilla->dbh;
+
+    my ($ref) = $dbh->selectrow_array(
+            "SELECT element_id 
+               FROM test_environment_map
+              WHERE property_id = ?", undef, $self->id 
+    );
+    
+    return $ref;
+}
+
 
 sub canview {
     my $self = shift;
-    my $element = Bugzilla::Testopia::Environment::Element->new($self->element_id);
+    my $element =
+      Bugzilla::Testopia::Environment::Element->new( $self->element_id );
     return 1 if $element->canview;
     return 0;
 }
 
 sub canedit {
     my $self = shift;
-    my $element = Bugzilla::Testopia::Environment::Element->new($self->element_id);
+    my $element =
+      Bugzilla::Testopia::Environment::Element->new( $self->element_id );
     return 1 if $element->canedit;
     return 0;
 }
@@ -349,17 +393,13 @@ sub canedit {
 sub candelete {
     my $self = shift;
     return 0 unless $self->canedit;
-    my $dbh = Bugzilla->dbh;
-    my $used = $dbh->selectrow_array("SELECT 1 FROM test_environment_map 
-                                      WHERE property_id = ?",
-                                      undef, $self->id);
-    return !$used;
 
 }
 
 ###############################
 ####      Accessors        ####
 ###############################
+
 =head2 id
 
 Returns the ID of this object
@@ -379,11 +419,10 @@ Returns the element's id associated with this property
 
 =cut
 
-sub id              { return $_[0]->{'property_id'}; }
-sub name            { return $_[0]->{'name'}; }
-sub validexp        { return $_[0]->{'validexp'}; }
-sub element_id      { return $_[0]->{'element_id'}; }
-
+sub id         { return $_[0]->{'property_id'}; }
+sub name       { return $_[0]->{'name'}; }
+sub validexp   { return $_[0]->{'validexp'}; }
+sub element_id { return $_[0]->{'element_id'}; }
 
 =head2 type
 
