@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.50 2008-02-13 15:29:12 kaie%kuix.de Exp $
+ * $Id: ocsp.c,v 1.51 2008-05-20 23:34:03 julien.pierre.boogz%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -1645,7 +1645,6 @@ ocsp_CreateCertID(PRArenaPool *arena, CERTCertificate *cert, int64 time)
 {
     CERTOCSPCertID *certID;
     CERTCertificate *issuerCert = NULL;
-    SECItem *tempItem = NULL;
     void *mark = PORT_ArenaMark(arena);
     SECStatus rv;
 
@@ -1716,9 +1715,6 @@ ocsp_CreateCertID(PRArenaPool *arena, CERTCertificate *cert, int64 time)
 loser:
     if (issuerCert != NULL) {
 	CERT_DestroyCertificate(issuerCert);
-    }
-    if (tempItem != NULL) {
-	SECITEM_FreeItem(tempItem, PR_TRUE);
     }
     PORT_ArenaRelease(arena, mark);
     return NULL;
