@@ -62,7 +62,7 @@
   <script type="application/x-javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/msgSynchronize.js"/>
 
-  <description class="desc">&MsgSelectDesc.label;</description>
+  <label class="desc" control="synchronizeTree">&MsgSelectDesc.label;</label>
 
   <tree id="synchronizeTree" flex="1" hidecolumnpicker="true"
         datasources="rdf:msgaccountmanager rdf:mailnewsfolders" ref="msgaccounts:/" flags="dont-build-content"

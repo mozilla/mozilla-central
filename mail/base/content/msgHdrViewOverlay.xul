@@ -119,7 +119,7 @@
 
         <column id="collapsedsubjectBox" collapsed="true" flex="1">
           <hbox>
-            <label class="collapsedHeaderDisplayName" value="&subjectField.label;"/>
+            <label class="collapsedHeaderDisplayName" value="&subjectField.label;" control="collapsedsubjectValue"/>
             <textbox id="collapsedsubjectValue" class="collapsedHeaderValue plain" readonly="true" crop="right" appendoriginalclass="true" flex="1"/>
           </hbox>
         </column>

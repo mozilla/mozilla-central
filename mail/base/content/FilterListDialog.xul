@@ -93,7 +93,7 @@
         <separator class="thin"/>
       </row>
       <row>
-        <description control="filterTree">&filterHeader.label;</description>
+        <label control="filterTree">&filterHeader.label;</label>
       </row>
 
 
