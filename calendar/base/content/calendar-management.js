@@ -226,7 +226,7 @@ function calendarListUpdateColor(aCalendar) {
         }
     }
 
-    var ruleString = selectorPrefix + "(color-" + color.substr(1) + ") { }";
+    var ruleString = selectorPrefix + "(calendar-list-tree-color, color-" + color.substr(1) + ") { }";
 
     var rule = gCachedStyleSheet
                .insertRule(ruleString, gCachedStyleSheet.cssRules.length);
@@ -335,43 +335,49 @@ var calendarListTreeView = {
         return this.mCalendarList.length;
     },
 
-    getRowProperties: function cLTV_getRowProperties(aRow, aProps) {},
 
     getCellProperties: function cLTV_getCellProperties(aRow, aCol, aProps) {
+        this.getRowProperties(aRow, aProps);
+        this.getColumnProperties(aCol, aProps);
+    },
+
+    getRowProperties: function cLTV_getRowProperties(aRow, aProps) {
         var calendar = this.mCalendarList[aRow];
         var composite = getCompositeCalendar();
 
-        switch (aCol.id) {
-            case "calendar-list-tree-checkbox":
-                if (composite.getCalendar(calendar.uri)) {
-                    aProps.AppendElement(getAtomFromService("checked"));
-                } else {
-                    aProps.AppendElement(getAtomFromService("unchecked"));
-                }
-                break;
-            case "calendar-list-tree-color":
-                // Get the calendar color
-                var color = calendar.getProperty("color");
-                color = color && color.substr(1);
+        // Set up the composite calendar status
+        if (composite.getCalendar(calendar.uri)) {
+            aProps.AppendElement(getAtomFromService("checked"));
+        } else {
+            aProps.AppendElement(getAtomFromService("unchecked"));
+        }
 
-                // Set up the calendar color (background)
-                var bgColorProp = "color-" + (color || "default");
-                aProps.AppendElement(getAtomFromService(bgColorProp));
+        // Get the calendar color
+        var color = calendar.getProperty("color");
+        color = color && color.substr(1);
 
-                // Set a property to get the contrasting text color (foreground)
-                var fgColorProp = getContrastingTextColor(color || "a8c2e1");
-                aProps.AppendElement(getAtomFromService(fgColorProp));
+        // Set up the calendar color (background)
+        var bgColorProp = "color-" + (color || "default");
+        aProps.AppendElement(getAtomFromService(bgColorProp));
 
-                // Set up the readonly symbol
-                if (calendar.readOnly) {
-                    aProps.AppendElement(getAtomFromService("readOnly"));
-                }
+        // Set a property to get the contrasting text color (foreground)
+        var fgColorProp = getContrastingTextColor(color || "a8c2e1");
+        aProps.AppendElement(getAtomFromService(fgColorProp));
 
-                break;
+        // Set up the readonly symbol
+        if (calendar.readOnly) {
+            aProps.AppendElement(getAtomFromService("readOnly"));
+        }
+
+        // Set up the disabled state
+        if (calendar.getProperty("disabled")) {
+            aProps.AppendElement(getAtomFromService("disabled"));
+        } else {
+            aProps.AppendElement(getAtomFromService("enabled"));
         }
     },
 
-    getColumnProperties: function cLTV_getColumnProperties(a, aProps) {},
+    getColumnProperties: function cLTV_getColumnProperties(aCol, aProps) {},
 
     isContainer: function cLTV_isContainer(aRow) {
         return false;

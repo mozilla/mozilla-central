@@ -34,37 +34,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-treechildren::-moz-tree-image(calendar-list-tree-checkbox) {
+
+#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox) {
     list-style-image: url(chrome://calendar/skin/unifinder/checkbox_unchecked.png);
 }
 
-treechildren::-moz-tree-image(calendar-list-tree-checkbox, checked) {
+#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, checked) {
     list-style-image: url(chrome://calendar/skin/unifinder/checkbox_checked.png);
 }
 
-treechildren::-moz-tree-cell(color-default) {
+#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, disabled) {
+    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_unchecked.png);
+}
+
+#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-color, color-default) {
     background-color: #a8c2e1;
 }
 
-treechildren::-moz-tree-cell(calendar-list-tree-color) {
+#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-color) {
     margin: 1px;
     padding: 0;
 }
 
-treechildren::-moz-tree-cell(calendar-list-tree-calendar) {
+#calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-calendar) {
     -moz-margin-start: 1px;
 }
-treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, black) {
+
+#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, black) {
     list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
     -moz-image-region: rect(0, 10px, 10px, 0);
 }
 
-treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, white) {
+#calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-color, readOnly, white) {
     list-style-image: url(chrome://calendar/skin/calendar-readOnly.png);
     -moz-image-region: rect(0, 20px, 10px, 10px);
 }
 
-tree {
+#calendar-list-tree-widget > treechildren::-moz-tree-cell-text(disabled) {
+    color: GrayText;
+}
+
+#calendar-list-tree-widget {
   border: none;
   padding: 0;
   margin: 4px;
