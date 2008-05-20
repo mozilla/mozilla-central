@@ -4,6 +4,7 @@ calendar.jar:
 *  content/calendar/aboutDialog.js               (content/aboutDialog.js)
 *  content/calendar/aboutDialog.xul              (content/aboutDialog.xul)
 *  content/calendar/calendar.xul                 (content/calendar.xul)
+   content/calendar/calendar-gotodate-dialog.xul (content/calendar-gotodate-dialog.xul)
    content/calendar/calendar-offline.js          (content/calendar-offline.js)
 *  content/calendar/credits.xhtml                (content/credits.xhtml)
    content/calendar/applicationUtil.js           (content/applicationUtil.js)

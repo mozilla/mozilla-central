@@ -24,6 +24,7 @@
  *                 Robin Edrenius <robin.edrenius@gmail.com>
  *                 Joey Minta <jminta@gmail.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
+ *                 Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,35 +40,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/*-----------------------------------------------------------------
-*  C A L E N D A R     C L A S S E S
-*/
-
-/*-----------------------------------------------------------------
-*   CalendarWindow Class
-*
-*  Maintains the three calendar views and the selection.
-*
-* PROPERTIES
-*     selectedDate           - selected date, instance of Date 
-*  
-*/
-
-
-/**
-*   CalendarWindow Constructor.
-*
-* NOTES
-*   There is one instance of CalendarWindow
-*   WARNING: As much as we all love CalendarWindow, it's going to die soon.
-*/
-
-function CalendarWindow( )
-{
-   // Extension authors can tweak this array to make gCalendarWindow.switchToView 
-   // play nicely with any additional views
-   this.availableViews = ["day", "week", "multiweek", "month"];
-
+function CalendarWindow() {
    /** This object only exists to keep too many things from breaking during the
     *   switch to the new views
    **/
@@ -79,31 +52,19 @@ function CalendarWindow( )
    };
 }
 
-/** PUBLIC
-*
-*   Choose a date, then go to that date in the current view.
-*/
-
-CalendarWindow.prototype.pickAndGoToDate = function calWin_pickAndGoToDate( )
-{
-  var args = new Object();
-  args.initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
-  args.onOk = function receiveAndGoToDate( pickedDate ) {
-    currentView().goToDay( jsDateToDateTime(pickedDate) );
-    document.getElementById( "lefthandcalendar" ).value = pickedDate;
+CalendarWindow.prototype.pickAndGoToDate = function calWin_pickAndGoToDate() {
+  var initialDate = currentView().selectedDay.getInTimezone(floating()).jsDate;
+  var callback = function receiveAndGoToDate(pickedDate) {
+    currentView().goToDay(jsDateToDateTime(pickedDate));
+    document.getElementById("lefthandcalendar").value = pickedDate;
   };
-  openDialog("chrome://calendar/content/goToDateDialog.xul",
-             "GoToDateDialog", // target= window name
-             "chrome,modal", args);
+  openDialog("chrome://calendar/content/calendar-gotodate-dialog.xul",
+             "calendar-gotodate-dialog",
+             "chrome,modal",
+             {callback: callback, date: initialDate});
 }
 
-/** PUBLIC
-*
-*   Go to today in the current view
-*/
-
-CalendarWindow.prototype.goToDay = function calWin_goToDay( newDate )
-{
+CalendarWindow.prototype.goToDay = function calWin_goToDay(newDate) {
     var view = document.getElementById("view-deck").selectedPanel;
     var cdt = Components.classes["@mozilla.org/calendar/datetime;1"]
                         .createInstance(Components.interfaces.calIDateTime);
@@ -115,17 +76,8 @@ CalendarWindow.prototype.goToDay = function calWin_goToDay( newDate )
     view.goToDay(cdt);
 }
 
-/** PRIVATE
-*
-*   Helper function to switch to a view
-*
-* PARAMETERS
-*   newView  - MUST be one of the three CalendarView instances created in the constructor
-*/
-
-CalendarWindow.prototype.switchToView = function calWin_switchToView( newView )
-{
-    var mwWeeksCommand = document.getElementById("menu-numberofweeks-inview")
+CalendarWindow.prototype.switchToView = function calWin_switchToView(newView) {
+    var mwWeeksCommand = document.getElementById("menu-numberofweeks-inview");
     if (newView == "multiweek") {
         mwWeeksCommand.removeAttribute("disabled");
     } else {
@@ -135,7 +87,7 @@ CalendarWindow.prototype.switchToView = function calWin_switchToView( newView )
     // Call the common view switching code in calendar-views.js
     switchToView(newView);
 
-    var labelAttribute = "label-"+newView+"-view";
+    var labelAttribute = "label-" + newView + "-view";
     var prevCommand = document.getElementById("calendar-go-menu-previous");
     prevCommand.setAttribute("label", prevCommand.getAttribute(labelAttribute));
     var nextCommand = document.getElementById("calendar-go-menu-next");
