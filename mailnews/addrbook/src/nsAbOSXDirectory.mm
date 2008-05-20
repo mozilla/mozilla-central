@@ -52,6 +52,7 @@
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 #include "nsIAbBooleanExpression.h"
+#include "nsComponentManagerUtils.h"
 
 #include <AddressBook/AddressBook.h>
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
@@ -316,7 +317,7 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, PRBool aNegate,
   
   PRUint32 i;
   for (i = 0; i < nsAbOSXUtils::kPropertyMapSize; ++i) {
-    if (name.EqualsASCII(nsAbOSXUtils::kPropertyMap[i].mPropertyName)) {
+    if (name.EqualsLiteral(nsAbOSXUtils::kPropertyMap[i].mPropertyName)) {
       *aResult =
       [ABPerson searchElementForProperty:nsAbOSXUtils::kPropertyMap[i].mOSXProperty
                                    label:nsAbOSXUtils::kPropertyMap[i].mOSXLabel

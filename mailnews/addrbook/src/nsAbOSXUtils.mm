@@ -40,6 +40,7 @@
 #include "nsAbOSXUtils.h"
 #include "nsStringGlue.h"
 #include "nsAbOSXCard.h"
+#include "nsMemory.h"
 
 #include <AddressBook/AddressBook.h>
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_3)
@@ -73,9 +74,8 @@ AssignToString(const NSString *aString, nsString &aResult)
 {
     if (aString) {
         const char *chars = [aString UTF8String];
-        if (chars) {
-            CopyUTF8toUTF16(chars, aResult);
-        }
+        if (chars)
+          CopyUTF8toUTF16(nsDependentCString(chars), aResult);
     }
 }
 

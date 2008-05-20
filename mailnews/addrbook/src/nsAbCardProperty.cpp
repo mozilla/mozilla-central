@@ -52,7 +52,7 @@
 #include "nsINetUtil.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-
+#include "nsMemory.h"
 #include "nsVCardObj.h"
 
 #include "mozITXTToHTMLConv.h"

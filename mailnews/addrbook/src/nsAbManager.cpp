@@ -58,7 +58,7 @@
 #include "nsIFilePicker.h"
 #include "plbase64.h"
 #include "nsIWindowWatcher.h"
-
+#include "nsDirectoryServiceUtils.h"
 #include "nsVCard.h"
 #include "nsVCardObj.h"
 #include "nsIAbLDAPAttributeMap.h"

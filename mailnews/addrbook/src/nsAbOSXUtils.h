@@ -41,7 +41,7 @@
 #define nsAbOSXUtils_h___
 
 #include <Foundation/NSString.h>
-#include "nscore.h"
+#include "nsStringGlue.h"
 
 class nsString;
 class nsCString;
