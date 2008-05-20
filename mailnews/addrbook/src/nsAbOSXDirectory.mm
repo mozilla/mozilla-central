@@ -317,7 +317,7 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, PRBool aNegate,
   
   PRUint32 i;
   for (i = 0; i < nsAbOSXUtils::kPropertyMapSize; ++i) {
-    if (name.EqualsLiteral(nsAbOSXUtils::kPropertyMap[i].mPropertyName)) {
+    if (name.EqualsASCII(nsAbOSXUtils::kPropertyMap[i].mPropertyName)) {
       *aResult =
       [ABPerson searchElementForProperty:nsAbOSXUtils::kPropertyMap[i].mOSXProperty
                                    label:nsAbOSXUtils::kPropertyMap[i].mOSXLabel
