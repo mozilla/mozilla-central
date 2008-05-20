@@ -245,6 +245,10 @@ $ENV{SYMBOL_SERVER_USER}   = 'seabld';
 $ENV{SYMBOL_SERVER_PATH}   = '/mnt/netapp/breakpad/symbols_sea/';
 $ENV{SYMBOL_SERVER_SSH_KEY}   = "$ENV{HOME}/.ssh/seabld_dsa";
 
+# Both these two variables are for source server support
+$ENV{PDBSTR_PATH} = 'C:\\Program Files\\Debugging Tools for Windows\\sdk\\srcsrv\\pdbstr.exe';
+$ENV{SRCSRV_ROOT} = ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot';
+
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
 # locking up (and testing would be suspect even after a couple of cycles).
