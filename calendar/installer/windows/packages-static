@@ -272,6 +272,7 @@ bin\js\calTransactionManager.js
 bin\js\calFreeBusyService.js
 bin\js\calCalendarSearchService.js
 bin\js\calUtils.js
+bin\js\calAuthUtils.js
 bin\js\calWeekPrinter.js
 bin\js\calWeekTitleService.js
 bin\js\calWcapCalendar.js

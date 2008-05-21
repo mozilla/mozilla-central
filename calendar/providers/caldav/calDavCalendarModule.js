@@ -86,7 +86,7 @@ var calDavCalendarModule = {
         // We expect to find utils in ./../js
         var appdir = __LOCATION__.parent.parent;
         appdir.append("js");
-        const scripts = ["calUtils.js", "calProviderBase.js",
+        const scripts = ["calUtils.js", "calAuthUtils.js", "calProviderBase.js",
                          "calDavCalendar.js" ];
 
         for each (var scriptName in scripts) {

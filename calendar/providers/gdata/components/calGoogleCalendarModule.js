@@ -113,6 +113,7 @@ var g_classInfo = {
             var ifaces = [
                 Components.interfaces.nsISupports,
                 Components.interfaces.calIGoogleRequest,
+                Components.interfaces.calIOperation,
                 Components.interfaces.nsIStreamLoaderObserver,
                 Components.interfaces.nsIDocShellTreeItem,
                 Components.interfaces.nsIInterfaceRequestor,
@@ -167,7 +168,7 @@ var calGoogleCalendarModule = {
         const kLIGHTNING_UID = "{e2fda1a4-762b-4020-b5ad-a41df1933103}";
         const scripts = ["calGoogleCalendar.js", "calGoogleSession.js",
                          "calGoogleRequest.js", "calGoogleUtils.js"];
-        const baseScripts = ["calUtils.js", "calProviderBase.js"];
+        const baseScripts = ["calUtils.js", "calAuthUtils.js", "calProviderBase.js"];
 
         // First, load script from the application dir
         var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].

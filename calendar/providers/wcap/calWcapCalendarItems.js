@@ -956,8 +956,7 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
 
                 } else if (maxResults == 0 || items.length < maxResults) {
                     if (LOG_LEVEL > 2) {
-                        log("item: " + item.title + "\n" + item.icalString,
-                            this_);
+                        log("item: " + item.title + "\n" + item.icalString, this_);
                     }
                     if (!bLeaveMutable) {
                         item.makeImmutable();

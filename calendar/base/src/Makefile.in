@@ -103,6 +103,7 @@ EXTRA_SCRIPTS = \
     calRecurrenceInfo.js \
     calTodo.js \
     calUtils.js \
+    calAuthUtils.js \
     calWeekTitleService.js \
     calTransactionManager.js \
     calFreeBusyService.js \

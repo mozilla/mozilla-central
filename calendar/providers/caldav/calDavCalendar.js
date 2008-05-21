@@ -1874,9 +1874,8 @@ calDavCalendar.prototype = {
     createInterval: function caldav_createInterval(aCalId, aPeriod, aFbType) {
         var interval = {
             QueryInterface: function fbInterval_QueryInterface(iid) {
-                ensureIID([calIFreeBusyInterval, nsISupports], iid);
-                return this;
-                },
+                return doQueryInterface(this, null, iid, [calIFreeBusyInterval]);
+            },
             calId: aCalId,
             interval: aPeriod,
             freeBusyType: aFbType

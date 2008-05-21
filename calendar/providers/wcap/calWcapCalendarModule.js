@@ -121,43 +121,96 @@ var calWcapCalendarFactory = { // nsIFactory:
     }
 };
 
-var calWcapCalendarModule = { // nsIModule:
-    
-    wcapCalendarInfo: {
+var g_classInfo = {
+    wcapCalendar: { // nsIClassInfo:
+        getInterfaces: function ci_wcapCalendar_getInterfaces(count) {
+            const ifaces = [calIWcapCalendar,
+                            calICalendar,
+                            Components.interfaces.calIChangeLog,
+                            Components.interfaces.calICalendarProvider,
+                            Components.interfaces.nsIClassInfo,
+                            nsISupports];
+            count.value = ifaces.length;
+            return ifaces;
+        },
         classDescription: "Sun Java System Calendar Server WCAP Provider",
         contractID: "@mozilla.org/calendar/calendar;1?type=wcap",
-        classID: Components.ID("{CF4D93E5-AF79-451a-95F3-109055B32EF0}")
+        classID: Components.ID("{CF4D93E5-AF79-451a-95F3-109055B32EF0}"),
+        getHelperForLanguage: function ci_wcapCalendar_getHelperForLanguage(language) {
+            return null;
+        },
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        flags: 0
     },
 
-    wcapSessionInfo: {
+    wcapSession: { // nsIClassInfo:
+        getInterfaces: function ci_wcapSession_getInterfaces(count) {
+            const ifaces = [calIWcapSession,
+                            calIFreeBusyProvider,
+                            calICalendarSearchProvider,
+                            Components.interfaces.calITimezoneProvider,
+                            Components.interfaces.calICalendarManagerObserver,
+                            Components.interfaces.nsIClassInfo,
+                            nsISupports];
+            count.value = ifaces.length;
+            return ifaces;
+        },
         classDescription: "Sun Java System Calendar Server WCAP Session",
         contractID: "@mozilla.org/calendar/wcap/session;1",
-        classID: Components.ID("{CBF803FD-4469-4999-AE39-367AF1C7B077}")
+        classID: Components.ID("{CBF803FD-4469-4999-AE39-367AF1C7B077}"),
+        getHelperForLanguage: function ci_wcapSession_getHelperForLanguage(language) {
+            return null;
+        },
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        flags: 0
     },
 
+    wcapNetworkRequest: { // nsIClassInfo:
+        getInterfaces: function ci_wcapNetworkRequest_getInterfaces(count) {
+            const ifaces = [Components.interfaces.nsIStreamLoaderObserver,
+                            Components.interfaces.nsIDocShellTreeItem,
+                            Components.interfaces.nsIInterfaceRequestor,
+                            Components.interfaces.nsIChannelEventSink,
+                            Components.interfaces.nsIProgressEventSink,
+                            Components.interfaces.nsIHttpEventSink,
+                            Components.interfaces.nsIStreamListener,
+                            Components.interfaces.calIOperation,
+                            Components.interfaces.nsIClassInfo,
+                            nsISupports];
+            count.value = ifaces.length;
+            return ifaces;
+        },
+        classDescription: "Sun Java System Calendar Server WCAP Network Request",
+        contractID: "@mozilla.org/calendar/wcap/network-request;1",
+        classID: Components.ID("{E3C62B37-83CF-41EC-9872-0AF9F952430A}"),
+        getHelperForLanguage: function ci_wcapNetworkRequest_getHelperForLanguage(language) {
+            return null;
+        },
+        implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
+        flags: 0
+    }
+};
+
+var calWcapCalendarModule = { // nsIModule:
+    
     registerSelf: function calWcapCalendarModule_registerSelf(compMgr, fileSpec, location, type) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.registerFactoryLocation(this.wcapCalendarInfo.classID,
-                                        this.wcapCalendarInfo.classDescription,
-                                        this.wcapCalendarInfo.contractID,
-                                        fileSpec, location, type);
-        compMgr.registerFactoryLocation(this.wcapSessionInfo.classID,
-                                        this.wcapSessionInfo.classDescription,
-                                        this.wcapSessionInfo.contractID,
+        compMgr.registerFactoryLocation(g_classInfo.wcapCalendar.classID,
+                                        g_classInfo.wcapCalendar.classDescription,
+                                        g_classInfo.wcapCalendar.contractID,
                                         fileSpec, location, type);
     },
 
     unregisterSelf: function calWcapCalendarModule_unregisterSelf(compMgr, fileSpec, location) {
         compMgr = compMgr.QueryInterface(Components.interfaces.nsIComponentRegistrar);
-        compMgr.unregisterFactoryLocation(this.wcapCalendarInfo.classID, fileSpec);
-        compMgr.unregisterFactoryLocation(this.wcapSessionInfo.classID, fileSpec);
+        compMgr.unregisterFactoryLocation(g_classInfo.wcapCalendar.classID, fileSpec);
     },
 
     m_scriptsLoaded: false,
     getClassObject: function calWcapCalendarModule_getClassObject(compMgr, cid, iid) {
         if (!this.m_scriptsLoaded) {
             // loading extra scripts from ../js:
-            const scripts = ["calUtils.js", "calProviderBase.js",
+            const scripts = ["calUtils.js", "calAuthUtils.js", "calProviderBase.js",
                              "calWcapUtils.js", "calWcapErrors.js",
                              "calWcapRequest.js", "calWcapSession.js",
                              "calWcapCalendar.js", "calWcapCalendarItems.js"];
@@ -179,7 +232,7 @@ var calWcapCalendarModule = { // nsIModule:
         if (!iid.equals(Components.interfaces.nsIFactory)) {
             throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
         }
-        if (!cid.equals(calWcapCalendar.prototype.classID)) {
+        if (!cid.equals(g_classInfo.wcapCalendar.classID)) {
             throw Components.results.NS_ERROR_NO_INTERFACE;
         }
         return calWcapCalendarFactory;

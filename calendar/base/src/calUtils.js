@@ -1222,17 +1222,6 @@ function compareArrays(aOne, aTwo, compareFunc) {
 }
 
 /**
- * Ensures the passed IID is in the list, else throws Components.results.NS_ERROR_NO_INTERFACE.
- */
-function ensureIID(aList, aIID) {
-    for each (var iid in aList) {
-        if (aIID.equals(iid))
-            return;
-    }
-    throw Components.results.NS_ERROR_NO_INTERFACE
-}
-
-/**
  * Takes care of all QueryInterface business, including calling the QI of any
  * existing parent prototypes.
  *
@@ -1245,31 +1234,33 @@ function ensureIID(aList, aIID) {
  *                        prototype.
  */
 function doQueryInterface(aSelf, aProto, aIID, aList, aClassInfo) {
-    if (aClassInfo && aIID.equals(Components.interfaces.nsIClassInfo)) {
-        return aClassInfo;
+    if (aClassInfo) {
+        if (aIID.equals(Components.interfaces.nsIClassInfo)) {
+            return aClassInfo;
+        }
+        if (!aList) {
+            aList = aClassInfo.getInterfaces({});
+        }
     }
 
-    var list = aList;
-    if (!list && aClassInfo) {
-        list = aClassInfo.getInterfaces({});
-    }
-
-    var list = aList;
-    if (!list && aClassInfo) {
-        list = aClassInfo.getInterfaces({});
-    }
-
-    for each (var iid in list) {
-        if (aIID.equals(iid))
+    for each (var iid in aList) {
+        if (aIID.equals(iid)) {
             return aSelf;
+        }
     }
 
-    var base = aProto.__proto__;
-
-    if (base && base.QueryInterface) {
-        // Try to QI the base prototype
-        return base.QueryInterface.call(aSelf, aIID);
+    if (aIID.equals(Components.interfaces.nsISupports)) {
+        return aSelf;
     }
+
+    if (aProto) {
+        var base = aProto.__proto__;
+        if (base && base.QueryInterface) {
+            // Try to QI the base prototype
+            return base.QueryInterface.call(aSelf, aIID);
+        }
+    }
+
     throw Components.results.NS_ERROR_NO_INTERFACE;
 }
 
@@ -1436,133 +1427,6 @@ function showError(aMsg) {
     promptService.alert(window,
                         calGetString("calendar", "errorTitle"),
                         aMsg);
-}
-
-/**
- * Auth prompt implementation - Uses password manager if at all possible.
- */
-function calAuthPrompt() {
-    // use the window watcher service to get a nsIAuthPrompt impl
-    this.mPrompter = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                               .getService(Components.interfaces.nsIWindowWatcher)
-                               .getNewAuthPrompter(null);
-    this.mTriedStoredPassword = false;
-}
-
-calAuthPrompt.prototype = {
-    prompt: function capP(aDialogTitle, aText, aPasswordRealm, aSavePassword,
-                          aDefaultText, aResult) {
-        return this.mPrompter.prompt(aDialogTitle, aText, aPasswordRealm,
-                                     aSavePassword, aDefaultText, aResult);
-    },
-
-    getPasswordInfo: function capGPI(aPasswordRealm) {
-        var username;
-        var password;
-        var found = false;
-
-        if ("@mozilla.org/passwordmanager;1" in Components.classes) {
-            var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                            .getService(Components.interfaces.nsIPasswordManager);
-            var passwordRealm = aPasswordRealm.passwordRealm || aPasswordRealm;
-            var pwenum = passwordManager.enumerator;
-            // step through each password in the password manager until we find the one we want:
-            while (pwenum.hasMoreElements()) {
-                try {
-                    var pass = pwenum.getNext().QueryInterface(Components.interfaces.nsIPassword);
-                    if (pass.host == passwordRealm) {
-                         // found it!
-                         username = pass.user;
-                         password = pass.password;
-                         found = true;
-                    }
-                } catch (ex) {
-                         found = true;
-                         break;
-                    // don't do anything here, ignore the password that could not
-                    // be read
-                }
-            }
-        } else {
-            var loginManager = Components.classes["@mozilla.org/login-manager;1"]
-                                         .getService(Components.interfaces
-                                         .nsILoginManager);
-            var logins = loginManager.findLogins({}, aPasswordRealm.prePath, null,
-                                                 aPasswordRealm.realm);
-            if (logins.length) {
-                username = logins[0].username;
-                password = logins[0].password;
-                found = true;
-            }
-        }
-        return {found: found, username: username, password: password};
-    },
-
-    promptUsernameAndPassword: function capPUAP(aDialogTitle, aText,
-                                                aPasswordRealm,aSavePassword,
-                                                aUser, aPwd) {
-        var pw;
-        if (!this.mTriedStoredPassword) {
-            pw = this.getPasswordInfo(aPasswordRealm);
-        }
-
-        if (pw && pw.found) {
-            this.mTriedStoredPassword = true;
-            aUser.value = pw.username;
-            aPwd.value = pw.password;
-            return true;
-        } else {
-            return this.mPrompter.promptUsernameAndPassword(aDialogTitle, aText,
-                                                            aPasswordRealm,
-                                                            aSavePassword,
-                                                            aUser, aPwd);
-        }
-    },
-
-    // promptAuth is needed/used on trunk only
-    promptAuth: function capPA(aChannel, aLevel, aAuthInfo) {
-        var hostRealm = {};
-        hostRealm.prePath = aChannel.URI.prePath;
-        hostRealm.realm = aAuthInfo.realm;
-        hostRealm.passwordRealm = aChannel.URI.host + ":" + aChannel.URI.port +
-                                          " (" + aAuthInfo.realm + ")";
-
-        var pw;
-        if (!this.mTriedStoredPassword) {
-            pw = this.getPasswordInfo(hostRealm);
-        }
-        if (pw && pw.found) {
-            this.mTriedStoredPassword = true;
-            aAuthInfo.username = pw.username;
-            aAuthInfo.password = pw.password;
-            return true;
-        } else {
-            var prompter2 =
-                Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                          .getService(Components.interfaces.nsIPromptFactory)
-                          .getPrompt(null, Components.interfaces.nsIAuthPrompt2);
-            return prompter2.promptAuth(aChannel, aLevel, aAuthInfo);
-        }
-    },
-
-    promptPassword: function capPP(aDialogTitle, aText, aPasswordRealm,
-                             aSavePassword, aPwd) {
-        var found = false;
-        var pw;
-        if (!this.mTriedStoredPassword) {
-            pw = this.getPasswordInfo(aPasswordRealm);
-        }
-
-        if (pw && pw.found) {
-            this.mTriedStoredPassword = true;
-            aPwd.value = pw.password;
-            return true;
-        } else {
-            return this.mPrompter.promptPassword(aDialogTitle, aText,
-                                                 aPasswordRealm, aSavePassword,
-                                                 aPwd);
-        }
-    }
 }
 
 /**
@@ -2242,8 +2106,7 @@ calPropertyBagEnumerator.prototype = {
         var name = this.mKeys[this.mIndex++];
         return { // nsIProperty:
             QueryInterface: function cpb_enum_prop_QueryInterface(aIID) {
-                ensureIID([Components.interfaces.nsIProperty, Components.interfaces.nsISupports], aIID);
-                return this;
+                return doQueryInterface(this, null, aIID, [Components.interfaces.nsIProperty]);
             },
             name: name,
             value: this.mCurrentValue

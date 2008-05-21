@@ -44,42 +44,9 @@ function calWcapCalendar(/*optional*/session, /*optional*/calProps) {
 calWcapCalendar.prototype = {
     __proto__: calProviderBase.prototype,
 
-    m_ifaces: [calIWcapCalendar,
-               calICalendar,
-               Components.interfaces.calIChangeLog,
-               Components.interfaces.calICalendarProvider,
-               Components.interfaces.nsIInterfaceRequestor,
-               Components.interfaces.nsIClassInfo,
-               nsISupports],
-
     // nsISupports:
     QueryInterface: function calWcapCalendar_QueryInterface(iid) {
-        return doQueryInterface(this, calWcapCalendar.prototype, iid, this.m_ifaces, this);
-    },
-
-    // nsIClassInfo:
-    getInterfaces: function calWcapCalendar_getInterfaces(count) {
-        count.value = this.m_ifaces.length;
-        return this.m_ifaces;
-    },
-    get classDescription calWcapCalendar_classDescriptionGetter() {
-        return calWcapCalendarModule.wcapCalendarInfo.classDescription;
-    },
-    get contractID calWcapCalendar_contractIDGetter() {
-        return calWcapCalendarModule.wcapCalendarInfo.contractID;
-    },
-    get classID calWcapCalendar_classIDGetter() {
-        return calWcapCalendarModule.wcapCalendarInfo.classID;
-    },
-    getHelperForLanguage: function calWcapCalendar_getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    // nsIInterfaceRequestor:
-    getInterface: function calWcapCalendar_getInterface(iid, instance) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
+        return doQueryInterface(this, calWcapCalendar.prototype, iid, null, g_classInfo.wcapCalendar);
     },
 
     toString: function calWcapCalendar_toString() {
@@ -201,6 +168,25 @@ calWcapCalendar.prototype = {
                 value = false;
         }
         return value;
+    },
+
+    setProperty: function calWcapCalendar_setProperty(aName, aValue) {
+        switch (aName) {
+            case "disabled":
+                if (this.isDefaultCalendar) {
+                    // disabling/enabling the default calendar will enable/disable all calendars
+                    // belonging to the same session:
+                    for each (var cal in this.session.getRegisteredCalendars()) {
+                        if (!cal.isDefaultCalendar) {
+                            cal.setProperty("disabled", aValue);
+                        }
+                    }
+                }
+                // fallthru intended
+            default:
+                this.__proto__.__proto__.setProperty.apply(this, arguments);
+                break;
+        }
     },
 
     notifyObservers: function calWcapCalendar_notifyObservers(func, args) {

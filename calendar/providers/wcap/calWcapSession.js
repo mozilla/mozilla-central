@@ -99,45 +99,9 @@ function calWcapSession(contextId, thatUri) {
     getCalendarManager().addObserver(this);
 }
 calWcapSession.prototype = {
-    m_ifaces: [calIWcapSession,
-               calIFreeBusyProvider,
-               calICalendarSearchProvider,
-               Components.interfaces.calITimezoneProvider,
-               Components.interfaces.calICalendarManagerObserver,
-               Components.interfaces.nsIInterfaceRequestor,
-               Components.interfaces.nsIClassInfo,
-               nsISupports],
-
     // nsISupports:
     QueryInterface: function calWcapSession_QueryInterface(iid) {
-        ensureIID(this.m_ifaces, iid); // throws
-        return this;
-    },
-
-    // nsIClassInfo:
-    getInterfaces: function calWcapSession_getInterfaces(count) {
-        count.value = this.m_ifaces.length;
-        return this.m_ifaces;
-    },
-    get classDescription calWcapSession_classDescriptionGetter() {
-        return calWcapCalendarModule.wcapSessionInfo.classDescription;
-    },
-    get contractID calWcapSession_contractIDGetter() {
-        return calWcapCalendarModule.wcapSessionInfo.contractID;
-    },
-    get classID calWcapSession_classIDGetter() {
-        return calWcapCalendarModule.wcapSessionInfo.classID;
-    },
-    getHelperForLanguage:
-    function calWcapSession_getHelperForLanguage(language) {
-        return null;
-    },
-    implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
-
-    // nsIInterfaceRequestor:
-    getInterface: function calWcapSession_getInterface(iid, instance) {
-        throw Components.results.NS_ERROR_NO_INTERFACE;
+        return doQueryInterface(this, calWcapSession.prototype, iid, null, g_classInfo.wcapSession);
     },
 
     toString: function calWcapSession_toString(msg) {
@@ -299,65 +263,25 @@ calWcapSession.prototype = {
                 var outPW = { value: this_.credentials.pw };
                 var outSavePW = { value: false };
 
-                // pw mgr host names must not have a trailing slash
-                var passwordManager = Components.classes["@mozilla.org/passwordmanager;1"]
-                                                .getService(Components.interfaces.nsIPasswordManager);
-                var pwHost = this_.uri.spec;
-                if (pwHost[pwHost.length - 1] == '/') {
-                    pwHost = pwHost.substr(0, pwHost.length - 1);
-                }
                 if (outUser.value && !outPW.value) { // lookup pw manager
-                    log("looking in pw db for: " + pwHost, this_);
-                    try {
-                        var enumerator = passwordManager.enumerator;
-                        while (enumerator.hasMoreElements()) {
-                            var pwEntry = enumerator.getNext().QueryInterface(Components.interfaces.nsIPassword);
-                            if (LOG_LEVEL > 1) {
-                                log("pw entry:\n\thost=" + pwEntry.host +
-                                    "\n\tuser=" + pwEntry.user, this_);
-                            }
-                            if ((pwEntry.host == pwHost) &&
-                                (pwEntry.user == outUser.value)){
-                                // found an entry matching URI:
-                                outPW.value = pwEntry.password;
-                                log("password entry found for host " + pwHost +
-                                    "\nuser is " + outUser.value, this_);
-                                break;
-                            }
-                        }
-                    } catch (exc) { // just log error
-                        logError("[password manager lookup] " + errorToString(exc), this_);
-                    }
+                    log("looking in pw db for: " + this_.uri.spec, this_);
+                    calPasswordManagerGet(outUser.value, outPW, this_.uri.spec, "wcap login");
                 }
 
                 function promptAndLoginLoop_resp(err, sessionId) {
                     if (checkErrorCode(err, calIWcapErrors.WCAP_LOGIN_FAILED)) {
                         log("prompting for [user/]pw...", this_);
-                        var prompt = getWindowWatcher().getNewPrompter(null);
-                        var bAck;
-                        if (this_.credentials.userId) { // fixed user id, prompt for password only:
-                            bAck = prompt.promptPassword(
-                                calGetString("wcap", "loginDialog.label"),
-                                calGetString("wcap", "loginDialogPasswordOnly.text",
-                                             [outUser.value, this_.sessionUri.hostPort]),
-                                outPW,
-                                (getPref("signon.rememberSignons", true)
-                                 ? calGetString("wcap", "loginDialog.check.text") : null),
-                                outSavePW);
-                        } else {
-                            bAck = prompt.promptUsernameAndPassword(
-                                calGetString("wcap", "loginDialog.label"),
-                                calGetString("wcap", "loginDialog.text", [this_.sessionUri.hostPort]),
-                                outUser, outPW,
-                                (getPref("signon.rememberSignons", true)
-                                 ? calGetString("wcap", "loginDialog.check.text") : null),
-                                outSavePW);
-                        }
-                        if (bAck) {
+                        if (calGetCredentials(calGetString("wcap", "loginDialog.label"),
+                                              this_.sessionUri.hostPort,
+                                              outUser,
+                                              outPW,
+                                              outSavePW,
+                                              this_.credentials.userId != null)) {
                             this_.login(request, promptAndLoginLoop_resp,
                                         outUser.value, outPW.value);
                         } else {
                             log("login prompt cancelled.", this_);
+                            this_.defaultCalendar.setProperty("disabled", true);
                             respFunc(new Components.Exception(errorToString(calIWcapErrors.WCAP_LOGIN_FAILED),
                                                               calIWcapErrors.WCAP_LOGIN_FAILED));
                         }
@@ -366,17 +290,7 @@ calWcapSession.prototype = {
                     } else {
                         if (outSavePW.value) {
                             // so try to remove old pw from db first:
-                            try {
-                                passwordManager.removeUser(pwHost, outUser.value);
-                                log("removed from pw db: " + pwHost, this_);
-                            } catch (exc) {
-                            }
-                            try { // to save pw under session uri:
-                                passwordManager.addUser(pwHost, outUser.value, outPW.value);
-                                log("added to pw db: " + pwHost, this_);
-                            } catch (exc) {
-                                logError("[adding pw to db] " + errorToString(exc), this_);
-                            }
+                            calPasswordManagerRemove(outUser.value, this_.uri.spec, "wcap login");
                         }
                         this_.credentials.userId = outUser.value;
                         this_.credentials.pw = outPW.value;
@@ -1105,7 +1019,7 @@ calWcapSession.prototype = {
                                 period.makeImmutable();
                                 var fbInterval = {
                                     QueryInterface: function fbInterval_QueryInterface(iid) {
-                                        ensureIID([calIFreeBusyInterval, nsISupports], iid);
+                                        return doQueryInterface(this, null, iid, [calIFreeBusyInterval]);
                                         return this;
                                     },
                                     calId: calId,

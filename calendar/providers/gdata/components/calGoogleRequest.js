@@ -340,8 +340,8 @@ calGoogleRequest.prototype = {
         try {
             return this.QueryInterface(aIID);
         } catch (e) {
-            WARN("nsIInterfaceRequestor requesting invalid interface " + aIID);
-            throw Components.results.NS_NOINTERFACE;
+            WARN("nsIInterfaceRequestor requesting invalid interface: " + Components.interfacesByID[aIID]);
+            throw e;
         }
     },
 
