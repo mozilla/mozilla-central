@@ -204,7 +204,7 @@ agendaListbox.editSelectedItem =
 function editSelectedItem(aEvent) {
     var listItem  = document.getElementById("agenda-listbox").selectedItem;
     if (listItem) {
-        modifyEventWithDialog(getOccurrenceOrParent(listItem.occurrence));
+        modifyEventWithDialog(listItem.occurrence, null, true);
     }
 }
 
@@ -414,7 +414,9 @@ function deleteSelectedItem(aDoNotConfirm) {
 agendaListbox.createOrEditEvent =
 function createOrEditEvent(aEvent) {
     if (aEvent.target instanceof Components.interfaces.nsIDOMXULSelectControlItemElement) {
-        document.getElementById('agenda_edit_event_command').doCommand();
+        if (this.isEventListItem(aEvent.target)) {
+            document.getElementById('agenda_edit_event_command').doCommand();
+        }
     }
     else {
         // Create new event for the date currently displayed in the agenda. Setting
