@@ -167,10 +167,7 @@
 
         var flavourProvider = {
             QueryInterface: function(aIID) {
-                ensureIID(
-                    [ Components.interfaces.nsIFlavorDataProvider,
-                      Components.interfaces.nsISupports], aIID);
-                return this;
+                return doQueryInterface(this, null, aIID, [Components.interfaces.nsIFlavorDataProvider]);
             },
             item: item,
 

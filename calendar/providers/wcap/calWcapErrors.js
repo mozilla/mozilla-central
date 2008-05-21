@@ -416,5 +416,6 @@ function errorToString(err) {
             }
             break;
     }
+    return ("[" + err + "] unknown error."); // dummy to avoid js warning
 }
 

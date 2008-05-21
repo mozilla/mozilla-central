@@ -669,11 +669,9 @@
           mInBatch: false,
 
           QueryInterface: function tTO_QueryInterface(aIID) {
-              ensureIID(
-                  [ Components.interfaces.calICompositeObserver,
-                    Components.interfaces.calIObserver,
-                    Components.interfaces.nsISupports], aIID);
-              return this;
+              return doQueryInterface(this, null, aIID,
+                                      [Components.interfaces.calICompositeObserver,
+                                       Components.interfaces.calIObserver]);
           },
 
          /**

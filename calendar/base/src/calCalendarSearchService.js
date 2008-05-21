@@ -77,11 +77,6 @@ calCalendarSearchListener.prototype = {
     }
 };
 
-const calCalendarSearchService_ifaces = [ Components.interfaces.nsISupports,
-                                          Components.interfaces.calICalendarSearchProvider,
-                                          Components.interfaces.calICalendarSearchService,
-                                          Components.interfaces.nsIClassInfo ];
-
 function calCalendarSearchService() {
     this.wrappedJSObject = this;
     this.mProviders = new calInterfaceBag(Components.interfaces.calICalendarSearchProvider);
@@ -90,14 +85,17 @@ calCalendarSearchService.prototype = {
     mProviders: null,
 
     QueryInterface: function calCalendarSearchService_QueryInterface(aIID) {
-        ensureIID(calCalendarSearchService_ifaces, aIID);
-        return this;
+        return doQueryInterface(this, calCalendarSearchService.prototype, aIID, null, this);
     },
 
     // nsIClassInfo:
     getInterfaces: function calCalendarSearchService_getInterfaces(count) {
-        count.value = calCalendarSearchService_ifaces.length;
-        return calCalendarSearchService_ifaces;
+        const ifaces = [Components.interfaces.nsISupports,
+                        Components.interfaces.calICalendarSearchProvider,
+                        Components.interfaces.calICalendarSearchService,
+                        Components.interfaces.nsIClassInfo];
+        count.value = ifaces.length;
+        return ifaces;
     },
     getHelperForLanguage: function calCalendarSearchService_getHelperForLanguage(language) {
         return null;

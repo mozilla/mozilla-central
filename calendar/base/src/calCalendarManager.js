@@ -805,11 +805,9 @@ calMgrCalendarObserver.prototype = {
     calMgr: null,
 
     QueryInterface: function mBL_QueryInterface(aIID) {
-        ensureIID(
-            [ Components.interfaces.nsIWindowMediatorListener,
-              Components.interfaces.calIObserver,
-              Components.interfaces.nsISupports], aIID);
-        return this;
+        return doQueryInterface(this, calMgrCalendarObserver.prototype, aIID,
+                                [Components.interfaces.nsIWindowMediatorListener,
+                                 Components.interfaces.calIObserver]);
     },
 
     // nsIWindowMediatorListener:
