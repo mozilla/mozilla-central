@@ -119,6 +119,8 @@ private:
     PRInt32 m_msgSize;
 };
 
+#define kNumHdrsToXfer 10
+
 class nsMsgImapHdrXferInfo : public nsIImapHeaderXferInfo
 {
 public:
@@ -126,16 +128,14 @@ public:
   NS_DECL_NSIIMAPHEADERXFERINFO
   nsMsgImapHdrXferInfo();
   virtual ~nsMsgImapHdrXferInfo();
+  void    ResetAll(); // reset HeaderInfos for re-use
+  void    ReleaseAll(); // release HeaderInfos (frees up memory)
   // this will return null if we're full, in which case the client code
   // should transfer the headers and retry.
-  nsresult GetFreeHeaderInfo(nsIImapHeaderInfo **aResult);
-  void    ResetAll(); // reset HeaderInfo's for re-use
-  void    ReleaseAll(); // release HeaderInfos (frees up memory)
-  void    StartNewHdr(nsIImapHeaderInfo **newHdrInfo);
-  // get the hdr info we're currently adding lines to
-  nsIImapHeaderInfo           *GetCurrentHdrInfo();
+  nsIImapHeaderInfo *StartNewHdr();
   // call when we've finished adding lines to current hdr
   void    FinishCurrentHdr();
+private:
   nsCOMArray<nsIImapHeaderInfo> m_hdrInfos;
   PRInt32   m_nextFreeHdrInfo;
 };

@@ -125,9 +125,8 @@ static const PRInt32 kMaxSecondsBeforeCheck = 600;
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgImapHdrXferInfo, nsIImapHeaderXferInfo)
 
-static const PRInt32 kNumHdrsToXfer=10;
-
 nsMsgImapHdrXferInfo::nsMsgImapHdrXferInfo()
+  : m_hdrInfos(kNumHdrsToXfer)
 {
   m_nextFreeHdrInfo = 0;
 }
@@ -144,6 +143,15 @@ NS_IMETHODIMP nsMsgImapHdrXferInfo::GetNumHeaders(PRInt32 *aNumHeaders)
 
 NS_IMETHODIMP nsMsgImapHdrXferInfo::GetHeader(PRInt32 hdrIndex, nsIImapHeaderInfo **aResult)
 {
+  // If the header index is more than (or equal to) our next free pointer, then
+  // its a header we haven't really got and the caller has done something
+  // wrong.
+  if (hdrIndex >= m_nextFreeHdrInfo)
+  {
+    NS_WARNING("Invalid Header Index requested");
+    return NS_ERROR_NULL_POINTER;
+  }
+
   *aResult = m_hdrInfos.SafeObjectAt(hdrIndex);
   if (!*aResult)
     return NS_ERROR_NULL_POINTER;
@@ -154,31 +162,24 @@ NS_IMETHODIMP nsMsgImapHdrXferInfo::GetHeader(PRInt32 hdrIndex, nsIImapHeaderInf
 
 static const PRInt32 kInitLineHdrCacheSize = 512; // should be about right
 
-nsresult nsMsgImapHdrXferInfo::GetFreeHeaderInfo(nsIImapHeaderInfo **aResult)
+nsIImapHeaderInfo* nsMsgImapHdrXferInfo::StartNewHdr()
 {
   if (m_nextFreeHdrInfo >= kNumHdrsToXfer)
-  {
-    *aResult = nsnull;
-    return NS_ERROR_NULL_POINTER;
-  }
+    return nsnull;
 
-  *aResult = m_hdrInfos.SafeObjectAt(m_nextFreeHdrInfo++);
-  nsresult rv = NS_OK;
-  if (!*aResult && m_nextFreeHdrInfo - 1 < kNumHdrsToXfer)
-  {
-      nsMsgImapLineDownloadCache *lineCache = new nsMsgImapLineDownloadCache();
-      if (!lineCache)
-        return NS_ERROR_OUT_OF_MEMORY;
-      rv = lineCache->GrowBuffer(kInitLineHdrCacheSize);
-      NS_ADDREF(*aResult = lineCache);
-      m_hdrInfos.AppendObject(lineCache);
-  }
-  return rv;
-}
+  nsIImapHeaderInfo *result = m_hdrInfos.SafeObjectAt(m_nextFreeHdrInfo++);
+  if (result)
+    return result;
 
-void nsMsgImapHdrXferInfo::StartNewHdr(nsIImapHeaderInfo **newHdrInfo)
-{
-  GetFreeHeaderInfo(newHdrInfo);
+  nsMsgImapLineDownloadCache *lineCache = new nsMsgImapLineDownloadCache();
+  if (!lineCache)
+    return nsnull;
+
+  lineCache->GrowBuffer(kInitLineHdrCacheSize);
+
+  m_hdrInfos.AppendObject(lineCache);
+
+  return lineCache;
 }
 
 // maybe not needed...
@@ -2675,7 +2676,7 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
       if (m_curHdrInfo)
         NormalMessageEndDownload();
       if (!m_curHdrInfo)
-        m_hdrDownloadCache->StartNewHdr(getter_AddRefs(m_curHdrInfo));
+        m_curHdrInfo = m_hdrDownloadCache->StartNewHdr();
       if (m_curHdrInfo)
         m_curHdrInfo->SetMsgSize(total_message_size);
       return NS_OK;
