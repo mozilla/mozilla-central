@@ -1,5 +1,5 @@
 <!-- <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"> -->
-<!-- $Id: security.xml,v 1.18 2008-04-04 06:48:25 lpsolit%gmail.com Exp $ -->
+<!-- $Id: security.xml,v 1.19 2008-05-21 00:01:04 lpsolit%gmail.com Exp $ -->
 
 <chapter id="security">
 <title>Bugzilla Security</title>
@@ -214,13 +214,6 @@ skip-networking
           <itemizedlist spacing="compact">
             <listitem>
               <para>Block everything</para>
-            </listitem>
-            <listitem>
-              <para>But allow:
-              <simplelist type="inline">
-                <member><filename>duplicates.rdf</filename></member>
-              </simplelist>
-              </para>
             </listitem>
           </itemizedlist>
         </listitem>
