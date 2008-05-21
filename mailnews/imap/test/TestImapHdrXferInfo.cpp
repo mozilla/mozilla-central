@@ -64,7 +64,7 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
 
   // Get a header that doesn't exist
   if (hdrInfo->GetHeader(1, getter_AddRefs(hdr)) != NS_ERROR_NULL_POINTER)
-    return 2;
+    return 3;
 
   PRInt32 i;
   for (i = 0; i < kNumHdrsToXfer; ++i)
@@ -72,7 +72,7 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
     // Now kick off a new one.
     hdr = hdrInfo->StartNewHdr();
     if (!hdr)
-      return 2;
+      return 4;
 
     // Check pointers are different or not depending on which cycle we are in
     switch (hdrArrayCheck)
@@ -82,11 +82,11 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
       break;
     case eCheckSame:
       if (hdrArray[i] != hdr)
-        return 2;
+        return 5;
       break;
     case eCheckDifferent:
       if (hdrArray[i] == hdr)
-        return 2;
+        return 6;
       break;
     default:
       return 1;
@@ -96,19 +96,19 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
       return 1;
 
     if (numHdrs != i + 1)
-      return 2;
+      return 7;
   }
 
   // Now try and get one more (this should return null)
   if (hdrInfo->StartNewHdr())
-    return 2;
+    return 8;
 
   // Now check the number of headers
   if (NS_FAILED(hdrInfo->GetNumHeaders(&numHdrs)))
     return 1;
 
   if (numHdrs != kNumHdrsToXfer)
-    return 2;
+    return 9;
 
   // Now check our pointers align with those from GetHeader
   if (hdrArrayCheck != 2)
@@ -119,7 +119,7 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
         return 1;
 
       if (hdr != hdrArray[i])
-        return 2;
+        return 10;
     }
   }
   return 0;
@@ -148,11 +148,12 @@ int main(int argc, char** argv)
   // and repeat
   result = MainChecks(hdrInfo, hdrArray, eCheckSame);
   if (result)
-    return result;
+    return result + 100;
 
   // Now release all
   hdrInfo->ReleaseAll();
 
   // and repeat
-  return MainChecks(hdrInfo, hdrArray, eCheckDifferent);
+  result = MainChecks(hdrInfo, hdrArray, eCheckDifferent);
+  return result ? result + 100 : 0;
 }
