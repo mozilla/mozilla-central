@@ -1,8 +1,11 @@
+# mozilla/tools/buildbot-configs/testing/moz2unit/mozconfig-firefox-linux
+
 ac_add_options --enable-application=browser
 mk_add_options MOZ_OBJDIR=@TOPSRCDIR@/objdir
-ac_add_options --enable-optimize="-Os"
 ac_add_options --disable-debug
 ac_add_options --enable-tests
+ac_add_options --enable-optimize
+ac_add_options --enable-logrefcnt
 
 CC=/tools/gcc/bin/gcc
 CXX=/tools/gcc/bin/g++
