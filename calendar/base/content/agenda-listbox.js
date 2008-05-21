@@ -206,7 +206,7 @@ agendaListbox.editSelectedItem =
 function editSelectedItem(aEvent) {
     var listItem  = document.getElementById("agenda-listbox").selectedItem;
     if (listItem) {
-        modifyEventWithDialog(getOccurrenceOrParent(listItem.getItem()));
+        modifyEventWithDialog(listItem.getItem(), null, true);
     }
 }
 

@@ -158,15 +158,23 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
 }
 
 
-function modifyEventWithDialog(item, job) {
+function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     var onModifyItem = function(item, calendar, originalItem, listener) {
         var innerListener = new opCompleteListener(originalItem, listener);
-
         doTransaction('modify', item, calendar, originalItem, innerListener);
     };
 
-    if (item) {
+    var item = aItem;
+    if (aPromptOccurrence) {
+        var futureItem, response;
+        [item, futureItem, response] = promptOccurrenceModification(aItem, true, "edit");
+    }
+
+    if (item && response) {
         openEventDialog(item, item.calendar, "modify", onModifyItem, job);
+    } else if (job && job.dispose) {
+        // If the action was canceled and there is a job, dispose it directly.
+        job.dispose();
     }
 }
 
@@ -241,50 +249,90 @@ function openEventDialog(calendarItem, calendar, mode, callback, job) {
     openDialog(url, "_blank", "chrome,titlebar,resizable", args);
 }
 
-// When editing a single instance of a recurring event, we need to figure out
-// whether the user wants to edit all instances, or just this one.  This
-// function prompts this question (if the item is actually an instance of a
-// recurring event) and returns the appropriate item that should be modified.
-// Returns null if the prompt was cancelled.
-function getOccurrenceOrParent(occurrence) {
+/**
+ * Prompts the user how the passed item should be modified. If the item is an
+ * exception or already a parent item, the item is returned without prompting.
+ * If "all occurrences" is specified, the parent item is returned. If "this
+ * occurrence only" is specified, then aItem is returned. If "this and following
+ * occurrences" is selected, aItem's parentItem is modified so that the
+ * recurrence rules end (UNTIL) just before the given occurrence. If
+ * aNeedsFuture is specified, a new item is made from the part that was stripped
+ * off the passed item.
+ *
+ * EXDATEs and RDATEs that do not fit into the items recurrence are removed. If
+ * the modified item or the future item only consist of a single occurrence,
+ * they are changed to be single items.
+ *
+ * @param aItem                         The item to check.
+ * @param aNeedsFuture                  If true, the future item is parsed.
+ *                                        This parameter can for example be
+ *                                        false if a deletion is being made.
+ * @param aAction                       Either "edit" or "delete". Sets up
+ *                                          the labels in the occurrence prompt
+ * @return [modifiedItem, futureItem, promptResponse]
+ *                                      If "this and all following" was chosen,
+ *                                        an array containing the item *until*
+ *                                        the given occurrence (modifiedItem),
+ *                                        and the item *after* the given
+ *                                        occurrence (futureItem).
+ *
+ *                                        If any other option was chosen,
+ *                                        futureItem is null  and the
+ *                                        modifiedItem is either the parent item
+ *                                        or the passed occurrence, or null if
+ *                                        the dialog was canceled.
+ *
+ *                                        The promptResponse parameter gives the
+ *                                        response of the dialog as a constant.
+ */
+function promptOccurrenceModification(aItem, aNeedsFuture, aAction) {
+    const CANCEL = 0;
+    const MODIFY_OCCURRENCE = 1;
+    const MODIFY_FOLLOWING = 2;
+    const MODIFY_PARENT = 3;
+
+    var futureItem = false;
+    var pastItem;
+    var type = CANCEL;
+
     // Check if this actually is an instance of a recurring event
-    if (occurrence == occurrence.parentItem) {
-        return occurrence;
+    if (aItem == aItem.parentItem) {
+        type = MODIFY_PARENT;
+    } else if (aItem.parentItem.recurrenceInfo
+                    .getExceptionFor(aItem.recurrenceId, false) != null) {
+        // If the user wants to edit an occurrence which is already an exception
+        // always edit this single item.
+        // XXX  Why? I think its ok to ask also for exceptions.
+        type = MODIFY_OCCURRENCE;
+    } else {
+        // Prompt the user. Setting modal blocks the dialog until it is closed. We
+        // use rv to pass our return value.
+        var rv = { value: CANCEL, item: aItem, action: aAction};
+        window.openDialog("chrome://calendar/content/calendar-occurrence-prompt.xul",
+                          "prompt-occurrence-modification",
+                          "centerscreen,chrome,modal,titlebar",
+                          rv);
+        type = rv.value;
     }
 
-    // if the user wants to edit an occurrence which is already
-    // an exception, always edit this single item.
-    var parentItem = occurrence.parentItem;
-    var rec = parentItem.recurrenceInfo;
-    if (rec) {
-        var exceptions = rec.getExceptionIds({});
-        if (exceptions.some(function (exid) {
-                                return exid.compare(occurrence.recurrenceId) == 0;
-                            })) {
-            return occurrence;
-        }
+    switch (type) {
+        case MODIFY_PARENT:
+            pastItem = aItem.parentItem;
+            break;
+        case MODIFY_FOLLOWING:
+            // TODO tbd in a different bug
+            throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+            break;
+        case MODIFY_OCCURRENCE:
+            pastItem = aItem;
+            break;
+        case CANCEL:
+            // Since we have not set past or futureItem, the return below will
+            // take care.
+            break;
     }
 
-    var promptService = 
-             Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                       .getService(Components.interfaces.nsIPromptService);
-
-    var promptTitle = calGetString("calendar", "editRecurTitle");
-    var promptMessage = calGetString("calendar", "editRecurMessage");
-    var buttonLabel1 = calGetString("calendar", "editRecurAll");
-    var buttonLabel2 = calGetString("calendar", "editRecurSingle");
-
-    var flags = promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_0 +
-                promptService.BUTTON_TITLE_CANCEL * promptService.BUTTON_POS_1 +
-                promptService.BUTTON_TITLE_IS_STRING * promptService.BUTTON_POS_2;
-
-    var choice = promptService.confirmEx(null, promptTitle, promptMessage, flags,
-                                         buttonLabel1,null , buttonLabel2, null, {});
-    switch(choice) {
-        case 0: return occurrence.parentItem;
-        case 2: return occurrence;
-        default: return null;
-    }
+    return [pastItem, futureItem, type];
 }
 
 /**

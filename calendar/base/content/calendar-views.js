@@ -86,6 +86,10 @@ var calendarViewController = {
         // an open dialog to save any outstanding modifications.
         aOccurrence = this.finalizePendingModification(aOccurrence);
 
+        // XXX TODO logic to ask for which occurrence to modify is currently in
+        // modifyEventWithDialog, since the type of transactions done depend on
+        // this. This in turn makes the aOccurrence here be potentially wrong, I
+        // haven't seen it used anywhere though.
         var pendingModification = {
             controller: this,
             item: aOccurrence,
@@ -103,7 +107,7 @@ var calendarViewController = {
 
         this.pendingJobs.push(pendingModification);
 
-        modifyEventWithDialog(aOccurrence,pendingModification);
+        modifyEventWithDialog(aOccurrence, pendingModification, true);
     },
 
     // iterate the list of pending modifications and see if the occurrence
@@ -172,13 +176,7 @@ var calendarViewController = {
 
             doTransaction('modify', instance, instance.calendar, aOccurrence, null);
         } else {
-            // prompt for choice between occurrence and master for recurrent items
-            var itemToEdit = getOccurrenceOrParent(aOccurrence);
-            if (!itemToEdit) {
-                return;  // user cancelled
-            }
-
-            this.createPendingModification(itemToEdit);
+            this.createPendingModification(aOccurrence);
         }
     },
 
@@ -217,11 +215,17 @@ var calendarViewController = {
                 // Only give the user the selection if only one occurrence is
                 // selected. Otherwise he will get a dialog for each occurrence
                 // he deletes.
-                itemToDelete = getOccurrenceOrParent(itemToDelete);
+                var [itemToDelete, hasFutureItem, response] = promptOccurrenceModification(itemToDelete, false, "delete");
+                if (!response) {
+                    // The user canceled the dialog, bail out
+                    break;
+                }
             }
-            if (!itemToDelete) {
-                continue;
-            }
+
+            // Now some dirty work: Make sure more than one occurrence can be
+            // deleted by saving the recurring items and removing occurrences as
+            // they come in. If this is not an occurrence, we can go ahead and
+            // delete the whole item.
             itemToDelete = this.finalizePendingModification(itemToDelete);
             if (itemToDelete.parentItem.hashId != itemToDelete.hashId) {
                 var savedItem = getSavedItem(itemToDelete);
@@ -653,7 +657,7 @@ function deleteSelectedEvents() {
 function editSelectedEvents() {
     var selectedItems = currentView().getSelectedItems({});
     if (selectedItems && selectedItems.length >= 1) {
-        modifyEventWithDialog(getOccurrenceOrParent(selectedItems[0]));
+        modifyEventWithDialog(selectedItems[0], null, true);
     }
 }
 

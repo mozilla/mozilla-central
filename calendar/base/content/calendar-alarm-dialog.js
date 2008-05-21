@@ -99,8 +99,7 @@ function onItemDetails(event) {
                        .getService(Components.interfaces.nsIWindowMediator);
     var calWindow = wm.getMostRecentWindow("calendarMainWindow") ||
                     wm.getMostRecentWindow("mail:3pane");
-    var item = calWindow.getOccurrenceOrParent(event.target.item);
-    calWindow.modifyEventWithDialog(item);
+    calWindow.modifyEventWithDialog(event.target.item, null, true);
 }
 
 /**
