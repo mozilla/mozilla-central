@@ -65,6 +65,7 @@
 #include "nsNetCID.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "nsMemory.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////

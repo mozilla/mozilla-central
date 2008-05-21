@@ -41,6 +41,7 @@
 #include "nsISimpleEnumerator.h"
 #include "comi18n.h"
 #include "prmem.h"
+#include <ctype.h>
 
 nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar ** aOutgoingEmailAddress, PRUnichar ** aOutgoingName,
                           PRUnichar ** aOutgoingFullName, nsIMsgHeaderParser *aParser);

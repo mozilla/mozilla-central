@@ -62,6 +62,7 @@
 #include "nsDateTimeFormatCID.h"
 #include "nsMsgUtils.h"
 #include "nsINetUtil.h"
+#include "nsMemory.h"
 
 #define VIEW_ALL_HEADERS 2
 

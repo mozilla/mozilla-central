@@ -40,6 +40,7 @@
 #include "plstr.h"
 #include "prlog.h"
 #include "msgCore.h"
+#include <ctype.h>
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextRichtext, MimeInlineTextRichtextClass,

@@ -52,6 +52,7 @@
 #include "mimemoz2.h"
 #include "mimemsg.h"
 #include "nsMimeTypes.h"
+#include <ctype.h>
 
 #include "prmem.h"
 #include "plstr.h"

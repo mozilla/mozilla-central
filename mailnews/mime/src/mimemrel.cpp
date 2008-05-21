@@ -142,6 +142,7 @@
 #include "nsMimeTypes.h"
 #include "mimebuf.h"
 #include "nsMsgUtils.h"
+#include <ctype.h>
 
 //
 // External Defines...

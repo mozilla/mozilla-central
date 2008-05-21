@@ -54,6 +54,8 @@
 #include "nsIMIMEHeaderParam.h"
 #include "nsNetCID.h"
 #include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
+#include <ctype.h>
 
 // Forward declares...
 PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);

@@ -48,6 +48,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
 #include "nsINetUtil.h"
+#include <ctype.h>
 
 #define MIME_SUPERCLASS mimeObjectClass
 MimeDefClass(MimeExternalBody, MimeExternalBodyClass,

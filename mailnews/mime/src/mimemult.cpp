@@ -46,6 +46,7 @@
 #include "prio.h"
 #include "nsMimeStringResources.h"
 #include "nsMimeTypes.h"
+#include <ctype.h>
 
 #ifdef XP_MACOSX
   extern MimeObjectClass mimeMultipartAppleDoubleClass;

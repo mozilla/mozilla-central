@@ -42,6 +42,7 @@
 #include "nsMimeTypes.h"
 #include "msgCore.h"
 #include "nsMimeStringResources.h"
+#include <ctype.h>
 
 #define MIME_SUPERCLASS mimeContainerClass
 MimeDefClass(MimeUntypedText, MimeUntypedTextClass,

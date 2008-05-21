@@ -42,6 +42,7 @@
 #include "msgCore.h"
 #include "nsMimeStringResources.h"
 #include "mimemoz2.h"
+#include <ctype.h>
 
 #define MIME_SUPERCLASS mimeInlineTextClass
 MimeDefClass(MimeInlineTextHTML, MimeInlineTextHTMLClass,
