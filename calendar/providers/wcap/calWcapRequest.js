@@ -216,24 +216,144 @@ calWcapRequest.prototype = {
     }
 };
 
-function calWcapNetworkRequest(channel, respFunc, bLogging) {
+function calWcapNetworkRequest(respFunc, bLogging) {
     this.wrappedJSObject = this;
     this.m_id = generateRequestId();
-    this.m_channel = channel;
     this.m_respFunc = respFunc;
     this.m_bLogging = (bLogging === undefined ? true : bLogging);
 }
 calWcapNetworkRequest.prototype = {
     m_id: 0,
-    m_channel: null,
+    m_loader: null,
     m_respFunc: null,
     m_bLogging: false,
+
+    QueryInterface: function calWcapNetworkRequest_QueryInterface(iid) {
+        return doQueryInterface(this, calWcapNetworkRequest.prototype, iid, null, g_classInfo.wcapNetworkRequest);
+    },
+
+    /**
+     * @see nsIInterfaceRequestor
+     */
+    getInterface: function calWcapNetworkRequest_getInterface(aIID) {
+        // Support Auth Prompt Interfaces
+        if (aIID.equals(Components.interfaces.nsIAuthPrompt) ||
+            (Components.interfaces.nsIAuthPrompt2 &&
+             aIID.equals(Components.interfaces.nsIAuthPrompt2))) {
+            return new calAuthPrompt();
+        } else if (aIID.equals(Components.interfaces.nsIAuthPromptProvider) ||
+                   aIID.equals(Components.interfaces.nsIPrompt)) {
+            return getWindowWatcher().getNewPrompter(null);
+        }
+
+        try {
+            return this.QueryInterface(aIID);
+        } catch (exc) {
+            logWarning("ifaces: " + g_classInfo.wcapNetworkRequest.getInterfaces({}), this);
+            logWarning("nsIInterfaceRequestor requesting invalid interface: " + Components.interfacesByID[aIID], this);
+            throw exc;
+        }
+    },
+
+    /**
+     * prepareChannel
+     * Prepares the passed channel to match this objects properties
+     *
+     * @param aChannel    The Channel to be prepared
+     */
+    prepareChannel: function calWcapNetworkRequest_prepareChannel(aChannel) {
+        // No caching
+        aChannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+        aChannel = aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+        aChannel.requestMethod = "GET";
+    },
+
+    /**
+     * @see nsIChannelEventSink
+     */
+    onChannelRedirect: function calWcapNetworkRequest_onChannelRedirect(aOldChannel,
+                                                                        aNewChannel,
+                                                                        aFlags) {
+        // all we need to do to the new channel is the basic preparation
+        this.prepareChannel(aNewChannel);
+    },
+
+    /**
+     * @see nsIHttpEventSink
+     * (not implementing will cause annoying exceptions)
+     */
+    onRedirect: function calWcapNetworkRequest_onRedirect(aOldChannel, aNewChannel) {
+    },
+
+    /**
+     * @see nsIProgressEventSink
+     * (not implementing will cause annoying exceptions)
+     */
+    onProgress: function calWcapNetworkRequest_onProgress(aRequest,
+                                                          aContext,
+                                                          aProgress,
+                                                          aProgressMax) {
+    },
+
+    onStatus: function calWcapNetworkRequest_onStatus(aRequest,
+                                                      aContext,
+                                                      aStatus,
+                                                      aStatusArg) {
+    },
+
+    /**
+     * @see nsIStreamLoaderObserver
+     */
+    onStreamComplete: function calWcapNetworkRequest_onStreamComplete(aLoader,
+                                                                      aContext,
+                                                                      aStatus,
+                                                                      aResultLength,
+                                                                      aResult) {
+        this.m_loader = null;
+
+        if (LOG_LEVEL > 0 && this.m_bLogging) {
+            log("status: " + errorToString(aStatus), this);
+        }
+        if (!aResult || aStatus != Components.results.NS_OK) {
+            this.execRespFunc(aStatus);
+            return;
+        }
+
+        var httpChannel = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
+        var uploadChannel = aLoader.request.QueryInterface(Components.interfaces.nsIUploadChannel);
+
+        // Convert the stream, falling back to utf-8 in case its not given.
+        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+                                  .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        converter.charset = httpChannel.contentCharset || "UTF-8";
+        var result = converter.convertFromByteArray(aResult, aResultLength);
+
+        if (LOG_LEVEL > 2 && this.m_bLogging) {
+            log("contentCharset = " + converter.charset + "\nrequest result:\n" + result, this);
+        }
+
+        switch (httpChannel.responseStatus / 100) {
+            case 2: /* 2xx codes */
+                // Everything worked out, we are done
+                this.execRespFunc(aStatus, result);
+                break;
+            default: {
+                // Something else went wrong
+                var error = ("A request Error Occurred. Status Code: " +
+                             httpChannel.responseStatus + " " +
+                             httpChannel.responseStatusText + " Body: " +
+                             result);
+                this.execRespFunc(Components.Exception(error, NS_BINDING_FAILED));
+                break;
+            }
+        }
+    },
 
     toString: function calWcapNetworkRequest_toString() {
         var ret = ("calWcapNetworkRequest id=" + this.id +
                    ", parent-id=" + (this.parentRequest ? this.parentRequest.id : "<none>"));
-        if (this.m_bLogging) {
-            ret += (" (" + this.m_channel.URI.spec + ")");
+        if (this.m_bLogging && this.request) {
+            ret += (" (" + this.request.URI.spec + ")");
         }
         ret += (", isPending=" + this.isPending);
         ret += (", status=" + errorToString(this.status));
@@ -263,7 +383,7 @@ calWcapNetworkRequest.prototype = {
     },
 
     get status calWcapNetworkRequest_statusGetter() {
-        return this.m_channel.status;
+        return (this.request ? this.request.status : NS_OK);
     },
 
     detachFromParent: function calWcapNetworkRequest_detachFromParent(err) {
@@ -274,15 +394,20 @@ calWcapNetworkRequest.prototype = {
         }
     },
 
+    get request calWcapNetworkRequest_requestGetter() {
+        return (this.m_loader ? this.m_loader.request : null);
+    },
+
     cancel: function calWcapNetworkRequest_cancel(status) {
         if (!status) {
             status = calIErrors.OPERATION_CANCELLED;
         }
         this.execRespFunc(status);
         // xxx todo: check whether this works on redirected channels!
-        if (this.m_channel.isPending()) {
+        var request = this.request;
+        if (request && request.isPending()) {
             log("canceling netwerk request...", this);
-            this.m_channel.cancel(NS_BINDING_FAILED);
+            request.cancel(NS_BINDING_FAILED);
         }
     },
 
@@ -314,79 +439,31 @@ calWcapNetworkRequest.prototype = {
         } catch (exc) {
             this.execRespFunc(exc);
         }
-    },
-
-    // nsIUnicharStreamLoaderObserver:
-    onDetermineCharset: function calWcapNetworkRequest_onDetermineCharset(loader, context, firstSegment, length) {
-        var channel = null;
-        if (loader) {
-            channel = loader.channel;
-        }
-        var charset = null;
-        if (channel) {
-            charset = channel.contentCharset;
-        }
-        if (!charset || charset.length == 0) {
-            charset = "UTF-8";
-        }
-        return charset;
-    },
-
-    onStreamComplete: function calWcapNetworkRequest_onStreamComplete(
-        loader, context, status, /* nsIUnicharInputStream */ unicharData) {
-
-        if (LOG_LEVEL > 0 && this.m_bLogging) {
-            log("status: " + errorToString(status), this);
-        }
-        switch (status) {
-            case NS_BINDING_SUCCEEDED: {
-                var err = null;
-                var str = "";
-                try {
-                    if (unicharData) {
-                        var str_ = {};
-                        while (unicharData.readString(-1, str_)) {
-                            str += str_.value;
-                        }
-                    }
-                    if (LOG_LEVEL > 2 && this.m_bLogging) {
-                        log("contentCharset = " + this.onDetermineCharset(loader) + "\nrequest result:\n" + str, this);
-                    }
-                } catch (exc) {
-                    err = exc;
-                }
-                this.execRespFunc(err, str);
-                break;
-            }
-            case NS_BINDING_REDIRECTED:
-            case NS_BINDING_RETARGETED:
-                // just status
-                // xxx todo: in case of a redirected channel,
-                // how to get that channel => cancel feature!
-                break;
-            default: // errors:
-                this.execRespFunc(status);
-                break;
-        }
     }
 };
 
 function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
-    var channel;
-    try {
-        var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
-                               .createInstance(Components.interfaces.nsIUnicharStreamLoader);
-        channel = getIOService().newChannel(url, "" /* charset */, null /* baseURI */);
-        channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
-    } catch (exc) {
-        respFunc(exc);
-        return;
-    }
-    var netRequest = new calWcapNetworkRequest(channel, respFunc, bLogging);
+    var netRequest = new calWcapNetworkRequest(respFunc, bLogging);
     parentRequest.attachSubRequest(netRequest);
-    log("opening channel.", netRequest);
     try {
-        loader.init(channel, netRequest, null /*context*/, 0 /*segment size*/);
+        var uri = getIOService().newURI(url, null, null);
+        var channel = getIOService().newChannelFromURI(uri);
+        netRequest.prepareChannel(channel);
+        channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
+        channel.redirectionLimit = 3;
+        channel.notificationCallbacks = netRequest;
+        var loader = Components.classes["@mozilla.org/network/stream-loader;1"]
+                               .createInstance(Components.interfaces.nsIStreamLoader);
+        netRequest.m_loader = loader;
+
+        log("opening channel.", netRequest);
+        // Required to be trunk and branch compatible:
+        if (Components.interfaces.nsIStreamLoader.number == "{31d37360-8e5a-11d3-93ad-00104ba0fd40}") {
+            loader.init(channel, netRequest, netRequest);
+        } else if (Components.interfaces.nsIStreamLoader.number == "{8ea7e890-8211-11d9-8bde-f66bad1e3f3a}") {
+            loader.init(netRequest);
+            channel.asyncOpen(netRequest, netRequest);
+        }
     } catch (exc) {
         netRequest.execRespFunc(exc);
     }
