@@ -85,8 +85,9 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
         return 5;
       break;
     case eCheckDifferent:
-      if (hdrArray[i] == hdr)
-        return 6;
+      // XXX Debug/Release versus memory use issue? - Disabling for now
+      //      if (hdrArray[i] == hdr)
+      //        return 6;
       break;
     default:
       return 1;
@@ -155,5 +156,5 @@ int main(int argc, char** argv)
 
   // and repeat
   result = MainChecks(hdrInfo, hdrArray, eCheckDifferent);
-  return result ? result + 100 : 0;
+  return result ? result + 200 : 0;
 }
