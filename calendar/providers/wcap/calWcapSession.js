@@ -281,7 +281,7 @@ calWcapSession.prototype = {
                                         outUser.value, outPW.value);
                         } else {
                             log("login prompt cancelled.", this_);
-                            this_.defaultCalendar.setProperty("disabled", true);
+//                             this_.defaultCalendar.setProperty("disabled", true);
                             respFunc(new Components.Exception(errorToString(calIWcapErrors.WCAP_LOGIN_FAILED),
                                                               calIWcapErrors.WCAP_LOGIN_FAILED));
                         }
@@ -290,7 +290,7 @@ calWcapSession.prototype = {
                     } else {
                         if (outSavePW.value) {
                             // so try to remove old pw from db first:
-                            calPasswordManagerRemove(outUser.value, this_.uri.spec, "wcap login");
+                            calPasswordManagerSave(outUser.value, outPW.value, this_.uri.spec, "wcap login");
                         }
                         this_.credentials.userId = outUser.value;
                         this_.credentials.pw = outPW.value;

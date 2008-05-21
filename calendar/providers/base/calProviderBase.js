@@ -168,6 +168,7 @@ calProviderBase.prototype = {
                             }
                             // Otherwise fall through to fix the type
                         case "readOnly":
+                        case "disabled":
                         case "relaxedMode":
                         case "cache.supported":
                         case "cache.enabled":
@@ -197,6 +198,7 @@ calProviderBase.prototype = {
                 // xxx todo: work around value types here unless we save into the prefs...
                 switch (aName) {
                 case "readOnly":
+                case "disabled":
                 case "relaxedMode":
                 case "cache.supported":
                 case "cache.enabled":
