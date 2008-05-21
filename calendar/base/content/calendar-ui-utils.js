@@ -449,3 +449,10 @@ function menuListIndexOf(menuList, value) {
     }
     return -1; // not found
 }
+
+function createXULElement(el) {
+    return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
+}
+
+
+

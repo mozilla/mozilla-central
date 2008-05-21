@@ -55,9 +55,6 @@
         <parameter name="aCalendar"/>
         <parameter name="bSubscribed"/>
         <body><![CDATA[
-          function createXULElement(el) {
-            return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
           var newNode = createXULElement("calendar-subscriptions-richlistitem");
           this.appendChild(newNode);
           newNode.setAttribute("anonid", "subscriptions-listitem");

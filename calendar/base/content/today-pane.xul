@@ -58,6 +58,7 @@
 <script type="application/x-javascript" src="chrome://calendar/content/agenda-listbox.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-management.js"/>
 <script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
+<script type="application/x-javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 
     <modevbox id="today-pane-panel" addtoolbarbutton="true" width="200"
               mode="mail,calendar,task" refcontrol="calendar_toggle_todaypane_command"
@@ -159,7 +160,7 @@
                            class="cal-toolbarbutton-1"
                            label="&calendar.newevent.button.label;"
                            tooltiptext="&calendar.newevent.button.tooltip;"
-                           oncommand="agendaListbox.createNewEvent(event)"/>
+                           oncommand="agendaListbox.createOrEditEvent(event)"/>
          </toolbar>
          <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
          <vbox id="agenda-menu-box" hidden="true">
@@ -186,18 +187,15 @@
            </menu>
          </vbox>
          <vbox id="richlistitem-container" hidden="true">
-            <agenda-allday-richlist-item/>
-            <agenda-richlist-item/>
             <agenda-checkbox-richlist-item id="today-header-hidden" title="&calendar.today.button.label;" checked="true" persist="checked"/>
             <agenda-checkbox-richlist-item id="tomorrow-header-hidden" title="&calendar.tomorrow.button.label;" checked="false" persist="checked"/>
             <agenda-checkbox-richlist-item id="nextweek-header-hidden" title="&calendar.soon.button.label;" checked="false" persist="checked"/>
          </vbox>
          <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
-                       onclick="agendaListbox.onSelect();"
                        onblur="agendaListbox.onBlur();"
                        onfocus="agendaListbox.onFocus();"
                        onkeypress="agendaListbox.onKeyPress(event);"
-                       ondblclick="agendaListbox.createNewEvent(event);"/>
+                       ondblclick="agendaListbox.createOrEditEvent(event);"/>
         </modevbox>
         <splitter id="today-pane-splitter" persist="hidden"/>
         <modevbox id="todo-tab-panel" flex="1" mode="mail,calendar,task"

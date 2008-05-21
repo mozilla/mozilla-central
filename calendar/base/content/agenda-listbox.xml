@@ -49,18 +49,26 @@
       <stylesheet src="chrome://calendar/skin/widgets/calendar-widgets.css"/>
     </resources>
     <implementation>
-      <field name="mItem">null</field>;
-      <method name="getItem">
-        <body><![CDATA[
-            return this.mItem;
-        ]]></body>
-      </method>
+      <field name="mOccurrence">null</field>;
+      <property name="occurrence" readonly="true">
+        <getter><![CDATA[
+          return this.mOccurrence;
+        ]]></getter>
+      </property>
     </implementation>
     <handlers>
-      <handler event="dblclick" phase="capturing"><![CDATA[
-        document.getElementById('agenda_edit_event_command').doCommand();
+      <handler event="click" phase="capturing"><![CDATA[
+        if ((event.detail) == 1) {
+            agendaListbox.onSelect(this);
+        } else {
+            document.getElementById('agenda_edit_event_command').doCommand();
+        }
         event.stopPropagation();
         event.preventDefault();
+      ]]></handler>
+      <handler event="mouseover"><![CDATA[
+         event.stopPropagation();
+         onMouseOverItem(event);
       ]]></handler>
     </handlers>
   </binding>
@@ -114,14 +122,16 @@
 
   <binding id="agenda-allday-richlist-item"
            extends="chrome://calendar/content/agenda-listbox.xml#agenda-base-richlist-item">
-    <content>
+    <content tooltip="itemTooltip">
       <xul:hbox anonid="agenda-container-box"
                 class="agenda-allday-container-box"
                 xbl:inherits="selected,disabled"
                 flex="1">
         <xul:vbox pack="center" flex="1">
           <xul:hbox flex="1">
-            <xul:calendar-month-day-box-item anonid="allday-item" flex="1"/>
+            <xul:calendar-month-day-box-item anonid="allday-item" 
+                                             flex="1"
+                                             flat="true"/>
           </xul:hbox>
         </xul:vbox>
       </xul:hbox>
@@ -130,17 +140,13 @@
       <field name="mAllDayItem">null</field>;
       <constructor><![CDATA[
           this.mAllDayItem = document.getAnonymousElementByAttribute(this, "anonid", "allday-item");
-          this.mAllDayItem.removeShadows();
-          this.mAllDayItem.removeAttribute("tooltip");
       ]]></constructor>
-      <method name="setItem">
-        <parameter name="item"/>
-        <parameter name="period"/>
+      <method name="setOccurrence">
+        <parameter name="aOccurrence"/>
+        <parameter name="aPeriod"/>
         <body><![CDATA[
-            this.mItem = item;
-            this.mAllDayItem.occurrence = item;
-            var container = document.getAnonymousElementByAttribute(this.mAllDayItem, "anonid", "event-container");
-            container.setAttribute("class", "calendar-item");
+            this.mOccurrence = aOccurrence;
+            this.mAllDayItem.occurrence = aOccurrence;
         ]]></body>
       </method>
     </implementation>
@@ -148,7 +154,7 @@
 
   <binding id="agenda-richlist-item"
            extends="chrome://calendar/content/agenda-listbox.xml#agenda-base-richlist-item">
-    <content>
+    <content tooltip="itemTooltip">
       <xul:hbox anonid="agenda-container-box" class="agenda-container-box" xbl:inherits="selected,disabled,current" flex="1">
       <xul:hbox>
         <xul:vbox>
@@ -163,19 +169,20 @@
       </xul:hbox>
     </content>
     <implementation>
-      <method name="setItem">
-        <parameter name="item"/>
-        <parameter name="longFormat"/>
+      <method name="setOccurrence">
+        <parameter name="aItem"/>
+        <parameter name="aLongFormat"/>
         <body><![CDATA[
-            this.mItem = item;
+            this.mOccurrence = aItem;
             var titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
-            titlebox.value = item.title;
+            titlebox.value = aItem.title;
 
             var dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
             var duration = "";
-            var start =  item[calGetStartDateProp(item)].getInTimezone(calendarDefaultTimezone());
-            if (longFormat) {
+            var start =  this.mOccurrence[calGetStartDateProp(this.mOccurrence)]
+                            .getInTimezone(calendarDefaultTimezone());
+            if (aLongFormat) {
                 duration = dateFormatter.formatDateTime(start);
             } else {
                 duration = dateFormatter.formatTime(start);
@@ -184,7 +191,7 @@
             durationbox.value = duration;
             var calcolor = "";
             try {
-                var calcolor = this.mItem.calendar.getProperty("color");
+                var calcolor = this.mOccurrence.calendar.getProperty("color");
             } catch (e) {
             }
             if (!calcolor) {
@@ -197,4 +204,3 @@
     </implementation>
   </binding>
 </bindings>
-

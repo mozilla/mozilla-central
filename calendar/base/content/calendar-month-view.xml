@@ -55,7 +55,7 @@
     <content tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
-          <xul:image anonid="shadow-left-image" class="calendar-event-box-shadow-left"/>
+          <xul:image anonid="shadow-left-image" xbl:inherits="hidden=flat" class="calendar-event-box-shadow-left"/>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
                    xbl:inherits="item-calendar"
@@ -101,13 +101,10 @@
             </xul:box>
             <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
-          <xul:image anonid="shadow-right-image" class="calendar-event-box-shadow-right"/>
+          <xul:image anonid="shadow-right-image" xbl:inherits="hidden=flat"
+                     class="calendar-event-box-shadow-right"/>
         </xul:hbox>
-        <xul:box anonid="shadow-container" orient="horizontal">
-          <xul:image class="calendar-event-box-shadow-edge-left"/>
-          <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
-          <xul:image class="calendar-event-box-shadow-edge-right"/>
-        </xul:box>
+        <xul:calendar-shadow-box xbl:inherits="flat" orient="horizontal"/>
       </xul:vbox>
     </content>
     <implementation>
@@ -143,13 +140,6 @@
       <property name="parentBox"
                 onget="return this.mParentBox;"
                 onset="this.mParentBox = val;"/>
-      <method name="removeShadows">
-        <body><![CDATA[
-          removeAnonymousElement(this, "shadow-left-image");
-          removeAnonymousElement(this, "shadow-right-image");
-          removeAnonymousElement(this, "shadow-container");
-        ]]></body>
-      </method>
     </implementation>
 
     <handlers>
@@ -496,11 +486,6 @@
 
       <method name="relayout">
         <body><![CDATA[
-          function createXULElement(el) {
-              return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
-
-
           for (var i = 0; i < this.mItemData.length; i++) {
             var itd = this.mItemData[i];
 
@@ -817,10 +802,6 @@
 
       <!-- constructor -->
       <constructor><![CDATA[
-          function createXULElement(el) {
-            return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
-
           var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox")
           for (var i = 0; i < 7; i++) {
             var hdr = createXULElement("calendar-month-view-column-header");
@@ -1240,10 +1221,6 @@
 
       <method name="relayout">
 	<body><![CDATA[
-          function createXULElement(el) {
-              return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
-
           // Adjust headers based on the starting day of the week, if necessary
           var headerbox = document.getAnonymousElementByAttribute(this, "anonid", "headerbox");
 

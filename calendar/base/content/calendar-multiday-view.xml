@@ -130,10 +130,6 @@
       <method name="relayout">
         <body><![CDATA[
           //dump ("calendar-time-bar: relayout\n");
-          function createXULElement(el) {
-              return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
-
           var topbox = document.getAnonymousElementByAttribute(this, "anonid", "topbox");
           var orient = topbox.getAttribute("orient");
           var otherorient = "vertical";
@@ -654,10 +650,6 @@
 
           if (this.mLayoutBatchCount > 0)
               return;
-
-          function createXULElement(el) {
-              return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
 
           this.clear();
 
@@ -1862,9 +1854,6 @@
             return;
           }
 
-          function createXULElement(el) {
-            return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
           var itemBox = createXULElement("calendar-editable-item");
 
           this.mainbox.appendChild(itemBox);
@@ -1955,6 +1944,9 @@
     <content tooltip="itemTooltip">
       <xul:box anonid="shadowbox"
                xbl:inherits="width,height">
+<!-- TODO: Better use the  binding  <xul:calendar-shadow-box xbl:inherits="flat,orient"
+     for the shadows and control their visibility with the "flat" attribute. Probably the flat attribute may be derived from 
+     the "orient"-attribute-->
         <xul:box anonid="shadow-left-box"
                  xbl:inherits="orient" >
           <xul:image anonid="shadow-left"
@@ -3203,10 +3195,6 @@
 
       <method name="relayout">
         <body><![CDATA[
-          function createXULElement(el) {
-              return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
-
           var orient = this.getAttribute("orient");
           var otherorient = "vertical";
           if (!orient) orient = "horizontal";

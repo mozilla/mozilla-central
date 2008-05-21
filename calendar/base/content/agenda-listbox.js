@@ -44,8 +44,6 @@ function Synthetic(aOpen, aDuration) {
 var agendaListbox = {
     agendaListboxControl: null,
     pendingRefresh: null,
-    eventlistItem: null,
-    newalldayeventlistItem: null,
     kDefaultTimezone: null,
     showsToday: false
 };
@@ -54,8 +52,6 @@ agendaListbox.init =
 function initAgendaListbox() {
     this.agendaListboxControl = document.getElementById("agenda-listbox");
     this.agendaListboxControl.removeAttribute("suppressonselect");
-    this.newalldayeventlistItem = document.getElementById("richlistitem-container").firstChild;
-    this.eventlistItem = this.newalldayeventlistItem.nextSibling;
     var showTodayHeader = (document.getElementById("today-header-hidden").getAttribute("checked") == "true");
     var showTomorrowHeader = (document.getElementById("tomorrow-header-hidden").getAttribute("checked") == "true");
     var showSoonHeader = (document.getElementById("nextweek-header-hidden").getAttribute("checked") == "true");
@@ -137,13 +133,15 @@ function onCheckboxChange(event) {
 };
 
 agendaListbox.onSelect =
-function onSelect() {
+function onSelect(aListItem) {
     var listbox = document.getElementById("agenda-listbox");
     listbox.focus();
     listbox.removeAttribute("disabled");
-    var item  = listbox.selectedItem;
+    var item = aListItem || listbox.selectedItem;
+    if (aListItem) {
+        listbox.selectedItem = item;
+    }
     if (item) {
-        item.selected = true;
         item.removeAttribute("disabled");
     }
     document.commandDispatcher.updateCommands('calendar_commands');
@@ -182,7 +180,7 @@ function onKeyPress(aEvent) {
     }
     switch(aEvent.keyCode) {
         case aEvent.DOM_VK_RETURN:
-            createNewEvent();
+            this.createOrEditEvent(aEvent);
             break;
         case aEvent.DOM_VK_DELETE:
             document.getElementById('agenda_delete_event_command').doCommand();
@@ -206,7 +204,7 @@ agendaListbox.editSelectedItem =
 function editSelectedItem(aEvent) {
     var listItem  = document.getElementById("agenda-listbox").selectedItem;
     if (listItem) {
-        modifyEventWithDialog(listItem.getItem(), null, true);
+        modifyEventWithDialog(getOccurrenceOrParent(listItem.occurrence));
     }
 }
 
@@ -251,9 +249,9 @@ agendaListbox.addItemBefore =
 function addItemBefore(aNewItem, aAgendaItem, aPeriod, visible) {
     var newelement = null;
     if (aNewItem.startDate.isDate) {
-        newelement = this.newalldayeventlistItem.cloneNode(true);
+        newelement = createXULElement("agenda-allday-richlist-item");
     } else {
-       newelement = this.eventlistItem.cloneNode(true);
+        newelement = createXULElement("agenda-richlist-item")
     }
     // set the item at the richlistItem. When the duration of the period
     // is bigger than 1 (day) the starttime of the item has to include
@@ -263,7 +261,7 @@ function addItemBefore(aNewItem, aAgendaItem, aPeriod, visible) {
     } else {
         this.agendaListboxControl.insertBefore(newelement, aAgendaItem);
     }
-    newelement.setItem(aNewItem, (aPeriod.duration > 1));
+    newelement.setOccurrence(aNewItem, (aPeriod.duration > 1));
     newelement.removeAttribute("selected");
     return newelement;
 }
@@ -294,7 +292,7 @@ function addItem(aItem) {
                     newlistItem = this.addItemBefore(aItem, complistItem, period, visible);
                     break;
                 } else {
-                    var compitem = complistItem.getItem();
+                    var compitem = complistItem.occurrence;
                     if (this.isSameEvent(aItem, compitem)) {
                         // The same event occurs on several calendars but we only
                         // display the first one.
@@ -348,7 +346,7 @@ function getListItems(aItem, aPeriod) {
                 var complistItem = complistItem.nextSibling;
                 var leaveloop = (!this.isEventListItem(complistItem));
                 if (!leaveloop) {
-                    if (this.isSameEvent(aItem, complistItem.getItem())){
+                    if (this.isSameEvent(aItem, complistItem.occurrence)){
                         retlistItems.push(complistItem);
                         break;
                     }
@@ -404,7 +402,7 @@ function isEventSelected() {
 agendaListbox.deleteSelectedItem =
 function deleteSelectedItem(aDoNotConfirm) {
     var listItem = this.agendaListboxControl.selectedItem;
-    var selectedItems = [listItem.getItem()];
+    var selectedItems = [listItem.occurrence];
     if (this.isEventListItem(listItem)) {
         calendarViewController.deleteOccurrences(selectedItems.length,
                                                  selectedItems,
@@ -413,17 +411,18 @@ function deleteSelectedItem(aDoNotConfirm) {
     }
 }
 
-agendaListbox.createNewEvent =
-function createNewEvent(aEvent) {
+agendaListbox.createOrEditEvent =
+function createOrEditEvent(aEvent) {
     if (aEvent.target instanceof Components.interfaces.nsIDOMXULSelectControlItemElement) {
-        return;
+        document.getElementById('agenda_edit_event_command').doCommand();
     }
-
-    // Create new event for the date currently displayed in the agenda. Setting
-    // isDate = true automatically makes the start time be the next full hour.
-    var eventStart = this.today.start.clone();
-    eventStart.isDate = true;
-    createEventWithDialog(getSelectedCalendar(), eventStart);
+    else {
+        // Create new event for the date currently displayed in the agenda. Setting
+        // isDate = true automatically makes the start time be the next full hour.
+        var eventStart = this.today.start.clone();
+        eventStart.isDate = true;
+        createEventWithDialog(getSelectedCalendar(), eventStart);
+    }
 }
 
 agendaListbox.buildAgendaPopupMenu =
@@ -557,7 +556,7 @@ function getSelectedItems() {
     if (this.isEventListItem(this.agendaListboxControl.selectedItem)) {
         // If at some point we support selecting multiple items, this array can
         // be expanded.
-        items = [this.agendaListboxControl.selectedItem.getItem()];
+        items = [this.agendaListboxControl.selectedItem.occurrence];
     }
     return items;
 }
@@ -603,7 +602,7 @@ function getListItemByHashId(ahashId) {
     var leaveloop = false;
     do {
         if (this.isEventListItem(listItem)) {
-            if (listItem.getItem().hashId == ahashId) {
+            if (listItem.occurrence.hashId == ahashId) {
                 return listItem;
             }
         }
@@ -768,11 +767,11 @@ function setCurrentEvent() {
         do {
             var leaveloop = (!agendaListbox.isEventListItem(complistItem));
             if (!leaveloop) {
-                msuntillstart =  complistItem.getItem().startDate
+                msuntillstart =  complistItem.occurrence.startDate
                                 .getInTimezone(agendaListbox.kDefaultTimezone)
                                 .subtractDate(anow).inSeconds;
                 if (msuntillstart <= 0) {
-                    var msuntillend = complistItem.getItem().endDate
+                    var msuntillend = complistItem.occurrence.endDate
                                         .getInTimezone(agendaListbox.kDefaultTimezone)
                                         .subtractDate(anow).inSeconds;
                     if (msuntillend >= 0) {

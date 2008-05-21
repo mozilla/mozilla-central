@@ -51,7 +51,7 @@
     <content tooltip="itemTooltip">
       <xul:vbox flex="1">
         <xul:hbox>
-          <xul:image class="calendar-event-box-shadow-left"/>
+          <xul:image class="calendar-event-box-shadow-left" xbl:inherits="hidden=flat"/>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
                    flex="1">
@@ -90,13 +90,9 @@
             </xul:box>
             <xul:calendar-category-box anonid="category-box" xbl:inherits="categories"/>
           </xul:box>
-          <xul:image class="calendar-event-box-shadow-right"/>
+          <xul:image class="calendar-event-box-shadow-right" xbl:inherits="hidden=flat"/>
         </xul:hbox>
-        <xul:box orient="horizontal">
-          <xul:image class="calendar-event-box-shadow-edge-left"/>
-          <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
-          <xul:image class="calendar-event-box-shadow-edge-right"/>
-        </xul:box>
+        <calendar-shadow-box xbl:inherits="flat" orient="horizontal"/>
       </xul:vbox>
     </content>
 
@@ -189,11 +185,8 @@
 
       <method name="setCSSClasses">
         <body><![CDATA[
-          var item = this.mOccurrence;
-          var container = document.getAnonymousElementByAttribute(this,
-                                                                  "anonid",
-                                                                  "event-container");
-          container.setAttribute("item-calendar", item.calendar.uri.spec);
+          var item = this.mOccurrence;          
+          this.setAttribute("item-calendar", item.calendar.uri.spec);
 
           var categoriesProperty = item.getProperty("CATEGORIES");
           if (categoriesProperty) {
@@ -442,6 +435,16 @@
         </xul:hbox>
         <xul:hbox height="1"/>
       </xul:vbox>
+    </content>
+  </binding>
+
+  <binding id="calendar-shadow-box">
+    <content>
+      <xul:box xbl:inherits="orient,hidden=flat" flex="1">
+        <xul:image class="calendar-event-box-shadow-edge-left"/>
+        <xul:image class="calendar-event-box-shadow-bottom" flex="1"/>
+        <xul:image class="calendar-event-box-shadow-edge-right"/>
+      </xul:box>
     </content>
   </binding>
 </bindings>

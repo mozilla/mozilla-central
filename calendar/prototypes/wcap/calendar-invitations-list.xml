@@ -51,9 +51,6 @@
       <method name="addCalendarItem">
         <parameter name="aItem"/>
         <body><![CDATA[
-          function createXULElement(el) {
-            return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
-          }
           var newNode = createXULElement("calendar-invitations-richlistitem");
           this.appendChild(newNode);
           newNode.setAttribute("anonid", "invitations-listitem");

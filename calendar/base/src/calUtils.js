@@ -1974,11 +1974,6 @@ function setBooleanAttribute(aXulElement, aAttribute, aValue) {
     }
 }
 
-function removeAnonymousElement(aParentNode, aId) {
-    var child = document.getAnonymousElementByAttribute(aParentNode, "anonid", aId);
-    child.parentNode.removeChild(child);
-}
-
 function getParentNode(aNode, aLocalName) {
   var node = aNode;
   do {
