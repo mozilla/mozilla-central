@@ -1328,7 +1328,7 @@ nsresult nsImapIncomingServer::GetFolder(const nsACString& name, nsIMsgFolder** 
   {
     nsCString uri;
     rv = rootFolder->GetURI(uri);
-    if (NS_SUCCEEDED(rv) && uri.IsEmpty())
+    if (NS_SUCCEEDED(rv) && !uri.IsEmpty())
     {
       nsCAutoString uriString(uri);
       uriString.Append('/');
@@ -2232,7 +2232,7 @@ NS_IMETHODIMP
 nsImapIncomingServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 {
   nsCOMPtr<nsISubscribeListener> listener;
-  (void ) GetSubscribeListener(getter_AddRefs(listener));
+  (void) GetSubscribeListener(getter_AddRefs(listener));
 
   if (listener)
     listener->OnDonePopulating();
