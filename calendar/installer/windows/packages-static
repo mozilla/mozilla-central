@@ -30,7 +30,6 @@ bin\plc4.dll
 bin\plds4.dll
 bin\xpcom.dll
 bin\xpcom_core.dll
-bin\xpistub.dll
 bin\nspr4.dll
 bin\components\xpinstal.dll
 bin\components\jar50.dll
@@ -51,8 +50,6 @@ bin\application.ini
 bin\platform.ini
 bin\sqlite3.dll
 #endif
-bin\res\cmessage.txt
-bin\xpicleanup.exe
 bin\LICENSE
 
 ; [Components]
