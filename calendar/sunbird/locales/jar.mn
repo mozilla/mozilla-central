@@ -10,8 +10,6 @@
 calendar-@AB_CD@.jar:
 % locale calendar @AB_CD@ %locale/@AB_CD@/calendar/
 *   locale/@AB_CD@/calendar/aboutDialog.dtd      (%chrome/calendar/aboutDialog.dtd)
-# TODO This file is not needed anywhere and should be removed
-#    locale/@AB_CD@/calendar/overlay.dtd          (%chrome/calendar/overlay.dtd)
 
 # Extra l10n files for documentation and such
 #includesubst @LOCALE_SRCDIR@/extra-jar.mn

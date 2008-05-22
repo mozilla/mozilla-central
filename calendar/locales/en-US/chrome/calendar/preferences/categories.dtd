@@ -40,7 +40,6 @@
    - your editor isn't using UTF-8 encoding and may munge up the document!
   -->
 
-<!ENTITY pref.categories.label "Categories" >
 <!ENTITY pref.categories.add.title "Add Category">
 <!ENTITY pref.categories.addButton.label "Add…">
 <!ENTITY pref.categories.addButton.accesskey "A">

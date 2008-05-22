@@ -78,8 +78,6 @@
 <!ENTITY calendar.listofcalendarstab.label "Calendars">
 <!ENTITY calendar.today.button.label       "Today">
 <!ENTITY calendar.tomorrow.button.label       "Tomorrow">
-<!ENTITY calendar.nextweek.button.label       "Next Week">
-<!ENTITY calendar.thisweek.button.label       "This Week">
 <!ENTITY calendar.soon.button.label           "Soon">
 
 <!ENTITY calendar.events.filter.all.label "All Events">
@@ -145,7 +143,6 @@
 <!ENTITY calendar.subscribe.button.tooltip         "Subscribe to a calendar file on a remote machine" >
 <!ENTITY calendar.publish.button.tooltip           "Publish events to a remote machine" >
 
-<!ENTITY calendar.import.calendar                "Import…" >
 <!ENTITY calendar.export.calendar                "Export Calendar…" >
 
 <!ENTITY calendar.import.button.label              "Import" >
@@ -154,8 +151,6 @@
 <!ENTITY calendar.publish.button.label             "Publish" >
 <!ENTITY calendar.unifinder.button.label           "Find Events" >
 
-<!ENTITY calendar.localreload.button.label   "Local Reload" >
-<!ENTITY calendar.localreload.button.tooltip  "Reload all local calendars" >
 <!ENTITY calendar.remotereload.button.label   "Reload" >
 <!ENTITY calendar.remotereload.button.tooltip   "Reload all remote calendars" >
 
@@ -240,14 +235,10 @@
 <!ENTITY calendar.context.newevent.accesskey          "N">
 <!ENTITY calendar.context.newtodo.label               "New Task…">
 <!ENTITY calendar.context.newtodo.accesskey           "k">
-<!ENTITY calendar.context.modifyevent.label           "Edit Selected Event…">
-<!ENTITY calendar.context.modifyevent.accesskey       "E">
 <!ENTITY calendar.context.modifytask.label            "Edit Task…">
 <!ENTITY calendar.context.modifytask.accesskey        "E">
 <!ENTITY calendar.context.modifyitem.label            "Edit Item">
 <!ENTITY calendar.context.modifyitem.accesskey        "E">
-<!ENTITY calendar.context.deleteevent.label           "Delete Selected Event">
-<!ENTITY calendar.context.deleteevent.accesskey       "l">
 <!ENTITY calendar.context.deletetask.label            "Delete Task">
 <!ENTITY calendar.context.deletetask.accesskey        "l">
 <!ENTITY calendar.context.deleteitem.label            "Delete Item">
@@ -260,28 +251,20 @@
 <!ENTITY calendar.context.pasteevent.accesskey        "P">
 <!ENTITY calendar.context.selectall.label             "Select All">
 <!ENTITY calendar.context.selectall.accesskey         "A">
-<!ENTITY calendar.context.gototoday.label             "Go to Today">
-<!ENTITY calendar.context.gototoday.accesskey         "T">
 <!ENTITY calendar.context.button.label                "Today Pane" >
 <!ENTITY calendar.context.button.accesskey            "T" >
-<!ENTITY calendar.context.emailevent.label            "Email Selected Events…">
-<!ENTITY calendar.context.emailevent.accesskey        "i">
 
 <!-- Task Context Menu -->
 <!ENTITY calendar.context.progress.label              "Progress">
 <!ENTITY calendar.context.progress.accesskey          "P">
 <!ENTITY calendar.context.priority.label              "Priority">
 <!ENTITY calendar.context.priority.accesskey          "r">
-<!ENTITY calendar.context.category.label              "New Category…">
-<!ENTITY calendar.context.category.accesskey          "g">
 
 <!ENTITY percnt "&#38;#37;" ><!--=percent sign-->
 
 <!ENTITY calendar.context.markcompleted.label     "Mark Completed">
 <!ENTITY calendar.context.markcompleted.accesskey "o">
 
-<!ENTITY progress.notstarted           "Not Started">
-<!ENTITY progress.notstarted.accesskey "N">
 <!ENTITY progress.level.0             "0&percnt; Completed">
 <!ENTITY progress.level.0.accesskey   "0">
 <!ENTITY progress.level.25            "25&percnt; Completed">
@@ -319,11 +302,6 @@
 <!ENTITY calendar.context.convertmenu.task.label         "Task…">
 <!ENTITY calendar.context.convertmenu.task.accesskey     "T">
 
-<!ENTITY calendar.context.showeventsof.label           "Show Events of">
-<!ENTITY calendar.context.showeventsof.accesskey       "S">
-<!ENTITY calendar.context.showtasksof.label            "Show Tasks of">
-<!ENTITY calendar.context.showtasksof.accesskey        "S">
-
 <!ENTITY calendar.tasks.view.minimonth.label           "Mini Month">
 <!ENTITY calendar.tasks.view.minimonth.accesskey       "M">
 
@@ -340,9 +318,6 @@
 
 <!ENTITY calendar.alarm.snoozefor.label             "Snooze for" >
 <!ENTITY calendar.alarm.snoozeallfor.label          "Snooze All for" >
-<!-- In case your language needs a different word order, this entity can be used
-     to add words to the end of the "Snooze all for XXX minutes" line -->
-<!ENTITY calendar.alarm.snoozeall.suffix.label      "">
 <!ENTITY calendar.alarm.title.label                 "Calendar Alarm" >
 <!ENTITY calendar.alarm.dismiss.label               "Dismiss" >
 <!ENTITY calendar.alarm.dismissall.label            "Dismiss All" >
@@ -387,28 +362,6 @@
 <!-- Select Calendar Dialog -->
 <!ENTITY calendar.select.dialog.title    "Select Calendar">
 
-<!-- Calendar Import Outlook CSV Dialog -->
-<!-- TRANSLATORS: all outlook*.label -fields should be translated word to word (or if possible
-                  copied from outlook csv file headers -->
-<!ENTITY calendar.importoutlook.dialog.title "Outlook CSV Import" >
-<!ENTITY calendar.importoutlook.mapconcepts.label "Please map the following calendar concepts to their Outlook CSV equivalents:" >
-<!ENTITY calendar.importoutlook.outlooksubject.label "Subject" >
-<!ENTITY calendar.importoutlook.outlookstartdate.label "Start date" >
-<!ENTITY calendar.importoutlook.outlookstarttime.label "Start time" >
-<!ENTITY calendar.importoutlook.outlookenddate.label "End date" >
-<!ENTITY calendar.importoutlook.outlookendtime.label "End time" >
-<!ENTITY calendar.importoutlook.outlooklocation.label "Location" >
-<!ENTITY calendar.importoutlook.outlookdescription.label "Description" >
-<!ENTITY calendar.importoutlook.outlookallday.label "All-day event" >
-<!ENTITY calendar.importoutlook.outlookprivate.label "Private" >
-<!ENTITY calendar.importoutlook.outlookalarm.label "Alarm on/off" >
-<!ENTITY calendar.importoutlook.outlookalarmdate.label "Alarm date" >
-<!ENTITY calendar.importoutlook.outlookalarmtime.label "Alarm time" >
-<!ENTITY calendar.importoutlook.outlookcategories.label "Categories" >
-<!ENTITY calendar.importoutlook.selectmeaning.label "Select the meaning of the following word: " >
-<!ENTITY calendar.importoutlook.true.label "True" >
-<!ENTITY calendar.importoutlook.false.label "False" >
-
 <!-- Calendar Printing -->
 <!ENTITY calendar.print.window.title "Print A Calendar">
 <!ENTITY calendar.print.title.label "Title:">
@@ -430,8 +383,3 @@
 
 <!-- LOCALIZATION NOTE (mainWindow.title): DONT_TRANSLATE -->
 <!ENTITY mainWindow.title "&brandFullName;">
-<!-- LOCALIZATION NOTE (mainWindow.titlemodifier) : DONT_TRANSLATE -->
-<!ENTITY mainWindow.titlemodifier "&brandFullName;">
-<!-- LOCALIZATION NOTE (mainWindow.titlemodifiermenuseparator): DONT_TRANSLATE -->
-<!ENTITY mainWindow.titlemodifiermenuseparator " - ">
-

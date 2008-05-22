@@ -64,6 +64,5 @@
 <!ENTITY pref.defalarmlen4events.accesskey "u">
 <!ENTITY pref.defalarmlen4todos.label "Default time an alarm goes off before a task:">
 <!ENTITY pref.defalarmlen4todos.accesskey "o">
-<!ENTITY pref.alarmbox.label "Alarms">
 <!ENTITY pref.defaultemail.label "Default address to send alarms to:">
 <!ENTITY pref.defaulttext.label "Default text for alarms:">

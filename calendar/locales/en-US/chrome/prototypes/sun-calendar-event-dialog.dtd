@@ -176,10 +176,6 @@
 <!ENTITY event.link.accesskey                             "k" >
 <!ENTITY event.link.change.label                          "Change…" >
 <!ENTITY event.link.change.accesskey                      "g" >
-
-<!ENTITY event.private.label                              "Private" >
-<!ENTITY event.public.label                               "Public" >
-<!ENTITY event.confidential.label                         "Time and Date Only" >
 <!ENTITY event.priority2.label                            "Priority:">
 
 <!ENTITY event.reminder.none.label                        "No reminder " >
