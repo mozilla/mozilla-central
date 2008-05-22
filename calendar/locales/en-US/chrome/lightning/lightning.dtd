@@ -95,6 +95,10 @@
 <!ENTITY lightning.toolbar.month.label               "Month">
 <!ENTITY lightning.toolbar.month.accesskey           "M">
 
+<!-- properties dialog, calendar creation wizard -->
+<!ENTITY lightning.calendarproperties.showevents.inagenda.label "Show Events in Today Pane">
+<!ENTITY lightning.calendarproperties.showtasks.label           "Show Tasks in Today Pane and Task Mode">
+
 <!-- iMIP Bar (meeting support) -->
 <!ENTITY lightning.imipbar.description "This message contains an invitation to an event.">
 
