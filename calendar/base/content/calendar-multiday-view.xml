@@ -1910,7 +1910,7 @@
 
     <handlers>
       <handler event="dblclick" button="0"><![CDATA[
-        this.calendarView.controller.createNewEvent();
+        this.calendarView.controller.createNewEvent(null, this.mDate, null, true);
       ]]></handler>
       <handler event="mousedown"><![CDATA[
         this.calendarView.selectedDay = this.mDate;

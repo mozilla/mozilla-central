@@ -1311,10 +1311,12 @@ function getDefaultStartDate(aReferenceDate) {
  * Setup the default start and end hours of the given item. This can be a task
  * or an event.
  *
- * @param aItem     The item to set up the start and end date for.
+ * @param aItem             The item to set up the start and end date for.
+ * @param aReferenceDate    If passed, the time of this date will be modified,
+ *                            keeping the date and timezone intact.
  */
-function setDefaultStartEndHour(aItem) {
-    aItem[calGetStartDateProp(aItem)] = getDefaultStartDate();
+function setDefaultStartEndHour(aItem, aReferenceDate) {
+    aItem[calGetStartDateProp(aItem)] = getDefaultStartDate(aReferenceDate);
 
     if (isEvent(aItem)) {
         aItem.endDate = aItem.startDate.clone();

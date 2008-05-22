@@ -51,7 +51,7 @@ var calendarViewController = {
         return this;
     },
 
-    createNewEvent: function (aCalendar, aStartTime, aEndTime) {
+    createNewEvent: function (aCalendar, aStartTime, aEndTime, aForceAllday) {
         aCalendar = aCalendar || getSelectedCalendar();
 
         // if we're given both times, skip the dialog
@@ -65,13 +65,8 @@ var calendarViewController = {
             event.title = props.GetStringFromName("newEvent");
             setDefaultAlarmValues(event);
             doTransaction('add', event, aCalendar, null, null);
-        } else if (aStartTime && aStartTime.isDate) {
-            var event = createEvent();
-            event.startDate = aStartTime;
-            setDefaultAlarmValues(event);
-            doTransaction('add', event, aCalendar, null, null);
         } else {
-            createEventWithDialog(aCalendar, aStartTime, null);
+            createEventWithDialog(aCalendar, aStartTime, null, null, null, aForceAllday);
         }
     },
 

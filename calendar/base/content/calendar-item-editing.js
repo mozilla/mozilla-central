@@ -61,7 +61,7 @@ opCompleteListener.prototype = {
 };
 
 /* all params are optional */
-function createEventWithDialog(calendar, startDate, endDate, summary, event) {
+function createEventWithDialog(calendar, startDate, endDate, summary, event, aForceAllday) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
     var onNewEvent = function(item, calendar, originalItem, listener) {
@@ -77,34 +77,63 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event) {
     };
 
     if (event) {
+        if (!event.isMutable) {
+            event = event.clone();
+        }
         // If the event should be created from a template, then make sure to
         // remove the id so that the item obtains a new id when doing the
         // transaction
-        if (event.id) {
-            event = event.clone();
-            event.id = null;
-        }
+        event.id = null;
 
+        if (aForceAllday) {
+            event.startDate.isDate = true;
+            event.endDate.isDate = true;
+            if (event.startDate.compare(event.endDate) == 0) {
+                // For a one day all day event, the end date must be 00:00:00 of
+                // the next day.
+                event.endDate.day++;
+            }
+        }
     } else {
         event = createEvent();
 
         if (startDate) {
             event.startDate = startDate.clone();
-            if (startDate.isDate) {
+            if (startDate.isDate && !aForceAllday) {
                 // This is a special case where the date is specified, but the
                 // time is not. To take care, we setup up the time to our
                 // default event start time.
                 event.startDate = getDefaultStartDate(event.startDate);
+            } else if (aForceAllday) {
+                // If the event should be forced to be allday, then don't set up
+                // any default hours and directly make it allday.
+                event.startDate.isDate = true;
             }
         } else {
-            setDefaultStartEndHour(event);
+            // If no start date was passed, then default to the next full hour
+            // of today, but with the date of the selected day
+            var refDate = currentView().initialized && currentView().selectedDay.clone();
+            event.startDate = getDefaultStartDate(refDate);
         }
 
         if (endDate) {
             event.endDate = endDate.clone();
+            if (aForceAllday) {
+                // XXX it is currently not specified, how callers that force all
+                // day should pass the end date. Right now, they should make
+                // sure that the end date is 00:00:00 of the day after.
+                event.endDate.isDate = true;
+            }
         } else {
             event.endDate = event.startDate.clone();
-            event.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+            if (!aForceAllday) {
+                // If the event is not all day, then add the default event
+                // length.
+                event.endDate.minute += getPrefSafe("calendar.event.defaultlength", 60);
+            } else {
+                // All day events need to go to the beginning of the next day.
+                event.endDate.day++;
+            }
         }
 
         event.calendar = calendar || getSelectedCalendar();
