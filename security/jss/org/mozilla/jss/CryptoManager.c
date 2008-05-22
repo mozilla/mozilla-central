@@ -286,51 +286,18 @@ Java_org_mozilla_jss_CryptoManager_initializeAllNative
         jstring fipsKeyString,
         jboolean ocspCheckingEnabled,
         jstring ocspResponderURL,
-        jstring ocspResponderCertNickname )
-{
-    Java_org_mozilla_jss_CryptoManager_initializeAllNative2(
-        env,
-        clazz,
-        configDir,
-        certPrefix,
-        keyPrefix,
-        secmodName,
-        readOnly,
-        manuString,
-        libraryString,
-        tokString,
-        keyTokString,
-        slotString,
-        keySlotString,
-        fipsString,
-        fipsKeyString,
-        ocspCheckingEnabled,
-        ocspResponderURL,
-        ocspResponderCertNickname,
-        JNI_FALSE /*initializeJavaOnly*/ );
-}
-
-
-JNIEXPORT void JNICALL
-Java_org_mozilla_jss_CryptoManager_initializeAllNative2
-    (JNIEnv *env, jclass clazz,
-        jstring configDir,
-        jstring certPrefix,
-        jstring keyPrefix,
-        jstring secmodName,
-        jboolean readOnly,
-        jstring manuString,
-        jstring libraryString,
-        jstring tokString,
-        jstring keyTokString,
-        jstring slotString,
-        jstring keySlotString,
-        jstring fipsString,
-        jstring fipsKeyString,
-        jboolean ocspCheckingEnabled,
-        jstring ocspResponderURL,
         jstring ocspResponderCertNickname,
-        jboolean initializeJavaOnly )
+        jboolean initializeJavaOnly, 
+        jboolean PKIXVerify,
+        jboolean noCertDB,
+        jboolean noModDB, 
+        jboolean forceOpen,
+        jboolean noRootInit,
+        jboolean optimizeSpace,
+        jboolean PK11ThreadSafe,
+        jboolean PK11Reload,
+        jboolean noPK11Finalize,
+        jboolean cooperate)
 {
     SECStatus rv = SECFailure;
     JavaVM *VMs[5];
@@ -435,16 +402,55 @@ Java_org_mozilla_jss_CryptoManager_initializeAllNative2
 
 
     szConfigDir = (char*) (*env)->GetStringUTFChars(env, configDir, NULL);
-    if( certPrefix != NULL && keyPrefix != NULL && secmodName != NULL ) {
+    if( certPrefix != NULL || keyPrefix != NULL || secmodName != NULL ||
+        noCertDB || noModDB || forceOpen || noRootInit ||
+        optimizeSpace || PK11ThreadSafe || PK11Reload || 
+        noPK11Finalize || cooperate) {
         /*
         * Set up arguments to NSS_Initialize
         */
-        szCertPrefix = (char*) (*env)->GetStringUTFChars(env, certPrefix, NULL);
-        szKeyPrefix = (char*) (*env)->GetStringUTFChars(env, keyPrefix, NULL);
-        szSecmodName = (char*) (*env)->GetStringUTFChars(env, secmodName, NULL);
+        if( certPrefix != NULL ) {
+            szCertPrefix = 
+                    (char*) (*env)->GetStringUTFChars(env, certPrefix, NULL);
+        }
+        if ( keyPrefix != NULL ) { 
+            szKeyPrefix = 
+                    (char*) (*env)->GetStringUTFChars(env, keyPrefix, NULL);
+        }
+        if ( secmodName != NULL ) {
+            szSecmodName = 
+                    (char*) (*env)->GetStringUTFChars(env, secmodName, NULL);
+        }
         initFlags = 0;
         if( readOnly ) {
             initFlags |= NSS_INIT_READONLY;
+        }
+        if( noCertDB ) {
+            initFlags |= NSS_INIT_NOCERTDB;
+        }
+        if( noModDB ) {
+            initFlags |= NSS_INIT_NOMODDB;
+        } 
+        if( forceOpen ) {
+            initFlags |= NSS_INIT_FORCEOPEN;
+        }
+        if( noRootInit ) {
+            initFlags |= NSS_INIT_NOROOTINIT;
+        }
+        if( optimizeSpace ) {
+            initFlags |= NSS_INIT_OPTIMIZESPACE;
+        }
+        if( PK11ThreadSafe ) {
+            initFlags |= NSS_INIT_PK11THREADSAFE;
+        }
+        if( PK11Reload ) {
+            initFlags |= NSS_INIT_PK11RELOAD;
+        }
+        if( noPK11Finalize ) {
+            initFlags |= NSS_INIT_NOPK11FINALIZE;
+        }
+        if( cooperate ) {
+            initFlags |= NSS_INIT_COOPERATE;
         }
 
         /*
@@ -493,6 +499,9 @@ Java_org_mozilla_jss_CryptoManager_initializeAllNative2
         goto finish;
     }
 
+    if ( PKIXVerify ) {
+        CERT_SetUsePKIXForValidation(PR_TRUE);
+    }
     initialized = PR_TRUE;
 
 finish:

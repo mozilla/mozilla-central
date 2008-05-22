@@ -56,7 +56,7 @@ import org.mozilla.jss.provider.java.security.JSSMessageDigestSpi;
  * Initialization is done with static methods, and must be done before
  * an instance can be created.  All other operations are done with instance
  * methods.
- * @version $Revision: 1.50 $ $Date: 2008-01-31 22:29:16 $
+ * @version $Revision: 1.51 $ $Date: 2008-05-22 04:28:09 $
  */
 public final class CryptoManager implements TokenSupplier
 {
@@ -494,6 +494,91 @@ public final class CryptoManager implements TokenSupplier
          * <p>The default is <tt>false</tt>.
          */
         public boolean initializeJavaOnly = false;
+
+        /**
+         * Enable PKIX verify rather than the old cert library, 
+         * to verify certificates. Default is false.
+         */
+        public boolean PKIXVerify = false;
+
+        /**
+         * Don't open the cert DB and key DB's, just 
+         * initialize the volatile certdb. Default is false.
+         */
+        public boolean noCertDB = false;
+
+        /**
+         * Don't open the security module DB, 
+         * just initialize the PKCS #11 module.
+         * Default is false.
+         */
+        public boolean noModDB = false; 
+
+        /** 
+         * Continue to force initializations even if the 
+         * databases cannot be opened.
+         * Default is false.
+         */
+        public boolean forceOpen = false;
+
+        /**
+         * Don't try to look for the root certs module
+         * automatically.
+         * Default is false.
+         */
+        public boolean noRootInit = false;
+
+        /** 
+         * Use smaller tables and caches.
+         * Default is false.
+         */
+        public boolean optimizeSpace = false;
+
+        /**
+         * only load PKCS#11 modules that are
+         * thread-safe, ie. that support locking - either OS
+         * locking or NSS-provided locks . If a PKCS#11
+         * module isn't thread-safe, don't serialize its
+         * calls; just don't load it instead. This is necessary
+         * if another piece of code is using the same PKCS#11
+         * modules that NSS is accessing without going through
+         * NSS, for example the Java SunPKCS11 provider.
+         * Default is false.
+         */
+        public boolean PK11ThreadSafe = false;
+
+        /**
+         * Init PK11Reload to ignore the CKR_CRYPTOKI_ALREADY_INITIALIZED
+         * error when loading PKCS#11 modules. This is necessary
+         * if another piece of code is using the same PKCS#11
+         * modules that NSS is accessing without going through
+         * NSS, for example Java SunPKCS11 provider. 
+         * default is false.
+         */
+        public boolean PK11Reload = false;
+        
+        /**
+         * never call C_Finalize on any
+         * PKCS#11 module. This may be necessary in order to
+         * ensure continuous operation and proper shutdown
+         * sequence if another piece of code is using the same
+         * PKCS#11 modules that NSS is accessing without going
+         * through NSS, for example Java SunPKCS11 provider.
+         * The following limitation applies when this is set :
+         * SECMOD_WaitForAnyTokenEvent will not use
+         * C_WaitForSlotEvent, in order to prevent the need for
+         * C_Finalize. This call will be emulated instead.
+         * Default is false.
+         */
+        public boolean noPK11Finalize = false;
+ 
+        /**
+         * Sets 4 recommended options for applications that
+         * use both NSS and the Java SunPKCS11 provider.
+         * Default is false.
+         */
+        public boolean cooperate = false;
+
     }
 
     ////////////////////////////////////////////////////
@@ -831,7 +916,7 @@ public final class CryptoManager implements TokenSupplier
                     "Must set ocspResponderCertNickname");
             }
         }
-        initializeAllNative2(values.configDir,
+        initializeAllNative(values.configDir,
                             values.certPrefix,
                             values.keyPrefix,
                             values.secmodName,
@@ -847,7 +932,17 @@ public final class CryptoManager implements TokenSupplier
                             values.ocspCheckingEnabled,
                             values.ocspResponderURL,
                             values.ocspResponderCertNickname,
-                            values.initializeJavaOnly
+                            values.initializeJavaOnly,
+                            values.PKIXVerify,
+                            values.noCertDB,
+                            values.noModDB, 
+                            values.forceOpen,
+                            values.noRootInit,
+                            values.optimizeSpace,
+                            values.PK11ThreadSafe,
+                            values.PK11Reload,
+                            values.noPK11Finalize,
+                            values.cooperate
                             );
 
         instance = new CryptoManager();
@@ -886,7 +981,7 @@ public final class CryptoManager implements TokenSupplier
     }
 
     private static native void
-    initializeAllNative2(String configDir,
+    initializeAllNative(String configDir,
                         String certPrefix,
                         String keyPrefix,
                         String secmodName,
@@ -902,8 +997,17 @@ public final class CryptoManager implements TokenSupplier
                         boolean ocspCheckingEnabled,
                         String ocspResponderURL,
                         String ocspResponderCertNickname,
-                        boolean initializeJavaOnly
-)
+                        boolean initializeJavaOnly,
+                        boolean PKIXVerify,
+                        boolean noCertDB,
+                        boolean noModDB, 
+                        boolean forceOpen,
+                        boolean noRootInit,
+                        boolean optimizeSpace,
+                        boolean PK11ThreadSafe,
+                        boolean PK11Reload,
+                        boolean noPK11Finalize,
+                        boolean cooperate)
         throws KeyDatabaseException,
         CertDatabaseException,
         AlreadyInitializedException;

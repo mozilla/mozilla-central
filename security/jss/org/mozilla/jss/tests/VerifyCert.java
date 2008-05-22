@@ -109,6 +109,16 @@ public class VerifyCert {
             //initialize JSS
             CryptoManager.InitializationValues vals = new
                                 CryptoManager.InitializationValues(dbdir);
+
+            //enable PKIX verify rather than the old NSS cert library, 
+            //to verify certificates. 
+            vals.PKIXVerify = true;
+            
+            // as a JSS test set the initialize for cooperate to true 
+            // One would set this to true if one configured NSS with 
+            // to use other PKCS11 modules.
+            vals.cooperate = true;
+
             //      configure OCSP
             vals.ocspCheckingEnabled = true;
             if (ResponderURL != null && ResponderNickname != null) {
