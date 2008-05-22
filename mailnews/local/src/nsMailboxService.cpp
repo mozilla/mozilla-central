@@ -95,9 +95,10 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
     nsEscapeNativePath(buf);
     url->SetUpdatingFolder(PR_TRUE);
     url->SetMsgWindow(aMsgWindow);
-    char *temp = PR_smprintf("mailbox://%s", buf.get());
-    url->SetSpec(nsDependentCString(temp));
-    PR_smprintf_free(temp);
+    nsCAutoString uriSpec("mailbox://");
+    uriSpec.Append(buf);
+    url->SetSpec(uriSpec);
+
     mailboxurl->SetMailboxParser(aMailboxParser);
     if (aUrlListener)
       url->RegisterListener(aUrlListener);
@@ -168,8 +169,8 @@ nsresult nsMailboxService::CopyMessages(nsTArray<nsMsgKey> &msgKeys,
       }
     }
   }
-  if (aURL)
-    mailboxurl->QueryInterface(NS_GET_IID(nsIURI), (void **) aURL);
+  if (aURL && mailboxurl)
+    CallQueryInterface(mailboxurl, aURL);
 
   return rv;
 }
@@ -277,7 +278,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
     rv = RunMailboxUrl(url, aDisplayConsumer);
 
   if (aURL && mailboxurl)
-    mailboxurl->QueryInterface(NS_GET_IID(nsIURI), (void **) aURL);
+    CallQueryInterface(mailboxurl, aURL);
 
   return rv;
 }
@@ -396,14 +397,15 @@ nsMailboxService::SaveMessageToDisk(const char *aMessageURI,
     rv = RunMailboxUrl(url);
   }
 
-  if (aURL)
-    mailboxurl->QueryInterface(NS_GET_IID(nsIURI), (void **) aURL);
+  if (aURL && mailboxurl)
+    CallQueryInterface(mailboxurl, aURL);
 
   return rv;
 }
 
 NS_IMETHODIMP nsMailboxService::GetUrlForUri(const char *aMessageURI, nsIURI **aURL, nsIMsgWindow *aMsgWindow)
 {
+  NS_ENSURE_ARG_POINTER(aURL);
   if (!strncmp(aMessageURI, "file:", 5) || PL_strstr(aMessageURI, "type=application/x-message-display")
     || !strncmp(aMessageURI, "mailbox:", 8))
     return NS_NewURI(aURL, aMessageURI);
@@ -412,7 +414,7 @@ NS_IMETHODIMP nsMailboxService::GetUrlForUri(const char *aMessageURI, nsIURI **a
   nsCOMPtr<nsIMailboxUrl> mailboxurl;
   rv = PrepareMessageUrl(aMessageURI, nsnull, nsIMailboxUrl::ActionFetchMessage, getter_AddRefs(mailboxurl), aMsgWindow);
   if (NS_SUCCEEDED(rv) && mailboxurl)
-    rv = mailboxurl->QueryInterface(NS_GET_IID(nsIURI), (void **) aURL);
+    rv = CallQueryInterface(mailboxurl, aURL);
   return rv;
 }
 
