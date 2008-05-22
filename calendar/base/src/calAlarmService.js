@@ -22,6 +22,7 @@
  *   Joey Minta <jminta@gmail.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -191,7 +192,7 @@ calAlarmService.prototype = {
     // This will also be called on app-startup, but nothing is done yet, to
     // prevent unwanted dialogs etc. See bug 325476 and 413296 
     observe: function cas_observe(subject, topic, data) {
-        if (topic == "profile-after-change") {
+        if (topic == "profile-after-change" || topic == "wake_notification") {
             this.shutdown();
             this.startup();
         }
@@ -279,6 +280,7 @@ calAlarmService.prototype = {
 
         observerSvc.addObserver(this, "profile-after-change", false);
         observerSvc.addObserver(this, "xpcom-shutdown", false);
+        observerSvc.addObserver(this, "wake_notification", false);
 
         /* Tell people that we're alive so they can start monitoring alarms.
          */
@@ -372,6 +374,7 @@ calAlarmService.prototype = {
 
         observerSvc.removeObserver(this, "profile-after-change");
         observerSvc.removeObserver(this, "xpcom-shutdown");
+        observerSvc.removeObserver(this, "wake_notification");
 
         this.mStarted = false;
     },
