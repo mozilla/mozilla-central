@@ -129,7 +129,8 @@
       <field name="_listener"><![CDATA[({
         _menu: this,
         OnItemAdded: function act_add(aRDFParentItem, aItem) {
-          aItem.QueryInterface(Components.interfaces.nsIMsgFolder);
+          if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
+            return;
           if (this._filterFunction && !this._filterFunction(aItem)) {
             return;
           }
@@ -140,7 +141,8 @@
         },
   
         OnItemRemoved: function act_remove(aRDFParentItem, aItem) {
-          aItem.QueryInterface(Components.interfaces.nsIMsgFolder);
+          if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
+            return;
           if (this._filterFunction && !this._filterFunction(aItem)) {
             return;
           }
@@ -200,11 +202,12 @@
           if (!this._menu || !this._menu._initialized)
             return null;
 
-           var item = aItem.QueryInterface(Components.interfaces.nsIMsgFolder);
+           if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
+             return null;
            for (var i = 0; i < this._menu.childNodes; i++) {
              var folder = this._menu.childNodes[i]._folder;
-             if (folder && folder.URI == item.URI)
-               return item;
+             if (folder && folder.URI == aItem.URI)
+               return aItem;
            }
            return null;
         }
@@ -602,12 +605,20 @@
       </method>
 
       <!--
-         - Removes all menu-items for this popup and resets all fields
+         - Removes all menu-items for this popup, resets all fields, and
+         - removes the listener.
         -->
       <method name="_teardown">
         <body><![CDATA[
           while(this.hasChildNodes())
             this.removeChild(this.lastChild);
+
+          const Cc = Components.classes;
+          const Ci = Components.interfaces;
+          var session = Cc["@mozilla.org/messenger/services/session;1"].
+                        getService(Ci.nsIMsgMailSession);
+          session.RemoveFolderListener(this._listener);
+
           this._folders = null;
           this._initialized = false;
         ]]></body>
