@@ -6270,61 +6270,63 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   rv = dstServer->Equals(srcServer, &sameServer);
   if (NS_FAILED(rv)) goto done;
 
-   PRUint32 supportedUserFlags;
-   GetSupportedUserFlags(&supportedUserFlags);
+  PRUint32 supportedUserFlags;
+  GetSupportedUserFlags(&supportedUserFlags);
 
-   if (! (supportedUserFlags & kImapMsgSupportUserFlag))
-   {
-      PRUint32 count = 0;
-      PRUint32 i;
+  PRUint32 count = 0;
+  PRUint32 i;
 
-      rv = messages->Count(&count);
-      if (NS_FAILED(rv)) return rv;
+  rv = messages->Count(&count);
+  if (NS_FAILED(rv)) return rv;
 
-      // make sure database is open to set special flags below
-      if (!mDatabase)
-        GetDatabase(nsnull);
+  // make sure database is open to set special flags below
+  if (!mDatabase)
+    GetDatabase(nsnull);
 
-      // check if any msg hdr has special flags or properties set
-      // that we need to set on the dest hdr
-      for (i = 0; i < count; i++)
+  // check if any msg hdr has special flags or properties set
+  // that we need to set on the dest hdr
+  for (i = 0; i < count; i++)
+  {
+    nsCOMPtr <nsIMsgDBHdr> msgDBHdr = do_QueryElementAt(messages, i, &rv);
+    if (mDatabase && msgDBHdr)
+    {
+      if (!(supportedUserFlags & kImapMsgSupportUserFlag))
       {
-        nsCOMPtr <nsIMsgDBHdr> msgDBHdr = do_QueryElementAt(messages, i, &rv);
-        if (mDatabase && msgDBHdr)
+        nsMsgLabelValue label;
+        nsCString junkScore, junkScoreOrigin, junkPercent;
+        msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
+        msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
+        msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
+        if (!junkScore.IsEmpty()) // ignore already scored messages.
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
+        if (!junkScoreOrigin.IsEmpty())
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
+        if (!junkPercent.IsEmpty())
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
+        msgDBHdr->GetLabel(&label);
+        if (label != 0)
         {
-          nsMsgLabelValue label;
-          nsCString junkScore, junkScoreOrigin, junkPercent;
-          nsMsgPriorityValue priority;
-          msgDBHdr->GetStringProperty("junkscore", getter_Copies(junkScore));
-          msgDBHdr->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOrigin));
-          msgDBHdr->GetStringProperty("junkpercent", getter_Copies(junkPercent));
-          if (!junkScore.IsEmpty()) // ignore already scored messages.
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscore", junkScore.get(), 0);
-          if (!junkScoreOrigin.IsEmpty())
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkscoreorigin", junkScoreOrigin.get(), 0);
-          if (!junkPercent.IsEmpty())
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "junkpercent", junkPercent.get(), 0);             
-          msgDBHdr->GetLabel(&label);
-          if (label != 0)
-          {
-            nsCAutoString labelStr;
-            labelStr.AppendInt(label);
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "label", labelStr.get(), 0);
-          }
-          msgDBHdr->GetPriority(&priority);
-          if(priority != 0)
-          {
-            nsCAutoString priorityStr;
-            priorityStr.AppendInt(priority);
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "priority", priorityStr.get(), 0);
-          }
-          nsCString keywords;
-          msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
-          if (!keywords.IsEmpty())
-            mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
+          nsCAutoString labelStr;
+          labelStr.AppendInt(label);
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "label", labelStr.get(), 0);
         }
+        nsCString keywords;
+        msgDBHdr->GetStringProperty("keywords", getter_Copies(keywords));
+        if (!keywords.IsEmpty())
+          mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "keywords", keywords.get(), 0);
+      } 
+      // do this even if the server supports user-defined flags.
+      nsMsgPriorityValue priority;
+      msgDBHdr->GetPriority(&priority);
+      if(priority != 0)
+      {
+        nsCAutoString priorityStr;
+        priorityStr.AppendInt(priority);
+        mDatabase->SetAttributesOnPendingHdr(msgDBHdr, "priority", priorityStr.get(), 0);
       }
-   }
+    }
+  }
+
   // if the folders aren't on the same server, do a stream base copy
   if (!sameServer)
   {
