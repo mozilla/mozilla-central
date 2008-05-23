@@ -1630,9 +1630,6 @@ nsBookmarksService::nsBookmarksService() :
     mUpdateBatchNest(0),
     mDirty(PR_FALSE)
 
-#if defined(XP_MAC) || defined(XP_MACOSX)
-    ,mIEFavoritesAvailable(PR_FALSE)
-#endif
 { }
 
 nsBookmarksService::~nsBookmarksService()
@@ -3932,7 +3929,7 @@ nsBookmarksService::ImportSystemBookmarks(nsIRDFResource* aParentFolder)
 {
     gImportedSystemBookmarks = PR_TRUE;
 
-#if defined(XP_WIN)
+#ifdef XP_WIN
     nsresult rv;
 
     nsCOMPtr<nsIProperties> fileLocator(do_GetService("@mozilla.org/file/directory_service;1", &rv));
@@ -3948,25 +3945,12 @@ nsBookmarksService::ImportSystemBookmarks(nsIRDFResource* aParentFolder)
     // read Favorites folder if it exists on the machine. 
     if (favoritesDirectory) 
         return ParseFavoritesFolder(favoritesDirectory, aParentFolder);
-#elif defined(XP_MAC) || defined(XP_MACOSX)
-    nsCOMPtr<nsIFile> ieFavoritesFile;
-    nsresult rv = NS_GetSpecialDirectory(NS_MAC_PREFS_DIR, getter_AddRefs(ieFavoritesFile));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    ieFavoritesFile->Append(NS_LITERAL_STRING("Explorer"));
-    ieFavoritesFile->Append(NS_LITERAL_STRING("Favorites.html"));
-
-    BookmarkParser parser;
-    parser.Init(ieFavoritesFile, mInner);
-    BeginUpdateBatch();
-    parser.Parse(aParentFolder, kNC_Bookmark);
-    EndUpdateBatch();
 #endif
 
     return NS_OK;
 }
 
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
 void
 nsBookmarksService::HandleSystemBookmarks(nsIRDFNode* aNode) 
 {
@@ -3983,12 +3967,6 @@ nsBookmarksService::HandleSystemBookmarks(nsIRDFNode* aNode)
             ImportSystemBookmarks(kNC_SystemBookmarksStaticRoot);
         }
     }
-#if defined(XP_MAC) || defined(XP_MACOSX)
-    // on the Mac, IE favorites are stored in an HTML file.
-    // Defer importing the contents of this file until necessary.
-    else if ((aNode == kNC_IEFavoritesRoot) && (mIEFavoritesAvailable == PR_FALSE))
-        ReadFavorites();
-#endif
 }
 #endif
 
@@ -4344,7 +4322,7 @@ nsBookmarksService::HasAssertion(nsIRDFResource* source,
                 PRBool tv,
                 PRBool* hasAssertion)
 {
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     HandleSystemBookmarks(source);
 #endif
 
@@ -4378,7 +4356,7 @@ nsBookmarksService::RemoveObserver(nsIRDFObserver* aObserver)
 NS_IMETHODIMP
 nsBookmarksService::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *_retval)
 {
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     HandleSystemBookmarks(aNode);
 #endif
 
@@ -4388,7 +4366,7 @@ nsBookmarksService::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *_r
 NS_IMETHODIMP
 nsBookmarksService::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *_retval)
 {
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     HandleSystemBookmarks(aSource);
 #endif
   
@@ -4399,7 +4377,7 @@ NS_IMETHODIMP
 nsBookmarksService::ArcLabelsOut(nsIRDFResource* source,
                 nsISimpleEnumerator** labels)
 {
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     HandleSystemBookmarks(source);
 #endif
 
@@ -4409,7 +4387,7 @@ nsBookmarksService::ArcLabelsOut(nsIRDFResource* source,
 NS_IMETHODIMP
 nsBookmarksService::GetAllResources(nsISimpleEnumerator** aResult)
 {
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     HandleSystemBookmarks(kNC_SystemBookmarksStaticRoot);
 #endif
   
@@ -5048,69 +5026,6 @@ nsBookmarksService::EnsureBookmarksFile()
     return NS_OK;
 }
 
-
-#if defined(XP_MAC) || defined(XP_MACOSX)
-
-nsresult
-nsBookmarksService::ReadFavorites()
-{
-    mIEFavoritesAvailable = PR_TRUE;
-    nsresult rv;
-            
-#ifdef DEBUG_varga
-    PRTime      now;
-#if defined(XP_MAC)
-    Microseconds((UnsignedWide *)&now);
-#else
-    now = PR_Now();
-#endif
-    printf("Start reading in IE Favorites.html\n");
-#endif
-
-    // look for and import any IE Favorites
-    nsAutoString    ieTitle;
-    getLocaleString("ImportedIEFavorites", ieTitle);
-
-    nsCOMPtr<nsIFile> ieFavoritesFile;
-    rv = NS_GetSpecialDirectory(NS_MAC_PREFS_DIR, getter_AddRefs(ieFavoritesFile));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    ieFavoritesFile->Append(NS_LITERAL_STRING("Explorer"));
-    ieFavoritesFile->Append(NS_LITERAL_STRING("Favorites.html"));
-
-    if (NS_SUCCEEDED(rv = gRDFC->MakeSeq(mInner, kNC_IEFavoritesRoot, nsnull)))
-    {
-        BookmarkParser parser;
-        parser.Init(ieFavoritesFile, mInner);
-        BeginUpdateBatch();
-        parser.Parse(kNC_IEFavoritesRoot, kNC_IEFavorite);
-        EndUpdateBatch();
-            
-        nsCOMPtr<nsIRDFLiteral> ieTitleLiteral;
-        rv = gRDF->GetLiteral(ieTitle.get(), getter_AddRefs(ieTitleLiteral));
-        if (NS_SUCCEEDED(rv) && ieTitleLiteral)
-        {
-            rv = mInner->Assert(kNC_IEFavoritesRoot, kNC_Name, ieTitleLiteral, PR_TRUE);
-        }
-    }
-#ifdef DEBUG_varga
-    PRTime      now2;
-#if defined(XP_MAC)
-    Microseconds((UnsignedWide *)&now2);
-#else
-    now = PR_Now();
-#endif
-    PRUint64    loadTime64;
-    LL_SUB(loadTime64, now2, now);
-    PRUint32    loadTime32;
-    LL_L2UI(loadTime32, loadTime64);
-    printf("Finished reading in IE Favorites.html  (%u microseconds)\n", loadTime32);
-#endif
-    return rv;
-}
-
-#endif
-
 NS_IMETHODIMP
 nsBookmarksService::ReadBookmarks(PRBool *didLoadBookmarks)
 {
@@ -5187,12 +5102,7 @@ nsBookmarksService::LoadBookmarks()
         prefSvc->GetBranch("browser.bookmarks.", getter_AddRefs(bookmarksPrefs));
 
 #ifdef DEBUG_varga
-    PRTime now;
-#if defined(XP_MAC)
-    Microseconds((UnsignedWide *)&now);
-#else
-    now = PR_Now();
-#endif
+    PRTime now = PR_Now();
     printf("Start reading in bookmarks.html\n");
 #endif
   
@@ -5227,9 +5137,9 @@ nsBookmarksService::LoadBookmarks()
 #if defined(XP_WIN) || defined(XP_BEOS)
     nsCOMPtr<nsIFile> systemBookmarksFolder;
 
-#if defined(XP_WIN)
+#ifdef XP_WIN
     rv = NS_GetSpecialDirectory(NS_WIN_FAVORITES_DIR, getter_AddRefs(systemBookmarksFolder));
-#elif defined(XP_BEOS)
+#else
     rv = NS_GetSpecialDirectory(NS_BEOS_SETTINGS_DIR, getter_AddRefs(systemBookmarksFolder));
 
     if (NS_SUCCEEDED(rv))
@@ -5247,8 +5157,7 @@ nsBookmarksService::LoadBookmarks()
         if (NS_SUCCEEDED(rv))
             rv = bookmarksURI->GetSpec(bookmarksURICString);
     }
-#elif defined(XP_MAC) || defined(XP_MACOSX)
-    bookmarksURICString.AssignLiteral(kURINC_IEFavoritesRoot);
+
 #endif
 
     nsCOMPtr<nsIRDFResource> systemFolderResource;
@@ -5300,7 +5209,7 @@ nsBookmarksService::LoadBookmarks()
     // When the user opens this folder for the first time, system bookmarks are 
     // imported into this folder. A pref is used to keep track of whether or 
     // not to perform this operation. 
-#if defined(XP_WIN) || defined(XP_MAC) || defined(XP_MACOSX)
+#ifdef XP_WIN
     PRBool addedStaticRoot = PR_FALSE;
     if (bookmarksPrefs)
         bookmarksPrefs->GetBoolPref("added_static_root", 
@@ -5355,24 +5264,7 @@ nsBookmarksService::LoadBookmarks()
     // by setting the pref. 
     if (useDynamicSystemBookmarks)
     {
-#if defined(XP_MAC) || defined(XP_MACOSX)
-        // if the IE Favorites root isn't somewhere in bookmarks.html, add it
-        if (!foundIERoot)
-        {
-            nsCOMPtr<nsIRDFContainer> bookmarksRoot(do_CreateInstance(kRDFContainerCID, &rv));
-            if (NS_FAILED(rv)) return rv;
-
-            rv = bookmarksRoot->Init(this, kNC_BookmarksRoot);
-            if (NS_FAILED(rv)) return rv;
-
-            rv = bookmarksRoot->AppendElement(kNC_IEFavoritesRoot);
-            if (NS_FAILED(rv)) return rv;
-
-            // make sure IE Favorites root folder has the proper type     
-            rv = mInner->Assert(kNC_IEFavoritesRoot, kRDF_type, kNC_IEFavoriteFolder, PR_TRUE);
-            if (NS_FAILED(rv)) return rv;
-        }
-#elif defined(XP_WIN) || defined(XP_BEOS)
+#if defined(XP_WIN) || defined(XP_BEOS)
         if (systemFolderResource)
         {
             nsAutoString systemBookmarksFolderTitle;
@@ -5406,12 +5298,7 @@ nsBookmarksService::LoadBookmarks()
     }
 
 #ifdef DEBUG_varga
-    PRTime      now2;
-#if defined(XP_MAC)
-    Microseconds((UnsignedWide *)&now2);
-#else
-    now2 = PR_Now();
-#endif
+    PRTime now2 = PR_Now();
     PRUint64    loadTime64;
     LL_SUB(loadTime64, now2, now);
     PRUint32    loadTime32;
