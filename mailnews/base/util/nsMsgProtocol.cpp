@@ -1363,11 +1363,17 @@ nsresult nsMsgAsyncWriteProtocol::SetupTransportState()
   {
     // first create a pipe which we'll use to write the data we want to send
     // into.
-    rv = NS_NewPipe(getter_AddRefs(mInStream), getter_AddRefs(m_outputStream),
-      1024,  // segmentSize
-      1024*8, // maxSize
-      PR_TRUE,
-      PR_TRUE);
+    nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
+    rv = pipe->Init(PR_TRUE, PR_TRUE, 1024, 8, nsnull);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsIAsyncInputStream *inputStream = nsnull;
+    pipe->GetInputStream(&inputStream);
+    mInStream = dont_AddRef(static_cast<nsIInputStream *>(inputStream));
+
+    nsIAsyncOutputStream *outputStream = nsnull;
+    pipe->GetOutputStream(&outputStream);
+    m_outputStream = dont_AddRef(static_cast<nsIOutputStream *>(outputStream));
 
     rv = NS_GetCurrentThread(getter_AddRefs(mProviderThread));
     if (NS_FAILED(rv)) return rv;
