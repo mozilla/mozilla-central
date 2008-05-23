@@ -37,6 +37,7 @@ use Text::Markdown;
 use JSON;
 
 use CGI;
+use Data::Dumper;
 use Date::Manip;
 
 my $json = JSON->new(skipinvalid => 1, convblessed => 1);
@@ -246,5 +247,9 @@ sub displayJsonErrorMessage {
   my ($error_msg) = @_; 
   my %error_obj;  
   $error_obj{'error'} = $error_msg; 
-  print $main::json->objToJson(\%error_obj);
+  if ($main::json) {
+    print $main::json->objToJson(\%error_obj);
+  } else {
+    print STDERR Dumper \%error_obj;
+  }
 }
