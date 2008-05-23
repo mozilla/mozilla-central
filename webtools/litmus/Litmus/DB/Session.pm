@@ -36,6 +36,7 @@ use strict;
 use base 'Litmus::DBI';
 
 use Time::Piece;
+use Date::Manip;
 
 Litmus::DB::Session->table('sessions');
 
@@ -53,20 +54,30 @@ sub makeExpire {
 	$self->delete();
 }
 
+# If your db sessions are timing out immediately after login,
+# check the date formats being compared in isValid and the contents of the
+# sessions table in the db.
 sub isValid {
   my $self = shift;
-   
-  my $now = localtime();
-  if ($self->expires() ge $now->mysql_datetime) {
+
+  my $now = &getCurrentTimestamp();
+  if ($self->expires() le $now) {
     $self->makeExpire();
     return 0;
   }
-    
+
   if (!$self->user_id()->enabled() || $self->user_id()->enabled() == 0) {
     $self->makeExpire();
     return 0;
   }
   return 1;
+}
+
+# This function will hopefully make it easier to change the date format that
+# gets compared against the session expiry if the format should change, e.g.
+# db change.
+sub getCurrentTimestamp {
+  return &Date::Manip::UnixDate("now","%c");
 }
 
 1;
