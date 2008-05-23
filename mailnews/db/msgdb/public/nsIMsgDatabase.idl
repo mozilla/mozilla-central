@@ -111,16 +111,52 @@ interface nsIMsgDBService : nsISupports
 {
     // want to remove this method from nsIMsgDatabase...
     // if a db is opened on the folder, the listener will automatically be added
-    nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder, in boolean aCreate, in boolean aLeaveInvalidDB);
+
+  /**
+   * Opens a database folder.
+   *
+   * @param aFolderName     The name of the folder to create.
+   * @param aCreate         Whether or not the file should be created.
+   * @param aLeaveInvalidDB Set to true if you do not want the database to be
+   *                        deleted if it is invalid.
+   * @return                A new nsIMsgDatabase object representing the
+   *                        folder database that was opened.
+   * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
+   *                        aFolderName doesn't exist and aCreate was false.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
+   *                        The database is present (and was opened), but the
+   *                        summary file is out of date.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
+   *                        The database is present (and was opened), but the
+   *                        summary file is missing.
+   */
+  nsIMsgDatabase openFolderDB(in nsIMsgFolder aFolder, in boolean aCreate,
+                              in boolean aLeaveInvalidDB);
     nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
     void registerPendingListener(in nsIMsgFolder aFolder, in nsIDBChangeListener aListener);
     void unregisterPendingListener(in nsIDBChangeListener aListener);
 };
 
 [scriptable, uuid(6c8db586-57ff-4a1b-bb7e-acff79d6a4ce)]
-
-interface  nsIMsgDatabase : nsIDBChangeAnnouncer {
-  void Open(in nsILocalFile aFolderName, in boolean aCreate, in boolean aLeaveInvalidDB);
+interface nsIMsgDatabase : nsIDBChangeAnnouncer {
+  /**
+   * Opens a database folder.
+   *
+   * @param aFolderName     The name of the folder to create.
+   * @param aCreate         Whether or not the file should be created.
+   * @param aLeaveInvalidDB Set to true if you do not want the database to be
+   *                        deleted if it is invalid.
+   * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
+   *                        aFolderName doesn't exist and aCreate was false.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
+   *                        The database is present (and was opened), but the
+   *                        summary file is out of date.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
+   *                        The database is present (and was opened), but the
+   *                        summary file is missing.
+   */
+  void Open(in nsILocalFile aFolderName, in boolean aCreate,
+            in boolean aLeaveInvalidDB);
   void forceFolderDBClosed(in nsIMsgFolder aFolder);
   void Close(in boolean aForceCommit);
 

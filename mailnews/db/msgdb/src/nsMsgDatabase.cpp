@@ -134,6 +134,24 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   NS_IF_ADDREF(*_retval = msgDB);
   nsMsgDatabase *msgDatabase = static_cast<nsMsgDatabase *>(*_retval);
   msgDatabase->m_folder = aFolder;
+
+  if (NS_FAILED(rv))
+  {
+#ifdef DEBUG
+    // Doing these checks for debug only as we don't want to report certain
+    // errors in debug mode, but in release mode we wouldn't report them either
+
+    // These errors are expected.
+    if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING ||
+        rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
+      return rv;
+
+    // If its not one of the expected errors, throw a warning.
+    NS_ENSURE_SUCCESS(rv, rv);
+#endif
+    return rv;
+  }
+
   PRUint32 folderFlags;
   aFolder->GetFlags(&folderFlags);
 
@@ -150,7 +168,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
         msgDatabase->SyncCounts();
     }
   }
-  NS_ENSURE_SUCCESS(rv, rv);
+
   for (PRInt32 listenerIndex = 0; listenerIndex < m_foldersPendingListeners.Count(); listenerIndex++)
   {
   //  check if we have a pending listener on this db, and if so, add it.

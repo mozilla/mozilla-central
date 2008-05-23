@@ -2995,7 +2995,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   PRBool isServer;
   rv = GetIsServer(&isServer);
 
-  //Only set these is these are top level children.
+  //Only set these if these are top level children.
   if(NS_SUCCEEDED(rv) && isServer)
   {
     if(name.LowerCaseEqualsLiteral("inbox"))

@@ -225,30 +225,40 @@ nsMsgLocalMailFolder::Init(const char* aURI)
 nsresult
 nsMsgLocalMailFolder::CreateSubFolders(nsIFile *path)
 {
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsIMsgFolder> child;
+  // first find out all the current subfolders and files, before using them while
+  // creating new subfolders; we don't want to modify and iterate the same
+  // directory at once.
+  nsCOMArray<nsIFile> currentDirEntries;
+
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
-  rv = path->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
+  nsresult rv = path->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRBool hasMore;
-  directoryEnumerator->HasMoreElements(&hasMore);
-  while (hasMore && NS_SUCCEEDED(rv))
+  while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     nsCOMPtr<nsISupports> aSupport;
-    rv = directoryEnumerator->GetNext(getter_AddRefs(aSupport));
-    nsCOMPtr<nsIFile> currentFolderPath(do_QueryInterface(aSupport, &rv));
+    directoryEnumerator->GetNext(getter_AddRefs(aSupport));
+    nsCOMPtr<nsIFile> currentFile(do_QueryInterface(aSupport, &rv));
+    if (currentFile)
+      currentDirEntries.AppendObject(currentFile);
+  }
 
-    if (NS_FAILED(rv))
-        break;
+  // add the folders
+  PRInt32 count = currentDirEntries.Count();
+  for (int i = 0; i < count; ++i)
+  {
+    nsCOMPtr<nsIFile> currentFile(currentDirEntries[i]);
+
     nsAutoString leafName;
-    currentFolderPath->GetLeafName(leafName);
+    currentFile->GetLeafName(leafName);
     directoryEnumerator->HasMoreElements(&hasMore);
     // here we should handle the case where the current file is a .sbd directory w/o
     // a matching folder file, or a directory w/o the name .sbd
     if (nsShouldIgnoreFile(leafName))
       continue;
 
+    nsCOMPtr<nsIMsgFolder> child;
     rv = AddSubfolder(leafName, getter_AddRefs(child));
     if (child)
     {
@@ -258,6 +268,7 @@ nsMsgLocalMailFolder::CreateSubFolders(nsIFile *path)
         child->SetPrettyName(leafName);
     }
   }
+
   return rv;
 }
 
