@@ -339,8 +339,7 @@
   </hbox>
 
   <vbox hidefor="imap,pop3,movemail">
-    <label value="&newsrcFilePath.label;" control="nntp.newsrcFilePath"
-           accesskey="&newsrcFilePath.accesskey;"/>
+    <label value="&newsrcFilePath.label;" control="nntp.newsrcFilePath"/>
     <hbox align="center">
       <textbox readonly="true" wsm_persist="true" flex="1" id="nntp.newsrcFilePath"
                datatype="nsILocalFile"
@@ -353,8 +352,7 @@
 
   <separator class="thin"/>
   <vbox>
-    <label value="&localPath.label;" control="server.localPath"
-           accesskey="&localPath.accesskey;"/>
+    <label value="&localPath.label;" control="server.localPath"/>
     <hbox align="center">
       <textbox readonly="true" wsm_persist="true" flex="1" id="server.localPath" datatype="nsILocalFile"
                prefstring="mail.server.%serverkey%.directory" class="uri-element"/>
