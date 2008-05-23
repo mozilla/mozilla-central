@@ -265,9 +265,7 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
     listener->OnNewSearch();
   }
 
-  m_msgWindowWeak = do_GetWeakReference(aWindow, &rv);
-  if (NS_FAILED(rv))
-    return rv;
+  m_msgWindowWeak = do_GetWeakReference(aWindow);
 
   return BeginSearching();
 }
