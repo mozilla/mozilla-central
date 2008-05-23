@@ -41,18 +41,11 @@
 <!ENTITY minimizeWindowCmd.key          "M">
 <!ENTITY zoomWindowCmd.label            "Zoom">
 
-<!-- Help viewer -->
+<!-- Help menu -->
 <!ENTITY openHelpCmd.label              "&brandShortName; Help">
 <!ENTITY openHelpCmd.accesskey          "H">
-
-<!-- LOCALIZATION NOTE: openHelpFrontend.key and openHelpFrontend.modifiers
-  will show the standard OS X shortcut (Cmd+? on most locales) in the Help
-  menu. To make the shortcut work, mapping (Cmd+Shift+/ on en-US) is done with
-  openHelpCmd.key and openHelpCmd.modifiers. -->
-<!ENTITY openHelpFrontend.key            "?">
-<!ENTITY openHelpFrontend.modifiers      "accel">
-<!ENTITY openHelpCmd.key                 "/">
-<!ENTITY openHelpCmd.modifiers           "accel,shift">
+<!ENTITY openHelpCmd.key                "?">
+<!ENTITY openHelpCmd.modifiers          "accel">
 
 <!-- Key labels, for mousewheel prefs -->
 <!ENTITY ctrlKey.label                   "Ctrl">
