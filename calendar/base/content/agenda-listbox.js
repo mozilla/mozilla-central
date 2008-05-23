@@ -180,7 +180,7 @@ function onKeyPress(aEvent) {
     }
     switch(aEvent.keyCode) {
         case aEvent.DOM_VK_RETURN:
-            this.createOrEditEvent(aEvent);
+            document.getElementById('agenda_edit_event_command').doCommand();
             break;
         case aEvent.DOM_VK_DELETE:
             document.getElementById('agenda_delete_event_command').doCommand();
@@ -411,19 +411,14 @@ function deleteSelectedItem(aDoNotConfirm) {
     }
 }
 
-agendaListbox.createOrEditEvent =
-function createOrEditEvent(aEvent) {
-    if (aEvent.target instanceof Components.interfaces.nsIDOMXULSelectControlItemElement) {
-        if (this.isEventListItem(aEvent.target)) {
-            document.getElementById('agenda_edit_event_command').doCommand();
-        }
-    }
-    else {
-        // Create new event for the date currently displayed in the agenda. Setting
-        // isDate = true automatically makes the start time be the next full hour.
-        var eventStart = this.today.start.clone();
-        eventStart.isDate = true;
-        createEventWithDialog(getSelectedCalendar(), eventStart);
+agendaListbox.createNewEvent =
+function createNewEvent(aEvent) {
+    if (aEvent.target.localName == "richlistbox") {
+      // Create new event for the date currently displayed in the agenda. Setting
+      // isDate = true automatically makes the start time be the next full hour.
+      var eventStart = agendaListbox.today.start.clone();
+      eventStart.isDate = true;
+      createEventWithDialog(getSelectedCalendar(), eventStart);
     }
 }
 
