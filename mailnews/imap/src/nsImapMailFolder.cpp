@@ -6244,6 +6244,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsIUrlListener> urlListener;
   nsCOMPtr<nsISupports> srcSupport;
   nsCOMPtr<nsISupports> copySupport;
+  PRUint32 count = 0; // needs to be inited before goto
 
   if (!(mFlags & (MSG_FOLDER_FLAG_TRASH|MSG_FOLDER_FLAG_JUNK)))
     SetMRUTime();
@@ -6273,7 +6274,6 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   PRUint32 supportedUserFlags;
   GetSupportedUserFlags(&supportedUserFlags);
 
-  PRUint32 count = 0;
   PRUint32 i;
 
   rv = messages->Count(&count);
