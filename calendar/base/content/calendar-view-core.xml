@@ -54,6 +54,7 @@
           <xul:image class="calendar-event-box-shadow-left" xbl:inherits="hidden=flat"/>
           <xul:box anonid="event-container"
                    class="calendar-color-box"
+                   xbl:inherits="item-calendar"                   
                    flex="1">
             <xul:box class="calendar-event-selection" orient="horizontal" flex="1">
               <xul:stack anonid="eventbox"
@@ -187,7 +188,6 @@
         <body><![CDATA[
           var item = this.mOccurrence;          
           this.setAttribute("item-calendar", item.calendar.uri.spec);
-
           var categoriesProperty = item.getProperty("CATEGORIES");
           if (categoriesProperty) {
             var categoriesArray = categoriesStringToArray(categoriesProperty);
