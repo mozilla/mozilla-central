@@ -1,1 +1,1 @@
-Clobber to pick up fix for bug 433192
+Clobber to remove results of a bad CVS pull on fx-linux-tbox that's leading to merge conflicts.
