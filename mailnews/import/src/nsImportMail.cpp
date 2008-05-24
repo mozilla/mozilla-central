@@ -756,7 +756,7 @@ ImportMailThread( void *stuff)
 
   nsCOMPtr<nsIMsgFolder>          newFolder;
   nsCOMPtr<nsILocalFile>          outBox;
-  nsCOMPtr<nsISupports>           subFolder;
+  nsCOMPtr<nsIMsgFolder>          subFolder;
   nsCOMPtr<nsISimpleEnumerator>   enumerator;
 
   PRBool            exists;
@@ -898,14 +898,9 @@ ImportMailThread( void *stuff)
       IMPORT_LOG1("ImportMailThread: Creating new import folder '%s'.", NS_ConvertUTF16toUTF8(lastName).get());
             curProxy->CreateSubfolder( lastName, nsnull); // this may fail if the folder already exists..that's ok
 
-        rv = curProxy->GetChildNamed( lastName, getter_AddRefs( subFolder));
-        if (NS_SUCCEEDED( rv)) {
-          newFolder = do_QueryInterface( subFolder);
-          if (newFolder)
-            newFolder->GetFilePath( getter_AddRefs( outBox));
-          else
-            IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder interface '%s'.", lastName.get());
-        }
+        rv = curProxy->GetChildNamed(lastName, getter_AddRefs(newFolder));
+        if (NS_SUCCEEDED(rv))
+          newFolder->GetFilePath(getter_AddRefs(outBox));
         else
           IMPORT_LOG1("*** ImportMailThread: Failed to locate subfolder '%s' after it's been created.", lastName.get());
 
@@ -1071,15 +1066,11 @@ PRBool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
         {
         rv = localRootFolder->CreateSubfolder(folderName, nsnull);
         if (NS_SUCCEEDED(rv)) {
-          nsCOMPtr<nsISupports> subFolder;
-          rv = localRootFolder->GetChildNamed(folderName, getter_AddRefs(subFolder));
-          if (subFolder) {
-            subFolder->QueryInterface(NS_GET_IID(nsIMsgFolder), (void **) ppFolder);
-            if (*ppFolder) {
-              IMPORT_LOG1("Folder '%s' created successfully\n", NS_ConvertUTF16toUTF8(folderName).get());
-              return PR_TRUE;
-            }
-          } // if subFolder
+          rv = localRootFolder->GetChildNamed(folderName, ppFolder);
+          if (*ppFolder) {
+            IMPORT_LOG1("Folder '%s' created successfully\n", NS_ConvertUTF16toUTF8(folderName).get());
+            return PR_TRUE;
+          }
         }
         } // if not performing migration
       }

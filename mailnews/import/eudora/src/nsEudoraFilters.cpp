@@ -371,11 +371,8 @@ nsresult nsEudoraFilters::Init()
   rv = localRootFolder->GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupports> subFolder;
-  localRootFolder->GetChildNamed(NS_LITERAL_STRING("Eudora Mail"), getter_AddRefs(subFolder));
-  if (subFolder)
-    rv = subFolder->QueryInterface(NS_GET_IID(nsIMsgFolder), getter_AddRefs(m_pMailboxesRoot));
-  else
+  localRootFolder->GetChildNamed(NS_LITERAL_STRING("Eudora Mail"), getter_AddRefs(m_pMailboxesRoot));
+  if (!m_pMailboxesRoot)
   {
     // If no "Eudora Mail" folder then this is a
     // migration which just puts it in the root
@@ -881,38 +878,30 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, PRBool isTr
 
 nsresult nsEudoraFilters::GetMailboxFolder(const char* pNameHierarchy, nsIMsgFolder** ppFolder)
 {
-  nsresult rv = NS_OK;
+  NS_ENSURE_ARG_POINTER(ppFolder);
 
-  if (!*ppFolder)
-    NS_ADDREF(*ppFolder = m_pMailboxesRoot);
+  nsCOMPtr<nsIMsgFolder> folder(*ppFolder ? *ppFolder : m_pMailboxesRoot.get());
 
+  nsCAutoString name(pNameHierarchy + 1);
+  PRInt32 sepIndex = name.FindChar(*pNameHierarchy);
+  if (sepIndex >= 0)
+    name.SetLength(sepIndex);
+
+  nsAutoString unicodeName;
+  NS_CopyNativeToUnicode(name, unicodeName);
+
+  nsCOMPtr<nsIMsgFolder> subFolder;
+  nsresult rv = folder->GetChildNamed(unicodeName, getter_AddRefs(subFolder));
   if (NS_SUCCEEDED(rv))
   {
-    nsCAutoString name(pNameHierarchy + 1);
-    PRInt32 sepIndex = name.FindChar(*pNameHierarchy);
+    folder = subFolder;
     if (sepIndex >= 0)
-      name.SetLength(sepIndex);
-    nsAutoString unicodeName;
-    NS_CopyNativeToUnicode(name, unicodeName);
-
-    nsCOMPtr<nsISupports> subFolder;
-    rv = (*ppFolder)->GetChildNamed(unicodeName, getter_AddRefs(subFolder));
-    if (NS_SUCCEEDED(rv))
-    {
-      NS_RELEASE(*ppFolder);
-      rv = subFolder->QueryInterface(NS_GET_IID(nsIMsgFolder), (void **) ppFolder);
-      if (NS_SUCCEEDED(rv))
-      {
-        if (sepIndex >= 0)
-          return GetMailboxFolder(pNameHierarchy + sepIndex + 1, ppFolder);
-        return NS_OK;
-      }
-    }
+      return GetMailboxFolder(pNameHierarchy + sepIndex + 1,
+                              getter_AddRefs(folder));
+    return NS_OK;
   }
 
-  // Must have failed if we got here, so get rid of the IMsgFolder
-  NS_IF_RELEASE(*ppFolder);
+  // Must have failed if we got here, so ensure ppFolder is null
   *ppFolder = nsnull;
-
   return rv;
 }

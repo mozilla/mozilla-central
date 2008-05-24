@@ -66,7 +66,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(31fa97db-c073-4ea1-a4ad-f561269dcf8d)]
+[scriptable, uuid(e1d9b4e1-ac46-449a-b7b6-b8b12a00722f)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -414,7 +414,14 @@ interface nsIMsgFolder : nsISupports {
   attribute AString prettyName;
   readonly attribute AString abbreviatedName;
 
-  nsISupports getChildNamed(in AString name);
+  /**
+   * Return the child folder which the specified name.
+   *
+   * @param aName  The name of the child folder to find
+   * @return       The child folder
+   */
+  nsIMsgFolder getChildNamed(in AString aName);
+
   attribute nsIMsgFolder parent;
 
   /**

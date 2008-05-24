@@ -606,17 +606,14 @@ nsNntpService::DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder **
       NS_ENSURE_SUCCESS(rv,rv);
 
       // get msg folder for group name
-      nsCOMPtr<nsISupports> child;
+      nsCOMPtr<nsIMsgFolder> child;
       rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(groupName),
                                      getter_AddRefs(child));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      if (!errorCode && child)
+      if (!errorCode)
       {
-        nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(child, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        NS_IF_ADDREF(*aFolder = folder);
+        child.swap(*aFolder);
         *aMsgKey = key;
       }
     }
@@ -673,13 +670,14 @@ nsNntpService::GetFolderFromUri(const char *aUri, nsIMsgFolder **aFolder)
     return NS_ERROR_OUT_OF_MEMORY;
   nsUnescape(unescapedPath);
 
-  nsCOMPtr<nsISupports> subFolder;
+  nsCOMPtr<nsIMsgFolder> subFolder;
   rv = rootFolder->GetChildNamed(NS_ConvertUTF8toUTF16(unescapedPath),
                                  getter_AddRefs(subFolder));
   PL_strfree(unescapedPath);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return CallQueryInterface(subFolder, aFolder);
+  subFolder.swap(*aFolder);
+  return NS_OK;
 }
 
 NS_IMETHODIMP

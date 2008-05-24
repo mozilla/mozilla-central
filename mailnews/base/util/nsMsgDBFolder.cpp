@@ -2678,7 +2678,8 @@ NS_IMETHODIMP nsMsgDBFolder::GetAbbreviatedName(nsAString& aAbbreviatedName)
   return GetName(aAbbreviatedName);
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetChildNamed(const nsAString& name, nsISupports ** aChild)
+NS_IMETHODIMP
+nsMsgDBFolder::GetChildNamed(const nsAString& aName, nsIMsgFolder **aChild)
 {
   NS_ENSURE_ARG_POINTER(aChild);
   PRUint32 count;
@@ -2696,13 +2697,13 @@ NS_IMETHODIMP nsMsgDBFolder::GetChildNamed(const nsAString& name, nsISupports **
       // case-insensitive compare is probably LCD across OS filesystems
 #ifdef MOZILLA_INTERNAL_API
       if (NS_SUCCEEDED(rv) &&
-          folderName.Equals(name, nsCaseInsensitiveStringComparator()))
+          folderName.Equals(aName, nsCaseInsensitiveStringComparator()))
 #else
       if (NS_SUCCEEDED(rv) &&
-          folderName.Equals(name, CaseInsensitiveCompare))
+          folderName.Equals(aName, CaseInsensitiveCompare))
 #endif
       {
-        NS_ADDREF(*aChild = folder);
+        folder.swap(*aChild);
         return NS_OK;
       }
     }
@@ -3242,7 +3243,7 @@ NS_IMETHODIMP nsMsgDBFolder::RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsgFol
 NS_IMETHODIMP nsMsgDBFolder::ContainsChildNamed(const nsAString& name, PRBool* containsChild)
 {
   NS_ENSURE_ARG_POINTER(containsChild);
-  nsCOMPtr<nsISupports> child;
+  nsCOMPtr<nsIMsgFolder> child;
   GetChildNamed(name, getter_AddRefs(child));
   *containsChild = child != nsnull;
   return NS_OK;
