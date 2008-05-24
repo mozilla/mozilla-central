@@ -110,11 +110,12 @@
         event.stopPropagation();
       }
       else {
-        handleLinkClick(event, href, ceParams.linkNode);
         // if in mailnews block the link left click if we determine
         // that this URL is phishy (i.e. a potential email scam) 
-        if ("gMessengerBundle" in this && !event.button)
-          return !isPhishingURL(ceParams.linkNode, false, href);
+        if ("gMessengerBundle" in this && event.button < 2 &&
+            isPhishingURL(ceParams.linkNode, false, href))
+          return false;
+        handleLinkClick(event, href, ceParams.linkNode);
       }
       return true;
     }
