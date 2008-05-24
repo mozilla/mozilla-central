@@ -2690,8 +2690,12 @@ nsresult nsImapProtocol::BeginMessageDownLoad(
       // is consuming the message display
       // we create an "infinite" pipe in case we get extremely long lines from the imap server,
       // and the consumer is waiting for a whole line
-      rv = NS_NewPipe(getter_AddRefs(m_channelInputStream), getter_AddRefs(m_channelOutputStream), 4096, PR_UINT32_MAX);
-      NS_ASSERTION(NS_SUCCEEDED(rv), "NS_NewPipe failed!");
+      nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
+      rv = pipe->Init(PR_FALSE, PR_FALSE, 4096, PR_UINT32_MAX, nsnull);
+      NS_ASSERTION(NS_SUCCEEDED(rv), "nsIPipe->Init failed!");
+
+      pipe->GetInputStream(getter_AddRefs(m_channelInputStream));
+      pipe->GetOutputStream(getter_AddRefs(m_channelOutputStream));
     }
     // else, if we are saving the message to disk!
     else if (m_imapMessageSink /* && m_imapAction == nsIImapUrl::nsImapSaveMessageToDisk */)

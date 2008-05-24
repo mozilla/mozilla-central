@@ -41,10 +41,8 @@
 #include "nsMsgProtocol.h"
 
 #include "nsCOMPtr.h"
-#include "nsIInputStream.h"
-#include "nsIOutputStream.h"
-#include "nsIInputStream.h"
-#include "nsIOutputStream.h"
+#include "nsIAsyncInputStream.h"
+#include "nsIAsyncOutputStream.h"
 #include "nsINntpUrl.h"
 #include "nsINntpIncomingServer.h"
 #include "nsINNTPProtocol.h"
@@ -210,8 +208,8 @@ private:
   nsCOMPtr <nsIMsgNewsFolder> m_newsFolder;
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
 
-  nsCOMPtr<nsIInputStream> mDisplayInputStream;
-  nsCOMPtr<nsIOutputStream> mDisplayOutputStream;
+  nsCOMPtr<nsIAsyncInputStream> mDisplayInputStream;
+  nsCOMPtr<nsIAsyncOutputStream> mDisplayOutputStream;
   nsMsgLineStreamBuffer   * m_lineStreamBuffer; // used to efficiently extract lines from the incoming data stream
   // the nsINntpURL that is currently running
   nsCOMPtr<nsINntpUrl> m_runningURL;

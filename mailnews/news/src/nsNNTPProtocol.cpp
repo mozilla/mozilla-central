@@ -2434,11 +2434,13 @@ PRInt32 nsNNTPProtocol::BeginArticle()
   //
   if (m_channelListener) {
       nsresult rv;
-      rv = NS_NewPipe(getter_AddRefs(mDisplayInputStream),
-                      getter_AddRefs(mDisplayOutputStream),
-                      4096, PRUint32(-1));
+      nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
+      rv = pipe->Init(PR_FALSE, PR_FALSE, 4096, PR_UINT32_MAX, nsnull);
       NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create pipe");
       // TODO: return on failure?
+
+      pipe->GetInputStream(getter_AddRefs(mDisplayInputStream));
+      pipe->GetOutputStream(getter_AddRefs(mDisplayOutputStream));
   }
 
   m_nextState = NNTP_READ_ARTICLE;

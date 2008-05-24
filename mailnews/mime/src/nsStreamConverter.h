@@ -40,17 +40,13 @@
 
 #include "nsIStreamConverter.h" 
 #include "nsIMimeStreamConverter.h"
-#include "nsIOutputStream.h"
 #include "nsIMimeEmitter.h" 
 #include "nsIURI.h"
-#include "nsIInputStream.h"
-#include "nsIOutputStream.h"
+#include "nsIAsyncInputStream.h"
+#include "nsIAsyncOutputStream.h"
 #include "nsIChannel.h"
 #include "nsStringGlue.h"
 #include "nsCOMPtr.h"
-
-#define NS_STREAM_CONVERTER_SEGMENT_SIZE   (4*1024)
-#define NS_STREAM_CONVERTER_BUFFER_SIZE    (32*1024)
 
 class nsStreamConverter : public nsIStreamConverter, public nsIMimeStreamConverter { 
 public: 
@@ -82,8 +78,8 @@ private:
   nsresult Close();
 
   // the input and output streams form a pipe...they need to be passed around together..
-  nsCOMPtr<nsIOutputStream>     mOutputStream;     // output stream
-  nsCOMPtr<nsIInputStream>      mInputStream;
+  nsCOMPtr<nsIAsyncOutputStream>     mOutputStream;     // output stream
+  nsCOMPtr<nsIAsyncInputStream>      mInputStream;
 
   nsCOMPtr<nsIStreamListener>   mOutListener;   // output stream listener
   nsCOMPtr<nsIChannel>          mOutgoingChannel;

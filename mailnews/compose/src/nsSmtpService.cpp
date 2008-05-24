@@ -351,11 +351,15 @@ NS_IMETHODIMP nsSmtpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 {
   NS_ENSURE_ARG_POINTER(aURI);
   // create an empty pipe for use with the input stream channel.
-  nsCOMPtr<nsIInputStream> pipeIn;
-  nsCOMPtr<nsIOutputStream> pipeOut;
-  nsresult rv = NS_NewPipe(getter_AddRefs(pipeIn),
-                           getter_AddRefs(pipeOut));
-  if (NS_FAILED(rv)) return rv;
+  nsCOMPtr<nsIAsyncInputStream> pipeIn;
+  nsCOMPtr<nsIAsyncOutputStream> pipeOut;
+  nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
+  nsresult rv = pipe->Init(PR_FALSE, PR_FALSE, 0, 0, nsnull);
+  if (NS_FAILED(rv)) 
+    return rv;
+  
+  pipe->GetInputStream(getter_AddRefs(pipeIn));
+  pipe->GetOutputStream(getter_AddRefs(pipeOut));
 
   pipeOut->Close();
 

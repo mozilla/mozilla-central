@@ -45,9 +45,8 @@
 #include "nsMsgProtocol.h"
 #include "nsIEventTarget.h"
 #include "nsIStreamListener.h"
-#include "nsIOutputStream.h"
-#include "nsIOutputStream.h"
-#include "nsIInputStream.h"
+#include "nsIAsyncOutputStream.h"
+#include "nsIAsyncInputStream.h"
 #include "nsImapCore.h"
 #include "nsString.h"
 #include "nsIProgressEventSink.h"
@@ -348,8 +347,8 @@ private:
   // Ouput stream for writing commands to the socket
   nsCOMPtr<nsISocketTransport>  m_transport;
 
-  nsCOMPtr<nsIInputStream>  m_channelInputStream;
-  nsCOMPtr<nsIOutputStream> m_channelOutputStream;
+  nsCOMPtr<nsIAsyncInputStream>   m_channelInputStream;
+  nsCOMPtr<nsIAsyncOutputStream>  m_channelOutputStream;
   nsCOMPtr<nsIImapMockChannel>    m_mockChannel;   // this is the channel we should forward to people
   //nsCOMPtr<nsIRequest> mAsyncReadRequest; // we're going to cancel this when we're done with the conn.
 
