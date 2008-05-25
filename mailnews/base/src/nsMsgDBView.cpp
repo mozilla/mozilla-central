@@ -3153,92 +3153,74 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
 // reversing threads involves reversing the threads but leaving the
 // expanded messages ordered relative to the thread, so we
 // make a copy of each array and copy them over.
-nsresult nsMsgDBView::ReverseThreads()
+void nsMsgDBView::ReverseThreads()
 {
     nsTArray<PRUint32> newFlagArray;
     nsTArray<nsMsgKey> newKeyArray;
     nsTArray<PRUint8> newLevelArray;
 
-    PRInt32 sourceIndex, destIndex;
-    PRInt32 viewSize = GetSize();
+    PRUint32 viewSize = GetSize();
+    PRUint32 startThread = viewSize;
+    PRUint32 nextThread = viewSize;
+    PRUint32 destIndex = 0;
 
     newKeyArray.SetLength(m_keys.Length());
     newFlagArray.SetLength(m_flags.Length());
     newLevelArray.SetLength(m_levels.Length());
 
-    for (sourceIndex = 0, destIndex = viewSize - 1; sourceIndex < viewSize;)
+    while (startThread)
     {
-        PRInt32 endThread;  // find end of current thread.
-        PRBool inExpandedThread = PR_FALSE;
-        for (endThread = sourceIndex; endThread < viewSize; endThread++)
-        {
-            PRUint32 flags = m_flags[endThread];
-            if (!inExpandedThread && (flags & (MSG_VIEW_FLAG_ISTHREAD|MSG_VIEW_FLAG_HASCHILDREN)) && !(flags & MSG_FLAG_ELIDED))
-                inExpandedThread = PR_TRUE;
-            else if (flags & MSG_VIEW_FLAG_ISTHREAD)
-            {
-                if (inExpandedThread)
-                    endThread--;
-                break;
-            }
-        }
+        startThread--;
 
-        if (endThread == viewSize)
-            endThread--;
-        PRInt32 saveEndThread = endThread;
-        while (endThread >= sourceIndex)
+        if (m_flags[startThread] & MSG_VIEW_FLAG_ISTHREAD)
         {
-            newKeyArray[destIndex] = m_keys[endThread];
-            newFlagArray[destIndex] = m_flags[endThread];
-            newLevelArray[destIndex] = m_levels[endThread];
-            endThread--;
-            destIndex--;
+            for (PRUint32 sourceIndex = startThread; sourceIndex < nextThread; sourceIndex++)
+            {
+                newKeyArray[destIndex] = m_keys[sourceIndex];
+                newFlagArray[destIndex] = m_flags[sourceIndex];
+                newLevelArray[destIndex] = m_levels[sourceIndex];
+                destIndex++;
+            }
+            nextThread = startThread; // because we're copying in reverse order
         }
-        sourceIndex = saveEndThread + 1;
     }
     m_keys.SwapElements(newKeyArray);
     m_flags.SwapElements(newFlagArray);
     m_levels.SwapElements(newLevelArray);
-
-    return NS_OK;
 }
 
-nsresult nsMsgDBView::ReverseSort()
+void nsMsgDBView::ReverseSort()
 {
-    PRUint32 num = GetSize();
+    PRUint32 topIndex = GetSize();
 
     nsCOMPtr <nsISupportsArray> folders;
     GetFolders(getter_AddRefs(folders));
 
     // go up half the array swapping values
-    for (PRUint32 i = 0; i < (num / 2); i++)
+    for (PRUint32 bottomIndex = 0; bottomIndex < --topIndex; bottomIndex++) 
     {
         // swap flags
-        PRUint32 end = num - i - 1;
-        PRUint32 tempFlags = m_flags[i];
-        m_flags[i] = m_flags[end];
-        m_flags[end] = tempFlags;
+        PRUint32 tempFlags = m_flags[bottomIndex];
+        m_flags[bottomIndex] = m_flags[topIndex];
+        m_flags[topIndex] = tempFlags;
 
         // swap keys
-        nsMsgKey tempKey = m_keys[i];
-        m_keys[i] = m_keys[end];
-        m_keys[end] = tempKey;
+        nsMsgKey tempKey = m_keys[bottomIndex];
+        m_keys[bottomIndex] = m_keys[topIndex];
+        m_keys[topIndex] = tempKey;
 
         if (folders)
         {
             // swap folders --
             // needed when search is done across multiple folders
-            nsCOMPtr<nsISupports> tmpSupports = dont_AddRef(folders->ElementAt(i));
-            nsCOMPtr<nsISupports> endSupports = dont_AddRef(folders->ElementAt(end));
-            folders->SetElementAt(i, endSupports);
-            folders->SetElementAt(end, tmpSupports);
+            nsCOMPtr<nsISupports> tmpSupports = dont_AddRef(folders->ElementAt(bottomIndex));
+            nsCOMPtr<nsISupports> topSupports = dont_AddRef(folders->ElementAt(topIndex));
+            folders->SetElementAt(bottomIndex, topSupports);
+            folders->SetElementAt(topIndex, tmpSupports);
         }
-        // no need to swap elements in m_levels,
-        // since we won't call ReverseSort() if we
-        // are in threaded mode, so m_levels are all the same.
+        // no need to swap elements in m_levels; since we only call
+        // ReverseSort in non-threaded mode, m_levels are all the same.
     }
-
-    return NS_OK;
 }
 
 struct IdDWord
@@ -3827,15 +3809,10 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
     if (m_sortColumns.Length())
       m_sortColumns[0].mSortOrder = sortOrder;
     SaveSortInfo(sortType, sortOrder);
-    if (! (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
-    {
-      (void ) ReverseSort(); // doesn't fail.
-    }
+    if (m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+      ReverseThreads();
     else
-    {
-      rv = ReverseThreads();
-      NS_ENSURE_SUCCESS(rv,rv);
-    }
+      ReverseSort();
 
     m_sortOrder = sortOrder;
     // we just reversed the sort order...we still need to invalidate the view
@@ -4042,12 +4019,6 @@ NS_IMETHODIMP nsMsgDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOr
 
   m_sortType = sortType;
   m_sortOrder = sortOrder;
-
-  if (sortOrder == nsMsgViewSortOrder::descending)
-  {
- //   rv = ReverseSort();
-    NS_ASSERTION(NS_SUCCEEDED(rv),"failed to reverse sort");
-  }
 
   // free all the memory we allocated
   FreeAll(&ptrs);

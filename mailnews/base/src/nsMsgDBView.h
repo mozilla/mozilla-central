@@ -247,8 +247,8 @@ protected:
   nsMsgKey GetKeyOfFirstMsgInThread(nsMsgKey key);
   PRInt32 CountExpandedThread(nsMsgViewIndex index);
   virtual  nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);
-  nsresult ReverseSort();
-  nsresult ReverseThreads();
+  void ReverseSort();
+  void ReverseThreads();
   nsresult SaveSortInfo(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   nsresult PersistFolderInfo(nsIDBFolderInfo **dbFolderInfo);
   void     SetMRUTimeForFolder(nsIMsgFolder *folder);
