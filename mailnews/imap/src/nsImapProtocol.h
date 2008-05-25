@@ -455,7 +455,11 @@ private:
   char *GetServerCommandTag();
 
   void StartTLS();
-  // login related methods. All of these methods actually issue protocol
+
+  // login related methods.
+  nsresult GetPassword(nsCString &password);
+
+  // All of these methods actually issue protocol
   void Capability(); // query host for capabilities.
   void Language(); // set the language on the server if it supports it
   void Namespace();
