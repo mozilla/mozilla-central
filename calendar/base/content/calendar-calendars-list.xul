@@ -57,7 +57,7 @@
                 label="&calendar.context.deleteserver.label;"
                 accesskey="&calendar.context.deleteserver.accesskey;"
                 observes="calendar_delete_calendar_command"/>
-      <menuseparator/>
+      <menuseparator id="list-calendars-context-itemops-menuseparator"/>
       <menuitem id="list-calendars-context-export"
                 label="&calendar.context.export.label;"
                 accesskey="&calendar.context.export.accesskey;"
@@ -66,12 +66,12 @@
                 label="&calendar.context.publish.label;"
                 accesskey="&calendar.context.publish.accesskey;"
                 observes="calendar_publish_selected_calendar_command"/>
-      <menuseparator/>
+      <menuseparator id="list-calendars-context-export-menuseparator"/>
       <menuitem id="list-calendars-context-reload"
                 label="&calendar.context.reloadserver.label;"
                 accesskey="&calendar.context.reloadserver.accesskey;"
                 observes="calendar_reload_remote_calendars"/>
-      <menuseparator/>
+      <menuseparator id="list-calendars-context-reload-menuseparator"/>
       <menuitem id="list-calendars-context-edit"
                 label="&calendar.context.properties.label;"
                 accesskey="&calendar.context.properties.accesskey;"
@@ -86,7 +86,8 @@
         ondblclick="calendarListTreeView.onDoubleClick(event);"
         onselect="calendarListTreeView.onSelect(event);"
         context="list-calendars-context-menu">
-      <treecols hideheader="true">
+      <treecols id="calendar-list-tree-treecols"
+                hideheader="true">
       <treecol id="calendar-list-tree-checkbox"
                cycler="true"
                type="checkbox"
