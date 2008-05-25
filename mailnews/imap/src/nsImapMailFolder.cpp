@@ -7972,3 +7972,16 @@ NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
   }
   return nsMsgDBFolder::GetCustomIdentity(aIdentity);
 }
+
+NS_IMETHODIMP nsImapMailFolder::ChangePendingTotal(PRInt32 aDelta)
+{
+  ChangeNumPendingTotalMessages(aDelta);
+  return NS_OK;
+}
+
+/* void changePendingUnread (in long aDelta); */
+NS_IMETHODIMP nsImapMailFolder::ChangePendingUnread(PRInt32 aDelta)
+{
+  ChangeNumPendingUnread(aDelta);
+  return NS_OK;
+}

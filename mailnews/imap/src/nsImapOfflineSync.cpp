@@ -804,8 +804,18 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
               currentOp->GetMessageKey(&curKey);
               m_currentDB->RemoveOfflineOp(currentOp);
               deletedGhostMsgs = PR_TRUE;
-              
-              nsCOMPtr <nsIMsgDBHdr> mailHdr;
+
+              // for imap folders, we should adjust the pending counts, because we
+              // have a header that we know about, but don't have in the db.
+              nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
+              if (imapFolder)
+              {
+                PRBool hdrIsRead;
+                m_currentDB->IsRead(curKey, &hdrIsRead);
+                imapFolder->ChangePendingTotal(1);
+                if (!hdrIsRead)
+                  imapFolder->ChangePendingUnread(1);
+              }
               m_currentDB->DeleteMessage(curKey, nsnull, PR_FALSE);
             }
           }

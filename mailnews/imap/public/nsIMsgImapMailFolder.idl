@@ -75,7 +75,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(D84129DF-02BA-4268-9927-BCE0008083D9)]
+[scriptable, uuid(245e6260-f940-4323-ac72-2fa847d8213f)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
@@ -140,4 +140,20 @@ interface nsIMsgImapMailFolder : nsISupports {
    * Lotus Notes sends us maxKB = 0, usedKB > 0 for unlimited quota.
    */
   void getQuota(out boolean valid, out unsigned long usedKB, out unsigned long maxKB);
+  /**
+   * Change the number of "pending" messages in a folder,
+   *  messages we know about, but don't have the headers for yet
+   *
+   * @param aDelta amount to change total by.
+   */
+  void changePendingTotal(in long aDelta);
+  /**
+   * Change the number of "pending" unread messages in a folder,
+   * unread messages we know about, but don't have the headers for yet
+   *
+   * @param aDelta amount to change the unread count by.
+   */
+  void changePendingUnread(in long aDelta);
+
+
 };
