@@ -636,7 +636,11 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
   SubscribeTreeNode *parent = mTreeRoot;
   SubscribeTreeNode *child = nsnull;
 
-  token = NS_strtok(delimstr, &rest);
+  token = NS_strtok(delimstr, &rest); 
+  // special case paths that start with the hierarchy delimiter.
+  // We want to include that delimiter in the first token name.
+  if (token && pathStr[0] == mDelimiter)
+    --token;
   while (token && *token) {
     rv = AddChildNode(parent, token, &child);
     if (NS_FAILED(rv))
