@@ -53,6 +53,7 @@
 #include "nsMsgLocalSearch.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsAutoPtr.h"
 
 NS_IMPL_ISUPPORTS3(nsMsgSearchSession, nsIMsgSearchSession, nsIUrlListener, nsISupportsWeakReference)
 
@@ -583,8 +584,13 @@ NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *aHeader,
 
 nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 {
+  // need to stabilize "this" in case one of the listeners releases the last
+  // reference to us.
+  nsRefPtr <nsIMsgSearchSession> kungFuDeathGrip(this);
+
   nsTObserverArray<nsCOMPtr<nsIMsgSearchNotify> >::ForwardIterator iter(m_listenerList);
   nsCOMPtr<nsIMsgSearchNotify> listener;
+
   while (iter.HasMore())
   {
     listener = iter.GetNext();
