@@ -42,12 +42,12 @@ var gPrefsBundle;
 function acctNamePageValidate() 
 {
   var accountname = document.getElementById("prettyName").value;
+  var canAdvance = accountname ? true : false;
 
-  if (!accountname || accountname =="") {
-      var alertText = gPrefsBundle.getString("enterAccountName");
-      window.alert(alertText);
-      return false;
-  }
+  document.documentElement.canAdvance = canAdvance;
+}
+
+function acctNamePageUnload() {
   var pageData = parent.GetPageData();
 
   // fix for bug #255473
@@ -75,6 +75,7 @@ function acctNamePageValidate()
     setPageData(pageData, "server", "hostname", hostName);
   }
 
+  var accountname = document.getElementById("prettyName").value;
   setPageData(pageData, "accname", "prettyName", accountname);
   // Set this to true so we know the user has set the name.
   setPageData(pageData, "accname", "userset", true);
@@ -88,7 +89,6 @@ function acctNamePageInit()
     if (accountNameInput.value=="") {
         var pageData = parent.GetPageData();
         var type = parent.getCurrentServerType(pageData);
-        var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type].getService(Components.interfaces.nsIMsgProtocolInfo);
         var accountName;
         
         if (gCurrentAccountData && gCurrentAccountData.wizardAccountName)
@@ -99,4 +99,5 @@ function acctNamePageInit()
             accountName = pageData.identity.email.value;
         accountNameInput.value = accountName;
     }
+    acctNamePageValidate();
 }

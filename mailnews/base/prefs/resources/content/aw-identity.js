@@ -43,69 +43,28 @@ var gPrefsBundle;
 
 function identityPageValidate()
 {
+  var canAdvance = false;
   var name = document.getElementById("fullName").value;
 
-  if (!name) {
-    var alertText = gPrefsBundle.getString("enterName");
-    window.alert(alertText);
-    return false;
+  if (name) {
+    var email = trim(document.getElementById("email").value);
+    canAdvance = gCurrentDomain ? emailNameIsLegal(email) : emailNameAndDomainAreLegal(email);
   }
-  if (!validateEmail()) return false;
 
-  var pageData = parent.GetPageData();
-  setPageData(pageData, "identity", "fullName", name);
-
-  return true;
+  document.documentElement.canAdvance = canAdvance;
 }
 
-// this is kind of wacky.. basically it validates the email entered in
-// the text field to make sure it's in the form "user@host"..
-//
-// However, if there is a current domain (retrieved during onInit)
-// then we have to do some special tricks:
-// - if the user ALSO entered an @domain, then we just chop it off
-// - at some point it would be useful to keep the @domain, in case they
-//   wish to override the domain.
-function validateEmail()
+function identityPageUnload()
 {
-  var emailElement = document.getElementById("email");
-  var email = trim(emailElement.value);
-  var emailArray = email.split('@');
-
-  if (gCurrentDomain) {
-    // check if user entered an @ sign even though we have a domain
-    if (emailArray.length >= 2) {
-      email = emailArray[0];
-      emailElement.value = email;
-    }
-    
-    if (!email.length || containsIllegalChar(email)) {
-      var alertText = gPrefsBundle.getString("enterValidEmailPrefix");
-      window.alert(alertText);
-      return false;
-    }
-  }
-
-  else {
-    if (emailArray.length != 2 ||
-        !emailArray[0].length ||
-        !emailArray[1].length || 
-        containsIllegalChar(emailArray[0]) ||
-        containsIllegalChar(emailArray[1])) {
-      alertText = gPrefsBundle.getString("enterValidEmail");
-      window.alert(alertText);
-      return false;
-    }
-  }
-
   var pageData = parent.GetPageData();
+  var name = document.getElementById("fullName").value;
+  var email = trim(document.getElementById("email").value);
+  setPageData(pageData, "identity", "fullName", name);
   setPageData(pageData, "identity", "email", email);
-    
+
   return true;
 }
 
-// This function mimics validateEmail() except that
-// it runs on prefilled text and does not alert the user.
 // This is for the case when the code appends the domain  
 // unnecessarily.
 // This simply gets rid  of "@domain" from "foo@domain"
@@ -130,19 +89,15 @@ function fixPreFilledEmail()
 // This function checks for common illegal
 // characters. This shouldn't be too strict, since
 // we do more extensive tests later. -Håkan
-function containsIllegalChar(aString)
+function emailNameIsLegal(aString)
 {
-  for (var i=0; i < aString.length; i++) {
-    var code = aString.charCodeAt(i);
-    if (code > 127)
-      return true; // non-ASCII
-    else if (code == 9 || code == 10 || code == 11 || code == 32)
-      return true; // white space
-    else if (code == 64)
-      return true; // '@'
-  }
-  return false;
+  return aString && !/[^!-?A-~]/.test(aString);
 } 
+
+function emailNameAndDomainAreLegal(aString)
+{
+  return /^[!-?A-~]+\@[A-Za-z0-9.-]+$/.test(aString);
+}
 
 function identityPageInit()
 {
@@ -154,6 +109,7 @@ function identityPageInit()
   checkForFullName(); 
   checkForEmail(); 
   fixPreFilledEmail();
+  identityPageValidate();
 }
 
 function clearEmailTextItems()

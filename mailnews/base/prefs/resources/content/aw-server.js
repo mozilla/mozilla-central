@@ -41,56 +41,71 @@ var gPrefsBundle;
 var gOnMailServersPage;
 var gOnNewsServerPage;
 var gHideIncoming;
+var gProtocolInfo = null;
+
+function hostnameIsIllegal(hostname)
+{
+  // XXX TODO do a complete check.
+  // this only checks for illegal characters in the hostname
+  // but hostnames like "...." and "_" and ".111" will get by
+  // my test.  
+  hostname = trim(hostname);
+  return !hostname || /[^A-Za-z0-9.-]/.test(hostname);
+}
 
 function serverPageValidate() 
 {
-  var smtpServerName = trim(document.getElementById("smtphostname").value);
-  var incomingServerName = trim(document.getElementById("incomingServer").value);
-  var newsServerName = trim(document.getElementById("newsServer").value);
-
-  if ((gOnMailServersPage && 
-      ((hostnameIsIllegal(incomingServerName) && !gHideIncoming) || 
-       (hostnameIsIllegal(smtpServerName)))) ||
-      (gOnNewsServerPage && hostnameIsIllegal(newsServerName))) {
-    var alertText = gPrefsBundle.getString("enterValidHostname");
-    window.alert(alertText);
-    return false;
-  }
-
   /* if this is for a server that doesn't require a username, 
    * check if the account exists. 
    * for other types, we check after the user provides the username (see aw-login.js)
    */
-  var pageData = parent.GetPageData();
-  var serverType = parent.getCurrentServerType(pageData);
-  var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType].getService(Components.interfaces.nsIMsgProtocolInfo);
-  if (!protocolinfo.requiresUsername) {
-    var userName = parent.getCurrentUserName(pageData);
+  var canAdvance = true;
+
+  if (gOnMailServersPage) {
+    var incomingServerName = document.getElementById("incomingServer");
+    var smtpserver = document.getElementById("smtphostname");
+    if ((!gHideIncoming && hostnameIsIllegal(incomingServerName.value)) ||
+        hostnameIsIllegal(smtpserver.value))
+      canAdvance = false;
+  }
+  if (gOnNewsServerPage) {
+    var newsServerName = document.getElementById("newsServer");
+    if (hostnameIsIllegal(newsServerName.value))
+      canAdvance = false;
+  }
+  if (canAdvance && gProtocolInfo && !gProtocolInfo.requiresUsername) {
+    var pageData = parent.GetPageData();
+    var serverType = parent.getCurrentServerType(pageData);
     var hostName;
     if (gOnMailServersPage)
       hostName = incomingServerName;
     else if (gOnNewsServerPage)
       hostName = newsServerName;
 
-    if (parent.AccountExists(userName,hostName,serverType)) {
-      alertText = gPrefsBundle.getString("accountExists");
-      window.alert(alertText);
-      return false;
-    }
+    if (parent.AccountExists(null, hostName, serverType))
+      canAdvance = false;
   }
 
-  setPageData(pageData, "server", "servertype", serverType);
+  document.documentElement.canAdvance = canAdvance;
+}
+
+function serverPageUnload()
+{
+  var pageData = parent.GetPageData();
 
   if (gOnMailServersPage) {
     // If we have hidden the incoming server dialogs, we don't want
     // to set the server to an empty value here
     if (!gHideIncoming) {
-      setPageData(pageData, "server", "hostname", incomingServerName);
+      var incomingServerName = document.getElementById("incomingServer");
+      setPageData(pageData, "server", "hostname", trim(incomingServerName.value));
     }
-    setPageData(pageData, "server", "smtphostname", smtpServerName);
+    var smtpserver = document.getElementById("smtphostname");
+    setPageData(pageData, "server", "smtphostname", trim(smtpserver.value));
   }
   else if (gOnNewsServerPage) {
-    setPageData(pageData, "newsserver", "hostname", newsServerName);
+    var newsServerName = document.getElementById("newsServer");
+    setPageData(pageData, "newsserver", "hostname", trim(newsServerName.value));
   }
 
   return true;
@@ -212,6 +227,11 @@ function serverPageInit() {
 
   if (boxToShow)
     boxToShow.removeAttribute("hidden");
+  
+  var type = parent.getCurrentServerType(pageData);
+  gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
+                            .getService(Components.interfaces.nsIMsgProtocolInfo);
+  serverPageValidate();
 }
 
 function modifyStaticText(smtpMod, smtpBox)

@@ -64,6 +64,7 @@
   <!-- Account Type page : Displays choices of mail and news accounts that user can create -->
   <wizardpage id="accounttype" pageid="accounttype"
               label="&accountTypeTitle.label;"
+              onpageshow="document.documentElement.canAdvance = true;"
               onpageadvanced="return acctTypePageUnload();">
     <vbox flex="1">
       <description>&accountSetupInfo.label;</description>
@@ -97,7 +98,7 @@
   <wizardpage id="identitypage" pageid="identitypage"
               label="&identityTitle.label;"
               onpageshow="return identityPageInit();"
-              onpageadvanced="return identityPageValidate();">
+              onpageadvanced="return identityPageUnload();">
     <vbox flex="1">
       <description>&identityDesc.label;</description>
       <separator/>
@@ -106,7 +107,7 @@
       <hbox align="center">
         <label class="awIdentityLabel" value="&fullnameLabel.label;"
                accesskey="&fullnameLabel.accesskey;" control="fullName"/>
-        <textbox mailtype="identity" wsm_persist="true" name="fullName" id="fullName" flex="1"/>
+        <textbox mailtype="identity" wsm_persist="true" name="fullName" id="fullName" flex="1" oninput="identityPageValidate();"/>
       </hbox>
       <separator/>  
       <grid>
@@ -124,6 +125,7 @@
                      accesskey="&emailLabel.accesskey;" control="email"/>
               <hbox class="uri-element" align="center">
                 <textbox wsm_persist="true" mailtype="identity" name="email"
+                         oninput="identityPageValidate();"
                          id="email" flex="6" class="uri-element"/>
                 <label id="postEmailText"/>
               </hbox>
@@ -139,7 +141,7 @@
   <wizardpage id="serverpage" pageid="serverpage" 
               label="&serverTitle.label;"
               onpageshow="return serverPageInit();"
-              onpageadvanced="return serverPageValidate();">
+              onpageadvanced="return serverPageUnload();">
     <vbox flex="1">
         <vbox id="serverTypeBox">
         <label control="servertype">&incomingServerTypeDesc.label;</label>
@@ -161,7 +163,7 @@
           <hbox align="center" class="serverDataBox">
             <label class="label, serverLabel" value="&incomingServerLabel.label;"
                    accesskey="&incomingServerLabel.accesskey;" control="incomingServer"/>
-            <textbox wsm_persist="true" id="incomingServer" flex="1" class="uri-element"/>
+            <textbox wsm_persist="true" id="incomingServer" flex="1" class="uri-element" oninput="serverPageValidate();"/>
           </hbox>
         </vbox>
         <separator class="groove" id="incomingServerSeparator"/>
@@ -179,7 +181,7 @@
           <hbox align="center" class="serverDataBox">
             <label class="label, serverLabel" value="&smtpServerLabel.label;"
                    accesskey="&smtpServerLabel.accesskey;" control="smtphostname"/>
-            <textbox id="smtphostname" wsm_persist="true" flex="1" class="uri-element"/>
+            <textbox id="smtphostname" wsm_persist="true" flex="1" class="uri-element" oninput="serverPageValidate();"/>
           </hbox>
         </vbox>
 
@@ -195,14 +197,14 @@
   <wizardpage id="loginpage" pageid="loginpage" 
               label="&loginTitle.label;"
               onpageshow="return loginPageInit();"
-              onpageadvanced="return loginPageValidate();">
+              onpageadvanced="return loginPageUnload();">
     <vbox flex="1">
       <description>&usernameDesc.label; &usernameExample.label;</description>
       <separator class="thin"/>
       <hbox align="center">
         <label class="label" value="&usernameLabel.label;" style="width: 8em;"
                accesskey="&usernameLabel.accesskey;" control="username"/>
-        <textbox id="username" wsm_persist="true" flex="1"/>
+        <textbox id="username" wsm_persist="true" flex="1" oninput="loginPageValidate();"/>
       </hbox>
 
       <separator/>
@@ -234,13 +236,13 @@
   <wizardpage id="newsserver" pageid="newsserver"
               label="&serverTitle.label;"
               onpageshow="return serverPageInit();"
-              onpageadvanced="return serverPageValidate();">
+              onpageadvanced="return serverPageUnload();">
     <vbox flex="1">
       <description>&newsServerNameDesc.label;</description>
       <separator class="thin"/>
       <hbox align="center">
         <label control="newsServer" value="&newsServerLabel.label;" accesskey="&newsServerLabel.accesskey;" style="width: 8em;"/>
-        <textbox id="newsServer" wsm_persist="true" flex="1" class="uri-element"/>
+        <textbox id="newsServer" wsm_persist="true" flex="1" class="uri-element" oninput="serverPageValidate();"/>
       </hbox>
     </vbox>
   </wizardpage>
@@ -250,14 +252,14 @@
   <wizardpage id="accnamepage" pageid="accnamepage" 
               label="&accnameTitle.label;"
               onpageshow="return acctNamePageInit();"
-              onpageadvanced="return acctNamePageValidate();">
+              onpageadvanced="return acctNamePageUnload();">
     <vbox flex="1">
       <description>&accnameDesc.label;</description>
       <separator class="thin"/>
       <hbox align="center">
         <label class="label" value="&accnameLabel.label;" style="width: 8em;"
                accesskey="&accnameLabel.accesskey;" control="prettyName"/>
-        <textbox id="prettyName" size="40" wsm_persist="true" flex="1"/>
+        <textbox id="prettyName" size="40" wsm_persist="true" flex="1" oninput="acctNamePageValidate();"/>
       </hbox>
     </vbox>
   </wizardpage>

@@ -37,27 +37,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var protocolinfo = null;
+var gProtocolInfo = null;
 var gPrefsBundle;
 
 function loginPageValidate() {
+  var canAdvance = false;
   var username = document.getElementById("username").value;
 
-  if (protocolinfo && protocolinfo.requiresUsername && (!username || username == "")) { 
-      var alertText = gPrefsBundle.getString("enterUserName");
-      window.alert(alertText);
-      return false;
+  if (!gProtocolInfo || !gProtocolInfo.requiresUsername || username) {
+    var pageData = parent.GetPageData();
+    var hostName = parent.getCurrentHostname(pageData);
+    var serverType = parent.getCurrentServerType(pageData);
+    if (!parent.AccountExists(username, hostName, serverType))
+      canAdvance = true;
   }
 
+  document.documentElement.canAdvance = canAdvance;
+}
+
+function loginPageUnload() {
   var pageData = parent.GetPageData();
-  var serverType = parent.getCurrentServerType(pageData);
-  var hostName = parent.getCurrentHostname(pageData);
-
-  if (parent.AccountExists(username,hostName,serverType)) {
-    alertText = gPrefsBundle.getString("accountExists");
-    window.alert(alertText);
-    return false;
-  }
+  var username = document.getElementById("username").value;
 
   // If SMTP username box is blank it is because the
   // incoming and outgoing server names were the same,
@@ -79,10 +79,10 @@ function loginPageInit() {
       // retrieve data from previously entered pages
       var type = parent.getCurrentServerType(pageData);
 
-      protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
-                               .getService(Components.interfaces.nsIMsgProtocolInfo);
+      gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
+                                .getService(Components.interfaces.nsIMsgProtocolInfo);
 
-      if (protocolinfo.requiresUsername) {
+      if (gProtocolInfo.requiresUsername) {
         // since we require a username, use the uid from the email address
         loginNameInput.value = parent.getUsernameFromEmail(pageData.identity.email.value, gCurrentAccountData &&
                                                            gCurrentAccountData.incomingServerUserNameRequiresDomain);
@@ -117,6 +117,7 @@ function loginPageInit() {
         smtpNameInput.value = smtpNameInput.value || loginNameInput.value;
       }
     }
+    loginPageValidate();
 }
 
 function hideShowLoginSettings(aEle, bEle, cEle)
