@@ -727,6 +727,9 @@ const MailPrefObserver = {
   }
 };
 
+/**
+ * Called on startup to initialize various parts of the main window
+ */
 function OnLoadMessenger()
 {
   // update the pane config before we exit onload otherwise the user may see a flicker if we poke the document
@@ -754,13 +757,6 @@ function OnLoadMessenger()
     document.documentElement.setAttribute("height", defaultHeight);
   }
 
-
-  setTimeout(delayedOnLoadMessenger, 0); // when debugging, set this to 5000, so you can see what happens after the window comes up.
-}
-
-/* Functions related to startup */
-function delayedOnLoadMessenger()
-{
   gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
   gPrefBranch.addObserver("mail.showFolderPaneColumns", MailPrefObserver, false);
@@ -826,8 +822,6 @@ function delayedOnLoadMessenger()
                       "modal,centerscreen,chrome,resizable=no");
 #endif
 
-  setTimeout("loadStartFolder(gStartFolderUri);", 0);
-
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadMsgHeaderPane();
 
@@ -844,6 +838,8 @@ function delayedOnLoadMessenger()
 
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;
+
+  loadStartFolder(gStartFolderUri);
 }
 
 function OnUnloadMessenger()
