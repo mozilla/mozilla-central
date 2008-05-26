@@ -76,6 +76,7 @@ calICSCalendar.prototype = {
                                 [Components.interfaces.calICalendarProvider,
                                  Components.interfaces.nsIStreamListener,
                                  Components.interfaces.nsIStreamLoaderObserver,
+                                 Components.interfaces.nsIChannelEventSink,
                                  Components.interfaces.nsIInterfaceRequestor]);
     },
     
@@ -149,17 +150,21 @@ calICSCalendar.prototype = {
         this.processQueue();
     },
 
+    prepareChannel: function calICSCalendar_prepareChannel(aChannel) {
+        aChannel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+        aChannel.notificationCallbacks = this;
+
+        // Allow the hook to do its work, like a performing a quick check to
+        // see if the remote file really changed. Might save a lot of time
+        this.mHooks.onBeforeGet(aChannel);
+    },
+
     doRefresh: function calICSCalendar_doRefresh() {
         var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                                   .getService(Components.interfaces.nsIIOService);
 
         var channel = ioService.newChannelFromURI(this.mUri);
-        channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
-        channel.notificationCallbacks = this;
-
-        // Allow the hook to do its work, like a performing a quick check to
-        // see if the remote file really changed. Might save a lot of time
-        this.mHooks.onBeforeGet(channel);
+        this.prepareChannel(channel);
 
         var streamLoader = Components.classes["@mozilla.org/network/stream-loader;1"]
                                      .createInstance(Components.interfaces.nsIStreamLoader);
@@ -183,6 +188,11 @@ calICSCalendar.prototype = {
     calendarPromotedProps: {
         "PRODID": true,
         "VERSION": true
+    },
+
+    // nsIChannelEventSink implementation
+    onChannelRedirect: function(aOldChannel, aNewChannel, aFlags) {
+        this.prepareChannel(aNewChannel);
     },
 
     // nsIStreamLoaderObserver impl
@@ -514,7 +524,12 @@ calICSCalendar.prototype = {
                              .getService(Components.interfaces.nsIWindowWatcher)
                              .getNewPrompter(null);
         }
-        Components.returnCode = Components.results.NS_ERROR_NO_INTERFACE;
+
+        try {
+            return this.QueryInterface(iid);
+        } catch (e) {
+            Components.returnCode = e;
+        }
         return null;
     },
 

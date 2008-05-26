@@ -340,9 +340,9 @@ calGoogleRequest.prototype = {
         try {
             return this.QueryInterface(aIID);
         } catch (e) {
-            WARN("nsIInterfaceRequestor requesting invalid interface: " + Components.interfacesByID[aIID]);
-            throw e;
+            Components.returnCode = e;
         }
+        return null;
     },
 
     /**
@@ -354,26 +354,6 @@ calGoogleRequest.prototype = {
         // all we need to do to the new channel is the basic preparation
         this.prepareChannel(aNewChannel);
     },
-
-    /**
-     * @see nsIHttpEventSink
-     * (not implementing will cause annoying exceptions)
-     */
-    onRedirect: function cGR_onRedirect(aOldChannel, aNewChannel) { },
-
-    /**
-     * @see nsIProgressEventSink
-     * (not implementing will cause annoying exceptions)
-     */
-    onProgress: function cGR_onProgress(aRequest,
-                                        aContext,
-                                        aProgress,
-                                        aProgressMax) { },
-
-    onStatus: function cGR_onStatus(aRequest,
-                                    aContext,
-                                    aStatus,
-                                    aStatusArg) { },
 
     /**
      * @see nsIStreamLoaderObserver

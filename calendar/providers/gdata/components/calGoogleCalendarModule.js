@@ -115,11 +115,8 @@ var g_classInfo = {
                 Components.interfaces.calIGoogleRequest,
                 Components.interfaces.calIOperation,
                 Components.interfaces.nsIStreamLoaderObserver,
-                Components.interfaces.nsIDocShellTreeItem,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIChannelEventSink,
-                Components.interfaces.nsIProgressEventSink,
-                Components.interfaces.nsIHttpEventSink,
                 Components.interfaces.nsIStreamListener,
                 Components.interfaces.nsIClassInfo
             ];

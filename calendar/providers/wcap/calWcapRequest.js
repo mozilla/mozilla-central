@@ -248,11 +248,10 @@ calWcapNetworkRequest.prototype = {
 
         try {
             return this.QueryInterface(aIID);
-        } catch (exc) {
-            logWarning("ifaces: " + g_classInfo.wcapNetworkRequest.getInterfaces({}), this);
-            logWarning("nsIInterfaceRequestor requesting invalid interface: " + Components.interfacesByID[aIID], this);
-            throw exc;
+        } catch (e) {
+            Components.returnCode = e;
         }
+        return null;
     },
 
     /**
@@ -276,29 +275,6 @@ calWcapNetworkRequest.prototype = {
                                                                         aFlags) {
         // all we need to do to the new channel is the basic preparation
         this.prepareChannel(aNewChannel);
-    },
-
-    /**
-     * @see nsIHttpEventSink
-     * (not implementing will cause annoying exceptions)
-     */
-    onRedirect: function calWcapNetworkRequest_onRedirect(aOldChannel, aNewChannel) {
-    },
-
-    /**
-     * @see nsIProgressEventSink
-     * (not implementing will cause annoying exceptions)
-     */
-    onProgress: function calWcapNetworkRequest_onProgress(aRequest,
-                                                          aContext,
-                                                          aProgress,
-                                                          aProgressMax) {
-    },
-
-    onStatus: function calWcapNetworkRequest_onStatus(aRequest,
-                                                      aContext,
-                                                      aStatus,
-                                                      aStatusArg) {
     },
 
     /**
