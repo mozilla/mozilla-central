@@ -218,7 +218,7 @@ var calendarController = {
             case "calendar_modify_todo_command":
                 var selectedTasks = getFocusedTaskTree().selectedTasks;
                 for each (var task in selectedTasks) {
-                    modifyEventWithDialog(task);
+                    modifyEventWithDialog(task, null, true);
                 }
                 break;
             case "calendar_delete_todo_command":

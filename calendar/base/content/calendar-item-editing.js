@@ -194,7 +194,7 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     };
 
     var item = aItem;
-    if (aPromptOccurrence) {
+    if (aPromptOccurrence !== false) {
         var futureItem, response;
         [item, futureItem, response] = promptOccurrenceModification(aItem, true, "edit");
     }

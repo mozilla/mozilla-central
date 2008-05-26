@@ -203,7 +203,7 @@ function modifyTaskFromContext() {
     var taskTree = getFocusedTaskTree();
     var tasks = taskTree.selectedTasks;
     for (var t = 0; t < tasks.length; t++) {
-        modifyEventWithDialog(tasks[t]);
+        modifyEventWithDialog(tasks[t], null, true);
     }
  }
 

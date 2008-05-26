@@ -584,7 +584,7 @@
                           // so don't call modifyEventWithDialog
                           // to make sure user notices state changed.
                       } else {
-                          modifyEventWithDialog(item);
+                          modifyEventWithDialog(item, null, true);
                       }
                   } else {
                       createTodoWithDialog();
