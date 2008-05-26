@@ -45,11 +45,11 @@
 
 /* ::::: columns :::::: */
 
-treechildren::-moz-tree-image(activeColumn) {
+listcell[enabled="false"] {
   list-style-image: url("chrome://messenger/skin/icons/notchecked.gif");
 }
 
-treechildren::-moz-tree-image(activeColumn, Enabled-true) {
+listcell[enabled="true"] {
  list-style-image: url("chrome://messenger/skin/icons/check.gif");
 }
 

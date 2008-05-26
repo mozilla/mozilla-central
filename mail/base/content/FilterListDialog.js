@@ -41,19 +41,8 @@ const MSG_FOLDER_FLAG_INBOX = 0x1000
 
 var gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 
-var gEditButton;
-var gDeleteButton;
-var gReorderUpButton;
-var gReorderDownButton;
-var gRunFiltersFolderPickerLabel;
-var gRunFiltersFolderPicker;
-var gRunFiltersButton;
-var gFilterBundle;
-var gPromptService = GetPromptService();
 var gFilterListMsgWindow = null;
-var gFilterTree;
-var gStatusBar;
-var gStatusText;
+var gCurrentFilterList;
 var gCurrentServerURI = null;
 
 var gStatusFeedback = {
@@ -61,13 +50,14 @@ var gStatusFeedback = {
 
   showStatusString: function(status)
   {
-    gStatusText.setAttribute("value", status);
+    document.getElementById("statusText").setAttribute("value", status);
   },
   startMeteors: function()
   {
     // change run button to be a stop button
-    gRunFiltersButton.setAttribute("label", gRunFiltersButton.getAttribute("stoplabel"));
-    gRunFiltersButton.setAttribute("accesskey", gRunFiltersButton.getAttribute("stopaccesskey"));
+    var runButton = document.getElementById("runFiltersButton");
+    runButton.setAttribute("label", runButton.getAttribute("stoplabel"));
+    runButton.setAttribute("accesskey", runButton.getAttribute("stopaccesskey"));
 
     if (!this.progressMeterVisible)
     {
@@ -75,15 +65,15 @@ var gStatusFeedback = {
       this.progressMeterVisible = true;
     }
 
-    gStatusBar.setAttribute("mode", "undetermined");
+    document.getElementById("statusbar-icon").setAttribute("mode", "undetermined");
   },
   stopMeteors: function()
   {
     try {
       // change run button to be a stop button
-      gRunFiltersButton.setAttribute("label", gRunFiltersButton.getAttribute("runlabel"));
-      gRunFiltersButton.setAttribute("accesskey", gRunFiltersButton.getAttribute("runaccesskey"));
-      gStatusBar.setAttribute("mode", "normal");
+      var runButton = document.getElementById("runFiltersButton");
+      runButton.setAttribute("label", runButton.getAttribute("runlabel"));
+      runButton.setAttribute("accesskey", runButton.getAttribute("runaccesskey"));
 
       if (this.progressMeterVisible)
       {
@@ -97,14 +87,11 @@ var gStatusFeedback = {
   },
   showProgress: function(percentage)
   {
-      //dump("XXX progress" + percentage + "\n");
   },
   closeWindow: function()
   {
   }
 };
-
-const nsMsgFilterMotion = Components.interfaces.nsMsgFilterMotion;
 
 function onLoad()
 {
@@ -112,19 +99,6 @@ function onLoad()
     gFilterListMsgWindow.domWindow = window;
     gFilterListMsgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
     gFilterListMsgWindow.statusFeedback = gStatusFeedback;
-
-    gFilterBundle = document.getElementById("bundle_filter");
-    gFilterTree = document.getElementById("filterTree");
-
-    gEditButton = document.getElementById("editButton");
-    gDeleteButton = document.getElementById("deleteButton");
-    gReorderUpButton = document.getElementById("reorderUpButton");
-    gReorderDownButton = document.getElementById("reorderDownButton");
-    gRunFiltersFolderPickerLabel = document.getElementById("folderPickerPrefix");
-    gRunFiltersFolderPicker = document.getElementById("runFiltersFolder");
-    gRunFiltersButton = document.getElementById("runFiltersButton");
-    gStatusBar = document.getElementById("statusbar-icon");
-    gStatusText = document.getElementById("statusText");
 
     updateButtons();
 
@@ -140,40 +114,7 @@ function onLoad()
     if (firstItem) {
         selectServer(firstItem);
     }
-
-    gFilterTree.addEventListener("click",onFilterClick,true);
 }
-
-/*
-function onCancel()
-{
-    var firstItem = getSelectedServerForFilters();
-    if (!firstItem)
-        firstItem = getServerThatCanHaveFilters();
-
-    if (firstItem) {
-        var resource = gRDF.GetResource(firstItem);
-        var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        if (msgFolder)
-        {
-           msgFolder.ReleaseDelegate("filter");
-           msgFolder.setFilterList(null);
-           try
-           {
-              //now find Inbox
-              var outNumFolders = new Object();
-              var inboxFolder = msgFolder.getFoldersWithFlag(0x1000, 1, outNumFolders);
-              inboxFolder.setFilterList(null);
-           }
-           catch(ex)
-           {
-             dump ("ex " +ex + "\n");
-           }
-        }
-    }
-    window.close();
-}
-*/
 
 /**
  * Called when a user selects a server in the list, so we can update the filters
@@ -188,9 +129,7 @@ function onFilterServerClick(aURI)
 
     // Save the current filters to disk before switching because
     // the dialog may be closed and we'll lose current filters.
-    var filterList = currentFilterList();
-    if (filterList)
-      filterList.saveToDefaultFile();
+    gCurrentFilterList.saveToDefaultFile();
 
     selectServer(aURI);
 }
@@ -216,33 +155,29 @@ function setServer(uri)
    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   //we need to do this because gFilterTree.setAttribute will cause rdf to call getFilterList and there is
-   //no way to pass msgWindow in that case.
-
-   if (msgFolder)
-     msgFolder.getFilterList(gFilterListMsgWindow);
+   var filterList = msgFolder.getFilterList(gFilterListMsgWindow);
+   rebuildFilterList(filterList);
 
    // this will get the deferred to account root folder, if server is deferred
    msgFolder = msgFolder.server.rootMsgFolder;
    var rootFolderUri = msgFolder.URI;
-   rebuildFilterTree(uri);
 
    // root the folder picker to this server
-   gRunFiltersFolderPicker.setAttribute("ref", rootFolderUri);
+   document.getElementById("runFiltersFolder").setAttribute("ref", rootFolderUri);
 
    // run filters after the fact not supported by news
    if (CanRunFiltersAfterTheFact(msgFolder.server)) {
-     gRunFiltersFolderPicker.removeAttribute("hidden");
-     gRunFiltersButton.removeAttribute("hidden");
-     gRunFiltersFolderPickerLabel.removeAttribute("hidden");
+     document.getElementById("runFiltersFolder").removeAttribute("hidden");
+     document.getElementById("runFiltersButton").removeAttribute("hidden");
+     document.getElementById("folderPickerPrefix").removeAttribute("hidden");
 
      // for POP3 and IMAP, select the first folder, which is the INBOX
-     gRunFiltersFolderPicker.selectedIndex = 0;
+     document.getElementById("runFiltersFolder").selectedIndex = 0;
    }
    else {
-     gRunFiltersFolderPicker.setAttribute("hidden", "true");
-     gRunFiltersButton.setAttribute("hidden", "true");
-     gRunFiltersFolderPickerLabel.setAttribute("hidden", "true");
+     document.getElementById("runFiltersFolder").setAttribute("hidden", "true");
+     document.getElementById("runFiltersButton").setAttribute("hidden", "true");
+     document.getElementById("folderPickerPrefix").setAttribute("hidden", "true");
    }
 
    // Get the first folder uri for this server. INBOX for
@@ -254,22 +189,24 @@ function setServer(uri)
    gCurrentServerURI = uri;
 }
 
-function toggleFilter(aResource)
+function toggleFilter(aFilter, aIndex)
 {
-    var filter = aResource.GetDelegate("filter",
-                                       Components.interfaces.nsIMsgFilter);
-    if (filter.unparseable)
+    if (aFilter.unparseable)
     {
-      if (gPromptService)
-        gPromptService.alert(window, null,
-                             gFilterBundle.getString("cannotEnableFilter"));
+      var bundle = document.getElementById("bundle_filter");
+      var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                .getService(Components.interfaces.nsIPromptService);
+      promptSvc.alert(window, null, bundle.getString("cannotEnableFilter"));
       return;
     }
-    filter.enabled = !filter.enabled;
-    refresh();
+    aFilter.enabled = !aFilter.enabled;
+
+    // Now update the appropriate row
+    var row = document.getElementById("filterList").childNodes[aIndex + 1];
+    row.childNodes[1].setAttribute("enabled", aFilter.enabled);
 }
 
-// sets up the menulist and the gFilterTree
+// sets up the menulist and the filter list
 function selectServer(uri)
 {
     // update the server menu
@@ -295,130 +232,85 @@ function selectServer(uri)
     setServer(uri);
 }
 
-function getFilter(index)
-{
-  var filter = gFilterTree.builderView.getResourceAtIndex(index);
-  filter = filter.GetDelegate("filter", Components.interfaces.nsIMsgFilter);
-  return filter;
-}
-
 function currentFilter()
 {
-    var currentIndex = gFilterTree.currentIndex;
-    if (currentIndex == -1)
-      return null;
-
-    var filter;
-
-    try {
-      filter = getFilter(currentIndex);
-    } catch (ex) {
-      filter = null;
-    }
-    return filter;
-}
-
-function currentFilterList()
-{
-    // note, serverUri might be a newsgroup
-    var serverUri = document.getElementById("serverMenu").getAttribute("uri");
-    var filterList = gRDF.GetResource(serverUri).GetDelegate("filter", Components.interfaces.nsIMsgFilterList);
-    return filterList;
-}
-
-function onFilterSelect(event)
-{
-    updateButtons();
+    var currentItem = document.getElementById("filterList").selectedItem;
+    return currentItem ? currentItem._filter : null;
 }
 
 function onEditFilter()
 {
   var selectedFilter = currentFilter();
-  var curFilterList = currentFilterList();
-  var args = {filter: selectedFilter, filterList: curFilterList};
+  var args = {filter: selectedFilter, filterList: gCurrentFilterList};
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh)
-    refresh();
+    rebuildFilterList(gCurrentFilterList);
 }
 
 function onNewFilter(emailAddress)
 {
-  var curFilterList = currentFilterList();
-  var args = {filterList: curFilterList};
+  var args = {filterList: gCurrentFilterList};
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
   if ("refresh" in args && args.refresh)
-    refresh();
+    rebuildFilterList(gCurrentFilterList);
 }
 
 function onDeleteFilter()
 {
-  var filterList = currentFilterList();
-  if (!filterList)
+  var items = document.getElementById("filterList").selectedItems;
+  if (!items.length)
     return;
 
-  var sel = gFilterTree.view.selection, selCount = sel.getRangeCount();
-  if (!selCount ||
-      gPromptService.confirmEx(window, null,
-                        gFilterBundle.getString("deleteFilterConfirmation"),
-                        gPromptService.STD_YES_NO_BUTTONS,
-                        '', '', '', '', {}))
+  var bundle = document.getElementById("bundle_filter");
+  var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                            .getService(Components.interfaces.nsIPromptService);
+  if (promptSvc.confirmEx(window, null,
+                          bundle.getString("deleteFilterConfirmation"),
+                          promptSvc.STD_YES_NO_BUTTONS,
+                          '', '', '', '', {}))
     return;
-
-  for (var i = selCount - 1; i >= 0; --i) {
-    var start = {}, end = {};
-    sel.getRangeAt(i, start, end);
-    for (var j = end.value; j >= start.value; --j) {
-      var curFilter = getFilter(j);
-      if (curFilter)
-        filterList.removeFilter(curFilter);
-    }
+  for each (var item in items) {
+    gCurrentFilterList.removeFilter(item._filter);
+    document.getElementById("filterList").removeChild(item);
   }
-  refresh();
 }
 
 function onUp(event)
 {
-    moveCurrentFilter(nsMsgFilterMotion.up);
+    moveCurrentFilter(Components.interfaces.nsMsgFilterMotion.up);
 }
 
 function onDown(event)
 {
-    moveCurrentFilter(nsMsgFilterMotion.down);
+    moveCurrentFilter(Components.interfaces.nsMsgFilterMotion.down);
 }
 
 function viewLog()
 {
-  var uri = gFilterTree.getAttribute("ref");
-  var server = gRDF.GetResource(uri).QueryInterface(Components.interfaces.nsIMsgFolder).server;
-
-  var filterList = currentFilterList();
-  var args = {filterList: filterList};
+  var args = {filterList: gCurrentFilterList};
 
   window.openDialog("chrome://messenger/content/viewLog.xul", "FilterLog", "chrome,modal,titlebar,resizable,centerscreen", args);
 }
 
 function onFilterClose()
 {
-  // make sure to save the filter to disk
-  var filterList = currentFilterList();
-  if (filterList)
-    filterList.saveToDefaultFile();
+  var runButton = document.getElementById("runFiltersButton");
+  if (runButton.getAttribute("label") == runButton.getAttribute("stoplabel")) {
+    var bundle = document.getElementById("bundle_filter");
+    var promptTitle = bundle.getString("promptTitle");
+    var promptMsg = bundle.getString("promptMsg");
+    var stopButtonLabel = bundle.getString("stopButtonLabel");
+    var continueButtonLabel = bundle.getString("continueButtonLabel");
 
-  if (gRunFiltersButton.getAttribute("label") == gRunFiltersButton.getAttribute("stoplabel")) {
-    var promptTitle = gFilterBundle.getString("promptTitle");
-    var promptMsg = gFilterBundle.getString("promptMsg");
-    var stopButtonLabel = gFilterBundle.getString("stopButtonLabel");
-    var continueButtonLabel = gFilterBundle.getString("continueButtonLabel");
-    var result = false;
-
-    if (gPromptService)
-      result = gPromptService.confirmEx(window, promptTitle, promptMsg,
-               (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_0) +
-               (gPromptService.BUTTON_TITLE_IS_STRING*gPromptService.BUTTON_POS_1),
+    var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                              .getService(Components.interfaces.nsIPromptService);
+    var result = promptSvc.confirmEx(window, promptTitle, promptMsg,
+               (promptSvc.BUTTON_TITLE_IS_STRING * promptSvc.BUTTON_POS_0) +
+               (promptSvc.BUTTON_TITLE_IS_STRING * promptSvc.BUTTON_POS_1),
                continueButtonLabel, stopButtonLabel, null, null, {value:0});
 
     if (result)
@@ -426,6 +318,7 @@ function onFilterClose()
     else
       return false;
   }
+  gCurrentFilterList.saveToDefaultFile();
 
   window.close();
   return true;
@@ -434,12 +327,13 @@ function onFilterClose()
 function runSelectedFilters()
 {
   // if run button has "stop" label, do stop.
-  if (gRunFiltersButton.getAttribute("label") == gRunFiltersButton.getAttribute("stoplabel")) {
+  var runButton = document.getElementById("runFiltersButton");
+  if (runButton.getAttribute("label") == runButton.getAttribute("stoplabel")) {
     gFilterListMsgWindow.StopUrls();
     return;
   }
 
-  var folderURI = gRunFiltersFolderPicker.getAttribute("uri");
+  var folderURI = document.getElementById("runFiltersFolder").getAttribute("uri");
   var resource = gRDF.GetResource(folderURI);
   var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
@@ -448,17 +342,12 @@ function runSelectedFilters()
   folders.AppendElement(msgFolder);
 
   // make sure the tmp filter list uses the real filter list log stream
-  filterList.logStream = currentFilterList().logStream;
-  filterList.loggingEnabled = currentFilterList().loggingEnabled;
-  var index = 0, sel = gFilterTree.view.selection;
-  for (var i = 0; i < sel.getRangeCount(); i++) {
-    var start = {}, end = {};
-    sel.getRangeAt(i, start, end);
-    for (var j = start.value; j <= end.value; j++) {
-      var curFilter = getFilter(j);
-      if (curFilter)
-        filterList.insertFilterAt(index++, curFilter);
-    }
+  filterList.logStream = gCurrentFilterList.logStream;
+  filterList.loggingEnabled = gCurrentFilterList.loggingEnabled;
+
+  var list = document.getElementById("filterList");
+  for each (var item in list.selectedItems) {
+    filterList.insertFilterAt(list.getIndexOfItem(item), item._filter);
   }
 
   filterService.applyFiltersToFolders(filterList, folders, gFilterListMsgWindow);
@@ -466,73 +355,85 @@ function runSelectedFilters()
 
 function moveCurrentFilter(motion)
 {
-    var filterList = currentFilterList();
     var filter = currentFilter();
-    if (!filterList || !filter)
+    if (!filter)
       return;
 
-    filterList.moveFilter(filter, motion);
-    refresh();
+    gCurrentFilterList.moveFilter(filter, motion);
+    rebuildFilterList(gCurrentFilterList);
 }
 
-function rebuildFilterTree(uri)
+function rebuildFilterList(aFilterList)
 {
-  gFilterTree.view.selection.clearSelection();
-  gFilterTree.removeAttribute("ref");
-  gFilterTree.setAttribute("ref", uri);
-}
+  gCurrentFilterList = aFilterList;
+  var list = document.getElementById("filterList");
 
-function refresh()
-{
-    if (!gFilterTree)
-      return;
+  // Make a note of which filters were previously selected
+  var selectedNames = [];
+  for (var i = 0; i < list.selectedItems.length; i++)
+    selectedNames.push(list.selectedItems[i]._filter.filterName);
 
-    var selectedRes;
+  // Remove any existing child nodes, but not our headers
+  for (var i = list.childNodes.length - 1; i > 0; i--) {
+    list.removeChild(list.childNodes[i]);
+  }
 
-    // store the selected resource before we rebuild the tree
-    try {
-      selectedRes = gFilterTree.currentIndex >= 0 ? gFilterTree.builderView.getResourceAtIndex(gFilterTree.currentIndex) : null;
-    }
-    catch (ex) {
-      dump("ex = " + ex + "\n");
-      selectedRes = null;
-    }
+  for (i = 0; i < aFilterList.filterCount; i++) {
+    var filter = aFilterList.getFilterAt(i);
+    var listitem = document.createElement("listitem");
+    var nameCell = document.createElement("listcell");
+    nameCell.setAttribute("label", filter.filterName);
+    var enabledCell = document.createElement("listcell");
+    enabledCell.setAttribute("enabled", filter.enabled);
+    enabledCell.setAttribute("class", "listcell-iconic");
+    listitem.appendChild(nameCell);
+    listitem.appendChild(enabledCell);
 
-    rebuildFilterTree(gCurrentServerURI);
+    // We have to attach this listener to the listitem, even though we only care
+    // about clicks on the enabledCell.  However, attaching to that item doesn't
+    // result in any events actually getting received
+    listitem.addEventListener("click", onFilterClick, true);
 
-    // restore selection to the previous selected resource
-    if (selectedRes) {
-        var previousSel = gFilterTree.builderView.getIndexOfResource(selectedRes);
-        if (previousSel >= 0) {
-            // sometimes the selected element is gone.
-            gFilterTree.view.selection.select(previousSel);
-            gFilterTree.treeBoxObject.ensureRowIsVisible(previousSel);
-        }
-    }
+    listitem.addEventListener("dblclick", onFilterDoubleClick, true);
+    listitem._filter = filter;
+    list.appendChild(listitem);
+
+    if (selectedNames.indexOf(filter.filterName) != -1)
+      list.addItemToSelection(listitem);
+  }
+  updateButtons();
+  list.focus();
 }
 
 function updateButtons()
 {
-    var numFiltersSelected = gFilterTree.view.selection.count;
+    var list = document.getElementById("filterList");
+    var numFiltersSelected = list.selectedItems.length;
     var oneFilterSelected = (numFiltersSelected == 1);
 
     var filter = currentFilter();
     // "edit" only enabled when one filter selected or if we couldn't parse the filter
-    gEditButton.disabled = !oneFilterSelected || filter.unparseable;
-
+    var disabled = !oneFilterSelected || filter.unparseable
+    document.getElementById("editButton").disabled = disabled;
+    
     // "delete" only disabled when no filters are selected
-    gDeleteButton.disabled = !numFiltersSelected;
+    document.getElementById("deleteButton").disabled = !numFiltersSelected;
 
     // we can run multiple filters on a folder
     // so only disable this UI if no filters are selected
-    gRunFiltersFolderPickerLabel.disabled = !numFiltersSelected;
-    gRunFiltersFolderPicker.disabled = !numFiltersSelected;
-    gRunFiltersButton.disabled = !numFiltersSelected;
+    document.getElementById("folderPickerPrefix").disabled = !numFiltersSelected;
+    document.getElementById("runFiltersFolder").disabled = !numFiltersSelected;
+    document.getElementById("runFiltersButton").disabled = !numFiltersSelected;
 
     // "up" enabled only if one filter selected, and it's not the first
-    gReorderUpButton.disabled = !(oneFilterSelected && gFilterTree.currentIndex > 0);
+    // don't use list.currentIndex here, it's buggy when we've just changed the
+    // children in the list (via rebuildFilterList)
+    var upDisabled = !(oneFilterSelected && 
+                       list.selectedItems[0] != list.childNodes[1]);
+    document.getElementById("reorderUpButton").disabled = upDisabled
     // "down" enabled only if one filter selected, and it's not the last
-    gReorderDownButton.disabled = !(oneFilterSelected && gFilterTree.currentIndex < gFilterTree.view.rowCount-1);
+    var downDisabled = !(oneFilterSelected && list.currentIndex < list.getRowCount()-1);
+    document.getElementById("reorderDownButton").disabled = downDisabled;
 }
 
 /**
@@ -618,19 +519,14 @@ function onFilterClick(event)
     if (event.button != 0)
       return;
 
-    var row = {}, col = {}, childElt = {};
-    var filterTree = document.getElementById("filterTree");
-    filterTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-    if (row.value == -1 || row.value > filterTree.view.rowCount-1 || event.originalTarget.localName != "treechildren") {
-      if (event.originalTarget.localName == "treecol") {
-        // clicking on the name column in the filter list should not sort
-        event.stopPropagation();
-      }
-      return;
-    }
-
-    if (col.value.id == "activeColumn") {
-      toggleFilter(filterTree.builderView.getResourceAtIndex(row.value));
+    // Remember, we had to attach the click-listener to the whole listitem, so
+    // now we need to see if the clicked the enable-column
+    var toggle = event.target.childNodes[1];
+    if ((event.clientX < toggle.boxObject.x + toggle.boxObject.width) &&
+        (event.clientX > toggle.boxObject.x)) {
+      var list = document.getElementById("filterList");
+      toggleFilter(event.target._filter, list.getIndexOfItem(event.target));
+      event.stopPropagation();
     }
 }
 
@@ -640,39 +536,18 @@ function onFilterDoubleClick(event)
     if (event.button != 0)
       return;
 
-    var row = {}, col = {}, childElt = {};
-    var filterTree = document.getElementById("filterTree");
-    filterTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-    if (row.value == -1 || row.value > filterTree.view.rowCount-1 || event.originalTarget.localName != "treechildren") {
-      // double clicking on a non valid row should not open the edit filter dialog
-      return;
-    }
-
-    // if the cell is in a "cycler" column (the enabled column)
-    // don't open the edit filter dialog with the selected filter
-    if (!col.value.cycler)
-      onEditFilter();
+    onEditFilter();
 }
 
-function onFilterTreeKeyPress(event)
+function onFilterListKeyPress(event)
 {
   // for now, only do something on space key
   if (event.charCode != KeyEvent.DOM_VK_SPACE)
     return;
 
-  var rangeCount = gFilterTree.view.selection.getRangeCount();
-  for (var i = 0; i < rangeCount; ++i) {
-    var start = {}, end = {};
-    gFilterTree.view.selection.getRangeAt(i, start, end);
-    for (var k = start.value; k <= end.value; ++k) {
-      toggleFilter(gFilterTree.builderView.getResourceAtIndex(k));
-    }
-  }
-}
-
-function doHelpButton()
-{
-  openHelp("mail-filters");
+  var list = document.getElementById("filterList")
+  for each (var item in list.selectedItems)
+    toggleFilter(item, list.getIndexOfItem(item));
 }
 
 /**
@@ -705,15 +580,4 @@ function getFirstFolderURI(msgFolder)
     dump(ex + "\n");
   }
   return msgFolder.URI;
-}
-
-function GetPromptService()
-{
-  try {
-    return Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                     .getService(Components.interfaces.nsIPromptService);
-  }
-  catch (e) {
-    return null;
-  }
 }
