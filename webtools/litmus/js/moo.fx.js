@@ -105,8 +105,13 @@ fx.Opacity.prototype = Object.extend(new fx.Base(), {
 	},
 	
 	setOpacity: function(opacity) {
-		if (opacity == 0 && this.el.style.visibility != "auto") this.el.style.visibility = "auto";
-		else if (this.el.style.visibility != "visible") this.el.style.visibility = "visible";
+		if (this.el.style.visibility) {
+		    if (opacity == 0 && this.el.style.visibility != "auto") {
+		        this.el.style.visibility = "auto";
+		    } else if (this.el.style.visibility != "visible") {
+			this.el.style.visibility = "visible";
+		    }
+		}
 		if (window.ActiveXObject) this.el.style.filter = "alpha(opacity=" + opacity*100 + ")";
 		this.el.style.opacity = opacity;
 	},
