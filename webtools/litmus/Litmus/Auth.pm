@@ -366,7 +366,8 @@ sub processLoginForm {
     if (!$user) {
       loginError($c, "Username/Password incorrect. Please try again.");
     }
-    
+
+    expireOldSessions($user);
     my $session = makeSession($user);
     $c->storeCookie(makeCookie($session));
     
@@ -471,6 +472,13 @@ sub expireSessions {
   }
 }
 
+sub expireOldSessions {
+  my $userobj = shift;
+  my @sessions = $userobj->sessions();
+  foreach my $session (@sessions) {
+    $session->isValid();
+  }
+}
 
 # Given a userobj, process the login and return a session object
 sub makeSession {
