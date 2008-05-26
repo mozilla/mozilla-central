@@ -69,7 +69,6 @@
 #include "nsIFileURL.h"
 
 // rdf
-#include "nsIRDFCompositeDataSource.h"
 #include "nsIRDFResource.h"
 #include "nsIRDFService.h"
 #include "nsRDFCID.h"
@@ -1262,86 +1261,6 @@ nsMessenger::Alert(const char *stringName)
   return rv;
 }
 
-nsresult
-nsMessenger::DoCommand(nsIRDFCompositeDataSource* db, const nsACString& command,
-                       nsISupportsArray *srcArray,
-                       nsISupportsArray *argumentArray)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
-  if(NS_FAILED(rv))
-    return rv;
-
-  nsCOMPtr<nsIRDFResource> commandResource;
-  rv = rdfService->GetResource(command, getter_AddRefs(commandResource));
-  if(NS_SUCCEEDED(rv))
-    rv = db->DoCommand(srcArray, commandResource, argumentArray);
-
-  return rv;
-}
-
-NS_IMETHODIMP nsMessenger::DeleteFolders(nsIRDFCompositeDataSource *db,
-                                         nsIRDFResource *parentResource,
-                                         nsIRDFResource *deletedFolderResource)
-{
-  nsresult rv;
-
-  if(!db || !parentResource || !deletedFolderResource)
-    return NS_ERROR_NULL_POINTER;
-
-  nsCOMPtr<nsISupportsArray> parentArray, deletedArray;
-
-  rv = NS_NewISupportsArray(getter_AddRefs(parentArray));
-  NS_ENSURE_SUCCESS(rv, NS_ERROR_OUT_OF_MEMORY);
-
-  rv = NS_NewISupportsArray(getter_AddRefs(deletedArray));
-  NS_ENSURE_SUCCESS(rv, NS_ERROR_OUT_OF_MEMORY);
-
-  parentArray->AppendElement(parentResource);
-  deletedArray->AppendElement(deletedFolderResource);
-        deletedArray->AppendElement(mMsgWindow);
-
-  rv = DoCommand(db, NS_LITERAL_CSTRING(NC_RDF_DELETE), parentArray, deletedArray);
-
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsMessenger::CopyMessages(nsIRDFCompositeDataSource *database,
-                          nsIRDFResource *srcResource, // folder
-                          nsIRDFResource *dstResource,
-                          nsISupportsArray *argumentArray, // nsIMessages
-                          PRBool isMove)
-{
-  nsresult rv;
-
-  NS_ENSURE_ARG_POINTER(srcResource);
-  NS_ENSURE_ARG_POINTER(dstResource);
-  NS_ENSURE_ARG_POINTER(argumentArray);
-
-  nsCOMPtr<nsIMsgFolder> srcFolder;
-  nsCOMPtr<nsISupportsArray> folderArray;
-
-  srcFolder = do_QueryInterface(srcResource);
-  if(!srcFolder)
-    return NS_ERROR_NO_INTERFACE;
-
-  nsCOMPtr<nsISupports> srcFolderSupports(do_QueryInterface(srcFolder));
-  if(srcFolderSupports)
-    argumentArray->InsertElementAt(srcFolderSupports, 0);
-
-  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  folderArray->AppendElement(dstResource);
-  if (isMove)
-    rv = DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_MOVE), folderArray, argumentArray);
-  else
-    rv = DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_COPY), folderArray, argumentArray);
-  return rv;
-}
-
 NS_IMETHODIMP
 nsMessenger::MessageServiceFromURI(const nsACString& aUri, nsIMsgMessageService **aMsgService)
 {
@@ -1374,98 +1293,6 @@ nsMessenger::MsgHdrFromURI(const nsACString& aUri, nsIMsgDBHdr **aMsgHdr)
   rv = GetMessageServiceFromURI(aUri, getter_AddRefs(msgService));
   NS_ENSURE_SUCCESS(rv, rv);
   return msgService->MessageURIToMsgHdr(PromiseFlatCString(aUri).get(), aMsgHdr);
-}
-
-NS_IMETHODIMP
-nsMessenger::CopyFolders(nsIRDFCompositeDataSource *database,
-                          nsIRDFResource *dstResource,
-                          nsISupportsArray *argumentArray, // nsIFolders
-                          PRBool isMoveFolder)
-{
-  nsresult rv;
-
-  if(!dstResource || !argumentArray)
-    return NS_ERROR_NULL_POINTER;
-
-  nsCOMPtr<nsISupportsArray> folderArray;
-
-  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  folderArray->AppendElement(dstResource);
-
-  if (isMoveFolder)
-    return DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_MOVEFOLDER), folderArray, argumentArray);
-
-  return DoCommand(database, NS_LITERAL_CSTRING(NC_RDF_COPYFOLDER), folderArray, argumentArray);
-}
-
-NS_IMETHODIMP
-nsMessenger::RenameFolder(nsIRDFCompositeDataSource* aDB,
-                          nsIRDFResource* aFolderResource,
-                          const nsAString& aName)
-{
-  NS_ENSURE_ARG_POINTER(aDB);
-  NS_ENSURE_ARG_POINTER(aFolderResource);
-
-  nsresult rv;
-  nsCOMPtr<nsISupportsArray> folderArray;
-  nsCOMPtr<nsISupportsArray> argsArray;
-
-  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-  folderArray->AppendElement(aFolderResource);
-  rv = NS_NewISupportsArray(getter_AddRefs(argsArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIRDFLiteral> nameLiteral;
-
-  rdfService->GetLiteral(PromiseFlatString(aName).get(), getter_AddRefs(nameLiteral));
-  argsArray->AppendElement(nameLiteral);
-  rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_RENAME), folderArray, argsArray);
-
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMessenger::CompactFolder(nsIRDFCompositeDataSource* aDB,
-                           nsIRDFResource* aFolderResource, PRBool forAll)
-{
-  nsresult rv = NS_ERROR_NULL_POINTER;
-
-  if (!aDB || !aFolderResource) return rv;
-  nsCOMPtr<nsISupportsArray> folderArray;
-
-  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-  folderArray->AppendElement(aFolderResource);
-  if (forAll)
-    rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_COMPACTALL),  folderArray, nsnull);
-  else
-    rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_COMPACT),  folderArray, nsnull);
-  if (NS_SUCCEEDED(rv) && mTxnMgr)
-      mTxnMgr->Clear();
-  return rv;
-}
-
-NS_IMETHODIMP
-nsMessenger::EmptyTrash(nsIRDFCompositeDataSource* aDB,
-                        nsIRDFResource* aFolderResource)
-{
-  if (!aDB || !aFolderResource) return NS_ERROR_NULL_POINTER;
-  nsCOMPtr<nsISupportsArray> folderArray;
-
-  nsresult rv;
-  rv = NS_NewISupportsArray(getter_AddRefs(folderArray));
-  NS_ENSURE_SUCCESS(rv, rv);
-  folderArray->AppendElement(aFolderResource);
-  rv = DoCommand(aDB, NS_LITERAL_CSTRING(NC_RDF_EMPTYTRASH), folderArray, nsnull);
-  if (NS_SUCCEEDED(rv) && mTxnMgr)
-      mTxnMgr->Clear();
-  return rv;
 }
 
 NS_IMETHODIMP nsMessenger::GetUndoTransactionType(PRUint32 *txnType)

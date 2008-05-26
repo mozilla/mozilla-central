@@ -37,7 +37,6 @@
 
 #include "nsISupports.idl"
 #include "nsrootidl.idl"
-#include "nsIRDFCompositeDataSource.idl"
 #include "nsIMsgWindow.idl"
 #include "nsIMsgIdentity.idl"
 #include "nsIMsgThread.idl"
@@ -64,21 +63,6 @@ interface nsIMessenger : nsISupports {
 
     void setWindow(in nsIDOMWindowInternal ptr, in nsIMsgWindow msgWindow);
 
-    void deleteFolders(in nsIRDFCompositeDataSource db,
-                       in nsIRDFResource parentFolder,
-                       in nsIRDFResource folder);
-    void copyMessages(in nsIRDFCompositeDataSource database,
-                   in nsIRDFResource srcResource,
-                   in nsIRDFResource dstResource,
-                   in nsISupportsArray messages,
-                   in boolean isMove);
-
-    void copyFolders(in nsIRDFCompositeDataSource database,
-                   in nsIRDFResource dstResource,
-                   in nsISupportsArray folders,
-                   in boolean isMoveFolder);
-    
-
     void openURL(in ACString aURL);
 
     /** load a custom message by url, e.g load a attachment as a email
@@ -86,14 +70,6 @@ interface nsIMessenger : nsISupports {
     void loadURL(in nsIDOMWindowInternal ptr, in ACString aURL); 
 
     void launchExternalURL(in ACString aURL);
-
-    void renameFolder(in nsIRDFCompositeDataSource db, 
-                      in nsIRDFResource folder, in AString name);
-    void compactFolder(in nsIRDFCompositeDataSource db,
-                       in nsIRDFResource folder, 
-                       in boolean forAll);
-    void emptyTrash(in nsIRDFCompositeDataSource db,
-                    in nsIRDFResource folder);
 
     boolean canUndo();
     boolean canRedo();

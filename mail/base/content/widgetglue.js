@@ -99,7 +99,7 @@ function RenameFolder(name,uri)
 
       try
       {
-        messenger.renameFolder(GetFolderDatasource(), selectedFolder, name);
+        selectedFolder.rename(name, msgWindow);
       }
       catch(e)
       {
@@ -128,13 +128,8 @@ function MsgEmptyTrash()
     if (startIndex.value >= 0)
     {
         var folderResource = GetFolderResource(folderTree, startIndex.value);
-        try {
-            messenger.emptyTrash(GetFolderDatasource(), folderResource);
-        }
-            catch(e)
-        {
-            dump ("Exception : messenger.emptyTrash \n");
-        }
+        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        folder.emptyTrash(msgWindow, null);
     }
 }
 
@@ -168,14 +163,8 @@ function MsgCompactFolder(isAll)
           return;
       }
     }
-    try
-    {
-      messenger.compactFolder(GetFolderDatasource(), resource, isAll);
-    }
-    catch(ex)
-    {
-      dump("Exception : messenger.CompactFolder : " + ex + "\n");
-    }
+    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    msgFolder.compact(null, msgWindow);
   }
 }
 

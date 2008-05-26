@@ -84,10 +84,6 @@ public:
                               PRBool detaching);
 
 protected:
-  nsresult DoDelete(nsIRDFCompositeDataSource* db, nsISupportsArray *srcArray,
-                    nsISupportsArray *deletedArray);
-  nsresult DoCommand(nsIRDFCompositeDataSource *db, const nsACString& command,
-                     nsISupportsArray *srcArray, nsISupportsArray *arguments);
   void GetString(const nsString& aStringName, nsString& stringValue);
   nsresult InitStringBundle();
   nsresult PromptIfDeleteAttachments(PRBool saveFirst, PRUint32 count, const char **displayNameArray);

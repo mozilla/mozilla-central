@@ -363,23 +363,28 @@ function DropOnFolderTree(row, orientation)
     var isSourceNews = false;
     isSourceNews = isNewsURI(sourceUri);
 
+    var cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                       .getService(Components.interfaces.nsIMsgCopyService);
     if (dropMessage) {
         var sourceMsgHdr = list.GetElementAt(0).QueryInterface(Components.interfaces.nsIMsgDBHdr);
         sourceFolder = sourceMsgHdr.folder;
         sourceResource = sourceFolder.QueryInterface(Components.interfaces.nsIRDFResource);
         sourceServer = sourceFolder.server;
 
+
         try {
             if (isSourceNews) {
                 // news to pop or imap is always a copy
-                messenger.copyMessages(GetFolderDatasource(), sourceResource, targetResource, list, false);
+                cs.CopyMessages(sourceFolder, list, targetFolder, false, null,
+                                msgWindow, true);
             }
             else if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY ||
                      dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE) {
                 var isMove = (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_MOVE);
                 pref.setCharPref("mail.last_msg_movecopy_target_uri", targetFolder.URI);
-                pref.setBoolPref("mail.last_msg_movecopy_was_move", isMove);  
-                messenger.copyMessages(GetFolderDatasource(), sourceResource, targetResource, list, isMove);
+                pref.setBoolPref("mail.last_msg_movecopy_was_move", isMove);
+                cs.CopyMessages(sourceFolder, list, targetFolder, isMove, null,
+                                msgWindow, true); 
             }
         }
         catch (ex) {
@@ -400,14 +405,8 @@ function DropOnFolderTree(row, orientation)
       else
       { // dragging a normal folder
         sourceServer = sourceFolder.server;
-        try 
-        {
-          messenger.copyFolders(GetFolderDatasource(), targetResource, list, (sourceServer == targetServer));
-        }
-        catch(ex)
-        {
-            dump ("Exception : CopyFolders " + ex + "\n");
-        }
+        cs.CopyFolders(list, targetFolder, (sourceServer == targetServer), null,
+                       msgWindow);
       }
     }
     return true;
