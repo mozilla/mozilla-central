@@ -47,6 +47,8 @@ function getCompositeCalendar() {
             .createInstance(Components.interfaces.calICompositeCalendar);
 
         gCompositeCalendar.prefPrefix = 'calendar-main';
+        var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);    
+        gCompositeCalendar.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
     }
     return gCompositeCalendar;
 }

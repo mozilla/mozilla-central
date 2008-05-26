@@ -40,6 +40,7 @@ calendar.jar:
     content/calendar/calendar-unifinder.js       (content/calendar-unifinder.js)
     content/calendar/calendar-unifinder-todo.xul (content/calendar-unifinder-todo.xul)
     content/calendar/calendar-unifinder-todo.js  (content/calendar-unifinder-todo.js)
+    content/calendar/calendar-statusbar.js       (content/calendar-statusbar.js)
     content/calendar/calendar-summary-dialog.js  (content/calendar-summary-dialog.js)
     content/calendar/calendar-summary-dialog.xul (content/calendar-summary-dialog.xul)
 *   content/calendar/today-pane.xul              (content/today-pane.xul)

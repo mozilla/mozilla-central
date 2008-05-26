@@ -226,8 +226,10 @@
                   offline="true"
                   oncommand="calendarOfflineManager.toggleOfflineStatus()"/>
   <statusbarpanel id="statusText"
-                  flex="1"
-                  value="&statusText.label;"/>
-</statusbar>  
+                  flex="1"/>
+  <statusbarpanel class="statusbarpanel-progress" collapsed="true" id="statusbar-progresspanel">
+      <progressmeter class="progressmeter-statusbar" id="statusbar-icon" mode="normal" value="0"/>
+  </statusbarpanel>
+</statusbar>
 
 </window>

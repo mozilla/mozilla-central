@@ -62,6 +62,7 @@
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-ui-utils.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-creation.js"/>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-dnd-listener.js"/>
+  <script type="application/x-javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
   <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 
   <!-- NEEDED FOR MINIMONTH BUSY HIGHLIGHT -->

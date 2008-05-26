@@ -55,6 +55,8 @@ interface calIOperationListener;
 interface calIRange;
 interface calIDateTime;
 interface calIOperation;
+interface calIStatusObserver;
+interface nsIDOMChromeWindow;
 
 [scriptable, uuid(74e685e4-d863-11d9-88f2-000b7d081f44)]
 interface calICalendar : nsISupports
@@ -421,7 +423,7 @@ interface calICalendar : nsISupports
    * are caught!
    */
   void startBatch();
-  
+
   /**
    * Turn off batch mode.
    */
@@ -456,10 +458,9 @@ interface calICompositeCalendar : calICalendar
    */
   calICalendar getCalendar( in nsIURI aServer );
 
-  /**
-   * An enumerator of all calICalendars that make up this composite.
-   */
-  readonly attribute nsISimpleEnumerator calendars;
+  /* return a list of all calendars currently registered */
+  void getCalendars(out PRUint32 count,
+                    [array, size_is(count), retval] out calICalendar aCalendars);
 
   /**
    * In order for addItem() to be called on this object, it is first necessary
@@ -474,6 +475,17 @@ interface calICompositeCalendar : calICalendar
    * track changes in calendar membership and default calendar.
    */
   attribute ACString prefPrefix;
+
+  /**
+   * If returns true there is a process running that needs to displayed
+   * by the statusObserver
+   */
+  readonly attribute boolean statusDisplayed;
+  
+  /**
+   * Sets a statusobserver for status notifications like startMeteors() and StopMeteors().
+   */
+   void setStatusObserver( in calIStatusObserver aStatusObserver, in nsIDOMChromeWindow aWindow );
 };
 
 /**

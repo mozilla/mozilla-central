@@ -103,6 +103,7 @@ function calCompositeCalendar () {
     this.mCompositeObservers = new calListenerBag(Components.interfaces.calICompositeObserver);
     this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
     this.mDefaultCalendar = null;
+    this.mStatusObserver = null;
 }
 
 calCompositeCalendar.prototype = {
@@ -231,10 +232,9 @@ calCompositeCalendar.prototype = {
         return null;
     },
 
-    get calendars() {
-        // return a nsISimpleEnumerator of this array.  This sucks.
-        // XXX make this an array, like the calendar manager?
-        return null;
+    getCalendars: function getCalendars(count) {
+        count.value = this.mCalendars.length;
+        return this.mCalendars;
     },
 
     get defaultCalendar() { 
@@ -346,6 +346,9 @@ calCompositeCalendar.prototype = {
     },
 
     refresh: function() {
+        if (this.mStatusObserver) {
+            this.mStatusObserver.startMeteors(Components.interfaces.calIStatusObserver.DETERMINED_PROGRESS, this.mCalendars.length);
+        }
         for each (cal in this.mCalendars) {
             try {
                 if (cal.canRefresh) {
@@ -415,8 +418,13 @@ calCompositeCalendar.prototype = {
                                            null);
             return;
         }
+        if (this.mStatusObserver) {
+            if (this.mStatusObserver.spinning == Components.interfaces.calIStatusObserver.NO_PROGRESS) {
+                this.mStatusObserver.startMeteors(Components.interfaces.calIStatusObserver.UNDETERMINED_PROGRESS, -1);
+            }
+        }                
+        var cmpListener = new calCompositeGetListenerHelper(this, aListener, aCount);
 
-        var cmpListener = new calCompositeGetListenerHelper(this.mCalendars.length, aListener, aCount);
         for (cal in this.mCalendars) {
             try {
                 cmpListener.opGroup.add(
@@ -436,13 +444,27 @@ calCompositeCalendar.prototype = {
     endBatch: function ()
     {
         this.mCompositeObservers.notify("onEndBatch");
+    },
+    
+    get statusDisplayed() {
+        if (!this.mStatusObserver){
+            return false;
+        } else {
+            return this.mStatusObserver.spinning != Components.interfaces.calIStatusObserver.NO_PROGRESS;
+        }
+    },
+    
+    setStatusObserver: function(aStatusObserver, aWindow){
+        this.mStatusObserver = aStatusObserver;
+        this.mStatusObserver.initialize(aWindow);
     }
 };
 
 // composite listener helper
-function calCompositeGetListenerHelper(aNumQueries, aRealListener, aMaxItems) {
+function calCompositeGetListenerHelper(aCompositeCalendar, aRealListener, aMaxItems) {
     this.wrappedJSObject = this;
-    this.mNumQueries = aNumQueries;
+    this.mCompositeCalendar = aCompositeCalendar;
+    this.mNumQueries = aCompositeCalendar.getCalendars({}).length;
     this.mRealListener = aRealListener;
     this.mMaxItems = aMaxItems;
 }
@@ -466,6 +488,9 @@ calCompositeGetListenerHelper.prototype = {
                     listener.onOperationComplete(
                         this_, Components.interfaces.calIErrors.OPERATION_CANCELLED,
                         calIOperationListener.GET, null, null);
+                    if (this_.mCompositeCalendar.statusDisplayed) {
+                        this_.mCompositeCalendar.mStatusObserver.stopMeteors();
+                    }
                 }
             }
             this.mOpGroup = new calOperationGroup(cancelFunc);
@@ -492,7 +517,9 @@ calCompositeGetListenerHelper.prototype = {
             dump ("+++ calCompositeGetListenerHelper.onOperationComplete: called with mFinished == true!");
             return;
         }
-
+        if (this.mCompositeCalendar.statusDisplayed) {
+            this.mCompositeCalendar.mStatusObserver.calendarCompleted(aCalendar);
+        }
         if (!Components.isSuccessCode(aStatus)) {
             // proxy this to a onGetResult
             // XXX - do we want to give the real calendar? or this?
@@ -503,8 +530,10 @@ calCompositeGetListenerHelper.prototype = {
         }
 
         this.mReceivedCompletes++;
-
         if (this.mReceivedCompletes == this.mNumQueries) {
+            if (this.mCompositeCalendar.statusDisplayed) {
+                this.mCompositeCalendar.mStatusObserver.stopMeteors();
+            }
             // we're done here.
             this.mFinished = true;
             this.opGroup.notifyCompleted();
