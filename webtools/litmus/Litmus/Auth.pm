@@ -502,7 +502,7 @@ sub makeCookie {
                                      -name    => $logincookiename,
                                      -value   => $session->sessioncookie(),
                                      -domain  => $main::ENV{"HTTP_HOST"},
-                                     -expires => $session->expires(),
+                                     -expires => &Date::Manip::UnixDate($session->expires(),"%c"),
                                     );
   return $cookie;
 }
