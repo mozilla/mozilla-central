@@ -931,15 +931,15 @@ function MsgDeleteFolder()
         var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
         if (specialFolder != "Inbox" && specialFolder != "Trash")
         {
-          var parentResource;
-
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
             if (folder.flags & MSG_FOLDER_FLAG_VIRTUAL)
             {
                 if (gCurrentVirtualFolderUri == folderResource.Value)
                   gCurrentVirtualFolderUri = null;
-                parentResource = selectedFolder.parent.QueryInterface(Components.interfaces.nsIRDFResource);
-                messenger.deleteFolders(GetFolderDatasource(), parentResource, folderResource);
+                var array = Components.classes["@mozilla.org/supports-array;1"]
+                                      .createInstance(Components.interfaces.nsISupportsArray);
+                array.AppendElement(folder);
+                folder.parent.deleteSubFolders(array, msgWindow);
                 continue;
             }
             var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + selectedFolder.server.type].getService(Components.interfaces.nsIMsgProtocolInfo);
@@ -965,8 +965,10 @@ function MsgDeleteFolder()
             }
             else
             {
-                parentResource = selectedFolder.parent.QueryInterface(Components.interfaces.nsIRDFResource);
-                messenger.deleteFolders(GetFolderDatasource(), parentResource, folderResource);
+                var array = Components.classes["@mozilla.org/supports-array;1"]
+                                      .createInstance(Components.interfaces.nsISupportsArray);
+                array.AppendElement(selectedFolder);
+                selectedFolder.parent.deleteSubFolders(array, msgWindow);
             }
         }
     }
