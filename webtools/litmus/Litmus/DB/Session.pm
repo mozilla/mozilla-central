@@ -46,8 +46,6 @@ Litmus::DB::Session->columns(TEMP => qw //);
 
 Litmus::DB::Session->has_a(user_id => "Litmus::DB::User");
 
-Litmus::DB::Session->autoinflate(dates => 'Time::Piece');
-
 # expire the current Session object 
 sub makeExpire {
 	my $self = shift;
@@ -61,7 +59,9 @@ sub isValid {
   my $self = shift;
 
   my $now = &getCurrentTimestamp();
-  if ($self->expires() le $now) {
+  my $expiry = &formatDate($self->expires());
+
+  if ($expiry <= $now) {
     $self->makeExpire();
     return 0;
   }
@@ -73,11 +73,17 @@ sub isValid {
   return 1;
 }
 
-# This function will hopefully make it easier to change the date format that
+# These functions will hopefully make it easier to change the date format that
 # gets compared against the session expiry if the format should change, e.g.
 # db change.
 sub getCurrentTimestamp {
-  return &Date::Manip::UnixDate("now","%c");
+  return &Date::Manip::UnixDate("today","%q");
+}
+
+sub formatDate {
+  my $date_to_format = shift;
+  $date_to_format =~ s/^\w\w\w //;
+  return &Date::Manip::UnixDate($date_to_format,"%q");
 }
 
 1;

@@ -40,8 +40,8 @@ use strict;
 
 require Exporter;
 use Litmus::Error;
-use Time::Piece;
-use Time::Seconds;
+#use Time::Piece;
+#use Time::Seconds;
 use Litmus::DB::User;
 use Litmus::DB::PasswordResets;
 use Litmus::Memoize;
@@ -478,7 +478,8 @@ sub makeSession {
   my $dontsetsession = shift;
   my $c = Litmus->cgi();
 
-  my $expires = localtime() + ONE_DAY * $cookie_expire_days;
+  my $err;
+  my $expires = &Date::Manip::UnixDate(DateCalc("now","+ $cookie_expire_days days",\$err),"%q");
 
   my $sessioncookie = randomToken(64);
 
