@@ -91,8 +91,14 @@ NS_IMETHODIMP nsMsgMailSession::AddFolderListener(nsIFolderListener *aListener,
 {
   NS_ENSURE_ARG_POINTER(aListener);
 
-  folderListener newListener(aListener, aNotifyFlags);
-  mListeners.AppendElement(newListener);
+  // we don't care about the notification flags for equivalence purposes
+  PRInt32 index = mListeners.IndexOf(aListener);
+  NS_ASSERTION(index == -1, "tried to add duplicate listener");
+  if (index == -1)
+  {
+    folderListener newListener(aListener, aNotifyFlags);
+    mListeners.AppendElement(newListener);
+  }
 
   return NS_OK;
 }
