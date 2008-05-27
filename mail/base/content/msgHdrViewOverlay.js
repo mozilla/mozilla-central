@@ -1141,7 +1141,6 @@ function onShowAttachmentContextMenu()
   // if no attachments are selected, disable the Open and Save...
   var attachmentList = document.getElementById('attachmentList');
   var selectedAttachments = attachmentList.selectedItems;
-  var attachmentList = document.getElementById('attachmentListContext');
   var openMenu = document.getElementById('context-openAttachment');
   var saveMenu = document.getElementById('context-saveAttachment');
   var detachMenu = document.getElementById('context-detachAttachment');
@@ -1151,34 +1150,35 @@ function onShowAttachmentContextMenu()
   var detachAllMenu = document.getElementById('context-detachAllAttachments');
   var deleteAllMenu = document.getElementById('context-deleteAllAttachments');
   var canDetach = CanDetachAttachments();
-  var canOpen = false;
+  var deleted = true;
+  var deletedAll = true;
   var selectNone = selectedAttachments.length == 0;
-  for (var i = 0; i < selectedAttachments.length && !canOpen; i++)
-    canOpen = selectedAttachments[i].attachment.contentType != 'text/x-moz-deleted';
-  if (selectedAttachments.length == 1)
+  for (var i = 0; i < selectedAttachments.length && deleted; i++)
+    deleted = selectedAttachments[i].attachment.contentType == 'text/x-moz-deleted';
+  for (var i = 0; i < currentAttachments.length && deletedAll; i++)
+    deletedAll = currentAttachments[i].contentType == 'text/x-moz-deleted';
+
+  openMenu.setAttribute('hidden', selectNone);
+  saveMenu.setAttribute('hidden', selectNone);
+  detachMenu.setAttribute('hidden', selectNone);
+  deleteMenu.setAttribute('hidden', selectNone);
+  menuSeparator.setAttribute('hidden', selectNone);
+  saveAllMenu.setAttribute('hidden', !selectNone);
+  detachAllMenu.setAttribute('hidden', !selectNone);
+  deleteAllMenu.setAttribute('hidden', !selectNone);
+
+  if (!selectNone)
   {
-    openMenu.setAttribute('hidden', !canOpen);
-    saveMenu.setAttribute('hidden', !canOpen);
-
-    detachMenu.setAttribute('hidden', !canDetach || !canOpen);
-    deleteMenu.setAttribute('hidden', !canDetach || !canOpen);
-    menuSeparator.setAttribute('hidden', !canDetach || !canOpen);
-
-    saveAllMenu.setAttribute('hidden', 'true');
-    detachAllMenu.setAttribute('hidden', 'true');
-    deleteAllMenu.setAttribute('hidden', 'true');
+    openMenu.setAttribute('disabled', deleted);
+    saveMenu.setAttribute('disabled', deleted);
+    detachMenu.setAttribute('disabled', !canDetach || deleted);
+    deleteMenu.setAttribute('disabled', !canDetach || deleted);
   }
   else
   {
-    openMenu.setAttribute('hidden', selectNone);
-    saveMenu.setAttribute('hidden', selectNone);
-    detachMenu.setAttribute('hidden', selectNone);
-    deleteMenu.setAttribute('hidden', selectNone);
-    saveAllMenu.setAttribute('hidden', !selectNone);
-    menuSeparator.setAttribute('hidden', selectNone);
-
-    detachAllMenu.setAttribute('hidden', !canDetach || !selectNone);
-    deleteAllMenu.setAttribute('hidden', !canDetach || !selectNone);
+    saveAllMenu.setAttribute('disabled', deletedAll);
+    detachAllMenu.setAttribute('disabled', !canDetach || deletedAll);
+    deleteAllMenu.setAttribute('disabled', !canDetach || deletedAll);
   }
 }
 
