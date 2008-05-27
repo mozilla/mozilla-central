@@ -80,6 +80,7 @@ __PACKAGE__->set_sql(TopTesters => qq{
                                       SELECT users.user_id, users.email, count(*) AS num_results
                                       FROM users, test_results
                                       WHERE users.user_id=test_results.user_id
+                                      AND test_results.is_automated_result = 0
                                       GROUP BY user_id
                                       ORDER BY num_results DESC
                                       LIMIT 15
