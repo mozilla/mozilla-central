@@ -37,7 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgComposeParams.h"
-#include "nsReadableUtils.h"
 
 nsMsgComposeParams::nsMsgComposeParams() :
   mType(nsIMsgCompType::New),

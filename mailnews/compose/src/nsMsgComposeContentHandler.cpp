@@ -42,6 +42,7 @@
 #include "nsIChannel.h"
 #include "nsIURI.h"
 #include "plstr.h"
+#include "nsServiceManagerUtils.h"
 
 static NS_DEFINE_CID(kMsgComposeServiceCID, NS_MSGCOMPOSESERVICE_CID);
 

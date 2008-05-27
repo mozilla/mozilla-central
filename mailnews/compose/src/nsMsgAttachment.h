@@ -39,7 +39,7 @@
 #define _nsMsgAttachment_H_
 
 #include "nsIMsgAttachment.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsMsgAttachment : public nsIMsgAttachment
 {

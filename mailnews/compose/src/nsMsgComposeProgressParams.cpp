@@ -37,8 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsMsgComposeProgressParams.h"
-#include "nsReadableUtils.h"
-
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgComposeProgressParams, nsIMsgComposeProgressParams)
 

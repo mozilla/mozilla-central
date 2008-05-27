@@ -39,7 +39,7 @@
 #define __nsSmtpServer_h_
 
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsISmtpServer.h"
 #include "nsIPrefBranch.h"
 #include "nsWeakReference.h"

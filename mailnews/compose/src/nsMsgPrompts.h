@@ -40,7 +40,7 @@
 
 #include "nscore.h"
 #include "nsError.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIPrompt;
 

@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsIMsgComposeParams.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMsgHdr.h"
 class nsMsgComposeParams : public nsIMsgComposeParams
 {

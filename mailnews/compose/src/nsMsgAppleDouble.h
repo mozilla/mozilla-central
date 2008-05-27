@@ -53,6 +53,7 @@
 #include "msgCore.h"
 #include "nsComposeStrings.h"
 #include "nsIOutputStream.h"
+#include "nsCOMPtr.h"
 
 #define NOERR			0
 #define errDone			1

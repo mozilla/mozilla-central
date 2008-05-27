@@ -49,7 +49,7 @@
 #include "nsIURIContentListener.h"
 #include "nsIWebProgressListener.h"
 #include "nsWeakReference.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsURLFetcher : public nsIURLFetcher,
                      public nsIStreamListener,

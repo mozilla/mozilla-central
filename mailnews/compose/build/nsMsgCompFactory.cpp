@@ -44,6 +44,7 @@
 #include "nsICategoryManager.h"
 #include "nsIGenericFactory.h"
 #include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsIModule.h"
 
 #include "pratom.h"

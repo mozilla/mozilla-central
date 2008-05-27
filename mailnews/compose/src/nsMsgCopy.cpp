@@ -60,6 +60,8 @@
 #include "nsIMsgProgress.h"
 #include "nsComposeStrings.h"
 #include "prmem.h"
+#include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -281,7 +283,7 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
       return NS_ERROR_OUT_OF_MEMORY;
 
     copyListener->SetMsgComposeAndSendObject(aMsgSendObj);
-    nsIThread *thread = nsnull;
+    nsCOMPtr<nsIThread> thread;
 
     if (aIsDraft)
     {
@@ -298,7 +300,7 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
           // set the following only when we were in the middle of shutdown
           // process
             copyListener->mCopyInProgress = PR_TRUE;
-            thread = NS_GetCurrentThread();
+            NS_GetCurrentThread(getter_AddRefs(thread));
         }
     }
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);

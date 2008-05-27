@@ -45,8 +45,8 @@
 #include "nsMsgUtils.h"
 #include "prmem.h"
 #include "nsIFileChannel.h"
-#include "nsReadableUtils.h"
 #include "nsIMsgMdnGenerator.h"
+#include "nsServiceManagerUtils.h"
 
 /* the following macro actually implement addref, release and query interface for our component. */
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgCompFields, nsIMsgCompFields)
@@ -131,7 +131,7 @@ nsresult nsMsgCompFields::SetUnicodeHeader(MsgHeaderID header, const nsAString& 
 
 nsresult nsMsgCompFields::GetUnicodeHeader(MsgHeaderID header, nsAString& aResult)
 {
-  CopyUTF8toUTF16(GetAsciiHeader(header), aResult);
+  CopyUTF8toUTF16(nsDependentCString(GetAsciiHeader(header)), aResult);
   return NS_OK;
 }
 
@@ -606,7 +606,7 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
       char * addresses;
       PRUint32 numAddresses;
       
-      CopyUTF16toUTF8(recipients, recipientsStr);
+      CopyUTF16toUTF8(nsDependentString(recipients), recipientsStr);
       
       rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names, 
                                        &addresses, &numAddresses);
@@ -668,7 +668,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients,
   char *addresses;
   PRUint32 numAddresses;
       
-  CopyUTF16toUTF8(recipients, recipientsStr);
+  CopyUTF16toUTF8(nsDependentString(recipients), recipientsStr);
   rv = parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names,
                                     &addresses, &numAddresses);
   if (NS_SUCCEEDED(rv))

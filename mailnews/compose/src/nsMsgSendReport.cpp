@@ -42,10 +42,10 @@
 #include "nsIMsgCompose.h"
 #include "nsMsgCompCID.h"
 #include "nsMsgPrompts.h"
-#include "nsReadableUtils.h"
 #include "nsNetError.h"
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
+#include "nsServiceManagerUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgProcessReport, nsIMsgProcessReport)
 

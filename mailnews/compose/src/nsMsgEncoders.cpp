@@ -42,6 +42,7 @@
 #include "nsIServiceManager.h"
 #include "nsMsgMimeCID.h"
 #include "nsIMimeConverter.h"
+#include "nsComponentManagerUtils.h"
 
 extern "C" MimeEncoderData *
 MIME_B64EncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure) 

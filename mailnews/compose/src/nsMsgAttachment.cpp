@@ -37,7 +37,6 @@
 
 #include "nsMsgAttachment.h"
 #include "nsILocalFile.h"
-#include "nsReadableUtils.h"
 #include "nsNetUtil.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgAttachment, nsIMsgAttachment)
@@ -136,7 +135,7 @@ NS_IMETHODIMP nsMsgAttachment::SetContentType(const char * aContentType)
   */
   PRInt32 offset = mContentType.FindChar(';');
   if (offset >= 0)
-    mContentType.Truncate(offset);
+    mContentType.SetLength(offset);
 
   return NS_OK;
 }

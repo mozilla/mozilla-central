@@ -40,7 +40,7 @@
 #define __nsMsgSendReport_h__
 
 #include "nsIMsgSendReport.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 
 class nsMsgProcessReport : public nsIMsgProcessReport

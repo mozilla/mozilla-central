@@ -51,7 +51,7 @@
 #include "msgCore.h"
 #include "nsMimeTypes.h"
 #include "prprf.h"
-
+#include "nsServiceManagerUtils.h"
 #include "nsMsgAppleDouble.h"
 #include "nsMsgAppleCodes.h"
 
