@@ -102,6 +102,7 @@ function run_test() {
   check_ab(kCABData);
 
   // Check the OS X Address Book if available
-  if ("@mozilla.org/rdf/resource-factory;1?name=moz-abosxdirectory")
+  if ("@mozilla.org/rdf/resource-factory;1?name=moz-abosxdirectory" in
+      Components.classes)
     check_ab(kOSXData);
 };
