@@ -448,7 +448,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   }
   nsCString urlString(urlSpec);
 
-  if (tmp->real_name)
+  if (tmp->real_name && !tmp->isExternalAttachment)
   {
     urlString.Append("&filename=");
     urlString.Append(tmp->real_name);
