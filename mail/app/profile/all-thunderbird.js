@@ -43,6 +43,10 @@ pref("general.skins.selectedSkin", "classic/1.0");
 #ifdef XP_MACOSX
 pref("browser.chromeURL", "chrome://messenger/content/messengercompose/messengercompose.xul");
 pref("mail.biff.animate_dock_icon", false);
+
+pref("ldap_2.servers.osx.uri", "moz-abosxdirectory:///");
+pref("ldap_2.servers.osx.description", "chrome://messenger/locale/addressbook/addressBook.properties");
+pref("ldap_2.servers.osx.dirType", 3);
 #endif
 
 // gtk2 (*nix) lacks transparent/translucent drag support (bug 376238), so we
@@ -329,7 +333,6 @@ pref("browser.download.manager.addToRecentDocs", true);
 
 pref("javascript.options.showInConsole",    true);
 
-pref("network.enableIDN",                   false); // Turn on/off IDN (Internationalized Domain Name) resolution
 pref("wallet.captureForms",                 true);
 pref("wallet.enabled",                      true);
 pref("wallet.crypto",                       false); 

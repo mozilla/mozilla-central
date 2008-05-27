@@ -224,7 +224,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
                              (DirectoryType)aType, &server);
   NS_ENSURE_SUCCESS (rv, rv);
   
-  if (aType != LDAPDirectory) {
+  if (aType == PABDirectory) {
     // Add the URI property
     URI.AssignLiteral(kMDBDirectoryRoot);
     URI.Append(nsDependentCString(server->fileName));
@@ -285,7 +285,7 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
   nsresult rv = EnsureInitialized();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  DIR_Server *server;
+  DIR_Server *server = nsnull;
   mServers.Get(directory, &server);
 
   if (!server)
@@ -337,7 +337,7 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
   nsresult rv = EnsureInitialized();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  DIR_Server *dirServer;
+  DIR_Server *dirServer = nsnull;
   mServers.Get(dir, &dirServer);
   return DIR_ContainsServer(dirServer, hasDir);
 }

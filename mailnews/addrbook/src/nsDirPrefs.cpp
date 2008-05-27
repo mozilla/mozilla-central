@@ -305,9 +305,12 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
     
     if (!fileName.IsEmpty())
       server->fileName = ToNewCString(fileName);
-    else
+    else if (dirType == PABDirectory) 
       DIR_SetFileName(&server->fileName, kPersonalAddressbook);
-    if (dirType == LDAPDirectory) {
+    else if (dirType == LDAPDirectory)
+      DIR_SetFileName(&server->fileName, kMainLdapAddressBook);
+
+    if (dirType != PABDirectory) {
       if (!uri.IsEmpty())
         server->uri = ToNewCString(uri);
     }
@@ -654,7 +657,8 @@ nsresult DIR_DeleteServerFromList(DIR_Server *server)
     // which can never be deleted.  There was a bug where we would slap in
     // "abook.mab" as the file name for LDAP directories, which would cause a crash
     // on delete of LDAP directories.  this is just extra protection.
-    if (strcmp(server->fileName, kPersonalAddressbook) && 
+    if (server->fileName &&
+        strcmp(server->fileName, kPersonalAddressbook) && 
         strcmp(server->fileName, kCollectedAddressbook))
     {
       nsCOMPtr<nsIAddrDatabase> database;
@@ -1023,6 +1027,14 @@ void DIR_SetServerFileName(DIR_Server *server)
 
 static char *dir_CreateServerPrefName (DIR_Server *server)
 {
+#ifdef XP_MACOSX
+  // XXX For now force osx directories to have one pref name, once we
+  // rework how address books are registered, we can work out how to do this
+  // properly.
+  if (server->uri && strcmp(server->uri, "moz-abosxdirectory:///") == 0)
+    return strdup("ldap_2.servers.osx");
+#endif
+
   /* we are going to try to be smart in how we generate our server
      pref name. We'll try to convert the description into a pref name
      and then verify that it is unique. If it is unique then use it... */
@@ -1097,14 +1109,10 @@ static void DIR_GetPrefsForOneServer(DIR_Server *server)
   // we then check to see if it's locked.
   server->position = DIR_GetIntPref (prefstring, "position", kDefaultPosition);
 
-  if (0 == PL_strcmp(prefstring, "ldap_2.servers.pab") || 
-    0 == PL_strcmp(prefstring, "ldap_2.servers.history")) 
-  {
-    // get default address book name from addressbook.properties 
-    server->description = DIR_GetLocalizedStringPref(prefstring, "description", "");
-  }
-  else
-    server->description = DIR_GetStringPref (prefstring, "description", "");
+  // For default address books, this will get the name from the chrome
+  // file referenced, for other address books it'll just retrieve it from prefs
+  // as normal.
+  server->description = DIR_GetLocalizedStringPref(prefstring, "description", "");
   
   server->dirType = (DirectoryType)DIR_GetIntPref (prefstring, "dirType", LDAPDirectory);
 
@@ -1283,6 +1291,91 @@ static void DIR_SetStringPref(const char *prefRoot, const char *prefLeaf, const 
   NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetStringPref");
 }
 
+static void DIR_SetLocalizedStringPref
+(const char *prefRoot, const char *prefLeaf, const char *value)
+{
+  nsresult rv;
+  nsCOMPtr<nsIPrefService> prefSvc(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+
+  if (NS_FAILED(rv))
+    return;
+
+  nsCAutoString prefLocation(prefRoot);
+  prefLocation.Append('.');
+
+  nsCOMPtr<nsIPrefBranch> prefBranch;
+  rv = prefSvc->GetBranch(prefLocation.get(), getter_AddRefs(prefBranch));
+  if (NS_FAILED(rv))
+    return;
+
+  nsString wvalue;
+  nsCOMPtr<nsIPrefLocalizedString> newStr(
+    do_CreateInstance(NS_PREFLOCALIZEDSTRING_CONTRACTID, &rv));
+  if (NS_FAILED(rv))
+  {
+    NS_ASSERTION(NS_SUCCEEDED(rv), "Could not createInstance in DIR_SetLocalizedStringPref");
+    return;
+  }
+
+  NS_ConvertUTF8toUTF16 newValue(value);
+
+  rv = newStr->SetData(newValue.get());
+  if (NS_FAILED(rv))
+  {
+    NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref data in DIR_SetLocalizedStringPref");
+    return;
+  }
+  nsCOMPtr<nsIPrefLocalizedString> locStr;
+  if (NS_SUCCEEDED(prefBranch->GetComplexValue(prefLeaf,
+                                               NS_GET_IID(nsIPrefLocalizedString),
+                                               getter_AddRefs(locStr))))
+  {
+    nsString data;
+    locStr->GetData(getter_Copies(data));
+
+    // Only set the pref if the data values aren't the same (i.e. don't change
+    // unnecessarily, but also, don't change in the case that its a chrome
+    // string pointing to the value we want to set the pref to).
+    if (newValue != data)
+      rv = prefBranch->SetComplexValue(prefLeaf,
+                                       NS_GET_IID(nsIPrefLocalizedString),
+                                       newStr);
+  }
+  else {
+    // No value set, but check the default pref branch (i.e. user may have
+    // cleared the pref)
+    nsCOMPtr<nsIPrefBranch> dPB;
+    rv = prefSvc->GetDefaultBranch(prefLocation.get(),
+                                   getter_AddRefs(dPB));
+
+    if (NS_SUCCEEDED(dPB->GetComplexValue(prefLeaf,
+                                          NS_GET_IID(nsIPrefLocalizedString),
+                                          getter_AddRefs(locStr))))
+    {
+      // Default branch has a value
+      nsString data;
+      locStr->GetData(getter_Copies(data));
+
+      if (newValue != data)
+        // If the vales aren't the same, set the data on the main pref branch
+        rv = prefBranch->SetComplexValue(prefLeaf,
+                                         NS_GET_IID(nsIPrefLocalizedString),
+                                         newStr);
+      else
+        // Else if they are, kill the user pref
+        rv = prefBranch->ClearUserPref(prefLeaf);
+    }
+    else
+      // No values set anywhere, so just set the pref
+      rv = prefBranch->SetComplexValue(prefLeaf,
+                                       NS_GET_IID(nsIPrefLocalizedString),
+                                       newStr);
+  }
+
+  NS_ASSERTION(NS_SUCCEEDED(rv), "Could not set pref in DIR_SetLocalizedStringPref");
+}
+
+
 static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 value, PRInt32 defaultValue)
 {
   nsresult rv;
@@ -1337,14 +1430,12 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
   DIR_SetIntPref (prefstring, "position", server->position, kDefaultPosition);
 
   // Only save the non-default address book name
-  if (0 != PL_strcmp(prefstring, "ldap_2.servers.pab") &&
-      0 != PL_strcmp(prefstring, "ldap_2.servers.history")) 
-    DIR_SetStringPref(prefstring, "description", server->description, "");
+  DIR_SetLocalizedStringPref(prefstring, "description", server->description);
 
   DIR_SetStringPref(prefstring, "filename", server->fileName, "");
   DIR_SetIntPref(prefstring, "dirType", server->dirType, LDAPDirectory);
 
-  if (server->dirType == LDAPDirectory)
+  if (server->dirType != PABDirectory)
     DIR_SetStringPref(prefstring, "uri", server->uri, "");
 
   server->savingServer = PR_FALSE;

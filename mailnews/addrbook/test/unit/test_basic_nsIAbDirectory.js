@@ -36,15 +36,13 @@ function check_ab(abConfig) {
 
   // Test - Is it the right type?
 
-  do_check_true(AB instanceof Components.interfaces.nsIAbMDBDirectory);
+  if (abConfig.dirType == 2)
+    do_check_true(AB instanceof Components.interfaces.nsIAbMDBDirectory);
 
   // Test - Check attributes
 
   do_check_eq(AB.propertiesChromeURI, kNormalPropertiesURI);
-  do_check_eq(AB.operations,
-              Components.interfaces.nsIAbDirectory.opRead |
-              Components.interfaces.nsIAbDirectory.opWrite |
-              Components.interfaces.nsIAbDirectory.opSearch);
+  do_check_eq(AB.operations, abConfig.operations);
   do_check_eq(AB.dirName, abConfig.dirName);
   do_check_eq(AB.dirType, abConfig.dirType);
   do_check_eq(AB.fileName, abConfig.fileName);
@@ -102,4 +100,8 @@ function run_test() {
 
   // Check the default collected address book
   check_ab(kCABData);
+
+  // Check the OS X Address Book if available
+  if ("@mozilla.org/rdf/resource-factory;1?name=moz-abosxdirectory")
+    check_ab(kOSXData);
 };

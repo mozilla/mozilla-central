@@ -1,3 +1,4 @@
+# -*- Mode: Javascript; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -295,6 +296,14 @@ function onFileMenuInit()
 {
   goUpdateCommand('cmd_printcard');
   goUpdateCommand('cmd_printcardpreview');
+}
+
+function onOSXFileMenuInit()
+{
+  onFileMenuInit();
+
+  document.getElementById('menu_osxAddressBook')
+          .setAttribute("checked", AbOSXAddressBookExists());
 }
 
 function CommandUpdate_AddressBook()
@@ -716,4 +725,45 @@ function AbIMSelected()
 function getMailToolbox()
 {
   return document.getElementById("ab-toolbox");
+}
+
+const kOSXDirectoryURI = "moz-abosxdirectory:///";
+
+function AbOSXAddressBookExists()
+{
+  var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
+                          .getService(Components.interfaces.nsIPrefBranch);
+
+  // I hate doing it this way - until we redo how we manage address books
+  // I can't think of a better way though.
+
+  // See if the pref exists, if so, then we need to delete the address book
+  var uriPresent = false;
+  var position = 1;
+  try {
+    uriPresent = prefSvc.getCharPref("ldap_2.servers.osx.uri") == kOSXDirectoryURI;
+  }
+  catch (e) { }
+
+  try {
+    position = prefSvc.getIntPref("ldap_2.servers.osx.position");
+  }
+  catch (e) { }
+
+  // Address book exists if the uri is correct and the position is not zero.
+  return uriPresent && position != 0;
+}
+
+function AbShowHideOSXAddressBook()
+{
+  var abMgr = Components.classes["@mozilla.org/abmanager;1"] 
+                        .getService(Components.interfaces.nsIAbManager);
+
+  if (AbOSXAddressBookExists())
+    abMgr.deleteAddressBook(kOSXDirectoryURI);
+  else {
+    abMgr.newAddressBook(
+      gAddressBookBundle.getString("ldap_2.servers.osx.description"),
+      kOSXDirectoryURI, 3);
+  }
 }

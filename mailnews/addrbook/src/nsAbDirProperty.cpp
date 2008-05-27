@@ -130,7 +130,7 @@ NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Save the new value
-  rv = SetStringValue("description", NS_ConvertUTF16toUTF8(aDirName));
+  rv = SetLocalizedStringValue("description", NS_ConvertUTF16toUTF8(aDirName));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
@@ -476,4 +476,23 @@ NS_IMETHODIMP nsAbDirProperty::SetStringValue(const char *aName,
     return NS_ERROR_NOT_INITIALIZED;
 
   return m_DirectoryPrefs->SetCharPref(aName, nsCString(aValue).get());
+}
+
+NS_IMETHODIMP nsAbDirProperty::SetLocalizedStringValue(const char *aName,
+                                                       const nsACString &aValue)
+{
+  if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
+    return NS_ERROR_NOT_INITIALIZED;
+
+  nsresult rv;
+  nsCOMPtr<nsIPrefLocalizedString> locStr(
+    do_CreateInstance(NS_PREFLOCALIZEDSTRING_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = locStr->SetData(NS_ConvertUTF8toUTF16(aValue).get());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return m_DirectoryPrefs->SetComplexValue(aName,
+                                           NS_GET_IID(nsIPrefLocalizedString),
+                                           locStr);
 }

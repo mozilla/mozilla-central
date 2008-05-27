@@ -250,7 +250,11 @@
    <toolbaritem id="menubar-items" align="center">
      <menubar id="mail-menubar" style="border:0px;padding:0px;margin:0px;-moz-appearance:none">
         <menu id="menu_File" label="&fileMenu.label;" accesskey="&fileMenu.accesskey;">
+#ifdef XP_MACOSX
+            <menupopup id="menu_FilePopup" onpopupshowing="onOSXFileMenuInit();">
+#else
             <menupopup id="menu_FilePopup" onpopupshowing="onFileMenuInit();">
+#endif
                 <menu id="menu_New" label="&newMenu.label;" accesskey="&newMenu.accesskey;">
                     <menupopup id="menu_NewPopup">
                       <menuitem label="&newCard.label;" accesskey="&newCard.accesskey;" key="key_newCard" oncommand="AbNewCard();"/>
@@ -263,6 +267,14 @@
                 </menu>
                 <menuitem id="menu_close" label="&closeCmd.label;" key="key_close" accesskey="&closeCmd.accesskey;" oncommand="AbClose()"/>
                 <menuseparator/>
+#ifdef XP_MACOSX
+                <menuitem id="menu_osxAddressBook"
+                          label="&osxAddressBook.label;"
+                          accesskey="&osxAddressBook.accesskey;"
+                          oncommand="AbShowHideOSXAddressBook();"
+                          checked="true" type="checkbox"/>
+		<menuseparator/>
+#endif
                 <menuitem id="printSetupMenuItem" label="&printSetupCmd.label;" accesskey="&printSetupCmd.accesskey;" oncommand="PrintUtils.showPageSetup()"/>
 #ifndef XP_MACOSX
                 <menuitem id="printPreviewMenuItem" label="&printPreviewCardViewCmd.label;" accesskey="&printPreviewCardViewCmd.accesskey;" command="cmd_printcardpreview"/>

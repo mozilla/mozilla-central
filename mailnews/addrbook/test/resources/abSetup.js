@@ -19,6 +19,9 @@ var kPABData =
   dirName: "Personal Address Book",
   dirType: 2,
   dirPrefID: "ldap_2.servers.pab",
+  operations: Components.interfaces.nsIAbDirectory.opRead |
+              Components.interfaces.nsIAbDirectory.opWrite |
+              Components.interfaces.nsIAbDirectory.opSearch,
   position: 1
 };
 
@@ -30,7 +33,23 @@ var kCABData =
   dirName: "Collected Addresses",
   dirType: 2,
   dirPrefID: "ldap_2.servers.history",
+  operations: Components.interfaces.nsIAbDirectory.opRead |
+              Components.interfaces.nsIAbDirectory.opWrite |
+              Components.interfaces.nsIAbDirectory.opSearch,
   position: 2
+};
+
+// Mac OSX Address Book configurations items
+var kOSXData =
+{
+  URI: "moz-abosxdirectory:///",
+  fileName: "",
+  dirName: "Mac OS X Address Book",
+  dirType: 3,
+  dirPrefID: "ldap_2.servers.osx",
+  operations: Components.interfaces.nsIAbDirectory.opRead |
+              Components.interfaces.nsIAbDirectory.opSearch,
+  position: 1
 };
 
 // This currently applies to all address books of local type.

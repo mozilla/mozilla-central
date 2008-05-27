@@ -59,7 +59,7 @@ interface nsISupportsArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(55acf262-81e3-4ffe-bfd1-8b328adb49b4)]
+[scriptable, uuid(1862d623-8bf4-41e5-aaee-f475de0c8cff)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -289,5 +289,6 @@ interface nsIAbDirectory : nsISupports {
   void setIntValue(in string aName, in long aValue);
   void setBoolValue(in string aName, in boolean aValue);
   void setStringValue(in string aName, in ACString aValue);
+  void setLocalizedStringValue(in string aName, in AUTF8String aValue);
   //@}
 };
