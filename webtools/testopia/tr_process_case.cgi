@@ -89,6 +89,25 @@ elsif ($action eq 'update_doc'){
     }
 }
 
+elsif ($action eq 'link') { 	 
+    print $cgi->header; 	 
+    my @plans; 	 
+    foreach my $id (split(',', $cgi->param('plan_ids'))){ 	 
+        my $plan = Bugzilla::Testopia::TestPlan->new($id); 	 
+        ThrowUserError("testopia-read-only", {'object' => $plan}) unless $plan->canedit; 	 
+        push @plans, $plan; 	 
+    } 	 
+    ThrowUserError('missing-plans-list') unless scalar @plans; 	 
+ 	
+    foreach my $plan (@plans){ 	 
+        $case->link_plan($plan->id); 	 
+    } 	 
+ 	
+    delete $case->{'plans'}; 	 
+ 	
+    print "{'success': true}"; 	 
+}
+
 elsif ($action eq 'unlink'){
     print $cgi->header;
     my $plan_id = $cgi->param('plan_id');
