@@ -128,7 +128,7 @@
       <field name="mContextTask">null</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
-      <field name="mShowCompletedTasks">false</field>
+      <field name="mShowCompletedTasks">true</field>
       <field name="mFilterFunction">null</field>
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
