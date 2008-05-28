@@ -972,10 +972,6 @@
               const nsIScriptSecurityManager =
                 Components.interfaces.nsIScriptSecurityManager;
 
-              const secMan =
-                Components.classes["@mozilla.org/scriptsecuritymanager;1"]
-                          .getService(nsIScriptSecurityManager);
-
               // Get the IOService so we can make URIs
               const ioService =
                 Components.classes["@mozilla.org/network/io-service;1"]
@@ -985,11 +981,23 @@
               // Make a URI out of our href.
               var uri = ioService.newURI(href, targetDoc.characterSet, null);
 
-              try {
-                secMan.checkLoadURIWithPrincipal(event.target.nodePrincipal, uri,
-                                                 nsIScriptSecurityManager.DISALLOW_SCRIPT);
-              } catch (e) {
-                return;
+              // Verify that the load of this icon is legal.
+              // error pages can load their favicon, to be on the safe side,
+              // only allow chrome:// favicons
+              const aboutNeterr = /^about:neterror\?/;
+              if (!(aboutNeterr.test(targetDoc.documentURI) ||
+                  !uri.schemeIs("chrome")) {
+
+                const secMan =
+                  Components.classes["@mozilla.org/scriptsecuritymanager;1"]
+                            .getService(nsIScriptSecurityManager);
+
+                try {
+                  secMan.checkLoadURIWithPrincipal(event.target.nodePrincipal,
+                                 uri, nsIScriptSecurityManager.DISALLOW_SCRIPT);
+                } catch(e) {
+                  return;
+                }
               }
 
               if (isFeed) {
