@@ -164,7 +164,7 @@ var calAlarmServiceClassInfo = {
     classDescription: "Calendar Alarm Service",
     classID: Components.ID("{7a9200dd-6a64-4fff-a798-c5802186e2cc}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0
+    flags: Components.interfaces.nsIClassInfo.SINGLETON
 };
 
 calAlarmService.prototype = {

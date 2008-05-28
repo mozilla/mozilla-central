@@ -104,7 +104,7 @@ calCalendarSearchService.prototype = {
     classDescription: "Calendar Search Service",
     classID: Components.ID("{F5F743CD-8997-428e-BC1B-644E73F61203}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0,
+    flags: Components.interfaces.nsIClassInfo.SINGLETON,
 
     // calICalendarSearchProvider:
     searchForCalendars: function calCalendarSearchService_searchForCalendars(aString,

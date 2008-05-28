@@ -85,7 +85,7 @@ var calCalendarManagerClassInfo = {
     classDescription: "Calendar Manager",
     classID: Components.ID("{f42585e7-e736-4600-985d-9624c1c51992}"),
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-    flags: 0
+    flags: Components.interfaces.nsIClassInfo.SINGLETON
 };
 
 calCalendarManager.prototype = {
