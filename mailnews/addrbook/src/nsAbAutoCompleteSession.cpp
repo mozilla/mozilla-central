@@ -49,7 +49,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 
-NS_IMPL_ISUPPORTS2(nsAbAutoCompleteSession, nsIAbAutoCompleteSession, nsIAutoCompleteSession)
+NS_IMPL_ISUPPORTS1(nsAbAutoCompleteSession, nsIAutoCompleteSession)
 
 nsAbAutoCompleteSession::nsAbAutoCompleteSession()
 {
@@ -131,27 +131,12 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
                                      const PRUnichar* pNotesStr, 
                                      const PRUnichar* pDirName,
                                      PRUint32 aPopularityIndex,
-                                     PRBool bIsMailList, PRBool pDefaultMatch,
+                                     PRBool bIsMailList,
                                      nsIAutoCompleteResults* results)
 {
   nsresult rv;
   PRUnichar* fullAddrStr = nsnull;
 
-  if (pDefaultMatch)
-  {
-    if (mDefaultDomain[0] == 0)
-      return;
-
-    nsAutoString aStr(pDisplayNameStr);
-    if (aStr.FindChar('@') == -1)
-    {
-      aStr.Append(PRUnichar('@'));
-      aStr += mDefaultDomain;
-    }
-    fullAddrStr = ToNewUnicode(aStr);
-  }
-  else
-  {
     if (mParser)
     {
       nsCString fullAddress;
@@ -199,7 +184,6 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
       else
         fullAddrStr = nsnull;
     }
-  }
     
   if (fullAddrStr && ! ItsADuplicate(fullAddrStr, aPopularityIndex, results))
   {    
@@ -227,11 +211,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
         }
       }
 
-      // if this isn't a default match, set the class name so we can style 
-      // this cell with the local addressbook icon (or whatever)
-      //
-      rv = newItem->SetClassName(pDefaultMatch ? "default-match" :
-                                 "local-abook");
+      rv = newItem->SetClassName("local-abook");
       if (NS_FAILED(rv)) {
         NS_WARNING("nsAbAutoCompleteSession::AddToResult():"
                    " newItem->SetClassName() failed\n");
@@ -247,7 +227,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
 
         PRInt32 insertPosition = 0;
 
-        for (; insertPosition < nbrOfItems && !pDefaultMatch; insertPosition++)
+        for (; insertPosition < nbrOfItems; insertPosition++)
         {
           nsCOMPtr<nsISupports> currentItemParams;
           nsCOMPtr<nsIAutoCompleteItem> resultItem;
@@ -475,7 +455,7 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
               AddToResult(pNickNameStr.get(), pDisplayNameStr.get(), 
                           pFirstNameStr.get(), pLastNameStr.get(), 
                           pEmailStr[i].get(), pNotesStr.get(), 
-                          dirName.get(), popularityIndex, bIsMailList, PR_FALSE, results);
+                          dirName.get(), popularityIndex, bIsMailList, results);
             }
           }
         }
@@ -650,7 +630,7 @@ nsresult nsAbAutoCompleteSession::SearchPreviousResults(nsAbAutoCompleteSearchSt
                 AddToResult(param->mNickName, param->mDisplayName, 
                             param->mFirstName, param->mLastName, 
                             param->mEmailAddress, param->mNotes, 
-                            param->mDirName, param->mPopularityIndex, param->mIsMailList, PR_FALSE,
+                            param->mDirName, param->mPopularityIndex, param->mIsMailList,
                             results);
         }
         return NS_OK;
@@ -738,18 +718,8 @@ NS_IMETHODIMP nsAbAutoCompleteSession::OnStartLookup(const PRUnichar *uSearchStr
     AutoCompleteStatus status = nsIAutoCompleteStatus::failed;
     if (NS_SUCCEEDED(rv) && results)
     {
-        PRBool addedDefaultItem = PR_FALSE;
-
         results->SetSearchString(uSearchString);
         results->SetDefaultItemIndex(-1);
-        if (mDefaultDomain[0] != 0)
-        {
-            PRUnichar emptyStr = 0;
-            AddToResult(&emptyStr, uSearchString, &emptyStr, &emptyStr, 
-                        &emptyStr, &emptyStr, &emptyStr, 0 /* popularity index */, PR_FALSE, 
-                        PR_TRUE, results);
-            addedDefaultItem = PR_TRUE;
-        }
 
         nsCOMPtr<nsISupportsArray> array;
         rv = results->GetItems(getter_AddRefs(array));
@@ -766,14 +736,7 @@ NS_IMETHODIMP nsAbAutoCompleteSession::OnStartLookup(const PRUnichar *uSearchStr
             else
             {
               status = nsIAutoCompleteStatus::matchFound;
-              if (addedDefaultItem)
-              {
-                // If we have at least one REAL match then make it the default item. If we don't have any matches,
-                // just the default domain, then don't install a default item index on the widget.
-                results->SetDefaultItemIndex(nbrOfItems > 1 ? 1 : -1);
-              }
-              else
-                results->SetDefaultItemIndex(0);  
+              results->SetDefaultItemIndex(0);  
             }
         }
     }
@@ -790,21 +753,6 @@ NS_IMETHODIMP nsAbAutoCompleteSession::OnStopLookup()
 NS_IMETHODIMP nsAbAutoCompleteSession::OnAutoComplete(const PRUnichar *searchString, nsIAutoCompleteResults *previousSearchResult, nsIAutoCompleteListener *listener)
 {
     return OnStartLookup(searchString, previousSearchResult, listener);
-}
-
-NS_IMETHODIMP nsAbAutoCompleteSession::GetDefaultDomain(PRUnichar * *aDefaultDomain)
-{
-    if (!aDefaultDomain)
-        return NS_ERROR_NULL_POINTER;
-
-    *aDefaultDomain = ToNewUnicode(mDefaultDomain);
-    return NS_OK;
-}
-
-NS_IMETHODIMP nsAbAutoCompleteSession::SetDefaultDomain(const PRUnichar * aDefaultDomain)
-{
-    mDefaultDomain = aDefaultDomain;
-    return NS_OK;
 }
 
 NS_IMPL_ISUPPORTS1(nsAbAutoCompleteParam, nsISupports)

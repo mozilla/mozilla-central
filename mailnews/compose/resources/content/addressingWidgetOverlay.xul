@@ -77,6 +77,7 @@
         <textbox id="addressCol2#1" class="plain textbox-addressingWidget uri-element"
                  aria-labelledby="addressCol1#1"
                  type="autocomplete" flex="1"
+                 autocompletesearch="mydomain"
                  searchSessions="addrbook" timeout="300" maxrows="4" 
                  autofill="true" autofillaftermatch="true" forcecomplete="true"
                  minresultsforpopup="3" ignoreblurwhilesearching="true"

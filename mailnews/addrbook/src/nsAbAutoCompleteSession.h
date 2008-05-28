@@ -42,7 +42,7 @@
 #include "nsStringGlue.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbDirectory.h"
-#include "nsIAbAutoCompleteSession.h"
+#include "nsIAutoCompleteSession.h"
 #include "nsCRTGlue.h"
 
 class nsIPrefBranch;
@@ -74,12 +74,11 @@ public:
 };
 
 
-class nsAbAutoCompleteSession : public nsIAbAutoCompleteSession
+class nsAbAutoCompleteSession : public nsIAutoCompleteSession
 {
 public:
   NS_DECL_ISUPPORTS
     NS_DECL_NSIAUTOCOMPLETESESSION
-    NS_DECL_NSIABAUTOCOMPLETESESSION
 
   nsAbAutoCompleteSession();
   virtual ~nsAbAutoCompleteSession(); 
@@ -93,12 +92,11 @@ protected:
                      const PRUnichar* pEmailStr, const PRUnichar* pNotes,
                      const PRUnichar* pDirName, 
                      PRUint32 aPopularityIndex, PRBool bIsMailList, 
-                     PRBool pDefaultMatch, nsIAutoCompleteResults* results);
+                     nsIAutoCompleteResults* results);
     PRBool CheckEntry(nsAbAutoCompleteSearchString* searchStr, const PRUnichar* nickName,const PRUnichar* displayName, 
                       const PRUnichar* firstName, const PRUnichar* lastName, const PRUnichar* emailAddress);
         
     nsCOMPtr<nsIMsgHeaderParser> mParser;
-    nsString mDefaultDomain;
 
     // how to process the comment column, if at all.  this value
     // comes from "mail.autoComplete.commentColumn", or, if that

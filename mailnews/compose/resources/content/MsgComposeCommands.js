@@ -97,7 +97,7 @@ var gCloseWindowAfterSave;
 var gIsOffline;
 var gSessionAdded;
 var gCurrentAutocompleteDirectory;
-var gAutocompleteSession;
+var gAutocompleteSearch;
 var gSetupLdapAutocomplete;
 var gLDAPSession;
 var gSavedSendNowKey;
@@ -145,7 +145,7 @@ function InitializeGlobalVariables()
   gIsOffline = gIOService.offline;
   gSessionAdded = false;
   gCurrentAutocompleteDirectory = null;
-  gAutocompleteSession = null;
+  gAutocompleteSearch = null;
   gSetupLdapAutocomplete = false;
   gLDAPSession = null;
   gSavedSendNowKey = null;
@@ -173,7 +173,7 @@ function ReleaseGlobalVariables()
   gPromptService = null;
   gCurrentIdentity = null;
   gCurrentAutocompleteDirectory = null;
-  gAutocompleteSession = null;
+  gAutocompleteSearch = null;
   gLDAPSession = null;
   gCharsetConvertManager = null;
   gMsgCompose = null;
@@ -2463,7 +2463,7 @@ function ReleaseAutoCompleteState()
 
   gSessionAdded = false;
   gLDAPSession = null;
-  gAutocompleteSession = null;
+  gAutocompleteSearch = null;
 }
 
 function MsgComposeCloseWindow(recycleIt)
@@ -2924,9 +2924,9 @@ function LoadIdentity(startup)
 
       AddDirectoryServerObserver(false);
       if (!startup) {
-          if (!gAutocompleteSession)
-            gAutocompleteSession = Components.classes["@mozilla.org/autocompleteSession;1?type=addrbook"].getService(Components.interfaces.nsIAbAutoCompleteSession);
-          if (gAutocompleteSession)
+          if (!gAutocompleteSearch)
+            gAutocompleteSearch = Components.classes["@mozilla.org/autocomplete/search;1?name=mydomain"].getService(Components.interfaces.nsIAbAutoCompleteSearch);
+          if (gAutocompleteSearch)
             setDomainName();
           if (sPrefs.getBoolPref("mail.autoComplete.highlightNonMatches"))
             document.getElementById('addressCol2#1').highlightNonMatches = true;
@@ -2956,41 +2956,36 @@ function setDomainName()
   }
 
   // If autocompleteToMyDomain is false the defaultDomain is emptied
-  gAutocompleteSession.defaultDomain = defaultDomain;
+  gAutocompleteSearch.defaultDomain = defaultDomain;
 }
 
 function setupAutocomplete()
 {
   //Setup autocomplete session if we haven't done so already
-  if (!gAutocompleteSession) {
-    gAutocompleteSession = Components.classes["@mozilla.org/autocompleteSession;1?type=addrbook"].getService(Components.interfaces.nsIAbAutoCompleteSession);
-    if (gAutocompleteSession) {
-      setDomainName();
+  if (!gAutocompleteSearch)
+    gAutocompleteSearch = Components.classes["@mozilla.org/autocomplete/search;1?name=mydomain"].getService(Components.interfaces.nsIAbAutoCompleteSearch);
+  if (gAutocompleteSearch)
+    setDomainName();
 
-      var autoCompleteWidget = document.getElementById("addressCol2#1");
-      // When autocompleteToMyDomain is off, there is no default entry with the domain
-      // appended, so reduce the minimum results for a popup to 2 in this case.
-      if (!gCurrentIdentity.autocompleteToMyDomain)
-        autoCompleteWidget.minResultsForPopup = 2;
+  var autoCompleteWidget = document.getElementById("addressCol2#1");
+  // When autocompleteToMyDomain is off, there is no default entry with the domain
+  // appended, so reduce the minimum results for a popup to 2 in this case.
+  if (!gCurrentIdentity.autocompleteToMyDomain)
+    autoCompleteWidget.minResultsForPopup = 2;
 
-      // if the pref is set to turn on the comment column, honor it here.
-      // this element then gets cloned for subsequent rows, so they should
-      // honor it as well
-      //
-      try {
-          if (sPrefs.getBoolPref("mail.autoComplete.highlightNonMatches"))
-            autoCompleteWidget.highlightNonMatches = true;
+  // if the pref is set to turn on the comment column, honor it here.
+  // this element then gets cloned for subsequent rows, so they should
+  // honor it as well
+  //
+  try {
+      if (sPrefs.getBoolPref("mail.autoComplete.highlightNonMatches"))
+        autoCompleteWidget.highlightNonMatches = true;
 
-          if (sPrefs.getIntPref("mail.autoComplete.commentColumn"))
-            autoCompleteWidget.showCommentColumn = true;
-      } catch (ex) {
-          // if we can't get this pref, then don't show the columns (which is
-          // what the XUL defaults to)
-      }
-
-    } else {
-      gAutocompleteSession = 1;
-    }
+      if (sPrefs.getIntPref("mail.autoComplete.commentColumn"))
+        autoCompleteWidget.showCommentColumn = true;
+  } catch (ex) {
+      // if we can't get this pref, then don't show the columns (which is
+      // what the XUL defaults to)
   }
   if (!gSetupLdapAutocomplete) {
       try {
