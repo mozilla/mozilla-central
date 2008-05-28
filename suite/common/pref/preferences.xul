@@ -167,13 +167,14 @@
         </treechildren>
       </treeitem>
 
-<!-- commenting out yet unmigrated panels
+      <!-- Advanced items -->
       <treeitem container="true"
                 id="advancedItem"
                 label="&advance.label;"
+                prefpane="advanced_pane"
+                helpTopic="advanced_pref_advanced"
                 url="chrome://communicator/content/pref/pref-advanced.xul">
         <treechildren id="advancedChildren">
--->
           <treeitem id="scriptsItem" label="&scriptsAndWindows.label;"
                     prefpane="scripts_pane" helpTopic="advanced_pref_scripts"
                     url="chrome://communicator/content/pref/pref-scripts.xul"/>
@@ -195,10 +196,8 @@
           <treeitem id="mousewheelItem" helpTopic="advanced_pref_mouse_wheel"
                     prefpane="mousewheel_pane" label="&mousewheel.label;"
                     url="chrome://communicator/content/pref/pref-mousewheel.xul"/>
-<!--
         </treechildren>
       </treeitem>
--->
 
       <!-- commented out until bug 82487 is fixed 
       <treeitem id="offlineItem"

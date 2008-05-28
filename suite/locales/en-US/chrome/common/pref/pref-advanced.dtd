@@ -1,4 +1,3 @@
-
 <!--LOCALIZATION NOTE : FILE 'Advanced' prefs settings -->
 <!ENTITY pref.advanced.title        "Advanced">
 
@@ -7,12 +6,7 @@
 <!ENTITY enbJavaCheck.label         "Enable Java">
 <!ENTITY enbJavaCheck.accesskey     "J">
 
-<!ENTITY prefJvmConf.caption        "Select Java version (change requires restart)">
-<!ENTITY jvm.name                   "Version">
-<!ENTITY jvm.home                   "Path">
-
 <!ENTITY systemPref.caption         "System Preferences">
 <!ENTITY systemPrefCheck.label      "Use Preferences from System">
 <!ENTITY systemPrefCheck.accesskey  "U">
-<!ENTITY systemPref.desc            "Check this item to inherit preferences from the system. The system settings will override the &brandShortName; preferences">
-
+<!ENTITY systemPref.desc            "With this option, &brandShortName; inherits preferences from the system. These system settings will override the &brandShortName; preferences.">

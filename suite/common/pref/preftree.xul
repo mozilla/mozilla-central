@@ -150,7 +150,7 @@
 
     <treeitem container="true" id="advancedItem">
       <treerow>
-        <treecell url="chrome://communicator/content/pref/pref-advanced.xul" label="&advance.label;"/> 
+        <treecell label="(Migrated: &advance.label;)"/> 
       </treerow>
       <treechildren id="advancedChildren">
         <treeitem>

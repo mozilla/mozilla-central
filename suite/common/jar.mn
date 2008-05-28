@@ -148,6 +148,7 @@ comm.jar:
 # files deprecated by preferences.xul: end
    content/communicator/pref/prefpanels.css                         (pref/prefpanels.css)
    content/communicator/pref/prefpanels.xml                         (pref/prefpanels.xml)
+   content/communicator/pref/pref-advanced.js                       (pref/pref-advanced.js)
    content/communicator/pref/pref-advanced.xul                      (pref/pref-advanced.xul)
    content/communicator/pref/pref-appearance.js                     (pref/pref-appearance.js)
    content/communicator/pref/pref-appearance.xul                    (pref/pref-appearance.xul)
