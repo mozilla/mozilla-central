@@ -87,7 +87,7 @@
         
     <vbox flex="1">
       <hbox align="center">
-        <label value="&category.label;"/>
+        <label value="&category.label;" control="categoryList"/>
         <menulist id="categoryList" ref="NC:SearchCategoryRoot" datasources="rdf:null" flex="1">
           <template>
             <menupopup>

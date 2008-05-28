@@ -56,7 +56,7 @@
 
   <script type="application/x-javascript" src="chrome://communicator/content/history/findHistory.js"/>
 
-  <label value="&search.for.label;"/>
+  <label value="&search.for.label;" control="matchList"/>
   <hbox align="center">
     <menulist id="matchList">
       <menupopup>

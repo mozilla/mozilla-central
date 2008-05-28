@@ -84,7 +84,7 @@
       <vbox align="start">
         <vbox id="basicBox">
           <hbox align="center">
-            <label value="&using.label;" />
+            <label value="&using.label;" control="basicEngineMenu"/>
             <menulist id="basicEngineMenu"
                       ref="NC:SearchEngineRoot"
                       datasources="rdf:internetsearch"
@@ -105,7 +105,7 @@
         </vbox>
         <vbox id="categoryBox" align="start">
           <hbox align="center">
-            <label value="&within.label;" />
+            <label value="&within.label;" control="categoryList"/>
             <menulist id="categoryList" ref="NC:SearchCategoryRoot"
                       datasources="rdf:null" oncommand="switchTab(1);" >
               <template>

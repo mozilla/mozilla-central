@@ -50,7 +50,7 @@
   <script type="application/x-javascript" src="chrome://communicator/content/askViewZoom.js"/>
 
   <hbox>
-    <label value="&selectZoom.label;"/>
+    <label value="&selectZoom.label;" control="zoomValue"/>
   </hbox>
 
   <hbox>
