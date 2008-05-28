@@ -612,7 +612,7 @@
                       break;
                   case kKE.DOM_VK_RETURN:
                       var index = this.tree.currentIndex;
-                      if (index > 0) {
+                      if (index > -1) {
                           modifyEventWithDialog(this.binding.mTaskArray[index]);
                       }
                       break;
