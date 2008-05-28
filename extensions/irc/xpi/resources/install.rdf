@@ -51,12 +51,12 @@
 			</Description>
 		</em:targetApplication>
 		
-		<!-- target: Songbird, version 0.5 to 0.6pre -->
+		<!-- target: Songbird, version 0.5 to 0.7pre -->
 		<em:targetApplication>
 			<Description>
 				<em:id>songbird@songbirdnest.com</em:id>
 				<em:minVersion>0.5</em:minVersion>
-				<em:maxVersion>0.6pre</em:maxVersion>
+				<em:maxVersion>0.7pre</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 		
