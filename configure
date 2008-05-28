@@ -6621,7 +6621,7 @@ EOF
 
 
     case "$host_os" in
-    cygwin*)
+    cygwin*|msvc*|mks*)
         echo "configure: warning: Using a cygwin build environment is unsupported. Configure cannot check for the presence of necessary headers. Please upgrade to MozillaBuild; see http://developer.mozilla.org/en/docs/Windows_Build_Prerequisites" 1>&2
         ;;
 
