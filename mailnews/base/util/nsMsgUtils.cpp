@@ -1559,7 +1559,7 @@ NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString)
            state == 2 && 0x0F != (0x0F & c) ))
         nonchar = PR_FALSE;
 
-      if (!(c & 0xC0) == 0x80 || overlong && c <= olupper ||
+      if ((c & 0xC0) != 0x80 || overlong && c <= olupper ||
            surrogate && slower <= c || nonchar && !state )
         return PR_FALSE; // Not UTF-8 string
       overlong = surrogate = PR_FALSE;
