@@ -24,7 +24,7 @@ $ua->timeout(10);
 
 getopts ("dt:", \%options);
 
-$grace = 18540; #5:15 hours
+$grace = 25200; #7 hours
 $current_time = time ();
 
 die "Pass in the file name as argument to -t\n" 
