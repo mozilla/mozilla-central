@@ -58,10 +58,10 @@
   <wizardpage id="importSource" pageid="importSource" next="selectProfile"
               label="&importSource.title;"
               onpageadvanced="return MigrationWizard.onImportSourcePageAdvanced();">
-    <description id="importAll"
-                 control="importSourceGroup">&importAllFrom.label;</description>
-    <description id="importBookmarks" control="importSourceGroup"
-                 hidden="true">&importBookmarksFrom.label;</description>
+    <label id="importAll"
+                 control="importSourceGroup">&importAllFrom.label;</label>
+    <label id="importBookmarks" control="importSourceGroup"
+                 hidden="true">&importBookmarksFrom.label;</label>
 
     <radiogroup id="importSourceGroup" align="start">
       <radio id="seamonkey" label="&importFromSeamonkey.label;"
@@ -81,7 +81,7 @@
               label="&selectProfile.title;" next="importItems"
               onpageshow="return MigrationWizard.onSelectProfilePageShow();"
               onpageadvanced="return MigrationWizard.onSelectProfilePageAdvanced();">
-    <description control="profiles">&selectProfile.label;</description>
+    <label control="profiles">&selectProfile.label;</label>
 
     <radiogroup id="profiles" align="left"/>
   </wizardpage>
@@ -91,7 +91,7 @@
               onpageshow="return MigrationWizard.onImportItemsPageShow();"
               onpageadvanced="return MigrationWizard.onImportItemsPageAdvanced();"
               oncommand="MigrationWizard.onImportItemCommand();">
-    <description control="dataSources">&importItems.label;</description>
+    <label control="dataSources">&importItems.label;</label>
 
     <vbox id="dataSources" style="overflow-y: auto;"
           align="left" flex="1" role="group"/>
@@ -102,7 +102,7 @@
               onpageshow="return MigrationWizard.onHomePageMigrationPageShow();"
               onpageadvanced="return MigrationWizard.onHomePageMigrationPageAdvanced();">
 
-    <description id="homePageImportDesc" control="homePageRadioGroup"/>
+    <label id="homePageImportDesc" control="homePageRadioGroup"/>
     <radiogroup id="homePageRadioGroup" align="start">
       <radio id="oldHomePage" hidden="true"/>
       <radio id="homePageStart" selected="true"/>
@@ -111,7 +111,7 @@
 
   <wizardpage id="migrating" pageid="migrating" label="&migrating.title;"
               next="done" onpageshow="MigrationWizard.onMigratingPageShow();">
-    <description control="migratingItems">&migrating.label;</description>
+    <label control="migratingItems">&migrating.label;</label>
 
     <vbox id="migratingItems" style="overflow-y: auto;" align="left" role="group"/>
 
@@ -123,7 +123,7 @@
 
   <wizardpage id="done" pageid="done" label="&done.title;"
               onpageshow="MigrationWizard.onDonePageShow();">
-    <description control="doneItems">&done.label;</description>
+    <label control="doneItems">&done.label;</label>
 
     <vbox id="doneItems" style="overflow-y: auto;" align="left" role="group"/>
   </wizardpage>
