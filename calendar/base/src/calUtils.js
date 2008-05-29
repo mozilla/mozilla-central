@@ -789,9 +789,10 @@ function getCalendarDirectory() {
  * @return              True if the calendar is writable
  */
 function isCalendarWritable(aCalendar) {
-    return (!aCalendar.readOnly &&
-           (!getIOService().offline ||
-            aCalendar.getProperty("requiresNetwork") === false));
+    return (!aCalendar.getProperty("disabled") &&
+            !aCalendar.readOnly &&
+            (!getIOService().offline ||
+             aCalendar.getProperty("requiresNetwork") === false));
 }
 
 /**

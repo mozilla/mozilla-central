@@ -75,7 +75,9 @@ function calAlarmService() {
                 this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [calendar]);
                 // a refreshed calendar signals that it has been reloaded
                 // (and cannot notify detailed changes), thus reget all alarms of it:
-                this.alarmService.initAlarms([calendar]);
+                if (!calendar.getProperty("disabled")) {
+                    this.alarmService.initAlarms([calendar]);
+                }
             }
         },
         onAddItem: function(aItem) {
@@ -113,6 +115,12 @@ function calAlarmService() {
                 // not changed if popup alarms are unsupported, be robust here.
                 if ((!aOldValue && aValue) ||
                     aCalendar.getProperty("capabilities.alarms.popup.supported") === false) {
+                    this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
+                } else if (aOldValue && !aValue) {
+                    this.alarmService.initAlarms([aCalendar]);
+                }
+            } else if (aName == "disabled") {
+                if (!aOldValue && aValue) {
                     this.alarmService.notifyObservers("onRemoveAlarmsByCalendar", [aCalendar]);
                 } else if (aOldValue && !aValue) {
                     this.alarmService.initAlarms([aCalendar]);

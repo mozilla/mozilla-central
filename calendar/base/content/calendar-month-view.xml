@@ -1631,11 +1631,19 @@
           onError: function (aCalendar, aErrNo, aMessage) { },
 
           onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
-            if (aName == "suppressAlarms" &&
-                aCalendar.getProperty("capabilities.alarms.popup.supported") !== false &&
-                getPrefSafe("calendar.alarms.indicator.show", true)) {
-              this.calView.refresh();
-            }
+              switch (aName) {
+                  case "suppressAlarms":
+                      if (!getPrefSafe("calendar.alarms.indicator.show", true) ||
+                          aCalendar.getProperty("capabilities.alarms.popup.supported") === false ) {
+                          break;
+                      }
+                      // else fall through
+                  case "readOnly":
+                  case "disabled":
+                      // XXXvv we can be smarter about how we handle this stuff
+                      this.calView.refresh();
+                      break;
+              }
           },
           onPropertyDeleting: function(aCalendar, aName) {
             this.onPropertyChanged(aCalendar, aName, null, null);
@@ -1667,11 +1675,15 @@
           // XXXvv we can be smarter about how we handle this stuff
           //
           onCalendarAdded: function (aCalendar) {
-            this.calView.refresh();
+            if (!aCalendar.getProperty("disabled")) {
+                this.calView.refresh();
+            }
           },
 
           onCalendarRemoved: function (aCalendar) {
-            this.calView.refresh();
+            if (!aCalendar.getProperty("disabled")) {
+                this.calView.refresh();
+            }
           },
 
           onDefaultCalendarChanged: function (aNewDefaultCalendar) {

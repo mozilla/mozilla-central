@@ -171,6 +171,9 @@ InvitationsManager.prototype = {
         var requestManager = getInvitationsRequestManager();
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
+            if (calendar.getProperty("disabled")) {
+                continue;
+            }
             try {
                 // temporary hack unless all group scheduling features are supported
                 // by the caching facade (calCachedCalendar):

@@ -782,6 +782,7 @@ var calendarManagerObserver = {
                 calendarListTreeView.updateCalendar(aCalendar);
                 break;
             case "readOnly":
+            case "disabled":
                 calendarListTreeView.updateCalendar(aCalendar);
                 // Fall through, update commands in any cases.
             case "requiresNetwork":

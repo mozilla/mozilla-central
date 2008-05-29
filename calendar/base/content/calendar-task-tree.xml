@@ -724,20 +724,33 @@
           },
           
           onError: function tTO_onError(aCalendar, aErrNo, aMessage) {},
-          onPropertyChanged: function tTO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
-          onPropertyDeleting: function tTO_onPropertyDeleting(aCalendar, aName) {},
+          onPropertyChanged: function tTO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {
+              switch (aName) {
+                  case "disabled":
+                      if (aValue) {
+                          this.binding.onCalendarRemoved(aCalendar);
+                      } else {
+                          this.binding.onCalendarAdded(aCalendar);
+                      }
+                      break;
+              }
+          },
+
+          onPropertyDeleting: function tTO_onPropertyDeleting(aCalendar, aName) {
+              this.onPropertyChanged(aCalendar, aName, null, null);
+          },
 
           /**
            * calICompositeObserver methods and properties
            */
           onCalendarAdded: function tTO_onCalendarAdded(aCalendar) {
-              if (!this.mInBatch) {
+              if (!this.mInBatch && !aCalendar.getProperty("disabled")) {
                   this.binding.onCalendarAdded(aCalendar);
               }
           },
           
           onCalendarRemoved: function tTO_onCalendarRemoved(aCalendar) {
-              if (!this.mInBatch) {
+              if (!this.mInBatch && !aCalendar.getProperty("disabled")) {
                   this.binding.onCalendarRemoved(aCalendar);
               }
           },

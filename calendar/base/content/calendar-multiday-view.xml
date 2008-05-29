@@ -2532,6 +2532,7 @@
                         }
                         // else fall through
                     case "readOnly":
+                    case "disabled":
                         // XXXvv we can be smarter about how we handle this stuff
                         this.calView.refresh();
                         break;
@@ -2569,13 +2570,15 @@
             // XXXvv we can be smarter about how we handle this stuff
             //
             onCalendarAdded: function onCalendarAdded(aCalendar) {
-                //dump ("view onCalendarAdded\n");
-                this.calView.refresh();
+                if (!aCalendar.getProperty("disabled")) {
+                    this.calView.refresh();
+                }
             },
 
             onCalendarRemoved: function onCalendarRemoved(aCalendar) {
-                //dump ("view onCalendarRemoved\n");
-                this.calView.refresh();
+                if (!aCalendar.getProperty("disabled")) {
+                    this.calView.refresh();
+                }
             },
 
             onDefaultCalendarChanged:

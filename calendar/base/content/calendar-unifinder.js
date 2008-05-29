@@ -165,19 +165,28 @@ var unifinderObserver = {
 
     onError: function uO_onError(aCalendar, aErrNo, aMessage) {},
 
-    onPropertyChanged: function uO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {},
-    onPropertyDeleting: function uO_onPropertyDeleting(aCalendar, aName) {},
+    onPropertyChanged: function uO_onPropertyChanged(aCalendar, aName, aValue, aOldValue) {
+        switch (aName) {
+            case "disabled":
+                refreshEventTree();
+                break;
+        }
+    },
+
+    onPropertyDeleting: function uO_onPropertyDeleting(aCalendar, aName) {
+      this.onPropertyChanged(aCalendar, aName, null, null);
+    },
 
     // calICompositeObserver:
-    onCalendarAdded: function uO_onCalendarAdded(aDeletedItem) {
-        if (!this.mInBatch) {
+    onCalendarAdded: function uO_onCalendarAdded(aAddedCalendar) {
+        if (!this.mInBatch && !aAddedCalendar.getProperty("disabled")) {
             refreshEventTree();
         }
     },
 
-    onCalendarRemoved: function uO_onCalendarRemoved(aDeletedItem) {
+    onCalendarRemoved: function uO_onCalendarRemoved(aDeletedCalendar) {
         // TODO only remove such items that belong to the calendar
-        if (!this.mInBatch) {
+        if (!this.mInBatch && !aDeletedCalendar.getProperty("disabled")) {
             refreshEventTree();
         }
     },

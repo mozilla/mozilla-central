@@ -56,8 +56,6 @@ function onLoad() {
     document.getElementById("calendar-uri").value = gCalendar.uri.spec;
     document.getElementById("read-only").checked = gCalendar.readOnly;
 
-    // start focus on title
-    document.getElementById("calendar-name").focus();
 
     // set up the cache field
     var cacheBox = document.getElementById("cache");
@@ -72,6 +70,16 @@ function onLoad() {
 
     suppressAlarmsRow.hidden =
         (gCalendar.getProperty("capabilities.alarms.popup.supported") === false);
+
+    // Set up the disabled checkbox
+    var calendarDisabled = gCalendar.getProperty("disabled");
+    document.getElementById("calendar-enabled-checkbox").checked = !calendarDisabled;
+    setupEnabledCheckbox();
+
+    // start focus on title, unless we are disabled
+    if (!calendarDisabled) {
+        document.getElementById("calendar-name").focus();
+    }
 
     sizeToContent();
 }
@@ -95,6 +103,20 @@ function onAcceptDialog() {
     // Save cache options
     gCalendar.setProperty("cache.enabled", document.getElementById("cache").checked);
 
+    // Save disabled option (should do this last)
+    gCalendar.setProperty("disabled", !document.getElementById("calendar-enabled-checkbox").checked);
+
     // tell standard dialog stuff to close the dialog
     return true;
+}
+
+/**
+ * When the calendar is disabled, we need to disable a number of other elements
+ */
+function setupEnabledCheckbox() {
+    var isEnabled = document.getElementById("calendar-enabled-checkbox").checked;
+    var els = document.getElementsByAttribute("disable-with-calendar", "true");
+    for (var i = 0; i < els.length; i++) {
+        els[i].disabled = !isEnabled;
+    }
 }

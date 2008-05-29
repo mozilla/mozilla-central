@@ -734,9 +734,17 @@ function observer_onModifyItem(newItem, oldItem) {
 
 agendaListbox.calendarObserver.onError = function(cal, errno, msg) {};
 
-agendaListbox.calendarObserver.onPropertyChanged = function(aCalendar, aName, aValue, aOldValue) {};
+agendaListbox.calendarObserver.onPropertyChanged = function(aCalendar, aName, aValue, aOldValue) {
+    switch (aName) {
+        case "disabled":
+            this.agendaListbox.refreshCalendarQuery();
+            break;
+    }
+};
 
-agendaListbox.calendarObserver.onPropertyDeleting = function(aCalendar, aName) {};
+agendaListbox.calendarObserver.onPropertyDeleting = function(aCalendar, aName) {
+    this.onPropertyChanged(aCalendar, aName, null, null);
+};
 
 
 agendaListbox.calendarObserver.onCalendarRemoved =

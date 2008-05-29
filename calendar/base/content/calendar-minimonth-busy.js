@@ -152,9 +152,19 @@ var minimonthBusyListener = {
 
     onError: function mBL_onError(aCalendar, aErrNo, aMessage) {},
 
-    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+    onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
+        switch (aName) {
+            case "disabled":
+                var minimonth = getMinimonth();
+                minimonth.resetAttributesForDate();
+                monthChangeListener({ target: minimonth });
+                break;
+        }
+    },
 
-    onPropertyDeleting: function(aCalendar, aName) {},
+    onPropertyDeleting: function(aCalendar, aName) {
+        this.onPropertyChanged(aCalendar, aName, null, null);
+    },
 
     // calICompositeObserver methods
     onCalendarAdded: function mBL_onCalendarAdded(aCalendar) {

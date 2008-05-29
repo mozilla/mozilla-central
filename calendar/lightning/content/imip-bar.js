@@ -63,7 +63,7 @@ function createItipCompositeCalendar() {
     getCalendarManager().getCalendars({}).forEach(
         function(cal) {
             // we consider only read-writeable calendars since we need to add/modify items
-            if (!cal.readOnly) {
+            if (isCalendarWritable(cal)) {
                 compCal.addCalendar(cal);
             }
         });
