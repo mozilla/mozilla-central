@@ -3862,21 +3862,26 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       rv = identity->GetSignature(getter_AddRefs(sigFile));
       if (NS_SUCCEEDED(rv) && sigFile) {
         rv = sigFile->GetNativePath(sigNativePath);
-        if (NS_SUCCEEDED(rv) && !sigNativePath.IsEmpty())
-          useSigFile = PR_TRUE; // ok, there's a signature file
+        if (NS_SUCCEEDED(rv) && !sigNativePath.IsEmpty()) {
+          PRBool exists = PR_FALSE;
+          sigFile->Exists(&exists);
+          if (exists) {
+            useSigFile = PR_TRUE; // ok, there's a signature file
 
-        // Now, most importantly, we need to figure out what the content type is for
-        // this signature...if we can't, we assume text
-        nsCAutoString sigContentType;
-        nsresult rv2; // don't want to clobber the other rv
-        nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv2));
-        if (NS_SUCCEEDED(rv2)) {
-          rv2 = mimeFinder->GetTypeFromFile(sigFile, sigContentType);
-          if (NS_SUCCEEDED(rv2)) {
-            if (StringBeginsWith(sigContentType, NS_LITERAL_CSTRING("image/"), nsCaseInsensitiveCStringComparator()))
-              imageSig = PR_TRUE;
-            else if (sigContentType.Equals(TEXT_HTML, nsCaseInsensitiveCStringComparator()))
-              htmlSig = PR_TRUE;
+            // Now, most importantly, we need to figure out what the content type is for
+            // this signature...if we can't, we assume text
+            nsCAutoString sigContentType;
+            nsresult rv2; // don't want to clobber the other rv
+            nsCOMPtr<nsIMIMEService> mimeFinder (do_GetService(NS_MIMESERVICE_CONTRACTID, &rv2));
+            if (NS_SUCCEEDED(rv2)) {
+              rv2 = mimeFinder->GetTypeFromFile(sigFile, sigContentType);
+              if (NS_SUCCEEDED(rv2)) {
+                if (StringBeginsWith(sigContentType, NS_LITERAL_CSTRING("image/"), nsCaseInsensitiveCStringComparator()))
+                  imageSig = PR_TRUE;
+                else if (sigContentType.Equals(TEXT_HTML, nsCaseInsensitiveCStringComparator()))
+                  htmlSig = PR_TRUE;
+              }
+            }
           }
         }
       }
@@ -3891,12 +3896,6 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   // just return nicely.
   //
   if ((!useSigFile  && prefSigText.IsEmpty()) || NS_FAILED(rv))
-    return NS_OK;
-
-  PRBool exists;
-  sigFile->Exists(&exists);
-  // If this file doesn't really exist, just bail!
-  if (!exists && prefSigText.IsEmpty())
     return NS_OK;
 
   static const char      htmlBreak[] = "<BR>";
@@ -3936,7 +3935,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       sigOutput.AppendLiteral(htmlsigclose);
     }
   }
-  else
+  else if (useSigFile)
   {
     // is this a text sig with an HTML editor?
     if ( (m_composeHTML) && (!htmlSig) )
