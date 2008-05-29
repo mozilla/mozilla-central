@@ -2887,8 +2887,6 @@ shutdown:
     if ((initialized == PR_TRUE) && NSS_Shutdown() != SECSuccess) {
         exit(1);
     }
-    PR_Cleanup();
-
     if (rv == SECSuccess) {
 	return 0;
     } else {
@@ -2899,5 +2897,8 @@ shutdown:
 int
 main(int argc, char **argv)
 {
-    return certutil_main(argc, argv, PR_TRUE);
+    int rv = certutil_main(argc, argv, PR_TRUE);
+    PR_Cleanup();
+    return rv;
 }
+
