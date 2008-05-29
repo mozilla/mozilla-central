@@ -591,11 +591,12 @@ CERTCertificate * PK11_FindCertFromNickname(const char *nickname, void *wincx);
 CERTCertList * PK11_FindCertsFromNickname(const char *nickname, void *wincx);
 CERTCertificate *PK11_GetCertFromPrivateKey(SECKEYPrivateKey *privKey);
 SECStatus PK11_ImportCert(PK11SlotInfo *slot, CERTCertificate *cert,
-                CK_OBJECT_HANDLE key, char *nickname, PRBool includeTrust);
+                CK_OBJECT_HANDLE key, const char *nickname, 
+                PRBool includeTrust);
 SECStatus PK11_ImportDERCert(PK11SlotInfo *slot, SECItem *derCert,
                 CK_OBJECT_HANDLE key, char *nickname, PRBool includeTrust);
-PK11SlotInfo *PK11_ImportCertForKey(CERTCertificate *cert, char *nickname,
-								void *wincx);
+PK11SlotInfo *PK11_ImportCertForKey(CERTCertificate *cert, 
+                                    const char *nickname, void *wincx);
 PK11SlotInfo *PK11_ImportDERCertForKey(SECItem *derCert, char *nickname,
 								void *wincx);
 PK11SlotInfo *PK11_KeyForCertExists(CERTCertificate *cert,

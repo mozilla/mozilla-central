@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.47 $ $Date: 2008-05-17 00:13:38 $";
+static const char CVS_ID[] = "@(#) $RCSfile: devtoken.c,v $ $Revision: 1.48 $ $Date: 2008-05-29 17:24:15 $";
 #endif /* DEBUG */
 
 #ifndef NSSCKEPV_H
@@ -467,7 +467,7 @@ nssToken_ImportCertificate (
   nssSession *sessionOpt,
   NSSCertificateType certType,
   NSSItem *id,
-  NSSUTF8 *nickname,
+  const NSSUTF8 *nickname,
   NSSDER *encoding,
   NSSDER *issuer,
   NSSDER *subject,
