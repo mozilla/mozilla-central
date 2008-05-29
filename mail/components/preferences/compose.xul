@@ -107,8 +107,8 @@
             <hbox align="center" pack="start">
               <checkbox id="autoSave" label="&autoSave.label;" preference="mail.compose.autosave"
                         accesskey="&autoSave.accesskey;"/>
-              <textbox  id="autoSaveInterval" size="2" preference="mail.compose.autosaveinterval"/>
-              <label value="&autoSaveEnd.label;"/>
+              <textbox  id="autoSaveInterval" size="2" preference="mail.compose.autosaveinterval" aria-labelledby="autoSave autoSaveInterval autoSaveEnd"/>
+              <label id="autoSaveEnd" value="&autoSaveEnd.label;"/>
             </hbox>
 
             <checkbox id="strictlyMime" label="&useMIME.label;"
@@ -120,9 +120,9 @@
                       accesskey="&warnOnSendAccelKey.accesskey;"/>
 
             <hbox align="center">
-              <label value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength"/>
-              <textbox id="wrapLength" size="3" preference="mailnews.wraplength"/>
-              <label value="&char.label;"/>
+              <label id="wrapOutLabel" value="&wrapOutMsg.label;" accesskey="&wrapOutMsg.accesskey;" control="wrapLength"/>
+              <textbox id="wrapLength" size="3" preference="mailnews.wraplength" aria-labelledby="wrapOutLabel wrapLength wrapOutChars"/>
+              <label id="wrapOutChars" value="&char.label;"/>
             </hbox>            
           </groupbox>
 
@@ -195,7 +195,7 @@
                           preference="ldap_2.autoComplete.useDirectory" 
                           oncommand="gComposePane.enableAutocomplete();"
                           accesskey="&directories.accesskey;"/>
-                <menulist id="directoriesList" flex="1"
+                <menulist id="directoriesList" flex="1" aria-labelledby="autocompleteLDAP"
                           preference="ldap_2.autoComplete.directoryServer">
                   <menupopup id="directoriesListPopup">
                   </menupopup>
@@ -211,7 +211,7 @@
             <hbox align="center" pack="start">
               <checkbox id="emailCollectionOutgoing" label="&emailCollectionPicker.label;" 
                         accesskey="&emailCollectionPicker.accesskey;" preference="mail.collect_email_address_outgoing"/>
-                <menulist id="localDirectoriesList" flex="1" preference="mail.collect_addressbook">
+                <menulist id="localDirectoriesList" flex="1" preference="mail.collect_addressbook" aria-labelledby="emailCollectionOutgoing">
                   <menupopup id="abPopup-menupopup">
                 </menupopup>
               </menulist>

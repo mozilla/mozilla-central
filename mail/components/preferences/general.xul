@@ -124,7 +124,7 @@
                 oncommand="gGeneralPane.updatePlaySound();"/>
 
         <radiogroup id="soundType" preference="mail.biff.play_sound.type" class="indent" 
-                    orient="vertical" oncommand="gGeneralPane.updatePlaySound();">
+                    orient="vertical" oncommand="gGeneralPane.updatePlaySound();" aria-labelledby="newMailNotification">
           <radio value="0" 
 #ifdef XP_MACOSX
                  label="&systemsoundMac.label;" accesskey="&systemsoundMac.accesskey;"
@@ -137,7 +137,7 @@
           <hbox class="indent">
             <filefield id="soundUrlLocation" flex="1" preference="mail.biff.play_sound.url"
                        preference-editable="true"
-                       onsyncfrompreference="return gGeneralPane.readSoundLocation();"/>
+                       onsyncfrompreference="return gGeneralPane.readSoundLocation();" aria-labelledby="custom"/>
             <button id="browseForSound" label="&browse.label;" 
                     accesskey="&browse.accesskey;" oncommand="gGeneralPane.browseForSoundFile();">
               <observes element="soundUrlLocation" attribute="disabled"/>

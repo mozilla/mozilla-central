@@ -58,7 +58,7 @@
       <preference id="offline.download.download_messages"    name="offline.download.download_messages"    type="int"/>
     </preferences>
 
-    <label value="&textStartUp;"/>
+    <label value="&textStartUp;" control="whenStartingUp"/>
     <radiogroup id="whenStartingUp" class="indent" preference="offline.startup_state">
       <radio value="0" label="&radioRememberPrevState.label;" accesskey="&radioRememberPrevState.accesskey;"/>
       <radio value="1" label="&radioAskMe.label;" accesskey="&radioAskMe.accesskey;"/>
@@ -67,7 +67,7 @@
 
     <separator class="thin"/>
 
-    <label value="&textGoingOnline;"/>
+    <label value="&textGoingOnline;" control="whengoingOnlinestate"/>
     <radiogroup id="whengoingOnlinestate" orient="horizontal" class="indent"
                 preference ="offline.send.unsent_messages">
       <radio value="1" label="&radioAutoSend.label;"  accesskey="&radioAutoSend.accesskey;"/>
@@ -77,7 +77,7 @@
 
     <separator class="thin"/>
 
-    <label value="&textGoingOffline;"/>
+    <label value="&textGoingOffline;" control="whengoingOfflinestate"/>
     <radiogroup id="whengoingOfflinestate" orient="horizontal" class="indent"
                 preference="offline.download.download_messages">
       <radio value="1" label="&radioAutoDownload.label;" accesskey="&radioAutoDownload.accesskey;"/>

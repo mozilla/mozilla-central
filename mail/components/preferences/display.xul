@@ -101,7 +101,7 @@
                       preference="mail.display_glyph" accesskey="&convertEmoticons.accesskey;"/>
             <caption label="&displayWidth.label;"/>    
             <hbox align="center"> 
-              <description>&plainText.label;</description>
+              <label control="mailFixedWidthMessages">&plainText.label;</label>
     
               <radiogroup id="mailFixedWidthMessages" orient="horizontal" class="indent"
                           preference="mail.fixed_width_messages">
@@ -112,8 +112,8 @@
 
             <separator class="thin"/>
 
-            <description>&displayText.label;</description>
-            <hbox class="indent" align="center">
+            <label control="displayText">&displayText.label;</label>
+            <hbox id="displayText" class="indent" align="center" role="group">
               <label value="&style.label;" accesskey="&style.accesskey;" control="mailQuotedStyle"/>
               <menulist id="mailQuotedStyle" preference="mail.quoted_style">
                 <menupopup>
@@ -148,7 +148,7 @@
         </tabpanel>
 
         <tabpanel orient="vertical">
-          <description>&displayTagsText.label;</description>
+          <label control="tagList">&displayTagsText.label;</label>
           <hbox>
             <listbox id="tagList" flex="1" rows="10"/>
             <vbox>

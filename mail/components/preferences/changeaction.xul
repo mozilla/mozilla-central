@@ -70,12 +70,12 @@
       <separator class="thin"/>
       <radio id="openDefault" value="system" 
              label="&openDefault.label;" accesskey="&openDefault.accesskey;"/>
-      <filefield class="indent" id="defaultApp" disabled="true"/>
+      <filefield class="indent" id="defaultApp" disabled="true" aria-labelledby="openDefault"/>
       <separator class="thin"/>
       <radio id="openApplication" value="app" 
              label="&openApplication.label;" accesskey="&openApplication.accesskey;"/>
       <hbox align="center">
-        <filefield id="customApp" class="indent" flex="1" disabled="true"/>
+        <filefield id="customApp" class="indent" flex="1" disabled="true" aria-labelledby="openApplication"/>
         <button id="changeApp" oncommand="gChangeActionDialog.changeApp();" 
                 label="&changeApp.label;" accesskey="&changeApp.accesskey;"
                 disabled="true"/>
@@ -84,13 +84,13 @@
       <radio id="saveToDisk" value="save" 
              label="&saveToDisk.label;" accesskey="&saveToDisk.accesskey;"/>
       <radiogroup id="saveToOptions" class="indent" onselect="gChangeActionDialog.doSaveToDiskEnabling(this.selectedItem);"
-                  hidden="true">
+                  hidden="true" aria-labelledby="saveToDisk">
         <radio id="saveToDefault" value="default" selected="true"
                label="&saveToDefaultFolder.label;" accesskey="&saveToDefaultFolder.accesskey;"/>
         <radio id="saveToCustom" value="custom"
                label="&saveToThisFolder.label;" accesskey="&saveToThisFolder.accesskey;"/>
         <hbox align="center" class="indent">
-          <filefield id="customDownloadFolder" flex="1"/>
+          <filefield id="customDownloadFolder" flex="1" aria-labelledby="saveToCustom"/>
           <button id="chooseCustomDownloadFolder" oncommand="gChangeActionDialog.changeCustomFolder();"
                   label="&chooseFolder.label;" accesskey="&chooseFolder.accesskey;"/>
         </hbox>

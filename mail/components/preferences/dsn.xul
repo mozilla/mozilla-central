@@ -122,7 +122,7 @@
     <separator class="groove"/>
     <separator class="thin"/>
 
-    <label value="&RET_FailureMessage.label;" />
+    <label value="&RET_FailureMessage.label;" control="ret_full_on"/>
     <radiogroup id="ret_full_on" preference="mail.dsn.ret_full_on" orient="horizontal">
       <radio value="true" label="&RET_FULL.label;" accesskey="&RET_FULL.accesskey;" />
       <radio value="false" label="&RET_HDRS.label;" accesskey="&RET_HDRS.accesskey;" />

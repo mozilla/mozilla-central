@@ -105,7 +105,7 @@
                     label="&manualMark.label;" accesskey="&manualMark.accesskey;"/>
 
           <radiogroup id="manualMarkMode" class="indent"
-                      preference="mail.spam.manualMarkMode">
+                      preference="mail.spam.manualMarkMode" aria-labelledby="manualMark">
             <radio id="manualMarkMode0" value="0" label="&manualMarkModeMove.label;" accesskey="&manualMarkModeMove.accesskey;"/>
             <radio id="manualMarkMode1" value="1" label="&manualMarkModeDelete.label;" accesskey="&manualMarkModeDelete.accesskey;"/>
           </radiogroup>

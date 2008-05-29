@@ -106,8 +106,8 @@
             <checkbox id="markAsRead" label="&markAsRead.label;" accesskey="&markAsRead.accesskey;"
                       preference="mailnews.mark_message_read.delay"
                       oncommand="gAdvancedPane.updateMarkAsReadTextbox(true);"/>
-            <textbox  id="markAsReadDelay" size="2" preference="mailnews.mark_message_read.delay.interval"/>
-            <label value="&markAsReadEnd.label;"/>
+            <textbox  id="markAsReadDelay" size="2" preference="mailnews.mark_message_read.delay.interval" aria-labelledby="markAsRead markAsReadDelay markAsReadEnd"/>
+            <label id="markAsReadEnd" value="&markAsReadEnd.label;"/>
           </hbox>
 
           <hbox align="center" pack="start">
@@ -125,7 +125,7 @@
 
           <vbox>
             <hbox align="center" pack="start">
-              <label value="&openMsgIn.label;"/>
+              <label value="&openMsgIn.label;" control="mailnewsDoubleClick2NewWindow"/>
             </hbox>
 
             <hbox class="indent">
@@ -165,9 +165,9 @@
             </hbox>
 
             <hbox align="center" pack="start">
-              <label value="&connectionTimeout.label;" accesskey="&connectionTimeout.accesskey;" control="connectionTimeoutBox" />
-              <textbox  id="connectionTimeoutBox" size="3" preference="mailnews.tcptimeout"/>
-              <label value="&connectionSeconds.label;"/>
+              <label id="connectionTimeoutLabel" value="&connectionTimeout.label;" accesskey="&connectionTimeout.accesskey;" control="connectionTimeoutBox"/>
+              <textbox  id="connectionTimeoutBox" size="3" preference="mailnews.tcptimeout" aria-labelledby="connectionTimeoutLabel connectionTimeoutBox connectionSeconds"/>
+              <label id="connectionSeconds" value="&connectionSeconds.label;"/>
             </hbox>
           </groupbox>
 
@@ -186,8 +186,8 @@
             <hbox align="center">
                 <checkbox id="offlineCompactFolder" label="&offlineCompact.label;" accesskey="&offlineCompact.accesskey;"
                           preference="mail.prompt_purge_threshhold"/>
-                <textbox id="offlineCompactFolderMin" size="5" value="100" preference="mail.purge_threshhold"/>
-                <label value="&kb.label;"/>
+                <textbox id="offlineCompactFolderMin" size="5" value="100" preference="mail.purge_threshhold" aria-labelledby="offlineCompactFolder offlineCompactFolderMin compactFolderKB"/>
+                <label id="compactFolderKB" value="&kb.label;"/>
             </hbox>
           </groupbox>
         </tabpanel>
@@ -207,7 +207,7 @@
                       preference="extensions.update.enabled"/>
           </vbox>
           <separator/>
-          <label id="updateModeLabel">&whenUpdatesFound.label;</label>
+          <label id="updateModeLabel" control="updateMode">&whenUpdatesFound.label;</label>
           <radiogroup id="updateMode" class="indent"
                       preference="app.update.auto">
             <radio id="ask" value="false"

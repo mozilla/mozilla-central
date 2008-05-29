@@ -70,7 +70,7 @@
     <groupbox>
       <caption label="&sendMail.title;"/>
 
-      <description width="1">&sendMaildesc.label;</description>
+      <label control="mailDefaultHTMLAction" width="1">&sendMaildesc.label;</label>
 
       <hbox class="indent" id="thenBox">
         <menulist id="mailDefaultHTMLAction" preftype="int" preference="mail.default_html_action">
@@ -85,7 +85,7 @@
 
       <separator class="thin"/>
 
-      <description>&override.label;</description>
+      <description control="mailDefaultHTMLAction">&override.label;</description>
     </groupbox>
 
     <separator class="thin"/>
@@ -99,7 +99,7 @@
       <tabpanels id="sendOptionsTabsPanels" flex="1">
 
         <vbox index="HTML">
-          <description width="1">&domaindesc.label;</description>
+          <label control="html_domains" width="1">&domaindesc.label;</label>
 
           <hbox>
             <listbox id="html_domains" flex="1" seltype="multiple" rows="5"
@@ -113,7 +113,7 @@
         </vbox>
 
         <vbox index="plainText">
-          <description width="1">&domaindesc.label;</description>
+          <label control="plaintext_domains" width="1">&domaindesc.label;</label>
 
           <hbox>
             <listbox id="plaintext_domains" flex="1" seltype="multiple" rows="5"

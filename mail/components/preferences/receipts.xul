@@ -73,7 +73,7 @@
     <separator class="groove"/>
     <separator class="thin"/>
 
-    <description>&receiptArrive.label;</description>
+    <label control="receiptFolder">&receiptArrive.label;</label>
     <radiogroup id="receiptFolder" class="indent" preference="mail.incorporate.return_receipt">
       <radio value="0" label="&leaveIt.label;" accesskey="&leaveIt.accesskey;"/>
       <radio value="1" label="&moveToSent.label;" accesskey="&moveToSent.accesskey;"/> 
@@ -83,7 +83,7 @@
     <separator class="groove"/>
     <separator class="thin"/>
 
-    <description>&requestMDN.label;</description>
+    <label control="receiptSend">&requestMDN.label;</label>
     <radiogroup id="receiptSend" class="indent" preference="mail.mdn.report.enabled" oncommand="EnableDisableAllowedReceipts();">
       <radio value="false" label="&never.label;" accesskey="&never.accesskey;"/>
       <radio value="true" label="&returnSome.label;" accesskey="&returnSome.accesskey;"/> 
