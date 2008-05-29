@@ -888,7 +888,7 @@ nsresult nsMsgSearchTerm::InitializeAddressBook()
     rv = dir->GetURI(uri);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    if (uri.Equals(m_value.string))
+    if (!uri.Equals(m_value.string))
       // clear out the directory....we are no longer pointing to the right one
       mDirectory = nsnull;
   }
