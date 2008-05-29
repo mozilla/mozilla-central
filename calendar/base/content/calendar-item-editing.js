@@ -485,13 +485,13 @@ function checkForAttendees(aItem, aOriginalItem)
         return;
     }
 
+    var originalAtt = aOriginalItem.getAttendees({});
     var itemAtt = aItem.getAttendees({});
     var attMap = {};
     var addedAttendees = [];
     var canceledAttendees = [];
 
-    if (itemAtt.length > 0) {
-        var originalAtt = aOriginalItem.getAttendees({});
+    if (itemAtt.length > 0 || originalAtt.length > 0) {
 
         for each (var att in originalAtt) {
             attMap[att.id] = att;
