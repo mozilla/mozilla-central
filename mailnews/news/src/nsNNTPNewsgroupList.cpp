@@ -151,9 +151,8 @@ nsNNTPNewsgroupList::CleanUp()
         if (lastMissingCheck)
           firstKnown = lastMissingCheck + 1;
       }
-      PRBool done = firstKnown > lastKnown; // just in case...
       PRBool foundMissingArticle = PR_FALSE;
-      while (!done)
+      while (firstKnown <= lastKnown)
       {
         PRInt32 firstUnreadStart, firstUnreadEnd;
         m_set->FirstMissingRange(firstKnown, lastKnown, &firstUnreadStart, &firstUnreadEnd);
