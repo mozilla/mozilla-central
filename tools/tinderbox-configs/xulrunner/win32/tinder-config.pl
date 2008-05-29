@@ -11,6 +11,9 @@ $ENV{NO_EM_RESTART} = "1";
 $ENV{MOZ_INSTALLER_USE_7ZIP} = "1";
 $ENV{CVS_RSH} = "ssh";
 $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
+# Both these two variables are for source server support
+$ENV{PDBSTR_PATH} = 'C:\\Program Files\\Debugging Tools for Windows\\sdk\\srcsrv\\pdbstr.exe';
+$ENV{SRCSRV_ROOT} = ':pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot';
 
 # $ENV{MOZ_PACKAGE_MSI}
 #-----------------------------------------------------------------------------
@@ -209,6 +212,16 @@ $stub_installer = 0;
 $sea_installer = 0;
 $archive       = 1;
 $push_raw_xpis = 0;
+$crashreporter_buildsymbols = 1;
+$crashreporter_pushsymbols = 1;
+# CONFIG: $ENV{'SYMBOL_SERVER_HOST'}    = '%symbolServer%';
+$ENV{'SYMBOL_SERVER_HOST'} = 'dm-symbolpush01.mozilla.org';
+# CONFIG: $ENV{'SYMBOL_SERVER_USER'}    = '%symbolServerUser%';
+$ENV{'SYMBOL_SERVER_USER'}   = 'xrbld';
+# CONFIG: $ENV{'SYMBOL_SERVER_PATH'}    = '%symbolServerPath%';
+$ENV{'SYMBOL_SERVER_PATH'}   = '/mnt/netapp/breakpad/symbols_xr/';
+# CONFIG: $ENV{'SYMBOL_SERVER_SSH_KEY'} = '%symbolServerKey%';
+$ENV{'SYMBOL_SERVER_SSH_KEY'}   = '/c/Documents and Settings/cltbld/.ssh/xrbld_dsa';
 
 # Reboot the OS at the end of build-and-test cycle. This is primarily
 # intended for Win9x, which can't last more than a few cycles before
