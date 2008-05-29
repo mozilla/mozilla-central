@@ -109,7 +109,7 @@ if ($term){
         /^(environment|TE|e|env)?[\s:-]+(.*)$/i && do{
             my $text = trim($2);
             if ($text =~ /^\d+$/){
-                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_environment.cgi?env_id=" . $text . "\n\n";
+                print "Location: " . Bugzilla->params->{'urlbase'} . "tr_environments.cgi?env_id=" . $text . "\n\n";
             }
             else{
                 $cgi->param('current_tab', 'environment');
@@ -119,7 +119,7 @@ if ($term){
                 my $search = Bugzilla::Testopia::Search->new($cgi);
                 my $table = Bugzilla::Testopia::Table->new('environment', 'tr_list_runs.cgi', $cgi, undef, $search->query);
                 if ($table->list_count == 1){
-                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_show_environment.cgi?env_id=" . ${$table->list}[0]->id . "\n\n";
+                    print "Location: " . Bugzilla->params->{'urlbase'} . "tr_environments.cgi?env_id=" . ${$table->list}[0]->id . "\n\n";
                 }
                 else{
                     print "Location: " . Bugzilla->params->{'urlbase'} . "tr_list_environments.cgi?" . $table->get_query_part . "\n\n";

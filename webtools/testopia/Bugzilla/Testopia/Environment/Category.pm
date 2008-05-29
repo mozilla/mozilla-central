@@ -348,53 +348,21 @@ sub new_category_count {
 
 sub elements_to_json {
     my $self = shift;
-    my ($disable_add) = @_;
-    $disable_add = ',"addChild"' if $disable_add;
-
-    my $elements = $self->get_parent_elements;
-    my $json     = '[';
 
     my @values;
-
-    foreach my $element (@$elements) {
-        my $leaf;
-        if ( $element->check_for_children || $element->check_for_properties ) {
-            $leaf = 'false';
-        }
-
-        else {
-            $leaf = 'true';
-        }
-
+    foreach my $element (@{$self->get_parent_elements}) {
         push @values,
           {
-            text => $element->{'name'},
-            id   => ( $element->{'element_id'} ),
+            text => $element->name,
+            id   => $element->id,
             type => 'element',
-            leaf => $leaf,
+            leaf => $element->check_for_children ? 'false' : 'true',
             cls  => 'element'
           };
     }
 
-    $json = new JSON();
+    my $json = new JSON();
     return $json->objToJson( \@values );
-
-#    foreach my $element (@$elements)
-#    {
-#        $json .= '{title:"'. $element->{'name'} .'",';
-#        $json .=  'objectId:"'. $element->{'element_id'}. '",';
-#        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
-#        $json .=  'actionsDisabled:["addCategory","addValue"';
-#        $json .=  $disable_add if $disable_add;
-#        $json .=  ',"remove"' unless $element->candelete;
-#        $json .=  '],';
-#        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
-#        $json .=  'childIconSrc:"testopia/img/circle.gif"},';
-#    }
-#    chop $json;
-#    $json .= ']';
-#
-#    return $json;
 }
 
 =head2 check_category
@@ -415,27 +383,6 @@ sub check_category {
           FROM test_environment_category
          WHERE name = ? AND product_id = ?",
         undef, ( $name, $prodID )
-    );
-
-    return $used;
-}
-
-=head2 check_category_by_id
-
-Returns category name if a category id exists
-
-=cut
-
-sub check_category_by_id {
-    my $dbh  = Bugzilla->dbh;
-    my $self = shift;
-    my ($id) = (@_);
-
-    my ($used) = $dbh->selectrow_arrayref(
-        qq{
-        SELECT name 
-          FROM test_environment_category
-          WHERE env_category_id = ?}, undef, $id
     );
 
     return $used;

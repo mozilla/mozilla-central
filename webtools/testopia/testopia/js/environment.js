@@ -24,7 +24,7 @@ EnvironmentGrid = function(params, cfg){
     this.params = params;
     this.product_id = params.product_id;
     function environmentLink(id){
-        return '<a href="tr_show_environment.cgi?env_id=' + id +'">' + id +'</a>';
+        return '<a href="tr_environments.cgi?env_id=' + id +'">' + id +'</a>';
     }
     function productLink(id){
         return '<a href="tr_show_product.cgi?product_id=' + id +'">' + id +'</a>';
@@ -153,7 +153,7 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
             break;
         }
         this.form.submit({
-            url:"tr_show_environment.cgi",
+            url:"tr_environments.cgi",
             params: myparams,
             success: function(f,a){
                 ds.commitChanges();
@@ -177,7 +177,7 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
                 if (btn == 'yes'){
                     form = new Ext.form.BasicForm('testopia_helper_frm', {});
                     form.submit({
-                        url: 'tr_show_environment.cgi',
+                        url: 'tr_environments.cgi',
                         params: {env_id: grid.getSelectionModel().getSelected().get('environment_id'),action: 'delete'},
                         success: function(){
                             Ext.Msg.show({
@@ -210,7 +210,7 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
             layout: 'fit',
             items: [{
                 xtype: 'form',
-                url: 'tr_show_environment.cgi',
+                url: 'tr_environments.cgi',
                 bodyStyle: 'padding: 10px',
                 id: 'env_create_frm',
                 items: [{
@@ -247,7 +247,7 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
                                     icon: Ext.MessageBox.QUESTION,
                                     fn: function(btn){
                                         if (btn == 'yes'){
-                                            window.location = 'tr_show_environment.cgi?env_id=' + data.result.id;
+                                            window.location = 'tr_environments.cgi?env_id=' + data.result.id;
                                         }
                                         else {
                                             grid.store.reload();

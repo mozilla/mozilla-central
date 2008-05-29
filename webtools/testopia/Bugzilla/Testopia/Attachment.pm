@@ -199,41 +199,6 @@ sub create {
 ###############################
 ####       Methods         ####
 ###############################
-sub store {
-    my ($self) = @_;
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'attachment_id'} DB_COLUMNS);
-
-    if (!$self->{'case_id'} && !$self->{'plan_id'}){
-        ThrowUserError("testopia-missing-attachment-key");
-    }
-    $self->_validate_data;
-    $self->{'filename'} = $self->strip_path($self->{'filename'});
-    my $dbh = Bugzilla->dbh;
-    my ($timestamp) = Bugzilla::Testopia::Util::get_time_stamp();
-
-    $dbh->do("INSERT INTO test_attachments ($columns) VALUES (?,?,?,?,?)",
-              undef, ($self->{'submitter_id'}, $self->{'description'},
-              $self->{'filename'}, $timestamp, $self->{'mime_type'}));
-
-    my $key = $dbh->bz_last_key( 'test_attachments', 'attachment_id' );
-    $dbh->do("INSERT INTO test_attachment_data (attachment_id, contents) VALUES(?,?)",
-              undef, $key, $self->{'contents'});
-
-    if ($self->{'case_id'}){
-
-        $dbh->do("INSERT INTO test_case_attachments (attachment_id, case_id, case_run_id)
-                  VALUES (?,?,?)",
-                  undef, ($key, $self->{'case_id'}, $self->{'case_run_id'}));
-    }
-    elsif ($self->{'plan_id'}){
-        $dbh->do("INSERT INTO test_plan_attachments (attachment_id, plan_id)
-                  VALUES (?,?)",
-                  undef, ($key, $self->{'plan_id'}));
-    }
-
-    return $key;    
-}
 
 sub to_json {
     my $self = shift;
@@ -540,14 +505,6 @@ an optional id for the case_run in which it was linked.
  $new_attachment = Bugzilla::Testopia::Attachment->create({name => $name, 
                                                  description => $desc
                                                  ... });
-
-=head3 Deprecated
-
- $attachment = Bugzilla::Testopia::Attachment->new({name => $name,
-                                          description => $desc,
-                                          ...
-                                          PREVALIDATED => 1});
- my $id = $attachment->store();
 
 =head2 Updating
 

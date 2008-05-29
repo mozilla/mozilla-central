@@ -261,10 +261,10 @@ CaseRunGrid = function(params, run){
         f = this.getColumnModel().getCellEditor(ci,ri).field;
         record = f.store.getById(v);
         if (record) {
-            return '<a href="tr_show_environment.cgi?env_id=' + record.data[f.valueField] +'">' + record.data[f.displayField] +'</a>';
+            return '<a href="tr_environments.cgi?env_id=' + record.data[f.valueField] +'">' + record.data[f.displayField] +'</a>';
         }
         else {
-            return '<a href="tr_show_environment.cgi?env_id=' + r.data.env_id +'">' + v +'</a>';
+            return '<a href="tr_environments.cgi?env_id=' + r.data.env_id +'">' + v +'</a>';
         }        
     };
     this.store = new Ext.data.GroupingStore({

@@ -17,7 +17,7 @@
   #
   # Contributor(s): Greg Hendricks <ghendricks@novell.com>
   #                 Scott Sudweeks <ssudweeks@novell.com>
-  #                    Andrew Nelson <anelson@novell.com>
+  #                 Andrew Nelson <anelson@novell.com>
   #%]
 
 [%# INTERFACE:
@@ -83,7 +83,7 @@ Ext.onReady(function(){
         }),
         dropConfig :{allowContainerDrop: true},
         loader: new Tree.TreeLoader({
-            url: "tr_show_environment.cgi",
+            url: "tr_environments.cgi",
             listeners: {'beforeload':function(l, node) {
                  l.baseParams.action = 'getChildren'; 
                  l.baseParams.tree_type = 'env';
@@ -95,7 +95,7 @@ Ext.onReady(function(){
             "textchange": function(node, text, oldText){
                 var httpRequest = new Ext.data.Connection();
                 httpRequest.request({
-                    url: 'tr_show_environment.cgi', 
+                    url: 'tr_environments.cgi', 
                     params:{
                         action: 'rename',
                         name: text, 
@@ -135,7 +135,7 @@ Ext.onReady(function(){
                                             elements.push(node.id);
                                         }
                                         testopia_form.submit({
-                                            url: 'tr_show_environment.cgi', 
+                                            url: 'tr_environments.cgi', 
                                             params:{
                                                 action: 'remove_env_node',
                                                 element_ids: elements.join(','), 
@@ -164,7 +164,7 @@ Ext.onReady(function(){
                         id: 'etree_value_selector',
                         handler: function(){
                             testopia_form.submit({
-                                url: 'tr_show_environment.cgi', 
+                                url: 'tr_environments.cgi', 
                                 params:{
                                     action: 'set_selected',
                                     id: node.id, 
@@ -232,7 +232,7 @@ Ext.onReady(function(){
         rootVisible: false,
         id: 'variable_tree',
         loader: new Tree.TreeLoader({
-            url: "tr_show_environment.cgi",
+            url: "tr_environments.cgi",
             listeners: {"beforeload": function(l, node) {
                  l.baseParams.action = 'getChildren';
                  l.baseParams.tree_type = 'var'; 
@@ -266,7 +266,7 @@ Ext.onReady(function(){
         rootVisible: false,
         id: 'prod_variable_tree',
         loader: new Tree.TreeLoader({
-            url: "tr_show_environment.cgi",
+            url: "tr_environments.cgi",
             listeners: {"beforeload": function(l, node) {
                  l.baseParams.action = 'getChildren';
                  l.baseParams.tree_type = 'var'; 
@@ -317,7 +317,7 @@ Ext.onReady(function(){
         var type = node.attributes.type;
         
         testopia_form.submit({
-            url: 'tr_show_environment.cgi', 
+            url: 'tr_environments.cgi', 
             params:{
                 action: 'edit',
                 text: text, 
@@ -448,7 +448,7 @@ Ext.onReady(function(){
         var type = newtype == 'element' && node.attributes.type == 'element' ? 'child' : newtype;
         
         testopia_form.submit({
-            url: 'tr_show_environment.cgi', 
+            url: 'tr_environments.cgi', 
             params:{
                 action: 'create_child',
                 id: node.id, 
@@ -474,7 +474,7 @@ Ext.onReady(function(){
     
     function deleteNode(node){
         testopia_form.submit({
-            url: 'tr_show_environment.cgi', 
+            url: 'tr_environments.cgi', 
             params:{
                 action: 'delete_element',
                 id: node.attributes.property_id || node.id, 
@@ -543,7 +543,7 @@ Ext.onReady(function(){
         
     function applyElement(treePanel, node, dd, e){
         testopia_form.submit({
-            url: 'tr_show_environment.cgi',
+            url: 'tr_environments.cgi',
             params: {id: node.id, env_id: [% environment.id FILTER js %], type: node.attributes.type, action: 'apply_element'},
             success: function(f,a){
                 etree.getLoader().load(etree.root, function(){etree.root.expand()});

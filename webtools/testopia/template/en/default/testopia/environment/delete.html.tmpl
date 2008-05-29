@@ -51,11 +51,11 @@ These will also be deleted.</b>
 <p><span style="font-size:12pt; font-weight:bold; color:#cc0000;">Warning: This action cannot be undone</span></p>
 
 <br>
-<form method="POST" action="tr_show_environment.cgi">
+<form method="POST" action="tr_environments.cgi">
   <input type="hidden" name="action" value="do_delete" />
   <input type="hidden" name="env_id" value="[% environment.id FILTER none %]" />
   <input type="submit" value="Continue" />
 </form>  
-<a href="tr_show_environment.cgi?env_id=[% environment.id FILTER none %]">Back to Envrionment - [% environment.name FILTER html %]</a>
+<a href="tr_environments.cgi?env_id=[% environment.id FILTER none %]">Back to Envrionment - [% environment.name FILTER html %]</a>
 [% END %]
 [% PROCESS global/footer.html.tmpl %]

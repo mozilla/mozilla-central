@@ -19,7 +19,7 @@
 # Contributor(s): Greg Hendricks <ghendricks@novell.com> 
 #                 Michael Hight <mjhight@gmail.com>
 #                 Garrett Braden <gbraden@novell.com>
-#                    Andrew Nelson <anelson@novell.com>
+#                 Andrew Nelson <anelson@novell.com>
 
 =head1 NAME
 
@@ -51,6 +51,10 @@ use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::User;
 use Bugzilla::Config;
+
+use Bugzilla::Testopia::Environment::Category;
+use Bugzilla::Testopia::Environment::Element;
+use Bugzilla::Testopia::Environment::Property;
 
 use JSON;
 
@@ -247,52 +251,6 @@ sub element_count {
     return scalar(@{$self->get_environment_elements});   
 }
 
-sub elements_to_json {
-    my $self = shift;
-
-    my $elements = $self->get_environment_elements;
-            
-    my @environments; 
-        
-    foreach my $element (@$elements)
-    {
-        my $leaf;
-        if($element->check_for_children || $element->check_for_properties)
-        {
-            $leaf = 'false';
-        }
-            
-        else
-        {
-            $leaf = 'true';
-        }
-        
-        push @environments, {text=> $element->{'name'}, id=> $element->{'element_id'}, type=> 'element', leaf => $leaf, cls => 'element'};
-    }
-    
-    my $json = new JSON; 
-    return trim($json->objToJson(\@environments));
-    
-    
-#    my $json = '[';
-#    
-#    foreach my $element (@$elements)
-#    {
-#        $json .= '{title:"'. $element->{'name'} .'",';
-#        $json .=  'objectId:"'. $element->{'element_id'}. '",';
-#        $json .=  'widgetId:"element'. $element->{'element_id'} .'",';
-#        $json .=  'actionsDisabled:["addCategory","addValue","addChild"';
-#        $json .=  ',"remove"' unless $self->canedit;
-#        $json .=  '],';
-#        $json .=  'isFolder:true,' if($element->check_for_children || $element->check_for_properties);
-#        $json .=  'childIconSrc:"testopia/img/circle.gif"},'; 
-#    }
-#    chop $json;
-#    $json .= ']';
-#
-#    return $json;   
-}
-
 sub element_categories {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
@@ -484,27 +442,6 @@ sub get_all_elements{
        return \@elements;             
 }
 
-sub get_elements_for_environment(){
-    my $dbh = Bugzilla->dbh;
-    my $self = shift;
-    
-    my $ref = $dbh->selectcol_arrayref(
-            "SELECT tee.element_id 
-               FROM test_environment_map as tem
-               JOIN test_environment_element as tee
-                 ON tem.element_id = tee.element_id
-                 where environment_id = ?",
-                 undef, ($self->id));
-    
-    my @elements;
-
-    foreach my $val  (@$ref){
-        push @elements, Bugzilla::Testopia::Environment::Element->new($val);
-    }   
-             
-       return \@elements;    
-}
-
 sub check_environment{
     my ($name, $product, $throw) = (@_);
     my $pid = ref $product ? $product->id : $product;
@@ -537,30 +474,6 @@ sub check_value_selected {
             undef, ($self->{'environment_id'}, $prop_id, $elem_id));
         
     return $used;
-}
-
-sub store {
-    my $self = shift;
-    my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
-    # Exclude the auto-incremented field from the column list.
-    my $columns = join(", ", grep {$_ ne 'environment_id'} DB_COLUMNS);
-
-    #Verify Environment isn't already in use.
-    return undef if check_environment($self->{'name'}, $self->product);
-    
-    my $dbh = Bugzilla->dbh;
-    $dbh->do("INSERT INTO test_environments ($columns) VALUES (?,?,?)",
-              undef, ($self->{'product_id'}, $self->{'name'}, $self->{'isactive'}));
-    my $key = $dbh->bz_last_key( 'test_environments', 'environment_id' );
-    
-    my $elements = $self->{'elements'};
-    
-    foreach my $element (@$elements)
-    {
-        $self->persist_environment_element_and_children(1, $element, "store");            
-    }    
-    
-    return $key;
 }
 
 

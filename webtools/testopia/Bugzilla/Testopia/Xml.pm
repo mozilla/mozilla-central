@@ -502,13 +502,13 @@ sub parse()
                 bless($submitter_user,"Bugzilla::User");
                 $submitter_id = $submitter_user->id();
             }
-            my $attachment = Bugzilla::Testopia::Attachment->new({
+            my $attachment = {
                 'description'  => entity_replace_xml($twig_attachments->field('description'),STRIP_BOTH),
                 'filename'     => entity_replace_xml($twig_attachments->field('filename'),STRIP_BOTH),
                 'submitter_id' => $submitter_id,
                 'mime_type'    => entity_replace_xml($twig_attachments->field('mimetype'),STRIP_BOTH),
                 'contents'      => entity_replace_xml($twig_attachments->field('data'),STRIP_BOTH)
-            });
+            };
             $xml_testcase->add_attachment($attachment);
         }
         
@@ -632,7 +632,7 @@ sub parse()
             foreach my $attachment ( @{$self->attachments} )
             {
                 $attachment->{'plan_id'} = $testplan->id;
-                $attachment->store();
+                Bugzilla::Testopia::Attachment->create($attachment);
             }
             print "Created Test Plan ". $testplan->id . ": " . $testplan->name() . "\n";
         }

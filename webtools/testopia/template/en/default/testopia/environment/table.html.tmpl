@@ -34,16 +34,16 @@
   </tr>
   [% FOREACH env = table.list %]
   <tr class="[% loop.count % 2 == 0 ? "bz_row_odd" : "bz_row_even" %]" onclick="sr([% loop.count %]);">
-    <td align="center"><a href="tr_show_environment.cgi?env_id=[% env.id FILTER none %]">[% env.id FILTER none %]</a></td>
+    <td align="center"><a href="tr_environments.cgi?env_id=[% env.id FILTER none %]">[% env.id FILTER none %]</a></td>
     <td>[% env.name FILTER none %]</td>
     <td>[% env.product.name FILTER none %]</td>
     <td>
     [% IF env.edit %]
-    <a href="tr_show_environment.cgi?env_id=[% env.id FILTER none %]&action=[% env.isactive ? 'hide' : 'unhide' %]">[% env.isactive ? 'Archive' : 'Unarchive' %]</a>
+    <a href="tr_environments.cgi?env_id=[% env.id FILTER none %]&action=[% env.isactive ? 'hide' : 'unhide' %]">[% env.isactive ? 'Archive' : 'Unarchive' %]</a>
     [% END %]
     [% IF env.candelete %]    
       &nbsp;|&nbsp;
-      <a href="tr_show_environment.cgi?env_id=[% env.id FILTER none %]&action=delete">Delete</a>
+      <a href="tr_environments.cgi?env_id=[% env.id FILTER none %]&action=delete">Delete</a>
     [% END %]
   </tr>
   [% END %]
