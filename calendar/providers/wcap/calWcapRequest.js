@@ -216,14 +216,16 @@ calWcapRequest.prototype = {
     }
 };
 
-function calWcapNetworkRequest(respFunc, bLogging) {
+function calWcapNetworkRequest(url, respFunc, bLogging) {
     this.wrappedJSObject = this;
     this.m_id = generateRequestId();
+    this.m_url = url;
     this.m_respFunc = respFunc;
     this.m_bLogging = (bLogging === undefined ? true : bLogging);
 }
 calWcapNetworkRequest.prototype = {
     m_id: 0,
+    m_url: null,
     m_loader: null,
     m_respFunc: null,
     m_bLogging: false,
@@ -278,36 +280,60 @@ calWcapNetworkRequest.prototype = {
     },
 
     /**
-     * @see nsIStreamLoaderObserver
+     * @see nsIUnicharStreamLoaderObserver
+     */
+    onDetermineCharset: function calWcapNetworkRequest_onDetermineCharset(loader,
+                                                                          context,
+                                                                          firstSegment,
+                                                                          length) {
+        var channel = null;
+        if (loader) {
+            channel = loader.channel;
+        }
+        var charset = null;
+        if (channel) {
+            charset = channel.contentCharset;
+        }
+        if (!charset || charset.length == 0) {
+            charset = "UTF-8";
+        }
+        return charset;
+    },
+
+    /**
+     * @see nsIUnicharStreamLoaderObserver
      */
     onStreamComplete: function calWcapNetworkRequest_onStreamComplete(aLoader,
                                                                       aContext,
                                                                       aStatus,
-                                                                      aResultLength,
-                                                                      aResult) {
+                                                                      /* nsIUnicharInputStream */ unicharData) {
         this.m_loader = null;
 
         if (LOG_LEVEL > 0 && this.m_bLogging) {
             log("status: " + errorToString(aStatus), this);
         }
-        if (!aResult || aStatus != Components.results.NS_OK) {
+        if (aStatus != Components.results.NS_OK) {
             this.execRespFunc(aStatus);
             return;
         }
 
-        var httpChannel = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
-        var uploadChannel = aLoader.request.QueryInterface(Components.interfaces.nsIUploadChannel);
-
-        // Convert the stream, falling back to utf-8 in case its not given.
-        var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
-                                  .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-        converter.charset = httpChannel.contentCharset || "UTF-8";
-        var result = converter.convertFromByteArray(aResult, aResultLength);
-
-        if (LOG_LEVEL > 2 && this.m_bLogging) {
-            log("contentCharset = " + converter.charset + "\nrequest result:\n" + result, this);
+        var result = "";
+        try {
+            if (unicharData) {
+                var str_ = {};
+                while (unicharData.readString(-1, str_)) {
+                    result += str_.value;
+                }
+            }
+            if (LOG_LEVEL > 2 && this.m_bLogging) {
+                log("contentCharset = " + aLoader.charset + "\nrequest result:\n" + result, this);
+            }
+        } catch (exc) {
+            this.execRespFunc(exc);
+            return;
         }
 
+        var httpChannel = aLoader.channel.QueryInterface(Components.interfaces.nsIHttpChannel);
         switch (httpChannel.responseStatus / 100) {
             case 2: /* 2xx codes */
                 // Everything worked out, we are done
@@ -328,8 +354,8 @@ calWcapNetworkRequest.prototype = {
     toString: function calWcapNetworkRequest_toString() {
         var ret = ("calWcapNetworkRequest id=" + this.id +
                    ", parent-id=" + (this.parentRequest ? this.parentRequest.id : "<none>"));
-        if (this.m_bLogging && this.request) {
-            ret += (" (" + this.request.URI.spec + ")");
+        if (this.m_bLogging) {
+            ret += (" (" + this.m_url + ")");
         }
         ret += (", isPending=" + this.isPending);
         ret += (", status=" + errorToString(this.status));
@@ -384,6 +410,7 @@ calWcapNetworkRequest.prototype = {
         if (request && request.isPending()) {
             log("canceling netwerk request...", this);
             request.cancel(NS_BINDING_FAILED);
+            this.m_loader = null;
         }
     },
 
@@ -419,7 +446,7 @@ calWcapNetworkRequest.prototype = {
 };
 
 function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
-    var netRequest = new calWcapNetworkRequest(respFunc, bLogging);
+    var netRequest = new calWcapNetworkRequest(url, respFunc, bLogging);
     parentRequest.attachSubRequest(netRequest);
     try {
         var uri = getIOService().newURI(url, null, null);
@@ -428,17 +455,21 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
         channel = channel.QueryInterface(Components.interfaces.nsIHttpChannel);
         channel.redirectionLimit = 3;
         channel.notificationCallbacks = netRequest;
-        var loader = Components.classes["@mozilla.org/network/stream-loader;1"]
-                               .createInstance(Components.interfaces.nsIStreamLoader);
+        var loader = Components.classes["@mozilla.org/network/unichar-stream-loader;1"]
+                               .createInstance(Components.interfaces.nsIUnicharStreamLoader);
         netRequest.m_loader = loader;
 
         log("opening channel.", netRequest);
         // Required to be trunk and branch compatible:
-        if (Components.interfaces.nsIStreamLoader.number == "{31d37360-8e5a-11d3-93ad-00104ba0fd40}") {
-            loader.init(channel, netRequest, netRequest);
-        } else if (Components.interfaces.nsIStreamLoader.number == "{8ea7e890-8211-11d9-8bde-f66bad1e3f3a}") {
-            loader.init(netRequest);
-            channel.asyncOpen(netRequest, netRequest);
+        if (isBranch()) {
+            loader.init(channel,
+                        netRequest,
+                        null /* context */,
+                        Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
+        } else {
+            loader.init(netRequest,
+                        Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
+            channel.asyncOpen(netRequest, null);
         }
     } catch (exc) {
         netRequest.execRespFunc(exc);

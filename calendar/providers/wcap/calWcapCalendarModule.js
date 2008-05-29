@@ -167,10 +167,9 @@ var g_classInfo = {
 
     wcapNetworkRequest: { // nsIClassInfo:
         getInterfaces: function ci_wcapNetworkRequest_getInterfaces(count) {
-            const ifaces = [Components.interfaces.nsIStreamLoaderObserver,
+            const ifaces = [Components.interfaces.nsIUnicharStreamLoaderObserver,
                             Components.interfaces.nsIInterfaceRequestor,
                             Components.interfaces.nsIChannelEventSink,
-                            Components.interfaces.nsIStreamListener,
                             Components.interfaces.calIOperation,
                             Components.interfaces.nsIClassInfo,
                             nsISupports];

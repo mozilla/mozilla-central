@@ -117,7 +117,6 @@ var g_classInfo = {
                 Components.interfaces.nsIStreamLoaderObserver,
                 Components.interfaces.nsIInterfaceRequestor,
                 Components.interfaces.nsIChannelEventSink,
-                Components.interfaces.nsIStreamListener,
                 Components.interfaces.nsIClassInfo
             ];
             aCount.value = ifaces.length;

@@ -369,7 +369,6 @@ calGoogleRequest.prototype = {
         }
 
         var httpChannel = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
-        var uploadChannel = aLoader.request.QueryInterface(Components.interfaces.nsIUploadChannel);
 
         // Convert the stream, falling back to utf-8 in case its not given.
         var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].
