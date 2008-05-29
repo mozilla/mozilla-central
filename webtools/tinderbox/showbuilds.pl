@@ -566,10 +566,12 @@ sub open_showbuilds_href_target {
     sub query_ref {
         my ($td, $mindate, $maxdate, $who) = @_;
         my $output = '<a><!-- query system not configured -->';
+        &tb_load_queryconfig();
+        my $query_type = $::QueryInfo{$td->{query}}{type};
 
-        if ($::global_treedata->{$td->{name}}->{use_viewvc}) {
+        if ($query_type eq "viewvc") {
             $output = "<a href=\"" .
-                $::global_treedata->{$td->{name}}->{viewvc_url} .
+                $::QueryInfo{$td->{query}}{url} .
                 "?view=query&who_match=exact";
             $output .= "&date=explicit&mindate=" .
                 strftime("%Y-%m-%d %T", gmtime($mindate));
@@ -578,9 +580,9 @@ sub open_showbuilds_href_target {
                 if (defined($maxdate) && $maxdate ne '');
             $output .= "&who=" . &url_encode($who) if (defined($who) && $who ne '');
             $output .= "\">";
-        } elsif ($::global_treedata->{$td->{name}}->{use_bonsai}) {
+        } elsif ($query_type eq "bonsai") {
             $output = "<a href=" .
-                $::global_treedata->{$td->{name}}->{bonsai_url} .
+                $::QueryInfo{$td->{query}}{url} .
                 "cvsquery.cgi"; 
             $output .= "?module=$td->{cvs_module}";
             $output .= "&branch=$td->{cvs_branch}"   if $td->{cvs_branch} ne 'HEAD';
@@ -607,16 +609,18 @@ sub open_showbuilds_href_target {
 
         my $qr = '';
         my $ret = '<a><!-- no query system configured -->';
-        if ($::global_treedata->{$td->{name}}->{use_viewvc}) {
-            $qr = $::global_treedata->{$td->{name}}->{viewvc_url} .
+        &tb_load_queryconfig();
+        my $query_type = $::QueryInfo{$td->{query}}{type};
+        if ($query_type eq "viewvc") {
+            $qr = $::QueryInfo{$td->{query}}{url} .
                 "?view=query&who_match=exact&who=" . 
                 &url_encode($who) . "&querysort=date&date=explicit" .
                 "&mindate=" . strftime("%Y-%m-%d %T", gmtime($mindate));
             $qr .= "&maxdate=" . strftime("%Y-%m-%d %T", gmtime($maxdate)) if
                 (defined($maxdate));
             $ret = "<a href='$qr'>";
-        } elsif ($::global_treedata->{$td->{name}}->{use_bonsai}) {
-            $qr = $::global_treedata->{$td->{name}}->{registry_url} .
+        } elsif ($query_type eq "bonsai") {
+            $qr = $::QueryInfo{$td->{query}}{registry_url} .
                 "/who.cgi?email=". &url_encode($who)
                 . "&d=$td->{cvs_module}|$treeflag|$td->{cvs_root}|$mindate";
             $qr = $qr . "|$maxdate" if defined($maxdate);
@@ -664,18 +668,20 @@ sub open_showbuilds_href_target {
             $checked_state{$tree} = 1;
             &tb_load_treedata($tree);
             my $bonsai_tree = $::global_treedata->{$tree}->{bonsai_tree};
-            my $bonsai_dir = $::global_treedata->{$tree}->{'bonsai_dir'};
+            &tb_load_queryconfig();
+            my $query = $::global_treedata->{$tree}->{query};
+            my $bonsai_dir = $::QueryInfo{$query}{directory};
             return if ($bonsai_tree =~ m/^$/ || $bonsai_dir =~ m/^$/);
 
             local $_;
             $::BatchID='';
             eval qq(do "$bonsai_dir/data/$bonsai_tree/batchid.pl");
             if ($::BatchID eq '') {
-                warn "No BatchID in $bonsai_dir/data/$bonsai_tree/batchid.pl\n";
+                warn "No BatchID in $bonsai_dir/data/$bonsai_tree/batchid.pl for $tree\n";
                 return;
             }
             open(BATCH, "<", "$bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl")
-                or warn "Cannot open $bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl";
+                or warn "Cannot open $bonsai_dir/data/$bonsai_tree/batch-$::BatchID.pl for $tree";
             while (<BATCH>) { 
                 if (/^\$::TreeOpen = '(\d+)';/) {
                     $treestate{$tree} = $1;

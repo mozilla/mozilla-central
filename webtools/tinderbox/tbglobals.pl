@@ -74,6 +74,8 @@ $::nowdate = time();
 $::default_hours = 12;
 
 # Globals used by bonsai & viewvc
+# @::QueryList
+# $::QueryInfo
 # $::query_module
 # $::query_branch
 # $::query_branchtype
@@ -92,31 +94,14 @@ my $display_accurate_build_end_times = 1;
 # Format version of treedata.pl
 # Use Tie::IxHash to keep order of treedata variables
 tie %::default_treedata => 'Tie::IxHash',
-    treedata_version => 3,
+    treedata_version => 4,
     who_days => 14,
-    use_bonsai => 1,
-    use_viewvc => 0,
     cvs_module => '',
     cvs_branch => '',
     cvs_root => '',
+    query => '',
     bonsai_tree => '',
-    bonsai_dir => '',
-    bonsai_url => '',
-    bonsai_dbdriver => '',
-    bonsai_dbhost => '',
-    bonsai_dbport => '',
-    bonsai_dbname => '',
-    bonsai_dbuser => '',
-    bonsai_dbpasswd => '',
-    registry_url => '',
-    viewvc_url => '',
     viewvc_repository => '',
-    viewvc_dbdriver => '',
-    viewvc_dbhost => '',
-    viewvc_dbport => '',
-    viewvc_dbname => '',
-    viewvc_dbuser => '',
-    viewvc_dbpasswd => '';
 
 1;
 
@@ -447,6 +432,17 @@ sub trim {
     return $_;
 }
 
+sub tb_load_queryconfig() {
+    # Load data/queryconfig.pl
+    # The assumption here is that the dbdata represents
+    # static server-side data that will not change while
+    # the scripts are being run.
+    return
+         if (@::QueryList > 0);
+
+    require "$::data_dir/queryconfig.pl";
+}
+
 sub tb_load_treedata($) {
     my ($tree) = @_;
 
@@ -580,6 +576,7 @@ sub tb_load_data($) {
     $td->{num} = 0;
     $td->{cvs_module} = $::global_treedata->{$tree}->{cvs_module};
     $td->{cvs_branch} = $::global_treedata->{$tree}->{cvs_branch};
+    $td->{query} = $::global_treedata->{$tree}->{query};
     $td->{ignore_builds} = &tb_load_ignorebuilds($tree);
     $td->{scrape_builds} = &tb_load_scrapebuilds($tree);
     $td->{warning_builds} = &tb_load_warningbuilds($tree);
@@ -616,7 +613,7 @@ sub tb_load_data($) {
 sub tb_loadquickparseinfo {
   my ($tree, $maxdate, $qdref, $includeStatusOfBuilding) = (@_);
   local $_;
-  my $maxdate = $::nowdate if !defined($maxdate);
+  $maxdate = $::nowdate if !defined($maxdate);
 
   return if (! -d "$::tree_dir/$tree" || ! -r "$::tree_dir/$tree/build.dat");
 
@@ -771,8 +768,7 @@ sub write_treedata() {
     open( F, ">", "$file") or die ("$file: $!\n");
     for my $var (keys %$treedata) {
         my $value;
-        if ("$var" eq "treedata_version" || "$var" eq "who_days" || 
-            "$var" eq "use_bonsai" || "$var" eq "use_viewvc") {
+        if ("$var" eq "treedata_version" || "$var" eq "who_days") {
             $value = $treedata->{$var};
         } else {
             $value = "\'$treedata->{$var}\'";
@@ -979,7 +975,7 @@ sub load_scrape {
   while (<SCRAPELOG>) {
     chomp;
     my @list =  split /\|/;
-    my $logfile = @list[0];
+    my $logfile = $list[0];
     my ($buildtime, $processtime, $pid, $extension) = split(/\./, $logfile);
     if (($buildtime < $mindate) || ($buildtime > $maxdate)) {
       next;
@@ -1272,4 +1268,3 @@ sub toGMTString {
     sprintf('%s, %02d-%s-%d %02d:%02d:%02d GMT',
             $weekdays[$wday],$mday,$months[$mon],$year,$hour,$min,$sec);
 }
-

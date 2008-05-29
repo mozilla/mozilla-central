@@ -339,26 +339,19 @@ sub query_checkins_viewvc($) {
 # 
 sub ConnectToDatabase($) {
     my ($tree) = @_;
-    my $use_bonsai = $::global_treedata->{$tree}->{use_bonsai};
-    my $use_viewvc = $::global_treedata->{$tree}->{use_viewvc};
+    my $query = $::global_treedata->{$tree}->{query};
+    my $query_type = $::QueryInfo{$query}{type};
 
     if (!defined $db) {
         my ($dsn, $dbdriver, $dbname, $dbhost, $dbport, $dbuser, $dbpasswd);
 
-        if ($use_viewvc) {
-            $dbdriver = $::global_treedata->{$tree}->{viewvc_dbdriver}; 
-            $dbname = $::global_treedata->{$tree}->{viewvc_dbname}; 
-            $dbhost = $::global_treedata->{$tree}->{viewvc_dbhost}; 
-            $dbport = $::global_treedata->{$tree}->{viewvc_dbport}; 
-            $dbuser = $::global_treedata->{$tree}->{viewvc_dbuser}; 
-            $dbpasswd = $::global_treedata->{$tree}->{viewvc_dbpasswd};
-        } elsif ($use_bonsai) {
-            $dbdriver = $::global_treedata->{$tree}->{bonsai_dbdriver}; 
-            $dbname = $::global_treedata->{$tree}->{bonsai_dbname}; 
-            $dbhost = $::global_treedata->{$tree}->{bonsai_dbhost}; 
-            $dbport = $::global_treedata->{$tree}->{bonsai_dbport}; 
-            $dbuser = $::global_treedata->{$tree}->{bonsai_dbuser}; 
-            $dbpasswd = $::global_treedata->{$tree}->{bonsai_dbpasswd};
+        if ($query ne "" && $query_type ne "") {
+            $dbdriver = $::QueryInfo{$query}{dbdriver}; 
+            $dbname = $::QueryInfo{$query}{dbname}; 
+            $dbhost = $::QueryInfo{$query}{dbhost}; 
+            $dbport = $::QueryInfo{$query}{dbport}; 
+            $dbuser = $::QueryInfo{$query}{dbuser}; 
+            $dbpasswd = $::QueryInfo{$query}{dbpasswd};
         } else {
             # Error
             die("Cannot determine query system!");
@@ -499,7 +492,8 @@ print "<br>Added ($file,$version) for tag $tagname<br>\n";
 # that we don't want to show users.
 sub IsHidden {
     my ($tree, $name) = (@_);
-    my $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir};
+    my $query = $::global_treedata->{$tree}->{query};
+    my $bonsai_dir = $::QueryInfo{$query}{directory};
 
     $name =~ s:///*:/:g;        # Remove any multiple slashes.
     if (!defined @::HideList) {

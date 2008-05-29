@@ -318,9 +318,9 @@ sub URLsize {
         Error "HTTP URLs only, please: \"$_\" is no good.";
     }
 
-    my($dummy, $dummy, $serverstring, $url) = split(/\//, $fullurl, 4);
+    my($dummy, $dummy2, $serverstring, $url) = split(/\//, $fullurl, 4);
     my($them,$port) = split(/:/, $serverstring);
-    my $port = 80 unless $port;
+    $port = 80 unless $port;
     my $size="";
     my ($newheight, $newwidth);
 

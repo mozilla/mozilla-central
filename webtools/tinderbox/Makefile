@@ -44,7 +44,7 @@ endif
 #TINDERBOX_GROUP = tinderbox
 
 #CVSROOT = /cvsroot
-#PERL = /usr/bin/perl
+PERL = /usr/bin/perl
 
 SETUID_PATH = '/usr/bin:/bin'
 
@@ -115,7 +115,7 @@ install:
 	set -e ; \
 	for I in $(FILES) $(EXE_FILES) $(SETUID_SCRIPTS); do \
 	  echo Installing $$I && \
-          sed -e s#/usr/bonsaitools/bin/perl#$(PERL)#g \
+          sed -e s#/usr/bin/perl#$(PERL)#g \
               -e s#@CVSROOT@#$(CVSROOT)#g \
               -e s#@DATA_DIR@#$(DATA_DIR)#g \
               -e s#@TINDERBOX_DIR@#$(TINDERBOX_DIR)#g \
@@ -138,6 +138,15 @@ install:
 	chgrp -R $(TINDERBOX_GROUP) $(DATA_DIR)
 	chmod 770 $(DATA_DIR)
 	chmod 770 $(DATA_DIR)/bad
+	@if test ! -r $(DATA_DIR)/queryconfig.pl ; then \
+	echo "Installing queryconfig.pl" && \
+	cp queryconfig.pl $(DATA_DIR) \
+	chmod 640 $(DATA_DIR)/queryconfig.pl ; \
+	else \
+	echo ; \
+	echo "Not replacing existing queryconfig.pl" ;  \
+	echo "Check queryconfig.pl in build directory for new features" ; \
+	fi
 	chmod 755 $(addprefix $(TINDERBOX_DIR)/,$(EXE_FILES))
 	chmod 4755 $(addprefix $(TINDERBOX_DIR)/,$(SETUID_SCRIPTS))
 

@@ -50,8 +50,9 @@ $tree = &trick_taint(shift);
 #   $cvs_root:    The path to the cvs root
 #   $viewvc_repository: Repository path used by viewvc for this tree
 &tb_load_treedata($tree);
-my $use_bonsai = $::global_treedata->{$tree}->{use_bonsai};
-my $use_viewvc = $::global_treedata->{$tree}->{use_viewvc};
+&tb_load_queryconfig();
+my $query = $::global_treedata->{$tree}->{query};
+my $query_type = $::QueryInfo{$query}{type};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_branch = $::global_treedata->{$tree}->{cvs_branch};
 my $cvs_root = $::global_treedata->{$tree}->{cvs_root};
@@ -60,14 +61,14 @@ my $viewvc_repository = $::global_treedata->{$tree}->{viewvc_repository};
 $days = $::global_treedata->{$tree}->{who_days} if (!defined($days));
 
 # Exit early if no query system is enabled
-exit 0 if (!$use_bonsai && !$use_viewvc);
+exit 0 if ($query eq "");
 
 # Only allow one process at a time to re-write "who.dat".
 #
 my $lockfile = "$::tree_dir/$tree/buildwho.sem";
 my $lock = lock_datafile($lockfile);
 
-if ($use_bonsai) {
+if ($query_type eq "bonsai") {
     $::CVS_ROOT = $cvs_root;
 }
 
@@ -92,10 +93,10 @@ sub build_who {
 
     print "Minimum date: $::query_date_min\n" if $F_DEBUG;
 
-    if ($use_viewvc) {
+    if ($query_type eq "viewvc") {
         $::query_module=$viewvc_repository;
         $result = query_checkins_viewvc($tree);
-    } elsif ($use_bonsai) {
+    } elsif ($query_type eq "bonsai") {
         $::query_module=$cvs_module;
         $::query_branch=$cvs_branch;
         $::query_branchtype='regexp' if $::query_branch =~ /\*|\?|\+/;

@@ -227,6 +227,19 @@ print "
 <TD>(14)</TD>
 </TR>
 <TR>
+<TD>Query system:</TD>
+<TD><SELECT NAME=query SIZE=1>
+<OPTION VALUE=\"\" SELECTED=\"SELECTED\">(none)</OPTION>
+";
+
+&tb_load_queryconfig();
+foreach my $query_system (@::QueryList) {
+  print "<OPTION VALUE=\"$query_system\">$query_system</OPTION>\n";
+}
+
+print "</SELECT></TD>
+</TR>
+<TR>
 <TD>
 <b>Bonsai query options:</b><br>
 </TD>
@@ -252,94 +265,14 @@ print "
 <TD>(SeaMonkey)</TD>
 </TR>
 <TR>
-<TD>bonsai dir:</TD>
-<TD><INPUT NAME=bonsaidir></TD>
-<TD>(/var/www/html/bonsai)</TD>
-</TR>
-<TR>
-<TD>bonsai url:</TD>
-<TD><INPUT NAME=bonsaiurl></TD>
-<TD>(http://bonsai.mozilla.org/)</TD>
-</TR>
-<TR>
-<TR>
-<TD>Bonsai database driver:</TD>
-<TD><INPUT NAME=bonsai_dbdriver></TD>
-<TD>(mysql)</TD>
-</TR>
-<TR>
-<TD>Bonsai database host:</TD>
-<TD><INPUT NAME=bonsai_dbhost></TD>
-<TD>(localhost)</TD>
-</TR>
-<TR>
-<TD>Bonsai database port:</TD>
-<TD><INPUT NAME=bonsai_dbport></TD>
-<TD>(3306)</TD>
-</TR>
-<TR>
-<TD>Bonsai database name:</TD>
-<TD><INPUT NAME=bonsai_dbname></TD>
-<TD>(bonsai)</TD>
-</TR>
-<TR>
-<TD>Bonsai database username:</TD>
-<TD><INPUT NAME=bonsai_dbuser></TD>
-<TD>(bonsai)</TD>
-</TR>
-<TR>
-<TD>Bonsai database password:</TD>
-<TD><INPUT NAME=bonsai_dbpasswd TYPE=password></TD>
-<TD>(bonsai)</TD>
-</TR>
-<TD>registry url:</TD>
-<TD><INPUT NAME=registryurl></TD>
-<TD>(http://bonsai.mozilla.org/registry/)</TD>
-</TR>
-<TR>
 <TD>
 <b>ViewVC query options:</b><br>
 </TD>
 </TR>
 <TR>
-<TD>ViewVC URL:</TD>
-<TD><INPUT NAME=viewvc_url></TD>
-<TD>(http://viewvc/cgi-bin/viewvc.cgi/svn)</TD>
-</TR>
-<TR>
 <TD>ViewVC Repository:</TD>
 <TD><INPUT NAME=viewvc_repository></TD>
 <TD>(/svnroot)</TD>
-</TR>
-<TR>
-<TD>ViewVC database driver:</TD>
-<TD><INPUT NAME=viewvc_dbdriver></TD>
-<TD>(mysql)</TD>
-</TR>
-<TR>
-<TD>ViewVC database host:</TD>
-<TD><INPUT NAME=viewvc_dbhost></TD>
-<TD>(localhost)</TD>
-</TR>
-<TR>
-<TD>ViewVC database port:</TD>
-<TD><INPUT NAME=viewvc_dbport></TD>
-<TD>(3306)</TD>
-</TR>
-<TR>
-<TD>ViewVC database name:</TD>
-<TD><INPUT NAME=viewvc_dbname></TD>
-<TD>(viewvc)</TD>
-</TR>
-<TR>
-<TD>ViewVC database username:</TD>
-<TD><INPUT NAME=viewvc_dbuser></TD>
-<TD>(viewvc)</TD>
-</TR>
-<TR>
-<TD>ViewVC database password:</TD>
-<TD><INPUT NAME=viewvc_dbpasswd TYPE=password></TD>
-<TD>(viewvc)</TD>
 </TR>
 
 </TABLE>

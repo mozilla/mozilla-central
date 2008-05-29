@@ -95,13 +95,15 @@ my $log_file = shift @ARGV;
 &usage, die "Logfile does not exist, $log_file\n" unless -e $log_file;
 
 # Load tinderbox build data.
-#   (So we can find the last successful build for the tree of intestest.)
+#   (So we can find the last successful build for the tree of interest.)
 my %form;
 $tree = &require_only_one_tree($tree);
 $form{tree} = $tree;
 &tb_load_treedata($tree);
-my $bonsai_dir = $::global_treedata->{$tree}->{bonsai_dir};
-my $bonsai_url = $::global_treedata->{$tree}->{bonsai_url};
+&tb_load_queryconfig();
+my $query = $::global_treedata->{$tree}->{query};
+my $bonsai_dir = $::QueryInfo{$query}{directory};
+my $bonsai_url = $::QueryInfo{$query}{url};
 my $cvs_module = $::global_treedata->{$tree}->{cvs_module};
 my $cvs_root = $::global_treedata->{$tree}->{cvs_root};
 
@@ -825,7 +827,7 @@ sub print_source_code {
   }
   my $line_index = $linenum - 2;
   $source_text =~ s/^(.*)$/$line_index++." $1"/gme;
-  $source_text =~ s|^($linenum.*)$|<font color='red'>\1</font>|gm;
+  $source_text =~ s|^($linenum.*)$|<font color='red'>$1</font>|gm;
   chomp $source_text;
   print $source_text;
 

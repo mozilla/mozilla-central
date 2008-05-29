@@ -44,7 +44,7 @@ my $command = $form{'command'};
 my $tree= $form{'tree'};
 
 if ($command eq 'create_tree') {
-    ($tree = $form{'treename'}) =~ s/^.*?([\w-\.]+).*$/\1/;
+    ($tree = $form{'treename'}) =~ s/^.*?([\w\-\.]+).*$/$1/;
 } else {
     $tree = &require_only_one_tree($tree);
 }
@@ -90,69 +90,56 @@ sub create_tree {
     $treedata{cvs_root} = $form{'repository'};
     $treedata{cvs_module} = $form{'modulename'};
     $treedata{cvs_branch}= $form{'branchname'};
+    $treedata{query} = $form{'query'};
     $treedata{bonsai_tree} = $form{'bonsaitreename'};
-    $treedata{bonsai_dir} = $form{'bonsaidir'};
-    $treedata{bonsai_url} = $form{'bonsaiurl'};
-    $treedata{bonsai_dbdriver} = $form{'bonsai_dbdriver'};
-    $treedata{bonsai_dbhost} = $form{'bonsai_dbhost'};
-    $treedata{bonsai_dbport} = $form{'bonsai_dbport'};
-    $treedata{bonsai_dbname} = $form{'bonsai_dbname'};
-    $treedata{bonsai_dbuser} = $form{'bonsai_dbuser'};
-    $treedata{bonsai_dbpasswd} = $form{'bonsai_dbpasswd'};
-    $treedata{registry_url} = $form{'registryurl'};
-    $treedata{viewvc_url} = $form{'viewvc_url'};
     $treedata{viewvc_repository} = $form{'viewvc_repository'};
-    $treedata{viewvc_dbdriver} = $form{'viewvc_dbdriver'};
-    $treedata{viewvc_dbhost} = $form{'viewvc_dbhost'};
-    $treedata{viewvc_dbport} = $form{'viewvc_dbport'};
-    $treedata{viewvc_dbname} = $form{'viewvc_dbname'};
-    $treedata{viewvc_dbuser} = $form{'viewvc_dbuser'};
-    $treedata{viewvc_dbpasswd} = $form{'viewvc_dbpasswd'};
 
-    $treedata{use_bonsai} = $treedata{use_viewvc} = 0;
+    &tb_load_queryconfig();
+    my $query_type = $::QueryInfo{$treedata{query}}{type};
+    my $errmsg = "";
 
-    my $treename = $tree;
-
-    for my $var ( 'cvs_module', 'cvs_branch', 'bonsai_tree', 'bonsai_dir',
-                  'bonsai_url', 'bonsai_dbdriver', 'bonsai_dbhost',
-                  'bonsai_dbport', 'bonsai_dbname', 'bonsai_dbuser',
-                  'bonsai_dbpasswd', 'registry_url') {
-        $treedata{use_bonsai} = 1 if (defined($treedata{$var}) && 
-                                      "$treedata{$var}" ne "");
-    }
-    for my $var ('viewvc_url','viewvc_repository',
-                 '{viewvc_dbdriver', 'viewvc_dbhost', 'viewvc_dbport',
-                 'viewvc_dbname', 'viewvc_dbuser', 'viewvc_dbpasswd') {
-        $treedata{use_viewvc} = 1 if (defined($treedata{$var}) && 
-                                      "$treedata{$var}" ne "");
-    }
-    if ($treedata{use_bonsai} && $treedata{use_viewvc}) {
-        my $errmsg = "Cannot configure tinderbox to use bonsai & viewvc at the same time.";
+    if ($query_type eq "bonsai") {
+      for my $var ( 'cvs_module', 'cvs_branch', 'bonsai_tree') {
+        next if (defined($treedata{$var}) && "$treedata{$var}" ne "");
+        $errmsg = "Must have valid cvs_module, cvs_branch, and bonsai_tree for that query option to work.";
         print "<h1>$errmsg</h1>\n";
         die "$errmsg";
+      }
     }
-    if ($treedata{use_bonsai}) {
-        unless (defined($treedata{bonsai_dir}) && -d "$treedata{bonsai_dir}") {
-            my $safe_bonsai_dir = value_encode($treedata{bonsai_dir});
-            my $errmsg = "Bonsai directory $safe_bonsai_dir does not exist.";
+    if ($query_type eq "viewvc") {
+      for my $var ('viewvc_repository') {
+        next if (defined($treedata{$var}) && "$treedata{$var}" ne "");
+        $errmsg = "Must have valid viewvc_repository for that query option to work.";
+        print "<h1>$errmsg</h1>\n";
+        die "$errmsg";
+      }
+    }
+    if ($query_type eq "bonsai") {
+        my $bonsai_dir = $::QueryInfo{$treedata{query}}{directory};
+        unless (defined($bonsai_dir) && -d "$bonsai_dir") {
+            my $safe_bonsai_dir = value_encode($bonsai_dir);
+            $errmsg = "Bonsai directory $safe_bonsai_dir does not exist.";
             print "<h1>$errmsg</h1>\n";
             die "$errmsg";
         }
         unless (defined($treedata{bonsai_tree}) &&
-                (-d "$treedata{bonsai_dir}/data/$treedata{bonsai_tree}" ||
-                 -l "$treedata{bonsai_dir}/data/$treedata{bonsai_tree}")) {
+                (-d "$bonsai_dir/data/$treedata{bonsai_tree}" ||
+                 -l "$bonsai_dir/data/$treedata{bonsai_tree}")) {
             my $safe_bonsai_tree = value_encode($treedata{bonsai_tree});
-            my $errmsg = "Bonsai tree $safe_bonsai_tree does not exist.";
+            $errmsg = "Bonsai tree $safe_bonsai_tree does not exist.";
             print "<h1>$errmsg</h1>\n";
             die "$errmsg";
         }
     }
+
+    my $treename = shell_escape($tree);
+    my $safe_treename = value_encode($tree);
 
     if( -r $treename ){
         chmod(oct($dir_perm), $treename);
     }
     else {
-        mkdir( $treename, oct($dir_perm)) || die "<h1> Cannot mkdir $treename</h1>"; 
+        mkdir( $treename, oct($dir_perm)) || die "<h1> Cannot mkdir $safe_treename</h1>"; 
     }
     &write_treedata("$::tree_dir/$treename/treedata.pl", \%treedata);
 

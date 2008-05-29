@@ -348,8 +348,10 @@ BEGIN {
     if (($has_error or $has_warning) and has_errorline($line, \%out)) {
       my $q = quotemeta($out{error_file});
       my $goto_line = $out{error_line} > 10 ? $out{error_line} - 10 : 1;
-      my $cvsblame = $out{error_guess} ? "cvsguess.cgi" : "cvsblame.cgi"; 
-      $line =~ s@$q@<a href=$::global_treedata->{$tree}->{bonsai_url}/$cvsblame?file=$out{error_file_ref}&rev=$::global_treedata->{$tree}->{cvs_branch}&mark=$out{error_line}\#$goto_line>$out{error_file}</a>@;
+      my $cvsblame = $out{error_guess} ? "cvsguess.cgi" : "cvsblame.cgi";
+      &tb_load_queryconfig();
+      my $query = $::global_treedata->{$tree}->{query};
+      $line =~ s@$q@<a href=$::QueryInfo{$query}{url}/$cvsblame?file=$out{error_file_ref}&rev=$::global_treedata->{$tree}->{cvs_branch}&mark=$out{error_line}\#$goto_line>$out{error_file}</a>@;
     }
 
     if ($has_error) {
@@ -418,4 +420,3 @@ BEGIN {
     print BRIEFFILE $line if not $fulltext;
   }
 }
-
