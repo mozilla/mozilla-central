@@ -338,7 +338,7 @@ sub processLoginForm {
   }
   
   # the user just reset their password, so no need to do anything
-  if ($c->param('login_type') eq 'doResetPassword') { 
+  if ($type eq 'doResetPassword') { 
       return;
   }
   
@@ -378,7 +378,7 @@ sub processLoginForm {
     if (! $email || ! $email =~ /$emailregexp/) {
       loginError($c, "You must enter a valid email address");
     }
-    if (! $password eq $c->param("password_confirm")) {
+    if ($password ne $c->param("password_confirm")) {
       loginError($c, "Passwords do not match. Please try again.");
     }
 
