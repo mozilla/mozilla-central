@@ -193,6 +193,12 @@ sub getDisplayName() {
 #########################################################################
 # Group functions
 #########################################################################
+__PACKAGE__->set_sql(userLowercaseEmail => q{
+	SELECT __ESSENTIAL__ FROM __TABLE__
+	WHERE
+	  lower(email) = lower(?)
+});
+
 __PACKAGE__->set_sql(userInGroup => q{
 	SELECT DISTINCT users.user_id FROM __TABLE__, security_groups, user_group_map 
 	  WHERE
