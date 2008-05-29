@@ -63,6 +63,7 @@ pref("mailnews.logComposePerformance", false);
 pref("mail.wrap_long_lines",                true);
 pref("news.wrap_long_lines",                true);
 pref("mail.inline_attachments",             true);
+pref("mail.reply_quote_inline",             false);
 pref("mailnews.auto_unzip_saved_attachments", false);
 
 // hidden pref for controlling if the user agent string

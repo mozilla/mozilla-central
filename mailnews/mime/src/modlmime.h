@@ -401,6 +401,9 @@ public:
   PRBool show_attachment_inline_p; /* Whether or not we should display attachment inline (whatever say
                          the content-disposition) */
 
+  PRBool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
+                         quotes of replies) */
+
 };
 
 #endif /* _MODLMIME_H_ */

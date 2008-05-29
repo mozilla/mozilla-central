@@ -1451,6 +1451,7 @@ MimeDisplayOptions::MimeDisplayOptions()
 
   missing_parts = PR_FALSE;
   show_attachment_inline_p = PR_FALSE;
+  quote_attachment_inline_p = PR_FALSE;
 }
 
 MimeDisplayOptions::~MimeDisplayOptions()
@@ -1600,6 +1601,7 @@ mime_bridge_create_display_stream(
       //
     msd->options->m_prefBranch->GetBoolPref("mail.force_user_charset", &(msd->options->force_user_charset));
     msd->options->m_prefBranch->GetBoolPref("mail.inline_attachments", &(msd->options->show_attachment_inline_p));
+    msd->options->m_prefBranch->GetBoolPref("mail.reply_quote_inline", &(msd->options->quote_attachment_inline_p));
   }
   /* This pref is written down in with the
      opposite sense of what we like to use... */
