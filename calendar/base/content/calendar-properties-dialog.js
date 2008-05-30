@@ -60,7 +60,10 @@ function onLoad() {
     // set up the cache field
     var cacheBox = document.getElementById("cache");
     var canCache = (gCalendar.getProperty("cache.supported") !== false);
-    cacheBox.disabled = !canCache;
+    if (!canCache) {
+        cacheBox.setAttribute("disable-capability", "true");
+        cacheBox.disabled = true;
+    }
     cacheBox.checked = (canCache && gCalendar.getProperty("cache.enabled"));
 
     // Set up the show alarms row and checkbox
@@ -117,6 +120,6 @@ function setupEnabledCheckbox() {
     var isEnabled = document.getElementById("calendar-enabled-checkbox").checked;
     var els = document.getElementsByAttribute("disable-with-calendar", "true");
     for (var i = 0; i < els.length; i++) {
-        els[i].disabled = !isEnabled;
+        els[i].disabled = !isEnabled || (els[i].getAttribute("disable-capability") == "true");
     }
 }
