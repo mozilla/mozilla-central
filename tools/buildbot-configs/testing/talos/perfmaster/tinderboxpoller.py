@@ -81,7 +81,7 @@ class TinderboxPoller(base.ChangeSource):
     volatile = ['loop']
     working = False
     
-    def __init__(self, tinderboxURL, branch, tree="Firefox", machine="", pollInterval=30):
+    def __init__(self, tinderboxURL, branch, tree="Firefox", machines=[], pollInterval=30):
         """
         @type   tinderboxURL:       string
         @param  tinderboxURL:       The base URL of the Tinderbox server
@@ -92,10 +92,10 @@ class TinderboxPoller(base.ChangeSource):
         @type   branch:             string
         @param  branch:             The branch to look for changes in. This must
                                     match the 'branch' option for the Scheduler.
-        @type   machine:            string
-        @param  machine:            A machine name to search for. Changes will
-                                    only register for machines that match the
-                                    substring "machine"
+        @type   machines:           list
+        @param  machines:           A list of machine names to search for. Changes will
+                                    only register for machines that match individual 
+                                    "machine" substrings
         @type   pollInterval:       int
         @param  pollInterval:       The time (in seconds) between queries for 
                                     changes
@@ -104,7 +104,7 @@ class TinderboxPoller(base.ChangeSource):
         self.tinderboxURL = tinderboxURL
         self.tree = tree
         self.branch = branch
-        self.machine = machine
+        self.machines = machines
         self.pollInterval = pollInterval
         self.previousChange = ''
         self.lastPoll = time.time()
@@ -124,7 +124,7 @@ class TinderboxPoller(base.ChangeSource):
         str = ""
         str += "Getting changes from the Tinderbox service running at %s " \
                 % self.tinderboxURL
-        str += "<br>Using tree: %s, branch %s, hostname %s" % (self.tree, self.branch, self.machine)
+        str += "<br>Using tree: %s, branch %s, hostname %s" % (self.tree, self.branch, str(self.machines))
         return str
     
     def poll(self):
@@ -165,7 +165,7 @@ class TinderboxPoller(base.ChangeSource):
     def _process_changes(self, query):
         try:
             tp = TinderboxParser(query)
-            result = tp.getData()
+            buildList = tp.getData()
         except InvalidResultError, e:
             log.msg("Could not process Tinderbox query: " + e.value)
             return
@@ -173,12 +173,13 @@ class TinderboxPoller(base.ChangeSource):
             return
         
         # check machine substring in result set
-        if self.machine:
-            node = result.nodeForHostname(self.machine)
+        result = TinderboxResult([])
+        for machine in self.machines:
+            node = buildList.nodeForHostname(machine)
             if node:
-                result = TinderboxResult([node])
-            else:
-                return
+                result.nodes.append(node)
+        if not result.nodes:
+            return
         
         # see if there are any new changes
         if self.previousChange:
