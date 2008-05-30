@@ -1102,7 +1102,8 @@ nsImapProtocol::TellThreadToDie(PRBool isSafeToClose)
           TestFlag(IMAP_CONNECTION_IS_OPEN) && m_outputStream)
         Close(PR_TRUE, connectionIdle);
 
-      if (NS_SUCCEEDED(rv) && isAlive && TestFlag(IMAP_CONNECTION_IS_OPEN) && m_outputStream)
+      if (NS_SUCCEEDED(rv) && isAlive && TestFlag(IMAP_CONNECTION_IS_OPEN) && 
+         GetConnectionStatus() >= 0 && m_outputStream)
         Logout(PR_TRUE, connectionIdle);
     }
   }
