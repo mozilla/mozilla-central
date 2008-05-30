@@ -35,15 +35,16 @@
  * ***** END LICENSE BLOCK ***** */
 
 #calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox) {
-    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_unchecked.png);
+    list-style-image: url(chrome://calendar/skin/unifinder-images.png);
+    -moz-image-region: rect(0 13px 13px 0);
 }
 
 #calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, checked) {
-    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_checked.png);
+    -moz-image-region: rect(0 26px 13px 13px);
 }
 
 #calendar-list-tree-widget > treechildren::-moz-tree-image(calendar-list-tree-checkbox, disabled) {
-    list-style-image: url(chrome://calendar/skin/unifinder/checkbox_unchecked.png);
+    -moz-image-region: rect(0 39px 13px 26px);
 }
 
 #calendar-list-tree-widget > treechildren::-moz-tree-cell(calendar-list-tree-color, color-default) {

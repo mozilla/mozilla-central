@@ -468,8 +468,11 @@ var calendarListTreeView = {
                 }
                 break;
             case "calendar-list-tree-color":
-                // Clicking on the color should toggle the readonly state.
-                calendar.readOnly = !calendar.readOnly;
+                // Clicking on the color should toggle the readonly state,
+                // unless we are disabled.
+                if (!calendar.getProperty("disabled")) {
+                    calendar.readOnly = !calendar.readOnly;
+                }
                 break;
         }
         this.treebox.invalidateRow(aRow);
