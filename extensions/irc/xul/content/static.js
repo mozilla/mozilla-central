@@ -3292,6 +3292,10 @@ function ul_getcellprops(index, column, properties)
         return;
     }
 
+    // See bug 432482 - work around Gecko deficiency.
+    if (!this.selection.isSelected(index))
+        properties.AppendElement(client.atomSvc.getAtom("unselected"));
+
     var userObj = this.childData.childData[index]._userObj;
 
     properties.AppendElement(client.atomSvc.getAtom("voice-" + userObj.isVoice));
