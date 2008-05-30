@@ -212,7 +212,7 @@ calCalendarManager.prototype = {
                 // Refresh all the calendars that can be refreshed.
                 var cals = this.getCalendars({});
                 for each (var cal in cals) {
-                    if (cal.canRefresh) {
+                    if (!cal.getProperty("disabled") && cal.canRefresh) {
                         cal.refresh();
                     }
                 }
