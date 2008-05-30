@@ -313,7 +313,7 @@ class MozillaUnixReftest(MozillaReftest):
                "reftest.list"]
 
 class MozillaOSXReftest(MozillaReftest):
-    command = ["../../objdir/dist/SeaMonkey.app/Contents/MacOS/seamonkey",
+    command = ["../../objdir/dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin",
                "-console",
                "-P",
                "default",
@@ -337,7 +337,7 @@ class MozillaUnixCrashtest(MozillaCrashtest):
                "crashtests.list"]
 
 class MozillaOSXCrashtest(MozillaCrashtest):
-    command = ["../../objdir/dist/SeaMonkey.app/Contents/MacOS/seamonkey",
+    command = ["../../objdir/dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin",
                "-console",
                "-P",
                "default",
@@ -397,7 +397,7 @@ class MozillaWin32Mochitest(MozillaMochitest):
 class MozillaOSXMochitest(MozillaMochitest):
     command = ["perl",
                "runtests.pl",
-               "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey",
+               "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin",
                "--autorun",
                "--console-level=INFO",
                "--close-when-done"]
@@ -452,7 +452,7 @@ class MozillaWin32Mochichrome(MozillaMochichrome):
 class MozillaOSXMochichrome(MozillaMochichrome):
    command = ["perl",
               "runtests.pl",
-              "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey",
+              "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin",
               "--chrome",
               "--autorun",
               "--console-level=INFO",
@@ -504,7 +504,7 @@ class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
 class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
     command = ["perl",
                "runtests.pl",
-               "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey",
+               "--appname=../../../dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin",
                "--autorun",
                "--browser-chrome",
                "--close-when-done"]
@@ -515,6 +515,9 @@ class CreateProfile(ShellCommand):
     description = ["create profile"]
     descriptionDone = ["create profile complete"]
     command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/bin/seamonkey'
+
+class CreateProfileMac(CreateProfile):
+    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/SeaMonkey.app/Contents/MacOS/seamonkey-bin'
 
 class CreateProfileWin(CreateProfile):
     command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --binary mozilla\objdir\dist\bin\seamonkey.exe'
