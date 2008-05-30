@@ -138,7 +138,7 @@ interface nsAddrDBCommitType
   const long kCompressCommit = 3;
 };
 
-[scriptable, uuid(ae789049-8b41-492c-a210-8dc36a7e731f)]
+[scriptable, uuid(f7dd1984-59ae-4a52-9ae5-e7c4b996bcd0)]
 interface nsIAddrDatabase : nsIAddrDBAnnouncer {
 
   /**
@@ -359,13 +359,17 @@ interface nsIAddrDatabase : nsIAddrDBAnnouncer {
    * @param     aParent        parent mailing list to which the card
    *                           is added. If set to null, listeners of the
    *                           database will not be notified of card creation.
+   * @param     aRoot          If the card is created while creating a new mailing 
+   *                           list, its set to the parent addressbook.
+   *                           Set to null in other case.
    */
   void AddListCardColumnsToRow(in nsIAbCard aPCard,
                                in nsIMdbRow aPListRow,
                                in unsigned long aPos,
                                out nsIAbCard aPNewCard,
                                in boolean aInMailingList,
-                               in nsIAbDirectory aParent);
+                               in nsIAbDirectory aParent,
+                               in nsIAbDirectory aRoot);
   void InitCardFromRow(in nsIAbCard aNewCard,in nsIMdbRow aCardRow);
   void SetListAddressTotal(in nsIMdbRow aListRow, in PRUint32 aTotal);
   nsIMdbRow FindRowByCard(in nsIAbCard aCard);
