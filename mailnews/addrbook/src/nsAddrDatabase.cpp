@@ -1501,7 +1501,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
   PRUint32 totalAddress = GetListAddressTotal(pListRow) + 1;
   SetListAddressTotal(pListRow, totalAddress);
   nsCOMPtr<nsIAbCard> pNewCard;
-  rv = AddListCardColumnsToRow(newCard, pListRow, totalAddress, getter_AddRefs(pNewCard), PR_TRUE /* aInMailingList */, aList, nsnull);
+  rv = AddListCardColumnsToRow(newCard, pListRow, totalAddress, getter_AddRefs(pNewCard), PR_TRUE /* aInMailingList */, aList);
   NS_ENSURE_SUCCESS(rv,rv);
 
   addressList->AppendElement(newCard);
@@ -1513,7 +1513,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
-(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *aParent, nsIAbDirectory *aRoot)
+(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *aParent)
 {
   if (!aPCard || !aPListRow || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -1561,8 +1561,6 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
 
     if (cardWasAdded) {
       NotifyCardEntryChange(AB_NotifyInserted, newCard, aParent);
-      if (aRoot)
-        NotifyCardEntryChange(AB_NotifyInserted, newCard, aRoot);
     }
     else if (!aInMailingList) {
       nsresult rv;
@@ -1666,7 +1664,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
             if (!email.IsEmpty())
             {
                 nsCOMPtr<nsIAbCard> pNewCard;
-                err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard, list, aParent);
+                err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard, aParent);
                 if (pNewCard)
                     pAddressLists->ReplaceElementAt(pNewCard, i);
             }
@@ -1723,7 +1721,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *aNewList,
 
     if (NS_SUCCEEDED(err) && listRow)
     {
-        AddListAttributeColumnsToRow(aNewList, listRow, aParent);
+        AddListAttributeColumnsToRow(aNewList, listRow, aNewList);
         AddRecordKeyColumnToRow(listRow);
         mdb_err merror = m_mdbPabTable->AddRow(m_mdbEnv, listRow);
         if (merror != NS_OK)
