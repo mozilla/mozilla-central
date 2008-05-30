@@ -238,3 +238,54 @@ class CompareLeakLogs(ShellCommand):
             logText += "Lk: %s\nMH: %s\nA: %s\n" % (lk, mh, a)
 
         self.addCompleteLog(slug, logText)
+
+
+class Codesighs(ShellCommand):
+    def __init__(self, objdir, platform, type='auto', **kwargs):
+        ShellCommand.__init__(self, **kwargs)
+
+        assert platform in ('win32', 'macosx', 'linux')
+        assert type in ('auto', 'base')
+
+        self.addFactoryArguments(objdir=objdir,
+                                 platform=platform,
+                                 type=type)
+
+        self.objdir = objdir
+        self.platform = platform
+        if self.platform in ('macosx', 'linux'):
+            self.platform = 'unix'
+        self.type = type
+
+        runScript = 'tools/codesighs/' + \
+                    type + 'summary.' + self.platform + '.bash'
+
+        self.command = [runScript, '-o', objdir, '-s', '.',
+                        '../codesize-' + type + '.log',
+                        '../codesize-' + type + '-old.log',
+                        '../codesize-' + type + '-diff.log']
+
+    def createSummary(self, log):
+        bytes = ""
+        diff = ""
+        for line in log.readlines():
+            if '__codesize:' in line:
+                bytes = formatBytes(line.split(':')[1].rstrip())
+            elif '__codesizeDiff:' in line:
+                diffData = line.split(':')[1].rstrip()
+                # if we anything but '+0' here, we print additional data
+                if diffData[0:2] != '+0':
+                    diff = diffData
+
+        z = 'Z'
+        if self.type == 'base':
+            z = 'mZ'
+
+        slug = '%s:%s' % (z, bytes)
+        summary = 'TinderboxPrint:%s' % slug
+        self.addCompleteLog(slug, summary)
+        if diff:
+            # buildbot chokes if we put all the data in the short log
+            slug = '%sdiff' % z
+            summary = 'TinderboxPrint:%s:%s\n' % (slug, diff)
+            self.addCompleteLog(slug, summary)
