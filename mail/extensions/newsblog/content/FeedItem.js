@@ -242,7 +242,7 @@ FeedItem.prototype =
       debug(this.feed.name + " folder doesn't exist; creating");
       debug("creating " + this.feed.name + "as child of " + server.rootMsgFolder + "\n");
       server.rootMsgFolder.createSubfolder(this.feed.name, null /* supposed to be a msg window */);
-      folder = server.rootMsgFolder.FindSubFolder(this.feed.name);
+      folder = server.rootMsgFolder.findSubFolder(this.feed.name);
       debug(this.identity + " not stored (folder didn't exist)");
       return false;
     }

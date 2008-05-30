@@ -85,6 +85,7 @@
 #include "nsMsgI18N.h"
 #include "nsIMIMEHeaderParam.h"
 #include "plbase64.h"
+#include "nsArrayEnumerator.h"
 #include <time.h>
 #include "nsIMsgFolderNotificationService.h"
 
@@ -179,7 +180,6 @@ nsMsgDBFolder::nsMsgDBFolder(void)
   mIsServer(PR_FALSE),
   mInVFEditSearchScope (PR_FALSE)
 {
-  NS_NewISupportsArray(getter_AddRefs(mSubFolders));
   if (mInstanceCount++ <=0) {
     NS_RegisterStaticAtoms(folder_atoms, NS_ARRAY_LENGTH(folder_atoms));
     initializeStrings();
@@ -223,23 +223,17 @@ NS_IMETHODIMP nsMsgDBFolder::Shutdown(PRBool shutdownChildren)
 
   if(shutdownChildren)
   {
-    PRUint32 count;
-    nsresult rv = mSubFolders->Count(&count);
-    if(NS_SUCCEEDED(rv))
-    {
-      for (PRUint32 i = 0; i < count; i++)
-      {
-        nsCOMPtr<nsIMsgFolder> childFolder = do_QueryElementAt(mSubFolders, i);
-        if(childFolder)
-          childFolder->Shutdown(PR_TRUE);
-      }
-    }
+    PRInt32 count = mSubFolders.Count();
+
+    for (PRInt32 i = 0; i < count; i++)
+      mSubFolders[i]->Shutdown(PR_TRUE);
+
     // Reset incoming server pointer and pathname.
     mServer = nsnull;
     mPath = nsnull;
     mHaveParsedURI = PR_FALSE;
     mName.SetLength(0);
-    mSubFolders->Clear();
+    mSubFolders.Clear();
   }
   return NS_OK;
 }
@@ -247,31 +241,22 @@ NS_IMETHODIMP nsMsgDBFolder::Shutdown(PRBool shutdownChildren)
 
 NS_IMETHODIMP nsMsgDBFolder::ForceDBClosed()
 {
-    PRUint32 cnt = 0, i;
-    if (mSubFolders)
-    {
-        nsCOMPtr<nsIMsgFolder> child;
-        mSubFolders->Count(&cnt);
-        if (cnt > 0)
-            for (i = 0; i < cnt; i++)
-            {
-                child = do_QueryElementAt(mSubFolders, i);
-                if (child)
-                    child->ForceDBClosed();
-            }
-    }
-    if (mDatabase)
-    {
-        mDatabase->ForceClosed();
-        mDatabase = nsnull;
-    }
-    else
-    {
-      nsCOMPtr<nsIMsgDatabase> mailDBFactory = do_CreateInstance(kCMailDB);
-      if (mailDBFactory)
-        mailDBFactory->ForceFolderDBClosed(this);
-    }
-    return NS_OK;
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
+    mSubFolders[i]->ForceDBClosed();
+
+  if (mDatabase)
+  {
+    mDatabase->ForceClosed();
+    mDatabase = nsnull;
+  }
+  else
+  {
+    nsCOMPtr<nsIMsgDatabase> mailDBFactory = do_CreateInstance(kCMailDB);
+    if (mailDBFactory)
+      mailDBFactory->ForceFolderDBClosed(this);
+  }
+  return NS_OK;
 }
 
 
@@ -2218,18 +2203,17 @@ nsMsgDBFolder::FindSubFolder(const nsACString& aEscapedSubFolderName, nsIMsgFold
 NS_IMETHODIMP
 nsMsgDBFolder::GetHasSubFolders(PRBool *_retval)
 {
-  PRUint32 cnt;
-  nsresult rv = mSubFolders->Count(&cnt);
-  if (NS_FAILED(rv))
-    return rv;
-  *_retval = (cnt > 0);
+  NS_ENSURE_ARG_POINTER(_retval);
+  *_retval = mSubFolders.Count() > 0;
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgDBFolder::GetNumSubFolders(PRUint32 *aResult)
 {
-  return mSubFolders->Count(aResult);
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = mSubFolders.Count();
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::AddFolderListener(nsIFolderListener * listener)
@@ -2682,30 +2666,24 @@ NS_IMETHODIMP
 nsMsgDBFolder::GetChildNamed(const nsAString& aName, nsIMsgFolder **aChild)
 {
   NS_ENSURE_ARG_POINTER(aChild);
-  PRUint32 count;
-  nsresult rv = mSubFolders->Count(&count);
-  if (NS_FAILED(rv))
-    return rv;
+  *aChild = nsnull;
+  PRInt32 count = mSubFolders.Count();
 
-  for (PRUint32 i = 0; i < count; i++)
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-    if (NS_SUCCEEDED(rv))
-    {
-      nsString folderName;
-      rv = folder->GetName(folderName);
-      // case-insensitive compare is probably LCD across OS filesystems
+    nsString folderName;
+    nsresult rv = mSubFolders[i]->GetName(folderName);
+    // case-insensitive compare is probably LCD across OS filesystems
 #ifdef MOZILLA_INTERNAL_API
-      if (NS_SUCCEEDED(rv) &&
-          folderName.Equals(aName, nsCaseInsensitiveStringComparator()))
+    if (NS_SUCCEEDED(rv) &&
+        folderName.Equals(aName, nsCaseInsensitiveStringComparator()))
 #else
-      if (NS_SUCCEEDED(rv) &&
-          folderName.Equals(aName, CaseInsensitiveCompare))
+    if (NS_SUCCEEDED(rv) &&
+        folderName.Equals(aName, CaseInsensitiveCompare))
 #endif
-      {
-        folder.swap(*aChild);
-        return NS_OK;
-      }
+    {
+      NS_ADDREF(*aChild = mSubFolders[i]);
+      return NS_OK;
     }
   }
   // don't return NS_OK if we didn't find the folder
@@ -2806,36 +2784,31 @@ NS_IMETHODIMP nsMsgDBFolder::CreateStorageIfMissing(nsIUrlListener* /* urlListen
 
 NS_IMETHODIMP nsMsgDBFolder::PropagateDelete(nsIMsgFolder *folder, PRBool deleteStorage, nsIMsgWindow *msgWindow)
 {
-  nsCOMPtr<nsIMsgFolder> child;
   // first, find the folder we're looking to delete
-  PRUint32 cnt;
-  nsresult rv = mSubFolders->Count(&cnt);
-  NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 i = 0; i < cnt; i++)
+  nsresult rv = NS_OK;
+
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsISupports> supports = getter_AddRefs(mSubFolders->ElementAt(i));
-    child = do_QueryInterface(supports, &rv);
-    if (NS_SUCCEEDED(rv))
+    nsCOMPtr<nsIMsgFolder> child(mSubFolders[i]);
+    if (folder == child.get())
     {
-      if (folder == child.get())
+      // Remove self as parent
+      child->SetParent(nsnull);
+      // maybe delete disk storage for it, and its subfolders
+      rv = child->RecursiveDelete(deleteStorage, msgWindow);
+      if (NS_SUCCEEDED(rv))
       {
-        //Remove self as parent
-        child->SetParent(nsnull);
-        // maybe delete disk storage for it, and its subfolders
-        rv = child->RecursiveDelete(deleteStorage, msgWindow);
-        if (rv == NS_OK)
-        {
-          //Remove from list of subfolders.
-          mSubFolders->RemoveElement(supports);
-          NotifyItemRemoved(supports);
-          break;
-        }
-        else // setting parent back if we failed
-          child->SetParent(this);
+        // Remove from list of subfolders.
+        mSubFolders.RemoveObjectAt(i);
+        NotifyItemRemoved(child);
+        break;
       }
-      else
-        rv = child->PropagateDelete (folder, deleteStorage, msgWindow);
+      else // setting parent back if we failed
+        child->SetParent(this);
     }
+    else
+      rv = child->PropagateDelete(folder, deleteStorage, msgWindow);
   }
 
   return rv;
@@ -2868,24 +2841,24 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
     }
   }
 
-  PRUint32 cnt;
-  nsresult rv = mSubFolders->Count(&cnt);
-  NS_ENSURE_SUCCESS(rv, rv);
-  while (cnt > 0)
+  PRInt32 count = mSubFolders.Count();
+  while (count > 0)
   {
-    nsCOMPtr<nsISupports> supports = getter_AddRefs(mSubFolders->ElementAt(0));
-    nsCOMPtr<nsIMsgFolder> child(do_QueryInterface(supports, &status));
+    nsIMsgFolder *child = mSubFolders[0];
 
+    child->SetParent(nsnull);
+    status = child->RecursiveDelete(deleteStorage, msgWindow);  // recur
     if (NS_SUCCEEDED(status))
+      // unlink it from this child's list
+      mSubFolders.RemoveObjectAt(0);
+    else
     {
-      child->SetParent(nsnull);
-      status = child->RecursiveDelete(deleteStorage, msgWindow);  // recur
-      if (NS_SUCCEEDED(status))
-        mSubFolders->RemoveElement(supports);  // unlink it from this's child list
-      else // setting parent back if we failed for some reason
-        child->SetParent(this);
+      // setting parent back if we failed for some reason
+      child->SetParent(this);
+      break;
     }
-    cnt--;
+
+    count--;
   }
 
   // now delete the disk storage for _this_
@@ -3023,13 +2996,13 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
 
   folder->SetFlags(flags);
 
-  //at this point we must be ok and we don't want to return failure in case GetIsServer failed.
-  rv = NS_OK;
-  nsCOMPtr<nsISupports> supports = do_QueryInterface(folder);
-  if(folder)
-    mSubFolders->AppendElement(supports);
+  if (folder)
+    mSubFolders.AppendObject(folder);
+
   folder.swap(*child);
-  return rv;
+  // at this point we must be ok and we don't want to return failure in case
+  // GetIsServer failed.
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
@@ -3148,11 +3121,9 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsILocalFile> dirFile;
-  PRUint32 cnt = 0;
-  if (mSubFolders)
-    mSubFolders->Count(&cnt);
+  PRInt32 count = mSubFolders.Count();
 
-  if (cnt > 0)
+  if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
   nsAutoString newDiskName(aNewName);
@@ -3184,7 +3155,8 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
 
   ForceDBClosed();
 
-  nsAutoString newNameDirStr(newDiskName);  //save of dir name before appending .msf
+  // Save of dir name before appending .msf
+  nsAutoString newNameDirStr(newDiskName);
 
   if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
     rv = oldPathFile->MoveTo(nsnull, newDiskName);
@@ -3199,7 +3171,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
     return rv;
   }
 
-  if (NS_SUCCEEDED(rv) && cnt > 0)
+  if (NS_SUCCEEDED(rv) && count > 0)
   {
     // rename "*.sbd" directory
     newNameDirStr.AppendLiteral(".sbd");
@@ -3219,7 +3191,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
       if (changed)
         AlertFilterChanged(msgWindow);
 
-      if (cnt > 0)
+      if (count > 0)
         newFolder->RenameSubFolders(msgWindow, this);
 
       if (parentFolder)
@@ -3254,20 +3226,16 @@ NS_IMETHODIMP nsMsgDBFolder::IsAncestorOf(nsIMsgFolder *child, PRBool *isAncesto
   NS_ENSURE_ARG_POINTER(isAncestor);
   nsresult rv = NS_OK;
 
-  PRUint32 count;
-  rv = mSubFolders->Count(&count);
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRInt32 count = mSubFolders.Count();
 
-  for (PRUint32 i = 0; i < count; i++)
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-    if (NS_SUCCEEDED(rv))
-    {
-      if (folder.get() == child )
-        *isAncestor = PR_TRUE;
-      else
-        folder->IsAncestorOf(child, isAncestor);
-    }
+    nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
+    if (folder.get() == child)
+      *isAncestor = PR_TRUE;
+    else
+      folder->IsAncestorOf(child, isAncestor);
+
     if (*isAncestor)
       return NS_OK;
   }
@@ -3316,30 +3284,22 @@ NS_IMETHODIMP nsMsgDBFolder::GetNumUnread(PRBool deep, PRInt32 *numUnread)
 {
   NS_ENSURE_ARG_POINTER(numUnread);
 
-  nsresult rv;
   PRInt32 total = mNumUnreadMessages + mNumPendingUnreadMessages;
   if (deep)
   {
     if (total < 0) // deep search never returns negative counts
       total = 0;
-    PRUint32 count;
-    rv = mSubFolders->Count(&count);
-    if (NS_SUCCEEDED(rv))
+    PRInt32 count = mSubFolders.Count();
+    for (PRInt32 i = 0; i < count; i++)
     {
-      for (PRUint32 i = 0; i < count; i++)
+      nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
+      PRInt32 num;
+      PRUint32 folderFlags;
+      folder->GetFlags(&folderFlags);
+      if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
       {
-        nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-        if (NS_SUCCEEDED(rv))
-        {
-          PRInt32 num;
-          PRUint32 folderFlags;
-          folder->GetFlags(&folderFlags);
-          if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
-          {
-            folder->GetNumUnread(deep, &num);
-            total += num;
-          }
-        }
+        folder->GetNumUnread(deep, &num);
+        total += num;
       }
     }
   }
@@ -3351,30 +3311,22 @@ NS_IMETHODIMP nsMsgDBFolder::GetTotalMessages(PRBool deep, PRInt32 *totalMessage
 {
   NS_ENSURE_ARG_POINTER(totalMessages);
 
-  nsresult rv;
   PRInt32 total = mNumTotalMessages + mNumPendingTotalMessages;
   if (deep)
   {
     if (total < 0) // deep search never returns negative counts
       total = 0;
-    PRUint32 count;
-    rv = mSubFolders->Count(&count);
-    if (NS_SUCCEEDED(rv))
+    PRInt32 count = mSubFolders.Count();
+    for (PRInt32 i = 0; i < count; i++)
     {
-      for (PRUint32 i = 0; i < count; i++)
+      nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
+      PRInt32 num;
+      PRUint32 folderFlags;
+      folder->GetFlags(&folderFlags);
+      if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
       {
-        nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-        if (NS_SUCCEEDED(rv))
-        {
-          PRInt32 num;
-          PRUint32 folderFlags;
-          folder->GetFlags(&folderFlags);
-          if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
-          {
-            folder->GetTotalMessages (deep, &num);
-            total += num;
-          }
-        }
+        folder->GetTotalMessages(deep, &num);
+        total += num;
       }
     }
   }
@@ -3601,26 +3553,17 @@ nsresult nsMsgDBFolder::ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *arr
   }
 
   nsresult rv;
-  PRUint32 cnt;
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   rv = GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mSubFolders->Count(&cnt);
-  if (NS_SUCCEEDED(rv))
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    for (PRUint32 i=0; i < cnt; i++)
-    {
-      nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-      if (NS_SUCCEEDED(rv) && folder)
-      {
-        nsIMsgFolder *msgFolder = folder.get();
-        nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(msgFolder);
-        dbFolder->ListFoldersWithFlag(flag,array);
-      }
-    }
+    nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(mSubFolders[i]);
+    dbFolder->ListFoldersWithFlag(flag,array);
   }
   return NS_OK;
 }
@@ -3639,40 +3582,35 @@ NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlag(PRUint32 flags, PRUint32 results
   }
 
   nsresult rv;
-  PRUint32 cnt;
 
   // call GetSubFolders() to ensure that mSubFolders is initialized
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   rv = GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = mSubFolders->Count(&cnt);
-  if (NS_SUCCEEDED(rv))
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    for (PRUint32 i=0; i < cnt; i++)
-    {
-      nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-      if (NS_SUCCEEDED(rv) && folder)
-      {
-        // CAREFUL! if NULL is passed in for result then the caller
-        // still wants the full count!  Otherwise, the result should be at most the
-        // number that the caller asked for.
-        PRUint32 numSubFolders;
+    nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
 
-        if (!result)
-        {
-          folder->GetFoldersWithFlag(flags, 0, &numSubFolders, NULL);
-          num += numSubFolders;
-        }
-        else if (num < resultsize)
-        {
-          folder->GetFoldersWithFlag(flags, resultsize - num, &numSubFolders, result+num);
-          num += numSubFolders;
-        }
-        else
-          break;
-      }
+    // CAREFUL! if NULL is passed in for result then the caller
+    // still wants the full count!  Otherwise, the result should be at most the
+    // number that the caller asked for.
+    PRUint32 numSubFolders;
+
+    if (!result)
+    {
+      folder->GetFoldersWithFlag(flags, 0, &numSubFolders, NULL);
+      num += numSubFolders;
     }
+    else if (num < resultsize)
+    {
+      folder->GetFoldersWithFlag(flags, resultsize - num, &numSubFolders,
+                                 result + num);
+      num += numSubFolders;
+    }
+    else
+      break;
   }
   *numFolders = num;
   return NS_OK;
@@ -3685,24 +3623,20 @@ NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
   // than in GetFoldersWithFlag
 
   nsresult rv;
-  PRUint32 cnt;
-  rv = mSubFolders->Count(&cnt);
-  if (NS_FAILED(rv)) return rv;
-  for (PRUint32 i = 0; i < cnt; i++)
+  PRInt32 count = mSubFolders.Count();
+
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
+    nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
+    PRUint32 cnt2;
+    rv = expansionArray->Count(&cnt2);
     if (NS_SUCCEEDED(rv))
     {
-      PRUint32 cnt2;
-      rv = expansionArray->Count(&cnt2);
-      if (NS_SUCCEEDED(rv))
-      {
-        expansionArray->InsertElementAt(folder, cnt2);
-        PRUint32 flags;
-        folder->GetFlags(&flags);
-        if (!(flags & MSG_FOLDER_FLAG_ELIDED))
-          folder->GetExpansionArray(expansionArray);
-      }
+      expansionArray->InsertElementAt(folder, cnt2);
+      PRUint32 flags;
+      folder->GetFlags(&flags);
+      if (!(flags & MSG_FOLDER_FLAG_ELIDED))
+        folder->GetExpansionArray(expansionArray);
     }
   }
 
@@ -3904,23 +3838,14 @@ NS_IMETHODIMP nsMsgDBFolder::GetNumNewMessages(PRBool deep, PRInt32 *aNumNewMess
   PRInt32 numNewMessages = (!deep || ! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
     ? mNumNewBiffMessages : 0;
   if (deep)
-  {
-    PRUint32 count;
-    nsresult rv = NS_OK;
-    rv = mSubFolders->Count(&count);
-    if (NS_SUCCEEDED(rv))
+  { 
+    PRInt32 count = mSubFolders.Count();
+    for (PRInt32 i = 0; i < count; i++)
     {
-      for (PRUint32 i = 0; i < count; i++)
-      {
-        nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(mSubFolders, i, &rv));
-        if (NS_SUCCEEDED(rv))
-        {
-          PRInt32 num;
-          folder->GetNumNewMessages(deep, &num);
-          if (num > 0) // it's legal for counts to be negative if we don't know
-            numNewMessages += num;
-        }
-      }
+      PRInt32 num;
+      mSubFolders[i]->GetNumNewMessages(deep, &num);
+      if (num > 0) // it's legal for counts to be negative if we don't know
+        numNewMessages += num;
     }
   }
   *aNumNewMessages = numNewMessages;
@@ -4365,23 +4290,15 @@ NS_IMETHODIMP nsMsgDBFolder::GetMessageHeader(nsMsgKey msgKey, nsIMsgDBHdr **aMs
 NS_IMETHODIMP nsMsgDBFolder::ListDescendents(nsISupportsArray *descendents)
 {
   NS_ENSURE_ARG(descendents);
-  PRUint32 cnt;
-  nsresult rv = mSubFolders->Count(&cnt);
-  NS_ENSURE_SUCCESS(rv, rv);
-  for (PRUint32 index = 0; index < cnt; index++)
+
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsresult rv;
-    nsCOMPtr<nsISupports> supports(do_QueryElementAt(mSubFolders, index));
-    nsCOMPtr<nsIMsgFolder> child(do_QueryInterface(supports, &rv));
-    if (NS_SUCCEEDED(rv))
-    {
-      if (!descendents->AppendElement(supports))
-        rv = NS_ERROR_OUT_OF_MEMORY;
-      else
-        rv = child->ListDescendents(descendents);  // recurse
-    }
+    nsCOMPtr<nsIMsgFolder> child(mSubFolders[i]);
+    descendents->AppendElement(child);
+    child->ListDescendents(descendents);  // recurse
   }
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::GetBaseMessageURI(nsACString& baseMessageURI)

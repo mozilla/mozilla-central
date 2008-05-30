@@ -57,6 +57,7 @@
 #include "nsITransport.h"
 #include "nsIStringBundle.h"
 #include "nsTObserverArray.h"
+#include "nsCOMArray.h"
 class nsIMsgFolderCacheElement;
 class nsIJunkMailPlugin;
 class nsICollation;
@@ -190,7 +191,7 @@ protected:
   PRInt32 mNumTotalMessages;         /* count of existing messages. */
   PRBool mNotifyCountChanges;
   PRUint32 mExpungedBytes;
-  nsCOMPtr<nsISupportsArray> mSubFolders;
+  nsCOMArray<nsIMsgFolder> mSubFolders;
   // This can't be refcounted due to ownsership issues
   nsTObserverArray<nsIFolderListener*> mListeners;
 

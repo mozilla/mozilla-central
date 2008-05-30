@@ -66,7 +66,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(e1d9b4e1-ac46-449a-b7b6-b8b12a00722f)]
+[scriptable, uuid(2197fbda-e628-4df0-bc75-685406baa398)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -168,13 +168,6 @@ interface nsIMsgFolder : nsISupports {
    */
   void rename(in AString name, in nsIMsgWindow msgWindow);
   void renameSubFolders( in nsIMsgWindow msgWindow, in nsIMsgFolder oldFolder);
-  /**
-   * looks in immediate children of this folder for the given name
-   *
-   * @param name the name of the target subfolder
-   */
-  boolean containsChildNamed(in AString name);
-  boolean isAncestorOf(in nsIMsgFolder folder);
 
   AString generateUniqueSubfolderName(in AString prefix,
                                       in nsIMsgFolder otherFolder);
@@ -261,16 +254,71 @@ interface nsIMsgFolder : nsISupports {
   readonly attribute ACString username;
   readonly attribute ACString hostname;
 
+  /**
+   * Sets a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to set on the folder.
+   */
   void setFlag(in unsigned long flag);
+
+  /**
+   * Clears a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to clear on the folder.
+   */
   void clearFlag(in unsigned long flag);
+
+  /**
+   * Determines if a flag is set on the folder or not. The known flags are
+   * defined in nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to check on the folder.
+   * @return      True if the flag exists.
+   */
   boolean getFlag(in unsigned long flag);
-  void setPrefFlag();
 
-  void toggleFlag (in unsigned long flag);
-  void onFlagChange (in unsigned long flag);
+  /**
+   * Toggles a flag on the folder. The known flags are defined in
+   * nsMsgFolderFlags.h.
+   *
+   * @param flag  The flag to toggle
+   */
+  void toggleFlag(in unsigned long flag);
 
+  /**
+   * Called to notify the database and/or listeners of a change of flag. The
+   * known flags are defined in nsMsgFolderFlags.h 
+   *
+   * @note        This doesn't need to be called for normal flag changes via
+   *              the *Flag functions on this interface.
+   *
+   * @param flag  The flag that was changed.
+   */
+  void onFlagChange(in unsigned long flag);
+
+  /**
+   * Direct access to the set/get all the flags at once.
+   */
   attribute unsigned long flags;
 
+  void setPrefFlag();
+
+  /**
+   * Gets the number of folders and folders that have the specified flag set.
+   *
+   * @note DO NOT call from js with resultsize > 1. See bug 436051. This WILL
+   *       change soon.
+   *
+   * @param flags       The flag(s) to check for.
+   * @param resultsize  The maximum number of folders to check/get
+   * @param numFolders  The number of folders being returned
+   * @return            As per the note above, if resultsize = 1, this will be
+   *                    treated as a normal pointer. If resultsize > 1, the
+   *                    code will treat the result as an array and try to fill
+   *                    it in.
+   */
   nsIMsgFolder getFoldersWithFlag(in unsigned long flags,
                                   in unsigned long resultsize,
                                   out unsigned long numFolders);
@@ -414,14 +462,6 @@ interface nsIMsgFolder : nsISupports {
   attribute AString prettyName;
   readonly attribute AString abbreviatedName;
 
-  /**
-   * Return the child folder which the specified name.
-   *
-   * @param aName  The name of the child folder to find
-   * @return       The child folder
-   */
-  nsIMsgFolder getChildNamed(in AString aName);
-
   attribute nsIMsgFolder parent;
 
   /**
@@ -440,10 +480,41 @@ interface nsIMsgFolder : nsISupports {
    */
   readonly attribute unsigned long numSubFolders;
 
+  /**
+   * Determines if this folder is an ancestor of the supplied folder.
+   *
+   * @param folder  The folder that may or may not be a descendent of this
+   *                folder.
+   */
+  boolean isAncestorOf(in nsIMsgFolder folder);
+
+  /**
+   * Looks in immediate children of this folder for the given name.
+   *
+   * @param name the name of the target subfolder
+   */
+  boolean containsChildNamed(in AString name);
+
+  /**
+   * Return the child folder which the specified name.
+   *
+   * @param aName  The name of the child folder to find
+   * @return       The child folder
+   * @exception NS_ERROR_FAILURE Thrown if the folder with aName does not exist
+   */
+  nsIMsgFolder getChildNamed(in AString aName);
+
+  /**
+   * Finds the sub folder with the specified name.
+   *
+   * @param escapedSubFolderName  The name of the sub folder to find.
+   * @note                        Even if the folder doesn't currently exist,
+   *                              a nsIMsgFolder may be returned.
+   */
+  nsIMsgFolder findSubFolder(in ACString escapedSubFolderName);
+
   void AddFolderListener(in nsIFolderListener listener);
   void RemoveFolderListener(in nsIFolderListener listener);
-  nsIMsgFolder FindSubFolder(in ACString escapedSubFolderName);
-
   void NotifyPropertyChanged(in nsIAtom property,
                              in ACString oldValue,
                              in ACString newValue);

@@ -85,7 +85,7 @@
 
 #include "nsIInterfaceRequestor.h"
 #include "nsIInterfaceRequestorUtils.h"
-
+#include "nsArrayEnumerator.h"
 #include "nsReadableUtils.h"
 #include "nsNewsDownloader.h"
 #include "nsIStringBundle.h"
@@ -225,19 +225,14 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   rv = folder->SetFlag(MSG_FOLDER_FLAG_NEWSGROUP);
   if (NS_FAILED(rv)) return rv;
 
-  PRUint32 numExistingGroups;
-  rv = mSubFolders->Count(&numExistingGroups);
-  NS_ENSURE_SUCCESS(rv,rv);
+  PRInt32 numExistingGroups = mSubFolders.Count();
 
   // add kNewsSortOffset (9000) to prevent this problem:  1,10,11,2,3,4,5
   // We use 9000 instead of 1000 so newsgroups will sort to bottom of flat folder views
   rv = folder->SetSortOrder(numExistingGroups + kNewsSortOffset);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  //convert to an nsISupports before appending
-  nsCOMPtr<nsISupports> folderSupports(do_QueryInterface(folder));
-  if(folderSupports)
-    mSubFolders->AppendElement(folderSupports);
+  mSubFolders.AppendObject(folder);
   folder->SetParent(this);
   folder.swap(*child);
   return rv;
@@ -1178,27 +1173,23 @@ NS_IMETHODIMP nsMsgNewsFolder::ForgetGroupPassword()
 // aOrientation =  1 ... aRefNewsgroup aNewsgroupToMove ...
 NS_IMETHODIMP nsMsgNewsFolder::MoveFolder(nsIMsgFolder *aNewsgroupToMove, nsIMsgFolder *aRefNewsgroup, PRInt32 aOrientation)
 {
-  nsresult rv = NS_OK;
-
   // if folders are identical do nothing
   if (aNewsgroupToMove == aRefNewsgroup)
     return NS_OK;
 
+  nsresult rv = NS_OK;
+
   // get index for aNewsgroupToMove
-  nsCOMPtr<nsISupports> folderSupportsNewsgroupToMove = do_QueryInterface(aNewsgroupToMove, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRInt32 indexNewsgroupToMove = mSubFolders->IndexOf(folderSupportsNewsgroupToMove);
+  PRInt32 indexNewsgroupToMove = mSubFolders.IndexOf(aNewsgroupToMove);
   if (indexNewsgroupToMove == -1)
-    return NS_ERROR_INVALID_ARG;  // aNewsgroupToMove is no subfolder of this folder
+    // aNewsgroupToMove is no subfolder of this folder
+    return NS_ERROR_INVALID_ARG;
 
   // get index for aRefNewsgroup
-  nsCOMPtr<nsISupports> folderSupportsRefNewsgroup = do_QueryInterface(aRefNewsgroup, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  
-  PRInt32 indexRefNewsgroup = mSubFolders->IndexOf(folderSupportsRefNewsgroup);
+  PRInt32 indexRefNewsgroup = mSubFolders.IndexOf(aRefNewsgroup);
   if (indexRefNewsgroup == -1)
-    return NS_ERROR_INVALID_ARG;  // aRefNewsgroup is no subfolder of this folder
+    // aRefNewsgroup is no subfolder of this folder
+    return NS_ERROR_INVALID_ARG;
 
   // set new index for NewsgroupToMove
   PRUint32 indexMin, indexMax;
@@ -1219,14 +1210,20 @@ NS_IMETHODIMP nsMsgNewsFolder::MoveFolder(nsIMsgFolder *aNewsgroupToMove, nsIMsg
 
   // move NewsgroupToMove to new index and set new sort order
   NotifyItemRemoved(aNewsgroupToMove);
-  mSubFolders->MoveElement(indexNewsgroupToMove, indexRefNewsgroup);
+
+  if (indexNewsgroupToMove != indexRefNewsgroup)
+  {
+    nsCOMPtr<nsIMsgFolder> newsgroup = mSubFolders[indexNewsgroupToMove];
+
+    mSubFolders.RemoveObjectAt(indexNewsgroupToMove);
+
+    // indexRefNewsgroup is already set up correctly.
+    mSubFolders.InsertObjectAt(newsgroup, indexRefNewsgroup);
+  }
   
   for (PRUint32 i = indexMin; i <= indexMax; i++)
-  {
-    nsCOMPtr<nsIMsgFolder> currentFolder(do_QueryElementAt(mSubFolders, i));
-    if (currentFolder)
-      currentFolder->SetSortOrder(kNewsSortOffset + i);
-  }
+    mSubFolders[i]->SetSortOrder(kNewsSortOffset + i);
+
   NotifyItemAdded(aNewsgroupToMove);  
 
   // write changes back to file

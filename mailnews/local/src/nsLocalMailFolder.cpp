@@ -49,7 +49,7 @@
 #include "prlog.h"
 
 #include "msgCore.h"    // precompiled header...
-
+#include "nsArrayEnumerator.h"
 #include "nsLocalMailFolder.h"
 #include "nsMsgLocalFolderHdrs.h"
 #include "nsMsgFolderFlags.h"
@@ -417,20 +417,12 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
       /* we need to create all the folders at start-up because if a folder having subfolders is
                     closed then the datasource will not ask for subfolders. For IMAP logging onto the
                     server will create imap folders and for news we don't have any 2nd level newsgroup */
-      PRUint32 cnt;
-      rv = mSubFolders->Count(&cnt);
-      if (NS_SUCCEEDED(rv))
+      PRInt32 count = mSubFolders.Count();
+      nsCOMPtr<nsISimpleEnumerator> enumerator;
+      for (PRInt32 i = 0; i < count; i++)
       {
-        nsCOMPtr<nsISimpleEnumerator> enumerator;
-        for (PRUint32 i = 0; i < cnt; i++)
-        {
-          nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(mSubFolders, i, &rv);
-          if (NS_SUCCEEDED(rv))
-          {
-            rv = folder->GetSubFolders(getter_AddRefs(enumerator));
-            NS_ASSERTION(NS_SUCCEEDED(rv),"GetSubFolders failed");
-          }
-        }
+        rv = mSubFolders[i]->GetSubFolders(getter_AddRefs(enumerator));
+        NS_ASSERTION(NS_SUCCEEDED(rv),"GetSubFolders failed");
       }
     }
     UpdateSummaryTotals(PR_FALSE);
@@ -1062,11 +1054,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsILocalFile> dirFile;
 
-  PRUint32 cnt = 0;
-  if (mSubFolders)
-    mSubFolders->Count(&cnt);
+  PRInt32 count = mSubFolders.Count();
 
-  if (cnt > 0)
+  if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
   // convert from PRUnichar* to char* due to not having Rename(PRUnichar*)
@@ -1117,7 +1107,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
     return rv;
   }
 
-  if (NS_SUCCEEDED(rv) && cnt > 0)
+  if (NS_SUCCEEDED(rv) && count > 0)
   {
     // rename "*.sbd" directory
     newNameDirStr += ".sbd";
@@ -1143,7 +1133,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
       if (changed)
         AlertFilterChanged(msgWindow);
 
-      if (cnt > 0)
+      if (count > 0)
         newFolder->RenameSubFolders(msgWindow, this);
 
       // the newFolder should have the same flags

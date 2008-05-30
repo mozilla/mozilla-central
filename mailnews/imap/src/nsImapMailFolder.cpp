@@ -118,8 +118,8 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsIExternalProtocolService.h"
 #include "nsCExternalHandlerService.h"
-#include "nsCOMArray.h"
 #include "prprf.h"
+#include "nsArrayEnumerator.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kParseMailMsgStateCID, NS_PARSEMAILMSGSTATE_CID);
@@ -344,10 +344,9 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
 
   folder->SetFlags(flags);
 
-  nsCOMPtr<nsISupports> supports = do_QueryInterface(folder);
-  if(folder)
-    mSubFolders->AppendElement(supports);
+  mSubFolders.AppendObject(folder);
   folder.swap(*aChild);
+
   nsCOMPtr <nsIMsgImapMailFolder> imapChild = do_QueryInterface(*aChild);
   if (imapChild)
   {
@@ -427,10 +426,8 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
   //at this point we must be ok and we don't want to return failure in case GetIsServer failed.
   rv = NS_OK;
 
-  nsCOMPtr <nsISupports> supports = do_QueryInterface(folder);
-  NS_ASSERTION(supports, "couldn't get isupports from imap folder");
-  if (supports)
-    mSubFolders->AppendElement(supports);
+  if (folder)
+    mSubFolders.AppendObject(folder);
   folder.swap(*child);
   return rv;
 }
@@ -1070,11 +1067,10 @@ NS_IMETHODIMP nsImapMailFolder::GetHierarchyDelimiter(PRUnichar *aHierarchyDelim
   {
     // if it's the root folder, we don't know the delimiter. So look at the
     // first child.
-    PRUint32 count = 0;
-    (void) mSubFolders->Count(&count);
+    PRInt32 count = mSubFolders.Count();
     if (count > 0)
     {
-      nsCOMPtr<nsIMsgImapMailFolder> childFolder = do_QueryElementAt(mSubFolders, 0);
+      nsCOMPtr<nsIMsgImapMailFolder> childFolder(do_QueryInterface(mSubFolders[0]));
       if (childFolder)
         return childFolder->GetHierarchyDelimiter(aHierarchyDelimiter);
     }
@@ -1463,24 +1459,16 @@ NS_IMETHODIMP nsImapMailFolder::Rename (const nsAString& newName, nsIMsgWindow *
 NS_IMETHODIMP nsImapMailFolder::RecursiveCloseActiveConnections(nsIImapIncomingServer *incomingImapServer)
 {
   NS_ENSURE_ARG(incomingImapServer);
-  PRUint32 cnt = 0, i;
-  nsresult rv;
-  if (mSubFolders)
+
+  nsCOMPtr<nsIMsgImapMailFolder> folder;
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgImapMailFolder> folder;
-    mSubFolders->Count(&cnt);
-    if (cnt > 0)
-    {
-      for (i = 0; i < cnt; i++)
-      {
-        folder = do_QueryElementAt(mSubFolders, i);
-        if (folder)
-            folder->RecursiveCloseActiveConnections(incomingImapServer);
-        nsCOMPtr<nsIMsgFolder> msgFolder = do_QueryInterface(folder, &rv);
-        if (NS_SUCCEEDED(rv) && msgFolder)
-          incomingImapServer->CloseConnectionForFolder(msgFolder);
-      }
-    }
+    folder = do_QueryInterface(mSubFolders[i]);
+    if (folder)
+      folder->RecursiveCloseActiveConnections(incomingImapServer);
+
+    incomingImapServer->CloseConnectionForFolder(mSubFolders[i]);
   }
   return NS_OK;
 }
@@ -1488,21 +1476,15 @@ NS_IMETHODIMP nsImapMailFolder::RecursiveCloseActiveConnections(nsIImapIncomingS
 // this is called *after* we've done the rename on the server.
 NS_IMETHODIMP nsImapMailFolder::PrepareToRename()
 {
-  PRUint32 cnt = 0, i;
-  if (mSubFolders)
+  nsCOMPtr<nsIMsgImapMailFolder> folder;
+  PRInt32 count = mSubFolders.Count();
+  for (PRInt32 i = 0; i < count; i++)
   {
-    nsCOMPtr<nsIMsgImapMailFolder> folder;
-    mSubFolders->Count(&cnt);
-    if (cnt > 0)
-    {
-      for (i = 0; i < cnt; i++)
-      {
-        folder = do_QueryElementAt(mSubFolders, i);
-        if (folder)
-            folder->PrepareToRename();
-      }
-    }
+    folder = do_QueryInterface(mSubFolders[i]);
+    if (folder)
+      folder->PrepareToRename();
   }
+
   SetOnlineName(EmptyCString());
   return NS_OK;
 }
@@ -1537,12 +1519,10 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
   if (!isDirectory)
   AddDirectorySeparator(parentPathFile);
 
-  PRUint32 cnt = 0;
   nsCOMPtr <nsILocalFile> dirFile;
 
-  if (mSubFolders)
-    mSubFolders->Count(&cnt);
-  if (cnt > 0)
+  PRInt32 count = mSubFolders.Count();
+  if (count > 0)
     rv = CreateDirectoryForFolder(getter_AddRefs(dirFile));
 
   nsCOMPtr <nsILocalFile> oldSummaryFile;
@@ -1551,7 +1531,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameLocal(const nsACString& newName, nsIMsgFol
 
   nsCAutoString newNameStr;
   oldSummaryFile->Remove(PR_FALSE);
-  if (cnt > 0)
+  if (count > 0)
   {
     newNameStr = leafname;
     NS_MsgHashIfNecessary(newNameStr);
