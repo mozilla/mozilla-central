@@ -474,6 +474,7 @@ function dispatchCommand (command, e, flags)
 
         //display (getMsg(MSG_FMT_USAGE, [e.command.name, e.command.usage]),
         //         MT_USAGE);
+        return null;
     };
 
     function callHooks (command, isBefore)
@@ -675,56 +676,63 @@ function dispatchCommand (command, e, flags)
         return aliasLine;
     };
 
+    function callBeforeHooks()
+    {
+        if ("beforeHooks" in client.commandManager)
+            callHooks(client.commandManager, true);
+        if ("beforeHooks" in e.command)
+            callHooks(e.command, true);
+    };
+
+    function callAfterHooks()
+    {
+        if ("afterHooks" in e.command)
+            callHooks(e.command, false);
+        if ("afterHooks" in client.commandManager)
+            callHooks(client.commandManager, false);
+    };
+
     var h, i;
 
     if (typeof e.command.func == "function")
     {
         /* dispatch a real function */
 
-        client.commandManager.parseArguments (e);
-
+        client.commandManager.parseArguments(e);
         if ("parseError" in e)
+            return displayUsageError(e, e.parseError);
+
+        if (("dbgDispatch" in client) && client.dbgDispatch)
         {
-            displayUsageError(e, e.parseError);
+            var str = "";
+            for (i = 0; i < e.command.argNames.length; ++i)
+            {
+                var name = e.command.argNames[i];
+                if (name in e)
+                    str += " " + name + ": " + e[name];
+                else if (name != ":")
+                    str += " ?" + name;
+            }
+            dd(">>> " + e.command.name + str + " <<<");
         }
-        else
+
+        callBeforeHooks();
+        try
         {
-            if ("beforeHooks" in client.commandManager)
-                callHooks(client.commandManager, true);
-            if ("beforeHooks" in e.command)
-                callHooks(e.command, true);
-
-            if ("dbgDispatch" in client && client.dbgDispatch)
-            {
-                var str = "";
-                for (i = 0; i < e.command.argNames.length; ++i)
-                {
-                    var name = e.command.argNames[i];
-                    if (name in e)
-                        str += " " + name + ": " + e[name];
-                    else if (name != ":")
-                        str += " ?" + name;
-                }
-                dd (">>> " + e.command.name + str + " <<<");
-                e.returnValue = e.command.func(e);
-                /* set client.lastEvent *after* dispatching, so the dispatched
-                 * function actually get's a chance to see the last event. */
+            e.returnValue = e.command.func(e);
+        }
+        finally
+        {
+            callAfterHooks();
+            /* set client.lastEvent *after* dispatching, so the dispatched
+             * function actually get's a chance to see the last event. */
+            if (("dbgDispatch" in client) && client.dbgDispatch)
                 client.lastEvent = e;
-            }
-            else
-            {
-                e.returnValue = e.command.func(e);
-            }
-
         }
     }
     else if (typeof e.command.func == "string")
     {
         /* dispatch an alias (semicolon delimited list of subcommands) */
-        if ("beforeHooks" in client.commandManager)
-            callHooks(client.commandManager, true);
-        if ("beforeHooks" in e.command)
-            callHooks(e.command, true);
 
         var commandList;
         //Don't make use of e.inputData if we have multiple commands in 1 alias
@@ -752,25 +760,27 @@ function dispatchCommand (command, e, flags)
             }
         }
 
-        for (i = 0; i < commandList.length; ++i)
+        callBeforeHooks();
+        try
         {
-            var newEvent = Clone(e);
-            delete newEvent.command;
-            commandList[i] = stringTrim(commandList[i]);
-            dispatch(commandList[i], newEvent, flags);
+            for (i = 0; i < commandList.length; ++i)
+            {
+                var newEvent = Clone(e);
+                delete newEvent.command;
+                commandList[i] = stringTrim(commandList[i]);
+                dispatch(commandList[i], newEvent, flags);
+            }
+        }
+        finally
+        {
+            callAfterHooks();
         }
     }
     else
     {
-        display (getMsg(MSG_ERR_NOTIMPLEMENTED, e.command.name),
-                 MT_ERROR);
+        display(getMsg(MSG_ERR_NOTIMPLEMENTED, e.command.name), MT_ERROR);
         return null;
     }
-
-    if ("afterHooks" in e.command)
-        callHooks(e.command, false);
-    if ("afterHooks" in client.commandManager)
-        callHooks(client.commandManager, false);
 
     return ("returnValue" in e) ? e.returnValue : null;
 }
