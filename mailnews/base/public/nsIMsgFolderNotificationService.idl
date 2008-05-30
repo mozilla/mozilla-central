@@ -39,21 +39,21 @@
 
 interface nsIMsgFolder;
 interface nsIMsgFolderListener;
-interface nsISupportsArray;
+interface nsIArray;
 
 
-[scriptable, uuid(4264C2DC-96AC-48B7-9822-DD4396EBB674)]
+[scriptable, uuid(d96b19df-a11d-4df2-90b7-ce553176c621)]
 interface nsIMsgFolderNotificationService : nsISupports {
   readonly attribute boolean hasListeners;
   void addListener(in nsIMsgFolderListener aListener);
   void removeListener(in nsIMsgFolderListener aListener);
   
   void notifyItemAdded(in nsISupports aItem);
-  // for the convenience of the callers, we allow this to be an nsISupportsArray of items,
+  // for the convenience of the callers, we allow this to be an nsIArray of items,
   // or an individual nsISupports.
   void notifyItemDeleted(in nsISupports aItem);
   void notifyItemMoveCopyCompleted(in boolean aMove, 
-                              in nsISupportsArray aSrcItems, 
+                              in nsIArray aSrcItems, 
                               in nsIMsgFolder aDestFolder);
                               
   void notifyFolderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);

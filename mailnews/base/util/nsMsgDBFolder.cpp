@@ -88,6 +88,8 @@
 #include "nsArrayEnumerator.h"
 #include <time.h>
 #include "nsIMsgFolderNotificationService.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 #define oneHour 3600000000U
 #include "nsMsgUtils.h"
@@ -2762,11 +2764,11 @@ NS_IMETHODIMP nsMsgDBFolder::Delete()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::DeleteSubFolders(nsISupportsArray *folders,
+NS_IMETHODIMP nsMsgDBFolder::DeleteSubFolders(nsIArray *folders,
                                               nsIMsgWindow *msgWindow)
 {
   PRUint32 count;
-  nsresult rv = folders->Count(&count);
+  nsresult rv = folders->GetLength(&count);
   for(PRUint32 i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolder> folder(do_QueryElementAt(folders, i, &rv));
@@ -3902,14 +3904,13 @@ nsMsgDBFolder::GetFilePath(nsILocalFile * *aFile)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::MarkMessagesRead(nsISupportsArray *messages, PRBool markRead)
+nsMsgDBFolder::MarkMessagesRead(nsIArray *messages, PRBool markRead)
 {
   PRUint32 count;
   nsresult rv;
 
-  rv = messages->Count(&count);
-  if (NS_FAILED(rv))
-    return rv;
+  rv = messages->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   for(PRUint32 i = 0; i < count; i++)
   {
@@ -3923,14 +3924,13 @@ nsMsgDBFolder::MarkMessagesRead(nsISupportsArray *messages, PRBool markRead)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::MarkMessagesFlagged(nsISupportsArray *messages, PRBool markFlagged)
+nsMsgDBFolder::MarkMessagesFlagged(nsIArray *messages, PRBool markFlagged)
 {
   PRUint32 count;
   nsresult rv;
 
-  rv = messages->Count(&count);
-  if (NS_FAILED(rv))
-    return rv;
+  rv = messages->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   for(PRUint32 i = 0; i < count; i++)
   {
@@ -3944,14 +3944,14 @@ nsMsgDBFolder::MarkMessagesFlagged(nsISupportsArray *messages, PRBool markFlagge
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::SetLabelForMessages(nsISupportsArray *aMessages, nsMsgLabelValue aLabel)
+nsMsgDBFolder::SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel)
 {
   NS_ENSURE_ARG(aMessages);
   GetDatabase(nsnull);
   if (mDatabase)
   {
     PRUint32 count;
-    nsresult rv = aMessages->Count(&count);
+    nsresult rv = aMessages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
     for(PRUint32 i = 0; i < count; i++)
     {
@@ -3967,7 +3967,7 @@ nsMsgDBFolder::SetLabelForMessages(nsISupportsArray *aMessages, nsMsgLabelValue 
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::SetJunkScoreForMessages(nsISupportsArray *aMessages, const nsACString& junkScore)
+nsMsgDBFolder::SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& junkScore)
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
@@ -3975,7 +3975,7 @@ nsMsgDBFolder::SetJunkScoreForMessages(nsISupportsArray *aMessages, const nsACSt
   if (mDatabase)
   {
     PRUint32 count;
-    nsresult rv = aMessages->Count(&count);
+    nsresult rv = aMessages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
 
     for(PRUint32 i = 0; i < count; i++)
@@ -4025,7 +4025,7 @@ nsresult nsMsgDBFolder::ApplyRetentionSettings(PRBool deleteViaFolder)
 }
 
 NS_IMETHODIMP
-nsMsgDBFolder::DeleteMessages(nsISupportsArray *messages,
+nsMsgDBFolder::DeleteMessages(nsIArray *messages,
                               nsIMsgWindow *msgWindow,
                               PRBool deleteStorage,
                               PRBool isMove,
@@ -4037,7 +4037,7 @@ nsMsgDBFolder::DeleteMessages(nsISupportsArray *messages,
 
 NS_IMETHODIMP
 nsMsgDBFolder::CopyMessages(nsIMsgFolder* srcFolder,
-                          nsISupportsArray *messages,
+                          nsIArray *messages,
                           PRBool isMove,
                           nsIMsgWindow *window,
                           nsIMsgCopyServiceListener* listener,
@@ -4918,7 +4918,7 @@ void nsMsgDBFolder::SetMRUTime()
   SetStringProperty(MRU_TIME_PROPERTY, nowStr);
 }
 
-NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords)
+NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords)
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
@@ -4926,7 +4926,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
   if (mDatabase)
   {
     PRUint32 count;
-    nsresult rv = aMessages->Count(&count);
+    nsresult rv = aMessages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
     nsCString keywords;
 
@@ -4960,7 +4960,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, 
   return rv;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords)
+NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords)
 {
   NS_ENSURE_ARG(aMessages);
   nsresult rv = NS_OK;
@@ -4968,7 +4968,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsISupportsArray *aMessa
   if (mDatabase)
   {
     PRUint32 count;
-    nsresult rv = aMessages->Count(&count);
+    nsresult rv = aMessages->GetLength(&count);
     NS_ENSURE_SUCCESS(rv, rv);
     nsCString keywords;
     // If the tag is also a label, we should remove the label too...

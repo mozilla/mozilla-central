@@ -118,7 +118,7 @@ function markInDatabase( lower, upper )
   }
 
   // the headers which are going to be marked
-  var headers = Components.classes["@mozilla.org/supports-array;1"].createInstance( Components.interfaces.nsISupportsArray );
+  var headers = Components.classes["@mozilla.org/array;1"].createInstance( Components.interfaces.nsIMutableArray );
 
   // create an enumerator for all messages in the database
   var enumerator = messageDatabase.EnumerateMessages();
@@ -134,7 +134,7 @@ function markInDatabase( lower, upper )
            var messageDate = header.date;
 
            if ( ( lower <= messageDate ) && ( messageDate < upper ) )
-             headers.AppendElement( header );
+             headers.appendElement( header, false );
         }
       }
       else
@@ -142,6 +142,6 @@ function markInDatabase( lower, upper )
     }
   }
 
-  if ( headers.Count() )
+  if ( headers.length )
     messageFolder.markMessagesRead( headers, true );
 }

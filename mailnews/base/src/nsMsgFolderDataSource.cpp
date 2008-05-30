@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Siddharth Agarwal <sid1337@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -69,6 +70,8 @@
 #include "nsIStringBundle.h"
 #include "nsIPrompt.h"
 #include "nsIMsgAccountManager.h"
+#include "nsArrayEnumerator.h"
+#include "nsArrayUtils.h"
 
 #define MESSENGER_STRING_URL       "chrome://messenger/locale/messenger.properties"
 
@@ -378,7 +381,7 @@ nsresult nsMsgFolderDataSource::CreateArcsOutEnumerator()
 {
   nsresult rv;
 
-  rv = getFolderArcLabelsOut(getter_AddRefs(kFolderArcsOutArray));
+  rv = getFolderArcLabelsOut(kFolderArcsOutArray);
   if(NS_FAILED(rv)) return rv;
 
   return rv;
@@ -585,13 +588,11 @@ NS_IMETHODIMP nsMsgFolderDataSource::ArcLabelsOut(nsIRDFResource* source,
                                                   nsISimpleEnumerator** labels)
 {
   nsresult rv = NS_RDF_NO_VALUE;
-  nsCOMPtr<nsISupportsArray> arcsArray;
 
   nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(source, &rv));
   if (NS_SUCCEEDED(rv))
   {
-    arcsArray = kFolderArcsOutArray;
-    rv = NS_NewArrayEnumerator(labels, arcsArray);
+    rv = NS_NewArrayEnumerator(labels, kFolderArcsOutArray);
   }
   else
   {
@@ -602,43 +603,38 @@ NS_IMETHODIMP nsMsgFolderDataSource::ArcLabelsOut(nsIRDFResource* source,
 }
 
 nsresult
-nsMsgFolderDataSource::getFolderArcLabelsOut(nsISupportsArray **arcs)
+nsMsgFolderDataSource::getFolderArcLabelsOut(nsCOMArray<nsIRDFResource> &aArcs)
 {
-  nsresult rv;
-  rv = NS_NewISupportsArray(arcs);
-  if(NS_FAILED(rv))
-    return rv;
-
-  (*arcs)->AppendElement(kNC_Name);
-  (*arcs)->AppendElement(kNC_Open);
-  (*arcs)->AppendElement(kNC_FolderTreeName);
-  (*arcs)->AppendElement(kNC_FolderTreeSimpleName);
-  (*arcs)->AppendElement(kNC_SpecialFolder);
-  (*arcs)->AppendElement(kNC_ServerType);
-  (*arcs)->AppendElement(kNC_IsDeferred);
-  (*arcs)->AppendElement(kNC_CanCreateFoldersOnServer);
-  (*arcs)->AppendElement(kNC_CanFileMessagesOnServer);
-  (*arcs)->AppendElement(kNC_IsServer);
-  (*arcs)->AppendElement(kNC_IsSecure);
-  (*arcs)->AppendElement(kNC_CanSubscribe);
-  (*arcs)->AppendElement(kNC_SupportsOffline);
-  (*arcs)->AppendElement(kNC_CanFileMessages);
-  (*arcs)->AppendElement(kNC_CanCreateSubfolders);
-  (*arcs)->AppendElement(kNC_CanRename);
-  (*arcs)->AppendElement(kNC_CanCompact);
-  (*arcs)->AppendElement(kNC_TotalMessages);
-  (*arcs)->AppendElement(kNC_TotalUnreadMessages);
-  (*arcs)->AppendElement(kNC_FolderSize);
-  (*arcs)->AppendElement(kNC_Charset);
-  (*arcs)->AppendElement(kNC_BiffState);
-  (*arcs)->AppendElement(kNC_Child);
-  (*arcs)->AppendElement(kNC_NoSelect);
-  (*arcs)->AppendElement(kNC_VirtualFolder);
-  (*arcs)->AppendElement(kNC_InVFEditSearchScope);
-  (*arcs)->AppendElement(kNC_ImapShared);
-  (*arcs)->AppendElement(kNC_Synchronize);
-  (*arcs)->AppendElement(kNC_SyncDisabled);
-  (*arcs)->AppendElement(kNC_CanSearchMessages);
+  aArcs.AppendObject(kNC_Name);
+  aArcs.AppendObject(kNC_Open);
+  aArcs.AppendObject(kNC_FolderTreeName);
+  aArcs.AppendObject(kNC_FolderTreeSimpleName);
+  aArcs.AppendObject(kNC_SpecialFolder);
+  aArcs.AppendObject(kNC_ServerType);
+  aArcs.AppendObject(kNC_IsDeferred);
+  aArcs.AppendObject(kNC_CanCreateFoldersOnServer);
+  aArcs.AppendObject(kNC_CanFileMessagesOnServer);
+  aArcs.AppendObject(kNC_IsServer);
+  aArcs.AppendObject(kNC_IsSecure);
+  aArcs.AppendObject(kNC_CanSubscribe);
+  aArcs.AppendObject(kNC_SupportsOffline);
+  aArcs.AppendObject(kNC_CanFileMessages);
+  aArcs.AppendObject(kNC_CanCreateSubfolders);
+  aArcs.AppendObject(kNC_CanRename);
+  aArcs.AppendObject(kNC_CanCompact);
+  aArcs.AppendObject(kNC_TotalMessages);
+  aArcs.AppendObject(kNC_TotalUnreadMessages);
+  aArcs.AppendObject(kNC_FolderSize);
+  aArcs.AppendObject(kNC_Charset);
+  aArcs.AppendObject(kNC_BiffState);
+  aArcs.AppendObject(kNC_Child);
+  aArcs.AppendObject(kNC_NoSelect);
+  aArcs.AppendObject(kNC_VirtualFolder);
+  aArcs.AppendObject(kNC_InVFEditSearchScope);
+  aArcs.AppendObject(kNC_ImapShared);
+  aArcs.AppendObject(kNC_Synchronize);
+  aArcs.AppendObject(kNC_SyncDisabled);
+  aArcs.AppendObject(kNC_CanSearchMessages);
 
   return NS_OK;
 }
@@ -683,16 +679,16 @@ nsMsgFolderDataSource::GetAllCmds(nsIRDFResource* source,
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+nsMsgFolderDataSource::IsCommandEnabled(nsIArray/*<nsIRDFResource>*/* aSources,
                                         nsIRDFResource*   aCommand,
-                                        nsISupportsArray/*<nsIRDFResource>*/* aArguments,
+                                        nsIArray/*<nsIRDFResource>*/* aArguments,
                                         PRBool* aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgFolder> folder;
 
   PRUint32 cnt;
-  rv = aSources->Count(&cnt);
+  rv = aSources->GetLength(&cnt);
   if (NS_FAILED(rv)) return rv;
   for (PRUint32 i = 0; i < cnt; i++)
   {
@@ -725,9 +721,9 @@ nsMsgFolderDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aS
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+nsMsgFolderDataSource::DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
                                  nsIRDFResource*   aCommand,
-                                 nsISupportsArray/*<nsIRDFResource>*/* aArguments)
+                                 nsIMutableArray/*<nsIRDFResource>*/* aArguments)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsISupports> supports;
@@ -738,7 +734,7 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
   if (aArguments)
   {
     PRUint32 numArgs;
-    aArguments->Count(&numArgs);
+    aArguments->GetLength(&numArgs);
     if (numArgs > 1)
       window = do_QueryElementAt(aArguments, numArgs - 1);
   }
@@ -750,7 +746,7 @@ nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
   PRUint32 cnt = 0;
   PRUint32 i = 0;
 
-  rv = aSources->Count(&cnt);
+  rv = aSources->GetLength(&cnt);
   if (NS_FAILED(rv)) return rv;
 
   for ( ; i < cnt; i++)
@@ -1902,39 +1898,32 @@ nsMsgFolderDataSource::createFolderChildNode(nsIMsgFolder *folder,
 }
 
 
-nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
+nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
                          nsIMsgWindow *msgWindow, PRBool isMove)
 {
   nsresult rv;
   PRUint32 itemCount;
-  rv = arguments->Count(&itemCount);
-  if (NS_FAILED(rv)) return rv;
+  rv = arguments->GetLength(&itemCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   //need source folder and at least one item to copy
   if(itemCount < 2)
     return NS_ERROR_FAILURE;
 
-
   nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryElementAt(arguments, 0));
   if(!srcFolder)
     return NS_ERROR_FAILURE;
 
-  arguments->RemoveElementAt(0);
-  itemCount--;
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
-  nsCOMPtr<nsISupportsArray> messageArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
-
-  for(PRUint32 i = 0; i < itemCount; i++)
+  // Remove first element
+  for(PRUint32 i = 1; i < itemCount; i++)
   {
-
-    nsCOMPtr<nsISupports> supports = getter_AddRefs(arguments->ElementAt(i));
-    nsCOMPtr<nsIMsgDBHdr> message(do_QueryInterface(supports));
+    nsCOMPtr<nsIMsgDBHdr> message(do_QueryElementAt(arguments, i));
     if (message)
     {
-      messageArray->AppendElement(supports);
+      messageArray->AppendElement(message, PR_FALSE);
     }
-
   }
 
   //Call copyservice with dstFolder, srcFolder, messages, isMove, and txnManager
@@ -1946,13 +1935,13 @@ nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsISuppo
     nsnull, msgWindow, PR_TRUE/* allowUndo */);
 }
 
-nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
+nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
                                                      nsIMsgWindow *msgWindow, PRBool isMoveFolder)
 {
   nsresult rv;
   PRUint32 itemCount;
-  rv = arguments->Count(&itemCount);
-  if (NS_FAILED(rv)) return rv;
+  rv = arguments->GetLength(&itemCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   //need at least one item to copy
   if(itemCount < 1)
@@ -1988,42 +1977,40 @@ nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, ns
   //return NS_OK;
 }
 
-nsresult nsMsgFolderDataSource::DoDeleteFromFolder(
-                                                   nsIMsgFolder *folder, nsISupportsArray *arguments,
+nsresult nsMsgFolderDataSource::DoDeleteFromFolder(nsIMsgFolder *folder, nsIArray *arguments,
                                                    nsIMsgWindow *msgWindow, PRBool reallyDelete)
 {
   nsresult rv = NS_OK;
   PRUint32 itemCount;
-  rv = arguments->Count(&itemCount);
+  rv = arguments->GetLength(&itemCount);
   if (NS_FAILED(rv)) return rv;
 
-  nsCOMPtr<nsISupportsArray> messageArray, folderArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
-  NS_NewISupportsArray(getter_AddRefs(folderArray));
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+  nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
   //Split up deleted items into different type arrays to be passed to the folder
   //for deletion.
   for(PRUint32 item = 0; item < itemCount; item++)
   {
-    nsCOMPtr<nsISupports> supports = getter_AddRefs(arguments->ElementAt(item));
+    nsCOMPtr<nsISupports> supports(do_QueryElementAt(arguments, item));
     nsCOMPtr<nsIMsgDBHdr> deletedMessage(do_QueryInterface(supports));
     nsCOMPtr<nsIMsgFolder> deletedFolder(do_QueryInterface(supports));
     if (deletedMessage)
     {
-      messageArray->AppendElement(supports);
+      messageArray->AppendElement(supports, PR_FALSE);
     }
     else if(deletedFolder)
     {
-      folderArray->AppendElement(supports);
+      folderArray->AppendElement(supports, PR_FALSE);
     }
   }
   PRUint32 cnt;
-  rv = messageArray->Count(&cnt);
+  rv = messageArray->GetLength(&cnt);
   if (NS_FAILED(rv)) return rv;
   if (cnt > 0)
     rv = folder->DeleteMessages(messageArray, msgWindow, reallyDelete, PR_FALSE, nsnull, PR_TRUE /*allowUndo*/);
 
-  rv = folderArray->Count(&cnt);
+  rv = folderArray->GetLength(&cnt);
   if (NS_FAILED(rv)) return rv;
   if (cnt > 0)
   {
@@ -2059,7 +2046,7 @@ nsresult nsMsgFolderDataSource::DoDeleteFromFolder(
   return rv;
 }
 
-nsresult nsMsgFolderDataSource::DoNewFolder(nsIMsgFolder *folder, nsISupportsArray *arguments, nsIMsgWindow *window)
+nsresult nsMsgFolderDataSource::DoNewFolder(nsIMsgFolder *folder, nsIArray *arguments, nsIMsgWindow *window)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIRDFLiteral> literal = do_QueryElementAt(arguments, 0, &rv);

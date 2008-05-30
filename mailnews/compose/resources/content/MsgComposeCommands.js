@@ -2433,9 +2433,9 @@ function RemoveDraft()
     try {
       if (folder instanceof Components.interfaces.nsIMsgFolder) 
       {
-        var msgs = Components.classes["@mozilla.org/supports-array;1"]
-                             .createInstance(Components.interfaces.nsISupportsArray);
-        msgs.AppendElement(folder.GetMessageHeader(msgKey));    
+        var msgs = Components.classes["@mozilla.org/array;1"]
+                             .createInstance(Components.interfaces.nsIMutableArray);
+        msgs.appendElement(folder.GetMessageHeader(msgKey), false);    
         folder.deleteMessages(msgs, null, true, false, null, false);
       }
     }

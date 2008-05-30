@@ -441,13 +441,13 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
   // create mHdrsToDelete array (if not previously created)
   if (!mHdrsToDelete)
   {
-    mHdrsToDelete = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+    mHdrsToDelete = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   else
   {
     PRUint32 count;
-    mHdrsToDelete->Count(&count);
+    mHdrsToDelete->GetLength(&count);
     NS_ASSERTION(count == 0, "mHdrsToDelete is not empty");
     if (count > 0)
       mHdrsToDelete->Clear();  // this shouldn't happen
@@ -499,7 +499,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
 
   if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_SPAM_SCORE) {
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("added message to delete"));
-    return mHdrsToDelete->AppendElement(aMsgHdr);
+    return mHdrsToDelete->AppendElement(aMsgHdr, PR_FALSE);
   }
   return NS_OK;
 }
@@ -510,7 +510,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
   if (NS_SUCCEEDED(status))
   {
     PRUint32 count;
-    mHdrsToDelete->Count(&count);
+    mHdrsToDelete->GetLength(&count);
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("%d messages to delete", count));
 
     if (count > 0) {

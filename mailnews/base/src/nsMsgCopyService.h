@@ -44,6 +44,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgHdr.h"
 #include "nsIMsgWindow.h"
+#include "nsIMutableArray.h"
 
 typedef enum _nsCopyRequestType
 {
@@ -63,7 +64,7 @@ public:
     void AddMessage(nsIMsgDBHdr* aMsg);
 
     nsCOMPtr<nsIMsgFolder> m_msgFolder;
-    nsCOMPtr<nsISupportsArray> m_messageArray;
+    nsCOMPtr<nsIMutableArray> m_messageArray;
     PRBool m_processed;
 };
 

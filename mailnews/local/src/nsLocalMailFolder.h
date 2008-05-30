@@ -54,6 +54,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsISeekableStream.h"
+#include "nsIMutableArray.h"
 
 #define COPY_BUFFER_SIZE 16384
 
@@ -64,7 +65,7 @@ struct nsLocalMailCopyState
   
   nsCOMPtr <nsIOutputStream> m_fileStream;
   nsCOMPtr<nsISupports> m_srcSupport;
-  nsCOMPtr<nsISupportsArray> m_messages;
+  nsCOMPtr<nsIArray> m_messages;
   nsRefPtr<nsMsgTxn> m_undoMsgTxn;
   nsCOMPtr<nsIMsgDBHdr> m_message; // current copy message
   nsCOMPtr<nsIMsgParseMailMsgState> m_parseMsgState;
@@ -144,7 +145,7 @@ public:
   NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, nsISupportsArray *aFolderArray, PRBool aCompactOfflineAlso, nsISupportsArray *aOfflineFolderArray);
   NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
   NS_IMETHOD Delete ();
-  NS_IMETHOD DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow);
+  NS_IMETHOD DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow);
   NS_IMETHOD CreateStorageIfMissing(nsIUrlListener* urlListener);
   NS_IMETHOD Rename (const nsAString& aNewName, nsIMsgWindow *msgWindow);
   NS_IMETHOD RenameSubFolders (nsIMsgWindow *msgWindow, nsIMsgFolder *oldFolder);
@@ -164,11 +165,11 @@ public:
 
   NS_IMETHOD  GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
-  NS_IMETHOD DeleteMessages(nsISupportsArray *messages, 
+  NS_IMETHOD DeleteMessages(nsIArray *messages, 
                       nsIMsgWindow *msgWindow, PRBool
                       deleteStorage, PRBool isMove,
                       nsIMsgCopyServiceListener* listener, PRBool allowUndo);
-  NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder, nsISupportsArray* messages,
+  NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder, nsIArray* messages,
                           PRBool isMove, nsIMsgWindow *msgWindow,
                           nsIMsgCopyServiceListener* listener, PRBool isFolder, PRBool allowUndo);
   NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, PRBool isMoveFolder, nsIMsgWindow *msgWindow,
@@ -188,12 +189,12 @@ public:
   NS_IMETHOD GetName(nsAString& aName);
 
   // Used when headers_only is TRUE
-  NS_IMETHOD DownloadMessagesForOffline(nsISupportsArray *aMessages, nsIMsgWindow *aWindow);
+  NS_IMETHOD DownloadMessagesForOffline(nsIArray *aMessages, nsIMsgWindow *aWindow);
   NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
                                                  PRBool aLocalOnly, nsIUrlListener *aUrlListener, 
                                                  PRBool *aAsyncResults);
-  NS_IMETHOD AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
-  NS_IMETHOD RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
 
 protected:
   nsresult CopyFolderAcrossServer(nsIMsgFolder *srcFolder, nsIMsgWindow *msgWindow,nsIMsgCopyServiceListener* listener);
@@ -211,23 +212,24 @@ protected:
 
   // copy message helper
   nsresult DisplayMoveCopyStatusMsg();
-  nsresult SortMessagesBasedOnKey(nsISupportsArray *messages, nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder);
+  nsresult SortMessagesBasedOnKey(nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder, nsIMutableArray* messages);
 
   nsresult CopyMessageTo(nsISupports *message, nsIMsgFolder *dstFolder,
                          nsIMsgWindow *msgWindow, PRBool isMove);
 
   // copy multiple messages at a time from this folder
-  nsresult CopyMessagesTo(nsISupportsArray *messages, nsIMsgWindow *aMsgWindow,
+  nsresult CopyMessagesTo(nsIArray *messages, nsTArray<nsMsgKey> &keyArray,
+                                       nsIMsgWindow *aMsgWindow,
                                        nsIMsgFolder *dstFolder,
                                        PRBool isMove);
   virtual void GetIncomingServerType(nsCString& serverType);
-  nsresult InitCopyState(nsISupports* aSupport, nsISupportsArray* messages,
+  nsresult InitCopyState(nsISupports* aSupport, nsIArray* messages,
                          PRBool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, PRBool isMoveFolder, PRBool allowUndo);
   void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr);
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
-  nsresult ChangeKeywordForMessages(nsISupportsArray *aMessages, const nsACString& aKeyword, PRBool add);
+  nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, PRBool add);
   PRBool GetDeleteFromServerOnMove();
 
 protected:

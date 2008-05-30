@@ -111,6 +111,7 @@
 #include "nsIMsgProgress.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgDatabase.h"
+#include "nsIMutableArray.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,
@@ -3484,16 +3485,15 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
         // only do this if it's a drafts or templates folder.
         if (folderFlags & MSG_FOLDER_FLAG_DRAFTS)
         {  // build the msg arrary
-          nsCOMPtr<nsISupportsArray> messageArray;
-          rv = NS_NewISupportsArray(getter_AddRefs(messageArray));
-          NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't allocate support array.");
+          nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+          NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't allocate array.");
 
           //nsCOMPtr<nsISupports> msgSupport = do_QueryInterface(msgDBHdr, &rv);
           //NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header interface pointer.");
           if (NS_SUCCEEDED(rv) && messageArray)
           {
             // ready to delete the msg
-            rv = messageArray->AppendElement(msgDBHdr);
+            rv = messageArray->AppendElement(msgDBHdr, PR_FALSE);
             NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't append msg header to array.");
             if (NS_SUCCEEDED(rv))
               rv = msgFolder->DeleteMessages(messageArray, nsnull, PR_TRUE, PR_FALSE, nsnull, PR_FALSE /*allowUndo*/);

@@ -29,6 +29,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Howard Chu <hyc@highlandsun.com>
  *   William Bonnet <wbonnet@on-x.com>
+ *   Siddharth Agarwal <sid1337@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -56,6 +57,7 @@
 #include "nsMsgMessageFlags.h"
 #include "prprf.h"
 #include "nsISupportsArray.h"
+#include "nsIArray.h"
 #include "nsIServiceManager.h"
 #include "nsIEnumerator.h"
 #include "nsIMailboxService.h"
@@ -107,6 +109,7 @@
 #include "nsIMsgFolderNotificationService.h"
 #include "nsReadLine.h"
 #include "nsLocalStrings.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kMailboxServiceCID,          NS_MAILBOXSERVICE_CID);
 
@@ -975,7 +978,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Delete()
   return (isDirectory) ? pathFile->Remove(PR_TRUE) : NS_OK;
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow)
+NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow)
 {
   nsresult rv;
   PRBool isChildOfTrash;
@@ -1375,7 +1378,7 @@ nsMsgLocalMailFolder::GetTrashFolder(nsIMsgFolder** result)
 }
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::DeleteMessages(nsISupportsArray *messages,
+nsMsgLocalMailFolder::DeleteMessages(nsIArray *messages,
                                      nsIMsgWindow *msgWindow,
                                      PRBool deleteStorage, PRBool isMove,
                                      nsIMsgCopyServiceListener* listener, PRBool allowUndo)
@@ -1383,9 +1386,8 @@ nsMsgLocalMailFolder::DeleteMessages(nsISupportsArray *messages,
   NS_ENSURE_ARG_POINTER(messages);
 
   PRUint32 messageCount;
-  nsresult rv = messages->Count(&messageCount);
-  if (!messageCount)
-    return rv;
+  nsresult rv = messages->GetLength(&messageCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   // shift delete case - (delete to trash is handled in EndMove)
   // this is also the case when applying retention settings.
@@ -1431,7 +1433,7 @@ nsMsgLocalMailFolder::DeleteMessages(nsISupportsArray *messages,
       {
         for(PRUint32 i = 0; i < messageCount; i++)
         {
-          msgSupport = getter_AddRefs(messages->ElementAt(i));
+          msgSupport = do_QueryElementAt(messages, i, &rv);
           if (msgSupport)
             DeleteMessage(msgSupport, msgWindow, PR_TRUE, PR_FALSE);
         }
@@ -1454,7 +1456,7 @@ nsMsgLocalMailFolder::DeleteMessages(nsISupportsArray *messages,
 
 nsresult
 nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
-                                    nsISupportsArray* messages,
+                                    nsIArray* messages,
                                     PRBool isMove,
                                     nsIMsgCopyServiceListener* listener,
                                     nsIMsgWindow *msgWindow, PRBool isFolder,
@@ -1504,14 +1506,13 @@ nsMsgLocalMailFolder::InitCopyState(nsISupports* aSupport,
   seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
   mCopyState->m_srcSupport = do_QueryInterface(aSupport, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  mCopyState->m_messages = do_QueryInterface(messages, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  mCopyState->m_messages = messages;
   mCopyState->m_curCopyIndex = 0;
   mCopyState->m_isMove = isMove;
   mCopyState->m_isFolder = isFolder;
   mCopyState->m_allowUndo = allowUndo;
   mCopyState->m_msgWindow = msgWindow;
-  rv = messages->Count(&mCopyState->m_totalMsgCount);
+  rv = messages->GetLength(&mCopyState->m_totalMsgCount);
   if (listener)
     mCopyState->m_listener = do_QueryInterface(listener, &rv);
   mCopyState->m_copyingMultipleMessages = PR_FALSE;
@@ -1552,15 +1553,11 @@ nsMsgLocalMailFolder::OnCopyCompleted(nsISupports *srcSupport, PRBool moveCopySu
 }
 
 nsresult
-nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder)
+nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder, nsIMutableArray* messages)
 {
   nsresult rv = NS_OK;
-  PRUint32 numMessages = 0;
-  rv = messages->Count(&numMessages);
-  NS_ENSURE_SUCCESS(rv,rv);
-  NS_ASSERTION ((numMessages == aKeyArray.Length()), "message array and key array size are not same");
-  rv = messages->Clear();
-  NS_ENSURE_SUCCESS(rv,rv);
+  PRUint32 numMessages = aKeyArray.Length();
+
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsCOMPtr<nsIDBFolderInfo> folderInfo;
   nsCOMPtr<nsIMsgDatabase> db;
@@ -1571,13 +1568,13 @@ nsMsgLocalMailFolder::SortMessagesBasedOnKey(nsISupportsArray *messages, nsTArra
       rv = db->GetMsgHdrForKey(aKeyArray[i], getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv,rv);
       if (msgHdr)
-        messages->AppendElement(msgHdr);
+        messages->AppendElement(msgHdr, PR_FALSE);
     }
   return rv;
 }
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsISupportsArray*
+nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
                                    messages, PRBool isMove,
                                    nsIMsgWindow *msgWindow,
                                    nsIMsgCopyServiceListener* listener,
@@ -1614,7 +1611,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsISupportsArray*
   if (WeAreOffline() && (protocolType.LowerCaseEqualsLiteral("imap") || protocolType.LowerCaseEqualsLiteral("news")))
   {
     PRUint32 numMessages = 0;
-    messages->Count(&numMessages);
+    messages->GetLength(&numMessages);
     for (PRUint32 i = 0; i < numMessages; i++)
     {
       nsCOMPtr<nsIMsgDBHdr> message;
@@ -1639,7 +1636,34 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsISupportsArray*
   // don't update the counts in the dest folder until it is all over
   EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_FALSE /*dbBatching*/);  //dest folder doesn't need db batching
 
-  rv = InitCopyState(srcSupport, messages, isMove, listener, msgWindow, isFolder, allowUndo);
+  // sort the message array by key
+  PRUint32 numMsgs = 0;
+  messages->GetLength(&numMsgs);
+  nsTArray<nsMsgKey> keyArray(numMsgs);
+  if (numMsgs > 1)
+  {
+    for (PRUint32 i = 0; i < numMsgs; i++)
+    {
+      nsCOMPtr<nsIMsgDBHdr> aMessage = do_QueryElementAt(messages, i, &rv);
+      if(NS_SUCCEEDED(rv) && aMessage)
+      {
+        nsMsgKey key;
+        aMessage->GetMessageKey(&key);
+        keyArray.AppendElement(key);
+      }
+    }
+
+    keyArray.Sort();
+
+    nsCOMPtr<nsIMutableArray> sortedMsgs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    rv = SortMessagesBasedOnKey(keyArray, srcFolder, sortedMsgs);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = InitCopyState(srcSupport, sortedMsgs, isMove, listener, msgWindow, isFolder, allowUndo);
+  }
+  else
+    rv = InitCopyState(srcSupport, messages, isMove, listener, msgWindow, isFolder, allowUndo);
+
   if (NS_FAILED(rv))
   {
     ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
@@ -1690,12 +1714,11 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsISupportsArray*
         msgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
     }
   }
-  PRUint32 numMsgs = 0;
-  mCopyState->m_messages->Count(&numMsgs);
+
   if (numMsgs > 1 && ((protocolType.LowerCaseEqualsLiteral("imap") && !WeAreOffline()) || protocolType.LowerCaseEqualsLiteral("mailbox")))
   {
     mCopyState->m_copyingMultipleMessages = PR_TRUE;
-    rv = CopyMessagesTo(mCopyState->m_messages, msgWindow, this, isMove);
+    rv = CopyMessagesTo(mCopyState->m_messages, keyArray, msgWindow, this, isMove);
     if (NS_FAILED(rv))
     {
       NS_ERROR("copy message failed");
@@ -1704,8 +1727,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsISupportsArray*
   }
   else
   {
-    nsCOMPtr<nsISupports> msgSupport;
-    msgSupport = getter_AddRefs(mCopyState->m_messages->ElementAt(0));
+    nsCOMPtr<nsISupports> msgSupport = do_QueryElementAt(mCopyState->m_messages, 0);
     if (msgSupport)
     {
       rv = CopyMessageTo(msgSupport, this, msgWindow, isMove);
@@ -1752,8 +1774,7 @@ nsMsgLocalMailFolder::CopyFolderAcrossServer(nsIMsgFolder* srcFolder, nsIMsgWind
   nsCOMPtr<nsISimpleEnumerator> messages;
   rv = srcFolder->GetMessages(msgWindow, getter_AddRefs(messages));
 
-  nsCOMPtr<nsISupportsArray> msgSupportsArray;
-  NS_NewISupportsArray(getter_AddRefs(msgSupportsArray));
+  nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
   PRBool hasMoreElements;
   nsCOMPtr<nsISupports> aSupport;
@@ -1764,15 +1785,15 @@ nsMsgLocalMailFolder::CopyFolderAcrossServer(nsIMsgFolder* srcFolder, nsIMsgWind
   while (hasMoreElements && NS_SUCCEEDED(rv))
   {
     rv = messages->GetNext(getter_AddRefs(aSupport));
-    rv = msgSupportsArray->AppendElement(aSupport);
+    rv = msgArray->AppendElement(aSupport, PR_FALSE);
     messages->HasMoreElements(&hasMoreElements);
   }
 
   PRUint32 numMsgs=0;
-  msgSupportsArray->Count(&numMsgs);
+  msgArray->GetLength(&numMsgs);
 
   if (numMsgs > 0 )   //if only srcFolder has messages..
-    newMsgFolder->CopyMessages(srcFolder, msgSupportsArray, PR_FALSE, msgWindow, listener, PR_TRUE /* is folder*/, PR_FALSE /* allowUndo */);
+    newMsgFolder->CopyMessages(srcFolder, msgArray, PR_FALSE, msgWindow, listener, PR_TRUE /* is folder*/, PR_FALSE /* allowUndo */);
   else
   {
     nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(newMsgFolder);
@@ -1992,11 +2013,11 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     notifier->GetHasListeners(&hasListeners);
     if (hasListeners)
     {
-      nsCOMPtr <nsISupportsArray> supportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
-      if (supportsArray)
+      nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+      if (folderArray)
       {
-        supportsArray->AppendElement(srcFolder);
-        notifier->NotifyItemMoveCopyCompleted(isMoveFolder, supportsArray, this);
+        folderArray->AppendElement(srcFolder, PR_FALSE);
+        notifier->NotifyItemMoveCopyCompleted(isMoveFolder, folderArray, this);
       }
     }
   }
@@ -2068,15 +2089,10 @@ nsMsgLocalMailFolder::CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr*
   PRUint32 fileSize = 0;
   nsCOMPtr<nsISupports> fileSupport(do_QueryInterface(aFile, &rv));
 
-  nsCOMPtr<nsISupportsArray> messages;
-  rv = NS_NewISupportsArray(getter_AddRefs(messages));
+  nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
   if (msgToReplace)
-  {
-    nsCOMPtr<nsISupports> msgSupport(do_QueryInterface(msgToReplace, &rv));
-    if (NS_SUCCEEDED(rv))
-      messages->AppendElement(msgSupport);
-  }
+    messages->AppendElement(msgToReplace, PR_FALSE);
 
   rv = InitCopyState(fileSupport, messages, msgToReplace ? PR_TRUE:PR_FALSE,
                      listener, msgWindow, PR_FALSE, PR_FALSE);
@@ -2539,9 +2555,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
   {
     // CopyMessages() goes here; CopyFileMessage() never gets in here because
     // curCopyIndex will always be less than the mCopyState->m_totalMsgCount
-    nsCOMPtr<nsISupports> aSupport =
-      getter_AddRefs(mCopyState->m_messages->ElementAt
-      (mCopyState->m_curCopyIndex));
+    nsCOMPtr<nsISupports> aSupport = do_QueryElementAt(mCopyState->m_messages, mCopyState->m_curCopyIndex);
     rv = CopyMessageTo(aSupport, this, mCopyState->m_msgWindow, mCopyState->m_isMove);
   }
   else
@@ -2769,7 +2783,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMessage(nsMsgKey key)
 }
 
 
-nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
+nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsIArray *messages, nsTArray<nsMsgKey> &keyArray,
                                              nsIMsgWindow *aMsgWindow, nsIMsgFolder *dstFolder,
                                              PRBool isMove)
 {
@@ -2800,23 +2814,6 @@ nsresult nsMsgLocalMailFolder::CopyMessagesTo(nsISupportsArray *messages,
 
   if (NS_SUCCEEDED(rv) && mCopyState->m_messageService)
   {
-    PRUint32 numMessages = 0;
-    messages->Count(&numMessages);
-    nsTArray<nsMsgKey> keyArray(numMessages);
-    for (PRUint32 i = 0; i < numMessages; i++)
-    {
-      nsCOMPtr<nsIMsgDBHdr> aMessage = do_QueryElementAt(messages, i, &rv);
-      if(NS_SUCCEEDED(rv) && aMessage)
-      {
-        nsMsgKey key;
-        aMessage->GetMessageKey(&key);
-        keyArray.AppendElement(key);
-      }
-    }
-    keyArray.Sort();
-    rv = SortMessagesBasedOnKey(messages, keyArray, srcFolder);
-    NS_ENSURE_SUCCESS(rv,rv);
-
     nsCOMPtr<nsIStreamListener> streamListener(do_QueryInterface(copyStreamListener, &rv));
     NS_ENSURE_SUCCESS(rv, NS_ERROR_NO_INTERFACE);
 
@@ -2884,7 +2881,7 @@ nsresult nsMsgLocalMailFolder::CopyMessageTo(nsISupports *message,
 // The next time we look at mail the message will be deleted from the server.
 
 NS_IMETHODIMP
-nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsISupportsArray *aMessages, PRInt32 aMark)
+nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsIArray *aMessages, PRInt32 aMark)
 {
   nsLocalFolderScanState folderScanState;
   nsCOMPtr<nsIPop3IncomingServer> curFolderPop3MailServer;
@@ -2905,7 +2902,7 @@ nsMsgLocalMailFolder::MarkMsgsOnPop3Server(nsISupportsArray *aMessages, PRInt32 
   NS_ENSURE_SUCCESS(rv,rv);
 
   PRUint32 srcCount;
-  aMessages->Count(&srcCount);
+  aMessages->GetLength(&srcCount);
 
   // Filter delete requests are always honored, others are subject
   // to the deleteMailLeftOnServer preference.
@@ -3053,7 +3050,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::SelectDownloadMsg()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsISupportsArray *aMessages, nsIMsgWindow *aWindow)
+NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsIArray *aMessages, nsIMsgWindow *aWindow)
 {
   if (mDownloadState != DOWNLOAD_STATE_NONE)
     return NS_ERROR_FAILURE; // already has a download in progress
@@ -3065,7 +3062,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DownloadMessagesForOffline(nsISupportsArray 
 
   // Pull out all the PARTIAL messages into a new array
   PRUint32 srcCount;
-  aMessages->Count(&srcCount);
+  aMessages->GetLength(&srcCount);
 
   nsresult rv;
   NS_NewISupportsArray(getter_AddRefs(mDownloadMessages));
@@ -3534,17 +3531,13 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
         nsCOMPtr<nsIMsgFolder> folder;
         rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
         if (NS_SUCCEEDED(rv) && folder) {
-          nsCOMPtr<nsISupportsArray> messages;
-          NS_NewISupportsArray(getter_AddRefs(messages));
+          nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
           for (PRUint32 keyIndex = 0; keyIndex < mSpamKeysToMove.Length(); keyIndex++)
           {
             nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
             rv = GetMessageHeader(mSpamKeysToMove.ElementAt(keyIndex), getter_AddRefs(mailHdr));
             if (NS_SUCCEEDED(rv) && mailHdr)
-            {
-              nsCOMPtr<nsISupports> iSupports = do_QueryInterface(mailHdr);
-              messages->AppendElement(iSupports);
-            }
+              messages->AppendElement(mailHdr, PR_FALSE);
           }
 
           nsCOMPtr<nsIMsgCopyService> copySvc = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
@@ -3762,11 +3755,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, 
   return rv;
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords)
+NS_IMETHODIMP nsMsgLocalMailFolder::AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords)
 {
   return ChangeKeywordForMessages(aMessages, aKeywords, PR_TRUE /* add */);
 }
-nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessages, const nsACString& aKeywords, PRBool add)
+nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeywords, PRBool add)
 {
   nsresult rv = (add) ? nsMsgDBFolder::AddKeywordsToMessages(aMessages, aKeywords)
                       : nsMsgDBFolder::RemoveKeywordsFromMessages(aMessages, aKeywords);
@@ -3785,7 +3778,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessa
     NS_ENSURE_SUCCESS(rv, rv);
     PRUint32 count, bytesWritten;
     NS_ENSURE_ARG(aMessages);
-    nsresult rv = aMessages->Count(&count);
+    nsresult rv = aMessages->GetLength(&count);
 
     nsLineBuffer<char> *lineBuffer;
     rv = NS_InitLineBuffer(&lineBuffer);
@@ -3904,7 +3897,7 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsISupportsArray *aMessa
   return rv;
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords)
+NS_IMETHODIMP nsMsgLocalMailFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords)
 {
   return ChangeKeywordForMessages(aMessages, aKeywords, PR_FALSE /* remove */);
 }

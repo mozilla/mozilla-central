@@ -51,6 +51,7 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgFolderCache.h"
 #include "nsIMsgFolderCacheElement.h"
+#include "nsIMutableArray.h"
 
 class nsMsgPurgeService
 	: public nsIMsgPurgeService,
@@ -76,7 +77,7 @@ protected:
   nsCOMPtr<nsITimer> mPurgeTimer;
   nsCOMPtr<nsIMsgSearchSession> mSearchSession;
   nsCOMPtr<nsIMsgFolder> mSearchFolder;
-  nsCOMPtr<nsISupportsArray> mHdrsToDelete;
+  nsCOMPtr<nsIMutableArray> mHdrsToDelete;
   nsVoidArray mPurgeArray;
   PRBool mHaveShutdown;
 

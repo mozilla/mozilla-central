@@ -38,7 +38,7 @@
 #include "nsISupports.idl"
 
 interface nsIMsgFolder;
-interface nsISupportsArray;
+interface nsIArray;
 
 // This is similar to nsIFolderListener, but with slightly different semantics,
 // especially w.r.t. moving messages and folders.  Some listeners want to know
@@ -48,14 +48,14 @@ interface nsISupportsArray;
 // point since there are lots of extensions that rely on it. Eventually,
 // these two interfaces should be combined somehow.
 
-[scriptable, uuid(1202F417-4580-4F02-89E5-151BA2C6E3C7)]
+[scriptable, uuid(4b89a390-0bd4-4b50-a87a-c31ddfde58f7)]
 interface nsIMsgFolderListener : nsISupports {
   // new msg or folder added
   void itemAdded(in nsISupports aItem);
   // folder or msg deleted (no trash)
   void itemDeleted(in nsISupports aItem);
   void itemMoveCopyCompleted(in boolean aMove, 
-                              in nsISupportsArray aSrcItems, 
+                              in nsIArray aSrcItems, 
                               in nsIMsgFolder aDestFolder);
                               
   void folderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);

@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl"
+interface nsIArray;
 interface nsIMsgWindow;
 interface nsIUrlListener;
 interface nsIMsgDatabase;
@@ -56,7 +56,7 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(260398bd-9152-4b10-af4e-3126dcd37837)]
+[scriptable, uuid(dd95a709-3996-4573-84a8-aa936d0dc00c)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
    * set the default flags on the subfolders of this folder, such as
@@ -82,7 +82,7 @@ interface nsIMsgLocalMailFolder : nsISupports {
   void copyAllSubFolders(in nsIMsgFolder srcFolder, in nsIMsgWindow msgWindow, in nsIMsgCopyServiceListener listener );
   void onCopyCompleted(in nsISupports aSrcSupport, in boolean aMoveCopySucceeded);
   attribute boolean checkForNewMessagesAfterParsing;
-  [noscript] void markMsgsOnPop3Server(in nsISupportsArray aMessages, in PRInt32 aMark);
+  void markMsgsOnPop3Server(in nsIArray aMessages, in PRInt32 aMark);
   void refreshSizeOnDisk(); // file size on disk has possibly changed - update and notify
 
   // this adds a message to the end of the folder, parsing it as it goes, and

@@ -568,8 +568,8 @@ function getJunkmailComponent()
 function messageClassifier(aFolder)
 {
   this.mFolder = aFolder;
-  this.mJunkMsgHdrs = Components.classes["@mozilla.org/supports-array;1"].
-                        createInstance(Components.interfaces.nsISupportsArray);
+  this.mJunkMsgHdrs = Components.classes["@mozilla.org/array;1"].
+                        createInstance(Components.interfaces.nsIMutableArray);
   this.mMessages = new Array();
   this.mPendingMessageCount = 0;
 }
@@ -629,7 +629,7 @@ messageClassifier.prototype =
     db.setStringProperty(msgHdr.messageKey, "junkpercent", aJunkPercent);
 
     if (aClassification == nsIJunkMailPlugin.JUNK)
-      this.mJunkMsgHdrs.AppendElement(msgHdr);
+      this.mJunkMsgHdrs.appendElement(msgHdr, false);
 
     this.mPendingMessageCount--;
     if (this.mPendingMessageCount == 0)
@@ -747,16 +747,16 @@ function deleteAllInFolder(commandName)
   while (iter.hasMoreElements())
     folder.propagateDelete(iter.getNext(), true, msgWindow);
 
-  var children = Components.classes["@mozilla.org/supports-array;1"]
-                  .createInstance(Components.interfaces.nsISupportsArray);
+  var children = Components.classes["@mozilla.org/array;1"]
+                  .createInstance(Components.interfaces.nsIMutableArray);
   
   // Delete messages.
   iter = folder.getMessages(msgWindow);
   while (iter.hasMoreElements()) {
-    children.AppendElement(iter.getNext());
+    children.appendElement(iter.getNext(), false);
   }
   folder.deleteMessages(children, msgWindow, true, false, null, false); 
-  children.Clear();                                       
+  children.clear();                                       
 }
 
 function deleteJunkInFolder()

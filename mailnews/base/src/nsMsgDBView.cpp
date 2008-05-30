@@ -69,6 +69,7 @@
 #include "nsIMsgAccountManager.h"
 #include "nsITreeColumns.h"
 #include "nsTextFormatter.h"
+#include "nsIMutableArray.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -2435,8 +2436,7 @@ nsMsgDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32
 
   nsresult rv;
   NS_ENSURE_ARG_POINTER(destFolder);
-  nsCOMPtr<nsISupportsArray> messageArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
     nsMsgKey key;
@@ -2448,7 +2448,7 @@ nsMsgDBView::CopyMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32
     rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
     {
-      messageArray->AppendElement(msgHdr);
+      messageArray->AppendElement(msgHdr, PR_FALSE);
       // if we are deleting rows, save off the keys
       if (m_deletingRows)
         mIndicesToNoteChange.AppendElement(indices[index]);
@@ -2697,8 +2697,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     m_deletingRows = PR_TRUE;
 
   nsresult rv;
-  nsCOMPtr<nsISupportsArray> messageArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
     if (m_flags[indices[index]] & MSG_VIEW_FLAG_DUMMY)
@@ -2708,7 +2707,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
     rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
     if (NS_SUCCEEDED(rv) && msgHdr)
     {
-      messageArray->AppendElement(msgHdr);
+      messageArray->AppendElement(msgHdr, PR_FALSE);
       // if we are deleting rows, save off the keys
       if (m_deletingRows)
         mIndicesToNoteChange.AppendElement(indices[index]);

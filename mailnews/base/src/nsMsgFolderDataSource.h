@@ -43,6 +43,7 @@
 
 #include "nsITransactionManager.h"
 #include "nsCOMArray.h"
+#include "nsIMutableArray.h"
 /**
  * The mail data source.
  */
@@ -110,14 +111,14 @@ public:
   NS_IMETHOD GetAllCmds(nsIRDFResource* source,
                             nsISimpleEnumerator/*<nsIRDFResource>*/** commands);
 
-  NS_IMETHOD IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+  NS_IMETHOD IsCommandEnabled(nsIArray/*<nsIRDFResource>*/* aSources,
                               nsIRDFResource*   aCommand,
-                              nsISupportsArray/*<nsIRDFResource>*/* aArguments,
+                              nsIArray/*<nsIRDFResource>*/* aArguments,
                               PRBool* aResult);
 
-  NS_IMETHOD DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
+  NS_IMETHOD DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
                        nsIRDFResource*   aCommand,
-                       nsISupportsArray/*<nsIRDFResource>*/* aArguments);
+                       nsIMutableArray/*<nsIRDFResource>*/* aArguments);
 protected:
 
   nsresult GetSenderName(nsAutoString& sender, nsAutoString *senderUserName);
@@ -175,18 +176,18 @@ protected:
                                       nsIRDFNode **target);
   nsresult createFolderChildNode(nsIMsgFolder *folder, nsIRDFNode **target);
 
-  nsresult getFolderArcLabelsOut(nsISupportsArray **arcs);
+  nsresult getFolderArcLabelsOut(nsCOMArray<nsIRDFResource> &aArcs);
   
   nsresult DoDeleteFromFolder(nsIMsgFolder *folder,
-                nsISupportsArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
+                nsIArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
 
-  nsresult DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
+  nsresult DoCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
               nsIMsgWindow *msgWindow, PRBool isMove);
 
-  nsresult DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
+  nsresult DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
               nsIMsgWindow *msgWindow, PRBool isMoveFolder);
 
-  nsresult DoNewFolder(nsIMsgFolder *folder, nsISupportsArray *arguments, 
+  nsresult DoNewFolder(nsIMsgFolder *folder, nsIArray *arguments, 
                         nsIMsgWindow *window);
 
   nsresult DoFolderAssert(nsIMsgFolder *folder, nsIRDFResource *property, nsIRDFNode *target);
@@ -292,7 +293,7 @@ protected:
   static nsIAtom* kCanFileMessagesAtom;
   static nsIAtom* kInVFEditSearchScopeAtom;
   
-  nsCOMPtr<nsISupportsArray> kFolderArcsOutArray;
+  nsCOMArray<nsIRDFResource> kFolderArcsOutArray;
 
   static PRUnichar* kKiloByteString;
   static PRUnichar* kMegaByteString;

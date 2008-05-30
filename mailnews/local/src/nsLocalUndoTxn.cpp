@@ -47,6 +47,7 @@
 #include "nsIMsgMailSession.h"
 #include "nsThreadUtils.h"
 #include "nsIMsgDatabase.h"
+#include "nsIMutableArray.h"
 
 nsLocalMoveCopyMsgTxn::nsLocalMoveCopyMsgTxn()  : m_srcIsImap4(PR_FALSE)
 {
@@ -289,9 +290,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
     }
     else
     {
-      nsCOMPtr<nsISupportsArray> srcMessages;
-      NS_NewISupportsArray(getter_AddRefs(srcMessages));
-      nsCOMPtr <nsISupports> msgSupports;
+      nsCOMPtr<nsIMutableArray> srcMessages = do_CreateInstance(NS_ARRAY_CONTRACTID);
       for (i=0; i<count; i++)
       {
         rv = dstDB->GetMsgHdrForKey(m_dstKeyArray[i], 
@@ -308,8 +307,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
           {
             newHdr->SetStatusOffset(m_srcStatusOffsetArray[i]);
             srcDB->UndoDelete(newHdr);
-            msgSupports = do_QueryInterface(newHdr);
-            srcMessages->AppendElement(msgSupports);
+            srcMessages->AppendElement(newHdr, PR_FALSE);
           }
         }
       }
@@ -349,8 +347,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
   nsCOMPtr<nsIMsgDBHdr> oldHdr;
   nsCOMPtr<nsIMsgDBHdr> newHdr;
 
-  nsCOMPtr<nsISupportsArray> srcMessages;
-  NS_NewISupportsArray(getter_AddRefs(srcMessages));
+  nsCOMPtr<nsIMutableArray> srcMessages = do_CreateInstance(NS_ARRAY_CONTRACTID);
   nsCOMPtr <nsISupports> msgSupports;
   
   for (i=0; i<count; i++)
@@ -362,7 +359,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
     if (NS_SUCCEEDED(rv) && oldHdr)
     {
       msgSupports =do_QueryInterface(oldHdr);
-      srcMessages->AppendElement(msgSupports);
+      srcMessages->AppendElement(msgSupports, PR_FALSE);
       
       rv = dstDB->CopyHdrFromExistingHdr(m_dstKeyArray[i],
                                          oldHdr, PR_TRUE,

@@ -261,7 +261,7 @@ function DropOnFolderTree(row, orientation)
     trans.addDataFlavor("text/x-moz-newsfolder");
     trans.addDataFlavor("text/x-moz-url");
 
-    var list = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+    var list = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
 
     var dropMessage;
     var sourceUri;
@@ -346,18 +346,18 @@ function DropOnFolderTree(row, orientation)
         if (dropMessage) {
             // from the message uri, get the appropriate messenger service
             // and then from that service, get the msgDbHdr
-            list.AppendElement(messenger.msgHdrFromURI(sourceUri));
+            list.appendElement(messenger.msgHdrFromURI(sourceUri), false);
         }
         else {
             // Prevent dropping of a node before, after, or on itself
             if (sourceResource == targetResource)	
                 continue;
 
-            list.AppendElement(sourceResource);
+            list.appendElement(sourceResource, false);
         }
     }
 
-    if (list.Count() < 1)
+    if (list.length < 1)
        return false;
 
     var isSourceNews = false;
@@ -366,7 +366,7 @@ function DropOnFolderTree(row, orientation)
     var cs = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
                        .getService(Components.interfaces.nsIMsgCopyService);
     if (dropMessage) {
-        var sourceMsgHdr = list.GetElementAt(0).QueryInterface(Components.interfaces.nsIMsgDBHdr);
+        var sourceMsgHdr = list.queryElementAt(0, Components.interfaces.nsIMsgDBHdr);
         sourceFolder = sourceMsgHdr.folder;
         sourceResource = sourceFolder.QueryInterface(Components.interfaces.nsIRDFResource);
         sourceServer = sourceFolder.server;

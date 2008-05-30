@@ -473,8 +473,8 @@ function RemoveAllMessageTags()
   if (!selectedMsgUris.length)
     return;
 
-  var messages = Components.classes["@mozilla.org/supports-array;1"]
-                           .createInstance(Components.interfaces.nsISupportsArray);
+  var messages = Components.classes["@mozilla.org/array;1"]
+                           .createInstance(Components.interfaces.nsIMutableArray);
   var tagService = Components.classes["@mozilla.org/messenger/tagservice;1"]
                              .getService(Components.interfaces.nsIMsgTagService);
   var tagArray = tagService.getAllTags({});
@@ -503,10 +503,10 @@ function RemoveAllMessageTags()
     {
       if (prevHdrFolder)
         prevHdrFolder.removeKeywordsFromMessages(messages, allKeys);
-      messages.Clear();
+      messages.clear();
       prevHdrFolder = msgHdr.folder;
     }
-    messages.AppendElement(msgHdr);
+    messages.appendElement(msgHdr, false);
   }
   if (prevHdrFolder)
     prevHdrFolder.removeKeywordsFromMessages(messages, allKeys);
@@ -548,10 +548,10 @@ function ToggleMessageTagMenu(target)
 
 function ToggleMessageTag(key, addKey)
 {
-  var messages = Components.classes["@mozilla.org/supports-array;1"]
-                           .createInstance(Components.interfaces.nsISupportsArray);
-  var msg = Components.classes["@mozilla.org/supports-array;1"]
-                          .createInstance(Components.interfaces.nsISupportsArray);
+  var messages = Components.classes["@mozilla.org/array;1"]
+                           .createInstance(Components.interfaces.nsIMutableArray);
+  var msg = Components.classes["@mozilla.org/array;1"]
+                          .createInstance(Components.interfaces.nsIMutableArray);
   var selectedMsgUris = GetSelectedMessages();
   var toggler = addKey ? "addKeywordsToMessages" : "removeKeywordsFromMessages";
   var prevHdrFolder = null;
@@ -568,8 +568,8 @@ function ToggleMessageTag(key, addKey)
       // Since we touch all these messages anyway, migrate the label now.
       // If we don't, the thread tree won't always show the correct tag state,
       // because resetting a label doesn't update the tree anymore...
-      msg.Clear();
-      msg.AppendElement(msgHdr);
+      msg.clear();
+      msg.appendElement(msgHdr, false);
       msgHdr.folder.addKeywordsToMessages(msg, "$label" + msgHdr.label);
       msgHdr.label = 0; // remove legacy label
     }
@@ -577,10 +577,10 @@ function ToggleMessageTag(key, addKey)
     {
       if (prevHdrFolder)
         prevHdrFolder[toggler](messages, key);
-      messages.Clear();
+      messages.clear();
       prevHdrFolder = msgHdr.folder;
     }
-    messages.AppendElement(msgHdr);
+    messages.appendElement(msgHdr, false);
   }
   if (prevHdrFolder)
     prevHdrFolder[toggler](messages, key);
@@ -2751,8 +2751,8 @@ function OnMsgLoaded(aUrl)
       }
       if (copyToOfflineFolder)
       {
-        var messages = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-        messages.AppendElement(msgHdr);
+        var messages = Components.classes["@mozilla.org/array;1"].createInstance(Components.interfaces.nsIMutableArray);
+        messages.appendElement(msgHdr, false);
 
         res = outputPFC.copyMessages(currentMsgFolder, messages, false /*isMove*/, msgWindow /* nsIMsgWindow */, null /* listener */, false /* isFolder */, false /*allowUndo*/ );
       }

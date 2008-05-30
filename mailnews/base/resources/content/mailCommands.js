@@ -39,56 +39,21 @@
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
 
-function DoRDFCommand(dataSource, command, srcArray, argumentArray)
+function GetNewMessages(selectedFolders, server)
 {
-  var commandResource = RDF.GetResource(command);
-  if (commandResource) {
-    try {
-      if (!argumentArray)
-        argumentArray = Components.classes["@mozilla.org/supports-array;1"]
-                        .createInstance(Components.interfaces.nsISupportsArray);
+  if (!selectedFolders.length)
+    return;
 
-      if (argumentArray)
-        argumentArray.AppendElement(msgWindow);
-      dataSource.DoCommand(srcArray, commandResource, argumentArray);
-    }
-    catch(e) {
-      if (command == "http://home.netscape.com/NC-rdf#NewFolder") {
-        throw(e); // so that the dialog does not automatically close.
-      }
-      dump("Exception : In mail commands" + e + "\n");
-    }
-  }
-}
+  var msgFolder = selectedFolders[0];
 
-function GetNewMessages(selectedFolders, server, compositeDataSource)
-{
-  var numFolders = selectedFolders.length;
-  if (numFolders > 0)
+  // Whenever we do get new messages, clear the old new messages.
+  if (msgFolder)
   {
-    var msgFolder = selectedFolders[0];
-
-    // Whenever we do get new messages, clear the old new messages.
-    if (msgFolder)
-    {
-      var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
-      msgFolder.biffState = nsIMsgFolder.nsMsgBiffState_NoMail;
-      msgFolder.clearNewMessages();
-    }
-
-    if (compositeDataSource)
-    {
-      var folderResource = msgFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-      var folderArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-      folderArray.AppendElement(folderResource);
-      var serverArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-      serverArray.AppendElement(server);
-      DoRDFCommand(compositeDataSource, "http://home.netscape.com/NC-rdf#GetNewMessages", folderArray, serverArray);
-    }
+    var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
+    msgFolder.biffState = nsIMsgFolder.nsMsgBiffState_NoMail;
+    msgFolder.clearNewMessages();
   }
-  else {
-    dump("Nothing was selected\n");
-  }
+  server.getNewMessages(msgFolder, msgWindow, null);
 }
 
 function getBestIdentity(identities, optionalHint)
@@ -352,25 +317,13 @@ function CreateNewSubfolder(chromeWindowURL, preselectedMsgFolder,
                       okCallback:callBackFunctionName});
 }
 
-function NewFolder(name,uri)
+function NewFolder(name, uri)
 {
-  // dump("uri,name = " + uri + "," + name + "\n");
-  if (uri && (uri != "") && name && (name != "")) {
-    var selectedFolderResource = RDF.GetResource(uri);
-    // dump("selectedFolder = " + uri + "\n");
-    var compositeDataSource = GetCompositeDataSource("NewFolder");
-    var folderArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-    var nameArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
+  if (!uri || !name)
+    return;
 
-    folderArray.AppendElement(selectedFolderResource);
-
-    var nameLiteral = RDF.GetLiteral(name);
-    nameArray.AppendElement(nameLiteral);
-    DoRDFCommand(compositeDataSource, "http://home.netscape.com/NC-rdf#NewFolder", folderArray, nameArray);
-  }
-  else {
-    dump("no name or nothing selected\n");
-  }
+  var folder = RDF.GetResource(uri).QueryInterface(Components.interfaces.nsIMsgFolder);
+  folder.createSubfolder(name, msgWindow);
 }
 
 function UnSubscribe(folder)
@@ -471,15 +424,6 @@ function MarkSelectedMessagesRead(markRead)
 function MarkSelectedMessagesFlagged(markFlagged)
 {
   gDBView.doCommand(markFlagged ? nsMsgViewCommandType.flagMessages : nsMsgViewCommandType.unflagMessages);
-}
-
-function MarkAllMessagesRead(compositeDataSource, folder)
-{
-  var folderResource = folder.QueryInterface(Components.interfaces.nsIRDFResource);
-  var folderArray = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  folderArray.AppendElement(folderResource);
-
-  DoRDFCommand(compositeDataSource, "http://home.netscape.com/NC-rdf#MarkAllMessagesRead", folderArray, null);
 }
 
 function DownloadFlaggedMessages(compositeDataSource, folder)
@@ -598,8 +542,10 @@ function performActionsOnJunkMsgs(aIndices)
     MarkSelectedMessagesRead(true);
   if (actionParams.junkTargetFolder)
   {
-    SetNextMessageAfterDelete();
-    gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, actionParams.junkTargetFolder);
+    var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"].
+                        getService(Components.interfaces.nsIMsgCopyService);
+    copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
+                             msgWindow, true /* allow undo */);
   }
 
   treeSelection.clearSelection();
@@ -750,26 +696,21 @@ function deleteAllInFolder(commandName)
   if (!confirmToProceed(commandName))
     return;
 
-  var children = Components.classes["@mozilla.org/supports-array;1"]
-                  .createInstance(Components.interfaces.nsISupportsArray);
-
   // Delete sub-folders.
   var iter = folder.subFolders;
   while (iter.hasMoreElements())
-    children.AppendElement(iter.getNext());
-
-  for (var i = 0; i < children.Count(); ++i)
-    folder.propagateDelete(children.GetElementAt(i), true, msgWindow); 
-
-  children.Clear();                                       
+    folder.propagateDelete(iter.getNext(), true, msgWindow);
   
+  var children = Components.classes["@mozilla.org/array;1"]
+                  .createInstance(Components.interfaces.nsIMutableArray);
+                  
   // Delete messages.
   iter = folder.getMessages(msgWindow);
   while (iter.hasMoreElements()) {
-    children.AppendElement(iter.getNext());
+    children.appendElement(iter.getNext(), false);
   }
   folder.deleteMessages(children, msgWindow, true, false, null, false); 
-  children.Clear();                                       
+  children.clear();
 }
 
 function deleteJunkInFolder()

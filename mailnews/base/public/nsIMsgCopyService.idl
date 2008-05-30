@@ -39,7 +39,6 @@
 #include "nsISupports.idl"
 #include "nsIMsgFolder.idl"
 #include "nsIMsgCopyServiceListener.idl"
-#include "nsISupportsArray.idl"
 
 interface nsIMsgDBHdr;
 %{C++
@@ -49,15 +48,16 @@ interface nsIMsgDBHdr;
 interface nsITransactionManager;
 interface nsIMsgWindow;
 interface nsIFile;
+interface nsIArray;
 
-[scriptable, uuid(f0ee3821-e382-43de-9b71-bd9a4a594fcb)]
+[scriptable, uuid(4010d881-6c83-4f8d-9332-d44564cee14a)]
 interface nsIMsgCopyService : nsISupports {
 
     /**
      *
      */
     void CopyMessages(in nsIMsgFolder srcFolder,
-                      in nsISupportsArray messages,
+                      in nsIArray messages,
                       in nsIMsgFolder dstFolder,
                       in boolean isMove,
                       in nsIMsgCopyServiceListener listener,
@@ -67,11 +67,11 @@ interface nsIMsgCopyService : nsISupports {
     /**
      *
      */
-    void CopyFolders( in nsISupportsArray folders,
-                      in nsIMsgFolder dstFolder,
-                      in boolean isMove,
-                      in nsIMsgCopyServiceListener listener,
-                      in nsIMsgWindow msgWindow);
+    void CopyFolders(in nsIArray folders,
+                     in nsIMsgFolder dstFolder,
+                     in boolean isMove,
+                     in nsIMsgCopyServiceListener listener,
+                     in nsIMsgWindow msgWindow);
 
     void CopyFileMessage(in nsIFile aFile,
                          in nsIMsgFolder dstFolder,

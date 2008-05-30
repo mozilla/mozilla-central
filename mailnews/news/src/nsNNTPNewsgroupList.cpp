@@ -90,6 +90,7 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsIDocShell.h"
+#include "nsIMutableArray.h"
 
 // update status on header download once per second
 #define MIN_STATUS_UPDATE_INTERVAL PR_USEC_PER_SEC
@@ -824,9 +825,8 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       {
         nsCString keyword;
         filterAction->GetStrValue(keyword);
-        nsCOMPtr<nsISupportsArray> messageArray;
-        NS_NewISupportsArray(getter_AddRefs(messageArray));
-        messageArray->AppendElement(m_newMsgHdr);
+        nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+        messageArray->AppendElement(m_newMsgHdr, PR_FALSE);
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
         if (folder)
           folder->AddKeywordsToMessages(messageArray, keyword);

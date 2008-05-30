@@ -38,7 +38,8 @@
 
 #include "msgCore.h"
 #include "nsMsgFolderNotificationService.h"
-#include "nsISupportsArray.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 
 //
 //  nsMsgFolderNotificationService
@@ -103,20 +104,22 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemDeleted(nsISupports *aIt
   PRInt32 count = m_listeners.Count();
   
   // this might be an array of items - use QI to find out.
-  nsCOMPtr <nsISupportsArray> itemArray = do_QueryInterface(aItem);
+  nsCOMPtr <nsIArray> itemArray = do_QueryInterface(aItem);
   for(PRInt32 i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
     NS_ASSERTION(listener, "listener is null");
-    if (!listener) 
+    if (!listener)
       return NS_ERROR_FAILURE;
     if (itemArray)
     {
-      PRUint32 cnt;
-      itemArray->Count(&cnt);
-      for (PRUint32 i = 0; i < cnt; i++)
+      PRUint32 len;
+      itemArray->GetLength(&len);
+      for (PRUint32 i = 0; i < len; i++)
       {
-        nsCOMPtr <nsISupports> supports = do_QueryElementAt(itemArray, i);
+        nsresult rv;
+        nsCOMPtr<nsISupports> supports = do_QueryElementAt(itemArray, i, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
         if (supports)
           listener->ItemDeleted(supports);
       }
@@ -129,7 +132,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemDeleted(nsISupports *aIt
 }
 
 /* void notifyItemMoveCopyCompleted (in boolean aMove, in nsISupportsArray aSrcItems, in nsIMsgFolder aDestFolder); */
-NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemMoveCopyCompleted(PRBool aMove, nsISupportsArray *aSrcItems, nsIMsgFolder *aDestFolder)
+NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemMoveCopyCompleted(PRBool aMove, nsIArray *aSrcItems, nsIMsgFolder *aDestFolder)
 {
   PRInt32 count = m_listeners.Count();
   

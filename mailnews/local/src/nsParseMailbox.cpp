@@ -91,6 +91,8 @@
 #include "nsIStringBundle.h"
 #include "nsLocalStrings.h"
 #include "nsIMsgFilterPlugin.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
@@ -1948,9 +1950,8 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
 
           if (!actionTargetFolderUri.IsEmpty() && !actionTargetFolderUri.Equals(uri))
           {
-            nsCOMPtr<nsISupportsArray> messageArray;
-            NS_NewISupportsArray(getter_AddRefs(messageArray));
-            messageArray->AppendElement(msgHdr);
+            nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+            messageArray->AppendElement(msgHdr, PR_FALSE);
 
             nsCOMPtr<nsIMsgFolder> dstFolder;
             rv = GetExistingFolder(actionTargetFolderUri,
@@ -1997,9 +1998,8 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
       {
         nsCString keyword;
         filterAction->GetStrValue(keyword);
-        nsCOMPtr<nsISupportsArray> messageArray;
-        NS_NewISupportsArray(getter_AddRefs(messageArray));
-        messageArray->AppendElement(msgHdr);
+        nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+        messageArray->AppendElement(msgHdr, PR_FALSE);
         m_downloadFolder->AddKeywordsToMessages(messageArray, keyword);
         break;
       }
@@ -2049,11 +2049,9 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
           msgHdr->GetFlags(&flags);
           if (localFolder)
           {
-            nsCOMPtr<nsISupportsArray> messages;
-            rv = NS_NewISupportsArray(getter_AddRefs(messages));
+            nsCOMPtr<nsIMutableArray> messages = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
-            nsCOMPtr<nsISupports> iSupports = do_QueryInterface(msgHdr);
-            messages->AppendElement(iSupports);
+            messages->AppendElement(msgHdr, PR_FALSE);
             // This action ignores the deleteMailLeftOnServer preference
             localFolder->MarkMsgsOnPop3Server(messages, POP3_FORCE_DEL);
 
@@ -2076,11 +2074,9 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
           msgHdr->GetFlags(&flags);
           if (localFolder && (flags & MSG_FLAG_PARTIAL))
           {
-            nsCOMPtr<nsISupportsArray> messages;
-            rv = NS_NewISupportsArray(getter_AddRefs(messages));
+            nsCOMPtr<nsIMutableArray> messages = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
             NS_ENSURE_SUCCESS(rv, rv);
-            nsCOMPtr<nsISupports> iSupports = do_QueryInterface(msgHdr);
-            messages->AppendElement(iSupports);
+            messages->AppendElement(msgHdr, PR_FALSE);
             localFolder->MarkMsgsOnPop3Server(messages, POP3_FETCH_BODY);
             // Don't add this header to the DB, we're going to replace it
             // with the full message.

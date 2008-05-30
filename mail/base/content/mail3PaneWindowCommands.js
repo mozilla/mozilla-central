@@ -927,9 +927,9 @@ function MsgDeleteFolder()
             {
                 if (gCurrentVirtualFolderUri == folderResource.Value)
                   gCurrentVirtualFolderUri = null;
-                var array = Components.classes["@mozilla.org/supports-array;1"]
-                                      .createInstance(Components.interfaces.nsISupportsArray);
-                array.AppendElement(folder);
+                var array = Components.classes["@mozilla.org/array;1"]
+                                      .createInstance(Components.interfaces.nsIMutableArray);
+                array.appendElement(folder, false);
                 folder.parent.deleteSubFolders(array, msgWindow);
                 continue;
             }
@@ -959,9 +959,9 @@ function MsgDeleteFolder()
             }
             else
             {
-                var array = Components.classes["@mozilla.org/supports-array;1"]
-                                      .createInstance(Components.interfaces.nsISupportsArray);
-                array.AppendElement(selectedFolder);
+                var array = Components.classes["@mozilla.org/array;1"]
+                                      .createInstance(Components.interfaces.nsIMutableArray);
+                array.appendElement(selectedFolder, false);
                 selectedFolder.parent.deleteSubFolders(array, msgWindow);
             }
         }

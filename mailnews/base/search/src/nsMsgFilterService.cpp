@@ -65,6 +65,8 @@
 #include "nsMsgCompCID.h"
 #include "nsNetUtil.h"
 #include "nsMsgUtils.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgFilterService, nsIMsgFilterService)
 
@@ -296,7 +298,7 @@ protected:
   PRUint32                    m_numFilters;
   PRUint32                    m_numFolders;
   nsTArray<nsMsgKey>          m_searchHits;
-  nsCOMPtr <nsISupportsArray> m_searchHitHdrs;
+  nsCOMPtr<nsIMutableArray>   m_searchHitHdrs;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
 };
 
@@ -313,7 +315,7 @@ nsMsgFilterAfterTheFact::nsMsgFilterAfterTheFact(nsIMsgWindow *aMsgWindow, nsIMs
 
   NS_ADDREF(this); // we own ourselves, and will release ourselves when execution is done.
 
-  NS_NewISupportsArray(getter_AddRefs(m_searchHitHdrs));
+  m_searchHitHdrs = do_CreateInstance(NS_ARRAY_CONTRACTID);
 }
 
 nsMsgFilterAfterTheFact::~nsMsgFilterAfterTheFact()
@@ -411,7 +413,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFo
   nsMsgKey msgKey;
   header->GetMessageKey(&msgKey);
   m_searchHits.AppendElement(msgKey);
-  m_searchHitHdrs->AppendElement(header);
+  m_searchHitHdrs->AppendElement(header, PR_FALSE);
   return NS_OK;
 }
 
@@ -684,7 +686,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
             // This action ignores the deleteMailLeftOnServer preference
             localFolder->MarkMsgsOnPop3Server(m_searchHitHdrs, POP3_FORCE_DEL);
 
-            nsCOMPtr <nsISupportsArray> partialMsgs;
+            nsCOMPtr<nsIMutableArray> partialMsgs;
             // Delete the partial headers. They're useless now
             // that the server copy is being deleted.
             for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
@@ -698,9 +700,9 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
                 if (flags & MSG_FLAG_PARTIAL)
                 {
                   if (!partialMsgs)
-                    partialMsgs = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+                    partialMsgs = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
                   NS_ENSURE_SUCCESS(rv, rv);
-                  partialMsgs->AppendElement(msgHdr);
+                  partialMsgs->AppendElement(msgHdr, PR_FALSE);
                 }
               }
             }

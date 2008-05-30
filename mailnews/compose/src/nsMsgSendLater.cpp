@@ -71,6 +71,7 @@
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
 #include "nsComposeStrings.h"
+#include "nsIMutableArray.h"
 
 NS_IMPL_ISUPPORTS3(nsMsgSendLater,
                    nsIMsgSendLater,
@@ -744,12 +745,11 @@ nsresult
 nsMsgSendLater::DeleteCurrentMessage()
 {
   // Get the composition fields interface
-  nsCOMPtr<nsISupportsArray> msgArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
+  nsCOMPtr<nsIMutableArray> msgArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   if (!msgArray)
     return NS_ERROR_FACTORY_NOT_LOADED;
 
-  nsCOMPtr<nsISupports> msgSupport = do_QueryInterface(mMessage);
-  msgArray->InsertElementAt(msgSupport, 0);
+  msgArray->InsertElementAt(mMessage, 0, PR_FALSE);
   nsresult res = mMessageFolder->DeleteMessages(msgArray, nsnull, PR_TRUE, PR_FALSE, nsnull, PR_FALSE /*allowUndo*/);
   if (NS_FAILED(res))
     return NS_ERROR_FAILURE;

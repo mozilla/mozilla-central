@@ -44,9 +44,6 @@ const nsMsgViewIndex_None = 0xFFFFFFFF;
 
 /* globals for a particular window */
 
-var compositeDataSourceContractID        = datasourceContractIDPrefix + "composite-datasource";
-
-var gCompositeDataSource;
 var gCurrentMessageUri;
 var gCurrentFolderUri;
 var gThreadPaneCommandUpdater = null;
@@ -261,7 +258,6 @@ function OnLoadMessageWindow()
 {
   AddMailOfflineObserver();
 	CreateMailWindowGlobals();
-	CreateMessageWindowGlobals();
   AddToolBarPrefListener();
   ShowHideToolBarButtons()
 	verifyAccounts(null);
@@ -269,7 +265,6 @@ function OnLoadMessageWindow()
 	InitMsgWindow();
 
 	messenger.setWindow(window, msgWindow);
-	InitializeDataSources();
 	// FIX ME - later we will be able to use onload from the overlay
 	OnLoadMsgHeaderPane();
 
@@ -424,20 +419,6 @@ function OnUnloadMessageWindow()
 	OnMailWindowUnload();
 }
 
-function CreateMessageWindowGlobals()
-{
-	gCompositeDataSource = Components.classes[compositeDataSourceContractID].createInstance();
-	gCompositeDataSource = gCompositeDataSource.QueryInterface(Components.interfaces.nsIRDFCompositeDataSource);
-}
-
-function InitializeDataSources()
-{
-  AddDataSources();
-  //Now add datasources to composite datasource
-  gCompositeDataSource.AddDataSource(accountManagerDataSource);
-  gCompositeDataSource.AddDataSource(folderDataSource);
-}
-
 function GetSelectedMsgFolders()
 {
 	var folderArray = new Array(1);
@@ -506,11 +487,6 @@ function ClearMessageSelection()
 	gCurrentMessageUri = null;
 	gCurrentFolderUri = null;
   UpdateMailToolbar("clear msg, std alone window");
-}
-
-function GetCompositeDataSource(command)
-{
-	return gCompositeDataSource;	
 }
 
 function SetNextMessageAfterDelete()

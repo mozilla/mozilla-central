@@ -42,6 +42,8 @@
 #include "nsIFile.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsMsgBaseCID.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 
 // ******************** nsCopySource ******************
 //
@@ -49,17 +51,15 @@
 nsCopySource::nsCopySource() : m_processed(PR_FALSE)
 {
   MOZ_COUNT_CTOR(nsCopySource);
-  nsresult rv;
-  rv = NS_NewISupportsArray(getter_AddRefs(m_messageArray));
+  m_messageArray = do_CreateInstance(NS_ARRAY_CONTRACTID);
 }
 
 nsCopySource::nsCopySource(nsIMsgFolder* srcFolder) :
     m_processed(PR_FALSE)
 {
   MOZ_COUNT_CTOR(nsCopySource);
-  nsresult rv;
-  rv = NS_NewISupportsArray(getter_AddRefs(m_messageArray));
-  m_msgFolder = do_QueryInterface(srcFolder, &rv);
+  m_messageArray = do_CreateInstance(NS_ARRAY_CONTRACTID);
+  m_msgFolder = srcFolder;
 }
 
 nsCopySource::~nsCopySource()
@@ -69,9 +69,7 @@ nsCopySource::~nsCopySource()
 
 void nsCopySource::AddMessage(nsIMsgDBHdr* aMsg)
 {
-	nsCOMPtr<nsISupports> supports(do_QueryInterface(aMsg));
-	if(supports)
-		m_messageArray->AppendElement(supports);
+  m_messageArray->AppendElement(aMsg, PR_FALSE);
 }
 
 // ************ nsCopyRequest *****************
@@ -191,19 +189,19 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
         notifier->GetHasListeners(&hasListeners);
         if (hasListeners)
         {
-          nsCOMPtr <nsISupportsArray> supportsArray = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
-          if (supportsArray)
+          nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+          if (folderArray)
           {
-            // Iterate over the copy sources and append their message arrays to this supports array
+            // Iterate over the copy sources and append their message arrays to this mutable array
             // or in the case of folders, the source folder.
             PRInt32 cnt, i;
             cnt =  aRequest->m_copySourceArray.Count();
             for (i=0; i < cnt; i++)
             {
               nsCopySource *copySource = (nsCopySource*) aRequest->m_copySourceArray.ElementAt(i);
-              supportsArray->AppendElement(copySource->m_msgFolder);
+              folderArray->AppendElement(copySource->m_msgFolder, PR_FALSE);
             }
-            notifier->NotifyItemMoveCopyCompleted(aRequest->m_isMoveOrDraftOrTemplate, supportsArray, aRequest->m_dstFolder);
+            notifier->NotifyItemMoveCopyCompleted(aRequest->m_isMoveOrDraftOrTemplate, folderArray, aRequest->m_dstFolder);
           }
         }
       }
@@ -428,7 +426,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsMsgCopyService, nsIMsgCopyService)
 
 NS_IMETHODIMP
 nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
-                               nsISupportsArray* messages,
+                               nsIArray* messages,
                                nsIMsgFolder* dstFolder,
                                PRBool isMove,
                                nsIMsgCopyServiceListener* listener,
@@ -441,7 +439,7 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
 
   nsCopyRequest* copyRequest;
   nsCopySource* copySource = nsnull;
-  nsCOMPtr<nsISupportsArray> msgArray;
+  nsCOMArray<nsIMsgDBHdr> msgArray;
   PRUint32 cnt;
   nsCOMPtr<nsIMsgDBHdr> msg;
   nsCOMPtr<nsIMsgFolder> curFolder;
@@ -465,27 +463,21 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
   if (NS_FAILED(rv))
     goto done;
 
-  rv = NS_NewISupportsArray(getter_AddRefs(msgArray));
-  if (NS_FAILED(rv))
-    goto done;
-
-  messages->Count(&cnt);
+  messages->GetLength(&cnt);
 
   // duplicate the message array so we could sort the messages by it's
   // folder easily
-  msgArray->AppendElements(messages);
+  for (PRUint32 i = 0; i < cnt; i++)
+  {
+    nsCOMPtr<nsIMsgDBHdr> currMsg = do_QueryElementAt(messages, i);
+    msgArray.AppendObject(currMsg);
+  }
 
-  rv = msgArray->Count(&cnt);
-  if (NS_FAILED(rv))
-    goto done;
+  cnt = msgArray.Count();
 
   while (cnt-- > 0)
   {
-    msg = do_QueryElementAt(msgArray, cnt, &rv);
-
-    if (NS_FAILED(rv))
-      goto done;
-
+    msg = msgArray[cnt];
     rv = msg->GetFolder(getter_AddRefs(curFolder));
 
     if (NS_FAILED(rv))
@@ -503,12 +495,12 @@ nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
     if (curFolder == copySource->m_msgFolder)
     {
       copySource->AddMessage(msg);
-      msgArray->RemoveElementAt(cnt);
+      msgArray.RemoveObjectAt(cnt);
     }
 
     if (cnt == 0)
     {
-      rv = msgArray->Count(&cnt);
+      cnt = msgArray.Count();
       if (cnt > 0)
         copySource = nsnull; // * force to create a new one and
                              // * continue grouping the messages
@@ -527,39 +519,37 @@ done:
     else
       rv = DoCopy(copyRequest);
 
-    msgArray->Clear();
-
     return rv;
 }
 
 NS_IMETHODIMP
-nsMsgCopyService::CopyFolders( nsISupportsArray* folders,
-                               nsIMsgFolder* dstFolder,
-                               PRBool isMove,
-                               nsIMsgCopyServiceListener* listener,
-                               nsIMsgWindow* window)
+nsMsgCopyService::CopyFolders(nsIArray* folders,
+                              nsIMsgFolder* dstFolder,
+                              PRBool isMove,
+                              nsIMsgCopyServiceListener* listener,
+                              nsIMsgWindow* window)
 {
+  NS_ENSURE_ARG_POINTER(folders);
+  NS_ENSURE_ARG_POINTER(dstFolder);
   nsCopyRequest* copyRequest;
   nsCopySource* copySource = nsnull;
-  nsresult rv = NS_ERROR_NULL_POINTER;
+  nsresult rv;
   PRUint32 cnt;
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsISupports> support;
 
-  if (!folders || !dstFolder) return rv;
-
-  rv = folders->Count(&cnt);   //if cnt is zero it cannot to get this point, will be detected earlier
-  if ( cnt > 1)
+  rv = folders->GetLength(&cnt);   //if cnt is zero it cannot to get this point, will be detected earlier
+  if (cnt > 1)
     NS_ASSERTION((NS_SUCCEEDED(rv)),"More than one folders to copy");
 
-  support = getter_AddRefs(folders->ElementAt(0));
+  support = do_QueryElementAt(folders, 0);
 
   copyRequest = new nsCopyRequest();
   if (!copyRequest) return NS_ERROR_OUT_OF_MEMORY;
 
   rv = copyRequest->Init(nsCopyFoldersType, support, dstFolder,
     isMove, 0 /* new msg flags, not used */ , listener, window, PR_FALSE);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   curFolder = do_QueryInterface(support, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

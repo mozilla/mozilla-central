@@ -50,7 +50,7 @@
 #include "nsMsgFolderFlags.h"
 #include "prprf.h"
 #include "prsystem.h"
-#include "nsISupportsArray.h"
+#include "nsIArray.h"
 #include "nsIServiceManager.h"
 #include "nsIEnumerator.h"
 #include "nsINntpService.h"
@@ -93,6 +93,7 @@
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIMsgAccountManager.h"
+#include "nsArrayUtils.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -776,7 +777,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(PRUint32 *size)
 
 /* this is news, so remember that DeleteMessage is really CANCEL. */
 NS_IMETHODIMP
-nsMsgNewsFolder::DeleteMessages(nsISupportsArray *messages, nsIMsgWindow *aMsgWindow,
+nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
                                 PRBool deleteStorage, PRBool isMove,
                                 nsIMsgCopyServiceListener* listener, PRBool allowUndo)
 {
@@ -786,8 +787,8 @@ nsMsgNewsFolder::DeleteMessages(nsISupportsArray *messages, nsIMsgWindow *aMsgWi
   NS_ENSURE_ARG_POINTER(aMsgWindow);
 
   PRUint32 count = 0;
-  rv = messages->Count(&count);
-  NS_ENSURE_SUCCESS(rv,rv);
+  rv = messages->GetLength(&count);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (count != 1)
   {
@@ -1552,13 +1553,13 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
   return downloadState->DownloadArticles(msgWindow, this, &srcKeyArray);
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsISupportsArray *messages, nsIMsgWindow *window)
+NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window)
 {
   nsTArray<nsMsgKey> srcKeyArray;
   SetSaveArticleOffline(PR_TRUE); // ### TODO need to clear this when we've finished
   PRUint32 count = 0;
   PRUint32 i;
-  nsresult rv = messages->Count(&count);
+  nsresult rv = messages->GetLength(&count);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // build up message keys.

@@ -53,6 +53,7 @@
 #include "nsIMsgCopyService.h"
 #include "nsImapProtocol.h"
 #include "nsMsgUtils.h"
+#include "nsIMutableArray.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -531,10 +532,9 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
       }
       else
       {
-        nsCOMPtr <nsISupportsArray> messages = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
-        if (messages && NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+        if (NS_SUCCEEDED(rv))
         {
-          NS_NewISupportsArray(getter_AddRefs(messages));
           for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
           {
             nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
@@ -559,9 +559,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
                 mailHdr->SetFlags(msgFlags);
                 mailHdr->SetMessageSize(msgSize);
               }
-              nsCOMPtr<nsISupports> iSupports;
-              iSupports = do_QueryInterface(mailHdr);
-              messages->AppendElement(iSupports);
+              messages->AppendElement(mailHdr, PR_FALSE);
             }
           }
           nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
@@ -646,19 +644,16 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
       }
       else
       {
-        nsCOMPtr <nsISupportsArray> messages = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+        nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
         if (messages && NS_SUCCEEDED(rv))
         {
-          NS_NewISupportsArray(getter_AddRefs(messages));
           for (PRUint32 keyIndex = 0; keyIndex < matchingFlagKeys.Length(); keyIndex++)
           {
             nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
             rv = m_currentFolder->GetMessageHeader(matchingFlagKeys.ElementAt(keyIndex), getter_AddRefs(mailHdr));
             if (NS_SUCCEEDED(rv) && mailHdr)
             {
-              nsCOMPtr<nsISupports> iSupports;
-              iSupports = do_QueryInterface(mailHdr);
-              messages->AppendElement(iSupports);
+              messages->AppendElement(mailHdr, PR_FALSE);
             }
           }
           nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);

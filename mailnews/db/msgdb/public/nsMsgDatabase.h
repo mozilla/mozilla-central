@@ -46,7 +46,7 @@
 #include "nsIDBChangeAnnouncer.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFolder.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsDBFolderInfo.h"
 #include "nsICollation.h"
 #include "nsIMimeConverter.h"
@@ -225,9 +225,9 @@ protected:
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
   nsresult PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs, PRBool keepUnreadMessagesOnly,
-                                  nsISupportsArray *hdrsToDelete);
+                                  nsIMutableArray *hdrsToDelete);
   nsresult PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool keepUnreadMessagesOnly,
-                               nsISupportsArray *hdrsToDelete);
+                               nsIMutableArray *hdrsToDelete);
   
   // mdb bookkeeping stuff
   virtual nsresult      InitExistingDB();

@@ -47,6 +47,8 @@
 #include "nsIMsgImapMailFolder.h"
 #include "nsThreadUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 
 NS_IMPL_ISUPPORTS1(nsImapMoveCoalescer, nsIUrlListener)
 
@@ -112,16 +114,14 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
       if (numKeysToAdd == 0)
         continue;
 
-      nsCOMPtr<nsISupportsArray> messages;
-      NS_NewISupportsArray(getter_AddRefs(messages));
+      nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID));
       for (PRUint32 keyIndex = 0; keyIndex < keysToAdd.Length(); keyIndex++)
       {
         nsCOMPtr<nsIMsgDBHdr> mailHdr = nsnull;
         rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
         if (NS_SUCCEEDED(rv) && mailHdr)
         {
-          nsCOMPtr<nsISupports> iSupports = do_QueryInterface(mailHdr);
-          messages->AppendElement(iSupports);
+          messages->AppendElement(mailHdr, PR_FALSE);
           PRBool isRead = PR_FALSE;
           mailHdr->GetIsRead(&isRead);
           if (!isRead)

@@ -58,6 +58,7 @@
 #include "MoreFilesX.h"
 #endif
 #include "nsNativeCharsetUtils.h"
+#include "nsIMutableArray.h"
 
 // necko
 #include "nsMimeTypes.h"
@@ -2591,10 +2592,11 @@ nsDelAttachListener::OnStartRunningUrl(nsIURI * aUrl)
 
 nsresult nsDelAttachListener::DeleteOriginalMessage()
 {
-  nsCOMPtr<nsISupportsArray> messageArray;
-  nsresult rv = NS_NewISupportsArray(getter_AddRefs(messageArray));
-  NS_ENSURE_SUCCESS(rv,rv);
-  rv = messageArray->AppendElement(mOriginalMessage);
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = messageArray->AppendElement(mOriginalMessage, PR_FALSE);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr<nsIMsgCopyServiceListener> listenerCopyService;
 

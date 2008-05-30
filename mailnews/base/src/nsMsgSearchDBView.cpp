@@ -49,6 +49,7 @@
 #include "nsITreeColumns.h"
 #include "nsIMsgMessageService.h"
 #include "nsAutoPtr.h"
+#include "nsIMutableArray.h"
 
 nsMsgSearchDBView::nsMsgSearchDBView()
 {
@@ -456,8 +457,7 @@ nsMsgSearchDBView::GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt3
   {
      nsCOMPtr <nsIMsgFolder> curFolder =
          do_QueryElementAt(m_uniqueFoldersSelected, folderIndex, &rv);
-     nsCOMPtr <nsISupportsArray> msgHdrsForOneFolder;
-     NS_NewISupportsArray(getter_AddRefs(msgHdrsForOneFolder));
+     nsCOMPtr<nsIMutableArray> msgHdrsForOneFolder(do_CreateInstance(NS_ARRAY_CONTRACTID));
      for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
      {
        nsCOMPtr <nsIMsgFolder> msgFolder = do_QueryElementAt(m_folders,
@@ -468,7 +468,7 @@ nsMsgSearchDBView::GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt3
           rv = GetMsgHdrForViewIndex(indices[i],getter_AddRefs(msgHdr));
           NS_ENSURE_SUCCESS(rv,rv);
           nsCOMPtr <nsISupports> hdrSupports = do_QueryInterface(msgHdr);
-          msgHdrsForOneFolder->AppendElement(hdrSupports);
+          msgHdrsForOneFolder->AppendElement(hdrSupports, PR_FALSE);
        }
      }
      nsCOMPtr <nsISupports> supports = do_QueryInterface(msgHdrsForOneFolder, &rv);
@@ -545,7 +545,7 @@ nsresult nsMsgSearchDBView::ProcessRequestsInOneFolder(nsIMsgWindow *window)
     nsCOMPtr<nsIMsgFolder> curFolder =
         do_QueryElementAt(m_uniqueFoldersSelected, mCurIndex);
     NS_ASSERTION(curFolder, "curFolder is null");
-    nsCOMPtr <nsISupportsArray> messageArray =
+    nsCOMPtr<nsIMutableArray> messageArray =
         do_QueryElementAt(m_hdrsForEachFolder, mCurIndex);
     NS_ASSERTION(messageArray, "messageArray is null");
 
@@ -581,7 +581,7 @@ nsresult nsMsgSearchDBView::ProcessRequestsInAllFolders(nsIMsgWindow *window)
            do_QueryElementAt(m_uniqueFoldersSelected, folderIndex);
        NS_ASSERTION (curFolder, "curFolder is null");
 
-       nsCOMPtr <nsISupportsArray> messageArray =
+       nsCOMPtr<nsIMutableArray> messageArray =
            do_QueryElementAt(m_hdrsForEachFolder, folderIndex);
        NS_ASSERTION(messageArray, "messageArray is null");
 

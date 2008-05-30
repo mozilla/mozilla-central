@@ -51,6 +51,7 @@
 #include "nsIMsgNewsFolder.h"
 #include "nsCOMPtr.h"
 #include "nsIMsgFilterService.h"
+#include "nsIArray.h"
 
 class nsMsgNewsFolder : public nsMsgDBFolder, public nsIMsgNewsFolder
 {
@@ -88,7 +89,7 @@ public:
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
-  NS_IMETHOD DeleteMessages(nsISupportsArray *messages,
+  NS_IMETHOD DeleteMessages(nsIArray *messages,
                       nsIMsgWindow *msgWindow, PRBool deleteStorage, PRBool isMove,
                       nsIMsgCopyServiceListener* listener, PRBool allowUndo);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
@@ -101,7 +102,7 @@ public:
   NS_IMETHOD GetCanCompact(PRBool *aResult);
   NS_IMETHOD OnReadChanged(nsIDBChangeListener * aInstigator);
 
-  NS_IMETHOD DownloadMessagesForOffline(nsISupportsArray *messages, nsIMsgWindow *window);
+  NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window);
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
   NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
   NS_IMETHOD GetSortOrder(PRInt32 *order);

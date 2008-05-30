@@ -63,6 +63,7 @@
 #include "nsIEventTarget.h"
 #include "nsIThread.h"
 #include "nsDataHashtable.h"
+#include "nsIMutableArray.h"
 
 class nsImapMoveCoalescer;
 class nsIMsgIdentity;
@@ -86,7 +87,7 @@ public:
     virtual ~nsImapMailCopyState();
 
     nsCOMPtr<nsISupports> m_srcSupport; // source file spec or folder
-    nsCOMPtr<nsISupportsArray> m_messages; // array of source messages
+    nsCOMPtr<nsIArray> m_messages; // array of source messages
     nsRefPtr<nsMsgTxn> m_undoMsgTxn; // undo object with this copy operation
     nsCOMPtr<nsIMsgDBHdr> m_message; // current message to be copied
     nsCOMPtr<nsIMsgCopyServiceListener> m_listener; // listener of this copy
@@ -246,24 +247,24 @@ public:
   NS_IMETHOD GetCanSubscribe(PRBool *aResult);
 
   NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag);
-  NS_IMETHOD MarkMessagesRead(nsISupportsArray *messages, PRBool markRead);
+  NS_IMETHOD MarkMessagesRead(nsIArray *messages, PRBool markRead);
   NS_IMETHOD MarkAllMessagesRead(void);
-  NS_IMETHOD MarkMessagesFlagged(nsISupportsArray *messages, PRBool markFlagged);
+  NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, PRBool markFlagged);
   NS_IMETHOD MarkThreadRead(nsIMsgThread *thread);
-  NS_IMETHOD SetLabelForMessages(nsISupportsArray *aMessages, nsMsgLabelValue aLabel);
-  NS_IMETHOD SetJunkScoreForMessages(nsISupportsArray *aMessages, const nsACString& aJunkScore);
-  NS_IMETHOD DeleteSubFolders(nsISupportsArray *folders, nsIMsgWindow *msgWindow);
+  NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel);
+  NS_IMETHOD SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& aJunkScore);
+  NS_IMETHOD DeleteSubFolders(nsIMutableArray *folders, nsIMsgWindow *msgWindow);
   NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);
   NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
 
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo,
                                   nsIMsgDatabase **db);
-  NS_IMETHOD DeleteMessages(nsISupportsArray *messages,
+  NS_IMETHOD DeleteMessages(nsIArray *messages,
                             nsIMsgWindow *msgWindow, PRBool
                             deleteStorage, PRBool isMove,
                             nsIMsgCopyServiceListener* listener, PRBool allowUndo);
   NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder,
-                          nsISupportsArray* messages,
+                          nsIArray* messages,
                           PRBool isMove, nsIMsgWindow *msgWindow,
                           nsIMsgCopyServiceListener* listener, PRBool isFolder,
                           PRBool allowUndo);
@@ -282,7 +283,7 @@ public:
 
   NS_IMETHOD Shutdown(PRBool shutdownChildren);
 
-  NS_IMETHOD DownloadMessagesForOffline(nsISupportsArray *messages, nsIMsgWindow *msgWindow);
+  NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *msgWindow);
 
   NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
   NS_IMETHOD GetCanFileMessages(PRBool *aCanFileMessages);
@@ -291,8 +292,8 @@ public:
                                                  PRBool aLocalOnly, nsIUrlListener *aUrlListener,
                                                  PRBool *aAsyncResults);
 
-  NS_IMETHOD AddKeywordsToMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
-  NS_IMETHOD RemoveKeywordsFromMessages(nsISupportsArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
+  NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
 
   NS_DECL_NSIMSGIMAPMAILFOLDER
   NS_DECL_NSIIMAPMAILFOLDERSINK
@@ -375,7 +376,7 @@ protected:
   nsresult GetBodysToDownload(nsTArray<nsMsgKey> *keysOfMessagesToDownload);
   // Uber message copy service
   nsresult CopyMessagesWithStream(nsIMsgFolder* srcFolder,
-                                    nsISupportsArray* messages,
+                                    nsIArray* messages,
                                     PRBool isMove,
                                     PRBool isCrossServerOp,
                                     nsIMsgWindow *msgWindow,
@@ -383,7 +384,7 @@ protected:
   nsresult CopyStreamMessage(nsIMsgDBHdr* message, nsIMsgFolder* dstFolder,
                             nsIMsgWindow *msgWindow, PRBool isMove);
   nsresult InitCopyState(nsISupports* srcSupport,
-                          nsISupportsArray* messages,
+                          nsIArray* messages,
                           PRBool isMove,
                           PRBool selectedState,
                           PRBool acrossServers,
@@ -392,7 +393,7 @@ protected:
                           nsIMsgWindow *msgWindow,
                           PRBool allowUndo);
   nsresult OnCopyCompleted(nsISupports *srcSupport, nsresult exitCode);
-  nsresult BuildIdsAndKeyArray(nsISupportsArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
+  nsresult BuildIdsAndKeyArray(nsIArray* messages, nsCString& msgIds, nsTArray<nsMsgKey>& keyArray);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
@@ -400,7 +401,7 @@ protected:
   nsresult GetClearedOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgOfflineImapOperation **originalOp, nsIMsgDatabase **originalDB);
   nsresult GetOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgOfflineImapOperation **originalOp, nsIMsgDatabase **originalDB);
   nsresult CopyMessagesOffline(nsIMsgFolder* srcFolder,
-                                nsISupportsArray* messages,
+                                nsIArray* messages,
                                 PRBool isMove,
                                 nsIMsgWindow *msgWindow,
                                 nsIMsgCopyServiceListener* listener);
@@ -420,7 +421,7 @@ protected:
   PRInt32 m_numFilterClassifyRequests;
   PRBool m_msgMovedByFilter;
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by the nsImapMailFolder
-  nsCOMPtr <nsISupportsArray> m_junkMessagesToMarkAsRead;
+  nsCOMPtr<nsIMutableArray> m_junkMessagesToMarkAsRead;
   nsMsgKey m_curMsgUid;
   PRUint32 m_uidValidity;
   PRInt32 m_numStatusRecentMessages; // used to store counts from Status command

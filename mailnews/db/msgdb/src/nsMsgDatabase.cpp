@@ -68,6 +68,8 @@
 #include "nsIMsgFolderCacheElement.h"
 #include "MailNewsTypes2.h"
 #include "nsMsgUtils.h"
+#include "nsIMsgFolderNotificationService.h"
+#include "nsIMutableArray.h"
 
 #include "nsICollation.h"
 
@@ -4523,10 +4525,10 @@ NS_IMETHODIMP nsMsgDatabase::ApplyRetentionSettings(nsIMsgRetentionSettings *aMs
   NS_ENSURE_ARG_POINTER(aMsgRetentionSettings);
   nsresult rv = NS_OK;
 
-  nsCOMPtr <nsISupportsArray> msgHdrsToDelete;
+  nsCOMPtr <nsIMutableArray> msgHdrsToDelete;
   if (aDeleteViaFolder)
   {
-    msgHdrsToDelete = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+    msgHdrsToDelete = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   nsMsgRetainByPreference retainByPreference;
@@ -4568,7 +4570,7 @@ NS_IMETHODIMP nsMsgDatabase::ApplyRetentionSettings(nsIMsgRetentionSettings *aMs
   if (msgHdrsToDelete)
   {
     PRUint32 count;
-    msgHdrsToDelete->Count(&count);
+    msgHdrsToDelete->GetLength(&count);
     if (count > 0)
       rv = m_folder->DeleteMessages(msgHdrsToDelete, nsnull, PR_TRUE, PR_FALSE, nsnull, PR_FALSE);
   }
@@ -4577,7 +4579,7 @@ NS_IMETHODIMP nsMsgDatabase::ApplyRetentionSettings(nsIMsgRetentionSettings *aMs
 
 nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
                                                PRBool keepUnreadMessagesOnly,
-                                               nsISupportsArray *hdrsToDelete)
+                                               nsIMutableArray *hdrsToDelete)
 {
   nsresult rv = NS_OK;
   nsMsgHdr *pHeader;
@@ -4630,7 +4632,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
       pHeader->GetMessageKey(&msgKey);
       keysToDelete.AppendElement(msgKey);
       if (hdrsToDelete)
-        hdrsToDelete->AppendElement(pHeader);
+        hdrsToDelete->AppendElement(pHeader, PR_FALSE);
     }
     NS_RELEASE(pHeader);
   }
@@ -4648,7 +4650,7 @@ nsresult nsMsgDatabase::PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
 }
 
 nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool keepUnreadMessagesOnly,
-                                            nsISupportsArray *hdrsToDelete)
+                                            nsIMutableArray *hdrsToDelete)
 {
   nsresult rv = NS_OK;
   nsMsgHdr    *pHeader;
@@ -4692,7 +4694,7 @@ nsresult nsMsgDatabase::PurgeExcessMessages(PRUint32 numHeadersToKeep, PRBool ke
       keysToDelete.AppendElement(msgKey);
       numHdrs--;
       if (hdrsToDelete)
-        hdrsToDelete->AppendElement(pHeader);
+        hdrsToDelete->AppendElement(pHeader, PR_FALSE);
     }
     NS_RELEASE(pHeader);
   }
