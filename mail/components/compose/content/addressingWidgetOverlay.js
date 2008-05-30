@@ -319,7 +319,7 @@ function awSetInputAndPopupFromArray(inputArray, popupValue, parentNode, templat
 
 function awRemoveRecipients(msgCompFields, recipientType, recipientsList)
 {
-  if (!msgCompFields)
+  if (!msgCompFields || !recipientsList)
     return;
 
   var recipientArray = msgCompFields.SplitRecipients(recipientsList, false);
@@ -344,9 +344,8 @@ function awRemoveRecipients(msgCompFields, recipientType, recipientsList)
 
 function awAddRecipients(msgCompFields, recipientType, recipientsList)
 {
-  if (!msgCompFields)
+  if (!msgCompFields || !recipientsList)
     return;
-
   var recipientArray = msgCompFields.SplitRecipients(recipientsList, false);
   if (! recipientArray)
     return;
