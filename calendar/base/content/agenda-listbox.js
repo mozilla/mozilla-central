@@ -113,7 +113,6 @@ function onCheckboxChange(event) {
     var listItem = getParentNode(periodCheckbox, "agenda-checkbox-richlist-item");
     var period = listItem.getItem();
     period.open= lopen;
-    document.getElementById(listItem.id + "-hidden").setAttribute("checked", lopen);
     if (lopen) {
         agendaListbox.refreshCalendarQuery(period.start, period.end);
     } else {
@@ -716,6 +715,7 @@ function observer_onModifyItem(newItem, oldItem) {
     if (this.mBatchCount) {
         return;
     }
+    var oldPeriods = agendaListbox.findPeriodsForItem(oldItem);
     var selectedItemHashId = this.onLocalDeleteItem(oldItem, false);
     if (!isEvent(newItem)) {
         return;
@@ -730,6 +730,11 @@ function observer_onModifyItem(newItem, oldItem) {
         }
     }
     setCurrentEvent();
+    for (var i = 0; i < oldPeriods.length; i++) {
+        if (checkIfInRange(newItem, oldPeriods[i].start, oldPeriods[i].end)) {
+            oldPeriods[i].listItem.getCheckbox().setChecked(true);
+        }
+    }
 };
 
 agendaListbox.calendarObserver.onError = function(cal, errno, msg) {};
