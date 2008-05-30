@@ -46,7 +46,6 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <stringbundleset id="calendar_stringbundles">
     <stringbundle id="bundle_branding" src="chrome://branding/locale/brand.properties"/>
-    <stringbundle id="bundle_calendar" src="chrome://calendar/locale/calendar.properties"/>
   </stringbundleset>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-common-sets.js"/>
 

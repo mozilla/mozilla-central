@@ -121,7 +121,3 @@
 </keyset>
 
 <keyset id="tasksKeys"/>
-
-<script type="application/x-javascript">
-  var gCalendarBundle = document.getElementById("bundle_calendar");
-</script>

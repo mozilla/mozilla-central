@@ -446,7 +446,7 @@
               switch (aCol.element.getAttribute("anonid")) {
                   case "calendar-task-tree-col-title":
                       // return title, or "Untitled" if empty/null
-                      return task.title || gCalendarBundle.getString("eventUntitled");
+                      return task.title || calGetString("calendar", "eventUntitled");
                   case "calendar-task-tree-col-startdate":
                       return this._formatDateTime(task.entryDate);
                   case "calendar-task-tree-col-duedate":
@@ -1077,7 +1077,7 @@
                       // No priority set (0) should be weighted as "normal" (5).
                       return compareNumber(a.priority || 5, b.priority || 5) * modifier;
                   case "calendar-task-tree-col-title":
-                      return compareString(a.title.toLowerCase(), b.title.toLowerCase()) * modifier;
+                      return compareString(a.title ? a.title.toLowerCase() : "", b.title ? b.title.toLowerCase() : "") * modifier;
                   case "calendar-task-tree-col-startdate":
                       return compareDate(a.entryDate, b.entryDate) * modifier;
                   case "calendar-task-tree-col-duedate":
