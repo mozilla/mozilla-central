@@ -948,9 +948,13 @@ function loadStartFolder(initialUri)
     if (gLoadStartFolder)
       MsgGetMessagesForAllServers(defaultServer);
 
-    // if appropriate, send unsent messages. This may end up prompting the user
-    if (MailOfflineMgr.isOnline() && MailOfflineMgr.shouldSendUnsentMessages())
-      SendUnsentMessages();
+    // If appropriate, send unsent messages. This may end up prompting the user,
+    // so we need to get it out of the flow of the normal load sequence.
+    function checkUnsent() {
+      if (MailOfflineMgr.isOnline() && MailOfflineMgr.shouldSendUnsentMessages())
+        SendUnsentMessages();
+    }
+    setTimeout(checkUnsent, 0);
 }
 
 function AddToSession()
