@@ -282,7 +282,7 @@ class Codesighs(ShellCommand):
             z = 'mZ'
 
         slug = '%s:%s' % (z, bytes)
-        summary = 'TinderboxPrint:%s' % slug
+        summary = 'TinderboxPrint:%s\n' % slug
         self.addCompleteLog(slug, summary)
         if diff:
             # buildbot chokes if we put all the data in the short log
