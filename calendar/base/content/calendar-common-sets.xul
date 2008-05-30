@@ -81,18 +81,18 @@
     <command id="calendar_week-view_command" oncommand="showCalendarView('week')"/>
     <command id="calendar_multiweek-view_command" oncommand="showCalendarView('multiweek')"/>
     <command id="calendar_month-view_command" oncommand="showCalendarView('month')"/>
-    <command id="calendar_modify_todo_command" oncommand="goDoCommand('calendar_modify_todo_command')"/>
+    <command id="calendar_modify_todo_command" oncommand="modifyTaskFromContext(event)"/>
     <command id="calendar_task_category_command" oncommand="contextChangeTaskCategory(event);"/>
-    <command id="calendar_percentComplete-0_command" oncommand="goDoCommand('calendar_percentComplete-0_command')"/>
-    <command id="calendar_percentComplete-25_command" oncommand="goDoCommand('calendar_percentComplete-25_command')"/>
-    <command id="calendar_percentComplete-50_command" oncommand="goDoCommand('calendar_percentComplete-50_command')"/>
-    <command id="calendar_percentComplete-75_command" oncommand="goDoCommand('calendar_percentComplete-75_command')"/>
-    <command id="calendar_percentComplete-100_command" oncommand="goDoCommand('calendar_percentComplete-100_command')"/>
-    <command id="calendar_percentComplete-100_command2" oncommand="goDoCommand('calendar_percentComplete-100_command2')"/>
-    <command id="calendar_priority-0_command" oncommand="goDoCommand('calendar_priority-0_command')"/>
-    <command id="calendar_priority-9_command" oncommand="goDoCommand('calendar_priority-9_command')"/>
-    <command id="calendar_priority-5_command" oncommand="goDoCommand('calendar_priority-5_command')"/>
-    <command id="calendar_priority-1_command" oncommand="goDoCommand('calendar_priority-1_command')"/>
+    <command id="calendar_percentComplete-0_command" oncommand="contextChangeTaskProgress(event, 0)"/>
+    <command id="calendar_percentComplete-25_command" oncommand="contextChangeTaskProgress(event, 25)"/>
+    <command id="calendar_percentComplete-50_command" oncommand="contextChangeTaskProgress(event, 50)"/>
+    <command id="calendar_percentComplete-75_command" oncommand="contextChangeTaskProgress(event, 75)"/>
+    <command id="calendar_percentComplete-100_command" oncommand="contextChangeTaskProgress(event, 100)"/>
+    <command id="calendar_percentComplete-100_command2" oncommand="contextChangeTaskProgress2(event, 100)"/>
+    <command id="calendar_priority-0_command" oncommand="contextChangeTaskPriority(event, 0)"/>
+    <command id="calendar_priority-9_command" oncommand="contextChangeTaskPriority(event, 9)"/>
+    <command id="calendar_priority-5_command" oncommand="contextChangeTaskPriority(event, 5)"/>
+    <command id="calendar_priority-1_command" oncommand="contextChangeTaskPriority(event, 1)"/>
     <command id="calendar_general-priority_command" oncommand="goDoCommand('calendar_general-priority_command')"/>
     <command id="calendar_toggle_orientation_command" persist="checked" oncommand="toggleOrientation()" disabled="true"/>
     <command id="calendar_toggle_workdays_only_command" persist="checked" oncommand="toggleWorkdaysOnly()"/>
@@ -330,11 +330,11 @@
           <menuitem id="calendar-context-converttomessage"
                     label="&calendar.context.convertmenu.message.label;"
                     accesskey="&calendar.context.convertmenu.message.accesskey;"
-                    oncommand="tasksToMail()"/>
+                    oncommand="tasksToMail(event)"/>
           <menuitem id="calendar-context-converttoevent"
                     label="&calendar.context.convertmenu.event.label;"
                     accesskey="&calendar.context.convertmenu.event.accesskey;"
-                    oncommand="tasksToEvents()"/>
+                    oncommand="tasksToEvents(event)"/>
         </menupopup>
       </menu>
     </menupopup>

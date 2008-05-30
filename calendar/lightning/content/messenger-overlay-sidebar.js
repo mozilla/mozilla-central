@@ -548,6 +548,7 @@ function copyPopupMenus() {
     addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
     addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
     var tasksViewMenuPopup = clonePopupMenu("taskitem-context-menu", "taskitem-menu", "menu-");
+    tasksViewMenuPopup.setAttribute("tree", "calendar-task-tree");
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-modify", tasksViewMenuPopup));
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-delete", tasksViewMenuPopup));
     addToPopupList(menulist[4], tasksViewMenuPopup, taskpopuplist, excludeList, false, false);

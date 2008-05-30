@@ -263,7 +263,7 @@ function guessSystemTimezone() {
                 return 0;
             }
         }
-        
+
         var subComp = tz.component;
         // find currently applicable time period, not just first,
         // because offsets of timezone may be changed over the years.
@@ -287,7 +287,7 @@ function guessSystemTimezone() {
         if (offsetDec == standardTZOffset && offsetJun == daylightTZOffset &&
             daylight) {
             var dateMatchWt = systemTZMatchesTimeShiftDates(tz, subComp);
-            if (dateMatchWt > 0) { 
+            if (dateMatchWt > 0) {
                 if (standardName && standardName == tzNameJun &&
                     daylightName && daylightName == tzNameDec) {
                     return 3;
@@ -310,7 +310,7 @@ function guessSystemTimezone() {
         if (offsetJun == standardTZOffset && offsetDec == daylightTZOffset &&
             daylight) {
             var dateMatchWt = systemTZMatchesTimeShiftDates(tz, subComp);
-            if (dateMatchWt > 0) { 
+            if (dateMatchWt > 0) {
                 if (standardName && standardName == tzNameJun &&
                     daylightName && daylightName == tzNameDec) {
                     return 3;
@@ -348,7 +348,7 @@ function guessSystemTimezone() {
             (beforeSpringShiftJSDate.getTimezoneOffset() >
              afterSpringShiftJSDate.getTimezoneOffset())) {
             return 2;
-        }          
+        }
         // Try with 7 DAYS fuzz in either direction, so if no other tz found,
         // will have a nearby tz that disagrees only on the weekday of shift
         // (sunday vs. friday vs. calendar day), or off by exactly one week,
@@ -377,7 +377,7 @@ function guessSystemTimezone() {
     const untilRegex = /UNTIL=(\d{8}T\d{6}Z)/;
 
     function findCurrentTimePeriod(tz, subComp, standardOrDaylight,
-                                   isForNextTransitionDate) { 
+                                   isForNextTransitionDate) {
         // Iterate through 'STANDARD' declarations or 'DAYLIGHT' declarations
         // (periods in history with different settings.
         //  e.g., US changes daylight start in 2007 (from April to March).)
@@ -396,7 +396,7 @@ function guessSystemTimezone() {
             // some zones (e.g., Arizona, Hawaii) may stop using daylight
             // time, so there might not be a next daylight start.
             var rrule = period.getFirstProperty("RRULE");
-            if (rrule) { 
+            if (rrule) {
                 var match = untilRegex.exec(rrule.valueAsIcalString);
                 if (match) {
                     periodUntilCalDate.icalString = match[1];
@@ -409,12 +409,12 @@ function guessSystemTimezone() {
             // found period that covers today.
             if (!isForNextTransitionDate) {
                 return period;
-            } else /*isForNextTranstionDate*/ { 
+            } else /*isForNextTranstionDate*/ {
                 if (todayUTC.nativeTime < periodStartCalDate.nativeTime) {
                     // already know periodStartCalDate < oneYr from now,
                     // and transitions are at most once per year, so it is next.
                     return periodStartCalDate.jsDate;
-                } else if (rrule) { 
+                } else if (rrule) {
                     // find next occurrence after today
                     periodCalRule.icalProperty = rrule;
                     var nextTransitionDate =
@@ -427,7 +427,7 @@ function guessSystemTimezone() {
             }
         }
         // no such period found
-        return null; 
+        return null;
     }
 
 
@@ -437,14 +437,14 @@ function guessSystemTimezone() {
     var probableTZScore = 0;
     var probableTZSource = null;
 
-    const sbSvc = 
+    const sbSvc =
         Components.classes["@mozilla.org/intl/stringbundle;1"]
         .getService(Components.interfaces.nsIStringBundleService);
     const calProperties =
         sbSvc.createBundle("chrome://calendar/locale/calendar.properties");
 
     // First, try to detect operating system timezone.
-    try { 
+    try {
         var osUserTimeZone = null;
         var zoneInfoIdFromOSUserTimeZone = null;
 
@@ -458,7 +458,7 @@ function guessSystemTimezone() {
                 // in releases built on Gecko 1.9 or later.
                 regOSName  = "Windows";
                 fileOSName = "Windows98";
-            }                    
+            }
 
             // If on Windows NT (2K/XP/Vista), current timezone only lists its
             // localized name, so to find its registry key name, match localized
@@ -512,7 +512,7 @@ function guessSystemTimezone() {
             // - /etc/sysconfig/clock file line content.
             // The timezone is set per user via the TZ environment variable.
             // TZ may contain a path that may start with a colon and ends with
-            // a ZoneInfo timezone identifier, such as ":America/New_York" or 
+            // a ZoneInfo timezone identifier, such as ":America/New_York" or
             // ":/share/lib/zoneinfo/America/New_York".  The others are
             // in the filesystem so they give one timezone for the system;
             // the values are similar (but cannot have a leading colon).
@@ -562,11 +562,11 @@ function guessSystemTimezone() {
                     const PR_RDONLY = 0x1;
                     fileInstream.init(file, PR_RDONLY, 0, 0);
                     fileInstream.QueryInterface(CI.nsILineInputStream);
-                    try { 
+                    try {
                         var line = {}, hasMore = true, MAXLINES = 10;
-                        for (var i = 0; hasMore && i < MAXLINES; i++) { 
+                        for (var i = 0; hasMore && i < MAXLINES; i++) {
                             hasMore = fileInstream.readLine(line);
-                            if (line.value && line.value.match(tzRegex)) { 
+                            if (line.value && line.value.match(tzRegex)) {
                                 return filepath+": "+line.value;
                             }
                         }
@@ -578,7 +578,7 @@ function guessSystemTimezone() {
                     Components.utils.reportError(filepath+": "+ex);
                     return "";
                 }
-              
+
             }
             osUserTimeZone = (environmentVariableValue("TZ") ||
                               symbolicLinkTarget("/etc/localtime") ||
@@ -592,7 +592,7 @@ function guessSystemTimezone() {
         }
 
         // check how well OS tz matches tz defined in our version of zoneinfo db
-        if (zoneInfoIdFromOSUserTimeZone != null) { 
+        if (zoneInfoIdFromOSUserTimeZone != null) {
             var tzId = tzSvc.tzidPrefix + zoneInfoIdFromOSUserTimeZone;
             var score = checkTZ(tzId);
             switch(score) {
@@ -626,29 +626,29 @@ function guessSystemTimezone() {
                       ("SkippingOSTimezone",
                        [zoneInfoIdFromOSUserTimeZone || osUserTimeZone], 1));
         Components.utils.reportError(errMsg+" "+ex);
-    } 
+    }
 
     // Second, give priority to "likelyTimezone"s if provided by locale.
     try {
-        // The likelyTimezone property is a comma-separated list of 
+        // The likelyTimezone property is a comma-separated list of
         // ZoneInfo timezone ids.
         const bundleTZString =
             calProperties.GetStringFromName("likelyTimezone");
         const bundleTZIds = bundleTZString.split(/\s*,\s*/);
-        for each (var bareTZId in bundleTZIds) { 
-            var tzId = bareTZId; 
+        for each (var bareTZId in bundleTZIds) {
+            var tzId = bareTZId;
             if (tzId.indexOf("/mozilla.org/") == -1) {
                 // Convert a ZoneInfo timezone to a mozilla timezone-string
                 tzId = tzSvc.tzidPrefix + tzId;
             }
-            try { 
+            try {
                 var score = checkTZ(tzId);
 
                 switch (score) {
                 case 0:
                     break;
                 case 1: case 2:
-                    if (score > probableTZScore) { 
+                    if (score > probableTZScore) {
                         probableTZId = tzId;
                         probableTZScore = score;
                         probableTZSource = (calProperties.GetStringFromName
@@ -667,14 +667,14 @@ function guessSystemTimezone() {
     } catch (ex) { // Oh well, this didn't work, next option...
         Components.utils.reportError(ex);
     }
-        
+
     // Third, try all known timezones.
     const tzIDs = tzSvc.timezoneIds;
     while (tzIDs.hasMore()) {
         var tzId = tzIDs.getNext();
         try {
             var score = checkTZ(tzId);
-            switch(score) { 
+            switch(score) {
             case 0: break;
             case 1: case 2:
                 if (score > probableTZScore) {
@@ -695,7 +695,7 @@ function guessSystemTimezone() {
     }
 
     // If reach here, there were no score=3 matches, so Warn in console.
-    try { 
+    try {
         switch(probableTZScore) {
         case 0:
             WARN(calProperties.GetStringFromName("warningUsingFloatingTZNoMatch"));
@@ -721,7 +721,7 @@ function guessSystemTimezone() {
                 var standardStart = getIcalString(standard, "DTSTART");
                 var standardStartWeekday = weekday(standardStart);
                 var standardRule  = getIcalString(standard, "RRULE");
-                var standardText = 
+                var standardText =
                     ("  Standard: "+standardStart+" "+standardStartWeekday+"\n"+
                      "            "+standardRule+"\n");
                 var daylightStart = getIcalString(daylight, "DTSTART");
@@ -1154,7 +1154,7 @@ function getUUID() {
     if ("@mozilla.org/uuid-generator;1" in Components.classes) {
         var uuidGen = Components.classes["@mozilla.org/uuid-generator;1"].
                       getService(Components.interfaces.nsIUUIDGenerator);
-        // generate uuids without braces to avoid problems with 
+        // generate uuids without braces to avoid problems with
         // CalDAV servers that don't support filenames with {}
         return uuidGen.generateUUID().toString().replace(/[{}]/g, '');
     }
@@ -1166,7 +1166,7 @@ function getUUID() {
  * have 2 objects.  Use these functions to force them both to get wrapped
  * the same way, allowing for normal comparison.
  */
- 
+
 /**
  * calIItemBase comparer
  */
@@ -1340,10 +1340,10 @@ function setDefaultStartEndHour(aItem, aReferenceDate) {
  ****/
 
 /**
- * Logs a string or an object to both stderr and the js-console only in the case 
+ * Logs a string or an object to both stderr and the js-console only in the case
  * where the calendar.debug.log pref is set to true.
  *
- * @param aArg  either a string to log or an object whose entire set of 
+ * @param aArg  either a string to log or an object whose entire set of
  *              properties should be logged.
  */
 function LOG(aArg) {
@@ -1369,7 +1369,7 @@ function LOG(aArg) {
     } else {
         string = aArg;
     }
- 
+
     dump(string + '\n');
     getConsoleService().logStringMessage(string);
 }
@@ -1444,7 +1444,7 @@ function showError(aMsg) {
 
 /**
  * Pick whichever of "black" or "white" will look better when used as a text
- * color against a background of bgColor. 
+ * color against a background of bgColor.
  *
  * @param bgColor   the background color as a "#RRGGBB" string
  */
@@ -1874,7 +1874,7 @@ function calSetProdidVersion(aIcalComponent) {
  * @param
  *      aElement  The XUL element to derive the sibling from
  * @param
- *      aDistance  An integer value denoting how the relative position 
+ *      aDistance  An integer value denoting how the relative position
  *                  of the returned sibling within the parent container
  */
 function getAdjacentSibling(aElement, aDistance) {
@@ -1899,7 +1899,7 @@ function getAdjacentSibling(aElement, aDistance) {
  *
  * @param aMenuPopupId The Id of the popup-menu to be cloned
  * @param aNewPopupId The new id of the cloned popup-menu
- * @param aNewIdPrefix To keep the ids unique the childnodes of the returned 
+ * @param aNewIdPrefix To keep the ids unique the childnodes of the returned
  * popup-menu are prepended with a prefix
  * @return the cloned popup-menu
  */
@@ -1939,15 +1939,15 @@ function applyAttributeToMenuChildren(aElement, aAttributeName, aValue) {
                }
            }
            domObject.setAttribute(aAttributeName, aValue);
-       sibling = sibling.nextSibling;          
+       sibling = sibling.nextSibling;
        }
     } while (sibling);
   }
 
 
 /**
- * compares the value of a property of an array of objects and returns 
- * true or false if it is same or not among all array members 
+ * compares the value of a property of an array of objects and returns
+ * true or false if it is same or not among all array members
  *
  * @param aObjects An Array of Objects to inspect
  * @param aProperty Name the name of the Property of which the value is compared
@@ -1965,9 +1965,9 @@ function isPropertyValueSame(aObjects, aPropertyName) {
     }
     return true;
 }
-  
+
 /**
- * sets the value of a boolean attribute by either setting the value or 
+ * sets the value of a boolean attribute by either setting the value or
  * removing the attribute
  *
  * @param aXulElement The XulElement the attribute is applied to
@@ -1987,12 +1987,50 @@ function setBooleanAttribute(aXulElement, aAttribute, aValue) {
     }
 }
 
-function getParentNode(aNode, aLocalName) {
-  var node = aNode;
-  do {
-      node = node && node.parentNode;      
-  } while (node && (node.localName != aLocalName));
-  return node;
+/**
+ * returns a parentnode - or the overgiven node - with the given localName, 
+ * by "walking up" the DOM-hierarchy.
+ *
+ * @param aChildNode  The childnode.
+ * @param aLocalName  The localName of the to-be-returned parent
+ *                      that is looked for.
+ * @return            The parent with the given localName or the
+ *                      given childNode 'aChildNode'. If no appropriate
+ *                      parent node with aLocalName could be
+ *                      retrieved it is returned 'null'.
+ */
+function getParentNodeOrThis(aChildNode, aLocalName) {
+    var node = aChildNode;
+    while (node && (node.localName != aLocalName)) {
+        node = node.parentNode;
+        if (node.tagName == undefined) {
+            return null;
+        }
+    };
+    return node;
+}
+
+/**
+ * Returns a parentnode  - or the overgiven node -  with the given attributevalue
+ * for the given attributename by "walking up" the DOM-hierarchy.
+ *
+ * @param aChildNode      The childnode.
+ * @param aAttibuteName   The name of the attribute that is to be compared with
+ * @param aAttibuteValue  The value of the attribute that is to be compared with
+ * @return                The parent with the given attributeName set that has
+ *                          the same value as the given given attributevalue
+ *                          'aAttributeValue'. If no appropriate
+ *                          parent node can be retrieved it is returned 'null'.
+ */
+function getParentNodeOrThisByAttribute(aChildNode, aAttributeName, aAttributeValue) {
+    var node = aChildNode;
+    while (node && (node.getAttribute(aAttributeName) != aAttributeValue)) {
+        node = node.parentNode;
+        if (node.tagName == undefined) {
+            return null;
+        }
+    };
+    return node;
 }
 
 function setItemProperty(item, propertyName, aValue, aCapability) {
@@ -2222,7 +2260,7 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
             bodyStringId = "itipCancelBody";
             break;
     }
-    
+
     var subject = sb.formatStringFromName(subjectStringId,
                                           [summary], 1);
     var body = sb.formatStringFromName(bodyStringId,

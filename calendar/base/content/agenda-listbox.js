@@ -110,7 +110,7 @@ agendaListbox.onCheckboxChange =
 function onCheckboxChange(event) {
     var periodCheckbox = event.target;
     var lopen = (periodCheckbox.getAttribute("checked") == "true");
-    var listItem = getParentNode(periodCheckbox, "agenda-checkbox-richlist-item");
+    var listItem = getParentNodeOrThis(periodCheckbox, "agenda-checkbox-richlist-item");
     var period = listItem.getItem();
     period.open= lopen;
     if (lopen) {

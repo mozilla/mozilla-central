@@ -215,12 +215,6 @@ var calendarController = {
             case "calendar_new_todo_command":
                 createTodoWithDialog(getSelectedCalendar());
                 break;
-            case "calendar_modify_todo_command":
-                var selectedTasks = getFocusedTaskTree().selectedTasks;
-                for each (var task in selectedTasks) {
-                    modifyEventWithDialog(task, null, true);
-                }
-                break;
             case "calendar_delete_todo_command":
                 deleteToDoCommand();
                 break;
@@ -257,36 +251,6 @@ var calendarController = {
 
             case "calendar_reload_remote_calendars":
                 getCompositeCalendar().refresh();
-                break;
-            case "calendar_percentComplete-0_command":
-                contextChangeTaskProgress(0);
-                break;
-            case "calendar_percentComplete-25_command":
-                contextChangeTaskProgress(25);
-                break;
-            case "calendar_percentComplete-50_command":
-                contextChangeTaskProgress(50);
-                break;
-            case "calendar_percentComplete-75_command":
-                contextChangeTaskProgress(75);
-                break;
-            case "calendar_percentComplete-100_command":
-                contextChangeTaskProgress(100);
-                break;
-            case "calendar_percentComplete-100_command2":
-                contextChangeTaskProgress2(100);
-                break;
-            case "calendar_priority-0_command":
-                contextChangeTaskPriority(0);
-                break;
-            case "calendar_priority-9_command":
-                contextChangeTaskPriority(9);
-                break;
-            case "calendar_priority-5_command":
-                contextChangeTaskPriority(5);
-                break;
-            case "calendar_priority-1_command":
-                contextChangeTaskPriority(1);
                 break;
             default:
                 if (this.defaultController && !this.isCalendarInForeground()) {
@@ -448,22 +412,15 @@ var calendarController = {
     },
 
     get todo_items_selected cC_todo_items_selected() {
-        var taskTree = getFocusedTaskTree();
-        if (taskTree) {
-            var selectedTasks = taskTree.selectedTasks;
-            return (selectedTasks.length > 0);
-        }
-        return false;
+        var selectedTasks = getSelectedTasks();
+        return (selectedTasks.length > 0);
     },
 
     get todo_items_writable cC_todo_items_writable() {
-        var taskTree = getFocusedTaskTree();
-        if (taskTree) {
-            var selectedTasks = taskTree.selectedTasks;
-            for each (var task in selectedTasks) {
-                if (isCalendarWritable(task.calendar)) {
-                    return true;
-                }
+        var selectedTasks = getSelectedTasks();
+        for each (var task in selectedTasks) {
+            if (isCalendarWritable(task.calendar)) {
+                return true;
             }
         }
         return false;

@@ -50,8 +50,7 @@ function addCalendarNames(aEvent) {
     while (calendarMenuPopup.hasChildNodes()) {
         calendarMenuPopup.removeChild(calendarMenuPopup.lastChild);
     }
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     var tasksSelected = (tasks.length > 0);
     if (tasksSelected) {
         var selIndex = appendCalendarItems(tasks[0], calendarMenuPopup, null, "contextChangeTaskCalendar(event);");
@@ -62,8 +61,7 @@ function addCalendarNames(aEvent) {
 }
 
 function addCategoryNames(aEvent) {
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     var tasksSelected = (tasks.length > 0);
     if (tasksSelected) {
         var index = appendCategoryItems(tasks[0], aEvent.target, document.getElementById("calendar_task_category_command"));
@@ -92,8 +90,7 @@ function changeTaskPriorityMenu(aEvent) {
  */
 function changeMenuByPropertyName(aEvent, aPropertyName) {
     uncheckChildNodes(aEvent);
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     var tasksSelected = ((tasks != null) && (tasks.length > 0));
     if (tasksSelected) {
         var task = tasks[0];
@@ -109,33 +106,28 @@ function changeMenuByPropertyName(aEvent, aPropertyName) {
 }
 
 function changeContextMenuForTask(aEvent) {
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     var task = null;
     var tasksSelected = (tasks.length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     document.getElementById("calendar_new_todo_command").removeAttribute("disabled");
     if (tasksSelected) {
-        taskTree.contextTask = task = tasks[0];
-        if (isPropertyValueSame(tasks, "isCompleted")) {;
-            setBooleanAttribute(document.getElementById("calendar-context-markcompleted"), "checked", task.isCompleted);
+        if (isPropertyValueSame(tasks, "isCompleted")) {
+            setBooleanAttribute(document.getElementById("calendar-context-markcompleted"), "checked", tasks[0].isCompleted);
         } else {
             document.getElementById("calendar-context-markcompleted").setAttribute("checked", false);
         }
-    } else {
-        taskTree.contextTask = null;
     }
 }
 
-function contextChangeTaskProgress2(aProgress) {
-    contextChangeTaskProgress(aProgress);
+function contextChangeTaskProgress2(aEvent, aProgress) {
+    contextChangeTaskProgress(aEvent, aProgress);
     document.getElementById("calendar_percentComplete-100_command2").checked = false;
 }
 
-function contextChangeTaskProgress(aProgress) {
+function contextChangeTaskProgress(aEvent, aProgress) {
     startBatchTransaction();
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     for (var t = 0; t < tasks.length; t++) {
         var task = tasks[t];
         var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
@@ -159,8 +151,7 @@ function contextChangeTaskProgress(aProgress) {
 
 function contextChangeTaskCategory(aEvent) {
     startBatchTransaction();
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     var tasksSelected = (tasks.length > 0);
     if (tasksSelected) {
         var menuItem = aEvent.target;
@@ -175,8 +166,7 @@ function contextChangeTaskCategory(aEvent) {
 
 function contextChangeTaskCalendar(aEvent) {
    startBatchTransaction();
-   var taskTree = getFocusedTaskTree();
-   var tasks = taskTree.selectedTasks;
+   var tasks = getSelectedTasks(aEvent);
    for (var t = 0; t < tasks.length; t++) {
        var task = tasks[t];
        var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
@@ -186,10 +176,9 @@ function contextChangeTaskCalendar(aEvent) {
     endBatchTransaction();
 }
 
-function contextChangeTaskPriority(aPriority) {
+function contextChangeTaskPriority(aEvent, aPriority) {
     startBatchTransaction();
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+    var tasks = getSelectedTasks(aEvent);
     for (var t = 0; t < tasks.length; t++) {
         var task = tasks[t];
         var newTask = task.clone().QueryInterface( Components.interfaces.calITodo );
@@ -199,9 +188,8 @@ function contextChangeTaskPriority(aPriority) {
      endBatchTransaction();
   }
 
-function modifyTaskFromContext() {
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+function modifyTaskFromContext(aEvent) {
+    var tasks = getSelectedTasks(aEvent);
     for (var t = 0; t < tasks.length; t++) {
         modifyEventWithDialog(tasks[t], null, true);
     }
@@ -210,32 +198,43 @@ function modifyTaskFromContext() {
 /**
  *  Delete the current selected item with focus from the task tree
  */
-function deleteToDoCommand(aDoNotConfirm) {
-    var taskTree = getFocusedTaskTree();
-    var selectedItems = taskTree.selectedTasks;
-    calendarViewController.deleteOccurrences(selectedItems.length,
-                                             selectedItems,
+function deleteToDoCommand(aEvent, aDoNotConfirm) {
+    var tasks = getSelectedTasks(aEvent);
+    calendarViewController.deleteOccurrences(tasks.length,
+                                             tasks,
                                              false,
                                              aDoNotConfirm);
 }
 
-function getFocusedTaskTree() {
-    // Which tree is focused depends on the mode.
-    var taskTree;
-    var focusedElement = document.commandDispatcher.focusedElement;
-    taskTree = getParentNode(focusedElement, "calendar-task-tree");
-    return taskTree;
+function getSelectedTasks(aEvent) {
+    var taskTree = null;
+    if (aEvent == null) {
+        taskTree = document.getElementById("calendar-task-tree");
+    } else {
+        // If the MenuItem is part of the application menu we can get the related
+        // tree by querying the "tree" attribute that has been attached to
+        // the parental popupMenu
+        taskTree = getParentNodeOrThisByAttribute(aEvent.target, "tree", "calendar-task-tree");
+        if (taskTree == null) {
+            // in this case we know that the menuitem is part of a context menu
+            taskTree = getParentNodeOrThis(document.popupNode, "calendar-task-tree");
+        }
+    }
+    if (taskTree != null) {
+        return taskTree.selectedTasks;
+    }
+    else  {
+        return [];
+    }
 }
 
-function tasksToMail() {
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+function tasksToMail(aEvent) {
+    var tasks = getSelectedTasks(aEvent);
     calendarMailButtonDNDObserver.onDropItems(tasks);
 }
 
-function tasksToEvents() {
-    var taskTree = getFocusedTaskTree();
-    var tasks = taskTree.selectedTasks;
+function tasksToEvents(aEvent) {
+    var tasks = getSelectedTasks(aEvent);
     calendarCalendarButtonDNDObserver.onDropItems(tasks);
 }
 

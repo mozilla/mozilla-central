@@ -125,7 +125,6 @@
       <field name="mLoadCount">0</field>
       <field name="mTaskArray">[]</field>
       <field name="mHash2Index"><![CDATA[({})]]></field>
-      <field name="mContextTask">null</field>
       <field name="mRefreshQueue">[]</field>
       <field name="mPendingRefresh">null</field>
       <field name="mShowCompletedTasks">true</field>
@@ -223,16 +222,6 @@
           return this.mTreeView._getItemFromEvent(aEvent);
         ]]></body>
       </method>
-      
-      <property name="contextTask">
-        <getter><![CDATA[
-          return this.mContextTask;
-        ]]></getter>
-        <setter><![CDATA[
-          this.mContextTask = val;
-          return this.mContextTask;
-        ]]></setter>
-      </property>
             
       <field name="mTreeView"><![CDATA[
       ({

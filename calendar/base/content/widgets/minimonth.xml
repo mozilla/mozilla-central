@@ -107,7 +107,7 @@
      <implementation>
        <field name="kMinimonth">null</field>
        <constructor><![CDATA[
-         this.kMinimonth = getParentNode(this, "minimonth");
+         this.kMinimonth = getParentNodeOrThis(this, "minimonth");
        ]]></constructor>
        <property name="month">
          <setter><![CDATA[
@@ -201,7 +201,7 @@
        <field name="mPopup">null</field>
        <field name="mScrollYearsHandler">{}</field>
        <constructor><![CDATA[
-         this.kMinimonth = getParentNode(this, "minimonth");
+         this.kMinimonth = getParentNodeOrThis(this, "minimonth");
          document.getAnonymousElementByAttribute(this, "anonid", "left-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "today-button").kMinimonth = this.kMinimonth;
          document.getAnonymousElementByAttribute(this, "anonid", "right-button").kMinimonth = this.kMinimonth;
@@ -367,7 +367,7 @@
       <handler event="click">
         <![CDATA[
           var element = event.originalTarget;
-          var popup = getParentNode(element, "popup");
+          var popup = getParentNodeOrThis(element, "popup");
           if (popup) {
               var anonid = popup.getAttribute("anonid")
               switch(anonid) {
