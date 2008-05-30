@@ -39,11 +39,9 @@
 
 const MSG_FOLDER_FLAG_INBOX = 0x1000
 
-var gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
-
 var gFilterListMsgWindow = null;
 var gCurrentFilterList;
-var gCurrentServerURI = null;
+var gCurrentServer;
 
 var gStatusFeedback = {
   progressMeterVisible : false,
@@ -120,18 +118,18 @@ function onLoad()
  * Called when a user selects a server in the list, so we can update the filters
  * that are displayed
  *
- * @param aURI  the uri of the server that was selected
+ * @param aServer  the nsIMsgIncomingServer that was selected
  */
-function onFilterServerClick(aURI)
+function onFilterServerClick(aServer)
 {
-    if (!aURI || aURI == gCurrentServerURI)
+    if (!aServer || aServer == gCurrentServer)
       return;
 
     // Save the current filters to disk before switching because
     // the dialog may be closed and we'll lose current filters.
     gCurrentFilterList.saveToDefaultFile();
 
-    selectServer(aURI);
+    selectServer(aServer);
 }
 
 function CanRunFiltersAfterTheFact(aServer)
@@ -146,24 +144,22 @@ function CanRunFiltersAfterTheFact(aServer)
 }
 
 // roots the tree at the specified server
-function setServer(uri)
+function setServer(aServer)
 {
-   if (uri == gCurrentServerURI)
+   if (aServer == gCurrentServer)
      return;
 
-   var resource = gRDF.GetResource(uri);
-   var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+   var msgFolder = aServer.rootFolder;
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
    var filterList = msgFolder.getFilterList(gFilterListMsgWindow);
    rebuildFilterList(filterList);
 
-   // this will get the deferred to account root folder, if server is deferred
-   msgFolder = msgFolder.server.rootMsgFolder;
-   var rootFolderUri = msgFolder.URI;
-
    // root the folder picker to this server
-   document.getElementById("runFiltersFolder").setAttribute("ref", rootFolderUri);
+   var runMenu = document.getElementById("runFiltersPopup");
+   runMenu._teardown();
+   runMenu._parentFolder = msgFolder;
+   runMenu._ensureInitialized();
 
    // run filters after the fact not supported by news
    if (CanRunFiltersAfterTheFact(msgFolder.server)) {
@@ -180,13 +176,12 @@ function setServer(uri)
      document.getElementById("folderPickerPrefix").setAttribute("hidden", "true");
    }
 
-   // Get the first folder uri for this server. INBOX for
+   // Get the first folder for this server. INBOX for
    // imap and pop accts and 1st news group for news.
-   var firstFolderURI = getFirstFolderURI(msgFolder);
-   SetFolderPicker(firstFolderURI, "runFiltersFolder");
+   runMenu.selectFolder(getFirstFolder(msgFolder));
    updateButtons();
 
-   gCurrentServerURI = uri;
+   gCurrentServer = aServer;
 }
 
 function toggleFilter(aFilter, aIndex)
@@ -207,29 +202,13 @@ function toggleFilter(aFilter, aIndex)
 }
 
 // sets up the menulist and the filter list
-function selectServer(uri)
+function selectServer(aServer)
 {
     // update the server menu
-    var serverMenu = document.getElementById("serverMenu");
+    var serverMenu = document.getElementById("serverMenuPopup");
+    serverMenu.selectFolder(aServer.rootFolder);
 
-    var resource = gRDF.GetResource(uri);
-    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-
-    // XXX todo
-    // See msgFolderPickerOverlay.js, SetFolderPicker()
-    // why do we have to do this?  seems like a hack to work around a bug.
-    // the bug is that the (deep) content isn't there
-    // and so this won't work:
-    //
-    //   var menuitems = serverMenu.getElementsByAttribute("id", uri);
-    //   serverMenu.selectedItem = menuitems[0];
-    //
-    // we might need help from a XUL template expert to help out here.
-    // see bug #XXXXXX
-    serverMenu.setAttribute("label", msgFolder.name);
-    serverMenu.setAttribute("uri",uri);
-
-    setServer(uri);
+    setServer(aServer);
 }
 
 function currentFilter()
@@ -333,13 +312,12 @@ function runSelectedFilters()
     return;
   }
 
-  var folderURI = document.getElementById("runFiltersFolder").getAttribute("uri");
-  var resource = gRDF.GetResource(folderURI);
-  var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  var folder = document.getElementById("runFiltersFolder").selectedItem._folder;
+
   var filterService = Components.classes["@mozilla.org/messenger/services/filters;1"].getService(Components.interfaces.nsIMsgFilterService);
-  var filterList = filterService.getTempFilterList(msgFolder);
+  var filterList = filterService.getTempFilterList(folder);
   var folders = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  folders.AppendElement(msgFolder);
+  folders.AppendElement(folder);
 
   // make sure the tmp filter list uses the real filter list log stream
   filterList.logStream = gCurrentFilterList.logStream;
@@ -438,10 +416,11 @@ function updateButtons()
 
 /**
   * get the selected server if it can have filters
+  *
+  * @returns an nsIMsgIncomingServer for the server
   */
 function getSelectedServerForFilters()
 {
-    var firstItem = null;
     var args = window.arguments;
     var selectedFolder = args[0].folder;
 
@@ -457,9 +436,7 @@ function getSelectedServerForFilters()
 
                 if (server.canHaveFilters)
                 {
-                    // for news, select the news folder
-                    // for everything else, select the folder's server
-                    firstItem = (server.type == "nntp") ? msgFolder.URI : rootFolder.URI;
+                    return server;
                 }
             }
         }
@@ -468,12 +445,14 @@ function getSelectedServerForFilters()
         }
     }
 
-    return firstItem;
+    return null;
 }
 
 /** if the selected server cannot have filters, get the default server
   * if the default server cannot have filters, check all accounts
   * and get a server that can have filters.
+  *
+  * @returns an nsIMsgIncomingServer
   */
 function getServerThatCanHaveFilters()
 {
@@ -488,7 +467,7 @@ function getServerThatCanHaveFilters()
 
     // check to see if default server can have filters
     if (defaultIncomingServer.canHaveFilters) {
-        firstItem = defaultIncomingServer.serverURI;
+        firstItem = defaultIncomingServer;
     }
     // if it cannot, check all accounts to find a server
     // that can have filters
@@ -504,7 +483,7 @@ function getServerThatCanHaveFilters()
 
             if (currentServer.canHaveFilters)
             {
-                firstItem = currentServer.serverURI;
+                firstItem = currentServer;
                 break;
             }
         }
@@ -551,14 +530,14 @@ function onFilterListKeyPress(event)
 }
 
 /**
-  * For a given server folder, get the uri for the first folder. For imap
-  * and pop it's INBOX and it's the very first group for news accounts.
+  * For a given server folder, get the first folder. For imap and pop it's INBOX
+  * and it's the very first group for news accounts.
   */
-function getFirstFolderURI(msgFolder)
+function getFirstFolder(msgFolder)
 {
   // Sanity check.
   if (! msgFolder.isServer)
-    return msgFolder.URI;
+    return msgFolder;
 
   try {
     // Find Inbox for imap and pop
@@ -567,17 +546,17 @@ function getFirstFolderURI(msgFolder)
       var outNumFolders = new Object();
       var inboxFolder = msgFolder.getFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, outNumFolders);
       if (inboxFolder)
-        return inboxFolder.URI;
+        return inboxFolder;
       else
-        // If inbox does not exist then use the server uri as default.
-        return msgFolder.URI;
+        // If inbox does not exist then use the server as default.
+        return msgFolder;
     }
     else
-      // XXX TODO: For news, we should find the 1st group/folder off the news groups. For now use server uri.
-      return msgFolder.URI;
+      // XXX TODO: For news, we should find the 1st group/folder off the news groups. For now use server.
+      return msgFolder;
   }
   catch (ex) {
     dump(ex + "\n");
   }
-  return msgFolder.URI;
+  return msgFolder;
 }

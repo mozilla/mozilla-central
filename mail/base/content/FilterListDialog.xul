@@ -41,8 +41,6 @@
 <?xml-stylesheet href="chrome://messenger/skin/filterDialog.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
 
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
-
 <!DOCTYPE window SYSTEM "chrome://messenger/locale/FilterListDialog.dtd">
 
 <window id="filterListDialog"
@@ -74,7 +72,7 @@
            accesskey="&filtersForPrefix.accesskey;" control="serverMenu"/>
 
         <menulist id="serverMenu"
-                  oncommand="onFilterServerClick(event.target._folder.server.serverURI)">
+                  oncommand="onFilterServerClick(event.target._folder.server)">
         <menupopup id="serverMenuPopup" type="folder" mode="filters" expandFolders="false"/>
       </menulist>
       <spacer flex="1"/> 
@@ -132,7 +130,9 @@
             <label id="folderPickerPrefix" value="&folderPickerPrefix.label;" 
                    accesskey="&folderPickerPrefix.accesskey;"
                    disabled="true" control="runFiltersFolder"/>
-            <menulist id="runFiltersFolder" disabled="true" flex="1"/>
+            <menulist id="runFiltersFolder" disabled="true" flex="1">
+              <menupopup id="runFiltersPopup" type="folder"/>
+            </menulist>
           </hbox>
         </vbox>
         <vbox>
