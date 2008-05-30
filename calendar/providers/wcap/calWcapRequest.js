@@ -144,7 +144,7 @@ calWcapRequest.prototype = {
             // first failing sub request stops parent request:
             this.execRespFunc(err);
         }
-        // assures that respFunc is executed after every sub request has been completed:
+        // assures that respFunc is executed after all sub requests have been completed:
         else if (!this.m_locked && this.m_attachedRequests.length == 0) {
             this.execRespFunc();
         }
@@ -494,7 +494,7 @@ function stringToIcal(session, data, expectedErrno) {
     }
     var icalRootComp;
     try {
-        icalRootComp = getIcsService().parseICS(data, session /*implements calITimezoneProvider*/);
+        icalRootComp = getIcsService().parseICS(data, session /* implements calITimezoneProvider */);
     } catch (exc) { // map into more useful error string:
         throw new Components.Exception("error parsing ical data!", calIErrors.ICS_PARSE);
     }

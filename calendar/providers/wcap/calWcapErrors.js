@@ -53,13 +53,11 @@ function generateNetFailure(code) {
 }
 
 function getResultCode(err) {
-    if (err === undefined || err === null)
+    if (err === undefined || err === null) {
         return NS_OK;
+    }
     if (isNaN(err)) {
-        if (err instanceof nsIException)
-            return err.result;
-        else
-            return Components.results.NS_ERROR_FAILURE;
+        return ((err instanceof nsIException) ? err.result : Components.results.NS_ERROR_FAILURE);
     }
     return err;
 }

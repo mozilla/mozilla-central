@@ -933,15 +933,8 @@ calWcapSession.prototype = {
     // calIFreeBusyProvider:
     getFreeBusyIntervals:
     function calWcapCalendar_getFreeBusyIntervals(calId, rangeStart, rangeEnd, busyTypes, listener) {
-        // assure DATETIMEs:
-        if (rangeStart && rangeStart.isDate) {
-            rangeStart = rangeStart.clone();
-            rangeStart.isDate = false;
-        }
-        if (rangeEnd && rangeEnd.isDate) {
-            rangeEnd = rangeEnd.clone();
-            rangeEnd.isDate = false;
-        }
+        rangeStart = ensureDateTime(rangeStart);
+        rangeEnd = ensureDateTime(rangeEnd);
         var zRangeStart = getIcalUTC(rangeStart);
         var zRangeEnd = getIcalUTC(rangeEnd);
 
