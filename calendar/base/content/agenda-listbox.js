@@ -412,12 +412,12 @@ function deleteSelectedItem(aDoNotConfirm) {
 
 agendaListbox.createNewEvent =
 function createNewEvent(aEvent) {
-    if (aEvent.target.localName == "richlistbox") {
-      // Create new event for the date currently displayed in the agenda. Setting
-      // isDate = true automatically makes the start time be the next full hour.
-      var eventStart = agendaListbox.today.start.clone();
-      eventStart.isDate = true;
-      createEventWithDialog(getSelectedCalendar(), eventStart);
+    if (!this.isEventListItem(aEvent.target)){
+        // Create new event for the date currently displayed in the agenda. Setting
+        // isDate = true automatically makes the start time be the next full hour.
+        var eventStart = agendaListbox.today.start.clone();
+        eventStart.isDate = true;
+        createEventWithDialog(getSelectedCalendar(), eventStart);
     }
 }
 
