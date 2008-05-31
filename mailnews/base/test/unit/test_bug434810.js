@@ -45,7 +45,17 @@ function run_test()
   const expectedFolders = [ "Inbox", "Unsent", "Trash" ];
 
   do_check_eq(rootFolder.numSubFolders, expectedFolders.length);
-  //  for (var i = 0; i < expectedFolders.length; ++i)
-  //    do_check_true(rootFolder.containsChildNamed(expectedFolders[i]));
+  
+  var sFE = rootFolder.subFolders;
+  while (sFE.hasMoreElements()) {
+      var subFolder = sFE.getNext();
+      if (subFolder instanceof Ci.nsIMsgFolder)
+	  dump("Name: " + subFolder.name + " Pretty Name: " + subFolder.prettyName + "\n");
+      else
+	  dump("Not an nsIMsgFolder\n");
+  }
+
+  for (var i = 0; i < expectedFolders.length; ++i)
+      do_check_true(rootFolder.containsChildNamed(expectedFolders[i]));
   do_check_true(rootFolder.isAncestorOf(gLocalInboxFolder));
 }
