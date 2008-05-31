@@ -3727,7 +3727,7 @@ function constructIRCURL(obj)
             dd("parseIRCObject: invalid characters in channel/nick name");
             return null;
         }
-        url += ecmaEscape(obj.target.replace(/\//g, "%2f"));
+        url += ecmaEscape(obj.target).replace(/\//g, "%2f");
     }
 
     return url + flags + parseFlags(obj) + parseQuery(obj);
