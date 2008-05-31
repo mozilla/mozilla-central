@@ -42,10 +42,18 @@ function run_test()
 
   var rootFolder = gLocalIncomingServer.rootFolder;
 
-  const expectedFolders = [ "Inbox", "Unsent", "Trash" ];
+  var strBundleService = Cc["@mozilla.org/intl/stringbundle;1"]
+                           .getService(Ci.nsIStringBundleService);
+  var msgProps = strBundleService.createBundle("chrome://messenger/locale/messenger.properties");
+
+  var expectedFolders = [ "Inbox" ]; // Inbox hard-coded in mailTestUtils.js
+
+  // These two MailNews adds by default
+  expectedFolders.push(msgProps.GetStringFromName("unsentFolderName"));
+  expectedFolders.push(msgProps.GetStringFromName("trashFolderName"));
 
   do_check_eq(rootFolder.numSubFolders, expectedFolders.length);
-  //  for (var i = 0; i < expectedFolders.length; ++i)
-  //    do_check_true(rootFolder.containsChildNamed(expectedFolders[i]));
+  for (var i = 0; i < expectedFolders.length; ++i)
+    do_check_true(rootFolder.containsChildNamed(expectedFolders[i]));
   do_check_true(rootFolder.isAncestorOf(gLocalInboxFolder));
 }
