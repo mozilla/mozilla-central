@@ -4104,6 +4104,10 @@ function __display(message, msgtype, sourceObj, destObj)
     // Also do "ME!" work for the dest.
     if (destObj && destObj == me)
         toAttr = me.unicodeName + " ME!";
+        
+    // Is the message 'to' or 'from' somewhere other than this view
+    var toOther = ((sourceObj == me) && destObj && (destObj != this));
+    var fromOther = (toUser && (destObj == me) && (sourceObj != this));
 
     /* isImportant means to style the messages as important, and flash the
      * window, getAttention means just flash the window. */
@@ -4155,6 +4159,10 @@ function __display(message, msgtype, sourceObj, destObj)
         else
             msgRow.setAttribute("msg-source", fromAttr);
     }
+    if (toOther)
+        msgRow.setAttribute("to-other", toOther);
+    if (fromOther)
+        msgRow.setAttribute("from-other", fromOther);
 
     // Timestamp cell.
     var msgRowTimestamp = document.createElementNS(XHTML_NS, "html:td");
@@ -4218,8 +4226,8 @@ function __display(message, msgtype, sourceObj, destObj)
         }
         else
         {
-            // Messages from us, on a channel or network view, to a user
-            if (toUser && (this.TYPE != "IRCUser"))
+            // Messages from us, to somewhere other than this view
+            if (toOther)
             {
                 nick = destObj.unicodeName;
                 decorSt = ">";

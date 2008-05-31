@@ -582,17 +582,6 @@ a.chatzilla-link:hover {
     content: "]";
 }
 
-/* private messages *not* in a query window */
-.msg[dest-type="IRCUser"] .msg-user:before {
-    content: "to(";
-}
-.msg[dest-type="IRCUser"][msg-dest$="ME!"] .msg-user:before {
-    content: "from(";
-}
-.msg[dest-type="IRCUser"] .msg-user:after {
-    content: ")";
-}
-
 /* private messages in a query window */
 .msg[view-type="IRCUser"] .msg-user:before {
     content: "{";
@@ -605,4 +594,16 @@ a.chatzilla-link:hover {
 }
 .msg[view-type="IRCUser"][msg-dest$="ME!"] .msg-user:after {
     content: "}";
+}
+
+/* messages 'to' or 'from' somewhere other than where displayed */
+.msg[to-other] .msg-user:before {
+    content: "to(";
+}
+.msg[from-other] .msg-user:before {
+    content: "from(";
+}
+.msg[to-other] .msg-user:after,
+.msg[from-other] .msg-user:after {
+    content: ")";
 }
