@@ -14,7 +14,7 @@ function run_test() {
   var testAB = do_get_file("mailnews/addrbook/test/unit/data/cardForEmail.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(profileDir, kPABData.fileName);
+  testAB.copyTo(gProfileDir, kPABData.fileName);
 
   // Test - Get the directory
   var abManager = Components.classes["@mozilla.org/abmanager;1"]

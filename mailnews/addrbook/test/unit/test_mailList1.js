@@ -35,7 +35,7 @@ function run_test() {
   var testAB = do_get_file("mailnews/addrbook/test/resources/abLists1.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(profileDir, kPABData.fileName);
+  testAB.copyTo(gProfileDir, kPABData.fileName);
 
   // Test - Get the directory.
 

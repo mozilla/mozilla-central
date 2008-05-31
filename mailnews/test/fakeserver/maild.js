@@ -39,10 +39,10 @@
 
 // Much of the original code is taken from netwerk's httpserver implementation
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const CC = Components.Constructor;
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cr = Components.results;
+var CC = Components.Constructor;
 
 /** The XPCOM thread manager. */
 var gThreadManager = null;

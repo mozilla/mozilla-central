@@ -11,56 +11,78 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-const nsIFile = Components.interfaces.nsIFile;
-const NS_APP_USER_PROFILE_50_DIR = "ProfD";
+// Declare these globally for unit tests and be done with it.
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cr = Components.results;
+var CC = Components.Constructor;
 
-// Various functions common to the tests.
-const MailTestDirServer = {
+// keep things out of global scope where possible.
+function initializeDirServer() {
+  const NS_APP_USER_PROFILE_50_DIR = "ProfD";
 
-  /*
-   * makeDirectoryService
-   *
-   */
-  makeDirectoryService : function () {
-    // Register our own provider for the profile directory.
-    // It will simply return the current directory.
-    const provider = {
-      getFile : function(prop, persistent) {
-        persistent.value = true;
-        if (prop == NS_APP_USER_PROFILE_50_DIR) {
-          var processDir = dirSvc.get("CurProcD", nsIFile);
+  // Various functions common to the tests.
+  const MailTestDirServer = {
+    /*
+     * makeDirectoryService
+     *
+     */
+    makeDirectoryService : function () {
+      // Register our own provider for the profile directory.
+      // It will simply return the current directory.
+      const provider = {
+        getFile : function(prop, persistent) {
+          persistent.value = true;
+          if (prop == NS_APP_USER_PROFILE_50_DIR) {
+            var processDir = dirSvc.get("CurProcD", Ci.nsIFile);
 
-          processDir.append("mailtest");
+            // Process dir is normally <objdir>/dist/bin, _tests is
+            // <objdir>/_tests, so go up 2 directories
+            processDir = processDir.parent;
+            processDir = processDir.parent;
 
-          if (!processDir.exists())
-            processDir.create(nsIFile.DIRECTORY_TYPE, 0700);
+            // Then into the _tests directory
+            processDir.append("_tests");
+            // Then this is the directory we want
+            processDir.append("mailtest");
 
-          return processDir;
-        } else if (prop == "TmpD") {
+            return processDir;
+          } else if (prop == "TmpD") {
+            throw Components.results.NS_ERROR_FAILURE;
+          } else {
+            dump("Wants directory: "+prop+"\n");
+          }
           throw Components.results.NS_ERROR_FAILURE;
-        } else {
-          dump("Wants directory: "+prop+"\n");
-        }
-        throw Components.results.NS_ERROR_FAILURE;
-      },
+        },
 
-      QueryInterface :
-        XPCOMUtils.generateQI([Components.interfaces.nsIDirectoryServiceProvider])
-    };
+        QueryInterface:
+          XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider])
+      };
 
-    dirSvc.QueryInterface(Components.interfaces.nsIDirectoryService)
-          .registerProvider(provider);
+      dirSvc.QueryInterface(Ci.nsIDirectoryService).registerProvider(provider);
+    }
+  };
+
+  // If there's no location registered for the profile directory, register one
+  var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
+                 .getService(Ci.nsIProperties);
+  try {
+    var profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
+  } catch (e) { }
+
+  if (!profileDir) {
+    MailTestDirServer.makeDirectoryService();
+    profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, Ci.nsIFile);
   }
-};
-
-// If there's no location registered for the profile directory, register one
-var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
-                       .getService(Components.interfaces.nsIProperties);
-try {
-    var profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, nsIFile);
-} catch (e) { }
-
-if (!profileDir) {
-  MailTestDirServer.makeDirectoryService();
-  profileDir = dirSvc.get(NS_APP_USER_PROFILE_50_DIR, nsIFile);
+  return profileDir;
 }
+
+// Left as a global to make things like copying files easy.
+var gProfileDir = initializeDirServer();
+
+// Ensure we start with a clean profile directory for all tests
+if (gProfileDir.exists())
+  gProfileDir.remove(true);
+
+// Always ensure the profile directory exists before we start the tests
+gProfileDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0700);

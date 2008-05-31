@@ -49,12 +49,12 @@ function run_test() {
   var testAB = do_get_file("mailnews/addrbook/test/resources/abLists1.mab");
 
   // Copy the file to the profile directory for a PAB
-  testAB.copyTo(profileDir, kPABData.fileName);
+  testAB.copyTo(gProfileDir, kPABData.fileName);
 
   testAB = do_get_file("mailnews/addrbook/test/resources/abLists2.mab");
 
   // Copy the file to the profile directory for a CAB
-  testAB.copyTo(profileDir, kCABData.fileName);
+  testAB.copyTo(gProfileDir, kCABData.fileName);
 
   // Test - Check we can initalize with fewest specified
   // parameters and don't fail/crash like we did in bug 411646.
