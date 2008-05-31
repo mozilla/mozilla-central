@@ -202,6 +202,9 @@ class TinderboxPoller(base.ChangeSource):
                 # change too old
                 continue
             allBuildDates.append(buildDate)
+            # ignore if build is busted
+            if buildNode['status'] == 'busted':
+                continue
             c = changes.Change(who = buildNode['hostname'],
                                files = ['TODO: filename goes here'],
                                comments = buildNode['status'],
