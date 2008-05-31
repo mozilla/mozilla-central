@@ -236,3 +236,16 @@ function UpdateNode(resource, row)
     folder.toggleFlag(MSG_FOLDER_FLAG_OFFLINE);
 }
 
+function GetFolderResource(aTree, aIndex) {
+  return aTree.builderView.getResourceAtIndex(aIndex);
+}
+
+function GetFolderAttribute(aTree, aResource, aName) {
+  var rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                             .getService(Components.interfaces.nsIRDFService);
+  var property = rdfService.GetResource("http://home.netscape.com/NC-rdf#" + aName);
+  var target = aTree.database.GetTarget(aResource, property, true);
+  if (target)
+    target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+  return target;
+}
