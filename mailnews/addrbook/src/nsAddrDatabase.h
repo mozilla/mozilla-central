@@ -304,7 +304,7 @@ public:
   PRUint32 GetListAddressTotal(nsIMdbRow* listRow);
   nsresult GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, nsIMdbRow** cardRow);
 
-    NS_IMETHOD AddListCardColumnsToRow(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *parent);
+    NS_IMETHOD AddListCardColumnsToRow(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *aParent, nsIAbDirectory *aRoot);
     NS_IMETHOD InitCardFromRow(nsIAbCard *aNewCard, nsIMdbRow* aCardRow);
     NS_IMETHOD SetListAddressTotal(nsIMdbRow* aListRow, PRUint32 aTotal);
     NS_IMETHOD FindRowByCard(nsIAbCard * card,nsIMdbRow **aRow);
