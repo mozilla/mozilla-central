@@ -7,6 +7,7 @@
 [@AB_CD@]
 bin\chrome\@AB_CD@.jar
 bin\chrome\@AB_CD@.manifest
+bin\defaults\pref\all-l10n.js
 bin\dictionaries\*
 bin\uninstall\helper.exe
 bin\updater.ini
@@ -119,7 +120,13 @@ bin\chrome\classic.manifest
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; default pref files
-bin\defaults\pref\*
+bin\defaults\pref\all-thunderbird.js
+bin\defaults\pref\channel-prefs.js
+bin\defaults\pref\composer.js
+bin\defaults\pref\mailnews.js
+bin\defaults\pref\mdn.js
+bin\defaults\pref\smime.js
+bin\defaults\pref\thunderbird-branding.js
 bin\greprefs\*
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
