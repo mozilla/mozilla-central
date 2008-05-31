@@ -140,7 +140,7 @@ install:
 	chmod 770 $(DATA_DIR)/bad
 	@if test ! -r $(DATA_DIR)/queryconfig.pl ; then \
 	echo "Installing queryconfig.pl" && \
-	cp queryconfig.pl $(DATA_DIR) \
+	cp queryconfig.pl $(DATA_DIR) && \
 	chmod 640 $(DATA_DIR)/queryconfig.pl ; \
 	else \
 	echo ; \
