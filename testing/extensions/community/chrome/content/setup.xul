@@ -73,7 +73,7 @@
             onpageadvanced="return qaSetup.validateAccount();">
   <description>&qa.setup.accounttext;</description>
   <spacer height="20px" />
-  <label value="&qa.setup.haveaccount;"/>
+  <label control="qa-setup-account-haveaccount" value="&qa.setup.haveaccount;"/>
   <radiogroup id="qa-setup-account-haveaccount">
     <radio selected="true" value="0" label="&qa.setup.accountno;" oncommand="qaSetup.accountSetting('0');"/>
     <radio selected="false" value="1" label="&qa.setup.accountyes;" oncommand="qaSetup.accountSetting('1');"/>

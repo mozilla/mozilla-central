@@ -100,7 +100,7 @@
       </vbox>
       <vbox flex="1">
         <hbox>
-          <label value="Comment (optional): "/>
+          <label control="qa-testcase-comment" value="Comment (optional): "/>
           <textbox id="qa-testcase-comment" flex="1"/>  
         </hbox>
         <spacer flex="1"/>

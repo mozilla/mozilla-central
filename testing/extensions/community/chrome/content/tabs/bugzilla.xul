@@ -51,16 +51,16 @@
       <hbox>
         <radio class="bug-search" selected="true" id="qa-bugzilla-radio-id"
                label="Bug Id:" />
-        <textbox id="qa-bugzilla-input-id" width="75px" />
+        <textbox id="qa-bugzilla-input-id" width="75px" aria-labelledby="qa-bugzilla-radio-id"/>
         <spacer width="5px" />
         <radio class="bug-search" id="qa-bugzilla-radio-words" 
                label="Keywords:" />
-        <textbox disabled="true" id="qa-bugzilla-input-keywords" flex="1" />
+        <textbox disabled="true" id="qa-bugzilla-input-keywords" flex="1" aria-labelledby="qa-bugzilla-radio-words"/>
       </hbox>
     </radiogroup>
     <spacer height="5px" />
-    <hbox>
-      <label value="Filter by my:" />
+    <hbox role="group" aria-labelledby="qa-filterByMy-label">
+      <label id="qa-filterByMy-label" value="Filter by my:" />
       <checkbox id="qa-bugzilla-input-os" label="Operating System" />
       <spacer width="5px" />
       <checkbox id="qa-bugzilla-input-version" label="Product Version" />
@@ -87,17 +87,17 @@
   <groupbox flex="1">
     <caption label= "Bug Summary" />
     <hbox>
-      <label>Bug Id:</label>
+      <label control="qa-bugzilla-output-id">Bug Id:</label>
       <textbox style="color:black" id="qa-bugzilla-output-id"
-               width="75px" disabled="true"/>
+               width="75px" readonly="true"/>
       <spacer width="5px" />
-      <label>Status:</label>
+      <label control="qa-bugzilla-output-status">Status:</label>
       <textbox style="color:black" id="qa-bugzilla-output-status"
-               disabled="true" flex="1" />
+               readonly="true" flex="1" />
     </hbox>
     
     <textbox style="color:black" id="qa-bugzilla-output-summary"
-               multiline="true" disabled="true" flex="1" />
+               multiline="true" readonly="true" flex="1" />
                
     <hbox>
       <button style="margin-left: 50px;" label="Show in Bugzilla"
