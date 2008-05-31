@@ -493,6 +493,7 @@ bin\components\msgsearch.xpt
 bin\components\import.dll
 bin\components\import.xpt
 bin\components\impComm4xMail.xpt
+bin\components\nsAbAutoCompleteMyDomain.js
 bin\components\nsAbLDAPAttributeMap.js
 bin\components\nsLDAPPrefsService.js
 bin\chrome\messenger.jar

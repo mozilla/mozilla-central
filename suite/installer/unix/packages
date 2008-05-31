@@ -491,6 +491,7 @@ bin/components/msgnews.xpt
 bin/components/msgsearch.xpt
 bin/components/libmsgsmime.so
 bin/components/msgsmime.xpt
+bin/components/nsAbAutoCompleteMyDomain.js
 bin/components/nsAbLDAPAttributeMap.js
 bin/components/nsLDAPPrefsService.js
 bin/components/smime-service.js
