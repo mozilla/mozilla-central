@@ -134,10 +134,6 @@ install:
 	chmod 755 $(TINDERBOX_DIR)
 	chmod 770 $(TINDERBOX_DIR)/examples
 	mkdir -p $(DATA_DIR)/bad
-	chown -R $(TINDERBOX_USER) $(DATA_DIR)
-	chgrp -R $(TINDERBOX_GROUP) $(DATA_DIR)
-	chmod 770 $(DATA_DIR)
-	chmod 770 $(DATA_DIR)/bad
 	@if test ! -r $(DATA_DIR)/queryconfig.pl ; then \
 	echo "Installing queryconfig.pl" && \
 	cp queryconfig.pl $(DATA_DIR) && \
@@ -147,6 +143,10 @@ install:
 	echo "Not replacing existing queryconfig.pl" ;  \
 	echo "Check queryconfig.pl in build directory for new features" ; \
 	fi
+	chown -R $(TINDERBOX_USER) $(DATA_DIR)
+	chgrp -R $(TINDERBOX_GROUP) $(DATA_DIR)
+	chmod 770 $(DATA_DIR)
+	chmod 770 $(DATA_DIR)/bad
 	chmod 755 $(addprefix $(TINDERBOX_DIR)/,$(EXE_FILES))
 	chmod 4755 $(addprefix $(TINDERBOX_DIR)/,$(SETUID_SCRIPTS))
 
