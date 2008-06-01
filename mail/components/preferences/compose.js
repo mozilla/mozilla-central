@@ -133,11 +133,8 @@ var gComposePane = {
 
   loadLocalDirectories: function (aPopup)
   {
-    var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                     .getService(Components.interfaces.nsIRDFService);
-
-    var parentDir = rdfService.GetResource("moz-abdirectory://").QueryInterface(Components.interfaces.nsIAbDirectory);
-    var enumerator = parentDir.childNodes;
+    var enumerator = Components.classes["@mozilla.org/abmanager;1"]
+                               .getService(Components.interfaces.nsIAbManager).directories;
     var preference = document.getElementById("mail.collect_addressbook");
 
     if (enumerator)

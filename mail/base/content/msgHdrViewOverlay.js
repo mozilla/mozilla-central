@@ -1006,9 +1006,15 @@ function useDisplayNameForAddress(emailAddress)
 
   if (!gPersonalAddressBookDirectory)
   {
-    var RDFService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
-                               .getService(Components.interfaces.nsIRDFService);
-    gPersonalAddressBookDirectory = RDFService.GetResource(kPersonalAddressbookUri).QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+    var dirs = Components.classes["@mozilla.org/abmanager;1"]
+                         .getService(Components.interfaces.nsIAbManager).directories;
+    while (dirs.hasMoreElements) {
+      var dir = dirs.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
+      if (dir.URI == kPersonalAddressbookUri) {
+        gPersonalAddressBookDirectory = dir.QueryInterface(Components.interfaces.nsIAbMDBDirectory);
+        break;
+      }
+    }
 
     if (!gPersonalAddressBookDirectory)
       return false;
