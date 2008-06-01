@@ -198,7 +198,7 @@
   <key id="key_sendLater" keycode="&sendLaterCmd.keycode;" observes="cmd_sendLater" modifiers="accel, shift"/>
   <key id="key_print" key="&printCmd.key;" command="cmd_print" modifiers="accel"/>
   <key id="key_quit" oncommand="goQuitApplication();"  key="&quitApplicationCmd.key;" modifiers="accel"/>
-  
+
   <!-- Edit Menu -->
   <key id="key_undo" key="&undoCmd.key;" modifiers="accel"/>
   <key id="key_redo" key="&redoCmd.key;" modifiers="accel"/>
@@ -236,7 +236,7 @@
    <!-- Tools Menu -->
   <key id="key_mail"  key="&messengerCmd.commandkey;" oncommand="toMessengerWindow();" modifiers="accel"/>
   <key id="key_addressbook"  key="&addressBookCmd.commandkey;" oncommand="toAddressBook();" modifiers="accel"/>
-  
+
   <!-- Tab/F6 Keys -->
   <key keycode="VK_TAB" oncommand="SwitchElementFocus(event);" modifiers="control"/>
   <key keycode="VK_TAB" oncommand="SwitchElementFocus(event);" modifiers="control,shift"/>
@@ -256,7 +256,8 @@
 
 <keyset id="editorKeys"/>
 
-<popup id="msgComposeContext" onpopupshowing="openEditorContextMenu(this);">
+<popup id="msgComposeContext"
+       onpopupshowing="if (event.target != this) return true; openEditorContextMenu(this);">
 
   <menuitem id="spellCheckNoSuggestions" label="&spellCheckNoSuggestions.label;" disabled="true"/>
   <menuseparator id="spellCheckAddSep"/>
@@ -350,7 +351,7 @@
 #endif
         </menupopup>
       </menu>
-      
+
       <menu id="menu_Edit" label="&editMenu.label;" accesskey="&editMenu.accesskey;">
         <menupopup onpopupshowing="updateEditItems();">
           <menuitem id="menu_undo" label="&undoCmd.label;" key="key_undo" accesskey="&undoCmd.accesskey;" command="cmd_undo"/>
@@ -411,7 +412,7 @@
           <menuitem id="menu_AddressSidebar" label="&addressSidebar.label;" key="key_addressSidebar" accesskey="&addressSidebar.accesskey;" observes="viewAddressPicker"/>
         </menupopup>
       </menu>
-  
+
       <menu id="insertMenu" command="cmd_renderedHTMLEnabler"/>
 
       <menu id="formatMenu" label="&formatMenu.label;" accesskey="&formatMenu.accesskey;" command="cmd_renderedHTMLEnabler">
@@ -422,7 +423,7 @@
           <menuitem id="colorsAndBackground"/>
         </menupopup>
       </menu>
-  
+
       <menu id="optionsMenu" label="&optionsMenu.label;" accesskey="&optionsMenu.accesskey;">
         <menupopup id="optionsMenuPopup"> 
           <menuitem label="&checkSpellingCmd.label;" id="menu_checkspelling" accesskey="&checkSpellingCmd.accesskey;" key="key_checkspelling" command="cmd_spelling"/>
@@ -509,7 +510,7 @@
   </toolbar>
 
   <toolbarpalette id="MsgComposeToolbarPalette">
-    
+
     <toolbarbutton class="toolbarbutton-1"
                id="button-send" label="&sendButton.label;"
                tooltiptext="&sendButton.tooltip;" 
@@ -519,12 +520,12 @@
                later_label="&sendLaterCmd.label;"
                later_tooltiptext="&sendlaterButton.tooltip;">
     </toolbarbutton>
-    
+
     <toolbarbutton class="toolbarbutton-1"
                id="button-contacts" label="&addressButton.label;" 
                tooltiptext="&addressButton.tooltip;" 
                observes="viewAddressPicker"/>
-    
+
     <toolbarbutton class="toolbarbutton-1" type="menu-button"
                id="button-attach" label="&attachButton.label;" 
                tooltiptext="&attachButton.tooltip;" 
@@ -539,7 +540,7 @@
            <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>
          </menupopup>
     </toolbarbutton>
-    
+
     <toolbarbutton class="toolbarbutton-1" type="menu-button"
                id="spellingButton" label="&spellingButton.label;" 
                command="cmd_spelling">
@@ -547,7 +548,7 @@
       <menupopup id="languageMenuList" oncommand="ChangeLanguage(event);"
                  onpopupshowing="OnShowDictionaryMenu(event.target);"/>
     </toolbarbutton>
-    
+
     <toolbarbutton class="toolbarbutton-1" type="menu-button"
                id="button-save" label="&saveButton.label;" 
                tooltiptext="&saveButton.tooltip;" 
@@ -623,7 +624,7 @@
     </vbox> 
 
     <splitter id="sidebar-splitter" hidden="true"/>
-    
+
     <vbox flex="1">  
     <toolbox id="headers-box" class="toolbox-top" mode="icons"> 
     <toolbar id="MsgHeadersToolbar" persist="collapsed" flex="1"
@@ -698,7 +699,7 @@
         </vbox>
       </hbox>
     </toolbar>   
-       
+
     <!-- These toolbar items get filled out from the editorOverlay -->
     <toolbar class="chromeclass-toolbar" id="FormatToolbar" persist="collapsed" customizable="true">
       <menulist id="ParagraphSelect"/>
@@ -767,7 +768,7 @@
     <editor type="content-primary" id="content-frame" src="about:blank" name="browser.message.body" flex="1"
             context="msgComposeContext"/>
   </vbox>
-  
+
   </vbox>
   </hbox>
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
