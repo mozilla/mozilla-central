@@ -1290,7 +1290,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
   return rv;
 }
 
-NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
+NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsIArray **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
  
@@ -1298,7 +1298,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
   nsresult rv = GetSelectedCards(getter_AddRefs(selectedCards));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsISupportsArray> addresses(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID));
+  nsCOMPtr<nsIMutableArray> addresses = do_CreateInstance(NS_ARRAY_CONTRACTID);
   PRUint32 count;
   selectedCards->GetLength(&count);
 
@@ -1321,12 +1321,12 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
       nsCOMPtr<nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
       NS_ENSURE_SUCCESS(rv,rv);
 
-      nsCOMPtr<nsISupportsArray> mailListAddresses;
+      nsCOMPtr<nsIMutableArray> mailListAddresses;
       rv = mailList->GetAddressLists(getter_AddRefs(mailListAddresses));
       NS_ENSURE_SUCCESS(rv,rv);
 
       PRUint32 mailListCount = 0;
-      mailListAddresses->Count(&mailListCount);	
+      mailListAddresses->GetLength(&mailListCount);	
 
       for (PRUint32 j = 0; j < mailListCount; j++) {
         nsCOMPtr<nsIAbCard> mailListCard = do_QueryElementAt(mailListAddresses, j, &rv);
@@ -1338,7 +1338,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
         if (!primaryEmail.IsEmpty()) {
           nsCOMPtr<nsISupportsString> supportsEmail(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
           supportsEmail->SetData(primaryEmail);
-          addresses->AppendElement(supportsEmail);
+          addresses->AppendElement(supportsEmail, PR_FALSE);
         }
       }
     }
@@ -1349,7 +1349,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsISupportsArray **_retval)
       if (!primaryEmail.IsEmpty()) {
         nsCOMPtr<nsISupportsString> supportsEmail(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
         supportsEmail->SetData(primaryEmail);
-        addresses->AppendElement(supportsEmail);
+        addresses->AppendElement(supportsEmail, PR_FALSE);
       }
     }    
   }

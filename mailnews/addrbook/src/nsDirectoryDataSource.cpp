@@ -42,6 +42,8 @@
 #include "nsIAbDirectory.h"
 #include "nsIAbManager.h"
 #include "nsIAbCard.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 #include "nsArrayEnumerator.h"
 #include "rdf.h"
 #include "nsIRDFService.h"
@@ -440,13 +442,13 @@ nsresult
 nsAbDirectoryDataSource::createDirectoryChildNode(nsIAbDirectory *directory,
                                              nsIRDFNode **target)
 {
-  nsCOMPtr<nsISupportsArray> pAddressLists;
+  nsCOMPtr<nsIMutableArray> pAddressLists;
   directory->GetAddressLists(getter_AddRefs(pAddressLists));
 
   if (pAddressLists)
   {
     PRUint32 total = 0;
-    pAddressLists->Count(&total);
+    pAddressLists->GetLength(&total);
 
     if (total)
     {

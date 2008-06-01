@@ -45,7 +45,6 @@
 #include "nsIAbDirSearchListener.h"
 #include "nsHashtable.h"
 #include "nsIMutableArray.h"
-#include "nsISupportsArray.h"
 
 struct nsMapiEntry ;
 
@@ -92,10 +91,9 @@ public:
 
 protected:
   // Retrieve hierarchy as cards, with an optional restriction
-  nsresult GetChildCards(nsISupportsArray **aCards, void *aRestriction);
-  nsresult GetChildCards(nsCOMPtr<nsIMutableArray> &aCards, void *aRestriction);
+  nsresult GetChildCards(nsIMutableArray *aCards, void *aRestriction);
   // Retrieve hierarchy as directories
-  nsresult GetChildNodes(nsISupportsArray **aNodes);
+  nsresult GetChildNodes(nsIMutableArray *aNodes);
   // Create a new card
   nsresult CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard);
   // Notification for the UI

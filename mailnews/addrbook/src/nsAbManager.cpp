@@ -64,6 +64,9 @@
 #include "nsIAbLDAPAttributeMap.h"
 #include "nsICommandLine.h"
 #include "nsILocalFile.h"
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
+#include "nsDirectoryServiceUtils.h"
 
 struct ExportAttributesTableStruct
 {
@@ -911,11 +914,11 @@ nsresult nsAbManager::AppendLDIFForMailList(nsIAbCard *aCard, nsIAbLDAPAttribute
   nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  nsCOMPtr<nsISupportsArray> addresses;
+  nsCOMPtr<nsIMutableArray> addresses;
   rv = mailList->GetAddressLists(getter_AddRefs(addresses));
   if (addresses) {
     PRUint32 total = 0;
-    addresses->Count(&total);
+    addresses->GetLength(&total);
     if (total) {
       PRUint32 i;
       for (i = 0; i < total; i++) {

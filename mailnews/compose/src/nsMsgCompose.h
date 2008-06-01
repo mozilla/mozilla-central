@@ -59,6 +59,7 @@ class nsMsgComposeSendListener;
 class nsIAddrDatabase;
 class nsIEditorMailSupport;
 class nsIRDFService;
+class nsIArray;
 
 class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 {
@@ -125,7 +126,7 @@ private:
                             nsCOMArray<nsIAbDirectory> &aDirArray);
   nsresult BuildMailListArray(nsIAbDirectory* parentDir,
                               nsISupportsArray* array);
-  nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsISupportsArray** addresses);
+  nsresult GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsIMutableArray** addresses);
   nsresult TagConvertible(nsIDOMNode *node,  PRInt32 *_retval);
   nsresult _BodyConvertible(nsIDOMNode *node, PRInt32 *_retval);
 

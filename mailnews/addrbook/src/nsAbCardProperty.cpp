@@ -54,7 +54,8 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMemory.h"
 #include "nsVCardObj.h"
-
+#include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 #include "mozITXTToHTMLConv.h"
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
@@ -1286,11 +1287,11 @@ NS_IMETHODIMP nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
     nsCOMPtr <nsIAbDirectory> mailList = do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    nsCOMPtr<nsISupportsArray> addresses;
+    nsCOMPtr<nsIMutableArray> addresses;
     rv = mailList->GetAddressLists(getter_AddRefs(addresses));
     if (addresses) {
       PRUint32 total = 0;
-      addresses->Count(&total);
+      addresses->GetLength(&total);
       if (total) {
         PRUint32 i;
         nsAutoString displayName;

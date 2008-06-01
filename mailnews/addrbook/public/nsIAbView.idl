@@ -36,10 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsISupports.idl"
-#include "nsISupportsArray.idl" 
 
 interface nsIAbCard;
 interface nsIAbDirectory;
+interface nsIArray;
 
 [scriptable, uuid(79ad5d6e-1dd2-11b2-addd-f547dab50d75)]
 interface nsIAbViewListener : nsISupports
@@ -48,7 +48,7 @@ interface nsIAbViewListener : nsISupports
   void onCountChanged(in long total);
 };
 
-[scriptable, uuid(e35c015c-1dd1-11b2-9494-f88326252aae)]
+[scriptable, uuid(99f6a0a8-f47c-498f-a5b5-59d59f1367d5)]
 interface nsIAbView : nsISupports
 {
     /**
@@ -74,5 +74,9 @@ interface nsIAbView : nsISupports
     void selectAll();
     void deleteSelectedCards();
     void swapFirstNameLastName();
-	readonly attribute nsISupportsArray selectedAddresses; 
+
+    /**
+     *  Returns an array of the currently selected addresses.
+     */
+    readonly attribute nsIArray selectedAddresses; 
 };

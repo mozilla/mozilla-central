@@ -49,8 +49,9 @@
 #include "nsIAbCard.h"
 #include "nsIAbListener.h"
 #include "nsIAbMDBCard.h"
-
+#include "nsArrayUtils.h"
 #include "mdb.h"
+#include "nsComponentManagerUtils.h"
 
 nsAbMDBDirProperty::nsAbMDBDirProperty(void)
 {
@@ -88,37 +89,35 @@ NS_IMETHODIMP nsAbMDBDirProperty::SetDbRowID(PRUint32 aDbRowID)
 /* add mailing list to the parent directory */
 NS_IMETHODIMP nsAbMDBDirProperty::AddMailListToDirectory(nsIAbDirectory *mailList)
 {
-	if (!m_AddressList)
-		NS_NewISupportsArray(getter_AddRefs(m_AddressList));
-	PRUint32 i, count;
-	m_AddressList->Count(&count);
-	for (i = 0; i < count; i++)
-	{
-		nsresult err;
-		nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(m_AddressList, i, &err));
-		if (mailList == pList)
-			return NS_OK;
-	}
-	m_AddressList->AppendElement(mailList);
-	return NS_OK;
+  if (!m_AddressList)
+  {
+    nsresult rv;
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  PRUint32 position;
+  if (NS_FAILED(m_AddressList->IndexOf(0, mailList, &position)))
+    m_AddressList->AppendElement(mailList, PR_FALSE);
+
+  return NS_OK;
 }
 
 /* add addresses to the mailing list */
 NS_IMETHODIMP nsAbMDBDirProperty::AddAddressToList(nsIAbCard *card)
 {
-	if (!m_AddressList)
-		NS_NewISupportsArray(getter_AddRefs(m_AddressList));
-	PRUint32 i, count;
-	m_AddressList->Count(&count);
-	for (i = 0; i < count; i++)
-	{
-		nsresult err;
-		nsCOMPtr<nsIAbCard> pCard(do_QueryElementAt(m_AddressList, i, &err));
-		if (card == pCard)
-			return NS_OK;
-	}
-	m_AddressList->AppendElement(card);
-	return NS_OK;
+  if (!m_AddressList)
+  {
+    nsresult rv;
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  PRUint32 position;
+  if (NS_FAILED(m_AddressList->IndexOf(0, card, &position)))
+    m_AddressList->AppendElement(card, PR_FALSE);
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbMDBDirProperty::CopyDBMailList(nsIAbMDBDirectory* srcListDB)

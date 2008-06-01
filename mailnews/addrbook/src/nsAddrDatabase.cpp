@@ -58,6 +58,7 @@
 #include "nsProxiedService.h"
 #include "prprf.h"
 #include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 #include "nsIPromptService.h"
 #include "nsIStringBundle.h"
 #include "nsIFile.h"
@@ -1459,18 +1460,18 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
   if (!pListRow)
     return NS_OK;
 
-  nsCOMPtr <nsISupportsArray> addressList;
+  nsCOMPtr<nsIMutableArray> addressList;
   rv = aList->GetAddressLists(getter_AddRefs(addressList));
   NS_ENSURE_SUCCESS(rv,rv);
 
   PRUint32 count;
-    addressList->Count(&count);
+  addressList->GetLength(&count);
 
   nsAutoString newEmail;
   rv = newCard->GetPrimaryEmail(newEmail);
   NS_ENSURE_SUCCESS(rv,rv);
 
-    PRUint32 i;
+  PRUint32 i;
   for (i = 0; i < count; i++) {
     nsCOMPtr<nsIAbCard> currentCard = do_QueryElementAt(addressList, i, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -1504,7 +1505,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
   rv = AddListCardColumnsToRow(newCard, pListRow, totalAddress, getter_AddRefs(pNewCard), PR_TRUE /* aInMailingList */, aList, nsnull);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  addressList->AppendElement(newCard);
+  addressList->AppendElement(newCard, PR_FALSE);
 
   if (notify)
     NotifyCardEntryChange(AB_NotifyInserted, newCard, aList);
@@ -1627,11 +1628,12 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
         list->GetDescription(unicodeStr);
         AddListDescription(listRow, NS_ConvertUTF16toUTF8(unicodeStr).get());
 
-    // XXX todo, this code has problems if you manually enter duplicate emails.
-        nsCOMPtr <nsISupportsArray> pAddressLists;
+        // XXX todo, this code has problems if you manually enter duplicate emails.
+        nsCOMPtr<nsIMutableArray> pAddressLists;
         list->GetAddressLists(getter_AddRefs(pAddressLists));
+
         PRUint32 count;
-        pAddressLists->Count(&count);
+        pAddressLists->GetLength(&count);
 
         nsAutoString email;
         PRUint32 i, total;
@@ -1668,7 +1670,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
                 nsCOMPtr<nsIAbCard> pNewCard;
                 err = AddListCardColumnsToRow(pCard, listRow, pos, getter_AddRefs(pNewCard), listHasCard, list, aParent);
                 if (pNewCard)
-                    pAddressLists->ReplaceElementAt(pNewCard, i);
+                    pAddressLists->ReplaceElementAt(pNewCard, i, PR_FALSE);
             }
         }
     }

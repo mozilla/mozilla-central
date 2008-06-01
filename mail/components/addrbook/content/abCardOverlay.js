@@ -189,19 +189,6 @@ function OnLoadNewCard()
   moveToAlertPosition();
 }
 
-// @Returns The index in addressLists for the card that is being saved;
-//          or |-1| if the card is not found.
-function findCardIndex(directory)
-{
-  var i = directory.addressLists.Count();
-  while (i-- > 0) {
-    var card = directory.addressLists.QueryElementAt(i, Components.interfaces.nsIAbCard);
-    if (gEditCard.card.equals(card))
-      break;
-  }
-  return i;
-}
-
 function EditCardOKButton()
 {
   if (!CheckCardRequiredDataPresence(document))
@@ -209,7 +196,6 @@ function EditCardOKButton()
 
   // See if this card is in any mailing list
   // if so then we need to update the addresslists of those mailing lists
-  var index = -1;
   var directory = GetDirectoryFromURI(gEditCard.abURI);
 
   // if the directory is a mailing list we need to search all the mailing lists
@@ -219,19 +205,18 @@ function EditCardOKButton()
     directory = GetDirectoryFromURI(parentURI);
   }
 
-  var listDirectoriesCount = directory.addressLists.Count();
+  var listDirectoriesCount = directory.addressLists.length;
   var foundDirectories = new Array();
   var foundDirectoriesCount = 0;
   var i;
   // create a list of mailing lists and the index where the card is at.
   for ( i=0;  i < listDirectoriesCount; i++ ) {
-    var subdirectory = directory.addressLists.QueryElementAt(i, Components.interfaces.nsIAbDirectory);
-    index = findCardIndex(subdirectory);
-    if (index > -1)
-    {
+    var subdirectory = directory.addressLists.queryElementAt(i, Components.interfaces.nsIAbDirectory);
+    try {
+      var index = subdirectory.indexOf(gEditCard);
       foundDirectories[foundDirectoriesCount] = {directory:subdirectory, index:index};
       foundDirectoriesCount++;
-    }
+    } catch (ex) {}
   }
   
   CheckAndSetCardValues(gEditCard.card, document, false);
@@ -239,9 +224,9 @@ function EditCardOKButton()
   directory.modifyCard(gEditCard.card);
   
   for (i=0; i < foundDirectoriesCount; i++) {
-      // Update the addressLists item for this card
-      foundDirectories[i].directory.addressLists.
-              SetElementAt(foundDirectories[i].index, gEditCard.card);
+    // Update the addressLists item for this card
+    foundDirectories[i].directory.addressLists
+                       .replaceElementAt(gEditCard.card, foundDirectories[i].index, false);
   }
                                         
   NotifySaveListeners(directory);

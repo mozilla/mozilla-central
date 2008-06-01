@@ -112,6 +112,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgDatabase.h"
 #include "nsIMutableArray.h"
+#include "nsArrayUtils.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,
@@ -4327,7 +4328,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
 }
 
 
-nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsISupportsArray** addressesArray)
+nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsISupportsArray* mailListArray, nsIMutableArray** addressesArray)
 {
   nsresult rv;
   nsCOMPtr<nsIEnumerator> enumerator;
@@ -4403,7 +4404,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
   nsCOMPtr<nsIAbDirectory> abDirectory;
   nsCOMPtr<nsIAbMDBDirectory> mdbDirectory;
   nsCOMPtr<nsIAbCard> existingCard;
-  nsCOMPtr<nsISupportsArray> mailListAddresses;
+  nsCOMPtr<nsIMutableArray> mailListAddresses;
   nsCOMPtr<nsIMsgHeaderParser> parser(do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
   nsCOMPtr<nsISupportsArray> mailListArray(do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -4469,9 +4470,9 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               if (aPopulateMailList)
               {
                   PRUint32 nbrAddresses = 0;
-                  for (mailListAddresses->Count(&nbrAddresses); nbrAddresses > 0; nbrAddresses --)
+                  for (mailListAddresses->GetLength(&nbrAddresses); nbrAddresses > 0; nbrAddresses --)
                   {
-                    existingCard = do_QueryElementAt(mailListAddresses,
+                    existingCard = do_QueryElementAt(mailListAddresses, 
                                                      nbrAddresses - 1, &rv);
                     if (NS_FAILED(rv))
                       return rv;

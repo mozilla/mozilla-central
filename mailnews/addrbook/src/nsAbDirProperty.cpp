@@ -44,6 +44,7 @@
 #include "nsIPrefService.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "prmem.h"
 #include "rdf.h"
 #include "nsIAbManager.h"
@@ -65,7 +66,7 @@ nsAbDirProperty::~nsAbDirProperty(void)
   if (m_AddressList) {
     PRUint32 count;
     nsresult rv;
-    rv = m_AddressList->Count(&count);
+    rv = m_AddressList->GetLength(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Count failed");
     PRInt32 i;
     for (i = count - 1; i >= 0; i--)
@@ -219,22 +220,24 @@ NS_IMETHODIMP nsAbDirProperty::SetIsMailList(PRBool aIsMailList)
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetAddressLists(nsISupportsArray * *aAddressLists)
+NS_IMETHODIMP nsAbDirProperty::GetAddressLists(nsIMutableArray * *aAddressLists)
 {
-	if (!m_AddressList)
-	{
-		NS_NewISupportsArray(getter_AddRefs(m_AddressList));
-	}
+  if (!m_AddressList) 
+  {
+    nsresult rv;
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
-	*aAddressLists = m_AddressList;
-	NS_ADDREF(*aAddressLists);
-	return NS_OK;
+  *aAddressLists = m_AddressList;
+  NS_ADDREF(*aAddressLists);
+  return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::SetAddressLists(nsISupportsArray * aAddressLists)
+NS_IMETHODIMP nsAbDirProperty::SetAddressLists(nsIMutableArray * aAddressLists)
 {
-	m_AddressList = aAddressLists;
-	return NS_OK;
+  m_AddressList = aAddressLists;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
@@ -249,7 +252,7 @@ NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
   srcList->GetDescription(str);
   SetDescription(str);
 
-  nsCOMPtr <nsISupportsArray> pAddressLists;
+  nsCOMPtr<nsIMutableArray> pAddressLists;
   srcList->GetAddressLists(getter_AddRefs(pAddressLists));
   SetAddressLists(pAddressLists);
   return NS_OK;

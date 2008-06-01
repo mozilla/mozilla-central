@@ -176,11 +176,11 @@ function GetAddressesFromURI(uri)
   var editList = GetDirectoryFromURI(uri);
   var addressList = editList.addressLists;
   if (addressList) {
-    var total = addressList.Count();
+    var total = addressList.length;
     if (total > 0)
-      addresses = addressList.GetElementAt(0).QueryInterface(Components.interfaces.nsIAbCard).primaryEmail;
+      addresses = addressList.queryElementAt(0, Components.interfaces.nsIAbCard).primaryEmail;
     for (var i = 1;  i < total; i++ ) {
-      addresses += ", " + addressList.GetElementAt(i).QueryInterface(Components.interfaces.nsIAbCard).primaryEmail;
+      addresses += ", " + addressList.queryElementAt(i, Components.interfaces.nsIAbCard).primaryEmail;
     }
   }
   return addresses;
@@ -442,33 +442,30 @@ function cvSetNode(node, text)
 function cvAddAddressNodes(node, uri)
 {
   var visible = false;
-  if ( node )
-  {
-    var displayName = "";
-    var address = "";
 
+  if (node) {
     var editList = GetDirectoryFromURI(uri);
     var addressList = editList.addressLists;
 
     if (addressList) {
-      var total = addressList.Count();
+      var total = addressList.length;
       if (total > 0) {
         while (node.hasChildNodes()) {
           node.removeChild(node.lastChild);
         }
         for (i = 0;  i < total; i++ ) {
           var descNode = document.createElement("description");
-          address = addressList.GetElementAt(i).QueryInterface(Components.interfaces.nsIAbCard).primaryEmail;
-          displayName = addressList.GetElementAt(i).QueryInterface(Components.interfaces.nsIAbCard).displayName;
+          var card = addressList.queryElementAt(i, Components.interfaces.nsIAbCard);
+
           descNode.setAttribute("class", "CardViewLink");
           node.appendChild(descNode);
 
           var linkNode = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
           linkNode.setAttribute("id", "addr#" + i);
-          linkNode.setAttribute("href", "mailto:" + address);
+          linkNode.setAttribute("href", "mailto:" + card.primaryEmail);
           descNode.appendChild(linkNode);
 
-          var textNode = document.createTextNode(displayName + " <" + address + ">");
+          var textNode = document.createTextNode(card.displayName + " <" + card.primaryEmail + ">");
           linkNode.appendChild(textNode);
         }
         visible = true;

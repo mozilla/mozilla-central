@@ -110,7 +110,7 @@ function GetListValue(mailList, doAdd)
   mailList.listNickName = document.getElementById('ListNickName').value;
   mailList.description = document.getElementById('ListDescription').value;
 
-  var oldTotal = mailList.addressLists.Count();
+  var oldTotal = mailList.addressLists.length;
   var i = 1;
   var pos = 0;
   var inputField, fieldValue, cardproperty;
@@ -122,14 +122,14 @@ function GetListValue(mailList, doAdd)
     if (doAdd || (!doAdd && pos >= oldTotal))
       cardproperty = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance();
     else
-      cardproperty = mailList.addressLists.GetElementAt(pos);
+      cardproperty = mailList.addressLists.queryElementAt(pos, Components.interfaces.nsIAbCard);
 
     if (fieldValue == "")
     {
       if (!doAdd && cardproperty)
       try
       {
-        mailList.addressLists.DeleteElementAt(pos);
+        mailList.addressLists.removeElementAt(pos);
       }
       catch(ex)
       {
@@ -158,7 +158,7 @@ function GetListValue(mailList, doAdd)
           cardproperty.displayName = names.value[j];
 
           if (doAdd || (doAdd == false && pos >= oldTotal))
-            mailList.addressLists.AppendElement(cardproperty);
+            mailList.addressLists.appendElement(cardproperty, false);
         }
         pos++;
       }
@@ -171,7 +171,7 @@ function GetListValue(mailList, doAdd)
   if (doAdd == false && i < oldTotal)
   {
     for (var j = i; j < oldTotal; j++)
-      mailList.addressLists.DeleteElementAt(j);
+      mailList.addressLists.removeElementAt(j);
   }
   return true;
 }
@@ -291,7 +291,7 @@ function OnLoadEditList()
 
   if (gEditList.addressLists)
   {
-    var total = gEditList.addressLists.Count();
+    var total = gEditList.addressLists.length;
     if (total)
     {
       var listbox = document.getElementById('addressingWidget');
@@ -301,8 +301,7 @@ function OnLoadEditList()
       top.MAX_RECIPIENTS = 0;
       for ( var i = 0;  i < total; i++ )
       {
-        var card = gEditList.addressLists.GetElementAt(i);
-        card = card.QueryInterface(Components.interfaces.nsIAbCard);
+        var card = gEditList.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
         var address = gHeaderParser.makeFullAddressWString(card.displayName, card.primaryEmail);
         SetInputValue(address, newListBoxNode, templateNode);
       }

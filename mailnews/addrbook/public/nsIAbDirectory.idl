@@ -42,7 +42,7 @@
 
 interface nsISimpleEnumerator;
 interface nsIArray;
-interface nsISupportsArray;
+interface nsIMutableArray;
 
 %{C++
 /* RDF root for all types of address books */
@@ -59,7 +59,7 @@ interface nsISupportsArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(1862d623-8bf4-41e5-aaee-f475de0c8cff)]
+[scriptable, uuid(e8998a5e-ec0f-4d43-b05a-cb4812154d3c)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -183,13 +183,14 @@ interface nsIAbDirectory : nsISupports {
    */
   readonly attribute boolean supportsMailingLists;
 
-  // XXX todo
-  // fix this, ugh
-  // This attribute servers two purposes 
-  // depending if the directory is a mail list.
-  // If not mail list directories are stored here
-  // If so mail list card entries are stored here
-  attribute nsISupportsArray addressLists;
+  /**
+   * This attribute serves two purposes
+   *  1. If this directory is not a mail list, directories are stored here
+   *  2. If it is a mail list card entries are stored here
+   *
+   * @note This is a *live* array and not a static copy
+   */
+  attribute nsIMutableArray addressLists;
 
   // Specific to a directory which stores mail lists
 

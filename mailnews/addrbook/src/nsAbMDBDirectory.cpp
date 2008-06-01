@@ -187,11 +187,11 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
       return NS_OK;
   }
 
-  rv = m_AddressList->Count(&listTotal);
+  rv = m_AddressList->GetLength(&listTotal);
   NS_ENSURE_SUCCESS(rv,rv);
 
   for (i = listTotal - 1; i >= 0; i--)
-  {            
+  {
     nsCOMPtr<nsIAbDirectory> listDir(do_QueryElementAt(m_AddressList, i, &rv));
     if (listDir)
     {
@@ -199,17 +199,17 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
       mDatabase->DeleteCardFromMailList(listDir, card, PR_FALSE);
 
       // Now remove the instance in any lists we hold.
-      nsCOMPtr <nsISupportsArray> pAddressLists;
+      nsCOMPtr<nsIMutableArray> pAddressLists;
       listDir->GetAddressLists(getter_AddRefs(pAddressLists));
       if (pAddressLists)
       {  
         PRUint32 total;
-        rv = pAddressLists->Count(&total);
+        rv = pAddressLists->GetLength(&total);
         for (j = total - 1; j >= 0; j--)
         {
           nsCOMPtr<nsIAbCard> cardInList(do_QueryElementAt(pAddressLists, j, &rv));
           PRBool equals;
-          nsresult rv = cardInList->Equals(card, &equals);  // should we checking email?
+          rv = cardInList->Equals(card, &equals);  // should we checking email?
           if (NS_SUCCEEDED(rv) && equals)
             pAddressLists->RemoveElementAt(j);
         }
@@ -232,8 +232,9 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteDirectory(nsIAbDirectory *directory)
   if (NS_SUCCEEDED(rv))
     database->Commit(nsAddrDBCommitType::kLargeCommit);
 
-  if (m_AddressList)
-    m_AddressList->RemoveElement(directory);
+  PRUint32 dirIndex;
+  if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, directory, &dirIndex)))
+    m_AddressList->RemoveElementAt(dirIndex);
   rv = mSubDirectories.RemoveObject(directory);
 
   NotifyItemDeleted(directory);
@@ -308,7 +309,7 @@ NS_IMETHODIMP nsAbMDBDirectory::RemoveElementsFromAddressList()
   {
     PRUint32 count;
     nsresult rv;
-    rv = m_AddressList->Count(&count);
+    rv = m_AddressList->GetLength(&count);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Count failed");
     PRInt32 i;
     for (i = count - 1; i >= 0; i--)
@@ -514,7 +515,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
           PRUint32 cardTotal = 0;
           PRInt32 i;
           if (m_AddressList)
-            rv = m_AddressList->Count(&cardTotal);
+            rv = m_AddressList->GetLength(&cardTotal);
           for (i = cardTotal - 1; i >= 0; i--)
           {            
             nsCOMPtr<nsIAbMDBCard> dbarrayCard(do_QueryElementAt(m_AddressList, i, &rv));
@@ -559,8 +560,9 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
               if (NS_FAILED(rv))
                 return rv;
 
-              if (m_AddressList)
-                m_AddressList->RemoveElement(listDir);
+              PRUint32 dirIndex;
+              if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, listDir, &dirIndex)))
+                m_AddressList->RemoveElementAt(dirIndex);
 
               mSubDirectories.RemoveObject(listDir);
 
@@ -823,12 +825,12 @@ static PRBool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *director
   if (bIsMailList)
     return PR_FALSE;
 
-  nsCOMPtr <nsISupportsArray> pAddressLists;
+  nsCOMPtr<nsIMutableArray> pAddressLists;
   parent->GetAddressLists(getter_AddRefs(pAddressLists));
   if (pAddressLists)
   {
     PRUint32 total;
-    rv = pAddressLists->Count(&total);
+    rv = pAddressLists->GetLength(&total);
     for (PRUint32 i = 0; i < total; ++i)
     {
       nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(pAddressLists, i, &rv));

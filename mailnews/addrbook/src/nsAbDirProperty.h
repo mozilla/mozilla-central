@@ -48,12 +48,12 @@
 
 #include "nsIAbDirectory.h" /* include the interface we are going to support */
 #include "nsIAbCard.h"
-#include "nsISupportsArray.h"
 #include "nsCOMPtr.h"
 #include "nsDirPrefs.h"
 #include "nsIAddrDatabase.h"
 #include "nsStringGlue.h"
 #include "nsIPrefBranch.h"
+#include "nsIMutableArray.h"
 
  /* 
   * Address Book Directory
@@ -89,6 +89,6 @@ protected:
   nsCString m_DirPrefId;  // ie,"ldap_2.servers.pab"
 
   nsCOMPtr<nsIPrefBranch> m_DirectoryPrefs;
-  nsCOMPtr<nsISupportsArray> m_AddressList;
+  nsCOMPtr<nsIMutableArray> m_AddressList;
 };
 #endif

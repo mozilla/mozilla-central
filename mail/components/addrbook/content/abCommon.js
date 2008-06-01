@@ -584,11 +584,11 @@ function GetSelectedAddressesFromDirTree()
     var selectedResource = dirTree.builderView.getResourceAtIndex(dirTree.currentIndex);
     var directory = GetDirectoryFromURI(selectedResource.Value);
     if (directory.isMailList) {
-      var listCardsCount = directory.addressLists.Count();
+      var listCardsCount = directory.addressLists.length;
       var cards = new Array(listCardsCount);
       for (var i = 0; i < listCardsCount; ++i)
-        cards[i] = directory.addressLists.QueryElementAt(
-                     i, Components.interfaces.nsIAbCard);
+        cards[i] = directory.addressLists
+                            .queryElementAt(i, Components.interfaces.nsIAbCard);
       addresses = GetAddressesForCards(cards);
     }
   }

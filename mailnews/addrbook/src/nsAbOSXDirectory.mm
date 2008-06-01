@@ -599,12 +599,12 @@ nsAbOSXDirectory::Update()
     nsCOMPtr<nsIAbDirectory> directory;
     if (m_AddressList) {
       PRUint32 i, count;
-      m_AddressList->Count(&count);
+      m_AddressList->GetLength(&count);
       for (i = 0; i < count; ++i) {
-        directory = do_QueryElementAt(m_AddressList, i);
-        nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
-          do_QueryInterface(directory);
-        
+        directory = do_QueryElementAt(m_AddressList, i, &rv);
+        if (NS_FAILED(rv))
+          continue;
+
         nsCAutoString uri;
         directory->GetURI(uri);
         uri.Cut(0, 21);
@@ -655,7 +655,7 @@ nsAbOSXDirectory::AssertChildNodes()
   unsigned int i, count = [groups count];
   
   if (count > 0 && !m_AddressList) {
-    rv = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
@@ -676,18 +676,21 @@ nsresult
 nsAbOSXDirectory::AssertDirectory(nsIAbManager *aManager,
                                   nsIAbDirectory *aDirectory)
 {
-  NS_ASSERTION(!m_AddressList || m_AddressList->IndexOf(aDirectory) < 0,
-               "Replacing?");
+#if _DEBUG
+  PRUint32 pos;
+  NS_ASSERTION(!m_AddressList || 
+      NS_FAILED(m_AddressList->IndexOf(0, aDirectory, &pos)), "Replacing?");
+#endif
   
   nsresult rv;
   if (!m_AddressList) {
-    rv = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
-  rv = m_AddressList->AppendElement(aDirectory);
+  rv = m_AddressList->AppendElement(aDirectory, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   return aManager->NotifyDirectoryItemAdded(this, aDirectory);
 }
 
@@ -713,11 +716,12 @@ nsAbOSXDirectory::UnassertDirectory(nsIAbManager *aManager,
   if (!m_AddressList)
     return NS_ERROR_NULL_POINTER;
 
-  NS_ASSERTION(m_AddressList->IndexOf(aDirectory) >= 0,
-               "Not found?");
-
-  nsresult rv = m_AddressList->RemoveElement(aDirectory);
-  NS_ENSURE_SUCCESS(rv, rv);
+  PRUint32 pos;
+  if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
+  {
+    nsresult rv = m_AddressList->RemoveElementAt(pos);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   return aManager->NotifyDirectoryItemDeleted(this, aDirectory);
 }
@@ -824,7 +828,11 @@ nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
   NS_ENSURE_ARG_POINTER(aDirectory);
   NS_ENSURE_ARG_POINTER(aHasDirectory);
   
-  *aHasDirectory = m_AddressList && m_AddressList->IndexOf(aDirectory) >= 0;
+  *aHasDirectory = PR_FALSE;
+
+  PRUint32 pos;
+  if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
+    *aHasDirectory = PR_TRUE;
   
   return NS_OK;
 }
@@ -840,7 +848,7 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
 {
   nsresult rv;
   if (!m_AddressList) {
-    rv = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
@@ -848,7 +856,7 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
     return NS_ERROR_OUT_OF_MEMORY;
   }
   
-  rv = m_AddressList->AppendElement(aCard);
+  rv = m_AddressList->AppendElement(aCard, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
   
   mCardList.PutEntry(aCard);
@@ -871,7 +879,7 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
     m_AddressList->Clear();
   }
   else {
-    rv = NS_NewISupportsArray(getter_AddRefs(m_AddressList));
+    m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
