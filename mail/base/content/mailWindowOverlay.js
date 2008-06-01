@@ -673,6 +673,11 @@ function backToolbarMenu_init(menuPopup)
   populateHistoryMenu(menuPopup, true);
 }
 
+function getMsgToolbarMenu_init()
+{
+  document.commandDispatcher.updateCommands('create-menu-getMsgToolbar');
+}
+
 var gNavDebug = false;
 function navDebug(str)
 {

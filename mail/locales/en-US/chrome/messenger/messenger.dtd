@@ -25,13 +25,13 @@
 <!ENTITY saveAsFileCmd.key "s">
 <!ENTITY saveAsTemplateCmd.label "Template">
 <!ENTITY saveAsTemplateCmd.accesskey "T">
-<!ENTITY getNewMsgCmd.label "Get New Messages">
-<!ENTITY getNewMsgCmd.accesskey "G">
 <!ENTITY getNewMsgCmd.key "t">
 <!ENTITY getNewMsgForCmd.label "Get New Messages for">
 <!ENTITY getNewMsgForCmd.accesskey "w">
-<!ENTITY getAllNewMsgCmd.label "Get All New Messages">
-<!ENTITY getAllNewMsgCmd.key "t">
+<!ENTITY getAllNewMsgCmdPopupMenu.label "All Accounts">
+<!ENTITY getAllNewMsgCmdPopupMenu.accesskey "A">
+<!ENTITY getNewMsgCurrentAccountCmdPopupMenu.label "Current Account">
+<!ENTITY getNewMsgCurrentAccountCmdPopupMenu.accesskey "C">
 <!ENTITY getNextNMsgCmd.label "Get Next 500 News Messages">
 <!ENTITY getNextNMsgCmd.accesskey "t">
 <!ENTITY sendUnsentCmd.label "Send Unsent Messages">
@@ -448,6 +448,9 @@
 <!ENTITY advancedButton.tooltip "Advanced message search">
 <!ENTITY clearButton.tooltip "Clear the search criteria and show all messages">
 <!ENTITY getMsgButton.tooltip "Get new messages">
+<!ENTITY getAllNewMsgCmd.label "Get All New Messages">
+<!ENTITY getAllNewMsgCmd.accesskey "G">
+<!ENTITY getAllNewMsgCmd.key "t">
 <!ENTITY newMsgButton.tooltip "Create a new message">
 <!ENTITY replyButton.tooltip "Reply to the message">
 <!ENTITY replyAllButton.tooltip "Reply to sender and all recipients">

@@ -917,7 +917,16 @@
                 oncommand="MsgGetMessagesForAccount(event.target._folder)">
             <menupopup type="folder" mode="getMail" id="menu_getAllNewMsgPopup"
                        expandFolders="false">
-              <menuitem label="&getAllNewMsgCmd.label;" accesskey="&getAllNewMsgCmd.key;"/>
+              <menuitem id="menu_getnewmsgs_all_accounts"
+                        label="&getAllNewMsgCmdPopupMenu.label;"
+                        accesskey="&getAllNewMsgCmdPopupMenu.accesskey;"
+                        key="key_getAllNewMessages"
+                        command="cmd_getMsgsForAuthAccounts"/>
+              <menuitem id="menu_getnewmsgs_current_account"
+                        label="&getNewMsgCurrentAccountCmdPopupMenu.label;"
+                        accesskey="&getNewMsgCurrentAccountCmdPopupMenu.accesskey;"
+                        key="key_getNewMessages"
+                        command="cmd_getNewMessages"/>
               <menuseparator/>
             </menupopup>
           </menu>
@@ -1404,12 +1413,14 @@
                    oncommand="MsgGetMessagesForAccount(event.target._folder)"
                    observes="button_getNewMessages">
       <menupopup id="button-getMsgPopup"
+                 onpopupshowing="getMsgToolbarMenu_init();"
                  type="folder"
                  expandFolders="false"
                  mode="getMail">
         <menuitem id="button-getAllNewMsg"
                   label="&getAllNewMsgCmd.label;"
-                  accesskey="&getAllNewMsgCmd.key;"/>
+                  accesskey="&getAllNewMsgCmd.accesskey;"
+                  command="cmd_getMsgsForAuthAccounts"/>
         <menuseparator id="button-getAllNewMsgSeparator"/>
       </menupopup>
     </toolbarbutton>
