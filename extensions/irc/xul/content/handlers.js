@@ -2546,15 +2546,16 @@ function my_cjoin (e)
 }
 
 CIRCChannel.prototype.onPart =
-function my_cpart (e)
+function my_cpart(e)
 {
     this.removeUsers([e.user]);
     this.updateHeader();
 
-    if (userIsMe (e.user))
+    if (userIsMe(e.user))
     {
-        var params = [e.user.unicodeName, e.channel.unicodeName];
-        this.display (getMsg(MSG_YOU_LEFT, params), "PART", e.user, this);
+        var msg = e.reason ? MSG_YOU_LEFT_REASON : MSG_YOU_LEFT;
+        var params = [e.user.unicodeName, e.channel.unicodeName, e.reason];
+        this.display(getMsg(msg, params), "PART", e.user, this);
         this._clearUserList();
 
         if ("partTimer" in this)
@@ -2579,13 +2580,9 @@ function my_cpart (e)
 
         if (!this.prefs["conference.enabled"])
         {
-            var msg = MSG_SOMEONE_LEFT;
-            if (e.reason)
-                msg = MSG_SOMEONE_LEFT_REASON;
-
-            this.display(getMsg(msg, [e.user.unicodeName, e.channel.unicodeName,
-                                      e.reason]),
-                         "PART", e.user, this);
+            var msg = e.reason ? MSG_SOMEONE_LEFT_REASON : MSG_SOMEONE_LEFT;
+            var params = [e.user.unicodeName, e.channel.unicodeName, e.reason];
+            this.display(getMsg(msg, params), "PART", e.user, this);
         }
 
         this.removeFromList(e.user);
