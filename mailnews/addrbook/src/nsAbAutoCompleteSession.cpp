@@ -61,7 +61,9 @@ nsAbAutoCompleteSession::~nsAbAutoCompleteSession()
 {
 }
 
-PRBool nsAbAutoCompleteSession::ItsADuplicate(PRUnichar* fullAddrStr, PRInt32 aPopularityIndex, nsIAutoCompleteResults* results)
+PRBool nsAbAutoCompleteSession::ItsADuplicate(const nsString &fullAddress,
+                                              PRInt32 aPopularityIndex,
+                                              nsIAutoCompleteResults* results)
 {
     nsresult rv;
 
@@ -88,10 +90,10 @@ PRBool nsAbAutoCompleteSession::ItsADuplicate(PRUnichar* fullAddrStr, PRInt32 aP
                         rv = resultItem->GetValue(valueStr);
 #ifdef MOZILLA_INTERNAL_API
                         if (NS_SUCCEEDED(rv) && !valueStr.IsEmpty() 
-                            && nsDependentString(fullAddrStr).Equals(valueStr, nsCaseInsensitiveStringComparator()))
+                            && fullAddress.Equals(valueStr, nsCaseInsensitiveStringComparator()))
 #else
                         if (NS_SUCCEEDED(rv) && !valueStr.IsEmpty() 
-                            && nsDependentString(fullAddrStr).Equals(valueStr, CaseInsensitiveCompare))
+                            && fullAddress.Equals(valueStr, CaseInsensitiveCompare))
 #endif
                         {
                           // ok, we have a duplicate, but before we ignore the dupe, check the popularity index
@@ -135,57 +137,49 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
                                      nsIAutoCompleteResults* results)
 {
   nsresult rv;
-  PRUnichar* fullAddrStr = nsnull;
+  nsString fullAddress;
 
-    if (mParser)
+  if (mParser)
+  {
+    nsString displayName(pDisplayNameStr);
+    if (bIsMailList)
     {
-      nsCString fullAddress;
-      nsCString utf8Email;
-      if (bIsMailList)
-      {
-        if (pNotesStr && pNotesStr[0] != 0)
-          utf8Email.Adopt(ToNewUTF8String(nsDependentString(pNotesStr)));
-        else
-          utf8Email.Adopt(ToNewUTF8String(nsDependentString(pDisplayNameStr)));
-      }
-      else
-        utf8Email.Adopt(ToNewUTF8String(nsDependentString(pEmailStr)));
-
-      mParser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(pDisplayNameStr).get(),
-                               utf8Email.get(), getter_Copies(fullAddress));
-      if (!fullAddress.IsEmpty())
-      {
-        /* We need to convert back the result from UTF-8 to Unicode */
-        fullAddrStr = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress));
-      }
+      if (pNotesStr && *pNotesStr)
+        mParser->MakeFullAddress(displayName, nsDependentString(pNotesStr),
+                                 fullAddress);
+      else if (pDisplayNameStr)
+        mParser->MakeFullAddress(displayName, displayName, fullAddress);
     }
+    else if (pEmailStr)
+      mParser->MakeFullAddress(displayName, nsDependentString(pEmailStr),
+                               fullAddress);
+  }
   
-    if (!fullAddrStr)
+  if (fullAddress.IsEmpty())
+  {
+    // oops, parser problem! I will try to do my best...
+    const PRUnichar * pStr = nsnull;
+    if (bIsMailList)
     {
-      //oops, parser problem! I will try to do my best...
-      const PRUnichar * pStr = nsnull;
-      if (bIsMailList)
-      {
-        if (pNotesStr && pNotesStr[0] != 0)
-          pStr = pNotesStr;
-        else
-          pStr = pDisplayNameStr;
-      }
+      if (pNotesStr && *pNotesStr)
+        pStr = pNotesStr;
       else
-        pStr = pEmailStr;
-      // check this so we do not get a bogus entry "someName <>"
-      if (pStr && pStr[0] != 0) {
-        nsAutoString aStr(pDisplayNameStr);
-        aStr.AppendLiteral(" <");
-        aStr += pStr;
-        aStr.AppendLiteral(">");
-        fullAddrStr = ToNewUnicode(aStr);
-      }
-      else
-        fullAddrStr = nsnull;
+        pStr = pDisplayNameStr;
     }
+    else
+      pStr = pEmailStr;
+
+    // check this so we do not get a bogus entry "someName <>"
+    if (pStr && *pStr) {
+      fullAddress = pDisplayNameStr;
+      fullAddress.AppendLiteral(" <");
+      fullAddress += pStr;
+      fullAddress.AppendLiteral(">");
+    }
+  }
     
-  if (fullAddrStr && ! ItsADuplicate(fullAddrStr, aPopularityIndex, results))
+  if (!fullAddress.IsEmpty() &&
+      !ItsADuplicate(fullAddress, aPopularityIndex, results))
   {    
     nsCOMPtr<nsIAutoCompleteItem> newItem = do_CreateInstance(NS_AUTOCOMPLETEITEM_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
@@ -217,7 +211,7 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
                    " newItem->SetClassName() failed\n");
       }
 
-      newItem->SetValue(nsDependentString(fullAddrStr));
+      newItem->SetValue(fullAddress);
       nsCOMPtr<nsISupportsArray> array;
       rv = results->GetItems(getter_AddRefs(array));
       if (NS_SUCCEEDED(rv))
@@ -248,7 +242,6 @@ nsAbAutoCompleteSession::AddToResult(const PRUnichar* pNickNameStr,
       }
     }
   }    
-  PR_Free(fullAddrStr);
 }
 
 static PRBool CommonPrefix(const PRUnichar *aString, const PRUnichar *aSubstr, PRInt32 aSubstrLen)
@@ -432,8 +425,8 @@ nsresult nsAbAutoCompleteSession::SearchCards(nsIAbDirectory* directory, nsAbAut
           // instead of just looking for an exact match on "My List", hijack the unused email address field 
           // and use that to test against "My List <My List>"
           if (bIsMailList)
-            mParser->MakeFullAddressWString(pDisplayNameStr.get(), pDisplayNameStr.get(), getter_Copies(pEmailStr[0]));  
-            
+            mParser->MakeFullAddress(pDisplayNameStr, pDisplayNameStr, pEmailStr[0]);
+
           for (i = 0 ; i < MAX_NUMBER_OF_EMAIL_ADDRESSES; i ++)
           {
             if (!bIsMailList && pEmailStr[i].IsEmpty())

@@ -302,7 +302,8 @@ function OnLoadEditList()
       for ( var i = 0;  i < total; i++ )
       {
         var card = gEditList.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
-        var address = gHeaderParser.makeFullAddressWString(card.displayName, card.primaryEmail);
+        var address = gHeaderParser.makeFullAddress(card.displayName,
+                                                    card.primaryEmail);
         SetInputValue(address, newListBoxNode, templateNode);
       }
       var parent = listbox.parentNode;

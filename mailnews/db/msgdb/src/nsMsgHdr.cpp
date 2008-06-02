@@ -428,7 +428,8 @@ nsresult nsMsgHdr::BuildRecipientsFromArray(const char *names, const char *addre
     if (headerParser)
     {
        nsCString fullAddress;
-       ret = headerParser->MakeFullAddress(nsnull, curName, curAddress, getter_Copies(fullAddress));
+       ret = headerParser->MakeFullAddressString(curName, curAddress,
+                                                 getter_Copies(fullAddress));
        if (NS_SUCCEEDED(ret) && !fullAddress.IsEmpty())
        {
           allRecipients += fullAddress;

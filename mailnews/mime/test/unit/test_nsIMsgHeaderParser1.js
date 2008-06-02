@@ -27,11 +27,11 @@ function run_test() {
 
   // Test - empty strings
 
-  do_check_eq(parser.makeFullAddressWString("", ""), "");
+  do_check_eq(parser.makeFullAddress("", ""), "");
 
   // Test - makeFullAddressWString
 
   for (i = 0; i < checks.length; ++i)
-    do_check_eq(parser.makeFullAddressWString(checks[i][0], checks[i][1]),
+    do_check_eq(parser.makeFullAddress(checks[i][0], checks[i][1]),
                 checks[i][2]);
 }

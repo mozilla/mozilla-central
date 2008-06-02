@@ -121,7 +121,8 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
 
   nsCString fullAddress;
   nsCString unquotedAddress;
-  rv = aParser->MakeFullAddress("UTF-8", aName, aAddress, getter_Copies(fullAddress));
+  rv = aParser->MakeFullAddressString(aName, aAddress,
+                                      getter_Copies(fullAddress));
   if (NS_SUCCEEDED(rv) && !fullAddress.IsEmpty())
   {
     result = MIME_DecodeMimeHeader(fullAddress.get(), nsnull, PR_FALSE, PR_TRUE);
@@ -252,27 +253,24 @@ nsresult nsMsgHeaderParser::RemoveDuplicateAddresses (const char *charset, const
     return NS_ERROR_NULL_POINTER;
 }
 
-nsresult nsMsgHeaderParser::MakeFullAddress (const char *charset, const char* name, const char* addr, char ** fullAddress)
+NS_IMETHODIMP
+nsMsgHeaderParser::MakeFullAddressString(const char *aName,
+                                         const char *aAddress, char **aResult)
 {
-  NS_ENSURE_ARG_POINTER(fullAddress);
-
-  *fullAddress = msg_make_full_address(name, addr);
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = msg_make_full_address(aName, aAddress);
   return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::MakeFullAddressWString (const PRUnichar* name, const PRUnichar* addr, PRUnichar ** fullAddress)
+NS_IMETHODIMP
+nsMsgHeaderParser::MakeFullAddress(const nsAString &aName,
+                                   const nsAString &aAddress, nsAString &aResult)
 {
   nsCString utf8Str;
-  nsresult rv = MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(name).get(),
-                                NS_ConvertUTF16toUTF8(addr).get(), getter_Copies(utf8Str));
-  if (NS_SUCCEEDED(rv))
-  {
-    *fullAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(utf8Str.get()));
-    if (*fullAddress == nsnull)
-      rv = NS_ERROR_OUT_OF_MEMORY;
-  }
-
-  return rv;
+  utf8Str.Adopt(msg_make_full_address(NS_ConvertUTF16toUTF8(aName).get(),
+                                      NS_ConvertUTF16toUTF8(aAddress).get()));
+  CopyUTF8toUTF16(utf8Str, aResult);
+  return NS_OK;
 }
 
 nsresult nsMsgHeaderParser::UnquotePhraseOrAddr (const char *line, PRBool preserveIntegrity, char** result)

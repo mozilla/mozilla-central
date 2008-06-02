@@ -970,7 +970,7 @@ function GenerateAddressFromCard(card)
   else
     email = card.primaryEmail;
 
-  return gHeaderParser.makeFullAddressWString(card.displayName, email);
+  return gHeaderParser.makeFullAddress(card.displayName, email);
 }
 
 function GetDirectoryFromURI(uri)

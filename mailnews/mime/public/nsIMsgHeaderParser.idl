@@ -49,7 +49,7 @@ interface nsISimpleEnumerator;
 /* 
  * nsIMsgRFCParser Interface declaration 
  */ 
-[scriptable, uuid(10A88A11-729E-11d2-804A-006008128C4E)]
+[scriptable, uuid(dda9b90c-4c05-464c-82d0-c5901f40d93c)]
 interface nsIMsgHeaderParser : nsISupports {
 
   void parseHeadersWithArray(in wstring aLine, 
@@ -136,16 +136,25 @@ interface nsIMsgHeaderParser : nsISupports {
                                  in PRBool removeAliasesToMe, out string newAddress);
 
 
-  /* Given an e-mail address and a person's name, cons them together into a
-     single string of the form "name <address>", doing all the necessary quoting.
-     A new string is returned, which you must free when you're done with it.
+  /**
+   * Given an e-mail address and a person's name, cons them together into a
+   * single string, doing all the necessary quoting.
+   *
+   * @param  aName     The name of the sender.
+   * @param  aAddress  The address of the sender.
+   * @return           A string of the form name <address>.
+   */
+  AString makeFullAddress(in AString aName, in AString aAddress);
 
-     The caller may pass nsnull for charset and it will be interpreted as "us-ascii".
-
-     Caller must call PL_strfree on fullAddress (this is the out parameter)
-  */
-  [noscript] string makeFullAddress (in string charset, in string name, in string addr);
-  wstring makeFullAddressWString (in wstring name, in wstring addr);
+  /**
+   * Given an e-mail address and a person's name, cons them together into a
+   * single string, doing all the necessary quoting (const char* version).
+   *
+   * @param  aName     The name of the sender. This should be in UTF-8.
+   * @param  aAddress  The address of the sender. This should be in UTF-8.
+   * @return           A string of the form name <address>.
+   */
+  [noscript] string makeFullAddressString(in string aName, in string aAddress);
 
   /* This function removes the quoting if you want to show the
      names to users. e.g. summary file, address book. If preserveIntegrity is set to true,

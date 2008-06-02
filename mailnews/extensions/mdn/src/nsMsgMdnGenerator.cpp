@@ -501,9 +501,9 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
     nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
     if (parser)
     {
-        // convert fullName to UTF8 before passing it to MakeFullAddress
-        parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(fullName).get(),
-                                m_email.get(), getter_Copies(fullAddress));
+        // convert fullName to UTF8 before passing it to MakeFullAddressString
+        parser->MakeFullAddressString(NS_ConvertUTF16toUTF8(fullName).get(),
+                                      m_email.get(), getter_Copies(fullAddress));
     }
 
     convbuf = nsMsgI18NEncodeMimePartIIStr(

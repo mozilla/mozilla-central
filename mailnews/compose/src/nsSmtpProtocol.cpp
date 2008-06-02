@@ -612,14 +612,15 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   {
     /* else send the MAIL FROM: command */
     nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
-    char *fullAddress = nsnull;
+    nsCString fullAddress;
     if (parser)
     {
       // pass nsnull for the name, since we just want the email.
       //
       // seems a little weird that we are passing in the emailAddress
       // when that's the out parameter
-      parser->MakeFullAddress(nsnull, nsnull /* name */, emailAddress.get() /* address */, &fullAddress);
+      parser->MakeFullAddressString(nsnull, emailAddress.get(),
+                                    getter_Copies(fullAddress));
     }
 
     buffer = "MAIL FROM:<";
@@ -659,8 +660,6 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       buffer.AppendInt(m_totalMessageSize);
     }
     buffer += CRLF;
-
-    PR_Free (fullAddress);
   }
 
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);

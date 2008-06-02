@@ -105,14 +105,11 @@ nsAbLDAPAutoCompFormatter::Format(nsILDAPMessage *aMsg,
     }
 
     nsCString value;
-    /* As far as I can tell, the documentation in nsIMsgHdrParser that 
-     * nsnull means "US-ASCII" is actually wrong, it appears to mean UTF8
-     */
-    rv = msgHdrParser->MakeFullAddress(nsnull, name.get(), address.get(), 
-                                       getter_Copies(value));
+    rv = msgHdrParser->MakeFullAddressString(name.get(), address.get(), 
+                                             getter_Copies(value));
     if (NS_FAILED(rv)) {
         NS_ERROR("nsAbLDAPAutoCompFormatter::Format(): call to"
-                 " MakeFullAddress() failed");
+                 " MakeFullAddressString() failed");
         return rv;
     }
 

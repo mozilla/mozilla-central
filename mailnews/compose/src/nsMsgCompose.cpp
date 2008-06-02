@@ -923,19 +923,15 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
     identity->GetFullName(fullName);
     identity->GetOrganization(organization);
 
-    char * sender = nsnull;
+    nsCString sender;
     nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
     if (parser) {
-      // convert to UTF8 before passing to MakeFullAddress
-      parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(fullName).get(), email.get(), &sender);
+      // convert to UTF8 before passing to MakeFullAddressString
+      parser->MakeFullAddressString(NS_ConvertUTF16toUTF8(fullName).get(),
+                                    email.get(), getter_Copies(sender));
     }
 
-    if (!sender)
-      m_compFields->SetFrom(email.get());
-    else
-      m_compFields->SetFrom(sender);
-    PR_FREEIF(sender);
-
+    m_compFields->SetFrom(sender.IsEmpty() ? email.get() : sender.get());
     m_compFields->SetOrganization(organization);
     mMsgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID);
     if (mMsgSend)
@@ -4498,19 +4494,9 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                       return rv;
 
                     if (parser)
-                    {
-                      nsCString fullAddress;
+                      parser->MakeFullAddress(pDisplayName, newRecipient.mEmail,
+                                              newRecipient.mAddress);
 
-                      parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(pDisplayName).get(),
-                                              NS_ConvertUTF16toUTF8(newRecipient.mEmail).get(),
-                                              getter_Copies(fullAddress));
-
-                      if (!fullAddress.IsEmpty())
-                      {
-                        // We need to convert back the result from UTF-8 to Unicode
-                        CopyUTF8toUTF16(fullAddress, newRecipient.mAddress);
-                      }
-                    }
                     if (newRecipient.mAddress.IsEmpty())
                     {
                       // oops, parser problem! I will try to do my best...
@@ -5236,22 +5222,9 @@ nsMsgMailList::nsMsgMailList(nsString listName, nsString listDescription, nsIAbD
   nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
 
   if (parser)
-  {
-    nsCString utf8Email;
-    if (listDescription.IsEmpty())
-      CopyUTF16toUTF8(listName, utf8Email);
-    else
-      CopyUTF16toUTF8(listDescription, utf8Email);
-
-    nsCString fullAddress;
-    parser->MakeFullAddress(nsnull, NS_ConvertUTF16toUTF8(listName).get(),
-                            utf8Email.get(), getter_Copies(fullAddress));
-    if (!fullAddress.IsEmpty())
-    {
-      /* We need to convert back the result from UTF-8 to Unicode */
-      CopyUTF8toUTF16(fullAddress, mFullName);
-    }
-  }
+    parser->MakeFullAddress(listName,
+                            listDescription.IsEmpty() ? listName : listDescription,
+                            mFullName);
 
   if (mFullName.IsEmpty())
   {

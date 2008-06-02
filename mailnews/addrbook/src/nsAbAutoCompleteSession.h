@@ -84,7 +84,8 @@ public:
   virtual ~nsAbAutoCompleteSession(); 
 
 protected:    
-    PRBool ItsADuplicate(PRUnichar* fullAddrStr, PRInt32 aPopularityIndex, nsIAutoCompleteResults* results);
+    PRBool ItsADuplicate(const nsString &fullAddrStr, PRInt32 aPopularityIndex,
+                         nsIAutoCompleteResults* results);
     void AddToResult(const PRUnichar* pNickNameStr, 
                      const PRUnichar* pDisplayNameStr, 
                      const PRUnichar* pFirstNameStr,

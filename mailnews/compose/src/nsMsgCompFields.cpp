@@ -622,8 +622,8 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
           nsCString fullAddress;
           nsAutoString recipient;
           if (!emailAddressOnly)
-            rv = parser->MakeFullAddress("UTF-8", pNames,
-                                         pAddresses, getter_Copies(fullAddress));
+            rv = parser->MakeFullAddressString(pNames, pAddresses,
+                                               getter_Copies(fullAddress));
           if (NS_SUCCEEDED(rv) && !emailAddressOnly)
           {
             rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
@@ -679,8 +679,8 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients,
     for (PRUint32 i = 0; i < numAddresses; ++i)
     {
       nsCString fullAddress;
-      rv = parser->MakeFullAddress("UTF-8", pNames, pAddresses, 
-                                   getter_Copies(fullAddress));
+      rv = parser->MakeFullAddressString(pNames, pAddresses,
+                                         getter_Copies(fullAddress));
 
       nsMsgRecipient msgRecipient;
 
