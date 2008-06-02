@@ -237,7 +237,7 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCaseRun.get_history',65104 );
 #$soapresult = $proxy->call('TestCaseRun.list', );
 #$soapresult = $proxy->call('TestCaseRun.lookup_status_id_by_name', 'PASSED');
-#$soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
+$soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
 #$soapresult = $proxy->call('TestCaseRun.update', 65104, {status=>3});
 #$soapresult = $proxy->call('TestCaseRun.update', [65104,6105,6106] , {status=>3});
 #$soapresult = $proxy->call('TestCaseRun.update', 501, 765, 306, 1, {status=>3});
@@ -278,6 +278,6 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestRun.list', {plan => 97});
 #$soapresult = $proxy->call('TestRun.remove_tag', 501, 'fish' );
 #$soapresult = $proxy->call('TestRun.update', 501, {environment_id => 'test', build_id => 'linux', summary => 'API TEST RUN', manager_id => 'ghendricks@novell.com', product_version=>'1.2'});
-
+#$soapresult = $proxy->call('TestRun.update', 501, { summary => 'API TEST RUN', manager_id => 'ghendricks@novell.com', product_version=>'1.2'});
 show_results('The results are: ', $soapresult);
 

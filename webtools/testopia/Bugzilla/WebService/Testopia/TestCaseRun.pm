@@ -217,13 +217,11 @@ sub lookup_status_id_by_name {
 sub lookup_status_name_by_id {
     my $self = shift;
     my ($id) = @_;
-    
+
     Bugzilla->login(LOGIN_REQUIRED);
 
-    my $test_case_run = new Bugzilla::Testopia::TestCaseRun({});
-
     # Result is test case run status name for the given test case run status id
-    return $test_case_run->lookup_status($id);
+    return Bugzilla::Testopia::TestCaseRun::lookup_status($id);
 }
 
 sub get_history {

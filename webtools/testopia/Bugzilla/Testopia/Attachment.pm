@@ -29,6 +29,8 @@ use Bugzilla::Util;
 use Bugzilla::Config;
 use Bugzilla::Error;
 
+use Bugzilla::Testopia::Util;
+
 use base qw(Exporter Bugzilla::Object);
 
 ###############################

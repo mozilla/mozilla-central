@@ -170,8 +170,11 @@ sub _check_status{
 
 sub _check_category{
     my ($invocant, $category, $product) = @_;
+    print STDERR "INSIDE THE METHOD";
     if (ref $invocant){
+        print STDERR "CHECKING THE PRODUCT";
         $product = $invocant->product;
+        print STDERR "CHECKING THE PRODUCT GOT $product";
     }    
 
     $category = trim($category);

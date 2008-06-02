@@ -955,7 +955,7 @@ sub get_user_rights {
           WHERE userid = ? AND plan_id = ?", 
           undef, ($userid, $self->id));
     
-    return $perms;
+    return $perms || 0;
 }
 
 sub to_json {

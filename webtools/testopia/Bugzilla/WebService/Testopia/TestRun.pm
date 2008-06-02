@@ -121,11 +121,11 @@ sub update {
     $new_values->{'build_id'} ||= $new_values->{'build'};
     $new_values->{'environment_id'} ||= $new_values->{'environment'};
 
-    if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
+    if ($new_values->{'build_id'} && trim($new_values->{'build_id'}) !~ /^\d+$/ ){
         my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'build_id'} = $build->id;
     }
-    if (trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
+    if ($new_values->{'environment_id'} && trim($new_values->{'environment_id'}) !~ /^\d+$/ ){
         my $environment = Bugzilla::Testopia::Environment::check_environment($new_values->{'environment_id'}, $run->plan->product, "THROWERROR");
         $new_values->{'environment_id'} = $environment->id;
     }

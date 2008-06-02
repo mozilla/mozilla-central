@@ -45,7 +45,11 @@ my $cgi = Bugzilla->cgi;
 my $action = $cgi->param('action') || '';
 
 my $case = Bugzilla::Testopia::TestCase->new($cgi->param('case_id'));
-ThrowUserError('testopia-missing-object',{object => 'case'}) unless $case;
+
+unless ($case){
+    print $cgi->header;
+    ThrowUserError('testopia-missing-object',{object => 'case'});
+}
 
 if ($action eq 'edit'){
     print $cgi->header;

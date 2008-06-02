@@ -46,7 +46,12 @@ print $cgi->header;
 my $action = $cgi->param('action') || '';
 
 my $run = Bugzilla::Testopia::TestRun->new($cgi->param('run_id'));
-ThrowUserError('testopia-missing-object',{object => 'run'}) unless $run;
+
+unless ($run){
+    print $cgi->header;
+    ThrowUserError('testopia-missing-object',{object => 'run'});
+}
+
 
 if ($action eq 'edit'){
     ThrowUserError("testopia-read-only", {'object' => $run}) unless $run->canedit;

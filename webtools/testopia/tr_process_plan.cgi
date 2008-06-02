@@ -43,7 +43,11 @@ my $cgi = Bugzilla->cgi;
 my $action = $cgi->param('action') || '';
 
 my $plan = Bugzilla::Testopia::TestPlan->new($cgi->param('plan_id'));
-ThrowUserError('testopia-missing-object',{object => 'plan'}) unless $plan;
+
+unless ($plan){
+    print $cgi->header;
+    ThrowUserError('testopia-missing-object',{object => 'plan'});
+}
 
 ### Archive or Unarchive ###
 
