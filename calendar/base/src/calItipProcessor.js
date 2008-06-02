@@ -49,7 +49,6 @@ const CAL_ITIP_PROC_DELETE_OP = 3;
  */
 function calItipProcessor() {
     this.wrappedJSObject = this;
-    this._handledID = null;
 }
 
 calItipProcessor.prototype = {
@@ -387,10 +386,6 @@ calItipProcessor.prototype = {
         return attendee && attendee.participationStatus;
     },
 
-    // A placeholder to make sure we don't try to add multiple items from the
-    // onOperationComplete function.
-    _handledID:null,
-
     /**
      * Helper function to determine if this item already exists on this calendar
      * or not.  It then calls _continueProcessingItem setting calAction and
@@ -403,10 +398,7 @@ calItipProcessor.prototype = {
             onOperationComplete:
             function (aCalendar, aStatus, aOperationType, aId, aDetail) {
                 // If there is no item, we get this call with a failure error
-                if (!Components.isSuccessCode(aStatus) &&
-                    !this.itipProcessor._handledID) {
-                    // Cache the id so that we know we've handled this one.
-                    this.itipProcessor._handledID = aCalItem.id;
+                if (!Components.isSuccessCode(aStatus)) {
                     this.itipProcessor._continueProcessingItem(aCalItem,
                                                                null,
                                                                aItipItem,
