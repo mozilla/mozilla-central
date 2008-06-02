@@ -25,6 +25,7 @@
  *   Seth Spitzer <sspitzer@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   David Bienvenu <bienvenu@nventure.com>
+ *   Siddharth Agarwal <sid1337@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -67,6 +68,7 @@
 #include "nsIRDFService.h"
 #include "nsIMsgHdr.h"
 #include "nsMsgUtils.h"
+#include "nsEscape.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMessengerBootstrap)
 NS_IMPL_THREADSAFE_RELEASE(nsMessengerBootstrap)
@@ -174,32 +176,16 @@ nsMessengerBootstrap::Handle(nsICommandLine* aCmdLine)
   {
     nsAutoString arg;
     aCmdLine->GetArgument(0, arg);
+
 #ifdef XP_MACOSX
     if (StringEndsWith(arg, NS_LITERAL_STRING(".mozeml"), nsCaseInsensitiveStringComparator()))
-    {
-      // parse file name - get path to containing folder, and message-id of message we're looking for
-      // Then, open that message (in a 3-pane window?)
-      // We're going to have a native path file url:
-      // file://<folder path>.mozmsgs/<message-id>.mozeml
-      PRInt32 mozmsgsIndex = arg.Find(NS_LITERAL_STRING(".mozmsgs"));
-      // take off the file:// part
-      nsString folderPath;
-      arg.Left(folderPath, mozmsgsIndex);
-      // need to convert to 8 bit chars...i.e., a local path.
-      nsCAutoString nativeArg;
-      NS_CopyUnicodeToNative(folderPath, nativeArg);
-      nsCString folderUri;
-      rv = MsgMailboxGetURI(nativeArg.get(), folderUri);
-      NS_ENSURE_SUCCESS(rv, rv);
-      nsAutoString unicodeMessageid;
-      // strip off .mozeml at the end as well
-      arg.Mid(unicodeMessageid, mozmsgsIndex + 9, arg.Length() - (mozmsgsIndex + 9 + 7));
-      nsCAutoString messageId;
-      NS_CopyUnicodeToNative(unicodeMessageid, messageId);
-      return OpenMessengerWindowForMessageId(folderUri, messageId);
-
-    }
+      HandleIndexerResult(arg);
 #endif
+#ifdef XP_WIN
+    if (StringEndsWith(arg, NS_LITERAL_STRING(".wdseml"), nsCaseInsensitiveStringComparator()))
+      HandleIndexerResult(arg);
+#endif
+
     if (StringEndsWith(arg, NS_LITERAL_STRING(".eml"), nsCaseInsensitiveStringComparator()))
     {
       nsCOMPtr<nsILocalFile> file(do_CreateInstance("@mozilla.org/file/local;1"));
@@ -345,4 +331,50 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
   return wwatch->OpenWindow(0, chromeUrl.get(), "_blank",
                             "chrome,all,dialog=no", argsArray,
                              getter_AddRefs(newWindow));
+}
+
+nsresult
+nsMessengerBootstrap::HandleIndexerResult(const nsString &aPath)
+{
+  nsresult rv;
+  // parse file name - get path to containing folder, and message-id of message we're looking for
+  // Then, open that message (in a 3-pane window?)
+  PRInt32 mozmsgsIndex = aPath.Find(NS_LITERAL_STRING(".mozmsgs"));
+  nsString folderPath;
+  aPath.Left(folderPath, mozmsgsIndex);
+  nsCOMPtr<nsILocalFile> msgFolder;
+
+#ifdef XP_MACOSX
+  // We're going to have a native path file url:
+  // file://<folder path>.mozmsgs/<message-id>.mozeml
+  // need to convert to 8 bit chars...i.e., a local path.
+  nsCString nativeArg;
+  NS_CopyUnicodeToNative(folderPath, nativeArg);
+
+  // Get the nsILocalFile for this file:// URI.
+  rv = MsgGetLocalFileFromURI(nativeArg, getter_AddRefs(msgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+#endif
+#ifdef XP_WIN
+  // get the nsILocalFile for this path
+  msgFolder = do_CreateInstance("@mozilla.org/file/local;1");
+  rv = msgFolder->InitWithPath(folderPath);
+  NS_ENSURE_SUCCESS(rv, rv);
+#endif
+
+  nsCString folderUri;
+  rv = MsgMailboxGetURI(msgFolder, folderUri);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString unicodeMessageId;
+  // strip off .mozeml/.wdseml at the end as well
+  aPath.Mid(unicodeMessageId, mozmsgsIndex + 9, aPath.Length() - (mozmsgsIndex + 9 + 7));
+  nsCAutoString escapedMessageId;
+  NS_CopyUnicodeToNative(unicodeMessageId, escapedMessageId);
+
+  // unescape messageId
+  nsCAutoString messageId;
+  messageId = NS_UnescapeURL(escapedMessageId, esc_Minimal, messageId);
+
+  return OpenMessengerWindowForMessageId(folderUri, messageId);
 }

@@ -1426,7 +1426,7 @@ PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
   return domainIsTrusted;
 }
 
-nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
+nsresult MsgMailboxGetURI(nsILocalFile *aLocalPath, nsACString &mailboxUri)
 {
 
   nsresult rv;
@@ -1444,41 +1444,27 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
   PRInt32 count = cnt;
   PRInt32 i;
 
-  nsCString nativePath(uriPath);
   for (i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(serverArray, i);
     if (!server) continue;
 
-    // get the path string
-    nsCOMPtr<nsILocalFile> nativeServerPath;
-    rv = server->GetLocalPath(getter_AddRefs(nativeServerPath));
+    // get the base directory
+    nsCOMPtr<nsILocalFile> serverPath;
+    rv = server->GetLocalPath(getter_AddRefs(serverPath));
     if (NS_FAILED(rv)) continue;
-    nsCOMPtr <nsIURI> fileURI;
-    NS_NewFileURI(getter_AddRefs(fileURI), nativeServerPath);
 
-    nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    // compare, getting the relative descriptor
+    nsCAutoString pathStr;
+    aLocalPath->GetRelativeDescriptor(serverPath, pathStr);
 
-    nsCString serverPath;
-    NS_ENSURE_SUCCESS(rv, rv);
-    fileURI->GetSpec(serverPath);
-
-    // check if nativepath begins with serverPath
-    PRInt32 len = serverPath.Length();
-    if (StringBeginsWith(nativePath, serverPath))
+    // if the argument directory is inside the main server directory
+    if (!StringBeginsWith(pathStr, NS_LITERAL_CSTRING("../")))
     {
       nsCString serverURI;
       rv = server->GetServerURI(serverURI);
       if (NS_FAILED(rv)) continue;
 
-      // the relpath is just past the serverpath
-      const char *relpath = nativePath.get() + len;
-      // skip past leading / if any
-      while (*relpath == '/')
-        relpath++;
-
-      nsCAutoString pathStr(relpath);
       PRInt32 sbdIndex;
       while((sbdIndex = pathStr.Find(".sbd", PR_TRUE)) != -1)
         pathStr.Cut(sbdIndex, 4);
@@ -1490,6 +1476,21 @@ nsresult MsgMailboxGetURI(const char *uriPath, nsCString &mailboxUri)
     }
   }
   return mailboxUri.IsEmpty() ? NS_ERROR_FAILURE : NS_OK;
+}
+
+nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile)
+{
+  nsresult rv;
+  nsCOMPtr<nsIURI> argURI;
+  rv = NS_NewURI(getter_AddRefs(argURI), aUTF8Path);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIFileURL> argFileURL(do_QueryInterface(argURI, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIFile> argFile;
+  rv = argFileURL->GetFile(getter_AddRefs(argFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return CallQueryInterface(argFile, aFile);
 }
 
 /*

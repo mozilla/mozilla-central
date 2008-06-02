@@ -62,6 +62,7 @@ public:
   virtual ~nsMessengerBootstrap();
   nsresult DiscoverFoldersIfNeeded(nsIMsgFolder *folder);
   nsresult OpenMessengerWindowForMessageId(nsCString &folderUri, nsCString &messageId);
+  nsresult HandleIndexerResult(const nsString &aPath);
   
   NS_DECL_ISUPPORTS  
   NS_DECL_NSIMESSENGERWINDOWSERVICE
