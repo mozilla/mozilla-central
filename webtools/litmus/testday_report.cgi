@@ -43,16 +43,15 @@ my $c = Litmus->cgi();
 print $c->header();
 
 my $vars;
-my $cookie =  Litmus::Auth::getCookie();
-$vars->{"defaultemail"} = $cookie;
-$vars->{"show_admin"} = Litmus::Auth::istrusted($cookie); 
 
 $vars->{'title'} = "Testday Report";
 
+my $product_id;
 if ($c->param) {
   my $testday;
   if ($c->param("testday_id")) {    
     $testday = Litmus::TestEvent->new(testday_id => $c->param("testday_id"));
+    $product_id = $testday->getProductId();
   } elsif ($c->param("start_timestamp") and 
            $c->param("finish_timestamp")) {
     my @subgroups;
@@ -62,6 +61,7 @@ if ($c->param) {
         push @subgroups, Litmus::DB::Subgroup->retrieve($subgroup_id);
       }
     }
+    my $product_id = quotemeta($c->param("product"));
     $testday = Litmus::TestEvent->new(
                                       (start_timestamp => $c->param("start_timestamp"),
                                        finish_timestamp => $c->param("finish_timestamp"),
@@ -92,6 +92,20 @@ if ($c->param) {
     $vars->{'user_status_results'} = $testday->getBreakdownByUserAndResultStatus($include_admin);
 
     $vars->{'test_event'} = $testday;
+  }
+}
+
+my $user =  Litmus::Auth::getCurrentUser();
+if ($user) {
+  $vars->{"defaultemail"} = $user;
+  if ($product_id) {
+    if ($user->isProductAdmin($product_id)) {
+      $vars->{"show_admin"} = $user;
+    }
+  } else {
+    if ($user->is_admin()) {
+      $vars->{"show_admin"} = $user;    
+    }
   }
 }
 

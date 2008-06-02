@@ -209,15 +209,19 @@ sub create {
 # override the process() method to sneak defaultemail into all template 
 # variable spaces
 sub process {
-	my ($self, $template, $vars, $outstream, @opts) = @_;
-	my %vars = %$vars;
+    my ($self, $template, $vars, $outstream, @opts) = @_;
+    my %vars = %$vars;
 	
-	$vars{defaultemail} = $vars{defaultemail} ? $vars{defaultemail} : 
-		Litmus->getCurrentUser();
-	
+    if (!$vars{defaultemail}) {
+        $vars{defaultemail} = $vars{defaultemail} ? $vars{defaultemail} :
+          Litmus->getCurrentUser();
+    }
+    
+    if (!$vars{show_admin}) {
 	$vars{show_admin} = Litmus->getCurrentUser() ? 
 	  Litmus->getCurrentUser()->is_admin() : 0;
-
-        binmode STDOUT, ":utf8";
-	$self->SUPER::process($template, \%vars, $outstream, @opts);
+    }
+ 
+    binmode STDOUT, ":utf8";
+    $self->SUPER::process($template, \%vars, $outstream, @opts);
 }
