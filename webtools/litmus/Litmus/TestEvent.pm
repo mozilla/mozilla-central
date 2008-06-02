@@ -514,6 +514,13 @@ sub getFinishTimestamp {
   return $self->{_finish_timestamp};
 }
 
+#########################################################################
+sub getProductId {
+  my ($self) = @_;
+
+  return $self->{_product_id};
+}
+
 1;
 
 
