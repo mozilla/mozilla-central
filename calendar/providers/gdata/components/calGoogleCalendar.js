@@ -1090,8 +1090,7 @@ calGoogleCalendar.prototype = {
         request.calendar = this;
 
         // Request Parameters
-        request.addQueryParameter("max-results",
-                                  aCount ? aCount : kMANY_EVENTS);
+        request.addQueryParameter("max-results", kMANY_EVENTS);
         request.addQueryParameter("singleevents", "false");
         request.addQueryParameter("updated-min", lastUpdateDateTime);
 
