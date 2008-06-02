@@ -233,4 +233,8 @@ public class Algorithm {
     protected static final short SEC_OID_ANSIX962_ECDSA_SHA384_SIGNATURE=48;
     protected static final short SEC_OID_ANSIX962_ECDSA_SHA512_SIGNATURE=49;
 
+    protected static final short SEC_OID_HMAC_SHA256=50;
+    protected static final short SEC_OID_HMAC_SHA384=51;
+    protected static final short SEC_OID_HMAC_SHA512=52;
+
 }

@@ -648,6 +648,10 @@ $serverPort = checkPort(++$serverPort);
 $command = "$java -cp $jss_classpath org.mozilla.jss.tests.SSLClientAuth $testdir $pwfile $serverPort bypassoff $certSN";
 run_test($testname, $command);
 
+$testname = "HMAC ";
+$command = "$java -cp $jss_classpath org.mozilla.jss.tests.HMACTest $testdir $pwfile";
+run_test($testname, $command);
+
 $serverPort = checkPort($serverPort);
 $testname = "SSL Ciphersuite JSS Server and JSS client both with Bypass Off";
 $serverCommand = "$run_shell ./startJssSelfServ.$scriptext $jss_classpath $testdir $hostname $serverPort bypassoff $java";

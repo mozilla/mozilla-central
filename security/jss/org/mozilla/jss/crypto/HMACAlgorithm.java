@@ -78,11 +78,24 @@ public class HMACAlgorithm extends DigestAlgorithm {
     }
 
     /**
-     * SHA-1 HMAC.  This is a Message Authentication Code that uses a
-     * symmetric key together with SHA-1 digesting to create a form of
+     * SHA-X HMAC.  This is a Message Authentication Code that uses a
+     * symmetric key together with SHA-X digesting to create a form of
      * signature.
      */
     public static final HMACAlgorithm SHA1 = new HMACAlgorithm
         (CKM_SHA_1_HMAC, "SHA-1-HMAC",
              OBJECT_IDENTIFIER.ALGORITHM.subBranch(26), 20);
+
+    public static final HMACAlgorithm SHA256 = new HMACAlgorithm
+        (SEC_OID_HMAC_SHA256, "SHA-256-HMAC",
+             OBJECT_IDENTIFIER.RSA_DIGEST.subBranch(9), 32);
+
+    public static final HMACAlgorithm SHA384 = new HMACAlgorithm
+        (SEC_OID_HMAC_SHA384, "SHA-384-HMAC",
+             OBJECT_IDENTIFIER.RSA_DIGEST.subBranch(10), 48);
+
+    public static final HMACAlgorithm SHA512 = new HMACAlgorithm
+        (SEC_OID_HMAC_SHA512, "SHA-512-HMAC",
+             OBJECT_IDENTIFIER.RSA_DIGEST.subBranch(11), 64);
+
 }

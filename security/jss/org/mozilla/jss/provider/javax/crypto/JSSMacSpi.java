@@ -127,4 +127,23 @@ class JSSMacSpi extends javax.crypto.MacSpi {
             super(HMACAlgorithm.SHA1);
         }
     }
+
+    public static class HmacSHA256 extends JSSMacSpi {
+        public HmacSHA256() {
+            super(HMACAlgorithm.SHA256);
+        }
+    }
+
+    public static class HmacSHA384 extends JSSMacSpi {
+        public HmacSHA384() {
+            super(HMACAlgorithm.SHA384);
+        }
+    }
+
+    public static class HmacSHA512 extends JSSMacSpi {
+        public HmacSHA512() {
+            super(HMACAlgorithm.SHA512);
+        }
+    }
+
 }
