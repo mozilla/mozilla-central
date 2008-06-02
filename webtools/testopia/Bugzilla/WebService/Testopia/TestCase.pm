@@ -171,6 +171,7 @@ sub update {
     Bugzilla->login(LOGIN_REQUIRED);
 
     my @ids = Bugzilla::Testopia::Util::process_list($ids);
+    
     my @dependson;
     if (ref $new_values->{'dependson'} eq 'ARRAY'){
         push @dependson, @{$new_values->{'dependson'}};
@@ -216,19 +217,22 @@ sub update {
             $case->set_estimated_time($new_values->{'estimated_time'}) if defined $new_values->{'estimated_time'};
             $case->set_dependson($new_values->{'dependson'}) if defined $new_values->{'dependson'};
             $case->set_blocks($new_values->{'blocks'}) if defined $new_values->{'blocks'};
+            
+            $case->update;
         };
         
         if ($@){
             return $@ if (scalar @ids == 1);
             push @cases, {ERROR => $@};
         }
-        
-        $case->update;
+        else {
+            push @cases, $case;
+        }
         
         return $case if scalar @ids == 1;
     }
 
-    return @cases;
+    return \@cases;
 }
 
 sub get_text {

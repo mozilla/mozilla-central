@@ -146,18 +146,16 @@ sub get_category {
 
 sub get_component {
     my $self = shift;
-    my $self = shift;
     my ($id) = @_;
     
     Bugzilla->login(LOGIN_REQUIRED);
     
     require Bugzilla::Component;
-    
-    my $component = Bugzilla::Testopia::Component->new($id); 
+    my $component = Bugzilla::Component->new($id); 
     
     ThrowUserError('invalid-test-id-non-existent', {type => 'Component', id => $id}) unless $component;
     
-    my $product = Bugzilla::Testopia::Product->new(component->product->id);
+    my $product = Bugzilla::Testopia::Product->new($component->product_id);
     
     ThrowUserError('testopia-permission-denied', {'object' => $product}) unless $product->canedit;
     

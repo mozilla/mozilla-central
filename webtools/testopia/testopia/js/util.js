@@ -152,19 +152,33 @@ TestopiaUtil = function(){
         selectElement.add(newOption,selectElement.length);
       }
     };
+    lsearch = function(val, arr){
+        if (typeof arr != 'object'){
+            if (arr == val)
+                return true;
+            return false;
+        }
+        for (var i in arr){
+            if (arr[i] == val)
+                return true;
+        }
+        return false;
+    };
     this.addOption = addOption;
     var fillSelects = function(data){
+      var s = searchToJson(window.location.search);
       for (i in data.selectTypes){
         if (typeof data.selectTypes[i] != 'function'){
             try{
               document.getElementById(data.selectTypes[i]).options.length = 0;
               for (j in data[data.selectTypes[i]]){
                 if (typeof data[data.selectTypes[i]][j] != 'function'){
-                    var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j]);
+                    var newOption = new Option(data[data.selectTypes[i]][j],data[data.selectTypes[i]][j],false, lsearch(data[data.selectTypes[i]][j], s[data.selectTypes[i]]));
                     addOption(document.getElementById(data.selectTypes[i]),newOption);
                 }
               }
               document.getElementById(data.selectTypes[i]).disabled = false;
+              document.getElementById(data.selectTypes[i])
             }
             catch(err){}
         }

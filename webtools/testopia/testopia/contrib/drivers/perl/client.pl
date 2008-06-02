@@ -180,6 +180,7 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('Product.get_cases', 2);
 #$soapresult = $proxy->call('Product.get_categories', 2);
 #$soapresult = $proxy->call('Product.get_components', 2);
+#$soapresult = $proxy->call('Product.get_component', 3929);
 #$soapresult = $proxy->call('Product.get_environments', 2);
 #$soapresult = $proxy->call('Product.get_milestones', 2);
 #$soapresult = $proxy->call('Product.get_plans', 2);
@@ -221,6 +222,7 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCase.unlink_plan', 278, 78);
 #$soapresult = $proxy->call('TestCase.update', 278,{priority_id => 'P2 - High', case_status_id=>3 ,summary=>'This was Entering bugs', category_id => '142'});
 #$soapresult = $proxy->call('TestCase.update',435838 ,{ summary => 'API TEST', category_id => '1666'});
+#$soapresult = $proxy->call('TestCase.update',[33,44,55] ,{ summary => 'API TEST'});
 
 
 ###########################
@@ -237,7 +239,7 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCaseRun.get_history',65104 );
 #$soapresult = $proxy->call('TestCaseRun.list', );
 #$soapresult = $proxy->call('TestCaseRun.lookup_status_id_by_name', 'PASSED');
-$soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
+#$soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
 #$soapresult = $proxy->call('TestCaseRun.update', 65104, {status=>3});
 #$soapresult = $proxy->call('TestCaseRun.update', [65104,6105,6106] , {status=>3});
 #$soapresult = $proxy->call('TestCaseRun.update', 501, 765, 306, 1, {status=>3});
@@ -279,5 +281,6 @@ $soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
 #$soapresult = $proxy->call('TestRun.remove_tag', 501, 'fish' );
 #$soapresult = $proxy->call('TestRun.update', 501, {environment_id => 'test', build_id => 'linux', summary => 'API TEST RUN', manager_id => 'ghendricks@novell.com', product_version=>'1.2'});
 #$soapresult = $proxy->call('TestRun.update', 501, { summary => 'API TEST RUN', manager_id => 'ghendricks@novell.com', product_version=>'1.2'});
+
 show_results('The results are: ', $soapresult);
 
