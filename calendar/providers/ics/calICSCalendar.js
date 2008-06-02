@@ -640,18 +640,8 @@ calICSCalendar.prototype = {
             }
         }
 
-        function getIntPrefSafe(prefName, defaultValue)
-        {
-            try {
-                var prefValue = backupBranch.getIntPref(prefName);
-                return prefValue;
-            }
-            catch (ex) {
-                return defaultValue;
-            }
-        }
-        var backupDays = getIntPrefSafe("days", 1);
-        var numBackupFiles = getIntPrefSafe("filenum", 3);
+        var backupDays = getPrefSafe("calendar.backup.days", 1);
+        var numBackupFiles = getPrefSafe("calendar.backup.filenum", 3);
 
         try {
             var dirService = Components.classes["@mozilla.org/file/directory_service;1"]
