@@ -751,6 +751,8 @@ function calWcapCalendar_modifyItem(newItem, oldItem, listener) {
                                                      log("modifyItem EXDATEs: " +
                                                          (xml ? getWcapRequestStatusString(xml) : "failed!"), this_);
                                                  }
+                                                 // invalidate cached results:
+                                                 delete this_.m_cachedResults;
                                                  this_.storeItem(false /* bAddItem */, newItem, oldItem_, request);
                                              } finally {
                                                  request.unlockPending();
