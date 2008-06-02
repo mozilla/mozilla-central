@@ -435,19 +435,26 @@ NS_IMETHODIMP nsDBFolderInfo::GetVersion(PRUint32 *version)
 }
 
 
-NS_IMETHODIMP nsDBFolderInfo::SetHighWater(nsMsgKey highWater, PRBool force)
+nsresult nsDBFolderInfo::AdjustHighWater(nsMsgKey highWater, PRBool force)
 {
   if (force || m_highWaterMessageKey < highWater)
+  {
     m_highWaterMessageKey = highWater;
+    SetUint32PropertyWithToken(m_highWaterMessageKeyColumnToken, highWater);
+  }
 
   return NS_OK;
 }
 
 NS_IMETHODIMP nsDBFolderInfo::SetHighWater(nsMsgKey highWater)
 {
-  return SetHighWater(highWater, PR_TRUE);
+  return AdjustHighWater(highWater, PR_TRUE);
 }
 
+NS_IMETHODIMP nsDBFolderInfo::OnKeyAdded(nsMsgKey aNewKey)
+{
+  return AdjustHighWater(aNewKey, PR_FALSE);
+}
 
 NS_IMETHODIMP
 nsDBFolderInfo::GetFolderSize(PRUint32 *size)
@@ -679,19 +686,6 @@ nsDBFolderInfo::GetLocale(nsAString &result)
 NS_IMETHODIMP nsDBFolderInfo::SetLocale(const nsAString &locale)
 {
   return SetProperty(kLocaleColumnName, locale);
-}
-
-NS_IMETHODIMP nsDBFolderInfo::GetIMAPHierarchySeparator(PRUnichar *hierarchySeparator)
-{
-  NS_ENSURE_ARG_POINTER(hierarchySeparator);
-  *hierarchySeparator = m_IMAPHierarchySeparator;
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsDBFolderInfo::SetIMAPHierarchySeparator(PRUnichar hierarchySeparator)
-{
-  m_IMAPHierarchySeparator = hierarchySeparator;
-  return NS_OK;
 }
 
 NS_IMETHODIMP

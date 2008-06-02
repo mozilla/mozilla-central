@@ -94,6 +94,8 @@ protected:
   // initialize from appropriate table and row in existing db.
   nsresult InitMDBInfo();
   nsresult LoadMemberVariables();
+
+  nsresult AdjustHighWater(nsMsgKey highWater, PRBool force);
   
   void ReleaseExternalReferences(); // let go of any references to other objects.
   

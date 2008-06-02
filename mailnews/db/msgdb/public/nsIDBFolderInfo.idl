@@ -38,36 +38,58 @@
 #include "nsISupports.idl"
 #include "MailNewsTypes2.idl"
 
-[scriptable, uuid(83254767-a395-4bc6-be46-78687c5f1bba)]
+[scriptable, uuid(d2cae295-53ce-4ed8-b704-af018e6d49a4)]
 interface  nsIDBFolderInfo : nsISupports {
-  attribute long Flags;
-  long  OrFlags(in long flags);
-  long  AndFlags(in long flags);
-  void  SetHighWater(in nsMsgKey highwater, in boolean force);
-  attribute nsMsgKey HighWater;
-  attribute nsMsgKey ExpiredMark;
-  attribute unsigned long FolderSize;
-  attribute unsigned long FolderDate;
-  void ChangeNumUnreadMessages(in long delta);
-  void ChangeNumMessages(in long delta);
+  attribute long flags;
 
-  // NumUnreadMessages and NumMessages will never return negative numbers. 0 means 'no msgs'.
-  attribute long NumUnreadMessages;
-  attribute long NumMessages;
+  /**
+   * Or's aFlags into flags.
+   *
+   * @param - the flags(s) to set
+   *
+   * @return - the resulting flags.
+   */
+  long  orFlags(in long aFlags);
+  /**
+   * And's aFlags with flags, set flags to the result
+   *
+   * @param             the flags(s) to AND
+   *
+   * @return            the resulting flags.
+   */
+  long  andFlags(in long aFlags);
+
+  /**
+   * Allows us to keep track of the highwater mark
+   *
+   * @param aNewKey     If larger than the current highwater
+   *                    mark, sets the highwater mark to aNewKey.
+   */
+  void  onKeyAdded(in nsMsgKey aNewKey);
+
+  attribute nsMsgKey highWater;
+  attribute nsMsgKey expiredMark;
+  attribute unsigned long folderSize;
+  attribute unsigned long folderDate;
+  void changeNumUnreadMessages(in long aDelta);
+  void changeNumMessages(in long aDelta);
+
+  // numUnreadMessages and numMessages will never return negative numbers. 0 means 'no msgs'.
+  attribute long numUnreadMessages;
+  attribute long numMessages;
 
   attribute long expungedBytes;
-  attribute long ImapUidValidity;
-  attribute unsigned long Version;
-  attribute long ImapTotalPendingMessages;
-  attribute long ImapUnreadPendingMessages;
-  attribute wchar IMAPHierarchySeparator;
+  attribute long imapUidValidity;
+  attribute unsigned long version;
+  attribute long imapTotalPendingMessages;
+  attribute long imapUnreadPendingMessages;
 
   attribute nsMsgViewTypeValue viewType;
   attribute nsMsgViewFlagsTypeValue viewFlags;
   attribute nsMsgViewSortTypeValue sortType;
   attribute nsMsgViewSortOrderValue sortOrder;
 
-  void ChangeExpungedBytes(in long delta);
+  void changeExpungedBytes(in long aDelta);
 
   /**
    * Gets a string property from the folder.

@@ -2980,7 +2980,7 @@ NS_IMETHODIMP nsMsgDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
       IsHeaderRead(newHdr, &isRead);
       if (!isRead)
         m_dbFolderInfo->ChangeNumUnreadMessages(1);
-      m_dbFolderInfo->SetHighWater(key, PR_FALSE);
+      m_dbFolderInfo->OnKeyAdded(key);
     }
 
     err = m_mdbAllMsgHeadersTable->AddRow(GetEnv(), hdr->GetMDBRow());
