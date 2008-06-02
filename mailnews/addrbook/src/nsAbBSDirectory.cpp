@@ -185,7 +185,12 @@ nsresult nsAbBSDirectory::EnsureInitialized()
       
     // Create the directories
     rv = CreateDirectoriesFromFactory(URI, server, PR_FALSE /* notify */);
-    NS_ENSURE_SUCCESS(rv,rv);
+
+    // If we failed, this could be because something has set a pref for us
+    // which is now broke (e.g. no factory present). So just ignore this one
+    // and move on.
+    if (NS_FAILED(rv))
+      NS_WARNING("CreateDirectoriesFromFactory failed - Invalid factory?");
   }
     
   mInitialized = PR_TRUE;
