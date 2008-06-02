@@ -285,7 +285,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (last_possible < ((PRInt32)mark))
-      newsGroupInfo->SetHighWater(last_possible, PR_TRUE);
+      newsGroupInfo->SetHighWater(last_possible);
     if (m_knownArts.set)
       delete m_knownArts.set;
     m_knownArts.set = nsMsgKeySet::Create(knownArtsString.get());
