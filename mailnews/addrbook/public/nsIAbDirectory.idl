@@ -59,7 +59,7 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(e8998a5e-ec0f-4d43-b05a-cb4812154d3c)]
+[scriptable, uuid(84992b62-5f93-4298-9504-c8c6efae9423)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -227,18 +227,21 @@ interface nsIAbDirectory : nsISupports {
   // Copies mail list properties from the srcList
   void copyMailList(in nsIAbDirectory srcList);
 
-  /*
-    Only creates a top level address book
-    which is stored in the preferences
-
-    Need to change to factory based approach
-    to create new address books
-
-    This method should become redundant or 
-    be only associated with card folders
-  */
+  /**
+   * Only creates a top level address book
+   * which is stored in the preferences
+   *
+   * Need to change to factory based approach
+   * to create new address books
+   *
+   * This method should become redundant or 
+   * be only associated with card folders
+   *
+   * The parameters are the same as for
+   * nsIAbManager::newAddressBook
+   */
   ACString createNewDirectory(in AString aDirName, in ACString aURI,
-                              in unsigned long aType);
+                              in unsigned long aType, in ACString aPrefName);
 
   /* create a directory by passing the display name and address book uri */
   void createDirectoryByURI(in AString displayName, in ACString aURI);

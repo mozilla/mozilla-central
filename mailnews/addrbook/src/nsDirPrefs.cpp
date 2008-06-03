@@ -287,8 +287,11 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
 }
 
 nsresult DIR_AddNewAddressBook(const nsAString &dirName,
-                               const nsACString &fileName, const nsACString &uri, 
-                               DirectoryType dirType, DIR_Server** pServer)
+                               const nsACString &fileName,
+                               const nsACString &uri, 
+                               DirectoryType dirType,
+                               const nsACString &prefName,
+                               DIR_Server** pServer)
 {
   DIR_Server * server = (DIR_Server *) PR_Malloc(sizeof(DIR_Server));
   if (!server)
@@ -314,6 +317,9 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
       if (!uri.IsEmpty())
         server->uri = ToNewCString(uri);
     }
+
+    if (!prefName.IsEmpty())
+      server->prefName = ToNewCString(prefName);
 
     dir_ServerList->AppendElement(server);
 

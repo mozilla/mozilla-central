@@ -997,7 +997,7 @@ nsresult nsAbPalmHotSync::NewAB(const nsString& aAbName)
 
   // Don't actually need to keep the result
   nsCString result;
-  return ab->NewAddressBook(aAbName, EmptyCString(), kPABDirectory, result);
+  return ab->NewAddressBook(aAbName, EmptyCString(), kPABDirectory, EmptyCString(), result);
 }
 
 nsresult nsAbPalmHotSync::UpdateABInfo(PRUint32 aModTime, PRInt32 aCategoryIndex)

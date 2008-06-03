@@ -283,7 +283,9 @@ nsAbDirProperty::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
 NS_IMETHODIMP
 nsAbDirProperty::CreateNewDirectory(const nsAString &aDirName,
                                     const nsACString &aURI,
-                                    PRUint32 aType, nsACString &aResult)
+                                    PRUint32 aType,
+                                    const nsACString &aPrefName,
+                                    nsACString &aResult)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP

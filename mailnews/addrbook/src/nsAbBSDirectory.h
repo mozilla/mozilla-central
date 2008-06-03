@@ -58,6 +58,7 @@ public:
   NS_IMETHOD CreateNewDirectory(const nsAString &aDirName,
                                 const nsACString &aURI,
                                 PRUint32 aType,
+                                const nsACString &aPrefName,
                                 nsACString &aResult);
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,
                                   const nsACString &aURI);

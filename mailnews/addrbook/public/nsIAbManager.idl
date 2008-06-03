@@ -53,7 +53,7 @@ interface nsISimpleEnumerator;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(a5be4ab5-5bf4-4559-ae79-d0cee9e45380)]
+[scriptable, uuid(3b869b86-c4df-4cae-8dc9-c18073d2593f)]
 interface nsIAbManager : nsISupports 
 {
   /**
@@ -77,9 +77,12 @@ interface nsIAbManager : nsISupports
    * @param  aURI       The URI for the address book. This is specific to each
    *                    type of address book.
    * @param  aType      The type of the address book (see nsDirPrefs.h)
+   * @param  aPrefName  Overrides the default of ldap_2.servers.<aDirName>
+   *                    (note that the caller must ensure its uniqueness).
    */
   ACString newAddressBook(in AString aDirName, in ACString aURI,
-                          in unsigned long aType);
+                          in unsigned long aType,
+                          [optional] in ACString aPrefName);
 
   /**
    * Deletes an address book.

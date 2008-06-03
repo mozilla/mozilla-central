@@ -201,6 +201,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
 NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
                                                   const nsACString &aURI,
                                                   PRUint32 aType,
+                                                  const nsACString &aPrefName,
                                                   nsACString &aResult)
 {
   nsresult rv = EnsureInitialized();
@@ -226,7 +227,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
    */
   DIR_Server* server = nsnull;
   rv = DIR_AddNewAddressBook(aDirName, EmptyCString(), URI,
-                             (DirectoryType)aType, &server);
+                             (DirectoryType)aType, aPrefName, &server);
   NS_ENSURE_SUCCESS (rv, rv);
   
   if (aType == PABDirectory) {
@@ -254,7 +255,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
 
   DIR_Server * server = nsnull;
   rv = DIR_AddNewAddressBook(aDisplayName, fileName, aURI,
-                             PABDirectory, &server);
+                             PABDirectory, EmptyCString(), &server);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = CreateDirectoriesFromFactory(aURI, server, PR_TRUE /* notify */);

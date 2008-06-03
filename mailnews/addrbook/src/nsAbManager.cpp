@@ -206,6 +206,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
 NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
                                             const nsACString &aURI,
                                             const PRUint32 aType,
+                                            const nsACString &aPrefName,
                                             nsACString &aResult)
 {
   nsresult rv;
@@ -221,7 +222,7 @@ NS_IMETHODIMP nsAbManager::NewAddressBook(const nsAString &aDirName,
   nsCOMPtr<nsIAbDirectory> parentDir = do_QueryInterface(parentResource, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return parentDir->CreateNewDirectory(aDirName, aURI, aType, aResult);
+  return parentDir->CreateNewDirectory(aDirName, aURI, aType, aPrefName, aResult);
 }
 
 NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
