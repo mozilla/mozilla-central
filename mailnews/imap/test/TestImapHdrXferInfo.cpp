@@ -45,8 +45,7 @@
 enum EHdrArrayCheck
 {
   eAddNoCheck,
-  eCheckSame,
-  eCheckDifferent
+  eCheckSame
 };
 
 int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
@@ -83,11 +82,6 @@ int MainChecks(nsMsgImapHdrXferInfo* hdrInfo, nsIImapHeaderInfo **hdrArray,
     case eCheckSame:
       if (hdrArray[i] != hdr)
         return 5;
-      break;
-    case eCheckDifferent:
-      // XXX Debug/Release versus memory use issue? - Disabling for now
-      //      if (hdrArray[i] == hdr)
-      //        return 6;
       break;
     default:
       return 1;
@@ -148,13 +142,5 @@ int main(int argc, char** argv)
 
   // and repeat
   result = MainChecks(hdrInfo, hdrArray, eCheckSame);
-  if (result)
-    return result + 100;
-
-  // Now release all
-  hdrInfo->ReleaseAll();
-
-  // and repeat
-  result = MainChecks(hdrInfo, hdrArray, eCheckDifferent);
-  return result ? result + 200 : 0;
+  return result ? result + 100 : 0;
 }

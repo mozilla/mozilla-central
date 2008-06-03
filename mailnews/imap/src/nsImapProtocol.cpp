@@ -146,11 +146,7 @@ NS_IMETHODIMP nsMsgImapHdrXferInfo::GetHeader(PRInt32 hdrIndex, nsIImapHeaderInf
   // If the header index is more than (or equal to) our next free pointer, then
   // its a header we haven't really got and the caller has done something
   // wrong.
-  if (hdrIndex >= m_nextFreeHdrInfo)
-  {
-    NS_WARNING("Invalid Header Index requested");
-    return NS_ERROR_NULL_POINTER;
-  }
+  NS_ENSURE_TRUE(hdrIndex < m_nextFreeHdrInfo, NS_ERROR_NULL_POINTER);
 
   *aResult = m_hdrInfos.SafeObjectAt(hdrIndex);
   if (!*aResult)
