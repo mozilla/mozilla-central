@@ -414,7 +414,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
                 }
                 atts = atts.concat([]);
                 atts.sort(attendeeSort);
-                return atts.map(encodeAttendee).join(";");
+                return atts.map(this_.encodeAttendee, this_).join(";");
             }
             var attParam = encodeAttendees(attendees);
             if (!oldItem || attParam != encodeAttendees(oldItem.getAttendees({}))) {
