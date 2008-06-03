@@ -728,6 +728,7 @@ function getMailToolbox()
 }
 
 const kOSXDirectoryURI = "moz-abosxdirectory:///";
+const kOSXPrefBase = "ldap_2.servers.osx";
 
 function AbOSXAddressBookExists()
 {
@@ -741,12 +742,12 @@ function AbOSXAddressBookExists()
   var uriPresent = false;
   var position = 1;
   try {
-    uriPresent = prefSvc.getCharPref("ldap_2.servers.osx.uri") == kOSXDirectoryURI;
+    uriPresent = prefSvc.getCharPref(kOSXPrefBase + ".uri") == kOSXDirectoryURI;
   }
   catch (e) { }
 
   try {
-    position = prefSvc.getIntPref("ldap_2.servers.osx.position");
+    position = prefSvc.getIntPref(kOSXPrefBase + ".position");
   }
   catch (e) { }
 
@@ -763,7 +764,7 @@ function AbShowHideOSXAddressBook()
     abMgr.deleteAddressBook(kOSXDirectoryURI);
   else {
     abMgr.newAddressBook(
-      gAddressBookBundle.getString("ldap_2.servers.osx.description"),
-      kOSXDirectoryURI, 3);
+      gAddressBookBundle.getString(kOSXPrefBase + ".description"),
+      kOSXDirectoryURI, 3, kOSXPrefBase);
   }
 }

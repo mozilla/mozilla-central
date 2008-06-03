@@ -1033,14 +1033,6 @@ void DIR_SetServerFileName(DIR_Server *server)
 
 static char *dir_CreateServerPrefName (DIR_Server *server)
 {
-#ifdef XP_MACOSX
-  // XXX For now force osx directories to have one pref name, once we
-  // rework how address books are registered, we can work out how to do this
-  // properly.
-  if (server->uri && strcmp(server->uri, "moz-abosxdirectory:///") == 0)
-    return strdup("ldap_2.servers.osx");
-#endif
-
   /* we are going to try to be smart in how we generate our server
      pref name. We'll try to convert the description into a pref name
      and then verify that it is unique. If it is unique then use it... */
