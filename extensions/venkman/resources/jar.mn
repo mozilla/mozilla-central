@@ -1,5 +1,5 @@
 venkman.jar:
-% content venkman            %content/venkman/
+% content venkman            %content/venkman/ contentaccessible=yes
 % content venkman-ff         %content/venkman/ff/
 % content venkman-sm         %content/venkman/sm/
 % skin    venkman modern/1.0 %skin/modern/venkman/
