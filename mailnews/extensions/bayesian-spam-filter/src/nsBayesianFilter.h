@@ -152,6 +152,7 @@ protected:
     Tokenizer mGoodTokens, mBadTokens;
     double   mJunkProbabilityThreshold;
     PRUint32 mGoodCount, mBadCount;
+    PRInt32 mMaximumTokenCount;
     PRPackedBool mTrainingDataDirty;
     PRInt32 mMinFlushInterval; // in milliseconds, must be positive
                                //and not too close to 0

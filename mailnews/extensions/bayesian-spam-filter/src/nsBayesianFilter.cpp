@@ -257,16 +257,17 @@ void Tokenizer::remove(const char* word, PRUint32 count)
     PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("remove word: %s (count=%d)", word, count));
     Token* token = get(word);
     if (token) {
-        NS_ASSERTION(token->mCount >= count, "token count underflow");
-        if (token->mCount >= count) {
-            PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG, ("remove word: %s (count=%d) (mCount=%d)", word, count, token->mCount));
+        PR_LOG(BayesianFilterLogModule, PR_LOG_DEBUG,
+          ("remove word: %s (count=%d) (mCount=%d)", word, count, token->mCount));
+        
+        if (token->mCount >= count)
             token->mCount -= count;
-            if (token->mCount == 0)
-                PL_DHashTableRawRemove(&mTokenTable, token);
-        }
-        else {
-          PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("token count underflow: %s (count=%d) (mCount=%d)", word, count, token->mCount));
-        }
+        else
+            token->mCount = 0;
+         
+        if (token->mCount == 0)
+            PL_DHashTableRawRemove(&mTokenTable, token);
+        
     }
 }
 
@@ -965,6 +966,11 @@ nsBayesianFilter::nsBayesianFilter()
     // it is not a good idea to allow a minimum interval of under 1 second
     if (NS_FAILED(rv) || (mMinFlushInterval <= 1000) )
         mMinFlushInterval = DEFAULT_MIN_INTERVAL_BETWEEN_WRITES;
+        
+    rv = prefBranch->GetIntPref("mailnews.bayesian_spam_filter.junk_maxtokens", &mMaximumTokenCount);
+    if (NS_FAILED(rv))
+      mMaximumTokenCount = 0; // which means do not limit token counts    
+    PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("maximum junk tokens: %d", mMaximumTokenCount));
 
     mTimer = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
     NS_ASSERTION(NS_SUCCEEDED(rv), "unable to create a timer; training data will only be written on exit");
@@ -1406,17 +1412,40 @@ inline int readUInt32(FILE* stream, PRUint32* value)
     return n;
 }
 
-static PRBool writeTokens(FILE* stream, Tokenizer& tokenizer)
+static PRBool writeTokens(FILE* stream, Tokenizer& tokenizer, PRBool shrink)
 {
     PRUint32 tokenCount = tokenizer.countTokens();
-    if (writeUInt32(stream, tokenCount) != 1)
+    PRUint32 newTokenCount = 0;
+    
+    if (shrink) {
+      // Shrinking the token database is accomplished by dividing all token counts by 2.
+      // Recalculate the shrunk token count, keeping tokens with a count > 1
+      
+      TokenEnumeration tokens = tokenizer.getTokens();
+      for (PRUint32 i = 0; i < tokenCount; ++i) {
+        Token* token = tokens.nextToken();
+        if (token->mCount > 1)
+          newTokenCount++;
+      }
+    }
+    else // Use the original token count
+      newTokenCount = tokenCount;
+    
+    if (writeUInt32(stream, newTokenCount) != 1)
         return PR_FALSE;
 
-    if (tokenCount > 0) {
-        TokenEnumeration tokens = tokenizer.getTokens();
-        for (PRUint32 i = 0; i < tokenCount; ++i) {
+    if (newTokenCount > 0) {
+      TokenEnumeration tokens = tokenizer.getTokens();
+      for (PRUint32 i = 0; i < tokenCount; ++i) {
             Token* token = tokens.nextToken();
-            if (writeUInt32(stream, token->mCount) != 1)
+            PRUint32 wordCount = token->mCount;
+            if (shrink) {
+              if (wordCount > 1)
+                wordCount /= 2;
+              else
+                continue;
+            }
+            if (writeUInt32(stream, wordCount) != 1)
                 break;
             PRUint32 tokenLength = token->mLength;
             if (writeUInt32(stream, tokenLength) != 1)
@@ -1504,12 +1533,20 @@ void nsBayesianFilter::writeTrainingData()
   nsresult rv = mTrainingFile->OpenANSIFileDesc("wb", &stream);
   if (NS_FAILED(rv))
     return;
+    
+  // If the number of tokens exceeds our limit, set the shrink flag
+  PRBool shrink = false;
+  if ((mMaximumTokenCount > 0) && // if 0, do not limit tokens
+      (mGoodTokens.countTokens() + mBadTokens.countTokens() > mMaximumTokenCount)) {
+    shrink = true;
+    PR_LOG(BayesianFilterLogModule, PR_LOG_WARNING, ("shrinking token data file"));
+  }
 
   if (!((fwrite(kMagicCookie, sizeof(kMagicCookie), 1, stream) == 1) &&
-        (writeUInt32(stream, mGoodCount) == 1) &&
-        (writeUInt32(stream, mBadCount) == 1) &&
-         writeTokens(stream, mGoodTokens) &&
-         writeTokens(stream, mBadTokens)))
+        (writeUInt32(stream, shrink ? mGoodCount/2 : mGoodCount) == 1) &&
+        (writeUInt32(stream, shrink ? mBadCount/2 : mBadCount) == 1) &&
+         writeTokens(stream, mGoodTokens, shrink) &&
+         writeTokens(stream, mBadTokens, shrink)))
   {
     NS_WARNING("failed to write training data.");
     fclose(stream);
@@ -1519,6 +1556,27 @@ void nsBayesianFilter::writeTrainingData()
   else
   {
     fclose(stream);
+
+    if (shrink) {
+
+      // We'll clear the tokens, and read them back in from the file.
+      // Yes this is slower than in place, but this is a rare event.
+
+      if (mGoodTokens && mGoodTokens.countTokens())
+      {
+        mGoodTokens.clearTokens();
+        mGoodCount = 0;
+      }
+
+      if (mBadTokens && mBadTokens.countTokens())
+      {
+        mBadTokens.clearTokens();
+        mBadCount = 0;
+      }
+
+      readTrainingData();
+    }
+
     mTrainingDataDirty = PR_FALSE;
   }
 }

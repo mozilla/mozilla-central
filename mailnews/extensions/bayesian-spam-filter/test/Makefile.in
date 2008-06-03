@@ -14,12 +14,12 @@
 # The Original Code is mozilla.org code.
 #
 # The Initial Developer of the Original Code is
-# Netscape Communications Corporation
-# Portions created by the Initial Developer are Copyright (C) 2002
+# Kent James <kent@caspia.com>
+#
+# Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#   Dan Mosedale <dmose@netscape.com>	
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,25 +34,18 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
-
-DEPTH		= ../../..
+DEPTH		= ../../../..
 topsrcdir	= @top_srcdir@
-
 srcdir		= @srcdir@
 VPATH		= @srcdir@
 
 include $(DEPTH)/config/autoconf.mk
 
-MODULE		= bayesflt
+# Module name for xpcshell tests.
+MODULE         = test_bayes
 
-DIRS=src
-
-ifndef MOZ_STATIC_MAIL_BUILD
-DIRS += build
-endif
-
-ifdef ENABLE_TESTS
-DIRS += test
-endif
+XPCSHELL_TESTS = unit
 
 include $(topsrcdir)/config/rules.mk
+
+
