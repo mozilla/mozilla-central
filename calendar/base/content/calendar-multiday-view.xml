@@ -650,7 +650,6 @@
 
           if (this.mLayoutBatchCount > 0)
               return;
-
           this.clear();
 
           var orient = this.getAttribute("orient");
@@ -791,7 +790,8 @@
                   innerColumn.setAttribute("style", style);
 
                   xulColumn.appendChild(innerColumn);
-
+                  var minHeight = 0;
+                  var minWidth = 0;
                   var curTime = 0;
                   for each (var chunk in column) {
                       var duration = chunk.duration;
@@ -802,21 +802,36 @@
                       if (chunk.event) {
                           var chunkBox = createXULElement("calendar-event-box");
                           chunkBox.setAttribute("context", this.getAttribute("item-context") || this.getAttribute("context"));
-                          chunkBox.setAttribute("style", "min-width: 1px; min-height: 1px;");
                           chunkBox.setAttribute("orient", orient);
-                          var durMinutes = duration.inSeconds / 60;
-                          if (orient == "vertical") {
-                              chunkBox.setAttribute("height", durMinutes * this.mPixPerMin);
-                          } else {
-                              chunkBox.setAttribute("width", durMinutes * this.mPixPerMin);
-                          }
-
                           innerColumn.appendChild(chunkBox);
-
                           chunkBox.calendarView = this.calendarView;
                           chunkBox.occurrence = chunk.event;
                           chunkBox.parentColumn = this;
-
+                          if (minHeight == 0) {
+                              minHeight = getOptimalMinimumHeight(chunkBox.eventNameLabel) + 
+                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "shadow-bottom"), ["height"]) +
+                                          getSummarizedStyleValues(document.getAnonymousElementByAttribute(chunkBox, "anonid", "eventbox"), ["margin-bottom", "margin-top"]);                              
+                              chunkBox.setAttribute("minheight", minHeight);
+                          }
+                          if (minWidth == 0) {
+                              chunkBox.eventNameLabel.setAttribute("style", "min-width: 2em");
+                              minWidth = getOptimalMinimumWidth(chunkBox.eventNameLabel);
+                              chunkBox.setAttribute("minwidth", minWidth);
+                          }
+                          var durMinutes = duration.inSeconds / 60;
+                          if (orient == "vertical") {
+                              var height = durMinutes * this.mPixPerMin;
+                              if (height < minHeight) {
+                                  height = minHeight;
+                              }
+                              chunkBox.setAttribute("height", height);
+                          } else {
+                              var width = durMinutes * this.mPixPerMin;
+                              if (width < minWidth) {
+                                  width = minWidth;
+                              }
+                              chunkBox.setAttribute("width", width);
+                          }
                           this.mEventBoxes.push(chunkBox);
 
                           if (this.mEventToEdit &&

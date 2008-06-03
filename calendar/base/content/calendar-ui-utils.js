@@ -455,4 +455,56 @@ function createXULElement(el) {
 }
 
 
+/**
+ * A helper function to calculate and add up certain css-values of a box.
+ * It is required, that all css values can be converted to integers
+ *
+ * @param aXULElement   The xul element to be inspected.
+ * @param aStyleProps   The css style properties for which values are to be retrieved
+ *                        e.g. 'font-size', 'min-width" etc.
+ * @return              An integer value denoting the optimal minimum width
+ */
+function getSummarizedStyleValues(aXULElement, aStyleProps) {
+    var retValue = 0;
+    var cssStyleDeclares = document.defaultView.getComputedStyle(aXULElement, null);
+    for each (var prop in aStyleProps) {
+        retValue += parseInt(cssStyleDeclares.getPropertyValue(prop), 10);
+    }    
+    return retValue;
+}
+
+/**
+ * Calculates the optimal minimum width based on the set css style-rules
+ * by considering the css rules for the min-width, padding, border, margin 
+ * and border of the box.
+ *
+ * @param aXULElement   The xul element to be inspected.
+ * @return              An integer value denoting the optimal minimum width
+ */
+function getOptimalMinimumWidth(aXULElement) {
+    return getSummarizedStyleValues(aXULElement, ["min-width",
+                                                  "padding-left", "padding-right",
+                                                  "margin-left", "margin-top",
+                                                  "border-left-width", "border-right-width"]);
+}
+
+/**
+ * Calculates the optimal minimum height based on the set css style-rules
+ * by considering the css rules for the font-size, padding, border, margin 
+ * and border of the box. In its current state the line-height is considered
+ * by assuming that it's size is about one third of the size of the font-size
+ *
+ * @param aXULElement   The xul-element to be inspected.
+ * @return              An integer value denoting the optimal minimum height
+ */
+function getOptimalMinimumHeight(aXULElement) {
+    // the following line of code presumes that the line-height is set to "normal" 
+    // which is supposed to be a "reasonable distance" between the lines
+    var firstEntity = parseInt(1.33 * getSummarizedStyleValues(aXULElement, ["font-size"]), 10);
+    var secondEntity = getSummarizedStyleValues(aXULElement,
+                                                ["padding-bottom", "padding-top",
+                                                "margin-bottom", "margin-top",
+                                                "border-bottom-width", "border-top-width"]);
+    return (firstEntity + secondEntity);
+}
 
