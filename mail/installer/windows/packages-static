@@ -173,6 +173,9 @@ bin\components\nsUrlClassifierListManager.js
 bin\components\nsUrlClassifierLib.js
 bin\components\url-classifier.xpt
 
+; Address Book autocomplete
+bin\components\nsAbAutoCompleteMyDomain.js
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
