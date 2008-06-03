@@ -585,7 +585,7 @@ nsresult nsMsgDBFolder::SendFlagNotifications(nsIMsgDBHdr *item, PRUint32 oldFla
   return rv;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::DownloadMessagesForOffline(nsISupportsArray *messages, nsIMsgWindow *)
+NS_IMETHODIMP nsMsgDBFolder::DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *)
 {
   NS_ASSERTION(PR_FALSE, "imap and news need to override this");
   return NS_OK;

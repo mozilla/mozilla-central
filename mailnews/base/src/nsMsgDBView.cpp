@@ -2723,8 +2723,7 @@ nsresult nsMsgDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indic
 nsresult nsMsgDBView::DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices)
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsISupportsArray> messageArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   for (nsMsgViewIndex index = 0; index < (nsMsgViewIndex) numIndices; index++)
   {
     nsMsgKey key = m_keys[indices[index]];
@@ -2736,7 +2735,7 @@ nsresult nsMsgDBView::DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *i
       PRUint32 flags;
       msgHdr->GetFlags(&flags);
       if (!(flags & MSG_FLAG_OFFLINE))
-        messageArray->AppendElement(msgHdr);
+        messageArray->AppendElement(msgHdr, PR_FALSE);
     }
   }
   m_folder->DownloadMessagesForOffline(messageArray, window);
@@ -2746,8 +2745,7 @@ nsresult nsMsgDBView::DownloadForOffline(nsIMsgWindow *window, nsMsgViewIndex *i
 nsresult nsMsgDBView::DownloadFlaggedForOffline(nsIMsgWindow *window)
 {
   nsresult rv = NS_OK;
-  nsCOMPtr<nsISupportsArray> messageArray;
-  NS_NewISupportsArray(getter_AddRefs(messageArray));
+  nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
   nsCOMPtr <nsISimpleEnumerator> enumerator;
   rv = m_db->EnumerateMessages(getter_AddRefs(enumerator));
   if (NS_SUCCEEDED(rv) && enumerator)
@@ -2764,7 +2762,7 @@ nsresult nsMsgDBView::DownloadFlaggedForOffline(nsIMsgWindow *window)
         PRUint32 flags;
         pHeader->GetFlags(&flags);
         if ((flags & MSG_FLAG_MARKED) && !(flags & MSG_FLAG_OFFLINE))
-          messageArray->AppendElement(pHeader);
+          messageArray->AppendElement(pHeader, PR_FALSE);
       }
     }
   }

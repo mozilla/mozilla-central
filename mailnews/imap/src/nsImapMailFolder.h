@@ -253,7 +253,7 @@ public:
   NS_IMETHOD MarkThreadRead(nsIMsgThread *thread);
   NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel);
   NS_IMETHOD SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& aJunkScore);
-  NS_IMETHOD DeleteSubFolders(nsIMutableArray *folders, nsIMsgWindow *msgWindow);
+  NS_IMETHOD DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow);
   NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);
   NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
 

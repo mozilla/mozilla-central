@@ -67,7 +67,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(9a3f400b-d3b7-494f-acf9-082f2008dffc)]
+[scriptable, uuid(c04b70af-21e6-4762-8650-cf2073ffc07e)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -414,7 +414,7 @@ interface nsIMsgFolder : nsISupports {
                                       out PRUint32 size);
   readonly attribute nsIOutputStream offlineStoreOutputStream;
   readonly attribute nsIInputStream offlineStoreInputStream;
-  void DownloadMessagesForOffline(in nsISupportsArray messages,
+  void DownloadMessagesForOffline(in nsIArray messages,
                                   in nsIMsgWindow window);
   nsIMsgFolder getChildWithURI(in ACString uri, in boolean deep,
                                in boolean caseInsensitive);

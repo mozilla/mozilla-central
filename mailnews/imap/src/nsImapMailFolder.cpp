@@ -2145,7 +2145,7 @@ nsImapMailFolder::TrashOrDescendentOfTrash(nsIMsgFolder* folder)
   return PR_FALSE;
 }
 NS_IMETHODIMP
-nsImapMailFolder::DeleteSubFolders(nsIMutableArray* folders, nsIMsgWindow *msgWindow)
+nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
 {
   nsCOMPtr<nsIMsgFolder> curFolder;
   nsCOMPtr<nsIUrlListener> urlListener;
@@ -2158,6 +2158,7 @@ nsImapMailFolder::DeleteSubFolders(nsIMutableArray* folders, nsIMsgWindow *msgWi
   PRBool confirmed = PR_FALSE;
   PRBool confirmDeletion = PR_TRUE;
 
+  nsCOMPtr<nsIMutableArray> foldersRemaining(do_CreateInstance(NS_ARRAY_CONTRACTID));
   folders->GetLength(&folderCount);
 
   for (i = folderCount - 1; i >= 0; i--)
@@ -2170,13 +2171,16 @@ nsImapMailFolder::DeleteSubFolders(nsIMutableArray* folders, nsIMsgWindow *msgWi
       if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
       {
         RemoveSubFolder(curFolder);
-        folders->RemoveElementAt(i);
         // since the folder pane only allows single selection, we can do this
         deleteNoTrash = confirmed = PR_TRUE;
         confirmDeletion = PR_FALSE;
       }
+      else
+        foldersRemaining->InsertElementAt(curFolder, 0, PR_FALSE);
     }
   }
+
+  foldersRemaining->GetLength(&folderCount);
 
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2227,7 +2231,7 @@ nsImapMailFolder::DeleteSubFolders(nsIMutableArray* folders, nsIMsgWindow *msgWi
   {
     for (i = 0; i < folderCount; i++)
     {
-      curFolder = do_QueryElementAt(folders, i, &rv);
+      curFolder = do_QueryElementAt(foldersRemaining, i, &rv);
       if (NS_SUCCEEDED(rv))
       {
         urlListener = do_QueryInterface(curFolder);
@@ -2259,7 +2263,7 @@ nsImapMailFolder::DeleteSubFolders(nsIMutableArray* folders, nsIMsgWindow *msgWi
     }
   }
   //delete subfolders only if you are  deleting things from trash
-  return confirmed && deleteNoTrash ? nsMsgDBFolder::DeleteSubFolders(folders, msgWindow) : rv;
+  return confirmed && deleteNoTrash ? nsMsgDBFolder::DeleteSubFolders(foldersRemaining, msgWindow) : rv;
 }
 
 // Called by Biff, or when user presses GetMsg button.

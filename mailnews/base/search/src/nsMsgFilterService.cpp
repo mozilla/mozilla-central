@@ -716,7 +716,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
           nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_curFolder);
           if (localFolder)
           {
-            nsCOMPtr<nsISupportsArray> messages = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+            nsCOMPtr<nsIMutableArray> messages(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
             NS_ENSURE_SUCCESS(rv, rv);
             for (PRUint32 msgIndex = 0; msgIndex < m_searchHits.Length(); msgIndex++)
             {
@@ -727,14 +727,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter()
                 PRUint32 flags = 0;
                 msgHdr->GetFlags(&flags);
                 if (flags & MSG_FLAG_PARTIAL)
-                {
-                  nsCOMPtr<nsISupports> iSupports = do_QueryInterface(msgHdr);
-                  messages->AppendElement(iSupports);
-                }
+                  messages->AppendElement(msgHdr, PR_FALSE);
               }
             }
             PRUint32 msgsToFetch;
-            messages->Count(&msgsToFetch);
+            messages->GetLength(&msgsToFetch);
             if (msgsToFetch > 0)
               m_curFolder->DownloadMessagesForOffline(messages, m_msgWindow);
           }
