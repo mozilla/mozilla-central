@@ -2119,7 +2119,19 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       PRInt32 reply_on_top = 0;
       mIdentity->GetReplyOnTop(&reply_on_top);
       if (reply_on_top == 1)
-        mCitePrefix.AppendLiteral("\n\n");
+      {
+        // add one newline if a signature comes before the quote, two otherwise
+        PRBool sig_bottom = PR_TRUE;
+        PRBool useSigFile = PR_FALSE;
+        nsString prefSigText;
+        mIdentity->GetSigBottom(&sig_bottom);
+        mIdentity->GetUnicharAttribute("htmlSigText", prefSigText);
+        rv = mIdentity->GetAttachSignature(&useSigFile);
+        if (!sig_bottom && ((NS_SUCCEEDED(rv) && useSigFile) || !prefSigText.IsEmpty()))
+          mCitePrefix.AppendLiteral("\n");
+        else
+          mCitePrefix.AppendLiteral("\n\n");
+      }
 
 
       PRBool header, headerDate;
@@ -3942,6 +3954,14 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       ConvertHTMLToText(sigFile, sigData);
     else // We have a match...
       LoadDataFromFile(sigFile, sigData);  // Get the data!
+    // post-processing for plain-text signatures to ensure we end in CR, LF, or CRLF
+    if (!htmlSig && !m_composeHTML)
+    {
+      PRInt32 sigLength = sigData.Length();
+      if (sigLength > 0 && !(sigData.CharAt(sigLength - 1) == '\r')
+                        && !(sigData.CharAt(sigLength - 1) == '\n'))
+        sigData.AppendLiteral(CRLF);
+    }
   }
 
   // if we have a prefSigText, append it to sigData.
@@ -3997,6 +4017,10 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
           sigOutput.AppendLiteral(htmlBreak);
       }
     }
+
+    // add CRLF before signature for plain-text mode if signature comes before quote
+    if (!m_composeHTML && reply_on_top == 1 && !sig_bottom && aQuoted)
+      sigOutput.AppendLiteral(CRLF);
 
     sigOutput.Append(sigData);
 
