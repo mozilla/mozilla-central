@@ -1987,10 +1987,9 @@
                 <xul:vbox class="calendar-event-details">
                   <xul:description anonid="event-name" class="calendar-event-details-core" flex="1"/>
                   <xul:textbox anonid="event-name-textbox"
-                               class="plain calendar-event-details-core"
+                               class="plain calendar-event-details-core calendar-event-name-textbox"
                                flex="1"
                                hidden="true"
-                               style="background: transparent !important;"
                                wrap="true"/>
                 </xul:vbox>
                 <xul:image width="1px" class="calendar-event-box-gradient"/>

@@ -187,8 +187,13 @@ calendar-header-container[weekend="true"][selected="true"],
 .calendar-event-details-core {
   width: 0px;
   margin: 0px;
-  color: inherit;  
 }
+
+.calendar-event-name-textbox {
+  background: transparent !important;
+  color: inherit;
+}
+
 
 calendar-event-box[selected="true"] .calendar-event-selection {
   color: #000000 !important;

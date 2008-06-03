@@ -80,10 +80,9 @@
                                flex="1"
                                style="margin: 0;"/>
                     <xul:textbox anonid="event-name-textbox"
-                                 class="plain"
+                                 class="plain calendar-event-name-textbox"
                                  crop="end"
                                  hidden="true"
-                                 style="background: transparent !important;"
                                  wrap="true"/>
                     <xul:spacer flex="1"/>
                   </xul:vbox>

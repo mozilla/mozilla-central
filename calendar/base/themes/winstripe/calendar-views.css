@@ -187,6 +187,10 @@ calendar-header-container[weekend="true"][selected="true"],
 .calendar-event-details-core {
   width: 0px;
   margin: 0px;
+}
+
+.calendar-event-name-textbox {
+  background: transparent !important;
   color: inherit;
 }
 
