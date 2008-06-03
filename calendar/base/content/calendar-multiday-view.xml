@@ -820,16 +820,10 @@
                           }
                           var durMinutes = duration.inSeconds / 60;
                           if (orient == "vertical") {
-                              var height = durMinutes * this.mPixPerMin;
-                              if (height < minHeight) {
-                                  height = minHeight;
-                              }
+                              var height = Math.max(durMinutes * this.mPixPerMin, minHeight)
                               chunkBox.setAttribute("height", height);
                           } else {
-                              var width = durMinutes * this.mPixPerMin;
-                              if (width < minWidth) {
-                                  width = minWidth;
-                              }
+                              var width = Math.max(durMinutes * this.mPixPerMin, minWidth)
                               chunkBox.setAttribute("width", width);
                           }
                           this.mEventBoxes.push(chunkBox);
