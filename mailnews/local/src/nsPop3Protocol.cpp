@@ -2604,7 +2604,7 @@ PRInt32 nsPop3Protocol::GetMsg()
       else
       {
 #ifdef DEBUG
-        printf("GetDiskSpaceAvailable returned: %d bytes\n", (PRUint32) mailboxSpaceLeft);
+        printf("GetDiskSpaceAvailable returned: %lld bytes\n", mailboxSpaceLeft);
 #endif
 
         /* When checking for disk space available, take into consideration
