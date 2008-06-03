@@ -1399,7 +1399,7 @@ nsMsgLocalMailFolder::DeleteMessages(nsIArray *messages,
   PRBool isTrashFolder = mFlags & MSG_FOLDER_FLAG_TRASH;
 
   // notify on delete from trash and shift-delete
-  if ((deleteStorage && !isMove) || isTrashFolder)
+  if (!isMove && (deleteStorage || isTrashFolder))
   {
     nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
     if (notifier)
