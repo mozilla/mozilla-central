@@ -505,22 +505,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, PRBool *_retval)
 
 NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, PRBool *_retval)
 {
-  nsCAutoString scheme;
-  nsresult rv = m_baseURL->GetScheme(scheme);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // fix #76200 crash on email with <img> with no src.
-  //
-  // make sure we have a scheme before calling SchemeIs()
-  // we have to do this because url parsing can result in a null mScheme
-  // this extra string copy should be removed when #73845 is fixed.
-  if (!scheme.IsEmpty()) {
-    return m_baseURL->SchemeIs(aScheme, _retval);
-  }
-  else {
-    *_retval = PR_FALSE;
-    return NS_OK;
-  }
+  return m_baseURL->SchemeIs(aScheme, _retval);
 }
 
 NS_IMETHODIMP nsMsgMailNewsUrl::Clone(nsIURI **_retval)
