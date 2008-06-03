@@ -94,10 +94,9 @@
         <label control="filterTree">&filterHeader.label;</label>
       </row>
 
-
       <row flex="1">
         <vbox>
-          <listbox id="filterList" onselect="updateButtons();"
+          <listbox id="filterList" flex="1" onselect="updateButtons();"
                    onkeypress="onFilterListKeyPress(event);">
             <listhead>
               <listheader id="nameColumn" label="&nameColumn.label;" flex="1"/>
