@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -52,11 +52,25 @@ interface nsISmtpServer : nsISupports {
     attribute string password;
     readonly attribute string displayname;
 
-    attribute long authMethod;
+  /**
+   * Whether or not to use authentication for this server.
+   * 0 = no authentication, 1 = use authentication.
+   * Reflects the mail.smtpserver.*.auth_method pref (default has value 1).
+   */
+  attribute long authMethod;
+
     attribute boolean useSecAuth;
     attribute boolean trySecAuth;
     attribute long trySSL;
-    readonly attribute string helloArgument;
+
+  /**
+   * May contain an alternative argument to EHLO or HELO to provide to the
+   * server. Reflects the value of the mail.smtpserver.*.hello_argument pref.
+   * This is mainly useful where ISPs don't bother providing PTR records for
+   * their servers and therefore users get an error on sending. See bug 244030
+   * for more discussion.
+   */
+  readonly attribute string helloArgument;
 
     readonly attribute string serverURI;
     string getPasswordWithUI(in wstring promptString, in wstring promptTitle,

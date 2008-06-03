@@ -48,38 +48,47 @@ interface nsIMsgStatusFeedback;
 interface nsIRequest;
 interface nsISimpleEnumerator;
 
-[scriptable, uuid(77887b49-6d03-4c52-9f7b-6653e44c8197)]
+[scriptable, uuid(8e9a7c57-cee1-46f2-a03b-14fac3086706)]
 interface nsISmtpService : nsISupports {
-  
-  ///////////////////////////////////////////////////////////////////////////
-  // SendMailMessage requires the file name of the message to send, the
-  // sender, a comma delimited list of recipients.
-  // It builds an Smtp url, makes an smtp connection and runs the url. If you
-  // want a handle on the running task, pass in  a valid nsIURI ptr. You can
-  // later interrupt this action by asking the netlib service manager to
-  // interrupt the url you are given back. Remember to release aURL when you
-  // are done with it. Pass nsnull in for aURL if you don't care about 
-  // the returned URL.
-  //
-  // If you don't care about listening to the url, feel free to pass in
-  // nsnull for that argument.
-  //
-  // You can also pass an password as an argument if you want to prevent
-  // a dialog to popup if the password is needed for a secure transmission
-  //
-  // The server associate to the Sender Identity will be used or the default
-  // server.
-  //////////////////////////////////////////////////////////////////////////
-
-  void SendMailMessage(in nsIFile aFilePath, in string aRecipients, 
+  /**
+   * Sends a mail message via the given parameters. This function builds an
+   * SMTP URL and makes an SMTP connection, and then runs the url.
+   * The SMTP server defined
+   * in the aSenderIdentity object (see nsIMsgIdentity) will be used to send
+   * the message. If there is no SMTP server defined in aSenderIdentity, the
+   * default SMTP server will be used.
+   *
+   *
+   * @param aFilePath               The file to send.
+   * @param aRecipients             A comma delimited list of recipients.
+   * @param aSenderIdentity         The identity of the sender.
+   * @param aPassword               Pass this in to prevent a dialog if the
+   *                                password is needed for secure transmission.
+   * @param aUrlListener            A listener to listen to the URL being run,
+   *                                this parameter may be null.
+   * @param aStatusListener         A feedback listener for slightly different
+   *                                feedback on the message send status. This
+   *                                parameter may be null.
+   * @param aNotificationCallbacks  More notification callbacks
+   * @param aRequestDSN             Pass true to request Delivery Status
+   *                                Notification.
+   * @param aURL                    Provides a handle on the running url. You
+   *                                can later interrupt the action by asking the
+   *                                netlib service manager to interrupt the url
+   *                                you are given back. This parameter may be
+   *                                null.
+   * @param aRequest                Provides a handle to the running request.
+   *                                This parameter may be null.
+   */
+  void sendMailMessage(in nsIFile aFilePath, in string aRecipients, 
                        in nsIMsgIdentity aSenderIdentity,
                        in string aPassword,
                        in nsIUrlListener aUrlListener, 
-					             in nsIMsgStatusFeedback aStatusListener, 
+                       in nsIMsgStatusFeedback aStatusListener, 
                        in nsIInterfaceRequestor aNotificationCallbacks,
-                       in boolean requestDSN,
+                       in boolean aRequestDSN,
                        out nsIURI aURL,
-					             out nsIRequest aRequest);
+                       out nsIRequest aRequest);
 
   /**
    * Return the SMTP server that is associated with an identity.
