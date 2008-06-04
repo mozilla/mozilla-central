@@ -49,7 +49,7 @@ if ($command eq 'create_tree') {
     $tree = &require_only_one_tree($tree);
 }
 
-if( $command eq 'create_tree' ){
+if( $command eq 'create_tree' || $command eq 'edit_tree' ){
     &create_tree;
 }
 elsif( $command eq 'trim_logs' ){
@@ -64,7 +64,7 @@ elsif( $command eq 'set_rules_message' ){
 elsif( $command eq 'set_sheriff' ){
     &set_sheriff;
 }
-elsif ($command eq 'admin_builds') {
+elsif( $command eq 'admin_builds' ){
     &admin_builds;
 } else {
     print "Unknown command: \"" . value_encode($command) . "\".";
@@ -135,28 +135,30 @@ sub create_tree {
     my $treename = shell_escape($tree);
     my $safe_treename = value_encode($tree);
 
-    if( -r $treename ){
+    if (-r $treename) {
         chmod(oct($dir_perm), $treename);
     }
-    else {
+    elsif ($command eq 'create_tree') {
         mkdir( $treename, oct($dir_perm)) || die "<h1> Cannot mkdir $safe_treename</h1>"; 
     }
     &write_treedata("$::tree_dir/$treename/treedata.pl", \%treedata);
 
-    foreach my $file ( "build.dat", "who.dat", "notes.txt" ) {
-        open( F, ">", "$::tree_dir/$treename/$file" );
-        close( F );
-        chmod (oct($perm), "$::tree_dir/$treename/$file");
-    }
+    if ($command eq 'create_tree') {
+        foreach my $file ( "build.dat", "who.dat", "notes.txt" ) {
+            open( F, ">", "$::tree_dir/$treename/$file" );
+            close( F );
+            chmod (oct($perm), "$::tree_dir/$treename/$file");
+        }
 
-    open( F, ">", "$::tree_dir/$treename/index.html");
-    print F "<HTML>\n";
-    print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=${main::static_rel_path}showbuilds.cgi?tree=$treename\"></HEAD>\n";
-    print F "<BODY></BODY>\n";
-    print F "</HTML>\n";
-    close( F );
+        open( F, ">", "$::tree_dir/$treename/index.html");
+        print F "<HTML>\n";
+        print F "<HEAD><META HTTP-EQUIV=\"refresh\" content=\"0,url=${main::static_rel_path}showbuilds.cgi?tree=$treename\"></HEAD>\n";
+        print F "<BODY></BODY>\n";
+        print F "</HTML>\n";
+        close( F );
     
-    chmod (oct($perm), "$::tree_dir/$treename/index.html");
+        chmod (oct($perm), "$::tree_dir/$treename/index.html");
+    }
 
     print "<h2><a href=\"showbuilds.cgi?tree=$treename\">Tree created or modified</a></h2>\n";
 }
@@ -223,6 +225,7 @@ sub admin_builds {
            "$::tree_dir/$tree/warningbuilds.pl");
     print "<h2><a href=showbuilds.cgi?tree=$tree>Build state Changed</a></h2>\n";
 }
+
 sub set_sheriff {
     my $m = $form{'sheriff'};
     $m =~ s/\'/\\\'/g;
@@ -255,4 +258,3 @@ sub set_rules_message {
     print "<h2><a href=showbuilds.cgi?tree=$tree>
             Rule message changed.</a><br></h2>\n";
 }
-

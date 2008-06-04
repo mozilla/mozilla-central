@@ -201,6 +201,72 @@ Tinderbox is configured to show up to $::global_treedata->{$tree}->{who_days} da
 </FORM>
 <hr>
 ";
+
+#
+#  Tree config.
+#
+
+print "
+<FORM method=post action=doadmin.cgi>
+<INPUT TYPE=HIDDEN NAME=tree VALUE='$safe_tree'>
+<INPUT TYPE=HIDDEN NAME=command VALUE=edit_tree>
+<b>Edit a tinderbox's configuration.</b>
+<TABLE>
+<TR>
+<TD>days of commit history to display:</TD>
+<TD><INPUT NAME=who_days VALUE='$::global_treedata->{$tree}->{who_days}'></TD>
+</TR>
+<TR>
+<TD>Query system:</TD>
+<TD><SELECT NAME=query SIZE=1>
+<OPTION VALUE=\"\" SELECTED=\"SELECTED\">(none)</OPTION>
+";
+
+&tb_load_queryconfig();
+foreach my $query_system (@::QueryList) {
+  print "<OPTION VALUE=\"$query_system\">$query_system</OPTION>\n";
+}
+
+print "</SELECT></TD>
+</TR>
+<TR>
+<TD>
+<b>Bonsai query options:</b><br>
+</TD>
+</TR>
+<TR>
+<TD>cvs repository:</TD>
+<TD><INPUT NAME=repository VALUE='$treedata->{cvs_root}'></TD>
+</TR>
+<TR>
+<TD>cvs module name:</TD>
+<TD><INPUT NAME=modulename VALUE='$treedata->{cvs_module}'></TD>
+</TR>
+<TR>
+<TD>cvs branch:</TD>
+<TD><INPUT NAME=branchname VALUE='$treedata->{cvs_branch}'></TD>
+</TR>
+<TR>
+<TD>bonsai tree:</TD>
+<TD><INPUT NAME=bonsaitreename VALUE='$::global_treedata->{$tree}->{bonsai_tree}'></TD>
+</TR>
+<TR>
+<TD>
+<b>ViewVC query options:</b><br>
+</TD>
+</TR>
+<TR>
+<TD>ViewVC Repository:</TD>
+<TD><INPUT NAME=viewvc_repository VALUE='$::global_treedata->{$tree}->{viewvc_repository}'></TD>
+</TR>
+
+</TABLE>
+<B>Password:</B> <INPUT NAME=password TYPE=password>
+<INPUT TYPE=SUBMIT VALUE='Edit tree configuration'>
+</FORM>
+<hr>
+";
+
     print "<B><A HREF=\"showbuilds.cgi?tree=$tree\">Return to tree</A></B>\n";
 
 } else {
