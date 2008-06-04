@@ -331,6 +331,8 @@ nsMsgQuickSearchDBView::OnNewSearch()
       m_usingCachedHits = PR_TRUE;
       cachedHits->HasMoreElements(&hasMore);
       m_cacheEmpty = !hasMore;
+      if (mTree)
+        mTree->BeginUpdateBatch();
       while (hasMore)
       {
         nsCOMPtr <nsIMsgDBHdr> pHeader;
@@ -342,6 +344,8 @@ nsMsgQuickSearchDBView::OnNewSearch()
           break;
         cachedHits->HasMoreElements(&hasMore);
       }
+      if (mTree)
+        mTree->EndUpdateBatch();
     }
   }
   return NS_OK;

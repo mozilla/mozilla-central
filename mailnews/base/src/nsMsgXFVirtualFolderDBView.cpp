@@ -337,6 +337,8 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
   searchSession->CountSearchScopes(&scopeCount);
+  if (mTree)
+    mTree->BeginUpdateBatch();
   for (PRInt32 i = 0; i < scopeCount; i++)
   {
     nsMsgSearchScopeValue scopeId;
@@ -362,7 +364,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
           cachedHits->HasMoreElements(&hasMore);
           if (hasMore)
           {
-            nsMsgKey prevKey = nsMsgKey_None;
+             nsMsgKey prevKey = nsMsgKey_None;
             while (hasMore)
             {
               nsCOMPtr <nsIMsgDBHdr> pHeader;
@@ -385,6 +387,8 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
       }
     }
   }
+  if (mTree)
+    mTree->EndUpdateBatch();
 
   m_curFolderStartKeyIndex = 0;
   m_curFolderGettingHits = nsnull;
