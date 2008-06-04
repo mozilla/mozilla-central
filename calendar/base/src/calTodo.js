@@ -161,7 +161,7 @@ calTodo.prototype = {
     { cal: "COMPLETED", ics: "completedTime" }],
 
     set icalString(value) {
-        this.icalComponent = icalFromString(value);
+        this.icalComponent = getIcsService().parseICS(value, null);
     },
 
     get icalString() {

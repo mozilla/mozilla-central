@@ -1535,10 +1535,10 @@ calStorageCalendar.prototype = {
 
             item.alarmOffset = duration;
             item.alarmRelated = row.alarm_related;
-            if (row.alarm_last_ack) {
-                // alarm acks are always in utc
-                item.alarmLastAck = newDateTime(row.alarm_last_ack, "UTC");
-            }
+        }
+        if (row.alarm_last_ack) {
+            // alarm acks are always in utc
+            item.alarmLastAck = newDateTime(row.alarm_last_ack, "UTC");
         }
 
         if (row.recurrence_id)
@@ -1998,9 +1998,9 @@ calStorageCalendar.prototype = {
         if (item.alarmOffset) {
             ip.alarm_offset = item.alarmOffset.inSeconds;
             ip.alarm_related = item.alarmRelated;
-            if (item.alarmLastAck) {
-                ip.alarm_last_ack = item.alarmLastAck.nativeTime;
-            }
+        }
+        if (item.alarmLastAck) {
+            ip.alarm_last_ack = item.alarmLastAck.nativeTime;
         }
     },
 

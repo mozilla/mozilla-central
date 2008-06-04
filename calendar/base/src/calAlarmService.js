@@ -504,12 +504,6 @@ calAlarmService.prototype = {
     },
 
     removeAlarm: function cas_removeAlarm(aItem) {
-        // If the item has no alarm start date, then it was never added so don't
-        // remove it.
-        if (!this.getAlarmDate(aItem)) {
-            return;
-        }
-
         // make sure already fired alarms are purged out of the alarm window:
         this.notifyObservers("onRemoveAlarmsByItem", [aItem]);
         for each (var timer in this.removeTimers(aItem)) {

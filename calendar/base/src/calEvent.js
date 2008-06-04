@@ -133,7 +133,7 @@ calEvent.prototype = {
     { cal: "DTEND", ics: "endTime" }],
 
     set icalString(value) {
-        this.icalComponent = icalFromString(value);
+        this.icalComponent = getIcsService().parseICS(value, null);
     },
 
     get icalString() {

@@ -168,7 +168,7 @@ interface calIItemBase : nsISupports
    */
   const unsigned long ALARM_RELATED_END = 1;
 
-  // The last time this alarm was fired and acknowledged by the user
+  // The last time this alarm was fired and acknowledged by the user; coerced to UTC.
   attribute calIDateTime alarmLastAck;
 
   //

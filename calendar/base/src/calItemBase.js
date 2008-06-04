@@ -173,9 +173,9 @@ calItemBase.prototype = {
 
         if (this.alarmOffset) {
             this.alarmOffset.makeImmutable();
-            if (this.alarmLastAck) {
-                this.alarmLastAck.makeImmutable();
-            }
+        }
+        if (this.alarmLastAck) {
+            this.alarmLastAck.makeImmutable();
         }
 
         this.ensureNotDirty();
@@ -269,13 +269,13 @@ calItemBase.prototype = {
         // Clone any alarm info that exists, set it to null if it doesn't
         if (this.alarmOffset) {
             m.alarmOffset = this.alarmOffset.clone();
-            if (this.alarmLastAck) {
-                m.alarmLastAck = this.alarmLastAck.clone();
-            } else {
-                m.alarmLastAck = null;
-            }
         } else {
             m.alarmOffset = null;
+        }
+        if (this.alarmLastAck) {
+            m.alarmLastAck = this.alarmLastAck.clone();
+        } else {
+            m.alarmLastAck = null;
         }
         m.alarmRelated = this.alarmRelated;
 
@@ -293,6 +293,19 @@ calItemBase.prototype = {
     set alarmOffset(aValue) {
         this.modify();
         return (this.mAlarmOffset = aValue);
+    },
+
+    mAlarmLastAck: null,
+    get alarmLastAck cib_get_alarmLastAck() {
+        return this.mAlarmLastAck;
+    },
+
+    set alarmLastAck cib_set_alarmLastAck(aValue) {
+        this.modify();
+        if (aValue && !aValue.timezone.isUTC) {
+            aValue = aValue.getInTimezone(UTC());
+        }
+        return (this.mAlarmLastAck = aValue);
     },
 
     get lastModifiedTime() {
@@ -625,17 +638,16 @@ calItemBase.prototype = {
             else
                 this.alarmRelated = Components.interfaces.calIItemBase.ALARM_RELATED_START;
 
-            var lastAck = alarmComp.getFirstProperty("X-MOZ-LASTACK");
-            if (lastAck) {
-                var lastAckTime = Components.classes["@mozilla.org/calendar/datetime;1"]
-                                            .createInstance(Components.interfaces.calIDateTime);
-                lastAckTime.icalString = lastAck.valueAsIcalString;
-                this.alarmLastAck = lastAckTime;
-            }
-
             var email = alarmComp.getFirstProperty("X-EMAILADDRESS");
             if (email)
                 this.setProperty("alarmEmailAddress", email.value);
+        }
+
+        var lastAck = icalcomp.getFirstProperty("X-MOZ-LASTACK");
+        if (lastAck) {
+            var lastAckTime = createDateTime();
+            lastAckTime.icalString = lastAck.value;
+            this.alarmLastAck = lastAckTime;
         }
     },
 
@@ -715,12 +727,6 @@ calItemBase.prototype = {
 
             alarmComp.addProperty(triggerProp);
 
-            if (this.alarmLastAck) {
-                var lastAck = icssvc.createIcalProperty("X-MOZ-LASTACK");
-                lastAck.valueAsIcalString = this.alarmLastAck.icalString;
-                alarmComp.addProperty(lastAck);
-            }
-
             // We don't use this, but the ics-spec requires it
             var descProp = icssvc.createIcalProperty("DESCRIPTION");
             descProp.value = "Mozilla Alarm: "+ this.title;
@@ -739,6 +745,13 @@ calItemBase.prototype = {
             alarmComp.addProperty(actionProp);
 
             icalcomp.addSubcomponent(alarmComp);
+        }
+
+        if (this.alarmLastAck) {
+            var lastAck = getIcsService().createIcalProperty("X-MOZ-LASTACK");
+            // - should we further ensure that those are UTC or rely on calAlarmService doing so?
+            lastAck.value = this.alarmLastAck.icalString;
+            icalcomp.addProperty(lastAck);
         }
     },
     
@@ -776,18 +789,4 @@ function makeMemberAttr(ctor, varname, dflt, attr, asProperty)
     };
     ctor.prototype.__defineGetter__(attr, getter);
     ctor.prototype.__defineSetter__(attr, setter);
-}
-
-//
-// helper functions
-//
-
-function icalFromString(str)
-{
-    return getIcsService().parseICS(str, null);
-}
-
-function icalProp(kind)
-{
-    return getIcsService().createIcalProperty(kind);
 }
