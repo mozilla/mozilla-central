@@ -1,8 +1,8 @@
-rem This script is specific to the paths on bsmedberg's machine. Alter to
-rem suit your environment.
+rem This script is specific to the paths on the mozillabuild-builder vm.
+rem Alter to suit your environment.
 
-set VC8DIR=C:\Program Files\Microsoft Visual Studio 8
-set SDKDIR=C:\Program Files\Microsoft Platform SDK 2003SP1
+set VC8DIR=D:\msvs8
+set SDKDIR=C:\Program Files\Microsoft Platform SDK
 set PYTHONDIR=C:\python25
 set SRCDIR=%~dp0%
 
@@ -13,6 +13,6 @@ rmdir /S %SRCDIR%\_obj
 mkdir %SRCDIR%\_obj
 
 cd %SRCDIR%\_obj
-%PYTHONDIR%\python.exe ..\packageit.py
+%PYTHONDIR%\python.exe ..\packageit.py --msys c:\msys --output c:\stage
 
 pause
