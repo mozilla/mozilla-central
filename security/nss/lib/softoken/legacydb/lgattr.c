@@ -1593,7 +1593,7 @@ lg_SetPrivateKeyAttribute(LGObjectCache *obj, CK_ATTRIBUTE_TYPE type,
     case CKA_COEFFICIENT:
 	/* We aren't really changing these values, we are just triggering
 	 * the database to update it's entry */
-	*writePrivate = 1;
+	*writePrivate = PR_TRUE;
 	crv = CKR_OK;
 	break;
     default:
