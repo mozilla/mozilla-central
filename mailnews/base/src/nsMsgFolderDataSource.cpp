@@ -679,16 +679,16 @@ nsMsgFolderDataSource::GetAllCmds(nsIRDFResource* source,
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::IsCommandEnabled(nsIArray/*<nsIRDFResource>*/* aSources,
+nsMsgFolderDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
                                         nsIRDFResource*   aCommand,
-                                        nsIArray/*<nsIRDFResource>*/* aArguments,
+                                        nsISupportsArray/*<nsIRDFResource>*/* aArguments,
                                         PRBool* aResult)
 {
   nsresult rv;
   nsCOMPtr<nsIMsgFolder> folder;
 
   PRUint32 cnt;
-  rv = aSources->GetLength(&cnt);
+  rv = aSources->Count(&cnt);
   if (NS_FAILED(rv)) return rv;
   for (PRUint32 i = 0; i < cnt; i++)
   {
@@ -721,9 +721,9 @@ nsMsgFolderDataSource::IsCommandEnabled(nsIArray/*<nsIRDFResource>*/* aSources,
 }
 
 NS_IMETHODIMP
-nsMsgFolderDataSource::DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
+nsMsgFolderDataSource::DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
                                  nsIRDFResource*   aCommand,
-                                 nsIMutableArray/*<nsIRDFResource>*/* aArguments)
+                                 nsISupportsArray/*<nsIRDFResource>*/* aArguments)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsISupports> supports;
@@ -734,7 +734,7 @@ nsMsgFolderDataSource::DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
   if (aArguments)
   {
     PRUint32 numArgs;
-    aArguments->GetLength(&numArgs);
+    aArguments->Count(&numArgs);
     if (numArgs > 1)
       window = do_QueryElementAt(aArguments, numArgs - 1);
   }
@@ -746,7 +746,7 @@ nsMsgFolderDataSource::DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
   PRUint32 cnt = 0;
   PRUint32 i = 0;
 
-  rv = aSources->GetLength(&cnt);
+  rv = aSources->Count(&cnt);
   if (NS_FAILED(rv)) return rv;
 
   for ( ; i < cnt; i++)
@@ -1898,12 +1898,12 @@ nsMsgFolderDataSource::createFolderChildNode(nsIMsgFolder *folder,
 }
 
 
-nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
+nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
                          nsIMsgWindow *msgWindow, PRBool isMove)
 {
   nsresult rv;
   PRUint32 itemCount;
-  rv = arguments->GetLength(&itemCount);
+  rv = arguments->Count(&itemCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
   //need source folder and at least one item to copy
@@ -1935,12 +1935,12 @@ nsresult nsMsgFolderDataSource::DoCopyToFolder(nsIMsgFolder *dstFolder, nsIArray
     nsnull, msgWindow, PR_TRUE/* allowUndo */);
 }
 
-nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
+nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
                                                      nsIMsgWindow *msgWindow, PRBool isMoveFolder)
 {
   nsresult rv;
   PRUint32 itemCount;
-  rv = arguments->GetLength(&itemCount);
+  rv = arguments->Count(&itemCount);
   NS_ENSURE_SUCCESS(rv, rv);
 
   //need at least one item to copy
@@ -1949,11 +1949,18 @@ nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, ns
 
   if (!isMoveFolder)   // copy folder not on the same server
   {
+    // Create an nsIMutableArray from the nsISupportsArray
+    nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    for (PRUint32 i = 0; i < itemCount; i++)
+    {
+      folderArray->AppendElement(arguments->ElementAt(i), PR_FALSE);
+    }
+
     //Call copyservice with dstFolder, srcFolder, folders and isMoveFolder
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
     if(NS_SUCCEEDED(rv))
     {
-      rv = copyService->CopyFolders(arguments, dstFolder, isMoveFolder,
+      rv = copyService->CopyFolders(folderArray, dstFolder, isMoveFolder,
         nsnull, msgWindow);
 
     }
@@ -1977,12 +1984,12 @@ nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, ns
   //return NS_OK;
 }
 
-nsresult nsMsgFolderDataSource::DoDeleteFromFolder(nsIMsgFolder *folder, nsIArray *arguments,
+nsresult nsMsgFolderDataSource::DoDeleteFromFolder(nsIMsgFolder *folder, nsISupportsArray *arguments,
                                                    nsIMsgWindow *msgWindow, PRBool reallyDelete)
 {
   nsresult rv = NS_OK;
   PRUint32 itemCount;
-  rv = arguments->GetLength(&itemCount);
+  rv = arguments->Count(&itemCount);
   if (NS_FAILED(rv)) return rv;
 
   nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
@@ -2046,7 +2053,7 @@ nsresult nsMsgFolderDataSource::DoDeleteFromFolder(nsIMsgFolder *folder, nsIArra
   return rv;
 }
 
-nsresult nsMsgFolderDataSource::DoNewFolder(nsIMsgFolder *folder, nsIArray *arguments, nsIMsgWindow *window)
+nsresult nsMsgFolderDataSource::DoNewFolder(nsIMsgFolder *folder, nsISupportsArray *arguments, nsIMsgWindow *window)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIRDFLiteral> literal = do_QueryElementAt(arguments, 0, &rv);

@@ -111,14 +111,14 @@ public:
   NS_IMETHOD GetAllCmds(nsIRDFResource* source,
                             nsISimpleEnumerator/*<nsIRDFResource>*/** commands);
 
-  NS_IMETHOD IsCommandEnabled(nsIArray/*<nsIRDFResource>*/* aSources,
+  NS_IMETHOD IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
                               nsIRDFResource*   aCommand,
-                              nsIArray/*<nsIRDFResource>*/* aArguments,
+                              nsISupportsArray/*<nsIRDFResource>*/* aArguments,
                               PRBool* aResult);
 
-  NS_IMETHOD DoCommand(nsIArray/*<nsIRDFResource>*/* aSources,
+  NS_IMETHOD DoCommand(nsISupportsArray/*<nsIRDFResource>*/* aSources,
                        nsIRDFResource*   aCommand,
-                       nsIMutableArray/*<nsIRDFResource>*/* aArguments);
+                       nsISupportsArray/*<nsIRDFResource>*/* aArguments);
 protected:
 
   nsresult GetSenderName(nsAutoString& sender, nsAutoString *senderUserName);
@@ -179,15 +179,15 @@ protected:
   nsresult getFolderArcLabelsOut(nsCOMArray<nsIRDFResource> &aArcs);
   
   nsresult DoDeleteFromFolder(nsIMsgFolder *folder,
-                nsIArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
+                nsISupportsArray *arguments, nsIMsgWindow *msgWindow, PRBool reallyDelete);
 
-  nsresult DoCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
+  nsresult DoCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
               nsIMsgWindow *msgWindow, PRBool isMove);
 
-  nsresult DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsIArray *arguments,
+  nsresult DoFolderCopyToFolder(nsIMsgFolder *dstFolder, nsISupportsArray *arguments,
               nsIMsgWindow *msgWindow, PRBool isMoveFolder);
 
-  nsresult DoNewFolder(nsIMsgFolder *folder, nsIArray *arguments, 
+  nsresult DoNewFolder(nsIMsgFolder *folder, nsISupportsArray *arguments, 
                         nsIMsgWindow *window);
 
   nsresult DoFolderAssert(nsIMsgFolder *folder, nsIRDFResource *property, nsIRDFNode *target);
