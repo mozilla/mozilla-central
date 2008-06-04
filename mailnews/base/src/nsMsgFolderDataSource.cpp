@@ -1952,9 +1952,7 @@ nsresult nsMsgFolderDataSource::DoFolderCopyToFolder(nsIMsgFolder *dstFolder, ns
     // Create an nsIMutableArray from the nsISupportsArray
     nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
     for (PRUint32 i = 0; i < itemCount; i++)
-    {
       folderArray->AppendElement(arguments->ElementAt(i), PR_FALSE);
-    }
 
     //Call copyservice with dstFolder, srcFolder, folders and isMoveFolder
     nsCOMPtr<nsIMsgCopyService> copyService = do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv);
