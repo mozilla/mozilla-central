@@ -175,7 +175,10 @@ elsif ($action eq 'getbugs'){
                       assignee => $bug->assigned_to->name,
                       severity => $bug->bug_severity,
                       priority => $bug->priority,
-                    };
+                      build => $bug->{'build'},
+                      env  => $bug->{'env'},
+                      run_id => $bug->{'run_id'} || '',                    
+        };
     }
     my $json = new JSON;
     print "{'bugs':" .  $json->objToJson(\@bugs) . "}";

@@ -106,6 +106,7 @@ use constant VALIDATORS => {
     tags              => \&_check_tags,
     components        => \&_check_components,
     bugs              => \&_check_bugs,
+    category_id       => \&_check_category,
 };
 
 use constant ALIAS_MAX_LENGTH => 255;
@@ -170,13 +171,6 @@ sub _check_status{
 
 sub _check_category{
     my ($invocant, $category, $product) = @_;
-    print STDERR "INSIDE THE METHOD";
-    if (ref $invocant){
-        print STDERR "CHECKING THE PRODUCT";
-        $product = $invocant->product;
-        print STDERR "CHECKING THE PRODUCT GOT $product";
-    }    
-
     $category = trim($category);
     my $category_id;
     if ($category =~ /^\d+$/){
@@ -2022,14 +2016,22 @@ sub bugs {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
     return $self->{'bugs'} if exists $self->{'bugs'};
-    my $ref = $dbh->selectcol_arrayref(
-        "SELECT DISTINCT bug_id
+    my $ref = $dbh->selectall_arrayref(
+        "SELECT DISTINCT bug_id, case_run_id
            FROM test_case_bugs 
           WHERE case_id = ?", 
-         undef, $self->{'case_id'});
+         {'Slice' => {}}, $self->{'case_id'});
     my @bugs;
-    foreach my $id (@{$ref}){
-        push @bugs, Bugzilla::Bug->new($id, Bugzilla->user->id) if Bugzilla->user->can_see_bug($id);
+    foreach my $row (@{$ref}){
+        next unless Bugzilla->user->can_see_bug($row->{'bug_id'});
+        my $bug = Bugzilla::Bug->new($row->{'bug_id'}, Bugzilla->user->id);
+        if ($row->{'case_run_id'}){
+            my $cr = Bugzilla::Testopia::TestCaseRun->new($row->{'case_run_id'});
+            $bug->{'build'} = $cr->build->name;
+            $bug->{'env'} = $cr->environment->name;
+            $bug->{'run_id'} = $cr->run_id;
+        }
+        push @bugs, $bug; 
     }
     $self->{'bugs'} = \@bugs;
     return $self->{'bugs'};

@@ -377,7 +377,7 @@ CaseRunGrid = function(params, run){
         {header: "Requirement", width: 150, sortable: true, dataIndex: 'requirement', hidden: true},
         {header: "Component", width: 100, sortable: true,dataIndex: 'component'},
         {
-            header: "Bugs",
+            header: "Bugs In This Build and Environment",
             width: 100,
             dataIndex: "bug_list",
             sortable: false,
@@ -433,7 +433,32 @@ CaseRunGrid = function(params, run){
                 tooltip: 'Mark as RUNNING',
                 disabled: true,
                 handler: function(){
-                    TestopiaUpdateMultiple('caserun', { status_id: 4, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
+                    var reassign = 0;
+                    var isowner = 1;
+                    var sel = Ext.getCmp('caserun_grid').getSelectionModel().getSelections();
+                    for (var i=0; i < sel.length; i++){
+                        if (sel[i].get('assignee') != user_login){
+                            isowner = 0;
+                            break;
+                        }
+                    }
+                    if (isowner == 0){
+                        Ext.Msg.show({
+                            title: "Reassign Test Case?",
+                            msg: 'Setting this test case to Running will lock it so that only the assignee can update it. Would you like to make yourself the assignee?',
+                            buttons: Ext.MessageBox.YESNO,
+                            icon: Ext.MessageBox.QUESTION,
+                            fn: function(btn){
+                                if (btn == 'yes'){
+                                    reassign = 1;
+                                }
+                                TestopiaUpdateMultiple('caserun', { status_id: 4, reassign: reassign, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
+                            }
+                        });
+                    }
+                    else {
+                        TestopiaUpdateMultiple('caserun', { status_id: 4, reassign: reassign, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
+                    }
                 }
             }),new Ext.Button({
                 template:imgButtonTpl,
@@ -1197,6 +1222,7 @@ Ext.extend(CaseRunHistory, Ext.grid.GridPanel, {
 });
 
 CaseBugsGrid = function(id){
+    var tutil = new TestopiaUtil();
     var testopia_form = new Ext.form.BasicForm('testopia_helper_frm',{});
     function bug_link(id){
         return '<a href="show_bug.cgi?id=' + id + '" target="_blank">' + id +'</a>';
@@ -1214,6 +1240,9 @@ CaseBugsGrid = function(id){
         baseParams: {action: 'getbugs'},
         id: 'bug_id',
         fields: [
+            {name: 'run_id', mapping: 'run_id'},
+            {name: 'build', mapping: 'build'},
+            {name: 'env', mapping: 'env'},
             {name: 'summary', mapping: 'summary'},
             {name: 'bug_id', mapping: 'bug_id'},
             {name: 'status', mapping: 'status'},
@@ -1294,13 +1323,16 @@ CaseBugsGrid = function(id){
     };
     var ds = this.store;
     this.columns = [
-        {header: "ID", width: 150, dataIndex: 'bug_id', sortable: true, renderer: bug_link},
-        {id: 'bugs_summary', header: "Summary", width: 150, dataIndex: 'summary', sortable: true},
-        {header: "Status", width: 150, dataIndex: 'status', sortable: true},
-        {header: "Resolution", width: 150, dataIndex: 'resolution', sortable: true},
-        {header: "Severity", width: 150, dataIndex: 'severity', sortable: true},
+        {header: "Bug", width: 150, dataIndex: 'bug_id', sortable: true, renderer: bug_link},
+        {header: "Found In Run", width: 50, dataIndex: 'run_id', sortable: true, renderer: tutil.runLink},
+        {header: "With Build", width: 50, dataIndex: 'build', sortable: true},
+        {header: "Environment", width: 50, dataIndex: 'env', sortable: true},
+        {id: 'bugs_summary', header: "Summary", width: 200, dataIndex: 'summary', sortable: true},
+        {header: "Status", width: 50, dataIndex: 'status', sortable: true},
+        {header: "Resolution", width: 50, dataIndex: 'resolution', sortable: true},
+        {header: "Severity", width: 50, dataIndex: 'severity', sortable: true},
         {header: "Asignee", width: 150, dataIndex: 'assignee', sortable: true},
-        {header: "Priority", width: 150, dataIndex: 'priority', sortable: true}
+        {header: "Priority", width: 50, dataIndex: 'priority', sortable: true}
     ];
     CaseBugsGrid.superclass.constructor.call(this,{
         tbar: [new Ext.form.TextField({
@@ -1324,7 +1356,9 @@ CaseBugsGrid = function(id){
             icon: 'testopia/img/delete.png',
             iconCls: 'img_button_16x',
             handler: removebug.createDelegate(this)
-        }],
+        },new Ext.Toolbar.Separator(), 
+        new Ext.menu.TextItem('This view includes all bugs attached to the selected test case regardless of run')
+        ],
         border: false,
         title: 'Bugs',
         id: 'case_bugs_panel',

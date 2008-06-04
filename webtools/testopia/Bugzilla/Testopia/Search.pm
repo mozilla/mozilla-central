@@ -1157,7 +1157,7 @@ sub init {
             $cgi->param("type$chart-$row-$col", shift(@$ref));
             $cgi->param("value$chart-$row-$col", shift(@$ref));
             if ($debug) {
-                print qq{<p>$cgi->param("field$chart-$row-$col") | $cgi->param("type$chart-$row-$col") | $cgi->param("value$chart-$row-$col")*</p>\n};
+                print "<p>" . $cgi->param("field$chart-$row-$col") ."|". $cgi->param("type$chart-$row-$col") ."|". $cgi->param("value$chart-$row-$col") . "*</p>\n";
             }
             $col++;
 

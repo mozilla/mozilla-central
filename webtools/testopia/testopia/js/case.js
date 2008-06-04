@@ -418,18 +418,18 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                                     fieldLabel: 'Enable Automation'
                                 });
                                 
-                                var argumenttext = new Ext.form.TextField({
-                                    xtype:'textfield',
-                                    name: 'arguments',
-                                    disabled: true,
-                                    fieldLabel: 'Arguments '
-                                });
-                                
                                 var scripttext = new Ext.form.TextField({
                                     xtype:'textfield',
                                     disabled: true,
                                     name: 'script',
                                     fieldLabel: 'Script '
+                                });
+
+                                var argumenttext = new Ext.form.TextField({
+                                    xtype:'textfield',
+                                    name: 'arguments',
+                                    disabled: true,
+                                    fieldLabel: 'Arguments '
                                 });
                                 
                                 chbx.on('check', function(){

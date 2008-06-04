@@ -140,7 +140,7 @@ if ($action eq 'add'){
             my $attachment = Bugzilla::Testopia::Attachment->create({
                                 case_id      => $case->id,
                                 submitter_id => Bugzilla->user->id,
-                                description  => $cgi->param("file_desc$1") || 'Attachment',
+                                description  => $cgi->param("file_desc$i") || 'Attachment',
                                 filename     => $cgi->upload("file$i"),
                                 mime_type    => $cgi->uploadInfo($cgi->param("file$i"))->{'Content-Type'},
                                 contents     => $data

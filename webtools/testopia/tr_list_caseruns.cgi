@@ -58,11 +58,11 @@ if ($action eq 'update'){
     my @uneditable;
     my $assignee_id; 
     my $status_id;
-    
     if ($cgi->param('applyall') eq 'true'){
         my $run = Bugzilla::Testopia::TestRun->new($cgi->param('run_id'));
         exit if $run->stop_date;
-        @caseruns = @{$run->current_caseruns()} if $run->canedit;
+        @caseruns = @{$run->current_caseruns()} if $run->canedit; 
+        
     }
     else{    
         foreach my $id (split(',', $cgi->param('ids'))){
@@ -78,6 +78,8 @@ if ($action eq 'update'){
         
     $status_id = $cgi->param('status_id') if $cgi->param('status_id');
     $assignee_id = login_to_id(trim($cgi->param('assignee')),'THROW_ERROR') if $cgi->param('assignee');
+    # If setting to running they can choose to make themselves the assignee.
+    $assignee_id = Bugzilla->user->id if $cgi->param('reassign'); 
     detaint_natural($status_id);
 
     foreach my $cr (@caseruns){

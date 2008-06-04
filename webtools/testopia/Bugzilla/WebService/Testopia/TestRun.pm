@@ -67,7 +67,8 @@ sub list {
     foreach (keys(%$query)){
         $cgi->param($_, $$query{$_});
     }
-        
+    $cgi->param('distinct', 1);
+    
     my $search = Bugzilla::Testopia::Search->new($cgi);
 
     return Bugzilla::Testopia::Table->new('run','tr_xmlrpc.cgi',$cgi,undef,$search->query())->list();

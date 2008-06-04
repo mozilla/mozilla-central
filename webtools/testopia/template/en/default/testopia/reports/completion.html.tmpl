@@ -82,7 +82,11 @@
       <td><img src="tr_run_reports.cgi?type=bar&t=[% total FILTER none %]&c=[% completed FILTER none %]&p=[% passed FILTER none %]&f=[% failed FILTER none %]&b=[% blocked FILTER none %]"></td>
     </tr>
     <tr>
+    [% IF bug_count %]
         <td><a href="buglist.cgi?bug_id=[% bugs FILTER none %]" target="_blank">[% bug_count FILTER none %]&nbsp;Bug[% bug_count == 1 ? '':'s' %] Found in Run(s)</a></td>
+    [% ELSE %]
+        <td>No Bugs Found in Selected Run(s)</td>
+    [% END %]
     </tr>
   </table>
 </div>

@@ -41,6 +41,7 @@ my $type = $cgi->param('type') || '';
 
 if ($type eq 'completion'){
     print $cgi->header;
+    my $dbh = Bugzilla->dbh;
     my @run_ids  = $cgi->param('run_ids');
     my @plan_ids = $cgi->param('plan_ids');
     my @runs;
@@ -62,20 +63,20 @@ if ($type eq 'completion'){
         print "<b>No runs found</b>";
         exit;
     }
-    @run_ids = ();
-    my @bug_ids;
-    foreach my $r (@runs){
-        $r->bugs;
-        push @run_ids, $r->id;
-        if ($r->bugs){
-            push @bug_ids, $_->bug_id foreach @{$r->bugs};
-        }
-    }
     
-    my %bugs;
-    foreach my $b (@bug_ids){
-        $bugs{$b} = 1;
+    @run_ids = ();
+    foreach my $r (@runs){
+        push @run_ids, $r->id;
     }
+
+    my $bugs = $dbh->selectcol_arrayref("
+        SELECT DISTINCT tcb.bug_id 
+          FROM test_case_bugs AS tcb
+    INNER JOIN test_case_runs AS tcr ON tcr.case_run_id = tcb.case_run_id
+    INNER JOIN bugs on tcb.bug_id = bugs.bug_id
+    INNER JOIN test_case_run_status AS tcrs ON tcr.case_run_status_id = tcrs.case_run_status_id
+         WHERE tcr.run_id in (" . join (',',@run_ids) . ") AND tcr.iscurrent = 1",
+         {"Slice" =>{}});
     
     my $total = $runs[0]->case_run_count(undef, \@runs);
     my $passed = $runs[0]->case_run_count(PASSED, \@runs);
@@ -104,8 +105,8 @@ if ($type eq 'completion'){
     $vars->{'percent_idle'} = calculate_percent($total, $idle);
     
     $vars->{'runs'} = join(',',@run_ids);
-    $vars->{'bugs'} = join(',',keys %bugs);
-    $vars->{'bug_count'} = scalar keys %bugs;
+    $vars->{'bugs'} = join(',',@$bugs);
+    $vars->{'bug_count'} = scalar @$bugs;
     
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());

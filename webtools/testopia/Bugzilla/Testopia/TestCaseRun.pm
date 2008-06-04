@@ -389,7 +389,7 @@ sub set_status {
     my ($status_id, $update_bugs) = @_;
     return if $self->status_id == $status_id;
     my $oldstatus = $self->status;
-    my $newstatus = $self->lookup_status($status_id);
+    my $newstatus = lookup_status($status_id);
     
     $self->_update_fields({'case_run_status_id' => $status_id});
     if ($status_id == IDLE){
@@ -1038,6 +1038,7 @@ sub canedit {
     return 1 if Bugzilla->user->in_group('admin');
     return 1 if $self->run->plan->get_user_rights(Bugzilla->user->id) & TR_ADMIN;
     if ($self->status_id == RUNNING){
+        return 1 if $self->run->manager->id == Bugzilla->user->id;
         return 0 unless $self->assignee->id && $self->assignee->id == Bugzilla->user->id;
     } 
     return 1 if Bugzilla->user->in_group('Testers');

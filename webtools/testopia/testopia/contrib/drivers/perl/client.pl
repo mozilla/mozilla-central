@@ -210,6 +210,7 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCase.get_text', 278,3);
 #$soapresult = $proxy->call('TestCase.link_plan', 278, [77,78]);
 #$soapresult = $proxy->call('TestCase.list', {default_tester => 'ghendricks@novell.com'});
+#$soapresult = $proxy->call('TestCase.list', {pagesize => 1000, page => 0, isautomated => 1});
 #$soapresult = $proxy->call('TestCase.lookup_category_id_by_name' );
 #$soapresult = $proxy->call('TestCase.lookup_category_name_by_id' );
 #$soapresult = $proxy->call('TestCase.lookup_priority_id_by_name', 'P5 - None');
@@ -237,7 +238,8 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('TestCaseRun.get_bugs', 65104);
 #$soapresult = $proxy->call('TestCaseRun.get_completion_time', 65104);
 #$soapresult = $proxy->call('TestCaseRun.get_history',65104 );
-#$soapresult = $proxy->call('TestCaseRun.list', );
+#$soapresult = $proxy->call('TestCaseRun.list', {pagesize => 1000, page => 0, run_id => 6459, isautomated => 1, isactive=>0});
+#$soapresult = $proxy->call('TestCaseRun.list', {pagesize => 10, page => 0, isautomated => 1});
 #$soapresult = $proxy->call('TestCaseRun.lookup_status_id_by_name', 'PASSED');
 #$soapresult = $proxy->call('TestCaseRun.lookup_status_name_by_id', 3);
 #$soapresult = $proxy->call('TestCaseRun.update', 65104, {status=>3});
