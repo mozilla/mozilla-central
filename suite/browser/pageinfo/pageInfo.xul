@@ -315,9 +315,14 @@
                    crop="end" flex="1"/>
         </hbox>
 
+        <!--
+          The below labels point to the radio groups to give the radio buttons
+          an accessible context. The accessible context for the preceeding
+          checkbox is already taken care of through the richlistitem grouping.
+        -->
         <richlistbox id="permList" class="inset" flex="1">
           <richlistitem orient="vertical">
-            <label value="&permImage;"/>
+            <label value="&permImage;" control="imageRadioGroup"/>
             <hbox>
               <checkbox class="indent" id="imageDef" command="cmd_imageDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -328,7 +333,7 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permPopup;"/>
+            <label value="&permPopup;" control="popupRadioGroup"/>
             <hbox>
               <checkbox class="indent" id="popupDef" command="cmd_popupDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -339,7 +344,7 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permCookie;"/>
+            <label value="&permCookie;" control="cookieRadioGroup"/>
             <hbox>
               <checkbox class="indent" id="cookieDef" command="cmd_cookieDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -351,7 +356,7 @@
             </hbox>
           </richlistitem>
           <richlistitem orient="vertical">
-            <label value="&permInstall;"/>
+            <label value="&permInstall;" control="installRadioGroup"/>
             <hbox>
               <checkbox class="indent" id="installDef" command="cmd_installDef" label="&permUseDefault;"/>
               <spacer flex="1"/>
@@ -503,9 +508,9 @@
             <rows>
 #ifdef MOZ_PLACES
               <row><!-- History -->
-                <description id="security-privacy-history-label"
+                <label id="security-privacy-history-label"
                              control="security-privacy-history-value"
-                             class="fieldLabel">&securityView.privacy.history;</description>
+                             class="fieldLabel">&securityView.privacy.history;</label>
                 <textbox id="security-privacy-history-value"
                          class="fieldValue"
                          value="&securityView.unknown;"
@@ -513,9 +518,9 @@
               </row>
 #endif
               <row><!-- Cookies -->
-                <description id="security-privacy-cookies-label"
+                <label id="security-privacy-cookies-label"
                              control="security-privacy-cookies-value"
-                             class="fieldLabel">&securityView.privacy.cookies;</description>
+                             class="fieldLabel">&securityView.privacy.cookies;</label>
                 <hbox>
                   <textbox id="security-privacy-cookies-value"
                            class="fieldValue"
@@ -529,9 +534,9 @@
                 </hbox>
               </row>
               <row><!-- Passwords -->
-                <description  id="security-privacy-passwords-label"
+                <label  id="security-privacy-passwords-label"
                               control="security-privacy-passwords-value"
-                              class="fieldLabel">&securityView.privacy.passwords;</description>
+                              class="fieldLabel">&securityView.privacy.passwords;</label>
                 <hbox>
                   <textbox id="security-privacy-passwords-value"
                            class="fieldValue"
