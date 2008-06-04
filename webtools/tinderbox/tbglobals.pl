@@ -101,7 +101,7 @@ tie %::default_treedata => 'Tie::IxHash',
     cvs_root => '',
     query => '',
     bonsai_tree => '',
-    viewvc_repository => '',
+    viewvc_repository => '';
 
 1;
 
