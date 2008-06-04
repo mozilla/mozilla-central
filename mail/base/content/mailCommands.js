@@ -537,7 +537,7 @@ function determineActionsForJunkMsgs(aFolder)
 
 function performActionsOnJunkMsgs(aFolder, aMsgHdrs)
 {
-  if (!aMsgHdrs.Count())
+  if (!aMsgHdrs.length)
     return;
 
   var actionParams = determineActionsForJunkMsgs(aFolder);

@@ -542,10 +542,8 @@ function performActionsOnJunkMsgs(aIndices)
     MarkSelectedMessagesRead(true);
   if (actionParams.junkTargetFolder)
   {
-    var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"].
-                        getService(Components.interfaces.nsIMsgCopyService);
-    copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
-                             msgWindow, true /* allow undo */);
+    SetNextMessageAfterDelete();
+    gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, actionParams.junkTargetFolder);
   }
 
   treeSelection.clearSelection();
