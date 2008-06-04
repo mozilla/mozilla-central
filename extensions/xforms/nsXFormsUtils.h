@@ -827,6 +827,17 @@ public:
    static NS_HIDDEN_(nsresult) TranslateExpression(const nsAString& aExpression,
                                                    nsAString& aResult);
 
+   /**
+    * Get the time zone information from an xsd:time. This function assumes
+    * that aTime is a valid xsd:time.
+    *
+    * @param aTime               A valid xsd:time
+    * @param aResult             Result string containing the time zone or an
+    *                            empty string if none is found.
+    */
+   static NS_HIDDEN_(nsresult) GetTimeZone(const nsAString &aTime,
+                                           nsAString &aResult);
+
 private:
   /**
    * Do same origin checks on aBaseDocument and aTestURI. Hosts can be

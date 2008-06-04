@@ -3224,3 +3224,24 @@ nsXFormsUtils::TranslateExpression(const nsAString& aExpression, nsAString& aRes
   return NS_OK;
 }
 
+/* static */ nsresult
+nsXFormsUtils::GetTimeZone(const nsAString &aTime,
+                           nsAString &aResult)
+{
+  aResult.Truncate();
+
+  if (!aTime.IsEmpty()) {
+    PRInt32 timeZoneSeparator = aTime.FindChar(PRUnichar('-'));
+    if (timeZoneSeparator == kNotFound) {
+      timeZoneSeparator = aTime.FindChar(PRUnichar('+'));
+      if (timeZoneSeparator == kNotFound) {
+        // no time zone information available
+        return NS_OK;
+      }
+    }
+    aResult.Append(Substring(aTime, timeZoneSeparator,
+                             aTime.Length() - timeZoneSeparator));
+  }
+
+  return NS_OK;
+}

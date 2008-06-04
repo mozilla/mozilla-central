@@ -59,6 +59,7 @@
 #include "prrng.h"
 #include "nsIXFormsControl.h"
 #include "nsIInstanceElementPrivate.h"
+#include "nsISchemaValidator.h"
 
 #define NS_NAMESPACE_XFORMS "http://www.w3.org/2002/xforms"
 
@@ -745,3 +746,116 @@ nsXFormsXPathFunctions::ContextNode(txIFunctionEvaluationContext *aContext,
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsXFormsXPathFunctions::AdjustDateTimeToTimezone(const nsAString &aDateTime,
+                                                 nsAString &aResult)
+{
+  // We have three cases to deal with:
+  //
+  // 1. aDateTime does not include a timezone indicator: 2007-10-07T02:22:00
+  //    The schema validator will return a PRTime that was calculated using
+  //    PR_LocalTimeParameters and that PRTime value formatted as an
+  //    xsd:dateTime is the same 2007-10-07T02:22:00 that was passed in.
+  //    We just need to append the local time zone.
+  //
+  // 2. aDateTime is a UTC (aka GMT) time: 2007-10-07T21:26:43Z
+  //    The schema validator will treat aDateTime as GMT and return that as a
+  //    PRTime. We convert the GMT time to a time in the local time zone and
+  //    append the local time zone.
+  //
+  // 3. aDateTime includes a time zone component: 2007-10-07T02:22:00-07:00
+  //    The schema validator checks if the time zone component is valid, but
+  //    does not use it when calculating the PRTime value so this case is
+  //    similar to case 1 except that we have to add the given time zone
+  //    offset (to get the GMT time of the input aDateTime), convert the GMT
+  //    time to the local time zone, and append the local time zone.
+  aResult.Truncate();
+
+
+  nsCOMPtr<nsISchemaValidator> schemaValidator =
+    do_CreateInstance("@mozilla.org/schemavalidator;1");
+  NS_ENSURE_TRUE(schemaValidator, NS_ERROR_FAILURE);
+
+  PRTime t_dateTime;
+  nsresult rv = schemaValidator->ValidateBuiltinTypeDateTime(aDateTime,
+                                                             &t_dateTime);
+
+  if (NS_FAILED(rv)) {
+    return NS_OK;
+  }
+
+  // The dateTime is valid, so get the timeZone information. If there is time
+  // zone information we are dealing with case 3 and have a bit more work to
+  // do to convert aDateTime to the local time zone.
+  nsAutoString timeString, timeZoneString;
+  PRInt32 timeSeparator = aDateTime.FindChar(PRUnichar('T'));
+  timeString.Append(Substring(aDateTime,
+                              timeSeparator + 1,
+                              aDateTime.Length() - timeSeparator));
+  nsXFormsUtils::GetTimeZone(timeString, timeZoneString);
+
+  PRExplodedTime time;
+  char ctime[60];
+
+  if (!timeZoneString.IsEmpty()) {
+    // The time zone string will be of the form ('+' | '-') hh ':' mm
+    // For example: +05:00, -07:00
+    nsAutoString hoursString, minutesString;
+    hoursString.Append(Substring(timeZoneString, 1, 2));
+    minutesString.Append(Substring(timeZoneString, 4, 2));
+
+    nsresult rv;
+    PRInt32 hours = hoursString.ToInteger(&rv);
+    PRInt32 minutes = minutesString.ToInteger(&rv);
+    PRInt32 tzSecs = (hours * 3600) + (minutes * 60);
+    if (timeZoneString.CharAt(0) == '+') {
+      // The time zone is relative to GMT so if it is positive, we need to
+      // subtract the total number of seconds represented by the time zone;
+      // likewise, we add if the time zone is negative.
+      tzSecs *= -1;
+    }
+
+    PR_ExplodeTime(t_dateTime, PR_LocalTimeParameters, &time);
+    // Zero out the gmt and dst information because we don't want
+    // PR_NormalizeTime to use the local time zone to get back to
+    // GMT before it normalizes (because it would calculate the GMT
+    // time relative to the time zone that was part of the input dateTime).
+    time.tm_params.tp_gmt_offset = 0;
+    time.tm_params.tp_dst_offset = 0;
+    // Adjust the total seconds.
+    time.tm_sec += tzSecs;
+    // Normalize the fields and apply the local time parameters to convert
+    // the time to the local time zone.
+    PR_NormalizeTime(&time, PR_LocalTimeParameters);
+    PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
+
+  } else {
+    // This is either a GMT time or no time zone information is available.
+    PR_ExplodeTime(t_dateTime, PR_LocalTimeParameters, &time);
+    PR_FormatTime(ctime, sizeof(ctime), "%Y-%m-%dT%H:%M:%S\0", &time);
+  }
+
+  // Calculate local time zone to append to the result.
+  int gmtoffsethour = time.tm_params.tp_gmt_offset / 3600;
+  int remainder = time.tm_params.tp_gmt_offset % 3600;
+  int gmtoffsetminute = remainder ? remainder / 60 : 0;
+  // adjust gmtoffsethour for daylight savings time.
+  int dstoffset = time.tm_params.tp_dst_offset / 3600;
+  gmtoffsethour += dstoffset;
+  if (gmtoffsethour < 0) {
+    // Make the gmtoffsethour positive; we'll add the plus or minus
+    // to the time zone string.
+    gmtoffsethour *= -1;
+  }
+  
+  char zone_location[40];
+  const int zoneBufSize = sizeof(zone_location);
+  PR_snprintf(zone_location, zoneBufSize, "%c%02d:%02d\0",
+              time.tm_params.tp_gmt_offset < 0 ? '-' : '+',
+              gmtoffsethour, gmtoffsetminute);
+
+  aResult.AppendLiteral(ctime);
+  aResult.Append(NS_ConvertASCIItoUTF16(zone_location));
+
+  return NS_OK;
+}

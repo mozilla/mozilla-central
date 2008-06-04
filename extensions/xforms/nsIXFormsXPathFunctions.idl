@@ -40,7 +40,7 @@
 #include "nsISupports.idl"
 #include "txIFunctionEvaluationContext.idl"
 
-[scriptable, uuid(c227850e-c326-4458-b436-0c4680fbe0d5)]
+[scriptable, uuid(c4b8d91a-0397-46a8-982d-225d2036fcdb)]
 interface nsIXFormsXPathFunctions : nsISupports
 {
     double avg(in txINodeSet aNodeSet);
@@ -69,4 +69,5 @@ interface nsIXFormsXPathFunctions : nsISupports
     DOMString secondsToDateTime(in double aSeconds);
     // context is translated to contextNode because context is a reserved word.
     txINodeSet contextNode(in txIFunctionEvaluationContext aContext);
+    DOMString adjustDateTimeToTimezone(in DOMString aDateTime);
 };
