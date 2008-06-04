@@ -27,7 +27,7 @@ if (($#ARGV > 0) && (-d $ARGV[0])) {
      $bonsaidir = $ARGV[0];
 }
 
-chdir $bonsaidir;
+chdir $bonsaidir or die "Couldn't chdir to $bonsaidir";
 
 require 'globals.pl';
 
