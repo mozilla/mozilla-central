@@ -397,7 +397,7 @@ calWcapNetworkRequest.prototype = {
     },
 
     get request calWcapNetworkRequest_requestGetter() {
-        return (this.m_loader ? this.m_loader.request : null);
+        return (this.m_loader ? this.m_loader.channel : null);
     },
 
     cancel: function calWcapNetworkRequest_cancel(status) {
