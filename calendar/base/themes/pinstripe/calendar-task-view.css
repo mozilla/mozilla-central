@@ -61,8 +61,8 @@
     margin: 5px;
 }
 
-.task-edit-field[instructions] {
-    color: grey;
+.task-edit-field[readonly="true"] {
+    color: GrayText;
 }
 
 .task-quickadd-box {

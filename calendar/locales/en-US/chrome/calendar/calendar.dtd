@@ -196,7 +196,6 @@
 <!ENTITY calendar.task.filter.completed.label       "Completed Tasks">
 <!ENTITY calendar.task.filter.completed.accesskey   "C">
 
-<!ENTITY calendar.task.edit.instructions.label       "Click Here to Add a New Task">
 <!ENTITY calendar.task.details.title.label           "Title:">
 <!ENTITY calendar.task.details.entrydate.label       "Start Date:">
 <!ENTITY calendar.task.details.duedate.label         "Due Date:">

@@ -250,11 +250,8 @@ calCompositeCalendar.prototype = {
     },
 
     setDefaultCalendar: function (cal, usePref) {
-        // Don't do anything if the passed calendar is the default calendar, or
-        // the passed calendar is disabled.
-        if (cal &&
-            ((this.mDefaultCalendar && this.mDefaultCalendar.id == cal.id) ||
-             cal.getProperty("disabled"))) {
+        // Don't do anything if the passed calendar is the default calendar
+        if (cal && this.mDefaultCalendar && this.mDefaultCalendar.id == cal.id) {
             return;
         }
         if (usePref && this.mPrefPrefix) {

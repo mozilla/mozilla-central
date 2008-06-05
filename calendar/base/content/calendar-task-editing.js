@@ -38,8 +38,36 @@
 /**
  * Used by the "quick add" feature for tasks, for example in the task view or
  * the uniinder-todo.
+ *
+ * NOTE: many of the following methods are called without taskEdit being the
+ * |this| object.
  */
+
 var taskEdit = {
+    mObservedCalendar: null,
+    get observedCalendar tE_get_observedCalendar() {
+        return this.mObservedCalendar;
+    },
+
+    set observedCalendar tE_set_observedCalendar(v) {
+        if (this.mObservedCalendar) {
+            this.mObservedCalendar.removeObserver(this.calendarObserver);
+        }
+
+        this.mObservedCalendar = v;
+
+        if (this.mObservedCalendar) {
+            this.mObservedCalendar.addObserver(this.calendarObserver);
+        }
+        return this.mObservedCalendar;
+    },
+
+    setupTaskField: function tE_setupTaskField(aTarget, aDisable, aValue) {
+        aTarget.value = aValue;
+        setElementValue(aTarget, aDisable && "true", "readonly");
+        setElementValue(aTarget, aDisable && "true", "aria-disabled");
+    },
+
     onFocus: function tE_onFocus(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
@@ -47,13 +75,18 @@ var taskEdit = {
             // when debugging with venkman.
             edit = edit.parentNode.parentNode;
         }
-        if (!edit.savedInstructions) {
-            edit.savedInstructions = edit.getAttribute("instructions");
+
+        var calendar = getSelectedCalendar();
+
+        if (calendar.getProperty("capabilities.tasks.supported") === false) {
+            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsCapability"));
+        } else if (!isCalendarWritable(calendar)) {
+            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsReadonly"));
+        } else {
+            taskEdit.setupTaskField(edit, false, edit.savedValue || "");
         }
-        edit.value = edit.savedValue || "";
-        edit.removeAttribute("instructions");
     },
-    
+
     onBlur: function tE_onBlur(aEvent) {
         var edit = aEvent.target;
         if (edit.localName == "input") {
@@ -62,9 +95,17 @@ var taskEdit = {
             // the parent chain until we reach the textbox.
             edit = edit.parentNode.parentNode;
         }
-        edit.savedValue = edit.value;
-        edit.value = edit.savedInstructions;
-        edit.setAttribute("instructions", edit.savedInstructions);
+
+        var calendar = getSelectedCalendar();
+
+        if (calendar.getProperty("capabilities.tasks.supported") === false) {
+            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsCapability"));
+        } else if (!isCalendarWritable(getSelectedCalendar())) {
+            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsReadonly"));
+        } else {
+            edit.savedValue = edit.value;
+            taskEdit.setupTaskField(edit, false, calGetString("calendar", "taskEditInstructions"));
+        }
     },
 
     onKeyPress: function tE_onKeyPress(aEvent) {
@@ -85,5 +126,81 @@ var taskEdit = {
                 });
             }
         }
+    },
+
+    onLoad: function tE_onLoad(aEvent) {
+        window.removeEventListener("load", taskEdit.onLoad, false);
+        var taskEditFields = document.getElementsByAttribute("class", "task-edit-field");
+        for (var i = 0; i < taskEditFields.length; i++) {
+            taskEdit.onBlur({ target: taskEditFields[i] });
+        }
+
+        getCompositeCalendar().addObserver(taskEdit.compositeObserver);
+        taskEdit.observedCalendar = getSelectedCalendar();
+    },
+
+    onUnload: function tE_onUnload() {
+        getCompositeCalendar().removeObserver(taskEdit.compositeObserver);
+        taskEdit.observedCalendar = null;
+    },
+
+    calendarObserver: {
+        QueryInterface: function tE_QueryInterface(aIID) {
+            return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
+                                    [Components.interfaces.calIObserver]);
+        },
+
+        onPropertyChanged: function tE_calObs_onPropertyChanged(aCalendar,
+                                                         aName,
+                                                         aValue,
+                                                         aOldValue) {
+            if (aCalendar.id != getSelectedCalendar().id) {
+                // Optimization: if the given calendar isn't the default calendar,
+                // then we don't need to change any readonly/disabled states.
+                return;
+            }
+            switch (aName) {
+                case "readOnly":
+                case "disabled":
+                    var taskEditFields = document.getElementsByAttribute("class", "task-edit-field");
+                    for (var i = 0; i < taskEditFields.length; i++) {
+                        taskEdit.onBlur({ target: taskEditFields[i] });
+                    }
+            }
+        },
+
+        onPropertyDeleting: function tE_calObs_onPropertyDeleting(aCalendar,
+                                                           aName) {
+            // Since the old value is not used directly in onPropertyChanged,
+            // but should not be the same as the value, set it to a different
+            // value.
+            this.onPropertyChanged(aCalendar, aName, null, null);
+        },
+
+        __noSuchMethod__: function tE_calObs___noSuchMethod__(aMethod, aArgs) {
+            // Swallow other methods that don't need to be implemented
+        }
+    },
+
+    compositeObserver: {
+        QueryInterface: function tE_QueryInterface(aIID) {
+            return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
+                                    [Components.interfaces.calIObserver,
+                                     Components.interfaces.calICompositeObserver]);
+        },
+
+        onDefaultCalendarChanged: function tE_compObs_onDefaultCalendarChanged(aNewDefault) {
+            var taskEditFields = document.getElementsByAttribute("class", "task-edit-field");
+            for (var i = 0; i < taskEditFields.length; i++) {
+                taskEdit.onBlur({ target: taskEditFields[i] });
+            }
+            taskEdit.observedCalendar = aNewDefault;
+        },
+        __noSuchMethod__: function tE_compObs___noSuchMethod__(aMethod, aArgs) {
+            // Swallow other methods that don't need to be implemented
+        }
     }
 };
+
+window.addEventListener("load", taskEdit.onLoad, false);
+window.addEventListener("unload", taskEdit.onUnload, false);

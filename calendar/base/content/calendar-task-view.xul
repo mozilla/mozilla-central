@@ -57,8 +57,6 @@
           onselect="taskDetailsView.onSelect(event);">
       <textbox id="view-task-edit-field"
                class="task-edit-field"
-               value="&calendar.task.edit.instructions.label;"
-               instructions="&calendar.task.edit.instructions.label;"
                onfocus="taskEdit.onFocus(event)"
                onblur="taskEdit.onBlur(event)"
                onkeypress="taskEdit.onKeyPress(event)"/>
