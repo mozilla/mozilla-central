@@ -1,0 +1,5 @@
+#filter substitution
+
+calendar-timezones-@AB_CD@.jar:
+% locale calendar-timezones @AB_CD@ %locale/@AB_CD@/
+    locale/@AB_CD@/timezones.properties              (%chrome/calendar/timezones.properties)
