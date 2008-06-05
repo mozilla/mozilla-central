@@ -113,6 +113,10 @@ function onCheckboxChange(event) {
     var listItem = getParentNodeOrThis(periodCheckbox, "agenda-checkbox-richlist-item");
     var period = listItem.getItem();
     period.open= lopen;
+    // as the agenda-checkboxes are only transient we have to set the "checked"
+    // attribute at their hidden origins to make that attribute persistent.
+    document.getElementById(listItem.id + "-hidden").setAttribute("checked", 
+                            periodCheckbox.getAttribute("checked"));
     if (lopen) {
         agendaListbox.refreshCalendarQuery(period.start, period.end);
     } else {
@@ -370,14 +374,7 @@ function deleteItem(aItem, aMoveSelection) {
                     this.moveSelection();
                 }
             }
-            if ((!this.isEventListItem(listItem.previousSibling)) &&
-                (!this.isEventListItem(listItem.nextSibling))) {
-                var prevlistItem = listItem.previousSibling;
-                this.agendaListboxControl.removeChild(listItem);
-                prevlistItem.getCheckbox().setChecked(false);
-            } else {
-                this.agendaListboxControl.removeChild(listItem);
-            }
+            this.agendaListboxControl.removeChild(listItem);
         }
     }
     return isSelected;
@@ -715,7 +712,6 @@ function observer_onModifyItem(newItem, oldItem) {
     if (this.mBatchCount) {
         return;
     }
-    var oldPeriods = agendaListbox.findPeriodsForItem(oldItem);
     var selectedItemHashId = this.onLocalDeleteItem(oldItem, false);
     if (!isEvent(newItem)) {
         return;
@@ -730,11 +726,6 @@ function observer_onModifyItem(newItem, oldItem) {
         }
     }
     setCurrentEvent();
-    for (var i = 0; i < oldPeriods.length; i++) {
-        if (checkIfInRange(newItem, oldPeriods[i].start, oldPeriods[i].end)) {
-            oldPeriods[i].listItem.getCheckbox().setChecked(true);
-        }
-    }
 };
 
 agendaListbox.calendarObserver.onError = function(cal, errno, msg) {};
