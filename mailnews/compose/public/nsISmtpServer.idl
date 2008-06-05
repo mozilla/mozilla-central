@@ -40,17 +40,42 @@
 
 interface nsIAuthPrompt;
 
+/**
+ * This interface represents a single SMTP Server. A SMTP server instance may be
+ * created/obtained from nsIMsgAccountManager.
+ *
+ * Most of the attributes will set/get preferences from the main preferences
+ * file.
+ */
 [scriptable, uuid(1d449933-b0b7-4bbf-a8a4-cc4bb9b545c5)]
 interface nsISmtpServer : nsISupports {
 
-    attribute string key;       // unique identifier
+  /// A unique identifier for the server.
+  attribute string key;
 
-    attribute AUTF8String description; // user provided description for the server
-    attribute string hostname;
-    attribute PRInt32 port;
-    attribute string username;
-    attribute string password;
-    readonly attribute string displayname;
+  /// A user supplied description for the server.
+  attribute AUTF8String description;
+
+  /// The server's hostname.
+  attribute string hostname;
+
+  /// The server's port.
+  attribute PRInt32 port;
+
+  /// The username to access the server with (if required)
+  attribute string username;
+
+  /**
+   * The password to access the server with (if required).
+   *
+   * @note this is stored within the server instance but not within preferences.
+   * It can be specified/saved here to avoid prompting the user constantly for
+   * the sending password.
+   */
+  attribute string password;
+
+  /// Returns a displayname of the format hostname:port or just hostname
+  readonly attribute string displayname;
 
   /**
    * Whether or not to use authentication for this server.
@@ -59,9 +84,14 @@ interface nsISmtpServer : nsISupports {
    */
   attribute long authMethod;
 
-    attribute boolean useSecAuth;
-    attribute boolean trySecAuth;
-    attribute long trySSL;
+  /// Should we always use secure authentication?
+  attribute boolean useSecAuth;
+
+  /// Should we attempt to use secure authentication if the server supports it?
+  attribute boolean trySecAuth;
+
+  /// Should we try to use SSL for this connection?
+  attribute long trySSL;
 
   /**
    * May contain an alternative argument to EHLO or HELO to provide to the
@@ -72,12 +102,47 @@ interface nsISmtpServer : nsISupports {
    */
   readonly attribute string helloArgument;
 
-    readonly attribute string serverURI;
-    string getPasswordWithUI(in wstring promptString, in wstring promptTitle,
-                             in nsIAuthPrompt netPrompt);
-    void getUsernamePasswordWithUI(in wstring promptString, in wstring promptTitle,
-                             in nsIAuthPrompt netPrompt, out string userid, out string password);
-    void forgetPassword();
+  /// Returns the URI of the server (smtp:///)
+  readonly attribute string serverURI;
 
-    void clearAllValues();
+  /**
+   * Gets a password for this server, using a UI prompt if necessary.
+   *
+   * @param promptString  The string to prompt the user with when asking for
+   *                      the password.
+   * @param promptTitle   The title of the prompt.
+   * @param netPrompt     An nsIAuthPrompt instance to use for the password
+   *                      prompt.
+   * @return              The password to use (may be null if no password was
+   *                      obtained).
+   */  
+  string getPasswordWithUI(in wstring promptString, in wstring promptTitle,
+                           in nsIAuthPrompt netPrompt);
+
+  /**
+   * Gets a username and password for this server, using a UI prompt if
+   * necessary.
+   *
+   * @param promptString  The string to prompt the user with when asking for
+   *                      the password.
+   * @param promptTitle   The title of the prompt.
+   * @param netPrompt     An nsIAuthPrompt instance to use for the password
+   *                      prompt.
+   * @param userid        The username to use (may be null if no password was
+   *                      obtained).
+   * @param password      The password to use (may be null if no password was
+   *                      obtained).
+   */  
+  void getUsernamePasswordWithUI(in wstring promptString, in wstring promptTitle,
+                                 in nsIAuthPrompt netPrompt, out string userid,
+                                 out string password);
+
+  /**
+   * Calling this will *remove* the saved password for this server from the
+   * password manager and from the stored value.
+   */
+  void forgetPassword();
+
+  /// Call this to clear all preference values for this server.
+  void clearAllValues();
 };

@@ -2,6 +2,6 @@ From: from@invalid.com
 To: to@invalid.com
 Subject: test mail
 
-abc
+this email is in dos format because that is what the interface requires
 
 test message
