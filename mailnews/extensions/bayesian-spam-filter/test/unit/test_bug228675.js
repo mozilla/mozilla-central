@@ -56,36 +56,39 @@ const kUnclassified = nsIJunkMailPlugin.UNCLASSIFIED;
 const kJunk = nsIJunkMailPlugin.JUNK;
 const kGood = nsIJunkMailPlugin.GOOD;
 
+var emails =          [ "ham1.eml",  "ham2.eml",  "spam1.eml",
+                        "spam2.eml", "spam3.eml", "spam4.eml" ];
+var classifications = [ kGood,       kGood,       kJunk,
+                        kJunk,       kJunk,       kJunk ];
+
 // main test
 function run_test()
 {
-    /*
   loadLocalMailAccount();
   nsIJunkMailPlugin.resetTrainingData();
 
   do_test_pending();
   
-  nsIJunkMailPlugin.setMessageClassification(getSpec("ham1.eml"),
-    kUnclassified, kGood, null, null);
-  nsIJunkMailPlugin.setMessageClassification(getSpec("ham2.eml"),
-    kUnclassified, kGood, null, null);
-  nsIJunkMailPlugin.setMessageClassification(getSpec("spam1.eml"),
-    kUnclassified, kJunk, null, null);
-  nsIJunkMailPlugin.setMessageClassification(getSpec("spam2.eml"),
-    kUnclassified, kJunk, null, null);
-  nsIJunkMailPlugin.setMessageClassification(getSpec("spam3.eml"),
-    kUnclassified, kJunk, null, null);
-    
-  // Callback doTestingListener does the actual tests
-  nsIJunkMailPlugin.setMessageClassification(getSpec("spam4.eml"),
-    kUnclassified, kJunk, null, doTestingListener);
-    */
+  var email = emails.shift();
+  var classification = classifications.shift();
+  // additional calls to setMessageClassifiaction are done in the callback
+  nsIJunkMailPlugin.setMessageClassification(getSpec(email),
+    kUnclassified, classification, null, doTestingListener);
 }
 
 var doTestingListener = 
 {
   onMessageClassified: function(aMsgURI, aClassification, aJunkPercent)
   {
+    var email = emails.shift();
+    var classification = classifications.shift();
+    if (email)
+    { nsIJunkMailPlugin.setMessageClassification(getSpec(email),
+          kUnclassified, classification, null, doTestingListener);
+      return;
+    }
+    
+    // all done classifying, time to test
     nsIJunkMailPlugin.shutdown(); // just flushes training.dat
     trainingData = new TrainingData();
     trainingData.read();
