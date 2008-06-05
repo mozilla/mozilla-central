@@ -327,7 +327,7 @@ calDuration::GetIcalString(nsACString& aResult)
 NS_IMETHODIMP
 calDuration::SetIcalString(const nsACString& aIcalString)
 {
-    mDuration = icaldurationtype_from_string(nsPromiseFlatCString(aIcalString).get());
+    mDuration = icaldurationtype_from_string(PromiseFlatCString(aIcalString).get());
     return NS_OK;
 }
 

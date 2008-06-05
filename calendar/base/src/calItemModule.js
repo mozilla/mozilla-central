@@ -207,7 +207,13 @@ const componentData =
     {cid: Components.ID("{40a1ccf4-5f54-4815-b842-abf06f84dbfd}"),
      contractid: "@mozilla.org/calendar/transactionmanager;1",
      script: "calTransactionManager.js",
-     constructor: "calTransactionManager"}
+     constructor: "calTransactionManager"},
+
+    {cid: Components.ID("{1a23ace4-a0dd-43b4-96a8-b3cd419a14a5}"),
+     contractid: "@mozilla.org/calendar/timezone-service;1",
+     script: "calTimezoneService.js",
+     constructor: "calTimezoneService",
+     service: true}
     ];
 
 var calItemModule = {

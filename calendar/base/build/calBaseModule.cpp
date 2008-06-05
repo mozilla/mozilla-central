@@ -46,7 +46,6 @@
 #include "calDuration.h"
 #include "calPeriod.h"
 #include "calICSService.h"
-#include "calTimezoneService.h"
 #include "calRecurrenceRule.h"
 #include "calRecurrenceDate.h"
 #include "calRecurrenceDateSet.h"
@@ -73,9 +72,6 @@ NS_DECL_CLASSINFO(calDateTime)
 
 NS_GENERIC_FACTORY_CONSTRUCTOR(calICSService)
 NS_DECL_CLASSINFO(calICSService)
-
-NS_GENERIC_FACTORY_CONSTRUCTOR(calTimezoneService)
-NS_DECL_CLASSINFO(calTimezoneService)
 
 static const nsModuleComponentInfo components[] =
 {
@@ -122,17 +118,6 @@ static const nsModuleComponentInfo components[] =
       NS_CI_INTERFACE_GETTER_NAME(calICSService),
       NULL,
       &NS_CLASSINFO_NAME(calICSService)
-    },
-    { "Timezone Service",
-      CAL_TIMEZONESERVICE_CID,
-      CAL_TIMEZONESERVICE_CONTRACTID,
-      calTimezoneServiceConstructor,
-      NULL,
-      NULL,
-      NULL,
-      NS_CI_INTERFACE_GETTER_NAME(calTimezoneService),
-      NULL,
-      &NS_CLASSINFO_NAME(calTimezoneService)
     },
     { "Calendar Recurrence Rule",
       CAL_RECURRENCERULE_CID,

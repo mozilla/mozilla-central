@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,12 +41,33 @@
 
 var gTimezonesPane = {
     init: function () {
-        var tzMenuList = document.getElementById("calendar.timezone.menulist");
-        var prefValue = document.getElementById("calendar.timezone.local").value;
+        var tzMenuList = document.getElementById("calendar-timezone-menulist");
+        var tzMenuPopup = document.getElementById("calendar-timezone-menupopup");
 
-        if (!prefValue) {
-            prefValue = calendarDefaultTimezone();
-            tzMenuList.value = prefValue.tzid;
+        var tzService = getTimezoneService();
+        var enumerator = tzService.timezoneIds;
+        var tzids = {};
+        var displayNames = [];
+        // don't rely on what order the timezone-service gives you
+        while (enumerator.hasMore()) {
+            var tz = tzService.getTimezone(enumerator.getNext());
+            if (tz && !tz.isFloating && !tz.isUTC) {
+                var displayName = tz.displayName;
+                displayNames.push(displayName);
+                tzids[displayName] = tz.tzid;
+            }
         }
+        // the display names need to be sorted
+        displayNames.sort();
+        for (var i = 0; i < displayNames.length; ++i) {
+            var displayName = displayNames[i];
+            addMenuItem(tzMenuPopup, displayName, tzids[displayName]);
+        }
+
+        var prefValue = document.getElementById("calendar-timezone-local").value;
+        if (!prefValue) {
+            prefValue = calendarDefaultTimezone().tzid;
+        }
+        tzMenuList.value = prefValue;
     }
 };

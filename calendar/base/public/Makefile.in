@@ -82,6 +82,7 @@ XPIDLSRCS = calIAlarm.idl \
             calIRecurrenceItem.idl \
             calIRecurrenceRule.idl \
             calIStatusObserver.idl \
+            calITimezone.idl \
             calITimezoneProvider.idl \
             calITodo.idl \
             calITransactionManager.idl \

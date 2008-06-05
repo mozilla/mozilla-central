@@ -72,13 +72,12 @@ CPPSRCS = calDateTime.cpp \
 	  calDuration.cpp \
 	  calPeriod.cpp \
 	  calICSService.cpp \
-	  calTimezoneService.cpp \
+	  calTimezone.cpp \
 	  calRecurrenceRule.cpp \
 	  calRecurrenceDate.cpp \
 	  calRecurrenceDateSet.cpp \
 	  calUtils.cpp \
 	  $(NULL)
-
 
 EXTRA_COMPONENTS = \
     calItemModule.js \
@@ -108,6 +107,7 @@ EXTRA_SCRIPTS = \
     calTransactionManager.js \
     calFreeBusyService.js \
     calCalendarSearchService.js \
+    calTimezoneService.js \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.

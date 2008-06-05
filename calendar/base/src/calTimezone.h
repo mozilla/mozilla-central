@@ -15,12 +15,11 @@
  *
  * The Initial Developer of the Original Code is
  *   Sun Microsystems, Inc.
- * Portions created by the Initial Developer are Copyright (C) 2007
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
- *   Clint Talbert <ctalbert@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,34 +34,27 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#if !defined(INCLUDED_CAL_TIMEZONE_H)
+#define INCLUDED_CAL_TIMEZONE_H
 
-#include "nsISupports.idl"
+#include "nsCOMPtr.h"
+#include "calITimezone.h"
+#include "calUtils.h"
 
-interface nsIUTF8StringEnumerator;
-interface calITimezone;
-
-[scriptable, uuid(0E502BF5-4FD3-4090-9122-F1EC3CA701BB)]
-interface calITimezoneProvider : nsISupports
+class calTimezone : public calITimezone,
+                    public cal::XpcomBase
 {
-    readonly attribute nsIUTF8StringEnumerator timezoneIds;
+public:
+    calTimezone(nsCString const& tzid, calIIcalComponent * component)
+        : mTzid(tzid),
+          mIcalComponent(component) {}
 
-    /**
-     * Gets a timezone defintion passing a TZID.
-     * Returns null in case of an unknown TZID.
-     *
-     * @param tzid       a TZID to be resolved
-     * @return           a timezone object or null
-     */
-    calITimezone getTimezone(in AUTF8String tzid);
+    NS_DECL_ISUPPORTS
+    NS_DECL_CALITIMEZONE
+
+protected:
+    nsCString const                   mTzid;
+    nsCOMPtr<calIIcalComponent> const mIcalComponent;
 };
 
-/**
- * This service acts as a central access point for the up to date set
- * of Olson timezone definitions.
- */
-[scriptable, uuid(AB1BFE6A-EE95-4038-B594-34AEEDA9911A)]
-interface calITimezoneService : calITimezoneProvider
-{
-    readonly attribute calITimezone floating;
-    readonly attribute calITimezone UTC;
-};
+#endif // INCLUDED_CAL_TIMEZONE_H

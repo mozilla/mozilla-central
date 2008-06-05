@@ -15,7 +15,7 @@
  *
  * The Initial Developer of the Original Code is
  *   Sun Microsystems, Inc.
- * Portions created by the Initial Developer are Copyright (C) 2007
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -38,31 +38,57 @@
 
 #include "nsISupports.idl"
 
-interface nsIUTF8StringEnumerator;
-interface calITimezone;
+interface calIIcalComponent;
+interface calITimezoneProvider;
 
-[scriptable, uuid(0E502BF5-4FD3-4090-9122-F1EC3CA701BB)]
-interface calITimezoneProvider : nsISupports
+[scriptable, uuid(D79161E7-0DB9-427d-A0C3-27E0DB3B030F)]
+interface calITimezone : nsISupports
 {
-    readonly attribute nsIUTF8StringEnumerator timezoneIds;
+    /**
+     * The timezone provider this timezone belongs to, if any.
+     */
+    readonly attribute calITimezoneProvider provider;
 
     /**
-     * Gets a timezone defintion passing a TZID.
-     * Returns null in case of an unknown TZID.
-     *
-     * @param tzid       a TZID to be resolved
-     * @return           a timezone object or null
+     * VTIMEZONE ical component, null if floating or UTC.
      */
-    calITimezone getTimezone(in AUTF8String tzid);
+    readonly attribute calIIcalComponent icalComponent;
+
+    /**
+     * The TZID of this timezone.
+     */
+    readonly attribute AUTF8String tzid;
+
+    /**
+     * Whether this timezone is the "floating" timezone.
+     */
+    readonly attribute boolean isFloating;
+
+    /**
+     * Whether this is the "UTC" timezone.
+     */
+    readonly attribute boolean isUTC;
+
+    /**
+     * Latitude of timezone or void/null if unknown.
+     */
+    readonly attribute AUTF8String latitude;
+
+    /**
+     * Longitude of timezone or void/null if unknown.
+     */
+    readonly attribute AUTF8String longitude;
+
+    /**
+     * Localized name of the timezone or void/null if unknown.
+     */
+    readonly attribute AString displayName;
+
+    /**
+     * For debugging purposes.
+     *
+     * @return "UTC", "floating" or component's ical representation
+     */
+    AUTF8String toString();
 };
 
-/**
- * This service acts as a central access point for the up to date set
- * of Olson timezone definitions.
- */
-[scriptable, uuid(AB1BFE6A-EE95-4038-B594-34AEEDA9911A)]
-interface calITimezoneService : calITimezoneProvider
-{
-    readonly attribute calITimezone floating;
-    readonly attribute calITimezone UTC;
-};

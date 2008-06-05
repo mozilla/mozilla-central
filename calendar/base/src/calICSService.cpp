@@ -37,12 +37,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsStringStream.h"
+#include "nsComponentManagerUtils.h"
 #ifndef MOZILLA_1_8_BRANCH
 #include "nsIClassInfoImpl.h"
-#include "nsComponentManagerUtils.h"
 #endif
 #include "calICSService.h"
-#include "calTimezoneService.h"
+#include "calTimezone.h"
 #include "calDateTime.h"
 #include "calDuration.h"
 #include "calIErrors.h"
@@ -421,7 +421,7 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                 }
                 nsCOMPtr<calIIcalComponent> const tzComp(new calIcalComponent(clonedZone, clonedZoneComp));
                 CAL_ENSURE_MEMORY(tzComp);
-                tz = new calTimezone(calTimezone::IS_FOREIGN, tzComp, tzid);
+                tz = new calTimezone(tzid, tzComp);
                 CAL_ENSURE_MEMORY(tz);
             }
             if (!tz && parent) {

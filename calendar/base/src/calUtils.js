@@ -251,7 +251,7 @@ function guessSystemTimezone() {
     function checkTZ(tzId) {
         var tz = tzSvc.getTimezone(tzId);
 
-        // Have to handle UTC separately because it has no .component.
+        // Have to handle UTC separately because it has no .icalComponent.
         if (tz.isUTC) {
             if (offsetDec == 0 && offsetJun == 0) {
                 if (tzNameJun == "UTC" && tzNameDec == "UTC") {
@@ -264,7 +264,7 @@ function guessSystemTimezone() {
             }
         }
 
-        var subComp = tz.component;
+        var subComp = tz.icalComponent;
         // find currently applicable time period, not just first,
         // because offsets of timezone may be changed over the years.
         var standard = findCurrentTimePeriod(tz, subComp, "STANDARD");
@@ -437,11 +437,7 @@ function guessSystemTimezone() {
     var probableTZScore = 0;
     var probableTZSource = null;
 
-    const sbSvc =
-        Components.classes["@mozilla.org/intl/stringbundle;1"]
-        .getService(Components.interfaces.nsIStringBundleService);
-    const calProperties =
-        sbSvc.createBundle("chrome://calendar/locale/calendar.properties");
+    const calProperties = calGetStringBundle("chrome://calendar/locale/calendar.properties");
 
     // First, try to detect operating system timezone.
     try {
@@ -498,9 +494,8 @@ function guessSystemTimezone() {
             if (osUserTimeZone != null) {
                 // Lookup timezone registry key in table of known tz keys
                 // to convert to ZoneInfo timezone id.
-                const regKeyToZoneInfoBundle =
-                    sbSvc.createBundle("chrome://calendar/content/"+
-                                       fileOSName+"ToZoneInfoTZId.properties");
+                const regKeyToZoneInfoBundle = calGetStringBundle("chrome://calendar/content/"+
+                                                                  fileOSName + "ToZoneInfoTZId.properties");
                 zoneInfoIdFromOSUserTimeZone =
                     regKeyToZoneInfoBundle.GetStringFromName(osUserTimeZone);
             }
@@ -593,7 +588,7 @@ function guessSystemTimezone() {
 
         // check how well OS tz matches tz defined in our version of zoneinfo db
         if (zoneInfoIdFromOSUserTimeZone != null) {
-            var tzId = tzSvc.tzidPrefix + zoneInfoIdFromOSUserTimeZone;
+            var tzId = zoneInfoIdFromOSUserTimeZone;
             var score = checkTZ(tzId);
             switch(score) {
             case 0:
@@ -637,10 +632,6 @@ function guessSystemTimezone() {
         const bundleTZIds = bundleTZString.split(/\s*,\s*/);
         for each (var bareTZId in bundleTZIds) {
             var tzId = bareTZId;
-            if (tzId.indexOf("/mozilla.org/") == -1) {
-                // Convert a ZoneInfo timezone to a mozilla timezone-string
-                tzId = tzSvc.tzidPrefix + tzId;
-            }
             try {
                 var score = checkTZ(tzId);
 
@@ -703,7 +694,7 @@ function guessSystemTimezone() {
         case 1: case 2:
             var tzId = probableTZId;
             var tz = tzSvc.getTimezone(tzId);
-            var subComp = tz.component;
+            var subComp = tz.icalComponent;
             var standard = findCurrentTimePeriod(tz, subComp, "STANDARD");
             var standardTZOffset = getIcalString(standard, "TZOFFSETTO");
             var daylight = findCurrentTimePeriod(tz, subComp, "DAYLIGHT");
@@ -1112,6 +1103,20 @@ function sortArrayByLocaleCollator(aStringArray) {
 }
 
 /**
+ * Creates a string bundle.
+ *
+ * @param bundleURL The bundle URL
+ * @return string bundle
+ */
+function calGetStringBundle(bundleURL) {
+    if (calGetStringBundle.mService === undefined) {
+        calGetStringBundle.mService = Components.classes["@mozilla.org/intl/stringbundle;1"]
+                                                .getService(Components.interfaces.nsIStringBundleService);
+    }
+    return calGetStringBundle.mService.createBundle(bundleURL);
+}
+
+/**
  * Gets the value of a string in a .properties file from the calendar bundle
  *
  * @param aBundleName  the name of the properties file.  It is assumed that the
@@ -1121,17 +1126,12 @@ function sortArrayByLocaleCollator(aStringArray) {
  * @param aComponent   optional stringbundle component name
  */
 function calGetString(aBundleName, aStringName, aParams, aComponent) {
-    if (calGetString.mSBS === undefined) {
-        calGetString.mSBS = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                      .getService(Components.interfaces.nsIStringBundleService);
-    }
-
     try {
         if (!aComponent) {
             aComponent = "calendar";
         }
         var propName = "chrome://" + aComponent + "/locale/" + aBundleName + ".properties";
-        var props = calGetString.mSBS.createBundle(propName);
+        var props = calGetStringBundle(propName);
 
         if (aParams && aParams.length) {
             return props.formatStringFromName(aStringName, aParams, aParams.length);
@@ -1139,8 +1139,7 @@ function calGetString(aBundleName, aStringName, aParams, aComponent) {
             return props.GetStringFromName(aStringName);
         }
     } catch (ex) {
-        var s = "Failed to read '" + aStringName + "' from " +
-                "'chrome://calendar/locale/" + aBundleName + ".properties'.";
+        var s = ("Failed to read '" + aStringName + "' from " + propName + ".");
         Components.utils.reportError(s + " Error: " + ex);
         return s;
     }
@@ -1591,14 +1590,13 @@ function getProgressAtom(aTask) {
  */
 function isSunbird()
 {
-    const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"].
-                  getService(Components.interfaces.nsIXULAppInfo);
-
-    return appInfo.ID == kSUNBIRD_UID;
+    if (isSunbird.mIsSunbird === undefined) {
+        var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+                                .getService(Components.interfaces.nsIXULAppInfo);
+        isSunbird.mIsSunbird = (appInfo.ID == "{718e30fb-e89b-41dd-9da7-e25a45638b28}");
+    }
+    return isSunbird.mIsSunbird;
 }
-
-
 
 function hasPositiveIntegerValue(elementId)
 {
@@ -2184,10 +2182,7 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
     var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
                              .createInstance(Components.interfaces.calIItipItem);
 
-    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                        .getService(Components.interfaces.nsIStringBundleService);
-
-    var sb = sbs.createBundle("chrome://lightning/locale/lightning.properties");
+    var sb = calGetStringBundle("chrome://lightning/locale/lightning.properties");
     var recipients = [];
 
     // We have to modify our item a little, so we clone it.

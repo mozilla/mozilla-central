@@ -15,12 +15,11 @@
  *
  * The Initial Developer of the Original Code is
  *   Sun Microsystems, Inc.
- * Portions created by the Initial Developer are Copyright (C) 2007
+ * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
- *   Clint Talbert <ctalbert@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,34 +34,56 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#include "calTimezone.h"
+#include "calUtils.h"
+#include "calAttributeHelpers.h"
 
-#include "nsISupports.idl"
+NS_IMPL_ISUPPORTS1(calTimezone, calITimezone)
 
-interface nsIUTF8StringEnumerator;
-interface calITimezone;
+CAL_ISUPPORTS_ATTR_GETTER(calTimezone, calIIcalComponent, IcalComponent)
+CAL_STRINGTYPE_ATTR_GETTER(calTimezone, nsACString, Tzid)
 
-[scriptable, uuid(0E502BF5-4FD3-4090-9122-F1EC3CA701BB)]
-interface calITimezoneProvider : nsISupports
-{
-    readonly attribute nsIUTF8StringEnumerator timezoneIds;
+NS_IMETHODIMP
+calTimezone::GetIsFloating(PRBool * _retval) {
+    NS_ENSURE_ARG_POINTER(_retval);
+    *_retval = PR_FALSE;
+    return NS_OK;
+}
 
-    /**
-     * Gets a timezone defintion passing a TZID.
-     * Returns null in case of an unknown TZID.
-     *
-     * @param tzid       a TZID to be resolved
-     * @return           a timezone object or null
-     */
-    calITimezone getTimezone(in AUTF8String tzid);
-};
+NS_IMETHODIMP
+calTimezone::GetIsUTC(PRBool * _retval) {
+    NS_ENSURE_ARG_POINTER(_retval);
+    *_retval = PR_FALSE;
+    return NS_OK;
+}
 
-/**
- * This service acts as a central access point for the up to date set
- * of Olson timezone definitions.
- */
-[scriptable, uuid(AB1BFE6A-EE95-4038-B594-34AEEDA9911A)]
-interface calITimezoneService : calITimezoneProvider
-{
-    readonly attribute calITimezone floating;
-    readonly attribute calITimezone UTC;
-};
+NS_IMETHODIMP
+calTimezone::GetDisplayName(nsAString & _retval) {
+    _retval.SetIsVoid(PR_TRUE);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calTimezone::GetLatitude(nsACString & _retval) {
+    _retval.SetIsVoid(PR_TRUE);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calTimezone::GetLongitude(nsACString & _retval) {
+    _retval.SetIsVoid(PR_TRUE);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calTimezone::GetProvider(calITimezoneProvider ** _retval) {
+    NS_ENSURE_ARG_POINTER(_retval);
+    *_retval = nsnull;
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calTimezone::ToString(nsACString & aResult) {
+    return mIcalComponent->ToString(aResult);
+}
+

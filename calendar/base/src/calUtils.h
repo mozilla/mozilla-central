@@ -44,15 +44,16 @@
 #include "nsMemory.h"
 #include "nsCRTGlue.h"
 #include "nsStringAPI.h"
-#define nsPromiseFlatCString PromiseFlatCString
 #endif
 
 #include "nsAutoPtr.h"
 #include "nsVoidArray.h"
 #include "nsIStringEnumerator.h"
 
+#include "calITimezone.h"
 #include "calITimezoneProvider.h"
 #include "calIICSService.h"
+#include "nsIConsoleService.h"
 #include "nsCOMPtr.h"
 
 #define CAL_STRLEN_ARGS(x) x, sizeof(x)-1
@@ -66,15 +67,53 @@ namespace cal {
 /**
  * Creates a UTF8 string enumerator.
  *
- * @param takeOverArray      a C string array that is taken over by the resulting
+ * @param takeOverArray      a nsCStringArray that is taken over by the resulting
  *                           string enumerator object (nsAutoPtr passes over ownership)
  * @param ppRet              returned enumerator object
  */
 nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
                                     nsIUTF8StringEnumerator ** ppRet);
 
+/**
+ * Logs an error.
+ */
+nsresult logError(PRUnichar const* msg);
+inline nsresult logError(char const* msg) {
+    return logError(NS_ConvertASCIItoUTF16(msg).get());
+}
+inline nsresult logError(nsACString const& msg) {
+    return logError(NS_ConvertASCIItoUTF16(msg).get());
+}
+
+/**
+ * Logs a warning.
+ */
+nsresult logWarning(PRUnichar const* msg);
+inline nsresult logWarning(char const* msg) {
+    return logWarning(NS_ConvertASCIItoUTF16(msg).get());
+}
+inline nsresult logWarning(nsACString const& msg) {
+    return logWarning(NS_ConvertASCIItoUTF16(msg).get());
+}
+
+/**
+ * Just logs.
+ */
+nsresult log(PRUnichar const* msg);
+inline nsresult log(char const* msg) {
+    return log(NS_ConvertASCIItoUTF16(msg).get());
+}
+inline nsresult log(nsACString const& msg) {
+    return log(NS_ConvertASCIItoUTF16(msg).get());
+}
+
 // some static timezone helpers, we leak those, but this is ok since the
 // underlying service leaks those anyway until process termination
+
+/**
+ * Gets the global console service.
+ */
+nsCOMPtr<nsIConsoleService> const& getConsoleService();
 
 /**
  * Gets the global ICS service.
@@ -116,15 +155,6 @@ icaltimezone * getIcalTimezone(calITimezone * tz);
  */
 nsCOMPtr<calITimezone> detectTimezone(icaltimetype const& icalt,
                                       calITimezoneProvider * tzProvider);
-
-/**
- * Tests whether two interface pointers refer to the same object.
- */
-inline NSCAP_BOOL sameXpcomObject(nsISupports * i1_, nsISupports * i2_) {
-    nsCOMPtr<nsISupports> const i1 = do_QueryInterface(i1_);
-    nsCOMPtr<nsISupports> const i2 = do_QueryInterface(i2_);
-    return i1 == i2;
-}
 
 /**
  * Common base class for XPCOM object implementations:

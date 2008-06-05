@@ -34,10 +34,10 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-// #ifndef MOZILLA_1_8_BRANCH
-// #include "nsIClassInfoImpl.h"
-// #endif
+#include "nsIScriptError.h"
+
 #include "calBaseCID.h"
 #include "calUtils.h"
 
@@ -90,6 +90,35 @@ nsresult createUTF8StringEnumerator(nsAutoPtr<nsCStringArray> & takeOverArray,
     CAL_ENSURE_MEMORY(*ppRet);
     NS_ADDREF(*ppRet);
     return NS_OK;
+}
+
+nsresult logError(PRUnichar const* msg) {
+    nsresult rc;
+    nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
+    NS_ENSURE_SUCCESS(rc, rc);
+    rc = scriptError->Init(msg, nsnull, nsnull, 0, 0, nsIScriptError::errorFlag, "calendar");
+    return getConsoleService()->LogMessage(scriptError);
+}
+
+nsresult logWarning(PRUnichar const* msg) {
+    nsresult rc;
+    nsCOMPtr<nsIScriptError> const scriptError(do_CreateInstance("@mozilla.org/scripterror;1", &rc));
+    NS_ENSURE_SUCCESS(rc, rc);
+    rc = scriptError->Init(msg, nsnull, nsnull, 0, 0, nsIScriptError::warningFlag, "calendar");
+    return getConsoleService()->LogMessage(scriptError);
+}
+
+nsresult log(PRUnichar const* msg) {
+    return getConsoleService()->LogStringMessage(msg);
+}
+
+nsCOMPtr<nsIConsoleService> const& getConsoleService() {
+    static nsCOMPtr<nsIConsoleService> sObj;
+    if (!sObj) {
+        sObj = do_GetService("@mozilla.org/consoleservice;1");
+        NS_ASSERTION(sObj, "Could not get console service!");
+    }
+    return sObj;
 }
 
 nsCOMPtr<calIICSService> const& getICSService() {
@@ -157,7 +186,7 @@ icaltimezone * getIcalTimezone(calITimezone * tz) {
         icaltz = icaltimezone_get_utc_timezone();
     } else {
         nsCOMPtr<calIIcalComponent> tzComp;
-        tz->GetComponent(getter_AddRefs(tzComp));
+        tz->GetIcalComponent(getter_AddRefs(tzComp));
         if (tzComp) {
             icaltz = tzComp->GetIcalTimezone();
         } // else floating

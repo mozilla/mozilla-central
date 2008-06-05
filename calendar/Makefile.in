@@ -42,7 +42,7 @@ VPATH		= @srcdir@
 include $(DEPTH)/config/autoconf.mk
 
 MODULE	= calendar
-DIRS = libical resources base providers import-export locales
+DIRS = libical resources base providers import-export locales timezones
 
 ifdef ENABLE_TESTS
 DIRS += test

@@ -191,7 +191,7 @@ calPeriod::SetIcalString(const nsACString& aIcalString)
     if (mImmutable)
         return NS_ERROR_OBJECT_IS_IMMUTABLE;
     struct icalperiodtype ip;
-    ip = icalperiodtype_from_string(nsPromiseFlatCString(aIcalString).get());
+    ip = icalperiodtype_from_string(PromiseFlatCString(aIcalString).get());
     //XXX Shortcut. Assumes nobody tried to overrule our impl. of calIDateTime
     //    Should use NS_NEWXPCOM()
     mStart = new calDateTime(&ip.start, nsnull);
