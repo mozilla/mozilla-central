@@ -1,6 +1,6 @@
 !cd mozilla-build
 
-name "Mozilla Build Setup"
+name "Mozilla Build"
 SetCompressor /SOLID lzma
 OutFile "..\MozillaBuildSetup.exe"
 InstallDir "C:\mozilla-build"
