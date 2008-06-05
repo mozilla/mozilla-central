@@ -104,6 +104,30 @@ while setid == -1:
     else:
         setid = res[0][0]
 
+#determine if we've seen this set of data before
+if (type == "discrete" and int(timeval) == 0):
+     cur = db.cursor()
+     cur.execute("SELECT dataset_id FROM dataset_values WHERE dataset_id = ? AND time = ?", (setid, timeval))
+     res = cur.fetchall()
+     cur.close
+     if len(res) <> 0:
+         print "found a matching discrete data set"
+         db.execute("DELETE FROM dataset_values WHERE dataset_id = ?", (setid,))
+         db.execute("DELETE FROM dataset_branchinfo WHERE dataset_id = ?", (setid,))
+         db.execute("DELETE FROM dataset_extra_data WHERE dataset_id = ?", (setid,))
+         db.execute("DELETE FROM annotations WHERE dataset_id = ?", (setid,))
+elif (type == "continuous"):
+     cur = db.cursor()
+     cur.execute("SELECT dataset_id FROM dataset_values WHERE dataset_id = ? AND time = ?", (setid, timeval))
+     res = cur.fetchall()
+     cur.close
+     if len(res) <> 0:
+         print "found a matching continuous data point"
+         db.execute("DELETE FROM dataset_values WHERE dataset_id = ? AND time = ?", (setid, timeval))
+         db.execute("DELETE FROM dataset_branchinfo WHERE dataset_id = ? AND time = ?", (setid, timeval))
+         db.execute("DELETE FROM dataset_extra_data WHERE dataset_id = ? AND time = ?", (setid, timeval))
+         db.execute("DELETE FROM annotations WHERE dataset_id = ? AND time = ?", (setid, timeval))
+
 db.execute("INSERT INTO dataset_values (dataset_id, time, value) VALUES (?,?,?)", (setid, timeval, value))
 db.execute("INSERT INTO dataset_branchinfo (dataset_id, time, branchid) VALUES (?,?,?)", (setid, timeval, branchid))
 if data and data != "":
