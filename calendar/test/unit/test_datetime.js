@@ -79,11 +79,11 @@ function run_test() {
     cd.day += 1;
     do_check_eq(cd.timezoneOffset, 2*3600);
 
-    // Bug 398724 – Problems with floating all-day items
+    // Bug 398724 - Problems with floating all-day items
     var event = Cc["@mozilla.org/calendar/event;1"].createInstance(Ci.calIEvent);
     event.icalString = "BEGIN:VEVENT\nUID:45674d53-229f-48c6-9f3b-f2b601e7ae4d\nSUMMARY:New Event\nDTSTART;VALUE=DATE:20071003\nDTEND;VALUE=DATE:20071004\nEND:VEVENT";
-    do_check_eq(event.startDate.timezone.isFloating, true);
-    do_check_eq(event.endDate.timezone.isFloating, true);
+    do_check_true(event.startDate.timezone.isFloating);
+    do_check_true(event.endDate.timezone.isFloating);
 
     // Bug 392853 - Same times, different timezones, but subtractDate says times are PT0S apart
     const zeroLength = Cc["@mozilla.org/calendar/duration;1"].createInstance(Ci.calIDuration);
@@ -103,4 +103,12 @@ function run_test() {
     duration = a.subtractDate(b);
     do_check_eq(duration.compare(zeroLength), 0);
     do_check_eq(a.compare(b), 0);
+
+    do_check_eq(b.timezone.displayName, "America/New York");
+    do_check_eq(b.timezone.latitude, "+0404251");
+    do_check_eq(b.timezone.longitude, "-0740023");
+
+    // check aliases
+    do_check_eq(getMozTimezone("/mozilla.org/xyz/Pacific/Yap").tzid, "Pacific/Truk");
+    do_check_eq(getMozTimezone("Pacific/Yap").tzid, "Pacific/Truk");    
 }

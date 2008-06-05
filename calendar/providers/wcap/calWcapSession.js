@@ -39,19 +39,17 @@
 function calWcapTimezone(tzProvider, tzid_, component_) {
     this.wrappedJSObject = this;
     this.provider = tzProvider;
-    this.component = component_;
+    this.icalComponent = component_;
     this.tzid = tzid_;
+    this.displayName = null;
     this.isUTC = false;
     this.isFloating = false;
-    this.latitude = "";
-    this.longitude = "";
+    this.latitude = null;
+    this.longitude = null;
 }
 calWcapTimezone.prototype = {
     toString: function() {
-        // xxx todo remove: for some time, we want to know if a calITimezone object
-        //                  is handled as string...
-        ASSERT(false, "calWcapTimezone.toString!");
-        return this.component.toString();
+        return this.icalComponent.toString();
     }
 };
 

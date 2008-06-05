@@ -335,16 +335,9 @@ calWcapCalendar.prototype = {
     getAlignedTzid: function calWcapCalendar_getAlignedTzid(tz) {
         var tzid = tz.tzid;
         // check whether it is one cs supports:
-        if (!tz.isUTC && !tz.isFloating && !compareObjects(tz.provider, this.session)) {
-            log("not a server timezone: " + tzid);
-            var prefix = getTimezoneService().tzidPrefix;
-            if (tzid.indexOf(prefix) == 0) {
-                // cut mozilla prefix: assuming that the latter string portion
-                //                     semantically equals the demanded timezone
-                tzid = tzid.substring(prefix.length);
-            }
-        }
         if (!this.session.getTimezone(tzid)) {
+            log("not a server timezone: " + tzid);
+            // bug 435436:
             // xxx todo: we could further on search for a matching region,
             //           e.g. CET (in TZNAME), but for now stick to
             //           user's default if not supported directly

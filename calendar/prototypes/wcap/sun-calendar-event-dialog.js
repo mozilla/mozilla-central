@@ -271,15 +271,6 @@ function onCancel() {
     return result;
 }
 
-function timezoneString(tz) {
-    var tzid = tz.tzid;
-    var prefix = getTimezoneService().tzidPrefix;
-    if (tzid.indexOf(prefix) == 0) {
-        tzid = tzid.substring(prefix.length);
-    }
-    return tzid;
-}
-
 function loadDialog(item) {
     setElementValue("item-title", item.title);
     setElementValue("item-location", item.getProperty("LOCATION"));
@@ -2075,12 +2066,12 @@ function updateTimezone() {
             }
         }
 
-        function updateTimezoneElement(aTimezone,aId,aDateTime,aCollapse) {
+        function updateTimezoneElement(aTimezone, aId, aDateTime, aCollapse) {
             var element = document.getElementById(aId);
             if (element) {
                 if (aTimezone != null && !aCollapse) {
                     element.removeAttribute('collapsed');
-                    element.value = timezoneString(aTimezone);
+                    element.value = aTimezone.displayName || aTimezone.tzid;
                     if (!aDateTime || !aDateTime.isValid || gIsReadOnly || aDateTime.isDate) {
                         if (element.hasAttribute('class')) {
                             element.setAttribute('class-on-enabled',

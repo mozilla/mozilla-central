@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,12 +40,36 @@ function onLoad() {
     window.time = args.time;
     window.onAcceptCallback = args.onOk;
 
-    var tzname = timezoneString(window.time.timezone.tzid);
     var menulist = document.getElementById("timezone-menulist");
-    var index = findTimezone(tzname);
+    var tzMenuPopup = document.getElementById("timezone-menupopup");
+
+    // floating and UTC at the top:
+    addMenuItem(tzMenuPopup, floating().displayName, floating().tzid);
+    addMenuItem(tzMenuPopup, UTC().displayName, UTC().tzid);
+
+    var tzService = getTimezoneService();
+    var enumerator = tzService.timezoneIds;
+    var tzids = {};
+    var displayNames = [];
+    // don't rely on what order the timezone-service gives you
+    while (enumerator.hasMore()) {
+        var tz = tzService.getTimezone(enumerator.getNext());
+        if (tz && !tz.isFloating && !tz.isUTC) {
+            var displayName = tz.displayName;
+            displayNames.push(displayName);
+            tzids[displayName] = tz.tzid;
+        }
+    }
+    // the display names need to be sorted
+    displayNames.sort();
+    for (var i = 0; i < displayNames.length; ++i) {
+        var displayName = displayNames[i];
+        addMenuItem(tzMenuPopup, displayName, tzids[displayName]);
+    }
+
+    var index = findTimezone(window.time.timezone);
     if (index < 0) {
-        tzname = timezoneString(calendarDefaultTimezone().tzid);
-        index = findTimezone(tzname);
+        index = findTimezone(calendarDefaultTimezone());
         if (index < 0) {
             index = 0;
         }
@@ -59,30 +84,22 @@ function onLoad() {
 }
 
 function findTimezone(timezone) {
+    var tzid = timezone.tzid;
     var menulist = document.getElementById("timezone-menulist");
     var numChilds = menulist.childNodes[0].childNodes.length;
     for (var i=0; i<numChilds; i++) {
         var menuitem = menulist.childNodes[0].childNodes[i];
-        if (timezoneString(menuitem.getAttribute("value")) == timezone) {
+        if (menuitem.getAttribute("value") == tzid) {
             return i;
         }
     }
     return -1;
 }
 
-function timezoneString(tzid) {
-    var prefix = getTimezoneService().tzidPrefix;
-    if (tzid.indexOf(prefix) == 0) {
-        tzid = tzid.substring(prefix.length);
-    }
-    return tzid;
-}
-
 function updateTimezone() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
-    var someTZ = menuitem.getAttribute("value");
-    var tz = getTimezoneService().getTimezone(someTZ);
+    var tz = getTimezoneService().getTimezone(menuitem.getAttribute("value"));
 
     // convert the date/time to the currently selected timezone
     // and display the result in the appropriate control.
@@ -96,11 +113,11 @@ function updateTimezone() {
 
     // don't highlight any timezone in the map by default
     var standardTZOffset = "none";
-    if (someTZ == "UTC") {
+    if (tz.isUTC) {
         standardTZOffset = "+0000";
-    } else if (someTZ != "floating") {
-        var subComp = tz.component;
-        var standard = subComp.getFirstSubcomponent("STANDARD");
+    } else if (!tz.isFloating) {
+        var standard = tz.icalComponent.getFirstSubcomponent("STANDARD");
+        // any reason why valueAsIcalString is used instead of plain value? xxx todo: ask mickey
         standardTZOffset = standard.getFirstProperty("TZOFFSETTO").valueAsIcalString;
     }
 
@@ -113,7 +130,7 @@ function updateTimezone() {
             if (offset == standardTZOffset) {
                 image.removeAttribute("hidden");
             } else {
-                image.setAttribute("hidden","true");
+                image.setAttribute("hidden", "true");
             }
         }
     }

@@ -156,7 +156,7 @@ var gdataTimezoneProvider = {
         }
 
         var tzService = getTimezoneService();
-        var tz = tzService.getTimezone(tzService.tzidPrefix + aTzid);
+        var tz = tzService.getTimezone(aTzid);
         return tz || floating();
     },
 

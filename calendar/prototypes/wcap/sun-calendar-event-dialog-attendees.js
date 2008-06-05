@@ -274,15 +274,6 @@ function updateDateTime() {
     updateAllDay();
 }
 
-function timezoneString(tz) {
-    var tzid = tz.tzid;
-    var prefix = getTimezoneService().tzidPrefix;
-    if (tzid.indexOf(prefix) == 0) {
-        tzid = tzid.substring(prefix.length);
-    }
-    return tzid;
-}
-
 /**
  * assumes that gStartDate and gEndDate have been correctly initialized,
  * either by having called loadDateTime() or having read the information
@@ -309,7 +300,7 @@ function updateTimezone() {
         var tzEnd = document.getElementById("timezone-endtime");
         if (startTimezone != null) {
             tzStart.removeAttribute('collapsed');
-            tzStart.value = timezoneString(startTimezone);
+            tzStart.value = startTimezone.displayName || startTimezone.tzid;
         } else {
             tzStart.setAttribute('collapsed', 'true');
         }
@@ -317,7 +308,7 @@ function updateTimezone() {
         // we never display the second timezone if both are equal
         if (endTimezone != null && !equalTimezones) {
             tzEnd.removeAttribute('collapsed');
-            tzEnd.value = timezoneString(endTimezone);
+            tzEnd.value = endTimezone.displayName || endTimezone.tzid;
         } else {
             tzEnd.setAttribute('collapsed', 'true');
         }

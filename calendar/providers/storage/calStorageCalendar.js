@@ -192,16 +192,17 @@ function dateToText(d) {
 function calStorageTimezone(comp) {
     this.wrappedJSObject = this;
     this.provider = null;
-    this.component = comp;
+    this.icalComponent = comp;
     this.tzid = comp.getFirstProperty("TZID").value;
+    this.displayName = null;
     this.isUTC = false;
     this.isFloating = false;
-    this.latitude = "";
-    this.longitude = "";
+    this.latitude = null;
+    this.longitude = null;
 }
 calStorageTimezone.prototype = {
     toString: function() {
-        return this.component.toString();
+        return this.icalComponent.toString();
     }
 };
 var gForeignTimezonesCache = {};
@@ -855,7 +856,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 8,
+    DB_SCHEMA_VERSION: 9,
 
     /** 
      * @return      db schema version
@@ -1124,9 +1125,9 @@ calStorageCalendar.prototype = {
             }
         }
 
-        // run TZID updates both on db of version 6 and 7:
-        if (oldVersion == 6 || oldVersion == 7) {
-            dump ("**** Upgrading schema from 6/7 -> 8\n");
+        // run TZID updates both on db of version 6, 7 and 8:
+        if (oldVersion == 6 || oldVersion == 7 || oldVersion == 8) {
+            dump ("**** Upgrading schema from 6/7/8 -> 9\n");
 
             var getTzIds;
             this.mDB.beginTransaction();
@@ -1141,6 +1142,10 @@ calStorageCalendar.prototype = {
                 //
                 // - Migrate all stored mozilla.org timezones from 20070129_1
                 //   to 20071231_1.
+
+                // Schema changes between v8 and v9:
+                //
+                // - Update all stored mozilla.org timezones to pure Olson names.
 
                 // Get a list of the /mozilla.org/* timezones used in the db
                 var tzId;
@@ -1189,9 +1194,9 @@ calStorageCalendar.prototype = {
                     }
                 }
                 // Update the version stamp, and commit.
-                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 8;");
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 9;");
                 this.mDB.commitTransaction();
-                oldVersion = 8;
+                oldVersion = 9;
             } catch (e) {
                 dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
                 Components.utils.reportError("Upgrade failed! DB Error: " +
@@ -1892,7 +1897,7 @@ calStorageCalendar.prototype = {
             if (compareObjects(tz.provider, getTimezoneService())) {
                 params[entryname + "_tz"] = tz.tzid;
             } else { // foreign one
-                params[entryname + "_tz"] = tz.component.serializeToICS();
+                params[entryname + "_tz"] = tz.icalComponent.serializeToICS();
             }
         } else {
             params[entryname] = null;
