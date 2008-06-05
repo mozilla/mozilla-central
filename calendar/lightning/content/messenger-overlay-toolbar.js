@@ -220,6 +220,10 @@ function ltnSwitch2Task() {
     var deck = document.getElementById("displayDeck");
     deck.selectedPanel = taskBox;
 
+    // change title to "Tasks"
+    document.title = ltnGetString("lightning", "taskModeApplicationTitle") + " - " + 
+                     calGetString("brand", "brandShortName", null, "branding");
+
     document.commandDispatcher.updateCommands('mail-toolbar');
     document.commandDispatcher.updateCommands('calendar_commands');
 
