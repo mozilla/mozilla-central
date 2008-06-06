@@ -1997,6 +1997,8 @@ public:
   // get the URIs for the popup window, and it's parent document
   nsCOMPtr<nsIURI> popupWindowURI;
   aPopupBlockedEvent->GetPopupWindowURI(getter_AddRefs(popupWindowURI));
+  if (!popupWindowURI)
+    return;
 
   nsAutoString windowName, features;
   
