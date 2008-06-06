@@ -15,12 +15,17 @@ REVISION=`echo '$Revision 1.4 $' | sed -e 's/[^0-9.]//g'`
 
 . $NAGIOS_PLUGIN_PATH/utils.sh
 
-while getopts "t:" options
+NIGHTLY_REGEXP="RHEEEEET"
+while getopts "t:n" options
 do 
   case "$options" in
     t) 
       # tree name to compare
       TREE=$OPTARG
+    ;;
+    n) 
+      # ignore nightly builders
+      NIGHTLY_REGEXP='nightly'
     ;;
   esac
 done
@@ -33,7 +38,7 @@ TIMEOUT=7		# should be less than 10 seconds so curl gives up before nagios
 STATUS=0
 
 print_usage() {
-  echo "Usage: $PROGNAME -t <tree_to_check>"
+  echo "Usage: $PROGNAME -t <tree_to_check> [-n]"
 }
 
 print_help() {
@@ -42,6 +47,7 @@ print_help() {
   print_usage
   echo ""
   echo "This plugin checks to see if a Tinderbox tree changes state."
+  echo "Use -n to ignore builds with 'nightly' in their name."
   echo ""
   support
   exit 0
@@ -73,7 +79,7 @@ case "$1" in
 
     if [ -f "$OLD_STATE" ]
     then
-        curl -s -m $TIMEOUT "$URL"  > $TEMP_STATE
+        curl -s -m $TIMEOUT "$URL" | grep -iv $NIGHTLY_REGEXP > $TEMP_STATE
         if [ $? -eq 0 ]
         then
           grep -v 'State|' $TEMP_STATE | awk -F\| '{print $3}'  > $NEW_STATE
@@ -105,7 +111,7 @@ case "$1" in
         fi
     else 
       # initialize old state
-      curl -s -m $TIMEOUT "$URL" > $TEMP_STATE
+      curl -s -m $TIMEOUT "$URL" | grep -iv $NIGHTLY_REGEXP > $TEMP_STATE
       if [ $? -eq 0 ]
       then
         grep -v 'State|' $TEMP_STATE | awk -F\| '{print $3}' > "$OLD_STATE"
