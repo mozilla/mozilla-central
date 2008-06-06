@@ -107,7 +107,6 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 - (void)reloadDataForItem:(id)item reloadChildren:(BOOL)aReloadChildren;
 
 - (void)setSearchResultArray:(NSArray *)anArray;
-- (void)displayBookmarkInOutlineView:(BookmarkItem *)aBookmarkItem;
 - (BOOL)doDrop:(id <NSDraggingInfo>)info intoFolder:(BookmarkFolder *)dropFolder index:(int)index;
 
 - (void)setSearchFilterTag:(int)tag;
@@ -117,7 +116,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 - (void)selectContainerFolder:(BookmarkFolder*)inFolder;
 - (BookmarkFolder*)selectedContainerFolder;
 
-- (void)selectItems:(NSArray*)items expandingContainers:(BOOL)expandContainers scrollIntoView:(BOOL)scroll;
+- (void)selectItems:(NSArray*)items;
 - (BookmarkItem*)selectedBookmarkItem;
 
 - (SEL)sortSelectorFromItemTag:(int)inTag;
@@ -399,7 +398,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
   [parentFolder insertChild:separator atIndex:index isMove:NO];
 
-  [self revealItem:separator scrollIntoView:YES selecting:YES byExtendingSelection:NO];
+  [self selectAndRevealItem:separator byExtendingSelection:NO];
 }
 
 - (IBAction)addBookmarkFolder:(id)aSender
@@ -632,7 +631,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
 - (IBAction)revealBookmark:(id)aSender
 {
-  [self revealItem:[self selectedBookmarkItem] scrollIntoView:YES selecting:YES byExtendingSelection:NO];
+  [self selectAndRevealItem:[self selectedBookmarkItem] byExtendingSelection:NO];
 }
 
 - (IBAction)cut:(id)aSender
@@ -754,7 +753,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   }
 
   // reselect them
-  [self selectItems:bmItems expandingContainers:NO scrollIntoView:YES];
+  [self selectItems:bmItems];
 }
 
 - (IBAction)copyURLs:(id)aSender
@@ -773,22 +772,6 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 {
   // don't retain
   mBrowserWindowController = bwController;
-}
-
-// XXX unused
-- (void)displayBookmarkInOutlineView:(BookmarkItem *)aBookmarkItem
-{
-#if 0
-  if (!aBookmarkItem) return;   // avoid recursion
-  BookmarkFolder *parent = [aBookmarkItem parent];
-  if (parent != mRootBookmarks)
-    [self displayBookmarkInOutlineView:parent];
-  else {
-    [self selectContainerFolder:aBookmarkItem];
-    return;
-  }
-  [mBookmarksOutlineView expandItem:aBookmarkItem];
-#endif
 }
 
 - (NSView*)bookmarksEditingView
@@ -871,7 +854,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   mItemToReveal = [inItem retain];
 }
 
-- (void)revealItem:(BookmarkItem*)item scrollIntoView:(BOOL)inScroll selecting:(BOOL)inSelectItem byExtendingSelection:(BOOL)inExtendSelection
+- (void)selectAndRevealItem:(BookmarkItem*)item byExtendingSelection:(BOOL)inExtendSelection
 {
   BookmarkManager* bmManager = [BookmarkManager sharedBookmarkManager];
 
@@ -896,11 +879,9 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   int itemRow = [mBookmarksOutlineView rowForItem:item];
   if (itemRow == -1) return;
 
-  if (inSelectItem)
-    [mBookmarksOutlineView selectRow:itemRow byExtendingSelection:inExtendSelection];
+  [mBookmarksOutlineView selectRow:itemRow byExtendingSelection:inExtendSelection];
 
-  if (inScroll)
-    [mBookmarksOutlineView scrollRowToVisible:itemRow];
+  [mBookmarksOutlineView scrollRowToVisible:itemRow];
 }
 
 - (void)expandAllParentsOfItem:(BookmarkItem*)inItem
@@ -984,7 +965,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 {
   NSArray* mozBookmarkList = [BookmarkManager bookmarkItemsFromSerializableArray:[aPasteboard propertyListForType:kCaminoBookmarkListPBoardType]];
 
-  NSMutableArray* newBookmarks = [[NSMutableArray alloc] initWithCapacity:[mozBookmarkList count]];
+  NSMutableArray* newBookmarks = [[[NSMutableArray alloc] initWithCapacity:[mozBookmarkList count]] autorelease];
   if (!isCopy)
     [newBookmarks addObjectsFromArray:mozBookmarkList];
 
@@ -1023,8 +1004,12 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
   mBookmarkUpdatesDisabled = NO;
   [self reloadDataForItem:nil reloadChildren:YES];
-  [self selectItems:newBookmarks expandingContainers:YES scrollIntoView:YES];
-  [newBookmarks release];
+
+  // Select the items in their new location, unless it's a different collection.
+  if (![[dropFolder parent] isRoot] || [dropFolder isEqual:[self selectedContainerFolder]])
+    [self selectItems:newBookmarks];
+  else
+    [mBookmarksOutlineView deselectAll:nil];
 }
 
 - (void)pasteBookmarksFromURLsAndTitles:(NSPasteboard*)aPasteboard intoFolder:(BookmarkFolder *)dropFolder index:(int)index
@@ -1057,7 +1042,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
 
   mBookmarkUpdatesDisabled = NO;
   [self reloadDataForItem:nil reloadChildren:YES];
-  [self selectItems:newBookmarks expandingContainers:NO scrollIntoView:YES];
+  [self selectItems:newBookmarks];
 }
 
 - (unsigned int)outlineView:(NSOutlineView *)outlineView draggingSourceOperationMaskForLocal:(BOOL)localFlag
@@ -1360,7 +1345,6 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
     dropLocation = [dropFolder count];
   }
   BOOL result = [self doDrop:info intoFolder:dropFolder index:dropLocation];
-  [self selectContainerFolder:[self selectedContainerFolder]];
   return result;
 }
 
@@ -1719,13 +1703,13 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   }
 }
 
-- (void)selectItems:(NSArray*)items expandingContainers:(BOOL)expandContainers scrollIntoView:(BOOL)scroll
+- (void)selectItems:(NSArray*)items
 {
   NSEnumerator* itemsEnum = [items objectEnumerator];
   [mBookmarksOutlineView deselectAll:nil];
   BookmarkItem* item;
   while ((item = [itemsEnum nextObject])) {
-    [self revealItem:item scrollIntoView:scroll selecting:YES byExtendingSelection:YES];
+    [self selectAndRevealItem:item byExtendingSelection:YES];
   }
 }
 
@@ -2012,7 +1996,7 @@ const int kOutlineViewLeftMargin = 19; // determined empirically, since it doesn
   }
 
   if (mItemToReveal) {
-    [self revealItem:mItemToReveal scrollIntoView:YES selecting:YES byExtendingSelection:NO];
+    [self selectAndRevealItem:mItemToReveal byExtendingSelection:NO];
     [mItemToReveal release];
     mItemToReveal = nil;
   }

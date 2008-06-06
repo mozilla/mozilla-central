@@ -292,7 +292,7 @@ static NSDictionary* PrimaryBookmarkItem(NSArray* inItems) {
     [parentFolder insertChild:newItem atIndex:insertPosition isMove:NO];
   }
 
-  [mBookmarkViewController revealItem:newItem scrollIntoView:YES selecting:YES byExtendingSelection:NO];
+  [mBookmarkViewController selectAndRevealItem:newItem byExtendingSelection:NO];
   [[BookmarkManager sharedBookmarkManager] setLastUsedBookmarkFolder:parentFolder];
 }
 

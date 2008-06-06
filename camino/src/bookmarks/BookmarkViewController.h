@@ -200,7 +200,7 @@ enum
 - (BookmarkFolder *)activeCollection;
 
 - (BookmarkFolder *)selectedItemFolderAndIndex:(int*)outIndex;
-- (void)revealItem:(BookmarkItem*)item scrollIntoView:(BOOL)inScroll selecting:(BOOL)inSelectItem byExtendingSelection:(BOOL)inExtendSelection;
+- (void)selectAndRevealItem:(BookmarkItem*)item byExtendingSelection:(BOOL)inExtendSelection;
 
 - (void)setItemToRevealOnLoad:(BookmarkItem*)inItem;
 

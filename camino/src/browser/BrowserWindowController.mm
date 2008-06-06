@@ -4840,7 +4840,7 @@ public:
     [self manageBookmarks:nil];
   }
   else {
-    [bvc revealItem:anItem scrollIntoView:YES selecting:YES byExtendingSelection:NO];
+    [bvc selectAndRevealItem:anItem byExtendingSelection:NO];
   }
 }
 
