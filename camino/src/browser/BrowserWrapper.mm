@@ -134,8 +134,7 @@ enum StatusPriority {
 
 - (id)initWithTab:(NSTabViewItem*)aTab inWindow:(NSWindow*)window
 {
-  if (([self initWithFrame:NSZeroRect inWindow:window]))
-  {
+  if (([self initWithFrame:NSZeroRect inWindow:window])) {
     mTabItem = aTab;
   }
   return self;
@@ -148,11 +147,10 @@ enum StatusPriority {
 //
 - (id)initWithFrame:(NSRect)frameRect inWindow:(NSWindow*)window
 {
-  if ((self = [super initWithFrame: frameRect]))
-  {
+  if ((self = [super initWithFrame:frameRect])) {
     mWindow = window;
 
-    // We retain the browser view so that we can rip it out for custom view support    
+    // We retain the browser view so that we can rip it out for custom view support
     mBrowserView = [[CHBrowserView alloc] initWithFrame:[self bounds] andWindow:window];
     [self addSubview:mBrowserView];
 
@@ -171,23 +169,23 @@ enum StatusPriority {
 
     mToolTip = [[ToolTip alloc] init];
 
-    mFormFillController = [[FormFillController alloc] init]; 
+    mFormFillController = [[FormFillController alloc] init];
     [mFormFillController attachToBrowser:mBrowserView];
 
     mFindBarController = [[FindBarController alloc] initWithContent:self
                                                              finder:(id<Find>)mBrowserView];
 
     //[self setSiteIconImage:[NSImage imageNamed:@"globe_ico"]];
-    //[self setSiteIconURI: [NSString string]];
+    //[self setSiteIconURI:[NSString string]];
 
     // prefill with a null value for each of the four types of status strings
     mStatusStrings = [[NSMutableArray alloc] initWithObjects:[NSNull null], [NSNull null],
                                                              [NSNull null], [NSNull null], nil];
 
     mDisplayTitle = [NSLocalizedString(@"UntitledPageTitle", nil) retain];
-    
+
     mLoadingResources = [[NSMutableSet alloc] init];
-    
+
     mDetectedSearchPlugins = [[NSMutableArray alloc] initWithCapacity:1];
 
     [self registerNotificationListener];
@@ -195,14 +193,14 @@ enum StatusPriority {
   return self;
 }
 
--(void)dealloc
+- (void)dealloc
 {
 #if DEBUG
   NSLog(@"The browser wrapper died.");
 #endif
 
-  [[NSNotificationCenter defaultCenter] removeObserver: self];
-  
+  [[NSNotificationCenter defaultCenter] removeObserver:self];
+
   [mSiteIconImage release];
   [mSiteIconURI release];
   [mStatusStrings release];
@@ -212,9 +210,9 @@ enum StatusPriority {
   [mDisplayTitle release];
   [mFormFillController release];
   [mPendingURI release];
-  
+
   NS_IF_RELEASE(mBlockedPopups);
-  
+
   [mFeedList release];
   [mDetectedSearchPlugins release];
 
@@ -228,7 +226,7 @@ enum StatusPriority {
   // |mBlockedPopupView| has a retain count of 1 when it comes out of the nib,
   // we have to release it manually.
   [mBlockedPopupView release];
-  
+
   [super dealloc];
 }
 
@@ -242,14 +240,14 @@ enum StatusPriority {
   return [mBrowserView shouldUnload];
 }
 
--(void)browserClosed
+- (void)browserClosed
 {
-  // Break the cycle, but don't clear ourselves as the container 
+  // Break the cycle, but don't clear ourselves as the container
   // before we call |destroyWebBrowser| or onUnload handlers won't be
   // able to create new windows. The container will get cleared
   // when the CHBrowserListener goes away as a result of the
   // |destroyWebBrowser| call. (bug 174416)
-  [mBrowserView removeListener: self];
+  [mBrowserView removeListener:self];
   [mBrowserView destroyWebBrowser];
 
   // We don't want site icon notifications when the window has gone away
@@ -274,22 +272,22 @@ enum StatusPriority {
   return mDelegate;
 }
 
--(void)setTab: (NSTabViewItem*)tab
+- (void)setTab:(NSTabViewItem*)tab
 {
   mTabItem = tab;
 }
 
--(NSTabViewItem*)tab
+- (NSTabViewItem*)tab
 {
   return mTabItem;
 }
 
--(NSString*)pendingURI
+- (NSString*)pendingURI
 {
   return mPendingURI;
 }
 
--(NSString*)currentURI
+- (NSString*)currentURI
 {
   return [mBrowserView currentURI];
 }
@@ -314,9 +312,9 @@ enum StatusPriority {
     NSRect browserFrame = bounds;
     if (mBlockedPopupView) {
       // First resize the width of blockedPopupView to match this view.
-      // The blockedPopupView will, during its setFrame method, wrap information 
+      // The blockedPopupView will, during its setFrame method, wrap information
       // text if necessary and adjust its own height to enclose that text.
-      // Then find out the actual (possibly adjusted) height of blockedPopupView 
+      // Then find out the actual (possibly adjusted) height of blockedPopupView
       // and adjust the browser view frame accordingly.
       // Recall that we're flipped, so the origin is the top left.
 
@@ -352,7 +350,7 @@ enum StatusPriority {
   [mBrowserView setActive:inActive];
 }
 
--(BOOL)isBusy
+- (BOOL)isBusy
 {
   return mIsBusy;
 }
@@ -370,8 +368,7 @@ enum StatusPriority {
 - (NSString*)statusString
 {
   // Return the highest-priority status string that is set, or the empty string if none are set
-  for (unsigned int i = 0; i < [mStatusStrings count]; ++i)
-  {
+  for (unsigned int i = 0; i < [mStatusStrings count]; ++i) {
     id status = [mStatusStrings objectAtIndex:i];
     if (status != [NSNull null])
       return status;
@@ -387,10 +384,10 @@ enum StatusPriority {
 - (BOOL)popupsBlocked
 {
   if (!mBlockedPopups) return NO;
-  
+
   PRUint32 numBlocked = 0;
   mBlockedPopups->GetLength(&numBlocked);
-  
+
   return (numBlocked > 0);
 }
 
@@ -406,18 +403,17 @@ enum StatusPriority {
 
 - (void)loadURI:(NSString*)urlSpec referrer:(NSString*)referrer flags:(unsigned int)flags focusContent:(BOOL)focusContent allowPopups:(BOOL)inAllowPopups
 {
-  // blast it into the urlbar immediately so that we know what we're 
+  // blast it into the urlbar immediately so that we know what we're
   // trying to load, even if it doesn't work
   [mDelegate updateLocationFields:urlSpec ignoreTyping:YES];
-  
+
   [self setPendingURI:urlSpec];
 
-  // if we're not the primary tab, make sure that the browser view is 
+  // if we're not the primary tab, make sure that the browser view is
   // the correct size when loading a url so that if the url is a relative
   // anchor, which will cause a scroll to the anchor on load, the scroll
   // position isn't messed up when we finally display the tab.
-  if (mDelegate == nil)
-  {
+  if (mDelegate == nil) {
     NSRect tabContentRect = [[[mWindow delegate] tabBrowser] contentRect];
     [self setFrame:tabContentRect resizingBrowserViewIfHidden:YES];
   }
@@ -431,15 +427,14 @@ enum StatusPriority {
 
 - (void)ensureContentClickListeners
 {
-  if (!mListenersAttached)
-  {
+  if (!mListenersAttached) {
     mListenersAttached = YES;
-    
+
     // We need to hook up our click and context menu listeners.
     ContentClickListener* clickListener = new ContentClickListener([mWindow delegate]);
     if (!clickListener)
       return;
-    
+
     nsCOMPtr<nsIDOMWindow> contentWindow = [[self browserView] contentWindow];
     nsCOMPtr<nsPIDOMWindow> piWindow(do_QueryInterface(contentWindow));
     nsPIDOMEventTarget *chromeHandler = piWindow->GetChromeEventHandler();
@@ -453,7 +448,7 @@ enum StatusPriority {
   [self ensureContentClickListeners];
 }
 
--(void)willResignActiveBrowser
+- (void)willResignActiveBrowser
 {
   [mToolTip closeToolTip];
 
@@ -469,7 +464,7 @@ enum StatusPriority {
 {
   if (!mContentViewProviders)
     mContentViewProviders = [[NSMutableDictionary alloc] init];
-    
+
   NSString* lowercaseURL = [inURL lowercaseString];
   [mContentViewProviders setObject:inProvider forKey:lowercaseURL];
 }
@@ -491,11 +486,10 @@ enum StatusPriority {
 
   NSView* newContentView = providedView ? providedView : mBrowserView;
 
-  if ([self firstSubview] != newContentView)
-  {
+  if ([self firstSubview] != newContentView) {
     [self swapFirstSubview:newContentView];
     [mDelegate contentViewChangedTo:newContentView forURL:inURL];
-    
+
     // tell the provider that we swapped in its view
     if (providedView)
       [provider contentView:providedView usedForURL:inURL];
@@ -504,7 +498,7 @@ enum StatusPriority {
 
 #pragma mark -
 
-- (void)onLoadingStarted 
+- (void)onLoadingStarted
 {
   [self clearStatusStrings];
 
@@ -514,9 +508,9 @@ enum StatusPriority {
   [mDelegate loadingStarted];
   [mDelegate setLoadingActive:YES];
   [mDelegate setLoadingProgress:mProgress];
-  
+
   [mLoadingResources removeAllObjects];
-  
+
   [self updateStatusString:NSLocalizedString(@"TabLoading", @"") withPriority:eStatusProgress];
 
   [(BrowserTabViewItem*)mTabItem startLoadAnimation];
@@ -530,28 +524,27 @@ enum StatusPriority {
   mActivateOnLoad = NO;
   mIsBusy = NO;
   [self setPendingURI:nil];
-  
+
   [mDelegate setLoadingActive:NO];
-  
+
   [self updateStatusString:nil withPriority:eStatusProgress];
 
   [(BrowserTabViewItem*)mTabItem stopLoadAnimation];
 
   NSString *urlString = [self currentURI];
   NSString *titleString = [mBrowserView pageTitle];
-  
+
   // If we never got a page title, then the tab title will be stuck at "Loading..."
   // so be sure to set the title here
   NSString* tabTitle = [self displayTitleForPageURL:urlString title:titleString];
   [mTabItem setLabel:tabTitle];
-  
+
   mProgress = 1.0;
 
   // tell the bookmarks when a url loaded.
   // note that this currently fires even when you go Back of Forward to the page,
   // so it's not a great way to count bookmark visits.
-  if (urlString && ![urlString isEqualToString:@"about:blank"])
-  {
+  if (urlString && ![urlString isEqualToString:@"about:blank"]) {
     NSDictionary*   userInfo = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:succeeded] forKey:URLLoadSuccessKey];
     NSNotification* note     = [NSNotification notificationWithName:URLLoadNotification object:urlString userInfo:userInfo];
     [[NSNotificationQueue defaultQueue] enqueueNotification:note postingStyle:NSPostWhenIdle];
@@ -565,8 +558,7 @@ enum StatusPriority {
 
 - (void)onResourceLoadingCompleted:(NSValue*)resourceIdentifier
 {
-  if ([mLoadingResources containsObject:resourceIdentifier])
-  {
+  if ([mLoadingResources containsObject:resourceIdentifier]) {
     [mLoadingResources removeObject:resourceIdentifier];
     // When the last sub-resource finishes loading (which may be after
     // onLoadingCompleted: is called), clear the status string, since otherwise
@@ -576,19 +568,17 @@ enum StatusPriority {
   }
 }
 
-- (void)onProgressChange64:(long long)currentBytes outOf:(long long)maxBytes 
+- (void)onProgressChange64:(long long)currentBytes outOf:(long long)maxBytes
 {
-  if (maxBytes > 0)
-  {
+  if (maxBytes > 0) {
     mProgress = ((double)currentBytes / (double)maxBytes) * 100.0;
     [mDelegate setLoadingProgress:mProgress];
   }
 }
 
-- (void)onProgressChange:(long)currentBytes outOf:(long)maxBytes 
+- (void)onProgressChange:(long)currentBytes outOf:(long)maxBytes
 {
-  if (maxBytes > 0)
-  {
+  if (maxBytes > 0) {
     mProgress = ((double)currentBytes / (double)maxBytes) * 100.0;
     [mDelegate setLoadingProgress:mProgress];
   }
@@ -596,8 +586,7 @@ enum StatusPriority {
 
 - (void)onLocationChange:(NSString*)urlSpec isNewPage:(BOOL)newPage requestSucceeded:(BOOL)requestOK
 {
-  if (newPage)
-  {
+  if (newPage) {
     // Defer hiding of extra views until we've loaded the new page.
     // If we are being called from within a history navigation, then core code
     // has already stored our old size, and will incorrectly truncate the page
@@ -625,13 +614,11 @@ enum StatusPriority {
     [mDetectedSearchPlugins removeAllObjects];
 
     NSString* faviconURI = [SiteIconProvider defaultFaviconLocationStringFromURI:urlSpec];
-    if (requestOK && [faviconURI length] > 0)
-    {
+    if (requestOK && [faviconURI length] > 0) {
       SiteIconProvider* faviconProvider = [SiteIconProvider sharedFavoriteIconProvider];
 
       // if the favicon uri has changed, do the favicon load
-      if (![faviconURI isEqualToString:mSiteIconURI])
-      {
+      if (![faviconURI isEqualToString:mSiteIconURI]) {
         // first get a cached image for this site, if we have one. we'll go ahead
         // and request the load anyway, in case the site updated their icon.
         NSImage*  cachedImage = [faviconProvider favoriteIconForPage:urlSpec];
@@ -639,12 +626,11 @@ enum StatusPriority {
 
         if (cachedImage)
           cachedImageURI = faviconURI;
-        
+
         // immediately update the site icon (to the cached one, or the default)
         [self updateSiteIconImage:cachedImage withURI:cachedImageURI loadError:NO];
 
-        if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL])
-        {
+        if ([[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL]) {
           // note that this is the only time we hit the network for site icons.
           // note also that we may get a site icon from a link element later,
           // which will replace any we get from the default location.
@@ -656,8 +642,7 @@ enum StatusPriority {
         }
       }
     }
-    else
-    {
+    else {
       if ([urlSpec hasPrefix:@"about:"])
         faviconURI = urlSpec;
       else
@@ -666,7 +651,7 @@ enum StatusPriority {
       [self updateSiteIconImage:nil withURI:faviconURI loadError:!requestOK];
     }
   }
-  
+
   [mDelegate updateLocationFields:urlSpec ignoreTyping:NO];
 
   // see if someone wants to replace the main view
@@ -691,7 +676,7 @@ enum StatusPriority {
   [mDelegate showSecurityState:mSecureState];
 }
 
-- (void)setStatus:(NSString *)statusString ofType:(NSStatusType)type 
+- (void)setStatus:(NSString *)statusString ofType:(NSStatusType)type
 {
   StatusPriority priority;
 
@@ -730,7 +715,7 @@ enum StatusPriority {
 {
   [mDisplayTitle autorelease];
   mDisplayTitle = [[self displayTitleForPageURL:[self currentURI] title:title] retain];
-  
+
   [mTabItem setLabel:mDisplayTitle];
   [mDelegate updateWindowTitle:mDisplayTitle];
 }
@@ -744,8 +729,7 @@ enum StatusPriority {
   if ([inTitle length] > 0)
     return inTitle;
 
-  if (![inURL isEqualToString:@"about:blank"])
-  {
+  if (![inURL isEqualToString:@"about:blank"]) {
     if ([inURL hasPrefix:@"file://"])
       return [inURL lastPathComponent];
 
@@ -818,13 +802,11 @@ enum StatusPriority {
   BOOL useSiteIcons = [[PreferenceManager sharedInstance] getBooleanPref:kGeckoPrefEnableFavicons withSuccess:NULL];
   if (!useSiteIcons)
     return;
-  
-  if ([inIconURI length] > 0)
-  {
+
+  if ([inIconURI length] > 0) {
     // if the favicon uri has changed, fire off favicon load. When it completes, our
     // imageLoadedNotification selector gets called.
-    if (![inIconURI isEqualToString:mSiteIconURI])
-    {
+    if (![inIconURI isEqualToString:mSiteIconURI]) {
       [[SiteIconProvider sharedFavoriteIconProvider] fetchFavoriteIconForPage:[self currentURI]
                                                              withIconLocation:inIconURI
                                                                  allowNetwork:YES
@@ -837,10 +819,10 @@ enum StatusPriority {
 {
   // add the two in variables to a dictionary, then store in the feed array
   NSDictionary* feed = [NSDictionary dictionaryWithObjectsAndKeys:inFeedURI, @"feeduri", inFeedTitle, @"feedtitle", nil];
-  
+
   if (!mFeedList)
     mFeedList = [[NSMutableArray alloc] init];
-  
+
   [mFeedList addObject:feed];
   // notify the browser UI that a feed was found
   [mDelegate showFeedDetected:YES];
@@ -851,7 +833,7 @@ enum StatusPriority {
   if ([XMLSearchPluginParser canParsePluginMIMEType:pluginMIMEType]) {
     NSDictionary* searchPluginDict = [NSDictionary dictionaryWithObjectsAndKeys:pluginURL, kWebSearchPluginURLKey,
                                                                                 pluginMIMEType, kWebSearchPluginMIMETypeKey,
-                                                                                pluginName, kWebSearchPluginNameKey, 
+                                                                                pluginName, kWebSearchPluginNameKey,
                                                                                 nil];
     [mDetectedSearchPlugins addObject:searchPluginDict];
     [mDelegate showSearchPluginDetected:YES];
@@ -903,7 +885,7 @@ enum StatusPriority {
 //
 - (void)deleteBackward:(id)sender
 {
-  // there are times when backspaces can seep through from IME gone wrong. As a 
+  // there are times when backspaces can seep through from IME gone wrong. As a
   // workaround until we can get them all fixed, ignore backspace when the
   // focused widget is a text field or plugin
   if ([mBrowserView isTextFieldFocused] || [mBrowserView isPluginFocused])
@@ -922,12 +904,12 @@ enum StatusPriority {
   // support 1 (PgUp/PgDn) as it has no precedent on Mac OS.
 }
 
--(NSMenu*)contextMenu
+- (NSMenu*)contextMenu
 {
   return [[mWindow delegate] contextMenu];
 }
 
--(NSWindow*)nativeWindow
+- (NSWindow*)nativeWindow
 {
   // use the view's window first
   NSWindow* viewsWindow = [self window];
@@ -944,7 +926,7 @@ enum StatusPriority {
 // Gecko wants us to close the browser associated with this gecko instance. However,
 // we're just one tab in the window so we don't really have the power to do this.
 // Let the window controller have final say.
-// 
+//
 - (void)closeBrowserWindow
 {
   [[mWindow delegate] closeBrowserWindow:self];
@@ -966,7 +948,7 @@ enum StatusPriority {
 // willShowPrompt
 //
 // Called before a prompt is shown for the contained view
-// 
+//
 - (void)willShowPrompt
 {
   [[mWindow delegate] willShowPromptForBrowser:self];
@@ -999,7 +981,7 @@ enum StatusPriority {
   float scaleFactor = [[self window] userSpaceScaleFactor];
   frame.size.width += dx * scaleFactor;
   frame.size.height += dy * scaleFactor;
-  
+
   // if we just call setFrame, it will change the top-left corner of the
   // window as it pulls the extra space from the top and right sides of the window,
   // which is not at all what the website desired. We must preserve
@@ -1010,14 +992,14 @@ enum StatusPriority {
 
 - (CHBrowserView*)createBrowserWindow:(unsigned int)aMask
 {
-  BrowserWindowController* controller = [[BrowserWindowController alloc] initWithWindowNibName: @"BrowserWindow"];
-  [controller setChromeMask: aMask];
+  BrowserWindowController* controller = [[BrowserWindowController alloc] initWithWindowNibName:@"BrowserWindow"];
+  [controller setChromeMask:aMask];
   [controller disableAutosave]; // The Web page opened this window, so we don't ever use its settings.
   [controller disableLoadPage]; // don't load about:blank initially since this is a script-opened window
-  
+
   [controller window];		// force window load. The window gets made visible by CHBrowserListener::SetVisibility
-  
-  [[controller browserWrapper] setPendingActive: YES];
+
+  [[controller browserWrapper] setPendingActive:YES];
   return [[controller browserWrapper] browserView];
 }
 
@@ -1037,7 +1019,7 @@ enum StatusPriority {
   if (openNewWindow == kSingleWindowModeUseNewTab) {
     // If browser.tabs.loadDivertedInBackground isn't set, we decide whether or
     // not to open the new tab in the background based on whether we're the fg
-    // tab. If we are, we assume the user wants to see the new tab because it's 
+    // tab. If we are, we assume the user wants to see the new tab because it's
     // contextually relevant. If this tab is in the bg, the user doesn't want to
     // be bothered with a bg tab throwing things up in their face. We know
     // we're in the bg if our delegate is nil.
@@ -1102,11 +1084,9 @@ enum StatusPriority {
   BOOL     resetTabIcon     = NO;
   BOOL     tabIconDraggable = YES;
   NSImage* siteIcon         = inSiteIcon;
-  
-  if (![mSiteIconURI isEqualToString:inSiteIconURI] || inLoadError)
-  {
-    if (!siteIcon)
-    {
+
+  if (![mSiteIconURI isEqualToString:inSiteIconURI] || inLoadError) {
+    if (!siteIcon) {
       if (inLoadError)
         siteIcon = [NSImage imageNamed:@"error_page_site_icon"];
       else
@@ -1118,16 +1098,15 @@ enum StatusPriority {
 
     [self setSiteIconImage:siteIcon];
     [self setSiteIconURI:inSiteIconURI];
-  
+
     // update the proxy icon
     [mDelegate updateSiteIcons:mSiteIconImage ignoreTyping:NO];
-      
+
     resetTabIcon = YES;
   }
 
   // update the tab icon
-  if ([mTabItem isMemberOfClass:[BrowserTabViewItem class]])
-  {
+  if ([mTabItem isMemberOfClass:[BrowserTabViewItem class]]) {
     BrowserTabViewItem* tabItem = (BrowserTabViewItem*)mTabItem;
     if (resetTabIcon || ![tabItem tabIcon])
       [tabItem setTabIcon:mSiteIconImage isDraggable:tabIconDraggable];
@@ -1152,15 +1131,14 @@ enum StatusPriority {
 - (void)imageLoadedNotification:(NSNotification*)notification
 {
   NSDictionary* userInfo = [notification userInfo];
-  if (userInfo)
-  {
+  if (userInfo) {
   	NSImage*  iconImage     = [userInfo objectForKey:SiteIconLoadImageKey];
     NSString* siteIconURI   = [userInfo objectForKey:SiteIconLoadURIKey];
     NSString* pageURI       = [userInfo objectForKey:SiteIconLoadUserDataKey];
-    
+
     if (iconImage == nil)
       siteIconURI = @"";	// go back to default image
-  
+
     if ([pageURI isEqualToString:[self currentURI]]) // make sure it's for the current page
       [self updateSiteIconImage:iconImage withURI:siteIconURI loadError:NO];
   }
@@ -1196,7 +1174,7 @@ enum StatusPriority {
   // Check for any potential security implications as determined by nsIScriptSecurityManager's
   // DISALLOW_INHERIT_PRINCIPAL. (e.g. |javascript:| or |data:| URIs)
   nsCOMPtr<nsIDOMWindow> domWindow = [mBrowserView contentWindow];
-  if (!domWindow) 
+  if (!domWindow)
     return NO;
   nsCOMPtr<nsIDOMDocument> domDocument;
   domWindow->GetDocument(getter_AddRefs(domDocument));
@@ -1208,9 +1186,9 @@ enum StatusPriority {
   nsCOMPtr<nsIScriptSecurityManager> scriptSecurityManager(do_GetService(NS_SCRIPTSECURITYMANAGER_CONTRACTID));
   if (!scriptSecurityManager)
     return NO;
-  nsresult uriIsSafe = 
-    scriptSecurityManager->CheckLoadURIWithPrincipal(document->NodePrincipal(), 
-                                                     document->GetDocumentURI(), 
+  nsresult uriIsSafe =
+    scriptSecurityManager->CheckLoadURIWithPrincipal(document->NodePrincipal(),
+                                                     document->GetDocumentURI(),
                                                      nsIScriptSecurityManager::DISALLOW_INHERIT_PRINCIPAL);
   return (NS_SUCCEEDED(uriIsSafe) ? YES : NO);
 }
@@ -1330,7 +1308,7 @@ enum StatusPriority {
 {
   if ([self popupsBlocked] && !mBlockedPopupView) {
     [NSBundle loadNibNamed:@"PopupBlockView" owner:self];
-    
+
     NSString* currentHost = [[NSURL URLWithString:[self currentURI]] host];
     if (!currentHost)
       currentHost = NSLocalizedString(@"GenericHostString", nil);
@@ -1338,7 +1316,7 @@ enum StatusPriority {
     [mBlockedPopupCloseButton setImage:[NSImage imageNamed:@"popup_close"]];
     [mBlockedPopupCloseButton setAlternateImage:[NSImage imageNamed:@"popup_close_pressed"]];
     [mBlockedPopupCloseButton setHoverImage:[NSImage imageNamed:@"popup_close_hover"]];
-    
+
     [self addSubview:mBlockedPopupView];
     [self setFrame:[self frame] resizingBrowserViewIfHidden:YES];
     [self display];
