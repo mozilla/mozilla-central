@@ -50,9 +50,9 @@ Click, 360, 360
 WinWaitActive, ahk_class ConsoleWindowClass, , 60
 if ErrorLevel
    Exit
-Sleep 500
+Sleep 2000
 Send, n{Enter}
-Sleep 500
+Sleep 2000
 Send, {Enter}
 WinWait, Minimal SYStem, Finished, 10
 if ErrorLevel
