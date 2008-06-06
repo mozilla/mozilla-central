@@ -303,7 +303,6 @@ pkix_VerifyNode_AddToTree(
         void *plContext)
 {
         PKIX_List *listOfChildren = NULL;
-        PKIX_UInt32 numChildren = 0;
         PKIX_UInt32 parentDepth = 0;
 
         PKIX_ENTER(VERIFYNODE, "pkix_VerifyNode_AddToTree");

@@ -1816,6 +1816,10 @@ cert_pkixDestroyValOutParam(CERTValOutParam *params)
                 CERT_DestroyCertList(i->value.pointer.chain);
                 i->value.pointer.chain = NULL;
             }
+            break;
+
+        default:
+            break;
         }
     }
 }

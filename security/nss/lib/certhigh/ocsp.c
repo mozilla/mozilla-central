@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.52 2008-05-21 00:08:33 nelson%bolyard.com Exp $
+ * $Id: ocsp.c,v 1.53 2008-06-06 01:15:25 wtc%google.com Exp $
  */
 
 #include "prerror.h"
@@ -2718,7 +2718,7 @@ ocsp_ParseURL(const char *url, char **pHostname, PRUint16 *pPort, char **pPath)
     unsigned short port = 80;		/* default, in case not in url */
     char *hostname = NULL;
     char *path = NULL;
-    char *save;
+    const char *save;
     char c;
     int len;
 

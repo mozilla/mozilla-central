@@ -36,7 +36,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-/* $Id: derive.c,v 1.11 2008-06-04 01:27:36 wtc%google.com Exp $ */
+/* $Id: derive.c,v 1.12 2008-06-06 01:16:31 wtc%google.com Exp $ */
 
 #include "ssl.h" 	/* prereq to sslimpl.h */
 #include "certt.h"	/* prereq to sslimpl.h */
@@ -599,7 +599,6 @@ SSL_CanBypass(CERTCertificate *cert, SECKEYPrivateKey *srvPrivkey,
     CK_MECHANISM_TYPE mechanism_array[2];
     SECItem           enc_pms = {siBuffer, NULL, 0};
     PRBool	      isTLS = PR_FALSE;
-    PRBool	      isDH = PR_FALSE;
     SSLCipherSuiteInfo csdef;
     PRBool	      testrsa = PR_FALSE;
     PRBool	      testrsa_export = PR_FALSE;
