@@ -77,7 +77,7 @@ $LayoutPerformanceTest    = 1;  # Tp
 #$QATest                   = 0;  
 $XULWindowOpenTest        = 1;  # Txul
 $StartupPerformanceTest   = 1;  # Ts
-$RunUnitTests             = 1;  # TUnit
+#$RunUnitTests             = 0;  # TUnit
 $LocaleProduct = "suite";
 @CompareLocaleDirs = (
   "netwerk",
