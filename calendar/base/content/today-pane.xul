@@ -66,10 +66,14 @@
       <sidebarheader align="center">
         <label id ="today-pane-header"/>
         <spacer flex="1"/>
-        <toolbarbutton id="folderview-cycler-left"  class="folderview-cycler"
-                       oncommand="TodayPane.cyclePaneView(-1);"/>
-        <toolbarbutton id="folderview-cycler-right" class="folderview-cycler"
-                       oncommand="TodayPane.cyclePaneView(1);"/>
+        <modehbox mode="mail,calendar" broadcaster="modeBroadcaster">
+          <toolbarbutton id="folderview-cycler-left"  
+                         class="folderview-cycler"
+                         oncommand="TodayPane.cyclePaneView(-1);"/>
+          <toolbarbutton id="folderview-cycler-right" 
+                         class="folderview-cycler"
+                         oncommand="TodayPane.cyclePaneView(1);"/>
+        </modehbox>
         <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="today-closebutton"
                        oncommand="document.getElementById('today-pane-panel').setVisible(false, true, true);"/>
@@ -198,7 +202,7 @@
                        ondblclick="agendaListbox.createNewEvent(event);"/>
         </modevbox>
         <splitter id="today-pane-splitter" persist="hidden"/>
-        <modevbox id="todo-tab-panel" flex="1" mode="mail,calendar,task"
+        <modevbox id="todo-tab-panel" flex="1" mode="mail,calendar"
                   broadcaster="modeBroadcaster" persist="height"
                   ondraggesture="nsDragAndDrop.startDrag(event, calendarTaskButtonDNDObserver);"
                   ondragover="nsDragAndDrop.dragOver(event, calendarTaskButtonDNDObserver);"

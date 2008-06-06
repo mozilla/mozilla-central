@@ -52,10 +52,10 @@ var TodayPane = {
       this.initializeMiniday();
       this.setShortWeekdays();
       document.getElementById("modeBroadcaster").addEventListener("DOMAttrModified", this.onModeModified, false);
-      this.setTodayHeader(this.getTodayHeaderValue());
+      this.setTodayHeader();
   },
 
-  getTodayHeaderValue: function getTodayHeaderValue() {
+  setTodayHeader: function setTodayHeader() {
       var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
       var agendaIsVisible = document.getElementById("agenda-panel").isVisible(currentMode);
       var todoIsVisible = document.getElementById("todo-tab-panel").isVisible(currentMode);
@@ -66,15 +66,11 @@ var TodayPane = {
       } else if (agendaIsVisible && (!todoIsVisible)) {
           var index = 2;
       }
-      return index;
-  },
-
-  setTodayHeader: function setTodayHeader(aIndex) {
       var todayHeader = document.getElementById("today-pane-header");
-      todayHeader.setAttribute("index", aIndex);
-      todayHeader.setAttribute("value", this.paneViews[aIndex]);
+      todayHeader.setAttribute("index", index);
+      todayHeader.setAttribute("value", this.paneViews[index]);
       var todayPaneSplitter = document.getElementById("today-pane-splitter");
-      setBooleanAttribute(todayPaneSplitter, "hidden", (aIndex != 0));
+      setBooleanAttribute(todayPaneSplitter, "hidden", (index != 0));
   },
 
   initializeMiniday: function initializeMiniday() {
@@ -118,9 +114,10 @@ var TodayPane = {
       }
       var agendaPanel = document.getElementById("agenda-panel");
       var todoPanel = document.getElementById("todo-tab-panel");
-      agendaPanel.setVisible(index != 1);
-      todoPanel.setVisible(index != 2);
-      this.setTodayHeader(index);
+      var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
+      agendaPanel.setVisible(index != 1 && agendaPanel.isVisibleInMode(currentMode));
+      todoPanel.setVisible(index != 2 && todoPanel.isVisibleInMode(currentMode));
+      this.setTodayHeader();
   },
 
   setShortWeekdays: function setShortWeekdays() {
@@ -181,7 +178,7 @@ var TodayPane = {
   // DOMAttrModified handler that listens to the todaypane-splitter
   onModeModified: function onModeModified(aEvent) {
       if (aEvent.attrName == "mode") {
-          TodayPane.setTodayHeader(TodayPane.getTodayHeaderValue());
+          TodayPane.setTodayHeader();
           var todaypanebox = document.getElementById("today-pane-panel");
           if (todaypanebox.isVisible()) {
               document.getElementById("today-splitter").setAttribute("state", "open");

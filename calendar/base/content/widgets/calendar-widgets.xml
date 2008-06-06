@@ -142,8 +142,11 @@
          <parameter name="aMode"/>
          <body><![CDATA[
              var lMode = aMode || this.currentMode;
+             if (!this.isVisibleInMode(lMode)) {
+                 return false;
+             }
              var collapsedModes = this.getAttribute("collapsedinmodes").split(",");
-             var modeIndex = collapsedModes.indexOf(this.currentMode);
+             var modeIndex = collapsedModes.indexOf(lMode);
              return (modeIndex == -1);
          ]]></body>
       </method>
@@ -196,7 +199,7 @@
         ]]></body>
       </method>
 
-      <method name="_isVisibleInCurrentMode">
+      <method name="isVisibleInMode">
         <parameter name="aMode"/>
         <body><![CDATA[
             var lMode = aMode || this.currentMode;
@@ -218,7 +221,7 @@
         <parameter name="aBinding"/>
         <body><![CDATA[
             if (aEvent.attrName == "mode") {
-                var display = aBinding._isVisibleInCurrentMode(aEvent.newValue);
+                var display = aBinding.isVisibleInMode(aEvent.newValue);
                 aBinding.setVisible(display, false, true);
             }
         ]]></body>
