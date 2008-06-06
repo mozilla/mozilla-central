@@ -469,7 +469,7 @@ function issueNetworkRequest(parentRequest, respFunc, url, bLogging) {
         } else {
             loader.init(netRequest,
                         Components.interfaces.nsIUnicharStreamLoader.DEFAULT_SEGMENT_SIZE);
-            channel.asyncOpen(netRequest, null);
+            channel.asyncOpen(loader, null);
         }
     } catch (exc) {
         netRequest.execRespFunc(exc);

@@ -350,7 +350,7 @@ calCalendarManager.prototype = {
 
         var sqlTables = { cal_calendars: "id INTEGER PRIMARY KEY, type TEXT, uri TEXT",
                           cal_calendars_prefs: "id INTEGER PRIMARY KEY, calendar INTEGER, name TEXT, value TEXT",
-                          cal_calmgr_schema_version: "version INTEGER",
+                          cal_calmgr_schema_version: "version INTEGER"
                         };
 
         // Should we check the schema version to see if we need to upgrade?
