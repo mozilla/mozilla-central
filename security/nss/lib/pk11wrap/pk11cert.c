@@ -860,7 +860,6 @@ PK11_ImportCert(PK11SlotInfo *slot, CERTCertificate *cert,
 	nssCertificateStore_Lock(cc->certStore, &lockTrace);
 	nssCertificateStore_RemoveCertLOCKED(cc->certStore, c);
 	nssCertificateStore_Unlock(cc->certStore, &lockTrace, &unlockTrace);
-        nssCertificateStore_Check(&lockTrace, &unlockTrace);
 	c->object.cryptoContext = NULL;
 	cert->istemp = PR_FALSE;
 	cert->isperm = PR_TRUE;
