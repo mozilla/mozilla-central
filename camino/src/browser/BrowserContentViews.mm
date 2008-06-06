@@ -217,6 +217,8 @@ static const float kMinBrowserViewHeight = 100.0;
 
   [mTabThumbnailGridView release];
   mTabThumbnailGridView = nil;
+
+  [self resizeSubviewsWithOldSize:[self frame].size];
 }
 
 - (void)toggleTabThumbnailGridView
