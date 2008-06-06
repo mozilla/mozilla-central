@@ -2265,3 +2265,18 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
     // Send it!
     transport.sendItems(recipients.length, recipients, subject, body, itipItem);
 }
+ 
+function compareItemContent(aFirstItem, aSecondItem) {
+    function hashItem(aItem) {
+        var icalString = aItem.icalString;
+        icalString = icalString.replace(/\r\nLAST-MODIFIED:.+/, "");
+        icalString = icalString.replace(/\r\nDTSTAMP:.+/, "");
+        var propStrings = icalString.split("\n");
+        propStrings.sort();
+        return propStrings.join("\n");
+    }
+    var firstIcalString = hashItem(aFirstItem);
+    var secondIcalString = hashItem(aSecondItem);
+    return (firstIcalString == secondIcalString);
+}
+

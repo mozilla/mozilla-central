@@ -205,9 +205,6 @@ function onCommandCancel() {
     var newItem = saveItem();
     var oldItem = window.calendarItem.clone();
 
-    newItem.deleteProperty("DTSTAMP");
-    oldItem.deleteProperty("DTSTAMP");
-
     // we need to guide the description text through the text-field since
     // newlines are getting converted which would indicate changes to the
     // text.
@@ -217,10 +214,7 @@ function onCommandCancel() {
                     getElementValue("item-description"));
     setElementValue("item-description", newItem.getProperty("DESCRIPTION"));
 
-    // compare old and new version of this item. we ask the item for its
-    // representation as icalString in order to have some easily comparable
-    // form we can work with.
-    if (newItem.icalString == oldItem.icalString) {
+    if (compareItemContent(newItem, oldItem)) {
         return true;
     }
 
