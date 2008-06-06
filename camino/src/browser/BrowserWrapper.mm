@@ -520,12 +520,7 @@ enum StatusPriority {
   [self updateStatusString:NSLocalizedString(@"TabLoading", @"") withPriority:eStatusProgress];
 
   [(BrowserTabViewItem*)mTabItem startLoadAnimation];
-  
-  [mDelegate showFeedDetected:NO];
-  [mFeedList removeAllObjects];
-  [mDelegate showSearchPluginDetected:NO];
-  [mDetectedSearchPlugins removeAllObjects];
-  
+
   [mTabItem setLabel:NSLocalizedString(@"TabLoading", @"")];
 }
 
@@ -623,7 +618,12 @@ enum StatusPriority {
     if(mBlockedPopups)
       mBlockedPopups->Clear();
     [mDelegate showPopupBlocked:NO];
-  
+
+    [mDelegate showFeedDetected:NO];
+    [mFeedList removeAllObjects];
+    [mDelegate showSearchPluginDetected:NO];
+    [mDetectedSearchPlugins removeAllObjects];
+
     NSString* faviconURI = [SiteIconProvider defaultFaviconLocationStringFromURI:urlSpec];
     if (requestOK && [faviconURI length] > 0)
     {
