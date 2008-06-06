@@ -299,6 +299,13 @@ bin\chrome\toolkit.manifest
 ; [Calendar Chrome Icons]
 bin\chrome\icons\default\calendar-alarm-dialog.ico
 
+; [calendar-timezones]
+bin\extensions\calendar-timezones@mozilla.org\install.rdf
+bin\extensions\calendar-timezones@mozilla.org\timezones.sqlite
+bin\extensions\calendar-timezones@mozilla.org\chrome.manifest
+bin\extensions\calendar-timezones@mozilla.org\chrome\*
+bin\extensions\calendar-timezones@mozilla.org\defaults\preferences\preferences.js
+
 ; [Default Preferences]
 ; All the pref files must be part of base to prevent migration bugs
 bin\defaults\pref\sunbird.js
