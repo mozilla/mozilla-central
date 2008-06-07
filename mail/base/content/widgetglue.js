@@ -164,7 +164,10 @@ function MsgCompactFolder(isAll)
       }
     }
     var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    msgFolder.compact(null, msgWindow);
+    if (isAll)
+      msgFolder.compactAll(null, msgWindow, null, true, null);
+    else
+      msgFolder.compact(null, msgWindow);
   }
 }
 
