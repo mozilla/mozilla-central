@@ -37,11 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
-
-var gDialog;
+var gPickedFolder;
 var gMailView = null;
-var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
 var msgWindow; // important, don't change the name of this variable. it's really a global used by commandglue.js
 var gSearchTermSession; // really an in memory temporary filter we use to read in and write out the search terms
 var gSearchFolderURIs = "";
@@ -50,29 +47,21 @@ function onLoad()
 {
   var arguments = window.arguments[0];
 
-  gDialog = {};
-
-  gDialog.OKButton = document.documentElement.getButton("accept");
-
-  gDialog.nameField = document.getElementById("name");
-  gDialog.nameField.focus();
+  document.getElementById("name").focus();
 
   // call this when OK is pressed
   msgWindow = arguments.msgWindow;
-
-  // pre select the folderPicker, based on what they selected in the folder pane
-  gDialog.picker = document.getElementById("msgNewFolderPicker");
-  MsgFolderPickerOnLoad("msgNewFolderPicker");
 
   initializeSearchWidgets();
   setSearchScope(nsMsgSearchScope.offlineMail);
 
   if (arguments.editExistingFolder)
-    InitDialogWithVirtualFolder(arguments.preselectedURI);
+    InitDialogWithVirtualFolder(arguments.folder ? arguments.folder.URI : null);
   else // we are creating a new virtual folder
   {
     // it is possible that we were given arguments to pre-fill the dialog with...
-    gSearchTermSession = Components.classes[searchSessionContractID].createInstance(Components.interfaces.nsIMsgSearchSession);
+    gSearchTermSession = Components.classes["@mozilla.org/messenger/searchSession;1"]
+                                   .createInstance(Components.interfaces.nsIMsgSearchSession);
 
     if (arguments.searchTerms) // then add them to our search session
     {
@@ -80,14 +69,20 @@ function onLoad()
       for (var searchIndex = 0; searchIndex < count; )
         gSearchTermSession.appendTerm(arguments.searchTerms.QueryElementAt(searchIndex++, Components.interfaces.nsIMsgSearchTerm));
     }
-    if (arguments.preselectedURI)
+    if (arguments.folder)
     {
-      var folderToSearch = GetMsgFolderFromUri(arguments.preselectedURI, false);
-      SetFolderPicker(folderToSearch.parent ? folderToSearch.parent.URI : arguments.preselectedURI, "msgNewFolderPicker");
+      // pre select the folderPicker, based on what they selected in the folder pane
+      gPickedFolder = arguments.folder;
+      try {
+        document.getElementById("msgNewFolderPopup").selectFolder(arguments.folder);
+      } catch(ex) {
+        document.getElementById("msgNewFolderPicker")
+                .setAttribute("label", arguments.folder.prettyName);
+      }
 
       // if the passed in URI is not a server then pre-select it as the folder to search
-      if (!folderToSearch.isServer)
-        gSearchFolderURIs = arguments.preselectedURI;
+      if (!arguments.folder.isServer)
+        gSearchFolderURIs = arguments.folder.URI;
     }
     if (arguments.newFolderName)
       document.getElementById("name").value = arguments.newFolderName;
@@ -163,10 +158,16 @@ function InitDialogWithVirtualFolder(aVirtualFolderURI)
   document.title = messengerBundle.getFormattedString('editVirtualFolderPropertiesTitle', [msgFolder.prettyName]);
 }
 
+function onFolderPick(aEvent) {
+  gPickedFolder = aEvent.target._folder;
+  document.getElementById("msgNewFolderPicker")
+          .setAttribute("label", gPickedFolder.prettyName);
+}
+
 function onOK()
 {
-  var name = gDialog.nameField.value;
-  var uri = gDialog.picker.getAttribute("uri");
+  var name = document.getElementById("name").value;
+  var uri = gPickedFolder.URI;
   var messengerBundle = document.getElementById("bundle_messenger");
   var searchOnline = document.getElementById('searchOnline').checked;
 
@@ -182,7 +183,7 @@ function onOK()
     saveSearchTerms(gSearchTermSession.searchTerms, gSearchTermSession);
     var searchTermString = getSearchTermString(gSearchTermSession.searchTerms);
 
-    var msgFolder = GetMsgFolderFromUri(window.arguments[0].preselectedURI);
+    var msgFolder = window.arguments[0].folder;
     var msgDatabase = msgFolder.getMsgDatabase(msgWindow);
     var dbFolderInfo = msgDatabase.dBFolderInfo;
 
@@ -233,13 +234,8 @@ function onCancel()
 
 function doEnabling()
 {
-  if (gDialog.nameField.value && gDialog.picker.getAttribute("uri"))
-  {
-    if (gDialog.OKButton.disabled)
-      gDialog.OKButton.disabled = false;
-  }
-  else
-    gDialog.OKButton.disabled = true;
+  var acceptButton = document.documentElement.getButton("accept");
+  acceptButton.disabled = !document.getElementById("name").value;
 }
 
 function chooseFoldersToSearch()

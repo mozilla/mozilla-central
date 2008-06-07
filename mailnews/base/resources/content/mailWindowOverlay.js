@@ -1211,7 +1211,11 @@ function MsgNewFolder(callBackFunctionName)
             dump ("Exception: dualUseFolders = true\n");
         }
     }
-    CreateNewSubfolder("chrome://messenger/content/newFolderDialog.xul", destinationFolder, dualUseFolders, callBackFunctionName);
+    window.openDialog("chrome://messenger/content/newFolderDialog.xul",
+                      "", "chrome,titlebar,modal",
+                      {folder: destinationFolder,
+                       dualUseFolders: dualUseFolders,
+                       okCallback:callBackFunctionName});
 }
 
 function getDestinationFolder(preselectedFolder, server)

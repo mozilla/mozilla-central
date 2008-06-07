@@ -173,14 +173,14 @@ function MsgCompactFolder(isAll)
 
 function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
 {
-  var folderURI = GetSelectedFolderURI();
+  var folder = GetFirstSelectedMsgFolder();
   var folderTree = GetFolderTree();
-  var name = GetFolderNameFromUri(folderURI, folderTree);
+  var name = GetFolderNameFromUri(folder.URI, folderTree);
   name += "-" + defaultViewName;
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
-                                 {preselectedURI:folderURI,
+                                 {folder:folder,
                                   searchTerms:aSearchTerms,
                                   newFolderName:name});
 }
@@ -188,17 +188,10 @@ function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
 function MsgVirtualFolderProperties(aEditExistingVFolder)
 {
   var preselectedFolder = GetFirstSelectedMsgFolder();
-  var preselectedURI;
-  if(preselectedFolder)
-  {
-    var preselectedFolderResource = preselectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if(preselectedFolderResource)
-      preselectedURI = preselectedFolderResource.Value;
-  }
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
-                                 {preselectedURI:preselectedURI,
+                                 {folder:preselectedFolder,
                                   editExistingFolder: aEditExistingVFolder,
                                   onOKCallback:onEditVirtualFolderPropertiesCallback,
                                   msgWindow:msgWindow});

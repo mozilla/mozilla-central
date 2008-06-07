@@ -40,16 +40,18 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/searchDialog.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/dialogOverlay.xul"?>
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/searchTermOverlay.xul"?>
 
-<!DOCTYPE window SYSTEM "chrome://messenger/locale/virtualFolderProperties.dtd">
+<!DOCTYPE window [
+<!ENTITY % folderDTD SYSTEM "chrome://messenger/locale/virtualFolderProperties.dtd">%folderDTD;
+<!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd"> %pickerDTD;
+]>
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
-        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         id="virtualFolderPropertiesDialog"
         title="&virtualFolderProperties.title;"
         onload="onLoad();"
@@ -85,7 +87,11 @@
 
       <row align="center"  id="chooseFolderLocationRow">
         <label value="&description.label;" accesskey="&description.accesskey;" control="msgNewFolderPicker"/>
-        <menulist id="msgNewFolderPicker" flex="1" oncommand="doEnabling();"/>
+        <menulist id="msgNewFolderPicker" flex="1" oncommand="onFolderPick(event);">
+          <menupopup id="msgNewFolderPopup" type="folder" mode="newFolder"
+                     showFileHereLabel="true"
+                     fileHereLabel="&newfolderchoosethis.label;" />
+        </menulist>
         <spring/>
       </row>
 

@@ -296,27 +296,6 @@ function NewMessageToSelectedAddresses(type, format, identity) {
   }
 }
 
-function CreateNewSubfolder(chromeWindowURL, preselectedMsgFolder,
-                            dualUseFolders, callBackFunctionName)
-{
-  var preselectedURI;
-
-  if (preselectedMsgFolder)
-  {
-    var preselectedFolderResource = preselectedMsgFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-    if (preselectedFolderResource)
-      preselectedURI = preselectedFolderResource.Value;
-    dump("preselectedURI = " + preselectedURI + "\n");
-  }
-
-  window.openDialog(chromeWindowURL,
-                    "",
-                    "chrome,titlebar,modal",
-                    {preselectedURI:preselectedURI,
-                      dualUseFolders:dualUseFolders,
-                      okCallback:callBackFunctionName});
-}
-
 function NewFolder(name, uri)
 {
   if (!uri || !name)

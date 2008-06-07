@@ -769,8 +769,7 @@ function BeginDragThreadPane(event)
 
 function saveAsVirtualFolder()
 {
-  var preselectedURI = gCurrentFolder.URI;
-  searchFolderURIs = preselectedURI;
+  searchFolderURIs = window.arguments[0].folder.URI;
 
   var searchSubfolders = document.getElementById("checkSearchSubFolders").checked;
   if (gCurrentFolder && (searchSubfolders || gCurrentFolder.isServer || gCurrentFolder.noSelect))
@@ -782,7 +781,7 @@ function saveAsVirtualFolder()
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
                                  "chrome,titlebar,modal,centerscreen",
-                                 {preselectedURI:preselectedURI,
+                                 {folder:window.arguments[0].folder,
                                   searchTerms:gSearchSession.searchTerms,
                                   searchFolderURIs: searchFolderURIs});
 }

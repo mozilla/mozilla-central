@@ -39,10 +39,13 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
-
-<!DOCTYPE dialog SYSTEM "chrome://messenger/locale/newFolderDialog.dtd">
+<!DOCTYPE dialog [
+<!ENTITY % newFolderDTD SYSTEM "chrome://messenger/locale/newFolderDialog.dtd">%newFolderDTD;
+<!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd"> %pickerDTD;
+]>
 
 <dialog xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -61,7 +64,10 @@
 
     <label value="&description.label;" accesskey="&description.accesskey;" control="msgNewFolderPicker"/>
 
-    <menulist id="msgNewFolderPicker" oncommand="doEnabling();"/>
+    <menulist id="msgNewFolderPicker" oncommand="onFolderSelect(event)">
+      <menupopup id="MsgNewFolderPopup" type="folder" showFileHereLabel="true"
+                 fileHereLabel="&newfolderchoosethis.label;" mode="newFolder"/>
+    </menulist>
 
     <vbox id="newFolderTypeBox">
 

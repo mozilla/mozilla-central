@@ -48,8 +48,6 @@ function onLoad()
 
   dialog = {};
 
-  dialog.OKButton = document.documentElement.getButton("accept");
-
   dialog.nameField = document.getElementById("name");
   dialog.nameField.focus();
 
@@ -57,8 +55,14 @@ function onLoad()
   dialog.okCallback = arguments.okCallback;
 
   // pre select the folderPicker, based on what they selected in the folder pane
-  dialog.picker = document.getElementById("msgNewFolderPicker");
-  MsgFolderPickerOnLoad("msgNewFolderPicker");
+  dialog.folder = arguments.folder;
+  try {
+    document.getElementById("MsgNewFolderPopup").selectFolder(arguments.folder);
+  } catch(ex) {
+    // selected a child folder
+      document.getElementById("msgNewFolderPicker")
+          .setAttribute("label", arguments.folder.prettyName);
+  }
 
   // can folders contain both folders and messages?
   if (arguments.dualUseFolders) {
@@ -77,10 +81,16 @@ function onLoad()
   doEnabling();
 }
 
+function onFolderSelect(event) {
+  dialog.folder = event.target._folder;
+  document.getElementById("msgNewFolderPicker")
+          .setAttribute("label", dialog.folder.prettyName);
+}
+
 function onOK()
 {
   var name = dialog.nameField.value;
-  var uri = dialog.picker.getAttribute("uri");
+  var uri = dialog.folder.URI;
 
   // do name validity check?
 
@@ -105,12 +115,6 @@ function onMessagesOnly()
 
 function doEnabling()
 {
-  if (dialog.nameField.value && dialog.picker.getAttribute("uri")) {
-    if (dialog.OKButton.disabled)
-      dialog.OKButton.disabled = false;
-  } else {
-    if (!dialog.OKButton.disabled)
-      dialog.OKButton.disabled = true;
-  }
+  document.documentElement.getButton("accept").disabled = !dialog.nameField.value;
 }
 
