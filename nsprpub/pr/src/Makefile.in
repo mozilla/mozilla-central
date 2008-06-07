@@ -94,11 +94,11 @@ OS_LIBS			= -lpthread ${LIBRT} -lsocket -lnsl -ldl -lc
 else
 OS_LIBS			= -lsocket -lnsl -ldl -lc
 endif	# USE_PTHREADS
-ifeq ($(OS_TEST),sun4u)
+ifeq ($(CPU_ARCH),sparc)
 ifndef USE_64
 DSO_LDOPTS	+= -Wl,-f,\$$ORIGIN/cpu/\$$ISALIST/lib$(ULTRASPARC_LIBRARY)$(LIBRARY_VERSION).so
 endif
-endif	# sun4u
+endif	# sparc
 endif	# 4.1.3_U1
 endif	# SunOS
 

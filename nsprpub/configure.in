@@ -1980,6 +1980,7 @@ mips-sony-newsos*)
     AC_DEFINE(__svr4__)
     AC_DEFINE(SOLARIS)
     AC_DEFINE(HAVE_FCNTL_FILE_LOCKING)
+    CPU_ARCH=`uname -p`
     MDCPUCFG_H=_solaris.cfg
     PR_MD_CSRCS=solaris.c
     LD=/usr/ccs/bin/ld
@@ -2088,8 +2089,8 @@ mips-sony-newsos*)
         AC_DEFINE(_PR_INET6)
         ;;
     esac
-    if test "$OS_TEST" = "sun4u"; then
-        # 64-bit Solaris requires SPARC V9 architecture, so the following
+    if test "$CPU_ARCH" = "sparc"; then
+        # 64-bit SPARC Solaris requires V9 architecture, so the following
         # is not needed.
         if test -z "$USE_64"; then
             ULTRASPARC_LIBRARY=nspr_flt
