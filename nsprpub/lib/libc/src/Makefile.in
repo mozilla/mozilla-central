@@ -54,13 +54,12 @@ CSRCS =\
 	strlen.c  \
 	strcpy.c  \
 	strdup.c  \
+	strcase.c \
 	strcat.c  \
 	strcmp.c  \
-	strccmp.c \
 	strchr.c  \
 	strpbrk.c \
 	strstr.c  \
-	strcstr.c \
 	strtok.c  \
 	base64.c \
 	plerror.c \
