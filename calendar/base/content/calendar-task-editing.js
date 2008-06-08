@@ -145,10 +145,19 @@ var taskEdit = {
     },
 
     calendarObserver: {
-        QueryInterface: function tE_QueryInterface(aIID) {
-            return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
+        QueryInterface: function tE_calObs_QueryInterface(aIID) {
+            return doQueryInterface(this, null, aIID,
                                     [Components.interfaces.calIObserver]);
         },
+
+        // calIObserver:
+        onStartBatch: function() {},
+        onEndBatch: function() {},
+        onLoad: function(aCalendar) {},
+        onAddItem: function(aItem) {},
+        onModifyItem: function(aNewItem, aOldItem) {},
+        onDeleteItem: function(aDeletedItem) {},
+        onError: function(aCalendar, aErrNo, aMessage) {},
 
         onPropertyChanged: function tE_calObs_onPropertyChanged(aCalendar,
                                                          aName,
@@ -175,29 +184,36 @@ var taskEdit = {
             // but should not be the same as the value, set it to a different
             // value.
             this.onPropertyChanged(aCalendar, aName, null, null);
-        },
-
-        __noSuchMethod__: function tE_calObs___noSuchMethod__(aMethod, aArgs) {
-            // Swallow other methods that don't need to be implemented
         }
     },
 
     compositeObserver: {
-        QueryInterface: function tE_QueryInterface(aIID) {
-            return doQueryInterface(this, calendarListTreeView.__proto__, aIID,
+        QueryInterface: function tE_compObs_QueryInterface(aIID) {
+            return doQueryInterface(this, null, aIID,
                                     [Components.interfaces.calIObserver,
                                      Components.interfaces.calICompositeObserver]);
         },
 
+        // calIObserver:
+        onStartBatch: function() {},
+        onEndBatch: function() {},
+        onLoad: function(aCalendar) {},
+        onAddItem: function(aItem) {},
+        onModifyItem: function(aNewItem, aOldItem) {},
+        onDeleteItem: function(aDeletedItem) {},
+        onError: function(aCalendar, aErrNo, aMessage) {},
+        onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {},
+        onPropertyDeleting: function(aCalendar, aName) {},
+
+        // calICompositeObserver:
+        onCalendarAdded: function onCalendarAdded(aCalendar) {},
+        onCalendarRemoved: function onCalendarRemoved(aCalendar) {},
         onDefaultCalendarChanged: function tE_compObs_onDefaultCalendarChanged(aNewDefault) {
             var taskEditFields = document.getElementsByAttribute("class", "task-edit-field");
             for (var i = 0; i < taskEditFields.length; i++) {
                 taskEdit.onBlur({ target: taskEditFields[i] });
             }
             taskEdit.observedCalendar = aNewDefault;
-        },
-        __noSuchMethod__: function tE_compObs___noSuchMethod__(aMethod, aArgs) {
-            // Swallow other methods that don't need to be implemented
         }
     }
 };
