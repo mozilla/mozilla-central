@@ -79,4 +79,5 @@ if "%USESDK%"=="1" (
 )
 
 cd "%USERPROFILE%"
-start "MSYS Shell - MSVC8 Environment" "%MOZBUILDDIR%msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i
+%MOZILLABUILD%\msys\bin\bash --login -i
+
