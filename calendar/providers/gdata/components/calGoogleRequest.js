@@ -251,6 +251,7 @@ calGoogleRequest.prototype = {
      *                  from calIGoogleErrors will be used.
      */
     fail: function cGR_fail(aCode, aMessage) {
+        this.mLoader = null;
         this.mStatus = aCode;
         this.responseListener.onResult(this, aMessage);
     },
