@@ -133,6 +133,7 @@ function onCheckboxChange(event) {
             }
         } while (!leaveloop);
     }
+    calendarController.onSelectionChanged({detail: []});    
 };
 
 agendaListbox.onSelect =
@@ -147,7 +148,7 @@ function onSelect(aListItem) {
     if (item) {
         item.removeAttribute("disabled");
     }
-    document.commandDispatcher.updateCommands('calendar_commands');
+    calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
 
 agendaListbox.onFocus =
@@ -155,6 +156,7 @@ function onFocus() {
     var listbox = document.getElementById("agenda-listbox");
     listbox.removeAttribute("disabled");
     this.enableListItems();
+    calendarController.onSelectionChanged({detail: agendaListbox.getSelectedItems()});
 }
 
 agendaListbox.onBlur =
@@ -163,7 +165,7 @@ function onBlur() {
     if (item) {
         item.setAttribute("disabled","true");
     }
-    document.commandDispatcher.updateCommands('calendar_commands');
+    calendarController.onSelectionChanged({detail: []});
 }
 
 agendaListbox.enableListItems =
@@ -398,8 +400,8 @@ function isEventSelected() {
 agendaListbox.deleteSelectedItem =
 function deleteSelectedItem(aDoNotConfirm) {
     var listItem = this.agendaListboxControl.selectedItem;
-    var selectedItems = [listItem.occurrence];
     if (this.isEventListItem(listItem)) {
+        var selectedItems = [listItem.occurrence];
         calendarViewController.deleteOccurrences(selectedItems.length,
                                                  selectedItems,
                                                  false,

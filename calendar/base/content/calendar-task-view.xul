@@ -64,8 +64,7 @@
         <calendar-task-tree id="calendar-task-tree" flex="1"
                             visible-columns="completed priority title startdate duedate"
                             persist="visible-columns ordinals widths sort-active sort-direction height"
-                            context="taskitem-context-menu"
-                            onselect="document.commandDispatcher.updateCommands('calendar_commands')"/>
+                            context="taskitem-context-menu"/>
         <splitter id="calendar-task-view-splitter" collapse="none" persist="state"/>
         <vbox id="calendar-task-details-container" flex="1">
           <hbox id="calendar-task-details">

@@ -112,8 +112,8 @@
                class="cal-toolbarbutton-1"
                label="&calendar.delete.button.label;"
                tooltiptext="&calendar.task.delete.button.tooltip;"
-               command="calendar_delete_todo_command"
-               observes="calendar_delete_todo_command"/>
+               command="calendar_delete_event_command"
+               observes="calendar_delete_event_command"/>
 <toolbarbutton id="task-print-button"
                mode="task"
                class="cal-toolbarbutton-1"

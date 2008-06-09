@@ -56,7 +56,7 @@ function commonInitCalendar() {
 
     // Set up item and day selection listeners
     getViewDeck().addEventListener("dayselect", observeViewDaySelect, false);
-    getViewDeck().addEventListener("itemselect", onSelectionChanged, true);
+    getViewDeck().addEventListener("itemselect", calendarController.onSelectionChanged, true);
 
     // Start alarm service
     Components.classes["@mozilla.org/calendar/alarm-service;1"]

@@ -209,9 +209,22 @@ var calendarController = {
                 editSelectedEvents();
                 break;
             case "calendar_delete_event_command":
-                deleteSelectedEvents();
+            case "cmd_delete":
+            case "button_delete":
+                var focusedElement = document.commandDispatcher.focusedElement;
+                if (focusedElement) {
+                    var focusedRichListbox = getParentNodeOrThis(focusedElement, "richlistbox");
+                    if (focusedRichListbox && focusedRichListbox.id == "agenda-listbox") {
+                        agendaListbox.deleteSelectedItem(false);
+                    } else if (focusedElement.className == "calendar-task-tree") {
+                        deleteToDoCommand(null, false);
+                    } else if (this.defaultController && !this.isCalendarInForeground()) {
+                        this.defaultController.doCommand(aCommand);
+                    } else {
+                        deleteSelectedEvents();
+                    }
+                }
                 break;
-
             case "calendar_new_todo_command":
                 createTodoWithDialog(getSelectedCalendar());
                 break;
@@ -253,28 +266,6 @@ var calendarController = {
                 getCompositeCalendar().refresh();
                 break;
             default:
-                if (this.defaultController && !this.isCalendarInForeground()) {
-                    // The delete-button demands a special handling in mail-mode
-                    // as it is supposed to delete an element of the focused pane
-                    if (aCommand == "cmd_delete" || aCommand == "button_delete") {
-                        var focusedElement = document.commandDispatcher.focusedElement;
-                        if (focusedElement) {
-                            if (focusedElement.getAttribute("id") == "agenda-listbox") {
-                                agendaListbox.deleteSelectedItem(false);
-                                return;
-                            } else if (focusedElement.className == "calendar-task-tree") {
-                                deleteToDoCommand(false);
-                                return;
-                            }
-                        }
-                    }
-
-                    // If calendar is not in foreground, let the default controller take
-                    // care. If we don't have a default controller (i.e sunbird), just
-                    // continue.
-                    this.defaultController.doCommand(aCommand);
-                    return;
-                }
                 switch (aCommand) {
                     // These commands are overridden in lightning and native in sunbird.
                     case "cmd_cut":
@@ -328,6 +319,35 @@ var calendarController = {
         return isSunbird() || (gCurrentMode && gCurrentMode != "mail");
     },
 
+    onSelectionChanged: function cC_onSelectionChanged(aEvent) {
+        var selectedItems = aEvent.detail;
+        calendarController.item_selected = selectedItems && (selectedItems.length > 0);
+        
+        var selLength = (selectedItems === undefined ? 0 : selectedItems.length);
+        var selected_events_readonly = 0;
+        var selected_events_requires_network = 0;
+        if (selLength > 0) {
+            for each (var item in selectedItems) {
+                if (item.calendar.readOnly) {
+                    selected_events_readonly++;
+                }
+                if (item.calendar.getProperty("requiresNetwork")) {
+                    selected_events_requires_network++;
+                }
+            }
+        }
+
+        calendarController.selected_events_readonly =
+              (selected_events_readonly == selLength);
+
+        calendarController.selected_events_requires_network =
+              (selected_events_requires_network == selLength);
+        document.commandDispatcher.updateCommands("calendar_commands");
+        if(!isSunbird()) {
+            document.commandDispatcher.updateCommands('mail-toolbar');
+        }
+    },
+    
     /**
      * Condition Helpers
      */

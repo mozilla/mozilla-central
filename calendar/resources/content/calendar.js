@@ -63,9 +63,6 @@
 // single global instance of CalendarWindow
 var gCalendarWindow;
 
-// store the current selection in the global scope to workaround bug 351747
-var gXXXEvilHackSavedSelection;
-
 /*-----------------------------------------------------------------
  *  G L O B A L     C A L E N D A R      F U N C T I O N S
  */
@@ -197,33 +194,6 @@ function calendarFinish() {
 function closeCalendar()
 {
     self.close();
-}
-
-function onSelectionChanged(aEvent) {
-    var selectedItems = aEvent.detail;
-    gXXXEvilHackSavedSelection = selectedItems;
-
-    // Tell the commands that events were selected.
-    calendarController.item_selected = (selectedItems.length > 0);
-    var selected_events_readonly = 0;
-    var selected_events_requires_network = 0;
-
-    for each (var item in selectedItems) {
-        if (item.calendar.readOnly) {
-            selected_events_readonly++;
-        }
-        if (item.calendar.getProperty("requiresNetwork")) {
-            selected_events_requires_network++;
-        }
-    }
-
-    calendarController.selected_events_readonly =
-        (selected_events_readonly == selectedItems.length);
-
-    calendarController.selected_events_requires_network =
-        (selected_events_requires_network == selectedItems.length);
-
-    document.commandDispatcher.updateCommands("calendar_commands");
 }
 
 function openPreferences() {

@@ -353,7 +353,7 @@ function unifinderSelect(event) {
     // Set up the selected items in the view. Pass in true, so we don't end
     // up in a circular loop
     currentView().setSelectedItems(selectedItems.length, selectedItems, true);
-    onSelectionChanged({detail: selectedItems});
+    calendarController.onSelectionChanged({detail: selectedItems});
 }
 
 function unifinderKeyPress(aEvent) {

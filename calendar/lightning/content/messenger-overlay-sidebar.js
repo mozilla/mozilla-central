@@ -218,32 +218,6 @@ function ltnOnLoad(event) {
     filter.value = filter.value || "all";
     document.getElementById("modeBroadcaster").setAttribute("mode", gCurrentMode);
     ltnInitTodayPane();
-}    
-
-function onSelectionChanged(aEvent) {
-    var selectedItems = aEvent.detail;
-
-    calendarController.item_selected = (selectedItems.length > 0);
-    var selected_events_readonly = 0;
-    var selected_events_requires_network = 0;
-
-    for each (var item in selectedItems) {
-        if (item.calendar.readOnly) {
-            selected_events_readonly++;
-        }
-        if (item.calendar.getProperty("requiresNetwork") !== false) {
-            selected_events_requires_network++;
-        }
-    }
-
-    calendarController.selected_events_readonly =
-        (selected_events_readonly == selectedItems.length);
-
-    calendarController.selected_events_requires_network =
-        (selected_events_requires_network == selectedItems.length);
-
-    document.commandDispatcher.updateCommands('mail-toolbar');
-    document.commandDispatcher.updateCommands('calendar_commands');
 }
 
 /* Called at midnight to tell us to redraw date-specific widgets.  Do NOT call
@@ -548,7 +522,6 @@ function copyPopupMenus() {
     addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);
     addToPopupList(menulist[3], document.getElementById("calendar-GoPopupMenu"), taskpopuplist, excludeList, true, false);
     var tasksViewMenuPopup = clonePopupMenu("taskitem-context-menu", "taskitem-menu", "menu-");
-    tasksViewMenuPopup.setAttribute("tree", "calendar-task-tree");
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-modify", tasksViewMenuPopup));
     tasksViewMenuPopup.removeChild(getMenuElementById("menu-" + "task-context-menu-delete", tasksViewMenuPopup));
     addToPopupList(menulist[4], tasksViewMenuPopup, taskpopuplist, excludeList, false, false);

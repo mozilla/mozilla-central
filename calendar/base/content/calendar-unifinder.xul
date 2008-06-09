@@ -99,7 +99,7 @@
                        tooltiptext="&calendar.unifinder.close.tooltip;"/>
       </hbox>
       <tree id="unifinder-search-results-tree" flex="1"
-            onselect="unifinderSelect( event ); onSelectionChanged()"
+            onselect="unifinderSelect(event); calendarController.onSelectionChanged()"
             onkeypress="unifinderKeyPress(event)"
             _selectDelay="500"
             enableColumnDrag="true">

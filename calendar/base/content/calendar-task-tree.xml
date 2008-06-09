@@ -63,8 +63,7 @@
       <xul:tree anonid="calendar-task-tree"
                 class="calendar-task-tree" 
                 flex="1"
-                enableColumnDrag="false"
-                onfocus="document.commandDispatcher.updateCommands('calendar_commands')">
+                enableColumnDrag="false">
         <xul:treecols anonid="calendar-task-tree-cols">
           <xul:treecol anonid="calendar-task-tree-col-completed"
                        class="calendar-task-tree-col-completed" 
@@ -1113,9 +1112,18 @@
     <handlers>
       <handler event="select"><![CDATA[
         this.mTreeView.onSelect(event);
+        calendarController.onSelectionChanged({detail:this.selectedTasks});
       ]]></handler>
       <handler event="dblclick" button="0"><![CDATA[
         this.mTreeView.onDoubleClick(event);
+      ]]></handler>
+      <handler event="focus"><![CDATA[
+        calendarController.onSelectionChanged({detail:this.selectedTasks});
+        calendarController.todo_tasktree_focused = true;
+      ]]></handler>
+      <handler event="blur"><![CDATA[
+        calendarController.onSelectionChanged({detail:[]}); 
+        calendarController.todo_tasktree_focused = false;
       ]]></handler>
       <handler event="keypress"><![CDATA[
         this.mTreeView.onKeyPress(event);

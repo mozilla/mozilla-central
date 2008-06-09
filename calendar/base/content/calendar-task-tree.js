@@ -208,17 +208,11 @@ function deleteToDoCommand(aEvent, aDoNotConfirm) {
 
 function getSelectedTasks(aEvent) {
     var taskTree = null;
-    if (aEvent == null) {
+    var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
+    if (currentMode == "task") {
         taskTree = document.getElementById("calendar-task-tree");
     } else {
-        // If the MenuItem is part of the application menu we can get the related
-        // tree by querying the "tree" attribute that has been attached to
-        // the parental popupMenu
-        taskTree = getParentNodeOrThisByAttribute(aEvent.target, "tree", "calendar-task-tree");
-        if (taskTree == null) {
-            // in this case we know that the menuitem is part of a context menu
-            taskTree = getParentNodeOrThis(document.popupNode, "calendar-task-tree");
-        }
+        taskTree = document.getElementById("unifinder-todo-tree");
     }
     if (taskTree != null) {
         return taskTree.selectedTasks;
