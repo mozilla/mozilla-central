@@ -10,7 +10,7 @@ from buildbot.status import mail
 from buildbot.status.builder import SUCCESS, WARNINGS
 from buildbot.steps.shell import WithProperties
 
-import zlib, bz2, base64, re
+import zlib, bz2, base64
 
 # TODO: docs, maybe a test of some sort just to make sure it actually imports
 # and can format email without raising an exception.
@@ -187,30 +187,19 @@ class TinderboxMailNotifier(mail.MailNotifier):
             # logs will always be appended
             logEncoding = ""
             tinderboxLogs = ""
-            for bs in build.getSteps():
-                # ignore steps that haven't happened
-                shortText = ' '.join(bs.getText()) + '\n'
-                if not re.match(".*[^\s].*", shortText):
-                    continue
-                logs = bs.getLogs()
-                
-                tinderboxLogs += "======== BuildStep started ========\n"
-                tinderboxLogs += shortText
-                tinderboxLogs += "=== Output ===\n"
-                for log in logs:
-                    tinderboxLogs += log.getTextWithHeaders()
-
-                tinderboxLogs += "=== Output ended ===\n"
-                tinderboxLogs += "======== BuildStep ended ========\n"
-
-            if self.logCompression == "bzip2":
-                cLog = bz2.compress(tinderboxLogs)
-                tinderboxLogs = base64.encodestring(cLog)
-                logEncoding = "base64";
-            elif self.logCompression == "gzip":
-                cLog = zlib.compress(tinderboxLogs)
-                tinderboxLogs = base64.encodestring(cLog)
-                logEncoding = "base64";
+            for log in build.getLogs():
+                l = ""
+                if self.logCompression == "bzip2":
+                    compressedLog = bz2.compress(log.getText())
+                    l = base64.encodestring(compressedLog)
+                    logEncoding = "base64";
+                elif self.logCompression == "gzip":
+                    compressedLog = zlib.compress(log.getText())
+                    l = base64.encodestring(compressedLog)
+                    logEncoding = "base64";
+                else:
+                    l = log.getText()
+                tinderboxLogs += l
 
             text += "%s logencoding: %s\n" % (t, logEncoding)
             text += "%s END\n\n" % t
