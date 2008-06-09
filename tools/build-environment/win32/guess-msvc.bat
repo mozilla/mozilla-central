@@ -110,10 +110,10 @@ ECHO Visual C++ 9 directory: %VC9DIR%
 ECHO Visual C++ 9 Express directory: %VC9EXPRESSDIR%
 if "%SDKDIR%"=="" (
     SET SDKDIR=%PSDKDIR%
-    SET SDKVER=%PSDKDIR%
+    SET SDKVER=%PSDKVER%
 ) else (
     ECHO Windows SDK directory: %SDKDIR%
-    ECHO Windows SDK version: %SDKVER%.SDKMINORVER
+    ECHO Windows SDK version: %SDKVER%.%SDKMINORVER%
 )
 ECHO Platfrom SDK directory: %PSDKDIR%
 ECHO Platfrom SDK version: %PSDKVER%
