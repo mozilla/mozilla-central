@@ -1085,11 +1085,19 @@ calGoogleCalendar.prototype = {
         request.type = request.GET;
         request.uri = this.fullUri.spec
         request.destinationCal = aDestination;
-        request.responseListener = this.getItems_response;
+
+        var calendar = this;
+        request.responseListener = {
+            onResult: function cGC_getItems_response_onResult(aOperation, aData) {
+                calendar.getItems_response(aOperation, aData);
+            }
+        };
         request.operationListener = aListener;
         request.calendar = this;
 
         // Request Parameters
+        var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
+        request.addQueryParameter("ctz", ctz);
         request.addQueryParameter("max-results", kMANY_EVENTS);
         request.addQueryParameter("singleevents", "false");
         request.addQueryParameter("updated-min", lastUpdateDateTime);
