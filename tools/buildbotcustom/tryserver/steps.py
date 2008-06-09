@@ -304,44 +304,6 @@ class MozillaClientMk(ShellCommand):
         ShellCommand.start(self)
 
 
-class MozillaTryServerHgCheckout(ShellCommand):
-    haltOnFailure = True
-    flunkOnFailure = True
-    timeout = 3600
-
-    def __init__(self, mozillaRepoPath="http://hg.mozilla.org/mozilla-central",
-                       tamarinRepoPath="http://hg.mozilla.org/tamarin-central",
-                       cvsroot=":pserver:anonymous@cvs.mozilla.org:/cvsroot",
-                       **kwargs):
-        self.mozillaRepoPath = mozillaRepoPath
-        self.tamarinRepoPath = tamarinRepoPath
-        self.cvsroot = cvsroot
-        timeout = 3600
-        if 'timeout' in kwargs:
-            timeout = kwargs['timeout']
-        # repo paths overridden in start()
-        kwargs['command'] = ["python", "client.py", "-m" "$MOZ_REPO",
-                             "-t", "$TAMARIN_REPO",
-                             "--cvsroot=%s" % self.cvsroot,
-                             "checkout"]
-        ShellCommand.__init__(self, timeout=timeout, **kwargs)
-
-    def start(self):
-        changes = self.step_status.build.getChanges()
-        args = parseSendchangeArguments(changes[0].files)
-        
-        if 'mozillaRepoPath' in args:
-            self.mozillaRepoPath = args['mozillaRepoPath']
-        if 'tamarinRepoPath' in args:
-            self.tamarinRepoPath = args['tamarinRepoPath']
-
-        self.command = ["python", "client.py", "-m", self.mozillaRepoPath,
-                        "-t", self.tamarinRepoPath,
-                        "--cvsroot=%s" % self.cvsroot, "checkout"]
-
-        ShellCommand.start(self)
-
-
 class MozillaCustomPatch(ShellCommand):
     """This step looks at a Change to find the name of a diff.
     The diff is applied to the current tree.
