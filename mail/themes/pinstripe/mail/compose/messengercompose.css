@@ -45,12 +45,30 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-#compose-toolbox {
-  -moz-appearance: none !important;
-  background-image: url("chrome://messenger/skin/icons/top-toolbar-background.gif");
+#msgcomposeWindow {
+  -moz-binding: url("chrome://global/skin/globalBindings.xml#unifiedWindow");
+}
+
+/* Inactive window state */
+#msgcomposeWindow:not([active="true"]) > #compose-toolbox > toolbar {
+  border-top-color: rgba(255,255,255,0.45);
+  border-bottom-color: rgba(0,0,0,0.35);
+  background-color: #cfcfcf;
+}
+
+#msgcomposeWindow:not([active="true"]) > #compose-toolbox > #composeToolbar2 {
+  background-image: url("chrome://global/skin/toolbar/toolbar-background-inactive.png");
+}
+
+
+#composeToolbar2 {
+  background-color: #9e9e9e;
+  border-top: none;
+  border-bottom: 1px solid rgba(0,0,0,0.35);
+  background-image: url("chrome://global/skin/toolbar/toolbar-background.gif");
   background-repeat: repeat-x;
   background-position: top right;
-  background-color: #e1e1e1;
+  padding: 0 4px;
 }
 
 toolbox,

@@ -83,6 +83,7 @@ classic.jar:
      skin/classic/messenger-newsblog/icons/folder-search-rss.png    (newsblog/folder-search-rss.png)
      skin/classic/messenger/preferences/preferences.css             (preferences/preferences.css)
      skin/classic/messenger/preferences/mail-options.png            (preferences/mail-options.png)
+     skin/classic/messenger/preferences/radio-selected-bg.png       (preferences/radio-selected-bg.png)
      skin/classic/messenger/smime/msgCompSMIMEOverlay.css           (smime/msgCompSMIMEOverlay.css)
      skin/classic/messenger/smime/msgHdrViewSMIMEOverlay.css        (smime/msgHdrViewSMIMEOverlay.css)
      skin/classic/messenger/smime/msgReadSMIMEOverlay.css           (smime/msgReadSMIMEOverlay.css)
