@@ -13,4 +13,4 @@ rem append moztools to PATH
 SET PATH=%PATH%;%MOZ_TOOLS%\bin
 
 cd "%USERPROFILE%"
-start "MSYS Shell - L10n Environment" "%MOZILLABUILD%\msys\bin\rxvt" -backspacekey  -sl 2500 -fg %FGCOLOR% -bg %BGCOLOR% -sr -fn "Courier New" -tn msys -geometry 80x25 -e /bin/bash --login -i
+%MOZILLABUILD%\msys\bin\bash --login -i
