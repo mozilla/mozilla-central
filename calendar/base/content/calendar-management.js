@@ -55,8 +55,7 @@ function getCompositeCalendar() {
 
 function getSelectedCalendar() {
     var tree = document.getElementById("calendar-list-tree-widget");
-    return (tree.currentIndex > -1) &&
-           calendarListTreeView.mCalendarList[tree.currentIndex] || null;
+    return calendarListTreeView.getCalendar(tree.currentIndex);
 }
 
 function promptDeleteCalendar(aCalendar) {
@@ -293,13 +292,12 @@ var calendarListTreeView = {
         }
 
         this.mCalendarList.splice(index, 1);
-        this.treebox.rowCountChanged(index, -1);
-
         if (index == this.rowCount) {
             index--;
         }
 
-        this.tree.view.selection.select(index);
+        this.tree.view.selection.select(index + 1);
+        this.treebox.rowCountChanged(index, -1);
     },
 
     updateCalendar: function cLTV_updateCalendar(aCalendar) {
@@ -337,6 +335,14 @@ var calendarListTreeView = {
         return this.mCalendarList.length;
     },
 
+    getCalendar: function cLTV_getCalendar(index) {
+        if (index < 0) {
+            index = 0;
+        } else if (index >= this.mCalendarList.length) {
+            index = (this.mCalendarList.length - 1);
+        }
+        return this.mCalendarList[index];
+    },
 
     getCellProperties: function cLTV_getCellProperties(aRow, aCol, aProps) {
         this.getRowProperties(aRow, aProps);
@@ -344,7 +350,7 @@ var calendarListTreeView = {
     },
 
     getRowProperties: function cLTV_getRowProperties(aRow, aProps) {
-        var calendar = this.mCalendarList[aRow];
+        var calendar = this.getCalendar(aRow);
         var composite = getCompositeCalendar();
 
         // Set up the composite calendar status
@@ -422,7 +428,7 @@ var calendarListTreeView = {
     getProgressMode: function cLTV_getProgressMode(aRow, aCol) {},
 
     getCellValue: function cLTV_getCellValue(aRow, aCol) {
-        var calendar = this.mCalendarList[aRow];
+        var calendar = this.getCalendar(aRow);
         var composite = getCompositeCalendar();
 
         switch (aCol.id) {
@@ -436,12 +442,12 @@ var calendarListTreeView = {
     },
 
     getCellText: function cLTV_getCellText(aRow, aCol) {
-        var calendar = this.mCalendarList[aRow];
+        var calendar = this.getCalendar(aRow);
         var composite = getCompositeCalendar();
 
         switch (aCol.id) {
             case "calendar-list-tree-calendar":
-                return this.mCalendarList[aRow].name;
+                return this.getCalendar(aRow).name;
 
         }
         return "";
@@ -456,7 +462,7 @@ var calendarListTreeView = {
     cycleHeader: function cLTV_cycleHeader(aCol) { },
 
     cycleCell: function cLTV_cycleCell(aRow, aCol) {
-        var calendar = this.mCalendarList[aRow];
+        var calendar = this.getCalendar(aRow);
         var composite = getCompositeCalendar();
 
         switch (aCol.id) {
@@ -483,7 +489,7 @@ var calendarListTreeView = {
     },
 
     setCellValue: function cLTV_setCellValue(aRow, aCol, aValue) {
-        var calendar = this.mCalendarList[aRow];
+        var calendar = this.getCalendar(aRow);
         var composite = getCompositeCalendar();
 
         switch (aCol.id) {
@@ -568,7 +574,7 @@ var calendarListTreeView = {
             row.value =  this.tree.currentIndex;
             col.value = this.treebox.columns
                             .getNamedColumn("calendar-list-tree-calendar");
-            calendar = this.mCalendarList[row.value];
+            calendar = this.getCalendar(row.value);
         } else {
             // Using the mouse, the context menu will open on the treechildren
             // element. Here we can use client points.
