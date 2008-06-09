@@ -43,7 +43,7 @@ class TinderboxResult:
     def nodeForHostname(self, nameString):
         """returnt the node for a nameString"""
         for node in self.nodes:
-            if nameString in node['hostname']:
+            if nameString == node['hostname']:
                 return node
         
         return None
@@ -106,10 +106,11 @@ class TinderboxPoller(base.ChangeSource):
         self.branch = branch
         self.machines = machines
         self.pollInterval = pollInterval
-        self.previousChange = ''
         self.lastPoll = time.time()
-        self.lastChange = time.time()
-    
+        self.lastChanges = {}
+        for machine in self.machines:
+          self.lastChanges[machine] = time.time()
+ 
     def startService(self):
         self.loop = LoopingCall(self.poll)
         base.ChangeSource.startService(self)
@@ -161,7 +162,7 @@ class TinderboxPoller(base.ChangeSource):
         self.lastPoll = time.time()
         # get the page, in pipe-delimited format
         return defer.maybeDeferred(urlopen, url)
-    
+
     def _process_changes(self, query):
         try:
             tp = TinderboxParser(query)
@@ -171,7 +172,7 @@ class TinderboxPoller(base.ChangeSource):
             return
         except EmptyResult:
             return
-        
+
         # check machine substring in result set
         result = TinderboxResult([])
         for machine in self.machines:
@@ -180,28 +181,13 @@ class TinderboxPoller(base.ChangeSource):
                 result.nodes.append(node)
         if not result.nodes:
             return
-        
-        # see if there are any new changes
-        if self.previousChange:
-            if (self.previousChange == result.nodes):
-                return
-            oldResults = result.nodes
-            result.nodes = []
-            for node in oldResults:
-                if node not in self.previousChange:
-                    result.nodes.append(node)
-            self.previousChange = oldResults
-        else:
-            self.previousChange = result.nodes
-            return
-        
-        allBuildDates = []
+
         for buildNode in result.nodes:
             buildDate = int(buildNode['date'])
-            if self.lastChange > buildDate:
+            if self.lastChanges[buildNode['hostname']] >= buildDate:
                 # change too old
                 continue
-            allBuildDates.append(buildDate)
+            self.lastChanges[buildNode['hostname']] = buildDate
             # ignore if build is busted
             if buildNode['status'] == 'busted':
                 continue
@@ -211,11 +197,4 @@ class TinderboxPoller(base.ChangeSource):
                                branch = self.branch,
                                when = buildDate,
                                links = buildNode['url'])
-            self.parent.addChange(c)
-        
-        # do not allow repeats - count the last change as the largest
-        # build start time that has been seen
-        if allBuildDates:
-            self.lastChange = max(allBuildDates)
-    
-
+            self.parent.addChange(c)  
