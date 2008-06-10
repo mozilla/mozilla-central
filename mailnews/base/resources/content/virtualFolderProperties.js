@@ -167,7 +167,6 @@ function onFolderPick(aEvent) {
 function onOK()
 {
   var name = document.getElementById("name").value;
-  var uri = gPickedFolder.URI;
   var messengerBundle = document.getElementById("bundle_messenger");
   var searchOnline = document.getElementById('searchOnline').checked;
 
@@ -199,9 +198,10 @@ function onOK()
 
     if (window.arguments[0].onOKCallback)
       window.arguments[0].onOKCallback(msgFolder.URI);
-
+    return true;
   }
-  else if (name && uri) // create a new virtual folder
+  var uri = gPickedFolder.URI;
+  if (name && uri) // create a new virtual folder
   {
     // check to see if we already have a folder with the same name and alert the user if so...
     var parentFolder = GetMsgFolderFromUri(uri);
