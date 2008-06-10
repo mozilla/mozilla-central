@@ -610,7 +610,6 @@ sec_pkcs5CreateAlgorithmID(SECOidTag algorithm,
     if (!SEC_PKCS5IsAlgorithmPBEAlgTag(algorithm) ||
     	 	sec_pkcs5_is_algorithm_v2_pkcs5_algorithm(algorithm)) {
 	/* use PKCS 5 v2 */
-	SECOidTag cipherAlgorithm;
 	SECItem *cipherParams;
 
 	/*
