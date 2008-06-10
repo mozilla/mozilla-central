@@ -114,6 +114,9 @@ check_call([join(sourcedir, "msysDTK-1.0.1.exe"),
 check_call([join(sourcedir, "XEmacs Setup 21.4.19.exe"),
             "/DIR=" + join(stagedir, "mozilla-build", "xemacs"),
             "/SP-", "/NOICONS"])
+check_call([join(sourcedir, "Mercurial-1.0.1.exe"),
+            "/DIR=" + join(stagedir, "mozilla-build", "hg"),
+            "/SP-", "/NOICONS"])
 # Run an MSYS shell to perform the following tasks:
 # * install make-3.81
 # * install UPX

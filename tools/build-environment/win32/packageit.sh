@@ -14,6 +14,11 @@ fi
 MSYS_SRCDIR=$(cd "$MOZ_SRCDIR" && pwd)
 MSYS_STAGEDIR=$(cd "$MOZ_STAGEDIR" && pwd)
 
+# Patch Mercurial.ini
+pushd "${MSYS_STAGEDIR}/mozilla-build/hg"
+patch -p0 < "${MSYS_SRCDIR}/Mercurial.ini.patch"
+popd
+
 # "rm.exe" from the msysCORE package is broken pretty badly. Use the "old" one
 cp "${MSYS_STAGEDIR}/mozilla-build/msys/bin/rm.exe" "${MSYS_STAGEDIR}"
 
