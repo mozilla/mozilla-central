@@ -278,9 +278,18 @@ function setupImapDeleteUI(aServerId)
   var trashFolderName = getTrashFolderName();
 
   // set folderPicker menulist
-  document.getElementById("msgTrashFolderPicker").setAttribute("ref", aServerId);
-  var trashFolderUri = aServerId+"/"+trashFolderName;
-  SetFolderPicker(trashFolderUri,"msgTrashFolderPicker");
+  var trashPopup = document.getElementById("msgTrashFolderPopup");
+  trashPopup._teardown();
+  trashPopup._parentFolder = GetMsgFolderFromUri(aServerId);
+  trashPopup._ensureInitialized();
+
+  var trashFolder = GetMsgFolderFromUri(aServerId+"/"+trashFolderName);
+  try {
+    trashPopup.selectFolder(trashFolder);
+  } catch(ex) {
+    trashPopup.parentNode.setAttribute("label", trashFolder.prettyName);
+  }
+  trashPopup.parentNode.folder = trashFolder;
 }
 
 function selectImapDeleteModel(choice)
@@ -309,11 +318,10 @@ function selectImapDeleteModel(choice)
 }
 
 // Capture any menulist changes from folderPicker
-function folderPickerChange(radioItemId)
+function folderPickerChange(aEvent)
 {
-  var trashFolderPickerUri = document.getElementById(radioItemId).getAttribute("uri");
-  var trashFolderName = GetMsgFolderFromUri(trashFolderPickerUri, true);
-  document.getElementById("imap.trashFolderName").setAttribute("value",trashFolderName.name);
+  document.getElementById("imap.trashFolderName")
+          .setAttribute("value", aEvent.target._folder.name);
 }
 
 // Get trash_folder_name from prefs

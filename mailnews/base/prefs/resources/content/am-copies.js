@@ -45,14 +45,6 @@ var gFccFolderWithDelim, gDraftsFolderWithDelim, gTemplatesFolderWithDelim;
 var gCurrentServerId;
 var gPrefBranch = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
 
-// Picker IDs
-var fccAccountPickerId = "msgFccAccountPicker";
-var fccFolderPickerId = "msgFccFolderPicker";
-var draftsAccountPickerId = "msgDraftsAccountPicker";
-var draftsFolderPickerId = "msgDraftsFolderPicker";
-var tmplAccountPickerId = "msgStationeryAccountPicker";
-var tmplFolderPickerId = "msgStationeryFolderPicker";
-
 function onPreInit(account, accountValues)
 {
   var type = parent.getAccountValue(account, accountValues, "server", "type", null, false);
@@ -75,21 +67,21 @@ function onInitCopiesAndFolders()
                      
     SetFolderDisplay(gFccRadioElemChoice, gFccRadioElemChoiceLocked, 
                      "fcc", 
-                     fccAccountPickerId, 
+                     "msgFccAccountPicker", 
                      "identity.fccFolder", 
-                     fccFolderPickerId);
+                     "msgFccFolderPicker");
 
     SetFolderDisplay(gDraftsRadioElemChoice, gDraftsRadioElemChoiceLocked, 
                      "draft", 
-                     draftsAccountPickerId, 
+                     "msgDraftsAccountPicker", 
                      "identity.draftFolder", 
-                     draftsFolderPickerId);
+                     "msgDraftsFolderPicker");
 
     SetFolderDisplay(gTmplRadioElemChoice, gTmplRadioElemChoiceLocked, 
                      "tmpl", 
-                     tmplAccountPickerId, 
+                     "msgStationeryAccountPicker", 
                      "identity.stationeryFolder", 
-                     tmplFolderPickerId);
+                     "msgStationeryFolderPicker");
     
     setupBccTextbox();
     setupFccItems();
@@ -145,8 +137,8 @@ function SetFolderDisplay(pickerMode, disableMode,
     // these folders are created on demand at runtime in case of imap accounts.
     // For POP3 accounts, special folders are created at the account creation time.
     var msgFolder = GetMsgFolderFromUri(uri, false);
-    SetFolderPicker(msgFolder.server.serverURI, accountPickerId);
-    InitFolderDisplay(folderPickedField, folderPickerId);
+    InitFolderDisplay(msgFolder.server.rootFolder, accountPicker);
+    InitFolderDisplay(msgFolder, folderPicker);
 
     switch (pickerMode) 
     {
@@ -176,36 +168,42 @@ function SetFolderDisplay(pickerMode, disableMode,
 }
 
 // Initialize the folder display based on prefs values
-function InitFolderDisplay(fieldname, pickerId) {
-    var formElement = document.getElementById(fieldname);
-    var uri = formElement.getAttribute("value");
-    SetFolderPicker(uri,pickerId);
+function InitFolderDisplay(folder, folderPicker) {
+    try {
+      folderPicker.firstChild.selectFolder(folder);
+    } catch(ex) {
+      folderPicker.setAttribute("label", folder.prettyName);
+    }
+    folderPicker.folder = folder;
 }
 
 // Capture any menulist changes
-function noteSelectionChange(radioItemId)
+function noteSelectionChange(radioItemId, aEvent)
 {
     var checkedElem = document.getElementById(radioItemId);
-    var modeValue  = checkedElem.getAttribute("value");
+    var folder = aEvent.target._folder;
+    var modeValue  = checkedElem.value;
     var radioGroup = checkedElem.radioGroup.getAttribute("id");
+    var picker;
     switch (radioGroup)
     {
         case "doFcc" :
             gFccRadioElemChoice = modeValue;
+            picker = document.getElementById("msgFccFolderPicker");
             break;
     
         case "messageDrafts" :
             gDraftsRadioElemChoice = modeValue;
+            picker = document.getElementById("msgDraftsFolderPicker");
             break;
 
         case "messageTemplates" :
             gTmplRadioElemChoice = modeValue;
-            break;
-
-        default :
-            dump("Error capturing menulist changes.\n");
+            picker = document.getElementById("msgStationeryFolderPicker");
             break;
     }
+    picker.folder = folder;
+    picker.setAttribute("label", folder.prettyName);
 }
 
 // Need to append special folders when account picker is selected.
@@ -232,24 +230,24 @@ function onSaveCopiesAndFolders()
     SaveFolderSettings( gFccRadioElemChoice, 
                         "doFcc",
                         gFccFolderWithDelim, 
-                        fccAccountPickerId, 
-                        fccFolderPickerId,
+                        "msgFccAccountPicker", 
+                        "msgFccFolderPicker",
                         "identity.fccFolder",
                         "identity.fccFolderPickerMode" );
 
     SaveFolderSettings( gDraftsRadioElemChoice, 
                         "messageDrafts",
                         gDraftsFolderWithDelim, 
-                        draftsAccountPickerId, 
-                        draftsFolderPickerId,
+                        "msgDraftsAccountPicker", 
+                        "msgDraftsFolderPicker",
                         "identity.draftFolder",
                         "identity.draftsFolderPickerMode" );
 
     SaveFolderSettings( gTmplRadioElemChoice,
                         "messageTemplates",
                         gTemplatesFolderWithDelim, 
-                        tmplAccountPickerId, 
-                        tmplFolderPickerId,
+                        "msgStationeryAccountPicker", 
+                        "msgStationeryFolderPicker",
                         "identity.stationeryFolder",
                         "identity.tmplFolderPickerMode" );
 }
@@ -263,49 +261,31 @@ function SaveFolderSettings(radioElemChoice,
                             folderElementId,
                             folderPickerModeId)
 {
-    var formElement;
+    var formElement = document.getElementById(folderElementId);
     var uri;
-    var picker;
 
     switch (radioElemChoice) 
     {
         case "0" :
-            picker = document.getElementById(accountPickerId);
-            uri = picker.getAttribute("uri");
+            uri = document.getElementById(accountPickerId).selectedItem._folder.URI;
             if (uri) {
                 // Create  Folder URI
                 uri = uri + folderSuffix;
-
-                formElement = document.getElementById(folderElementId);
-                formElement.setAttribute("value",uri);
             }
             break;
 
         case "1" : 
-            picker = document.getElementById(folderPickerId);
-            uri = picker.getAttribute("uri");
-            if (uri) {
-                SaveUriFromPicker(folderElementId, folderPickerId);
-            }
+            uri = document.getElementById(folderPickerId).folder.URI;
             break;
 
         default :
             dump ("Error saving folder preferences.\n");
             return;
     }
+    formElement.setAttribute("value", uri);
 
     formElement = document.getElementById(folderPickerModeId);
     formElement.setAttribute("value", radioElemChoice);
-}
-
-// Get the URI from the picker and save the value into the corresponding pref
-function SaveUriFromPicker(fieldName, pickerId)
-{
-    var picker = document.getElementById(pickerId);
-    var uri = picker.getAttribute("uri");
-    
-    var formElement = document.getElementById(fieldName);
-    formElement.setAttribute("value",uri);
 }
 
 // Check the Fcc Self item and setup associated picker state 
@@ -316,10 +296,24 @@ function setupFccItems()
     var checked = document.getElementById("identity.doFcc").checked;
     if (checked) {
         broadcaster.removeAttribute("disabled");
-        SetupFccPickerState(gFccRadioElemChoice,
-                            fccAccountPickerId,
-                            fccFolderPickerId);
-	  }
+        switch (gFccRadioElemChoice) {
+            case "0" :
+                if (!gFccRadioElemChoiceLocked)
+                    SetPickerEnabling("msgFccAccountPicker", "msgFccFolderPicker");
+                SetRadioButtons("fcc_selectAccount", "fcc_selectFolder");
+                break;
+
+            case "1" :
+                if (!gFccRadioElemChoiceLocked)
+                    SetPickerEnabling("msgFccFolderPicker", "msgFccAccountPicker");
+                SetRadioButtons("fcc_selectFolder", "fcc_selectAccount");
+                break;
+
+            default :
+                dump("Error in setting Fcc elements.\n");
+                break;
+        }
+    }
     else
         broadcaster.setAttribute("disabled", "true");
 }
@@ -331,28 +325,6 @@ function setupBccTextbox()
     var bccTextbox = document.getElementById("identity.doBccList");
 
     bccTextbox.disabled = !bccChecked;
-}
-
-// Set up picker settings for Sent Folder 
-function SetupFccPickerState(pickerMode, accountPickerId, folderPickerId)
-{
-    switch (pickerMode) {
-        case "0" :
-            if (!gFccRadioElemChoiceLocked)
-              SetPickerEnabling(accountPickerId, folderPickerId);
-            SetRadioButtons("fcc_selectAccount", "fcc_selectFolder");
-            break;
-	
-        case "1" :
-            if (!gFccRadioElemChoiceLocked)
-              SetPickerEnabling(folderPickerId, accountPickerId);
-            SetRadioButtons("fcc_selectFolder", "fcc_selectAccount");
-            break;
-
-        default :
-            dump("Error in setting Fcc elements.\n");
-            break;
-    }
 }
 
 // Enable and disable pickers based on the radio element clicked
@@ -413,8 +385,6 @@ function setPickersState(enablePickerId, disablePickerId, event)
             dump("Error in setting picker state.\n");
             return;
     }
-    
-    SetFolderPicker(selectedElementUri, enablePickerId);
 }
 
 // This routine is to restore the correct radio element 

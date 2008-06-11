@@ -38,9 +38,13 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderOverlay.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://messenger/locale/am-copies.dtd" >
+<!DOCTYPE overlay [
+<!ENTITY % copiesDTD SYSTEM "chrome://messenger/locale/am-copies.dtd">%copiesDTD;
+<!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd"> %pickerDTD;
+]>
 
 <overlay xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">                                                       
@@ -100,8 +104,10 @@
                      observes="broadcaster_doFcc"/>
                 <menulist id="msgFccAccountPicker"
                           aria-labelledby="fcc_selectAccount"
-                          oncommand="noteSelectionChange('fcc_selectAccount')" 
-                          observes="broadcaster_doFcc"/>
+                          observes="broadcaster_doFcc">
+                  <menupopup id="msgFccAccountPopup" type="folder" mode="filing"
+                             expandFolders="false"/>
+                </menulist>
             </row> 
             <row align="center">
               <radio id="fcc_selectFolder" 
@@ -111,8 +117,12 @@
                      observes="broadcaster_doFcc"/>
                 <menulist id="msgFccFolderPicker" 
                           aria-labelledby="fcc_selectFolder"
-                          oncommand="noteSelectionChange('fcc_selectFolder')" 
-                          observes="broadcaster_doFcc"/>
+                          oncommand="noteSelectionChange('fcc_selectFolder', event)" 
+                          observes="broadcaster_doFcc">
+                  <menupopup id="msgFccFolderPopup" type="folder" mode="filing"
+                             showFileHereLabel="true"
+                             fileHereLabel="&filemessageschoosethis.label;"/>
+                </menulist>
             </row>
           </rows>
         </grid>
@@ -162,8 +172,10 @@
                      value="0" label="&draftsFolderOn.label;"
                      accesskey="&draftsFolderOn.accesskey;"/>
  	      <menulist id="msgDraftsAccountPicker" 
-	                aria-labelledby="draft_selectAccount"
-	                oncommand="noteSelectionChange('draft_selectAccount')"/>
+	                aria-labelledby="draft_selectAccount">
+                <menupopup id="msgDraftAccountPopup" type="folder" mode="filing"
+                           expandFolders="false"/>
+              </menulist>
             </row> 
             <row align="center">
               <radio id="draft_selectFolder" 
@@ -172,7 +184,11 @@
                      accesskey="&draftInOtherFolder.accesskey;"/>
   	      <menulist id="msgDraftsFolderPicker"
                         aria-labelledby="draft_selectFolder"
-                        oncommand="noteSelectionChange('draft_selectFolder')"/>
+                        oncommand="noteSelectionChange('draft_selectFolder', event)">
+                <menupopup id="msgDraftFolderPopup" type="folder" mode="filing"
+                           showFileHereLabel="true"
+                           fileHereLabel="&filemessageschoosethis.label;"/>
+              </menulist>
             </row>
           </rows>
         </grid>
@@ -194,8 +210,10 @@
                      value="0" label="&templatesFolderOn.label;"
                      accesskey="&templatesFolderOn.accesskey;"/>
   	      <menulist id="msgStationeryAccountPicker"
-                        aria-labelledby="tmpl_selectAccount"
-                        oncommand="noteSelectionChange('tmpl_selectAccount')"/>
+                        aria-labelledby="tmpl_selectAccount">
+                <menupopup id="msgFccAccountPopup" type="folder" mode="filing"
+                           expandFolders="false"/>
+              </menulist>
             </row> 
             <row align="center">
               <radio id="tmpl_selectFolder" 
@@ -204,7 +222,11 @@
                      accesskey="&templateInOtherFolder.accesskey;"/>
               <menulist id="msgStationeryFolderPicker"
                         aria-labelledby="tmpl_selectFolder"
-                        oncommand="noteSelectionChange('tmpl_selectFolder')"/>
+                        oncommand="noteSelectionChange('tmpl_selectFolder', event)">
+                <menupopup id="msgTemplFolderPopup" type="folder" mode="filing"
+                           showFileHereLabel="true"
+                           fileHereLabel="&filemessageschoosethis.label;"/>
+              </menulist>
             </row>
           </rows>
         </grid>
