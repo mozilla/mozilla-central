@@ -4420,9 +4420,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
 
   // Then look them up in the Addressbooks
   PRBool stillNeedToSearch = PR_TRUE;
-  nsCOMPtr<nsIAddrDatabase> abDataBase;
   nsCOMPtr<nsIAbDirectory> abDirectory;
-  nsCOMPtr<nsIAbMDBDirectory> mdbDirectory;
   nsCOMPtr<nsIAbCard> existingCard;
   nsCOMPtr<nsIMutableArray> mailListAddresses;
   nsCOMPtr<nsIMsgHeaderParser> parser(do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
@@ -4438,7 +4436,6 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
   if (NS_SUCCEEDED(rv))
   {
     nsString dirPath;
-    PRBool dirtyABDatabase = PR_FALSE;
     PRUint32 nbrAddressbook = addrbookDirArray.Count();
 
     for (k = 0; k < nbrAddressbook && stillNeedToSearch; ++k)
@@ -4452,20 +4449,23 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
 
       abDirectory = addrbookDirArray[k];
 
-      nsCOMPtr<nsIRDFResource> source(do_QueryInterface(abDirectory));
-
-      mdbDirectory = do_QueryInterface(abDirectory, &rv);
-      if (NS_FAILED(rv))
-        continue;
+      // These will fail for non-MDB address books, therefore, just ignore
+      // errors, we'll check to see if we have got a valid database before using
+      // it.
+      nsCOMPtr<nsIAddrDatabase> abDataBase;
+      {
+        nsCOMPtr<nsIAbMDBDirectory> mdbDirectory(do_QueryInterface(abDirectory));
+        if (mdbDirectory)
+          mdbDirectory->GetDatabase(getter_AddRefs(abDataBase));
+      }
 
       PRBool supportsMailingLists;
       rv = abDirectory->GetSupportsMailingLists(&supportsMailingLists);
       if (NS_FAILED(rv) || !supportsMailingLists)
         continue;
 
-      rv = mdbDirectory->GetDatabase(getter_AddRefs(abDataBase));
-      if (NS_FAILED(rv))
-        continue;
+      // Ensure the existing list is empty before filling it
+      mailListArray->Clear();
 
       // Collect all mailing lists defined in this address book
       rv = BuildMailListArray(abDirectory, mailListArray);
@@ -4567,6 +4567,14 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               continue;
             }
 
+            // If we haven't got a database, don't try to increase the
+            // popularity index.
+            if (!abDataBase)
+            {
+              stillNeedToSearch = PR_TRUE;
+              continue;
+            }
+
             // Then if we have a card for this email address
             // Please DO NOT change the 4th param of GetCardFromAttribute() call to
             // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
@@ -4588,7 +4596,10 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                 existingCard->SetPopularityIndex(++popularityIndex);
                 // Since we are not notifying anyway, send null
                 abDataBase->EditCard(existingCard, PR_FALSE, nsnull);
-                dirtyABDatabase = PR_TRUE;
+
+                // commit the database changes if we updated the popularity
+                // count.
+                abDataBase->Close(PR_TRUE);
               }
             }
             else
@@ -4596,8 +4607,6 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
           }
         }
       }
-
-      abDataBase->Close(dirtyABDatabase); // commit the database changes if we updated the popularity count.
     }
   }
 
