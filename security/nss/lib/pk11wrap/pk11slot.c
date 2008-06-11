@@ -1995,7 +1995,10 @@ PK11_GetMaxKeyLength(CK_MECHANISM_TYPE mechanism)
 	    }
 	}
     }
-    if (freeit) { PK11_FreeSlotList(list); }
+    if (le) 
+	PK11_FreeSlotListElement(list, le);
+    if (freeit) 
+	PK11_FreeSlotList(list);
     return keyLength;
 }
 
