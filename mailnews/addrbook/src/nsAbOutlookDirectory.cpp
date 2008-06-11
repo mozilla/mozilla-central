@@ -117,65 +117,6 @@ NS_IMETHODIMP nsAbOutlookDirectory::Init(const char *aUri)
 
   NS_ENSURE_SUCCESS(retCode, retCode);
 
-  // We need to ensure  that the m_DirPrefId is initialized properly
-  nsCAutoString uri(aUri);
-
-  // Mailing lists don't have their own prefs.
-  if (m_DirPrefId.IsEmpty() && (uri.Find("MailList") == kNotFound))
-  {
-    // Find the first ? (of the search params) if there is one.
-    // We know we can start at the end of the moz-aboutlookdirectory:// because
-    // that's the URI we should have been passed.
-    PRInt32 searchCharLocation = uri.FindChar('?', kOutlookDirSchemeLength);
-
-    // Get just the basic uri without the search params.
-    if (searchCharLocation != kNotFound)
-      uri = Substring(uri, 0, searchCharLocation);
-
-    // Get the pref servers and the address book directory branch
-    nsresult rv;
-    nsCOMPtr<nsIPrefService> prefService(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr<nsIPrefBranch> prefBranch;
-    rv = prefService->GetBranch(NS_LITERAL_CSTRING(PREF_LDAP_SERVER_TREE_NAME ".").get(),
-                                getter_AddRefs(prefBranch));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    char** childArray;
-    PRUint32 childCount, i;
-    PRInt32 dotOffset;
-    nsCString childValue;
-    nsDependentCString child;
-
-    rv = prefBranch->GetChildList("", &childCount, &childArray);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    for (i = 0; i < childCount; ++i)
-    {
-      child.Assign(childArray[i]);
-
-      if (StringEndsWith(child, NS_LITERAL_CSTRING(".uri")) &&
-          NS_SUCCEEDED(prefBranch->GetCharPref(child.get(),
-                                               getter_Copies(childValue))) &&
-          childValue == uri)
-      {
-        dotOffset = child.RFindChar('.');
-        if (dotOffset != -1)
-        {
-          nsCAutoString prefName;
-          prefName = Substring(child, 0, dotOffset);
-          m_DirPrefId.AssignLiteral(PREF_LDAP_SERVER_TREE_NAME ".");
-          m_DirPrefId.Append(prefName);
-        }
-      }
-    }
-    NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(childCount, childArray);
-
-    NS_ASSERTION(!m_DirPrefId.IsEmpty(),
-                 "Error, Could not set m_DirPrefId in nsAbOutlookDirectory::Init");
-  }
-
   nsCAutoString entry;
   nsCAutoString stub;
 

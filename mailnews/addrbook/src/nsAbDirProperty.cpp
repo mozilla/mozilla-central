@@ -98,7 +98,7 @@ NS_IMETHODIMP nsAbDirProperty::GetOperations(PRInt32 *aOperations)
 
 NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
 {
-  if (m_IsMailList)
+  if (m_DirPrefId.IsEmpty())
   {
     aDirName = m_ListDirName;
     return NS_OK;
@@ -119,7 +119,7 @@ NS_IMETHODIMP nsAbDirProperty::GetDirName(nsAString &aDirName)
 // local variable to store tha mailing list name.
 NS_IMETHODIMP nsAbDirProperty::SetDirName(const nsAString &aDirName)
 {
-  if (m_IsMailList)
+  if (m_DirPrefId.IsEmpty())
   {
     m_ListDirName = aDirName;
     return NS_OK;
