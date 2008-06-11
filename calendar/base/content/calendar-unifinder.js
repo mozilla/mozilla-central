@@ -80,6 +80,10 @@ function fixAlldayDates(aItem) {
             (!gStartDate || gStartDate.compare(aItem.endDate) < 0));
 }
 
+function getCurrentUnifinderFilter() {
+    return document.getElementById("event-filter-menulist").selectedItem.value;
+}
+
 /**
  * Observer for the calendar event data source. This keeps the unifinder
  * display up to date when the calendar event data is changed
@@ -254,8 +258,7 @@ function finishCalendarUnifinder() {
  * Event listeners for dayselect and itemselect events
  */
 function unifinderDaySelect() {
-    var filterList = document.getElementById("event-filter-menulist");
-    if (filterList.selectedItem.value == "current") {
+    if (getCurrentUnifinderFilter() == "current") {
         refreshEventTree();
     }
 }
@@ -858,6 +861,34 @@ function refreshEventTree() {
         }
     };
 
+
+    var ccalendar = getCompositeCalendar();
+    var filter = 0;
+
+    filter |= ccalendar.ITEM_FILTER_TYPE_EVENT;
+
+    // Not all xul might be there yet...
+    if (!document.getElementById("event-filter-menulist")) {
+        return;
+    }
+    var [StartDate, EndDate] = getDatesForFilter(getCurrentUnifinderFilter());
+
+    gStartDate = StartDate  ? jsDateToDateTime(StartDate, calendarDefaultTimezone()) : null;
+    gEndDate = EndDate ? jsDateToDateTime(EndDate, calendarDefaultTimezone()) : null;
+            LOG("Getting between " + gStartDate +  " and " + gEndDate + "\n");
+    if (StartDate && EndDate) {
+        filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
+    }
+
+    ccalendar.getItems(filter, 0, gStartDate, gEndDate, refreshListener);
+}
+
+/**
+ * Get the dates for a certain filter. This function makes it easy to extend the
+ * unifinder. To add a new view, just overwrite this function with your own. Be
+ * sure to call this function afterwards though.
+ */
+function getDatesForFilter(aFilter) {
     var Today = new Date();
     // Do this to allow all day events to show up all day long.
     var StartDate = new Date(Today.getFullYear(),
@@ -865,18 +896,7 @@ function refreshEventTree() {
                              Today.getDate(),
                              0, 0, 0);
     var EndDate;
-
-    var ccalendar = getCompositeCalendar();
-    var filter = 0;
-
-    filter |= ccalendar.ITEM_FILTER_TYPE_EVENT;
-
-    var filterMenulist = document.getElementById("event-filter-menulist");
-    // Not all xul might be there yet...
-    if (!filterMenulist) {
-        return;
-    }
-    switch (filterMenulist.selectedItem.value) {
+    switch (aFilter) {
         case "all":
             StartDate = null;
             EndDate = null;
@@ -917,19 +937,8 @@ function refreshEventTree() {
             StartDate = new Date(SelectedDate.getFullYear(), SelectedDate.getMonth(), SelectedDate.getDate(), 0, 0, 0);
             EndDate = new Date(StartDate.getTime() + (1000 * 60 * 60 * 24) - 1000);
             break;
-
-        default:
-            dump("there's no case for " + filterMenulist.selectedItem.value + "\n");
-            EndDate = StartDate;
-            break;
     }
-    gStartDate = StartDate ? jsDateToDateTime(StartDate).getInTimezone(calendarDefaultTimezone()) : null;
-    gEndDate = EndDate ? jsDateToDateTime(EndDate).getInTimezone(calendarDefaultTimezone()) : null;
-    if (StartDate && EndDate) {
-        filter |= ccalendar.ITEM_FILTER_CLASS_OCCURRENCES;
-    }
-
-    ccalendar.getItems(filter, 0, gStartDate, gEndDate, refreshListener);
+    return [StartDate, EndDate];
 }
 
 function refreshEventTreeInternal(eventArray) {
