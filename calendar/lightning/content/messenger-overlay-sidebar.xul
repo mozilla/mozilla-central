@@ -267,7 +267,7 @@
                mode="calendar"
                key="calendar-month-view-key"
                observes="calendar_month-view_command"/>
-     <menuseparator id="before-task-View-Section" mode="calendar,task"/>
+     <menuseparator id="before-task-View-Section" mode="mail,calendar,task"/>
       <menuitem id="tasks-view-minimonth"
                 type="checkbox"
                 mode="calendar,task"
@@ -286,6 +286,12 @@
                 label="&calendar.tasks.view.calendarlist.label;"
                 accesskey="&calendar.tasks.view.calendarlist.accesskey;"
                 command="calendar_toggle_calendarlist_command"/>
+      <menuitem id="view-invitations"
+                type="checkbox"
+                mode="mail,calendar,task"
+                label="&lightning.sidebar.invitations.label;"
+                accesskey="&lightning.sidebar.invitations.accesskey;"
+                command="calendar_toggle_invitations_command"/>
       <menuseparator id="before-today-pane" mode="mail,calendar,task"/>
       <menuitem id="ltnShowTodayPane"
                 label="&calendar.context.button.label;"
@@ -500,10 +506,6 @@
             </modevbox>
         </modevbox>
         </vbox>
-        <label id="invitations"
-               class="text-link calendar-invitations-sidebar-label"
-               value="&lightning.sidebar.invitations.label;"
-               onclick="openInvitationsDialog();"/>
       </vbox>
     </deck>
 
@@ -513,6 +515,15 @@
                 accesskey="&customizeToolbar.accesskey;"
                 oncommand="CustomizeApplicationToolbar('mode-toolbox');"/>
     </popup>
+
+    <modehbox id="invitations-pane" mode="mail,calendar,task" 
+              broadcaster="modeBroadcaster" refcontrol="calendar_toggle_invitations_command">
+      <label id="invitations"
+             class="text-link calendar-invitations-sidebar-label"
+             value="&lightning.sidebar.invitations.label;"
+             onclick="openInvitationsDialog();"/>
+      <spacer flex="1"/>
+    </modehbox>
 
     <toolbox id="mode-toolbox" location="bottom" mode="full">
       <toolbarpalette id="mode-toolbox-palette">

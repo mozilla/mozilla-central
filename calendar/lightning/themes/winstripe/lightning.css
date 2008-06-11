@@ -163,6 +163,13 @@ toolbar[iconsize="small"] #task-switch-button[disabled] {
 }
 
 /* Lightining sidebar background in calendar and task mode */
-#ltnSidebar {
-  background: -moz-field;
+#ltnSidebar,
+#invitations-pane {
+  background: -moz-field;  
 }
+
+.calendar-invitations-sidebar-label {
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+

@@ -39,7 +39,6 @@ lightning.jar:
   content/lightning/toolkit-overlay-custombar.xul       (content/toolkit-overlay-custombar.xul)
 #expand    skin/classic/lightning/imip.css       (themes/__THEME__/imip.css)
 #expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
-#expand    skin/classic/lightning/sun-messenger-overlay-sidebar.css	(/calendar/prototypes/themes/__THEME__/sun-messenger-overlay-sidebar.css)
 
 calendar.jar:
   content/calendar/calendarCreation.xul		(/calendar/resources/content/calendarCreation.xul) 
