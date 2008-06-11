@@ -93,7 +93,6 @@ typedef enum EBookmarkOpenBehavior
     BOOL                    mInitialized;
     BOOL                    mOffline;
     BOOL                    mGeckoInitted;
-    BOOL                    mBookmarksMenuUpdatePending;
     BOOL                    mFileMenuUpdatePending;
     BOOL                    mPageInfoUpdatePending;
 
@@ -195,7 +194,6 @@ typedef enum EBookmarkOpenBehavior
 - (void)adjustCloseWindowMenuItemKeyEquivalent:(BOOL)inHaveTabs;
 - (void)adjustCloseTabMenuItemKeyEquivalent:(BOOL)inHaveTabs;
 - (void)delayedFixCloseMenuItemKeyEquivalents;
-- (void)delayedAdjustBookmarksMenuItemsEnabling;
 - (void)delayedUpdatePageInfo;
 
 - (NSView*)savePanelView;

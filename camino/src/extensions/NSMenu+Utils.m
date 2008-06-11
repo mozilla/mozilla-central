@@ -40,50 +40,11 @@
 
 #import "NSMenu+Utils.h"
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+extern NSString *NSMenuDidBeginTrackingNotification;
+#endif
 
-NSString* const NSMenuWillDisplayNotification = @"NSMenuWillDisplayNotification";
-NSString* const NSMenuClosedNotification      = @"NSMenuClosedNotification";
-
-// internal API
-extern MenuRef _NSGetCarbonMenu(NSMenu* aMenu);
-
-static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
-{
-  UInt32 eventKind = GetEventKind(inEvent);
-  switch (eventKind)
-  {
-    case kEventMenuOpening:
-    case kEventMenuClosed:
-      {
-        MenuRef theCarbonMenu;
-        OSStatus err = GetEventParameter(inEvent, kEventParamDirectObject, typeMenuRef, NULL, sizeof(MenuRef), NULL, &theCarbonMenu);
-        if (err == noErr)
-        {
-          @try {
-            // we can't map from MenuRef to NSMenu, so we have to let receivers of the notification
-            // do the test.
-            NSString* notificationName = @"";
-            if (eventKind == kEventMenuOpening)
-              notificationName = NSMenuWillDisplayNotification;
-            else if (eventKind == kEventMenuClosed)
-              notificationName = NSMenuClosedNotification;
-            
-            [[NSNotificationCenter defaultCenter] postNotificationName:notificationName
-                                                                object:[NSValue valueWithPointer:theCarbonMenu]];
-          }
-          @catch (id exception) {
-            NSLog(@"Caught exception %@", exception);
-          }
-        }
-      }
-      break;
-  }
-
-  // always let the event propagate  
-  return eventNotHandledErr;
-}
-
-#pragma mark -
+static BOOL sSomeMenuIsTracking = NO;
 
 @interface CarbonMenuList : NSObject
 {
@@ -94,9 +55,8 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 - (id)init;
 - (void)dealloc;
 - (NSArray*)list;
-- (void)setupNotifications;
-- (void)menuOpen:(NSNotification*)notification;
-- (void)menuClose:(NSNotification*)notification;
+- (void)menuOpened:(NSValue*)wrappedMenuRef;
+- (void)menuClosed:(NSValue*)wrappedMenuRef;
 @end
 
 @implementation CarbonMenuList
@@ -120,7 +80,6 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
 }
 
 - (void)dealloc {
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
   [mList release];
   [super dealloc];
 }
@@ -129,35 +88,54 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
   return mList;
 }
 
-- (void)setupNotifications {
-  NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
-  [notificationCenter addObserver:self
-                         selector:@selector(menuOpen:)
-                             name:NSMenuWillDisplayNotification
-                           object:nil];
-  [notificationCenter addObserver:self
-                         selector:@selector(menuClose:)
-                             name:NSMenuClosedNotification
-                           object:nil];
-}
-
-- (void)menuOpen:(NSNotification*)notification {
-  NSValue* value = [notification object];
-  if (![mList containsObject:value]) {
-    [mList addObject:value];
+- (void)menuOpened:(NSValue*)wrappedMenuRef {
+  if (![mList containsObject:wrappedMenuRef]) {
+    [mList addObject:wrappedMenuRef];
   }
 }
 
-- (void)menuClose:(NSNotification*)notification {
-  [mList removeObject:[notification object]];
+- (void)menuClosed:(NSValue*)wrappedMenuRef {
+  [mList removeObject:wrappedMenuRef];
 }
 
 @end
 
+#pragma mark -
+
+static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef inEvent, void *inUserData)
+{
+  UInt32 eventKind = GetEventKind(inEvent);
+  switch (eventKind) {
+    case kEventMenuOpening:
+    case kEventMenuClosed:
+    {
+      MenuRef theCarbonMenu;
+      OSStatus err = GetEventParameter(inEvent, kEventParamDirectObject, typeMenuRef, NULL, sizeof(MenuRef), NULL, &theCarbonMenu);
+      if (err == noErr) {
+        @try {
+          NSValue* wrappedRef = [NSValue valueWithPointer:theCarbonMenu];
+          if (eventKind == kEventMenuOpening)
+            [[CarbonMenuList instance] menuOpened:wrappedRef];
+          else if (eventKind == kEventMenuClosed)
+            [[CarbonMenuList instance] menuClosed:wrappedRef];
+         }
+        @catch (id exception) {
+          NSLog(@"Caught exception %@", exception);
+        }
+      }
+    }
+      break;
+  }
+  
+  // always let the event propagate  
+  return eventNotHandledErr;
+}
+
+#pragma mark -
 
 @implementation NSMenu(ChimeraMenuUtils)
 
-+ (void)setupMenuWillDisplayNotifications
++ (void)installCarbonMenuWatchers
 {
   static BOOL sInstalled = NO;
   
@@ -167,20 +145,52 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
       { kEventClassMenu, kEventMenuOpening },
       { kEventClassMenu, kEventMenuClosed  }
     };
-
+    
     InstallApplicationEventHandler(NewEventHandlerUPP(MenuEventHandler), 
                                    GetEventTypeCount(menuEventList),
                                    menuEventList, (void*)self, NULL);
     sInstalled = YES;
   }
+}
 
-  [[CarbonMenuList instance] setupNotifications];
++ (void)setUpMenuTrackingWatch
+{
+  NSMenu* mainMenu = [NSApp mainMenu];
+  // We never remove this observation, but since clearly these notifications
+  // can't be fired after the main menu has been dealloc'd, there's no harm.
+  // We use the main menu as the delegate because it's a convenient long-lived
+  // object.
+  [[NSNotificationCenter defaultCenter] addObserver:mainMenu
+                                           selector:@selector(rootMenuStartedTracking:)
+                                               name:NSMenuDidBeginTrackingNotification
+                                             object:nil];
+  [[NSNotificationCenter defaultCenter] addObserver:mainMenu
+                                           selector:@selector(rootMenuFinishedTracking:)
+                                               name:NSMenuDidEndTrackingNotification
+                                             object:nil];
+  [self installCarbonMenuWatchers];
+}
+
+- (void)rootMenuStartedTracking:(id)object
+{
+  sSomeMenuIsTracking = YES;
+}
+
+- (void)rootMenuFinishedTracking:(id)object
+{
+  sSomeMenuIsTracking = NO;
+}
+
++ (BOOL)currentyInMenuTracking
+{
+  // We can't just use CarbonMenuList's count since it's not always updated in
+  // time to be correct during a menuNeedsUpdate: call.
+  return sSomeMenuIsTracking;
 }
 
 + (void)cancelAllTracking {
-  // This method uses Carbon functions to do its dirty work, which seems to
-  // work.  It's no hackier than the other Carbon MenuRef action that the
-  // rest of this class uses.  There isn't really a good Cocoa substitute for
+  // This method uses Carbon functions to do its dirty work, which is
+  // hacky but seems to work.  There isn't really a good Cocoa substitute for
   // CancelMenuTracking.  In Leopard, there's -[NSMenu cancelMenuTracking],
   // but that doesn't seem to work to stop menu tracking when a sheet is
   // about to be displayed.  Perhaps that's because it tries to fade the
@@ -291,13 +301,6 @@ static OSStatus MenuEventHandler(EventHandlerCallRef inHandlerCallRef, EventRef 
     if ([menuItem tag] == tagToRemove)
       [self removeItem:menuItem];
   }
-}
-
-// because there's no way to map back from a MenuRef to a Cocoa NSMenu, we have
-// to let receivers of the notification do the test by calling this method.
-- (BOOL)isTargetOfMenuDisplayNotification:(id)inObject
-{
-  return ([inObject pointerValue] == _NSGetCarbonMenu(self));
 }
 
 - (int)addCommandKeyAlternatesForMenuItem:(NSMenuItem *)inMenuItem

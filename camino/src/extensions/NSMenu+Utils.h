@@ -38,18 +38,20 @@
 
 #import <AppKit/AppKit.h>
 
-// notification fire before a menu is displayed. the notification object
-// is an opaque id which should be compared with a NSMenu using -isTargetOfWillDisplayNotification
-extern NSString* const NSMenuWillDisplayNotification;
-extern NSString* const NSMenuClosedNotification;
-
 @interface NSMenu(ChimeraMenuUtils)
 
 // Closes all open menus.  Use this before displaying a modal sheet or dialog.
+// Requires that setUpMenuTrackingWatch has been called at some point.
 + (void)cancelAllTracking;
 
-// turn on "NSMenuWillDisplayNotification" firing
-+ (void)setupMenuWillDisplayNotifications;
+// Returns whether or not some menu is currently in tracking mode.
+// Requires that setUpMenuTrackingWatch has been called at some point.
++ (BOOL)currentyInMenuTracking;
+
+// Turns on menu state watchers to enable use of the above methods. Only needs
+// to be called once.
++ (void)setUpMenuTrackingWatch;
+
 
 // check one item on a menu, optionally unchecking all the others
 - (void)checkItemWithTag:(int)tag uncheckingOtherItems:(BOOL)uncheckOthers;
@@ -75,10 +77,6 @@ extern NSString* const NSMenuClosedNotification;
 - (void)removeItemsFromIndex:(int)inItemIndex;
 
 - (void)removeAllItemsWithTag:(int)tag;
-
-// return YES if this menu is the target of the 'will display' notification.
-// the param should be the [NSNotification object]
-- (BOOL)isTargetOfMenuDisplayNotification:(id)inObject;
 
 // add command and shift-command alternate menu items with attributes matching
 // the input param. Returns the number of alternates added.

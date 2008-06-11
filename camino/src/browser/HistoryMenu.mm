@@ -181,11 +181,8 @@ static const unsigned int kMaxTitleLength = 50;
                                                name:kNotificationNameHistoryDataSourceChanged
                                              object:[HistoryMenuDataSourceOwner sharedHistoryDataSource]];
 
-  // register for menu display
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(menuWillDisplay:)
-                                               name:NSMenuWillDisplayNotification
-                                             object:nil];
+  // Set us up to receive menuNeedsUpdate: callbacks
+  [self setDelegate:self];
 }
 
 - (void)dealloc
@@ -237,9 +234,12 @@ static const unsigned int kMaxTitleLength = 50;
   }
 }
 
-- (void)menuWillDisplay:(NSNotification*)inNotification
+- (void)menuNeedsUpdate:(NSMenu*)menu
 {
-  if ([self isTargetOfMenuDisplayNotification:[inNotification object]])
+  // Contrary to what the docs say, this method is also called whenever a key
+  // equivalent is triggered anywhere in the application, so we only update
+  // the menu if we are actually doing menu tracking.
+  if ([NSMenu currentyInMenuTracking])
     [self menuWillBeDisplayed];
 }
 

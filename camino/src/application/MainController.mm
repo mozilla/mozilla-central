@@ -108,15 +108,13 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 - (void)checkDefaultBrowser;
 - (void)checkForProblemAddOns;
 - (void)prelaunchHelperApps;
-- (BOOL)bookmarksItemsEnabled;
 - (void)adjustBookmarkMenuItems;
 - (void)updateDockMenuBookmarkFolder;
-- (void)doBookmarksMenuEnabling;
+- (void)updateBookmarkMenuStateIncludingBookmarks:(BOOL)includeBookmarks;
 - (void)adjustTextEncodingMenu;
 - (void)windowLayeringDidChange:(NSNotification*)inNotification;
 - (void)bookmarkLoadingCompleted:(NSNotification*)inNotification;
 - (void)dockMenuBookmarkFolderChanged:(NSNotification*)inNotification;
-- (void)menuWillDisplay:(NSNotification*)inNotification;
 - (void)showCertificatesNotification:(NSNotification*)inNotification;
 - (void)openPanelDidEnd:(NSOpenPanel*)inOpenPanel returnCode:(int)inReturnCode contextInfo:(void*)inContextInfo;
 - (void)loadApplicationPage:(NSString*)pageURL;
@@ -224,12 +222,14 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   // return to the old behavior.
   [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSViewSetAncestorsWindowFirst"];
 
-  NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
-  // turn on menu display notifications
-  [NSMenu setupMenuWillDisplayNotifications];
+  // Set up menu tracking
+  [NSMenu setUpMenuTrackingWatch];
 
-  // register for them for bookmarks
-  [notificationCenter addObserver:self selector:@selector(menuWillDisplay:) name:NSMenuWillDisplayNotification object:nil];
+  // TODO: These should be set in the nib instead next time the nib is changed.
+  [mTextEncodingsMenu setDelegate:self];
+  [mBookmarksMenu setDelegate:self];
+
+  NSNotificationCenter* notificationCenter = [NSNotificationCenter defaultCenter];
 
   // register for various window layering changes
   [notificationCenter addObserver:self selector:@selector(windowLayeringDidChange:) name:NSWindowDidBecomeKeyNotification object:nil];
@@ -984,7 +984,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (void)windowLayeringDidChange:(NSNotification*)inNotification
 {
-  [self delayedAdjustBookmarksMenuItemsEnabling];
   [self delayedFixCloseMenuItemKeyEquivalents];
   [self delayedUpdatePageInfo];
 }
@@ -1819,12 +1818,23 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   return YES;
 }
 
-- (void)menuWillDisplay:(NSNotification*)inNotification
+- (void)menuNeedsUpdate:(NSMenu *)menu
 {
-  if ([mBookmarksMenu isTargetOfMenuDisplayNotification:[inNotification object]])
-    [self adjustBookmarkMenuItems];
-  else if ([mTextEncodingsMenu isTargetOfMenuDisplayNotification:[inNotification object]])
+  // Contrary to what the docs say, this method is also called whenever a key
+  // equivalent is triggered anywhere in the application.
+  // Only update the encoding menu if we are actually doing menu tracking.
+  if ([menu isEqual:mTextEncodingsMenu] && [NSMenu currentyInMenuTracking]) {
     [self adjustTextEncodingMenu];
+  }
+  else if ([menu isEqual:mBookmarksMenu]) {
+    // We always update the core bookmark menu items so that key equivalents
+    // behave correctly for the current state, but we only manage the bookmark
+    // entries if we are going to show the menu.
+    BOOL showingMenu = [NSMenu currentyInMenuTracking];
+    if (showingMenu)
+      [mBookmarksMenu rebuildMenuIncludingSubmenus:NO];
+    [self updateBookmarkMenuStateIncludingBookmarks:showingMenu];
+  }
 }
 
 - (void)adjustTextEncodingMenu
@@ -1856,34 +1866,15 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   [[mTextEncodingsMenu itemWithTag:kEncodingMenuAutodetectItemTag] setState:(universalChardetOn ? NSOnState : NSOffState)];
 }
 
-- (void)adjustBookmarkMenuItems
-{
-  BOOL enableItems = [self bookmarksItemsEnabled];
-
-  int firstBookmarkItem = [mBookmarksMenu indexOfItemWithTag:kBookmarksDividerTag] + 1;
-  [mBookmarksMenu setAllItemsEnabled:enableItems startingWithItemAtIndex:firstBookmarkItem includingSubmenus:YES];
-}
-
-- (void)delayedAdjustBookmarksMenuItemsEnabling
-{
-  // we do this after a delay to ensure that window layer state has been set by the time
-  // we do the enabling.
-  if (!mBookmarksMenuUpdatePending) {
-    [self performSelector:@selector(doBookmarksMenuEnabling) withObject:nil afterDelay:0];
-    mBookmarksMenuUpdatePending = YES;
-  }
-}
-
 //
-// -doBookmarksMenuEnabling
+// -updateBookmarkMenuStateIncludingBookmarks:
 //
 // We've turned off auto-enabling for the bookmarks menu because of the unknown
-// number of bookmarks in the list so we have to manage it manually. This routine
-// should be evoked through |delayedAdjustBookmarksMenuItemsEnabling| whenever a
-// window goes away, becomes main or is no longer main, and any time the number of
-// tabs changes, the active tab changes, or any page is loaded.
+// number of bookmarks in the list so we have to manage it manually. We call it
+// whenever we need to make sure that the enabled state of the bookmark menu
+// items is accurate.
 //
-- (void)doBookmarksMenuEnabling
+- (void)updateBookmarkMenuStateIncludingBookmarks:(BOOL)includeBookmarks
 {
   // update our stand-in menu by hand (because it doesn't get autoupdated)
   [mBookmarksHelperMenu update];
@@ -1902,15 +1893,14 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   [mShowAllBookmarksMenuItem         takeStateFromItem:[mBookmarksHelperMenu itemWithTarget:[mShowAllBookmarksMenuItem target]
                                                                                   andAction:[mShowAllBookmarksMenuItem action]]];
 
-  // We enable bookmark items themselves from the carbon event handler that fires before the menu is shown.
-  mBookmarksMenuUpdatePending = NO;
-}
-
-- (BOOL)bookmarksItemsEnabled
-{
-  // since this menu is not in the menu bar, we have to update it by hand
-  [mBookmarksHelperMenu update];
-  return [[mBookmarksHelperMenu itemWithTarget:self andAction:@selector(openMenuBookmark:)] isEnabled];
+  if (includeBookmarks) {
+    BOOL enableItems = [[mBookmarksHelperMenu itemWithTarget:self
+                                                   andAction:@selector(openMenuBookmark:)] isEnabled];
+    int firstBookmarkItem = [mBookmarksMenu indexOfItemWithTag:kBookmarksDividerTag] + 1;
+    [mBookmarksMenu setAllItemsEnabled:enableItems
+               startingWithItemAtIndex:firstBookmarkItem
+                     includingSubmenus:YES];
+  }
 }
 
 - (void)adjustCloseWindowMenuItemKeyEquivalent:(BOOL)inHaveTabs

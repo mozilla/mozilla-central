@@ -56,7 +56,6 @@ const long kOpenInTabsTag = 0xBEEF;
 @interface BookmarkMenu(Private)
 
 - (void)setupBookmarkMenu;
-- (void)menuWillBeDisplayed;
 - (void)appendBookmarkItem:(BookmarkItem *)inItem buildingSubmenus:(BOOL)buildSubmenus;
 - (void)addLastItems;
 
@@ -73,6 +72,10 @@ const long kOpenInTabsTag = 0xBEEF;
     mDirty  = YES;
     mAppendTabsItem = YES;
     [self setupBookmarkMenu];
+    // Set us up to receive menuNeedsUpdate: callbacks. We do this here rather
+    // than setupBookmarkMenu because we don't want to change the delegate
+    // for the top-level bookmark menu (which comes from the nib)
+    [self setDelegate:self];
   }
   return self;
 }
@@ -101,12 +104,6 @@ const long kOpenInTabsTag = 0xBEEF;
   [nc addObserver:self selector:@selector(bookmarkAdded:)   name:BookmarkFolderAdditionNotification object:nil];
   [nc addObserver:self selector:@selector(bookmarkRemoved:) name:BookmarkFolderDeletionNotification object:nil];
   [nc addObserver:self selector:@selector(bookmarkChanged:) name:BookmarkItemChangedNotification object:nil];
-
-  // register for menu display
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(menuWillDisplay:)
-                                               name:NSMenuWillDisplayNotification
-                                             object:nil];
 }
 
 
@@ -139,16 +136,13 @@ const long kOpenInTabsTag = 0xBEEF;
 
 #pragma mark -
 
-- (void)menuWillDisplay:(NSNotification*)inNotification
+- (void)menuNeedsUpdate:(NSMenu*)menu
 {
-  if ([self isTargetOfMenuDisplayNotification:[inNotification object]]) {
-    [self menuWillBeDisplayed];
-  }
-}
-
-- (void)menuWillBeDisplayed
-{
-  [self rebuildMenuIncludingSubmenus:NO];
+  // Contrary to what the docs say, this method is also called whenever a key
+  // equivalent is triggered anywhere in the application, so we only update
+  // the menu if we are actually doing menu tracking.
+  if ([NSMenu currentyInMenuTracking])
+    [self rebuildMenuIncludingSubmenus:NO];
 }
 
 - (void)rebuildMenuIncludingSubmenus:(BOOL)includeSubmenus

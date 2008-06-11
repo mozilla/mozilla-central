@@ -1838,7 +1838,6 @@ public:
   if ([[self window] isMainWindow])
     [[PageInfoWindowController visiblePageInfoWindowController] updateFromBrowserView:[self activeBrowserView]];
 
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
   [[SessionManager sharedInstance] windowStateChanged];
 }
 
@@ -2137,9 +2136,6 @@ public:
 
 - (void)contentViewChangedTo:(NSView*)inView forURL:(NSString*)inURL
 {
-  // update bookmarks menu
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
-
   // should we change page info for bookmarks?
 }
 
@@ -3336,7 +3332,6 @@ public:
   // so we don't want to close it again (and recurse).
   else if (!mClosingWindow) {
     [[self window] close];
-    [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
   }
 
   [[SessionManager sharedInstance] windowStateChanged];
@@ -3426,8 +3421,6 @@ public:
     [mTabBrowser selectLastTabViewItem:sender];
   else
     [mTabBrowser selectPreviousTabViewItem:sender];
-
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (IBAction)nextTab:(id)sender
@@ -3438,8 +3431,6 @@ public:
     [mTabBrowser selectFirstTabViewItem:sender];
   else
     [mTabBrowser selectNextTabViewItem:sender];
-
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (IBAction)closeSendersTab:(id)sender
@@ -3466,13 +3457,11 @@ public:
       }
     }
   }
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (void)closeTab:(NSTabViewItem *)tab
 {
   [(BrowserTabViewItem*)tab closeTab:self];
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (IBAction)moveTabToNewWindow:(id)sender
@@ -3517,8 +3506,6 @@ public:
 
   if (![self userChangedLocationField] && [[self window] isKeyWindow])
     [mBrowserView setBrowserActive:YES];
-
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 - (void)tabView:(NSTabView *)aTabView willSelectTabViewItem:(NSTabViewItem *)aTabViewItem
@@ -4902,9 +4889,6 @@ public:
 - (IBAction)toggleTabThumbnailView:(id)sender
 {
   [mContentView toggleTabThumbnailGridView];
-
-  // Make sure the bookmark menu items get updated
-  [[NSApp delegate] delayedAdjustBookmarksMenuItemsEnabling];
 }
 
 @end
