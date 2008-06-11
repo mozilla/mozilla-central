@@ -47,7 +47,6 @@ MODULE		= msgbase
 EXPORTS		= \
 		msgCore.h \
 		nsMsgBaseCID.h \
-		nsMsgFolderFlags.h \
 		nsMsgHeaderMasks.h \
 		nsMsgMessageFlags.h \
 		nsMsgLocalFolderHdrs.h \
@@ -97,8 +96,9 @@ XPIDLSRCS	= \
 		nsIMsgMdnGenerator.idl	        \
 		nsISpamSettings.idl	        \
 		nsIMapiRegistry.idl \
-        nsIMsgCustomColumnHandler.idl \
-    nsIMsgShutdown.idl \
+		nsIMsgCustomColumnHandler.idl \
+		nsIMsgShutdown.idl \
+		nsMsgFolderFlags.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk
