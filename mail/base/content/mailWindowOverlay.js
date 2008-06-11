@@ -736,6 +736,7 @@ function populateHistoryMenu(menuPopup, isBackMenu)
     newMenuItem.setAttribute('label', menuText);
     relPos += isBackMenu ? -1 : 1;
     newMenuItem.setAttribute('value',  relPos);
+    newMenuItem.folder = folder;
     newMenuItem.setAttribute('oncommand', 'NavigateToUri(event.target); event.stopPropagation();');
     menuPopup.appendChild(newMenuItem);
     if (! (relPos % 20))
@@ -747,15 +748,14 @@ function populateHistoryMenu(menuPopup, isBackMenu)
 function NavigateToUri(target)
 {
   var historyIndex = target.getAttribute('value');
-  var folderUri = messenger.getFolderUriAtNavigatePos(historyIndex);
   var msgUri = messenger.getMsgUriAtNavigatePos(historyIndex);
-  var folder = RDF.GetResource(folderUri).QueryInterface(Components.interfaces.nsIMsgFolder);
+  var folder = target.folder;
   var msgHdr = messenger.msgHdrFromURI(msgUri);
   navDebug("navigating from " + messenger.navigatePos + " by " + historyIndex + " to " + msgUri + "\n");
-  navDebug("folderUri = " + folderUri + "\n");
+
   // this "- 0" seems to ensure that historyIndex is treated as an int, not a string.
   messenger.navigatePos += (historyIndex - 0);
-  LoadNavigatedToMessage(msgHdr, folder, folderUri);
+  LoadNavigatedToMessage(msgHdr, folder, folder.URI);
 }
 
 function forwardToolbarMenu_init(menuPopup)

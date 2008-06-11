@@ -149,28 +149,23 @@ function UpdateMailToolbar(caller)
   observerService.notifyObservers(window, "mail:updateToolbarItems", null);
 }
 
-function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
+function ChangeFolder(folder, viewType, viewFlags, sortType, sortOrder)
 {
-  viewDebug("In ChangeFolderByURI uri = " + uri + " sortType = " + sortType + "\n");
-  if (uri == gCurrentLoadingFolderURI)
+  if (folder.URI == gCurrentLoadingFolderURI)
     return;
 
   // hook for extra toolbar items
   var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.notifyObservers(window, "mail:setupToolbarItems", uri);
-
-  var resource = RDF.GetResource(uri);
-  var msgfolder =
-      resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  observerService.notifyObservers(window, "mail:setupToolbarItems", folder.URI);
 
   try {
-      setTitleFromFolder(msgfolder, null);
+      setTitleFromFolder(folder, null);
   } catch (ex) {
       dump("error setting title: " + ex + "\n");
   }
 
   //if it's a server, clear the threadpane and don't bother trying to load.
-  if(msgfolder.isServer) 
+  if(folder.isServer)
   {
     msgWindow.openFolder = null;
     ClearThreadPane();
@@ -181,20 +176,20 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
   }
   else
   {
-    if (msgfolder.server.displayStartupPage)
+    if (folder.server.displayStartupPage)
     {
       gDisplayStartupPage = true;
-      msgfolder.server.displayStartupPage = false;
+      folder.server.displayStartupPage = false;
     }
   }
 
   // If the user clicks on msgfolder, time to display thread pane and message pane.
   ShowThreadPane();
 
-  gCurrentLoadingFolderURI = uri;
+  gCurrentLoadingFolderURI = folder.URI;
   gNextMessageAfterDelete = null; // forget what message to select, if any
 
-  gCurrentFolderToReroot = uri;
+  gCurrentFolderToReroot = folder.URI;
   gCurrentLoadingFolderViewFlags = viewFlags;
   gCurrentLoadingFolderViewType = viewType;
   gCurrentLoadingFolderSortType = sortType;
@@ -202,7 +197,7 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
 
   var showMessagesAfterLoading;
   try {
-    var server = msgfolder.server;
+    var server = folder.server;
     if (gPrefBranch.getBoolPref("mail.password_protect_local_cache"))
     {
       showMessagesAfterLoading = server.passwordPromptRequired;
@@ -216,15 +211,15 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
     showMessagesAfterLoading = false;
   }
 
-  if (viewType != nsMsgViewType.eShowVirtualFolderResults && (msgfolder.manyHeadersToDownload || showMessagesAfterLoading))
+  if (viewType != nsMsgViewType.eShowVirtualFolderResults && (folder.manyHeadersToDownload || showMessagesAfterLoading))
   {
     gRerootOnFolderLoad = true;
     try
     {
       ClearThreadPane();
       SetBusyCursor(window, true);
-      msgfolder.startFolderLoading();
-      msgfolder.updateFolder(msgWindow);
+      folder.startFolderLoading();
+      folder.updateFolder(msgWindow);
     }
     catch(ex)
     {
@@ -236,14 +231,14 @@ function ChangeFolderByURI(uri, viewType, viewFlags, sortType, sortOrder)
   {
     if (viewType != nsMsgViewType.eShowVirtualFolderResults)
       SetBusyCursor(window, true);
-    RerootFolder(uri, msgfolder, viewType, viewFlags, sortType, sortOrder);
+    RerootFolder(folder.URI, folder, viewType, viewFlags, sortType, sortOrder);
     gRerootOnFolderLoad = false;
-    msgfolder.startFolderLoading();
+    folder.startFolderLoading();
 
     //Need to do this after rerooting folder.  Otherwise possibility of receiving folder loaded
     //notification before folder has actually changed.
     if (viewType != nsMsgViewType.eShowVirtualFolderResults)
-      msgfolder.updateFolder(msgWindow);
+      folder.updateFolder(msgWindow);
   }
 }
 
@@ -1025,7 +1020,7 @@ function FolderPaneSelectionChange()
               viewType = nsMsgViewType.eShowQuickSearchResults;
             else if (viewType == nsMsgViewType.eShowQuickSearchResults)
               viewType = nsMsgViewType.eShowAllThreads;  //override viewType - we don't want to start w/ quick search
-            ChangeFolderByURI(uriToLoad, viewType, viewFlags, sortType, sortOrder);
+            ChangeFolder(msgFolder, viewType, viewFlags, sortType, sortOrder);
             if (gVirtualFolderTerms)
               gDBView.viewFolder = msgFolder;
         }
@@ -1072,32 +1067,6 @@ function IsSpecialFolder(msgFolder, flags, checkAncestors)
         // and not a SENT folder
         return !((flags & MSG_FOLDER_FLAG_SENTMAIL) && (msgFolder.flags & MSG_FOLDER_FLAG_INBOX));
     }
-}
-
-function SelectNextMessage(nextMessage)
-{
-    dump("XXX implement SelectNextMessage()\n");
-}
-
-function GetSelectTrashUri(folder)
-{
-    if (!folder) return null;
-    var uri = folder.getAttribute('id');
-    var resource = RDF.GetResource(uri);
-    var msgFolder =
-        resource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    if (msgFolder)
-    {
-        var rootFolder = msgFolder.rootFolder;
-        var numFolder;
-        var out = new Object();
-        var trashFolder = rootFolder.getFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, out);
-        numFolder = out.value;
-        if (trashFolder) {
-            return trashFolder.URI;
-        }
-    }
-    return null;
 }
 
 function Undo()

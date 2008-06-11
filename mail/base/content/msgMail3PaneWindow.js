@@ -878,7 +878,7 @@ function loadStartFolder(initialUri)
     try
     {
         if(initialUri)
-            startFolderResource = RDF.GetResource(initialUri);
+            startFolderResource = GetMsgFolderFromUri(initialUri).QueryInterface(Components.interfaces.nsIRDFResource);
         else
         {
             var defaultAccount = accountManager.defaultAccount;
