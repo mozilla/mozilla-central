@@ -445,11 +445,6 @@ NSString* const SafariURLStringKey = @"URLString";
   return NSOrderedSame;
 }
 
-- (NSComparisonResult)compareForTop10:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending
-{
-  return NSOrderedSame;
-}
-
 @end
 
 

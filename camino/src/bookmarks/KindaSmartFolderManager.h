@@ -54,6 +54,7 @@
   BookmarkFolder*       mAddressBookFolder;
   BookmarkFolder*       mRendezvousFolder;
   AddressBookManager*   mAddressBookManager;
+  NSArray*              mTop10SortDescriptors;
 }
 
 - (id)initWithBookmarkManager:(BookmarkManager *)manager;

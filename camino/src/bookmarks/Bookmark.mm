@@ -502,23 +502,6 @@ NSString* const URLLoadSuccessKey     = @"url_bool";
   return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
 }
 
-- (NSComparisonResult)compareForTop10:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending
-{
-  NSComparisonResult result;
-  // sort folders before other stuff
-  if ([aItem isKindOfClass:[BookmarkFolder class]])
-    result = NSOrderedDescending;
-  else {
-    unsigned int otherVisits = [(Bookmark*)aItem numberOfVisits];
-    if (mNumberOfVisits == otherVisits)
-      return [self compareLastVisitDate:aItem sortDescending:inDescending];
-    else
-      result = (otherVisits > mNumberOfVisits) ? NSOrderedAscending : NSOrderedDescending;
-  }
-
-  return [inDescending boolValue] ? (NSComparisonResult)(-1 * (int)result) : result;
-}
-
 @end
 
 #pragma mark -

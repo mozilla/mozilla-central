@@ -561,6 +561,7 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   [self arrangeChildrenWithOrder:newChildOrder];
 }
 
+// TODO: migrate everything to the descriptor version, and remove this.
 - (void)sortChildrenUsingSelector:(SEL)inSelector reverseSort:(BOOL)inReverse sortDeep:(BOOL)inDeep undoable:(BOOL)inUndoable
 {
   NSUndoManager* undoManager = [[BookmarkManager sharedBookmarkManager] undoManager];
@@ -586,6 +587,34 @@ static int BookmarkItemSort(id firstItem, id secondItem, void* context)
   }
 
   if (inUndoable) {
+    [undoManager endUndoGrouping];
+    [undoManager setActionName:NSLocalizedString(@"Arrange Bookmarks", nil)];
+  }
+}
+
+- (void)sortChildrenUsingDescriptors:(NSArray*)descriptors deep:(BOOL)deep undoable:(BOOL)undoable
+{
+  NSUndoManager* undoManager = [[BookmarkManager sharedBookmarkManager] undoManager];
+  if (undoable) {
+    [undoManager beginUndoGrouping];
+    // record undo, back to existing order
+    [[undoManager prepareWithInvocationTarget:self] arrangeChildrenWithOrder:[NSArray arrayWithArray:mChildArray]];
+  }
+
+  [mChildArray sortUsingDescriptors:descriptors];
+
+  [self itemChangedNote:self];
+
+  if (deep) {
+    NSEnumerator *enumerator = [mChildArray objectEnumerator];
+    id childItem;
+    while ((childItem = [enumerator nextObject])) {
+      if ([childItem isKindOfClass:[BookmarkFolder class]])
+        [childItem sortChildrenUsingDescriptors:descriptors deep:deep undoable:undoable];
+    }
+  }
+
+  if (undoable) {
     [undoManager endUndoGrouping];
     [undoManager setActionName:NSLocalizedString(@"Arrange Bookmarks", nil)];
   }

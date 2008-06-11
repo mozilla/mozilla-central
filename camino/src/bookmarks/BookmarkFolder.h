@@ -132,6 +132,8 @@ enum {
 - (void)arrangeChildItems:(NSArray*)inChildItems usingSelector:(SEL)inSelector reverseSort:(BOOL)inReverse;
 // Sort the children of this folder, optionally sorting deep. Optionally undoable.
 - (void)sortChildrenUsingSelector:(SEL)inSelector reverseSort:(BOOL)inReverse sortDeep:(BOOL)inDeep undoable:(BOOL)inUndoable;
+// Sort the children of this folder by descriptors, optionally deep and undoable.
+- (void)sortChildrenUsingDescriptors:(NSArray*)descriptors deep:(BOOL)deep undoable:(BOOL)undoable;
 
 // generation menus
 - (void)buildFlatFolderList:(NSMenu *)menu depth:(unsigned)pad;

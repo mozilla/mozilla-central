@@ -67,6 +67,10 @@ const unsigned kNumTop10Items = 10;   // well, 10, duh!
     mTop10Folder = [[manager top10Folder] retain];
     mAddressBookFolder = [[manager addressBookFolder] retain];
     mRendezvousFolder = [[manager rendezvousFolder] retain];
+    mTop10SortDescriptors = [[NSArray alloc] initWithObjects:
+                              [[[NSSortDescriptor alloc] initWithKey:@"numberOfVisits" ascending:NO] autorelease],
+                              [[[NSSortDescriptor alloc] initWithKey:@"lastVisit" ascending:NO] autorelease],
+                              nil];
 
     // client notifications
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -83,6 +87,7 @@ const unsigned kNumTop10Items = 10;   // well, 10, duh!
   [mAddressBookFolder release];
   [mRendezvousFolder release];
   [mAddressBookManager release];
+  [mTop10SortDescriptors release];
   [super dealloc];
 }
 
@@ -141,10 +146,11 @@ const unsigned kNumTop10Items = 10;   // well, 10, duh!
 
 - (void)checkForNewTop10:(Bookmark *)aBookmark
 {
+  NSString* newItemURL = [aBookmark url];
+  if ([newItemURL hasPrefix:@"about:"])
+    return;
+
   NSMutableArray* top10ItemsArray = [mTop10Folder childArray];
-
-//  NSLog(@"checkForNewTop10 %@ (%d items)", aBookmark, [top10ItemsArray count]);
-
   unsigned curIndex   = [top10ItemsArray indexOfObjectIdenticalTo:aBookmark];
   unsigned visitCount = [aBookmark numberOfVisits];
 
@@ -165,44 +171,39 @@ const unsigned kNumTop10Items = 10;   // well, 10, duh!
     }
     else {
       // just resort
-      [mTop10Folder sortChildrenUsingSelector:@selector(compareForTop10:sortDescending:)
-                                  reverseSort:YES
-                                     sortDeep:NO
-                                     undoable:NO];
+      [mTop10Folder sortChildrenUsingDescriptors:mTop10SortDescriptors
+                                            deep:NO
+                                        undoable:NO];
     }
   }
   else if (visitCount >= currentMinVisits) {
-    NSString* newItemURL = [aBookmark url];
+    // It would be more efficient to insertion-sort, but this simplifies the
+    // logic, and the difference should be negligable for such a small array.
+    [mTop10Folder insertIntoSmartFolderChild:aBookmark atIndex:[top10ItemsArray count]];
+    [mTop10Folder sortChildrenUsingDescriptors:mTop10SortDescriptors
+                                          deep:NO
+                                      undoable:NO];
 
-    if ([newItemURL hasPrefix:@"about:"])
-      return;
-
-    // enter it into the list using insertion sort. it will go before other items with the same visit
-    // count (thus maintaining the visit count/last visit sort).
-    unsigned numItems = [top10ItemsArray count];
-    int insertionIndex = -1;
-
-    NSNumber* reverseSort = [NSNumber numberWithBool:YES];
-
-    // we check the entire list to look for items with a duplicate url
-    for (unsigned i = 0; i < numItems; i++) {
+    // We may have a duplicate URL now; check, and if so remove the worse one.
+    top10ItemsArray = [mTop10Folder childArray];
+    unsigned int numItems = [top10ItemsArray count];
+    BOOL foundMatch = NO;
+    for (unsigned int i = 0; i < numItems; i++) {
       Bookmark* curChild = [top10ItemsArray objectAtIndex:i];
-      if ([newItemURL isEqualToString:[curChild url]])
-        return;
-
-      // add before the first item with the same or lower visit count
-      if (([aBookmark compareForTop10:curChild sortDescending:reverseSort] != NSOrderedDescending) && insertionIndex == -1)
-        insertionIndex = i;
+      if ([[curChild url] isEqualToString:newItemURL]) {
+        if (foundMatch) {
+          [mTop10Folder deleteFromSmartFolderChildAtIndex:i];
+          break;
+        }
+        else {
+          foundMatch = YES;
+        }
+      }
     }
 
-    if (insertionIndex == -1 && [top10ItemsArray count] < kNumTop10Items)
-      insertionIndex = [top10ItemsArray count];
-
-    if (insertionIndex != -1) {
-      [mTop10Folder insertIntoSmartFolderChild:aBookmark atIndex:insertionIndex];
-      if ([top10ItemsArray count] > kNumTop10Items)
-        [mTop10Folder deleteFromSmartFolderChildAtIndex:[top10ItemsArray count] - 1];
-    }
+    top10ItemsArray = [mTop10Folder childArray];
+    if ([top10ItemsArray count] > kNumTop10Items)
+      [mTop10Folder deleteFromSmartFolderChildAtIndex:[top10ItemsArray count] - 1];
   }
 }
 

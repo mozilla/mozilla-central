@@ -154,8 +154,6 @@ enum
 - (NSComparisonResult)compareVisitCount:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 - (NSComparisonResult)compareLastVisitDate:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
 
-- (NSComparisonResult)compareForTop10:(BookmarkItem *)aItem sortDescending:(NSNumber*)inDescending;
-
 @end
 
 // Bunch of Keys for reading/writing dictionaries.
