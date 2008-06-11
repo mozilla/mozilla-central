@@ -637,8 +637,6 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
       htmlEditor->RebuildDocumentFromSource(aBuf);
       mInsertingQuotedContent = PR_FALSE;
 
-      m_editor->EndOfDocument();
-
       // when forwarding a message as inline, tag any embedded objects
       // which refer to local images or files so we know not to include
       // send them
@@ -646,10 +644,26 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
         (void)TagEmbeddedObjects(mailEditor);
 
       if (!aSignature.IsEmpty())
+      {
+        if (sigOnTop)
+          m_editor->BeginningOfDocument();
+        else
+          m_editor->EndOfDocument();
         htmlEditor->InsertHTML(aSignature);
+        if (sigOnTop)
+          m_editor->EndOfDocument();
+      }
+      else
+        m_editor->EndOfDocument();
     }
     else if (textEditor)
     {
+      if (sigOnTop && !aSignature.IsEmpty())
+      {
+        textEditor->InsertText(aSignature);
+        m_editor->EndOfDocument();
+      }
+
       if (!aBuf.IsEmpty())
       {
         if (mailEditor)
@@ -659,7 +673,7 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
         m_editor->EndOfDocument();
       }
 
-      if (!aSignature.IsEmpty())
+      if (!sigOnTop && !aSignature.IsEmpty())
         textEditor->InsertText(aSignature);
     }
   }
@@ -4079,15 +4093,19 @@ nsMsgCompose::BuildBodyMessageAndSignature()
 
   /* Some time we want to add a signature and sometime we wont. Let's figure that now...*/
   PRBool addSignature;
+  PRBool addDashes = PR_FALSE;
   switch (mType)
   {
+    case nsIMsgCompType::ForwardInline :
+      addSignature = PR_TRUE;
+      addDashes = PR_TRUE;
+      break;
     case nsIMsgCompType::New :
     case nsIMsgCompType::MailToUrl :    /* same as New */
     case nsIMsgCompType::Reply :        /* should not happen! but just in case */
     case nsIMsgCompType::ReplyAll :       /* should not happen! but just in case */
     case nsIMsgCompType::ReplyToList :    /* should not happen! but just in case */
     case nsIMsgCompType::ForwardAsAttachment :  /* should not happen! but just in case */
-    case nsIMsgCompType::ForwardInline :
     case nsIMsgCompType::NewsPost :
     case nsIMsgCompType::ReplyToGroup :
     case nsIMsgCompType::ReplyToSender :
@@ -4108,7 +4126,7 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   nsAutoString tSignature;
 
   if (addSignature)
-    ProcessSignature(m_identity, PR_FALSE, &tSignature);
+    ProcessSignature(m_identity, addDashes, &tSignature);
 
   // if type is new, but we have body, this is probably a mapi send, so we need to
   // replace '\n' with <br> so that the line breaks won't be lost by html.
