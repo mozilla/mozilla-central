@@ -1889,10 +1889,10 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   srcFolder->GetName(folderName);
   nsAutoString safeFolderName(folderName);
   NS_MsgHashIfNecessary(safeFolderName);
-  nsCOMPtr <nsIMsgLocalMailFolder> localFolder = do_QueryInterface(srcFolder);
+  nsCOMPtr <nsIMsgLocalMailFolder> localSrcFolder(do_QueryInterface(srcFolder));
   nsCOMPtr <nsIMsgDatabase> srcDB;
-  if (localFolder)
-    localFolder->GetDatabaseWOReparse(getter_AddRefs(srcDB));
+  if (localSrcFolder)
+    localSrcFolder->GetDatabaseWOReparse(getter_AddRefs(srcDB));
   PRBool summaryValid = (srcDB != nsnull);
   srcDB = nsnull;
   srcFolder->ForceDBClosed();
@@ -1975,34 +1975,35 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
   rv = srcFolder->GetSubFolders(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // Copy subfolders to the new location
   nsresult copyStatus = NS_OK;
-  PRBool hasMore;
-  while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore &&
-         NS_SUCCEEDED(copyStatus))
+  nsCOMPtr<nsIMsgLocalMailFolder> localNewFolder(do_QueryInterface(newMsgFolder, &rv));
+  if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsISupports> item;
-    enumerator->GetNext(getter_AddRefs(item));
-
-    nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
-    if (!folder)
-      continue;
-
-    nsCOMPtr<nsIMsgLocalMailFolder> localFolder(do_QueryInterface(folder, &rv));
-    if (NS_FAILED(rv))
-      continue;
-
-    // PR_FALSE needed to avoid un-necessary deletions
-    copyStatus = localFolder->CopyFolderLocal(folder, PR_FALSE, msgWindow, listener);
-    // Test if the call succeeded, if not we have to stop recursive call
-    if (NS_FAILED(copyStatus))
+    PRBool hasMore;
+    while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore &&
+           NS_SUCCEEDED(copyStatus))
     {
-      // Copy failed we have to notify caller to handle the error and stop
-      // moving the folders. In case this happens to the topmost level of
-      // recursive call, then we just need to break from the while loop and
-      // go to error handling code.
-      if (!isMoveFolder)
-        return copyStatus;
-      break;
+      nsCOMPtr<nsISupports> item;
+      enumerator->GetNext(getter_AddRefs(item));
+
+      nsCOMPtr<nsIMsgFolder> folder(do_QueryInterface(item));
+      if (!folder)
+        continue;
+
+      // PR_FALSE needed to avoid un-necessary deletions
+      copyStatus = localNewFolder->CopyFolderLocal(folder, PR_FALSE, msgWindow, listener);
+      // Test if the call succeeded, if not we have to stop recursive call
+      if (NS_FAILED(copyStatus))
+      {
+        // Copy failed we have to notify caller to handle the error and stop
+        // moving the folders. In case this happens to the topmost level of
+        // recursive call, then we just need to break from the while loop and
+        // go to error handling code.
+        if (!isMoveFolder)
+          return copyStatus;
+        break;
+      }
     }
   }
 
