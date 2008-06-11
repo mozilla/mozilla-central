@@ -47,7 +47,6 @@
 
 <window id="searchMailWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
         onload="searchOnLoad();"
         onunload="searchOnUnload();"
         onclose="onSearchStop();"

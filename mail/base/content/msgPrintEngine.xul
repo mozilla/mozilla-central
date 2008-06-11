@@ -43,7 +43,6 @@
 
 <window id="printEngineWin"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
         onload="OnLoadPrintEngine()"
         width="750"
         height="500"

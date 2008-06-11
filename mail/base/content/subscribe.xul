@@ -43,7 +43,6 @@
 <!DOCTYPE window SYSTEM "chrome://messenger/locale/subscribe.dtd">
 
 <dialog id="subscribeWindow"
-        xmlns:NC="http://home.netscape.com/NC-rdf#" 
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         title="&subscribeDialog.title;"
         style="width: 44em; height: 33em;"
