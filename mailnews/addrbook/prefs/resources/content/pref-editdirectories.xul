@@ -52,8 +52,8 @@
 
     <label value="&directoriesText.label;" accesskey="&directoriesText.accesskey;" control="directoriesList"/>
     <hbox flex="1">
-      <listbox id="directoriesList" flex="1" onselect="selectDirectory();"/>
-
+      <listbox id="directoriesList" flex="1" onselect="selectDirectory();"
+               onclick="clickDirectory(event);"/>
       <vbox>
         <button id="addButton" label="&addDirectory.label;" oncommand="newDirectory();" accesskey="&addDirectory.accesskey;"/>
         <button id="editButton" label="&editDirectory.label;" oncommand="editDirectory();" disabled="true" accesskey="&editDirectory.accesskey;"/>

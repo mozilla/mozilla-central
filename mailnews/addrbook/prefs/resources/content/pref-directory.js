@@ -268,6 +268,15 @@ function selectDirectory()
   }
 }
 
+function clickDirectory(event)
+{
+  // We only care about left and double click events.
+  if (event.button != 0 || event.detail != 2)
+    return;
+
+  editDirectory();
+}
+
 function newDirectory()
 {
   window.openDialog("chrome://messenger/content/addressbook/pref-directory-add.xul",
