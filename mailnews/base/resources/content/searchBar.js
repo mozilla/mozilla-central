@@ -92,8 +92,8 @@ var gSearchNotificationListener =
         {
           var vFolder = GetMsgFolderFromUri(gCurrentVirtualFolderUri, false);
           var dbFolderInfo = vFolder.getMsgDatabase(msgWindow).dBFolderInfo;
-          dbFolderInfo.NumUnreadMessages = gNumUnreadMessages;
-          dbFolderInfo.NumMessages = gNumTotalMessages;
+          dbFolderInfo.numUnreadMessages = gNumUnreadMessages;
+          dbFolderInfo.numMessages = gNumTotalMessages;
           vFolder.updateSummaryTotals(true); // force update from db.
           var msgdb = vFolder.getMsgDatabase(msgWindow);
           msgdb.Commit(MSG_DB_LARGE_COMMIT);
