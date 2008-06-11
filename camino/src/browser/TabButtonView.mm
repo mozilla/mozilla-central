@@ -78,7 +78,6 @@ static NSImage* sTabButtonDividerImage = nil;
     mTabViewItem = (BrowserTabViewItem*)tabViewItem;
 
     mCloseButton = [[RolloverImageButton alloc] initWithFrame:NSMakeRect(0, 0, 16, 16)];
-    [mCloseButton setTitle:NSLocalizedString(@"CloseTabButtonTitle", @"")];   // doesn't show, but used for accessibility
     [mCloseButton setImage:[BrowserTabViewItem closeIcon]];
     [mCloseButton setAlternateImage:[BrowserTabViewItem closeIconPressed]];
     [mCloseButton setHoverImage:[BrowserTabViewItem closeIconHover]];
@@ -89,6 +88,10 @@ static NSImage* sTabButtonDividerImage = nil;
     [mCloseButton setTarget:mTabViewItem];
     [mCloseButton setAction:@selector(closeTab:)];
     [mCloseButton setAutoresizingMask:NSViewMinXMargin];
+    [mCloseButton setToolTip:NSLocalizedString(@"CloseTabButtonHelpText", nil)];
+    id closeButtonAccessibilityElement = NSAccessibilityUnignoredDescendant(mCloseButton);
+    [closeButtonAccessibilityElement accessibilitySetOverrideValue:NSLocalizedString(@"CloseTabButtonDescription", nil)
+                                                      forAttribute:NSAccessibilityDescriptionAttribute];
     [self addSubview:mCloseButton];
 
     mLabelCell = [[TruncatingTextAndImageCell alloc] init];
@@ -483,6 +486,79 @@ static NSImage* sTabButtonDividerImage = nil;
     sTabMouseOverBg        = [[NSImage imageNamed:@"tab_hover"] retain];
   if (!sTabButtonDividerImage)
     sTabButtonDividerImage = [[NSImage imageNamed:@"tab_button_divider"] retain];
+}
+
+#pragma mark -
+
+- (BOOL)accessibilityIsIgnored
+{
+  return NO;
+}
+
+- (NSArray*)accessibilityAttributeNames
+{
+  NSMutableArray* attributes = [[[super accessibilityAttributeNames] mutableCopy] autorelease];
+  [attributes addObject:NSAccessibilityLinkedUIElementsAttribute];
+  [attributes addObject:NSAccessibilityTitleAttribute];
+  [attributes addObject:NSAccessibilityEnabledAttribute];
+  [attributes addObject:NSAccessibilityValueAttribute];
+  // Accessibility doesn't like buttons to have children, so we suppress the
+  // close box.
+  [attributes removeObject:NSAccessibilityChildrenAttribute];
+  [attributes removeObject:NSAccessibilitySelectedChildrenAttribute];
+  return attributes;
+}
+
+- (NSArray*)accessibilityActionNames
+{
+  // The superclass actions are wrong, since for accessibility purposes the
+  // tabs are actually radio buttons, so don't bother calling through.
+  return [NSArray arrayWithObject:NSAccessibilityPressAction];
+}
+
+- (void)accessibilityPerformAction:(NSString *)action
+{
+  if ([action isEqual:NSAccessibilityPressAction]) {
+    [[NSNotificationCenter defaultCenter] postNotificationName:kTabWillChangeNotifcation object:mTabViewItem];
+    [[mTabViewItem tabView] selectTabViewItem:mTabViewItem];
+  }
+}
+
+- (id)accessibilityAttributeValue:(NSString*)attribute
+{
+  if ([attribute isEqual:NSAccessibilityRoleAttribute]) {
+    // This is what NSTabViews return, so emulate them.
+    return NSAccessibilityRadioButtonRole;
+  }
+  if ([attribute isEqual:NSAccessibilityTitleAttribute]) {
+    return [mLabelCell stringValue];
+  }
+  if ([attribute isEqual:NSAccessibilityValueAttribute]) {
+    return [NSNumber numberWithBool:([mTabViewItem tabState] == NSSelectedTab)];
+  }
+  if ([attribute isEqual:NSAccessibilityEnabledAttribute]) {
+    return [NSNumber numberWithBool:YES];
+  }
+  if ([attribute isEqual:NSAccessibilityLinkedUIElementsAttribute]) {
+    if ([mTabViewItem tabState] == NSSelectedTab)
+      return [NSArray arrayWithObject:[mTabViewItem view]];
+    else
+      return [NSArray array];
+  }
+  
+  return [super accessibilityAttributeValue:attribute];
+}
+
+- (BOOL)accessibilityIsAttributeSettable:(NSString *)attribute
+{
+  if ([attribute isEqual:NSAccessibilityLinkedUIElementsAttribute] ||
+      [attribute isEqual:NSAccessibilityTitleAttribute] ||
+      [attribute isEqual:NSAccessibilityEnabledAttribute] ||
+      [attribute isEqual:NSAccessibilityValueAttribute])
+  {
+    return NO;
+  }
+  return [super accessibilityIsAttributeSettable:attribute];
 }
 
 @end

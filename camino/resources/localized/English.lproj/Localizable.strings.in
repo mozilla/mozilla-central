@@ -244,7 +244,8 @@
 "BookmarkButtonTooltipFormat" = "%1$@\n—\n%2$@";  /* 1=title, 2=url */
 
 /* Tabs widget */
-"CloseTabButtonTitle" = "Close Tab";  /* used for accessibility */
+"CloseTabButtonDescription" = "close tab";  /* used for accessibility */
+"CloseTabButtonHelpText" = "Close this tab";
 
 /* Rendezvous messages */
 "NoServicesFound"="(No Services Found)";
