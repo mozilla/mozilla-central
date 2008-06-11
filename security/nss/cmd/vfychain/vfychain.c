@@ -100,11 +100,11 @@ Usage(const char *progName)
 {
     fprintf(stderr, 
 	"Usage: %s [options] certfile [[options] certfile] ...\n"
-	"\twhere options are:\n"
+	"\tWhere options are:\n"
 	"\t-a\t\t Following certfile is base64 encoded\n"
 	"\t-b YYMMDDHHMMZ\t Validate date (default: now)\n"
 	"\t-d directory\t Database directory\n"
-	"\t-f \t\tenable cert ferching from AIA URL\n"
+	"\t-f \t\t Enable cert fetching from AIA URL\n"
 	"\t-o oid\t\t Set policy OID for cert validation(Format OID.1.2.3)\n"
 	"\t-p \t\t Use PKIX Library to validate certificate by calling:\n"
 	"\t\t\t   * CERT_VerifyCertificate if specified once,\n"
@@ -114,12 +114,13 @@ Usage(const char *progName)
         "\t\t\t Implemented as of today are:\n"
         "\t\t\t   * allow-crl (default)\n"
         "\t\t\t   * allow-crl-and-ocsp\n"
+        "\t-t\t\t Following cert is explicitly trusted (overrides db trust).\n"
 	"\t-u usage \t 0=SSL client, 1=SSL server, 2=SSL StepUp, 3=SSL CA,\n"
 	"\t\t\t 4=Email signer, 5=Email recipient, 6=Object signer,\n"
 	"\t\t\t 9=ProtectedObjectSigner, 10=OCSP responder, 11=Any CA\n"
 	"\t-v\t\t Verbose mode. Prints root cert subject(double the\n"
-         "\t\t\t argument for whole root cert info)\n"
-	"\t-w password\t Database password\n",
+	"\t\t\t argument for whole root cert info)\n"
+	"\t-w password\t Database password.\n",
 	progName);
     exit(1);
 }
@@ -297,11 +298,12 @@ main(int argc, char *argv[], char *envp[])
 	case 'b' : secStatus = DER_AsciiToTime(&time, optstate->value);
 	           if (secStatus != SECSuccess) Usage(progName); break;
 	case 'd' : certDir  = PL_strdup(optstate->value);     break;
-	case 'f' : certFetching = PR_TRUE;                   break;
+	case 'f' : certFetching = PR_TRUE;                    break;
 	case 'o' : oidStr = PL_strdup(optstate->value);       break;
 	case 'p' : usePkix += 1;                              break;
 	case 'r' : isAscii  = PR_FALSE;                       break;
 	case 's' : revConfig  = PL_strdup(optstate->value);   break;
+	case 't' : trusted  = PR_TRUE;                        break;
 	case 'u' : usage    = PORT_Atoi(optstate->value);
 	           if (usage < 0 || usage > 62) Usage(progName);
 		   certUsage = ((SECCertificateUsage)1) << usage; 
@@ -315,6 +317,19 @@ main(int argc, char *argv[], char *envp[])
 breakout:
     if (status != PL_OPT_OK)
 	Usage(progName);
+
+    if (usePkix < 2) {
+        if (oidStr) {
+            fprintf(stderr, "Policy oid(-o) can be used only with"
+                    " CERT_PKIXVerifyChain(-pp) function.\n");
+            Usage(progName);
+        }
+        if (trusted) {
+            fprintf(stderr, "Cert trust flag can be used only with"
+                    " CERT_PKIXVerifyChain(-pp) function.\n");
+            Usage(progName);
+        }
+    }
 
     if (revConfig && !isAllowedRevConfig(revConfig)) {
         fprintf(stderr, "Invalid revocation configuration specified.\n");
@@ -349,6 +364,11 @@ breakout:
 	case 'r' : isAscii  = PR_FALSE;                       break;
 	case 't' : trusted  = PR_TRUE;                       break;
 	case  0  : /* positional parameter */
+            if (usePkix < 2 && trusted) {
+                fprintf(stderr, "Cert trust flag can be used only with"
+                        " CERT_PKIXVerifyChain(-pp) function.\n");
+                Usage(progName);
+            }
 	    cert = getCert(optstate->value, isAscii, progName);
 	    if (!cert) 
 	        goto punt;
