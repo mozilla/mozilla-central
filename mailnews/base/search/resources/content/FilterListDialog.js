@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -89,6 +89,80 @@ var gStatusFeedback = {
   }
 };
 
+var gFilterTreeView = {
+  mEnabledAtom: Components.classes['@mozilla.org/atom-service;1']
+                          .getService(Components.interfaces.nsIAtomService)
+                          .getAtom('Enabled-true'),
+  mTree: null,
+  get tree() {
+    return this.mTree;
+  },
+  mFilterList: null,
+  get filterList() {
+    return this.mFilterList;
+  },
+  set filterList(val) {
+    if (this.mTree)
+      this.mTree.beginUpdateBatch();
+    if (this.selection) {
+      this.selection.clearSelection();
+      this.selection.currentIndex = -1;
+    }
+    this.mFilterList = val;
+    if (this.mTree) {
+      this.mTree.scrollToRow(0);
+      this.mTree.endUpdateBatch();
+    }
+  },
+  /* nsITreeView methods */
+  get rowCount() {
+    return this.mFilterList.filterCount;
+  },
+  selection: null,
+  getRowProperties: function getRowProperties(index, properties) {
+    if (this.mFilterList.getFilterAt(index).enabled)
+      properties.AppendElement(this.mEnabledAtom);
+  },
+  getCellProperties: function getCellProperties(row, col, properties) {
+    if (this.mFilterList.getFilterAt(row).enabled)
+      properties.AppendElement(this.mEnabledAtom);
+  },
+  getColumnProperties: function getColumnProperties(col, properties) {},
+  isContainer: function isContainer(index) { return false; },
+  isContainerOpen: function isContainerOpen(index) { return false; },
+  isContainerEmpty: function isContainerEmpty(index) { return false; },
+  isSeparator: function isSeparator(index) { return false; },
+  isSorted: function isSorted() { return false; },
+  canDrop: function canDrop(index, orientation) { return false; },
+  drop: function drop(index, orientation) {},
+  getParentIndex: function getParentIndex(index) { return -1; },
+  hasNextSibling: function hasNextSibling(rowIndex, afterIndex) { return false; },
+  getLevel: function getLevel(index) { return 0; },
+  getImageSrc: function getImageSrc(row, col) { return null; },
+  getProgressMode: function getProgressMode(row, col) { return 0; },
+  getCellValue: function getCellValue(row, col) { return null; },
+  getCellText: function getCellText(row, col) {
+    return this.mFilterList.getFilterAt(row).filterName;
+  },
+  setTree: function setTree(tree) {
+    this.mTree = tree;
+  },
+  toggleOpenState: function toggleOpenState(index) {},
+  cycleHeader: function cycleHeader(col) {},
+  selectionChanged: function selectionChanged() {},
+  cycleCell: function cycleCell(row, col) {
+    if (toggleFilter(row))
+      this.mTree.invalidateCell(row, col);
+  },
+  isEditable: function isEditable(row, col) { return false; }, // XXX Fix me!
+  isSelectable: function isSelectable(row, col) { return false; },
+  setCellValue: function setCellValue(row, col, value) {},
+  setCellText: function setCellText(row, col, value) { /* XXX Write me */ },
+  performAction: function performAction(action) {},
+  performActionOnRow: function performActionOnRow(action, row) {},
+  performActionOnCell: function performActionOnCell(action, row, col) {}
+}
+
 const nsMsgFilterMotion = Components.interfaces.nsMsgFilterMotion;
 
 function onLoad()
@@ -126,7 +200,7 @@ function onLoad()
         selectServer(firstItem);
     }
 
-    gFilterTree.addEventListener("click",onFilterClick,true);
+    gFilterTree.view = gFilterTreeView;
 
     window.tryToClose = onFilterClose;
 }
@@ -199,18 +273,12 @@ function setServer(uri)
    var msgFolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
    //Calling getFilterList will detect any errors in rules.dat, backup the file, and alert the user
-   //we need to do this because gFilterTree.setAttribute will cause rdf to call getFilterList and there is 
-   //no way to pass msgWindow in that case. 
-
-   if (msgFolder)
-     msgFolder.getFilterList(gFilterListMsgWindow);
+   gFilterTreeView.filterList = msgFolder.getFilterList(gFilterListMsgWindow);
 
    // this will get the deferred to account root folder, if server is deferred
    msgFolder = msgFolder.server.rootMsgFolder;
    var rootFolderUri = msgFolder.URI;
 
-   rebuildFilterTree(uri);
-   
    // root the folder picker to this server
    gRunFiltersFolderPicker.setAttribute("ref", rootFolderUri);
  
@@ -238,19 +306,18 @@ function setServer(uri)
    gCurrentServerURI = uri;
 }
 
-function toggleFilter(aResource)
+function toggleFilter(index)
 {
-    var filter = aResource.GetDelegate("filter",
-                                       Components.interfaces.nsIMsgFilter);
+    var filter = getFilter(index);
     if (filter.unparseable)
     {
       if (gPromptService)
         gPromptService.alert(window, null,
                              gFilterBundle.getString("cannotEnableFilter"));
-      return;
+      return false;
     }
     filter.enabled = !filter.enabled;
-    refresh();
+    return true;
 }
 
 // sets up the menulist and the gFilterTree
@@ -281,33 +348,18 @@ function selectServer(uri)
 
 function getFilter(index)
 {
-  var filter = gFilterTree.builderView.getResourceAtIndex(index);
-  filter = filter.GetDelegate("filter", Components.interfaces.nsIMsgFilter);
-  return filter;
+  return gFilterTreeView.filterList.getFilterAt(index);
 }
 
 function currentFilter()
 {
-    var currentIndex = gFilterTree.currentIndex;
-    if (currentIndex == -1)
-      return null;
-    
-    var filter;
-
-    try {
-      filter = getFilter(currentIndex);
-    } catch (ex) {
-      filter = null;
-    }
-    return filter;
+  var currentIndex = gFilterTree.currentIndex;
+  return currentIndex == -1 ? null : getFilter(currentIndex);
 }
 
 function currentFilterList()
 {
-    // note, serverUri might be a newsgroup
-    var serverUri = document.getElementById("serverMenu").getAttribute("uri");
-    var filterList = gRDF.GetResource(serverUri).GetDelegate("filter", Components.interfaces.nsIMsgFilterList);
-    return filterList;
+  return gFilterTreeView.filterList;
 }
 
 function onFilterSelect(event)
@@ -323,19 +375,21 @@ function onEditFilter()
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
-  if ("refresh" in args && args.refresh)
-    refresh();
+  // The focus change will cause a repaint of the row updating any name change
 }
 
 function onNewFilter(emailAddress)
 {
   var curFilterList = currentFilterList();
-  var args = {filterList: curFilterList};
+  var args = {filterList: curFilterList, refresh: false};
   
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
-  if ("refresh" in args && args.refresh)
-    refresh();
+  if (args.refresh)
+  {
+    gFilterTreeView.tree.rowCountChanged(0, 1);
+    gFilterTree.view.selection.select(0);
+  }
 }
 
 function onDeleteFilter()
@@ -361,8 +415,8 @@ function onDeleteFilter()
       if (curFilter)
         filterList.removeFilter(curFilter);
     }
+    gFilterTreeView.tree.rowCountChanged(start.value, start.value - end.value - 1);
   }
-  refresh();
 }
 
 function onUp(event)
@@ -459,43 +513,10 @@ function moveCurrentFilter(motion)
       return;
 
     filterList.moveFilter(filter, motion);
-    refresh();
-}
-
-function rebuildFilterTree(uri)
-{
-  gFilterTree.view.selection.clearSelection();
-  gFilterTree.removeAttribute("ref");
-  gFilterTree.setAttribute("ref", uri);
-}
-
-function refresh() 
-{
-    if (!gFilterTree) 
-      return;
-
-    var selectedRes;
-
-    // store the selected resource before we rebuild the tree
-    try {
-      selectedRes = gFilterTree.currentIndex >= 0 ? gFilterTree.builderView.getResourceAtIndex(gFilterTree.currentIndex) : null;
-    }
-    catch (ex) {
-      dump("ex = " + ex + "\n");
-      selectedRes = null;
-    }
-
-    rebuildFilterTree(gCurrentServerURI);
-
-    // restore selection to the previous selected resource
-    if (selectedRes) {
-        var previousSel = gFilterTree.builderView.getIndexOfResource(selectedRes);
-        if (previousSel >= 0) {
-            // sometimes the selected element is gone.
-            gFilterTree.view.selection.select(previousSel);
-            gFilterTree.treeBoxObject.ensureRowIsVisible(previousSel);
-        }
-    }
+    if (motion == nsMsgFilterMotion.up)
+      gFilterTree.view.selection.select(gFilterTree.currentIndex - 1);
+    else
+      gFilterTree.view.selection.select(gFilterTree.currentIndex + 1);
 }
 
 function updateButtons()
@@ -599,28 +620,6 @@ function getServerThatCanHaveFilters()
     return firstItem;
 }
 
-function onFilterClick(event)
-{
-    // we only care about button 0 (left click) events
-    if (event.button != 0)
-      return;
-    
-    var row = {}, col = {}, childElt = {};
-    var filterTree = document.getElementById("filterTree");
-    filterTree.treeBoxObject.getCellAt(event.clientX, event.clientY, row, col, childElt);
-    if (row.value == -1 || row.value > filterTree.view.rowCount-1 || event.originalTarget.localName != "treechildren") {
-      if (event.originalTarget.localName == "treecol") { 
-        // clicking on the name column in the filter list should not sort
-        event.stopPropagation();
-      }
-      return;
-    }
-        
-    if (col.value.id == "activeColumn") {
-      toggleFilter(filterTree.builderView.getResourceAtIndex(row.value));
-    }
-}
-
 function onFilterDoubleClick(event)
 {
     // we only care about button 0 (left click) events
@@ -644,7 +643,7 @@ function onFilterDoubleClick(event)
 function onFilterTreeKeyPress(event)
 {
   // for now, only do something on space key
-  if (event.charCode != KeyEvent.DOM_VK_SPACE)
+  if (event.keyCode != KeyEvent.DOM_VK_SPACE)
     return;
 
   var rangeCount = gFilterTree.view.selection.getRangeCount();
@@ -652,9 +651,10 @@ function onFilterTreeKeyPress(event)
     var start = {}, end = {};
     gFilterTree.view.selection.getRangeAt(i, start, end);
     for (var k = start.value; k <= end.value; ++k) {
-      toggleFilter(gFilterTree.builderView.getResourceAtIndex(k));
+      toggleFilter(k);
     }
   }
+  gFilterTree.view.selection.invalidateSelection();
 }
 
 function doHelpButton()
