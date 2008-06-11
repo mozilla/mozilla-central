@@ -107,7 +107,10 @@ var qaMain = {
       var result = prompts.promptUsernameAndPassword(null, title, msg, username,
                                                      password, null, check);
 
-      this.correctCredentials(username.value, password.value, true);
+      // Only attempt to correct the credentials if they press OK
+      if (result) {
+        this.correctCredentials(username.value, password.value, true);
+      }
     } catch(ex) {
       alert("ERROR LOGGING IN: " + ex);
       dump("Error logging in: " + ex);
