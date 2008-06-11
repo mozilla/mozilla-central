@@ -23,6 +23,7 @@
  *   Jean-Francois Ducarroz <ducarroz@netscape.com>
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Seth Spitzer <sspitzer@netscape.com>
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -62,6 +63,7 @@
 #include "nsIDocShell.h"
 #include "nsPIDOMWindow.h"
 #include "nsIDOMDocument.h"
+#include "nsIDOMHTMLDocument.h"
 #include "nsIDOMElement.h"
 #include "nsIXULWindow.h"
 #include "nsIWindowMediator.h"
@@ -81,6 +83,12 @@
 #include "nsIMsgMailNewsUrl.h"
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsIMsgDatabase.h"
+#include "nsIDocumentEncoder.h"
+#include "nsContentCID.h"
+#include "nsISelection.h"
+#include "nsUTF8Utils.h"
+#include "nsILineBreaker.h"
+#include "nsLWBrkCIID.h"
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 #include "prlog.h"
@@ -114,6 +122,10 @@ static PRBool _just_to_be_sure_we_create_only_one_compose_service_ = PR_FALSE;
 #define DEFAULT_CHROME  "chrome://messenger/content/messengercompose/messengercompose.xul"
 
 #define PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS  "mail.compose.max_recycled_windows"
+
+#define PREF_MAILNEWS_REPLY_QUOTING_SELECTION            "mailnews.reply_quoting_selection"
+#define PREF_MAILNEWS_REPLY_QUOTING_SELECTION_MULTI_WORD "mailnews.reply_quoting_selection.multi_word"
+#define PREF_MAILNEWS_REPLY_QUOTING_SELECTION_ONLY_IF    "mailnews.reply_quoting_selection.only_if_chars"
 
 #define MAIL_ROOT_PREF                             "mail."
 #define MAILNEWS_ROOT_PREF                         "mailnews."
@@ -413,6 +425,114 @@ nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_Compose
   return NS_OK;
 }
 
+nsresult
+nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *aMsgWindow, nsACString& aSelHTML)
+{
+  nsresult rv;
+
+  // Good hygiene
+  aSelHTML.Truncate();
+
+  // Get the pref to see if we even should do reply quoting selection
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool replyQuotingSelection;
+  rv = prefs->GetBoolPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION, &replyQuotingSelection);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (!replyQuotingSelection)
+    return NS_ERROR_ABORT;
+
+  // Now delve down in to the message to get the HTML representation of the selection
+  nsCOMPtr<nsIDocShell> rootDocShell;
+  rv = aMsgWindow->GetRootDocShell(getter_AddRefs(rootDocShell));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocShellTreeNode> rootDocShellAsNode(do_QueryInterface(rootDocShell, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocShellTreeItem> childAsItem;
+  rv = rootDocShellAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
+                                             PR_TRUE, PR_FALSE, nsnull, nsnull, getter_AddRefs(childAsItem));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(childAsItem, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMWindow> domWindow(do_GetInterface(childAsItem, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsISelection> sel;
+  rv = domWindow->GetSelection(getter_AddRefs(sel));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool requireMultipleWords = PR_TRUE;
+  nsCAutoString charsOnlyIf;
+  prefs->GetBoolPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_MULTI_WORD, &requireMultipleWords);
+  prefs->GetCharPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_ONLY_IF, getter_Copies(charsOnlyIf));
+  if (requireMultipleWords || !charsOnlyIf.IsEmpty())
+  {
+    nsAutoString selPlain;
+    rv = sel->ToString(getter_Copies(selPlain));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // If "mailnews.reply_quoting_selection.multi_word" is on, then there must be at least
+    // two words selected in order to quote just the selected text
+    if (requireMultipleWords)
+    {
+      nsCOMPtr<nsILineBreaker> lineBreaker = do_GetService(NS_LBRK_CONTRACTID, &rv);
+
+      if (NS_SUCCEEDED(rv))
+      {
+        const nsPromiseFlatString& tString = PromiseFlatString(selPlain);
+        const PRUint32 length = tString.Length();
+        const PRUnichar* unicodeStr = tString.get();
+        PRInt32 endWordPos = lineBreaker->Next(unicodeStr, length, 0);
+        
+        // If there's not even one word, then there's not multiple words
+        if (endWordPos == NS_LINEBREAKER_NEED_MORE_TEXT)
+          return NS_ERROR_ABORT;
+
+        // If after the first word is only space, then there's not multiple words
+        const PRUnichar* end;
+        for (end = unicodeStr + endWordPos; NS_IsSpace(*end); end++)
+          ;
+        if (!*end)
+          return NS_ERROR_ABORT;
+      }
+    }
+
+    if (!charsOnlyIf.IsEmpty())
+    {
+      if (selPlain.FindCharInSet(NS_ConvertUTF8toUTF16(charsOnlyIf)) < 0)
+        return NS_ERROR_ABORT;
+    }
+  }
+
+  nsCOMPtr<nsIContentViewer> contentViewer;
+  rv = docShell->GetContentViewer(getter_AddRefs(contentViewer));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMDocument> domDocument;
+  rv = contentViewer->GetDOMDocument(getter_AddRefs(domDocument));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocumentEncoder> docEncoder(do_CreateInstance(NS_HTMLCOPY_ENCODER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = docEncoder->Init(domDocument, NS_LITERAL_STRING("text/html"), 0);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = docEncoder->SetSelection(sel);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString selHTML;
+  rv = docEncoder->EncodeToString(selHTML);
+  NS_ENSURE_SUCCESS(rv, rv);
+  aSelHTML = NS_ConvertUTF16toUTF8(selHTML);
+
+  return rv;
+}
+
 NS_IMETHODIMP
 nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const char *originalMsgURI,
   MSG_ComposeType type, MSG_ComposeFormat format, nsIMsgIdentity * aIdentity, nsIMsgWindow *aMsgWindow)
@@ -447,6 +567,19 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, const ch
       pMsgComposeParams->SetType(type);
       pMsgComposeParams->SetFormat(format);
       pMsgComposeParams->SetIdentity(identity);
+
+      // When doing a reply (except with a template) see if there's a selection that we should quote
+      if (type == nsIMsgCompType::Reply ||
+          type == nsIMsgCompType::ReplyAll ||
+          type == nsIMsgCompType::ReplyToSender ||
+          type == nsIMsgCompType::ReplyToGroup ||
+          type == nsIMsgCompType::ReplyToSenderAndGroup ||
+          type == nsIMsgCompType::ReplyToList)
+      {
+        nsCAutoString selHTML;
+        if (NS_SUCCEEDED(GetOrigWindowSelection(type, aMsgWindow, selHTML)))
+          pMsgComposeParams->SetHtmlToQuote(selHTML);
+      }
 
       if (originalMsgURI && *originalMsgURI)
       {

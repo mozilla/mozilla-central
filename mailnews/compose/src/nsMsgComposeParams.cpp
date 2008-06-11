@@ -121,6 +121,18 @@ NS_IMETHODIMP nsMsgComposeParams::GetOrigMsgHdr(nsIMsgDBHdr * *aMsgHdr)
   return NS_OK;
 }
 
+/* attribute ACString htmlToQuote; */
+NS_IMETHODIMP nsMsgComposeParams::GetHtmlToQuote(nsACString& aHtmlToQuote)
+{
+  aHtmlToQuote = mHtmlToQuote;
+  return NS_OK;
+}
+NS_IMETHODIMP nsMsgComposeParams::SetHtmlToQuote(const nsACString& aHtmlToQuote)
+{
+  mHtmlToQuote = aHtmlToQuote;
+  return NS_OK;
+}
+
 /* attribute nsIMsgCompFields composeFields; */
 NS_IMETHODIMP nsMsgComposeParams::GetComposeFields(nsIMsgCompFields * *aComposeFields)
 {

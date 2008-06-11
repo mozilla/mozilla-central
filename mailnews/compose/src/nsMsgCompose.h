@@ -160,6 +160,7 @@ private:
   nsCOMPtr <nsIMsgDBHdr>                    mOrigMsgHdr;
 
   nsCString                                 mSmtpPassword;
+  nsCString                                 mHtmlToQuote;
 
   nsTObserverArray<nsCOMPtr<nsIMsgComposeStateListener> > mStateListeners;
   nsTObserverArray<nsCOMPtr<nsIMsgSendListener> > mExternalSendListeners;
@@ -184,7 +185,8 @@ public:
                                 nsIMsgIdentity *identity,
                                 const char *charset,
                                 PRBool charetOverride, 
-                                PRBool quoteOriginal);
+                                PRBool quoteOriginal,
+                                const nsACString& htmlToQuote);
     virtual ~QuotingOutputStreamListener(void);
 
     NS_DECL_ISUPPORTS
@@ -211,6 +213,7 @@ private:
     PRInt32                   mUnicodeBufferCharacterLength;
     PRUnichar*                mUnicodeConversionBuffer;
     PRBool                    mQuoteOriginal;
+    nsCString                 mHtmlToQuote;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////

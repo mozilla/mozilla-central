@@ -59,6 +59,7 @@ REQUIRES	= xpcom \
 		  mime \
 		  pref \
 		  intl \
+		  lwbrk \
 		  uconv \
 		  locale \
 		  unicharutil \

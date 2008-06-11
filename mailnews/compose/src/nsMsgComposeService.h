@@ -109,6 +109,10 @@ private:
   // hash table mapping dom windows to nsIMsgCompose objects
   nsInterfaceHashtable<nsISupportsHashKey, nsIWeakReference> mOpenComposeWindows;
 
+  // When doing a reply and the settings are enabled, get the HTML of the selected text
+  // in the original message window so that it can be quoted instead of the entire message.
+  nsresult GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *aMsgWindow, nsACString& aSelHTML);
+
 #ifdef MSGCOMP_TRACE_PERFORMANCE
   PRIntervalTime            mStartTime;
   PRIntervalTime            mPreviousTime;

@@ -74,7 +74,7 @@ interface nsIMsgCompFormat {
 };
 
 
-[scriptable, uuid(f59cf090-98d4-43fa-bc53-db4922c8370e)]
+[scriptable, uuid(930895f2-d610-43f4-9e3c-25e1d1fe4143)]
 interface nsIMsgComposeParams : nsISupports {
   attribute MSG_ComposeType       type;
   attribute MSG_ComposeFormat     format;
@@ -87,4 +87,11 @@ interface nsIMsgComposeParams : nsISupports {
   attribute nsIMsgSendListener	  sendListener;
   attribute string                smtpPassword;
   attribute nsIMsgDBHdr           origMsgHdr;
+
+  /**
+   * HTML-formatted content to quote in the body of the message.
+   * Set this to get different content than what would normally
+   * appear in the body, e.g. the original message body in a reply.
+   */
+  attribute AUTF8String           htmlToQuote;
 };

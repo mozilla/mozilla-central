@@ -57,4 +57,5 @@ public:
   nsCOMPtr<nsIMsgSendListener>  mSendListener;
   nsCString                     mSMTPPassword;
   nsCOMPtr<nsIMsgDBHdr>         mOrigMsgHdr;
+  nsCString                     mHtmlToQuote;
 };

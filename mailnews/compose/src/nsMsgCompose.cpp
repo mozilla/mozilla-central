@@ -26,6 +26,7 @@
  *   Pierre Phaneuf <pp@ludusdesign.com>
  *   Masayuki Nakano <masayuki@d-toybox.com>
  *   Olivier Parniere BT Global Services / Etat francais Ministere de la Defense
+ *   Jeff Beckley <beckley@qualcomm.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -111,6 +112,7 @@
 #include "nsIMsgProgress.h"
 #include "nsMsgFolderFlags.h"
 #include "nsIMsgDatabase.h"
+#include "nsStringStream.h"
 #include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 
@@ -849,6 +851,8 @@ nsMsgCompose::Initialize(nsIDOMWindowInternal *aWindow, nsIMsgComposeParams *par
   nsCString smtpPassword;
   params->GetSmtpPassword(getter_Copies(smtpPassword));
   mSmtpPassword = smtpPassword;
+
+  params->GetHtmlToQuote(mHtmlToQuote);
 
   if (aWindow)
   {
@@ -2087,7 +2091,8 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
                                                          nsIMsgIdentity *identity,
                                                          const char *charset,
                                                          PRBool charetOverride,
-                                                         PRBool quoteOriginal)
+                                                         PRBool quoteOriginal,
+                                                         const nsACString& htmlToQuote)
 {
   nsresult rv;
   mQuoteHeaders = quoteHeaders;
@@ -2096,8 +2101,9 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
   mUnicodeBufferCharacterLength = 0;
   mUnicodeConversionBuffer = nsnull;
   mQuoteOriginal = quoteOriginal;
+  mHtmlToQuote = htmlToQuote;
 
-  if (! mHeadersOnly)
+  if (!mHeadersOnly || !mHtmlToQuote.IsEmpty())
   {
     nsString replyHeaderOriginalmessage;
     // For the built message body...
@@ -2318,10 +2324,23 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStartRequest(nsIRequest *request, n
   return NS_OK;
 }
 
-NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, nsISupports * /* ctxt */, nsresult status)
+NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status)
 {
   nsresult rv = NS_OK;
   nsAutoString aCharset;
+
+  if (!mHtmlToQuote.IsEmpty())
+  {
+    // If we had a selection in the original message to quote, we can add
+    // it now that we are done ignoring the original body of the message
+    nsCOMPtr<nsIInputStream> stream;
+    rv = NS_NewCStringInputStream(getter_AddRefs(stream), mHtmlToQuote);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    mHeadersOnly = PR_FALSE;
+    rv = OnDataAvailable(request, ctxt, stream, 0, mHtmlToQuote.Length());
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   nsCOMPtr<nsIMsgCompose> compose = do_QueryReferent(mWeakComposeObj);
   if (compose)
@@ -2833,8 +2852,9 @@ nsMsgCompose::QuoteMessage(const char *msgURI)
 
   // Create the consumer output stream.. this will receive all the HTML from libmime
   mQuoteStreamListener =
-    new QuotingOutputStreamListener(msgURI, msgHdr, PR_FALSE, PR_FALSE, m_identity,
-                                    m_compFields->GetCharacterSet(), mCharsetOverride, PR_FALSE);
+    new QuotingOutputStreamListener(msgURI, msgHdr, PR_FALSE, !mHtmlToQuote.IsEmpty(), m_identity,
+                                    m_compFields->GetCharacterSet(), mCharsetOverride, PR_FALSE,
+                                    mHtmlToQuote);
 
   if (!mQuoteStreamListener)
   {
@@ -2876,8 +2896,9 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
 
   // Create the consumer output stream.. this will receive all the HTML from libmime
   mQuoteStreamListener =
-    new QuotingOutputStreamListener(originalMsgURI, originalMsgHdr, what != 1, !bAutoQuote, m_identity,
-                                    mQuoteCharset.get(), mCharsetOverride, PR_TRUE);
+    new QuotingOutputStreamListener(originalMsgURI, originalMsgHdr, what != 1,
+                                    !bAutoQuote || !mHtmlToQuote.IsEmpty(), m_identity,
+                                    mQuoteCharset.get(), mCharsetOverride, PR_TRUE, mHtmlToQuote);
 
   if (!mQuoteStreamListener)
   {
