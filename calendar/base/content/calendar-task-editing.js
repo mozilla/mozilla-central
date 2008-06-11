@@ -77,12 +77,18 @@ var taskEdit = {
         }
 
         var calendar = getSelectedCalendar();
+        edit.showsInstructions = true;
 
         if (calendar.getProperty("capabilities.tasks.supported") === false) {
-            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsCapability"));
+            taskEdit.setupTaskField(edit,
+                                    true,
+                                    calGetString("calendar", "taskEditInstructionsCapability"));
         } else if (!isCalendarWritable(calendar)) {
-            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsReadonly"));
+            taskEdit.setupTaskField(edit,
+                                    true,
+                                    calGetString("calendar", "taskEditInstructionsReadonly"));
         } else {
+            edit.showsInstructions = false;
             taskEdit.setupTaskField(edit, false, edit.savedValue || "");
         }
     },
@@ -98,14 +104,23 @@ var taskEdit = {
 
         var calendar = getSelectedCalendar();
 
-        if (calendar.getProperty("capabilities.tasks.supported") === false) {
-            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsCapability"));
-        } else if (!isCalendarWritable(getSelectedCalendar())) {
-            taskEdit.setupTaskField(edit, true, calGetString("calendar", "taskEditInstructionsReadonly"));
+        if (calendar.getProperty("capabilities.tasks.supported") === false){
+            taskEdit.setupTaskField(edit,
+                                    true,
+                                    calGetString("calendar", "taskEditInstructionsCapability"));
+        } else if (!isCalendarWritable(calendar)) {
+            taskEdit.setupTaskField(edit,
+                                    true,
+                                    calGetString("calendar", "taskEditInstructionsReadonly"));
         } else {
-            edit.savedValue = edit.value;
-            taskEdit.setupTaskField(edit, false, calGetString("calendar", "taskEditInstructions"));
+            if (!edit.showsInstructions) {
+                edit.savedValue = edit.value || "";
+            }
+            taskEdit.setupTaskField(edit,
+                                    false,
+                                    calGetString("calendar", "taskEditInstructions"));
         }
+        edit.showsInstructions = true;
     },
 
     onKeyPress: function tE_onKeyPress(aEvent) {
