@@ -157,7 +157,7 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
     if (rootFolder)
     {
       // if isDeferred state has changed, send notification
-      if (aAccountKey.IsEmpty()  == deferredToAccount.IsEmpty())
+      if (aAccountKey.IsEmpty() != deferredToAccount.IsEmpty())
       {
         nsCOMPtr <nsIRDFResource> folderRes = do_QueryInterface(rootFolder);
         nsCOMPtr <nsIAtom> deferAtom = getter_AddRefs(NS_NewAtom("isDeferred"));
