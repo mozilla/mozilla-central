@@ -135,7 +135,7 @@ CocoaPromptService::AlertCheck(nsIDOMWindow *parent,
   @try {
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
-      NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+      NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
       BOOL valueBool = *checkValue ? YES : NO;
       [controller alertCheck:[browserView nativeWindow]
                        title:titleStr
@@ -213,7 +213,7 @@ CocoaPromptService::ConfirmCheck(nsIDOMWindow *parent,
   @try {
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
-      NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+      NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
       BOOL valueBool = *checkValue ? YES : NO;
       *_retval = (PRBool)[controller confirmCheck:[browserView nativeWindow]
                                             title:titleStr
@@ -276,7 +276,7 @@ CocoaPromptService::ConfirmEx(nsIDOMWindow *parent,
     int result;
     // only show the checkbox if we have an out param and string for it
     if (checkValue && checkMsg && *checkMsg) {
-      NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+      NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
       BOOL valueBool = *checkValue ? YES : NO;
 
       result = [controller confirmCheckEx:[browserView nativeWindow]
@@ -333,7 +333,7 @@ CocoaPromptService::Prompt(nsIDOMWindow *parent,
 
   NSString* titleStr = [NSString stringWithPRUnichars:dialogTitle];
   NSString* textStr = [NSString stringWithPRUnichars:text];
-  NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+  NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
 
   NSMutableString* valueStr = [NSMutableString stringWithPRUnichars:*value];
 
@@ -398,7 +398,7 @@ CocoaPromptService::PromptUsernameAndPassword(nsIDOMWindow *parent,
 
   NSString* titleStr = [NSString stringWithPRUnichars:dialogTitle];
   NSString* textStr = [NSString stringWithPRUnichars:text];
-  NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+  NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
   NSMutableString* userNameStr = [NSMutableString stringWithPRUnichars:*username];
   NSMutableString* passwordStr = [NSMutableString stringWithPRUnichars:*password];
 
@@ -464,7 +464,7 @@ CocoaPromptService::PromptPassword(nsIDOMWindow *parent,
 
   NSString* titleStr = [NSString stringWithPRUnichars:dialogTitle];
   NSString* textStr = [NSString stringWithPRUnichars:text];
-  NSString* msgStr = [NSString stringWithPRUnichars:checkMsg];
+  NSString* msgStr = [[NSString stringWithPRUnichars:checkMsg] stringByRemovingWindowsShortcutAmpersand];
   NSMutableString* passwordStr = [NSMutableString stringWithPRUnichars:*password];
 
   BOOL valueBool = NO;
