@@ -49,6 +49,10 @@
   </stringbundleset>
   <script type="application/x-javascript" src="chrome://calendar/content/calendar-common-sets.js"/>
 
+  <broadcasterset id="calendar_broadcasters">
+    <broadcaster id="modeBroadcaster" mode="calendar"/>
+  </broadcasterset>
+
   <commandset id="calendar_commands"
               commandupdater="true"
               events="calendar_commands"

@@ -325,7 +325,6 @@
 <window id="messengerWindow">
 
   <broadcasterset id="calendar_broadcasters">
-    <broadcaster id="modeBroadcaster"/>
     <broadcaster id="filterBroadcaster" value="all"/>
   </broadcasterset>
 
