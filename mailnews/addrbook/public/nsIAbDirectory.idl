@@ -59,7 +59,7 @@ interface nsIMutableArray;
 #define kABFileName_CurrentSuffix ".mab"  /* v3 address book extension */
 %}
 
-[scriptable, uuid(84992b62-5f93-4298-9504-c8c6efae9423)]
+[scriptable, uuid(e30c442f-9d83-4f38-8d41-9884e81237a0)]
 interface nsIAbDirectory : nsISupports {
 
   /**
@@ -171,9 +171,18 @@ interface nsIAbDirectory : nsISupports {
   readonly attribute boolean isSecure;
 
   /**
-   * directory should be searched when doing local autocomplete
+   * Whether or not the directory should be searched when doing autocomplete,
+   * (currently by using GetChildCards); LDAP does not support this in online
+   * mode, so that should return false; additionally any other directory types
+   * that also do not support GetChildCards should return false.
+   *
+   * @param aIdentity  An optional parameter detailing the identity key (see
+   *                   nsIMsgAccountManager) that this autocomplete is being
+   *                   run against.
+   * @return           True if this directory should/can be used during
+   *                   local autocomplete.
    */
-  readonly attribute boolean searchDuringLocalAutocomplete;
+  boolean useForAutocomplete(in ACString aIdentityKey);
 
   /** 
    * Does this directory support mailing lists? Note that in the case

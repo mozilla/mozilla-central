@@ -64,6 +64,7 @@ public:
                                   const nsACString &aURI);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
 	NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
 
 protected:
   nsresult EnsureInitialized();

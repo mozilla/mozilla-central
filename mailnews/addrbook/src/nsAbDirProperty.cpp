@@ -334,11 +334,18 @@ NS_IMETHODIMP nsAbDirProperty::GetIsSecure(PRBool *aIsSecure)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete)
+NS_IMETHODIMP nsAbDirProperty::UseForAutocomplete(const nsACString &aIdentityKey,
+                                                  PRBool *aResult)
 {
-  NS_ENSURE_ARG_POINTER(aSearchDuringLocalAutocomplete);
-  *aSearchDuringLocalAutocomplete = PR_TRUE;
-  return NS_OK;
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  // Is local autocomplete enabled?
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                                   &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return prefBranch->GetBoolPref("mail.enable_autocomplete", aResult);
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetDirPrefId(nsACString &aDirPrefId)

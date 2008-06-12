@@ -67,6 +67,9 @@
 #include "nsIAbLDAPCard.h"
 #include "nsAbUtils.h"
 #include "nsArrayUtils.h"
+#include "nsIPrefService.h"
+#include "nsIMsgAccountManager.h"
+#include "nsMsgBaseCID.h"
 
 #define kDefaultMaxHits 100
 
@@ -476,14 +479,95 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetIsSecure(PRBool *aIsSecure)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete)
+NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityKey,
+                                                    PRBool *aResult)
 {
-  NS_ENSURE_ARG_POINTER(aSearchDuringLocalAutocomplete);
+  NS_ENSURE_ARG_POINTER(aResult);
 
-  // always skip LDAP directories when doing local autocomplete.
-  // we do the LDAP autocompleting
-  // in nsLDAPAutoCompleteSession
-  *aSearchDuringLocalAutocomplete = PR_FALSE;
+  // Set this to false by default to make the code easier below.
+  *aResult = PR_FALSE;
+
+  nsresult rv;
+  PRBool offline = PR_FALSE;
+  nsCOMPtr <nsIIOService> ioService =
+    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = ioService->GetOffline(&offline);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // If we're online, then don't allow search during local autocomplete - must
+  // use the separate LDAP autocomplete session due to the current interfaces
+  if (!offline)
+    return NS_OK;
+
+  // Is the use directory pref set for autocompletion?
+  nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                              &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  PRBool useDirectory = PR_FALSE;
+  rv = prefs->GetBoolPref("ldap_2.autoComplete.useDirectory", &useDirectory);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // No need to search if not set up globally for LDAP autocompletion and we've
+  // not been given an identity.
+  if (!useDirectory && aIdentityKey.IsEmpty())
+    return NS_OK;
+
+  nsCString prefName;
+  if (!aIdentityKey.IsEmpty())
+  {
+    // If we have an identity string, try and find out the required directory
+    // server.
+    nsCOMPtr<nsIMsgAccountManager> accountManager =
+      do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
+
+    // If we failed, just return, we can't do much about this.
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCOMPtr<nsIMsgIdentity> identity;
+      rv = accountManager->GetIdentity(aIdentityKey, getter_AddRefs(identity));
+      if (NS_SUCCEEDED(rv))
+      {
+        PRBool overrideGlobalPref = PR_FALSE;
+        identity->GetOverrideGlobalPref(&overrideGlobalPref);
+        if (overrideGlobalPref)
+          identity->GetDirectoryServer(prefName);
+      }
+    }
+
+    // If the preference name is still empty but useDirectory is false, then
+    // the global one is not available, nor is the overriden one.
+    if (prefName.IsEmpty() && !useDirectory)
+      return NS_OK;
+  }
+
+  // If we failed to get the identity preference, or the pref name is empty
+  // try the global preference.
+  if (prefName.IsEmpty())
+  {
+    nsresult rv = prefs->GetCharPref("ldap_2.autoComplete.directoryServer",
+                                     getter_Copies(prefName));
+    NS_ENSURE_SUCCESS(rv,rv);
+  }
+
+  // Now see if the pref name matches our pref id.
+  if (prefName.Equals(m_DirPrefId))
+  {
+    // Yes it does, one last check - does the replication file exist?
+    nsresult rv;
+    nsCOMPtr<nsILocalFile> databaseFile;
+    // If we can't get the file, then there is no database to use
+    if (NS_FAILED(GetReplicationFile(getter_AddRefs(databaseFile))))
+      return NS_OK;
+
+    PRBool exists;
+    rv = databaseFile->Exists(&exists);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    *aResult = exists;
+  }
   return NS_OK;
 }
 

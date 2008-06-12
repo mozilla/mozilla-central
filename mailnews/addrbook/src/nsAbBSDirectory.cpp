@@ -348,3 +348,12 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
   return DIR_ContainsServer(dirServer, hasDir);
 }
 
+NS_IMETHODIMP nsAbBSDirectory::UseForAutocomplete(const nsACString &aIdentityKey,
+                                                  PRBool *aResult)
+{
+  // For the "root" directory (kAllDirectoryRoot) always return true so that
+  // we can search sub directories that may or may not be local.
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = PR_TRUE;
+  return NS_OK;
+}

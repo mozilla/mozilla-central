@@ -27,6 +27,9 @@
 // Main function for the this test so we can check both personal and
 // collected books work correctly in an easy manner.
 function check_ab(abConfig) {
+  var gPref = Components.classes["@mozilla.org/preferences-service;1"]
+                        .getService(Components.interfaces.nsIPrefBranch);
+
   // Test - Get the directory
 
   var abManager = Components.classes["@mozilla.org/abmanager;1"]
@@ -51,14 +54,23 @@ function check_ab(abConfig) {
   do_check_eq(AB.isMailList, false);
   do_check_eq(AB.isRemote, false);
   do_check_eq(AB.isSecure, false);
-  do_check_eq(AB.searchDuringLocalAutocomplete, true);
   do_check_eq(AB.supportsMailingLists, true);
   do_check_eq(AB.dirPrefId, abConfig.dirPrefID);
 
-  // Test - check getting default preferences
+  // Test - autocomplete enable/disable
 
-  var gPref = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
+  // enable is the default
+  do_check_eq(AB.useForAutocomplete(), true);
+
+  gPref.setBoolPref("mail.enable_autocomplete", false);
+
+  do_check_eq(AB.useForAutocomplete(), false);
+
+  gPref.setBoolPref("mail.enable_autocomplete", true);
+
+  do_check_eq(AB.useForAutocomplete(), true);
+
+  // Test - check getting default preferences
 
   do_check_eq(AB.getIntValue("random", 54321), 54321);
   do_check_eq(AB.getBoolValue("random", false), false);

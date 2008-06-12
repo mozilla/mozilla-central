@@ -76,7 +76,7 @@ public:
   NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
   NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
   NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
-  NS_IMETHOD GetSearchDuringLocalAutocomplete(PRBool *aSearchDuringLocalAutocomplete);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
   NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DeleteCards(nsIArray *aCards);
