@@ -36,7 +36,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-top.MAX_RECIPIENTS = 0;
+top.MAX_RECIPIENTS = 1; /* for the initial listitem created in the XUL */
 
 var inputElementType = "";
 var selectElementType = "";

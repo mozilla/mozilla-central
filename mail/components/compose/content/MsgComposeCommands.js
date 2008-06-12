@@ -2937,6 +2937,9 @@ function LoadIdentity(startup)
         if (identityElement.selectedItem)
           identityElement.setAttribute('accountname', identityElement.selectedItem.getAttribute('accountname'));
 
+        for (var i = 1; i <= awGetMaxRecipients(); i++)
+          awGetInputElement(i).setAttribute("autocompletesearchparam", idKey);
+
         if (!startup && prevIdentity && idKey != prevIdentity.key)
         {
           var prefstring = "mail.identity." + prevIdentity.key;
