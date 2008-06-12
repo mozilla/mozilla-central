@@ -32,6 +32,20 @@ if "%VC9DIR%"=="" (
     call "%VC9EXPRESSDIR%\Bin\vcvars32.bat"
 
     rem Don't set SDK paths in this block, because blocks are early-evaluated.
+
+    rem Fix problem with VC++Express Edition
+    if "%SDKVER%"=="6" (
+        rem SDK Ver.6.0 (Windows Vista SDK) and 6.1 (Windows Server 2008 SDK)
+        rem does not contain ATL header files too.
+        rem It is needed to use Platform SDK's ATL header files.
+        SET USEPSDKATL=1
+
+        rem SDK ver.6.0 does not contain OleAcc.idl
+        rem It is needed to use Platform SDK's OleAcc.idl
+        if "%SDKMINORVER%"=="0" (
+            SET USEPSDKIDL=1
+        )
+    )
 ) else (
     rem Prepend MSVC paths
     call "%VC9DIR%\Bin\vcvars32.bat"
@@ -43,7 +57,20 @@ if "%VC9DIR%"=="" (
     rem Add the atlthunk compat library to the end of our LIB
     set PATH=%SDKDIR%\bin;%PATH%
     set LIB=%SDKDIR%\lib;%LIB%;%MOZBUILDDIR%atlthunk_compat
-    set INCLUDE=%SDKDIR%\include;%SDKDIR%\include\atl;%INCLUDE%
+
+    if "%USEPSDKATL%"=="1" (
+        if "%USEPSDKIDL%"=="1" (
+            set INCLUDE=%SDKDIR%\include;%PSDKDIR%\include\atl;%PSDKDIR%\include;%INCLUDE%
+        ) else (
+            set INCLUDE=%SDKDIR%\include;%PSDKDIR%\include\atl;%INCLUDE%
+        )
+    ) else (
+        if "%USEPSDKIDL%"=="1" (
+            set INCLUDE=%SDKDIR%\include;%SDKDIR%\include\atl;%PSDKDIR%\include;%INCLUDE%
+        ) else (
+            set INCLUDE=%SDKDIR%\include;%SDKDIR%\include\atl;%INCLUDE%
+        )
+    )
 )
 
 cd "%USERPROFILE%"
