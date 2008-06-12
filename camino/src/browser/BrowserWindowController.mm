@@ -3344,11 +3344,13 @@ public:
 
 - (void)willShowPromptForBrowser:(BrowserWrapper*)inBrowser
 {
-  // Remember where the user was, so we can come back.
-  mLastBrowserView = mBrowserView;
-  // bring the tab to the front (for security reasons)
-  BrowserTabViewItem* tabItem = [self tabForBrowser:inBrowser];
-  [mTabBrowser selectTabViewItem:tabItem];
+  if (inBrowser != mBrowserView) {
+    // Remember where the user was, so we can come back...
+    mLastBrowserView = mBrowserView;
+    // ... and bring the tab to the front (for security reasons)
+    BrowserTabViewItem* tabItem = [self tabForBrowser:inBrowser];
+    [mTabBrowser selectTabViewItem:tabItem];
+  }
   // force a display, so that the tab view redraws before the sheet is shown
   [mTabBrowser display];
 }
