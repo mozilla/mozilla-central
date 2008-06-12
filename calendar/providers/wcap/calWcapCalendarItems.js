@@ -101,17 +101,17 @@ function calWcapCalendar_getRecurrenceParams(item, out_rrules, out_rdates, out_e
                 for each (var d in rdates) {
                     // cs does not accept DATEs here:
                     if (isNeg) {
-                        out_exdates.value.push(getIcalUTC(d.date));
+                        out_exdates.value.push(getIcalUTC(ensureDateTime(d.date)));
                     } else {
-                        out_rdates.value.push(getIcalUTC(d.date));
+                        out_rdates.value.push(getIcalUTC(ensureDateTime(d.date)));
                     }
                 }
             } else if (rItem instanceof Components.interfaces.calIRecurrenceDate) {
                 // cs does not accept DATEs here:
                 if (isNeg) {
-                    out_exdates.value.push(getIcalUTC(rItem.date));
+                    out_exdates.value.push(getIcalUTC(ensureDateTime(rItem.date)));
                 } else {
-                    out_rdates.value.push(getIcalUTC(rItem.date));
+                    out_rdates.value.push(getIcalUTC(ensureDateTime(rItem.date)));
                 }
             } else {
                 this.notifyError("don\'t know how to handle this recurrence item: " + rItem.valueAsIcalString);
@@ -561,8 +561,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
         request.execRespFunc(null, item);
     } else {
         var someDate = (item.startDate || item.entryDate || item.dueDate);
-        if (someDate && !someDate.isDate) { // don't do that for all-day items,
-                                            // cs doesn't like that writing overridden items
+        if (someDate) {
             someTz = someDate.timezone;
             if (!someTz.isUTC && !someTz.isFloating) {
                 // provide some tzid: eMail notification dates are influenced by this parameter
@@ -585,7 +584,7 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
         if (bIsParent) {
             params += "&mod=4"; // THIS AND ALL INSTANCES
         } else {
-            params += ("&mod=1&rid=" + getIcalUTC(item.recurrenceId)); // THIS INSTANCE
+            params += ("&mod=1&rid=" + getIcalUTC(ensureDateTime(item.recurrenceId))); // THIS INSTANCE
         }
 
         params += ("&method=" + method);
@@ -808,7 +807,7 @@ function calWcapCalendar_deleteItem(item, listener) {
             params += "&mod=4&rid=0";
         } else { // delete THIS INSTANCE:
             // cs does not accept DATE here:
-            params += ("&mod=1&rid=" + getIcalUTC(item.recurrenceId));
+            params += ("&mod=1&rid=" + getIcalUTC(ensureDateTime(item.recurrenceId)));
         }
 
         var orgCalId = getCalId(item.organizer);

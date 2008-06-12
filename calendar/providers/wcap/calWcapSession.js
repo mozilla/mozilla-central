@@ -672,7 +672,6 @@ calWcapSession.prototype = {
                 if (err) {
                     throw err;
                 }
-                var tzids = [];
                 forEachIcalComponent(
                     data, "VTIMEZONE",
                     function eachComp(subComp) {
