@@ -998,7 +998,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsIArray *folders, nsIMsgWi
   if (NS_SUCCEEDED(rv))
   {
     if (folder)
-      rv = trashFolder->CopyFolder(folder, PR_TRUE, msgWindow, nsnull);
+    {
+      nsCOMPtr<nsIMsgCopyService> copyService(do_GetService(NS_MSGCOPYSERVICE_CONTRACTID, &rv));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = copyService->CopyFolders(folders, trashFolder, PR_TRUE, nsnull, msgWindow);
+    }
   }
   return rv;
 }
@@ -2007,24 +2011,14 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
     }
   }
 
-  nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv))
-  {
-    PRBool hasListeners;
-    notifier->GetHasListeners(&hasListeners);
-    if (hasListeners)
-    {
-      nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
-      if (folderArray)
-      {
-        folderArray->AppendElement(srcFolder, PR_FALSE);
-        notifier->NotifyItemMoveCopyCompleted(isMoveFolder, folderArray, this);
-      }
-    }
-  }
-
   if (isMoveFolder && NS_SUCCEEDED(copyStatus))
   {
+    if (localNewFolder)
+    {
+      nsCOMPtr<nsISupports> srcSupport(do_QueryInterface(srcFolder));
+      localNewFolder->OnCopyCompleted(srcSupport, PR_TRUE);
+    }
+
     //notifying the "folder" that was dragged and dropped has been created.
     //no need to do this for its subfolders - isMoveFolder will be true for "folder"
     NotifyItemAdded(newMsgFolder);

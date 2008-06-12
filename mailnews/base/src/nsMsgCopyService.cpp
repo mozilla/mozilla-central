@@ -178,11 +178,10 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
 {
   if (aRequest)
   {
-    // Send notifications to nsIGlobalMsgFolderNotificationService
-
-    if (aRequest->m_requestType == nsCopyFoldersType)
+    // Send notifications to nsIMsgFolderListeners
+    if (NS_SUCCEEDED(rv) && aRequest->m_requestType == nsCopyFoldersType)
     {
-      nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+      nsCOMPtr <nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
       {
         PRBool hasListeners;
