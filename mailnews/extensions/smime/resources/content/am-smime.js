@@ -63,6 +63,11 @@ const kSigningCertPref = "identity.signing_cert_name";
 
 function onInit() 
 {
+  smimeInitializeFields();
+}
+
+function smimeInitializeFields()
+{
   // initialize all of our elements based on the current identity values....
   gEncryptionCertName = document.getElementById(kEncryptionCertPref);
   gHiddenEncryptionPolicy = document.getElementById("identity.encryptionpolicy");
@@ -77,27 +82,44 @@ function onInit()
   gEncryptionChoicesLocked = false;
   gSigningChoicesLocked = false;
 
-  gEncryptionCertName.value = gIdentity.getUnicharAttribute("encryption_cert_name");
+  if (!gIdentity) {
+    // The user is going to create a new identity.
+    // Set everything to default values.
+    // Do not take over the values from gAccount.defaultIdentity
+    // as the new identity is going to have a different mail address.
 
-  gEncryptionChoices.value = gIdentity.getIntAttribute("encryptionpolicy");
-    
-  if (!gEncryptionCertName.value)
-  {
+    gEncryptionCertName.value = "";
+    gSignCertName.value = "";
+
     gEncryptAlways.setAttribute("disabled", true);
     gNeverEncrypt.setAttribute("disabled", true);
-  }
-  else {
-    enableEncryptionControls(true);
-  }
-
-  gSignCertName.value = gIdentity.getUnicharAttribute("signing_cert_name");
-  gSignMessages.checked = gIdentity.getBoolAttribute("sign_mail");
-  if (!gSignCertName.value)
-  {
     gSignMessages.setAttribute("disabled", true);
+
+    gSignMessages.checked = false;
+    gEncryptionChoices.value = 0;
   }
   else {
-    enableSigningControls(true);
+    gEncryptionCertName.value = gIdentity.getUnicharAttribute("encryption_cert_name");
+
+    gEncryptionChoices.value = gIdentity.getIntAttribute("encryptionpolicy");
+
+    if (!gEncryptionCertName.value) {
+      gEncryptAlways.setAttribute("disabled", true);
+      gNeverEncrypt.setAttribute("disabled", true);
+    }
+    else {
+      enableEncryptionControls(true);
+    }
+
+    gSignCertName.value = gIdentity.getUnicharAttribute("signing_cert_name");
+    gSignMessages.checked = gIdentity.getBoolAttribute("sign_mail");
+    if (!gSignCertName.value)
+    {
+      gSignMessages.setAttribute("disabled", true);
+    }
+    else {
+      enableSigningControls(true);
+    }
   }
 
   // Always start with enabling signing and encryption cert select buttons.
@@ -106,7 +128,8 @@ function onInit()
   enableCertSelectButtons();
 
   // Disable all locked elements on the panel
-  onLockPreference();
+  if (gIdentity)
+    onLockPreference();
 }
 
 function onPreInit(account, accountValues)
@@ -116,6 +139,11 @@ function onPreInit(account, accountValues)
 
 function onSave()
 {
+  smimeSave();
+}
+
+function smimeSave()
+{
   // find out which radio for the encryption radio group is selected and set that on our hidden encryptionChoice pref....
   var newValue = gEncryptionChoices.value;
   gHiddenEncryptionPolicy.setAttribute('value', newValue);
@@ -124,6 +152,19 @@ function onSave()
 
   gIdentity.setBoolAttribute("sign_mail", gSignMessages.checked);
   gIdentity.setUnicharAttribute("signing_cert_name", gSignCertName.value);
+}
+
+function smimeOnAcceptEditor()
+{
+  try {
+    if (!onOk())
+      return false;
+  }
+  catch (ex) {}
+
+  smimeSave();
+
+  return true;
 }
 
 function onLockPreference()
@@ -407,5 +448,13 @@ function smimeClearCert(smime_cert)
   }
   
   enableCertSelectButtons();
+}
+
+function smimeOnLoadEditor()
+{
+  smimeInitializeFields();
+
+  document.documentElement.setAttribute("ondialogaccept",
+                                        "return smimeOnAcceptEditor();");
 }
 
