@@ -1339,7 +1339,7 @@
       </menupopup>
     </menu>
 
-    <!-- Tasks -->
+    <!-- Tools -->
     <menu id="tasksMenu" label="&tasksMenu.label;" accesskey="&tasksMenu.accesskey;">
       <menupopup id="taskPopup" onpopupshowing="document.commandDispatcher.updateCommands('create-menu-tasks')">
 #ifndef XP_MACOSX

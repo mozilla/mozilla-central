@@ -2,6 +2,7 @@ messenger.jar:
 % content messagebody %content/messagebody/ contentaccessible=yes
 % content messenger %content/messenger/ xpcnativewrappers=yes
 % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
+% overlay chrome://global/content/viewSource.xul chrome://messenger/content/viewSourceOverlay.xul
 *   content/messenger/mailWindow.js                 (content/mailWindow.js)
 *   content/messenger/mailWindowOverlay.js          (content/mailWindowOverlay.js)
 *   content/messenger/mailWindowOverlay.xul         (content/mailWindowOverlay.xul)
@@ -50,6 +51,7 @@ messenger.jar:
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
     content/messenger/mail-folder-bindings.xml      (content/mail-folder-bindings.xml)
+*   content/messenger/viewSourceOverlay.xul         (content/viewSourceOverlay.xul)
 #ifdef MOZ_USE_GENERIC_BRANDING
 % content branding %content/branding/ xpcnativewrappers=yes
     content/branding/about-credits.png              (content/about-credits.png)

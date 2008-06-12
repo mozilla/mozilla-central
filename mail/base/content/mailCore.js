@@ -142,16 +142,14 @@ function toJavaScriptConsole()
     toOpenWindowByType("global:console", "chrome://global/content/console.xul");
 }
 
-const nsIWindowMediator = Components.interfaces.nsIWindowMediator;
-
 function toOpenWindowByType( inType, uri )
 {
-  var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService();
-
-  var  windowManagerInterface = windowManager.QueryInterface(nsIWindowMediator);
+  const Cc = Components.classes;
+  const Ci = Components.interfaces;
+  var windowManager = Cc['@mozilla.org/appshell/window-mediator;1'].getService();
+  var windowManagerInterface = windowManager.QueryInterface(Ci.nsIWindowMediator);
 
   var topWindow = windowManagerInterface.getMostRecentWindow( inType );
-  
   if ( topWindow )
     topWindow.focus();
   else
@@ -162,7 +160,7 @@ function toMessengerWindow()
 {
   toOpenWindowByType("mail:3pane", "chrome://messenger/content/messenger.xul");
 }
-    
+
 function toAddressBook() 
 {
   toOpenWindowByType("mail:addressbook", "chrome://messenger/content/addressbook/addressbook.xul");
