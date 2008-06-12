@@ -5,6 +5,7 @@ package Bootstrap::Step::Tag;
 
 use Cwd;
 use File::Copy qw(move);
+use File::Path qw(rmtree);
 use POSIX qw(strftime);
 
 use MozBuild::Util qw(MkdirWithPath RunShellCommand);
@@ -95,6 +96,18 @@ sub Execute {
           log => catfile($logDir, 'tag_mozilla-checkout.log'),
           checkFor => '^U',
         );
+
+        # Bug 419030 changed the way NSS is checked out for Fx/Tb 2.0.0.x,
+        # pulling most of mozilla/security from one tag but checking out a
+        # 2nd copy of mozilla/security/nss (into nss-fips) from another
+        # Since we can't tag or branch files on two revisions we exclude 
+        # the older one from any operations by removing it.
+        if (-e catfile($cvsrootTagDir,'mozilla','security','nss-fips')) {
+           $this->Log(msg => 'Removing cvsroot/mozilla/security/nss-fips');
+           if (rmtree(catfile($cvsrootTagDir,'mozilla','security','nss-fips'),1) <= 0) {
+              die("ASSERT: rmtree() called on mozilla/security/nss-fips but nothing deleted.");
+           }
+        }
 
         $geckoTag = $this->GenerateRelbranchName(milestone => $milestone);
 
