@@ -60,15 +60,15 @@ function check_ab(abConfig) {
   // Test - autocomplete enable/disable
 
   // enable is the default
-  do_check_eq(AB.useForAutocomplete(), true);
+  do_check_eq(AB.useForAutocomplete(""), true);
 
   gPref.setBoolPref("mail.enable_autocomplete", false);
 
-  do_check_eq(AB.useForAutocomplete(), false);
+  do_check_eq(AB.useForAutocomplete(""), false);
 
   gPref.setBoolPref("mail.enable_autocomplete", true);
 
-  do_check_eq(AB.useForAutocomplete(), true);
+  do_check_eq(AB.useForAutocomplete(""), true);
 
   // Test - check getting default preferences
 
