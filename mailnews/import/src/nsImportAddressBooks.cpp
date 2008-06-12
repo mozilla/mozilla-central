@@ -561,6 +561,17 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     return( NS_OK);
   }
 
+  PRBool needsFieldMap = PR_FALSE;
+
+  if (NS_FAILED(m_pInterface->GetNeedsFieldMap(m_pLocation, &needsFieldMap)) ||
+      (needsFieldMap && !m_pFieldMap)) {
+    nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTINITIALIZED,
+                                        m_stringBundle, error);
+    SetLogs(success, error, successLog, errorLog);
+    *_retval = PR_FALSE;
+    return NS_OK;
+  }
+
   if (m_pThreadData) {
     m_pThreadData->DriverAbort();
     m_pThreadData = nsnull;
