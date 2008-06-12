@@ -142,10 +142,10 @@ class MozillaWgetLatestDated(ShellCommand):
         assert kwargs['filenameSearchString'] != ""
         self.changes = kwargs['build'].source.changes
         #if this change includes a link use it
-        if self.changes[0].links:
-            self.url = self.changes[0].links
+        if self.changes[-1].links:
+            self.url = self.changes[-1].links
         else:
-           self.url = kwargs['url'] + str(self.changes[0].when) + "/"
+           self.url = kwargs['url'] + str(self.changes[-1].when) + "/"
         self.filenameSearchString = kwargs['filenameSearchString']
         self.branch = "HEAD"
         self.fileURL = ""
@@ -188,8 +188,8 @@ class MozillaWgetLatest(ShellCommand):
         assert kwargs['url'] != ""
         assert kwargs['filenameSearchString'] != ""
         #if this change includes a link use it
-        if self.changes[0].links:
-            self.url = self.changes[0].links
+        if self.changes[-1].links:
+            self.url = self.changes[-1].links
         else:
             self.url = kwargs['url']
         self.filenameSearchString = kwargs['filenameSearchString']
@@ -275,7 +275,7 @@ class MozillaUpdateConfig(ShellCommand):
         if 'build' in kwargs:
             self.title = kwargs['build'].slavename
             self.changes = kwargs['build'].source.changes
-            self.buildid = strftime("%Y%m%d%H%M", localtime(self.changes[0].when))
+            self.buildid = strftime("%Y%m%d%H%M", localtime(self.changes[-1].when))
         if 'branch' in kwargs:
             self.branch = kwargs['branch']
         assert 'configPath' in kwargs
@@ -471,7 +471,7 @@ class MozillaUpdateConfigFromChange(ShellCommand):
         if 'build' in kwargs:
             self.title = kwargs['build'].slavename
             self.changes = kwargs['build'].source.changes
-            self.buildid = self.changes[0].comments.split(',')[0]
+            self.buildid = self.changes[-1].comments.split(',')[0]
         if 'branch' in kwargs:
             self.branch = kwargs['branch']
         assert 'configPath' in kwargs
