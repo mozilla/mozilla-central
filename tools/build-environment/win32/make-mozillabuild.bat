@@ -9,6 +9,7 @@ set SRCDIR=%~dp0%
 call "%VC8DIR%\VC\bin\vcvars32.bat"
 set INCLUDE=%SDKDIR%\Include\atl;%INCLUDE%
 
-%PYTHONDIR%\python.exe ..\packageit.py --msys c:\msys --output c:\stage
+cd %SRCDIR%
+%PYTHONDIR%\python.exe packageit.py --msys c:\msys --output c:\stage
 
 pause
