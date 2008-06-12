@@ -115,5 +115,5 @@ if "%SDKDIR%"=="" (
     ECHO Windows SDK directory: %SDKDIR%
     ECHO Windows SDK version: %SDKVER%.%SDKMINORVER%
 )
-ECHO Platfrom SDK directory: %PSDKDIR%
-ECHO Platfrom SDK version: %PSDKVER%
+ECHO Platform SDK directory: %PSDKDIR%
+ECHO Platform SDK version: %PSDKVER%
