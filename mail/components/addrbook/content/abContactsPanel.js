@@ -160,8 +160,8 @@ function AbPanelLoad()
                                     nsIAbListener.directoryRemoved |
                                     nsIAbListener.itemChanged);
 
-  parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-close', AbPanelOnComposerClose, true);
-  parent.document.getElementById("msgcomposeWindow").addEventListener('compose-window-reopen', AbPanelOnComposerReOpen, true);
+  parent.addEventListener("compose-window-close", AbPanelOnComposerClose, true);
+  parent.addEventListener("compose-window-reopen", AbPanelOnComposerReOpen, true);
   gSearchInput = document.getElementById("searchInput");
 }
 
@@ -171,8 +171,8 @@ function AbPanelUnload()
             .getService(Components.interfaces.nsIAbManager)
             .removeAddressBookListener(gAddressBookPanelAbListener);
 
-  parent.document.getElementById("msgcomposeWindow").removeEventListener('compose-window-close', AbPanelOnComposerClose, true);
-  parent.document.getElementById("msgcomposeWindow").removeEventListener('compose-window-reopen', AbPanelOnComposerReOpen, true);
+  parent.removeEventListener("compose-window-close", AbPanelOnComposerClose, true);
+  parent.removeEventListener("compose-window-reopen", AbPanelOnComposerReOpen, true);
 
   CloseAbView();
 }
