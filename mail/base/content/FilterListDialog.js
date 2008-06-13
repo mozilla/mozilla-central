@@ -543,8 +543,7 @@ function getFirstFolder(msgFolder)
     // Find Inbox for imap and pop
     if (msgFolder.server.type != "nntp")
     {
-      var outNumFolders = new Object();
-      var inboxFolder = msgFolder.getFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, outNumFolders);
+      var inboxFolder = msgFolder.getFolderWithFlags(MSG_FOLDER_FLAG_INBOX);
       if (inboxFolder)
         return inboxFolder;
       else
