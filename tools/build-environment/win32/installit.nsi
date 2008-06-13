@@ -1,5 +1,8 @@
 !cd mozilla-build
 
+!include WinVer.nsh
+RequestExecutionLevel highest
+
 name "Mozilla Build"
 SetCompressor /SOLID lzma
 OutFile "..\MozillaBuildSetup.exe"

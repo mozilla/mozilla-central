@@ -64,7 +64,7 @@
 # * Append ';c:\python25;c:\program files\nsis;c:\program files\unzip' to path.
 # 
 from subprocess import check_call
-from os import getcwd, remove, environ, chdir
+from os import getcwd, remove, environ, chdir, walk
 from os.path import dirname, join, split, abspath, exists
 import optparse
 from shutil import rmtree
@@ -132,6 +132,24 @@ check_call([join(msysdir, "bin", "sh.exe"), "--login",
             join(sourcedir, "packageit-msys.sh")])
 
 del environ["MSYSTEM"]
+
+# Embed some manifests to make Vista happy
+def embedmanifest(f, mf):
+    f = abspath(f)
+    check_call(["mt.exe", "-manifest", mf,
+                '-outputresource:%s;#1' % f])
+
+def embed_recursedir(dir, mf):
+    for rootdir, dirnames, filenames in walk(dir):
+        for f in filenames:
+            if f.endswith(".exe"):
+                embedmanifest(join(rootdir, f), mf)
+
+manifest = join(sourcedir, "noprivs.manifest")
+embed_recursedir(join(stagedir, "mozilla-build", "msys"), manifest)
+embedmanifest(join(stagedir, "mozilla-build", "moztools", "bin", "nsinstall.exe"), manifest)
+embedmanifest(join(stagedir, "mozilla-build", "moztools-180compat", "bin", "nsinstall.exe"), manifest)
+
 
 # Make an installer
 chdir(stagedir)
