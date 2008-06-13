@@ -557,6 +557,7 @@ function HideMenus()
 
 function OnUnloadMessageWindow()
 {
+  UnloadCommandUpdateHandlers();
   // FIX ME - later we will be able to use onunload from the overlay
   OnUnloadMsgHeaderPane();
   gPhishingDetector.shutdown();
@@ -1166,6 +1167,11 @@ function performNavigation(type)
 function SetupCommandUpdateHandlers()
 {
   top.controllers.insertControllerAt(0, MessageWindowController);
+}
+
+function UnloadCommandUpdateHandlers()
+{
+  top.controllers.removeController(MessageWindowController);
 }
 
 function GetDBView()

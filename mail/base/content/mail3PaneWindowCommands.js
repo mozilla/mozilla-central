@@ -779,14 +779,17 @@ function WhichPaneHasFocus()
 
 function SetupCommandUpdateHandlers()
 {
-  var widget;
-
   // folder pane
-  widget = GetFolderTree();
+  var widget = GetFolderTree();
   if ( widget )
     widget.controllers.appendController(FolderPaneController);
 
   top.controllers.insertControllerAt(0, DefaultController);
+}
+
+function UnloadCommandUpdateHandlers()
+{
+  top.controllers.removeController(DefaultController);
 }
 
 function IsSendUnsentMsgsEnabled(folderResource)
