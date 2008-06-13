@@ -42,7 +42,6 @@ use Litmus::FormWidget;
 use CGI;
 use Date::Manip;
 use JSON;
-use Time::Piece::MySQL;
 
 Litmus->init();
 Litmus::Auth::requireRunDayAdmin("manage_testdays.cgi");
@@ -78,7 +77,7 @@ if ($c->param) {
       $message = "Testday ID# $testday_id does not exist. (Already deleted?)";
     }
   } elsif ($c->param("edit_testday_form_mode")) {
-    my $now = &UnixDate("today","%q");
+    my $now = &Date::Manip::UnixDate("now","%q");
     my $user_id = Litmus::Auth::getCurrentUser();
 
     if ($c->param("edit_testday_form_mode") eq "add") {
