@@ -316,8 +316,8 @@
                         oncommand="window.openDialog('chrome://messenger/content/addressbook/abNewCardDialog.xul', '', 'chrome,resizable=no,titlebar,modal');"/>
             </menupopup>
           </menu>
-          <menu label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
-            <menupopup>
+          <menu id="menu_Attach" label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
+            <menupopup id="menu_AttachPopup">
               <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
               <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
               <menuseparator/>
@@ -327,8 +327,8 @@
           <menuitem id="menu_close" label="&closeCmd.label;" key="key_close" accesskey="&closeCmd.accesskey;" command="cmd_close"/>
           <menuseparator/>
           <menuitem label="&saveCmd.label;" accesskey="&saveCmd.accesskey;" key="key_save" command="cmd_saveDefault"/>
-          <menu label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
-            <menupopup>
+          <menu id="menu_SaveAsCmd" label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
+            <menupopup id="menu_SaveAsCmdPopup">
               <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
               <menuseparator/>
               <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
@@ -353,7 +353,7 @@
       </menu>
 
       <menu id="menu_Edit" label="&editMenu.label;" accesskey="&editMenu.accesskey;">
-        <menupopup onpopupshowing="updateEditItems();">
+        <menupopup id="menu_EditPopup" onpopupshowing="updateEditItems();">
           <menuitem id="menu_undo" label="&undoCmd.label;" key="key_undo" accesskey="&undoCmd.accesskey;" command="cmd_undo"/>
           <menuitem id="menu_redo" label="&redoCmd.label;" key="key_redo" accesskey="&redoCmd.accesskey;" command="cmd_redo"/>
           <menuseparator/>
@@ -384,7 +384,7 @@
       <menu id="menu_View" label="&viewMenu.label;" accesskey="&viewMenu.accesskey;">
         <menupopup id="menu_View_Popup">
           <menu id="menu_ToolbarsNew" label="&viewToolbarsMenuNew.label;" accesskey="&viewToolbarsMenuNew.accesskey;">
-            <menupopup>
+            <menupopup id="menu_ToolbarsNewPopup">
               <menuitem id="menu_showComposeToolbar"
                         type="checkbox"
                         label="&showComposeToolbarCmd.label;"
@@ -444,13 +444,13 @@
               </rule>
             </template>
 
-            <menupopup>
+            <menupopup id="maileditCharsetMenuPopup">
               <menuitem name="charsetCustomize" accesskey="&charsetCustomize.accesskey;" label="&charsetCustomize.label;" oncommand="window.openDialog('chrome://global/content/customizeCharset.xul','PrefWindow', 'chrome,modal=yes,resizable=yes', 'mailedit')"/>
               <menuseparator />
             </menupopup>
           </menu>
           <menu id="outputFormatMenu" label="&outputFormatMenu.label;" accesskey="&outputFormatMenu.accesskey;" oncommand="OutputFormatMenuSelect(event.target)">
-            <menupopup>
+            <menupopup id="outputFormatMenuPopup">
               <menuitem type="radio" name="output_format" label="&autoFormatCmd.label;" accesskey="&autoFormatCmd.accesskey;" id="format_auto" checked="true"/>
               <menuitem type="radio" name="output_format" label="&plainTextFormatCmd.label;" accesskey="&plainTextFormatCmd.accesskey;" id="format_plain"/>
               <menuitem type="radio" name="output_format" label="&htmlFormatCmd.label;" accesskey="&htmlFormatCmd.accesskey;" id="format_html"/>
@@ -458,7 +458,7 @@
             </menupopup>
           </menu>
           <menu id="priorityMenu" label="&priorityMenu.label;" accesskey="&priorityMenu.accesskey;" onpopupshowing="updatePriorityMenu();" oncommand="PriorityMenuSelect(event.target);">
-            <menupopup>
+            <menupopup id="priorityMenuPopup">
               <menuitem type="radio" name="priority" label="&highestPriorityCmd.label;" accesskey="&highestPriorityCmd.accesskey;" value="Highest" id="priority_highest"/>
               <menuitem type="radio" name="priority" label="&highPriorityCmd.label;" accesskey="&highPriorityCmd.accesskey;" value="High" id="priority_high"/>
               <menuitem type="radio" name="priority" label="&normalPriorityCmd.label;" accesskey="&normalPriorityCmd.accesskey;" value="Normal" id="priority_normal" checked="true"/>
@@ -469,7 +469,7 @@
           <menu id="fccMenu" label="&fileCarbonCopyCmd.label;" 
                 accesskey="&fileCarbonCopyCmd.accesskey;" 
                 oncommand="MessageFcc(event.target._folder)">
-            <menupopup type="folder" mode="filing" showFileHereLabel="true"
+            <menupopup id="fccMenuPopup" type="folder" mode="filing" showFileHereLabel="true"
                        fileHereLabel="&fileHereMenu.label;"/>
           </menu>    
         </menupopup>
@@ -533,7 +533,7 @@
                ondragover="nsDragAndDrop.dragOver(event, envelopeDragObserver);"
                ondragdrop="nsDragAndDrop.drop(event, envelopeDragObserver);"
                ondragexit="nsDragAndDrop.dragExit(event, envelopeDragObserver);">
-         <menupopup>
+         <menupopup id="button-attachPopup">
             <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
             <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
            <menuseparator/>
@@ -553,7 +553,7 @@
                id="button-save" label="&saveButton.label;" 
                tooltiptext="&saveButton.tooltip;" 
                command="cmd_saveDefault">
-         <menupopup>
+         <menupopup id="button-savePopup">
            <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
            <menuseparator/>
            <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
@@ -582,7 +582,7 @@
     <toolbaritem id="priority-button" align="center" pack="center">
       <label value="&priorityButton.label;"/>
       <menulist id="priorityMenu-button" value="Normal" oncommand="PriorityMenuSelect(event.target);">
-        <menupopup>
+        <menupopup id="priorityMenu-buttonPopup">
           <menuitem name="priority" label="&highestPriorityCmd.label;" value="Highest"  id="list_priotity_highest"/>
           <menuitem name="priority" label="&highPriorityCmd.label;"    value="High"     id="list_priority_high"/>
           <menuitem name="priority" label="&normalPriorityCmd.label;"  value="Normal"   id="list_priority_normal"/>

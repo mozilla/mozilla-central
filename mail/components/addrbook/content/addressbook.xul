@@ -294,7 +294,7 @@
         </menu>
         
         <menu id="menu_Edit" label="&editMenu.label;" accesskey="&editMenu.accesskey;">
-          <menupopup>
+          <menupopup id="menu_EditPopup">
             <menuitem id="menu_undo" 
                       label="&undoCmd.label;" 
                       key="key_undo"
@@ -382,8 +382,8 @@
                           oncommand="goToggleSplitter('results-splitter', 'menu_showCardPane')"
                           checked="true" type="checkbox"/>
                 <menuseparator/>
-                <menu label="&menu_ShowNameAs.label;" accesskey="&menu_ShowNameAs.accesskey;">
-                    <menupopup>
+                <menu id="menu_ShowNameAs" label="&menu_ShowNameAs.label;" accesskey="&menu_ShowNameAs.accesskey;">
+                    <menupopup id="menu_ShowNameAsPopup">
                         <menuitem type="radio" name="shownameas"
                                   id="firstLastCmd"
                                   label="&firstLastCmd.label;"
@@ -401,7 +401,7 @@
                                   oncommand="SetNameColumn('displayNameCmd')"/>
                     </menupopup>
                 </menu>
-                <menu label="&sortMenu.label;" accesskey="&sortMenu.accesskey;">
+                <menu id="sortMenu" label="&sortMenu.label;" accesskey="&sortMenu.accesskey;">
                     <menupopup id="sortMenuPopup" onpopupshowing="InitViewSortByMenu()">
                         <menuitem label="&GeneratedName.label;" 
                                   id="cmd_SortByGeneratedName"

@@ -257,8 +257,8 @@
               <menuitem id="menu_newEditor"/>
             </menupopup>
           </menu>
-          <menu label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
-            <menupopup>
+          <menu id="menu_Attach" label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
+            <menupopup id="menu_AttachPopup">
               <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
               <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
               <menuseparator/>
@@ -268,8 +268,8 @@
           <menuitem id="menu_close"/>
           <menuseparator/>
           <menuitem label="&saveCmd.label;" accesskey="&saveCmd.accesskey;" key="key_save" command="cmd_saveDefault"/>
-          <menu label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
-            <menupopup>
+          <menu id="menu_SaveAsCmd" label="&saveAsCmd.label;" accesskey="&saveAsCmd.accesskey;">
+            <menupopup id="menu_SaveAsCmdPopup">
               <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
               <menuseparator/>
               <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
@@ -285,7 +285,7 @@
         </menupopup>
       </menu>
       <menu id="menu_Edit">
-        <menupopup onpopupshowing="updateEditItems();">
+        <menupopup id="menu_EditPopup" onpopupshowing="updateEditItems();">
           <menuitem id="menu_undo"/>
           <menuitem id="menu_redo"/>
           <menuseparator/>
@@ -352,7 +352,7 @@
           <menuseparator/>
           <menuitem id="returnReceiptMenu" type="checkbox" label="&returnReceiptMenu.label;" accesskey="&returnReceiptMenu.accesskey;" checked="false" oncommand="ToggleReturnReceipt(event.target)"/>
           <menu id="outputFormatMenu" label="&outputFormatMenu.label;" accesskey="&outputFormatMenu.accesskey;" command="cmd_outputFormat">
-            <menupopup>
+            <menupopup id="outputFormatMenuPopup">
               <menuitem type="radio" name="output_format" label="&autoFormatCmd.label;" accesskey="&autoFormatCmd.accesskey;" id="format_auto" checked="true"/>
               <menuitem type="radio" name="output_format" label="&plainTextFormatCmd.label;" accesskey="&plainTextFormatCmd.accesskey;" id="format_plain"/>
               <menuitem type="radio" name="output_format" label="&htmlFormatCmd.label;" accesskey="&htmlFormatCmd.accesskey;" id="format_html"/>
@@ -360,7 +360,7 @@
             </menupopup>
           </menu>
           <menu id="priorityMenu" label="&priorityMenu.label;" accesskey="&priorityMenu.accesskey;" oncommand="PriorityMenuSelect(event.target);">
-            <menupopup onpopupshowing="updatePriorityMenu(this);">
+            <menupopup id="priorityMenuPopup" onpopupshowing="updatePriorityMenu(this);">
               <menuitem type="radio" name="priority" label="&highestPriorityCmd.label;" accesskey="&highestPriorityCmd.accesskey;" value="Highest"/>
               <menuitem type="radio" name="priority" label="&highPriorityCmd.label;" accesskey="&highPriorityCmd.accesskey;" value="High"/>
               <menuitem type="radio" name="priority" label="&normalPriorityCmd.label;" accesskey="&normalPriorityCmd.accesskey;" value="Normal"/>
@@ -376,7 +376,7 @@
              datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
              ref="msgaccounts:/"
              oncommand="MessageFcc(event.target);">
-            <menupopup/>
+            <menupopup id="fccMenuPopup"/>
             <template>
               <rule nc:CanFileMessages="true" iscontainer="true" isempty="false">
                 <menupopup>
@@ -453,7 +453,7 @@
                id="button-attach" label="&attachButton.label;"
                tooltiptext="&attachButton.tooltip;"
                command="cmd_attachFile">
-         <menupopup>
+         <menupopup id="button-attachPopup">
            <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
            <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
            <menuseparator/>
@@ -472,7 +472,7 @@
                id="button-save" label="&saveButton.label;"
                tooltiptext="&saveButton.tooltip;"
                command="cmd_saveDefault">
-         <menupopup>
+         <menupopup id="button-savePopup">
            <menuitem label="&saveAsFileCmd.label;" accesskey="&saveAsFileCmd.accesskey;" command="cmd_saveAsFile"/>
            <menuseparator/>
            <menuitem label="&saveAsDraftCmd.label;" accesskey="&saveAsDraftCmd.accesskey;" command="cmd_saveAsDraft"/>
