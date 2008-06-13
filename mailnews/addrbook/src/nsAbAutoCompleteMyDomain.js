@@ -43,15 +43,26 @@ nsAbAutoCompleteMyDomain.prototype = {
   contractID: "@mozilla.org/autocomplete/search;1?name=mydomain",
   classID: Components.ID("{5b259db2-e451-4de9-8a6f-cfba91402973}"),
   QueryInterface: XPCOMUtils.generateQI([
-      Components.interfaces.nsIAutoCompleteSearch,
-      Components.interfaces.nsIAbAutoCompleteSearch]),
+      Components.interfaces.nsIAutoCompleteSearch]),
 
-  defaultDomain: "",
+  cachedParam: "",
+  cachedIdentity: null,
 
   startSearch: function(aString, aParam, aResult, aListener) {
     const ACR = Components.interfaces.nsIAutoCompleteResult;
-    var address = this.defaultDomain && /^[^@,]+$/.test(aString) &&
-                  aString + "@" + this.defaultDomain;
+    var address = null;
+    if (aString && !/[@,]/.test(aString)) {
+      if (aParam != this.cachedParam) {
+        this.cachedIdentity =
+            Components.classes['@mozilla.org/messenger/account-manager;1']
+                      .getService(Components.interfaces.nsIMsgAccountManager)
+                      .getIdentity(aParam);
+        this.cachedParam = aParam;
+      }
+      if (this.cachedIdentity.autocompleteToMyDomain)
+        address = this.cachedIdentity.email.replace(/[^@]*/, aString);
+    }
+
     var result = {
       searchString: aString,
       searchResult: address ? ACR.RESULT_SUCCESS : ACR.RESULT_FAILURE,
