@@ -7405,14 +7405,6 @@ void nsImapProtocol::SetupMessageFlagsString(nsCString& flagString,
         userFlags & kImapMsgSupportMDNSentFlag))
         flagString.Append("$MDNSent "); // Not always available
 
-    if (flags & kImapMsgLabelFlags)
-    {
-      // turn into a number from 1-5
-      PRUint32 labelValue = (flags & kImapMsgLabelFlags) >> 9;
-      flagString.Append("$Label");
-      flagString.AppendInt(labelValue);
-      flagString.Append(" ");
-    }
     // eat the last space
     if (!flagString.IsEmpty())
         flagString.SetLength(flagString.Length()-1);
@@ -7451,53 +7443,12 @@ void nsImapProtocol::ProcessStoreFlags(const nsCString &messageIdsString,
   if (flags & kImapMsgMDNSentFlag && kImapMsgSupportMDNSentFlag & userFlags)
         flagString .Append("$MDNSent ");  // if supported
 
-  // all this label stuff is predicated on us using the flags to get and set
-  // labels, which limits us to 5 labels. If we ever want more labels, we'll
-  // need to rip this label stuff out of here, and write a new method to
-  // get and set labels, and we'll need a new way of communicating label
-  // values back to the core mail/news code.
-  if (userFlags & (kImapMsgSupportUserFlag | kImapMsgLabelFlags))
-  {
-    if ((flags & kImapMsgLabelFlags))
-    {
-      // turn into a number from 1-5
-      PRUint32 labelValue = (flags & kImapMsgLabelFlags) >> 9;
-      flagString.Append("$Label");
-      flagString.AppendInt(labelValue);
-      flagString.Append(" ");
-    }
-    // only turn off all labels if the caller has said to turn off flags
-    // and passed in 0 as the flag value. There is at least one situation
-    // where client code attempts to add flags of 0
-    else if (!flags && !addFlags)// we must be turning off labels, so subtract them all
-      flagString.Append("$Label1 $Label2 $Label3 $Label4 $Label5 ");
-  }
   if (flagString.Length() > 8) // if more than "+Flags ("
   {
   // replace the final space with ')'
     flagString.SetCharAt(')',flagString.Length() - 1);
 
     Store(messageIdsString, flagString.get(), idsAreUids);
-
-    // looks like we're going to have to turn off any potential labels on these msgs.
-    if (addFlags && (userFlags & (kImapMsgSupportUserFlag |
-      kImapMsgLabelFlags)) && (flags & kImapMsgLabelFlags))
-    {
-      flagString = "-Flags (";
-      PRUint32 labelValue = (flags & kImapMsgLabelFlags) >> 9;
-      for (PRUint32 i = 1; i <= 5; i++)
-      {
-         if (labelValue != i)
-         {
-            flagString.Append("$Label");
-            flagString.AppendInt(i);
-            flagString.Append(" ");
-         }
-       }
-      flagString.SetCharAt(')',flagString.Length() - 1);
-
-      Store(messageIdsString, flagString.get(), idsAreUids);
-    }
   }
 }
 

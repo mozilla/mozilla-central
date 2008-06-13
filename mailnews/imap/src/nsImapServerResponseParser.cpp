@@ -1642,22 +1642,6 @@ void nsImapServerResponseParser::flags()
           knownFlag = PR_TRUE;
         }
         break;
-      case 'L':
-        if ((fSupportsUserDefinedFlags & (kImapMsgSupportUserFlag |
-          kImapMsgLabelFlags))
-          && !PL_strncasecmp(fNextToken, "$Label", 6))
-        {
-          PRInt32 labelValue = fNextToken[6];
-          if (labelValue > '0')
-          {
-            // turn off any previous label flags
-            messageFlags &= ~kImapMsgLabelFlags;
-            // turn on this label flag
-            messageFlags |= (labelValue - '0') << 9;
-          }
-          knownFlag = PR_TRUE;
-        }
-        break;
       default:
         break;
       }
