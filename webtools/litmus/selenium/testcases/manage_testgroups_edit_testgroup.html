@@ -1,12 +1,15 @@
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>manage_testgroups_edit_testgroup</title>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="" />
+<title>Manage Testgroups - Edit</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">manage_testgroups_edit_testgroup</td></tr>
+<tr><td rowspan="1" colspan="3">Manage Testgroups - Edit</td></tr>
 </thead><tbody>
 <tr>
 	<td>clickAndWait</td>
@@ -90,18 +93,33 @@
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>name_text</td>
+	<td>testgroup_id_display</td>
+	<td>regexp:\d+</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>testgroup_name_display</td>
 	<td>Coop's Edited Testgroup</td>
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>product_text</td>
+	<td>testgroup_product_name_display</td>
 	<td>Firefox</td>
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>branch_text</td>
+	<td>testgroup_branch_name_display</td>
 	<td>2.0 Branch</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>testgroup_enabled_display</td>
+	<td>Yes</td>
+</tr>
+<tr>
+	<td>verifyText</td>
+	<td>testgroup_creator_display</td>
+	<td>ccooper@deadsquid.com</td>
 </tr>
 
 </tbody></table>

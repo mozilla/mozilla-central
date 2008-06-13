@@ -1,12 +1,15 @@
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>search_results_paging</title>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="" />
+<title>Search Results - Paging</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">search_results_paging</td></tr>
+<tr><td rowspan="1" colspan="3">Search Results - Paging</td></tr>
 </thead><tbody>
 <tr>
 	<td>clickAndWait</td>
@@ -45,8 +48,8 @@
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//div[3]/div/p[1]</td>
-	<td>Custom<br />Product is 'Thunderbird'</td>
+	<td>//div[@id='sidebar']/div[3]/div/p[1]</td>
+	<td>CustomProduct is 'Thunderbird'</td>
 </tr>
 <tr>
 	<td>verifyTextPresent</td>
@@ -75,8 +78,8 @@
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//div[3]/div/p[1]</td>
-	<td>Custom<br />Product is 'SeaMonkey'<br />Limit to 33 results per page</td>
+	<td>//div[@id='sidebar']/div[3]/div/p[1]</td>
+	<td>CustomProduct is 'SeaMonkey'Limit to 33 results per page</td>
 </tr>
 <tr>
 	<td>verifyTextPresent</td>

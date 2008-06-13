@@ -1,12 +1,15 @@
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>run_tests_add_results</title>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head profile="http://selenium-ide.openqa.org/profiles/test-case">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<link rel="selenium.base" href="" />
+<title>Run Tests - Add Results</title>
 </head>
 <body>
 <table cellpadding="1" cellspacing="1" border="1">
 <thead>
-<tr><td rowspan="1" colspan="3">run_tests_add_results</td></tr>
+<tr><td rowspan="1" colspan="3">Run Tests - Add Results</td></tr>
 </thead><tbody>
 <tr>
 	<td>open</td>
@@ -15,7 +18,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>link=Thunderbird Trunk Catch-All Test Run</td>
+	<td>link=Calendar Trunk Catch-All Test Run</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,18 +42,28 @@
 	<td>label=en-US</td>
 </tr>
 <tr>
+	<td>setTimeout</td>
+	<td>60000</td>
+	<td></td>
+</tr>
+<tr>
 	<td>clickAndWait</td>
 	<td>//input[@value='Submit configuration']</td>
 	<td></td>
 </tr>
 <tr>
-	<td>click</td>
-	<td>document.form.testgroup[1]</td>
+	<td>setTimeout</td>
+	<td>30000</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>subgroup_42</td>
+	<td>//input[@id='testgroup' and @name='testgroup' and @value='31']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>click</td>
+	<td>//input[@id='subgroup_31' and @name='subgroup_31' and @value='501']</td>
 	<td></td>
 </tr>
 <tr>
@@ -65,22 +78,12 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>link=Hide All</td>
+	<td>testresult_2331_pass</td>
 	<td></td>
 </tr>
 <tr>
 	<td>click</td>
-	<td>top_all</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>testresult_2820_pass</td>
-	<td></td>
-</tr>
-<tr>
-	<td>click</td>
-	<td>testresult_2798_fail</td>
+	<td>testresult_2336_fail</td>
 	<td></td>
 </tr>
 <tr>
@@ -90,7 +93,7 @@
 </tr>
 <tr>
 	<td>click</td>
-	<td>Submit2798</td>
+	<td>Submit2331</td>
 	<td></td>
 </tr>
 <tr>
@@ -100,7 +103,7 @@
 </tr>
 <tr>
 	<td>clickAndWait</td>
-	<td>document.form.Submit[1]</td>
+	<td>Submit</td>
 	<td></td>
 </tr>
 <tr>
@@ -110,18 +113,18 @@
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//td[1]</td>
-	<td>Thunderbird Trunk Catch-All Test Run</td>
+	<td>//div[@id='test_run_summary']/table/tbody/tr[2]/td[1]</td>
+	<td>Calendar Trunk Catch-All Test Run</td>
 </tr>
 <tr>
 	<td>verifyTable</td>
-	<td>//td/table.3.1</td>
+	<td>//div[@id='test_run_summary']/table/tbody/tr[3]/td/table.3.1</td>
 	<td>Build ID: 2007112718, Platform: Mac (Intel), Operating System: Mac OS 10.4</td>
 </tr>
 <tr>
 	<td>verifyText</td>
-	<td>//div[3]/div/p[1]</td>
-	<td>You have submitted 2 test results. Thank you for your testing efforts.</td>
+	<td>//div[@id='content']/div[3]/div/p[1]</td>
+	<td>You have submitted 2 <br /> test results. <br />Thank you for your testing efforts.</td>
 </tr>
 <tr>
 	<td>verifyText</td>
