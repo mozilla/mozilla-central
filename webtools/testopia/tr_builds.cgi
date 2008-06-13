@@ -58,7 +58,7 @@ if ($action eq 'add'){
     my $build = Bugzilla::Testopia::Build->create({
                   product_id  => $product->id,
                   name        => $cgi->param('name') || '',
-                  description => $cgi->param('desc') || '',
+                  description => $cgi->param('desc') || $cgi->param('description') || '',
                   milestone   => $cgi->param('milestone') || '---',
                   isactive    => $cgi->param('isactive') ? 1 : 0,
     });
@@ -70,6 +70,7 @@ if ($action eq 'add'){
 ### Edit a Build ###
 ####################
 elsif ($action eq 'edit'){
+	
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     my $build = Bugzilla::Testopia::Build->new($cgi->param('build_id'));
     

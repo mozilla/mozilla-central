@@ -40,7 +40,19 @@ sub get {
     my ($run_id, $case_id, $build_id, $env_id) = @_;
 
     Bugzilla->login(LOGIN_REQUIRED);
-
+    
+    if ($build_id && $build_id !~ /^\d+$/){ 
+        my $run = Bugzilla::Testopia::TestRun->new($run_id);
+        ThrowUserError('invalid-test-id-non-existent') unless $run;
+        my $build = Bugzilla::Testopia::Build::check_build($build_id, $run->product, "THROW");
+        $build_id = $build->id;
+    }
+    if ($env_id && $env_id !~ /^\d+$/){ 
+        my $run = Bugzilla::Testopia::TestRun->new($run_id);
+        ThrowUserError('invalid-test-id-non-existent') unless $run;
+        my $environment = Bugzilla::Testopia::Build::check_environment($env_id, $run->product, "THROW");
+        $env_id = $environment->id;
+    }
     #Result is a test case run hash map
     my $caserun = new Bugzilla::Testopia::TestCaseRun($run_id, $case_id, $build_id, $env_id);
 
@@ -179,7 +191,9 @@ sub update {
 
         # Now that we know we are working with the right record, update it.
         if ($new_values->{'assignee'}){
+            print STDERR "THE ASSSIGNEEE IS ". $new_values->{'assignee'};
             $caserun->set_assignee($new_values->{'assignee'});
+            print STDERR "NOW IT IS ". $caserun->assignee->{'login_name'};
         }
     
         if ($new_values->{'case_run_status_id'}){
@@ -200,6 +214,7 @@ sub update {
         }
     
         # Result is modified test case run on success, otherwise an exception will be thrown
+        return $caserun if scalar @caseruns == 1;
         push @results, $caserun;
     }
     return \@results;
@@ -278,8 +293,8 @@ sub detach_bug {
     
     $caserun->detach_bug($bug_id);
     
-    # Result 0 on success, otherwise an exception will be thrown
-    return 0;
+    # Result undef on success, otherwise an exception will be thrown
+    return undef;
 }
 
 sub get_bugs {
@@ -337,7 +352,7 @@ case-run:
     By ID: The unique case_run_id
     By Combination: $run_id, $case_id, $build_id, $environment_id
 
-TestCaseRun methods are therefore overloaded to support either of these two
+TestCaseRun methods are overloaded to support either of these two
 methods of looking up the case-run you are interested in.
 
 B<EXAMPLE:>
@@ -429,7 +444,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
 
- Returns:     A blessed Bugzilla::Testopia::TestCase object hash
+ Returns:     A blessed Bugzilla::Testopia::TestCaseRun object hash
 
 =item C<get($run_id, $case_id, $build_id, $environment_id)>
 
@@ -440,7 +455,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
 
- Returns:     A blessed Bugzilla::Testopia::TestCase object hash
+ Returns:     A blessed Bugzilla::Testopia::TestCaseRun object hash
 
 =item C<get_bugs($caserun_id)>
 
@@ -610,7 +625,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
 
 =item C<lookup_status_name_by_id> 
 
- Params:      $id - Integer: ID of the case status to return
+ Params:      $id - Integer: ID of the status to return
 
  Returns:     String: the status name.
 
@@ -618,7 +633,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
 
  Params:      $name - String: the status name. 
 
- Returns:     Integer: ID of the case status.
+ Returns:     Integer: ID of the status.
 
 =item C<update($caserun_ids, $values)>
 

@@ -53,10 +53,7 @@ sub check_build {
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    if (ref $product){
-        $product = Bugzilla::Testopia::Product->new($product->{id});
-    }
-    elsif ($product =~ /^\d+$/){
+    if ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
     }
     else {
@@ -78,7 +75,15 @@ sub create{
     $new_values->{'product_id'} ||= $new_values->{'product'};
     delete $new_values->{'product'};
     
-    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    my $product;
+    if ($new_values->{'product_id'} =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    }
+    else {
+        $product = Bugzilla::Product::check_product($new_values->{'product_id'});
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+    
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
   
     $new_values->{'milestone'} ||= $product->default_milestone;
@@ -136,6 +141,36 @@ sub lookup_id_by_name {
   return { ERROR => 'This method is considered harmful and has been deprecated. Please use Build::check_build instead'};
 }
 
+sub get_runs {
+    my $self = shift;
+    my ($build_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);    
+
+    my $build = new Bugzilla::Testopia::Build($build_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $build_id}) unless $build;
+    ThrowUserError('testopia-read-only', {'object' => $build}) unless $build->product->canview;
+    
+    # Result is list of test runs for the given build
+    return $build->runs();
+}
+
+sub get_caseruns {
+    my $self = shift;
+    my ($build_id) = @_;
+
+    Bugzilla->login(LOGIN_REQUIRED);    
+
+    my $build = new Bugzilla::Testopia::Build($build_id);
+
+    ThrowUserError('invalid-test-id-non-existent', {type => 'Build', id => $build_id}) unless $build;
+    ThrowUserError('testopia-read-only', {'object' => $build}) unless $build->product->canview;
+    
+    # Result is list of test runs for the given build
+    return $build->caseruns();
+}
+
 1;
 
 __END__
@@ -161,10 +196,9 @@ Provides methods for automated scripts to manipulate Testopia Builds
  Description: Looks up and returns a build by name.
 
  Params:      $name - String: name of the build.
-              $product - Integer/String/Object
+              $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching Build object hash or error if not found.
 
@@ -193,6 +227,22 @@ Provides methods for automated scripts to manipulate Testopia Builds
  Params:      $id - An integer representing the ID in the database
 
  Returns:     A blessed Bugzilla::Testopia::Build object hash
+
+=item C<get_caseruns($id)>
+
+ Description: Returns the list of case-runs that this Build is used in.
+
+ Params:      $id -  Integer: Build ID.
+
+ Returns:     Array: List of case-run object hashes.
+
+=item C<get_runs($id)>
+
+ Description: Returns the list of runs that this Build is used in.
+
+ Params:      $id -  Integer: Build ID.
+
+ Returns:     Array: List of run object hashes.
 
 =item C<lookup_id_by_name> B<DEPRECATED - CONSIDERED HARMFUL> Use Build::check_build instead
 

@@ -326,8 +326,8 @@ sub get_root {
             text => $product->name,
             type => 'product',
             cls  => 'classification',
-            leaf => scalar @{$product->environment_categories} > 0 ? 'false' : 'true', 
-            draggable => 'false',
+            leaf => scalar @{$product->environment_categories} > 0 ? JSON::false : JSON::true, 
+            draggable => JSON::false,
           };
     }
     else {
@@ -337,11 +337,11 @@ sub get_root {
             text => 'GLOBAL ATTRIBUTES',
             type => 'product',
             cls  => 'classification',
-            draggable => 'false',
+            draggable => JSON::false,
           };
     }
     my $json = new JSON;
-    print $json->objToJson( \@products );
+    print $json->encode( \@products );
 
 }
 
@@ -496,13 +496,13 @@ sub add_category {
         text => $category->{'name'},
         id   => $new_cid,
         type => 'category',
-        leaf => 'false',
+        leaf => JSON::false,
         cls  => 'category'
     };
 
     my $json = new JSON;
     print "{success: true, env_object: ";
-    print $json->objToJson($category_json);
+    print $json->encode($category_json);
     print "}";
 
 }
@@ -534,13 +534,13 @@ sub add_element {
         text => $element->{'name'},
         id   => $new_eid,
         type => 'element',
-        leaf => 'false',
+        leaf => JSON::false,
         cls  => 'element'
     };
 
     my $json = new JSON;
     print "{success: true, env_object: ";
-    print $json->objToJson($element_json);
+    print $json->encode($element_json);
     print "}";
 }
 
@@ -563,14 +563,14 @@ sub add_property {
         text => $property->{'name'},
         id   => $new_pid,
         type => 'property',
-        leaf => 'false',
+        leaf => JSON::false,
         cls  => 'property',
-        draggable => 'false',
+        draggable => JSON::false,
     };
 
     my $json = new JSON;
     print "{success: true, env_object: ";
-    print $json->objToJson($property_json);
+    print $json->encode($property_json);
     print "}";
 }
 
@@ -589,12 +589,12 @@ sub add_validexp {
         id   => $id,
         type => "value", 
         cls  => "validexp",
-        draggable => 'false',
+        draggable => JSON::false,
     };
     
     my $json = new JSON;
     print "{success: true, env_object: ";
-    print $json->objToJson($value);
+    print $json->encode($value);
     print "}";
 }
 

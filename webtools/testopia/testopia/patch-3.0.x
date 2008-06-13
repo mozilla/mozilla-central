@@ -125,7 +125,7 @@ diff -u -r1.19.2.3 Error.pm
 +            $err->{'error'} = $error;
 +            $err->{'message'} = $message;
 +            my $json = new JSON;
-+            print $json->objToJson($err);
++            print $json->encode($err);
 +        }
      }
      exit;

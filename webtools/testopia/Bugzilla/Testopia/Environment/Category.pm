@@ -290,13 +290,13 @@ sub product_categories_to_json {
           {
             text => $cat->{'name'},
             id   => $cat->id,
-            leaf => $cat->check_for_elements ? 'false' : 'true',
+            leaf => $cat->check_for_elements ? JSON::false : JSON::true,
             type => 'category',
             cls  => 'category'
           };
     }
 
-    return $json->objToJson( \@values );
+    return $json->encode( \@values );
 }
 
 =head2 get_element_categories_by_product
@@ -356,13 +356,13 @@ sub elements_to_json {
             text => $element->name,
             id   => $element->id,
             type => 'element',
-            leaf => $element->check_for_children ? 'false' : 'true',
+            leaf => $element->check_for_children ? JSON::false : JSON::true,
             cls  => 'element'
           };
     }
 
     my $json = new JSON();
-    return $json->objToJson( \@values );
+    return $json->encode( \@values );
 }
 
 =head2 check_category

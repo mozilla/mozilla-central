@@ -79,7 +79,7 @@ if ($action eq 'add'){
             'text'       => $cgi->param("plandoc") || '',
     });
     
-    my $err = 'false';
+    my $err = JSON::false;
     for (my $i=1; $i<5; $i++){
         next unless defined $cgi->upload("file$i");
             
@@ -102,7 +102,7 @@ if ($action eq 'add'){
             });
         };
         if ($@){
-            $err = 'true';
+            $err = JSON::true;
         }
     }
     

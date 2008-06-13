@@ -329,7 +329,9 @@ sub add_tag {
         if (ref $t eq 'ARRAY'){
             push @tags, $_ foreach @$t;
         }
-        push @tags, split(',', $t);
+        else{
+            push @tags, split(',', $t);
+        }
     }
 
     foreach my $name (@tags){
@@ -548,8 +550,6 @@ sub to_json {
     
     $self->bugs();
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
@@ -572,7 +572,7 @@ sub to_json {
     $obj->{'complete_pct'}  = $self->percent_complete() . '%';
     $obj->{'bug_list'}      = $self->{'bug_list'};
     
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 =head2 lookup_environment
@@ -1066,7 +1066,7 @@ sub bugs {
           "SELECT DISTINCT bug_id
              FROM test_case_bugs b
              JOIN test_case_runs r ON r.case_run_id = b.case_run_id
-            WHERE r.run_id = ?", 
+            WHERE r.run_id = ? AND r.iscurrent = 1 ORDER BY bug_id", 
            undef, $self->{'run_id'});
     my @bugs;
     foreach my $id (@{$ref}){

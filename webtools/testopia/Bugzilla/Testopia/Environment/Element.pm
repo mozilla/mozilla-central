@@ -278,10 +278,10 @@ sub children_to_json {
           {
             text => $element->{'name'},
             id   => $element->{'element_id'},
-            leaf => $element->check_for_children ? 'false' : 'true',
+            leaf => $element->check_for_children ? JSON::false : JSON::true,
             type => 'element',
             cls  => 'element',
-            draggable => 'true',
+            draggable => JSON::true,
           };
     }
 
@@ -290,14 +290,14 @@ sub children_to_json {
           {
             text => $property->{'name'},
             id   => $property->id,
-            leaf => $property->check_for_validexp ? 'false' : 'true',
+            leaf => $property->check_for_validexp ? JSON::false : JSON::true,
             type => 'property',
             cls  => 'property',
-            draggable => 'false',
+            draggable => JSON::false,
           };
     }
 
-    return $json->objToJson( \@values );
+    return $json->encode( \@values );
 }
 
 =head2 new_element_count
@@ -330,13 +330,13 @@ sub this_to_json {
         text      => $self->{'name'},
         id        => $self->{'element_id'},
         type      => 'element',
-        leaf      => 'true',
+        leaf      => JSON::true,
         cls       => 'element',
-        allowDrop => 'false',
-        disabled  => 'true'
+        allowDrop => JSON::false,
+        disabled  => JSON::true
     };
     my $json = new JSON();
-    print $json->objToJson($element);
+    print $json->encode($element);
 
 }
 

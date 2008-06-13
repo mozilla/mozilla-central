@@ -208,8 +208,6 @@ sub to_json {
     my $obj;
     my $json = new JSON;
 
-    $json->autoconv(0);
-
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
@@ -221,7 +219,7 @@ sub to_json {
     $obj->{'canedit'}    = $self->canedit;
     $obj->{'candelete'}  = $self->candelete;
 
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 # Returns 1 if the parameter is a content-type viewable in this browser

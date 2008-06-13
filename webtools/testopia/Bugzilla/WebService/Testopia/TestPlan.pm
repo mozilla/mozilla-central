@@ -221,10 +221,8 @@ sub lookup_type_name_by_id {
     
     Bugzilla->login(LOGIN_REQUIRED);
 
-    my $test_plan = new Bugzilla::Testopia::TestPlan({});
-    
     # Result is test plan type name for the given test plan type id
-    return $test_plan->lookup_type($id);
+    return lookup_type($id);
 }
 
 sub lookup_type_id_by_name {
@@ -326,13 +324,13 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Add one or more tags to the selected test plans.
 
- Params:      $plan_ids - Integer/Array/String: An integer or alias representing the ID in the database,
-                  an arry of plan_ids or aliases, or a string of comma separated plan_ids.
+ Params:      $plan_ids - Integer/Array/String: An integer representing the ID of the plan in the database,
+                  an arry of plan_ids, or a string of comma separated plan_ids.
 
               $tags - String/Array - A single tag, an array of tags,
                   or a comma separated list of tags. 
 
- Returns:     undef/Array: undef on success or an array of hashes with failure 
+ Returns:     Array: empty on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<create($values)>
@@ -357,17 +355,15 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Used to load an existing test plan from the database.
 
- Params:      $id - Integer/String: An integer representing the ID in the database
-                    for this plan.
+ Params:      $id - Integer/String: An integer representing the ID of this plan in the database
 
- Returns:     A blessed Bugzilla::Testopia::TestPlan object hash
+ Returns:     Hash: A blessed Bugzilla::Testopia::TestPlan object hash
 
 =item C<get_change_history($plan_id)>
 
  Description: Get the list of changes to the fields of this plan.
 
- Params:      $plan_id - Integer/String: An integer representing the ID in the database
-                    or a string representing the unique alias for this plan.
+ Params:      $plan_id - Integer: An integer representing the ID of this plan in the database
 
  Returns:     Array: An array of hashes with changed fields and their details.
 
@@ -375,7 +371,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Get the Product the plan is assiciated with.
 
- Params:      $plan_id - Integer: An integer representing the ID in the database.
+ Params:      $plan_id - Integer: An integer representing the ID of the plan in the database.
 
  Returns:     Hash: A blessed Bugzilla::Testopia::Product hash.
 
@@ -383,8 +379,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Get the list of tags attached to this plan.
 
- Params:      $plan_id - Integer/String: An integer representing the ID in the database
-                    or a string representing the unique alias for this plan.
+ Params:      $plan_id - Integer An integer representing the ID of this plan in the database
 
  Returns:     Array: An array of tag object hashes.
 
@@ -392,8 +387,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Get the list of cases that this plan is linked to.
 
- Params:      $plan_id - Integer/String: An integer representing the ID in the database
-                    for this plan.
+ Params:      $plan_id - Integer: An integer representing the ID of the plan in the database
 
  Returns:     Array: An array of test case object hashes.
 
@@ -401,23 +395,20 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Get the list of runs in this plan.
 
- Params:      $plan_id - Integer/String: An integer representing the ID in the database
-                    for this plan.
+ Params:      $plan_id - Integer: An integer representing the ID of this plan in the database
 
  Returns:     Array: An array of test run object hashes.
 
 =item C<get_text($plan_id, $version)>
 
- Description: The associated large text fields: Action, Expected Results, Setup, Breakdown
-              for a given version.
+ Description: The plan document for a given test plan.
 
- Params:      $plan_id - Integer/String: An integer representing the ID in the database
-                    or a string representing the unique alias for this plan.
+ Params:      $plan_id - Integer: An integer representing the ID of this plan in the database
 
               $version - Integer: (OPTIONAL) The version of the text you want returned.
                     Defaults to the latest.
 
- Returns:     Hash: Text fields and values.
+ Returns:     Hash: Text and author information.
 
 =item C<list($query)>
 
@@ -499,17 +490,17 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
     | nowords        | contains none of the words        | 
     +----------------------------------------------------+
 
- Returns:     Array: Matching test plans are retuned in a list of hashes.
+ Returns:     Array: Matching test plans are retuned in a list of plan object hashes.
 
 =item C<lookup_type_id_by_name>
 
- Params:      $name - String: the status name. 
+ Params:      $name - String: the plan type. 
 
  Returns:     Integer: ID of the plan type.
 
 =item C<lookup_type_name_by_id>
 
- Params:      $id - Integer: ID of the plan stype to return
+ Params:      $id - Integer: ID of the plan type to return
 
  Returns:     String: the type name.
 
@@ -517,7 +508,7 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Remove a tag from a plan.
 
- Params:      $plan_id - Integer/String: An integer or alias representing the ID in the database.
+ Params:      $plan_id - Integer: An integer or alias representing the ID of this plan in the database.
 
               $tag - String - A single tag to be removed. 
 
@@ -527,12 +518,12 @@ Provides methods for automated scripts to manipulate Testopia TestPlans
 
  Description: Update the document field of a plan.
 
- Params:      $plan_id - Integer: An integer representing the ID in the database.
+ Params:      $plan_id - Integer: An integer representing the ID of this plan in the database.
               $text - String: Text for the document. Can contain HTML.
               [$author_id] = Integer/String: (OPTIONAL) The numeric ID or the login of the author. 
                   Defaults to logged in user.
 
- Returns:     Array: Empty on success.
+ Returns:     Integer: The new text version
 
 =item C<update($ids, $values)>
 

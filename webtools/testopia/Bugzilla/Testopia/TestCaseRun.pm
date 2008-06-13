@@ -40,7 +40,7 @@ use Date::Format;
 use Date::Parse;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Testopia::TestCase::EXPORT = qw(lookup_status lookup_status_by_name);
+#@Bugzilla::Testopia::TestCaseRun::EXPORT = qw(lookup_status lookup_status_by_name);
 
 ###############################
 ####    Initialization     ####
@@ -161,6 +161,21 @@ sub _check_case_text_version {
     return $version =~ /\d+/ ? $version : 1; 
 }
 
+sub _check_assignee{
+    my ($invocant, $tester) = @_;
+    $tester = trim($tester);
+    return unless $tester;
+    if ($tester =~ /^\d+$/){
+        $tester = Bugzilla::User->new($tester);
+        return $tester->id;
+    }
+    else {
+        my $id = login_to_id($tester, THROW_ERROR);
+        return $id;
+    }
+}
+
+
 ###############################
 ####       Mutators        ####
 ###############################
@@ -240,7 +255,7 @@ sub switch {
    $case_id  ||= $self->{'case_id'};
    $build_id ||= $self->{'build_id'};
    $env_id   ||= $self->{'environment_id'};
-   
+
    my $dbh = Bugzilla->dbh;     
    my ($is) = $dbh->selectrow_array(
         "SELECT case_run_id 
@@ -295,11 +310,14 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
+    my @bugs;
+    foreach my $b (@{$self->bugs}){
+        push @bugs, { bug_id => $b->bug_id, closed => Bugzilla::Bug::is_open_state($b->{'bug_status'}) ? JSON::false : JSON::true};
+    }
+    my $bugs = { bugs => \@bugs };
     
     $obj->{'assignee_name'}  = $self->assignee->login if $self->assignee;
     $obj->{'requirement'}  = $self->case->requirement if $self->case;
@@ -316,9 +334,9 @@ sub to_json {
     $obj->{'type'}         = $self->type;
     $obj->{'id'}           = $self->id;
     $obj->{'sortkey'}      = $self->sortkey;
-    $obj->{'bug_list'}     = $self->bug_list;
+    $obj->{'bug_list'}     = $bugs;
     
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 =head2 _update_fields
@@ -345,6 +363,7 @@ sub _update_fields{
         $dbh->do("UPDATE test_case_runs 
                   SET $field = ? WHERE case_run_id = ?",
                   undef, $newvalues->{$field}, $self->{'case_run_id'});
+        $self->{$field} = $newvalues->{$field};
     }
     $dbh->bz_unlock_tables();
 
@@ -418,7 +437,7 @@ sub set_status {
     $note .= " for build '". $self->build->name ."' and environment '". $self->environment->name; 
     $self->append_note($note);
     $self->{'case_run_status_id'} = $status_id;
-    $self->{'status'} = undef;
+    delete $self->{'status'};
 }
 
 sub set_sortkey {
@@ -430,6 +449,7 @@ sub set_sortkey {
               WHERE case_id = ? AND run_id = ?",
               undef, ($sortkey, $self->case_id, $self->run_id));
     
+    $self->{'sortkey'} = $sortkey;
 }
 
 =head2 set_assignee
@@ -441,12 +461,13 @@ Sets the assigned tester for the case-run
 sub set_assignee {
     my $self = shift;
     my ($user_id) = @_;
-    
+
+    my $assignee = $self->_check_assignee($user_id);
     my $oldassignee = $self->assignee->login;
-    my $newassignee = Bugzilla::User->new($user_id);
+    my $newassignee = Bugzilla::User->new($assignee);
     
-    $self->_update_fields({'assignee' => $user_id});
-    $self->{'assignee'} = $newassignee;
+    $self->_update_fields({'assignee' => $assignee});
+    $self->{'assignee'} = $assignee;
     
     my $note = "Assignee changed from $oldassignee to ". $newassignee->login;
     $note   .= " by ". Bugzilla->user->login;
@@ -1034,8 +1055,8 @@ Returns true if the logged in user has rights to edit this case-run.
 
 sub canedit {
     my $self = shift;
-    return 0 if $self->run->stop_date;
     return 1 if Bugzilla->user->in_group('admin');
+    return 0 if $self->run->stop_date;
     return 1 if $self->run->plan->get_user_rights(Bugzilla->user->id) & TR_ADMIN;
     if ($self->status_id == RUNNING){
         return 1 if $self->run->manager->id == Bugzilla->user->id;
@@ -1065,7 +1086,7 @@ sub candelete {
 sub completion_time {
     my $self = shift;
     my $dbh = Bugzilla->dbh;
-    if ($self->running_date && $self->close_date){
+    if (str2time($self->running_date) && str2time($self->close_date)){
         my $seconds = str2time($self->close_date) - str2time($self->running_date);
         return $seconds;
     } 

@@ -40,7 +40,7 @@ use Text::Diff;
 use JSON;
 
 use base qw(Exporter Bugzilla::Object);
-@Bugzilla::Testopia::TestCase::EXPORT = qw(lookup_type_by_name);
+@Bugzilla::Testopia::TestPlan::EXPORT = qw(lookup_type_by_name lookup_type);
 
 ###############################
 ####    Initialization     ####
@@ -365,7 +365,9 @@ sub add_tag {
         if (ref $t eq 'ARRAY'){
             push @tags, $_ foreach @$t;
         }
-        push @tags, split(',', $t);
+        else{
+            push @tags, split(',', $t);
+        }
     }
 
     foreach my $name (@tags){
@@ -630,8 +632,8 @@ sub history {
             $row->{'newvalue'} = $self->lookup_product($row->{'newvalue'});
         }
         elsif ($row->{'what'} eq 'Plan Type'){
-            $row->{'oldvalue'} = $self->lookup_type($row->{'oldvalue'});
-            $row->{'newvalue'} = $self->lookup_type($row->{'newvalue'});
+            $row->{'oldvalue'} = lookup_type($row->{'oldvalue'});
+            $row->{'newvalue'} = lookup_type($row->{'newvalue'});
         }
     }        
     return $ref;
@@ -668,7 +670,6 @@ Takes an ID of the type field and returns the value
 =cut
 
 sub lookup_type {
-    my $self = shift;
     my ($id) = @_;
     my $dbh = Bugzilla->dbh;
     my ($value) = $dbh->selectrow_array(
@@ -979,7 +980,7 @@ sub to_json {
     $obj->{'type'}         = $self->type;
     $obj->{'id'}           = $self->id;
     
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 ###############################

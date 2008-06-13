@@ -105,7 +105,7 @@ sub _check_product {
     my $product;
     if (trim($product_id) !~ /^\d+$/ ){
         $product = Bugzilla::Product::check_product($product_id);
-        $product = Bugzilla::Testopia::Product->new($product_id);
+        $product = Bugzilla::Testopia::Product->new($product->id);
     }
     else {
         $product = Bugzilla::Testopia::Product->new($product_id);
@@ -280,14 +280,14 @@ sub categories_to_json {
             text => $category->{'name'}, 
             id   => $category->id, 
             type => 'category', 
-            leaf => 'false', 
+            leaf => JSON::false, 
             cls  => 'category',
-            draggable => 'false',
+            draggable => JSON::false,
         };
     }
     
     my $json = new JSON; 
-    print $json->objToJson(\@elements_array);
+    print $json->encode(\@elements_array);
     return undef;
 }
 
@@ -316,14 +316,14 @@ sub mapped_category_elements_to_json {
             text => $element->{'name'}, 
             id   => $element->id, 
             type => 'element', 
-            leaf => $element->check_for_children ? 'false' : 'true', 
+            leaf => $element->check_for_children ? JSON::false : JSON::true, 
             cls  => 'element',
-            draggable => 'false',
+            draggable => JSON::false,
         }; 
     }
     
     my $json = new JSON; 
-    print $json->objToJson(\@elements);
+    print $json->encode(\@elements);
     return undef;
     
 }
@@ -501,8 +501,6 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
@@ -511,7 +509,7 @@ sub to_json {
     $obj->{'case_run_count'}   = $self->case_run_count;
     $obj->{'run_count'}  = $self->get_run_count;
     
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 =head2 update
 

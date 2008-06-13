@@ -352,8 +352,6 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
@@ -361,7 +359,7 @@ sub to_json {
     $obj->{'plan_count'}  = $self->plan_count;
     $obj->{'case_count'}  = $self->case_count;
 
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 =head1 SEE ALSO

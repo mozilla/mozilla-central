@@ -213,7 +213,7 @@ sub process_list {
         @ids = split(/[\s,]+/, $ids);
     }
     else {
-        push @ids, $ids;
+        push @ids, $ids if $ids;
     }
     
     return @ids;

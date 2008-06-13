@@ -164,7 +164,7 @@ elsif ($action eq 'getbugs'){
         $bugs->{'bug_id'} = $bug->bug_id;
     }
     print '{"bugs":';
-    print objToJson($bugs);
+    print to_json($bugs);
     print '}';
 }
 
@@ -192,7 +192,7 @@ elsif ($action eq 'gethistory'){
     ThrowUserError("testopia-permission-denied", {'object' => $caserun}) unless $caserun->canview;
     
     print '{"records":';
-    print objToJson($caserun->get_history);
+    print to_json($caserun->get_history);
     print '}';
     
 }

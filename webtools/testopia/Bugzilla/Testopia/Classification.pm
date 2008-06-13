@@ -78,15 +78,15 @@ sub products_to_json {
         my $leaf; 
         
         if(scalar @{$product->environment_categories}> 0){
-            $leaf = "false";
+            $leaf = JSON::false;
         }
         else{
-            $leaf = "true";
+            $leaf = JSON::true;
         }
-        push @values, {text=> $product->{'name'}, id=> $product->{'id'} . ' product', type=> 'product', leaf=>$leaf, draggable => 'false', cls => 'product'};
+        push @values, {text=> $product->{'name'}, id=> $product->{'id'} . ' product', type=> 'product', leaf=>$leaf, draggable => JSON::false, cls => 'product'};
     }
     
-    return $json->objToJson(\@values);
+    return $json->encode(\@values);
 
 }
 1;

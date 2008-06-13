@@ -143,8 +143,7 @@ if ($action eq 'getversions'){
     $products->{'selectTypes'} = [qw{version milestone component build category environment}];
 
     my $json = new JSON;
-    $json->autoconv(0);
-    print "{'success': true, objects: " .  $json->objToJson($products) . "}";
+    print "{'success': true, objects: " .  $json->encode($products) . "}";
 }
 
 elsif ($action eq 'get_products'){
@@ -316,7 +315,7 @@ elsif ($action eq 'get_saved_searches'){
             {'Slice' =>{}} ,(Bugzilla->user->id, $type));
     
     print $cgi->header;
-    print "{'searches':" . objToJson($ref) . "}";
+    print "{'searches':" . to_json($ref) . "}";
 }
 
 else{

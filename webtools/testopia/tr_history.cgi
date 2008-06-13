@@ -84,7 +84,7 @@ elsif ($action eq 'showdoc'){
 elsif ($action eq 'show'){
     my $json = new JSON;
     print "{list:";
-    print $json->objToJson($obj->history);
+    print $json->encode($obj->history);
     print "}";
     
 }
@@ -92,7 +92,7 @@ elsif ($action eq 'show'){
 elsif ($action eq 'getdocversions'){
     my $json = new JSON;
     print "{list:";
-    print $json->objToJson($obj->get_text_versions);
+    print $json->encode($obj->get_text_versions);
     print "}";
 }
 

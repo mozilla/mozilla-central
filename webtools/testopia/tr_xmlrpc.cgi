@@ -44,6 +44,7 @@ my $response = Bugzilla::WebService::XMLRPC::Transport::HTTP::CGI
                      'Product'     => 'Bugzilla::WebService::Testopia::Product',
                      'Environment' => 'Bugzilla::WebService::Testopia::Environment',
                      'Build'       => 'Bugzilla::WebService::Testopia::Build',
+                     'Testopia'    => 'Bugzilla::WebService::Testopia::Testopia',
                      'User'        => 'Bugzilla::WebService::User',
                     })
     ->handle;

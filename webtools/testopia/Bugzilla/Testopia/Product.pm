@@ -302,8 +302,6 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $field =~ s/product\.//;
         $obj->{$field} = $self->{$field};
@@ -314,7 +312,7 @@ sub to_json {
     $obj->{'id'}           = $self->id;
     $obj->{'canedit'}      = $self->canedit;
     
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 1;

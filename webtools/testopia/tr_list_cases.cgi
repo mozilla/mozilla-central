@@ -60,7 +60,6 @@ $::SIG{PIPE} = 'DEFAULT';
 if ($action eq 'update'){
     Bugzilla->error_mode(ERROR_MODE_AJAX);
     print $cgi->header;
-    
     my @case_ids = split(',', $cgi->param('ids'));
     ThrowUserError('testopia-none-selected', {'object' => 'case'}) unless (scalar @case_ids);
 

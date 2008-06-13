@@ -33,10 +33,7 @@ sub _validate {
     my ($product) = @_;
     Bugzilla->login(LOGIN_REQUIRED);
     
-    if (ref $product){
-        $product = Bugzilla::Testopia::Product->new($product->{id});
-    }
-    elsif ($product =~ /^\d+$/){
+    if ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
     }
     else {
@@ -80,16 +77,7 @@ sub check_category {
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    if (ref $product){
-        $product = Bugzilla::Testopia::Product->new($product->{id});
-    }
-    elsif ($product =~ /^\d+$/){
-        $product = Bugzilla::Testopia::Product->new($product);
-    }
-    else {
-        $product = Bugzilla::Product::check_product($product);
-        $product = Bugzilla::Testopia::Product->new($product->id);
-    }
+    $product = _validate($product);
     
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     require Bugzilla::Testopia::Category;
@@ -102,16 +90,7 @@ sub check_component {
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    if (ref $product){
-        $product = Bugzilla::Testopia::Product->new($product->{id});
-    }
-    elsif ($product =~ /^\d+$/){
-        $product = Bugzilla::Testopia::Product->new($product);
-    }
-    else {
-        $product = Bugzilla::Product::check_product($product);
-        $product = Bugzilla::Testopia::Product->new($product->id);
-    }
+    $product = _validate($product);
     
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     require Bugzilla::Component;
@@ -140,6 +119,8 @@ sub get_category {
     
     ThrowUserError('invalid-test-id-non-existent', {type => 'Category', id => $id}) unless $category;
     ThrowUserError('testopia-permission-denied', {'object' => $category->product}) unless $category->product->canedit;
+    
+    delete $category->{'product'};
     
     return  $category;
 }
@@ -276,10 +257,9 @@ Provides methods for automated scripts to expose Testopia Product data.
  Description: Looks up and returns a category by name.
 
  Params:      $name - String: name of the category.
-              $product - Integer/String/Object
+              $product - Integer/String
                  Integer: product_id of the product in the Database
                  String: Product name
-                 Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching Category object hash or error if not found.
 
@@ -288,10 +268,9 @@ Provides methods for automated scripts to expose Testopia Product data.
  Description: Looks up and returns a component by name.
 
  Params:      $name - String: name of the category.
-              $product - Integer/String/Object
+              $product - Integer/String
                  Integer: product_id of the product in the Database
                  String: Product name
-                 Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching component object hash or error if not found.
 
@@ -300,10 +279,6 @@ Provides methods for automated scripts to expose Testopia Product data.
  Description: Looks up and returns a validated product.
 
  Params:      $name - String: name of the product.
-              $product - Integer/String/Object
-                         Integer: product_id of the product in the Database
-                         String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching Product object hash or error if not found.
 
@@ -319,10 +294,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of builds associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
               $active  - Boolean: True to only include builds where isactive is true. 
 
  Returns:     Array: Returns an array of Build objects.
@@ -331,10 +305,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of cases associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of TestCase objects.
 
@@ -342,10 +315,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of categories associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Case Category objects.
 
@@ -369,10 +341,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of components associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Component objects.
 
@@ -380,10 +351,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of environments associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Environment objects.
 
@@ -391,10 +361,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of milestones associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Milestone objects.
 
@@ -402,10 +371,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of plans associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Test Plan objects.
 
@@ -413,10 +381,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of runs associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Test Run objects.
 
@@ -424,10 +391,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of tags associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Tags objects.
 
@@ -435,10 +401,9 @@ Provides methods for automated scripts to expose Testopia Product data.
 
  Description: Get the list of versions associated with this product.
 
- Params:      $product - Integer/String/Object
+ Params:      $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Array: Returns an array of Version objects.
 

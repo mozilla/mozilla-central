@@ -326,14 +326,14 @@ sub value_to_json {
             id    => " $_",
             property_id => $self->id,
             type  => 'value',
-            leaf  => 'true',
+            leaf  => JSON::true,
             cls   => $class,
-            draggable => 'false',
+            draggable => JSON::false,
           };
     }
 
     my $json = new JSON;
-    return $json->objToJson( \@json );
+    return $json->encode( \@json );
 
 }
 

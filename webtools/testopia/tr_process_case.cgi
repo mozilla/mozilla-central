@@ -181,7 +181,7 @@ elsif ($action eq 'getbugs'){
         };
     }
     my $json = new JSON;
-    print "{'bugs':" .  $json->objToJson(\@bugs) . "}";
+    print "{'bugs':" .  $json->encode(\@bugs) . "}";
 }
 
 elsif ($action eq 'getplans'){
@@ -192,7 +192,7 @@ elsif ($action eq 'getplans'){
         push @plans, { plan_id => $p->id, plan_name => $p->name };
     }
     my $json = new JSON;
-    print "{'plans':" .  $json->objToJson(\@plans) . "}";
+    print "{'plans':" .  $json->encode(\@plans) . "}";
 }
 
 elsif($action eq 'getcomponents'){
@@ -203,7 +203,7 @@ elsif($action eq 'getcomponents'){
         push @comps, {'id' => $c->id, 'name' => $c->name};
     }
     my $json = new JSON;
-    print "{'comps':" . $json->objToJson(\@comps) . "}";   
+    print "{'comps':" . $json->encode(\@comps) . "}";   
     
 }
 

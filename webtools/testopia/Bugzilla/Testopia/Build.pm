@@ -209,13 +209,11 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
         
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 ###############################
@@ -294,6 +292,50 @@ sub case_run_count {
     }
           
     return $count;
+}
+
+sub runs {
+    my ($self) = @_;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'runs'} if exists $self->{'runs'};
+    
+    require Bugzilla::Testopia::TestRun;
+    
+    my $runids = $dbh->selectcol_arrayref("SELECT run_id FROM test_runs
+                                          WHERE build_id = ?", 
+                                          undef, $self->id);
+    my @runs;
+    foreach my $id (@{$runids}){
+        push @runs, Bugzilla::Testopia::TestRun->new($id);
+    }
+    
+    $self->{'runs'} = \@runs;
+    return $self->{'runs'};
+}
+
+=head2 caseruns
+
+Returns a reference to a list of test caseruns useing this build
+
+=cut
+
+sub caseruns {
+    my ($self) = @_;
+    my $dbh = Bugzilla->dbh;
+    return $self->{'caseruns'} if exists $self->{'caseruns'};
+    
+    require Bugzilla::Testopia::TestCaseRun;
+
+    my $ids = $dbh->selectcol_arrayref("SELECT case_run_id FROM test_case_runs
+                                          WHERE build_id = ?", 
+                                          undef, $self->id);
+    my @caseruns;
+    foreach my $id (@{$ids}){
+        push @caseruns, Bugzilla::Testopia::TestCaseRun->new($id);
+    }
+    
+    $self->{'caseruns'} = \@caseruns;
+    return $self->{'caseruns'};
 }
 
 1;
@@ -481,6 +523,12 @@ Boolean - Determines whether to show this build in lists for selection.
 
  Returns:     The number of case-runs in this build. Optionally for a given status.
 
+=item C<caseruns()>
+
+ Params:      none 
+
+ Returns:     A list of blessed caserun objects that use this build
+
 =item C<description()>
 
  Returns the description of this build.
@@ -512,6 +560,12 @@ Boolean - Determines whether to show this build in lists for selection.
 =item C<run_count()>
 
  Returns an integer representing the number of runs this build is associated to.
+
+=item C<runs()>
+
+ Params:      none 
+
+ Returns:     A list of blessed run objects that use this build
  
 =back
 

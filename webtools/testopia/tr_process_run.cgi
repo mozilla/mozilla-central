@@ -44,14 +44,11 @@ my $cgi = Bugzilla->cgi;
 print $cgi->header;
 
 my $action = $cgi->param('action') || '';
-
 my $run = Bugzilla::Testopia::TestRun->new($cgi->param('run_id'));
-
 unless ($run){
     print $cgi->header;
     ThrowUserError('testopia-missing-object',{object => 'run'});
 }
-
 
 if ($action eq 'edit'){
     ThrowUserError("testopia-read-only", {'object' => $run}) unless $run->canedit;
@@ -61,7 +58,7 @@ if ($action eq 'edit'){
     $timestamp = $run->stop_date;
     $timestamp = undef if $cgi->param('status');
     $timestamp = get_time_stamp() if $cgi->param('status') == 0 && !$run->stop_date;
- 
+ 	print STDERR "Summary: " . $cgi->param('summary') if $cgi->param('summary');
     $run->set_summary($cgi->param('summary')) if $cgi->param('summary');
     $run->set_product_version($cgi->param('run_product_version')) if $cgi->param('run_product_version');
     $run->set_plan_text_version($cgi->param('plan_version')) if $cgi->param('plan_version');
@@ -146,7 +143,7 @@ elsif ($action eq 'getfilters'){
     foreach my $f (@$filters){
         $f->{'name'} =~ s/^__run_id_\d+_//;
     }
-    print "{'filters':" . objToJson($filters) . "}";
+    print "{'filters':" . to_json($filters) . "}";
 }
 
 else {

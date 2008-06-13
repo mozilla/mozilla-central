@@ -50,7 +50,6 @@ unless ($plan){
 }
 
 ### Archive or Unarchive ###
-
 if ($action eq 'archive' || $action eq 'unarchive'){
     print $cgi->header;
     
@@ -63,7 +62,7 @@ if ($action eq 'archive' || $action eq 'unarchive'){
     
 }
 
-elsif ($action eq 'clone'){
+elsif ($action eq 'clone'){print STDERR "YOU ARE HERE!";
     print $cgi->header;
     ThrowUserError("testopia-create-denied", {object => 'plan'}) unless (Bugzilla->user->in_group('Testers'));
     

@@ -201,7 +201,7 @@ else{
                   undef, ($search));
         }
         print"{environments:";
-        print objToJson($ref);
+        print to_json($ref);
         print "}";  
     }
 # user lookup
@@ -254,7 +254,7 @@ else{
             }
         }
         print "{'total':$total,'users':";
-        print objToJson(\@userlist);
+        print to_json(\@userlist);
         print "}"
     }
 # Tag lookup
@@ -303,7 +303,7 @@ else{
                   LIMIT 20",
                   {'Slice' =>{}}, $search);
         }
-        print "{'tags':" . objToJson($ref) . "}";  
+        print "{'tags':" . to_json($ref) . "}";  
     }
     elsif ($action eq 'getversions'){
         my $plan = Bugzilla::Testopia::TestPlan->new({});
@@ -324,47 +324,45 @@ else{
             @versions = @{$product->versions};
         }
         my $json = new JSON;
-        $json->autoconv(0);
         
         print "{versions:";
-        print $json->objToJson(\@versions);
+        print $json->encode(\@versions);
         print "}";
     }
     elsif ($action eq 'getmilestones'){
         my $product = Bugzilla::Testopia::Product->new($cgi->param("product_id"));
         exit unless $product->canedit;
         my $json = new JSON;
-        $json->autoconv(0);
         print "{milestones:";
-        print $json->objToJson($product->milestones);
+        print $json->encode($product->milestones);
         print "}";
     }
     elsif ($action eq 'getplantypes'){
         my $plan = Bugzilla::Testopia::TestPlan->new({});
         my $json = new JSON;
         print "{types:";
-        print $json->objToJson($plan->get_plan_types());
+        print $json->encode($plan->get_plan_types());
         print "}";
     }
     elsif ($action eq 'getpriorities'){
         my $plan = Bugzilla::Testopia::TestCase->new({});
         my $json = new JSON;
         print "{priorities:";
-        print $json->objToJson($plan->get_priority_list());
+        print $json->encode($plan->get_priority_list());
         print "}";
     }
     elsif ($action eq 'getcasestatus'){
         my $plan = Bugzilla::Testopia::TestCase->new({});
         my $json = new JSON;
         print "{statuses:";
-        print $json->objToJson($plan->get_status_list());
+        print $json->encode($plan->get_status_list());
         print "}";
     }
     elsif ($action eq 'getcaserunstatus'){
         my $plan = Bugzilla::Testopia::TestCaseRun->new({});
         my $json = new JSON;
         print "{statuses:";
-        print $json->objToJson($plan->get_status_list());
+        print $json->encode($plan->get_status_list());
         print "}";
     }
     
@@ -383,7 +381,7 @@ else{
         foreach my $p (@$products){
             push @prods, {name => $p->name, id => $p->id};
         }
-        print "{products:" . $json->objToJson(\@prods) . "}";
+        print "{products:" . $json->encode(\@prods) . "}";
     }
     
     elsif ($action eq 'getclassificationstree'){
@@ -396,22 +394,22 @@ else{
                 push @products, {
                     id => $p->id, 
                     text => $p->name, 
-                    leaf => 'true', 
+                    leaf => JSON::true, 
                     attributes =>{ 
                         defaultmilestone => $p->default_milestone, 
-                        canedit => $p->canedit ? 'true':'false'
+                        canedit => $p->canedit ? JSON::true : JSON::false
                     }};
             }
             my $json = new JSON;
-            print $json->objToJson(\@products);
+            print $json->encode(\@products);
             exit;
         }        
         my @classifications;
         foreach my $c (@{Bugzilla->user->get_selectable_classifications}){
-            push @classifications, {id => "c" . $c->id, text => $c->name, leaf => scalar @{$c->products} > 0 ? 'false' : 'true'};
+            push @classifications, {id => "c" . $c->id, text => $c->name, leaf => scalar @{$c->products} > 0 ? JSON::false : JSON::true};
         }
         my $json = new JSON;
-        print $json->objToJson(\@classifications);
+        print $json->encode(\@classifications);
     }
     # For use in new_case and show_case since new_plan does not require an id
     elsif ($action eq 'getcomponents'){
@@ -431,7 +429,7 @@ else{
             push @comps, {'id' => $c->id, 'name' => $c->name, 'qa_contact' => $c->default_qa_contact->login};
         }
         my $json = new JSON;
-        print "{'components':". $json->objToJson(\@comps) ."}";
+        print "{'components':". $json->encode(\@comps) ."}";
         exit;
     }
     elsif ($action eq 'get_action'){

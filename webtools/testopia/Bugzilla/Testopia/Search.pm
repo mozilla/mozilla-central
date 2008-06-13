@@ -105,7 +105,10 @@ sub init {
     }
     detaint_natural($pagesize) if defined $pagesize;
     $pagesize ||= 25;
-    my $sortdir = $cgi->param('dir') eq 'ASC' ? 'ASC' : 'DESC';
+    my $sortdir; 
+    if ($cgi->param('dir')){
+        $sortdir = $cgi->param('dir') eq 'ASC' ? 'ASC' : 'DESC';
+    } 
     
     my $distinct = $cgi->param('distinct') ? 'DISTINCT' : '';
     

@@ -52,10 +52,7 @@ sub check_environment {
     
     Bugzilla->login(LOGIN_REQUIRED);
     
-    if (ref $product){
-        $product = Bugzilla::Testopia::Product->new($product->{id});
-    }
-    elsif ($product =~ /^\d+$/){
+    if ($product =~ /^\d+$/){
         $product = Bugzilla::Testopia::Product->new($product);
     }
     else {
@@ -97,7 +94,15 @@ sub create {
     $new_values->{'product_id'} ||= $new_values->{'product'};
     delete $new_values->{'product'};
 
-    my $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    my $product;
+    if ($new_values->{'product_id'} =~ /^\d+$/){
+        $product = Bugzilla::Testopia::Product->new($new_values->{'product_id'});
+    }
+    else {
+        $product = Bugzilla::Product::check_product($new_values->{'product_id'});
+        $product = Bugzilla::Testopia::Product->new($product->id);
+    }
+
     ThrowUserError('testopia-read-only', {'object' => $product}) unless $product->canedit;
     
     if (! defined $new_values->{'isactive'}){
@@ -183,10 +188,9 @@ Provides methods for automated scripts to manipulate Testopia Environments
  Description: Looks up and returns an environment by name.
 
  Params:      $name - String: name of the environment.
-              $product - Integer/String/Object
+              $product - Integer/String
                          Integer: product_id of the product in the Database
                          String: Product name
-                         Object: Blessed Bugzilla::Product object
 
  Returns:     Hash: Matching Environment object hash or error if not found.
 

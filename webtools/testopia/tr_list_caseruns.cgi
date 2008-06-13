@@ -64,7 +64,7 @@ if ($action eq 'update'){
         @caseruns = @{$run->current_caseruns()} if $run->canedit; 
         
     }
-    else{    
+    else{
         foreach my $id (split(',', $cgi->param('ids'))){
             my $caserun = Bugzilla::Testopia::TestCaseRun->new($id);
             if ($caserun->canedit){
@@ -98,9 +98,9 @@ if ($action eq 'update'){
     $vars->{'failed'} = $run->case_run_count(FAILED) / $run->case_run_count;
     $vars->{'blocked'} = $run->case_run_count(BLOCKED) / $run->case_run_count;
     $vars->{'complete'} = $run->percent_complete() . '%';
-    $vars->{'success'} = 'true' ;
+    $vars->{'success'} = JSON::true ;
     
-    print objToJson($vars);
+    print to_json($vars);
 }
 
 elsif ($action eq 'delete'){

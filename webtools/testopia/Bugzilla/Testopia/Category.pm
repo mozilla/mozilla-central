@@ -192,13 +192,11 @@ sub to_json {
     my $obj;
     my $json = new JSON;
     
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
         
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 sub remove {

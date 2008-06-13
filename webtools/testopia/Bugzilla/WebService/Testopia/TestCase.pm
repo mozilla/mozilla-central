@@ -68,7 +68,6 @@ sub list {
     $cgi->param('distinct', 1);
     
     my $search = Bugzilla::Testopia::Search->new($cgi);
-
     return Bugzilla::Testopia::Table->new('case','tr_xmlrpc.cgi',$cgi,undef,$search->query())->list();
 }
 
@@ -92,7 +91,7 @@ sub create {
         if (ref $new_values->{'plans'} eq 'ARRAY'){
             push @plan_ids, @{$new_values->{'plans'}};
         }
-        elsif ($new_values->{'plans'} =~ /,/){
+        else{
             push @plan_ids, split(/[\s,]+/, $new_values->{'plans'});
         }
         
@@ -137,18 +136,17 @@ sub create {
         $new_values->{'priority_id'} ||= $new_values->{'priority'};
         $new_values->{'default_tester_id'} ||= $new_values->{'default_tester'};
         $new_values->{'category_id'} ||= $new_values->{'category'};
-        
-        delete $new_values->{'default_tester'};
-        delete $new_values->{'status'};
-        delete $new_values->{'priority'};        
-        delete $new_values->{'category'};
-        
         $new_values->{'plans'} = \@plans;
         $new_values->{'author_id'} ||= Bugzilla->user->id;
         $new_values->{'runs'} = join(',', @run_ids) if scalar @run_ids;
         $new_values->{'bugs'} = join(',', @bug_ids) if scalar @bug_ids;
         $new_values->{'dependson'} = join(',', @dependson) if scalar @dependson;
         $new_values->{'blocks'} = join(',', @blocks) if scalar @blocks;
+        
+        delete $new_values->{'default_tester'};
+        delete $new_values->{'status'};
+        delete $new_values->{'priority'};        
+        delete $new_values->{'category'};
         
         my $case;
         eval{
@@ -220,6 +218,8 @@ sub update {
             $case->set_blocks($new_values->{'blocks'}) if defined $new_values->{'blocks'};
             
             $case->update;
+            $case->dependson_list;
+            $case->blocked_list;
         };
         
         if ($@){
@@ -694,10 +694,13 @@ Provides methods for automated scripts to manipulate Testopia TestCases
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an arry of case_ids or aliases, or a string of comma separated case_ids.
 
-              $component_ids - Integer/Array/String - The component ID, an array of Component IDs,
+              $component_ids - Integer/Array/String - The component ID, an array of Component IDs or
+                  component hashes (components can be an array of IDs, a comma separated string of IDs,
+                  an array of Hashes, or a single hash where the
+                  component hash = {component => 'string', product => 'string'},
                   or a comma separated list of component IDs 
 
- Returns:     undef/Array: undef on success or an array of hashes with failure 
+ Returns:     Array: empty on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<add_tag($case_ids, $tags)>
@@ -710,7 +713,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               $tags - String/Array - A single tag, an array of tags,
                   or a comma separated list of tags. 
 
- Returns:     undef/Array: undef on success or an array of hashes with failure 
+ Returns:     Array: empty on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<add_to_run($case_ids, $run_ids)>
@@ -723,7 +726,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               $run_ids - Integer/Array/String: An integer representing the ID in the database
                   an array of IDs, or a comma separated list of IDs. 
 
- Returns:     undef/Array: undef on success or an array of hashes with failure 
+ Returns:     Array: empty on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<attach_bug($case_ids, $bug_ids)>
@@ -736,7 +739,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               $bug_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of bug_ids or aliases, or a string of comma separated bug_ids. 
 
- Returns:     undef/Array: undef on success or an array of hashes with failure 
+ Returns:     Array: empty on success or an array of hashes with failure 
               codes if a failure occured.
 
 =item C<calculate_average_time($case_id)>
@@ -757,10 +760,10 @@ Provides methods for automated scripts to manipulate Testopia TestCases
   | Field             | Type           | Null      | Description            |
   +-------------------+----------------+-----------+------------------------+
   | status            | Integer/String | Required  | ID or Name of status   |
-  | category          | Integer/String | Required  | ID or Name of Category |
+  | category*         | Integer/Hash   | Required  | ID or hash             |
   | priority          | Integer/String | Required  | ID or Name of Priority |
   | summary           | String         | Required  |                        |
-  | plans             | Array/String   | Required  | List of plan_ids       |
+  | plans             | Array/Str/Int  | Required  | ID or List of plan_ids |
   | default_tester    | Integer/String | Optional  | ID or Login of tester  |
   | estimated_time    | String         | Optional  | HH:MM:SS Format        |
   | isautomated       | Boolean        | Optional  | Defaults to False (0)  |
@@ -777,9 +780,12 @@ Provides methods for automated scripts to manipulate Testopia TestCases
   | blocks            | Array/String   | Optional  | String Comma separated |
   | tags              | Array/String   | Optional  | String Comma separated |
   | bugs              | Array/String   | Optional  | String Comma separated |
-  | plans             | Array/String   | Optional  | String Comma separated |
-  | components        | Array/String   | Optional  | String Comma separated |
+  | components+       | Array/Hash/Str | Optional  | String Comma separated |
   +-------------------+----------------+-----------+------------------------+
+    * category hash = {category => 'string', product => 'string'}
+    + components can be an array of IDs, a comma separated string of IDs,
+      an array of Hashes, or a single hash.
+      component hash = {component => 'string', product => 'string'} 
 
  Returns:     Array/Hash: The newly created object hash if a single case was created, or
                 an array of objects if more than one was created. If any single case threw an 
@@ -880,7 +886,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
  Params:      $case_ids - Integer/Array/String: An integer or alias representing the ID in the database,
                   an array of case_ids or aliases, or a string of comma separated case_ids.
 
-              $plan_ids - Integer/Array/String: An integer or alias representing the ID in the database,
+              $plan_ids - Integer/Array/String: An integer representing the ID in the database,
                   an array of plan_ids, or a string of comma separated plan_ids.
 
  Returns:     Array: Array of failure codes or an empty array.
@@ -1044,7 +1050,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
               [$author_id] = Integer/String: (OPTIONAL) The numeric ID or the login of the author. 
                   Defaults to logged in user
 
- Returns:     Array: Empty on success.
+ Returns:     Integer: Version of the stored text
 
 =item C<unlink_plan($case_id, $plan_id)>
 
@@ -1055,7 +1061,7 @@ Provides methods for automated scripts to manipulate Testopia TestCases
 
               $plan_id - Integer: An integer representing the ID in the database.
 
- Returns:     undef/Array: Array of plans still linked if any, undef if not.
+ Returns:     Array: Array of plans still linked if any, empty if not.
 
 =item C<update($ids, $values)>
 

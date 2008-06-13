@@ -175,7 +175,7 @@ elsif ($type eq 'bug'){
     
     my $json = new JSON;
     print "{Result:";
-    print $json->objToJson($ref);
+    print $json->encode($ref);
     print "}";
     exit;
 }

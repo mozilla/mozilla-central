@@ -51,7 +51,7 @@ my $action = $cgi->param('action') || '';
 
 if ($action eq 'Add'){
     my $name = $cgi->param('name');
-    my $product = $cgi->param('product');
+    my $product = $cgi->param('product') || $cgi->param('product_id');
     
     my $env = Bugzilla::Testopia::Environment->create({
         name => $name,

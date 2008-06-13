@@ -100,7 +100,7 @@ use constant VALIDATORS => {
     alias             => \&_check_alias,
     estimated_time    => \&_check_time,
     dependson         => \&_check_dependency,
-    blocks            => \&_check_dependency,
+    blocked           => \&_check_dependency,
     plans             => \&_check_plans,
     runs              => \&_check_runs,
     tags              => \&_check_tags,
@@ -173,7 +173,11 @@ sub _check_category{
     my ($invocant, $category, $product) = @_;
     $category = trim($category);
     my $category_id;
-    if ($category =~ /^\d+$/){
+    if (ref $category){
+        $product = Bugzilla::Product::check_product($category->{'product'});
+        $category_id = Bugzilla::Testopia::Category::check_case_category($category->{'category'}, $product); 
+    }
+    elsif ($category =~ /^\d+$/){
         $category_id = Bugzilla::Testopia::Util::validate_selection($category, 'category_id', 'test_case_categories');
     }
     else {
@@ -193,7 +197,7 @@ sub _check_priority{
     else {
         $priority_id = lookup_priority_by_value($priority);
     }
-    ThrowUserError('invalid_priority') unless $priority_id; 
+    ThrowUserError('bad_arg', {argument => 'priority', function => 'set_priority'}) unless $priority_id; 
     return $priority_id;
 
 }
@@ -351,8 +355,22 @@ sub _check_components {
     my $dbh = Bugzilla->dbh;
     
     ThrowUserError('testopia-missing-parameter', {param => 'components'}) unless $components;
-    if (ref $components eq 'ARRAY'){
-        @comp_ids = @$components;
+    if (ref $components eq 'HASH'){
+                my $prod = Bugzilla::Product::check_product($components->{'product'});
+                my $comp = Bugzilla::Component::check_component($prod, $components->{'component'});
+                push @comp_ids, $comp->id;
+    }
+    elsif (ref $components eq 'ARRAY'){
+        foreach my $c (@$components){
+            if (ref $c){
+                my $prod = Bugzilla::Product::check_product($c->{'product'});
+                my $comp = Bugzilla::Component::check_component($prod, $c->{'component'});
+                push @comp_ids, $comp->id;
+            }
+            else{
+                @comp_ids = $c;
+            }
+        }
     }
     else {
         @comp_ids = split(/[\s,]+/, $components);
@@ -487,11 +505,12 @@ sub create {
     $self->store_text($self->id, $field_values->{'author_id'}, $action, $effect,  
                       $setup, $breakdown,0);
                       
-    $self->update_deps($dependson, $blocks, $self->id);    
+    $self->update_deps($dependson, $blocks, $self->id);
     
     foreach my $p (@$plans){
         $self->link_plan($p->id, $self->id);
     }
+    delete $self->{'plans'};
     
     foreach my $run (@$runs){
         $run->add_case_run($self->id, $self->sortkey);
@@ -509,13 +528,7 @@ sub update {
     my $dbh = Bugzilla->dbh;
     my $timestamp = Bugzilla::Testopia::Util::get_time_stamp();
     
-    # Update the dependencies and then set the object back to the way
-    # it was so that Object::update doesn't try to add them to the table
-    # where it doesn't exist.
     $self->update_deps($self->{'dependson'}, $self->{'blocks'});
-    my $old_self = $self->new($self->id);
-    $self->{'dependson'} = $old_self->{'dependson'};
-    $self->{'blocks'} = $old_self->{'blocks'};
     
     $dbh->bz_lock_tables('test_cases WRITE', 'test_case_activity WRITE',
                          'test_fielddefs READ');
@@ -783,7 +796,9 @@ sub add_tag {
         if (ref $t eq 'ARRAY'){
             push @tags, $_ foreach @$t;
         }
-        push @tags, split(/,+/, $t);
+        else {
+            push @tags, split(/,+/, $t);
+        }
     }
 
     foreach my $name (@tags){
@@ -867,7 +882,7 @@ sub add_component {
     my $dbh = Bugzilla->dbh;
     my $comps = $validated ? $compids : $self->_check_components($compids);   
     foreach my $id (@$comps){
-        
+print STDERR "ADDING COMPONENTS $id";        
         $dbh->do("INSERT INTO test_case_components (case_id, component_id)
                   VALUES (?,?)",undef,  $self->{'case_id'}, $id);
     }
@@ -1443,7 +1458,7 @@ sub update_deps {
     my $fields = {};
     $fields->{'dependson'} = $dependson;
     $fields->{'blocked'} = $blocks;
-# From process bug
+    # From process bug
     foreach my $field ("dependson", "blocked") {
         if (exists $fields->{$field}) {
             my @validvalues;
@@ -1455,10 +1470,7 @@ sub update_deps {
             $fields->{$field} = join(",", @validvalues);
         }
     }
-#From Bug.pm sub ValidateDependencies($$$)
-#    my $fields = {};
-#    $fields->{'dependson'} = shift;
-#    $fields->{'blocked'} = shift;
+    #From Bug.pm sub ValidateDependencies($$$)
     my $id = $case_id || 0;
 
     unless (defined($fields->{'dependson'})
@@ -1524,19 +1536,17 @@ sub update_deps {
         ThrowUserError("dependency_loop_multi", { both => $both });
     }
 
-#from process_bug
+    #from process_bug
     foreach my $pair ("blocked/dependson", "dependson/blocked") {
         my ($me, $target) = split("/", $pair);
 
         my @oldlist = @{$dbh->selectcol_arrayref("SELECT $target FROM test_case_dependencies
                                                   WHERE $me = ? ORDER BY $target",
                                                   undef, $id)};
-#        @dependencychanged{@oldlist} = 1;
 
         if (defined $fields->{$target}) {
             my %snapshot;
             my @newlist = sort {$a <=> $b} @{$deps{$target}};
-#            @dependencychanged{@newlist} = 1;
 
             while (0 < @oldlist || 0 < @newlist) {
                 if (@oldlist == 0 || (@newlist > 0 &&
@@ -1564,14 +1574,14 @@ sub update_deps {
                 foreach my $i (@{$deps{$target}}) {
                     $dbh->do("INSERT INTO test_case_dependencies ($me, $target) VALUES (?,?)", undef, $id, $i);
                 }
-#                foreach my $k (@keys) {
-#                    LogDependencyActivity($k, $snapshot{$k}, $me, $target, $timestamp);
-#                }
-#                LogDependencyActivity($id, $oldsnap, $target, $me, $timestamp);
-#                $check_dep_bugs = 1;
             }
         }
-    }  
+    }
+    delete $self->{'blocked'};
+    delete $self->{'blocks'};
+    delete $self->{'dependson'};
+    delete $self->{'blocked_list'};
+    delete $self->{'dependson_list'};  
 }
 
 =head2 get_dep_tree
@@ -1643,8 +1653,6 @@ sub to_json {
     foreach my $p (@{$self->plans}){
         push @plan_ids, $p->id;
     }
-    $json->autoconv(0);
-    
     foreach my $field ($self->DB_COLUMNS){
         $obj->{$field} = $self->{$field};
     }
@@ -1664,7 +1672,7 @@ sub to_json {
     $obj->{'category_name'} = $self->category->name if $self->category;
     $obj->{'product_id'}   = $self->plans->[0]->product_id if $self->plans;
 
-    return $json->objToJson($obj); 
+    return $json->encode($obj); 
 }
 
 =head2 canview
@@ -1995,7 +2003,7 @@ sub plans {
     return $self->{'plans'} if exists $self->{'plans'};
     my $ref = $dbh->selectcol_arrayref("SELECT plan_id
                                        FROM test_case_plans
-                                       WHERE case_id = ?", 
+                                       WHERE case_id = ? ORDER BY plan_id", 
                                        undef, $self->{'case_id'});
     my @plans;
     foreach my $id (@{$ref}){
