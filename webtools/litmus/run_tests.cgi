@@ -42,7 +42,6 @@ use Litmus::Auth;
 
 use CGI;
 use JSON;
-use Time::Piece::MySQL;
 
 Litmus->init();
 

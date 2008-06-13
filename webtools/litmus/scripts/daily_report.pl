@@ -197,7 +197,7 @@ sub usage {
 #########################################################################
 sub message_header($$) {
   my ($title,$html_mail) = @_;
-  my $today = &UnixDate("today","%Y/%m/%d");
+  my $today = &Date::Manip::UnixDate("now","%Y/%m/%d");
   my $subject = "[litmus] Daily Report";
   if ($title) {
     $subject .= " - $title";

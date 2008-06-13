@@ -155,7 +155,7 @@ if ($c->param("delete_test_run_button")) {
   
   my $enabled = $c->param('enabled') ? 1 : 0;
   my $recommended = $c->param('recommended') ? 1 : 0;
-  my $now = &UnixDate("today", "%q");
+  my $now = &Date::Manip::UnixDate("now", "%q");
   my @selected_testgroups = $c->param("test_run_testgroups");  
   my $criteria = &getCriteria($c);
 

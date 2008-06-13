@@ -30,7 +30,7 @@ if (! -e $file) {
 
 my $xp = XML::XPath->new(filename => $file);
 
-my $now = &UnixDate("today","%q");
+my $now = &Date::Manip::UnixDate("now","%q");
 
 # Get all testgroups.
 my $testgroups = $xp->find('/litmus/testgroups/testgroup');

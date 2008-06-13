@@ -228,7 +228,7 @@ sub AUTOLOAD {
 sub _log {
     my ($self, $message, %info) = @_;
     binmode(STDERR,':utf8');
-    print STDERR "$message";
+    Litmus::Error::logError($message, caller(0));
     return;
 }
 

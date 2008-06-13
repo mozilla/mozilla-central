@@ -29,7 +29,6 @@ use Litmus::Auth;
 use Litmus::Utils;
 
 use CGI;
-use Time::Piece::MySQL;
 use Date::Manip;
 
 Litmus->init();

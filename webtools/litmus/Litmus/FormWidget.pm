@@ -116,11 +116,11 @@ sub getPlatforms()
 sub getBranches()
 {
     my ($self, $enabled) = @_;
-    my $sql = "SELECT name, branch_id, product_id FROM branches";
+    my $sql = "SELECT b.name, b.branch_id, b.product_id, p.name AS product_name FROM branches b, products p WHERE b.product_id=p.product_id";
     if ($enabled) {
-      $sql .= " WHERE enabled=1";
+      $sql .= " AND enabled=1";
     }
-    $sql .= " ORDER BY name ASC";
+    $sql .= " ORDER BY b.name ASC";
     return _getValues($sql);
 }
 
@@ -139,7 +139,7 @@ sub getUniqueBranches()
 #########################################################################
 sub getOpsyses()
 {
-    my $sql = "SELECT name, opsys_id, platform_id FROM opsyses ORDER BY name ASC";
+    my $sql = "SELECT o.name, o.opsys_id, o.platform_id, pl.name AS platform_name FROM opsyses o, platforms pl WHERE o.platform_id=pl.platform_id ORDER BY o.name ASC";
     return _getValues($sql);
 }
 
@@ -210,7 +210,7 @@ sub getTestcases()
     } elsif ($sort_by eq 'id') {
       $sql .= " ORDER BY testcase_id ASC";
     } else {
-      print STDERR "Unknown sort_by type: $sort_by\n";
+      Litmus::Error::logError("Unknown sort_by type: $sort_by", caller(0));
     }
 
     return _getValues($sql);
@@ -248,7 +248,8 @@ sub getSubgroups()
     } elsif ($sort_by eq 'sort_order') {
       $sql .= " ORDER BY sgtg.sort_order ASC, sg.name ASC, sg.subgroup_id ASC";
     } else {
-      print STDERR "Unknown sort_by type: $sort_by\n";
+      Litmus::Error::logError("Unknown sort_by type: $sort_by",
+                            caller(0));
     }
 
     return _getValues($sql);

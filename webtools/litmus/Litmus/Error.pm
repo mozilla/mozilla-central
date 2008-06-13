@@ -81,4 +81,15 @@ sub _doError($) {
          lastDitchError(Litmus->template()->error());
 }
 
+# logError - make it easier to change how and where we log
+#
+# $message        - the error message to be logged
+# @caller_details - array in the format returned by caller(#)
+sub logError($@) {
+    my $message = shift;
+    my @caller_details = @_;
+    
+    print STDERR join('|',@caller_details[1..3]) . ' - ' . $message ."\n";
+}
+
 1;

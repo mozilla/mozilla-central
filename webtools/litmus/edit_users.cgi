@@ -36,7 +36,6 @@ use Litmus::Auth;
 use Litmus::Utils;
 
 use CGI;
-use Time::Piece::MySQL;
 
 Litmus->init();
 my $c = Litmus->cgi(); 

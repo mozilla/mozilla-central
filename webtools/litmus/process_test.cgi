@@ -123,7 +123,8 @@ foreach my $curtestid (@tests) {
   my $curtest = Litmus::DB::Testcase->retrieve($curtestid);
   unless ($curtest) {
     # oddly enough, the test doesn't exist
-    print STDERR "No testcase found for ID: $curtestid";
+    Litmus::Error::logError("No testcase found for ID: $curtestid",
+                            caller(0));
     next;
   }
   

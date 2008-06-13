@@ -115,7 +115,10 @@ sub getCriteriaSql() {
       $criteria_sql .= $criterion_sql;
     }
     $criteria_sql .= ')';
-#    print STDERR $criteria_sql;
+    if ($Litmus::Config::DEBUG) {
+      Litmus::Error::logError($criteria_sql,
+                              caller(0)); 
+    }
     return $criteria_sql;
   }
   
@@ -142,7 +145,10 @@ sub clone() {
                    $self->test_run_id
                   );
   if (! $rows) {
-    print STDERR "Unable to clone test run membership for test run ID# " . $self->test_run_id . ' -> ' . $new_test_run->test_run_id . "\n";
+    Litmus::Error::logError("Unable to clone test run membership for test run ID# " .
+                            $self->test_run_id . ' -> ' .
+                            $new_test_run->test_run_id,
+                            caller(0));
   }
 
   # Propagate criteria.
@@ -154,7 +160,10 @@ sub clone() {
                    $self->test_run_id
                   );
   if (! $rows) {
-    print STDERR "Unable to clone test run criteria for test run ID# " . $self->test_run_id . ' -> ' . $new_test_run->test_run_id . "\n";
+    Litmus::Error::logError("Unable to clone test run criteria for test run ID# " .
+                            $self->test_run_id . ' -> ' .
+                            $new_test_run->test_run_id,
+                            caller(0));
   }
 
   return $new_test_run;
@@ -216,7 +225,8 @@ sub update_testgroups() {
                            );
       };
       if ($@) {
-        print STDERR $@;
+        Litmus::Error::logError($@,
+                                caller(0))
       }
       $sort_order++;
     }
@@ -240,7 +250,7 @@ sub update_criteria() {
       next if (!$criterion or
                !$criterion->{'build_id'} or
                $criterion->{'build_id'} eq '');
-      # Log any failures/duplicate keys to STDERR.
+      # Log any failures/duplicate keys.
       eval {
         my $rows = $dbh->do($sql,
                             undef,
@@ -251,7 +261,8 @@ sub update_criteria() {
                            );
       };
       if ($@) {
-        print STDERR $@;
+        Litmus::Error::logError($@,
+                                caller(0));
       }
     }
   }

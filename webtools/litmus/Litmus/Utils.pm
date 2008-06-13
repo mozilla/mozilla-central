@@ -43,6 +43,7 @@ use CGI;
 our @ISA = qw(Exporter);
 @Litmus::Utils::EXPORT = qw(
     requireField
+    sanitize
 );
 
 
@@ -56,6 +57,12 @@ sub requireField {
     print $c->header();
     invalidInputError("You must make a valid selection for field ".$fieldname.".");
   }
+}
+
+sub sanitize($) {
+  my $input = shift;
+  $input =~ s|([^\w\ \.\,])|\\$1|og;
+  return $input
 }
 
 1;

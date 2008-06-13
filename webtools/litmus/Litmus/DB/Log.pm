@@ -47,6 +47,6 @@ Litmus::DB::Log->column_alias("log_type_id", "log_type");
 Litmus::DB::Log->has_a(log_type => "Litmus::DB::LogType");
 Litmus::DB::Log->has_many(test_results => ["Litmus::DB::LogTestresult" => 'test_result']);
 
-Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
+#Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
 
 1;

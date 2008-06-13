@@ -67,8 +67,8 @@ sub _init {
 
       $self->{_planned_testday} = 1;
       
-      $self->{_start_timestamp} = &UnixDate($testday->start_timestamp,"%q");
-      $self->{_finish_timestamp} = &UnixDate($testday->finish_timestamp,"%q");
+      $self->{_start_timestamp} = &Date::Manip::UnixDate($testday->start_timestamp,"%q");
+      $self->{_finish_timestamp} = &Date::Manip::UnixDate($testday->finish_timestamp,"%q");
       $self->{_description} = $testday->description;
       $self->{_product_id} = $testday->product_id;
       $self->{_testgroup_id} = $testday->testgroup_id;
@@ -84,11 +84,11 @@ sub _init {
   }
 
   if ($args{testdate}) {
-    $self->{_start_timestamp} = &UnixDate($args{testdate} . " 07:00:00", "%q");
-    $self->{_finish_timestamp} = &UnixDate($args{testdate} . " 17:00:00", "%q");
+    $self->{_start_timestamp} = &Date::Manip::UnixDate($args{testdate} . " 07:00:00", "%q");
+    $self->{_finish_timestamp} = &Date::Manip::UnixDate($args{testdate} . " 17:00:00", "%q");
   } elsif ($args{start_timestamp} and $args{finish_timestamp}) {
-    $self->{_start_timestamp} = &UnixDate($args{start_timestamp}, "%q");
-    $self->{_finish_timestamp} = &UnixDate($args{finish_timestamp}, "%q");
+    $self->{_start_timestamp} = &Date::Manip::UnixDate($args{start_timestamp}, "%q");
+    $self->{_finish_timestamp} = &Date::Manip::UnixDate($args{finish_timestamp}, "%q");
   }
 
   $self->{_description} = "User-defined";  
@@ -497,7 +497,7 @@ sub getStartTimestamp {
   my ($self, $for_display) = @_;
 
   if ($for_display) {
-    return &UnixDate($self->{_start_timestamp},"%Y-%m-%d %H:%M:%S");
+    return &Date::Manip::UnixDate($self->{_start_timestamp},"%Y-%m-%d %H:%M:%S");
   }
 
   return $self->{_start_timestamp};
@@ -508,7 +508,7 @@ sub getFinishTimestamp {
   my ($self, $for_display) = @_;
 
   if ($for_display) {
-    return &UnixDate($self->{_finish_timestamp},"%Y-%m-%d %H:%M:%S");
+    return &Date::Manip::UnixDate($self->{_finish_timestamp},"%Y-%m-%d %H:%M:%S");
   }
 
   return $self->{_finish_timestamp};

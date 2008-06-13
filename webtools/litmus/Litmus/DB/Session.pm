@@ -35,7 +35,6 @@ package Litmus::DB::Session;
 use strict;
 use base 'Litmus::DBI';
 
-use Time::Piece;
 use Date::Manip;
 
 Litmus::DB::Session->table('sessions');
@@ -77,7 +76,7 @@ sub isValid {
 # gets compared against the session expiry if the format should change, e.g.
 # db change.
 sub getCurrentTimestamp {
-  return &Date::Manip::UnixDate("today","%q");
+  return &Date::Manip::UnixDate("now","%q");
 }
 
 sub formatDate {

@@ -37,7 +37,6 @@ use Litmus::DB::Testresult;
 use Litmus::FormWidget;
 
 use CGI;
-use Time::Piece::MySQL;
 
 Litmus->init();
 my $c = Litmus->cgi();

@@ -35,7 +35,6 @@ use Litmus::DB::Resultbug;
 use CGI;
 use Date::Manip;
 use JSON;
-use Time::Piece::MySQL;
 
 Litmus->init();
 my $c = Litmus->cgi(); 

@@ -143,7 +143,7 @@ if ($c->param("delete_testcase_button")) {
   requireField('author', $c->param('author_id'));
   my $enabled = $c->param('enabled') ? 1 : 0;
   my $community_enabled = $c->param('communityenabled') ? 1 : 0;
-  my $now = &UnixDate("today","%q");
+  my $now = &Date::Manip::UnixDate("now","%q");
 
   if ($c->param("mode") eq "add") {
     Litmus::Auth::requireProductAdmin("manage_testcases.cgi", $c->param('product'));
@@ -346,7 +346,8 @@ sub update_tags() {
       my $tag;
       ($tag) = Litmus::DB::Tag->find_or_create(\%tag_hash);
       if (!$tag) {
-        print STDERR "Unable to find or create tag: $tag_name\n";
+        Litmus::Error::logError("Unable to find or create tag: $tag_name",
+                                caller(0));
       } else {
         push @tags, $tag;
       }

@@ -256,7 +256,7 @@ EOUSAGE
 
 #########################################################################
 sub createFakeBuildID() {
-    return &UnixDate("now","%Y%m%d99");
+    return &Date::Manip::UnixDate("now","%Y%m%d99");
 }
 
 #########################################################################
@@ -361,7 +361,7 @@ sub parseResultsFile {
     }
     
     my @result_objs;
-    my $now = &UnixDate("now","%q");
+    my $now = &Date::Manip::UnixDate("now","%q");
     foreach my $current_result (@results) {
         my $result_obj = Test::Litmus::Result->new(
                 -isAutomatedResult => 1, # optional

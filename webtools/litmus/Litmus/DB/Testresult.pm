@@ -38,8 +38,6 @@ use base 'Litmus::DBI';
 use Class::DBI::Pager;
 use Date::Manip;
 use Litmus::DB::TestRun;
-use Time::Piece;
-use Time::Seconds;
 
 our $_num_results_default = 15;
 
@@ -86,7 +84,7 @@ Litmus::DB::Testresult->has_many(logs =>
 Litmus::DB::Testresult->has_many(comments => "Litmus::DB::Comment", {order_by => 'comment_id ASC, submission_time ASC'});
 Litmus::DB::Testresult->has_many(bugs => "Litmus::DB::Resultbug", {order_by => 'bug_id ASC, submission_time DESC'});
 
-Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
+#Litmus::DB::Testresult->autoinflate(dates => 'Time::Piece');
 
 Litmus::DB::Testresult->set_sql(Completed => qq{
     SELECT tr.* 
@@ -301,14 +299,16 @@ sub getTestResults($\@\@$) {
         } elsif ($criterion->{'field'} eq 'start_date') {
             my $start_timestamp = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($criterion->{'value'}),"%q");
             if ($start_timestamp !~ /^\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {
-                print STDERR "Unable to parse a valid start date from '$criterion->{'value'},' ignoring.\n";
+                Litmus::Error::logError("Unable to parse a valid start date from '$criterion->{'value'},' ignoring.",
+                                        caller(0));
             } else {
                 $where .= " AND tr.submission_time>=$start_timestamp";
             }
         } elsif ($criterion->{'field'} eq 'end_date') {
             my $end_timestamp = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($criterion->{'value'}),"%q");
             if ($end_timestamp !~ /^\d\d\d\d\d\d\d\d\d\d\d\d\d\d$/) {
-                print STDERR "Unable to parse a valid end date from '$criterion->{'value'},' ignoring.\n";
+                Litmus::Error::logError("Unable to parse a valid end date from '$criterion->{'value'},' ignoring.",
+                                        caller(0));;
             } else {
                 $where .= " AND tr.submission_time<=$end_timestamp";
             }
@@ -387,6 +387,7 @@ sub getTestResults($\@\@$) {
     }
   
     my $sql = "$select $from $where $group_by $order_by";
+    Litmus::Error::logError($sql, caller(0)) if $Litmus::Config::DEBUG;
     my $dbh = Litmus::DBI->db_ReadOnly();
     my $sth = $dbh->prepare($sql);
     $sth->execute();
