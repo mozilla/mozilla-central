@@ -5,7 +5,7 @@ sub REQUIRED_MODULES {
     {
         package => 'JSON',
         module  => 'JSON',
-        version => '1.07'
+        version => '2.10'
     },
     {
         package => 'Text-Diff',
