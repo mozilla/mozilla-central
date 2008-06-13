@@ -95,7 +95,7 @@ elsif ($action eq 'list'){
     my $json = new JSON;
     
     my $out;
-    $out .= $_->to_json . ',' foreach (@{$product->categories()});
+    $out .= $_->convert_to_json . ',' foreach (@{$product->categories()});
     chop ($out); # remove the trailing comma for IE
     
     print "{categories:[$out]}";

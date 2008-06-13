@@ -204,7 +204,7 @@ sub check_build {
 ###############################
 ####       Methods         ####
 ###############################
-sub to_json {
+sub convert_to_json {
     my $self = shift;
     my $obj;
     my $json = new JSON;

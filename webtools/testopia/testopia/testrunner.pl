@@ -28,4 +28,8 @@ use Test::Unit::TestRunner;
 #debug_pkgs(qw/Test::Unit::TestCase/);
 
 my $testrunner = Test::Unit::TestRunner->new();
-$testrunner->start(@ARGV);
+
+foreach my $file (glob($ARGV[0]."*")){
+    print "Running Tests from $file \n";
+    $testrunner->start($file);
+}

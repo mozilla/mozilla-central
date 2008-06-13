@@ -297,7 +297,7 @@ sub canedit {
     return 0;
 }
 
-sub to_json {
+sub convert_to_json {
     my $self = shift;
     my $obj;
     my $json = new JSON;

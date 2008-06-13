@@ -130,7 +130,7 @@ elsif ($action eq 'gettags'){
     
     my $out =  "{tags:[";
     foreach my $tag (@$tags){
-        $out .=  $tag->to_json . ',';
+        $out .=  $tag->convert_to_json . ',';
     }
     chop($out) if scalar @$tags;
     print $out ."]}";

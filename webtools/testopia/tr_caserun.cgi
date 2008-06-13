@@ -72,7 +72,7 @@ if ($action eq 'update_build'){
     
     $caserun = $caserun->switch($build_id, $caserun->environment->id);
     
-    print "{'success': true, caserun:" . $caserun->to_json ."}";
+    print "{'success': true, caserun:" . $caserun->convert_to_json ."}";
 }
 
 elsif ($action eq 'update_environment'){
@@ -84,7 +84,7 @@ elsif ($action eq 'update_environment'){
     
     $caserun = $caserun->switch($caserun->build->id, $environment_id);
     
-    print "{'success': true, caserun:" . $caserun->to_json ."}";
+    print "{'success': true, caserun:" . $caserun->convert_to_json ."}";
 }
 
 elsif ($action eq 'update_status'){
@@ -140,7 +140,7 @@ elsif ($action eq 'update_priority'){
     $caserun->case->set_priority($cgi->param('priority'));
     $caserun->case->update();
     
-    print "{'success': true, caserun:" . $caserun->to_json ."}";
+    print "{'success': true, caserun:" . $caserun->convert_to_json ."}";
     
 }
 
@@ -151,7 +151,7 @@ elsif ($action eq 'update_category'){
     $caserun->case->set_category($cgi->param('category'));
     $caserun->case->update();
     
-    print "{'success': true, caserun:" . $caserun->to_json ."}";
+    print "{'success': true, caserun:" . $caserun->convert_to_json ."}";
     
 }
 
