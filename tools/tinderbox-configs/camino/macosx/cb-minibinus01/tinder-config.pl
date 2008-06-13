@@ -197,6 +197,12 @@ $BinaryName = 'Camino';
 #$NSPRArgs = '';
 #$ShellOverride = '';
 
+# UsePrebuiltTalkback:
+# If set to a filepath, tinderbox will use the file contents (presumed to be a bz2
+# archive of a compatible Talkback extension) rather than compiling Talkback
+# from source. 
+$UsePrebuiltTalkback = "/builds/tinderbox/Cm2-M1.9/talkback-camino-trunk-mac.tar.bz2";
+
 # Release build options
 #$ReleaseBuild  = 1;
 #$clean_objdir = 1; # remove objdir when starting release cycle?
@@ -205,7 +211,7 @@ $BinaryName = 'Camino';
 #$shiptalkback  = 1;
 #$ReleaseToLatest = 1; # Push the release to latest-<milestone>?
 #$ReleaseToDated = 1; # Push the release to YYYY-MM-DD-HH-<milestone>?
-#$OfficialBuildMachinery = 0; # Allow official clobber nightlies.  When false, 
+#$OfficialBuildMachinery = 0; # Allow official clobber nightlies.  When false, $cachebuild in post-mozilla-rel.pl can never be true.
 #$ReleaseGroup = ''; # group to set uploaded files to (if non-empty)
 $build_hour    = "22";
 $package_creation_path = "/camino/installer";
