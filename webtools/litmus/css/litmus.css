@@ -966,6 +966,14 @@ div.closeLink a:hover {
 
 /* 16 Admin ********************************************************** */
 
+td.description {
+    border: solid #bbbbbb 1px;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    background-color: #eeeeee;
+}
+
 input.manage {
     width: 170px;
     font-size: 1em;
@@ -975,6 +983,8 @@ table.manage {
     border: 0;
     padding: 0px;
     margin: 0;
+    border-spacing: 5px;
+    
 }    
 
 table.manage td {
@@ -1500,4 +1510,8 @@ a.test_run:link, a.test_run:visited {
 a.help {
     text-transform: none;
     color: #003366;
+}
+
+.disabled {
+    display: none;
 }

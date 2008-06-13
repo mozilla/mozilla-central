@@ -38,11 +38,11 @@ use Litmus::Auth;
 use Litmus::Cache;
 use Litmus::Error;
 use Litmus::FormWidget;
+use Litmus::Utils qw(sanitize);
 
 use CGI;
 use Date::Manip;
 use JSON;
-use Time::Piece::MySQL;
 
 Litmus->init();
 Litmus::Auth::requireProductAdmin("edit_categories.cgi");
@@ -289,6 +289,60 @@ if ($c->param) {
       $status = "failure";
       $message = "Branch ID# $branch_id does not exist. (Already deleted?)";
     }
+
+  } elsif ($c->param("clone_branch_button") and 
+           $c->param("branch_id")) {
+
+    my $branch_id = $c->param("branch_id");
+    my $branch = Litmus::DB::Branch->retrieve($branch_id);
+    if ($branch) {
+      # must be a product admin to edit the branch:
+      Litmus::Auth::requireProductAdmin('manage_categories.cgi',
+                                        $branch->product());
+
+      # Do we already have our cloning info? Then get cloning!
+      if ($c->param("clone_type")) {
+        my $clone_type = sanitize($c->param("clone_type"));
+        my $new_name = $c->param("new_branch_name");
+        my $new_regexp = sanitize($c->param("new_branch_detect_regexp"));
+        my $new_branch;
+        if ($clone_type eq "simple") {
+          $new_branch = $branch->clone($new_name,$new_regexp);
+        } elsif ($clone_type eq "recursive") {
+          my $old_name_regexp = sanitize($c->param("old_name_regexp"));
+          my $new_name_regexp = sanitize($c->param("new_name_regexp"));
+          $new_branch = $branch->clone_recursive($new_name,
+                                                 $new_regexp,
+                                                 $old_name_regexp,
+                                                 $new_name_regexp
+                                                 );
+        } 
+     
+        if ($new_branch) {
+          $status = "success";
+          $message = "Branch ID# $branch_id cloned successfully as branch ID# " . $new_branch->branch_id . ".";
+          $defaults->{'branch_id'} = $new_branch->branch_id;
+        } else {
+          $status = "failure";
+          $message = "Failed to clone branch ID# $branch_id.";
+        }
+
+      } else {
+        my $vars = {
+                    title => 'Manage Categories - Clone Branch',
+                    branch => $branch,
+                   };
+
+        Litmus->template()->process("admin/clone_branch.tmpl", $vars) ||
+          internalError(Litmus->template()->error());
+
+        exit;
+      }
+    } else {
+      $status = "failure";
+      $message = "Failed to lookup branch ID# $branch_id.";
+    }
+
   } elsif ($c->param("edit_branch_form_mode")) {
   	# need to be a product admin for the branch's product and for any
   	# product the branch may be moved into:
@@ -345,7 +399,8 @@ if ($c->param) {
     }
   }
 
-}
+  }
+  
 
 my $products = Litmus::FormWidget->getProducts();
 my $platforms = Litmus::FormWidget->getPlatforms();
@@ -400,6 +455,10 @@ my $cookie =  Litmus::Auth::getCookie();
 $vars->{"defaultemail"} = $cookie;
 $vars->{"show_admin"} = Litmus::Auth::istrusted($cookie);
 
+if ($defaults) {
+  $vars->{'defaults'} = $defaults;
+}
+
 Litmus->template()->process("admin/edit_categories.tmpl", $vars) ||
   internalError(Litmus->template()->error());
 
@@ -407,9 +466,4 @@ Litmus->template()->process("admin/edit_categories.tmpl", $vars) ||
 #printf  "<div id='pageload'>Page took %f seconds to load.</div>", $elapsed;
 
 exit 0;
-
-
-
-
-
 

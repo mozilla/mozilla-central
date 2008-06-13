@@ -6,11 +6,13 @@ var testday;
 
 function enableBranchModeButtons() {
   document.getElementById("edit_branch_button").disabled=false;
+  document.getElementById("clone_branch_button").disabled=false;
   document.getElementById("delete_branch_button").disabled=false;
 }
 
 function disableBranchModeButtons() {
   document.getElementById("edit_branch_button").disabled=true;
+  document.getElementById("clone_branch_button").disabled=true;
   document.getElementById("delete_branch_button").disabled=true;
 }
 
@@ -437,4 +439,16 @@ function resetProduct() {
 
 function setAuthor(authorBox, user_id) {
   setSelected(authorBox,user_id);;
+}
+
+function disableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=true;
+  document.getElementById('new_name_regexp').disabled=true;
+  document.getElementById('update_names').setAttribute('class','disabled');
+}
+
+function enableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=false;
+  document.getElementById('new_name_regexp').disabled=false;
+  document.getElementById('update_names').setAttribute('class','');
 }

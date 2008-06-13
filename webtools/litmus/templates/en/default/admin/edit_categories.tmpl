@@ -33,6 +33,7 @@ var current_user_id=[% user.user_id %];
 var products=[% products_js %];
 var branches=[% branches_js %];
 var testgroups=[% testgroups_js %];
+var starting_div=[% IF defaults.platform_id %]1[% ELSIF defaults.opsys_id %]2[% ELSIF defaults.branch_id %]3[% ELSE %]0[% END %];
 
 </script>
 
@@ -68,7 +69,20 @@ var testgroups=[% testgroups_js %];
     Element.cleanWhitespace('manage_platforms_div');    
     Element.cleanWhitespace('manage_opsyses_div');    
     Element.cleanWhitespace('manage_branches_div');    
-    ec_init();
+    ec_init(starting_div);
+    [% IF defaults.product_id %]
+    setSelected(document.getElementById("product_id"), [% defaults.product_id || 0 %]);
+    loadProduct();
+    [% ELSIF defaults.platform_id %]
+    setSelected(document.getElementById("platform_id"), [% defaults.platform_id || 0 %]);
+    loadPlatform();
+    [% ELSIF defaults.opsys_id %]
+    setSelected(document.getElementById("opsys_id"), [% defaults.opsys_id || 0 %]);
+    loadOpsys();
+    [% ELSIF defaults.branch_id %]
+    setSelected(document.getElementById("branch_id"), [% defaults.branch_id || 0 %]);
+    loadBranch();
+    [% END %]
   </script>
 
 </div> <!--END page-->

@@ -34,6 +34,7 @@ var doFilterList = function(req) {
   }
   toggleMessage('none');
   enableForm(formName);
+  disableModeButtons();
 };
 
 // filter the list by various criteria:
@@ -42,7 +43,9 @@ function filterList() {
   if (filter_req instanceof Deferred && filter_req.fired == -1)
     filter_req.cancel();
 
+  disableModeButtons();
   disableForm(formName);
+  
 
   var productfilter = document.getElementById('product_filter');
   var branchfilter = document.getElementById('branch_filter');
@@ -78,6 +81,8 @@ function disableModeButtons() {
 }
 
 function loadTestgroup(silent) {
+  disableModeButtons();
+
   var testgroup_select = document.getElementById("testgroup_id");
 
   if (! testgroup_select ||
@@ -106,19 +111,23 @@ function populateTestgroup(data) {
   document.getElementById('testgroup_id_display').innerHTML = testgroup.testgroup_id;
   document.getElementById('testgroup_id_display_edit').innerHTML = testgroup.testgroup_id;
   document.getElementById('name').value = testgroup.name;
-  document.getElementById('name_text').innerHTML = testgroup.name;
+  document.getElementById('testgroup_name_display').innerHTML = testgroup.name;
+  document.getElementById('testgroup_enabled_display').innerHTML = testgroup.enabled ? 'Yes' : 'No';
+  document.getElementById('testgroup_creator_display').innerHTML = testgroup.creator_id.email ? testgroup.creator_id.email : "Not specified";
+  document.getElementById('testgroup_creation_date_display').innerHTML = testgroup.creation_date;
+  document.getElementById('testgroup_last_updated_display').innerHTML = testgroup.last_updated;
 
   var productBox = document.getElementById('product');
   var found_product = setSelected(productBox,testgroup.product_id.product_id);
   if (found_product == 1) {
     for (var i=0; i<products.length; i++) {
       if (products[i].product_id == testgroup.product_id.product_id) {
-        document.getElementById('product_text').innerHTML = products[i].name;
+        document.getElementById('testgroup_product_name_display').innerHTML = products[i].name;
         continue;
       }
     }
   } else {
-   document.getElementById('product_text').innerHTML = '<em>No product set for this testgroup.</em>';
+   document.getElementById('testgroup_product_name_display').innerHTML = '<em>No product set for this testgroup.</em>';
   }
   changeProduct();
   var branchBox = document.getElementById('branch');
@@ -127,19 +136,21 @@ function populateTestgroup(data) {
   if (found_branch == 1) {
     for (var i=0; i<branches.length; i++) {
       if (branches[i].branch_id == testgroup.branch_id.branch_id) {
-        document.getElementById('branch_text').innerHTML = branches[i].name;
+        document.getElementById('testgroup_branch_name_display').innerHTML = branches[i].name;
         continue;
       }
     }
   } else {
-    document.getElementById('branch_text').innerHTML = '<em>No branch set for this testgroup.</em>';
+    document.getElementById('testgroup_branch_name_display').innerHTML = '<em>No branch set for this testgroup.</em>';
   }
 
   var enabled_em = document.getElementById('enabled')
   if (testgroup.enabled == 1) {
     enabled_em.checked = true;
+    document.getElementById("testgroup_enabled_display").innerHTML = 'Yes';
   } else {
     enabled_em.checked = false;
+    document.getElementById("testgroup_enabled_display").innerHTML = 'No';
  } 
 
   populateAllSubgroups();
@@ -166,6 +177,10 @@ function blankTestgroupForm(formid) {
   blankForm(formid);
   updatePersistVars();
   document.getElementById('testgroup_id_display').innerHTML = '';
+  document.getElementById('testgroup_name_display').innerHTML = '';
+  document.getElementById('testgroup_enabled_display').innerHTML = '';
+  document.getElementById('testgroup_creation_date_display').innerHTML = '';
+  document.getElementById('testgroup_last_updated_display').innerHTML = '';
   var selectBoxAll = document.getElementById('subgroups_for_product');
   selectBoxAll.options.length = 0;
   selectBoxAll.options[selectBoxAll.length] = new Option("-No product selected-",
@@ -176,8 +191,8 @@ function blankTestgroupForm(formid) {
   selectBoxTestgroup.options[selectBoxTestgroup.length] = new Option("-No testgroup selected-","");
   selectBoxTestgroup.selectedIndex=-1;
 
-  document.getElementById('product_text').innerHTML = '';
-  document.getElementById('branch_text').innerHTML = '';
+  document.getElementById('testgroup_product_name_display').innerHTML = '';
+  document.getElementById('testgroup_branch_name_display').innerHTML = '';
 
   testgroup = new Object();
 
@@ -285,6 +300,18 @@ function updatePersistVars() {
     var branchPersist = document.getElementById('branch_persist');
     branchPersist.value = branchBox.options[branchBox.selectedIndex].value;
   }
+}
+
+function disableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=true;
+  document.getElementById('new_name_regexp').disabled=true;
+  document.getElementById('update_names').setAttribute('class','disabled');
+}
+
+function enableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=false;
+  document.getElementById('new_name_regexp').disabled=false;
+  document.getElementById('update_names').setAttribute('class','');
 }
 
 var manageTestgroupsHelpTitle="Help with Managing Testgroups";

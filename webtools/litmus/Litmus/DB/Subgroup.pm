@@ -35,9 +35,6 @@ package Litmus::DB::Subgroup;
 use strict;
 use base 'Litmus::DBI';
 
-use Time::Piece::MySQL;
-#use Litmus::DB::Testresult;
-
 Litmus::DB::Subgroup->table('subgroups');
 
 Litmus::DB::Subgroup->columns(All => qw/subgroup_id name enabled product_id branch_id creation_date last_updated creator_id/);
@@ -65,7 +62,7 @@ ORDER BY sgtg.sort_order ASC
 });
 
 __PACKAGE__->set_sql(ByTestgroup => qq{
-SELECT sg.* 
+SELECT sg.*
 FROM subgroups sg, subgroup_testgroups sgtg 
 WHERE 
   sgtg.testgroup_id=? AND 
@@ -129,6 +126,13 @@ WHERE
   tdsg.testday_id=? AND 
   tdsg.subgroup_id=sg.subgroup_id 
 ORDER by sg.name ASC
+});
+
+__PACKAGE__->set_sql(ByBranch => qq{
+SELECT sg.*
+FROM subgroups sg WHERE 
+  branch_id=?
+  ORDER by sg.subgroup_id ASC
 });
 
 #########################################################################
@@ -229,13 +233,39 @@ sub getNumCommunityEnabledTestcases {
 #########################################################################
 sub clone() {
   my $self = shift;
+  my $new_name = shift;
+  my $new_branch_id = shift;
 
   my $new_subgroup = $self->copy;
   if (!$new_subgroup) { 
     return undef;
   }
 
-  # Propagate testgroup membership;
+  # Update dates to now.
+  my $now = &Date::Manip::UnixDate("now","%q");
+  $new_subgroup->creation_date($now);
+  $new_subgroup->last_updated($now);
+  if ($new_name and $new_name ne "") {
+    $new_subgroup->name($new_name);
+  }
+  if ($new_branch_id and $new_branch_id > 0) {
+    $new_subgroup->branch_id($new_branch_id);
+  }
+  $new_subgroup->update();
+
+  return $new_subgroup;
+}
+
+#########################################################################
+sub clone_preserve() {
+  my $self = shift;
+
+  my $new_subgroup = $self->clone(@_);
+  if (!$new_subgroup) { 
+    return undef;
+  }
+
+  # Propagate testgroup membership.
   my $dbh = __PACKAGE__->db_Main();  
   my $sql = "INSERT INTO subgroup_testgroups (subgroup_id,testgroup_id,sort_order) SELECT ?,testgroup_id,sort_order FROM subgroup_testgroups WHERE subgroup_id=?";
   
@@ -245,11 +275,12 @@ sub clone() {
 		      $self->subgroup_id
 		     );
   if (! $rows) {
-    # XXX: Do we need to throw a warning here?
-    # What happens when we clone a subgroup that doesn't belong to  
-    # any testgroups?
+    Litmus::Error::logError("Unable to preserve testgroup mapping for subgroup ID: " .
+                            $new_subgroup->subgroup_id,
+                            caller(0));
   }  
   
+  # Propagate testcase membership.
   $sql = "INSERT INTO testcase_subgroups (testcase_id,subgroup_id,sort_order) SELECT testcase_id,?,sort_order FROM testcase_subgroups WHERE subgroup_id=?";
   
   $rows = $dbh->do($sql,
@@ -258,9 +289,68 @@ sub clone() {
                    $self->subgroup_id
                   );
   if (! $rows) {
-    # XXX: Do we need to throw a warning here?
+    Litmus::Error::logError("Unable to preserve testcase mapping for subgroup ID: " .
+                            $new_subgroup->subgroup_id,
+                            caller(0));
   }  
   
+  return $new_subgroup;
+}
+
+#########################################################################
+sub clone_recursive() {
+  my $self = shift;
+  my $new_name = shift;
+  my $new_branch_id = shift;
+  my $change_from = shift;
+  my $change_to = shift;
+
+  my $new_subgroup = $self->clone($new_name,
+                                  $new_branch_id);
+  if (!$new_subgroup) { 
+    return undef;
+  }
+
+  # ASSUMPTION: testcases only appear once in any given subgroup.
+  my $dbh = __PACKAGE__->db_Main();  
+  my $sql = "SELECT testcase_id, sort_order FROM testcase_subgroups WHERE subgroup_id=?";
+  
+  my $sth = $dbh->prepare($sql);
+  $sth->execute(
+                $self->{'subgroup_id'},
+               );
+  my $testcase_mappings;
+  while (my ($testcase_id, $sort_order) = $sth->fetchrow_array) {
+    $testcase_mappings->{$testcase_id}->{'sort_order'} = $sort_order;
+  }
+  $sth->finish;
+  
+  $sql = "INSERT INTO testcase_subgroups (testcase_id, subgroup_id, sort_order) VALUES (?,?,?)";
+  
+  foreach my $testcase_id (keys %$testcase_mappings) {
+    my $testcase = Litmus::DB::Testcase->retrieve($testcase_id);
+    if ($testcase) {
+     my $new_testcase_summary = $testcase->summary;
+      if ($change_from and $change_to) {
+        $new_testcase_summary =~ s/${change_from}/${change_to}/g;
+      }
+      my $new_testcase = $testcase->clone($new_testcase_summary,
+                                          $new_branch_id);
+      if ($new_testcase) {
+        $dbh->do($sql,
+                 undef,
+                 $new_testcase->{'testcase_id'},
+                 $new_subgroup->{'subgroup_id'},
+                 $testcase_mappings->{$testcase_id}->{'sort_order'}
+                );
+      } else {
+        Litmus::Error::logError("Unable to clone testcase ID#: " .
+                                testcase->testcase_id,
+                                caller(0));
+      }
+    }
+  }
+
   return $new_subgroup;
 }
 
@@ -382,7 +472,7 @@ sub update_testcases() {
     my $sort_order = 1;
     foreach my $new_testcase_id (@$new_testcase_ids) {
       next if (!$new_testcase_id);
-      # Log any failures/duplicate keys to STDERR.
+      # Log any failures/duplicate keys.
       eval {
         my $rows = $dbh->do($sql, 
                             undef,
@@ -392,7 +482,7 @@ sub update_testcases() {
                            );
       };
       if ($@) {
-        print STDERR $@;
+        Litmus::Error::logError($@, caller(0));
       }
       $sort_order++;
     }

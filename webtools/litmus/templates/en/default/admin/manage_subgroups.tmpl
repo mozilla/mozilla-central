@@ -81,7 +81,7 @@ var testcases=[% IF testcases_js %][% testcases_js %][% ELSE %]{}[% END %];
         <td>
 	<input id="add_subgroup_button" name="add_subgroup_button" class="manage" type="button" onClick="switchToAdd();" value="Add subgroup">&nbsp;
 	<input id="edit_subgroup_button" name="edit_subgroup_button" class="manage" type="button" onClick="switchToEdit();" value="Edit subgroup" disabled>&nbsp;
-	<input id="clone_subgroup_button" name="clone_subgroup_button" class="manage" type="submit" onClick="confirm('Really clone this subgroup?');" value="Clone subgroup" disabled>&nbsp;
+	<input id="clone_subgroup_button" name="clone_subgroup_button" class="manage" type="submit" value="Clone subgroup" disabled>&nbsp;
 	<input id="delete_subgroup_button" name="delete_subgroup_button" class="manage" type="submit" onClick="confirm('Really delete this subgroup?');" value="Delete subgroup" disabled>
         </td>
         </tr>
@@ -127,17 +127,16 @@ if (em.selectedIndex >= 0) {
 }
 var suffix='';
 [% IF product_persist %]
-setSelected(document.getElementById('product_filter'),[% product_persist | uri %]);
+  setSelected(document.getElementById('product_filter'),[% product_persist | uri %]);
+  changeProduct('_filter');
+  [% IF branch_persist %]
+    setSelected(document.getElementById('branch_filter'),[% branch_persist | uri %]);
+    [% IF testgroup_persist %]
+      setSelected(document.getElementById('testgroup_filter'),[% testgroup_persist | uri %]);
+    [% END %]
+  [% END %]
+  filterList();
 [% END %]
-changeProduct('_filter');
-[% IF branch_persist %]
-setSelected(document.getElementById('branch_filter'),[% branch_persist | uri %]);
-changeBranch('_filter');
-[% IF testgroup_persist %]
-setSelected(document.getElementById('testgroup_filter'),[% testgroup_persist | uri %]);
-[% END %]
-[% END %]
-filterList();
 </script>
 
 [% INCLUDE global/litmus_footer.tmpl %]

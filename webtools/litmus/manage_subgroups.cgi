@@ -106,6 +106,63 @@ if ($c->param("delete_subgroup_button")) {
     $status = "failure";
     $message = "Subgroup ID# $subgroup_id does not exist. (Already deleted?)";
   }
+
+} elsif ($c->param("clone_subgroup_button") and
+         $c->param("subgroup_id")) {
+ 
+  my $subgroup_id = $c->param("subgroup_id");
+  my $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
+  if ($subgroup) {
+    Litmus::Auth::requireAdmin('manage_subgroups.cgi');
+
+    # Do we already have our cloning info? Then get cloning!
+    if ($c->param("clone_type")) {
+      my $clone_type = sanitize($c->param("clone_type"));
+      my $new_name = $c->param("new_subgroup_name");
+      my $new_subgroup;
+      if ($clone_type eq "simple") {
+        $new_subgroup = $subgroup->clone($new_name);
+      } elsif ($clone_type eq "preserve") {
+        $new_subgroup = $subgroup->clone_preserve($new_name);
+
+      } elsif ($clone_type eq "recursive") {
+        my $old_name_regexp = sanitize($c->param("old_name_regexp"));
+        my $new_name_regexp = sanitize($c->param("new_name_regexp"));
+        $new_subgroup = $subgroup->clone_recursive($new_name,
+                                                   undef,
+                                                   $old_name_regexp,
+                                                   $new_name_regexp
+                                                  );
+      }
+   
+      if ($new_subgroup) {
+        $status = "success";
+        $message = "subgroup ID# $subgroup_id cloned successfully as subgroup ID# " . $new_subgroup->subgroup_id . ".";
+        $defaults->{'subgroup_id'} = $new_subgroup->subgroup_id;
+      } else {
+        $status = "failure";
+        $message = "Failed to clone subgroup ID# $subgroup_id.";
+      }
+
+    } else {
+      my @testgroups = Litmus::DB::Testgroup->search_BySubgroup($subgroup_id);
+      my $vars = {
+                  title => 'Manage subgroups - Clone',
+                  subgroup => $subgroup,
+                  testgroups => \@testgroups,
+                 };
+
+      print $c->header();
+      Litmus->template()->process("admin/clone_subgroup.tmpl", $vars) ||
+        internalError(Litmus->template()->error());
+
+      exit;
+    }
+  } else {
+    $status = "failure";
+    $message = "Failed to lookup subgroup ID# $subgroup_id.";
+  }
+  
 } elsif ($c->param("clone_subgroup_button")) {
   my $subgroup = Litmus::DB::Subgroup->retrieve($subgroup_id);
   Litmus::Auth::requireProductAdmin("manage_subgroups.cgi", $subgroup->product());
@@ -122,7 +179,7 @@ if ($c->param("delete_subgroup_button")) {
   requireField('product', $c->param('product'));
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
-  my $now = &UnixDate("today","%q");
+  my $now = &Date::Manip::UnixDate("now","%q");
   my $user_id = Litmus::Auth::getCurrentUser();
 
   if ($c->param("mode") eq "add") {

@@ -34,6 +34,7 @@ var doFilterList = function(req) {
   }
   toggleMessage('none');
   enableForm(formName);
+  disableModeButtons();
 };
 
 // filter the list by various criteria:
@@ -83,6 +84,8 @@ function disableModeButtons() {
 }
 
 function loadSubgroup(silent) {
+  disableModeButtons();
+  
   var subgroup_select = document.getElementById("subgroup_id");
 
   if (! subgroup_select ||
@@ -112,19 +115,23 @@ function populateSubgroup(data) {
   document.getElementById('subgroup_id_display').innerHTML = subgroup.subgroup_id;
   document.getElementById('subgroup_id_display_edit').innerHTML = subgroup.subgroup_id;
   document.getElementById('name').value = subgroup.name;
-  document.getElementById('name_text').innerHTML = subgroup.name;
+  document.getElementById('subgroup_name_display').innerHTML = subgroup.name;
+  document.getElementById('subgroup_enabled_display').innerHTML = subgroup.enabled ? 'Yes' : 'No';
+  document.getElementById('subgroup_creator_display').innerHTML = subgroup.creator_id.email ? subgroup.creator_id.email : "Not specified";
+  document.getElementById('subgroup_creation_date_display').innerHTML = subgroup.creation_date;
+  document.getElementById('subgroup_last_updated_display').innerHTML = subgroup.last_updated;
 
   var productBox = document.getElementById('product');
   var found_product = setSelected(productBox,subgroup.product_id.product_id);
   if (found_product == 1) {
     for (var i=0; i<products.length; i++) {
       if (products[i].product_id == subgroup.product_id.product_id) {
-        document.getElementById('product_text').innerHTML = products[i].name;
+        document.getElementById('subgroup_product_name_display').innerHTML = products[i].name;
         continue;
       }
     }
   } else {
-    document.getElementById('product_text').innerHTML = '<em>No product set for this subgroup.</em>';
+    document.getElementById('subgroup_product_name_display').innerHTML = '<em>No product set for this subgroup.</em>';
   }
   changeProduct();
   var branchBox = document.getElementById('branch');
@@ -133,12 +140,12 @@ function populateSubgroup(data) {
   if (found_branch == 1) {
     for (var i=0; i<branches.length; i++) {
       if (branches[i].branch_id == subgroup.branch_id.branch_id) {
-        document.getElementById('branch_text').innerHTML = branches[i].name;
+        document.getElementById('subgroup_branch_name_display').innerHTML = branches[i].name;
         continue;
       }
     }
   } else {
-    document.getElementById('branch_text').innerHTML = '<em>No branch set for this subgroup.</em>';
+    document.getElementById('subgroup_branch_name_display').innerHTML = '<em>No branch set for this subgroup.</em>';
   }
   var testgroups_text = "";
   var testgroups_link_text = "";
@@ -303,6 +310,17 @@ function updatePersistVars() {
   }
 }
 
+function disableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=true;
+  document.getElementById('new_name_regexp').disabled=true;
+  document.getElementById('update_names').setAttribute('class','disabled');
+}
+
+function enableCloneUpdateFields() {
+  document.getElementById('old_name_regexp').disabled=false;
+  document.getElementById('new_name_regexp').disabled=false;
+  document.getElementById('update_names').setAttribute('class','');
+}
 
 var manageTestcasesHelpTitle="Help with Managing Testcases";
 var manageTestcasesHelpText="<p>The select box on the left contains all the testcases for the chosen product, <strong><em>INCLUDING</em></strong> any testcases already contained in the subgroup. You can use the <input type='button' value='&rArr;' disabled> button to add testcases to the subgroup, and the <input type='button' value='&lArr;' disabled> button to remove testcases from the subgroup. <strong>NOTE</strong>: neither of the actions will alter the list of testcases on the left.</p><p>You can preview any testcase from the left-hand select box by selecting the testcase, and then clicking on  the 'Preview Testcase' link below the select box. If more than one testcase is selected, only the first testcase will be previewed.</p><p>You can change the display order of testcases within the subgroup using the <input type='button' value='&uArr;' disabled> and <input type='button' value='&dArr;' disabled> buttons to the right of the right-hand select box. Testcases can be re-ordered singly or in groups by selecting multiple testcases in the right-hand select box.</p>";

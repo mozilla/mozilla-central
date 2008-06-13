@@ -31,38 +31,50 @@
   #                 for a given subgroup
   # $show_edit (optional) - display subgroup for editing
 #%]
+<table class="manage">
+  <tr>
+    <td class="headerleft">Subgroup ID #:</td>
+    <td id="subgroup_id_display">[% subgroup.subgroup_id | html %]</td>
+  </tr>
+  <tr>
+    <td class="headerleft">Name:</td>
+    <td id="subgroup_name_display">[% subgroup.name | html %]</td>
+  </tr>
+  <tr>
+    <td class="headerleft"><b>Product:</b></td>
+    <td id="subgroup_product_name_display">[% subgroup.product.name | html %]</td>
+  </tr>
+  <tr>
+  <td class="headerleft">Branch:</td>
+  <td id="subgroup_branch_name_display">[% subgroup.branch.name | html %]</td>
+  </tr>
 
-[% IF show_config %]
-<table cellspacing="0" cellpadding="0" class="tcm">
+  [% IF show_admin %]
   <tr>
-    <td><b>Subgroup ID #:</b></td>
-    <td id="subgroup_id_display[% IF ! show_edit %]_[% subgroup.subgroup_id | html %][% END %]">[% subgroup.subgroup_id | html %]</td>
+    <td class="headerleft">Enabled?</td>
+    <td id="subgroup_enabled_display">[% IF subgroup.enabled %]Yes[% ELSE %]No[% END %]</td>
   </tr>
   <tr>
-    <td><b>Name:</b></td>
-    <td><div id="name_text[% IF ! show_edit %]_[% subgroup.subgroup_id | html%][% END %]">[% subgroup.name | html %]</div></td>
+    <td class="headerleft">Created By:</div></td>
+    <td id="subgroup_creator_display">[% subgroup.creator_id.email || "Not specified" | html %]</td>
   </tr>
+  [% END %]
+  
   <tr>
-  <td width="20%"><b>Product:</b></td>
-  <td>
-    <div id="product_text[% IF ! show_edit %]_[% subgroup.subgroup_id | html %][% END %]">[% subgroup.product.name | html %]</div>
-    </td>
-    [% IF ! show_edit %]<td align="right" valign="top" colspan="5"><a href="manage_subgroups.cgi?subgroup_id=[%subgroup.subgroup_id | html%]"> Edit Subgroup</a></td>[% END %]
+    <td class="headerleft">Creation Date:</td>
+    <td id="subgroup_creation_date_display">[% subgroup.creation_date %]</td>
   </tr>
+
   <tr>
-  <td width="20%"><b>Branch:</b></td>
-  <td>
-    <div id="branch_text[% IF ! show_edit %]_[% subgroup.subgroup_id | html %][% END %]">[% subgroup.branch.name | html %]</div>
-    </td>
-    [% IF ! show_edit %]<td align="right" valign="top" colspan="5"><a href="manage_subgroups.cgi?subgroup_id=[%subgroup.subgroup_id | html%]"> Edit Subgroup</a></td>[% END %]
+    <td class="headerleft">Last Updated:</td>
+    <td id="subgroup_last_updated_display">[% subgroup.last_updated %]</td>
   </tr>
+  
   <tr>
     <td><b>Test Group(s):</b></td>
-    <td>
-      <div id="testgroups_display[% IF ! show_edit %]_[% subgroup.subgroup_id | html %][% END %]">[% IF testgroups.size==0 %]<span class="errorHeading">This subgroup does not belong to any testgroups that are currently enabled.</span>[% ELSE %][% FOREACH testgroup=testgroups %][% testgroup.name | html %][% UNLESS loop.last %], [% END %][% END %][% END %]</div>
+    <td id="testgroups_display">
+      [% IF testgroups AND testgroups.size>0 %][% FOREACH testgroup=testgroups %][% testgroup.name | html %][% UNLESS loop.last %], [% END %][% END %][% ELSE %]<span class="errorHeading">This subgroup does not belong to any testgroups that are currently enabled.</span>[% END %]
     </td>
   </tr>
+  
 </table>
-
-<br clear="all" />
-[% END %]

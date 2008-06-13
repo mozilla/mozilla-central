@@ -81,7 +81,16 @@ if ($c->param("testcase_id")) {
   my @testcases = Litmus::DB::Testcase->search_BySubgroup($subgroup_id);
   $subgroup->{'testgroups'} = \@testgroups;
   $subgroup->{'testcases'} = \@testcases;
+  # WORKAROUND: Class DBI is *supposed* to do cascading lookups for sub-objects
+  # but it's not working here for users. As a result, we need to lookup the
+  # subgroup creator data ourselves and put it where we expect it to be. We
+  # then also have to call discard_changes after we json-ify it to avoid
+  # filling the logs with "<object> destroyed without saving changes" error
+  # messages.
+  my $creator = Litmus::DB::User->retrieve($subgroup->creator_id->user_id);
+  eval{$subgroup->creator_id->email($creator->email);};
   $js = $json->objToJson($subgroup);
+  $subgroup->creator_id->discard_changes;
 } elsif ($c->param("testgroup_id")) {
   my $testgroup_id = $c->param("testgroup_id");
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
@@ -89,7 +98,16 @@ if ($c->param("testcase_id")) {
   $testgroup->{'subgroups'} = \@subgroups;
   my @branches = Litmus::DB::Branch->search_ByTestgroup($testgroup_id);
   $testgroup->{'branches'} = \@branches;
+  # WORKAROUND: Class DBI is *supposed* to do cascading lookups for sub-objects
+  # but it's not working here for users. As a result, we need to lookup the
+  # testgroup creator data ourselves and put it where we expect it to be. We
+  # then also have to call discard_changes after we json-ify it to avoid
+  # filling the logs with "<object> destroyed without saving changes" error
+  # messages.
+  my $creator = Litmus::DB::User->retrieve($testgroup->creator_id->user_id);
+  $testgroup->creator_id->email($creator->email);
   $js = $json->objToJson($testgroup);
+  $testgroup->creator_id->discard_changes;
 } elsif ($c->param("test_run_id")) {
   my $test_run_id = $c->param("test_run_id");
   my $test_run = Litmus::DB::TestRun->retrieve($test_run_id);
@@ -156,11 +174,11 @@ if ($c->param("testcase_id")) {
     $args{"locale"} = $c->param("locale");
   }
   if ($c->param("start_timestamp")) {
-    $args{"start_timestamp"} = UnixDate(ParseDateString($c->param("start_timestamp")),"%q");
+    $args{"start_timestamp"} = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($c->param("start_timestamp")),"%q");
     if ($c->param("finish_timestamp")) {
-      $args{"finish_timestamp"} = UnixDate(ParseDateString($c->param("finish_timestamp")),"%q");
+      $args{"finish_timestamp"} = &Date::Manip::UnixDate(&Date::Manip::ParseDateString($c->param("finish_timestamp")),"%q");
     } else {
-      $args{"finish_timestamp"} = UnixDate("today","%q");
+      $args{"finish_timestamp"} = &Date::Manip::UnixDate("now","%q");
     }
     if (!$args{"start_timestamp"} or 
         !$args{"finish_timestamp"} or 
@@ -171,8 +189,8 @@ if ($c->param("testcase_id")) {
   } elsif ($c->param("testday_id")) {
     $args{"testday_id"} = $c->param("testday_id");
   } else {
-    $args{"finish_timestamp"} = UnixDate("today","%q");
-    $args{"start_timestamp"} = UnixDate(ParseDateString("1 month ago"),"%q");
+    $args{"finish_timestamp"} = &Date::Manip::UnixDate("now","%q");
+    $args{"start_timestamp"} = &Date::Manip::UnixDate(&Date::Manip::ParseDateString("1 month ago"),"%q");
   }
   $l10n = Litmus::DB::Testresult->getL10nAggregateResults(\%args);
   $js = $json->objToJson($l10n);
@@ -250,6 +268,6 @@ sub displayJsonErrorMessage {
   if ($main::json) {
     print $main::json->objToJson(\%error_obj);
   } else {
-    print STDERR Dumper \%error_obj;
+    Litmus::Error::logError(Dumper \%error_obj, caller(0));
   }
 }

@@ -98,23 +98,66 @@ if ($c->param("delete_testgroup_button")) {
     $status = "failure";
     $message = "Testgroup ID# $testgroup_id does not exist. (Already deleted?)";
   }
-} elsif ($c->param("clone_testgroup_button")) {
+
+} elsif ($c->param("clone_testgroup_button") and
+         $c->param("testgroup_id")) {
+ 
+  my $testgroup_id = $c->param("testgroup_id");
   my $testgroup = Litmus::DB::Testgroup->retrieve($testgroup_id);
-  Litmus::Auth::requireProductAdmin("manage_testgroups.cgi", $testgroup->product());
-  my $new_testgroup = $testgroup->clone;
-  if ($new_testgroup) {
-    $status = "success";
-    $message = "Testgroup cloned successfully. New testgroup ID# is " . $new_testgroup->testgroup_id;
-    $defaults->{'testgroup_id'} = $new_testgroup->testgroup_id;
+  if ($testgroup) {
+    Litmus::Auth::requireAdmin('manage_testgroups.cgi');
+
+    # Do we already have our cloning info? Then get cloning!
+    if ($c->param("clone_type")) {
+      my $clone_type = sanitize($c->param("clone_type"));
+      my $new_name = $c->param("new_testgroup_name");
+      my $new_testgroup;
+      if ($clone_type eq "simple") {
+        $new_testgroup = $testgroup->clone($new_name);
+      } elsif ($clone_type eq "preserve") {
+        $new_testgroup = $testgroup->clone_preserve($new_name);
+
+      } elsif ($clone_type eq "recursive") {
+        my $old_name_regexp = sanitize($c->param("old_name_regexp"));
+        my $new_name_regexp = sanitize($c->param("new_name_regexp"));
+        $new_testgroup = $testgroup->clone_recursive($new_name,
+                                                     undef,
+                                                     $old_name_regexp,
+                                                     $new_name_regexp
+                                                    );
+      }
+   
+      if ($new_testgroup) {
+        $status = "success";
+        $message = "Testgroup ID# $testgroup_id cloned successfully as testgroup ID# " . $new_testgroup->testgroup_id . ".";
+        $defaults->{'testgroup_id'} = $new_testgroup->testgroup_id;
+      } else {
+        $status = "failure";
+        $message = "Failed to clone testgroup ID# $testgroup_id.";
+      }
+
+    } else {
+      my $vars = {
+                  title => 'Manage Testgroups - Clone',
+                  testgroup => $testgroup,
+                 };
+
+      print $c->header();
+      Litmus->template()->process("admin/clone_testgroup.tmpl", $vars) ||
+        internalError(Litmus->template()->error());
+
+      exit;
+    }
   } else {
     $status = "failure";
-    $message = "Failed to clone Testgroup ID# $testgroup_id.";
+    $message = "Failed to lookup testgroup ID# $testgroup_id.";
   }
+
 } elsif ($c->param("mode")) {
   requireField('product', $c->param('product'));
   requireField('branch', $c->param('branch'));
   my $enabled = $c->param('enabled') ? 1 : 0;
-  my $now = &UnixDate("today","%q");
+  my $now = &Date::Manip::UnixDate("now","%q");
   my $user_id = Litmus::Auth::getCurrentUser();
 
   if ($c->param("mode") eq "add") {

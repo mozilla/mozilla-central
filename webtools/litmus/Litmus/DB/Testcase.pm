@@ -84,6 +84,13 @@ WHERE
   ORDER BY sgtg.sort_order ASC, tsg.sort_order ASC
 });
 
+__PACKAGE__->set_sql(ByBranch => qq{
+SELECT t.*
+FROM testcases t WHERE 
+  branch_id=?
+  ORDER by t.testcase_id ASC
+});
+
 __PACKAGE__->set_sql(EnabledBySubgroup => qq{
 SELECT DISTINCT(t.testcase_id),t.* 
 FROM testcases t, testcase_subgroups tsg, subgroup_testgroups sgtg
@@ -313,7 +320,7 @@ sub getNewTestcases() {
 });
   
   my $err;
-  my $new_datestamp=&UnixDate(DateCalc("now","- $num_days days"),"%q");
+  my $new_datestamp=&Date::Manip::UnixDate(&Date::Manip::DateCalc("now","- $num_days days"),"%q");
   return $self->search_NewTestcases($new_datestamp);
 }
 
@@ -340,7 +347,7 @@ sub getRecentlyUpdated() {
 });
   
   my $err;
-  my $new_datestamp=&UnixDate(DateCalc("now","- $num_days days"),"%q");
+  my $new_datestamp=&Date::Manip::UnixDate(&Date::Manip::DateCalc("now","- $num_days days"),"%q");
   return $self->search_RecentlyUpdated($new_datestamp);
 }
 
@@ -362,6 +369,8 @@ sub getDefaultNumDays() {
 #########################################################################
 sub clone() {
   my $self = shift;
+  my $new_summary = shift;
+  my $new_branch_id = shift;
   
   my $new_testcase = $self->copy;
   if (!$new_testcase) {
@@ -369,36 +378,34 @@ sub clone() {
   }
   
   # Update dates to now.
-  my $now = &UnixDate("today","%q");
+  my $now = &Date::Manip::UnixDate("now","%q");
   $new_testcase->creation_date($now);
   $new_testcase->last_updated($now);
+  if ($new_summary and $new_summary ne "") {
+    $new_testcase->summary($new_summary);
+  }
+  if ($new_branch_id and $new_branch_id > 0) {
+    $new_testcase->branch_id($new_branch_id);
+  }
   $new_testcase->update();
-  
-  # Propagate subgroup membership;
+
   my $dbh = __PACKAGE__->db_Main();
-  my $sql = "INSERT INTO testcase_subgroups (testcase_id,subgroup_id,sort_order) SELECT ?,subgroup_id,sort_order FROM testcase_subgroups WHERE testcase_id=?";
+  
+  # Propagate tags;
+  my $sql = "INSERT INTO testcase_tags (tag_id,testcase_id,user_id,tagged_date) SELECT tag_id,?,user_id,NOW() FROM testcase_tags WHERE testcase_id=?";
   
   my $rows = $dbh->do($sql,
-		      undef,
-		      $new_testcase->testcase_id,
-		      $self->testcase_id
-		     );
+                      undef,
+                      $new_testcase->testcase_id,
+                      $self->testcase_id
+                      );
   if (! $rows) {
-    print STDERR "WARNING: No subgroups added to new testcase: " . $new_testcase->testcase_id . "\n";
+    Litmus::Error::logError("WARNING: No tags added to new testcase: " .
+                            $new_testcase->testcase_id,
+                            caller(0));
   }
 
-  # Propagate tags;
-  $sql = "INSERT INTO testcase_tags (tag_id,testcase_id,user_id,tagged_date) SELECT tag_id,?,user_id,NOW() FROM testcase_tags WHERE testcase_id=?";
-  
-  $rows = $dbh->do($sql,
-                   undef,
-		   $new_testcase->testcase_id,
-		   $self->testcase_id
-		   );
-  if (! $rows) {
-    print STDERR "WARNING: No tags added to new testcase: " . $new_testcase->testcase_id . "\n";
-  }
-  
+  # Store information about where this testcase was cloned from.  
   $sql = "INSERT INTO related_testcases (testcase_id, related_testcase_id) VALUES (?,?)";
   $rows = $dbh->do($sql, 
                    undef,
@@ -406,7 +413,10 @@ sub clone() {
                    $new_testcase->testcase_id
                   );
   if (! $rows) {
-    print STDERR "WARNING: Unable to establish testcase relationship for testcase " . $self->testcase_id . " and testcase " . $new_testcase->testcase_id . "\n";
+    Litmus::Error::logError("WARNING: Unable to establish testcase relationship for testcase " .
+                            $self->testcase_id . " and testcase " .
+                            $new_testcase->testcase_id,
+                            caller(0));
   }
   
   return $new_testcase;
