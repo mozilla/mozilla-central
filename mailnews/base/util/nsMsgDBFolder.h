@@ -125,7 +125,6 @@ protected:
   nsresult GetWarnFilterChanged(PRBool *aVal);
   nsresult SetWarnFilterChanged(PRBool aVal);
   nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
-  nsresult ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *array);
 
 protected:
   virtual nsresult ReadDBFolderInfo(PRBool force);

@@ -599,11 +599,10 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     }
     if (isServer)
     {
-      PRUint32 numFolders = 0;
       nsCOMPtr <nsIMsgFolder> inboxFolder;
 
-      rv = GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(inboxFolder));
-      if (NS_FAILED(rv) || numFolders == 0 || !inboxFolder)
+      GetFolderWithFlags(nsMsgFolderFlags::Inbox, getter_AddRefs(inboxFolder));
+      if (!inboxFolder)
       {
         // create an inbox if we don't have one.
         CreateClientSubfolderInfo(NS_LITERAL_CSTRING("INBOX"), kOnlineHierarchySeparatorUnknown, 0, PR_TRUE);
@@ -613,7 +612,7 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     if (NS_FAILED(rv)) return rv;
   }
 
-  return NS_NewArrayEnumerator(aResult, mSubFolders);
+  return aResult ? NS_NewArrayEnumerator(aResult, mSubFolders) : NS_ERROR_NULL_POINTER;
 }
 
 //Makes sure the database is open and exists.  If the database is valid then
@@ -2021,11 +2020,11 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
     rv = GetRootFolder(getter_AddRefs(rootFolder));
     if (NS_SUCCEEDED(rv) && rootFolder)
     {
-      PRUint32 numFolders = 0;
-      rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, getter_AddRefs(trashFolder));
-      NS_ASSERTION(NS_SUCCEEDED(rv) && trashFolder != 0, "couldn't find trash");
+      rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash,
+                                     getter_AddRefs(trashFolder));
+      NS_ASSERTION(trashFolder != 0, "couldn't find trash");
       // if we can't find the trash, we'll just have to do an imap delete and pretend this is the trash
-      if (NS_FAILED(rv) || !trashFolder)
+      if (!trashFolder)
         deleteImmediatelyNoTrash = PR_TRUE;
     }
   }
@@ -2291,9 +2290,9 @@ NS_IMETHODIMP nsImapMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrlList
     m_urlListener = aListener;
 
     // Get new messages for inbox
-    PRUint32 numFolders;
     nsCOMPtr<nsIMsgFolder> inbox;
-    rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(inbox));
+    rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                        getter_AddRefs(inbox));
     if (inbox)
     {
       nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(inbox, &rv);
@@ -4166,9 +4165,8 @@ nsresult nsImapMailFolder::GetTrashFolder(nsIMsgFolder **pTrashFolder)
   nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
   if(NS_SUCCEEDED(rv) && rootFolder)
   {
-    PRUint32 numFolders;
-    rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, pTrashFolder);
-    if (numFolders != 1)
+    rv = rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash, pTrashFolder);
+    if (!*pTrashFolder)
       rv = NS_ERROR_FAILURE;
   }
   return rv;

@@ -222,8 +222,7 @@ function onCancel()
            try
            {
               //now find Inbox
-              var outNumFolders = new Object();
-              var inboxFolder = msgFolder.getFoldersWithFlag(0x1000, 1, outNumFolders);
+              var inboxFolder = msgFolder.getFolderWithFlags(0x1000);
               inboxFolder.setFilterList(null);
            }
            catch(ex)
@@ -676,8 +675,7 @@ function getFirstFolderURI(msgFolder)
     // Find Inbox for imap and pop
     if (msgFolder.server.type != "nntp")
     {
-      var outNumFolders = new Object();
-      var inboxFolder = msgFolder.getFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, outNumFolders);
+      var inboxFolder = msgFolder.getFolderWithFlags(MSG_FOLDER_FLAG_INBOX);
       if (inboxFolder)
         return inboxFolder.URI;
       else

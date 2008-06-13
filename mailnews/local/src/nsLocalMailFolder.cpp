@@ -431,7 +431,7 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     UpdateSummaryTotals(PR_FALSE);
   }
 
-  return NS_NewArrayEnumerator(aResult, mSubFolders);
+  return aResult ? NS_NewArrayEnumerator(aResult, mSubFolders) : NS_ERROR_NULL_POINTER;
 }
 
 nsresult nsMsgLocalMailFolder::GetDatabase(nsIMsgWindow *aMsgWindow)
@@ -1373,9 +1373,8 @@ nsMsgLocalMailFolder::GetTrashFolder(nsIMsgFolder** result)
   rv = GetRootFolder(getter_AddRefs(rootFolder));
   if(NS_SUCCEEDED(rv))
   {
-    PRUint32 numFolders;
-    rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, result);
-    if (NS_SUCCEEDED(rv) && numFolders != 1)
+    rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash, result);
+    if (!*result)
       rv = NS_ERROR_FAILURE;
   }
   return rv;
@@ -2166,8 +2165,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetNewMessages(nsIMsgWindow *aWindow, nsIUrl
   rv = server->GetRootMsgFolder(getter_AddRefs(rootFolder));
   if(NS_SUCCEEDED(rv) && rootFolder)
   {
-    PRUint32 numFolders;
-    rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(inbox));
+    rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, getter_AddRefs(inbox));
   }
   nsCOMPtr<nsIMsgLocalMailFolder> localInbox = do_QueryInterface(inbox, &rv);
   if (NS_SUCCEEDED(rv))

@@ -505,27 +505,26 @@ LocateMessageFolder(nsIMsgIdentity   *userIdentity,
       if(NS_FAILED(rv) || (!rootFolder))
         continue;
 
-      PRUint32 numFolders = 0;
-
       // use the defaults by getting the folder by flags
       if (aFolderType == nsIMsgSend::nsMsgQueueForLater)       // QueueForLater (Outbox)
-        {
-          rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_QUEUE, 1, &numFolders, msgFolder);
-        }
+      {
+        rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Queue, msgFolder);
+      }
       else if (aFolderType == nsIMsgSend::nsMsgSaveAsDraft)    // SaveAsDraft (Drafts)
-        {
-          rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_DRAFTS, 1, &numFolders, msgFolder);
-        }
+      {
+        rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Drafts, msgFolder);
+      }
       else if (aFolderType == nsIMsgSend::nsMsgSaveAsTemplate) // SaveAsTemplate (Templates)
-        {
-          rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TEMPLATES, 1, &numFolders, msgFolder);
-        }
+      {
+        rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Templates, msgFolder);
+      }
       else // SaveInSentFolder (Sent) -  nsMsgDeliverNow or nsMsgSendUnsent
-        {
-          rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_SENTMAIL, 1, &numFolders, msgFolder);
-        }
+      {
+        rootFolder->GetFolderWithFlags(nsMsgFolderFlags::SentMail, msgFolder);
+      }
 
-      if (NS_SUCCEEDED(rv) && *msgFolder) {
+      if (*msgFolder)
+      {
         return NS_OK;
       }
     }

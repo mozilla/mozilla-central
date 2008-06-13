@@ -824,8 +824,7 @@ function loadStartFolder(initialUri)
             if (isLoginAtStartUpEnabled)
             {
                 //now find Inbox
-                var outNumFolders = new Object();
-                var inboxFolder = rootMsgFolder.getFoldersWithFlag(0x1000, 1, outNumFolders);
+                var inboxFolder = rootMsgFolder.getFolderWithFlags(0x1000);
                 if (!inboxFolder) return;
 
                 startFolderResource = inboxFolder.QueryInterface(Components.interfaces.nsIRDFResource);

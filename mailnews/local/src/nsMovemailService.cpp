@@ -379,11 +379,9 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   rootMsgFolder = do_QueryInterface(serverFolder, &rv);
   if (!rootMsgFolder)
     return rv;
-  PRUint32 numFolders;
-  rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1,
-                                         &numFolders,
+  rv = rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
                                          getter_AddRefs(inbox));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_TRUE(inbox, NS_ERROR_FAILURE);
   rv = newMailParser->Init(serverFolder, inbox,
                            mailDirectory, inputStream, nsnull, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);

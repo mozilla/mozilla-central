@@ -857,10 +857,7 @@ function GetInboxFolder(server)
         var rootMsgFolder = server.rootMsgFolder;
 
         //now find Inbox
-        var outNumFolders = new Object();
-        var inboxFolder = rootMsgFolder.getFoldersWithFlag(0x1000, 1, outNumFolders);
-
-        return inboxFolder.QueryInterface(Components.interfaces.nsIMsgFolder);
+        return rootMsgFolder.getFolderWithFlags(0x1000);
     }
     catch (ex) {
         dump(ex + "\n");
@@ -2094,8 +2091,7 @@ function SendUnsentMessages()
 
 function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer, pop3DownloadServersArray, localFoldersToDownloadTo)
 {
-  var outNumFolders = new Object();
-  var inboxFolder = currentServer.rootMsgFolder.getFoldersWithFlag(0x1000, 1, outNumFolders); 
+  var inboxFolder = currentServer.rootMsgFolder.getFolderWithFlags(0x1000); 
   // coalesce the servers that download into the same folder...
   var index = localFoldersToDownloadTo.GetIndexOf(inboxFolder);
   if (index == -1)

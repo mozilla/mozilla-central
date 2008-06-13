@@ -61,13 +61,14 @@ interface nsIInputStream;
 interface nsILocalFile;
 interface nsIMsgIdentity;
 interface nsIArray;
+interface nsIMutableArray;
 
 typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(c04b70af-21e6-4762-8650-cf2073ffc07e)]
+[scriptable, uuid(a2a555d6-e903-4b8d-9788-ef7bdf6359ef)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -307,24 +308,31 @@ interface nsIMsgFolder : nsISupports {
   void setPrefFlag();
 
   /**
-   * Gets the number of folders and folders that have the specified flag set.
+   * Gets the first folder that has the specified flags set.
    *
-   * @note DO NOT call from js with resultsize > 1. See bug 436051. This WILL
-   *       change soon.
-   *
-   * @param flags       The flag(s) to check for.
-   * @param resultsize  The maximum number of folders to check/get
-   * @param numFolders  The number of folders being returned
-   * @return            As per the note above, if resultsize = 1, this will be
-   *                    treated as a normal pointer. If resultsize > 1, the
-   *                    code will treat the result as an array and try to fill
-   *                    it in.
+   * @param flags    The flag(s) to check for.
+   * @return         The folder or the first available child folder that has
+   *                 the specified flags set, or null if there are none.
    */
-  nsIMsgFolder getFoldersWithFlag(in unsigned long flags,
-                                  in unsigned long resultsize,
-                                  out unsigned long numFolders);
+  nsIMsgFolder getFolderWithFlags(in unsigned long flags);
 
-  nsISupportsArray getAllFoldersWithFlag(in unsigned long aFlag);
+  /**
+   * Gets the folders that have the specified flag set.
+   *
+   * @param flags    The flag(s) to check for.
+   * @return         An array of folders that have the specified flags set.
+   *                 The array may have zero elements.
+   */
+  nsIArray getFoldersWithFlags(in unsigned long flags);
+
+  /**
+   * Lists the folders that have the specified flag set.
+   *
+   * @param flags    The flag(s) to check for.
+   * @param folders  The array in which to append the found folder(s).
+   */
+  void listFoldersWithFlags(in unsigned long flags,
+                            in nsIMutableArray folders);
 
   void getExpansionArray(in nsISupportsArray expansionArray);
 

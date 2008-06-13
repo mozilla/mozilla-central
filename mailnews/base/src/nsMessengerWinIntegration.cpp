@@ -1137,10 +1137,10 @@ nsMessengerWinIntegration::SetupInbox()
     if (!rootMsgFolder)
       return NS_ERROR_FAILURE;
 
-    PRUint32 numFolders = 0;
     nsCOMPtr <nsIMsgFolder> inboxFolder;
-    rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(inboxFolder));
-    NS_ENSURE_SUCCESS(rv,rv);
+    rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                      getter_AddRefs(inboxFolder));
+    NS_ENSURE_TRUE(inboxFolder, NS_ERROR_FAILURE);
 
     if (!inboxFolder)
      return NS_ERROR_FAILURE;

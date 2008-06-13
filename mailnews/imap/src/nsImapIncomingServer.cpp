@@ -1475,25 +1475,29 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
 
     // Verify there is only one trash folder. Another might be present if
     // the trash name has been changed.
-    PRUint32 numFolders;
-    rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 0, &numFolders, NULL);
+    nsCOMPtr<nsIArray> trashFolders;
+    rv = rootMsgFolder->GetFoldersWithFlags(nsMsgFolderFlags::Trash,
+                                            getter_AddRefs(trashFolders));
 
-    if (NS_SUCCEEDED(rv) && numFolders > 1)
+    if (NS_SUCCEEDED(rv) && trashFolders)
     {
-      nsAutoString trashName;
-      if (NS_SUCCEEDED(GetTrashFolderName(trashName)))
+      PRUint32 numFolders;
+      trashFolders->GetLength(&numFolders);
+      if (numFolders > 1)
       {
-        nsIMsgFolder *trashFolders[2];
-        if (NS_SUCCEEDED(rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 2,
-          &numFolders, trashFolders)))
+        nsAutoString trashName;
+        if (NS_SUCCEEDED(GetTrashFolderName(trashName)))
         {
           for (PRUint32 i = 0; i < numFolders; i++)
           {
-            nsAutoString folderName;
-            if (NS_SUCCEEDED(trashFolders[i]->GetName(folderName)))
-              if (!folderName.Equals(trashName))
-                trashFolders[i]->ClearFlag(MSG_FOLDER_FLAG_TRASH);
-            NS_RELEASE(trashFolders[i]);
+            nsCOMPtr<nsIMsgFolder> trashFolder(do_QueryElementAt(trashFolders, i));
+            if (trashFolder)
+            {
+              nsAutoString folderName;
+              if (NS_SUCCEEDED(trashFolder->GetName(folderName)))
+                if (!folderName.Equals(trashName))
+                  trashFolder->ClearFlag(MSG_FOLDER_FLAG_TRASH);
+            }
           }
         }
       }

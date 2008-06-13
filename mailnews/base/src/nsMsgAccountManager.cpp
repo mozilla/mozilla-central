@@ -46,6 +46,8 @@
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsISupportsArray.h"
+#include "nsIArray.h"
+#include "nsArrayUtils.h"
 #include "nsMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
@@ -2786,11 +2788,12 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
         server->GetRootFolder(getter_AddRefs(rootFolder));
         if (rootFolder)
         {
-          nsCOMPtr <nsISupportsArray> virtualFolders;
-          rv = rootFolder->GetAllFoldersWithFlag(MSG_FOLDER_FLAG_VIRTUAL, getter_AddRefs(virtualFolders));
+          nsCOMPtr <nsIArray> virtualFolders;
+          rv = rootFolder->GetFoldersWithFlags(nsMsgFolderFlags::Virtual,
+                                               getter_AddRefs(virtualFolders));
           NS_ENSURE_SUCCESS(rv, rv);
           PRUint32 vfCount;
-          virtualFolders->Count(&vfCount);
+          virtualFolders->GetLength(&vfCount);
           if (!outputStream)
           {
             GetVirtualFoldersFile(file);

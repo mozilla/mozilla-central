@@ -281,7 +281,8 @@ NS_IMETHODIMP nsRssIncomingServer::OnItemAdded(nsIRDFResource *parentItem, nsISu
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRUint32 numFolders;
-    rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, getter_AddRefs(trashFolder));
+    rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash,
+                                      getter_AddRefs(trashFolder));
 
     PRBool unsubscribe = PR_FALSE;
     if (trashFolder)

@@ -90,13 +90,8 @@ function run_test() {
   folder.setFlag(MSG_FOLDER_FLAG_CHECK_NEW);
   folder2.setFlag(MSG_FOLDER_FLAG_OFFLINE);
 
-  var number = new Object();
-
-  // Don't try getting more than one from js. Its likely to crash because
-  // of abuse of idl (bug 436051).
-  do_check_eq(root.getFoldersWithFlag(MSG_FOLDER_FLAG_CHECK_NEW, 1, number),
+  do_check_eq(root.getFolderWithFlags(MSG_FOLDER_FLAG_CHECK_NEW),
               folder);
-  do_check_eq(number.value, 1);
 
   // Test - Move folders around
 

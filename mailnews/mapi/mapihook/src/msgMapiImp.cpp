@@ -325,10 +325,7 @@ nsresult CMapiImp::GetDefaultInbox(nsIMsgFolder **inboxFolder)
     if (!rootMsgFolder)
       return NS_ERROR_FAILURE;
  
-    PRUint32 numFolders = 0;
-    rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, inboxFolder);
-    NS_ENSURE_SUCCESS(rv,rv);
- 
+    rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, inboxFolder);
     if (!*inboxFolder)
      return NS_ERROR_FAILURE;
  

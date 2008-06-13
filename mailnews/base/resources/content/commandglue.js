@@ -1060,10 +1060,7 @@ function GetSelectTrashUri(folder)
     if (msgFolder)
     {
         var rootFolder = msgFolder.rootFolder;
-        var numFolder;
-        var out = new Object();
-        var trashFolder = rootFolder.getFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, out);
-        numFolder = out.value;
+        var trashFolder = rootFolder.getFolderWithFlags(MSG_FOLDER_FLAG_TRASH);
         if (trashFolder) {
             return trashFolder.URI;
         }

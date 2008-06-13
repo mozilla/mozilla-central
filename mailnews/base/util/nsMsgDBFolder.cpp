@@ -88,7 +88,7 @@
 #include "nsArrayEnumerator.h"
 #include <time.h>
 #include "nsIMsgFolderNotificationService.h"
-#include "nsIArray.h"
+#include "nsIMutableArray.h"
 #include "nsArrayUtils.h"
 
 #define oneHour 3600000000U
@@ -2171,7 +2171,7 @@ typedef PRBool
 NS_IMETHODIMP
 nsMsgDBFolder::GetSubFolders(nsISimpleEnumerator **aResult)
 {
-  return NS_NewArrayEnumerator(aResult, mSubFolders);
+  return aResult ? NS_NewArrayEnumerator(aResult, mSubFolders) : NS_ERROR_NULL_POINTER;
 }
 
 NS_IMETHODIMP
@@ -3536,85 +3536,49 @@ NS_IMETHODIMP nsMsgDBFolder::SetFlags(PRUint32 aFlags)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetAllFoldersWithFlag(PRUint32 flag, nsISupportsArray **aResult)
+NS_IMETHODIMP nsMsgDBFolder::GetFolderWithFlags(PRUint32 aFlags, nsIMsgFolder** aResult)
 {
-  NS_ENSURE_ARG_POINTER(aResult);
-  nsresult rv = CallCreateInstance(NS_SUPPORTSARRAY_CONTRACTID, aResult);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  return ListFoldersWithFlag(flag, *aResult);
-}
-
-nsresult nsMsgDBFolder::ListFoldersWithFlag(PRUint32 flag, nsISupportsArray *array)
-{
-  if ((flag & mFlags) == flag)
+  if ((mFlags & aFlags) == aFlags)
   {
-    nsCOMPtr <nsISupports> supports;
-    QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(supports));
-    array->AppendElement(supports);
+    NS_ADDREF(*aResult = this);
+    return NS_OK;
   }
 
-  nsresult rv;
-
-  // call GetSubFolders() to ensure that mSubFolders is initialized
-  nsCOMPtr<nsISimpleEnumerator> enumerator;
-  rv = GetSubFolders(getter_AddRefs(enumerator));
-  NS_ENSURE_SUCCESS(rv, rv);
+  GetSubFolders(nsnull); // initialize mSubFolders
 
   PRInt32 count = mSubFolders.Count();
-  for (PRInt32 i = 0; i < count; i++)
-  {
-    nsMsgDBFolder *dbFolder = static_cast<nsMsgDBFolder *>(mSubFolders[i]);
-    dbFolder->ListFoldersWithFlag(flag,array);
-  }
+  *aResult = nsnull;
+  for (PRInt32 i = 0; !*aResult && i < count; ++i)
+    mSubFolders[i]->GetFolderWithFlags(aFlags, aResult);
+
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlag(PRUint32 flags, PRUint32 resultsize, PRUint32 *numFolders, nsIMsgFolder **result)
+NS_IMETHODIMP nsMsgDBFolder::GetFoldersWithFlags(PRUint32 aFlags, nsIArray** aResult)
 {
-  PRUint32 num = 0;
-  if ((flags & mFlags) == flags)
-  {
-    if (result && (num < resultsize))
-    {
-      result[num] = this;
-      NS_IF_ADDREF(result[num]);
-    }
-    num++;
-  }
+  NS_ENSURE_ARG_POINTER(aResult);
 
   nsresult rv;
-
-  // call GetSubFolders() to ensure that mSubFolders is initialized
-  nsCOMPtr<nsISimpleEnumerator> enumerator;
-  rv = GetSubFolders(getter_AddRefs(enumerator));
+  nsCOMPtr<nsIMutableArray> array(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
+  ListFoldersWithFlags(aFlags, array);
+  NS_ADDREF(*aResult = array);
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsMsgDBFolder::ListFoldersWithFlags(PRUint32 aFlags, nsIMutableArray* aFolders)
+{
+  NS_ENSURE_ARG_POINTER(aFolders);
+  if ((mFlags & aFlags) == aFlags)
+    aFolders->AppendElement(static_cast<nsRDFResource*>(this), PR_FALSE);
+
+  GetSubFolders(nsnull); // initialize mSubFolders
+
   PRInt32 count = mSubFolders.Count();
-  for (PRInt32 i = 0; i < count; i++)
-  {
-    nsCOMPtr<nsIMsgFolder> folder(mSubFolders[i]);
+  for (PRInt32 i = 0; i < count; ++i)
+    mSubFolders[i]->ListFoldersWithFlags(aFlags, aFolders);
 
-    // CAREFUL! if NULL is passed in for result then the caller
-    // still wants the full count!  Otherwise, the result should be at most the
-    // number that the caller asked for.
-    PRUint32 numSubFolders;
-
-    if (!result)
-    {
-      folder->GetFoldersWithFlag(flags, 0, &numSubFolders, NULL);
-      num += numSubFolders;
-    }
-    else if (num < resultsize)
-    {
-      folder->GetFoldersWithFlag(flags, resultsize - num, &numSubFolders,
-                                 result + num);
-      num += numSubFolders;
-    }
-    else
-      break;
-  }
-  *numFolders = num;
   return NS_OK;
 }
 
@@ -3622,7 +3586,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
 {
   NS_ENSURE_ARG_POINTER(expansionArray);
   // the application of flags in GetExpansionArray is subtly different
-  // than in GetFoldersWithFlag
+  // than in GetFoldersWithFlags
 
   nsresult rv;
   PRInt32 count = mSubFolders.Count();

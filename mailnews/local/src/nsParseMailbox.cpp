@@ -1791,10 +1791,9 @@ nsresult nsParseNewMailState::GetTrashFolder(nsIMsgFolder **pTrashFolder)
     incomingServer->GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
     if (rootMsgFolder)
     {
-      PRUint32 numFolders;
-      rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_TRASH, 1, &numFolders, pTrashFolder);
-      if (*pTrashFolder)
-        NS_ADDREF(*pTrashFolder);
+      rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Trash, pTrashFolder);
+      if (!*pTrashFolder)
+        rv = NS_ERROR_FAILURE;
     }
   }
   return rv;
@@ -1814,7 +1813,8 @@ void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
     {
       PRUint32 numFolders;
       if (!downloadFolder)
-        rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(downloadFolder));
+        rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                          getter_AddRefs(downloadFolder));
       if (downloadFolder)
         downloadFolder->GetURI(m_inboxUri);
       char * headers = m_headers.GetBuffer();

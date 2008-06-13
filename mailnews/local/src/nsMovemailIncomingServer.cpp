@@ -92,11 +92,9 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     rv = GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
     if(NS_SUCCEEDED(rv) && rootMsgFolder)
     {
-         PRUint32 numFolders;
-         rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1,
-                                                &numFolders,
-                                                getter_AddRefs(inbox));
-         if (NS_FAILED(rv) || numFolders != 1) return rv;
+         rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                           getter_AddRefs(inbox));
+         if (!inbox) return NS_ERROR_FAILURE;
     }
 
     SetPerformingBiff(PR_TRUE);

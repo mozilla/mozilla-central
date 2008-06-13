@@ -1106,15 +1106,16 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
       nsCOMPtr<nsIMsgFolder> inbox;
       if (rootMsgFolder)
       {
-          PRUint32 numFolders;
-          rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, getter_AddRefs(inbox));
+          rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                            getter_AddRefs(inbox));
           if (inbox)
           {
             nsCOMPtr <nsIMsgFolder> offlineImapFolder;
             nsCOMPtr <nsIMsgImapMailFolder> imapInbox = do_QueryInterface(inbox);
             if (imapInbox)
             {
-              rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_OFFLINE, 1, &numFolders, getter_AddRefs(offlineImapFolder));
+              rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Offline,
+                                                getter_AddRefs(offlineImapFolder));
               if (!offlineImapFolder)
               {
                 // no imap folders configured for offline use - check if the account is set up

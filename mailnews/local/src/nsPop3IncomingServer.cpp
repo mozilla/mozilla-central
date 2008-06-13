@@ -287,8 +287,7 @@ nsresult nsPop3IncomingServer::GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **
   nsresult rv = GetRootMsgFolder(getter_AddRefs(rootFolder));
   if(NS_SUCCEEDED(rv) && rootFolder)
   {
-    PRUint32 numFolders;
-    rv = rootFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1, &numFolders, inbox);
+    rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, inbox);
   }
 
   nsCOMPtr<nsIMsgLocalMailFolder> localInbox = do_QueryInterface(*inbox, &rv);
@@ -320,12 +319,9 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
   rv = GetRootMsgFolder(getter_AddRefs(rootMsgFolder));
   NS_ENSURE_TRUE(rootMsgFolder, NS_ERROR_FAILURE);
 
-  PRUint32 numFolders;
-  rv = rootMsgFolder->GetFoldersWithFlag(MSG_FOLDER_FLAG_INBOX, 1,
-                                         &numFolders,
-                                         getter_AddRefs(inbox));
-  NS_ENSURE_SUCCESS(rv,rv);
-  if (numFolders != 1)
+  rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
+                                    getter_AddRefs(inbox));
+  if (!inbox)
     return NS_ERROR_FAILURE;
 
   nsCOMPtr <nsIMsgIncomingServer> server;
