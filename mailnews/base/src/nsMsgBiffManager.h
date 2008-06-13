@@ -45,7 +45,6 @@
 #include "nsTime.h"
 #include "nsCOMPtr.h"
 #include "nsIIncomingServerListener.h"
-#include "nsIObserver.h"
 #include "nsWeakReference.h"
 
 typedef struct {
@@ -57,7 +56,6 @@ typedef struct {
 class nsMsgBiffManager
 	: public nsIMsgBiffManager,
 		public nsIIncomingServerListener,
-		public nsIObserver,
 		public nsSupportsWeakReference
 {
 public:
@@ -65,9 +63,8 @@ public:
 	virtual ~nsMsgBiffManager();
 
 	NS_DECL_ISUPPORTS
-    NS_DECL_NSIMSGBIFFMANAGER
+	NS_DECL_NSIMSGBIFFMANAGER
 	NS_DECL_NSIINCOMINGSERVERLISTENER
-	NS_DECL_NSIOBSERVER
 
 	nsresult PerformBiff();
 

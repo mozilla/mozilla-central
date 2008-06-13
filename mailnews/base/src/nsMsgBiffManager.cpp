@@ -43,7 +43,6 @@
 #include "nsIMsgMailSession.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
-#include "nsIObserverService.h"
 #include "nsStatusBarBiffManager.h"
 #include "nsCOMArray.h"
 #include "prlog.h"
@@ -52,7 +51,7 @@ static NS_DEFINE_CID(kStatusBarBiffManagerCID, NS_STATUSBARBIFFMANAGER_CID);
 
 static PRLogModuleInfo *MsgBiffLogModule = nsnull;
 
-NS_IMPL_ISUPPORTS4(nsMsgBiffManager, nsIMsgBiffManager, nsIIncomingServerListener, nsIObserver, nsISupportsWeakReference)
+NS_IMPL_ISUPPORTS3(nsMsgBiffManager, nsIMsgBiffManager, nsIIncomingServerListener, nsISupportsWeakReference)
 
 void OnBiffTimer(nsITimer *timer, void *aBiffManager)
 {
@@ -94,11 +93,6 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
     mHaveShutdown = PR_FALSE;
     return NS_OK;
   }
-
-  nsCOMPtr<nsIObserverService> observerService = 
-    do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
-    observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
   
   // Ensure status bar biff service has started
   nsCOMPtr<nsIFolderListener> statusBarBiffService = 
@@ -200,14 +194,6 @@ NS_IMETHODIMP nsMsgBiffManager::OnServerChanged(nsIMsgIncomingServer *server)
 {
   // nothing required.  If the hostname or username changed
   // the next time biff fires, we'll ping the right server
-  return NS_OK;
-}
-
-NS_IMETHODIMP nsMsgBiffManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
-{
-  if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
-    Shutdown();
-
   return NS_OK;
 }
 
