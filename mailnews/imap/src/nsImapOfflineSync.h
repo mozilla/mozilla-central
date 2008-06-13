@@ -47,7 +47,8 @@
 
 class nsImapOfflineSync : public nsIUrlListener, public nsIMsgCopyServiceListener {
 public:												// set to one folder to playback one folder only
-  nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly = nsnull);
+  nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly = nsnull, PRBool isPseudoOffline = PR_FALSE);
+
   virtual ~nsImapOfflineSync();
   
   NS_DECL_ISUPPORTS

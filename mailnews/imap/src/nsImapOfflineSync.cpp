@@ -59,7 +59,7 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 NS_IMPL_ISUPPORTS2(nsImapOfflineSync, nsIUrlListener, nsIMsgCopyServiceListener)
 
-nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly)
+nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly, PRBool isPseudoOffline)
 {
   m_singleFolderToUpdate = singleFolderOnly;
   m_window = window;
@@ -71,7 +71,7 @@ nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *liste
   m_mailboxupdatesStarted = PR_FALSE;
   m_mailboxupdatesFinished = PR_FALSE;
   m_createdOfflineFolders = PR_FALSE;
-  m_pseudoOffline = PR_FALSE;
+  m_pseudoOffline = isPseudoOffline;
   m_KeyIndex = 0;
   mCurrentUIDValidity = nsMsgKey_None;
   m_listener = listener;

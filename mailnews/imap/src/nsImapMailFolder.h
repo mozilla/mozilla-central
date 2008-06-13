@@ -64,6 +64,7 @@
 #include "nsIThread.h"
 #include "nsDataHashtable.h"
 #include "nsIMutableArray.h"
+#include "nsITimer.h"
 
 class nsImapMoveCoalescer;
 class nsIMsgIdentity;
@@ -196,6 +197,20 @@ protected:
 
 };
 
+/**
+ * Encapsulates parameters required to playback offline ops
+ * on given folder.
+ */
+struct nsPlaybackRequest
+{
+  explicit nsPlaybackRequest(nsImapMailFolder *srcFolder, nsIMsgWindow *msgWindow)
+    : SrcFolder(srcFolder), MsgWindow(msgWindow)
+  {
+  }
+  nsImapMailFolder *SrcFolder;
+  nsIMsgWindow *MsgWindow;
+};
+
 class nsImapMailFolder :  public nsMsgDBFolder,
                           public nsIMsgImapMailFolder,
                           public nsIImapMailFolderSink,
@@ -204,6 +219,7 @@ class nsImapMailFolder :  public nsMsgDBFolder,
                           public nsIMsgFilterHitNotify,
                           public nsIJunkMailClassificationListener
 {
+ static const PRUint32 PLAYBACK_TIMER_INTERVAL_IN_MS = 500; 
 public:
   nsImapMailFolder();
   virtual ~nsImapMailFolder();
@@ -411,6 +427,12 @@ protected:
   void GetTrashFolderName(nsAString &aFolderName);
   PRBool ShowPreviewText();
 
+  // Pseudo-Offline operation playback timer
+  static 
+  void PlaybackTimerCallback(nsITimer *aTimer, void *aClosure);
+  
+  nsresult CreatePlaybackTimer();
+
   PRBool m_initialized;
   PRBool m_haveDiscoveredAllFolders;
   PRBool m_haveReadNameFromDB;
@@ -467,5 +489,9 @@ protected:
   nsCString m_folderQuotaRoot;
   PRUint32 m_folderQuotaUsedKB;
   PRUint32 m_folderQuotaMaxKB;
+  
+  // Pseudo-Offline Playback support
+  nsPlaybackRequest *m_pendingPlaybackReq;
+  nsCOMPtr<nsITimer> m_playbackTimer;
 };
 #endif

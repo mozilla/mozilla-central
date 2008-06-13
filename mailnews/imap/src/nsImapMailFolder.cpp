@@ -239,6 +239,7 @@ nsImapMailFolder::nsImapMailFolder() :
   m_supportedUserFlags = 0;
   m_namespace = nsnull;
   m_numFilterClassifyRequests = 0;
+  m_pendingPlaybackReq = nsnull;  
 }
 
 nsImapMailFolder::~nsImapMailFolder()
@@ -252,6 +253,9 @@ nsImapMailFolder::~nsImapMailFolder()
     NS_IF_RELEASE(mImapHdrDownloadedAtom);
   NS_IF_RELEASE(m_moveCoalescer);
   delete m_folderACL;
+    
+  // cleanup any pending request
+  delete m_pendingPlaybackReq;
 }
 
 NS_IMPL_ADDREF_INHERITED(nsImapMailFolder, nsMsgDBFolder)
@@ -6223,27 +6227,14 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
                                PRBool isFolder, //isFolder for future use when we do cross-server folder move/copy
                                PRBool allowUndo)
 {
-  nsresult rv;
-  nsCAutoString messageIds;
-  nsTArray<nsMsgKey> srcKeyArray;
-  nsCOMPtr<nsIUrlListener> urlListener;
-  nsCOMPtr<nsISupports> srcSupport;
-  nsCOMPtr<nsISupports> copySupport;
-  PRUint32 count = 0; // needs to be inited before goto
-
   if (!(mFlags & (MSG_FOLDER_FLAG_TRASH|MSG_FOLDER_FLAG_JUNK)))
     SetMRUTime();
 
-  if (WeAreOffline())
-    return CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);
-
-  nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  srcSupport = do_QueryInterface(srcFolder);
-
+  nsresult rv;
   nsCOMPtr <nsIMsgIncomingServer> srcServer;
   nsCOMPtr <nsIMsgIncomingServer> dstServer;
+  nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
+  PRBool sameServer = PR_FALSE;
 
   rv = srcFolder->GetServer(getter_AddRefs(srcServer));
   if(NS_FAILED(rv)) goto done;
@@ -6252,10 +6243,63 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   if(NS_FAILED(rv)) goto done;
 
   NS_ENSURE_TRUE(dstServer, NS_ERROR_NULL_POINTER);
-  PRBool sameServer;
+  
   rv = dstServer->Equals(srcServer, &sameServer);
   if (NS_FAILED(rv)) goto done;
 
+  if (!WeAreOffline() && sameServer) 
+  {
+    // complete the copy operation as in offline mode
+    rv = CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);
+    
+    NS_ENSURE_SUCCESS(rv,rv);
+  
+    // XXX ebirol
+    // We make sure that the source folder is an imap folder by limiting pseudo-offline 
+    // operations to the same imap server. If we extend the code to cover non imap folders 
+    // in the future (i.e. imap folder->local folder), then the following downcast
+    // will cause either a crash or compiler error. Do not forget to change it accordingly.
+    nsImapMailFolder *srcImapFolder = static_cast<nsImapMailFolder*>(srcFolder);
+    
+    // lazily create playback timer if it is not already
+    // created
+    if (!srcImapFolder->m_playbackTimer) 
+    {
+      rv = srcImapFolder->CreatePlaybackTimer();
+      NS_ENSURE_SUCCESS(rv,rv);
+    }
+    
+    if (srcImapFolder->m_playbackTimer) 
+    {
+      // if there is no pending request, create a new one, and set the timer. Otherwise
+      // use the existing one to reset the timer.
+      // it is callback function's responsibility to delete the new request object
+      if (!srcImapFolder->m_pendingPlaybackReq) 
+      {
+        srcImapFolder->m_pendingPlaybackReq = new nsPlaybackRequest(srcImapFolder, msgWindow);
+        if (!srcImapFolder->m_pendingPlaybackReq)
+          return NS_ERROR_OUT_OF_MEMORY;
+      }
+              
+      srcImapFolder->m_playbackTimer->InitWithFuncCallback(PlaybackTimerCallback, (void *) srcImapFolder->m_pendingPlaybackReq, 
+                                        PLAYBACK_TIMER_INTERVAL_IN_MS, nsITimer::TYPE_ONE_SHOT);
+    }
+    return rv;
+  }
+  else 
+  {
+    nsCAutoString messageIds;
+    nsTArray<nsMsgKey> srcKeyArray;
+    nsCOMPtr<nsIUrlListener> urlListener;
+    nsCOMPtr<nsISupports> copySupport;
+    PRUint32 count = 0; // needs to be inited before goto
+    
+    if (WeAreOffline())
+      return CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);
+    
+    nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv,rv);
+    
   PRUint32 supportedUserFlags;
   GetSupportedUserFlags(&supportedUserFlags);
 
@@ -6360,6 +6404,8 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
     rv = undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(m_copyState->m_undoMsgTxn) );
   }
 
+  }//endif
+  
 done:
   if (NS_FAILED(rv))
   {
@@ -7969,4 +8015,33 @@ NS_IMETHODIMP nsImapMailFolder::ChangePendingUnread(PRInt32 aDelta)
 {
   ChangeNumPendingUnread(aDelta);
   return NS_OK;
+}
+
+nsresult nsImapMailFolder::CreatePlaybackTimer()
+{
+  nsresult rv = NS_OK;
+  if (!m_playbackTimer)
+  {
+    m_playbackTimer = do_CreateInstance(NS_TIMER_CONTRACTID, &rv);
+    NS_ASSERTION(NS_SUCCEEDED(rv),"failed to create pseudo-offline operation timer in nsImapMailFolder");
+  }
+  return rv;
+}
+
+void nsImapMailFolder::PlaybackTimerCallback(nsITimer *aTimer, void *aClosure)
+{
+  nsPlaybackRequest *request = static_cast<nsPlaybackRequest*>(aClosure);
+  
+  NS_ASSERTION(request->SrcFolder->m_pendingPlaybackReq == request, "wrong playback request pointer");
+  
+  nsImapOfflineSync *offlineSync = new nsImapOfflineSync(request->MsgWindow, nsnull, request->SrcFolder, PR_TRUE);
+  if (offlineSync)
+  {
+    nsresult rv = offlineSync->ProcessNextOperation();
+    NS_ASSERTION(NS_SUCCEEDED(rv), "pseudo-offline playback is not successful");
+  }
+  
+  // release request struct
+  request->SrcFolder->m_pendingPlaybackReq = nsnull;
+  delete request;
 }
