@@ -41,7 +41,7 @@
 #include "nsIMsgAttachment.idl"
 #include "nsISupportsArray.idl"
 
-[scriptable, uuid(afe5fedc-7ef9-44dd-8f19-b59286357675)]
+[scriptable, uuid(9d9752b2-1dd0-466c-926f-2fe50a153406)]
 interface nsIMsgCompFields : nsISupports {
 
   attribute AString from;
@@ -104,7 +104,7 @@ interface nsIMsgCompFields : nsISupports {
   void removeAttachments();
 
   /* some utility functions */
-  nsIMsgRecipientArray SplitRecipients(in wstring recipients, in boolean emailAddressOnly);    
+  nsIMsgRecipientArray SplitRecipients(in AString aRecipients, in boolean aEmailAddressOnly);    
   void ConvertBodyToPlainText();
 
   // Check if the composing mail headers can be converted to a mail charset.

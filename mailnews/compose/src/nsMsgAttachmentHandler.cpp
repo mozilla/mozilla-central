@@ -458,8 +458,8 @@ DONE:
 
 static nsresult
 FetcherURLDoneCallback(nsresult aStatus,
-                       nsACString &aContentType,
-                       nsACString &aCharset,
+                       const nsACString &aContentType,
+                       const nsACString &aCharset,
                        PRInt32 totalSize,
                        const PRUnichar* aMsg, void *tagData)
 {

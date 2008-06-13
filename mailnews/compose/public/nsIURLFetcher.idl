@@ -47,8 +47,8 @@
 //
 // For completion of send/message creation operations...
 typedef nsresult (*nsAttachSaveCompletionCallback) (nsresult aStatus,
-                                                    nsACString &aContentType,
-                                                    nsACString &aCharset,
+                                                    const nsACString &aContentType,
+                                                    const nsACString &aCharset,
                                                     PRInt32 totalSize, const PRUnichar* aMsg, 
                                                     void *tagData);
 

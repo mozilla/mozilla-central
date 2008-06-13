@@ -191,7 +191,7 @@ public:
   nsresult SetBody(const char *value);
   const char* GetBody();
 
-  nsresult SplitRecipientsEx(const PRUnichar *recipients,
+  nsresult SplitRecipientsEx(const nsAString &recipients,
                              nsTArray<nsMsgRecipient> &aResult); 
 
 protected:

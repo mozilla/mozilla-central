@@ -581,13 +581,11 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 
 
 // This method is called during the creation of a new window.
-NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBool emailAddressOnly, nsIMsgRecipientArray **_retval)
+NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const nsAString &aRecipients, PRBool aEmailAddressOnly, nsIMsgRecipientArray **_retval)
 {
-  NS_ASSERTION(recipients, "The recipient list is not supposed to be null -Fix the caller!");
-  
   nsresult rv = NS_OK;
   
-  if (! _retval)
+  if (!_retval)
     return NS_ERROR_NULL_POINTER;
   *_retval = nsnull;
 		
@@ -606,7 +604,7 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
       char * addresses;
       PRUint32 numAddresses;
       
-      CopyUTF16toUTF8(nsDependentString(recipients), recipientsStr);
+      CopyUTF16toUTF8(aRecipients, recipientsStr);
       
       rv= parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names, 
                                        &addresses, &numAddresses);
@@ -621,10 +619,10 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
         {
           nsCString fullAddress;
           nsAutoString recipient;
-          if (!emailAddressOnly)
+          if (!aEmailAddressOnly)
             rv = parser->MakeFullAddressString(pNames, pAddresses,
                                                getter_Copies(fullAddress));
-          if (NS_SUCCEEDED(rv) && !emailAddressOnly)
+          if (NS_SUCCEEDED(rv) && !aEmailAddressOnly)
           {
             rv = ConvertToUnicode("UTF-8", fullAddress, recipient);
           }
@@ -654,7 +652,7 @@ NS_IMETHODIMP nsMsgCompFields::SplitRecipients(const PRUnichar *recipients, PRBo
 
 
 // This method is called during the sending of message from nsMsgCompose::CheckAndPopulateRecipients()
-nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients,
+nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
                                             nsTArray<nsMsgRecipient> &aResult)
 {
   nsresult rv;
@@ -668,7 +666,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const PRUnichar *recipients,
   char *addresses;
   PRUint32 numAddresses;
       
-  CopyUTF16toUTF8(nsDependentString(recipients), recipientsStr);
+  CopyUTF16toUTF8(recipients, recipientsStr);
   rv = parser->ParseHeaderAddresses("UTF-8", recipientsStr.get(), &names,
                                     &addresses, &numAddresses);
   if (NS_SUCCEEDED(rv))

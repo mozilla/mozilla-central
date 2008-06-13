@@ -4452,7 +4452,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
     if (originalRecipients[i].IsEmpty())
       continue;
 
-    rv = m_compFields->SplitRecipientsEx(originalRecipients[i].get(),
+    rv = m_compFields->SplitRecipientsEx(originalRecipients[i],
                                          recipientsList[i]);
     NS_ENSURE_SUCCESS(rv, rv);
   }
