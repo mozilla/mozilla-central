@@ -437,8 +437,6 @@ NS_IMETHODIMP nsMsgWindow::GetPromptDialog(nsIPrompt **aPrompt)
 NS_IMETHODIMP
 nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& body, PRBool clearMsgHdr)
 {
-  nsresult rv;
-
   if (clearMsgHdr && mMsgWindowCommands)
     mMsgWindowCommands->ClearMsgPane();
 
@@ -457,17 +455,16 @@ nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& b
 
   PR_FREEIF(encodedHtml);
 
-  nsCOMPtr <nsIURI> uri = do_CreateInstance("@mozilla.org/network/simple-uri;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = uri->SetSpec(dataSpec);
-  NS_ENSURE_SUCCESS(rv,rv);
-
   nsCOMPtr <nsIDocShell> docShell;
   GetMessageWindowDocShell(getter_AddRefs(docShell));
   NS_ENSURE_TRUE(docShell, NS_ERROR_FAILURE);
 
-  return docShell->LoadURI(uri,nsnull,nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
+  nsCOMPtr<nsIWebNavigation> webNav(do_QueryInterface(docShell));
+  NS_ENSURE_TRUE(webNav, NS_ERROR_FAILURE);
+
+  return webNav->LoadURI(NS_ConvertASCIItoUTF16(dataSpec).get(),
+                         nsIWebNavigation::LOAD_FLAGS_NONE,
+                         nsnull, nsnull, nsnull);
 }
 
 NS_IMPL_GETSET(nsMsgWindow, Stopped, PRBool, m_stopped)
