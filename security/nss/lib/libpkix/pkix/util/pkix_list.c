@@ -1240,36 +1240,30 @@ pkix_List_BubbleSort(
             for (i = 0; i < size - 1; i++) {
 
                 PKIX_CHECK(PKIX_List_GetItem
-                        (fromList, i, &leastObj, plContext),
+                        (sortedList, i, &leastObj, plContext),
                         PKIX_LISTGETITEMFAILED);
 
                 for (j = i + 1; j < size; j++) {
-
                         PKIX_CHECK(PKIX_List_GetItem
-                                (fromList, j, &cmpObj, plContext),
+                                (sortedList, j, &cmpObj, plContext),
                                 PKIX_LISTGETITEMFAILED);
-
                         PKIX_CHECK(comparator
                                 (leastObj, cmpObj, &cmpResult, plContext),
                                 PKIX_COMPARATORCALLBACKFAILED);
-
                         if (cmpResult > 0) {
-
-                                PKIX_CHECK(PKIX_List_SetItem
-                                    (sortedList, i, cmpObj, plContext),
-                                    PKIX_LISTSETITEMFAILED);
                                 PKIX_CHECK(PKIX_List_SetItem
                                     (sortedList, j, leastObj, plContext),
                                     PKIX_LISTSETITEMFAILED);
 
                                 PKIX_DECREF(leastObj);
-                                PKIX_INCREF(cmpObj);
                                 leastObj = cmpObj;
-
+                        } else {
+                                PKIX_DECREF(cmpObj);
                         }
-
-                        PKIX_DECREF(cmpObj);
                 }
+                PKIX_CHECK(PKIX_List_SetItem
+                           (sortedList, i, leastObj, plContext),
+                           PKIX_LISTSETITEMFAILED);
 
                 PKIX_DECREF(leastObj);
             }
