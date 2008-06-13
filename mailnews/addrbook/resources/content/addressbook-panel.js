@@ -104,7 +104,7 @@ function AbPanelLoad()
   // This listener only cares when a directory is removed or modified.
   Components.classes["@mozilla.org/abmanager;1"]
             .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(gAddressBookAbListener,
+            .addAddressBookListener(gAddressBookPanelAbListener,
                                     nsIAbListener.directoryRemoved |
                                     nsIAbListener.itemChanged);
 

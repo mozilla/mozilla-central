@@ -43,7 +43,7 @@ var dirTree = 0;
 var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;
-var gCurDirectory;
+var gCurDirectory = null;
 var gAddressBookBundle;
 
 var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
