@@ -117,10 +117,16 @@ function AbPanelLoad()
   for (var i = 0; i < 4; i++)
     popup.childNodes[i].hidden = !gMsgCompose;
   popup.childNodes[4].hidden = gMsgCompose;
+
+  if (gMsgCompose)
+    parent.addEventListener("compose-window-close", onAbClearSearch, true);
 }
 
 function AbPanelUnload()
 {
+  if (gMsgCompose)
+    parent.removeEventListener("compose-window-close", onAbClearSearch, true);
+
   Components.classes["@mozilla.org/abmanager;1"]
             .getService(Components.interfaces.nsIAbManager)
             .removeAddressBookListener(gAddressBookPanelAbListener);
