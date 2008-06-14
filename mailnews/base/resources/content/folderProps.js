@@ -36,18 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var gMsgFolder;
-var gServerTypeFolder = null;
-var gPreselectedFolderURI = null;
-var gParentMsgWindow = null;
-var gNameTextbox;
-var gOldName;
-var gOkButton;
 var gLockedPref = null;
-
-var gRebuildSummaryFileCallback;
-
-// services used
-var RDF;
 
 // corresponds to MSG_FOLDER_FLAG_OFFLINE
 const MSG_FOLDER_FLAG_OFFLINE = 0x8000000
@@ -146,7 +135,8 @@ var gFolderPropsSink = {
 
 function doEnabling()
 {
-  gOkButton.disabled = !gNameTextbox.value;
+  var nameTextbox = document.getElementById("name");
+  document.documentElement.getButton("accept").disabled = !nameTextbox.value;
 }
 
 function folderPropsOKButton()
@@ -179,7 +169,8 @@ function folderPropsOKButton()
   try
   {
     // This throws an exception when an illegal folder name was entered.
-    okCallback(gNameTextbox.value, gOldName, gPreselectedFolderURI);
+    okCallback(document.getElementById("name").value, window.arguments[0].name,
+               gMsgFolder.URI);
 
     return true;
   }
@@ -191,10 +182,6 @@ function folderPropsOKButton()
 
 function folderPropsOnLoad()
 {
-  gOkButton = document.documentElement.getButton("accept");
-
-  RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
-
   // look in arguments[0] for parameters
   if (window.arguments && window.arguments[0]) {
     if ( window.arguments[0].title ) {
@@ -203,20 +190,13 @@ function folderPropsOnLoad()
     if ( window.arguments[0].okCallback ) {
       top.okCallback = window.arguments[0].okCallback;
     }
-    if (window.arguments[0].rebuildSummaryCallback)
-      gRebuildSummaryFileCallback = window.arguments[0].rebuildSummaryCallback;
   }
 
   // fill in folder name, based on what they selected in the folder pane
-  if (window.arguments[0].preselectedURI) {
-    try {
-      gPreselectedFolderURI = window.arguments[0].preselectedURI;
-    }
-    catch (ex) {
-    }
-  }
-  else {
-    dump("passed null for preselectedURI, do nothing\n");
+  if (window.arguments[0].folder) {
+    gMsgFolder = window.arguments[0].folder;
+  } else {
+    dump("passed null for folder, do nothing\n");
   }
 
   if(window.arguments[0].name)
@@ -224,53 +204,39 @@ function folderPropsOnLoad()
     // Initialize name textbox with the given name and remember this
     // value so we can tell whether the folder needs to be renamed
     // when the dialog is accepted.
-    gNameTextbox = document.getElementById("name");
-    gNameTextbox.value = gOldName = window.arguments[0].name;
+    var nameTextbox = document.getElementById("name");
+    nameTextbox.value = window.arguments[0].name;
 
 //  name.setSelectionRange(0,-1);
 //  name.focusTextField();
   }
 
-  gServerTypeFolder = window.arguments[0].serverType;
-
-  if (window.arguments && window.arguments[0]) {
-    if (window.arguments[0].msgWindow) {
-      gParentMsgWindow = window.arguments[0].msgWindow;
-    }
-  }
-
-  // this hex value come from nsMsgFolderFlags.h
-  var folderResource = RDF.GetResource(gPreselectedFolderURI);
-
-  if (folderResource)
-    gMsgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  if (!gMsgFolder)
-    dump("no gMsgFolder preselectfolder uri = "+gPreselectedFolderURI+'\n');
+  var serverType = window.arguments[0].serverType;
 
   if (gMsgFolder) {
     var locationTextbox = document.getElementById("location");
 
     // Decode the displayed mailbox:// URL as it's useful primarily for debugging,
     // whereas imap and news urls are sent around.
-    locationTextbox.value = (gServerTypeFolder == "imap" || gServerTypeFolder == "nntp") ?
+    locationTextbox.value = (serverType == "imap" || serverType == "nntp") ?
         gMsgFolder.folderURL : decodeURI(gMsgFolder.folderURL);
 
     if (gMsgFolder.canRename)
-      gNameTextbox.removeAttribute("readonly");
+      document.getElementById("name").removeAttribute("readonly");
 
     if (gMsgFolder.flags & MSG_FOLDER_FLAG_OFFLINE) {
 
-      if(gServerTypeFolder == "imap" || gServerTypeFolder == "pop3")
+      if(serverType == "imap" || serverType == "pop3")
         document.getElementById("offline.selectForOfflineFolder").checked = true;
 
-      if(gServerTypeFolder == "nntp")
+      if(serverType == "nntp")
         document.getElementById("offline.selectForOfflineNewsgroup").checked = true;
     }
     else {
-      if(gServerTypeFolder == "imap" || gServerTypeFolder == "pop3")
+      if(serverType == "imap" || serverType == "pop3")
         document.getElementById("offline.selectForOfflineFolder").checked = false;
 
-      if(gServerTypeFolder == "nntp")
+      if(serverType == "nntp")
         document.getElementById("offline.selectForOfflineNewsgroup").checked = false;
     }
 
@@ -286,7 +252,7 @@ function folderPropsOnLoad()
     document.getElementById("folderCheckForNewMessages").checked = gMsgFolder.flags & MSG_FOLDER_FLAG_CHECK_NEW;
   }
 
-  if (gServerTypeFolder == "imap")
+  if (serverType == "imap")
   {
     var imapFolder = gMsgFolder.QueryInterface(Components.interfaces.nsIMsgImapMailFolder);
     if (imapFolder)
@@ -305,7 +271,7 @@ function folderPropsOnLoad()
     }
     catch (ex) {}
   }
-  hideShowControls(gServerTypeFolder);
+  hideShowControls(serverType);
   onCheckKeepMsg();
   onUseDefaultRetentionSettings();
 
@@ -393,14 +359,14 @@ function getEnclosingContainer(startNode)
 function onOfflineFolderDownload()
 {
   // we need to create a progress window and pass that in as the second parameter here.
-  gMsgFolder.downloadAllForOffline(null, gParentMsgWindow);
+  gMsgFolder.downloadAllForOffline(null, window.arguments[0].msgWindow);
 }
 
 function onFolderPrivileges()
 {
   var imapFolder = gMsgFolder.QueryInterface(Components.interfaces.nsIMsgImapMailFolder);
   if (imapFolder)
-    imapFolder.folderPrivileges(gParentMsgWindow);
+    imapFolder.folderPrivileges(window.arguments[0].msgWindow);
   // let's try closing the modal dialog to see if it fixes the various problems running this url
   window.close(); 
 }
@@ -416,5 +382,5 @@ function onUseDefaultRetentionSettings()
 
 function RebuildSummaryInformation()
 {
-  gRebuildSummaryFileCallback(gMsgFolder);
+  window.arguments[0].rebuildSummaryCallback(gMsgFolder);
 }

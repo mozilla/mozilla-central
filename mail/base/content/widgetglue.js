@@ -237,7 +237,7 @@ function MsgFolderProperties(tabID)
               "chrome://messenger/content/folderProps.xul",
               "",
               "chrome,centerscreen,titlebar,modal",
-              {preselectedURI:preselectedURI, serverType:serverType,
+              {folder:msgFolder, serverType:serverType,
               msgWindow:msgWindow, title:windowTitle,
               okCallback:FolderProperties,
               tabID:tabID, name:name,
