@@ -34,8 +34,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  * 
  * ***** END LICENSE BLOCK ***** */
+
+/* This file looks to Myk Melez <myk@mozilla.org>'s Mozilla Labs snowl
+ * project's (http://hg.mozilla.org/labs/snowl/) modules/datastore.js
+ * for inspiration and idioms (and also a name :).
+ */
  
- EXPORTED_SYMBOLS = ["GlodaDatastore"];
+EXPORTED_SYMBOLS = ["GlodaDatastore"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
