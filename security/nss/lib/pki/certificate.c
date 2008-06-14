@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: certificate.c,v $ $Revision: 1.64 $ $Date: 2008-06-06 01:19:30 $";
+static const char CVS_ID[] = "@(#) $RCSfile: certificate.c,v $ $Revision: 1.65 $ $Date: 2008-06-14 04:38:32 $";
 #endif /* DEBUG */
 
 #ifndef NSSPKI_H
@@ -74,10 +74,11 @@ nssCertificate_Create (
 {
     PRStatus status;
     NSSCertificate *rvCert;
-    /* mark? */
+    nssArenaMark * mark;
     NSSArena *arena = object->arena;
     PR_ASSERT(object->instances != NULL && object->numInstances > 0);
     PR_ASSERT(object->lockType == nssPKIMonitor);
+    mark = nssArena_Mark(arena);
     rvCert = nss_ZNEW(arena, NSSCertificate);
     if (!rvCert) {
 	return (NSSCertificate *)NULL;
@@ -93,13 +94,19 @@ nssCertificate_Create (
                                                   &rvCert->issuer,
                                                   &rvCert->serial,
                                                   &rvCert->subject);
-    if (status != PR_SUCCESS) {
+    if (status != PR_SUCCESS ||
+	!rvCert->encoding.data ||
+	!rvCert->encoding.size ||
+	!rvCert->issuer.data ||
+	!rvCert->issuer.size ||
+	!rvCert->serial.data ||
+	!rvCert->serial.size) {
+	if (mark)
+	    nssArena_Release(arena, mark);
 	return (NSSCertificate *)NULL;
     }
-    /* all certs need an encoding value */
-    if (rvCert->encoding.data == NULL) {
-	return (NSSCertificate *)NULL;
-    }
+    if (mark)
+	nssArena_Unmark(arena, mark);
     return rvCert;
 }
 
