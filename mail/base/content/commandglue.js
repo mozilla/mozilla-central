@@ -149,7 +149,20 @@ function UpdateMailToolbar(caller)
   observerService.notifyObservers(window, "mail:updateToolbarItems", null);
 }
 
-function ChangeFolder(folder, viewType, viewFlags, sortType, sortOrder)
+/**
+ * @param   folder                - If viewFolder is a single folder saved
+                                  - search, this folder is the scope of the
+                                  - saved search, the real, underlying folder.
+                                  - Otherwise, it's the same as the viewFolder.
+ * @param   viewFolder            - nsIMsgFolder selected in the folder pane.
+                                  - Will be the same as folder, except if
+                                  - it's a single folder saved search.
+ * @param   viewType              - nsMsgViewType (see nsIMsgDBView.idl)
+ * @param   viewFlags             - nsMsgViewFlagsType (see nsIMsgDBView.idl)
+ * @param   sortType              - nsMsgViewSortType (see nsIMsgDBView.idl)
+ * @param   sortOrder             - nsMsgViewSortOrder (see nsIMsgDBView.idl)
+ **/
+function ChangeFolder(folder, viewFolder, viewType, viewFlags, sortType, sortOrder)
 {
   if (folder.URI == gCurrentLoadingFolderURI)
     return;
@@ -159,7 +172,7 @@ function ChangeFolder(folder, viewType, viewFlags, sortType, sortOrder)
   observerService.notifyObservers(window, "mail:setupToolbarItems", folder.URI);
 
   try {
-      setTitleFromFolder(folder, null);
+      setTitleFromFolder(viewFolder, null);
   } catch (ex) {
       dump("error setting title: " + ex + "\n");
   }
@@ -916,12 +929,15 @@ function FolderPaneSelectionChange()
         var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         if (msgFolder == gMsgFolderSelected)
            return;
-
+        // If msgFolder turns out to be a single folder saved search, a virtual folder,
+        // realFolder will get set to the underlying folder the
+        // saved search is based on.
+        var realFolder = msgFolder;
         gPrevSelectedFolder = gMsgFolderSelected;
         gMsgFolderSelected = msgFolder;
         UpdateFolderLocationPicker(gMsgFolderSelected);
         var folderFlags = msgFolder.flags;
-        // if this is same folder, and we're not showing a virtual folder
+        // If this is same folder, and we're not showing a virtual folder
         // then do nothing.
         if (msgFolder == msgWindow.openFolder && 
           !(folderFlags & MSG_FOLDER_FLAG_VIRTUAL) && ! (gPrevFolderFlags & MSG_FOLDER_FLAG_VIRTUAL))
@@ -983,7 +999,9 @@ function FolderPaneSelectionChange()
                       // we need to load the db for the actual folder so that many hdrs to download
                       // will return false...
                       var realFolderRes = GetResourceFromUri(uriToLoad);
-                      var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+                      // Make msgFolder point to the real folder, not the virtual folder, so that
+                      // we pass the real folder into ChangeFolder.
+                      realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
                       msgDatabase = realFolder.getMsgDatabase(msgWindow);
                       gVirtualFolderTerms = CreateGroupedSearchTerms(tempFilter.searchTerms);
                     }
@@ -1020,7 +1038,7 @@ function FolderPaneSelectionChange()
               viewType = nsMsgViewType.eShowQuickSearchResults;
             else if (viewType == nsMsgViewType.eShowQuickSearchResults)
               viewType = nsMsgViewType.eShowAllThreads;  //override viewType - we don't want to start w/ quick search
-            ChangeFolder(msgFolder, viewType, viewFlags, sortType, sortOrder);
+            ChangeFolder(realFolder, msgFolder, viewType, viewFlags, sortType, sortOrder);
             if (gVirtualFolderTerms)
               gDBView.viewFolder = msgFolder;
         }
