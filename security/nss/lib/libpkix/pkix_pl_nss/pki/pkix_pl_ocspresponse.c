@@ -163,7 +163,6 @@ pkix_pl_OcspResponse_Destroy(
         if (ocspRsp->nssOCSPResponse != NULL) {
                 CERT_DestroyOCSPResponse(ocspRsp->nssOCSPResponse);
                 ocspRsp->nssOCSPResponse = NULL;
-                ocspRsp->signerCert = NULL;
         }
 
         if (ocspRsp->signerCert != NULL) {
@@ -956,6 +955,9 @@ cleanup:
             /* Save signer's certificate in signature. */
             signature->cert = CERT_DupCertificate(response->signerCert);
         }
+
+	if (issuerCert)
+	    CERT_DestroyCertificate(issuerCert);
         
         PKIX_RETURN(OCSPRESPONSE);
 }
