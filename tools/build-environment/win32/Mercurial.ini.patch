@@ -26,4 +26,4 @@
 +hgext.graphlog =
 +
 +[defaults]
-+diff =-p -U -8
++diff =-p -U 8
