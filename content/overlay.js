@@ -11,14 +11,15 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is Global Database.
+ * The Original Code is Thunderbird Global Database.
  *
  * The Initial Developer of the Original Code is
- * Andrew Sutherland.
+ * Mozilla Messaging, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or

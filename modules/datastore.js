@@ -1,13 +1,54 @@
-EXPORTED_SYMBOLS = ["GlodaDatastore"];
+/* ***** BEGIN LICENSE BLOCK *****
+ *   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Thunderbird Global Database.
+ *
+ * The Initial Developer of the Original Code is
+ * Mozilla Messaging, Inc.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Andrew Sutherland <asutherland@asutherland.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ * 
+ * ***** END LICENSE BLOCK ***** */
+ 
+ EXPORTED_SYMBOLS = ["GlodaDatastore"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://gloda/modules/log4moz.js");
+
 Cu.import("resource://gloda/modules/datamodel.js");
 
 let GlodaDatastore = {
+  _log: null,
+
   _schemaVersion: 1,
   _schema: {
     tables: {
@@ -55,7 +96,7 @@ let GlodaDatastore = {
         ],
         
         indices: {
-          folderID: ['folderID'],
+          messageLocation: ['folderID', 'messageKey'],
           headerMessageID: ['headerMessageID'],
           conversationID: ['conversationID'],
         },
@@ -96,6 +137,8 @@ let GlodaDatastore = {
   },
   
   _init: function glodaDBInit() {
+    this._log = Log4Moz.Service.getLogger("gloda.datastore");
+  
     // Get the path to our global database
     var dirService = Cc["@mozilla.org/file/directory_service;1"].
                      getService(Ci.nsIProperties);
@@ -206,28 +249,64 @@ let GlodaDatastore = {
       function() statement);
     return this._selectFolderLocationByURIStatement;
   },
+
+  // memoizing this is arguably overkill... fix along with _mapFolderID idiom.
+  get _selectAllFolderLocations() {
+    let statement = this._createStatement(
+      "SELECT id, folderURI FROM folderLocations");
+    this.__defineGetter__("_selectAllFolderLocations",
+      function() statement);
+    return this._selectAllFolderLocations;
+  },
   
   _folderURIs: {},
+  _folderIDs: {},
   
   _mapFolderURI: function glodaDBMapFolderURI(aFolderURI) {
     if (aFolderURI in this._folderURIs) {
       return this._folderURIs[aFolderURI];
     }
     
-    var result;
+    var folderID;
     this._selectFolderLocationByURIStatement.params.folderURI = aFolderURI;
     if (this._selectFolderLocationByURIStatement.step()) {
-      result = this._selectFolderLocationByURIStatement.folderURI;
+      folderID = this._selectFolderLocationByURIStatement.row["id"];
     }
     else {
       this._insertFolderLocationStatement.params.folderURI = aFolderURI;
       this._insertFolderLocationStatement.execute();
-      result = this.dbConnection.lastInsertRowID;
+      folderID = this.dbConnection.lastInsertRowID;
     }
     this._selectFolderLocationByURIStatement.reset();
 
-    this._folderURIs[aFolderURI] = result;
-    return result;
+    this._folderURIs[aFolderURI] = folderID;
+    this._folderIDs[folderID] = aFolderURI;
+    this._log.info("mapping URI " + aFolderURI + " to " + folderID);
+    return folderID;
+  },
+  
+  // perhaps a better approach is to just have the _folderIDs load everything
+  //  from the database the first time it is accessed, and then rely on
+  //  invariant maintenance to ensure that its state keeps up-to-date with the
+  //  actual database.
+  _mapFolderID: function glodaDBMapFolderID(aFolderID) {
+    if (aFolderID == null)
+      return null;
+    if (aFolderID in this._folderIDs)
+      return this._folderIDs[aFolderID];
+    
+    while (this._selectAllFolderLocations.step()) {
+      let folderID = this._selectAllFolderLocations.row["id"];
+      let folderURI = this._selectAllFolderLocations.row["folderURI"];
+      this._log.info("defining mapping:" + folderURI + " to " + folderID);
+      this._folderURIs[folderURI] = folderID;
+      this._folderIDs[folderID] = folderURI;
+    }
+    this._selectAllFolderLocations.reset();
+    
+    if (aFolderID in this._folderIDs)
+      return this._folderIDs[aFolderID];
+    throw "Got impossible folder ID: " + aFolderID;
   },
   
   // memoizing message statement creation
@@ -250,11 +329,32 @@ let GlodaDatastore = {
         
     ics.execute();
     
-    return new GlodaConversation(this.dbConnection.lastInsertRowID,
+    return new GlodaConversation(this, this.dbConnection.lastInsertRowID,
                                  aSubject, aOldestMessageDate,
                                  aNewestMessageDate);
   },
-  
+
+  get _selectConversationByIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM conversations WHERE id = :conversationID");
+    this.__defineGetter__("_selectConversationByIDStatement", function() statement);
+    return this._selectConversationByIDStatement; 
+  }, 
+
+  getConversationByID: function glodaDBGetConversationByID(aConversationID) {
+    this._selectConversationByIDStatement.params.conversationID =
+      aConversationID;
+    
+    let conversation = null;
+    if (this._selectConversationByIDStatement.step()) {
+      let row = this._selectConversationByIDStatement.row;
+      conversation = new GlodaConversation(this, aConversationID,
+        row["subject"], row["oldestMessageDate"], row["newestMessageDate"]);
+    }
+    this._selectConversationByIDStatement.reset();
+    
+    return conversation;
+  },
   
   // memoizing message statement creation
   get _insertMessageStatement() {
@@ -279,16 +379,12 @@ let GlodaDatastore = {
     }
     
     let ims = this._insertMessageStatement;
-    if (folderID != null)
-      ims.params.folderID = folderID;
-    if (aMessageKey != null)
-      ims.params.messageKey = aMessageKey;
+    ims.params.folderID = folderID;
+    ims.params.messageKey = aMessageKey;
     ims.params.conversationID = aConversationID;
-    if (aParentID != null)
-      ims.params.parentID = aParentID;
+    ims.params.parentID = aParentID;
     ims.params.headerMessageID = aHeaderMessageID;
-    if (aBodySnippet != null)
-      ims.params.bodySnippet = aBodySnippet;
+    ims.params.bodySnippet = aBodySnippet;
 
 
     try {
@@ -301,8 +397,9 @@ let GlodaDatastore = {
     }
     //ims.execute();
     
-    return new GlodaMessage(this.dbConnection.lastInsertRowID, folderID,
-                            aMessageKey, aConversationID, aParentID,
+    return new GlodaMessage(this, this.dbConnection.lastInsertRowID, folderID,
+                            this._mapFolderID(folderID),
+                            aMessageKey, aConversationID, null, aParentID,
                             aHeaderMessageID, aBodySnippet);
   },
   
@@ -335,9 +432,35 @@ let GlodaDatastore = {
   },
   
   _messageFromRow: function glodaDBMessageFromRow(aRow) {
-    return new GlodaMessage(aRow["id"], aRow["folderID"], aRow["messageKey"],
-                            aRow["conversationID"], aRow["parentID"],
+    return new GlodaMessage(this, aRow["id"], aRow["folderID"],
+                            this._mapFolderID(aRow["folderID"]),
+                            aRow["messageKey"],
+                            aRow["conversationID"], null,
+                            aRow["parentID"],
                             aRow["headerMessageID"], aRow["bodySnippet"]);
+  },
+
+  get _selectMessageByLocationStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM messages WHERE folderID = :folderID AND \
+                                    messageKey = :messageKey");
+    this.__defineGetter__("_selectMessageByLocationStatement",
+      function() statement);
+    return this._selectMessageByLocationStatement;
+  },
+
+  getMessageFromLocation: function glodaDBGetMessageFromLocation(aFolderURI,
+                                                                 aMessageKey) {
+    this._selectMessageByLocationStatement.params.folderID =
+      this._mapFolderURI(aFolderURI);
+    this._selectMessageByLocationStatement.params.messageKey = aMessageKey;
+    
+    let message = null;
+    if (this._selectMessageByLocationStatement.step())
+      message = this._messageFromRow(this._selectMessageByLocationStatement.row);
+    this._selectMessageByLocationStatement.reset();
+    
+    return message;
   },
   
   getMessagesByMessageID: function glodaDBGetMessagesByMessageID(aMessageIDs) {
@@ -366,7 +489,26 @@ let GlodaDatastore = {
     
     return results;
   },
-  
-};
 
-GlodaDatastore._init();
+  get _selectMessagesByConversationIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM messages WHERE conversationID = :conversationID");
+    this.__defineGetter__("_selectMessagesByConversationIDStatement",
+      function() statement);
+    return this._selectMessagesByConversationIDStatement;
+  },
+
+  getMessagesByConversationID: function glodaDBGetMessagesByConversationID(
+        aConversationID) {
+    let statement = this._selectMessagesByConversationIDStatement;
+    statement.params.conversationID = aConversationID; 
+    
+    let messages = [];
+    while (statement.step()) {
+      messages.push(this._messageFromRow(statement.row));
+    }
+    statement.reset();
+    
+    return messages;
+  },
+};
