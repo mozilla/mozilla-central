@@ -269,7 +269,7 @@ CK_MECHANISM_TYPE PK11_AlgtagToMechanism(SECOidTag algTag);
 SECOidTag PK11_MechanismToAlgtag(CK_MECHANISM_TYPE type);
 SECOidTag PK11_FortezzaMapSig(SECOidTag algTag);
 SECStatus PK11_ParamToAlgid(SECOidTag algtag, SECItem *param,
-                                   PRArenaPool *arena, SECAlgorithmID *algid);
+                                   PLArenaPool *arena, SECAlgorithmID *algid);
 SECStatus PK11_SeedRandom(PK11SlotInfo *,unsigned char *data,int len);
 SECStatus PK11_GenerateRandomOnSlot(PK11SlotInfo *,unsigned char *data,int len);
 SECStatus PK11_RandomUpdate(void *data, size_t bytes);
@@ -628,7 +628,7 @@ SECStatus PK11_TraverseCertsForNicknameInSlot(SECItem *nickname,
 CERTCertList * PK11_ListCerts(PK11CertListType type, void *pwarg);
 CERTCertList * PK11_ListCertsInSlot(PK11SlotInfo *slot);
 CERTSignedCrl* PK11_ImportCRL(PK11SlotInfo * slot, SECItem *derCRL, char *url,
-    int type, void *wincx, PRInt32 importOptions, PRArenaPool* arena, PRInt32 decodeOptions);
+    int type, void *wincx, PRInt32 importOptions, PLArenaPool* arena, PRInt32 decodeOptions);
 
 /**********************************************************************
  *                   Sign/Verify 

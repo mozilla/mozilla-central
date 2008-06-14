@@ -149,11 +149,11 @@ SEC_DeleteTempCrl(PCERTSignedCrl *crl);
 
 SECStatus
 SEC_CheckKRL(PCERTCertDBHandle *handle,SECKEYLowPublicKey *key,
-	     PCERTCertificate *rootCert, int64 t, void *wincx);
+	     PCERTCertificate *rootCert, PRTime t, void *wincx);
 
 SECStatus
 SEC_CheckCRL(PCERTCertDBHandle *handle,PCERTCertificate *cert,
-	     PCERTCertificate *caCert, int64 t, void *wincx);
+	     PCERTCertificate *caCert, PRTime t, void *wincx);
 
 SECStatus
 SEC_CrlReplaceUrl(PCERTSignedCrl *crl,char *url);
