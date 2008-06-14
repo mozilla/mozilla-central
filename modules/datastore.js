@@ -391,7 +391,6 @@ let GlodaDatastore = {
     ims.params.headerMessageID = aHeaderMessageID;
     ims.params.bodySnippet = aBodySnippet;
 
-
     try {
        ims.execute();
     }
@@ -415,18 +414,16 @@ let GlodaDatastore = {
                            conversationID = :conversationID, \
                            parentID = :parentID, \
                            headerMessageID = :headerMessageID, \
-                           bodySnippet = :boddySnippet \
+                           bodySnippet = :bodySnippet \
               WHERE id = :id");
     this.__defineGetter__("_updateMessageStatement", function() statement);
-    return this._insertMessageStatement; 
+    return this._updateMessageStatement; 
   }, 
   
   updateMessage: function glodaDBUpdateMessage(aMessage) {
-    let folderID = this._mapFolderURI(aFolderURI);
-    
     let ums = this._updateMessageStatement;
-    ums.params.id = aMessage.id
-    ums.params.folderID = aMessage.folderID
+    ums.params.id = aMessage.id;
+    ums.params.folderID = aMessage.folderID;
     ums.params.messageKey = aMessage.messageKey;
     ums.params.conversationID = aMessage.conversationID;
     ums.params.parentID = aMessage.parentID;
@@ -465,6 +462,10 @@ let GlodaDatastore = {
       message = this._messageFromRow(this._selectMessageByLocationStatement.row);
     this._selectMessageByLocationStatement.reset();
     
+    if (message == null)
+      this._log.error("Error locating message with key=" + aMessageKey +
+                      " and URI " + aFolderURI);
+    
     return message;
   },
   
@@ -494,6 +495,13 @@ let GlodaDatastore = {
     
     return results;
   },
+  
+  // could probably do with an optimized version of this...
+  getMessageByMessageID: function glodaDBGetMessageByMessageID(aMessageID) {
+    var ids = [aMessageID];
+    var messages = this.getMessagesByMessageID(ids);
+    return messages.pop();
+  },
 
   get _selectMessagesByConversationIDStatement() {
     let statement = this._createStatement(
@@ -503,9 +511,22 @@ let GlodaDatastore = {
     return this._selectMessagesByConversationIDStatement;
   },
 
+  get _selectMessagesByConversationIDNoGhostsStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM messages WHERE conversationID = :conversationID AND \
+                                    folderID IS NOT NULL");
+    this.__defineGetter__("_selectMessagesByConversationIDNoGhostsStatement",
+      function() statement);
+    return this._selectMessagesByConversationIDNoGhostsStatement;
+  },
+
   getMessagesByConversationID: function glodaDBGetMessagesByConversationID(
-        aConversationID) {
-    let statement = this._selectMessagesByConversationIDStatement;
+        aConversationID, aIncludeGhosts) {
+    let statement;
+    if (aIncludeGhosts)
+      statement = this._selectMessagesByConversationIDStatement;
+    else
+      statement = this._selectMessagesByConversationIDNoGhostsStatement;
     statement.params.conversationID = aConversationID; 
     
     let messages = [];

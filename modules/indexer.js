@@ -204,9 +204,13 @@ let GlodaIndexer = {
     let curMsg = ancestors.pop();
     
     if (curMsg != null) {
-      this._log.warn("Attempting to re-index message: " + aMsgHdr.messageId
+      // we already know about the guy, which means he was either previously
+      // a ghost or he is a duplicate...
+      if (curMsg.messageKey != null) {
+        this._log.warn("Attempting to re-index message: " + aMsgHdr.messageId
                         + " (" + aMsgHdr.subject + ")");
-      return; 
+        return;
+      } 
     }
     
     let conversationID = null;
@@ -256,7 +260,7 @@ let GlodaIndexer = {
         ancestors[iAncestor] = ancestor;
       }
       else if (ancestor.parentID == null) {
-        ancestor.parentID = lastAncestorId;
+        ancestor._parentID = lastAncestorId;
         this._datastore.updateMessage(ancestor);
       }
       
@@ -264,15 +268,22 @@ let GlodaIndexer = {
     }
     // now all our ancestors exist, though they may be ghost-like...
     
-    this._log.debug("creating message with: " + aMsgHdr.folder.URI +
-                    ", " + conversationID +
-                    ", " + lastAncestorId + ", " + aMsgHdr.messageId +
-                    ", null.");
-    curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
-                                           aMsgHdr.messageKey,                
-                                           conversationID,
-                                           lastAncestorId,
-                                           aMsgHdr.messageId,
-                                           null); // no snippet
+    if (curMsg == null) {
+      this._log.debug("creating message with: " + aMsgHdr.folder.URI +
+                      ", " + conversationID +
+                      ", " + lastAncestorId + ", " + aMsgHdr.messageId +
+                      ", null.");
+      curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
+                                             aMsgHdr.messageKey,                
+                                             conversationID,
+                                             lastAncestorId,
+                                             aMsgHdr.messageId,
+                                             null); // no snippet
+     }
+     else {
+        curMsg.folderURI = aMsgHdr.folder.URI;
+        curMsg.messageKey = aMsgHdr.messageKey;
+        this._datastore.updateMessage(curMsg);
+     }
   },
 };

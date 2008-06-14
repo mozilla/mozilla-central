@@ -64,7 +64,8 @@ GlodaConversation.prototype = {
   
   get messages() {
     if (this._messages == null) {
-      this._messages = this._datastore.getMessagesByConversationID(this._id);
+      this._messages = this._datastore.getMessagesByConversationID(this._id,
+                                                                   false);
     }
     return this._messages;
   }
@@ -98,7 +99,7 @@ GlodaMessage.prototype = {
   // conversation is special
   get parentID() { return this._parentID; },
   get headerMessageID() { return this._headerMessageID; },
-  get bodySnippet() { return this._boddySnippet; },
+  get bodySnippet() { return this._bodySnippet; },
   
   get conversation() {
     if (this._conversation == null) {
@@ -106,6 +107,11 @@ GlodaMessage.prototype = {
         this._conversationID);
     }
     return this._conversation;
+  },
+  
+  set messageKey(aMessageKey) { this._messageKey = aMessageKey; },
+  set folderURI(aFolderURI) {
+    this._folderID = this._datastore._mapFolderURI(aFolderURI);
   },
   
   /**

@@ -70,8 +70,16 @@ let Gloda = {
   },
   
   getMessageForHeader: function glodaNSGetMessageForHeader(aMsgHdr) {
-    return GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
-                                                 aMsgHdr.messageKey);
+    let message = GlodaDatastore.getMessageFromLocation(aMsgHdr.folder.URI,
+                                                        aMsgHdr.messageKey);
+    if (message == null) {
+      message = GlodaDatastore.getMessageByMessageID(aMsgHdr.messageId);
+      this._log.warn("Fell back to locating message by id; actual message " +
+                     "key is: " + aMsgHdr.messageKey + " database key: " +
+                     message.messageKey);
+    }
+    
+    return message;
   },
   
 };
