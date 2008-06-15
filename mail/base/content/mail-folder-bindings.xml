@@ -516,6 +516,7 @@
             if (dupeNames.indexOf(label) != -1)
               label += " - " + folder.server.prettyName;
             node.setAttribute("label", label);
+            node._folder = folder;
 
             node.setAttribute("class", "folderMenuItem menuitem-iconic");
             this._setCssSelectors(folder, node);
