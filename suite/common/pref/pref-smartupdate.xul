@@ -49,7 +49,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="smartupdate_pane"
             label="&pref.smartUpdate.title;"
-            script="chrome://communicator/content/permissions/permissionsOverlay.js chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-smartupdate.js">
+            script="chrome://communicator/content/tasksOverlay.js chrome://communicator/content/pref/pref-smartupdate.js">
 
     <preferences id="smartupdate_preferences">
       <preference id="xpinstall.enabled" name="xpinstall.enabled" type="bool"/>

@@ -41,104 +41,97 @@
 
 <?xml-stylesheet href="chrome://communicator/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://communicator/locale/pref/pref-cookies.dtd">
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-cookies.dtd">
 
-<page id="cookiesPanel" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="init();"
-      headertitle="&pref.cookies.title;">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="cookies_pane"
+            label="&pref.cookies.title;"
+            script="chrome://communicator/content/pref/pref-cookies.js">
+    <preferences id="cookies_preferences">
+      <preference id="network.cookie.cookieBehavior"
+                  name="network.cookie.cookieBehavior"
+                  type="int"
+                  onchange="SetDisables(false);"/>
+      <preference id="network.cookie.lifetimePolicy"
+                  name="network.cookie.lifetimePolicy"
+                  type="int"
+                  onchange="SetDisables(this.value == '3');"/>
+      <preference id="network.cookie.lifetime.days"
+                  name="network.cookie.lifetime.days"
+                  type="int"/>
+      <preference id="network.cookie.alwaysAcceptSessionCookies"
+                  name="network.cookie.alwaysAcceptSessionCookies"
+                  type="bool"/>
+      <preference id="pref.advanced.cookies.disable_button.view_cookies"
+                  name="pref.advanced.cookies.disable_button.view_cookies"
+                  type="bool"/>
+    </preferences>
 
-  <script type="application/x-javascript" src="chrome://communicator/content/permissions/permissionsOverlay.js"/>
-
-  <script type="application/x-javascript">
-  <![CDATA[
-  var panel = "chrome://communicator/content/pref/pref-cookies.xul";
-  var _elementIDs = ["networkCookieBehavior", "networkCookieLifetime", 
-                     "alwaysAcceptSession", "lifetimeDays"];
-
-  function init()
-  {
-    parent.initPanel('chrome://communicator/content/pref/pref-cookies.xul');
-    setDisables(false);
-  }
-
-  const cookies_disabled = "2";
-  const cookies_no_third_party = "1";
-  const cookies_enabled = "0";
-  
-  const accept_normally = "0";
-  const accept_session = "2";
-  const accept_for_n_days = "3";
-  const ask_before_accepting = "1";
-
-  function setDisables(setFocus)
-  {
-    var cookieBehavior = document.getElementById("networkCookieBehavior");
-
-    var cookieLifetime = document.getElementById("networkCookieLifetime");
-    var lifetimeDays = document.getElementById("lifetimeDays");
-    var alwaysAcceptSession = document.getElementById("alwaysAcceptSession");
-
-    var cookiesDisabled = (cookieBehavior.value == cookies_disabled);
-    cookieLifetime.disabled = cookiesDisabled;
-    lifetimeDays.disabled = cookiesDisabled || (cookieLifetime.value != accept_for_n_days);
-    alwaysAcceptSession.disabled = cookiesDisabled || (cookieLifetime.value != ask_before_accepting);
-
-    if (parent.hPrefWindow.getPrefIsLocked(alwaysAcceptSession.getAttribute("prefstring")) )
-      alwaysAcceptSession.disabled = true;
-
-    if (parent.hPrefWindow.getPrefIsLocked(lifetimeDays.getAttribute("prefstring")) )
-      lifetimeDays.disabled = true;
-
-    if (parent.hPrefWindow.getPrefIsLocked(cookieLifetime.getAttribute("prefstring")) )
-      cookieLifetime.disabled = true;
-
-    if (!lifetimeDays.disabled && setFocus)
-      lifetimeDays.focus();
-  }
-  ]]>
-  </script>
-
-  <groupbox id="networkCookieAcceptPolicy">
-    <caption label="&cookiePolicy.label;"/>
-    <radiogroup id="networkCookieBehavior"
-                prefstring="network.cookie.cookieBehavior">
-      <radio value="2" label="&disableCookies.label;"
-             accesskey="&disableCookies.accesskey;" oncommand="setDisables(false);"/>
-      <radio value="1" label="&accOrgCookiesRadio.label;"
-             accesskey="&accOrgCookiesRadio.accesskey;" oncommand="setDisables(false);"/>
-      <radio value="0" label="&accAllCookiesRadio.label;"
-             accesskey="&accAllCookiesRadio.accesskey;" oncommand="setDisables(false);"/>
-    </radiogroup>
-  </groupbox>
-  <groupbox id="networkCookieLifetimePolicy">
-    <caption label="&cookieRetentionPolicy.label;"/>
-    <radiogroup id="networkCookieLifetime"
-                prefstring="network.cookie.lifetimePolicy">
-      <radio value="0" label="&acceptNormally.label;" accesskey="&acceptNormally.accesskey;" oncommand="setDisables(false);"/>
-      <radio value="2" label="&acceptForSession.label;" accesskey="&acceptForSession.accesskey;" oncommand="setDisables(false);"/>
-      <hbox align="center">
-        <radio value="3" accesskey="&acceptforNDays.accesskey;" label="&acceptforNDays.label;"
-               oncommand="setDisables(true);"/>
-        <textbox id="lifetimeDays" pref="true" size="4"
-                 preftype="int" prefstring="network.cookie.lifetime.days"/>
-        <label value="&days.label;" control="lifetimeDays"/>
+    <groupbox id="networkCookieAcceptPolicy">
+      <caption label="&cookiePolicy.label;"/>
+      <radiogroup id="networkCookieBehavior"
+                  preference="network.cookie.cookieBehavior">
+        <radio value="2"
+               label="&disableCookies.label;"
+               accesskey="&disableCookies.accesskey;"/>
+        <radio value="1"
+               label="&accOrgCookiesRadio.label;"
+               accesskey="&accOrgCookiesRadio.accesskey;"/>
+        <radio value="0"
+               label="&accAllCookiesRadio.label;"
+               accesskey="&accAllCookiesRadio.accesskey;"/>
+      </radiogroup>
+    </groupbox>
+    <groupbox id="networkCookieLifetimePolicy">
+      <caption label="&cookieRetentionPolicy.label;"/>
+      <radiogroup id="networkCookieLifetime"
+                  preference="network.cookie.lifetimePolicy">
+        <radio value="0"
+               label="&acceptNormally.label;"
+               accesskey="&acceptNormally.accesskey;"/>
+        <radio value="2"
+               label="&acceptForSession.label;"
+               accesskey="&acceptForSession.accesskey;"/>
+        <hbox align="center">
+          <radio id="acceptForNDays"
+                 value="3"
+                 label="&acceptforNDays.label;"
+                 accesskey="&acceptforNDays.accesskey;"
+                 aria-labelledby="acceptForNDays lifetimeDays daysLabel"/>
+          <textbox id="lifetimeDays"
+                   type="number"
+                   max="999"
+                   min="0"
+                   size="3"
+                   maxlength="3"
+                   preference="network.cookie.lifetime.days"
+                   aria-labelledby="acceptForNDays lifetimeDays daysLabel"/>
+          <label id="daysLabel"
+                 value="&days.label;"/>
+        </hbox>
+        <hbox>
+          <radio id="warnAboutCookies"
+                 value="1"
+                 label="&warnAboutCookies.label;"
+                 accesskey="&warnAboutCookies.accesskey;"/>
+          <checkbox id="alwaysAcceptSession"
+                    label="&forCurrentSession.label;"
+                    accesskey="&forCurrentSession.accesskey;"
+                    preference="network.cookie.alwaysAcceptSessionCookies"
+                    aria-labelledby="warnAboutCookies alwaysAcceptSession"/>
+        </hbox>
+      </radiogroup>
+    </groupbox>
+    <groupbox id="manageCookiesAndSites">
+      <caption label="&manageCookies.label;"/>
+      <description>&manageCookiesDescription.label;</description>
+      <hbox pack="end">
+        <button id="viewCookieButton"
+                label="&viewCookies.label;"
+                accesskey="&viewCookies.accesskey;"
+                preference="pref.advanced.cookies.disable_button.view_cookies"
+                oncommand="viewCookies();"/>
       </hbox>
-      <hbox>
-        <radio value="1" label="&warnAboutCookies.label;" 
-               accesskey="&warnAboutCookies.accesskey;" oncommand="setDisables(false);"/>
-        <checkbox id="alwaysAcceptSession" label="&forCurrentSession.label;" 
-                  accesskey="&forCurrentSession.accesskey;"
-                  prefstring="network.cookie.alwaysAcceptSessionCookies"/>
-      </hbox>
-    </radiogroup>
-  </groupbox>
-  <groupbox id="manageCookiesAndSites">
-    <caption label="&manageCookies.label;"/>
-    <description>&manageCookiesDescription.label;</description>
-    <hbox pack="end">
-      <button label="&viewCookies.label;" accesskey="&viewCookies.accesskey;" oncommand="viewCookies();"
-		     id="viewCookieButton"
-		     prefstring="pref.advanced.cookies.disable_button.view_cookies"/>
-    </hbox>
-  </groupbox>
-</page>
+    </groupbox>
+  </prefpane>
+</overlay>

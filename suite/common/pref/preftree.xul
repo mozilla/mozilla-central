@@ -129,9 +129,7 @@
       <treechildren id="securityChildren">
         <treeitem>
           <treerow>
-            <treecell url="chrome://communicator/content/pref/pref-cookies.xul"
-                      label="&cookies.label;"
-                      id="cookiesCell"/> 
+            <treecell label="(Migrated: &cookies.label;)"/>
           </treerow>
         </treeitem>
         <treeitem>

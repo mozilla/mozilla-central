@@ -49,8 +49,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <prefpane id="images_pane"
-            label="&pref.images.title;"
-            script="chrome://communicator/content/permissions/permissionsOverlay.js">
+            label="&pref.images.title;">
     <preferences id="images_preferences">
       <preference id="permissions.default.image"
 		  name="permissions.default.image" type="int"/>
