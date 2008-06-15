@@ -489,7 +489,7 @@
     <menu id="threadPaneContext-moveMenu"
           label="&contextMoveMsgMenu.label;"
           accesskey="&contextMoveMsgMenu.accesskey;"
-          oncommand="MsgMoveMessage(event.target._folder.URI)">
+          oncommand="MsgMoveMessage(event.target._folder)">
       <menupopup id="threadPaneContext-fileHereMenu"
                  type="folder"
                  mode="filing"
@@ -503,7 +503,7 @@
     <menu id="threadPaneContext-copyMenu"
           label="&contextCopyMsgMenu.label;"
           accesskey="&contextCopyMsgMenu.accesskey;"
-          oncommand="MsgCopyMessage(event.target._folder.URI)">
+          oncommand="MsgCopyMessage(event.target._folder)">
       <menupopup id="threadPaneContext-copyHereMenu"
                  type="folder"
                  mode="filing"
@@ -714,7 +714,7 @@
     <menu id="messagePaneContext-moveMenu"
           label="&contextMoveMsgMenu.label;"
           accesskey="&contextMoveMsgMenu.accesskey;"
-          oncommand="MsgMoveMessage(event.target._folder.URI)">
+          oncommand="MsgMoveMessage(event.target._folder)">
       <menupopup id="messagePaneContext-fileHereMenu"
                  type="folder"
                  mode="filing"
@@ -728,7 +728,7 @@
     <menu id="messagePaneContext-copyMenu"
           label="&contextCopyMsgMenu.label;"
           accesskey="&contextCopyMsgMenu.accesskey;"
-          oncommand="MsgCopyMessage(event.target._folder.URI)">
+          oncommand="MsgCopyMessage(event.target._folder)">
       <menupopup id="messagePaneContext-copyHereMenu"
                  type="folder"
                  mode="filing"
@@ -1263,7 +1263,7 @@
             <menuseparator id="messageAfterOpenMsgSeparator"/>
             <menu id="moveMenu" accesskey="&moveMsgMenu.accesskey;"
                   label="&moveMsgMenu.label;"
-                  oncommand="MsgMoveMessage(event.target._folder.URI)">
+                  oncommand="MsgMoveMessage(event.target._folder)">
               <menupopup type="folder" mode="filing" showFileHereLabel="true"
                          showRecent="true" fileHereLabel="&fileHereMenu.label;"
                          fileHereAccessKey="&fileHereMenu.accesskey;"
@@ -1272,7 +1272,7 @@
             </menu>
             <menu id="copyMenu" accesskey="&copyMsgMenu.accesskey;"
                   label="&copyMsgMenu.label;"
-                  oncommand="MsgCopyMessage(event.target._folder.URI)">
+                  oncommand="MsgCopyMessage(event.target._folder)">
               <menupopup type="folder" mode="filing" showFileHereLabel="true"
                          showRecent="true" fileHereLabel="&copyHereMenu.label;"
                          copyHereAccessKey="&fileHereMenu.accesskey;"
@@ -1451,7 +1451,7 @@
                    class="toolbarbutton-1"
                    label="&fileButton.label;"
                    observes="button_file"
-                   oncommand="MsgMoveMessage(event.target._folder.URI)">
+                   oncommand="MsgMoveMessage(event.target._folder)">
       <menupopup id="button-filePopup"
                  type="folder"
                  mode="filing"

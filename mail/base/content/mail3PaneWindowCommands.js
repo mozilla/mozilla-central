@@ -684,9 +684,9 @@ var DefaultController =
       case "cmd_moveToFolderAgain":
           var folderId = pref.getCharPref("mail.last_msg_movecopy_target_uri");
           if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
-            MsgMoveMessage(folderId);
+            MsgMoveMessage(GetMsgFolderFromUri(folderId));
           else
-            MsgCopyMessage(folderId);
+            MsgCopyMessage(GetMsgFolderFromUri(folderId));
           break;
       case "cmd_selectAll":
           // move the focus so the user can delete the newly selected messages, not the folder
@@ -1023,26 +1023,6 @@ function MsgGoForward()
 function MsgGoBack()
 {
   GoNextMessage(nsMsgNavigationType.back, true);
-}
-
-function GetFolderNameFromUri(uri, tree)
-{
-  var folderResource = RDF.GetResource(uri);
-
-  var db = tree.database;
-
-  var nameProperty = RDF.GetResource('http://home.netscape.com/NC-rdf#Name');
-
-  var nameResult;
-  try {
-    nameResult = db.GetTarget(folderResource, nameProperty , true);
-  }
-  catch (ex) {
-    return "";
-  }
-
-  nameResult = nameResult.QueryInterface(Components.interfaces.nsIRDFLiteral);
-  return nameResult.Value;
 }
 
 function SwitchPaneFocus(event)

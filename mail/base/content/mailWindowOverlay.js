@@ -367,8 +367,7 @@ function initMoveToFolderAgainMenu(aMenuItem)
   var isMove = pref.getBoolPref("mail.last_msg_movecopy_was_move");  
   if (lastFolderURI)
   {
-    var destResource = RDF.GetResource(lastFolderURI);
-    var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+    var destMsgFolder = GetMsgFolderFromUri(lastFolderURI);
     aMenuItem.label = gMessengerBundle.getFormattedString(isMove ? 
                                                           "moveToFolderAgain" : "copyToFolderAgain",
                                                           [destMsgFolder.prettyName], 1);
@@ -715,7 +714,7 @@ function populateHistoryMenu(menuPopup, isBackMenu)
   {
     navDebug("history[" + i + "] = " + historyArray[i] + "\n");
     navDebug("history[" + i + "] = " + historyArray[i + 1] + "\n");
-    folder = RDF.GetResource(historyArray[i + 1]).QueryInterface(Components.interfaces.nsIMsgFolder);
+    folder = GetMsgFolderFromUri(historyArray[i + 1])
     navDebug("folder URI = " + folder.URI + "pretty name " + folder.prettyName + "\n");
     var menuText = "";
     
@@ -1009,48 +1008,33 @@ function MsgDeleteMessage(reallyDelete, fromToolbar)
     }
 }
 
-// MsgCopyMessage
-//   Copies the selected messages to the destination folder
-//   aDestFolderURI -- the URI of the destination folder
-function MsgCopyMessage(aDestFolderURI)
+/**
+ * Copies the selected messages to the destination folder
+ * @param aDestFolder  the destination folder
+ */
+function MsgCopyMessage(aDestFolder)
 {
-  try {
-    // get the msg folder we're copying messages into
-    var destResource = RDF.GetResource(aDestFolderURI);
-    var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
-    pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolderURI);
-    pref.setBoolPref("mail.last_msg_movecopy_was_move", false);  
-  }
-  catch (ex) {
-    dump("MsgCopyMessage failed: " + ex + "\n");
-  }
+  gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
+  pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
+  pref.setBoolPref("mail.last_msg_movecopy_was_move", false);  
 }
 
-// MsgMoveMessage
-//   Moves the selected messages to the destination folder
-//   aDestFolderURI -- the URI of the destination folder
-function MsgMoveMessage(aDestFolderURI)
+/**
+ * Moves the selected messages to the destination folder
+ * @param aDestFolder  the destination folder
+ */
+function MsgMoveMessage(aDestFolder)
 {
-  try {
-    // get the msg folder we're moving messages into
-    // var destUri = destFolder.getAttribute('id');
-    var destResource = RDF.GetResource(aDestFolderURI);
-    var destMsgFolder = destResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-    // we don't move news messages, we copy them
-    if (isNewsURI(gDBView.msgFolder.URI))
-      gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
-    else 
-    {
-      SetNextMessageAfterDelete();
-      gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, destMsgFolder);
-    }    
-    pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolderURI);
-    pref.setBoolPref("mail.last_msg_movecopy_was_move", true);  
-  }
-  catch (ex) {
-    dump("MsgMoveMessage failed: " + ex + "\n");
-  }
+  // we don't move news messages, we copy them
+  if (isNewsURI(gDBView.msgFolder.URI))
+    gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
+  else 
+  {
+    SetNextMessageAfterDelete();
+    gDBView.doCommandWithFolder(nsMsgViewCommandType.moveMessages, aDestFolder);
+  }    
+  pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
+  pref.setBoolPref("mail.last_msg_movecopy_was_move", true);  
 }
 
 /**

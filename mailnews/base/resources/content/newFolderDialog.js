@@ -90,15 +90,15 @@ function onFolderSelect(event) {
 function onOK()
 {
   var name = dialog.nameField.value;
-  var uri = dialog.folder.URI;
+  var uri = dialog.folder;
 
   // do name validity check?
 
   // make sure name ends in  "/" if folder to create can only contain folders
   if ((dialog.folderType == FOLDERS) && name.charAt(name.length-1) != "/")
-    dialog.okCallback(name + "/", uri);
+    dialog.okCallback(name + "/", dialog.folder);
   else
-    dialog.okCallback(name, uri);
+    dialog.okCallback(name, dialog.folder);
 
   return true;
 }

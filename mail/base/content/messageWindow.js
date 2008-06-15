@@ -1002,9 +1002,9 @@ var MessageWindowController =
       case "cmd_moveToFolderAgain":
         var folderId = pref.getCharPref("mail.last_msg_movecopy_target_uri");
         if (pref.getBoolPref("mail.last_msg_movecopy_was_move"))
-          MsgMoveMessage(folderId);
+          MsgMoveMessage(GetMsgFolderFromUri(folderId));
         else
-          MsgCopyMessage(folderId);
+          MsgCopyMessage(GetMsgFolderFromUri(folderId));
         break;
       case "cmd_createFilterFromPopup":
         break;// This does nothing because the createfilter is invoked from the popupnode oncommand.

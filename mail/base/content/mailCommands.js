@@ -313,13 +313,11 @@ function NewMessageToSelectedAddresses(type, format, identity) {
   }
 }
 
-function NewFolder(name, uri)
+function NewFolder(name, folder)
 {
-  if (!uri || !name)
+  if (!folder || !name)
     return;
 
-  var folder = RDF.GetResource(uri);
-  folder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
   folder.createSubfolder(name, msgWindow);
 }
 

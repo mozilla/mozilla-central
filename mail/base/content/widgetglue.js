@@ -67,18 +67,15 @@ function GetSelectedFolderURI()
 
 function MsgRenameFolder()
 {
-  var preselectedURI = GetSelectedFolderURI();
-  var folderTree = GetFolderTree();
-
-  var name = GetFolderNameFromUri(preselectedURI, folderTree);
+  var folder = GetSelectedMsgFolders()[0];
 
   dump("preselectedURI = " + preselectedURI + "\n");
   var dialog = window.openDialog(
                "chrome://messenger/content/renameFolderDialog.xul",
                "newFolder",
                "chrome,titlebar,modal",
-               {preselectedURI: preselectedURI,
-                okCallback: RenameFolder, name: name});
+               {preselectedURI: folder.URI,
+                okCallback: RenameFolder, name: folder.prettyName});
 }
 
 function RenameFolder(name,uri)
@@ -175,7 +172,7 @@ function openNewVirtualFolderDialogWithArgs(defaultViewName, aSearchTerms)
 {
   var folder = GetFirstSelectedMsgFolder();
   var folderTree = GetFolderTree();
-  var name = GetFolderNameFromUri(folder.URI, folderTree);
+  var name = folder.prettyName
   name += "-" + defaultViewName;
 
   var dialog = window.openDialog("chrome://messenger/content/virtualFolderProperties.xul", "",
@@ -230,8 +227,8 @@ function MsgFolderProperties(tabID)
   }
 
   var serverType = msgFolder.server.type;
-  var folderTree = GetFolderTree();
-  var name = GetFolderNameFromUri(preselectedURI, folderTree);
+
+  var name = msgFolder.prettyName;
   var windowTitle = gMessengerBundle.getString("folderProperties");
   var dialog = window.openDialog(
               "chrome://messenger/content/folderProps.xul",
