@@ -37,10 +37,10 @@
 
 #include "nsISupports.idl"
 
-interface nsISupportsArray;
+interface nsIArray;
 interface nsIProfileStartup;
 
-[scriptable, uuid(C3CB4343-2E8B-40fd-A639-A65731BED3AE)]
+[scriptable, uuid(fca38a7a-c43f-4b28-adbd-61e5cc942508)]
 interface nsIMailProfileMigrator : nsISupports
 {
   /**
@@ -92,6 +92,6 @@ interface nsIMailProfileMigrator : nsISupports
    * An enumeration of available profiles. If the import source does
    * not support profiles, this attribute is null.
    */
-  readonly attribute nsISupportsArray sourceProfiles;
+  readonly attribute nsIArray sourceProfiles;
 };
 

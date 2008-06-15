@@ -41,7 +41,7 @@
 #include "nsIMailProfileMigrator.h"
 #include "nsILocalFile.h"
 #include "nsIObserverService.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsITimer.h"
 
@@ -83,8 +83,8 @@ protected:
   void EndCopyFolders();
 
 private:
-  nsCOMPtr<nsISupportsArray> mProfileNames;
-  nsCOMPtr<nsISupportsArray> mProfileLocations;
+  nsCOMPtr<nsIMutableArray> mProfileNames;
+  nsCOMPtr<nsIMutableArray> mProfileLocations;
   nsCOMPtr<nsIObserverService> mObserverService;
   nsCOMPtr<nsITimer> mFileIOTimer;
 

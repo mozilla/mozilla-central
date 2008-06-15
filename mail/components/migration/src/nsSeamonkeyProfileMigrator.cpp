@@ -43,7 +43,7 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIPrefService.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
+#include "nsArrayUtils.h"
 #include "nsISupportsPrimitives.h"
 #include "nsNetCID.h"
 #include "nsNetUtil.h"
@@ -285,12 +285,12 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 NS_IMETHODIMP
 nsSeamonkeyProfileMigrator::GetSourceExists(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 0;
   }
   else
@@ -302,12 +302,12 @@ nsSeamonkeyProfileMigrator::GetSourceExists(PRBool* aResult)
 NS_IMETHODIMP
 nsSeamonkeyProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 1;
   }
   else
@@ -317,14 +317,17 @@ nsSeamonkeyProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsSeamonkeyProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsSeamonkeyProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   if (!mProfileNames && !mProfileLocations) {
-    nsresult rv = NS_NewISupportsArray(getter_AddRefs(mProfileNames));
-    if (NS_FAILED(rv)) return rv;
+    nsresult rv;
+    mProfileNames = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+      return rv;
 
-    rv = NS_NewISupportsArray(getter_AddRefs(mProfileLocations));
-    if (NS_FAILED(rv)) return rv;
+    mProfileLocations = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+      return rv;
 
     // Fills mProfileNames and mProfileLocations
     FillProfileDataFromSeamonkeyRegistry();
@@ -341,7 +344,7 @@ nsresult
 nsSeamonkeyProfileMigrator::GetSourceProfile(const PRUnichar* aProfile)
 {
   PRUint32 count;
-  mProfileNames->Count(&count);
+  mProfileNames->GetLength(&count);
   for (PRUint32 i = 0; i < count; ++i) {
     nsCOMPtr<nsISupportsString> str(do_QueryElementAt(mProfileNames, i));
     nsString profileName;

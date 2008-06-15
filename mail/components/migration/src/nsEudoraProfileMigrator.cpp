@@ -42,7 +42,6 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIPrefService.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
 #include "nsISupportsPrimitives.h"
 #include "nsNetCID.h"
 #include "nsNetUtil.h"
@@ -169,7 +168,7 @@ nsEudoraProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsEudoraProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsEudoraProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   *aResult = nsnull;
   return NS_OK;

@@ -47,7 +47,7 @@
 #include "nsIRDFService.h"
 #include "NSReg.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIURL.h"
 #include "nsNetscapeProfileMigratorBase.h"
@@ -89,8 +89,8 @@ regerr2nsresult(REGERR errCode)
 
 nsresult
 nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                                          nsISupportsArray* aProfileNames,
-                                                          nsISupportsArray* aProfileLocations)
+                                                          nsIMutableArray* aProfileNames,
+                                                          nsIMutableArray* aProfileLocations)
 {
   nsresult rv;
   REGERR errCode;
@@ -174,7 +174,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     dir->Exists(&exists);
 
     if (exists) {
-      aProfileLocations->AppendElement(dir);
+      aProfileLocations->AppendElement(dir, PR_FALSE);
 
       // Get the profile name and add it to the names array
       nsString profileName;
@@ -184,7 +184,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
       profileNameString->SetData(profileName);
-      aProfileNames->AppendElement(profileNameString);
+      aProfileNames->AppendElement(profileNameString, PR_FALSE);
     }
   }
   NR_RegClose(reg);

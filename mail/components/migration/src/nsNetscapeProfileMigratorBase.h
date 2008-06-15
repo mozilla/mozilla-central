@@ -46,6 +46,7 @@
 class nsIFile;
 class nsIPrefBranch;
 class nsVoidArray;
+class nsIMutableArray;
 
 struct fileTransactionEntry {
   nsCOMPtr<nsIFile> srcFile;  // the src path including leaf name
@@ -90,8 +91,8 @@ public:
 
 protected:
   nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                      nsISupportsArray* aProfileNames,
-                                      nsISupportsArray* aProfileLocations);
+                                      nsIMutableArray* aProfileNames,
+                                      nsIMutableArray* aProfileLocations);
 
   nsresult CopyFile(const nsAString& aSourceFileName, const nsAString& aTargetFileName);
 

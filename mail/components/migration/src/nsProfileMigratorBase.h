@@ -41,7 +41,6 @@
 
 #include "nsILocalFile.h"
 #include "nsIObserverService.h"
-#include "nsISupportsArray.h"
 #include "nsString.h"
 #include "nsITimer.h"
 #include "nsIImportGeneric.h"

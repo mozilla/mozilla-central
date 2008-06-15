@@ -44,7 +44,6 @@
 #include "nsIPrefLocalizedString.h"
 #include "nsIPrefService.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
 #include "nsISupportsPrimitives.h"
 #include "nsNetCID.h"
 #include "nsNetUtil.h"
@@ -344,12 +343,12 @@ nsDogbertProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 NS_IMETHODIMP
 nsDogbertProfileMigrator::GetSourceExists(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 0;
   }
   else
@@ -361,12 +360,12 @@ nsDogbertProfileMigrator::GetSourceExists(PRBool* aResult)
 NS_IMETHODIMP
 nsDogbertProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 {
-  nsCOMPtr<nsISupportsArray> profiles;
+  nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
 
   if (profiles) {
     PRUint32 count;
-    profiles->Count(&count);
+    profiles->GetLength(&count);
     *aResult = count > 1;
   }
   else
@@ -377,12 +376,12 @@ nsDogbertProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 
 #if defined(XP_WIN) || defined(XP_OS2) || defined(XP_MACOSX)
 NS_IMETHODIMP
-nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsDogbertProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   if (!mProfiles) {
     nsresult rv;
 
-    rv = NS_NewISupportsArray(getter_AddRefs(mProfiles));
+    mProfiles = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIFile> regFile;
@@ -412,7 +411,7 @@ nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
         (do_CreateInstance("@mozilla.org/supports-string;1"));
       if (nameString) {
         nameString->SetData(NS_ConvertUTF8toUTF16(profileName));
-        mProfiles->AppendElement(nameString);
+        mProfiles->AppendElement(nameString, PR_FALSE);
       }
     }
   }
@@ -423,7 +422,7 @@ nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
 #else // XP_UNIX
 
 NS_IMETHODIMP
-nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsDogbertProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   nsresult rv;
   const char* profileDir  = PR_GetEnv(PROFILE_HOME_ENVIRONMENT_VARIABLE);
@@ -454,7 +453,7 @@ nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
 
   mSourceProfile = profileFile;
 
-  rv = NS_NewISupportsArray(getter_AddRefs(mProfiles));
+  mProfiles = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupportsString> nameString
@@ -462,7 +461,7 @@ nsDogbertProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
   if (!nameString) return NS_ERROR_FAILURE;
 
   nameString->SetData(NS_LITERAL_STRING("Netscape 4.x"));
-  mProfiles->AppendElement(nameString);
+  mProfiles->AppendElement(nameString, PR_FALSE);
   NS_ADDREF(*aResult = mProfiles);
   return NS_OK;
 }

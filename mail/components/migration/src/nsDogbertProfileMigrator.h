@@ -41,7 +41,7 @@
 #include "nsIMailProfileMigrator.h"
 #include "nsILocalFile.h"
 #include "nsIObserverService.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsNetscapeProfileMigratorBase.h"
 #include "nsITimer.h"
 
@@ -95,8 +95,7 @@ protected:
   nsresult CopyPreferences();
 
 private:
-  nsCOMPtr<nsISupportsArray> mProfiles;
-  nsCOMPtr<nsISupportsArray> mProfileLocations;
+  nsCOMPtr<nsIMutableArray> mProfiles;
   nsCOMPtr<nsIObserverService> mObserverService;
   nsCOMPtr<nsITimer> mFileIOTimer;
 

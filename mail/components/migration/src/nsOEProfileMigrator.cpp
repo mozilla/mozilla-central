@@ -39,7 +39,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsIObserverService.h"
 #include "nsIServiceManager.h"
-#include "nsISupportsArray.h"
 #include "nsISupportsPrimitives.h"
 #include "nsOEProfileMigrator.h"
 #include "nsIProfileMigrator.h"
@@ -165,7 +164,7 @@ nsOEProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsOEProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsOEProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   *aResult = nsnull;
   return NS_OK;

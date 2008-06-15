@@ -37,6 +37,7 @@
 const kIMig = Components.interfaces.nsIMailProfileMigrator;
 const kIPStartup = Components.interfaces.nsIProfileStartup;
 const kProfileMigratorContractIDPrefix = "@mozilla.org/profile/migrator;1?app=mail&type=";
+const nsISupportsString = Components.interfaces.nsISupportsString;
 
 var MigrationWizard = {
   _source: "",                  // Source Profile Migrator ContractID suffix
@@ -80,8 +81,8 @@ var MigrationWizard = {
       else
       {
         var sourceProfiles = this._migrator.sourceProfiles;
-        var profileName = sourceProfiles.QueryElementAt(0, Components.interfaces.nsISupportsString);
-        this._selectedProfile = profileName.data;
+        this._selectedProfile = sourceProfiles
+          .queryElementAt(0, nsISupportsString).data;
         this._wiz.goTo("migrating");
       }
     }
@@ -152,10 +153,9 @@ var MigrationWizard = {
     else {
       this._wiz.currentPage.next = "migrating";
       var sourceProfiles = this._migrator.sourceProfiles;
-      if (sourceProfiles && sourceProfiles.Count() == 1) {
-        var profileName = sourceProfiles.QueryElementAt(0, Components.interfaces.nsISupportsString);
-        this._selectedProfile = profileName.data;
-      }
+      if (sourceProfiles && sourceProfiles.length == 1)
+        this._selectedProfile =
+          sourceProfiles.queryElementAt(0, nsISupportsString).data;
       else
         this._selectedProfile = "";
     }
@@ -174,12 +174,11 @@ var MigrationWizard = {
       profiles.removeChild(profiles.firstChild);
 
     var sourceProfiles = this._migrator.sourceProfiles;
-    var count = sourceProfiles.Count();
+    var count = sourceProfiles.length;
     for (var i = 0; i < count; ++i) {
       var item = document.createElement("radio");
-      var str = sourceProfiles.QueryElementAt(i, Components.interfaces.nsISupportsString);
-      item.id = str.data;
-      item.setAttribute("label", str.data);
+      item.id = sourceProfiles.queryElementAt(i, nsISupportsString).data;
+      item.setAttribute("label", item.id);
       profiles.appendChild(item);
     }
 
