@@ -69,7 +69,6 @@ function MsgRenameFolder()
 {
   var folder = GetSelectedMsgFolders()[0];
 
-  dump("preselectedURI = " + preselectedURI + "\n");
   var dialog = window.openDialog(
                "chrome://messenger/content/renameFolderDialog.xul",
                "newFolder",
@@ -80,7 +79,6 @@ function MsgRenameFolder()
 
 function RenameFolder(name,uri)
 {
-  dump("uri,name = " + uri + "," + name + "\n");
   var folderTree = GetFolderTree();
   if (folderTree)
   {
