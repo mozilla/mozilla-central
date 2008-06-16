@@ -202,7 +202,7 @@ sub create {
 ####       Methods         ####
 ###############################
 
-sub convert_to_json {
+sub TO_JSON {
     my $self = shift;
     my $cgi  = shift;
     my $obj;

@@ -39,7 +39,7 @@
 [% PROCESS global/header.html.tmpl %]
 
 <script type="text/javascript">
-var run = [% run.to_json FILTER html_light %];
+var run = [% run.TO_JSON FILTER html_light %];
 var user_login = '[% user.login FILTER html_light %]';
 
 Ext.onReady(function(){

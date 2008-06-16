@@ -202,7 +202,7 @@ elsif ($action eq 'list') {
     $out .= '"totalResultsAvailable":' . scalar @attachments .',';
     $out .= '"attachment":[';
     foreach my $i (@attachments){
-        $out .= $i->convert_to_json($cgi) . ',' if $i->canview;
+        $out .= $i->TO_JSON($cgi) . ',' if $i->canview;
     }
     chop($out) if scalar @attachments;
     $out .= ']}';

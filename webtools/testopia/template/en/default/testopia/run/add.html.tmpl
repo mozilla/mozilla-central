@@ -38,7 +38,7 @@
 
 Ext.onReady(function(){
     Ext.QuickTips.init();
-    var newrun = new NewRunForm([% plan.to_json FILTER none %]);
+    var newrun = new NewRunForm([% plan.TO_JSON FILTER none %]);
     newrun.render('run-form-div');
 });
 </script>

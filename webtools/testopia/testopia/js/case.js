@@ -896,10 +896,6 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                         else if (Ext.getCmp('product_case_grid')){
                             Ext.getCmp('product_case_grid').store.reload();
                         }
-                        try {
-                            Ext.getCmp('newcase-win').close();
-                        }
-                        catch (err){}
                     },
                     failure: testopiaError
                 });

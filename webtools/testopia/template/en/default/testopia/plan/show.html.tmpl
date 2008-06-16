@@ -50,7 +50,7 @@
 <script type="text/javascript">
 var product_id;
 
-var plan = [% plan.to_json FILTER html_light %];
+var plan = [% plan.TO_JSON FILTER html_light %];
 
 Ext.onReady(function(){
     Ext.QuickTips.init();

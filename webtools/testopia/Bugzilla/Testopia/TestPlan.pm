@@ -959,7 +959,7 @@ sub get_user_rights {
     return $perms || 0;
 }
 
-sub convert_to_json {
+sub TO_JSON {
     my $self = shift;
     my $obj;
     my $json = new JSON;

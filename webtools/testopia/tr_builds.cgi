@@ -98,7 +98,7 @@ elsif ($action eq 'list'){
     }
     unshift @builds, $current if defined $current->id;
     
-    $out .= $_->convert_to_json . ',' foreach (@builds);
+    $out .= $_->TO_JSON . ',' foreach (@builds);
     chop ($out); # remove the trailing comma for IE
     
     print "{builds:[$out]}";
