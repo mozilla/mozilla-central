@@ -191,6 +191,9 @@ function view_init()
   var viewsToolbarButton = document.getElementById("mailviews-container");
   document.getElementById('viewMessageViewMenu').hidden = !viewsToolbarButton;
 
+  // ... and also the separator
+  document.getElementById("viewMenuAfterTaskbarSeparator").hidden = !viewsToolbarButton;
+
   // Initialize the View Attachment Inline menu
   var viewAttachmentInline = pref.getBoolPref("mail.inline_attachments");
   document.getElementById("viewAttachmentsInlineMenuitem").setAttribute("checked", viewAttachmentInline ? "true" : "false");

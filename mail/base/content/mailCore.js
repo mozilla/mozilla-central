@@ -42,17 +42,17 @@
  * Before adding to this file, ask yourself, is this a JS routine that is going to be used by all of the main mail windows?
  */
 
-function CustomizeMailToolbar(id)
+function CustomizeMailToolbar(toolboxId, customizePopupId)
 {
   // Disable the toolbar context menu items
   var menubar = document.getElementById("mail-menubar");
   for (var i = 0; i < menubar.childNodes.length; ++i)
     menubar.childNodes[i].setAttribute("disabled", true);
-    
-  var customizePopup = document.getElementById("CustomizeMailToolbar"); 
+
+  var customizePopup = document.getElementById(customizePopupId);
   customizePopup.setAttribute("disabled", "true");
 
-  var toolbox = document.getElementById(id);
+  var toolbox = document.getElementById(toolboxId);
 
   var customizeURL = "chrome://global/content/customizeToolbar.xul";
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
@@ -81,7 +81,7 @@ function CustomizeMailToolbar(id)
 #endif
 }
 
-function MailToolboxCustomizeDone(aToolboxChanged)
+function MailToolboxCustomizeDone(aEvent, customizePopupId)
 {
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
   document.getElementById("customizeToolbarSheetIFrame").hidden = true;
@@ -110,7 +110,7 @@ function MailToolboxCustomizeDone(aToolboxChanged)
   if (document.getElementById("search-container"))
     GetSearchInput();
 
-  var customizePopup = document.getElementById("CustomizeMailToolbar");
+  var customizePopup = document.getElementById(customizePopupId);
   customizePopup.removeAttribute("disabled");
 
   // make sure our toolbar buttons have the correct enabled state restored to them...
@@ -118,23 +118,47 @@ function MailToolboxCustomizeDone(aToolboxChanged)
     UpdateMailToolbar(focus); 
 }
 
-function onViewToolbarCommand(aToolbarId, aMenuItemId)
+function onViewToolbarCommand(aEvent, toolboxId)
 {
-  var toolbar = document.getElementById(aToolbarId);
-  var menuItem = document.getElementById(aMenuItemId);
+  var toolbox = document.getElementById(toolboxId);
+  var index = aEvent.originalTarget.getAttribute("toolbarindex");
+  var toolbar = toolbox.childNodes[index];
 
-  if (!toolbar || !menuItem) return;
+  toolbar.collapsed = aEvent.originalTarget.getAttribute("checked") != "true";
+  document.persist(toolbar.id, "collapsed");
+}
 
-  var toolbarCollapsed = toolbar.collapsed;
-  
-  // toggle the checkbox
-  menuItem.setAttribute('checked', toolbarCollapsed);
-  
-  // toggle visibility of the toolbar
-  toolbar.collapsed = !toolbarCollapsed;   
+function onViewToolbarsPopupShowing(aEvent, toolboxId)
+{
+  var popup = aEvent.target;
 
-  document.persist(aToolbarId, 'collapsed');
-  document.persist(aMenuItemId, 'checked');
+  // Empty the menu
+  for (var i = popup.childNodes.length-1; i >= 0; --i) {
+    var deadItem = popup.childNodes[i];
+    if (deadItem.hasAttribute("toolbarindex"))
+      popup.removeChild(deadItem);
+  }
+
+  var firstMenuItem = popup.firstChild;
+
+  var toolbox = document.getElementById(toolboxId);
+  for (var i = 0; i < toolbox.childNodes.length; ++i) {
+    var toolbar = toolbox.childNodes[i];
+    var toolbarName = toolbar.getAttribute("toolbarname");
+    var type = toolbar.getAttribute("type");
+    if (toolbarName && type != "menubar") {
+      var menuItem = document.createElement("menuitem");
+      menuItem.setAttribute("toolbarindex", i);
+      menuItem.setAttribute("type", "checkbox");
+      menuItem.setAttribute("label", toolbarName);
+      menuItem.setAttribute("accesskey", toolbar.getAttribute("accesskey"));
+      menuItem.setAttribute("checked", toolbar.getAttribute("collapsed") != "true");
+      popup.insertBefore(menuItem, firstMenuItem);
+      menuItem.addEventListener("command",
+        function(aEvent) { onViewToolbarCommand(aEvent, toolboxId); }, false);
+    }
+    toolbar = toolbar.nextSibling;
+  }
 }
 
 function toJavaScriptConsole()

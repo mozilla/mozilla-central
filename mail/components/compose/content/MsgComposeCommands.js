@@ -1480,7 +1480,7 @@ function ComposeLoad()
     return;
   }
   window.tryToClose=ComposeCanClose;
-  
+
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("compose-toolbox");
   toolbox.customizeDone = MailToolboxCustomizeDone;
@@ -1497,7 +1497,7 @@ function ComposeUnload()
 
   // Stop InlineSpellCheckerUI so personal dictionary is saved
   enableInlineSpellCheck(false);
-  
+
   EditorCleanup();
 
   RemoveMessageComposeOfflineObserver();

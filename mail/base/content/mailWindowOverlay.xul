@@ -124,6 +124,8 @@
   <!--The cmd_createFilterFromPopup is used to notify the email context popup -->
   <command id="cmd_createFilterFromPopup"/>
   <command id="cmd_pageSetup"/>
+  <command id="cmd_CustomizeMailToolbar"
+           oncommand="CustomizeMailToolbar('mail-toolbox', 'CustomizeMailToolbar')"/>
 </commandset>
 
 <commandset id="mailViewMenuItems"
@@ -852,12 +854,14 @@
               oncommand="gPhishingDetector.reportPhishingURL(gContextMenu.linkURL);"/>
   </popup>
 
-<popup id="toolbar-context-menu">
-  <menuitem id="CustomizeMailToolbar"
-            oncommand="CustomizeMailToolbar('mail-toolbox');"
-            label="&customizeToolbar.label;"
-            accesskey="&customizeToolbar.accesskey;"/>
-</popup>
+  <popup id="toolbar-context-menu"
+         onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox');">
+    <menuseparator id="customizeMailToolbarMenuSeparator"/>
+    <menuitem id="CustomizeMailToolbar"
+              command="cmd_CustomizeMailToolbar"
+              label="&customizeToolbar.label;"
+              accesskey="&customizeToolbar.accesskey;"/>
+  </popup>
 
 <toolbox id="mail-toolbox" class="toolbox-top" mode="full">
   <!-- Menu -->
@@ -1037,20 +1041,18 @@
 
     <!-- View -->
     <menu id="menu_View">
-      <menupopup id="menu_View_Popup" onpopupshowing="view_init()">
-        <menu id="menu_Toolbars">
+      <menupopup id="menu_View_Popup" onpopupshowing="view_init();">
+        <menu id="menu_Toolbars" onpopupshowing="onViewToolbarsPopupShowing(event, 'mail-toolbox');">
           <menupopup id="view_toolbars_popup">
-            <menuitem id="menu_showMessengerToolbar"
-             type="checkbox"
-             label="&showMessengerToolbarCmd.label;"
-             accesskey="&showMessengerToolbarCmd.accesskey;"
-             oncommand="onViewToolbarCommand('mail-bar2', 'menu_showMessengerToolbar');"
-             checked="true"/>
-            <menuitem type="checkbox" id="menu_showTaskbar"/>
-            <menuseparator id="viewMenuAfterTaskbarSeparator"/>
-            <menuitem id="menu_customizeToolbar" oncommand="CustomizeMailToolbar('mail-toolbox');" label="&customizeToolbar.label;" accesskey="&customizeToolbar.accesskey;"/>
+            <menuseparator id="viewMenuBeforeCustomizeMailToolbarsSeparator"/>
+            <menuitem id="customizeMailToolbars"
+                      command="cmd_CustomizeMailToolbar"
+                      label="&customizeToolbar.label;"
+                      accesskey="&customizeToolbar.accesskey;"/>
           </menupopup>
         </menu>
+        <menuitem id="menu_showTaskbar" type="checkbox"/>
+        <menuseparator id="viewMenuAfterTaskbarSeparator"/>
         <menu id="menu_MessagePaneLayout" label="&messagePaneLayoutStyle.label;" accesskey="&messagePaneLayoutStyle.accesskey;">
           <menupopup id="view_layout_popup" onpopupshowing="InitViewLayoutStyleMenu(event)">
             <menuitem id="messagePaneClassic" type="radio" label="&messagePaneClassic.label;" name="viewlayoutgroup"
@@ -1745,7 +1747,8 @@
        in earlier versions. Bumping the id means users will have to re-customize their toolbar!
   -->
   <toolbar id="mail-bar2" class="toolbar-primary chromeclass-toolbar"
-           toolbarname="Mail"
+           toolbarname="&showMessengerToolbarCmd.label;"
+           accesskey="&showMessengerToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
            customizable="true"
            context="toolbar-context-menu"

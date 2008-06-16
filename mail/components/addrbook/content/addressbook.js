@@ -213,7 +213,7 @@ function delayedOnLoadAddressBook()
 
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("ab-toolbox");
-  toolbox.customizeDone = MailToolboxCustomizeDone;
+  toolbox.customizeDone = function(aEvent) { MailToolboxCustomizeDone(aEvent, "CustomizeABToolbar"); };
 
   var toolbarset = document.getElementById('customToolbars');
   toolbox.toolbarset = toolbarset;

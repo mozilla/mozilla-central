@@ -96,10 +96,10 @@
 <!ENTITY viewMenu.accesskey "v">
 <!ENTITY viewToolbarsMenuNew.label "Toolbars"> 
 <!ENTITY viewToolbarsMenuNew.accesskey "T"> 
-<!ENTITY showComposeToolbarCmd.label "Mail Toolbar">
-<!ENTITY showComposeToolbarCmd.accesskey "o">
-<!ENTITY showFormatToolbarCmd.label "Formatting Toolbar">
-<!ENTITY showFormatToolbarCmd.accesskey "F">
+<!ENTITY showCompositionToolbarCmd.label "Composition Toolbar">
+<!ENTITY showCompositionToolbarCmd.accesskey "o">
+<!ENTITY showFormattingBarCmd.label "Formatting Bar">
+<!ENTITY showFormattingBarCmd.accesskey "F">
 <!ENTITY showTaskbarCmd.label "Status Bar">
 <!ENTITY showTaskbarCmd.accesskey "S">
 <!ENTITY customizeToolbar.label "Customize…">
