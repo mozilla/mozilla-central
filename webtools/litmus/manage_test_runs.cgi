@@ -38,7 +38,7 @@ use Litmus::DB::TestRun;
 
 use CGI;
 use Date::Manip;
-use JSON;
+use JSON -convert_blessed_universally;
 
 #########################################################################
 sub getCriteria {
@@ -294,12 +294,12 @@ foreach my $b (@{$test_runs}) {
 }
 $test_runs = \@tmp_testruns;
 
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-my $products_js = $json->objToJson($products);
-my $branches_js = $json->objToJson($branches);
-my $testgroups_js = $json->objToJson($testgroups);
-my $platforms_js = $json->objToJson($platforms);
-my $opsyses_js = $json->objToJson($opsyses);
+my $json = new JSON;
+my $products_js = $json->allow_unknown->convert_blessed->encode($products);
+my $branches_js = $json->allow_unknown->convert_blessed->encode($branches);
+my $testgroups_js = $json->allow_unknown->convert_blessed->encode($testgroups);
+my $platforms_js = $json->allow_unknown->convert_blessed->encode($platforms);
+my $opsyses_js = $json->allow_unknown->convert_blessed->encode($opsyses);
 
 $vars->{'title'} = "Manage Test Runs";
 $vars->{'test_runs'} = $test_runs;

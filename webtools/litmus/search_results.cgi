@@ -36,7 +36,7 @@ use Litmus::DB::Testresult;
 use Litmus::FormWidget;
 
 use CGI;
-use JSON;
+use JSON -convert_blessed_universally;
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -206,9 +206,9 @@ my $result_statuses = Litmus::FormWidget->getResultStatuses;
 my $branches = Litmus::FormWidget->getBranches;
 my $locales = Litmus::FormWidget->getLocales;
 
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-my $products_js = $json->objToJson($products);
-my $branches_js = $json->objToJson($branches);
+my $json = new JSON;
+my $products_js = $json->allow_unknown->convert_blessed->encode($products);
+my $branches_js = $json->allow_unknown->convert_blessed->encode($branches);
 
 my $title = 'Search Test Results';
 

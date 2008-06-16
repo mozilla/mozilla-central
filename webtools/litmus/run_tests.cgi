@@ -41,7 +41,7 @@ use Litmus::SysConfig;
 use Litmus::Auth;
 
 use CGI;
-use JSON;
+use JSON -convert_blessed_universally;
 
 Litmus->init();
 
@@ -93,10 +93,10 @@ sub displaySysConfig() {
   my $opsyses = Litmus::FormWidget->getOpsyses();
   my $locales = Litmus::FormWidget->getLocales();
 
-  my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-  my $test_run_js = $json->objToJson($test_run);
-  my $platforms_js = $json->objToJson($platforms);
-  my $opsyses_js = $json->objToJson($opsyses);
+  my $json = new JSON;
+  my $test_run_js = $json->allow_unknown->convert_blessed->encode($test_run);
+  my $platforms_js = $json->allow_unknown->convert_blessed->encode($platforms);
+  my $opsyses_js = $json->allow_unknown->convert_blessed->encode($opsyses);
 
   my $vars = {
               title        => $title,

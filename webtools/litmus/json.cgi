@@ -34,13 +34,13 @@ use Litmus::Auth;
 use Litmus::Error;
 use Litmus::DB::TestRun;
 use Text::Markdown;
-use JSON;
+use JSON -convert_blessed_universally;
 
 use CGI;
 use Data::Dumper;
 use Date::Manip;
 
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
+my $json = new JSON;
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -72,7 +72,7 @@ if ($c->param("testcase_id")) {
     if ($@) {
       $testcase->{'expected_results_formatted'} = $testcase->expected_results;
     }
-    $js = $json->objToJson($testcase);
+    $js = $json->allow_unknown->convert_blessed->encode($testcase);
   }
 } elsif ($c->param("subgroup_id")) {
   my $subgroup_id = $c->param("subgroup_id");
@@ -89,7 +89,7 @@ if ($c->param("testcase_id")) {
   # messages.
   my $creator = Litmus::DB::User->retrieve($subgroup->creator_id->user_id);
   eval{$subgroup->creator_id->email($creator->email);};
-  $js = $json->objToJson($subgroup);
+  $js = $json->allow_unknown->convert_blessed->encode($subgroup);
   $subgroup->creator_id->discard_changes;
 } elsif ($c->param("testgroup_id")) {
   my $testgroup_id = $c->param("testgroup_id");
@@ -106,7 +106,7 @@ if ($c->param("testcase_id")) {
   # messages.
   my $creator = Litmus::DB::User->retrieve($testgroup->creator_id->user_id);
   $testgroup->creator_id->email($creator->email);
-  $js = $json->objToJson($testgroup);
+  $js = $json->allow_unknown->convert_blessed->encode($testgroup);
   $testgroup->creator_id->discard_changes;
 } elsif ($c->param("test_run_id")) {
   my $test_run_id = $c->param("test_run_id");
@@ -126,7 +126,7 @@ if ($c->param("testcase_id")) {
     my $criteria = $test_run->getCriteria();
     $test_run->{'criteria'} = $criteria;  
   }
-  $js = $json->objToJson($test_run);
+  $js = $json->allow_unknown->convert_blessed->encode($test_run);
 } elsif ($c->param("test_runs_by_branch_product_name")) {
   my $branch;
   my $product;
@@ -146,7 +146,7 @@ if ($c->param("testcase_id")) {
   } elsif ($c->param("branch_name")) {
     @runs = Litmus::DB::TestRun->search(branch => $branch);
   }
-  $js = $json->objToJson(@runs);
+  $js = $json->allow_unknown->convert_blessed->encode(@runs);
 } elsif ($c->param("validate_login")) {
   my $uname = $c->param("username");
   my $passwd = $c->param("password");
@@ -193,44 +193,44 @@ if ($c->param("testcase_id")) {
     $args{"start_timestamp"} = &Date::Manip::UnixDate(&Date::Manip::ParseDateString("1 month ago"),"%q");
   }
   $l10n = Litmus::DB::Testresult->getL10nAggregateResults(\%args);
-  $js = $json->objToJson($l10n);
+  $js = $json->allow_unknown->convert_blessed->encode($l10n);
 } elsif ($c->param("product_id")) {
   my $product_id = $c->param("product_id");
   my $product = Litmus::DB::Product->retrieve($product_id);
-  $js = $json->objToJson($product);
+  $js = $json->allow_unknown->convert_blessed->encode($product);
 } elsif ($c->param("platform_id")) {
   my $platform_id = $c->param("platform_id");
   my $platform = Litmus::DB::Platform->retrieve($platform_id);
   my @products = Litmus::DB::Product->search_ByPlatform($platform_id);
   $platform->{'products'} = \@products;
-  $js = $json->objToJson($platform);
+  $js = $json->allow_unknown->convert_blessed->encode($platform);
 } elsif ($c->param("branch_id")) {
   my $branch_id = $c->param("branch_id");
   my $branch = Litmus::DB::Branch->retrieve($branch_id);
-  $js = $json->objToJson($branch);
+  $js = $json->allow_unknown->convert_blessed->encode($branch);
 } elsif ($c->param("opsys_id")) {
   my $opsys_id = $c->param("opsys_id");
   my $opsys = Litmus::DB::Opsys->retrieve($opsys_id);
-  $js = $json->objToJson($opsys);
+  $js = $json->allow_unknown->convert_blessed->encode($opsys);
 } elsif ($c->param("testday_id")) {
   use Litmus::DB::TestDay;
   my $testday_id = $c->param("testday_id");
   my $testday = Litmus::DB::TestDay->retrieve($testday_id);
   my @subgroups = Litmus::DB::Subgroup->search_ByTestDay($testday_id);
   $testday->{'subgroups'} = \@subgroups;
-  $js = $json->objToJson($testday);
+  $js = $json->allow_unknown->convert_blessed->encode($testday);
 } elsif ($c->param("products")) {
   my @products = Litmus::DB::Product->retrieve_all();
-  $js = $json->objToJson(\@products);
+  $js = $json->allow_unknown->convert_blessed->encode(\@products);
 } elsif ($c->param("platforms")) {
   my @platforms = Litmus::DB::Platform->retrieve_all();
-  $js = $json->objToJson(\@platforms);
+  $js = $json->allow_unknown->convert_blessed->encode(\@platforms);
 } elsif ($c->param("opsyses")) {
   my @opsyses = Litmus::DB::Opsys->retrieve_all();
-  $js = $json->objToJson(\@opsyses);
+  $js = $json->allow_unknown->convert_blessed->encode(\@opsyses);
 } elsif ($c->param("branches")) {
   my @branches = Litmus::DB::Branch->retrieve_all();
-  $js = $json->objToJson(\@branches);
+  $js = $json->allow_unknown->convert_blessed->encode(\@branches);
 } elsif ($c->param("user_stats")) {
   my %stats;
   my $uname = $c->param("user_stats");
@@ -245,7 +245,7 @@ if ($c->param("testcase_id")) {
   	$user->id(), 30)]->[0]->num_results();
   $stats{'alltime'} = [Litmus::DB::Testresult->search_NumResultsByUserDays(
   	$user->id(), 40000)]->[0]->num_results(); # 40000 is close enough to forever :)
-  $js = $json->objToJson(\%stats);
+  $js = $json->allow_unknown->convert_blessed->encode(\%stats);
 }
 
 if ($js) {

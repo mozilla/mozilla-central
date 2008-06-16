@@ -37,7 +37,7 @@ use Litmus::Utils;
 
 use CGI;
 use Date::Manip;
-use JSON;
+use JSON -convert_blessed_universally;
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -263,10 +263,10 @@ foreach my $b (@{$testgroups}) {
 $testgroups = \@tmp_testgroups;
 
 
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-my $products_js = $json->objToJson($products);
-my $branches_js = $json->objToJson($branches);
-my $subgroups_js = $json->objToJson($subgroups);
+my $json = new JSON;
+my $products_js = $json->allow_unknown->convert_blessed->encode($products);
+my $branches_js = $json->allow_unknown->convert_blessed->encode($branches);
+my $subgroups_js = $json->allow_unknown->convert_blessed->encode($subgroups);
 
 $vars->{'title'} = "Manage Testgroups";
 $vars->{'products'} = $products;

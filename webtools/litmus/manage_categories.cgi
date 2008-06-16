@@ -42,7 +42,7 @@ use Litmus::Utils qw(sanitize);
 
 use CGI;
 use Date::Manip;
-use JSON;
+use JSON -convert_blessed_universally;
 
 Litmus->init();
 Litmus::Auth::requireProductAdmin("edit_categories.cgi");
@@ -427,10 +427,10 @@ if (Litmus::Auth::getCurrentUser()->isSuperUser()) {
 }
 $branches = $authorized_branches;
 
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-my $products_js = $json->objToJson($products);
-my $branches_js = $json->objToJson($branches);
-my $testgroups_js = $json->objToJson($testgroups);
+my $json = new JSON;
+my $products_js = $json->allow_unknown->convert_blessed->encode($products);
+my $branches_js = $json->allow_unknown->convert_blessed->encode($branches);
+my $testgroups_js = $json->allow_unknown->convert_blessed->encode($testgroups);
 
 my $vars = {
             title => 'Manage Categories',

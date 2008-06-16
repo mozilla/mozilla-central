@@ -34,7 +34,7 @@ use Litmus::TestEvent;
 
 use CGI;
 use Date::Manip;
-use JSON;
+use JSON -convert_blessed_universally;
 
 Litmus->init();
 my $c = Litmus->cgi(); 
@@ -111,10 +111,10 @@ if ($user) {
 my $products = Litmus::FormWidget->getProducts;
 my $branches = Litmus::FormWidget->getBranches;
 my $testgroups = Litmus::FormWidget->getTestgroups;
-my $json = JSON->new(skipinvalid => 1, convblessed => 1);
-my $products_js = $json->objToJson($products);
-my $branches_js = $json->objToJson($branches);
-my $testgroups_js = $json->objToJson($testgroups);
+my $json = new JSON;
+my $products_js = $json->allow_unknown->convert_blessed->encode($products);
+my $branches_js = $json->allow_unknown->convert_blessed->encode($branches);
+my $testgroups_js = $json->allow_unknown->convert_blessed->encode($testgroups);
 
 $vars->{'products_js'} = $products_js;
 $vars->{'branches_js'} = $branches_js;
