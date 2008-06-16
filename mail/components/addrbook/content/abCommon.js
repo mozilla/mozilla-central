@@ -44,7 +44,7 @@ var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
-var gCurDirectory;
+var gCurDirectory = null;
 
 var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 var gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);

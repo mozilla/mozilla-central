@@ -85,7 +85,7 @@ var gAddressBookPanelAbListener = {
       // check if the item being removed is the directory
       // that we are showing in the addressbook sidebar
       // if so, select the person addressbook (it can't be removed)
-      if (directory == GetAbView().directory) {
+      if (directory.URI == gCurDirectory) {
           var abPopup = document.getElementById('addressbookList');
           abPopup.value = kPersonalAddressbookURI;
           LoadPreviouslySelectedAB();
@@ -156,7 +156,7 @@ function AbPanelLoad()
   // This listener only cares when a directory is removed or modified.
   Components.classes["@mozilla.org/abmanager;1"]
             .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(gAddressBookAbListener,
+            .addAddressBookListener(gAddressBookPanelAbListener,
                                     nsIAbListener.directoryRemoved |
                                     nsIAbListener.itemChanged);
 
