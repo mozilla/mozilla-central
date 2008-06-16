@@ -143,6 +143,11 @@ interface calICalendarView : nsISupports
                         in boolean aSuppressEvent);
 
   /**
+   * Make as many of the selected items as possible are visible in the view.
+   */
+  void centerSelectedItems();
+
+  /**
    * Get or set the selected day.
    */
   attribute calIDateTime selectedDay;

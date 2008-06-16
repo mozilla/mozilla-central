@@ -3004,6 +3004,42 @@
         ]]></body>
       </method>
 
+      <method name="centerSelectedItems">
+        <body><![CDATA[
+          var lowMinute = 24 * 60;
+          var highMinute = 0;
+
+          for each (var item in this.mSelectedItems) {
+              var occs = [];
+              var startDate = item[calGetStartDateProp(item)];
+              var endDate = item[calGetEndDateProp(item)] || startDate;
+              if (item.recurrenceInfo) {
+                  occs = item.getOccurrencesBetween(this.startDate, this.queryEndDate, {}, 0);
+              } else if (startDate.compare(this.startDate) >= 0 ||
+                         endDate.compare(this.queryEndDate) <= 0) {
+                  occs = [item];
+              }
+
+              if (occs.length) {
+                  if (!startDate.isDate && !endDate.isDate) {
+                    lowMinute = Math.min(startDate.hour * 60 + startDate.minute,
+                                         lowMinute);
+                    highMinute = Math.max(endDate.hour * 60 + endDate.minute,
+                                          highMinute);
+                  }
+              }
+          }
+
+          var displayDuration = highMinute - lowMinute;
+          if (this.mSelectedItems.length &&
+              displayDuration >= 0 &&
+              displayDuration <= this.mVisibleMinutes) {
+              var minute = lowMinute + (displayDuration - this.mVisibleMinutes) / 2
+              this.setFirstVisibleMinute(minute);
+          }
+        ]]></body>
+      </method>
+
       <property name="pixelsPerMinute">
         <getter>return this.mPixPerMin</getter>
         <setter>this.setPixelsPerMin(val); return val;</setter>
@@ -3380,6 +3416,32 @@
         ]]></body>
       </method>
 
+      <method name="findColumnsForOccurrences">
+        <parameter name="aOccurrences"/>
+        <body><![CDATA[
+          if (!this.mDateColumns || !this.mDateColumns.length) {
+            return [];
+          }
+
+          var occMap = {};
+          for each (var occ in aOccurrences) {
+              var startDate = occ[calGetStartDateProp(occ)]
+                              .getInTimezone(this.mStartDate.timezone);
+              var endDate = occ[calGetEndDateProp(occ)]
+                              .getInTimezone(this.mEndDate.timezone) || startDate;
+              if (startDate.compare(this.mStartDate) >= 0 &&
+                  endDate.compare(this.mEndDate) <= 0) {
+                  for (var i = startDate.day; i <= endDate.day; i++) {
+                      occMap[i] = true;
+                  }
+              }
+          }
+
+          return this.mDateColumns.filter(function(col) {
+              return (col.date.day in occMap);
+          });
+        ]]></body>
+      </method>
       <method name="findColumnsForItem">
         <parameter name="aItem"/>
         <body><![CDATA[
@@ -3644,6 +3706,7 @@
         <parameter name="aMinute"/>
         <body><![CDATA[
           this.mFirstVisibleMinute = aMinute;
+          this.scrollToMinute(aMinute);
           return this.mFirstVisibleMinute;
         ]]></body>
       </method>

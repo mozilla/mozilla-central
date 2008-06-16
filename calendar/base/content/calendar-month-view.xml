@@ -1012,6 +1012,10 @@
         ]]></body>
       </method>
 
+      <method name="centerSelectedItems">
+        <body/>
+      </method>
+
       <property name="selectedDay">
         <getter><![CDATA[
           if (this.mSelectedDayBox)
