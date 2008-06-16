@@ -1241,7 +1241,7 @@
       <property name="scroll">
         <setter><![CDATA[
           this.mScrollOffset = val;
-          for (i = 1; i <= this.mMaxFreeBusy; i++) {
+          for (var i = 1; i <= this.mMaxFreeBusy; i++) {
               this.getFreeBusyElement(i).scroll = val;
           }
           return val;

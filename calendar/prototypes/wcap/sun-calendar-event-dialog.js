@@ -407,7 +407,7 @@ function loadDateTime(item) {
         if (hasEntryDate && hasDueDate) {
             duration = endTime.subtractDate(startTime);
         }
-
+        setElementValue("cmd_attendees", !(hasEntryDate && hasDueDate), "disabled");
         gStartTime = startTime;
         gEndTime = endTime;
         gItemDuration = duration;
@@ -565,7 +565,7 @@ function updateDateCheckboxes(aDatePickerId, aCheckboxId, aDateTime) {
     } else {
         gItemDuration = null;
     }
-
+    setElementValue("cmd_attendees", !(hasEntryDate && hasDueDate), "disabled");
     updateDateTime();
     updateTimezone();
 }
