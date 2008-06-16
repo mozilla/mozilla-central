@@ -56,7 +56,7 @@ $BuildAdministrator = 'build@mozilla.org';
 # Tests
 $CleanProfile             = 1;
 #$ResetHomeDirForTests     = 1;
-$ProductName              = 'Minefield';
+$ProductName              = 'GranParadiso';
 $VendorName               = "";
 
 # CONFIG : $RunMozillaTests          = %runMozillaTests%;
