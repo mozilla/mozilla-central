@@ -84,23 +84,9 @@ var taskDetailsView = {
                 priority = parseInt(item.priority);
             }
             if (displayElement("calendar-task-details-priority-row", priority > 0)) {
-                if (priority >= 1 && priority <= 4) {
-                    displayElement("calendar-task-details-priority-low", false);
-                    displayElement("calendar-task-details-priority-normal", false);
-                    displayElement("calendar-task-details-priority-high", true);
-                } else if (priority == 5) {
-                    displayElement("calendar-task-details-priority-low", false);
-                    displayElement("calendar-task-details-priority-high", false);
-                    displayElement("calendar-task-details-priority-normal", true);
-                } else if (priority >= 6 && priority <= 9) {
-                    displayElement("calendar-task-details-priority-normal", false);
-                    displayElement("calendar-task-details-priority-high", false);
-                    displayElement("calendar-task-details-priority-low", true);
-                } else {
-                    displayElement("calendar-task-details-priority-normal", false);
-                    displayElement("calendar-task-details-priority-high", false);
-                    displayElement("calendar-task-details-priority-low", false);
-                }
+                displayElement("calendar-task-details-priority-low", (priority >= 6 && priority <= 9));
+                displayElement("calendar-task-details-priority-normal", priority == 5);
+                displayElement("calendar-task-details-priority-high", (priority >= 1 && priority <= 4));
             }
             var status = item.getProperty("STATUS");
             if (displayElement("calendar-task-details-status-row", status && status.length > 0)) {
@@ -146,13 +132,10 @@ var taskDetailsView = {
                 document.getElementById("calendar-task-details-category").value = category;
             }
             if (displayElement("calendar-task-details-entrydate-row", item.entryDate != null)) {
-                document.getElementById("calendar-task-details-entrydate").value = dateFormatter.formatDateLong(item.entryDate);
-            }
-            if (displayElement("calendar-task-details-entrydate-row", item.entryDate != null)) {
-                document.getElementById("calendar-task-details-entrydate").value = dateFormatter.formatDateLong(item.entryDate);
+                document.getElementById("calendar-task-details-entrydate").value = dateFormatter.formatDateTime(item.entryDate);
             }
             if (displayElement("calendar-task-details-duedate-row", item.dueDate != null)) {
-                document.getElementById("calendar-task-details-duedate").value = dateFormatter.formatDateLong(item.dueDate);
+                document.getElementById("calendar-task-details-duedate").value = dateFormatter.formatDateTime(item.dueDate);
             }
             var parentItem = item;
             if (parentItem.parentItem != parentItem) {

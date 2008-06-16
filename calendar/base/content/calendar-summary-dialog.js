@@ -97,14 +97,27 @@ function onLoad() {
     var kDefaultTimezone = calendarDefaultTimezone();
     var start = item.startDate || item.entryDate;
     if (start) {
-        document.getElementById("item-datetime")
-            .value = formatter.formatDateLong(
-                start.getInTimezone(kDefaultTimezone));
+        document.getElementById("item-datetime-start")
+                    .value = formatter.formatDateTime(
+                    start.getInTimezone(kDefaultTimezone));
+    } else {
+        document.getElementById("item-datetime-start-label").setAttribute("hidden", "true");
+        document.getElementById("item-datetime-start").setAttribute("hidden", "true");        
     }
-
+    var end = (item.dueDate || item.endDate || item.startDate);
+    if (!end || end.isDate == true) {
+        document.getElementById("item-datetime-end-label").setAttribute("hidden", "true");
+        document.getElementById("item-datetime-end").setAttribute("hidden", "true");
+    } else {
+        if (isToDo(item)) {
+            var dueLabel = calGetString("sun-calendar-event-dialog", "summaryDueTaskLabel")
+            document.getElementById("item-datetime-end-label").setAttribute("value", dueLabel);
+        }
+        document.getElementById("item-datetime-end").value = formatter.formatDateTime(
+                                      end.getInTimezone(kDefaultTimezone));
+    }
     if (!window.readOnly) {
-        document.getElementById("item-main-separator")
-            .removeAttribute("hidden");
+        document.getElementById("item-main-separator").removeAttribute("hidden");
     }
 
     updateInvitationStatus();

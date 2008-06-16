@@ -90,8 +90,14 @@
             <label id="item-title"/>
           </row>
           <row align="top">
-            <label value="&read.only.date.label;" class="headline"/>
-            <label id="item-datetime"/>
+            <label id="item-datetime-start-label" 
+                   value="&read.only.date.start.label;" 
+                   class="headline"/>
+            <label id="item-datetime-start"/>
+          </row>
+          <row align="top">
+            <label id="item-datetime-end-label" value="&read.only.date.end.label;" class="headline"/>
+            <label id="item-datetime-end"/>
           </row>
           <row id="repeat-row" align="top" hidden="true">
             <label value="&read.only.repeat.label;" class="headline"/>
