@@ -118,7 +118,7 @@ sub getBranches()
     my ($self, $enabled) = @_;
     my $sql = "SELECT b.name, b.branch_id, b.product_id, p.name AS product_name FROM branches b, products p WHERE b.product_id=p.product_id";
     if ($enabled) {
-      $sql .= " AND enabled=1";
+      $sql .= " AND b.enabled=1";
     }
     $sql .= " ORDER BY b.name ASC";
     return _getValues($sql);
