@@ -104,6 +104,11 @@ CPPSRCS		= \
                 nsAbContentHandler.cpp \
 		$(NULL)
 
+EXTRA_COMPONENTS += \
+		nsAbLDAPAttributeMap.js \
+		nsAbAutoCompleteMyDomain.js \
+		$(NULL)
+
 EXPORTS		= \
 		nsAbCardProperty.h \
 		nsAbMDBCard.h \
@@ -145,6 +150,8 @@ CPPSRCS		+= \
 		nsAbLDAPReplicationData.cpp \
 		nsLDAPAutoCompleteSession.cpp \
 		$(NULL)
+
+EXTRA_COMPONENTS += nsLDAPPrefsService.js
 
 # XXX These files are not being built as they don't work. Bug 311632 should
 # fix them.
