@@ -47,7 +47,7 @@
     color: green;
 }
 
-.calendar-task-tree > treechildren::-moz-tree-row(inprogress,selected) {
+.calendar-task-tree > treechildren::-moz-tree-row(inprogress, selected, focus) {
     background-color: green;
 }
 
@@ -55,7 +55,7 @@
     color: red;
 }
 
-.calendar-task-tree > treechildren::-moz-tree-row(overdue,selected) {
+.calendar-task-tree > treechildren::-moz-tree-row(overdue, selected, focus) {
     background-color: red;
 }
 
@@ -63,7 +63,7 @@
     color: blue;
 }
 
-.calendar-task-tree > treechildren::-moz-tree-row(duetoday,selected) {
+.calendar-task-tree > treechildren::-moz-tree-row(duetoday, selected, focus) {
     background-color: blue;
 }
 
@@ -71,8 +71,8 @@
     color: gray;
 }
 
-.calendar-task-tree > treechildren::-moz-tree-row(future,selected) {
-    background-color: gray;
+.calendar-task-tree > treechildren::-moz-tree-row(future, selected, focus) {
+    background-color: Highlight;
 }
 
 .calendar-task-tree > treechildren::-moz-tree-cell-text(completed) {
