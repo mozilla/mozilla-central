@@ -273,7 +273,8 @@
 
 <!ENTITY read.only.general.label         "General">
 <!ENTITY read.only.title.label           "Title:">
-<!ENTITY read.only.date.label            "Date:">
+<!ENTITY read.only.date.start.label      "Start:">
+<!ENTITY read.only.date.end.label        "End:">
 <!ENTITY read.only.repeat.label          "Repeat:">
 <!ENTITY read.only.location.label        "Location:">
 <!ENTITY read.only.category.label        "Category:">
