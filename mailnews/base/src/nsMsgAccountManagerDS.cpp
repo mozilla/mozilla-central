@@ -786,10 +786,11 @@ nsMsgAccountManagerDataSource::createSettingsResources(nsIRDFResource *aSource,
       aNodeArray->AppendElement(kNC_PageTitleAddressing);
     }
 
-    // junk settings apply for all server types except for news
+    // Junk settings apply for all server types except for news and rss.
     nsCString serverType;
     server->GetType(serverType);
-    if (!serverType.LowerCaseEqualsLiteral("nntp"))
+    if (!serverType.LowerCaseEqualsLiteral("nntp") &&
+        !serverType.LowerCaseEqualsLiteral("rss"))
       aNodeArray->AppendElement(kNC_PageTitleJunk);
 
     // Check the offline capability before adding

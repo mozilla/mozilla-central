@@ -236,7 +236,7 @@ NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel
 NS_IMETHODIMP nsRssIncomingServer::GetSupportsDiskSpace(PRBool *aSupportsDiskSpace)
 {
   NS_ENSURE_ARG_POINTER(aSupportsDiskSpace);
-  *aSupportsDiskSpace = PR_FALSE;
+  *aSupportsDiskSpace = PR_TRUE;
   return NS_OK;
 }
 
