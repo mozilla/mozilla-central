@@ -236,7 +236,7 @@ libpkix_leak_test()
     fi 
     while read status leafCert explPolicy others; do
         # continue with empty and commented lines. 
-        [ -z "$status" -o "$status" = "#" ] && continue
+        [ -z "$status" -o "`echo $status | cut -c 1`" = "#" ] && continue
 
         # can only run positive tests. Positive validation
         # status is the exit condition for the code in the library.

@@ -123,6 +123,8 @@ download_file() {
     echo "GET $filePath HTTP/1.0" > $req
     echo >> $req
 
+    echo ${BINDIR}/tstclnt -d $trgDir -S -h $host -p $IOPR_DOWNLOAD_PORT \
+        -w ${R_PWFILE} -o 
     ${BINDIR}/tstclnt -d $trgDir -S -h $host -p $IOPR_DOWNLOAD_PORT \
         -w ${R_PWFILE} -o < $req > $file
     ret=$?

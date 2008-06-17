@@ -185,6 +185,8 @@ extern PKIX_Boolean noErrorState;
 extern PKIX_Boolean errorGenerated;
 extern PKIX_Boolean runningLeakTest;
 extern PLHashTable *fnInvTable;
+extern PKIX_UInt32 testStartFnStackPosition;
+extern char *errorFnStackString;
 
 extern PLHashNumber PR_CALLBACK pkix_ErrorGen_Hash (const void *key);
 

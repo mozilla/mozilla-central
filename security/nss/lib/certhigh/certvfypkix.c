@@ -84,9 +84,6 @@ extern SECStatus
 pkix_pl_lifecycle_ObjectTableUpdate(int *objCountTable);
 
 PRInt32 parallelFnInvocationCount;
-
-PRInt32 stackErrorCodes[MAX_STACK_DEPTH]; 
-
 #endif /* PKIX_OBJECT_LEAK_TEST */
 
 
@@ -843,9 +840,6 @@ cert_PkixErrorToNssCode(
     /* Loop until we find at least one error with non-null
      * plErr code, that is going to be nss error code. */
     while (errPtr) {
-#ifdef PKIX_OBJECT_LEAK_TEST
-        stackErrorCodes[errLevel] = errPtr->errCode;
-#endif
         if (errPtr->plErr && !nssErr) {
             nssErr = errPtr->plErr;
             if (!pkixLog) break;
@@ -857,9 +851,6 @@ cert_PkixErrorToNssCode(
         errPtr = errPtr->cause;
         errLevel += 1; 
     }
-#ifdef PKIX_OBJECT_LEAK_TEST
-    stackErrorCodes[errLevel] = -1;
-#endif
     PORT_Assert(nssErr);
     if (!nssErr) {
         *pNssErr = SEC_ERROR_LIBPKIX_INTERNAL;
@@ -1178,6 +1169,7 @@ cert_VerifyCertChainPkix(
     int  objCountTable[PKIX_NUMTYPES]; 
     int  fnInvLocalCount = 0;
 
+    testStartFnStackPosition = 2;
     fnStackNameArr[0] = "cert_VerifyCertChainPkix";
     fnStackInvCountArr[0] = 0;
     PKIX_Boolean abortOnLeak = 
@@ -1284,13 +1276,11 @@ cleanup:
         pkix_pl_lifecycle_ObjectLeakCheck(leakedObjNum ? objCountTable : NULL);
     
     if (pkixLog && leakedObjNum) {
-        int level = 0;
-        PR_LOG(pkixLog, 1, ("The following error caused object leaks:\n"));
-        for(;level < MAX_STACK_DEPTH && stackErrorCodes[level] != -1;level++) {
-            PR_LOG(pkixLog, 1, ("Error at level %d: %s\n", level,
-                                PKIX_ErrorText[stackErrorCodes[level]]));
-        }
+        PR_LOG(pkixLog, 1, ("The generated error caused an object leaks. "
+                            "Stack %s\n", errorFnStackString));
     }
+    PR_Free(errorFnStackString);
+    errorFnStackString = NULL;
     if (abortOnLeak) {
         PORT_Assert(leakedObjNum == 0);
     }
@@ -2066,10 +2056,11 @@ SECStatus CERT_PKIXVerifyCert(
     int  memLeakLoopCount = 0;
     int  objCountTable[PKIX_NUMTYPES];
     int  fnInvLocalCount = 0;
+    testStartFnStackPosition = 1;
     fnStackNameArr[0] = "CERT_PKIXVerifyCert";
     fnStackInvCountArr[0] = 0;
     PKIX_Boolean abortOnLeak = 
-        PR_GetEnv("PKIX_OBJECT_LEAK_TEST_ABORT_ON_LEAK") ?
+        (PR_GetEnv("PKIX_OBJECT_LEAK_TEST_ABORT_ON_LEAK") == NULL) ?
                                                    PKIX_FALSE : PKIX_TRUE;
     runningLeakTest = PKIX_TRUE;
 
@@ -2087,8 +2078,10 @@ do {
     certSelector = NULL;
     certStores = NULL;
     valResult = NULL;
+    verifyNode = NULL;
     trustAnchor = NULL;
     trustAnchorCert = NULL;
+    builtCertList = NULL;
     oparam = NULL;
     i=0;
     errorGenerated = PKIX_FALSE;
@@ -2184,6 +2177,10 @@ do {
         goto cleanup;
     }
 
+#ifdef PKIX_OBJECT_LEAK_TEST
+    PORT_Assert(!errorGenerated);
+#endif /* PKIX_OBJECT_LEAK_TEST */
+
     oparam = cert_pkix_FindOutputParam(paramsOut, cert_po_trustAnchor);
     if (oparam != NULL) {
         oparam->value.pointer.cert = 
@@ -2210,6 +2207,9 @@ cleanup:
     if (verifyNode) {
         /* Return validation log only upon error. */
         oparam = cert_pkix_FindOutputParam(paramsOut, cert_po_errorLog);
+#ifdef PKIX_OBJECT_LEAK_TEST
+        if (!errorGenerated)
+#endif /* PKIX_OBJECT_LEAK_TEST */
         if (r && oparam != NULL) {
             PKIX_Error *tmpError =
                 cert_GetLogFromVerifyNode(oparam->value.pointer.log,
@@ -2261,14 +2261,11 @@ cleanup:
         pkix_pl_lifecycle_ObjectLeakCheck(leakedObjNum ? objCountTable : NULL);
 
     if (pkixLog && leakedObjNum) {
-        int level = 0;
-
-        PR_LOG(pkixLog, 1, ("The following error caused object leaks:\n"));
-        for(;level < MAX_STACK_DEPTH && stackErrorCodes[level] != -1;level++) {
-            PR_LOG(pkixLog, 1, ("Error at level %d: %s\n", level,
-                                PKIX_ErrorText[stackErrorCodes[level]]));
-        }
+        PR_LOG(pkixLog, 1, ("The generated error caused an object leaks. "
+                            "Stack %s\n", errorFnStackString));
     }
+    PR_Free(errorFnStackString);
+    errorFnStackString = NULL;
     if (abortOnLeak) {
         PORT_Assert(leakedObjNum == 0);
     }
