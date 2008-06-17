@@ -84,7 +84,7 @@ function RenameFolder(name,uri)
   {
     if (uri && (uri != "") && name && (name != ""))
     {
-      var selectedFolder = GetResourceFromUri(uri);
+      var selectedFolder = GetMsgFolderFromUri(uri);
       if (gDBView)
         gCurrentlyDisplayedMessage = gDBView.currentlyDisplayedMessage;
 
@@ -284,10 +284,11 @@ function MsgToggleMessagePane()
 // on demand and hence needs to prior check of existence.
 function GetMsgFolderFromUri(uri, checkFolderAttributes)
 {
-    //dump("GetMsgFolderFromUri of " + uri + "\n");
     var msgfolder = null;
     try {
-        var resource = GetResourceFromUri(uri);
+        var rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
+                                   .getService(Components.interfaces.nsIRDFService);
+        var resource = rdfService.GetResource(uri);
         msgfolder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
         if (checkFolderAttributes) {
             if (!(msgfolder && (msgfolder.parent || msgfolder.isServer))) {
@@ -296,17 +297,6 @@ function GetMsgFolderFromUri(uri, checkFolderAttributes)
         }
     }
     catch (ex) {
-        //dump("failed to get the folder resource\n");
     }
     return msgfolder;
 }
-
-function GetResourceFromUri(uri)
-{
-    var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService();
-    RDF = RDF.QueryInterface(Components.interfaces.nsIRDFService);
-    var resource = RDF.GetResource(uri);
-
-    return resource;
-}
-

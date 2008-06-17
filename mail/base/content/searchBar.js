@@ -368,8 +368,7 @@ function createSearchTermsWithList(aTermsArray)
       var srchFolderUriArray = srchFolderUri.split('|');
       for (i in srchFolderUriArray) 
       {
-        var realFolderRes = GetResourceFromUri(srchFolderUriArray[i]);
-        var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+        var realFolder = GetMsgFolderFromUri(srchFolderUriArray[i]);
         if (!realFolder.isServer)
           gSearchSession.addScopeTerm(getScopeToUse(termsArray, realFolder, ioService.offline), realFolder);
       }

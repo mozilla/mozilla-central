@@ -113,8 +113,7 @@ function updateOnlineSearchState()
   var srchFolderUriArray = gSearchFolderURIs.split('|');
   if (srchFolderUriArray[0])
   {
-    var realFolderRes = GetResourceFromUri(srchFolderUriArray[0]);
-    var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+    var realFolder = GetMsgFolderFromUri(srchFolderUriArray[0]);
     enableCheckbox =  realFolder.server.offlineSupportLevel; // anything greater than 0 is an online server like IMAP or news
   }
 

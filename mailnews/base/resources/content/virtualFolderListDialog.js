@@ -50,8 +50,7 @@ function onLoad()
     // get the folder for each search URI and set the searchThisFolder flag on it
     for (var i in srchFolderUriArray) 
     {
-      var realFolderRes = GetResourceFromUri(srchFolderUriArray[i]);
-      var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+      var realFolder = GetMsgFolderFromUri(srchFolderUriArray[i]);
       if (realFolder)
         realFolder.setInVFEditSearchScope(true, false);
     }

@@ -998,10 +998,7 @@ function FolderPaneSelectionChange()
                       uriToLoad = srchFolderUri;
                       // we need to load the db for the actual folder so that many hdrs to download
                       // will return false...
-                      var realFolderRes = GetResourceFromUri(uriToLoad);
-                      // Make msgFolder point to the real folder, not the virtual folder, so that
-                      // we pass the real folder into ChangeFolder.
-                      realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+                      realFolder = GetMsgFolderFromUri(uriToLoad);
                       msgDatabase = realFolder.getMsgDatabase(msgWindow);
                       gVirtualFolderTerms = CreateGroupedSearchTerms(tempFilter.searchTerms);
                     }
@@ -1194,8 +1191,7 @@ function setupXFVirtualFolderSearch(folderUrisToSearch, searchTerms, searchOnlin
 
   for (i in folderUrisToSearch)
     {
-      var realFolderRes = GetResourceFromUri(folderUrisToSearch[i]);
-      var realFolder = realFolderRes.QueryInterface(Components.interfaces.nsIMsgFolder);
+      var realFolder = GetMsgFolderFromUri(folderUrisToSearch[i]);
       if (!realFolder.isServer)
         gSearchSession.addScopeTerm(!searchOnline ? nsMsgSearchScope.offlineMail : GetScopeForFolder(realFolder), realFolder);
     }
