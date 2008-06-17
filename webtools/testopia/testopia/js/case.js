@@ -902,10 +902,16 @@ NewCaseForm = function(plan_ids, product_id, run_id){
             }
         },{
             text: 'Cancel',
+            id: 'ncf_cancel_btn',
             handler: function(){
                 Ext.getCmp('newcaseform').getForm().reset();
                 try {
-                    Ext.getCmp('newcase-win').close();
+                    if (Ext.getCmp('newcase-win')) {
+                        Ext.getCmp('newcase-win').close();
+                    }
+                    else{
+                        window.location = 'tr_show_product.cgi';
+                    }
                 }
                 catch (err){}
             }
@@ -1205,7 +1211,12 @@ CaseClonePanel = function(product_id, cases){
         },{
             text: 'Cancel',
             handler: function(){
-                Ext.getCmp('case-clone-win').close();
+                try {
+                    Ext.getCmp('case-clone-win').close();
+                }
+                catch (err){
+                    window.location = 'tr_show_product.cgi';
+                }
             }
         }]
     });

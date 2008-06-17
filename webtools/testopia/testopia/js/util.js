@@ -956,7 +956,8 @@ DocCompareToolbar = function(object, id){
                     var foo = Ext.getCmp('doc_view').getValue();
                     var tab = Ext.getCmp('object_panel').add({
                         title: 'Version ' + Ext.getCmp('doc_view').getValue(),
-                        closable: true
+                        closable: true,
+                        autoScroll: true
                     });
                     tab.show();
                     tab.load({

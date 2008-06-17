@@ -655,10 +655,6 @@ var NewRunForm = function(plan){
                         if (Ext.getCmp('plan_run_grid')){
                             Ext.getCmp('plan_run_grid').store.reload();
                         }
-                        try {
-                            Ext.getCmp('newRun-win').close();
-                        }
-                        catch (err){}
                     },
                     failure: testopiaError
                 });
@@ -666,12 +662,15 @@ var NewRunForm = function(plan){
         },{
             text: 'Cancel',
             type: 'reset',
+            id: 'nrf_cancel_btn',
             handler: function(){
                 Ext.getCmp('newrunsouth').getForm().reset();
                 try {
                     Ext.getCmp('newRun-win').close();
                 }
-                catch (err){}
+                catch (err){
+                    window.location = 'tr_show_product.cgi';
+                }
             }
         }]
     });

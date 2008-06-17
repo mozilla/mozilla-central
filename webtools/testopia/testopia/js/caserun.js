@@ -125,6 +125,7 @@ CaseRunFilter = function (){
                 var ds = Ext.getCmp('caserun_grid').store;
                 ds.baseParams = searchform.getValues();
                 ds.baseParams.limit = Ext.getCmp('testopia_pager').pageSize;
+                ds.baseParams.distinct = 1;
                 ds.load({
                     callback: function(){
                         Ext.getCmp('filtered_txt').show();

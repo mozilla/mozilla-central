@@ -41,10 +41,10 @@
   <li class="tr_saved_search">
   <select class="dropdown" onchange="if (this.selectedIndex != 0) {document.location=this.value}">
     <option>--Testopia--</option>
-    <option value="tr_list_runs.cgi?current_tab=run&run_status=0">Current Runs</a></option>
-    <option value="tr_list_plans.cgi?current_tab=plan&name_type=allwordssubstr&name=&plan_text_type=allwordssubstr&plan_text=&tag_type=allwords&tags=&author_type=exact&author=[% user.login FILTER url_quote %]&plan_id=">My Plans</a></option>
-    <option value="tr_list_cases.cgi?current_tab=case&summary_type=allwordssubstr&summary=&tcaction_type=allwordssubstr&tcaction=&tceffect_type=allwordssubstr&tceffect=&script_type=allwordssubstr&script=&requirement_type=allwordssubstr&requirement=&tag_type=allwords&tags=&author_type=exact&author=&default_tester_type=substring&default_tester=[% user.login FILTER url_quote %]&case_id=&plan_id=">My Cases</a></option>
-    <option value="tr_list_runs.cgi?current_tab=run&summary_type=allwordssubstr&summary=&notes_type=allwordssubstr&notes=&environment_type=allwordssubstr&environment=&tag_type=allwords&tag=&manager_type=substring&manager=[% user.login FILTER url_quote %]&run_id=&plan_id=&assignee_type=substr&assignee=[% user.login FILTER url_quote %]">My Runs</a></option>
+    <option value="tr_list_runs.cgi?current_tab=run&run_status=0&distinct=1">Current Runs</a></option>
+    <option value="tr_list_plans.cgi?current_tab=plan&name_type=allwordssubstr&name=&plan_text_type=allwordssubstr&plan_text=&tag_type=allwords&tags=&author_type=exact&author=[% user.login FILTER url_quote %]&plan_id=&distinct=1">My Plans</a></option>
+    <option value="tr_list_cases.cgi?current_tab=case&summary_type=allwordssubstr&summary=&tcaction_type=allwordssubstr&tcaction=&tceffect_type=allwordssubstr&tceffect=&script_type=allwordssubstr&script=&requirement_type=allwordssubstr&requirement=&tag_type=allwords&tags=&author_type=exact&author=&default_tester_type=substring&default_tester=[% user.login FILTER url_quote %]&case_id=&plan_id=&distinct=1">My Cases</a></option>
+    <option value="tr_list_runs.cgi?current_tab=run&summary_type=allwordssubstr&summary=&notes_type=allwordssubstr&notes=&environment_type=allwordssubstr&environment=&tag_type=allwords&tag=&manager_type=substring&manager=[% user.login FILTER url_quote %]&run_id=&plan_id=&assignee_type=substr&assignee=[% user.login FILTER url_quote %]&distinct=1">My Runs</a></option>
   [% FOREACH q = user.testopia_queries %]
     <option value="[% q.query %]">[% q.name FILTER html %]</option>
   [% END %]        
