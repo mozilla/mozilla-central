@@ -548,12 +548,13 @@ sub unsetFields() {
   # a hidden form field set for "email" and friends and madness results:
   $c->param('email', '');
   $c->param('username', '');
+  $c->param('irc_nickname', '');
   $c->param('login_type', '');
   $c->param('login_loc', '');
   $c->param('realname', '');
   $c->param('password', '');
   $c->param('password_confirm', '');
-  
+  $c->param('Submit', '');
 }
 
 # Like crypt(), but with a random salt. Thanks to Bugzilla for this.
