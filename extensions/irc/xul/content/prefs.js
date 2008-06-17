@@ -780,6 +780,7 @@ function onPrefChanged(prefName, newValue, oldValue)
 
         case "multiline":
             multilineInputMode(newValue);
+            delete client.multiLineForPaste;
             break;
 
         case "munger.colorCodes":

@@ -294,6 +294,8 @@ function onMultilineSend(e)
         return;
     onInputCompleteLine (e);
     multiline.value = "";
+    if (("multiLineForPaste" in client) && client.multiLineForPaste)
+        client.prefs["multiline"] = false;
 }
 
 function onTooltip(event)
@@ -3233,6 +3235,9 @@ function phand_onpaste(e, data)
     str = client.input.value.substr(0, client.input.selectionStart) +
           str.value.data + client.input.value.substr(client.input.selectionEnd);
     client.prefs["multiline"] = true;
+    // We want to auto-collapse after send, so the user is not thrown off by the
+    // "strange" input box if they didn't specifically ask for it:
+    client.multiLineForPaste = true;
     client.input.value = str;
     return false;
 }
