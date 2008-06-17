@@ -234,7 +234,7 @@ calCalendarManager.prototype = {
 
     },
 
-    DB_SCHEMA_VERSION: 9,
+    DB_SCHEMA_VERSION: 10,
 
     upgradeDB: function (oldVersion) {
         // some common helpers
@@ -319,20 +319,28 @@ calCalendarManager.prototype = {
             }
         } 
         
-        if (oldVersion < 9) {
-            dump ("**** Upgrading calCalendarManager schema to 9\n");
+        if (oldVersion < this.DB_SCHEMA_VERSION) {
+            dump ("**** Upgrading calCalendarManager schema to 9/10\n");
 
             this.mDB.beginTransaction();
             try {
-                // Schema changes in v9:
-                //
-                // - Decouple schema version from storage calendar
-                // Create the new tables.
-                this.mDB.executeSimpleSQL("CREATE TABLE cal_calmgr_schema_version " +
-                                          "(version INTEGER);");
-                this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
+                if (this.mDB.tableExists("cal_calmgr_schema_version")) {
+                    // Set only once the last time to v10, so the version check works in calendar 0.8.
+                    // In calendar 0.9 and following, the provider itself will check its version
+                    // on initialization and notify the calendar whether it's usable or not.
+                    this.mDB.executeSimpleSQL("UPDATE cal_calmgr_schema_version SET version = " +
+                                              this.DB_SCHEMA_VERSION + ";");
+                } else {
+                    // Schema changes in v9:
+                    //
+                    // - Decouple schema version from storage calendar
+                    // Create the new tables.
+                    this.mDB.executeSimpleSQL("CREATE TABLE cal_calmgr_schema_version " +
+                                              "(version INTEGER);");
+                    this.mDB.executeSimpleSQL("INSERT INTO cal_calmgr_schema_version VALUES(" +
+                                              this.DB_SCHEMA_VERSION + ")");
+                }
                 this.mDB.commitTransaction();
-                oldVersion = 9;
             } catch (e) {
                 dump ("+++++++++++++++++ DB Error: " + this.mDB.lastErrorString + "\n");
                 Components.utils.reportError("Upgrade failed! DB Error: " +
@@ -377,69 +385,7 @@ calCalendarManager.prototype = {
             } else if (version > this.DB_SCHEMA_VERSION) {
                 // Schema version is newer than what we know how to deal with.
                 // Alert the user, and quit the app.
-                var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                    .getService(Components.interfaces.nsIStringBundleService);
-
-                var brandSb = sbs.createBundle("chrome://branding/locale/brand.properties");
-                var calSb = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-
-                var hostAppName = brandSb.GetStringFromName("brandShortName");
-
-                // If we're Lightning, we want to include the extension name
-                // in the error message rather than blaming Thunderbird.
-                var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                                        .getService(Components.interfaces.nsIXULAppInfo);
-                var errorBoxTitle;
-                var errorBoxText;
-                var errorBoxButtonLabel;
-                if (appInfo.ID == SUNBIRD_UID) {
-                    errorBoxTitle = calSb.formatStringFromName("tooNewSchemaErrorBoxTitle",
-                                                               [hostAppName], 1);
-                    errorBoxText = calSb.formatStringFromName("tooNewSchemaErrorBoxTextSunbird",
-                                                              [hostAppName], 1);
-                    errorBoxButtonLabel = calSb.formatStringFromName("tooNewSchemaButtonQuit",
-                                                                     [hostAppName], 1);
-                } else {
-                    lightningSb = sbs.createBundle("chrome://lightning/locale/lightning.properties");
-                    var calAppName = lightningSb.GetStringFromName("brandShortName");
-                    errorBoxTitle = calSb.formatStringFromName("tooNewSchemaErrorBoxTitle",
-                                                               [calAppName], 1);
-                    errorBoxText = calSb.formatStringFromName("tooNewSchemaErrorBoxTextLightning",
-                                                              [calAppName, hostAppName], 2);
-                    errorBoxButtonLabel = calSb.formatStringFromName("tooNewSchemaButtonRestart",
-                                                                     [hostAppName], 1);
-                }
-
-                var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                          .getService(Components.interfaces.nsIPromptService);
-
-                var errorBoxButtonFlags = promptSvc.BUTTON_POS_0 *
-                                          promptSvc.BUTTON_TITLE_IS_STRING +
-                                          promptSvc.BUTTON_POS_0_DEFAULT;
-
-                var choice = promptSvc.confirmEx(
-                                null,
-                                errorBoxTitle,
-                                errorBoxText,
-                                errorBoxButtonFlags,
-                                errorBoxButtonLabel,
-                                null, // No second button text
-                                null, // No third button text
-                                null, // No checkbox
-                                {value: false}); // Unnecessary checkbox state
-
-                if (choice == 0) {
-                    var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
-                                            .getService(Components.interfaces.nsIAppStartup);
-                    if (appInfo.ID == SUNBIRD_UID) {
-                        startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
-                    } else {
-                        var em = Components.classes["@mozilla.org/extensions/manager;1"]
-                                           .getService(Components.interfaces.nsIExtensionManager);
-                        em.disableItem(LIGHTNING_UID);
-                        startup.quit(Components.interfaces.nsIAppStartup.eRestart | Components.interfaces.nsIAppStartup.eForceQuit);
-                    }
-                }
+                this.alertAndQuit();
             }
         }
 
@@ -519,6 +465,54 @@ calCalendarManager.prototype = {
         throw table + " SELECT returned no results";
     },
 
+    alertAndQuit: function cmgr_alertAndQuit() {
+        // If we're Lightning, we want to include the extension name
+        // in the error message rather than blaming Thunderbird.
+        var errorBoxTitle;
+        var errorBoxText;
+        var errorBoxButtonLabel;
+        var hostAppName = calGetString("brand", "brandShortName", null, "branding");
+        if (isSunbird()) {
+            errorBoxTitle = calGetString("calendar", "tooNewSchemaErrorBoxTitle", [hostAppName]);
+            errorBoxText = calGetString("calendar", "tooNewSchemaErrorBoxTextSunbird", [hostAppName]);
+            errorBoxButtonLabel = calGetString("calendar", "tooNewSchemaButtonQuit", [hostAppName]);
+        } else {
+            var calAppName = calGetString("lightning", "brandShortName", null, "lightning");
+            errorBoxTitle = calGetString("calendar", "tooNewSchemaErrorBoxTitle", [calAppName]);
+            errorBoxText = calGetString("calendar", "tooNewSchemaErrorBoxTextLightning", [calAppName, hostAppName]);
+            errorBoxButtonLabel = calGetString("calendar", "tooNewSchemaButtonRestart", [hostAppName]);
+        }
+
+        var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                  .getService(Components.interfaces.nsIPromptService);
+
+        var errorBoxButtonFlags = (promptSvc.BUTTON_POS_0 *
+                                   promptSvc.BUTTON_TITLE_IS_STRING +
+                                   promptSvc.BUTTON_POS_0_DEFAULT);
+
+        var choice = promptSvc.confirmEx(null,
+                                         errorBoxTitle,
+                                         errorBoxText,
+                                         errorBoxButtonFlags,
+                                         errorBoxButtonLabel,
+                                         null, // No second button text
+                                         null, // No third button text
+                                         null, // No checkbox
+                                         { value: false }); // Unnecessary checkbox state
+
+        var startup = Components.classes["@mozilla.org/toolkit/app-startup;1"]
+                                .getService(Components.interfaces.nsIAppStartup);
+        if (isSunbird()) {
+            startup.quit(Components.interfaces.nsIAppStartup.eForceQuit);
+        } else {
+            var em = Components.classes["@mozilla.org/extensions/manager;1"]
+                               .getService(Components.interfaces.nsIExtensionManager);
+            em.disableItem(LIGHTNING_UID);
+            startup.quit(Components.interfaces.nsIAppStartup.eRestart |
+                         Components.interfaces.nsIAppStartup.eForceQuit);
+        }
+    },
+
     notifyObservers: function(functionName, args) {
         this.mObservers.notify(functionName, args);
     },
@@ -533,12 +527,33 @@ calCalendarManager.prototype = {
             calendar.uri = uri;
             return calendar;
         } catch (ex) {
-            ASSERT(false, ex);
+            // XXX todo: bug 439620
+            // In general, we might consider to keep calendars disabled in case they couldn't
+            // be created instead of filtering them out. This leaves the chance to clean up
+            // calendar registration, getting rid of error boxes.
+            var rc = ex;
+            var message = ex;
+            if (ex instanceof Components.interfaces.nsIException) {
+                rc = ex.result;
+                message = ex.message;
+            }
+            switch (rc) {
+                case Components.interfaces.calIErrors.STORAGE_UNKNOWN_SCHEMA_ERROR:
+                    // For now we alert and quit on schema errors like we've done before:
+                    this.alertAndQuit();
+                case Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR:
+                    message = calGetString("calendar", "unknownTimezonesError", [uri.spec]);
+                    break;
+                default:
+                    message = calGetString("calendar", "unableToCreateProvider", [uri.spec]);
+                    break;
+            }
+            ASSERT(false, message);
             var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                        .createInstance(Components.interfaces.nsIDialogParamBlock);
             paramBlock.SetNumberStrings(3);
-            paramBlock.SetString(0, calGetString("calendar", "unableToCreateProvider", [uri.spec]));
-            paramBlock.SetString(1, Components.interfaces.calIErrors.PROVIDER_CREATION_FAILED);
+            paramBlock.SetString(0, message);
+            paramBlock.SetString(1, "0x" + rc.toString(0x10));
             paramBlock.SetString(2, ex);
             var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                                      .getService(Components.interfaces.nsIWindowWatcher);
@@ -678,6 +693,9 @@ calCalendarManager.prototype = {
             for each (var caldata in newCalendarData) {
                 try {
                     var cal = this.createCalendar(caldata.type, makeURL(caldata.uri));
+                    if (!cal) {
+                        continue;
+                    }
                     cal.id = caldata.id;
                     if ((cal.getProperty("cache.supported") !== false) && cal.getProperty("cache.enabled")) {
                         cal = new calCachedCalendar(cal);

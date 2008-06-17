@@ -398,34 +398,8 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
             comp->mReferencedTimezones.Get(tzid, getter_AddRefs(tz));
         }
         if (!tz) {
-            icaltimezone const* zone = itt.zone;
-            if (!zone && comp) {
-                // look up parent VCALENDAR for VTIMEZONE:
-                zone = icalcomponent_get_timezone(comp->mComponent, tzid_);
-                NS_ASSERTION(zone, tzid_);
-            }
-            if (zone) {
-                // We need to decouple this (inner) VTIMEZONE from the parent VCALENDAR to avoid
-                // running into circular references (referenced timezones):
-                icaltimezone * const clonedZone = icaltimezone_new();
-                CAL_ENSURE_MEMORY(clonedZone);
-                icalcomponent * const clonedZoneComp =
-                    icalcomponent_new_clone(icaltimezone_get_component(const_cast<icaltimezone *>(zone)));
-                if (!clonedZoneComp) {
-                    icaltimezone_free(clonedZone, 1 /* free struct */);
-                    CAL_ENSURE_MEMORY(clonedZoneComp);
-                }
-                if (!icaltimezone_set_component(clonedZone, clonedZoneComp)) {
-                    icaltimezone_free(clonedZone, 1 /* free struct */);
-                    return NS_ERROR_INVALID_ARG;
-                }
-                nsCOMPtr<calIIcalComponent> const tzComp(new calIcalComponent(clonedZone, clonedZoneComp));
-                CAL_ENSURE_MEMORY(tzComp);
-                tz = new calTimezone(tzid, tzComp);
-                CAL_ENSURE_MEMORY(tz);
-            }
-            if (!tz && parent) {
-                // look up tz provider:
+            if (parent) {
+                // passed tz provider has precedence over timezone service:
                 calITimezoneProvider * const tzProvider = parent->getTzProvider();
                 if (tzProvider) {
                     tzProvider->GetTimezone(tzid, getter_AddRefs(tz));
@@ -438,7 +412,35 @@ nsresult calIcalProperty::getDatetime_(calIcalComponent * parent,
                 // a TZID that is not present in the ics file.
                 // The other way round, it makes this product more error tolerant.
                 cal::getTimezoneService()->GetTimezone(tzid, getter_AddRefs(tz));
-                NS_ASSERTION(tz, tzid_);
+
+                if (!tz) {
+                    icaltimezone const* zone = itt.zone;
+                    if (!zone && comp) {
+                        // look up parent VCALENDAR for VTIMEZONE:
+                        zone = icalcomponent_get_timezone(comp->mComponent, tzid_);
+                        NS_ASSERTION(zone, tzid_);
+                    }
+                    if (zone) {
+                        // We need to decouple this (inner) VTIMEZONE from the parent VCALENDAR to avoid
+                        // running into circular references (referenced timezones):
+                        icaltimezone * const clonedZone = icaltimezone_new();
+                        CAL_ENSURE_MEMORY(clonedZone);
+                        icalcomponent * const clonedZoneComp =
+                            icalcomponent_new_clone(icaltimezone_get_component(const_cast<icaltimezone *>(zone)));
+                        if (!clonedZoneComp) {
+                            icaltimezone_free(clonedZone, 1 /* free struct */);
+                            CAL_ENSURE_MEMORY(clonedZoneComp);
+                        }
+                        if (!icaltimezone_set_component(clonedZone, clonedZoneComp)) {
+                            icaltimezone_free(clonedZone, 1 /* free struct */);
+                            return NS_ERROR_INVALID_ARG;
+                        }
+                        nsCOMPtr<calIIcalComponent> const tzComp(new calIcalComponent(clonedZone, clonedZoneComp));
+                        CAL_ENSURE_MEMORY(tzComp);
+                        tz = new calTimezone(tzid, tzComp);
+                        CAL_ENSURE_MEMORY(tz);
+                    }
+                }
             }
             if (comp && tz) {
                 // assure timezone is known:

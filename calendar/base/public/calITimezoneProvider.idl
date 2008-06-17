@@ -65,4 +65,9 @@ interface calITimezoneService : calITimezoneProvider
 {
     readonly attribute calITimezone floating;
     readonly attribute calITimezone UTC;
+
+    /**
+     * Provides the version of the underlying timezone database.
+     */
+    readonly attribute AString version;
 };

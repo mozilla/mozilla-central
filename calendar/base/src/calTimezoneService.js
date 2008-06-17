@@ -111,6 +111,14 @@ function calTimezoneService() {
     this.mTimezoneCache.utc = this.UTC;
 }
 calTimezoneService.prototype = {
+    createStatement: function calTimezoneService_createStatement(sql) {
+        var statement = this.mDb.createStatement(sql);
+        var ret = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
+                            .createInstance(Components.interfaces.mozIStorageStatementWrapper);
+        ret.initialize(statement);
+        return ret;
+    },
+
     ensureInitialized: function calTimezoneService_ensureInitialized() {
         if (!this.mDb) {
             // Calendar-timezones.xpi is preinstalled into the application, but
@@ -153,16 +161,21 @@ calTimezoneService.prototype = {
                 var dbService = Components.classes["@mozilla.org/storage/service;1"]
                                           .getService(Components.interfaces.mozIStorageService);
                 this.mDb = dbService.openDatabase(sqlTzFile);
+                this.mSelectByTzid = this.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid LIMIT 1");
 
-                var statement = this.mDb.createStatement("SELECT * FROM tz_data WHERE tzid = :tzid");
-                this.mSelectByTzid = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                                               .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-                this.mSelectByTzid.initialize(statement);
+                var selectVersion = this.createStatement("SELECT version FROM tz_version LIMIT 1");
+                try {
+                    if (selectVersion.step()) {
+                        this.mVersion = selectVersion.row.version;
+                    }
+                } finally {
+                    selectVersion.reset();
+                }
+                LOG("timezones version: " + this.mVersion);
 
                 g_stringBundle = calGetStringBundle(bundleURL);
             } catch (exc) {
                 var msg = calGetString("calendar", "missingCalendarTimezonesError");
-                LOG(msg);
                 Components.utils.reportError(msg);
                 showError(msg);
             }
@@ -204,7 +217,6 @@ calTimezoneService.prototype = {
         var tz = this.mTimezoneCache[tzid];
         if (!tz && !this.mBlacklist[tzid]) {
             this.ensureInitialized();
-            this.mSelectByTzid.reset();
             this.mSelectByTzid.params.tzid = tzid;
             if (this.mSelectByTzid.step()) {
                 var row = this.mSelectByTzid.row;
@@ -215,6 +227,7 @@ calTimezoneService.prototype = {
                     tz = new calIntrinsicTimezone(row.tzid, row.component, row.latitude, row.longitude);
                 }
             }
+            this.mSelectByTzid.reset();
             if (tz) {
                 this.mTimezoneCache[tzid] = tz;
             } else {
@@ -228,15 +241,21 @@ calTimezoneService.prototype = {
         if (!this.mTzids) {
             var tzids = [];
             this.ensureInitialized();
-            var statement = this.mDb.createStatement("SELECT * FROM tz_data WHERE alias IS NULL");
-            var selectAllButAlias = Components.classes["@mozilla.org/storage/statement-wrapper;1"]
-                                              .createInstance(Components.interfaces.mozIStorageStatementWrapper);
-            selectAllButAlias.initialize(statement);
-            while (selectAllButAlias.step()) {
-                tzids.push(selectAllButAlias.row.tzid);
+            var selectAllButAlias = this.createStatement("SELECT * FROM tz_data WHERE alias IS NULL");
+            try {
+                while (selectAllButAlias.step()) {
+                    tzids.push(selectAllButAlias.row.tzid);
+                }
+            } finally {
+                selectAllButAlias.reset();
             }
             this.mTzids = tzids;
         }
         return new calStringEnumerator(this.mTzids);
+    },
+
+    get version calTimezoneService_get_version() {
+        this.ensureInitialized();
+        return this.mVersion;
     }
 };

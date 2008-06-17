@@ -41,7 +41,7 @@
 
   <Description about="urn:mozilla:install-manifest">
     <em:id>calendar-timezones@mozilla.org</em:id>
-    <em:version>0.1.2007b</em:version>
+    <em:version>@TIMEZONES_VERSION@</em:version>
 
     <!-- Target Application this extension can install into,
          with minimum and maximum supported versions. -->

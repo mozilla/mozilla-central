@@ -42,7 +42,7 @@
  * what TZIDs have been dropped from the zones.tab. Those need to be inserted
  * below.
  *
- * args: <path-to-zones.tab-file> <moz-root> <version-timestamp>
+ * args: <path-to-zones.tab-file> <moz-root> <version>
  */
 
 function createFile(path) {
@@ -228,18 +228,26 @@ try {
     var db = dbService.openDatabase(sqlTzFile);
 
     var statement = createStatement(db, "SELECT * FROM tz_data WHERE alias IS NULL");
-    while (statement.step()) {
-        var row = statement.row;
-        oldSet[row.tzid] = new calIntrinsicTimezone(row.latitude,
-                                                    row.longitude,
-                                                    parseIcsString("BEGIN:VCALENDAR\r\n" +
-                                                                   row.component +
-                                                                   "END:VCALENDAR\r\n").getFirstSubcomponent("VTIMEZONE"));
+    try {
+        while (statement.step()) {
+            var row = statement.row;
+            oldSet[row.tzid] = new calIntrinsicTimezone(row.latitude,
+                                                        row.longitude,
+                                                        parseIcsString("BEGIN:VCALENDAR\r\n" +
+                                                                       row.component +
+                                                                       "END:VCALENDAR\r\n").getFirstSubcomponent("VTIMEZONE"));
+        }
+    } finally {
+        statement.reset();
     }
     statement = createStatement(db, "SELECT * FROM tz_data WHERE alias IS NOT NULL");
-    while (statement.step()) {
-        var row = statement.row;
-        oldSet[row.tzid] = oldSet[row.alias];
+    try {
+        while (statement.step()) {
+            var row = statement.row;
+            oldSet[row.tzid] = oldSet[row.alias];
+        }
+    } finally {
+        statement.reset();
     }
 
     // now compare new and old, what changed etc:
@@ -287,32 +295,32 @@ try {
     statement = createStatement(db,
                                 "INSERT INTO tz_data (tzid, alias, latitude, longitude, component) " +
                                 "VALUES (:tzid, :alias, :latitude, :longitude, :component)");
-    for (var tzid in newSet) {
-        statement.reset();
-        var params = statement.params;
-        params.tzid = tzid;
-        var tz = newSet[tzid];
-        if (tzid == tz.tzid) { // no alias
-            params.alias = null;
-            params.latitude = tz.latitude;
-            params.longitude = tz.longitude;
-            // libical seems to put an empty line after the inner components of the VTIMEZONE when
-            // serializing the vzic'ed VTIMEZONEs to ical.
-            // This confuses looking at the timezones.sqlite dump-diff; bug 437418.
-            params.component = tz.icalComponent.serializeToICS().replace(/\r\n\r\n/g, "\r\n");
-        } else { // alias
-            params.alias = tz.tzid;
+    try {
+        for (var tzid in newSet) {
+            statement.reset();
+            var params = statement.params;
+            params.tzid = tzid;
+            var tz = newSet[tzid];
+            if (tzid == tz.tzid) { // no alias
+                params.alias = null;
+                params.latitude = tz.latitude;
+                params.longitude = tz.longitude;
+                // libical seems to put an empty line after the inner components of the VTIMEZONE when
+                // serializing the vzic'ed VTIMEZONEs to ical.
+                // This confuses looking at the timezones.sqlite dump-diff; bug 437418.
+                params.component = tz.icalComponent.serializeToICS().replace(/\r\n\r\n/g, "\r\n");
+            } else { // alias
+                params.alias = tz.tzid;
+            }
+            statement.execute();
         }
-        statement.execute();
+    } finally {
+        statement.reset();
     }
-    db.executeSimpleSQL("DROP TABLE tz_version");
-    db.createTable("tz_version", "version INTEGER");
-    db.executeSimpleSQL("INSERT INTO tz_version VALUES(" + arguments[2] + ")");
+    db.executeSimpleSQL("UPDATE tz_version SET version = '" + arguments[2] + + "'");
 
 // for future schema upgrades:
-//     db.executeSimpleSQL("DROP TABLE tz_schema_version");
-//     db.createTable("tz_schema_version", "version INTEGER");
-//     db.executeSimpleSQL("INSERT INTO tz_schema_version VALUES(1)");
+//     db.executeSimpleSQL("UPDATE tz_schema_version SET version = 2");
 
     db.executeSimpleSQL("VACUUM");
     print("\nDONE.");
