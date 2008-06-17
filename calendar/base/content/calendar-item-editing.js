@@ -194,12 +194,12 @@ function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     };
 
     var item = aItem;
+    var futureItem, response;
     if (aPromptOccurrence !== false) {
-        var futureItem, response;
         [item, futureItem, response] = promptOccurrenceModification(aItem, true, "edit");
     }
 
-    if (item && response) {
+    if (item && (response || response === undefined)) {
         openEventDialog(item, item.calendar, "modify", onModifyItem, job);
     } else if (job && job.dispose) {
         // If the action was canceled and there is a job, dispose it directly.
