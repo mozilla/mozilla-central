@@ -22,7 +22,7 @@
 #
 # Contributor(s):
 #   Jan Varga (varga@nixcorp.com)
-#   Håkan Waara (hwaara@chello.se)
+#   HÃ¥kan Waara (hwaara@chello.se)
 #   Neil Rashbrook (neil@parkwaycc.co.uk)
 #   Seth Spitzer <sspitzer@netscape.com>
 #   David Bienvenu <bienvenu@nventure.com>
@@ -813,13 +813,19 @@ function OnLoadMessenger()
     defaultAccount = accountManager.defaultAccount;
   } catch (ex) {}
 
-  // show the default client dialog only if we have at least one account,
-  // if we should check for the default client,
-  // and we aren't already the default for mail)
+  function showDefaultClientDialog() {
+    window.openDialog("chrome://messenger/content/defaultClientDialog.xul",
+                      "DefaultClient", "modal,centerscreen,chrome,resizable=no");
+  }
+
+  // Show the default client dialog only if we have at least one account,
+  // we should check for the default client, and we aren't already the default
+  // for mail.
+  // Needs to be shown outside the he normal load sequence so it doesn't appear
+  // before any other displays, in the wrong place of the screen.
   if (shellService && defaultAccount && shellService.shouldCheckDefaultClient
       && !shellService.isDefaultClient(true, nsIShellService.MAIL))
-    window.openDialog("chrome://messenger/content/defaultClientDialog.xul", "DefaultClient",
-                      "modal,centerscreen,chrome,resizable=no");
+    setTimeout(showDefaultClientDialog, 0);
 #endif
 
   // FIX ME - later we will be able to use onload from the overlay
