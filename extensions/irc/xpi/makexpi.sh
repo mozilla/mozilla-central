@@ -199,14 +199,14 @@ OLDPWD=`pwd`
 cd "$CONFIGDIR"
 echo -n .
 
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR" -d "$JARROOT" '<' "$FEDIR/jar.mn"
+safeCommand $PERL make-jars.pl -e -v -z zip -p preprocessor.pl -s "$FEDIR" -d "$JARROOT" '<' "$FEDIR/jar.mn"
 echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/sm" -d "$JARROOT" '<' "$FEDIR/sm/jar.mn"
+safeCommand $PERL make-jars.pl -e -v -z zip -p preprocessor.pl -s "$FEDIR/sm" -d "$JARROOT" '<' "$FEDIR/sm/jar.mn"
 echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$FEDIR/ff" -d "$JARROOT" '<' "$FEDIR/ff/jar.mn"
+safeCommand $PERL make-jars.pl -e -v -z zip -p preprocessor.pl -s "$FEDIR/ff" -d "$JARROOT" '<' "$FEDIR/ff/jar.mn"
 echo -n .
 safeCommand $PERL preprocessor.pl -DAB_CD="en-US" "$LOCALEDIR/jar.mn" '>' "$LOCALEDIR/jar.mn.pp"
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$LOCALEDIR/en-US" -- "-DAB_CD=\"en-US\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
+safeCommand $PERL make-jars.pl -e -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$LOCALEDIR/en-US" -- "-DAB_CD=\"en-US\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
 safeCommand rm "$LOCALEDIR/jar.mn.pp"
 echo -n .
 cd "$OLDPWD"
@@ -220,6 +220,8 @@ safeCommand cp -v "$JARROOT/chatzilla.jar" "$XPIROOT/chrome/"
 echo -n .
 safeCommand cp -v "$FEDIR/js/lib/chatzilla-service.js" "$XPIROOT/components/"
 echo -n .
+safeCommand mv "$JARROOT/../chrome.manifest" "$XPIROOT/chrome.manifest"
+echo -n .
 safeCommand chmod 664 "$XPIROOT/chrome/chatzilla.jar"
 echo -n .
 safeCommand chmod 664 "$XPIROOT/components/chatzilla-service.js"
@@ -228,7 +230,7 @@ OLDPWD=`pwd`
 cd "$XPIROOT"
 safeCommand zip -vr ../$XPINAME . -i "*" -x "log*"
 cd "$OLDPWD"
-echo   ".         done"
+echo   ".        done"
 
 
 echo "Build of ChatZilla $VERSION...         ALL DONE"

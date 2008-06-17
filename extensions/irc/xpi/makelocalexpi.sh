@@ -213,7 +213,7 @@ echo -n .
 
 safeCommand $PERL preprocessor.pl -DAB_CD="$AB_CD" "$LOCALEDIR/jar.mn" '>' "$LOCALEDIR/jar.mn.pp"
 echo -n .
-safeCommand $PERL make-jars.pl -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$L10NDIR" -- "-DAB_CD=\"$AB_CD\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
+safeCommand $PERL make-jars.pl -e -v -z zip -p preprocessor.pl -s "$LOCALEDIR" -d "$JARROOT" -c "$L10NDIR" -- "-DAB_CD=\"$AB_CD\" -DMOZILLA_LOCALE_VERSION=\"\"" '<' "$LOCALEDIR/jar.mn.pp"
 echo -n .
 safeCommand rm "$LOCALEDIR/jar.mn.pp"
 cd "$OLDPWD"
@@ -225,13 +225,15 @@ echo -n "  Constructing XPI package"
 echo -n .
 safeCommand cp -v "$JARROOT/chatzilla.jar" "$XPIROOT/chrome/"
 echo -n .
+safeCommand mv "$JARROOT/../chrome.manifest" "$XPIROOT/chrome.manifest"
+echo -n .
 safeCommand chmod 664 "$XPIROOT/chrome/chatzilla.jar"
 echo -n .
 OLDPWD=`pwd`
 cd "$XPIROOT"
 safeCommand zip -vr ../$XPINAME . -i "*" -x "log*"
 cd "$OLDPWD"
-echo   ".                     done"
+echo   ".                    done"
 
 
 echo "Build of $AB_CD language pack for ChatZilla $VERSION... ALL DONE"
