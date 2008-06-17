@@ -204,6 +204,13 @@ var DirPaneController =
         if (selectedDir &&
             (selectedDir != kPersonalAddressbookURI) &&
             (selectedDir != kCollectedAddressbookURI)) {
+          // If the directory is a mailing list, and it is read-only, return
+          // false.
+          var abDir = GetDirectoryFromURI(selectedDir);
+          if (abDir.isMailList && 
+              ~abDir.operations & abDir.opWrite)
+            return false;
+
           // If the selected directory is an ldap directory
           // and if the prefs for this directory are locked
           // disable the delete button.

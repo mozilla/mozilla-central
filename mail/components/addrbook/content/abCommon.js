@@ -53,6 +53,7 @@ var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].
 const kDefaultSortColumn = "GeneratedName";
 const kDefaultAscending = "ascending";
 const kDefaultDescending = "descending";
+const kLdapUrlPrefix = "moz-abldapdirectory://";
 const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
 const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
 
@@ -199,19 +200,24 @@ var DirPaneController =
 
         selectedDir = GetSelectedDirectory();
 
-        if (selectedDir == kPersonalAddressbookURI || selectedDir == kCollectedAddressbookURI)
-          return false;
+        if (selectedDir &&
+	    (selectedDir != kPersonalAddressbookURI) &&
+	    (selectedDir != kCollectedAddressbookURI)) {
+          // If the directory is a mailing list, and it is read-only, return
+          // false.
+          var abDir = GetDirectoryFromURI(selectedDir);
+          if (abDir.isMailList && 
+              ~abDir.operations & abDir.opWrite)
+            return false;
 
-        if (selectedDir) {
           // If the selected directory is an ldap directory
           // and if the prefs for this directory are locked
           // disable the delete button.
-          var ldapUrlPrefix = "moz-abldapdirectory://";
-          if ((selectedDir.indexOf(ldapUrlPrefix, 0)) == 0)
+          if (selectedDir.lastIndexOf(kLdapUrlPrefix, 0) == 0)
           {
             var disable = false;
             try {
-              var prefName = selectedDir.substr(ldapUrlPrefix.length);
+              var prefName = selectedDir.substr(kLdapUrlPrefix.length);
               disable = gPrefs.getBoolPref(prefName + ".disable_delete");
             }
             catch(ex) {
