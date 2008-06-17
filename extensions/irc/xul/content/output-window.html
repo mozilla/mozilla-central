@@ -138,9 +138,12 @@
               <td class="label" id="ch-topicnodes-l" localize="output.topic"></td>
               <td class="value" colspan="6">
                 <span id="ch-topicnodes" localize="none"></span>
-                <input hidden="true" id="ch-topicinput" style="width:100%"
+                <input hidden="true" id="ch-topicinput" style="width:90%"
                        onblur="cancelTopicEdit();"
                        onkeypress="onTopicKeypress(event);"/>
+                <input type="button" hidden="true" id="ch-topiccancel"
+                       onclick="setTimeout(cancelTopicEdit, 0, true);"
+                       localize="output.cancel"/>
               </td>
             </tr>
           </tbody>

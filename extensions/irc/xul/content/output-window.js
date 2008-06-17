@@ -66,7 +66,7 @@ var headers = {
     IRCChannel: {
         prefix: "ch-",
         fields: ["container", "url-anchor", "modestr", "usercount",
-                 "topicnodes", "topicinput"],
+                 "topicnodes", "topicinput", "topiccancel"],
         update: updateChannel
     },
 
@@ -125,7 +125,10 @@ function stock_initOutputWindow(newClient, newView, newClickHandler)
         {
             var msg = nodes[i].getAttribute("localize");
             msg = getMsg("msg." + msg);
-            nodes[i].appendChild(document.createTextNode(msg));
+            if (nodes[i].nodeName.toLowerCase() == "input")
+                nodes[i].value = msg;
+            else
+                nodes[i].appendChild(document.createTextNode(msg));
         }
     }
 
@@ -183,10 +186,12 @@ function onTopicKeypress(e)
             var topic = header["topicinput"].value;
             topic = mainWindow.replaceColorCodes(topic);
             view.setTopic(topic);
+            cancelTopicEdit(true);
             view.dispatch("focus-input");
             break;
             
         case 27: /* esc */
+            cancelTopicEdit(true);
             view.dispatch("focus-input");
             break;
             
@@ -203,21 +208,27 @@ function startTopicEdit()
     {
         return;
     }
-    
+
     header["topicinput"].value = mainWindow.decodeColorCodes(view.topic);
 
     header["topicnodes"].setAttribute("hidden", "true")
     header["topicinput"].removeAttribute("hidden");
+    header["topiccancel"].removeAttribute("hidden");
     header["topicinput"].focus();
     header["topicinput"].selectionStart = 0;
 }
 
-function cancelTopicEdit()
+function cancelTopicEdit(force)
 {
-    if (!header["topicnodes"].hasAttribute("hidden"))
+    var originalTopic = mainWindow.decodeColorCodes(view.topic);
+    if (!header["topicnodes"].hasAttribute("hidden") ||
+        (!force && (header["topicinput"].value != originalTopic)))
+    {
         return;
-    
-    header["topicinput"].setAttribute("hidden", "true")
+    }
+
+    header["topicinput"].setAttribute("hidden", "true");
+    header["topiccancel"].setAttribute("hidden", "true");
     header["topicnodes"].removeAttribute("hidden");
 }
 
