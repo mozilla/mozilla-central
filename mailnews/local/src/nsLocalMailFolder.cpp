@@ -3813,6 +3813,8 @@ nsresult nsMsgLocalMailFolder::ChangeKeywordForMessages(nsIArray *aMessages, con
 
         keywordToWrite.Append(*(keywordArray[j]));
         seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, desiredOffset);
+        // need to reset lineBuffer, which is cheaper than creating a new one.
+        lineBuffer->start = lineBuffer->end = lineBuffer->buf;
         PRBool inKeywordHeader = PR_FALSE;
         PRBool foundKeyword = PR_FALSE;
         PRUint32 offsetToAddKeyword = 0;
