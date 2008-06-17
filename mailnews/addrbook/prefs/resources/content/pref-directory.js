@@ -301,9 +301,6 @@ function editDirectory()
     var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
                       .getService(Components.interfaces.nsIRDFService);
 
-    // get the datasource for the addressdirectory
-    var addressbookDS = RDF.GetDataSource("rdf:addressdirectory");
-
     // the RDF resource URI for LDAPDirectory will be moz-abldapdirectory://<prefName>
     var selectedABURI = "moz-abldapdirectory://" + gCurrentDirectoryServerId;
     var selectedABDirectory = RDF.GetResource(selectedABURI)
