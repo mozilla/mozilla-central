@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com> 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -57,17 +58,17 @@
     border-right: 1px dotted #AAA;
 }
 
+#calendar-task-tree-detail {
+    border: 1px solid ThreeDShadow;
+    margin: 3px;
+}
+
 #view-task-edit-field {
     margin: 5px;
 }
 
 .task-edit-field[readonly="true"] {
     color: GrayText;
-}
-
-.task-quickadd-box {
-    margin: 0px 4px;
-    background-color: -moz-field;
 }
 
 #calendar-task-details-grid-right {
@@ -78,8 +79,12 @@
     font-weight: bold;
 }
 
+#unifinder-task-edit-field {
+  margin: 3px;
+}
+
 #unifinder-todo-tree > .calendar-task-tree {
-    margin-bottom: 0;
+    margin-bottom: 3px;
 }
 
 #calendar-task-details-container {

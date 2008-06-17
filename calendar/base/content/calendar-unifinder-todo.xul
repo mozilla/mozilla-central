@@ -24,6 +24,7 @@
    -   Robin Edrenius <robin.edrenius@gmail.com>
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,17 +66,17 @@
                 oncommand="toDoUnifinderRefresh();"
                 persist="checked"/>
     </box>
-    <calendar-task-tree id="unifinder-todo-tree" flex="1"
-                        visible-columns="completed priority title"
-                        persist="visible-columns ordinals widths sort-active sort-direction"
-                        context="taskitem-context-menu"/>
-    <box align="center" class="task-quickadd-box">
-      <textbox id="unifinder-task-edit-field"
-               class="task-edit-field"
-               flex="1"
-               onfocus="taskEdit.onFocus(event)"
-               onblur="taskEdit.onBlur(event)"
-               onkeypress="taskEdit.onKeyPress(event)"/>
-    </box>
+    <vbox id="calendar-task-tree-detail" flex="1">
+      <calendar-task-tree id="unifinder-todo-tree" flex="1"
+                          visible-columns="completed priority title"
+                          persist="visible-columns ordinals widths sort-active sort-direction"
+                          context="taskitem-context-menu"
+                          onselect="document.commandDispatcher.updateCommands('calendar_commands');"/>
+       <textbox id="unifinder-task-edit-field"
+                class="task-edit-field"
+                onfocus="taskEdit.onFocus(event)"
+                onblur="taskEdit.onBlur(event)"
+                onkeypress="taskEdit.onKeyPress(event)"/>
+    </vbox>
   </vbox>
 </overlay>
