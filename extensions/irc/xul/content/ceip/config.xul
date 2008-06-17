@@ -20,8 +20,8 @@
     <description>&intro.label;</description>
     <groupbox align="start">
       <caption label="&groupSend.label;"/>
-      <checkbox label="&sendClient.label;" accesskey="&sendClient.key;" id="ceip-client"/>
-      <checkbox label="&sendCommand.label;" accesskey="&sendCommand.key;" id="ceip-command"/>
+      <checkbox label="&sendClient.label;" accesskey="&sendClient.accesskey;" id="ceip-client"/>
+      <checkbox label="&sendCommand.label;" accesskey="&sendCommand.accesskey;" id="ceip-command"/>
       <hbox>
         <label value="&sendID.label;"/>
         <label id="ceip-userid"/>
