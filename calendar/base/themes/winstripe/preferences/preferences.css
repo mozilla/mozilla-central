@@ -23,6 +23,7 @@
 # Contributor(s): Ben Goodger <ben@netscape.com> (Original Author)
 #                 Kevin Gerich <webmail@kmgerich.com>
 #                 Matthew Willis <mattwillis@gmail.com>
+#                 Philipp Kewisch <mozilla@kewis.ch>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -123,3 +124,6 @@ filefield[disabled="true"] .fileFieldIcon {
     margin: 0px;
 }
 
+tabpanels caption {
+    background-color: -moz-Dialog;
+}

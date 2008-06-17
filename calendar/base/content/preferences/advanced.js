@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Jeff Walden <jwalden+code@mit.edu>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -77,7 +78,6 @@ var gAdvancedPane = {
                                             "chrome://global/content/config.xul",
                                             "", null);
     },
-
 
     // PASSWORDS TAB
 
@@ -218,13 +218,13 @@ var gAdvancedPane = {
      * locked, disabled, and checked/unchecked states.
      *
      * UI state matrix for update preference conditions
-     * 
+     *
      * UI Elements:                                   Preferences
      * 1 = Sunbird checkbox                           i   = app.update.enabled
      * 2 = When updates for Sunbird are found label   ii  = app.update.auto
      * 3 = Automatic Radiogroup (Ask vs. Auto)        iii = app.update.mode
      * 4 = Warn before disabling add-ons checkbox
-     * 
+     *
      * States:
      * Element  Disabled    Pref  Value   Locked
      * 1        false       i     t/f     f
@@ -347,6 +347,58 @@ var gAdvancedPane = {
         var prompter = Components.classes["@mozilla.org/updates/update-prompt;1"]
                                  .createInstance(Components.interfaces.nsIUpdatePrompt);
         prompter.showUpdateHistory(window);
-    }
+    },
 
+    // ENCRYPTION TAB
+
+    /*
+     * Preferences:
+     *
+     * security.enable_ssl3
+     * - true if SSL 3 encryption is enabled, false otherwise
+     * security.enable_tls
+     * - true if TLS encryption is enabled, false otherwise
+     * security.default_personal_cert
+     * - a string:
+     *     "Select Automatically"   select a certificate automatically when a site
+     *                              requests one
+     *     "Ask Every Time"         present a dialog to the user so he can select
+     *                              the certificate to use on a site which
+     *                              requests one
+     */
+
+    /**
+     * Displays the user's certificates and associated options.
+     */
+    showCertificates: function gAP_showCertificates() {
+      document.documentElement.openWindow("mozilla:certmanager",
+                                          "chrome://pippki/content/certManager.xul",
+                                          "", null);
+    },
+
+    /**
+     * Displays a dialog which describes the user's CRLs.
+     */
+    showCRLs: function gAP_showCRLs() {
+      document.documentElement.openWindow("Mozilla:CRLManager",
+                                          "chrome://pippki/content/crlManager.xul",
+                                          "", null);
+    },
+
+    /**
+     * Displays a dialog in which OCSP preferences can be configured.
+     */
+    showOCSP: function gAP_showOCSP() {
+      document.documentElement.openSubDialog("chrome://mozapps/content/preferences/ocsp.xul",
+                                             "", null);
+    },
+
+    /**
+     * Displays a dialog from which the user can manage his security devices.
+     */
+    showSecurityDevices: function gAP_showSecurityDevices() {
+      document.documentElement.openWindow("mozilla:devicemanager",
+                                          "chrome://pippki/content/device_manager.xul",
+                                          "", null);
+    }
 };

@@ -23,6 +23,7 @@
    -   Matthew Willis <lilmatt@mozilla.com>
    -   Jeff Walden <jwalden+code@mit.edu>
    -   Stefan Sitter <ssitter@googlemail.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,7 +53,7 @@
         <script type="application/x-javascript"
                 src="chrome://calendar/content/preferences/advanced.js"/>
 
-        <preferences>
+        <preferences id="advancePrefs-preferences">
             <preference id="calendar.preferences.advanced.selectedTabIndex"
                         name="calendar.preferences.advanced.selectedTabIndex"
                         type="int"/>
@@ -88,21 +89,36 @@
             <preference id="app.update.disable_button.showUpdateHistory"
                         name="app.update.disable_button.showUpdateHistory"
                         type="bool"/>
+            <!-- Encryption tab -->
+            <preference id="security.enable_ssl3" name="security.enable_ssl3" type="bool"/>
+            <preference id="security.enable_tls" name="security.enable_tls" type="bool"/>
+
+            <preference id="security.default_personal_cert" name="security.default_personal_cert" type="string"/>
+
+            <preference id="security.disable_button.openCertManager"
+                        name="security.disable_button.openCertManager"
+                        type="bool"/>
+            <preference id="security.OCSP.disable_button.managecrl"
+                        name="security.OCSP.disable_button.managecrl"
+                        type="bool"/>
+            <preference id="security.disable_button.openDeviceManager"
+                        name="security.disable_button.openDeviceManager"
+                        type="bool"/>
         </preferences>
 
         <tabbox id="advancedPrefs"
                 flex="1"
                 onselect="gAdvancedPane.tabSelectionChanged();">
-            <tabs>
-                <tab label="&pref.calendar.advanced.generalTab.label;"/>
-                <tab label="&pref.calendar.advanced.passwordsTab.label;"/>
-                <tab label="&pref.calendar.advanced.updateTab.label;"/>
+            <tabs id="advancedPrefs-tabs">
+                <tab id="generalTab" label="&pref.calendar.advanced.generalTab.label;"/>
+                <tab id="networkTab" label="&pref.calendar.advanced.passwordsTab.label;"/>
+                <tab id="updateTab" label="&pref.calendar.advanced.updateTab.label;"/>
+                <tab id="encryptionTab" label="&pref.calendar.advanced.encryptionTab.label;"/>
             </tabs>
 
-            <tabpanels flex="1">
-
+            <tabpanels id="advancedPrefs-tabpanels" flex="1">
                 <!-- General -->
-                <tabpanel orient="vertical">
+                <tabpanel id="generalPanel" orient="vertical">
                     <hbox align="center" pack="start">
                         <description flex="1">&pref.calendar.advanced.proxiesInfo.label;</description>
                         <button id="catProxiesButton"
@@ -125,7 +141,7 @@
                 </tabpanel>
 
                 <!-- Passwords -->
-                <tabpanel orient="vertical" align="start">
+                <tabpanel id="passwordsPanel" orient="vertical" align="start">
                     <description>&pref.calendar.advanced.savedPasswords.intro;</description>
                     <checkbox id="useMasterPassword"
                               label="&pref.calendar.advanced.useMasterPassword.label;"
@@ -134,7 +150,7 @@
                               class="indent"
                               flex="1"/>
                     <separator/>
- 
+
                     <hbox align="start">
                         <description flex="1">&pref.calendar.advanced.masterPassword.intro;</description>
                         <vbox>
@@ -204,10 +220,98 @@
                                 oncommand="gAdvancedPane.showUpdates();"/>
                     </hbox>
                 </tabpanel>
+
+                <!-- Encryption -->
+                <tabpanel id="encryptionPanel" orient="vertical">
+
+                  <!-- Protocols -->
+                  <groupbox id="protocolsGroup">
+                    <caption label="&pref.calendar.advanced.encryption.protocols.label;"/>
+
+                    <grid>
+                      <columns>
+                        <column flex="1"/>
+                        <column flex="1"/>
+                      </columns>
+                      <rows>
+                        <row>
+                          <hbox>
+                            <checkbox id="useSSL3"
+                                      label="&pref.calendar.advanced.encryption.useSSL3.label;"
+                                      accesskey="&pref.calendar.advanced.encryption.useSSL3.accesskey;"
+                                      preference="security.enable_ssl3"/>
+                          </hbox>
+                          <hbox>
+                            <checkbox id="useTLS1"
+                                      label="&pref.calendar.advanced.encryption.useTLS1.label;"
+                                      accesskey="&pref.calendar.advanced.encryption.useTLS1.accesskey;"
+                                      preference="security.enable_tls"/>
+                          </hbox>
+                        </row>
+                      </rows>
+                    </grid>
+                  </groupbox>
+
+                  <!-- Certificates -->
+                  <groupbox id="certificatesGroup">
+                    <caption id="CertGroupCaption"
+                             label="&pref.calendar.advanced.encryption.certificates.label;"/>
+
+                    <description id="CertSelectionDesc" control="certSelection">&pref.calendar.advanced.encryption.certSelection.description;</description>
+
+                    <!--
+                      The values on these radio buttons may look like l12y issues, but
+                      they're not - this preference uses *those strings* as its values.
+                      I KID YOU NOT.
+                    -->
+                    <radiogroup id="certSelection" orient="horizontal" preftype="string"
+                                preference="security.default_personal_cert"
+                                aria-labelledby="CertGroupCaption CertSelectionDesc">
+                      <radio label="&pref.calendar.advanced.encryption.certs.auto;"
+                             accesskey="&pref.calendar.advanced.encryption.certs.auto.accesskey;"
+                             value="Select Automatically"/>
+                      <radio label="&pref.calendar.advanced.encryption.certs.ask;"
+                             accesskey="&pref.calendar.advanced.encryption.certs.ask.accesskey;"
+                             value="Ask Every Time"/>
+                    </radiogroup>
+
+                    <separator/>
+
+#ifdef XP_MACOSX
+                    <vbox>
+#endif
+                    <hbox>
+                      <button id="viewCertificatesButton"
+                              label="&pref.calendar.advanced.encryption.viewCerts.label;"
+                              accesskey="&pref.calendar.advanced.encryption.viewCerts.accesskey;"
+                              oncommand="gAdvancedPane.showCertificates();"
+                              preference="security.disable_button.openCertManager"/>
+                      <button id="viewCRLButton"
+                              label="&pref.calendar.advanced.encryption.viewCRLs.label;"
+                              accesskey="&pref.calendar.advanced.encryption.viewCRLs.accesskey;"
+                              oncommand="gAdvancedPane.showCRLs();"
+                              preference="security.OCSP.disable_button.managecrl"/>
+                      <button id="verificationButton"
+                              label="&pref.calendar.advanced.encryption.verify2.label;"
+                              accesskey="&pref.calendar.advanced.encryption.verify2.accesskey;"
+                              oncommand="gAdvancedPane.showOCSP();"/>
+#ifdef XP_MACOSX
+                    </hbox>
+                    <hbox>
+#endif
+                      <button id="viewSecurityDevicesButton"
+                              label="&pref.calendar.advanced.encryption.viewSecurityDevices.label;"
+                              accesskey="&pref.calendar.advanced.encryption.viewSecurityDevices.accesskey;"
+                              oncommand="gAdvancedPane.showSecurityDevices();"
+                              preference="security.disable_button.openDeviceManager"/>
+                    </hbox>
+#ifdef XP_MACOSX
+                    </vbox>
+#endif
+                  </groupbox>
+                </tabpanel>
             </tabpanels>
         </tabbox>
-
         <separator/>
-
     </vbox>
 </overlay>
