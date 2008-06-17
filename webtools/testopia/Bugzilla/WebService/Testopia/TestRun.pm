@@ -97,6 +97,7 @@ sub create {
     
     $new_values->{'plan_text_version'} ||= $plan->version;
     $new_values->{'product_version'} ||= $plan->product_version;
+    $new_values->{'status'} = 1 unless defined $new_values->{'status'} && $new_values->{'status'} == 0;
     
     if (trim($new_values->{'build_id'}) !~ /^\d+$/ ){
         my $build = Bugzilla::Testopia::Build::check_build($new_values->{'build_id'}, $plan->product, "THROWERROR");
