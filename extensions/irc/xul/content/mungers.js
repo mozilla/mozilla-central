@@ -279,7 +279,7 @@ function insertChannelLink(matchText, containerTag, eventData, mungerEntry)
     }
 
     var bogusChannels =
-        /^#(include|error|define|if|ifdef|else|elsif|endif|\d+)$/i;
+        /^#(include|error|define|if|ifdef|else|elsif|endif)$/i;
 
     if (!("network" in eventData) || !eventData.network ||
         matchText.search(bogusChannels) != -1)
