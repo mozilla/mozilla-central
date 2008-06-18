@@ -1013,7 +1013,8 @@
       </method>
 
       <method name="centerSelectedItems">
-        <body/>
+        <body>
+        </body>
       </method>
 
       <property name="selectedDay">
