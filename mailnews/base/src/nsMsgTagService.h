@@ -81,6 +81,10 @@ protected:
   nsresult MigrateLabelsToTags();
 
   nsCOMPtr<nsIPrefBranch> m_tagPrefBranch;
+
+  nsCStringArray m_keys;
+
+  nsresult RefreshKeyCache();
 };
 
 #endif

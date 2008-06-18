@@ -73,6 +73,8 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
 #include <ctype.h>
+#include "nsMsgBaseCID.h"
+#include "nsIMsgTagService.h"
 
 //---------------------------------------------------------------------------
 // nsMsgSearchTerm specifies one criterion, e.g. name contains phil
@@ -1357,51 +1359,120 @@ nsresult nsMsgSearchTerm::MatchStatus(PRUint32 statusToMatch, PRBool *pResult)
   return rv;
 }
 
+/*
+ * MatchKeyword Logic table (*pResult: + is true, - is false)
+ *
+ *         # Valid Tokens IsEmpty Contains DoesntContain Is     Isnt
+ *                0           +       -         +         -       +
+ * Term found?                      N   Y     N   Y     N   Y   N   Y
+ *                1           -     -   +     +   -     -   +   +   -
+ *               >1           -     -   +     +   -     -   -   +   +
+ */
+
 nsresult nsMsgSearchTerm::MatchKeyword(const char *keyword, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
-
-  nsresult rv = NS_OK;
-  nsCAutoString keys;
-
   PRBool matches = PR_FALSE;
 
-  switch (m_operator)
+  // Special-case keyword == "" for performance reasons
+  if (!strlen(keyword)) 
   {
-  case nsMsgSearchOp::Is:
-    matches = !strcmp(keyword, m_value.string);
-    break;
-  case nsMsgSearchOp::Isnt:
-    matches = strcmp(keyword, m_value.string);
-    break;
-  case nsMsgSearchOp::DoesntContain:
-  case nsMsgSearchOp::Contains:
-    {
-      const char *keywordLoc = PL_strstr(keyword, m_value.string);
-      const char *startOfKeyword = keyword;
-      PRUint32 keywordLen = strlen(m_value.string);
-      while (keywordLoc)
-      {
-        // if the keyword is at the beginning of the string, then it's a match if
-        // it is either the whole string, or is followed by a space, it's a match.
-        if (keywordLoc == startOfKeyword || (keywordLoc[-1] == ' '))
-        {
-          matches = keywordLen == strlen(keywordLoc) || (keywordLoc[keywordLen] == ' ');
-          if (matches)
-            break;
-        }
-        startOfKeyword = keywordLoc + keywordLen;
-        keywordLoc = PL_strstr(keyword, keywordLoc + keywordLen + 1);
-      }
-    }
-    break;
-  default:
-    rv = NS_ERROR_FAILURE;
-    NS_ERROR("invalid compare op for msg status");
+    *pResult =  m_operator != nsMsgSearchOp::Contains &&
+                m_operator != nsMsgSearchOp::Is;
+    return NS_OK;
   }
 
-  *pResult = (m_operator == nsMsgSearchOp::DoesntContain) ? !matches : matches;
-  return rv;
+  // Check if we can skip expensive valid keywords test
+  if (m_operator == nsMsgSearchOp::DoesntContain ||
+      m_operator == nsMsgSearchOp::Contains)
+  {
+    const char *keywordLoc = PL_strstr(keyword, m_value.string);
+    const char *startOfKeyword = keyword;
+    PRUint32 keywordLen = strlen(m_value.string);
+    while (keywordLoc)
+    {
+      // if the keyword is at the beginning of the string, then it's a match if
+      // it is either the whole string, or is followed by a space, it's a match.
+      if (keywordLoc == startOfKeyword || (keywordLoc[-1] == ' '))
+      {
+        matches = keywordLoc[keywordLen] == '\0' ||
+                  (keywordLoc[keywordLen] == ' ');
+        if (matches)
+          break;
+      }
+      startOfKeyword = keywordLoc + keywordLen;
+      keywordLoc = PL_strstr(keyword, keywordLoc + keywordLen + 1);
+    }
+    *pResult = (m_operator == nsMsgSearchOp::DoesntContain) ? !matches : matches;
+    return NS_OK;
+  }
+
+  // Only accept valid keys in tokens.
+  nsresult rv = NS_OK;
+  nsCStringArray keywordArray;
+  keywordArray.ParseString(keyword, " ");
+  nsCOMPtr<nsIMsgTagService> tagService(do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Loop through tokens in keywords
+  PRUint32 count = keywordArray.Count();
+  for (PRUint32 i = 0; i < count; i++)
+  {
+    // is this token a valid tag? Otherwise ignore it
+    PRBool isValid;
+    rv = tagService->IsValidKey(*keywordArray[i], &isValid);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (isValid)
+    {
+      // IsEmpty fails on any valid token
+      if (m_operator == nsMsgSearchOp::IsEmpty)
+      {
+        *pResult = PR_FALSE;
+        return rv;
+      }
+
+      // Does this valid tag key match our search term?
+      matches = keywordArray[i]->Equals(m_value.string);
+
+      // Is or Isn't partly determined on a single unmatched token
+      if (!matches)
+      {
+        if (m_operator == nsMsgSearchOp::Is)
+        {
+          *pResult = PR_FALSE;
+          return rv;
+        }
+        if (m_operator == nsMsgSearchOp::Isnt)
+        {
+          *pResult = PR_TRUE;
+          return rv;
+        }
+      }
+    }
+  }
+
+  if (m_operator == nsMsgSearchOp::Is)
+  {
+    *pResult = matches;
+    return NS_OK;
+  }
+
+  if (m_operator == nsMsgSearchOp::Isnt)
+  {
+    *pResult = !matches;
+    return NS_OK;
+  }
+
+  if (m_operator == nsMsgSearchOp::IsEmpty)
+  {
+    *pResult = PR_TRUE;
+    return NS_OK;
+  }
+
+  // no valid match operator found
+  NS_ERROR("invalid compare op for msg status");
+  return NS_ERROR_FAILURE;
 }
 
 nsresult

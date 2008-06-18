@@ -69,7 +69,7 @@ interface nsIMsgTag : nsISupports {
   readonly attribute ACString ordinal; // custom sort string (usually empty)
 };
 
-[scriptable, uuid(b897da55-8256-4cf5-892b-32e77bc7c50b)]
+[scriptable, uuid(88BBCA01-9BA2-4185-9634-F82DA583D4AA)]
 interface nsIMsgTagService : nsISupports {
   // create new tag by deriving the key from the tag
   void addTag(in AString tag, in ACString color, in ACString ordinal);
@@ -91,4 +91,11 @@ interface nsIMsgTagService : nsISupports {
   // get all known tags
   void getAllTags(out unsigned long count,
                   [retval, array, size_is(count)] out nsIMsgTag tagArray);
+  /*
+   * Determines if the token in aKey corresponds to a current valid tag
+   *
+   * @param aKey        The string to test
+   * @return            True if aKey is a current token
+   */
+  boolean isValidKey(in ACString aKey);
 };

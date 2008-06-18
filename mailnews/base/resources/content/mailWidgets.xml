@@ -1035,6 +1035,14 @@
             // noop if we're not changing it
             if (this.internalOperator == val) return val;
 
+            // Keywords has the null field IsEmpty
+            if (this.searchAttribute == Components.interfaces.nsMsgSearchAttrib.Keywords) {
+              if (val == Components.interfaces.nsMsgSearchOp.IsEmpty)
+                this.setAttribute("selectedIndex", "-1");
+              else
+                this.setAttribute("selectedIndex", "5");
+            }
+
             // if it's not sender, we don't care
             if (this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.Sender) {
               this.internalOperator = val;

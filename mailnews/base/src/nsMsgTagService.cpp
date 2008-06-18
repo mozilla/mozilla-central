@@ -159,6 +159,7 @@ nsMsgTagService::nsMsgTagService()
     prefService->GetBranch("mailnews.tags.", getter_AddRefs(m_tagPrefBranch));
   // need to figure out how to migrate the tags only once.
   MigrateLabelsToTags();
+  RefreshKeyCache();
 }
 
 nsMsgTagService::~nsMsgTagService()
@@ -264,6 +265,8 @@ NS_IMETHODIMP nsMsgTagService::AddTagForKey(const nsACString &key,
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetColorForKey(key, color);
   NS_ENSURE_SUCCESS(rv, rv);
+  rv = RefreshKeyCache();
+  NS_ENSURE_SUCCESS(rv, rv);
   return SetOrdinalForKey(key, ordinal);
 }
 
@@ -359,7 +362,9 @@ NS_IMETHODIMP nsMsgTagService::DeleteKey(const nsACString &key)
   nsCAutoString prefName(key);
   if (!gMigratingKeys)
     ToLowerCase(prefName);
-  return m_tagPrefBranch->DeleteBranch(prefName.get());
+  nsresult rv = m_tagPrefBranch->DeleteBranch(prefName.get());
+  NS_ENSURE_SUCCESS(rv, rv);
+  return RefreshKeyCache();
 }
 
 /* void getAllTags (out unsigned long count, [array, size_is (count), retval] out nsIMsgTag tagArray); */
@@ -547,5 +552,39 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     }
   }
   m_tagPrefBranch->SetIntPref(TAG_PREF_VERSION, 2);
+  return rv;
+}
+
+NS_IMETHODIMP nsMsgTagService::IsValidKey(const nsACString &aKey, PRBool *aResult)
+{
+  NS_ENSURE_ARG_POINTER(aResult);
+  *aResult = m_keys.IndexOf(aKey) >= 0;
+  return NS_OK;
+}
+
+// refresh the local tag key array m_keys from preferences
+nsresult nsMsgTagService::RefreshKeyCache()
+{
+  nsIMsgTag **tagArray;
+  PRUint32 numTags;
+  nsresult rv = GetAllTags(&numTags, &tagArray);
+  NS_ENSURE_SUCCESS(rv, rv);
+  m_keys.Clear();
+
+  for (PRUint32 tagIndex = 0; tagIndex < numTags; tagIndex++)
+  {
+    nsIMsgTag *tag = tagArray[tagIndex];
+    if (!tag) {
+      rv = NS_ERROR_FAILURE;
+      break;
+    }
+    nsCAutoString key;
+    tag->GetKey(key);
+    if (!m_keys.InsertCStringAt(key, tagIndex)) {
+      rv = NS_ERROR_FAILURE;
+      break;
+    }
+  }
+  NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(numTags, tagArray);
   return rv;
 }
