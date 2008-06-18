@@ -906,7 +906,7 @@ function IsFolderSelected()
         selection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
         var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        return folder.isServer;
+        return !folder.isServer;
     }
     else
         return false;
