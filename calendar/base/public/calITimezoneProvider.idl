@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Clint Talbert <ctalbert@mozilla.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -70,4 +71,11 @@ interface calITimezoneService : calITimezoneProvider
      * Provides the version of the underlying timezone database.
      */
     readonly attribute AString version;
+
+    /**
+     * Returns the default timezone from calendar.timezone.local. If no timezone
+     * has been set, a best guess is taken from the operating system and the
+     * timezone is saved into the above mentioned pref.
+     */
+    readonly attribute calITimezone defaultTimezone;
 };
