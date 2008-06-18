@@ -73,24 +73,24 @@ function onLoad()
     gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
     gFirstDeferredAccount = gServerSettings.deferredToAccount;
     var localFoldersAccount = getLocalFoldersAccount();
+    var folderPopup = document.getElementById("deferedServerPopup");
     if (gFirstDeferredAccount.length)
     {
       var account = gAccountManager.getAccount(gFirstDeferredAccount);
       if (account)
       {
-        var thisServer = account.incomingServer;
-        SetFolderPicker(thisServer.serverURI, 'deferedServerFolderPicker');
+        folderPopup.selectFolder(account.incomingServer.rootFolder);
       }
       if (gFirstDeferredAccount == localFoldersAccount.key)
       {
         radioGroup.selectedItem = document.getElementById("globalInbox");
-        SetFolderPicker(localFoldersAccount.incomingServer.serverURI, 'deferedServerFolderPicker');
+        folderPopup.selectFolder(localFoldersAccount.incomingServer.rootFolder);
         updateInboxAccount(false, true);
       }
       else
       {
         radioGroup.selectedItem = document.getElementById("deferToServer");
-        SetFolderPicker(account.incomingServer.serverURI, 'deferedServerFolderPicker');
+        folderPopup.selectFolder(account.incomingServer.rootFolder);
         updateInboxAccount(true, true);
       }
     }
@@ -101,7 +101,7 @@ function onLoad()
       // we should find out if there's another pop3/movemail server to defer to,
       // perhaps by checking the number of elements in the picker. For now, 
       // just use the local folders account
-      SetFolderPicker(localFoldersAccount.incomingServer.serverURI, 'deferedServerFolderPicker');
+      folderPopup.selectFolder(localFoldersAccount.incomingServer.rootFolder);
 
       updateInboxAccount(false, false);
 
@@ -156,7 +156,8 @@ function onOk()
         break;
       case "2":
         picker = document.getElementById("deferedServerFolderPicker");
-        var server = GetMsgFolderFromUri(picker.getAttribute("uri"), false).server;
+        var server = document.getElementById("deferedServerFolderPicker")
+                             .selectedItem._folder.server;
         var account = gAccountManager.FindAccountForServer(server);
         gServerSettings['deferredToAccount'] = account.key;
         break;

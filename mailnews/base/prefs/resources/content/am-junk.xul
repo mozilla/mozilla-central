@@ -37,13 +37,16 @@
 -->
 
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderOverlay.css" type="text/css"?>
 
 <!DOCTYPE window [
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
 %brandDTD;
 <!ENTITY % junkMailDTD SYSTEM "chrome://messenger/locale/am-junk.dtd" >
 %junkMailDTD;
+<!ENTITY % pickerDTD SYSTEM "chrome://messenger/locale/msgFolderPickerOverlay.dtd" >
+%pickerDTD;
 ]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -137,15 +140,22 @@
               <radio id="moveTargetMode0" value="0" label="&junkFolderOn.label;"
                      accesskey="&junkFolderOn.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetAccount" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode0"
-                        oncommand="onActionTargetChange(this, 'server.spamActionTargetAccount');" />
+                        aria-labelledby="moveTargetMode0">
+                <menupopup id="actionAccountPopup" type="folder"
+                           expandFolders="false" mode="filing"
+                           onselect="onActionTargetChange(event, 'server.spamActionTargetAccount');"/>
+              </menulist>
             </row>
             <row>
               <radio id="moveTargetMode1" value="1" label="&otherFolder.label;"
                      accesskey="&otherFolder.accesskey;" observes="broadcaster_moveMode"/>
               <menulist id="actionTargetFolder" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode1"
-                        oncommand="onActionTargetChange(this, 'server.spamActionTargetFolder');"/>
+                        aria-labelledby="moveTargetMode1">
+                <menupopup id="actionFolderPopup" type="folder" mode="junk"
+                           showFileHereLabel="true"
+                           fileHereLabel="&filemessageschoosethis.label;"
+                           oncommand="onActionTargetChange(event, 'server.spamActionTargetFolder');"/>
+              </menulist>
             </row>
           </rows>
         </grid>

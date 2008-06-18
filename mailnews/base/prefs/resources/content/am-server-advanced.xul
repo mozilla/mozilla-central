@@ -38,8 +38,8 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
-
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
+<?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderOverlay.css" type="text/css"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/am-server-advanced.dtd">
 
@@ -150,7 +150,10 @@
               <radio value="2" id="deferToServer" label="&deferToServer.label;"
                      accesskey="&deferToServer.accesskey;"
                      oncommand="updateInboxAccount(true, true)"/>
-  	            <menulist id="deferedServerFolderPicker" aria-labelledby="deferToServer"/>
+  	        <menulist id="deferedServerFolderPicker" aria-labelledby="deferToServer">
+                  <menupopup type="folder" id="deferedServerPopup"
+                             expandFolders="false" mode="defered"/>
+                </menulist>
             </row>
           </rows>
         </radiogroup>

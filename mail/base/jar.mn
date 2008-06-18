@@ -74,8 +74,6 @@ messenger.jar:
     content/messenger/msgViewNavigation.js          (/mailnews/base/resources/content/msgViewNavigation.js)
     content/messenger/msgAccountCentral.xul         (/mailnews/base/resources/content/msgAccountCentral.xul)
     content/messenger/msgAccountCentral.js          (/mailnews/base/resources/content/msgAccountCentral.js)
-    content/messenger/msgFolderPickerOverlay.js     (/mailnews/base/resources/content/msgFolderPickerOverlay.js)
-    content/messenger/msgFolderPickerOverlay.xul    (/mailnews/base/resources/content/msgFolderPickerOverlay.xul)
     content/messenger/renameFolderDialog.xul        (/mailnews/base/resources/content/renameFolderDialog.xul)
     content/messenger/renameFolderDialog.js         (/mailnews/base/resources/content/renameFolderDialog.js)
     content/messenger/virtualFolderProperties.xul   (/mailnews/base/resources/content/virtualFolderProperties.xul)

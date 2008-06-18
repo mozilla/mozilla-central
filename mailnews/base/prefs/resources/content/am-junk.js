@@ -56,14 +56,20 @@ function onInit(aPageId, aServerId)
       spamActionTargetAccount = parent.accountManager.localFoldersServer.serverURI;
     document.getElementById('server.spamActionTargetAccount').value = spamActionTargetAccount;
   }
-  SetFolderPicker(spamActionTargetAccount, 'actionTargetAccount');
+  document.getElementById("actionAccountPopup")
+          .selectFolder(GetMsgFolderFromUri(spamActionTargetAccount));
   var spamActionTargetFolder = document.getElementById('server.spamActionTargetFolder').value;
   if (!spamActionTargetFolder)
   {
     spamActionTargetFolder = parent.accountManager.localFoldersServer.serverURI + "/Junk";
     document.getElementById('server.spamActionTargetFolder').value = spamActionTargetFolder;
   }
-  SetFolderPicker(spamActionTargetFolder, 'actionTargetFolder');
+  try {
+    document.getElementById("actionFolderPopup")
+            .selectFolder(GetMsgFolderFromUri(spamActionTargetFolder));
+  } catch(ex) {
+    // This is ok, it might not exist
+  }
   
   // set up the whitelist UI
   var wList = document.getElementById("whiteListAbURI");
@@ -167,9 +173,9 @@ function onSaveWhiteList()
   document.getElementById("server.useWhiteList").checked = (wlValue != "");
 }
 
-function onActionTargetChange(aMenuList, aWSMElementId)
+function onActionTargetChange(aEvent, aWSMElementId)
 {
-  document.getElementById(aWSMElementId).value = aMenuList.getAttribute('uri');
+  document.getElementById(aWSMElementId).value = aEvent.target._folder.URI
 }
 
 function buildServerFilterMenuList()
