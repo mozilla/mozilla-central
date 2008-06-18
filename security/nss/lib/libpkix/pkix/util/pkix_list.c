@@ -1259,7 +1259,7 @@ pkix_List_BubbleSort(
                                 leastObj = cmpObj;
                                 cmpObj = NULL;
                         } else {
-                            PKIX_DECREF(cmpObj);
+                                PKIX_DECREF(cmpObj);
                         }
                 }
                 PKIX_CHECK(PKIX_List_SetItem
@@ -1292,12 +1292,11 @@ PKIX_List_Create(
         void *plContext)
 {
         PKIX_List *list = NULL;
-        PKIX_Boolean isHeader = PKIX_TRUE;
 
         PKIX_ENTER(LIST, "PKIX_List_Create");
         PKIX_NULLCHECK_ONE(pList);
 
-        PKIX_CHECK(pkix_List_Create_Internal(isHeader, &list, plContext),
+        PKIX_CHECK(pkix_List_Create_Internal(PKIX_TRUE, &list, plContext),
                     PKIX_LISTCREATEINTERNALFAILED);
 
         *pList = list;
@@ -1416,6 +1415,7 @@ PKIX_List_AppendItem(
         void *plContext)
 {
         PKIX_List *lastElement = NULL;
+        PKIX_List *newElement = NULL;
         PKIX_UInt32 length, i;
 
         PKIX_ENTER(LIST, "PKIX_List_AppendItem");
@@ -1439,19 +1439,23 @@ PKIX_List_AppendItem(
         }
 
         PKIX_CHECK(pkix_List_Create_Internal
-                    (PKIX_FALSE, &lastElement->next, plContext),
+                    (PKIX_FALSE, &newElement, plContext),
                     PKIX_LISTCREATEINTERNALFAILED);
 
         PKIX_INCREF(item);
-        lastElement->next->item = item;
+        newElement->item = item;
 
         PKIX_CHECK(PKIX_PL_Object_InvalidateCache
                     ((PKIX_PL_Object *)list, plContext),
                     PKIX_OBJECTINVALIDATECACHEFAILED);
 
-        list->length = list->length + 1;
+        lastElement->next = newElement;
+        newElement = NULL;
+        list->length += 1;
 
 cleanup:
+
+        PKIX_DECREF(newElement);
 
         PKIX_RETURN(LIST);
 }
