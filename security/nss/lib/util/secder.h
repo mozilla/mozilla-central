@@ -43,7 +43,7 @@
  * secder.h - public data structures and prototypes for the DER encoding and
  *	      decoding utilities library
  *
- * $Id: secder.h,v 1.12 2008-06-14 14:20:38 wtc%google.com Exp $
+ * $Id: secder.h,v 1.13 2008-06-18 01:04:23 wtc%google.com Exp $
  */
 
 #if defined(_WIN32_WCE)
@@ -118,9 +118,9 @@ extern long DER_GetInteger(SECItem *src);
 extern unsigned long DER_GetUInteger(SECItem *src);
 
 /*
-** Convert a "UNIX" time value to a der encoded time value.
+** Convert an NSPR time value to a der encoded time value.
 **	"result" is the der encoded time (memory is allocated)
-**	"time" is the "UNIX" time value (Since Jan 1st, 1970).
+**	"time" is the NSPR time value (Since Jan 1st, 1970).
 **      time must be on or after January 1, 1950, and
 **      before January 1, 2050
 ** The caller is responsible for freeing up the buffer which
@@ -133,8 +133,8 @@ extern SECStatus DER_TimeToUTCTimeArena(PLArenaPool* arenaOpt,
 
 /*
 ** Convert an ascii encoded time value (according to DER rules) into
-** a UNIX time value.
-**	"result" the resulting "UNIX" time
+** an NSPR time value.
+**	"result" the resulting NSPR time
 **	"string" the der notation ascii value to decode
 */
 extern SECStatus DER_AsciiToTime(PRTime *result, const char *string);
@@ -173,8 +173,8 @@ extern SECStatus DER_TimeToGeneralizedTimeArena(PLArenaPool* arenaOpt,
                                                 SECItem *dst, PRTime gmttime);
 
 /*
-** Convert a DER encoded Generalized time value into a UNIX time value.
-**	"dst" the resulting "UNIX" time
+** Convert a DER encoded Generalized time value into an NSPR time value.
+**	"dst" the resulting NSPR time
 **	"string" the der notation ascii value to decode
 */
 extern SECStatus DER_GeneralizedTimeToTime(PRTime *dst, const SECItem *time);
