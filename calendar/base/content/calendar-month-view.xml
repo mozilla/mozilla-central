@@ -398,38 +398,11 @@
             return 0;
           }
 
-          // insert the new item block (while keeping the array sorted),
-          // and then relayout.
-          // Note: don't use Array.Sort, because that's quicksort, which
-          // is not good for an already mostly-sorted array
-          var newItem = {item: aItem};
-
-          // A binary search into the array. That's possible here, because the
-          // array is always sorted
-          function binarySearch(itemArray, low, high, newItem, comptor) {
-            // Are we done yet?
-            if (low == high) {
-              return low + (comptor(newItem, itemArray[low]) < 0 ? 0 : 1);
-            }
-
-            var mid = Math.floor(low + ((high - low) / 2));
-            var q = comptor(newItem, itemArray[mid]);
-            if (q > 0)
-              return binarySearch(itemArray, mid + 1, high, newItem, comptor);
-            else if (q < 0)
-              return binarySearch(itemArray, low, mid, newItem, comptor);
-            return mid;
-          }
-
-          var newIndex;
-          if (this.mItemData.length == 0) {
-            newIndex = 0;
-          } else {
-            newIndex = binarySearch(this.mItemData, 0, this.mItemData.length - 1,
-                                    newItem, dayboxItemComparator);
-          }
-          this.mItemData.splice(newIndex, 0, newItem);
-
+          // Insert the new item block (while keeping the array sorted),
+          // and then relayout. Use a binary search insertation because the
+          // array is already sorted. Array.Sort would use quicksort which is
+          // not good for this case.
+          binaryInsert(this.mItemData, { item: aItem }, dayboxItemComparator, false);
           this.relayout();
         ]]></body>
       </method>

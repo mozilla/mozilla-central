@@ -25,6 +25,7 @@
  *   Joey Minta <jminta@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -755,8 +756,18 @@ calItemBase.prototype = {
         }
     },
     
-    getOccurrencesBetween: function(aStartDate, aEndDate, aCount) {
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
+    getOccurrencesBetween: function cIB_getOccurrencesBetween(aStartDate, aEndDate, aCount) {
+        if (this.recurrenceInfo) {
+            return this.recurrenceInfo.getOccurrences(aStartDate, aEndDate, 0, aCount);
+        }
+
+        if (checkIfInRange(this, aStartDate, aEndDate)) {
+            aCount.value = 1;
+            return [this];
+        }
+
+        aCount.value = 0;
+        return [];
     }
 };
 

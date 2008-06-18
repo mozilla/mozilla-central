@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Mike Shaver <shaver@mozilla.org>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -273,16 +274,6 @@ interface calIItemBase : nsISupports
   void getOccurrencesBetween (in calIDateTime aStartDate, in calIDateTime aEndDate,
                               out PRUint32 aCount,
                               [array,size_is(aCount),retval] out calIItemBase aOccurrences);
-
-  /**
-   * The next occurrence after this one, if any.
-   */
-  readonly attribute calIItemBase nextOccurrence;
-
-  /**
-   * The previous occurrence before this one, if any.
-   */
-  readonly attribute calIItemBase previousOccurrence;
 
   /**
    * If this item is a proxy or overridden item, parentItem will point upwards

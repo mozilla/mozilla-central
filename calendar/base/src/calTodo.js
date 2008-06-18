@@ -22,6 +22,7 @@
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -223,20 +224,6 @@ calTodo.prototype = {
 
     isPropertyPromoted: function (name) {
         return (this.todoPromotedProps[name]);
-    },
-
-    getOccurrencesBetween: function(aStartDate, aEndDate, aCount) {
-        if (this.recurrenceInfo) {
-            return this.recurrenceInfo.getOccurrences(aStartDate, aEndDate, 0, aCount);
-        }
-
-        if (checkIfInRange(this, aStartDate, aEndDate)) {
-            aCount.value = 1;
-            return [this];
-        }
-
-        aCount.value = 0;
-        return [];
     },
 
     set entryDate(value) {

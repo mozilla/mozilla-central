@@ -837,6 +837,21 @@ function WARN(aMessage) {
 }
 
 /**
+ * Dumps an error to both console and js console.
+ *
+ * @param aMessage error message
+ */
+function ERROR(aMessage) {
+    dump("Error: " + aMessage + '\n');
+    var scriptError = Components.classes["@mozilla.org/scripterror;1"]
+                                .createInstance(Components.interfaces.nsIScriptError);
+    scriptError.init(aMessage, null, null, 0, 0,
+                     Components.interfaces.nsIScriptError.errorFlag,
+                     "component javascript");
+    getConsoleService().logMessage(scriptError);
+}
+
+/**
  * Returns a string describing the current js-stack with filename and line
  * numbers.
  *
@@ -1434,7 +1449,7 @@ function setBooleanAttribute(aXulElement, aAttribute, aValue) {
 }
 
 /**
- * returns a parentnode - or the overgiven node - with the given localName, 
+ * returns a parentnode - or the overgiven node - with the given localName,
  * by "walking up" the DOM-hierarchy.
  *
  * @param aChildNode  The childnode.
@@ -1713,7 +1728,7 @@ function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
     // Send it!
     transport.sendItems(recipients.length, recipients, subject, body, itipItem);
 }
- 
+
 function compareItemContent(aFirstItem, aSecondItem) {
     function hashItem(aItem) {
         var icalString = aItem.icalString;
@@ -1728,3 +1743,76 @@ function compareItemContent(aFirstItem, aSecondItem) {
     return (firstIcalString == secondIcalString);
 }
 
+
+/**
+ * Use the binary search algorithm to search for an item in an array.
+ * function.
+ *
+ * The comptor function may look as follows for calIDateTime objects.
+ *     function comptor(a,b) {
+ *         return a.compare(b);
+ *     }
+ * If no comptor is specified, the default greater-than comptor will be used.
+ *
+ * @param itemArray             The array to search.
+ * @param low                   The lower limit to start searching
+ * @param high                  The upper limit to end searching (inclusive)
+ * @param newItem               The item to search in the array.
+ * @param comptor               A comparation function that can compare two items.
+ * @return                      The index of the new item.
+ */
+function binarySearch(itemArray, newItem, comptor) {
+    function binarySearchInternal(low, high) {
+        // Are we done yet?
+        if (low == high) {
+            return low + (comptor(newItem, itemArray[low]) < 0 ? 0 : 1);
+        }
+
+        var mid = Math.floor(low + ((high - low) / 2));
+        var q = comptor(newItem, itemArray[mid]);
+        if (q > 0) {
+            return binarySearchInternal(mid + 1, high);
+        } else if (q < 0) {
+            return binarySearchInternal(low, mid);
+        } else {
+            return mid;
+        }
+    }
+
+    if (itemArray.length < 1) {
+        return -1;
+    }
+    if (!comptor) {
+        comptor = function defaultComptor(a,b) {
+            return a > b;
+        }
+    }
+    return binarySearchInternal(0, itemArray.length - 1);
+}
+
+/**
+ * Insert an item into the given array, using binary search. See binarySearch
+ * for a note on how the comptor works.
+ *
+ * @param itemArray             The array to insert into.
+ * @param item                  The item to insert into the array.
+ * @param comptor               A comparation function that can compare two items.
+ * @param discardDuplicates     Use the comptor function to check if the item in
+ *                                question is already in the array. If so, the
+ *                                new item is not inserted.
+ * @return                      The index of the new item.
+ */
+function binaryInsert(itemArray, item, comptor, discardDuplicates) {
+    var newIndex = binarySearch(itemArray, item, comptor);
+
+    if (newIndex < 0) {
+        itemArray.push(item);
+        newIndex = 0;
+    } else if (!discardDuplicates ||
+                comptor(itemArray[Math.min(newIndex, itemArray.length - 1)], item) != 0) {
+        // Only add the item if duplicates should not be discarded, or if
+        // they should and itemArray[newIndex] == item.
+        itemArray.splice(newIndex, 0, item);
+    }
+    return newIndex;
+}

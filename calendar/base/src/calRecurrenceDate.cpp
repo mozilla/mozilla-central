@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -179,13 +180,12 @@ calRecurrenceDate::GetOccurrences(calIDateTime *aStartTime,
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     NS_ENSURE_ARG_POINTER(aRangeStart);
-    NS_ENSURE_ARG_POINTER(aRangeEnd);
 
     PRInt32 r1, r2;
 
     if (mDate) {
         if (NS_SUCCEEDED(mDate->Compare(aRangeStart, &r1)) && r1 >= 0 &&
-            NS_SUCCEEDED(mDate->Compare(aRangeEnd, &r2)) && r2 < 0)
+            (!aRangeEnd || NS_SUCCEEDED(mDate->Compare(aRangeEnd, &r2)) && r2 < 0))
         {
             calIDateTime **dates = (calIDateTime **) nsMemory::Alloc(sizeof(calIDateTime*));
             NS_ADDREF (dates[0] = mDate);

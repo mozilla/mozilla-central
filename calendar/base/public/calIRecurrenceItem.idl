@@ -1,4 +1,3 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,19 +65,25 @@ interface calIRecurrenceItem : nsISupports
   // or not (e.g. a rule with no end date)
   readonly attribute boolean isFinite;
 
-  // return the next start time after aOccurrencetime for this
-  // recurrence, starting at aStartTime.
-  calIDateTime getNextOccurrence (in calIDateTime aStartTime,
-				  in calIDateTime aOccurrenceTime);
+  /**
+   * Search for the next occurrence after aTime and return its recurrence id.
+   * aRecurrenceId must be the recurrence id of an occurrence to search after.
+   *
+   * @require               (aTime >= aRecurrenceId)
+   * @param aRecurrenceId   The recurrence id to start searching at.
+   * @param aTime           The earliest time to find the occurrence after.
+   */
+  calIDateTime getNextOccurrence(in calIDateTime aRecurrenceId,
+                                 in calIDateTime aTime);
 
   // return array of calIDateTime of the start of all occurrences of
   // this event starting at aStartTime, between rangeStart and an
   // optional rangeEnd
   void getOccurrences (in calIDateTime aStartTime,
-		       in calIDateTime aRangeStart,
-		       in calIDateTime aRangeEnd,
-		       in unsigned long aMaxCount,
-		       out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aDates);
+                       in calIDateTime aRangeStart,
+                       in calIDateTime aRangeEnd,
+                       in unsigned long aMaxCount,
+                       out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aDates);
 
   attribute calIIcalProperty icalProperty;
 };

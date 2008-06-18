@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -240,7 +241,6 @@ calRecurrenceDateSet::GetOccurrences(calIDateTime *aStartTime,
 {
     NS_ENSURE_ARG_POINTER(aStartTime);
     NS_ENSURE_ARG_POINTER(aRangeStart);
-    NS_ENSURE_ARG_POINTER(aRangeEnd);
 
     nsCOMArray<calIDateTime> dates;
 

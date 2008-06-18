@@ -1,4 +1,3 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +20,7 @@
  *
  * Contributor(s):
  *   Vladimir Vukicevic <vladimir.vukicevic@oracle.com>
+ *   Philipp Kewisch <mozilla@kewis.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -70,24 +70,24 @@ interface calIRecurrenceInfo : nsISupports
    * after writing to the start date of an item, since it's called automatically in the
    * appropriate setter of an item.
    */
-  void onStartDateChange (in calIDateTime aNewStartTime, in calIDateTime aOldStartTime);
+  void onStartDateChange(in calIDateTime aNewStartTime, in calIDateTime aOldStartTime);
 
   /*
    * Set of recurrence items; the order of these matters.
    */
 
-  void getRecurrenceItems (out unsigned long aCount, [array,size_is(aCount),retval] out calIRecurrenceItem aItems);
-  void setRecurrenceItems (in unsigned long aCount, [array,size_is(aCount)] in calIRecurrenceItem aItems);
+  void getRecurrenceItems(out unsigned long aCount, [array,size_is(aCount),retval] out calIRecurrenceItem aItems);
+  void setRecurrenceItems(in unsigned long aCount, [array,size_is(aCount)] in calIRecurrenceItem aItems);
 
-  unsigned long countRecurrenceItems ();
-  void clearRecurrenceItems ();
-  void appendRecurrenceItem (in calIRecurrenceItem aItem);
+  unsigned long countRecurrenceItems();
+  void clearRecurrenceItems();
+  void appendRecurrenceItem(in calIRecurrenceItem aItem);
 
-  calIRecurrenceItem getRecurrenceItemAt (in unsigned long aIndex);
-  void deleteRecurrenceItemAt (in unsigned long aIndex);
-  void deleteRecurrenceItem (in calIRecurrenceItem aItem);
+  calIRecurrenceItem getRecurrenceItemAt(in unsigned long aIndex);
+  void deleteRecurrenceItemAt(in unsigned long aIndex);
+  void deleteRecurrenceItem(in calIRecurrenceItem aItem);
   // inserts the item at the given index, pushing the item that was previously there forward
-  void insertRecurrenceItemAt (in calIRecurrenceItem aItem, in unsigned long aIndex);
+  void insertRecurrenceItemAt(in calIRecurrenceItem aItem, in unsigned long aIndex);
 
   /**
    * isFinite is true if the recurrence items specify a finite number
@@ -96,12 +96,12 @@ interface calIRecurrenceInfo : nsISupports
   readonly attribute boolean isFinite;
 
   /**
-   * This is a shortcut to appending or removing a single negative
-   * date assertion.  This shortcut may or may not cause problems
-   * later on, but hey, that's fixable later!
+   * This is a shortcut to appending or removing a single negative date
+   * assertion. aRecurrenceId needs to be a normal recurrence id, it may not be
+   * RDATE.
    */
-  void removeOccurrenceAt (in calIDateTime aRecurrenceId);
-  void restoreOccurrenceAt (in calIDateTime aRecurrenceId);
+  void removeOccurrenceAt(in calIDateTime aRecurrenceId);
+  void restoreOccurrenceAt(in calIDateTime aRecurrenceId);
 
   /*
    * exceptions
@@ -120,62 +120,88 @@ interface calIRecurrenceInfo : nsISupports
    * @param aTakeOverOwnership whether the recurrence info object can take over
    *        the item or needs to clone it
    */
-  void modifyException (in calIItemBase anItem, in boolean aTakeOverOwnership);
+  void modifyException(in calIItemBase anItem, in boolean aTakeOverOwnership);
 
   /**
    * Return an existing exception item for the given recurrence ID.
    * If an exception does not exist, and aCreate is set, a new one
    * is created and returned.  Otherwise, null is returned.
    */
-  calIItemBase getExceptionFor (in calIDateTime aRecurrenceId, in boolean aCreate);
+  calIItemBase getExceptionFor(in calIDateTime aRecurrenceId, in boolean aCreate);
 
   /**
    * Removes an exception item for the given recurrence ID, if
    * any exist.
    */
-  void removeExceptionFor (in calIDateTime aRecurrenceId);
+  void removeExceptionFor(in calIDateTime aRecurrenceId);
 
   /**
    * Returns a list of all recurrence ids that have exceptions.
    */
-  void getExceptionIds (out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aIds);
+  void getExceptionIds(out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aIds);
 
   /*
-   * recurrence calculation
+   * Recurrence calculation
    */
 
   /*
    * Get the occurrence at the given recurrence ID; if there is no
    * exception, then create a new proxy object with the normal occurrence.
    * Otherwise, return the exception.
+   *
+   * @param aRecurrenceId   The recurrence ID to get the occurrence for.
+   * @return                The occurrence or exception corresponding to the id
    */
-  calIItemBase getOccurrenceFor (in calIDateTime aRecurrenceId);
+  calIItemBase getOccurrenceFor(in calIDateTime aRecurrenceId);
 
   /**
-   * Return the next start calIDateTime of the recurrence specified by
-   * this RecurrenceInfo, after aOccurrenceTime.
+   * Return the chronologically next occurrence after aTime. This takes
+   * exceptions and EXDATE/RDATEs into account.
+   *
+   * @param aTime           The (exclusive) date to start searching.
+   * @return                The next occurrence, or null if there is none.
    */
-  calIDateTime getNextOccurrenceDate (in calIDateTime aOccurrenceTime);
+  calIItemBase getNextOccurrence(in calIDateTime aTime);
 
   /**
-   * Return the next item specified by this RecurrenceInfo, after aOccurrenceTime.
+   * Return the chronologically previous occurrence after aTime. This takes
+   * exceptions and EXDATE/RDATEs into account.
+   *
+   * @param aTime           The (exclusive) date to start searching.
+   * @return                The previous occurrence, or null if there is none.
    */
-  calIItemBase getNextOccurrence (in calIDateTime aOccurrenceTime);
+  calIItemBase getPreviousOccurrence(in calIDateTime aTime);
 
   /**
    * Return an array of calIDateTime representing all start times of this event
-   * between start (inclusive) and end (non-inclusive).
+   * between start (inclusive) and end (non-inclusive). Exceptions are taken
+   * into account.
+   *
+   * @param aRangeStart     The (inclusive) date to start searching.
+   * @param aRangeEnd       The (exclusive) date to end searching.
+   * @param aMaxCount       The maximum number of dates to return
+   *
+   * @param aCount          The number of dates returned.
+   * @return                The array of dates.
    */
-  void getOccurrenceDates (in calIDateTime aRangeStart,
-                           in calIDateTime aRangeEnd,
-                           in unsigned long aMaxCount,
-                           out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aDates);
+  void getOccurrenceDates(in calIDateTime aRangeStart,
+                          in calIDateTime aRangeEnd,
+                          in unsigned long aMaxCount,
+                          out unsigned long aCount, [array,size_is(aCount),retval] out calIDateTime aDates);
 
   /**
-   * Return an array of calIItemBase representing all
-   * occurrences of this event between start (inclusive) and end (non-inclusive).
+   * Return an array of calIItemBase representing all occurrences of this event
+   * between start (inclusive) and end (non-inclusive). Exceptions are taken
+   * into account.
+   *
+   * @param aRangeStart     The (inclusive) date to start searching.
+   * @param aRangeEnd       The (exclusive) date to end searching.
+   * @param aMaxCount       The maximum number of occurrences to return
+   *
+   * @param aCount          The number of occurrences returned.
+   * @return                The array of occurrences.
    */
-  void getOccurrences (in calIDateTime aRangeStart,
+  void getOccurrences(in calIDateTime aRangeStart,
                        in calIDateTime aRangeEnd,
                        in unsigned long aMaxCount,
                        out unsigned long aCount, [array,size_is(aCount),retval] out calIItemBase aItems);
