@@ -1175,7 +1175,6 @@ calStorageCalendar.prototype = {
             throw Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR;
         } else if (versionComp > 0) {
             LOG("timezones have been updated, updating calendar data.");
-            LOG(STACK(15));
 
             var zonesToUpdate = [];
             var getZones = createStatement(
