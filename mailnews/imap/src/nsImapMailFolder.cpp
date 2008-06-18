@@ -6247,7 +6247,11 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
   rv = dstServer->Equals(srcServer, &sameServer);
   if (NS_FAILED(rv)) goto done;
 
-  if (!WeAreOffline() && sameServer) 
+  // in theory, if allowUndo is true, then this is a user initiated
+  // action, and we should do it pseudo-offline. If it's not
+  // user initiated (e.g., mail filters firing), then allowUndo is
+  // false, and we should just do the action.
+  if (!WeAreOffline() && sameServer && allowUndo) 
   {
     // complete the copy operation as in offline mode
     rv = CopyMessagesOffline(srcFolder, messages, isMove, msgWindow, listener);
