@@ -1160,7 +1160,6 @@ var gSearchSession;
 
 var nsIMsgFolder = Components.interfaces.nsIMsgFolder;
 var nsIMsgWindow = Components.interfaces.nsIMsgWindow;
-var nsIMsgRDFDataSource = Components.interfaces.nsIMsgRDFDataSource;
 var nsMsgSearchScope = Components.interfaces.nsMsgSearchScope;
 
 var gFolderDatasource;

@@ -1071,8 +1071,6 @@ function loadFolderViewForTree(aNewFolderView, aFolderTree)
   for (index in dataSourcesToAdd)
   {
     database.AddDataSource(dataSourcesToAdd[index]);
-    var msgDS = dataSourcesToAdd[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-    msgDS.window = msgWindow;
   }
 
   aFolderTree.setAttribute('ref', folderViews[aNewFolderView].ref);

@@ -94,18 +94,6 @@ function OnMailWindowUnload()
   mailSession.RemoveMsgWindow(msgWindow);
   messenger.setWindow(null, null);
 
-  var msgDS;
-  var viewDataSources = [accountManagerDataSource, folderDataSource,
-                        unreadFolderDataSource, favoriteFoldersDataSource,
-                        recentFoldersDataSource];
-
-  for (index in viewDataSources)
-  {
-    msgDS = viewDataSources[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-    msgDS.window = null;
-    msgDS = null;
-  }
-
   msgWindow.closeWindow();
 }
 
@@ -186,18 +174,6 @@ function AddDataSources()
 {
   accountManagerDataSource = accountManagerDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
   folderDataSource = folderDataSource.QueryInterface(Components.interfaces.nsIRDFDataSource);
-
-  //Add statusFeedback
-
-  var msgDS;
-  var viewDataSources = [accountManagerDataSource, folderDataSource,
-                        unreadFolderDataSource, favoriteFoldersDataSource,
-                        recentFoldersDataSource];
-  for (index in viewDataSources)
-  {
-    msgDS = viewDataSources[index].QueryInterface(Components.interfaces.nsIMsgRDFDataSource);
-    msgDS.window = msgWindow;
-  }
 }
 
 // We're going to implement our status feedback for the mail window in JS now.
