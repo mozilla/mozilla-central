@@ -1014,7 +1014,7 @@ pkix_Build_SortCertComparator(
                 plContext),
                 PKIX_OBJECTCOMPARATORFAILED);
 
-        *pResult = result;
+        *pResult = !result;
 
 cleanup:
 

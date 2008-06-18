@@ -1252,13 +1252,14 @@ pkix_List_BubbleSort(
                                 PKIX_COMPARATORCALLBACKFAILED);
                         if (cmpResult > 0) {
                                 PKIX_CHECK(PKIX_List_SetItem
-                                    (sortedList, j, leastObj, plContext),
-                                    PKIX_LISTSETITEMFAILED);
+                                           (sortedList, j, leastObj, plContext),
+                                           PKIX_LISTSETITEMFAILED);
 
                                 PKIX_DECREF(leastObj);
                                 leastObj = cmpObj;
+                                cmpObj = NULL;
                         } else {
-                                PKIX_DECREF(cmpObj);
+                            PKIX_DECREF(cmpObj);
                         }
                 }
                 PKIX_CHECK(PKIX_List_SetItem
