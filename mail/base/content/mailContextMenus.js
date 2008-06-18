@@ -517,9 +517,9 @@ function fillFolderPaneContextMenu()
   var folder = GetMsgFolderFromUri(folderResource.Value, false);
   var isVirtualFolder = folder ? folder.flags & MSG_FOLDER_FLAG_VIRTUAL : false;
 
-  var isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == 'true';
-  var serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
-  var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
+  var isServer = folder.isServer;
+  var serverType = folder.server.type;
+  var specialFolder = getSpecialFolderString(folder);
   var canSubscribeToFolder = (serverType == "nntp") || (serverType == "imap");
   var isNewsgroup = !isServer && serverType == 'nntp';
   var isMailFolder = !isServer && serverType != 'nntp';
@@ -576,11 +576,10 @@ function fillFolderPaneContextMenu()
 
 function SetupNewMenuItem(folderResource, numSelected, isServer, serverType,specialFolder)
 {
-  var folderTree = GetFolderTree();
-  var canCreateNew = GetFolderAttribute(folderTree, folderResource, "CanCreateSubfolders") == "true";
+  var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  var canCreateNew = folder.canCreateSubfolders;
   var isInbox = specialFolder == "Inbox";
-  var isIMAPFolder = GetFolderAttribute(folderTree, folderResource,
-                       "ServerType") == "imap";
+  var isIMAPFolder = (folder.server.type == "imap");
 
   var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                          .getService(Components.interfaces.nsIIOService);
@@ -602,11 +601,9 @@ function SetupNewMenuItem(folderResource, numSelected, isServer, serverType,spec
 function SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
 {
   var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-  var folderTree = GetFolderTree();
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual") );
-  var canRename = GetFolderAttribute(folderTree, folderResource, "CanRename") == "true";
-
+  var canRename = msgFolder.canRename;
   ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
   var folder = GetMsgFolderFromResource(folderResource);
   EnableMenuItem("folderPaneContext-rename", !isServer && folder.isCommandEnabled("cmd_renameFolder"));
@@ -631,16 +628,14 @@ function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, 
 
 function SetupCompactMenuItem(folderResource, numSelected)
 {
-  var folderTree = GetFolderTree();
-  var canCompact = GetFolderAttribute(folderTree, folderResource, "CanCompact") == "true";
   var folder = GetMsgFolderFromResource(folderResource);
-  ShowMenuItem("folderPaneContext-compact", (numSelected <=1) && canCompact && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
+
+  ShowMenuItem("folderPaneContext-compact", (numSelected <=1) && folder.canCompact && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
   EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder") && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
 }
 
 function SetupFavoritesMenuItem(folderResource, numSelected, isServer, menuItemId)
 {
-  var folderTree = GetFolderTree();
   var folder = GetMsgFolderFromResource(folderResource);
   var showItem = !isServer && (numSelected <=1);
   ShowMenuItem(menuItemId, showItem); 

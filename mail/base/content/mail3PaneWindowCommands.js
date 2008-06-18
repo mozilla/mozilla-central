@@ -85,9 +85,10 @@ var FolderPaneController =
         var serverType = null;
         try {
           var folderResource = GetFolderResource(folderTree, startIndex.value);
-          specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
-          isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == "true";
-          serverType = GetFolderAttribute(folderTree, folderResource, "ServerType");
+          var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          specialFolder = getSpecialFolderString(folder);
+          isServer = folder.isServer;
+          serverType = folder.server.type;
           if (serverType == "nntp") {
              if ( command == "cmd_delete" ) {
                 goSetMenuValue(command, 'valueNewsgroup');
@@ -845,8 +846,8 @@ function IsRenameFolderEnabled()
         var endIndex = {};
         selection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var canRename = GetFolderAttribute(folderTree, folderResource, "CanRename") == "true";
-        return canRename && isCommandEnabled("cmd_renameFolder");
+        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        return folder.canRename && isCommandEnabled("cmd_renameFolder");
     }
     else
         return false;
@@ -871,10 +872,11 @@ function IsPropertiesEnabled(command)
    {
       var folderTree = GetFolderTree();
       var folderResource = GetSelectedFolderResource();
+      var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
       // when servers are selected
       // it should be "Edit | Properties..."
-      if (GetFolderAttribute(folderTree, folderResource, "IsServer") == "true")
+      if (folder.isServer)
         goSetMenuValue(command, "valueGeneric");
       else
         goSetMenuValue(command, isNewsURI(folderResource.Value) ? "valueNewsgroup" : "valueFolder");
@@ -903,7 +905,8 @@ function IsFolderSelected()
         var endIndex = {};
         selection.getRangeAt(0, startIndex, endIndex);
         var folderResource = GetFolderResource(folderTree, startIndex.value);
-        return GetFolderAttribute(folderTree, folderResource, "IsServer") != "true";
+        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        return folder.isServer;
     }
     else
         return false;
@@ -922,7 +925,7 @@ function MsgDeleteFolder()
     {
         var selectedFolder = selectedFolders[i];
         var folderResource = selectedFolder.QueryInterface(Components.interfaces.nsIRDFResource);
-        var specialFolder = GetFolderAttribute(folderTree, folderResource, "SpecialFolder");
+        var specialFolder = getSpecialFolderString(selectedFolder);
         if (specialFolder != "Inbox" && specialFolder != "Trash")
         {
             var folder = selectedFolder.QueryInterface(Components.interfaces.nsIMsgFolder);

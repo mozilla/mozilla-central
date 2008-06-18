@@ -47,9 +47,6 @@ var gMsgWindow;
 
 var gInitialFolderStates = {};
 
-// RDF needs to be defined for GetFolderAttribute in msgMail3PaneWindow.js
-var RDF = Components.classes['@mozilla.org/rdf/rdf-service;1'].getService().QueryInterface(Components.interfaces.nsIRDFService);
-
 const MSG_FOLDER_FLAG_OFFLINE = 0x8000000;
 
 function OnLoad()
@@ -184,11 +181,11 @@ function onSynchronizeClick(event)
         var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
         if (!(gSynchronizeTree.treeBoxObject.view.isContainerOpen(row.value))) {
-            var serverType = GetFolderAttribute(gSynchronizeTree, folderResource, "ServerType");
+            var serverType = msgFolder.server.type;
             // imap is the only server type that does folder discovery
             if (serverType != "imap") return;
 
-            if (GetFolderAttribute(gSynchronizeTree, folderResource, "IsServer") == "true") {
+            if (folder.isServer) {
                 var server = msgFolder.server;
                 server.performExpand(gMsgWindow);
             }
@@ -238,14 +235,4 @@ function UpdateNode(resource, row)
 
 function GetFolderResource(aTree, aIndex) {
   return aTree.builderView.getResourceAtIndex(aIndex);
-}
-
-function GetFolderAttribute(aTree, aResource, aName) {
-  var rdfService = Components.classes['@mozilla.org/rdf/rdf-service;1']
-                             .getService(Components.interfaces.nsIRDFService);
-  var property = rdfService.GetResource("http://home.netscape.com/NC-rdf#" + aName);
-  var target = aTree.database.GetTarget(aResource, property, true);
-  if (target)
-    target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  return target;
 }

@@ -108,15 +108,14 @@ function CanDropOnFolderTree(index, orientation)
             if (orientation != Components.interfaces.nsITreeView.DROP_ON)
               return false;
 
-            var isServer = GetFolderAttribute(folderTree, targetResource, "IsServer");
-            if (isServer == "true")
+            var folder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+            if (folder.isServer)
             {
                 debugDump("***isServer == true\n");
                 return false;
             }
             // canFileMessages checks no select, and acl, for imap.
-            var canFileMessages = GetFolderAttribute(folderTree, targetResource, "CanFileMessages");
-            if (canFileMessages != "true")
+            if (!folder.canFileMessages)
             {
                 debugDump("***canFileMessages == false\n");
                 return false;
@@ -208,22 +207,22 @@ function CanDropOnFolderTree(index, orientation)
         if (dragSession.dragAction == nsIDragService.DRAGDROP_ACTION_COPY && sourceServer == targetServer)
             return false;
 
-        var canCreateSubfolders = GetFolderAttribute(folderTree, targetResource, "CanCreateSubfolders");
+        var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         // if cannot create subfolders then a folder cannot be dropped here     
-        if (canCreateSubfolders == "false")
+        if (targetFolder.canCreateSubfolders)
         {
             debugDump("***canCreateSubfolders == false \n");
             return false;
         }
 
-        var serverType = GetFolderAttribute(folderTree, targetResource, "ServerType");
+        var serverType = targetFolder.server.type;
 
         // if we've got a folder that can't be renamed
         // allow us to drop it if we plan on dropping it on "Local Folders"
         // (but not within the same server, to prevent renaming folders on "Local Folders" that
         // should not be renamed)
-        var srcCanRename = GetFolderAttribute(folderTree, sourceResource, "CanRename");
-        if (srcCanRename == "false") {
+        var srcFolder = sourceResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+        if (!srcFolder.canRename) {
             if (sourceServer == targetServer)
                 return false;
             if (serverType != "none")
@@ -425,15 +424,16 @@ function BeginDragFolderTree(event)
       return false;
 
     var folderResource = GetFolderResource(folderTree, row);
+    var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
 
-    if (GetFolderAttribute(folderTree, folderResource, "IsServer") == "true")
+    if (folder.isServer)
     {
       debugDump("***IsServer == true\n");
       return false;
     }
 
     var flavor;
-    if (GetFolderAttribute(folderTree, folderResource, "ServerType") == "nntp")
+    if (folder.server.type == "nntp")
     { // news folder (newsgroup)
       flavor = "text/x-moz-newsfolder";
     }

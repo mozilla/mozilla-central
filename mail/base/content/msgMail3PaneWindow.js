@@ -1239,8 +1239,19 @@ function UpdateFolderLocationPicker(resource)
   var folders = document.getElementById('locationFolders');
   var properties = ['BiffState', 'NewMessages', 'HasUnreadMessages',
                     'SpecialFolder', 'IsServer', 'IsSecure', 'ServerType', 'NoSelect'];
-  var label = GetFolderAttribute(tree, resource, 'FolderTreeName');
+  var folder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  var label = folder.prettyName;
   folders.setAttribute("label", label);
+
+  var rdfService = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                             .getService(Components.interfaces.nsIRDFService);
+  function GetFolderAttribute(tree, source, attribute) {
+    var property = rdfService.GetResource("http://home.netscape.com/NC-rdf#" + attribute);
+    var target = tree.database.GetTarget(source, property, true);
+    if (target)
+      target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
+    return target;
+  }
   for (var i in properties)
   {
     var property = properties[i];
@@ -1658,15 +1669,6 @@ function GetFolderResource(tree, index)
   return tree.builderView.getResourceAtIndex(index);
 }
 
-function GetFolderAttribute(tree, source, attribute)
-{
-  var property = RDF.GetResource("http://home.netscape.com/NC-rdf#" + attribute);
-  var target = tree.database.GetTarget(source, property, true);
-  if (target)
-    target = target.QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  return target;
-}
-
 function LoadNavigatedToMessage(msgHdr, folder, folderUri)
 {
   if (IsCurrentLoadedFolder(folder))
@@ -1755,3 +1757,30 @@ function MigrateAttachmentDownloadStore()
     gPrefBranch.setIntPref("mail.attachment.store.version", 1);
   }
 }
+
+/**
+ * Returns a string representation of a folder's specialFolder attribute.
+ *
+ * @param aFolder  the folder whose specialFolder attribute to return
+ */
+function getSpecialFolderString(aFolder) {
+  if (aFolder.flags & 0x1000) // MSG_FOLDER_FLAG_INBOX
+    return "Inbox";
+  else if (aFolder.flags & 0x0100) // MSG_FOLDER_FLAG_TRASH
+    return "Trash";
+  else if (aFolder.flags & 0x0800) // MSG_FOLDER_FLAG_QUEUE
+    return "Unsent Messages";
+  else if (aFolder.flags & 0x0200) // MSG_FOLDER_FLAG_SENTMAIL
+    return "Sent";
+  else if (aFolder.flags & 0x0400) // MSG_FOLDER_FLAG_DRAFTS
+    return "Drafts";
+  else if (aFolder.flags & 0x400000) // MSG_FOLDER_FLAG_TEMPLATES
+    return "Templates";
+  else if (aFolder.flags & 0x40000000) // MSG_FOLDER_FLAG_JUNK
+    return "Junk";
+  else if (aFolder.flags & 0x0020) // MSG_FOLDER_FLAG_VIRTUAL
+    return "Virtual";
+  else
+    return "none";
+}
+

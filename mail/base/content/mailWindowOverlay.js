@@ -147,8 +147,8 @@ function InitEditMessagesMenu()
     {
       var numSelected = endIndex.value - startIndex.value + 1;
       var folderResource = GetFolderResource(folderTree, startIndex.value);
-      var isServer = GetFolderAttribute(folderTree, folderResource, "IsServer") == 'true';
-      SetupFavoritesMenuItem(folderResource, numSelected, isServer, 'menu_favoriteFolder');
+      var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+      SetupFavoritesMenuItem(folderResource, numSelected, folder.isServer, 'menu_favoriteFolder');
     }
   }
 }
@@ -1492,8 +1492,8 @@ folderTabOwner.prototype =
   {
     // the user may have changed folders, triggering our onTitleChanged callback.
     // update the appropriate attributes on the tab.
-    aTab.setAttribute('SpecialFolder', GetFolderAttribute(GetFolderTree(), gMsgFolderSelected, 'SpecialFolder'));
-    aTab.setAttribute('ServerType', GetFolderAttribute(GetFolderTree(), gMsgFolderSelected, 'ServerType'));
+    aTab.setAttribute('SpecialFolder', getSpecialFolderString(gMsgFolderSelected));
+    aTab.setAttribute('ServerType', gMsgFolderSelected.server.type);
     return;
   },
 
