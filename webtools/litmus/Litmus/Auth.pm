@@ -47,6 +47,7 @@ use Litmus::Mailer;
 
 use CGI;
 use Date::Manip;
+use Data::Dumper;
 
 our @ISA = qw(Exporter);
 our @EXPORT = qw();
@@ -415,7 +416,7 @@ sub processLoginForm {
                 realname => $name,
                 return_to => $c->param("login_loc"),
                 params => $c,
-                login_extension => $c->param("login_extension"),
+                login_extension => $c->param("login_extension") || undef,
                };
     
     print $c->header();
