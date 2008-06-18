@@ -234,8 +234,8 @@ function tasksToEvents(aEvent) {
 
 function toggleCompleted(aEvent) {
     if (aEvent.target.getAttribute("checked") == "true") {
-        contextChangeTaskProgress(100);
+        contextChangeTaskProgress(aEvent, 100);
     } else {
-        contextChangeTaskProgress(0);
+        contextChangeTaskProgress(aEvent, 0);
     }
 }
