@@ -4082,9 +4082,6 @@ function __display(message, msgtype, sourceObj, destObj)
         else
             fromAttr = sourceObj.viewName;
     }
-    // Attach "ME!" if appropriate, so motifs can style differently.
-    if (sourceObj == me)
-        fromAttr = fromAttr + " ME!";
 
     // Get the dest TYPE too...
     var toType = (destObj) ? destObj.TYPE : "unk";
@@ -4101,13 +4098,16 @@ function __display(message, msgtype, sourceObj, destObj)
         else
             toAttr = destObj.viewName;
     }
-    // Also do "ME!" work for the dest.
-    if (destObj && destObj == me)
-        toAttr = me.unicodeName + " ME!";
         
     // Is the message 'to' or 'from' somewhere other than this view
     var toOther = ((sourceObj == me) && destObj && (destObj != this));
     var fromOther = (toUser && (destObj == me) && (sourceObj != this));
+
+    // Attach "ME!" if appropriate, so motifs can style differently.
+    if ((sourceObj == me) && !toOther)
+        fromAttr = fromAttr + " ME!";
+    if (destObj && destObj == me)
+        toAttr = me.unicodeName + " ME!";
 
     /* isImportant means to style the messages as important, and flash the
      * window, getAttention means just flash the window. */
@@ -4190,6 +4190,8 @@ function __display(message, msgtype, sourceObj, destObj)
         var nickURL;
         if ((sourceObj != me) && ("getURL" in sourceObj))
             nickURL = sourceObj.getURL();
+        if (toOther && ("getURL" in destObj))
+            nickURL = destObj.getURL();
 
         if (sourceObj != me)
         {
