@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.70 2008-06-14 14:19:45 wtc%google.com Exp $
+ * $Id: cert.h,v 1.71 2008-06-18 01:02:32 wtc%google.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -1277,24 +1277,6 @@ CERT_GetNickName(CERTCertificate   *cert, CERTCertDBHandle *handle, PLArenaPool 
 CERTCertList *
 CERT_CreateSubjectCertList(CERTCertList *certList, CERTCertDBHandle *handle,
 			   SECItem *name, PRTime sorttime, PRBool validOnly);
-
-/*
- * Creates or adds to a list of all certs with a give nickname, sorted by
- * validity time, newest first.  Invalid certs are considered older than valid
- * certs. If validOnly is set, do not include invalid certs on list.
- */
-CERTCertList *
-CERT_CreateNicknameCertList(CERTCertList *certList, CERTCertDBHandle *handle,
-			    char *nickname, PRTime sorttime, PRBool validOnly);
-
-/*
- * Creates or adds to a list of all certs with a give email addr, sorted by
- * validity time, newest first.  Invalid certs are considered older than valid
- * certs. If validOnly is set, do not include invalid certs on list.
- */
-CERTCertList *
-CERT_CreateEmailAddrCertList(CERTCertList *certList, CERTCertDBHandle *handle,
-			     char *emailAddr, PRTime sorttime, PRBool validOnly);
 
 /*
  * remove certs from a list that don't have keyUsage and certType
