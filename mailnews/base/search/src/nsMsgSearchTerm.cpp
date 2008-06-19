@@ -948,9 +948,8 @@ nsresult nsMsgSearchTerm::MatchRfc2047String (const char * rfc2047string,
                                                    charset, charsetOverride,
                                                    PR_FALSE);
 
-    if (m_attribute == nsMsgSearchAttrib::Sender &&
-        (m_operator == nsMsgSearchOp::IsInAB ||
-         m_operator == nsMsgSearchOp::IsntInAB))
+    if ( m_operator == nsMsgSearchOp::IsInAB ||
+         m_operator == nsMsgSearchOp::IsntInAB)
     {
       res = MatchInAddressBook(stringToMatch ? stringToMatch : rfc2047string, pResult);
     }
@@ -1103,9 +1102,8 @@ NS_IMETHODIMP nsMsgSearchTerm::GetMatchAllBeforeDeciding (PRBool *aResult)
      {
        walkNames = names + namePos;
        walkAddresses = addresses + addressPos;
-       if (m_attribute == nsMsgSearchAttrib::Sender &&
-         (m_operator == nsMsgSearchOp::IsInAB ||
-         m_operator == nsMsgSearchOp::IsntInAB))
+       if ( m_operator == nsMsgSearchOp::IsInAB ||
+            m_operator == nsMsgSearchOp::IsntInAB)
        {
          err = MatchRfc2047String (walkAddresses.get(), charset, charsetOverride, &result);
        }

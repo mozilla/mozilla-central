@@ -822,6 +822,7 @@
       <property name="label" onget="return document.getAnonymousNodes(this)[0].selectedItem.getAttribute('label');">
       </property>
       <method name="refreshList">
+        <parameter name="dontRestore"/> <!-- should we not restore old selection? -->
         <body>
           <![CDATA[
             var menuItemIds = this.valueIds;
@@ -831,7 +832,9 @@
             var popup = menulist.firstChild;
 
             // save our old "value" so we can restore it later
-            var oldData = menulist.value;
+            var oldData;
+            if (!dontRestore)
+              oldData = menulist.value;
 
             // remove the old popup children
             while (popup.hasChildNodes())
@@ -947,7 +950,7 @@
           <![CDATA[
             if (this.searchAttribute == val && val != Components.interfaces.nsMsgSearchAttrib.OtherHeader) return val;
             this.searchAttribute = val;
-            this.refreshList();
+            this.refreshList(true); // don't restore the selection, since searchvalue nulls it
             if (val == Components.interfaces.nsMsgSearchAttrib.OtherHeader)
             {
               window.openDialog('chrome://messenger/content/CustomHeaders.xul', "", 'modal,centerscreen,resizable,titlebar,chrome', null);
@@ -1043,8 +1046,11 @@
                 this.setAttribute("selectedIndex", "5");
             }
 
-            // if it's not sender, we don't care
-            if (this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.Sender) {
+              // if it's not sender, to, cc, or toorcc, we don't care
+              if (this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.Sender && 
+                this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.To && 
+                this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.ToOrCC && 
+                this.searchAttribute != Components.interfaces.nsMsgSearchAttrib.CC ) {
               this.internalOperator = val;
               return val;
             }
@@ -1153,7 +1159,10 @@
             children[0].value = val.age;
           else if (attrib == nsMsgSearchAttrib.Date)
             children[3].value = convertPRTimeToString(val.date);
-          else if (attrib == nsMsgSearchAttrib.Sender)
+          else if (attrib == nsMsgSearchAttrib.Sender || 
+                   attrib == nsMsgSearchAttrib.To ||
+                   attrib == nsMsgSearchAttrib.CC ||
+                   attrib == nsMsgSearchAttrib.ToOrCC)
           {
             if (this.internalOperator == Components.interfaces.nsMsgSearchOp.IsntInAB ||
                 this.internalOperator == Components.interfaces.nsMsgSearchOp.IsInAB) {
@@ -1212,7 +1221,11 @@
                searchValue.age = children[0].value;
             else if (searchAttribute == nsMsgSearchAttrib.Date)
                searchValue.date = convertStringToPRTime(children[3].value);
-            else if (searchAttribute == nsMsgSearchAttrib.Sender) {
+            else if (searchAttribute == nsMsgSearchAttrib.Sender ||
+                   searchAttribute == nsMsgSearchAttrib.To ||
+                   searchAttribute == nsMsgSearchAttrib.CC ||
+                   searchAttribute == nsMsgSearchAttrib.ToOrCC)
+            {
               if (this.internalOperator == Components.interfaces.nsMsgSearchOp.IsntInAB ||
                   this.internalOperator == Components.interfaces.nsMsgSearchOp.IsInAB)
                 searchValue.str = children[4].selectedItem.value;
