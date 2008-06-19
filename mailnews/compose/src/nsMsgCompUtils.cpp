@@ -500,19 +500,19 @@ mime_generate_headers (nsMsgCompFields *fields,
       {
         xulAppInfo->GetName(userAgentString);
 
-	      nsCAutoString productSub;
-	      pHTTPHandler->GetProductSub(productSub);
+        nsCAutoString productSub;
+        pHTTPHandler->GetProductSub(productSub);
 
-	      nsCAutoString platform;
-	      pHTTPHandler->GetPlatform(platform);
+        nsCAutoString platform;
+        pHTTPHandler->GetPlatform(platform);
 
-	      userAgentString += ' ';
-	      userAgentString += NS_STRINGIFY(MOZ_APP_VERSION);
-	      userAgentString += " (";
-	      userAgentString += platform;
-	      userAgentString += "/";
-	      userAgentString += productSub;
-	      userAgentString += ")";
+        userAgentString += "/";
+        userAgentString += NS_STRINGIFY(MOZ_APP_VERSION);
+        userAgentString += " (";
+        userAgentString += platform;
+        userAgentString += "; ";
+        userAgentString += productSub;
+        userAgentString += ")";
       }
     }
     else
