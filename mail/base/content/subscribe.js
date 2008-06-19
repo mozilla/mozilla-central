@@ -256,7 +256,7 @@ function SubscribeOnLoad()
     //dump("folder="+folder+"\n");
     //dump("folder.server="+folder.server+"\n");
     var serverMenu = document.getElementById("serverMenu");
-    serverMenu.menupopup.selectFolder(folder);
+    serverMenu.menupopup.selectFolder(folder.server.rootMsgFolder);
     try {
                         CleanUpSearchView();
       gSubscribableServer = folder.server.QueryInterface(Components.interfaces.nsISubscribableServer);
