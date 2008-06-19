@@ -1339,48 +1339,43 @@ nsresult MsgReopenFileStream(nsILocalFile *file, nsIInputStream *fileStream)
 
 PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)
 {
-  const char * start = keywords.BeginReading();
-  const char * end = keywords.EndReading();
-
-  if (*start == ' ')
-    start++;
-  const char * saveStart = start;
-  const char * saveEnd = end;
-  PRInt32 offset = 0;
-  while (PR_TRUE)
+#ifdef MOZILLA_INTERNAL_API
+// nsTString_CharT::Find(const nsCString& aString,
+//                       PRBool aIgnoreCase=PR_FALSE,
+//                       PRInt32 aOffset=0,
+//                       PRInt32 aCount=-1 ) const;
+#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), PR_FALSE, (offset)))
+#else
+// nsAString::Find(const self_type& aStr,
+//                 PRUint32 aOffset,
+//                 ComparatorFunc c = DefaultComparator) const;
+#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), static_cast<PRUint32>(offset)))
+#endif
+  // 'keyword' is the single keyword we're looking for
+  // 'keywords' is a space delimited list of keywords to be searched,
+  // which may be just a single keyword or even be empty
+  const PRInt32 kKeywordLen = keyword.Length();
+  const char* start = keywords.BeginReading();
+  const char* end = keywords.EndReading();
+  *aStartOfKeyword = FIND_KEYWORD(keywords, keyword, 0);
+  while (*aStartOfKeyword >= 0)
   {
-    offset = keywords.Find(keyword, offset);
-    if (offset >= 0)
+    const char* matchStart = start + *aStartOfKeyword;
+    const char* matchEnd = matchStart + kKeywordLen;
+    // For a real match, matchStart must be the start of keywords or preceded
+    // by a space and matchEnd must be the end of keywords or point to a space.
+    if ((matchStart == start || *(matchStart - 1) == ' ') &&
+        (matchEnd == end || *matchEnd == ' '))
     {
-      start += offset;
-      end = start + keyword.Length();
-      PRBool beginMatches = start == saveStart;
-      PRBool endMatches = end == saveEnd;
-      const char * beforeStart = start;
-      beforeStart--;
-      // start and end point to the beginning and end of the match
-      if (beginMatches && (end == saveEnd || *end == ' ')
-        || (endMatches && *beforeStart == ' ')
-        || *beforeStart == ' ' && *end == ' ')
-      {
-        if (*end == ' ')
-          end++;
-        if (*beforeStart == ' ' && endMatches)
-          start--;
-        *aStartOfKeyword = start - saveStart;
-        *aLength = end - start;
-        return PR_TRUE;
-      }
-      else
-        start = end; // advance past bogus match.
+      *aLength = kKeywordLen;
+      return PR_TRUE;
     }
-    else
-      break;
+    *aStartOfKeyword = FIND_KEYWORD(keywords, keyword, *aStartOfKeyword + kKeywordLen);
   }
 
-  *aStartOfKeyword = -1;
   *aLength = 0;
   return PR_FALSE;
+#undef FIND_KEYWORD
 }
 
 PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
