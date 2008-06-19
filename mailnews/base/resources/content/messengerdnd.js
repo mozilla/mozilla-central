@@ -209,7 +209,7 @@ function CanDropOnFolderTree(index, orientation)
 
         var targetFolder = targetResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         // if cannot create subfolders then a folder cannot be dropped here     
-        if (targetFolder.canCreateSubfolders)
+        if (!targetFolder.canCreateSubfolders)
         {
             debugDump("***canCreateSubfolders == false \n");
             return false;
