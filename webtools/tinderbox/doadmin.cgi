@@ -72,7 +72,9 @@ elsif( $command eq 'admin_builds' ){
 }
 
 # Recreate static pages after administrative command
-tb_build_static(\%form);
+my %static_form = ();
+$static_form{'tree'} = $form{'tree'};
+tb_build_static(\%static_form);
 exit(0);
 
 sub trim_logs {
