@@ -2109,10 +2109,10 @@ secu_PrintCRLDistPtsExtension(FILE *out, SECItem *value, char *msg, int level)
 	        pPoint->distPoint.fullName != NULL) {
 		secu_PrintGeneralNames(out, pPoint->distPoint.fullName, NULL,
 		                       level);
-#if defined(LATER)
-	    } else if (pPoint->distPointType == relativeDistinguishedName) {
-	    	/* print the relative name */
-#endif
+	    } else if (pPoint->distPointType == relativeDistinguishedName &&
+	               pPoint->distPoint.relativeName.avas) {
+		SECU_PrintRDN(out, &pPoint->distPoint.relativeName, "RDN", 
+		              level);
 	    } else if (pPoint->derDistPoint.data) {
 		SECU_PrintAny(out, &pPoint->derDistPoint, "Point", level);
 	    }
@@ -2339,6 +2339,21 @@ SECU_PrintExtensions(FILE *out, CERTCertExtension **extensions,
     }
 }
 
+/* An RDN is a subset of a DirectoryName, and we already know how to
+ * print those, so make a directory name out of the RDN, and print it.
+ */
+void
+SECU_PrintRDN(FILE *out, CERTRDN *rdn, char *msg, int level)
+{
+    CERTName name;
+    CERTRDN *rdns[2];
+
+    name.arena = NULL;
+    name.rdns  = rdns;
+    rdns[0] = rdn;
+    rdns[1] = NULL;
+    SECU_PrintName(out, &name, msg, level);
+}
 
 void
 SECU_PrintName(FILE *out, CERTName *name, char *msg, int level)
