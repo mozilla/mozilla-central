@@ -4,17 +4,16 @@
  */
 function run_test()
 {
-  var file = do_get_file('mailnews/import/test/resources/basic_addressbook.csv');
-  var importService = Cc["@mozilla.org/import/import-service;1"]
-                        .getService(Ci.nsIImportService);
-  var module = importService.GetModule("addressbook", 0);
-  var abInterface = module.GetImportInterface("addressbook")
-                          .QueryInterface(Ci.nsIImportGeneric);
-
+  var file = do_get_file("mailnews/import/test/resources/basic_addressbook.csv");
+  var errorStr = Cc["@mozilla.org/supports-string;1"]
+                     .createInstance(Ci.nsISupportsString);
+  // get the text Address Book import interface and make sure it succeeded
+  var abInterface = getImportInterface("addressbook", ".csv");
+  do_check_neq(abInterface, null);
   abInterface.SetData("addressLocation", file);
- 
-  //do_check_true(abInterface.WantsProgress());
+  do_check_true(abInterface.WantsProgress());
 
-  // BeginImport should return false if the field map isn't set
-  //do_check_false(abInterface.BeginImport(null, null, false));	
+  // BeginImport should return false and log an error if the fieldMap isn't set
+  do_check_false(abInterface.BeginImport(null, errorStr, false));
+  do_check_neq(errorStr, null);
 }
