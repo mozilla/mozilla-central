@@ -957,3 +957,9 @@ VFY_VerifyDigestWithAlgorithmID;
 ;+    local:
 ;+       *;
 ;+};
+;+NSS_3.12.1 {
+;+    global:
+CERT_NameToAsciiInvertible;
+;+    local:
+;+       *;
+;+};

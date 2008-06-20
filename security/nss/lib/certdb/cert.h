@@ -37,7 +37,7 @@
 /*
  * cert.h - public data structures and prototypes for the certificate library
  *
- * $Id: cert.h,v 1.71 2008-06-18 01:02:32 wtc%google.com Exp $
+ * $Id: cert.h,v 1.72 2008-06-20 16:57:03 nelson%bolyard.com Exp $
  */
 
 #ifndef _CERT_H_
@@ -71,8 +71,18 @@ extern CERTName *CERT_AsciiToName(char *string);
 /*
 ** Convert an CERTName into its RFC1485 encoded equivalent.
 ** Returns a string that must be freed with PORT_Free().
+** This version produces a string for maximum human readability,
+** not for strict RFC compliance.
 */
 extern char *CERT_NameToAscii(CERTName *name);
+
+/*
+** Convert an CERTName into its RFC1485 encoded equivalent.
+** Returns a string that must be freed with PORT_Free().
+** Caller chooses encoding rules.
+*/
+extern char *CERT_NameToAsciiInvertible(CERTName *name, 
+                                        CertStrictnessLevel strict);
 
 extern CERTAVA *CERT_CopyAVA(PLArenaPool *arena, CERTAVA *src);
 

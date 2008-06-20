@@ -36,7 +36,7 @@
 /*
  * certt.h - public data structures for the certificate library
  *
- * $Id: certt.h,v 1.46 2008-06-14 14:19:45 wtc%google.com Exp $
+ * $Id: certt.h,v 1.47 2008-06-20 16:57:03 nelson%bolyard.com Exp $
  */
 #ifndef _CERTT_H_
 #define _CERTT_H_
@@ -1229,6 +1229,16 @@ typedef struct {
     CERTValParamOutType type;
     CERTValParamOutValue value;
 } CERTValOutParam;
+
+/*
+ * Levels of standards conformance strictness for CERT_NameToAsciiInvertible
+ */
+typedef enum CertStrictnessLevels {
+    CERT_N2A_READABLE   =  0, /* maximum human readability */
+    CERT_N2A_STRICT     = 10, /* strict RFC compliance    */
+    CERT_N2A_INVERTIBLE = 20  /* maximum invertibility,
+                                 all DirectoryStrings encoded in hex */
+} CertStrictnessLevel;
 
 /*
  * policy flag defines
