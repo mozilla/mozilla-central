@@ -885,7 +885,28 @@ NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
       (void) m_mdb->GetMsgHdrForKey(threadParent, getter_AddRefs(parentHdr));
 
       if (parentHdr)
+      {
+
+        // More proofing against crashers. This crasher was derived from the
+        // fact that something got borked, leaving is in hand with a circular
+        // reference to borked headers inducing these loops. The defining
+        // characteristic of these headers is that they don't actually seat
+        // themselves in the thread properly.
+        nsCOMPtr<nsIMsgThread> thread;
+        (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
+        if (thread)
+        {
+          nsCOMPtr<nsIMsgDBHdr> claimant;
+          (void) thread->GetChild(threadParent, getter_AddRefs(claimant));
+          if (!claimant)
+          {
+            NS_ASSERTION(PR_FALSE, "Borked message header, please fix!");
+            return NS_OK;
+          }
+        }
+
         return parentHdr->GetIsKilled(isKilled);
+      }
     }
   }
   return NS_OK;
