@@ -393,7 +393,7 @@ function initStatic()
                 // If the first item is an array, it is the entire thing.
                 client.awayMsgs = item;
             }
-            else
+            else if (item != null)
             {
                 /* Not an array, so we have the old format of a single object
                  * per entry.
@@ -403,6 +403,19 @@ function initStatic()
                     client.awayMsgs.push(item);
             }
             awayLoader.close();
+
+            /* we have to close the file before we can move it,
+             * hence the second if statement */
+            if (item == null)
+            {
+                var invalidFile = new nsLocalFile(client.prefs["profilePath"]);
+                invalidFile.append("awayMsgs.invalid");
+                invalidFile.createUnique(FTYPE_FILE, 0600);
+                var msg = getMsg(MSG_ERR_INVALID_FILE,
+                                 [awayFile.leafName, invalidFile.leafName]);
+                setTimeout("client.display(" + msg.quote() + ", MT_WARN)", 0);
+                awayFile.moveTo(null, invalidFile.leafName);
+            }
         }
     }
 
