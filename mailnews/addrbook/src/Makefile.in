@@ -107,6 +107,7 @@ CPPSRCS		= \
 EXTRA_COMPONENTS += \
 		nsAbLDAPAttributeMap.js \
 		nsAbAutoCompleteMyDomain.js \
+		nsAbAutoCompleteSearch.js \
 		$(NULL)
 
 EXPORTS		= \

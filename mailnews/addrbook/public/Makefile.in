@@ -68,7 +68,9 @@ XPIDLSRCS	= \
 		nsIAbLDIFService.idl \
 		nsIAbLDAPAttributeMap.idl \
 		nsIAbDirSearchListener.idl \
+		nsIAbAutoCompleteResult.idl \
 		$(NULL)
+
 ifdef MOZ_LDAP_XPCOM
 XPIDLSRCS       += \
 		nsILDAPPrefsService.idl \

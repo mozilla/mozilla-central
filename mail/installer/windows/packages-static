@@ -175,6 +175,7 @@ bin\components\url-classifier.xpt
 
 ; Address Book autocomplete
 bin\components\nsAbAutoCompleteMyDomain.js
+bin\components\nsAbAutoCompleteSearch.js
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; Base Package Files
