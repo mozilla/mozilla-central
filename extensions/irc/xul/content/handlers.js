@@ -178,7 +178,7 @@ function onTabClick(e, id)
 
     if (e.which == 2)
     {
-        dispatch("hide", { view: view.source });
+        dispatch("hide", { view: view.source, source: "mouse" });
         return;
     }
 }
@@ -205,6 +205,7 @@ function onMessageViewClick(e)
         return true;
 
     var cx = getMessagesContext(null, e.target);
+    cx.source = "mouse";
     var command = getEventCommand(e);
     if (!client.commandManager.isCommandSatisfied(cx, command))
         return false;
@@ -822,7 +823,7 @@ function onUserDoubleClick(event)
     if (currentIndex < 0)
         return;
     var nickname = getNicknameForUserlistRow(currentIndex);
-    dispatch("query", {nickname: nickname});
+    dispatch("query", {nickname: nickname, source: "mouse"});
 }
 
 CIRCChannel.prototype._updateConferenceMode =
