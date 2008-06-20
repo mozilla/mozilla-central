@@ -75,15 +75,20 @@ function run_test() {
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 0);
 
-  // Test - Check ignoring result with @ sign
+  // Test - Check returning search string with @ sign
 
   acs.startSearch("a@b", identity.key, null, obs);
 
   do_check_eq(obs._search, acs);
   do_check_eq(obs._result.searchString, "a@b");
-  do_check_eq(obs._result.searchResult, ACR.RESULT_FAILURE);
+  do_check_eq(obs._result.searchResult, ACR.RESULT_SUCCESS);
   do_check_eq(obs._result.errorDescription, null);
-  do_check_eq(obs._result.matchCount, 0);
+  do_check_eq(obs._result.matchCount, 1);
+
+  do_check_eq(obs._result.getValueAt(0), "a@b");
+  do_check_eq(obs._result.getCommentAt(0), null);
+  do_check_eq(obs._result.getStyleAt(0), "default-match");
+  do_check_eq(obs._result.getImageAt(0), null);
 
   // Test - Add default domain
 

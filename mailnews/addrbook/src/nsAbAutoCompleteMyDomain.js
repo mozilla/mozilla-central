@@ -51,7 +51,7 @@ nsAbAutoCompleteMyDomain.prototype = {
   startSearch: function(aString, aParam, aResult, aListener) {
     const ACR = Components.interfaces.nsIAutoCompleteResult;
     var address = null;
-    if (aString && !/[@,]/.test(aString)) {
+    if (aString && !/,/.test(aString)) {
       if (aParam != this.cachedParam) {
         this.cachedIdentity =
             Components.classes['@mozilla.org/messenger/account-manager;1']
@@ -60,7 +60,8 @@ nsAbAutoCompleteMyDomain.prototype = {
         this.cachedParam = aParam;
       }
       if (this.cachedIdentity.autocompleteToMyDomain)
-        address = this.cachedIdentity.email.replace(/[^@]*/, aString);
+        address = /@/.test(aString) ? aString :
+                  this.cachedIdentity.email.replace(/[^@]*/, aString);
     }
 
     var result = {
