@@ -120,7 +120,13 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   // should cause us to abort the offline process. Other errors
   // should allow us to continue.
   if (NS_SUCCEEDED(exitCode))
+  {
+    PRInt32 opCount = m_currentOpsToClear.Count();
+    for (PRInt32 i = 0; i < opCount; i++)
+      m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
+
     rv = ProcessNextOperation();
+  }
   // else if it's a non-stop error, and we're doing multiple folders,
   // go to the next folder.
   else if (!m_singleFolderToUpdate)
@@ -251,7 +257,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
-      currentOp->ClearOperation(nsIMsgOfflineImapOperation::kFlagsChanged);
+      m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
     if (++currentKeyIndex < m_CurrentKeys.Length())
@@ -259,10 +265,6 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
         getter_AddRefs(currentOp));
     if (currentOp)
     {
-      // init the operation in the currentOp, so we don't crunch it if&when we
-      // call ClearOperation above.
-      nsOfflineImapOperationType operation;
-      currentOp->GetOperation(&operation);
       currentOp->GetFlagOperation(&flagOperation);
       currentOp->GetNewFlags(&newFlags);
     }
@@ -317,7 +319,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingKeywordKeys.AppendElement(curKey);
-      currentOp->ClearOperation(mCurrentPlaybackOpType);
+      m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
     if (++currentKeyIndex < m_CurrentKeys.Length())
@@ -462,7 +464,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                 else
                   tmpFile->Remove(PR_FALSE);
               }
-              currentOp->ClearOperation(nsIMsgOfflineImapOperation::kAppendDraft);
+              m_currentOpsToClear.AppendObject(currentOp);
               m_currentDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_TRUE);
             }
           }
@@ -490,7 +492,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
-      currentOp->ClearOperation(nsIMsgOfflineImapOperation::kMsgMoved);
+      m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
     
@@ -600,7 +602,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
-      currentOp->ClearOperation(nsIMsgOfflineImapOperation::kMsgCopy);
+      m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
     
