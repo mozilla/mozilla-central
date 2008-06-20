@@ -128,6 +128,7 @@ function initCommands()
          ["invite",            cmdInvite,           CMD_NEED_SRV | CMD_CONSOLE],
          ["join",              cmdJoin,             CMD_NEED_SRV | CMD_CONSOLE],
          ["join-charset",      cmdJoin,             CMD_NEED_SRV | CMD_CONSOLE],
+         ["jump-to-anchor",    cmdJumpToAnchor,                   CMD_NEED_NET],
          ["kick",              cmdKick,            CMD_NEED_CHAN | CMD_CONSOLE],
          ["kick-ban",          cmdKick,            CMD_NEED_CHAN | CMD_CONSOLE],
          ["knock",             cmdKnock,            CMD_NEED_SRV | CMD_CONSOLE],
@@ -3897,6 +3898,36 @@ function cmdSetCurrentView(e)
         delete e.view.lockView;
 
     setCurrentObject(e.view);
+}
+
+function cmdJumpToAnchor(e)
+{
+    if (e.hasOwnProperty("channelName"))
+    {
+        e.channel = new CIRCChannel(e.server, e.channelName);
+    }
+    else if (!e.channel)
+    {
+        display(getMsg(MSG_ERR_REQUIRED_PARAM, "channel-name"), MT_ERROR);
+        return;
+    }
+    if (!e.channel.frame)
+    {
+        display(getMsg(MSG_JUMPTO_ERR_NOCHAN, e.channel.unicodeName), MT_ERROR);
+        return;
+    }
+
+    var document = getContentDocument(e.channel.frame);
+    var row = document.getElementById(e.anchor);
+
+    if (!row)
+    {
+        display(getMsg(MSG_JUMPTO_ERR_NOANCHOR), MT_ERROR);
+        return;
+    }
+
+    dispatch("set-current-view", {view: e.channel});
+    e.channel.scrollToElement(row, "center");
 }
 
 function cmdIgnore(e)

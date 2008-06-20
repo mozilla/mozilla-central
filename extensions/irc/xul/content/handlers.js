@@ -2302,6 +2302,7 @@ function chan_oninit ()
 {
     this.logFile = null;
     this.pendingNamesReply = false;
+    this.importantMessages = 0;
 }
 
 CIRCChannel.prototype.onPrivmsg =

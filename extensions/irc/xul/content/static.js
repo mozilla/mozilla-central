@@ -192,6 +192,7 @@ function init()
     importFromFrame("updateHeader");
     importFromFrame("setHeaderState");
     importFromFrame("changeCSS");
+    importFromFrame("scrollToElement");
     importFromFrame("updateMotifSettings");
     importFromFrame("addUsers");
     importFromFrame("updateUsers");
@@ -4361,6 +4362,11 @@ function __display(message, msgtype, sourceObj, destObj)
 
     if (isImportant)
     {
+        if ("importantMessages" in this)
+        {
+            var importantId = "important" + (this.importantMessages++);
+            msgRow.setAttribute("id", importantId);
+        }
         msgRow.setAttribute("important", "true");
         msgRow.setAttribute("aria-channel", "notify");
     }
@@ -4424,8 +4430,16 @@ function __display(message, msgtype, sourceObj, destObj)
     // Copy Important Messages [to network view].
     if (isImportant && client.prefs["copyMessages"] && (o.network != this))
     {
-        o.network.displayHere("{" + this.unicodeName + "} " + message, msgtype,
-                              sourceObj, destObj);
+        if (importantId)
+        {
+            var channel = this.unicodeName;
+            var cmd = "jump-to-anchor " + importantId + " " + channel;
+            var prefix = getMsg(MSG_JUMPTO_BUTTON, [channel, cmd]);
+            message = prefix + " " + message;
+        }
+        client.munger.getRule(".inline-buttons").enabled = true;
+        o.network.displayHere(message, msgtype, sourceObj, destObj);
+        client.munger.getRule(".inline-buttons").enabled = false;
     }
 
     // Log file time!
