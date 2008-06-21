@@ -1107,21 +1107,21 @@ nsMsgFolderDataSource::createFolderSpecialNode(nsIMsgFolder *folder,
     return rv;
 
   nsAutoString specialFolderString;
-  if (flags & MSG_FOLDER_FLAG_INBOX)
+  if (flags & nsMsgFolderFlags::Inbox)
     specialFolderString.AssignLiteral("Inbox");
-  else if (flags & MSG_FOLDER_FLAG_TRASH)
+  else if (flags & nsMsgFolderFlags::Trash)
     specialFolderString.AssignLiteral("Trash");
-  else if (flags & MSG_FOLDER_FLAG_QUEUE)
+  else if (flags & nsMsgFolderFlags::Queue)
     specialFolderString.AssignLiteral("Unsent Messages");
-  else if (flags & MSG_FOLDER_FLAG_SENTMAIL)
+  else if (flags & nsMsgFolderFlags::SentMail)
     specialFolderString.AssignLiteral("Sent");
-  else if (flags & MSG_FOLDER_FLAG_DRAFTS)
+  else if (flags & nsMsgFolderFlags::Drafts)
     specialFolderString.AssignLiteral("Drafts");
-  else if (flags & MSG_FOLDER_FLAG_TEMPLATES)
+  else if (flags & nsMsgFolderFlags::Templates)
     specialFolderString.AssignLiteral("Templates");
-  else if (flags & MSG_FOLDER_FLAG_JUNK)
+  else if (flags & nsMsgFolderFlags::Junk)
     specialFolderString.AssignLiteral("Junk");
-  else if (flags & MSG_FOLDER_FLAG_VIRTUAL)
+  else if (flags & nsMsgFolderFlags::Virtual)
     specialFolderString.AssignLiteral("Virtual");
   else {
     // XXX why do this at all? or just ""
@@ -1267,7 +1267,7 @@ nsMsgFolderDataSource::createFolderVirtualNode(nsIMsgFolder* folder,
   PRUint32 folderFlags;
   folder->GetFlags(&folderFlags);
 
-  *target = (folderFlags & MSG_FOLDER_FLAG_VIRTUAL) ? kTrueLiteral : kFalseLiteral;
+  *target = (folderFlags & nsMsgFolderFlags::Virtual) ? kTrueLiteral : kFalseLiteral;
   NS_IF_ADDREF(*target);
   return NS_OK;
 }
@@ -1294,7 +1294,7 @@ nsMsgFolderDataSource::createFolderSynchronizeNode(nsIMsgFolder* folder,
 {
   nsresult rv;
   PRBool sync;
-  rv = folder->GetFlag(MSG_FOLDER_FLAG_OFFLINE, &sync);
+  rv = folder->GetFlag(nsMsgFolderFlags::Offline, &sync);
   if (NS_FAILED(rv)) return rv;
 
   *target = nsnull;
@@ -1362,7 +1362,7 @@ nsMsgFolderDataSource::createFolderOpenNode(nsIMsgFolder *folder, nsIRDFNode **t
     return NS_RDF_NO_VALUE;
 
   PRBool closed;
-  rv = folder->GetFlag(MSG_FOLDER_FLAG_ELIDED, &closed);
+  rv = folder->GetFlag(nsMsgFolderFlags::Elided, &closed);
   if (NS_FAILED(rv))
     return rv;
 
@@ -2024,7 +2024,7 @@ nsresult nsMsgFolderDataSource::DoDeleteFromFolder(nsIMsgFolder *folder, nsISupp
     if (folderToDelete)
     {
       folderToDelete->GetFlags(&folderFlags);
-      if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+      if (folderFlags & nsMsgFolderFlags::Virtual)
       {
         NS_ENSURE_ARG_POINTER(msgWindow);
         nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
@@ -2082,7 +2082,7 @@ nsresult nsMsgFolderDataSource::DoFolderAssert(nsIMsgFolder *folder, nsIRDFResou
       rv = NS_ERROR_FAILURE;
   }
   else if (kNC_Open == property && target == kTrueLiteral)
-      rv = folder->ClearFlag(MSG_FOLDER_FLAG_ELIDED);
+      rv = folder->ClearFlag(nsMsgFolderFlags::Elided);
 
   return rv;
 }
@@ -2092,7 +2092,7 @@ nsresult nsMsgFolderDataSource::DoFolderUnassert(nsIMsgFolder *folder, nsIRDFRes
   nsresult rv = NS_ERROR_FAILURE;
 
   if((kNC_Open == property) && target == kTrueLiteral)
-      rv = folder->SetFlag(MSG_FOLDER_FLAG_ELIDED);
+      rv = folder->SetFlag(nsMsgFolderFlags::Elided);
 
   return rv;
 }
@@ -2407,7 +2407,7 @@ PRBool nsMsgFavoriteFoldersDataSource::WantsThisFolder(nsIMsgFolder *folder)
 {
   PRUint32 folderFlags;
   folder->GetFlags(&folderFlags);
-  return folderFlags & MSG_FOLDER_FLAG_FAVORITE;
+  return folderFlags & nsMsgFolderFlags::Favorite;
 }
 
 

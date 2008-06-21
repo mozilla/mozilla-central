@@ -1941,7 +1941,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
               fakeHdr->OrFlags(MSG_FLAG_OFFLINE | MSG_FLAG_READ, &resultFlags);
               fakeHdr->SetOfflineMessageSize(fileSize);
               destDB->AddNewHdrToDB(fakeHdr, PR_TRUE /* notify */);
-              aDstFolder->SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+              aDstFolder->SetFlag(nsMsgFolderFlags::OfflineEvents);
             }
           }
           // tell the listener we're done.

@@ -87,17 +87,17 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
       do_QueryInterface(rootFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRUint32 mailboxFlags = MSG_FOLDER_FLAG_SENTMAIL |
-                          MSG_FOLDER_FLAG_DRAFTS |
-                          MSG_FOLDER_FLAG_TEMPLATES |
-                          MSG_FOLDER_FLAG_TRASH |
-                          MSG_FOLDER_FLAG_JUNK |
-                          MSG_FOLDER_FLAG_QUEUE;
+  PRUint32 mailboxFlags = nsMsgFolderFlags::SentMail |
+                          nsMsgFolderFlags::Drafts |
+                          nsMsgFolderFlags::Templates |
+                          nsMsgFolderFlags::Trash |
+                          nsMsgFolderFlags::Junk |
+                          nsMsgFolderFlags::Queue;
 
   // "none" may have a inbox if it is getting deferred to.
   PRBool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
-    mailboxFlags |= MSG_FOLDER_FLAG_INBOX;
+    mailboxFlags |= nsMsgFolderFlags::Inbox;
 
   localFolder->SetFlagsOnDefaultMailboxes(mailboxFlags);
 

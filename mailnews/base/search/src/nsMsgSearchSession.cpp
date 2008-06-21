@@ -671,7 +671,7 @@ void nsMsgSearchSession::ReleaseFolderDBRef()
 
       /*we don't null out the db reference for inbox because inbox is like the "main" folder
        and performance outweighs footprint */
-      if (!isOpen && !(MSG_FOLDER_FLAG_INBOX & flags))
+      if (!isOpen && !(nsMsgFolderFlags::Inbox & flags))
         folder->SetMsgDatabase(nsnull);
     }
   }

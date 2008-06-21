@@ -345,7 +345,7 @@ NS_IMETHODIMP nsImapMailFolder::AddSubfolder(const nsAString& aName, nsIMsgFolde
 
   folder->GetFlags((PRUint32 *)&flags);
 
-  flags |= MSG_FOLDER_FLAG_MAIL;
+  flags |= nsMsgFolderFlags::Mail;
 
   folder->SetParent(this);
 
@@ -397,7 +397,7 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
 
   folder->GetFlags((PRUint32 *)&flags);
   folder->SetParent(this);
-  flags |= MSG_FOLDER_FLAG_MAIL;
+  flags |= nsMsgFolderFlags::Mail;
 
   PRBool isServer;
   rv = GetIsServer(&isServer);
@@ -405,27 +405,27 @@ nsresult nsImapMailFolder::AddSubfolderWithPath(nsAString& name, nsILocalFile *d
 
   PRInt32 pFlags;
   GetFlags ((PRUint32 *) &pFlags);
-  PRBool isParentInbox = pFlags & MSG_FOLDER_FLAG_INBOX;
+  PRBool isParentInbox = pFlags & nsMsgFolderFlags::Inbox;
 
   //Only set these if these are top level children or parent is inbox
   if(NS_SUCCEEDED(rv))
   {
     if(isServer && name.LowerCaseEqualsLiteral("inbox"))
-      flags |= MSG_FOLDER_FLAG_INBOX;
+      flags |= nsMsgFolderFlags::Inbox;
     else if (isServer || isParentInbox)
     {
       nsAutoString trashName;
       GetTrashFolderName(trashName);
       if (name.Equals(trashName))
-        flags |= MSG_FOLDER_FLAG_TRASH;
+        flags |= nsMsgFolderFlags::Trash;
     }
 #if 0
     else if(name.LowerCaseEqualsLiteral("sent"))
-      folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
+      folder->SetFlag(nsMsgFolderFlags::SentMail);
     else if(name.LowerCaseEqualsLiteral("drafts"))
-      folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
+      folder->SetFlag(nsMsgFolderFlags::Drafts);
     else if (name.LowerCaseEqualsLiteral("templates"))
-      folder->SetFlag(MSG_FOLDER_FLAG_TEMPLATES);
+      folder->SetFlag(nsMsgFolderFlags::Templates);
 #endif
   }
 
@@ -514,7 +514,7 @@ nsresult nsImapMailFolder::CreateSubFolders(nsILocalFile *path)
 
         PRUint32 folderFlags;
         rv = cacheElement->GetInt32Property("flags", (PRInt32 *) &folderFlags);
-        if (NS_SUCCEEDED(rv) && folderFlags & MSG_FOLDER_FLAG_VIRTUAL) //ignore virtual folders
+        if (NS_SUCCEEDED(rv) && folderFlags & nsMsgFolderFlags::Virtual) //ignore virtual folders
           continue;
         PRInt32 hierarchyDelimiter;
         rv = cacheElement->GetInt32Property("hierDelim", &hierarchyDelimiter);
@@ -591,12 +591,12 @@ NS_IMETHODIMP nsImapMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     // we have to treat the root folder specially, because it's name
     // doesn't end with .sbd
 
-    PRInt32 newFlags = MSG_FOLDER_FLAG_MAIL;
+    PRInt32 newFlags = nsMsgFolderFlags::Mail;
     PRBool isDirectory = PR_FALSE;
     pathFile->IsDirectory(&isDirectory);
     if (isDirectory)
     {
-        newFlags |= (MSG_FOLDER_FLAG_DIRECTORY | MSG_FOLDER_FLAG_ELIDED);
+        newFlags |= (nsMsgFolderFlags::Directory | nsMsgFolderFlags::Elided);
         if (!mIsServer)
           SetFlag(newFlags);
         rv = CreateSubFolders(pathFile);
@@ -662,7 +662,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   nsresult rv;
   PRBool selectFolder = PR_FALSE;
 
-  if (mFlags & MSG_FOLDER_FLAG_INBOX && !m_filterList)
+  if (mFlags & nsMsgFolderFlags::Inbox && !m_filterList)
     rv = GetFilterList(msgWindow, getter_AddRefs(m_filterList));
 
   if (m_filterList)
@@ -712,7 +712,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateFolder(nsIMsgWindow *msgWindow, nsIUrlList
   GetCanOpenFolder(&canOpenThisFolder);
 
   PRBool hasOfflineEvents = PR_FALSE;
-  GetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS, &hasOfflineEvents);
+  GetFlag(nsMsgFolderFlags::OfflineEvents, &hasOfflineEvents);
 
   if (!WeAreOffline())
   {
@@ -912,7 +912,7 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
       imapFolder->SetHierarchyDelimiter(hierarchyDelimiter);
       imapFolder->SetBoxFlags(flags);
 
-      child->SetFlag(MSG_FOLDER_FLAG_ELIDED);
+      child->SetFlag(nsMsgFolderFlags::Elided);
       nsString unicodeName;
       rv = CopyMUTF7toUTF16(nsCString(folderName), unicodeName);
       if (NS_SUCCEEDED(rv))
@@ -1093,28 +1093,28 @@ NS_IMETHODIMP nsImapMailFolder::SetBoxFlags(PRInt32 aBoxFlags)
   m_boxFlags = aBoxFlags;
   PRUint32 newFlags = mFlags;
 
-  newFlags |= MSG_FOLDER_FLAG_IMAPBOX;
+  newFlags |= nsMsgFolderFlags::ImapBox;
 
   if (m_boxFlags & kNoinferiors)
-    newFlags |= MSG_FOLDER_FLAG_IMAP_NOINFERIORS;
+    newFlags |= nsMsgFolderFlags::ImapNoinferiors;
   else
-    newFlags &= ~MSG_FOLDER_FLAG_IMAP_NOINFERIORS;
+    newFlags &= ~nsMsgFolderFlags::ImapNoinferiors;
     if (m_boxFlags & kNoselect)
-      newFlags |= MSG_FOLDER_FLAG_IMAP_NOSELECT;
+      newFlags |= nsMsgFolderFlags::ImapNoselect;
     else
-      newFlags &= ~MSG_FOLDER_FLAG_IMAP_NOSELECT;
+      newFlags &= ~nsMsgFolderFlags::ImapNoselect;
     if (m_boxFlags & kPublicMailbox)
-      newFlags |= MSG_FOLDER_FLAG_IMAP_PUBLIC;
+      newFlags |= nsMsgFolderFlags::ImapPublic;
     else
-      newFlags &= ~MSG_FOLDER_FLAG_IMAP_PUBLIC;
+      newFlags &= ~nsMsgFolderFlags::ImapPublic;
     if (m_boxFlags & kOtherUsersMailbox)
-      newFlags |= MSG_FOLDER_FLAG_IMAP_OTHER_USER;
+      newFlags |= nsMsgFolderFlags::ImapOtherUser;
     else
-      newFlags &= ~MSG_FOLDER_FLAG_IMAP_OTHER_USER;
+      newFlags &= ~nsMsgFolderFlags::ImapOtherUser;
     if (m_boxFlags & kPersonalMailbox)
-      newFlags |= MSG_FOLDER_FLAG_IMAP_PERSONAL;
+      newFlags |= nsMsgFolderFlags::ImapPersonal;
     else
-      newFlags &= ~MSG_FOLDER_FLAG_IMAP_PERSONAL;
+      newFlags &= ~nsMsgFolderFlags::ImapPersonal;
 
     SetFlags(newFlags);
   return NS_OK;
@@ -1143,7 +1143,7 @@ NS_IMETHODIMP nsImapMailFolder::SetExplicitlyVerify(PRBool aExplicitlyVerify)
 NS_IMETHODIMP nsImapMailFolder::GetNoSelect(PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  return GetFlag(MSG_FOLDER_FLAG_IMAP_NOSELECT, aResult);
+  return GetFlag(nsMsgFolderFlags::ImapNoselect, aResult);
 }
 
 NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
@@ -1161,7 +1161,7 @@ NS_IMETHODIMP nsImapMailFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow 
   // compact offline store, if folder configured for offline use.
   // for now, check aMsgWindow because not having aMsgWindow means
   // we're doing a compact at shut-down. TEMPORARY HACK
-  if (aMsgWindow && mFlags & MSG_FOLDER_FLAG_OFFLINE)
+  if (aMsgWindow && mFlags & nsMsgFolderFlags::Offline)
     CompactOfflineStore(aMsgWindow);
 
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
@@ -1267,7 +1267,7 @@ NS_IMETHODIMP nsImapMailFolder::EmptyTrash(nsIMsgWindow *aMsgWindow, nsIUrlListe
 
         nsCOMPtr <nsIMsgOfflineImapOperation> op;
         rv = trashDB->GetOfflineOpForKey(fakeKey, PR_TRUE, getter_AddRefs(op));
-        trashFolder->SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+        trashFolder->SetFlag(nsMsgFolderFlags::OfflineEvents);
         op->SetOperation(nsIMsgOfflineImapOperation::kDeleteAllMsgs);
       }
       return rv;
@@ -1422,7 +1422,7 @@ NS_IMETHODIMP nsImapMailFolder::Delete()
 
 NS_IMETHODIMP nsImapMailFolder::Rename (const nsAString& newName, nsIMsgWindow *msgWindow)
 {
-  if (mFlags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (mFlags & nsMsgFolderFlags::Virtual)
     return nsMsgDBFolder::Rename(newName, msgWindow);
   nsresult rv;
   nsAutoString newNameStr(newName);
@@ -1615,7 +1615,7 @@ NS_IMETHODIMP
 nsImapMailFolder::GetCanCreateSubfolders(PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = !(mFlags & (MSG_FOLDER_FLAG_IMAP_NOINFERIORS | MSG_FOLDER_FLAG_VIRTUAL));
+  *aResult = !(mFlags & (nsMsgFolderFlags::ImapNoinferiors | nsMsgFolderFlags::Virtual));
 
   PRBool isServer = PR_FALSE;
   GetIsServer(&isServer);
@@ -1627,7 +1627,7 @@ nsImapMailFolder::GetCanCreateSubfolders(PRBool *aResult)
     if (NS_SUCCEEDED(rv) && imapServer)
       imapServer->GetDualUseFolders(&dualUseFolders);
     if (!dualUseFolders && *aResult)
-      *aResult = (mFlags & MSG_FOLDER_FLAG_IMAP_NOSELECT);
+      *aResult = (mFlags & nsMsgFolderFlags::ImapNoselect);
   }
   return NS_OK;
 }
@@ -1999,7 +1999,7 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
   imapMessageFlagsType messageFlags = kImapMsgDeletedFlag;
 
   nsCOMPtr<nsIImapIncomingServer> imapServer;
-  nsresult rv = GetFlag(MSG_FOLDER_FLAG_TRASH, &deleteImmediatelyNoTrash);
+  nsresult rv = GetFlag(nsMsgFolderFlags::Trash, &deleteImmediatelyNoTrash);
   rv = GetImapIncomingServer(getter_AddRefs(imapServer));
 
   if (NS_SUCCEEDED(rv) && imapServer)
@@ -2139,7 +2139,7 @@ nsImapMailFolder::TrashOrDescendentOfTrash(nsIMsgFolder* folder)
   {
     rv = curFolder->GetFlags(&flags);
     if (NS_FAILED(rv)) return PR_FALSE;
-    if (flags & MSG_FOLDER_FLAG_TRASH)
+    if (flags & nsMsgFolderFlags::Trash)
       return PR_TRUE;
     curFolder->GetParentMsgFolder(getter_AddRefs(parent));
     if (!parent) return PR_FALSE;
@@ -2171,7 +2171,7 @@ nsImapMailFolder::DeleteSubFolders(nsIArray* folders, nsIMsgWindow *msgWindow)
     {
       PRUint32 folderFlags;
       curFolder->GetFlags(&folderFlags);
-      if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+      if (folderFlags & nsMsgFolderFlags::Virtual)
       {
         RemoveSubFolder(curFolder);
         // since the folder pane only allows single selection, we can do this
@@ -2339,7 +2339,7 @@ nsresult nsImapMailFolder::GetBodysToDownload(nsTArray<nsMsgKey> *keysOfMessages
       PRBool shouldStoreMsgOffline = PR_FALSE;
       nsMsgKey msgKey;
       pHeader->GetMessageKey(&msgKey);
-      // MsgFitsDownloadCriteria ignores MSG_FOLDER_FLAG_OFFLINE, which we want
+      // MsgFitsDownloadCriteria ignores nsMsgFolderFlags::Offline, which we want
       if (m_downloadingFolderForOfflineUse)
         MsgFitsDownloadCriteria(msgKey, &shouldStoreMsgOffline);
       else
@@ -2365,8 +2365,8 @@ NS_IMETHODIMP nsImapMailFolder::OnNewIdleMessages()
   // only trigger biff if we're checking all new folders for new messages, or this particular folder,
   // but excluding trash,junk, sent, and no select folders, by default.
   if ((checkAllFolders &&
-    !(mFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_JUNK | MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_IMAP_NOSELECT)))
-    || (mFlags & (MSG_FOLDER_FLAG_CHECK_NEW|MSG_FOLDER_FLAG_INBOX)))
+    !(mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk | nsMsgFolderFlags::SentMail | nsMsgFolderFlags::ImapNoselect)))
+    || (mFlags & (nsMsgFolderFlags::CheckNew|nsMsgFolderFlags::Inbox)))
     SetPerformingBiff(PR_TRUE);
   return UpdateFolder(nsnull);
 }
@@ -2715,7 +2715,7 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
     mFolderSize += messageSize;
   m_msgMovedByFilter = PR_FALSE;
   // If this is the inbox, try to apply filters.
-  if (mFlags & MSG_FOLDER_FLAG_INBOX)
+  if (mFlags & nsMsgFolderFlags::Inbox)
   {
     PRUint32 msgFlags;
     newMsgHdr->GetFlags(&msgFlags);
@@ -3319,7 +3319,7 @@ NS_IMETHODIMP nsImapMailFolder::StoreImapFlags(PRInt32 flags, PRBool addFlags,
       {
         nsCOMPtr <nsIMsgOfflineImapOperation> op;
         rv = mDatabase->GetOfflineOpForKey(keys[keyIndex], PR_TRUE, getter_AddRefs(op));
-        SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+        SetFlag(nsMsgFolderFlags::OfflineEvents);
         if (NS_SUCCEEDED(rv) && op)
         {
           imapMessageFlagsType newFlags;
@@ -3343,8 +3343,8 @@ NS_IMETHODIMP nsImapMailFolder::LiteSelect(nsIUrlListener *aUrlListener)
 
 nsresult nsImapMailFolder::GetFolderOwnerUserName(nsACString& userName)
 {
-  if ((mFlags & MSG_FOLDER_FLAG_IMAP_PERSONAL) ||
-    !(mFlags & (MSG_FOLDER_FLAG_IMAP_PUBLIC | MSG_FOLDER_FLAG_IMAP_OTHER_USER)))
+  if ((mFlags & nsMsgFolderFlags::ImapPersonal) ||
+    !(mFlags & (nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::ImapOtherUser)))
   {
     // this is one of our personal mail folders
     // return our username on this host
@@ -3354,7 +3354,7 @@ nsresult nsImapMailFolder::GetFolderOwnerUserName(nsACString& userName)
   }
 
   // the only other type of owner is if it's in the other users' namespace
-  if (!(mFlags & MSG_FOLDER_FLAG_IMAP_OTHER_USER))
+  if (!(mFlags & nsMsgFolderFlags::ImapOtherUser))
     return NS_OK;
 
   if (m_ownerUserName.IsEmpty())
@@ -3549,7 +3549,7 @@ nsresult nsImapMailFolder::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
         PRBool isRead = PR_FALSE;
         mailHdr->GetIsRead(&isRead);
         if (!isRead)
-          destIFolder->SetFlag(MSG_FOLDER_FLAG_GOT_NEW);
+          destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
         if (imapDeleteIsMoveToTrash)
           rv = NS_OK;
       }
@@ -3798,7 +3798,7 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
   nsresult rv;
   nsCOMPtr <nsIURI> runningURI;
   PRBool noSelect;
-  GetFlag(MSG_FOLDER_FLAG_IMAP_NOSELECT, &noSelect);
+  GetFlag(nsMsgFolderFlags::ImapNoselect, &noSelect);
 
   if (!noSelect)
   {
@@ -4387,7 +4387,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 // message copied so that we can download the new headers and have a chance
                 // to preview the msg bodies.
                 if (!folderOpen && showPreviewText && m_copyState->m_unreadCount > 0
-                    && ! (mFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_JUNK)))
+                    && ! (mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk)))
                   UpdateFolder(msgWindow);
               }
             }
@@ -4414,7 +4414,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
         // then we should clear our nsMsgDatabase pointer. Otherwise, the db would
         // be open until the user selected it and then selected another folder.
         // but don't do this for the trash or inbox - we'll leave them open
-        if (!folderOpen && ! (mFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+        if (!folderOpen && ! (mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
           SetMsgDatabase(nsnull);
         break;
       case nsIImapUrl::nsImapSubtractMsgFlags:
@@ -4655,9 +4655,9 @@ NS_IMETHODIMP
 nsImapMailFolder::RefreshFolderRights()
 {
   if (GetFolderACL()->GetIsFolderShared())
-    SetFlag(MSG_FOLDER_FLAG_PERSONAL_SHARED);
+    SetFlag(nsMsgFolderFlags::PersonalShared);
   else
-    ClearFlag(MSG_FOLDER_FLAG_PERSONAL_SHARED);
+    ClearFlag(nsMsgFolderFlags::PersonalShared);
   return NS_OK;
 }
 
@@ -4846,9 +4846,9 @@ nsImapMailFolder::HeaderFetchCompleted(nsIImapProtocol* aProtocol)
 
     if (imapServer)
       imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
-    if (autoSyncOfflineStores || mFlags & MSG_FOLDER_FLAG_INBOX)
+    if (autoSyncOfflineStores || mFlags & nsMsgFolderFlags::Inbox)
     {
-      if (imapServer && mFlags & MSG_FOLDER_FLAG_INBOX && !autoSyncOfflineStores)
+      if (imapServer && mFlags & nsMsgFolderFlags::Inbox && !autoSyncOfflineStores)
         imapServer->GetDownloadBodiesOnGetNewMail(&autoDownloadNewHeaders);
       // this isn't quite right - we only want to download bodies for new headers
       // but we don't know what the new headers are. We could query the inbox db
@@ -5032,12 +5032,12 @@ nsImapMailFolder::FillInFolderProps(nsIMsgImapFolderProps *aFolderProps)
       return NS_OK;
     }
   }
-  if (mFlags & MSG_FOLDER_FLAG_IMAP_PUBLIC)
+  if (mFlags & nsMsgFolderFlags::ImapPublic)
   {
     folderTypeStringID = IMAP_PUBLIC_FOLDER_TYPE_NAME;
     folderTypeDescStringID = IMAP_PUBLIC_FOLDER_TYPE_DESCRIPTION;
   }
-  else if (mFlags & MSG_FOLDER_FLAG_IMAP_OTHER_USER)
+  else if (mFlags & nsMsgFolderFlags::ImapOtherUser)
   {
     folderTypeStringID = IMAP_OTHER_USERS_FOLDER_TYPE_NAME;
     nsCString owner;
@@ -5192,7 +5192,7 @@ NS_IMETHODIMP nsImapMailFolder::GetCanOpenFolder(PRBool *aBool)
 {
   NS_ENSURE_ARG_POINTER(aBool);
   PRBool noSelect;
-  GetFlag(MSG_FOLDER_FLAG_IMAP_NOSELECT, &noSelect);
+  GetFlag(nsMsgFolderFlags::ImapNoselect, &noSelect);
   *aBool = (noSelect) ? PR_FALSE : GetFolderACL()->GetCanIReadFolder();
   return NS_OK;
 }
@@ -5803,7 +5803,7 @@ nsImapMailFolder::CopyMessagesWithStream(nsIMsgFolder* srcFolder,
     }
     if (isMove)
     {
-      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+      if (mFlags & nsMsgFolderFlags::Trash)
         undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
       else
         undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
@@ -6028,7 +6028,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
         rv = sourceMailDB->GetOfflineOpForKey(originalKey, PR_TRUE, getter_AddRefs(sourceOp));
         if (NS_SUCCEEDED(rv) && sourceOp)
         {
-          srcFolder->SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+          srcFolder->SetFlag(nsMsgFolderFlags::OfflineEvents);
           nsCOMPtr <nsIMsgDatabase> originalDB;
           nsOfflineImapOperationType opType;
           sourceOp->GetOperation(&opType);
@@ -6141,7 +6141,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                 mDatabase->RemoveOfflineOp(destOp);
               else
               {
-                SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+                SetFlag(nsMsgFolderFlags::OfflineEvents);
                 destOp->SetSourceFolderURI(originalSrcFolderURI.get());
                 destOp->SetMessageKey(originalKey);
                 {
@@ -6180,7 +6180,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             {
               if (isMove)
               {
-                if (mFlags & MSG_FOLDER_FLAG_TRASH)
+                if (mFlags & nsMsgFolderFlags::Trash)
                   undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
                 else
                   undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
@@ -6227,7 +6227,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
                                PRBool isFolder, //isFolder for future use when we do cross-server folder move/copy
                                PRBool allowUndo)
 {
-  if (!(mFlags & (MSG_FOLDER_FLAG_TRASH|MSG_FOLDER_FLAG_JUNK)))
+  if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
     SetMRUTime();
 
   nsresult rv;
@@ -6398,7 +6398,7 @@ nsImapMailFolder::CopyMessages(nsIMsgFolder* srcFolder,
     }
     if (isMove)
     {
-      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+      if (mFlags & nsMsgFolderFlags::Trash)
         undoMsgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
       else
         undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
@@ -6652,7 +6652,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
       srcFolder->GetFlags(&folderFlags);
 
     // if our source folder is a virtual folder
-    if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+    if (folderFlags & nsMsgFolderFlags::Virtual)
     {
       nsCOMPtr<nsIMsgFolder> newMsgFolder;
       nsString folderName;
@@ -6735,7 +6735,7 @@ nsImapMailFolder::CopyFolder(nsIMsgFolder* srcFolder,
       nsCOMPtr <nsIUrlListener> urlListener = do_QueryInterface(srcFolder);
       PRBool match = PR_FALSE;
       PRBool confirmed = PR_FALSE;
-      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+      if (mFlags & nsMsgFolderFlags::Trash)
       {
         rv = srcFolder->MatchOrChangeFilterDestination(nsnull, PR_FALSE, &match);
         if (match)
@@ -7056,7 +7056,7 @@ NS_IMETHODIMP nsImapMailFolder::GetFolderNeedsACLListed(PRBool *bVal)
   PRBool dontNeedACLListed = !m_folderNeedsACLListed;
   // if we haven't acl listed, and it's not a no select folder or the inbox,
   //  then we'll list the acl if it's not a namespace.
-  if (m_folderNeedsACLListed && !(mFlags & (MSG_FOLDER_FLAG_IMAP_NOSELECT | MSG_FOLDER_FLAG_INBOX)))
+  if (m_folderNeedsACLListed && !(mFlags & (nsMsgFolderFlags::ImapNoselect | nsMsgFolderFlags::Inbox)))
     GetIsNamespace(&dontNeedACLListed);
   *bVal = !dontNeedACLListed;
   return NS_OK;
@@ -7090,9 +7090,9 @@ NS_IMETHODIMP nsImapMailFolder::GetIsNamespace(PRBool *aResult)
     m_namespace = nsIMAPNamespaceList::GetNamespaceForFolder(serverKey.get(), onlineName.get(), (char) hierarchyDelimiter);
     if (m_namespace == nsnull)
     {
-      if (mFlags & MSG_FOLDER_FLAG_IMAP_OTHER_USER)
+      if (mFlags & nsMsgFolderFlags::ImapOtherUser)
          rv = hostSession->GetDefaultNamespaceOfTypeForHost(serverKey.get(), kOtherUsersNamespace, m_namespace);
-      else if (mFlags & MSG_FOLDER_FLAG_IMAP_PUBLIC)
+      else if (mFlags & nsMsgFolderFlags::ImapPublic)
         rv = hostSession->GetDefaultNamespaceOfTypeForHost(serverKey.get(), kPublicNamespace, m_namespace);
       else
         rv = hostSession->GetDefaultNamespaceOfTypeForHost(serverKey.get(), kPersonalNamespace, m_namespace);
@@ -7483,7 +7483,7 @@ nsImapMailFolder::GetCanFileMessages(PRBool *aCanFileMessages)
   if (*aCanFileMessages)
   {
     PRBool noSelect;
-    GetFlag(MSG_FOLDER_FLAG_IMAP_NOSELECT, &noSelect);
+    GetFlag(nsMsgFolderFlags::ImapNoselect, &noSelect);
     *aCanFileMessages = (noSelect) ? PR_FALSE : GetFolderACL()->GetCanIInsertInFolder();
     return NS_OK;
   }
@@ -7559,7 +7559,7 @@ nsImapMailFolder::StoreCustomKeywords(nsIMsgWindow *aMsgWindow, const nsACString
       {
         nsCOMPtr <nsIMsgOfflineImapOperation> op;
         rv = mDatabase->GetOfflineOpForKey(aKeysToStore[keyIndex], PR_TRUE, getter_AddRefs(op));
-        SetFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+        SetFlag(nsMsgFolderFlags::OfflineEvents);
         if (NS_SUCCEEDED(rv) && op)
         {
           if (!aFlagsToAdd.IsEmpty())
@@ -7690,7 +7690,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
     // don't do the move when we are opening up
     // the junk mail folder or the trash folder
     // or when manually classifying messages in those folders
-    if (!(mFlags & MSG_FOLDER_FLAG_JUNK || mFlags & MSG_FOLDER_FLAG_TRASH))
+    if (!(mFlags & nsMsgFolderFlags::Junk || mFlags & nsMsgFolderFlags::Trash))
     {
       PRBool moveOnSpam;
       (void)spamSettings->GetMoveOnSpam(&moveOnSpam);
@@ -7705,7 +7705,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
           rv = GetExistingFolder(spamFolderURI, getter_AddRefs(folder));
           if (NS_SUCCEEDED(rv) && folder)
           {
-            rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
+            rv = folder->SetFlag(nsMsgFolderFlags::Junk);
             NS_ENSURE_SUCCESS(rv,rv);
             if (NS_SUCCEEDED(GetMoveCoalescer()))
             {
@@ -7718,7 +7718,7 @@ nsImapMailFolder::OnMessageClassified(const char * aMsgURI,
             // XXX TODO
             // JUNK MAIL RELATED
             // the listener should do
-            // rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
+            // rv = folder->SetFlag(nsMsgFolderFlags::Junk);
             // NS_ENSURE_SUCCESS(rv,rv);
             // if (NS_SUCCEEDED(GetMoveCoalescer())) {
             //   m_moveCoalescer->AddMove(folder, msgKey);
@@ -7770,7 +7770,7 @@ nsImapMailFolder::GetShouldDownloadAllHeaders(PRBool *aResult)
   *aResult = PR_FALSE;
   //for just the inbox, we check if the filter list has arbitary headers.
   //for all folders, check if we have a spam plugin that requires all headers
-  if (mFlags & MSG_FOLDER_FLAG_INBOX)
+  if (mFlags & nsMsgFolderFlags::Inbox)
   {
     nsCOMPtr <nsIMsgFilterList> filterList;
     nsresult rv = GetFilterList(nsnull, getter_AddRefs(filterList));
@@ -7933,7 +7933,7 @@ NS_IMETHODIMP nsImapMailFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, 
 NS_IMETHODIMP nsImapMailFolder::GetCustomIdentity(nsIMsgIdentity **aIdentity)
 {
   NS_ENSURE_ARG_POINTER(aIdentity);
-  if (mFlags & MSG_FOLDER_FLAG_IMAP_OTHER_USER)
+  if (mFlags & nsMsgFolderFlags::ImapOtherUser)
   {
     nsresult rv;
     PRBool delegateOtherUsersFolders = PR_FALSE;

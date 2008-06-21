@@ -218,7 +218,7 @@ nsresult nsMsgPurgeService::PerformPurge()
             {
               PRUint32 folderFlags;
               (void) childFolder->GetFlags(&folderFlags);
-              if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+              if (folderFlags & nsMsgFolderFlags::Virtual)
                 continue;
               nsTime curFolderLastPurgeTime=0;
               nsCString curFolderLastPurgeTimeString, curFolderUri;

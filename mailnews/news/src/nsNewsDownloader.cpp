@@ -488,7 +488,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(PRBool *done)
       PRUint32 folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
       session->IsFolderOpenInWindow(m_currentFolder, &folderOpen);
-      if (!folderOpen && ! (folderFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+      if (!folderOpen && ! (folderFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
         m_currentFolder->SetMsgDatabase(nsnull);
     }
     m_currentFolder = nsnull;
@@ -541,7 +541,7 @@ nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
     {
       PRUint32 folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
-      if (folderFlags & MSG_FOLDER_FLAG_OFFLINE)
+      if (folderFlags & nsMsgFolderFlags::Offline)
         break;
     }
   }

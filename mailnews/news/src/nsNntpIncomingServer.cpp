@@ -659,7 +659,7 @@ nsNntpIncomingServer::GetFirstGroupNeedingCounts(nsISupports **aFirstGroupNeedin
     (*aFirstGroupNeedingCounts)->QueryInterface(NS_GET_IID(nsIMsgFolder), getter_AddRefs(folder));
     PRUint32 folderFlags;
     folder->GetFlags(&folderFlags);
-    if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+    if (folderFlags & nsMsgFolderFlags::Virtual)
       continue;
     else
       break;

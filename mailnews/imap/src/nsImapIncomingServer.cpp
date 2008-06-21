@@ -1222,7 +1222,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
         PRInt32 deleteModel;
         GetDeleteModel(&deleteModel);
         if (deleteModel == nsMsgImapDeleteModels::MoveToTrash)
-          child->SetFlag(MSG_FOLDER_FLAG_TRASH);
+          child->SetFlag(nsMsgFolderFlags::Trash);
       }
       imapFolder->SetBoxFlags(boxFlags);
       imapFolder->SetExplicitlyVerify(explicitlyVerify);
@@ -1232,7 +1232,7 @@ NS_IMETHODIMP nsImapIncomingServer::PossibleImapMailbox(const nsACString& folder
         PRBool setNewFoldersForOffline = PR_FALSE;
         GetOfflineDownload(&setNewFoldersForOffline);
         if (setNewFoldersForOffline)
-          child->SetFlag(MSG_FOLDER_FLAG_OFFLINE);
+          child->SetFlag(nsMsgFolderFlags::Offline);
       }
       // online name needs to use the correct hierarchy delimiter (I think...)
       // or the canonical path - one or the other, but be consistent.
@@ -1415,7 +1415,7 @@ NS_IMETHODIMP  nsImapIncomingServer::FolderIsNoSelect(const nsACString& aFolderN
   {
     PRUint32 flags;
     msgFolder->GetFlags(&flags);
-    *result = ((flags & MSG_FOLDER_FLAG_IMAP_NOSELECT) != 0);
+    *result = ((flags & nsMsgFolderFlags::ImapNoselect) != 0);
   }
   else
    *result = PR_FALSE;
@@ -1496,7 +1496,7 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
               nsAutoString folderName;
               if (NS_SUCCEEDED(trashFolder->GetName(folderName)))
                 if (!folderName.Equals(trashName))
-                  trashFolder->ClearFlag(MSG_FOLDER_FLAG_TRASH);
+                  trashFolder->ClearFlag(nsMsgFolderFlags::Trash);
             }
           }
         }
@@ -1522,7 +1522,7 @@ NS_IMETHODIMP nsImapIncomingServer::DiscoveryDone()
       continue;
 
     currentFolder->GetFlags(&folderFlags);
-    if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL) // don't remove virtual folders
+    if (folderFlags & nsMsgFolderFlags::Virtual) // don't remove virtual folders
       continue;
 
     if ((!usingSubscription ||
@@ -1585,7 +1585,7 @@ nsresult nsImapIncomingServer::DeleteNonVerifiedFolders(nsIMsgFolder *curFolder)
           rv = childImapFolder->GetVerifiedAsOnlineFolder(&childVerified);
 
           rv = childFolder->GetFlags(&flags);
-          PRBool folderIsNoSelectFolder = NS_SUCCEEDED(rv) && ((flags & MSG_FOLDER_FLAG_IMAP_NOSELECT) != 0);
+          PRBool folderIsNoSelectFolder = NS_SUCCEEDED(rv) && ((flags & nsMsgFolderFlags::ImapNoselect) != 0);
 
           PRBool usingSubscription = PR_TRUE;
           GetUsingSubscription(&usingSubscription);
@@ -1673,7 +1673,7 @@ PRBool nsImapIncomingServer::AllDescendentsAreNoSelect(nsIMsgFolder *parentFolde
           PRUint32 flags;
           nsCOMPtr <nsIMsgFolder> childFolder = do_QueryInterface(child, &rv);
           rv = childFolder->GetFlags(&flags);
-          childIsNoSelect = NS_SUCCEEDED(rv) && (flags & MSG_FOLDER_FLAG_IMAP_NOSELECT);
+          childIsNoSelect = NS_SUCCEEDED(rv) && (flags & nsMsgFolderFlags::ImapNoselect);
           allDescendentsAreNoSelect = !childIsNoSelect && AllDescendentsAreNoSelect(childFolder);
         }
       }
@@ -2759,8 +2759,8 @@ nsImapIncomingServer::GetNewMessagesForNonInboxFolders(nsIMsgFolder *aFolder,
   PRUint32 flags = 0;
   aFolder->GetFlags(&flags);
   if ((forceAllFolders &&
-    !(flags & (MSG_FOLDER_FLAG_INBOX | MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_JUNK | MSG_FOLDER_FLAG_IMAP_NOSELECT)))
-    || (flags & MSG_FOLDER_FLAG_CHECK_NEW))
+    !(flags & (nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Trash | nsMsgFolderFlags::Junk | nsMsgFolderFlags::ImapNoselect)))
+    || (flags & nsMsgFolderFlags::CheckNew))
   {
     // Get new messages for this folder.
     aFolder->SetGettingNewMessages(PR_TRUE);
@@ -2949,7 +2949,7 @@ NS_IMETHODIMP nsImapIncomingServer::SetTrashFolderName(const nsAString& chvalue)
       nsCOMPtr<nsIMsgFolder> oldFolder;
       rv = GetFolder(oldTrashNameUtf7, getter_AddRefs(oldFolder));
       if (NS_SUCCEEDED(rv) && oldFolder)
-        oldFolder->ClearFlag(MSG_FOLDER_FLAG_TRASH);
+        oldFolder->ClearFlag(nsMsgFolderFlags::Trash);
     }
   }
   return SetUnicharValue(PREF_TRASH_FOLDER_NAME, chvalue);

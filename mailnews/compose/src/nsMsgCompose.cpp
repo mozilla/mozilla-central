@@ -3527,7 +3527,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
         PRUint32 folderFlags;
         msgFolder->GetFlags(&folderFlags);
         // only do this if it's a drafts or templates folder.
-        if (folderFlags & MSG_FOLDER_FLAG_DRAFTS)
+        if (folderFlags & nsMsgFolderFlags::Drafts)
         {  // build the msg arrary
           nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
           NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't allocate array.");
@@ -3613,7 +3613,7 @@ nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBo
     {
       PRUint32 folderFlags;
       savedToFolder->GetFlags(&folderFlags);
-      if (folderFlags & MSG_FOLDER_FLAG_DRAFTS)
+      if (folderFlags & nsMsgFolderFlags::Drafts)
       {
         rv = savedToFolder->GenerateMessageURI(newUid, newDraftIdURL);
         NS_ENSURE_SUCCESS(rv, rv);

@@ -318,7 +318,7 @@ nsMsgQuickSearchDBView::OnNewSearch()
     m_viewFolder->GetFlags(&folderFlags);
   // check if it's a virtual folder - if so, we should get the cached hits 
   // from the db, and set a flag saying that we're using cached values.
-  if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (folderFlags & nsMsgFolderFlags::Virtual)
   {
     nsCOMPtr<nsISimpleEnumerator> cachedHits;
     nsCString searchUri;

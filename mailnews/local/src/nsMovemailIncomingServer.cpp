@@ -154,14 +154,14 @@ nsMovemailIncomingServer::SetFlagsOnDefaultMailboxes()
         do_QueryInterface(rootFolder, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    localFolder->SetFlagsOnDefaultMailboxes(MSG_FOLDER_FLAG_INBOX |
-                                            MSG_FOLDER_FLAG_SENTMAIL |
-                                            MSG_FOLDER_FLAG_DRAFTS |
-                                            MSG_FOLDER_FLAG_TEMPLATES |
-                                            MSG_FOLDER_FLAG_TRASH |
-                                            MSG_FOLDER_FLAG_JUNK |
+    localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Inbox |
+                                            nsMsgFolderFlags::SentMail |
+                                            nsMsgFolderFlags::Drafts |
+                                            nsMsgFolderFlags::Templates |
+                                            nsMsgFolderFlags::Trash |
+                                            nsMsgFolderFlags::Junk |
                                             // hmm?
-                                            MSG_FOLDER_FLAG_QUEUE);
+                                            nsMsgFolderFlags::Queue);
     return NS_OK;
 }
 

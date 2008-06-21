@@ -374,12 +374,12 @@ nsPop3IncomingServer::SetFlagsOnDefaultMailboxes()
   NS_ENSURE_SUCCESS(rv, rv);
 
   // pop3 gets an inbox, but no queue (unsent messages)
-  localFolder->SetFlagsOnDefaultMailboxes(MSG_FOLDER_FLAG_INBOX |
-                                          MSG_FOLDER_FLAG_SENTMAIL |
-                                          MSG_FOLDER_FLAG_DRAFTS |
-                                          MSG_FOLDER_FLAG_TEMPLATES |
-                                          MSG_FOLDER_FLAG_TRASH |
-                                          MSG_FOLDER_FLAG_JUNK);
+  localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Inbox |
+                                          nsMsgFolderFlags::SentMail |
+                                          nsMsgFolderFlags::Drafts |
+                                          nsMsgFolderFlags::Templates |
+                                          nsMsgFolderFlags::Trash |
+                                          nsMsgFolderFlags::Junk);
   return NS_OK;
 }
 

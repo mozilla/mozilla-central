@@ -383,10 +383,10 @@ nsMsgLocalMailFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     mInitialized = PR_TRUE;      // need to set this flag here to avoid infinite recursion
     // we have to treat the root folder specially, because it's name
     // doesn't end with .sbd
-    PRInt32 newFlags = MSG_FOLDER_FLAG_MAIL;
+    PRInt32 newFlags = nsMsgFolderFlags::Mail;
     if (directory)
     {
-      newFlags |= (MSG_FOLDER_FLAG_DIRECTORY | MSG_FOLDER_FLAG_ELIDED);
+      newFlags |= (nsMsgFolderFlags::Directory | nsMsgFolderFlags::Elided);
       SetFlag(newFlags);
 
       PRBool createdDefaultMailboxes = PR_FALSE;
@@ -916,7 +916,7 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
     return NS_OK;
 
   rv= GetFlags(&parentFlags);  //this is the parent folder
-  if (parentFlags & MSG_FOLDER_FLAG_TRASH)
+  if (parentFlags & nsMsgFolderFlags::Trash)
   {
     *result = PR_TRUE;
     return rv;
@@ -934,7 +934,7 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
     if (NS_FAILED(rv) || isServer) return NS_OK;
     rv = parentFolder->GetFlags(&parentFlags);
     if (NS_FAILED(rv)) return NS_OK;
-    if (parentFlags & MSG_FOLDER_FLAG_TRASH)
+    if (parentFlags & nsMsgFolderFlags::Trash)
     {
       *result = PR_TRUE;
       return rv;
@@ -990,7 +990,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::DeleteSubFolders(nsIArray *folders, nsIMsgWi
   if (folder)
     folder->GetFlags(&folderFlags);
   // when deleting from trash, or virtual folder, just delete it.
-  if (isChildOfTrash || folderFlags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (isChildOfTrash || folderFlags & nsMsgFolderFlags::Virtual)
     return nsMsgDBFolder::DeleteSubFolders(folders, msgWindow);
 
   nsCOMPtr<nsIMsgFolder> trashFolder;
@@ -1316,11 +1316,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDeletable(PRBool *deletable)
 
   PRBool isServer;
   GetIsServer(&isServer);
-  *deletable = !(isServer || mFlags & MSG_FOLDER_FLAG_INBOX ||
-    mFlags & MSG_FOLDER_FLAG_DRAFTS ||
-    mFlags & MSG_FOLDER_FLAG_TRASH ||
-    mFlags & MSG_FOLDER_FLAG_TEMPLATES ||
-    mFlags & MSG_FOLDER_FLAG_JUNK);
+  *deletable = !(isServer || mFlags & nsMsgFolderFlags::Inbox ||
+    mFlags & nsMsgFolderFlags::Drafts ||
+    mFlags & nsMsgFolderFlags::Trash ||
+    mFlags & nsMsgFolderFlags::Templates ||
+    mFlags & nsMsgFolderFlags::Junk);
   return NS_OK;
 }
 
@@ -1399,7 +1399,7 @@ nsMsgLocalMailFolder::DeleteMessages(nsIArray *messages,
     MarkMsgsOnPop3Server(messages, POP3_DELETE);
   }
 
-  PRBool isTrashFolder = mFlags & MSG_FOLDER_FLAG_TRASH;
+  PRBool isTrashFolder = mFlags & nsMsgFolderFlags::Trash;
 
   // notify on delete from trash and shift-delete
   if (!isMove && (deleteStorage || isTrashFolder))
@@ -1604,7 +1604,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
     return OnCopyCompleted(srcSupport, PR_FALSE);
   }
 
-  if (!(mFlags & (MSG_FOLDER_FLAG_TRASH|MSG_FOLDER_FLAG_JUNK)))
+  if (!(mFlags & (nsMsgFolderFlags::Trash|nsMsgFolderFlags::Junk)))
     SetMRUTime();
 
   nsCString protocolType;
@@ -1708,7 +1708,7 @@ nsMsgLocalMailFolder::CopyMessages(nsIMsgFolder* srcFolder, nsIArray*
       msgTxn->SetMsgWindow(msgWindow);
       if (isMove)
       {
-        if (mFlags & MSG_FOLDER_FLAG_TRASH)
+        if (mFlags & nsMsgFolderFlags::Trash)
           msgTxn->SetTransactionType(nsIMessenger::eDeleteMsg);
         else
           msgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
@@ -1874,7 +1874,7 @@ nsMsgLocalMailFolder::CopyFolderLocal(nsIMsgFolder *srcFolder,
       }
       // if we are moving a favorite folder to trash, we should clear the favorites flag
       // so it gets removed from the view.
-      srcFolder->ClearFlag(MSG_FOLDER_FLAG_FAVORITE);
+      srcFolder->ClearFlag(nsMsgFolderFlags::Favorite);
     }
 
     PRBool match = PR_FALSE;
@@ -2502,8 +2502,8 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
               PRUint32 folderFlags;
               srcFolder->GetFlags(&folderFlags);
               // check if the src folder is an imap inbox.
-              if ((folderFlags & (MSG_FOLDER_FLAG_INBOX|MSG_FOLDER_FLAG_IMAPBOX))
-                            == (MSG_FOLDER_FLAG_INBOX|MSG_FOLDER_FLAG_IMAPBOX))
+              if ((folderFlags & (nsMsgFolderFlags::Inbox|nsMsgFolderFlags::ImapBox))
+                            == (nsMsgFolderFlags::Inbox|nsMsgFolderFlags::ImapBox))
               {
                 nsCOMPtr <nsIMsgDatabase> db;
                 srcFolder->GetMsgDatabase(nsnull, getter_AddRefs(db));
@@ -2657,7 +2657,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndMove(PRBool moveSucceeded)
     {
       // if we are the trash and a local msg is being moved to us, mark the source
       // for delete from server, if so configured.
-      if (mFlags & MSG_FOLDER_FLAG_TRASH)
+      if (mFlags & nsMsgFolderFlags::Trash)
       {
         // if we're deleting on all moves, we'll mark this message for deletion when
         // we call DeleteMessages on the source folder. So don't mark it for deletion
@@ -3221,7 +3221,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
       }
     }
 
-    if (mFlags & MSG_FOLDER_FLAG_INBOX)
+    if (mFlags & nsMsgFolderFlags::Inbox)
     {
       if (mDatabase && mCheckForNewMessagesAfterParsing)
       {
@@ -3240,7 +3240,7 @@ nsMsgLocalMailFolder::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
     mReparseListener = nsnull;
     saveReparseListener->OnStopRunningUrl(aUrl, aExitCode);
   }
-  if (mFlags & MSG_FOLDER_FLAG_INBOX)
+  if (mFlags & nsMsgFolderFlags::Inbox)
   {
     // if we are the inbox and running pop url
     nsCOMPtr<nsIPop3URL> popurl = do_QueryInterface(aUrl, &rv);
@@ -3322,26 +3322,26 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
 NS_IMETHODIMP
 nsMsgLocalMailFolder::SetFlagsOnDefaultMailboxes(PRUint32 flags)
 {
-  if (flags & MSG_FOLDER_FLAG_INBOX)
-    setSubfolderFlag(NS_LITERAL_STRING("Inbox"), MSG_FOLDER_FLAG_INBOX);
+  if (flags & nsMsgFolderFlags::Inbox)
+    setSubfolderFlag(NS_LITERAL_STRING("Inbox"), nsMsgFolderFlags::Inbox);
 
-  if (flags & MSG_FOLDER_FLAG_SENTMAIL)
-    setSubfolderFlag(NS_LITERAL_STRING("Sent"), MSG_FOLDER_FLAG_SENTMAIL);
+  if (flags & nsMsgFolderFlags::SentMail)
+    setSubfolderFlag(NS_LITERAL_STRING("Sent"), nsMsgFolderFlags::SentMail);
 
-  if (flags & MSG_FOLDER_FLAG_DRAFTS)
-    setSubfolderFlag(NS_LITERAL_STRING("Drafts"), MSG_FOLDER_FLAG_DRAFTS);
+  if (flags & nsMsgFolderFlags::Drafts)
+    setSubfolderFlag(NS_LITERAL_STRING("Drafts"), nsMsgFolderFlags::Drafts);
 
-  if (flags & MSG_FOLDER_FLAG_TEMPLATES)
-    setSubfolderFlag(NS_LITERAL_STRING("Templates"), MSG_FOLDER_FLAG_TEMPLATES);
+  if (flags & nsMsgFolderFlags::Templates)
+    setSubfolderFlag(NS_LITERAL_STRING("Templates"), nsMsgFolderFlags::Templates);
 
-  if (flags & MSG_FOLDER_FLAG_TRASH)
-    setSubfolderFlag(NS_LITERAL_STRING("Trash"), MSG_FOLDER_FLAG_TRASH);
+  if (flags & nsMsgFolderFlags::Trash)
+    setSubfolderFlag(NS_LITERAL_STRING("Trash"), nsMsgFolderFlags::Trash);
 
-  if (flags & MSG_FOLDER_FLAG_QUEUE)
-    setSubfolderFlag(NS_LITERAL_STRING("Unsent Messages"), MSG_FOLDER_FLAG_QUEUE);
+  if (flags & nsMsgFolderFlags::Queue)
+    setSubfolderFlag(NS_LITERAL_STRING("Unsent Messages"), nsMsgFolderFlags::Queue);
 
-  if (flags & MSG_FOLDER_FLAG_JUNK)
-    setSubfolderFlag(NS_LITERAL_STRING("Junk"), MSG_FOLDER_FLAG_JUNK);
+  if (flags & nsMsgFolderFlags::Junk)
+    setSubfolderFlag(NS_LITERAL_STRING("Junk"), nsMsgFolderFlags::Junk);
 
   return NS_OK;
 }
@@ -3477,7 +3477,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
     // don't do the move when we are opening up
     // the junk mail folder or the trash folder
     // or when manually classifying messages in those folders
-    if (!(mFlags & MSG_FOLDER_FLAG_JUNK || mFlags & MSG_FOLDER_FLAG_TRASH))
+    if (!(mFlags & nsMsgFolderFlags::Junk || mFlags & nsMsgFolderFlags::Trash))
     {
       rv = spamSettings->GetMoveOnSpam(&moveOnSpam);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -3492,7 +3492,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
         rv = GetExistingFolder(mSpamFolderURI, getter_AddRefs(folder));
         if (NS_SUCCEEDED(rv) && folder)
         {
-          rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
+          rv = folder->SetFlag(nsMsgFolderFlags::Junk);
           NS_ENSURE_SUCCESS(rv,rv);
           mSpamKeysToMove.AppendElement(msgKey);
           willMoveMessage = PR_TRUE;
@@ -3502,7 +3502,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
           // XXX TODO
           // JUNK MAIL RELATED
           // the listener should do
-          // rv = folder->SetFlag(MSG_FOLDER_FLAG_JUNK);
+          // rv = folder->SetFlag(nsMsgFolderFlags::Junk);
           // NS_ENSURE_SUCCESS(rv,rv);
           // mSpamKeysToMove.AppendElement(msgKey);
           // willMoveMessage = PR_TRUE;
@@ -3553,7 +3553,7 @@ nsMsgLocalMailFolder::OnMessageClassified(const char *aMsgURI,
     SetNumNewMessages(numNewMessages - mSpamKeysToMove.Length());
     mSpamKeysToMove.Clear();
     // check if this is the inbox first...
-    if (mFlags & MSG_FOLDER_FLAG_INBOX)
+    if (mFlags & nsMsgFolderFlags::Inbox)
       PerformBiffNotifications();
   }
   return NS_OK;

@@ -947,7 +947,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
 
                  PRUint32 flags;
                  inboxFolder->GetFlags(&flags);
-                 if (flags & MSG_FOLDER_FLAG_INBOX)
+                 if (flags & nsMsgFolderFlags::Inbox)
                  {
                    rv = inboxFolder->Compact(urlListener, nsnull /* msgwindow */);
                    if (NS_SUCCEEDED(rv))
@@ -1336,7 +1336,7 @@ nsMsgAccountManager::SetSpecialFolders()
         {
           rv = folder->GetParent(getter_AddRefs(parent));
           if (NS_SUCCEEDED(rv) && parent)
-            rv = folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
+            rv = folder->SetFlag(nsMsgFolderFlags::SentMail);
         }
       }
       thisIdentity->GetDraftFolder(folderUri);
@@ -1348,7 +1348,7 @@ nsMsgAccountManager::SetSpecialFolders()
         {
           rv = folder->GetParent(getter_AddRefs(parent));
           if (NS_SUCCEEDED(rv) && parent)
-            rv = folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
+            rv = folder->SetFlag(nsMsgFolderFlags::Drafts);
         }
       }
       thisIdentity->GetStationeryFolder(folderUri);
@@ -1360,7 +1360,7 @@ nsMsgAccountManager::SetSpecialFolders()
           nsCOMPtr <nsIMsgFolder> parent;
           rv = folder->GetParent(getter_AddRefs(parent));
           if (NS_SUCCEEDED(rv) && parent) // only set flag if folder is real
-            rv = folder->SetFlag(MSG_FOLDER_FLAG_TEMPLATES);
+            rv = folder->SetFlag(nsMsgFolderFlags::Templates);
         }
       }
     }
@@ -2717,7 +2717,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
                   break;
 
                 parentFolder->AddSubfolder(currentFolderNameStr, getter_AddRefs(childFolder));
-                virtualFolder->SetFlag(MSG_FOLDER_FLAG_VIRTUAL);
+                virtualFolder->SetFlag(nsMsgFolderFlags::Virtual);
                 if (childFolder)
                   parentFolder->NotifyItemAdded(childFolder);
                 // here we make sure if our parent is rooted - if not, we're
@@ -2883,7 +2883,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIRDFResource *parentItem, nsISu
   folder->GetFlags(&folderFlags);
   nsresult rv = NS_OK;
   // need to make sure this isn't happening during loading of virtualfolders.dat
-  if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL && !m_loadingVirtualFolders)
+  if (folderFlags & nsMsgFolderFlags::Virtual && !m_loadingVirtualFolders)
   {
     // When a new virtual folder is added, need to create a db Listener for it.
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
@@ -2912,7 +2912,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemRemoved(nsIRDFResource *parentItem, nsI
   nsresult rv = NS_OK;
   PRUint32 folderFlags;
   folder->GetFlags(&folderFlags);
-  if (folderFlags & MSG_FOLDER_FLAG_VIRTUAL) // if we removed a VF, flush VF list to disk.
+  if (folderFlags & nsMsgFolderFlags::Virtual) // if we removed a VF, flush VF list to disk.
   {
     rv = SaveVirtualFolders();
     // clear flags on deleted folder if it's a virtual folder, so that creating a new folder

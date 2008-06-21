@@ -2189,7 +2189,7 @@ nsresult nsParseNewMailState::EndMsgDownload()
       {
         PRUint32 folderFlags;
         m_filterTargetFolders[index]->GetFlags(&folderFlags);
-        if (! (folderFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+        if (! (folderFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
         {
           PRBool filtersRun;
           m_filterTargetFolders[index]->CallFilterPlugins(nsnull, &filtersRun);
@@ -2426,7 +2426,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
 
   (void) localFolder->RefreshSizeOnDisk();
   if (destIFolder)
-    destIFolder->SetFlag(MSG_FOLDER_FLAG_GOT_NEW);
+    destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
 
   if (destMailDB != nsnull)
   {

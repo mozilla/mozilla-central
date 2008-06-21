@@ -123,7 +123,7 @@ interface nsMsgFolderFlags {
   /// This folder created offline
   const nsMsgFolderFlagType CreatedOffline  = 0x02000000;
   /// This imap folder cannot have children :-(
-  const nsMsgFolderFlagType ImapNoInferiors = 0x04000000;
+  const nsMsgFolderFlagType ImapNoinferiors = 0x04000000;
   /// This folder configured for offline use
   const nsMsgFolderFlagType Offline         = 0x08000000;
   /// This folder has offline events to play back
@@ -136,44 +136,3 @@ interface nsMsgFolderFlags {
   const nsMsgFolderFlagType Favorite        = 0x80000000;
   /** @} */
 };
-%{C++
-// These are the old defines provided for backward compatibility transitioning
-
-#define MSG_FOLDER_FLAG_NEWSGROUP        nsMsgFolderFlags::Newsgroup
-#define MSG_FOLDER_FLAG_NEWS_HOST        nsMsgFolderFlags::NewsHost
-#define MSG_FOLDER_FLAG_MAIL             nsMsgFolderFlags::Mail
-
-#define MSG_FOLDER_FLAG_DIRECTORY        nsMsgFolderFlags::Directory
-
-#define MSG_FOLDER_FLAG_ELIDED           nsMsgFolderFlags::Elided
-#define MSG_FOLDER_FLAG_VIRTUAL          nsMsgFolderFlags::Virtual
-
-#define MSG_FOLDER_FLAG_SUBSCRIBED       nsMsgFolderFlags::Subscribed
-#define MSG_FOLDER_FLAG_UNUSED2          nsMsgFolderFlags::Unused2
-
-#define MSG_FOLDER_FLAG_TRASH            nsMsgFolderFlags::Trash
-#define MSG_FOLDER_FLAG_SENTMAIL         nsMsgFolderFlags::SentMail
-#define MSG_FOLDER_FLAG_DRAFTS           nsMsgFolderFlags::Drafts
-#define MSG_FOLDER_FLAG_QUEUE            nsMsgFolderFlags::Queue
-#define MSG_FOLDER_FLAG_INBOX            nsMsgFolderFlags::Inbox
-#define MSG_FOLDER_FLAG_IMAPBOX          nsMsgFolderFlags::ImapBox
-#define MSG_FOLDER_FLAG_UNUSED3          nsMsgFolderFlags::Unused3
-#define MSG_FOLDER_FLAG_PROFILE_GROUP    nsMsgFolderFlags::ProfileGroup
-#define MSG_FOLDER_FLAG_UNUSED4          nsMsgFolderFlags::Unused4
-#define MSG_FOLDER_FLAG_GOT_NEW          nsMsgFolderFlags::GotNew
-#define MSG_FOLDER_FLAG_IMAP_SERVER      nsMsgFolderFlags::ImapServer
-#define MSG_FOLDER_FLAG_IMAP_PERSONAL    nsMsgFolderFlags::ImapPersonal
-#define MSG_FOLDER_FLAG_IMAP_PUBLIC      nsMsgFolderFlags::ImapPublic
-#define MSG_FOLDER_FLAG_IMAP_OTHER_USER  nsMsgFolderFlags::ImapOtherUser
-#define MSG_FOLDER_FLAG_TEMPLATES        nsMsgFolderFlags::Templates
-#define MSG_FOLDER_FLAG_PERSONAL_SHARED  nsMsgFolderFlags::PersonalShared
-#define MSG_FOLDER_FLAG_IMAP_NOSELECT    nsMsgFolderFlags::ImapNoselect
-#define MSG_FOLDER_FLAG_CREATED_OFFLINE  nsMsgFolderFlags::CreatedOffline
-#define MSG_FOLDER_FLAG_IMAP_NOINFERIORS nsMsgFolderFlags::ImapNoInferiors
-#define MSG_FOLDER_FLAG_OFFLINE          nsMsgFolderFlags::Offline
-#define MSG_FOLDER_FLAG_OFFLINEEVENTS    nsMsgFolderFlags::OfflineEvents
-#define MSG_FOLDER_FLAG_CHECK_NEW        nsMsgFolderFlags::CheckNew
-#define MSG_FOLDER_FLAG_JUNK             nsMsgFolderFlags::Junk
-#define MSG_FOLDER_FLAG_FAVORITE         nsMsgFolderFlags::Favorite
-
-%}

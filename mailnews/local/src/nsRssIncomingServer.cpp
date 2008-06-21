@@ -133,7 +133,7 @@ NS_IMETHODIMP nsRssIncomingServer::SetFlagsOnDefaultMailboxes()
       do_QueryInterface(rootFolder, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  localFolder->SetFlagsOnDefaultMailboxes(MSG_FOLDER_FLAG_TRASH);
+  localFolder->SetFlagsOnDefaultMailboxes(nsMsgFolderFlags::Trash);
   return NS_OK;
 }
 

@@ -443,7 +443,7 @@ NS_IMETHODIMP nsMsgDBFolder::ClearNewMessages()
 
 void nsMsgDBFolder::UpdateNewMessages()
 {
-  if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
+  if (! (mFlags & nsMsgFolderFlags::Virtual))
   {
     PRBool hasNewMessages = PR_FALSE;
     for (PRUint32 keyIndex = 0; keyIndex < m_newMsgs.Length(); keyIndex++)
@@ -530,7 +530,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
 #ifdef DEBUG_bienvenu1
           nsString name;
           GetName(name);
-          NS_ASSERTION(Compare(name, kLocalizedTrashName) || (mFlags & MSG_FOLDER_FLAG_TRASH), "lost trash flag");
+          NS_ASSERTION(Compare(name, kLocalizedTrashName) || (mFlags & nsMsgFolderFlags::Trash), "lost trash flag");
 #endif
           mInitializedFromCache = PR_TRUE;
         }
@@ -557,7 +557,7 @@ nsresult nsMsgDBFolder::ReadDBFolderInfo(PRBool force)
           rv = db->HasNew(&hasnew);
           if (NS_FAILED(rv)) return rv;
           if (!hasnew && mNumPendingUnreadMessages <= 0)
-            ClearFlag(MSG_FOLDER_FLAG_GOT_NEW);
+            ClearFlag(nsMsgFolderFlags::GotNew);
         }
       }
     }
@@ -643,7 +643,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint32 *off
 
         // check if message starts with From, or is a draft and starts with FCC
         if (NS_FAILED(rv) || bytesRead != sizeof(startOfMsg) ||
-          (strncmp(startOfMsg, "From ", 5) && (! (mFlags & MSG_FOLDER_FLAG_DRAFTS) || strncmp(startOfMsg, "FCC", 3))))
+          (strncmp(startOfMsg, "From ", 5) && (! (mFlags & nsMsgFolderFlags::Drafts) || strncmp(startOfMsg, "FCC", 3))))
           rv = NS_ERROR_FAILURE;
       }
     }
@@ -957,7 +957,7 @@ nsresult nsMsgDBFolder::MsgFitsDownloadCriteria(nsMsgKey msgKey, PRBool *result)
 NS_IMETHODIMP nsMsgDBFolder::GetSupportsOffline(PRBool *aSupportsOffline)
 {
   NS_ENSURE_ARG_POINTER(aSupportsOffline);
-  if (mFlags & MSG_FOLDER_FLAG_VIRTUAL)
+  if (mFlags & nsMsgFolderFlags::Virtual)
   {
     *aSupportsOffline = PR_FALSE;
     return NS_OK;
@@ -983,7 +983,7 @@ NS_IMETHODIMP nsMsgDBFolder::ShouldStoreMsgOffline(nsMsgKey msgKey, PRBool *resu
   PRUint32 flags = 0;
   *result = PR_FALSE;
   GetFlags(&flags);
-  return flags & MSG_FOLDER_FLAG_OFFLINE ? MsgFitsDownloadCriteria(msgKey, result) : NS_OK;
+  return flags & nsMsgFolderFlags::Offline ? MsgFitsDownloadCriteria(msgKey, result) : NS_OK;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::HasMsgOffline(nsMsgKey msgKey, PRBool *result)
@@ -1472,7 +1472,7 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
                nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(allDescendents, i);
                expungedBytes = 0;
                folder->GetFlags(&flags);
-               if (flags & MSG_FOLDER_FLAG_OFFLINE)
+               if (flags & nsMsgFolderFlags::Offline)
                  folder->GetExpungedBytes(&expungedBytes);
                if (expungedBytes > 0 )
                {
@@ -1789,11 +1789,11 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   // imap folder, don't analyze for spam, because
   // it's not ours to analyze
   if (serverType.EqualsLiteral("rss") ||
-       (mFlags & (MSG_FOLDER_FLAG_JUNK | MSG_FOLDER_FLAG_TRASH |
-               MSG_FOLDER_FLAG_SENTMAIL | MSG_FOLDER_FLAG_QUEUE |
-               MSG_FOLDER_FLAG_DRAFTS | MSG_FOLDER_FLAG_TEMPLATES |
-               MSG_FOLDER_FLAG_IMAP_PUBLIC | MSG_FOLDER_FLAG_IMAP_OTHER_USER)
-       && !(mFlags & MSG_FOLDER_FLAG_INBOX)))
+       (mFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
+               nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Queue |
+               nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+               nsMsgFolderFlags::ImapPublic | nsMsgFolderFlags::ImapOtherUser)
+       && !(mFlags & nsMsgFolderFlags::Inbox)))
     return NS_OK;
 
   rv = server->GetSpamSettings(getter_AddRefs(spamSettings));
@@ -2485,7 +2485,7 @@ NS_IMETHODIMP
 nsMsgDBFolder::GetImapShared(PRBool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  return GetFlag(MSG_FOLDER_FLAG_PERSONAL_SHARED, aResult);
+  return GetFlag(nsMsgFolderFlags::PersonalShared, aResult);
 }
 
 NS_IMETHODIMP
@@ -2505,7 +2505,7 @@ nsMsgDBFolder::GetCanFileMessages(PRBool *aResult)
 
   //varada - checking folder flag to see if it is the "Unsent Messages"
   //and if so return FALSE
-  if (mFlags & (MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_VIRTUAL))
+  if (mFlags & (nsMsgFolderFlags::Queue | nsMsgFolderFlags::Virtual))
   {
     *aResult = PR_FALSE;
     return NS_OK;
@@ -2536,7 +2536,7 @@ nsMsgDBFolder::GetCanCreateSubfolders(PRBool *aResult)
 
   //Checking folder flag to see if it is the "Unsent Messages"
   //or a virtual folder, and if so return FALSE
-  if (mFlags & (MSG_FOLDER_FLAG_QUEUE | MSG_FOLDER_FLAG_VIRTUAL))
+  if (mFlags & (nsMsgFolderFlags::Queue | nsMsgFolderFlags::Virtual))
   {
     *aResult = PR_FALSE;
     return NS_OK;
@@ -2569,13 +2569,13 @@ nsMsgDBFolder::GetCanRename(PRBool *aResult)
   // instead of checking if the folder really is being used as a
   // special folder by looking at the "copies and folders" prefs on the
   // identities.
-  *aResult = !(isServer || (mFlags & MSG_FOLDER_FLAG_TRASH ||
-           mFlags & MSG_FOLDER_FLAG_DRAFTS ||
-           mFlags & MSG_FOLDER_FLAG_QUEUE ||
-           mFlags & MSG_FOLDER_FLAG_INBOX ||
-           mFlags & MSG_FOLDER_FLAG_SENTMAIL ||
-           mFlags & MSG_FOLDER_FLAG_TEMPLATES ||
-           mFlags & MSG_FOLDER_FLAG_JUNK));
+  *aResult = !(isServer || (mFlags & nsMsgFolderFlags::Trash ||
+           mFlags & nsMsgFolderFlags::Drafts ||
+           mFlags & nsMsgFolderFlags::Queue ||
+           mFlags & nsMsgFolderFlags::Inbox ||
+           mFlags & nsMsgFolderFlags::SentMail ||
+           mFlags & nsMsgFolderFlags::Templates ||
+           mFlags & nsMsgFolderFlags::Junk));
   return NS_OK;
 }
 
@@ -2588,7 +2588,7 @@ nsMsgDBFolder::GetCanCompact(PRBool *aResult)
   NS_ENSURE_SUCCESS(rv,rv);
   // servers cannot be compacted --> 4.x
   // virtual search folders cannot be compacted
-  *aResult = !isServer && !(mFlags & MSG_FOLDER_FLAG_VIRTUAL);
+  *aResult = !isServer && !(mFlags & nsMsgFolderFlags::Virtual);
   return NS_OK;
 }
 
@@ -2603,21 +2603,21 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrettyName(const nsAString& name)
   nsresult rv;
 
   //Set pretty name only if special flag is set and if it the default folder name
-  if (mFlags & MSG_FOLDER_FLAG_INBOX && name.LowerCaseEqualsLiteral("inbox"))
+  if (mFlags & nsMsgFolderFlags::Inbox && name.LowerCaseEqualsLiteral("inbox"))
     rv = SetName(nsDependentString(kLocalizedInboxName));
-  else if (mFlags & MSG_FOLDER_FLAG_SENTMAIL && name.LowerCaseEqualsLiteral("sent"))
+  else if (mFlags & nsMsgFolderFlags::SentMail && name.LowerCaseEqualsLiteral("sent"))
     rv = SetName(nsDependentString(kLocalizedSentName));
   //netscape webmail uses "Draft" instead of "Drafts"
-  else if (mFlags & MSG_FOLDER_FLAG_DRAFTS && (name.LowerCaseEqualsLiteral("drafts")
+  else if (mFlags & nsMsgFolderFlags::Drafts && (name.LowerCaseEqualsLiteral("drafts")
                                                 || name.LowerCaseEqualsLiteral("draft")))
     rv = SetName(nsDependentString(kLocalizedDraftsName));
-  else if (mFlags & MSG_FOLDER_FLAG_TEMPLATES && name.LowerCaseEqualsLiteral("templates"))
+  else if (mFlags & nsMsgFolderFlags::Templates && name.LowerCaseEqualsLiteral("templates"))
     rv = SetName(nsDependentString(kLocalizedTemplatesName));
-  else if (mFlags & MSG_FOLDER_FLAG_TRASH && name.LowerCaseEqualsLiteral("trash"))
+  else if (mFlags & nsMsgFolderFlags::Trash && name.LowerCaseEqualsLiteral("trash"))
     rv = SetName(nsDependentString(kLocalizedTrashName));
-  else if (mFlags & MSG_FOLDER_FLAG_QUEUE && name.LowerCaseEqualsLiteral("unsent messages"))
+  else if (mFlags & nsMsgFolderFlags::Queue && name.LowerCaseEqualsLiteral("unsent messages"))
     rv = SetName(nsDependentString(kLocalizedUnsentName));
-  else if (mFlags & MSG_FOLDER_FLAG_JUNK && name.LowerCaseEqualsLiteral("junk"))
+  else if (mFlags & nsMsgFolderFlags::Junk && name.LowerCaseEqualsLiteral("junk"))
     rv = SetName(nsDependentString(kLocalizedJunkName));
   else
     rv = SetName(name);
@@ -2965,7 +2965,7 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   NS_ENSURE_SUCCESS(rv, rv);
 
   folder->GetFlags((PRUint32 *)&flags);
-  flags |= MSG_FOLDER_FLAG_MAIL;
+  flags |= nsMsgFolderFlags::Mail;
   folder->SetParent(this);
 
   PRBool isServer;
@@ -2976,23 +2976,23 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   {
     if(name.LowerCaseEqualsLiteral("inbox"))
     {
-      flags |= MSG_FOLDER_FLAG_INBOX;
+      flags |= nsMsgFolderFlags::Inbox;
       SetBiffState(nsIMsgFolder::nsMsgBiffState_Unknown);
     }
     else if (name.LowerCaseEqualsLiteral("trash"))
-      flags |= MSG_FOLDER_FLAG_TRASH;
+      flags |= nsMsgFolderFlags::Trash;
     else if (name.LowerCaseEqualsLiteral("unsent messages") ||
       name.LowerCaseEqualsLiteral("outbox"))
-      flags |= MSG_FOLDER_FLAG_QUEUE;
+      flags |= nsMsgFolderFlags::Queue;
 #if 0
     // the logic for this has been moved into
     // SetFlagsOnDefaultMailboxes()
     else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Sent"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
+      folder->SetFlag(nsMsgFolderFlags::SentMail);
     else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Drafts"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
+      folder->SetFlag(nsMsgFolderFlags::Drafts);
     else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Templates"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(MSG_FOLDER_FLAG_TEMPLATES);
+      folder->SetFlag(nsMsgFolderFlags::Templates);
 #endif
   }
 
@@ -3160,7 +3160,7 @@ NS_IMETHODIMP nsMsgDBFolder::Rename(const nsAString& aNewName, nsIMsgWindow *msg
   // Save of dir name before appending .msf
   nsAutoString newNameDirStr(newDiskName);
 
-  if (! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
+  if (! (mFlags & nsMsgFolderFlags::Virtual))
     rv = oldPathFile->MoveTo(nsnull, newDiskName);
   if (NS_SUCCEEDED(rv))
   {
@@ -3298,7 +3298,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetNumUnread(PRBool deep, PRInt32 *numUnread)
       PRInt32 num;
       PRUint32 folderFlags;
       folder->GetFlags(&folderFlags);
-      if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
+      if (!(folderFlags & nsMsgFolderFlags::Virtual))
       {
         folder->GetNumUnread(deep, &num);
         total += num;
@@ -3325,7 +3325,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetTotalMessages(PRBool deep, PRInt32 *totalMessage
       PRInt32 num;
       PRUint32 folderFlags;
       folder->GetFlags(&folderFlags);
-      if (!(folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
+      if (!(folderFlags & nsMsgFolderFlags::Virtual))
       {
         folder->GetTotalMessages(deep, &num);
         total += num;
@@ -3416,21 +3416,21 @@ NS_IMETHODIMP nsMsgDBFolder::SetPrefFlag()
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
-        rv = folder->SetFlag(MSG_FOLDER_FLAG_SENTMAIL);
+        rv = folder->SetFlag(nsMsgFolderFlags::SentMail);
     }
     identity->GetDraftFolder(folderUri);
     if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
-        rv = folder->SetFlag(MSG_FOLDER_FLAG_DRAFTS);
+        rv = folder->SetFlag(nsMsgFolderFlags::Drafts);
     }
     identity->GetStationeryFolder(folderUri);
     if (!folderUri.IsEmpty() && NS_SUCCEEDED(rdf->GetResource(folderUri, getter_AddRefs(res))))
     {
       folder = do_QueryInterface(res, &rv);
       if (NS_SUCCEEDED(rv))
-        rv = folder->SetFlag(MSG_FOLDER_FLAG_TEMPLATES);
+        rv = folder->SetFlag(nsMsgFolderFlags::Templates);
     }
   }
 
@@ -3506,20 +3506,20 @@ NS_IMETHODIMP nsMsgDBFolder::OnFlagChange(PRUint32 flag)
 #ifdef DEBUG_bienvenu1
      nsString name;
      rv = GetName(name);
-     NS_ASSERTION(Compare(name, kLocalizedTrashName) || (mFlags & MSG_FOLDER_FLAG_TRASH), "lost trash flag");
+     NS_ASSERTION(Compare(name, kLocalizedTrashName) || (mFlags & nsMsgFolderFlags::Trash), "lost trash flag");
 #endif
     folderInfo->SetFlags((PRInt32) mFlags);
     if (db)
       db->Commit(nsMsgDBCommitType::kLargeCommit);
 
-    if (flag & MSG_FOLDER_FLAG_OFFLINE)
+    if (flag & nsMsgFolderFlags::Offline)
     {
-      PRBool newValue = mFlags & MSG_FOLDER_FLAG_OFFLINE;
+      PRBool newValue = mFlags & nsMsgFolderFlags::Offline;
       rv = NotifyBoolPropertyChanged(kSynchronizeAtom, !newValue, newValue);
     }
-    else if (flag & MSG_FOLDER_FLAG_ELIDED)
+    else if (flag & nsMsgFolderFlags::Elided)
     {
-      PRBool newValue = mFlags & MSG_FOLDER_FLAG_ELIDED;
+      PRBool newValue = mFlags & nsMsgFolderFlags::Elided;
       rv = NotifyBoolPropertyChanged(kOpenAtom, newValue, !newValue);
     }
   }
@@ -3601,7 +3601,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetExpansionArray(nsISupportsArray *expansionArray)
       expansionArray->InsertElementAt(folder, cnt2);
       PRUint32 flags;
       folder->GetFlags(&flags);
-      if (!(flags & MSG_FOLDER_FLAG_ELIDED))
+      if (!(flags & nsMsgFolderFlags::Elided))
         folder->GetExpansionArray(expansionArray);
     }
   }
@@ -3647,14 +3647,14 @@ NS_IMETHODIMP nsMsgDBFolder::GetDisplayRecipients(PRBool *displayRecipients)
 {
   nsresult rv;
   *displayRecipients = PR_FALSE;
-  if (mFlags & MSG_FOLDER_FLAG_SENTMAIL && !(mFlags & MSG_FOLDER_FLAG_INBOX))
+  if (mFlags & nsMsgFolderFlags::SentMail && !(mFlags & nsMsgFolderFlags::Inbox))
     *displayRecipients = PR_TRUE;
-  else if (mFlags & MSG_FOLDER_FLAG_QUEUE)
+  else if (mFlags & nsMsgFolderFlags::Queue)
     *displayRecipients = PR_TRUE;
   else
   {
     // Only mail folders can be FCC folders
-    if (mFlags & MSG_FOLDER_FLAG_MAIL || mFlags & MSG_FOLDER_FLAG_IMAPBOX)
+    if (mFlags & nsMsgFolderFlags::Mail || mFlags & nsMsgFolderFlags::ImapBox)
     {
       // There's one FCC folder for sent mail, and one for sent news
       nsIMsgFolder *fccFolders[2];
@@ -3801,7 +3801,7 @@ NS_IMETHODIMP nsMsgDBFolder::GetNumNewMessages(PRBool deep, PRInt32 *aNumNewMess
 {
   NS_ENSURE_ARG_POINTER(aNumNewMessages);
 
-  PRInt32 numNewMessages = (!deep || ! (mFlags & MSG_FOLDER_FLAG_VIRTUAL))
+  PRInt32 numNewMessages = (!deep || ! (mFlags & nsMsgFolderFlags::Virtual))
     ? mNumNewBiffMessages : 0;
   if (deep)
   { 
@@ -3963,7 +3963,7 @@ nsMsgDBFolder::ApplyRetentionSettings()
 
 nsresult nsMsgDBFolder::ApplyRetentionSettings(PRBool deleteViaFolder)
 {
-  if (mFlags & MSG_FOLDER_FLAG_VIRTUAL) // ignore virtual folders.
+  if (mFlags & nsMsgFolderFlags::Virtual) // ignore virtual folders.
     return NS_OK;
   nsresult rv;
   PRBool weOpenedDB = PR_FALSE;
@@ -4457,7 +4457,7 @@ nsresult nsMsgDBFolder::CloseDBIfFolderNotOpen()
   NS_ENSURE_SUCCESS(rv, rv);
   PRBool folderOpen;
   session->IsFolderOpenInWindow(this, &folderOpen);
-  if (!folderOpen && ! (mFlags & (MSG_FOLDER_FLAG_TRASH | MSG_FOLDER_FLAG_INBOX)))
+  if (!folderOpen && ! (mFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
     SetMsgDatabase(nsnull);
   return NS_OK;
 }
@@ -4476,21 +4476,21 @@ NS_IMETHODIMP nsMsgDBFolder::GetSortOrder(PRInt32 *order)
   nsresult rv = GetFlags(&flags);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (flags & MSG_FOLDER_FLAG_INBOX)
+  if (flags & nsMsgFolderFlags::Inbox)
     *order = 0;
-  else if (flags & MSG_FOLDER_FLAG_QUEUE)
+  else if (flags & nsMsgFolderFlags::Queue)
     *order = 1;
-  else if (flags & MSG_FOLDER_FLAG_DRAFTS)
+  else if (flags & nsMsgFolderFlags::Drafts)
     *order = 2;
-  else if (flags & MSG_FOLDER_FLAG_TEMPLATES)
+  else if (flags & nsMsgFolderFlags::Templates)
     *order = 3;
-  else if (flags & MSG_FOLDER_FLAG_SENTMAIL)
+  else if (flags & nsMsgFolderFlags::SentMail)
     *order = 4;
-  else if (flags & MSG_FOLDER_FLAG_JUNK)
+  else if (flags & nsMsgFolderFlags::Junk)
     *order = 5;
-  else if (flags & MSG_FOLDER_FLAG_TRASH)
+  else if (flags & nsMsgFolderFlags::Trash)
     *order = 6;
-  else if (flags & MSG_FOLDER_FLAG_VIRTUAL)
+  else if (flags & nsMsgFolderFlags::Virtual)
     *order = 7;
   else
     *order = 8;

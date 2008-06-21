@@ -183,7 +183,7 @@ NS_IMPL_IDPREF_INT(SignatureDate,"sig_date")
 
 NS_IMPL_IDPREF_BOOL(DoFcc, "fcc")
 
-NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder", MSG_FOLDER_FLAG_SENTMAIL)
+NS_IMPL_FOLDERPREF_STR(FccFolder, "fcc_folder", nsMsgFolderFlags::SentMail)
 NS_IMPL_IDPREF_STR(FccFolderPickerMode, "fcc_folder_picker_mode")
 NS_IMPL_IDPREF_BOOL(FccReplyFollowsParent, "fcc_reply_follows_parent")
 NS_IMPL_IDPREF_STR(DraftsFolderPickerMode, "drafts_folder_picker_mode")
@@ -259,8 +259,8 @@ nsMsgIdentity::SetDoBccList(const nsACString& aValue)
   return SetCharAttribute("doBccList", aValue);
 }
 
-NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", MSG_FOLDER_FLAG_DRAFTS)
-NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", MSG_FOLDER_FLAG_TEMPLATES)
+NS_IMPL_FOLDERPREF_STR(DraftFolder, "draft_folder", nsMsgFolderFlags::Drafts)
+NS_IMPL_FOLDERPREF_STR(StationeryFolder, "stationery_folder", nsMsgFolderFlags::Templates)
 
 NS_IMPL_IDPREF_BOOL(ShowSaveMsgDlg, "showSaveMsgDlg")
 NS_IMPL_IDPREF_STR (DirectoryServer, "directoryServer")
@@ -313,7 +313,7 @@ nsMsgIdentity::setFolderPref(const char *prefname, const nsACString& value, PRUi
   nsCOMPtr<nsIMsgFolder> folder;
   nsCOMPtr<nsIRDFService> rdf(do_GetService(kRDFServiceCID, &rv));
 
-  if (folderflag == MSG_FOLDER_FLAG_SENTMAIL)
+  if (folderflag == nsMsgFolderFlags::SentMail)
   {
     // Clear the temporary return receipt filter so that the new filter
     // rule can be recreated (by ConfigureTemporaryFilters()).

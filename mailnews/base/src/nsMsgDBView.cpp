@@ -3119,7 +3119,7 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
     // if this is a junk folder
     // (not only "the" junk folder for this account)
     // don't do the move
-    if (folderFlags & MSG_FOLDER_FLAG_JUNK)
+    if (folderFlags & nsMsgFolderFlags::Junk)
       return NS_OK;
 
     nsCString spamFolderURI;
@@ -3141,7 +3141,7 @@ nsMsgDBView::DetermineActionsForJunkMsgs(PRBool* movingJunkMessages, PRBool* mar
   // at this point manualMarkMode == nsISpamSettings::MANUAL_MARK_MODE_DELETE)
 
   // if this is in the trash, let's not delete
-  if (folderFlags & MSG_FOLDER_FLAG_TRASH)
+  if (folderFlags & nsMsgFolderFlags::Trash)
     return NS_OK;
 
   return folder->GetCanDeleteMessages(movingJunkMessages);

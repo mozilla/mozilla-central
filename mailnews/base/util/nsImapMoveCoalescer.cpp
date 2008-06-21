@@ -130,7 +130,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
       }
       PRUint32 destFlags;
       destFolder->GetFlags(&destFlags);
-      if (! (destFlags & MSG_FOLDER_FLAG_JUNK)) // don't set has new on junk folder
+      if (! (destFlags & nsMsgFolderFlags::Junk)) // don't set has new on junk folder
       {
         destFolder->SetNumNewMessages(numNewMessages);
         if (numNewMessages > 0)
@@ -247,7 +247,7 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
     {
       PRUint32 folderFlags;
       m_destFolder->GetFlags(&folderFlags);
-      if (!(folderFlags & (MSG_FOLDER_FLAG_JUNK | MSG_FOLDER_FLAG_TRASH)))
+      if (!(folderFlags & (nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash)))
       {
         nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv); 
         NS_ENSURE_SUCCESS(rv, rv);

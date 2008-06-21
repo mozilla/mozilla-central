@@ -360,13 +360,13 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
     rv = GetExistingFolder(mCurrentJunkFolderURI, getter_AddRefs(oldJunkFolder));
     if (NS_SUCCEEDED(rv) && oldJunkFolder)
     {
-      // remove the MSG_FOLDER_FLAG_JUNK on the old junk folder
+      // remove the nsMsgFolderFlags::Junk on the old junk folder
       // XXX TODO
       // JUNK MAIL RELATED
       // (in ClearFlag?) we need to make sure that this folder
       // is not a the junk folder for another account
       // the same goes for set flag.  have fun with all that.
-      oldJunkFolder->ClearFlag(MSG_FOLDER_FLAG_JUNK);
+      oldJunkFolder->ClearFlag(nsMsgFolderFlags::Junk);
     }
   }
 
@@ -375,7 +375,7 @@ nsresult nsSpamSettings::UpdateJunkFolderState()
   // only try to create the junk folder if we are moving junk
   // and we have a non-empty uri
   if (mMoveOnSpam && !mCurrentJunkFolderURI.IsEmpty()) {
-    // as the url listener, the spam settings will set the MSG_FOLDER_FLAG_JUNK folder flag
+    // as the url listener, the spam settings will set the nsMsgFolderFlags::Junk folder flag
     // on the junk mail folder, after it is created
     rv = GetOrCreateFolder(mCurrentJunkFolderURI, this);
   }
@@ -696,7 +696,7 @@ NS_IMETHODIMP nsSpamSettings::OnStopRunningUrl(nsIURI* aURL, nsresult exitCode)
   if (!junkFolder)
     return NS_ERROR_UNEXPECTED;
 
-  rv = junkFolder->SetFlag(MSG_FOLDER_FLAG_JUNK);
+  rv = junkFolder->SetFlag(nsMsgFolderFlags::Junk);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }

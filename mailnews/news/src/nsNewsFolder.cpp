@@ -223,7 +223,7 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   rv = folder->SetName(nameUtf16);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = folder->SetFlag(MSG_FOLDER_FLAG_NEWSGROUP);
+  rv = folder->SetFlag(nsMsgFolderFlags::Newsgroup);
   if (NS_FAILED(rv)) return rv;
 
   PRInt32 numExistingGroups = mSubFolders.Count();

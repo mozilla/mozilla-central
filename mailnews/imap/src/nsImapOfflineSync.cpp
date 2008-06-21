@@ -279,7 +279,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
     PRUint32 curFolderFlags;
     m_currentFolder->GetFlags(&curFolderFlags);
 
-    if (uids.get() && (curFolderFlags & MSG_FOLDER_FLAG_IMAPBOX)) 
+    if (uids.get() && (curFolderFlags & nsMsgFolderFlags::ImapBox)) 
     {
       nsresult rv = NS_OK;
       nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
@@ -344,7 +344,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
     PRUint32 curFolderFlags;
     m_currentFolder->GetFlags(&curFolderFlags);
 
-    if (curFolderFlags & MSG_FOLDER_FLAG_IMAPBOX)
+    if (curFolderFlags & nsMsgFolderFlags::ImapBox)
     {
       nsresult rv = NS_OK;
       nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
@@ -682,7 +682,7 @@ PRBool nsImapOfflineSync::CreateOfflineFolders()
   {
     PRUint32 flags;
     m_currentFolder->GetFlags(&flags);
-    PRBool offlineCreate = (flags & MSG_FOLDER_FLAG_CREATED_OFFLINE) != 0;
+    PRBool offlineCreate = (flags & nsMsgFolderFlags::CreatedOffline) != 0;
     if (offlineCreate)
     {
       if (CreateOfflineFolder(m_currentFolder))
@@ -768,8 +768,8 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     m_currentFolder->GetFlags(&folderFlags);
     // need to check if folder has offline events, /* or is configured for offline */
     // shouldn't need to check if configured for offline use, since any folder with
-    // events should have MSG_FOLDER_FLAG_OFFLINEEVENTS set.
-    if (folderFlags & (MSG_FOLDER_FLAG_OFFLINEEVENTS /* | MSG_FOLDER_FLAG_OFFLINE */))
+    // events should have nsMsgFolderFlags::OfflineEvents set.
+    if (folderFlags & (nsMsgFolderFlags::OfflineEvents /* | nsMsgFolderFlags::Offline */))
       m_currentFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(m_currentDB));
 
     if (m_currentDB)
@@ -780,7 +780,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
       {
         m_currentDB = nsnull;
         folderInfo = nsnull; // can't hold onto folderInfo longer than db
-        m_currentFolder->ClearFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+        m_currentFolder->ClearFlag(nsMsgFolderFlags::OfflineEvents);
       }
       else
       {
@@ -828,7 +828,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
           if (deletedGhostMsgs)
             deletedAllOfflineEventsInFolder = m_currentFolder;
         }
-        else if (folderFlags & MSG_FOLDER_FLAG_IMAPBOX)
+        else if (folderFlags & nsMsgFolderFlags::ImapBox)
         {
           //					if (imapFolder->GetHasOfflineEvents())
           //						NS_ASSERTION(PR_FALSE, "Hardcoded assertion");
@@ -867,11 +867,11 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     if (!folderInfo)
       m_currentDB->GetDBFolderInfo(getter_AddRefs(folderInfo));
     // user canceled the lite select! if GetCurrentUIDValidity() == 0
-    if (folderInfo && (m_KeyIndex < m_CurrentKeys.Length()) && (m_pseudoOffline || (GetCurrentUIDValidity() != 0) || !(folderFlags & MSG_FOLDER_FLAG_IMAPBOX)) )
+    if (folderInfo && (m_KeyIndex < m_CurrentKeys.Length()) && (m_pseudoOffline || (GetCurrentUIDValidity() != 0) || !(folderFlags & nsMsgFolderFlags::ImapBox)) )
     {
       PRInt32 curFolderUidValidity;
       folderInfo->GetImapUidValidity(&curFolderUidValidity);
-      PRBool uidvalidityChanged = (!m_pseudoOffline && folderFlags & MSG_FOLDER_FLAG_IMAPBOX) && (GetCurrentUIDValidity() != curFolderUidValidity);
+      PRBool uidvalidityChanged = (!m_pseudoOffline && folderFlags & nsMsgFolderFlags::ImapBox) && (GetCurrentUIDValidity() != curFolderUidValidity);
       nsCOMPtr <nsIMsgOfflineImapOperation> currentOp;
       if (uidvalidityChanged)
         DeleteAllOfflineOpsForCurrentDB();
@@ -1010,7 +1010,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     }
     if (m_singleFolderToUpdate)
     {
-      m_singleFolderToUpdate->ClearFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+      m_singleFolderToUpdate->ClearFlag(nsMsgFolderFlags::OfflineEvents);
       m_singleFolderToUpdate->UpdateFolder(m_window);
       // do we have to do anything? Old code would do a start update...
     }
@@ -1027,14 +1027,14 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     //			while (folder)
     //			{            
     //				PRBool loadingFolder = m_workerPane->GetLoadingImapFolder() == folder;
-    //				if ((folder->GetType() == FOLDER_IMAPMAIL) && (deletedAllOfflineEventsInFolder == folder || (folder->GetFolderPrefFlags() & MSG_FOLDER_FLAG_OFFLINE)
+    //				if ((folder->GetType() == FOLDER_IMAPMAIL) && (deletedAllOfflineEventsInFolder == folder || (folder->GetFolderPrefFlags() & nsMsgFolderFlags::Offline)
     //					|| loadingFolder) 
     //					&& !(folder->GetFolderPrefFlags() & MSG_FOLDER_PREF_IMAPNOSELECT) )
     //				{
     //					PRBool lastChance = ((deletedAllOfflineEventsInFolder == folder) && m_singleFolderToUpdate) || loadingFolder;
     // if deletedAllOfflineEventsInFolder == folder and we're only updating one folder, then we need to update newly selected folder
     // I think this also means that we're really opening the folder...so we tell StartUpdate that we're loading a folder.
-    //					if (!updateFolderIterator || !(imapMail->GetFlags() & MSG_FOLDER_FLAG_INBOX))		// avoid queueing the inbox twice
+    //					if (!updateFolderIterator || !(imapMail->GetFlags() & nsMsgFolderFlags::Inbox))		// avoid queueing the inbox twice
     //						imapMail->StartUpdateOfNewlySelectedFolder(m_workerPane, lastChance, queue, nsnsnull, PR_FALSE, PR_FALSE);
     //				}
     //				folder= m_singleFolderToUpdate ? (MSG_FolderInfo *)nsnull : updateFolderIterator->Next();
@@ -1069,9 +1069,9 @@ void nsImapOfflineSync::DeleteAllOfflineOpsForCurrentDB()
     if (++m_KeyIndex < m_CurrentKeys.Length())
       m_currentDB->GetOfflineOpForKey(m_CurrentKeys[m_KeyIndex], PR_FALSE, getter_AddRefs(currentOp));
   }
-  // turn off MSG_FOLDER_FLAG_OFFLINEEVENTS
+  // turn off nsMsgFolderFlags::OfflineEvents
   if (m_currentFolder)
-    m_currentFolder->ClearFlag(MSG_FOLDER_FLAG_OFFLINEEVENTS);
+    m_currentFolder->ClearFlag(nsMsgFolderFlags::OfflineEvents);
 }
 
 nsImapOfflineDownloader::nsImapOfflineDownloader(nsIMsgWindow *aMsgWindow, nsIUrlListener *aListener) : nsImapOfflineSync(aMsgWindow, aListener)
@@ -1168,7 +1168,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
       imapFolder = do_QueryInterface(m_currentFolder);
     m_currentFolder->GetFlags(&folderFlags);
     // need to check if folder has offline events, or is configured for offline
-    if (imapFolder && folderFlags & MSG_FOLDER_FLAG_OFFLINE)
+    if (imapFolder && folderFlags & nsMsgFolderFlags::Offline)
     {
       rv = m_currentFolder->DownloadAllForOffline(this, m_window);
       if (NS_SUCCEEDED(rv) || rv == NS_BINDING_ABORTED)

@@ -157,7 +157,7 @@ NS_IMETHODIMP nsMsgDBService::OpenFolderDB(nsIMsgFolder *aFolder, PRBool aCreate
   PRUint32 folderFlags;
   aFolder->GetFlags(&folderFlags);
 
-  if (NS_SUCCEEDED(rv) && ! (folderFlags & MSG_FOLDER_FLAG_VIRTUAL))
+  if (NS_SUCCEEDED(rv) && ! (folderFlags & nsMsgFolderFlags::Virtual))
   {
     mdb_count numHdrsInTable = 0;
 

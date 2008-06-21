@@ -596,7 +596,7 @@ NS_IMETHODIMP nsDBFolderInfo::SetFlags(PRInt32 flags)
 
   if (m_flags != flags)
   {
-    NS_ASSERTION((m_flags & MSG_FOLDER_FLAG_INBOX) == 0 || (flags & MSG_FOLDER_FLAG_INBOX) != 0, "lost inbox flag");
+    NS_ASSERTION((m_flags & nsMsgFolderFlags::Inbox) == 0 || (flags & nsMsgFolderFlags::Inbox) != 0, "lost inbox flag");
     m_flags = flags;
     ret = SetInt32PropertyWithToken(m_flagsColumnToken, m_flags);
   }

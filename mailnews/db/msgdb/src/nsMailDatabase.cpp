@@ -579,7 +579,7 @@ NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, PRBool create,
         (*offlineOp)->SetNewFlags(flags);
       }
       PRInt32 newFlags;
-      m_dbFolderInfo->OrFlags(MSG_FOLDER_FLAG_OFFLINEEVENTS, &newFlags);
+      m_dbFolderInfo->OrFlags(nsMsgFolderFlags::OfflineEvents, &newFlags);
     }
   }
   
