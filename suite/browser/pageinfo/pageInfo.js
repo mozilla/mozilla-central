@@ -775,7 +775,7 @@ function saveMedia()
     var url = gImageView.data[tree.currentIndex][COL_IMAGE_ADDRESS];
 
     if (url)
-      saveURL(url, null, "SaveImageTitle", false, false, makeURI(item.baseURI));
+      saveURL(url, null, "SaveImageTitle", false, makeURI(item.baseURI));
   }
   else {
     var odir  = selectSaveFolder();
