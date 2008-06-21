@@ -25,6 +25,7 @@ calendar.jar:
     content/calendar/calendar-dialog-utils.js    (content/calendar-dialog-utils.js)
 *   content/calendar/calendar-dnd-listener.js    (content/calendar-dnd-listener.js)
     content/calendar/calendar-item-editing.js    (content/calendar-item-editing.js)
+    content/calendar/calendar-menus.xml         (content/calendar-menus.xml)
     content/calendar/calendar-month-view.xml     (content/calendar-month-view.xml)
     content/calendar/calendar-multiday-view.xml  (content/calendar-multiday-view.xml)
     content/calendar/calendar-occurrence-prompt.xul (content/calendar-occurrence-prompt.xul)

@@ -275,6 +275,15 @@
 <!ENTITY progress.level.100            "100&percnt; Completed">
 <!ENTITY progress.level.100.accesskey  "1">
 
+<!ENTITY priority.level.none                "Not specified">
+<!ENTITY priority.level.none.accesskey      "s">
+<!ENTITY priority.level.low                 "Low">
+<!ENTITY priority.level.low.accesskey       "L">
+<!ENTITY priority.level.normal              "Normal">
+<!ENTITY priority.level.normal.accesskey    "N">
+<!ENTITY priority.level.high                "High">
+<!ENTITY priority.level.high.accesskey      "H">
+
 <!-- Server Context Menu -->
 <!ENTITY calendar.context.newserver.label              "New Calendar…">
 <!ENTITY calendar.context.newserver.accesskey          "N">

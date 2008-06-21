@@ -72,39 +72,6 @@ function addCategoryNames(aEvent) {
     }
 }
 
-function changeTaskProgressMenu(aEvent) {
-    changeMenuByPropertyName(aEvent, "percentComplete");
-}
-
-function changeTaskPriorityMenu(aEvent) {
-    changeMenuByPropertyName(aEvent, "priority")
-}
-
-/** This highly specialized function checks a command which naming follows
- *  the notation 'calendar_' +  propertyname + ' + '-' + propertvalue + 'command',
- *  when its propertyvalue part matches the propertyvalue of the selected tasks
- *  as long as the selected tasks share common propertyValues.
- *  @param aEvent the event that contains a target from which the child elements
- *  are retrieved and unchecked.
- *  @param aPropertyName the name of the property that is available at a task
- */
-function changeMenuByPropertyName(aEvent, aPropertyName) {
-    uncheckChildNodes(aEvent);
-    var tasks = getSelectedTasks(aEvent);
-    var tasksSelected = ((tasks != null) && (tasks.length > 0));
-    if (tasksSelected) {
-        var task = tasks[0];
-        if (isPropertyValueSame(tasks, aPropertyName)) {
-            var command = document.getElementById("calendar_" + aPropertyName + "-" + task[aPropertyName] + "_command");
-            if (command) {
-                command.setAttribute("checked", "true");
-            }
-        }
-    } else {
-        applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
-    }
-}
-
 function changeContextMenuForTask(aEvent) {
     var tasks = getSelectedTasks(aEvent);
     var task = null;

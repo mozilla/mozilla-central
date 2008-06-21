@@ -98,7 +98,9 @@
                label="&calendar.context.markcompleted.label;"
                tooltiptext="&calendar.task.complete.button.tooltip;"
                command="calendar_percentComplete-100_command2"
-               observes="calendar_percentComplete-100_command2"/>
+               observes="calendar_percentComplete-100_command2">
+        <menupopup type="task-progress"/>
+</toolbarbutton>
 <toolbarbutton id="task-priority-button"
                type="menu"
                mode="task"
@@ -106,7 +108,9 @@
                label="&calendar.context.priority.label;"
                tooltiptext="&calendar.task.priority.button.tooltip;"
                command="calendar_general-priority_command"
-               observes="calendar_general-priority_command"/>
+               observes="calendar_general-priority_command">
+        <menupopup type="task-priority"/>
+</toolbarbutton>
 <toolbarbutton id="task-delete-button"
                mode="task"
                class="cal-toolbarbutton-1"

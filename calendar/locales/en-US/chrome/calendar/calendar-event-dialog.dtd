@@ -41,15 +41,6 @@
 <!ENTITY newevent.to.label                  "To" >
 <!ENTITY newevent.attendees.sendEmail.label "Send attendees invitations via email">
 
-<!ENTITY priority.level.none                "Not specified">
-<!ENTITY priority.level.none.accesskey      "s">
-<!ENTITY priority.level.low                 "Low">
-<!ENTITY priority.level.low.accesskey       "L">
-<!ENTITY priority.level.normal              "Normal">
-<!ENTITY priority.level.normal.accesskey    "N">
-<!ENTITY priority.level.high                "High">
-<!ENTITY priority.level.high.accesskey      "H">
-
 <!ENTITY newevent.status.label              "Status" >
 <!ENTITY newevent.status.accesskey          "S" >
 <!ENTITY newevent.status.none.label         "Not specified" >
