@@ -63,7 +63,9 @@
 #include "nsAppDirectoryServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
 #include "nsCOMPtr.h"
+#ifdef MOZ_MAIL_NEWS
 #include "nsIMapiSupport.h"
+#endif
 #include <mbstring.h>
 
 #ifdef _WIN32_WINNT
@@ -627,10 +629,12 @@ nsWindowsShellService::IsDefaultClientVista(PRBool aStartupCheck, PRUint16 aApps
     BOOL isDefaultNews    = PR_TRUE;
     if (aApps & nsIShellService::BROWSER)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME, &isDefaultBrowser);
+#ifdef MOZ_MAIL_NEWS
     if (aApps & nsIShellService::MAIL)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_MAIL, &isDefaultMail);
     if (aApps & nsIShellService::NEWS)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_NEWS, &isDefaultNews);
+#endif
 
     *aIsDefaultClient = isDefaultBrowser && isDefaultNews && isDefaultMail;
     
@@ -662,11 +666,13 @@ nsWindowsShellService::SetDefaultClientVista(PRUint16 aApps)
   if (SUCCEEDED(hr)) {
     if (aApps & nsIShellService::BROWSER)
       pAAR->SetAppAsDefaultAll(APP_REG_NAME);
+#ifdef MOZ_MAIL_NEWS
     if (aApps & nsIShellService::MAIL)
       pAAR->SetAppAsDefaultAll(APP_REG_NAME_MAIL);
     if (aApps & nsIShellService::NEWS)
       pAAR->SetAppAsDefaultAll(APP_REG_NAME_NEWS);
-    
+#endif
+
     pAAR->Release();
     return PR_TRUE;
   }
@@ -686,10 +692,12 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
   // browser check needs to be at the top
   if (aApps & nsIShellService::BROWSER)
     *aIsDefaultClient &= TestForDefault(gBrowserSettings, sizeof(gBrowserSettings)/sizeof(SETTING));
+#ifdef MOZ_MAIL_NEWS
   if (aApps & nsIShellService::MAIL)
     *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
   if (aApps & nsIShellService::NEWS)
     *aIsDefaultClient &= TestForDefault(gNewsSettings, sizeof(gNewsSettings)/sizeof(SETTING));
+#endif
 
   // If this is the first application window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
@@ -824,6 +832,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
       L"Software\\Classes\\.xhtml");
   }
 
+#ifdef MOZ_MAIL_NEWS
   if (aApps & nsIShellService::MAIL) {
     (void)DeleteRegTree(HKEY_CURRENT_USER,
       L"Software\\Classes\\SeaMonkeyEML");
@@ -849,6 +858,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
     (void)DeleteRegTree(HKEY_CURRENT_USER,
       L"Software\\Classes\\nntp\\DefaultIcon");
   }
+#endif
 
   if (!aForAllUsers && SetDefaultClientVista(aApps))
     return NS_OK;
@@ -857,11 +867,13 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
   if (aApps & nsIShellService::BROWSER)
     rv |= setDefaultBrowser();
 
+#ifdef MOZ_MAIL_NEWS
   if (aApps & nsIShellService::MAIL)
     rv |= setDefaultMail();
 
   if (aApps & nsIShellService::NEWS)
     rv |= setDefaultNews();
+#endif
 
   // Refresh the Shell
   SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, 0, 0);
@@ -996,6 +1008,7 @@ nsWindowsShellService::setDefaultBrowser()
   return NS_OK;
   }
 
+#ifdef MOZ_MAIL_NEWS
 nsresult
 nsWindowsShellService::setDefaultMail()
 {
@@ -1057,6 +1070,7 @@ nsWindowsShellService::setDefaultNews()
   SetRegKey(key1, EmptyString(), mBrandFullName, PR_TRUE);
   return NS_OK;
 }
+#endif
 
 static nsresult
 WriteBitmap(nsIFile* aFile, gfxIImageFrame* aImage)

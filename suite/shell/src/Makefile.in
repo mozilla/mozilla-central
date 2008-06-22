@@ -35,5 +35,9 @@ ifdef CPPSRCS
 LIBRARY_NAME = shellservice_s
 endif
 
+ifdef MOZ_MAIL_NEWS
+DEFINES += -DMOZ_MAIL_NEWS
+endif
+
 include $(topsrcdir)/config/rules.mk
 

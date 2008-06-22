@@ -77,8 +77,10 @@ protected:
   PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
 
   nsresult setDefaultBrowser();
+#ifdef MOZ_MAIL_NEWS
   nsresult setDefaultMail();
   nsresult setDefaultNews();
+#endif
 
 private:
   PRBool mCheckedThisSessionClient;
