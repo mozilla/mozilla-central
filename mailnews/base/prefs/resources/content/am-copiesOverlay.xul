@@ -39,7 +39,7 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/accountManage.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger/skin/messenger.css" type="text/css"?>
-<?xml-stylesheet href="chrome://messenger/skin/folderOverlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
 <!DOCTYPE overlay [
 <!ENTITY % copiesDTD SYSTEM "chrome://messenger/locale/am-copies.dtd">%copiesDTD;
