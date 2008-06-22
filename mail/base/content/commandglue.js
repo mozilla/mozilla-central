@@ -862,15 +862,6 @@ function UpdateSortIndicator(column,sortDirection)
   // this is obsolete
 }
 
-function GetSelectedFolderResource()
-{
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    return GetFolderResource(folderTree, startIndex.value);
-}
-
 function ChangeMessagePaneVisibility(now_hidden)
 {
   // we also have to hide the File/Attachments menuitem
@@ -917,16 +908,12 @@ function FolderPaneSelectionChange()
     gVirtualFolderTerms = null;
     gXFVirtualFolderTerms = null;
 
-    if (folderSelection.count == 1)
+    var folders = GetSelectedMsgFolders();
+    if (folders.length == 1)
     {
-        var startIndex = {};
-        var endIndex = {};
+        var msgFolder = folders[0];
+        var uriToLoad = msgFolder.URI;
 
-
-        folderSelection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var uriToLoad = folderResource.Value;
-        var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
         if (msgFolder == gMsgFolderSelected)
            return;
         // If msgFolder turns out to be a single folder saved search, a virtual folder,
@@ -942,7 +929,6 @@ function FolderPaneSelectionChange()
         if (msgFolder == msgWindow.openFolder && 
           !(folderFlags & MSG_FOLDER_FLAG_VIRTUAL) && ! (gPrevFolderFlags & MSG_FOLDER_FLAG_VIRTUAL))
         {
-            dump("msgFolder already open" + folderResource.URI + "\n");
             return;
         }
         else

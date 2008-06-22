@@ -51,18 +51,8 @@
 
 function GetSelectedFolderURI()
 {
-    var folderTree = GetFolderTree();
-    var selection = folderTree.view.selection;
-    if (selection.count == 1)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        selection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        return folderResource.Value;
-    }
-
-    return null;
+  var folders = GetSelectedMsgFolders();
+  return folders.length == 1 ? folders[0].URI : null;
 }
 
 function MsgRenameFolder()
@@ -116,16 +106,9 @@ function RenameFolder(name,uri)
 
 function MsgEmptyTrash()
 {
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    if (startIndex.value >= 0)
-    {
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        folder.emptyTrash(msgWindow, null);
-    }
+  var folders = GetSelectedMsgFolders();
+  if (folders.length == 1)
+    folders[0].emptyTrash(msgWindow, null);
 }
 
 function MsgCompactFolder(isAll)

@@ -506,15 +506,12 @@ function folderPaneOnPopupHiding()
 
 function fillFolderPaneContextMenu()
 {
-  var folderTree = GetFolderTree();
-  var startIndex = {};
-  var endIndex = {};
-  folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-  if (startIndex.value < 0)
+  var folders = GetSelectedMsgFolders();
+  if (!folders.length)
     return false;
-  var numSelected = endIndex.value - startIndex.value + 1;
-  var folderResource = GetFolderResource(folderTree, startIndex.value);
-  var folder = GetMsgFolderFromUri(folderResource.Value, false);
+
+  var numSelected = folders.length;
+  var folder = folders[0];
   var isVirtualFolder = folder ? folder.flags & MSG_FOLDER_FLAG_VIRTUAL : false;
 
   var isServer = folder.isServer;
@@ -530,11 +527,11 @@ function fillFolderPaneContextMenu()
   ShowMenuItem("folderPaneContext-getMessages", (numSelected <= 1) && canGetMessages);
   EnableMenuItem("folderPaneContext-getMessages", true);
 
-  SetupNewMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
-  SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
-  SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, specialFolder);
-  SetupCompactMenuItem(folderResource, numSelected);
-  SetupFavoritesMenuItem(folderResource, numSelected, isServer, 'folderPaneContext-favoriteFolder');
+  SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder);
+  SetupRenameMenuItem(folder, numSelected, isServer, serverType, specialFolder);
+  SetupRemoveMenuItem(folder, numSelected, isServer, serverType, specialFolder);
+  SetupCompactMenuItem(folder, numSelected);
+  SetupFavoritesMenuItem(folder, numSelected, isServer, 'folderPaneContext-favoriteFolder');
 
   ShowMenuItem("folderPaneContext-emptyTrash", (numSelected <= 1) && (specialFolder == 'Trash'));
   EnableMenuItem("folderPaneContext-emptyTrash", true);
@@ -545,7 +542,7 @@ function fillFolderPaneContextMenu()
     && (specialFolder == 'Unsent Messages' || specialFolder == 'Unsent');
   ShowMenuItem("folderPaneContext-sendUnsentMessages", showSendUnsentMessages);
   if (showSendUnsentMessages) 
-    EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folderResource));
+    EnableMenuItem("folderPaneContext-sendUnsentMessages", IsSendUnsentMsgsEnabled(folder));
 
   ShowMenuItem("folderPaneContext-subscribe", (numSelected <= 1) && canSubscribeToFolder && !isVirtualFolder);
   EnableMenuItem("folderPaneContext-subscribe", !isVirtualFolder);
@@ -574,9 +571,8 @@ function fillFolderPaneContextMenu()
   return(true);
 }
 
-function SetupNewMenuItem(folderResource, numSelected, isServer, serverType,specialFolder)
+function SetupNewMenuItem(folder, numSelected, isServer, serverType, specialFolder)
 {
-  var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var canCreateNew = folder.canCreateSubfolders;
   var isInbox = specialFolder == "Inbox";
   var isIMAPFolder = (folder.server.type == "imap");
@@ -598,20 +594,18 @@ function SetupNewMenuItem(folderResource, numSelected, isServer, serverType,spec
   }
 }
 
-function SetupRenameMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
+function SetupRenameMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
-  var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual") );
   var canRename = msgFolder.canRename;
   ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
-  var folder = GetMsgFolderFromResource(folderResource);
-  EnableMenuItem("folderPaneContext-rename", !isServer && folder.isCommandEnabled("cmd_renameFolder"));
+
+  EnableMenuItem("folderPaneContext-rename", !isServer && msgFolder.isCommandEnabled("cmd_renameFolder"));
 }
 
-function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, specialFolder)
+function SetupRemoveMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
-  var msgFolder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
   var isMail = serverType != 'nntp';
   var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
                                                   || (specialFolder == "Virtual") );
@@ -621,22 +615,18 @@ function SetupRemoveMenuItem(folderResource, numSelected, isServer, serverType, 
   ShowMenuItem("folderPaneContext-remove", showRemove);
   if(showRemove)
   {
-    var folder = GetMsgFolderFromResource(folderResource);
-    EnableMenuItem("folderPaneContext-remove", folder.isCommandEnabled("cmd_delete"));
+    EnableMenuItem("folderPaneContext-remove", msgFolder.isCommandEnabled("cmd_delete"));
   }
 }
 
-function SetupCompactMenuItem(folderResource, numSelected)
+function SetupCompactMenuItem(folder, numSelected)
 {
-  var folder = GetMsgFolderFromResource(folderResource);
-
   ShowMenuItem("folderPaneContext-compact", (numSelected <=1) && folder.canCompact && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
   EnableMenuItem("folderPaneContext-compact", folder.isCommandEnabled("cmd_compactFolder") && !(folder.flags & MSG_FOLDER_FLAG_VIRTUAL));
 }
 
-function SetupFavoritesMenuItem(folderResource, numSelected, isServer, menuItemId)
+function SetupFavoritesMenuItem(folder, numSelected, isServer, menuItemId)
 {
-  var folder = GetMsgFolderFromResource(folderResource);
   var showItem = !isServer && (numSelected <=1);
   ShowMenuItem(menuItemId, showItem); 
 

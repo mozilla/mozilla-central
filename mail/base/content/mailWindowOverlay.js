@@ -139,16 +139,9 @@ function InitEditMessagesMenu()
   var favoriteFolderMenu = document.getElementById('menu_favoriteFolder');
   if (favoriteFolderMenu && !favoriteFolderMenu.disabled)
   {
-    var folderTree = GetFolderTree();
-    var startIndex = {};
-    var endIndex = {};
-    folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-    if (startIndex.value >= 0)
-    {
-      var numSelected = endIndex.value - startIndex.value + 1;
-      var folderResource = GetFolderResource(folderTree, startIndex.value);
-      var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-      SetupFavoritesMenuItem(folderResource, numSelected, folder.isServer, 'menu_favoriteFolder');
+    var folders = GetSelectedMsgFolders();
+    if (folders.length) {
+      SetupFavoritesMenuItem(folders[0], folders.length, folders[0].isServer, 'menu_favoriteFolder');
     }
   }
 }

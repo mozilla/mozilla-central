@@ -74,18 +74,15 @@ var FolderPaneController =
       case "button_compact":
       if ( command == "cmd_delete" )
         goSetMenuValue(command, 'valueFolder');
-      var folderTree = GetFolderTree();
-      var startIndex = {};
-      var endIndex = {};
-      folderTree.view.selection.getRangeAt(0, startIndex, endIndex);
-      if (startIndex.value >= 0) {
+      var folders = GetSelectedMsgFolders();
+
+      if (folders.length) {
         var canDeleteThisFolder;
         var specialFolder = null;
         var isServer = null;
         var serverType = null;
         try {
-          var folderResource = GetFolderResource(folderTree, startIndex.value);
-          var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+          var folder = folders[0];
           specialFolder = getSpecialFolderString(folder);
           isServer = folder.isServer;
           serverType = folder.server.type;
@@ -838,19 +835,9 @@ function IsSendUnsentMsgsEnabled(folderResource)
 
 function IsRenameFolderEnabled()
 {
-    var folderTree = GetFolderTree();
-    var selection = folderTree.view.selection;
-    if (selection.count == 1)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        selection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        return folder.canRename && isCommandEnabled("cmd_renameFolder");
-    }
-    else
-        return false;
+  var folders = GetSelectedMsgFolders();
+  return folders.length == 1 && folders[0].canRename &&
+         isCommandEnabled("cmd_renameFolder");
 }
 
 function IsCanSearchMessagesEnabled()
@@ -868,26 +855,18 @@ function IsFolderCharsetEnabled()
 
 function IsPropertiesEnabled(command)
 {
-   try
-   {
-      var folderTree = GetFolderTree();
-      var folderResource = GetSelectedFolderResource();
-      var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
+  var folders = GetSelectedMsgFolders();
+  if (!folders.length)
+    return false;
+  var folder = folders[0];
 
-      // when servers are selected
-      // it should be "Edit | Properties..."
-      if (folder.isServer)
-        goSetMenuValue(command, "valueGeneric");
-      else
-        goSetMenuValue(command, isNewsURI(folderResource.Value) ? "valueNewsgroup" : "valueFolder");
-   }
-   catch (ex)
-   {
-      // properties menu failure
-   }
+  // when servers are selected it should be "Edit | Properties..."
+  if (folder.isServer)
+    goSetMenuValue(command, "valueGeneric");
+  else
+    goSetMenuValue(command, isNewsURI(folder.URI) ? "valueNewsgroup" : "valueFolder");
 
-   var selection = folderTree.view.selection;
-   return (selection.count == 1);
+   return (folders.length == 1);
 }
 
 function IsViewNavigationItemEnabled()
@@ -897,19 +876,8 @@ function IsViewNavigationItemEnabled()
 
 function IsFolderSelected()
 {
-    var folderTree = GetFolderTree();
-    var selection = folderTree.view.selection;
-    if (selection.count == 1)
-    {
-        var startIndex = {};
-        var endIndex = {};
-        selection.getRangeAt(0, startIndex, endIndex);
-        var folderResource = GetFolderResource(folderTree, startIndex.value);
-        var folder = folderResource.QueryInterface(Components.interfaces.nsIMsgFolder);
-        return !folder.isServer;
-    }
-    else
-        return false;
+  var folders = GetSelectedMsgFolders();
+  return folders.length == 1 && !folders[0].isServer;
 }
 
 function IsMessageDisplayedInMessagePane()
