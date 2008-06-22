@@ -101,10 +101,6 @@
 #endif
   </keyset>
 
-  <broadcasterset id="mailBroadcasters">
-    <broadcaster id="Communicator:WorkMode"/>
-  </broadcasterset>
-
   <dummy class="usesMailWidgets"/>
     
     <vbox id="searchTerms" flex="3" persist="height">

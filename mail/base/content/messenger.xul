@@ -118,12 +118,6 @@
 #endif
 </commandset>
 
-<broadcasterset id="mailBroadcasters">
-  <!-- File Menu -->
-  <broadcaster id="Communicator:WorkMode"/>
-  <!-- Edit Menu -->
-</broadcasterset>
-
 <keyset id="mailKeys">
   <keyset id="tasksKeys"/>
 </keyset>

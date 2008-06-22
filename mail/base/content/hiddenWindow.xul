@@ -79,12 +79,6 @@
    <keyset id="tasksKeys"/>
 </keyset>
 
-<broadcasterset id="mailBroadcasters">
-  <!-- File Menu -->
-  <broadcaster id="Communicator:WorkMode"/>
-  <!-- Edit Menu -->
-</broadcasterset>
-
 <commandset id="mailCommands">
   <commandset id="mailFileMenuItems"/>
   <commandset id="mailViewMenuItems"/>

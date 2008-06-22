@@ -139,7 +139,6 @@
          valueCards="&deleteCardsCmd.label;"/>
   <broadcaster id="broadcaster-throbber" busy="false"/>
   <broadcaster id="button_delete" disabled="true"/>
-  <broadcaster id="Communicator:WorkMode"/>
 </broadcasterset>
 
 <keyset id="tasksKeys">
