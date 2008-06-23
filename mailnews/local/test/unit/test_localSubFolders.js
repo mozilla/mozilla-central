@@ -64,33 +64,30 @@ function run_test() {
 
   // Test - FoldersWithFlag
 
-  // Keep the same as nsMsgFolderFlags.h
-  const MSG_FOLDER_FLAG_FAVORITE = 0x0080;
-  const MSG_FOLDER_FLAG_CHECK_NEW = 0x4000;
-  const MSG_FOLDER_FLAG_OFFLINE = 0x10000;
+  const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
 
-  folder.setFlag(MSG_FOLDER_FLAG_CHECK_NEW);
-  do_check_true(folder.getFlag(MSG_FOLDER_FLAG_CHECK_NEW));
-  do_check_false(folder.getFlag(MSG_FOLDER_FLAG_OFFLINE));
+  folder.setFlag(nsMsgFolderFlags.CheckNew);
+  do_check_true(folder.getFlag(nsMsgFolderFlags.CheckNew));
+  do_check_false(folder.getFlag(nsMsgFolderFlags.Offline));
 
-  folder.setFlag(MSG_FOLDER_FLAG_OFFLINE);
-  do_check_true(folder.getFlag(MSG_FOLDER_FLAG_CHECK_NEW));
-  do_check_true(folder.getFlag(MSG_FOLDER_FLAG_OFFLINE));
+  folder.setFlag(nsMsgFolderFlags.Offline);
+  do_check_true(folder.getFlag(nsMsgFolderFlags.CheckNew));
+  do_check_true(folder.getFlag(nsMsgFolderFlags.Offline));
 
-  folder.toggleFlag(MSG_FOLDER_FLAG_CHECK_NEW);
-  do_check_false(folder.getFlag(MSG_FOLDER_FLAG_CHECK_NEW));
-  do_check_true(folder.getFlag(MSG_FOLDER_FLAG_OFFLINE));
+  folder.toggleFlag(nsMsgFolderFlags.CheckNew);
+  do_check_false(folder.getFlag(nsMsgFolderFlags.CheckNew));
+  do_check_true(folder.getFlag(nsMsgFolderFlags.Offline));
 
-  folder.clearFlag(MSG_FOLDER_FLAG_OFFLINE);
-  do_check_false(folder.getFlag(MSG_FOLDER_FLAG_CHECK_NEW));
-  do_check_false(folder.getFlag(MSG_FOLDER_FLAG_OFFLINE));
+  folder.clearFlag(nsMsgFolderFlags.Offline);
+  do_check_false(folder.getFlag(nsMsgFolderFlags.CheckNew));
+  do_check_false(folder.getFlag(nsMsgFolderFlags.Offline));
 
-  folder.setFlag(MSG_FOLDER_FLAG_FAVORITE);
-  folder2.setFlag(MSG_FOLDER_FLAG_FAVORITE);
-  folder.setFlag(MSG_FOLDER_FLAG_CHECK_NEW);
-  folder2.setFlag(MSG_FOLDER_FLAG_OFFLINE);
+  folder.setFlag(nsMsgFolderFlags.Favorite);
+  folder2.setFlag(nsMsgFolderFlags.Favorite);
+  folder.setFlag(nsMsgFolderFlags.CheckNew);
+  folder2.setFlag(nsMsgFolderFlags.Offline);
 
-  do_check_eq(root.getFolderWithFlags(MSG_FOLDER_FLAG_CHECK_NEW),
+  do_check_eq(root.getFolderWithFlags(nsMsgFolderFlags.CheckNew),
               folder);
 
   // Test - Move folders around

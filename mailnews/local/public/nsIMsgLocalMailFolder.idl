@@ -63,7 +63,7 @@ interface nsIMsgLocalMailFolder : nsISupports {
    * Drafts, Templates, etc
    * you should bitwise OR all the flags all mailboxes you want to flag,
    * this function will be smart and find the right names.
-   * like MSG_FOLDER_FLAG_INBOX | MSG_FOLDER_FLAG_DRAFTS | etc
+   * like nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Drafts | etc
    */
   void setFlagsOnDefaultMailboxes(in unsigned long flags);
 

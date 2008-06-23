@@ -40,7 +40,7 @@
 
 
 /* Flags in the subscribe pane (used inside of MSG_GroupNameLine).  Where
-   the flags overlap with the MSG_FOLDER_FLAG_* flags, it has the same value,
+   the flags overlap with the nsMsgFolderFlags flags, it has the same value,
    to reduce the chance of someone using the wrong constant. */
 
 #define MSG_GROUPNAME_FLAG_ELIDED		0x0010  /* Whether the children of this
@@ -64,7 +64,7 @@
 												  list is determined by the
 												  above "ELIDED" flag. 
 												  Setting this to the same value
-												  as a MSG_FOLDER_FLAG_* IMAP server,
+												  as an nsMsgFolderFlags IMAP server,
 												  since an IMAP _server_ will never
 												  appear in the subscribe pane.  */
 #define MSG_GROUPNAME_FLAG_IMAP_PERSONAL	0x80000		/* folder is an IMAP personal folder */
