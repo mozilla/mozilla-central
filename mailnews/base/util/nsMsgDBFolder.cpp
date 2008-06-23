@@ -3760,7 +3760,6 @@ NS_IMETHODIMP nsMsgDBFolder::GetBiffState(PRUint32 *aBiffState)
 NS_IMETHODIMP nsMsgDBFolder::SetBiffState(PRUint32 aBiffState)
 {
   PRUint32 oldBiffState;
-
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsresult rv = GetServer(getter_AddRefs(server));
   if (NS_SUCCEEDED(rv) && server)
@@ -3768,23 +3767,16 @@ NS_IMETHODIMP nsMsgDBFolder::SetBiffState(PRUint32 aBiffState)
     // Get the server and notify it and not inbox.
   if (oldBiffState != aBiffState)
   {
-//    if (aBiffState == nsMsgBiffState_NoMail)
-//      SetNumNewMessages(0);
-
-    // we don't distinguish between unknown and noMail for servers
-    if (! (oldBiffState == nsMsgBiffState_Unknown && aBiffState == nsMsgBiffState_NoMail))
+    if (!mIsServer)
     {
-      if (!mIsServer)
-      {
-        nsCOMPtr<nsIMsgFolder> folder;
-        rv = GetRootFolder(getter_AddRefs(folder));
-        if (NS_SUCCEEDED(rv) && folder)
-          return folder->SetBiffState(aBiffState);
-      }
-      if (server)
-        server->SetBiffState(aBiffState);
-      NotifyIntPropertyChanged(kBiffStateAtom, oldBiffState, aBiffState);
+      nsCOMPtr<nsIMsgFolder> folder;
+      rv = GetRootFolder(getter_AddRefs(folder));
+      if (NS_SUCCEEDED(rv) && folder)
+        return folder->SetBiffState(aBiffState);
     }
+    if (server)
+      server->SetBiffState(aBiffState);
+    NotifyIntPropertyChanged(kBiffStateAtom, oldBiffState, aBiffState);
   }
   else if (aBiffState == nsMsgBiffState_NoMail)
   {

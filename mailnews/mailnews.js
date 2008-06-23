@@ -613,6 +613,8 @@ pref("mail.biff.play_sound.url", "");
 pref("mail.biff.show_alert", true);
 pref("mail.biff.show_tray_icon", true); // currently Windows-only
 pref("mail.biff.animate_dock_icon", false);
+// if true, check for new mail even when opening non-mail windows
+pref("mail.biff.on_new_window", true);
 
 pref("mail.content_disposition_type", 0);
 

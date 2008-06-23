@@ -84,7 +84,7 @@
 nsMsgIncomingServer::nsMsgIncomingServer():
     m_rootFolder(0),
     m_numMsgsDownloaded(0),
-    m_biffState(nsIMsgFolder::nsMsgBiffState_NoMail),
+    m_biffState(nsIMsgFolder::nsMsgBiffState_Unknown),
     m_serverBusy(PR_FALSE),
     m_canHaveFilters(PR_TRUE),
     m_displayStartupPage(PR_TRUE),

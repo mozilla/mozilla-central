@@ -153,6 +153,7 @@ messenger.jar:
     content/messenger/msgPrintEngine.js                                        (base/resources/content/msgPrintEngine.js)
     content/messenger/msgPrintEngine.xul                                       (base/resources/content/msgPrintEngine.xul)
     content/messenger/mailTasksOverlay.xul                                     (base/resources/content/mailTasksOverlay.xul)
+    content/messenger/mailTasksOverlay.js                                      (base/resources/content/mailTasksOverlay.js)
     content/messenger/mailEditorOverlay.xul                                    (base/resources/content/mailEditorOverlay.xul)
     content/messenger/mailABOverlay.xul                                        (base/resources/content/mailABOverlay.xul)
     content/messenger/mailMessengerOverlay.xul                                 (base/resources/content/mailMessengerOverlay.xul)

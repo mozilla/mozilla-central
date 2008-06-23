@@ -885,51 +885,7 @@ function MsgGetMessage()
 
 function MsgGetMessagesForAllServers(defaultServer)
 {
-    // now log into any server
-    try
-    {
-        var allServers = accountManager.allServers;
-        var i;
-        // array of isupportsarrays of servers for a particular folder
-        var pop3DownloadServersArray = new Array();
-        // parallel isupports array of folders to download to...
-        var localFoldersToDownloadTo = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-        var pop3Server;
-
-        for (i = 0; i < allServers.Count(); ++i)
-        {
-            var currentServer = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer);
-            var protocolinfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + currentServer.type].getService(Components.interfaces.nsIMsgProtocolInfo);
-            if (protocolinfo.canLoginAtStartUp && currentServer.loginAtStartUp)
-            {
-                if (defaultServer && defaultServer.equals(currentServer) && 
-                  !defaultServer.isDeferredTo &&
-                  defaultServer.rootFolder == defaultServer.rootMsgFolder)
-                {
-                    dump(currentServer.serverURI + "...skipping, already opened\n");
-                }
-                else if (currentServer.type == "pop3" && currentServer.downloadOnBiff)
-                {
-                    CoalesceGetMsgsForPop3ServersByDestFolder(currentServer, pop3DownloadServersArray, localFoldersToDownloadTo);
-                    pop3Server = currentServer.QueryInterface(Components.interfaces.nsIPop3IncomingServer);
-                }
-                else
-                {
-                    // Check to see if there are new messages on the server
-                    currentServer.performBiff(msgWindow);
-                }
-            }
-        }
-        for (i = 0; i < pop3DownloadServersArray.length; ++i)
-        {
-          // any ol' pop3Server will do - the serversArray specifies which servers to download from
-          pop3Server.downloadMailFromServers(pop3DownloadServersArray[i], msgWindow, localFoldersToDownloadTo.GetElementAt(i), null);
-        }
-    }
-    catch(ex)
-    {
-        dump(ex + "\n");
-    }
+  MailTasksGetMessagesForAllServers(msgWindow, defaultServer);
 }
 
 /**
@@ -2087,25 +2043,6 @@ function SendUnsentMessages()
       }
     } 
   }
-}
-
-function CoalesceGetMsgsForPop3ServersByDestFolder(currentServer, pop3DownloadServersArray, localFoldersToDownloadTo)
-{
-  var inboxFolder = currentServer.rootMsgFolder.getFolderWithFlags(0x1000); 
-  // coalesce the servers that download into the same folder...
-  var index = localFoldersToDownloadTo.GetIndexOf(inboxFolder);
-  if (index == -1)
-  {
-    if(inboxFolder) 
-    {
-      inboxFolder.biffState =  Components.interfaces.nsIMsgFolder.nsMsgBiffState_NoMail;
-      inboxFolder.clearNewMessages();
-    }
-    localFoldersToDownloadTo.AppendElement(inboxFolder);
-    index = pop3DownloadServersArray.length
-    pop3DownloadServersArray[index] = Components.classes["@mozilla.org/supports-array;1"].createInstance(Components.interfaces.nsISupportsArray);
-  }
-  pop3DownloadServersArray[index].AppendElement(currentServer);
 }
 
 function GetMessagesForAllAuthenticatedAccounts()
