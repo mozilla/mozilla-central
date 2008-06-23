@@ -266,6 +266,13 @@ var calendarController = {
                 getCompositeCalendar().refresh();
                 break;
             default:
+                if (this.defaultController && !this.isCalendarInForeground()) {
+                    // If calendar is not in foreground, let the default controller take
+                    // care. If we don't have a default controller (i.e sunbird), just
+                    // continue.
+                    this.defaultController.doCommand(aCommand);
+                    return;
+                }                
                 switch (aCommand) {
                     // These commands are overridden in lightning and native in sunbird.
                     case "cmd_cut":
