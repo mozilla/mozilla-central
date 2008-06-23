@@ -659,15 +659,23 @@ const FIRST_DELAY_UNREGISTER = 0;
 const REPEAT_DELAY = 180000;
 
 var gInvitationsOperationListener = {
+    mCount: 0,
+
     onOperationComplete: function sBOL_onOperationComplete(aCalendar,
                                                            aStatus,
                                                            aOperationType,
                                                            aId,
                                                            aDetail) {
-        if (!Components.isSuccessCode(aStatus)) {
+        if (Components.isSuccessCode(aStatus)) {
+            var invitationsBox = document.getElementById("invitations");
+            var value = invitationsLabel + " (" + this.mCount + ")"; // XXX l10n-unfriendly
+            invitationsBox.setAttribute("value", value);
+            invitationsBox.removeAttribute("hidden");
+        } else {
             var invitationsBox = document.getElementById("invitations");
             invitationsBox.setAttribute("hidden", "true");
         }
+        this.mCount = 0;
     },
 
     onGetResult: function sBOL_onGetResult(aCalendar,
@@ -676,13 +684,9 @@ var gInvitationsOperationListener = {
                                            aDetail,
                                            aCount,
                                            aItems) {
-        if (!Components.isSuccessCode(aStatus)) {
-            return;
+        if (Components.isSuccessCode(aStatus)) {
+            this.mCount += aCount;
         }
-        var invitationsBox = document.getElementById("invitations");
-        var value = invitationsLabel + " (" + aCount + ")";
-        invitationsBox.setAttribute("value", value);
-        invitationsBox.removeAttribute("hidden");
     }
 };
 
@@ -704,6 +708,7 @@ var gInvitationsCalendarManagerObserver = {
 };
 
 function scheduleInvitationsUpdate(firstDelay, repeatDelay) {
+    gInvitationsCalendarManagerObserver.mCount = 0;
     getInvitationsManager().scheduleInvitationsUpdate(firstDelay,
                                                       repeatDelay,
                                                       gInvitationsOperationListener);
@@ -716,11 +721,12 @@ function rescheduleInvitationsUpdate(firstDelay, repeatDelay) {
 
 function openInvitationsDialog() {
     getInvitationsManager().cancelInvitationsUpdate();
+    gInvitationsCalendarManagerObserver.mCount = 0;
     getInvitationsManager().openInvitationsDialog(
         gInvitationsOperationListener,
         function oiD_callback() {
             scheduleInvitationsUpdate(FIRST_DELAY_RESCHEDULE,
-                                     REPEAT_DELAY);
+                                      REPEAT_DELAY);
         });
 }
 

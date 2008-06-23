@@ -151,6 +151,7 @@ InvitationsManager.prototype = {
             self.mTimer = setInterval(function repeatingInvitationsTimer() {
                 self.getInvitations(true, operationListener);
             }, repeatDelay);
+            self.getInvitations(true, operationListener);
         }, firstDelay);
     },
 
