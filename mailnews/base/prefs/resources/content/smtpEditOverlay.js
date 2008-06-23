@@ -45,6 +45,7 @@ var gSmtpDescription;
 var gSmtpUsernameLabel;
 var gSmtpHostname;
 var gSmtpPort;
+var gSmtpUseSecAuth;
 var gSmtpUseUsername;
 var gSmtpAuthMethod;
 var gSmtpTrySSL;
