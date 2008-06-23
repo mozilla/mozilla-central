@@ -46,7 +46,6 @@ var gViewSearchListener;
 var gSearchBundle;
 var gStatusBar = null;
 var gSearchInProgress = false;
-var gSearchInput = null;
 var gDefaultSearchViewTerms = null;
 var gQSViewIsDirty = false;
 var gIgnoreFocus = false;
@@ -515,14 +514,10 @@ function onSearchStop()
   gSearchSession.interruptSearch();
 }
 
-function onSearchKeyPress(event)
+function onSearchKeyPress()
 {
   if (gSearchInput.showingSearchCriteria)
     gSearchInput.showingSearchCriteria = false;
-
-  // 13 == return
-  if (event && event.keyCode == 13)
-    onSearchInput(true);
 }
 
 function onSearchInputFocus(event)
@@ -538,54 +533,36 @@ function onSearchInputFocus(event)
   if (gIgnoreFocus) // got focus via mouse click, don't need to anything else
     gIgnoreFocus = false;
   else
-  {
     gSearchInput.select();
-    gQuickSearchFocusEl = gSearchInput;   // only important that this be non-null
-  }
 }
 
 function onSearchInputMousedown(event)
 {
   GetSearchInput();
   if (gSearchInput.hasAttribute("focused")) 
-  {
+    // If the search input is focused already, ignore the click so that
+    // onSearchInputBlur does nothing.
     gIgnoreClick = true;
-
-    // already focused, don't need to restore focus elsewhere (if the Clear button was clicked)
-    // ##HACK## Need to check 'clearButtonHidden' because the field is blurred when it has
-    // focus and the hidden button is clicked, in which case we want to perform the normal
-    // onBlur function.
-    gQuickSearchFocusEl = gSearchInput.clearButtonHidden ? gSearchInput : null;
-  }
   else 
   {
     gIgnoreFocus = true;
     gIgnoreClick = false;
-
-    // save the last focused element so that focus can be restored (if the Clear button was clicked)
-    gQuickSearchFocusEl = gLastFocusedElement;
   }
-  // (if Clear button was clicked, onClearSearch() is called before onSearchInputClick())
 }
-
 
 function onSearchInputClick(event)
 {
   if (!gIgnoreClick)
-  {
-    gQuickSearchFocusEl = null; // ##HACK## avoid onSearchInputBlur() side effects
-    gSearchInput.select();      // ## triggers onSearchInputBlur(), but focus returns to field
-  }
-  if (!gQuickSearchFocusEl)
-    gQuickSearchFocusEl = gSearchInput;   // mousedown wasn't on Clear button
+    // Triggers onSearchInputBlur(), but focus returns to field.
+    gSearchInput.select();
 }
 
 function onSearchInputBlur(event)
-{ 
-  if (!gQuickSearchFocusEl) // ignore the blur if we are in the middle of processing the clear button
+{
+  // If we're doing something else, don't process the blur.
+  if (gIgnoreClick)
     return;
 
-  gQuickSearchFocusEl = null;
   if (!gSearchInput.value)
     gSearchInput.showingSearchCriteria = true;
 
@@ -593,46 +570,18 @@ function onSearchInputBlur(event)
     gSearchInput.setSearchCriteriaText();
 }
 
-function onSearchInput(returnKeyHit)
-{
-  if (gSearchInput.showingSearchCriteria && !(returnKeyHit && gSearchInput.value == ""))
-    return;
-
-  if (gSearchTimer) {
-    clearTimeout(gSearchTimer); 
-    gSearchTimer = null;
-  }
-
-  // only select the text when the return key was hit
-  if (returnKeyHit) {
-    gSearchInput.select();
-    onEnterInSearchBar();
-  }
-  else {
-    gSearchTimer = setTimeout(onEnterInSearchBar, 800);
-  }
-}
-
-// temporary global used to make sure we restore focus to the correct element after clearing the quick search box
-// because clearing quick search means stealing focus.
-var gQuickSearchFocusEl = null; 
-
 function onClearSearch()
 {
-  if (!gSearchInput.showingSearchCriteria) // ignore the text box value if it's just showing the search criteria string
+  // If we're not showing search criteria, then we need to clear up.
+  if (!gSearchInput.showingSearchCriteria)
   {
     Search("");
+    // Hide the clear button
+    gSearchInput.clearButtonHidden = true;
     gIgnoreClick = true;
-    // this needs to be on a timer otherwise we end up messing up the focus while the Search("") is still happening
-    if (gQuickSearchFocusEl) // set in onSearchInputMouseDown
-      setTimeout(restoreSearchFocusAfterClear, 0);
+    gSearchInput.select();
+    gIgnoreClick = false;
   }
-}
-
-function restoreSearchFocusAfterClear()
-{
-  if (gQuickSearchFocusEl)
-    gQuickSearchFocusEl.focus();
 }
 
 // called from commandglue.js in cases where the view is being changed and QS
@@ -657,7 +606,7 @@ function Search(str)
   }
 
   gSearchInput.value = str;  //on input does not get fired for some reason
-  onSearchInput(true);
+  onEnterInSearchBar();
 }
 
 // helper methods for the quick search drop down menu

@@ -49,7 +49,7 @@
    xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
    xmlns:xbl="http://www.mozilla.org/xbl">
 
-  <binding id="searchbar" extends="chrome://global/content/bindings/textbox.xml#textbox">
+  <binding id="searchbar" extends="chrome://global/content/bindings/textbox.xml#timed-textbox">
     <resources>
       <stylesheet src="chrome://messenger/skin/searchBox.css"/>
     </resources>
