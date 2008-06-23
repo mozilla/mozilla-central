@@ -786,6 +786,12 @@ sub tb_trim_logs($$$$) {
     return if (!defined($days) || !defined($tree) || !defined($verbose) ||
                !defined($do_html));
     
+    # warn if the directory cannot be found and return
+    if (! -d "$::tree_dir/$tree") {
+        warn("Cannot find directory: " . shell_escape("$::tree_dir/$tree"));
+        return;
+    }
+
     my $min_date = time - (60*60*24 * $days);
 
     #

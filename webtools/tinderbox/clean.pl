@@ -21,13 +21,16 @@
 # Contributor(s): 
 
 use lib "@TINDERBOX_DIR@";
-require 'tbglobals.pl'; # for $gzip
 use strict;
 use Getopt::Std;
 
 my $verbose = 0;
 my $tinderboxdir = "@TINDERBOX_DIR@";
 chdir $tinderboxdir or die "Couldn't chdir to $tinderboxdir"; 
+
+# tbglobals.pl must be included after chdir
+# so that $::tree_dir is set correctly
+require 'tbglobals.pl'; # for $gzip
 
 our ($opt_h, $opt_v);
 getopts('hv');
