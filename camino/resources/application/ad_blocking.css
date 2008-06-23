@@ -537,6 +537,7 @@ img[src*="/ad/"] {display: inline !important }
 
 @-moz-document domain(apple.com) {
 img[src*="/ads/"] {display: inline !important }
+div[id="ad"] {display:block !important;}
 }
 
 @-moz-document domain(nasdaq.com) {
