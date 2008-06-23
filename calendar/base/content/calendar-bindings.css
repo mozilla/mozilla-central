@@ -68,13 +68,11 @@ calendar-task-tree {
   -moz-binding: url(chrome://calendar/content/calendar-task-tree.xml#calendar-task-tree);
 }
 
-menupopup[type="task-progress"] > arrowscrollbox,
-toolbarbutton > menupopup[type="progress"] > arrowscrollbox {
+menupopup[type="task-progress"] > arrowscrollbox {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-progress-menupopup);
 }
 
-menupopup[type="task-priority"] > arrowscrollbox,
-toolbarbutton > menupopup[type="priority"] > arrowscrollbox {
+menupopup[type="task-priority"] > arrowscrollbox {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-priority-menupopup);
 }
 task-menupopup {

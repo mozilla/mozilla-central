@@ -48,13 +48,15 @@
     <implementation>
       <field name="mType">null</field>;
       <field name="mPopupHandler">null</field>
+      <field name="mParentMenuPopup">null</field>
       <constructor><![CDATA[
         var self = this;
         this.mPopupHandler = function popupHandler() { self.changeMenuByPropertyName(); };
-        window.addEventListener("popupshowing", this.mPopupHandler, true);
+        this.mParentMenuPopup = getParentNodeOrThis(this, "menupopup");
+        this.mParentMenuPopup.addEventListener("popupshowing", this.mPopupHandler, true);
       ]]></constructor>
       <destructor><![CDATA[
-        window.removeEventListener("popupshowing", this.mPopupHandler, true);
+        this.mParentMenuPopup.removeEventListener("popupshowing", this.mPopupHandler, true);
       ]]></destructor>
 
 <!-- This method checks a command which naming follows
@@ -64,7 +66,6 @@
  * -->
       <method name="changeMenuByPropertyName">
         <body><![CDATA[
-            WARN("hier bin ich");
             var liveList = document.getAnonymousNodes(this);
             for (var i = liveList.length - 1; i >= 0; i-- ) {
                 var commandName = liveList.item(i).getAttribute("command");
