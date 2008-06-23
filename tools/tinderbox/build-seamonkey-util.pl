@@ -24,7 +24,7 @@ use Config;         # for $Config{sig_name} and $Config{sig_num}
 use File::Find ();
 use File::Copy;
 
-$::UtilsVersion = '$Revision: 1.389 $ ';
+$::UtilsVersion = '$Revision: 1.390 $ ';
 
 package TinderUtils;
 
@@ -961,7 +961,12 @@ sub BuildIt {
         # you this.  Thanks to cls for figuring this out.
         if ($Settings::UseTimeStamp) {
             $start_time = adjust_start_time($start_time);
-            my $time_str = POSIX::strftime("%m/%d/%Y %H:%M +0000", gmtime($start_time));
+            my $time_str;
+            if (defined($ENV{MOZ_CO_DATE})) {
+              $time_str = $ENV{MOZ_CO_DATE};
+            } else {
+              $time_str = POSIX::strftime("%m/%d/%Y %H:%M +0000", gmtime($start_time));
+            }
 
             # Global, sorry.  Tests need this, it's everywhere.
             # Switch to format the graph server uses, to be consistent.
