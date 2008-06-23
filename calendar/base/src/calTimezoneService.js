@@ -231,12 +231,15 @@ calTimezoneService.prototype = {
                 var row = this.mSelectByTzid.row;
                 var alias = row.alias;
                 if (alias && alias.length > 0) {
-                    tz = this.getTimezone(alias); // resolve
+                    tz = alias; // resolve later
                 } else {
                     tz = new calIntrinsicTimezone(row.tzid, row.component, row.latitude, row.longitude);
                 }
             }
             this.mSelectByTzid.reset();
+            if (tz && typeof(tz) == "string") {
+                tz = this.getTimezone(tz); // resolve alias
+            }
             if (tz) {
                 this.mTimezoneCache[tzid] = tz;
             } else {

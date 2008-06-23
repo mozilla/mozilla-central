@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -39,9 +38,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+function getRidKey(dt) {
+    if (!dt) {
+        return null;
+    }
+    var tz = dt.timezone;
+    if (!tz.isUTC && !tz.isFloating) {
+        dt = dt.getInTimezone(UTC());
+    }
+    return dt.icalString;
+}
+
 function calRecurrenceInfo() {
     this.mRecurrenceItems = [];
-    this.mExceptions = [];
+    this.mExceptionMap = {};
 
     this.wrappedJSObject = this;
 }
@@ -52,7 +62,6 @@ calRecurrenceInfo.prototype = {
     mRecurrenceItems: null,
     mPositiveRules: null,
     mNegativeRules: null,
-    mExceptions: null,
     mExceptionMap: null,
 
     QueryInterface: function cRI_QueryInterface(aIID) {
@@ -105,14 +114,6 @@ calRecurrenceInfo.prototype = {
             }
         }
     },
-    ensureExceptionMap: function cRI_ensureExceptionMap() {
-        if (!this.mExceptionMap) {
-            this.mExceptionMap = {};
-            for each (var ex in this.mExceptions) {
-                this.mExceptionMap[ex.id] = ex;
-            }
-        }
-    },
 
     /**
      * Mutability bits
@@ -131,9 +132,9 @@ calRecurrenceInfo.prototype = {
             }
         }
 
-        for each (ex in this.mExceptions) {
-            if (ex.item.isMutable) {
-                ex.item.makeImmutable();
+        for each (item in this.mExceptionMap) {
+            if (item.isMutable) {
+                item.makeImmutable();
             }
         }
 
@@ -145,17 +146,16 @@ calRecurrenceInfo.prototype = {
         cloned.mBaseItem = this.mBaseItem;
 
         var clonedItems = [];
-        for each (ritem in this.mRecurrenceItems) {
+        for each (var ritem in this.mRecurrenceItems) {
             clonedItems.push(ritem.clone());
         }
         cloned.mRecurrenceItems = clonedItems;
 
-        var clonedExceptions = [];
-        for each (exitem in this.mExceptions) {
-            var c = exitem.item.cloneShallow(this.mBaseItem);
-            clonedExceptions.push({ id: exitem.id, item: c });
+        var clonedExceptions = {};
+        for (var exitem in this.mExceptionMap) {
+            clonedExceptions[exitem] = this.mExceptionMap[exitem].cloneShallow(this.mBaseItem);
         }
-        cloned.mExceptions = clonedExceptions;
+        cloned.mExceptionMap = clonedExceptions;
 
         return cloned;
     },
@@ -171,8 +171,8 @@ calRecurrenceInfo.prototype = {
 
         this.mBaseItem = value;
         // patch exception's parentItem:
-        for each (exitem in this.mExceptions) {
-            exitem.item.parentItem = value;
+        for each (exitem in this.mExceptionMap) {
+            exitem.parentItem = value;
         }
     },
 
@@ -300,7 +300,6 @@ calRecurrenceInfo.prototype = {
     getNextOccurrence: function cRI_getNextOccurrence(aTime) {
         this.ensureBaseItem();
         this.ensureSortedRecurrenceRules();
-        this.ensureExceptionMap();
 
         var startDate = this.mBaseItem.recurrenceStartDate;
         var dates = [];
@@ -329,7 +328,7 @@ calRecurrenceInfo.prototype = {
                                                   {});
                 // Map all negative dates.
                 for each (var r in rdates) {
-                    negMap[r] = true;
+                    negMap[getRidKey(r)] = true;
                 }
             } else {
                 WARN("Item '" + this.mBaseItem.title + "'" +
@@ -384,7 +383,7 @@ calRecurrenceInfo.prototype = {
                                              .getNextOccurrence(searchStart, searchDate);
                 }
 
-                if (negMap[nextOccurrences[i]] || this.mExceptionMap[nextOccurrences[i]]) {
+                if (negMap[getRidKey(nextOccurrences[i])] || this.mExceptionMap[getRidKey(nextOccurrences[i])]) {
                     // If the found recurrence id points to either an exception
                     // (will handle later) or an EXDATE, then nextOccurrences[i]
                     // is invalid and we might need to try again next round.
@@ -419,19 +418,17 @@ calRecurrenceInfo.prototype = {
         // exceptions.
         var minOccDate = minOccRid;
 
-        if (this.mExceptions) {
-            // Scan exceptions for any dates earlier than the above found
-            // minOccDate, but still after aTime.
-            for each (var exc in this.mExceptions) {
-                var start = exc.item.recurrenceStartDate;
-                if (start.compare(aTime) > 0 &&
-                    (!minOccDate || start.compare(minOccDate) <= 0)) {
-                    // This exception is earlier, save its rid (for getting the
-                    // occurrence later on) and its date (for comparing to other
-                    // exceptions).
-                    minOccRid = exc.item.recurrenceId;
-                    minOccDate = start;
-                }
+        // Scan exceptions for any dates earlier than the above found
+        // minOccDate, but still after aTime.
+        for each (var exc in this.mExceptionMap) {
+            var start = exc.recurrenceStartDate;
+            if (start.compare(aTime) > 0 &&
+                (!minOccDate || start.compare(minOccDate) <= 0)) {
+                // This exception is earlier, save its rid (for getting the
+                // occurrence later on) and its date (for comparing to other
+                // exceptions).
+                minOccRid = exc.recurrenceId;
+                minOccDate = start;
             }
         }
 
@@ -458,7 +455,7 @@ calRecurrenceInfo.prototype = {
                                        true);
         // The returned dates are sorted, so the last one is a good
         // candidate, if it exists.
-        return (rids.length ? this.getOccurrenceFor(rids[rids.length - 1].id) : null);
+        return (rids.length > 0 ? this.getOccurrenceFor(rids[rids.length - 1].id) : null);
     },
 
     // internal helper function;
@@ -472,7 +469,6 @@ calRecurrenceInfo.prototype = {
         function ridDateSortComptor(a,b) {
             return a.rstart.compare(b.rstart);
         }
-
         function dateSortComptor(a, b) {
             return a.compare(b);
         }
@@ -500,12 +496,13 @@ calRecurrenceInfo.prototype = {
         // toss in exceptions first. Save a map of all exceptions ids, so we
         // don't add the wrong occurrences later on.
         var occurrenceMap = {};
-        for each (var ex in this.mExceptions) {
-            var occDate = checkIfInRange(ex.item, aRangeStart, aRangeEnd, true);
-            occurrenceMap[ex.id] = true;
+        for (var ex in this.mExceptionMap) {
+            var item = this.mExceptionMap[ex];
+            var occDate = checkIfInRange(item, aRangeStart, aRangeEnd, true);
+            occurrenceMap[ex] = true;
             if (occDate) {
                 binaryInsert(dates,
-                             aReturnRIDs ? { id: ex.id, rstart: occDate} : occDate,
+                             aReturnRIDs ? { id: item.recurrenceId, rstart: occDate } : occDate,
                              aReturnRIDs ? ridDateSortComptor : dateSortComptor);
             }
         }
@@ -513,10 +510,11 @@ calRecurrenceInfo.prototype = {
         // DTSTART/DUE is always part of the (positive) expanded set:
         // DTSTART always equals RECURRENCE-ID for items expanded from RRULE
         var baseOccDate = checkIfInRange(this.mBaseItem, aRangeStart, aRangeEnd, true);
-        if (baseOccDate && !occurrenceMap[baseOccDate]) {
-            occurrenceMap[baseOccDate] = true;
+        var baseOccDateKey = getRidKey(baseOccDate);
+        if (baseOccDate && !occurrenceMap[baseOccDateKey]) {
+            occurrenceMap[baseOccDateKey] = true;
             binaryInsert(dates,
-                         aReturnRIDs ? { id: baseOccDate, rstart: baseOccDate} : baseOccDate,
+                         aReturnRIDs ? { id: baseOccDate, rstart: baseOccDate } : baseOccDate,
                          aReturnRIDs ? ridDateSortComptor : dateSortComptor);
         }
 
@@ -558,7 +556,8 @@ calRecurrenceInfo.prototype = {
             }
             for (; index < len; ++index) {
                 var date = cur_dates[index];
-                if (occurrenceMap[date]) {
+                var dateKey = getRidKey(date);
+                if (occurrenceMap[dateKey]) {
                     // Don't add occurrences twice (i.e exception was
                     // already added before)
                     continue;
@@ -568,7 +567,7 @@ calRecurrenceInfo.prototype = {
                 binaryInsert(dates,
                              aReturnRIDs ? { id: date, rstart: date } : date,
                              aReturnRIDs ? ridDateSortComptor : dateSortComptor);
-                occurrenceMap[date] = true;
+                occurrenceMap[dateKey] = true;
             }
         }
 
@@ -587,7 +586,8 @@ calRecurrenceInfo.prototype = {
             // is an EXDATE, and then giving it a real DTSTART) -- so we don't
             // check exceptions here
             for each (var dateToRemove in cur_dates) {
-                if (occurrenceMap[dateToRemove]) {
+                var dateToRemoveKey = getRidKey(dateToRemove);
+                if (occurrenceMap[dateToRemoveKey]) {
                     // TODO PERF Theoretically we could use occurrence map
                     // to construct the array of occurrences. Right now I'm
                     // just using the occurrence map to skip the filter
@@ -599,7 +599,7 @@ calRecurrenceInfo.prototype = {
                             return d.compare(dateToRemove) != 0;
                         }
                     });
-                    delete occurrenceMap[dateToRemove];
+                    delete occurrenceMap[dateToRemoveKey];
                 }
             }
         }
@@ -735,7 +735,6 @@ calRecurrenceInfo.prototype = {
     //
     modifyException: function cRI_modifyException(anItem, aTakeOverOwnership) {
         this.ensureBaseItem();
-        this.ensureExceptionMap();
 
         if (anItem.parentItem.calendar != this.mBaseItem.calendar &&
             anItem.parentItem.id != this.mBaseItem.id)
@@ -750,29 +749,23 @@ calRecurrenceInfo.prototype = {
         }
 
         var itemtoadd;
-        if (!aTakeOverOwnership || anItem.isMutable) {
-            itemtoadd = anItem.cloneShallow(this.mBaseItem);
-            itemtoadd.makeImmutable();
-        } else {
+        if (aTakeOverOwnership && anItem.isMutable) {
             itemtoadd = anItem;
             itemtoadd.parentItem = this.mBaseItem;
-            itemtoadd.makeImmutable();
+        } else {
+            itemtoadd = anItem.cloneShallow(this.mBaseItem);
         }
+        itemtoadd.makeImmutable();
 
         // we're going to assume that the recurrenceId is valid here,
         // because presumably the item came from one of our functions
 
-        // remove any old one, if present
-        this.removeExceptionFor(anItem.recurrenceId);
-
-        var excItem = { id: itemtoadd.recurrenceId, item: itemtoadd }
-        this.mExceptions.push(excItem);
-        this.mExceptionMap[itemtoadd.recurrenceId] = excItem;
+        var exKey = getRidKey(itemtoadd.recurrenceId);
+        this.mExceptionMap[exKey] = itemtoadd;
     },
 
     createExceptionFor: function cRI_createExceptionFor(aRecurrenceId) {
         this.ensureBaseItem();
-        this.ensureExceptionMap();
 
         // XX should it be an error to createExceptionFor
         // an already-existing recurrenceId?
@@ -806,20 +799,17 @@ calRecurrenceInfo.prototype = {
 
         var newex = this.mBaseItem.createProxy();
         newex.recurrenceId = rid;
-
-        var excItem = { id: rid, item: newex };
-        this.mExceptions.push(excItem);
-        this.mExceptionMap[rid] = excItem;
+        this.mExceptionMap[getRidKey(rid)] = newex;
 
         return newex;
     },
 
     getExceptionFor: function cRI_getExceptionFor(aRecurrenceId, aCreate) {
         this.ensureBaseItem();
-        this.ensureExceptionMap();
 
-        if (this.mExceptionMap[aRecurrenceId]) {
-            return this.mExceptionMap[aRecurrenceId].item;
+        var exc = this.mExceptionMap[getRidKey(aRecurrenceId)];
+        if (exc) {
+            return exc;
         } else if (aCreate) {
             return this.createExceptionFor(aRecurrenceId);
         }
@@ -828,20 +818,16 @@ calRecurrenceInfo.prototype = {
 
     removeExceptionFor: function cRI_removeExceptionFor(aRecurrenceId) {
         this.ensureBaseItem();
-        this.ensureExceptionMap();
-
-        this.mExceptions = this.mExceptions.filter (function(ex) {
-                                                        return (ex.id.compare(aRecurrenceId) != 0);
-                                                    });
-        delete this.mExceptionMap[aRecurrenceId];
+        delete this.mExceptionMap[getRidKey(aRecurrenceId)];
     },
 
     getExceptionIds: function cRI_getExceptionIds(aCount) {
         this.ensureBaseItem();
 
-        var ids = this.mExceptions.map (function(ex) {
-                                            return ex.id;
-                                        });
+        var ids = [];
+        for each (var item in this.mExceptionMap) {
+            ids.push(item.recurrenceId);
+        }
 
         aCount.value = ids.length;
         return ids;
