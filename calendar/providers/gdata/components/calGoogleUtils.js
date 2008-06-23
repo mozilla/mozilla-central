@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Joey Minta <jminta@gmail.com>
+ *   Axel Zechner <axel.zechner@googlemail.com> - category support 
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -600,11 +601,14 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     entry.gd::visibility.@value = kEVENT_SCHEMA + privacy.toLowerCase();
 
     // categories
+    // Google does not support categories natively, but allows us to store data
+    // as an "extendedProperty", so we do here
     var categories = aItem.getProperty("CATEGORIES");
     if (categories) {
-        for each (var cat in categories.split(",")) {
-            entry.category += <category term="user-tag" label={cat}/>;
-        }
+        var gdCategories = <gd:extendedProperty xmlns:gd={gd}/>;
+        gdCategories.@name = "X-MOZ-CATEGORIES";
+        gdCategories.@value = categories;
+        entry.gd::extendedProperty += gdCategories;
     }
 
     // gd:recurrence
@@ -1092,11 +1096,15 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                                 .substring(39).toUpperCase();
 
         // category
-        var categories = new Array();
-        for each (var label in aXMLEntry.category.@label) {
-            categories.push(label.toUpperCase());
+        // Google does not support categories natively, but allows us to store
+        // data as an "extendedProperty", and here it's going to be retrieved
+        // again
+        var gdCategories = aXMLEntry.gd::extendedProperty
+                                    .(@name == "X-MOZ-CATEGORIES")
+                                    .@value.toString();
+        if (gdCategories) {
+            item.setProperty("CATEGORIES", gdCategories);
         }
-        item.setProperty("CATEGORIES", categories.join(","));
 
         // published
         item.setProperty("CREATED", fromRFC3339(aXMLEntry.published,
