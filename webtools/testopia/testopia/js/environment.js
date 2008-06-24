@@ -225,7 +225,7 @@ Ext.extend(EnvironmentGrid, Ext.grid.EditorGridPanel, {
                     mode: 'local',
                     fieldLabel: 'Product',
                     value: grid.product_id,
-                    hiddenName: 'product'
+                    hiddenName: 'product_id'
                 }),{
                     xtype: 'hidden',
                     name: 'action',

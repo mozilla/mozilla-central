@@ -221,8 +221,8 @@ RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/WebService/User.pm,v
 retrieving revision 1.4.2.1
 diff -u -r1.4.2.1 User.pm
 --- Bugzilla/WebService/User.pm	18 Sep 2007 23:30:20 -0000	1.4.2.1
-+++ Bugzilla/WebService/User.pm	29 Feb 2008 23:19:45 -0000
-@@ -110,6 +110,40 @@
++++ Bugzilla/WebService/User.pm	24 Jun 2008 22:09:56 -0000
+@@ -110,6 +110,32 @@
      return { id => type('int')->value($user->id) };
  }
  
@@ -234,13 +234,9 @@ diff -u -r1.4.2.1 User.pm
 +  my $self = shift;
 +  my ($author_id) = @_;
 +
-+  $self->SUPER::login;
-+  
 +  my $user = new Bugzilla::User($author_id);
 +
 +  my $result = defined $user ? $user->login : '';
-+  
-+  $self->SUPER::logout;
 +  
 +  # Result is user login string or empty string if failed
 +  return $result;
@@ -250,11 +246,7 @@ diff -u -r1.4.2.1 User.pm
 +  my $self = shift;
 +  my ($author) = @_;
 +
-+  $self->SUPER::login;
-+
 +  my $result = Bugzilla::User::login_to_id($author);
-+  
-+  $self->SUPER::logout;
 +  
 +  # Result is user id or 0 if failed
 +  return $result;
@@ -288,6 +280,15 @@ diff -u -r1.18.2.2 Filesystem.pm
           $templatedir          => { files => $ws_readable,
                                       dirs => $ws_dir_readable },
           images                => { files => $ws_readable,
+@@ -163,6 +167,8 @@
+                                      dirs => $ws_dir_readable },
+          t                     => { files => $owner_readable,
+                                      dirs => $owner_dir_readable },
++         'testopia/t'          => { files => $owner_readable,
++                                     dirs => $owner_dir_readable },
+          'docs/html'           => { files => $ws_readable,
+                                      dirs => $ws_dir_readable },
+          'docs/pdf'            => { files => $ws_readable,
 Index: Bugzilla/DB/Mysql.pm
 ===================================================================
 RCS file: /cvsroot/mozilla/webtools/bugzilla/Bugzilla/DB/Mysql.pm,v

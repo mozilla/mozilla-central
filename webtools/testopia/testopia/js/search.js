@@ -126,6 +126,16 @@ PlanSearch = function(params){
 };
 Ext.extend(PlanSearch, Ext.Panel,{
     onActivate: function(event){
+        if (Ext.get('case_search_form')){
+            Ext.get('case_search_form').remove();
+        }
+        if (Ext.get('run_search_form')){
+            Ext.get('run_search_form').remove();
+        }
+        if (Ext.get('case_run_search_form')){
+            Ext.get('case_run_search_form').remove();
+        }
+
         this.params.current_tab = 'plan';
         this.load({
             url: 'tr_query.cgi',
@@ -205,6 +215,16 @@ CaseSearch = function(params){
 };
 Ext.extend(CaseSearch, Ext.Panel,{
     onActivate: function(event){
+        if (Ext.get('run_search_form')){
+            Ext.get('run_search_form').remove();
+        }
+        if (Ext.get('plan_search_form')){
+            Ext.get('plan_search_form').remove();
+        }
+        if (Ext.get('case_run_search_form')){
+            Ext.get('case_run_search_form').remove();
+        }
+
         this.params.current_tab = 'case';
         this.load({
             url: 'tr_query.cgi',
@@ -284,6 +304,16 @@ RunSearch = function(params){
 };
 Ext.extend(RunSearch, Ext.Panel,{
     onActivate: function(event){
+        if (Ext.get('case_search_form')){
+            Ext.get('case_search_form').remove();
+        }
+        if (Ext.get('plan_search_form')){
+            Ext.get('plan_search_form').remove();
+        }
+        if (Ext.get('case_run_search_form')){
+            Ext.get('case_run_search_form').remove();
+        }
+
         this.params.current_tab = 'run';
         this.load({
             url: 'tr_query.cgi',
@@ -363,6 +393,15 @@ CaseRunSearch = function(params){
 };
 Ext.extend(CaseRunSearch, Ext.Panel,{
     onActivate: function(event){
+        if (Ext.get('case_search_form')){
+            Ext.get('case_search_form').remove();
+        }
+        if (Ext.get('run_search_form')){
+            Ext.get('run_search_form').remove();
+        }
+        if (Ext.get('plan_search_form')){
+            Ext.get('plan_search_form').remove();
+        }
         this.params.current_tab = 'case_run';
         this.load({
             url: 'tr_query.cgi',

@@ -96,7 +96,7 @@ elsif ($action eq 'remove') {
         validate_test_id($attach_id,'attachment');
         my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
         
-        ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->canedit;
+        ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->candelete;
                 
         if ($obj->type eq 'plan'){
             $attachment->unlink_plan($obj->id);
@@ -109,26 +109,6 @@ elsif ($action eq 'remove') {
     print "{success: true}";
 }
 
-####################
-###    Delete    ###
-####################
-
-elsif ($action eq 'delete') {
-    print $cgi->header;
-
-    validate_test_id($attach_id,'attachment');
-    my $attachment = Bugzilla::Testopia::Attachment->new($attach_id);
-    
-    $vars->{'tr_message'} = "Attachment ". $attachment->description ." deleted";
-    ThrowUserError('testopia-no-delete', {'object' => $attachment}) unless $attachment->candelete;
-    
-    $attachment->obliterate;
-    $vars->{'tr_message'} = "Attachment deleted";
-    $vars->{'deleted'} = 1;
-    $template->process("testopia/attachment/delete.html.tmpl", $vars)
-        || ThrowTemplateError($template->error());
-
-}
 elsif ($action eq 'add'){
     print $cgi->header;
     

@@ -129,11 +129,13 @@ sub _check_name {
     my ($invocant, $name, $product_id) = @_;
     
     $name = clean_text($name) if $name;
-    trick_taint($name);
+    
     if (!defined $name || $name eq '') {
         ThrowUserError('testopia-missing-required-field', {'field' => 'name'});
     }
-
+    
+    trick_taint($name);
+    
     # Check that we don't already have a environment with that name in this product.    
     my $orig_id = check_environment($name, $product_id);
     my $notunique;

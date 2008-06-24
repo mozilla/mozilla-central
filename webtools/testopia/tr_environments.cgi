@@ -72,7 +72,7 @@ if ( $action eq 'add' ) {
         { 'object' => 'Test Environment' } )
       unless Bugzilla->user->in_group('Testers');
     my $name    = $cgi->param('name');
-    my $product = $cgi->param('product');
+    my $product = $cgi->param('product_id');
 
     my $env = Bugzilla::Testopia::Environment->create(
         {
@@ -91,7 +91,7 @@ elsif ( $action eq 'delete' ) {
 
     $env->obliterate;
 
-    print "{'success':true}";
+    print "{'success' :true}";
 }
 
 elsif ( $action eq 'toggle' ) {
@@ -112,7 +112,7 @@ elsif ( $action eq 'rename' ) {
     $env->set_name( $cgi->param('name') );
     $env->update();
 
-    print "{'success':true}";
+    print "{'success': true}";
 }
 
 elsif ( $action eq 'clone' ) {

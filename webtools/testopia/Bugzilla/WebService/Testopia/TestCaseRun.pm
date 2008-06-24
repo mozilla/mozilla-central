@@ -479,23 +479,23 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
 
 =item C<get_completion_time($caserun_id)>
 
- Description: Get the list of components attached to this case.
+ Description: Returns the time in seconds that it took for this case to complete.
 
  Params:      $caserun_id - Integer: An integer representing the ID in
                   the database for this case-run.
 
- Returns:     Array: An array of component object hashes.
+ Returns:     Integer: Seconds since run was started till this case was completed.
 
 =item C<get_completion_time($run_id, $case_id, $build_id, $environment_id)>
 
- Description: Get the list of components attached to this case.
+ Description: Returns the time in seconds that it took for this case to complete.
 
  Params:      $case_id - Integer: An integer representing the ID of the test case in the database.
               $run_id - Integer: An integer representing the ID of the test run in the database.
               $build_id - Integer: An integer representing the ID of the test build in the database.
               $environment_id - Integer: An integer representing the ID of the environment in the database.
 
- Returns:     Array: An array of component object hashes.
+ Returns:     Integer: Seconds since run was started till this case was completed.
 
 =item C<get_history($caserun_id)>
 

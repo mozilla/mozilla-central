@@ -246,6 +246,7 @@ else{
     $vars->{'qname'} = $cgi->param('qname') if $cgi->param('qname');
     
     $cgi->param('current_tab', 'case');
+    $cgi->param('distinct', '1');
     my $search = Bugzilla::Testopia::Search->new($cgi);
     my $table = Bugzilla::Testopia::Table->new('case', 'tr_list_cases.cgi', $cgi, undef, $search->query);
     

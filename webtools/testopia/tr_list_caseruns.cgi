@@ -132,6 +132,7 @@ else {
     
     # Take the search from the URL params and convert it to SQL
     $cgi->param('current_tab', 'case_run');
+    $cgi->param('distinct', '1');
     my $search = Bugzilla::Testopia::Search->new($cgi);
     my $table = Bugzilla::Testopia::Table->new('case_run', 'tr_list_caseruns.cgi', $cgi, undef, $search->query);
     

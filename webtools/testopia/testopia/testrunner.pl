@@ -21,15 +21,59 @@
 #                 Jeff Dayley    <jedayley@novell.com>
 use strict;
 
+use lib 't';
+use lib '.';
+use lib '../..';
+
 use Test::Unit::Debug qw(debug_pkgs);
 use Test::Unit::TestRunner;
 
-# Uncomment and edit to debug individual packages.
-#debug_pkgs(qw/Test::Unit::TestCase/);
+use TAP::Harness;
 
-my $testrunner = Test::Unit::TestRunner->new();
+use Testopia::Test::Constants;
 
-foreach my $file (glob($ARGV[0]."*")){
-    print "Running Tests from $file \n";
-    $testrunner->start($file);
+my @api_tests = qw(
+  API_Build.pm
+  API_Environment.pm
+  API_Product.pm
+  API_TestCase.pm
+  API_TestCaseRun.pm
+  API_TestPlan.pm
+  API_TestRun.pm
+);
+
+if ( $ARGV[0] && $ARGV[0] =~ /^API/ ) {
+    my $testrunner;
+    use Test::More;
+
+    # Uncomment and edit to debug individual packages.
+    #debug_pkgs(qw/Test::Unit::TestCase/);
+    foreach my $test (@api_tests) {
+        $testrunner = Test::Unit::TestRunner->new();
+        $testrunner->start($test);
+    }
+}
+else {
+    my %args;
+    my $harness;
+    my $login_types = LOGIN_CREDENTIALS;
+
+    my @tests = qw(
+      t/SE_environments.t
+    );
+
+    my $type = 'anonymous';
+
+    #foreach my $type (keys %$login_types){
+    %args = (
+        verbosity => 1,
+        lib       => [ '.', '..', 't' ],
+        test_args =>
+          [ $login_types->{$type}, $login_types->{$type}->{'login_name'}, $login_types->{$type}->{'password'} ],
+    );
+
+    $harness = TAP::Harness->new( \%args );
+    $harness->runtests(@tests);
+
+    #}
 }
