@@ -201,92 +201,6 @@ function ThreadPaneKeyPress(event)
       ThreadPaneDoubleClick();
 }
 
-function MsgSortByDate()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byDate);
-}
-
-function MsgSortByReceived()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byReceived);
-}
-
-function MsgSortByFrom()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byAuthor);
-}
-
-function MsgSortByRecipient()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byRecipient);
-}
-
-function MsgSortByStatus()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byStatus);
-}
-
-function MsgSortByTags()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byTags);
-}
-
-function MsgSortByJunkStatus()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byJunkStatus);
-}
-
-function MsgSortByAttachments()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byAttachments);
-}
-
-function MsgSortBySubject()
-{
-    MsgSortThreadPane(nsMsgViewSortType.bySubject);
-}
-
-function MsgSortByLocation()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byLocation);
-}
-
-function msgSortByAccount()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byAccount);
-}
-
-function MsgSortByFlagged() 
-{
-    MsgSortThreadPane(nsMsgViewSortType.byFlagged);
-}
-
-function MsgSortByPriority()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byPriority);
-}
-
-function MsgSortBySize() 
-{
-    MsgSortThreadPane(nsMsgViewSortType.bySize);
-}
-
-function MsgSortByUnread()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byUnread);
-}
-
-function MsgSortByOrderReceived()
-{
-    MsgSortThreadPane(nsMsgViewSortType.byId);
-}
-
-function MsgSortByTotal()
-{
-    dump("XXX fix MsgSortByTotal\n");
-    //MsgSortThreadPane(nsMsgViewSortType.byTotal);
-}
-
 function MsgSortByThread()
 {
   var dbview = GetDBView();
@@ -297,8 +211,9 @@ function MsgSortByThread()
   MsgSortThreadPane(nsMsgViewSortType.byDate);
 }
 
-function MsgSortThreadPane(sortType)
+function MsgSortThreadPane(sortName)
 {
+  var sortType = nsMsgViewSortType[sortName];
   var dbview = GetDBView();
 
   if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
