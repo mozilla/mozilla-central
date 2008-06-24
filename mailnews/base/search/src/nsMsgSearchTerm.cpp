@@ -1366,49 +1366,50 @@ nsresult nsMsgSearchTerm::MatchStatus(PRUint32 statusToMatch, PRBool *pResult)
  *                1           -     -   +     +   -     -   +   +   -
  *               >1           -     -   +     +   -     -   -   +   +
  */
-
-nsresult nsMsgSearchTerm::MatchKeyword(const char *keyword, PRBool *pResult)
+// look up nsMsgSearchTerm::m_value in space-delimited keywordList
+nsresult nsMsgSearchTerm::MatchKeyword(const char *keywordList, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
   PRBool matches = PR_FALSE;
 
-  // Special-case keyword == "" for performance reasons
-  if (!strlen(keyword)) 
+  // special-case empty for performance reasons
+  if (!keywordList || !*keywordList)
   {
     *pResult =  m_operator != nsMsgSearchOp::Contains &&
                 m_operator != nsMsgSearchOp::Is;
     return NS_OK;
   }
 
-  // Check if we can skip expensive valid keywords test
+  // check if we can skip expensive valid keywordList test
   if (m_operator == nsMsgSearchOp::DoesntContain ||
       m_operator == nsMsgSearchOp::Contains)
   {
-    const char *keywordLoc = PL_strstr(keyword, m_value.string);
-    const char *startOfKeyword = keyword;
-    PRUint32 keywordLen = strlen(m_value.string);
-    while (keywordLoc)
+    const PRUint32 kKeywordLen = PL_strlen(m_value.string);
+    const char* matchStart = PL_strstr(keywordList, m_value.string);
+    while (matchStart)
     {
-      // if the keyword is at the beginning of the string, then it's a match if
-      // it is either the whole string, or is followed by a space, it's a match.
-      if (keywordLoc == startOfKeyword || (keywordLoc[-1] == ' '))
+      // For a real match, matchStart must be the start of the keywordList or
+      // preceded by a space and matchEnd must point to a \0 or space.
+      const char* matchEnd = matchStart + kKeywordLen;
+      if ((matchStart == keywordList || matchStart[-1] == ' ') &&
+          (!*matchEnd || *matchEnd == ' '))
       {
-        matches = keywordLoc[keywordLen] == '\0' ||
-                  (keywordLoc[keywordLen] == ' ');
-        if (matches)
-          break;
+        // found the keyword
+        *pResult = m_operator == nsMsgSearchOp::Contains;
+        return NS_OK;
       }
-      startOfKeyword = keywordLoc + keywordLen;
-      keywordLoc = PL_strstr(keyword, keywordLoc + keywordLen + 1);
+      // no match yet, so search on
+      matchStart = PL_strstr(matchEnd, m_value.string);
     }
-    *pResult = (m_operator == nsMsgSearchOp::DoesntContain) ? !matches : matches;
+    // keyword not found
+    *pResult = m_operator == nsMsgSearchOp::DoesntContain;
     return NS_OK;
   }
 
   // Only accept valid keys in tokens.
   nsresult rv = NS_OK;
   nsCStringArray keywordArray;
-  keywordArray.ParseString(keyword, " ");
+  keywordArray.ParseString(keywordList, " ");
   nsCOMPtr<nsIMsgTagService> tagService(do_GetService(NS_MSGTAGSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
