@@ -1026,6 +1026,20 @@
           <xul:menuitem value="0" stringTag="hasAttachments" class="search-value-menuitem"/>
         </xul:menupopup>
       </xul:menulist>
+      <xul:menulist flex="1" class="search-value-menulist" xbl:inherits="disabled">
+        <xul:menupopup class="search-value-popup">
+          <xul:menuitem value="plugin" stringTag="junkScoreOriginPlugin"
+                        class="search-value-menuitem"/>
+          <xul:menuitem value="user" stringTag="junkScoreOriginUser"
+                        class="search-value-menuitem"/>
+          <xul:menuitem value="filter" stringTag="junkScoreOriginFilter"
+                        class="search-value-menuitem"/>
+          <xul:menuitem value="whitelist" stringTag="junkScoreOriginWhitelist"
+                        class="search-value-menuitem"/>
+          <xul:menuitem value="imapflag" stringTag="junkScoreOriginImapFlag"
+                        class="search-value-menuitem"/>
+        </xul:menupopup>
+      </xul:menulist>
     </content>
     <implementation>
       <field name="internalOperator">null</field>
@@ -1126,6 +1140,9 @@
             else if (val == Components.interfaces.nsMsgSearchAttrib.HasAttachmentStatus) {
               this.setAttribute("selectedIndex", "7");
             }
+            else if (val == Components.interfaces.nsMsgSearchAttrib.JunkScoreOrigin) {
+              this.setAttribute("selectedIndex", "8");
+            }
             else {
               // a normal text field
               this.setAttribute("selectedIndex", "0");
@@ -1194,6 +1211,15 @@
             if (hasAttachmentStatus.item(0))
               children[7].selectedItem = hasAttachmentStatus[0];
           }
+          else if (attrib == nsMsgSearchAttrib.JunkScoreOrigin) {
+            var junkScoreOrigin =
+              children[8].getElementsByAttribute("value", val.str);
+            if (junkScoreOrigin.item(0))
+              children[8].selectedItem = junkScoreOrigin[0];
+          }
+          else if (attrib == nsMsgSearchAttrib.JunkPercent) {
+            children[0].value = val.junkPercent;
+          }
           else if (attrib == nsMsgSearchAttrib.Size) {
             children[0].value = val.size;
           }
@@ -1238,10 +1264,14 @@
             }
             else if (searchAttribute == nsMsgSearchAttrib.JunkStatus)
                searchValue.junkStatus = children[6].value;
+            else if (searchAttribute == nsMsgSearchAttrib.JunkPercent)
+               searchValue.junkPercent = children[0].value;
             else if (searchAttribute == nsMsgSearchAttrib.Size)
                searchValue.size = children[0].value;
             else if (searchAttribute == nsMsgSearchAttrib.HasAttachmentStatus)
                searchValue.status = 0x10000000;  // 0x10000000 is MSG_FLAG_ATTACHMENT;
+            else if (searchAttribute == nsMsgSearchAttrib.JunkScoreOrigin)
+               searchValue.str = children[8].value;
             else
                searchValue.str = children[0].value;
           ]]>
@@ -1342,6 +1372,9 @@
 
         // initialize the has attachment status picker
         this.initialize(document.getAnonymousNodes(this)[7], bundle);
+        
+        // initialize the junk score origin picker
+        this.initialize(document.getAnonymousNodes(this)[8], bundle);
 
         // initialize the tag list
         fillInTags();

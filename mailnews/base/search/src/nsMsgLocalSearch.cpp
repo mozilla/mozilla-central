@@ -53,6 +53,7 @@
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgHdr.h"
+#include "nsIMsgFilterPlugin.h"
 
 extern "C"
 {
@@ -574,6 +575,51 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
          err = aTerm->MatchJunkStatus(junkScoreStr.get(), &result);
          break;
       }
+      case nsMsgSearchAttrib::JunkPercent:
+      {
+        // When the junk status is set by the plugin, use junkpercent (if available)
+        // Otherwise, use the limits (0 or 100) depending on the junkscore.
+        PRUint32 junkPercent;
+#ifdef MOZILLA_INTERNAL_API
+        PRInt32 rv;
+#else
+        nsresult rv;
+#endif
+        nsCString junkScoreOriginStr;
+        nsCString junkPercentStr;
+        msgToMatch->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOriginStr));
+        msgToMatch->GetStringProperty("junkpercent", getter_Copies(junkPercentStr));
+        if ( junkScoreOriginStr.Equals(NS_LITERAL_CSTRING("plugin")) &&
+            !junkPercentStr.IsEmpty())
+        {
+          junkPercent = junkPercentStr.ToInteger(&rv);
+          NS_ENSURE_SUCCESS(rv, rv);
+        }
+        else
+        {
+          nsCString junkScoreStr;
+          msgToMatch->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
+          // When junk status is not set (uncertain) we'll set the value to ham.
+          if (junkScoreStr.IsEmpty())
+            junkPercent = nsIJunkMailPlugin::IS_HAM_SCORE;
+          else
+          {
+            junkPercent = junkScoreStr.ToInteger(&rv);
+            NS_ENSURE_SUCCESS(rv, rv);
+          }
+        }
+        err = aTerm->MatchJunkPercent(junkPercent, &result);
+        break;
+      }
+      case nsMsgSearchAttrib::JunkScoreOrigin:
+      {
+         nsCString junkScoreOriginStr;
+         msgToMatch->GetStringProperty("junkscoreorigin", getter_Copies(junkScoreOriginStr));
+         err = aTerm->MatchJunkScoreOrigin(junkScoreOriginStr.get(), &result);
+         break;
+      }
+
+      
       default:
           // XXX todo
           // for the temporary return receipts filters, we use a custom header for Content-Type

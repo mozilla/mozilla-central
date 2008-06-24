@@ -300,6 +300,18 @@ nsMsgSearchValidityManager::InitOfflineMailTable()
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkStatus, nsMsgSearchOp::Isnt, 1);
   
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsGreaterThan, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::IsLessThan, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkPercent, nsMsgSearchOp::Is, 1);
+
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Is, 1);
+  m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
+  m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::JunkScoreOrigin, nsMsgSearchOp::Isnt, 1);
+  
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetEnabled   (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Is, 1);
   m_offlineMailTable->SetAvailable (nsMsgSearchAttrib::HasAttachmentStatus, nsMsgSearchOp::Isnt, 1);

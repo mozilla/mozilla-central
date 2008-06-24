@@ -44,7 +44,7 @@ interface nsIMsgDBHdr;
 interface nsIMsgDatabase;
 interface nsIMsgSearchScopeTerm;
 
-[scriptable, uuid(2B753A24-DAB4-4DA0-B9B1-6655C2F1D352)]
+[scriptable, uuid(59db8e90-cd6e-11dc-95ff-0800200c9a66)]
 interface nsIMsgSearchTerm : nsISupports {
     attribute nsMsgSearchAttribValue attrib;
     attribute nsMsgSearchOpValue op;
@@ -65,6 +65,20 @@ interface nsIMsgSearchTerm : nsISupports {
     boolean matchSize(in unsigned long size);
     boolean matchLabel(in nsMsgLabelValue aLabelValue);
     boolean matchJunkStatus(in string aJunkScore);
+    /*
+     * Test search term match for junkpercent
+     *
+     * @param  aJunkPercent  junkpercent for message (0-100, 100 is junk)
+     * @return               true if matches
+     */   
+    boolean matchJunkPercent(in unsigned long aJunkPercent);
+    /*
+     * Test search term match for junkscoreorigin
+     * @param  aJunkScoreOrigin  Who set junk score? Possible values:
+     *                           plugin filter imapflag user whitelist
+     * @return                   true if matches
+     */
+    boolean matchJunkScoreOrigin(in string aJunkScoreOrigin);
 
     boolean matchBody(in nsIMsgSearchScopeTerm scopeTerm,
                       in unsigned long offset,

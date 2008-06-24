@@ -113,6 +113,8 @@ nsMsgSearchAttribEntry SearchAttribEntryTable[] =
     // the old style.  see bug #179803
     {nsMsgSearchAttrib::Sender,     "from in ab"},
     {nsMsgSearchAttrib::JunkStatus, "junk status"},
+    {nsMsgSearchAttrib::JunkPercent, "junk percent"},
+    {nsMsgSearchAttrib::JunkScoreOrigin, "junk score origin"},
     {nsMsgSearchAttrib::HasAttachmentStatus, "has attachment status"},
 };
 
@@ -471,6 +473,11 @@ nsresult nsMsgSearchTerm::OutputValue(nsCString &outputStr)
         outputStr.AppendInt(m_value.u.junkStatus); // only if we write to disk, right?
         break;
       }
+    case nsMsgSearchAttrib::JunkPercent:
+      {
+        outputStr.AppendInt(m_value.u.junkPercent);
+        break;
+      }
     case nsMsgSearchAttrib::MsgStatus:
       {
         nsCAutoString status;
@@ -586,6 +593,9 @@ nsresult nsMsgSearchTerm::ParseValue(char *inStream)
       break;
     case nsMsgSearchAttrib::JunkStatus:
       m_value.u.junkStatus = atoi(inStream); // only if we read from disk, right?
+      break;
+    case nsMsgSearchAttrib::JunkPercent:
+      m_value.u.junkPercent = atoi(inStream);
       break;
     case nsMsgSearchAttrib::HasAttachmentStatus:
       m_value.u.msgStatus = MSG_FLAG_ATTACHMENT;
@@ -1314,6 +1324,55 @@ nsresult nsMsgSearchTerm::MatchJunkStatus(const char *aJunkScore, PRBool *pResul
   return rv;
 }
 
+nsresult nsMsgSearchTerm::MatchJunkScoreOrigin(const char *aJunkScoreOrigin, PRBool *pResult)
+{
+  NS_ENSURE_ARG_POINTER(pResult);
+  PRBool matches = PR_FALSE;
+  nsresult rv = NS_OK;
+
+  switch (m_operator)
+  {
+  case nsMsgSearchOp::Is:
+    matches = aJunkScoreOrigin && !strcmp(aJunkScoreOrigin, m_value.string);
+    break;
+  case nsMsgSearchOp::Isnt:
+    matches = !aJunkScoreOrigin || strcmp(aJunkScoreOrigin, m_value.string);
+    break;
+  default:
+    rv = NS_ERROR_FAILURE;
+    NS_ASSERTION(PR_FALSE, "invalid compare op for junk score origin");
+  }
+
+  *pResult = matches;
+  return rv;
+}
+
+nsresult nsMsgSearchTerm::MatchJunkPercent(PRUint32 aJunkPercent, PRBool *pResult)
+{
+  NS_ENSURE_ARG_POINTER(pResult);
+  PRBool result = PR_FALSE;
+  switch (m_operator)
+  {
+  case nsMsgSearchOp::IsGreaterThan:
+    if (aJunkPercent > m_value.u.junkPercent)
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::IsLessThan:
+    if (aJunkPercent < m_value.u.junkPercent)
+      result = PR_TRUE;
+    break;
+  case nsMsgSearchOp::Is:
+    if (aJunkPercent == m_value.u.junkPercent)
+      result = PR_TRUE;
+    break;
+  default:
+    break;
+  }
+  *pResult = result;
+  return NS_OK;
+}
+  
+
 nsresult nsMsgSearchTerm::MatchLabel(nsMsgLabelValue aLabelValue, PRBool *pResult)
 {
   NS_ENSURE_ARG_POINTER(pResult);
@@ -1786,6 +1845,9 @@ nsresult nsMsgResultElement::AssignValues (nsIMsgSearchValue *src, nsMsgSearchVa
     break;
   case nsMsgSearchAttrib::JunkStatus:
     err = src->GetJunkStatus(&dst->u.junkStatus);
+    break;
+  case nsMsgSearchAttrib::JunkPercent:
+    err = src->GetJunkPercent(&dst->u.junkPercent);
     break;
   case nsMsgSearchAttrib::Size:
     err = src->GetSize(&dst->u.size);

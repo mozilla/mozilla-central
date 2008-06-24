@@ -66,7 +66,7 @@ interface nsMsgSearchScope {
 
 typedef long nsMsgSearchAttribValue;
 
-[scriptable, uuid(68c8710a-304e-11d3-97bf-00a0c900d445)]
+[scriptable, uuid(4ee04610-cd79-11dc-95ff-0800200c9a66)]
 interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Default = -1;
     const nsMsgSearchAttribValue Subject = 0;  /* mail and news */
@@ -106,7 +106,9 @@ interface nsMsgSearchAttrib {
     const nsMsgSearchAttribValue Organization = 31;
     const nsMsgSearchAttribValue Department = 32;
 
-    // 33 - 45, reserved for ab / LDAP;
+    // 33 - 43, reserved for ab / LDAP;
+    const nsMsgSearchAttribValue JunkScoreOrigin = 44;
+    const nsMsgSearchAttribValue JunkPercent = 45;
     const nsMsgSearchAttribValue HasAttachmentStatus = 46;
     const nsMsgSearchAttribValue JunkStatus = 47;
     const nsMsgSearchAttribValue Label = 48; /* mail only...can search by label */
@@ -202,6 +204,7 @@ typedef struct nsMsgSearchValue
       nsIMsgFolder *folder;
       nsMsgLabelValue label;
       PRUint32 junkStatus;
+      PRUint32 junkPercent;
     } u;
     char *string;
 } nsMsgSearchValue;
@@ -216,7 +219,7 @@ typedef struct nsMsgSearchValue
    _a == nsMsgSearchAttrib::Size || _a == nsMsgSearchAttrib::AgeInDays || \
    _a == nsMsgSearchAttrib::FolderInfo || _a == nsMsgSearchAttrib::Location || \
    _a == nsMsgSearchAttrib::Label || _a == nsMsgSearchAttrib::JunkStatus || \
-   _a == nsMsgSearchAttrib::HasAttachmentStatus))
+   _a == nsMsgSearchAttrib::JunkPercent || _a == nsMsgSearchAttrib::HasAttachmentStatus))
 %}
 
 [ptr] native nsSearchMenuItem(nsSearchMenuItem);

@@ -40,7 +40,7 @@
 
 interface nsIMsgFolder;
 
-[scriptable, uuid(86293830-06e4-4f08-8f2c-e74ef45ceddf)]
+[scriptable, uuid(783758a0-cdb5-11dc-95ff-0800200c9a66)]
 interface nsIMsgSearchValue : nsISupports {
     // type of object
     attribute nsMsgSearchAttribValue attrib;
@@ -57,6 +57,12 @@ interface nsIMsgSearchValue : nsISupports {
     attribute nsIMsgFolder folder;
     attribute nsMsgLabelValue label;
     attribute nsMsgJunkStatus junkStatus;
+    /*
+     * junkPercent is set by the message filter plugin, and is approximately
+     *             proportional to the probability that a message is junk.
+     *             (range 0-100, 100 is junk)
+     */
+    attribute unsigned long junkPercent;
 
     AString toString();
 };
