@@ -304,6 +304,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
             nsMsgKey msgKey;
             nsCOMPtr <nsIMsgFolder> msgFolder;
             nextMsg->GetFolder(getter_AddRefs(msgFolder));
+            NS_ASSERTION(msgFolder, "couldn't get folder for next msg in multiple msg local copy");
             if (msgFolder)
             {
               nsCString uri;
