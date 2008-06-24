@@ -45,6 +45,7 @@ function initializeDirServer() {
             processDir.append("_tests");
             // Then this is the directory we want
             processDir.append("mailtest");
+            processDir.normalize();
 
             return processDir;
           } else if (prop == "TmpD") {
