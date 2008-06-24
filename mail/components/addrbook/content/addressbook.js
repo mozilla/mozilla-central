@@ -41,6 +41,7 @@
 # ***** END LICENSE BLOCK *****
 
 const nsIAbListener = Components.interfaces.nsIAbListener;
+const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
 
 var cvPrefs = 0;
 var gSearchTimer = null;
@@ -122,7 +123,6 @@ function OnUnloadAddressBook()
             .getService(Components.interfaces.nsIAbManager)
             .removeAddressBookListener(gAddressBookAbListener);
 
-  RemovePrefObservers();
   CloseAbView();
 }
 
@@ -138,32 +138,6 @@ var gAddressBookAbViewListener = {
 function GetAbViewListener()
 {
   return gAddressBookAbViewListener;
-}
-
-const kPrefMailAddrBookLastNameFirst = "mail.addr_book.lastnamefirst";
-
-var gMailAddrBookLastNameFirstObserver = {
-  observe: function(subject, topic, value) {
-    if (topic == "nsPref:changed" && value == kPrefMailAddrBookLastNameFirst) {
-      UpdateCardView();
-    }
-  }
-}
-
-function AddPrefObservers()
-{
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  var prefBranch = prefService.getBranch(null).QueryInterface(Components.interfaces.nsIPrefBranch2);
-  prefBranch.addObserver(kPrefMailAddrBookLastNameFirst, gMailAddrBookLastNameFirstObserver, false);
-}
-
-function RemovePrefObservers()
-{
-  var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefService);
-  var prefBranch = prefService.getBranch(null).QueryInterface(Components.interfaces.nsIPrefBranch2);
-  prefBranch.removeObserver(kPrefMailAddrBookLastNameFirst, gMailAddrBookLastNameFirstObserver);
 }
 
 // we won't show the window until the onload() handler is finished
@@ -182,8 +156,6 @@ function delayedOnLoadAddressBook()
   InitCommonJS();
 
   GetCurrentPrefs();
-
-  AddPrefObservers();
 
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadCardView();
@@ -242,7 +214,7 @@ function GetCurrentPrefs()
 
   // check "Show Name As" menu item based on pref
   var menuitemID;
-  switch (gPrefs.getIntPref("mail.addr_book.lastnamefirst"))
+  switch (gPrefs.getIntPref(kPrefMailAddrBookLastNameFirst))
   {
     case kFirstNameFirst:
       menuitemID = 'firstLastCmd';
@@ -289,19 +261,11 @@ function SetNameColumn(cmd)
       break;
   }
 
-  cvPrefs.prefs.setIntPref("mail.addr_book.lastnamefirst", prefValue);
-}
-
-function onFileMenuInit()
-{
-  goUpdateCommand('cmd_printcard');
-  goUpdateCommand('cmd_printcardpreview');
+  cvPrefs.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
 }
 
 function onOSXFileMenuInit()
 {
-  onFileMenuInit();
-
   document.getElementById('menu_osxAddressBook')
           .setAttribute("checked", AbOSXAddressBookExists());
 }
@@ -536,9 +500,6 @@ function onEnterInSearchBar()
   var searchURI = GetSelectedDirectory();
   if (!searchURI) return;
 
-  var sortColumn = gAbView.sortColumn;
-  var sortDirection = gAbView.sortDirection;
-
   /*
    XXX todo, handle the case where the LDAP url
    already has a query, like
@@ -550,7 +511,7 @@ function onEnterInSearchBar()
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
   }
 
-  SetAbView(searchURI, gSearchInput.value != "", sortColumn, sortDirection);
+  SetAbView(searchURI, gSearchInput.value != "");
 
   // XXX todo
   // this works for synchronous searches of local addressbooks,

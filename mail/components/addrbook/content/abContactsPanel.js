@@ -214,12 +214,10 @@ function onEnterInSearchBar()
     gQueryURIFormat = gPrefs.getComplexValue("mail.addr_book.quicksearchquery.format", 
                                               Components.interfaces.nsIPrefLocalizedString).data;
  
-  var sortColumn = gAbResultsTree.getAttribute("sortCol");
-  var sortDirection = document.getElementById(sortColumn).getAttribute("sortDirection");
   var searchURI = GetSelectedDirectory();
 
   if (gSearchInput.value != "")
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
 
-  SetAbView(searchURI, true, sortColumn, sortDirection);
+  SetAbView(searchURI, true);
 }

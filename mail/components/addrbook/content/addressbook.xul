@@ -111,8 +111,8 @@
               events="focus"
               oncommandupdate="goUpdateGlobalEditMenuItems()"/>
     <command id="cmd_newlist" oncommand="goDoCommand('cmd_newlist');"/>
-    <command id="cmd_printcardpreview" oncommand="goDoCommand('cmd_printcardpreview');"/>
-    <command id="cmd_printcard" oncommand="goDoCommand('cmd_printcard');"/>
+    <command id="cmd_printcardpreview" oncommand="AbPrintCardPreview();"/>
+    <command id="cmd_printcard" oncommand="AbPrintCard();"/>
     <command id="cmd_properties" oncommand="goDoCommand('button_edit');"/>
     <command id="cmd_undo" oncommand="goDoCommand('cmd_undo')" disabled="true"/>
     <command id="cmd_redo" oncommand="goDoCommand('cmd_redo')" disabled="true"/>
@@ -259,7 +259,7 @@
 #ifdef XP_MACOSX
             <menupopup id="menu_FilePopup" onpopupshowing="onOSXFileMenuInit();">
 #else
-            <menupopup id="menu_FilePopup" onpopupshowing="onFileMenuInit();">
+            <menupopup id="menu_FilePopup">
 #endif
                 <menu id="menu_New" label="&newMenu.label;" accesskey="&newMenu.accesskey;">
                     <menupopup id="menu_NewPopup">

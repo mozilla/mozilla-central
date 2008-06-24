@@ -74,8 +74,6 @@ var ResultsPaneController =
       case "cmd_delete":
       case "button_delete":
       case "button_edit":
-      case "cmd_printcard":
-      case "cmd_printcardpreview":
       case "cmd_newlist":
         return true;
       default:
@@ -109,8 +107,6 @@ var ResultsPaneController =
             goSetMenuValue(command, "valueCards");
         }
         return (enabled && (numSelected > 0));
-      case "cmd_printcard":
-      case "cmd_printcardpreview":
       case "button_edit":
         return (GetSelectedCardIndex() != -1);
       case "cmd_newlist":
@@ -140,12 +136,6 @@ var ResultsPaneController =
         break;
       case "button_edit":
         AbEditSelectedCard();
-        break;
-      case "cmd_printcard":
-        AbPrintCard();
-        break;
-      case "cmd_printcardpreview":
-        AbPrintPreviewCard();
         break;
       case "cmd_newlist":
         AbNewList();
@@ -653,8 +643,6 @@ function GetSelectedRows()
 
   var i,j;
   var rangeCount = gAbView.selection.getRangeCount();
-  var current = 0;
-
   for (i=0; i < rangeCount; i++) {
     var start = new Object;
     var end = new Object;
@@ -765,43 +753,41 @@ function CloseAbView()
   }
 }
 
-function SetAbView(uri, searchView, sortColumn, sortDirection)
+function SetAbView(uri, searchView)
 {
-  var actualSortColumn;
+  if (gAbView && gAbView.URI == uri)
+    return;
 
-  // make sure sortColumn and sortDirection have non null values before calling gAbView.init
-  if (!sortColumn)
-    sortColumn = kDefaultSortColumn;
+  var sortColumn = kDefaultSortColumn;
+  var sortDirection = kDefaultAscending;
 
-  if (!sortDirection)
-    sortDirection = kDefaultAscending;
+  if (!gAbResultsTree)
+    gAbResultsTree = document.getElementById("abResultsTree");
 
-  if (gAbView && gCurDirectory == GetSelectedDirectory())
-  {
-    // re-init the view
-    actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(), sortColumn, sortDirection);
+  if (gAbView) {
+    sortColumn = gAbView.sortColumn;
+    sortDirection = gAbView.sortDirection;
   }
-  else
-  {
+  else {
+    if (gAbResultsTree.hasAttribute("sortCol"))
+      sortColumn = gAbResultsTree.getAttribute("sortCol");
+    if (gAbResultsTree.hasAttribute("sortDirection"))
+      sortDirection = gAbResultsTree.getAttribute("sortDirection");
+  }
+
+  if (!gAbView || (gCurDirectory != GetSelectedDirectory())) {
     CloseAbView();
-
     gCurDirectory = GetSelectedDirectory();
-    gAbView = Components.classes["@mozilla.org/addressbook/abview;1"].createInstance(Components.interfaces.nsIAbView);
-
-    actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(), sortColumn, sortDirection);
+    gAbView = Components.classes["@mozilla.org/addressbook/abview;1"]
+                        .createInstance(Components.interfaces.nsIAbView);
   }
 
-  var boxObject = GetAbResultsBoxObject();
-  boxObject.view = gAbView.QueryInterface(Components.interfaces.nsITreeView);
+  var actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(),
+				      sortColumn, sortDirection);
+  GetAbResultsBoxObject().view =
+    gAbView.QueryInterface(Components.interfaces.nsITreeView);
 
   UpdateSortIndicators(sortColumn, sortDirection);
-
-  return actualSortColumn;
-}
-
-function GetAbView()
-{
-  return gAbView;
 }
 
 function ChangeDirectoryByURI(uri)
@@ -809,25 +795,14 @@ function ChangeDirectoryByURI(uri)
   if (!uri)
     uri = kPersonalAddressbookURI;
 
-  if (gAbView && gAbView.URI == uri)
-    return;
-
-  var sortColumn = gAbResultsTree.getAttribute("sortCol");
-  var sortDirection = document.getElementById(sortColumn).getAttribute("sortDirection");
-
-  var actualSortColumn = SetAbView(uri, false, sortColumn, sortDirection);
-
-  UpdateSortIndicators(actualSortColumn, sortDirection);
+  SetAbView(uri, false);
 
   // only select the first card if there is a first card
-  if (gAbView && gAbView.getCardFromRow(0)) {
+  if (gAbView && gAbView.getCardFromRow(0))
     SelectFirstCard();
-  }
-  else {
+  else
     // the selection changes if we were switching directories.
     ResultsPaneSelectionChanged()
-  }
-  return;
 }
 
 function AbSortAscending()
@@ -1022,7 +997,7 @@ function GetSelectedDirectory()
 function onAbClearSearch()
 {
   gSearchInput.value = "";
-  onEnterInSearchBar(true);
+  onEnterInSearchBar();
 }
 
 function AbSwapFirstNameLastName()
