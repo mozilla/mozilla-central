@@ -770,6 +770,7 @@ endif
 #
 # Include any personal overrides the user might think are needed.
 #
+-include $(topsrcdir)/$(MOZ_BUILD_APP)/app-config.mk
 -include $(MY_CONFIG)
 
 ######################################################################
