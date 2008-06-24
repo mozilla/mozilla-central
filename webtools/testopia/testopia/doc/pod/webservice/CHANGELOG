@@ -56,6 +56,8 @@ The following methods have been added:
 - TestRun.get_add_cases
 - TestRun.get_change_history
 - TestRun.get_completion_report
+- Testopia.api_version
+- Testopia.testopia_version
 
 The following methods have been moved:
 - TestPlan.get_builds => Product.get_builds
