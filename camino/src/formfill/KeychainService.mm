@@ -1437,6 +1437,10 @@ KeychainFormSubmitObserver::Notify(nsIDOMHTMLFormElement* formNode, nsIDOMWindow
 {
 }
 
+- (void)onXULCommand:(nsIDOMNSEvent*)aDOMEvent
+{
+}
+
 @end
 
 //

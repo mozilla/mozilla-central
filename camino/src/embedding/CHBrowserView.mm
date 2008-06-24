@@ -263,7 +263,7 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
     }
 
     // register the CHBrowserListener as an event listener for popup-blocking events,
-    // and link-added events.
+    // link-added events, and error page (XUL content activated) command events.
     nsCOMPtr<nsIDOMEventTarget> eventTarget = do_QueryInterface(chromeHandler);
     if (eventTarget)
     {
@@ -272,6 +272,10 @@ const char kDirServiceContractID[] = "@mozilla.org/file/directory_service;1";
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
 
       rv = eventTarget->AddEventListener(NS_LITERAL_STRING("DOMLinkAdded"),
+                                         static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
+      NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
+
+      rv = eventTarget->AddEventListener(NS_LITERAL_STRING("command"),
                                          static_cast<nsIDOMEventListener*>(_listener), PR_FALSE);
       NS_ASSERTION(NS_SUCCEEDED(rv), "AddEventListener failed");
     }

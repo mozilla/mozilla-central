@@ -57,6 +57,7 @@
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMPopupBlockedEvent.h"
 #include "nsIDOMBarProp.h"
+#include "nsIDomNSEvent.h"
 
 // XPCOM and String includes
 #include "nsIInterfaceRequestorUtils.h"
@@ -802,15 +803,18 @@ NS_IMETHODIMP
 CHBrowserListener::HandleEvent(nsIDOMEvent* inEvent)
 {
   NS_ENSURE_ARG(inEvent);
-  
+
   nsAutoString eventType;
   inEvent->GetType(eventType);
-  
+
   if (eventType.Equals(NS_LITERAL_STRING("DOMPopupBlocked")))
     return HandleBlockedPopupEvent(inEvent);
 
   if (eventType.Equals(NS_LITERAL_STRING("DOMLinkAdded")))
     return HandleLinkAddedEvent(inEvent);
+
+  if (eventType.Equals(NS_LITERAL_STRING("command")))
+    return HandleXULCommandEvent(inEvent);
 
   return NS_OK;
 }
@@ -1072,4 +1076,16 @@ CHBrowserListener::HandleSearchPluginLink(nsIDOMElement* inElement)
   NSString* mimeType = [NSString stringWith_nsAString:typeAttribute];
 
   [mContainer onSearchPluginDetected:location mimeType:mimeType displayName:title];
+}
+
+nsresult
+CHBrowserListener::HandleXULCommandEvent(nsIDOMEvent* inEvent)
+{
+  nsresult rv;
+  nsCOMPtr<nsIDOMNSEvent> nsEvent (do_QueryInterface(inEvent, &rv));
+  if (NS_FAILED(rv))
+    return rv;
+
+  [mContainer onXULCommand:nsEvent];
+  return NS_OK;
 }

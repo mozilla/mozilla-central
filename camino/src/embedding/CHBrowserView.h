@@ -58,6 +58,7 @@ class nsIPrintSettings;
 class nsIURI;
 class nsISupports;
 class nsISecureBrowserUI;
+class nsIDOMNSEvent;
 
 // Protocol implemented by anyone interested in progress
 // related to a BrowserView. A listener should explicitly
@@ -93,6 +94,9 @@ class nsISecureBrowserUI;
 - (void)onFeedDetected:(NSString*)inFeedURI feedTitle:(NSString*)inFeedTitle;
 // Called when a search plugin link element is noticed.
 - (void)onSearchPluginDetected:(NSURL*)pluginURL mimeType:(NSString*)pluginMIMEType displayName:(NSString*)pluginName;
+// Called when an XUL element was activated (e.g. clicked) in the content area, 
+// typically on an about: page.
+- (void)onXULCommand:(nsIDOMNSEvent*)aDOMEvent;
 
 @end
 

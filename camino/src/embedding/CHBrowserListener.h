@@ -101,7 +101,8 @@ protected:
   void HandleFeedLink(nsIDOMElement* inElement);
   void HandleSearchPluginLink(nsIDOMElement* inElement);
   ELinkAttributeType GetLinkAttributeType(nsIDOMElement* inElement); 
-    
+  nsresult HandleXULCommandEvent(nsIDOMEvent* inEvent);
+
 private:
   CHBrowserView*          mView;     // WEAK - it owns us
   NSMutableArray*         mListeners;

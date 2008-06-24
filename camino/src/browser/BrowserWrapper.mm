@@ -54,6 +54,7 @@
 #import "XMLSearchPluginParser.h"
 #import "FindBarController.h"
 #import "CHGradient.h"
+#import "NSString+Gecko.h"
 
 #include "CHBrowserService.h"
 #include "ContentClickListener.h"
@@ -83,6 +84,9 @@
 #include "nsIWebProgressListener.h"
 #include "nsIBrowserDOMWindow.h"
 #include "nsIScriptSecurityManager.h"
+#include "nsIDOM3Document.h"
+#include "nsIDOMEventTarget.h"
+#include "nsIDOMNSEvent.h"
 
 class nsIDOMPopupBlockedEvent;
 
@@ -125,6 +129,8 @@ enum StatusPriority {
 
 - (void)addFindBarViewAndDisplay;
 - (void)removeFindBarViewAndDisplay;
+
+- (void)performCommandForXULElementWithID:(NSString*)elementIdentifier onPage:(NSString*)pageURI;
 
 @end
 
@@ -845,6 +851,54 @@ enum StatusPriority {
 {
   // presumably this is only called on the primary tab
   [[mWindow delegate] onShowContextMenu:flags domEvent:aEvent domNode:aNode];
+}
+
+- (void)onXULCommand:(nsIDOMNSEvent*)aDOMEvent
+{
+  // Do not handle events which were synthesized by untrusted content.
+  PRBool eventIsTrusted = PR_FALSE;
+  aDOMEvent->GetIsTrusted(&eventIsTrusted);
+  if (!eventIsTrusted)
+    return;
+
+  nsresult rv;
+  nsCOMPtr<nsIDOMEventTarget> eventTarget;
+  rv = aDOMEvent->GetOriginalTarget(getter_AddRefs(eventTarget));
+  if (NS_FAILED(rv))
+    return;
+
+  // Get the ID of the XUL element sending the event.
+  nsCOMPtr<nsIDOMElement> domElementSendingEvent = do_QueryInterface(eventTarget, &rv);
+  if (NS_FAILED(rv))
+    return;
+  nsAutoString elementIDString;
+  rv = domElementSendingEvent->GetAttribute(NS_LITERAL_STRING("id"), elementIDString);
+  if (NS_FAILED(rv))
+    return;
+  NSString* elementID = [NSString stringWith_nsAString:elementIDString];
+
+  // Get the URI of the page actually containing the XUL element, which will differ
+  // from -[self currentURI] if the command was send from an error overlay, for instance.
+  nsCOMPtr<nsIDOMDocument> domDocument;
+  rv = domElementSendingEvent->GetOwnerDocument(getter_AddRefs(domDocument));
+  if (NS_FAILED(rv))
+    return;
+  nsCOMPtr<nsIDOM3Document> doc = do_QueryInterface(domDocument, &rv);
+  if (NS_FAILED(rv))
+    return;
+  nsAutoString docURISpec;
+  rv = doc->GetDocumentURI(docURISpec);
+  if (NS_FAILED(rv))
+    return;
+  NSString* documentURI = [NSString stringWith_nsAString:docURISpec];
+
+  [self performCommandForXULElementWithID:elementID onPage:documentURI];
+}
+
+// The pageURI is supplied because it might differ from -[self currentURI], particularly
+// if the command was sent from an error page overlay.
+- (void)performCommandForXULElementWithID:(NSString*)elementIdentifier onPage:(NSString*)pageURI
+{
 }
 
 - (BOOL)performKeyEquivalent:(NSEvent*)theEvent
