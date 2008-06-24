@@ -564,6 +564,9 @@ void nsAbLDIFService::AddLdifColToDatabase(nsIMdbRow* newRow, char* typeSlot, ch
     else if (colType.EqualsLiteral("mozillahomestate"))
       mDatabase->AddHomeState(newRow, column.get());
 
+    else if (colType.EqualsLiteral("mozillahomestreet"))
+      mDatabase->AddHomeAddress(newRow, column.get());
+
     else if (colType.EqualsLiteral("mozillahomestreet2"))
       mDatabase->AddHomeAddress2(newRow, column.get());
 
