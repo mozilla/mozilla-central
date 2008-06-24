@@ -40,60 +40,6 @@
 
 //NOTE: gMessengerBundle must be defined and set or this Overlay won't work
 
-var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService();
-promptService = promptService.QueryInterface(Components.interfaces.nsIPromptService);
-var accountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
-
-// we need the account manager datasource for when trying
-// to figure out which account is next in the folder pane.
-var gAccountManagerDataSource = Components.classes["@mozilla.org/rdf/datasource;1?name=msgaccountmanager"].getService(Components.interfaces.nsIRDFDataSource);
-
-// we can't compare the name to determine the order in the folder pane
-// we need to compare the value of the sort resource, 
-// as that's what we use to sort on in the folder pane
-var gNameProperty = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService).GetResource("http://home.netscape.com/NC-rdf#Name?sort=true");
-
-function compareServerSortOrder(server1, server2)
-{
-  var sortValue1, sortValue2;
-
-  try {
-    var res1 = RDF.GetResource(server1.URI);
-    sortValue1 = gAccountManagerDataSource.GetTarget(res1, gNameProperty, true).QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  }
-  catch (ex) {
-    dump("XXX ex ");
-    if (server1 && server1.URI)
-      dump(server1.URI + ",");
-    dump(ex + "\n");
-    sortValue1 = "";
-  }
-
-  try {
-    var res2 = RDF.GetResource(server2.URI);
-    sortValue2 = gAccountManagerDataSource.GetTarget(res2, gNameProperty, true).QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  }
-  catch (ex) {
-    dump("XXX ex ");
-    if (server2 && server2.URI)
-      dump(server2.URI + ",");
-    dump(ex + "\n");
-    sortValue2 = "";
-  }
-
-  if (sortValue1 < sortValue2)
-    return -1;
-  else if (sortValue1 > sortValue2)
-    return 1;
-  else 
-    return 0;
-}
-
-function compareFolderSortKey(folder1, folder2) 
-{
-  return folder1.compareSortKeys(folder2);
-}
-
 function GetSubFoldersInFolderPaneOrder(folder)
 {
   var subFolders = folder.subFolders;
@@ -103,6 +49,10 @@ function GetSubFoldersInFolderPaneOrder(folder)
   while (subFolders.hasMoreElements()) {
     msgFolders[msgFolders.length] =
       subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
+  }
+
+  function compareFolderSortKey(folder1, folder2) {
+    return folder1.compareSortKeys(folder2);
   }
 
   // sort the subfolders
@@ -196,16 +146,56 @@ function FindNextFolder()
 
 function GetRootFoldersInFolderPaneOrder()
 {
-  var allServers = accountManager.allServers;
-  var numServers = allServers.Count();
+  var acctMgr = Components.classes["@mozilla.org/messenger/account-manager;1"].
+                getService(Components.interfaces.nsIMsgAccountManager);
+  var acctEnum = acctMgr.accounts;
+  var count = acctEnum.Count();
 
-  var serversMsgFolders = Array(numServers);
-  for (var i = 0; i < numServers; i++)
-    serversMsgFolders[i] = allServers.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIncomingServer).rootMsgFolder;
+  var accounts = new Array();
+  for (var i = 0; i < count; i++) {
+    var acct = acctEnum.GetElementAt(i)
+                       .QueryInterface(Components.interfaces.nsIMsgAccount);
+
+    // This is a HACK to work around bug 41133. If we have one of the
+    // dummy "news" accounts there, that account won't have an
+    // incomingServer attached to it, and everything will blow up.
+    if (acct.incomingServer)
+      accounts.push(acct);
+  }
+
+  /**
+   * This is our actual function for sorting accounts.  Accounts go in the
+   * following order: (1) default account (2) other mail accounts (3) Local
+   * Folders (4) news
+   */
+  function accountCompare(a, b) {
+    if (a.key == acctMgr.defaultAccount.key)
+      return -1;
+    if (b.key == acctMgr.defaultAccount.key)
+      return 1;
+    var aIsNews = a.incomingServer.type == "nntp";
+    var bIsNews = b.incomingServer.type == "nntp";
+    if (aIsNews && !bIsNews)
+      return 1;
+    if (bIsNews && !aIsNews)
+      return -1;
+
+    var aIsLocal = a.incomingServer.type == "none";
+    var bIsLocal = b.incomingServer.type == "none";
+    if (aIsLocal && !bIsLocal)
+      return 1;
+    if (bIsLocal && !aIsLocal)
+      return -1;
+    return 0;
+  }
 
   // sort accounts, so they are in the same order as folder pane
-  serversMsgFolders.sort(compareServerSortOrder);
- 
+  accounts.sort(accountCompare)
+
+  var serversMsgFolders = new Array();
+  for each (var acct in accounts)
+    serversMsgFolders.push(acct.incomingServer.rootMsgFolder);
+
   return serversMsgFolders;
 }
 
@@ -244,6 +234,8 @@ function CrossFolderNavigation(type)
         case 1:
         default:
           var promptText = gMessengerBundle.getFormattedString("advanceNextPrompt", [ folder.name ], 1); 
+          var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                        .getService(Components.interfaces.nsIPromptService);
           if (!promptService.confirmEx(window, promptText, promptText, 
                                        promptService.STD_YES_NO_BUTTONS, 
                                        null, null, null, null, {}))
