@@ -200,7 +200,6 @@ nsresult nsMsgAccountManager::Init()
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
     observerService->AddObserver(this, "quit-application" , PR_TRUE);
     observerService->AddObserver(this, ABOUT_TO_GO_OFFLINE_TOPIC, PR_TRUE);
-    observerService->AddObserver(this, "session-logout", PR_TRUE);
     observerService->AddObserver(this, "profile-before-change", PR_TRUE);
   }
 
@@ -268,14 +267,6 @@ nsMsgAccountManager::SetUserNeedsToAuthenticate(PRBool aUserNeedsToAuthenticate)
   return NS_OK;
 }
 
-PR_STATIC_CALLBACK(PLDHashOperator)
-hashLogoutOfServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
-{
-  nsMsgAccountManager *accountManager = (nsMsgAccountManager*) aClosure;
-  accountManager->LogoutOfServer(aServer);
-  return PL_DHASH_NEXT;
-}
-
 NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
   if(!strcmp(aTopic,NS_XPCOM_SHUTDOWN_OBSERVER_ID))
@@ -299,12 +290,6 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
       if (dataString.Equals(someDataString))
         CloseCachedConnections();
     }
-    return NS_OK;
-  }
-
-  if (!strcmp(aTopic, "session-logout"))
-  {
-    m_incomingServers.Enumerate(hashLogoutOfServer, nsnull);
     return NS_OK;
   }
 
