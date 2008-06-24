@@ -398,15 +398,6 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     entry.title.@type = "text";
     entry.title = aItem.title;
 
-    // gd:extendedProperty (id)
-    // If an id is set, lets save it in X-MOZ-SYNCID, since we cannot set the
-    // real event uid, gCal:syncEvent is only available for the default
-    // calendar, and also setting gCal:syncEvent cripples the event a bit.
-    var gdMozUid = <gd:extendedProperty xmlns:gd={gd}/>;
-    gdMozUid.@name = "X-MOZ-SYNCID";
-    gdMozUid.@value = aItem.id || "";
-    entry.gd::extendedProperty += gdMozUid;
-
     // atom:content
     entry.content = aItem.getProperty("DESCRIPTION") || "";
     entry.content.@type = "text";
@@ -440,7 +431,7 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
     // gd:who
     if (getPrefSafe("calendar.google.enableAttendees", false)) {
         // XXX Only parse attendees if they are enabled, due to bug 407961
-            
+
         var attendees = aItem.getAttendees({});
         if (aItem.organizer) {
             // Taking care of the organizer is the same as taking care of any other
@@ -777,6 +768,22 @@ function getItemEditURI(aItem) {
     return edituri;
 }
 
+function getIdFromEntry(aXMLEntry) {
+    var gCal = new Namespace("gCal", "http://schemas.google.com/gCal/2005");
+    var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+    var id = aXMLEntry.gCal::uid.@value.toString();
+    return id.replace(/@google.com/,"");
+}
+
+function getRecurrenceIdFromEntry(aXMLEntry, aTimezone) {
+    var gd = new Namespace("gd", "http://schemas.google.com/g/2005");
+    if (aXMLEntry.gd::originalEvent.toString().length > 0) {
+        var rId = aXMLEntry.gd::originalEvent.gd::when.@startTime;
+        return fromRFC3339(rId.toString(), aTimezone);
+    }
+    return null;
+}
+
 /**
  * XMLEntryToItem
  * Converts a string of xml data to a calIEvent.
@@ -803,11 +810,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 
     try {
         // id
-        var id = aXMLEntry.gd::extendedProperty
-                          .(@name == "X-MOZ-SYNCID")
-                          .@value.toString() ||
-                 aXMLEntry.id.toString();
-        item.id = id.substring(id.lastIndexOf('/')+1);
+        item.id = getIdFromEntry(aXMLEntry);
 
         // link
         // Since Google doesn't set the edit url to be https if the request is
@@ -842,7 +845,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
          * Helper function to parse all reminders in a tagset. This sets the
          * item's alarm, and also saves all other alarms using the
          * X-GOOGLE-OTHERALARMS property.
-         * 
+         *
          * @param reminderTags      The tagset to parse.
          */
         function parseReminders(reminderTags) {
@@ -1020,7 +1023,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         item.setProperty("X-MOZ-SNOOZE-TIME", snoozeProperty);
 
         // gd:extendedProperty (snooze recurring alarms)
-        if (item.recurrenceInfo) { 
+        if (item.recurrenceInfo) {
             if (!gGoogleSandbox) {
                 // Initialize sandbox if it does not already exist
                 gGoogleSandbox = Components.utils.Sandbox("about:blank");
@@ -1086,10 +1089,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         }
 
         // gd:originalEvent
-        if (aXMLEntry.gd::originalEvent.toString().length > 0) {
-            var rId = aXMLEntry.gd::originalEvent.gd::when.@startTime;
-            item.recurrenceId = fromRFC3339(rId.toString(), aTimezone);
-        }
+        item.recurrenceId = getRecurrenceIdFromEntry(aXMLEntry, aTimezone);
 
         // gd:visibility
         item.privacy = aXMLEntry.gd::visibility.@value.toString()
@@ -1127,6 +1127,58 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
 }
 
 /**
+ * Expand an item to occurrences, if the operation's item filter requests it.
+ * Otherwise returns the item in an array.
+ *
+ * @param aItem         The item to expand
+ * @param aOperation    The calIGoogleRequest that contains the filter and
+ *                        ranges.
+ * @return              The (possibly expanded) items in an array.
+ */
+function expandItems(aItem, aOperation) {
+    var expandedItems;
+    if (aOperation.itemFilter &
+        Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES) {
+        expandedItems = aItem.getOccurrencesBetween(aOperation.itemRangeStart,
+                                                    aOperation.itemRangeEnd,
+                                                    {});
+        LOG("Expanded item " + aItem.title + " to " +
+            expandedItems.length + " items");
+    }
+    return expandedItems || [aItem];
+}
+
+/**
+ * Helper prototype to set a certain variable to the first item passed via get
+ * listener. Cleans up code.
+ */
+function syncSetter(aObj) {
+    this.mObj = aObj
+}
+syncSetter.prototype = {
+
+    onGetResult: function syncSetter_onGetResult(aCal,
+                                                 aStatus,
+                                                 aIID,
+                                                 aDetail,
+                                                 aCount,
+                                                 aItems) {
+        this.mObj.value = aItems[0];
+    },
+
+    onOperationComplete: function syncSetter_onOperationComplete(aCal,
+                                                                 aStatus,
+                                                                 aOpType,
+                                                                 aId,
+                                                                 aDetail) {
+
+        if (!Components.isSuccessCode(aStatus)) {
+            this.mObj.value = null;
+        }
+    }
+};
+
+/**
  * LOGitem
  * Custom logging functions
  */
@@ -1147,6 +1199,12 @@ function LOGitem(item) {
         for each (var ritem in ritems) {
             rstr += "\t\t" + ritem.icalProperty.icalString;
         }
+
+        rstr += "\tExceptions:\n";
+        var exids = item.recurrenceInfo.getExceptionIds({});
+        for each (var exc in exids) {
+            rstr += "\t\t" + exc + "\n";
+        }
     }
 
     LOG("Logging calIEvent:" +
@@ -1165,7 +1223,7 @@ function LOGitem(item) {
         "\n\talarmOffset:" + item.alarmOffset +
         "\n\talarmLastAck:" + item.alarmLastAck +
         "\n\tsnoozeTime:" + item.getProperty("X-MOZ-SNOOZE-TIME") +
-        "\n\tisOccurrence: " + item.getProperty("x-GOOGLE-ITEM-IS-OCCURRENCE") +
+        "\n\tisOccurrence: " + (item.recurrenceId != null) +
         "\n\tOrganizer: " + LOGattendee(item.organizer) +
         "\n\tAttendees: " + attendeeString +
         "\n\trecurrence: " + (rstr.length > 1 ? "yes: " + rstr : "no"));

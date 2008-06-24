@@ -129,8 +129,6 @@ calGoogleRequest.prototype = {
                 this.method = "POST";
                 this.uri = "https://www.google.com/accounts/ClientLogin";
                 break;
-            case this.META:
-                // Fall through
             case this.GET:
                 this.method = "GET";
                 break;
