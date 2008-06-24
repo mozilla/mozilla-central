@@ -100,36 +100,12 @@ cert_init()
   if [ "${OS_ARCH}" = "WINNT" -a "$OS_NAME" = "CYGWIN_NT" ]; then
 	ROOTCERTSFILE=`cygpath -m ${ROOTCERTSFILE}`
   fi
-
-
-  ################## Generate noise for our CA cert. ######################
-  # NOTE: these keys are only suitable for testing, as this whole thing 
-  # bypasses the entropy gathering. Don't use this method to generate 
-  # keys and certs for product use or deployment.
-  #
-  ps -efl > ${NOISE_FILE} 2>&1
-  ps aux >> ${NOISE_FILE} 2>&1
-  noise
-
 }
 
 cert_log() ######################    write the cert_status file
 {
     echo "$SCRIPTNAME $*"
     echo $* >>${CERT_LOG_FILE}
-}
-
-################################ noise ##################################
-# Generate noise for our certs
-#
-# NOTE: these keys are only suitable for testing, as this whole thing bypasses
-# the entropy gathering. Don't use this method to generate keys and certs for
-# product use or deployment.
-#########################################################################
-noise()
-{
-    #netstat >> ${NOISE_FILE} 2>&1
-    date >> ${NOISE_FILE} 2>&1
 }
 
 ################################ certu #################################

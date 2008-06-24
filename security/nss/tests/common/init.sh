@@ -114,10 +114,17 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
         FIPSPWFILE=${HOSTDIR}/tests.fipspw.$$
         FIPSBADPWFILE=${HOSTDIR}/tests.fipsbadpw.$$
         FIPSP12PWFILE=${HOSTDIR}/tests.fipsp12pw.$$
-    
+
         echo "fIps140" > ${FIPSPWFILE}
         echo "fips104" > ${FIPSBADPWFILE}
         echo "pKcs12fips140" > ${FIPSP12PWFILE}
+
+        # NOTE: these keys are only suitable for testing, as this whole thing 
+        # bypasses the entropy gathering. Don't use this method to generate 
+        # keys and certs for product use or deployment.
+        ps -efl > ${NOISE_FILE} 2>&1
+        ps aux >> ${NOISE_FILE} 2>&1
+        date >> ${NOISE_FILE} 2>&1
 
         P_SERVER_CADIR=${SERVER_CADIR}
         P_CLIENT_CADIR=${CLIENT_CADIR}
