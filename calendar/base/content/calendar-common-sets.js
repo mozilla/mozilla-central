@@ -212,7 +212,9 @@ var calendarController = {
             case "cmd_delete":
             case "button_delete":
                 var focusedElement = document.commandDispatcher.focusedElement;
-                if (focusedElement) {
+                if (!focusedElement && this.defaultController && !this.isCalendarInForeground()) {
+                    this.defaultController.doCommand(aCommand);
+                } else {
                     var focusedRichListbox = getParentNodeOrThis(focusedElement, "richlistbox");
                     if (focusedRichListbox && focusedRichListbox.id == "agenda-listbox") {
                         agendaListbox.deleteSelectedItem(false);
