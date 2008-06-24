@@ -81,6 +81,8 @@
 #include "nsMsgFileStream.h"
 #include "nsIFileURL.h"
 #include "nsNetUtil.h"
+#include "nsIMsgDatabase.h"
+#include "nsIMutableArray.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -1823,4 +1825,31 @@ NS_MSG_BASE void MsgCompressWhitespace(nsCString& aString)
   // Set the new length.
   aString.SetLength(end - start);
 #endif
+}
+
+NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aMsgKeys,
+                                           nsIMutableArray *aHeaders)
+{
+  PRUint32 count = aMsgKeys.Length();
+  nsresult rv = NS_OK;
+
+  for (PRUint32 kindex = 0; kindex < count; kindex++)
+  {
+    nsMsgKey key = aMsgKeys.ElementAt(kindex);
+    nsCOMPtr<nsIMsgDBHdr> msgHdr;
+    PRBool hasKey;
+    rv = aDB->ContainsKey(key, &hasKey);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // This function silently skips when the key is not found. This is an expected case.
+    if (hasKey)
+    {
+      rv = aDB->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      aHeaders->AppendElement(msgHdr, PR_FALSE);
+    }
+  }
+
+  return rv;
 }

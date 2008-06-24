@@ -44,6 +44,7 @@
 #include "msgCore.h"
 #include "nsCOMPtr.h"
 #include "MailNewsTypes2.h"
+#include "nsTArray.h"
 
 class nsILocalFile;
 class nsIPrefBranch;
@@ -52,6 +53,8 @@ class nsIMsgMessageService;
 class nsIUrlListener;
 class nsIOutputStream;
 class nsIInputStream;
+class nsIMsgDatabase;
+class nsIMutableArray;
 
 //These are utility functions that can used throughout the mailnews code
 
@@ -206,6 +209,10 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *string);
 
 NS_MSG_BASE PRUnichar *MsgEscapeHTML(const PRUnichar *aSourceBuffer,
                                      PRInt32 aSourceBufferLen);
+
+// Converts an array of nsMsgKeys plus a database, to an array of nsIMsgDBHdrs.
+NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<nsMsgKey> &aKeys,
+                                           nsIMutableArray *aHeaders);
 
 #endif
 

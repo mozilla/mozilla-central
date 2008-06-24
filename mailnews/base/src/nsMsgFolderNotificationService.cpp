@@ -102,32 +102,16 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemAdded(nsISupports *aItem
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyItemDeleted(nsISupports *aItem)
 {
   PRInt32 count = m_listeners.Count();
-  
-  // this might be an array of items - use QI to find out.
-  nsCOMPtr <nsIArray> itemArray = do_QueryInterface(aItem);
+
   for(PRInt32 i = 0; i < count; i++)
   {
     nsCOMPtr<nsIMsgFolderListener> listener = m_listeners[i];
     NS_ASSERTION(listener, "listener is null");
     if (!listener)
       return NS_ERROR_FAILURE;
-    if (itemArray)
-    {
-      PRUint32 len;
-      itemArray->GetLength(&len);
-      for (PRUint32 i = 0; i < len; i++)
-      {
-        nsresult rv;
-        nsCOMPtr<nsISupports> supports = do_QueryElementAt(itemArray, i, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-        if (supports)
-          listener->ItemDeleted(supports);
-      }
-    }
-    else
-      listener->ItemDeleted(aItem);
+    listener->ItemDeleted(aItem);
   }
-  
+
   return NS_OK;
 }
 

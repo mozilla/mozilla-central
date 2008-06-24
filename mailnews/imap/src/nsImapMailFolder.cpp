@@ -2032,12 +2032,6 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
         deleteImmediatelyNoTrash = PR_TRUE;
     }
   }
-  else
-  {
-    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
-    if (notifier)
-      notifier->NotifyItemDeleted(messages);   
-  }
 
   if ((NS_SUCCEEDED(rv) && deleteImmediatelyNoTrash) || deleteModel == nsMsgImapDeleteModels::IMAPDelete )
   {
@@ -2098,6 +2092,13 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
         else
         {
           EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);  //"remove it immediately" model
+          // Notify if this is an actual delete.
+          if (!isMove)
+          {
+            nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+            if (notifier)
+              notifier->NotifyItemDeleted(messages);
+          }
           mDatabase->DeleteMessages(&srcKeyArray,nsnull);
           EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
           NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
@@ -2500,6 +2501,14 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
   if (!keysToDelete.IsEmpty() && mDatabase)
   {
     PRUint32 total;
+
+    // Notify nsIMsgFolderListeners of a mass delete.
+    nsCOMPtr<nsIMutableArray> hdrsToDelete(do_CreateInstance(NS_ARRAY_CONTRACTID));
+    MsgGetHeadersFromKeys(mDatabase, keysToDelete, hdrsToDelete);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyItemDeleted(hdrsToDelete);
+
     // It would be nice to notify RDF or whoever of a mass delete here.
     mDatabase->DeleteMessages(&keysToDelete, nsnull);
     total = keysToDelete.Length();
@@ -4329,6 +4338,20 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
         if (!endedOfflineDownload)
           EndOfflineDownload();
       }
+
+      // Notify move, copy or delete (online operations)
+      // Not sure whether nsImapDeleteMsg is even used, deletes in all three models use nsImapAddMsgFlags.
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier && m_copyState)
+      {
+        if (imapAction == nsIImapUrl::nsImapOnlineMove)
+          notifier->NotifyItemMoveCopyCompleted(PR_TRUE, m_copyState->m_messages, this);
+        else if (imapAction == nsIImapUrl::nsImapOnlineCopy)
+          notifier->NotifyItemMoveCopyCompleted(PR_FALSE, m_copyState->m_messages, this);
+        else if (imapAction == nsIImapUrl::nsImapDeleteMsg)
+          notifier->NotifyItemDeleted(m_copyState->m_messages);
+      }
+
       switch(imapAction)
       {
       case nsIImapUrl::nsImapDeleteMsg:
@@ -4464,6 +4487,22 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                 if (keyString)
                 {
                   ParseUidString(keyString, keyArray);
+                  
+                  // Notify listeners of delete.
+                  if (notifier)
+                  {
+                    nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
+                    MsgGetHeadersFromKeys(db, keyArray, msgHdrs);
+
+                    // XXX Currently, the DeleteMessages below gets executed twice on deletes.
+                    // Once in DeleteMessages, once here. The second time, it silently fails
+                    // to delete. This is why we're also checking whether the array is empty.
+                    PRUint32 numHdrs;
+                    msgHdrs->GetLength(&numHdrs);
+                    if (numHdrs)
+                      notifier->NotifyItemDeleted(msgHdrs);
+                  }
+
                   db->DeleteMessages(&keyArray, nsnull);
                   db->SetSummaryValid(PR_TRUE);
                   db->Commit(nsMsgDBCommitType::kLargeCommit);
@@ -5717,20 +5756,31 @@ nsImapMailFolder::CopyNextStreamMessage(PRBool copySucceeded, nsISupports *copyS
   }
   else
   {
-     if (mailCopyState->m_isMove)
-     {
-        nsCOMPtr<nsIMsgFolder> srcFolder = do_QueryInterface(mailCopyState->m_srcSupport, &rv);
-        if (NS_SUCCEEDED(rv) && srcFolder)
-        {
-          srcFolder->DeleteMessages(mailCopyState->m_messages, nsnull,
-            PR_TRUE, PR_TRUE, nsnull, PR_FALSE);
-          // we want to send this notification after the source messages have
-          // been deleted.
-          nsCOMPtr<nsIMsgLocalMailFolder> popFolder = do_QueryInterface(srcFolder);
-          if (popFolder)   //needed if move pop->imap to notify FE
-            srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
-        }
-     }
+    // Notify of move/copy completion in case we have some source headers
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+    {
+      PRUint32 numHdrs;
+      mailCopyState->m_messages->GetLength(&numHdrs);
+      if (numHdrs)
+        notifier->NotifyItemMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this);
+    }
+
+
+    if (mailCopyState->m_isMove)
+    {
+      nsCOMPtr<nsIMsgFolder> srcFolder(do_QueryInterface(mailCopyState->m_srcSupport, &rv));
+      if (NS_SUCCEEDED(rv) && srcFolder)
+      {
+        srcFolder->DeleteMessages(mailCopyState->m_messages, nsnull,
+          PR_TRUE, PR_TRUE, nsnull, PR_FALSE);
+        // we want to send this notification after the source messages have
+        // been deleted.
+        nsCOMPtr<nsIMsgLocalMailFolder> popFolder(do_QueryInterface(srcFolder));
+        if (popFolder)   //needed if move pop->imap to notify FE
+          srcFolder->NotifyFolderEvent(mDeleteOrMoveMsgCompletedAtom);
+      }
+    }
   }
   return rv;
 }
@@ -6208,6 +6258,14 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
     }
     if (txnMgr)
       txnMgr->EndBatch();
+  }
+
+  // Do this before OnCopyCompleted, as OnCopyCompleted destroys the messages array
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyItemMoveCopyCompleted(isMove, messages, this);
   }
 
   nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);

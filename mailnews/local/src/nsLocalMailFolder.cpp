@@ -2553,25 +2553,23 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
   }
   else
   {
-    // both CopyMessages() & CopyFileMessage() go here if they have
-    // done copying operation; notify completion to copy service
-    // notify the global msg folder listeners
-    if (multipleCopiesFinished)
+    // If we have some headers, then there is a source, so notify itemMoveCopyCompleted.
+    // If we don't have any headers already, (eg save as draft, send) then notify itemAdded.
+    // This notification is done after the messages are deleted, so that saving a new draft
+    // of a message works correctly -- first an itemDeleted is sent for the old draft, then
+    // an itemAdded for the new draft.
+    PRUint32 numHdrs;
+    mCopyState->m_messages->GetLength(&numHdrs);
+
+    if (multipleCopiesFinished && numHdrs && !mCopyState->m_isFolder)
     {
       // we need to send this notification before we delete the source messages,
       // because deleting the source messages clears out the src msg db hdr.
-      nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
-      {
-        PRBool hasListeners;
-        notifier->GetHasListeners(&hasListeners);
-        if (hasListeners)
-            notifier->NotifyItemMoveCopyCompleted(mCopyState->m_isMove, mCopyState->m_messages, this);
-      }
-
+        notifier->NotifyItemMoveCopyCompleted(mCopyState->m_isMove, mCopyState->m_messages, this);
     }
-    // Store whether the message is CopyMessages() or CopyFileMessage()
-    PRBool isCopyFileMessage = ! mCopyState->m_message;
+
     if(!mCopyState->m_isMove)
     {
       if (multipleCopiesFinished)
@@ -2596,10 +2594,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
         EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_FALSE /*dbBatching*/); //dest folder doesn't need db batching
       }
     }
-    // if CopyFileMessage() then notify that an item has been added
-    if (isCopyFileMessage)
+    // Send the itemAdded notification in case we didn't send the itemMoveCopyCompleted notification earlier.
+    if (!numHdrs)
     {
-      nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+      nsCOMPtr <nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
         notifier->NotifyItemAdded(newHdr);
     }
