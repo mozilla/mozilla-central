@@ -43,9 +43,14 @@ function initializeDirServer() {
 
             // Then into the _tests directory
             processDir.append("_tests");
+
+            // We need to normalize on a directory we'll always know about it
+            // because otherwise Linux doesn't work properly. Therefore do it
+            // here before we add mailtest.
+            processDir.normalize();
+
             // Then this is the directory we want
             processDir.append("mailtest");
-            processDir.normalize();
 
             return processDir;
           } else if (prop == "TmpD") {
