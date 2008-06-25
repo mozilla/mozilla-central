@@ -38,8 +38,8 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://messenger/skin/filterDialog.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderMenus.css" type="text/css"?>
 
-<?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/searchTermOverlay.xul"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/FilterEditor.dtd">
@@ -58,6 +58,7 @@
 
   <dummy class="usesMailWidgets"/>
   <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
     <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
     <stringbundle id="bundle_search" src="chrome://messenger/locale/search.properties"/>
   </stringbundleset>
@@ -66,6 +67,7 @@
   <script type="application/x-javascript" src="chrome://messenger/content/mailCommands.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/FilterEditor.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
+  <script type="application/x-javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
 
   <hbox align="center">
     <label value="&filterName.label;" accesskey="&filterName.accesskey;" control="filterName"/>
