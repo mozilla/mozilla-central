@@ -8,6 +8,7 @@ Modified by Rob Campbell on 2007-05-30
 Modified by Rob Campbell on 2007-06-26 - added -i buildid option
 Modified by Rob Campbell on 2007-07-06 - added -d testDate option
 Modified by Ben Hearsum on 2007-08-22 - bugfixes, cleanup, support for multiple platforms. Only works on Talos2
+Modified my Alice Nodelman on 2008-04-30 - switch to using application.ini, handle different time stamp formats/options
 """
 
 import sys
@@ -26,6 +27,7 @@ configFilePath = "C:\\mozilla\\testing\\performance\\talos\\"
 #                             "components", "master.ini")
 # For Linux
 masterIniSubpath = path.join("firefox", "components", "talkback", "master.ini")
+masterIniSubpath = "application.ini"
 # For OS X
 # masterIniSubpath = path.join("*.app", "Contents", "MacOS", "extensions",
 #                              "talkback@mozilla.org", "components",
@@ -48,7 +50,8 @@ class PerfConfigurator:
     buildid = ""
     currentDate = ""
     verbose = False
-    testDateFromBuildId = False
+    testDate = ""
+    useId = False
     
     def _dumpConfiguration(self):
         """dump class configuration for convenient pickup or perusal"""
@@ -60,28 +63,39 @@ class PerfConfigurator:
         print " - branch = " + self.branch
         print " - buildid = " + self.buildid
         print " - currentDate = " + self.currentDate
+        print " - testDate = " + self.testDate
     
     def _getCurrentDateString(self):
         currentDateTime = datetime.now()
         return currentDateTime.strftime("%Y%m%d_%H%M")
     
     def _getCurrentBuildId(self):
-        master = open(path.join(self.exePath, masterIniSubpath))
+        master = open(path.join(path.dirname(self.exePath), masterIniSubpath))
         if not master:
             raise Configuration("Unable to open " 
-              + path.join(self.exePath, masterIniSubpath))
+              + path.join(path.dirname(self.exePath), masterIniSubpath))
         masterContents = master.readlines()
         master.close()
-        reBuildid = re.compile('BuildID\s*=\s*"(\d{10})"')
+        reBuildid = re.compile('BuildID\s*=\s*(\d{10}|\d{12})')
         for line in masterContents:
             match = re.match(reBuildid, line)
             if match:
                 return match.group(1)
         raise Configuration("BuildID not found in " 
-          + path.join(self.exePath, masterIniSubpath))
+          + path.join(path.dirname(self.exePath), masterIniSubpath))
     
+    def _getTimeFromTimeStamp(self):
+        if len(self.testDate) == 12: 
+          buildIdTime = time.strptime(self.testDate, "%Y%m%d%H%M")
+        else:
+          buildIdTime = time.strptime(self.testDate, "%Y%m%d%H")
+        return time.strftime("%a, %d %b %Y %H:%M:%S GMT", buildIdTime)
+
     def _getTimeFromBuildId(self):
-        buildIdTime = time.strptime(self.buildid, "%Y%m%d%H")
+        if len(self.buildid) == 12: 
+          buildIdTime = time.strptime(self.buildid, "%Y%m%d%H%M")
+        else:
+          buildIdTime = time.strptime(self.buildid, "%Y%m%d%H")
         return time.strftime("%a, %d %b %Y %H:%M:%S GMT", buildIdTime)
     
     def writeConfigFile(self):
@@ -101,7 +115,10 @@ class PerfConfigurator:
                 newline = 'firefox: ' + self.exePath
             if 'title:' in line:
                 newline = 'title: ' + self.title
-                if self.testDateFromBuildId:
+                if self.testDate:
+                    newline += '\n'
+                    newline += 'testdate: "%s"\n' % self._getTimeFromTimeStamp()
+                elif self.useId:
                     newline += '\n'
                     newline += 'testdate: "%s"\n' % self._getTimeFromBuildId()
             if 'buildid:' in line:
@@ -129,7 +146,7 @@ class PerfConfigurator:
         if 'verbose' in kwargs:
             self.verbose = kwargs['verbose']
         if 'testDate' in kwargs:
-            self.testDateFromBuildId = kwargs['testDate']
+            self.testDate = kwargs['testDate']
 
 
 class Configuration(Exception):
@@ -140,24 +157,24 @@ class Usage(Exception):
     def __init__(self, msg):
         self.msg = msg
 
-
 def main(argv=None):
     exePath = executablePath
     configPath = configFilePath
     output = ""
     title = defaultTitle
     branch = ""
-    testDate = False
+    testDate = ""
     verbose = False
     buildid = ""
+    useId = False
     
     if argv is None:
         argv = sys.argv
     try:
         try:
-            opts, args = getopt.getopt(argv[1:], "hve:c:t:b:o:i:d", 
-                ["help", "verbose", "executablePath=", "configFilePath=", "title=", 
-                "branch=", "output=", "id=", "testDate"])
+            opts, args = getopt.getopt(argv[1:], "hvue:c:t:b:o:i:d:", 
+                ["help", "verbose", "useId", "executablePath=", "configFilePath=", "title=", 
+                "branch=", "output=", "id=", "testDate="])
         except getopt.error, msg:
             raise Usage(msg)
         
@@ -180,7 +197,9 @@ def main(argv=None):
             if option in ("-i", "--id"):
                 buildid = value
             if option in ("-d", "--testDate"):
-                testDate = True
+                testDate = value
+            if option in ("-u", "--useId"):
+                useId = True
         
     except Usage, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)
@@ -194,7 +213,8 @@ def main(argv=None):
                                     branch=branch,
                                     verbose=verbose,
                                     testDate=testDate,
-                                    outputName=output)
+                                    outputName=output,
+                                    useId=useId)
     try:
         configurator.writeConfigFile()
     except Configuration, err:
