@@ -2097,7 +2097,7 @@ NS_IMETHODIMP nsImapMailFolder::DeleteMessages(nsIArray *messages,
           {
             nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
             if (notifier)
-              notifier->NotifyItemDeleted(messages);
+              notifier->NotifyMsgsDeleted(messages);
           }
           mDatabase->DeleteMessages(&srcKeyArray,nsnull);
           EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
@@ -2507,7 +2507,7 @@ NS_IMETHODIMP nsImapMailFolder::UpdateImapMailboxInfo(nsIImapProtocol* aProtocol
     MsgGetHeadersFromKeys(mDatabase, keysToDelete, hdrsToDelete);
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyItemDeleted(hdrsToDelete);
+      notifier->NotifyMsgsDeleted(hdrsToDelete);
 
     // It would be nice to notify RDF or whoever of a mass delete here.
     mDatabase->DeleteMessages(&keysToDelete, nsnull);
@@ -2797,9 +2797,9 @@ nsresult nsImapMailFolder::NormalEndHeaderParseStream(nsIImapProtocol *aProtocol
   if (mDatabase && (!m_msgMovedByFilter || ShowDeletedMessages()))
   {
     mDatabase->AddNewHdrToDB(newMsgHdr, PR_TRUE);
-    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyItemAdded(newMsgHdr);
+      notifier->NotifyMsgAdded(newMsgHdr);
   }
   m_msgParser->Clear(); // clear out parser, because it holds onto a msg hdr.
   m_msgParser->SetMailDB(nsnull); // tell it to let go of the db too.
@@ -4345,11 +4345,11 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       if (notifier && m_copyState)
       {
         if (imapAction == nsIImapUrl::nsImapOnlineMove)
-          notifier->NotifyItemMoveCopyCompleted(PR_TRUE, m_copyState->m_messages, this);
+          notifier->NotifyMsgsMoveCopyCompleted(PR_TRUE, m_copyState->m_messages, this);
         else if (imapAction == nsIImapUrl::nsImapOnlineCopy)
-          notifier->NotifyItemMoveCopyCompleted(PR_FALSE, m_copyState->m_messages, this);
+          notifier->NotifyMsgsMoveCopyCompleted(PR_FALSE, m_copyState->m_messages, this);
         else if (imapAction == nsIImapUrl::nsImapDeleteMsg)
-          notifier->NotifyItemDeleted(m_copyState->m_messages);
+          notifier->NotifyMsgsDeleted(m_copyState->m_messages);
       }
 
       switch(imapAction)
@@ -4500,7 +4500,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
                     PRUint32 numHdrs;
                     msgHdrs->GetLength(&numHdrs);
                     if (numHdrs)
-                      notifier->NotifyItemDeleted(msgHdrs);
+                      notifier->NotifyMsgsDeleted(msgHdrs);
                   }
 
                   db->DeleteMessages(&keyArray, nsnull);
@@ -5763,7 +5763,7 @@ nsImapMailFolder::CopyNextStreamMessage(PRBool copySucceeded, nsISupports *copyS
       PRUint32 numHdrs;
       mailCopyState->m_messages->GetLength(&numHdrs);
       if (numHdrs)
-        notifier->NotifyItemMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this);
+        notifier->NotifyMsgsMoveCopyCompleted(mailCopyState->m_isMove, mailCopyState->m_messages, this);
     }
 
 
@@ -6265,7 +6265,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   {
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyItemMoveCopyCompleted(isMove, messages, this);
+      notifier->NotifyMsgsMoveCopyCompleted(isMove, messages, this);
   }
 
   nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
@@ -7411,7 +7411,7 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
     nsCOMPtr <nsIMsgImapMailFolder> oldImapFolder = do_QueryInterface(msgFolder);
     if (oldImapFolder)
       oldImapFolder->SetVerifiedAsOnlineFolder(PR_FALSE);
-    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
       notifier->NotifyFolderRenamed(msgFolder, child);   
     NotifyItemAdded(child);

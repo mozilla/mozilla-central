@@ -36,11 +36,13 @@ var gExpectedEvents;
 // Events, use these to indicate which events are expected.
 const kEvents =
 {
-  itemAdded: 0,
-  itemDeleted: 1,
-  itemMoveCopyCompleted: 2,
-  folderRenamed: 3,
-  itemEvent: 4
+  msgAdded: 0,
+  msgsDeleted: 1,
+  msgsMoveCopyCompleted: 2,
+  folderDeleted: 3,
+  folderMoveCopyCompleted: 4,
+  folderRenamed: 5,
+  itemEvent: 6
 };
 
 // The current status (what all has been done)
@@ -62,9 +64,9 @@ var gMsgHdrs = new Array();
 // Our listener, which captures events and verifies them as they are received.
 var gMFListener =
 {
-  itemAdded: function(aItem)
+  msgAdded: function(aMsg)
   {
-    verify([kEvents.itemAdded, aItem]);
+    verify([kEvents.msgAdded, aMsg]);
     var hdr = gHdrsReceived.pop();
     gMsgHdrs.push({hdr: hdr, ID: hdr.messageId});
     if (gExpectedEvents.length == 0)
@@ -75,9 +77,9 @@ var gMFListener =
     }
   },
 
-  itemDeleted: function(aItem)
+  msgsDeleted: function(aMsgs)
   {
-    verify([kEvents.itemDeleted, aItem]);
+    verify([kEvents.msgsDeleted, aMsgs]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -86,9 +88,42 @@ var gMFListener =
     }
   },
 
-  itemMoveCopyCompleted: function(aMove, aSrcItems, aDestFolder)
+  msgsMoveCopyCompleted: function(aMove, aSrcMsgs, aDestFolder)
   {
-    verify([kEvents.itemMoveCopyCompleted, aMove, aSrcItems, aDestFolder]);
+    verify([kEvents.msgsMoveCopyCompleted, aMove, aSrcMsgs, aDestFolder]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
+
+  folderDeleted: function(aFolder)
+  {
+    verify([kEvents.folderDeleted, aFolder]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
+
+  folderMoveCopyCompleted: function(aMove, aSrcFolder, aDestFolder)
+  {
+    verify([kEvents.folderMoveCopyCompleted, aMove, aSrcFolder, aDestFolder]);
+    if (gExpectedEvents.length == 0)
+    {
+      gCurrStatus |= kStatus.notificationsDone;
+      if (gCurrStatus == kStatus.everythingDone)
+        resetStatusAndProceed();
+    }
+  },
+
+  folderRenamed: function(aOrigFolder, aNewFolder)
+  {
+    verify([gEvents.folderRenamed, aOrigFolder, aNewFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
@@ -170,6 +205,9 @@ Array.prototype.hasExactlyElements = function(elements)
     // Check: the element should be present
     do_check_neq(this.indexOf(elements), -1);
   }
+  // This shouldn't happen
+  else
+    do_throw("Unrecognized item returned from listener");
 };
 
 // Verifies an event
@@ -185,20 +223,29 @@ function verify(event)
 
   switch (eventType)
   {
-  case kEvents.itemAdded:
-  case kEvents.itemDeleted:
-    // Check: headers/folders match.
+  case kEvents.msgAdded:
+  case kEvents.msgsDeleted:
+  case kEvents.folderDeleted:
+    // Check: headers match/folder matches.
     expected[1].hasExactlyElements(event[1]);
     break;
-  case kEvents.itemMoveCopyCompleted:
+  case kEvents.msgsMoveCopyCompleted:
+  case kEvents.folderMoveCopyCompleted:
     // Check: Move or copy as expected.
     do_check_eq(expected[1], event[1]);
 
-    // Check: headers/folders match.
+    // Check: headers match/folder matches.
     expected[2].hasExactlyElements(event[2]);
 
     // Check: destination folder matches.
     do_check_eq(expected[3], event[3]);
+    break;
+  case kEvents.folderRenamed:
+    // Check: source folder matches
+    expected[1].hasExactlyElements(event[1]);
+
+    // Check: destination folder name matches
+    do_check_eq(expected[2], event[2].prettiestName);
     break;
   }
 }

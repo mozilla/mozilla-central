@@ -1164,7 +1164,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
   nsresult rv =NS_OK;
   mInitialized = PR_TRUE;
 
-  nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
   if (notifier)
     notifier->NotifyFolderRenamed(oldFolder, this);
   
@@ -1404,9 +1404,9 @@ nsMsgLocalMailFolder::DeleteMessages(nsIArray *messages,
   // notify on delete from trash and shift-delete
   if (!isMove && (deleteStorage || isTrashFolder))
   {
-    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-        notifier->NotifyItemDeleted(messages);
+        notifier->NotifyMsgsDeleted(messages);
   }
 
   if (!deleteStorage && !isTrashFolder)
@@ -2567,7 +2567,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
       // because deleting the source messages clears out the src msg db hdr.
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
-        notifier->NotifyItemMoveCopyCompleted(mCopyState->m_isMove, mCopyState->m_messages, this);
+        notifier->NotifyMsgsMoveCopyCompleted(mCopyState->m_isMove, mCopyState->m_messages, this);
     }
 
     if(!mCopyState->m_isMove)
@@ -2597,9 +2597,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(PRBool copySucceeded)
     // Send the itemAdded notification in case we didn't send the itemMoveCopyCompleted notification earlier.
     if (!numHdrs)
     {
-      nsCOMPtr <nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
-        notifier->NotifyItemAdded(newHdr);
+        notifier->NotifyMsgAdded(newHdr);
     }
   }
   return rv;

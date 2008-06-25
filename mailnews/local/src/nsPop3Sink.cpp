@@ -868,7 +868,9 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
               }
             }
             m_newMailParser->m_mailDB->AddNewHdrToDB(hdr, PR_TRUE);
-            m_newMailParser->NotifyGlobalListeners(hdr);
+            nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+            if (notifier)
+              notifier->NotifyMsgAdded(hdr);
           }
         }
         else

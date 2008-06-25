@@ -14,6 +14,7 @@
   * - Copy messages from files into the db
   * - Moving and copying one or more messages from one local folder to another
   * - Moving folders, with and without subfolders
+  * - Renaming folders
   * - Deleting messages and folders, to trash and from trash (permanently)
   */
 
@@ -28,7 +29,7 @@ var gLocalTrashFolder;
 function copyFileMessage(file, destFolder, isDraftOrTemplate)
 {
   copyListener.mFolderStoredIn = destFolder;
-  gExpectedEvents = [[kEvents.itemAdded, gHdrsReceived]];
+  gExpectedEvents = [[kEvents.msgAdded, gHdrsReceived]];
   gCopyService.CopyFileMessage(file, destFolder, null, isDraftOrTemplate, 0, copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -41,7 +42,7 @@ function copyMessages(items, isMove, srcFolder, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gExpectedEvents = [[kEvents.itemMoveCopyCompleted, isMove, items, destFolder]];
+  gExpectedEvents = [[kEvents.msgsMoveCopyCompleted, isMove, items, destFolder]];
   gCopyService.CopyMessages(srcFolder, array, destFolder, isMove, copyListener, null, true);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -54,7 +55,7 @@ function copyFolders(items, isMove, destFolder)
   items.forEach(function (item) {
     array.appendElement(item, false);
   });
-  gExpectedEvents = [[kEvents.itemMoveCopyCompleted, isMove, items, destFolder]];
+  gExpectedEvents = [[kEvents.folderMoveCopyCompleted, isMove, items, destFolder]];
   gCopyService.CopyFolders(array, destFolder, isMove, copyListener, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
@@ -74,13 +75,23 @@ function deleteMessages(srcFolder, items, deleteStorage, isMove)
   {
     // We won't be getting any OnStopCopy notification in this case
     gCurrStatus = kStatus.onStopCopyDone;
-    gExpectedEvents = [[kEvents.itemDeleted, items]];
+    gExpectedEvents = [[kEvents.msgsDeleted, items]];
   }
   else
     // We have to be getting a move notification, even if isMove is false
-    gExpectedEvents = [[kEvents.itemMoveCopyCompleted, true, items, gLocalTrashFolder]];
+    gExpectedEvents = [[kEvents.msgsMoveCopyCompleted, true, items, gLocalTrashFolder]];
 
   srcFolder.deleteMessages(array, null, deleteStorage, isMove, copyListener, true);
+  gCurrStatus |= kStatus.functionCallDone;
+  if (gCurrStatus == kStatus.everythingDone)
+    resetStatusAndProceed();
+}
+
+function renameFolder(folder, newName)
+{
+  gExpectedEvents = [[kEvents.folderRenamed, [folder], newName]];
+  gCurrStatus = kStatus.onStopCopyDone;
+  folder.rename(newName, null);
   gCurrStatus |= kStatus.functionCallDone;
   if (gCurrStatus == kStatus.everythingDone)
     resetStatusAndProceed();
@@ -97,9 +108,9 @@ function deleteFolder(folder)
   gCurrStatus = kStatus.onStopCopyDone;
   // If ancestor is trash, expect an itemDeleted, otherwise expect an itemMoveCopyCompleted
   if (gLocalTrashFolder.isAncestorOf(folder))
-    gExpectedEvents = [[kEvents.itemDeleted, [folder]]];
+    gExpectedEvents = [[kEvents.folderDeleted, [folder]]];
   else
-    gExpectedEvents = [[kEvents.itemMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
+    gExpectedEvents = [[kEvents.folderMoveCopyCompleted, true, [folder], gLocalTrashFolder]];
 
   folder.parent.deleteSubFolders(array, null);
   gCurrStatus |= kStatus.functionCallDone;
@@ -158,9 +169,16 @@ const gTestArray =
   // shift delete from trash
   function testDeleteMessages4() { deleteMessages(gLocalTrashFolder, [gMsgHdrs[1].hdr], true, false); },
 
+  // Renaming folders
+  // XXX enable after working out bugs in rename folder
+  /*function testRename1() { renameFolder(gLocalFolder3, "folder4"); },
+  function testRename2() { renameFolder(gLocalFolder2.getChildNamed("folder4"), "folder3"); }
+  function testRename3() { renameFolder(gLocalFolder2, "folder4"); }
+  function testRename4() { renameFolder(gLocalInboxFolder.getChildNamed("folder4"), "folder2"); }*/
+
   // Deleting folders (currently only one folder delete is supported through the UI)
   function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3")); },
-  function deleteFolder2() { deleteFolder(gLocalFolder2); },
+  function deleteFolder2() { deleteFolder(gLocalInboxFolder.getChildNamed("folder2")); },
   function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3")); } /*,
   // XXX enable after making sure that only the topmost folder has its itemDeleted called
   function deleteFolder4() { deleteFolder(gLocalTrashFolder.getChildNamed("folder2")); }*/
@@ -199,12 +217,14 @@ function run_test()
 
 function doTest(test)
 {
-  // Set a limit of three seconds; if the notifications haven't arrived by then there's a problem.
-  do_timeout(3000, "if (gTest == "+test+") \
-             do_throw('Notifications not received in 3000 ms for operation '+gTest+', current status is '+gCurrStatus);");
-
   if (test <= gTestArray.length)
-    gTestArray[test-1]();
+  {
+    var testFn = gTestArray[test-1];
+    // Set a limit of three seconds; if the notifications haven't arrived by then there's a problem.
+    do_timeout(3000, "if (gTest == "+test+") \
+      do_throw('Notifications not received in 3000 ms for operation "+testFn.name+", current status is '+gCurrStatus);");
+    testFn();
+  }
   else
   {
     do_test_finished(); // for the one in run_test()

@@ -181,26 +181,21 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
     // Send notifications to nsIMsgFolderListeners
     if (NS_SUCCEEDED(rv) && aRequest->m_requestType == nsCopyFoldersType)
     {
-      nsCOMPtr <nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
       {
         PRBool hasListeners;
         notifier->GetHasListeners(&hasListeners);
         if (hasListeners)
         {
-          nsCOMPtr<nsIMutableArray> folderArray(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-          if (folderArray)
+          // Iterate over the copy sources and append their message arrays to this mutable array
+          // or in the case of folders, the source folder.
+          PRInt32 cnt, i;
+          cnt = aRequest->m_copySourceArray.Count();
+          for (i = 0; i < cnt; i++)
           {
-            // Iterate over the copy sources and append their message arrays to this mutable array
-            // or in the case of folders, the source folder.
-            PRInt32 cnt, i;
-            cnt =  aRequest->m_copySourceArray.Count();
-            for (i=0; i < cnt; i++)
-            {
-              nsCopySource *copySource = (nsCopySource*) aRequest->m_copySourceArray.ElementAt(i);
-              folderArray->AppendElement(copySource->m_msgFolder, PR_FALSE);
-            }
-            notifier->NotifyItemMoveCopyCompleted(aRequest->m_isMoveOrDraftOrTemplate, folderArray, aRequest->m_dstFolder);
+            nsCopySource *copySource = (nsCopySource*) aRequest->m_copySourceArray.ElementAt(i);
+            notifier->NotifyFolderMoveCopyCompleted(aRequest->m_isMoveOrDraftOrTemplate, copySource->m_msgFolder, aRequest->m_dstFolder);
           }
         }
       }

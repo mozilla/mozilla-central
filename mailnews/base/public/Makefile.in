@@ -77,7 +77,7 @@ XPIDLSRCS	= \
 		nsIMsgCopyService.idl \
 		nsIMsgCopyServiceListener.idl \
 		nsIMsgFolderListener.idl \
-                nsIMsgFolderNotificationService.idl \
+		nsIMsgFolderNotificationService.idl \
 		nsIMsgStatusFeedback.idl \
 		nsIMsgMailNewsUrl.idl \
 		nsIMsgWindow.idl \

@@ -8,19 +8,20 @@
 
 /*
  * Test suite for basic functionality with nsIMsgFolderListeners.
- *
- * Currently tests itemAdded, itemDeleted, itemMoveCopyCompleted, and itemEvent.
  */
 
 const mFNSContractID = "@mozilla.org/messenger/msgnotificationservice;1";
 const nsIMFNService = Ci.nsIMsgFolderNotificationService;
 const nsIMFListener = Ci.nsIMsgFolderListener;
 
-const kItemAdded = 0x1;
-const kItemDeleted = 0x2;
-const kItemMoveCopyCompleted = 0x4;
-const kItemEvent = 0x8;
-const numOptions = 4;
+const kMsgAdded = 0x1;
+const kMsgsDeleted = 0x2;
+const kMsgsMoveCopyCompleted = 0x4;
+const kFolderDeleted = 0x8;
+const kFolderMoveCopyCompleted = 0x10;
+const kFolderRenamed = 0x20;
+const kItemEvent = 0x40;
+const numOptions = 7;
 
 var gMFNService = Cc[mFNSContractID].getService(nsIMFNService);
 
@@ -29,22 +30,40 @@ var gMFListener =
 {
   mReceived: 0,
 
-  itemAdded: function (aItem)
+  msgAdded: function (aMsg)
   {
-    do_check_eq(this.mReceived & kItemAdded, 0);
-    this.mReceived |= kItemAdded;
+    do_check_eq(this.mReceived & kMsgAdded, 0);
+    this.mReceived |= kMsgAdded;
   },
 
-  itemDeleted: function (aItem)
+  msgsDeleted: function (aMsgs)
   {
-    do_check_eq(this.mReceived & kItemDeleted, 0);
-    this.mReceived |= kItemDeleted;
+    do_check_eq(this.mReceived & kMsgsDeleted, 0);
+    this.mReceived |= kMsgsDeleted;
   },
 
-  itemMoveCopyCompleted: function (aMove, aSrcItems, aDestFolder)
+  msgsMoveCopyCompleted: function (aMove, aSrcMsgs, aDestFolder)
   {
-    do_check_eq(this.mReceived & kItemMoveCopyCompleted, 0);
-    this.mReceived |= kItemMoveCopyCompleted;
+    do_check_eq(this.mReceived & kMsgsMoveCopyCompleted, 0);
+    this.mReceived |= kMsgsMoveCopyCompleted;
+  },
+
+  folderDeleted: function (aFolder)
+  {
+    do_check_eq(this.mReceived & kFolderDeleted, 0);
+    this.mReceived |= kFolderDeleted;
+  },
+
+  folderMoveCopyCompleted: function (aMove, aSrcFolder, aDestFolder)
+  {
+    do_check_eq(this.mReceived & kFolderMoveCopyCompleted, 0);
+    this.mReceived |= kFolderMoveCopyCompleted;
+  },
+
+  folderRenamed: function (aOrigFolder, aNewFolder)
+  {
+    do_check_eq(this.mReceived & kFolderRenamed, 0);
+    this.mReceived |= kFolderRenamed;
   },
 
   itemEvent: function (aItem, aEvent, aData)
@@ -56,9 +75,12 @@ var gMFListener =
 
 function NotifyMsgFolderListeners()
 {
-  gMFNService.notifyItemAdded(null);
-  gMFNService.notifyItemDeleted(null);
-  gMFNService.notifyItemMoveCopyCompleted(null, null, null);
+  gMFNService.notifyMsgAdded(null);
+  gMFNService.notifyMsgsDeleted(null);
+  gMFNService.notifyMsgsMoveCopyCompleted(null, null, null);
+  gMFNService.notifyFolderDeleted(null);
+  gMFNService.notifyFolderMoveCopyCompleted(null, null, null);
+  gMFNService.notifyFolderRenamed(null, null);
   gMFNService.notifyItemEvent(null, null, null);
 }
 

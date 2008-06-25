@@ -2867,11 +2867,9 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
   if (deleteStorage && status == NS_OK)
   {
     status = Delete();
-    nsCOMPtr <nsISupports> supports;
-    QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(supports));
-    nsCOMPtr <nsIMsgFolderNotificationService> notifier = do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID);
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyItemDeleted(supports);
+      notifier->NotifyFolderDeleted(this);
   }
   return status;
 }

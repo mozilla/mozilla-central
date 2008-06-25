@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   David Bienvenu <bienvenu@mozilla.com>
+ *   Siddharth Agarwal <sid1337@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -37,27 +38,34 @@
  * ***** END LICENSE BLOCK ***** */
 #include "nsISupports.idl"
 
+interface nsIMsgDBHdr;
 interface nsIMsgFolder;
 interface nsIMsgFolderListener;
 interface nsIArray;
 
 
-[scriptable, uuid(d96b19df-a11d-4df2-90b7-ce553176c621)]
+[scriptable, uuid(fc5bb4cf-7ad1-4b11-a5a6-550f713fa334)]
 interface nsIMsgFolderNotificationService : nsISupports {
   readonly attribute boolean hasListeners;
   void addListener(in nsIMsgFolderListener aListener);
   void removeListener(in nsIMsgFolderListener aListener);
-  
-  void notifyItemAdded(in nsISupports aItem);
-  // for the convenience of the callers, we allow this to be an nsIArray of items,
-  // or an individual nsISupports.
-  void notifyItemDeleted(in nsISupports aItem);
-  void notifyItemMoveCopyCompleted(in boolean aMove, 
-                              in nsIArray aSrcItems, 
-                              in nsIMsgFolder aDestFolder);
-                              
+
+  // message-specific functions
+  // single message for added, array for delete/move/copy
+  void notifyMsgAdded(in nsIMsgDBHdr aMsg);
+  void notifyMsgsDeleted(in nsIArray aMsgs);
+  void notifyMsgsMoveCopyCompleted(in boolean aMove, 
+                                   in nsIArray aSrcMsgs, 
+                                   in nsIMsgFolder aDestFolder);
+
+  // folder specific functions
+  // single folders, all the time
+  void notifyFolderDeleted(in nsIMsgFolder aFolder);
+  void notifyFolderMoveCopyCompleted(in boolean aMove,
+                                     in nsIMsgFolder aSrcFolder,
+                                     in nsIMsgFolder aDestFolder);
   void notifyFolderRenamed(in nsIMsgFolder aOrigFolder, in nsIMsgFolder aNewFolder);
+
   // extensibility hook
   void notifyItemEvent(in nsISupports aItem, in ACString aEvent, in nsISupports aData);
 };
-

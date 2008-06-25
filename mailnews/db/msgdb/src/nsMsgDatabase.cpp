@@ -68,7 +68,6 @@
 #include "nsIMsgFolderCacheElement.h"
 #include "MailNewsTypes2.h"
 #include "nsMsgUtils.h"
-#include "nsIMsgFolderNotificationService.h"
 #include "nsIMutableArray.h"
 
 #include "nsICollation.h"
