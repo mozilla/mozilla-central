@@ -273,7 +273,7 @@ if [ -z "${INIT_SOURCED}" -o "${INIT_SOURCED}" != "TRUE" ]; then
     $MAKE -v >/dev/null 2>&1 || MAKE=make
     $MAKE -v >/dev/null 2>&1 || { echo "You are missing make."; exit 5; }
     MAKE="$MAKE --no-print-directory"
-
+    
     DIST=${DIST-${MOZILLA_ROOT}/dist}
     SECURITY_ROOT=${SECURITY_ROOT-${MOZILLA_ROOT}/security/nss}
     TESTDIR=${TESTDIR-${MOZILLA_ROOT}/tests_results/security}
