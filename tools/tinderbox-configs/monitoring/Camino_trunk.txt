@@ -1,1 +1,1 @@
-/pub/mozilla.org/camino/nightly/latest-trunk/Camino.dmg
+/pub/mozilla.org/camino/nightly/latest-2.0-M1.9/Camino.dmg
