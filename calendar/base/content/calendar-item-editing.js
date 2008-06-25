@@ -108,6 +108,7 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
                 // If the event should be forced to be allday, then don't set up
                 // any default hours and directly make it allday.
                 event.startDate.isDate = true;
+                event.startDate.timezone = floating();
             }
         } else {
             // If no start date was passed, then default to the next full hour
@@ -123,6 +124,7 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
                 // day should pass the end date. Right now, they should make
                 // sure that the end date is 00:00:00 of the day after.
                 event.endDate.isDate = true;
+                event.endDate.timezone = floating();
             }
         } else {
             event.endDate = event.startDate.clone();
