@@ -78,7 +78,7 @@ class LatestFileURL:
             content = page.readlines()
             opener.close()
         except:
-            print "unable to retrieve page at: " + self.url
+            print "unable to retrieve page at: " + self.url + " dated: " + self.sortByDateString
         return content
     
     def _populateDict(self):
@@ -286,7 +286,7 @@ class MozillaUpdateConfig(ShellCommand):
             kwargs['command'] = ["python", "PerfConfigurator.py", "-v",
                                  "-e", self.exePath, "-c", self.configPath,
                                  "-t", self.title, "-b", self.branch,
-                                 "-i", self.buildid]
+                                 "-d", self.buildid]
         ShellCommand.__init__(self, **kwargs)
 
     def describe(self, done=False):
@@ -481,8 +481,8 @@ class MozillaUpdateConfigFromChange(ShellCommand):
         if not 'command' in kwargs:
             kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e",
                                  self.exePath, "-c", self.configPath,
-                                 "-t", self.title, "-b", self.branch, "-d",
-                                 "-i", self.buildid]
+                                 "-t", self.title, "-b", self.branch,
+                                 "-d", self.buildid]
         ShellCommand.__init__(self, **kwargs)
     
     def describe(self, done=False):
