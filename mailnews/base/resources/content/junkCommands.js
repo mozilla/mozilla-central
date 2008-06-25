@@ -52,10 +52,6 @@
   *   SetNextMessageAfterDelete()
   *   pref
   */
- 
-const NS_BAYESIANFILTER_CONTRACTID = "@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter";
-const nsIJunkMailPlugin = Components.interfaces.nsIJunkMailPlugin;
-var gJunkmailComponent;
 
 /*
  * determineActionsForJunkMsgs
@@ -131,12 +127,6 @@ function determineActionsForJunkMsgs(aFolder)
   }
 }
 
-function getJunkmailComponent()
-{
-  if (!gJunkmailComponent)
-    gJunkmailComponent = Components.classes[NS_BAYESIANFILTER_CONTRACTID].getService(nsIJunkMailPlugin);
-}
-
 /**
  * MessageClassifier
  *
@@ -194,7 +184,7 @@ MessageClassifier.prototype =
         // message is ham from whitelist
         {
           var db = aMsgHdr.folder.getMsgDatabase(msgWindow);
-          db.setStringProperty(aMsgHdr.messageKey, "junkscore", nsIJunkMailPlugin.IS_HAM_SCORE);
+          db.setStringProperty(aMsgHdr.messageKey, "junkscore", Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE);
           db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin", "whitelist");
         }
         return;
@@ -206,7 +196,9 @@ MessageClassifier.prototype =
     if (this.firstMessage)
     {
       this.firstMessage = false;
-      gJunkmailComponent.classifyMessage(messageURI, msgWindow, this);
+      var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
+                                  .getService(Components.interfaces.nsIJunkMailPlugin);
+      junkService.classifyMessage(messageURI, msgWindow, this);
     }
     else
       this.mMessageQueue.push(messageURI);
@@ -226,7 +218,8 @@ MessageClassifier.prototype =
    *        0 - 100 indicator of junk likelihood, with 100 meaning probably junk
    */
   onMessageClassified: function(aClassifiedMsgURI, aClassification, aJunkPercent)
-  { 
+  {
+    var nsIJunkMailPlugin = Components.interfaces.nsIJunkMailPlugin;
     var score = (aClassification == nsIJunkMailPlugin.JUNK) ?
       nsIJunkMailPlugin.IS_SPAM_SCORE : nsIJunkMailPlugin.IS_HAM_SCORE;
     const statusDisplayInterval = 1000; // milliseconds between status updates
@@ -258,7 +251,9 @@ MessageClassifier.prototype =
                getFormattedString("junkAnalysisPercentComplete", [percentStr]));
       }
 
-      gJunkmailComponent.classifyMessage(nextMsgURI, msgWindow, this);
+      var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
+                                  .getService(Components.interfaces.nsIJunkMailPlugin);
+      junkService.classifyMessage(nextMsgURI, msgWindow, this);
     }
     else
     {
@@ -394,7 +389,7 @@ function deleteJunkInFolder()
     catch (ex) {continue;} // blow off errors for dummy rows
     var msgHdr = messenger.messageServiceFromURI(messageUri).messageURIToMsgHdr(messageUri);
     var junkScore = msgHdr.getStringProperty("junkscore");
-    var isJunk = ((junkScore != "") && (junkScore != nsIJunkMailPlugin.IS_HAM_SCORE));
+    var isJunk = ((junkScore != "") && (junkScore != Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE));
     // if the message is junk, select it.
     if (isJunk)
     {

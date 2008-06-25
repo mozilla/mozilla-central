@@ -42,12 +42,6 @@
  * components. There should be no command or widget specific code here
  */
 
-function NewBrowserWindow() {}
-function NewBlankPage() {} 
-function TemplatePage() {}
-function WizardPage() {}
-function CharacterSet(){}
-
 function MessengerSetForcedCharacterSet(aCharset)
 {
 //    dump(aCharset);dump("\n");
