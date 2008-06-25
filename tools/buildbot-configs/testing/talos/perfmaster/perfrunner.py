@@ -286,7 +286,7 @@ class MozillaUpdateConfig(ShellCommand):
             kwargs['command'] = ["python", "PerfConfigurator.py", "-v",
                                  "-e", self.exePath, "-c", self.configPath,
                                  "-t", self.title, "-b", self.branch,
-                                 "-d", self.buildid]
+                                 "-d", self.buildid, "-i", self.buildid]
         ShellCommand.__init__(self, **kwargs)
 
     def describe(self, done=False):
@@ -482,7 +482,7 @@ class MozillaUpdateConfigFromChange(ShellCommand):
             kwargs['command'] = ["python", "PerfConfigurator.py", "-v", "-e",
                                  self.exePath, "-c", self.configPath,
                                  "-t", self.title, "-b", self.branch,
-                                 "-d", self.buildid]
+                                 "-d", self.buildid, "-i", self.buildid]
         ShellCommand.__init__(self, **kwargs)
     
     def describe(self, done=False):
