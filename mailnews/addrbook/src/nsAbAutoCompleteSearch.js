@@ -133,7 +133,8 @@ nsAbAutoCompleteSearch.prototype = {
     var i;
     if (card.isMailList) {
       return card.displayName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
-        card.notes.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0;
+        card.notes.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||
+        card.nickName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0;
     }
 
     if (card.nickName.toLocaleLowerCase().lastIndexOf(fullString, 0) == 0 ||

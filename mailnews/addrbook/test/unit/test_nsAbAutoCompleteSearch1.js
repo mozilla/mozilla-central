@@ -65,7 +65,9 @@ const lists = [ { search: "li", expected: [6, 7, 8] },
                 { search: "t", expected: [6, 7, 8, 9] },
                 { search: "te", expected: [7, 8, 9] },
                 { search: "tes", expected: [8, 9] },
-                { search: "test", expected: [9] } ];
+                { search: "test", expected: [9] },
+                { search: "abcdef", expected: [9] } // Bug 441586
+              ];
 
 const bothNames = [ { search: "f l",            expected: [5, 0, 1, 2, 3, 4] },
                     { search: "l f",            expected: [5, 0, 1, 2, 3, 4] },
