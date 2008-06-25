@@ -156,13 +156,13 @@ function HandleColumnClick(columnID)
   else {
     if (!simpleColumns && (dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay)) {
       dbview.viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
-      MsgSortThreadPane(sortType);
+      MsgSortThreadPaneByType(sortType);
     }
     else if (dbview.sortType == sortType) {
       MsgReverseSortThreadPane();
     }
     else {
-      MsgSortThreadPane(sortType);
+      MsgSortThreadPaneByType(sortType);
     }
   }
 }
@@ -208,12 +208,17 @@ function MsgSortByThread()
     return;
   dbview.viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
   dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-  MsgSortThreadPane(nsMsgViewSortType.byDate);
+  MsgSortThreadPaneByType(nsMsgViewSortType.byDate);
 }
 
 function MsgSortThreadPane(sortName)
 {
   var sortType = nsMsgViewSortType[sortName];
+  MsgSortThreadPaneByType(sortType);
+}
+  
+function MsgSortThreadPaneByType(sortType)
+{
   var dbview = GetDBView();
 
   if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
