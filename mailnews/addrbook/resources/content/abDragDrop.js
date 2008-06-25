@@ -167,7 +167,6 @@ var abDirTreeObserver = {
     // that would give us duplicate names which isn't allowed at the
     // moment.
     var draggingMailList = false;
-    var abView = GetAbView();
     var trans = Components.classes["@mozilla.org/widget/transferable;1"].
                 createInstance(Components.interfaces.nsITransferable);
 
@@ -195,7 +194,7 @@ var abDirTreeObserver = {
 
       for (var j = 0; j < rows.length; j++)
       {
-        if (abView.getCardFromRow(rows[j]).isMailList)
+        if (gAbView.getCardFromRow(rows[j]).isMailList)
         {
           draggingMailList = true;
           break;
@@ -283,14 +282,13 @@ var abDirTreeObserver = {
           needToCopyCard = false;
       }
 
-      var abView = GetAbView();
       var directory = GetDirectoryFromURI(targetURI);
 
       // Only move if we are not transferring to a mail list
       var actionIsMoving = (dragSession.dragAction & dragSession.DRAGDROP_ACTION_MOVE) && !directory.isMailList;
 
       for (j = 0; j < numrows; j++) {
-        var card = abView.getCardFromRow(rows[j]);
+        var card = gAbView.getCardFromRow(rows[j]);
         if (card.isMailList) {
           // This check ensures we haven't slipped through by mistake
           if (needToCopyCard && actionIsMoving) {
@@ -307,7 +305,7 @@ var abDirTreeObserver = {
       // selected cards and display the appropriate text
       if (actionIsMoving) {
         // If we have moved the cards, then delete them as well.
-        abView.deleteSelectedCards();
+        gAbView.deleteSelectedCards();
         cardsTransferredText = (numrows == 1 ? gAddressBookBundle.getString("cardMoved")
                                              : gAddressBookBundle.getFormattedString("cardsMoved", [numrows]));
       } else {
