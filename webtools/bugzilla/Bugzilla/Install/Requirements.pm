@@ -96,7 +96,7 @@ sub REQUIRED_MODULES {
     {
         package => 'Email-MIME-Modifier',
         module  => 'Email::MIME::Modifier',
-        version => 0
+        version => '1.442'
     },
     );
 
