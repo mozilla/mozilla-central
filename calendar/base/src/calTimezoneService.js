@@ -554,10 +554,12 @@ function guessSystemTimezone() {
     try {
         var osUserTimeZone = null;
         var zoneInfoIdFromOSUserTimeZone = null;
+        var handler = Components.classes["@mozilla.org/network/protocol;1?name=http"]
+                                .getService(Components.interfaces.nsIHttpProtocolHandler);
 
-        if (navigator.oscpu.match(/^Windows/)) {
+        if (handler.oscpu.match(/^Windows/)) {
             var regOSName, fileOSName;
-            if (navigator.oscpu.match(/^Windows NT/)) {
+            if (handler.oscpu.match(/^Windows NT/)) {
                 regOSName  = "Windows NT";
                 fileOSName = "WindowsNT";
             } else {
