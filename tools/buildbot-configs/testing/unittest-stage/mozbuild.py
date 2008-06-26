@@ -5,6 +5,7 @@ from buildbot.process.step import ShellCommand
 from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION
 import re
 import os
+import copy
 
 MozillaEnvironments = { }
 
@@ -45,6 +46,7 @@ MozillaEnvironments['vc8'] = {
     "DevEnvDir": "C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE",
     "PATH": 'C:\\Python24;' + \
             'C:\\Python24\\Scripts;' + \
+            'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\bin;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\BIN;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\Tools;' + \
@@ -59,12 +61,15 @@ MozillaEnvironments['vc8'] = {
             'C:\\WINDOWS\System32\Wbem;' + \
             'C:\\moztools\\bin;' + \
             'C:\\Utilities;',
-    "INCLUDE": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
+    "INCLUDE": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include;' + \
+               'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include\\atl;' + \
+               'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\include;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\include;' + \
                '%INCLUDE%',
-    "LIB": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
+    "LIB": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\lib;' + \
+           'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\lib;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\lib;',
@@ -105,6 +110,7 @@ MozillaEnvironments['mozbuild'] = {
             'C:\\mozilla-build\\msys\\bin;' + \
             'C:\\Python24;' + \
             'C:\\Python24\\Scripts;' + \
+            'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\bin;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\IDE;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\BIN;' + \
             'C:\\Program Files\\Microsoft Visual Studio 8\\Common7\\Tools;' + \
@@ -117,17 +123,82 @@ MozillaEnvironments['mozbuild'] = {
             'C:\\WINDOWS;' + \
             'C:\\WINDOWS\\System32\\Wbem;' + \
             'C:\\mozilla-build\\moztools\\bin;',
-    "INCLUDE": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
+    "INCLUDE": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include;' + \
+               'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\include\\atl;' + \
+               'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\INCLUDE;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\include;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\include;' + \
                '%INCLUDE%',
-    "LIB": 'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
+    "LIB": 'C:\\Program Files\\Microsoft SDKs\\Windows\\v6.0\\lib;' + \
+           'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\LIB;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\PlatformSDK\\lib;' + \
            'C:\\Program Files\\Microsoft Visual Studio 8\\SDK\\v2.0\\lib;',
     "LIBPATH": 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + \
                'C:\\Program Files\\Microsoft Visual Studio 8\\VC\\ATLMFC\\LIB'
+}
+
+MozillaEnvironments['mozbuild_pgo'] = {
+    "MOZ_NO_REMOTE": '1',
+    "NO_EM_RESTART": '1',
+    "MOZ_AIRBAG": '1',
+    "MOZ_CRASHREPORTER_NO_REPORT": '1',
+    "XPCOM_DEBUG_BREAK": 'warn',
+    "VCVARS": 'D:\\msvs8\\VC\\bin\\vcvars32.bat',
+    "MOZ_MSVCVERSION": '8',
+    "MOZILLABUILD": 'D:\\mozilla-build',
+    "MOZILLABUILDDRIVE": 'D:',
+    "MOZILLABUILDPATH": '\\mozilla-build\\',
+    "MOZ_TOOLS": 'D:\\mozilla-build\\moztools',
+    "CVS_RSH": 'ssh',
+    "VSINSTALLDIR": 'D:\\msvs8',
+    "VCINSTALLDIR": 'D:\\msvs8\\VC',
+    "FrameworkDir": 'C:\\WINDOWS\\Microsoft.NET\\Framework',
+    "FrameworkVersion": 'v2.0.50727',
+    "FrameworkSDKDir": 'D:\\msvs8\\SDK\\v2.0',
+    "MSVCDir": 'D:\\msvs8\\VC',
+    "DevEnvDir": "D:\\msvs8\\Common7\\IDE",
+    "PATH": 'D:\\mozilla-build\\msys\\local\\bin;' + 
+            'D:\\mozilla-build\\wget;' + 
+            'D:\\mozilla-build\\7zip;' + 
+            'D:\\mozilla-build\\blat261\\full;' + 
+            'D:\\mozilla-build\\svn-win32-1.4.2\\bin;' + 
+            'D:\\mozilla-build\\upx203w;' + 
+            'D:\\mozilla-build\\xemacs\\XEmacs-21.4.19\\i586-pc-win32;' + 
+            'D:\\mozilla-build\\info-zip;' + 
+            'D:\\mozilla-build\\nsis-2.22;' + 
+            '.;' + 
+            'D:\\mozilla-build\\msys\\bin;' + 
+            'D:\\buildbot\\python24;' + 
+            'D:\\buildbot\\python24\\scripts;' + 
+            'D:\\sdks\\v6.0\\Bin;' + 
+            'D:\\msvs8\\Common7\\IDE;' + 
+            'D:\\msvs8\\VC\\BIN;' + 
+            'D:\\msvs8\\Common7\\Tools;' + 
+            'D:\\msvs8\\Common7\\Tools\\bin;' + 
+            'D:\\msvs8\\VC\\PlatformSDK\\bin;' + 
+            'D:\\msvs8\\SDK\\v2.0\\Bin;' + 
+            'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + 
+            'D:\\msvs8\\VC\\VCPackages;' + 
+            'C:\\WINDOWS\\System32;' + 
+            'C:\\WINDOWS;' + 
+            'C:\\WINDOWS\\System32\\Wbem;' + 
+            'D:\\mozilla-build\\moztools\\bin;',
+    "INCLUDE": 'D:\\sdks\\v6.0\\Include;' + 
+               'D:\\sdks\\v6.0\\Include\gl;' + 
+               'D:\\msvs8\\VC\\ATLMFC\\INCLUDE;' + 
+               'D:\\msvs8\\VC\\INCLUDE;' + 
+               'D:\\msvs8\\VC\\PlatformSDK\\include;' + 
+               'D:\\msvs8\\SDK\\v2.0\\include;' + 
+               '%INCLUDE%',
+    "LIB": 'D:\\sdks\\v6.0\\lib;' + 
+           'D:\\msvs8\\VC\\ATLMFC\\LIB;' + 
+           'D:\\msvs8\\VC\\LIB;' + 
+           'D:\\msvs8\\VC\\PlatformSDK\\lib;' + 
+           'D:\\msvs8\\SDK\\v2.0\\lib;',
+    "LIBPATH": 'C:\\WINDOWS\\Microsoft.NET\\Framework\\v2.0.50727;' + 
+               'D:\\msvs8\\VC\\ATLMFC\\LIB'
 }
 
 cvsCoLog = "cvsco.log"
@@ -363,7 +434,7 @@ class MozillaOSXReftest(MozillaReftest):
                "reftest.list"]
 
 class MozillaWin32Reftest(MozillaReftest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest reftest.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest reftest.list']
 
 class MozillaCrashtest(MozillaReftest):
     name = "crashtest"
@@ -387,7 +458,7 @@ class MozillaOSXCrashtest(MozillaCrashtest):
                "crashtests.list"]
 
 class MozillaWin32Crashtest(MozillaCrashtest):
-    command = [r'..\..\objdir\dist\bin\firefox.exe -P debug -reftest crashtests.list']
+    command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest crashtests.list']
 
 class MozillaMochitest(ShellCommand):
     name = "mochitest"
@@ -435,6 +506,9 @@ class MozillaMochitest(ShellCommand):
 
 class MozillaWin32Mochitest(MozillaMochitest):
     command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
+
+class MozillaWinXPMochitest(MozillaMochitest):
+    command = ['perl runtests.pl --appname=..\\..\\..\\dist\\bin\\firefox.exe --autorun --console-level=INFO --close-when-done']
 
 class MozillaOSXMochitest(MozillaMochitest):
     command = ["python",
@@ -491,6 +565,9 @@ class MozillaMochichrome(ShellCommand):
 class MozillaWin32Mochichrome(MozillaMochichrome):
    command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --chrome --autorun --console-level=INFO --close-when-done']
 
+class MozillaWinXPMochichrome(MozillaMochichrome):
+   command = ['perl runtests.pl --appname=..\\..\\..\\dist\\bin\\firefox.exe --chrome --autorun --console-level=INFO --close-when-done']
+
 class MozillaOSXMochichrome(MozillaMochichrome):
    command = ["python",
               "runtests.py",
@@ -543,6 +620,9 @@ class MozillaBrowserChromeTest(ShellCommand):
 class MozillaWin32BrowserChromeTest(MozillaBrowserChromeTest):
     command = ['python runtests.py --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
 
+class MozillaWinXPBrowserChromeTest(MozillaBrowserChromeTest):
+    command = ['perl runtests.pl --appname=../../../dist/bin/firefox.exe --autorun --browser-chrome --close-when-done']
+
 class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
     command = ["python",
                "runtests.py",
@@ -551,12 +631,55 @@ class MozillaOSXBrowserChromeTest(MozillaBrowserChromeTest):
                "--browser-chrome",
                "--close-when-done"]
 
-class createProfile(ShellCommand):
+class MozillaA11YTest(MozillaMochichrome):
+    name = "a11y test"
+    warnOnFailure = True
+    description = ["a11y test"]
+    descriptionDone = ["a11y test complete"]
+    command = ["python",
+               "runtests.py",
+               "--appname=../../../dist/bin/firefox",
+               "--autorun",
+               "--a11y", 
+               "--close-when-done"]
+    
+    def createSummary(self, log):
+        passCount = 0
+        failCount = 0
+        todoCount = 0
+        for line in log.readlines():
+            if "INFO Passed:" in line:
+                passCount = int(line.split()[-1])
+            if "INFO Failed:" in line:
+                failCount = int(line.split()[-1])
+            if "INFO Todo:" in line:
+                todoCount = int(line.split()[-1])
+        summary = "TinderboxPrint: a11y<br/>"
+        if not (passCount + failCount + todoCount):
+            summary += "FAIL\n"
+        else:
+            summary +=  str(passCount) + "/" + str(failCount) + "/" + str(todoCount) + "\n"
+        self.addCompleteLog('summary', summary)
+    
+
+class MozillaWin32A11YTest(MozillaA11YTest):
+   command = ['python runtests.py --appname=..\\..\\..\\dist\\bin\\firefox.exe --a11y --autorun --console-level=INFO --close-when-done']
+
+class MozillaOSXA11YTest(MozillaA11YTest):
+   command = ["python",
+              "runtests.py",
+              "--appname=../../../dist/Minefield.app/Contents/MacOS/firefox",
+              "--a11y",
+              "--autorun",
+              "--console-level=INFO",
+              "--close-when-done"]
+
+class CreateProfile(ShellCommand):
     name = "create profile"
     warnOnFailure = True
     description = ["create profile"]
     descriptionDone = ["create profile complete"]
-    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --binary mozilla/objdir/dist/bin/firefox'
+    command = r'python mozilla/testing/tools/profiles/createTestingProfile.py --clobber --binary mozilla/objdir/dist/bin/firefox'
 
-class createProfileWin(createProfile):
-    command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --binary mozilla\objdir\dist\bin\firefox.exe'
+class CreateProfileWin(CreateProfile):
+    command = r'python mozilla\testing\tools\profiles\createTestingProfile.py --clobber --binary mozilla\objdir\dist\bin\firefox.exe'
