@@ -61,10 +61,12 @@ components/crashreporter.xpt
 components/nsCloseAllWindows.js
 components/nsKillAll.js
 components/nsScriptableIO.js
+components/nsXmlRpcClient.js
 components/search.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/venkman-service.js
+components/xml-rpc.xpt
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 res/cmessage.txt
 #ifdef XP_WIN

@@ -247,7 +247,6 @@ bin\components\xppref32.dll
 bin\components\xulapp.xpt
 bin\components\xuldoc.xpt
 bin\components\xultmpl.xpt
-bin\components\xml-rpc.xpt
 bin\plugins\npnul32.dll
 bin\components\helperAppDlg.xpt
 bin\AccessibleMarshal.dll
@@ -281,7 +280,6 @@ bin\components\nsSidebar.js
 bin\components\nsSuiteGlue.js
 bin\components\nsUpdateService.js
 bin\components\nsURLFormatter.js
-bin\components\nsXmlRpcClient.js
 bin\components\pluginGlue.js
 bin\components\storage-Legacy.js
 bin\components\txEXSLTRegExFunctions.js

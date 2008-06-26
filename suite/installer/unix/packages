@@ -226,7 +226,6 @@ bin/components/libwindowds.so
 bin/components/windowds.xpt
 bin/components/windowwatcher.xpt
 bin/components/libxmlextras.so
-bin/components/xml-rpc.xpt
 bin/components/libxpautocomplete.so
 bin/components/xpautocomplete.xpt
 bin/components/xpcom_base.xpt
@@ -273,7 +272,6 @@ bin/components/nsTryToClose.js
 bin/components/nsUpdateService.js
 bin/components/nsURLFormatter.js
 bin/components/nsWebHandlerApp.js
-bin/components/nsXmlRpcClient.js
 bin/components/pluginGlue.js
 bin/components/storage-Legacy.js
 bin/components/txEXSLTRegExFunctions.js
