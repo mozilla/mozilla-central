@@ -116,8 +116,7 @@ public:
                               nsIAbCard *aCard) = 0;
   virtual nsresult UnassertDirectory(nsIAbManager *aManager,
                                      nsIAbDirectory *aDirectory) = 0;
-  virtual nsresult UnassertCard(nsIAbManager *aManager,
-                                nsIAbCard *aCard) = 0;
+  virtual nsresult DeleteUid(const nsACString &aUid) = 0;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIAbOSXDirectory, NS_IABOSXDIRECTORY_IID)
@@ -152,17 +151,15 @@ public:
                       nsIAbCard *aCard);
   nsresult UnassertDirectory(nsIAbManager *aManager,
                              nsIAbDirectory *aDirectory);
-  nsresult UnassertCard(nsIAbManager *aManager,
-                        nsIAbCard *aCard);
   
   nsresult Update();
-  
+
+  nsresult DeleteUid(const nsACString &aUid);
 private:
   nsresult FallbackSearch(nsIAbBooleanExpression *aExpression,
                           nsISimpleEnumerator **aCards);
   
   nsTHashtable<nsIAbCardHashKey> mCardList;
-  nsCString m_DirName;
 };
 
 #endif // nsAbOSXDirectory_h___

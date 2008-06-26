@@ -199,32 +199,16 @@ Update(nsIRDFService *aRDFService, NSString *aUid)
     nsCOMPtr<nsIAbOSXDirectory> osxDirectory =
       do_QueryInterface(resource, &rv);
     NS_ENSURE_SUCCESS(rv, );
-    
-    nsCOMPtr<nsIAbManager> abManager =
-      do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, );
-    
+
     unsigned int i, count = [deleted count];
     for (i = 0; i < count; ++i) {
-      ABAddressBook *addressBook = [ABAddressBook sharedAddressBook];
-      ABRecord* card
-          = [addressBook recordForUniqueId: [deleted objectAtIndex:i]];
-      if ([card isKindOfClass: [ABGroup class]]) {
-        nsCOMPtr<nsIAbDirectory> directory;
-        ConvertToGroupResource(rdfService, [deleted objectAtIndex:i],
-                               getter_AddRefs(directory));
-        
-        rv = osxDirectory->UnassertDirectory(abManager, directory);
-        NS_ENSURE_SUCCESS(rv, );
-      }
-      else {
-        nsCOMPtr<nsIAbCard> abCard;
-        ConvertToCard(rdfService, [deleted objectAtIndex:i],
-                      getter_AddRefs(abCard));
-        
-        rv = osxDirectory->UnassertCard(abManager, abCard);
-        NS_ENSURE_SUCCESS(rv, );
-      }
+      NSString *deletedUid = [deleted objectAtIndex:i];
+
+      nsCAutoString uid;
+      AppendToCString(deletedUid, uid);
+
+      rv = osxDirectory->DeleteUid(uid);
+      NS_ENSURE_SUCCESS(rv, );
     }
   }
   
@@ -719,27 +703,16 @@ nsresult
 nsAbOSXDirectory::UnassertDirectory(nsIAbManager *aManager,
                                     nsIAbDirectory *aDirectory)
 {
-  if (!m_AddressList)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_TRUE(m_AddressList, NS_ERROR_NULL_POINTER);
 
   PRUint32 pos;
-  if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
+  if (NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
   {
     nsresult rv = m_AddressList->RemoveElementAt(pos);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
   return aManager->NotifyDirectoryItemDeleted(this, aDirectory);
-}
-
-nsresult
-nsAbOSXDirectory::UnassertCard(nsIAbManager *aManager,
-                               nsIAbCard *aCard)
-{
-  NS_ASSERTION(mCardList.GetEntry(aCard), "Not found?");
-  
-  mCardList.RemoveEntry(aCard);
-  return aManager->NotifyDirectoryItemDeleted(this, aCard);
 }
 
 NS_IMETHODIMP
@@ -839,7 +812,7 @@ nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
   PRUint32 pos;
   if (m_AddressList && NS_SUCCEEDED(m_AddressList->IndexOf(0, aDirectory, &pos)))
     *aHasDirectory = PR_TRUE;
-  
+
   return NS_OK;
 }
 
@@ -925,4 +898,88 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   NS_ENSURE_SUCCESS(rv, rv);
   
   return NS_NewArrayEnumerator(aCards, m_AddressList);
+}
+
+struct nsRemoveSingleItemEnumeratorData
+{
+  nsIAbDirectory *mDirectory;
+  nsIAbManager *mManager;
+  nsCString mURI;
+};
+
+
+PLDHashOperator
+RemoveSingleItemEnumerator(nsIAbCardHashKey *aKey, void *aUserArg)
+{
+  nsRemoveSingleItemEnumeratorData* data =
+    static_cast<nsRemoveSingleItemEnumeratorData*>(aUserArg);
+  
+  nsIAbCard *abCard = aKey->GetCard();
+  
+  nsCOMPtr<nsIRDFResource> resource = do_QueryInterface(abCard);
+  
+  const char* uri;
+  resource->GetValueConst(&uri);
+
+  if (data->mURI.Equals(uri)) {
+    data->mManager->NotifyDirectoryItemDeleted(data->mDirectory, abCard);
+    return PL_DHASH_REMOVE;
+  }
+  return PL_DHASH_NEXT;
+}
+
+nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
+{
+  if (!m_AddressList)
+    return NS_ERROR_NULL_POINTER;
+
+  nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager =
+    do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // At this stage we don't know if aUid represents a card or group. The OS X
+  // interfaces don't give us chance to find out, so we have to go through
+  // our lists to find it.
+
+  // First, we'll see if its in the group list as it is likely to be shorter.
+
+  // See if this item is in our address list
+  PRUint32 addressCount;
+  rv = m_AddressList->GetLength(&addressCount);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString uri(NS_ABOSXDIRECTORY_URI_PREFIX);
+  uri.Append(aUid);
+
+  // Iterate backwards in case we remove something
+  while (addressCount--)
+  {
+    nsCOMPtr<nsIAbDirectory> directory(do_QueryElementAt(m_AddressList,
+                                                         addressCount, &rv));
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCString dirURI;
+      directory->GetURI(dirURI);
+      if (dirURI == uri)
+        // Match found, do the necessary and get out of here.
+        return UnassertDirectory(abManager, directory);
+    }
+  }
+
+  // Second, see if it is one of the cards.
+  if (!mCardList.IsInitialized())
+    return NS_ERROR_FAILURE;
+
+  uri = NS_ABOSXCARD_URI_PREFIX;
+  uri.Append(aUid);
+
+  nsRemoveSingleItemEnumeratorData data;
+  data.mDirectory = this;
+  data.mManager = abManager;
+  data.mURI = uri;
+
+  mCardList.EnumerateEntries(RemoveSingleItemEnumerator, &data);
+
+  return NS_OK;
 }
