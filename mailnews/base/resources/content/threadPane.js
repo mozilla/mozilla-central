@@ -128,12 +128,44 @@ nsMsgDBViewCommandUpdater.prototype =
 
 function HandleColumnClick(columnID)
 {
-  var sortType = ConvertColumnIDToSortType(columnID);
+  var columnMap = {dateCol: 'byDate',
+                   receivedCol: 'byReceived',
+                   senderCol: 'byAuthor',
+                   recipientCol: 'byRecipient',
+                   subjectCol: 'bySubject',
+                   locationCol: 'byLocation',
+                   accountCol: 'byAccount',
+                   unreadButtonColHeader: 'byUnread',
+                   statusCol: 'byStatus',
+                   sizeCol: 'bySize',
+                   priorityCol: 'byPriority',
+                   flaggedCol: 'byFlagged',
+                   threadCol: 'byThread',
+                   tagsCol: 'byTags',
+                   junkStatusCol: 'byJunkStatus',
+                   idCol: 'byId',
+                   attachmentCol: 'byAttachments'};
 
-  // if sortType is 0, this is an unsupported sort type
-  // return, since we can't sort by that column.
-  if (sortType == 0)
-    return;
+
+  var sortType;
+  if (columnID in columnMap) {
+    sortType = columnMap[columnID];
+  } else {
+    // If the column isn't in the map, check and see if it's a custom column
+    try {
+      // try to grab the columnHandler (an error is thrown if it does not exist)
+      columnHandler = gDBView.getColumnHandler(columnID);
+
+      // it exists - save this column ID in the customSortCol property of
+      // dbFolderInfo for later use (see nsIMsgDBView.cpp)
+      gDBView.db.dBFolderInfo.setProperty('customSortCol', columnID);
+        
+      sortType = "byCustom";
+    } catch(err) {
+        dump("unsupported sort column: " + columnID + " - no custom handler installed. (Error was: " + err + ")\n");
+        return; // bail out
+    }
+  }
 
   var dbview = GetDBView();
   var simpleColumns = false;
@@ -142,7 +174,7 @@ function HandleColumnClick(columnID)
   }
   catch (ex) {
   }
-  if (sortType == nsMsgViewSortType.byThread) {
+  if (sortType == "byThread") {
     if (!dbview.supportsThreading)
       return;
 
@@ -156,13 +188,13 @@ function HandleColumnClick(columnID)
   else {
     if (!simpleColumns && (dbview.viewFlags & nsMsgViewFlagsType.kThreadedDisplay)) {
       dbview.viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
-      MsgSortThreadPaneByType(sortType);
+      MsgSortThreadPane(sortType);
     }
     else if (dbview.sortType == sortType) {
       MsgReverseSortThreadPane();
     }
     else {
-      MsgSortThreadPaneByType(sortType);
+      MsgSortThreadPane(sortType);
     }
   }
 }
@@ -208,17 +240,12 @@ function MsgSortByThread()
     return;
   dbview.viewFlags |= nsMsgViewFlagsType.kThreadedDisplay;
   dbview.viewFlags &= ~nsMsgViewFlagsType.kGroupBySort;
-  MsgSortThreadPaneByType(nsMsgViewSortType.byDate);
+  MsgSortThreadPane('byDate');
 }
 
 function MsgSortThreadPane(sortName)
 {
   var sortType = nsMsgViewSortType[sortName];
-  MsgSortThreadPaneByType(sortType);
-}
-  
-function MsgSortThreadPaneByType(sortType)
-{
   var dbview = GetDBView();
 
   if (dbview.viewFlags & nsMsgViewFlagsType.kGroupBySort)
