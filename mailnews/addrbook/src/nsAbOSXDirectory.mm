@@ -394,17 +394,21 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
     condition = do_QueryElementAt(expressions, i);
     if (condition) {
       rv = MapConditionString(condition, operation == nsIAbBooleanOperationTypes::NOT, aCanHandle, &element);
-      NS_ENSURE_SUCCESS(rv, rv);
+      if (NS_FAILED(rv))
+        break;
     }
     else {
       subExpression = do_QueryElementAt(expressions, i);
       if (subExpression) {
         rv = BuildSearchElements(subExpression, aCanHandle, &element);
-        NS_ENSURE_SUCCESS(rv, rv);
+        if (NS_FAILED(rv))
+          break;
       }
     }
     
     if (!aCanHandle) {
+      // remember to free the array when returning early
+      [array release];
       return NS_OK;
     }
     
@@ -417,12 +421,14 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   }
   
   if (array) {
-    ABSearchConjunction conjunction = operation == nsIAbBooleanOperationTypes::AND ? kABSearchAnd : kABSearchOr;
-    *aResult = [ABSearchElement searchElementForConjunction:conjunction children:array];
+    if (NS_SUCCEEDED(rv)) {
+      ABSearchConjunction conjunction = operation == nsIAbBooleanOperationTypes::AND ? kABSearchAnd : kABSearchOr;
+      *aResult = [ABSearchElement searchElementForConjunction:conjunction children:array];
+    }
     [array release];
   }
   
-  return NS_OK;
+  return rv;
 }
 
 static PRBool
