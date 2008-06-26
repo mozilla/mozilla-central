@@ -121,7 +121,7 @@ diff -u -r1.19.2.3 Error.pm
 +            # JSON can't handle strings across lines. 
 +            $message =~ s/\n/ /gm;
 +            my $err;
-+            $err->{'success'} = 'false';
++            $err->{'success'} = JSON::false;
 +            $err->{'error'} = $error;
 +            $err->{'message'} = $message;
 +            my $json = new JSON;
