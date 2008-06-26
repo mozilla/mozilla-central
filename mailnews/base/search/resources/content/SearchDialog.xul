@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 
-
 <!-- ***** BEGIN LICENSE BLOCK *****
  Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
@@ -111,7 +110,6 @@
          </menulist>
          <spacer flex="10"/>
          <button id="search-button" oncommand="onSearchButton(event);" default="true"/>
- 
         </hbox>
         <hbox align="center">
            <checkbox id="checkSearchSubFolders" label="&searchSubfolders.label;" checked="true" accesskey="&searchSubfolders.accesskey;"/>
@@ -124,7 +122,6 @@
            <button label="&helpButton.label;" align="end" oncommand="openHelp('search_messages');" accesskey="&helpButton.accesskey;"/> 
          </hbox>
       </vbox>
-
 
       <hbox flex="1">
         <vbox id="searchTermListBox" flex="1"/>
