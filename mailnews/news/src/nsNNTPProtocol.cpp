@@ -3428,8 +3428,6 @@ PRInt32 nsNNTPProtocol::XoverSend()
         m_firstArticle,
         m_lastArticle);
 
-  NNTP_LOG_WRITE(outputBuffer);
-
     m_nextState = NNTP_RESPONSE;
     m_nextStateAfterResponse = NNTP_XOVER_RESPONSE;
     SetFlag(NNTP_PAUSE_FOR_READ);
@@ -4336,7 +4334,6 @@ PRInt32 nsNNTPProtocol::XPATSend()
     unescapedCommand = MSG_UnEscapeSearchUrl(command);
 
     /* send one term off to the server */
-    NNTP_LOG_WRITE(command);
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
     if (mailnewsurl)
       status = SendData(mailnewsurl, unescapedCommand);
