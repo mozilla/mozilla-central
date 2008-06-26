@@ -615,6 +615,8 @@ SECStatus PK11_TraverseCertsForSubjectInSlot(CERTCertificate *cert,
 	void *arg);
 CERTCertificate *PK11_FindCertFromDERCert(PK11SlotInfo *slot, 
 					  CERTCertificate *cert, void *wincx);
+CERTCertificate *PK11_FindCertFromDERCertItem(PK11SlotInfo *slot,
+                                          SECItem *derCert, void *wincx);
 SECStatus PK11_ImportCertForKeyToSlot(PK11SlotInfo *slot, CERTCertificate *cert,
 					char *nickname, PRBool addUsage,
 					void *wincx);
