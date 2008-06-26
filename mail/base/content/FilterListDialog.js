@@ -112,6 +112,8 @@ function onLoad()
     if (firstItem) {
         selectServer(firstItem);
     }
+
+    window.tryToClose = onFilterClose;
 }
 
 /**
@@ -275,6 +277,11 @@ function viewLog()
   window.openDialog("chrome://messenger/content/viewLog.xul", "FilterLog", "chrome,modal,titlebar,resizable,centerscreen", args);
 }
 
+function onFilterUnload()
+{
+  gCurrentFilterList.saveToDefaultFile();
+}
+
 function onFilterClose()
 {
   var runButton = document.getElementById("runFiltersButton");
@@ -297,9 +304,7 @@ function onFilterClose()
     else
       return false;
   }
-  gCurrentFilterList.saveToDefaultFile();
 
-  window.close();
   return true;
 }
 

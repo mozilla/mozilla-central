@@ -47,8 +47,7 @@
 <window id="searchMailWindow"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         onload="searchOnLoad();"
-        onunload="searchOnUnload();"
-        onclose="onSearchStop();"
+        onunload="onSearchStop(); searchOnUnload();"
         windowtype="mailnews:search"
         title="&searchDialogTitle.label;"
         style="width: 52em; height: 34em;"
@@ -72,7 +71,6 @@
   <script type="application/x-javascript" src="chrome://messenger/content/msgFolderPickerOverlay.js"/>
   <script type="application/x-javascript" src="chrome://messenger/content/widgetglue.js"/>
 
-
   <commands id="commands">
     <commandset id="mailSearchItems"
                 commandupdater="true"
@@ -90,8 +88,8 @@
 
   <keyset id="mailKeys">
     <key id="key_delete" oncommand="goDoCommand('cmd_delete');"/>
-    <key key="&closeCmd.key;" modifiers="accel" oncommand="onSearchStop(); closeWindow(true);"/>
-    <key keycode="VK_ESCAPE" xulkey="false" oncommand="onSearchStop(); closeWindow(true);"/>
+    <key key="&closeCmd.key;" modifiers="accel" oncommand="window.close();"/>
+    <key keycode="VK_ESCAPE" xulkey="false" oncommand="window.close();"/>
 #ifdef XP_MACOSX
       <key id="key_delete2" oncommand="goDoCommand('cmd_delete');"/>
       <key id="cmd_shiftDelete" keycode="VK_BACK" xulkey="false" oncommand="goDoCommand('cmd_shiftDelete');" modifiers="shift"/>
@@ -113,7 +111,6 @@
          </menulist>
          <spacer flex="10"/>
          <button id="search-button" oncommand="onSearchButton(event);" default="true"/>
- 
         </hbox>
         
          <hbox align="center">

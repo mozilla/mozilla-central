@@ -49,13 +49,12 @@
   windowtype="mailnews:filterlist"
   style="width: 45em; height: 31em;"
   onload="onLoad();"
+  onunload="onFilterUnload();"
   onclose="return onFilterClose();"
   persist="width height screenX screenY"
   title="&window.title;">
 
   <script type="application/x-javascript" src="chrome://messenger/content/FilterListDialog.js"/>
-  <script type="application/x-javascript" src="chrome://help/content/contextHelp.js"/>
-  <script type="application/x-javascript" src="chrome://communicator/content/utilityOverlay.js"/>
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_filter" src="chrome://messenger/locale/filter.properties"/>
   </stringbundleset>
@@ -63,8 +62,8 @@
   <keyset id="dialogKeys"/>
 
   <keyset>
-    <key key="&closeCmd.key;" modifiers="accel" oncommand="onFilterClose();"/>
-    <key keycode="VK_ESCAPE" xulkey="false" oncommand="onFilterClose();"/>
+    <key key="&closeCmd.key;" modifiers="accel" oncommand="if (onFilterClose()) window.close();"/>
+    <key keycode="VK_ESCAPE" xulkey="false" oncommand="if (onFilterClose()) window.close();"/>
   </keyset>
 
   <hbox align="center">
