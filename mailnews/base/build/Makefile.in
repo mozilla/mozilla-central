@@ -85,6 +85,10 @@ REQUIRES	= xpcom \
 		  webbrwsr \
 		  $(NULL)
 
+ifeq ($(OS_TARGET),Darwin)
+REQUIRES += alerts
+endif
+
 CPPSRCS		= nsMsgFactory.cpp
 
 SHARED_LIBRARY_LIBS = \
