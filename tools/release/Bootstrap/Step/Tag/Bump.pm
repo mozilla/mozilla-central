@@ -27,8 +27,7 @@ sub Execute {
     my $version = $config->GetVersion(longName => 0);
     my $appVersion = $config->GetAppVersion();
     my $build = int($config->Get(var => 'build'));
-    my $milestone = $config->Exists(var => 'milestone') ? 
-     $config->Get(var => 'milestone') : undef;
+    my $milestone = $config->Get(var => 'milestone');
     my $appName = $config->Get(var => 'appName');
     my $logDir = $config->Get(sysvar => 'logDir');
     my $mozillaCvsroot = $config->Get(var => 'mozillaCvsroot');
@@ -59,8 +58,8 @@ sub Execute {
 
     my @bumpFiles = ('client.mk', $moduleVer, $versionTxt);
 
-    # only bump milestone if it's defined in the config
-    if (defined($milestone)) {
+    # milestone changes only occur with Firefox releases
+    if ($product eq 'firefox') {
         @bumpFiles = (@bumpFiles, $milestoneTxt);
     }
 
@@ -171,6 +170,7 @@ sub Verify {
     my $config = new Bootstrap::Config();
     my $logDir = $config->Get(sysvar => 'logDir');
     my $appName = $config->Get(var => 'appName');
+    my $product = $config->Get(var => 'product');
     my $milestone = $config->Exists(var => 'milestone') ? 
      $config->Get(var => 'milestone') : undef;
     my $build = $config->Get(var => 'build');
@@ -185,8 +185,8 @@ sub Verify {
     my $milestoneTxt = catfile('config', 'milestone.txt');
     my @bumpFiles = ('client.mk', $moduleVer, $versionTxt);
 
-    # only bump milestone if it's defined in the config
-    if (defined($milestone)) {
+    # milestone changes only occur with Firefox releases
+    if ($product eq 'firefox') {
         @bumpFiles = (@bumpFiles, $milestoneTxt);
     }
 
