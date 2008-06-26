@@ -333,14 +333,17 @@ NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *a
   nsCOMPtr<nsIPrefBranch2> pbi = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  nsCOMPtr<nsIMsgMailSession> mailSession =
+    do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   if (aWin)
   {
     mMsgWindow = aMsgWindow;
     mWindow = aWin;
 
-    nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
     rv = mailSession->AddFolderListener(this, nsIFolderListener::removed);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsPIDOMWindow> win( do_QueryInterface(aWin) );
     NS_ENSURE_TRUE(win, NS_ERROR_FAILURE);
@@ -385,6 +388,9 @@ NS_IMETHODIMP nsMessenger::SetWindow(nsIDOMWindowInternal *aWin, nsIMsgWindow *a
     // down and we should start cleaning things up...
     // Remove pref observer
     pbi->RemoveObserver(MAILNEWS_ALLOW_PLUGINS_PREF_NAME, this);
+
+    rv = mailSession->RemoveFolderListener(this);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   return NS_OK;
