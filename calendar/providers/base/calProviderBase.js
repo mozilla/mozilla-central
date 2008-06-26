@@ -55,6 +55,7 @@ calProviderBase.prototype = {
         this.wrappedJSObject = this;
         this.mObservers = new calListenerBag(Components.interfaces.calIObserver);
         this.mProperties = {};
+        this.mProperties.currentStatus = Components.results.NS_OK;
     },
 
     get observers() {
@@ -148,12 +149,61 @@ calProviderBase.prototype = {
         this.mObservers.notify("onEndBatch");
     },
 
+    mTransientProperties: {
+        currentStatus: true
+    },
+
+    notifyOperationComplete: function cPB_notifyOperationComplete(aListener,
+                                                                  aStatus,
+                                                                  aOperationType,
+                                                                  aId,
+                                                                  aDetail) {
+        if (aListener) {
+            try {
+                aListener.onOperationComplete(this.superCalendar, aStatus, aOperationType, aId, aDetail);
+            } catch (exc) {
+                ERROR(exc);
+            }
+        }
+        if (aStatus == Components.interfaces.calIErrors.OPERATION_CANCELLED) {
+            return; // cancellation doesn't change current status, no notification
+        }
+        if (Components.isSuccessCode(aStatus)) {
+            this.setProperty("currentStatus", aStatus);
+        } else {
+            if (aDetail instanceof Components.interfaces.nsIException) {
+                this.notifyError(aDetail); // will set currentStatus
+            } else {
+                this.notifyError(aStatus, aDetail); // will set currentStatus
+            }
+            this.notifyError(aOperationType == Components.interfaces.calIOperationListener.GET
+                             ? Components.interfaces.calIErrors.READ_FAILED
+                             : Components.interfaces.calIErrors.MODIFICATION_FAILED,
+                             "");
+        }
+    },
+
+    // for convenience also callable with just an exception
+    notifyError: function cPB_notifyError(aErrNo, aMessage) {
+        if (aErrNo == Components.interfaces.calIErrors.OPERATION_CANCELLED) {
+            return; // cancellation doesn't change current status, no notification
+        }
+        if (aErrNo instanceof Components.interfaces.nsIException) {
+            if (!aMessage) {
+                aMessage = aErrNo.message;
+            }
+            aErrNo = aErrNo.result;
+        }
+        this.setProperty("currentStatus", aErrNo);
+        this.observers.notify("onError", [this.superCalendar, aErrNo, aMessage]);
+    },
+
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
         var ret = this.mProperties[aName];
         if (ret === undefined) {
             ret = null;
-            if (this.id) {
+            if (!this.mTransientProperties[aName] && this.id) {
                 // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
                 ret = getCalendarManager().getCalendarPref_(this, aName);
                 if (ret !== null) {
@@ -193,7 +243,7 @@ calProviderBase.prototype = {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
             this.mProperties[aName] = aValue;
-            if (this.id) {
+            if (!this.mTransientProperties[aName] && this.id) {
                 var v = aValue;
                 // xxx todo: work around value types here unless we save into the prefs...
                 switch (aName) {

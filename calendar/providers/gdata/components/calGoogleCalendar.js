@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Joey Minta <jminta@gmail.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -315,16 +316,13 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.addItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
-            if (aListener != null) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              e.result,
-                                              Components.interfaces.calIOperationListener.ADD,
-                                              null,
-                                              e.message);
-            }
+            this.notifyOperationComplete(aListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.ADD,
+                                         null,
+                                         e.message);
         }
         return null;
     },
@@ -354,13 +352,11 @@ calGoogleCalendar.prototype = {
                 LOG("Not requesting item modification for " + aOldItem.id +
                     "(" + aOldItem.title + "), relevant fields match");
 
-                if (aListener != null) {
-                    aListener.onOperationComplete(this.superCalendar,
-                                                  Components.results.NS_OK,
-                                                  Components.interfaces.calIOperationListener.MODIFY,
-                                                  aNewItem.id,
-                                                  aNewItem);
-                }
+                this.notifyOperationComplete(aListener,
+                                             Components.results.NS_OK,
+                                             Components.interfaces.calIOperationListener.MODIFY,
+                                             aNewItem.id,
+                                             aNewItem);
                 this.mObservers.notify("onModifyItem", [aNewItem, aOldItem]);
                 return null;
             }
@@ -412,16 +408,13 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.modifyItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
-            if (aListener != null) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              e.result,
-                                              Components.interfaces.calIOperationListener.MODIFY,
-                                              null,
-                                              e.message);
-            }
+            this.notifyOperationComplete(aListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.MODIFY,
+                                         null,
+                                         e.message);
         }
         return null;
     },
@@ -467,16 +460,13 @@ calGoogleCalendar.prototype = {
                 // notify the user. This can come from above or from
                 // mSession.deleteItem which checks for the editURI
                 this.readOnly = true;
-                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
-            if (aListener != null) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              e.result,
-                                              Components.interfaces.calIOperationListener.DELETE,
-                                              null,
-                                              e.message);
-            }
+            this.notifyOperationComplete(aListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         null,
+                                         e.message);
         }
         return null;
     },
@@ -518,13 +508,11 @@ calGoogleCalendar.prototype = {
         } catch (e) {
             LOG("getItem failed before request " + aId + "):\n" + e);
 
-            if (aListener != null) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              e.result,
-                                              Components.interfaces.calIOperationListener.GET,
-                                              null,
-                                              e.message);
-            }
+            this.notifyOperationComplete(aListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         e.message);
         }
         return null;
     },
@@ -547,7 +535,7 @@ calGoogleCalendar.prototype = {
 
             // check if events are wanted
             if (!wantEvents && !wantTodos) {
-                // Nothing to do. The onOperationComplete in the catch block
+                // Nothing to do. The notifyOperationComplete in the catch block
                 // below will catch this.
                 throw new Components.Exception("", Components.results.NS_OK);
             } else if (wantTodos && !wantEvents) {
@@ -599,13 +587,11 @@ calGoogleCalendar.prototype = {
             this.session.asyncItemRequest(request);
             return request;
         } catch (e) {
-            if (aListener != null) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              e.result,
-                                              Components.interfaces.calIOperationListener.GET,
-                                              null,
-                                              e.message);
-            }
+            this.notifyOperationComplete(aListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         e.message);
         }
         return null;
     },
@@ -680,29 +666,23 @@ calGoogleCalendar.prototype = {
             }
 
             // All operations need to call onOperationComplete
-            if (aOperation.operationListener) {
-                LOG("Deleting item " + aOperation.oldItem.id +
-                    " successful");
-
-                aOperation.operationListener.onOperationComplete(this.superCalendar,
-                                                                 Components.results.NS_OK,
-                                                                 Components.interfaces.calIOperationListener.DELETE,
-                                                                 aOperation.oldItem.id,
-                                                                 aOperation.oldItem);
-            }
+            LOG("Deleting item " + aOperation.oldItem.id + " successful");
+            this.notifyOperationComplete(aOperation.operationListener,
+                                         Components.results.NS_OK,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         aOperation.oldItem.id,
+                                         aOperation.oldItem);
 
             // Notify Observers
             this.mObservers.notify("onDeleteItem", [aOperation.oldItem]);
         } catch (e) {
             LOG("Deleting item " + aOperation.oldItem.id + " failed");
             // Operation failed
-            if (aOperation.operationListener) {
-                aOperation.operationListener.onOperationComplete(this.superCalendar,
-                                                                 e.result,
-                                                                 Components.interfaces.calIOperationListener.DELETE,
-                                                                 null,
-                                                                 e.message);
-            }
+            this.notifyOperationComplete(aOperation.operationListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         null,
+                                         e.message);
         }
     },
 
@@ -780,11 +760,11 @@ calGoogleCalendar.prototype = {
                                                      null,
                                                      1,
                                                      [item]);
-            aOperation.operationListener.onOperationComplete(this.superCalendar,
-                                                             Components.results.NS_OK,
-                                                             Components.interfaces.calIOperationListener.GET,
-                                                             item.id,
-                                                             null);
+            this.notifyOperationComplete(aOperation.operationListener,
+                                         Components.results.NS_OK,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         item.id,
+                                         null);
         } catch (e) {
             if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
                 // Not finding an item isn't a user-important error, it may be a
@@ -792,11 +772,11 @@ calGoogleCalendar.prototype = {
                 LOG("Error getting item " + aOperation.itemId + ":\n" + e);
                 Components.utils.reportError(e);
             }
-            aOperation.operationListener.onOperationComplete(this.superCalendar,
-                                                             e.result,
-                                                             Components.interfaces.calIOperationListener.GET,
-                                                             null,
-                                                             e.message);
+            this.notifyOperationComplete(aOperation.operationListener,
+                                         e.result,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         e.message);
         }
     },
 
@@ -906,14 +886,14 @@ calGoogleCalendar.prototype = {
                                      expandedItems);
             }
             // Operation Completed successfully.
-            listener.onOperationComplete(this.superCalendar,
+            this.notifyOperationComplete(listener,
                                          Components.results.NS_OK,
                                          Components.interfaces.calIOperationListener.GET,
                                          null,
                                          null);
         } catch (e) {
             LOG("Error getting items:\n" + e);
-            listener.onOperationComplete(this.superCalendar,
+            this.notifyOperationComplete(listener,
                                          e.result,
                                          Components.interfaces.calIOperationListener.GET,
                                          null,
@@ -975,14 +955,11 @@ calGoogleCalendar.prototype = {
             // All operations need to call onOperationComplete
             // calIGoogleRequest's type corresponds to calIOperationListener's
             // constants, so we can use them here.
-            if (aOperation.operationListener) {
-                aOperation.operationListener
-                          .onOperationComplete(this.superCalendar,
-                                               Components.results.NS_OK,
-                                               aOperation.type,
-                                               (item ? item.id : null),
-                                               item);
-            }
+            this.notifyOperationComplete(aOperation.operationListener
+                                         Components.results.NS_OK,
+                                         aOperation.type,
+                                         (item ? item.id : null),
+                                         item);
             return item;
         } catch (e) {
             LOG("General response failed: " + e);
@@ -991,18 +968,14 @@ calGoogleCalendar.prototype = {
                 // The calendar is readonly, make sure this is set and
                 // notify the user.
                 this.readOnly = true;
-                this.mObservers.notify("onError", [this.superCalendar, e.result, e.message]);
             }
 
             // Operation failed
-            if (aOperation.operationListener) {
-                aOperation.operationListener
-                          .onOperationComplete(this.superCalendar,
-                                               e.result,
-                                               aOperation.type,
-                                               null,
-                                               e.message);
-            }
+            this.notifyOperationComplete(aOperation.operationListener
+                                         e.result,
+                                         aOperation.type,
+                                         null,
+                                         e.message);
         }
         return null;
     },

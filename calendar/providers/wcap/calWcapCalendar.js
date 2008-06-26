@@ -58,11 +58,10 @@ calWcapCalendar.prototype = {
         }
         return str;
     },
-    notifyError_: function calWcapCalendar_notifyError_(err, context, suppressOnError) {
-        var msg;
+
+    notifyError_: function calWcapCalendar_notifyError_(err, msg, context, suppressOnError) {
         var rc = getResultCode(err);
         switch (rc) {
-            case calIErrors.OPERATION_CANCELLED:
             case calIWcapErrors.WCAP_COMPONENT_NOT_FOUND:
             case NS_ERROR_OFFLINE:
                 return;
@@ -80,14 +79,15 @@ calWcapCalendar.prototype = {
                 break;
         }
         if (!suppressOnError) {
-            this.notifyObservers("onError",
-                                 err instanceof Components.interfaces.nsIException
-                                 ? [this.superCalendar, err.result, err.message]
-                                 : [this.superCalendar, (isNaN(err) ? -1 : err), msg]);
+            this.__proto__.__proto__.notifyError.apply(
+                this,
+                err instanceof Components.interfaces.nsIException
+                ? [err.result, err.message]
+                : [(isNaN(err) ? Components.results.NS_ERROR_FAILURE : err), msg]);
         }
     },
-    notifyError: function calWcapCalendar_notifyError(err, suppressOnError) {
-        this.notifyError_(err, this, suppressOnError);
+    notifyError: function calWcapCalendar_notifyError(err, msg, suppressOnError) {
+        this.notifyError_(err, msg, this, suppressOnError);
     },
 
     // calICalendarProvider:

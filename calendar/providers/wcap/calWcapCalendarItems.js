@@ -114,7 +114,8 @@ function calWcapCalendar_getRecurrenceParams(item, out_rrules, out_rdates, out_e
                     out_rdates.value.push(getIcalUTC(ensureDateTime(rItem.date)));
                 }
             } else {
-                this.notifyError("don\'t know how to handle this recurrence item: " + rItem.valueAsIcalString);
+                this.notifyError(NS_ERROR_UNEXPECTED,
+                                 "don\'t know how to handle this recurrence item: " + rItem.valueAsIcalString);
             }
         }
     }
@@ -605,7 +606,8 @@ function calWcapCalendar_storeItem(bAddItem, item, oldItem, request) {
                 throw new Components.Exception("empty VCALENDAR returned!");
             }
             if (items.length > 1) {
-                this_.notifyError("unexpected number of items: " + items.length);
+                this_.notifyError(NS_ERROR_UNEXPECTED,
+                                  "unexpected number of items: " + items.length);
             }
             var newItem = items[0];
             this_.tunnelXProps(newItem, item);
@@ -662,16 +664,12 @@ function calWcapCalendar_adoptItem(item, listener) {
     var this_ = this;
     var request = new calWcapRequest(
         function adoptItem_resp(request, err, newItem) {
-            if (listener) {
-                listener.onOperationComplete(this_.superCalendar,
-                                             getResultCode(err),
-                                             calIOperationListener.ADD,
-                                             err ? item.id : newItem.id,
-                                             err ? err : newItem);
-            }
-            if (err) {
-                this_.notifyError(err);
-            } else {
+            this_.notifyOperationComplete(listener,
+                                          getResultCode(err),
+                                          calIOperationListener.ADD,
+                                          err ? item.id : newItem.id,
+                                          err ? err : newItem);
+            if (!err) {
                 this_.notifyObservers("onAddItem", [newItem]);
             }
         },
@@ -698,14 +696,11 @@ function calWcapCalendar_modifyItem(newItem, oldItem, listener) {
     var this_ = this;
     var request = new calWcapRequest(
         function modifyItem_resp(request, err, item) {
-            if (listener) {
-                listener.onOperationComplete(this_.superCalendar, getResultCode(err),
-                                             calIOperationListener.MODIFY,
-                                             newItem.id, err ? err : item);
-            }
-            if (err) {
-                this_.notifyError(err);
-            } else {
+            this_.notifyOperationComplete(listener,
+                                          getResultCode(err),
+                                          calIOperationListener.MODIFY,
+                                          newItem.id, err ? err : item);
+            if (!err) {
                 this_.notifyObservers("onModifyItem", [item, oldItem]);
             }
         },
@@ -784,15 +779,11 @@ function calWcapCalendar_deleteItem(item, listener) {
     var request = new calWcapRequest(
         function deleteItem_resp(request, err) {
             // xxx todo: need to notify about each deleted item if multiple?
-            if (listener) {
-                listener.onOperationComplete(
-                    this_.superCalendar, getResultCode(err),
-                    calIOperationListener.DELETE,
-                    item.id, err ? err : item);
-            }
-            if (err) {
-                this_.notifyError(err);
-            } else {
+            this_.notifyOperationComplete(listener,
+                                          getResultCode(err),
+                                          calIOperationListener.DELETE,
+                                          item.id, err ? err : item);
+            if (!err) {
                 this_.notifyObservers("onDeleteItem", [item]);
             }
         },
@@ -1069,15 +1060,11 @@ function calWcapCalendar_getItem(id, listener) {
     var this_ = this;
     var request = new calWcapRequest(
         function getItem_resp(request, err, item) {
-            if (listener) {
-                listener.onOperationComplete(this_.superCalendar, getResultCode(err),
-                                             calIOperationListener.GET,
-                                             item ? item.id : null,
-                                             err || item);
-            }
-            if (err) {
-                this_.notifyError(err);
-            }
+            this_.notifyOperationComplete(listener,
+                                          getResultCode(err),
+                                          calIOperationListener.GET,
+                                          item ? item.id : null,
+                                          err || item);
         },
         log("getItem() call: id=" + id, this));
 
@@ -1095,7 +1082,8 @@ function calWcapCalendar_getItem(id, listener) {
                 throw new Components.Exception("no such item!");
             }
             if (items.length > 1) {
-                this_.notifyError("unexpected number of items: " + items.length);
+                this_.notifyError(NS_ERROR_UNEXPECTED,
+                                  "unexpected number of items: " + items.length);
             }
             if (listener) {
                 listener.onGetResult(this_.superCalendar, NS_OK,
@@ -1178,21 +1166,11 @@ function calWcapCalendar_getItems(itemFilter, maxResults, rangeStart, rangeEnd, 
     var request = new calWcapRequest(
         function getItems_resp(request, err, data) {
             log("getItems() complete: " + errorToString(err), this_);
-            var rc = getResultCode(err);
-            if (err) {
-                if (listener) {
-                    listener.onOperationComplete(this_.superCalendar, rc,
-                                                 calIOperationListener.GET,
-                                                 null, err);
-                }
-                this_.notifyError(err, request.suppressOnError);
-            } else {
-                if (listener) {
-                    listener.onOperationComplete(this_.superCalendar, rc,
-                                                 calIOperationListener.GET,
-                                                 null, null);
-                }
-            }
+            this_.notifyOperationComplete(listener,
+                                          getResultCode(err),
+                                          calIOperationListener.GET,
+                                          null,
+                                          err);
         },
         log("getItems():\n\titemFilter=0x" + itemFilter.toString(0x10) +
             ",\n\tmaxResults=" + maxResults +
@@ -1414,9 +1392,8 @@ function calWcapCalendar_syncChangesTo_(destCal, itemFilter, dtFrom, listener) {
                         opListener.onResult(request, null);
                     }
                 }
-                this_.notifyError(err, request.suppressOnError);
+                this_.notifyError(err, null, request.suppressOnError);
             } else {
-
                 log("SYNC succeeded.", this_);
                 if (listener) {
                     var opListener = null;
@@ -1430,6 +1407,7 @@ function calWcapCalendar_syncChangesTo_(destCal, itemFilter, dtFrom, listener) {
                         opListener.onResult(request, now);
                     }
                 }
+                this_.setProperty("currentStatus", Components.results.NS_OK);
             }
         },
         log("syncChangesTo():\n\titemFilter=0x" + itemFilter.toString(0x10) +

@@ -120,18 +120,19 @@ interface calICalendar : nsISupports
    *
    * Currently known properties are:
    *   [boolean] calendar-main-in-composite
-   *   [string]  name
-   *   [boolean] readOnly
-   *   [boolean] requiresNetwork    If false, the calendar does not require
-   *                                  network access at all. This is mainy used
-   *                                  as a UI hint.
-   *   [boolean] suppressAlarms     If true, alarms of this calendar are not minded.
-   *   [boolean] cache.supported    If true, the calendar should to be cached,
+   *   [string]   name
+   *   [boolean]  readOnly
+   *   [boolean]  requiresNetwork    If false, the calendar does not require
+   *                                   network access at all. This is mainy used
+   *                                   as a UI hint.
+   *   [boolean]  suppressAlarms     If true, alarms of this calendar are not minded.
+   *   [boolean]  cache.supported    If true, the calendar should to be cached,
    *                                   e.g. this generally applies to network calendars;
    *                                   default is true (if not present).
-   *   [boolean] cache.enabled      If true, the calendar is cached; default is false.
-   *   [string]  itip.transportType If the provider implements a custom calIItipTransport
-   *                                this is the "type" used in the contract id.
+   *   [boolean]  cache.enabled      If true, the calendar is cached; default is false.
+   *   [string]   itip.transportType If the provider implements a custom calIItipTransport
+   *                                   this is the "type" used in the contract id.
+   *   [nsresult] currentStatus      The current error status of the calendar (transient).
    *
    * The following calendar capabilities can be used to inform the UI or backend
    * that certain features are not supported. If not otherwise mentioned, not

@@ -23,6 +23,7 @@
  *   Dan Mosedale <dan.mosedale@oracle.com>
  *   Joey Minta <jminta@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -225,6 +226,7 @@ calICSCalendar.prototype = {
             str = unicodeConverter.convertFromByteArray(result, result.length);
         } catch(e) {
             this.mObserver.onError(this.superCalendar, calIErrors.CAL_UTF8_DECODING_FAILED, e.toString());
+            this.mObserver.onError(this.superCalendar, calIErrors.READ_FAILED, "");
             this.unlock();
             return;
         }
@@ -256,6 +258,7 @@ calICSCalendar.prototype = {
         } catch(e) {
             LOG("Parsing the file failed:"+e);
             this.mObserver.onError(this.superCalendar, e.result, e.toString());
+            this.mObserver.onError(this.superCalendar, calIErrors.READ_FAILED, "");
         }
         this.mObserver.onEndBatch();
         this.mObserver.onLoad(this);
@@ -323,10 +326,10 @@ calICSCalendar.prototype = {
                     if (inLastWindowClosingSurvivalArea) {
                         appStartup.exitLastWindowClosingSurvivalArea();
                     }
-                    savedthis.mObserver.onError(
-                        this.superCalendar,
-                        ex.result, "The calendar could not be saved; there " +
-                        "was a failure: 0x" + ex.result.toString(16));
+                    savedthis.mObserver.onError(savedthis.superCalendar,
+                                                ex.result, "The calendar could not be saved; there " +
+                                                "was a failure: 0x" + ex.result.toString(16));
+                    savedthis.mObserver.onError(savedthis.superCalendar, calIErrors.MODIFICATION_FAILED, "");
                     savedthis.unlock();
                 }
             },
@@ -371,18 +374,13 @@ calICSCalendar.prototype = {
         } catch(e) {
         }
 
-        if (channel && !channel.requestSucceeded) {
-            ctxt.mObserver.onError(this.superCalendar,
-                                   channel.requestSucceeded,
-                                   "Publishing the calendar file failed\n" +
-                                       "Status code: "+channel.responseStatus+": "+channel.responseStatusText+"\n");
-        }
-
-        else if (!channel && !Components.isSuccessCode(request.status)) {
+        if ((channel && !channel.requestSucceeded) ||
+            (!channel && !Components.isSuccessCode(request.status))) {
             ctxt.mObserver.onError(this.superCalendar,
                                    request.status,
                                    "Publishing the calendar file failed\n" +
                                        "Status code: "+request.status.toString(16)+"\n");
+            ctxt.mObserver.onError(this.superCalendar, calIErrors.MODIFICATION_FAILED, "");
         }
 
         // Allow the hook to grab data of the channel, like the new etag
@@ -402,14 +400,14 @@ calICSCalendar.prototype = {
     },
     adoptItem: function (aItem, aListener) {
         if (this.readOnly) 
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+            throw calIErrors.CAL_IS_READONLY;
         this.queue.push({action:'add', item:aItem, listener:aListener});
         this.processQueue();
     },
 
     modifyItem: function (aNewItem, aOldItem, aListener) {
         if (this.readOnly) 
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+            throw calIErrors.CAL_IS_READONLY;
         this.queue.push({action:'modify', oldItem: aOldItem,
                          newItem: aNewItem, listener:aListener});
         this.processQueue();
@@ -417,7 +415,7 @@ calICSCalendar.prototype = {
 
     deleteItem: function (aItem, aListener) {
         if (this.readOnly) 
-            throw Components.interfaces.calIErrors.CAL_IS_READONLY;
+            throw calIErrors.CAL_IS_READONLY;
         this.queue.push({action:'delete', item:aItem, listener:aListener});
         this.processQueue();
     },
@@ -773,21 +771,9 @@ calICSObserver.prototype = {
         this.mCalendar.observers.notify("onPropertyDeleting", [aCalendar, aName]);
     },
 
-    // Unless an error number is in this array, we consider it very bad, set
-    // the calendar to readOnly, and give up.
-    acceptableErrorNums: [],
-
     onError: function(aCalendar, aErrNo, aMessage) {
-        var errorIsOk = false;
-        for each (num in this.acceptableErrorNums) {
-            if (num == aErrNo) {
-                errorIsOk = true;
-                break;
-            }
-        }
-        if (!errorIsOk)
-            this.mCalendar.readOnly = true;
-        this.mCalendar.observers.notify("onError", [this.mCalendar.superCalendar, aErrNo, aMessage]);
+        this.mCalendar.readOnly = true;
+        this.mCalendar.notifyError(aErrNo, aMessage);
     }
 };
 

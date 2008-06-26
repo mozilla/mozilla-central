@@ -164,7 +164,7 @@ function logWarning(err, context) {
 
 function logError(err, context) {
     var msg = errorToString(err);
-    Components.utils.reportError(log("error: " + msg + "\nstack:\n" + STACK(), context, true));
+    Components.utils.reportError(log("error: " + msg + "\nstack:\n" + STACK(10), context, true));
     debugger;
     return msg;
 }

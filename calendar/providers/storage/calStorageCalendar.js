@@ -400,13 +400,11 @@ calStorageCalendar.prototype = {
     // void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
     adoptItem: function (aItem, aListener) {
         if (this.readOnly) {
-            if (aListener) {
-                aListener.onOperationComplete(this.superCalenddar,
-                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
-                                              aListener.ADD,
-                                              null,
-                                              "Calendar is readonly");
-            }
+            this.notifyOperationComplete(aListener,
+                                         Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                         Components.interfaces.calIOperationListener.ADD,
+                                         null,
+                                         "Calendar is readonly");
             return;
         }
         // Ensure that we're looking at the base item
@@ -426,14 +424,12 @@ calStorageCalendar.prototype = {
                 if (this.relaxedMode) {
                     // we possibly want to interact with the user before deleting
                     this.deleteItemById(aItem.id);
-                }
-                else {
-                    if (aListener)
-                        aListener.onOperationComplete(this.superCalendar,
-                                                      Components.interfaces.calIErrors.DUPLICATE_ID,
-                                                      aListener.ADD,
-                                                      aItem.id,
-                                                      "ID already exists for addItem");
+                } else {
+                    this.notifyOperationComplete(aListener,
+                                                 Components.interfaces.calIErrors.DUPLICATE_ID,
+                                                 Components.interfaces.calIOperationListener.ADD,
+                                                 aItem.id,
+                                                 "ID already exists for addItem");
                     return;
                 }
             }
@@ -445,27 +441,24 @@ calStorageCalendar.prototype = {
         this.flushItem (aItem, null);
 
         // notify the listener
-        if (aListener)
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_OK,
-                                           aListener.ADD,
-                                           aItem.id,
-                                           aItem);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.ADD,
+                                     aItem.id,
+                                     aItem);
 
         // notify observers
-        this.mObservers.notify("onAddItem", [aItem]);
+        this.observers.notify("onAddItem", [aItem]);
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
     modifyItem: function (aNewItem, aOldItem, aListener) {
         if (this.readOnly) {
-            if (aListener) {
-                aListener.onOperationComplete(this.superCalenddar,
-                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
-                                              aListener.MODIFY,
-                                              null,
-                                              "Calendar is readonly");
-            }
+            this.notifyOperationComplete(aListener,
+                                         Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                         Components.interfaces.calIOperationListener.MODIFY,
+                                         null,
+                                         "Calendar is readonly");
             return null;
         }
         if (!aNewItem) {
@@ -474,13 +467,11 @@ calStorageCalendar.prototype = {
 
         var this_ = this;
         function reportError(errStr, errId) {
-            if (aListener) {
-                aListener.onOperationComplete(this_.superCalendar,
-                                              errId ? errId : Components.results.NS_ERROR_FAILURE,
-                                              aListener.MODIFY,
-                                              aNewItem.id,
-                                              errStr);
-            }
+            this_.notifyOperationComplete(aListener,
+                                          errId ? errId : Components.results.NS_ERROR_FAILURE,
+                                          Components.interfaces.calIOperationListener.MODIFY,
+                                          aNewItem.id,
+                                          errStr);
             return null;
         }
 
@@ -523,29 +514,25 @@ calStorageCalendar.prototype = {
         modifiedItem.makeImmutable();
         this.flushItem (modifiedItem, aOldItem);
 
-        if (aListener) {
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_OK,
-                                           aListener.MODIFY,
-                                           modifiedItem.id,
-                                           modifiedItem);
-        }
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.MODIFY,
+                                     modifiedItem.id,
+                                     modifiedItem);
 
         // notify observers
-        this.mObservers.notify("onModifyItem", [modifiedItem, aOldItem]);
+        this.observers.notify("onModifyItem", [modifiedItem, aOldItem]);
         return null;
     },
 
     // void deleteItem( in string id, in calIOperationListener aListener );
     deleteItem: function (aItem, aListener) {
         if (this.readOnly) {
-            if (aListener) {
-                aListener.onOperationComplete(this.superCalenddar,
-                                              Components.interfaces.calIErrors.CAL_IS_READONLY,
-                                              aListener.DELETE,
-                                              null,
-                                              "Calendar is readonly");
-            }
+            this.notifyOperationComplete(aListener,
+                                         Components.interfaces.calIErrors.CAL_IS_READONLY,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         null,
+                                         "Calendar is readonly");
             return;
         }
         if (aItem.parentItem != aItem) {
@@ -556,26 +543,24 @@ calStorageCalendar.prototype = {
         }
 
         if (aItem.id == null) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.DELETE,
-                                               null,
-                                               "ID is null for deleteItem");
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         null,
+                                         "ID is null for deleteItem");
             return;
         }
 
         this.deleteItemById(aItem.id);
 
-        if (aListener)
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_OK,
-                                           aListener.DELETE,
-                                           aItem.id,
-                                           aItem);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.DELETE,
+                                     aItem.id,
+                                     aItem);
 
         // notify observers 
-        this.mObservers.notify("onDeleteItem", [aItem]);
+        this.observers.notify("onDeleteItem", [aItem]);
     },
 
     // void getItem( in string id, in calIOperationListener aListener );
@@ -585,11 +570,11 @@ calStorageCalendar.prototype = {
 
         var item = this.getItemById (aId);
         if (!item) {
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_ERROR_FAILURE,
-                                           aListener.GET,
-                                           aId,
-                                           "ID doesn't exist for getItem");
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         aId,
+                                         "ID doesn't exist for getItem");
             return;
         }
 
@@ -599,11 +584,11 @@ calStorageCalendar.prototype = {
         else if (item instanceof Components.interfaces.calITodo)
             item_iid = Components.interfaces.calITodo;
         else {
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_ERROR_FAILURE,
-                                           aListener.GET,
-                                           aId,
-                                           "Can't deduce item type based on QI");
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         aId,
+                                         "Can't deduce item type based on QI");
             return;
         }
 
@@ -612,11 +597,11 @@ calStorageCalendar.prototype = {
                                item_iid, null,
                                1, [item]);
 
-        aListener.onOperationComplete (this.superCalendar,
-                                       Components.results.NS_OK,
-                                       aListener.GET,
-                                       aId,
-                                       null);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.GET,
+                                     aId,
+                                     null);
     },
 
     // void getItems( in unsigned long aItemFilter, in unsigned long aCount, 
@@ -646,11 +631,11 @@ calStorageCalendar.prototype = {
         var asOccurrences = ((aItemFilter & kCalICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
         if (!wantEvents && !wantTodos) {
             // nothing to do
-            aListener.onOperationComplete (this.superCalendar,
-                                           Components.results.NS_OK,
-                                           aListener.GET,
-                                           null,
-                                           null);
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_OK,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         null);
             return;
         }
 
@@ -732,11 +717,11 @@ calStorageCalendar.prototype = {
                 queueItems(null);
 
                 // send operation complete
-                aListener.onOperationComplete (self.superCalendar,
-                                               Components.results.NS_OK,
-                                               aListener.GET,
-                                               null,
-                                               null);
+                self.notifyOperationComplete(aListener,
+                                             Components.results.NS_OK,
+                                             Components.interfaces.calIOperationListener.GET,
+                                             null,
+                                             null);
 
                 // tell caller we're done
                 return true;
@@ -827,11 +812,11 @@ calStorageCalendar.prototype = {
         queueItems(null);
 
         // and finish
-        aListener.onOperationComplete (this.superCalendar,
-                                       Components.results.NS_OK,
-                                       aListener.GET,
-                                       null,
-                                       null);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.GET,
+                                     null,
+                                     null);
 
         //var profEndTime = Date.now();
         //dump ("++++ getItems took: " + (profEndTime - profStartTime) + " ms\n");

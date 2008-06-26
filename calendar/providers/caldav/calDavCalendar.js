@@ -360,12 +360,11 @@ calDavCalendar.prototype = {
         }
 
         if (aItem.id == null) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.ADD,
-                                               aItem.id,
-                                               "Can't set ID on non-mutable item to addItem");
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.ADD,
+                                         aItem.id,
+                                         "Can't set ID on non-mutable item to addItem");
             return;
         }
 
@@ -415,7 +414,7 @@ calDavCalendar.prototype = {
                 }
                 LOG("CalDAV: Unexpected status adding item: " + status);
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
-                                            "itemPutError");
+                                            "itemPutError", true);
             }
         }
 
@@ -466,22 +465,11 @@ calDavCalendar.prototype = {
     doModifyItem: function caldavMI(aNewItem, aOldItem, aListener, aIgnoreEtag) {
 
         if (aNewItem.id == null) {
-
-            // XXXYYY fix to match iface spec
-            // this is definitely an error
-            if (aListener) {
-                try {
-                    aListener.onOperationComplete(this.superCalendar,
-                                                  Components.results.NS_ERROR_FAILURE,
-                                                  aListener.MODIFY,
-                                                  aItem.id,
-                                                  "ID for modifyItem doesn't exist or is null");
-                } catch (ex) {
-                    LOG("CalDAV: modifyItem's onOperationComplete threw an"
-                        + " exception " + ex + "; ignoring");
-                }
-            }
-
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.MODIFY,
+                                         aItem.id,
+                                         "ID for modifyItem doesn't exist or is null");
             return;
         }
 
@@ -528,7 +516,7 @@ calDavCalendar.prototype = {
                 }
                 LOG("CalDAV: Unexpected status on modifying item: " + status);
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_PUT_ERROR,
-                                            "itemPutError");
+                                            "itemPutError", true);
 
                 retVal = Components.results.NS_ERROR_FAILURE;
             }
@@ -579,12 +567,11 @@ calDavCalendar.prototype = {
     doDeleteItem: function caldavDDI(aItem, aListener, aIgnoreEtag) {
 
         if (aItem.id == null) {
-            if (aListener)
-                aListener.onOperationComplete (this.superCalendar,
-                                               Components.results.NS_ERROR_FAILURE,
-                                               aListener.DELETE,
-                                               aItem.id,
-                                               "ID doesn't exist for deleteItem");
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.DELETE,
+                                         aItem.id,
+                                         "ID doesn't exist for deleteItem");
             return;
         }
 
@@ -633,7 +620,7 @@ calDavCalendar.prototype = {
             } else {
                 LOG("CalDAV: Unexpected status deleting item: " + status);
                 thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REMOVE_ERROR,
-                                            "itemDeleteError");
+                                            "itemDeleteError", true);
                 retVal = Components.results.NS_ERROR_FAILURE;
             }
         }
@@ -682,13 +669,11 @@ calDavCalendar.prototype = {
     getUpdatedItem: function caldavGUI(aItem, aListener) {
 
         if (aItem == null) {
-            if (aListener) {
-                aListener.onOperationComplete(this.superCalendar,
-                                              Components.results.NS_ERROR_FAILURE,
-                                              aListener.GET,
-                                              null,
-                                              "passed in null item");
-            }
+            this.notifyOperationComplete(aListener,
+                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.interfaces.calIOperationListener.GET,
+                                         null,
+                                         "passed in null item");
             return;
         }
 
@@ -868,7 +853,7 @@ calDavCalendar.prototype = {
                                 }
                             }
                         } catch (ex) {
-                            thisCalendar.mObservers.notify("onError", [thisCalendar.superCalendar, ex.result, ex.toString()]);
+                            thisCalendar.notifyError(ex.result, ex.toString());
                         }
                         subComp = calComp.getNextSubcomponent("ANY");
                     }
@@ -1122,7 +1107,7 @@ calDavCalendar.prototype = {
         }
 
         etagListener.onOperationComplete = function(aStatusCode, aResource,
-                                                      aOperation, aClosure) {
+                                                    aOperation, aClosure) {
             aRefreshEvent.queryStatuses.push(aStatusCode);
             var needsRefresh = false;
             if (aRefreshEvent.queryStatuses.length == aRefreshEvent.typesCount) {
@@ -1136,7 +1121,7 @@ calDavCalendar.prototype = {
                 }
                 if (badFetch) {
                     thisCalendar.reportDavError(Components.interfaces.calIErrors.DAV_REPORT_ERROR,
-                                            "disabledMode");
+                                                "disabledMode");
                     return;
                 }
                 // if an item has been deleted from the server, delete it here too
@@ -1238,42 +1223,6 @@ calDavCalendar.prototype = {
     //
     // Helper functions
     //
-
-    // Unless an error number is in this array, we consider it very bad, set
-    // the calendar to readOnly, and give up.
-    acceptableErrorNums: [],
-
-    onError: function caldav_onError(aCalendar, aErrNo, aMessage) {
-        var errorIsOk = false;
-        for each (num in this.acceptableErrorNums) {
-            if (num == aErrNo) {
-                errorIsOk = true;
-                break;
-            }
-        }
-        if (!errorIsOk) {
-            this.mReadOnly = true;
-            this.mDisabled = true;
-        }
-
-        var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
-                                   .createInstance(Components.interfaces
-                                   .nsIDialogParamBlock);
-        paramBlock.SetNumberStrings(3);
-
-        var promptMessage = calGetString("calendar", "disabledMode", [this.name]);
-        paramBlock.SetString(0, promptMessage);
-        var errCode = "0x"+aErrNo.toString(16);
-        paramBlock.SetString(1, errCode);
-        paramBlock.SetString(2, aMessage);
-        var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                 .getService(Components.interfaces.nsIWindowWatcher);
-        wWatcher.openWindow(null,
-                            "chrome://calendar/content/calErrorPrompt.xul",
-                            "_blank",
-                            "chrome,dialog=yes",
-                            paramBlock);
-    },
 
     /**
      * Checks that the calendar URI exists and is a CalDAV calendar
@@ -1402,8 +1351,15 @@ calDavCalendar.prototype = {
         }
     },
 
-    reportDavError: function caldav_rDE(aErrNo, aMessage) {
-        this.onError(this.superCalendar, aErrNo, calGetString("calendar", aMessage, [this.mUri.spec]));
+    reportDavError: function caldav_rDE(aErrNo, aMessage, modificationError) {
+        this.mReadOnly = true;
+        this.mDisabled = true;
+        this.notifyError(aErrNo,
+                         calGetString("calendar", aMessage, [this.mUri.spec]));
+        this.notifyError(modificationError
+                         ? Components.interfaces.calIErrors.MODIFICATION_FAILED
+                         : Components.interfaces.calIErrors.READ_FAILED,
+                         "");
     },
 
     /**
@@ -2018,21 +1974,9 @@ calDavObserver.prototype = {
         this.mCalendar.observers.notify("onPropertyDeleting", [aCalendar, aName]);
     },
 
-    // Unless an error number is in this array, we consider it very bad, set
-    // the calendar to readOnly, and give up.
-    acceptableErrorNums: [],
-
     onError: function(aCalendar, aErrNo, aMessage) {
-        var errorIsOk = false;
-        for each (num in this.acceptableErrorNums) {
-            if (num == aErrNo) {
-                errorIsOk = true;
-                break;
-            }
-        }
-        if (!errorIsOk)
-            this.mCalendar.readOnly = true;
-        this.mCalendar.observers.notify("onError", [this.mCalendar.superCalendar, aErrNo, aMessage]);
+        this.mCalendar.readOnly = true;
+        this.mCalendar.notifyError(aErrNo, aMessage);
     }
 };
 

@@ -114,7 +114,7 @@ calWcapSession.prototype = {
     },
     notifyError: function calWcapSession_notifyError(err, suppressOnError) {
         if (this.defaultCalendar) {
-            this.defaultCalendar.notifyError_(err, this, suppressOnError);
+            this.defaultCalendar.notifyError_(err, null, this, suppressOnError);
         } else {
             logError("no default calendar!", this);
             logError(err, this);

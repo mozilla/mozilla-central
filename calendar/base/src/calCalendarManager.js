@@ -898,6 +898,13 @@ calMgrCalendarObserver.prototype = {
     // Error announcer specific functions
 
     announceError: function(aErrNo, aMessage) {
+        // XXX swallow MODIFICATION_FAILED and READ_FAILED for now unless Berend has finished his work...
+        switch (aErrNo) {
+            case Components.interfaces.calIErrors.READ_FAILED:
+            case Components.interfaces.calIErrors.MODIFICATION_FAILED:
+                return;
+        }
+
         var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                    .createInstance(Components.interfaces.nsIDialogParamBlock);
         var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
