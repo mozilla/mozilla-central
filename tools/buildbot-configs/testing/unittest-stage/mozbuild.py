@@ -639,6 +639,7 @@ class MozillaA11YTest(MozillaMochichrome):
     command = ["python",
                "runtests.py",
                "--appname=../../../dist/bin/firefox",
+               "--console-level=INFO",
                "--autorun",
                "--a11y", 
                "--close-when-done"]
