@@ -1,6 +1,6 @@
 #!/bin/sh -x
 
-# 2008-05-09 - Copied from sync-configure (nthomas)
+# 2008-05-09 - Copied from sync-configure (nthomas) 
 
 URL='https://addons.mozilla.org/blocklist/1/%7Bec8030f7-c20a-464f-9b0e-13a3a9e97384%7D/3.0/'
 
