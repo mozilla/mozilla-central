@@ -448,7 +448,7 @@ function getTargetCalendar() {
  * event_status is an optional directive to set the Event STATUS property
  */
 function setAttendeeResponse(type, eventStatus) {
-    var myAddress = gItipItem.identity
+    var myAddress = gItipItem.identity;
     if (!myAddress) {
         // Bug 420516 -- we don't support delegation yet TODO: Localize this?
         throw new Error("setAttendeeResponse: " +

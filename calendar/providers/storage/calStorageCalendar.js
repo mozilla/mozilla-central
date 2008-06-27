@@ -626,6 +626,7 @@ calStorageCalendar.prototype = {
         if (aRangeEnd)
             endTime = aRangeEnd.nativeTime;
 
+        var wantInvitations = ((aItemFilter & kCalICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
         var wantEvents = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
         var wantTodos = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_TODO) != 0);
         var asOccurrences = ((aItemFilter & kCalICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
@@ -685,20 +686,18 @@ calStorageCalendar.prototype = {
         // expanding occurrences, and queue the items for the listener
         function handleResultItem(item, theIID, optionalFilterFunc) {
             var expandedItems = [];
-            if (item.recurrenceInfo) {
-                if (asOccurrences) {
-                    // If the item is recurring, get all ocurrences that fall in
-                    // the range. If the item doesn't fall into the range at all,
-                    // this expands to 0 items.
-                    expandedItems = item.recurrenceInfo
-                                    .getOccurrences(aRangeStart, aRangeEnd, 0, {});
-                } else if (checkIfInRange(item, aRangeStart, aRangeEnd)) {
-                    // If no occurrences are wanted, check only the parent item.
-                    // This will be changed with bug 416975.
-                    expandedItems = [ item ];
+            if (item.recurrenceInfo && asOccurrences) {
+                // If the item is recurring, get all ocurrences that fall in
+                // the range. If the item doesn't fall into the range at all,
+                // this expands to 0 items.
+                expandedItems = item.recurrenceInfo.getOccurrences(aRangeStart, aRangeEnd, 0, {});
+                if (wantInvitations) {
+                    expandedItems = expandedItems.filter(self.isInvitation, self);
                 }
-            } else {
-                // non-recurring item
+            } else if ((!wantInvitations || self.itip_checkInvitation(item)) &&
+                       checkIfInRange(item, aRangeStart, aRangeEnd)) {
+                // If no occurrences are wanted, check only the parent item.
+                // This will be changed with bug 416975.
                 expandedItems = [ item ];
             }
 

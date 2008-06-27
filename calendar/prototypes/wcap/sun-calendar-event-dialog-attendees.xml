@@ -197,18 +197,12 @@
           // assume we're the organizer [in case that the calendar
           // does not support the concept of identities].
           this.mIsInvitation = false;
-          this.mOrganizerID = ((organizer && organizer.id) ? organizer.id : "");
-          try {
-              // temporary hack unless all group scheduling features are supported
-              // by the caching facade (calCachedCalendar):
-              var provider = calendar.getProperty("private.wcapCalendar")
-                                     .QueryInterface(Components.interfaces.calIWcapCalendar);
-              this.mIsInvitation = provider.isInvitation(args.item);
-              if (this.mOrganizerID.length == 0) {
-                  this.mOrganizerID = provider.ownerId; // sensible default
-              }
-          }
-          catch (e) {
+          this.mOrganizerID = ((organizer && organizer.id) ?
+              organizer.id :
+              calendar.getProperty("organizerId"));
+
+          if (calendar instanceof Components.interfaces.calISchedulingSupport) {
+              this.mIsInvitation = calendar.isInvitation(args.item);
           }
 
           var listbox =
@@ -243,19 +237,8 @@
                       organizer.participationStatus = "ACCEPTED";
                   }
               }
-              try {
-                  // temporary hack unless all group scheduling features are supported
-                  // by the caching facade (calCachedCalendar):
-                  var provider = calendar.getProperty("private.wcapCalendar")
-                                         .QueryInterface(Components.interfaces.calIWcapCalendar);
-                  var props = provider.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME", {});
-                  if (props.length > 0) {
-                      if(organizer.commonName.length <= 0) {
-                         organizer.commonName = props[0];
-                      }
-                  }
-              }
-              catch (e) {
+              if (!organizer.commonName.length) {
+                  organizer.commonName = calendar.getProperty("organizerCN");
               }
               this.appendAttendee(organizer, listbox, template, true);
           }

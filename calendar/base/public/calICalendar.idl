@@ -133,6 +133,10 @@ interface calICalendar : nsISupports
    *   [string]   itip.transportType If the provider implements a custom calIItipTransport
    *                                   this is the "type" used in the contract id.
    *   [nsresult] currentStatus      The current error status of the calendar (transient).
+   *   [string]   organizerId        If provided, this is the preset organizer id on creating
+   *                                   scheduling appointments
+   *   [string]   organizerCN        If provided, this is the preset organizer common name on creating
+   *                                   scheduling appointments
    *
    * The following calendar capabilities can be used to inform the UI or backend
    * that certain features are not supported. If not otherwise mentioned, not
@@ -201,16 +205,16 @@ interface calICalendar : nsISupports
    */
   const unsigned long ITEM_FILTER_COMPLETED_YES = 1 << 0; 
   const unsigned long ITEM_FILTER_COMPLETED_NO = 1 << 1; 
-  const unsigned long ITEM_FILTER_COMPLETED_ALL = 
-    (ITEM_FILTER_COMPLETED_YES | ITEM_FILTER_COMPLETED_NO);
+  const unsigned long ITEM_FILTER_COMPLETED_ALL = (ITEM_FILTER_COMPLETED_YES |
+                                                   ITEM_FILTER_COMPLETED_NO);
 
   const unsigned long ITEM_FILTER_TYPE_TODO = 1 << 2;
   const unsigned long ITEM_FILTER_TYPE_EVENT = 1 << 3;
   const unsigned long ITEM_FILTER_TYPE_JOURNAL = 1 << 4;
-  const unsigned long ITEM_FILTER_TYPE_ALL = 
-    (ITEM_FILTER_TYPE_TODO | ITEM_FILTER_TYPE_EVENT |
-     ITEM_FILTER_TYPE_JOURNAL);
-  
+  const unsigned long ITEM_FILTER_TYPE_ALL = (ITEM_FILTER_TYPE_TODO |
+                                              ITEM_FILTER_TYPE_EVENT |
+                                              ITEM_FILTER_TYPE_JOURNAL);
+
   const unsigned long ITEM_FILTER_ALL_ITEMS = 0xFFFF;
 
   /** 
@@ -220,6 +224,13 @@ interface calICalendar : nsISupports
    * return only calIItemBase parent items.
    */
   const unsigned long ITEM_FILTER_CLASS_OCCURRENCES = 1 << 16;
+
+  /**
+   * Scope: Attendee
+   * Filter items that correspond to an invitation from another
+   * user and the current user has not replied to it yet.
+   */
+  const unsigned long ITEM_FILTER_REQUEST_NEEDS_ACTION = 1 << 17;
 
   void addObserver( in calIObserver observer );
   void removeObserver( in calIObserver observer );

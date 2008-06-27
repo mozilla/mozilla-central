@@ -474,12 +474,12 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
             }
 
             if (attendeeStatusMap[attendee.role]) {
-                xmlAttendee.gd::attendeeType.@value =
+                xmlAttendee.gd::attendeeType.@value = kEVENT_SCHEMA +
                     attendeeStatusMap[attendee.role];
             }
 
             if (attendeeStatusMap[attendee.participationStatus]) {
-                xmlAttendee.gd::attendeeStatus.@value =
+                xmlAttendee.gd::attendeeStatus.@value = kEVENT_SCHEMA + 
                     attendeeStatusMap[attendee.participationStatus];
             }
 
@@ -1063,6 +1063,9 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                 "event.tentative": "TENTATIVE"
             };
 
+            // Clear all attendees in case a reference item was passed
+            item.removeAllAttendees();
+
             // Iterate all attendee tags.
             for each (var who in aXMLEntry.gd::who) {
                 var attendee = createAttendee();
@@ -1104,6 +1107,8 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
                                     .@value.toString();
         if (gdCategories) {
             item.setProperty("CATEGORIES", gdCategories);
+        } else {
+            item.removeProperty("CATEGORIES");
         }
 
         // published

@@ -211,17 +211,11 @@
       <method name="getCalendarItemParticipationStatus">
         <parameter name="aItem"/>
         <body><![CDATA[
-          try {
-              // temporary hack unless all group scheduling features are supported
-              // by the caching facade (calCachedCalendar):
-              var wcapCalendar = aItem.calendar.getProperty("private.wcapCalendar")
-                                               .QueryInterface(Components.interfaces.calIWcapCalendar);
-              var att = wcapCalendar.getInvitedAttendee(aItem);
-              if (att) {
-                  return att.participationStatus;
-              }
-          } catch (e) {}
-          return null;
+          var att;
+          if (aItem.calendar instanceof Components.interfaces.calISchedulingSupport) {
+              att = aItem.calendar.getInvitedAttendee(aItem);
+          }
+          return (att ? att.participationStatus : null);
         ]]></body>
       </method>
 
@@ -229,20 +223,18 @@
         <parameter name="aItem"/>
         <parameter name="aStatus"/>
         <body><![CDATA[
-          try {
-              // temporary hack unless all group scheduling features are supported
-              // by the caching facade (calCachedCalendar):
-              var wcapCalendar = aItem.calendar.getProperty("private.wcapCalendar")
-                                               .QueryInterface(Components.interfaces.calIWcapCalendar);
-              var att = wcapCalendar.getInvitedAttendee(aItem);
+          if (aItem.calendar instanceof Components.interfaces.calISchedulingSupport) {
+              var att = aItem.calendar.getInvitedAttendee(aItem);
               if (att) {
                   var att_ = att.clone();
                   att_.participationStatus = aStatus;
+
+                  // Update attendee
                   aItem.removeAttendee(att);
                   aItem.addAttendee(att_);
                   return true;
               }
-          } catch (e) {}
+          }
           return false;
         ]]></body>
       </method>

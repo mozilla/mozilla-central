@@ -336,6 +336,8 @@ calMemoryCalendar.prototype = {
         // filters
         //
 
+        var wantInvitations = ((aItemFilter & calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+
         // item base type
         var wantEvents = ((aItemFilter & calICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
         var wantTodos = ((aItemFilter & calICalendar.ITEM_FILTER_TYPE_TODO) != 0);
@@ -390,12 +392,18 @@ calMemoryCalendar.prototype = {
             if (itemReturnOccurrences && item.recurrenceInfo) {
                 var occurrences = item.recurrenceInfo.getOccurrences(
                     aRangeStart, aRangeEnd, aCount ? aCount - itemsFound.length : 0, {});
+                if (wantInvitations) {
+                    occurrences = occurrences.filter(this.isInvitation, this);
+                }
                 if (!isEvent_) {
                     occurrences = occurrences.filter(checkCompleted);
                 }
                 itemsFound = itemsFound.concat(occurrences);
-            } else if ((isEvent_ || checkCompleted(item)) &&
+            } else if ((!wantInvitations || this.itip_checkInvitation(item)) &&
+                       (isEvent_ || checkCompleted(item)) &&
                        checkIfInRange(item, aRangeStart, aRangeEnd)) {
+                // This needs fixing for recurring items, e.g. DTSTART of parent may occur before aRangeStart.
+                // This will be changed with bug 416975.
                 itemsFound.push(item);
             }
             if (aCount && itemsFound.length >= aCount) {

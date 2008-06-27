@@ -267,10 +267,9 @@ function openEventDialog(calendarItem, calendar, mode, callback, job) {
     // we'll open the summary dialog since the user is not allowed to change
     // the details of the item.
     var isInvitation = false;
-    try {
+    if (calendar instanceof Components.interfaces.calISchedulingSupport) {
         isInvitation = calendar.isInvitation(calendarItem);
     }
-    catch(e) {}
 
     // open the dialog modeless
     var url = "chrome://calendar/content/sun-calendar-event-dialog.xul";

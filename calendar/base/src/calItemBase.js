@@ -452,18 +452,18 @@ calItemBase.prototype = {
         this.modify();
         var found = false, newAttendees = [];
         var attendees = this.getAttendees({});
-        var attIdLowerCase =attendee.id.toLowerCase();
+        var attIdLowerCase = attendee.id.toLowerCase();
 
         for (var i = 0; i < attendees.length; i++) {
-            if (attendees[i].id.toLowerCase() != attIdLowerCase)
+            if (attendees[i].id.toLowerCase() != attIdLowerCase) {
                 newAttendees.push(attendees[i]);
-            else
+            } else {
                 found = true;
+            }
         }
-        if (found)
+        if (found) {
             this.mAttendees = newAttendees;
-        else
-            throw Component.results.NS_ERROR_INVALID_ARG;
+        }
     },
 
     removeAllAttendees: function() {

@@ -134,6 +134,12 @@ function calCachedCalendar(uncachedCalendar) {
 }
 calCachedCalendar.prototype = {
     QueryInterface: function cCC_QueryInterface(aIID) {
+        if (aIID.equals(Components.interfaces.calISchedulingSupport)) {
+            // check whether uncached calendar supports it:
+            if (this.mUncachedCalendar.QueryInterface(aIID)) {
+                return this;
+            }
+        }
         return doQueryInterface(this, calCachedCalendar.prototype, aIID,
                                 [Components.interfaces.calICachedCalendar,
                                  Components.interfaces.calICalendar,
@@ -476,7 +482,8 @@ calCachedCalendar.prototype = {
     }
 
     defineForwards(calCachedCalendar.prototype, "mUncachedCalendar",
-                   ["getProperty", "setProperty", "deleteProperty"],
+                   ["getProperty", "setProperty", "deleteProperty",
+                    "isInvitation", "getInvitedAttendee"],
                    ["sendItipInvitations", "type"], ["id", "name", "uri", "readOnly"]);
     defineForwards(calCachedCalendar.prototype, "mCachedCalendar",
                    ["getItem", "getItems", "startBatch", "endBatch"], [], []);

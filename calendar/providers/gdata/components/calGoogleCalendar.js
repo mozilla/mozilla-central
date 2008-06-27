@@ -250,6 +250,16 @@ calGoogleCalendar.prototype = {
                 return false;
             case "capabilities.privacy.values":
                 return ["DEFAULT", "PUBLIC", "PRIVATE"];
+            case "organizerId":
+                if (this.mSession) {
+                    return this.session.userName;
+                }
+                break;
+            case "organizerCN":
+                if (this.mSession) {
+                    return this.session.fullName;
+                }
+                break;
         }
 
         return this.__proto__.__proto__.getProperty.apply(this, arguments);
@@ -530,16 +540,15 @@ calGoogleCalendar.prototype = {
             // item base type
             var wantEvents = ((aItemFilter &
                                Components.interfaces.calICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
-            var wantTodos = ((aItemFilter &
-                              Components.interfaces.calICalendar.ITEM_FILTER_TYPE_TODO) != 0);
+            var wantInvitations = ((aItemFilter &
+                 Components.interfaces.calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
 
-            // check if events are wanted
-            if (!wantEvents && !wantTodos) {
-                // Nothing to do. The notifyOperationComplete in the catch block
-                // below will catch this.
+
+            if (!wantEvents) {
+                // Events are not wanted, nothing to do. The
+                // notifyOperationComplete in the catch block below will catch
+                // this.
                 throw new Components.Exception("", Components.results.NS_OK);
-            } else if (wantTodos && !wantEvents) {
-                throw new Components.Exception("", Components.results.NS_ERROR_NOT_IMPLEMENTED);
             }
 
             // Requesting only a DATE returns items based on UTC. Therefore, we make
@@ -789,7 +798,7 @@ calGoogleCalendar.prototype = {
      * @param aData      In case of an error, this is the error string, otherwise
      *                     an XML representation of the added item.
      */
-    getItems_response: function cGC_getItems_response_onResult(aOperation, aData) {
+    getItems_response: function cGC_getItems_response(aOperation, aData) {
         // To simplify code, provide a one-stop function to call, independant of
         // if and what type of listener was passed.
         var listener = aOperation.operationListener ||
@@ -830,6 +839,10 @@ calGoogleCalendar.prototype = {
                 this.mSession.fullName = xml.author.name.toString();
             }
 
+
+            var wantInvitations = ((aOperation.itemFilter &
+                 Components.interfaces.calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+
             // Parse all <entry> tags
             for each (var entry in xml.entry) {
                 if (entry.gd::originalEvent.toString().length) {
@@ -838,10 +851,27 @@ calGoogleCalendar.prototype = {
                     // later.
                     continue;
                 }
-                LOG("Parsing entry:\n" + entry + "\n");
+
 
                 var item = XMLEntryToItem(entry, timezone, this.superCalendar);
                 item.calendar = this.superCalendar;
+
+                // If the item is not an invitation and invitations are wanted
+                // or vice versa, then continue.
+                if (wantInvitations != this.isInvitation(item)) {
+                    continue;
+                }
+
+                if (wantInvitations) {
+                    // If the user is not an attendee, or has already accepted
+                    // then this is also not an invitation.
+                    var att = item.getAttendeeById("MAILTO:" + this.session.userName);
+                    if (!att || att.participationStatus != "NEEDS-ACTION") {
+                        continue;
+                    }
+                }
+
+                LOG("Parsing entry:\n" + entry + "\n");
 
                 if (item.recurrenceInfo) {
                     // If we are doing an uncached operation, then we need to
@@ -955,7 +985,7 @@ calGoogleCalendar.prototype = {
             // All operations need to call onOperationComplete
             // calIGoogleRequest's type corresponds to calIOperationListener's
             // constants, so we can use them here.
-            this.notifyOperationComplete(aOperation.operationListener
+            this.notifyOperationComplete(aOperation.operationListener,
                                          Components.results.NS_OK,
                                          aOperation.type,
                                          (item ? item.id : null),
@@ -971,7 +1001,7 @@ calGoogleCalendar.prototype = {
             }
 
             // Operation failed
-            this.notifyOperationComplete(aOperation.operationListener
+            this.notifyOperationComplete(aOperation.operationListener,
                                          e.result,
                                          aOperation.type,
                                          null,
@@ -1052,7 +1082,7 @@ calGoogleCalendar.prototype = {
      *                        an XML representation of the added item.
      * @param aIsFullSync   If set, this is a full sync rather than an update.
      */
-    syncItems_response: function cGC_getItems_response_onResult(aOperation, aData, isFullSync) {
+    syncItems_response: function cGC_syncItems_response(aOperation, aData, isFullSync) {
         LOG("Recieved response for " + aOperation.uri + (isFullSync ? " (full sync)" : ""));
         try {
             // Check if the call succeeded
@@ -1184,5 +1214,24 @@ calGoogleCalendar.prototype = {
             LOG("Error syncing items:\n" + e);
             aOperation.operationListener.onResult({ status: e.result }, e.message);
         }
+    },
+
+    /**
+     * Implement calISchedulingSupport
+     */
+    isInvitation: function cGC_isInvitation(aItem) {
+        if (!aItem.organizer) {
+            // If there is no organizer, we have no way to tell.
+            return false;
+        }
+        // The item is an invitation if the organizer is not the current
+        // session's user.
+        return (aItem.organizer.id.toLowerCase() !=
+                "mailto:" + this.session.userName.toLowerCase());
+    },
+
+    getInvitedAttendee: function cGC_getInvitedAttendee(aItem) {
+        // The invited attendee must always be the session user.
+        return aItem.getAttendeeById("MAILTO:" + this.session.userName);
     }
 };

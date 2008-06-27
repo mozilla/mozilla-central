@@ -69,20 +69,15 @@ function onLoad() {
     }
 
     window.readOnly = calendar.readOnly;
-    if (!window.readOnly) {
-        try {
-            // temporary hack unless all group scheduling features are supported
-            // by the caching facade (calCachedCalendar):
-            var provider = calendar.getProperty("private.wcapCalendar")
-                                   .QueryInterface(Components.interfaces.calIWcapCalendar);
-            var attendee = provider.getInvitedAttendee(item);
-            if (attendee) {
-                window.attendee = attendee.clone();
-                item.removeAttendee(attendee);
-                item.addAttendee(window.attendee);
-            }
-        }
-        catch(e) {
+    if (!window.readOnly && calendar instanceof Components.interfaces.calISchedulingSupport) {
+        var attendee = calendar.getInvitedAttendee(item);
+        if (attendee) {
+            window.attendee = attendee.clone();
+            // Since we don't have API to update an attendee in place, remove
+            // and add again. Also, this is needed if the attendee doesn't exist
+            // (i.e REPLY on a mailing list)
+            item.removeAttendee(attendee);
+            item.addAttendee(window.attendee);
         }
     }
 

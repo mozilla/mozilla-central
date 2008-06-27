@@ -95,23 +95,6 @@ interface calIWcapCalendar : calICalendar
     readonly attribute string defaultTimezone;
 
     /**
-     * Tests whether the passed item corresponds to an invitation.
-     *
-     * @param item item to be tested
-     * @return whether the passed item corresponds to an invitation
-     */
-    boolean isInvitation(in calIItemBase item);
-
-    /**
-     * Gets the invited attendee if the passed item corresponds to
-     * an invitation.
-     *
-     * @param item invitation item
-     * @return attendee object else null
-     */
-    calIAttendee getInvitedAttendee(in calIItemBase item);
-
-    /**
      * Gets calendar properties.
      *
      * @param propName property name (e.g. X-S1CS-CALPROPS-COMMON-NAME)
@@ -140,12 +123,12 @@ interface calIWcapCalendar : calICalendar
 
     /* xxx todo: limit to currently needed ones: NEEDS-ACTION */
 
-    /**
-     * Scope: getItems only
-     * Whether getItems should only return items that have alarms set for the
-     * specified range.
-     */
-    const unsigned long ITEM_FILTER_BY_ALARM_RANGE = 1 << 23;
+//     /**
+//      * Scope: getItems only
+//      * Whether getItems should only return items that have alarms set for the
+//      * specified range.
+//      */
+//     const unsigned long ITEM_FILTER_BY_ALARM_RANGE = 1 << 23;
 
 //     /**
 //      * Scope: Attendee
@@ -168,19 +151,19 @@ interface calIWcapCalendar : calICalendar
 //      */
 //     const unsigned long ITEM_FILTER_REQUEST_COMPLETED = 1 << 26;
 
-    /**
-     * Scope: Attendee
-     * The event or todo is an invitation from another
-     * user and the current user has not replied to it yet.
-     */
-    const unsigned long ITEM_FILTER_REQUEST_NEEDS_ACTION = 1 << 27;
+//     /**
+//      * Scope: Attendee
+//      * The event or todo is an invitation from another
+//      * user and the current user has not replied to it yet.
+//      */
+//     const unsigned long ITEM_FILTER_REQUEST_NEEDS_ACTION = 1 << 27;
 
-    /**
-     * Scope: Attendee
-     * The event or todo is an invitation from another
-     * user and the current user is not required to reply.
-     */
-    const unsigned long ITEM_FILTER_REQUEST_NEEDSNOACTION  = 1 << 28;
+//     /**
+//      * Scope: Attendee
+//      * The event or todo is an invitation from another
+//      * user and the current user is not required to reply.
+//      */
+//     const unsigned long ITEM_FILTER_REQUEST_NEEDSNOACTION  = 1 << 28;
 
 //     /**
 //      * Scope: Organizer
@@ -196,32 +179,6 @@ interface calIWcapCalendar : calICalendar
 //      * user to other invitees, and is currently awaiting.
 //      */
 //     const unsigned long ITEM_FILTER_REQUEST_WAITFORREPLY = 1 << 30;
-
-    const unsigned long ITEM_FILTER_SUPPRESS_ONERROR = 1 << 31;
-
-    /* xxx todo sync feature: separate into own interface? */
-    /** xxx todo: to be moved to calIOperationListener?
-     */
-    const unsigned long SYNC = 5;
-
-    /**
-     * Syncs in changes since time <code>dtFrom</code>.
-     * The passed <code>listener</code> receives a
-     * <code>SYNC</code> with timestamp as detail.
-     *
-     * @param destCal destination calendar to write changes to (may be null)
-     * @param itemFilter ITEM_FILTER flags OR-ed together,
-     *                   ITEM_FILTER_CLASS_OCCURRENCES not allowed
-     * @param dtFrom start time to sync changes from,
-     *               if null all items are synced in
-     * @param listener operation listener for SYNC operation
-     *                 (may optionally implemented calIObserver to receive
-     *                 onAddItem(), onModifyItem() or onDeleteItem() calls)
-     */
-    calIOperation syncChangesTo(in calISyncCalendar destCal,
-                                in unsigned long itemFilter,
-                                in calIDateTime dtFrom,
-                                in calIOperationListener listener);
 
     /* xxx todo:
        separate out into another interface and leave only an attribute

@@ -43,7 +43,8 @@ calProviderBase.prototype = {
     QueryInterface: function cPB_QueryInterface(aIID) {
         return doQueryInterface(this, calProviderBase.prototype, aIID,
                                 [Components.interfaces.nsISupports,
-                                 Components.interfaces.calICalendar]);
+                                 Components.interfaces.calICalendar,
+                                 Components.interfaces.calISchedulingSupport]);
     },
 
     mID: null,
@@ -200,6 +201,11 @@ calProviderBase.prototype = {
 
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
+        // temporary hack to get the uncached calendar instance
+        if (aName == "cache.uncachedCalendar") {
+            return this;
+        }
+
         var ret = this.mProperties[aName];
         if (ret === undefined) {
             ret = null;
@@ -290,5 +296,52 @@ calProviderBase.prototype = {
     // void removeObserver( in calIObserver observer );
     removeObserver: function cPB_removeObserver(aObserver) {
         this.mObservers.remove(aObserver);
+    },
+
+    // calISchedulingSupport: Implementation corresponding to our iTIP/iMIP support
+    isInvitation: function cPB_isInvitation(aItem) {
+        return this.getInvitedAttendee(aItem) != null;
+    },
+
+    // helper function to filter invitations, checks exceptions for invitations:
+    itip_checkInvitation: function cPB_itip_checkInvitation(aItem) {
+        if (this.isInvitation(aItem)) {
+            return true;
+        }
+        var recInfo = aItem.recurrenceInfo;
+        if (recInfo) {
+            var this_ = this;
+            function checkExc(rid) {
+                return this_.isInvitation(recInfo.getExceptionFor(rid, false));
+            }
+            return recInfo.getExceptionIds({}).some(checkExc);
+        }
+        return false;
+    },
+
+    itip_getInvitedAttendee: function cPB_itip_getInvitedAttendee(aItem) {
+        // This is the iTIP specific base implementation for storage and memory,
+        // it will mind what account has received the incoming message, e.g.
+//         var account = aItem.getProperty("X-MOZ-IMIP-INCOMING-ACCOUNT");
+//         if (account) {
+//             account = ("mailto:" + account);
+//             var att = aItem.getAttendeeById(account);
+//             if (att) {
+//                 // we take the existing attendee
+//                 return att;
+//             }
+//             // else user may have changed mail accounts, or we has been invited via ml
+//             // in any way, we create a new attendee to be added here, which may be
+//             // overridden by UI in case that account doesn't exist anymore:
+//             att = Components.classes["@mozilla.org/calendar/attendee;1"]
+//                             .createInstance(Components.interfaces.calIAttendee);
+//             att.participationStatus = "NEEDS-ACTION";
+//             att.id = account;
+//         }
+        // for now not impl
+        return null;
+    },
+    getInvitedAttendee: function cPB_getInvitedAttendee(aItem) {
+        return this.itip_getInvitedAttendee(aItem);
     }
 };

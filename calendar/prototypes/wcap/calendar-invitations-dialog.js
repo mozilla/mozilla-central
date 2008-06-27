@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Thomas Benisch <thomas.benisch@sun.com>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -75,10 +76,8 @@ function onLoad() {
     updatingBox.removeAttribute("hidden");
 
     var args = window.arguments[0];
-    args.invitationsManager.getInvitations(
-        false,
-        operationListener,
-        args.onLoadOperationListener);
+    args.invitationsManager.getInvitations(operationListener,
+                                           args.onLoadOperationListener);
 
     opener.setCursor("auto");
 }

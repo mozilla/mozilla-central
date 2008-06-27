@@ -59,7 +59,7 @@ calWcapCalendar.prototype = {
         return str;
     },
 
-    notifyError_: function calWcapCalendar_notifyError_(err, msg, context, suppressOnError) {
+    notifyError_: function calWcapCalendar_notifyError_(err, msg, context) {
         var rc = getResultCode(err);
         switch (rc) {
             case calIWcapErrors.WCAP_COMPONENT_NOT_FOUND:
@@ -78,16 +78,14 @@ calWcapCalendar.prototype = {
                 log("error: " + msg, context);
                 break;
         }
-        if (!suppressOnError) {
-            this.__proto__.__proto__.notifyError.apply(
-                this,
-                err instanceof Components.interfaces.nsIException
-                ? [err.result, err.message]
-                : [(isNaN(err) ? Components.results.NS_ERROR_FAILURE : err), msg]);
-        }
+        this.__proto__.__proto__.notifyError.apply(
+            this,
+            err instanceof Components.interfaces.nsIException
+            ? [err.result, err.message]
+            : [(isNaN(err) ? Components.results.NS_ERROR_FAILURE : err), msg]);
     },
-    notifyError: function calWcapCalendar_notifyError(err, msg, suppressOnError) {
-        this.notifyError_(err, msg, this, suppressOnError);
+    notifyError: function calWcapCalendar_notifyError(err, msg) {
+        this.notifyError_(err, msg, this);
     },
 
     // calICalendarProvider:
@@ -144,16 +142,22 @@ calWcapCalendar.prototype = {
     getProperty: function calWcapCalendar_getProperty(aName) {
         var value = this.__proto__.__proto__.getProperty.apply(this, arguments);
         switch (aName) {
+            case "organizerId":
+                value = this.ownerId;
+                break;
+            case "organizerCN":
+                value = this.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME");
+                break;
             case "cache.supported":
                 value = false; // until bug 412914 and bug 412606 are fixed
                 break;
-            case "private.wcapCalendar":
-                value = this;
-                break;
             case "readOnly":
                 if (value === null) {
-                    // tweak readOnly default to true for non-owned calendars:
-                    value = (this.m_session && this.session.isLoggedIn && !this.isOwnedCalendar);
+                    // tweak readOnly default to true for non-owned calendars,
+                    // all secondary calendars to readOnly unless we're logged in
+                    value = (this.m_session && this.session.isLoggedIn
+                             ? !this.isOwnedCalendar
+                             : !this.isDefaultCalendar);
                 }
                 break;
             case "calendar-main-in-composite":

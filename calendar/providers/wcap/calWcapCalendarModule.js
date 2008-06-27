@@ -127,6 +127,7 @@ var g_classInfo = {
         getInterfaces: function ci_wcapCalendar_getInterfaces(count) {
             const ifaces = [calIWcapCalendar,
                             calICalendar,
+                            Components.interfaces.calISchedulingSupport,
                             Components.interfaces.calIChangeLog,
                             Components.interfaces.calICalendarProvider,
                             Components.interfaces.nsIClassInfo,

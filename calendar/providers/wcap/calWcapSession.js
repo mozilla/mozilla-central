@@ -75,6 +75,9 @@ function getWcapSessionFor(cal, uri) {
                 break;
             }
         }
+        if (!defaultCal) {
+            logError("no default calendar!", session);
+        }
         session.defaultCalendar = defaultCal;
     }
     return session;
@@ -112,9 +115,9 @@ calWcapSession.prototype = {
         }
         return str;
     },
-    notifyError: function calWcapSession_notifyError(err, suppressOnError) {
+    notifyError: function calWcapSession_notifyError(err) {
         if (this.defaultCalendar) {
-            this.defaultCalendar.notifyError_(err, null, this, suppressOnError);
+            this.defaultCalendar.notifyError_(err, null, this);
         } else {
             logError("no default calendar!", this);
             logError(err, this);
@@ -792,7 +795,7 @@ calWcapSession.prototype = {
     belongsTo: function calWcapSession_belongsTo(cal) {
         try {
             // xxx todo hack to get the unwrapped wcap calendar instance:
-            cal = cal.getProperty("private.wcapCalendar").QueryInterface(calIWcapCalendar).wrappedJSObject;
+            cal = cal.getProperty("cache.uncachedCalendar").QueryInterface(calIWcapCalendar).wrappedJSObject;
             if (cal && (cal.session.m_contextId == this.m_contextId)) {
                 return cal;
             }
