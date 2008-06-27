@@ -1509,7 +1509,7 @@ function GetFirstSelectedMessage()
 function GetSelectedIndices(dbView)
 {
   try {
-    return dbview.getIndicesForSelection({});
+    return dbView.getIndicesForSelection({});
   }
   catch (ex) {
     dump("ex = " + ex + "\n");
