@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -375,33 +375,32 @@ function onComposerSendMessage()
 
   if (missingCount.value > 0)
   {
-    var prefService =
-      Components.classes["@mozilla.org/preferences-service;1"]
-        .getService(Components.interfaces.nsIPrefService);
-    var prefs = prefService.getBranch(null);
+    // The rules here: If the current identity has a directoryServer set, then
+    // use that, otherwise, try the global preference instead.
 
-    var autocompleteLdap = false;
-    autocompleteLdap = prefs.getBoolPref("ldap_2.autoComplete.useDirectory");
+    var autocompleteDirectory = null;
 
-    if (autocompleteLdap)
+    // Does the current identity override the global preference?
+    if (gCurrentIdentity.overrideGlobalPref)
+      autocompleteDirectory = gCurrentIdentity.directoryServer;
+    else
     {
-      var autocompleteDirectory = null;
-      autocompleteDirectory = prefs.getCharPref(
-        "ldap_2.autoComplete.directoryServer");
+      // Try the global one
+      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefBranch);
 
-      if(gCurrentIdentity.overrideGlobalPref) {
-        autocompleteDirectory = gCurrentIdentity.directoryServer;
-      }
+      if (prefs.getBoolPref("ldap_2.autoComplete.useDirectory"))
+        autocompleteDirectory =
+          prefs.getCharPref("ldap_2.autoComplete.directoryServer");
+    }
 
-      if (autocompleteDirectory)
-      {
-        window.openDialog('chrome://messenger-smime/content/certFetchingStatus.xul',
-          '',
-          'chrome,resizable=1,modal=1,dialog=1', 
-          autocompleteDirectory,
-          emailAddresses.value
-        );
-      }
+    if (autocompleteDirectory)
+    {
+      window.openDialog('chrome://messenger-smime/content/certFetchingStatus.xul',
+                        '',
+                        'chrome,resizable=1,modal=1,dialog=1', 
+                        autocompleteDirectory,
+                        emailAddresses.value);
     }
   }
 }
