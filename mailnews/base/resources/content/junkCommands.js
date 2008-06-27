@@ -120,8 +120,8 @@ function determineActionsForJunkMsgs(aFolder)
 
   if (actionParams.junkTargetFolder)
   {
-    var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"].
-                        getService(Components.interfaces.nsIMsgCopyService);
+    var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                                .getService(Components.interfaces.nsIMsgCopyService);
     copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
                              msgWindow, true /* allow undo */);
   }
@@ -142,8 +142,8 @@ function determineActionsForJunkMsgs(aFolder)
 function MessageClassifier(aFolder, aTotalMessages)
 {
   this.mFolder = aFolder;
-  this.mJunkMsgHdrs = Components.classes["@mozilla.org/array;1"].
-                        createInstance(Components.interfaces.nsIMutableArray);
+  this.mJunkMsgHdrs = Components.classes["@mozilla.org/array;1"]
+                                .createInstance(Components.interfaces.nsIMutableArray);
   this.mMessages = new Object();
   this.mMessageQueue = new Array();
   this.mTotalMessages = aTotalMessages;
@@ -176,8 +176,8 @@ MessageClassifier.prototype =
     // if a whitelist addressbook was specified, check if the email address is in it
     if (aWhiteListDirectory)
     {
-      var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"].
-                         getService(Components.interfaces.nsIMsgHeaderParser);
+      var headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
+                                   .getService(Components.interfaces.nsIMsgHeaderParser);
       var authorEmailAddress = headerParser.extractHeaderAddressMailboxes(null, aMsgHdr.author);
       if (aWhiteListDirectory.cardForEmailAddress(authorEmailAddress))
       {
@@ -247,8 +247,9 @@ MessageClassifier.prototype =
         if (this.mTotalMessages)
           percentDone = Math.round(this.mProcessedMessages * 100 / this.mTotalMessages);
         var percentStr = percentDone + "%";
-        window.MsgStatusFeedback.showStatusString(gMessengerBundle.
-               getFormattedString("junkAnalysisPercentComplete", [percentStr]));
+        window.MsgStatusFeedback.showStatusString(
+            gMessengerBundle.getFormattedString("junkAnalysisPercentComplete",
+                                                [percentStr]));
       }
 
       var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
@@ -257,11 +258,9 @@ MessageClassifier.prototype =
     }
     else
     {
-      window.MsgStatusFeedback.showStatusString(gMessengerBundle.
-             getString("processingJunkMessages"));
+      window.MsgStatusFeedback.showStatusString(
+          gMessengerBundle.getString("processingJunkMessages"));
       performActionsOnJunkMsgs(this.mFolder, this.mJunkMsgHdrs);
-      // empty the processed array in case more messages are added
-      this.mJunkMsgHdrs.clear();
       window.MsgStatusFeedback.showStatusString("");
     }
   }
@@ -272,16 +271,14 @@ MessageClassifier.prototype =
  *
  * Filter all messages in the current folder for junk
  */
-function filterFolderForJunk()
-{ processFolderForJunk(true);}
+function filterFolderForJunk() { processFolderForJunk(true); }
 
 /*
  * analyzeMessagesForJunk
  *
  * Filter selected messages in the current folder for junk
  */
-function analyzeMessagesForJunk()
-{ processFolderForJunk(false);}
+function analyzeMessagesForJunk() { processFolderForJunk(false); }
 
 /*
  * processFolderForJunk
@@ -293,7 +290,6 @@ function analyzeMessagesForJunk()
 function processFolderForJunk(aAll)
 {
   MsgJunkMailInfo(true);
-  getJunkmailComponent();
 
   if (aAll)
   {
@@ -310,9 +306,26 @@ function processFolderForJunk(aAll)
     if (!indices || !indices.length)
       return;
   }
+  var totalMessages = aAll ? count : indices.length;
 
   // retrieve server and its spam settings via the header of an arbitrary message
-  var tmpMsgURI = gDBView.getURIForViewIndex(0);
+  for (var i = 0; i < totalMessages; i++)
+  {
+    var index = aAll ? i : indices[i];
+    try
+    {
+      var tmpMsgURI = gDBView.getURIForViewIndex(index);
+      break;
+    }
+    catch (e)
+    {
+      // dummy headers will fail, so look for another
+      continue;
+    }
+  }
+  if (!tmpMsgURI)
+    return;
+
   var tmpMsgHdr = messenger.messageServiceFromURI(tmpMsgURI).messageURIToMsgHdr(tmpMsgURI);
   var spamSettings = tmpMsgHdr.folder.server.spamSettings;
 
@@ -321,27 +334,22 @@ function processFolderForJunk(aAll)
   if (spamSettings.useWhiteList && spamSettings.whiteListAbURI)
     whiteListDirectory = RDF.GetResource(spamSettings.whiteListAbURI).QueryInterface(Components.interfaces.nsIAbMDBDirectory);
 
-  var totalMessages = aAll ? count : indices.length;
   // create a classifier instance to classify messages in the folder.
   var msgClassifier = new MessageClassifier(tmpMsgHdr.folder, totalMessages);
 
   for ( i = 0; i < totalMessages; i++)
   {
     var index = aAll ? i : indices[i];
-
     try
     {
       var msgURI = gDBView.getURIForViewIndex(index);
+      var msgHdr = messenger.messageServiceFromURI(msgURI).messageURIToMsgHdr(msgURI);
+      msgClassifier.analyzeMessage(msgHdr, whiteListDirectory);
     }
     catch (ex)
     {
       // blow off errors here - dummy headers will fail
       var msgURI = null;
-    }
-    if (msgURI)
-    {
-      var msgHdr = messenger.messageServiceFromURI(msgURI).messageURIToMsgHdr(msgURI);
-      msgClassifier.analyzeMessage(msgHdr, whiteListDirectory);
     }
   }
 }
