@@ -514,22 +514,22 @@ install_cert(CERTCertDBHandle *db, SECItem *derCert, char *nickname)
     CERTCertificate * newcert;
     PK11SlotInfo * newSlot;
 
-    newcert = CERT_DecodeDERCertificate(derCert, PR_TRUE, NULL);
 
-    if (newcert == NULL) {
-	PR_fprintf(errorFD, "%s: can't create new certificate\n",
-	     PROGRAM_NAME);
-	errorCount++;
-	exit (ERRX);
-    }
-
-    newSlot = PK11_ImportCertForKey(newcert, nickname, NULL /*wincx*/);
+    newSlot = PK11_ImportDERCertForKey(derCert, nickname, NULL /*wincx*/);
     if ( newSlot == NULL ) {
 	PR_fprintf(errorFD, "Unable to install certificate\n");
 	errorCount++;
 	exit(ERRX);
     }
+
+    newcert = PK11_FindCertFromDERCertItem(newSlot, derCert, NULL /*wincx*/);
     PK11_FreeSlot(newSlot);
+    if (newcert == NULL) {
+	PR_fprintf(errorFD, "%s: can't find new certificate\n",
+	     PROGRAM_NAME);
+	errorCount++;
+	exit (ERRX);
+    }
 
     if (verbosity >= 0) {
 	PR_fprintf(outputFD, "certificate \"%s\" added to database\n",
