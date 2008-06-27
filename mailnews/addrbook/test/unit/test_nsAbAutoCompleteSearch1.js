@@ -132,6 +132,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_IGNORED);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 0);
+  do_check_eq(obs._result.defaultIndex, -1);
 
   // Test - Check ignoring result with comma
 
@@ -142,6 +143,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_IGNORED);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 0);
+  do_check_eq(obs._result.defaultIndex, -1);
 
   // Test - No matches
 
@@ -152,6 +154,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_NOMATCH);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 0);
+  do_check_eq(obs._result.defaultIndex, -1);
 
   // Test - Matches
 
@@ -163,6 +166,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_SUCCESS);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 1);
+  do_check_eq(obs._result.defaultIndex, 0);
 
   do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
   do_check_eq(obs._result.getCommentAt(0), "");
@@ -179,6 +183,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_SUCCESS);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 1);
+  do_check_eq(obs._result.defaultIndex, 0);
 
   do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
   do_check_eq(obs._result.getCommentAt(0), kPABData.dirName);
@@ -193,6 +198,7 @@ function run_test() {
   do_check_eq(obs._result.searchResult, ACR.RESULT_SUCCESS);
   do_check_eq(obs._result.errorDescription, null);
   do_check_eq(obs._result.matchCount, 1);
+  do_check_eq(obs._result.defaultIndex, 0);
 
   do_check_eq(obs._result.getValueAt(0), "dis <email@invalid.com>");
   do_check_eq(obs._result.getCommentAt(0), kPABData.dirName);
@@ -210,6 +216,7 @@ function run_test() {
     do_check_eq(obs._result.searchResult, ACR.RESULT_SUCCESS);
     do_check_eq(obs._result.errorDescription, null);
     do_check_eq(obs._result.matchCount, element.expected.length);
+    do_check_eq(obs._result.defaultIndex, 0);
 
     for (var i = 0; i < element.expected.length; ++i) {
       do_check_eq(obs._result.getValueAt(i), results[element.expected[i]].email);

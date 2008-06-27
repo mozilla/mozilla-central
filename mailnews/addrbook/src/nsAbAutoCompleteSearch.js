@@ -55,8 +55,8 @@ nsAbAutoCompleteResult.prototype = {
   // nsIAutoCompleteResult
 
   searchString: null,
-  searchResult: null,
-  defaultIndex: 0,
+  searchResult: ACR.RESULT_NOMATCH,
+  defaultIndex: -1,
   errorDescription: null,
 
   get matchCount() {
@@ -294,8 +294,10 @@ nsAbAutoCompleteSearch.prototype = {
       }
     }
 
-    result.searchResult = result.matchCount ? ACR.RESULT_SUCCESS :
-                                              ACR.RESULT_NOMATCH;
+    if (result.matchCount) {
+      result.searchResult = ACR.RESULT_SUCCESS;
+      result.defaultIndex = 0;
+    }
 
     aListener.onSearchResult(this, result);
   },
