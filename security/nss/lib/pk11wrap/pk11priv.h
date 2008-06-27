@@ -155,8 +155,6 @@ CK_RV PK11_GetAttributes(PLArenaPool *arena,PK11SlotInfo *slot,
 int PK11_NumberCertsForCertSubject(CERTCertificate *cert);
 SECStatus PK11_TraverseCertsForSubject(CERTCertificate *cert, 
 	SECStatus(*callback)(CERTCertificate *, void *), void *arg);
-CERTCertificate *PK11_FindCertFromDERCertItem(PK11SlotInfo *slot, 
-					  SECItem *derCert, void *wincx);
 SECStatus PK11_GetKEAMatchedCerts(PK11SlotInfo *slot1,
    PK11SlotInfo *slot2, CERTCertificate **cert1, CERTCertificate **cert2);
 SECStatus PK11_TraverseCertsInSlot(PK11SlotInfo *slot,
