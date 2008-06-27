@@ -47,7 +47,7 @@ function getCompositeCalendar() {
             .createInstance(Components.interfaces.calICompositeCalendar);
 
         gCompositeCalendar.prefPrefix = 'calendar-main';
-        var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);    
+        var chromeWindow = window.QueryInterface(Components.interfaces.nsIDOMChromeWindow);
         gCompositeCalendar.setStatusObserver(gCalendarStatusFeedback, chromeWindow);
     }
     return gCompositeCalendar;
@@ -213,7 +213,6 @@ function calendarConvertObsoleteColorPrefs(categoryPrefBranch, coloredCategories
 
 function calendarListUpdateColor(aCalendar) {
     var selectorPrefix = "treechildren::-moz-tree-cell";
-
     var color = aCalendar.getProperty("color");
     if (!color) {
         return;
@@ -448,7 +447,6 @@ var calendarListTreeView = {
         switch (aCol.id) {
             case "calendar-list-tree-calendar":
                 return this.getCalendar(aRow).name;
-
         }
         return "";
     },
@@ -528,9 +526,7 @@ var calendarListTreeView = {
                 break;
             case kKE.DOM_VK_SPACE:
                 if (this.tree.currentIndex > -1 ) {
-                    var cbCol =
-                        this.treebox.columns
-                            .getNamedColumn("calendar-list-tree-checkbox");
+                    var cbCol = this.treebox.columns.getNamedColumn("calendar-list-tree-checkbox");
                     this.cycleCell(this.tree.currentIndex, cbCol);
                 }
                 break;
@@ -558,6 +554,24 @@ var calendarListTreeView = {
         // calendar.
         var composite = getCompositeCalendar();
         composite.defaultCalendar = getSelectedCalendar();
+    },
+
+    onMouseMove: function cLTV_onMouseMove(event) {
+        var row = this.treebox.getRowAt(event.clientX, event.clientY);
+        if (row > -1) {
+            var calendar = this.mCalendarList[row];
+            var treeChildren = document.getElementById("calendar-treechildren");
+            var tooltipText = null;
+            var currentStatus = calendar.getProperty("currentStatus");
+            if (!Components.isSuccessCode(currentStatus)){
+                tooltipText = calGetString("calendar", "tooltipCalendarDisabled", [calendar.name]);
+            } else if (calendar.readOnly) {
+                tooltipText = calGetString("calendar", "tooltipCalendarReadOnly", [calendar.name]);
+            }
+            if (tooltipText != null) {
+                treeChildren.setAttribute("tooltiptext", tooltipText);
+            }
+        }
     },
 
     setupContextMenu: function cLTV_setupContextMenu(event) {
@@ -652,7 +666,7 @@ var calendarManagerCompositeObserver = {
     onLoad: function cMO_onLoad() { },
 
     // TODO: remove these temporary caldav exclusions when it is safe to do so
-    // needed to allow cadav refresh() to update w/o forcing visibility    
+    // needed to allow cadav refresh() to update w/o forcing visibility
     onAddItem: function cMO_onAddItem(aItem) {
         if (aItem.calendar.type != "caldav") {
             ensureCalendarVisible(aItem.calendar);
@@ -671,7 +685,16 @@ var calendarManagerCompositeObserver = {
     onPropertyChanged: function cMO_onPropertyChanged(aCalendar,
                                                       aName,
                                                       aValue,
-                                                      aOldValue) {},
+                                                      aOldValue) {
+        if (aName == "currentStatus") {
+            if (Components.isSuccessCode(aValue)) {
+                // TODO insert 'Successful' - image implementation here
+            } else {
+                // TODO insert 'unsuccessful' - image implementation here                
+            }
+        }                          
+    },
+    
     onPropertyDeleting: function cMO_onPropertyDeleting(aCalendar,
                                                         aName) {}
 }
@@ -708,7 +731,7 @@ var calendarManagerObserver = {
         // more than one calendar
         document.commandDispatcher.updateCommands("calendar_commands");
     },
-    
+
     unload: function cMO_unload() {
         var calendars = getCalendarManager().getCalendars({});
         for each (var calendar in calendars) {
@@ -762,7 +785,7 @@ var calendarManagerObserver = {
     onLoad: function cMO_onLoad() { },
 
     // TODO: remove these temporary caldav exclusions when it is safe to do so
-    // needed to allow cadav refresh() to update w/o forcing visibility    
+    // needed to allow cadav refresh() to update w/o forcing visibility
     onAddItem: function cMO_onAddItem(aItem) {
         if (aItem.calendar.type != "caldav") {
             ensureCalendarVisible(aItem.calendar);
@@ -862,7 +885,7 @@ var calendarManagerObserver = {
 function openCalendarSubscriptionsDialog() {
     // the dialog will reset this to auto when it is done loading
     window.setCursor("wait");
- 
+
     // open the dialog modally
     window.openDialog("chrome://calendar/content/calendar-subscriptions-dialog.xul",
                       "_blank",

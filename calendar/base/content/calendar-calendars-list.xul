@@ -20,6 +20,7 @@
    - the Initial Developer. All Rights Reserved.
    -
    - Contributor(s):
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -85,23 +86,23 @@
         onkeypress="calendarListTreeView.onKeyPress(event);"
         ondblclick="calendarListTreeView.onDoubleClick(event);"
         onselect="calendarListTreeView.onSelect(event);"
+        onmousemove="calendarListTreeView.onMouseMove(event);"
         context="list-calendars-context-menu">
-      <treecols id="calendar-list-tree-treecols"
-                hideheader="true">
-      <treecol id="calendar-list-tree-checkbox"
-               cycler="true"
-               type="checkbox"
-               hideheader="true"
-               width="17"/>
-      <treecol id="calendar-list-tree-color"
-               cycler="true"
-               hideheader="true"
-               width="16"/>
-      <treecol id="calendar-list-tree-calendar"
-               hideheader="true"
-               label="&calendar.unifinder.tree.calendarname.label;"
-               flex="1"/>
-    </treecols>
-    <treechildren/>
-  </tree>
+      <treecols id="calendar-treecols" hideheader="true">
+          <treecol id="calendar-list-tree-checkbox"
+                   cycler="true"
+                   type="checkbox"
+                   hideheader="true"
+                   width="17"/>
+          <treecol id="calendar-list-tree-color"
+                   cycler="true"
+                   hideheader="true"
+                   width="16"/>
+          <treecol id="calendar-list-tree-calendar"
+                   hideheader="true"
+                   label="&calendar.unifinder.tree.calendarname.label;"
+                   flex="1"/>
+        </treecols>
+     <treechildren id="calendar-treechildren"/>
+   </tree>
 </overlay>

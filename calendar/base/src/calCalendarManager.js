@@ -870,7 +870,7 @@ calMgrCalendarObserver.prototype = {
     onModifyItem: function(aNewItem, aOldItem) {},
     onDeleteItem: function(aDeletedItem) {},
     onError: function(aCalendar, aErrNo, aMessage) {
-        this.announceError(aErrNo, aMessage);
+        this.announceError(aCalendar, aErrNo, aMessage);
     },
 
     onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
@@ -897,13 +897,7 @@ calMgrCalendarObserver.prototype = {
 
     // Error announcer specific functions
 
-    announceError: function(aErrNo, aMessage) {
-        // XXX swallow MODIFICATION_FAILED and READ_FAILED for now unless Berend has finished his work...
-        switch (aErrNo) {
-            case Components.interfaces.calIErrors.READ_FAILED:
-            case Components.interfaces.calIErrors.MODIFICATION_FAILED:
-                return;
-        }
+    announceError: function(aCalendar, aErrNo, aMessage) {
 
         var paramBlock = Components.classes["@mozilla.org/embedcomp/dialogparam;1"]
                                    .createInstance(Components.interfaces.nsIDialogParamBlock);
@@ -944,13 +938,27 @@ calMgrCalendarObserver.prototype = {
             case calIErrors.ICS_MALFORMEDDATA:
                 message = props.GetStringFromName("icsMalformedError");
                 break;
-            default:
-                message = aMessage
-        }
-
+            case calIErrors.MODIFICATION_FAILED:
+                errMsg = calGetString("calendar", "errorWriting", [aCalendar.name]);
+             default:
+                message = aMessage;
+         }
+ 
+        var showMessageBox = (aErrNo == calIErrors.MODIFICATION_FAILED);
+                
         paramBlock.SetString(0, errMsg);
         paramBlock.SetString(1, errCode);
         paramBlock.SetString(2, message);
+
+        if (showMessageBox) {
+            var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
+                                  .getService(Components.interfaces.nsIWindowWatcher);
+            wWatcher.openWindow(null,
+                             "chrome://calendar/content/calErrorPrompt.xul",
+                             "_blank",
+                             "chrome,dialog=yes,alwaysRaised=yes",
+                             paramBlock);
+        }            
 
         // silently don't do anything if this message already has
         // been announed without being acknowledged.
@@ -974,13 +982,9 @@ calMgrCalendarObserver.prototype = {
         this.announcedMessages.push(paramBlock);
 
         this.storedReadOnly = this.calendar.readOnly;
-
-        var wWatcher = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
-                                 .getService(Components.interfaces.nsIWindowWatcher);
-        wWatcher.openWindow(null,
-                            "chrome://calendar/content/calErrorPrompt.xul",
-                            "_blank",
-                            "chrome,dialog=yes,alwaysRaised=yes",
-                            paramBlock);
+        var errorCode = calGetString("calendar","errorCode", [errCode]);
+        var errorDescription = calGetString("calendar","errorDescription", [message]);
+        var summary = errMsg + " " + errorCode + ". " + errorDescription;
+        WARN(summary);
     }
 }
