@@ -244,7 +244,7 @@ interface nsMsgNavigationType
 };
 
 
-[scriptable, uuid(8b3de23c-09c8-484c-9269-d35cf7865b2a)]
+[scriptable, uuid(de4c3458-5222-4cf5-b883-0c42aad848e6)]
 interface nsIMsgDBView : nsISupports
 {
   void open(in nsIMsgFolder folder, in nsMsgViewSortTypeValue sortType, in nsMsgViewSortOrderValue sortOrder, in nsMsgViewFlagsTypeValue viewFlags, out long count);
@@ -286,8 +286,8 @@ interface nsIMsgDBView : nsISupports
   nsIMsgFolder getFolderForViewIndex(in nsMsgViewIndex index); // mainly for search
   ACString getURIForViewIndex(in nsMsgViewIndex index);
   nsIMsgDBView cloneDBView(in nsIMessenger aMessengerInstance, in nsIMsgWindow aMsgWindow, in nsIMsgDBViewCommandUpdater aCommandUpdater);
-  void getURIsForSelection([array, size_is(count)] out string uris, out unsigned long count);
-  void getIndicesForSelection([array, size_is(count)] out nsMsgViewIndex indices, out unsigned long count);
+  void getURIsForSelection(out unsigned long count, [retval, array, size_is(count)] out string uris);
+  void getIndicesForSelection(out unsigned long count, [retval, array, size_is(count)] out nsMsgViewIndex indices);
 
   readonly attribute ACString URIForFirstSelectedMessage;
   readonly attribute nsIMsgDBHdr hdrForFirstSelectedMessage;

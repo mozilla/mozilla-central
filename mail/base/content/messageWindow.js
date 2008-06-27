@@ -600,10 +600,7 @@ function GetSelectedMessages()
 function GetSelectedIndices(dbView)
 {
   try {
-    var indicesArray = {};
-    var length = {};
-    dbView.getIndicesForSelection(indicesArray,length);
-    return indicesArray.value;
+    return dbView.getIndicesForSelection({});
   }
   catch (ex) {
     dump("ex = " + ex + "\n");

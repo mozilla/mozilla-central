@@ -2129,7 +2129,7 @@ int PR_CALLBACK CompareViewIndices (const void *v1, const void *v2, void *)
   return i1 - i2;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(nsMsgViewIndex **indices,  PRUint32 *length)
+NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(PRUint32 *length, nsMsgViewIndex **indices)
 {
   NS_ENSURE_ARG_POINTER(length);
   *length = 0;
@@ -2149,7 +2149,7 @@ NS_IMETHODIMP nsMsgDBView::GetIndicesForSelection(nsMsgViewIndex **indices,  PRU
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(char ***uris, PRUint32 *length)
+NS_IMETHODIMP nsMsgDBView::GetURIsForSelection(PRUint32 *length, char ***uris)
 {
   nsresult rv = NS_OK;
 

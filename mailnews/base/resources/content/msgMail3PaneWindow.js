@@ -1334,10 +1334,7 @@ function GetFirstSelectedMessage()
 function GetSelectedIndices(dbView)
 {
   try {
-    var indicesArray = {};
-    var length = {};
-    dbView.getIndicesForSelection(indicesArray,length);
-    return indicesArray.value;
+    return dbView.getIndicesForSelection({});
   }
   catch (ex) {
     dump("ex = " + ex + "\n");
@@ -1348,14 +1345,8 @@ function GetSelectedIndices(dbView)
 function GetSelectedMessages()
 {
   try {
-    var messageArray = {};
-    var length = {};
-    var view = GetDBView();
-    view.getURIsForSelection(messageArray,length);
-    if (length.value)
-      return messageArray.value;
-    else
-      return null;
+    var messageArray = GetDBView().getURIsForSelection({});
+    return messageArray.length ? messageArray : null;
   }
   catch (ex) {
     dump("ex = " + ex + "\n");

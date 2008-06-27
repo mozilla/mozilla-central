@@ -718,14 +718,8 @@ function OpenMessageByHeader(messageHeader, openInNewWindow)
       }
     }
 
-    if (tree)
-    {
-      var length = {};
-      var indicesArray = {};
-
-      gDBView.getIndicesForSelection(indicesArray, length);
-      tree.treeBoxObject.ensureRowIsVisible(indicesArray.value[0]);
-    }
+    if (tree && tree.currentIndex != -1)
+      tree.treeBoxObject.ensureRowIsVisible(tree.currentIndex);
   }
 }
 
