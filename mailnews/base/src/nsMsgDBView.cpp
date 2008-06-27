@@ -4126,9 +4126,9 @@ nsMsgKey nsMsgDBView::GetKeyOfFirstMsgInThread(nsMsgKey key)
   nsCOMPtr <nsIMsgThread> pThread;
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   nsresult rv = m_db->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, nsMsgKey_None);
   rv = GetThreadContainingMsgHdr(msgHdr, getter_AddRefs(pThread));
-  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_SUCCESS(rv, nsMsgKey_None);
   nsMsgKey  firstKeyInThread = nsMsgKey_None;
 
   NS_ASSERTION(pThread, "error getting msg from thread");

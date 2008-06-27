@@ -2519,6 +2519,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
 
     rv = m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
+    NS_ENSURE_SUCCESS(rv, rv);
     PRBool msgHdrIsRead;
     aHdrDeleted->GetIsRead(&msgHdrIsRead);
     if (!msgHdrIsRead)
@@ -2561,6 +2562,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
     nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
 
     rv = m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
+    NS_ENSURE_SUCCESS(rv, rv);
     PRBool msgHdrIsRead;
     PRUint32 msgFlags;
     aNewHdr->GetIsRead(&msgHdrIsRead);
