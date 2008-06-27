@@ -2711,6 +2711,7 @@ pkix_BuildForwardDepthFirstSearch(
                                         PKIX_VERIFYNODEADDTOTREEFAILED);
                                 PKIX_DECREF(verifyNode);
                             }
+                            pkixTempErrorReceived = PKIX_FALSE;
                             PKIX_DECREF(finalError);
                             finalError = verifyError;
                             verifyError = NULL;
@@ -2792,6 +2793,7 @@ pkix_BuildForwardDepthFirstSearch(
                                     PKIX_VERIFYNODEADDTOTREEFAILED);
                             PKIX_DECREF(verifyNode);
                     }
+                    pkixTempErrorReceived = PKIX_FALSE;
                     PKIX_DECREF(finalError);
                     finalError = verifyError;
                     verifyError = NULL;
@@ -2876,6 +2878,9 @@ pkix_BuildForwardDepthFirstSearch(
                                 state->status = BUILD_CHECKTRUSTED;
                                 goto cleanup;
                             }
+                            /* Reset temp error that was set by 
+                             * PKIX_CHECK_ONLY_FATAL and continue */
+                            pkixTempErrorReceived = PKIX_FALSE;
                             PKIX_DECREF(trustAnchor);
                     }
 
@@ -3013,6 +3018,7 @@ pkix_BuildForwardDepthFirstSearch(
                                       plContext),
                                       PKIX_VERIFYNODESETERRORFAILED);
                               }
+                              pkixTempErrorReceived = PKIX_FALSE;
                               PKIX_DECREF(finalError);
                               finalError = verifyError;
                               verifyError = NULL;
@@ -3070,6 +3076,9 @@ pkix_BuildForwardDepthFirstSearch(
                                         state->status = BUILD_VALCHAIN;
                                         goto cleanup;
                                     }
+                                    /* Reset temp error that was set by 
+                                     * PKIX_CHECK_ONLY_FATAL and continue */
+                                    pkixTempErrorReceived = PKIX_FALSE;
                             }
 
                             state->status = BUILD_CHECKWITHANCHORS;
@@ -3543,7 +3552,7 @@ pkix_Build_TryShortcut(
                             /* Exit loop with anchor set */
                             break;
                     }
-
+                    pkixTempErrorReceived = PKIX_FALSE;
                 }   /* if (passed == PKIX_FALSE) ... else ... */
                 PKIX_DECREF(trustedPubKey);
                 PKIX_DECREF(anchor);
