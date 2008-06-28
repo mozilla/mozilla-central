@@ -39,11 +39,10 @@
 
 treechildren::-moz-tree-image(GeneratedName) {
   margin-right: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.gif");
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
 }
 
 treechildren::-moz-tree-image(GeneratedName, MailList) {
   margin-right: 2px;
-  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.gif");
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
 }
-
