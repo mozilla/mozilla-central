@@ -174,7 +174,6 @@ function setupBar(imipMethod) {
     // and attributes for the buttons as based on the iMIP Method
     var imipBar = document.getElementById("imip-bar");
     imipBar.setAttribute("collapsed", "false");
-    var description = document.getElementById("imip-description");
 
     if (imipMethod.toUpperCase() == "REQUEST") {
         // Check if this is an update and display things accordingly
@@ -186,9 +185,7 @@ function setupBar(imipMethod) {
         // Check if this is an cancel and display things accordingly
         processCancelMsg();
     } else if (imipMethod.toUpperCase() == "PUBLISH") {
-        if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning", "imipBarRequestText");
-        }
+        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarRequestText"));
 
         var button = document.getElementById("imip-button1");
         showElement(button);
@@ -198,19 +195,14 @@ function setupBar(imipMethod) {
         // Bug xxxx TBD: Something went wrong or we found a message we don't
         // support yet. We can show a "This method is not supported in this
         // version" or simply hide the iMIP bar at this point
-        if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning",
-                                                       "imipBarUnsupportedText");
-        }
+        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUnsupportedText"));
         Components.utils.reportError("Unknown imipMethod: " + imipMethod);
     }
 }
 
 function processCancelMsg() {
-    var description = document.getElementById("imip-description");
-    if (description.firstChild.data) {
-        description.firstChild.data = ltnGetString("lightning", "imipBarCancelText");
-    }
+    var imipBar = document.getElementById("imip-bar");
+    imipBar.setAttribute("label", ltnGetString("lightning", "imipBarCancelText"));
 
     var compCal = createItipCompositeCalendar();
     // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
@@ -235,10 +227,8 @@ function processCancelMsg() {
 }
 
 function processReplyMsg() {
-    var description = document.getElementById("imip-description");
-    if (description.firstChild.data) {
-        description.firstChild.data = ltnGetString("lightning", "imipBarReplyText");
-    }
+    var imipBar = document.getElementById("imip-bar");
+    imipBar.setAttribute("label", ltnGetString("lightning", "imipBarReplyText"));
 
     var compCal = createItipCompositeCalendar();
     // Per iTIP spec (new Draft 4), multiple items in an iTIP message MUST have
@@ -535,31 +525,29 @@ function doResponse(aLocalStatus) {
  */
 function finishItipAction(aOperationType, aStatus, aDetail) {
     // For now, we just state the status for the user something very simple
-    var desc = document.getElementById("imip-description");
-    if (desc.firstChild != null) {
-        if (Components.isSuccessCode(aStatus)) {
-            if (aOperationType == Components.interfaces.calIOperationListener.ADD) {
-                desc.firstChild.data = ltnGetString("lightning", "imipAddedItemToCal");
-            } else if (aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
-                desc.firstChild.data = ltnGetString("lightning", "imipUpdatedItem");
-            } else if (aOperationType == Components.interfaces.calIOperationListener.DELETE) {
-                desc.firstChild.data = ltnGetString("lightning", "imipCanceledItem");
-            }
-
-            hideElement("imip-button1");
-            hideElement("imip-button2");
-            hideElement("imip-button3");
-        } else {
-            // Bug 348666: When we handle more iTIP methods, we need to create
-            // more sophisticated error handling.
-            // TODO L10N localize
-            document.getElementById("imip-bar").setAttribute("collapsed", true);
-            var msg = "Invitation could not be processed. Status: " + aStatus;
-            if (aDetail) {
-                msg += "\nDetails: " + aDetail;
-            }
-            showError(msg);
+    var imipBar = document.getElementById("imip-bar");
+    if (Components.isSuccessCode(aStatus)) {
+        if (aOperationType == Components.interfaces.calIOperationListener.ADD) {
+            imipBar.setAttribute("label", ltnGetString("lightning", "imipAddedItemToCal"));
+        } else if (aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
+            imipBar.setAttribute("label", ltnGetString("lightning", "imipUpdatedItem"));
+        } else if (aOperationType == Components.interfaces.calIOperationListener.DELETE) {
+            imipBar.setAttribute("label", ltnGetString("lightning", "imipCanceledItem"));
         }
+
+        hideElement("imip-button1");
+        hideElement("imip-button2");
+        hideElement("imip-button3");
+    } else {
+        // Bug 348666: When we handle more iTIP methods, we need to create
+        // more sophisticated error handling.
+        // TODO L10N localize
+        imipBar.setAttribute("collapsed", "true");
+        var msg = "Invitation could not be processed. Status: " + aStatus;
+        if (aDetail) {
+            msg += "\nDetails: " + aDetail;
+        }
+        showError(msg);
     }
 }
 
@@ -643,26 +631,21 @@ function determineUpdateType(newItemSequence, existingItemSequence) {
 }
 
 function displayRequestMethod(updateValue) {
-
-    var description = document.getElementById("imip-description");
+    var imipBar = document.getElementById("imip-bar");
     if (updateValue) {
         // This is a message updating existing event(s). But updateValue could
         // indicate that this update has already been applied, check that first.
         if (updateValue == 2) {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
-            if (description.firstChild.data) {
-                description.firstChild.data = ltnGetString("lightning", "imipBarAlreadyAddedText");
-            }
+            imipBar.setAttribute("label", ltnGetString("lightning", "imipBarAlreadyAddedText"));
 
             hideElement("imip-button1");
             hideElement("imip-button2");
             hideElement("imip-button3");
         } else {
             // Legitimate update, let's offer the update path
-            if (description.firstChild.data) {
-                description.firstChild.data = ltnGetString("lightning", "imipBarUpdateText");
-             }
+            imipBar.setAttribute("label", ltnGetString("lightning", "imipBarUpdateText"));
 
             var button = document.getElementById("imip-button1");
             showElement(button);
@@ -682,9 +665,7 @@ function displayRequestMethod(updateValue) {
             button.setAttribute("oncommand", "setAttendeeResponse('TENTATIVE', 'CONFIRMED');");
         }
     } else {
-        if (description.firstChild.data) {
-            description.firstChild.data = ltnGetString("lightning", "imipBarRequestText");
-        }
+        imipBar.setAttribute("label", ltnGetString("lightning", "imipBarRequestText"));
 
         var button = document.getElementById("imip-button1");
         showElement(button);

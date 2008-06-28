@@ -49,15 +49,9 @@ radio[pane=paneLightning] {
 }
 
 /* iMIP notification bar */
-#imipNotificationImage {
+#imip-bar > image {
     list-style-image: url("chrome://calendar/skin/cal-icon32.png");
     -moz-margin-end: 8px;
-}
-
-#imipNotificationBar {
-    background-color: #baeeff;
-    padding: 6px 8px;
-    color: black;
 }
 
 /* ::::: mode toolbar buttons ::::: */

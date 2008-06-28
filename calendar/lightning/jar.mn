@@ -28,6 +28,7 @@ lightning.jar:
   content/lightning/lightning-standalone.xul		(content/lightning-standalone.xul)
   content/lightning/lightning-utils.js			(content/lightning-utils.js) 
   content/lightning/lightning-widgets.css		(content/lightning-widgets.css)
+  content/lightning/lightning-widgets.xml		(content/lightning-widgets.xml)
   content/lightning/lightning-today-pane.js		(content/lightning-today-pane.js)
   content/lightning/messenger-overlay-sidebar.css	(content/messenger-overlay-sidebar.css)
   content/lightning/messenger-overlay-sidebar.js	(content/messenger-overlay-sidebar.js)
@@ -39,6 +40,7 @@ lightning.jar:
   content/lightning/toolkit-overlay-custombar.xul       (content/toolkit-overlay-custombar.xul)
 #expand    skin/classic/lightning/imip.css       (themes/__THEME__/imip.css)
 #expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
+#expand    skin/classic/lightning/lightning-widgets.css		(themes/__THEME__/lightning-widgets.css)
 
 calendar.jar:
   content/calendar/calendarCreation.xul		(/calendar/resources/content/calendarCreation.xul) 

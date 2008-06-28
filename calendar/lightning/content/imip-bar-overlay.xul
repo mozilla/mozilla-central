@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Clint Talbert <ctalbert.moz@gmail.com>
    -   Matthew Willis <lilmatt@mozilla.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,6 +47,7 @@
 <?xml-stylesheet href="chrome://messenger/skin/messageHeader.css" type="text/css"?>
 
 <?xml-stylesheet href="chrome://lightning/skin/lightning.css" type="text/css"?>
+<?xml-stylesheet href="chrome://lightning/content/lightning-widgets.css" type="text/css"?>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -61,22 +63,13 @@
             src="chrome://calendar/content/calendar-ui-utils.js"/>
 
     <vbox id="messagepanebox">
-        <hbox id="imip-bar" collapsed="true" insertbefore="msgHeaderView">
-            <hbox id="imipNotificationBar"
-                  class="imipBar"
-                  align="center"
-                  flex="1">
-                <image id="imipNotificationImage"/>
-                <description id="imip-description"
-                             class="msgNotificationBarText"
-                             flex="1">
-                    &lightning.imipbar.description;
-                </description>
-                <spacer flex="1"/>
-                <button id="imip-button1" hidden="true"/>
-                <button id="imip-button2" hidden="true"/>
-                <button id="imip-button3" hidden="true"/>
-            </hbox>
-        </hbox>
+        <lightning-notification-bar id="imip-bar"
+                                    collapsed="true"
+                                    insertbefore="msgHeaderView"
+                                    label="&lightning.imipbar.description;">
+          <button id="imip-button1" hidden="true"/>
+          <button id="imip-button2" hidden="true"/>
+          <button id="imip-button3" hidden="true"/>
+        </lightning-notification-bar>
     </vbox>
 </overlay>

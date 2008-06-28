@@ -35,5 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 lightning-notification-bar {
-  -moz-binding: url(chrome://lightning/content/lightning-widgets.xml#lightning-notification-bar);
+    background-color: #baeeff;
+    padding: 6px 8px;
+    color: -moz-dialogtext;
 }
