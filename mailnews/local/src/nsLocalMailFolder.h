@@ -155,8 +155,6 @@ public:
 
   NS_IMETHOD GetFolderURL(nsACString& url);
 
-  NS_IMETHOD UpdateSummaryTotals(PRBool force) ;
-
   NS_IMETHOD  GetManyHeadersToDownload(PRBool *retval);
 
   NS_IMETHOD GetDeletable (PRBool *deletable); 

@@ -727,29 +727,6 @@ nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(PRInt32 oldest, PRInt32 youngest, PRI
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::UpdateSummaryTotals(PRBool force)
-{
-  if (!mNotifyCountChanges)
-    return NS_OK;
-
-  PRInt32 oldUnreadMessages = mNumUnreadMessages;
-  PRInt32 oldTotalMessages = mNumTotalMessages;
-  //We need to read this info from the database
-  nsresult rv = ReadDBFolderInfo(force);
-
-  if (NS_SUCCEEDED(rv))
-  {
-    //Need to notify listeners that total count changed.
-    if(oldTotalMessages != mNumTotalMessages)
-      NotifyIntPropertyChanged(kTotalMessagesAtom, oldTotalMessages, mNumTotalMessages);
-
-    if(oldUnreadMessages != mNumUnreadMessages)
-      NotifyIntPropertyChanged(kTotalUnreadMessagesAtom, oldUnreadMessages, mNumUnreadMessages);
-    FlushToFolderCache();
-  }
-  return rv;
-}
-
 NS_IMETHODIMP nsMsgNewsFolder::GetExpungedBytesCount(PRUint32 *count)
 {
   NS_ENSURE_ARG_POINTER(count);

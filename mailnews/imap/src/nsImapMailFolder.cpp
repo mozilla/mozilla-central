@@ -1566,32 +1566,6 @@ NS_IMETHODIMP nsImapMailFolder::GetPrettyName(nsAString& prettyName)
   return GetName(prettyName);
 }
 
-NS_IMETHODIMP nsImapMailFolder::UpdateSummaryTotals(PRBool force)
-{
-  if (!mNotifyCountChanges || mIsServer)
-    return NS_OK;
-
-  // could we move this into nsMsgDBFolder, or do we need to deal
-  // with the pending imap counts?
-  PRInt32 oldUnreadMessages = mNumUnreadMessages + mNumPendingUnreadMessages;
-  PRInt32 oldTotalMessages = mNumTotalMessages + mNumPendingTotalMessages;
-  //We need to read this info from the database
-  ReadDBFolderInfo(force);
-
-  PRInt32 newUnreadMessages = mNumUnreadMessages + mNumPendingUnreadMessages;
-  PRInt32 newTotalMessages = mNumTotalMessages + mNumPendingTotalMessages;
-
-  //Need to notify listeners that total count changed.
-  if(oldTotalMessages != newTotalMessages)
-    NotifyIntPropertyChanged(kTotalMessagesAtom, oldTotalMessages, newTotalMessages);
-
-  if(oldUnreadMessages != newUnreadMessages)
-    NotifyIntPropertyChanged(kTotalUnreadMessagesAtom, oldUnreadMessages, newUnreadMessages);
-
-  FlushToFolderCache();
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsImapMailFolder::GetDeletable (PRBool *deletable)
 {
   nsresult rv = NS_ERROR_FAILURE;

@@ -1290,26 +1290,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::WriteToFolderCacheElem(nsIMsgFolderCacheElem
   return element->SetStringProperty("folderName", NS_ConvertUTF16toUTF8(mName));
 }
 
-NS_IMETHODIMP nsMsgLocalMailFolder::UpdateSummaryTotals(PRBool force)
-{
-  if (!mNotifyCountChanges)
-    return NS_OK;
-  PRInt32 oldUnreadMessages = mNumUnreadMessages;
-  PRInt32 oldTotalMessages = mNumTotalMessages;
-  //We need to read this info from the database
-  ReadDBFolderInfo(force);
-
-  //Need to notify listeners that total count changed.
-  if(oldTotalMessages != mNumTotalMessages)
-    NotifyIntPropertyChanged(kTotalMessagesAtom, oldTotalMessages, mNumTotalMessages);
-
-  if(oldUnreadMessages != mNumUnreadMessages)
-    NotifyIntPropertyChanged(kTotalUnreadMessagesAtom, oldUnreadMessages, mNumUnreadMessages);
-
-  FlushToFolderCache();
-  return NS_OK;
-}
-
 NS_IMETHODIMP nsMsgLocalMailFolder::GetDeletable(PRBool *deletable)
 {
   NS_ENSURE_ARG_POINTER(deletable);
