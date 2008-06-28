@@ -516,6 +516,10 @@ function BeginDragTree(event, tree, selArray, flavor)
 
         // get id (url)
         var id = selArray[i];
+        // If a folder drag, id is a folder object instead of a folder URI
+        if (id instanceof nsIMsgFolder)
+          id = id.URI;
+
         genTextData.data = id;
         debugDump("    ID #" + i + " = " + id + "\n");
 
