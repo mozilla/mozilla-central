@@ -41,6 +41,9 @@
 #include "nsMsgFolderNotificationService.h"
 #include "nsIArray.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgHdr.h"
+#include "nsIMsgImapMailFolder.h"
+#include "nsIImapIncomingServer.h"
 
 //
 //  nsMsgFolderNotificationService
@@ -120,6 +123,35 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder)
 {
   PRInt32 count = m_listeners.Count();
+  
+  // IMAP delete model means that a "move" isn't really a move, it is a copy,
+  // followed by storing the IMAP deleted flag on the message.
+  PRBool isReallyMove = aMove;
+  if (count > 0 && aMove)
+  {
+    nsresult rv;
+    // Assume that all the source messages are from the same server.
+    nsCOMPtr<nsIMsgDBHdr> message(do_QueryElementAt(aSrcMsgs, 0, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgFolder> msgFolder;
+    rv = message->GetFolder(getter_AddRefs(msgFolder));
+    NS_ENSURE_SUCCESS(rv, rv);
+    
+    nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(msgFolder));
+    if (imapFolder)
+    {
+      nsCOMPtr<nsIImapIncomingServer> imapServer;
+      imapFolder->GetImapIncomingServer(getter_AddRefs(imapServer));
+      if (imapServer)
+      {
+        nsMsgImapDeleteModel deleteModel;
+        imapServer->GetDeleteModel(&deleteModel);
+        if (deleteModel == nsMsgImapDeleteModels::IMAPDelete)
+          isReallyMove = PR_FALSE;
+      }
+    }
+  }
 
   for (PRInt32 i = 0; i < count; i++)
   {
@@ -127,7 +159,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(PRBool
     NS_ASSERTION(listener, "listener is null");
     if (!listener)
       return NS_ERROR_FAILURE;
-    listener->MsgsMoveCopyCompleted(aMove, aSrcMsgs, aDestFolder);
+    listener->MsgsMoveCopyCompleted(isReallyMove, aSrcMsgs, aDestFolder);
   }
 
   return NS_OK;

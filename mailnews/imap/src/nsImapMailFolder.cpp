@@ -1630,7 +1630,8 @@ nsresult nsImapMailFolder::GetServerKey(nsACString& serverKey)
   return rv;
 }
 
-nsresult nsImapMailFolder::GetImapIncomingServer(nsIImapIncomingServer **aImapIncomingServer)
+NS_IMETHODIMP
+nsImapMailFolder::GetImapIncomingServer(nsIImapIncomingServer **aImapIncomingServer)
 {
   NS_ENSURE_ARG(aImapIncomingServer);
   nsCOMPtr<nsIMsgIncomingServer> server;

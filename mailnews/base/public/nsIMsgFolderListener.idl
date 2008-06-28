@@ -90,6 +90,11 @@ interface nsIMsgFolderListener : nsISupports {
    * @param aMove true if a move, false if a copy
    * @param aSrcMsgs An array of the message headers in the source folder
    * @param aDestFolder The folder these messages were moved to
+   *
+   * @note
+   * If messages are moved from a server which uses the IMAP delete model, you'll get aMove =
+   * false. That's because the messages are not deleted from the source database, but instead
+   * simply marked deleted.
    */
   void msgsMoveCopyCompleted(in boolean aMove, 
                              in nsIArray aSrcMsgs, 

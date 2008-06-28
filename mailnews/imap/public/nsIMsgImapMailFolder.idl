@@ -75,7 +75,7 @@ interface nsIMsgImapFolderProps : nsISupports {
     void setQuotaData(in ACString quotaroot, in unsigned long usedKB, in unsigned long maxKB);
 };
 
-[scriptable, uuid(245e6260-f940-4323-ac72-2fa847d8213f)]
+[scriptable, uuid(b43edc8e-f49b-4d1a-9980-e7c4c0ebcdef)]
 interface nsIMsgImapMailFolder : nsISupports {
   void removeSubFolder(in nsIMsgFolder folder);
   void createClientSubfolderInfo(in ACString folderName, in wchar hierarchyDelimiter, in long flags, in boolean suppressNotification);
@@ -126,6 +126,7 @@ interface nsIMsgImapMailFolder : nsISupports {
   readonly attribute boolean hasAdminUrl;
   attribute boolean performingBiff;
   readonly attribute nsIMsgParseMailMsgState hdrParser;
+  readonly attribute nsIImapIncomingServer imapIncomingServer;
 
   /**
    * Quota

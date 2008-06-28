@@ -372,7 +372,6 @@ protected:
   nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
   PRBool TrashOrDescendentOfTrash(nsIMsgFolder* folder);
   nsresult GetServerKey(nsACString& serverKey);
-  nsresult GetImapIncomingServer(nsIImapIncomingServer **aImapIncomingServer);
   nsresult DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAString& msg);
 
   //nsresult RenameLocal(const char *newName);
