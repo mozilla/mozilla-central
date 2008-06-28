@@ -198,6 +198,10 @@ function msgHdrViewSMIMEOnLoad(event)
 function msgHdrViewSMIMEOnUnload(event)
 {
   forgetEncryptedURI();
+  removeEventListener("messagepane-loaded", msgHdrViewSMIMEOnLoad, true);
+  removeEventListener("messagepane-unloaded", msgHdrViewSMIMEOnUnload, true);
+  removeEventListener("messagepane-hide", msgHdrViewSMIMEOnMessagePaneHide, true);
+  removeEventListener("messagepane-unhide", msgHdrViewSMIMEOnMessagePaneUnhide, true);
 }
 
 function msgHdrViewSMIMEOnMessagePaneHide()
