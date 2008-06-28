@@ -433,6 +433,7 @@ NS_IMETHODIMP nsMsgDBFolder::ClearNewMessages()
     {
       m_saveNewMsgs.Clear();
       m_saveNewMsgs.AppendElements(newMessageKeys, numNewKeys);
+      NS_Free(newMessageKeys);
     }
     mDatabase->ClearNewList(PR_TRUE);
   }
@@ -765,7 +766,7 @@ nsMsgDBFolder::SetMsgDatabase(nsIMsgDatabase *aMsgDatabase)
         m_newMsgs.Clear();
         m_newMsgs.AppendElements(newMessageKeys, numNewKeys);
       }
-      nsMemory::Free(newMessageKeys);
+      NS_Free(newMessageKeys);
     }
   }
   mDatabase = aMsgDatabase;
@@ -1841,6 +1842,8 @@ nsMsgDBFolder::CallFilterPlugins(nsIMsgWindow *aMsgWindow, PRBool *aFiltersRun)
   newMessageKeys.SwapElements(m_saveNewMsgs);
   if (numNewKeys)
     newMessageKeys.AppendElements(newKeys, numNewKeys);
+
+  NS_Free(newKeys);
 
   // if there weren't any, just return
   if (newMessageKeys.IsEmpty())

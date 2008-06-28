@@ -1278,6 +1278,12 @@ nsLDAPAutoCompleteSession::SetFormatter(nsILDAPAutoCompFormatter* aFormatter)
 
     mFormatter = aFormatter;
 
+    // Ensure any old data is freed if necessary.
+    if (mSearchAttrs) {
+        NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(mSearchAttrsSize, mSearchAttrs);
+        mSearchAttrs = nsnull;
+    }
+
     // get and cache the attributes that will be used to do lookups
     //
     nsresult rv = mFormatter->GetAttributes(&mSearchAttrsSize, &mSearchAttrs);

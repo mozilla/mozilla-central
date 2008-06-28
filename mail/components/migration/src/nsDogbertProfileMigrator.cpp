@@ -2110,6 +2110,8 @@ static void getFontPrefs(nsIPrefBranch *prefs, nsCStringArray *data)
     if (charEndsWith(childPrefs[i], ".fixed_font") || charEndsWith(childPrefs[i], ".prop_font"))
       data->AppendCString(nsDependentCString(childPrefs[i]));
   }
+
+  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(count, childPrefs);
 }
 
 static void getLdapPrefs(nsIPrefBranch *prefs, nsCStringArray *data)
@@ -2124,6 +2126,8 @@ static void getLdapPrefs(nsIPrefBranch *prefs, nsCStringArray *data)
     if (charEndsWith(childPrefs[i], ".description"))
       data->AppendCString(nsDependentCString(childPrefs[i]));
   }
+
+  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(count, childPrefs);
 }
 
 static void getVCardPrefs(nsIPrefBranch *prefs, nsCStringArray *data)
@@ -2135,6 +2139,8 @@ static void getVCardPrefs(nsIPrefBranch *prefs, nsCStringArray *data)
   // the 4.x vCard prefs might need converting
   for (i = 0; i < count; ++i)
     data->AppendCString(nsDependentCString(childPrefs[i]));
+
+  NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(count, childPrefs);
 }
 
 typedef struct {
