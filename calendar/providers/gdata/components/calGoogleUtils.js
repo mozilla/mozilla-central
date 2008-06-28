@@ -1108,7 +1108,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         if (gdCategories) {
             item.setProperty("CATEGORIES", gdCategories);
         } else {
-            item.removeProperty("CATEGORIES");
+            item.deleteProperty("CATEGORIES");
         }
 
         // published
