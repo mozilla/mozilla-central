@@ -6004,6 +6004,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   messages->GetLength(&srcCount);
   nsCOMPtr<nsIImapIncomingServer> imapServer;
   rv = GetImapIncomingServer(getter_AddRefs(imapServer));
+  nsCOMPtr<nsIMutableArray> msgHdrsCopied(do_CreateInstance(NS_ARRAY_CONTRACTID));
 
   if (NS_SUCCEEDED(rv) && imapServer)
   {
@@ -6012,6 +6013,11 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
     deleteToTrash = (deleteModel == nsMsgImapDeleteModels::MoveToTrash);
     deleteImmediately = (deleteModel == nsMsgImapDeleteModels::DeleteNoTrash);
   }
+
+  // This array is used only when we are actually removing the messages from the
+  // source database.
+  nsTArray<nsMsgKey> keysToDelete((isMove && (deleteToTrash || deleteImmediately)) ? srcCount : 0);
+
   if (sourceMailDB)
   {
     // save the future ops in the source DB, if this is not a imap->local copy/move
@@ -6024,7 +6030,6 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
     if (mDatabase)
     {
       // get the highest key in the dest db, so we can make up our fake keys
-      PRBool highWaterDeleted = PR_FALSE;
       nsMsgKey fakeBase = 1;
       nsCOMPtr <nsIDBFolderInfo> folderInfo;
       rv = mDatabase->GetDBFolderInfo(getter_AddRefs(folderInfo));
@@ -6136,8 +6141,6 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           PRBool successfulCopy = PR_FALSE;
           nsMsgKey srcDBhighWaterMark;
           srcDbFolderInfo->GetHighWater(&srcDBhighWaterMark);
-          highWaterDeleted = !highWaterDeleted && isMove && deleteToTrash &&
-            (originalKey == srcDBhighWaterMark);
 
           nsCOMPtr <nsIMsgDBHdr> newMailHdr;
           rv = mDatabase->CopyHdrFromExistingHdr(fakeBase + sourceKeyIndex, mailHdr,
@@ -6215,12 +6218,13 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                  txnMgr->DoTransaction(undoMsgTxn);
             }
             if (deleteToTrash || deleteImmediately)
-              sourceMailDB->DeleteMessage(msgKey, nsnull, PR_FALSE);
+              keysToDelete.AppendElement(msgKey);
             else
-              sourceMailDB->MarkImapDeleted(msgKey,PR_TRUE,nsnull); // offline delete
+              sourceMailDB->MarkImapDeleted(msgKey, PR_TRUE, nsnull); // offline delete
           }
-          if (!successfulCopy)
-            highWaterDeleted = PR_FALSE;
+          if (successfulCopy)
+            // This is for both moves and copies
+            msgHdrsCopied->AppendElement(mailHdr, PR_FALSE);
         }
       }
 
@@ -6234,13 +6238,18 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       txnMgr->EndBatch();
   }
 
-  // Do this before OnCopyCompleted, as OnCopyCompleted destroys the messages array
-  if (NS_SUCCEEDED(rv))
+  // Do this before delete, as it destroys the messages
+  PRUint32 numHdrs;
+  msgHdrsCopied->GetLength(&numHdrs);
+  if (numHdrs)
   {
     nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
     if (notifier)
-      notifier->NotifyMsgsMoveCopyCompleted(isMove, messages, this);
+      notifier->NotifyMsgsMoveCopyCompleted(isMove, msgHdrsCopied, this);
   }
+
+  if (isMove && (deleteToTrash || deleteImmediately))
+    sourceMailDB->DeleteMessages(&keysToDelete, nsnull);
 
   nsCOMPtr<nsISupports> srcSupport = do_QueryInterface(srcFolder);
   OnCopyCompleted(srcSupport, rv);
