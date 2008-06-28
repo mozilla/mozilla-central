@@ -324,7 +324,6 @@ pref("browser.download.manager.showAlertOnComplete", false);
 pref("browser.download.manager.showAlertInterval", 2000);
 pref("browser.download.manager.retention", 1);
 pref("browser.download.manager.showWhenStarting", true);
-pref("browser.download.manager.useWindow", true);
 pref("browser.download.manager.closeWhenDone", true);
 pref("browser.download.manager.openDelay", 100);
 pref("browser.download.manager.focusWhenStarting", false);
