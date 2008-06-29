@@ -65,16 +65,16 @@
   <script type="application/x-javascript" src="chrome://messenger/content/msgAccountCentral.js"/>
 
   <grid id="acctCentralGrid" flex="1" style="overflow: auto;"> 
-    <columns>
+    <columns id="acctCentralColumns">
       <column flex="40" id="acctCentralActionsColumn"/>
       <column flex="60" id="acctCentralHelpDataColumn"/>
     </columns>
 
-    <rows>
+    <rows id="acctCentralRows">
       <row id="acctCentralHeaderRow">
         <label id="AccountCentralTitle"/>
       </row>
-      <separator/>
+      <separator id="acctCentralHeader.separator"/>
 
       <row id="EmailHeader" class="acctCentralTitleRow">
         <hbox class="acctCentralRowTitleBox">
