@@ -3032,10 +3032,18 @@
 
           var displayDuration = highMinute - lowMinute;
           if (this.mSelectedItems.length &&
-              displayDuration >= 0 &&
-              displayDuration <= this.mVisibleMinutes) {
-              var minute = lowMinute + (displayDuration - this.mVisibleMinutes) / 2
-              this.setFirstVisibleMinute(minute);
+              displayDuration >= 0) {
+              if (displayDuration <= this.mVisibleMinutes) {
+                  var minute = lowMinute + (displayDuration - this.mVisibleMinutes) / 2
+                  this.setFirstVisibleMinute(minute);
+              } else if (this.mSelectedItems.length == 1) {
+                  // If the displayDuration doesn't fit into the visible
+                  // minutes, but only one event is selected, then go ahead and
+                  // center the event start.
+
+                  var minute = Math.max(0, lowMinute - (this.mVisibleMinutes / 2));
+                  this.setFirstVisibleMinute(minute);
+              }
           }
         ]]></body>
       </method>
