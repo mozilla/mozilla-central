@@ -55,7 +55,9 @@ function initCommonRetentionSettings(retentionSettings)
 
 function saveCommonRetentionSettings()
 {
-  var retentionSettings = new Object;
+  var retentionSettings =
+    Components.classes["@mozilla.org/msgDatabase/retentionSettings;1"]
+              .createInstance(Components.interfaces.nsIMsgRetentionSettings);
 
   retentionSettings.retainByPreference = document.getElementById("retention.keepMsg").value;
 

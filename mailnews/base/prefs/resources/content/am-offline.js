@@ -144,8 +144,9 @@ function onClickSelect()
 
 function onSave()
 {
-
-    var downloadSettings = new Array;
+    var downloadSettings =
+      Components.classes["@mozilla.org/msgDatabase/downloadSettings;1"]
+                .createInstance(Components.interfaces.nsIMsgDownloadSettings);
 
     gIncomingServer.limitOfflineMessageSize = document.getElementById("offline.notDownload").checked;
     gIncomingServer.maxMessageSize = document.getElementById("offline.notDownloadMin").value;
