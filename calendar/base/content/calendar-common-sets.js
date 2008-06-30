@@ -169,7 +169,9 @@ var calendarController = {
                     // If calendar is not in foreground, let the default controller take
                     // care. If we don't have a default controller (i.e sunbird), just
                     // continue.
-                    return this.defaultController.isCommandEnabled(aCommand);
+                    if (this.defaultController.supportsCommand(aCommand)) {
+                        return this.defaultController.isCommandEnabled(aCommand);
+                    }
                 }
                 switch (aCommand) {
                     // Thunderbird Commands
