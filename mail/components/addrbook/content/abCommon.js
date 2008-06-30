@@ -101,10 +101,24 @@ var ResultsPaneController =
 
         // fix me, don't update on isCommandEnabled
         if (command == "cmd_delete") {
-          if (numSelected < 2)
-            goSetMenuValue(command, "valueCard");
-          else
-            goSetMenuValue(command, "valueCards");
+          switch (GetSelectedCardTypes()) {
+            case kSingleListOnly:
+              goSetMenuValue(command, "valueList");
+              break;
+            case kMultipleListsOnly:
+              goSetMenuValue(command, "valueLists");
+              break;
+            case kListsAndCards:
+              goSetMenuValue(command, "valueItems");
+              break;
+            case kCardsOnly:
+            default:
+              if (numSelected < 2)
+                goSetMenuValue(command, "valueCard");
+              else
+                goSetMenuValue(command, "valueCards");
+              break;
+          }
         }
         return (enabled && (numSelected > 0));
       case "button_edit":
@@ -185,10 +199,10 @@ var DirPaneController =
         return (gAbView != null);
       case "cmd_delete":
       case "button_delete":
+        var selectedDir = GetSelectedDirectory();
         if (command == "cmd_delete")
-          goSetMenuValue(command, "valueAddressBook");
-
-        selectedDir = GetSelectedDirectory();
+          goSetMenuValue(command, GetDirectoryFromURI(selectedDir).isMailList ?
+                                  "valueList" : "valueAddressBook");
 
         if (selectedDir &&
 	    (selectedDir != kPersonalAddressbookURI) &&

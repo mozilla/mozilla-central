@@ -119,7 +119,14 @@
     <command id="cmd_cut" oncommand="goDoCommand('cmd_cut')" disabled="true"/>
     <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')" disabled="true"/>
     <command id="cmd_paste" oncommand="goDoCommand('cmd_paste')" disabled="true"/>
-    <command id="cmd_delete" oncommand="goDoCommand('cmd_delete')" valueDefault="&deleteCmd.label;" disabled="true"/>
+    <command id="cmd_delete" oncommand="goDoCommand('cmd_delete')"
+             valueAddressBook="&deleteAbCmd.label;"
+             valueCard="&deleteCardCmd.label;"
+             valueCards="&deleteCardsCmd2.label;"
+             valueList="&deleteListCmd.label;"
+             valueLists="&deleteListsCmd.label;"
+             valueItems="&deleteItemsCmd.label;"
+             disabled="true"/>
     <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')" disabled="true"/>
 #ifdef XP_MACOSX
     <!-- Mac Window menu -->
@@ -133,10 +140,6 @@
 
 <broadcasterset id="abBroadcasters">
   <!-- Edit Menu -->
-  <broadcaster id="cmd_delete"
-         valueAddressBook="&deleteAbCmd.label;"
-         valueCard="&deleteCardCmd.label;"
-         valueCards="&deleteCardsCmd.label;"/>
   <broadcaster id="broadcaster-throbber" busy="false"/>
   <broadcaster id="button_delete" disabled="true"/>
 </broadcasterset>
@@ -232,6 +235,7 @@
   <menuitem id="abResultsTreeContext-delete"
             label="&deleteButton.label;"
             accesskey="&deleteButton.accesskey;"
+            observes="button_delete"
             oncommand="goDoCommand('button_delete');"/>
 </popup>
 
@@ -331,8 +335,7 @@
                       label="&deleteCmd.label;"
                       key="key_delete"
                       accesskey="&deleteCmd.accesskey;"
-                      command="cmd_delete"
-                      observes="button_delete"/>
+                      command="cmd_delete"/>
             <menuseparator/>
             <menuitem id="menu_selectAll"
                       label="&selectAllCmd.label;"
@@ -627,7 +630,7 @@
             context="abResultsTreeContext"
             onclick="AbResultsPaneOnClick(event);"
             onkeypress="AbResultsPaneKeyPress(event);"
-            onselect="this.view.selectionChanged();"
+            onselect="this.view.selectionChanged(); document.commandDispatcher.updateCommands('addrbook-select');"
             sortCol="GeneratedName"
             minheight="100" height="100"
             persist="height sortCol">
