@@ -170,11 +170,10 @@ const gTestArray =
   function testDeleteMessages4() { deleteMessages(gLocalTrashFolder, [gMsgHdrs[1].hdr], true, false); },
 
   // Renaming folders
-  // XXX enable after working out bugs in rename folder
-  /*function testRename1() { renameFolder(gLocalFolder3, "folder4"); },
-  function testRename2() { renameFolder(gLocalFolder2.getChildNamed("folder4"), "folder3"); }
-  function testRename3() { renameFolder(gLocalFolder2, "folder4"); }
-  function testRename4() { renameFolder(gLocalInboxFolder.getChildNamed("folder4"), "folder2"); }*/
+  function testRename1() { renameFolder(gLocalFolder3, "folder4"); },
+  function testRename2() { renameFolder(gLocalFolder2.getChildNamed("folder4"), "folder3"); },
+  function testRename3() { renameFolder(gLocalFolder2, "folder4"); },
+  function testRename4() { renameFolder(gLocalInboxFolder.getChildNamed("folder4"), "folder2"); },
 
   // Deleting folders (currently only one folder delete is supported through the UI)
   function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3")); },

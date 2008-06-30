@@ -1143,6 +1143,9 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
       if (count > 0)
         newFolder->RenameSubFolders(msgWindow, this);
 
+      // Discover the subfolders inside this folder (this is recursive)
+      newFolder->GetSubFolders(nsnull);
+
       // the newFolder should have the same flags
       newFolder->SetFlags(mFlags);
       if (parentFolder)
@@ -1154,6 +1157,10 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
       SetFilePath(nsnull); // forget our path, since this folder object renamed itself
       folderRenameAtom = do_GetAtom("RenameCompleted");
       newFolder->NotifyFolderEvent(folderRenameAtom);
+
+      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+      if (notifier)
+        notifier->NotifyFolderRenamed(this, newFolder);
     }
   }
   return rv;
@@ -1164,10 +1171,6 @@ NS_IMETHODIMP nsMsgLocalMailFolder::RenameSubFolders(nsIMsgWindow *msgWindow, ns
   nsresult rv =NS_OK;
   mInitialized = PR_TRUE;
 
-  nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-  if (notifier)
-    notifier->NotifyFolderRenamed(oldFolder, this);
-  
   PRUint32 flags;
   oldFolder->GetFlags(&flags);
   SetFlags(flags);

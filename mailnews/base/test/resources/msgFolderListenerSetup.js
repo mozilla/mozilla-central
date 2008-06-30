@@ -123,7 +123,7 @@ var gMFListener =
 
   folderRenamed: function(aOrigFolder, aNewFolder)
   {
-    verify([gEvents.folderRenamed, aOrigFolder, aNewFolder]);
+    verify([kEvents.folderRenamed, aOrigFolder, aNewFolder]);
     if (gExpectedEvents.length == 0)
     {
       gCurrStatus |= kStatus.notificationsDone;
