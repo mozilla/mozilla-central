@@ -504,6 +504,11 @@ nsresult nsAbView::RefreshTree()
   }
   else {
     rv = InvalidateTree(ALL_ROWS);
+
+    // Although the selection hasn't changed, the card that is selected may need
+    // to be displayed differently, therefore pretend that the selection has
+    // changed to force that update.
+    SelectionChanged();
   }
 
   return rv;
