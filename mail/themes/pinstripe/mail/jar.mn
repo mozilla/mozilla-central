@@ -87,9 +87,9 @@ classic.jar:
      skin/classic/messenger/smime/msgCompSMIMEOverlay.css           (smime/msgCompSMIMEOverlay.css)
      skin/classic/messenger/smime/msgHdrViewSMIMEOverlay.css        (smime/msgHdrViewSMIMEOverlay.css)
      skin/classic/messenger/smime/msgReadSMIMEOverlay.css           (smime/msgReadSMIMEOverlay.css)
-     skin/classic/messenger/smime/msgReadSecurityInfo.css            (smime/msgReadSecurityInfo.css)
+     skin/classic/messenger/smime/msgReadSecurityInfo.css           (smime/msgReadSecurityInfo.css)
+     skin/classic/messenger/smime/msgCompSecurityInfo.css           (smime/msgCompSecurityInfo.css)
      skin/classic/messenger/smime/certFetchingStatus.css            (smime/certFetchingStatus.css)
-     skin/classic/messenger/smime/icons/smbtn1.gif                  (smime/smbtn1.gif)
      skin/classic/messenger/smime/icons/sbSignOk.gif                (smime/sbSignOk.gif)
      skin/classic/messenger/smime/icons/sbSignUnknown.gif           (smime/sbSignUnknown.gif)
      skin/classic/messenger/smime/icons/sbSignNotOk.gif             (smime/sbSignNotOk.gif)
@@ -238,7 +238,6 @@ classic.jar:
 % skin communicator classic/1.0 %skin/classic/communicator/
      skin/classic/communicator/communicator.css
      skin/classic/communicator/smileys.css
-     skin/classic/communicator/button.css
      skin/classic/communicator/icons/smileys/smiley-smile.png       (icons/smiley-smile.png)
      skin/classic/communicator/icons/smileys/smiley-frown.png       (icons/smiley-frown.png)
      skin/classic/communicator/icons/smileys/smiley-wink.png        (icons/smiley-wink.png)
@@ -256,7 +255,6 @@ classic.jar:
      skin/classic/communicator/icons/smileys/smiley-cry.png         (icons/smiley-cry.png)
      skin/classic/communicator/icons/smileys/smiley-sealed.png      (icons/smiley-sealed.png)
 +    skin/classic/global/icons/find.png                             (icons/find.png)
-+    skin/classic/global/toolbar/toolbar-pinstripe-overlay.png      (icons/toolbar-pinstripe-overlay.png)
 +    skin/classic/mozapps/extensions/viewButtons.png                (icons/viewButtons.png)
      preview.png
      icon.png
