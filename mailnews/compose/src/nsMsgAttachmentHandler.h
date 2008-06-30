@@ -60,6 +60,26 @@ public:
   nsCOMPtr <nsIOutputStream>  fileStream;    // file to hold the encoding
 };
 
+class nsILocalFileMac;
+class nsIZipWriter;
+
+/* Simple utility class that will synchronously zip any file 
+   (or folder hierarchy) you give it. */
+class nsSimpleZipper
+{
+  public:
+    
+    // Synchronously zips the input file/folder and writes all
+    // data to the output file.
+    static nsresult Zip(nsIFile *aInputFile, nsIFile *aOutputFile);
+  
+  private:
+    
+    // Recursively adds the file or folder to aZipWriter.
+    static nsresult AddToZip(nsIZipWriter *aZipWriter,
+                             nsIFile *aFile,
+                             const nsACString &aPath);
+};
 #endif  // XP_MACOSX
 
 //
@@ -72,10 +92,6 @@ public:
   nsMsgAttachmentHandler();
   ~nsMsgAttachmentHandler();
   
-
-  //////////////////////////////////////////////////////////////////////
-  // Object methods...
-  //////////////////////////////////////////////////////////////////////
   //
 public:
   nsresult              SnarfAttachment(nsMsgCompFields *compFields);
@@ -85,19 +101,29 @@ public:
                                                     // converted from HTML.) 
   nsresult              Abort();
   nsresult              UrlExit(nsresult status, const PRUnichar* aMsg);
+  
+  // if there's an intermediate temp file left, takes care to remove it from disk.
+  //
+  // NOTE: this takes care of the mEncodedWorkingFile temp file, but not mTmpFile which seems
+  // to be used by lots of other classes at the moment.
+  void                  CleanupTempFile();
 
 private:
+
+  // use when a message (e.g. original message in a reply) is attached as a rfc822 attachment.
   nsresult              SnarfMsgAttachment(nsMsgCompFields *compFields);
   PRBool                UseUUEncode_p(void);
   void                  AnalyzeDataChunk (const char *chunk, PRInt32 chunkSize);
   nsresult              LoadDataFromFile(nsILocalFile *file, nsString &sigData, PRBool charsetConversion); //A similar function already exist in nsMsgCompose!
 #ifdef XP_MACOSX
+  nsresult              ConvertToAppleEncoding(const nsCString &aFileSpecURI, 
+                                               const nsCString &aFilePath, 
+                                               nsILocalFileMac *aSourceFile);
+  // zips this attachment and does the work to make this attachment handler handle it properly.
+  nsresult ConvertToZipFile(nsILocalFileMac *aSourceFile);
   PRBool HasResourceFork(FSSpec *fsSpec);
 #endif
 
-  //////////////////////////////////////////////////////////////////////
-  // Member vars...
-  //////////////////////////////////////////////////////////////////////
   //
 public:
   nsCOMPtr <nsIURI> mURL;
@@ -106,11 +132,13 @@ public:
   nsIRequest            *mRequest;          // The live request used while fetching an attachment
   nsMsgCompFields       *mCompFields;       // Message composition fields for the sender
   PRBool                m_bogus_attachment; // This is to catch problem children...
-
+  
 #ifdef XP_MACOSX
-  nsCOMPtr <nsILocalFile>            mAppleFile;    // The temp file holds the appledouble
-                                            // encoding of the file we want to send.
+  // if we need to encode this file into for example an appledouble, or zip file,
+  // this file is our working file. currently only needed on mac.
+  nsCOMPtr<nsILocalFile> mEncodedWorkingFile;
 #endif
+
   char                  *m_x_mac_type;      // Mac file type
   char                  *m_x_mac_creator;   // Mac file creator
   

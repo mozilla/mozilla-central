@@ -64,6 +64,8 @@
 #include "nsNetUtil.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsComposeStrings.h"
+#include "nsIZipWriter.h"
+#include "nsIDirectoryEnumerator.h"
 
 ///////////////////////////////////////////////////////////////////////////
 // Mac Specific Attachment Handling for AppleDouble Encoded Files
@@ -76,74 +78,127 @@ extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **
 
 #include "nsIInternetConfigService.h"
 #include "MoreFilesX.h"
+#include "nsILocalFileMac.h"
+#include "nsMsgMacFileUtilities.h"
 
-#endif /* XP_MACOSX */
+/* static */
+nsresult nsSimpleZipper::Zip(nsIFile *aInputFile, nsIFile *aOutputFile)
+{
+  // create zipwriter object
+  nsresult rv;
+  nsCOMPtr<nsIZipWriter> zipWriter = do_CreateInstance("@mozilla.org/zipwriter;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  rv = zipWriter->Open(aOutputFile, PR_RDWR | PR_CREATE_FILE | PR_TRUNCATE);
+  NS_ENSURE_SUCCESS(rv, rv); 
+  
+  rv = AddToZip(zipWriter, aInputFile, EmptyCString());
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // we're done.
+  zipWriter->Close();
+  return rv;
+}
+
+/* static */
+nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter, 
+                                  nsIFile *aFile,
+                                  const nsACString &aPath)
+{
+  // find out the path this file/dir should have in the zip
+  nsCString leafName;
+  aFile->GetNativeLeafName(leafName);
+  nsCString currentPath(aPath + leafName);
+    
+  PRBool isDirectory;
+  aFile->IsDirectory(&isDirectory);
+  // append slash for a directory entry
+  if (isDirectory)
+    currentPath.Append('/');
+  
+  // add the file or directory entry to the zip
+  nsresult rv = aZipWriter->AddEntryFile(currentPath, nsIZipWriter::COMPRESSION_DEFAULT, aFile, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // if it's a directory, add all its contents too
+  if (isDirectory) {
+    nsCOMPtr<nsISimpleEnumerator> e;
+    nsresult rv = aFile->GetDirectoryEntries(getter_AddRefs(e));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIDirectoryEnumerator> dirEnumerator = do_QueryInterface(e, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIFile> currentFile;
+    while (NS_SUCCEEDED(dirEnumerator->GetNextFile(getter_AddRefs(currentFile))) && currentFile) {
+      rv = AddToZip(aZipWriter, currentFile, currentPath);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  }
+  
+  return NS_OK;
+}
+#endif // XP_MACOSX
 
 //
 // Class implementation...
 //
-nsMsgAttachmentHandler::nsMsgAttachmentHandler()
-{
-#if defined(DEBUG_ducarroz)
-  printf("CREATE nsMsgAttachmentHandler: %x\n", this);
-#endif
-  mMHTMLPart = PR_FALSE;
-  mPartUserOmissionOverride = PR_FALSE;
-  mMainBody = PR_FALSE;
+nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
+  mRequest(nsnull),
+  mCompFields(nsnull),   // Message composition fields for the sender
+  
+  m_x_mac_type(nsnull),
+  m_x_mac_creator(nsnull),
 
-  m_charset = nsnull;
-  m_override_type = nsnull;
-  m_override_encoding = nsnull;
-  m_desired_type = nsnull;
-  m_description = nsnull;
-  m_encoding = nsnull;
-  m_real_name = nsnull;
-  m_encoding = nsnull;
-  m_content_id = nsnull;
-  m_already_encoded_p = PR_FALSE;
-  m_decrypted_p = PR_FALSE;
+  m_done(PR_FALSE),
+  m_charset(nsnull),
+  m_content_id(nsnull),
+  m_type(nsnull),
+  m_type_param(nsnull),
+  m_override_type(nsnull),
+  m_override_encoding(nsnull),
+  m_desired_type(nsnull),
+  m_description(nsnull),
+  m_real_name(nsnull),
+  m_encoding(nsnull),
+  m_already_encoded_p(PR_FALSE),
+  m_decrypted_p(PR_FALSE),
+  
+  mDeleteFile(PR_FALSE),
+  mMHTMLPart(PR_FALSE),
+  mPartUserOmissionOverride(PR_FALSE),
+  mMainBody(PR_FALSE),
 
   // For analyzing the attachment file...
-  m_file_analyzed = PR_FALSE;
-  m_ctl_count = 0;
-  m_null_count = 0;
-  m_have_cr = m_have_lf = m_have_crlf = 0;
-  m_prev_char_was_cr = PR_FALSE;
-  m_current_column = 0;
-  m_max_column = 0;
-  m_lines = 0;
-  m_unprintable_count = 0;
-  m_highbit_count = 0;
+  m_size(0),
+  m_unprintable_count(0),
+  m_highbit_count(0),
+  m_ctl_count(0),
+  m_null_count(0),
+  m_have_cr(0), 
+  m_have_lf(0), 
+  m_have_crlf(0),
+  m_prev_char_was_cr(PR_FALSE),
+  m_current_column(0),
+  m_max_column(0),
+  m_lines(0),
+  m_file_analyzed(PR_FALSE),
 
-  // Mime encoder...
-  m_encoder_data = nsnull;
-
-  m_done = PR_FALSE;
-  m_type = nsnull;
-  m_type_param = nsnull;
-  m_size = 0;
-
-  mCompFields = nsnull;   // Message composition fields for the sender
-  mURL = nsnull;
-  mRequest = nsnull;
-
-  m_x_mac_type = nsnull;
-  m_x_mac_creator = nsnull;
-
-  mDeleteFile = PR_FALSE;
-  m_uri = nsnull;
+  // Mime
+  m_encoder_data(nsnull),
+  m_uri(nsnull)
+{
 }
 
 nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
 {
-#if defined(DEBUG_ducarroz)
-  printf("DISPOSE nsMsgAttachmentHandler: %x\n", this);
-#endif
-
   if (mTmpFile && mDeleteFile)
     mTmpFile->Remove(PR_FALSE);
-
-  mTmpFile=nsnull;
+    
+  if (mOutFile)
+    mOutFile->Close();
+    
+  CleanupTempFile();
 
   PR_Free(m_charset);
   PR_Free(m_type);
@@ -158,6 +213,15 @@ nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
   PR_Free(m_x_mac_type);
   PR_Free(m_x_mac_creator);
   PR_Free(m_uri);
+}
+
+void
+nsMsgAttachmentHandler::CleanupTempFile()
+{
+  if (mEncodedWorkingFile) {
+    mEncodedWorkingFile->Remove(PR_FALSE);
+    mEncodedWorkingFile = nsnull;
+  }
 }
 
 void
@@ -347,7 +411,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
       }
       else if (charset && nsMsgI18Nstateful_charset(charset))
       {
-        PR_FREEIF(m_encoding);
+        PR_Free(m_encoding);
         m_encoding = PL_strdup (ENCODING_7BIT);
       }
       else if (encode_p &&
@@ -358,15 +422,15 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
         */
         needsB64 = PR_TRUE;
       else if (encode_p) {
-        PR_FREEIF(m_encoding);
+        PR_Free(m_encoding);
         m_encoding = PL_strdup (ENCODING_QUOTED_PRINTABLE);
       }
       else if (m_highbit_count > 0) {
-        PR_FREEIF(m_encoding);
+        PR_Free(m_encoding);
         m_encoding = PL_strdup (ENCODING_8BIT);
       }
       else {
-        PR_FREEIF(m_encoding);
+        PR_Free(m_encoding);
         m_encoding = PL_strdup (ENCODING_7BIT);
       }
   }
@@ -376,7 +440,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
     //
     // We might have to uuencode instead of base64 the binary data.
     //
-    PR_FREEIF(m_encoding);
+    PR_Free(m_encoding);
     if (UseUUEncode_p())
       m_encoding = PL_strdup (ENCODING_UUENCODE);
     else
@@ -443,7 +507,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
 DONE:
   if (!m_type || !*m_type || !PL_strcasecmp(m_type, UNKNOWN_CONTENT_TYPE))
   {
-    PR_FREEIF(m_type);
+    PR_Free(m_type);
     if (m_already_encoded_p)
       m_type = PL_strdup (APPLICATION_OCTET_STREAM);
     else if (m_encoding &&
@@ -472,21 +536,21 @@ FetcherURLDoneCallback(nsresult aStatus,
     if (!aContentType.IsEmpty())
     {
 #ifdef XP_MACOSX
-      //Do not change the type if we are dealing with an apple double file
-      if (!ma->mAppleFile)
+      //Do not change the type if we are dealing with an encoded (e.g., appledouble or zip) file
+      if (!ma->mEncodedWorkingFile)
 #else
         // can't send appledouble on non-macs
         if (!aContentType.EqualsLiteral("multipart/appledouble"))
 #endif
       {
-        PR_FREEIF(ma->m_type);
+        PR_Free(ma->m_type);
         ma->m_type = ToNewCString(aContentType);
       }
     }
 
     if (!aCharset.IsEmpty())
     {
-      PR_FREEIF(ma->m_charset);
+      PR_Free(ma->m_charset);
       ma->m_charset = ToNewCString(aCharset);
     }
 
@@ -510,9 +574,9 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     mTmpFile = do_QueryInterface(tmpFile);
     mDeleteFile = PR_TRUE;
     mCompFields = compFields;
-    PR_FREEIF(m_type);
+    PR_Free(m_type);
     m_type = PL_strdup(MESSAGE_RFC822);
-    PR_FREEIF(m_override_type);
+    PR_Free(m_override_type);
     m_override_type = PL_strdup(MESSAGE_RFC822);
     if (!mTmpFile)
     {
@@ -637,9 +701,6 @@ PRBool nsMsgAttachmentHandler::HasResourceFork(FSSpec *fsSpec)
 nsresult
 nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 {
-  nsresult      status = 0;
-  nsCString url_string;
-
   NS_ASSERTION (! m_done, "Already done");
 
   if (!mURL)
@@ -650,14 +711,14 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   // First, get as file spec and create the stream for the
   // temp file where we will save this data
   nsCOMPtr <nsIFile> tmpFile;
-  status = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
-  NS_ENSURE_SUCCESS(status, status);
+  nsresult rv = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
+  NS_ENSURE_SUCCESS(rv, rv);
   mTmpFile = do_QueryInterface(tmpFile);
   mDeleteFile = PR_TRUE;
 
   nsCOMPtr<nsIOutputStream> outputStream;
-  status = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
-  if (NS_FAILED(status) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
+  rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile, -1, 00600);
+  if (NS_FAILED(rv) || !outputStream || CHECK_SIMULATED_ERROR(SIMULATED_SEND_ERROR_3))
   {
     if (m_mime_delivery_state)
     {
@@ -678,263 +739,30 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   }
   mOutFile = do_QueryInterface(outputStream);
 
-  mURL->GetSpec(url_string);
-
+  nsCString sourceURISpec;
+  mURL->GetSpec(sourceURISpec);
 #ifdef XP_MACOSX
-  if ( !m_bogus_attachment && nsMsgIsLocalFile(url_string.get()))
+  if (!m_bogus_attachment && StringBeginsWith(sourceURISpec, NS_LITERAL_CSTRING("file://")))
   {
-    // convert the apple file to AppleDouble first, and then patch the
-    // address in the url.
-    char *src_filename = nsMsgGetLocalFileFromURL (url_string.get());
-    if (!src_filename)
-      return NS_ERROR_OUT_OF_MEMORY;
+    // Unescape the path (i.e. un-URLify it) before making a FSSpec
+    nsCAutoString filePath;
+    filePath.Adopt(nsMsgGetLocalFileFromURL(sourceURISpec.get()));
+    nsUnescape(filePath.BeginWriting());
 
-    // Unescape the name before making FSSpec
-    nsCAutoString escapedFilename(src_filename);
-    nsUnescape(escapedFilename.BeginWriting());
-
-    nsCOMPtr <nsILocalFile> scr_file;
-    NS_NewNativeLocalFile(escapedFilename, PR_TRUE, getter_AddRefs(scr_file));
-
-    //We need to retrieve the file type and creator...
-    FSSpec fsSpec;
-    Boolean isDir;
-    FSPathMakeFSSpec((UInt8 *)escapedFilename.get(), &fsSpec, &isDir);
-    FInfo info;
-    if (FSpGetFInfo (&fsSpec, &info) == noErr)
-    {
-      char filetype[32];
-      PR_snprintf(filetype, sizeof(filetype), "%X", info.fdType);
-      PR_FREEIF(m_x_mac_type);
-      m_x_mac_type = PL_strdup(filetype);
-
-      PR_snprintf(filetype, sizeof(filetype), "%X", info.fdCreator);
-      PR_FREEIF(m_x_mac_creator);
-      m_x_mac_creator = PL_strdup(filetype);
-    }
-
-    PRBool sendResourceFork = PR_TRUE;
-    PRBool icGaveNeededInfo = PR_FALSE;
-    nsCOMPtr<nsIInternetConfigService> icService (do_GetService(NS_INTERNETCONFIGSERVICE_CONTRACTID));
-    if (icService)
-    {
-      PRInt32 icFlags;
-      // be sure to look up by extension first (so pass in PR_TRUE). See Bug #229855
-      nsresult rv = icService->GetFileMappingFlags(&fsSpec, PR_TRUE, &icFlags);
-      if (NS_SUCCEEDED(rv) && icFlags != -1 && !(icFlags & nsIInternetConfigService::eIICMapFlag_NotOutgoingMask))
-      {
-        sendResourceFork = (icFlags & nsIInternetConfigService::eIICMapFlag_ResourceForkMask);
-
-        if (sendResourceFork)
-        {
-          // before deciding to send the resource fork along the data fork, check if we have one,
-          // else don't need to use apple double.
-          sendResourceFork = HasResourceFork(&fsSpec);
-        }
-
-        icGaveNeededInfo = PR_TRUE;
-      }
-    }
-
-    if (! icGaveNeededInfo)
-    {
-      // If InternetConfig cannot help us, then just try our best...
-      // first check if we have a resource fork
-      sendResourceFork = HasResourceFork(&fsSpec);
-
-      // then, if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
-      if (sendResourceFork)
-      {
-        nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
-        if (fileUrl)
-        {
-          nsresult rv = fileUrl->SetSpec(url_string);
-          if (NS_SUCCEEDED(rv))
-          {
-            nsCAutoString ext;
-            rv = fileUrl->GetFileExtension(ext);
-            if (NS_SUCCEEDED(rv) && !ext.IsEmpty())
-            {
-              sendResourceFork =
-                 PL_strcasecmp(ext.get(), "TXT") &&
-                 PL_strcasecmp(ext.get(), "JPG") &&
-                 PL_strcasecmp(ext.get(), "GIF") &&
-                 PL_strcasecmp(ext.get(), "TIF") &&
-                 PL_strcasecmp(ext.get(), "HTM") &&
-                 PL_strcasecmp(ext.get(), "HTML") &&
-                 PL_strcasecmp(ext.get(), "ART") &&
-                 PL_strcasecmp(ext.get(), "XUL") &&
-                 PL_strcasecmp(ext.get(), "XML") &&
-                 PL_strcasecmp(ext.get(), "CSS") &&
-                 PL_strcasecmp(ext.get(), "JS");
-            }
-          }
-        }
-      }
-    }
-
-    // Only use appledouble if we aren't uuencoding.
-    if( sendResourceFork && (! UseUUEncode_p()) )
-    {
-      char                *separator;
-
-      separator = mime_make_separator("ad");
-      if (!separator)
-      {
-        PR_FREEIF(src_filename);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      nsCOMPtr <nsIFile> tmpFile;
-      nsresult rv = nsMsgCreateTempFile("appledouble", getter_AddRefs(tmpFile));
-      if (NS_SUCCEEDED(rv))
-        mAppleFile = do_QueryInterface(tmpFile);
-      if (!mAppleFile)
-      {
-        PR_FREEIF(separator);
-        PR_FREEIF(src_filename);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      //
-      // RICHIE_MAC - ok, here's the deal, we have a file that we need
-      // to encode in appledouble encoding for the resource fork and put that
-      // into the mAppleFileSpec location. Then, we need to patch the new file
-      // spec into the array and send this as part of the 2 part appledouble/mime
-      // encoded mime part.
-      //
-      AppleDoubleEncodeObject     *obj = new (AppleDoubleEncodeObject);
-      if (obj == NULL)
-      {
-        mAppleFile = nsnull;
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      rv = MsgGetFileStream(mAppleFile, getter_AddRefs(obj->fileStream));
-      if (NS_FAILED(rv) || !obj->fileStream)
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        delete obj;
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      PRInt32     bSize = AD_WORKING_BUFF_SIZE;
-
-      char  *working_buff = nsnull;
-      while (!working_buff && (bSize >= 512))
-      {
-        working_buff = (char *)PR_CALLOC(bSize);
-        if (!working_buff)
-          bSize /= 2;
-      }
-
-      if (!working_buff)
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        delete obj;
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      obj->buff = working_buff;
-      obj->s_buff = bSize;
-
-      //
-      //  Setup all the need information on the apple double encoder.
-      //
-      ap_encode_init(&(obj->ap_encode_obj), escapedFilename.get(), separator);
-
-      PRInt32 count;
-
-      status = noErr;
-      m_size = 0;
-      while (status == noErr)
-      {
-        status = ap_encode_next(&(obj->ap_encode_obj), obj->buff, bSize, &count);
-        if (status == noErr || status == errDone)
-        {
-          //
-          // we got the encode data, so call the next stream to write it to the disk.
-          //
-          PRUint32 bytesWritten;
-          obj->fileStream->Write(obj->buff, count, &bytesWritten);
-          if (bytesWritten != (PRUint32) count)
-            status = NS_MSG_ERROR_WRITING_FILE;
-        }
-      }
-
-      ap_encode_end(&(obj->ap_encode_obj), (status >= 0)); // if this is true, ok, false abort
-      if (obj->fileStream)
-        obj->fileStream->Close();
-
-      PR_FREEIF(obj->buff);               /* free the working buff.   */
-      PR_FREEIF(obj);
-
-      nsCOMPtr <nsIURI> fileURI;
-      NS_NewFileURI(getter_AddRefs(fileURI), mAppleFile);
-
-      nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
-      NS_ENSURE_SUCCESS(rv,rv);
-
-      nsCString newURLSpec;
-      NS_ENSURE_SUCCESS(rv, rv);
-      fileURI->GetSpec(newURLSpec);
-
-      if (newURLSpec.IsEmpty())
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      if (NS_FAILED(nsMsgNewURL(getter_AddRefs(mURL), newURLSpec.get())))
-      {
-        PR_FREEIF(src_filename);
-        PR_FREEIF(separator);
-        return NS_ERROR_OUT_OF_MEMORY;
-      }
-
-      // Now after conversion, also patch the types.
-      char        tmp[128];
-      PR_snprintf(tmp, sizeof(tmp), MULTIPART_APPLEDOUBLE ";\r\n boundary=\"%s\"", separator);
-      PR_FREEIF(separator);
-      PR_FREEIF (m_type);
-      m_type = PL_strdup(tmp);
-    }
+    nsCOMPtr<nsILocalFile> sourceFile;
+    NS_NewNativeLocalFile(filePath, PR_TRUE, getter_AddRefs(sourceFile));
+    if (!sourceFile)
+      return NS_ERROR_FAILURE;
+      
+    // check if it is a bundle. if it is, we'll zip it. 
+    // if not, we'll apple encode it (applesingle or appledouble)
+    nsCOMPtr<nsILocalFileMac> macFile(do_QueryInterface(sourceFile));
+    if (FileIsPackage(macFile))
+      rv = ConvertToZipFile(macFile);
     else
-    {
-      if ( sendResourceFork )
-      {
-        // The only time we want to send just the data fork of a two-fork
-        // Mac file is if uuencoding has been requested.
-        NS_ASSERTION(UseUUEncode_p(), "not UseUUEncode_p");
-
-        // For now, just do the encoding, but in the old world we would ask the
-        // user about doing this conversion
-        printf("...we could ask the user about this conversion, but for now, nahh..\n");
-      }
-
-      PRBool    useDefault;
-      char      *macType, *macEncoding;
-      if (m_type == NULL || !PL_strcasecmp (m_type, TEXT_PLAIN))
-      {
-# define TEXT_TYPE  0x54455854  /* the characters 'T' 'E' 'X' 'T' */
-# define text_TYPE  0x74657874  /* the characters 't' 'e' 'x' 't' */
-
-        if (info.fdType != TEXT_TYPE && info.fdType != text_TYPE)
-        {
-          MacGetFileType(scr_file, &useDefault, &macType, &macEncoding);
-          PR_FREEIF(m_type);
-          m_type = macType;
-        }
-      }
-      // don't bother to set the types if we failed in getting the file info.
-    }
-
-    PR_FREEIF(src_filename);
+      rv = ConvertToAppleEncoding(sourceURISpec, filePath, macFile);
+    
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 #endif /* XP_MACOSX */
 
@@ -943,8 +771,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   // in the temp file
   //
   // Create a fetcher for the URL attachment...
-
-  nsresult rv;
+  
   nsCOMPtr<nsIURLFetcher> fetcher = do_CreateInstance(NS_URLFETCHER_CONTRACTID, &rv);
   if (NS_FAILED(rv) || !fetcher)
   {
@@ -956,6 +783,277 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
 
   return fetcher->FireURLRequest(mURL, mTmpFile, mOutFile, FetcherURLDoneCallback, this);
 }
+
+#ifdef XP_MACOSX
+nsresult
+nsMsgAttachmentHandler::ConvertToZipFile(nsILocalFileMac *aSourceFile)
+{
+  // append ".zip" to the real file name
+  nsCAutoString zippedName;
+  nsresult rv = aSourceFile->GetNativeLeafName(zippedName);
+  NS_ENSURE_SUCCESS(rv, rv);
+  zippedName.AppendLiteral(".zip");
+
+  // create a temporary file that we'll work on
+  nsCOMPtr <nsIFile> tmpFile;
+  rv = nsMsgCreateTempFile(zippedName.get(), getter_AddRefs(tmpFile));
+  NS_ENSURE_SUCCESS(rv, rv);
+  mEncodedWorkingFile = do_QueryInterface(tmpFile);
+  
+  // point our URL at the zipped temp file
+  NS_NewFileURI(getter_AddRefs(mURL), mEncodedWorkingFile);
+  
+  // zip it!
+  rv = nsSimpleZipper::Zip(aSourceFile, mEncodedWorkingFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+  
+  // set some metadata for this attachment, that will affect the MIME headers.
+  PR_Free(m_type);
+  m_type = PL_strdup(APPLICATION_ZIP);
+  PR_Free(m_real_name);
+  m_real_name = PL_strdup(zippedName.get());
+  
+  return NS_OK;
+}
+
+nsresult
+nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI, 
+                                               const nsCString &aFilePath, 
+                                               nsILocalFileMac *aSourceFile)
+{
+  // convert the apple file to AppleDouble first, and then patch the
+  // address in the url.
+  
+
+  //We need to retrieve the file type and creator...
+  FSSpec fsSpec;
+  aSourceFile->GetFSSpec(&fsSpec);
+  FInfo info;
+  if (FSpGetFInfo (&fsSpec, &info) == noErr)
+  {
+    char filetype[32];
+    PR_snprintf(filetype, sizeof(filetype), "%X", info.fdType);
+    PR_Free(m_x_mac_type);
+    m_x_mac_type = PL_strdup(filetype);
+
+    PR_snprintf(filetype, sizeof(filetype), "%X", info.fdCreator);
+    PR_Free(m_x_mac_creator);
+    m_x_mac_creator = PL_strdup(filetype);
+  }
+
+  PRBool sendResourceFork = PR_TRUE;
+  PRBool icGaveNeededInfo = PR_FALSE;
+  nsCOMPtr<nsIInternetConfigService> icService (do_GetService(NS_INTERNETCONFIGSERVICE_CONTRACTID));
+  if (icService)
+  {
+    PRInt32 icFlags;
+    // be sure to look up by extension first (so pass in PR_TRUE). See Bug #229855
+    nsresult rv = icService->GetFileMappingFlags(&fsSpec, PR_TRUE, &icFlags);
+    if (NS_SUCCEEDED(rv) && icFlags != -1 && !(icFlags & nsIInternetConfigService::eIICMapFlag_NotOutgoingMask))
+    {
+      sendResourceFork = (icFlags & nsIInternetConfigService::eIICMapFlag_ResourceForkMask);
+
+      // before deciding to send the resource fork along the data fork, check if we have one,
+      // else don't need to use apple double.
+      if (sendResourceFork)
+        sendResourceFork = HasResourceFork(&fsSpec);
+
+      icGaveNeededInfo = PR_TRUE;
+    }
+  }
+
+  if (! icGaveNeededInfo)
+  {
+    // If InternetConfig cannot help us, then just try our best...
+    // first check if we have a resource fork
+    sendResourceFork = HasResourceFork(&fsSpec);
+
+    // then, if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
+    if (sendResourceFork)
+    {
+      nsCOMPtr<nsIURL> fileUrl(do_CreateInstance(NS_STANDARDURL_CONTRACTID));
+      if (fileUrl)
+      {
+        nsresult rv = fileUrl->SetSpec(aFileURI);
+        if (NS_SUCCEEDED(rv))
+        {
+          nsCAutoString ext;
+          rv = fileUrl->GetFileExtension(ext);
+          if (NS_SUCCEEDED(rv) && !ext.IsEmpty())
+          {
+            sendResourceFork =
+               PL_strcasecmp(ext.get(), "TXT") &&
+               PL_strcasecmp(ext.get(), "JPG") &&
+               PL_strcasecmp(ext.get(), "GIF") &&
+               PL_strcasecmp(ext.get(), "TIF") &&
+               PL_strcasecmp(ext.get(), "HTM") &&
+               PL_strcasecmp(ext.get(), "HTML") &&
+               PL_strcasecmp(ext.get(), "ART") &&
+               PL_strcasecmp(ext.get(), "XUL") &&
+               PL_strcasecmp(ext.get(), "XML") &&
+               PL_strcasecmp(ext.get(), "CSS") &&
+               PL_strcasecmp(ext.get(), "JS");
+          }
+        }
+      }
+    }
+  }
+
+  // Only use appledouble if we aren't uuencoding.
+  if( sendResourceFork && (! UseUUEncode_p()) )
+  {
+    char *separator;
+
+    separator = mime_make_separator("ad");
+    if (!separator)
+      return NS_ERROR_OUT_OF_MEMORY;
+
+    nsCOMPtr <nsIFile> tmpFile;
+    nsresult rv = nsMsgCreateTempFile("appledouble", getter_AddRefs(tmpFile));
+    if (NS_SUCCEEDED(rv))
+      mEncodedWorkingFile = do_QueryInterface(tmpFile);
+    if (!mEncodedWorkingFile)
+    {
+      PR_FREEIF(separator);
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    //
+    // RICHIE_MAC - ok, here's the deal, we have a file that we need
+    // to encode in appledouble encoding for the resource fork and put that
+    // into the mEncodedWorkingFile location. Then, we need to patch the new file
+    // spec into the array and send this as part of the 2 part appledouble/mime
+    // encoded mime part.
+    //
+    AppleDoubleEncodeObject     *obj = new (AppleDoubleEncodeObject);
+    if (obj == NULL)
+    {
+      mEncodedWorkingFile = nsnull;
+      PR_FREEIF(separator);
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    rv = MsgGetFileStream(mEncodedWorkingFile, getter_AddRefs(obj->fileStream));
+    if (NS_FAILED(rv) || !obj->fileStream)
+    {
+      PR_FREEIF(separator);
+      delete obj;
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    PRInt32     bSize = AD_WORKING_BUFF_SIZE;
+
+    char  *working_buff = nsnull;
+    while (!working_buff && (bSize >= 512))
+    {
+      working_buff = (char *)PR_CALLOC(bSize);
+      if (!working_buff)
+        bSize /= 2;
+    }
+
+    if (!working_buff)
+    {
+      PR_FREEIF(separator);
+      delete obj;
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    obj->buff = working_buff;
+    obj->s_buff = bSize;
+
+    //
+    //  Setup all the need information on the apple double encoder.
+    //
+    ap_encode_init(&(obj->ap_encode_obj), aFilePath.get(), separator);
+
+    PRInt32 count;
+
+    nsresult status = noErr;
+    m_size = 0;
+    while (status == noErr)
+    {
+      status = ap_encode_next(&(obj->ap_encode_obj), obj->buff, bSize, &count);
+      if (status == noErr || status == errDone)
+      {
+        //
+        // we got the encode data, so call the next stream to write it to the disk.
+        //
+        PRUint32 bytesWritten;
+        obj->fileStream->Write(obj->buff, count, &bytesWritten);
+        if (bytesWritten != (PRUint32) count)
+          status = NS_MSG_ERROR_WRITING_FILE;
+      }
+    }
+
+    ap_encode_end(&(obj->ap_encode_obj), (status >= 0)); // if this is true, ok, false abort
+    if (obj->fileStream)
+      obj->fileStream->Close();
+
+    PR_FREEIF(obj->buff);               /* free the working buff.   */
+    PR_FREEIF(obj);
+
+    nsCOMPtr <nsIURI> fileURI;
+    NS_NewFileURI(getter_AddRefs(fileURI), mEncodedWorkingFile);
+
+    nsCOMPtr<nsIFileURL> theFileURL = do_QueryInterface(fileURI, &rv);
+    NS_ENSURE_SUCCESS(rv,rv);
+
+    nsCString newURLSpec;
+    NS_ENSURE_SUCCESS(rv, rv);
+    fileURI->GetSpec(newURLSpec);
+
+    if (newURLSpec.IsEmpty())
+    {
+      PR_FREEIF(separator);
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    if (NS_FAILED(nsMsgNewURL(getter_AddRefs(mURL), newURLSpec.get())))
+    {
+      PR_FREEIF(separator);
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
+
+    // Now after conversion, also patch the types.
+    char        tmp[128];
+    PR_snprintf(tmp, sizeof(tmp), MULTIPART_APPLEDOUBLE ";\r\n boundary=\"%s\"", separator);
+    PR_FREEIF(separator);
+    PR_Free(m_type);
+    m_type = PL_strdup(tmp);
+  }
+  else
+  {
+    if ( sendResourceFork )
+    {
+      // The only time we want to send just the data fork of a two-fork
+      // Mac file is if uuencoding has been requested.
+      NS_ASSERTION(UseUUEncode_p(), "not UseUUEncode_p");
+
+      // For now, just do the encoding, but in the old world we would ask the
+      // user about doing this conversion
+      printf("...we could ask the user about this conversion, but for now, nahh..\n");
+    }
+
+    PRBool    useDefault;
+    char      *macType, *macEncoding;
+    if (m_type == NULL || !PL_strcasecmp (m_type, TEXT_PLAIN))
+    {
+# define TEXT_TYPE  0x54455854  /* the characters 'T' 'E' 'X' 'T' */
+# define text_TYPE  0x74657874  /* the characters 't' 'e' 'x' 't' */
+
+      if (info.fdType != TEXT_TYPE && info.fdType != text_TYPE)
+      {
+        MacGetFileType(aSourceFile, &useDefault, &macType, &macEncoding);
+        PR_Free(m_type);
+        m_type = macType;
+      }
+    }
+    // don't bother to set the types if we failed in getting the file info.
+  }
+
+  return NS_OK;
+}
+#endif // XP_MACOSX
 
 nsresult
 nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, PRBool charsetConversion)
@@ -1050,7 +1148,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(mTmpFile);
       if (tmpCharset[0] != '\0')
       {
-        PR_FREEIF(m_charset);
+        PR_Free(m_charset);
         m_charset = PL_strdup(tmpCharset);
       }
     }

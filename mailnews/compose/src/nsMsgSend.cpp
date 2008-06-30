@@ -421,9 +421,6 @@ nsMsgComposeAndSend::Clear()
 
   if (m_plaintext)
   {
-    if (m_plaintext->mOutFile)
-      m_plaintext->mOutFile->Close();
-
     if (m_plaintext->mTmpFile)
     {
       m_plaintext->mTmpFile->Remove(PR_FALSE);
@@ -479,42 +476,6 @@ nsMsgComposeAndSend::Clear()
         MIME_EncoderDestroy(m_attachments[i].m_encoder_data, PR_TRUE);
         m_attachments [i].m_encoder_data = 0;
       }
-
-      m_attachments[i].mURL = nsnull;
-
-      // is this needed? the destructor for the attachments
-      // should be freeing these strings.
-      PR_FREEIF (m_attachments [i].m_type);
-      PR_FREEIF (m_attachments [i].m_charset);
-      PR_FREEIF (m_attachments [i].m_override_type);
-      PR_FREEIF (m_attachments [i].m_override_encoding);
-      PR_FREEIF (m_attachments [i].m_desired_type);
-      PR_FREEIF (m_attachments [i].m_description);
-      PR_FREEIF (m_attachments [i].m_x_mac_type);
-      PR_FREEIF (m_attachments [i].m_x_mac_creator);
-      PR_FREEIF (m_attachments [i].m_real_name);
-      PR_FREEIF (m_attachments [i].m_encoding);
-      PR_FREEIF (m_attachments [i].m_content_id);
-      if (m_attachments[i].mOutFile)
-          m_attachments[i].mOutFile->Close();
-      if (m_attachments[i].mTmpFile)
-      {
-        // Only Delete the file if this variable is set!
-        if (m_attachments[i].mDeleteFile)
-          m_attachments[i].mTmpFile->Remove(PR_FALSE);
-        m_attachments[i].mTmpFile = nsnull;
-      }
-
-#ifdef XP_MACOSX
-      //
-      // remove the appledoubled intermediate file after we done all.
-      //
-      if (m_attachments[i].mAppleFile)
-      {
-        m_attachments[i].mAppleFile->Remove(PR_FALSE);
-        m_attachments[i].mAppleFile = nsnull;
-      }
-#endif /* XP_MACOSX */
     }
 
     delete[] m_attachments;
