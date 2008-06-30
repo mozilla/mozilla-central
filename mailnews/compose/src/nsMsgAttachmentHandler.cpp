@@ -218,10 +218,12 @@ nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
 void
 nsMsgAttachmentHandler::CleanupTempFile()
 {
+#ifdef XP_MACOSX
   if (mEncodedWorkingFile) {
     mEncodedWorkingFile->Remove(PR_FALSE);
     mEncodedWorkingFile = nsnull;
   }
+#endif // XP_MACOSX
 }
 
 void
