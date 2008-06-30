@@ -605,9 +605,3 @@ function onSubscribeTreeKeyPress(event)
       ReverseStateFromNode(k);
   }
 }
-
-
-function doHelpButton()
-{
-  openHelp("mail-subscribe");
-}

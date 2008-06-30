@@ -456,12 +456,6 @@ function ViewPageSource(messages)
   }
 }
 
-function doHelpButton()
-{
-    openHelp("mail-offline-items");
-}
-
-
 function confirmToProceed(commandName)
 {
   const kDontAskAgainPref = "mail."+commandName+".dontAskAgain";
