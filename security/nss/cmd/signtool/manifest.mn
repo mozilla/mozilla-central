@@ -54,6 +54,4 @@ PROGRAM =  signtool
 
 REQUIRES = seccmd
 
-USE_STATIC_LIBS = 1
-
 EXTRA_LIBS = $(JAR_LIBS)

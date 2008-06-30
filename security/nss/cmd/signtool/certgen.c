@@ -473,7 +473,7 @@ sign_cert(CERTCertificate *cert, SECKEYPrivateKey *privk)
     der2.data = NULL;
 
     dummy = SEC_ASN1EncodeItem
-        (cert->arena, &der2, cert, CERT_CertificateTemplate);
+        (cert->arena, &der2, cert, SEC_ASN1_GET(CERT_CertificateTemplate));
 
     if (rv != SECSuccess) {
 	PR_fprintf(errorFD, "%s: error encoding cert\n", PROGRAM_NAME);
