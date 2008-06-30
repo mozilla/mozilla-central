@@ -2807,6 +2807,14 @@ NS_IMETHODIMP nsMsgDBFolder::PropagateDelete(nsIMsgFolder *folder, PRBool delete
         // Remove from list of subfolders.
         mSubFolders.RemoveObjectAt(i);
         NotifyItemRemoved(child);
+        if (deleteStorage)
+        {
+          // All delete commands use deleteStorage = true, and local moves use false.
+          // IMAP moves use true, leaving this here in the hope that bug 439108 works out.
+          nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+          if (notifier)
+            notifier->NotifyFolderDeleted(child);
+        }
         break;
       }
       else // setting parent back if we failed
@@ -2868,12 +2876,7 @@ NS_IMETHODIMP nsMsgDBFolder::RecursiveDelete(PRBool deleteStorage, nsIMsgWindow 
 
   // now delete the disk storage for _this_
   if (deleteStorage && status == NS_OK)
-  {
     status = Delete();
-    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-    if (notifier)
-      notifier->NotifyFolderDeleted(this);
-  }
   return status;
 }
 

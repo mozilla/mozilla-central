@@ -178,9 +178,8 @@ const gTestArray =
   // Deleting folders (currently only one folder delete is supported through the UI)
   function deleteFolder1() { deleteFolder(gLocalInboxFolder.getChildNamed("folder3")); },
   function deleteFolder2() { deleteFolder(gLocalInboxFolder.getChildNamed("folder2")); },
-  function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3")); } /*,
-  // XXX enable after making sure that only the topmost folder has its itemDeleted called
-  function deleteFolder4() { deleteFolder(gLocalTrashFolder.getChildNamed("folder2")); }*/
+  function deleteFolder3() { deleteFolder(gLocalTrashFolder.getChildNamed("folder3")); },
+  function deleteFolder4() { deleteFolder(gLocalTrashFolder.getChildNamed("folder2")); }
 ];
 
 function run_test()
