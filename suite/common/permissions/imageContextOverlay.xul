@@ -37,8 +37,6 @@
 
  ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/permissions/imageContextOverlay.dtd">
-
 <overlay id="cookieContextOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -52,23 +50,6 @@
     // to data maintained by nsContextMenu.  
 
     var cookieContextMenu = {
-
-      // Determine if "Block Image" is to appear in the menu.
-      // Return true if image is not already blocked.
-      isBlockingImages : function () {
-        /* determine if image is already being blocked */
-        const nsIPermissionManager = Components.interfaces.nsIPermissionManager;
-        var permissionmanager =
-          Components.classes["@mozilla.org/permissionmanager;1"]
-            .getService(Components.interfaces.nsIPermissionManager);
-        if(!permissionmanager) {
-          return true;
-        }
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-        var uri = ioService.newURI(gContextMenu.imageURL, null, null);
-        return permissionmanager.testPermission(uri, "image") != nsIPermissionManager.DENY_ACTION;
-      },
 
       // Block image from loading in the future.
       blockImage : function () {
@@ -102,15 +83,45 @@
 
       initImageBlocking : function () {
         try {
+        
+        //Hide Block and Unblock menuitems
+        gContextMenu.showItem("context-blockimage", false);
+        gContextMenu.showItem("context-unblockimage", false);
+
         // Block image depends on whether an image was clicked on
+        if (gContextMenu.onImage) {
+          var bundle = srGetStrBundle("chrome://communicator/locale/contentAreaCommands.properties");
+          var IOService = Components.classes["@mozilla.org/network/io-service;1"]
+                                    .getService(Components.interfaces.nsIIOService);
 
-        gContextMenu.showItem
-          ("context-blockimage",
-           gContextMenu.onImage && cookieContextMenu.isBlockingImages());
-
-        gContextMenu.showItem
-          ("context-unblockimage",
-           gContextMenu.onImage && !cookieContextMenu.isBlockingImages());
+          var uri = IOService.newURI(gContextMenu.imageURL, null, null);
+          try {
+            var serverLabel = uri.host;
+            if (serverLabel) {
+  
+              // Limit length to max 15 characters
+              serverLabel = serverLabel.replace(/^www\./i, "");
+              if (serverLabel.length > 15) {
+                var pref = Components.classes["@mozilla.org/preferences-service;1"]
+                                     .getService(Components.interfaces.nsIPrefBranch);
+                var serverLabelEllipsis = pref.getComplexValue("intl.ellipsis",
+                                     Components.interfaces.nsIPrefLocalizedString).data;               
+                serverLabel = serverLabel.substr(0, 15) + serverLabelEllipsis;
+              }
+              
+              // Set label and accesskey for appropriate action and unhide menuitem
+              var action = "block";
+              var permissionmanager = Components.classes["@mozilla.org/permissionmanager;1"]
+                                                .getService(Components.interfaces.nsIPermissionManager);
+              if (permissionmanager.testPermission(uri, "image") == nsIPermissionManager.DENY_ACTION) 
+                action = "unblock";
+              var blockImageMenuItem = document.getElementById("context-" + action + "image");
+              blockImageMenuItem.setAttribute("label", bundle.formatStringFromName(action + "Image", [serverLabel], 1));
+              blockImageMenuItem.setAttribute("accesskey", bundle.GetStringFromName(action + "Image.accesskey"));
+              gContextMenu.showItem("context-" + action + "image", true);
+            }
+          } catch (ex) { }           
+        }
         } catch (e) {}
       },
 
@@ -132,13 +143,9 @@
   <!-- context menu -->
   <popup id="contentAreaContextMenu">
     <menuitem id="context-blockimage"
-              label="&blockImageCmd.label;"
-              accesskey=""
               oncommand="cookieContextMenu.blockImage();"
               insertafter="context-viewimage"/>
     <menuitem id="context-unblockimage"
-              label="&unblockImageCmd.label;"
-              accesskey=""
               oncommand="cookieContextMenu.unblockImage();"
               insertafter="context-viewimage"/>
   </popup>
@@ -146,13 +153,9 @@
   <!-- Mail Message Pane context menu -->
   <popup id="messagePaneContext">
     <menuitem id="context-blockimage"
-              label="&blockImageCmd.label;"
-              accesskey=""
               oncommand="cookieContextMenu.blockImage();"
               insertafter="context-viewimage"/>
     <menuitem id="context-unblockimage"
-              label="&unblockImageCmd.label;"
-              accesskey=""
               oncommand="cookieContextMenu.unblockImage();"
               insertafter="context-viewimage"/>
   </popup>

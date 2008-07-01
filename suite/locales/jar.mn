@@ -128,7 +128,6 @@
   locale/@AB_CD@/communicator/overrides/netErrorApp.dtd                     (%chrome/common/overrides/netErrorApp.dtd)
   locale/@AB_CD@/communicator/permissions/cookieViewer.properties           (%chrome/common/permissions/cookieViewer.properties)
   locale/@AB_CD@/communicator/permissions/cookieViewer.dtd                  (%chrome/common/permissions/cookieViewer.dtd)
-  locale/@AB_CD@/communicator/permissions/imageContextOverlay.dtd           (%chrome/common/permissions/imageContextOverlay.dtd)
   locale/@AB_CD@/communicator/permissions/permissionsManager.dtd            (%chrome/common/permissions/permissionsManager.dtd)
   locale/@AB_CD@/communicator/permissions/permissionsManager.properties     (%chrome/common/permissions/permissionsManager.properties)
   locale/@AB_CD@/communicator/permissions/permissionsNavigatorOverlay.dtd   (%chrome/common/permissions/permissionsNavigatorOverlay.dtd)
