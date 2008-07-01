@@ -37,8 +37,6 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-// $Id: effective_tld_names.dat,v 1.5 2008-07-01 06:30:36 reed%reedloden.com Exp $
-
 // ac : http://en.wikipedia.org/wiki/.ac
 ac
 com.ac
