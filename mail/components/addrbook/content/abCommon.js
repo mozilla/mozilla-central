@@ -57,115 +57,6 @@ const kLdapUrlPrefix = "moz-abldapdirectory://";
 const kPersonalAddressbookURI = "moz-abmdbdirectory://abook.mab";
 const kCollectedAddressbookURI = "moz-abmdbdirectory://history.mab";
 
-// List/card selections in the results pane.
-const kNothingSelected = 0;
-const kListsAndCards = 1;
-const kMultipleListsOnly = 2;
-const kSingleListOnly = 3;
-const kCardsOnly = 4;
-
-// Controller object for Results Pane
-var ResultsPaneController =
-{
-  supportsCommand: function(command)
-  {
-    switch (command) {
-      case "cmd_selectAll":
-      case "cmd_delete":
-      case "button_delete":
-      case "button_edit":
-      case "cmd_newlist":
-        return true;
-      default:
-        return false;
-    }
-  },
-
-  isCommandEnabled: function(command)
-  {
-    switch (command) {
-      case "cmd_selectAll":
-        return true;
-
-      case "cmd_delete":
-      case "button_delete":
-        var numSelected;
-        var enabled = false;
-        if (gAbView && gAbView.selection) {
-          if (gAbView.directory)
-            enabled = gAbView.directory.operations & gAbView.directory.opWrite;
-          numSelected = gAbView.selection.count;
-        }
-        else
-          numSelected = 0;
-
-        // fix me, don't update on isCommandEnabled
-        if (command == "cmd_delete") {
-          switch (GetSelectedCardTypes()) {
-            case kSingleListOnly:
-              goSetMenuValue(command, "valueList");
-              break;
-            case kMultipleListsOnly:
-              goSetMenuValue(command, "valueLists");
-              break;
-            case kListsAndCards:
-              goSetMenuValue(command, "valueItems");
-              break;
-            case kCardsOnly:
-            default:
-              if (numSelected < 2)
-                goSetMenuValue(command, "valueCard");
-              else
-                goSetMenuValue(command, "valueCards");
-              break;
-          }
-        }
-        return (enabled && (numSelected > 0));
-      case "button_edit":
-        return (GetSelectedCardIndex() != -1);
-      case "cmd_newlist":
-        var selectedDir = GetSelectedDirectory();
-        if (selectedDir) {
-          var abDir = GetDirectoryFromURI(selectedDir);
-          if (abDir) {
-            return abDir.supportsMailingLists;
-          }
-        }
-        return false;
-      default:
-        return false;
-    }
-  },
-
-  doCommand: function(command)
-  {
-    switch (command) {
-      case "cmd_selectAll":
-        if (gAbView)
-          gAbView.selectAll();
-        break;
-      case "cmd_delete":
-      case "button_delete":
-        AbDelete();
-        break;
-      case "button_edit":
-        AbEditSelectedCard();
-        break;
-      case "cmd_newlist":
-        AbNewList();
-        break;
-    }
-  },
-
-  onEvent: function(event)
-  {
-    // on blur events set the menu item texts back to the normal values
-    if (event == "blur")
-      goSetMenuValue("cmd_delete", "valueDefault");
-  }
-};
-
-
 // Controller object for Dir Pane
 var DirPaneController =
 {
@@ -401,7 +292,6 @@ function InitCommonJS()
 {
   dirTree = document.getElementById("dirTree");
   abList = document.getElementById("addressbookList");
-  gAbResultsTree = document.getElementById("abResultsTree");
   gAddressBookBundle = document.getElementById("bundle_addressBook");
 }
 
@@ -414,39 +304,6 @@ function SetupAbCommandUpdateHandlers()
   // results pane
   if (gAbResultsTree)
     gAbResultsTree.controllers.appendController(ResultsPaneController);
-}
-
-function GetSelectedCardTypes()
-{
-  var cards = GetSelectedAbCards();
-  if (!cards)
-    return kNothingSelected; // no view
-
-  var count = cards.length;
-  if (count == 0)
-    return kNothingSelected;  // nothing selected
-
-  var mailingListCnt = 0;
-  var cardCnt = 0;
-  for (var i = 0; i < count; i++) {
-    if (cards[i].isMailList)
-      mailingListCnt++;
-    else
-      cardCnt++;
-  }
-  if (mailingListCnt && cardCnt)
-    return kListsAndCards;        // lists and cards selected
-  else if (mailingListCnt && !cardCnt) {
-    if (mailingListCnt > 1)
-      return kMultipleListsOnly; // only multiple mailing lists selected
-    else
-      return kSingleListOnly;    // only single mailing list
-  }
-  else if (!mailingListCnt && cardCnt)
-    return kCardsOnly;           // only card(s) selected
-
-  // Fallback just in case.
-  return kNothingSelected;
 }
 
 function AbDelete()
@@ -476,36 +333,6 @@ function AbDelete()
 function AbNewCard()
 {
   goNewCardDialog(GetSelectedDirectory());
-}
-
-// NOTE, will return -1 if more than one card selected, or no cards selected.
-function GetSelectedCardIndex()
-{
-  if (!gAbView)
-    return -1;
-
-  var treeSelection = gAbView.selection;
-  if (treeSelection.getRangeCount() == 1) {
-    var start = new Object;
-    var end = new Object;
-    treeSelection.getRangeAt(0,start,end);
-    if (start.value == end.value)
-      return start.value;
-  }
-
-  return -1;
-}
-
-// NOTE, returns the card if exactly one card is selected, null otherwise
-function GetSelectedCard()
-{
-  var index = GetSelectedCardIndex();
-  return (index == -1) ? null : gAbView.getCardFromRow(index);
-}
-
-function AbEditSelectedCard()
-{
-  AbEditCard(GetSelectedCard());
 }
 
 function AbEditCard(card)
@@ -546,14 +373,6 @@ function AbNewMessage()
       msgComposeService.OpenComposeWindowWithParams(null, params);
     }
   }
-}
-
-function GetOneOrMoreCardsSelected()
-{
-  if (!gAbView)
-    return false;
-
-  return (gAbView.selection.getRangeCount() > 0);
 }
 
 // XXX todo
@@ -605,11 +424,6 @@ function GetSelectedAddressesFromDirTree()
   return addresses;
 }
 
-function GetSelectedAddresses()
-{
-  return GetAddressesForCards(GetSelectedAbCards());
-}
-
 // Generate a comma separated list of addresses from a given
 // set of cards.
 function GetAddressesForCards(cards)
@@ -632,80 +446,12 @@ function GetAddressesForCards(cards)
   return addresses;
 }
 
-function GetNumSelectedCards()
-{
- try {
-   return gAbView.selection.count;
- }
- catch (ex) {
- }
-
- // if something went wrong, return 0 for the count.
- return 0;
-}
-
-// XXX todo
-// an optimization might be to make this return
-// the selected ranges, which would be faster
-// when the user does large selections, but for now, let's keep it simple.
-function GetSelectedRows()
-{
-  var selectedRows = "";
-
-  if (!gAbView)
-    return selectedRows;
-
-  var i,j;
-  var rangeCount = gAbView.selection.getRangeCount();
-  for (i=0; i < rangeCount; i++) {
-    var start = new Object;
-    var end = new Object;
-    gAbView.selection.getRangeAt(i,start,end);
-    for (j=start.value;j<=end.value;j++) {
-      if (selectedRows)
-        selectedRows += ",";
-      selectedRows += j;
-    }
-  }
-  return selectedRows;
-}
-
-function GetSelectedAbCards()
-{
-  var abView = gAbView;
-
-  if (!abView)
-    return null;
-
-  var cards = new Array(abView.selection.count);
-  var i,j;
-  var count = abView.selection.getRangeCount();
-
-  var current = 0;
-
-  for (i=0; i < count; i++) {
-    var start = new Object;
-    var end = new Object;
-    abView.selection.getRangeAt(i,start,end);
-    for (j = start.value; j <= end.value; ++j)
-      cards[current++] = abView.getCardFromRow(j);
-  }
-  return cards;
-}
-
 function SelectFirstAddressBook()
 {
   dirTree.view.selection.select(0);
 
   ChangeDirectoryByURI(GetSelectedDirectory());
   gAbResultsTree.focus();
-}
-
-function SelectFirstCard()
-{
-  if (gAbView && gAbView.selection) {
-    gAbView.selection.select(0);
-  }
 }
 
 function DirPaneClick(event)
@@ -748,62 +494,6 @@ function DirPaneSelectionChange()
   goUpdateCommand('cmd_newlist');
 }
 
-function GetAbResultsBoxObject()
-{
-  if (!gAbResultsTree)
-    gAbResultsTree = document.getElementById('abResultsTree');
-
-  return gAbResultsTree.treeBoxObject;
-}
-
-function CloseAbView()
-{
-  var boxObject = GetAbResultsBoxObject();
-  boxObject.view = null;
-
-  if (gAbView) {
-    gAbView.close();
-    gAbView = null;
-  }
-}
-
-function SetAbView(uri, searchView)
-{
-  if (gAbView && gAbView.URI == uri)
-    return;
-
-  var sortColumn = kDefaultSortColumn;
-  var sortDirection = kDefaultAscending;
-
-  if (!gAbResultsTree)
-    gAbResultsTree = document.getElementById("abResultsTree");
-
-  if (gAbView) {
-    sortColumn = gAbView.sortColumn;
-    sortDirection = gAbView.sortDirection;
-  }
-  else {
-    if (gAbResultsTree.hasAttribute("sortCol"))
-      sortColumn = gAbResultsTree.getAttribute("sortCol");
-    if (gAbResultsTree.hasAttribute("sortDirection"))
-      sortDirection = gAbResultsTree.getAttribute("sortDirection");
-  }
-
-  if (!gAbView || (gCurDirectory != GetSelectedDirectory())) {
-    CloseAbView();
-    gCurDirectory = GetSelectedDirectory();
-    gAbView = Components.classes["@mozilla.org/addressbook/abview;1"]
-                        .createInstance(Components.interfaces.nsIAbView);
-  }
-
-  var actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(),
-				      sortColumn, sortDirection);
-  GetAbResultsBoxObject().view =
-    gAbView.QueryInterface(Components.interfaces.nsITreeView);
-
-  UpdateSortIndicators(sortColumn, sortDirection);
-}
-
 function ChangeDirectoryByURI(uri)
 {
   if (!uri)
@@ -817,69 +507,6 @@ function ChangeDirectoryByURI(uri)
   else
     // the selection changes if we were switching directories.
     ResultsPaneSelectionChanged()
-}
-
-function AbSortAscending()
-{
-  var sortColumn = gAbResultsTree.getAttribute("sortCol");
-  SortAndUpdateIndicators(sortColumn, kDefaultAscending);
-}
-
-function AbSortDescending()
-{
-  var sortColumn = gAbResultsTree.getAttribute("sortCol");
-  SortAndUpdateIndicators(sortColumn, kDefaultDescending);
-}
-
-function SortResultPane(sortColumn)
-{
-  var sortDirection = kDefaultAscending;
-
-  if (gAbView) {
-     sortDirection = gAbView.sortDirection;
-  }
-
-  SortAndUpdateIndicators(sortColumn, sortDirection);
-}
-
-function SortAndUpdateIndicators(sortColumn, sortDirection)
-{
-  // XXX todo remove once #116341 is fixed
-  if (!sortColumn)
-    return;
-
-  UpdateSortIndicators(sortColumn, sortDirection);
-
-  if (gAbView)
-    gAbView.sortBy(sortColumn, sortDirection);
-}
-
-function UpdateSortIndicators(colID, sortDirection)
-{
-  var sortedColumn;
-  // set the sort indicator on the column we are sorted by
-  if (colID) {
-    sortedColumn = document.getElementById(colID);
-    if (sortedColumn) {
-      sortedColumn.setAttribute("sortDirection",sortDirection);
-      gAbResultsTree.setAttribute("sortCol", colID);
-    }
-  }
-
-  // remove the sort indicator from all the columns
-  // except the one we are sorted by
-  var currCol = gAbResultsTree.firstChild.firstChild;
-  while (currCol) {
-    if (currCol != sortedColumn && currCol.localName == "treecol")
-      currCol.removeAttribute("sortDirection");
-    currCol = currCol.nextSibling;
-  }
-}
-
-function InvalidateResultsPane()
-{
-  if (gAbResultsTree)
-    gAbResultsTree.treeBoxObject.invalidate();
 }
 
 function AbNewList()
@@ -1013,13 +640,6 @@ function onAbClearSearch()
   gSearchInput.value = "";
   onEnterInSearchBar();
 }
-
-function AbSwapFirstNameLastName()
-{
-  if (gAbView)
-    gAbView.swapFirstNameLastName();
-}
-
 
 function onSearchInputFocus(event)
 {

@@ -526,7 +526,6 @@ function SwitchPaneFocus(event)
   var cardViewBoxEmail1 = GetCardViewBoxEmail1();
   var searchBox         = document.getElementById('search-container');
   var dirTree           = GetDirTree();
-  var searchInput       = GetSearchInput();
 
   if (event && event.shiftKey)
   {
@@ -558,7 +557,7 @@ function SwitchPaneFocus(event)
     else if (focusedElement != dirTree && !IsDirPaneCollapsed())
       dirTree.focus();
     else if (searchBox)
-      searchInput.focus();
+      gSearchInput.focus();
     else
       gAbResultsTree.focus();
   }
@@ -592,13 +591,6 @@ function GetDirTree()
   if (!gDirTree)
     gDirTree = document.getElementById('dirTree');
   return gDirTree;
-}
-
-function GetSearchInput()
-{
-  if (!gSearchInput)
-    gSearchInput = document.getElementById('searchInput');
-  return gSearchInput;
 }
 
 function GetCardViewBox()

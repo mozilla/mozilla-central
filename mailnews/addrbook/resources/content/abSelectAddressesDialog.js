@@ -130,8 +130,7 @@ function OnLoadSelectAddress()
   gCcButton = document.getElementById("ccButton");
   gBccButton = document.getElementById("bccButton");
 
-  var abResultsTree = document.getElementById("abResultsTree");
-  abResultsTree.focus();
+  gAbResultsTree.focus();
 
   gActivatedButton = gToButton;
 

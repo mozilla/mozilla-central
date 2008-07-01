@@ -237,22 +237,22 @@ function GetCurrentPrefs()
 
 function SetNameColumn(cmd)
 {
-	var prefValue;
-	
-	switch ( cmd )
-	{
-		case 'firstLastCmd':
-			prefValue = kFirstNameFirst;
-			break;
-		case 'lastFirstCmd':
-			prefValue = kLastNameFirst;
-			break;
-		case 'displayNameCmd':
-			prefValue = kDisplayName;
-			break;
-	}
-	
-	cvPrefs.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
+  var prefValue;
+
+  switch (cmd)
+  {
+  case 'firstLastCmd':
+    prefValue = kFirstNameFirst;
+    break;
+  case 'lastFirstCmd':
+    prefValue = kLastNameFirst;
+    break;
+  case 'displayNameCmd':
+    prefValue = kDisplayName;
+    break;
+  }
+
+  cvPrefs.prefs.setIntPref(kPrefMailAddrBookLastNameFirst, prefValue);
 }
 
 function CommandUpdate_AddressBook()
@@ -505,7 +505,6 @@ function SwitchPaneFocus(event)
   var cardViewBoxEmail1 = GetCardViewBoxEmail1();
   var searchBox         = GetSearchBox();
   var dirTree           = GetDirTree();
-  var searchInput       = GetSearchInput();
 
   if (event && event.shiftKey)
   {
@@ -537,7 +536,7 @@ function SwitchPaneFocus(event)
     else if (focusedElement != dirTree && !IsDirPaneCollapsed())
       dirTree.focus();
     else if (searchBox.getAttribute('hidden') != 'true')
-      searchInput.focus();
+      gSearchInput.focus();
     else
       gAbResultsTree.focus();
   }
@@ -571,13 +570,6 @@ function GetDirTree()
   if (!gDirTree)
     gDirTree = document.getElementById('dirTree');
   return gDirTree;
-}
-
-function GetSearchInput()
-{
-  if (!gSearchInput)
-    gSearchInput = document.getElementById('searchInput');
-  return gSearchInput;
 }
 
 function GetSearchBox()

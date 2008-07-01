@@ -34,39 +34,427 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Use of items in this file require:
+ *
+ * gSearchInput
+ *   global variable to be set up pointing to the search input box
+ * GetSelectedDirectory()
+ *   returns the URI of the selected directory
+ * AbResultsPaneDoubleClick(card)
+ *   Is called when the results pane is double-clicked, with the clicked card.
+ * AbEditCard(card)
+ *   Is called when a card is to be edited, with the card as the parameter.
+ *
+ * The following function is only required if ResultsPaneController is used:
+ * 
+ * goSetMenuValue()
+ *   Core function in globalOverlay.js
+ */
+
+// List/card selections in the results pane.
+const kNothingSelected = 0;
+const kListsAndCards = 1;
+const kMultipleListsOnly = 2;
+const kSingleListOnly = 3;
+const kCardsOnly = 4;
+
+// Global Variables
+
+// gAbView holds an object with an nsIAbView interface
+var gAbView = null;
+// Holds a reference to the "abResultsTree" document element. Initially
+// set up by SetAbView.
+var gAbResultsTree = null;
+
+function SetAbView(uri, searchView)
+{
+  // No changes are needed if we're not changing the URI (the URI includes the
+  // search string, so we don't need to worry about searchView being different
+  // or not).
+  if (gAbView && gAbView.URI == uri)
+    return;
+
+  var sortColumn = kDefaultSortColumn;
+  var sortDirection = kDefaultAscending;
+
+  if (!gAbResultsTree)
+    gAbResultsTree = document.getElementById("abResultsTree");
+
+  if (gAbView) {
+    sortColumn = gAbView.sortColumn;
+    sortDirection = gAbView.sortDirection;
+  }
+  else {
+    if (gAbResultsTree.hasAttribute("sortCol"))
+      sortColumn = gAbResultsTree.getAttribute("sortCol");
+    if (gAbResultsTree.hasAttribute("sortDirection"))
+      sortDirection = gAbResultsTree.getAttribute("sortDirection");
+  }
+
+  if (!gAbView || (gCurDirectory != GetSelectedDirectory())) {
+    CloseAbView();
+    gCurDirectory = GetSelectedDirectory();
+
+    gAbView = Components.classes["@mozilla.org/addressbook/abview;1"]
+                        .createInstance(Components.interfaces.nsIAbView);
+  }
+
+  var actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(),
+				      sortColumn, sortDirection);
+
+  gAbResultsTree.treeBoxObject.view =
+    gAbView.QueryInterface(Components.interfaces.nsITreeView);
+
+  UpdateSortIndicators(actualSortColumn, sortDirection);
+}
+
+function CloseAbView()
+{
+  gAbResultsTree.treeBoxObject.view = null;
+
+  if (gAbView) {
+    gAbView.close();
+    gAbView = null;
+  }
+}
+
+function GetOneOrMoreCardsSelected()
+{
+  return (gAbView && (gAbView.selection.getRangeCount() > 0));
+}
+
+function GetSelectedAddresses()
+{
+  return GetAddressesForCards(GetSelectedAbCards());
+}
+
+function GetNumSelectedCards()
+{
+ try {
+   return gAbView.selection.count;
+ }
+ catch (ex) {
+ }
+
+ // if something went wrong, return 0 for the count.
+ return 0;
+}
+
+function GetSelectedCardTypes()
+{
+  var cards = GetSelectedAbCards();
+  if (!cards)
+    return kNothingSelected; // no view
+
+  var count = cards.length;
+  if (count == 0)
+    return kNothingSelected;  // nothing selected
+
+  var mailingListCnt = 0;
+  var cardCnt = 0;
+  for (var i = 0; i < count; i++) {
+    if (cards[i].isMailList)
+      mailingListCnt++;
+    else
+      cardCnt++;
+  }
+  return (mailingListCnt == 0) ? kCardsOnly :
+           (cardCnt > 0) ? kListsAndCards :
+             (mailingListCnt == 1) ? kSingleListOnly :
+               kMultipleListsOnly;
+}
+
+// NOTE, will return -1 if more than one card selected, or no cards selected.
+function GetSelectedCardIndex()
+{
+  if (!gAbView)
+    return -1;
+
+  var treeSelection = gAbView.selection;
+  if (treeSelection.getRangeCount() == 1) {
+    var start = new Object;
+    var end = new Object;
+    treeSelection.getRangeAt(0, start, end);
+    if (start.value == end.value)
+      return start.value;
+  }
+
+  return -1;
+}
+
+// NOTE, returns the card if exactly one card is selected, null otherwise
+function GetSelectedCard()
+{
+  var index = GetSelectedCardIndex();
+  return (index == -1) ? null : gAbView.getCardFromRow(index);
+}
+
+function GetSelectedAbCards()
+{
+  var abView = gAbView;
+
+  // if sidebar is open, and addressbook panel is open and focused,
+  // then use the ab view from sidebar (gCurFrame is from sidebarOverlay.js)
+  if (document.getElementById("sidebar-box")) {
+    const abPanelUrl =
+            "chrome://messenger/content/addressbook/addressbook-panel.xul";
+    if (gCurFrame && 
+        gCurFrame.getAttribute("src") == abPanelUrl &&
+        document.commandDispatcher.focusedWindow == gCurFrame.contentDocument.defaultView)
+      abView = gCurFrame.contentDocument.defaultView.gAbView;
+  }
+
+  if (!abView)
+    return null;
+
+  var cards = new Array(abView.selection.count);
+  var i, j;
+  var count = abView.selection.getRangeCount();
+  var current = 0;
+  for (i = 0; i < count; ++i) {
+    var start = new Object;
+    var end = new Object;
+    abView.selection.getRangeAt(i,start,end);
+    for (j = start.value; j <= end.value; ++j)
+      cards[current++] = abView.getCardFromRow(j);
+  }
+  return cards;
+}
+
+// XXX todo
+// an optimization might be to make this return
+// the selected ranges, which would be faster
+// when the user does large selections, but for now, let's keep it simple.
+function GetSelectedRows()
+{
+  var selectedRows = "";
+
+  if (!gAbView)
+    return selectedRows;
+
+  var i, j;
+  var rangeCount = gAbView.selection.getRangeCount();
+  for (i = 0; i < rangeCount; ++i) {
+    var start = new Object;
+    var end = new Object;
+    gAbView.selection.getRangeAt(i, start, end);
+    for (j = start.value;j <= end.value; ++j) {
+      if (selectedRows)
+        selectedRows += ",";
+      selectedRows += j;
+    }
+  }
+
+  return selectedRows;
+}
+
+function AbSwapFirstNameLastName()
+{
+  if (gAbView)
+    gAbView.swapFirstNameLastName();
+}
+
+function AbEditSelectedCard()
+{
+  AbEditCard(GetSelectedCard());
+}
+
 function AbResultsPaneOnClick(event)
 {
-    // we only care about button 0 (left click) events
-    if (event.button != 0) return;
+  // we only care about button 0 (left click) events
+  if (event.button != 0) return;
 
-    // all we need to worry about here is double clicks
-    // and column header clicks.
-    //
-    // we get in here for clicks on the "treecol" (headers)
-    // and the "scrollbarbutton" (scrollbar buttons)
-    // we don't want those events to cause a "double click"
+  // all we need to worry about here is double clicks
+  // and column header clicks.
+  //
+  // we get in here for clicks on the "treecol" (headers)
+  // and the "scrollbarbutton" (scrollbar buttons)
+  // we don't want those events to cause a "double click"
 
-    var t = event.originalTarget;
+  var t = event.originalTarget;
 
-    if (t.localName == "treecol") {
-      var sortDirection;      
-      var currentDirection = t.getAttribute("sortDirection");
+  if (t.localName == "treecol") {
+    var sortDirection;
+    var currentDirection = t.getAttribute("sortDirection");
 
-      if (currentDirection == kDefaultDescending)
-          sortDirection = kDefaultAscending;
-        else 
-          sortDirection = kDefaultDescending;
+    sortDirection = currentDirection == kDefaultDescending ?
+                                        kDefaultAscending : kDefaultDescending;
 
-      SortAndUpdateIndicators(t.id, sortDirection);
+    SortAndUpdateIndicators(t.id, sortDirection);
+  }
+  else if (t.localName == "treechildren") {
+    // figure out what row the click was in
+    var row = gAbResultsTree.treeBoxObject.getRowAt(event.clientX,
+						    event.clientY);
+    if (row == -1)
+      return;
+
+    if (event.detail == 2)
+      AbResultsPaneDoubleClick(gAbView.getCardFromRow(row));
+  }
+}
+
+function AbSortAscending()
+{
+  var sortColumn = gAbResultsTree.getAttribute("sortCol");
+  SortAndUpdateIndicators(sortColumn, kDefaultAscending);
+}
+
+function AbSortDescending()
+{
+  var sortColumn = gAbResultsTree.getAttribute("sortCol");
+  SortAndUpdateIndicators(sortColumn, kDefaultDescending);
+}
+
+function SortResultPane(sortColumn)
+{
+  var sortDirection = kDefaultAscending;
+  if (gAbView)
+     sortDirection = gAbView.sortDirection;
+
+  SortAndUpdateIndicators(sortColumn, sortDirection);
+}
+
+function SortAndUpdateIndicators(sortColumn, sortDirection)
+{
+  UpdateSortIndicators(sortColumn, sortDirection);
+
+  if (gAbView)
+    gAbView.sortBy(sortColumn, sortDirection);
+}
+
+function UpdateSortIndicators(colID, sortDirection)
+{
+  var sortedColumn = null;
+
+  // set the sort indicator on the column we are sorted by
+  if (colID) {
+    sortedColumn = document.getElementById(colID);
+    if (sortedColumn) {
+      sortedColumn.setAttribute("sortDirection",sortDirection);
+      gAbResultsTree.setAttribute("sortCol", colID);
     }
-    else if (t.localName == "treechildren") {
-       // figure out what row the click was in
-       var row = gAbResultsTree.treeBoxObject.getRowAt(event.clientX, event.clientY);
-       if (row == -1)
-         return;
+  }
 
-       if (event.detail == 2) {
-         AbResultsPaneDoubleClick(gAbView.getCardFromRow(row));
-       }
+  // remove the sort indicator from all the columns
+  // except the one we are sorted by
+  var currCol = gAbResultsTree.firstChild.firstChild;
+  while (currCol) {
+    if (currCol != sortedColumn && currCol.localName == "treecol")
+      currCol.removeAttribute("sortDirection");
+    currCol = currCol.nextSibling;
+  }
+}
+
+function InvalidateResultsPane()
+{
+  if (gAbResultsTree)
+    gAbResultsTree.treeBoxObject.invalidate();
+}
+
+// Controller object for Results Pane
+var ResultsPaneController =
+{
+  supportsCommand: function(command)
+  {
+    switch (command) {
+      case "cmd_selectAll":
+      case "cmd_delete":
+      case "button_delete":
+      case "button_edit":
+      case "cmd_newlist":
+        return true;
+      default:
+        return false;
     }
+  },
+
+  isCommandEnabled: function(command)
+  {
+    switch (command) {
+      case "cmd_selectAll":
+        return true;
+      case "cmd_delete":
+      case "button_delete":
+        var numSelected;
+        var enabled = false;
+        if (gAbView && gAbView.selection) {
+          if (gAbView.directory)
+            enabled = gAbView.directory.operations & gAbView.directory.opWrite;
+          numSelected = gAbView.selection.count;
+        }
+        else
+          numSelected = 0;
+
+        // fix me, don't update on isCommandEnabled
+        if (command == "cmd_delete") {
+          switch (GetSelectedCardTypes()) {
+            case kSingleListOnly:
+              goSetMenuValue(command, "valueList");
+              break;
+            case kMultipleListsOnly:
+              goSetMenuValue(command, "valueLists");
+              break;
+            case kListsAndCards:
+              goSetMenuValue(command, "valueItems");
+              break;
+            case kCardsOnly:
+            default:
+              if (numSelected < 2)
+                goSetMenuValue(command, "valueCard");
+              else
+                goSetMenuValue(command, "valueCards");
+              break;
+          }
+        }
+        return (enabled && (numSelected > 0));
+      case "button_edit":
+        return (GetSelectedCardIndex() != -1);
+      case "cmd_newlist":
+        var selectedDir = GetSelectedDirectory();
+        if (selectedDir) {
+          var abDir = GetDirectoryFromURI(selectedDir);
+          if (abDir) {
+            return abDir.supportsMailingLists;
+          }
+        }
+        return false;
+      default:
+        return false;
+    }
+  },
+
+  doCommand: function(command)
+  {
+    switch (command) {
+      case "cmd_selectAll":
+        if (gAbView)
+          gAbView.selectAll();
+        break;
+      case "cmd_delete":
+      case "button_delete":
+        AbDelete();
+        break;
+      case "button_edit":
+        AbEditSelectedCard();
+        break;
+      case "cmd_newlist":
+        AbNewList();
+        break;
+    }
+  },
+
+  onEvent: function(event)
+  {
+    // on blur events set the menu item texts back to the normal values
+    if (event == "blur")
+      goSetMenuValue("cmd_delete", "valueDefault");
+  }
+};
+
+function SelectFirstCard()
+{
+  if (gAbView && gAbView.selection)
+    gAbView.selection.select(0);
 }
