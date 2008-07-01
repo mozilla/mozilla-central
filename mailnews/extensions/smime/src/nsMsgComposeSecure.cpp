@@ -607,7 +607,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *
    */
 
   char *s =
-  PR_smprintf("Content-Type: " APPLICATION_XPKCS7_MIME
+  PR_smprintf("Content-Type: " APPLICATION_PKCS7_MIME
           "; name=\"smime.p7m\"" CRLF
         "Content-Transfer-Encoding: " ENCODING_BASE64 CRLF
         "Content-Disposition: attachment"
@@ -710,7 +710,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSen
   header =
     PR_smprintf(CRLF
           "--%s" CRLF
-          "Content-Type: " APPLICATION_XPKCS7_SIGNATURE
+          "Content-Type: " APPLICATION_PKCS7_SIGNATURE
             "; name=\"smime.p7s\"" CRLF
           "Content-Transfer-Encoding: " ENCODING_BASE64 CRLF
           "Content-Disposition: attachment; "
@@ -1099,9 +1099,9 @@ make_multipart_signed_header_string(PRBool outer_p,
 	  crypto_multipart_blurb = MIME_MULTIPART_SIGNED_BLURB;
   }
 
-  *header_return =
-	PR_smprintf("Content-Type: " MULTIPART_SIGNED "; "
-				"protocol=\"" APPLICATION_XPKCS7_SIGNATURE "\"; "
+  *header_return = PR_smprintf(
+        "Content-Type: " MULTIPART_SIGNED "; "
+        "protocol=\"" APPLICATION_PKCS7_SIGNATURE "\"; "
 				"micalg=" PARAM_MICALG_SHA1 "; "
 				"boundary=\"%s\"" CRLF
 				CRLF

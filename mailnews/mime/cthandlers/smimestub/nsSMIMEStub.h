@@ -39,17 +39,17 @@
 
 #include "mimetext.h"
 
+#define SMIME_CONTENT_TYPE "application/pkcs7-mime"
+
 /*
  * These functions are the public interface for this content type
  * handler and will be called in by the mime component.
  */
-#define      SMIME_CONTENT_TYPE  "application/x-pkcs7-mime"
 
-
-/* The MimeInlineTextSMIMEStub class implements the "application/x-pkcs7-mime"2
-   MIME content types.
+/**
+ * The MimeInlineTextSMIMEStub class implements the SMIME 2
+ * MIME content types.
  */
-
 typedef struct MimeInlineTextSMIMEStubClass MimeInlineTextSMIMEStubClass;
 typedef struct MimeInlineTextSMIMEStub      MimeInlineTextSMIMEStub;
 

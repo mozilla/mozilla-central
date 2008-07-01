@@ -1095,12 +1095,17 @@ function CanDetachAttachments()
   var uri = GetLoadedMessage();
   var canDetach = !IsNewsMessage(uri) && (!IsImapMessage(uri) || MailOfflineMgr.isOnline());
   if (canDetach && ("content-type" in currentHeaderData))
-  {
-    var contentType = currentHeaderData["content-type"].headerValue;
-    canDetach = contentType.indexOf("application/x-pkcs7-mime") < 0 &&
-        contentType.indexOf("application/x-pkcs7-signature") < 0;
-  }
+    canDetach = !ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
   return canDetach;
+}
+
+/** Return true if the content type is an S/MIME one. */
+function ContentTypeIsSMIME(contentType)
+{
+  return contentType.indexOf("application/pkcs7-mime") >= 0 ||
+         contentType.indexOf("application/pkcs7-signature") >= 0 ||
+         contentType.indexOf("application/x-pkcs7-mime") >= 0 ||
+         contentType.indexOf("application/x-pkcs7-signature") >= 0;
 }
 
 function onShowAttachmentContextMenu()
@@ -1374,11 +1379,7 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
 
       var signedOrEncrypted = false;
       if ("content-type" in currentHeaderData)
-      {
-        var contentType = currentHeaderData["content-type"].headerValue;
-        signedOrEncrypted = contentType.indexOf("application/x-pkcs7-mime") >= 0 ||
-            contentType.indexOf("application/x-pkcs7-signature") >= 0;
-      }
+        signedOrEncrypted = ContentTypeIsSMIME(currentHeaderData["content-type"].headerValue);
       var canDetach = !(/news-message:/.test(attachment.uri)) &&
           !signedOrEncrypted &&
           (!(/imap-message/.test(attachment.uri)) || MailOfflineMgr.isOnline());
