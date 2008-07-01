@@ -36,18 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gSyncMail = false;
-var gSyncNews = false;
-var gSendMessage = true;
-var gWorkOffline = false;
 var gSynchronizeTree = null;
-var gAccountManager = null;
 var gParentMsgWindow;
 var gMsgWindow;
 
 var gInitialFolderStates = {};
-
-const MSG_FOLDER_FLAG_OFFLINE = 0x8000000;
 
 function OnLoad()
 {	
@@ -58,14 +51,10 @@ function OnLoad()
     }
   	   		
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-    gSyncMail = prefs.getBoolPref("mailnews.offline_sync_mail");
-    gSyncNews = prefs.getBoolPref("mailnews.offline_sync_news");
-    gSendMessage = prefs.getBoolPref("mailnews.offline_sync_send_unsent");
-    gWorkOffline = prefs.getBoolPref("mailnews.offline_sync_work_offline");
-    document.getElementById("syncMail").checked = gSyncMail;
-    document.getElementById("syncNews").checked = gSyncNews;
-    document.getElementById("sendMessage").checked = gSendMessage;
-    document.getElementById("workOffline").checked = gWorkOffline;
+    document.getElementById("syncMail").checked = prefs.getBoolPref("mailnews.offline_sync_mail");
+    document.getElementById("syncNews").checked = prefs.getBoolPref("mailnews.offline_sync_news");
+    document.getElementById("sendMessage").checked = prefs.getBoolPref("mailnews.offline_sync_send_unsent");
+    document.getElementById("workOffline").checked = prefs.getBoolPref("mailnews.offline_sync_work_offline");
 
     return true;
 }
@@ -73,24 +62,22 @@ function OnLoad()
 function syncOkButton()
 {
 
-    gSyncMail = document.getElementById("syncMail").checked;
-    gSyncNews = document.getElementById("syncNews").checked;	
-    gSendMessage = document.getElementById("sendMessage").checked;
-    gWorkOffline = document.getElementById("workOffline").checked;
+    var syncMail = document.getElementById("syncMail").checked;
+    var syncNews = document.getElementById("syncNews").checked;	
+    var sendMessage = document.getElementById("sendMessage").checked;
+    var workOffline = document.getElementById("workOffline").checked;
 
     var prefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
-    prefs.setBoolPref("mailnews.offline_sync_mail", gSyncMail);
-    prefs.setBoolPref("mailnews.offline_sync_news", gSyncNews);
-    prefs.setBoolPref("mailnews.offline_sync_send_unsent", gSendMessage);
-    prefs.setBoolPref("mailnews.offline_sync_work_offline", gWorkOffline);
+    prefs.setBoolPref("mailnews.offline_sync_mail", syncMail);
+    prefs.setBoolPref("mailnews.offline_sync_news", syncNews);
+    prefs.setBoolPref("mailnews.offline_sync_send_unsent", sendMessage);
+    prefs.setBoolPref("mailnews.offline_sync_work_offline", workOffline);
     
-    if( gSyncMail || gSyncNews || gSendMessage || gWorkOffline) {
-
+    if (syncMail || syncNews || sendMessage || workOffline) {
         var offlineManager = Components.classes["@mozilla.org/messenger/offline-manager;1"].getService(Components.interfaces.nsIMsgOfflineManager);
         if(offlineManager)
-            offlineManager.synchronizeForOffline(gSyncNews, gSyncMail, gSendMessage, gWorkOffline, gParentMsgWindow)
-
-    }	
+            offlineManager.synchronizeForOffline(syncNews, syncMail, sendMessage, workOffline, gParentMsgWindow)
+    }
 
     return true;
 }
@@ -107,14 +94,16 @@ function selectOkButton()
 }
 
 function selectCancelButton()
-{	  
+{
+    var RDF = Components.classes["@mozilla.org/rdf/rdf-service;1"]
+                        .getService(Components.interfaces.nsIRDFService);
     for (var resourceValue in gInitialFolderStates) {
       var resource = RDF.GetResource(resourceValue);
       var folder = resource.QueryInterface(Components.interfaces.nsIMsgFolder);
       if (gInitialFolderStates[resourceValue])
-        folder.setFlag(MSG_FOLDER_FLAG_OFFLINE);
+        folder.setFlag(Components.interfaces.nsMsgFolderFlags.Offline);
       else
-        folder.clearFlag(MSG_FOLDER_FLAG_OFFLINE);
+        folder.clearFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
     return true;
 }
@@ -126,7 +115,6 @@ function selectOnLoad()
     gMsgWindow.domWindow = window;
     gMsgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
 
-    gAccountManager = Components.classes["@mozilla.org/messenger/account-manager;1"].getService(Components.interfaces.nsIMsgAccountManager);
     gSynchronizeTree = document.getElementById('synchronizeTree');
 
     SortSynchronizePane('folderNameCol', '?folderTreeNameSort');
@@ -227,10 +215,10 @@ function UpdateNode(resource, row)
       return;
 
     if (!(resource.Value in gInitialFolderStates)) {
-      gInitialFolderStates[resource.Value] = folder.getFlag(MSG_FOLDER_FLAG_OFFLINE);
+      gInitialFolderStates[resource.Value] = folder.getFlag(Components.interfaces.nsMsgFolderFlags.Offline);
     }
     
-    folder.toggleFlag(MSG_FOLDER_FLAG_OFFLINE);
+    folder.toggleFlag(Components.interfaces.nsMsgFolderFlags.Offline);
 }
 
 function GetFolderResource(aTree, aIndex) {
