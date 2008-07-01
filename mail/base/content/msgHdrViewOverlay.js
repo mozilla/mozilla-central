@@ -829,9 +829,6 @@ function UpdateMessageHeaders()
 
   // now update the view to make sure the right elements are visible
   updateHeaderViews();
-
-  if ("FinishEmailProcessing" in this)
-    FinishEmailProcessing();
 }
 
 function ClearCurrentHeaders()
