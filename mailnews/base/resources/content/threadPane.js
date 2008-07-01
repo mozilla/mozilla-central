@@ -128,23 +128,23 @@ nsMsgDBViewCommandUpdater.prototype =
 
 function HandleColumnClick(columnID)
 {
-  var columnMap = {dateCol: 'byDate',
-                   receivedCol: 'byReceived',
-                   senderCol: 'byAuthor',
-                   recipientCol: 'byRecipient',
-                   subjectCol: 'bySubject',
-                   locationCol: 'byLocation',
-                   accountCol: 'byAccount',
-                   unreadButtonColHeader: 'byUnread',
-                   statusCol: 'byStatus',
-                   sizeCol: 'bySize',
-                   priorityCol: 'byPriority',
-                   flaggedCol: 'byFlagged',
-                   threadCol: 'byThread',
-                   tagsCol: 'byTags',
-                   junkStatusCol: 'byJunkStatus',
-                   idCol: 'byId',
-                   attachmentCol: 'byAttachments'};
+  const columnMap = {dateCol: 'byDate',
+                     receivedCol: 'byReceived',
+                     senderCol: 'byAuthor',
+                     recipientCol: 'byRecipient',
+                     subjectCol: 'bySubject',
+                     locationCol: 'byLocation',
+                     accountCol: 'byAccount',
+                     unreadButtonColHeader: 'byUnread',
+                     statusCol: 'byStatus',
+                     sizeCol: 'bySize',
+                     priorityCol: 'byPriority',
+                     flaggedCol: 'byFlagged',
+                     threadCol: 'byThread',
+                     tagsCol: 'byTags',
+                     junkStatusCol: 'byJunkStatus',
+                     idCol: 'byId',
+                     attachmentCol: 'byAttachments'};
 
 
   var sortType;
@@ -190,7 +190,7 @@ function HandleColumnClick(columnID)
       dbview.viewFlags &= ~nsMsgViewFlagsType.kThreadedDisplay;
       MsgSortThreadPane(sortType);
     }
-    else if (dbview.sortType == sortType) {
+    else if (dbview.sortType == nsMsgViewSortType[sortType]) {
       MsgReverseSortThreadPane();
     }
     else {
