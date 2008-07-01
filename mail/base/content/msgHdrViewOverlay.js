@@ -53,16 +53,7 @@
 
 const kPersonalAddressbookUri        = "moz-abmdbdirectory://abook.mab";
 
-const kLargeIcon = 32;
-const kSmallIcon = 16;
-
 var gViewAllHeaders = false;
-var gShowOrganization = false;
-var gShowLargeAttachmentView = false;
-var gShowUserAgent = false;
-var gShowReferences = false;
-var gShowMessageId = false;
-var gExtraExpandedHeaders;
 var gMinNumberOfHeaders = 0;
 var gDummyHeaderIdIndex = 0;
 var gCollapsedHeaderViewMode = false;
@@ -70,14 +61,6 @@ var gBuildAttachmentsForCurrentMsg = false;
 var gBuildAttachmentPopupForCurrentMsg = true;
 var gBuiltExpandedView = false;
 var gBuiltCollapsedView = false;
-var gOpenLabel;
-var gOpenLabelAccesskey;
-var gSaveLabel;
-var gSaveLabelAccesskey;
-var gDetachLabel;
-var gDeleteLabel;
-var gDetachLabelAccesskey;
-var gDeleteLabelAccesskey;
 var gMessengerBundle;
 var gProfileDirURL;
 var gShowCondensedEmailAddresses = true; // show the friendly display names for people I know instead of the name + email address
@@ -197,6 +180,8 @@ function createHeaderEntry(prefix, headerListInfo)
 
 function initializeHeaderViewTables()
 {
+  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefBranch2);
   // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
   var index;
@@ -212,25 +197,25 @@ function initializeHeaderViewTables()
       gExpandedHeaderView[headerName] = new createHeaderEntry('expanded', gExpandedHeaderList[index]);
     }
 
-    var extraHeaders = gExtraExpandedHeaders.split(' ');
+    var extraHeaders = prefBranch.getCharPref("mailnews.headers.extraExpandedHeaders").split(' ');
     for (index = 0; index < extraHeaders.length; index++)
     {
       var extraHeader = extraHeaders[index];
       gExpandedHeaderView[extraHeader.toLowerCase()] = new createNewHeaderView(extraHeader, extraHeader + ':');
     }
-    if (gShowOrganization)
+    if (prefBranch.getBoolPref("mailnews.headers.showOrganization"))
     {
       var organizationEntry = {name:"organization", outputFunction:updateHeaderValue};
       gExpandedHeaderView[organizationEntry.name] = new createHeaderEntry('expanded', organizationEntry);
     }
 
-    if (gShowUserAgent)
+    if (prefBranch.getBoolPref("mailnews.headers.showUserAgent"))
     {
       var userAgentEntry = {name:"user-agent", outputFunction:updateHeaderValue};
       gExpandedHeaderView[userAgentEntry.name] = new createHeaderEntry('expanded', userAgentEntry);
     }
 
-   if (gShowMessageId)
+   if (prefBranch.getBoolPref("mailnews.headers.showMessageId"))
    {
      var messageIdEntry = {name:"message-id", outputFunction:OutputMessageIds};
      gExpandedHeaderView[messageIdEntry.name] = new createHeaderEntry('expanded', messageIdEntry);
@@ -245,14 +230,8 @@ function OnLoadMsgHeaderPane()
 
   // load any preferences that at are global with regards to
   // displaying a message...
-  gShowUserAgent = pref.getBoolPref("mailnews.headers.showUserAgent");
   gMinNumberOfHeaders = pref.getIntPref("mailnews.headers.minNumHeaders");
-  gShowOrganization = pref.getBoolPref("mailnews.headers.showOrganization");
-  gShowLargeAttachmentView = pref.getBoolPref("mailnews.attachments.display.largeView");
   gShowCondensedEmailAddresses = pref.getBoolPref("mail.showCondensedAddresses");
-  gShowReferences = pref.getBoolPref("mailnews.headers.showReferences");
-  gShowMessageId = pref.getBoolPref("mailnews.headers.showMessageId");
-  gExtraExpandedHeaders = pref.getCharPref("mailnews.headers.extraExpandedHeaders");
 
   // listen to the
   pref.addObserver("mail.showCondensedAddresses", MsgHdrViewObserver, false);
@@ -338,8 +317,6 @@ var messageHeaderSink = {
     {
       // WARNING: This is the ONLY routine inside of the message Header Sink that should
       // trigger a reflow!
-      CheckNotify();
-
       ClearHeaderView(gCollapsedHeaderView);
       ClearHeaderView(gExpandedHeaderView);
 
@@ -590,12 +567,6 @@ function EnsureSubjectValue()
   }
 }
 
-function CheckNotify()
-{
-  if ("NotifyClearAddresses" in this)
-    NotifyClearAddresses();
-}
-
 function OnTagsChange()
 {
   // rebuild the tag headers
@@ -832,8 +803,11 @@ function UpdateMessageHeaders()
 
     if (headerEntry)
     {
+      var showReference = Components.classes["@mozilla.org/preferences-service;1"]
+                                    .getService(Components.interfaces.nsIPrefBranch2)
+                                    .getBoolPref("mailnews.headers.showReferences")
       if (headerName == "references" &&
-          !(gViewAllHeaders || gShowReferences ||
+          !(gViewAllHeaders || showReference ||
             (gDBView.msgFolder && gDBView.msgFolder.server.type == "nntp")))
       {
         // hide references header if view all headers mode isn't selected, the pref show references is
@@ -1111,16 +1085,6 @@ function openAttachment(aAttachment)
                            aAttachment.uri, aAttachment.isExternalAttachment);
 }
 
-function printAttachment(aAttachment)
-{
-  /* we haven't implemented the ability to print attachments yet...
-  messenger.printAttachment(aAttachment.contentType,
-                            aAttachment.url,
-                            encodeURIComponent(aAttachment.displayName),
-                            aAttachment.uri);
-  */
-}
-
 function detachAttachment(aAttachment, aSaveFirst)
 {
   messenger.detachAttachment(aAttachment.contentType,
@@ -1254,7 +1218,10 @@ function displayAttachmentsForExpandedView()
     expandedAttachmentBox.collapsed = false;
     attachmentSplitter.collapsed = false;
 
-    if (gShowLargeAttachmentView)
+    var showLargeAttView = Components.classes["@mozilla.org/preferences-service;1"]
+                             .getService(Components.interfaces.nsIPrefBranch2)
+                             .getBoolPref("mailnews.attachments.display.largeView")
+    if (showLargeAttView)
       expandedAttachmentBox.setAttribute("largeView", "true");
 
     // Remove height attribute, or the attachments box could be drawn badly:
@@ -1271,10 +1238,10 @@ function displayAttachmentsForExpandedView()
 
       attachmentView.setAttribute("class", "descriptionitem-iconic");
 
-      if (gShowLargeAttachmentView)
+      if (showLargeAttView)
         attachmentView.setAttribute("largeView", "true");
 
-      setApplicationIconForAttachment(attachment, attachmentView, gShowLargeAttachmentView);
+      setApplicationIconForAttachment(attachment, attachmentView, showLargeAttView);
       attachmentView.setAttribute("tooltiptext", attachment.displayName);
       attachmentView.setAttribute("context", "attachmentListContext");
 
@@ -1305,7 +1272,7 @@ function displayAttachmentsForExpandedView()
 // listitem --> the listitem currently showing the attachment.
 function setApplicationIconForAttachment(attachment, listitem, largeView)
 {
-  var iconSize = largeView ? kLargeIcon : kSmallIcon;
+  var iconSize = largeView ? 32 : 16;
   // generate a moz-icon url for the attachment so we'll show a nice icon next to it.
   if (attachment.contentType == 'text/x-moz-deleted')
     listitem.setAttribute('image', 'chrome://messenger/skin/icons/message-mail-attach-del.png');
@@ -1400,22 +1367,9 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry.attachment = cloneAttachment(attachment);
       menuitementry.setAttribute('oncommand', 'openAttachment(this.attachment)');
 
-      if (!gSaveLabel)
-        gSaveLabel = gMessengerBundle.getString("saveLabel");
-      if (!gSaveLabelAccesskey)
-        gSaveLabelAccesskey = gMessengerBundle.getString("saveLabelAccesskey");
-      if (!gOpenLabel)
-        gOpenLabel = gMessengerBundle.getString("openLabel");
-      if (!gOpenLabelAccesskey)
-        gOpenLabelAccesskey = gMessengerBundle.getString("openLabelAccesskey");
-      if (!gDetachLabel)
-        gDetachLabel = gMessengerBundle.getString("detachLabel");
-      if (!gDetachLabelAccesskey)
-        gDetachLabelAccesskey = gMessengerBundle.getString("detachLabelAccesskey");
-      if (!gDeleteLabel)
-        gDeleteLabel = gMessengerBundle.getString("deleteLabel");
-      if (!gDeleteLabelAccesskey)
-        gDeleteLabelAccesskey = gMessengerBundle.getString("deleteLabelAccesskey");
+      function getString(aName) {
+        return gMessengerBundle.getString(aName);
+      }
 
       // we should also check if an attachment has been detached...
       // but that uses X-Mozilla-External-Attachment-URL, which
@@ -1431,8 +1385,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       var canDetach = !(/news-message:/.test(attachment.uri)) &&
           !signedOrEncrypted &&
           (!(/imap-message/.test(attachment.uri)) || MailOfflineMgr.isOnline());
-      menuitementry.setAttribute('label', gOpenLabel);
-      menuitementry.setAttribute('accesskey', gOpenLabelAccesskey);
+      menuitementry.setAttribute('label', getString("openLabel"));
+      menuitementry.setAttribute('accesskey', getString("openLabelAccesskey"));
       menuitementry = openpopup.appendChild(menuitementry);
       if (attachment.contentType == 'text/x-moz-deleted')
         menuitementry.setAttribute('disabled', true);
@@ -1443,8 +1397,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry = document.createElement('menuitem');
       menuitementry.attachment = cloneAttachment(attachment);
       menuitementry.setAttribute('oncommand', 'saveAttachment(this.attachment)');
-      menuitementry.setAttribute('label', gSaveLabel);
-      menuitementry.setAttribute('accesskey', gSaveLabelAccesskey);
+      menuitementry.setAttribute('label', getString("saveLabel"));
+      menuitementry.setAttribute('accesskey', getString("saveLabelAccesskey"));
       if (attachment.contentType == 'text/x-moz-deleted')
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
@@ -1455,8 +1409,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry = document.createElement('menuitem');
       menuitementry.attachment = cloneAttachment(attachment);
       menuitementry.setAttribute('oncommand', 'detachAttachment(this.attachment, true)');
-      menuitementry.setAttribute('label', gDetachLabel);
-      menuitementry.setAttribute('accesskey', gDetachLabelAccesskey);
+      menuitementry.setAttribute('label', getString("detachLabel"));
+      menuitementry.setAttribute('accesskey', getString("detachLabelAccesskey"));
       if (attachment.contentType == 'text/x-moz-deleted' || !canDetach)
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
@@ -1464,8 +1418,8 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
       menuitementry = document.createElement('menuitem');
       menuitementry.attachment = cloneAttachment(attachment);
       menuitementry.setAttribute('oncommand', 'detachAttachment(this.attachment, false)');
-      menuitementry.setAttribute('label', gDeleteLabel);
-      menuitementry.setAttribute('accesskey', gDeleteLabelAccesskey);
+      menuitementry.setAttribute('label', getString("deleteLabel"));
+      menuitementry.setAttribute('accesskey', getString("deleteLabelAccesskey"));
       if (attachment.contentType == 'text/x-moz-deleted' || !canDetach)
         menuitementry.setAttribute('disabled', true);
       menuitementry = openpopup.appendChild(menuitementry);
