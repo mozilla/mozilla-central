@@ -47,4 +47,5 @@ my $response = Bugzilla::WebService::XMLRPC::Transport::HTTP::CGI
                      'Testopia'    => 'Bugzilla::WebService::Testopia::Testopia',
                      'User'        => 'Bugzilla::WebService::User',
                     })
+    ->on_action(\&Bugzilla::WebService::handle_login)
     ->handle;
