@@ -387,11 +387,15 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   }
 
   char *pLine = new char[kTextAddressBufferSz];
+  if (!pLine)
+    return NS_ERROR_OUT_OF_MEMORY;
+
   PRUint32 bytesLeft = 0;
   rv = inputStream->Available(&bytesLeft);
-  if (NS_FAILED( rv)) {
+  if (NS_FAILED(rv)) {
     IMPORT_LOG0( "*** Error checking address file for eof\n");
     inputStream->Close();
+    delete [] pLine;
     return rv;
   }
 
