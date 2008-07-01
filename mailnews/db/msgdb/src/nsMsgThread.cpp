@@ -240,6 +240,15 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
     SetFlags(m_flags | MSG_FLAG_WATCHED);
 
   child->AndFlags(~(MSG_FLAG_WATCHED), &newHdrFlags);
+  
+  // These are threading flags that the child may have set before being added
+  // to the database.
+  PRUint32 protoThreadFlags;
+  child->GetUint32Property("ProtoThreadFlags", &protoThreadFlags);
+  SetFlags(m_flags | protoThreadFlags);
+  // Clear the flag so that it doesn't fudge anywhere else
+  child->SetUint32Property("ProtoThreadFlags", 0);
+
   PRUint32 numChildren;
   PRUint32 childIndex = 0;
 

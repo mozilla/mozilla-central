@@ -3107,14 +3107,8 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         }
         break;
         case nsMsgFilterAction::KillThread:
-        {
-          nsCOMPtr<nsIMsgThread> thread;
-          PRUint32 threadFlags;
-          mDatabase->GetThreadContainingMsgHdr(msgHdr,getter_AddRefs(thread));
-          thread->GetFlags(&threadFlags);
-          thread->SetFlags(threadFlags | MSG_FLAG_IGNORED);
+          msgHdr->SetUint32Property("ProtoThreadFlags", MSG_FLAG_IGNORED);
           break;
-        }
         case nsMsgFilterAction::KillSubthread:
           msgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
           break;

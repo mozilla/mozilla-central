@@ -1966,14 +1966,8 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         MarkFilteredMessageRead(msgHdr);
         break;
       case nsMsgFilterAction::KillThread:
-      {
-        nsCOMPtr<nsIMsgThread> thread;
-        PRUint32 threadFlags;
-        m_mailDB->GetThreadContainingMsgHdr(msgHdr,getter_AddRefs(thread));
-        thread->GetFlags(&threadFlags);
-        thread->SetFlags(threadFlags | MSG_FLAG_IGNORED);
+        msgHdr->SetUint32Property("ProtoThreadFlags", MSG_FLAG_IGNORED);
         break;
-      }
       case nsMsgFilterAction::KillSubthread:
         msgHdr->OrFlags(MSG_FLAG_IGNORED, &newFlags);
         break;
