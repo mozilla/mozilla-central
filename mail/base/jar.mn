@@ -128,10 +128,10 @@ messenger.jar:
 
 comm.jar:
 % content communicator %content/communicator/ xpcnativewrappers=yes
-*+  content/communicator/contentAreaClick.js        (content/contentAreaClick.js)
-*+  content/communicator/utilityOverlay.xul         (content/utilityOverlay.xul)
-*+  content/communicator/utilityOverlay.js          (content/utilityOverlay.js)
-*+  content/communicator/nsContextMenu.js           (content/nsContextMenu.js)
+*  content/communicator/contentAreaClick.js         (content/contentAreaClick.js)
+*  content/communicator/utilityOverlay.xul          (content/utilityOverlay.xul)
+*  content/communicator/utilityOverlay.js           (content/utilityOverlay.js)
+*  content/communicator/nsContextMenu.js            (content/nsContextMenu.js)
 
 toolkit.jar:
 #ifdef TOOLBAR_CUSTOMIZATION_SHEET
