@@ -926,10 +926,10 @@ nsresult nsMsgLocalMailFolder::IsChildOfTrash(PRBool *result)
   nsCOMPtr<nsIMsgFolder> thisFolder;
   rv = QueryInterface(NS_GET_IID(nsIMsgFolder), (void **) getter_AddRefs(thisFolder));
 
-  while (!isServer && thisFolder)
+  while (!isServer)
   {
-    rv = thisFolder->GetParentMsgFolder(getter_AddRefs(parentFolder));
-    if (NS_FAILED(rv)) return NS_OK;
+    thisFolder->GetParentMsgFolder(getter_AddRefs(parentFolder));
+    if (!parentFolder) return NS_OK;
     rv = parentFolder->GetIsServer(&isServer);
     if (NS_FAILED(rv) || isServer) return NS_OK;
     rv = parentFolder->GetFlags(&parentFlags);
