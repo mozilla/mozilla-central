@@ -288,6 +288,8 @@ nsLDAPAutoCompleteSession::OnStopLookup()
         // to BOUND if we were searching.
         //
         mState = (mState == BINDING ? UNBOUND : BOUND);
+        if (mState == UNBOUND)
+          NS_IF_RELEASE(mConnection);
     }
 
     mResultsArray = 0;
@@ -862,6 +864,8 @@ nsLDAPAutoCompleteSession::InitConnection()
     nsresult rv;        // temp for xpcom return values
     nsCOMPtr<nsILDAPMessageListener> selfProxy;
     
+    NS_ASSERTION(!mConnection, "in InitConnection w/ existing connection");
+
     // create an LDAP connection
     //
     nsCOMPtr<nsILDAPConnection> connection =
