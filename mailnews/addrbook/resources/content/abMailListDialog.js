@@ -311,6 +311,24 @@ function OnLoadEditList()
     }
   }
 
+  // Is this directory read-only? If so, we now need to set all the fields to
+  // read-only.
+  if (~gEditList.operations & gEditList.opWrite) {
+    const kMailListFields = [ 'ListName', 'ListNickName', 'ListDescription' ];
+
+    for (var i = 0; i < kMailListFields.length; ++i)
+      document.getElementById(kMailListFields[i]).readOnly = true;
+
+    document.documentElement.buttons = "accept";
+    document.documentElement.removeAttribute("ondialogaccept");
+
+    // Getting a sane read-only implementation for the addressing widget would
+    // basically need a separate dialog. Given I'm not sure about the future of
+    // the mailing list dialog in its current state, let's just disable it
+    // completely.
+    document.getElementById("addressingWidget").disabled = true;
+  }
+
   document.addEventListener("keypress", awDocumentKeyPress, true);
 
   moveToAlertPosition();
