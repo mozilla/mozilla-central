@@ -105,6 +105,7 @@ if ($type eq 'completion'){
     $vars->{'percent_idle'} = calculate_percent($total, $idle);
     
     $vars->{'runs'} = join(',',@run_ids);
+    $vars->{'plans'} = join(',',@plan_ids);
     $vars->{'bugs'} = join(',',@$bugs);
     $vars->{'bug_count'} = scalar @$bugs;
     

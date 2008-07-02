@@ -65,7 +65,16 @@
 }
 
 </style>
-
+<h4>Completion Report for Runs: 
+[% FOREACH r IN runs.split(',') %]
+ <a href="tr_show_run.cgi?run_id=[% r FILTER html %]">[% r FILTER html %]</a>&nbsp;
+[% END %] 
+[% IF plans %]
+ <br>In Plans: 
+ [% FOREACH r IN plans.split(',') %]
+   <a href="tr_show_plan.cgi?run_id=[% r FILTER html %]">[% r FILTER html %]</a>&nbsp;
+ [% END %] 
+[% END %]</h4>
 <div id="completion_report">
   <table>
     <tr>
