@@ -156,8 +156,6 @@ function OnLoadAddressBook()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadCardView();
 
-  SetupAbCommandUpdateHandlers();
-
   //workaround - add setTimeout to make sure dynamic overlays get loaded first
   setTimeout('OnLoadDirTree()', 0);
 
@@ -178,6 +176,7 @@ function OnLoadAddressBook()
 
   var dirTree = GetDirTree();
   dirTree.addEventListener("click",DirPaneClick,true);
+  dirTree.controllers.appendController(DirPaneController);
 
   // Ensure we don't load xul error pages into the main window
   window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)

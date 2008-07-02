@@ -160,8 +160,6 @@ function delayedOnLoadAddressBook()
   // FIX ME - later we will be able to use onload from the overlay
   OnLoadCardView();
 
-  SetupAbCommandUpdateHandlers();
-
   //workaround - add setTimeout to make sure dynamic overlays get loaded first
   setTimeout('OnLoadDirTree()', 0);
 
@@ -182,6 +180,7 @@ function delayedOnLoadAddressBook()
 
   var dirTree = GetDirTree();
   dirTree.addEventListener("click",DirPaneClick,true);
+  dirTree.controllers.appendController(DirPaneController);
 
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("ab-toolbox");

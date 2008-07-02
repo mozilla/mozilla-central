@@ -278,13 +278,6 @@ function UpgradeAddressBookResultsPaneUI(prefName)
   // var resultsPaneUIVersion = gPrefs.getIntPref(prefName);
 }
 
-function SetupAbCommandUpdateHandlers()
-{
-  // dir pane
-  if (dirTree)
-    dirTree.controllers.appendController(DirPaneController);
-}
-
 function AbDelete()
 {
   var types = GetSelectedCardTypes();

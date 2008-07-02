@@ -95,8 +95,6 @@ function AbPanelLoad()
 
   UpgradeAddressBookResultsPaneUI("mailnews.ui.addressbook_panel_results.version");
 
-  SetupAbCommandUpdateHandlers();
-
   LoadPreviouslySelectedAB();
 
   // Add a listener, so we can switch directories if the current directory is

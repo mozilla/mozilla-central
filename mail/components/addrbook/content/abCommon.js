@@ -294,13 +294,6 @@ function InitCommonJS()
   gAddressBookBundle = document.getElementById("bundle_addressBook");
 }
 
-function SetupAbCommandUpdateHandlers()
-{
-  // dir pane
-  if (dirTree)
-    dirTree.controllers.appendController(DirPaneController);
-}
-
 function AbDelete()
 {
   var types = GetSelectedCardTypes();
