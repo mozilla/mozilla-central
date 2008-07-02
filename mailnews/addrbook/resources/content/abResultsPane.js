@@ -78,8 +78,10 @@ function SetAbView(uri, searchView)
   var sortColumn = kDefaultSortColumn;
   var sortDirection = kDefaultAscending;
 
-  if (!gAbResultsTree)
+  if (!gAbResultsTree) {
     gAbResultsTree = document.getElementById("abResultsTree");
+    gAbResultsTree.controllers.appendController(ResultsPaneController);
+  }
 
   if (gAbView) {
     sortColumn = gAbView.sortColumn;

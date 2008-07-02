@@ -300,10 +300,6 @@ function SetupAbCommandUpdateHandlers()
   // dir pane
   if (dirTree)
     dirTree.controllers.appendController(DirPaneController);
-
-  // results pane
-  if (gAbResultsTree)
-    gAbResultsTree.controllers.appendController(ResultsPaneController);
 }
 
 function AbDelete()
