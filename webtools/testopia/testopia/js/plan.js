@@ -22,6 +22,52 @@
 
 Testopia.TestPlan = {};
 
+Testopia.TestPlan.ImportWin = function(plan_id){
+    var win = new Ext.Window({
+        id: 'import-win',
+        closable: true,
+        width: 450,
+        height: 150,
+        plain: true,
+        shadow: false,
+        layout: 'fit',
+        items: [{
+            xtype: 'form',
+            height: 250,
+            url: 'tr_importer.cgi',
+            id: 'importform',
+            baseParams: {action: 'upload', ctype: 'json', plan_id: plan_id},
+            fileUpload: true,
+            items: [{
+                height: 50,
+                style: "padding: 5px",
+                border: false,
+                html: 'Accepts CSV and XML files under 1 MB in size. <br> See <a href="testopia/import_example.csv" target="_blank">import_example.csv</a> and <a href="testopia.dtd" target="_blank">testopia.dtd</a> for proper format.'
+            },{
+                xtype: 'field',
+                fieldLabel: 'Upload File',
+                labelStyle: "padding: 5px",
+                inputType: 'file',
+                name: 'data',
+                width: 300
+            }],
+            buttons: [{
+                text: 'Submit',
+                handler: function(){
+                    Ext.getCmp('importform').getForm().submit({
+                        success: function(){
+                            Ext.getCmp('plan_case_grid').store.load();
+                            Ext.getCmp('import-win').close();
+                        },
+                        failure: testopiaError
+                    });
+                }
+            }]
+        }]
+    });
+    win.show(this);
+}
+
 PlanGrid = function(params,cfg){
     params.limit = Ext.state.Manager.get('TESTOPIA_DEFAULT_PAGE_SIZE', 25);
     params.current_tab = 'plan';

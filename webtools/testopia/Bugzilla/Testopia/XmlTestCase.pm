@@ -291,6 +291,7 @@ sub store {
 
 sub store_relationships {
     my ($self, @new_testcases) = @_;
+    return unless $self->testcase->{'case_id'}; 
     my $testcase = Bugzilla::Testopia::TestCase->new($self->testcase->{'case_id'});
 
     # Hashes are used because the entires in blocks and dependson must be unique.

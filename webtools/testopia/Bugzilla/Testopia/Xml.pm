@@ -215,7 +215,7 @@ sub error()
 sub parse()
 {
     my ($self, $xml, $filename) = @_;
-
+    my @case_ids;
     my $twig = XML::Twig->new( load_DTD => 1, keep_encoding => 1 );    
 
     if ( defined($xml) )
@@ -648,19 +648,21 @@ sub parse()
             }
             else
             {
-                print "Created Test Case " . $testcase->testcase->id() . ": " . $testcase->testcase->summary() . "\n";
+                push @case_ids, $testcase->testcase->id();
+                print "Created Test Case " . $testcase->testcase->id() . ": " . $testcase->testcase->summary() . "\n" if $filename;
             }
         }
 
         # Now that each testcase has been stored we loop though them again and create
         # relationships like blocks or dependson.
         foreach my $testcase ( @{$self->testcases} )
-        {
+        {   
             $testcase->store_relationships(@{$self->testcases});
         }
     }
     
     $twig->purge;
+    return \@case_ids;
 }
 
 =head1 SEE ALSO

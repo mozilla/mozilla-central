@@ -91,6 +91,7 @@ use constant VALIDATORS => {
     case_status_id    => \&_check_status,
     priority_id       => \&_check_priority,
     default_tester_id => \&_check_tester,
+    author_id         => \&_check_author,
     isautomated       => \&_check_automated,
     sortkey           => \&_check_sortkey,
     script            => \&_check_script,
@@ -190,6 +191,7 @@ sub _check_category{
 sub _check_priority{
     my ($invocant, $priority) = @_;
     $priority = trim($priority);
+    trick_taint($priority);
     my $priority_id;
     if ($priority =~ /^\d+$/){
         $priority_id = Bugzilla::Testopia::Util::validate_selection($priority, 'id', 'priority');
@@ -197,12 +199,26 @@ sub _check_priority{
     else {
         $priority_id = lookup_priority_by_value($priority);
     }
-    ThrowUserError('bad_arg', {argument => 'priority', function => 'set_priority'}) unless $priority_id; 
+    ThrowCodeError('bad_arg', {argument => 'priority', function => 'set_priority'}) unless $priority_id; 
     return $priority_id;
 
 }
 
 sub _check_tester{
+    my ($invocant, $tester) = @_;
+    $tester = trim($tester);
+    return unless $tester;
+    if ($tester =~ /^\d+$/){
+        $tester = Bugzilla::User->new($tester);
+        return $tester->id;
+    }
+    else {
+        my $id = login_to_id($tester, THROW_ERROR);
+        return $id;
+    }
+}
+
+sub _check_author{
     my ($invocant, $tester) = @_;
     $tester = trim($tester);
     return unless $tester;
@@ -227,7 +243,7 @@ sub _check_sortkey{
     my ($invocant, $sortkey) = @_;
     $sortkey = trim($sortkey);
     return unless $sortkey;
-    ThrowUserError('bad_arg', {argument => 'sortkey', function => 'set_sortkey'}) unless ($sortkey =~ /^\d+$/);
+    ThrowCodeError('bad_arg', {argument => 'sortkey', function => 'set_sortkey'}) unless ($sortkey =~ /^\d+$/);
     return $sortkey;
 }
 
@@ -882,7 +898,6 @@ sub add_component {
     my $dbh = Bugzilla->dbh;
     my $comps = $validated ? $compids : $self->_check_components($compids);   
     foreach my $id (@$comps){
-print STDERR "ADDING COMPONENTS $id";        
         $dbh->do("INSERT INTO test_case_components (case_id, component_id)
                   VALUES (?,?)",undef,  $self->{'case_id'}, $id);
     }

@@ -162,6 +162,13 @@
     Please contatct your administrator.
   [% ELSIF error == "testopia-unknown-tab" %]
     I don't know what a [% tab FILTER html %] is.
+  [% ELSIF error == 'invalid_import_type' %]
+    Invalid file type. Only CSV and XML files can be imported.
+  [% ELSIF error == 'import_repeat' %]
+    It appears you tried to import the same file twice.
+  [% ELSIF error == 'csv_parse_failure' %]
+    There was an error parsing the input. Please verify that the CSV is valid.
+    The Error was on row [% row FILTER none %]
   [% ELSIF error == "testopia_component_attached" %]
     The component you are attemting to add is already attached to this case.
   [% ELSIF error == "testopia-no-action" %]
