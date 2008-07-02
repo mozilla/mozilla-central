@@ -53,8 +53,8 @@ var gAddressBookPanelAbListener = {
       // check if the item being removed is the directory
       // that we are showing in the addressbook sidebar
       // if so, select the person addressbook (it can't be removed)
-      if (directory == GetAbView().directory) {
-          var abPopup = document.getElementById('addressbookList');
+      var abPopup = document.getElementById('addressbookList');
+      if (directory.URI == abPopup.value) {
           abPopup.value = kPersonalAddressbookURI;
           LoadPreviouslySelectedAB();
       } 

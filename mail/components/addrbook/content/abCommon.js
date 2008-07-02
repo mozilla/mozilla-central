@@ -44,7 +44,6 @@ var abList = 0;
 var gAbResultsTree = null;
 var gAbView = null;
 var gAddressBookBundle;
-var gCurDirectory = null;
 
 var rdf = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 var gPrefs = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
@@ -495,7 +494,7 @@ function ChangeDirectoryByURI(uri)
   if (!uri)
     uri = kPersonalAddressbookURI;
 
-  SetAbView(uri, false);
+  SetAbView(uri);
 
   // only select the first card if there is a first card
   if (gAbView && gAbView.getCardFromRow(0))

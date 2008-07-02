@@ -81,8 +81,7 @@ public:
   PRInt32 CompareCollationKeys(PRUint8 *key1, PRUint32 len1, PRUint8 *key2, PRUint32 len2);
 
 private:
-  nsCOMPtr<nsITreeBoxObject> mTree;
-  nsCOMPtr<nsITreeSelection> mTreeSelection;
+  nsresult Initialize();
   PRInt32 FindIndexForInsert(AbCard *abcard);
   PRInt32 FindIndexForCard(nsIAbCard *card);
   nsresult GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *abcard);
@@ -91,15 +90,14 @@ private:
   nsresult AddCard(AbCard *abcard, PRBool selectCardAfterAdding, PRInt32 *index);
   nsresult RemoveCardAndSelectNextCard(nsISupports *item);
   nsresult EnumerateCards();
-  nsresult AddPrefObservers();
-  nsresult RemovePrefObservers();
   nsresult SetGeneratedNameFormatFromPrefs();
   nsresult GetSelectedCards(nsIArray **aSelectedCards);
   nsresult ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard);
   nsresult GetCardValue(nsIAbCard *card, const PRUnichar *colID, nsAString &_retval);
   nsresult RefreshTree();
 
-  nsCString mURI;
+  nsCOMPtr<nsITreeBoxObject> mTree;
+  nsCOMPtr<nsITreeSelection> mTreeSelection;
   nsCOMPtr <nsIAbDirectory> mDirectory;
   nsVoidArray mCards;
   nsCOMPtr<nsIAtom> mMailListAtom;
@@ -109,7 +107,7 @@ private:
   nsCOMPtr<nsIAbViewListener> mAbViewListener;
   nsCOMPtr<nsIStringBundle> mABBundle;
 
-  PRPackedBool mSearchView;
+  PRPackedBool mInitialized;
   PRPackedBool mSuppressSelectionChange;
   PRPackedBool mSuppressCountChange;
   PRInt32 mGeneratedNameFormat;

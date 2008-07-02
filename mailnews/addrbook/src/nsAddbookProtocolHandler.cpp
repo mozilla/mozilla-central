@@ -289,11 +289,10 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
   // over the view, getting the card for each row, and printing them.
   nsString sortColumn;
   nsCOMPtr <nsIAbView> view = do_CreateInstance("@mozilla.org/addressbook/abview;1", &rv);
-  nsCString directoryUri;
-  aDirectory->GetURI(directoryUri);
   
-  view->Init(directoryUri.get(), PR_FALSE, nsnull, NS_LITERAL_STRING("GeneratedName").get(),  NS_LITERAL_STRING("ascending").get(), getter_Copies(sortColumn));
-  
+  view->SetView(aDirectory, nsnull, NS_LITERAL_STRING("GeneratedName"),
+                NS_LITERAL_STRING("ascending"), sortColumn);
+
   PRInt32 numRows;
   nsCOMPtr <nsITreeView> treeView = do_QueryInterface(view, &rv);
   NS_ENSURE_SUCCESS(rv, rv);

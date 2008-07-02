@@ -312,7 +312,7 @@ function onSearch()
     }
 
     searchUri += ")";
-    SetAbView(searchUri, true);
+    SetAbView(searchUri);
 }
 
 // used to toggle functionality for Search/Stop button.

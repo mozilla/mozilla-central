@@ -490,7 +490,7 @@ function onEnterInSearchBar()
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
   }
 
-  SetAbView(searchURI, gSearchInput.value != "");
+  SetAbView(searchURI);
   
   // XXX todo 
   // this works for synchronous searches of local addressbooks, 

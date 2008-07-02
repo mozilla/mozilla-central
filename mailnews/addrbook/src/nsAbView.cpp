@@ -74,50 +74,52 @@
 
 NS_IMPL_ISUPPORTS4(nsAbView, nsIAbView, nsITreeView, nsIAbListener, nsIObserver)
 
-nsAbView::nsAbView()
+nsAbView::nsAbView() : mInitialized(PR_FALSE),
+                       mSuppressSelectionChange(PR_FALSE),
+                       mSuppressCountChange(PR_FALSE),
+                       mGeneratedNameFormat(0)
 {
   mMailListAtom = do_GetAtom("MailList");
-  mSuppressSelectionChange = PR_FALSE;
-  mSuppressCountChange = PR_FALSE;
-  mSearchView = PR_FALSE;
-  mGeneratedNameFormat = 0;
 }
 
 nsAbView::~nsAbView()
 {
-  if (mDirectory) {
-    nsresult rv;
-    rv = Close();
-    NS_ASSERTION(NS_SUCCEEDED(rv), "failed to close view");
+  if (mInitialized) {
+    NS_ASSERTION(NS_SUCCEEDED(ClearView()), "failed to close view");
   }
 }
 
-NS_IMETHODIMP nsAbView::Close()
+NS_IMETHODIMP nsAbView::ClearView()
 {
-  mURI = "";
   mDirectory = nsnull;
   mAbViewListener = nsnull;
-  mTree = nsnull;
-  mTreeSelection = nsnull;
-  mSearchView = PR_FALSE;
+  // XXX What about these?
+  //  mTree = nsnull;
+  //  mTreeSelection = nsnull;
 
-  nsresult rv;
+  if (mInitialized)
+  {
+    nsresult rv;
+    mInitialized = PR_FALSE;
+    nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                               &rv));
+    NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = RemovePrefObservers();
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
-  NS_ENSURE_SUCCESS(rv,rv);
+    rv = pbi->RemoveObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this);
+    NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = abManager->RemoveAddressBookListener(this);
-  NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID,
+                                                   &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = abManager->RemoveAddressBookListener(this);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
 
   PRInt32 i = mCards.Count();
   while(i-- > 0)
-  {
-    rv = RemoveCardAt(i);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "remove card failed\n");
-  }
+    NS_ASSERTION(NS_SUCCEEDED(RemoveCardAt(i)), "remove card failed\n");
+
   return NS_OK;
 }
 
@@ -146,63 +148,57 @@ nsresult nsAbView::RemoveCardAt(PRInt32 row)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbView::GetURI(char **aURI)
-{
-  *aURI = ToNewCString(mURI);
-  return NS_OK;
-}
-
 nsresult nsAbView::SetGeneratedNameFormatFromPrefs()
 {
   nsresult rv;
   nsCOMPtr<nsIPrefBranch2> prefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = prefBranchInt->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &mGeneratedNameFormat);
-  NS_ENSURE_SUCCESS(rv, rv);
-  return rv;
+  return prefBranchInt->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &mGeneratedNameFormat);
 }
 
-nsresult nsAbView::AddPrefObservers()
+nsresult nsAbView::Initialize()
 {
+  if (mInitialized)
+    return NS_OK;
+
+  mInitialized = PR_TRUE;
+
   nsresult rv;
+  nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = abManager->AddAddressBookListener(this, nsIAbListener::all);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = pbi->AddObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this, PR_FALSE);
-  return rv;
-}
+  NS_ENSURE_SUCCESS(rv, rv);
 
-nsresult nsAbView::RemovePrefObservers()
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  rv = pbi->RemoveObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this);
-  NS_ENSURE_SUCCESS(rv,rv);
-  return rv;
-}
-
-NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewListener *abViewListener, 
-                             const PRUnichar *colID, const PRUnichar *sortDirection, PRUnichar **result)
-{
-  NS_ENSURE_ARG_POINTER(result);
-
-  nsresult rv;
   if (!mABBundle)
   {
     nsCOMPtr<nsIStringBundleService> stringBundleService =
       do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(mABBundle));
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  mURI = aURI;
+  return SetGeneratedNameFormatFromPrefs();
+}
+
+NS_IMETHODIMP nsAbView::SetView(nsIAbDirectory *aAddressBook,
+                                nsIAbViewListener *aAbViewListener,
+                                const nsAString &aSortColumn,
+                                const nsAString &aSortDirection,
+                                nsAString &aResult)
+{
+  // Ensure we are initialized
+  nsresult rv = Initialize();
+
   mAbViewListener = nsnull;
   if (mTree)
   {
@@ -218,30 +214,9 @@ NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewList
     rv = RemoveCardAt(i);
     NS_ASSERTION(NS_SUCCEEDED(rv), "remove card failed\n");
   }
-  if (!mDirectory || mSearchView != aSearchView)
-  {
-    mSearchView = aSearchView;
-    rv = AddPrefObservers();
-    NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = SetGeneratedNameFormatFromPrefs();
-    NS_ENSURE_SUCCESS(rv,rv);
+  mDirectory = aAddressBook;
 
-    nsCOMPtr <nsIRDFService> rdfService = do_GetService("@mozilla.org/rdf/rdf-service;1",&rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    nsCOMPtr <nsIRDFResource> resource;
-    rv = rdfService->GetResource(nsDependentCString(aURI), getter_AddRefs(resource));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    mDirectory = do_QueryInterface(resource, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-  else
-  {
-    nsCOMPtr <nsIRDFResource> resource = do_QueryInterface(mDirectory);
-    rv = resource->Init(aURI);
-  }
   rv = EnumerateCards();
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -251,40 +226,32 @@ NS_IMETHODIMP nsAbView::Init(const char *aURI, PRBool aSearchView, nsIAbViewList
   // it may not be, if you migrated from older versions, or switched between
   // a mozilla build and a commercial build, which have different columns.
   nsAutoString actualSortColumn;
-  if (!generatedNameColumnId.Equals(colID) && mCards.Count()) {
+  if (!generatedNameColumnId.Equals(aSortColumn) && mCards.Count()) {
     nsIAbCard *card = ((AbCard *)(mCards.ElementAt(0)))->card;
     nsString value;
     // XXX todo
     // need to check if _Generic is valid.  GetCardValue() will always return NS_OK for _Generic
     // we're going to have to ask mDirectory if it is.
     // it might not be.  example:  _ScreenName is valid in Netscape, but not Mozilla.
-    rv = GetCardValue(card, colID, value);
+    rv = GetCardValue(card, PromiseFlatString(aSortColumn).get(), value);
     if (NS_FAILED(rv))
-      actualSortColumn = generatedNameColumnId.get();
+      actualSortColumn = generatedNameColumnId;
     else
-      actualSortColumn = colID; 
+      actualSortColumn = aSortColumn;
   }
-  else {
-    actualSortColumn = colID; 
-  }
+  else
+    actualSortColumn = aSortColumn;
 
-  rv = SortBy(actualSortColumn.get(), sortDirection);
-  NS_ENSURE_SUCCESS(rv,rv);
+  rv = SortBy(actualSortColumn.get(), PromiseFlatString(aSortDirection).get());
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv); 
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // this listener cares about all events
-  rv = abManager->AddAddressBookListener(this, nsIAbListener::all);
-  NS_ENSURE_SUCCESS(rv,rv);
-  
-  mAbViewListener = abViewListener;
+  mAbViewListener = aAbViewListener;
   if (mAbViewListener && !mSuppressCountChange) {
     rv = mAbViewListener->OnCountChanged(mCards.Count());
-    NS_ENSURE_SUCCESS(rv,rv);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  *result = ToNewUnicode(actualSortColumn);
+  aResult = actualSortColumn;
   return NS_OK;
 }
 
@@ -746,8 +713,8 @@ NS_IMETHODIMP nsAbView::SortBy(const PRUnichar *colID, const PRUnichar *sortDir)
     rv = ReselectCards(selectedCards, indexCard);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    mSortColumn = sortColumn.get();
-    mSortDirection = sortDirection.get();
+    mSortColumn = sortColumn;
+    mSortDirection = sortDirection;
   }
 
   rv = InvalidateTree(ALL_ROWS);
@@ -842,17 +809,13 @@ NS_IMETHODIMP nsAbView::OnItemAdded(nsISupports *parentDir, nsISupports *item)
 
 NS_IMETHODIMP nsAbView::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
-  nsresult rv;
-
   if (!strcmp(aTopic, NS_PREFBRANCH_PREFCHANGE_TOPIC_ID)) {
-    nsDependentString prefName(someData);
-    
-    if (prefName.EqualsLiteral(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST)) {
-      rv = SetGeneratedNameFormatFromPrefs();
-      NS_ENSURE_SUCCESS(rv,rv);
+    if (nsDependentString(someData).EqualsLiteral(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST)) {
+      nsresult rv = SetGeneratedNameFormatFromPrefs();
+      NS_ENSURE_SUCCESS(rv, rv);
 
       rv = RefreshTree();
-      NS_ENSURE_SUCCESS(rv,rv);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
   }
   return NS_OK;

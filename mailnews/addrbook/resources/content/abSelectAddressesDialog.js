@@ -403,7 +403,7 @@ function onEnterInSearchBar()
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
   }
 
-  SetAbView(searchURI, true);
+  SetAbView(searchURI);
   
   SelectFirstCard();
 }

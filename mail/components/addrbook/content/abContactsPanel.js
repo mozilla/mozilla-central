@@ -85,8 +85,8 @@ var gAddressBookPanelAbListener = {
       // check if the item being removed is the directory
       // that we are showing in the addressbook sidebar
       // if so, select the person addressbook (it can't be removed)
-      if (directory.URI == gCurDirectory) {
-          var abPopup = document.getElementById('addressbookList');
+      var abPopup = document.getElementById('addressbookList');
+      if (directory.URI == abPopup.value) {
           abPopup.value = kPersonalAddressbookURI;
           LoadPreviouslySelectedAB();
       } 
@@ -140,7 +140,7 @@ function AbPanelOnComposerClose()
 
 function AbPanelOnComposerReOpen()
 {
-  SetAbView(GetSelectedDirectory(), true);
+  SetAbView(GetSelectedDirectory());
 }
 
 function AbPanelLoad() 
@@ -219,5 +219,5 @@ function onEnterInSearchBar()
   if (gSearchInput.value != "")
     searchURI += gQueryURIFormat.replace(/@V/g, encodeURIComponent(gSearchInput.value));
 
-  SetAbView(searchURI, true);
+  SetAbView(searchURI);
 }

@@ -67,13 +67,17 @@ var gAbView = null;
 // set up by SetAbView.
 var gAbResultsTree = null;
 
-function SetAbView(uri, searchView)
+function SetAbView(aURI)
 {
-  // No changes are needed if we're not changing the URI (the URI includes the
-  // search string, so we don't need to worry about searchView being different
-  // or not).
-  if (gAbView && gAbView.URI == uri)
+  // If we don't have a URI, just clear the view and leave everything else
+  // alone.
+  if (!aURI) {
+    gAbView.clearView();
     return;
+  }
+
+  // If we do have a URI, we want to allow updating the review even if the
+  // URI is the same, as the search results may be different.
 
   var sortColumn = kDefaultSortColumn;
   var sortDirection = kDefaultAscending;
@@ -94,16 +98,14 @@ function SetAbView(uri, searchView)
       sortDirection = gAbResultsTree.getAttribute("sortDirection");
   }
 
-  if (!gAbView || (gCurDirectory != GetSelectedDirectory())) {
-    CloseAbView();
-    gCurDirectory = GetSelectedDirectory();
+  var directory = GetDirectoryFromURI(aURI);
 
+  if (!gAbView)
     gAbView = Components.classes["@mozilla.org/addressbook/abview;1"]
                         .createInstance(Components.interfaces.nsIAbView);
-  }
 
-  var actualSortColumn = gAbView.init(uri, searchView, GetAbViewListener(),
-				      sortColumn, sortDirection);
+  var actualSortColumn = gAbView.setView(directory, GetAbViewListener(),
+					 sortColumn, sortDirection);
 
   gAbResultsTree.treeBoxObject.view =
     gAbView.QueryInterface(Components.interfaces.nsITreeView);
@@ -113,12 +115,8 @@ function SetAbView(uri, searchView)
 
 function CloseAbView()
 {
-  gAbResultsTree.treeBoxObject.view = null;
-
-  if (gAbView) {
-    gAbView.close();
-    gAbView = null;
-  }
+  if (gAbView)
+    gAbView.clearView();
 }
 
 function GetOneOrMoreCardsSelected()
