@@ -40,6 +40,8 @@ mail/Makefile
 mail/app/Makefile
 mail/app/profile/Makefile
 mail/base/Makefile
+mail/branding/unofficial/Makefile
+mail/branding/unofficial/locales/Makefile
 mail/locales/Makefile
 mail/components/Makefile
 mail/components/compose/Makefile

@@ -44,6 +44,8 @@ TIERS += app
 
 ifdef MOZ_BRANDING_DIRECTORY
 tier_app_dirs += $(MOZ_BRANDING_DIRECTORY)
+else
+tier_app_dirs += mail/branding/unofficial
 endif
 
 tier_app_dirs += \

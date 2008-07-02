@@ -156,8 +156,3 @@
   locale/@AB_CD@/communicator/wallet/wallet.properties       (%chrome/communicator/wallet/wallet.properties)
 + locale/@AB_CD@/communicator/wallet/SignonViewer.properties (%chrome/communicator/wallet/SignonViewer.properties)
 + locale/@AB_CD@/communicator/wallet/SignonViewer.dtd        (%chrome/communicator/wallet/SignonViewer.dtd)
-#ifdef MOZ_USE_GENERIC_BRANDING
-% locale branding @AB_CD@ %locale/@AB_CD@/branding/
-  locale/@AB_CD@/branding/brand.properties            (%chrome/branding/brand.properties)
-  locale/@AB_CD@/branding/brand.dtd                   (%chrome/branding/brand.dtd)
-#endif
