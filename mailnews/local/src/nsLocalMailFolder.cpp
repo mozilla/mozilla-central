@@ -1266,6 +1266,8 @@ nsMsgLocalMailFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgD
       else if (NS_FAILED(openErr))
         mDatabase = nsnull;
     }
+    if (mAddListener && mDatabase)
+      mDatabase->AddListener(this);
   }
 
   NS_IF_ADDREF(*db = mDatabase);
