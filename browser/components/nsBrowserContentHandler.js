@@ -176,18 +176,26 @@ function copyPrefOverride() {
   }
 }
 
-function splitPipesIntoArray(aSpec) {
-  var specs = aSpec.split("|");
-  if (specs.length > 1)
-    return specs;
+// Flag used to indicate that the arguments to openWindow can be passed directly.
+const NO_EXTERNAL_URIS = 1;
 
-  return aSpec;
-}
-
-function openWindow(parent, url, target, features, args) {
+function openWindow(parent, url, target, features, args, noExternalArgs) {
   var wwatch = Components.classes["@mozilla.org/embedcomp/window-watcher;1"]
                          .getService(nsIWindowWatcher);
 
+  if (noExternalArgs == NO_EXTERNAL_URIS) {
+    // Just pass in the defaultArgs directly
+    var argstring;
+    if (args) {
+      argstring = Components.classes["@mozilla.org/supports-string;1"]
+                            .createInstance(nsISupportsString);
+      argstring.data = args;
+    }
+
+    return wwatch.openWindow(parent, url, target, features, argstring);
+  }
+  
+  // Pass an array to avoid the browser "|"-splitting behavior.
   var argArray = Components.classes["@mozilla.org/supports-array;1"]
                     .createInstance(Components.interfaces.nsISupportsArray);
 
@@ -351,9 +359,10 @@ var nsBrowserContentHandler = {
   /* nsICommandLineHandler */
   handle : function bch_handle(cmdLine) {
     if (cmdLine.handleFlag("browser", false)) {
+      // Passing defaultArgs, so use NO_EXTERNAL_URIS
       openWindow(null, this.chromeURL, "_blank",
                  "chrome,dialog=no,all" + this.getFeatures(cmdLine),
-                 splitPipesIntoArray(this.defaultArgs));
+                 this.defaultArgs, NO_EXTERNAL_URIS);
       cmdLine.preventDefault = true;
     }
 
@@ -414,9 +423,10 @@ var nsBrowserContentHandler = {
           if (remoteParams[0].toLowerCase() != "openbrowser")
             throw NS_ERROR_ABORT;
 
+          // Passing defaultArgs, so use NO_EXTERNAL_URIS
           openWindow(null, this.chromeURL, "_blank",
                      "chrome,dialog=no,all" + this.getFeatures(cmdLine),
-                     splitPipesIntoArray(this.defaultArgs));
+                     this.defaultArgs, NO_EXTERNAL_URIS);
           break;
 
         default:
@@ -818,9 +828,10 @@ var nsDefaultCommandLineHandler = {
 
     }
     else if (!cmdLine.preventDefault) {
+      // Passing defaultArgs, so use NO_EXTERNAL_URIS
       openWindow(null, nsBrowserContentHandler.chromeURL, "_blank",
                  "chrome,dialog=no,all" + nsBrowserContentHandler.getFeatures(cmdLine),
-                 splitPipesIntoArray(nsBrowserContentHandler.defaultArgs));
+                 nsBrowserContentHandler.defaultArgs, NO_EXTERNAL_URIS);
     }
   },
 
