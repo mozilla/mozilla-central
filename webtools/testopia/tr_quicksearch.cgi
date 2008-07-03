@@ -44,7 +44,7 @@ my $template = Bugzilla->template;
 my $cgi = Bugzilla->cgi;
 
 my $action = $cgi->param('action') || '';
-my $term = trim($cgi->param('query')) || '';
+my $term = trim($cgi->param('searchstr')) || '';
 
 push @{$::vars->{'style_urls'}}, 'testopia/css/default.css';
 
