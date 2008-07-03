@@ -41,7 +41,6 @@
 <script type="text/javascript">
 var run = [% run.TO_JSON FILTER html_light %];
 var user_login = '[% user.login FILTER html_light %]';
-
 Ext.onReady(function(){
     Ext.QuickTips.init();
     
@@ -187,7 +186,7 @@ Ext.onReady(function(){
             xtype: 'tabpanel',
             activeTab: 0,
             id: 'object_panel',
-            items: [new CaseRunPanel({run_id: run.run_id}, run),
+            items: [new CaseRunPanel(searchToJson(window.location.search), run),
             {
                 title: 'Notes',
                 layout: 'fit',

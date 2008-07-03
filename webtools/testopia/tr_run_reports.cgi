@@ -108,6 +108,7 @@ if ($type eq 'completion'){
     $vars->{'plans'} = join(',',@plan_ids);
     $vars->{'bugs'} = join(',',@$bugs);
     $vars->{'bug_count'} = scalar @$bugs;
+    $vars->{'run_count'} = scalar @run_ids;
     
     $template->process("testopia/reports/completion.html.tmpl", $vars)
        || ThrowTemplateError($template->error());
