@@ -84,10 +84,10 @@ pref("app.update.url", "https://aus2.mozilla.org/update/1/%PRODUCT%/%VERSION%/%B
 
 // URL user can browse to manually if for some reason all update installation
 // attempts fail.  TODO: Change this URL
-pref("app.update.url.manual", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/");
+pref("app.update.url.manual", "http://www.mozillamessaging.com/%LOCALE%/%APP%/");
 // A default value for the "More information about this update" link
 // supplied in the "An update is available" page of the update wizard. 
-pref("app.update.url.details", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/releases/");
+pref("app.update.url.details", "http://www.mozillamessaging.com/%LOCALE%/%APP%/releases/");
 // User-settable override to app.update.url for testing purposes.
 //pref("app.update.url.override", "");
 
@@ -113,7 +113,7 @@ pref("app.update.idletime", 60);
 pref("app.update.showInstalledUI", false);
 
 // Release notes URL
-pref("app.releaseNotesURL", "http://%LOCALE%.www.mozilla.com/%LOCALE%/%APP%/%VERSION%/releasenotes/");
+pref("app.releaseNotesURL", "http://www.mozillamessaging.com/%LOCALE%/%APP%/%VERSION%/releasenotes/");
 
 // Blocklist preferences
 pref("extensions.blocklist.enabled", true);
@@ -350,7 +350,7 @@ pref("mail.directory",                  "");
 pref("news.directory",                  "");
 pref("spellchecker.dictionary", "");
 // Dictionary download preference
-pref("spellchecker.dictionaries.download.url", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/thunderbird/%VERSION%/dictionaries/");
+pref("spellchecker.dictionaries.download.url", "https://%LOCALE%.add-ons.mozilla.com/%LOCALE%/%APP%/%VERSION%/dictionaries/");
 
 // profile.force.migration can be used to bypass the migration wizard, forcing migration from a particular
 // mail application without any user intervention. Possible values are: 
