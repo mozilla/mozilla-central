@@ -18,18 +18,19 @@ resource 'STR#' (5000, "English") {
   {
     // Language (unused?) = English
     "English",
-    // Agree
-    "Agree",
-    // Disagree
-    "Disagree",
+    // Accept (Agree)
+    "Accept",
+    // Decline (Disagree)
+    "Decline",
     // Print, ellipsis is 0xC9
     "Print…",
     // Save As, ellipsis is 0xC9
     "Save As…",
     // Descriptive text, curly quotes are 0xD2 and 0xD3
-    "You are about to install Mozilla Thunderbird.\n"
+    "You are about to install\n"
+    "Shredder\n"
     "\n"
-    "Please read the license agreement.  If you agree to its terms and accept, click “Agree” to access the software.  Otherwise, click “Disagree” to cancel."
+    "Please read the license agreement.  If you agree to its terms and accept, click “Accept” to access the software.  Otherwise, click “Decline” to cancel."
   };
 };
 
@@ -43,13 +44,13 @@ data 'TEXT' (5000, "English") {
   "FOR TRANSLATIONS OF THIS LICENSE INTO SELECTED LANGUAGES, PLEASE VISIT WWW.MOZILLA.ORG/LICENSING.\n"
   "\n"
   "MOZILLA FOUNDATION\n"
-  "MOZILLA THUNDERBIRD END-USER SOFTWARE LICENSE AGREEMENT\n"
+  "SHREDDER END-USER SOFTWARE LICENSE AGREEMENT\n"
   "\n"
-  "A SOURCE CODE VERSION OF CERTAIN THUNDERBIRD EMAIL FUNCTIONALITY THAT YOU MAY USE, MODIFY AND DISTRIBUTE IS AVAILABLE TO YOU FREE-OF-CHARGE FROM WWW.MOZILLA.ORG UNDER THE MOZILLA PUBLIC LICENSE and other open source software licenses.\n"
+  "A SOURCE CODE VERSION OF CERTAIN SHREDDER EMAIL FUNCTIONALITY THAT YOU MAY USE, MODIFY AND DISTRIBUTE IS AVAILABLE TO YOU FREE-OF-CHARGE FROM WWW.MOZILLA.ORG UNDER THE MOZILLA PUBLIC LICENSE and other open source software licenses.\n"
   "\n"
-  "The accompanying executable code version of Mozilla Thunderbird and related documentation (the “Product”) is made available to you under the terms of this MOZILLA THUNDERBIRD END-USER SOFTWARE LICENSE AGREEMENT (THE “AGREEMENT”).  BY CLICKING THE “ACCEPT” BUTTON, OR BY INSTALLING OR USING THE MOZILLA THUNDERBIRD EMAIL CLIENT, YOU ARE CONSENTING TO BE BOUND BY THE AGREEMENT.  IF YOU DO NOT AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT, DO NOT CLICK THE “ACCEPT” BUTTON, AND DO NOT INSTALL OR USE ANY PART OF THE MOZILLA THUNDERBIRD EMAIL CLIENT.\n"
+  "The accompanying executable code version of Shredder and related documentation (the “Product”) is made available to you under the terms of this SHREDDER END-USER SOFTWARE LICENSE AGREEMENT (THE “AGREEMENT”).  BY CLICKING THE “ACCEPT” BUTTON, OR BY INSTALLING OR USING THE SHREDDER EMAIL CLIENT, YOU ARE CONSENTING TO BE BOUND BY THE AGREEMENT.  IF YOU DO NOT AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT, DO NOT CLICK THE “ACCEPT” BUTTON, AND DO NOT INSTALL OR USE ANY PART OF THE SHREDDER EMAIL CLIENT.\n"
   "\n"
-  "DURING THE MOZILLA THUNDERBIRD INSTALLATION PROCESS, AND AT LATER TIMES, YOU MAY BE GIVEN THE OPTION OF INSTALLING ADDITIONAL COMPONENTS FROM THIRD-PARTY SOFTWARE PROVIDERS.  THE INSTALLATION AND USE OF THOSE THIRD-PARTY COMPONENTS MAY BE GOVERNED BY ADDITIONAL LICENSE AGREEMENTS.\n"
+  "DURING THE SHREDDER INSTALLATION PROCESS, AND AT LATER TIMES, YOU MAY BE GIVEN THE OPTION OF INSTALLING ADDITIONAL COMPONENTS FROM THIRD-PARTY SOFTWARE PROVIDERS.  THE INSTALLATION AND USE OF THOSE THIRD-PARTY COMPONENTS MAY BE GOVERNED BY ADDITIONAL LICENSE AGREEMENTS.\n"
   "\n"
   "1. LICENSE GRANT. The Mozilla Foundation grants you a non-exclusive license to use the executable code version of the Product.  This Agreement will also govern any software upgrades provided by Mozilla that replace and/or supplement the original Product, unless such upgrades are accompanied by a separate license, in which case the terms of that license will govern.\n"
   "\n"
