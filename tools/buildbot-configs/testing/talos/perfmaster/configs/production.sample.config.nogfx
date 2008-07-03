@@ -84,7 +84,7 @@ tests :
     win_counters : []
     unix_counters : []
   tp: 
-    url :  '-tp page_load_test/manifest.txt -tpchrome -tpformat -tpnoisy tinderbox -tpcycles 10 -tptimeout 120000'
+    url :  '-tp page_load_test/manifest.txt -tpchrome -tpnoisy -tpformat tinderbox -tpcycles 10 -tptimeout 120000'
     resolution : 1
     cycles : 1
     pagetimeout : 240
@@ -98,14 +98,14 @@ tests :
 #    win_counters : ['Working Set', 'Private Bytes', '% Processor Time']
 #    unix_counters: ['RSS', 'Private Bytes']
   tdhtml:
-    url: '-tp page_load_test/dhtml/dhtml.manifest -tpchrome -tpformat -tpnoisy tinderbox -tpcycles 5 -tptimeout 120000'
+    url: '-tp page_load_test/dhtml/dhtml.manifest -tpchrome -tpnoisy -tpformat tinderbox -tpcycles 5 -tptimeout 120000'
     resolution : 1
     cycles : 1
     pagetimeout : 240
     win_counters : []
     unix_counters : []
   tsvg:
-    url: '-tp page_load_test/svg/svg.manifest -tpchrome -tpformat -tpnoisy tinderbox -tpcycles 5 -tptimeout 120000'
+    url: '-tp page_load_test/svg/svg.manifest -tpchrome -tpnoisy -tpformat tinderbox -tpcycles 5 -tptimeout 120000'
     resolution : 1
     cycles : 1
     pagetimeout : 240
@@ -119,7 +119,7 @@ tests :
     win_counters: []
     unix_counters: []
   tsspider:
-    url: '-tp page_load_test/sunspider/sunspider.manifest -tpchrome -tpformat -tpnoisy tinderbox -tpcycles 5'
+    url: '-tp page_load_test/sunspider/sunspider.manifest -tpchrome -tpnoisy -tpformat tinderbox -tpcycles 5'
     resolution : 1
     cycles : 1
     pagetimeout : 240
