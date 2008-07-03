@@ -346,7 +346,8 @@ ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
 
 AB := $(firstword $(subst -, ,$(AB_CD)))
 
-APP_NAME = $(MOZ_APP_DISPLAYNAME)
+#APP_NAME = $(MOZ_APP_DISPLAYNAME)
+APP_NAME = Thunderbird
 
 ifdef MOZ_DEBUG
 APP_NAME := $(APP_NAME)Debug
