@@ -50,6 +50,7 @@
         onload="MigrationWizard.init()"
         onunload="MigrationWizard.uninit()"
         style="width: 40em;"
+        branded="true"
         buttons="accept,cancel">
 
   <script type="application/x-javascript" src="chrome://messenger/content/migration/migration.js"/>

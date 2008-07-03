@@ -17,7 +17,7 @@
 <!ENTITY importFromEudora.label         "Eudora">
 <!ENTITY importFromEudora.accesskey     "E">
 
-<!ENTITY importSource.title             "Import Settings and Mail Folders From">
+<!ENTITY importSource.title             "Import Settings and Mail Folders">
 <!ENTITY importItems.title              "Items to Import">
 <!ENTITY importItems.label              "Select which items to import:">
 
