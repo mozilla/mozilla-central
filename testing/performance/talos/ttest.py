@@ -173,6 +173,10 @@ def runTest(browser_config, test_config):
         timeout = test_config['timeout']
       else:
         timeout = 28800 # 8 hours
+      if 'pagetimeout' in test_config:
+         pagetimeout = test_config['pagetimeout']
+      else:
+         pagetimeout = 28800 # 8 hours
       total_time = 0
       output = ''
       url = test_config['url']
@@ -198,10 +202,12 @@ def runTest(browser_config, test_config):
         counter_results[counter] = []
      
       busted = False 
+      lastNoise = 0
       while total_time < timeout:
         # Sleep for [resolution] seconds
         time.sleep(resolution)
         total_time += resolution
+        lastNoise += resolution
         
         # Get the output from all the possible counters
         for count_type in counters:
@@ -217,6 +223,7 @@ def runTest(browser_config, test_config):
         if match:
           if match.group(1):
             utils.noisy(match.group(1))
+            lastNoise = 0
         match = RESULTS_REGEX.search(output)
         if match:
           browser_results += match.group(1)
@@ -243,6 +250,9 @@ def runTest(browser_config, test_config):
         if (total_time % 60 == 0): 
           if not checkBrowserAlive():
             busted = True
+        
+        if lastNoise > pagetimeout:
+          raise talosError("browser frozen")
   
       if total_time >= timeout:
         raise talosError("timeout exceeded")

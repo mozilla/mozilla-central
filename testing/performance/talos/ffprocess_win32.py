@@ -109,6 +109,8 @@ def TerminateAllProcesses(*process_names):
   for process_name in process_names:
     # Get all the process ids of running instances of this process, and terminate them.
     try:
+      # refresh list of processes
+      win32pdh.EnumObjects(None, None, 0, 1)
       pids = win32pdhutil.FindPerformanceAttributesByName(process_name, counter="ID Process")
       for pid in pids:
         TerminateProcess(pid)
