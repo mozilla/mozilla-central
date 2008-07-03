@@ -37,41 +37,37 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-function checkEngine()
+function Startup()
 {
   var engineList = document.getElementById("engineList");
-  var engineValue = engineList.label;
-  
-  //nothing is selected
-  if (!engineValue)
+  // Need to set ref attribute once overlay has loaded
+  engineList.setAttribute("ref", "NC:SearchEngineRoot");
+  // Due to a bug in the internet search service, the first time
+  // ref is set only one menuitem is built, so force a rebuild
+  engineList.builder.rebuild();
+
+  // Since the menulist starts off empty it has no selected item
+  // so try and set it to the preference value.
+  var pref = document.getElementById(engineList.getAttribute("preference"));
+  engineList.value = pref.value;
+
+  // nothing is selected
+  if (!engineList.selectedItem)
   {
-
-    try
+    var name = document.getElementById("browser.search.defaultenginename").value;
+    var selectedItem = engineList.getElementsByAttribute("label", name).item(0);
+ 
+    if (selectedItem)
     {
-        var strDefaultSearchEngineName = parent.hPrefWindow.getPref("localizedstring", "browser.search.defaultenginename");
-
-        var engineListSelection = engineList.getElementsByAttribute( "label", strDefaultSearchEngineName );
-        var selectedItem = engineListSelection.item(0);
-    
-        if (selectedItem)
-        {
-            //select a locale-dependent predefined search engine in absence of a user default
-            engineList.selectedItem = selectedItem;
-        }
-        else
-        {
-            //select the first listed search engine
-            engineList.selectedIndex = 1;
-        }
+      // select a locale-dependent predefined search engine
+      // in absence of a user default
+      engineList.selectedItem = selectedItem;
     }
-
-    catch(e)
+    else
     {
-        //select the first listed search engine
-        engineList.selectedIndex = 1;
+      // select the first listed search engine
+      engineList.selectedIndex = 0;
     }
-
+    pref.value = engineList.value;
   }
 }
-

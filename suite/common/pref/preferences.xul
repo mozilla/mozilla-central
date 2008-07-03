@@ -129,10 +129,10 @@
                     prefpane="locationBar_pane"
                     helpTopic="navigator_pref_location_bar"
                     url="chrome://communicator/content/pref/pref-locationbar.xul"/>
-<!-- commenting out yet unmigrated panels
-          <treeitem label="&search.label;"
+          <treeitem id="searchItem" label="&search.label;"
+                    prefpane="search_pane"
+                    helpTopic="navigator_pref_internet_searching"
                     url="chrome://communicator/content/pref/pref-search.xul"/>
--->
           <treeitem id="tabsItem" label="&tabWindows.label;"
                     prefpane="tabs_pane"
                     helpTopic="navigator_pref_tabbed_browsing"
