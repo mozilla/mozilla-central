@@ -17,7 +17,7 @@ def link_exists(host, selector):
       meta = site.info()
     except urllib2.URLError, e:
       print "FAIL: graph server does not resolve" 
-      print "FAIL: " + str(e.reason)
+      print "FAIL: " + str(e)
       return 0
     return 1
 
@@ -29,6 +29,11 @@ def post_multipart(host, selector, fields, files):
     Return the server's response page.
     """
     try:
+      host = host.replace('http://', '')
+      index = host.find('/')
+      if index > 0:
+          selector = '/'.join([host[index:], selector.lstrip('/')])
+          host = host[0:index]
       content_type, body = encode_multipart_formdata(fields, files)
       h = httplib.HTTP(host)
       h.putrequest('POST', selector)
