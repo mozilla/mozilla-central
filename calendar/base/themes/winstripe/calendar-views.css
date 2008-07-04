@@ -228,7 +228,7 @@ box[anonid="headerbox"][orient="horizontal"] {
 box[anonid="labelbox"][orient="horizontal"] > box[anonid="labeltimespacer"],
 box[anonid="headertimespacer"][orient="horizontal"],
 calendar-time-bar[anonid="timebar"][orient="vertical"] {
-  width: 100px;
+  width: 10ex; /* space for "11:00 AM" */
 }
 
 /* headers vertical, times horizonal */
@@ -246,13 +246,13 @@ calendar-time-bar[anonid="timebar"][orient="horizontal"] {
 
 .calendar-time-bar-label { 
   font-weight: bold;
+  margin: 2px; /* override <label> */
 }
 
 .calendar-time-bar-box-odd,
 .calendar-time-bar-box-even {
   color: #3F7D91;
   background-color: #E7EEEC;
-  text-align: right;
   overflow: hidden;
 }
 
@@ -266,6 +266,10 @@ calendar-time-bar[anonid="timebar"][orient="horizontal"] {
 .calendar-time-bar-box-even[orient="vertical"] {
   border-bottom: 1px solid #3F7D91;
   border-left: 1px solid #3F7D91;
+  /* right-align possibly variable-width column of times:
+         9:00 AM
+        10:00 AM */
+  text-align: right;
 }
 
 calendar-multiday-view {
