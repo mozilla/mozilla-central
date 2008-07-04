@@ -46,58 +46,12 @@
 #include "nsIAbDirectoryQuery.h"
 #include "nsIAbDirectorySearch.h"
 #include "nsIAbDirSearchListener.h"
-#include "nsTHashtable.h"
+#include "nsIMutableArray.h"
 
 class nsIAbManager;
 class nsIAbBooleanExpression;
 
 #define NS_ABOSXDIRECTORY_URI_PREFIX NS_ABOSXDIRECTORY_PREFIX "://"
-
-class nsIAbCardHashKey : public PLDHashEntryHdr
-{
-public:
-  typedef nsIAbCard* KeyType;
-  typedef const nsIAbCard* KeyTypePointer;
-  
-  nsIAbCardHashKey(const nsIAbCard* key)
-    : mCard(const_cast<nsIAbCard*>(key))
-  {
-  }
-  nsIAbCardHashKey(const nsIAbCardHashKey& toCopy)
-    : mCard(toCopy.mCard)
-  {
-  }
-  ~nsIAbCardHashKey()
-  {
-  }
-  
-  KeyType GetCard() const
-  {
-    return mCard;
-  }
-  KeyTypePointer GetKeyPointer() const
-  {
-    return mCard;
-  }
-  
-  PRBool KeyEquals(KeyTypePointer aKey) const
-  {
-    return aKey == mCard;
-  }
-  
-  static KeyTypePointer KeyToPointer(KeyType aKey)
-  {
-    return aKey;
-  }
-  static PLDHashNumber HashKey(KeyTypePointer aKey)
-  {
-    return NS_PTR_TO_INT32(aKey) >> 2;
-  }
-  enum { ALLOW_MEMMOVE = PR_TRUE };
-  
-private:
-    nsCOMPtr<nsIAbCard> mCard;
-};
 
 #define NS_IABOSXDIRECTORY_IID \
 { 0x87ee4bd9, 0x8552, 0x498f, \
@@ -114,6 +68,9 @@ public:
                                    nsIAbDirectory *aDirectory) = 0;
   virtual nsresult AssertCard(nsIAbManager *aManager,
                               nsIAbCard *aCard) = 0;
+  virtual nsresult UnassertCard(nsIAbManager *aManager,
+                                nsIAbCard *aCard,
+                                nsIMutableArray *aCardList) = 0;
   virtual nsresult UnassertDirectory(nsIAbManager *aManager,
                                      nsIAbDirectory *aDirectory) = 0;
   virtual nsresult DeleteUid(const nsACString &aUid) = 0;
@@ -149,6 +106,9 @@ public:
                            nsIAbDirectory *aDirectory);
   nsresult AssertCard(nsIAbManager *aManager,
                       nsIAbCard *aCard);
+  nsresult UnassertCard(nsIAbManager *aManager,
+                        nsIAbCard *aCard,
+                        nsIMutableArray *aCardList);
   nsresult UnassertDirectory(nsIAbManager *aManager,
                              nsIAbDirectory *aDirectory);
   
@@ -158,8 +118,18 @@ public:
 private:
   nsresult FallbackSearch(nsIAbBooleanExpression *aExpression,
                           nsISimpleEnumerator **aCards);
-  
-  nsTHashtable<nsIAbCardHashKey> mCardList;
+
+  // This is a list of nsIAbCards, kept separate from m_AddressList because:
+  // - nsIAbDirectory items that are mailing lists, must keep a list of
+  //   nsIAbCards in m_AddressList, however
+  // - nsIAbDirectory items that are address books, must keep a list of
+  //   nsIAbDirectory (i.e. mailing lists) in m_AddressList, AND no nsIAbCards.
+  //
+  // This wasn't too bad for mork, as that just gets a list from its database,
+  // but because we store our own copy of the list, we must store a separate
+  // list of nsIAbCards here. nsIMutableArray is used, because then it is
+  // interchangable with m_AddressList.
+  nsCOMPtr<nsIMutableArray> mCardList;
 };
 
 #endif // nsAbOSXDirectory_h___

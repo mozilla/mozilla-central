@@ -495,41 +495,32 @@ nsAbOSXDirectory::GetOperations(PRInt32 *aOperations)
   return NS_OK;
 }
 
-struct nsEnumeratorData
+static PRBool
+CheckRedundantCards(nsIAbManager *aManager, nsIAbDirectory *aDirectory,
+                    nsIAbCard *aCard, NSMutableArray *aCardList)
 {
-  NSMutableArray *mCards;
-  nsIAbDirectory *mDirectory;
-  nsIAbManager *mSession;
-};
-
-PLDHashOperator
-Enumerator(nsIAbCardHashKey *aKey, void *aUserArg)
-{
-  nsEnumeratorData *data = static_cast<nsEnumeratorData*>(aUserArg);
-  
-  nsIAbCard *abCard = aKey->GetCard();
-  
-  nsCOMPtr<nsIRDFResource> resource = do_QueryInterface(abCard);
+  nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(aCard));
+  if (!resource)
+    return PR_FALSE;
   
   const char* uri;
   resource->GetValueConst(&uri);
   NSString *uid = [NSString stringWithUTF8String:(uri + 21)];
   
-  unsigned int i, count = [data->mCards count];
+  unsigned int i, count = [aCardList count];
   for (i = 0; i < count; ++i) {
-    if ([[[data->mCards objectAtIndex:i] uniqueId] isEqualToString:uid]) {
-      [data->mCards removeObjectAtIndex:i];
+    if ([[[aCardList objectAtIndex:i] uniqueId] isEqualToString:uid]) {
+      [aCardList removeObjectAtIndex:i];
       break;
     }
   }
-  
+
   if (i == count) {
-    data->mSession->NotifyDirectoryItemDeleted(data->mDirectory, abCard);
-    
-    return PL_DHASH_REMOVE;
+    aManager->NotifyDirectoryItemDeleted(aDirectory, aCard);
+    return PR_TRUE;
   }
   
-  return PL_DHASH_NEXT;
+  return PR_FALSE;
 }
 
 nsresult
@@ -544,23 +535,50 @@ nsAbOSXDirectory::Update()
   }
   
   ABAddressBook *addressBook = [ABAddressBook sharedAddressBook];
-  
+  // Due to the horrible way the address book code works wrt mailing lists
+  // we have to use a different list depending on what we are. This pointer
+  // holds a reference to that list.
+  nsIMutableArray* cardList;
   NSArray *groups, *cards;
   if (m_IsMailList) {
     ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
     groups = nil;
     cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
+
+    if (!m_AddressList)
+    {
+      m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    // For mailing lists, store the cards in m_AddressList
+    cardList = m_AddressList;
   }
   else {
     groups = [addressBook groups];
     cards = [[addressBook people] arrayByAddingObjectsFromArray:groups];
+
+    if (!mCardList)
+    {
+      mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    // For directories, store the cards in mCardList
+    cardList = mCardList;
   }
   
   NSMutableArray *mutableArray = [NSMutableArray arrayWithArray:cards];
-  if (mCardList.IsInitialized()) {
-    nsEnumeratorData data = { mutableArray, this, abManager };
-    
-    mCardList.EnumerateEntries(Enumerator, &data);
+  PRUint32 addressCount;
+  rv = cardList->GetLength(&addressCount);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  while (addressCount--)
+  {
+    nsCOMPtr<nsIAbCard> card(do_QueryElementAt(cardList, addressCount, &rv));
+    if (NS_FAILED(rv))
+      break;
+
+    if (CheckRedundantCards(abManager, this, card, mutableArray))
+      cardList->RemoveElementAt(addressCount);
   }
   
   NSEnumerator *enumerator = [mutableArray objectEnumerator];
@@ -569,7 +587,7 @@ nsAbOSXDirectory::Update()
   while ((card = [enumerator nextObject])) {
     rv = ConvertToCard(gRDFService, card, getter_AddRefs(abCard));
     NS_ENSURE_SUCCESS(rv, rv);
-    
+
     AssertCard(abManager, abCard);
   }
   
@@ -587,11 +605,15 @@ nsAbOSXDirectory::Update()
   if (groups) {
     mutableArray = [NSMutableArray arrayWithArray:groups];
     nsCOMPtr<nsIAbDirectory> directory;
+    // It is ok to use m_AddressList here as only top-level directories have
+    // groups, and they will be in m_AddressList
     if (m_AddressList) {
-      PRUint32 i, count;
-      m_AddressList->GetLength(&count);
-      for (i = 0; i < count; ++i) {
-        directory = do_QueryElementAt(m_AddressList, i, &rv);
+      rv = m_AddressList->GetLength(&addressCount);
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      while (addressCount--)
+      {
+        directory = do_QueryElementAt(m_AddressList, addressCount, &rv);
         if (NS_FAILED(rv))
           continue;
 
@@ -688,15 +710,25 @@ nsresult
 nsAbOSXDirectory::AssertCard(nsIAbManager *aManager,
                              nsIAbCard *aCard)
 {
-  NS_ASSERTION(!mCardList.IsInitialized() || !mCardList.GetEntry(aCard),
-               "Replacing?");
-  
-  if (!mCardList.IsInitialized() && !mCardList.Init()) {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-  
-  mCardList.PutEntry(aCard);
+  nsresult rv = m_IsMailList ? m_AddressList->AppendElement(aCard, PR_FALSE) :
+                               mCardList->AppendElement(aCard, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   return aManager->NotifyDirectoryItemAdded(this, aCard);
+}
+
+nsresult
+nsAbOSXDirectory::UnassertCard(nsIAbManager *aManager,
+                               nsIAbCard *aCard,
+                               nsIMutableArray *aCardList)
+{
+  nsresult rv;
+  PRUint32 pos;
+  
+  if (NS_SUCCEEDED(aCardList->IndexOf(0, aCard, &pos)))
+    rv = aCardList->RemoveElementAt(pos);
+
+  return aManager->NotifyDirectoryItemDeleted(this, aCard);
 }
 
 nsresult
@@ -721,9 +753,8 @@ nsAbOSXDirectory::GetChildNodes(nsISimpleEnumerator **aNodes)
   NS_ENSURE_ARG_POINTER(aNodes);
   
   // Queries don't have childnodes.
-  if (mIsQueryURI || !m_AddressList) {
+  if (mIsQueryURI || m_IsMailList || !m_AddressList)
     return NS_NewEmptyEnumerator(aNodes);
-  }
   
   return NS_NewArrayEnumerator(aNodes, m_AddressList);
 }
@@ -737,6 +768,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
   
   nsresult rv;
   NSArray *cards;
+  nsCOMPtr<nsIMutableArray> cardList;
   if (mIsQueryURI) {
     nsCOMPtr<nsIAbBooleanExpression> expression;
     rv = nsAbQueryStringToExpression::Convert(mQueryString.get(),
@@ -747,43 +779,52 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
     if (!canHandle) {
       return FallbackSearch(expression, aCards);
     }
+    if (!mCardList)
+    {
+      mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+    cardList = mCardList;
   }
   else {
     if (m_IsMailList) {
       ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
       cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
+      if (!m_AddressList)
+      {
+        m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+      cardList = m_AddressList;
     }
     else {
       cards = [[addressBook people] arrayByAddingObjectsFromArray:[addressBook groups]];
+      if (!mCardList)
+      {
+        mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+      cardList = mCardList;
     }
   }
   
   // Fill the results array and update the card list
   // Also update the address list and notify any changes.
   unsigned int nbCards = [cards count];
-  if (nbCards > 0) {
-    if (mCardList.IsInitialized()) {
-      mCardList.Clear();
-    }
-    else if (!mCardList.Init()) {
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
+  if (nbCards > 0 && cardList)
+  {
+      rv = cardList->Clear();
+      NS_ENSURE_SUCCESS(rv, rv);
   }
   
-  nsCOMPtr<nsIMutableArray> cardList(do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   unsigned int i;
   nsCOMPtr<nsIAbCard> card;
   for (i = 0; i < nbCards; ++i) {
     rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
                        getter_AddRefs(card));
     NS_ENSURE_SUCCESS(rv, rv);
-    
-    rv = cardList->AppendElement(card, PR_FALSE);
-    NS_ENSURE_SUCCESS(rv, rv);
-    
-    mCardList.PutEntry(card);
+
+    cardList->AppendElement(card, PR_FALSE);
   }
   
   return NS_NewArrayEnumerator(aCards, cardList);
@@ -794,9 +835,19 @@ nsAbOSXDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
   NS_ENSURE_ARG_POINTER(aHasCard);
-  
-  *aHasCard = mCardList.IsInitialized() && mCardList.GetEntry(aCard);
-  
+
+  nsresult rv = NS_OK;
+  PRUint32 index;
+  if (m_IsMailList)
+  {
+    if (m_AddressList)
+      rv = m_AddressList->IndexOf(0, aCard, &index);
+  }
+  else if (mCardList)
+    rv = mCardList->IndexOf(0, aCard, &index);
+
+  *aHasCard = NS_SUCCEEDED(rv);
+
   return NS_OK;
 }
 
@@ -831,14 +882,16 @@ nsAbOSXDirectory::OnSearchFoundCard(nsIAbCard *aCard)
     NS_ENSURE_SUCCESS(rv, rv);
   }
   
-  if (!mCardList.IsInitialized() && !mCardList.Init()) {
-    return NS_ERROR_OUT_OF_MEMORY;
+  if (!mCardList) {
+    mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
-  
+
   rv = m_AddressList->AppendElement(aCard, PR_FALSE);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  mCardList.PutEntry(aCard);
+  rv = mCardList->AppendElement(aCard, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, rv);
   
   return NS_OK;
 }
@@ -849,10 +902,11 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
 {
   nsresult rv;
   
-  if (mCardList.IsInitialized()) 
-    mCardList.Clear();
-  else if (!mCardList.Init())
-    return NS_ERROR_OUT_OF_MEMORY;
+  if (mCardList)
+    rv = mCardList->Clear();
+  else
+    mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   
   if (m_AddressList) {
     m_AddressList->Clear();
@@ -900,34 +954,6 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   return NS_NewArrayEnumerator(aCards, m_AddressList);
 }
 
-struct nsRemoveSingleItemEnumeratorData
-{
-  nsIAbDirectory *mDirectory;
-  nsIAbManager *mManager;
-  nsCString mURI;
-};
-
-
-PLDHashOperator
-RemoveSingleItemEnumerator(nsIAbCardHashKey *aKey, void *aUserArg)
-{
-  nsRemoveSingleItemEnumeratorData* data =
-    static_cast<nsRemoveSingleItemEnumeratorData*>(aUserArg);
-  
-  nsIAbCard *abCard = aKey->GetCard();
-  
-  nsCOMPtr<nsIRDFResource> resource = do_QueryInterface(abCard);
-  
-  const char* uri;
-  resource->GetValueConst(&uri);
-
-  if (data->mURI.Equals(uri)) {
-    data->mManager->NotifyDirectoryItemDeleted(data->mDirectory, abCard);
-    return PL_DHASH_REMOVE;
-  }
-  return PL_DHASH_NEXT;
-}
-
 nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
 {
   if (!m_AddressList)
@@ -955,31 +981,52 @@ nsresult nsAbOSXDirectory::DeleteUid(const nsACString &aUid)
   // Iterate backwards in case we remove something
   while (addressCount--)
   {
-    nsCOMPtr<nsIAbDirectory> directory(do_QueryElementAt(m_AddressList,
-                                                         addressCount, &rv));
+    nsCOMPtr<nsIRDFResource> resource(do_QueryElementAt(m_AddressList,
+                                                        addressCount, &rv));
     if (NS_SUCCEEDED(rv))
     {
-      nsCString dirURI;
-      directory->GetURI(dirURI);
-      if (dirURI == uri)
-        // Match found, do the necessary and get out of here.
-        return UnassertDirectory(abManager, directory);
+      const char* dirUri;
+      resource->GetValueConst(&dirUri);
+      if (uri.Equals(dirUri))
+      {
+        nsCOMPtr<nsIAbDirectory> directory(do_QueryInterface(resource, &rv));
+        if (NS_SUCCEEDED(rv))
+          // Match found, do the necessary and get out of here.
+          return UnassertDirectory(abManager, directory);
+        else
+        {
+          nsCOMPtr<nsIAbCard> card(do_QueryInterface(resource, &rv));
+          return UnassertCard(abManager, card, m_AddressList);
+        }
+      }
     }
   }
 
   // Second, see if it is one of the cards.
-  if (!mCardList.IsInitialized())
+  if (!mCardList)
     return NS_ERROR_FAILURE;
 
   uri = NS_ABOSXCARD_URI_PREFIX;
   uri.Append(aUid);
 
-  nsRemoveSingleItemEnumeratorData data;
-  data.mDirectory = this;
-  data.mManager = abManager;
-  data.mURI = uri;
+  rv = mCardList->GetLength(&addressCount);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  mCardList.EnumerateEntries(RemoveSingleItemEnumerator, &data);
+  while (addressCount--)
+  {
+    nsCOMPtr<nsIAbCard> card(do_QueryElementAt(mCardList, addressCount, &rv));
+    if (NS_FAILED(rv))
+      continue;
 
+    nsCOMPtr<nsIRDFResource> resource(do_QueryInterface(card));
+    if (!resource)
+      continue;
+
+    const char* cardUri;
+    resource->GetValueConst(&cardUri);
+
+    if (uri.Equals(cardUri))
+      return UnassertCard(abManager, card, mCardList);
+  }
   return NS_OK;
 }
