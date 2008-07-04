@@ -252,6 +252,8 @@ public:
 
   NS_IMETHOD GetFolderURL(nsACString& url);
 
+  NS_IMETHOD UpdateSummaryTotals(PRBool force) ;
+
   NS_IMETHOD GetDeletable (PRBool *deletable);
   NS_IMETHOD GetRequiresCleanup(PRBool *requiresCleanup);
 

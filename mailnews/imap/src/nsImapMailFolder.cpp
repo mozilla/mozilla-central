@@ -1566,6 +1566,12 @@ NS_IMETHODIMP nsImapMailFolder::GetPrettyName(nsAString& prettyName)
   return GetName(prettyName);
 }
 
+NS_IMETHODIMP nsImapMailFolder::UpdateSummaryTotals(PRBool force)
+{
+  // bug 72871 inserted the mIsServer check for IMAP
+  return mIsServer? NS_OK : nsMsgDBFolder::UpdateSummaryTotals(force);
+}
+
 NS_IMETHODIMP nsImapMailFolder::GetDeletable (PRBool *deletable)
 {
   nsresult rv = NS_ERROR_FAILURE;

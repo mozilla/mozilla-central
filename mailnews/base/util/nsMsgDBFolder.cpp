@@ -3276,27 +3276,29 @@ NS_IMETHODIMP nsMsgDBFolder::GenerateUniqueSubfolderName(const nsAString& prefix
 
 NS_IMETHODIMP nsMsgDBFolder::UpdateSummaryTotals(PRBool force)
 {
-  if (!mNotifyCountChanges || mIsServer)
+  if (!mNotifyCountChanges)
     return NS_OK;
 
   PRInt32 oldUnreadMessages = mNumUnreadMessages + mNumPendingUnreadMessages;
   PRInt32 oldTotalMessages = mNumTotalMessages + mNumPendingTotalMessages;
   //We need to read this info from the database
   nsresult rv = ReadDBFolderInfo(force);
-  NS_ENSURE_SUCCESS(rv, rv);
+  
+  if (NS_SUCCEEDED(rv))
+  {
+    PRInt32 newUnreadMessages = mNumUnreadMessages + mNumPendingUnreadMessages;
+    PRInt32 newTotalMessages = mNumTotalMessages + mNumPendingTotalMessages;
 
-  PRInt32 newUnreadMessages = mNumUnreadMessages + mNumPendingUnreadMessages;
-  PRInt32 newTotalMessages = mNumTotalMessages + mNumPendingTotalMessages;
+    //Need to notify listeners that total count changed.
+    if(oldTotalMessages != newTotalMessages)
+      NotifyIntPropertyChanged(kTotalMessagesAtom, oldTotalMessages, newTotalMessages);
 
-  //Need to notify listeners that total count changed.
-  if(oldTotalMessages != newTotalMessages)
-    NotifyIntPropertyChanged(kTotalMessagesAtom, oldTotalMessages, newTotalMessages);
+    if(oldUnreadMessages != newUnreadMessages)
+      NotifyIntPropertyChanged(kTotalUnreadMessagesAtom, oldUnreadMessages, newUnreadMessages);
 
-  if(oldUnreadMessages != newUnreadMessages)
-    NotifyIntPropertyChanged(kTotalUnreadMessagesAtom, oldUnreadMessages, newUnreadMessages);
-
-  FlushToFolderCache();
-  return NS_OK;
+    FlushToFolderCache();
+  }
+  return rv;
 }
 
 NS_IMETHODIMP nsMsgDBFolder::SummaryChanged()
