@@ -35,27 +35,47 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-// get the core
-Components.utils.import("resource://gloda/modules/gloda.js");
-// make all the built-in plugins join the party
-Components.utils.import("resource://gloda/modules/everybody.js");
+EXPORTED_SYMBOLS = ['GlodaUtils'];
 
-Components.utils.import("resource://gloda/modules/datastore.js");
-Components.utils.import("resource://gloda/modules/indexer.js");
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
 
-var gloda = {
-  onLoad: function() {
-    // initialization code
-    this.initialized = true;
-    this.strings = document.getElementById("gloda-strings");
+
+let GlodaUtils = {
+  _mimeConverter: null,
+  deMime: function gloda_utils_deMime(aString) {
+    if (this._mimeConverter == null) {
+      this._mimeConverter = Cc["@mozilla.org/messenger/mimeconverter;1"].
+                            getService(Ci.nsIMimeConverter);
+    }
+    
+    return this._mimeConverter.decodeMimeHeader(aString, null, false, true);
   },
-  onMenuItemCommand: function(e) {
-    GlodaIndexer.indexEverything();
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, this.strings.getString("helloMessageTitle"),
-                                this.strings.getString("helloMessage"));
+  
+  _headerParser: null,
+  
+  /**
+   * Parses an RFC 2822 list of e-mail addresses and returns an object with
+   *  4 attributes: count, the number of addresses parsed; addresses, a list of
+   *  e-mail addresses (ex: bob@company.com); names, list (ex: Bob Smith); and
+   *  fullAddresses, aka the list of name and e-mail together (ex: "Bob Smith"
+   *  <bob@company.com>). 
+   */
+  parseMailAddresses: function gloda_utils_parseMailAddresses(aMailAddresses) {
+    if (this._headerParser == null) {
+      this._headerParser = Cc["@mozilla.org/messenger/headerparser;1"].
+                           getService(Ci.nsIMsgHeaderParser);
+    }
+    let addresses = {}, names = {}, fullAddresses = {};
+    this._headerParser.parseHeadersWithArray(aMailAddresses, addresses,
+                                             names, fullAddresses);
+    return {names: names.value, addresses: addresses.value,
+            fullAddresses: fullAddresses.value,
+            count: names.value.length}; 
   },
-
+  
+  extractBodySnippet: function gloda_utils_extractBodySnippet(aBodyString) {
+  },
 };
-window.addEventListener("load", function(e) { gloda.onLoad(e); }, false);

@@ -34,28 +34,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  * 
  * ***** END LICENSE BLOCK ***** */
-
-// get the core
-Components.utils.import("resource://gloda/modules/gloda.js");
-// make all the built-in plugins join the party
-Components.utils.import("resource://gloda/modules/everybody.js");
-
-Components.utils.import("resource://gloda/modules/datastore.js");
-Components.utils.import("resource://gloda/modules/indexer.js");
-
-var gloda = {
-  onLoad: function() {
-    // initialization code
-    this.initialized = true;
-    this.strings = document.getElementById("gloda-strings");
-  },
-  onMenuItemCommand: function(e) {
-    GlodaIndexer.indexEverything();
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, this.strings.getString("helloMessageTitle"),
-                                this.strings.getString("helloMessage"));
-  },
-
-};
-window.addEventListener("load", function(e) { gloda.onLoad(e); }, false);
+ 
+ Cu.import("resource://gloda/modules/fundattr.js");
+ Cu.import("resource://gloda/modules/explattr.js");
+ 

@@ -44,7 +44,9 @@ const Cu = Components.utils;
 
 Cu.import("resource://gloda/modules/log4moz.js");
 
+Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/datastore.js");
+Cu.import("resource://gloda/modules/gloda.js");
 
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
@@ -157,16 +159,6 @@ let GlodaIndexer = {
     this._log.info("   <<< Indexing Folder: " + aFolder.prettiestName);
   },
   
-  _mimeConverter: null,
-  _deMime: function glodaIndexDeMime(aString) {
-    if (this._mimeConverter == null) {
-      this._mimeConverter = Cc["@mozilla.org/messenger/mimeconverter;1"].
-                            getService(Ci.nsIMimeConverter);
-    }
-    
-    return this._mimeConverter.decodeMimeHeader(aString, null, false, true);
-  },
-  
   /**
    * Attempt to extract the original subject from a message.  For replies, this
    *  means either taking off the 're[#]:' (or variant, including other language
@@ -182,7 +174,7 @@ let GlodaIndexer = {
     //  nsIMimeConverter
     
     // HACK FIXME: for now, we just return the subject without any processing 
-    return this._deMime(aMsgHdr.subject);
+    return aMsgHdr.mime2DecodedSubject;
   },
   
   indexMessage: function glodaIndexMessage(aMsgHdr) {
@@ -285,5 +277,7 @@ let GlodaIndexer = {
         curMsg.messageKey = aMsgHdr.messageKey;
         this._datastore.updateMessage(curMsg);
      }
+     
+     Gloda.processMessage(curMsg, aMsgHdr);
   },
 };

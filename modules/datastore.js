@@ -54,7 +54,9 @@ Cu.import("resource://gloda/modules/datamodel.js");
 let GlodaDatastore = {
   _log: null,
 
-  _schemaVersion: 1,
+  /* ******************* SCHEMA ******************* */
+
+  _schemaVersion: 2,
   _schema: {
     tables: {
       
@@ -111,7 +113,7 @@ let GlodaDatastore = {
       attributeDefinitions: {
         columns: [
           "id INTEGER PRIMARY KEY",
-          "attributeType TEXT",
+          "attributeType INTEGER",
           "extensionName TEXT",
           "name TEXT",
           "parameter BLOB",
@@ -138,10 +140,51 @@ let GlodaDatastore = {
             /* covering: */ "messageID", "attributeID", "value"],
         },
       },
+    
+      // ----- Contacts / Identities
+    
+      /**
+       * Corresponds to a human being and roughly to an address book entry.
+       *  Constrast with an identity, which is a specific e-mail address, IRC
+       *  nick, etc.  Identities belong to contacts, and this relationship is
+       *  expressed on the identityAttributes table.
+       */
+      contacts: {
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "directoryUUID TEXT",
+          "contactUUID TEXT",
+          "name TEXT"
+        ]
+      },
+      
+      /**
+       * Identities correspond to specific e-mail addresses, IRC nicks, etc.
+       */
+      identities: {
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "contactID INTEGER NOT NULL REFERENCES contacts(id)",
+          "kind TEXT",
+          "value TEXT",
+          "description TEXT"
+        ],
+        
+        indices: {
+          contactQuery: ["contactID"],
+          valueQuery: ["kind", "value"]
+        }
+      },
+      
+      //identityAttributes: {
+      //},
+    
     },
   },
+
+  /* ******************* LOGIC ******************* */
   
-  _init: function glodaDBInit() {
+  _init: function gloda_ds_init() {
     this._log = Log4Moz.Service.getLogger("gloda.datastore");
   
     // Get the path to our global database
@@ -163,7 +206,7 @@ let GlodaDatastore = {
     // It does exist, but we (someday) might need to upgrade the schema
     else {
       // (Exceptions may be thrown if the database is corrupt)
-      try {
+      { // try {
         dbConnection = dbService.openDatabase(dbFile);
       
         if (dbConnection.schemaVersion != this._schemaVersion) {
@@ -172,16 +215,13 @@ let GlodaDatastore = {
         }
       }
       // Handle corrupt databases, other oddities
-      catch (ex) {
-        // TODO: handle them in the future.  let's die for now.
-        throw ex;
-      }
+      // ... in the future. for now, let us die
     }
     
     this.dbConnection = dbConnection;
   },
   
-  _createDB: function glodaDBCreateDB(aDBService, aDBFile) {
+  _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
     var dbConnection = aDBService.openDatabase(aDBFile);
     
     dbConnection.beginTransaction();
@@ -197,7 +237,7 @@ let GlodaDatastore = {
     return dbConnection;
   },
   
-  _createSchema: function glodaDBCreateSchema(aDBConnection) {
+  _createSchema: function gloda_ds_createSchema(aDBConnection) {
     // -- For each table...
     for (let tableName in this._schema.tables) {
       let table = this._schema.tables[tableName];
@@ -218,11 +258,13 @@ let GlodaDatastore = {
     aDBConnection.schemaVersion = this._schemaVersion;  
   },
   
-  _migrate: function glodaDBMigrate(aDBConnection, aCurVersion, aNewVersion) {
+  _migrate: function gloda_ds_migrate(aDBConnection, aCurVersion, aNewVersion) {
+    throw new Error("We currently aren't clever enough to migrate. " +
+                    "Delete your DB");
   },
   
   // cribbed from snowl
-  _createStatement: function glodaDBCreateStatement(aSQLString) {
+  _createStatement: function gloda_ds_createStatement(aSQLString) {
     let statement = null;
     try {
       statement = this.dbConnection.createStatement(aSQLString);
@@ -238,6 +280,83 @@ let GlodaDatastore = {
     wrappedStatement.initialize(statement);
     return wrappedStatement;
   },
+  
+  /* ********** Attribute Definitions ********** */
+  get _insertAttributeDefStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO attributeDefinitions (attributeType, extensionName, name, \
+                                  parameter) \
+              VALUES (:attributeType, :extensionName, :name, :parameter)");
+    this.__defineGetter__("_insertAttributeDefStatement", function() statement);
+    return this._insertAttributeDefStatement; 
+  },
+
+  /**
+   * Create an attribute definition and return the row ID.  Special/atypical
+   *  in that it doesn't directly return a GlodaAttributeDef; we leave that up
+   *  to the caller since they know much more than actually needs to go in the
+   *  database.
+   */
+  _createAttributeDef: function gloda_ds_createAttributeDef(aAttrType,
+                                    aExtensionName, aAttrName, aParameter) {
+    let iads = this._insertAttributeDefStatement;
+    iads.params.attributeType = aAttrType;
+    iads.params.extensionName = aExtensionName;
+    iads.params.name = aAttrName;
+    iads.params.parameter = aParamater;
+    
+    iads.execute();
+    
+    return this.dbConnection.lastInsertRowID;
+  },
+  
+  get _selectAttributeDefinitionsStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM attributeDefinitions");
+    this.__defineGetter__("_selectAttributeDefinitionsStatement",
+      function() statement);
+    return this._selectAttributeDefinitionsStatement;
+  },
+  
+  /**
+   * Look-up all the attribute definitions 
+   */
+  getAllAttributes: function gloda_ds_getAllAttributes() {
+    let attribs = {};
+
+    this._log.info("loading all attribute defs");
+    
+    while (this._selectAttributeDefinitionsStatement.step()) {
+      let row = this._selectAttributeDefinitionsStatement.row;
+      
+      let compoundName = row["extensionName"] + ":" + row["name"];
+      
+      let attrib;
+      if (compoundName in attribs) {
+        attrib = attribs[compoundName];
+      } else {
+        attrib = new GlodaAttributeDef(this, null,
+                                       compoundName, null, row["attributeType"],
+                                       row["extensionName"], row["name"],
+                                       null, null, null, null);
+        attribs[compoundName] = attrib;
+      }
+      // if the parameter is null, the id goes on the attribute def, otherwise
+      //  it is a parameter binding and goes in the binding map.
+      if (row["parameter"] == null) {
+        attrib._id = row["id"]; 
+      } else {
+        attrib._parameterBindings[row["parameter"]] = row["id"];
+      }
+    }
+    this._selectAttributeDefinitionsStatement.reset();
+
+    this._log.info("done loading all attribute defs");
+    
+    return attribs;
+  },
+  
+  /* ********** Folders ********** */
   
   get _insertFolderLocationStatement() {
     let statement = this._createStatement(
@@ -267,7 +386,7 @@ let GlodaDatastore = {
   _folderURIs: {},
   _folderIDs: {},
   
-  _mapFolderURI: function glodaDBMapFolderURI(aFolderURI) {
+  _mapFolderURI: function gloda_ds_mapFolderURI(aFolderURI) {
     if (aFolderURI in this._folderURIs) {
       return this._folderURIs[aFolderURI];
     }
@@ -294,7 +413,7 @@ let GlodaDatastore = {
   //  from the database the first time it is accessed, and then rely on
   //  invariant maintenance to ensure that its state keeps up-to-date with the
   //  actual database.
-  _mapFolderID: function glodaDBMapFolderID(aFolderID) {
+  _mapFolderID: function gloda_ds_mapFolderID(aFolderID) {
     if (aFolderID == null)
       return null;
     if (aFolderID in this._folderIDs)
@@ -314,7 +433,7 @@ let GlodaDatastore = {
     throw "Got impossible folder ID: " + aFolderID;
   },
   
-  // memoizing message statement creation
+  /* ********** Conversation ********** */
   get _insertConversationStatement() {
     let statement = this._createStatement(
       "INSERT INTO conversations (subject, oldestMessageDate, \
@@ -324,7 +443,8 @@ let GlodaDatastore = {
     return this._insertConversationStatement; 
   }, 
   
-  createConversation: function glodaDBCreateConversation(aSubject,
+  /** Create a conversation. */
+  createConversation: function gloda_ds_createConversation(aSubject,
         aOldestMessageDate, aNewestMessageDate) {
     
     let ics = this._insertConversationStatement;
@@ -346,7 +466,7 @@ let GlodaDatastore = {
     return this._selectConversationByIDStatement; 
   }, 
 
-  getConversationByID: function glodaDBGetConversationByID(aConversationID) {
+  getConversationByID: function gloda_ds_getConversationByID(aConversationID) {
     this._selectConversationByIDStatement.params.conversationID =
       aConversationID;
     
@@ -361,6 +481,8 @@ let GlodaDatastore = {
     return conversation;
   },
   
+  /* ********** Message ********** */
+  
   // memoizing message statement creation
   get _insertMessageStatement() {
     let statement = this._createStatement(
@@ -372,7 +494,7 @@ let GlodaDatastore = {
     return this._insertMessageStatement; 
   }, 
   
-  createMessage: function glodaDBCreateMessage(aFolderURI, aMessageKey,
+  createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
                               aConversationID, aParentID, aHeaderMessageID,
                               aBodySnippet) {
     let folderID;
@@ -420,7 +542,7 @@ let GlodaDatastore = {
     return this._updateMessageStatement; 
   }, 
   
-  updateMessage: function glodaDBUpdateMessage(aMessage) {
+  updateMessage: function gloda_ds_updateMessage(aMessage) {
     let ums = this._updateMessageStatement;
     ums.params.id = aMessage.id;
     ums.params.folderID = aMessage.folderID;
@@ -433,7 +555,7 @@ let GlodaDatastore = {
     ums.execute();
   },
   
-  _messageFromRow: function glodaDBMessageFromRow(aRow) {
+  _messageFromRow: function gloda_ds_messageFromRow(aRow) {
     return new GlodaMessage(this, aRow["id"], aRow["folderID"],
                             this._mapFolderID(aRow["folderID"]),
                             aRow["messageKey"],
@@ -451,7 +573,7 @@ let GlodaDatastore = {
     return this._selectMessageByLocationStatement;
   },
 
-  getMessageFromLocation: function glodaDBGetMessageFromLocation(aFolderURI,
+  getMessageFromLocation: function gloda_ds_getMessageFromLocation(aFolderURI,
                                                                  aMessageKey) {
     this._selectMessageByLocationStatement.params.folderID =
       this._mapFolderURI(aFolderURI);
@@ -469,7 +591,7 @@ let GlodaDatastore = {
     return message;
   },
   
-  getMessagesByMessageID: function glodaDBGetMessagesByMessageID(aMessageIDs) {
+  getMessagesByMessageID: function gloda_ds_getMessagesByMessageID(aMessageIDs) {
     let msgIDToIndex = {};
     let results = [];
     for (let iID=0; iID < aMessageIDs.length; ++iID) {
@@ -497,7 +619,7 @@ let GlodaDatastore = {
   },
   
   // could probably do with an optimized version of this...
-  getMessageByMessageID: function glodaDBGetMessageByMessageID(aMessageID) {
+  getMessageByMessageID: function gloda_ds_getMessageByMessageID(aMessageID) {
     var ids = [aMessageID];
     var messages = this.getMessagesByMessageID(ids);
     return messages.pop();
@@ -520,7 +642,7 @@ let GlodaDatastore = {
     return this._selectMessagesByConversationIDNoGhostsStatement;
   },
 
-  getMessagesByConversationID: function glodaDBGetMessagesByConversationID(
+  getMessagesByConversationID: function gloda_ds_getMessagesByConversationID(
         aConversationID, aIncludeGhosts) {
     let statement;
     if (aIncludeGhosts)
@@ -536,5 +658,151 @@ let GlodaDatastore = {
     statement.reset();
     
     return messages;
+  },
+  
+  /* ********** Message Attributes ********** */
+  get _insertMessageAttributeStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO messageAttributes (conversationID, messageID, attributeID, \
+                             value) \
+              VALUES (:conversationID, :messageID, :attributeID, :value)");
+    this.__defineGetter__("_insertMessageAttributeStatement",
+      function() statement);
+    return this._insertMessageAttributeStatement;
+  },
+  
+  insertMessageAttributes: function gloda_ds_insertMessageAttributes(aMessage,
+                                        aAttributes) {
+    let imas = this._insertMessageAttributeStatement;
+    this.dbConnection.beginTransaction();
+    try {
+      for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
+        let attribValueTuple = aAttributes[iAttribute];
+        imas.params.conversationID = aMessage.conversationID;
+        imas.params.messageID = aMessage.id;
+        imas.params.attributeID = attribValueTuple[0];
+        imas.params.value = attribValueTuple[1];
+        imas.execute();
+        imas.reset();
+      }
+      
+      this.dbConnection.commitTransaction();
+    }
+    catch (ex) {
+      this.dbConnection.rollbackTransaction();
+      throw ex;
+    }
+  },
+  
+  get _deleteMessageAttributesByMessageIDStatement() {
+    let statement = this._createStatement(
+      "DELETE FROM messageAttributes WHERE messageID = :messageID");
+    this.__defineGetter__("_deleteMessageAttributesByMessageIDStatement",
+      function() statement);
+    return this._deleteMessageAttributesByMessageIDStatement;
+  },
+
+  clearMessageAttributes: function gloda_ds_clearMessageAttributes(aMessage) {
+    if (aMessage.id != null) {
+      this._deleteMessageAttributesByMessageIDStatement.params.messageID =
+        aMessage.id;
+      this._deleteMessageAttributesByMessageIDStatement.execute();
+    }
+  },
+  
+  /* ********** Contact ********** */
+  get _insertContactStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO contacts (directoryUUID, contactUUID, name) \
+              VALUES (:directoryUUID, :contactUUID, :name)");
+    this.__defineGetter__("_insertContactStatement", function() statement);
+    return this._insertContactStatement; 
+  },
+  
+  createContact: function gloda_ds_createContact(aDirectoryUUID, aContactUUID,
+                                                 aName) {
+    let ics = this._insertContactStatement;
+    ics.params.directoryUUID = aDirectoryUUID;
+    ics.params.contactUUID = aContactUUID;
+    ics.params.name = aName;
+    
+    ics.execute();
+    
+    return new GlodaContact(this.this.dbConnection.lastInsertRowID,
+                            aDirectoryUUID, aContactUUID, aName);
+  },
+  
+  _contactFromRow: function gloda_ds_contactFromRow(aRow) {
+    return new GlodaContact(this, aRow["id"], );
+  },
+  
+  get _selectContactByIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM contacts WHERE id = :id");
+    this.__defineGetter__("_selectContactByIDStatement",
+      function() statement);
+    return this._selectContactByIDStatement;
+  },
+
+  getContactByID: function gloda_ds_getContactByID(aContactID) {
+    let contact = null;
+  
+    let scbi = this._selectContactByIDStatement;
+    scbi.params.id = aContactID;
+    if (scbi.step()) {
+      contact = this._contactFromRow(scbi.row);
+    }
+    scbi.reset();
+    
+    return scbi;
+  },
+  
+  /* ********** Identity ********** */
+  get _insertIdentityStatement() {
+    let statement = this._createStatement(
+      "INSERT INTO identities (contactID, kind, value, description) \
+              VALUES (:contactID, :kind, :value, :description)");
+    this.__defineGetter__("_insertIdentityStatement", function() statement);
+    return this._insertIdentityStatement; 
+  },
+  
+  createIdentity: function gloda_ds_createIdentity(aContactID, aContact, aKind,
+                                                   aValue, aDescription) {
+    let iis = this._insertIdentityStatement;
+    iis.params.contactID = aContactID;
+    iis.params.kind = aKind;
+    iis.params.value = aValue;
+    iis.params.description = aDescription;
+  
+    return new GlodaIdentity(this, this.dbConnection.lastInsertRowID,
+                             aContactID, aContact, aKind, aValue, aDescription);
+  },
+  
+  _identityFromRow: function gloda_ds_identityFromRow(aRow) {
+    return new GlodaIdentity(this, aRow["id"], aRow["contactID"], null,
+                             aRow["kind"], aRow["value"]);
+  },
+  
+  get _selectIdentityByKindValueStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM identities WHERE kind = :kind AND value = :value");
+    this.__defineGetter__("_selectIdentityByKindValueStatement",
+      function() statement);
+    return this._selectIdentityByKindValueStatement;
+  },
+
+  /** Lookup an identity by kind and value.  Ex: (email, foo@bar.com) */
+  getIdentity: function gloda_ds_getIdentity(aKind, aValue) {
+    let identity = null;
+    
+    let ibkv = this._selectIdentityByKindValueStatement;
+    ibkv.params.kind = aKind;
+    ibkv.params.value = aValue;
+    if (ibkv.step()) {
+      identity = this._identityFromRow(ibkv.row);
+    }
+    ibkv.reset();
+    
+    return identity;
   },
 };
