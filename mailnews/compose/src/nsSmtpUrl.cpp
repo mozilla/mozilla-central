@@ -223,10 +223,10 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     nsUnescape(m_toPart.BeginWriting());
     if (mimeConverter)
     {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_toPart.get(),
-        &decodedString,
-        "UTF-8", PR_FALSE))
-        && decodedString)
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                           m_toPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                           &decodedString))
+          && decodedString)
         m_toPart.Adopt(decodedString);
     }
   }
@@ -235,32 +235,34 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     nsUnescape(m_ccPart.BeginWriting());
     if (mimeConverter)
     {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_ccPart.get(),
-        &decodedString,
-        "UTF-8", PR_FALSE))
-        && decodedString)
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                           m_ccPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                           &decodedString))
+          && decodedString)
         m_ccPart.Adopt(decodedString);
     }
   }
   if (!m_bccPart.IsEmpty())
   {
     nsUnescape(m_bccPart.BeginWriting());
-    if (mimeConverter && 
-      NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_bccPart.get(),
-                                                &decodedString,
-                                                "UTF-8", PR_FALSE))
-                                                && decodedString)
+    if (mimeConverter)
+    {
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                           m_bccPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
+                           &decodedString))
+          && decodedString)
         m_bccPart.Adopt(decodedString);
+    }
   }
   if (!m_subjectPart.IsEmpty())
   {
     nsUnescape(m_subjectPart.BeginWriting());
     if (mimeConverter)
     {
-      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeader(m_subjectPart.get(),
-        &decodedString,
-        "UTF-8", PR_FALSE))
-        && decodedString)
+      if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
+                           m_subjectPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
+                           &decodedString))
+          && decodedString)
         m_subjectPart.Adopt(decodedString);
     }
   }

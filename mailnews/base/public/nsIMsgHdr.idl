@@ -47,7 +47,7 @@
 
 interface nsIMsgFolder;
 
-[scriptable, uuid(56515ecb-5ad2-4b3e-9877-c6df26bb9443)]
+[scriptable, uuid(211b9eef-5f48-4135-aebb-0ac4e7738159)]
 interface nsIMsgDBHdr : nsISupports
 {
     /* general property routines - I think this can retrieve any
@@ -110,9 +110,9 @@ interface nsIMsgDBHdr : nsISupports
     void setCCListArray(in string names, in string addresses,
                         in unsigned long numAddresses);
 
-    readonly attribute wstring mime2DecodedAuthor;
-    readonly attribute wstring mime2DecodedSubject;
-    readonly attribute wstring mime2DecodedRecipients;
+    readonly attribute AString mime2DecodedAuthor;
+    readonly attribute AString mime2DecodedSubject;
+    readonly attribute AString mime2DecodedRecipients;
 
     [noscript] void getAuthorCollationKey(out octetPtr key, out unsigned long len);
     [noscript] void getSubjectCollationKey(out octetPtr key, out unsigned long len);

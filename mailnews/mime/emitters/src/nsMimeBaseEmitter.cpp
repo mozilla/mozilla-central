@@ -709,7 +709,8 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
     nsCString tValue;
 
     // we're going to need a converter to convert
-    nsresult rv = mUnicodeConverter->DecodeMimeHeader(value, getter_Copies(tValue));
+    nsresult rv = mUnicodeConverter->DecodeMimeHeaderToCharPtr(
+      value, nsnull, PR_FALSE, PR_TRUE, getter_Copies(tValue));
     if (NS_SUCCEEDED(rv) && !tValue.IsEmpty())
       newValue = MsgEscapeHTML(tValue.get());
     else

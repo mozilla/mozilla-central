@@ -55,6 +55,7 @@
 #include "nsIPrefBranch.h"
 #include "nsMsgUtils.h"
 #include "mimebuf.h"
+#include "nsIMimeConverter.h"
 #include "nsMsgI18N.h"
 #include "nsMimeTypes.h"
 #include "nsICharsetConverterManager.h"
@@ -201,7 +202,7 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
   nsCOMPtr <nsISaveAsCharset> conv;
   PRUnichar *_pUCS2 = nsnull, *pUCS2 = nsnull, *pUCS2Head = nsnull, cUCS2Tmp = 0;
   char  *ibuf, *o = output;
-  char  encodedword_head[kMAX_CSNAME+4+1];
+  char  encodedword_head[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+4+1];
   nsCAutoString _charset;
   char  *pUTF8Head = nsnull, cUTF8Tmp = 0;
   PRInt32   olen = 0, obufsize = outlen, offset, linelen = output_carryoverlen, convlen = 0;
@@ -708,7 +709,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
         spacepos = p;
     }
     if (spacepos) {
-      char head[kMAX_CSNAME+4+1];
+      char head[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+4+1];
       PRInt32  overhead, skiplen;
       if (!PR_snprintf(head, sizeof(head) - 1, "=?%s?%c?", charset, method)) {
         PR_Free(output);

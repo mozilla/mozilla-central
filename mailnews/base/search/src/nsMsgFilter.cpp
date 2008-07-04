@@ -485,8 +485,8 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
                                          kTimeFormatSeconds, &exploded,
                                          dateValue);
 
-    (void)aMsgHdr->GetMime2DecodedAuthor(getter_Copies(authorValue));
-    (void)aMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectValue));
+    (void)aMsgHdr->GetMime2DecodedAuthor(authorValue);
+    (void)aMsgHdr->GetMime2DecodedSubject(subjectValue);
 
     nsCString buffer;
 #ifdef MOZILLA_INTERNAL_API

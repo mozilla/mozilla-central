@@ -581,8 +581,8 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
                                       kTimeFormatSeconds, &exploded,
                                       dateValue);
 
-  (void)aMsgHdr->GetMime2DecodedAuthor(getter_Copies(authorValue));
-  (void)aMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectValue));
+  (void)aMsgHdr->GetMime2DecodedAuthor(authorValue);
+  (void)aMsgHdr->GetMime2DecodedSubject(subjectValue);
 
   nsCString buffer;
   // this is big enough to hold a log entry.

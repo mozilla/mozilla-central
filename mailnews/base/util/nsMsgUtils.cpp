@@ -583,7 +583,8 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
   {
     mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
-      rv = mimeConverter->DecodeMimeHeader(*stringP, getter_Copies(decodedString));
+      rv = mimeConverter->DecodeMimeHeaderToCharPtr(
+        *stringP, nsnull, PR_FALSE, PR_TRUE, getter_Copies(decodedString));
   }
 
   s = !decodedString.IsEmpty() ? decodedString.get() : *stringP;
@@ -651,11 +652,12 @@ PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSub
         const char *p2 = strchr(p1, '?');   // then search for '?'
         if (p2)
         {
-          char charset[kMAX_CSNAME] = "";
-          if (kMAX_CSNAME >= (p2 - p1))
+          char charset[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH] = "";
+          if (nsIMimeConverter::MAX_CHARSET_NAME_LENGTH >= (p2 - p1))
             strncpy(charset, p1, p2 - p1);
-          rv = mimeConverter->EncodeMimePartIIStr_UTF8(s, PR_FALSE, charset, sizeof("Subject:"),
-                                                       kMIME_ENCODED_WORD_SIZE, modifiedSubject);
+          rv = mimeConverter->EncodeMimePartIIStr_UTF8(s, PR_FALSE, charset,
+            sizeof("Subject:"), nsIMimeConverter::MIME_ENCODED_WORD_SIZE,
+            modifiedSubject);
           if (NS_SUCCEEDED(rv))
             return result;
         }

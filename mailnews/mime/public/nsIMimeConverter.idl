@@ -39,82 +39,121 @@
 
 %{C++
 
-#include "prtypes.h"
-
-// default line length for calling the encoder
-#define kMIME_ENCODED_WORD_SIZE       72 
-
-// Max length of charset name. 
-#define kMAX_CSNAME                   64 
-
 /* Opaque objects used by the encoder/decoder to store state. */
 typedef struct MimeDecoderData MimeDecoderData;
 typedef struct MimeEncoderData MimeEncoderData;
 
+typedef nsresult (*PR_CALLBACK MimeConverterOutputCallback)
+    (const char *buf, PRInt32 size, void *closure);
+
 %}
 
-[scriptable, uuid(59B73615-2285-4d88-A31C-1ABFE4773F4F)]
+[ptr] native MimeDecoderDataPtr(MimeDecoderData);
+[ptr] native MimeEncoderDataPtr(MimeEncoderData);
+native MimeConverterOutputCallback(MimeConverterOutputCallback);
+
+/**
+ * Encode/decode mail headers (via libmime).
+ */
+[scriptable, uuid(879f3aeb-b48a-40c1-ae94-ed8f6ecdbc90)]
 interface nsIMimeConverter : nsISupports {
+  /**
+   * Suggested byte length limit for use when calling
+   * encodeMimePartIIStr(_UTF8).
+   */
+  const long MIME_ENCODED_WORD_SIZE = 72;
+  const long MAX_CHARSET_NAME_LENGTH = 64;
 
-  // These methods are all implemented by libmime to be used by 
-  // modules that need to encode/decode mail headers
-
-  // Decode routine.
-  // If header does not need decoding, places nsnull in decodedString
-
-  // Encode routine
+  /**
+   * Encode an ASCII string into RFC2047 form, but don't use this...
+   * use encodeMimePartIIStr_UTF8 for scripting purposes.
+   * (The header argument could easily contain non-ASCII characters.)
+   *
+   * All this routine does is convert header to unicode, then call the
+   * UTF8 version anyways.
+   */
   string encodeMimePartIIStr(in string  header, 
                              in boolean structured, 
                              in string  mailCharset, 
                              in long    fieldnamelen,
                              in long    encodedWordSize);
 
-  // Encode routine (utf-8 input)
+  /**
+   * Encode a UTF-8 CString into RFC 2047 form ("=?" charset "?" encoding "?"
+   * encoded-text "?=", where encoding is either "B" for BASE64 (RFC 2045) or
+   * "Q" for quoted-printable-ish (RFC 2045)).
+   *
+   * @param header UTF-8 header to encode.
+   * @param structured Is the header's field-body a "structured" field?
+   *     (Encoded words are only allowed in comment/phrase portions of
+   *     structured field bodies.)
+   * @param mailCharset Charset name to convert (as an ASCII C string).
+   * @param fieldnamelen Header field name lengt (ex: "From: " = 6)
+   * @param encodedWordSize Byte length limit of the output, usually 72. (Use
+   *     MIME_ENCODED_WORD_SIZE.)
+   *
+   * @return The encoded buffer (as a C string).
+   */
   string encodeMimePartIIStr_UTF8(in string  header, 
                                   in boolean structured, 
                                   in string  mailCharset, 
                                   in long    fieldnamelen,
                                   in long    encodedWordSize);
 
-  // TO DO: Comeback and convert the rest of these methods into scriptable methods when we have more time...
-%{C++
-  NS_IMETHOD DecodeMimeHeader(const char *header, 
-                              char **decodedString,
-                              const char *default_charset = nsnull,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE) = 0;
+  /**
+   * Decode a MIME header to UTF-8 if conversion is required.  Marked as
+   * noscript because the return value may contain non-ASCII characters.
+   *
+   * @param header A (possibly encoded) header to decode.
+   * @param default_charset The charset to apply to un-labeled non-UTF-8 data.
+   * @param override_charset If true, default_charset is used instead of any
+   *     charset labeling other than UTF-8.
+   * @param eatContinuations If true, unfold headers.
+   *
+   * @return UTF-8 encoded value if conversion was required, nsnull if no
+   *     conversion was required.
+   */
+  [noscript]
+  string decodeMimeHeaderToCharPtr(in string header,
+                                   in string default_charset,
+                                   in boolean override_charset,
+                                   in boolean eatContinuations);
 
-  // Decode routine (also converts output to unicode)
-  // On success, decodedString is never null
-  NS_IMETHOD DecodeMimeHeader(const char *header, 
-                              PRUnichar **decodedString,
-                              const char *default_charset = nsnull,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE) = 0;
+  /**
+   * Decode a MIME header to UTF-16.
+   *
+   * @param header A (possibly encoded) header to decode.
+   * @param default_charset The charset to apply to un-labeled non-UTF-8 data.
+   * @param override_charset If true, default_charset is used instead of any
+   *     charset labeling other than UTF-8.
+   * @param eatContinuations If true, unfold headers.
+   *
+   * @return UTF-16 encoded value as an AString.
+   */
+  AString decodeMimeHeader(in string header,
+                           in string default_charset,
+                           in boolean override_charset,
+                           in boolean eatContinuations);
 
-  // Decode routine (also converts output to unicode)
-  // On success, decodedString is never null
-  NS_IMETHOD DecodeMimeHeader(const char *header, 
-                              nsAString& decodedString,
-                              const char *default_charset = nsnull,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE) = 0;
+  [noscript]
+  MimeEncoderDataPtr B64EncoderInit(in MimeConverterOutputCallback output_fn,
+                                    in voidPtr closure);
 
-  NS_IMETHOD B64EncoderInit(nsresult (*PR_CALLBACK output_fn) (const char *buf, PRInt32 size, void *closure), 
-                                void *closure, MimeEncoderData **returnEncoderData)  = 0;
+  [noscript]
+  MimeEncoderDataPtr QPEncoderInit(in MimeConverterOutputCallback output_fn,
+                                   in voidPtr closure);
 
-  NS_IMETHOD QPEncoderInit (nsresult (*PR_CALLBACK output_fn) (const char *buf, 
-                                PRInt32 size, void *closure), void *closure, 
-                                MimeEncoderData ** returnEncoderData) = 0;
+  [noscript]
+  MimeEncoderDataPtr UUEncoderInit(in string filename,
+                                   in MimeConverterOutputCallback output_fn,
+                                   in voidPtr closure);
 
-  NS_IMETHOD UUEncoderInit (char *filename, nsresult (*PR_CALLBACK output_fn) 
-                               (const char *buf, PRInt32 size, void *closure), void *closure, 
-                               MimeEncoderData ** returnEncoderData) = 0;
+  [noscript]
+  void EncoderDestroy(in MimeEncoderDataPtr data, in boolean abort_p);
 
-  NS_IMETHOD EncoderDestroy(MimeEncoderData *data, PRBool abort_p) = 0;
-
-  NS_IMETHOD EncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size, PRInt32 *written) = 0;
-%}
+  [noscript]
+  long EncoderWrite(in MimeEncoderDataPtr data, in string buffer,
+                    in long size);
 
 };
 

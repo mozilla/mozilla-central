@@ -740,8 +740,8 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
   NS_ENSURE_SUCCESS(rv, rv);
   nsString fromStr, subjectStr, confirmString;
 
-  m_newMailParser->m_newMsgHdr->GetMime2DecodedSubject(getter_Copies(subjectStr));
-  m_newMailParser->m_newMsgHdr->GetMime2DecodedAuthor(getter_Copies(fromStr));
+  m_newMailParser->m_newMsgHdr->GetMime2DecodedSubject(subjectStr);
+  m_newMailParser->m_newMsgHdr->GetMime2DecodedAuthor(fromStr);
   const PRUnichar *params[] = { fromStr.get(), subjectStr.get() };
   bundle->FormatStringFromID(POP3_TMP_DOWNLOAD_FAILED, params, 2, getter_Copies(confirmString));
   nsCOMPtr<nsIDOMWindowInternal> parentWindow;

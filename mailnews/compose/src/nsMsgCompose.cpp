@@ -1783,12 +1783,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
       nsCString subjectCStr;
       (void) msgHdr->GetSubject(getter_Copies(subjectCStr));
-      rv = mimeConverter->DecodeMimeHeader(subjectCStr.get(),
-                getter_Copies(decodedCString),
-                originCharset.get(), charsetOverride);
+      rv = mimeConverter->DecodeMimeHeader(subjectCStr.get(), originCharset.get(),
+                                           charsetOverride, PR_TRUE, subject);
       if (NS_FAILED(rv)) return rv;
-
-      CopyUTF8toUTF16(decodedCString, subject);
 
       // Check if (was: is present in the subject
       PRInt32 wasOffset = subject.RFind(NS_LITERAL_STRING(" (was:"));
@@ -1974,9 +1971,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             else
               toField.Assign(author);
 
-            rv = mimeConverter->DecodeMimeHeader(toField.get(),
-                getter_Copies(decodedCString),
-                originCharset.get(), charsetOverride);
+            rv = mimeConverter->DecodeMimeHeaderToCharPtr(toField.get(),
+                originCharset.get(), charsetOverride, PR_TRUE,
+                getter_Copies(decodedCString));
             if (NS_SUCCEEDED(rv) && !decodedCString.IsEmpty())
               m_compFields->SetTo(decodedCString.get());
             else
@@ -2247,18 +2244,19 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
 
       if (NS_SUCCEEDED(rv))
       {
-        nsCString decodedString;
+        nsCString decodedCString;
         mMimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
         // Decode header, the result string is null if the input is non MIME encoded ASCII.
         if (mMimeConverter)
-          mMimeConverter->DecodeMimeHeader(author.get(), getter_Copies(decodedString), charset, charetOverride);
+          mMimeConverter->DecodeMimeHeaderToCharPtr(author.get(), charset,
+            charetOverride, PR_TRUE, getter_Copies(decodedCString));
 
         nsCOMPtr<nsIMsgHeaderParser> parser (do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID));
 
         if (parser)
         {
           nsCString authorName;
-          rv = parser->ExtractHeaderAddressName("UTF-8", !decodedString.IsEmpty() ? decodedString.get() : author.get(),
+          rv = parser->ExtractHeaderAddressName("UTF-8", !decodedCString.IsEmpty() ? decodedCString.get() : author.get(),
                                                 getter_Copies(authorName));
           // take care "%s wrote"
           PRUnichar *formatedString = nsnull;
@@ -2404,24 +2402,28 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         {
           mHeaders->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
-            mMimeConverter->DecodeMimeHeader(outCString.get(), recipient, charset.get());
+            mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                             PR_FALSE, PR_TRUE, recipient);
 
           mHeaders->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
-            mMimeConverter->DecodeMimeHeader(outCString.get(), cc, charset.get());
+            mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                             PR_FALSE, PR_TRUE, cc);
 
           // preserve BCC for the reply-to-self case
           mHeaders->ExtractHeader(HEADER_BCC, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
           {
-            mMimeConverter->DecodeMimeHeader(outCString.get(), bcc, charset.get());
+            mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                             PR_FALSE, PR_TRUE, bcc);
             if (bcc.Length() > 0)
               compFields->SetBcc(bcc);
           }
 
           mHeaders->ExtractHeader(HEADER_MAIL_FOLLOWUP_TO, PR_TRUE, getter_Copies(outCString));
           if (!outCString.IsEmpty())
-            mMimeConverter->DecodeMimeHeader(outCString.get(), mailFollowupTo, charset.get());
+            mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                             PR_FALSE, PR_TRUE, mailFollowupTo);
 
           if (! mailFollowupTo.IsEmpty())
           { // handle Mail-Followup-To (http://cr.yp.to/proto/replyto.html)
@@ -2440,7 +2442,8 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
         mHeaders->ExtractHeader(HEADER_LIST_POST, PR_TRUE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), listPost, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, listPost);
 
         if (type == nsIMsgCompType::ReplyToList && ! listPost.IsEmpty())
         {
@@ -2455,27 +2458,33 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
 
         mHeaders->ExtractHeader(HEADER_REPLY_TO, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), replyTo, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, replyTo);
 
         mHeaders->ExtractHeader(HEADER_MAIL_REPLY_TO, PR_TRUE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), mailReplyTo, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, mailReplyTo);
 
         mHeaders->ExtractHeader(HEADER_NEWSGROUPS, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), newgroups, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, newgroups);
 
         mHeaders->ExtractHeader(HEADER_FOLLOWUP_TO, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), followUpTo, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, followUpTo);
 
         mHeaders->ExtractHeader(HEADER_MESSAGE_ID, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), messageId, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, messageId);
 
         mHeaders->ExtractHeader(HEADER_REFERENCES, PR_FALSE, getter_Copies(outCString));
         if (!outCString.IsEmpty())
-          mMimeConverter->DecodeMimeHeader(outCString.get(), references, charset.get());
+          mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                           PR_FALSE, PR_TRUE, references);
 
         if (! ((type == nsIMsgCompType::ReplyAll) && ! mailFollowupTo.IsEmpty()) &&
             ! ((type == nsIMsgCompType::ReplyToList) && ! listPost.IsEmpty()))
@@ -2522,7 +2531,8 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
               if (!outCString.IsEmpty())
               {
                 nsAutoString from;
-                mMimeConverter->DecodeMimeHeader(outCString.get(), from, charset.get());
+                mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
+                                                 PR_FALSE, PR_TRUE, from);
                 compFields->SetTo(from);
               }
             }

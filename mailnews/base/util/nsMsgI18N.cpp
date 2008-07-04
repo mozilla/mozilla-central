@@ -249,7 +249,8 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const
   nsresult res;
   nsCOMPtr<nsIMimeConverter> converter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &res);
   if (NS_SUCCEEDED(res) && nsnull != converter)
-    res = converter->EncodeMimePartIIStr_UTF8(header, structured, charset, fieldnamelen, kMIME_ENCODED_WORD_SIZE, &encodedString);
+    res = converter->EncodeMimePartIIStr_UTF8(header, structured, charset,
+      fieldnamelen, nsIMimeConverter::MIME_ENCODED_WORD_SIZE, &encodedString);
 
   return NS_SUCCEEDED(res) ? encodedString : nsnull;
 }
@@ -337,7 +338,7 @@ PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar
 const char * 
 nsMsgI18NParseMetaCharset(nsILocalFile* file) 
 { 
-  static char charset[kMAX_CSNAME+1]; 
+  static char charset[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH+1];
 
   *charset = '\0'; 
 

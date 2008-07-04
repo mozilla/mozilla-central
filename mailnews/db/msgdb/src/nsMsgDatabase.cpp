@@ -3068,7 +3068,7 @@ nsIMimeConverter *nsMsgDatabase::GetMimeConverter()
   return m_mimeConverter;
 }
 
-nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_token columnToken, PRUnichar* *resultStr)
+nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_token columnToken, nsAString &resultStr)
 {
   nsresult err = NS_OK;
   const char *nakedString = nsnull;
@@ -3089,9 +3089,8 @@ nsresult nsMsgDatabase::RowCellColumnToMime2DecodedString(nsIMdbRow *row, mdb_to
         m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       }
 
-      err = m_mimeConverter->DecodeMimeHeader(nakedString, resultStr,
-                                              charSet.get(),
-                                              characterSetOverride);
+      err = m_mimeConverter->DecodeMimeHeader(nakedString, charSet.get(),
+        characterSetOverride, PR_TRUE, resultStr);
     }
   }
   return err;
@@ -3124,8 +3123,8 @@ nsresult nsMsgDatabase::RowCellColumnToAddressCollationKey(nsIMdbRow *row, mdb_t
           m_dbFolderInfo->GetEffectiveCharacterSet(charset);
         }
 
-        ret = converter->DecodeMimeHeader(cSender, getter_Copies(resultStr),
-          charset.get(), characterSetOverride);
+        ret = converter->DecodeMimeHeaderToCharPtr(cSender, charset.get(),
+          characterSetOverride, PR_TRUE, getter_Copies(resultStr));
         if (NS_SUCCEEDED(ret) && !resultStr.IsEmpty())
           ret = headerParser->ExtractHeaderAddressName ("UTF-8", resultStr.get(), getter_Copies(name));
         else
@@ -3192,10 +3191,9 @@ nsresult nsMsgDatabase::RowCellColumnToCollationKey(nsIMdbRow *row, mdb_token co
         m_dbFolderInfo->GetEffectiveCharacterSet(charSet);
       }
 
-      err = m_mimeConverter->DecodeMimeHeader(nakedString,
-                                              getter_Copies(decodedStr),
-                                              charSet.get(),
-                                              characterSetOverride);
+      err = m_mimeConverter->DecodeMimeHeaderToCharPtr(nakedString,
+        charSet.get(), characterSetOverride, PR_TRUE,
+        getter_Copies(decodedStr));
       if (NS_SUCCEEDED(err))
         err = CreateCollationKey(NS_ConvertUTF8toUTF16(decodedStr), result, len);
     }

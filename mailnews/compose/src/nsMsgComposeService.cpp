@@ -1070,8 +1070,8 @@ NS_IMETHODIMP nsMsgTemplateReplyHelper::OnStopRunningUrl(nsIURI *aUrl, nsresult 
   nsString body;
   nsString templateSubject, replySubject;
 
-  mTemplateHdr->GetMime2DecodedSubject(getter_Copies(templateSubject));
-  mHdrToReplyTo->GetMime2DecodedSubject(getter_Copies(replySubject));
+  mTemplateHdr->GetMime2DecodedSubject(templateSubject);
+  mHdrToReplyTo->GetMime2DecodedSubject(replySubject);
   if (!replySubject.IsEmpty())
   {
     templateSubject.Append(NS_LITERAL_STRING(" (was: "));

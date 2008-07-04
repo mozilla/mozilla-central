@@ -504,25 +504,30 @@ nsMsgSendLater::CompleteMailFileSend()
 
   nsCString decodedString;
   // decoded string is null if the input is not MIME encoded
-  mimeConverter->DecodeMimeHeader(author.get(), getter_Copies(decodedString));
+  mimeConverter->DecodeMimeHeaderToCharPtr(author.get(), nsnull, PR_FALSE,
+                                           PR_TRUE,
+                                           getter_Copies(decodedString));
 
   fields->SetFrom(decodedString.IsEmpty() ? author.get() : decodedString.get());
 
   if (m_to)
   {
-    mimeConverter->DecodeMimeHeader(m_to, getter_Copies(decodedString));
+    mimeConverter->DecodeMimeHeaderToCharPtr(m_to, nsnull, PR_FALSE, PR_TRUE,
+                                             getter_Copies(decodedString));
     fields->SetTo(decodedString.IsEmpty() ? m_to : decodedString.get());
   }
 
   if (m_bcc)
   {
-    mimeConverter->DecodeMimeHeader(m_bcc, getter_Copies(decodedString));
+    mimeConverter->DecodeMimeHeaderToCharPtr(m_bcc, nsnull, PR_FALSE, PR_TRUE,
+                                             getter_Copies(decodedString));
     fields->SetBcc(decodedString.IsEmpty() ? m_bcc : decodedString.get());
   }
 
   if (m_fcc)
   {
-    mimeConverter->DecodeMimeHeader(m_fcc, getter_Copies(decodedString));
+    mimeConverter->DecodeMimeHeaderToCharPtr(m_fcc, nsnull, PR_FALSE, PR_TRUE,
+                                             getter_Copies(decodedString));
     fields->SetFcc(decodedString.IsEmpty() ? m_fcc : decodedString.get());
   }
 

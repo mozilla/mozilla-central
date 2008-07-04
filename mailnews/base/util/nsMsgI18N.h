@@ -42,10 +42,6 @@
 #include "msgCore.h"
 class nsILocalFile;
 
-#ifndef kMAX_CSNAME
-#define kMAX_CSNAME 64
-#endif
-
 /**
  * Encode an input string into RFC 2047 form.
  *

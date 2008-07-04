@@ -65,64 +65,7 @@ public:
        
   /* this macro defines QueryInterface, AddRef and Release for this class */
   NS_DECL_ISUPPORTS 
-
-  // These methods are all implemented by libmime to be used by 
-  // content type handler plugins for processing stream data. 
-
-  // Decode routine
-  NS_IMETHOD DecodeMimeHeader(const char *header, 
-                              char **decodedString,
-                              const char *default_charset = 0,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE);
-
-  // Decode routine (also converts output to unicode)
-  // On success, decodedString is never null
-  NS_IMETHOD DecodeMimeHeader(const char *header,
-                              PRUnichar **decodedString,
-                              const char *default_charset = 0,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE);
-
-  // Decode routine (also converts output to unicode)
-  // On success, decodedString is never null
-  NS_IMETHOD DecodeMimeHeader(const char *header, 
-                              nsAString& decodedString,
-                              const char *default_charset = nsnull,
-                              PRBool override_charset = PR_FALSE,
-                              PRBool eatContinuations = PR_TRUE);
-
-  // Encode routine
-  NS_IMETHOD EncodeMimePartIIStr(const char    *header, 
-                                 PRBool        structured, 
-                                 const char    *mailCharset, 
-                                 PRInt32       fieldnamelen,
-                                 PRInt32       encodedWordSize, 
-                                 char          **encodedString);
-
-  // Encode routine (utf-8 input)
-  NS_IMETHOD EncodeMimePartIIStr_UTF8(const char    *header, 
-                                      PRBool        structured, 
-                                      const char    *mailCharset, 
-                                      PRInt32       fieldnamelen,
-                                      PRInt32       encodedWordSize, 
-                                      char          **encodedString);
-
-  NS_IMETHOD B64EncoderInit(nsresult (*PR_CALLBACK output_fn) (const char *buf, PRInt32 size, void *closure), 
-                                void *closure, MimeEncoderData **returnEncoderData);
-
-  NS_IMETHOD QPEncoderInit (nsresult (*PR_CALLBACK output_fn) (const char *buf, 
-                                PRInt32 size, void *closure), void *closure, 
-                                MimeEncoderData ** returnEncoderData);
-
-  NS_IMETHOD UUEncoderInit (char *filename, nsresult (*PR_CALLBACK output_fn) 
-                               (const char *buf, PRInt32 size, void *closure), void *closure, 
-                               MimeEncoderData ** returnEncoderData);
-
-  NS_IMETHOD EncoderDestroy(MimeEncoderData *data, PRBool abort_p);
-
-  NS_IMETHOD EncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size, PRInt32 *written);
-
+  NS_DECL_NSIMIMECONVERTER
 }; 
 
 #endif /* nsMimeConverter_h_ */

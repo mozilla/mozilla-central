@@ -377,7 +377,7 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-  nsresult rv = aHdr->GetMime2DecodedAuthor(getter_Copies(unparsedAuthor));
+  nsresult rv = aHdr->GetMime2DecodedAuthor(unparsedAuthor);
 
   // *sigh* how sad, we need to convert our beautiful unicode string to utf8
   // so we can extract the name part of the address...then convert it back to
@@ -427,7 +427,7 @@ nsresult nsMsgDBView::FetchRecipients(nsIMsgDBHdr * aHdr, nsAString &aRecipients
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-  nsresult rv = aHdr->GetMime2DecodedRecipients(getter_Copies(unparsedRecipients));
+  nsresult rv = aHdr->GetMime2DecodedRecipients(unparsedRecipients);
 
   // *sigh* how sad, we need to convert our beautiful unicode string to utf8
   // so we can extract the name part of the address...then convert it back to
@@ -452,12 +452,12 @@ nsresult nsMsgDBView::FetchSubject(nsIMsgDBHdr * aMsgHdr, PRUint32 aFlags, nsASt
   if (aFlags & MSG_FLAG_HAS_RE)
   {
     nsString subject;
-    aMsgHdr->GetMime2DecodedSubject(getter_Copies(subject));
+    aMsgHdr->GetMime2DecodedSubject(subject);
     aValue.AssignLiteral("Re: ");
     aValue.Append(subject);
   }
   else
-    aMsgHdr->GetMime2DecodedSubject(getter_Copies(aValue));
+    aMsgHdr->GetMime2DecodedSubject(aValue);
   return NS_OK;
 }
 

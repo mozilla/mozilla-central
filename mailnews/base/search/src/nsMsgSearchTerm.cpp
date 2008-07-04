@@ -953,10 +953,8 @@ nsresult nsMsgSearchTerm::MatchRfc2047String (const char * rfc2047string,
 
     nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
   char *stringToMatch = 0;
-    nsresult res = mimeConverter->DecodeMimeHeader(rfc2047string,
-                                                   &stringToMatch,
-                                                   charset, charsetOverride,
-                                                   PR_FALSE);
+    nsresult res = mimeConverter->DecodeMimeHeaderToCharPtr(
+        rfc2047string, charset, charsetOverride, PR_FALSE, &stringToMatch);
 
     if ( m_operator == nsMsgSearchOp::IsInAB ||
          m_operator == nsMsgSearchOp::IsntInAB)

@@ -667,17 +667,17 @@ NS_IMETHODIMP nsMsgHdr::GetMessageId(char * *resultMessageId)
   return m_mdb->RowCellColumnToCharPtr(GetMDBRow(), m_mdb->m_messageIdColumnToken, resultMessageId);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedAuthor(PRUnichar* *resultAuthor)
+NS_IMETHODIMP nsMsgHdr::GetMime2DecodedAuthor(nsAString &resultAuthor)
 {
   return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_senderColumnToken, resultAuthor);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedSubject(PRUnichar* *resultSubject)
+NS_IMETHODIMP nsMsgHdr::GetMime2DecodedSubject(nsAString &resultSubject)
 {
   return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_subjectColumnToken, resultSubject);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetMime2DecodedRecipients(PRUnichar* *resultRecipients)
+NS_IMETHODIMP nsMsgHdr::GetMime2DecodedRecipients(nsAString &resultRecipients)
 {
   return m_mdb->RowCellColumnToMime2DecodedString(GetMDBRow(), m_mdb->m_recipientsColumnToken, resultRecipients);
 }
