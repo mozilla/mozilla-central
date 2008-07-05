@@ -136,7 +136,6 @@ calendar.jar:
     skin/classic/calendar/day-box-item-image.png (themes/common/day-box-item-image.png)
     skin/classic/calendar/widgets/nav-buttons.png (themes/common/widgets/nav-buttons.png)
     skin/classic/calendar/mini-day-background.png (themes/common/mini-day-background.png)
-    skin/classic/calendar/widgets/view-navigation.png (themes/common/widgets/view-navigation.png)
 #expand    skin/classic/calendar/sun-calendar-event-dialog.css  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog.css)
 #expand    skin/classic/calendar/sun-calendar-event-dialog-attendees.png  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog-attendees.png)
 #expand    skin/classic/calendar/sun-calendar-event-dialog-toolbar.png  (/calendar/prototypes/themes/__THEME__/sun-calendar-event-dialog-toolbar.png)
