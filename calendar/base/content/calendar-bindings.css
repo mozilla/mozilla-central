@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -75,6 +76,11 @@ menupopup[type="task-progress"] > arrowscrollbox {
 menupopup[type="task-priority"] > arrowscrollbox {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-priority-menupopup);
 }
+
 task-menupopup {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-menupopup);
+}
+
+.item-date-row {
+  -moz-binding: url(chrome://calendar/content/calendar-item-bindings.xml#item-date-row);
 }

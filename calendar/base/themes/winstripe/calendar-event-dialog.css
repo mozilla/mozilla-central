@@ -46,6 +46,11 @@ listbox[disabled="true"] {
   font-weight: bold;
 }
 
+.headline[align=end],
+.headline[align=right]{
+  text-align: right;  
+}
+
 .default-spacer {
   width: 1em;
   height: 1em;

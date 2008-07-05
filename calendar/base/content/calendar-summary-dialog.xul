@@ -21,6 +21,7 @@
    -
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,6 +41,7 @@
 <?xml-stylesheet type="text/css" href="chrome://global/skin/global.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/skin/calendar-event-dialog.css"?>
 <?xml-stylesheet type="text/css" href="chrome://calendar/content/datetimepickers/datetimepickers.css"?>
+<?xml-stylesheet type="text/css" href="chrome://calendar/content/calendar-bindings.css"?>
 
 <!DOCTYPE dialog [
   <!ENTITY % globalDTD SYSTEM "chrome://calendar/locale/global.dtd" >
@@ -89,16 +91,8 @@
             <label value="&read.only.title.label;" class="headline"/>
             <label id="item-title"/>
           </row>
-          <row align="top">
-            <label id="item-datetime-start-label" 
-                   value="&read.only.date.start.label;" 
-                   class="headline"/>
-            <label id="item-datetime-start"/>
-          </row>
-          <row align="top">
-            <label id="item-datetime-end-label" value="&read.only.date.end.label;" class="headline"/>
-            <label id="item-datetime-end"/>
-          </row>
+          <row class="item-date-row" id="item-start-row" mode="start" align="start"/>
+          <row class="item-date-row" id="item-end-row" mode="end" align="start"/>
           <row id="repeat-row" align="top" hidden="true">
             <label value="&read.only.repeat.label;" class="headline"/>
             <box id="repeat-details" orient="vertical">

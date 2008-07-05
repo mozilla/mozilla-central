@@ -20,6 +20,7 @@
  * Contributor(s):
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -81,39 +82,10 @@ function onLoad() {
         }
     }
 
-    var formatter = Components.classes[
-        "@mozilla.org/calendar/datetime-formatter;1"]
-            .getService(
-                Components.interfaces.calIDateTimeFormatter);
-
     document.getElementById("item-title").value = item.title;
 
-    // show the start time of the event
-    var kDefaultTimezone = calendarDefaultTimezone();
-    var start = item.startDate || item.entryDate;
-    if (start) {
-        document.getElementById("item-datetime-start")
-                    .value = formatter.formatDateTime(
-                    start.getInTimezone(kDefaultTimezone));
-    } else {
-        document.getElementById("item-datetime-start-label").setAttribute("hidden", "true");
-        document.getElementById("item-datetime-start").setAttribute("hidden", "true");        
-    }
-    var end = (item.dueDate || item.endDate || item.startDate);
-    if (!end || end.isDate == true) {
-        document.getElementById("item-datetime-end-label").setAttribute("hidden", "true");
-        document.getElementById("item-datetime-end").setAttribute("hidden", "true");
-    } else {
-        if (isToDo(item)) {
-            var dueLabel = calGetString("sun-calendar-event-dialog", "summaryDueTaskLabel")
-            document.getElementById("item-datetime-end-label").setAttribute("value", dueLabel);
-        }
-        document.getElementById("item-datetime-end").value = formatter.formatDateTime(
-                                      end.getInTimezone(kDefaultTimezone));
-    }
-    if (!window.readOnly) {
-        document.getElementById("item-main-separator").removeAttribute("hidden");
-    }
+    document.getElementById("item-start-row").Item = item;
+    document.getElementById("item-end-row").Item = item;
 
     updateInvitationStatus();
 

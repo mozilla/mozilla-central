@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -133,22 +134,8 @@
                 <column/>
               </columns>
               <rows>
-                <row id="calendar-task-details-entrydate-row"
-                     align="top"
-                     hidden="true">
-                  <label value="&calendar.task.details.entrydate.label;"
-                         class="task-details-name"/>
-                  <label id="calendar-task-details-entrydate"
-                         class="task-details-value"/>
-                </row>
-                <row id="calendar-task-details-duedate-row"
-                     align="top"
-                     hidden="true">
-                  <label value="&calendar.task.details.duedate.label;"
-                         class="task-details-name"/>
-                  <label id="calendar-task-details-duedate"
-                         class="task-details-value"/>
-                </row>
+                <row class="item-date-row" id="task-start-row" mode="start" align="end"/>
+                <row class="item-date-row" id="task-due-row" mode="end" align="end"/>
                 <row id="calendar-task-details-repeat-row"
                      align="top"
                      hidden="true">
