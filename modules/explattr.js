@@ -47,11 +47,10 @@ Cu.import("resource://gloda/modules/log4moz.js");
 Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/gloda.js");
 
-const EXT_NAME = "built-in";
-const FA_FROM = "FROM";
-const FA_TO = "TO";
-const FA_CC = "CC";
-const FA_DATE = "DATE";
+const EXT_BUILTIN = "built-in";
+const FA_TAG = "TAG";
+const FA_STAR = "STAR";
+const FA_READ = "READ";
 
 /**
  * The Gloda Fundamental Attribute provider is a special-case attribute
@@ -61,8 +60,18 @@ const FA_DATE = "DATE";
  *  unless you won't complain when your code breaks.
  */
 let GlodaExplicitAttr = {
+  _log: null,
+
   _init: function gloda_explattr_init() {
-    this.defineAttributes();
+    this._log =  Log4Moz.Service.getLogger("gloda.explattr");
+  
+    try {
+      this.defineAttributes();
+    }
+    catch (ex) {
+      this._log.error("Error in init: " + ex);
+      throw ex;
+    }
   },
 
   _attrTag: null,
@@ -72,17 +81,17 @@ let GlodaExplicitAttr = {
   defineAttributes: function() {
     // Tag
     this._attrTag = Gloda.defineAttr(this, Gloda.kAttrExplicit, EXT_BUILTIN,
-                        FA_FROM,
+                        FA_TAG,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, Gloda.NOUN_TAG,
                         "%{subject} was tagged %{parameter} on %{object}");
     // Star
     this._attrStar = Gloda.defineAttr(this, Gloda.kAttrExplicit, EXT_BUILTIN,
-                        FA_TO,
+                        FA_STAR,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
                         "%{subject} has a star state of %{object}");
     // Read/Unread
-    this._attrRead = Gloda.defineAttr(this, Gloda.ATTR_FUNDAMENTAL, EXT_BUILTIN,
-                        FA_CC,
+    this._attrRead = Gloda.defineAttr(this, Gloda.kAttrExplicit, EXT_BUILTIN,
+                        FA_READ,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
                         "%{subject} has a read state of %{object}");
     

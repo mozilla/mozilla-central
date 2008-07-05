@@ -34,7 +34,31 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  * 
  * ***** END LICENSE BLOCK ***** */
- 
- Cu.import("resource://gloda/modules/fundattr.js");
- Cu.import("resource://gloda/modules/explattr.js");
- 
+
+const EXPORTED_SYMBOLS = [];
+
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
+
+Cu.import("resource://gloda/modules/log4moz.js");
+const LOG = Log4Moz.Service.getLogger("gloda.everybody");
+
+function loadModule(aModuleURI) {
+  try {
+    LOG.info("... loading " + aModuleURI);
+    Cu.import(aModuleURI);
+  }
+  catch (ex) {
+    LOG.error("!!! error loading " + aModuleURI);
+    LOG.error("" + ex);
+    return false;
+  }
+  
+  LOG.info("+++ loaded " + aModuleURI);
+  return true;
+}
+
+loadModule("resource://gloda/modules/fundattr.js");
+loadModule("resource://gloda/modules/explattr.js");

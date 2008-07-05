@@ -35,7 +35,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["GlodaConversation", "GlodaMessage"];
+EXPORTED_SYMBOLS = ["GlodaAttributeDef", "GlodaConversation", "GlodaMessage",
+                    "GlodaContact", "GlodaIdentity"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -207,6 +208,8 @@ function GlodaIdentity(aDatastore, aID, aContactID, aContact, aKind, aValue) {
 }
 
 GlodaIdentity.prototype = {
+  get id() { return this._id; },
+  get contactID() { return this._contactID; }, 
   get kind() { return this._kind; },
   get value() { return this._value; },
   

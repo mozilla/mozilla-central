@@ -62,8 +62,18 @@ const FA_DATE = "DATE";
  *  unless you won't complain when your code breaks.
  */
 let GlodaFundAttr = {
+  _log: null,
+
   _init: function gloda_explattr_init() {
-    this.defineAttributes();
+    this._log =  Log4Moz.Service.getLogger("gloda.fundattr");
+  
+    try {
+      this.defineAttributes();
+    }
+    catch (ex) {
+      this._log.error("Error in init: " + ex);
+      throw ex;
+    }
   },
 
   _attrFrom: null,
@@ -73,24 +83,24 @@ let GlodaFundAttr = {
   
   defineAttributes: function() {
     // From
-    this._attrFrom = gloda.defineAttr(this, gloda.kAttrFundamental, EXT_BUILTIN,
+    this._attrFrom = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
                         FA_FROM,
-                        gloda.NOUN_MESSAGE, gloda.NOUN_IDENTITY, null,
+                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was sent by %{object}");
     // To
-    this._attrTo = gloda.defineAttr(this, gloda.kAttrFundamental, EXT_BUILTIN,
+    this._attrTo = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
                         FA_TO,
-                        gloda.NOUN_MESSAGE, gloda.NOUN_IDENTITY, null,
+                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was sent to %{object}");
     // Cc
-    this._attrCc = gloda.defineAttr(this, gloda.kAttrFundamental, EXT_BUILTIN,
+    this._attrCc = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
                         FA_CC,
-                        gloda.NOUN_MESSAGE, gloda.NOUN_IDENTITY, null,
+                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was carbon-copied to %{object}");
     // Date
-    this._attrDate = gloda.defineAttr(this, gloda.kAttrFundamental, EXT_BUILTIN,
+    this._attrDate = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
                         FA_DATE,
-                        gloda.NOUN_MESSAGE, gloda.NOUN_DATE, null,
+                        Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, null,
                         "%{subject} was sent on %{object}");
     
   },
@@ -106,9 +116,16 @@ let GlodaFundAttr = {
       author = aMsgHdr.getStringProperty("replyTo");
     }
     catch (ex) {
-      author = aMsgHdr.author;
     }
+    if (author == null || author == "")
+      author = aMsgHdr.author;
+
     let authorIdentity = Gloda.getIdentityForFullMailAddress(author);
+    if (authorIdentity == null) {
+      this._log.error("Message with subject '" + aMsgHdr.mime2DecodedSubject +
+                      "' somehow lacks a valid author.  Bailing.");
+      return attribs;
+    }
     attribs.push([this._attrFrom.id, authorIdentity.id]); 
     
     // -- To, Cc
@@ -120,7 +137,7 @@ let GlodaFundAttr = {
       attribs.push([this._attrTo.id, toIdentities[iTo].id]);
     }
     let ccIdentities = Gloda.getIdentitiesForFullMailAddresses(aMsgHdr.ccList);
-    for (let iCc=0; iTo < ccIdentities.length; iCc++) {
+    for (let iCc=0; iCc < ccIdentities.length; iCc++) {
       attribs.push([this._attrCc.id, ccIdentities[iCc].id]);
     }
     

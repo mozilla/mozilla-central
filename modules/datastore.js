@@ -259,8 +259,9 @@ let GlodaDatastore = {
   },
   
   _migrate: function gloda_ds_migrate(aDBConnection, aCurVersion, aNewVersion) {
-    throw new Error("We currently aren't clever enough to migrate. " +
-                    "Delete your DB");
+    let msg = "We currently aren't clever enough to migrate. Delete your DB."
+    this._log.error(msg)
+    throw new Error(msg);
   },
   
   // cribbed from snowl
@@ -303,7 +304,7 @@ let GlodaDatastore = {
     iads.params.attributeType = aAttrType;
     iads.params.extensionName = aExtensionName;
     iads.params.name = aAttrName;
-    iads.params.parameter = aParamater;
+    iads.params.parameter = aParameter;
     
     iads.execute();
     
@@ -678,12 +679,20 @@ let GlodaDatastore = {
     try {
       for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
         let attribValueTuple = aAttributes[iAttribute];
+        
+        this._log.debug("Inserting attribute tuple: " + attribValueTuple +
+                        " is null: " + (attribValueTuple[1] == null));
+        
         imas.params.conversationID = aMessage.conversationID;
         imas.params.messageID = aMessage.id;
         imas.params.attributeID = attribValueTuple[0];
-        imas.params.value = attribValueTuple[1];
+        // use 0 instead of null, otherwise the db gets upset.  (and we don't
+        //  really care anyways.)
+        if (attribValueTuple[1] == null)
+          imas.params.value = 0;
+        else
+          imas.params.value = attribValueTuple[1];
         imas.execute();
-        imas.reset();
       }
       
       this.dbConnection.commitTransaction();
@@ -728,12 +737,13 @@ let GlodaDatastore = {
     
     ics.execute();
     
-    return new GlodaContact(this.this.dbConnection.lastInsertRowID,
+    return new GlodaContact(this, this.dbConnection.lastInsertRowID,
                             aDirectoryUUID, aContactUUID, aName);
   },
   
   _contactFromRow: function gloda_ds_contactFromRow(aRow) {
-    return new GlodaContact(this, aRow["id"], );
+    return new GlodaContact(this, aRow["id"], aRow["directoryUUID"],
+                            aRow["contactUUID"], aRow["name"]);
   },
   
   get _selectContactByIDStatement() {
@@ -773,6 +783,7 @@ let GlodaDatastore = {
     iis.params.kind = aKind;
     iis.params.value = aValue;
     iis.params.description = aDescription;
+    iis.execute();
   
     return new GlodaIdentity(this, this.dbConnection.lastInsertRowID,
                              aContactID, aContact, aKind, aValue, aDescription);

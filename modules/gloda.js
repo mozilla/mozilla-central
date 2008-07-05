@@ -46,6 +46,8 @@ Cu.import("resource://gloda/modules/log4moz.js");
 
 Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/datamodel.js");
+Cu.import("resource://gloda/modules/utils.js");
+
 
 let Gloda = {
   _init: function gloda_ns_init() {
@@ -68,7 +70,7 @@ let Gloda = {
     dapp.level = Log4Moz.Level.All;
     root.addAppender(dapp);
     
-    this._log = Log4Moz.Service.getLogger("Gloda.NS");
+    this._log = Log4Moz.Service.getLogger("gloda.NS");
     this._log.info("Logging Initialized");
   },
   
@@ -89,9 +91,9 @@ let Gloda = {
    * Given a full mail address (ex: "Bob Smith" <bob@smith.com>), return the
    *  identity that corresponds to that mail address, creating it if required.
    */
-  getIdentitiesForFullMailAddresseses:
+  getIdentitiesForFullMailAddresses:
       function gloda_ns_getIdentitiesForMailAddresses(aMailAddresses) {
-    let parsed = GlodaUtils.parseMailAddresses(aMailAddress);
+    let parsed = GlodaUtils.parseMailAddresses(aMailAddresses);
     
     let identities = [];
     for (let iAddress=0; iAddress < parsed.count; iAddress++) {
@@ -118,9 +120,12 @@ let Gloda = {
   
   getIdentityForFullMailAddress:
       function gloda_ns_getIdentityForFullMailAddress(aMailAddress) {
-    let identities = this.getIdentitiesForFullMailAddresseses(aMailAddress);
-    if (identities.length != 1)
-      throw Error("Expected exactly 1 address, got " + identities.length + ".");    
+    let identities = this.getIdentitiesForFullMailAddresses(aMailAddress);
+    if (identities.length != 1) {
+      this._log.error("Expected exactly 1 address, got " + identities.length +
+                      " for address: " + aMailAddress);
+      return null;
+    }    
     
     return identities[0];
   },
@@ -198,8 +203,8 @@ let Gloda = {
     //  parameter is forever un-bound (type is null).
     let attrID = null;
     if (aParameterType == null) {
-      attrID = GlodaDatastore.createAttributeDef(aAttrType, aPluginName,
-                                                 aAttrName, null);
+      attrID = GlodaDatastore._createAttributeDef(aAttrType, aPluginName,
+                                                  aAttrName, null);
     }
     
     attr = new GlodaAttributeDef(GlodaDatastore, attrID, compoundName,
@@ -218,20 +223,20 @@ let Gloda = {
     
     let allAttribs = [];
   
-    for(let i = 0; i < this._attributeProviderOrder.length; i++) {
-      let attribs = this._attributeProviderOrder[i].process(aMessage, aMsgHdr);
+    for(let i = 0; i < this._attrProviderOrder.length; i++) {
+      let attribs = this._attrProviderOrder[i].process(aMessage, aMsgHdr);
       allAttribs = allAttribs.concat(attribs);
     }
     
     let outAttribs = [];
     
-    for(let iAttrib=0; iAttrib < attribs.length; iAttrib++) {
-      let attribDesc = attribs[iAttrib];
+    for(let iAttrib=0; iAttrib < allAttribs.length; iAttrib++) {
+      let attribDesc = allAttribs[iAttrib];
       
       // is it an (attributedef / attribute def id, value) tuple?
       if (attribDesc.length == 2) {
         // if it's already an attrib id, we can use the tuple outright
-        if (typeof attribDesc[0] == number)
+        if (typeof attribDesc[0] == "number")
           outAttribs.push(attribDesc);
         else
           outAttribs.push([attribDesc[0].id, attribDesc[1]]);
@@ -245,9 +250,11 @@ let Gloda = {
           attribID = attrib.bindParameter(parameterValue);
         else
           attribID = attrib.id;
-        outAttribs.push([attribID, attribDesc[2]);
+        outAttribs.push([attribID, attribDesc[2]]);
       }
     }
+    
+    this._log.debug("Attributes: " + outAttribs);
     
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
   },
