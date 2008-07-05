@@ -76,13 +76,18 @@ GlodaAttributeDef.prototype = {
    * @return 
    */
   bindParameter: function gloda_attr_bindParameter(aValue) {
+    // people probably shouldn't call us with null, but handle it
+    if (aValue == null) {
+      return this._id;
+    }
     if (aValue in this._parameterBindings) {
       return this._parameterBindings[aValue];
     }
     // no database entry exists if we are here, so we must create it...
-    let id = this._datastore.createAttributeDef(this._attrType,
+    let id = this._datastore._createAttributeDef(this._attrType,
                  this._pluginName, this._attrName, aValue);
     this._parameterBindings[aValue] = id;
+    this._datastore.reportBinding(id, this, aValue);
     return id;
   },  
 };
@@ -131,6 +136,7 @@ function GlodaMessage(aDatastore, aID, aFolderID, aFolderURI, aMessageKey,
   // for now, let's always cache this; they should really be forgetting about us
   //  if they want to forget about the underlying storage anyways...
   this._folderMessage = null;
+  this._attributes = null;
 }
 
 GlodaMessage.prototype = {
@@ -178,8 +184,29 @@ GlodaMessage.prototype = {
           this._messageKey;
   },
   
-  clearAttributes: function gloda_attr_clearAttributes() {
+  get attributes() {
+    if (this._attributes == null) {
+      this._attributes = this._datastore.getMessageAttributes(this); 
+    }
+    
+    return this._attributes;
+  },
+  
+  clearAttributes: function gloda_message_clearAttributes() {
     this._datastore.clearMessageAttributes(this);
+  },
+  
+  getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {
+    return [attrParamVal for each (attrParamVal in this.attributes) if
+            (attrParamVal[0] == aAttr)];
+  },
+  
+  getSingleAttribute: function gloda_message_getSingleAttribute(aAttr) {
+    let instances = this.getAttributeInstances(aAttr);
+    if (instances.length > 0)
+      return instances[0];
+    else
+      return null;
   },
 };
 

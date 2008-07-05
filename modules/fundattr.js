@@ -48,7 +48,6 @@ Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/gloda.js");
 Cu.import("resource://gloda/modules/datastore.js");
 
-const EXT_BUILTIN = "built-in";
 const FA_FROM = "FROM";
 const FA_TO = "TO";
 const FA_CC = "CC";
@@ -83,23 +82,23 @@ let GlodaFundAttr = {
   
   defineAttributes: function() {
     // From
-    this._attrFrom = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
-                        FA_FROM,
+    this._attrFrom = Gloda.defineAttr(this, Gloda.kAttrFundamental,
+                        Gloda.BUILT_IN, FA_FROM,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was sent by %{object}");
     // To
-    this._attrTo = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
-                        FA_TO,
+    this._attrTo = Gloda.defineAttr(this, Gloda.kAttrFundamental,
+                        Gloda.BUILT_IN, FA_TO,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was sent to %{object}");
     // Cc
-    this._attrCc = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
-                        FA_CC,
+    this._attrCc = Gloda.defineAttr(this, Gloda.kAttrFundamental,
+                        Gloda.BUILT_IN, FA_CC,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
                         "%{subject} was carbon-copied to %{object}");
     // Date
-    this._attrDate = Gloda.defineAttr(this, Gloda.kAttrFundamental, EXT_BUILTIN,
-                        FA_DATE,
+    this._attrDate = Gloda.defineAttr(this, Gloda.kAttrFundamental,
+                        Gloda.BUILT_IN, FA_DATE,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, null,
                         "%{subject} was sent on %{object}");
     
@@ -110,13 +109,17 @@ let GlodaFundAttr = {
     
     // -- From
     // Let's use replyTo if available.
+    // er, since we are just dealing with mailing lists for now, forget the
+    //  reply-to...
     // TODO: deal with default charset issues
     let author = null;
+    /*
     try {
       author = aMsgHdr.getStringProperty("replyTo");
     }
     catch (ex) {
     }
+    */
     if (author == null || author == "")
       author = aMsgHdr.author;
 

@@ -283,6 +283,11 @@ let GlodaDatastore = {
   },
   
   /* ********** Attribute Definitions ********** */
+  /** Maps (attribute def) compound names to the GlodaAttributeDef objects. */
+  _attributes: {},
+  /** Map attribute ID to the definition and parameter value that produce it. */
+  _attributeIDToDef: {},
+  
   get _insertAttributeDefStatement() {
     let statement = this._createStatement(
       "INSERT INTO attributeDefinitions (attributeType, extensionName, name, \
@@ -323,7 +328,11 @@ let GlodaDatastore = {
    * Look-up all the attribute definitions 
    */
   getAllAttributes: function gloda_ds_getAllAttributes() {
+    // map compound name to the attribute
     let attribs = {};
+    // map the attribute id to [attribute, parameter] where parameter is null
+    //  in cases where parameter is unused.
+    let idToAttribAndParam = {}
 
     this._log.info("loading all attribute defs");
     
@@ -345,16 +354,23 @@ let GlodaDatastore = {
       // if the parameter is null, the id goes on the attribute def, otherwise
       //  it is a parameter binding and goes in the binding map.
       if (row["parameter"] == null) {
-        attrib._id = row["id"]; 
+        attrib._id = row["id"];
+        idToAttribAndParam[row["id"]] = [attrib, null];
       } else {
         attrib._parameterBindings[row["parameter"]] = row["id"];
+        idToAttribAndParam[row["id"]] = [attrib, row["parameter"]];
       }
     }
     this._selectAttributeDefinitionsStatement.reset();
 
     this._log.info("done loading all attribute defs");
     
-    return attribs;
+    this._attributes = attribs;
+    this._attributeIDToDef = idToAttribAndParam;
+  },
+  
+  reportBinding: function gloda_ds_reportBinding(aID, aAttrDef, aParamValue) {
+    this._attributeIDToDef[aID] = [aAttrDef, aParamValue];
   },
   
   /* ********** Folders ********** */
@@ -717,6 +733,68 @@ let GlodaDatastore = {
         aMessage.id;
       this._deleteMessageAttributesByMessageIDStatement.execute();
     }
+  },
+  
+  get _selectMessageAttributesByMessageIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM messageAttributes WHERE messageID = :messageID");
+    this.__defineGetter__("_selectMessageAttributesByMessageIDStatement",
+      function() statement);
+    return this._selectMessageAttributesByMessageIDStatement;
+  },
+  
+  getMessageAttributes: function gloda_ds_getMessageAttributes(aMessage) {
+    // A list of [attribute def object, (attr) parameter value, attribute value]
+    let attribParamVals = []
+    
+    let smas = this._selectMessageAttributesByMessageIDStatement;
+    
+    smas.params.messageID = aMessage.id;
+    while (smas.step()) {
+      let attributeID = smas.row["attributeID"];
+      if (!(attributeID in this._attributeIDToDef)) {
+        this._log.error("Attribute ID " + attributeID + " not in our map!");
+      } 
+      let attribAndParam = this._attributeIDToDef[attributeID];
+      let val = smas.row["value"];
+      this._log.debug("Loading attribute: " + attribAndParam[0].id + " param: "+
+                      attribAndParam[1] + " val: " + val);
+      attribParamVals.push([attribAndParam[0], attribAndParam[1], val]);
+    }
+    smas.reset();
+    
+    return attribParamVals;
+  },
+  
+  queryMessagesAPV: function gloda_ds_queryMessagesAPV(aAPVs) {
+    let selects = [];
+    
+    for (let iAPV=0; iAPV < aAPVs.length; iAPV++) {
+      let APV = aAPVs[iAPV];
+      
+      let attributeID;
+      if (APV[1] != null)
+        attributeID = APV[0].bindParameter(APV[1]);
+      else
+        attributeID = APV[0].id;
+      let select = "SELECT messageID FROM messageAttributes WHERE attributeID" +
+                   " = " + attributeID;
+      if (APV[2] != null)
+        select += " AND value = " + APV[2];
+      selects.push(select);
+    }
+    
+    let sqlString = "SELECT * FROM messages WHERE id IN (" +
+                    selects.join(" INTERSECT ") + " )";
+    let statement = this._createStatement(sqlString);
+    
+    let messages = [];
+    while (statement.step()) {
+      messages.push(this._messageFromRow(statement.row));
+    }
+    statement.reset();
+     
+    return messages;
   },
   
   /* ********** Contact ********** */

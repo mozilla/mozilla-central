@@ -136,6 +136,8 @@ let Gloda = {
   kAttrExplicit: 3,
   kAttrImplicit: 4,
   
+  BUILT_IN: "built-in",
+  
   /** A date, encoded as a PRTime */
   NOUN_DATE: 10,
   NOUN_TAG: 50,
@@ -148,11 +150,9 @@ let Gloda = {
   _attrProviderOrder: [],
   /** Maps attribute providers to the list of attributes they provide */
   _attrProviders: {},
-  /** Maps (attribute def) compound names to the GlodaAttributeDef objects. */
-  _attributes: {},
   
   _initAttributes: function gloda_ns_initAttributes() {
-    this._attributes = GlodaDatastore.getAllAttributes();
+    GlodaDatastore.getAllAttributes();
   },
   
   /**
@@ -177,12 +177,12 @@ let Gloda = {
     
     let compoundName = aPluginName + ":" + aAttrName;
     let attr = null;
-    if (compoundName in this._attributes) {
+    if (compoundName in GlodaDatastore._attributes) {
       // the existence of the GlodaAttributeDef means that either it has
       //  already been fully defined, or has been loaded from the database but
       //  not yet 'bound' to a provider (and had important meta-info that
       //  doesn't go in the db copied over)
-      attr = this._attributes[compoundName];
+      attr = GlodaDatastore._attributes[compoundName];
       if (attr.provider != null) {
         return attr;
       }
@@ -205,15 +205,21 @@ let Gloda = {
     if (aParameterType == null) {
       attrID = GlodaDatastore._createAttributeDef(aAttrType, aPluginName,
                                                   aAttrName, null);
+      GlodaDatastore._attributeIDToDef[attrID] = [attrID, null];
     }
     
     attr = new GlodaAttributeDef(GlodaDatastore, attrID, compoundName,
                                  aProvider, aAttrType, aPluginName, aAttrName,
                                  aSubjectType, aObjectType, aParameterType,
                                  aExplanationFormat);
-    this._attributes[compoundName] = attr;
+    GlodaDatastore._attributes[compoundName] = attr;
     this._attrProviders[aProvider].push(attr);
     return attr;
+  },
+  
+  getAttrDef: function gloda_ns_getAttrDef(aPluginName, aAttrName) {
+    let compoundName = aPluginName + ":" + aAttrName;
+    return GlodaDatastore._attributes[compoundName];
   },
   
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr) {
@@ -257,6 +263,10 @@ let Gloda = {
     this._log.debug("Attributes: " + outAttribs);
     
     GlodaDatastore.insertMessageAttributes(aMessage, outAttribs);
+  },
+  
+  queryMessagesAPV: function gloda_ns_queryMessagesAPV(aAPVs) {
+    return GlodaDatastore.queryMessagesAPV(aAPVs);
   },
 };
 
