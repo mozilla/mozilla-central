@@ -21,6 +21,7 @@
  * Contributor(s):
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1743,6 +1744,24 @@ function compareItemContent(aFirstItem, aSecondItem) {
     return (firstIcalString == secondIcalString);
 }
 
+var gWeekFormatter = null;
+function getWeekFormatter() {
+    if (!gWeekFormatter) {
+        gWeekFormatter = Components.classes["@mozilla.org/calendar/weektitle-service;1"]
+                   .getService(Components.interfaces.calIWeekTitleService);
+    }
+    return gWeekFormatter;
+}
+
+
+var gDateFormatter = null;
+function getDateFormatter() {
+    if (!gDateFormatter) {
+        gDateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
+                            .getService(Components.interfaces.calIDateTimeFormatter);
+    }
+    return gDateFormatter;
+}
 
 /**
  * Use the binary search algorithm to search for an item in an array.
