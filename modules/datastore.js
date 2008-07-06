@@ -290,7 +290,7 @@ let GlodaDatastore = {
       this.dbConnection.beginTransaction();
       this._transactionGood = true;
     }
-    this._transactionDepth--;
+    this._transactionDepth++;
   },
   _commitTransaction: function gloda_ds_commitTransaction() {
     this._transactionDepth--;
