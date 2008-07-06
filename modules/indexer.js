@@ -118,45 +118,177 @@ function fixIterator(aEnum, aIface) {
 let GlodaIndexer = {
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
+  _msgwindow: null,
+  _domWindow: null,
+
+  _inited: false,
+  init: function gloda_index_init(aDOMWindow) {
+    if (this._inited)
+      return;
+    
+    this._domWindow = aDOMWindow;
+    
+    let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
+                        getService(Ci.nsIMsgMailSession);
+    this._msgWindow = mailSession.topmostMsgWindow;
+  },
+
+  /** Track whether indexing is active (we have timers in-flight). */
+  _indexingActive: false,
+  get indexing() { return this._indexingActive; },
+  /** You can turn on indexing, but you can't turn it off! */
+  set indexing(aShouldIndex) {
+    if (!this._indexingActive && aShouldIndex) {
+      this._indexingActive = true;
+      this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval, this);
+    }  
+  },
+  
+  /** The nsIMsgFolder we are indexing, or null if we aren't. */
+  _indexingFolder: null,
+  /** The iterator we are using to traverse _indexingFolder. */
+  _indexingIterator: null,
+  _indexingCount: 0,
+  
+  /**
+   * A list of things yet to index.  Contents will be lists matching one of the
+   *  following patterns:
+   * - ['account', account object]
+   * - ['folder', folder URI]
+   * - ['message', folder URI, message key, message ID]
+   */
+  _indexQueue: [],
+  
+  /**
+   * The time interval, in milliseconds between performing indexing work.
+   *  This may be altered by user session (in)activity.
+   */ 
+  _indexInterval: 100,
+  /**
+   * Number of indexing 'tokens' we are allowed to consume before yielding for
+   *  each incremental pass.  Consider a single token equal to indexing a single
+   *  medium-sized message.  This may be altered by user session (in)activity.
+   */
+  _indexTokens: 10,
+  
+  _wrapIncrementalIndex: function gloda_index_wrapIncrementalIndex(aThis) {
+    aThis.incrementalIndex();
+  },
+  
+  incrementalIndex: function gloda_index_incrementalIndex() {
+    this._log.debug("index wake-up!");
+  
+    GlodaDatastore._beginTransaction();
+    
+    for (let tokensLeft=this._indexTokens; tokensLeft > 0; tokensLeft--) {
+      if (this._indexingFolder != null) {
+        try {
+          this._indexMessage(this._indexingIterator.next());
+          this._indexingCount++;
+          
+          if (this._indexingCount % 50 == 1) {
+            this._log.debug("indexed " + this._indexingCount + " in " +
+                            this._indexingFolder.prettiestName);
+          }
+        }
+        catch (ex) {
+          this._log.debug("Done with indexing folder because: " + ex);
+          this._indexingFolder = null;
+          this._indexingIterator = null;
+        }
+      }
+      else if (this._indexQueue.length) {
+        let item = this._indexQueue.shift();
+        let itemType = item[0];
+        
+        if (itemType == "account") {
+          this.indexAccount(item[1]);
+        }
+        else if (itemType == "folder") {
+          let folderURI = item[1];
+          
+          this._log.debug("Folder URI: " + folderURI);
+
+          let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
+                           getService(Ci.nsIRDFService);
+          let folder = rdfService.GetResource(folderURI);
+          if (folder instanceof Ci.nsIMsgFolder) {
+            this._indexingFolder = folder;
+
+            this._log.debug("Starting indexing of folder: " +
+                            folder.prettiestName);
+
+            // The msf may need to be created or otherwise updated, updateFolder will
+            //  do this for us.  (GetNewMessages would also do it, but we would be
+            //  triggering new message retrieval in that case, which we don't actually
+            //  desire.
+            // TODO: handle password-protected local cache potentially triggering a
+            //  password prompt here...
+            try {
+              //this._indexingFolder.updateFolder(this._msgWindow);
+            
+              let msgDatabase = folder.getMsgDatabase(this._msgWindow);
+              this._indexingIterator = Iterator(fixIterator(
+                                         //folder.getMessages(this._msgWindow),
+                                         msgDatabase.EnumerateMessages(),
+                                         Ci.nsIMsgDBHdr));
+            }
+            catch (ex) {
+              this._log.error("Problem indexing folder: " +
+                              folder.prettiestName + ", skipping.");
+              this._log.error("Error was: " + ex);
+              this._indexingFolder = null;
+              this._indexingIterator = null;
+            }
+          }
+        }
+      }
+      else {
+        this._log.info("Done indexing, disabling timer renewal.");
+        this._indexingActive = false;
+        break;
+      }
+    }
+    
+    GlodaDatastore._commitTransaction();
+    
+    if (this.indexing)
+      this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval,
+                              this);
+  },
 
   indexEverything: function glodaIndexEverything() {
-  
-    this._log.info("Indexing Everything");
+    this._log.info("Queueing all accounts for indexing.");
     let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                             getService(Ci.nsIMsgAccountManager);
     
-    let blah = [this.indexAccount(account) for each
+    this._indexQueue = this._indexQueue.concat(
+                [["account", account] for each
                 (account in fixIterator(msgAccountManager.accounts,
-                                        Ci.nsIMsgAccount))];
-
-    this._log.info("Indexing Everything");
+                                        Ci.nsIMsgAccount))]);
+    this.indexing = true;
   },
 
   indexAccount: function glodaIndexAccount(aAccount) {
-    this._log.info(">>> Indexing Account: " + aAccount.key);
-    
     let rootFolder = aAccount.incomingServer.rootFolder;
     if (rootFolder instanceof Ci.nsIMsgFolder) {
-      let blah = [this.indexFolder(folder) for each
-                  (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
+      this._log.info("Queueing account folders for indexing: " + aAccount.key);
+
+      this._indexQueue = this._indexQueue.concat(
+              [["folder", folder.URI] for each
+              (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))]);
+      this.indexing = true;
     }
     else {
-      this._log.info("      Skipping Account, root folder not nsIMsgFolder");
+      this._log.info("Skipping Account, root folder not nsIMsgFolder");
     }
-  
-    this._log.info("<<< Indexing Account: " + aAccount.key);
   },
 
   indexFolder: function glodaIndexFolder(aFolder) {
-    this._log.info("   >>> Indexing Folder: " + aFolder.prettiestName);
-    for each (let msgHdr in fixIterator(aFolder.getMessages(null),
-                                        Ci.nsIMsgDBHdr)) {
-      this._log.info("      >>> Indexing Message: " + msgHdr.messageId +
-                     " (" + msgHdr.subject + ")");
-      this.indexMessage(msgHdr);
-      this._log.info("      <<< Indexing Message: " + msgHdr.messageId);
-    }
-    this._log.info("   <<< Indexing Folder: " + aFolder.prettiestName);
+    this._log.info("Queue-ing folder for indexing: " + aFolder.prettiestName);
+    
+    this._indexQueue.push(["folder", aFolder.URI]);
+    this.indexing = true;
   },
   
   /**
@@ -177,7 +309,7 @@ let GlodaIndexer = {
     return aMsgHdr.mime2DecodedSubject;
   },
   
-  indexMessage: function glodaIndexMessage(aMsgHdr) {
+  _indexMessage: function gloda_index_indexMessage(aMsgHdr) {
   
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to

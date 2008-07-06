@@ -52,11 +52,8 @@ var gloda = {
     this.strings = document.getElementById("gloda-strings");
   },
   onMenuItemCommand: function(e) {
+    GlodaIndexer.init(window);
     GlodaIndexer.indexEverything();
-    var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                                  .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, this.strings.getString("helloMessageTitle"),
-                                this.strings.getString("helloMessage"));
   },
 
 };

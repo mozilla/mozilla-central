@@ -281,6 +281,33 @@ let GlodaDatastore = {
     wrappedStatement.initialize(statement);
     return wrappedStatement;
   },
+
+  /** Simple nested transaction support as a performance optimization. */  
+  _transactionDepth: 0,
+  _transactionGood: false,
+  _beginTransaction: function gloda_ds_beginTransaction() {
+    if (this._transactionDepth == 0) {
+      this.dbConnection.beginTransaction();
+      this._transactionGood = true;
+    }
+    this._transactionDepth--;
+  },
+  _commitTransaction: function gloda_ds_commitTransaction() {
+    this._transactionDepth--;
+    if (this._transactionDepth == 0) {
+      if (this._transactionGood)
+        this.dbConnection.commitTransaction();
+      else
+        this.dbConnection.rollbackTransaction();
+    }
+  },
+  _rollbackTransaction: function gloda_ds_rollbackTransaction() {
+    this._transactionDepth--;
+    this._transactionGood = false;
+    if (this._transactionDepth == 0) {
+      this.dbConnection.rollbackTransaction();
+    }
+  },
   
   /* ********** Attribute Definitions ********** */
   /** Maps (attribute def) compound names to the GlodaAttributeDef objects. */
@@ -691,7 +718,7 @@ let GlodaDatastore = {
   insertMessageAttributes: function gloda_ds_insertMessageAttributes(aMessage,
                                         aAttributes) {
     let imas = this._insertMessageAttributeStatement;
-    this.dbConnection.beginTransaction();
+    this._beginTransaction();
     try {
       for (let iAttribute=0; iAttribute < aAttributes.length; iAttribute++) {
         let attribValueTuple = aAttributes[iAttribute];
@@ -711,10 +738,10 @@ let GlodaDatastore = {
         imas.execute();
       }
       
-      this.dbConnection.commitTransaction();
+      this._commitTransaction();
     }
     catch (ex) {
-      this.dbConnection.rollbackTransaction();
+      this._rollbackTransaction();
       throw ex;
     }
   },
