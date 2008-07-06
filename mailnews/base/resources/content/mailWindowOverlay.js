@@ -2413,32 +2413,39 @@ function OnMsgLoaded(aUrl)
     // if the user clicks on another message then that message stays selected
     // and the selection does not "snap back" to the message chosen by
     // SetNextMessageAfterDelete() when the operation completes (bug 243532).
+    var wintype = document.documentElement.getAttribute('windowtype');
     gNextMessageViewIndexAfterDelete = -2;
 
     var msgHdr = msgHdrForCurrentMessage();
-
     gMessageNotificationBar.setJunkMsg(msgHdr);
 
-    // we just finished loading a message. set a timer to actually mark the message as read after n seconds
+    var markReadAutoMode = gPrefBranch.getBoolPref("mailnews.mark_message_read.auto");
+
+    // We just finished loading a message. If messages are to be marked as read
+    // automatically, set a timer to mark the message is read after n seconds
     // where n can be configured by the user.
-    var markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
-    if (msgHdr && !msgHdr.isRead)
+    if (msgHdr && !msgHdr.isRead && markReadAutoMode)
     {
-      var wintype = document.documentElement.getAttribute('windowtype');
-      if (markReadOnADelay && wintype == "mail:3pane") // only use the timer if viewing using the 3-pane preview pane and the user has set the pref
+      let markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
+      // Only use the timer if viewing using the 3-pane preview pane and the
+      // user has set the pref.
+      if (markReadOnADelay && wintype == "mail:3pane") // 3-pane window
       {
         ClearPendingReadTimer();
-        gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead, gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval") * 1000);
+        let markReadDelayTime = gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval");
+        if (markReadDelayTime == 0)
+          MarkCurrentMessageAsRead();
+        else
+          gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead,
+                                                     markReadDelayTime * 1000);
       }
-      else
-      {
+      else // standalone msg window
         MarkCurrentMessageAsRead();
-      }
     }
 
     // See if MDN was requested but has not been sent.
     HandleMDNResponse(aUrl);
-    
+
     var currentMsgFolder = folder.QueryInterface(Components.interfaces.nsIMsgFolder);
     if (!IsImapMessage(msgURI))
       return;

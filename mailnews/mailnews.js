@@ -702,7 +702,12 @@ pref("mail.compose.dontWarnMail2Newsgroup", false);
 pref("mail.purge.min_delay", 480);
 pref("mail.purge.timer_interval", 5);
 
-// set to true if viewing a message should mark it as read only if the msg is viewed for a specified time interval in seconds
+// Set to false if opening a message in the standalone message window or viewing
+// it in the message pane should never mark it as read.
+pref("mailnews.mark_message_read.auto", true);
+
+// Set to true if viewing a message should mark it as read after the msg is
+// viewed in the message pane for a specified time interval in seconds.
 pref("mailnews.mark_message_read.delay", false);
 pref("mailnews.mark_message_read.delay.interval", 5); // measured in seconds
 

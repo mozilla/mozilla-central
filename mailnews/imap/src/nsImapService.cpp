@@ -449,7 +449,7 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
   nsCAutoString	folderURI;
   nsMsgKey key;
   nsCAutoString messageURI(aMessageURI);
-  
+
   PRInt32 typeIndex = messageURI.Find("&type=application/x-message-display");
   if (typeIndex != kNotFound)
   {
@@ -470,20 +470,20 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
       nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(uri, &rv);
       if (NS_SUCCEEDED(rv) && mailnewsUrl)
         mailnewsUrl->GetLoadGroup(getter_AddRefs(aLoadGroup));
-      
+
       rv = NewChannel(uri, getter_AddRefs(aChannel));
       NS_ENSURE_SUCCESS(rv, rv);
-      
+
       nsCOMPtr<nsISupports> aCtxt = do_QueryInterface(uri);
       //  now try to open the channel passing in our display consumer as the listener
       return aChannel->AsyncOpen(aStreamListener, aCtxt);
     }
   }
-  
+
   rv = DecomposeImapURI(messageURI, getter_AddRefs(folder), msgKey);
   if (msgKey.IsEmpty())
     return NS_MSG_MESSAGE_NOT_FOUND;
-  
+
   rv = nsParseImapMessageURI(aMessageURI, folderURI, &key, getter_Copies(mimePart));
   if (NS_SUCCEEDED(rv))
   {
@@ -500,32 +500,32 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
         return FetchMimePart(imapUrl, nsIImapUrl::nsImapMsgFetch, folder, imapMessageSink,
                              aURL, aDisplayConsumer, msgKey, mimePart);
       }
-      
+
       nsCOMPtr<nsIMsgMailNewsUrl> msgurl (do_QueryInterface(imapUrl));
       nsCOMPtr<nsIMsgI18NUrl> i18nurl (do_QueryInterface(imapUrl));
       i18nurl->SetCharsetOverRide(aCharsetOverride);
-      
+
       PRUint32 messageSize;
       PRBool useMimePartsOnDemand = gMIMEOnDemand;
       PRBool shouldStoreMsgOffline = PR_FALSE;
       PRBool hasMsgOffline = PR_FALSE;
-      
+
       nsCOMPtr<nsIMsgIncomingServer> aMsgIncomingServer;
-      
+
       if (imapMessageSink)
         imapMessageSink->GetMessageSizeFromDB(msgKey.get(), PR_TRUE, &messageSize);
-      
+
       msgurl->SetMsgWindow(aMsgWindow);
-      
+
       rv = msgurl->GetServer(getter_AddRefs(aMsgIncomingServer));
-      
+
       if (NS_SUCCEEDED(rv) && aMsgIncomingServer)
       {
         nsCOMPtr<nsIImapIncomingServer> aImapServer(do_QueryInterface(aMsgIncomingServer, &rv));
         if (NS_SUCCEEDED(rv) && aImapServer)
           aImapServer->GetMimePartsOnDemand(&useMimePartsOnDemand);
       }
-      
+
       nsCAutoString uriStr(aMessageURI);
       PRInt32 keySeparator = uriStr.RFindChar('#');
       if(keySeparator != -1)
@@ -536,13 +536,13 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
         if (mpodFetchPos != -1)
           useMimePartsOnDemand = PR_FALSE;
       }
-      
+
       if (folder)
       {
         folder->ShouldStoreMsgOffline(key, &shouldStoreMsgOffline);
         folder->HasMsgOffline(key, &hasMsgOffline);
       }
-      
+
       if (!useMimePartsOnDemand || (messageSize < (uint32) gMIMEOnDemandThreshold))
         //                allowedToBreakApart && 
         //              !GetShouldFetchAllParts() &&
@@ -564,16 +564,22 @@ NS_IMETHODIMP nsImapService::DisplayMessage(const char *aMessageURI,
       }
       if (imapMessageSink && !hasMsgOffline)
         imapMessageSink->SetNotifyDownloadedLines(shouldStoreMsgOffline);
-      
+
       if (hasMsgOffline)
         msgurl->SetMsgIsInLocalCache(PR_TRUE);
-      
-      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv)); 
-      PRBool forcePeek = PR_FALSE; // should the message fetch force a peak or a traditional fetch? 
-      
-      if (NS_SUCCEEDED(rv) && prefBranch) 
-        prefBranch->GetBoolPref("mailnews.mark_message_read.delay", &forcePeek);
-      
+
+      nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+      // Should the message fetch force a peek or a traditional fetch?
+      // Force peek if there is a delay in marking read.
+      PRBool forcePeek = PR_FALSE;
+      if (NS_SUCCEEDED(rv) && prefBranch)
+      {
+        PRBool markReadAuto = PR_TRUE;
+        prefBranch->GetBoolPref("mailnews.mark_message_read.auto", &markReadAuto);
+        if (markReadAuto)
+          prefBranch->GetBoolPref("mailnews.mark_message_read.delay", &forcePeek);
+      }
+
       rv = FetchMessage(imapUrl, forcePeek ? nsIImapUrl::nsImapMsgFetchPeek : nsIImapUrl::nsImapMsgFetch, 
                         folder, imapMessageSink, aMsgWindow, aDisplayConsumer, msgKey, PR_FALSE, 
                         (mPrintingOperation) ? NS_LITERAL_CSTRING("print") : EmptyCString(), aURL);

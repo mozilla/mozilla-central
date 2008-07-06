@@ -2666,9 +2666,9 @@ function OnMsgLoaded(aUrl)
       folder = aUrl.folder;
     }
     catch (ex) {}
-    
+
     var msgURI = GetLoadedMessage();
-    
+
     if (!folder || !msgURI)
       return;
 
@@ -2683,22 +2683,30 @@ function OnMsgLoaded(aUrl)
       gNextMessageViewIndexAfterDelete = -2;
 
     var msgHdr = msgHdrForCurrentMessage();
-     
     gMessageNotificationBar.setJunkMsg(msgHdr);
 
-    // we just finished loading a message. set a timer to actually mark the message is read after n seconds
+    var markReadAutoMode = gPrefBranch.getBoolPref("mailnews.mark_message_read.auto");
+
+    // We just finished loading a message. If messages are to be marked as read
+    // automatically, set a timer to mark the message is read after n seconds
     // where n can be configured by the user.
-
-    var markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
-
-    if (msgHdr && !msgHdr.isRead)
+    if (msgHdr && !msgHdr.isRead && markReadAutoMode)
     {
-      if (markReadOnADelay && wintype == "mail:3pane") // only use the timer if viewing using the 3-pane preview pane and the user has set the pref
+      let markReadOnADelay = gPrefBranch.getBoolPref("mailnews.mark_message_read.delay");
+
+      // Only use the timer if viewing using the 3-pane preview pane and the
+      // user has set the pref.
+      if (markReadOnADelay && wintype == "mail:3pane") // 3-pane window
       {
         ClearPendingReadTimer();
-        gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead, gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval") * 1000);
+        let markReadDelayTime = gPrefBranch.getIntPref("mailnews.mark_message_read.delay.interval");
+        if (markReadDelayTime == 0)
+          MarkCurrentMessageAsRead();
+        else
+          gMarkViewedMessageAsReadTimer = setTimeout(MarkCurrentMessageAsRead,
+                                                     markReadDelayTime * 1000);
       }
-      else
+      else // standalone msg window
         MarkCurrentMessageAsRead();
     }
 

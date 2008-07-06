@@ -40,12 +40,21 @@
 
 function Startup()
 {
-  let value = document.getElementById("mailnews.mark_message_read.delay").value;
-  EnableTextbox("markMessagesReadAfter", value, false);
+  var autoMark = document.getElementById("mailnews.mark_message_read.auto").value;
+  UpdateMarkAsReadOptions(autoMark);
+  UpdateMarkAsReadDelayTextbox(false);
 }
 
-function EnableMarkMessagesReadAfter(aValue)
+function UpdateMarkAsReadOptions(enableRadioGroup)
 {
-  let focus = (document.getElementById("markMessagesRead") == document.commandDispatcher.focusedElement);
-  EnableTextbox("markMessagesReadAfter", aValue, focus);
+  document.getElementById('markAsReadAutoPreferences').disabled = !enableRadioGroup;
+  // ... and the extras!
+  document.getElementById('markAsReadDelay').disabled = !enableRadioGroup;
+  document.getElementById('secondsLabel').disabled = !enableRadioGroup;
+}
+
+function UpdateMarkAsReadDelayTextbox(focusTextBox)
+{
+  var enable = document.getElementById('markAsReadAfterDelay').selected;
+  EnableTextbox("markAsReadDelay", enable, focusTextBox);
 }

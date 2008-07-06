@@ -64,12 +64,16 @@
 <!ENTITY convertEmoticons.label           "Display emoticons as graphics">
 <!ENTITY convertEmoticons.accesskey       "D">
 <!ENTITY generalMessageDisplay.caption    "General">
-<!-- LOCALIZATION NOTE (markMessagesRead.label): This will concatenate with
-     "xxx seconds before marking a message as read", using a number and
-     (seconds.label). -->
-<!ENTITY markMessagesRead.label           "Wait">
-<!ENTITY markMessagesRead.accesskey       "W">
-<!ENTITY seconds.label                    "seconds before marking a message as read">
+<!ENTITY autoMarkAsRead.label             "Automatically mark messages as read">
+<!ENTITY autoMarkAsRead.accesskey         "A">
+<!ENTITY markAsReadNoDelay.label          "Immediately on display">
+<!ENTITY markAsReadNoDelay.accesskey      "d">
+<!-- LOCALIZATION NOTE (markAsReadDelay.label): This will concatenate to
+     "After displaying for [___] seconds",
+     using (markAsReadDelay.label) and a number (secondsLabel.label). -->
+<!ENTITY markAsReadDelay.label            "After displaying for">
+<!ENTITY markAsReadDelay.accesskey        "e">
+<!ENTITY secondsLabel.label               "seconds">
 
 <!ENTITY openingMessages.label            "When opening messages, display them in:">
 <!ENTITY newWindowRadio.label             "A new message window">

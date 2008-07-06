@@ -8,12 +8,16 @@
 <!ENTITY showCondensedAddresses.label  "Show only display name for people in my address book">
 <!ENTITY showCondensedAddresses.accesskey "p">
 
-<!-- LOCALIZATION NOTE (markAsRead.label): This will concatenate with
-     "xxx seconds before marking a message as read", using a number and
-     (markAsReadEnd.label). -->
-<!ENTITY markAsRead.label              "Wait">
-<!ENTITY markAsRead.accesskey          "W">
-<!ENTITY markAsReadEnd.label           "seconds before marking a message as read">
+<!ENTITY autoMarkAsRead.label          "Automatically mark messages as read">
+<!ENTITY autoMarkAsRead.accesskey      "A">
+<!ENTITY markAsReadNoDelay.label       "Immediately on display">
+<!ENTITY markAsReadNoDelay.accesskey   "d">
+<!-- LOCALIZATION NOTE (markAsReadDelay.label): This will concatenate to
+     "After displaying for [___] seconds",
+     using (markAsReadDelay.label) and a number (secondsLabel.label). -->
+<!ENTITY markAsReadDelay.label         "After displaying for">
+<!ENTITY markAsReadDelay.accesskey     "e">
+<!ENTITY secondsLabel.label            "seconds">
 <!ENTITY showFolderColumns.label       "Show expanded columns in the folder pane">
 <!ENTITY showFolderColumns.accesskey   "l">
 <!ENTITY rememberLastMsg.label         "Remember the last selected message">

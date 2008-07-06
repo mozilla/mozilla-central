@@ -43,12 +43,13 @@ var gAdvancedPane = {
   init: function ()
   {
     this.mPane = document.getElementById("paneAdvanced");
+    this.updateMarkAsReadOptions(document.getElementById("automaticallyMarkAsRead").checked);
     this.updateMarkAsReadTextbox(false);
 
     if ("arguments" in window && window.arguments[1] && document.getElementById(window.arguments[1]))
       document.getElementById("advancedPrefs").selectedTab = document.getElementById(window.arguments[1]);
     else 
-    {    
+    {
       var preference = document.getElementById("mail.preferences.advanced.selectedTabIndex");
       if (preference.value)
         document.getElementById("advancedPrefs").selectedIndex = preference.value;
@@ -112,7 +113,7 @@ var gAdvancedPane = {
    *             ii  f       t/f       true
    *             iii 0/1/2   f         false
    *             iii 0/1/2   t         true   
-   * 
+   *
    */
   updateAppUpdateItems: function () 
   {
@@ -125,15 +126,15 @@ var gAdvancedPane = {
 
     enableAppUpdate.disabled = !aus.canUpdate || enabledPref.locked;
   },
-  
+
   updateAutoItems: function () 
   {
     var enabledPref = document.getElementById("app.update.enabled");
     var autoPref = document.getElementById("app.update.auto");
-    
+
     var updateModeLabel = document.getElementById("updateModeLabel");
     var updateMode = document.getElementById("updateMode");
-    
+
     var disable = enabledPref.locked || !enabledPref.value ||
                   autoPref.locked;
     updateModeLabel.disabled = updateMode.disabled = disable;
@@ -144,9 +145,9 @@ var gAdvancedPane = {
     var enabledPref = document.getElementById("app.update.enabled");
     var autoPref = document.getElementById("app.update.auto");
     var modePref = document.getElementById("app.update.mode");
-    
+
     var warnIncompatible = document.getElementById("warnIncompatible");
-    
+
     var disable = enabledPref.locked || !enabledPref.value || autoPref.locked ||
                   !autoPref.value || modePref.locked;
     warnIncompatible.disabled = disable;
@@ -182,13 +183,13 @@ var gAdvancedPane = {
     gAdvancedPane._modePreference = doNotWarn ? preference.value : 1;
     return doNotWarn;
   },
-  
+
   addonWarnSyncTo: function ()
   {
     var warnIncompatible = document.getElementById("warnIncompatible");
     return !warnIncompatible.checked ? 0 : gAdvancedPane._modePreference;
   },
-  
+
   showUpdates: function ()
   {
     var prompter = Components.classes["@mozilla.org/updates/update-prompt;1"]
@@ -196,15 +197,23 @@ var gAdvancedPane = {
     prompter.showUpdateHistory(window);
   },
 
-  updateMarkAsReadTextbox: function(aFocusTextBox) 
+  updateMarkAsReadOptions: function(enableRadioGroup)
   {
-    var textbox = document.getElementById('markAsReadDelay'); 
-    textbox.disabled = !document.getElementById('markAsRead').checked;
+    document.getElementById('markAsReadAutoPreferences').disabled = !enableRadioGroup;
+    // ... and the extras!
+    document.getElementById('markAsReadDelay').disabled = !enableRadioGroup;
+    document.getElementById('secondsLabel').disabled = !enableRadioGroup;
+  },
+
+  updateMarkAsReadTextbox: function(aFocusTextBox)
+  {
+    var textbox = document.getElementById('markAsReadDelay');
+    textbox.disabled = !document.getElementById('markAsReadAfterDelay').selected;
     if (!textbox.disabled && aFocusTextBox)
         textbox.focus();
   },
-  
-  /** 
+
+  /**
    * open the return receipts configuration dialog 
    */
   showReturnReceipts: function()
@@ -212,7 +221,7 @@ var gAdvancedPane = {
     document.documentElement.openSubDialog("chrome://messenger/content/preferences/receipts.xul",
                                            "", null);
   },  
-  
+
   /** 
    * open the connections dialog 
    */
@@ -222,8 +231,8 @@ var gAdvancedPane = {
             .openSubDialog("chrome://messenger/content/preferences/connection.xul",
                            "", null);
   },
-  
-  /** 
+
+  /**
    * open the offline settings dialog
    */
   showOffline: function()
@@ -232,25 +241,25 @@ var gAdvancedPane = {
             .openSubDialog("chrome://messenger/content/preferences/offline.xul",
                            "", null);  
   },
-  
+
   showCertificates: function ()
   {
     document.documentElement.openWindow("mozilla:certmanager", "chrome://pippki/content/certManager.xul",
                                         "width=600,height=400", null);
   },
-  
+
   showCRLs: function ()
   {
     document.documentElement.openWindow("Mozilla:CRLManager", "chrome://pippki/content/crlManager.xul",
                                         "width=600,height=400", null);
   },
-  
+
   showOCSP: function ()
   {
     document.documentElement.openSubDialog("chrome://mozapps/content/preferences/ocsp.xul",
                                            "", null);
   },
-  
+
   showSecurityDevices: function ()
   {
     document.documentElement.openWindow("mozilla:devicemanager", "chrome://pippki/content/device_manager.xul",
