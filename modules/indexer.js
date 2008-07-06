@@ -179,82 +179,86 @@ let GlodaIndexer = {
     this._log.debug("index wake-up!");
   
     GlodaDatastore._beginTransaction();
+    try {
     
-    for (let tokensLeft=this._indexTokens; tokensLeft > 0; tokensLeft--) {
-      if (this._indexingFolder != null) {
-        try {
-          this._indexMessage(this._indexingIterator.next());
-          this._indexingCount++;
-          
-          if (this._indexingCount % 50 == 1) {
-            this._log.debug("indexed " + this._indexingCount + " in " +
-                            this._indexingFolder.prettiestName);
-          }
-        }
-        catch (ex) {
-          this._log.debug("Done with indexing folder because: " + ex);
-          this._indexingFolder = null;
-          this._indexingIterator = null;
-        }
-      }
-      else if (this._indexQueue.length) {
-        let item = this._indexQueue.shift();
-        let itemType = item[0];
-        
-        if (itemType == "account") {
-          this.indexAccount(item[1]);
-        }
-        else if (itemType == "folder") {
-          let folderURI = item[1];
-          
-          this._log.debug("Folder URI: " + folderURI);
-
-          let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
-                           getService(Ci.nsIRDFService);
-          let folder = rdfService.GetResource(folderURI);
-          if (folder instanceof Ci.nsIMsgFolder) {
-            this._indexingFolder = folder;
-
-            this._log.debug("Starting indexing of folder: " +
-                            folder.prettiestName);
-
-            // The msf may need to be created or otherwise updated, updateFolder will
-            //  do this for us.  (GetNewMessages would also do it, but we would be
-            //  triggering new message retrieval in that case, which we don't actually
-            //  desire.
-            // TODO: handle password-protected local cache potentially triggering a
-            //  password prompt here...
-            try {
-              //this._indexingFolder.updateFolder(this._msgWindow);
+      for (let tokensLeft=this._indexTokens; tokensLeft > 0; tokensLeft--) {
+        if (this._indexingFolder != null) {
+          try {
+            this._indexMessage(this._indexingIterator.next());
+            this._indexingCount++;
             
-              let msgDatabase = folder.getMsgDatabase(this._msgWindow);
-              this._indexingIterator = Iterator(fixIterator(
-                                         //folder.getMessages(this._msgWindow),
-                                         msgDatabase.EnumerateMessages(),
-                                         Ci.nsIMsgDBHdr));
+            if (this._indexingCount % 50 == 1) {
+              this._log.debug("indexed " + this._indexingCount + " in " +
+                              this._indexingFolder.prettiestName);
             }
-            catch (ex) {
-              this._log.error("Problem indexing folder: " +
-                              folder.prettiestName + ", skipping.");
-              this._log.error("Error was: " + ex);
-              this._indexingFolder = null;
-              this._indexingIterator = null;
+          }
+          catch (ex) {
+            this._log.debug("Done with indexing folder because: " + ex);
+            this._indexingFolder = null;
+            this._indexingIterator = null;
+          }
+        }
+        else if (this._indexQueue.length) {
+          let item = this._indexQueue.shift();
+          let itemType = item[0];
+          
+          if (itemType == "account") {
+            this.indexAccount(item[1]);
+          }
+          else if (itemType == "folder") {
+            let folderURI = item[1];
+            
+            this._log.debug("Folder URI: " + folderURI);
+  
+            let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
+                             getService(Ci.nsIRDFService);
+            let folder = rdfService.GetResource(folderURI);
+            if (folder instanceof Ci.nsIMsgFolder) {
+              this._indexingFolder = folder;
+  
+              this._log.debug("Starting indexing of folder: " +
+                              folder.prettiestName);
+  
+              // The msf may need to be created or otherwise updated, updateFolder will
+              //  do this for us.  (GetNewMessages would also do it, but we would be
+              //  triggering new message retrieval in that case, which we don't actually
+              //  desire.
+              // TODO: handle password-protected local cache potentially triggering a
+              //  password prompt here...
+              try {
+                //this._indexingFolder.updateFolder(this._msgWindow);
+              
+                let msgDatabase = folder.getMsgDatabase(this._msgWindow);
+                this._indexingIterator = Iterator(fixIterator(
+                                           //folder.getMessages(this._msgWindow),
+                                           msgDatabase.EnumerateMessages(),
+                                           Ci.nsIMsgDBHdr));
+              }
+              catch (ex) {
+                this._log.error("Problem indexing folder: " +
+                                folder.prettiestName + ", skipping.");
+                this._log.error("Error was: " + ex);
+                this._indexingFolder = null;
+                this._indexingIterator = null;
+              }
             }
           }
         }
+        else {
+          this._log.info("Done indexing, disabling timer renewal.");
+          this._indexingActive = false;
+          break;
+        }
       }
-      else {
-        this._log.info("Done indexing, disabling timer renewal.");
-        this._indexingActive = false;
-        break;
-      }
+    
     }
+    finally {
+      GlodaDatastore._commitTransaction();
     
-    GlodaDatastore._commitTransaction();
-    
-    if (this.indexing)
-      this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval,
-                              this);
+      if (this.indexing)
+        this._domWindow.setTimeout(this._wrapIncrementalIndex, this._indexInterval,
+                                this);
+    }
   },
 
   indexEverything: function glodaIndexEverything() {
