@@ -210,6 +210,133 @@ sub create {
     return $self;
 }
 
+# variables used for create_full() to _parseElementsRecursively() inter-subroutine communication:
+my @environment_map;
+my $modified_environment_structure = 0;
+
+sub create_full {
+	my $self = shift;
+	my ($env_basename, $prod_id, $environment) = @_;
+
+	# first, get ALL rows to add to test_environment_map table
+	# and store them in @environment_map array
+	foreach my $key (keys(%{$environment})){
+		require Bugzilla::Testopia::Environment::Category;
+		my $cat = Bugzilla::Testopia::Environment::Category->new({'product_id' => $prod_id});
+		my $cat_id = $cat->check_category($key);
+		if (!$cat_id) { warn "category: $key for id: $cat did not exist"; return 0; }
+		_parseElementsRecursively($environment->{$key}, $cat_id, 'category');
+	}
+
+	# if we didn't touch the underlying element/property structure:
+	# see if an existing environment matches
+	if(!$modified_environment_structure){
+	    # environment must begin with $env_basename
+	    my $dbh = Bugzilla->dbh;
+	    my @envmatch = @{$dbh->selectcol_arrayref(
+	            	     "SELECT environment_id 
+	               	      FROM test_environments
+	               	      WHERE name LIKE '$env_basename:%' AND product_id = $prod_id")};
+		
+		if(scalar(@envmatch)){
+			# ALL rows must be represented in that environment
+			foreach my $hash (@environment_map) {
+				my $env_id_conditions = "environment_id = " . pop @envmatch;
+				foreach(@envmatch){$env_id_conditions .= " OR environment_id = $_";}
+			
+		   		@envmatch = @{$dbh->selectcol_arrayref(
+		            				"SELECT environment_id 
+		               		 		FROM test_environment_map
+		               		 		WHERE ( $env_id_conditions ) AND
+		               		 		property_id = $hash->{prop_id} AND
+		               		 		element_id = $hash->{elem_id} AND
+		               		 		value_selected = '$hash->{value_selected}'")};
+				last if (!scalar(@envmatch));
+			}
+
+			# if we got at least one match..
+			if(scalar(@envmatch)){
+				# choose the highest valued one (most recent) and return it
+				my $max = pop @envmatch;
+				foreach(@envmatch){
+					$max = $_ if $_ > $max;}
+				return $max;
+			} 
+		}
+	}
+
+	# else, create a new environment
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
+	$year += 1900;
+	$hour = sprintf("%02d", $hour); $min = sprintf("%02d", $min); $yday = sprintf("%03d", $yday);
+	my $environment_name = $env_basename . ':' . $year . $yday . ':' . $hour . $min;
+
+    my $env = $self->create({
+        name => $environment_name,
+        product_id => $prod_id
+    });
+    print STDERR Data::Dumper::Dumper($env);
+	my $env_id = $env->id;
+	ThrowUserError('could-not-create-environment', {'environment_name' => $environment_name}) unless $env_id;
+
+	# and create all rows in test_environment_map table for this environment_id
+	foreach my $hash (@environment_map) {
+		$env->store_property_value($hash->{prop_id}, $hash->{elem_id}, $hash->{value_selected});	
+	}
+
+	# return the environment id
+	return $env_id;
+}
+
+sub _parseElementsRecursively {
+# internal function used by create_full()
+	my ($hash, $callerid, $callertype, $categoryid) = @_;
+	$categoryid = $callerid if !defined($categoryid);
+
+	foreach my $key (keys(%{$hash})) {
+		if(ref($hash->{$key})){ # must be element, since property contains value instead of another hash
+			require Bugzilla::Testopia::Environment::Element;
+			my $elem = Bugzilla::Testopia::Environment::Element->new({});
+			# get exising element OR create new one
+			my ($elem_id) = $elem->check_element($key, $callerid);
+			if(!$elem_id){
+				$elem->{'env_category_id'} = ($callertype eq 'category') ? $callerid : $categoryid;
+				$elem->{'name'} = $key;
+				$elem->{'parent_id'} = ($callertype eq 'element') ? $callerid : 0;
+				$elem->{'isprivate'} = 0;
+				($elem_id) = $elem->store();
+				ThrowUserError('could-not-create-element', {'element_name' => $key}) unless $elem_id;
+				$modified_environment_structure = 1;
+			}
+			_parseElementsRecursively($hash->{$key}, $elem_id, 'element', $categoryid);
+		} else {
+			require Bugzilla::Testopia::Environment::Property;
+			my $prop = Bugzilla::Testopia::Environment::Property->new({});
+			my ($prop_id) = $prop->check_property($key, $callerid);
+			# get existing property OR create new one
+			if(!$prop_id){
+				$prop->{'element_id'} = $callerid;
+				$prop->{'name'} = $key;
+				$prop->{'validexp'} = $hash->{$key};
+				($prop_id) = $prop->store();
+				ThrowUserError('could-not-create-property', {'property_name' => $key}) unless $prop_id;
+				$modified_environment_structure = 1;
+			} else {
+				# if property exists, still update validexp if needed
+				$prop = Bugzilla::Testopia::Environment::Property->new($prop_id);
+				my $validexp = $prop->validexp;
+				if ($validexp !~ m/\Q$hash->{$key}/){
+					my $newexp = $validexp . ((!length($validexp)) ? "" : "|") . $hash->{$key}; 
+					$prop->update_property_validexp($newexp);
+					$modified_environment_structure = 1;
+				}
+			}
+			# push to array which will be used later
+			push @environment_map, {prop_id => $prop_id, elem_id => $callerid, value_selected => $hash->{$key}};
+		}
+	}
+}
+
 ###############################
 ####       Methods         ####
 ###############################
@@ -477,7 +604,6 @@ sub check_value_selected {
         
     return $used;
 }
-
 
 =head2 store property values
 

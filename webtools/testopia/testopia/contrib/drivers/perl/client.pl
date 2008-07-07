@@ -170,6 +170,18 @@ if (defined($Bugzilla_login)) {
 #$soapresult = $proxy->call('Environment.update', 1018, {name=>'Second Environment'});
 #$soapresult = $proxy->call('Environment.get_runs', 1);
 #$soapresult = $proxy->call('Environment.get_caseruns', 1);
+#$soapresult = $proxy->call('Environment.create_full', "My Environment", 2, 
+#    {
+#        Database => {
+#            Looly =>{
+#                lum => 'lee', 
+#                loo => 'low'
+#            },
+#            Lumdy => {
+#                lor => 'lee'
+#            }
+#        }
+#    });
 
 #######################
 ### Product Methods ###
