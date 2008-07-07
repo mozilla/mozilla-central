@@ -1258,13 +1258,17 @@ CaseBugsGrid = function(id){
     });
     addbug = function(){
         tcid = this.tcid;
-        var tcrid;
+        var type = 'case';
         if (Ext.getCmp('caserun_grid')){
-            tcrid = Ext.getCmp('caserun_grid').getSelectionModel().getSelected().get('caserun_id');
+            type = 'caserun';
+            ids = getSelectedObjects(Ext.getCmp('caserun_grid'), 'caserun_id');
+        }
+        else {
+            ids = tcid;
         }
         testopia_form.submit({
-            url: 'tr_process_case.cgi',
-            params: {action: 'edit', bugs: Ext.getCmp('attachbug').getValue(), case_id: this.tcid, caserun_id: tcrid},
+            url: 'tr_list_cases.cgi',
+            params: {action: 'update_bugs', bug_action: 'attach', bugs: Ext.getCmp('attachbug').getValue(), type: type, ids: ids},
             success: function(){
                 ds.load({
                     params: {case_id: tcid}
@@ -1276,9 +1280,17 @@ CaseBugsGrid = function(id){
     };
     removebug = function(){
         tcid = this.tcid;
+        var type = 'case';
+        if (Ext.getCmp('caserun_grid')){
+            type = 'caserun';
+            ids = getSelectedObjects(Ext.getCmp('caserun_grid'), 'caserun_id');
+        }
+        else {
+            ids = tcid;
+        }
         testopia_form.submit({
-            url: 'tr_process_case.cgi',
-            params: {action: 'detachbug', bug_id: getSelectedObjects(Ext.getCmp('case_bugs_panel'), 'bug_id'), case_id: this.tcid},
+            url: 'tr_list_cases.cgi',
+            params: {action: 'update_bugs', bugs: getSelectedObjects(Ext.getCmp('case_bugs_panel'), 'bug_id'), type: type, ids: ids},
             success: function(){
                 ds.load({
                     params: {
@@ -1571,3 +1583,56 @@ Ext.extend(CaseComponentsGrid, Ext.grid.GridPanel, {
         this.pchooser.store.load();
     }
 });
+
+BugsUpdate = function(grid){
+    function commitBug(action, value, grid){
+        var form = new Ext.form.BasicForm('testopia_helper_frm',{});
+        form.submit({
+            url: 'tr_list_cases.cgi',
+            params: {action: 'update_bugs', bug_action: action, bugs: value, type: 'case', ids: getSelectedObjects(grid, 'case_id')},
+            success: function(){},
+            failure: testopiaError
+        });
+    }
+     var win = new Ext.Window({
+         title: 'Add or Remove Bugs',
+         id: 'bugs_edit_win',
+         layout: 'fit',
+         split: true,
+         plain: true,
+         shadow: false,
+         width: 350,
+         height: 150,
+         items: [
+            new Ext.FormPanel({
+                labelWidth: '40',
+                bodyStyle: 'padding: 5px',
+                items: [{
+                    xtype: 'textfield',
+                    name: 'bugs',
+                    id: 'bug_field',
+                    fieldLabel: 'Bugs'
+                }]
+            })
+        ],
+        buttons: [{
+            text:'Attach Bug',
+            handler: function(){
+                commitBug('attach', Ext.getCmp('bug_field').getValue(), grid);
+                win.close();
+            }
+        },{
+            text: 'Remove Bug',
+            handler: function(){
+                commitBug('remove', Ext.getCmp('bug_field').getValue(), grid);
+                win.close();
+            }
+        },{
+            text: 'Close',
+            handler: function(){
+                win.close();
+            }
+        }]
+    });
+    win.show();
+};

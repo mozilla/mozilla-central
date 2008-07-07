@@ -275,7 +275,7 @@ sub create_full {
         name => $environment_name,
         product_id => $prod_id
     });
-    print STDERR Data::Dumper::Dumper($env);
+    
 	my $env_id = $env->id;
 	ThrowUserError('could-not-create-environment', {'environment_name' => $environment_name}) unless $env_id;
 

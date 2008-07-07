@@ -65,11 +65,17 @@ if ($action eq 'update'){
 
     my @uneditable;
     my @runs;
+    my @bugs;
     my @components;
     
     foreach my $runid (split(/[\s,]+/, $cgi->param('addruns'))){
         validate_test_id($runid, 'run');
         push @runs, Bugzilla::Testopia::TestRun->new($runid);
+    }
+
+    foreach my $bugid (split(/[\s,]+/, $cgi->param('bugs'))){
+        ValidateBugID($bugid);
+        push @bugs, $bugid;
     }
     
     my @comps = $cgi->param("components");
@@ -112,6 +118,9 @@ if ($action eq 'update'){
         foreach my $run (@runs){
             $run->add_case_run($case->id, $case->sortkey) if $run->canedit;
         }
+        
+        $case->attach_bugs(\@bugs) if $cgi->param('bugs_action') eq 'add';
+        $case->detach_bugs(\@bugs) if $cgi->param('bugs_action') eq 'remove'; 
     }
     ThrowUserError('testopia-update-failed', {'object' => 'plan', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
     print "{'success': true}";    
@@ -240,6 +249,33 @@ elsif ($action eq 'delete'){
 
     ThrowUserError('testopia-update-failed', {'object' => 'case', 'list' => join(',',@uneditable)}) if (scalar @uneditable);
     print "{'success': true}";
+}
+
+elsif ($action eq 'update_bugs'){
+    Bugzilla->error_mode(ERROR_MODE_AJAX);
+    print $cgi->header;
+    
+    my @ids = split(",", $cgi->param('ids'));
+    my @objs;
+    foreach my $id (split(",", $cgi->param('ids'))){
+        if ($cgi->param('type') eq 'case'){
+            my $case = Bugzilla::Testopia::TestCase->new($id);
+            if ($cgi->param('bug_action') eq 'attach'){
+                $case->attach_bug($cgi->param('bugs')) if $case->canedit;
+            }
+            else {
+                $case->detach_bug($cgi->param('bugs')) if $case->canedit;
+            }
+        } elsif($cgi->param('type') eq 'caserun'){
+            my $caserun = Bugzilla::Testopia::TestCaseRun->new($id);
+            if ($cgi->param('bug_action') eq 'attach'){
+                $caserun->case->attach_bug($cgi->param('bugs'), $id) if $caserun->case->canedit;
+            }
+            else {
+                $caserun->case->detach_bug($cgi->param('bugs')) if $caserun->case->canedit;
+            }
+        } 
+    }
 }
 
 else{

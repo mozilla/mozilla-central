@@ -504,6 +504,11 @@ Ext.extend(CaseGrid, Ext.grid.EditorGridPanel, {
                         TagsUpdate('case', grid);
                     }
                 },{
+                    text: 'Add or Remove Bugs from Selected Cases...',
+                    handler: function(){
+                        BugsUpdate(grid);
+                    }
+                },{
                     text: 'Add or Remove Components from Selected Cases...',
                     handler: function(){
                          var win = new Ext.Window({

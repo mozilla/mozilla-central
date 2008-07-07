@@ -103,7 +103,9 @@ else{
 sub do_update {
     # We need at least one admin    
     my $params = join(" ", $cgi->param());
-    ThrowUserError('testopia-no-admins') unless $params =~ /(^|\s)a\d+($|\s)/;
+    if (scalar @{$plan->access_list} > 0){
+        ThrowUserError('testopia-no-admins') unless $params =~ /(^|\s)a\d+($|\s)/;
+    }
     
     my $tester_regexp = $cgi->param('userregexp');
     trick_taint($tester_regexp);
