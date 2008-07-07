@@ -237,7 +237,7 @@
                       organizer.participationStatus = "ACCEPTED";
                   }
               }
-              if (!organizer.commonName.length) {
+              if (!organizer.commonName || !organizer.commonName.length) {
                   organizer.commonName = calendar.getProperty("organizerCN");
               }
               this.appendAttendee(organizer, listbox, template, true);
