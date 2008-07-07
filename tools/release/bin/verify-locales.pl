@@ -79,7 +79,7 @@ sub VerifyLinuxLocales {
       return 0;
    }
 
-   my $fileRegex = '^' . $product . '\-[\d\.]+((b|rc)\d+)?\.tar\.' . $extension .
+   my $fileRegex = '^' . $product . '\-[\d\.]+((a|b|rc)\d+)?\.tar\.' . $extension .
     '(\.asc)?$';
 
    return VerifyDirectory(locales => $locales,
@@ -100,7 +100,7 @@ sub VerifyWin32Locales {
    }
 
    my $fileRegex = '^' . $product .
-     '\ Setup\ [\d\.]+(\ (Beta|RC)\ \d+)?\.exe(\.asc)?$';
+     '\ Setup\ [\d\.]+(\ (Alpha|Beta|RC)\ \d+)?\.exe(\.asc)?$';
 
    return VerifyDirectory(locales => $locales,
                           dir => $directory,
@@ -119,7 +119,7 @@ sub VerifyMacLocales {
       return 0;
    }
 
-   my $fileRegex = '^' . $product . '\ [\d\.]+(\ (Beta|RC)\ \d+)?\.dmg(\.asc)?$';
+   my $fileRegex = '^' . $product . '\ [\d\.]+(\ (Alpha|Beta|RC)\ \d+)?\.dmg(\.asc)?$';
 
    return VerifyDirectory(locales => $locales,
                           dir => $directory,
