@@ -20,6 +20,38 @@
  *                 Daniel Parker <dparker1@novell.com>
  */
 
+Testopia.Tags = {};
+
+Testopia.Tags.renderer = function(v,md,r,ri,ci,s,type,pid){
+    return '<div style="cursor:pointer" onclick=Testopia.Tags.list("' + type + '",' + pid +',"'+ r.get('tag_name') +'")>'+ v + '</div>';
+};
+ 
+Testopia.Tags.list = function(type, product, tag){
+    var cfg = {
+        title: 'Tag Results: ' + tag,
+        closable: true,
+        id: tag + 'search' + product,
+        autoScroll: true
+    }; 
+    var search = {
+        product_id: product,
+        tags: tag
+    };
+    
+    var newTab
+    if (type == 'case'){
+        newTab = new CaseGrid(search, cfg); 
+    }
+    else if (type == 'plan'){
+        newTab = new PlanGrid(search, cfg); 
+    }
+    else if (type == 'run'){
+        newTab = new RunGrid(search, cfg); 
+    }
+    
+    Ext.getCmp('object_panel').add(newTab);
+    Ext.getCmp('object_panel').activate(tag + 'search' + product);
+};
 TestopiaObjectTags = function(obj, obj_id){
     this.orig_id = obj_id;
     this.obj_id = obj_id;
@@ -62,9 +94,9 @@ TestopiaObjectTags = function(obj, obj_id){
     this.columns = [
         {dataIndex: 'tag_id', hidden: true, hideable: false},
         {header: 'Name', width: 150, dataIndex: 'tag_name', id: 'tag_name', sortable:true, hideable: false},
-        {header: 'Cases', width: 35, dataIndex: 'case_count', sortable:true, hidden: true},
-        {header: 'Runs', width: 35, dataIndex: 'run_count', sortable:true, hidden: true},
-        {header: 'Plans', width: 35, dataIndex: 'plan_count', sortable:true, hidden: true}
+        {header: 'Cases', width: 35, dataIndex: 'case_count', sortable:true, hidden: true, renderer: Testopia.Tags.renderer.createDelegate(this, ['case'], true)},
+        {header: 'Runs', width: 35, dataIndex: 'run_count', sortable:true, hidden: true, renderer: Testopia.Tags.renderer.createDelegate(this, ['run'], true)},
+        {header: 'Plans', width: 35, dataIndex: 'plan_count', sortable:true, hidden: true, renderer: Testopia.Tags.renderer.createDelegate(this, ['plan'], true)}
     ];
     
     var addButton = new Ext.Button({
@@ -165,9 +197,9 @@ TestopiaProductTags = function(title, type, product_id){
     this.columns = [
         {header: "ID", dataIndex: 'tag_id', hidden: true},
         {header: 'Name', width: 150, dataIndex: 'tag_name', id: 'tag_name', sortable:true},
-        {header: 'Cases', width: 35, dataIndex: 'case_count', sortable:true},
-        {header: 'Runs', width: 35, dataIndex: 'run_count', sortable:true},
-        {header: 'Plans', width: 35, dataIndex: 'plan_count', sortable:true}
+        {header: 'Cases', width: 35, dataIndex: 'case_count', sortable:true, renderer: Testopia.Tags.renderer.createDelegate(this, ['case', product_id], true)},
+        {header: 'Runs', width: 35, dataIndex: 'run_count', sortable:true, renderer: Testopia.Tags.renderer.createDelegate(this, ['run', product_id], true)},
+        {header: 'Plans', width: 35, dataIndex: 'plan_count', sortable:true, renderer: Testopia.Tags.renderer.createDelegate(this, ['plan', product_id], true)}
     ];
     
     var filter = new Ext.form.TextField({
