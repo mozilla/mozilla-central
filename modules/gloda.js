@@ -205,7 +205,6 @@ let Gloda = {
     if (aParameterType == null) {
       attrID = GlodaDatastore._createAttributeDef(aAttrType, aPluginName,
                                                   aAttrName, null);
-      GlodaDatastore._attributeIDToDef[attrID] = [attrID, null];
     }
     
     attr = new GlodaAttributeDef(GlodaDatastore, attrID, compoundName,
@@ -214,6 +213,8 @@ let Gloda = {
                                  aExplanationFormat);
     GlodaDatastore._attributes[compoundName] = attr;
     this._attrProviders[aProvider].push(attr);
+    if (aParameterType == null)    
+      GlodaDatastore._attributeIDToDef[attrID] = [attr, null];
     return attr;
   },
   
