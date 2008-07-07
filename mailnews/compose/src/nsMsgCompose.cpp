@@ -1585,37 +1585,48 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   if (m_identity)
   {
-      /* Setup reply-to field */
-      nsCString replyTo;
-      m_identity->GetReplyTo(replyTo);
-      if (!replyTo.IsEmpty())
+    /* Setup reply-to field */
+    nsCString replyTo;
+    m_identity->GetReplyTo(replyTo);
+    if (!replyTo.IsEmpty())
+    {
+      char *resultStr = nsnull;
+      rv = RemoveDuplicateAddresses(m_compFields->GetReplyTo(),
+                                    replyTo.get(), PR_TRUE, &resultStr);
+      if (NS_SUCCEEDED(rv) && resultStr)
       {
-        nsCString replyToStr;
-        replyToStr.Assign(m_compFields->GetReplyTo());
-        if (replyToStr.Find(replyTo) == -1) {
-          if (replyToStr.Length() > 0)
-            replyToStr.Append(',');
-          replyToStr.Append(replyTo);
-          m_compFields->SetReplyTo(replyToStr.get());
+        if (*resultStr)
+        {
+          replyTo.Append(',');
+          replyTo.Append(resultStr);
         }
+        PR_Free(resultStr);
       }
+      m_compFields->SetReplyTo(replyTo.get());
+    }
 
-      /* Setup bcc field */
-      PRBool doBcc;
-      m_identity->GetDoBcc(&doBcc);
-      if (doBcc)
+    /* Setup bcc field */
+    PRBool doBcc;
+    m_identity->GetDoBcc(&doBcc);
+    if (doBcc) 
+    {
+      nsCString bccList;
+      m_identity->GetDoBccList(bccList);
+
+      char *resultStr = nsnull;
+      rv = RemoveDuplicateAddresses(m_compFields->GetBcc(),
+                                    bccList.get(), PR_TRUE, &resultStr);
+      if (NS_SUCCEEDED(rv) && resultStr)
       {
-        nsCString bccStr;
-        bccStr.Assign(m_compFields->GetBcc());
-        nsCString bccList;
-        m_identity->GetDoBccList(bccList);
-        if (bccStr.Find(bccList) == -1) {
-          if (bccStr.Length() > 0)
-            bccStr.Append(',');
-          bccStr.Append(bccList);
-          m_compFields->SetBcc(bccStr.get());
+        if (*resultStr)
+        {
+          bccList.Append(',');
+          bccList.Append(resultStr);
         }
+        PR_Free(resultStr);
       }
+      m_compFields->SetBcc(bccList.get());
+    }
   }
 
   if (mType == nsIMsgCompType::Draft)
@@ -2416,7 +2427,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           {
             mMimeConverter->DecodeMimeHeader(outCString.get(), charset.get(),
                                              PR_FALSE, PR_TRUE, bcc);
-            if (bcc.Length() > 0)
+            if (!bcc.IsEmpty())
               compFields->SetBcc(bcc);
           }
 
@@ -2431,7 +2442,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           }
           else
           { // default behaviour for messages without Mail-Followup-To
-            if (recipient.Length() > 0 && cc.Length() > 0)
+            if (!recipient.IsEmpty() && !cc.IsEmpty())
               recipient.AppendLiteral(", ");
             recipient += cc;
             compFields->SetCc(recipient);
