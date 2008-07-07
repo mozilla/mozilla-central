@@ -324,8 +324,9 @@ InvitationsManager.prototype = {
 
     validateItem: function IM_validateItem(item) {
         var participationStatus = this.getParticipationStatus(item);
+        var start = item[calGetStartDateProp(item)] || item[calGetEndDateProp(item)];
         return (participationStatus == "NEEDS-ACTION" &&
-                item.startDate.compare(this.mStartDate) >= 0);
+                start.compare(this.mStartDate) >= 0);
     },
 
     getParticipationStatus: function IM_getParticipationStatus(item) {
