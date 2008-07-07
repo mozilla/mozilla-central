@@ -784,8 +784,8 @@ let GlodaDatastore = {
       } 
       let attribAndParam = this._attributeIDToDef[attributeID];
       let val = smas.row["value"];
-      this._log.debug("Loading attribute: " + attribAndParam[0].id + " param: "+
-                      attribAndParam[1] + " val: " + val);
+      //this._log.debug("Loading attribute: " + attribAndParam[0].id + " param: "+
+      //                attribAndParam[1] + " val: " + val);
       attribParamVals.push([attribAndParam[0], attribAndParam[1], val]);
     }
     smas.reset();

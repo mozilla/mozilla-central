@@ -122,15 +122,22 @@ let GlodaIndexer = {
   _domWindow: null,
 
   _inited: false,
-  init: function gloda_index_init(aDOMWindow) {
+  init: function gloda_index_init(aDOMWindow, aMsgWindow) {
     if (this._inited)
       return;
     
+    this._inited = true;
+    
     this._domWindow = aDOMWindow;
     
+    // topmostMsgWindow explodes for un-clear reasons if we have multiple
+    //  windows open.  very sad.
+    /*
     let mailSession = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
     this._msgWindow = mailSession.topmostMsgWindow;
+    */
+    this._msgWindow = aMsgWindow;
   },
 
   /** Track whether indexing is active (we have timers in-flight). */
@@ -148,7 +155,10 @@ let GlodaIndexer = {
   _indexingFolder: null,
   /** The iterator we are using to traverse _indexingFolder. */
   _indexingIterator: null,
-  _indexingCount: 0,
+  _indexingFolderCount: 0,
+  _indexingFolderGoal: 0,
+  _indexingMessageCount: 0,
+  _indexingMessageGoal: 0,
   
   /**
    * A list of things yet to index.  Contents will be lists matching one of the
@@ -171,6 +181,45 @@ let GlodaIndexer = {
    */
   _indexTokens: 10,
   
+  _indexListeners: [],
+  /**
+   * Add an indexing progress listener.  The listener will be notified of at
+   *  least all major status changes (idle -> indexing, indexing -> idle), plus
+   *  arbitrary progress updates during the indexing process.
+   * If indexing is not active when the listener is added, a synthetic idle
+   *  notification will be generated.
+   *
+   * @param aListener A listener function, taking arguments: status (string),
+   *     folder name being indexed (string or null), current zero-based folder
+   *     number being indexed (int), total number of folders to index (int),
+   *     current message number being indexed in this folder (int), total number
+   *     of messages in this folder to be indexed (int).
+   */
+  addListener: function gloda_index_addListener(aListener) {
+    // should we weakify?
+    if (this._indexListeners.indexOf(aListener) == -1)
+      this._indexListeners.push(aListener);
+    // if we aren't indexing, give them an idle indicator, otherwise they can
+    //  just be happy when we hit the next actual status point.
+    if (!this.indexing)
+      aListener("Idle", null, 0, 1, 0, 1);
+    return aListener;
+  },
+  removeListener: function gloda_index_removeListener(aListener) {
+    let index = this._indexListeners.indexOf(aListener);
+    if (index != -1)
+      this._indexListeners(index, 1);
+  },
+  _notifyListeners: function gloda_index_notifyListeners(aStatus, aFolderName,
+      aFolderIndex, aFoldersTotal, aMessageIndex, aMessagesTotal) {
+    for (let iListener=this._indexListeners.length-1; iListener >= 0; 
+         iListener--) {
+      let listener = this._indexListeners[iListener];
+      listener(aStatus, aFolderName, aFolderIndex, aFoldersTotal, aMessageIndex,
+               aMessagesTotal);
+    } 
+  },
+  
   _wrapIncrementalIndex: function gloda_index_wrapIncrementalIndex(aThis) {
     aThis.incrementalIndex();
   },
@@ -185,11 +234,18 @@ let GlodaIndexer = {
         if (this._indexingFolder != null) {
           try {
             this._indexMessage(this._indexingIterator.next());
-            this._indexingCount++;
+            this._indexingMessageCount++;
             
-            if (this._indexingCount % 50 == 1) {
-              this._log.debug("indexed " + this._indexingCount + " in " +
-                              this._indexingFolder.prettiestName);
+            if (this._indexingMessageCount % 50 == 1) {
+              this._notifyListeners("Indexing: " +
+                                    this._indexingFolder.prettiestName,
+                                    this._indexingFolder.prettiestName,
+                                    this._indexingFolderCount,
+                                    this._indexingFolderGoal,
+                                    this._indexingMessageCount,
+                                    this._indexingMessageGoal);
+              //this._log.debug("indexed " + this._indexingCount + " in " +
+              //                this._indexingFolder.prettiestName);
             }
           }
           catch (ex) {
@@ -233,6 +289,9 @@ let GlodaIndexer = {
                                            //folder.getMessages(this._msgWindow),
                                            msgDatabase.EnumerateMessages(),
                                            Ci.nsIMsgDBHdr));
+                this._indexingFolderCount++;
+                this._indexingMessageCount = 0;
+                this._indexingMessageGoal = folder.getTotalMessages(false); 
               }
               catch (ex) {
                 this._log.error("Problem indexing folder: " +
@@ -247,6 +306,11 @@ let GlodaIndexer = {
         else {
           this._log.info("Done indexing, disabling timer renewal.");
           this._indexingActive = false;
+          this._indexingFolderCount = 0;
+          this._indexingFolderGoal = 0;
+          this._indexingMessageCount = 0;
+          this._indexingMessageGoal = 0;
+          this._notifyListeners("Idle", null, 0, 1, 0, 1);
           break;
         }
       }
@@ -266,11 +330,9 @@ let GlodaIndexer = {
     let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                             getService(Ci.nsIMsgAccountManager);
     
-    this._indexQueue = this._indexQueue.concat(
-                [["account", account] for each
-                (account in fixIterator(msgAccountManager.accounts,
-                                        Ci.nsIMsgAccount))]);
-    this.indexing = true;
+    let sideEffects = [this.indexAccount(account) for each
+                       (account in fixIterator(msgAccountManager.accounts,
+                                               Ci.nsIMsgAccount))];
   },
 
   indexAccount: function glodaIndexAccount(aAccount) {
@@ -278,9 +340,11 @@ let GlodaIndexer = {
     if (rootFolder instanceof Ci.nsIMsgFolder) {
       this._log.info("Queueing account folders for indexing: " + aAccount.key);
 
-      this._indexQueue = this._indexQueue.concat(
+      let folders =
               [["folder", folder.URI] for each
-              (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))]);
+              (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
+      this._indexingFolderGoal += folders.length;
+      this._indexQueue = this._indexQueue.concat(folders);
       this.indexing = true;
     }
     else {
@@ -335,7 +399,7 @@ let GlodaIndexer = {
       // we already know about the guy, which means he was either previously
       // a ghost or he is a duplicate...
       if (curMsg.messageKey != null) {
-        this._log.warn("Attempting to re-index message: " + aMsgHdr.messageId
+        this._log.info("Attempting to re-index message: " + aMsgHdr.messageId
                         + " (" + aMsgHdr.subject + ")");
         return;
       } 

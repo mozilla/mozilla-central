@@ -52,7 +52,7 @@ var gloda = {
     this.strings = document.getElementById("gloda-strings");
   },
   onMenuItemCommand: function(e) {
-    GlodaIndexer.init(window);
+    GlodaIndexer.init(window, msgWindow);
     GlodaIndexer.indexEverything();
   },
 
