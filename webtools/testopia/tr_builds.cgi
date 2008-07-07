@@ -130,6 +130,7 @@ elsif ($action eq 'report'){
     my $failed = $builds[0]->case_run_count(FAILED, \@builds);
     my $blocked = $builds[0]->case_run_count(BLOCKED, \@builds);
     my $idle = $builds[0]->case_run_count(IDLE, \@builds);
+    my $error = $builds[0]->case_run_count(ERROR, \@builds);
     
     my $completed = $passed + $failed + $blocked;
     
@@ -144,12 +145,14 @@ elsif ($action eq 'report'){
     $vars->{'failed'} = $failed;
     $vars->{'blocked'} = $blocked;
     $vars->{'idle'} = $idle;
+    $vars->{'error'} = $error;
 
     $vars->{'percent_completed'} = calculate_percent($total, $completed);
     $vars->{'percent_passed'} = calculate_percent($completed, $passed);
     $vars->{'percent_failed'} = calculate_percent($completed, $failed);
     $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
     $vars->{'percent_idle'} = calculate_percent($total, $idle);
+    $vars->{'percent_error'} = calculate_percent($total, $error);
     
     $vars->{'builds'} = join(',',@build_ids);
     $vars->{'bugs'} = join(',',@bug_ids);

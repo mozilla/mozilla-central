@@ -1017,7 +1017,7 @@ Returns true if the status of this case-run is an open status
 sub is_open_status {
     my $self = shift;
     my $status = shift;
-    my @open_status_list = (IDLE, RUNNING, PAUSED);
+    my @open_status_list = (IDLE, RUNNING, PAUSED, ERROR);
     return 1 if lsearch(\@open_status_list, $status) > -1;
 }
 

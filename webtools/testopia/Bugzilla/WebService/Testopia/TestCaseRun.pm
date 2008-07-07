@@ -408,7 +408,7 @@ TestCaseRun->get($run_id, $case_id, $build_id, $environment_id)
   | notes              | String         | Optional  |                                                |
   | sortkey            | Integer        | Optional  | a.k.a. Index                                   |
   +--------------------+----------------+-----------+------------------------------------------------+
-    Valid statuses include: IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED
+    Valid statuses include: IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED, ERROR
 
  Returns:     The newly created object hash.
 

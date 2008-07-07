@@ -309,6 +309,10 @@ sub populateMiscTables {
 
     # Insert initial values in static tables. Going out on a limb and
     # assuming that if one table is empty, they all are.
+    
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('ERROR', 7)") 
+      if ! $dbh->selectrow_array("SELECT COUNT(*) FROM test_case_run_status WHERE name = ?", undef, 'ERROR');
+      
     return if $dbh->selectrow_array("SELECT COUNT(*) FROM test_case_run_status");
 
     print "Populating test_case_run_status table ...\n";
@@ -322,6 +326,7 @@ sub populateMiscTables {
     $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('RUNNING', 4)");
     $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('PAUSED', 5)");
     $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('BLOCKED', 6)");
+    $dbh->do("INSERT INTO test_case_run_status (name, sortkey) VALUES ('ERROR', 7)");
     $dbh->do("INSERT INTO test_case_status (name) VALUES ('PROPOSED')");
     $dbh->do("INSERT INTO test_case_status (name) VALUES ('CONFIRMED')");
     $dbh->do("INSERT INTO test_case_status (name) VALUES ('DISABLED')");

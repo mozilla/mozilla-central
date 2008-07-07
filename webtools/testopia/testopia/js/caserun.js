@@ -410,7 +410,7 @@ CaseRunGrid = function(params, run){
             new Ext.Button({
                 template:imgButtonTpl,
                 text: 'testopia/img/IDLE.gif',
-                tooltip: 'Mark as IDLE',
+                tooltip: 'Mark as IDLE (Not Run)',
                 disabled: true,
                 handler: function(){
                     TestopiaUpdateMultiple('caserun', { status_id: 1, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
@@ -479,6 +479,14 @@ CaseRunGrid = function(params, run){
                 disabled: true,
                 handler: function(){
                     TestopiaUpdateMultiple('caserun', { status_id: 6, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
+                }
+            }),new Ext.Button({
+                template:imgButtonTpl,
+                text: 'testopia/img/ERROR.gif',
+                tooltip: 'Mark as ERROR',
+                disabled: true,
+                handler: function(){
+                    TestopiaUpdateMultiple('caserun', { status_id: 7, ids: getSelectedObjects(Ext.getCmp('caserun_grid'),'caserun_id')}, Ext.getCmp('caserun_grid'));
                 }
             }),new Ext.menu.TextItem('Update Bugs: '),
              new Ext.form.Checkbox({

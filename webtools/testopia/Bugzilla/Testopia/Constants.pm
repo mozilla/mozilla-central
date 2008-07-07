@@ -33,6 +33,7 @@ FAILED
 RUNNING
 PAUSED
 BLOCKED
+ERROR
 
 TR_READ
 TR_WRITE
@@ -99,8 +100,9 @@ use constant FAILED  => 3;
 use constant RUNNING => 4;
 use constant PAUSED  => 5;
 use constant BLOCKED => 6;
+use constant ERROR   => 7;
 
-use constant CASE_RUN_STATUSES => IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED;
+use constant CASE_RUN_STATUSES => IDLE, PASSED, FAILED, RUNNING, PAUSED, BLOCKED, ERROR;
  
 # Test Plan Permissions (bit flags)
 use constant TR_READ    => 1;

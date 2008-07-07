@@ -83,6 +83,7 @@ if ($type eq 'completion'){
     my $failed = $runs[0]->case_run_count(FAILED, \@runs);
     my $blocked = $runs[0]->case_run_count(BLOCKED, \@runs);
     my $idle = $runs[0]->case_run_count(IDLE, \@runs);
+    my $error = $runs[0]->case_run_count(ERROR, \@runs);
 
     my $completed = $passed + $failed + $blocked;
     
@@ -97,12 +98,14 @@ if ($type eq 'completion'){
     $vars->{'failed'} = $failed;
     $vars->{'blocked'} = $blocked;
     $vars->{'idle'} = $idle;
+    $vars->{'error'} = $error;
 
     $vars->{'percent_completed'} = calculate_percent($total, $completed);
     $vars->{'percent_passed'} = calculate_percent($completed, $passed);
     $vars->{'percent_failed'} = calculate_percent($completed, $failed);
     $vars->{'percent_blocked'} = calculate_percent($completed, $blocked);
     $vars->{'percent_idle'} = calculate_percent($total, $idle);
+    $vars->{'percent_error'} = calculate_percent($total, $error);
     
     $vars->{'runs'} = join(',',@run_ids);
     $vars->{'plans'} = join(',',@plan_ids);

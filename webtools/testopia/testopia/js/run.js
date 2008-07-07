@@ -867,7 +867,7 @@ RunClonePanel = function(product_id, runs, caselist){
                         },{
                             xtype: 'checkbox',
                             name: 'keep_statuses',
-                            boxLabel: 'Maintain status of copied cases (unchecking will set case copies to IDLE)',
+                            boxLabel: 'Maintain status of copied cases (unchecking will set case copies to IDLE (Not Run))',
                             hideLabel: true
                         }]
                     }]
