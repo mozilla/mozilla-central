@@ -55,7 +55,7 @@ def noisy(message):
      these are ignored.  Controlled through command line switch (-n or --noisy)
   """
   if NOISY == 1:
-    print "NOISE: " + message.strip().replace('\n', '\nNOISE: ')
+    print "NOISE: " + message.strip().replace('\r', '').replace('\n', '\nNOISE: ')
 
 def debug(message):
   """Prints a debug message to the console if the DEBUG switch is turned on 
@@ -64,7 +64,7 @@ def debug(message):
        message: string containing a debugging statement
   """
   if DEBUG == 1:
-    print "DEBUG: " + message.strip().replace('\n', '\nDEBUG: ')
+    print "DEBUG: " + message.strip().replace('\r', '').replace('\n', '\nDEBUG: ')
 
 def stamped_msg(msg_title, msg_action):
   """Prints a message to the console with a time stamp
