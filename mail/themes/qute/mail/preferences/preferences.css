@@ -91,24 +91,6 @@ radio[pane=paneAdvanced] {
   list-style-image: url("chrome://messenger/skin/preferences/advanced.png");
 }
 
-/* General Pane */
-
-.mailPaneConfigIcon {
-  list-style-image : url("chrome://messenger/skin/icons/mailPaneConfig.png");
-}
-
-#classic {
-  -moz-image-region: rect(0px, 26px, 32px, 0px)
-}
-
-#wide {
-  -moz-image-region: rect(0px, 52px, 32px, 26px)
-}
-
-#vertical {
-  -moz-image-region: rect(0px, 78px, 32px, 52px)
-}
-
 /* File Field Widget */
 filefield {
   margin: 2px 4px 2px 4px;

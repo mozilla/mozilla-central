@@ -52,7 +52,6 @@ classic.jar:
     skin/classic/messenger-newsblog/icons/rss-feed.png          (newsblog/rss-feed.png)
     skin/classic/messenger-newsblog/icons/server-rss.png        (newsblog/server-rss.png)
 *   skin/classic/messenger/preferences/preferences.css          (preferences/preferences.css)
-    skin/classic/messenger/preferences/mailPaneConfig.png       (preferences/mailPaneConfig.png)
     skin/classic/messenger/preferences/general.png              (preferences/general.png)
     skin/classic/messenger/preferences/display.png              (preferences/display.png)
     skin/classic/messenger/preferences/composition.png          (preferences/composition.png)
