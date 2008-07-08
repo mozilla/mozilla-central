@@ -56,6 +56,7 @@ Testopia.TestPlan.ImportWin = function(plan_id){
                 handler: function(){
                     Ext.getCmp('importform').getForm().submit({
                         success: function(){
+                            Ext.getCmp('object_panel').activate('plan_case_grid');
                             Ext.getCmp('plan_case_grid').store.load();
                             Ext.getCmp('import-win').close();
                         },

@@ -20,3 +20,17 @@ sub REQUIRED_MODULES {
     );
     return \@modules;
 };
+
+sub OPTIONAL_MODULES {
+    my @modules = (
+    {
+        package => 'Text-CSV',
+        module  => 'Text::CSV',
+        version => '1.06',
+        feature => 'CSV Importing of test cases'
+    }
+    );
+    
+    return \@modules;
+};
+    

@@ -75,7 +75,18 @@ if ($action eq 'upload') {
     }
     defined $cgi->upload('data') || ThrowUserError("file_not_specified");
     my $type = $cgi->uploadInfo($cgi->param("data"))->{'Content-Type'};
-    ThrowUserError('invalid_import_type') unless $type =~ /text\/(xml|csv)/;
+
+    # IE Sends application/octet-stream
+    if ($type =~ /application/){
+        if ($cgi->param('data') =~ /\.csv$/){
+            $type = "text/csv";
+        }
+        elsif ($cgi->param('data') =~ /\.xml$/){
+            $type = "text/xml";
+        }
+    }
+    
+    ThrowUserError('invalid_import_type', {type => $type}) unless $type =~ /text\/(xml|csv|x-comma-separated-values)/;
         
     if ($type eq 'text/xml'){
         my $fh = $cgi->upload('data');
@@ -152,7 +163,8 @@ if ($action eq 'upload') {
             
             my $import_plan = $cgi->param('plan_id');
             if (detaint_natural($import_plan)){
-                $row->{'plans'} .= ",$import_plan"; 
+                $row->{'plans'} .= ',' if $row->{'plans'};
+                $row->{'plans'} .= "$import_plan"; 
             }
             my @plans;
             foreach my $id (split(/[\s,]+/, $row->{'plans'})){

@@ -208,6 +208,7 @@ Ext.extend(AttachGrid, Ext.grid.EditorGridPanel, {
     onActivate: function(event){
         if (this.object.type == 'caserun'){
             this.store.baseParams = {ctype: 'json', action: 'list', object: 'caserun', object_id: Ext.getCmp('caserun_grid').getSelectionModel().getSelected().get('caserun_id')};
+            this.store.load();
         }
         if (!this.store.getCount()){
             this.store.load();
