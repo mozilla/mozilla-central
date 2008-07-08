@@ -1116,6 +1116,7 @@
             <menupopup id="viewMessagePopup" onpopupshowing="RefreshViewPopup(this, false);">
               <menuitem id="viewMessageAll"    value="0" type="radio" label="&viewAll.label;" accesskey="&viewAll.accesskey;"/>
               <menuitem id="viewMessageUnread" value="1" type="radio" label="&viewUnread.label;" accesskey="&viewUnread.accesskey;"/>
+              <menuitem id="viewMessageNotDeleted" value="3" type="radio" label="&viewNotDeleted.label;" accesskey="&viewNotDeleted.accesskey;"/>
               <menuseparator id="messageViewAfterUnreadSeparator"/>
               <menu id="viewMessageTags" label="&viewTags.label;" accesskey="&viewTags.accesskey;">
                 <menupopup id="viewMessageTagsPopup" onpopupshowing="RefreshTagsPopup(this, false);"/>
@@ -1726,9 +1727,10 @@
              control="viewPicker"
              accesskey="&viewPicker.accesskey;"/>
       <menulist id="viewPicker" oncommand="ViewChangeByMenuitem(event.target);">
-        <menupopup id="viewPickerPopup">
+        <menupopup id="viewPickerPopup" onpopupshowing="RefreshViewPopup(this, false);">
           <menuitem id="viewPickerAll" value="0" label="&viewAll.label;"/>
           <menuitem id="viewPickerUnread" value="1" label="&viewUnread.label;"/>
+          <menuitem id="viewPickerNotDeleted" value="3" label="&viewNotDeleted.label;"/>
           <menuseparator id="afterViewPickerUnreadSeparator"/>
           <menu id="viewPickerTags" label="&viewTags.label;">
             <menupopup id="viewPickerTagsPopup"

@@ -51,6 +51,7 @@
         <menupopup id="viewPickerPopup" onpopupshowing="RefreshViewPopup(this, true);">
           <menuitem id="viewPickerAll"    value="0" label="&viewAll.label;"/>
           <menuitem id="viewPickerUnread" value="1" label="&viewUnread.label;"/>
+          <menuitem id="viewPickerNotDeleted" value="3" label="&viewNotDeleted.label;"/>
           <menuseparator/>
           <menu id="viewPickerTags" label="&viewTags.label;">
             <menupopup id="viewPickerTagsPopup"

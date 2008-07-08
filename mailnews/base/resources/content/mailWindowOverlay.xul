@@ -1392,6 +1392,7 @@
         <menupopup id="viewMessagePopup" onpopupshowing="RefreshViewPopup(this, false);">
           <menuitem id="viewMessageAll"    value="0" type="radio" label="&viewAll.label;" accesskey="&viewAll.accesskey;"/>
           <menuitem id="viewMessageUnread" value="1" type="radio" label="&viewUnread.label;" accesskey="&viewUnread.accesskey;"/>
+          <menuitem id="viewMessageNotDeleted" value="3" type="radio" label="&viewNotDeleted.label;" accesskey="&viewNotDeleted.accesskey;"/>
           <menuseparator id="messageViewAfterUnreadSeparator"/>
           <menu id="viewMessageTags" label="&viewTags.label;" accesskey="&viewTags.accesskey;">
             <menupopup id="viewMessageTagsPopup" onpopupshowing="RefreshTagsPopup(this, false);"/>

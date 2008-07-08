@@ -43,6 +43,7 @@
 const kViewItemAll         = 0;
 const kViewItemUnread      = 1;
 const kViewItemTags        = 2; // former labels used values 2-6
+const kViewItemNotDeleted  = 3;
 const kViewItemVirtual     = 7;
 const kViewItemCustomize   = 8;
 const kViewItemFirstCustom = 9;
@@ -99,6 +100,9 @@ function ViewChange(aValue, aLabel)
         break;
       case kViewItemUnread: // Unread
         ViewNewMail();
+        break;
+      case kViewItemNotDeleted: // Not deleted
+        ViewNotDeletedMail();
         break;
       default:
         // for legacy reasons, custom views start at index 9
@@ -270,6 +274,32 @@ function ViewNewMail()
 }
 
 
+function ViewNotDeletedMail()
+{
+  PrepareForViewChange();
+
+  // create an i supports array to store our search terms
+  var searchTermsArray = Components.classes["@mozilla.org/supports-array;1"]
+                                   .createInstance(Components.interfaces.nsISupportsArray);
+  var term = gSearchSession.createTerm();
+  var value = term.value;
+
+  value.status = 0x00200000;
+  value.attrib = nsMsgSearchAttrib.MsgStatus;
+  term.value = value;
+  term.attrib = nsMsgSearchAttrib.MsgStatus;
+  term.op = nsMsgSearchOp.Isnt;
+  term.booleanAnd = true;
+  searchTermsArray.AppendElement(term);
+
+  AddVirtualFolderTerms(searchTermsArray);
+
+  createSearchTermsWithList(searchTermsArray);
+  // not quite right - these want to be just the view terms...but it might not matter.
+  gDefaultSearchViewTerms = searchTermsArray;
+}
+
+
 function AddVirtualFolderTerms(searchTermsArray)
 {
   // add in any virtual folder terms
@@ -322,6 +352,25 @@ function RefreshViewPopup(aViewPopup, aIsMenulist)
     viewAll.setAttribute("checked", gCurrentViewValue == kViewItemAll);
     var viewUnread = aViewPopup.getElementsByAttribute("value", kViewItemUnread)[0];
     viewUnread.setAttribute("checked", gCurrentViewValue == kViewItemUnread);
+
+    var viewNotDeleted = aViewPopup.getElementsByAttribute("value", kViewItemNotDeleted)[0];
+    var folderArray = GetSelectedMsgFolders();
+    if (folderArray.length == 0)
+      return;
+
+    // only show the "Not Deleted" item for IMAP servers that are using the IMAP delete model
+    viewNotDeleted.setAttribute("hidden", true);
+    var msgFolder = folderArray[0];
+    var server = msgFolder.server;
+    if (server.type == "imap")
+    {
+      var imapServer = server.QueryInterface(Components.interfaces.nsIImapIncomingServer);
+      if (imapServer.deleteModel == 0)   // nsMsgImapDeleteModels.IMAPDelete == 0
+      {
+        viewNotDeleted.setAttribute("hidden", false);
+        viewNotDeleted.setAttribute("checked", gCurrentViewValue == kViewItemNotDeleted);
+      }
+    }
   }
 }
 

@@ -6,6 +6,8 @@
 <!ENTITY viewAll.accesskey "A">
 <!ENTITY viewUnread.label "Unread">
 <!ENTITY viewUnread.accesskey "U">
+<!ENTITY viewNotDeleted.label "Not Deleted">
+<!ENTITY viewNotDeleted.accesskey "D">
 <!ENTITY viewTags.label "Tags">
 <!ENTITY viewTags.accesskey "T">
 <!ENTITY viewCustomViews.label "Custom Views">
