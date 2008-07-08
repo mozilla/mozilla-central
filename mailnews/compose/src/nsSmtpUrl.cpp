@@ -44,6 +44,7 @@
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsEscape.h"
+#include "nsMsgUtils.h"
 #include "nsIMimeConverter.h"
 #include "nsMsgMimeCID.h"
 #include "nsISupportsObsolete.h"
@@ -66,9 +67,26 @@ NS_IMPL_ISUPPORTS2(nsMailtoUrl, nsIMailtoUrl, nsIURI)
 nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
 {
   char *rest = searchPart;
-  nsCAutoString inReplyToPart;
+  nsCString escapedInReplyToPart;
+  nsCString escapedToPart;
+  nsCString escapedCcPart;
+  nsCString escapedSubjectPart;
+  nsCString escapedNewsgroupPart;
+  nsCString escapedNewsHostPart;
+  nsCString escapedReferencePart;
+  nsCString escapedBodyPart;
+  nsCString escapedBccPart;
+  nsCString escapedFollowUpToPart;
+  nsCString escapedFromPart;
+  nsCString escapedHtmlPart;
+  nsCString escapedOrganizationPart;
+  nsCString escapedReplyToPart;
+  nsCString escapedPriorityPart;
   // okay, first, free up all of our old search part state.....
   CleanupMailtoState();
+  // m_toPart has the escaped address from before the query string, copy it
+  // over so we can add on any additional to= addresses and unescape them all.
+  escapedToPart = m_toPart;
 
   if (rest && *rest == '?')
   {
@@ -100,90 +118,91 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
       case 'B':
         if (!PL_strcasecmp (token, "bcc"))
         {
-          if (!m_bccPart.IsEmpty())
+          if (!escapedBccPart.IsEmpty())
           {
-            m_bccPart += ", ";
-            m_bccPart += value;
+            escapedBccPart += ", ";
+            escapedBccPart += value;
           }
           else
-            m_bccPart = value; 
+            escapedBccPart = value; 
         }
         else if (!PL_strcasecmp (token, "body"))
         {
-          if (!m_bodyPart.IsEmpty())
+          if (!escapedBodyPart.IsEmpty())
           {
-            m_bodyPart +="\n";
-            m_bodyPart += value;
+            escapedBodyPart +="\n";
+            escapedBodyPart += value;
           }
           else
-            m_bodyPart = value;
+            escapedBodyPart = value;
         }
         break;
       case 'C': 
         if (!PL_strcasecmp  (token, "cc"))
         {
-          if (!m_ccPart.IsEmpty())
+          if (!escapedCcPart.IsEmpty())
           {
-            m_ccPart += ", ";
-            m_ccPart += value;
+            escapedCcPart += ", ";
+            escapedCcPart += value;
           }
           else
-            m_ccPart = value;
+            escapedCcPart = value;
         }
         break;
       case 'F': 
         if (!PL_strcasecmp (token, "followup-to"))
-          m_followUpToPart = value;
+          escapedFollowUpToPart = value;
         else if (!PL_strcasecmp (token, "from"))
-          m_fromPart = value;
+          escapedFromPart = value;
         break;
       case 'H':
-        if (!PL_strcasecmp(token, "html-part") || !PL_strcasecmp (token, "html-body"))
+        if (!PL_strcasecmp(token, "html-part") ||
+            !PL_strcasecmp(token, "html-body"))
         {
-          // m_htmlPart holds the body for both html-part and html-body.
-          m_htmlPart = value;
+          // escapedHtmlPart holds the body for both html-part and html-body.
+          escapedHtmlPart = value;
           mFormat = nsIMsgCompFormat::HTML;
         }
         break;
       case 'I':
         if (!PL_strcasecmp (token, "in-reply-to"))
-          inReplyToPart = value;
+          escapedInReplyToPart = value;
         break;
 
       case 'N':
         if (!PL_strcasecmp (token, "newsgroups"))
-          m_newsgroupPart = value;
+          escapedNewsgroupPart = value;
         else if (!PL_strcasecmp (token, "newshost"))
-          m_newsHostPart = value;
+          escapedNewsHostPart = value;
         break;
       case 'O':
         if (!PL_strcasecmp (token, "organization"))
-          m_organizationPart = value;
+          escapedOrganizationPart = value;
         break;
       case 'R':
         if (!PL_strcasecmp (token, "references"))
-          m_referencePart = value;
+          escapedReferencePart = value;
         else if (!PL_strcasecmp (token, "reply-to"))
-          m_replyToPart = value;
+          escapedReplyToPart = value;
         break;
       case 'S':
         if(!PL_strcasecmp (token, "subject"))
-          m_subjectPart = value;
+          escapedSubjectPart = value;
         break;
       case 'P':
         if (!PL_strcasecmp (token, "priority"))
-          m_priorityPart = PL_strdup(value);
+          escapedPriorityPart = PL_strdup(value);
         break;
       case 'T':
         if (!PL_strcasecmp (token, "to"))
         {
-          if (!m_toPart.IsEmpty())
+          if (!escapedToPart.IsEmpty())
           {
-            m_toPart += ", ";
-            m_toPart += value;
+            escapedToPart += ", ";
+            escapedToPart += value;
           }
           else
-            m_toPart = value;
+            escapedToPart = value;
         }
         break;
       default:
@@ -197,19 +216,19 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
   } // if rest && *rest
 
   // Ensure that References and In-Reply-To are consistent...
-  if (!inReplyToPart.IsEmpty())
+  if (!escapedInReplyToPart.IsEmpty())
   {
-    if (m_referencePart.IsEmpty())
-      m_referencePart = inReplyToPart;
+    if (escapedReferencePart.IsEmpty())
+      escapedReferencePart = escapedInReplyToPart;
     else
     {
-      const char * lastRef = strrchr(m_referencePart.get(), '<');
-      nsCAutoString lastReference;
-      lastReference = lastRef ? lastRef : m_referencePart.get();
-      if (lastReference != inReplyToPart)
+      const char * lastRef = strrchr(escapedReferencePart.get(), '<');
+      nsCString lastReference;
+      lastReference = lastRef ? lastRef : escapedReferencePart.get();
+      if (lastReference != escapedInReplyToPart)
       {
-        m_referencePart += " ";
-        m_referencePart += inReplyToPart;
+        escapedReferencePart += " ";
+        escapedReferencePart += escapedInReplyToPart;
       }
     }
   }
@@ -217,10 +236,10 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
   nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
   char *decodedString;
 
-  // Now unescape any fields that need escaped...
-  if (!m_toPart.IsEmpty())
+  // Now unescape everything, and mime-decode the things that can be encoded.
+  if (!escapedToPart.IsEmpty())
   {
-    nsUnescape(m_toPart.BeginWriting());
+    MsgUnescapeString(escapedToPart, 0, m_toPart);
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
@@ -230,9 +249,9 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         m_toPart.Adopt(decodedString);
     }
   }
-  if (!m_ccPart.IsEmpty())
+  if (!escapedCcPart.IsEmpty())
   {
-    nsUnescape(m_ccPart.BeginWriting());
+    MsgUnescapeString(escapedCcPart, 0, m_ccPart);
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
@@ -242,9 +261,9 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         m_ccPart.Adopt(decodedString);
     }
   }
-  if (!m_bccPart.IsEmpty())
+  if (!escapedBccPart.IsEmpty())
   {
-    nsUnescape(m_bccPart.BeginWriting());
+    MsgUnescapeString(escapedBccPart, 0, m_bccPart);
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
@@ -254,9 +273,9 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         m_bccPart.Adopt(decodedString);
     }
   }
-  if (!m_subjectPart.IsEmpty())
+  if (!escapedSubjectPart.IsEmpty())
   {
-    nsUnescape(m_subjectPart.BeginWriting());
+    MsgUnescapeString(escapedSubjectPart, 0, m_subjectPart);
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
@@ -266,16 +285,26 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
         m_subjectPart.Adopt(decodedString);
     }
   }
-  if (!m_newsgroupPart.IsEmpty())
-    nsUnescape(m_newsgroupPart.BeginWriting());
-  if (!m_referencePart.IsEmpty())
-    nsUnescape(m_referencePart.BeginWriting());
-  if (!m_bodyPart.IsEmpty())
-    nsUnescape(m_bodyPart.BeginWriting());
-  if (!m_htmlPart.IsEmpty())
-    nsUnescape(m_htmlPart.BeginWriting());
-  if (!m_newsHostPart.IsEmpty())
-    nsUnescape(m_newsHostPart.BeginWriting());
+  if (!escapedNewsgroupPart.IsEmpty())
+    MsgUnescapeString(escapedNewsgroupPart, 0, m_newsgroupPart);
+  if (!escapedReferencePart.IsEmpty())
+    MsgUnescapeString(escapedReferencePart, 0, m_referencePart);
+  if (!escapedBodyPart.IsEmpty())
+    MsgUnescapeString(escapedBodyPart, 0, m_bodyPart);
+  if (!escapedHtmlPart.IsEmpty())
+    MsgUnescapeString(escapedHtmlPart, 0, m_htmlPart);
+  if (!escapedNewsHostPart.IsEmpty())
+    MsgUnescapeString(escapedNewsHostPart, 0, m_newsHostPart);
+  if (!escapedFollowUpToPart.IsEmpty())
+    MsgUnescapeString(escapedFollowUpToPart, 0, m_followUpToPart);
+  if (!escapedFromPart.IsEmpty())
+    MsgUnescapeString(escapedFromPart, 0, m_fromPart);
+  if (!escapedOrganizationPart.IsEmpty())
+    MsgUnescapeString(escapedOrganizationPart, 0, m_organizationPart);
+  if (!escapedReplyToPart.IsEmpty())
+    MsgUnescapeString(escapedReplyToPart, 0, m_replyToPart);
+  if (!escapedPriorityPart.IsEmpty())
+    MsgUnescapeString(escapedPriorityPart, 0, m_priorityPart);
 
   return NS_OK;
 }
@@ -307,32 +336,32 @@ nsresult nsMailtoUrl::CleanupMailtoState()
 
 nsresult nsMailtoUrl::ParseUrl()
 {
-	nsresult rv = NS_OK;
+  nsresult rv = NS_OK;
 
   // we can get the path from the simple url.....
-  nsCAutoString aPath;
-  m_baseURL->GetPath(aPath);
-  m_toPart.Assign(aPath);
+  nsCString escapedPath;
+  m_baseURL->GetPath(escapedPath);
 
-  PRInt32 startOfSearchPart = m_toPart.FindChar('?');
+  PRInt32 startOfSearchPart = escapedPath.FindChar('?');
   if (startOfSearchPart >= 0)
   {
     // now parse out the search field...
-    nsCAutoString searchPart;
-    PRUint32 numExtraChars = m_toPart.Right(searchPart,
-                                            m_toPart.Length() -
-                                            startOfSearchPart);
+    nsCString searchPart;
+    PRUint32 numExtraChars = escapedPath.Right(searchPart,
+                                               escapedPath.Length() -
+                                               startOfSearchPart);
     if (!searchPart.IsEmpty())
     {
       // now we need to strip off the search part from the
       // to part....
-      m_toPart.Cut(startOfSearchPart, numExtraChars);
+      escapedPath.Cut(startOfSearchPart, numExtraChars);
+      MsgUnescapeString(escapedPath, 0, m_toPart);
       ParseMailtoUrl(searchPart.BeginWriting());
     }
-	}
-  else if (!m_toPart.IsEmpty())
+  }
+  else if (!escapedPath.IsEmpty())
   {
-    nsUnescape(m_toPart.BeginWriting());
+    MsgUnescapeString(escapedPath, 0, m_toPart);
   }
 
   return rv;
