@@ -23,7 +23,7 @@
   <script type="application/x-javascript"
           src="chrome://help/content/contextHelp.js"/>
 
-  <stringbundleset id="stringbundleset">
+  <stringbundleset>
     <stringbundle id="bundle_utilityOverlay"
                   src="chrome://communicator/locale/utilityOverlay.properties"/>
   </stringbundleset>
