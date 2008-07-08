@@ -213,7 +213,6 @@ pkix_OcspChecker_Check(
                         (cert,
                         cid,
                         validity,
-                        PKIX_FALSE,     /* PKIX_Boolean addServiceLocator */
                         NULL,           /* PKIX_PL_Cert *signerCert */
                         &uriFound,
                         &request,

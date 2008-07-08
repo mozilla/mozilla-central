@@ -39,7 +39,7 @@
  * Implementation of OCSP services, for both client and server.
  * (XXX, really, mostly just for client right now, but intended to do both.)
  *
- * $Id: ocsp.c,v 1.53 2008-06-06 01:15:25 wtc%google.com Exp $
+ * $Id: ocsp.c,v 1.54 2008-07-08 21:34:32 alexei.volkov.bugs%sun.com Exp $
  */
 
 #include "prerror.h"
@@ -4481,7 +4481,7 @@ loser:
  *
  * The result needs to be freed (PORT_Free) when no longer in use.
  */
-static char *
+char *
 ocsp_GetResponderLocation(CERTCertDBHandle *handle, CERTCertificate *cert,
 			  PRBool *isDefault)
 {
