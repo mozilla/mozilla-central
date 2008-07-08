@@ -750,8 +750,10 @@ calGoogleCalendar.prototype = {
                                        gCal::uid.@value == aOperation.itemId ||
                                        gd::extendedProperty.(@name == "X-MOZ-SYNCID").@value == aOperation.itemId);
             if (itemEntry.length() == 0) {
-                // Item wasn't found. Skip onGetResult and just complete.
-                throw new Components.Exception("Item not found", Components.results.NS_ERROR_FAILURE);
+                // Item wasn't found. Skip onGetResult and just complete. Not
+                // finding an item isn't a user-important error, it may be a
+                // wanted case. (i.e itip)
+                throw new Components.Exception("Item not found", Components.results.NS_OK);
             }
             var item = XMLEntryToItem(itemEntry, timezone, this);
 
@@ -784,9 +786,7 @@ calGoogleCalendar.prototype = {
                                          item.id,
                                          null);
         } catch (e) {
-            if (!Components.isSuccessCode(e.result) && e.message != "Item not found") {
-                // Not finding an item isn't a user-important error, it may be a
-                // wanted case. (i.e itip)
+            if (!Components.isSuccessCode(e.result)) {
                 LOG("Error getting item " + aOperation.itemId + ":\n" + e);
                 Components.utils.reportError(e);
             }

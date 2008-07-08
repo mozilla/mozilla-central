@@ -570,11 +570,12 @@ calStorageCalendar.prototype = {
 
         var item = this.getItemById (aId);
         if (!item) {
+            // querying by id is a valid use case, even if no item is returned:
             this.notifyOperationComplete(aListener,
-                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.results.NS_OK,
                                          Components.interfaces.calIOperationListener.GET,
                                          aId,
-                                         "ID doesn't exist for getItem");
+                                         null);
             return;
         }
 

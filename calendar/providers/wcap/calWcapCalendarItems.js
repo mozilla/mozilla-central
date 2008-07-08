@@ -1060,6 +1060,11 @@ function calWcapCalendar_getItem(id, listener) {
     var this_ = this;
     var request = new calWcapRequest(
         function getItem_resp(request, err, item) {
+            if (checkErrorCode(err, calIWcapErrors.WCAP_FETCH_EVENTS_BY_ID_FAILED) ||
+                checkErrorCode(err, calIWcapErrors.WCAP_COMPONENT_NOT_FOUND)) {
+                // querying by id is a valid use case, even if no item is returned:
+                err = NS_OK;
+            }
             this_.notifyOperationComplete(listener,
                                           getResultCode(err),
                                           calIOperationListener.GET,

@@ -282,11 +282,12 @@ calMemoryCalendar.prototype = {
             return;
 
         if (aId == null || this.mItems[aId] == null) {
+            // querying by id is a valid use case, even if no item is returned:
             this.notifyOperationComplete(aListener,
-                                         Components.results.NS_ERROR_FAILURE,
+                                         Components.results.NS_OK,
                                          Components.interfaces.calIOperationListener.GET,
-                                         null,
-                                         "IID doesn't exist for getItem");
+                                         aId,
+                                         null);
             return;
         }
 
