@@ -68,8 +68,6 @@
 
 #include <Carbon/Carbon.h>
 
-#define kBiffBadgeIcon "mail-biff-badge.png"
-
 nsMessengerOSXIntegration::nsMessengerOSXIntegration()
 {
   mBiffStateAtom = do_GetAtom("BiffState");
