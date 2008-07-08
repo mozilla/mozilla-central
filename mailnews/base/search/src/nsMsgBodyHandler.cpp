@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -106,11 +106,12 @@ nsMsgBodyHandler::~nsMsgBodyHandler()
 
 PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
 {
-  PRInt32 length = 0;
-  PRBool eatThisLine = PR_FALSE;
+  PRInt32 length = -1;          // length of incoming line or -1 eof
+  PRInt32 outLength = -1;       // length of outgoing line or -1 eof
+  PRBool eatThisLine = PR_TRUE;
   nsCAutoString nextLine;
 
-  do {
+  while (eatThisLine) {
     // first, handle the filtering case...this is easy....
     if (m_Filtering)
       length = GetNextFilterLine(nextLine);
@@ -125,10 +126,15 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
       }
     }
     
-    if (length >= 0)
-      length = ApplyTransformations (nextLine, length, eatThisLine, buf);
-  } while (eatThisLine && length >= 0);  // if we hit eof, make sure we break out of this loop. Bug #:
- 
+    if (length < 0)
+      break; // eof in
+
+    outLength = ApplyTransformations(nextLine, length, eatThisLine, buf);
+  }
+
+  if (outLength < 0)
+    return -1; // eof out
+
   // For non-multipart messages, the entire message minus headers is encoded
   // ApplyTransformations can only decode a part
   if (!m_isMultipart && m_base64part)
@@ -136,9 +142,10 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
     Base64Decode(buf);
     m_base64part = PR_FALSE;
     // And reapply our transformations...
-    length = ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
+    outLength = ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
   }
-  return length;  
+
+  return outLength;
 }
 
 void nsMsgBodyHandler::OpenLocalFolder()
