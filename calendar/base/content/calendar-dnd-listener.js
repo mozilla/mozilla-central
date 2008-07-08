@@ -56,7 +56,7 @@ var itemConversion = {
                 aEmailAddresses, addresses, names, fullNames);
             for (var i = 0; i < numAddresses; i++) {
                 var attendee = createAttendee();
-                attendee.id = addresses.value[i];
+                attendee.id = "MAILTO:" + addresses.value[i];
                 attendee.commonName = names.value[i];
                 attendee.role = "REQ-PARTICIPANT";
                 attendee.participationStatus = "NEEDS-ACTION";
