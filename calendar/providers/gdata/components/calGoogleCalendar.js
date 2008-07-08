@@ -77,6 +77,10 @@ calGoogleCalendar.prototype = {
         return this.mCalendarName;
     },
 
+    get isDefaultCalendar cGC_isDefaultCalendar() {
+        return !/@group\.calendar\.google\.com$/.test(this.mCalendarName);
+    },
+
     /**
      * attribute session
      * An calGoogleSession Object that handles the session requests.
@@ -148,13 +152,18 @@ calGoogleCalendar.prototype = {
         var googleUser = getCalendarPref(this, "googleUser");
         if (googleUser) {
             this.mSession = sessionMgr.getSessionByUsername(googleUser, true);
-
         } else {
             // We have no user, therefore we need to ask the user. Show a
             // user/password prompt and set the session based on those
             // values.
 
-            var username = { value: this.mCalendarName };
+            var username = { value: null };
+            if (this.isDefaultCalendar) {
+                // Only pre-fill the username if this is the default calendar,
+                // otherwise users might think the cryptic hash is the username
+                // they have to use.
+                username.value = this.mCalendarName;
+            }
             var password = { value: null };
             var persist = { value: false };
 

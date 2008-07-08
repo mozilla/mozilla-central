@@ -50,6 +50,13 @@ interface calIGoogleCalendar : calICalendar
     readonly attribute AUTF8String googleCalendarName;
 
     /**
+     * attribute isDefaultCalendar
+     * If true, this is the users default calendar. Non-default calendars have
+     * a calendar name that contains "@group.calendar.google.com"
+     */
+    readonly attribute boolean isDefaultCalendar;
+
+    /**
      * While calICalendar::uri returns the uri set by the user, fullUri returns
      * Google's "full" feed.
      *
