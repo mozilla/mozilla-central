@@ -37,8 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const MSG_FOLDER_FLAG_INBOX = 0x1000
-
 var gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 
 var gEditButton;
@@ -675,7 +673,8 @@ function getFirstFolderURI(msgFolder)
     // Find Inbox for imap and pop
     if (msgFolder.server.type != "nntp")
     {
-      var inboxFolder = msgFolder.getFolderWithFlags(MSG_FOLDER_FLAG_INBOX);
+      const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
+      var inboxFolder = msgFolder.getFolderWithFlags(nsMsgFolderFlags.Inbox);
       if (inboxFolder)
         return inboxFolder.URI;
       else

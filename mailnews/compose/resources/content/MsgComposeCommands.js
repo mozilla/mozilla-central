@@ -1394,11 +1394,11 @@ function ComposeStartup(recycled, aParams)
   var folderURI = draftId.substring(0, draftId.indexOf("#")).replace("-message", "");
   
   try {
-    const MSG_FOLDER_FLAG_DRAFTS = 0x0400;
+    const nsMsgFolderFlags = Components.interfaces.nsMsgFolderFlags;
     var folder = sRDF.GetResource(folderURI);
   
     gEditingDraft = (folder instanceof Components.interfaces.nsIMsgFolder) &&
-                    (folder.flags & MSG_FOLDER_FLAG_DRAFTS);
+                    (folder.flags & nsMsgFolderFlags.Drafts);
   }
   catch (ex) {
     gEditingDraft = false;

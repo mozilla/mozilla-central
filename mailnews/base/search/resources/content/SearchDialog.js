@@ -68,8 +68,6 @@ var gViewSearchListener;
 var gSearchStopButton;
 var gMailSession;
 
-// var MSG_FOLDER_FLAG_VIRTUAL = 0x0020; is defined in commandglue.js
-
 // Controller object for search results thread pane
 var nsSearchResultsController =
 {
@@ -345,7 +343,8 @@ function selectFolder(folder)
     var folderURI;
 
     // if we can't search messages on this folder, just select the first one
-    if (!folder || !folder.server.canSearchMessages || (folder.flags & MSG_FOLDER_FLAG_VIRTUAL)) {
+    if (!folder || !folder.server.canSearchMessages ||
+        (folder.flags & Components.interfaces.nsMsgFolderFlags.Virtual)) {
         // find first item in our folder picker menu list
         folderURI = gFolderPicker.firstChild.tree.builderView.getResourceAtIndex(0).Value;
     } else {
@@ -443,7 +442,7 @@ function AddSubFolders(folder) {
     var nextFolder =
       subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
 
-    if (!(nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
+    if (!(nextFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual))
     {
       if (!nextFolder.noSelect)
         gSearchSession.addScopeTerm(GetScopeForFolder(nextFolder), nextFolder);
@@ -464,7 +463,7 @@ function AddSubFoldersToURI(folder)
     var nextFolder =
       subFolders.getNext().QueryInterface(Components.interfaces.nsIMsgFolder);
 
-    if (!(nextFolder.flags & MSG_FOLDER_FLAG_VIRTUAL))
+    if (!(nextFolder.flags & Components.interfaces.nsMsgFolderFlags.Virtual))
     {
       if (!nextFolder.noSelect && !nextFolder.isServer)
       {
