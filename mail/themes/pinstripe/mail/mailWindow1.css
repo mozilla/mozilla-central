@@ -332,6 +332,10 @@ treechildren::-moz-tree-image(news, threadCol, ignore) {
   list-style-image: url("chrome://messenger/skin/icons/thread-closed-kill.png");
 }
 
+treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
+  list-style-image: url("chrome://messenger/skin/icons/message-closed-kill.png");
+}
+
 #sizeCol,
 #unreadCol,
 #totalCol {

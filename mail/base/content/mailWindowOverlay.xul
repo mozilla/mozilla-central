@@ -237,6 +237,7 @@
   <command id="cmd_moveToFolderAgain" oncommand="goDoCommand('cmd_moveToFolderAgain')"/>
   <command id="cmd_createFilterFromMenu" oncommand="goDoCommand('cmd_createFilterFromMenu')"/>
   <command id="cmd_killThread" oncommand="goDoCommand('cmd_killThread')"/>
+  <command id="cmd_killSubthread" oncommand="goDoCommand('cmd_killSubthread')"/>
   <command id="cmd_watchThread" oncommand="goDoCommand('cmd_watchThread')"/>
 </commandset>
 
@@ -366,6 +367,7 @@
   <key id="key_editAsNew" key="&editMsgAsNewCmd.key;"                oncommand="goDoCommand('cmd_editAsNew')" modifiers="accel"/>
   <key id="key_watchThread" key="&watchThreadMenu.key;"              oncommand="goDoCommand('cmd_watchThread')" />
   <key id="key_killThread" key="&killThreadMenu.key;"                oncommand="goDoCommand('cmd_killThread')" />
+  <key id="key_killSubthread" key="&killSubthreadMenu.key;"          oncommand="goDoCommand('cmd_killSubthread')" modifiers="shift" />
   <key id="key_openMessage" key="&openMessageWindowCmd.key;"         oncommand="goDoCommand('cmd_openMessage')" modifiers="accel"/>
 #ifdef XP_MACOSX
   <key id="key_moveToFolderAgain" key="&moveToFolderAgainCmd.key;"   oncommand="goDoCommand('cmd_moveToFolderAgain')" modifiers="alt, accel"/>
@@ -1337,6 +1339,11 @@
             id="killThread"
             command="cmd_killThread"
             key="key_killThread"/>
+        <menuitem label="&killSubthreadMenu.label;"
+            accesskey="&killSubthreadMenu.accesskey;"
+            id="killSubthread"
+            command="cmd_killSubthread"
+            key="key_killSubthread"/>
         <menuitem label="&watchThreadMenu.label;"
             accesskey="&watchThreadMenu.accesskey;"
             id="watchThread"

@@ -317,6 +317,9 @@ function InitMessageMenu()
   var killThreadMenuItem = document.getElementById("killThread");
   if (killThreadMenuItem)
     killThreadMenuItem.setAttribute("hidden", isNews ? "" : "true");
+  var killSubthreadMenuItem = document.getElementById("killSubthread");
+  if (killSubthreadMenuItem)
+    killSubthreadMenuItem.setAttribute("hidden", isNews ? "" : "true");
   var watchThreadMenuItem = document.getElementById("watchThread");
   if (watchThreadMenuItem)
     watchThreadMenuItem.setAttribute("hidden", isNews ? "" : "true");

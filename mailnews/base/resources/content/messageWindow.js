@@ -582,6 +582,7 @@ var MessageWindowController =
       case "cmd_undo":
       case "cmd_redo":
       case "cmd_killThread":
+      case "cmd_killSubthread":
       case "cmd_watchThread":
       case "button_delete":
       case "button_shiftDelete":

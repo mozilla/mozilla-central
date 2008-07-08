@@ -248,6 +248,7 @@
   <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage')"/>
   <command id="cmd_createFilterFromMenu" oncommand="goDoCommand('cmd_createFilterFromMenu')"/>
   <command id="cmd_killThread" oncommand="goDoCommand('cmd_killThread')"/>
+  <command id="cmd_killSubthread" oncommand="goDoCommand('cmd_killSubthread')"/>
   <command id="cmd_watchThread" oncommand="goDoCommand('cmd_watchThread')"/>
 </commandset>
 
@@ -360,6 +361,7 @@
   <key id="key_editAsNew" key="&editMsgAsNewCmd.key;"                oncommand="goDoCommand('cmd_editAsNew')" modifiers="accel"/>
   <key id="key_watchThread" key="&watchThreadMenu.key;"              oncommand="goDoCommand('cmd_watchThread')" />
   <key id="key_killThread" key="&killThreadMenu.key;"                oncommand="goDoCommand('cmd_killThread')" />
+  <key id="key_killSubthread" key="&killSubthreadMenu.key;"          oncommand="goDoCommand('cmd_killSubthread')" modifiers="shift" />
   <key id="key_openMessage" key="&openMessageWindowCmd.key;"         oncommand="goDoCommand('cmd_openMessage')" modifiers="accel"/>
   <key id="key_print" key="&printCmd.key;"                           oncommand="goDoCommand('cmd_print')" modifiers="accel"/>
   <key id="key_saveAsFile" key="&saveAsFileCmd.key;"                 oncommand="goDoCommand('cmd_saveAsFile')" modifiers="accel"/>
@@ -1924,6 +1926,10 @@
               label="&killThreadMenu.label;"
               accesskey="&killThreadMenu.accesskey;"
               key="key_killThread" command="cmd_killThread"/>
+    <menuitem id="killSubthread"
+              label="&killSubthreadMenu.label;"
+              accesskey="&killSubthreadMenu.accesskey;"
+              key="key_killSubthread" command="cmd_killSubthread"/>
     <menuitem id="watchThread"
               label="&watchThreadMenu.label;"
               accesskey="&watchThreadMenu.accesskey;"

@@ -59,7 +59,8 @@ var gFilterActionStrings = ["none", "movemessage", "setpriorityto", "deletemessa
                             "markasread", "ignorethread", "watchthread", "markasflagged",
                             "label", "replytomessage", "forwardmessage", "stopexecution",
                             "deletefrompopserver",  "leaveonpopserver", "setjunkscore",
-                            "fetchfrompopserver", "copymessage", "addtagtomessage"];
+                            "fetchfrompopserver", "copymessage", "addtagtomessage",
+                            "ignoresubthread"];
 
 var nsMsgFilterAction = Components.interfaces.nsMsgFilterAction;
 

@@ -150,6 +150,10 @@ treechildren::-moz-tree-image(news, threadCol, ignore) {
   list-style-image: url("chrome://messenger/skin/icons/thread-ignored.png");
 }
 
+treechildren::-moz-tree-image(news, threadCol, ignoreSubthread) {
+  list-style-image: url("chrome://messenger/skin/icons/message-ignored.png");
+}
+
 /* ..... read column ..... */
 
 treecol.readColumnHeader {

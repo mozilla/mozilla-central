@@ -245,6 +245,7 @@ var DefaultController =
 
       case "cmd_watchThread":
       case "cmd_killThread":
+      case "cmd_killSubthread":
         return(isNewsURI(GetFirstSelectedMessage()));
 
 			default:
@@ -281,6 +282,7 @@ var DefaultController =
           gDBView.getCommandStatus(nsMsgViewCommandType.junk, enabled, checkStatus);
         return enabled.value;
       case "cmd_killThread":
+      case "cmd_killSubthread":
         return GetNumSelectedMessages() > 0;
       case "cmd_watchThread":
         if (gDBView)
@@ -517,6 +519,9 @@ var DefaultController =
       case "cmd_killThread":
         /* kill thread kills the thread and then does a next unread */
       	GoNextMessage(nsMsgNavigationType.toggleThreadKilled, true);
+        break;
+      case "cmd_killSubthread":
+        GoNextMessage(nsMsgNavigationType.toggleSubthreadKilled, true);
         break;
       case "cmd_watchThread":
         gDBView.doCommand(nsMsgViewCommandType.toggleThreadWatched);

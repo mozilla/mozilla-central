@@ -92,6 +92,7 @@ classic.jar:
     skin/classic/messenger/icons/thread-col-sortd.png           (icons/thread-col-sortd.png)
     skin/classic/messenger/icons/thread.png                     (icons/thread.png)
     skin/classic/messenger/icons/thread-ignored.png             (icons/thread-ignored.png)
+    skin/classic/messenger/icons/message-ignored.png            (icons/message-ignored.png)
     skin/classic/messenger/icons/thread-watched.png             (icons/thread-watched.png)
     skin/classic/messenger/icons/flag-col.png                   (icons/flag-col.png)
     skin/classic/messenger/icons/flag.png                       (icons/flag.png)

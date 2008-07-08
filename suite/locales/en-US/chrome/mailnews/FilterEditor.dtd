@@ -88,5 +88,6 @@
 <!ENTITY deleteFromPOP.label "Delete From POP Server">
 <!ENTITY fetchFromPOP.label "Fetch From POP Server">
 <!ENTITY ignoreThread.label "Ignore Thread">
+<!ENTITY ignoreSubthread.label "Ignore Subthread">
 <!ENTITY watchThread.label "Watch Thread">
 <!ENTITY stopExecution.label "Stop Filter Execution">

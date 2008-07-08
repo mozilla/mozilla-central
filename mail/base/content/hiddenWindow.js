@@ -56,7 +56,7 @@ function hiddenWindowStartup()
              'moveMenu', 'copyMenu', 'moveToFolderAgain', 'tagMenu', 'markMenu',
              'markReadMenuItem', 'menu_markThreadAsRead', 'menu_markReadByDate', 'menu_markAllRead',
              'markFlaggedMenuItem', 'menu_markAsJunk', 'menu_markAsNotJunk', 'createFilter',
-             'killThread', 'watchThread', 'applyFilters', 'runJunkControls', 'deleteJunk', 'menu_import',
+             'killThread', 'killSubthread', 'watchThread', 'applyFilters', 'runJunkControls', 'deleteJunk', 'menu_import',
              'searchMailCmd', 'searchAddressesCmd', 'filtersCmd',
              'cmd_close', 'minimizeWindow', 'zoomWindow'];
   var id;
