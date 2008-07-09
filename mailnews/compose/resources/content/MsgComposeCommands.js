@@ -1351,7 +1351,7 @@ function ComposeStartup(recycled, aParams)
       }
 
       var event = document.createEvent('Events');
-      event.initEvent('compose-gMsgCompose-init', false, true);
+      event.initEvent('compose-window-init', false, true);
       document.getElementById("msgcomposeWindow").dispatchEvent(event);
 
       gMsgCompose.RegisterStateListener(stateListener);
