@@ -4223,7 +4223,7 @@ pkix_Build_InitiateBuildChain(
                         *pVerifyNode = state->verifyNode;
                 }
 
-                if (valResult == NULL) {
+                if (valResult == NULL || pkixErrorResult) {
 
                         PKIX_DECREF(state);
                         *pState = NULL;
