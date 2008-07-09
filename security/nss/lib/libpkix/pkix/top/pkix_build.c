@@ -2469,6 +2469,7 @@ pkix_BuildForwardDepthFirstSearch(
                                  * If we already have n certs, we want the n+1th
                                  * (i.e., index = n) from the list of hints.
                                  */
+                                PKIX_DECREF(state->candidateCert);
                                 PKIX_CHECK(PKIX_List_GetItem
                                     (state->buildConstants.hintCerts,
                                     certsSoFar,
@@ -2589,8 +2590,8 @@ pkix_BuildForwardDepthFirstSearch(
 
                         PKIX_DECREF(state->candidateCerts);
                         state->candidateCerts = filteredCerts;
+                        state->certIndex = 0;
                         filteredCerts = NULL;
-
                 }
 
                 /* Are there any Certs to try? */
@@ -3307,6 +3308,14 @@ pkix_BuildForwardDepthFirstSearch(
                                 state->status = BUILD_CERTVALIDATING;
                                 PKIX_DECREF(state->candidateCert);
                                 break;
+                        }
+                        if (state->useOnlyLocal == PKIX_TRUE) {
+                            /* Clean up and go for AIA round. */
+                            state->useOnlyLocal = PKIX_FALSE;
+                            state->certStoreIndex = 0;
+                            state->numFanout = state->buildConstants.maxFanout;
+                            state->status = BUILD_TRYAIA;
+                            break;
                         }
                 }
                 PKIX_DECREF(state->candidateCert);
