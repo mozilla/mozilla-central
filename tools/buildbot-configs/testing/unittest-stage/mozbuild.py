@@ -2,7 +2,7 @@
 
 from buildbot.process import step
 from buildbot.process.step import ShellCommand
-from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION
+from buildbot.status.builder import SUCCESS, WARNINGS, FAILURE, SKIPPED, EXCEPTION, HEADER
 import re
 import os
 import copy
@@ -205,7 +205,24 @@ cvsCoLog = "cvsco.log"
 tboxClobberCvsCoLog = "tbox-CLOBBER-cvsco.log"
 buildbotClobberCvsCoLog = "buildbot-CLOBBER-cvsco.log"
 
-class CreateDir(ShellCommand):
+class ShellCommandReportTimeout(ShellCommand):
+    """We subclass ShellCommand so that we can bubble up the timeout errors
+    to tinderbox that normally only get appended to the buildbot slave logs.
+    """
+
+    def evaluateCommand(self, cmd):
+        superResult = ShellCommand.evaluateCommand(self, cmd)
+        for line in cmd.logs['stdio'].readlines(channel=HEADER):
+            if "command timed out" in line:
+                self.addCompleteLog('timeout',
+                                    'buildbot.slave.commands.TimeoutError: ' +
+                                    line +
+                                    "TinderboxPrint: " +
+                                    self.name + " timeout")
+                return WARNINGS
+        return superResult
+
+class CreateDir(ShellCommandReportTimeout):
     name = "create dir"
     haltOnFailure = False
     warnOnFailure = True
@@ -220,7 +237,7 @@ class CreateDir(ShellCommand):
             self.command = r'if not exist ' + self.dir + r' mkdir ' + self.dir
         else:
             self.command = ['mkdir', '-p', self.dir]
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
 
 class TinderboxShellCommand(ShellCommand):
     haltOnFailure = False
@@ -228,7 +245,7 @@ class TinderboxShellCommand(ShellCommand):
     def evaluateCommand(self, cmd):
        return SUCCESS
 
-class MozillaCheckoutClientMk(ShellCommand):
+class MozillaCheckoutClientMk(ShellCommandReportTimeout):
     haltOnFailure = True
     cvsroot = ":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"
     
@@ -237,13 +254,13 @@ class MozillaCheckoutClientMk(ShellCommand):
             self.cvsroot = kwargs['cvsroot']
         if not 'command' in kwargs:
             kwargs['command'] = ["cvs", "-d", self.cvsroot, "co", "mozilla/client.mk"]
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
     
     def describe(self, done=False):
         return ["client.mk update"]
     
  
-class MozillaClientMkPull(ShellCommand):
+class MozillaClientMkPull(ShellCommandReportTimeout):
     haltOnFailure = True
     def __init__(self, **kwargs):
         if not 'project' in kwargs or kwargs['project'] is None:
@@ -260,7 +277,7 @@ class MozillaClientMkPull(ShellCommand):
             env = kwargs['env'].copy()
         env['MOZ_CO_PROJECT'] = self.project
         kwargs['env'] = env
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
     
     def describe(self, done=False):
         if not done:
@@ -268,14 +285,14 @@ class MozillaClientMkPull(ShellCommand):
         return ["pull (" + self.project + ")"]
     
 
-class MozillaPackage(ShellCommand):
+class MozillaPackage(ShellCommandReportTimeout):
     name = "package"
     warnOnFailure = True
     description = ["packaging"]
     descriptionDone = ["package"]
     command = ["make"]
 
-class UpdateClobberFiles(ShellCommand):
+class UpdateClobberFiles(ShellCommandReportTimeout):
     name = "update clobber files"
     warnOnFailure = True
     description = "updating clobber files"
@@ -306,9 +323,9 @@ class UpdateClobberFiles(ShellCommand):
             
         if not 'command' in kwargs:
             self.command = r'cd ' + self.clobberFilePath + r' && cvs -d ' + self.cvsroot + r' checkout' + self.branchString + r' -d tinderbox-configs ' + self.tboxClobberModule + r'>' + self.logDir + tboxClobberCvsCoLog + r' && cvs -d ' + self.cvsroot + r' checkout -d buildbot-configs ' + self.buildbotClobberModule + r'>' + self.logDir + buildbotClobberCvsCoLog
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
 
-class MozillaClobber(ShellCommand):
+class MozillaClobber(ShellCommandReportTimeout):
     name = "clobber"
     description = "checking clobber file"
     descriptionDone = "clobber checked"
@@ -332,9 +349,9 @@ class MozillaClobber(ShellCommand):
             rmCommand = "rm -rf mozilla"
             printExitStatus = "echo No clobber required"
             self.command = tboxGrepCommand + r' && ' + tboxPrintHeader + r' && ' + tboxCatCommand + r' && ' + rmCommand + r'; if [ $? -gt 0 ]; then ' + buildbotGrepCommand + r' && ' + buildbotPrintHeader + r' && ' + buildbotCatCommand + r' && ' + rmCommand + r'; fi; if [ $? -gt 0 ]; then ' + printExitStatus + r'; fi'
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
 
-class MozillaClobberWin(ShellCommand):
+class MozillaClobberWin(ShellCommandReportTimeout):
     name = "clobber win"
     description = "checking clobber file"
     descriptionDone = "clobber finished"
@@ -351,9 +368,9 @@ class MozillaClobberWin(ShellCommand):
             branchFlag = " --branch=" + kwargs['branch']
         if not 'command' in kwargs:
             self.command = 'python C:\\Utilities\\killAndClobberWin.py' + platformFlag + slaveNameFlag + branchFlag
-        ShellCommand.__init__(self, **kwargs)
+        ShellCommandReportTimeout.__init__(self, **kwargs)
 
-class MozillaCheck(ShellCommand):
+class MozillaCheck(ShellCommandReportTimeout):
     name = "check"
     warnOnFailure = True
     description = ["checking"]
@@ -372,14 +389,14 @@ class MozillaCheck(ShellCommand):
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
+        superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
         if None != re.search('FAIL', cmd.logs['stdio'].getText()):
             return WARNINGS
         return SUCCESS
     
-class MozillaReftest(ShellCommand):
+class MozillaReftest(ShellCommandReportTimeout):
     warnOnFailure = True
     name = "reftest"
     description = ["reftest"]
@@ -410,7 +427,7 @@ class MozillaReftest(ShellCommand):
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
+        superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
         if re.search('UNEXPECTED', cmd.logs['stdio'].getText()):
@@ -460,7 +477,7 @@ class MozillaOSXCrashtest(MozillaCrashtest):
 class MozillaWin32Crashtest(MozillaCrashtest):
     command = [r'..\..\objdir\dist\bin\firefox.exe -P default -reftest crashtests.list']
 
-class MozillaMochitest(ShellCommand):
+class MozillaMochitest(ShellCommandReportTimeout):
     name = "mochitest"
     warnOnFailure = True
     description = ["mochitest"]
@@ -491,7 +508,7 @@ class MozillaMochitest(ShellCommand):
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
+        superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
         if re.search('ERROR FAIL', cmd.logs['stdio'].getText()):
@@ -518,7 +535,7 @@ class MozillaOSXMochitest(MozillaMochitest):
                "--console-level=INFO",
                "--close-when-done"]
 
-class MozillaMochichrome(ShellCommand):
+class MozillaMochichrome(ShellCommandReportTimeout):
     name = "mochichrome"
     warnOnFailure = True
     description = ["mochichrome"]
@@ -550,7 +567,7 @@ class MozillaMochichrome(ShellCommand):
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
+        superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
         if re.search('ERROR FAIL', cmd.logs['stdio'].getText()):
@@ -577,7 +594,7 @@ class MozillaOSXMochichrome(MozillaMochichrome):
               "--console-level=INFO",
               "--close-when-done"]
 
-class MozillaBrowserChromeTest(ShellCommand):
+class MozillaBrowserChromeTest(ShellCommandReportTimeout):
     name = "browser chrome test"
     warnOnFailure = True
     description = ["browser chrome test"]
@@ -608,7 +625,7 @@ class MozillaBrowserChromeTest(ShellCommand):
         self.addCompleteLog('summary', summary)
     
     def evaluateCommand(self, cmd):
-        superResult = ShellCommand.evaluateCommand(self, cmd)
+        superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
         if re.search('FAIL -', cmd.logs['stdio'].getText()):
@@ -675,7 +692,7 @@ class MozillaOSXA11YTest(MozillaA11YTest):
               "--console-level=INFO",
               "--close-when-done"]
 
-class CreateProfile(ShellCommand):
+class CreateProfile(ShellCommandReportTimeout):
     name = "create profile"
     warnOnFailure = True
     description = ["create profile"]
