@@ -852,30 +852,50 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
         icalRootComp, componentType,
         function(subComp) {
 
-            function patchTimezone(subComp, attr, xprop) {
+            function patchTimezone(subComp, attr, xpropOrTz) {
                 var dt = subComp[attr];
                 // if TZID parameter present (all-day items), it takes precedence:
                 if (dt && (dt.timezone.isUTC || dt.timezone.isFloating)) {
                     if (LOG_LEVEL > 2) {
                         log(attr + " is " + dt, this_);
                     }
-                    var tzid = subComp.getFirstProperty(xprop);
-                    if (tzid) {
-                        var tz = this_.session.getTimezone(tzid.value);
-                        ASSERT(tz, "timezone not found: " + tzid);
-                        if (tz) {
-                            subComp[attr] = dt.getInTimezone(tz);
-                            if (LOG_LEVEL > 2) {
-                                log("patching " + xprop + ": from " +
-                                    dt + " to " + subComp[attr], this_);
+                    var tz;
+                    if (typeof(xpropOrTz) == "string") {
+                        var tzid = subComp.getFirstProperty(xpropOrTz);
+                        if (tzid && dt.isDate && (xpropOrTz == "X-NSCP-DTSTART-TZID")) {
+                            // HACK: cs currently adds conflicting X-NSCP-DTSTART-TZIDs to the components.
+                            //       However we need to coerce to DATE-TIMEs calculating RECURRENCE-IDs of
+                            //       recurring all-day items.
+                            //       The last one seems to be the right one. WTF.
+                            for (;;) {
+                                var tzid_ = subComp.getNextProperty(xpropOrTz);
+                                if (tzid_) {
+                                    tzid = tzid_;
+                                } else {
+                                    break;
+                                }
                             }
                         }
+                        if (tzid) {
+                            tz = this_.session.getTimezone(tzid.value);
+                            ASSERT(tz, "timezone not found: " + tzid);
+                        }
+                    } else {
+                        tz = xpropOrTz;
+                    }
+                    if (tz) {
+                        if (LOG_LEVEL > 2) {
+                            log("patching " + xpropOrTz + ": from " +
+                                dt + " to " + dt.getInTimezone(tz), this_);
+                        }
+                        dt = dt.getInTimezone(tz);
+                        subComp[attr] = dt;
                     }
                 }
+                return dt;
             }
 
-            patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
-            patchTimezone(subComp, "recurrenceId", "X-NSCP-DTSTART-TZID");
+            var dtstart = patchTimezone(subComp, "startTime", "X-NSCP-DTSTART-TZID");
 
             var organizer = subComp.getFirstProperty("ORGANIZER");
             if (organizer && organizer.getParameter("SENT-BY")) { // has SENT-BY
@@ -889,13 +909,17 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
             var item = null;
             switch (subComp.componentType) {
                 case "VEVENT": {
-                    patchTimezone(subComp, "endTime", "X-NSCP-DTEND-TZID");
+                    patchTimezone(subComp,
+                                  "endTime",
+                                  dtstart.isDate ? dtstart.timezone : "X-NSCP-DTEND-TZID");
                     item = createEvent();
                     item.icalComponent = subComp;
                     break;
                 }
                 case "VTODO": {
-                    patchTimezone(subComp, "dueTime", "X-NSCP-DUE-TZID");
+                    patchTimezone(subComp,
+                                  "dueTime",
+                                  dtstart.isDate ? dtstart.timezone : "X-NSCP-DUE-TZID");
                     item = createTodo();
                     item.icalComponent = subComp;
                     switch (itemFilter & calICalendar.ITEM_FILTER_COMPLETED_ALL) {
@@ -932,6 +956,8 @@ calWcapCalendar.prototype.parseItems = function calWcapCalendar_parseItems(
                 item.calendar = this_.superCalendar;
                 var rid = item.recurrenceId;
                 if (rid) {
+                    rid = rid.getInTimezone(dtstart.timezone);
+                    item.recurrenceId = rid;
                     item.recurrenceInfo = null;
                     if (LOG_LEVEL > 1) {
                         log("exception item: " + item.title +
