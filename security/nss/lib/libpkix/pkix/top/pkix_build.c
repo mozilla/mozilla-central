@@ -2352,7 +2352,7 @@ cleanup:
 static PKIX_Error *
 pkix_BuildForwardDepthFirstSearch(
         void **pNBIOContext,
-        PKIX_ForwardBuilderState **pState,
+        PKIX_ForwardBuilderState *state,
         PKIX_ValidateResult **pValResult,
         void *plContext)
 {
@@ -2378,7 +2378,6 @@ pkix_BuildForwardDepthFirstSearch(
         PKIX_List *filteredCerts = NULL;
         PKIX_PL_Object *subjectName = NULL;
         PKIX_ValidateResult *valResult = NULL;
-        PKIX_ForwardBuilderState *state = NULL;
         PKIX_ForwardBuilderState *childState = NULL;
         PKIX_ForwardBuilderState *parentState = NULL;
         PKIX_PL_Object *crlCheckerState = NULL;
@@ -2393,12 +2392,10 @@ pkix_BuildForwardDepthFirstSearch(
         void *nbio = NULL;
 
         PKIX_ENTER(BUILD, "pkix_BuildForwardDepthFirstSearch");
-        PKIX_NULLCHECK_FOUR(pNBIOContext, pState, *pState, pValResult);
+        PKIX_NULLCHECK_THREE(pNBIOContext, state, pValResult);
 
         nbio = *pNBIOContext;
         *pNBIOContext = NULL;
-        state = *pState;
-        *pState = NULL; /* no net change in reference count */
         PKIX_INCREF(state->validityDate);
         validityDate = state->validityDate;
         canBeCached = state->canBeCached;
@@ -3383,11 +3380,8 @@ cleanup:
             pkixErrorResult = verifyError;
             verifyError = NULL;
         }
-        *pState = state;
-        state = NULL;
 
 fatal:
-        PKIX_DECREF(state);
         PKIX_DECREF(parentState);
         PKIX_DECREF(childState);
         PKIX_DECREF(valResult);
@@ -4211,13 +4205,13 @@ pkix_Build_InitiateBuildChain(
                         plContext),
                         PKIX_VALIDATERESULTCREATEFAILED);
         } else {
-                PKIX_CHECK(pkix_BuildForwardDepthFirstSearch
-                        (&nbioContext, &state, &valResult, plContext),
-                        PKIX_BUILDFORWARDDEPTHFIRSTSEARCHFAILED);
+                pkixErrorResult =
+                    pkix_BuildForwardDepthFirstSearch(&nbioContext, state,
+                                                      &valResult, plContext);
         }
 
         /* non-null nbioContext means the build would block */
-        if (nbioContext != NULL) {
+        if (pkixErrorResult == NULL && nbioContext != NULL) {
 
                 *pNBIOContext = nbioContext;
                 *pBuildResult = NULL;
