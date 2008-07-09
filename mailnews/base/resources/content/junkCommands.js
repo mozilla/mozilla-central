@@ -106,24 +106,44 @@ function determineActionsForJunkMsgs(aFolder)
  * @param aFolder
  *        the folder with messages being marked as junk
  *
- * @param aMsgHdrs
+ * @param aJunkMsgHdrs
  *        nsIArray containing headers (nsIMsgDBHdr) of new junk messages
  *
+ * @param aGoodMsgHdrs
+ *        nsIArray containing headers (nsIMsgDBHdr) of new good messages 
  */
- function performActionsOnJunkMsgs(aFolder, aMsgHdrs)
+ function performActionsOnJunkMsgs(aFolder, aJunkMsgHdrs, aGoodMsgHdrs)
 {
-  if (!aMsgHdrs.length)
-    return;
-  var actionParams = determineActionsForJunkMsgs(aFolder);
-  if (actionParams.markRead)
-    aFolder.markMessagesRead(aMsgHdrs, true);
-
-  if (actionParams.junkTargetFolder)
+  if (aFolder instanceof Components.interfaces.nsIMsgImapMailFolder) // need to update IMAP custom flags
   {
-    var copyService = Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
-                                .getService(Components.interfaces.nsIMsgCopyService);
-    copyService.CopyMessages(aFolder, aMsgHdrs, actionParams.junkTargetFolder, true /* isMove */, null,
-                             msgWindow, true /* allow undo */);
+    if (aJunkMsgHdrs.length)
+    {
+      var junkMsgKeys = new Array();
+      for (var i = 0; i < aJunkMsgHdrs.length; i++)
+        junkMsgKeys[i] = aJunkMsgHdrs.queryElementAt(i, Components.interfaces.nsIMsgDBHdr).messageKey;
+      aFolder.storeCustomKeywords(null, "Junk", "NonJunk", junkMsgKeys, junkMsgKeys.length);
+    }
+    
+    if (aGoodMsgHdrs.length)
+    {
+      var goodMsgKeys = new Array();
+      for (var i = 0; i < aGoodMsgHdrs.length; i++)
+        goodMsgKeys[i] = aGoodMsgHdrs.queryElementAt(i, Components.interfaces.nsIMsgDBHdr).messageKey;
+      aFolder.storeCustomKeywords(null, "NonJunk", "Junk", goodMsgKeys, goodMsgKeys.length);
+    }
+  }
+  
+  if (aJunkMsgHdrs.length)
+  {
+    var actionParams = determineActionsForJunkMsgs(aFolder);
+    if (actionParams.markRead)
+      aFolder.markMessagesRead(aJunkMsgHdrs, true);
+
+    if (actionParams.junkTargetFolder)
+      Components.classes["@mozilla.org/messenger/messagecopyservice;1"]
+                .getService(Components.interfaces.nsIMsgCopyService)
+                .CopyMessages(aFolder, aJunkMsgHdrs, actionParams.junkTargetFolder,
+                  true /* isMove */, null, msgWindow, true /* allow undo */);
   }
 }
 
@@ -143,6 +163,8 @@ function MessageClassifier(aFolder, aTotalMessages)
 {
   this.mFolder = aFolder;
   this.mJunkMsgHdrs = Components.classes["@mozilla.org/array;1"]
+                                .createInstance(Components.interfaces.nsIMutableArray);
+  this.mGoodMsgHdrs = Components.classes["@mozilla.org/array;1"]
                                 .createInstance(Components.interfaces.nsIMutableArray);
   this.mMessages = new Object();
   this.mMessageQueue = new Array();
@@ -186,6 +208,7 @@ MessageClassifier.prototype =
           var db = aMsgHdr.folder.getMsgDatabase(msgWindow);
           db.setStringProperty(aMsgHdr.messageKey, "junkscore", Components.interfaces.nsIJunkMailPlugin.IS_HAM_SCORE);
           db.setStringProperty(aMsgHdr.messageKey, "junkscoreorigin", "whitelist");
+          this.mGoodMsgHdrs.appendElement(aMsgHdr, false);
         }
         return;
       }
@@ -235,6 +258,8 @@ MessageClassifier.prototype =
 
     if (aClassification == nsIJunkMailPlugin.JUNK)
       this.mJunkMsgHdrs.appendElement(msgHdr, false);
+    else if (aClassification == nsIJunkMailPlugin.GOOD)
+      this.mGoodMsgHdrs.appendElement(msgHdr, false);
 
     var nextMsgURI = this.mMessageQueue.shift();
     if (nextMsgURI)
@@ -260,7 +285,7 @@ MessageClassifier.prototype =
     {
       window.MsgStatusFeedback.showStatusString(
           gMessengerBundle.getString("processingJunkMessages"));
-      performActionsOnJunkMsgs(this.mFolder, this.mJunkMsgHdrs);
+      performActionsOnJunkMsgs(this.mFolder, this.mJunkMsgHdrs, this.mGoodMsgHdrs);
       window.MsgStatusFeedback.showStatusString("");
     }
   }
@@ -352,6 +377,10 @@ function processFolderForJunk(aAll)
       var msgURI = null;
     }
   }
+  if (msgClassifier.firstMessage) // the async plugin was not used, maybe all whitelisted?
+    performActionsOnJunkMsgs(msgClassifier.mFolder,
+                             msgClassifier.mJunkMsgHdrs,
+                             msgClassifier.mGoodMsgHdrs);
 }
 
 function JunkSelectedMessages(setAsJunk)
