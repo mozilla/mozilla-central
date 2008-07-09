@@ -608,6 +608,27 @@ let GlodaDatastore = {
                             aRow["headerMessageID"], aRow["bodySnippet"]);
   },
 
+  get _selectMessageByIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM messages WHERE id = :id");
+    this.__defineGetter__("_selectMessageByIDStatement",
+      function() statement);
+    return this._selectMessageByIDStatement;
+  },
+
+  getMessageByID: function gloda_ds_getMessageByID(aID) {
+    let message = null;
+  
+    let smbis = this._selectMessageByIDStatement;
+    
+    smbis.params.id = aID;
+    if (smbis.step())
+      message = this._messageFromRow(smbis.row);
+    smbis.reset();
+    
+    return message;
+  },
+
   get _selectMessageByLocationStatement() {
     let statement = this._createStatement(
       "SELECT * FROM messages WHERE folderID = :folderID AND \
@@ -921,4 +942,26 @@ let GlodaDatastore = {
     
     return identity;
   },
+
+  get _selectIdentityByIDStatement() {
+    let statement = this._createStatement(
+      "SELECT * FROM identities WHERE id :id");
+    this.__defineGetter__("_selectIdentityByIDStatement",
+      function() statement);
+    return this._selectIdentityByIDStatement;
+  },
+
+  getIdentityByID: function gloda_ds_getIdentity(aID) {
+    let identity = null;
+    
+    let sibis = this._selectIdentityByIDStatement;
+    sibis.params.id = aID;
+    if (sibis.step()) {
+      sibis = this._identityFromRow(sibis.row);
+    }
+    sibis.reset();
+    
+    return identity;
+  },
+
 };

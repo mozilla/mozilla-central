@@ -81,17 +81,17 @@ let GlodaExplicitAttr = {
   defineAttributes: function() {
     // Tag
     this._attrTag = Gloda.defineAttr(this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_TAG,
+                        Gloda.BUILT_IN, FA_TAG, Gloda.kMultiple,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, Gloda.NOUN_TAG,
                         "%{subject} was tagged %{parameter} on %{object}");
     // Star
     this._attrStar = Gloda.defineAttr(this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_STAR,
+                        Gloda.BUILT_IN, FA_STAR, Gloda.kSingular,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
                         "%{subject} has a star state of %{object}");
     // Read/Unread
     this._attrRead = Gloda.defineAttr(this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_READ,
+                        Gloda.BUILT_IN, FA_READ, Gloda.kSingular,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
                         "%{subject} has a read state of %{object}");
     

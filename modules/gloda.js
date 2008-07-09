@@ -136,8 +136,12 @@ let Gloda = {
   kAttrExplicit: 3,
   kAttrImplicit: 4,
   
+  kSingular: 0,
+  kMultiple: 1,
+  
   BUILT_IN: "built-in",
   
+  NOUN_BOOLEAN: 1,
   /** A date, encoded as a PRTime */
   NOUN_DATE: 10,
   NOUN_TAG: 50,
@@ -151,8 +155,83 @@ let Gloda = {
   /** Maps attribute providers to the list of attributes they provide */
   _attrProviders: {},
   
+  _nounToClass: {},
+  
   _initAttributes: function gloda_ns_initAttributes() {
+    this._nounToClass[this.NOUN_BOOLEAN] = {class: Boolean,
+      coerce: function(aVal) { if(aVal != 0) return true; else return false; }}; 
+    this._nounToClass[this.NOUN_DATE] = {class: Date,
+      coerce: function(aPRTime) {return new Date(aPRTime / 1000); }};
+
+    // TODO: implement GlodaTag or some other abstraction 
+    this._nounToClass[this.NOUN_TAG] = {class: GlodaTag,
+      coerce: null};
+       
+    // TODO: use some form of (weak) caching layer... it is reasonably likely
+    //  that there will be a high degree of correlation in many cases, and
+    //  unless the UI is extremely clever and does its cleverness before
+    //  examining the data, we will probably hit the correlation.
+    this._nounToClass[this.NOUN_CONVERSATION] = {class: GlodaConversation,
+      coerce: function(aID) { return GlodaDatastore.getConversationByID(aID);}};
+    this._nounToClass[this.NOUN_MESSAGE] = {class: GlodaMessage,
+      coerce: function(aID) { return GlodaDatastore.getMessageByID(aID); }};
+    this._nounToClass[this.NOUN_CONTACT] = {class: GlodaContact,
+      coerce: function(aID) { return GlodaDatastore.getContactByID(aID); }};
+    this._nounToClass[this.NOUN_IDENTITY] = {class: GlodaIdentity,
+      coerce: function(aID) { return GlodaDatastore.getIdentityByID(aID); }};
+  
     GlodaDatastore.getAllAttributes();
+  },
+  
+  
+  _bindAttribute: function gloda_ns_bindAttr(aAttr, aSubjectType, aObjectType,
+                                             aSingular, aBindName) {
+    if (!(aSubjectType in this._nounToClass))
+      throw Error("Invalid subject type: " + aSubjectType);
+    
+    let objectCoerce = this._nounToClass[aObjectType].coerce;
+    
+    let storageName = "__" + aBindName;
+    let getter;
+    // should we memoize the value as a getter per-instance?
+    if (aSingular == Gloda.kSingular) {
+      getter = function() {
+        if (this[storageName] != undefined)
+          return this[storageName];
+        let instances = this.getAttributeInstances(aAttr);
+        let val;
+        if (instances.length > 0)
+          val = objectCoerce(instances[0][2]);
+        else
+          val = null;
+        this[storageName] = val;
+        return val;
+      }
+    } else {
+      getter = function() {
+        if (this[storageName] != undefined)
+          return this[storageName];
+        let instances = this.getAttributeInstances(aAttr);
+        let values;
+        if (instances.length > 0) {
+          for (let iInst=0; iInst < instances.length; iInst++) {
+            values.push(objectCoerce(instances[iInst][2]));
+          }
+        }
+        else {
+          values = instances; // empty is empty
+        }
+        this[storageName] = values;
+        return values;
+      }
+    }
+  
+    let subjectProto = this._nounToClass[aSubjectType].class.prototype;
+    subjectProto.__defineGetter__(aBindName, getter);
+    // no setters for now; manipulation comes later, and will require the attr
+    //  definer to provide the actual logic, since we need to affect reality,
+    //  not just the data-store.  we may also just punt that all off onto
+    //  STEEL...
   },
   
   /**
@@ -160,14 +239,24 @@ let Gloda = {
    * @param aAttrType
    * @param aPluginName
    * @param aAttrName
+   * @param aSingular Is the attribute going to happen at most once (kSingular),
+   *     or potentially multiple times (kMultiple).  This affects whether
+   *     the binding (as defined by aBindName) returns a list or just a single
+   *     item.
    * @param aSubjectType
    * @param aObjectType
+   * @param aBindName The name to which to bind the attribute on the underlying
+   *     data model object.  For example, for an aObjectType of NOUN_MESSAGE
+   *     with an aBindName of "date", we will create a getter on GlodaMessage so
+   *     that message.date returns the value of the date attribute (with the
+   *     specific return type depending on what was passed for 
    * @param aParameterType
    */
   defineAttr: function gloda_ns_defineAttr(aProvider, aAttrType,
-                                           aPluginName, aAttrName,
+                                           aPluginName, aAttrName, aSingular,
                                            aSubjectType, aObjectType,
                                            aParameterType,
+                                           aBindName,
                                            aExplanationFormat) {
     // provider tracking
     if (!(aProvider in this._attrProviders)) {
@@ -194,6 +283,9 @@ let Gloda = {
       attr._parameterType = aParameterType;
       attr._explanationFormat = aExplanationFormat;
       
+      this._bindAttribute(attr, aSubjectType, aObjectType, aSingular,
+                          aBindName);
+      
       this._attrProviders[aProvider].push(attr);
       return attr; 
     }
@@ -212,6 +304,9 @@ let Gloda = {
                                  aSubjectType, aObjectType, aParameterType,
                                  aExplanationFormat);
     GlodaDatastore._attributes[compoundName] = attr;
+
+    this._bindAttribute(attr, aSubjectType, aObjectType, aSingular, aBindName);
+
     this._attrProviders[aProvider].push(attr);
     if (aParameterType == null)    
       GlodaDatastore._attributeIDToDef[attrID] = [attr, null];

@@ -83,23 +83,27 @@ let GlodaFundAttr = {
   defineAttributes: function() {
     // From
     this._attrFrom = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_FROM,
+                        Gloda.BUILT_IN, FA_FROM, Gloda.kSingular,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
+                        "from",
                         "%{subject} was sent by %{object}");
     // To
     this._attrTo = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_TO,
+                        Gloda.BUILT_IN, FA_TO, Gloda.kMultiple,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
+                        "to",
                         "%{subject} was sent to %{object}");
     // Cc
     this._attrCc = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_CC,
+                        Gloda.BUILT_IN, FA_CC, Gloda.kMultiple,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
+                        "cc",
                         "%{subject} was carbon-copied to %{object}");
     // Date
     this._attrDate = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_DATE,
+                        Gloda.BUILT_IN, FA_DATE, Gloda.kSingular,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, null,
+                        "date",
                         "%{subject} was sent on %{object}");
     
   },
