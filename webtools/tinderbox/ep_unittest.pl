@@ -39,6 +39,7 @@ BEGIN {
       or /^\*\*\* \d+ ERROR (?:FAIL|TODO WORKED)/ # . . mochitest
       or /^\s+FAIL -/ # . . . . . . . . . . . . . . . . browser chrome test
       or /: FAIL$/  # . . . . . . . . . . . . . . . . . xpcshell unit test
+      or /TEST-UNEXPECTED-(?:PASS|FAIL) / # . . . . . . new unified error output
       or /buildbot\.slave\.commands\.TimeoutError:/ # . buildbot error
       ;
   }
