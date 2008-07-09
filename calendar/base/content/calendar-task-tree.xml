@@ -442,7 +442,7 @@
                   case "calendar-task-tree-col-completeddate":
                       return this._formatDateTime(task.completedDate);
                   case "calendar-task-tree-col-percentcomplete":
-                      return task.percentComplete + "%";
+                      return (task.percentComplete > 0 ? task.percentComplete + "%" : "");
                   case "calendar-task-tree-col-categories":
                       return task.getProperty("CATEGORIES");
                   case "calendar-task-tree-col-location":
@@ -550,7 +550,14 @@
           getProgressMode: function mTV_getProgressMode(aRow, aCol) {
               switch(aCol.element.getAttribute("anonid")) {
                   case "calendar-task-tree-col-percentcomplete":
-                      return Components.interfaces.nsITreeView.PROGRESS_NORMAL;
+                      var task = this.binding.mTaskArray[aRow];
+                      if (aCol.element.boxObject.width > 75 && 
+                          task.percentComplete > 0 ) {
+                          // XXX Would be nice if we could use relative widths,
+                          // i.e "15ex", but there is no scriptable interface.
+                          return Components.interfaces.nsITreeView.PROGRESS_NORMAL;
+                      }
+                      break;
               }
 
               return Components.interfaces.nsITreeView.PROGRESS_NONE;
