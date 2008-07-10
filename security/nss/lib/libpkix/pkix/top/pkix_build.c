@@ -3833,12 +3833,10 @@ pkix_Build_InitiateBuildChain(
         nbioContext = *pNBIOContext;
         *pNBIOContext = NULL;
 
-        if (*pState != NULL) {
-            state = *pState;
-            *pState = NULL; /* no net change in reference count */
-            /* attempted shortcut ran into non-blocking I/O */
-        } else {
+        state = *pState;
+        *pState = NULL; /* no net change in reference count */
 
+        if (state == NULL) {
             PKIX_CHECK(PKIX_ProcessingParams_GetDate
                     (procParams, &testDate, plContext),
                     PKIX_PROCESSINGPARAMSGETDATEFAILED);
@@ -4223,23 +4221,13 @@ pkix_Build_InitiateBuildChain(
                         *pVerifyNode = state->verifyNode;
                 }
 
-                if (valResult == NULL || pkixErrorResult) {
-
-                        PKIX_DECREF(state);
-                        *pState = NULL;
+                if (valResult == NULL || pkixErrorResult)
                         PKIX_ERROR(PKIX_UNABLETOBUILDCHAIN);
-
-                } else {
-
-                        PKIX_CHECK(pkix_BuildResult_Create
-                                (valResult,
-                                state->trustChain,
-                                &buildResult,
-                                plContext),
-                                PKIX_BUILDRESULTCREATEFAILED);
-
-                        *pBuildResult = buildResult;
-                }
+                PKIX_CHECK(
+                    pkix_BuildResult_Create(valResult, state->trustChain,
+                                            &buildResult, plContext),
+                    PKIX_BUILDRESULTCREATEFAILED);
+                *pBuildResult = buildResult;
         }
 
         *pState = state;
@@ -4309,12 +4297,11 @@ cleanup:
 static PKIX_Error *
 pkix_Build_ResumeBuildChain(
         void **pNBIOContext,
-        PKIX_ForwardBuilderState **pState,
+        PKIX_ForwardBuilderState *state,
         PKIX_BuildResult **pBuildResult,
         PKIX_VerifyNode **pVerifyNode,
         void *plContext)
 {
-        PKIX_ForwardBuilderState *state = NULL;
         PKIX_ValidateResult *valResult = NULL;
         PKIX_BuildResult *buildResult = NULL;
         void *nbioContext = NULL;
@@ -4325,38 +4312,33 @@ pkix_Build_ResumeBuildChain(
         nbioContext = *pNBIOContext;
         *pNBIOContext = NULL;
 
-        state = *pState;
+        pkixErrorResult =
+            pkix_BuildForwardDepthFirstSearch(&nbioContext, state,
+                                              &valResult, plContext),
 
-        PKIX_CHECK(pkix_BuildForwardDepthFirstSearch
-                (&nbioContext, &state, &valResult, plContext),
-                PKIX_BUILDFORWARDDEPTHFIRSTSEARCHFAILED);
 
         /* non-null nbioContext means the build would block */
-        if (nbioContext != NULL) {
+        if (pkixErrorResult == NULL && nbioContext != NULL) {
 
                 *pNBIOContext = nbioContext;
                 *pBuildResult = NULL;
 
         /* no valResult means the build has failed */
-        } else if (valResult == NULL) {
-
-                PKIX_DECREF(state);
-                *pState = NULL;
-                PKIX_ERROR(PKIX_UNABLETOBUILDCHAIN);
-
         } else {
+                if (pVerifyNode != NULL) {
+                    PKIX_INCREF(state->verifyNode);
+                    *pVerifyNode = state->verifyNode;
+                }
 
-                PKIX_CHECK(pkix_BuildResult_Create
-                        (valResult,
-                        state->trustChain,
-                        &buildResult,
-                        plContext),
-                        PKIX_BUILDRESULTCREATEFAILED);
+                if (valResult == NULL || pkixErrorResult)
+                    PKIX_ERROR(PKIX_UNABLETOBUILDCHAIN);
 
+                PKIX_CHECK(
+                    pkix_BuildResult_Create(valResult, state->trustChain,
+                                            &buildResult, plContext),
+                    PKIX_BUILDRESULTCREATEFAILED);
                 *pBuildResult = buildResult;
         }
-
-        *pState = state;
 
 cleanup:
 
