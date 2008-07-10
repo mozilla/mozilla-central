@@ -302,13 +302,14 @@
             }
           }
 
+          this._build(folders);
+
           // Lastly, we add a listener to get notified of changes in the folder
           // structure.
           var session = Cc["@mozilla.org/messenger/services/session;1"].
                         getService(Ci.nsIMsgMailSession);
           session.AddFolderListener(this._listener, Ci.nsIFolderListener.all);
 
-          this._build(folders);
           this._initialized = true;
         ]]></body>
       </method>
@@ -615,18 +616,24 @@
 
       <!--
          - Removes all menu-items for this popup, resets all fields, and
-         - removes the listener.
+         - removes the listener.  This function is invoked when a change
+         - that affects this menu is detected by our listener, or during
+         - initialization of cloned children to reset them to their
+         - initial state.  In the case of cloned children, this._initialized
+         - will be false on entry, but they will possess child nodes.
         -->
       <method name="_teardown">
         <body><![CDATA[
           while(this.hasChildNodes())
             this.removeChild(this.lastChild);
 
-          const Cc = Components.classes;
-          const Ci = Components.interfaces;
-          var session = Cc["@mozilla.org/messenger/services/session;1"].
-                        getService(Ci.nsIMsgMailSession);
-          session.RemoveFolderListener(this._listener);
+          if (this._initialized) {
+            const Cc = Components.classes;
+            const Ci = Components.interfaces;
+            var session = Cc["@mozilla.org/messenger/services/session;1"].
+                          getService(Ci.nsIMsgMailSession);
+            session.RemoveFolderListener(this._listener);
+          }
 
           this._folders = null;
           this._initialized = false;
