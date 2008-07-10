@@ -594,6 +594,25 @@ function calGetString(aBundleName, aStringName, aParams, aComponent) {
     }
 }
 
+/**
+ * Gets the value of a the fiels of a string array in a .properties file from the calendar bundle
+ *
+ * @param aBundleName  the name of the properties file. It is assumed that the
+ *                     file lives in chrome://calendar/locale/
+ * @param aStringNames the array with the name of the strings within the properties file
+ * @param aParams      optional array of parameters to format the string
+ * @param aComponent   optional stringbundle component name
+ */
+
+function calGetStringArray(aBundleName, aStringNames, aParams, aComponent) {
+    var retArray = [];
+    for (var i = 0; i < aStringNames.length; ++i) {
+        retArray.push(calGetString(aBundleName, aStringNames[i], aParams, aComponent));
+    }
+    return retArray;
+}
+
+
 /** Returns a best effort at making a UUID.  If we have the UUIDGenerator
  * service available, we'll use that.  If we're somewhere where it doesn't
  * exist, like Lightning in TB 1.5, we'll just use the current time.

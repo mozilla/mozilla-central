@@ -211,11 +211,6 @@
 <!ENTITY calendar.task.priority.button.tooltip  "Change the priority">
 <!ENTITY calendar.task.delete.button.tooltip    "Delete the selected task">
 
-<!ENTITY calendar.miniday.today.button.tooltip    "Display events for today">
-<!ENTITY calendar.miniday.next.button.tooltip     "Display events for next day">
-<!ENTITY calendar.miniday.previous.button.tooltip "Display events for previous day">
-<!ENTITY calendar.miniday.dropdown.button.tooltip "Display events for selected day">
-
 <!-- Statusbar -->
 <!ENTITY statusText.label            "Document: Done">
 

@@ -1,589 +1,544 @@
 /* ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
- *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Calendar view code.
- *
- * The Initial Developer of the Original Code is
- *  Oracle Corporation
- * Portions created by the Initial Developer are Copyright (C) 2005
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *   Vladimir Vukicevic <vladimir@pobox.com>
- *   Joey Minta <jminta@gmail.com>
- *   Michiel van Leeuwen <mvl@exedo.nl>
- *   Philipp Kewisch <mozilla@kewis.ch>
- *   Markus Adrario <MarkusAdrario@web.de>
- *   Simon Paquet <bugzilla@babylonsounds.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
- *
- * ***** END LICENSE BLOCK ***** */
+* Version: MPL 1.1/GPL 2.0/LGPL 2.1
+*
+* The contents of this file are subject to the Mozilla Public License Version
+* 1.1 (the "License"); you may not use this file except in compliance with
+* the License. You may obtain a copy of the License at
+* http://www.mozilla.org/MPL/
+*
+* Software distributed under the License is distributed on an "AS IS" basis,
+* WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+* for the specific language governing rights and limitations under the
+* License.
+*
+* The Original Code is Calendar view code.
+*
+* The Initial Developer of the Original Code is
+*  Oracle Corporation
+* Portions created by the Initial Developer are Copyright (C) 2005
+* the Initial Developer. All Rights Reserved.
+*
+* Contributor(s):
+*   Vladimir Vukicevic <vladimir@pobox.com>
+*   Joey Minta <jminta@gmail.com>
+*   Michiel van Leeuwen <mvl@exedo.nl>
+*   Philipp Kewisch <mozilla@kewis.ch>
+*   Markus Adrario <MarkusAdrario@web.de>
+*   Simon Paquet <bugzilla@babylonsounds.com>
+*   Berend Cornelius <berend.cornelius@sun.com>
+*
+* Alternatively, the contents of this file may be used under the terms of
+* either the GNU General Public License Version 2 or later (the "GPL"), or
+* the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+* in which case the provisions of the GPL or the LGPL are applicable instead
+* of those above. If you wish to allow use of your version of this file only
+* under the terms of either the GPL or the LGPL, and not to allow others to
+* use your version of this file under the terms of the MPL, indicate your
+* decision by deleting the provisions above and replace them with the notice
+* and other provisions required by the GPL or the LGPL. If you do not delete
+* the provisions above, a recipient may use your version of this file under
+* the terms of any one of the MPL, the GPL or the LGPL.
+*
+* ***** END LICENSE BLOCK ***** */
 
 /* Core */
 calendar-category-box:not([categories]) {
-  display: none;
+    display: none;
 }
 
 /* Multiday view */
 calendar-event-column {
-  background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 calendar-event-column[orient="horizontal"] {
-  border-top: 1px solid #3F7D91;
+    border-top: 1px solid #3F7D91;
 }
 calendar-event-column[orient="vertical"] {
-  border-left: 1px solid #3F7D91;
+    border-left: 1px solid #3F7D91;
 }
 
-calendar-header-container { 
-  background-color: #FFFFFF;
-  border-left: 1px solid #3F7D91;
+calendar-header-container {
+    background-color: #FFFFFF;
+    border-left: 1px solid #3F7D91;
 }
 
 calendar-header-container[weekend="true"],
 .calendar-event-column-linebox[weekend="true"],
 .calendar-event-column-linebox[off-time="true"] {
-  background-color: #f4f4f4;
+    background-color: #f4f4f4;
 }
 
 calendar-header-container[relation="today"],
 .calendar-event-column-linebox[relation="today"] {
-  background-color: #dfeaf4;
+    background-color: #dfeaf4;
 }
 
 calendar-header-container[selected="true"],
 .calendar-event-column-linebox[selected="true"] {
-  background-color: #ffe79c;
+    background-color: #ffe79c;
 }
 
 calendar-header-container[weekend="true"][relation="today"],
 .calendar-event-column-linebox[weekend="true"][relation="today"],
 .calendar-event-column-linebox[off-time="true"][relation="today"] {
-  background-color: #d6dfe9;
+    background-color: #d6dfe9;
 }
 
 calendar-header-container[orient="horizontal"] {
-  border-bottom: 1px solid #3F7D91;
+    border-bottom: 1px solid #3F7D91;
 }
 
 calendar-header-container[weekend="true"][selected="true"],
 .calendar-event-column-linebox[weekend="true"][selected="true"],
 .calendar-event-column-linebox[off-time="true"][selected="true"] {
-  background-color: #f5dd92;
+    background-color: #f5dd92;
 }
 
 .calendar-event-column-linebox[orient="horizontal"] {
-  border-right: 1px solid #3F7D91;
+    border-right: 1px solid #3F7D91;
 }
 .calendar-event-column-linebox[orient="vertical"] {
-  border-bottom: 1px solid #3F7D91;
+    border-bottom: 1px solid #3F7D91;
 }
 
 /* Make sure the box for day-labels appears to end before the scrollbar. */
 .calendar-label-day-box[orient="horizontal"] {
-  border-right: 1px solid #3F7D91;
+    border-right: 1px solid #3F7D91;
 }
 .calendar-label-day-box[orient="vertical"] {
-  border-bottom: 1px solid #3F7D91;
+    border-bottom: 1px solid #3F7D91;
 }
 
 /* Make sure we extend the bold line separating scrollable and non-scrollable
-   areas over the timebar. */
+areas over the timebar. */
 .calendar-header-time-spacer[orient="horizontal"] {
-  border-bottom: 2px solid #3F7D91;
+    border-bottom: 2px solid #3F7D91;
 }
 .calendar-header-time-spacer[orient="vertical"] {
-  border-right: 2px solid #3F7D91;
+    border-right: 2px solid #3F7D91;
 }
 
 .calendar-header-day-box[orient="horizontal"] {
-  border-right: 1px solid #3F7D91;
-  border-top: 1px solid #3F7D91;
-  border-bottom: 2px solid #3F7D91;
-  overflow-x: hidden;
-  overflow-y: auto;
-  max-height: 120px;
+    border-right: 1px solid #3F7D91;
+    border-top: 1px solid #3F7D91;
+    border-bottom: 2px solid #3F7D91;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 120px;
 }
 .calendar-header-day-box[orient="vertical"] {
-  border-top: 1px solid #3F7D91;
-  border-right: 2px solid #3F7D91;
+    border-top: 1px solid #3F7D91;
+    border-right: 2px solid #3F7D91;
 }
 
 /* Make sure to have a border between the edge of the views and the scrollbar. */
 .calendar-day-box[orient="horizontal"] {
-  border-right: 1px solid #3F7D91;
+    border-right: 1px solid #3F7D91;
 }
 
 .calendar-day-box[orient="vertical"] {
-  border-bottom: 1px solid #3F7D91;
+    border-bottom: 1px solid #3F7D91;
 }
 
 .fgdragbox {
-  -moz-box-orient: inherit;
-  display: none;
+    -moz-box-orient: inherit;
+    display: none;
 }
 
 .fgdragbox[dragging="true"] {
-  display: -moz-box;
-  background-color: blue;
-  opacity: 0.5;
+    display: -moz-box;
+    background-color: blue;
+    opacity: 0.5;
 }
 
 .fgdragcontainer {
-  -moz-box-orient: inherit;
-  display: none;
+    -moz-box-orient: inherit;
+    display: none;
 }
 
 .fgdragcontainer[dragging="true"] {
-  display: -moz-box;
-  /* This is a workaround for a stack bug and display: hidden in underlying
-   * elements -- the display: hidden bits get misrendered as being on top.
-   * Setting an opacity here forces a view to be created for this element, too.
-   */
-  opacity: 0.9999;
+    display: -moz-box;
+    /* This is a workaround for a stack bug and display: hidden in underlying
+    * elements -- the display: hidden bits get misrendered as being on top.
+    * Setting an opacity here forces a view to be created for this element, too.
+    */
+    opacity: 0.9999;
 }
 
 .fgdragbox-label {
-  font-weight: bold;
-  overflow: hidden;
+    font-weight: bold;
+    overflow: hidden;
 }
 
 .calendar-event-box-container {
-  padding: 0;
-  margin: 1px;
-  overflow: hidden;
+    padding: 0;
+    margin: 1px;
+    overflow: hidden;
 }
 
 .calendar-event-box-container[categories] {
-  -moz-margin-end: 0px;
+    -moz-margin-end: 0px;
 }
 
 .calendar-event-details {
-  -moz-padding-start: 2px;
+    -moz-padding-start: 2px;
 }
 
 .calendar-event-details-core {
-  width: 0px;
-  margin: 0px;
+    width: 0px;
+    margin: 0px;
 }
 
 .calendar-event-name-textbox {
-  background: transparent !important;
-  color: inherit;
+    background: transparent !important;
+    color: inherit;
 }
 
 
 calendar-event-box[selected="true"] .calendar-event-selection {
-  color: #000000 !important;
-  background-color: #ffdb67 !important;
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
 }
 
-calendar-event-gripbar { 
-  -moz-box-align: center;
-  -moz-box-pack: center;
-  min-height: 4px;
-  min-width: 4px;
+calendar-event-gripbar {
+    -moz-box-align: center;
+    -moz-box-pack: center;
+    min-height: 4px;
+    min-width: 4px;
 }
 
 calendar-event-gripbar[parentorient="vertical"] {
-  -moz-box-align: center;
-  -moz-box-pack: center;
-  cursor: n-resize;
+    -moz-box-align: center;
+    -moz-box-pack: center;
+    cursor: n-resize;
 }
 
 calendar-event-gripbar[parentorient="horizontal"] {
-  -moz-box-align: center;
-  -moz-box-pack: center;
-  cursor: e-resize;
+    -moz-box-align: center;
+    -moz-box-pack: center;
+    cursor: e-resize;
 }
 
 /* headers horizontal, times vertical */
 box[anonid="labelbox"][orient="horizontal"] {
-  height: 30px;
+    height: 30px;
 }
 box[anonid="headerbox"][orient="horizontal"] {
-  min-height: 50px;
+    min-height: 50px;
 }
 box[anonid="labelbox"][orient="horizontal"] > box[anonid="labeltimespacer"],
 box[anonid="headertimespacer"][orient="horizontal"],
 calendar-time-bar[anonid="timebar"][orient="vertical"] {
-  width: 10ex; /* space for "11:00 AM" */
+    width: 10ex; /* space for "11:00 AM" */
 }
 
 /* headers vertical, times horizonal */
 box[anonid="labelbox"][orient="vertical"] {
-  width: 30px;
+    width: 30px;
 }
 box[anonid="headerbox"][orient="vertical"] {
-  width: 120px;
+    width: 120px;
 }
 box[anonid="labelbox"][orient="vertical"] > box[anonid="labeltimespacer"],
 box[anonid="headertimespacer"][orient="vertical"],
 calendar-time-bar[anonid="timebar"][orient="horizontal"] {
-  height: 40px;
+    height: 40px;
 }
 
-.calendar-time-bar-label { 
-  font-weight: bold;
-  margin: 2px; /* override <label> */
+.calendar-time-bar-label {
+    font-weight: bold;
+    margin: 2px; /* override <label> */
 }
 
 .calendar-time-bar-box-odd,
 .calendar-time-bar-box-even {
-  color: #3F7D91;
-  background-color: #E7EEEC;
-  overflow: hidden;
+    color: #3F7D91;
+    background-color: #E7EEEC;
+    overflow: hidden;
 }
 
 .calendar-time-bar-box-odd[orient="horizontal"],
 .calendar-time-bar-box-even[orient="horizontal"] {
-  border-top: 1px solid #3F7D91;
-  border-right: 1px solid #3F7D91;
+    border-top: 1px solid #3F7D91;
+    border-right: 1px solid #3F7D91;
 }
 
 .calendar-time-bar-box-odd[orient="vertical"],
 .calendar-time-bar-box-even[orient="vertical"] {
-  border-bottom: 1px solid #3F7D91;
-  border-left: 1px solid #3F7D91;
-  /* right-align possibly variable-width column of times:
-         9:00 AM
-        10:00 AM */
-  text-align: right;  
+    border-bottom: 1px solid #3F7D91;
+    border-left: 1px solid #3F7D91;
+    /* right-align possibly variable-width column of times:
+    9:00 AM
+    10:00 AM */
+    text-align: right;
 }
 
 calendar-multiday-view {
-  background-color: #FFFFFF;
-  padding: 2px;
+    background-color: #FFFFFF;
+    padding: 2px;
 }
 
-calendar-multiday-view[hidden="true"] { 
-  display: none;
+calendar-multiday-view[hidden="true"] {
+    display: none;
 }
 
 calendar-day-label {
-  color: #3F7D91;
-  background-color: #E7EEEC;
-  border-top: 1px solid #3F7D91;
-  border-left: 1px solid #3F7D91;
+    color: #3F7D91;
+    background-color: #E7EEEC;
+    border-top: 1px solid #3F7D91;
+    border-left: 1px solid #3F7D91;
 }
 
 .calendar-day-label-date {
-  font-weight: bold;
-  text-align: center;
+    font-weight: bold;
+    text-align: center;
 }
 
 .calendar-day-label-name {
-  font-weight: bold;
-  font-size: large;
-  text-align: center;
+    font-weight: bold;
+    font-size: large;
+    text-align: center;
 }
 
 /* Month View */
 calendar-month-view {
-  background-color: #FFFFFF;
-  padding: 2px;
+    background-color: #FFFFFF;
+    padding: 2px;
 }
 
 .calendar-month-view-grid-column {
-  min-width: 1px;
-  width: 1px;
+    min-width: 1px;
+    width: 1px;
 }
 
 .calendar-month-view-grid-row {
-  min-height: 1px;
-  height: 1px;
+    min-height: 1px;
+    height: 1px;
 }
 
-calendar-month-day-box { 
-  border: 1px solid #3F7D91;
+calendar-month-day-box {
+    border: 1px solid #3F7D91;
 }
 
 .calendar-month-day-box-items-box {
-  overflow-y: auto;
-  overflow-x: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .calendar-month-day-box-current-month {
-  background-color: #FFFFFF;
+    background-color: #FFFFFF;
 }
 
 .calendar-month-day-box-day-off {
-  background-color: #FFF9E7;
+    background-color: #FFF9E7;
 }
 
 .calendar-month-day-box-other-month {
-  background-color: #E7EEEC;
+    background-color: #E7EEEC;
 }
 
 .calendar-month-day-box-current-month[relation="today"],
 .calendar-month-day-box-day-off[relation="today"],
 .calendar-month-day-box-other-month[relation="today"] {
-  background-color: #dfeaf4;
-  border: 2px solid #1D7AB5 !important;
+    background-color: #dfeaf4;
+    border: 2px solid #1D7AB5 !important;
 }
 
 .calendar-month-day-box-current-month[selected="true"],
 .calendar-month-day-box-day-off[selected="true"],
 .calendar-month-day-box-other-month[selected="true"] {
-  background-color: #ffe79c;
-  border: 1px solid #1D7AB5;
+    background-color: #ffe79c;
+    border: 1px solid #1D7AB5;
 }
 
-.calendar-month-day-box-date-label { 
-  color: #3F7D91;;
-  font-weight: bold;
-  margin-bottom: 0px;
-  margin-top: 0px;
+.calendar-month-day-box-date-label {
+    color: #3F7D91;;
+    font-weight: bold;
+    margin-bottom: 0px;
+    margin-top: 0px;
 }
 
-calendar-month-day-box-item { 
-  margin: 1px;
-  padding: 0px 1px;
+calendar-month-day-box-item {
+    margin: 1px;
+    padding: 0px 1px;
 }
 
 calendar-month-day-box-item[selected="true"] .calendar-event-selection {
-  color: #000000 !important;
-  background-color: #ffdb67 !important;
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
 }
 
 .calendar-month-day-box-item-label {
-  padding: 0px;
-  margin: 0px;
+    padding: 0px;
+    margin: 0px;
 }
 
 .calendar-month-day-box-item-label[time="true"] {
-  -moz-margin-end: 4px;
+    -moz-margin-end: 4px;
 }
 
 .calendar-month-day-box-item-image {
-  list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
-  margin: 2px;
-  -moz-margin-end: 4px;
-  display: none;
+    list-style-image: url("chrome://calendar/skin/day-box-item-image.png");
+    margin: 2px;
+    -moz-margin-end: 4px;
+    display: none;
 }
 
 .calendar-month-day-box-item-image[type="todo"]:not([progress]) {
-  -moz-image-region: rect(0px 11px 11px 0px);
-  display: inline;
+    -moz-image-region: rect(0px 11px 11px 0px);
+    display: inline;
 }
 
 .calendar-month-day-box-item-image[type="todo"][progress="completed"] {
-  -moz-image-region: rect(0px 22px 11px 11px);
+    -moz-image-region: rect(0px 22px 11px 11px);
 }
 
 calendar-month-view-column-header {
-  color: #3F7D91;
-  background-color: #E7EEEC;
-  font-weight:bold;
-  border-left: 1px solid #3F7D91;
-  border-right: 1px solid #3F7D91;
-  border-top: 1px solid #3F7D91;
-  /* Allow overflow so long localized weekday names don't prevent narrow view */
-  overflow-x: hidden;
+    color: #3F7D91;
+    background-color: #E7EEEC;
+    font-weight:bold;
+    border-left: 1px solid #3F7D91;
+    border-right: 1px solid #3F7D91;
+    border-top: 1px solid #3F7D91;
+    /* Allow overflow so long localized weekday names don't prevent narrow view */
+    overflow-x: hidden;
 }
 
 .calendar-month-view-column-header-label {
-  font-weight: bold;
-  /* Override label margins to use full box width,
-     for long localized weekday names or narrow screen. */
-  -moz-margin-start: 0px !important;
-  -moz-margin-end: 0px !important;
-  padding: 3px 1px;
+    font-weight: bold;
+    /* Override label margins to use full box width,
+    for long localized weekday names or narrow screen. */
+    -moz-margin-start: 0px !important;
+    -moz-margin-end: 0px !important;
+    padding: 3px 1px;
 }
 
 calendar-editable-item[selected="true"] .calendar-event-selection {
-  color: #000000 !important;
-  background-color: #ffdb67 !important;
+    color: #000000 !important;
+    background-color: #ffdb67 !important;
 }
 
-box[dropbox="true"] { 
-  background-color: blue !important;
-  height: 1.2em;
-  margin: 1px;
-  padding: 0px 1px;
-  opacity: 0.5;
+box[dropbox="true"] {
+    background-color: blue !important;
+    height: 1.2em;
+    margin: 1px;
+    padding: 0px 1px;
+    opacity: 0.5;
 }
 
 .calendar-event-box-gradient {
-  list-style-image: url("chrome://calendar/skin/gradient-overlay.png");
+    list-style-image: url("chrome://calendar/skin/gradient-overlay.png");
 }
 
 .calendar-category-box-gradient {
-  list-style-image: url("chrome://calendar/skin/category-overlay.png");
+    list-style-image: url("chrome://calendar/skin/category-overlay.png");
 }
 
 .calendar-event-box-shadow-right {
-  list-style-image: url("chrome://calendar/skin/shadow-right.png");
+    list-style-image: url("chrome://calendar/skin/shadow-right.png");
 }
 
 .calendar-event-box-shadow-left {
-  list-style-image: url("chrome://calendar/skin/shadow-left.png");
+    list-style-image: url("chrome://calendar/skin/shadow-left.png");
 }
 
 .calendar-event-box-shadow-edge-right {
-  list-style-image: url("chrome://calendar/skin/shadow-edge-right.png");
+    list-style-image: url("chrome://calendar/skin/shadow-edge-right.png");
 }
 
 .calendar-event-box-shadow-edge-left {
-  list-style-image: url("chrome://calendar/skin/shadow-edge-left.png");
+    list-style-image: url("chrome://calendar/skin/shadow-edge-left.png");
 }
 
 .calendar-event-box-shadow-bottom {
-  list-style-image: url("chrome://calendar/skin/shadow-bottom.png");
+    list-style-image: url("chrome://calendar/skin/shadow-bottom.png");
 }
 
 calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-top {
-  list-style-image: url("chrome://calendar/skin/event-grippy-top.png");
+    list-style-image: url("chrome://calendar/skin/event-grippy-top.png");
 }
 
 calendar-event-box[orient="vertical"]:hover .calendar-event-box-grippy-bottom {
-  list-style-image: url("chrome://calendar/skin/event-grippy-bottom.png");
+    list-style-image: url("chrome://calendar/skin/event-grippy-bottom.png");
 }
 
 calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-top {
-  list-style-image: url("chrome://calendar/skin/event-grippy-left.png");
+    list-style-image: url("chrome://calendar/skin/event-grippy-left.png");
 }
 
 calendar-event-box[orient="horizontal"]:hover .calendar-event-box-grippy-bottom {
-  list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
+    list-style-image: url("chrome://calendar/skin/event-grippy-right.png");
 }
 
 calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-top {
-  list-style-image: none;
-  cursor: auto;
+    list-style-image: none;
+    cursor: auto;
 }
 
 calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-bottom {
-  list-style-image: none;
-  cursor: auto;
+    list-style-image: none;
+    cursor: auto;
 }
 
 /* Alarm image */
 .alarm-image {
-  list-style-image: url(chrome://calendar/skin/alarm.png);
+    list-style-image: url(chrome://calendar/skin/alarm.png);
 }
 
 .alarm-image[flashing="true"] {
-  list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
+    list-style-image: url(chrome://calendar/skin/alarm-flashing.png);
 }
 
 .alarm-image[suppressed="true"] {
-  list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
+    list-style-image: url(chrome://calendar/skin/alarm-suppressed.png);
 }
 
 /* Navigation controls for the views */
-calendar-navigation-buttons { 
-  padding: 0px 0px 2px;
+calendar-navigation-buttons {
+    padding-top: 4px;
+    padding-bottom: 3px;
+    background-color: white;
 }
 
-.nav-buttons{
-    list-style-image: url("chrome://calendar/skin/prevnextarrow.png");
-}
-
-.nav-buttons[direction="next"] {
-    -moz-box-align:end;
-    -moz-image-region: rect(18px 18px 36px 0px);
-    cursor:pointer;
-}
-
-.nav-buttons[direction="prev"] {
-    -moz-box-align:start;
-    -moz-image-region: rect(0px 18px 18px 0px);
-    cursor:pointer;
-}
-
-.title-container {
-    -moz-box-align: center;
-    -moz-box-pack: center;
-    margin: 0px 15px;
-}
-
-.title2 {
-    font-size:1.2em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title1 {
-    font-size:1.5em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title0 {
-    font-size:2.0em;
-    color: #2e4e73;
-    font-weight:bold;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title-label-box button {
-    background-color: transparent;
-    /* Override button min-width so views can be narrow on narrow screen */
-    min-width: 1px;
-    /* Allow overflow, so long localized month names don't prevent narrow view */
-    overflow-x: hidden;
+.view-header {
+    font-weight: bold;
+    font-size: 12px;
+    color: #2E4E73;
 }
 
 /* tooltips */
 vbox.tooltipBox {
-  max-width: 40em;
+    max-width: 40em;
 }
 
 column.tooltipValueColumn {
-  max-width: 35em; /* tooltipBox max-width minus space for label */
+    max-width: 35em; /* tooltipBox max-width minus space for label */
 }
 
 label.tooltipHeaderLabel {
-  font-weight: bold;
-  text-align: right;
-  margin-top: 0;
-  margin-bottom: 0;
-  -moz-margin-start: 0;
-  -moz-margin-end: 1em; /* 1em space before value */
+    font-weight: bold;
+    text-align: right;
+    margin-top: 0;
+    margin-bottom: 0;
+    -moz-margin-start: 0;
+    -moz-margin-end: 1em; /* 1em space before value */
 }
 
 description.tooltipHeaderDescription {
-  font-weight: normal;
-  text-align: left;
-  margin: 0pt;
+    font-weight: normal;
+    text-align: left;
+    margin: 0pt;
 }
 
 separator.tooltipBodySeparator {
-  height: 1ex; /* 1ex space above body text, below last header. */
+    height: 1ex; /* 1ex space above body text, below last header. */
 }
 
 description.tooltipBody {
-  font-weight: normal;
-  white-space: -moz-pre-wrap;
-  margin: 0pt;
+    font-weight: normal;
+    white-space: -moz-pre-wrap;
+    margin: 0pt;
 }
 
 #calendar-view-context-menu[type="event"] .todo-only,
@@ -594,5 +549,5 @@ description.tooltipBody {
 #calendar-item-context-menu[type="todo"] .event-only,
 #calendar-item-context-menu[type="mixed"] .event-only,
 #calendar-item-context-menu[type="mixed"] .todo-only {
-  display: none;
+    display: none;
 }

@@ -105,3 +105,10 @@
 <!ENTITY month.10.name "October" >
 <!ENTITY month.11.name "November" >
 <!ENTITY month.12.name "December" >
+
+<!ENTITY onemonthbackward.tooltip "One Month Back" >
+<!ENTITY onemonthforward.tooltip "One Month Forward" >
+<!ENTITY showToday.tooltip "Go to Today">
+<!ENTITY onedayforward.tooltip "One Day Forward">
+<!ENTITY onedaybackward.tooltip "One Day Backward">
+<!ENTITY showselectedday.tooltip "Show events for selected day">

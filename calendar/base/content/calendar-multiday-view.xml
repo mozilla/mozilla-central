@@ -27,6 +27,7 @@
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Markus Adrario <MarkusAdrario@web.de>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -3410,6 +3411,7 @@
 
           // Adjust scrollbar spacers
           this.adjustScrollBarSpacers();
+          this.fireEvent("relayouted");
         ]]></body>
       </method>
 

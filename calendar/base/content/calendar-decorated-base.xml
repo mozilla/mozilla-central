@@ -23,6 +23,7 @@
    - Contributor(s):
    -   Markus Adrario <MarkusAdrario@web.de>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,73 +46,78 @@
     xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     xmlns:xbl="http://www.mozilla.org/xbl">
 
-    <binding id="calendar-navigation-buttons">
+    <binding id="calendar-navigation-buttons" extends="xul:hbox">
         <content>
-            <xul:hbox anonid="controls-box" flex="1">
-                <xul:spacer width="10"/>
-                <xul:vbox class="previous-button-box">
-                    <xul:spacer flex="1" />
-                    <xul:image direction="prev"
-                               class="nav-buttons"
-                               onclick="moveView(-1)"/>
-                    <xul:spacer flex="1" />
-                </xul:vbox>
-                <xul:spacer flex="1"/>
-                <xul:vbox anonid="title-container" flex="1">
-                    <xul:hbox anonid="title-box" flex="1">
-                        <xul:spacer flex="1" />
-                        <xul:vbox class="title-label-box" flex="1">
-                            <xul:button anonid="title--2"  class="title2" oncommand="moveView(-2)"/>
-                        </xul:vbox>
-                        <xul:vbox class="title-label-box" flex="1">
-                            <xul:button anonid="title--1" class="title1" oncommand="moveView(-1)"/>
-                        </xul:vbox>
-                        <xul:vbox class="title-label-box" flex="1">
-                            <xul:button anonid="title-0" class="title0"/>
-                        </xul:vbox>
-                        <xul:vbox class="title-label-box" flex="1">
-                             <xul:button anonid="title-1" class="title1" oncommand="moveView(1)"/>
-                        </xul:vbox>
-                        <xul:vbox class="title-label-box" flex="1">
-                             <xul:button anonid="title-2" class="title2" oncommand="moveView(2)"/>
-                        </xul:vbox>
-                        <xul:spacer flex="1" />
-                    </xul:hbox>
-                </xul:vbox>
-                <xul:spacer flex="1"/>
-                <xul:vbox class="next-button-box">
-                    <xul:spacer flex="1" />
-                    <xul:image direction="next"
-                               class="nav-buttons"
-                               onclick="moveView(1)"/>
-                    <xul:spacer flex="1" />
-                </xul:vbox>
-                <xul:spacer width="10"/>
-            </xul:hbox>
+          <xul:toolbarbutton anonid="previous-view-button"
+                             class="view-navigation-button"
+                             type="prev"
+                             oncommand="moveView(-1)"/>
+          <xul:toolbarbutton anonid="today-view-button"
+                             class="view-navigation-button"
+                             type="today"
+                             oncommand="moveView();"/>
+          <xul:toolbarbutton anonid="next-view-button"
+                             class="view-navigation-button"
+                             type="next"
+                             oncommand="moveView(1)"/>
+          <xul:label anonid="intervalDescription"
+                     class="view-header"/>
+          <xul:spacer flex="1" />
+          <xul:label anonid="calendarWeek"
+                     class="view-header"/>
         </content>
-
         <implementation>
-            <method name="setNames">
-                <parameter name="aNameArray"/>
-                <parameter name="aDate"/>
+            <field name="mStartDate"/>
+            <field name="mEndDate"/>
+            <field name="mToolTipTexts"/>
+            <field name="mViewElement"/>
+            <method name="setDateRange">
+                <parameter name="aStartDate"/>
+                <parameter name="aEndDate"/>
+                <parameter name="aToolTipTexts"/>
+                <parameter name="aViewElement"/>
                 <body><![CDATA[
-                    for (var i = -2; i < 3; i++) {
-                        document.getAnonymousElementByAttribute(this, "anonid", "title-"+i)
-                                .setAttribute("label", aNameArray[i+2]);
+                    this.mStartDate = aStartDate;
+                    this.mEndDate = aEndDate;
+                    this.mToolTipTexts = aToolTipTexts;
+                    this.mViewElement = aViewElement;
+                ]]></body>
+            </method>
+            <method name="initialize">
+                <parameter name="aPaddingStart"/>
+                <parameter name="aPaddingEnd"/>
+                <body><![CDATA[
+                    this.setAttribute("style", "-moz-padding-start: " + (aPaddingStart) + "px; -moz-padding-end: " + aPaddingEnd + "px;");
+                    if (this.mStartDate) {
+                        var intervalLabel = document.getAnonymousElementByAttribute(this, "anonid", "intervalDescription");
+                        var startString = new Object();
+                        var endString = new Object();
+                        var firstWeekNo = getWeekFormatter().getWeekTitle(this.mStartDate);
+                        var secondWeekNo = firstWeekNo;
+                        var weekLabel = document.getAnonymousElementByAttribute(this, "anonid", "calendarWeek");
+                        if (this.mStartDate.nativeTime == this.mEndDate.nativeTime) {
+                            intervalLabel.value = getDateFormatter().formatDate(this.mStartDate);
+                        } else {
+                            var endDate = this.mEndDate.clone();
+                            // 'formatInterval handles the endDate exclusively, so we have
+                            // to increment the day priorily...
+                            endDate.day -= 1;
+                            var interval = getDateFormatter().formatInterval(this.mStartDate, endDate, startString, endString);
+                            intervalLabel.value = startString.value + " - " + endString.value;
+                            secondWeekNo = getWeekFormatter().getWeekTitle(this.mEndDate);
+                        }
+                        if (secondWeekNo == firstWeekNo) {
+                            weekLabel.value = calGetString("calendar", "longCalendarWeek", [firstWeekNo]);
+                        } else {
+                            weekLabel.value = calGetString("calendar", "severalLongCalendarWeeks", [firstWeekNo, secondWeekNo]);
+                        }
+                        var button = document.getAnonymousElementByAttribute(this, "anonid", "previous-view-button");
+                        button.setAttribute("tooltiptext", this.mToolTipTexts[0]);
+                        button = document.getAnonymousElementByAttribute(this, "anonid", "today-view-button");
+                        button.setAttribute("tooltiptext", this.mToolTipTexts[1]);
+                        button = document.getAnonymousElementByAttribute(this, "anonid", "next-view-button");
+                        button.setAttribute("tooltiptext", this.mToolTipTexts[2]);
                     }
-                    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                        .getService(Components.interfaces.nsIStringBundleService);
-                    var brand = sbs.createBundle("chrome://branding/locale/brand.properties");
-
-                    var docTitle;
-                    if (!aDate) {
-                        docTitle = aNameArray[2];
-                    } else {
-                        var df = Components.classes["@mozilla.org/calendar/datetime-formatter;1"].
-                                 getService(Components.interfaces.calIDateTimeFormatter);
-                        docTitle = df.formatDate(aDate);
-                    }
-                    document.title = docTitle + " - " + brand.GetStringFromName("brandShortName");
                 ]]></body>
             </method>
             <method name="moveView">
@@ -138,6 +144,7 @@
         </content>
 
         <implementation implements="calIDecoratedView">
+          <field name="mRelayoutHandler">null</field>;
           <constructor><![CDATA[
             const kWorkdaysCommand = "calendar_toggle_workdays_only_command";
             const kTasksInViewCommand = "calendar_toggle_tasks_in_view_command";
@@ -152,7 +159,18 @@
                                     .getAttribute("checked") == "true");
             this.showCompleted = (document.getElementById(kShowCompleted)
                                           .getAttribute("checked") == "true");
+
+            this.mRelayoutHandler = {
+                binding: this,
+                handleEvent : function(aEvent, aHandled) {
+                    return this.binding.adjustAlignment(aEvent, this.binding);
+                }
+            };
+            this.viewElem.addEventListener("relayouted", this.mRelayoutHandler, true);
           ]]></constructor>
+          <destructor><![CDATA[
+            this.viewElem.removeEventListener("relayouted", this.mRelayoutHandler, true);
+          ]]></destructor>
             <field name="mTasksInView">false</field>
             <field name="mShowCompleted">false</field>
             <field name="mWorkdaysOnly">false</field>
@@ -173,7 +191,7 @@
 
                     // Some views throw when accessing an uninitialized startDay
                     try {
-                        retval = this.displayCalendar && this.startDay 
+                        retval = this.displayCalendar && this.startDay
                                  && this.endDay;
                     } catch(ex) {
                         return false;
@@ -313,6 +331,51 @@
                 <parameter name="aNumber"/>
                 <body><![CDATA[
                     throw NS_ERROR_NOT_IMPLEMENTED;
+                ]]></body>
+            </method>
+            <method name="setDateRange">
+                <parameter name="aStartDate"/>
+                <parameter name="aEndDate"/>
+                <parameter name="aToolTipTexts"/>
+                <body><![CDATA[
+                    var viewElement = this.viewElem;
+                    viewElement.tasksInView = this.mTasksInView;
+                    viewElement.showCompleted = this.mShowCompleted;
+                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").
+                             setDateRange(aStartDate, aEndDate, aToolTipTexts, viewElement);
+                ]]></body>
+            </method>
+            <method name="adjustAlignment">
+                <parameter name="aEvent"/>
+                <parameter name="aBinding"/>
+                <body><![CDATA[
+                    var viewElement = aBinding.viewElem;
+                    var paddingStart = getSummarizedStyleValues(viewElement, ["padding-left"]);
+                    if (viewElement.getAttribute("orient") == "vertical") {
+                        var timebar = document.getAnonymousElementByAttribute(viewElement, "anonid", "timebar");
+                        if (timebar) {
+                            paddingStart += timebar.boxObject.width;
+                        }
+                    } else {
+                        var dayheader = document.getAnonymousElementByAttribute(viewElement, "anonid", "labeldaybox");
+                        if (dayheader) {
+                            paddingStart += dayheader.parentNode.boxObject.width;
+                            var headerbox = document.getAnonymousElementByAttribute(viewElement, "anonid", "headerbox");
+                            if (headerbox) {
+                                paddingStart += headerbox.boxObject.width;
+                            }
+                        }
+                    }
+                    var paddingEnd = getSummarizedStyleValues(viewElement, ["padding-right"]);
+                    if (viewElement.getAttribute("orient") == "vertical") {
+                        var labelScrollBarSpacer = document.getAnonymousElementByAttribute(
+                             viewElement, "anonid", "labelscrollbarspacer");
+                        if (labelScrollBarSpacer) {
+                            paddingEnd += labelScrollBarSpacer.boxObject.width;
+                        }
+                    }
+                    document.getAnonymousElementByAttribute(aBinding, "anonid", "nav-control").
+                             initialize(paddingStart, paddingEnd);
                 ]]></body>
             </method>
         </implementation>

@@ -67,10 +67,10 @@
         <label id ="today-pane-header"/>
         <spacer flex="1"/>
         <modehbox mode="mail,calendar" broadcaster="modeBroadcaster">
-          <toolbarbutton id="folderview-cycler-left"  
+          <toolbarbutton id="folderview-cycler-left"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(-1);"/>
-          <toolbarbutton id="folderview-cycler-right" 
+          <toolbarbutton id="folderview-cycler-right"
                          class="folderview-cycler"
                          oncommand="TodayPane.cyclePaneView(1);"/>
         </modehbox>
@@ -104,16 +104,16 @@
                 <hbox pack="end">
                   <toolbarbutton id="previous-day-button"
                                  class="miniday-nav-buttons"
-                                 tooltiptext="&calendar.miniday.previous.button.tooltip;"
+                                 tooltiptext="&onedaybackward.tooltip;"
                                  oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                  dir="-1"/>
                   <toolbarbutton id="today-button"
                                  class="miniday-nav-buttons"
-                                 tooltiptext="&calendar.miniday.today.button.tooltip;"
+                                 tooltiptext="&showToday.tooltip;"
                                  oncommand="TodayPane.setDay(now());"/>
                   <toolbarbutton id="next-day-button"
                                  class="miniday-nav-buttons"
-                                 tooltiptext="&calendar.miniday.next.button.tooltip;"
+                                 tooltiptext="&onedayforward.tooltip;"
                                  oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
                                  dir="1"/>
                 </hbox>
@@ -137,7 +137,7 @@
               </hbox>
             </vbox>
             <toolbarbutton id="miniday-dropdown-button"
-                           tooltiptext="&calendar.miniday.dropdown.button.tooltip;"
+                           tooltiptext="&showselectedday.tooltip;"
                            popup="aMinimonthPopupset"
                            class="toolbarbutton-menubutton-dropmarker"/>
             <popupset>

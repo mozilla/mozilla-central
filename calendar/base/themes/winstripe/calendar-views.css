@@ -25,6 +25,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Markus Adrario <MarkusAdrario@web.de>
  *   Simon Paquet <bugzilla@babylonsounds.com>
+ *   Berend Cornelius <berend.cornelius@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -199,7 +200,7 @@ calendar-event-box[selected="true"] .calendar-event-selection {
   background-color: #ffdb67 !important;
 }
 
-calendar-event-gripbar { 
+calendar-event-gripbar {
   -moz-box-align: center;
   -moz-box-pack: center;
   min-height: 4px;
@@ -244,7 +245,7 @@ calendar-time-bar[anonid="timebar"][orient="horizontal"] {
   height: 40px;
 }
 
-.calendar-time-bar-label { 
+.calendar-time-bar-label {
   font-weight: bold;
   margin: 2px; /* override <label> */
 }
@@ -277,7 +278,7 @@ calendar-multiday-view {
   padding: 2px;
 }
 
-calendar-multiday-view[hidden="true"] { 
+calendar-multiday-view[hidden="true"] {
   display: none;
 }
 
@@ -315,7 +316,7 @@ calendar-month-view {
   height: 1px;
 }
 
-calendar-month-day-box { 
+calendar-month-day-box {
   border: 1px solid #3F7D91;
 }
 
@@ -350,14 +351,14 @@ calendar-month-day-box {
   border: 1px solid #1D7AB5;
 }
 
-.calendar-month-day-box-date-label { 
+.calendar-month-day-box-date-label {
   color: #3F7D91;;
   font-weight: bold;
   margin-bottom: 0px;
   margin-top: 0px;
 }
 
-calendar-month-day-box-item { 
+calendar-month-day-box-item {
   margin: 1px;
   padding: 0px 1px;
 }
@@ -417,7 +418,7 @@ calendar-editable-item[selected="true"] .calendar-event-selection {
   background-color: #ffdb67 !important;
 }
 
-box[dropbox="true"] { 
+box[dropbox="true"] {
   background-color: blue !important;
   height: 1.2em;
   margin: 1px;
@@ -493,63 +494,18 @@ calendar-event-box[readOnly="true"]:hover .calendar-event-box-grippy-bottom {
 }
 
 /* Navigation controls for the views */
-calendar-navigation-buttons { 
-  padding: 0px 0px 2px;
+calendar-navigation-buttons {
+  padding-top: 7px;
+  padding-bottom: 4px;
+  background-color: white;
 }
 
-.nav-buttons{
-    list-style-image: url("chrome://calendar/skin/prevnextarrow.png");
+.view-header {
+    font-weight: bold;
+    font-size: 14px;
+    color: #2E4E73;
 }
 
-.nav-buttons[direction="next"] {
-    -moz-box-align:end;
-    -moz-image-region: rect(18px 18px 36px 0px);
-    cursor:pointer;
-}
-
-.nav-buttons[direction="prev"] {
-    -moz-box-align:start;
-    -moz-image-region: rect(0px 18px 18px 0px);
-    cursor:pointer;
-}
-
-.title-container {
-    -moz-box-align: center;
-    -moz-box-pack: center;
-    margin: 0px 15px;
-}
-
-.title2 {
-    font-size:1.2em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title1 {
-    font-size:1.5em;
-    color: #4e84c2;
-    cursor:pointer;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title0 {
-    font-size:2.0em;
-    color: #2e4e73;
-    font-weight:bold;
-    -moz-appearance: none;
-    border: 0px;
-}
-
-.title-label-box button {
-    background-color: transparent;
-    /* Override button min-width so views can be narrow on narrow screen */
-    min-width: 1px;
-    /* Allow overflow, so long localized month names don't prevent narrow view */
-    overflow-x: hidden;
-}
 
 /* tooltips */
 vbox.tooltipBox {

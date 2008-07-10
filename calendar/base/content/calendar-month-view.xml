@@ -1331,6 +1331,7 @@
               today.compare(dateList[dateList.length-1]) != 1) {
               this.findBoxForDate(today).box.setAttribute("today", "true");
           }
+          this.fireEvent("relayouted");
         ]]></body>
       </method>
 

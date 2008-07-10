@@ -68,34 +68,25 @@
             <method name="goToDay">
                 <parameter name="aDate"/>
                 <body><![CDATA[
-                    var viewElement = this.viewElem;
-                    viewElement.tasksInView = this.mTasksInView;
-                    viewElement.showCompleted = this.mShowCompleted;
-
-                    aDate = aDate.getInTimezone(viewElement.timezone);
-
-                    this.setNavLabels(aDate)
-                    viewElement.setDateRange(aDate, aDate);
-                    viewElement.selectedDay = aDate;
+                    aDate = aDate.getInTimezone(this.viewElem.timezone);
+                    categories = calGetString("categories", "categories");
+                    var toolTips = calGetStringArray("calendar",
+                                                      ["oneDayBack", "gotoToday", "oneDayForward"]);
+                    this.setDateRange(aDate, aDate, toolTips);
+                    this.viewElem.setDateRange(aDate, aDate);
+                    this.viewElem.selectedDay = aDate;
                 ]]></body>
             </method>
             <method name="moveView">
                 <parameter name="aNumber"/>
                 <body><![CDATA[
-                    var currentDay = this.startDay.clone();
-                    currentDay.day += aNumber;
-                    this.goToDay(currentDay);
-                ]]></body>
-            </method>
-            <method name="setNavLabels">
-                <parameter name="aDate"/>
-                <body><![CDATA[
-                    var nameArray = new Array();
-                    for (var i = -2; i < 3; i++) {
-                        var index = ((aDate.weekday + i + 7) % 7) + 1;
-                        nameArray.push(calGetString("dateFormat", "day."+index+".name"));
+                    if (!aNumber) {
+                        this.goToDay(now());
+                    } else {
+                        var currentDay = this.startDay.clone();
+                        currentDay.day += aNumber;
+                        this.goToDay(currentDay);
                     }
-                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").setNames(nameArray, aDate);
                 ]]></body>
             </method>
         </implementation>

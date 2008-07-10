@@ -94,7 +94,7 @@
                        // Refresh the view to recreate the event boxes
                        this.calView.goToDay(this.calView.selectedDay);
                    }
-                   
+
                    switch (pref) {
 
                    case "calendar.previousweeks.inview":
@@ -118,7 +118,7 @@
                            // Don't refresh if we're not initialized
                            return;
                        }
-                       
+
                        // Refresh the view so the settings take effect
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
@@ -183,8 +183,6 @@
                 <body><![CDATA[
                     var viewElement = this.viewElem;
                     viewElement.showFullMonth = false;
-                    viewElement.tasksInView = this.mTasksInView;
-                    viewElement.showCompleted = this.mShowCompleted;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
@@ -206,64 +204,33 @@
 
                     // The last day we're supposed to show
                     var d2 = d1.endOfWeek.clone();
-                    d2.day += 7*(this.mWeeksInView-1);
-
-                    viewElement.setDateRange(d1,d2);
-
+                    d2.day += 7 * (this.mWeeksInView-1);
+                    var toolTips = calGetStringArray("calendar",
+                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
+                    this.setDateRange(d1,d2, toolTips);
+                    viewElement.setDateRange(d1, d2);
                     viewElement.selectedDay = aDate;
-                    this.setNavLabels(firstWeekDate);
                 ]]></body>
             </method>
             <method name="moveView">
                 <parameter name="aNumber"/>
                 <body><![CDATA[
-                    var d1 = this.startDay.clone();
-                    var savedSelectedDay = this.selectedDay.clone();
-                    // aNumber only corresponds to the number of weeks to move
-                    // make sure to compensate for previous weeks in view too
-                    d1.day += 7 * (aNumber + getPrefSafe("calendar.previousweeks.inview", 4));
-                    this.goToDay(d1);
-                    savedSelectedDay.day += 7*aNumber;
-                    this.viewElem.selectedDay = savedSelectedDay;
-                ]]></body>
-            </method>
-            <method name="setNavLabels">
-                <parameter name="aDate"/>
-                <body><![CDATA[
-                    var nameArray = new Array();
-                    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                        .getService(Components.interfaces.nsIStringBundleService);
-                    var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-
-                    const weekFormatter = Components.classes["@mozilla.org/calendar/weektitle-service;1"]
-                                          .getService(Components.interfaces.calIWeekTitleService);
-
-                    for (var i = -2; i < 3; i++) {
-                        var date = aDate.clone();
-                        // Add/subtract number of weeks
-                        date.day = aDate.day + i*7;
-
-                        var weekno1 = weekFormatter.getWeekTitle(date);
-
-                        // We'd show several weeks.  Now get the week-number of the
-                        // last week that would be shown if the user clicked the label
-                        date.day += 7*(this.mWeeksInView-1);
-                        var weekno2 = weekFormatter.getWeekTitle(date);
-
-                        // If only one week is in the view, we use "Week X"
-                        // instead of "Weeks X-Y".
-                        var weekTitle;
-                        if (this.mWeeksInView > 1) {
-                            weekTitle = props.formatStringFromName('WeeksTitle', [weekno1, weekno2], 2);
-                        } else {
-                            weekTitle = props.formatStringFromName('WeekTitle', [weekno1], 1);
-                        }
-                        nameArray.push(weekTitle);
+                    if (!aNumber) {
+                        var date = now();
+                        this.goToDay(date);
+                        this.viewElem.selectedDay = date;
+                    } else {
+                        var d1 = this.startDay.clone();
+                        var savedSelectedDay = this.selectedDay.clone();
+                        // aNumber only corresponds to the number of weeks to move
+                        // make sure to compensate for previous weeks in view too
+                        d1.day += 7 * (aNumber + getPrefSafe("calendar.previousweeks.inview", 4));
+                        this.goToDay(d1);
+                        savedSelectedDay.day += 7 * aNumber;
+                        this.viewElem.selectedDay = savedSelectedDay;
                     }
-                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").setNames(nameArray);
                 ]]></body>
             </method>
-
             <method name="updateDaysOffPrefs">
                 <body><![CDATA[
                     const weekPrefix = "calendar.week.";

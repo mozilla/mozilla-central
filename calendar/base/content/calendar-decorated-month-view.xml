@@ -115,7 +115,7 @@
                            // Don't refresh if we're not initialized
                            return;
                        }
-                       
+
                        // Refresh the view so the settings take effect
                        this.calView.goToDay(this.calView.selectedDay);
                        break;
@@ -155,15 +155,13 @@
                 <parameter name="aDate"/>
                 <body><![CDATA[
                     var viewElement = this.viewElem;
-                    viewElement.tasksInView = this.mTasksInView;
-                    viewElement.showCompleted = this.mShowCompleted;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
-
                     viewElement.showDate(aDate);
-
-                    this.setNavLabels(aDate);
+                    var toolTips = calGetStringArray("calendar",
+                                                      ["oneMonthBack", "gotoToday", "oneMonthForward"]);
+                    this.setDateRange(aDate.startOfMonth, aDate.endOfMonth, toolTips);
                 ]]></body>
             </method>
 
@@ -173,51 +171,38 @@
                     var monthViewElement = this.viewElem;
                     var dates = monthViewElement.getDateList({});
                     monthViewElement.displayDaysOff = !this.mWorkdaysOnly;
-		    
-                    // The first few dates in this list are likely in the month
-                    // prior to the one actually being shown (since the month
-                    // probably doesn't start on a Sunday).  The 7th item must
-                    // be in correct month though.
-                    var date = dates[6].clone();
-		    
-                    date.month += aNumber;
 
-                    // Need to store this before we move
-                    var oldSelectedDay = this.selectedDay;
+                    if (!aNumber) {
+                        var date = now();
+                        this.goToDay(date);
+                        monthViewElement.selectedDay = date;
+                    } else {
+                        // The first few dates in this list are likely in the month
+                        // prior to the one actually being shown (since the month
+                        // probably doesn't start on a Sunday).  The 7th item must
+                        // be in correct month though.
+                        var date = dates[6].clone();
 
-                    this.goToDay(date);
-		    
-                    // Most of the time we want to select the date with the
-                    // same day number in the next month
-                    var newSelectedDay = oldSelectedDay.clone();
-                    newSelectedDay.month += aNumber;
+                        date.month += aNumber;
+                        // Need to store this before we move
+                        var oldSelectedDay = this.selectedDay;
 
-                    // correct for accidental rollover into the next month
-                    if ((newSelectedDay.month - aNumber + 12)%12 != oldSelectedDay.month) {
-                        newSelectedDay.month -= 1;
-                        newSelectedDay.day = newSelectedDay.endOfMonth.day;
-                    }
+                        this.goToDay(date);
 
-                    monthViewElement.selectedDay = newSelectedDay;
-                ]]></body>
-            </method>
-
-            <method name="setNavLabels">
-                <parameter name="aDate"/>
-                <body><![CDATA[
-                    var nameArray = new Array();
-                    for (var i = -2; i < 3; i++) {
-                        var index = ((aDate.month + i + 12) % 12) + 1;
-                        if (0 == i) {
-                            nameArray.push(calGetString("dateFormat", "month."+index+".name") + " " + aDate.year);
-                        } else {
-                            nameArray.push(calGetString("dateFormat", "month."+index+".name"));
+                        // Most of the time we want to select the date with the
+                        // same day number in the next month
+                        var newSelectedDay = oldSelectedDay.clone();
+                        newSelectedDay.month += aNumber;
+                        // correct for accidental rollover into the next month
+                        if ((newSelectedDay.month - aNumber + 12)%12 != oldSelectedDay.month) {
+                            newSelectedDay.month -= 1;
+                            newSelectedDay.day = newSelectedDay.endOfMonth.day;
                         }
+
+                        monthViewElement.selectedDay = newSelectedDay;
                     }
-                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").setNames(nameArray);
                 ]]></body>
             </method>
-
             <method name="updateDaysOffPrefs">
                 <body><![CDATA[
                     const weekPrefix = "calendar.week.";

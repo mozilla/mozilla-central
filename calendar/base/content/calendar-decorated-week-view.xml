@@ -114,8 +114,6 @@
                 <parameter name="aDate"/>
                 <body><![CDATA[
                     var viewElement = this.viewElem;
-                    viewElement.tasksInView = this.mTasksInView;
-                    viewElement.showCompleted = this.mShowCompleted;
                     viewElement.displayDaysOff = !this.mWorkdaysOnly;
 
                     aDate = aDate.getInTimezone(viewElement.timezone);
@@ -135,7 +133,9 @@
                             d2.day -= 7;
                         }
                     }
-                    this.setNavLabels(aDate);
+                    var toolTips = calGetStringArray("calendar",
+                                                      ["oneWeekBack", "gotoToday", "oneWeekForward"]);
+                    this.setDateRange(d1, d2, toolTips);
                     viewElement.setDateRange(d1, d2);
                     viewElement.selectedDay = aDate;
                 ]]></body>
@@ -143,33 +143,13 @@
             <method name="moveView">
                 <parameter name="aNumber"/>
                 <body><![CDATA[
-                    var d1 = this.selectedDay.clone();
-                    d1.day += 7*aNumber;
-                    this.goToDay(d1);
-                ]]></body>
-            </method>
-            <method name="setNavLabels">
-                <parameter name="aDate"/>
-                <body><![CDATA[
-                    var nameArray = new Array();
-                    var sbs = Components.classes["@mozilla.org/intl/stringbundle;1"]
-                                        .getService(Components.interfaces.nsIStringBundleService);
-                    var props = sbs.createBundle("chrome://calendar/locale/calendar.properties");
-                    for (var i = -2; i < 3; i++) {
-                        var date = aDate.clone();
-                        // Add/subtract i number of weeks
-                        date.day = aDate.day + i*7;
-
-                        var weekformatter =
-                            Components.classes["@mozilla.org/calendar/weektitle-service;1"]
-                                      .getService(Components.interfaces.calIWeekTitleService);
-                        var weekno = weekformatter.getWeekTitle(date);
-
-                        var weekTitle = 
-                            props.formatStringFromName('WeekTitle', [weekno], 1);
-                        nameArray.push(weekTitle);
+                    if (!aNumber) {
+                        this.goToDay(now());
+                    } else {
+                        var d1 = this.selectedDay.clone();
+                        d1.day += 7 * aNumber;
+                        this.goToDay(d1);
                     }
-                    document.getAnonymousElementByAttribute(this, "anonid", "nav-control").setNames(nameArray);
                 ]]></body>
             </method>
         </implementation>
