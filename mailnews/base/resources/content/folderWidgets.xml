@@ -119,6 +119,15 @@
         newFolder: function filter_newFolder(aFolder) {
           return aFolder.canCreateSubfolders &&
                  aFolder.server.canCreateFoldersOnServer;
+        },
+
+        defered: function filter_defered(aFolder) {
+          return aFolder.server.canCreateFoldersOnServer &&
+                 !aFolder.supportsOffline;
+        },
+
+        junk: function filter_junk(aFolder) {
+          return aFolder.canFileMessages && aFolder.canSearchMessages;
         }
       })]]></field>
 
