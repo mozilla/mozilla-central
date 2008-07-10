@@ -45,6 +45,8 @@
 
 #occurrence-prompt-header {
   height: 50px;
+ padding-left: 15px;
+ padding-right: 15px;
   border-bottom: 2px groove ThreeDFace;
   background-color: window;
   color: windowtext;
@@ -69,15 +71,14 @@
 }
 
 #accept-occurrence-button {
-  -moz-image-region: rect(0 25px 20px 0);
+  -moz-image-region: rect(0 20px 20px 0);
 }
 
 #accept-allfollowing-button {
   /* TODO will be taken care of in a different bug */
-  /* display: none; */
-  -moz-image-region: rect(0 46px 20px 25px);
+  -moz-image-region: rect(0 40px 20px 20px);
 }
 
 #accept-parent-button {
-  -moz-image-region: rect(0 75px 20px 46px);
+  -moz-image-region: rect(0 60px 20px 40px);
 }

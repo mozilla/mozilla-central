@@ -34,8 +34,6 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!ENTITY header.isrepeating.label "Is a repeating event">
-
 <!ENTITY buttons.occurrence.accesskey "t">
 <!ENTITY buttons.allfollowing.accesskey "f">
 <!ENTITY buttons.parent.accesskey "a">

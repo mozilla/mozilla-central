@@ -58,12 +58,18 @@
 
     function onLoad() {
       var action = window.arguments[0].action || "edit";
+      var itemType = (isEvent(window.arguments[0].item) ? "event" : "task");
 
-      // Set up title and header
+      // Set up title
       document.title =
         calGetString("calendar-occurrence-prompt",
-                     "windowtitle." + action);
+                     "windowtitle." + itemType + "." + action);
       document.getElementById("title-label").value = window.arguments[0].item.title;
+
+      // Set up header
+      document.getElementById("isrepeating-label").value =
+        calGetString("calendar-occurrence-prompt",
+                     "header.isrepeating." + itemType + ".label");
 
       // Set up buttons
       document.getElementById("accept-occurrence-button").label =
@@ -75,16 +81,20 @@
       document.getElementById("accept-parent-button").label =
         calGetString("calendar-occurrence-prompt",
                      "buttons.parent." + action + ".label");
+
+      // Make "just this occurrence" the default button
+
     }
   ]]></script>
 
   <vbox id="occurrence-prompt-header" pack="center">
     <label id="title-label" crop="end"/>
-    <label value="&header.isrepeating.label;"/>
+    <label id="isrepeating-label"/>
   </vbox>
 
   <vbox id="accept-buttons-box" flex="1" pack="center">
     <button id="accept-occurrence-button"
+            default="true"
             class="occurrence-accept-buttons"
             accesskey="&buttons.occurrence.accesskey;"
             oncommand="exitOccurrenceDialog(1)"
