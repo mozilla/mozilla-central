@@ -114,6 +114,11 @@
 
         subscribe: function filter_subscribe(aFolder) {
           return aFolder.canSubscribe;
+        },
+
+        newFolder: function filter_newFolder(aFolder) {
+          return aFolder.canCreateSubfolders &&
+                 aFolder.server.canCreateFoldersOnServer;
         }
       })]]></field>
 
@@ -316,11 +321,24 @@
       <method name="_build">
         <parameter name="aFolders"/>
         <body><![CDATA[
+          var folders;
+          // Extensions and other consumers can add to these modes too, see the
+          // above note on the _filters field.
+          var mode = this.getAttribute("mode");
+          if (mode && mode != "") {
+            var filterFunction = this._filters[mode];
+            folders = aFolders.filter(filterFunction);
+            this._listener._filterFunction = filterFunction;
+          } else {
+            folders = aFolders;
+          }
+
           // I'm not entirely happy about having to hard-code this as an attr,
           // but there doesn't seem to be a better way.
           if (this.getAttribute("showFileHereLabel") == "true" &&
               this._parentFolder && 
-              (this._parentFolder.noSelect || this._parentFolder.canFileMessages)) {
+              ((this._parentFolder.noSelect || this._parentFolder.canFileMessages) ||
+               mode == "newFolder")) {
             var menuitem = document.createElement("menuitem");
             menuitem._folder = this._parentFolder;
             menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
@@ -339,18 +357,6 @@
           // top-level menu
           if (!this._parentFolder && this.getAttribute("showRecent") == "true") {
             this._buildRecentMenu();
-          }
-
-          var folders;
-          // Extensions and other consumers can add to these modes too, see the
-          // above note on the _filters field.
-          var mode = this.getAttribute("mode");
-          if (mode && mode != "") {
-            var filterFunction = this._filters[mode];
-            folders = aFolders.filter(filterFunction);
-            this._listener._filterFunction = filterFunction;
-          } else {
-            folders = aFolders;
           }
 
           /**
@@ -450,7 +456,10 @@
             if (!aFolder.canFileMessages)
               return;
 
-            var time = aFolder.getStringProperty("MRUTime") || 0;
+            var time = 0;
+            try {
+              time = aFolder.getStringProperty("MRUTime");
+            } catch(ex) {}
             if (time <= oldestTime)
               return;
 
@@ -600,7 +609,7 @@
               return;
             }
           }
-          Components.utils.reportError("unable to find folder to select!");
+          throw "unable to find folder to select!";
         ]]></body>
       </method>
 
