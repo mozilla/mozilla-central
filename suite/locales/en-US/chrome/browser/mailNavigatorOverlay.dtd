@@ -8,8 +8,10 @@
 <!ENTITY sendPage.label                  "Send Page…">
 <!ENTITY sendPage.accesskey              "S">
 
-<!ENTITY contextSendPage.label           "Send Page…">
-<!ENTITY contextSendPage.accesskey       "d">
+<!ENTITY contextSendThisPage.label       "Send This Page…">
+<!ENTITY contextSendThisPage.accesskey   "d">
+<!ENTITY contextSendThisLink.label       "Send This Link…">
+<!ENTITY contextSendThisLink.accesskey   "k">
 <!ENTITY contextSendImage.label          "Send Image…">
 <!ENTITY contextSendImage.accesskey      "n">
 <!ENTITY contextSendFrame.label          "Send Frame…">

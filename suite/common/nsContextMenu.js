@@ -149,10 +149,11 @@ nsContextMenu.prototype = {
           goSetMenuValue( "context-savepage", this.autoDownload ? "valueSave" : "valueSaveAs" );
         this.showItem( "context-savepage", showSave );
 
-        // Save link depends on whether we're in a link.
+        // Save/send link depends on whether we're in a link.
         if (this.onSaveableLink)
           goSetMenuValue( "context-savelink", this.autoDownload ? "valueSave" : "valueSaveAs" );
         this.showItem( "context-savelink", this.onSaveableLink );
+        this.showItem( "context-sendlink", this.onSaveableLink );
 
         // Save/Send image depends on whether there is one.
         showSave = this.onLoadedImage || this.onStandaloneImage || this.onCanvas;

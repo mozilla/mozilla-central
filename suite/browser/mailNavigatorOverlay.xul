@@ -103,13 +103,15 @@
       }
     }
 
-    function sendLink(aDocument)
+    function sendLink(aURL)
     {
-      if (!aDocument)
-        aDocument = window.content.document;
-
+      var title = "";
+      if (!aURL) {
+        aURL = window.content.document.URL;
+        title = window.content.document.title;
+      }
       try {
-        openComposeWindow(aDocument.URL, aDocument.title, 0, null);
+        openComposeWindow(aURL, title, 0, null);
       } catch(ex) { dump("Cannot Send Link: " + ex + "\n"); }
     }
 
@@ -207,8 +209,8 @@
 
   <popup id="contentAreaContextMenu">
     <menuitem id="context-sendpage"
-              label="&contextSendPage.label;"
-              accesskey="&contextSendPage.accesskey;"
+              label="&contextSendThisPage.label;"
+              accesskey="&contextSendThisPage.accesskey;"
               oncommand="sendPage();"
               insertafter="context-savepage"/>
     <menuitem id="context-sendimage"
@@ -216,6 +218,11 @@
               accesskey="&contextSendImage.accesskey;"
               oncommand="sendImage(gContextMenu.imageURL);"
               insertafter="context-saveimage"/>
+    <menuitem id="context-sendlink"
+              label="&contextSendThisLink.label;"
+              accesskey="&contextSendThisLink.accesskey;"
+              oncommand="sendLink(gContextMenu.linkURL());"
+              insertafter="context-savelink"/>
     <menu id="frame">
     <menupopup id="frame_popup">
       <menuitem insertafter="saveframeas"
