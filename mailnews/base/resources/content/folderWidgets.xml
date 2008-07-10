@@ -321,7 +321,7 @@
             var menuitem = document.createElement("menuitem");
             menuitem._folder = this._parentFolder;
             menuitem.setAttribute("label", this.getAttribute("fileHereLabel"));
-            menuitem.setAttribute("accessKey", this.getAttribute("fileHereAccessKey"));
+            menuitem.setAttribute("accesskey", this.getAttribute("fileHereAccessKey"));
             // Eww. have to support some legacy code here...
             menuitem.setAttribute("id", this._parentFolder.URI);
             this.appendChild(menuitem);
@@ -491,7 +491,7 @@
           // Now create the Recent folder and its children
           var menu = document.createElement("menu");
           menu.setAttribute("label", this.getAttribute("recentLabel"));
-          menu.setAttribute("accessKey", this.getAttribute("recentAccessKey"));
+          menu.setAttribute("accesskey", this.getAttribute("recentAccessKey"));
           var popup = document.createElement("menupopup");
           menu.appendChild(popup);
 
