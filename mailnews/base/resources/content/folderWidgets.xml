@@ -238,8 +238,51 @@
             var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"].
                           getService(Ci.nsIMsgAccountManager);
             var count = acctMgr.accounts.Count();
+
+            // Sadly, the accountMgr doesn't provide us we a sorted list of
+            // accounts.  We have to get them in the right order on our own. To
+            // Do this, we'll stick them in an array, and then sort that array.
+            var accounts = new Array();
             for (var i = 0; i < count; i++) {
               var acct = acctMgr.accounts.GetElementAt(i).QueryInterface(Ci.nsIMsgAccount);
+
+              // This is a HACK to work around bug 41133. If we have one of the
+              // dummy "news" accounts there, that account won't have an
+              // incomingServer attached to it, and everything will blow up.
+              if (acct.incomingServer)
+                accounts.push(acct);
+            }
+
+            /**
+             * This is our actual function for sorting accounts.  Accounts go
+             * in the following order: (1) default account (2) other mail
+             * accounts (3) Local Folders (4) news
+             */
+            function accountCompare(a, b) {
+              if (a.key == acctMgr.defaultAccount.key)
+                return -1;
+              if (b.key == acctMgr.defaultAccount.key)
+                return 1;
+              var aIsNews = a.incomingServer.type == "nntp";
+              var bIsNews = b.incomingServer.type == "nntp";
+              if (aIsNews && !bIsNews)
+                return 1;
+              if (bIsNews && !aIsNews)
+                return -1;
+
+              var aIsLocal = a.incomingServer.type == "none";
+              var bIsLocal = b.incomingServer.type == "none";
+              if (aIsLocal && !bIsLocal)
+                return 1;
+              if (bIsLocal && !aIsLocal)
+                return -1;
+              return 0;
+            }
+            accounts = accounts.sort(accountCompare);
+
+            // Now generate our folder-list.  Note that we'll special case this
+            // situation below, to avoid destroying the sort order we just made
+            for each (var acct in accounts) {
               folders.push(acct.incomingServer.rootFolder);
             }
           } else {
@@ -317,7 +360,15 @@
               return sortKey;
             return a.prettyName.toLowerCase() > b.prettyName.toLowerCase();
           }
-          folders = folders.sort(nameCompare);
+
+          /**
+           * If we're the root of the folder hierarchy, then we actually don't
+           * want to sort the folders, but rather the accounts to which the
+           * folders belong.  Since that sorting was already done, we don't need
+           * to do anything for that case here
+           */
+          if (this._parentFolder)
+            folders = folders.sort(nameCompare);
 
           for each (var folder in folders) {
             var node;
