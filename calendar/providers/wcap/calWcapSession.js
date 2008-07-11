@@ -41,13 +41,20 @@ function calWcapTimezone(tzProvider, tzid_, component_) {
     this.provider = tzProvider;
     this.icalComponent = component_;
     this.tzid = tzid_;
-    this.displayName = null;
     this.isUTC = false;
     this.isFloating = false;
     this.latitude = null;
     this.longitude = null;
 }
 calWcapTimezone.prototype = {
+    get displayName calWcapTimezone_get_displayName() {
+        if (this.mDisplayName === undefined) {
+            // used l10n'ed display name if available:
+            var tz = getTimezoneService().getTimezone(this.tzid);
+            this.mDisplayName = (tz ? tz.displayName : this.tzid);
+        }
+        return this.mDisplayName;
+    },
     toString: function() {
         return this.icalComponent.toString();
     }
@@ -128,10 +135,8 @@ calWcapSession.prototype = {
     m_serverTimezones: null,
     get timezoneIds calWcapSession_timezoneIdsGetter() {
         var tzids = [];
-        tzids.push("floating");
-        tzids.push("UTC");
-        for (var tz in this.m_serverTimezones) {
-            tzids.push(tz.tzid);
+        for (var tzid in this.m_serverTimezones) {
+            tzids.push(tzid);
         }
         return { // nsIUTF8StringEnumerator:
             m_index: 0,
@@ -142,8 +147,8 @@ calWcapSession.prototype = {
                 }
                 return tzids[this.m_index++];
             },
-            hasMoreElements: function() {
-                return (this.m_index < tzids);
+            hasMore: function() {
+                return (this.m_index < tzids.length);
             }
         };
     },

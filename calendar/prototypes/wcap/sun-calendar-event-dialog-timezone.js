@@ -40,20 +40,24 @@ function onLoad() {
     window.time = args.time;
     window.onAcceptCallback = args.onOk;
 
+    var tzProvider = (args.calendar.getProperty("timezones.provider") ||
+                      getTimezoneService());
+    window.tzProvider = tzProvider;
+
     var menulist = document.getElementById("timezone-menulist");
     var tzMenuPopup = document.getElementById("timezone-menupopup");
 
-    // floating and UTC at the top:
-    addMenuItem(tzMenuPopup, floating().displayName, floating().tzid);
+    // floating (if supported) and UTC at the top:
+    if (args.calendar.getProperty("timezones.floating.supported") !== false) {
+        addMenuItem(tzMenuPopup, floating().displayName, floating().tzid);
+    }
     addMenuItem(tzMenuPopup, UTC().displayName, UTC().tzid);
 
-    var tzService = getTimezoneService();
-    var enumerator = tzService.timezoneIds;
+    var enumerator = tzProvider.timezoneIds;
     var tzids = {};
     var displayNames = [];
-    // don't rely on what order the timezone-service gives you
     while (enumerator.hasMore()) {
-        var tz = tzService.getTimezone(enumerator.getNext());
+        var tz = tzProvider.getTimezone(enumerator.getNext());
         if (tz && !tz.isFloating && !tz.isUTC) {
             var displayName = tz.displayName;
             displayNames.push(displayName);
@@ -99,7 +103,7 @@ function findTimezone(timezone) {
 function updateTimezone() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
-    var tz = getTimezoneService().getTimezone(menuitem.getAttribute("value"));
+    var tz = window.tzProvider.getTimezone(menuitem.getAttribute("value"));
 
     // convert the date/time to the currently selected timezone
     // and display the result in the appropriate control.
@@ -140,7 +144,7 @@ function onAccept() {
     var menulist = document.getElementById("timezone-menulist");
     var menuitem = menulist.selectedItem;
     var timezone = menuitem.getAttribute("value");
-    var tz = getTimezoneService().getTimezone(timezone);
+    var tz = window.tzProvider.getTimezone(timezone);
     var datetime = window.time.getInTimezone(tz);
     window.onAcceptCallback(datetime);
     return true;
