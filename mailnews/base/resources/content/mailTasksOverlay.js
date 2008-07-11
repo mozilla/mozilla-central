@@ -210,6 +210,12 @@ function MailTasksOnLoad(aEvent)
   biffObserver.observe(null, BIFF_TOPIC, null); // init mini-mail icon
   addEventListener("unload", MailTasksOnUnload, false);
 
+  // don't try to biff if offline, but do so silently
+  const kIOService = Components.classes["@mozilla.org/network/io-service;1"]
+                               .getService(Components.interfaces.nsIIOService);
+  if (kIOService.offline)
+    return;
+
   // Performing biff here will mean performing it for all new windows opened!
   // This might make non-users of mailnews unhappy...
   const kPrefBranch = Components.classes["@mozilla.org/preferences-service;1"]
