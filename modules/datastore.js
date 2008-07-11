@@ -285,6 +285,12 @@ let GlodaDatastore = {
   /** Simple nested transaction support as a performance optimization. */  
   _transactionDepth: 0,
   _transactionGood: false,
+  /**
+   * Begin a potentially nested transaction; only the outermost transaction gets
+   *  to be an actual transaction, and the failure of any nested transaction
+   *  results in a rollback of the entire outer transaction.  If you really
+   *  need an atomic transaction 
+   */
   _beginTransaction: function gloda_ds_beginTransaction() {
     if (this._transactionDepth == 0) {
       this.dbConnection.beginTransaction();
@@ -292,6 +298,11 @@ let GlodaDatastore = {
     }
     this._transactionDepth++;
   },
+  /**
+   * Commit a potentially nested transaction; if we are the outer-most
+   *  transaction and no sub-transaction issues a rollback
+   *  (via _rollbackTransaction) then we commit, otherwise we rollback.
+   */
   _commitTransaction: function gloda_ds_commitTransaction() {
     this._transactionDepth--;
     if (this._transactionDepth == 0) {
@@ -301,6 +312,11 @@ let GlodaDatastore = {
         this.dbConnection.rollbackTransaction();
     }
   },
+  /**
+   * Abort the commit of the potentially nested transaction.  If we are not the
+   *  outermost transaction, we set a flag that tells the outermost transaction
+   *  that it must roll back.
+   */
   _rollbackTransaction: function gloda_ds_rollbackTransaction() {
     this._transactionDepth--;
     this._transactionGood = false;
@@ -352,7 +368,10 @@ let GlodaDatastore = {
   },
   
   /**
-   * Look-up all the attribute definitions 
+   * Look-up all the attribute definitions, populating our authoritative 
+   *  _attributes and _attributeIDToDef maps.  (In other words, once this method
+   *  is called, those maps should always be in sync with the underlying
+   *  database.)
    */
   getAllAttributes: function gloda_ds_getAllAttributes() {
     // map compound name to the attribute
@@ -396,6 +415,12 @@ let GlodaDatastore = {
     this._attributeIDToDef = idToAttribAndParam;
   },
   
+  /**
+   * Helper method for GlodaAttributeDef to tell us when their bindParameter
+   *  method is called and they have created a new binding (using
+   *  GlodaDatastore._createAttributeDef).  In theory, that method could take
+   *  an additional argument and obviate the need for this method.
+   */
   reportBinding: function gloda_ds_reportBinding(aID, aAttrDef, aParamValue) {
     this._attributeIDToDef[aID] = [aAttrDef, aParamValue];
   },
@@ -427,9 +452,15 @@ let GlodaDatastore = {
     return this._selectAllFolderLocations;
   },
   
+  /** Authoritative map from folder URI to folder ID */
   _folderURIs: {},
+  /** Authoritative map from folder ID to folder URI */
   _folderIDs: {},
   
+  /**
+   * Map a folder URI to a folder ID, creating the mapping if it does not yet
+   *  exist.
+   */
   _mapFolderURI: function gloda_ds_mapFolderURI(aFolderURI) {
     if (aFolderURI in this._folderURIs) {
       return this._folderURIs[aFolderURI];
@@ -890,7 +921,7 @@ let GlodaDatastore = {
     }
     scbi.reset();
     
-    return scbi;
+    return contact;
   },
   
   /* ********** Identity ********** */
@@ -945,7 +976,7 @@ let GlodaDatastore = {
 
   get _selectIdentityByIDStatement() {
     let statement = this._createStatement(
-      "SELECT * FROM identities WHERE id :id");
+      "SELECT * FROM identities WHERE id = :id");
     this.__defineGetter__("_selectIdentityByIDStatement",
       function() statement);
     return this._selectIdentityByIDStatement;
@@ -957,7 +988,7 @@ let GlodaDatastore = {
     let sibis = this._selectIdentityByIDStatement;
     sibis.params.id = aID;
     if (sibis.step()) {
-      sibis = this._identityFromRow(sibis.row);
+      identity = this._identityFromRow(sibis.row);
     }
     sibis.reset();
     

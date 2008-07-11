@@ -78,4 +78,30 @@ let GlodaUtils = {
   
   extractBodySnippet: function gloda_utils_extractBodySnippet(aBodyString) {
   },
+  
+  /**
+   * MD5 hash a string and return the hex-string result. Impl from nsICryptoHash
+   *  docs.
+   */
+  md5HashString: function gloda_utils_md5hash(aString) {
+    let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+                    createInstance(Ci.nsIScriptableUnicodeConverter);
+    let trash = {};
+    converter.charset = "UTF-8";
+    let emailArr = converter.convertToByteArray(aString, trash);
+
+    let hasher = Cc['@mozilla.org/security/hash;1'].
+                 createInstance(Ci.nsICryptoHash);
+    hasher.init(Ci.nsICryptoHash.MD5);
+    hasher.update(emailArr, emailArr.length);
+    let hash = hasher.finish(false);
+    
+     // return the two-digit hexadecimal code for a byte
+    function toHexString(charCode) {
+      return ("0" + charCode.toString(16)).slice(-2);
+    }
+
+    // convert the binary hash data to a hex string.
+    return [toHexString(hash.charCodeAt(i)) for (i in hash)].join("");
+  },
 };
