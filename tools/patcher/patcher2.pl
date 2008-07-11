@@ -138,7 +138,30 @@ sub PrintUsage {
     my %args = @_;
     my $exitCode = $args{'exitCode'};
     print STDERR <<__END_USAGE__;
-You screwed up this command usage; oh well; no docs yet.
+Usage: patcher2.pl --config=[FILE] --app=[APP] [MODE]
+Generate updates for Mozilla applications.
+Example: patcher2.pl --config=moz19-branch-patcher2.cfg --app=firefox --download
+
+Required global settings:
+
+--config=FILE                   Specify config file
+--app=APPNAME                   Application to build as specified in config file
+
+Patcher can be run in one of the following modes:
+
+--build-tools                   Checkout and build the tools needed for updates
+--download                      Download "to" and "from" complete MAR files
+--create-patches                Create partial MAR files
+                                NOTE - create-patches calls create-patchinfo
+--create-patchinfo              Create AUS configuration file "snippets"
+
+Options:
+
+--partial-patchlist-file=FILE   Use cache file; puts patcher into "fast mode"
+                                Only applicable when in "create-patches" mode
+--tools-revision=TAG            Specify tag to use for build-tools checkout
+                                Only applicable when in "build-tools" mode
+
 __END_USAGE__
    exit($exitCode) if (defined($exitCode));
 }
