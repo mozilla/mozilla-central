@@ -260,5 +260,5 @@ tabmail
 }
 
 menupopup[type="folder"] {
-  -moz-binding: url("chrome://messenger/content/mail-folder-bindings.xml#folder-menupopup");
+  -moz-binding: url("chrome://messenger/content/folderWidgets.xml#folder-menupopup");
 }

@@ -50,7 +50,6 @@ messenger.jar:
 *   content/messenger/tabmail.xml                   (content/tabmail.xml)
 *   content/messenger/newmailalert.xul              (content/newmailalert.xul)
     content/messenger/newmailalert.js               (content/newmailalert.js)
-    content/messenger/mail-folder-bindings.xml      (content/mail-folder-bindings.xml)
 *   content/messenger/viewSourceOverlay.xul         (content/viewSourceOverlay.xul)
 #ifdef MOZ_USE_GENERIC_BRANDING
 % content branding %content/branding/ xpcnativewrappers=yes
@@ -65,6 +64,7 @@ messenger.jar:
     content/messenger/folderProps.xul               (/mailnews/base/resources/content/folderProps.xul)
     content/messenger/retention.js                  (/mailnews/base/resources/content/retention.js)
     content/messenger/folderProps.js                (/mailnews/base/resources/content/folderProps.js)
+    content/messenger/folderWidgets.xml             (/mailnews/base/resources/content/folderWidgets.xml)
     content/messenger/threadPane.js                 (/mailnews/base/resources/content/threadPane.js)
     content/messenger/msgHdrViewAddresses.js        (/mailnews/base/resources/content/msgHdrViewAddresses.js)
     content/messenger/shareglue.js                  (/mailnews/base/resources/content/shareglue.js)
