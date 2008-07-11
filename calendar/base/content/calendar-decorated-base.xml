@@ -81,13 +81,6 @@
                     this.mEndDate = aEndDate;
                     this.mToolTipTexts = aToolTipTexts;
                     this.mViewElement = aViewElement;
-                ]]></body>
-            </method>
-            <method name="initialize">
-                <parameter name="aPaddingStart"/>
-                <parameter name="aPaddingEnd"/>
-                <body><![CDATA[
-                    this.setAttribute("style", "-moz-padding-start: " + (aPaddingStart) + "px; -moz-padding-end: " + aPaddingEnd + "px;");
                     if (this.mStartDate) {
                         var intervalLabel = document.getAnonymousElementByAttribute(this, "anonid", "intervalDescription");
                         var startString = new Object();
@@ -101,7 +94,7 @@
                             var endDate = this.mEndDate.clone();
                             // 'formatInterval handles the endDate exclusively, so we have
                             // to increment the day priorily...
-                            endDate.day -= 1;
+                            endDate.day += 1;
                             var interval = getDateFormatter().formatInterval(this.mStartDate, endDate, startString, endString);
                             intervalLabel.value = startString.value + " - " + endString.value;
                             secondWeekNo = getWeekFormatter().getWeekTitle(this.mEndDate);
@@ -118,6 +111,13 @@
                         button = document.getAnonymousElementByAttribute(this, "anonid", "next-view-button");
                         button.setAttribute("tooltiptext", this.mToolTipTexts[2]);
                     }
+                ]]></body>
+            </method>
+            <method name="initialize">
+                <parameter name="aPaddingStart"/>
+                <parameter name="aPaddingEnd"/>
+                <body><![CDATA[
+                    this.setAttribute("style", "-moz-padding-start: " + (aPaddingStart) + "px; -moz-padding-end: " + aPaddingEnd + "px;");
                 ]]></body>
             </method>
             <method name="moveView">
