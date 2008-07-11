@@ -1976,8 +1976,9 @@ pkix_Build_GatherCerts(
         void *plContext)
 {
         PKIX_Boolean certStoreIsCached = PKIX_FALSE;
-        PKIX_Boolean certStoreCanBeUsed = PKIX_FALSE;
+        PKIX_Boolean certStoreIsLocal = PKIX_FALSE;
         PKIX_Boolean foundInCache = PKIX_FALSE;
+        PKIX_Boolean listIsEmpty = PKIX_FALSE;
         PKIX_CertStore *certStore = NULL;
         PKIX_CertStore_CertCallback getCerts = NULL;
         PKIX_List *certsFound = NULL;
@@ -1990,6 +1991,23 @@ pkix_Build_GatherCerts(
         nbioContext = *pNBIOContext;
         *pNBIOContext = NULL;
 
+        PKIX_CHECK(
+            PKIX_List_IsEmpty(state->candidateCerts, &listIsEmpty, plContext),
+            PKIX_LISTISEMPTYFAILED);
+
+        /* The caller is responsible to make sure that the list is empty */
+#ifdef UNDEF
+        /* I suspect that the list will not be empty. Commenting the assertion
+         * out for now. More work needs to be done for bug 418544 to clean up
+         * code related to candidateCerts list */
+        PORT_Assert(listIsEmpty);
+#endif
+        if (!listIsEmpty) {
+            PKIX_DECREF(state->candidateCerts);
+            PKIX_CHECK(PKIX_List_Create(&state->candidateCerts, plContext),
+                       PKIX_LISTCREATEFAILED);
+        }
+
         while (state->certStoreIndex < state->buildConstants.numCertStores) {
 
                 /* Get the current CertStore */
@@ -2000,15 +2018,11 @@ pkix_Build_GatherCerts(
                         plContext),
                         PKIX_LISTGETITEMFAILED);
 
-                if ((state->useOnlyLocal) == PKIX_FALSE) {
-                    certStoreCanBeUsed = PKIX_TRUE;
-                } else {
-                    PKIX_CHECK(PKIX_CertStore_GetLocalFlag
-                            (certStore, &certStoreCanBeUsed, plContext),
-                            PKIX_CERTSTOREGETLOCALFLAGFAILED);
-                }
+                PKIX_CHECK(PKIX_CertStore_GetLocalFlag
+                           (certStore, &certStoreIsLocal, plContext),
+                           PKIX_CERTSTOREGETLOCALFLAGFAILED);
 
-                if (certStoreCanBeUsed == PKIX_TRUE) {
+                if (state->useOnlyLocal == certStoreIsLocal) {
                     /* If GATHERPENDING, we've already checked the cache */
                     if (state->status == BUILD_GATHERPENDING) {
                         certStoreIsCached = PKIX_FALSE;
@@ -3352,7 +3366,7 @@ cleanup:
         if (!*pValResult && !verifyError) {
             if (finalError) {
                 pkixErrorResult = finalError;
-                pkixErrorCode = finalError->errCode;
+                pkixErrorCode = PKIX_BUILDFORWARDDEPTHFIRSTSEARCHFAILED;
                 finalError = NULL;
                 goto fatal;
             }
