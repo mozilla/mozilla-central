@@ -41,7 +41,7 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script language="JavaScript" src="chrome://messenger-smime/content/msgReadSMIMEOverlay.js"/>
+  <script type="application/javascript" src="chrome://messenger-smime/content/msgReadSMIMEOverlay.js"/>
 
   <commandset id="mailViewMenuItems">
     <command id="cmd_viewSecurityStatus" oncommand="showMessageReadSecurityInfo();" disabled="true"/>
