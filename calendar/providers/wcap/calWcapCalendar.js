@@ -66,14 +66,6 @@ calWcapCalendar.prototype = {
             case NS_ERROR_OFFLINE:
                 return;
             default:
-                if (!checkErrorCode(rc, calIErrors.WCAP_ERROR_BASE, 8) &&
-                    (getErrorModule(rc) != NS_ERROR_MODULE_NETWORK)) {
-                    msg = logError(err, context);
-                    break;
-                }
-                // fallthru intended
-            case calIErrors.CAL_IS_READONLY:
-                // don't bloat the js error console with these errors, just log:
                 msg = errorToString(err);
                 log("error: " + msg, context);
                 break;
