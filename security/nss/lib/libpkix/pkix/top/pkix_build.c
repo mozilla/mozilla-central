@@ -137,7 +137,6 @@ pkix_ForwardBuilderState_Destroy(
         state->revCheckDelayed = PKIX_FALSE;
         state->canBeCached = PKIX_FALSE;
         state->useOnlyLocal = PKIX_FALSE;
-        state->alreadyTriedAIA = PKIX_FALSE;
         state->revChecking = PKIX_FALSE;
         state->usingHintCerts = PKIX_FALSE;
         state->certLoopingDetected = PKIX_FALSE;
@@ -274,7 +273,6 @@ pkix_ForwardBuilderState_Create(
         state->revCheckDelayed = revCheckDelayed;
         state->canBeCached = canBeCached;
         state->useOnlyLocal = PKIX_TRUE;
-        state->alreadyTriedAIA = PKIX_FALSE;
         state->revChecking = PKIX_FALSE;
         state->usingHintCerts = PKIX_FALSE;
         state->certLoopingDetected = PKIX_FALSE;
@@ -451,7 +449,6 @@ pkix_ForwardBuilderState_ToString
                 "\trevCheckDelayed: \t%d\n"
                 "\tcanBeCached: \t%d\n"
                 "\tuseOnlyLocal: \t%d\n"
-                "\talreadyTriedAIA: \t%d\n"
                 "\trevChecking: \t%d\n"
                 "\tvalidityDate: \t%s\n"
                 "\tprevCert: \t%s\n"
@@ -584,7 +581,6 @@ pkix_ForwardBuilderState_ToString
                 state->revCheckDelayed,
                 state->canBeCached,
                 state->useOnlyLocal,
-                state->alreadyTriedAIA,
                 state->revChecking,
                 validityDateString,
                 prevCertString,
@@ -2491,8 +2487,7 @@ pkix_BuildForwardDepthFirstSearch(
             }
 
             if (state->status == BUILD_TRYAIA) {
-                if ((state->useOnlyLocal == PKIX_TRUE) ||
-                    (state->alreadyTriedAIA == PKIX_TRUE)) {
+                if (state->useOnlyLocal == PKIX_TRUE) {
                         state->status = BUILD_COLLECTINGCERTS;
                 } else {
                         state->status = BUILD_AIAPENDING;
@@ -3234,19 +3229,6 @@ pkix_BuildForwardDepthFirstSearch(
                                         (PKIX_FANOUTEXCEEDSRESOURCELIMITS);
                             }
                             state->status = BUILD_CERTVALIDATING;
-                            continue;
-                    }
-
-                    /*
-                     * We have no more certs to try. If we got them by
-                     * following an AIA, let's go back and try our
-                     * certStores for certs.
-                     */
-                    if (state->alreadyTriedAIA == PKIX_FALSE) {
-                            state->alreadyTriedAIA = PKIX_TRUE;
-                            state->status = BUILD_INITIAL;
-                            PKIX_DECREF(state->candidateCerts);
-                            PKIX_DECREF(state->certSel);
                             continue;
                     }
             }

@@ -122,7 +122,6 @@ struct PKIX_ForwardBuilderStateStruct{
         PKIX_Boolean revCheckDelayed;
         PKIX_Boolean canBeCached;
         PKIX_Boolean useOnlyLocal;
-        PKIX_Boolean alreadyTriedAIA;
         PKIX_Boolean revChecking;
         PKIX_Boolean usingHintCerts;
         PKIX_Boolean certLoopingDetected;
