@@ -221,72 +221,44 @@
     subcategories are visible, double-click Browser to expand the list.)</li>
 </ol>
 
-<p>The Helper Applications preferences panel allows you to control how
-  different file types are opened by other applications in
-  &brandShortName;:</p>
+<p>The Helper Applications preferences panel lets you choose applications and
+  other handlers to handle different types of content (e.g. PDF documents).
+  It shows you a list of content types and lets you select a handler for each
+  type. To filter the list, use the search field. Text entered in there will
+  narrow the list to entries containing that text either in the type description
+  or the currently selected action.</p>
+<p>You can choose a local application to handle any type. For some types, you
+  can also choose a web application to handle the type, choose
+  <!-- a feature (like <a href="glossary.xhtml#live_bookmark">Live Bookmarks</a> for
+  feeds) or --> a <a href="glossary.xhtml#plugin">plugin</a> in &brandShortName; to
+  handle the type, or save the type on your computer.</p>
+<p>To choose a handler for a type, select the type from the list. The current
+  handler for the type will turn into a menu. Open the menu and select the
+  handler you want to handle the type. Depending on the actual type, you can:</p>
 
 <ul>
-  <li><strong>Specify how to handle files of each type</strong>:
-    <ul>
-      <li><strong>File types</strong>: Displays the file types that
-        &brandShortName; uses. Select one of them to show the following
-        information:
-        <ul>
-          <li><strong>Description</strong>: Displays a description of the
-            selected file type.</li>
-          <li><strong>Extension(s)</strong>: Displays the file extension(s) of
-            the selected file type.</li>
-          <li><strong>When encountered</strong>: Displays what kind of action
-            that will be taken when &brandShortName; encounters the selected
-            file type.</li>
-        </ul>
-      </li>
-      <li><strong>New Type</strong>: Click this to add a new file type. You see
-        a dialog box:
-        <ul>
-          <li><strong>Mime Type</strong>: Type the Mime type of the file type
-            you want to add.</li>
-          <li><strong>Description</strong>: Type a Descrition of the file
-            type you want to add.</li>
-          <li><strong>Extension</strong>: Type the file extension of the file
-            type you want to add.</li>
-          <li><strong>When a file of this type is encountered</strong>:
-            Select one option from the checkboxes:
-            <ul>
-              <li><strong>Open it using the default application</strong>:
-                Causes the the file to be opened by the default program in
-                your systems settings.</li>
-              <li><strong>Open it with</strong>: Causes the file to be
-                opened by a program you specify. Use the Choose File button
-                to locate the program on your disk</li>
-              <li><strong>Save it to disk</strong>: The file will be saved
-                to disk.</li>
-            </ul>
-          </li>
-          <li><strong>Always ask me when handling files of this
-            type</strong>: Select this to make the Download Dialog box always
-            appear when files of this type are encountered.</li>
-        </ul>
-      </li>
-      <li><strong>Edit</strong>: Click this to change the file-handling
-        information of a selected file type.</li>
-      <li><strong>Remove</strong>: Click this to remove a selected file
-        type.</li>
-    </ul>
-  </li>
-  <li><strong>Plugin Finder Service</strong>:
-    <ul>
-      <li><strong>Always use the Plugin Finder Service (PFS) to get 
-        plugins</strong>: Select this to always use the Plugin Finder Service
-        (PFS) whenever &brandShortName; needs a new plugin. If left
-        unselected, the PFS is only used when a plugin location is not
-        provided by the web page that requires the plugin.</li>
-    </ul>
-  </li>
+  <li>Choose an application by selecting it from the menu. If you want a local
+    application that is not in the menu to handle the type, select
+    <strong>Use other…</strong> from the menu and navigate to its location.</li>
+  <li>Choose a <!-- feature or --> plugin by selecting it from the menu.</li>
+  <li>Save files of this type on your computer by selecting
+    <strong>Save File</strong> from the menu. If you have selected the
+    <strong>Automatically download files to specified download folder</strong>
+    preference in the <strong>Downloads</strong> panel, &brandShortName; will
+    save content of this type on your computer automatically. Otherwise, when
+    you encounter this type, &brandShortName; will prompt you for a location on
+    your computer to save it to.</li>
+  <li>Tell &brandShortName; to <strong>always ask</strong> what to do when
+    encountering this type. When you choose this option, a dialog will always be
+    shown when files of this type are accessed, and you can choose how to handle
+    that specific file from there.</li>
 </ul>
 
-<p>To learn more about how to handle different file types with
-  &brandShortName;, see
+<p><strong>Note:</strong> When a plugin is available to handle a type, and you
+  choose another handler for that type, &brandShortName; will only use your
+  chosen handler when you access the type directly. When the type is embedded
+  inside a web page, &brandShortName; will continue to use the plugin to handle
+  it. See also
   <a href="nav_help.xhtml#plugins_and_downloads">Plugins and Downloads</a>.
 </p>
 
