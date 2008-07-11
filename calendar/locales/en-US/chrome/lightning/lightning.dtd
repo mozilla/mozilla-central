@@ -99,6 +99,7 @@
 <!-- properties dialog, calendar creation wizard -->
 <!ENTITY lightning.calendarproperties.showevents.inagenda.label "Show Events in Today Pane">
 <!ENTITY lightning.calendarproperties.showtasks.label           "Show Tasks in Today Pane and Task Mode">
+<!ENTITY lightning.calendarproperties.emailaccount.label        "Use E-Mail Account:">
 
 <!-- iMIP Bar (meeting support) -->
 <!ENTITY lightning.imipbar.description "This message contains an invitation to an event.">
