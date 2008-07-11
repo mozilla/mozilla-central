@@ -193,6 +193,8 @@
 <!ENTITY event.reminder.1week.before.label                "1 week before" >
 <!ENTITY event.reminder.custom.label                      "Custom…" >
 
+<!ENTITY event.reminder.multiple.label                    "Multiple Reminders…" >
+
 <!-- Recurrence dialog -->
 
 <!ENTITY recurrence.title.label                         "Edit Recurrence">
@@ -237,6 +239,8 @@
 
 <!ENTITY reminder.title.label                           "Custom Reminder">
 <!ENTITY reminder.reminder.label                        "Reminder">
+<!ENTITY reminder.dialogtitle.label                     "Set up reminders">
+<!ENTITY reminder.reminder.label                        "Reminder Details">
 <!ENTITY reminder.action.label                          "Choose a Reminder Action">
 <!ENTITY reminder.action.alert.label                    "Show an Alert">
 <!ENTITY reminder.action.sound.label                    "Play a Sound">
@@ -246,6 +250,11 @@
 <!ENTITY reminder.rename.label                          "Rename">
 <!ENTITY reminder.relation.start.label                  "the event starts">
 <!ENTITY reminder.relation.end.label                    "the event ends">
+<!ENTITY reminder.new.label                             "Add">
+<!ENTITY reminder.new.accesskey                         "A">
+<!ENTITY reminder.remove.label                          "Remove">
+<!ENTITY reminder.remove.accesskey                      "R">
+
 
 <!-- Attendees dialog -->
 <!ENTITY invite.title.label              "Invite Attendees">

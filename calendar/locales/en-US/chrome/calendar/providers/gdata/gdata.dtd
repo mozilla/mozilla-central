@@ -45,3 +45,4 @@
 <!ENTITY gdata.migration.upgrade.accesskey "U">
 <!ENTITY gdata.migration.showagain.label "Always check ">
 
+<!ENTITY gdata.reminder.action.sms.label "Send a Text Message">
