@@ -1047,14 +1047,10 @@ var BookmarksUtils = {
     if (!this._bundle) {
       // for those who would xblify Bookmarks.js, there is a need to create string bundle 
       // manually instead of using <xul:stringbundle/> see bug 63370 for details
-      var LOCALESVC = Components.classes["@mozilla.org/intl/nslocaleservice;1"]
-                                .getService(Components.interfaces.nsILocaleService);
       var BUNDLESVC = Components.classes["@mozilla.org/intl/stringbundle;1"]
                                 .getService(Components.interfaces.nsIStringBundleService);
-      var bookmarksBundle  = "chrome://communicator/locale/bookmarks/bookmarks.properties";
-      this._bundle         = BUNDLESVC.createBundle(bookmarksBundle, LOCALESVC.getApplicationLocale());
-      var brandBundle      = "chrome://branding/locale/brand.properties";
-      this._brandShortName = BUNDLESVC.createBundle(brandBundle,     LOCALESVC.getApplicationLocale())
+      this._bundle         = BUNDLESVC.createBundle("chrome://communicator/locale/bookmarks/bookmarks.properties");
+      this._brandShortName = BUNDLESVC.createBundle("chrome://branding/locale/brand.properties")
                                       .GetStringFromName("brandShortName");
     }
    
