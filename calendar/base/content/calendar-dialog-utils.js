@@ -540,12 +540,12 @@ function updateReminderDetails() {
             case 'START':
                 relationString = calGetString(
                     "sun-calendar-event-dialog",
-                    "reminderCustomRelationStart");
+                    "reminderCustomRelationBefore");
                 break;
             case 'END':
                 relationString = calGetString(
                     "sun-calendar-event-dialog",
-                    "reminderCustomRelationEnd");
+                    "reminderCustomRelationAfter");
                 break;
         }
 
@@ -553,11 +553,11 @@ function updateReminderDetails() {
         if (reminder.origin && reminder.origin < 0) {
             originString = calGetString(
                 "sun-calendar-event-dialog",
-                "reminderCustomOriginEnd");
+                "reminderCustomOriginEndEvent");
         } else {
             originString = calGetString(
                 "sun-calendar-event-dialog",
-                "reminderCustomOriginBegin");
+                "reminderCustomOriginBeginEvent");
         }
 
         var detailsString = calGetString(

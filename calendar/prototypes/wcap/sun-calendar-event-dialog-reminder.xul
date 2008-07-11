@@ -74,15 +74,13 @@
       <column>
         <button id="reminder-new" label="&reminder.new.label;" oncommand="onNewReminder()"/>
         <button id="reminder-delete" label="&reminder.delete.label;" oncommand="onDeleteReminder()"/>
-        <spacer/>
-        <button label="&reminder.rename.label;" disabled="true"/>
       </column>
     </columns>
   </grid>
 
   <!-- Custom reminder details -->
   <groupbox>
-    <caption label="&reminder.reminder.label;"/>
+    <caption label="&reminder.reminderDetails.label;"/>
     <radiogroup>
       <grid flex="1">
         <columns>
@@ -130,7 +128,6 @@
   <groupbox>
     <caption label="&reminder.action.label;"/>
     <checkbox label="&reminder.action.alert.label;" checked="true" disabled="true"/>
-    <checkbox label="&reminder.action.sound.label;" disabled="true"/>
     <checkbox label="&reminder.action.email.label;" disabled="true"/>
   </groupbox>
 </dialog>

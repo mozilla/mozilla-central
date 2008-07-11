@@ -124,18 +124,18 @@ function stringFromReminderObject(reminder) {
     var relationString;
     switch (reminder.relation) {
         case 'START':
-            relationString = props.GetStringFromName('reminderCustomRelationStart');
+            relationString = props.GetStringFromName('reminderCustomRelationBefore');
             break;
         case 'END':
-            relationString = props.GetStringFromName('reminderCustomRelationEnd');
+            relationString = props.GetStringFromName('reminderCustomRelationAfter');
             break;
     }
 
     var originString;
     if (reminder.origin && reminder.origin < 0) {
-        originString = props.GetStringFromName('reminderCustomOriginEnd');
+        originString = props.GetStringFromName('reminderCustomOriginEndEvent');
     } else {
-        originString = props.GetStringFromName('reminderCustomOriginBegin');
+        originString = props.GetStringFromName('reminderCustomOriginBeginEvent');
     }
 
     return props.formatStringFromName('reminderCustomTitle',
