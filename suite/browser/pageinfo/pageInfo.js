@@ -343,9 +343,12 @@ function onLoadPageInfo()
 
 function onUnloadPageInfo()
 {
-  var os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
-  os.removeObserver(imagePermissionObserver, "perm-changed");
+  // Remove the observer, only if there is at least 1 image.
+  if (gImageView.data.length != 0) {
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .removeObserver(imagePermissionObserver, "perm-changed");
+  }
 
   /* Call registered overlay unload functions */
   onUnloadRegistry.map(function(func) { func(); });
@@ -466,6 +469,7 @@ function doGrab(iterator)
       processFrames();
       return;
     }
+
   setTimeout(doGrab, 16, iterator);
 }
 
@@ -481,6 +485,7 @@ function addImage(url, type, alt, elem, isBg)
 {
   if (!url)
     return;
+
   if (!gImageHash.hasOwnProperty(url))
     gImageHash[url] = { };
   if (!gImageHash[url].hasOwnProperty(type))
@@ -508,10 +513,12 @@ function addImage(url, type, alt, elem, isBg)
     else
       sizeText = gStrings.unknown;
     gImageView.addRow([url, type, sizeText, alt, 1, elem, isBg]);
+
+    // Add the observer, only once.
     if (gImageView.data.length == 1) {
-      var os = Components.classes["@mozilla.org/observer-service;1"]
-                         .getService(Components.interfaces.nsIObserverService);
-      os.addObserver(imagePermissionObserver, "perm-changed", false);
+      Components.classes["@mozilla.org/observer-service;1"]
+                .getService(Components.interfaces.nsIObserverService)
+                .addObserver(imagePermissionObserver, "perm-changed", false);
     }
   }
   else {
@@ -707,6 +714,7 @@ function onBeginLinkDrag(event,urlField,descField)
                              .createInstance(Components.interfaces.nsISupportsArray);
   if (!transArray)
     return;
+
   var trans = Components.classes[TRANSFERABLE_CONTRACTID]
                         .createInstance(Components.interfaces.nsITransferable);
   if (!trans)
@@ -1066,6 +1074,7 @@ var imagePermissionObserver = {
   {
     if (document.getElementById("mediaPreviewBox").collapsed)
       return;
+
     if (aTopic == "perm-changed") {
       var permission = aSubject.QueryInterface(Components.interfaces.nsIPermission);
       if (permission.type == "image") {
