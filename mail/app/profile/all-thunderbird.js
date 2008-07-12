@@ -221,6 +221,9 @@ pref("network.cookie.cookieBehavior", 0);
 // package registered for editor-region while opening about:config
 pref("editor.throbber.url", "");
 
+// 0=as attachment 2=default forward as inline with attachments
+pref("mail.forward_message_mode", 2);
+
 /////////////////////////////////////////////////////////////////
 // End seamonkey suite mailnews.js pref overrides
 ///////////////////////////////////////////////////////////////// 
