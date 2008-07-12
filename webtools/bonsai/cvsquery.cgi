@@ -271,8 +271,7 @@ if ($pCount) {
 }
 
 if (defined $::FORM{'generateBackoutCVSCommands'}) {
-    print "Content-type: text/plain
-
+    print "
 # This page can be saved as a shell script and executed.  It should be
 # run at the top of your CVS work area.  It will update your workarea to
 # backout the changes selected by your query.
