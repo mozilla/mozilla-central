@@ -1166,7 +1166,7 @@ tools are selected during the Xcode/Developer Tools installation.])
     AC_DEFINE(HAVE_BSD_FLOCK)
     AC_DEFINE(HAVE_SOCKLEN_T)
     CFLAGS="$CFLAGS $(DSO_CFLAGS) -ansi -Wall"
-    MOZ_OBJFORMAT=`test -x /usr/bin/objformat && /usr/bin/objformat || echo aout`
+    MOZ_OBJFORMAT=`test -x /usr/bin/objformat && /usr/bin/objformat || echo elf`
     if test "$MOZ_OBJFORMAT" = "elf"; then
         DLL_SUFFIX=so
     else
@@ -2090,7 +2090,7 @@ mips-sony-newsos*)
         ;;
     esac
     if test "$CPU_ARCH" = "sparc"; then
-        # 64-bit SPARC Solaris requires V9 architecture, so the following
+        # 64-bit Solaris SPARC requires V9 architecture, so the following
         # is not needed.
         if test -z "$USE_64"; then
             ULTRASPARC_LIBRARY=nspr_flt
