@@ -198,8 +198,8 @@ tree.list {
 }
 
 .color-well[default="true"] {
-  border: 1px solid transparent;
-  background-color: inherit;
+  border: 1px solid transparent !important;
+  background-color: inherit !important;
 }
 
 /* ::::: color picker dialog ::::: */
