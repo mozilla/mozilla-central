@@ -8,6 +8,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>@ID@</em:id>
     <em:version>@PACKAGE_VERSION@</em:version>
+    <em:targetPlatform>@TARGET_PLATFORM@</em:targetPlatform>
 
     <em:targetApplication>
       <!-- Firefox -->
