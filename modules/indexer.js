@@ -165,7 +165,9 @@ let GlodaIndexer = {
    *  following patterns:
    * - ['account', account object]
    * - ['folder', folder URI]
-   * - ['message', folder URI, message key, message ID]
+   * - ['message', delta type, message header, folder ID, message key,
+   *      message ID]
+   *   (we use folder ID instead of URI so that renames can't trick us)
    */
   _indexQueue: [],
   
@@ -358,6 +360,185 @@ let GlodaIndexer = {
     this._indexQueue.push(["folder", aFolder.URI]);
     this.indexing = true;
   },
+
+  
+  /* *********** Event Processing *********** */
+
+  /* ***** Folder Changes ***** */  
+  /**
+   * All additions and removals are queued for processing.  Indexing messages
+   *  is potentially phenomenally expensive, and deletion can still be
+   *  relatively expensive due to our need to delete the message, its
+   *  attributes, and all attributes that reference it.  Additionally,
+   *  attribute deletion costs are higher than attribute look-up because
+   *  there is the actual row plus its 3 indices, and our covering indices are
+   *  no help there.
+   *  
+   */
+  _msgFolderListener: {
+    indexer: null,
+    
+    /**
+     * Handle a new-to-thunderbird message, meaning a newly fetched message
+     *  (local folder) one revealed by synching with the server (IMAP).  Because
+     *  the new-to-IMAP case requires Thunderbird to have opened the folder,
+     *  we either need to depend on MailNews to be aggressive about looking
+     *  for new messages in folders or try and do it ourselves.  For now, we
+     *  leave it up to MailNews proper.
+     *
+     * For the time being, we post the message header as received to our
+     *  indexing queue.  Depending on experience, it may be more suitable to
+     *  try and index the message immediately, or hold onto a less specific
+     *  form of message information than the nsIMsgDBHdr.  (If we were to
+     *  process immediately, it might appropriate to consider having a
+     *  transaction open that is commited by timer/sufficient activity, since it
+     *  is conceivable we will see a number of these events in fairly rapid
+     *  succession.)
+     */
+    msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
+      this.indexer._indexQueue.push(["message", 1, aMsgHdr]);
+      this.indexer.indexing = true; 
+    },
+    
+    /**
+     * Handle real, actual deletion (move to trash and IMAP deletion model
+     *  don't count; we only see the deletion here when it becomes forever,
+     *  or rather _just before_ it becomes forever.  Because the header is
+     *  going away, we need to either process things immediately or extract the
+     *  information required to purge it later without the header.
+     *
+     * We opt to process all of the headers immediately, inside a transaction.
+     *  We do this because deletions may actually be a batch deletion of many,
+     *  many messages, which could be a lot to queue
+     */
+    msgsDeleted: function gloda_indexer_msgsDeleted(aMsgHdrs) {
+      for (let iMsgHdr=0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
+        let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
+        this.indexer._indexQueue.push(["message", -1, msgHdr]);
+      }
+      this.indexer.indexing = true;
+    },
+    
+    /**
+     * Process a move or copy.  Moves are immediately processed, while copies
+     *  are treated as additions and accordingly queued for subsequent indexing.
+     */
+    msgsMoveCopyCompleted: function gloda_indexer_msgsMoveCopyCompleted(aMove,
+                             aSrcMsgHdrs, aDestFolder) {
+      for () {
+        let msgHdr;
+        this.indexer._indexQueue.push(["message", 1, msgHdr]);
+      }
+    },
+    
+    /**
+     * Handles folder no-longer-exists-ence.  We want to delete all messages
+     *  located in the folder.
+     */
+    folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
+    },
+    
+    /**
+     * Handle a folder being copied.  I do not believe the MailNews code is
+     *  capable of generating a case where aMove is true, but just in case we'll
+     *  dispatch to our sibling method, folderRenamed.
+     *
+     * Folder copying is conceptually all kinds of annoying (I mean, why would
+     *  you really need to duplicate all those messages?) but is easily dealt
+     *  with by queueing the destination folder for initial indexing. 
+     */
+    folderMoveCopyCompleted: function gloda_indexer_folderMoveCopyCompleted(
+                               aMove, aSrcFolder, aDestFolder) {
+      if (aMove) {
+        return this.folderRenamed(aSrcFolder, aDestFolder);
+      }
+      this.indexer._indexQueue.push(["folder", aDestFolder.URI]);
+      this.indexer.indexing = true;
+    },
+    
+    /**
+     * We just need to update the URI <-> ID maps and the row in the database,
+     *  all of which is actually done by the datastore for us.
+     */
+    folderRenamed: function gloda_indexer_folderRenamed(aOrigFolder,
+                                                        aNewFolder) {
+      GlodaDatastore.renameFolder(aOrigFolder.URI, aNewFolder.URI);
+    },
+    
+    itemEvent: function gloda_indexer_itemEvent(aItem, aEvent, aData) {
+      // nop.  this is an expansion method on the part of the interface and has
+      //  no known events that we need to handle.
+    },
+  },
+  
+  /* ***** Rebuilding / Reindexing ***** */
+  // TODO: implement a folder observer doodad to handle rebuilding / reindexing
+  /**
+   * Allow us to invalidate an outstanding folder traversal because the
+   *  underlying database is going away.  We use other means for detecting 
+   *  modifications of the message (labeling, marked (un)read, starred, etc.)
+   *
+   * This is an nsIDBChangeListener listening to an nsIDBChangeAnnouncer.  To
+   *  add ourselves, we get us a nice nsMsgDatabase, query it to the announcer,
+   *  then call AddListener.
+   */
+  _databaseAnnouncerListener: {
+    onAnnouncerGoingAway: function gloda_indexer_dbGoingAway(
+                                         aDBChangeAnnouncer) {
+      // TODO: work
+    },
+    
+    onHdrChange: function(aHdrChanged, aOldFlags, aNewFlags, aInstigator) {},
+    onHdrDeleted: function(aHdrChanged, aParentKey, aFlags, aInstigator) {},
+    onHdrAdded: function(aHdrChanged, aParentKey, aFlags, aInstigator) {},
+    onParentChanged: function(aKeyChanged, aOldParent, aNewParent, 
+                              aInstigator) {},
+    onReadChanged: function(aInstigator) {},
+    onJunkScoreChanged: function(aInstigator) {}
+  },
+  
+  /* ***** MailNews Shutdown ***** */
+  // TODO: implement a shutdown/pre-shutdown listener that attempts to either
+  //  drain the indexing queue or persist it.
+  /**
+   * Shutdown task.
+   *
+   * We implement nsIMsgShutdownTask, served up by nsIMsgShutdownService.  We
+   *  offer our services by registering ourselves as a "msg-shutdown" observer
+   *  with the observer service.
+   */
+  _shutdownTask: {
+    indexer: null,
+    
+    get needsToRunTask {
+      return this.indexer.indexing;
+    },
+    
+    /**
+     * So we could either go all out finishing our indexing, or write down what
+     *  we need to index next time around.  For now, we opt to complete our
+     *  indexing since it greatly simplifies our lives, but it probably would
+     *  be friendly to simply persist our state.
+     *
+     * XXX: so we can either return false and be done with it, or return true
+     *  and provide the stop running notification.
+     * We call aUrlListener's OnStopRunningUrl(null, NS_OK) when we are done,
+     *  and can provide status updates by calling the shutdown service
+     *  (nsIMsgShutdownService)'s setStatusText method. 
+     */
+    doShutdownTask: function gloda_indexer_doShutdownTask(aUrlListener,
+                                                          aMsgWingow) {
+      this.indexer._onStopIndexingUrlListener = aUrlListener;
+      
+      
+      
+      return true;
+    },
+    
+    getCurrentTaskName: function gloda_indexer_getCurrentTaskName() {
+      return this.indexer.strBundle.getString("shutdownTaskName");
+    },
+  }, 
   
   /**
    * Attempt to extract the original subject from a message.  For replies, this
@@ -412,7 +593,7 @@ let GlodaIndexer = {
       let ancestor = ancestors[iAncestor];
       
       if (ancestor != null) { // ancestor.conversationID cannot be null
-        if (conversationID == null)
+        if (conversationID === null)
           conversationID = ancestor.conversationID;
         else if (conversationID != ancestor.conversationID)
           this._log.error("Inconsistency in conversations invariant on " +
@@ -423,7 +604,7 @@ let GlodaIndexer = {
     }
     
     let conversation = null;
-    if (conversationID == null) {
+    if (conversationID === null) {
       // (the create method could issue the id, making the call return
       //  without waiting for the database...)
       conversation = this._datastore.createConversation(
@@ -440,7 +621,7 @@ let GlodaIndexer = {
     for (let iAncestor=0; iAncestor < ancestors.length; ++iAncestor) {
       let ancestor = ancestors[iAncestor];
       
-      if (ancestor == null) {
+      if (ancestor === null) {
         this._log.debug("creating message with: null, " + conversationID +
                         ", " + lastAncestorId + ", " + references[iAncestor] +
                         ", null.");
@@ -451,7 +632,7 @@ let GlodaIndexer = {
                                                  null); // no snippet
         ancestors[iAncestor] = ancestor;
       }
-      else if (ancestor.parentID == null) {
+      else if (ancestor.parentID === null) {
         ancestor._parentID = lastAncestorId;
         this._datastore.updateMessage(ancestor);
       }
@@ -460,7 +641,7 @@ let GlodaIndexer = {
     }
     // now all our ancestors exist, though they may be ghost-like...
     
-    if (curMsg == null) {
+    if (curMsg === null) {
       this._log.debug("creating message with: " + aMsgHdr.folder.URI +
                       ", " + conversationID +
                       ", " + lastAncestorId + ", " + aMsgHdr.messageId +

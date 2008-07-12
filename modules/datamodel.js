@@ -47,7 +47,7 @@ Cu.import("resource://gloda/modules/log4moz.js");
 const LOG = Log4Moz.Service.getLogger("gloda.datamodel");
 
 function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
-                           aPluginName, aAttrName, aSubjectType, aObjectType,
+                           aPluginName, aAttrName, aSubjectTypes, aObjectType,
                            aParameterType, aExplanationFormat) {
   this._datastore = aDatastore;
   this._id = aID;
@@ -56,7 +56,7 @@ function GlodaAttributeDef(aDatastore, aID, aCompoundName, aProvider, aAttrType,
   this._attrType = aAttrType;
   this._pluginName = aPluginName;
   this._attrName = aAttrName;
-  this._subjectType = aSubjectType;
+  this._subjectTypes = aSubjectTypes;
   this._objectType = aObjectType;
   this._parameterType = aParameterType;
   this._explanationFormat = aExplanationFormat;

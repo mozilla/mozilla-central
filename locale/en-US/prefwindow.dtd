@@ -1,8 +1,8 @@
-<!ENTITY prefwindow.title "Global Database preferences">
-<!ENTITY pane1.title "Global Database preferences">
-<!ENTITY checkboolpref.label "A Boolean Preference">
-<!ENTITY checkboolpref.accesskey "B">
-<!ENTITY intpref.label "An Integer Preference">
-<!ENTITY intpref.accesskey "I">
-<!ENTITY stringpref.label "A String Preference">
-<!ENTITY stringpref.accesskey "S">
+<!ENTITY prefwindow.title "Global Database Has No Preferences">
+<!ENTITY pane1.title "Global Database Has No Preferences">
+<!ENTITY checkboolpref.label "I like cookies">
+<!ENTITY checkboolpref.accesskey "l">
+<!ENTITY intpref.label "I would eat this many cookies">
+<!ENTITY intpref.accesskey "e">
+<!ENTITY stringpref.label "Name of my favorite cookie">
+<!ENTITY stringpref.accesskey "f">

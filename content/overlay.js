@@ -36,12 +36,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 // get the core
-dump("pre-gloda\n");
 Components.utils.import("resource://gloda/modules/gloda.js");
-dump("post-gloda\n");
 // make all the built-in plugins join the party
 Components.utils.import("resource://gloda/modules/everybody.js");
-dump("post-everybody\n");
 
 Components.utils.import("resource://gloda/modules/indexer.js");
 
@@ -50,9 +47,9 @@ var gloda = {
     // initialization code
     this.initialized = true;
     this.strings = document.getElementById("gloda-strings");
+    GlodaIndexer.init(window, msgWindow, this.strings);
   },
   onMenuItemCommand: function(e) {
-    GlodaIndexer.init(window, msgWindow);
     GlodaIndexer.indexEverything();
   },
 

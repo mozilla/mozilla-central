@@ -80,20 +80,53 @@ let GlodaExplicitAttr = {
   
   defineAttributes: function() {
     // Tag
-    this._attrTag = Gloda.defineAttr(this, Gloda.kAttrExplicit,
+    this._attrTag = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrExplicit,
+                        attributeName: "tag",
+                        bind: true,
+                        bindName: "tags",
+                        singular: true,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_DATE,
+                        parameterNoun: Gloda.NOUN_TAG,
+                        explanation: this._strBundle.getString(
+                                       "attrTagExplanation"),
+                        });
+                        this, Gloda.kAttrExplicit,
                         Gloda.BUILT_IN, FA_TAG, Gloda.kMultiple,
                         Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, Gloda.NOUN_TAG,
-                        "%{subject} was tagged %{parameter} on %{object}");
+                        "");
     // Star
-    this._attrStar = Gloda.defineAttr(this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_STAR, Gloda.kSingular,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
-                        "%{subject} has a star state of %{object}");
+    this._attrStar = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrExplicit,
+                        attributeName: "star",
+                        bind: true,
+                        bindName: "starred",
+                        singular: true,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_BOOLEAN,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrStarExplanation"),
+                        });
     // Read/Unread
-    this._attrRead = Gloda.defineAttr(this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_READ, Gloda.kSingular,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_BOOLEAN, null,
-                        "%{subject} has a read state of %{object}");
+    this._attrRead = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrExplicit,
+                        attributeName: "read",
+                        bind: true,
+                        singular: true,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_BOOLEAN,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrReadExplanation"),
+                        });
     
   },
   

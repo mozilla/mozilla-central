@@ -56,7 +56,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 2,
+  _schemaVersion: 3,
   _schema: {
     tables: {
       
@@ -66,6 +66,10 @@ let GlodaDatastore = {
           "id INTEGER PRIMARY KEY",
           "folderURI TEXT",
         ],
+        
+        triggers: {
+          delete: "DELETE from messages WHERE folderID = OLD.id",
+        },
       },
       
       conversations: {
@@ -80,7 +84,11 @@ let GlodaDatastore = {
           subject: ['subject'],
           oldestMessageDate: ['oldestMessageDate'],
           newestMessageDate: ['newestMessageDate'],
-        }
+        },
+        
+        triggers: {
+          delete: "DELETE from messages WHERE conversationID = OLD.id",
+        },
       },
       
       /**
@@ -107,6 +115,10 @@ let GlodaDatastore = {
           headerMessageID: ['headerMessageID'],
           conversationID: ['conversationID'],
         },
+        
+        triggers: {
+          delete: "DELETE FROM messageAttributes WHERE messageID = OLD.id",
+        },
       },
       
       // ----- Attributes
@@ -117,6 +129,10 @@ let GlodaDatastore = {
           "extensionName TEXT",
           "name TEXT",
           "parameter BLOB",
+        ],
+        
+        triggers: [
+          delete: "DELETE FROM messageAttributes WHERE attributeID = OLD.id",
         ],
       },
       
@@ -219,6 +235,8 @@ let GlodaDatastore = {
     }
     
     this.dbConnection = dbConnection;
+    
+    this._getAllFolderMappings();
   },
   
   _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
@@ -435,14 +453,6 @@ let GlodaDatastore = {
     return this._insertFolderLocationStatement;
   },
   
-  get _selectFolderLocationByURIStatement() {
-    let statement = this._createStatement(
-      "SELECT id FROM folderLocations WHERE folderURI = :folderURI");
-    this.__defineGetter__("_selectFolderLocationByURIStatement",
-      function() statement);
-    return this._selectFolderLocationByURIStatement;
-  },
-
   // memoizing this is arguably overkill... fix along with _mapFolderID idiom.
   get _selectAllFolderLocations() {
     let statement = this._createStatement(
@@ -457,6 +467,17 @@ let GlodaDatastore = {
   /** Authoritative map from folder ID to folder URI */
   _folderIDs: {},
   
+  /** Intialize our _folderURIs/_folderIDs mappings, called by _init(). */
+  _getAllFolderMappings: function gloda_ds_getAllFolderMappings() {
+    while (this._selectAllFolderLocations.step()) {
+      let folderID = this._selectAllFolderLocations.row["id"];
+      let folderURI = this._selectAllFolderLocations.row["folderURI"];
+      this._folderURIs[folderURI] = folderID;
+      this._folderIDs[folderID] = folderURI;
+    }
+    this._selectAllFolderLocations.reset();
+  },
+  
   /**
    * Map a folder URI to a folder ID, creating the mapping if it does not yet
    *  exist.
@@ -466,7 +487,7 @@ let GlodaDatastore = {
       return this._folderURIs[aFolderURI];
     }
     
-    var folderID;
+    let folderID;
     this._selectFolderLocationByURIStatement.params.folderURI = aFolderURI;
     if (this._selectFolderLocationByURIStatement.step()) {
       folderID = this._selectFolderLocationByURIStatement.row["id"];
@@ -484,28 +505,31 @@ let GlodaDatastore = {
     return folderID;
   },
   
-  // perhaps a better approach is to just have the _folderIDs load everything
-  //  from the database the first time it is accessed, and then rely on
-  //  invariant maintenance to ensure that its state keeps up-to-date with the
-  //  actual database.
   _mapFolderID: function gloda_ds_mapFolderID(aFolderID) {
     if (aFolderID == null)
       return null;
     if (aFolderID in this._folderIDs)
       return this._folderIDs[aFolderID];
-    
-    while (this._selectAllFolderLocations.step()) {
-      let folderID = this._selectAllFolderLocations.row["id"];
-      let folderURI = this._selectAllFolderLocations.row["folderURI"];
-      this._log.info("defining mapping:" + folderURI + " to " + folderID);
-      this._folderURIs[folderURI] = folderID;
-      this._folderIDs[folderID] = folderURI;
-    }
-    this._selectAllFolderLocations.reset();
-    
-    if (aFolderID in this._folderIDs)
-      return this._folderIDs[aFolderID];
     throw "Got impossible folder ID: " + aFolderID;
+  },
+
+  get _updateFolderLocationStatement() {
+    let statement = this._createStatement(
+      "UPDATE folderLocations SET folderURI = :newFolderURI \
+              WHERE folderURI = :oldFolderURI");
+    this.__defineGetter__("_updateFolderLocationStatement",
+      function() statement);
+    return this._updateFolderLocationStatement;
+  },
+  
+  renameFolder: function gloda_ds_renameFolder(aOldURI, aNewURI) {
+    let folderID = this._folderURIs[aOldURI];
+    this._folderURIs[aNewURI] = folderID;
+    this._folderIDs[folderID] = aNewURI;
+    this._updateFolderLocationStatement.params.oldFolderURI = aOldURI;
+    this._updateFolderLocationStatement.params.newFolderURI = aNewURI;
+    this._updateFolderLocationStatement.execute();
+    delete this._folderURIs[aOldURI];
   },
   
   /* ********** Conversation ********** */
@@ -712,6 +736,15 @@ let GlodaDatastore = {
     statement.reset();
     
     return results;
+  },
+
+  /**
+   * Delete messages by databse ID.  This is the ONLY form of message deletion
+   *  we support because attribute clean-up demands that we actually know the
+   *  IDs of the messages we are deleting (so that we can delete attributes that
+   *  reference those message IDs. 
+   */
+  deleteMessagesByID: function gloda_ds_deleteMessagesByID(aFolderID){
   },
   
   // could probably do with an optimized version of this...

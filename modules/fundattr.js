@@ -48,11 +48,6 @@ Cu.import("resource://gloda/modules/utils.js");
 Cu.import("resource://gloda/modules/gloda.js");
 Cu.import("resource://gloda/modules/datastore.js");
 
-const FA_FROM = "FROM";
-const FA_TO = "TO";
-const FA_CC = "CC";
-const FA_DATE = "DATE";
-
 /**
  * The Gloda Fundamental Attribute provider is a special-case attribute
  *  provider; it provides attributes that the rest of the providers should be
@@ -62,9 +57,11 @@ const FA_DATE = "DATE";
  */
 let GlodaFundAttr = {
   _log: null,
+  _strBundle: null,
 
-  _init: function gloda_explattr_init() {
+  _init: function gloda_explattr_init(aStrBundle) {
     this._log =  Log4Moz.Service.getLogger("gloda.fundattr");
+    this._strBundle = aStrBundle;
   
     try {
       this.defineAttributes();
@@ -82,29 +79,61 @@ let GlodaFundAttr = {
   
   defineAttributes: function() {
     // From
-    this._attrFrom = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_FROM, Gloda.kSingular,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
-                        "from",
-                        "%{subject} was sent by %{object}");
+    this._attrFrom = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "from",
+                        bind: true,
+                        singular: true,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_IDENTITY,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrFromExplanation"),
+                        });
     // To
-    this._attrTo = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_TO, Gloda.kMultiple,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
-                        "to",
-                        "%{subject} was sent to %{object}");
+    this._attrTo = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "to",
+                        bind: true,
+                        singular: false,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_IDENTITY,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrToExplanation"),
+                        });
     // Cc
-    this._attrCc = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_CC, Gloda.kMultiple,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_IDENTITY, null,
-                        "cc",
-                        "%{subject} was carbon-copied to %{object}");
+    this._attrCc = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "cc",
+                        bind: true,
+                        singular: false,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_IDENTITY,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrCcExplanation"),
+                        });
     // Date
-    this._attrDate = Gloda.defineAttr(this, Gloda.kAttrFundamental,
-                        Gloda.BUILT_IN, FA_DATE, Gloda.kSingular,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, null,
-                        "date",
-                        "%{subject} was sent on %{object}");
+    this._attrDate = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "date",
+                        bind: true,
+                        singular: true,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_DATE,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrDateExplanation"),
+                        });
     
   },
   

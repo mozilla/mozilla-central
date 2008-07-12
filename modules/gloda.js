@@ -48,7 +48,9 @@ Cu.import("resource://gloda/modules/datastore.js");
 Cu.import("resource://gloda/modules/datamodel.js");
 Cu.import("resource://gloda/modules/utils.js");
 
-
+/**
+ * 
+ */
 let Gloda = {
   _init: function gloda_ns_init() {
     this._initLogging();
@@ -130,19 +132,39 @@ let Gloda = {
     return identities[0];
   },
   
+  /**
+   * An attribute that is a defining characteristic of the subject.
+   */
   kAttrFundamental: 0,
+  /**
+   * An attribute that is an optimization derived from two or more fundamental
+   *  attributes and exists solely to improve database query performance.
+   */
   kAttrOptimization: 1,
+  /**
+   * An attribute that is derived from the content of the subject.  For example,
+   *  a message that references a bugzilla bug could have a "derived" attribute
+   *  that captures the bugzilla reference.  This is not 
+   */
   kAttrDerived: 2,
+  /**
+   * An attribute that is the result of an explicit and intentional user action
+   *  upon the subject.  For example, a tag placed on a message by a user (or
+   *  at the user's request by a filter) is explicit.
+   */
   kAttrExplicit: 3,
+  /**
+   * An attribute that is indirectly the result of a user's behaviour.  For
+   *  example, if a user consults a message multiple times, we may conclude that
+   *  the user finds the message interesting.  It is "implied", if you will,
+   *  that the message is interesting.
+   */
   kAttrImplicit: 4,
-  
-  kSingular: 0,
-  kMultiple: 1,
   
   BUILT_IN: "built-in",
   
   NOUN_BOOLEAN: 1,
-  /** A date, encoded as a PRTime */
+  /** A date, encoded as a PRTime, represented as a js Date object. */
   NOUN_DATE: 10,
   NOUN_TAG: 50,
   NOUN_CONVERSATION: 101,
@@ -235,36 +257,89 @@ let Gloda = {
   },
   
   /**
-   * @param aProvider
-   * @param aAttrType
-   * @param aPluginName
-   * @param aAttrName
-   * @param aSingular Is the attribute going to happen at most once (kSingular),
-   *     or potentially multiple times (kMultiple).  This affects whether
-   *     the binding (as defined by aBindName) returns a list or just a single
-   *     item.
-   * @param aSubjectType
-   * @param aObjectType
-   * @param aBindName The name to which to bind the attribute on the underlying
-   *     data model object.  For example, for an aObjectType of NOUN_MESSAGE
-   *     with an aBindName of "date", we will create a getter on GlodaMessage so
-   *     that message.date returns the value of the date attribute (with the
-   *     specific return type depending on what was passed for 
-   * @param aParameterType
+   * Define an attribute and all its meta-data.  Takes a single dictionary as
+   *  its argument, with the following required properties:
+   *
+   * @param provider The object instance providing a 'process' method.
+   * @param extensionName The name of the extension providing these attributes.
+   * @param attributeType The type of attribute, one of the values from the 
+   *     kAttr* enumeration.
+   * @param attributeName The name of the attribute, which also doubles as the
+   *     bound property name if you pass 'bind' a value of true.  You are
+   *     responsible for avoiding collisions, which presumably will mean
+   *     checking/updating a wiki page in the future, or just prefixing your
+   *     attribute name with your extension name or something like that.
+   * @param bind Should this attribute be 'bound' as a convenience attribute
+   *     on the subject's object (true/false)?  For example, with an
+   *     attributeName of "foo" and passing true for 'bind' with a subject noun
+   *     of NOUN_MESSAGE, GlodaMessage instances will expose a "foo" getter
+   *     that returns the value of the attribute.  If 'singular' is true, this
+   *     means an instance of the object class corresponding to the noun type or
+   *     null if the attribute does not exist.  If 'singular' is false, this
+   *     means a list of instances of the object class corresponding to the noun
+   *     type, where the list may be empty if no instances of the attribute are
+   *     present. 
+   * @param bindName Optional override of attributeName for purposes of the
+   *     binding property's name.
+   * @param singular Is the attribute going to happen at most once (true),
+   *     or potentially multiple times (false).  This affects whether
+   *     the binding  returns a list or just a single item (which is null when
+   *     the attribute is not present).
+   * @param subjectNouns A list of object types (NOUNs) that this attribute can
+   *     be set on.  Each element in the list should be one of the NOUN_*
+   *     constants or a dynamically registered noun type.
+   * @param objectNoun The object type (one of the NOUN_* constants or a
+   *     dynamically registered noun types) that is the 'object' in the
+   *     traditional RDF triple.  More pragmatically, in the database row used
+   *     to represent an attribute, we store the subject (ex: message ID),
+   *     attribute ID, and an integer which is the integer representation of the
+   *     'object' whose type you are defining right here.
+   * @param parameterNoun The object type (NOUN_* or dynamic) or 'null' that
+   *     parameterizes this attribute.  The attribute ID we mentioned on the
+   *     'objectNoun' could actually be one of many possible attribute IDs
+   *     spawned by a single attribute definition.  For each parameter for each
+   *     attribute, we add an extra row to the attributes table, resulting in
+   *     a new attribute ID.  The parameter can actually be represented as a
+   *     BLOB allowing slightly more choices, although implementation realities
+   *     demand that the number of parameters per attribute be kept reasonably
+   *     small (preferably no more than 32, definitely no more than 256).
+   * @param explanation A string (hopefully retrieved from a string bundle) that
+   *     is used to provide a textual explanation of what this attribute means.
+   *     Strings may contain "%{subject}" to expand a textual representation
+   *     of the attribute's subject, "%{object}" to expand a textual
+   *     representation of the object, and "%{parameter}" to expand a textual
+   *     representation of the parameter.
    */
-  defineAttr: function gloda_ns_defineAttr(aProvider, aAttrType,
-                                           aPluginName, aAttrName, aSingular,
-                                           aSubjectType, aObjectType,
-                                           aParameterType,
-                                           aBindName,
-                                           aExplanationFormat) {
+  defineAttribute: function gloda_ns_defineAttribute(aAttrDef) {
+    // ensure required properties exist on aAttrDef
+    if (!("provider" in aAttrDef) ||
+        !("extensionName" in aAttrDef) ||
+        !("attributeType" in aAttrDef) ||
+        !("attributeName" in aAttrDef) ||
+        !("bind" in aAttrDef) ||
+        !("singular" in aAttrDef) ||
+        !("subjectNouns" in aAttrDef) ||
+        !("objectNoun" in aAttrDef) ||
+        !("parameterNoun" in aAttrDef) ||
+        !("explanation" in aAttrDef))
+      // perhaps we should have a list of required attributes, perchance with
+      //  and explanation of what it holds, and use that to be friendlier?
+      throw Error("You omitted a required attribute defining property, please" +
+                  " consult the documentation as penance.")
+
     // provider tracking
-    if (!(aProvider in this._attrProviders)) {
-      this._attrProviderOrder.push(aProvider);
-      this._attrProviders[aProvider] = [];
+    if (!(aAttrDef.provider in this._attrProviders)) {
+      this._attrProviderOrder.push(aAttrDef.provider);
+      this._attrProviders[aAttrDef.provider] = [];
     } 
     
-    let compoundName = aPluginName + ":" + aAttrName;
+    let bindName;
+    if ("bindName" in aAttrDef)
+      bindName = aAttrDef.bindName;
+    else
+      bindName = aAttrDef.attributeName;
+    
+    let compoundName = aAttrDef.extensionName + ":" + aAttrDef.attributeName;
     let attr = null;
     if (compoundName in GlodaDatastore._attributes) {
       // the existence of the GlodaAttributeDef means that either it has
@@ -277,16 +352,22 @@ let Gloda = {
       }
       
       // we are behind the abstraction veil and can set these things
-      attr._provider = aProvider;
-      attr._subjectType = aSubjectType;
-      attr._objectType = aObjectType;
-      attr._parameterType = aParameterType;
-      attr._explanationFormat = aExplanationFormat;
+      attr._provider = aAttrDef.provider;
+      attr._subjectTypes = aAttrDef.subjectNouns;
+      attr._objectType = aAttrDef.objectNoun;
+      attr._parameterType = aAttrDef.parameterNoun;
+      attr._explanationFormat = aAttrDef.explanation;
       
-      this._bindAttribute(attr, aSubjectType, aObjectType, aSingular,
-                          aBindName);
+      if (aAttrDef.bind) {
+        for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+             iSubject++) {
+          let subjectType = aAttrDef.subjectNouns[iSubject];
+          this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
+                              aAttrDef.singular, bindName);
+        }
+      }
       
-      this._attrProviders[aProvider].push(attr);
+      this._attrProviders[aAttrDef.provider].push(attr);
       return attr; 
     }
     
@@ -294,21 +375,31 @@ let Gloda = {
     // Of course, we only want to create something in the database if the
     //  parameter is forever un-bound (type is null).
     let attrID = null;
-    if (aParameterType == null) {
-      attrID = GlodaDatastore._createAttributeDef(aAttrType, aPluginName,
-                                                  aAttrName, null);
+    if (aAttrDef.parameterNoun == null) {
+      attrID = GlodaDatastore._createAttributeDef(aAttrDef.attributeType,
+                                                  aAttrDef.extensionName,
+                                                  aAttrDef.attributeName,
+                                                  null);
     }
     
     attr = new GlodaAttributeDef(GlodaDatastore, attrID, compoundName,
-                                 aProvider, aAttrType, aPluginName, aAttrName,
-                                 aSubjectType, aObjectType, aParameterType,
-                                 aExplanationFormat);
+                                 aAttrDef.provider, aAttrDef.attributeType,
+                                 aAttrDef.extensionName, aAttrDef.attributeName,
+                                 aAttrDef.subjectNouns, aAttrDef.objectNoun,
+                                 aAttrDef.parameterNoun, aAttrDef.explanation);
     GlodaDatastore._attributes[compoundName] = attr;
 
-    this._bindAttribute(attr, aSubjectType, aObjectType, aSingular, aBindName);
+    if (aAttrDef.bind) {
+      for (let iSubject=0; iSubject < aAttrDef.subjectNouns.length;
+           iSubject++) {
+        let subjectType = aAttrDef.subjectNouns[iSubject];
+        this._bindAttribute(attr, subjectType, aAttrDef.objectNoun,
+                            aAttrDef.singular, bindName);
+      }
+    }
 
-    this._attrProviders[aProvider].push(attr);
-    if (aParameterType == null)    
+    this._attrProviders[aAttrDef.provider].push(attr);
+    if (aAttrDef.parameterNoun == null)    
       GlodaDatastore._attributeIDToDef[attrID] = [attr, null];
     return attr;
   },
