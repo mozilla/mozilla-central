@@ -1243,7 +1243,7 @@ tools are selected during the Xcode/Developer Tools installation.])
     AC_DEFINE(FREEBSD)
     AC_DEFINE(HAVE_BSD_FLOCK)
     CFLAGS="$CFLAGS $(DSO_CFLAGS) -ansi -Wall"
-    MOZ_OBJFORMAT=`test -x /usr/bin/objformat && /usr/bin/objformat || echo aout`
+    MOZ_OBJFORMAT=`test -x /usr/bin/objformat && /usr/bin/objformat || echo elf`
     if test "$MOZ_OBJFORMAT" = "elf"; then
         DLL_SUFFIX=so
     else
