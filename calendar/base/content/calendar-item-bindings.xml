@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
    -
@@ -21,6 +21,7 @@
    -
    - Contributor(s):
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,14 @@
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
           xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <!-- Header with a line beside it, used i.e in the event dialog -->
+  <binding id="calendar-caption" extends="xul:hbox">
+    <content align="center">
+      <xul:label xbl:inherits="value=label,control" class="header"/>
+      <xul:separator class="groove" flex="1"/>
+    </content>
+  </binding>
 
   <binding id="item-date-row" extends="xul:row">
     <resources>

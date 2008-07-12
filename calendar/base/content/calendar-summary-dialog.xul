@@ -22,6 +22,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Berend Cornelius <berend.cornelius@sun.com>
+   -   Philipp Kewisch <mozilla@kewis.ch>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -75,10 +76,7 @@
 
   <!-- General -->
   <box id="item-general-box" orient="vertical">
-    <box orient="horizontal" align="center">
-      <label value="&read.only.general.label;" class="headline"/>
-      <separator class="groove" flex="1"/>
-    </box>
+    <calendar-caption label="&read.only.general.label;"/>
     <box orient="horizontal">
       <spacer class="default-spacer"/>
       <grid flex="1">
@@ -226,10 +224,8 @@
   <!-- Attendees -->
   <box id="item-attendees" hidden="true" orient="vertical">
     <spacer class="default-spacer"/>
-    <box orient="horizontal" align="center">
-      <label value="&read.only.attendees.label;" class="headline" control="item-attendee-listbox"/>
-      <separator class="groove" flex="1"/>
-    </box>
+    <calendar-caption label="&read.only.attendees.label;"
+                      control="item-attendee-listbox"/>
     <box orient="horizontal">
       <spacer class="default-spacer"/>
       <listbox id="item-attendee-listbox" rows="6" flex="1" disabled="true">
@@ -254,10 +250,8 @@
   <!-- Description -->
   <box id="item-description-box" hidden="true" orient="vertical" flex="1">
     <spacer class="default-spacer"/>
-    <box orient="horizontal" align="center">
-      <label value="&read.only.description.label;" class="headline" control="item-description"/>
-      <separator class="groove" flex="1"/>
-    </box>
+    <calendar-caption label="&read.only.description.label;"
+                      control="item-description"/>
     <box orient="horizontal" flex="1">
       <spacer class="default-spacer"/>
       <textbox id="item-description"
@@ -270,10 +264,8 @@
   <!-- Documents -->
   <box id="item-link-box" hidden="true" orient="vertical">
     <spacer class="default-spacer"/>
-    <box orient="horizontal" align="center">
-      <label value="&read.only.documents.label;" class="headline"/>
-      <separator class="groove" flex="1"/>
-    </box>
+    <calendar-caption label="&read.only.documents.label;"
+                      control="item-link"/>
     <box orient="horizontal">
       <spacer class="default-spacer"/>
       <label id="item-link"

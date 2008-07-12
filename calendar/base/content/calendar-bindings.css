@@ -81,6 +81,10 @@ task-menupopup {
   -moz-binding: url(chrome://calendar/content/calendar-menus.xml#task-menupopup);
 }
 
+calendar-caption {
+  -moz-binding: url("chrome://calendar/content/calendar-item-bindings.xml#calendar-caption");
+}
+
 .item-date-row {
   -moz-binding: url(chrome://calendar/content/calendar-item-bindings.xml#item-date-row);
 }
