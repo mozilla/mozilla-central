@@ -180,7 +180,6 @@ wallet_GetFormsCapturingPref(void)
     return wallet_captureForms;
 }
 
-
 static PRBool
 wallet_GetEnabledPref(void)
 {
@@ -660,7 +659,9 @@ Wallet_CheckConfirmYN
 #pragma mark Encryption
 
 #include "nsISecretDecoderRing.h"
-nsISecretDecoderRing* gSecretDecoderRing;
+#if UNUSED
+nsISecretDecoderRing* gSecretDecoderRing = nsnull;
+#endif // UNUSED
 PRBool gEncryptionFailure = PR_FALSE;
 PRInt32 gReencryptionLevel = 0;
 
@@ -801,20 +802,18 @@ static nsresult DecryptString (const char * crypt, char *& text)
 
 void
 WLLT_ExpirePassword(PRBool* status) {
-  nsresult rv = wallet_CryptSetup();
-  if (NS_SUCCEEDED(rv)) {
-    rv = gSecretDecoderRing->LogoutAndTeardown();
+  if (gSecretDecoderRing) {
+    gSecretDecoderRing->LogoutAndTeardown();
   }
-  *status = NS_SUCCEEDED(rv);
+  *status = PR_TRUE;
 }
 
 void
 WLLT_ExpirePasswordOnly(PRBool* status) {
-  nsresult rv = wallet_CryptSetup();
-  if (NS_SUCCEEDED(rv)) {
-    rv = gSecretDecoderRing->Logout();
+  if (gSecretDecoderRing) {
+    gSecretDecoderRing->Logout();
   }
-  *status = NS_SUCCEEDED(rv);
+  *status = PR_TRUE;
 }
 
 PRBool changingPassword = PR_FALSE;
