@@ -87,6 +87,10 @@ mail-tagfield {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#mail-headerfield-tags");
 }
 
+menupopup[type="folder"] {
+  -moz-binding: url("chrome://messenger/content/folderWidgets.xml#folder-menupopup");
+}
+
 searchattribute {
   -moz-binding: url("chrome://messenger/content/mailWidgets.xml#searchattribute");
 }

@@ -120,6 +120,7 @@ messenger.jar:
     content/messenger/folderPane.xul                                           (base/resources/content/folderPane.xul)
     content/messenger/folderProps.xul                                          (base/resources/content/folderProps.xul)
     content/messenger/folderProps.js                                           (base/resources/content/folderProps.js)
+    content/messenger/folderWidgets.xml                                        (base/resources/content/folderWidgets.xml)
     content/messenger/threadPane.xul                                           (base/resources/content/threadPane.xul)
     content/messenger/threadPane.js                                            (base/resources/content/threadPane.js)
     content/messenger/msgHdrViewOverlay.xul                                    (base/resources/content/msgHdrViewOverlay.xul)
