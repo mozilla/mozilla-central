@@ -221,8 +221,6 @@ function setOfflineUI(offline)
     }
 }
 
-var goPrefWindow = 0;
-
 function getBrowserURL() {
 
   try {
@@ -308,15 +306,6 @@ function goClickThrobber( urlPref )
 
   if ( url )
     openTopWin(url);
-}
-
-
-//No longer needed.  Rip this out since we are using openTopWin
-function goHelpMenu( url )
-{
-  /* note that this chrome url should probably change to not have all of the navigator controls */
-  /* also, do we want to limit the number of help windows that can be spawned? */
-  window.openDialog( getBrowserURL(), "_blank", "chrome,all,dialog=no", url );
 }
 
 function getTopWin()
@@ -529,25 +518,6 @@ function goUpdateFindTypeMenuItems()
 {
   goUpdateCommand('cmd_findTypeText');
   goUpdateCommand('cmd_findTypeLinks');
-}
-
-// function that extracts the filename from a url
-function extractFileNameFromUrl(urlstr) {
-  if (!urlstr) return null;
-
-  // For "http://foo/bar/cheese.jpg", return "cheese.jpg".
-  // For "imap://user@host.com:143/fetch>UID>/INBOX>951?part=1.2&type=image/gif&filename=foo.jpeg", return "foo.jpeg".
-  // The 2nd url (ie, "imap://...") is generated for inline images by MimeInlineImage_parse_begin() in mimeiimg.cpp.
-  var lastSlash = urlstr.slice(urlstr.lastIndexOf( "/" )+1);
-  if (lastSlash)
-  {
-    var nameIndex = lastSlash.lastIndexOf( "filename=" );
-    if (nameIndex != -1)
-      return (lastSlash.slice(nameIndex+9));
-    else
-      return lastSlash;
-  }
-  return null;
 }
 
 // Gather all descendent text under given document node.
