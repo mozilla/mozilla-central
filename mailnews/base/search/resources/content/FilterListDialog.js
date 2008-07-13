@@ -428,9 +428,6 @@ function onDown(event)
 
 function viewLog()
 {
-  var uri = gFilterTree.getAttribute("ref");
-  var server = gRDF.GetResource(uri).QueryInterface(Components.interfaces.nsIMsgFolder).server;
-
   var filterList = currentFilterList();
   var args = {filterList: filterList};
 
