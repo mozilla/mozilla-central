@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 EXPORTED_SYMBOLS = ["GlodaAttributeDef", "GlodaConversation", "GlodaMessage",
-                    "GlodaContact", "GlodaIdentity", "GlodaTag"];
+                    "GlodaContact", "GlodaIdentity"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -250,10 +250,3 @@ GlodaIdentity.prototype = {
     return this._contact;
   },
 };
-
-function GlodaTag() {
-}
-
-GlodaTag.prototype = {
-};
-
