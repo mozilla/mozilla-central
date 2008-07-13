@@ -181,9 +181,12 @@ let GlodaDatastore = {
         columns: [
           "id INTEGER PRIMARY KEY",
           "contactID INTEGER NOT NULL REFERENCES contacts(id)",
-          "kind TEXT",
-          "value TEXT",
-          "description TEXT"
+          "kind TEXT", // ex: email, irc, etc.
+          "value TEXT", // ex: e-mail address, irc nick/handle, etc.
+          "description TEXT", // what makes this identity different from the
+          // others? (ex: home, work, etc.) 
+          "relay INTEGER", // is the identity just a relay mechanism?
+          // (ex: mailing list, twitter 'bouncer', IRC gateway, etc.)
         ],
         
         indices: {
@@ -960,28 +963,32 @@ let GlodaDatastore = {
   /* ********** Identity ********** */
   get _insertIdentityStatement() {
     let statement = this._createStatement(
-      "INSERT INTO identities (contactID, kind, value, description) \
-              VALUES (:contactID, :kind, :value, :description)");
+      "INSERT INTO identities (contactID, kind, value, description, relay) \
+              VALUES (:contactID, :kind, :value, :description, :relay)");
     this.__defineGetter__("_insertIdentityStatement", function() statement);
     return this._insertIdentityStatement; 
   },
   
   createIdentity: function gloda_ds_createIdentity(aContactID, aContact, aKind,
-                                                   aValue, aDescription) {
+                                                   aValue, aDescription,
+                                                   aIsRelay) {
     let iis = this._insertIdentityStatement;
     iis.params.contactID = aContactID;
     iis.params.kind = aKind;
     iis.params.value = aValue;
     iis.params.description = aDescription;
+    iis.params.relay = aIsRelay ? 1 : 0;
     iis.execute();
   
     return new GlodaIdentity(this, this.dbConnection.lastInsertRowID,
-                             aContactID, aContact, aKind, aValue, aDescription);
+                             aContactID, aContact, aKind, aValue,
+                             aDescription, aIsRelay);
   },
   
   _identityFromRow: function gloda_ds_identityFromRow(aRow) {
     return new GlodaIdentity(this, aRow["id"], aRow["contactID"], null,
-                             aRow["kind"], aRow["value"]);
+                             aRow["kind"], aRow["value"], aRow["description"],
+                             aRow["relay"] ? true : false);
   },
   
   get _selectIdentityByKindValueStatement() {

@@ -112,7 +112,7 @@ let Gloda = {
         //  only has one initially (us).
         identity = GlodaDatastore.createIdentity(contact.id, contact, "email",
                                                  parsed.addresses[iAddress],
-                                                 "");
+                                                 "", false);
       }
       identities.push(identity);
     }
@@ -172,35 +172,72 @@ let Gloda = {
   NOUN_CONTACT: 103,
   NOUN_IDENTITY: 104,
   
+  /** Next Noun ID to hand out, these don't need to be persisted (for now). */
+  _nextNounID = 1000,
+
+  _nounNameToNounID: {},
+  _nounIDToMeta: {},
+  
+  defineNoun: function gloda_ns_defineNoun(aNounMeta) {
+    let nounID = this._nextNounID++;
+    this._nounNameToNounID[aNounDef.name] = nounID; 
+    this._nounIDToMeta[nounID] = aNounMeta;
+  },
+  
+  /**
+   * Lookup a noun (ID) suitable for passing to defineAttribute's various
+   *  noun arguments.  Throws an exception if the noun with the given name
+   *  cannot be found; the assumption is that you can't live without the noun.
+   */
+  lookupNoun: function gloda_ns_lookupNoun(aNounName) {
+    if (aNounName in this._nounNameToNounID)
+      return this._nounNameToNounID[aNounName];
+    
+    throw Error("Unable to locate noun with name '" + aNounName + "', but I " +
+                "do know about: " +
+                [propName for each
+                 (propName in this._nounNameToNounID)].join(", ")); 
+  },
+  
   /** Attribute providers in the sequence to process them. */
   _attrProviderOrder: [],
   /** Maps attribute providers to the list of attributes they provide */
   _attrProviders: {},
   
-  _nounToClass: {},
-  
   _initAttributes: function gloda_ns_initAttributes() {
-    this._nounToClass[this.NOUN_BOOLEAN] = {class: Boolean,
-      coerce: function(aVal) { if(aVal != 0) return true; else return false; }}; 
-    this._nounToClass[this.NOUN_DATE] = {class: Date,
-      coerce: function(aPRTime) {return new Date(aPRTime / 1000); }};
+    this._nounIDToMeta[this.NOUN_BOOLEAN] = {class: Boolean, firstClass: false,
+      fromAttributeValue: function(aVal) {
+        if(aVal != 0) return true; else return false;
+      }}; 
+    this._nounIDToMeta[this.NOUN_DATE] = {class: Date, firstClass: false,
+      fromAttributeValue: function(aPRTime) {
+        return new Date(aPRTime / 1000);
+      }};
 
-    // TODO: implement GlodaTag or some other abstraction 
-    this._nounToClass[this.NOUN_TAG] = {class: GlodaTag,
-      coerce: null};
-       
     // TODO: use some form of (weak) caching layer... it is reasonably likely
     //  that there will be a high degree of correlation in many cases, and
     //  unless the UI is extremely clever and does its cleverness before
     //  examining the data, we will probably hit the correlation.
-    this._nounToClass[this.NOUN_CONVERSATION] = {class: GlodaConversation,
-      coerce: function(aID) { return GlodaDatastore.getConversationByID(aID);}};
-    this._nounToClass[this.NOUN_MESSAGE] = {class: GlodaMessage,
-      coerce: function(aID) { return GlodaDatastore.getMessageByID(aID); }};
-    this._nounToClass[this.NOUN_CONTACT] = {class: GlodaContact,
-      coerce: function(aID) { return GlodaDatastore.getContactByID(aID); }};
-    this._nounToClass[this.NOUN_IDENTITY] = {class: GlodaIdentity,
-      coerce: function(aID) { return GlodaDatastore.getIdentityByID(aID); }};
+    this._nounIDToMeta[this.NOUN_CONVERSATION] = {class: GlodaConversation,
+      firstClass: false,
+      fromAttributeValue: function(aID) {
+        return GlodaDatastore.getConversationByID(aID);
+      }};
+    this._nounIDToMeta[this.NOUN_MESSAGE] = {class: GlodaMessage,
+      firstClass: true,
+      fromAttributeValue: function(aID) {
+        return GlodaDatastore.getMessageByID(aID);
+      }};
+    this._nounIDToMeta[this.NOUN_CONTACT] = {class: GlodaContact,
+      firstClass: false,
+      fromAttributeValue: function(aID) {
+        return GlodaDatastore.getContactByID(aID);
+      }};
+    this._nounIDToMeta[this.NOUN_IDENTITY] = {class: GlodaIdentity,
+      firstClass: false,
+      fromAttributeValue: function(aID) {
+        return GlodaDatastore.getIdentityByID(aID);
+      }};
   
     GlodaDatastore.getAllAttributes();
   },
@@ -208,10 +245,10 @@ let Gloda = {
   
   _bindAttribute: function gloda_ns_bindAttr(aAttr, aSubjectType, aObjectType,
                                              aSingular, aBindName) {
-    if (!(aSubjectType in this._nounToClass))
+    if (!(aSubjectType in this._nounIDToMeta))
       throw Error("Invalid subject type: " + aSubjectType);
     
-    let objectCoerce = this._nounToClass[aObjectType].coerce;
+    let objectCoerce = this._nounIDToMeta[aObjectType].coerce;
     
     let storageName = "__" + aBindName;
     let getter;
@@ -248,7 +285,7 @@ let Gloda = {
       }
     }
   
-    let subjectProto = this._nounToClass[aSubjectType].class.prototype;
+    let subjectProto = this._nounIDToMeta[aSubjectType].class.prototype;
     subjectProto.__defineGetter__(aBindName, getter);
     // no setters for now; manipulation comes later, and will require the attr
     //  definer to provide the actual logic, since we need to affect reality,

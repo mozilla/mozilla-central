@@ -134,9 +134,48 @@ let GlodaFundAttr = {
                         explanation: this._strBundle.getString(
                                        "attrDateExplanation"),
                         });
-    
+    // -- Mailing List
+    // Non-singular, but a hard call.  Namely, it is obvious that a message can
+    //  be addressed to multiple mailing lists.  However, I don't see how you
+    //  could receive a message with more than one set of List-* headers,
+    //  since each list-serve would each send you a copy.  Based on our current
+    //  decision to treat each physical message as separate, it almost seems
+    //  right to limit the list attribute to the copy that originated at the
+    //  list.  That may sound entirely wrong, but keep in mind that until we
+    //  have seen a message from the list with the List headers, we can't
+    //  definitely know it's a mailing list (although heuristics could take us
+    //  pretty far).  As such, the quasi-singular thing is appealing.
+    // Of course, the reality is that we really want to know if a message was
+    //  sent to multiple mailing lists and be able to query on that.
+    //  Additionally, our implicit-to logic needs to work on messages that
+    //  weren't relayed by the list-serve, especially messages sent to the list
+    //  by the user.
+    this._attrList = Gloda.defineAttribute({
+                        provider: this,
+                        extensionName: Gloda.BUILT_IN,
+                        attributeType: Gloda.kAttrFundamental,
+                        attributeName: "mailing-list",
+                        bind: true,
+                        bindName: "mailingLists",
+                        singular: false,
+                        subjectNouns: [Gloda.NOUN_MESSAGE],
+                        objectNoun: Gloda.NOUN_DATE,
+                        parameterNoun: null,
+                        explanation: this._strBundle.getString(
+                                       "attrDateExplanation"),
+                        });
   },
   
+  /**
+   *
+   * Specializations:
+   * - Mailing Lists.  Replies to a message on a mailing list frequently only
+   *   have the list-serve as the 'to', so we try to generate a synthetic 'to'
+   *   based on the author of the parent message when possible.  (The 'possible'
+   *   part is that we may not have a copy of the parent message at the time of
+   *   processing.)
+   * - Newsgroups.  Same deal as mailing lists.
+   */
   process: function gloda_fundattr_process(aGlodaMessage, aMsgHdr) {
     let attribs = [];
     
