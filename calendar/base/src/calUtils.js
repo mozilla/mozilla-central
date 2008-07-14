@@ -80,6 +80,12 @@ function createAttendee() {
            createInstance(Components.interfaces.calIAttendee);
 }
 
+/* Returns a clean new calIAttachment */
+function createAttachment() {
+    return Components.classes["@mozilla.org/calendar/attachment;1"].
+           createInstance(Components.interfaces.calIAttachment);
+}
+
 /* Shortcut to the console service */
 function getConsoleService() {
     if (getConsoleService.mObject === undefined) {

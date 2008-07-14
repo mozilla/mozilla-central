@@ -22,6 +22,7 @@
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Stefan Sitter <ssitter@gmail.com>
+   -   Fred Jendrzejewski <fred.jen@web.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -194,9 +195,17 @@
         <command id="cmd_showtimeas_free"
                  oncommand="editShowTimeAs(event.target)"
                  value="TRANSPARENT"/>
-        <command id="cmd_url"
+        <command id="cmd_attach_url"
                  disable-on-readonly="true"
-                 oncommand="editURL()"/>
+                 oncommand="attachURL()"/>
+        <command id="cmd_openAttachment"
+                 oncommand="openAttachment()"/> 
+        <command id="cmd_deleteAttachment"
+                 disable-on-readonly="true"
+                 oncommand="deleteAttachment()"/>
+        <command id="cmd_deleteAllAttachments"
+                 disable-on-readonly="true"
+                 oncommand="deleteAllAttachments()"/>
         <command id="cmd_timezone"
                  oncommand="updateDateTime()"/>
     </commandset>
@@ -407,10 +416,10 @@
                             accesskey="&event.menu.options.attendees.accesskey;"
                             command="cmd_attendees"
                             disable-on-readonly="true"/>
-                  <menuitem id="options-link-menuitem"
-                            label="&event.menu.options.link.label;"
-                            accesskey="&event.menu.options.link.accesskey;"
-                            command="cmd_url"/>
+                  <menuitem id="options-attachments-menuitem"
+                            label="&event.menu.options.attachments.label;"
+                            accesskey="&event.menu.options.attachments.accesskey;"
+                            command="cmd_attach_url"/>
                   <menuitem id="options-timezone-menuitem"
                             label="&event.menu.options.timezone.label;"
                             accesskey="&event.menu.options.timezone.accesskey;"
@@ -596,8 +605,8 @@
             <toolbarbutton id="button-url"
                            mode="dialog"
                            class="cal-toolbarbutton-2"
-                           label="&event.toolbar.link.label;"
-                           command="cmd_url"
+                           label="&event.toolbar.attachments.label;"
+                           command="cmd_attach_url"
                            disable-on-readonly="true"/>
         </toolbarpalette>
 
@@ -606,7 +615,6 @@
                  customizable="true"
                  context="event-dialog-toolbar-context-menu"
                  defaultset="button-save,button-attendees,button-privacy,button-url"/>
-
         <toolbarset id="custom-toolbars"/>
 
     </toolbox>
@@ -1010,24 +1018,22 @@
                          rows="12"/>
             </row>
 
-            <!-- Document -->
-            <row id="event-grid-document-row" align="center">
-                <label value="&event.link.label;"
-                       accesskey="&event.link.accesskey;"
-                       control="document-link"
+            <separator class="groove" id="event-grid-attachment-separator"/>
+
+            <!-- Attachment -->
+            <row id="event-grid-attachment-row"
+                 flex="1"
+                 collapsed="true">
+                <label value="&event.attachments.label;"
+                    accesskey="&event.attachments.accesskey;"
+                       control="attachment-link"
                        disable-on-readonly="true"/>
-                <hbox id="event-grid-document-picker-box"
-                      align="center">
-                    <label id="document-link"
-                           class="text-link"
-                           crop="right"
-                           flex="1"
-                           onclick="browseDocument()"/>
-                    <button label="&event.link.change.label;"
-                            accesskey="&event.link.change.accesskey;"
-                            command="cmd_url"
-                            disable-on-readonly="true"/>
-                </hbox>
+                 <listbox id="attachment-link"
+                          context="attachment-popup"
+                          rows="3"
+                          onkeypress="attachmentLinkKeyPress(event)"
+                          onclick="attachmentLinkClicked(event);"/>
+
             </row>
         </rows>
     </grid>
@@ -1093,5 +1099,24 @@
         <menuseparator id="attendee-popup-separator"/>
         <menuitem class="status-icon menuitem-iconic" oncommand="sendMailToAttendees([event.target.attendee])" crop="end"/>
       </popup>
+      <menupopup id="attachment-popup">
+            <menuitem id="attachment-popup-open"
+                      label="&event.attachments.popup.open.label;"
+                      accesskey="&event.attachments.popup.open.accesskey;"
+                      command="cmd_openAttachment"/>
+            <menuitem id="attachment-popup-delete"
+                      label="&event.attachments.popup.remove.label;"
+                      accesskey="&event.attachments.popup.remove.accesskey;"
+                      command="cmd_deleteAttachment"/>
+            <menuitem id="attachment-popup-deleteAll"
+                      label="&event.attachments.popup.removeAll.label;"
+                      accesskey="&event.attachments.popup.removeAll.accesskey;"
+                      command="cmd_deleteAllAttachments"/>
+            <menuseparator/>
+            <menuitem id="attachment-popup-attachPage"
+                      label="&event.attachments.popup.attachPage.label;"
+                      accesskey="&event.attachments.popup.attachPage.accesskey;"
+                      command="cmd_attach_url"/>
+      </menupopup>
     </popupset>
 </dialog>

@@ -1,4 +1,3 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -20,6 +19,8 @@
  *
  * Contributor(s):
  *   Stuart Parmenter <pavlov@pavlov.net>
+ *   Joey Minta <jminta@gmail.com>
+ *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -38,13 +39,42 @@
 #include "nsISupports.idl"
 
 interface nsIURI;
+interface calIIcalProperty;
+interface calIItemBase;
 
-[scriptable,uuid(d2af63b3-7be1-4407-88f2-d0caf11fa9b0)]
+[scriptable,uuid(984b7b12-e1bf-45c1-94c2-1f014d890e67)]
 interface calIAttachment : nsISupports
 {
-  /* name of the attachment */
-  attribute AUTF8String name;
+    /**
+     * An nsIURI object that points to the file (local or remote)
+     */
+    attribute nsIURI uri;
 
-  /* URL to the attachment, local or remote */
-  attribute nsIURI uri;
+    /**
+     * The type of file that this attachment refers to
+     */
+    attribute AString formatType;
+
+    /**
+     * The encoding the (local) file should be encoded with.
+     */
+    attribute AUTF8String encoding;
+
+    /**
+     * The item this attachment is related to
+     */
+    attribute calIItemBase item;
+
+    /**
+     * The calIIcalProperty corresponding to this object.  Can be used for
+     * serializing/unserializing from ics files.
+     */
+    attribute calIIcalProperty icalProperty;
+
+    /**
+     * For accessing additional parameters, such as x-params.
+     */
+    AUTF8String getParamater(in AString name);
+    void setParamater(in AString name, in AUTF8String value);
+    void deleteParameter(in AString name);
 };

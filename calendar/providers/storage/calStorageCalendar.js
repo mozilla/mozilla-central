@@ -27,6 +27,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Sebastian Schwieger <sebo.moz@googlemail.com>
+ *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -98,6 +99,7 @@ const CAL_ITEM_FLAG_HAS_PROPERTIES = 4;
 const CAL_ITEM_FLAG_EVENT_ALLDAY = 8;
 const CAL_ITEM_FLAG_HAS_RECURRENCE = 16;
 const CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32;
+const CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64;
 
 const USECS_PER_SECOND = 1000000;
 
@@ -844,7 +846,7 @@ calStorageCalendar.prototype = {
         this.mDB.executeSimpleSQL("INSERT INTO cal_calendar_schema_version VALUES(" + this.DB_SCHEMA_VERSION + ")");
     },
 
-    DB_SCHEMA_VERSION: 10,
+    DB_SCHEMA_VERSION: 11,
 
     /** 
      * @return      db schema version
@@ -1132,6 +1134,22 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (oldVersion < 11) {
+            this.mDB.beginTransaction();
+            try {
+                this.mDB.createTable("cal_attachments", sqlTables.cal_attachments);
+
+                // update schema
+                this.mDB.executeSimpleSQL("UPDATE cal_calendar_schema_version SET version = 11;");
+                this.mDB.commitTransaction();
+                oldVersion = 11;
+            } catch (e) {
+                ERROR("Upgrade failed! DB Error: " + this.mDB.lastErrorString);
+                this.mDB.rollbackTransaction();
+                throw e;
+            }
+        }
+
         if (oldVersion != this.DB_SCHEMA_VERSION) {
             dump ("#######!!!!! calStorageCalendar Schema Update failed -- db version: " + oldVersion + " this version: " + this.DB_SCHEMA_VERSION + "\n");
             throw Components.results.NS_ERROR_FAILURE;
@@ -1389,6 +1407,12 @@ calStorageCalendar.prototype = {
             "ORDER BY recur_index"
             );
 
+        this.mSelectAttachmentsForItem = createStatement(
+            this.mDBTwo,
+            "SELECT * FROM cal_attachments " +
+            "WHERE item_id = :item_id "
+            );
+
         // insert statements
         this.mInsertEvent = createStatement (
             this.mDB,
@@ -1439,6 +1463,13 @@ calStorageCalendar.prototype = {
             "VALUES (:item_id, :recur_index, :recur_type, :is_negative, :dates, :count, :end_date, :interval, :second, :minute, :hour, :day, :monthday, :yearday, :weekno, :month, :setpos)"
             );
 
+        this.mInsertAttachment = createStatement (
+            this.mDB,
+            "INSERT INTO cal_attachments " + 
+            " (item_id, data, format_type, encoding) " +
+            "VALUES (:item_id, :data, :format_type, :encoding)"
+            );
+
         // delete statements
         this.mDeleteEvent = createStatement (
             this.mDB,
@@ -1460,9 +1491,13 @@ calStorageCalendar.prototype = {
             this.mDB,
             "DELETE FROM cal_recurrence WHERE item_id = :item_id"
             );
+        this.mDeleteAttachments = createStatement (
+            this.mDB,
+            "DELETE FROM cal_attachments WHERE item_id = :item_id"
+            );
 
         // These are only used when deleting an entire calendar
-        var extrasTables = [ "cal_attendees", "cal_properties", "cal_recurrence" ];
+        var extrasTables = [ "cal_attendees", "cal_properties", "cal_recurrence", "cal_attachments"];
 
         this.mDeleteEventExtras = new Array();
         this.mDeleteTodoExtras = new Array();
@@ -1847,6 +1882,18 @@ calStorageCalendar.prototype = {
             }
         }
 
+        if (flags & CAL_ITEM_FLAG_HAS_ATTACHMENTS) {
+            var selectAttachment = this.mSelectAttachmentsForItem;
+            selectAttachment.params.item_id = item.id;
+
+            while (selectAttachment.step()) {
+                var row = selectAttachment.row;
+                var attachment = this.getAttachmentFromRow(row);
+                item.addAttachment(attachment);
+            }
+            selectAttachment.reset();
+        }
+
         // Restore the saved modification time
         item.setProperty("LAST-MODIFIED", savedLastModifiedTime);
     },
@@ -1861,6 +1908,17 @@ calStorageCalendar.prototype = {
         a.participationStatus = row.status;
         a.userType = row.type;
 
+        return a;
+    },
+
+    getAttachmentFromRow: function (row) {
+        var a = createAttachment();
+       
+        // TODO we don't support binary data here, libical doesn't either.
+        a.uri = makeURL(row.data);
+        a.formatType = row.format_type;
+        a.encoding = row.encoding;
+    
         return a;
     },
 
@@ -2175,7 +2233,20 @@ calStorageCalendar.prototype = {
     },
 
     writeAttachments: function (item, olditem) {
-        // XXX write me?
+        var attachments = item.getAttachments({});
+        if (attachments && attachments.length > 0) {
+            for each (att in attachments) {
+                var ap = this.mInsertAttachment.params;
+                ap.item_id = item.id;
+                ap.data = att.uri.spec;
+                ap.format_type = att.formatType;
+                ap.encoding = att.encoding;
+
+                this.mInsertAttachment.execute();
+                this.mInsertAttachment.reset();
+            }
+            return CAL_ITEM_FLAG_HAS_ATTACHMENTS;
+        }
         return 0;
     },
 
@@ -2192,6 +2263,7 @@ calStorageCalendar.prototype = {
             this.mDeleteRecurrence(aID);
             this.mDeleteEvent(aID);
             this.mDeleteTodo(aID);
+            this.mDeleteAttachments(aID);
             if (!hasGuardingTransaction) {
                 this.mDB.commitTransaction();
             }
@@ -2241,6 +2313,7 @@ var sqlTables = {
     /*  CAL_ITEM_FLAG_EVENT_ALLDAY = 8 */
     /*  CAL_ITEM_FLAG_HAS_RECURRENCE = 16 */
     /*  CAL_ITEM_FLAG_HAS_EXCEPTIONS = 32 */
+    /*  CAL_ITEM_FLAG_HAS_ATTACHMENTS = 64 */
     "	flags		INTEGER," +
     /*  Event bits */
     "	event_start	INTEGER," +
@@ -2344,6 +2417,13 @@ var sqlTables = {
     "	recurrence_id_tz	TEXT," +
     "	key		TEXT," +
     "	value		BLOB" +
+    "",
+
+  cal_attachments:
+    "   item_id         TEXT," +
+    "   data            BLOB," +
+    "   format_type     TEXT," +
+    "   encoding        TEXT" +
     ""
 
 };

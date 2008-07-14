@@ -48,7 +48,11 @@
           xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <binding id="attendees-list">
     <content>
-      <xul:listbox anonid="listbox" seltype="multiple" rows="-1" flex="1">
+      <xul:listbox anonid="listbox"
+                   seltype="multiple"
+                   class="listbox-noborder"
+                   rows="-1"
+                   flex="1">
         <xul:listcols>
           <xul:listcol/>
           <xul:listcol flex="1"/>

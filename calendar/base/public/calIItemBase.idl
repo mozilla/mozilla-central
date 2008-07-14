@@ -1,4 +1,3 @@
-/* -*- Mode: idl; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -40,8 +39,6 @@
 
 #include "nsISupports.idl"
 
-interface nsIArray;
-interface nsIMutableArray;
 interface nsISimpleEnumerator;
 interface nsIVariant;
 
@@ -57,6 +54,8 @@ interface calIRecurrenceInfo;
 
 interface calIAttendee;
 
+interface calIAttachment;
+
 interface calIIcalComponent;
 
 //
@@ -65,7 +64,7 @@ interface calIIcalComponent;
 // Base for Events, Todos, Journals, etc.
 //
 
-[scriptable, uuid(18521d75-346d-4616-8778-de2c4a9a676e)]
+[scriptable, uuid(c2a21f8c-9de6-47d5-912b-d1c423ea5f2e)]
 interface calIItemBase : nsISupports
 {
   // returns true if this thing is able to be modified;
@@ -178,11 +177,6 @@ interface calIItemBase : nsISupports
   attribute calIRecurrenceInfo recurrenceInfo;
   readonly attribute calIDateTime recurrenceStartDate;
 
-  // attachments
-  // array of nsIMsgAttachment
-  // if this item is mutable, the returned array will be a nsIMutableArray
-  readonly attribute nsIArray attachments;
-
   // 
   // All event properties are stored in a property bag;
   // some number of these are "promoted" to top-level
@@ -262,6 +256,15 @@ interface calIItemBase : nsISupports
   void removeAttendee(in calIAttendee attendee);
   void addAttendee(in calIAttendee attendee);
   void removeAllAttendees();
+
+  //
+  // Attachments
+  //
+  void getAttachments(out PRUint32 count,
+                      [array,size_is(count),retval] out calIAttachment attachments);
+  void removeAttachment(in calIAttachment attachment);
+  void addAttachment(in calIAttachment attachment);
+  void removeAllAttachments();
 
   //
   // Occurrence querying

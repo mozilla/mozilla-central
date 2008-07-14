@@ -264,7 +264,6 @@ calItemBase.prototype = {
 
         m.mDirty = false;
 
-        // these need fixing
         m.mAttachments = this.mAttachments;
 
         // Clone any alarm info that exists, set it to null if it doesn't
@@ -475,6 +474,40 @@ calItemBase.prototype = {
         this.modify();
         this.mAttendees = this.getAttendees({});
         this.mAttendees.push(attendee);
+        // XXX ensure that the attendee isn't already there?
+    },
+ 
+    getAttachments: function cIB_getAttachments(aCount) {
+        if (this.mAttachments) {
+            aCount.value = this.mAttachments.length;
+            return this.mAttachments.concat([]);
+        } else {
+            aCount.value = 0;
+            return [];
+        }
+    },
+
+    removeAttachment: function (aAttachment) {
+        this.modify();
+        for (var attIndex in this.mAttachments) {
+            if (this.mAttachments[attIndex].uri.spec == aAttachment.uri.spec) {
+                this.modify();
+                this.mAttachments.splice(attIndex, 1);
+                break;
+            }
+        }
+    },
+
+    addAttachment: function (attachment) {
+        this.modify();
+        this.mAttachments = this.getAttachments({});
+        this.mAttachments.push(attachment);
+        // XXX ensure that the attachment isn't already there?
+    },
+
+    removeAllAttachments: function () {
+        this.modify();
+        this.mAttachments = [];
     },
 
     mCalendar: null,
@@ -533,6 +566,7 @@ calItemBase.prototype = {
         "EXDATE": true,
         "RDATE": true,
         "ATTENDEE": true,
+        "ATTACH": true,
         "ORGANIZER": true,
         "RECURRENCE-ID": true
     },
@@ -578,6 +612,15 @@ calItemBase.prototype = {
             var att = new CalAttendee();
             att.icalProperty = attprop;
             this.addAttendee(att);
+        }
+
+        for (var attprop = icalcomp.getFirstProperty("ATTACH");
+             attprop;
+             attprop = icalcomp.getNextProperty("ATTACH")) {
+
+            var att = createAttachment();
+            att.icalProperty = attprop;
+            this.addAttachment(att);
         }
 
         var orgprop = icalcomp.getFirstProperty("ORGANIZER");
@@ -709,6 +752,10 @@ calItemBase.prototype = {
           }
         }
 
+        for each (var att in this.mAttachments) {
+            icalcomp.addProperty(att.icalProperty);
+        }
+
         if (this.mRecurrenceInfo) {
             var ritems = this.mRecurrenceInfo.getRecurrenceItems({});
             for (i in ritems) {
@@ -779,7 +826,6 @@ makeMemberAttr(calItemBase, "STATUS", null, "status", true);
 makeMemberAttr(calItemBase, "ALARMTIME", null, "alarmTime", true);
 
 makeMemberAttr(calItemBase, "mRecurrenceInfo", null, "recurrenceInfo");
-makeMemberAttr(calItemBase, "mAttachments", null, "attachments");
 makeMemberAttr(calItemBase, "mProperties", null, "properties");
 
 function makeMemberAttr(ctor, varname, dflt, attr, asProperty)

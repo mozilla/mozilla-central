@@ -68,7 +68,11 @@
       <row/>
     </rows>
     <columns>
-      <listbox id="reminder-listbox" seltype="single" onselect="onReminderSelected()" flex="1">
+      <listbox id="reminder-listbox"
+               seltype="single"
+               class="event-dialog-listbox"
+               onselect="onReminderSelected()"
+               flex="1">
         <listitem/>
       </listbox>
       <column>

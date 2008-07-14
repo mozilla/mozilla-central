@@ -21,6 +21,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Fred Jendrzejewski <fred.jen@web.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -48,7 +49,7 @@ var gIsReadOnly = false;
 var gUserID = null;
 var gOrganizerID = null;
 var gPrivacy = null;
-var gURL = null;
+var gAttachMap = {};
 var gPriority = 0;
 var gStatus = "NONE";
 var gDictCount = 0;
@@ -284,9 +285,16 @@ function loadDialog(item) {
 
     categoryMenuList.selectedIndex = indexToSelect;
 
-    // URL
-    gURL = item.getProperty("URL");
-    updateDocument();
+    // Attachment
+    var hasAttachments = capSupported("attachments");
+    var attachments = item.getAttachments({});
+    if (hasAttachments && attachments && attachments.length > 0) {
+        for each (var attachment in attachments) {
+            addAttachment(attachment);
+        }
+    } else {
+        updateAttachment();
+    }
 
     // Description
     setElementValue("item-description", item.getProperty("DESCRIPTION"));
@@ -710,8 +718,14 @@ function saveDialog(item) {
 
     setCategory(item, "item-categories");
 
-    // URL
-    setItemProperty(item, "URL", gURL, "attachments");
+    // Attachment
+    // We want the attachments to be up to date, remove all first.
+    item.removeAllAttachments();
+
+    // Now add back the new ones
+    for each (var att in gAttachMap) {
+        item.addAttachment(att);
+    }
 
     // Description
     setItemProperty(item, "DESCRIPTION", getElementValue("item-description"));
@@ -1300,30 +1314,214 @@ function updateShowTimeAs() {
                             gShowTimeAs == "TRANSPARENT" ? "true" : "false");
 }
 
-function editURL() {
+function attachURL() {
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                        .getService(Components.interfaces.nsIPromptService);
     if (promptService) {
         // ghost in an example...
-        if (!gURL) {
-            gURL = "http://www.example.com";
-        }
-        var result = { value: gURL };
-        if (promptService.prompt(
-            window,
-            calGetString("sun-calendar-event-dialog", "specifyLinkLocation"),
-            calGetString("sun-calendar-event-dialog", "enterLinkLocation"),
-            result,
-            null,
-            { value: 0 })) {
-            var url = result.value;
-            // The user might have just put in 'www.foo.com', correct that here
-            if (url != "" && url.indexOf( ":" ) == -1) {
-                url = "http://" + url;
+        var result = { value: "http://" };
+        if (promptService.prompt(window,
+                                 calGetString("sun-calendar-event-dialog",
+                                              "specifyLinkLocation"),
+                                 calGetString("sun-calendar-event-dialog",
+                                              "enterLinkLocation"),
+                                 result,
+                                 null,
+                                 { value: 0 })) {
+            
+            try {
+                // If something bogus was entered, makeURL may fail.
+                var attachment = createAttachment();
+                attachment.uri = makeURL(result.value);
+                addAttachment(attachment);
+            } catch (e) {
+                // TODO We might want to show a warning instead of just not
+                // adding the file
             }
-            gURL = url;
-            updateDocument();
         }
+    }
+}
+
+
+/**
+ * This function is currently unused, since we don't support attaching files as
+ * binary. This code can be used as soon as this works.
+ */
+function attachFile() {
+    var files;
+    try {
+        const nsIFilePicker = Components.interfaces.nsIFilePicker;
+        var fp = Components.classes["@mozilla.org/filepicker;1"]
+                           .createInstance(nsIFilePicker);
+        fp.init(window,
+                calGetString("sun-calendar-event-dialog", "selectAFile"),
+                nsIFilePicker.modeOpenMultiple);
+  
+        // Check for the last directory 
+        var lastDir = lastDirectory();
+        if (lastDir) {
+            fp.displayDirectory = lastDir;
+        }
+ 
+        // Get the attachment
+        if (fp.show() == nsIFilePicker.returnOK) {
+            files = fp.files;
+        }
+    } catch (ex) {
+        dump("failed to get attachments: " +ex+ "\n");  
+    }
+  
+    // Check if something has to be done
+    if (!files || !files.hasMoreElements()) {
+        return;
+    }
+
+    // Create the attachment
+    while (files.hasMoreElements()) {
+        var file = files.getNext().QueryInterface(Components.interfaces.nsILocalFile);
+
+        var fileHandler = getIOService().getProtocolHandler("file")
+                                        .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
+        var uriSpec = fileHandler.getURLSpecFromFile(file);
+
+        if (!(uriSpec in gAttachMap)) {
+            // If the attachment hasn't been added, then set the last display
+            // directory.
+            lastDirectory(uriSpec);
+
+            // ... and add the attachment.
+            var attachment = createAttachment();
+            attachment.uri = makeURL(uriSpec);
+            // TODO: set the formattype, but this isn't urgent as we don't have
+            // a type sensitive dialog to start files.
+            addAttachment(attachment);
+        }
+    } 
+}
+
+function lastDirectory(aFileUri) {
+    if (aFileUri) {
+        // Act similar to a setter, save the passed uri.
+        var uri = makeURL(aFileUri);
+        var file = uri.QueryInterface(Components.interfaces.nsIFileURL).file;
+        lastDirectory.mValue = file.parent.QueryInterface(Components.interfaces.nsILocalFile);
+    }
+    
+    // In any case, return the value
+    return (lastDirectory.mValue !== undefined ? lastDirectory.mValue : null);
+}
+
+function makePrettyName(aUri){
+    var name = aUri.spec;
+    if (aUri.schemeIs("file")) {
+        name = aUri.spec.split("/").pop(); 
+    } else if (aUri.schemeIs("http")) {
+        name = aUri.spec.replace(/\/$/, "").replace(/^http:\/\//, "");
+    }
+    return name;
+}
+
+function addAttachment(attachment) {
+    if (!attachment ||
+        !attachment.uri ||
+        attachment.uri.spec in gAttachMap) {
+        return;
+    }
+
+    var documentLink = document.getElementById("attachment-link");
+    var item = documentLink.appendChild(createXULElement("listitem"));
+
+    // Set listitem attributes
+    item.setAttribute("label", makePrettyName(attachment.uri));
+    item.setAttribute("crop", "end");
+    item.setAttribute("class", "listitem-iconic");
+    if (attachment.uri.schemeIs("file")) {
+        item.setAttribute("image", "moz-icon://" + attachment.uri);
+    } else {
+        item.setAttribute("image", "moz-icon://dummy.html");
+    }
+
+    // full attachment object is stored here
+    item.attachment = attachment; 
+
+    // Update the number of rows and save our attachment globally
+    documentLink.rows = documentLink.getRowCount();
+    gAttachMap[attachment.uri.spec] = attachment;
+    updateAttachment();
+}
+
+function deleteAttachment() {
+    var documentLink = document.getElementById("attachment-link");
+    delete gAttachMap[documentLink.selectedItem.attachment.uri.spec];
+    documentLink.removeItemAt(documentLink.selectedIndex);
+    updateAttachment();
+}
+
+function deleteAllAttachments() {
+    var documentLink = document.getElementById("attachment-link");
+    var itemCount = documentLink.getRowCount();
+    var ok = (itemCount < 2);
+
+    if (itemCount > 1) {
+        var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+                                      .getService(Components.interfaces.nsIPromptService);
+        ok = promptService.confirm(window,
+                                       calGetString("sun-calendar-event-dialog",
+                                                    "removeCalendarsTitle"),
+                                       calGetString("sun-calendar-event-dialog",
+                                                    "removeCalendarsText",
+                                                    [itemCount]),
+                                       {});
+    }
+
+    if (ok) {
+        var child;  
+        var documentLink = document.getElementById("attachment-link");
+        while (documentLink.hasChildNodes()) {
+            child = documentLink.removeChild(documentLink.lastChild);
+            child.attachment = null;
+        }
+        gAttachMap = {};
+    }
+    updateAttachment();
+}
+
+function openAttachment() {
+    // Only one file has to be selected and we don't handle base64 files at all
+    var documentLink = document.getElementById("attachment-link");
+    if (documentLink.selectedItems.length == 1) {
+        var attURI = documentLink.getSelectedItem(0).attachment.uri;
+        var externalLoader = Components.classes["@mozilla.org/uriloader/external-protocol-service;1"]
+                                       .getService(Components.interfaces.nsIExternalProtocolService);
+        // TODO There should be a nicer dialog
+        externalLoader.loadUrl(attURI);   
+    }
+}
+
+function attachmentLinkKeyPress(event) {
+    const kKE = Components.interfaces.nsIDOMKeyEvent;
+    switch (event.keyCode) {
+        case kKE.DOM_VK_BACK_SPACE:
+        case kKE.DOM_VK_DELETE:
+            deleteAttachment();
+            break;
+        case kKE.DOM_VK_ENTER:
+            openAttachment();
+            break;
+    }
+}
+
+function attachmentLinkClicked(event) {
+    event.currentTarget.focus();
+
+    if (event.button != 0) {
+        return;
+    }
+
+    if (event.originalTarget.localName == "listboxbody") {
+        attachURL();
+    } else if (event.originalTarget.localName == "listitem" && event.detail == 2) {
+        openAttachment();
     }
 }
 
@@ -2114,25 +2312,27 @@ function updateTimezone() {
     }
 }
 
-function updateDocument() {
+function updateAttachment() {
     var hasAttachments = capSupported("attachments");
-    setElementValue("cmd_url", !hasAttachments && "true", "disabled");
+    setElementValue("cmd_attach_url", !hasAttachments && "true", "disabled");
 
-    var documentRow = document.getElementById("event-grid-document-row");
-    if (!hasAttachments || !gURL || gURL == "") {
-        documentRow.setAttribute('collapsed', 'true');
+    var documentRow = document.getElementById("event-grid-attachment-row");
+    var attSeparator = document.getElementById("event-grid-attachment-separator");
+    var documentButton = document.getElementById("button-url");
+    var attOption = document.getElementById("options-attachments-menuitem");
+    if (!hasAttachments) {
+        documentButton.setAttribute("disabled", "true");
+        attOption.setAttribute("disabled", "true");
+        documentRow.setAttribute("collapsed", "true");
+        attSeparator.setAttribute("collapsed", "true");
     } else {
-        documentRow.removeAttribute('collapsed');
-        var documentLink = document.getElementById("document-link");
-        var callback = function func() {
-            documentLink.setAttribute('value', gURL);
-        }
-        setTimeout(callback, 1);
-    }
-}
+        documentButton.removeAttribute("disabled");
+        attOption.removeAttribute("disabled");
 
-function browseDocument() {
-    launchBrowser(gURL);
+        var documentLink = document.getElementById("attachment-link");
+        setElementValue(documentRow, documentLink.getRowCount() < 1 && "true", "collapsed");
+        setElementValue(attSeparator, documentLink.getRowCount() < 1 && "true", "collapsed");
+    }
 }
 
 function updateAttendees() {
@@ -2368,7 +2568,7 @@ function sendMailToAttendees(aAttendees) {
  * Make sure all fields that may have calendar specific capabilities are updated
  */
 function updateCapabilities() {
-    updateDocument();
+    updateAttachment();
     updatePriority();
     updatePrivacy();
 }

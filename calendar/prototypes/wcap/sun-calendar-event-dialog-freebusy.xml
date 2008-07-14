@@ -254,6 +254,7 @@
   <binding id="freebusy-timebar" extends="xul:box">
     <content>
       <xul:listbox anonid="listbox"
+                   class="listbox-noborder"
                    seltype="multiple"
                    rows="1"
                    flex="1"
@@ -1000,6 +1001,7 @@
   <binding id="freebusy-grid">
     <content>
       <xul:listbox anonid="listbox"
+                   class="listbox-noborder"
                    seltype="multiple"
                    rows="-1"
                    disabled="true"

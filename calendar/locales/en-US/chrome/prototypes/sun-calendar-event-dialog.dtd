@@ -23,6 +23,7 @@
    -   Stefan Sitter <ssitter@gmail.com>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
    -   Hubert Gajewski <hubert@hubertgajewski.com>, Aviary.pl
+   -   Fred Jendrzejewski <fred.jen@web.de>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -86,6 +87,8 @@
 
 <!ENTITY  event.menu.options.label                            "Options">
 <!ENTITY  event.menu.options.accesskey                        "O">
+<!ENTITY  event.menu.options.attachments.label                "Attach Webpage…">
+<!ENTITY  event.menu.options.attachments.accesskey            "W">
 <!ENTITY  event.menu.options.attendees.label                  "Invite Attendees…">
 <!ENTITY  event.menu.options.attendees.accesskey              "I">
 <!ENTITY  event.menu.options.spellcheck.label                 "Check Spelling…">
@@ -142,7 +145,7 @@
 <!ENTITY  event.toolbar.attendees.label                   "Invite Attendees">
 <!ENTITY  event.toolbar.spellcheck.label                  "Spellcheck">
 <!ENTITY  event.toolbar.privacy.label                     "Privacy">
-<!ENTITY  event.toolbar.link.label                        "Add Link">
+<!ENTITY  event.toolbar.attachments.label                 "Attach">
 
 <!-- Main page -->
 <!ENTITY event.title.textbox.label                        "Title:" >
@@ -173,10 +176,16 @@
 <!ENTITY event.reminder.accesskey                         "m">
 <!ENTITY event.description.label                          "Description:" >
 <!ENTITY event.description.accesskey                      "p">
-<!ENTITY event.link.label                                 "Link:" >
-<!ENTITY event.link.accesskey                             "k" >
-<!ENTITY event.link.change.label                          "Change…" >
-<!ENTITY event.link.change.accesskey                      "g" >
+<!ENTITY event.attachments.label                          "Attachments:" >
+<!ENTITY event.attachments.accesskey                      "h" >
+<!ENTITY event.attachments.popup.remove.label             "Remove" >
+<!ENTITY event.attachments.popup.remove.accesskey         "R" >
+<!ENTITY event.attachments.popup.open.label               "Open" >
+<!ENTITY event.attachments.popup.open.accesskey           "O" >
+<!ENTITY event.attachments.popup.removeAll.label          "Remove All" >
+<!ENTITY event.attachments.popup.removeAll.accesskey      "A" >
+<!ENTITY event.attachments.popup.attachPage.label         "Attach Webpage…" >
+<!ENTITY event.attachments.popup.attachPage.accesskey     "W" >
 <!ENTITY event.priority2.label                            "Priority:">
 
 <!ENTITY event.reminder.none.label                        "No reminder " >
