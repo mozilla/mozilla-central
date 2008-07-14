@@ -214,10 +214,6 @@ try {
             }
         }
     }
-    // rest needs to be removed:
-    for each (var p in localeProps) {
-        print("remove " + p);
-    }
     print("---\n\n");
 
     // then read old set:
@@ -281,8 +277,16 @@ try {
             newSet[tzid] = newTz;
         } else { // takeover old component:
             newSet[tzid] = oldTz;
+            delete localeProps[tzid]; // don't remove from locale props
         }
     }
+
+    // rest needs to be removed:
+    print("\n\nChanges needed for " + bundleFile.path + ":\n---");
+    for each (var p in localeProps) {
+        print("remove " + p);
+    }
+    print("---\n\n");
 
     // finally write tz db:
     db.executeSimpleSQL("DROP TABLE tz_data");
@@ -317,7 +321,7 @@ try {
     } finally {
         statement.reset();
     }
-    db.executeSimpleSQL("UPDATE tz_version SET version = '" + arguments[2] + + "'");
+    db.executeSimpleSQL("UPDATE tz_version SET version = '" + arguments[2] + "'");
 
 // for future schema upgrades:
 //     db.executeSimpleSQL("UPDATE tz_schema_version SET version = 2");
