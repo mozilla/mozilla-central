@@ -253,6 +253,7 @@ calGoogleCalendar.prototype = {
     getProperty: function cGC_getProperty(aName) {
         switch (aName) {
             // Capabilities
+            case "timezones.floating.supported":
             case "capabilities.attachments.supported":
             case "capabilities.priority.supported":
             case "capabilities.tasks.supported":
@@ -323,8 +324,7 @@ calGoogleCalendar.prototype = {
                 }
             };
 
-            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
-            request.addQueryParameter("ctz", ctz);
+            request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
 
             this.session.asyncItemRequest(request);
             return request;
@@ -413,8 +413,7 @@ calGoogleCalendar.prototype = {
                 }
             };
 
-            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
-            request.addQueryParameter("ctz", ctz);
+            request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
 
             this.session.asyncItemRequest(request);
             return request;
@@ -517,8 +516,7 @@ calGoogleCalendar.prototype = {
             };
 
             // Request Parameters
-            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
-            request.addQueryParameter("ctz", ctz);
+            request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
             request.addQueryParameter("max-results", kMANY_EVENTS);
             request.addQueryParameter("singleevents", "false");
 
@@ -587,8 +585,7 @@ calGoogleCalendar.prototype = {
             request.itemFilter = aItemFilter;
 
             // Request Parameters
-            var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
-            request.addQueryParameter("ctz", ctz);
+            request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
             request.addQueryParameter("max-results",
                                       aCount ? aCount : kMANY_EVENTS);
             request.addQueryParameter("singleevents", "false");
@@ -732,7 +729,7 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+            var timezone = getTimezoneService().getTimezone(timezoneString);
 
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try
@@ -831,7 +828,7 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+            var timezone = getTimezoneService().getTimezone(timezoneString);
 
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try
@@ -1066,8 +1063,7 @@ calGoogleCalendar.prototype = {
         request.calendar = this;
 
         // Request Parameters
-        var ctz = gdataTimezoneProvider.getShortTimezone(calendarDefaultTimezone());
-        request.addQueryParameter("ctz", ctz);
+        request.addQueryParameter("ctz", calendarDefaultTimezone().tzid);
         request.addQueryParameter("max-results", kMANY_EVENTS);
         request.addQueryParameter("singleevents", "false");
 
@@ -1110,7 +1106,7 @@ calGoogleCalendar.prototype = {
             // filter out the <?xml...?> part.
             var xml = new XML(aData.substring(38));
             var timezoneString = xml.gCal::timezone.@value.toString() || "UTC";
-            var timezone = gdataTimezoneProvider.getTimezone(timezoneString);
+            var timezone = getTimezoneService().getTimezone(timezoneString);
 
             // This line is needed, otherwise the for each () block will never
             // be entered. It may seem strange, but if you don't believe me, try

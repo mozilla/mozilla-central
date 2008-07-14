@@ -367,9 +367,7 @@ calGoogleSession.prototype = {
         } catch (e) {
             // If something went wrong, reset the login state just in case
             this.mLoggingIn = false;
-            LOG({action:"Error Logging In",
-                 result: e.result,
-                 message: e.message});
+            LOG("Error Logging In: " + e);
 
             // If something went wrong, then this.loginComplete should handle
             // the error. We don't need to take care of the request that

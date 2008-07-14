@@ -127,62 +127,6 @@ function getCalendarCredentials(aCalendarName,
                              aSavePassword);
 }
 
-var gdataTimezoneProvider = {
-    QueryInterface: function gTP_QueryInterface(aIID) {
-        return doQueryInterface(this,
-                                gdataTimezoneProvider.prototype,
-                                aIID,
-                                [Components.interfaces.nsISupports,
-                                 Components.interfaces.calITimezoneProvider]);
-    },
-
-    get timezoneIds gTP_getTimezoneIds() {
-        // I hope we can lazily get away with not implementing this, otherwise
-        // we would have to strip the tzPrefix from each timezone the timezone
-        // service provides.
-        throw Components.results.NS_ERROR_NOT_IMPLEMENTED;
-    },
-
-    /**
-     * getTimzone
-     * Returns a calITimezone from the timezone service that corresponds to the
-     * given short timezone passed.
-     */
-    getTimezone: function gTP_getTimezone(aTzid) {
-        ASSERT(aTzid, "No timezone passed", true);
-        if (aTzid== "floating") {
-            return floating();
-        } else if (aTzid == "UTC") {
-            return UTC();
-        }
-
-        var tzService = getTimezoneService();
-        var tz = tzService.getTimezone(aTzid);
-        return tz || floating();
-    },
-
-    /**
-     * getShortTimezone
-     * Returns the last two components of the passed timezone's tzid. If the
-     * timezone is UTC or floating, Europe/London will be returned
-     *
-     * @param aLongTZ   A Vendor specific timezone
-     * @return          The short representation of the timezone
-     */
-    getShortTimezone: function gTP_getShortTimezone(aLongTZ) {
-        if (!aLongTZ || aLongTZ.isUTC || aLongTZ.isFloating) {
-            // We require a shortname that works with google's ICS. UTC and floating
-            // don't work, so we will just take London.
-            return "Europe/London";
-        }
-
-        // Return the last two components from the TZID
-        var re = new RegExp("([^/]+/[^/]+)$");
-        var matches = re.exec(aLongTZ.tzid);
-        return (matches ? matches[1] : null);
-    }
-};
-
 /**
  * Gets the date and time that Google's http server last sent us. Note the
  * passed argument is modified. This might not be the exact server time (i.e it
@@ -610,8 +554,8 @@ function ItemToXMLEntry(aItem, aAuthorEmail, aAuthorName) {
             var recurrenceItems = aItem.recurrenceInfo.getRecurrenceItems({});
 
             // Dates of the master event
-            var startTZID = gdataTimezoneProvider.getShortTimezone(aItem.startDate.timezone);
-            var endTZID = gdataTimezoneProvider.getShortTimezone(aItem.endDate.timezone);
+            var startTZID = aItem.startDate.timezone.tzid;
+            var endTZID = aItem.endDate.timezone.tzid;
             icalString = "DTSTART;TZID=" + startTZID
                          + ":" + aItem.startDate.icalString + kNEWLINE
                          + "DTEND;TZID=" + endTZID
@@ -943,7 +887,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             vevent = "BEGIN:VEVENT\n" + vevent + "END:VEVENT";
             var icsService = getIcsService();
 
-            var rootComp = icsService.parseICS(vevent, gdataTimezoneProvider);
+            var rootComp = icsService.parseICS(vevent, null);
             var prop = rootComp.getFirstProperty("ANY");
             var i = 0;
             var hasRecurringRules = false;

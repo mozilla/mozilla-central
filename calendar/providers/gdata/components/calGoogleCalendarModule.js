@@ -44,6 +44,7 @@ var g_classInfo = {
             var ifaces = [
                 Components.interfaces.nsISupports,
                 Components.interfaces.calICalendar,
+                Components.interfaces.calIGoogleCalendar,
                 Components.interfaces.calISchedulingSupport,
                 Components.interfaces.calIChangeLog,
                 Components.interfaces.nsIClassInfo
