@@ -2479,6 +2479,13 @@ InternetSearchDataSource::GetInternetSearchURL(const char *searchEngineURI,
       return(rv);
   if (NS_FAILED(rv = GetInputs(dataUni, name, userVar, text, input, direction, pageNumber, whichButtons)))
       return(rv);
+  // if the search string is null add a placeholder for the search string
+  if (!searchStr)
+  {
+    input.Append(input.IsEmpty() ? '?' : '&');
+    input.Append(userVar);
+    input.Append('=');
+  }
   if (input.IsEmpty())        return(NS_ERROR_UNEXPECTED);
 
   // we can only handle HTTP GET
