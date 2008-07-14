@@ -771,8 +771,6 @@ nsSVGFEGaussianBlurElement::BoxBlurV(PRUint8 *aInput, PRUint8 *aOutput,
 PRUint8 *
 nsSVGFEGaussianBlurElement::SetupPredivide(PRUint32 size) const
 {
-  if (size >= PR_UINT32_MAX/256)
-    return nsnull;
   PRUint8 *tmp = new PRUint8[size * 256];
   if (tmp) {
     for (PRUint32 i = 0; i < 256; i++)
