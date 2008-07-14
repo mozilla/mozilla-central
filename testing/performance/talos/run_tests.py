@@ -236,10 +236,10 @@ def send_to_graph(results_server, results_link, title, date, browser_config, res
     if linkName in ('tp_pbytes', 'tp_%cpu'):
       continue
     if float(values[2]) > 0:
-      linkName += ":&nbsp;" + str(values[2])
+      linkName += ": " + str(values[2])
       url = url_format % (results_server, values[0])
       link = link_format % (url, linkName)
-      first_results = first_results + "\nRETURN:" + link + '<br>' 
+      first_results = first_results + "\nRETURN:" + link + "<br>"
     else:
       url = url_format % (results_server, values[0])
       link = link_format % (url, linkName)
