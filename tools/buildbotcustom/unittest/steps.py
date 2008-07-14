@@ -186,9 +186,9 @@ class MozillaCheck(ShellCommandReportTimeout):
         passCount = 0
         failCount = 0
         for line in log.readlines():
-            if "PASS" in line:
+            if "TEST-PASS" in line:
                 passCount = passCount + 1
-            if "FAIL" in line:
+            if "TEST-UNEXPECTED-" in line:
                 failCount = failCount + 1
         summary = "TinderboxPrint: TUnit<br/>" + str(passCount) + "/" + str(failCount) + "\n"
         self.addCompleteLog('summary', summary)
@@ -197,7 +197,7 @@ class MozillaCheck(ShellCommandReportTimeout):
         superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
-        if None != re.search('FAIL', cmd.logs['stdio'].getText()):
+        if None != re.search('TEST-UNEXPECTED-', cmd.logs['stdio'].getText()):
             return WARNINGS
         return SUCCESS
     
@@ -217,13 +217,13 @@ class MozillaReftest(ShellCommandReportTimeout):
                 continue
             if "IMAGE" in line:
                 continue
-            if "RESULT EXPECTED TO BE RANDOM" in line:
+            if "(EXPECTED RANDOM)" in line:
                 continue
             testCount += 1
-            if "UNEXPECTED" in line:
+            if "TEST-UNEXPECTED-" in line:
                 failCount += 1
                 continue
-            if "KNOWN FAIL" in line:
+            if "TEST-KNOWN-FAIL" in line:
                 knownFailCount += 1
             else:
                 passCount += 1
@@ -235,7 +235,7 @@ class MozillaReftest(ShellCommandReportTimeout):
         superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
-        if re.search('UNEXPECTED', cmd.logs['stdio'].getText()):
+        if re.search('TEST-UNEXPECTED-', cmd.logs['stdio'].getText()):
             return WARNINGS
         return SUCCESS
     
@@ -316,13 +316,11 @@ class MozillaMochitest(ShellCommandReportTimeout):
         superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
-        if re.search('ERROR FAIL', cmd.logs['stdio'].getText()):
-            return WARNINGS
-        if re.search('ERROR TODO WORKED', cmd.logs['stdio'].getText()):
+        if re.search('TEST-UNEXPECTED-', cmd.logs['stdio'].getText()):
             return WARNINGS
         if re.search('FAIL Exited', cmd.logs['stdio'].getText()):
             return WARNINGS
-        if not re.search('INFO PASS', cmd.logs['stdio'].getText()):
+        if not re.search('TEST-PASS', cmd.logs['stdio'].getText()):
             return WARNINGS
         return SUCCESS
 
@@ -372,11 +370,11 @@ class MozillaMochichrome(ShellCommandReportTimeout):
         superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
-        if re.search('ERROR FAIL', cmd.logs['stdio'].getText()):
+        if re.search('TEST-UNEXPECTED-', cmd.logs['stdio'].getText()):
             return WARNINGS
         if re.search('FAIL Exited', cmd.logs['stdio'].getText()):
             return WARNINGS
-        if not re.search('INFO PASS', cmd.logs['stdio'].getText()):
+        if not re.search('TEST-PASS', cmd.logs['stdio'].getText()):
             return WARNINGS
         return SUCCESS
     
@@ -427,7 +425,7 @@ class MozillaBrowserChromeTest(ShellCommandReportTimeout):
         superResult = ShellCommandReportTimeout.evaluateCommand(self, cmd)
         if SUCCESS != superResult:
             return WARNINGS
-        if re.search('FAIL -', cmd.logs['stdio'].getText()):
+        if re.search('TEST-UNEXPECTED-', cmd.logs['stdio'].getText()):
             return WARNINGS
         if re.search('FAIL Exited', cmd.logs['stdio'].getText()):
             return WARNINGS
