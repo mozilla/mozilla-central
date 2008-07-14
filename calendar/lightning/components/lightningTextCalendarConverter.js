@@ -50,16 +50,57 @@ function getLightningStringBundle()
     return svc.createBundle("chrome://lightning/locale/lightning.properties");
 }
 
-function createHtmlTableSection(label, text)
+function linkifyText(text) {
+    XML.ignoreWhitespace = false;
+    XML.prettyPrinting = false;
+    XML.prettyIndent = false;
+    var linkifiedText = <p/>;
+    var localText = text;
+
+    // XXX This should be improved to also understand abbreviated urls, could be
+    // extended to only linkify urls that have an internal protocol handler, or
+    // have an external protocol handler that has an app assigned. The same
+    // could be done for mailto links which are not handled here either.
+
+    while (localText.length) {
+        var pos = localText.search(/(^|\s+)([a-zA-Z0-9]+):\/\/[^\s]+/);
+        if (pos == -1) {
+            linkifiedText.appendChild(localText);
+            break;
+        }
+        pos += localText.substr(pos).match(/^\s*/)[0].length;
+        var endPos = pos + localText.substr(pos).search(/([.!,<>(){}]+)?(\s+|$)/);
+        var url = localText.substr(pos, endPos - pos);
+
+        if (pos > 0) {
+            linkifiedText.appendChild(localText.substr(0, pos));
+        }
+        var a = <a>{url}</a>;
+        a.@href = url;
+
+        linkifiedText.appendChild(a);
+
+        localText = localText.substr(endPos);
+    }
+    dump(linkifiedText.toXMLString());
+    return linkifiedText;
+}
+
+function createHtmlTableSection(label, text, linkify)
 {
     var tblRow = <tr>
                     <td class="description">
                         <p>{label}</p>
                     </td>
                     <td class="content">
-                        <p>{text}</p>
+                        <p/>
                     </td>
                  </tr>;
+    if (linkify) {
+        tblRow.td.(@class == "content").p = linkifyText(text);
+    } else {
+        tblRow.td.(@class == "content").p = text;
+    }
     return tblRow;
 }
 
@@ -132,13 +173,13 @@ function createHtml(event)
             var desc = eventDescription.replace("*~*~*~*~*~*~*~*~*~*", "");
 
             labelText = stringBundle.GetStringFromName("imipHtml.description");
-            html.body.table.appendChild(createHtmlTableSection(labelText,desc));
+            html.body.table.appendChild(createHtmlTableSection(labelText, desc, true));
         }
 
         var eventComment = event.getProperty("COMMENT");
         if (eventComment) {
             labelText = stringBundle.GetStringFromName("imipHtml.comment");
-            html.body.table.appendChild(createHtmlTableSection(labelText,eventComment));
+            html.body.table.appendChild(createHtmlTableSection(labelText,eventComment, true));
         }
     }
 
