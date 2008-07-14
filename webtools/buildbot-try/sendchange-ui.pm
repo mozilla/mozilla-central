@@ -203,8 +203,6 @@ function verify(form) {
     }
   }
 
-  alert("base type: " + baseType);
-
   if (baseType == "mozillacentral" || baseType == "cvstrunk" || form['mozilla-repo'].value == "$MOZILLA_REPO_PATH") {
     if (form.patchFile.value == "") {
       alert ("Patch file is required!");
