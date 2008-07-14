@@ -38,16 +38,16 @@ use MozBuild::Util qw(RunShellCommand MkdirWithPath);
 my $ST_INODE = 1;
 
 # where to retrieve files from -- make sure this has a trailing slash
-my $PATCHURL = "http://localhost/patches/";
+my $PATCHURL = "https://build.mozilla.org/patches/";
 # where the patches go
-my $PATCHDIR = ".";
+my $PATCHDIR = "patches/";
 # where to log errors
 my $LOGFILE = "downloader.log";
 
-my $PYTHON_PATH = "/usr/bin/python";
-my $BUILDBOT_PATH = "/usr/bin/buildbot";
-my $MASTER_HOST = "localhost:9989";
-my $PATCH_BRANCH = "PATCH_TRY";
+my $PYTHON_PATH = "/tools/python/bin/python";
+my $BUILDBOT_PATH = "/tools/buildbot/bin/buildbot";
+my $MASTER_HOST = "localhost:9982";
+my $CVS_BRANCH = "PATCH_TRY";
 my $HG_BRANCH = "HG_TRY";
 # if multiple patches are being this controls the delay between them
 # this value should be more than the treeStableTimer on the Scheduler
@@ -108,39 +108,45 @@ foreach my $file (@files) {
       die("Could not close info file: $file\nFailure message: $!\n");
 
     if (! exists $info{'processed'} || ! scalar($info{'processed'})) {
+        my $args = [$BUILDBOT_PATH, "sendchange",
+		    "--username", $info{'submitter'},
+		    "--master", $MASTER_HOST,
+		    "--comments", "$info{'description'}"];
+
+	my $required = [];
+	my $optional = [];
+
         if ($info{'type'} eq "patch") {
-            $rv = RunShellCommand(
-                command => $PYTHON_PATH,
-                args    => [$BUILDBOT_PATH, "sendchange",
-                            "--username", $info{'submitter'},
-                            "--master", $MASTER_HOST,
-                            "--branch", $PATCH_BRANCH,
-                            "--comments", "$info{'description'}",
-                            "mozconfig: $info{'mozconfig'}",
-                            "identifier: $info{'identifier'}",
-                            "branch: $info{'branch'}",
-                            "patchLevel: $info{'patchLevel'}",
-                            "patchFile: $info{'patchFile'}"]
-            );
-        }
-        elsif ($info{'type'} eq "hg") {
-            $rv = RunShellCommand(
-                command => $PYTHON_PATH,
-                args    => [$BUILDBOT_PATH, "sendchange",
-                            "--username", $info{'submitter'},
-                            "--master", $MASTER_HOST,
-                            "--branch", $HG_BRANCH,
-                            "--comments", "$info{'description'}",
-                            "mozconfig: $info{'mozconfig'}",
-                            "identifier: $info{'identifier'}",
-                            "mozillaRepoPath: $info{'mozillaRepoPath'}",
-                            "tamarinRepoPath: $info{'tamarinRepoPath'}"]
-            );
-        }
-        else {
-            print LOGFILE "Bad info file\n";
-        }
-       
+	    push @$args, "--branch", $CVS_BRANCH;
+	    push @$required, "mozconfig", "identifier", "branch", "patchLevel", "patchFile";
+	}
+	elsif ($info{'type'} eq "hg") {
+	    push @$args, "--branch", $HG_BRANCH;
+	    push @$required, "mozconfig", "identifier", "mozillaRepoPath";
+	    push @$optional, "tamarinRepoPath", "patchLevel", "patchFile";
+	}
+	else {
+	    print LOGFILE "Bad info file\n";
+	    die;
+	}
+
+	foreach my $arg (@$required) {
+	    if (!exists($info{$arg})) {
+		print LOGFILE "Missing arg '$arg' in info file\n";
+		die;
+	    }
+	    push @$args, "$arg: $info{$arg}";
+	}
+
+	foreach my $arg (@$optional) {
+	    if (exists($info{$arg})) {
+		push @$args, "$arg: $info{$arg}";
+	    }
+	}
+
+	$rv = RunShellCommand(command => $PYTHON_PATH,
+			      args    => $args);
+
         if (0 == $rv->{'exitValue'} && -1 == index($rv->{'output'}, "NOT")) {
             # sendchange succeeded
             open(INFO, ">>$infoFilename") ||

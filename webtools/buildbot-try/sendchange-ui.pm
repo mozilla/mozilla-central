@@ -38,13 +38,11 @@ my $MAINTENANCE_MODE = 0;
 # 10*1024*1024 is 10MB
 my $SIZE_LIMIT = 10*1024*1024;
 # the URL to the buildbot insntallation the patches will eventually go to
-my $BUILDBOT_URL = 'http://tinderbox.mozilla.org/MozillaTry/';
+my $BUILDBOT_URL = 'http://tinderbox.mozilla.org/showbuilds.cgi?tree=MozillaTry';
 # the URL to the sendchange.cgi script
-my $SENDCHANGE_URL = 'http://localhost/cgi-bin/sendchange.cgi';
+my $SENDCHANGE_URL = 'https://build.mozilla.org/sendchange.cgi';
 # the default path to the mozilla-central hg repository
 my $MOZILLA_REPO_PATH = 'http://hg.mozilla.org/mozilla-central';
-# the default path to the tamarin-central hg repository
-my $TAMARIN_REPO_PATH = 'http://hg.mozilla.org/tamarin-central';
 # the URL to the try server documentation
 my $DOCUMENTATION_URL = 'http://wiki.mozilla.org/Build:TryServer';
 
@@ -79,7 +77,6 @@ sub WritePage
     my $description = "";
     my $type = "patch";
     my $mozillaRepoPath = $MOZILLA_REPO_PATH;
-    my $tamarinRepoPath = $TAMARIN_REPO_PATH;
     my @err;
     if (exists $args{'patchLevel'} && $args{'patchLevel'} !~ /^\s*$/) {
         $patchLevel = $args{'patchLevel'};
@@ -99,10 +96,6 @@ sub WritePage
     if (exists $args{'mozillaRepoPath'} &&
       $args{'mozillaRepoPath'} !~ /^\s*$/) {
         $mozillaRepoPath = $args{'mozillaRepoPath'};
-    }
-    if (exists $args{'tamarinRepoPath'} &&
-      $args{'tamarinRepoPath'} ne "") {
-        $tamarinRepoPath = $args{'tamarinRepoPath'};
     }
     if (exists $args{'err'}) {
         @err = @{$args{'err'}};
@@ -132,7 +125,7 @@ sub WritePage
     text-align: left;
   }
 
-  #types {
+  #header {
     width: 75%;
     margin: 20px auto;
     border: 3px solid #AAA;
@@ -150,7 +143,7 @@ sub WritePage
     color: red;
   }
 
-  table {
+  #mainTable {
     margin-left: auto;
     margin-right: auto;
     width: 80%;
@@ -193,64 +186,54 @@ sub WritePage
     margin-right: auto;
   }
   
-  #patchfield {
+  .important {
     font-weight: bold;
     font-size: 140%;
   }
 
 </style>
 <script type="text/javascript">
-function disable(id) {
-    var element = document.getElementById(id);
-    element.disabled = "disabled";
-    element.style.backgroundColor = "#D4D0C8";
-}
+function verify(form) {
+  var baseType = null;
 
-function enable(id) {
-    var element = document.getElementById(id);
-    element.disabled = "";
-    element.style.backgroundColor = "white";
-}
+  for (var i = 0; i < form.baseType.length; i++) {
+    if (form.baseType[i].checked) {
+      baseType = form.baseType[i].value;
+      break;
+    }
+  }
 
-function show(id, displayType) {
-    var element = document.getElementById(id);
-    element.style.display = displayType;
-}
+  alert("base type: " + baseType);
 
-function hide(id) {
-    var element = document.getElementById(id);
-    element.style.display = "none";
-}
+  if (baseType == "mozillacentral" || baseType == "cvstrunk" || form['mozilla-repo'].value == "$MOZILLA_REPO_PATH") {
+    if (form.patchFile.value == "") {
+      alert ("Patch file is required!");
+      return false;
+    }
+  }
 
-function use_patchFile() {
-    hide("hgTable");
-    show("patchTable", "table");
-    document.getElementById("patch").checked = "checked";
-}
+  if (baseType == "mozillacentral") {
+    form["mozilla-repo"].value = "$MOZILLA_REPO_PATH";
+  }
 
-function use_hg() {
-    hide("patchTable");
-    show("hgTable", "table");
-    document.getElementById("hg").checked = "checked";
+  if (baseType == "mozillacentral" || baseType == "customhg") {
+    form["type"].value = "hg";
+  } else {
+    form["type"].value = "patch";
+  }
+
+  return true;
 }
 </script>
 </head>
 
-<body onload="
-__END_OF_HTML__
-    if ($type eq "patch") {
-        print 'use_patchFile(); ';
-    } elsif ($type eq "hg") {
-        print 'use_hg();'
-    }
-    # close the onload quotes and body tag
-    print '">';
-    print <<__END_OF_HTML__;
+<body>
 <form action="$SENDCHANGE_URL"
-      method="post" enctype="multipart/form-data">
+      method="post" enctype="multipart/form-data"
+      onsubmit="return verify(this);">
 <div id="main">
 
-<div id="types">
+<div id="header">
 __END_OF_HTML__
     if ($MAINTENANCE_MODE) {
         print '  <h2 style="text-align:center;">';
@@ -264,22 +247,30 @@ __END_OF_HTML__
   href="$DOCUMENTATION_URL">wiki page</a>.  For build status, check the <a
   href="$BUILDBOT_URL">tinderbox</a>.  Test builds are deleted after 30 days.</p>
   <p>Note: Uploaded patches must be less than 10240kB in size.</p>
-  <ul id="testType">
-    <li>
-    <input id="patch" name="type" value="patch" onclick="use_patchFile();"
-      type="radio">
-      <label for="patch">Upload a Patch</label>
-    </li>
-    <li>
-      <input id="hg" name="type" value="hg" onclick="use_hg();" type="radio">
-      <label for="hg">Test a Mercurial Repository</label>
-    </li>
-  </ul>
 </div>
 
-<table id="patchTable">
+<table id="mainTable">
   <tr>
-    <td class="lbl" id="patchfield"><label for="patchFile">Patch:</label></td>
+    <td class="lbl important">Source:</td>
+    <td class="field">
+      <table id="sourceTable">
+	<tr>
+	  <td valign="top"><input name="baseType" value="mozillacentral" type="radio" checked></td>
+	  <td><label for="mozillacentral"><a href="http://hg.mozilla.org/mozilla-central/">mozilla-central</a> Mercurial repository (patch required)</label></td>
+	</tr>
+	<tr>
+	  <td valign="top"><input name="baseType" value="customhg" type="radio"></td>
+	  <td><label for="customhg">Use another Mercurial repository: <input id="mozilla-repo" name="mozilla-repo" value="http://hg.mozilla.org/mozilla-central" type="text" size="45"></label></td>
+	</tr>
+	<tr>
+	  <td valign="top"><input name="baseType" value="cvstrunk" type="radio"></td>
+	  <td><label for="cvs">CVS Trunk (patch required)</label></td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td class="lbl important"><label for="patchFile">Patch:</label></td>
     <td class="field">
       <input id="patchFile" name="patchFile" type="file">
     </td>
@@ -307,30 +298,6 @@ __END_OF_HTML__
       <input id="branch" name="branch" type="text" value="$branch">
     </td>
   </tr>
-</table>
-
-<table id="hgTable">
-  <tr>
-    <td class="lbl">
-      <label for="mozilla-repo">Mozilla repository:</label>
-    </td>
-    <td class="field">
-      <input id="mozilla-repo" name="mozilla-repo" value="$mozillaRepoPath"
-        type="text">(required)
-    </td>
-  </tr>
-  <tr>
-    <td class="lbl">
-      <label for="tamarin-repo">Tamarin repository:</label>
-    </td>
-    <td class="field">
-      <input id="tamarin-repo" name="tamarin-repo" value="$tamarinRepoPath"
-        type="text">(required)
-    </td>
-  </tr>
-</table>
-
-<table id="allTable">
   <tr>
     <td class="lbl">
       <label for="identifier">Custom Identifier String</label><span id="identifierTooltip"
@@ -360,6 +327,8 @@ __END_OF_HTML__
     </td>
   </tr>
 </table>
+
+<input type="hidden" id="typeInput" name="type" value="patch">
 
 <p id="errors" class="alert">
 __END_OF_HTML__

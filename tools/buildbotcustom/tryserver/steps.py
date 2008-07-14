@@ -28,6 +28,7 @@ from time import localtime, strftime
 import re
 
 from twisted.python import log
+from twisted.internet import reactor
 
 from buildbot.steps.shell import ShellCommand
 from buildbot.steps.source import Mercurial
@@ -175,7 +176,7 @@ class MozillaPatchDownload(FileDownload):
 
     haltOnFailure = True
 
-    def __init__(self, patchDir=".", **kwargs):
+    def __init__(self, isOptional=False, patchDir=".", **kwargs):
         """arguments:
         @type  patchDir:    string
         @param patchDir:    The directory on the master that holds the patches
@@ -185,9 +186,11 @@ class MozillaPatchDownload(FileDownload):
                             Defaults to '.'
         'workdir' is assumed to be 'build' and should be passed if it is
         anything else.
+        'isOptional' is assumed to be False; if the patch is optional, pass True.
         """
 
         self.patchDir = patchDir
+        self.isOptional = isOptional
         # mastersrc and slavedest get overridden in start()
         if not 'workdir' in kwargs:
             kwargs['workdir'] = "build"
@@ -197,15 +200,19 @@ class MozillaPatchDownload(FileDownload):
         changes = self.step_status.build.getChanges()
 
         if len(changes) < 1:
-            return
+            return SKIPPED
 
         args = parseSendchangeArguments(changes[0].files)
+
+        if not 'patchFile' in args and self.isOptional:
+            return SKIPPED
 
         self.mastersrc = "%s/%s" % (self.patchDir, args['patchFile'])
         self.slavedest = "%s" % (args['patchFile'])
 
         # now that everything is set-up, download the file
         FileDownload.start(self)
+
 
 
 class MozillaUploadTryBuild(ShellCommand):
@@ -317,8 +324,13 @@ class MozillaCustomPatch(ShellCommand):
         """
         'workdir' is assumed to be 'build' and should be passed if it is
         anything else.
+        'isOptional' is assumed to be False; if the patch is optional, pass True.
         """
 
+        if 'isOptional' in kwargs:
+            self.optional = kwargs['isOptional']
+        else:
+            self.optional = False
         if not 'workdir' in kwargs:
             kwargs['workdir'] = "build"
         ShellCommand.__init__(self, **kwargs)
@@ -329,13 +341,16 @@ class MozillaCustomPatch(ShellCommand):
             log.msg("No changes, not doing anything")
             self.step_status.setColor("yellow")
             self.step_status.setText(["Skipped patch step:", "no patch"])
-            self.finished(WARNINGS)
-            return
+            self.finished(SKIPPED)
+            return SKIPPED
 
         if len(changes) > 1:
             log.msg("Ignoring all but the first change...")
 
         args = parseSendchangeArguments(changes[0].files)
+
+        if not 'patchFile' in args and self.optional:
+            return SKIPPED
 
         self.setCommand(["patch", "-f", "-p%d" % int(args['patchLevel']), "-i",
                          args['patchFile']])

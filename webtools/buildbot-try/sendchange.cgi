@@ -44,7 +44,7 @@ require 'sendchange-ui.pm';
 use vars qw($SIZE_LIMIT);
 
 # where patches and info files will go after being submitted
-my $PATCH_DIR = '/buildbot/patches';
+my $PATCH_DIR = '/var/www/html/build/patches';
 # regexes for validation
 my $ALLOWED_TEXT_REGEX = '^[\w\s,.]+$';
 my $ALLOWED_FILENAME_REGEX = '^([\w-]|\.[\w-])+$';
@@ -59,12 +59,12 @@ sub Process
     my $key = int(rand(1000));
     # get the parameters
     my $name                = $ENV{'REMOTE_USER'};
+    my $baseType            = param('baseType');
     my $type                = param('type');
     my $patchFile           = param('patchFile');
     my $patchLevel          = param('patchLevel');
     my $branch              = param('branch');
     my $mozillaRepoPath     = param('mozilla-repo');
-    my $tamarinRepoPath     = param('tamarin-repo');
     my $identifier          = param('identifier');
     my $description         = param('description');
     my $mozconfig           = param('mozconfig');
@@ -100,7 +100,7 @@ sub Process
     }
 
     # Using a patchFile
-    if ($type eq "patch") {
+    if ($type eq "patch" || $baseType eq "mozillacentral") {
         if ($branch eq "" || $branch eq "trunk") {
             $branch = "HEAD";
         }
@@ -144,7 +144,6 @@ sub Process
                       description       => $description,
                       type              => $type,
                       mozillaRepoPath   => $mozillaRepoPath,
-                      tamarinRepoPath   => $tamarinRepoPath,
                       err               => \@err);
             return;
         }
@@ -156,14 +155,11 @@ sub Process
         if (! close(PATCH)) {
             push(@err, "Server error - Could not close patchfile.");
         }
-    } elsif ($type eq "hg") {
+    }
+    if ($type eq "hg") {
         # TODO: is this a valid way to test if there's a repo there?
         if (!get($mozillaRepoPath)) {
             push(@err, 'Mozilla repository path is not valid');
-        }
-
-        if (!get($tamarinRepoPath)) {
-            push(@err, 'Tamarin repository path is not valid');
         }
 
         if (scalar(@err) > 0) {
@@ -173,26 +169,13 @@ sub Process
                       description       => $description,
                       type              => $type,
                       mozillaRepoPath   => $mozillaRepoPath,
-                      tamarinRepoPath   => $tamarinRepoPath,
                       err               => \@err);
             return;
         }
 
         # generate the infofile name
         $infoFile = "$time-$key-hg.info";
-    } else {
-        push(@err, 'Please test a patch or a Mercurial repository.');
-        WritePage(patchLevel        => $patchLevel,
-                  branch            => $branch,
-                  identifier        => $identifier,
-                  description       => $description,
-                  type              => $type,
-                  mozillaRepoPath   => $mozillaRepoPath,
-                  tamarinRepoPath   => $tamarinRepoPath,
-                  err               => \@err);
-        return;
     }
-    
 
     my $mozconfigHandle = upload('mozconfig');
     if (! -z $mozconfigHandle) {
@@ -206,7 +189,6 @@ sub Process
                       description       => $description,
                       type              => $type,
                       mozillaRepoPath   => $mozillaRepoPath,
-                      tamarinRepoPath   => $tamarinRepoPath,
                       err               => \@err);
             return;
         }
@@ -221,7 +203,6 @@ sub Process
                       description       => $description,
                       type              => $type,
                       mozillaRepoPath   => $mozillaRepoPath,
-                      tamarinRepoPath   => $tamarinRepoPath,
                       err               => \@err);
             return;
         }
@@ -238,31 +219,19 @@ sub Process
                   description       => $description,
                   type              => $type,
                   mozillaRepoPath   => $mozillaRepoPath,
-                  tamarinRepoPath   => $tamarinRepoPath,
                   err               => \@err);
         return;
     }
 
     print INFO "submitter: $name\n";
     print INFO "type: $type\n";
-    if ($type eq "patch") {
+    if ($type eq "patch" || $baseType eq 'mozillacentral') {
         print INFO "patchFile: $patchFile\n";
         print INFO "patchLevel: $patchLevel\n";
         print INFO "branch: $branch\n";
-    } elsif ($type eq "hg") {
+    }
+    if ($type eq "hg") {
         print INFO "mozillaRepoPath: $mozillaRepoPath\n";
-        print INFO "tamarinRepoPath: $tamarinRepoPath\n";
-    } else {
-        push(@err, 'Please test a patch or a Mercurial repository.');
-        WritePage(patchLevel        => $patchLevel,
-                  branch            => $branch,
-                  identifier        => $identifier,
-                  description       => $description,
-                  type              => $type,
-                  mozillaRepoPath   => $mozillaRepoPath,
-                  tamarinRepoPath   => $tamarinRepoPath,
-                  err               => \@err);
-        return;
     }
     print INFO "identifier: $identifier\n";
     print INFO "mozconfig: $mozconfig\n";
@@ -276,7 +245,6 @@ sub Process
                   description       => $description,
                   type              => $type,
                   mozillaRepoPath   => $mozillaRepoPath,
-                  tamarinRepoPath   => $tamarinRepoPath,
                   err               => \@err);
         return;
     }
