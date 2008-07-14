@@ -77,6 +77,7 @@ public:
   // helper
   nsresult SetCopyResponseUid(const char *msgIdString);
   nsresult GetSrcKeyArray(nsTArray<nsMsgKey>& srcKeyArray);
+  void GetSrcMsgIds(nsCString &srcMsgIds) {srcMsgIds = m_srcMsgIdString;}
   nsresult AddDstKey(nsMsgKey aKey);
   nsresult UndoMailboxDelete();
   nsresult RedoMailboxDelete();
@@ -111,12 +112,13 @@ class nsImapOfflineTxn : public nsImapMoveCopyMsgTxn
 {
 public:
   nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
-                       nsIMsgFolder* dstFolder,
-                       PRBool isMove,
-                       nsOfflineImapOperationType opType,
-                       nsIMsgDBHdr *srcHdr,
-                       nsIEventTarget *eventTarget, 
-                       nsIUrlListener *urlListener);
+                   const char* srcMsgIdString, 
+                   nsIMsgFolder* dstFolder,
+                   PRBool isMove,
+                   nsOfflineImapOperationType opType,
+                   nsIMsgDBHdr *srcHdr,
+                   nsIEventTarget *eventTarget, 
+                   nsIUrlListener *urlListener);
   virtual ~nsImapOfflineTxn();
 
   NS_IMETHOD UndoTransaction(void);

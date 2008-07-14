@@ -134,6 +134,10 @@ public:
   nsresult        SetPropertyFromNSString(nsIMdbRow *row, const char *propertyName, const nsAString &propertyVal);
   nsresult        GetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 *result, PRUint32 defaultValue = 0);
   nsresult        SetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 propertyVal);
+  nsresult        GetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
+                                     PRBool *result, PRBool defaultValue = PR_FALSE);
+  nsresult        SetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
+                                    PRBool propertyVal);
   // helper function for once we have the token.
   nsresult        SetNSStringPropertyWithToken(nsIMdbRow *row, mdb_token aProperty, const nsAString &propertyStr);
   

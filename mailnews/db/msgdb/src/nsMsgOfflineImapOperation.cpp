@@ -64,6 +64,7 @@ NS_IMPL_ISUPPORTS1(nsMsgOfflineImapOperation, nsIMsgOfflineImapOperation)
 #define PROP_KEYWORD_ADD "addedKeywords"
 #define PROP_KEYWORD_REMOVE "removedKeywords"
 #define PROP_MSG_SIZE "msgSize"
+#define PROP_PLAYINGBACK "inPlayback"
 
 nsMsgOfflineImapOperation::nsMsgOfflineImapOperation(nsMsgDatabase *db, nsIMdbRow *row)
 {
@@ -352,6 +353,18 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::SetMsgSize(PRUint32 aMsgSize)
 {
   return m_mdb->SetUint32Property(m_mdbRow, PROP_MSG_SIZE, aMsgSize);
 }
+
+NS_IMETHODIMP nsMsgOfflineImapOperation::SetPlayingBack(PRBool aPlayingBack)
+{
+  return m_mdb->SetBooleanProperty(m_mdbRow, PROP_PLAYINGBACK, aPlayingBack);
+}
+
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetPlayingBack(PRBool *aPlayingBack)
+{
+  NS_ENSURE_ARG(aPlayingBack);
+  return m_mdb->GetBooleanProperty(m_mdbRow, PROP_PLAYINGBACK, aPlayingBack);
+}
+
 
 void nsMsgOfflineImapOperation::Log(PRLogModuleInfo *logFile)
 {

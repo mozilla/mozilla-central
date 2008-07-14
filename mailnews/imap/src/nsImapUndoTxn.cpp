@@ -44,6 +44,7 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIMsgDatabase.h"
+#include "nsMsgUtils.h"
 
 nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
     m_idsAreUids(PR_FALSE), m_isMove(PR_FALSE), m_srcIsPop3(PR_FALSE)
@@ -442,11 +443,12 @@ nsresult nsImapMoveCopyMsgTxn::GetImapDeleteModel(nsIMsgFolder *aFolder, nsMsgIm
 }
 
 nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
+                                   const char *srcMsgIdString,
 	nsIMsgFolder* dstFolder, PRBool isMove, nsOfflineImapOperationType opType,
         nsIMsgDBHdr *srcHdr,
 	nsIEventTarget* eventTarget, nsIUrlListener* urlListener)
 {
-  Init(srcFolder, srcKeyArray, nsnull, dstFolder, PR_TRUE,
+  Init(srcFolder, srcKeyArray, srcMsgIdString, dstFolder, PR_TRUE,
        isMove, eventTarget, urlListener);
 
   m_opType = opType; 
@@ -503,18 +505,29 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
 
   rv = srcFolder->GetDBFolderInfoAndDB(getter_AddRefs(folderInfo), getter_AddRefs(srcDB));
   NS_ENSURE_SUCCESS(rv, rv);
+
   switch (m_opType)
   {
     case nsIMsgOfflineImapOperation::kMsgMoved:
     case nsIMsgOfflineImapOperation::kMsgCopy:
     case nsIMsgOfflineImapOperation::kAddedHeader:
     case nsIMsgOfflineImapOperation::kFlagsChanged:
+    {
       rv = srcDB->GetOfflineOpForKey(hdrKey, PR_FALSE, getter_AddRefs(op));
+      PRBool offlineOpPlayedBack = PR_TRUE;
       if (NS_SUCCEEDED(rv) && op)
       {
+        op->GetPlayingBack(&offlineOpPlayedBack);
         srcDB->RemoveOfflineOp(op);
         op = nsnull;
       }
+      if (!WeAreOffline() && offlineOpPlayedBack)
+      {
+        // couldn't find offline op - it must have been played back already
+        // so we should undo the transaction online.
+        return nsImapMoveCopyMsgTxn::UndoTransaction();
+      }
+
       if (m_header && (m_opType == nsIMsgOfflineImapOperation::kAddedHeader))
       {
         nsCOMPtr <nsIMsgDBHdr> mailHdr;
@@ -525,6 +538,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
           srcDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_FALSE);
       }
       break;
+    }
     case nsIMsgOfflineImapOperation::kDeletedMsg:
       {
         nsMsgKey msgKey;

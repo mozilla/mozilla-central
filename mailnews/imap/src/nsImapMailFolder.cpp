@@ -4694,6 +4694,22 @@ nsImapMailFolder::SetCopyResponseUid(const char* msgIdString,
     if (mailCopyState->m_undoMsgTxn)
       rv = mailCopyState->m_undoMsgTxn->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(msgTxn));
   }
+  else if (aUrl && m_pendingOfflineMoves.Count())
+  {
+    nsCString urlSourceMsgIds, undoTxnSourceMsgIds;
+    aUrl->CreateListOfMessageIdsString(getter_Copies(urlSourceMsgIds));
+    nsCOMPtr <nsITransaction> firstTransaction = m_pendingOfflineMoves[0];
+    nsRefPtr<nsImapMoveCopyMsgTxn> imapUndo;
+    firstTransaction->QueryInterface(NS_GET_IID(nsImapMoveCopyMsgTxn), getter_AddRefs(imapUndo));
+    if (imapUndo)
+    {
+      imapUndo->GetSrcMsgIds(undoTxnSourceMsgIds);
+      if (undoTxnSourceMsgIds.Equals(urlSourceMsgIds))
+        msgTxn = imapUndo;
+      // ### we should handle batched moves, but lets keep it simple for a2.
+      m_pendingOfflineMoves.Clear();
+    }
+  }
   if (msgTxn)
     msgTxn->SetCopyResponseUid(msgIdString);
   return NS_OK;
@@ -6006,6 +6022,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
   nsCOMPtr<nsIImapIncomingServer> imapServer;
   rv = GetImapIncomingServer(getter_AddRefs(imapServer));
   nsCOMPtr<nsIMutableArray> msgHdrsCopied(do_CreateInstance(NS_ARRAY_CONTRACTID));
+  nsCString messageIds;
 
   if (NS_SUCCEEDED(rv) && imapServer)
   {
@@ -6111,16 +6128,28 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             nsTArray<nsMsgKey> srcKeyArray;
             nsCOMPtr<nsIUrlListener> urlListener;
 
+            messageIds.Truncate();
+            rv = BuildIdsAndKeyArray(messages, messageIds, srcKeyArray);
             sourceOp->GetOperation(&opType);
             srcKeyArray.AppendElement(originalKey);
             rv = QueryInterface(NS_GET_IID(nsIUrlListener), getter_AddRefs(urlListener));
             nsImapOfflineTxn *undoMsgTxn = new
-              nsImapOfflineTxn(srcFolder, &srcKeyArray, this, isMove, opType, message,
-                m_thread, urlListener);
+              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, 
+                               isMove, opType, message, m_thread, urlListener);
             if (undoMsgTxn)
             {
               if (isMove)
+              {
                 undoMsgTxn->SetTransactionType(nsIMessenger::eMoveMsg);
+                nsCOMPtr<nsIMsgImapMailFolder> srcIsImap(do_QueryInterface(srcFolder));
+                // remember this undo transaction so we can hook up the result
+                // msg ids in the undo transaction.
+                if (srcIsImap)
+                {
+                  nsImapMailFolder *srcImapFolder = static_cast<nsImapMailFolder*>(srcFolder);
+                  srcImapFolder->m_pendingOfflineMoves.AppendObject(undoMsgTxn);
+                }
+              }
               else
                 undoMsgTxn->SetTransactionType(nsIMessenger::eCopyMsg);
               // we're adding this undo action before the delete is successful. This is evil,
@@ -6178,7 +6207,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
                   nsTArray<nsMsgKey> keyArray;
                   keyArray.AppendElement(fakeBase + sourceKeyIndex);
                   nsImapOfflineTxn *undoMsgTxn = new
-                    nsImapOfflineTxn(this, &keyArray, this, isMove, nsIMsgOfflineImapOperation::kAddedHeader,
+                    nsImapOfflineTxn(this, &keyArray, nsnull, this, isMove, nsIMsgOfflineImapOperation::kAddedHeader,
                       newMailHdr, m_thread, urlListener);
                   if (undoMsgTxn && txnMgr)
                      txnMgr->DoTransaction(undoMsgTxn);
@@ -6202,7 +6231,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
               opType = nsIMsgOfflineImapOperation::kMsgMarkedDeleted;
             srcKeyArray.AppendElement(msgKey);
             nsImapOfflineTxn *undoMsgTxn = new
-              nsImapOfflineTxn(srcFolder, &srcKeyArray, this, isMove, opType, mailHdr,
+              nsImapOfflineTxn(srcFolder, &srcKeyArray, messageIds.get(), this, isMove, opType, mailHdr,
                 m_thread, urlListener);
             if (undoMsgTxn)
             {

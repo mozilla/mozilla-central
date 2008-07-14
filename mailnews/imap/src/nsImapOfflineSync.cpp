@@ -123,7 +123,10 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   {
     PRInt32 opCount = m_currentOpsToClear.Count();
     for (PRInt32 i = 0; i < opCount; i++)
+    {
+      m_currentOpsToClear[i]->SetPlayingBack(PR_FALSE);
       m_currentOpsToClear[i]->ClearOperation(mCurrentPlaybackOpType);
+    }
 
     rv = ProcessNextOperation();
   }
@@ -257,6 +260,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
+      currentOp->SetPlayingBack(PR_TRUE);
       m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
@@ -319,6 +323,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingKeywordKeys.AppendElement(curKey);
+      currentOp->SetPlayingBack(PR_TRUE);
       m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
@@ -464,6 +469,7 @@ nsImapOfflineSync::ProcessAppendMsgOperation(nsIMsgOfflineImapOperation *current
                 else
                   tmpFile->Remove(PR_FALSE);
               }
+              currentOp->SetPlayingBack(PR_TRUE);
               m_currentOpsToClear.AppendObject(currentOp);
               m_currentDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_TRUE);
             }
@@ -492,6 +498,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
+      currentOp->SetPlayingBack(PR_TRUE);
       m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;
@@ -602,6 +609,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *current
       nsMsgKey curKey;
       currentOp->GetMessageKey(&curKey);
       matchingFlagKeys.AppendElement(curKey);
+      currentOp->SetPlayingBack(PR_TRUE);
       m_currentOpsToClear.AppendObject(currentOp);
     }
     currentOp = nsnull;

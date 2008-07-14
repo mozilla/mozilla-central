@@ -65,6 +65,7 @@
 #include "nsDataHashtable.h"
 #include "nsIMutableArray.h"
 #include "nsITimer.h"
+#include "nsCOMArray.h"
 
 class nsImapMoveCoalescer;
 class nsIMsgIdentity;
@@ -492,5 +493,6 @@ protected:
   // Pseudo-Offline Playback support
   nsPlaybackRequest *m_pendingPlaybackReq;
   nsCOMPtr<nsITimer> m_playbackTimer;
+  nsCOMArray<nsITransaction> m_pendingOfflineMoves;
 };
 #endif

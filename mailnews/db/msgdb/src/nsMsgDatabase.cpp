@@ -1830,7 +1830,7 @@ nsresult nsMsgDatabase::RemoveHeaderFromDB(nsMsgHdr *msgHdr)
   row->CutAllColumns(GetEnv());
   msgHdr->m_initedValues = 0; // invalidate cached values.
   if (UseCorrectThreading())
-	RemoveMsgRefsFromHash(msgHdr);
+    RemoveMsgRefsFromHash(msgHdr);
   return ret;
 }
 
@@ -3460,6 +3460,22 @@ nsresult nsMsgDatabase::SetUint32Property(nsIMdbRow *row, const char *propertyNa
     err = row->AddColumn(GetEnv(), property_token, &yarn);
   }
   return err;
+}
+
+nsresult nsMsgDatabase::GetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
+                                     PRBool *result, 
+                                     PRBool defaultValue /* = PR_FALSE */)
+{
+  PRUint32 res;
+  nsresult rv = GetUint32Property(row, propertyName, &res, (PRUint32) defaultValue);
+  *result = (PRBool) res;
+  return rv;
+}
+
+nsresult nsMsgDatabase::SetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
+                                    PRBool propertyVal)
+{
+  return SetUint32Property(row, propertyName, (PRUint32) propertyVal);
 }
 
 nsresult nsMsgDatabase::SetNSStringPropertyWithToken(nsIMdbRow *row, mdb_token aProperty, const nsAString &propertyStr)
