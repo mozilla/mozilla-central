@@ -60,6 +60,15 @@ function createDateTime() {
            createInstance(Components.interfaces.calIDateTime);
 }
 
+/* Returns a clean new calIDuration */
+function createDuration(aIcalString) {
+    var dur = Components.classes["@mozilla.org/calendar/duration;1"]
+                        .createInstance(Components.interfaces.calIDuration);
+    if (aIcalString) {
+        dur.icalString = aIcalString;
+    }
+    return dur;
+}
 /* Returns a clean new calIRecurrenceInfo */
 function createRecurrenceInfo(aItem) {
     var recInfo = Components.classes["@mozilla.org/calendar/recurrence-info;1"].
@@ -84,6 +93,12 @@ function createAttendee() {
 function createAttachment() {
     return Components.classes["@mozilla.org/calendar/attachment;1"].
            createInstance(Components.interfaces.calIAttachment);
+}
+
+/* Returns a clean new calIAlarm*/
+function createAlarm() {
+    return Components.classes["@mozilla.org/calendar/alarm;1"].
+           createInstance(Components.interfaces.calIAlarm);
 }
 
 /* Shortcut to the console service */

@@ -46,6 +46,7 @@
  *                        drop-downs
  */
 function setElementValue(aElement, aNewValue, aPropertyName) {
+    ASSERT(aElement);
     var undefined;
 
     if (aNewValue !== undefined) {
@@ -58,14 +59,14 @@ function setElementValue(aElement, aNewValue, aPropertyName) {
                 aElement.removeAttribute(aPropertyName);
             } catch (e) {
                 dump("setFieldValue: aElement.removeAttribute couldn't remove " +
-                aPropertyName + " from " + aElement.localName + " e: " + e + "\n");
+                aPropertyName + " from " + (aElement && aElement.localName) + " e: " + e + "\n");
             }
         } else if (aPropertyName) {
             try {
                 aElement.setAttribute(aPropertyName, aNewValue);
             } catch (e) {
                 dump("setFieldValue: aElement.setAttribute couldn't set " +
-                aPropertyName + " from " + aElement.localName + " to " + aNewValue +
+                aPropertyName + " from " + (aElement && aElement.localName) + " to " + aNewValue +
                 " e: " + e + "\n");
             }
         } else {
@@ -199,7 +200,6 @@ function enableElementWithLock(elementId, lockId) {
     }
 }
 
-
 /** 
  * Unchecks the commands of the child elements of a DOM-tree-node e.g of a menu
  *
@@ -218,18 +218,33 @@ function uncheckChildNodes(aEvent) {
 }
 
 /**
- * Fills up a menu - either a menupopup or a menulist - with menuitems that refer
- * to calendars.
+ * Removes all child nodes of the given node
  *
- * @param aItem                 The event or task
- * @param aCalendarMenuParent   The direct parent of the menuitems - either a
- *                                menupopup or a menulist
- * @param aCalendarToUse        The default-calendar
- * @param aOnCommand            A string that is applied to the "oncommand" 
- *                                attribute of each menuitem
- * @return                      The index of the calendar that matches the
- *                                default-calendar. By default 0 is returned.
+ * @param aElement  The Node (or its id) to remove children from
  */
+function removeChildren(aElement) {
+    if (typeof(aElement) == "string") {
+        aElement = document.getElementById(aElement);
+    }
+
+    while (aElement.firstChild) {
+        aElement.removeChild(aElement.lastChild);
+    }
+}
+
+/**
+* Fills up a menu - either a menupopup or a menulist - with menuitems that refer
+* to calendars.
+*
+* @param aItem                 The event or task
+* @param aCalendarMenuParent   The direct parent of the menuitems - either a
+*                                menupopup or a menulist
+* @param aCalendarToUse        The default-calendar
+* @param aOnCommand            A string that is applied to the "oncommand"
+*                                attribute of each menuitem
+* @return                      The index of the calendar that matches the
+*                                default-calendar. By default 0 is returned.
+*/
 function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnCommand) {
     var calendarToUse = aCalendarToUse || aItem.calendar;
     var calendars = getCalendarManager().getCalendars({});
@@ -454,7 +469,6 @@ function createXULElement(el) {
     return document.createElementNS("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul", el);
 }
 
-
 /**
  * A helper function to calculate and add up certain css-values of a box.
  * It is required, that all css values can be converted to integers
@@ -508,3 +522,52 @@ function getOptimalMinimumHeight(aXULElement) {
     return (firstEntity + secondEntity);
 }
 
+/**
+ * Use with textfields oninput to only allow integers
+ *
+ * @param event         The event that contains the target
+ * @param lowerBound    The lower bound the number should have
+ * @param upperBound    The upper bound the number should have
+ */
+function validateIntegerRange(event, lowerBound, upperBound) {
+    validateIntegers(event);
+
+    var num = Number(event.target.value);
+
+    // Only modify the number if a value is entered, otherwise deleting the
+    // value (to maybe enter a new number) will cause the field to be set to the
+    // lower bound.
+    if (event.target.value != "" && (num < lowerBound || num > upperBound)) {
+        event.target.value = Math.min(Math.max(num, lowerBound), upperBound);
+        event.preventDefault();
+    }
+}
+
+/**
+ * Validate Integers, or rather validate numbers. Makes sure the input value is
+ * a number.
+ *
+ * @param event         The event that contains the target
+ */
+function validateIntegers(event) {
+    if (isNaN(Number(event.target.value))) {
+        var newValue = parseInt(event.target.value);
+        event.target.value = isNaN(newValue) ? "" : newValue;
+        event.preventDefault();
+    }
+}
+
+/**
+ * Make sure the number entered is 0 or more. A negative number is turned
+ * positive.
+ *
+ * @param event         The event that contains the target
+ */
+function validateNaturalNums(event) {
+    validateIntegers(event);
+    var num = event.target.value;
+    if (num < 0) {
+        event.target.value = -1 * num;
+        event.preventDefault();
+    }
+}

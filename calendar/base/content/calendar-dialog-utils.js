@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -37,38 +36,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-/* use with textfields oninput to only allow integers */
-function validateIntegerRange(event, lowerBound, upperBound) {
-    validateIntegers(event);
-
-    var num = Number(event.target.value);
-
-    // Only modify the number if a value is entered, otherwise deleting the
-    // value (to maybe enter a new number) will cause the field to be set to the
-    // lower bound.
-    if (event.target.value != "" && (num < lowerBound || num > upperBound)) {
-        event.target.value = Math.min(Math.max(num, lowerBound), upperBound);
-        event.preventDefault();
-    }
-}
-
-function validateIntegers(event) {
-    if (isNaN(Number(event.target.value))) {
-        var newValue = parseInt(event.target.value);
-        event.target.value = isNaN(newValue) ? "" : newValue;
-        event.preventDefault();
-    }
-}
-
-function validateNaturalNums(event) {
-    validateIntegers(event);
-    var num = event.target.value;
-    if (num < 0) {
-        event.target.value = -1 * num;
-        event.preventDefault();
-    }
-}
 
 /**
  * This function takes the recurrence info passed as argument and creates a
