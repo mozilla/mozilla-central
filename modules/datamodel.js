@@ -119,17 +119,15 @@ GlodaConversation.prototype = {
 };
 
 
-function GlodaMessage(aDatastore, aID, aFolderID, aFolderURI, aMessageKey,
-                      aConversationID, aConversation, aParentID,
+function GlodaMessage(aDatastore, aID, aFolderID, aMessageKey,
+                      aConversationID, aConversation,
                       aHeaderMessageID, aBodySnippet) {
   this._datastore = aDatastore;
   this._id = aID;
   this._folderID = aFolderID;
-  this._folderURI = aFolderURI;
   this._messageKey = aMessageKey;
   this._conversationID = aConversationID;
   this._conversation = aConversation;
-  this._parentID = aParentID;
   this._headerMessageID = aHeaderMessageID;
   this._bodySnippet = aBodySnippet;
 
@@ -145,10 +143,15 @@ GlodaMessage.prototype = {
   get messageKey() { return this._messageKey; },
   get conversationID() { return this._conversationID; },
   // conversation is special
-  get parentID() { return this._parentID; },
   get headerMessageID() { return this._headerMessageID; },
   get bodySnippet() { return this._bodySnippet; },
 
+  get folderURI() {
+    if (this._folderID)
+      return this._datastore._mapFolderID(this._folderID);
+    else
+      return null;
+  },
   get conversation() {
     if (this._conversation == null) {
       this._conversation = this._datastore.getConversationByID(
@@ -161,7 +164,24 @@ GlodaMessage.prototype = {
   set folderURI(aFolderURI) {
     this._folderID = this._datastore._mapFolderURI(aFolderURI);
   },
-
+  
+  _ghost: function gloda_message_ghost() {
+    this._folderID = null;
+    this._messageKey = null;
+  },
+  
+  _nuke: function gloda_message_nuke() {
+    this._id = null;
+    this._folderID = null;
+    this._messageKey = null;
+    this._conversationID = null;
+    this._conversation = null;
+    this._headerMessageID = null;
+    this._bodySnippet = null;
+    
+    this._datastore = null;
+  },
+  
   /**
    * Return the underlying nsIMsgDBHdr from the folder storage for this, or
    *  null if the message does not exist for one reason or another.
@@ -169,19 +189,28 @@ GlodaMessage.prototype = {
   get folderMessage() {
     if (this._folderMessage != null)
       return this._folderMessage;
-    if (this._folderURI == null || this._messageKey == null)
+    if (this._folderID == null || this._messageKey == null)
       return null;
 
     let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
                      getService(Ci.nsIRDFService);
-    let folder = rdfService.GetResource(this._folderURI);
+    let folder = rdfService.GetResource(this.folderURI);
     if (folder instanceof Ci.nsIMsgFolder) {
       this._folderMessage = folder.GetMessageHeader(this._messageKey);
+      if (this._folderMessage != null) {
+        // verify the message-id header matches what we expect...
+        if (this._folderMessage.messageId != this._headerMessageId)
+          this._folderMessage = null;
+      }
       return this._folderMessage;
     }
 
-    throw "Unable to locate folder message for: " + this._folderURI + ":" +
-          this._messageKey;
+    // this only gets logged if things have gone very wrong.  we used to throw
+    //  here, but it's unlikely our caller can do anything more meaningful than
+    //  treating this as a disappeared message.
+    LOG.error("Unable to locate folder message for: " + this._folderID + ":" +
+              this._messageKey);
+    return null;
   },
   
   get attributes() {
@@ -190,10 +219,6 @@ GlodaMessage.prototype = {
     }
     
     return this._attributes;
-  },
-  
-  clearAttributes: function gloda_message_clearAttributes() {
-    this._datastore.clearMessageAttributes(this);
   },
   
   getAttributeInstances: function gloda_message_getAttributeInstances(aAttr) {

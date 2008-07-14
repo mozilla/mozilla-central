@@ -56,7 +56,7 @@ let GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 3,
+  _schemaVersion: 4,
   _schema: {
     tables: {
       
@@ -105,7 +105,9 @@ let GlodaDatastore = {
           "folderID INTEGER REFERENCES folderLocations(id)",
           "messageKey INTEGER",
           "conversationID INTEGER NOT NULL REFERENCES conversations(id)",
-          "parentID INTEGER REFERENCES messages(id)",
+          // we used to have the parentID, but because of the very real
+          //  possibility of multiple copies of a message with a given
+          //  message-id, the parentID concept is unreliable.
           "headerMessageID TEXT",
           "bodySnippet TEXT",
         ],
@@ -131,9 +133,9 @@ let GlodaDatastore = {
           "parameter BLOB",
         ],
         
-        triggers: [
+        triggers: {
           delete: "DELETE FROM messageAttributes WHERE attributeID = OLD.id",
-        ],
+        },
       },
       
       messageAttributes: {
@@ -561,6 +563,21 @@ let GlodaDatastore = {
                                  aNewestMessageDate);
   },
 
+  get _deleteConversationByIDStatement() {
+    let statement = this._createStatement(
+      "DELETE FROM conversations WHERE id = :conversationID");
+    this.__defineGetter__("_deleteConversationByIDStatement",
+                          function() statement);
+    return this._deleteConversationByIDStatement; 
+  },
+
+  deleteConversationByID: function gloda_ds_deleteConversationByID(
+                                      aConversationID) {
+    let dcbids = this._deleteConversationByIDStatement;
+    dcbids.params.conversationID = aConversationID;
+    dcbids.execute();
+  },
+
   get _selectConversationByIDStatement() {
     let statement = this._createStatement(
       "SELECT * FROM conversations WHERE id = :conversationID");
@@ -584,20 +601,18 @@ let GlodaDatastore = {
   },
   
   /* ********** Message ********** */
-  
-  // memoizing message statement creation
   get _insertMessageStatement() {
     let statement = this._createStatement(
-      "INSERT INTO messages (folderID, messageKey, conversationID, parentID, \
+      "INSERT INTO messages (folderID, messageKey, conversationID, \
                              headerMessageID, bodySnippet) \
-              VALUES (:folderID, :messageKey, :conversationID, :parentID, \
+              VALUES (:folderID, :messageKey, :conversationID, \
                       :headerMessageID, :bodySnippet)");
     this.__defineGetter__("_insertMessageStatement", function() statement);
     return this._insertMessageStatement; 
   }, 
   
   createMessage: function gloda_ds_createMessage(aFolderURI, aMessageKey,
-                              aConversationID, aParentID, aHeaderMessageID,
+                              aConversationID, aHeaderMessageID,
                               aBodySnippet) {
     let folderID;
     if (aFolderURI != null) {
@@ -611,7 +626,6 @@ let GlodaDatastore = {
     ims.params.folderID = folderID;
     ims.params.messageKey = aMessageKey;
     ims.params.conversationID = aConversationID;
-    ims.params.parentID = aParentID;
     ims.params.headerMessageID = aHeaderMessageID;
     ims.params.bodySnippet = aBodySnippet;
 
@@ -636,7 +650,6 @@ let GlodaDatastore = {
       "UPDATE messages SET folderID = :folderID, \
                            messageKey = :messageKey, \
                            conversationID = :conversationID, \
-                           parentID = :parentID, \
                            headerMessageID = :headerMessageID, \
                            bodySnippet = :bodySnippet \
               WHERE id = :id");
@@ -650,19 +663,37 @@ let GlodaDatastore = {
     ums.params.folderID = aMessage.folderID;
     ums.params.messageKey = aMessage.messageKey;
     ums.params.conversationID = aMessage.conversationID;
-    ums.params.parentID = aMessage.parentID;
     ums.params.headerMessageID = aMessage.headerMessageID;
     ums.params.bodySnippet = aMessage.bodySnippet;
     
     ums.execute();
   },
+
+  get _updateMessageStatement() {
+    let statement = this._createStatement(
+    this.__defineGetter__("_updateMessageStatement", function() statement);
+    return this._updateMessageStatement; 
+  }, 
+
+  updateMessageFoldersByKeyPurging:
+      function gloda_ds_updateMessageFoldersByKeyPurging(aSrcFolderURI,
+        aMessageKeys, aDestFolderURI) {
+    let srcFolderID = this._mapFolderURI(aSrcFolderURI);
+    let destFolderID = this._mapFolderURI(aDestFolderURI);
+    
+    let sqlStr = "UPDATE messages SET folderID = :newFolderID, \
+                                      messageKey = NULL, \
+                   WHERE folderID = :id \
+                     AND messageKey IN (" + messageKeys.join(", ") + ")");
+    let statement = this._createStatement(sqlStr);
+    statement.execute();
+  }
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
     return new GlodaMessage(this, aRow["id"], aRow["folderID"],
                             this._mapFolderID(aRow["folderID"]),
                             aRow["messageKey"],
                             aRow["conversationID"], null,
-                            aRow["parentID"],
                             aRow["headerMessageID"], aRow["bodySnippet"]);
   },
 
@@ -713,13 +744,45 @@ let GlodaDatastore = {
     
     return message;
   },
+
+  get _selectMessageIDsByFolderStatement() {
+    let statement = this._createStatement(
+      "SELECT id FROM messages WHERE folderID = :folderID");
+    this.__defineGetter__("_selectMessageIDsByFolderStatement",
+      function() statement);
+    return this._selectMessageIDsByFolderStatement;
+  },
   
+  getMessageIDsByFolderID:
+      function gloda_ds_getMessageIDsFromFolderID(aFolderID) {
+    let messageIDs = [];
+    
+    let smidbfs = this._selectMessageIDsByFolderStatement;
+    smidbfs.params.folderID = aFolderID;
+    
+    while (smidbfs.step()) {
+      smidbfs.push(smidbfs.row["id"]);
+    }
+    smidbfs.reset();
+    
+    return messageIDs;
+  },
+  
+  /**
+   * Given a list of Message-ID's, return a matching list of lists of messages
+   *  matching those Message-ID's.  So if you pass an array with three
+   *  Message-ID's ["a", "b", "c"], you would get back an array containing
+   *  3 lists, where the first list contains all the messages with a message-id
+   *  of "a", and so forth.  The reason a list is returned rather than null/a
+   *  message is that we accept the reality that we have multiple copies of
+   *  messages with the same ID.
+   */
   getMessagesByMessageID: function gloda_ds_getMessagesByMessageID(aMessageIDs) {
     let msgIDToIndex = {};
     let results = [];
     for (let iID=0; iID < aMessageIDs.length; ++iID) {
       let msgID = aMessageIDs[iID];
-      results.push(null);
+      results.push([]);
       msgIDToIndex[msgID] = iID;
     } 
 
@@ -733,21 +796,45 @@ let GlodaDatastore = {
     let statement = this._createStatement(sqlString);
     
     while (statement.step()) {
-      results[msgIDToIndex[statement.row["headerMessageID"]]] =
-        this._messageFromRow(statement.row);
+      results[msgIDToIndex[statement.row["headerMessageID"]]].push(
+        this._messageFromRow(statement.row));
     }
     statement.reset();
     
     return results;
   },
 
+  get _deleteMessageByIDStatement() {
+    let statement = this._createStatement(
+      "DELETE FROM messages WHERE id = :id");
+    this.__defineGetter__("_deleteMessageByIDStatement",
+                          function() statement);
+    return this._deleteMessageByIDStatement; 
+  },
+  
+  deleteMessageByID: function gloda_ds_deleteMessageByID(aMessageID) {
+    let dmbids = this._deleteMessageByIDStatement;
+    dmbids.params.id = aMessageID;
+    dmbids.execute();
+  },
+
+  get _deleteMessagesByConversationIDStatement() {
+    let statement = this._createStatement(
+      "DELETE FROM messages WHERE conversationID = :conversationID");
+    this.__defineGetter__("_deleteMessagesByConversationIDStatement",
+                          function() statement);
+    return this._deleteMessagesByConversationIDStatement; 
+  },
+
   /**
-   * Delete messages by databse ID.  This is the ONLY form of message deletion
-   *  we support because attribute clean-up demands that we actually know the
-   *  IDs of the messages we are deleting (so that we can delete attributes that
-   *  reference those message IDs. 
+   * Delete messages by conversation ID.  For use by the indexer's deletion
+   *  logic, NOT you.
    */
-  deleteMessagesByID: function gloda_ds_deleteMessagesByID(aFolderID){
+  deleteMessagesByConversationID:
+      function gloda_ds_deleteMessagesByConversationID(aConversationID) {
+    let dmbcids = this._deleteMessagesByConversationIDStatement;
+    dmbcids.params.conversationID = aConversationID;
+    dmbcids.execute();
   },
   
   // could probably do with an optimized version of this...

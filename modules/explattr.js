@@ -94,10 +94,6 @@ let GlodaExplicitAttr = {
                         explanation: this._strBundle.getString(
                                        "attrTagExplanation"),
                         });
-                        this, Gloda.kAttrExplicit,
-                        Gloda.BUILT_IN, FA_TAG, Gloda.kMultiple,
-                        Gloda.NOUN_MESSAGE, Gloda.NOUN_DATE, Gloda.NOUN_TAG,
-                        "");
     // Star
     this._attrStar = Gloda.defineAttribute({
                         provider: this,

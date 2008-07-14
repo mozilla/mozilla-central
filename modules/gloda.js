@@ -173,7 +173,7 @@ let Gloda = {
   NOUN_IDENTITY: 104,
   
   /** Next Noun ID to hand out, these don't need to be persisted (for now). */
-  _nextNounID = 1000,
+  _nextNounID: 1000,
 
   _nounNameToNounID: {},
   _nounIDToMeta: {},
@@ -449,7 +449,7 @@ let Gloda = {
   processMessage: function gloda_ns_processMessage(aMessage, aMsgHdr) {
     // For now, we are ridiculously lazy and simply nuke all existing attributes
     //  before applying the new attributes.
-    aMessage.clearAttributes();
+    aMessage._datastore.clearMessageAttributes(aMessage);
     
     let allAttribs = [];
   

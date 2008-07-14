@@ -259,12 +259,16 @@ let GlodaIndexer = {
         else if (this._indexQueue.length) {
           let item = this._indexQueue.shift();
           let itemType = item[0];
+          let actionType = item[1];
           
-          if (itemType == "account") {
+          // Index an account.  (can't actually happen right now)
+          if ((itemType == "account") && (actionType > 1)) {
             this.indexAccount(item[1]);
           }
-          else if (itemType == "folder") {
-            let folderURI = item[1];
+          // Index an added folder (new, or just re-scanning)
+          else if ((itemType == "folder") && (actionType > 0)) {
+            let folderID = item[2];
+            let folderURI = GlodaDatastore._mapFolderID(folderID);
             
             this._log.debug("Folder URI: " + folderURI);
   
@@ -304,6 +308,38 @@ let GlodaIndexer = {
               }
             }
           }
+          // Delete a folder that has gone away
+          // ["folder", -1, folder ID]
+          else if ((itemType == "folder") && (actionType < 0)) {
+            let folderID = item[2];
+            // we simply convert the messages in the folder to message ids
+            //  which we re-queue.
+            let messageIDs = GlodaDatastore.getMessageIDsByFolderID(folderID);
+            let delMsgsQueue = [["message", -1, msgId] for each
+                                (msgId in messageIDs)];
+            this._indexingFolderCount++;
+            this._indexingMessageCount = 0;
+            this._indexingMessageGoal = delMsgsQueue.length;
+          }
+          // Index a newly added message
+          // ["message", 1, folder ID, message key]
+          else if ((itemType == "message") && (actionType > 0)) {
+            let folderID = item[2];
+            let messageKey = item[3];
+          }
+          // Index a moved message (sadly basically adding for now)
+          // ["message", 0, folder ID, header message-id]
+          else if ((itemType == "message") && (actionType === 0)) {
+          
+          }
+          // Delete a message that has gone away
+          // ["message", -1, message database ID]
+          else if ((itemType == "message") && (actionType < 0)) {
+            let messageID = item[2];
+            let message = GlodaDatastore.getMessageByID(messageID);
+            if (message !== null)
+              this._deleteMessage(message);
+          }
         }
         else {
           this._log.info("Done indexing, disabling timer renewal.");
@@ -332,9 +368,11 @@ let GlodaIndexer = {
     let msgAccountManager = Cc["@mozilla.org/messenger/account-manager;1"].
                             getService(Ci.nsIMsgAccountManager);
     
+    GlodaDatastore._beginTransaction();
     let sideEffects = [this.indexAccount(account) for each
                        (account in fixIterator(msgAccountManager.accounts,
                                                Ci.nsIMsgAccount))];
+    GlodaDatastore._commitTransaction();
   },
 
   indexAccount: function glodaIndexAccount(aAccount) {
@@ -342,9 +380,12 @@ let GlodaIndexer = {
     if (rootFolder instanceof Ci.nsIMsgFolder) {
       this._log.info("Queueing account folders for indexing: " + aAccount.key);
 
+      GlodaDatastore._beginTransaction();
       let folders =
-              [["folder", folder.URI] for each
+              [["folder", 1, GlodaDatastore._mapFolderURI(folder.URI)] for each
               (folder in fixIterator(rootFolder.subFolders, Ci.nsIMsgFolder))];
+      GlodaDatastore._commitTransaction();
+      
       this._indexingFolderGoal += folders.length;
       this._indexQueue = this._indexQueue.concat(folders);
       this.indexing = true;
@@ -357,7 +398,8 @@ let GlodaIndexer = {
   indexFolder: function glodaIndexFolder(aFolder) {
     this._log.info("Queue-ing folder for indexing: " + aFolder.prettiestName);
     
-    this._indexQueue.push(["folder", aFolder.URI]);
+    this._indexQueue.push(["folder", 1,
+                          GlodaDatastore._mapFolderURI(aFolder.URI)]);
     this.indexing = true;
   },
 
@@ -396,7 +438,10 @@ let GlodaIndexer = {
      *  succession.)
      */
     msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
-      this.indexer._indexQueue.push(["message", 1, aMsgHdr]);
+      this.indexer._indexQueue.push(
+        ["message", 1,
+         GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
+         aMsgHdr.messageKey]);
       this.indexer.indexing = true; 
     },
     
@@ -412,6 +457,7 @@ let GlodaIndexer = {
      *  many messages, which could be a lot to queue
      */
     msgsDeleted: function gloda_indexer_msgsDeleted(aMsgHdrs) {
+      // TODO progress indicator for here
       for (let iMsgHdr=0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
         this.indexer._indexQueue.push(["message", -1, msgHdr]);
@@ -420,14 +466,46 @@ let GlodaIndexer = {
     },
     
     /**
-     * Process a move or copy.  Moves are immediately processed, while copies
-     *  are treated as additions and accordingly queued for subsequent indexing.
+     * Process a move or copy.  Copies are treated as additions and accordingly
+     *  queued for subsequent indexing.  Moves are annoying in that, in theory,
+     *  we should be able to just alter the location information and be done
+     *  with it.  Unfortunately, we have no clue what the messageKey is for
+     *  the moved message until we go looking.  For now, we "simply" move the
+     *  messages into the destination folder, wiping their message keys, and
+     *  scheduling them all for re-indexing based on their message ids, which
+     *  may catch some same-folder duplicates.
+     *
+     * @TODO Handle the move case better, avoiding a full reindexing of the
+     *     messages when possible.  (In fact, the _indexMessage method basically
+     *     has enough information to try and give this a whirl, but it's not
+     *     foolproof, hence not done and this issue yet to-do.  
      */
     msgsMoveCopyCompleted: function gloda_indexer_msgsMoveCopyCompleted(aMove,
                              aSrcMsgHdrs, aDestFolder) {
-      for () {
-        let msgHdr;
-        this.indexer._indexQueue.push(["message", 1, msgHdr]);
+      if (aMove) {
+        let srcFolder = aSrcMsgHdrs.queryElementAt(0, Ci.nsIMsgDBHdr).folder;
+        let messageKeys = [msgHdr.messageKey for each
+                           (msgHdr in fixIterator(aSrcMsgHdrs, Ci.nsIMsgDBHdr)];
+        // quickly move them to the right folder, zeroing their message keys
+        GlodaDatastore.updateMessageFoldersByKeyPurging(srcFolder.URI,
+                                                        messageKeys,
+                                                        aDestFolder.URI);
+        // and now let us queue the re-indexings...
+        for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
+          let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
+          this.indexer._indexQueue.push(["message", 0,
+            GlodaDatastore._mapFolderURI(msgHdr.folder.URI), msgHdr.messageId]);
+        }
+        // TODO progress indicator for here, also indexing flag        
+      }
+      else {
+        // TODO progress indicator for here, also indexing flag
+        for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
+          let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
+          this.indexer._indexQueue.push(["message", 1,
+            GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
+            msgHdr.messageKey]);
+        }
       }
     },
     
@@ -436,6 +514,10 @@ let GlodaIndexer = {
      *  located in the folder.
      */
     folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
+      this._indexingFolderGoal++;
+      this.indexer._indexQueue.push(["folder", -1,
+        GlodaDatastore._mapFolderURI(aFolder.URI)]);
+      this.indexing = true;
     },
     
     /**
@@ -452,7 +534,9 @@ let GlodaIndexer = {
       if (aMove) {
         return this.folderRenamed(aSrcFolder, aDestFolder);
       }
-      this.indexer._indexQueue.push(["folder", aDestFolder.URI]);
+      this._indexingFolderGoal++;
+      this.indexer._indexQueue.push(["folder", 1,
+        this._mapFolderURI(aDestFolder.URI)]);
       this.indexer.indexing = true;
     },
     
@@ -544,22 +628,14 @@ let GlodaIndexer = {
    * Attempt to extract the original subject from a message.  For replies, this
    *  means either taking off the 're[#]:' (or variant, including other language
    *  variants), or in a Microsoft specific-ism, from the Thread-Topic header.
-   *
-   * Ideally, we would just be able to call NS_MsgStripRE to do the bulk of the
-   *  work for us, especially since the subject may be encoded.
+   * Since we are using the nsIMsgDBHdr's subject field, this is already done
+   *  for us, and we don't actually need to do any extra work.  Hooray!
    */
   _extractOriginalSubject: function glodaIndexExtractOriginalSubject(aMsgHdr) {
-    // mailnews.localizedRe contains a comma-delimited list of alternate
-    //  prefixes.
-    // NS_MsgStripRE does this, and bug 139317 proposes adding this to
-    //  nsIMimeConverter
-    
-    // HACK FIXME: for now, we just return the subject without any processing 
     return aMsgHdr.mime2DecodedSubject;
   },
   
   _indexMessage: function gloda_index_indexMessage(aMsgHdr) {
-  
     // -- Find/create the conversation the message belongs to.
     // Our invariant is that all messages that exist in the database belong to
     //  a conversation.
@@ -570,29 +646,23 @@ let GlodaIndexer = {
                       (i in range(0, aMsgHdr.numReferences))];
     // also see if we already know about the message...
     references.push(aMsgHdr.messageId);
-    // (ancestors have a direct correspondence to the message id)
-    let ancestors = this._datastore.getMessagesByMessageID(references);
+    // (ancestorLists has a direct correspondence to the message ids)
+    let ancestorLists = this._datastore.getMessagesByMessageID(references);
     // pull our current message lookup results off
     references.pop();
-    let curMsg = ancestors.pop();
-    
-    if (curMsg != null) {
-      // we already know about the guy, which means he was either previously
-      // a ghost or he is a duplicate...
-      if (curMsg.messageKey != null) {
-        this._log.info("Attempting to re-index message: " + aMsgHdr.messageId
-                        + " (" + aMsgHdr.subject + ")");
-        return;
-      } 
-    }
+    let candidateCurMsgs = ancestorLists.pop();
     
     let conversationID = null;
     
     // (walk from closest to furthest ancestor)
-    for (let iAncestor=ancestors.length-1; iAncestor >= 0; --iAncestor) {
-      let ancestor = ancestors[iAncestor];
+    for (let iAncestor=ancestorLists.length-1; iAncestor >= 0; --iAncestor) {
+      let ancestorList = ancestorLists[iAncestor];
       
-      if (ancestor != null) { // ancestor.conversationID cannot be null
+      if (ancestorList.length > 0) {
+        // we only care about the first instance of the message because we are
+        //  able to guarantee the invariant that all messages with the same
+        //  message id belong to the same conversation. 
+        let ancestor = ancestorList[0];
         if (conversationID === null)
           conversationID = ancestor.conversationID;
         else if (conversationID != ancestor.conversationID)
@@ -613,43 +683,64 @@ let GlodaIndexer = {
     }
     
     // Walk from furthest to closest ancestor, creating the ancestors that don't
-    //  exist, and updating any to have correct parentID's if they don't have
-    //  one.  (This is possible if previous messages that were consumed in this
+    //  exist. (This is possible if previous messages that were consumed in this
     //  thread only had an in-reply-to or for some reason did not otherwise
     //  provide the full references chain.)
-    let lastAncestorId = null;
-    for (let iAncestor=0; iAncestor < ancestors.length; ++iAncestor) {
-      let ancestor = ancestors[iAncestor];
+    for (let iAncestor=0; iAncestor < ancestorLists.length; ++iAncestor) {
+      let ancestorList = ancestorLists[iAncestor];
       
-      if (ancestor === null) {
+      if (ancestorList.length == 0) {
         this._log.debug("creating message with: null, " + conversationID +
-                        ", " + lastAncestorId + ", " + references[iAncestor] +
+                        ", " + references[iAncestor] +
                         ", null.");
-        ancestor = this._datastore.createMessage(null, null, // no folder loc
-                                                 conversationID,
-                                                 lastAncestorId,
-                                                 references[iAncestor],
-                                                 null); // no snippet
-        ancestors[iAncestor] = ancestor;
+        let ancestor = this._datastore.createMessage(null, null, // ghost
+                                                     conversationID,
+                                                     references[iAncestor],
+                                                     null); // no snippet
+        ancestorLists[iAncestor].push(ancestor);
       }
-      else if (ancestor.parentID === null) {
-        ancestor._parentID = lastAncestorId;
-        this._datastore.updateMessage(ancestor);
-      }
-      
-      lastAncestorId = ancestor.id;
     }
     // now all our ancestors exist, though they may be ghost-like...
     
+    // find if there's a ghost version of our message or we already have indexed
+    //  this message.
+    let curMsg = null;
+    for (let iCurCand=0; iCurCand < candidateCurMsgs.length; iCurCand++) {
+      let candMsg = candidateCurMsgs[iCurCand];
+      
+      // if we are in the same folder and we have the same message key, we
+      //  are definitely the same, stop looking.
+      // if we are in the same folder and the candidate message has a null
+      //  message key, we treat it as our best option unless we find an exact
+      //  key match. (this would happen because the 'move' notification case
+      //  has to deal with not knowing the target message key.  this case
+      //  will hopefully be somewhat improved in the future to not go through
+      //  this path which mandates re-indexing of the message in its entirety.)
+      // if we are in the same folder and the candidate message's underlying
+      //  message no longer exists/matches, we'll assume we are the same but
+      //  were betrayed by a re-indexing or something, but we have to make sure
+      //  a perfect match doesn't turn up.
+      if (candMsg.folderURI === aMsgHdr.folder.URI) {
+        if ((candMsg.messageKey === aMsgHdr.messageKey) || 
+            (candMsg.messageKey === null)) {
+          curMsg = candMsg;
+          break;
+        }
+        if (candMsg.messageKey === null)
+          curMsg = candMsg;
+        else if ((curMsg === null) && (candMsg.folderMessage === null))
+          curMsg = candMsg;
+      }
+      // our choice of last resort, but still okay, is a ghost message
+      else if ((curMsg === null) && (candMsg.folderID === null)) {
+        curMsg = candMsg;
+      }
+    }
+    
     if (curMsg === null) {
-      this._log.debug("creating message with: " + aMsgHdr.folder.URI +
-                      ", " + conversationID +
-                      ", " + lastAncestorId + ", " + aMsgHdr.messageId +
-                      ", null.");
       curMsg = this._datastore.createMessage(aMsgHdr.folder.URI,
                                              aMsgHdr.messageKey,                
                                              conversationID,
-                                             lastAncestorId,
                                              aMsgHdr.messageId,
                                              null); // no snippet
      }
@@ -660,5 +751,93 @@ let GlodaIndexer = {
      }
      
      Gloda.processMessage(curMsg, aMsgHdr);
+  },
+  
+  /**
+   * Wipe a message out of existence from our index.  This is slightly more
+   *  tricky than one would first expect because there are potentially
+   *  attributes not immediately associated with this message that reference
+   *  the message.  Not only that, but deletion of messages may leave a
+   *  conversation posessing only ghost messages, which we don't want, so we
+   *  need to nuke the moot conversation and its moot ghost messages.
+   * For now, we are actually punting on that trickiness, and the exact
+   *  nuances aren't defined yet because we have not decided whether to store
+   *  such attributes redundantly.  For example, if we have subject-pred-object,
+   *  we could actually store this as attributes (subject, id, object) and
+   *  (object, id, subject).  In such a case, we could query on (subject, *)
+   *  and use the results to delete the (object, id, subject) case.  If we
+   *  don't redundantly store attributes, we can deal with the problem by
+   *  collecting up all the attributes that accept a message as their object
+   *  type and issuing a delete against that.  For example, delete (*, [1,2,3],
+   *  message id).
+   * (We are punting because we haven't implemented support for generating
+   *  attributes like that yet.)
+   *
+   * @TODO: implement deletion of attributes that reference (deleted) messages
+   */
+  _deleteMessage: function gloda_index_deleteMessage(aMessage) {
+    // -- delete our attributes
+    // delete the message's attributes (if we implement the cascade delete, that
+    //  could do the honors for us... right now we define the trigger in our
+    //  schema but the back-end ignores it)
+    aMessage._datastore.clearMessageAttributes(aMessage);
+    
+    // -- delete our message or ghost us, and maybe nuke the whole conversation
+    // look at the other messages in the conversation.
+    let conversationMsgs = aMessage._datastore.getMessagesByConversationID(
+                             aMessage.conversationID, true);
+    let ghosts = [];
+    let twinMessage = null;
+    for (let iMsg=0; iMsg < conversationMsgs.length; iMsg++) {
+      let convMsg = conversationMsgs[iMsg];
+      
+      // ignore our message
+      if (convMsg.id == aMessage.id)
+        continue;
+      
+      if (convMsg.folderID !== null) {
+        if (convMsg.headerMessageID == aMessage.headerMessageID) {
+          twinMessage = convMsg;
+        }
+      }
+      else {
+        ghosts.push(convMsg);
+      }
+    }
+    
+    // is everyone else a ghost? (note that conversationMsgs includes us, but
+    //  ghosts cannot)
+    if ((conversationsMsgs.length - 1) == ghosts.length) {
+      // obliterate the conversation including aMessage.
+      // since everyone else is a ghost they have no attributes.  however, the
+      //  conversation may some day have attributes targeted against it, so it
+      //  gets a helper.
+      this._deleteConversationOfMessage(aMessage);
+      aMessage._nuke();
+    }
+    else { // there is at least one real message out there, so the only q is...
+      // do we have a twin (so it's okay to delete us) or do we become a ghost?
+      if (twinMessage !== null) { // just delete us
+        aMessage._datastore.deleteMessageByID(aMessage.id);
+        aMesssage._nuke();
+      }
+      else { // ghost us
+        aMessage._ghost();
+        aMessage._datastore.updateMessage(aMessage);
+      }
+    }
+  },
+  
+  /**
+   * Delete an entire conversation, using the passed-in message which must be
+   *  the last non-ghost in the conversation and have its attributes all
+   *  deleted.  This function issues the batch delete of all the ghosts (and the
+   *  message), and in the future will take care to nuke any attributes
+   *  referencing the conversation.
+   */
+  _deleteConversationOfMessage:
+      function gloda_index_deleteConversationOfMessage(aMessage) {
+    aMessage._datastore.deleteMessagesByConversationID(aMessage.conversationID);
+    aMessage._datastore.deleteConversationByID(aMessage.conversationID);
   },
 };
