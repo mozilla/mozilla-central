@@ -61,6 +61,8 @@
 #include "nsOEStringBundle.h"
 #include "OEDebugLog.h"
 #include "nsIPop3IncomingServer.h"
+#include "nsIImapIncomingServer.h"
+#include "stdlib.h"
 
 class OESettings {
 public:
@@ -351,6 +353,29 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
     if (NS_SUCCEEDED( rv) && in) {
       rv = in->SetType(NS_LITERAL_CSTRING("imap"));
 
+      BYTE * pRootFolder = nsOERegUtil::GetValueBytes( hKey, "IMAP Root Folder");
+      if (pRootFolder)
+      {
+        nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(in);
+        imapServer->SetServerDirectory(nsDependentCString((const char *) pRootFolder));
+        nsOERegUtil::FreeValueBytes( pRootFolder);
+      }
+
+      BYTE * pSecureConnection = nsOERegUtil::GetValueBytes( hKey, "IMAP Secure Connection");
+      if (pSecureConnection)
+      {
+        if (*pSecureConnection)
+          in->SetSocketType(nsIMsgIncomingServer::useSSL);
+        nsOERegUtil::FreeValueBytes(pSecureConnection);
+      }
+
+      BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "IMAP Port");
+      if (pPort)
+      {
+        in->SetPort(atoi((const char *) pPort));
+        nsOERegUtil::FreeValueBytes(pPort);
+      }
+			
       IMPORT_LOG2( "Created IMAP server named: %s, userName: %s\n", pServerName, (char *)pBytes);
 
       nsString prettyName;
@@ -403,6 +428,21 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       rv = in->SetType(NS_LITERAL_CSTRING("pop3"));
       rv = in->SetHostName(nsDependentCString(pServerName));
       rv = in->SetUsername(nsDependentCString((char *)pBytes));
+
+      BYTE * pSecureConnection = nsOERegUtil::GetValueBytes( hKey, "POP3 Secure Connection");
+      if (pSecureConnection)
+      {
+        if (*pSecureConnection)
+          in->SetSocketType(nsIMsgIncomingServer::useSSL);
+        nsOERegUtil::FreeValueBytes(pSecureConnection);
+      }
+
+      BYTE * pPort = nsOERegUtil::GetValueBytes( hKey, "POP3 Port");
+      if (pPort)
+      {
+        in->SetPort(atoi((const char *) pPort));
+        nsOERegUtil::FreeValueBytes(pPort);
+      }
 
             nsCOMPtr<nsIPop3IncomingServer> pop3Server = do_QueryInterface(in);
             if (pop3Server) {
@@ -519,14 +559,14 @@ void OESettings::SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
     if (id) {
       nsAutoString fullName, organization;
       rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                     nsDependentCString(pName), fullName);
+                                     nsCString(pName), fullName);
       if (NS_SUCCEEDED(rv)) {
         id->SetFullName(fullName);
         id->SetIdentityName(fullName);
       }
 
       rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(),
-                                     nsDependentCString(pOrgName), organization);
+                                     nsCString(pOrgName), organization);
       if (NS_SUCCEEDED(rv))
         id->SetOrganization(organization);
 
