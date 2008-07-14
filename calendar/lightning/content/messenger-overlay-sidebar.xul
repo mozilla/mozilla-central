@@ -224,6 +224,14 @@
                    mode="task"
                    label="&calendar.task.filter.completed.label;"
                    accesskey="&calendar.task.filter.completed.accesskey;"/>
+         <menuitem id="tasks-view-filter-open"
+                   name="filtergroup"
+                   type="radio"
+                   value="open"
+                   command="calendar_task_filter_command"
+                   mode="task"
+                   label="&calendar.task.filter.open.label;"
+                   accesskey="&calendar.task.filter.open.accesskey;"/>
        </menupopup>
      </menu>
      <menuseparator id="before-Unifinder-Section" mode="calendar"/>
@@ -489,6 +497,7 @@
                  <radio id="opt_notstarted_filter" label="&calendar.task.filter.notstarted.label;" value="notstarted" command="calendar_task_filter_command"/>
                  <radio id="opt_overdue_filter" label="&calendar.task.filter.overdue.label;" value="overdue" command="calendar_task_filter_command"/>
                  <radio id="opt_completed_filter" label="&calendar.task.filter.completed.label;" value="completed" command="calendar_task_filter_command"/>
+                 <radio id="opt_open_filter" label="&calendar.task.filter.open.label;" value="open" command="calendar_task_filter_command"/>
                </radiogroup>
             </modevbox>
           </modevbox>

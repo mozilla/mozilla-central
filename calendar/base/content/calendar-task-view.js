@@ -186,6 +186,9 @@ function taskViewUpdate(filter) {
           return (percentCompleted(item) < 100) &&
                  !(item.dueDate.compare(now()) > 0);
         },
+        open: function filterCompleted(item) {
+            return (percentCompleted(item) < 100);
+        },
         completed: function filterCompleted(item) {
             return (percentCompleted(item) >= 100);
         }

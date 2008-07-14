@@ -196,6 +196,8 @@
 <!ENTITY calendar.task.filter.overdue.accesskey     "O">
 <!ENTITY calendar.task.filter.completed.label       "Completed Tasks">
 <!ENTITY calendar.task.filter.completed.accesskey   "C">
+<!ENTITY calendar.task.filter.open.label            "Incomplete Tasks">
+<!ENTITY calendar.task.filter.open.accesskey        "m">
 
 <!ENTITY calendar.task.details.title.label           "Title:">
 <!ENTITY calendar.task.details.organizer.label       "From:">
