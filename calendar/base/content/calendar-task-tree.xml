@@ -218,16 +218,26 @@
           if (aTask && aTask.dueDate && aTask.dueDate.isValid){
               var dur = aTask.dueDate.subtractDate(now());
               if (!dur.isNegative) {
-                  if (dur.days > 1) {
-                      return dur.days + " " + calGetString("calendar", "days");
-                  } else if (dur.days == 1) {
-                      return "1 " + calGetString("calendar", "day");
-                  } else if (dur.hours > 1) {
-                      return dur.hours + " " + calGetString("calendar", "hours");
-                  } else if (dur.hours == 1) {
-                      return "1 " + calGetString("calendar", "hour");    
-                  } else
-                      return "< 1" + calGetString("calendar", "hour");
+                  // TODO MOZILLA_1_8_BRANCH We should use Pluralform.jsm on
+                  // trunk here to provide better localization. Use different
+                  // strings for 1,2 and N for now.
+                  var minutes = Math.ceil(dur.inSeconds / 60);
+                  if (minutes >= 4320) { // 3 days or more
+                      return calGetString("calendar", "dueInDaysN", [dur.days]);
+                  } else if (minutes >= 2880) { // 2 days or more
+                      return calGetString("calendar", "dueInDays2");
+                  } else if (minutes >= 1440) { // 1 day or more
+                      return calGetString("calendar", "dueInDays1");
+                  } else if (minutes >= 180) { // 3 hours or more
+                      return calGetString("calendar", "dueInHoursN", [dur.hours]);
+                  } else if (minutes >= 120) { // 2 hours or more
+                      return calGetString("calendar", "dueInHours2");
+                  } else if (minutes >= 60) { // 1 hour or more
+                      return calGetString("calendar", "dueInHours1");
+                  } else {
+                      // Less than one hour
+                      return calGetString("calendar", "dueInLessThanOneHour");
+                  }
               }    
           }
           return null;
