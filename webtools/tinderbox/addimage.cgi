@@ -51,13 +51,15 @@ sub Error {
 }
 
 
-my ($url, $quote, $width, $height, $size );
+my ($url, $safe_url, $quote, $safe_quote, $width, $height, $size );
 
 if( $url = $form{"url"} ){
     $quote = $form{"quote"};
 
     $quote =~ s/[\r\n]/ /g;
     $url =~ s/[\r\n]/ /g;
+    $safe_url = value_encode($url);
+    $safe_quote = value_encode($quote);
 
     $width = "";
     $height = "";
@@ -74,34 +76,29 @@ if( $url = $form{"url"} ){
             $height = $1;
         }
         if ($width eq "" || $height eq "") {
-            Error "Couldn't get image size for \"$url\".\n";
+            Error "Couldn't get image size for \"$safe_url\".\n";
         }
 #    }
 
     print " 
     
-<P><center><img border=2 src='$url' width=$width height=$height><br>
-<i>$quote</i><br><br>
+<P><center><img border=2 src='$safe_url' width=$width height=$height><br>
+<i>$safe_quote</i><br><br>
 ";
 
     if( $form{"submit"} ne "Yes" ){
-        my $u2 = $url;
-        my $q2 = $quote;
-        $u2 =~ s@&@&amp;@g; $u2 =~ s@<@&lt;@g; $u2 =~ s@\"@&quot;@g;
-        $q2 =~ s@&@&amp;@g; $q2 =~ s@<@&lt;@g; $q2 =~ s@\"@&quot;@g;
-
         print "
 <form action='addimage.cgi' METHOD='get'>
-<input type=hidden name=url value=\"$u2\">
-<input type=hidden name=quote value=\"$q2\">
+<input type=hidden name=url value=\"$safe_url\">
+<input type=hidden name=quote value=\"$safe_quote\">
 <HR>
 <TABLE>
  <TR>
   <TH ALIGN=RIGHT NOWRAP>Image URL:</TH>
-  <TD><TT><B>$u2</B></TT></TD>
+  <TD><TT><B>$safe_url</B></TT></TD>
  </TR><TR>
   <TH ALIGN=RIGHT>Caption:</TH>
-  <TD><TT><B>$q2</B></TT></TD>
+  <TD><TT><B>$safe_quote</B></TT></TD>
  </TR>
  <TR>
   <TD></TD>
@@ -313,7 +310,7 @@ sub URLsize {
     my ($fullurl) = @_;
     my $S = new IO::Handle;
 
-    $_ = $fullurl;
+    $_ = value_quote($fullurl);
     if ( ! m@^http://@ ) {
         Error "HTTP URLs only, please: \"$_\" is no good.";
     }
@@ -324,17 +321,18 @@ sub URLsize {
     my $size="";
     my ($newheight, $newwidth);
 
-    $_ = $them;
+    $_ = value_quote($them);
     if ( m@^[^.]*$@ ) {
         Error "Fully-qualified host names only, please: \"$_\" is no good.";
     }
 
     $_=$url;
-    my ($remote, $iaddr, $paddr, $proto, $line);
+    my ($remote, $safe_remote, $iaddr, $paddr, $proto, $line);
     $remote = $them;
+    $safe_remote = value_encode($them);
     if ($port =~ /\D/) { $port = getservbyname($port, 'tcp') }
     die "No port" unless $port;
-    $iaddr   = inet_aton($remote)               || die "no host: $remote";
+    $iaddr   = inet_aton($remote)               || die "no host: $safe_remote";
     $paddr   = sockaddr_in($port, $iaddr);
 
     $proto   = getprotobyname('tcp');
@@ -349,7 +347,7 @@ sub URLsize {
 
     $_ = <$S>;
     if (! m@^HTTP/[0-9.]+ 200@ ) {
-        Error "$them responded:<BR> $_";
+        Error "$them responded badly";
     }
 
     my $ctype = "";
@@ -363,7 +361,7 @@ sub URLsize {
 
     $_ = $ctype;
     if ( $_ eq "" ) {
-        Error "Server returned no content-type for \"$fullurl\"?";
+        Error "Server returned no content-type for url?";
     } elsif ( m@image/jpeg@i || m@image/pjpeg@i ) {
         $size = &jpegsize($S);
     } elsif ( m@image/gif@i ) {

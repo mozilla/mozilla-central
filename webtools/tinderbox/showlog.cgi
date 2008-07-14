@@ -46,7 +46,8 @@ my $error_guess = 0;
 
 my ($args, $tree, $full_logfile, $linenum, $logfile);
 my ($errorparser, $buildname, $buildtime, $numlines, $fulltext);
-my ($enc_buildname, $brief_filename);
+my ($enc_buildname, $enc_logfile, $enc_errorparser, $enc_buildtime);
+my ($safe_buildname, $safe_buildtime, $brief_filename);
 
 #############################################################
 # CGI inputs
@@ -56,6 +57,7 @@ if (defined($args = $form{log}) or defined($args = $form{exerpt})) {
   my ($full_logfile, $linenum) = split /:/,  $args;
   ($tree, $logfile) = split /\//, $full_logfile;
   $tree = &require_only_one_tree($tree);
+  $logfile = shell_escape($logfile);
 
   my $br = tb_find_build_record($tree, $logfile);
   $errorparser = $br->{errorparser};
@@ -66,14 +68,18 @@ if (defined($args = $form{log}) or defined($args = $form{exerpt})) {
   $numlines = $form{numlines} if exists $form{numlines};
 } else {
   $tree        = &require_only_one_tree($form{tree});
-  $errorparser = $form{errorparser};
-  $logfile     = $form{logfile};
+  $errorparser = shell_escape($form{errorparser});
+  $logfile     = shell_escape($form{logfile});
   $buildname   = $form{buildname};
   $buildtime   = $form{buildtime};
 }
 $fulltext    = $form{fulltext};
 
+$safe_buildname = value_encode($buildname);
+$safe_buildtime = value_encode($buildname);
 $enc_buildname = url_encode($buildname);
+$enc_errorparser = url_encode($errorparser);
+$enc_logfile = url_encode($logfile);
 
 tb_load_treedata($tree);
 
@@ -137,12 +143,12 @@ sub print_fragment {
   print "\n";
 
   my $heading = "Build Log (Fragment)";
-  my $subheading = "$buildname on $time_str";
+  my $subheading = "$safe_buildname on $time_str";
   my $title = "$heading - $subheading";
 
   EmitHtmlTitleAndHeader($title, $heading, $subheading);
 
-  print "<a href='showlog.cgi?tree=$tree&errorparser=$errorparser&logfile=$logfile&buildtime=$buildtime&buildname=$enc_buildname&fulltext=1'>Show Full Build Log</a>";
+  print "<a href='showlog.cgi?tree=$tree&amp;errorparser=$enc_errorparser&amp;logfile=$enc_logfile&amp;buildtime=$enc_buildtime&amp;buildname=$enc_buildname&amp;fulltext=1'>Show Full Build Log</a>";
 
   my $gz = gzopen("$::tree_dir/$tree/$logfile","rb") or
       warn "gzopen($::tree_dir/$tree/$logfile): $!\n";
@@ -184,17 +190,16 @@ sub print_header {
   }
   
   my $heading = "Build Log ($s2)";
-  my $subheading = "$buildname on $time_str";
+  my $subheading = "$safe_buildname on $time_str";
   my $title = "$heading - $subheading";
 
   EmitHtmlTitleAndHeader($title, $heading, $subheading);
 
   print "
 <font size=+1>
-<dt><a href='showlog.cgi?tree=$tree&errorparser=$errorparser&logfile=$logfile&buildtime=$buildtime&buildname=$enc_buildname&fulltext=$s1'>$s</a>
+<dt><a href=\"showlog.cgi?tree=$tree&amp;errorparser=$enc_errorparser&amp;logfile=$enc_logfile&amp;buildtime=$enc_buildtime&amp;buildname=$enc_buildname&amp;fulltext=$s1\">$s</a>
 <dt><a href=\"showbuilds.cgi?tree=$tree\">Return to the Build Page</a>
-<dt><a href=\"addnote.cgi?tree=$tree\&buildname=$enc_buildname\&buildtime=$buildtime\&logfile=$logfile\&errorparser=$errorparser\">
-Add a Comment to the Log</a>
+<dt><a href=\"addnote.cgi?tree=$tree&amp;buildname=$enc_buildname&amp;buildtime=$enc_buildtime&amp;logfile=$enc_logfile&amp;errorparser=$enc_errorparser\">Add a Comment to the Log</a>
 </font>
 ";
 }
@@ -206,7 +211,7 @@ sub print_notes {
   my $found_note = 0;
   open(NOTES,"<", "$::tree_dir/$tree/notes.txt") 
     or print "<h2>warning: Couldn't open $tree/notes.txt </h2>\n";
-  print "$buildtime, $buildname<br>\n";
+  print "$safe_buildtime, $safe_buildname<br>\n";
   while (<NOTES>) {
     chop;
     my ($nbuildtime,$nbuildname,$nwho,$nnow,$nenc_note) = split(/\|/);
@@ -259,8 +264,8 @@ sub print_log_section {
   my $first_line = $line_of_interest - $num_lines / 2;
   my $last_line = $first_line + $num_lines;
 
-  print "<a href='showlog.cgi?tree=$tree&logfile=$logfile&line="
-        .($line_of_interest-$num_lines)."&numlines=$num_lines'>"
+  print "<a href='showlog.cgi?tree=$tree&amp;logfile=$enc_logfile&amp;line="
+        .($line_of_interest-$num_lines)."&amp;numlines=$num_lines'>"
         ."Previous $num_lines</a>";
   print "<font size='+1'><b>.<br>.<br>.<br></b></font>";
   print "<pre>";
@@ -281,8 +286,8 @@ sub print_log_section {
   $gz->gzclose() if defined($gz);
   print "</pre>";
   print "<font size='+1'><b>.<br>.<br>.<br></b></font>";
-  print "<a href='showlog.cgi?tree=$tree&logfile=$logfile&line="
-        .($line_of_interest+$num_lines)."&numlines=$num_lines'>"
+  print "<a href='showlog.cgi?tree=$tree&amp;logfile=$enc_logfile&amp;line="
+        .($line_of_interest+$num_lines)."&amp;numlines=$num_lines'>"
         ."Next $num_lines</a>";
 }
 
@@ -351,7 +356,7 @@ BEGIN {
       my $cvsblame = $out{error_guess} ? "cvsguess.cgi" : "cvsblame.cgi";
       &tb_load_queryconfig();
       my $query = $::global_treedata->{$tree}->{query};
-      $line =~ s@$q@<a href=$::QueryInfo{$query}{url}/$cvsblame?file=$out{error_file_ref}&rev=$::global_treedata->{$tree}->{cvs_branch}&mark=$out{error_line}\#$goto_line>$out{error_file}</a>@;
+      $line =~ s@$q@<a href=$::QueryInfo{$query}{url}/$cvsblame?file=$out{error_file_ref}&amp;rev=$::global_treedata->{$tree}->{cvs_branch}&amp;mark=$out{error_line}\#$goto_line>$out{error_file}</a>@;
     }
 
     if ($has_error) {
