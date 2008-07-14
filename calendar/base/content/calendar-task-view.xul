@@ -151,7 +151,7 @@
           <hbox id="calendar-task-details-attachment-row"
                align="top"
                hidden="true">
-            <label value="&event.link.label;"
+            <label value="&event.attachments.label;"
                    class="task-details-name"/>
             <label id="calendar-task-details-attachment"
                    class="text-link"
