@@ -26,9 +26,10 @@
         <NC:wizardSkipPanels>loginpage</NC:wizardSkipPanels>
         <NC:wizardShortName>Movemail</NC:wizardShortName>
         <NC:wizardLongName>Unix Mailspool (Movemail)</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>U</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:emailProviderName>Movemail</NC:emailProviderName>
- 
+
         <NC:showServerDetailsOnWizardSummary>true</NC:showServerDetailsOnWizardSummary> 
       </NC:nsIMsgAccount>
     </NC:providers>

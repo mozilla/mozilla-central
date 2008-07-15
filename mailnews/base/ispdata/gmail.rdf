@@ -50,6 +50,7 @@
         <NC:wizardSkipPanels>true</NC:wizardSkipPanels>
         <NC:wizardShortName>Gmail</NC:wizardShortName>
         <NC:wizardLongName>Gmail</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>G</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:wizardPromote>true</NC:wizardPromote>
         <NC:emailProviderName>Gmail</NC:emailProviderName>

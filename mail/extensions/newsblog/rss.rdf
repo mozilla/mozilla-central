@@ -32,6 +32,7 @@
         <NC:wizardSkipPanels>identitypage,serverpage,loginpage</NC:wizardSkipPanels>
         <NC:wizardShortName>&rss.wizardShortName;</NC:wizardShortName>
         <NC:wizardLongName>&rss.wizardLongName;</NC:wizardLongName>
+        <NC:wizardLongNameAccesskey>&rss.wizardLongName.accesskey;</NC:wizardLongNameAccesskey>
         <NC:wizardShow>true</NC:wizardShow>
         <NC:emailProviderName>RSS</NC:emailProviderName>
         <NC:showServerDetailsOnWizardSummary>false</NC:showServerDetailsOnWizardSummary> 

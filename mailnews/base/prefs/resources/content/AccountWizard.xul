@@ -84,7 +84,8 @@
             <rule nc:wizardShow="true">
               <radio uri="..."
                      value="rdf:http://home.netscape.com/NC-rdf#wizardShortName"
-                     label="rdf:http://home.netscape.com/NC-rdf#wizardLongName"/>
+                     label="rdf:http://home.netscape.com/NC-rdf#wizardLongName"
+                     accesskey="rdf:http://home.netscape.com/NC-rdf#wizardLongNameAccesskey"/>
             </rule>
          </template>
         </vbox>

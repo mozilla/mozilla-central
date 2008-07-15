@@ -17,4 +17,5 @@
 <!ENTITY rss.accountName            "News &amp; Blogs">
 <!ENTITY rss.wizardShortName        "RSS">  
 <!ENTITY rss.wizardLongName         "RSS News &amp; Blogs">
+<!ENTITY rss.wizardLongName.accesskey "R">
 <!ENTITY rss.hostName               "News &amp; Blogs">
