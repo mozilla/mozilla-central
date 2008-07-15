@@ -113,8 +113,6 @@
 <!ENTITY lightning.acctCentral.newCalendar.label "Create a new calendar">
 
 <!-- today-pane-specific -->
-<!ENTITY todaypane.showTodaypane.label "Show Today Pane">
-<!ENTITY todaypane.showTodaypane.accesskey "o">
 <!ENTITY todaypane.showMinimonth.label "Show Mini-Month">
 <!ENTITY todaypane.showMinimonth.accesskey "M">
 <!ENTITY todaypane.showMiniday.label "Show Mini-Day">
