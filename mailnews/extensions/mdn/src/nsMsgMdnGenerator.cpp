@@ -387,16 +387,16 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
         if (NS_SUCCEEDED(rv))
         {
             nsString wishToSend;
-            rv = GetStringFromName(
-                NS_LITERAL_STRING("MsgMdnWishToSend").get(),
-                getter_Copies(wishToSend));
-            if (NS_SUCCEEDED(rv))
-            {
-                PRBool bVal = PR_FALSE;
-                rv = dialog->Confirm(nsnull, wishToSend.get(), &bVal);
-                if (NS_SUCCEEDED(rv))
-                    m_reallySendMdn = bVal;
-            }
+            PRInt32 buttonPressed = 0;
+            rv = GetStringFromName(NS_LITERAL_STRING("MsgMdnWishToSend").get(),
+                                   getter_Copies(wishToSend));
+            NS_ENSURE_SUCCESS(rv, rv);
+            // Default the dialog to "cancel".
+            rv = dialog->ConfirmEx(nsnull, wishToSend.get(),
+                                   nsIPrompt::STD_OK_CANCEL_BUTTONS + nsIPrompt::BUTTON_POS_1_DEFAULT,
+                                   nsnull, nsnull, nsnull, nsnull, nsnull, &buttonPressed);
+            NS_ENSURE_SUCCESS(rv, rv);
+            m_reallySendMdn = !buttonPressed; // "ok" is in position 0
         }
     }
     if (!m_reallySendMdn)
