@@ -336,6 +336,32 @@ function addMenuItem(aParent, aLabel, aValue, aCommand) {
     return item;
 }
 
+
+/**
+ * sets a given attribute value on the children of a passed node
+ *
+ * @param aParent           the parent node.
+ * @param aAttribute        the name of the attribute to be set.
+ * @param aValue            the value of the attribute.
+ * @param aFilterAttribute  The name of an attribute that the child nodes used
+ *                            to filter the childnodes.
+ * @param aFilterValue      The value of the filterattribute. If set only those
+ *                            childnodes are modified that have an attribute 
+ *                            'aFilterAttribute' with the given value
+ *                            'aFilterValue' set.
+ */
+function setAttributeToChildren(aParent, aAttribute, aValue, aFilterAttribute, aFilterValue) {
+    for (var i = 0; i < aParent.childNodes.length; i++) {
+        var element = aParent.childNodes[i];
+        if (aFilterAttribute == null || element.hasAttribute(aFilterAttribute)) {
+            var compValue = element.getAttribute(aFilterAttribute);
+            if (compValue === aFilterValue) {
+                setElementValue(element, aValue, aAttribute);
+            }
+        }
+    }
+}
+
 /**
  * checks a radio control or a radio-menuitem.
  *

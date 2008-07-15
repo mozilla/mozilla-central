@@ -41,10 +41,6 @@ var TodayPane = {
     paneViews: null,
     start: null,
     cwlabel: null,
-    dateFormatter: Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
-                   .getService(Components.interfaces.calIDateTimeFormatter),
-    weekFormatter: Components.classes["@mozilla.org/calendar/weektitle-service;1"]
-                   .getService(Components.interfaces.calIWeekTitleService),
 
   onLoad: function onLoad() {
       this.paneViews = [ calGetString("calendar", "eventsandtasks"), calGetString("calendar", "tasksonly"), calGetString("calendar", "eventsonly") ];
@@ -55,22 +51,36 @@ var TodayPane = {
       this.setTodayHeader();
   },
 
+  onUnload: function onUnload() {
+      document.getElementById("modeBroadcaster").removeEventListener("DOMAttrModified", this.onModeModified, false);
+  },
+
   setTodayHeader: function setTodayHeader() {
       var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
       var agendaIsVisible = document.getElementById("agenda-panel").isVisible(currentMode);
       var todoIsVisible = document.getElementById("todo-tab-panel").isVisible(currentMode);
+      var index = 2;
       if (agendaIsVisible && todoIsVisible) {
-          var index = 0;
+          index = 0;
       } else if (!agendaIsVisible && (todoIsVisible)) {
-          var index = 1;
+          index = 1;
       } else if (agendaIsVisible && (!todoIsVisible)) {
-          var index = 2;
+          index = 2;
+      } else { // agendaIsVisible == false && todoIsVisible == false:
+          // In this case something must have gone wrong
+          // - probably in the previous session - and no pane is displayed.
+          // We set a default by only displaying agenda-pane.
+          agendaIsVisible = true;
+          document.getElementById("agenda-panel").setVisible(agendaIsVisible);
+          index = 2;
       }
       var todayHeader = document.getElementById("today-pane-header");
       todayHeader.setAttribute("index", index);
       todayHeader.setAttribute("value", this.paneViews[index]);
       var todayPaneSplitter = document.getElementById("today-pane-splitter");
       setBooleanAttribute(todayPaneSplitter, "hidden", (index != 0));
+      var todayIsVisible = document.getElementById("today-pane-panel").isVisible();
+      this.disableMenuItems(!todayIsVisible || !agendaIsVisible);
   },
 
   initializeMiniday: function initializeMiniday() {
@@ -95,7 +105,7 @@ var TodayPane = {
       if (this.cwlabel == null) {
           this.cwlabel = calGetString("calendar", "shortcalendarweek");
       }
-      return aMonthLabel.value = this.dateFormatter.shortMonthName(aIndex)
+      return aMonthLabel.value = getDateFormatter().shortMonthName(aIndex)
               + " " + aYear +  ", " + this.cwlabel + " " +  aCalWeek;
   },
 
@@ -115,8 +125,10 @@ var TodayPane = {
       var agendaPanel = document.getElementById("agenda-panel");
       var todoPanel = document.getElementById("todo-tab-panel");
       var currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
-      agendaPanel.setVisible(index != 1 && agendaPanel.isVisibleInMode(currentMode));
-      todoPanel.setVisible(index != 2 && todoPanel.isVisibleInMode(currentMode));
+      var isTodoPanelVisible = (index != 2 && todoPanel.isVisibleInMode(currentMode));
+      var isAgendaPanelVisible = (index != 1 && agendaPanel.isVisibleInMode(currentMode));
+      todoPanel.setVisible(isTodoPanelVisible);
+      agendaPanel.setVisible(isAgendaPanelVisible);
       this.setTodayHeader();
   },
 
@@ -132,14 +144,14 @@ var TodayPane = {
       var newdatetime = jsDateToDateTime(aNewDate, floating());
       newdatetime = newdatetime.getInTimezone(calendarDefaultTimezone());
       document.getElementById("aMinimonthPopupset").hidePopup();
-      return this.setDay(newdatetime);
+      return this.setDay(newdatetime, true);
   },
 
   getDay: function getDay(aNewDate) {
       return this.start;
   },
 
-  setDay: function setDay(aNewDate) {
+  setDay: function setDay(aNewDate, aDontUpdateMinimonth) {
       this.start = aNewDate.clone();
 
       var daylabel = document.getElementById("datevalue-label");
@@ -151,10 +163,14 @@ var TodayPane = {
       monthnamedeck.selectedIndex = this.start.month;
 
       var selMonthPanel = monthnamedeck.selectedPanel;
+      this.setMonthDescription(selMonthPanel,
+                               this.start.month,
+                               this.start.year,
+                               getWeekFormatter().getWeekTitle(this.start));
+      if (!aDontUpdateMinimonth || !aDontUpdateMinimonth) {
+          document.getElementById("today-Minimonth").value = this.start.jsDate;
+      }
       this.updatePeriod();
-      return this.setMonthDescription(selMonthPanel, this.start.month,
-                                      this.start.year,
-                                      this.weekFormatter.getWeekTitle(this.start));
   },
 
   advance: function advance(dir) {
@@ -173,6 +189,19 @@ var TodayPane = {
   updatePeriod: function updatePeriod() {
       var date = this.start.clone();
       return agendaListbox.refreshPeriodDates(date);
+  },
+
+  displayMiniSection: function displayMiniSection(aIndex) {
+      document.getElementById("today-minimonth-box").setVisible(aIndex == 2);
+      document.getElementById("mini-day-box").setVisible(aIndex == 1);
+      document.getElementById("today-none-box").setVisible(aIndex == 3);
+  },
+
+  disableMenuItems: function disableMenuItems(disable) {
+       var menu = document.getElementById("today-pane-menu");
+       if (menu) {
+           setAttributeToChildren(menu.firstChild, "disabled", disable, "name", "minidisplay");
+       }
   },
 
   // DOMAttrModified handler that listens to the todaypane-splitter

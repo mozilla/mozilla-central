@@ -59,7 +59,8 @@
   list-style-image: url("chrome://calendar/skin/mini-day-background.png");
 }
 
-#mini-day-box {
+#mini-day-box,
+#today-minimonth-box {
   background-color: white;
 }
 

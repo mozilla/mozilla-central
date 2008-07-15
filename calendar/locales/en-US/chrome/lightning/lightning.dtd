@@ -24,6 +24,7 @@
    -   Matthew Willis <mattwillis@mac.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -   Berend Cornelius <berend.cornelius@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -110,3 +111,15 @@
 
 <!-- Account Central page -->
 <!ENTITY lightning.acctCentral.newCalendar.label "Create a new calendar">
+
+<!-- today-pane-specific -->
+<!ENTITY todaypane.showTodaypane.label "Show Today Pane">
+<!ENTITY todaypane.showTodaypane.accesskey "o">
+<!ENTITY todaypane.showMinimonth.label "Show Mini-Month">
+<!ENTITY todaypane.showMinimonth.accesskey "M">
+<!ENTITY todaypane.showMiniday.label "Show Mini-Day">
+<!ENTITY todaypane.showMiniday.accesskey  "d">
+<!ENTITY todaypane.showNone.label "Show None">
+<!ENTITY todaypane.showNone.accesskey "N">
+<!ENTITY todaypane.showTodayPane.label "Show Today Pane">
+<!ENTITY todaypane.showTodayPane.accesskey "o">

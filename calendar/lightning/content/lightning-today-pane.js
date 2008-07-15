@@ -56,20 +56,6 @@ function ltnAddButtonToSetString(toolbarSetString) {
 *    initializes TodayPane for Lightning and adds a toolbarbutton to mail-toolbar once
 */
 function ltnInitTodayPane() {
-    // set Lightning attributes for current mode and restore last PaneView
-
-    // add a menuitem to the 'View/Layout' -menu. As the respective "Layout" menupopup
-    // carries no 'id' attribute it cannot be overlaid
-    var todayMenuItem = document.getElementById("ltnShowTodayPane");
-    todayMenuItem = todayMenuItem.cloneNode(false);
-    todayMenuItem.setAttribute("id", "ltnShowTodayPaneMailMode");
-    todayMenuItem.removeAttribute("mode");
-    var messagePaneMenu = document.getElementById("menu_MessagePaneLayout");
-    if (messagePaneMenu != null) {
-        var messagePanePopupMenu = messagePaneMenu.firstChild;
-        messagePanePopupMenu.appendChild(todayMenuItem);
-    }
-
     // add toolbar-button to mail-toolbar
     var mailToolbar = getMailBar();
     var addToolbarbutton = false;

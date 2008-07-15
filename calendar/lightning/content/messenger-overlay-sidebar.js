@@ -71,7 +71,7 @@ function nextMonth(dt)
 
 var gMiniMonthLoading = false;
 function ltnMinimonthPick(minimonth) {
-    if (gMiniMonthLoading) {
+    if (gMiniMonthLoading || gCurrentMode != "calendar") {
         return;
     }
     if (document.getElementById("displayDeck").selectedPanel !=
@@ -493,7 +493,7 @@ function copyPopupMenus() {
     menulist.push(document.getElementById("tasksMenu"));
 
     // define PopupMenus for calendar mode...
-    var excludeList = new Array("task");
+    var excludeList = new Array("mail", "task");
     addToPopupList(menulist[0], null, calendarpopuplist, excludeList, true, true);
     addToPopupList(menulist[1], null, calendarpopuplist, excludeList, true, false);
     addToPopupList(menulist[2], null, calendarpopuplist, excludeList, true, true);
@@ -502,7 +502,7 @@ function copyPopupMenus() {
     addToPopupList(menulist[5], null, calendarpopuplist, excludeList, true, false);
 
     // define PopupMenus for task mode...
-    var excludeList = new Array("calendar");
+    var excludeList = new Array("mail", "calendar");
     addToPopupList(menulist[0], null, taskpopuplist, excludeList, true, true);
     addToPopupList(menulist[1], null, taskpopuplist, excludeList, true, false);
     addToPopupList(menulist[2], null, taskpopuplist, excludeList, true, true);

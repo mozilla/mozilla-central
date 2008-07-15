@@ -76,134 +76,174 @@
         </modehbox>
         <spacer id="buttonspacer"/>
         <toolbarbutton id="today-closer" class="today-closebutton"
-                       oncommand="document.getElementById('today-pane-panel').setVisible(false, true, true);"/>
+                       oncommand="document.getElementById('today-pane-panel').setVisible(false, true, true);
+                                  TodayPane.setTodayHeader()"/>
       </sidebarheader>
-      <box id="mini-day-box" class="today-subpane">
-        <stack flex="1">
-          <image id="mini-day-image" flex="1"/>
-          <hbox flex="1">
-            <deck id="dateContainer" selectedIndex="0">
-              <hbox pack="center">
-                <label id="datevalue-label" text="55" class="dateValue"/>
-              </hbox>
-              <label class="dateValue"/>
-            </deck>
-            <vbox flex="1">
-              <hbox pack="center">
-                <deck id="weekdayNameContainer"
-                   pack="center">
-                  <label/>
-                  <label/>
-                  <label/>
-                  <label/>
-                  <label/>
-                  <label/>
-                  <label/>
-                </deck>
-                <spacer id="weekspacer" flex="1"/>
-                <hbox pack="end">
-                  <toolbarbutton id="previous-day-button"
-                                 class="miniday-nav-buttons"
-                                 tooltiptext="&onedaybackward.tooltip;"
-                                 oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
-                                 dir="-1"/>
-                  <toolbarbutton id="today-button"
-                                 class="miniday-nav-buttons"
-                                 tooltiptext="&showToday.tooltip;"
-                                 oncommand="TodayPane.setDay(now());"/>
-                  <toolbarbutton id="next-day-button"
-                                 class="miniday-nav-buttons"
-                                 tooltiptext="&onedayforward.tooltip;"
-                                 oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
-                                 dir="1"/>
-                </hbox>
-              </hbox>
-              <hbox pack="start">
-                <deck id ="monthNameContainer">
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                  <label class="monthlabel"/>
-                </deck>
-                <spacer flex="1"/>
-              </hbox>
-            </vbox>
-            <toolbarbutton id="miniday-dropdown-button"
-                           tooltiptext="&showselectedday.tooltip;"
-                           popup="aMinimonthPopupset"
-                           class="toolbarbutton-menubutton-dropmarker"/>
-            <popupset>
-              <popup id="aMinimonthPopupset" position="after_start">
-                <minimonth id="todayMinimonth" flex="1"
-                           onchange="TodayPane.setDaywithjsDate(this.value);"/>
-              </popup>
-            </popupset>
-          </hbox>
-        </stack>
-      </box>
       <vbox flex="1">
-        <modevbox id="agenda-panel" mode="mail,calendar,task"
-              broadcaster="modeBroadcaster"
-              height="200" persist="collapsed height" flex="1"
-              ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
-              ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
-              ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
-          <toolbar id="agenda-toolbar" iconsize="small">
-            <toolbarbutton id="calendar-new-event-button"
-                           mode="mail"
-                           iconsize="small"
-                           orient="horizontal"
-                           class="cal-toolbarbutton-1"
-                           label="&calendar.newevent.button.label;"
-                           tooltiptext="&calendar.newevent.button.tooltip;"
-                           oncommand="agendaListbox.createNewEvent(event)"/>
-         </toolbar>
-         <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
-         <vbox id="agenda-menu-box" hidden="true">
-           <menuitem label="&calendar.context.modifyitem.label;"
-             accesskey="&calendar.context.modifyitem.accesskey;"
-             observes="agenda_edit_event_command"/>
-           <menuitem label="&calendar.context.deleteitem.label;"
-             accesskey="&calendar.context.deleteitem.accesskey;"
-             observes="agenda_delete_event_command"/>
-           <menu id="agenda-context-menu-convert-menu"
-                 label="&calendar.context.convertmenu.label;"
-                 accesskey="&calendar.context.convertmenu.accesskey.calendar;">
-             <menupopup id="agenda-context-menu-convert-menupopup">
-               <menuitem id="agenda-context-menu-convert-message-menuitem"
-                         label="&calendar.context.convertmenu.message.label;"
-                         accesskey="&calendar.context.convertmenu.message.accesskey;"
-                         oncommand="calendarMailButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
-               <menuitem id="agenda-context-menu-convert-task-menuitem"
-                         class="event-only"
-                         label="&calendar.context.convertmenu.task.label;"
-                         accesskey="&calendar.context.convertmenu.task.accesskey;"
-                         oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
-             </menupopup>
-           </menu>
-         </vbox>
-         <vbox id="richlistitem-container" hidden="true">
-            <agenda-checkbox-richlist-item id="today-header-hidden" title="&calendar.today.button.label;" checked="true" persist="checked"/>
-            <agenda-checkbox-richlist-item id="tomorrow-header-hidden" title="&calendar.tomorrow.button.label;" checked="false" persist="checked"/>
-            <agenda-checkbox-richlist-item id="nextweek-header-hidden" title="&calendar.soon.button.label;" checked="false" persist="checked"/>
-         </vbox>
-         <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
-                       onblur="agendaListbox.onBlur();"
-                       onfocus="agendaListbox.onFocus();"
-                       onkeypress="agendaListbox.onKeyPress(event);"
-                       ondblclick="agendaListbox.createNewEvent(event);"/>
+        <modevbox id="agenda-panel"
+                  flex="1"
+                  mode="mail,calendar,task"
+                  collapsedinmodes="calendar"
+                  persist="collapsed height collapsedinmodes"
+                  broadcaster="modeBroadcaster">
+              <modebox id="today-none-box"
+                       mode="mail,calendar,task"
+                       collapsedinmodes="mail,calendar,task"
+                       broadcaster="modeBroadcaster"
+                       refcontrol="today-pane-displaynone"
+                       persist="collapsedinmodes"/>
+              <modehbox id="today-minimonth-box"
+                        class="today-subpane"
+                        mode="mail,calendar,task"
+                        broadcaster="modeBroadcaster"
+                        collapsedinmodes="mail,calendar,task"
+                        refcontrol="today-pane-displayminimonth"
+                        persist="collapsedinmodes">
+                <spacer flex="1"/>
+                <minimonth id="today-Minimonth" onchange="TodayPane.setDaywithjsDate(this.value);"/>
+                <spacer flex="1"/>
+              </modehbox>
+              <modebox id="mini-day-box"
+                       mode="mail,calendar,task"
+                       class="today-subpane"
+                       refcontrol="today-pane-displayminiday"
+                       broadcaster="modeBroadcaster"
+                       collapsedinmodes=""
+                       persist="collapsedinmodes">
+                <stack flex="1">
+                  <image id="mini-day-image" flex="1"/>
+                  <hbox flex="1">
+                    <deck id="dateContainer" selectedIndex="0">
+                      <hbox pack="center">
+                        <label id="datevalue-label" text="55" class="dateValue"/>
+                      </hbox>
+                      <label class="dateValue"/>
+                     </deck>
+                    <vbox flex="1">
+                      <hbox pack="center">
+                        <deck id="weekdayNameContainer"
+                           pack="center">
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                          <label/>
+                        </deck>
+                        <spacer id="weekspacer" flex="1"/>
+                        <hbox pack="end">
+                          <toolbarbutton id="previous-day-button"
+                                         class="miniday-nav-buttons"
+                                         tooltiptext="&onedaybackward.tooltip;"
+                                         oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
+                                         dir="-1"/>
+                          <toolbarbutton id="today-button"
+                                         class="miniday-nav-buttons"
+                                         tooltiptext="&showToday.tooltip;"
+                                         oncommand="TodayPane.setDay(now());"/>
+                          <toolbarbutton id="next-day-button"
+                                         class="miniday-nav-buttons"
+                                         tooltiptext="&onedayforward.tooltip;"
+                                         oncommand="TodayPane.advance(parseInt(this.getAttribute('dir')));"
+                                         dir="1"/>
+                        </hbox>
+                      </hbox>
+                      <hbox pack="start">
+                        <deck id ="monthNameContainer">
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                          <label class="monthlabel"/>
+                        </deck>
+                        <spacer flex="1"/>
+                      </hbox>
+                    </vbox>
+                    <toolbarbutton id="miniday-dropdown-button"
+                                   tooltiptext="&showselectedday.tooltip;"
+                                   popup="aMinimonthPopupset"
+                                   class="toolbarbutton-menubutton-dropmarker"/>
+                    <popupset>
+                      <popup id="aMinimonthPopupset" position="after_start">
+                        <minimonth id="todayMinimonth" flex="1"
+                                   onchange="TodayPane.setDaywithjsDate(this.value);"/>
+                      </popup>
+                    </popupset>
+                 </hbox>
+                </stack>
+              </modebox>
+            <vbox flex="1"
+                  ondraggesture="nsDragAndDrop.startDrag(event, calendarCalendarButtonDNDObserver);"
+                  ondragover="nsDragAndDrop.dragOver(event, calendarCalendarButtonDNDObserver);"
+                  ondragdrop="nsDragAndDrop.drop(event, calendarCalendarButtonDNDObserver);">
+              <toolbar id="agenda-toolbar" iconsize="small">
+                <toolbarbutton id="calendar-new-event-button"
+                               mode="mail"
+                               iconsize="small"
+                               orient="horizontal"
+                               class="cal-toolbarbutton-1"
+                               label="&calendar.newevent.button.label;"
+                               tooltiptext="&calendar.newevent.button.tooltip;"
+                               oncommand="agendaListbox.createNewEvent(event)"/>
+             </toolbar>
+             <popup id="agenda-menu" onpopupshowing="if (event.target == event.currentTarget) { agendaListbox.buildAgendaPopupMenu(this) }"/>
+             <vbox id="agenda-menu-box" hidden="true">
+               <menuitem label="&calendar.context.modifyitem.label;"
+                 accesskey="&calendar.context.modifyitem.accesskey;"
+                 observes="agenda_edit_event_command"/>
+               <menuitem label="&calendar.context.deleteitem.label;"
+                 accesskey="&calendar.context.deleteitem.accesskey;"
+                 observes="agenda_delete_event_command"/>
+               <menu id="agenda-context-menu-convert-menu"
+                     label="&calendar.context.convertmenu.label;"
+                     accesskey="&calendar.context.convertmenu.accesskey.calendar;">
+                 <menupopup id="agenda-context-menu-convert-menupopup">
+                   <menuitem id="agenda-context-menu-convert-message-menuitem"
+                             label="&calendar.context.convertmenu.message.label;"
+                             accesskey="&calendar.context.convertmenu.message.accesskey;"
+                             oncommand="calendarMailButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+                   <menuitem id="agenda-context-menu-convert-task-menuitem"
+                             class="event-only"
+                             label="&calendar.context.convertmenu.task.label;"
+                             accesskey="&calendar.context.convertmenu.task.accesskey;"
+                             oncommand="calendarTaskButtonDNDObserver.onDropItems(agendaListbox.getSelectedItems())"/>
+                 </menupopup>
+               </menu>
+             </vbox>
+             <vbox id="richlistitem-container" hidden="true">
+                <agenda-checkbox-richlist-item id="today-header-hidden"
+                                               title="&calendar.today.button.label;"
+                                               checked="true"
+                                               persist="checked"/>
+                <agenda-checkbox-richlist-item id="tomorrow-header-hidden"
+                                               title="&calendar.tomorrow.button.label;"
+                                               checked="false"
+                                               persist="checked"/>
+                <agenda-checkbox-richlist-item id="nextweek-header-hidden" 
+                                               title="&calendar.soon.button.label;"
+                                               checked="false"
+                                               persist="checked"/>
+             </vbox>
+             <richlistbox id="agenda-listbox" flex="1" context="agenda-menu"
+                           onblur="agendaListbox.onBlur();"
+                           onfocus="agendaListbox.onFocus();"
+                           onkeypress="agendaListbox.onKeyPress(event);"
+                           ondblclick="agendaListbox.createNewEvent(event);"/>
+            </vbox>
         </modevbox>
         <splitter id="today-pane-splitter" persist="hidden"/>
         <modevbox id="todo-tab-panel" flex="1" mode="mail,calendar"
-                  broadcaster="modeBroadcaster" persist="height"
+                  collapsedinmodes="mail,task"
+                  broadcaster="modeBroadcaster"
+                  persist="height collapsedinmodes"
                   ondraggesture="nsDragAndDrop.startDrag(event, calendarTaskButtonDNDObserver);"
                   ondragover="nsDragAndDrop.dragOver(event, calendarTaskButtonDNDObserver);"
                   ondragdrop="nsDragAndDrop.drop(event, calendarTaskButtonDNDObserver);"/>
