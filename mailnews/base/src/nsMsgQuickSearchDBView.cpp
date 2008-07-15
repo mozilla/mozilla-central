@@ -278,7 +278,9 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
     PRUint32 numBadHits;
     if (m_db)
     {
-      m_db->RefreshCache(searchUri.get(), m_hdrHits.Count(), keyArray.Elements(), &numBadHits, &staleHits);
+      nsresult rv = m_db->RefreshCache(searchUri.get(), m_hdrHits.Count(),
+                                       keyArray.Elements(), &numBadHits, &staleHits);
+      NS_ENSURE_SUCCESS(rv, rv);
       for (i = 0; i < numBadHits; i++)
       {
         nsMsgViewIndex staleHitIndex = FindKey(staleHits[i], PR_TRUE);
