@@ -765,6 +765,27 @@ sub get_status_list {
     return \@status;
 }
 
+
+=head2 get_fields
+
+Returns a reference to a list of test run field descriptions from 
+the test_fielddefs table. 
+
+=cut
+
+sub get_fields {
+    my $self = shift;
+    my $dbh = Bugzilla->dbh;    
+
+    my $types = $dbh->selectall_arrayref(
+            "SELECT fieldid AS id, description AS name 
+             FROM test_fielddefs 
+             WHERE table_name=?", 
+             {"Slice"=>{}}, "test_runs");
+    unshift @$types, {id => '[Creation]', name => '[Started]'};
+    return $types;
+}
+
 =head2 get_distinct_builds
 
 Returns a list of build names for use in searches

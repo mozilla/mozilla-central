@@ -1,5 +1,8 @@
-"Product","Plans","Summary","Author","Default Tester","Status","Priority","Category","Components","Requirements","Estimated Time","Automated","Scripts","Arguments","Alias","Tags","Bugs","Depends On","Blocks","Runs","Setup","Breakdown","Action","Expected Results"
+"Product*","Plans+","Summary*","Author*","Default Tester","Status*","Priority*","Category*","Components","Requirements","Estimated Time","Automated","Scripts","Arguments","Alias","Tags","Bugs","Depends On","Blocks","Runs","Setup","Breakdown","Action","Expected Results"
 "Example Product","22, 33","Test the button for causing world destruction","admin@testopia.com","tester@testopia.com","CONFIRMED","P3","Destruction","buttons, widgets","REQ#00001",00:02:00,"NO",,,,"Explosions, Fried Fish","55,66",2,"8 ,9, 10","770, 857","Fill out last will and Testement","No Breakdown","1.Locate the big red button 
 2. Press the big red button
 3. Wait for large explosion","1. Boom
 2. Are you sure?"
+
+"* Required field"
+"+ Required if going to tr_importer.cgi directly (not from within the plan file menu)"

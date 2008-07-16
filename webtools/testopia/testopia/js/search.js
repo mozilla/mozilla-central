@@ -20,6 +20,38 @@
  *                 Daniel Parker <dparker1@novell.com>
  */
 
+Testopia.Search = {};
+
+Testopia.Search.fillInForm = function(type, params, name){
+    var f = document.getElementById(type + '_search_form');
+    for (var i=0; i < f.length; i++){
+        if (f[i].type == 'select-multiple'){
+            for (k=0; k < f[i].options.length; k++){
+                f[i].options[k].selected = false;
+            }
+                
+            var list = params[f[i].name];
+            if(!list){
+                continue;
+            }
+            if (typeof list != 'object'){
+                list = new Array(list);
+            }
+            for (j=0; j < list.length; j++){
+                for (k=0; k < f[i].options.length; k++){
+                    if(f[i].options[k].value == list[j]){
+                        f[i].options[k].selected = true;
+                        break;
+                    }
+                }
+            }
+        }
+        else{
+            f[i].value = params[f[i].name] || '';
+        }
+    }
+};
+
 SearchPopup = function(tab, params){
     var win = new Ext.Window({
         id: 'search_win',
@@ -132,8 +164,8 @@ Ext.extend(PlanSearch, Ext.Panel,{
         if (Ext.get('run_search_form')){
             Ext.get('run_search_form').remove();
         }
-        if (Ext.get('case_run_search_form')){
-            Ext.get('case_run_search_form').remove();
+        if (Ext.get('caserun_search_form')){
+            Ext.get('caserun_search_form').remove();
         }
 
         this.params.current_tab = 'plan';
@@ -141,7 +173,8 @@ Ext.extend(PlanSearch, Ext.Panel,{
             url: 'tr_query.cgi',
             params: this.params,
             scripts: true,
-            text: 'Loading search form...'
+            text: 'Loading search form...',
+            callback: Testopia.Search.fillInForm.createDelegate(this,['plan',this.params])
         });
     }
 });
@@ -221,8 +254,8 @@ Ext.extend(CaseSearch, Ext.Panel,{
         if (Ext.get('plan_search_form')){
             Ext.get('plan_search_form').remove();
         }
-        if (Ext.get('case_run_search_form')){
-            Ext.get('case_run_search_form').remove();
+        if (Ext.get('caserun_search_form')){
+            Ext.get('caserun_search_form').remove();
         }
 
         this.params.current_tab = 'case';
@@ -230,7 +263,8 @@ Ext.extend(CaseSearch, Ext.Panel,{
             url: 'tr_query.cgi',
             params: this.params,
             scripts: true,
-            text: 'Loading search form...'
+            text: 'Loading search form...',
+            callback: Testopia.Search.fillInForm.createDelegate(this,['case',this.params])
         });
     }
 });
@@ -246,6 +280,8 @@ RunSearch = function(params){
             handler: function(){
                 var form = new Ext.form.BasicForm('run_search_form');
                 var values = form.getValues();
+                if (params.qname)
+                    values.qname = params.qname;
                 var searchnum = Math.round(Math.random()*100);
                 try {
                     // EXT BUG - Closing always causes an error: 
@@ -310,8 +346,8 @@ Ext.extend(RunSearch, Ext.Panel,{
         if (Ext.get('plan_search_form')){
             Ext.get('plan_search_form').remove();
         }
-        if (Ext.get('case_run_search_form')){
-            Ext.get('case_run_search_form').remove();
+        if (Ext.get('caserun_search_form')){
+            Ext.get('caserun_search_form').remove();
         }
 
         this.params.current_tab = 'run';
@@ -319,7 +355,8 @@ Ext.extend(RunSearch, Ext.Panel,{
             url: 'tr_query.cgi',
             params: this.params,
             scripts: true,
-            text: 'Loading search form...'
+            text: 'Loading search form...',
+            callback: Testopia.Search.fillInForm.createDelegate(this,['run',this.params])
         });
     }
 });
@@ -328,12 +365,12 @@ CaseRunSearch = function(params){
     this.params = params;
     CaseRunSearch.superclass.constructor.call(this,{
         title: 'Case-Run Search',
-        id: 'case_run_search_panel',
+        id: 'caserun_search_panel',
         layout:'fit',
         buttons:[{
             text: 'Submit',
             handler: function(){
-                var form = new Ext.form.BasicForm('case_run_search_form');
+                var form = new Ext.form.BasicForm('caserun_search_form');
                 var values = form.getValues();
                 var searchnum = Math.round(Math.random()*100);
                 try {
@@ -407,7 +444,8 @@ Ext.extend(CaseRunSearch, Ext.Panel,{
             url: 'tr_query.cgi',
             params: this.params,
             scripts: true,
-            text: 'Loading search form...'
+            text: 'Loading search form...',
+            callback: Testopia.Search.fillInForm.createDelegate(this,['caserun',this.params])
         });
     }
 });
@@ -472,42 +510,54 @@ ReportGrid = function(cfg){
 
 Ext.extend(ReportGrid, Ext.grid.GridPanel, {
     onContextClick: function(grid, index, e){
-        if(!this.menu){ // create context menu on first right click
-            this.menu = new Ext.menu.Menu({
-                id:'run-ctx-menu',
-                items: [{
-                    text: 'Open in a new tab', 
-                    handler: function(){
-                        var r = grid.store.getAt(index);
-                        if (r.get('type') == 0){
-                            grid.loadPanel(r);
-                        }
-                        else{
-                            var newTab = new Ext.Panel({
-                                title: r.get('name'),
-                                closable: true,
-                                id: 'search' + r.get('name'),
-                                autoScroll: true
-                            });
-                            Ext.getCmp('object_panel').add(newTab);
-                            Ext.getCmp('object_panel').activate('search' + r.get('name'));
-                    		newTab.load({
-                                url: r.get('query')
-                            });
-                        }
-                        
+        this.menu = new Ext.menu.Menu({
+            id:'run-ctx-menu',
+            items: [{
+                text: 'Open in a new tab', 
+                handler: function(){
+                    var r = grid.store.getAt(index);
+                    if (r.get('type') == 0){
+                        grid.loadPanel(r);
                     }
-                },{
-                    text: 'Delete Saved Search', 
-                    handler: this.deleteSearch.createDelegate(this)
-                },{
-                    text: 'Refresh List', 
-                    handler: function(){
-                        grid.store.reload();
+                    else{
+                        var newTab = new Ext.Panel({
+                            title: r.get('name'),
+                            closable: true,
+                            id: 'search' + r.get('name'),
+                            autoScroll: true
+                        });
+                        Ext.getCmp('object_panel').add(newTab);
+                        Ext.getCmp('object_panel').activate('search' + r.get('name'));
+                		newTab.load({
+                            url: r.get('query')
+                        });
                     }
-                }]
-            });
-        }
+                    
+                }
+            },{
+                text: 'Edit', 
+                icon: 'testopia/img/edit.png',
+                iconCls: 'img_button_16x',
+                handler: function(){
+                    var r = grid.store.getAt(index);
+                    var name = r.get('name');
+                    var type = r.get('query').match(/tr_list_(run|case|plan|caserun)s/);
+                    type = type[1]
+                    var params = searchToJson(r.get('query'));
+                    SearchPopup(type, params);
+                }
+            },{
+                text: 'Delete',
+                icon: 'testopia/img/delete.png',
+                iconCls: 'img_button_16x',
+                handler: this.deleteSearch.createDelegate(this)
+            },{
+                text: 'Refresh List', 
+                handler: function(){
+                    grid.store.reload();
+                }
+            }]
+        });
         e.stopEvent();
         this.menu.showAt(e.getXY());
     },

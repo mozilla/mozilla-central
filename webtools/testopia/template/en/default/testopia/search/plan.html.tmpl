@@ -31,16 +31,34 @@
     <legend><strong>Product</strong></legend>
 <table>
   <tr class="bz_row_header">
+  [% IF Param('useclassification') %]
+    <th>Classification</th>
+  [% END %]
     <th>Product</th>
     <th>Product Version</th>
     <th>Type</th>
   </tr>
   <tr>
+  [% IF Param('useclassification') %]
     <td style="padding-right: 30px;">
-    [% PROCESS select sel = { name  => 'product_id',
+    [% PROCESS select sel = { name  => 'classification',
+                  accesskey => 'p', 
+                  list      => user.get_selectable_classifications,
+                  elements  => 5,
+                  byname    => 1,
+                  mult      => 1,  
+                  events    => 'onChange="document.getElementById(\'version\').disabled=true;
+                                          document.getElementById(\'product\').disabled=true; 
+                                          t.onProductSelection(this)"'  } %]
+
+    </td>
+    [% END %]
+    <td style="padding-right: 30px;">
+    [% PROCESS select sel = { name  => 'product',
                   accesskey => 'p', 
                   list      => user.get_selectable_products,
                   elements  => 5,
+                  byname    => 1,
                   mult      => 1  
                   events    => 'onChange="document.getElementById(\'version\').disabled=true; 
                                           t.onProductSelection(this)"'  } %]
@@ -96,12 +114,24 @@
   </tr>
 </table>
 </fieldset>
-<!-- 
+<fieldset>
+    <legend><strong>Permissions</strong></legend>
+<table>
+  <tr><td>Where User <input name="permuser"> has at least
+    <select name="permission">
+      <option value="15">Admin</option>
+      <option value="7">Delete</option>
+      <option value="3">Write</option>
+      <option value="1">Read</option>
+    </select> permissions
+</table>
+</fieldset>
+
   <fieldset>
     <legend><strong>Plan Changes</strong></legend>
 
 
-<dl class="bug_changes">
+<dl>
   <dt>Only plans changed between:</dt>
   <dd>
     <input name="chfieldfrom" size="10" value="[% default.chfieldfrom.0 FILTER html %]">
@@ -123,7 +153,7 @@
 </dl>
 
    </fieldset>
--->
+
 <p style="font-weight: bold;">
   <label for="plan_id">
      Include plans numbered: 

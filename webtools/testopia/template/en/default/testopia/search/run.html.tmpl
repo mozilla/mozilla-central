@@ -33,6 +33,9 @@
 <table>
   <tr class="bz_row_header">
     <th>Status</th>
+  [% IF Param('useclassification') %]
+    <th>Classification</th>
+  [% END %]
     <th>Product</th>
     <th>Version</th>
   </tr>
@@ -44,11 +47,29 @@
                               elements  => 5,
                               mult      => 1 } %]
     </td>
+  [% IF Param('useclassification') %]
     <td style="padding-right: 30px;">
-    [% PROCESS select sel = { name  => 'product_id',
+    [% PROCESS select sel = { name  => 'classification',
+                  accesskey => 'p', 
+                  list      => user.get_selectable_classifications,
+                  elements  => 5,
+                  byname    => 1,
+                  mult      => 1  
+                  events    => 'onChange="document.getElementById(\'product\').disabled=true; 
+                                          document.getElementById(\'version\').disabled=true;
+                                          document.getElementById(\'milestone\').disabled=true;
+                                          document.getElementById(\'build\').disabled=true;
+                                          document.getElementById(\'environment\').disabled=true;
+                                          t.onProductSelection(this)"'  } %]
+
+    </td>
+  [% END %]
+    <td style="padding-right: 30px;">
+    [% PROCESS select sel = { name  => 'product',
                               accesskey => 'p', 
                               list      => user.get_selectable_products,
                               elements  => 5,
+                              byname    => 1,
                               mult      => 1  
                               events    => 'onChange="document.getElementById(\'version\').disabled=true;
                                                       document.getElementById(\'milestone\').disabled=true;
@@ -129,8 +150,37 @@
     <td><input name="manager"></td>
   </tr>
 </table>
+<table>
+  <tr>
+    <th align="right">Environment Categories:</th>
+    <td>
+    [% PROCESS select sel = { name => 'env_category_type',
+                              list => query_variants } %]</td>
+    <td><input name="env_category"></td>
+  </tr>
+  <tr>
+    <th align="right">Environment Elements:</th>
+    <td>
+    [% PROCESS select sel = { name => 'env_element_type',
+                              list => query_variants } %]</td>
+    <td><input name="env_element"></td>
+  </tr>
+  <tr>
+    <th align="right">Environment Properties:</th>
+    <td>
+    [% PROCESS select sel = { name => 'env_property_type',
+                              list => query_variants } %]</td>
+    <td><input name="env_property"></td>
+  </tr>
+  <tr>
+    <th align="right">Environment Value:</th>
+    <td>
+    [% PROCESS select sel = { name => 'env_value_type',
+                              list => query_variants } %]</td>
+    <td><input name="env_value"></td>
+  </tr>
+</table>
 </fieldset>
-<!-- 
   <fieldset>
     <legend><strong>Run Changes</strong></legend>
 
@@ -157,7 +207,6 @@
 </dl>
 
    </fieldset>
--->
 <p style="font-weight: bold;">
   <label for="run_id">
      Include runs numbered: 

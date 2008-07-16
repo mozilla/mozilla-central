@@ -1139,6 +1139,8 @@ sub get_fields {
              FROM test_fielddefs 
              WHERE table_name=?", 
              {"Slice"=>{}}, "test_cases");
+    unshift @$types, {id => 'text', name => 'Text (Action, Setup, etc.)'};
+    unshift @$types, {id => '[Creation]', name => '[Created]'};
     return $types;
 }
 

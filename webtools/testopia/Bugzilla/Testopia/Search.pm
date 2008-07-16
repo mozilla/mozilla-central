@@ -61,6 +61,9 @@ use Bugzilla::Error;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::TestCase;
 
+use Date::Format;
+use Date::Parse;
+
 sub new {
     my $invocant = shift;
     my $class = ref($invocant) || $invocant;
@@ -538,6 +541,12 @@ sub init {
                     "ON test_plans.type_id = test_plan_types.type_id");
                $f = 'test_plan_types.name';      
          },
+         "^plan_perms," => sub {
+               push(@supptables,
+                    "INNER JOIN test_plan_permissions ".
+                    "ON test_plans.plan_id = test_plan_permissions.plan_id");
+               $f = 'test_plan_permissions.permissions';      
+         },
          "^case_run_status," => sub {
                push(@supptables,
                     "INNER JOIN test_case_run_status AS tcrs ".
@@ -550,41 +559,41 @@ sub init {
                      ON test_environments.product_id = env_products.id");
                $f = 'env_products.id'      
          },
-         "^env_categories," => sub {
-               push(@supptables,
+         "^env_.*," => sub {
+             if ($obj eq 'run'){
+                 push(@supptables,
                     "INNER JOIN test_environment_map
-                     ON test_environments.environment_id = test_environment_map.environment_id");
+                     ON test_runs.environment_id = test_environment_map.environment_id");
+             }
+             elsif ($obj eq 'case_run'){
+                 push(@supptables,
+                    "INNER JOIN test_environment_map
+                     ON test_case_runs.environment_id = test_environment_map.environment_id");                 
+             }
+         },
+         "^env_category," => sub {
                push(@supptables,
                     "INNER JOIN test_environment_element
                      ON test_environment_map.element_id = test_environment_element.element_id");
                push(@supptables,
                     "INNER JOIN test_environment_category
                      ON test_environment_element.env_category_id = test_environment_category.env_category_id");
-               $f = 'test_environment_category.env_category_id'      
+               $f = 'test_environment_category.name'      
          },
-         "^env_elements," => sub {
-               push(@supptables,
-                    "INNER JOIN test_environment_map as env_map_elements
-                     ON test_environments.environment_id = env_map_elements.environment_id");
+         "^env_element," => sub {
                push(@supptables,
                     "INNER JOIN test_environment_element as env_element
-                     ON env_map_elements.element_id = env_element.element_id");
-               $f = 'env_element.element_id'      
+                     ON test_environment_map.element_id = env_element.element_id");
+               $f = 'env_element.name'      
          },
-         "^env_properties," => sub {
-               push(@supptables,
-                    "INNER JOIN test_environment_map as env_map_properties
-                     ON test_environments.environment_id = env_map_properties.environment_id");
+         "^env_property," => sub {
                push(@supptables,
                     "INNER JOIN test_environment_property as env_property
-                     ON env_map_properties.property_id = env_property.property_id");
-               $f = 'env_property.property_id'      
+                     ON test_environment_map.property_id = env_property.property_id");
+               $f = 'env_property.name'      
          },
-         "^env_expressions," => sub {
-               push(@supptables,
-                    "INNER JOIN test_environment_map as env_map_value
-                     ON test_environments.environment_id = env_map_value.environment_id");
-               $f = 'env_map_value.value_selected'      
+         "^env_value," => sub {
+               $f = 'test_environment_map.value_selected'      
          },
          "^env_value_selected," => sub {
                push(@supptables,
@@ -631,7 +640,7 @@ sub init {
                       "ON milestones.value = builds.milestone");
                $f = "milestones.value";
          },
-         "^bug," => sub {
+         "^(?:assigned_to|reporter|qa_contact|bug.*)," => sub {
              if ($obj eq 'case_run'){
                push(@supptables,
                       "INNER JOIN test_case_bugs AS case_bugs " .
@@ -648,7 +657,90 @@ sub init {
                       "INNER JOIN bugs ".
                       "ON case_bugs.bug_id = bugs.bug_id");
              }
+             push(@supptables,
+                  "INNER JOIN bugs " .
+                  "ON case_bugs.bug_id = bugs.bug_id");
+         },
+         "^bug," => sub {
                $f = "bugs.bug_id";
+         },
+         "^bug_status," => sub {
+               $f = "bugs.bug_status";
+         },
+         "^bug_resolution," => sub {
+               $f = "bugs.resolution";
+         },
+         "^bug_priority," => sub {
+               $f = "bugs.priority";
+         },"^bug_op_sys," => sub {
+               $f = "bugs.op_sys";
+         },
+         "^bug_severity," => sub {
+               $f = "bugs.bug_severity";
+         },
+         "^bug_rep_platform," => sub {
+               $f = "bugs.rep_platform";
+         },
+         "^bug_short_desc," => sub {
+               $f = "bugs.short_desc";
+         },
+         "^bug_file_loc," => sub {
+               $f = "bugs.bug_file_loc";
+         },
+         "^bug_status_whiteboard," => sub {
+               $f = "bugs.status_whiteboard";
+         },
+         "^bug_long_desc," => sub {
+             my $table = "longdescs";
+             my $extra = "";
+             if (Bugzilla->params->{"insidergroup"} 
+                 && !Bugzilla->user->in_group(Bugzilla->params->{"insidergroup"})) 
+             {
+                 $extra = "AND $table.isprivate < 1";
+             }
+             push(@supptables, "INNER JOIN longdescs AS $table " .
+                               "ON $table.bug_id = bugs.bug_id $extra");
+             $f = "$table.thetext";
+         },
+         "^bug_keywords," => sub {
+             my @list;
+             my $table = "keywords";
+             foreach my $value (split(/[\s,]+/, $v)) {
+                 if ($value eq '') {
+                     next;
+                 }
+                 my $keyword = new Bugzilla::Keyword({name => $value});
+                 if ($keyword) {
+                     push(@list, "$table.keywordid = " . $keyword->id);
+                 }
+                 else {
+                     ThrowUserError("unknown_keyword",
+                                    { keyword => $v });
+                 }
+             }
+             my $haveawordterm;
+             if (@list) {
+                 $haveawordterm = "(" . join(' OR ', @list) . ")";
+                 if ($t eq "anywords") {
+                     $term = $haveawordterm;
+                 } elsif ($t eq "allwords") {
+                     my $ref = $funcsbykey{",$t"};
+                     &$ref;
+                     if ($term && $haveawordterm) {
+                         $term = "(($term) AND $haveawordterm)";
+                     }
+                 }
+             }
+             if ($term) {
+                 push(@supptables, "LEFT JOIN keywords AS $table " .
+                                   "ON $table.bug_id = bugs.bug_id");
+             }
+             $f = "bugs.keywords";
+         },
+         "^(?:assigned_to|reporter|qa_contact)," => sub {
+             push(@supptables, "INNER JOIN profiles AS map_$f " .
+                                   "ON bugs.$f = map_$f.userid");
+                 $f = "map_$f.login_name";
          },
          "^case_summary," => sub {
                push(@supptables,
@@ -754,6 +846,52 @@ sub init {
                    $f = "products.name";
                }
 
+         },
+         "^classification," => sub {
+               if ($obj eq 'run'){
+                   push(@supptables,
+                          "INNER JOIN test_plans " .
+                          "ON test_runs.plan_id = test_plans.plan_id");
+                   push(@supptables,
+                          "INNER JOIN products " .
+                          "ON test_plans.product_id = products.id");
+               }
+               elsif ($obj eq 'case'){
+                   push(@supptables,
+                          "INNER JOIN test_case_plans AS case_plans " .
+                          "ON test_cases.case_id = case_plans.case_id");
+                   push(@supptables,
+                          "INNER JOIN test_plans " .
+                          "ON case_plans.plan_id = test_plans.plan_id");
+                   push(@supptables,
+                          "INNER JOIN products " .
+                          "ON test_plans.product_id = products.id");
+               }
+               elsif ($obj eq 'case_run'){
+                   push(@supptables,
+                          "INNER JOIN test_runs " .
+                          "ON test_case_runs.run_id = test_runs.run_id");
+                   push(@supptables,
+                          "INNER JOIN test_plans " .
+                          "ON test_runs.plan_id = test_plans.plan_id");
+                   push(@supptables,
+                          "INNER JOIN products " .
+                          "ON test_plans.product_id = products.id");
+               }
+               elsif ($obj eq 'environment'){
+                   push(@supptables,
+                        "INNER JOIN products
+                         ON test_environments.product_id = products.id");
+               }
+               else{
+                   push(@supptables,
+                        "INNER JOIN products ".
+                        "ON test_". $obj ."s.product_id = products.id");
+               }
+               push(@supptables,
+                      "INNER JOIN classifications " .
+                      "ON products.classification_id = classifications.id");
+               $f = "classifications.name";
          },
          "^caserun_prod," => sub {
                push(@supptables,
@@ -899,6 +1037,97 @@ sub init {
              $term = "test_". $obj ."s.". $obj ."_id NOT IN (SELECT junc.". $obj ."_id FROM test_". $obj ."_tags AS junc JOIN test_tags AS junc_tags ON junc.tag_id = junc_tags.tag_id WHERE junc_tags.tag_name = " . $q .")";
          },
      );
+     
+    my $chfieldfrom = trim(lc($cgi->param('chfieldfrom'))) || '';
+    my $chfieldto = trim(lc($cgi->param('chfieldto'))) || '';
+    $chfieldfrom = '' if ($chfieldfrom eq 'now');
+    $chfieldto = '' if ($chfieldto eq 'now');
+    my @chfield = $cgi->param('chfield_type');
+    my $chvalue = trim($cgi->param('chfieldvalue')) || '';
+
+    if ($chfieldfrom ne '' || $chfieldto ne '') {
+        my $sql_chfrom = $chfieldfrom ? $dbh->quote(SqlifyDate($chfieldfrom)):'';
+        my $sql_chto   = $chfieldto   ? $dbh->quote(SqlifyDate($chfieldto))  :'';
+        my $sql_chvalue = $chvalue ne '' ? $dbh->quote($chvalue) : '';
+        trick_taint($sql_chvalue);
+        if(!@chfield) {
+            push(@supptables,
+              "INNER JOIN test_" . $obj ."_activity " . 
+              "ON test_". $obj ."s.". $obj ."_id = test_" . $obj ."_activity." . $obj ."_id");
+            push(@wherepart, "test_" . $obj ."_activity.changed >= $sql_chfrom") if ($sql_chfrom);
+            push(@wherepart, "test_" . $obj ."_activity.changed <= $sql_chto") if ($sql_chto);
+        } else {
+            my $bug_creation_clause;
+            my @list;
+            my @actlist;
+            foreach my $f (@chfield) {
+                if ($f eq "[Creation]") {
+                    my @l;
+                    if ($obj eq 'run'){
+                        push(@l, "test_" . $obj ."s.start_date >= $sql_chfrom") if($sql_chfrom);
+                        push(@l, "test_" . $obj ."s.start_date <= $sql_chto") if($sql_chto);
+                    }
+                    else{
+                        push(@l, "test_" . $obj ."s.creation_date >= $sql_chfrom") if($sql_chfrom);
+                        push(@l, "test_" . $obj ."s.creation_date <= $sql_chto") if($sql_chto);
+                    }
+                    $bug_creation_clause = "(" . join(' AND ', @l) . ")";
+                }
+                elsif ($f eq "text"){
+                    push(@supptables,
+                      "INNER JOIN test_" . $obj ."_texts " . 
+                      "ON test_". $obj ."s.". $obj ."_id = test_" . $obj ."_texts." . $obj ."_id");
+                    push(@wherepart, "test_" . $obj ."_texts.creation_ts >= $sql_chfrom") if ($sql_chfrom);
+                    push(@wherepart, "test_" . $obj ."_texts.creation_ts <= $sql_chto") if ($sql_chto);
+                    
+                } 
+                else {
+                    push(@actlist, $f);
+                }
+            }
+
+            # @actlist won't have any elements if the only field being searched
+            # is [Bug creation] (in which case we don't need bugs_activity).
+            if(@actlist) {
+                my $extra = " actcheck." . $obj . "_id = test_" . $obj ."s." . $obj . "_id";
+                push(@list, "(actcheck.changed IS NOT NULL)");
+                if($sql_chfrom) {
+                    $extra .= " AND actcheck.changed >= $sql_chfrom";
+                }
+                if($sql_chto) {
+                    $extra .= " AND actcheck.changed <= $sql_chto";
+                }
+                if($sql_chvalue) {
+                    $extra .= " AND actcheck.newvalue = $sql_chvalue";
+                }
+                push(@supptables, "LEFT JOIN test_" . $obj ."_activity AS actcheck " .
+                                  "ON $extra AND actcheck.fieldid IN (" .
+                                  join(",", @actlist) . ")");
+            }
+
+            # Now that we're done using @list to determine if there are any
+            # regular fields to search (and thus we need bugs_activity),
+            # add the [Bug creation] criterion to the list so we can OR it
+            # together with the others.
+            push(@list, $bug_creation_clause) if $bug_creation_clause;
+
+            push(@wherepart, "(" . join(" OR ", @list) . ")") if scalar @list;
+        }
+    }
+    if ($cgi->param('permuser')) {
+        my $permuser = login_to_id($cgi->param('permuser'), "BARF");
+        my $perm = $cgi->param('permission');
+        detaint_natural($permuser);
+        push(@wherepart, "test_plan_permissions.userid = $permuser");
+        push(@specialchart, ["plan_perms", 'equals', $perm]);
+    }
+    if ($cgi->param('bug_keywords')) {
+        my $t = $cgi->param('bug_keywords_type');
+        if (!$t || $t eq "or") {
+            $t = "anywords";
+        }
+        push(@specialchart, ["bug_keywords", $t, $cgi->param('keywords')]);
+    }
 
     if ($cgi->param('case_id')) {
         my $type = "anyexact";
@@ -1010,7 +1239,32 @@ sub init {
                 push(@specialchart, ["product_id", $type, join(',', $cgi->param($attribute))]);
             }
         }
-    }        
+    } 
+    my $email = trim($cgi->param("bug_email"));
+    my $type = $cgi->param("bug_emailtype");
+    if ($type eq "exact") {
+        $type = "anyexact";
+        foreach my $name (split(',', $email)) {
+            $name = trim($name);
+            if ($name) {
+                login_to_id($name, "BARF");
+            }
+        }
+    }
+
+    my @clist;
+    foreach my $field ("assigned_to", "reporter", "cc", "qa_contact", "infoprovider") {
+        if ($cgi->param("bug_email$field")) {
+            push(@clist, $field, $type, $email);
+        }
+    }
+    if ($cgi->param("bug_emaillongdesc")) {
+        push(@clist, "commenter", $type, $email);
+    }
+    if (@clist) {
+        push(@specialchart, \@clist);
+    }
+           
     # Check the Multi select fields and add them to the chart
     my @legal_fields = ("case_status_id", "category", "category_id", "priority_id",
                         "component", "isautomated", "case_run_status_id",
@@ -1018,7 +1272,9 @@ sub init {
                         "build", "build_id", "environment_id", "milestone", "env_products",
                         "env_categories", "env_elements", "env_properties", 
                         "env_expressions", "case_status", "priority", "environment",
-                        "plan_type", "case_run_status");
+                        "plan_type", "case_run_status", "classification",
+                        "bug_severity", "bug_resolution","bug_priority", "bug_status",
+                        "bug_rep_platform","bug_os_sys");
 
     foreach my $field ($cgi->param()) {
         if (lsearch(\@legal_fields, $field) != -1) {
@@ -1107,7 +1363,9 @@ sub init {
     # check static text fields
     foreach my $f ("case_summary", "summary", "tcaction", "tceffect", "script",
                    "requirement", "name", "plan_text", "environment_name",
-                   "notes", "env_value_selected") {
+                   "notes", "env_value_selected","bug_short_desc","bug_long_desc",
+                   "bug_file_loc","bug_status_whiteboard","bug_keywords",
+                   "env_category","env_element","env_property","env_value") {
         if (defined $cgi->param($f)) {
             my $s = trim($cgi->param($f));
             if ($s ne "") {
@@ -1297,7 +1555,7 @@ sub init {
                 $str =~ /^(.*?)\s+ON\s+(.*)$/i;
                 my ($leftside, $rightside) = ($1, $2);
                 if ($suppseen{$leftside}) {
-                    $supplist[$suppseen{$leftside}] .= " AND ($rightside)";
+                    $supplist[$suppseen{$leftside}] .= " AND ($rightside)" unless ($rightside eq 'case_bugs.bug_id = bugs.bug_id' || 'test_runs.environment_id = test_environment_map.environment_id');
                 } else {
                     $suppseen{$leftside} = scalar @supplist;
                     push @supplist, " $leftside ON ($rightside)";
@@ -1315,7 +1573,7 @@ sub init {
     
     # Make sure we create a legal SQL query.
     @andlist = ("1 = 1") if !@andlist;
-
+    print "WHEREPART: " . Data::Dumper::Dumper(\@wherepart) if $debug;
     my $query;
     if ($self->{'fields'}){
         $query = "SELECT $distinct". join(",", @{$self->{'fields'}});
@@ -1377,6 +1635,54 @@ sub query {
     my $self = shift;
     return $self->{'sql'};    
 }
+
+sub SqlifyDate {
+    my ($str) = @_;
+    $str = "" if !defined $str;
+    if ($str eq "") {
+        my ($sec, $min, $hour, $mday, $month, $year, $wday) = localtime(time());
+        return sprintf("%4d-%02d-%02d 00:00:00", $year+1900, $month+1, $mday);
+    }
+
+
+    if ($str =~ /^(-|\+)?(\d+)([hHdDwWmMyY])$/) {   # relative date
+        my ($sign, $amount, $unit, $date) = ($1, $2, lc $3, time);
+        my ($sec, $min, $hour, $mday, $month, $year, $wday)  = localtime($date);
+        if ($sign && $sign eq '+') { $amount = -$amount; }
+        if ($unit eq 'w') {                  # convert weeks to days
+            $amount = 7*$amount + $wday;
+            $unit = 'd';
+        }
+        if ($unit eq 'd') {
+            $date -= $sec + 60*$min + 3600*$hour + 24*3600*$amount;
+            return time2str("%Y-%m-%d %H:%M:%S", $date);
+        }
+        elsif ($unit eq 'y') {
+            return sprintf("%4d-01-01 00:00:00", $year+1900-$amount);
+        }
+        elsif ($unit eq 'm') {
+            $month -= $amount;
+            while ($month<0) { $year--; $month += 12; }
+            return sprintf("%4d-%02d-01 00:00:00", $year+1900, $month+1);
+        }
+        elsif ($unit eq 'h') {
+            # Special case 0h for 'beginning of this hour'
+            if ($amount == 0) {
+                $date -= $sec + 60*$min;
+            } else {
+                $date -= 3600*$amount;
+            }
+            return time2str("%Y-%m-%d %H:%M:%S", $date);
+        }
+        return undef;                      # should not happen due to regexp at top
+    }
+    my $date = str2time($str);
+    if (!defined($date)) {
+        ThrowUserError("illegal_date", { date => $str });
+    }
+    return time2str("%Y-%m-%d %H:%M:%S", $date);
+}
+
 
 sub GetByWordList {
     my ($field, $strs) = (@_);

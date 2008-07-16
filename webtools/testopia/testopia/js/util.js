@@ -193,9 +193,10 @@ TestopiaUtil = function(){
           }
         }
         var form = new Ext.form.BasicForm('testopia_helper_frm',{});
+        var type = prod.id == 'classification' ? 'classification' : 'product';
         form.submit({
             url:     "tr_query.cgi",
-            params: { prod_ids: ids.join(","), action: "getversions" },
+            params: { value: ids.join(","), action: "getversions", type: type},
             success:   function(f,a){ 
                 fillSelects(a.result.objects);
             },

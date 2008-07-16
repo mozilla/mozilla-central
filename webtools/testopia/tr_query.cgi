@@ -28,6 +28,7 @@ use Bugzilla;
 use Bugzilla::Util;
 use Bugzilla::Error;
 use Bugzilla::Constants;
+use Bugzilla::Field;
 use Bugzilla::Testopia::Constants;
 use Bugzilla::Testopia::Util;
 use Bugzilla::Testopia::Classification;
@@ -47,6 +48,16 @@ local our $template = Bugzilla->template;
 
 Bugzilla->login(LOGIN_REQUIRED);
 Bugzilla->error_mode(ERROR_MODE_AJAX);
+
+sub convert_bugzilla_fields {
+    my $field = shift;
+    my $values = get_legal_field_values($field);
+    my @vals;
+    foreach my $v (@$values){
+        push @vals, {name => $v, id => $v};
+    }
+    return \@vals;
+}
 
 sub get_searchable_objects{
     my $object = shift;
@@ -114,36 +125,56 @@ my $action = $cgi->param('action') || '';
     
 if ($action eq 'getversions'){
     print $cgi->header;
-    my @prod_ids = split(",", $cgi->param('prod_ids'));
-    my $tab = $cgi->param('current_tab') || '';
-    my $plan = Bugzilla::Testopia::TestPlan->new({});
+    my @prod_ids;
     
-    my $products;
-    my @validated;
-    foreach my $p (@prod_ids){
-        detaint_natural($p);
-        validate_selection($p,'id','products');
-        my $prod = $plan->lookup_product($p);
-        push @validated, $p if Bugzilla->user->can_see_product($prod);
+    my $type = $cgi->param('type');
+    my @values = split(",",$cgi->param('value'));
+    my $obj;
+    my @products;
+    my $prodinfo;
+    my $selectTypes = [qw{version milestone component build category environment}];
+    
+    foreach my $value (@values){
+        if ($type eq 'classification'){
+            $obj = Bugzilla::Testopia::Classification->new({name => $value});
+            next unless ($obj && scalar(grep {$_->name eq $obj->name} @{Bugzilla->user->get_selectable_classifications}));
+            push @products, @{$obj->user_visible_products()};
+            my @prod_names;
+            push @prod_names, $_->name foreach @products;
+            $prodinfo->{'product'} = \@prod_names;
+            unshift @$selectTypes, "product";
+        }
+        else {
+            trim($value);
+            $obj = Bugzilla::Product->new({name => $value});
+            next unless ($obj && Bugzilla->user->can_see_product($obj->name));
+            push @products, $obj;
+        }
+    }        
+        
+    unless (scalar @products > 0){
+        push @products, @{Bugzilla->user->get_selectable_products};
+        unshift @$selectTypes, "product";
+        my @prod_names;
+        push @prod_names, $_->name foreach @products;
+        $prodinfo->{'product'} = \@prod_names;
     }
-    unless (scalar @validated > 0){
-        print "{}";
-        exit; 
-    }
-    my $prod_ids = join(",", @validated);
+    push @prod_ids, $_->id foreach (@products);
+    my $prod_ids = join(",", @prod_ids);
+
     my $dbh = Bugzilla->dbh;
-    $products->{'version'}     = $dbh->selectcol_arrayref("SELECT DISTINCT value FROM versions WHERE product_id IN ($prod_ids)");
-    $products->{'milestone'}   = $dbh->selectcol_arrayref("SELECT DISTINCT value FROM milestones WHERE product_id IN ($prod_ids)");
-    $products->{'component'}   = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM components WHERE product_id IN ($prod_ids)");
-    $products->{'build'}       = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_builds WHERE product_id IN ($prod_ids)");
-    $products->{'category'}    = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_case_categories WHERE product_id IN ($prod_ids)");
-    $products->{'environment'} = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_environments WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'version'}     = $dbh->selectcol_arrayref("SELECT DISTINCT value FROM versions WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'milestone'}   = $dbh->selectcol_arrayref("SELECT DISTINCT value FROM milestones WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'component'}   = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM components WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'build'}       = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_builds WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'category'}    = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_case_categories WHERE product_id IN ($prod_ids)");
+    $prodinfo->{'environment'} = $dbh->selectcol_arrayref("SELECT DISTINCT name FROM test_environments WHERE product_id IN ($prod_ids)");
     
     # This list must match the name of the select fields and the names above
-    $products->{'selectTypes'} = [qw{version milestone component build category environment}];
+    $prodinfo->{'selectTypes'} = $selectTypes;
 
     my $json = new JSON;
-    print "{'success': true, objects: " .  $json->encode($products) . "}";
+    print "{'success': true, objects: " .  $json->encode($prodinfo) . "}";
 }
 
 elsif ($action eq 'get_products'){
@@ -353,14 +384,26 @@ else{
         $vars->{'environments'} = get_searchable_objects('environments');
         $vars->{'components'}   = get_searchable_objects('components');
         $vars->{'categories'}   = get_searchable_objects('categories');
+        $vars->{'bug_status'}   = convert_bugzilla_fields('bug_status');
+        $vars->{'rep_platform'} = convert_bugzilla_fields('rep_platform');
+        $vars->{'op_sys'}       = convert_bugzilla_fields('op_sys');
+        $vars->{'bug_priority'} = convert_bugzilla_fields('priority');
+        $vars->{'bug_severity'} = convert_bugzilla_fields('bug_severity');
+        $vars->{'resolution'}   = convert_bugzilla_fields('resolution');
     }
     elsif ($tab eq 'case') {
         $tab = 'case';
         my $case = Bugzilla::Testopia::TestCase->new({ 'case_id' => 0 });
         $vars->{'title'} = "Search For Test Cases";
         $vars->{'case'} = $case;
-        $vars->{'components'} = get_searchable_objects('components');
-        $vars->{'categories'} = get_searchable_objects('categories');
+        $vars->{'components'}   = get_searchable_objects('components');
+        $vars->{'categories'}   = get_searchable_objects('categories');
+        $vars->{'bug_status'}   = convert_bugzilla_fields('bug_status');
+        $vars->{'rep_platform'} = convert_bugzilla_fields('rep_platform');
+        $vars->{'op_sys'}       = convert_bugzilla_fields('op_sys');
+        $vars->{'bug_priority'} = convert_bugzilla_fields('priority');
+        $vars->{'bug_severity'} = convert_bugzilla_fields('bug_severity');
+        $vars->{'resolution'}   = convert_bugzilla_fields('resolution');
     }
     else{
         print "Location: tr_show_product.cgi?search=1 \n\n";
