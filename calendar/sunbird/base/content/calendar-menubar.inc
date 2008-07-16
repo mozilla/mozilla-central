@@ -53,12 +53,12 @@
 
            <!-- create new event or task (top of 1st menu, for new users) -->
            <menuitem id="calendar-new-event-menu"
-                     key="new_event_key"
+                     key="calendar-new-event-key"
                      label="&event.new.event;"
                      accesskey="&event.new.event.accesskey;"
                      observes="calendar_new_event_command"/>
            <menuitem id="calendar-new-todo-menu"
-                     key="new_todo_key"
+                     key="calendar-new-todo-key"
                      label="&event.new.todo;"
                      accesskey="&event.new.todo.accesskey;"
                      observes="calendar_new_todo_command"/>
@@ -178,12 +178,11 @@
                      label="&event.edit.event;"
                      accesskey="&event.edit.event.accesskey;"
                      observes="calendar_modify_event_command"/>
-           <menuitem id="unifinder-remove-menu"
-                     key="delete_key"
+           <menuitem id="unifinder-remove-event-menu"
                      label="&event.delete.event;"
                      accesskey="&event.delete.event.accesskey;"
                      observes="calendar_delete_event_command"/>
-           <menuitem id="unifinder-remove-menu"
+           <menuitem id="unifinder-remove-task-menu"
                      label="&event.delete.tasks;"
                      accesskey="&event.delete.tasks.accesskey;"
                      observes="calendar_delete_todo_command" />
