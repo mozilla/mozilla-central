@@ -537,6 +537,13 @@ let GlodaDatastore = {
     delete this._folderURIs[aOldURI];
   },
   
+  deleteFolderByID: function gloda_ds_deleteFolder(aFolderID) {
+    let statement = this._createStatement(
+      "DELETE FROM folderLocations WHERE id = :id");
+    statement.params.id = aFolderID;
+    statement.execute();
+  },
+  
   /* ********** Conversation ********** */
   get _insertConversationStatement() {
     let statement = this._createStatement(
@@ -669,12 +676,6 @@ let GlodaDatastore = {
     ums.execute();
   },
 
-  get _updateMessageStatement() {
-    let statement = this._createStatement(
-    this.__defineGetter__("_updateMessageStatement", function() statement);
-    return this._updateMessageStatement; 
-  }, 
-
   updateMessageFoldersByKeyPurging:
       function gloda_ds_updateMessageFoldersByKeyPurging(aSrcFolderURI,
         aMessageKeys, aDestFolderURI) {
@@ -684,10 +685,10 @@ let GlodaDatastore = {
     let sqlStr = "UPDATE messages SET folderID = :newFolderID, \
                                       messageKey = NULL, \
                    WHERE folderID = :id \
-                     AND messageKey IN (" + messageKeys.join(", ") + ")");
+                     AND messageKey IN (" + aMessageKeys.join(", ") + ")";
     let statement = this._createStatement(sqlStr);
     statement.execute();
-  }
+  },
   
   _messageFromRow: function gloda_ds_messageFromRow(aRow) {
     return new GlodaMessage(this, aRow["id"], aRow["folderID"],

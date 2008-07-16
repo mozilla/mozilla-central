@@ -115,14 +115,31 @@ function fixIterator(aEnum, aIface) {
   } catch(ex) {}
 }
 
+/**
+ * Capture the indexing batch concept explicitly.
+ *
+ * @param aActionDesc ex: "Indexing", "De-indexing" (you should pass in the
+ *     localized string)
+ * @param aTargetName A folder name, or other.
+ */
+function IndexingJob(aJobType, aDeltaType, aID) {
+  this.jobType = aJobType;
+  this.deltaType = aDeltaType;
+  this.id = aID;
+  this.items = [];
+  this.count = 0;
+  this.goal = null;
+}
+
 let GlodaIndexer = {
   _datastore: GlodaDatastore,
   _log: Log4Moz.Service.getLogger("gloda.indexer"),
+  _strBundle: null,
   _msgwindow: null,
   _domWindow: null,
 
   _inited: false,
-  init: function gloda_index_init(aDOMWindow, aMsgWindow) {
+  init: function gloda_index_init(aDOMWindow, aMsgWindow, aStrBundle) {
     if (this._inited)
       return;
     
@@ -138,6 +155,36 @@ let GlodaIndexer = {
     this._msgWindow = mailSession.topmostMsgWindow;
     */
     this._msgWindow = aMsgWindow;
+    
+    this._strBundle = aStrBundle;
+  },
+  
+  /**
+   * Are we enabled, read: are we processing change events?
+   */
+  _enabled: false,
+  get enabled() { return this._enabled; },
+  set enabled(aEnable) {
+    if (!this._enabled && aEnable) {
+      this._msgFolderListener.indexer = this;
+      
+      let notificationService =
+        Cc["@mozilla.org/messenger/msgnotificationservice;1"].
+        getService(Ci.nsIMsgFolderNotificationService);
+      notificationService.addListener(this._msgFolderListener);
+      
+      this._enabled = true;
+    }
+    else if (this._enabled && !aEnable) {
+      let notificationService =
+        Cc["@mozilla.org/messenger/msgnotificationservice;1"].
+        getService(Ci.nsIMsgFolderNotificationService);
+      notificationService.removeListener(this._msgFolderListener);
+      
+      this._enabled = false;
+    }
+    
+    this._log.info("Event-Driven Indexing is now " + this._enabled);
   },
 
   /** Track whether indexing is active (we have timers in-flight). */
@@ -151,18 +198,23 @@ let GlodaIndexer = {
     }  
   },
   
-  /** The nsIMsgFolder we are indexing, or null if we aren't. */
-  _indexingFolder: null,
-  /** The iterator we are using to traverse _indexingFolder. */
-  _indexingIterator: null,
-  _indexingFolderCount: 0,
-  _indexingFolderGoal: 0,
-  _indexingMessageCount: 0,
-  _indexingMessageGoal: 0,
+  /**
+   * Our current job number, out of _indexingJobGoal.  Although our jobs comes
+   *  from _indexQueue, this is not an offset into that list because we forget
+   *  jobs once we complete them.  As such, this value is strictly for progress
+   *  tracking.
+   */ 
+  _indexingJobCount: 0,
+  /**
+   * Total number of jobs to process in this current indexing session; may
+   *  increase as new jobs are added to the _indexQueue.  This value won't
+   *  decrease until the indexing session is completed (and we become idle),
+   *  and then it will go to zero.
+   */
+  _indexingJobGoal: 0,
   
   /**
-   * A list of things yet to index.  Contents will be lists matching one of the
-   *  following patterns:
+   * A list of IndexingJob instances to process.
    * - ['account', account object]
    * - ['folder', folder URI]
    * - ['message', delta type, message header, folder ID, message key,
@@ -170,6 +222,22 @@ let GlodaIndexer = {
    *   (we use folder ID instead of URI so that renames can't trick us)
    */
   _indexQueue: [],
+  
+  /**
+   * The current indexing job.
+   */
+  _curIndexingJob: null,
+  
+  /**
+   * A message addition job yet to be (completely) processed.  Since message
+   *  addition events come to us one-by-one, in order to aggregate them into a
+   *  job, we need something like this.  It's up to the indexing loop to
+   *  decide when to null this out; it can either do it when it first starts
+   *  processing it, or when it has processed the last thing.  It's really a
+   *  question of whether we want retrograde motion in the folder progress bar
+   *  or the message progress bar.
+   */
+  _pendingAddJob: null,
   
   /**
    * The time interval, in milliseconds between performing indexing work.
@@ -204,7 +272,7 @@ let GlodaIndexer = {
     // if we aren't indexing, give them an idle indicator, otherwise they can
     //  just be happy when we hit the next actual status point.
     if (!this.indexing)
-      aListener("Idle", null, 0, 1, 0, 1);
+      aListener(this._strBundle.getString("actionIdle"), null, 0, 1, 0, 1);
     return aListener;
   },
   removeListener: function gloda_index_removeListener(aListener) {
@@ -222,6 +290,85 @@ let GlodaIndexer = {
     } 
   },
   
+  _indexingFolderID: null,
+  _indexingFolder: null,
+  _indexingDatabase: null,
+  _indexingIterator: null,
+  
+  /**
+   * Common logic that we want to deal with the given folder ID.  Besides
+   *  cutting down on duplicate code, this ensures that we are listening on
+   *  the folder in case it tries to go away when we are using it.
+   */
+  _indexerEnterFolder: function gloda_index_indexerEnterFolder(aFolderID,
+                                                               aNeedIterator) {
+    // if leave folder was't cleared first, remove the listener; everyone else
+    //  will be nulled out in the exception handler below if things go south
+    //  on this folder.
+    if (this._indexingFolder !== null) {
+      this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+    }
+    
+    let folderURI = GlodaDatastore._mapFolderID(job.folderID);
+    this._log.debug("Active Folder URI: " + folderURI);
+  
+    let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
+                     getService(Ci.nsIRDFService);
+    let folder = rdfService.GetResource(folderURI);
+    folder.QueryInterface(Ci.nsIMsgFolder); // (we want to explode in the try
+    // if this guy wasn't what we wanted)
+    this._indexingFolder = folder;
+    this._indexingFolderID = aFolderID;
+
+    // The msf may need to be created or otherwise updated, updateFolder will
+    //  do this for us.  (GetNewMessages would also do it, but we would be
+    //  triggering new message retrieval in that case, which we don't actually
+    //  desire.
+    // TODO: handle password-protected local cache potentially triggering a
+    //  password prompt here...
+    try {
+      //this._indexingFolder.updateFolder(this._msgWindow);
+      // we get an nsIMsgDatabase out of this (unsurprisingly) which
+      //  explicitly inherits from nsIDBChangeAnnouncer, which has the
+      //  AddListener call we want.
+      this._indexingDatabase = folder.getMsgDatabase(this._msgWindow);
+      if (aNeedIterator)
+        this._indexingIterator = Iterator(fixIterator(
+                                   //folder.getMessages(this._msgWindow),
+                                   this._indexingDatabase.EnumerateMessages(),
+                                   Ci.nsIMsgDBHdr));
+      this._databaseAnnouncerListener.indexer = this;
+      this._indexingDatabase.AddListener(this._databaseAnnouncerListener);
+    }
+    catch (ex) {
+      this._log.error("Problem entering folder: " +
+                      folder.prettiestName + ", skipping.");
+      this._log.error("Error was: " + ex);
+      this._indexingFolder = null;
+      this._indexingFolderID = null;
+      this._indexingDatabase = null;
+      this._indexingIterator = null;
+      
+      // re-throw, we just wanted to make sure this junk is cleaned up and
+      //  get localized error logging...
+      throw ex;
+    }
+  },
+  
+  _indexerLeaveFolder: function gloda_index_indexerLeaveFolder(aExpected) {
+    if (this._indexingFolder !== null) {
+      // remove our listener!
+      this._indexingDatabase.RemoveListener(this._databaseAnnouncerListener);
+      // null everyone out
+      this._indexingFolder = null;
+      this._indexingFolderID = null;
+      this._indexingDatabase = null;
+      this._indexingIterator = null;
+      // ...including the active job:
+      this._curIndexingJob = null;
+    }
+  },
+  
   _wrapIncrementalIndex: function gloda_index_wrapIncrementalIndex(aThis) {
     aThis.incrementalIndex();
   },
@@ -231,128 +378,136 @@ let GlodaIndexer = {
   
     GlodaDatastore._beginTransaction();
     try {
-    
+      let job = this._curIndexingJob;
       for (let tokensLeft=this._indexTokens; tokensLeft > 0; tokensLeft--) {
-        if (this._indexingFolder != null) {
+        // --- Do we need a job?
+        if (job === null) {
+          // --- Are there any jobs left?
+          if (this._indexQueue.length == 0) {
+            this._log.info("Done indexing, disabling timer renewal.");
+            this._indexingActive = false;
+            this._indexingJobCount = 0;
+            this._indexingJobGoal = 0;
+            this._notifyListeners(this._strBundle("actionIdle"), null,
+                                  0, 1, 0, 1);
+            break;
+          }
+          
+          // --- Get a job
+          else {
+            try {
+              job = this._curIndexingJob = this._indexQueue.shift();
+              // (Prepare for the job...)
+              if (job.jobType == "folder") {
+                // -- FOLDER ADD
+                if (job.deltaType > 0) {
+                  this._indexerEnterFolder(job.folderID, true)
+                  job.goal = this._indexingFolder.getTotalMessages(false);
+                }
+                // -- FOLDER DELETE
+                else {
+                  // nuke the folder id
+                  this._datastore.deleteFolderByID(job.id);
+                }
+              }
+              // messages
+              else {
+                // not much to do here; unlink the pending add job if that's him
+                if (job === this._pendingAddJob)
+                  this._pendingAddJob = null;
+                // update our goal from the items length
+                job.goal = job.items.length;
+              }
+            }
+            catch (ex) {
+              this._log.debug("Failed to start job because: " + ex);
+              job = this._curIndexingJob = null;
+            }
+          }
+        }
+        // --- Do the job
+        else {
           try {
-            this._indexMessage(this._indexingIterator.next());
-            this._indexingMessageCount++;
-            
-            if (this._indexingMessageCount % 50 == 1) {
-              this._notifyListeners("Indexing: " +
-                                    this._indexingFolder.prettiestName,
-                                    this._indexingFolder.prettiestName,
-                                    this._indexingFolderCount,
-                                    this._indexingFolderGoal,
-                                    this._indexingMessageCount,
-                                    this._indexingMessageGoal);
-              //this._log.debug("indexed " + this._indexingCount + " in " +
-              //                this._indexingFolder.prettiestName);
+            if (job.jobType == "folder") {
+              // -- FOLDER ADD (steady state)
+              if (job.deltaType > 0) {
+                this._indexMessage(this._indexingIterator.next());
+                job.offset++;
+              }
+              // there is no steady-state processing for folder deletion
+            }
+            else if (job.jobType == "message") {
+              let item = job.items[job.offset++];
+              // -- MESSAGE ADD (batch steady state)
+              if (job.deltaType > 0) {
+                // item must be [folder ID, message key]
+
+                // get in the folder
+                if (this._indexingFolderID != item[0])
+                  this._indexerEnterFolder(item[0], false);
+                let msgHdr = this._indexingFolder.GetMessageHeader(item[1]);
+                if (msgHdr)
+                  this._indexMessage(msgHdr);
+              }
+              // -- MESSAGE MOVE (batch steady state)
+              else if (job.deltaType == 0) {
+                // item must be [folder ID, header message-id]
+                
+                // get in the folder
+                if (this._indexingFolderID != item[0])
+                  this._indexerEnterFolder(item[0], false);
+                // process everyone with the message-id.  yeck.
+                // uh, except nsIMsgDatabase only thinks there should be one, so
+                //  let's pretend that this assumption is not a bad idea for now
+                // TODO: stop pretending this assumption is not a bad idea
+                let msgHdr = this._indexingDatabase.getMsgHdrForMessageID(item[1]);
+                if (msgHdr)
+                  this._indexMessage(msgHdr);
+                // remember to eat extra tokens... when we get more than one...
+              }
+              // -- MESSAGE DELETE (batch steady state)
+              else { // job.deltaType < 0
+                // item must be a message id
+                let message = GlodaDatastore.getMessageByID(messageID);
+                // delete the message!
+                if (message !== null)
+                  this._deleteMessage(message);
+              }
             }
           }
           catch (ex) {
-            this._log.debug("Done with indexing folder because: " + ex);
-            this._indexingFolder = null;
-            this._indexingIterator = null;
+            this._log.debug("Bailing on job because: " + ex);
+            this._indexerLeaveFolder();
+            job = this._curIndexingJob = null;
           }
         }
-        else if (this._indexQueue.length) {
-          let item = this._indexQueue.shift();
-          let itemType = item[0];
-          let actionType = item[1];
-          
-          // Index an account.  (can't actually happen right now)
-          if ((itemType == "account") && (actionType > 1)) {
-            this.indexAccount(item[1]);
+        
+        // perhaps status update
+        if (job !== null) {
+          if (job.offset % 50 == 0) {
+            let actionStr;
+            if (job.deltaType > 0)
+              actionStr = this._strBundle.getString("actionIndex");
+            else if (job.deltaType == 0)
+              actionStr = this._strBundle.getString("actionMoving");
+            else
+              actionStr = this._strBundle.getString("actionDeindexing");
+            let prettyName;
+            if (this._indexingFolder !== null)
+              prettyName = this._indexingFolder.prettiestName;
+            else
+              prettyName =
+                this._strBundle.getString("messageIndexingExplanation");
+            this._notifyListeners(actionStr + ": " +
+                                  prettyName,
+                                  prettyName,
+                                  this._indexingJobCount,
+                                  this._indexingJobGoal,
+                                  job.offset,
+                                  job.goal);
           }
-          // Index an added folder (new, or just re-scanning)
-          else if ((itemType == "folder") && (actionType > 0)) {
-            let folderID = item[2];
-            let folderURI = GlodaDatastore._mapFolderID(folderID);
-            
-            this._log.debug("Folder URI: " + folderURI);
-  
-            let rdfService = Cc['@mozilla.org/rdf/rdf-service;1'].
-                             getService(Ci.nsIRDFService);
-            let folder = rdfService.GetResource(folderURI);
-            if (folder instanceof Ci.nsIMsgFolder) {
-              this._indexingFolder = folder;
-  
-              this._log.debug("Starting indexing of folder: " +
-                              folder.prettiestName);
-  
-              // The msf may need to be created or otherwise updated, updateFolder will
-              //  do this for us.  (GetNewMessages would also do it, but we would be
-              //  triggering new message retrieval in that case, which we don't actually
-              //  desire.
-              // TODO: handle password-protected local cache potentially triggering a
-              //  password prompt here...
-              try {
-                //this._indexingFolder.updateFolder(this._msgWindow);
-              
-                let msgDatabase = folder.getMsgDatabase(this._msgWindow);
-                this._indexingIterator = Iterator(fixIterator(
-                                           //folder.getMessages(this._msgWindow),
-                                           msgDatabase.EnumerateMessages(),
-                                           Ci.nsIMsgDBHdr));
-                this._indexingFolderCount++;
-                this._indexingMessageCount = 0;
-                this._indexingMessageGoal = folder.getTotalMessages(false); 
-              }
-              catch (ex) {
-                this._log.error("Problem indexing folder: " +
-                                folder.prettiestName + ", skipping.");
-                this._log.error("Error was: " + ex);
-                this._indexingFolder = null;
-                this._indexingIterator = null;
-              }
-            }
-          }
-          // Delete a folder that has gone away
-          // ["folder", -1, folder ID]
-          else if ((itemType == "folder") && (actionType < 0)) {
-            let folderID = item[2];
-            // we simply convert the messages in the folder to message ids
-            //  which we re-queue.
-            let messageIDs = GlodaDatastore.getMessageIDsByFolderID(folderID);
-            let delMsgsQueue = [["message", -1, msgId] for each
-                                (msgId in messageIDs)];
-            this._indexingFolderCount++;
-            this._indexingMessageCount = 0;
-            this._indexingMessageGoal = delMsgsQueue.length;
-          }
-          // Index a newly added message
-          // ["message", 1, folder ID, message key]
-          else if ((itemType == "message") && (actionType > 0)) {
-            let folderID = item[2];
-            let messageKey = item[3];
-          }
-          // Index a moved message (sadly basically adding for now)
-          // ["message", 0, folder ID, header message-id]
-          else if ((itemType == "message") && (actionType === 0)) {
-          
-          }
-          // Delete a message that has gone away
-          // ["message", -1, message database ID]
-          else if ((itemType == "message") && (actionType < 0)) {
-            let messageID = item[2];
-            let message = GlodaDatastore.getMessageByID(messageID);
-            if (message !== null)
-              this._deleteMessage(message);
-          }
-        }
-        else {
-          this._log.info("Done indexing, disabling timer renewal.");
-          this._indexingActive = false;
-          this._indexingFolderCount = 0;
-          this._indexingFolderGoal = 0;
-          this._indexingMessageCount = 0;
-          this._indexingMessageGoal = 0;
-          this._notifyListeners("Idle", null, 0, 1, 0, 1);
-          break;
         }
       }
-    
     }
     finally {
       GlodaDatastore._commitTransaction();
@@ -438,9 +593,13 @@ let GlodaIndexer = {
      *  succession.)
      */
     msgAdded: function gloda_indexer_msgAdded(aMsgHdr) {
-      this.indexer._indexQueue.push(
-        ["message", 1,
-         GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
+      if (this.indexer._pendingAddJob === null) {
+        this.indexer._pendingAddJob = new IndexingJob("message", 1, null);
+        this.indexer._indexQueue.push(this._pendingAddJob);
+        this.indexer._indexingJobGoal++;
+      }
+      this.indexer._pendingAddJob.items.push(
+        [GlodaDatastore._mapFolderURI(aMsgHdr.folder.URI),
          aMsgHdr.messageKey]);
       this.indexer.indexing = true; 
     },
@@ -457,11 +616,14 @@ let GlodaIndexer = {
      *  many messages, which could be a lot to queue
      */
     msgsDeleted: function gloda_indexer_msgsDeleted(aMsgHdrs) {
-      // TODO progress indicator for here
+      let deleteJob = new IndexingJob("message", -1, null);
       for (let iMsgHdr=0; iMsgHdr < aMsgHdrs.length; iMsgHdr++) {
         let msgHdr = aMsgHdrs.queryElementAt(iMsgHdr, Ci.nsIMsgDBHdr);
-        this.indexer._indexQueue.push(["message", -1, msgHdr]);
+        deleteJob.items.push([GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
+                              msgHdr.messageKey]);
       }
+      this.indexer._indexQueue.push(deleteJob);
+      this.indexer._indexingJobGoal++;
       this.indexer.indexing = true;
     },
     
@@ -485,38 +647,55 @@ let GlodaIndexer = {
       if (aMove) {
         let srcFolder = aSrcMsgHdrs.queryElementAt(0, Ci.nsIMsgDBHdr).folder;
         let messageKeys = [msgHdr.messageKey for each
-                           (msgHdr in fixIterator(aSrcMsgHdrs, Ci.nsIMsgDBHdr)];
+                          (msgHdr in fixIterator(aSrcMsgHdrs, Ci.nsIMsgDBHdr))];
         // quickly move them to the right folder, zeroing their message keys
         GlodaDatastore.updateMessageFoldersByKeyPurging(srcFolder.URI,
                                                         messageKeys,
                                                         aDestFolder.URI);
         // and now let us queue the re-indexings...
+        let reindexJob = new IndexingJob("message", 0, null);
         for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
           let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
-          this.indexer._indexQueue.push(["message", 0,
-            GlodaDatastore._mapFolderURI(msgHdr.folder.URI), msgHdr.messageId]);
+          reindexJob.items.push(
+            [GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
+             msgHdr.messageId]);
         }
-        // TODO progress indicator for here, also indexing flag        
+        this.indexer._indexQueue.push(reindexJob);
+        this.indexer.indexingJobGoal++;
+        this.indexer.indexing = true;
       }
       else {
-        // TODO progress indicator for here, also indexing flag
+        let copyIndexJob = new IndexingJob("message", 1, null);
+
         for (let iSrcMsgHdr=0; iSrcMsgHdrs < aSrcMsgHdrs.length; iSrcMsgHdr++) {
           let msgHdr = aSrcMsgHdrs.queryElementAt(iSrcMsgHdr, Ci.nsIMsgDBHdr);
-          this.indexer._indexQueue.push(["message", 1,
+          copyIndexJob.items.push([
             GlodaDatastore._mapFolderURI(msgHdr.folder.URI),
             msgHdr.messageKey]);
         }
+
+        this.indexer._indexingJobGoal++;
+        this.indexer._indexQueue.push(copyIndexJob);
       }
     },
     
     /**
      * Handles folder no-longer-exists-ence.  We want to delete all messages
-     *  located in the folder.
+     *  located in the folder and then kill the URI/id.  To this end we create
+     *  two jobs.  One kills all the messages, and one actually deletes the
+     *  URI/id.
      */
     folderDeleted: function gloda_indexer_folderDeleted(aFolder) {
-      this._indexingFolderGoal++;
-      this.indexer._indexQueue.push(["folder", -1,
-        GlodaDatastore._mapFolderURI(aFolder.URI)]);
+      let folderID = GlodaDatastore._mapFolderURI(aFolder.URI);
+      
+      let messageJob = new IndexingJob("message", -1, null);
+      messageJob.items = GlodaDatastore.getMessageIDsByFolderID(folderID);
+      this.indexer._indexQueue.push(messageJob);
+      
+      let folderJob = new IndexingJob("folder", -1, folderID);
+      this.indexer._indexQueue.push(folderJob);
+
+      this._indexingJobGoal += 2;
       this.indexing = true;
     },
     
@@ -567,9 +746,10 @@ let GlodaIndexer = {
    *  then call AddListener.
    */
   _databaseAnnouncerListener: {
+    indexer: null,
     onAnnouncerGoingAway: function gloda_indexer_dbGoingAway(
                                          aDBChangeAnnouncer) {
-      // TODO: work
+      this.indexer._indexerLeaveFolder(false);
     },
     
     onHdrChange: function(aHdrChanged, aOldFlags, aNewFlags, aInstigator) {},
@@ -594,7 +774,7 @@ let GlodaIndexer = {
   _shutdownTask: {
     indexer: null,
     
-    get needsToRunTask {
+    get needsToRunTask() {
       return this.indexer.indexing;
     },
     
