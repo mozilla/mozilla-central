@@ -1545,7 +1545,7 @@ Testopia.Util.PlanSelector = function(product_id, cfg){
             handler: function(){
                 var loc = cfg.action + '?plan_id=' + getSelectedObjects(pg,'plan_id');
                 if (cfg.bug_id){
-                    loc = loc + 'bug=' + cfg.bug_id;
+                    loc = loc + '&bug=' + cfg.bug_id;
                 }
                 window.location = loc;
             }

@@ -799,17 +799,19 @@ NewCaseForm = function(plan_ids, product_id, run_id){
                             xtype:'htmleditor',
                             scrollable:true,
                             listeners:{'initialize':function(h){
-                                var httpRequest = new Ext.data.Connection();
-                            	httpRequest.request({
-                                	url: 'tr_quicksearch.cgi',
-                                	params:{
-                                		action: 'get_action'
-                                	}, 
-                                	success:function(d){
-                                		h.setValue(d.responseText);
-                                	}, 
-                                	failure: testopiaError
-                            	});  	
+                                if (!h.getValue()) {
+                                    var httpRequest = new Ext.data.Connection();
+                                    httpRequest.request({
+                                        url: 'tr_quicksearch.cgi',
+                                        params: {
+                                            action: 'get_action'
+                                        },
+                                        success: function(d){
+                                            h.setValue(d.responseText);
+                                        },
+                                        failure: testopiaError
+                                    });
+                                }  	
                             }}
                         }]
                     }]
