@@ -205,6 +205,8 @@ nsAbOSXCard::Update(PRBool aNotify)
     m_MailListURI.Append(uid);
     MapStringProperty(this, card, kABGroupNameProperty, m_DisplayName,
                       "DisplayName", aNotify, abManager);
+    MapStringProperty(this, card, kABGroupNameProperty, m_LastName,
+                      "LastName", aNotify, abManager);
 
     return NS_OK;
   }
