@@ -152,6 +152,9 @@
                                                  'view-toolbars-event-menuitem')"/>
         <command id="cmd_customize"
                  oncommand="onCommandCustomize()"/>
+        <command id="cmd_toggle_link"
+                 persist="checked"
+                 oncommand="toggleLink()"/>
 
         <!-- Toolbar commands -->
         <command id="cmd_accept"
@@ -402,6 +405,13 @@
                                       command="cmd_customize"/>
                         </menupopup>
                     </menu>
+                    <menuseparator id="view-menu-toolbars-separator"/>
+                    <menuitem id="view-show-link-menuitem"
+                              label="&event.menu.view.showlink.label;"
+                              accesskey="&event.menu.view.showlink.accesskey;"
+                              type="checkbox"
+                              command="cmd_toggle_link"
+                              observes="cmd_toggle_link"/>
                 </menupopup>
             </menu>
 
@@ -1034,6 +1044,19 @@
                           onkeypress="attachmentLinkKeyPress(event)"
                           onclick="attachmentLinkClicked(event);"/>
 
+            </row>
+
+            <separator id="event-grid-link-separator"
+                       class="groove" 
+                       hidden="true"/>
+            <row id="event-grid-link-row"
+                 align="center"
+                 hidden="true">
+              <label value="&event.url.label;"
+                     control="url-link"/>
+              <label id="url-link"
+                     class="text-link"
+                     crop="end"/>
             </row>
         </rows>
     </grid>

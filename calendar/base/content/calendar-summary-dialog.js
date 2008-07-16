@@ -99,6 +99,7 @@ function onLoad() {
 
     updateRepeatDetails();
     updateAttendees();
+    updateLink();
 
     var location = item.getProperty("LOCATION");
     if (location && location.length) {
@@ -152,14 +153,6 @@ function onLoad() {
             textbox.value = description;
             textbox.inputField.readOnly = true;
         }
-    }
-
-    if (item.hasProperty("URL")) {
-      var url = item.getProperty("URL");
-      if (url && url.length) {
-        document.getElementById("item-link-box").removeAttribute("hidden");
-        document.getElementById("item-link").value = url;
-      }
     }
 
     document.title = item.title;

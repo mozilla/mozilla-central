@@ -84,6 +84,8 @@
 <!ENTITY  event.menu.view.toolbars.event.accesskey        "E">
 <!ENTITY  event.menu.view.toolbars.customize.label        "Customize…">
 <!ENTITY  event.menu.view.toolbars.customize.accesskey    "C">
+<!ENTITY  event.menu.view.showlink.label                  "Show Related Link">
+<!ENTITY  event.menu.view.showlink.accesskey              "R">
 
 <!ENTITY  event.menu.options.label                            "Options">
 <!ENTITY  event.menu.options.accesskey                        "O">
@@ -186,6 +188,7 @@
 <!ENTITY event.attachments.popup.removeAll.accesskey      "A" >
 <!ENTITY event.attachments.popup.attachPage.label         "Attach Webpage…" >
 <!ENTITY event.attachments.popup.attachPage.accesskey     "W" >
+<!ENTITY event.url.label                                  "Related Link:" >
 <!ENTITY event.priority2.label                            "Priority:">
 
 <!ENTITY event.reminder.none.label                        "No reminder " >
@@ -353,5 +356,6 @@
 <!ENTITY read.only.attendees.label       "Attendees">
 <!ENTITY read.only.description.label     "Description">
 <!ENTITY read.only.documents.label       "Documents">
+<!ENTITY read.only.link.label            "Related Link">
 
 

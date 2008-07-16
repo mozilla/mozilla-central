@@ -782,3 +782,52 @@ function commonUpdateReminder() {
 
     updateReminderDetails();
 }
+
+function updateLink() {
+    var itemUrlString = (window.calendarItem || window.item).getProperty("URL");
+    var linkCommand = document.getElementById("cmd_toggle_link");
+
+    function hideOrShow(aBool, aDisable) {
+        setElementValue("event-grid-link-row", !aBool && "true", "hidden");
+        var separator = document.getElementById("event-grid-link-separator");
+        if (separator) {
+            // The separator is not there in the summary dialog
+            setElementValue("event-grid-link-separator", !aBool && "true", "hidden");
+        }
+
+        if (linkCommand) {
+            setElementValue(linkCommand, aDisable && "true", "disabled");
+        }
+    }
+
+    if (linkCommand && linkCommand.getAttribute("checked") != "true") {
+        hideOrShow(false, false);
+    } else if (itemUrlString && itemUrlString.length) {
+        var handler, uri;
+        try {
+            uri = makeURL(itemUrlString);
+            handler = getIOService().getProtocolHandler(uri.scheme);
+        } catch (e) {
+            // No protocol handler for the given protocol, or invalid uri
+            hideOrShow(false, true);
+            return;
+        }
+
+        if (handler && handler instanceof Components.interfaces.nsIExternalProtocolHandler) {
+            // Only show if there is an external app for this scheme
+            hideOrShow(handler.externalAppExistsForScheme(uri.scheme));
+        } else {
+            // Internal protocol handler, show it
+            hideOrShow(true);
+        }
+
+
+        setTimeout(function() {
+          // HACK the url-link doesn't crop when setting the value in onLoad
+          setElementValue("url-link", itemUrlString);
+          setElementValue("url-link", itemUrlString, "href");
+        }, 0);
+    } else {
+        hideOrShow(false, true);
+    }
+}

@@ -290,6 +290,9 @@ function loadDialog(item) {
         updateAttachment();
     }
 
+    // URL link
+    updateLink();
+
     // Description
     setElementValue("item-description", item.getProperty("DESCRIPTION"));
 
@@ -2333,6 +2336,20 @@ function updateAttachment() {
         setElementValue(documentRow, documentLink.getRowCount() < 1 && "true", "collapsed");
         setElementValue(attSeparator, documentLink.getRowCount() < 1 && "true", "collapsed");
     }
+}
+
+function toggleLink() {
+    var linkCommand = document.getElementById("cmd_toggle_link");
+    var row = document.getElementById("event-grid-link-row");
+    var separator = document.getElementById("event-grid-link-separator");
+
+    var isHidden = row.hidden;
+    row.hidden = !isHidden;
+    separator.hidden = !isHidden;
+
+    linkCommand.setAttribute("checked", isHidden ? "true" : "false");
+
+    updateLink();
 }
 
 function updateAttendees() {

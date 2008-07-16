@@ -56,6 +56,10 @@ listbox[disabled="true"] {
   height: 1em;
 }
 
+.default-indent {
+  -moz-margin-start: 1.5em;
+}
+
 .status-icon {
   margin: 0 3px;
   display: none;

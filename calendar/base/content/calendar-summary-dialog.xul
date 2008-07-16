@@ -72,6 +72,8 @@
   <script type="application/x-javascript"
           src="chrome://calendar/content/calUtils.js"/>
   <script type="application/x-javascript"
+          src="chrome://calendar/content/calendar-ui-utils.js"/>
+  <script type="application/x-javascript"
           src="chrome://calendar/content/calApplicationUtils.js"/>
 
   <!-- General -->
@@ -261,18 +263,15 @@
     </box>
   </box>
 
-  <!-- Documents -->
-  <box id="item-link-box" hidden="true" orient="vertical">
+  <!-- URL link -->
+  <box id="event-grid-link-row" hidden="true" orient="vertical">
     <spacer class="default-spacer"/>
-    <calendar-caption label="&read.only.documents.label;"
-                      control="item-link"/>
-    <box orient="horizontal">
-      <spacer class="default-spacer"/>
-      <label id="item-link"
-             class="text-link"
-             crop="right" 
-             onclick="browseDocument()"/>
-    </box>
+    <calendar-caption label="&read.only.link.label;"
+                      control="url-link"/>
+    <label id="url-link"
+           class="text-link default-indent"
+           value=" "
+           crop="end"/>
   </box>
 
 </dialog>

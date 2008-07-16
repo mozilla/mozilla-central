@@ -756,7 +756,7 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
         // id
         item.id = getIdFromEntry(aXMLEntry);
 
-        // link
+        // link (edit url)
         // Since Google doesn't set the edit url to be https if the request is
         // https, we need to work around this here.
         var editUrl = aXMLEntry.link.(@rel == 'edit').@href.toString();
@@ -764,6 +764,13 @@ function XMLEntryToItem(aXMLEntry, aTimezone, aCalendar, aReferenceItem) {
             editUrl = editUrl.replace(/^http:/, "https:");
         }
         item.setProperty("X-GOOGLE-EDITURL", editUrl);
+
+        // link (alternative representation, html)
+        var htmlUrl = aXMLEntry.link.(@rel == 'alternate').@href.toString();
+        if (aCalendar.uri.schemeIs("https")) {
+            htmlUrl = htmlUrl.replace(/^http:/, "https:");
+        }
+        item.setProperty("URL", htmlUrl);
 
         // title
         item.title = aXMLEntry.title.(@type == 'text');
