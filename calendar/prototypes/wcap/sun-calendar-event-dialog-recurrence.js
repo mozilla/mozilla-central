@@ -583,10 +583,13 @@ function updateRecurrencePattern() {
  */
 function changeOrderForElements(aPropKey, aPropParams) {
     var localeOrder;
-    var elements = {};
+    var parents = {};
+    var i = 0;
 
-    for each (var id in aPropParams) {
-        elements[id] = document.getElementById(id);
+    for (var key in aPropParams) {
+        // Save original parents so that the nodes to reorder get appended to
+        // the correct parent nodes.
+        parents[key] = document.getElementById(aPropParams[key]).parentNode;
     }
 
     try {
@@ -603,13 +606,11 @@ function changeOrderForElements(aPropKey, aPropParams) {
         return;
     }
 
-    // Adding elements in right order
-    for each (var key in localeOrder) {
-        if (key in elements) {
-            var element = elements[key];
-            // This will place the node at the end
-            element.parentNode.appendChild(element);
-        }
+    // Add elements in the right order, removing them from their old parent
+    for (var i = 0; i < aPropParams.length; i++) {
+        var newEl = document.getElementById(localeOrder[i]);
+        parents[i].appendChild(newEl.parentNode.removeChild(newEl));
+
     }
 }
 
