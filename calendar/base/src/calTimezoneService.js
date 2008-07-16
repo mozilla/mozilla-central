@@ -350,8 +350,8 @@ function guessSystemTimezone() {
     const tzSvc = getTimezoneService();
 
     function getIcalString(component, property) {
-        return (component &&
-                component.getFirstProperty(property).valueAsIcalString);
+        var prop = (component && component.getFirstProperty(property));
+        return (prop ? prop.valueAsIcalString : null);
     }
 
     // Check if Olson ZoneInfo timezone matches OS/JSDate timezone properties:
