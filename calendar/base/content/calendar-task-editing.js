@@ -132,13 +132,7 @@ var taskEdit = {
                 item.title = edit.value;
                 edit.value = "";
                 setDefaultAlarmValues(item);
-                doTransaction('add', item, item.calendar, null, {
-                    onOperationComplete: function(calendar, status, opType, id, detail) {
-                        if (Components.isSuccessCode(status)) {
-                            checkForAttendees(detail, null);
-                        }
-                    }
-                });
+                doTransaction('add', item, item.calendar, null, null);
             }
         }
     },

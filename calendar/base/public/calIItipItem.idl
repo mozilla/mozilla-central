@@ -158,8 +158,8 @@ interface calIItipItem : nsISupports
 
     /**
      * Modifies the state of the given attendee in the item's ics
-     * @param in parameter - AString containing attendee address
-     * @param in parameter - AString contianing the new attendee status
+     * @param attendeeId - AString containing attendee address
+     * @param status - AString containing the new attendee status
      */
     void setAttendeeStatus(in AString attendeeId, in AString status);
 };

@@ -22,6 +22,7 @@
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or 
@@ -216,6 +217,7 @@ calItipItem.prototype = {
         newItem.responseMethod = this.responseMethod;
         newItem.autoResponse = this.autoResponse;
         newItem.targetCalendar = this.targetCalendar;
+        newItem.identity = this.identity;
         newItem.localStatus = this.localStatus;
         newItem.isSend = this.isSend;
 
@@ -260,13 +262,13 @@ calItipItem.prototype = {
      */
     setAttendeeStatus: function ciiSAS(aAttendeeId, aStatus) {
         // Append "mailto:" to the attendee if it is missing it.
-        var attId = aAttendeeId.toLowerCase();
-        if (!attId.match(/mailto:/i)) {
-            attId = "mailto:" + attId;
+        aAttendeeId = aAttendeeId.toLowerCase();
+        if (!aAttendeeId.match(/mailto:/i)) {
+            aAttendeeId = ("mailto:" + aAttendeeId);
         }
 
         for each (var item in this.mItemList) {
-            var attendee = item.getAttendeeById(attId);
+            var attendee = item.getAttendeeById(aAttendeeId);
             if (attendee) {
                 // XXX BUG 351589: workaround for updating an attendee
                 item.removeAttendee(attendee);

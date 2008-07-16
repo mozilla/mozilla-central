@@ -19,6 +19,8 @@ lightning.jar:
 % overlay chrome://lightning/content/messenger-overlay-sidebar.xul chrome://calendar/content/today-pane.xul
 % overlay chrome://lightning/content/lightning-standalone.xul chrome://lightning/content/messenger-overlay-sidebar.xul
 % overlay chrome://global/content/customizeToolbar.xul chrome://lightning/content/toolkit-overlay-custombar.xul
+% overlay chrome://calendar/content/calendarCreation.xul chrome://lightning/content/lightning-calendar-creation.xul
+% overlay chrome://calendar/content/calendar-properties-dialog.xul chrome://lightning/content/lightning-calendar-properties.xul
 % skin lightning classic/1.0 %skin/classic/lightning/
   content/lightning/customize-toolbar.js                (content/customize-toolbar.js)
   content/lightning/customize-toolbar.xul               (content/customize-toolbar.xul)
@@ -38,8 +40,12 @@ lightning.jar:
   content/lightning/messenger-overlay-preferences.js    (content/messenger-overlay-preferences.js)
   content/lightning/messenger-overlay-preferences.xul	(content/messenger-overlay-preferences.xul)
   content/lightning/messenger-overlay-toolbar.js        (content/messenger-overlay-toolbar.js)
-* content/lightning/messenger-overlay-toolbar.xul	    (content/messenger-overlay-toolbar.xul)
+* content/lightning/messenger-overlay-toolbar.xul       (content/messenger-overlay-toolbar.xul)
   content/lightning/toolkit-overlay-custombar.xul       (content/toolkit-overlay-custombar.xul)
+  content/lightning/lightning-calendar-creation.xul     (content/lightning-calendar-creation.xul)
+  content/lightning/lightning-calendar-creation.js      (content/lightning-calendar-creation.js)
+  content/lightning/lightning-calendar-properties.xul   (content/lightning-calendar-properties.xul)
+  content/lightning/lightning-calendar-properties.js    (content/lightning-calendar-properties.js)
 #expand    skin/classic/lightning/imip.css       (themes/__THEME__/imip.css)
 #expand    skin/classic/lightning/lightning.css  (themes/__THEME__/lightning.css)
 #expand    skin/classic/lightning/accountCentral.css (themes/__THEME__/accountCentral.css)

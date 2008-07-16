@@ -483,8 +483,9 @@ calCachedCalendar.prototype = {
 
     defineForwards(calCachedCalendar.prototype, "mUncachedCalendar",
                    ["getProperty", "setProperty", "deleteProperty",
-                    "isInvitation", "getInvitedAttendee"],
-                   ["sendItipInvitations", "type"], ["id", "name", "uri", "readOnly"]);
+                    "isInvitation", "getInvitedAttendee", "canNotify"],
+                   ["type"],
+                   ["id", "name", "uri", "readOnly"]);
     defineForwards(calCachedCalendar.prototype, "mCachedCalendar",
                    ["getItem", "getItems", "startBatch", "endBatch"], [], []);
 })();

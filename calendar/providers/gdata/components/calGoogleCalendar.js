@@ -211,10 +211,6 @@ calGoogleCalendar.prototype = {
         return "gdata";
     },
 
-    get sendItipInvitations cGC_getSendItipInvitations() {
-        return false;
-    },
-
     get uri cGC_getUri() {
         return this.mUri;
     },
@@ -1230,13 +1226,25 @@ calGoogleCalendar.prototype = {
             return false;
         }
         // The item is an invitation if the organizer is not the current
-        // session's user.
-        return (aItem.organizer.id.toLowerCase() !=
-                "mailto:" + this.session.userName.toLowerCase());
+        // session's user and listed as an attendee.
+        return ((aItem.organizer.id.toLowerCase() != "mailto:" + this.session.userName.toLowerCase()) &&
+                (this.getInvitedAttendee(aItem) !== null));
     },
 
     getInvitedAttendee: function cGC_getInvitedAttendee(aItem) {
         // The invited attendee must always be the session user.
         return aItem.getAttendeeById("MAILTO:" + this.session.userName);
+    },
+
+    canNotify: function cGC_canNotify(aMethod, aItem) {
+        // XXX needs further refinement
+        switch (aMethod) {
+            case "REQUEST":
+            case "CANCEL":
+            case "REPLY":
+                 return true;
+            default:
+                return false;
+        }
     }
 };

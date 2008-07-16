@@ -22,6 +22,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
  *   Fred Jendrzejewski <fred.jen@web.de>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,12 +53,18 @@ var gPrivacy = null;
 var gAttachMap = {};
 var gPriority = 0;
 var gStatus = "NONE";
-var gDictCount = 0;
-var gPrefs = null;
 var gLastRepeatSelection = 0;
 var gIgnoreUpdate = false;
 var gShowTimeAs = null;
-var gIsSunbird = false;
+
+function canNotifyAttendees(calendar, item) {
+    try {
+        var cal = calendar.QueryInterface(Components.interfaces.calISchedulingSupport);
+        return (cal.canNotify("REQUEST", item) && cal.canNotify("CANCEL", item));
+    } catch (exc) {
+        return false;
+    }
+}
 
 // update menu items that rely on focus
 function goUpdateGlobalEditMenuItems() {
@@ -167,25 +174,12 @@ function onLoad() {
     }
     window.recurrenceInfo = parentItem.recurrenceInfo;
 
-    const kSUNBIRD_ID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-    var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                  .getService(Components.interfaces.nsIXULAppInfo);
-
-    if (appInfo.ID == kSUNBIRD_ID) {
-        gIsSunbird = true;
-    }
-
     document.getElementById("sun-calendar-event-dialog").getButton("accept")
             .setAttribute("collapsed", "true");
     document.getElementById("sun-calendar-event-dialog").getButton("cancel")
             .setAttribute("collapsed", "true");
     document.getElementById("sun-calendar-event-dialog").getButton("cancel")
             .parentNode.setAttribute("collapsed", "true");
-
-    var prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefService);
-
-    gPrefs = prefService.getBranch(null);
 
     loadDialog(window.calendarItem);
 
@@ -355,7 +349,16 @@ function loadDialog(item) {
     updateTitle();
 
     var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
-    sendInvitesCheckbox.checked = (item.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE");
+    if (canNotifyAttendees(item.calendar, item)) {
+        // visualize that the server will send out mail:
+        sendInvitesCheckbox.checked = true;
+    } else {
+        var itemProp = item.getProperty("X-MOZ-SEND-INVITATIONS");
+        sendInvitesCheckbox.checked = (item.calendar.getProperty("imip.identity") &&
+                                       ((itemProp === null)
+                                        ? getPrefSafe("calendar.itip.sendemail", true)
+                                        : (itemProp == "TRUE")));
+    }
 
     updateAttendees();
     updateRepeat();
@@ -832,7 +835,7 @@ function updateStyle() {
 
     for each (var stylesheet in document.styleSheets) {
         if (stylesheet.href == kDialogStylesheet) {
-            if (gIsSunbird) {
+            if (isSunbird()) {
                 stylesheet.insertRule(".lightning-only { display: none; }", 0);
             }
             if (isEvent(window.calendarItem)) {
@@ -1019,25 +1022,24 @@ function editAttendees() {
             // In case we didn't have an organizer object before we
             // added attendees to our event we take the one created
             // by the 'invite attendee'-dialog.
-            if (!savedWindow.organizer) {
-                savedWindow.organizer = organizer.clone();
-            }
-            // The other case is that we already had an organizer object
-            // before we went throught the 'invite attendee'-dialog. In that
-            // case make sure we don't carry over attributes that have been
-            // set to their default values by the dialog but don't actually
-            // exist in the original organizer object.
-            if (!savedWindow.organizer.id) {
-                organizer.id = null;
-            }
-            if (!savedWindow.organizer.role) {
-                organizer.role = null;
-            }
-            if (!savedWindow.organizer.participationStatus) {
-                organizer.participationStatus = null;
-            }
-            if (!savedWindow.organizer.commonName) {
-                organizer.commonName = null;
+            if (savedWindow.organizer) {
+                // The other case is that we already had an organizer object
+                // before we went throught the 'invite attendee'-dialog. In that
+                // case make sure we don't carry over attributes that have been
+                // set to their default values by the dialog but don't actually
+                // exist in the original organizer object.
+                if (!savedWindow.organizer.id) {
+                    organizer.id = null;
+                }
+                if (!savedWindow.organizer.role) {
+                    organizer.role = null;
+                }
+                if (!savedWindow.organizer.participationStatus) {
+                    organizer.participationStatus = null;
+                }
+                if (!savedWindow.organizer.commonName) {
+                    organizer.commonName = null;
+                }
             }
             savedWindow.organizer = organizer;
         }
@@ -1530,12 +1532,9 @@ function updateCalendar() {
     var calendar = document.getElementById("item-calendar")
                            .selectedItem.calendar;
 
-    gIsReadOnly = true;
-    if (calendar) {
-        gIsReadOnly = calendar.readOnly;
-    }
+    gIsReadOnly = calendar.readOnly;
 
-    if (calendar.sendItipInvitations) {
+    if (!canNotifyAttendees(calendar, item) && calendar.getProperty("imip.identity")) {
         enableElement("send-invitations-checkbox");
     } else {
         disableElement("send-invitations-checkbox");
@@ -1880,17 +1879,18 @@ function saveItem() {
         item.organizer = window.organizer;
     }
 
+    item.removeAllAttendees();
     if (window.attendees) {
-        item.removeAllAttendees();
         for each (var attendee in window.attendees) {
            item.addAttendee(attendee);
         }
 
         var sendInvitesCheckbox = document.getElementById("send-invitations-checkbox");
-        if (sendInvitesCheckbox.checked) {
-            setItemProperty(item, "X-MOZ-SEND-INVITATIONS", "TRUE");
-        } else {
+        if (sendInvitesCheckbox.disabled) {
             item.deleteProperty("X-MOZ-SEND-INVITATIONS");
+        } else {
+            setItemProperty(item, "X-MOZ-SEND-INVITATIONS",
+                            sendInvitesCheckbox.checked ? "TRUE" : "FALSE");
         }
     }
 
@@ -2000,7 +2000,7 @@ function onCommandCustomize() {
     document.getElementById("cmd_customize").setAttribute("disabled", "true");
 
     var id = "event-toolbox";
-    if (gIsSunbird) {
+    if (isSunbird()) {
 #ifdef MOZILLA_1_8_BRANCH
         var newwindow = window.openDialog("chrome://calendar/content/customizeToolbar.xul",
                                           "CustomizeToolbar",
@@ -2336,17 +2336,15 @@ function updateAttachment() {
 }
 
 function updateAttendees() {
-    var regexp = new RegExp("^mailto:(.*)", "i");
     var attendeeRow = document.getElementById("event-grid-attendee-row");
     var attendeeRow2 = document.getElementById("event-grid-attendee-row-2");
-    if (!window.attendees || !window.attendees.length) {
-        attendeeRow.setAttribute('collapsed', 'true');
-        attendeeRow2.setAttribute('collapsed', 'true');
-    } else {
+    if (window.attendees && window.attendees.length > 0) {
         attendeeRow.removeAttribute('collapsed');
         attendeeRow2.removeAttribute('collapsed');
+
         var attendeeNames = "";
         var numAttendees = window.attendees.length;
+        var regexp = new RegExp("^mailto:(.*)", "i");
         for (var i = 0; i < numAttendees; i++) {
             var attendee = window.attendees[i];
             if (attendee.commonName && attendee.commonName.length) {
@@ -2362,7 +2360,7 @@ function updateAttendees() {
                 continue;
             }
             if (i + 1 < numAttendees) {
-                attendeeNames += ',';
+                attendeeNames += ', ';
             }
         }
         var attendeeList = document.getElementById("attendee-list");
@@ -2370,6 +2368,9 @@ function updateAttendees() {
             attendeeList.setAttribute('value', attendeeNames);
         }
         setTimeout(callback, 1);
+    } else {
+        attendeeRow.setAttribute('collapsed', 'true');
+        attendeeRow2.setAttribute('collapsed', 'true');
     }
 }
 

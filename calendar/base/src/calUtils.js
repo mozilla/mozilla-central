@@ -110,7 +110,16 @@ function getConsoleService() {
     return getConsoleService.mObject;
 }
 
-/* Shortcut to the io service */
+/* Shortcut to the account manager service */
+function getAccountManager() {
+    if (getAccountManager.mObject === undefined) {
+        getAccountManager.mObject = Components.classes["@mozilla.org/messenger/account-manager;1"]
+                                              .getService(Components.interfaces.nsIMsgAccountManager);
+    }
+    return getAccountManager.mObject;
+}
+
+/* Shortcut to the IO service */
 function getIOService() {
     if (getIOService.mObject === undefined) {
         getIOService.mObject = Components.classes["@mozilla.org/network/io-service;1"]
@@ -917,6 +926,7 @@ function STACK(aDepth) {
  * @param aMessage    the message to report in the case the assert fails
  * @param aCritical   if true, throw an error to stop current code execution
  *                    if false, code flow will continue
+ *                    may be a result code
  */
 function ASSERT(aCondition, aMessage, aCritical) {
     if (aCondition) {
@@ -925,7 +935,8 @@ function ASSERT(aCondition, aMessage, aCritical) {
 
     var string = "Assert failed: " + aMessage + '\n' + STACK();
     if (aCritical) {
-        throw new Error(string);
+        throw new Components.Exception(string,
+                                       aCritical === true ? Components.results.NS_ERROR_UNEXPECTED : aCritical);
     } else {
         Components.utils.reportError(string);
     }
@@ -1672,102 +1683,22 @@ calPropertyBagEnumerator.prototype = {
     }
 };
 
-// Send iTIP invitation
-function sendItipInvitation(aItem, aTypeOfInvitation, aRecipientsList) {
-    // XXX Until we rethink attendee support and until such support
-    // is worked into the event dialog (which has been done in the prototype
-    // dialog to a degree) then we are going to simply hack in some attendee
-    // support so that we can round-trip iTIP invitations.
-    var transportType = aItem.calendar.getProperty("itip.transportType") || "email";
-
-    var transport = Components.classes["@mozilla.org/calendar/itip-transport;1?type=" + transportType]
-                           .getService(Components.interfaces.calIItipTransport);
-
-    var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
-                             .createInstance(Components.interfaces.calIItipItem);
-
-    var sb = calGetStringBundle("chrome://lightning/locale/lightning.properties");
-    var recipients = [];
-
-    // We have to modify our item a little, so we clone it.
-    var item = aItem.clone();
-
-    if (aRecipientsList.length == 0) {
-        // Fix up our attendees for invitations using some good defaults
-        var itemAtt = item.getAttendees({});
-        item.removeAllAttendees();
-        for each (var attendee in itemAtt) {
-            attendee = attendee.clone();
-            attendee.role = "REQ-PARTICIPANT";
-            attendee.participationStatus = "NEEDS-ACTION";
-            attendee.rsvp = true;
-            item.addAttendee(attendee);
-            recipients.push(attendee);
+/**
+ * Iterates all email identities and calls the passed function with identity and account.
+ * If the called function returns false, iteration is stopped.
+ */
+function calIterateEmailIdentities(func) {
+    var accounts = getAccountManager().accounts;
+    for (var i = 0; i < accounts.Count(); ++i) {
+        var account = accounts.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgAccount);
+        var identities = account.identities;
+        for (var j = 0; j < identities.Count(); ++j) {
+            var identity = identities.GetElementAt(j).QueryInterface(Components.interfaces.nsIMsgIdentity);
+            if (!func(identity, account)) {
+                break;
+            }
         }
-    } else {
-        recipients = aRecipientsList;
     }
-
-    // XXX The event dialog has no means to set us as the organizer
-    // since we defaulted to email above, we know we need to prepend
-    // mailto when we convert it to an attendee
-    // This also means that when we are Updating an event, we will be making
-    // a blatant assumption that you (the updater) are the organizer of the event.
-    // This is probably ok since we don't support the iTIP COUNTER method,
-    // but it would be better if we didn't allow you to modify an event that you
-    // are not the organizer of and send out invitations to it as if you were.
-    // For this support, we'll need a real invitation manager component.
-    var organizer = Components.classes["@mozilla.org/calendar/attendee;1"]
-                              .createInstance(Components.interfaces.calIAttendee);
-    organizer.id = transport.scheme + ":" + transport.defaultIdentity;
-    organizer.role = "REQ-PARTICIPANT";
-    organizer.participationStatus = "ACCEPTED";
-    organizer.isOrganizer = true;
-
-    // Add our organizer to the item. Again, the event dialog really doesn't
-    // have a mechanism for creating an item with a method, so let's add
-    // that too while we're at it.  We'll also fake Sequence ID support.
-    item.organizer = organizer;
-    item.setProperty("METHOD", aTypeOfInvitation);
-    item.setProperty("SEQUENCE", item.generation);
-
-    var summary
-    if (item.getProperty("SUMMARY")) {
-        summary = item.getProperty("SUMMARY");
-    } else {
-        summary = "";
-    }
-
-    // Initialize and set our properties on the item
-    itipItem.init(item.icalString);
-    itipItem.isSend = true;
-    itipItem.receivedMethod = aTypeOfInvitation;
-    itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
-
-    // Get ourselves some default text - when we handle organizer properly
-    // We'll need a way to configure the Common Name attribute and we should
-    // use it here rather than the email address
-    var subjectStringId = "";
-    var bodyStringId = "";
-    switch (aTypeOfInvitation) {
-        case 'REQUEST':
-            subjectStringId = "itipRequestSubject";
-            bodyStringId = "itipRequestBody";
-            break;
-        case 'CANCEL':
-            subjectStringId = "itipCancelSubject";
-            bodyStringId = "itipCancelBody";
-            break;
-    }
-
-    var subject = sb.formatStringFromName(subjectStringId,
-                                          [summary], 1);
-    var body = sb.formatStringFromName(bodyStringId,
-                                       [transport.defaultIdentity, summary],
-                                       2);
-
-    // Send it!
-    transport.sendItems(recipients.length, recipients, subject, body, itipItem);
 }
 
 function compareItemContent(aFirstItem, aSecondItem) {

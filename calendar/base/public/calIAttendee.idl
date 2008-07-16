@@ -102,4 +102,9 @@ interface calIAttendee : nsISupports
   void deleteProperty(in AString name);
 
   attribute calIIcalProperty icalProperty;
+
+  /**
+   * Return a string representation of this instance.
+   */
+  AUTF8String toString();
 };

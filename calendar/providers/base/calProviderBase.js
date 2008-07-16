@@ -35,9 +35,71 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * Gets the configured identity and account of a particular calendar instance, or null.
+ *
+ * @param aCalendar calendar instance
+ * @param outAccount optional out value for account
+ * @return identity
+ */
+function calGetEmailIdentityOfCalendar(aCalendar, outAccount) {
+    ASSERT(aCalendar, "no calendar!", Components.results.NS_ERROR_INVALID_ARG);
+    if (isSunbird()) {
+        return null;
+    }
+    var key = aCalendar.getProperty("imip.identity.key");
+    if (key !== null) {
+        if (key.length == 0) { // i.e. "None"
+            return null;
+        }
+        var identity = null;
+        calIterateEmailIdentities(
+            function(identity_, account) {
+                if (identity_.key == key) {
+                    identity = identity_;
+                    if (outAccount) {
+                        outAccount.value = account;
+                    }
+                }
+                return (identity_.key != key);
+            });
+        if (!identity) {
+            // dangling identity:
+            WARN("Calendar " + (aCalendar.uri ? aCalendar.uri.spec : aCalendar.id) +
+                 " has a dangling E-Mail identity configured.");
+        }
+        return identity;
+    } else { // take default account/identity:
+        var account = getAccountManager().defaultAccount;
+        if (!account && getAccountManager().accounts.Count()) { // take some account
+            account = getAccountManager().accounts.getElementById(0).QueryInterface(Components.interfaces.nsIMsgAccount);
+        }
+        if (account) {
+            var identity = account.defaultIdentity;
+            if (!identity && account.identities.Count()) {
+                identity = account.identities.getElementById(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
+            }
+            if (identity) {
+                if (outAccount) {
+                    outAccount.value = account;
+                }
+                return identity;
+            }
+        }
+        return null;
+    }
+}
+
 function calProviderBase() {
     ASSERT("This prototype should only be inherited!");
 }
+calProviderBase.mTransientProperties = {};
+["cache.uncachedCalendar", "currentStatus",
+ "itip.transport", "imip.identity", "imip.account",
+ "organizerId", "organizerCN"].forEach(
+    function(prop) {
+        calProviderBase.mTransientProperties[prop] = true;
+    });
 
 calProviderBase.prototype = {
     QueryInterface: function cPB_QueryInterface(aIID) {
@@ -136,11 +198,6 @@ calProviderBase.prototype = {
         return false;
     },
 
-    // readonly attribute boolean sendItipInvitations;
-    get sendItipInvitations() {
-        return true;
-    },
-
     // void startBatch();
     startBatch: function cPB_startBatch() {
         this.mObservers.notify("onStartBatch");
@@ -148,10 +205,6 @@ calProviderBase.prototype = {
 
     endBatch: function cPB_endBatch() {
         this.mObservers.notify("onEndBatch");
-    },
-
-    mTransientProperties: {
-        currentStatus: true
     },
 
     notifyOperationComplete: function cPB_notifyOperationComplete(aListener,
@@ -201,17 +254,52 @@ calProviderBase.prototype = {
 
     // nsIVariant getProperty(in AUTF8String aName);
     getProperty: function cPB_getProperty(aName) {
-        // temporary hack to get the uncached calendar instance
-        if (aName == "cache.uncachedCalendar") {
-            return this;
+        switch (aName) {
+            case "itip.transport": { // itip/imip default:
+                var identity = this.getProperty("imip.identity");
+                return ((!isSunbird() && identity) // assure an identity is configured for the calendar
+                        ? Components.classes["@mozilla.org/calendar/itip-transport;1?type=email"]
+                                    .getService(Components.interfaces.calIItipTransport)
+                        : null);
+            }
+            case "organizerId": { // itip/imip default: derived out of imip.identity
+                var identity = this.getProperty("imip.identity");
+                return (identity
+                        ? ("mailto:" + identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email)
+                        : null);
+            }
+            case "organizerCN": { // itip/imip default: derived out of imip.identity
+                var identity = this.getProperty("imip.identity");
+                return (identity
+                        ? identity.QueryInterface(Components.interfaces.nsIMsgIdentity).fullName
+                        : null);
+            }
+            // temporary hack to get the uncached calendar instance:
+            case "cache.uncachedCalendar":
+                return this;
         }
 
         var ret = this.mProperties[aName];
         if (ret === undefined) {
             ret = null;
-            if (!this.mTransientProperties[aName] && this.id) {
-                // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
-                ret = getCalendarManager().getCalendarPref_(this, aName);
+            switch (aName) {
+                case "imip.identity": // we want to cache the identity object a little, because
+                                      // it is heavily used by the invitation checks
+                    ret = calGetEmailIdentityOfCalendar(this);
+                    break;
+                case "imip.account": {
+                    var outAccount = {};
+                    if (calGetEmailIdentityOfCalendar(this, outAccount)) {
+                        ret = outAccount.value;
+                    }
+                    break;
+                }
+            }
+            if ((ret === null) && !calProviderBase.mTransientProperties[aName]) {
+                if (this.id) {
+                    // xxx future: return getPrefSafe("calendars." + this.id + "." + aName, null);
+                    ret = getCalendarManager().getCalendarPref_(this, aName);
+                }
                 if (ret !== null) {
                     // xxx todo: work around value types here unless we save into the prefs...
                     switch (aName) {
@@ -241,6 +329,7 @@ calProviderBase.prototype = {
             }
             this.mProperties[aName] = ret;
         }
+//         LOG("getProperty(\"" + aName + "\"): " + ret);
         return ret;
     },
 
@@ -249,7 +338,13 @@ calProviderBase.prototype = {
         var oldValue = this.getProperty(aName);
         if (oldValue != aValue) {
             this.mProperties[aName] = aValue;
-            if (!this.mTransientProperties[aName] && this.id) {
+            switch (aName) {
+                case "imip.identity.key": // invalidate identity and account object if key is set:
+                    delete this.mProperties["imip.identity"];
+                    delete this.mProperties["imip.account"];
+                    break;
+            }
+            if (!calProviderBase.mTransientProperties[aName] && this.id) {
                 var v = aValue;
                 // xxx todo: work around value types here unless we save into the prefs...
                 switch (aName) {
@@ -322,26 +417,22 @@ calProviderBase.prototype = {
     itip_getInvitedAttendee: function cPB_itip_getInvitedAttendee(aItem) {
         // This is the iTIP specific base implementation for storage and memory,
         // it will mind what account has received the incoming message, e.g.
-//         var account = aItem.getProperty("X-MOZ-IMIP-INCOMING-ACCOUNT");
-//         if (account) {
-//             account = ("mailto:" + account);
-//             var att = aItem.getAttendeeById(account);
-//             if (att) {
-//                 // we take the existing attendee
-//                 return att;
-//             }
-//             // else user may have changed mail accounts, or we has been invited via ml
-//             // in any way, we create a new attendee to be added here, which may be
-//             // overridden by UI in case that account doesn't exist anymore:
-//             att = Components.classes["@mozilla.org/calendar/attendee;1"]
-//                             .createInstance(Components.interfaces.calIAttendee);
-//             att.participationStatus = "NEEDS-ACTION";
-//             att.id = account;
-//         }
-        // for now not impl
+        var identity = this.getProperty("imip.identity");
+        if (identity) {
+            var attId = ("mailto:" + identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email);
+            var org = aItem.organizer;
+            if (org && org.id.toLowerCase() == attId.toLowerCase()) {
+                return null;
+            }
+            return aItem.getAttendeeById(attId);
+        }
         return null;
     },
     getInvitedAttendee: function cPB_getInvitedAttendee(aItem) {
         return this.itip_getInvitedAttendee(aItem);
+    },
+
+    canNotify: function cPB_canNotify(aMethod, aItem) {
+        return false;
     }
 };

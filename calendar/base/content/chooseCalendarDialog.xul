@@ -83,6 +83,14 @@
                 nameCell.setAttribute("label", cal.name);
                 listItem.appendChild(nameCell);
 
+                var identity = cal.getProperty("imip.identity");
+                if (identity !== null) {
+                    identity = identity.QueryInterface(Components.interfaces.nsIMsgIdentity);
+                    var idCell = document.createElement("listcell");
+                    idCell.setAttribute("label", identity.identityName);
+                    listItem.appendChild(idCell);
+                }
+
                 listItem.calendar = cal;
                 listbox.appendChild(listItem);
                 listItem.setAttribute("flex","1");

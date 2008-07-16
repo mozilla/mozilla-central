@@ -143,6 +143,8 @@ calWcapCalendar.prototype = {
                 return this.getCalendarProperties("X-S1CS-CALPROPS-COMMON-NAME");
             case "cache.supported":
                 return false; // until bug 412914 and bug 412606 are fixed
+            case "capabilities.attachments.supported":
+                return false;
             case "capabilities.alarms.popup.supported":
                 // CS cannot store X-props reliably (thus writing X-MOZ stamps etc is not possible).
                 // Popup alarms not available no matter what; wtf.
@@ -202,10 +204,6 @@ calWcapCalendar.prototype = {
     },
     endBatch: function calWcapCalendar_endBatch() {
         this.notifyObservers("onEndBatch");
-    },
-
-    get sendItipInvitations calWcapCalendar_sendItipInvitationsGetter() {
-        return false;
     },
 
     get canRefresh calWcapCalendar_canRefreshGetter() {

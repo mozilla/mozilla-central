@@ -22,6 +22,7 @@
  *   Mike Shaver <shaver@mozilla.org>
  *   Joey Minta <jminta@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,5 +66,42 @@ function ltnGetString(aBundleName, aStringName, aParams) {
                 "'chrome://lightning/locale/" + aBundleName + ".properties'.";
         Components.utils.reportError(s + " Error: " + ex);
         return s;
+    }
+}
+
+// shared by lightning-calendar-properties.js and lightning-calendar-creation.js:
+function ltnInitMailIdentitiesRow() {
+    if (gCalendar) {
+        uncollapseElement("calendar-email-identity-row"); // in case user steps back and firth in wizard on different types
+        var menuPopup = document.getElementById("email-identity-menupopup");
+        addMenuItem(menuPopup, ltnGetString("lightning", "imipNoIdentity"), "none");
+        var identities = getAccountManager().allIdentities;
+        for (var i = 0; i <  identities.Count(); ++i) {
+            var identity = identities.GetElementAt(i).QueryInterface(Components.interfaces.nsIMsgIdentity);
+            addMenuItem(menuPopup, identity.identityName, identity.key);
+        }
+        try {
+            var sel = gCalendar.getProperty("imip.identity");
+            if (sel) {
+                sel = sel.QueryInterface(Components.interfaces.nsIMsgIdentity);
+            }
+            menuListSelectItem("email-identity-menulist", sel ? sel.key : "none");
+        } catch (exc) {
+        }
+    } else {
+        collapseElement("calendar-email-identity-row");
+    }
+}
+
+function ltnSaveMailIdentitySelection() {
+    if (gCalendar) {
+        var sel = "none";
+        var selItem = document.getElementById("email-identity-menulist").selectedItem;
+        if (selItem) {
+            sel = selItem.getAttribute("value");
+        }
+        // no imip.identity.key will default to the default account/identity, whereas
+        // an empty key indicates no imip; that identity will not be found
+        gCalendar.setProperty("imip.identity.key", sel == "none" ? "" : sel);
     }
 }

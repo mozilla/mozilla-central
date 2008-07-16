@@ -629,7 +629,18 @@ calStorageCalendar.prototype = {
         if (aRangeEnd)
             endTime = aRangeEnd.nativeTime;
 
-        var wantInvitations = ((aItemFilter & kCalICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+        var wantUnrespondedInvitations = ((aItemFilter & kCalICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+        var superCal;
+        try {
+            superCal = this.superCalendar.QueryInterface(Components.interfaces.calISchedulingSupport);
+        } catch (exc) {
+            wantUnrespondedInvitations = false;
+        }
+        function checkUnrespondedInvitation(item) {
+            var att = superCal.getInvitedAttendee(item);
+            return (att && (att.participationStatus == "NEEDS-ACTION"));
+        }
+
         var wantEvents = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
         var wantTodos = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_TODO) != 0);
         var asOccurrences = ((aItemFilter & kCalICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
@@ -694,10 +705,10 @@ calStorageCalendar.prototype = {
                 // the range. If the item doesn't fall into the range at all,
                 // this expands to 0 items.
                 expandedItems = item.recurrenceInfo.getOccurrences(aRangeStart, aRangeEnd, 0, {});
-                if (wantInvitations) {
-                    expandedItems = expandedItems.filter(self.isInvitation, self);
+                if (wantUnrespondedInvitations) {
+                    expandedItems = expandedItems.filter(checkUnrespondedInvitation);
                 }
-            } else if ((!wantInvitations || self.itip_checkInvitation(item)) &&
+            } else if ((!wantUnrespondedInvitations || checkUnrespondedInvitation(item)) &&
                        checkIfInRange(item, aRangeStart, aRangeEnd)) {
                 // If no occurrences are wanted, check only the parent item.
                 // This will be changed with bug 416975.

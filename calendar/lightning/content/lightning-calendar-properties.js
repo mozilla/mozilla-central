@@ -14,7 +14,7 @@
  * The Original Code is Sun Microsystems code.
  *
  * The Initial Developer of the Original Code is
- *   Sun Microsystems, Inc.
+ * Sun Microsystems, Inc.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
@@ -35,44 +35,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
-interface calIItemBase;
-interface calIAttendee;
+var common_onLoad = onLoad;
+var common_onAcceptDialog = onAcceptDialog;
 
-/**
- * Accesses scheduling specific information of calendar items.
- * Implementation by providers is optional.
- */
-[scriptable, uuid(9221e243-c97e-4c5f-9e00-5d7d3521bb44)]
-interface calISchedulingSupport : nsISupports
-{
-    /**
-     * Tests whether the passed item corresponds to an invitation, e.g.
-     * the CUA or server has placed it in the calendar.
-     *
-     * @param aItem     Item to be tested.
-     * @return          Whether the passed item corresponds to an invitation.
-     */
-    boolean isInvitation(in calIItemBase aItem);
+onLoad = function ltn_onLoad() {
+    gCalendar = window.arguments[0].calendar;
+    ltnInitMailIdentitiesRow();
+    common_onLoad();
+};
 
-    /**
-     * Gets the invited attendee if the passed item corresponds to
-     * an invitation. UI code will use that attendee to modify e.g. PARTSTAT.
-     * If isInvitation returns true, getInvitedAttendee must return
-     * an attendee.
-     *
-     * @param aItem     Invitation item.
-     * @return          Attendee object, or null.
-     */
-    calIAttendee getInvitedAttendee(in calIItemBase aItem);
-
-    /**
-     * Checks whether the provider keeps track of sending out the proper
-     * iTIP/iMIP message for a particular item.
-     *
-     * @param aMethod a iTIP method
-     * @param aItem an item that has been modified/deleted etc.
-     * @return true, if the provider keeps track of sending out passed message
-     */
-    boolean canNotify(in AUTF8String aMethod, in calIItemBase aItem);
+onAcceptDialog = function ltn_onAcceptDialog() {
+    ltnSaveMailIdentitySelection();
+    return common_onAcceptDialog();
 };

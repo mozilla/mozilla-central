@@ -139,7 +139,7 @@
                                      palettename="standard"/>
                     </hbox>
                 </row>
-                <row id="customize-suppressAlarms-row">
+                <row id="customize-suppressAlarms-row" align="center">
                     <label value="&calendarproperties.firealarms.label;:" control="fire-alarms"/>
                     <checkbox id="fire-alarms" checked="true"/>
                 </row>

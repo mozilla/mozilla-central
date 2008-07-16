@@ -164,11 +164,6 @@ var calendarViewController = {
                 }
             }
 
-            // If the item contains attendees then they need to be notified
-            if (instance.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE") {
-               sendItipInvitation(instance, 'REQUEST', []);
-            }
-
             doTransaction('modify', instance, instance.calendar, aOccurrence, null);
         } else {
             this.createPendingModification(aOccurrence);
@@ -229,12 +224,6 @@ var calendarViewController = {
                 // Dont start the transaction yet. Do so later, in case the
                 // parent item gets modified more than once.
             } else {
-                // Add sending ITIP IMIP cancelation
-                // If the item contains attendees then they need to be notified
-                if (itemToDelete.hasProperty("X-MOZ-SEND-INVITATIONS") &&
-                (itemToDelete.getProperty("X-MOZ-SEND-INVITATIONS") == "TRUE")) {
-                    sendItipInvitation(itemToDelete,'CANCEL', []);
-                }
                 doTransaction('delete', itemToDelete, itemToDelete.calendar, null, null);
             }
         }

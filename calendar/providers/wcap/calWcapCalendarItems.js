@@ -231,20 +231,44 @@ function calWcapCalendar_isInvitation(item) {
     if (!this.session.isLoggedIn) {
         return false; // don't know
     }
-    var orgCalId = getCalId(item.organizer);
-    if (!orgCalId) {
-        return false;
-    }
     var calId = this.calId;
+    var orgCalId = getCalId(item.organizer);
     if (orgCalId == calId) {
         return false;
     }
-    return (getAttendeeByCalId(item.getAttendees({}), calId) != null);
+    return (this.getInvitedAttendee(item) != null);
 };
 
 calWcapCalendar.prototype.getInvitedAttendee =
 function calWcapCalendar_getInvitedAttendee(item) {
-    return getAttendeeByCalId(item.getAttendees({}), this.calId);
+    var att = getAttendeeByCalId(item.getAttendees({}), this.calId);
+    if (!att) { // try to find mail address
+        var ar = this.session.getUserPreferences("X-NSCP-WCAP-PREF-mail");
+        if (ar.length > 0 && ar[0].length > 0) {
+            att = item.getAttendeeById("mailto:" + ar[0]);
+        }
+    }
+    return att;
+};
+
+calWcapCalendar.prototype.canNotify =
+function calWcapCalendar_canNotify(method, item) {
+    if (!this.session.isLoggedIn) {
+        return false;
+    }
+    var calId = this.calId;
+    switch (method) {
+        case "REQUEST":
+        case "CANCEL":
+            // when creating new items, mind that organizer's id
+            return (!item.organizer || // might yet not be set
+                    (item.organizer.id == calId) || // or is set to raw calId
+                    (getCalId(item.organizer) == calId));
+        case "REPLY": // only if we we're invited from cs, and find matching X-S1CS-CALID:
+            return (getAttendeeByCalId(item.getAttendees({}), calId) != null);
+        default:
+            return false;
+    }
 };
 
 function equalDatetimes(one, two) {

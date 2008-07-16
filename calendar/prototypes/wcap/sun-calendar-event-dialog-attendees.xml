@@ -21,6 +21,7 @@
    - Contributor(s):
    -   Michael Buettner <michael.buettner@sun.com>
    -   Philipp Kewisch <mozilla@kewis.ch>
+   -   Daniel Boelzle <daniel.boelzle@sun.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -97,7 +98,6 @@
       <field name="mIsOffline">0</field>
       <field name="mLDAPSession">null</field>
       <field name="mSessionAdded">0</field>
-      <field name="mOrganizerID">null</field>
       <field name="mIsReadOnly">false</field>
       <field name="mIsInvitation">false</field>
       <field name="mPopupOpen">false</field>
@@ -193,21 +193,16 @@
           var attendees = args.attendees;
           var calendar = args.calendar;
 
-          // set 'mIsReadOnly' if the calendar is read-only
-          if (calendar && calendar.readOnly) {
-              this.mIsReadOnly = true;
-          }
+          this.mIsReadOnly = calendar.readOnly;
 
           // assume we're the organizer [in case that the calendar
           // does not support the concept of identities].
-          this.mIsInvitation = false;
-          this.mOrganizerID = ((organizer && organizer.id) ?
-              organizer.id :
-              calendar.getProperty("organizerId"));
+          var organizerID = ((organizer && organizer.id)
+                             ? organizer.id
+                             : calendar.getProperty("organizerId"));
 
-          if (calendar instanceof Components.interfaces.calISchedulingSupport) {
-              this.mIsInvitation = calendar.isInvitation(args.item);
-          }
+          this.mIsInvitation = ((calendar instanceof Components.interfaces.calISchedulingSupport) && 
+                                calendar.isInvitation(args.item));
 
           var listbox =
               document.getAnonymousElementByAttribute(
@@ -224,15 +219,15 @@
           // TODO: the organizer should show up in the attendee list, but this information
           // should be based on the organizer contained in the appropriate field of calIItemBase.
           // This is currently not supported, since we're still missing calendar identities.
-          if (this.mOrganizerID && this.mOrganizerID != "") {
+          if (organizerID && organizerID != "") {
               if (!organizer) {
                   organizer = this.createAttendee();
-                  organizer.id = this.mOrganizerID;
+                  organizer.id = organizerID;
                   organizer.role = "CHAIR";
                   organizer.participationStatus = "ACCEPTED";
               } else {
                   if (!organizer.id) {
-                      organizer.id = this.mOrganizerID;
+                      organizer.id = organizerID;
                   }
                   if (!organizer.role) {
                       organizer.role = "CHAIR";
@@ -244,6 +239,7 @@
               if (!organizer.commonName || !organizer.commonName.length) {
                   organizer.commonName = calendar.getProperty("organizerCN");
               }
+              organizer.isOrganizer = true;
               this.appendAttendee(organizer, listbox, template, true);
           }
 
@@ -320,14 +316,8 @@
 
           // disable the input-field [name <email>] if this attendee
           // appears to be the organizer.
-          if (aDisableIfOrganizer) {
-              if (aAttendee) {
-                  if (this.mOrganizerID && this.mOrganizerID != "") {
-                      if (aAttendee.id.toLowerCase() == this.mOrganizerID.toLowerCase()) {
-                          input.setAttribute("disabled", "true");
-                      }
-                  }
-              }
+          if (aDisableIfOrganizer && aAttendee && aAttendee.isOrganizer) {
+              input.setAttribute("disabled", "true");
           }
 
           this.mMaxAttendees++;
@@ -374,14 +364,10 @@
           input.attendee = aAttendee;
           input.setAttribute("dirty", "true");
 
-          if (aAttendee) {
-              if (this.mOrganizerID && this.mOrganizerID != "") {
-                  if (aAttendee.id.toLowerCase() == this.mOrganizerID.toLowerCase()) {
-                      icon.setAttribute("class", "status-icon");
-                      icon.setAttribute("status", aAttendee.participationStatus);
-                      return true;
-                  }
-              }
+          if (aAttendee && aAttendee.isOrganizer) {
+              icon.setAttribute("class", "status-icon");
+              icon.setAttribute("status", aAttendee.participationStatus);
+              return true;
           }
 
           icon.setAttribute("class", "role-icon");
@@ -517,16 +503,8 @@
                       attendee.commonName = names.value[0];
                   }
 
-                  var addAttendee = true;
-                  if (this.mOrganizerID &&
-                      this.mOrganizerID != "" &&
-                      attendee.id.toLowerCase() == this.mOrganizerID.toLowerCase() &&
-                      i == 1) {
-                      addAttendee = false;
-                  }
-
                   // append the attendee object to the list of attendees.
-                  if (addAttendee) {
+                  if (!attendee.isOrganizer || i > 1) {
                       attendees.push(attendee);
                   }
               }
@@ -580,8 +558,7 @@
                       attendee.commonName = names.value[0];
                   }
 
-                  if (this.mOrganizerID && this.mOrganizerID != "" &&
-                      attendee.id.toLowerCase() == this.mOrganizerID.toLowerCase()) {
+                  if (attendee.isOrganizer) {
                       return attendee;
                   }
               }

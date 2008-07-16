@@ -121,6 +121,7 @@ InvitationsManager.prototype = {
             mCount: cals.length,
             mRequestManager: gInvitationsRequestManager,
             mInvitationsManager: this,
+            mHandledItems: {},
 
             // calIOperationListener
             onOperationComplete: function(aCalendar,
@@ -164,7 +165,14 @@ InvitationsManager.prototype = {
                                   aItems) {
                 if (Components.isSuccessCode(aStatus)) {
                     for each (var item in aItems) {
-                        this.mInvitationsManager.addItem(item);
+                        // we need to retrieve by occurrence to properly filter exceptions,
+                        // should be fixed with bug 416975
+                        item = item.parentItem;
+                        var hid = item.hashId;
+                        if (!this.mHandledItems[hid]) {
+                            this.mHandledItems[hid] = true;
+                            this.mInvitationsManager.addItem(item);
+                        }
                     }
                 }
             }
@@ -176,7 +184,7 @@ InvitationsManager.prototype = {
                 continue;
             }
 
-            // temporary hack unless calCachedCalendar supports REQUEST_NEEDSACTION filter:
+            // temporary hack unless calCachedCalendar supports REQUEST_NEEDS_ACTION filter:
             calendar = calendar.getProperty("cache.uncachedCalendar");
             if (!calendar) {
                 opListener.onOperationComplete();
@@ -184,9 +192,16 @@ InvitationsManager.prototype = {
             }
 
             try {
+                var endDate = this.mStartDate.clone();
+                endDate.year += 1;
                 var op = calendar.getItems(Components.interfaces.calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION |
-                                           Components.interfaces.calICalendar.ITEM_FILTER_TYPE_ALL,
-                                           0, this.mStartDate, null, opListener);
+                                           Components.interfaces.calICalendar.ITEM_FILTER_TYPE_ALL |
+                                           // we need to retrieve by occurrence to properly filter exceptions,
+                                           // should be fixed with bug 416975
+                                           Components.interfaces.calICalendar.ITEM_FILTER_CLASS_OCCURRENCES,
+                                           0, this.mStartDate,
+                                           endDate /* we currently cannot pass null here, because of bug 416975 */,
+                                           opListener);
                 gInvitationsRequestManager.addRequestStatus(calendar, op);
             } catch (exc) {
                 opListener.onOperationComplete();
@@ -216,10 +231,12 @@ InvitationsManager.prototype = {
     processJobQueue: function IM_processJobQueue(queue,
                                                  jobQueueFinishedCallBack) {
         // TODO: undo/redo
-        var operationListener = {
-            mInvitationsManager: this,
-            mJobQueueFinishedCallBack: jobQueueFinishedCallBack,
-
+        function operationListener(mgr, queueCallback, oldItem_) {
+            this.mInvitationsManager = mgr;
+            this.mJobQueueFinishedCallBack = queueCallback;
+            this.mOldItem = oldItem_;
+        }
+        operationListener.prototype = {
             onOperationComplete: function (aCalendar,
                                            aStatus,
                                            aOperationType,
@@ -227,6 +244,7 @@ InvitationsManager.prototype = {
                                            aDetail) {
                 if (Components.isSuccessCode(aStatus) &&
                     aOperationType == Components.interfaces.calIOperationListener.MODIFY) {
+                    checkAndSendItipMessage(aDetail, aOperationType, this.mOldItem);
                     this.mInvitationsManager.deleteItem(aDetail);
                     this.mInvitationsManager.addItem(aDetail);
                 }
@@ -246,6 +264,7 @@ InvitationsManager.prototype = {
 
             }
         };
+
         this.mJobsPending = 0;
         for (var i = 0; i < queue.length; i++) {
             var job = queue[i];
@@ -256,7 +275,7 @@ InvitationsManager.prototype = {
                     this.mJobsPending++;
                     newItem.calendar.modifyItem(newItem,
                                                 oldItem,
-                                                operationListener);
+                                                new operationListener(this, jobQueueFinishedCallBack, oldItem));
                     break;
                 default:
                     break;

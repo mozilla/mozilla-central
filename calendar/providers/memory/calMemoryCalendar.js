@@ -337,7 +337,17 @@ calMemoryCalendar.prototype = {
         // filters
         //
 
-        var wantInvitations = ((aItemFilter & calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+        var wantUnrespondedInvitations = ((aItemFilter & calICalendar.ITEM_FILTER_REQUEST_NEEDS_ACTION) != 0);
+        var superCal;
+        try {
+            superCal = this.superCalendar.QueryInterface(Components.interfaces.calISchedulingSupport);
+        } catch (exc) {
+            wantUnrespondedInvitations = false;
+        }
+        function checkUnrespondedInvitation(item) {
+            var att = superCal.getInvitedAttendee(item);
+            return (att && (att.participationStatus == "NEEDS-ACTION"));
+        }
 
         // item base type
         var wantEvents = ((aItemFilter & calICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
@@ -393,14 +403,14 @@ calMemoryCalendar.prototype = {
             if (itemReturnOccurrences && item.recurrenceInfo) {
                 var occurrences = item.recurrenceInfo.getOccurrences(
                     aRangeStart, aRangeEnd, aCount ? aCount - itemsFound.length : 0, {});
-                if (wantInvitations) {
-                    occurrences = occurrences.filter(this.isInvitation, this);
+                if (wantUnrespondedInvitations) {
+                    occurrences = occurrences.filter(checkUnrespondedInvitation);
                 }
                 if (!isEvent_) {
                     occurrences = occurrences.filter(checkCompleted);
                 }
                 itemsFound = itemsFound.concat(occurrences);
-            } else if ((!wantInvitations || this.itip_checkInvitation(item)) &&
+            } else if ((!wantUnrespondedInvitations || checkUnrespondedInvitation(item)) &&
                        (isEvent_ || checkCompleted(item)) &&
                        checkIfInRange(item, aRangeStart, aRangeEnd)) {
                 // This needs fixing for recurring items, e.g. DTSTART of parent may occur before aRangeStart.

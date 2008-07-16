@@ -21,6 +21,7 @@
  *   Clint Talbert <ctalbert.moz@gmail.com>
  *   Matthew Willis <lilmatt@mozilla.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -60,12 +61,9 @@ const onItipItem = {
 function createItipCompositeCalendar() {
     var compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
                             .createInstance(Components.interfaces.calICompositeCalendar);
-    getCalendarManager().getCalendars({}).forEach(
+    getCalendarManager().getCalendars({}).filter(isCalendarWritable).forEach(
         function(cal) {
-            // we consider only read-writeable calendars since we need to add/modify items
-            if (isCalendarWritable(cal)) {
-                compCal.addCalendar(cal);
-            }
+            compCal.addCalendar(cal);
         });
     return compCal;
 }
@@ -176,8 +174,8 @@ function setupBar(imipMethod) {
     imipBar.setAttribute("collapsed", "false");
 
     if (imipMethod.toUpperCase() == "REQUEST") {
-        // Check if this is an update and display things accordingly
-        isUpdateMsg();
+        // Check if this is an update or initial request and display things accordingly
+        processRequestMsg();
     } else if (imipMethod.toUpperCase() == "REPLY") {
         // Check if this is an reply and display things accordingly
         processReplyMsg();
@@ -412,10 +410,26 @@ function getMsgRecipient() {
  */
 function getTargetCalendar() {
     var calendarToReturn;
-    var calendars = getCalendarManager().getCalendars({});
-    calendars = calendars.filter(isCalendarWritable);
-
+    var calendars = getCalendarManager().getCalendars({}).filter(isCalendarWritable);
     // XXXNeed an error message if there is no writable calendar
+
+    // try to further limit down the list to those calendars that are configured to a matching attendee;
+    var item = gItipItem.getItemList({})[0];
+    var matchingCals = calendars.filter(
+        function(cal) {
+            var identity = cal.getProperty("imip.identity");
+            if (identity !== null) {
+                identity = identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email;
+                return ((gItipItem.identity && (identity.toLowerCase() == gItipItem.identity.toLowerCase())) ||
+                        item.getAttendeeById("mailto:" + identity));
+            }
+            return false;
+        });
+    // if there's none, we will show the whole list of calendars:
+    if (matchingCals.length > 0) {
+        calendars = matchingCals;
+    }
+
     if (calendars.length == 1) {
         // There's only one calendar, so it's silly to ask what calendar
         // the user wants to import into.
@@ -430,6 +444,14 @@ function getTargetCalendar() {
         openDialog("chrome://calendar/content/chooseCalendarDialog.xul",
                    "_blank", "chrome,titlebar,modal,resizable", args);
     }
+
+    if (calendarToReturn) {
+        // assure gItipItem.identity is set to the configured email address:
+        var identity = calendarToReturn.getProperty("imip.identity");
+        if (identity) {
+            gItipItem.identity = identity.QueryInterface(Components.interfaces.nsIMsgIdentity).email;
+        }
+    }
     return calendarToReturn;
 }
 
@@ -438,13 +460,6 @@ function getTargetCalendar() {
  * event_status is an optional directive to set the Event STATUS property
  */
 function setAttendeeResponse(type, eventStatus) {
-    var myAddress = gItipItem.identity;
-    if (!myAddress) {
-        // Bug 420516 -- we don't support delegation yet TODO: Localize this?
-        throw new Error("setAttendeeResponse: " +
-                        "You are not on the list of invited attendees, delegation " +
-                        "is not supported yet.  See bug 420516 for details.");
-    }
     if (type && gItipItem) {
         // Some methods need a target calendar. Prompt for it first.
         switch (type) {
@@ -464,9 +479,38 @@ function setAttendeeResponse(type, eventStatus) {
         switch (type) {
             case "ACCEPTED":
             case "TENTATIVE":
-            case "DECLINED":
-                gItipItem.setAttendeeStatus(myAddress, type);
+            case "DECLINED": {
+                var attId = null;
+                var attCN = null;
+                if (gItipItem.targetCalendar) {
+                    var identity = gItipItem.targetCalendar.getProperty("imip.identity");
+                    if (identity) { // configured email supersedes found msg recipient:
+                        identity = identity.QueryInterface(Components.interfaces.nsIMsgIdentity);
+                        attId = ("mailto:" + identity.email);
+                        attCN = identity.fullName;
+                    }
+                }
+                if (!attId && gItipItem.identity) {
+                    attId = ("mailto:" + gItipItem.identity);
+                }
+                if (!attId) {
+                    // Bug 420516 -- we don't support delegation yet TODO: Localize this?
+                    throw new Error("setAttendeeResponse: " +
+                                    "You are not on the list of invited attendees, delegation " +
+                                    "is not supported yet.  See bug 420516 for details.");
+                }
+                for each (var item in gItipItem.getItemList({})) {
+                    if (!item.getAttendeeById(attId)) { // add if not existing, e.g. on mailing list REQUEST
+                        var att = Components.classes["@mozilla.org/calendar/attendee;1"]
+                                            .createInstance(Components.interfaces.calIAttendee);
+                        att.id = attId;
+                        att.commonName = attCN;
+                        item.addAttendee(att);
+                    }
+                }
+                gItipItem.setAttendeeStatus(attId, type); // workaround for bug 351589 (fixing RSVP)
                 // Fall through
+            }
             case "REPLY":
             case "PUBLISH":
                 doResponse(eventStatus);
@@ -553,9 +597,9 @@ function finishItipAction(aOperationType, aStatus, aDetail) {
 
 /**
  * Walks through the list of events in the iTipItem and discovers whether or not
- * these events already exist on a calendar. Calls determineUpdateType.
+ * these events already exist on a calendar. Calls displayRequestMethod.
  */
-function isUpdateMsg() {
+function processRequestMsg() {
     // According to the specification, we have to determine if the event ID
     // already exists on the calendar of the user - that means we have to search
     // them all. :-(
@@ -572,7 +616,7 @@ function isUpdateMsg() {
     // Make sure we don't have a pre Outlook 2007 appointment, but if we do
     // use Microsoft's Sequence number. I <3 MS
     if ((newSequence == "0") &&
-       itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
+        itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
         newSequence = itemList[0].getProperty("X-MICROSOFT-CDO-APPT-SEQUENCE");
     }
 
@@ -582,7 +626,7 @@ function isUpdateMsg() {
             if (!this.processedId){
                 // Then the ID doesn't exist, don't call us twice
                 this.processedId = true;
-                determineUpdateType(newSequence, -1);
+                displayRequestMethod(newSequence, -1);
             }
         },
 
@@ -594,10 +638,10 @@ function isUpdateMsg() {
 
                 // Handle the microsoftism foolishness
                 if ((existingSequence == "0") &&
-                   itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
+                    itemList[0].hasProperty("X-MICROSOFT-CDO-APPT-SEQUENCE")) {
                     existingSequence = aItems[0].getProperty("X-MICROSOFT-CDO-APPT-SEQUENCE");
                 }
-                determineUpdateType(newSequence, existingSequence);
+                displayRequestMethod(newSequence, existingSequence);
             }
         }
     };
@@ -605,32 +649,27 @@ function isUpdateMsg() {
     compCal.getItem(itemList[0].id, onFindItemListener);
 }
 
-/**
- * Determines what our update status is. It can return three things:
- * 0 = the new event does not exist on the calendar (therefore, this is an add)
- * 1 = the event does exist and contains a proper update (this is an update)
- * 2 = the event clicked on is an old update and should NOT be applied
- */
-function determineUpdateType(newItemSequence, existingItemSequence) {
+function displayRequestMethod(newItemSequence, existingItemSequence) {
+
     // Three states here:
-    // Item does not exist yet: existingItemSequence == -1
-    // Item has been updated: newSequence > existingSequence
-    // Item is an old message that has already been added/updated: new <= existing
-    var isUpdate = 0;
+    // 0 = the new event does not exist on the calendar (therefore, this is an add)
+    //     (Item does not exist yet: existingItemSequence == -1)
+    // 1 = the event does exist and contains a proper update (this is an update)
+    //     (Item has been updated: newSequence > existingSequence)
+    // 2 = the event clicked on is an old update and should NOT be applied
+    //     (Item is an old message that has already been added/updated: new <= existing)
+    var updateValue = 0;
 
-    if (existingItemSequence == -1)
-        isUpdate = 0;
-    else if (newItemSequence > existingItemSequence)
-        isUpdate = 1;
-    else
-        isUpdate = 2;
+    if (existingItemSequence == -1) {
+        updateValue = 0;
+    } else if (newItemSequence > existingItemSequence) {
+        updateValue = 1;
+    } else {
+        updateValue = 2;
+    }
 
-    // We now call our display code to display the proper message for this
-    // update type
-    displayRequestMethod(isUpdate);
-}
+    // now display the proper message for this update type:
 
-function displayRequestMethod(updateValue) {
     var imipBar = document.getElementById("imip-bar");
     if (updateValue) {
         // This is a message updating existing event(s). But updateValue could

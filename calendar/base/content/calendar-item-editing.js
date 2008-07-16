@@ -21,6 +21,7 @@
  *   Stuart Parmenter <stuart.parmenter@oracle.com>
  *   Robin Edrenius <robin.edrenius@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -47,7 +48,12 @@ opCompleteListener.prototype = {
 
     onOperationComplete: function oCL_onOperationComplete(aCalendar, aStatus, aOpType, aId, aItem) {
         if (Components.isSuccessCode(aStatus)) {
-            checkForAttendees(aItem, this.mOriginalItem);
+            // we may optionally shift the whole check and send mail messages to
+            // calProviderBase.notifyOperationComplete (with adding an oldItem parameter).
+            // I am not yet sure what to do for mixed mode invitations, e.g.
+            // some users on the attendee list are caldav users and get REQUESTs into their inbox,
+            // other get emailed... For now let's do both.
+            checkAndSendItipMessage(aItem, aOpType, this.mOriginalItem);
         }
         if (this.mOuterListener) {
             this.mOuterListener.onOperationComplete.apply(this.mOuterListener,
@@ -65,14 +71,13 @@ function createEventWithDialog(calendar, startDate, endDate, summary, event, aFo
     const kDefaultTimezone = calendarDefaultTimezone();
 
     var onNewEvent = function(item, calendar, originalItem, listener) {
-        var innerListener = new opCompleteListener(originalItem, listener);
         if (item.id) {
             // If the item already has an id, then this is the result of
             // saving the item without closing, and then saving again.
-            doTransaction('modify', item, calendar, originalItem, innerListener);
+            doTransaction('modify', item, calendar, originalItem, listener);
         } else {
             // Otherwise, this is an addition
-            doTransaction('add', item, calendar, null, innerListener);
+            doTransaction('add', item, calendar, null, listener);
         }
     };
 
@@ -153,14 +158,13 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
     const kDefaultTimezone = calendarDefaultTimezone();
 
     var onNewItem = function(item, calendar, originalItem, listener) {
-        var innerListener = new opCompleteListener(originalItem, listener);
         if (item.id) {
             // If the item already has an id, then this is the result of
             // saving the item without closing, and then saving again.
-            doTransaction('modify', item, calendar, originalItem, innerListener);
+            doTransaction('modify', item, calendar, originalItem, listener);
         } else {
             // Otherwise, this is an addition
-            doTransaction('add', item, calendar, null, innerListener);
+            doTransaction('add', item, calendar, null, listener);
         }
     }
 
@@ -191,8 +195,7 @@ function createTodoWithDialog(calendar, dueDate, summary, todo) {
 
 function modifyEventWithDialog(aItem, job, aPromptOccurrence) {
     var onModifyItem = function(item, calendar, originalItem, listener) {
-        var innerListener = new opCompleteListener(originalItem, listener);
-        doTransaction('modify', item, calendar, originalItem, innerListener);
+        doTransaction('modify', item, calendar, originalItem, listener);
     };
 
     var item = aItem;
@@ -422,11 +425,12 @@ function getTransactionMgr() {
 }
 
 function doTransaction(aAction, aItem, aCalendar, aOldItem, aListener) {
+    var innerListener = new opCompleteListener(aOldItem, aListener);
     getTransactionMgr().createAndCommitTxn(aAction,
                                            aItem,
                                            aCalendar,
                                            aOldItem,
-                                           aListener);
+                                           innerListener);
     updateUndoRedoMenu();
 }
 
@@ -464,47 +468,71 @@ function updateUndoRedoMenu() {
 }
 
 /**
- * checkForAttendees
  * Checks to see if the attendees were added or changed between the original
- * and new item.  If there is a change, it launches the calIITipTransport
+ * and new item.  If there is a change, it launches the calIItipTransport
  * service and sends the invitations
  */
-function checkForAttendees(aItem, aOriginalItem)
-{
-    // iTIP is only supported in Lightning right now
-    if (isSunbird()) {
+function checkAndSendItipMessage(aItem, aOpType, aOriginalItem) {
+    var transport = aItem.calendar.getProperty("itip.transport");
+    if (!transport) { // Only send if there's a transport for the calendar
+        return;
+    }
+    transport = transport.QueryInterface(Components.interfaces.calIItipTransport);
+
+    if ((transport.type == "email") &&
+        (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE")) { // Only send invitations/cancellations
+                                                                   // if the user checked the checkbox
         return;
     }
 
-    // Only send invitations for providers which need it.
-    if (!aItem.calendar.sendItipInvitations) {
+    if (aOpType == Components.interfaces.calIOperationListener.DELETE) {
+        calSendItipMessage(aItem, "CANCEL", aItem.getAttendees({}));
+        return;
+    } // else ADD, MODIFY:
+
+    var invitedAttendee = (((aItem.calendar instanceof Components.interfaces.calISchedulingSupport) &&
+                            aItem.calendar.isInvitation(aItem))
+                           ? aItem.calendar.getInvitedAttendee(aItem) : null);
+    if (invitedAttendee) { // actually is an invitation copy, fix attendee list to send REPLY
+        if (aItem.calendar.canNotify("REPLY", aItem)) {
+            return; // provider does that
+        }
+
+        // has this been a PARTSTAT change?
+        var origInvitedAttendee = (aOriginalItem && aOriginalItem.getAttendeeById(invitedAttendee.id));
+        if (aItem.organizer &&
+            (!origInvitedAttendee ||
+             (origInvitedAttendee.participationStatus != invitedAttendee.participationStatus))) {
+
+            aItem = aItem.clone();
+            aItem.removeAllAttendees();
+            aItem.addAttendee(invitedAttendee);
+
+            var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
+                                     .createInstance(Components.interfaces.calIItipItem);
+            itipItem.init(aItem.icalString);
+            itipItem.targetCalendar = aItem.calendar;
+            itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
+            itipItem.responseMethod = "REPLY";
+            transport.simpleSendResponse(itipItem);
+        }
         return;
     }
 
-    // Only send invitations if the user checked the checkbox.
-    if (aItem.getProperty("X-MOZ-SEND-INVITATIONS") != "TRUE") {
-        return;
-    }
-
-    var originalAtt = aOriginalItem.getAttendees({});
+    var originalAtt = (aOriginalItem ? aOriginalItem.getAttendees({}) : []);
     var itemAtt = aItem.getAttendees({});
-    var attMap = {};
-    var addedAttendees = [];
     var canceledAttendees = [];
 
     if (itemAtt.length > 0 || originalAtt.length > 0) {
-
+        var attMap = {};
         for each (var att in originalAtt) {
-            attMap[att.id] = att;
+            attMap[att.id.toLowerCase()] = att;
         }
 
         for each (var att in itemAtt) {
             if (att.id in attMap) {
                 // Attendee was in original item.
-                delete attMap[att.id]
-            } else {
-                // Attendee was not in original item
-                addedAttendees.push(att);
+                delete attMap[att.id.toLowerCase()];
             }
         }
 
@@ -514,13 +542,102 @@ function checkForAttendees(aItem, aOriginalItem)
     }
 
     // Check to see if some part of the item was updated, if so, re-send invites
-    if (addedAttendees.length > 0 ||
-        (aItem.generation != aOriginalItem.generation)) {
-        sendItipInvitation(aItem, 'REQUEST', []);
+    if (!aOriginalItem || aItem.generation != aOriginalItem.generation) { // REQUEST
+        var requestItem = aItem.clone();
+
+        if (!requestItem.organizer) {
+            var organizer = Components.classes["@mozilla.org/calendar/attendee;1"]
+                                      .createInstance(Components.interfaces.calIAttendee);
+            organizer.id = requestItem.calendar.getProperty("organizerId");
+            organizer.commonName = requestItem.calendar.getProperty("organizerCN");
+            organizer.role = "REQ-PARTICIPANT";
+            organizer.participationStatus = "ACCEPTED";
+            organizer.isOrganizer = true;
+            requestItem.organizer = organizer;
+        }
+
+        // Fix up our attendees for invitations using some good defaults
+        var recipients = [];
+        var itemAtt = requestItem.getAttendees({});
+        requestItem.removeAllAttendees();
+        for each (var attendee in itemAtt) {
+            attendee = attendee.clone();
+            attendee.role = "REQ-PARTICIPANT";
+            attendee.participationStatus = "NEEDS-ACTION";
+            attendee.rsvp = true;
+            requestItem.addAttendee(attendee);
+            recipients.push(attendee);
+        }
+
+        if (recipients.length > 0) {
+            calSendItipMessage(requestItem, "REQUEST", recipients);
+        }
     }
 
     // Cancel the event for all canceled attendees
     if (canceledAttendees.length > 0) {
-        sendItipInvitation(aItem, 'CANCEL', canceledAttendees);
+        var cancelItem = aOriginalItem.clone();
+        cancelItem.removeAllAttendees();
+        for each (var att in canceledAttendees) {
+            cancelItem.addAttendee(att);
+        }
+        calSendItipMessage(cancelItem, "CANCEL", canceledAttendees);
     }
 }
+
+function calSendItipMessage(aItem, aMethod, aRecipientsList) {
+    if ((aItem.calendar instanceof Components.interfaces.calISchedulingSupport) &&
+        aItem.calendar.canNotify(aMethod, aItem)) {
+        return; // provider will handle that
+    }
+
+    var transport = aItem.calendar.getProperty("itip.transport")
+                                  .QueryInterface(Components.interfaces.calIItipTransport);
+    var itipItem = Components.classes["@mozilla.org/calendar/itip-item;1"]
+                             .createInstance(Components.interfaces.calIItipItem);
+
+    // We have to modify our item a little, so we clone it.
+    var item = aItem.clone();
+
+    // We fake Sequence ID support.
+    item.setProperty("METHOD", aMethod);
+    item.setProperty("SEQUENCE", item.generation);
+
+    // Initialize and set our properties on the item
+    itipItem.init(item.icalString);
+    itipItem.targetCalendar = item.calendar;
+    itipItem.autoResponse = Components.interfaces.calIItipItem.USER;
+    // XXX I don't know whether the below are used at all, since we don't use the itip processor
+    itipItem.isSend = true;
+    itipItem.receivedMethod = aMethod;
+
+    // Get ourselves some default text - when we handle organizer properly
+    // We'll need a way to configure the Common Name attribute and we should
+    // use it here rather than the email address
+    var subjectStringId = "";
+    var bodyStringId = "";
+    switch (aMethod) {
+        case 'REQUEST':
+            subjectStringId = "itipRequestSubject";
+            bodyStringId = "itipRequestBody";
+            break;
+        case 'CANCEL':
+            subjectStringId = "itipCancelSubject";
+            bodyStringId = "itipCancelBody";
+            break;
+    }
+
+    var summary = (item.getProperty("SUMMARY") || "");
+    var subject = calGetString("lightning",
+                               subjectStringId,
+                               [summary],
+                               "lightning");
+    var body = calGetString("lightning",
+                            bodyStringId,
+                            [item.organizer ? item.organizer.toString() : "", summary],
+                            "lightning");
+
+    // Send it!
+    transport.sendItems(aRecipientsList.length, aRecipientsList, subject, body, itipItem);
+}
+

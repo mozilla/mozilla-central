@@ -1,4 +1,3 @@
-/* -*- Mode: javascript; tab-width: 20; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -21,6 +20,7 @@
  *
  * Contributor(s):
  *   Mike Shaver <shaver@off.net>
+ *   Daniel Boelzle <daniel.boelzle@sun.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -199,6 +199,15 @@ calAttendee.prototype = {
     set id(aId) {
         this.modify();
         return this.mId = aId.replace(/^mailto:/i, "MAILTO:");
+    },
+
+    toString: function calAttendee_toString() {
+        var ret = (this.id || "unknown").replace(/^mailto:/i, "");
+        var cn = this.commonName;
+        if (cn) {
+            ret = (cn + " <" + ret + ">");
+        }
+        return ret;
     }
 };
 

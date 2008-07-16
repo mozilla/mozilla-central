@@ -138,10 +138,10 @@ calTransaction.prototype = {
         }
         if (this.mListener) {
             this.mListener.onOperationComplete(aCalendar,
-                                              aStatus,
-                                              aOperationType,
-                                              aId,
-                                              aDetail);
+                                               aStatus,
+                                               aOperationType,
+                                               aId,
+                                               aDetail);
         }
     },
 
