@@ -889,9 +889,15 @@ Ext.extend(CaseRunGrid, Ext.grid.EditorGridPanel, {
                         window.open('tr_show_case.cgi?case_id=' + grid.store.getAt(grid.selindex).get('case_id'));
                     }
                 },{
-                    text: 'List Run\'s Test Cases in a New Window',
+                    text: 'List These Test Cases in a New Window',
                     handler: function(){
-                        window.open('tr_list_cases.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
+                        var params = Ext.getCmp('caserun_search').form.getValues();
+                        if (params) {
+                            window.open('tr_list_cases.cgi?' + jsonToSearch(params, '', ['current_tab']) + '&isactive=1');
+                        }
+                        else {
+                            window.open('tr_list_cases.cgi?run_id=' + grid.store.getAt(grid.selindex).get('run_id'));
+                        }
                     }
                 }]
             });

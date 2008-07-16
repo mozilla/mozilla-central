@@ -548,9 +548,16 @@ sub init {
                $f = 'test_plan_permissions.permissions';      
          },
          "^case_run_status," => sub {
+             if ($obj eq 'case'){
+               push(@supptables,
+                    "INNER JOIN test_case_run_status AS tcrs ".
+                    "ON case_runs.case_run_status_id = tcrs.case_run_status_id");
+             }
+             else {
                push(@supptables,
                     "INNER JOIN test_case_run_status AS tcrs ".
                     "ON test_case_runs.case_run_status_id = tcrs.case_run_status_id");
+             }
                $f = 'tcrs.name';      
          },
          "^env_products," => sub {
@@ -1278,7 +1285,7 @@ sub init {
 
     foreach my $field ($cgi->param()) {
         if (lsearch(\@legal_fields, $field) != -1) {
-            push(@specialchart, [$field, "anyexact",
+            push(@specialchart, [$field, $cgi->param($field."_type") || "anyexact",
                                  join(',', $cgi->param($field))]);
         }
     }
@@ -1365,7 +1372,8 @@ sub init {
                    "requirement", "name", "plan_text", "environment_name",
                    "notes", "env_value_selected","bug_short_desc","bug_long_desc",
                    "bug_file_loc","bug_status_whiteboard","bug_keywords",
-                   "env_category","env_element","env_property","env_value") {
+                   "env_category","env_element","env_property","env_value",
+                   "start_date", "stop_date") {
         if (defined $cgi->param($f)) {
             my $s = trim($cgi->param($f));
             if ($s ne "") {
@@ -1388,6 +1396,11 @@ sub init {
     if ($obj eq 'case_run'){
         unless ($cgi->param('isactive')){
             push @wherepart, 'test_case_runs.iscurrent = 1';
+        }
+    }
+    if ($obj eq 'case'){
+        unless ($cgi->param('isactive')){
+            push @wherepart, 'case_runs.iscurrent = 1';
         }
     }
 

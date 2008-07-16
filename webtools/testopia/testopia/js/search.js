@@ -510,6 +510,12 @@ ReportGrid = function(cfg){
 
 Ext.extend(ReportGrid, Ext.grid.GridPanel, {
     onContextClick: function(grid, index, e){
+        var d = grid.store.getAt(index).get('query').match(/(tr_list_|_reports)/);
+        if (d){
+            g = grid.store.getAt(index).get('query').match(/completion/);
+            if (g)
+                d = null;
+        }
         this.menu = new Ext.menu.Menu({
             id:'run-ctx-menu',
             items: [{
@@ -538,11 +544,26 @@ Ext.extend(ReportGrid, Ext.grid.GridPanel, {
                 text: 'Edit', 
                 icon: 'testopia/img/edit.png',
                 iconCls: 'img_button_16x',
+                disabled: d ? false : true,
                 handler: function(){
                     var r = grid.store.getAt(index);
                     var name = r.get('name');
-                    var type = r.get('query').match(/tr_list_(run|case|plan|caserun)s/);
-                    type = type[1]
+                    var q = r.get('query');
+                    var type;
+                    type = q.match(/tr_list_(run|case|plan|caserun)s/);
+                    if (!type){
+                        type = q.match(/tr_(run|case|plan|caserun)_reports/);
+                    }
+                    else {
+                        Ext.Msg.show({
+                           title: "Non-editable",
+                           text: "This Search or Report cannot be edited",
+                           icon: Ext.MessageBox.ERROR 
+                        });
+                        return;
+                    }
+                    type = type[1];
+                    
                     var params = searchToJson(r.get('query'));
                     SearchPopup(type, params);
                 }

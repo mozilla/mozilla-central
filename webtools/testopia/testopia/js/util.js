@@ -1114,28 +1114,82 @@ var TestopiaPager = function(type, store, cfg){
             });
         }
     },this);
-
     var filter = new Ext.form.TextField({
         allowBlank: true,
         id: 'paging_filter',
         selectOnFocus: true
     });
-    
+
     filter.on('specialkey', function(f,e) { 
         var key = e.getKey();
         if(key == e.ENTER){
             var params = {start: 0, limit: sizer.getValue()};
-            if (type == 'case' || type == 'run'){
-                params.summary = this.getValue();
-                params.summary_type = 'allwordssubst';
-            }
-            else if (type == 'caserun'){
-                params.case_summary = this.getValue();
-                params.case_summary_type = 'allwordssubst';
+            var s = this.getValue();
+            var term = s.match(/(^.*?):/);
+            if (term) {
+                term = term[1];
+                var q = Testopia.Util.trim(s.substr(s.indexOf(':') + 1, s.length));
+                if (term.match(/^start/i)){
+                    term = 'start_date';
+                }
+                if (term.match(/^stop/i)){
+                    term = 'stop_date';
+                }
+                if (term.match(/^manager/i)){
+                    term = 'manager';
+                }
+                switch (term) {
+                    case 'status':
+                        if (type == 'case'){
+                            term = 'case_status';
+                        }
+                        else if (type == 'caserun'){
+                            term = 'case_run_status';
+                        }
+                        else {
+                            term = 'run_status';
+                            if (q.match(/running/i) ){
+                                q = 0;
+                            }
+                            else {
+                                q = 1;
+                            }
+                        } 
+                        break;
+                    case 'tester':
+                        term = 'default_tester';
+                        break;
+                    case 'plan':
+                        term = 'plan_id';
+                        break;
+                    case 'case':
+                        term = 'case_id';
+                        break;
+                    case 'run':
+                        term = 'run_id';
+                        break;
+                    case 'product_version':
+                        term = 'default_product_version';
+                        break;
+                        
+                }
+                params[term] = q;
+                params[term + '_type'] = 'substring';
             }
             else {
-                params.name = this.getValue();
-                params.name_type = 'allwordssubst';
+                if (type == 'case' || type == 'run') {
+                    params.summary = this.getValue();
+                    params.summary_type = 'allwordssubst';
+                }
+                else 
+                    if (type == 'caserun') {
+                        params.case_summary = this.getValue();
+                        params.case_summary_type = 'allwordssubst';
+                    }
+                    else {
+                        params.name = this.getValue();
+                        params.name_type = 'allwordssubst';
+                    }
             }
             store.load({ 
               params: params
@@ -1146,6 +1200,14 @@ var TestopiaPager = function(type, store, cfg){
                 params: {start: 0, limit: sizer.getValue()}
             });
         }
+    });
+    sizer.on('render', function(){
+        var tt = new Ext.ToolTip({
+            target: 'paging_filter',
+            title: 'Quick Search Filter',
+            hideDelay: '500',
+            html: "Enter column and search term separated by ':'<br> <b>Example:</b> priority: P3" 
+        });
     });
     TestopiaPager.superclass.constructor.call(this,{
         id: cfg.id || 'testopia_pager',
@@ -1527,6 +1589,12 @@ TestopiaUtil.notify = function(){
         }
     };
 }();
+
+Testopia.Util.trim = function(input){
+      input = input.replace(/^\s+/g, '');
+      input = input.replace(/\s+$/g, '');
+      return input;
+};
 
 Testopia.Util.PlanSelector = function(product_id, cfg){
     var single = cfg.action.match('case') ? false : true;

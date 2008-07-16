@@ -78,7 +78,8 @@
   </tr>
   <tr>
     <td valign="top">
-      [% PROCESS select sel = { name => "case_run_status_id", 
+      [% PROCESS select sel = { name => "case_run_status",
+                                byname => 1,    
                                 list => caserun.get_status_list,
                                 elements => 6,
                                 mult => 1, }
