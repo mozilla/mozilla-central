@@ -6,28 +6,25 @@
 //  Copyright 2006 Andy Matuschak. All rights reserved.
 //
 
+#import "Sparkle.h"
 #import "SUStatusController.h"
-#import "SUUtilities.h"
 
 @implementation SUStatusController
 
-- init
+- (id)initWithHostBundle:(NSBundle *)hb
 {
-	NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"SUStatus" ofType:@"nib"];
-	if (!path) // slight hack to resolve issues with running in debug configurations
+	self = [super initWithHostBundle:hb windowNibName:@"SUStatus"];
+	if (self)
 	{
-		NSBundle *current = [NSBundle bundleForClass:[self class]];
-		NSString *frameworkPath = [[[NSBundle mainBundle] sharedFrameworksPath] stringByAppendingFormat:@"/Sparkle.framework", [current bundleIdentifier]];
-		NSBundle *framework = [NSBundle bundleWithPath:frameworkPath];
-		path = [framework pathForResource:@"SUStatus" ofType:@"nib"];
+		hostBundle = [hb retain];
+		[self setShouldCascadeWindows:NO];
 	}
-	[super initWithWindowNibPath:path owner:self];
-	[self setShouldCascadeWindows:NO];
 	return self;
 }
 
 - (void)dealloc
 {
+	[hostBundle release];
 	[title release];
 	[statusText release];
 	[buttonTitle release];
@@ -38,16 +35,17 @@
 {
 	[[self window] center];
 	[[self window] setFrameAutosaveName:@"SUStatusFrame"];
+	[progressBar setUsesThreadedAnimation:YES];
 }
 
 - (NSString *)windowTitle
 {
-	return [NSString stringWithFormat:SULocalizedString(@"Updating %@", nil), SUHostAppDisplayName()];
+	return [NSString stringWithFormat:SULocalizedString(@"Updating %@", nil), [hostBundle name]];
 }
 
 - (NSImage *)applicationIcon
 {
-	return [NSImage imageNamed:@"NSApplicationIcon"];
+	return [hostBundle icon];
 }
 
 - (void)beginActionWithTitle:(NSString *)aTitle maxProgressValue:(double)aMaxProgressValue statusText:(NSString *)aStatusText
@@ -63,9 +61,14 @@
 - (void)setButtonTitle:(NSString *)aButtonTitle target:target action:(SEL)action isDefault:(BOOL)isDefault
 {
 	[self willChangeValueForKey:@"buttonTitle"];
-	buttonTitle = [aButtonTitle copy];
+	if (buttonTitle != aButtonTitle)
+	{
+		[buttonTitle release];
+		buttonTitle = [aButtonTitle copy];
+	}
 	[self didChangeValueForKey:@"buttonTitle"];	
 	
+	[self window];
 	[actionButton sizeToFit];
 	// Except we're going to add 15 px for padding.
 	[actionButton setFrameSize:NSMakeSize([actionButton frame].size.width + 15, [actionButton frame].size.height)];
@@ -91,9 +94,7 @@
 
 - (void)setProgressValue:(double)value
 {
-	[self willChangeValueForKey:@"progressValue"];
 	progressValue = value;
-	[self didChangeValueForKey:@"progressValue"];	
 }
 
 - (double)maxProgressValue
@@ -103,17 +104,19 @@
 
 - (void)setMaxProgressValue:(double)value
 {
-	[self willChangeValueForKey:@"maxProgressValue"];
+	if (value < 0) value = 0;
 	maxProgressValue = value;
-	[self didChangeValueForKey:@"maxProgressValue"];
 	[self setProgressValue:0];
+	[progressBar startAnimation:self];
 }
 
 - (void)setStatusText:(NSString *)aStatusText
 {
-	[self willChangeValueForKey:@"statusText"];
-	statusText = [aStatusText copy];
-	[self didChangeValueForKey:@"statusText"];	
+	if (statusText != aStatusText)
+	{
+		[statusText release];
+		statusText = [aStatusText copy];
+	}
 }
 
 @end

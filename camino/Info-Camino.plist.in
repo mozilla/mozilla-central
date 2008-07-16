@@ -205,8 +205,8 @@
 	</array>
 	<key>OSAScriptingDefinition</key>
 	<string>Camino.sdef</string>
-	<key>SUCheckAtStartup</key>
-	<false/>
+	<key>SUEnableAutomaticChecks</key>
+	<%APP_UPDATES_ENABLED%/>
 	<key>SUExpectsDSASignature</key>
 	<true/>
 	<key>SUPublicDSAKey</key>
@@ -230,6 +230,8 @@ UM2UtHwvaK/NHAcprjANQuYQ78U4GapNnuLIXx1EBru8gSKHlcyeOu9fa79oAhvN
 xz+k1ujre1mK8oq2DT2kCo29Ufgsc6U5bCc2Bs7S/fHOVBjxUf9/XIfvOyJRCbVJ
 2hR9h9Vj9Fd3jEyXbQA=
 -----END PUBLIC KEY-----</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 	<key>mozProfileDirName</key>
 	<string>Camino</string>
 </dict>

@@ -6,56 +6,64 @@
 //  Copyright 2006 Andy Matuschak. All rights reserved.
 //
 
+#import "Sparkle.h"
 #import "SUAutomaticUpdateAlert.h"
-#import "SUUtilities.h"
-#import "SUAppcastItem.h"
 
 @implementation SUAutomaticUpdateAlert
 
-- initWithAppcastItem:(SUAppcastItem *)item
+- (id)initWithAppcastItem:(SUAppcastItem *)item hostBundle:(NSBundle *)hb delegate:del;
 {
-	NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"SUAutomaticUpdateAlert" ofType:@"nib"];
-	if (!path) // slight hack to resolve issues with running with in configurations
+	self = [super initWithHostBundle:hb windowNibName:@"SUAutomaticUpdateAlert"];
+	if (self)
 	{
-		NSBundle *current = [NSBundle bundleForClass:[self class]];
-		NSString *frameworkPath = [[[NSBundle mainBundle] sharedFrameworksPath] stringByAppendingFormat:@"/Sparkle.framework", [current bundleIdentifier]];
-		NSBundle *framework = [NSBundle bundleWithPath:frameworkPath];
-		path = [framework pathForResource:@"SUAutomaticUpdateAlert" ofType:@"nib"];
+		updateItem = [item retain];
+		delegate = del;
+		hostBundle = [hb retain];
+		[self setShouldCascadeWindows:NO];	
+		[[self window] center];
 	}
-	
-	[super initWithWindowNibPath:path owner:self];
-	
-	updateItem = [item retain];
-	[self setShouldCascadeWindows:NO];
-	
 	return self;
 }
 
-- (IBAction)relaunchNow:sender
+- (void)dealloc
 {
-	[self close];
-	[NSApp stopModalWithCode:NSAlertDefaultReturn];
+	[hostBundle release];
+	[updateItem release];
+	[super dealloc];
 }
 
-- (IBAction)relaunchLater:sender
+
+- (IBAction)installNow:sender
 {
 	[self close];
-	[NSApp stopModalWithCode:NSAlertAlternateReturn];
+	[delegate automaticUpdateAlert:self finishedWithChoice:SUInstallNowChoice];
+}
+
+- (IBAction)installLater:sender
+{
+	[self close];
+	[delegate automaticUpdateAlert:self finishedWithChoice:SUInstallLaterChoice];
+}
+
+- (IBAction)doNotInstall:sender
+{
+	[self close];
+	[delegate automaticUpdateAlert:self finishedWithChoice:SUDoNotInstallChoice];
 }
 
 - (NSImage *)applicationIcon
 {
-	return [NSImage imageNamed:@"NSApplicationIcon"];
+	return [hostBundle icon];
 }
 
 - (NSString *)titleText
 {
-	return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ has been installed!", nil), SUHostAppDisplayName()];
+	return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is ready to install!", nil), [hostBundle name]];
 }
 
 - (NSString *)descriptionText
 {
-	return [NSString stringWithFormat:SULocalizedString(@"%@ %@ has been installed and will be ready to use next time %@ starts! Would you like to relaunch now?", nil), SUHostAppDisplayName(), [updateItem versionString], SUHostAppDisplayName()];
+	return [NSString stringWithFormat:SULocalizedString(@"%1$@ %2$@ has been downloaded and is ready to use! Would you like to install it and relaunch %1$@ now?", nil), [hostBundle name], [hostBundle displayVersion]];
 }
 
 @end

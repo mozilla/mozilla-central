@@ -1145,6 +1145,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0080C7C50E2E4CBE006AFD32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DAAEFC960DA571DF0051E0D0 /* relaunch */;
+			remoteInfo = "relaunch tool";
+		};
+		0080C7C70E2E4CBE006AFD32 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7B64B7BA0CCFD9F50098406C /* Sparkle.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 612279D90DB5470200AB99EA /* Sparkle Unit Tests.octest */;
+			remoteInfo = "Sparkle Unit Tests";
+		};
 		7B0B576C0D4A4EE0003BC853 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7B0B57650D4A4EE0003BC853 /* SharedMenusCocoa.xcodeproj */;
@@ -3761,6 +3775,8 @@
 			children = (
 				7B64B7CA0CCFD9F50098406C /* Sparkle.framework */,
 				7B64B7CC0CCFD9F50098406C /* Sparkle Test App.app */,
+				0080C7C60E2E4CBE006AFD32 /* relaunch */,
+				0080C7C80E2E4CBE006AFD32 /* Sparkle Unit Tests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4670,6 +4686,7 @@
 				3F44AD6F05BDFB9F00CB4B08 /* Copy Security Chrome */,
 				33819D740D98189700CA9F52 /* Copy Feed Handlers */,
 				3F44AD7705BDFB9F00CB4B08 /* Copy Frameworks */,
+				0080C7DE0E2E4CD9006AFD32 /* Change Sparkle Load ID */,
 				3365CA1F0D073ECA00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AD7A05BDFB9F00CB4B08 /* Copy Plugins */,
 				4D5881750864B276001305B3 /* Copy Gecko Plugins */,
@@ -4712,6 +4729,7 @@
 				3F44ADA405BDFB9F00CB4B08 /* Resources */,
 				3F44ADA805BDFB9F00CB4B08 /* Sources */,
 				3F44ADAB05BDFB9F00CB4B08 /* Frameworks */,
+				0080C7F50E2E4DDF006AFD32 /* Change Sparkle Load Path */,
 			);
 			buildRules = (
 			);
@@ -4803,6 +4821,7 @@
 				3F44AF8605BDFBA000CB4B08 /* Copy Libraries */,
 				33819D750D98189700CA9F52 /* Copy Feed Handlers */,
 				3F44AF9005BDFBA000CB4B08 /* Copy Frameworks */,
+				0080C7F10E2E4D7A006AFD32 /* Change Sparkle Load ID */,
 				3365CA0F0D07197E00ACBF18 /* Scrub Sparkle Languages */,
 				3F44AF9205BDFBA000CB4B08 /* Copy Plugins */,
 				4D5881790864B297001305B3 /* Copy Gecko Plugins */,
@@ -4868,6 +4887,20 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		0080C7C60E2E4CBE006AFD32 /* relaunch */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = relaunch;
+			remoteRef = 0080C7C50E2E4CBE006AFD32 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0080C7C80E2E4CBE006AFD32 /* Sparkle Unit Tests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "Sparkle Unit Tests.octest";
+			remoteRef = 0080C7C70E2E4CBE006AFD32 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		7B0B576D0D4A4EE0003BC853 /* SharedMenusCocoa.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
@@ -5256,6 +5289,48 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		0080C7DE0E2E4CD9006AFD32 /* Change Sparkle Load ID */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Change Sparkle Load ID";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/install_name_tool -id @executable_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.$WRAPPER_EXTENSION/Contents/Frameworks/Sparkle.framework/Sparkle\"\n";
+		};
+		0080C7F10E2E4D7A006AFD32 /* Change Sparkle Load ID */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Change Sparkle Load ID";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/install_name_tool -id @executable_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.$WRAPPER_EXTENSION/Contents/Frameworks/Sparkle.framework/Sparkle\"\n";
+		};
+		0080C7F50E2E4DDF006AFD32 /* Change Sparkle Load Path */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Change Sparkle Load Path";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/install_name_tool -change @loader_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle @executable_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle \"$BUILT_PRODUCTS_DIR/$PRODUCT_NAME.$WRAPPER_EXTENSION/Contents/MacOS/$PRODUCT_NAME\"\n";
+		};
 		3365CA0F0D07197E00ACBF18 /* Scrub Sparkle Languages */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

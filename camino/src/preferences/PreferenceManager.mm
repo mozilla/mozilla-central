@@ -654,7 +654,21 @@ static BOOL gMadePrefManager;
 
 - (void)initUpdatePrefs
 {
+  // If the Camino 1.6-style settings are in place, upgrade to the new method.
   NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+  if ([defaults objectForKey:SUScheduledCheckIntervalKey]) {
+    BOOL wasEnabled = [defaults integerForKey:SUScheduledCheckIntervalKey] > 0;
+    [defaults removeObjectForKey:SUScheduledCheckIntervalKey];
+    if (wasEnabled)
+      [defaults removeObjectForKey:SUEnableAutomaticChecksKey];
+    else
+      [defaults setBool:NO forKey:SUEnableAutomaticChecksKey];
+  }
+
+  // If updates are disabled for this build, don't bother setting up the manifest URL.
+  NSBundle* mainBundle = [NSBundle mainBundle];
+  if (![[mainBundle objectForInfoDictionaryKey:SUEnableAutomaticChecksKey] boolValue])
+    return;
 
   // Get the base auto-update manifest URL
   NSString* baseURL = [self getStringPref:kGeckoPrefUpdateURLOverride
@@ -662,13 +676,12 @@ static BOOL gMadePrefManager;
   if (![baseURL length])
     baseURL = [self getStringPref:kGeckoPrefUpdateURL withSuccess:NULL];
 
-  // An empty manifestURL will tell Sparkle not to check for updates.
   NSString* manifestURL = @"";
   if ([baseURL length]) {
     // Append the parameters we might be interested in.
     NSString* intlUAString = [self getStringPref:kGeckoPrefUserAgentMultiLangAddition
                                      withSuccess:NULL];
-    NSArray* languages = [[NSBundle mainBundle] localizations];
+    NSArray* languages = [mainBundle localizations];
     NSString* currentLanguage = [[NSBundle preferredLocalizationsFromArray:languages] firstObject];
     if (currentLanguage)
       currentLanguage = [NSLocale canonicalLocaleIdentifierFromString:currentLanguage];
@@ -684,27 +697,11 @@ static BOOL gMadePrefManager;
 #else
 #error Unknown Architecture
 #endif
-                   [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
+                   [mainBundle objectForInfoDictionaryKey:@"CFBundleShortVersionString"],
                    ([intlUAString length] ? 1 : 0),
                    currentLanguage];
   }
   [defaults setObject:manifestURL forKey:SUFeedURLKey];
-
-  // Set the update interval default if none is set. We don't set this in the
-  // Info.plist because once there's a value there it's impossible to actually
-  // disable update checking.
-  if (![defaults objectForKey:SUScheduledCheckIntervalKey]) {
-    [defaults setInteger:USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT
-                  forKey:SUScheduledCheckIntervalKey];
-  }
-
-  // If no check time has been stored, then store the current time to start
-  // things off; this ensures that users who never leave Camino running for
-  // the whole interval duration will still have update checks run.
-  if (![defaults objectForKey:SULastCheckTimeKey]) {
-    [[NSUserDefaults standardUserDefaults] setObject:[NSDate date]
-                                              forKey:SULastCheckTimeKey];
-  }
 }
 
 // Convert an Apple locale (or language with the dialect specified) from the form en_GB

@@ -69,6 +69,9 @@ PLATFORM_INI_FILE = ../toolkit/xre/platform.ini
 
 ifdef MOZILLA_OFFICIAL
 APP_UPDATE_URL = https://caminobrowser.org/update-check
+APP_UPDATES_ENABLED = true
+else
+APP_UPDATES_ENABLED = false
 endif
 
 # For Launch Services compatibility, CFBundleVersion can be at most three
@@ -216,6 +219,7 @@ generated/Info-Camino.plist: \
 	    -e "s/%CM_COPYRIGHT_YEAR%/$(CM_COPYRIGHT_YEAR)/" \
 	    -e "s/%PLATFORM_BUILD_ID%/$(PLATFORM_BUILD_ID)/" \
 	    -e "s/%PLATFORM_VERSION%/$(PLATFORM_VERSION)/" \
+	    -e "s/%APP_UPDATES_ENABLED%/$(APP_UPDATES_ENABLED)/" \
 	    $(SED_ARGS) $< | \
 	grep -v "$(GREP_V_PATTERN)" > $@
 

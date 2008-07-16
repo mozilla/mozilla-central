@@ -8,50 +8,41 @@
 
 // This code based on generous contribution from Allan Odgaard. Thanks, Allan!
 
-#import "sys/stat.h"
-#import <Security/Security.h>
+#import "Sparkle.h"
+#import "NSFileManager+Authentication.h"
 
-#import <unistd.h>
+#import <Security/Security.h>
 #import <sys/stat.h>
+#import <sys/wait.h>
 #import <dirent.h>
+#import <unistd.h>
 
 #import "NSFileManager+ExtendedAttributes.h"
-
-// TN OV02 says that the range between 1000 and 9999 can be used for
-// application-defined errors.  errToolFailedError will indicate that an
-// executed program crashed or indicated failure with a nonzero exit status.
-static const OSStatus errToolFailedError = 1000;
-
-static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
-    AuthorizationRef authorization,
-    const char* executablePath,
-    AuthorizationFlags options,
-    const char* const* arguments) {
+static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authorization, const char* executablePath, AuthorizationFlags options, const char* const* arguments)
+{
 	sig_t oldSigChildHandler = signal(SIGCHLD, SIG_DFL);
-	OSStatus ret;
-	ret = AuthorizationExecuteWithPrivileges(authorization,
-	                                         executablePath,
-	                                         options,
-	                                         (char* const*)arguments,
-	                                         NULL);
-	if (ret == errAuthorizationSuccess) {
+	BOOL returnValue = YES;
+
+	if (AuthorizationExecuteWithPrivileges(authorization, executablePath, options, (char* const*)arguments, NULL) == errAuthorizationSuccess)
+	{
 		int status;
 		pid_t pid = wait(&status);
-		if (pid == -1 ||
-		    !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-			ret = errToolFailedError;
-		}
+		if (pid == -1 || !WIFEXITED(status) || WEXITSTATUS(status) != 0)
+			returnValue = NO;
 	}
+	else
+		returnValue = NO;
+		
 	signal(SIGCHLD, oldSigChildHandler);
-	return ret;
+	return returnValue;
 }
 
 @implementation NSFileManager (SUAuthenticationAdditions)
 
 - (BOOL)currentUserOwnsPath:(NSString *)oPath
 {
-	char *path = (char *)[oPath fileSystemRepresentation];
-	unsigned int uid = getuid();
+	const char *path = [oPath fileSystemRepresentation];
+	uid_t uid = getuid();
 	bool res = false;
 	struct stat sb;
 	if(stat(path, &sb) == 0)
@@ -68,11 +59,13 @@ static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
 					if(strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
 						continue;
 					
-					char descend[strlen(path) + 1 + entry->d_namlen + 1];
-					strcpy(descend, path);
-					strcat(descend, "/");
-					strcat(descend, entry->d_name);
-					res = [self currentUserOwnsPath:[NSString stringWithUTF8String:descend]];
+					size_t len = strlen(path) + 1 + entry->d_namlen + 1;
+					char descend[len];
+					strlcpy(descend, path, len);
+					strlcat(descend, "/", len);
+					strlcat(descend, entry->d_name, len);
+					NSString* newPath = [[NSFileManager defaultManager] stringWithFileSystemRepresentation:descend length:strlen(descend)];
+					res = [self currentUserOwnsPath:newPath];
 				}
 				closedir(dir);
 			}
@@ -81,52 +74,73 @@ static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
 	return res;
 }
 
-- (BOOL)_movePathWithForcedAuthentication:(NSString *)src toPath:(NSString *)dst
+- (NSString *)_temporaryCopyNameForPath:(NSString *)path
 {
-	NSString *tmp = [[[dst stringByDeletingPathExtension] stringByAppendingString:@".old"] stringByAppendingPathExtension:[dst pathExtension]];
+	// Let's try to read the version number so the filename will be more meaningful.
+	NSString *postFix;
+	NSBundle *bundle;
+	if ((bundle = [NSBundle bundleWithPath:path]))
+	{
+		// We'll clean it up a little for safety.
+		// The cast is necessary because of a bug in the headers in pre-10.5 SDKs
+		NSMutableCharacterSet *validCharacters = (id)[NSMutableCharacterSet alphanumericCharacterSet];
+		[validCharacters formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@".-()"]];
+		postFix = [[bundle objectForInfoDictionaryKey:@"CFBundleVersion"] stringByTrimmingCharactersInSet:[validCharacters invertedSet]];
+	}
+	else
+		postFix = @"old";
+	NSString *prefix = [[path stringByDeletingPathExtension] stringByAppendingFormat:@" (%@)", postFix];
+	NSString *tempDir = [prefix stringByAppendingPathExtension:[path pathExtension]];
+	// Now let's make sure we get a unique path.
+	int cnt=2;
+	while ([[NSFileManager defaultManager] fileExistsAtPath:tempDir] && cnt <= 999999)
+		tempDir = [NSString stringWithFormat:@"%@ %d.%@", prefix, cnt++, [path pathExtension]];
+	return tempDir;
+}
 
+- (BOOL)_copyPathWithForcedAuthentication:(NSString *)src toPath:(NSString *)dst error:(NSError **)error
+{
+	NSString *tmp = [self _temporaryCopyNameForPath:dst];
 	const char* srcPath = [src fileSystemRepresentation];
 	const char* tmpPath = [tmp fileSystemRepresentation];
 	const char* dstPath = [dst fileSystemRepresentation];
-
-	struct stat sb, dstSB;
-	if ((stat(srcPath, &sb) != 0) ||
-	    (stat(tmpPath, &sb) == 0) ||
-	    (stat(dstPath, &dstSB) != 0)) {
-		return NO;
-	}
-
-	AuthorizationRef auth;
+	
+	struct stat dstSB;
+	stat(dstPath, &dstSB);
+	
+	AuthorizationRef auth = NULL;
 	OSStatus authStat = errAuthorizationDenied;
 	while (authStat == errAuthorizationDenied) {
 		authStat = AuthorizationCreate(NULL,
-		                               kAuthorizationEmptyEnvironment,
-		                               kAuthorizationFlagDefaults,
-		                               &auth);
+									   kAuthorizationEmptyEnvironment,
+									   kAuthorizationFlagDefaults,
+									   &auth);
 	}
-
+	
 	BOOL res = NO;
 	if (authStat == errAuthorizationSuccess) {
 		res = YES;
-
+		
 		char uidgid[42];
 		snprintf(uidgid, sizeof(uidgid), "%d:%d",
-		         dstSB.st_uid, dstSB.st_gid);
-
+				 dstSB.st_uid, dstSB.st_gid);
+		
 		const char* executables[] = {
-	  		"/bin/mv",
+			"/bin/rm",
+			"/bin/mv",
 			"/bin/mv",
 			"/bin/rm",
 			NULL,  // pause here and do some housekeeping before
-			       // continuing
+			// continuing
 			"/usr/sbin/chown",
 			NULL   // stop here for real
 		};
-
+		
 		// 4 is the maximum number of arguments to any command,
 		// including the NULL that signals the end of an argument
 		// list.
 		const char* const argumentLists[][4] = {
+			{ "-rf", tmpPath, NULL }, // make room for the temporary file... this is kinda unsafe; should probably do something better.
 			{ "-f", dstPath, tmpPath, NULL },  // mv
 			{ "-f", srcPath, dstPath, NULL },  // mv
 			{ "-rf", tmpPath, NULL },  // rm
@@ -134,21 +148,14 @@ static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
 			{ "-R", uidgid, dstPath, NULL },  // chown
 			{ NULL }  // stop
 		};
-
+		
 		// Process the commands up until the first NULL
 		int commandIndex = 0;
 		for (; executables[commandIndex] != NULL; ++commandIndex) {
-			if (res) {
-				res = (
-				    AuthorizationExecuteWithPrivilegesAndWait(
-				        auth,
-				        executables[commandIndex],
-				        kAuthorizationFlagDefaults,
-				        argumentLists[commandIndex]) ==
-				    errAuthorizationSuccess);
-			}
+			if (res)
+				res = AuthorizationExecuteWithPrivilegesAndWait(auth, executables[commandIndex], kAuthorizationFlagDefaults, argumentLists[commandIndex]);
 		}
-
+		
 		// If the currently-running application is trusted, the new
 		// version should be trusted as well.  Remove it from the
 		// quarantine to avoid a delay at launch, and to avoid
@@ -164,56 +171,79 @@ static OSStatus AuthorizationExecuteWithPrivilegesAndWait(
 		if (res) {
 			[self releaseFromQuarantine:dst];
 		}
-
+		
 		// Now move past the NULL we found and continue executing
 		// commands from the list.
 		++commandIndex;
-
+		
 		for (; executables[commandIndex] != NULL; ++commandIndex) {
-			if (res) {
-				res = (
-				    AuthorizationExecuteWithPrivilegesAndWait(
-				        auth,
-				        executables[commandIndex],
-				        kAuthorizationFlagDefaults,
-				        argumentLists[commandIndex]) ==
-				    errAuthorizationSuccess);
-			}
+			if (res)
+				res = AuthorizationExecuteWithPrivilegesAndWait(auth, executables[commandIndex], kAuthorizationFlagDefaults, argumentLists[commandIndex]);
 		}
-
+		
 		AuthorizationFree(auth, 0);
-	}
-
-	return res;
-}
-
-- (BOOL)movePathWithAuthentication:(NSString *)src toPath:(NSString *)dst
-{
-	if ([[NSFileManager defaultManager] isWritableFileAtPath:dst] && [[NSFileManager defaultManager] isWritableFileAtPath:[dst stringByDeletingLastPathComponent]])
-	{
-		int tag = 0;
-		BOOL result = [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:[dst stringByDeletingLastPathComponent] destination:@"" files:[NSArray arrayWithObject:[dst lastPathComponent]] tag:&tag];
-		result &= [[NSFileManager defaultManager] movePath:src toPath:dst handler:NULL];
-
-		// If the currently-running application is trusted, the new
-		// version should be trusted as well.  Remove it from the
-		// quarantine to avoid a delay at launch, and to avoid
-		// presenting the user with a confusing trust dialog.
-		//
-		// This needs to be done after the application is moved to its
-		// new home in case it's moved across filesystems: if that
-		// happens, the move is actually a copy, and it may result
-		// in the application being quarantined.
-		if (result) {
-			[self releaseFromQuarantine:dst];
+		
+		if (!res)
+		{
+			// Something went wrong somewhere along the way, but we're not sure exactly where.
+			NSString *errorMessage = [NSString stringWithFormat:@"Authenticated file copy from %@ to %@ failed.", src, dst];
+			if (error != NULL)
+				*error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUAuthenticationFailure userInfo:[NSDictionary dictionaryWithObject:errorMessage forKey:NSLocalizedDescriptionKey]];
 		}
-
-		return result;
 	}
 	else
 	{
-		return [self _movePathWithForcedAuthentication:src toPath:dst];
+		if (error != NULL)
+			*error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUAuthenticationFailure userInfo:[NSDictionary dictionaryWithObject:@"Couldn't get permission to authenticate." forKey:NSLocalizedDescriptionKey]];
 	}
+	return res;
+}
+
+- (BOOL)copyPathWithAuthentication:(NSString *)src overPath:(NSString *)dst error:(NSError **)error
+{
+	if (![[NSFileManager defaultManager] fileExistsAtPath:dst])
+	{
+		NSString *errorMessage = [NSString stringWithFormat:@"Couldn't copy %@ over %@ because there is no file at %@.", src, dst, dst];
+		if (error != NULL)
+			*error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUFileCopyFailure userInfo:[NSDictionary dictionaryWithObject:errorMessage forKey:NSLocalizedDescriptionKey]];
+		return NO;
+	}
+
+	if (![[NSFileManager defaultManager] isWritableFileAtPath:dst] || ![[NSFileManager defaultManager] isWritableFileAtPath:[dst stringByDeletingLastPathComponent]])
+		return [self _copyPathWithForcedAuthentication:src toPath:dst error:error];
+
+	NSString *tmpPath = [self _temporaryCopyNameForPath:dst];
+
+	if (![[NSFileManager defaultManager] movePath:dst toPath:tmpPath handler:self])
+	{
+		if (error != NULL)
+			*error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUFileCopyFailure userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"Couldn't move %@ to %@.", dst, tmpPath] forKey:NSLocalizedDescriptionKey]];
+		return NO;			
+	}
+	if (![[NSFileManager defaultManager] copyPath:src toPath:dst handler:self])
+	{
+		if (error != NULL)
+			*error = [NSError errorWithDomain:SUSparkleErrorDomain code:SUFileCopyFailure userInfo:[NSDictionary dictionaryWithObject:[NSString stringWithFormat:@"Couldn't copy %@ to %@.", src, dst] forKey:NSLocalizedDescriptionKey]];
+		return NO;			
+	}
+	
+	// Trash the old copy of the app.
+	NSInteger tag = 0;
+	if (![[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:[tmpPath stringByDeletingLastPathComponent] destination:@"" files:[NSArray arrayWithObject:[tmpPath lastPathComponent]] tag:&tag])
+		NSLog(@"Sparkle error: couldn't move %@ to the trash. This is often a sign of a permissions error.", tmpPath);
+	
+	// If the currently-running application is trusted, the new
+	// version should be trusted as well.  Remove it from the
+	// quarantine to avoid a delay at launch, and to avoid
+	// presenting the user with a confusing trust dialog.
+	//
+	// This needs to be done after the application is moved to its
+	// new home in case it's moved across filesystems: if that
+	// happens, the move is actually a copy, and it may result
+	// in the application being quarantined.
+	[self releaseFromQuarantine:dst];
+	
+	return YES;
 }
 
 @end

@@ -2,15 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>IBDocumentLocation</key>
-	<string>609 53 356 240 0 0 1680 1028 </string>
 	<key>IBFramework Version</key>
-	<string>456.0</string>
+	<string>667</string>
+	<key>IBLastKnownRelativeProjectPath</key>
+	<string>../Sparkle.xcodeproj</string>
+	<key>IBOldestOS</key>
+	<integer>5</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>5</integer>
+		<integer>6</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>9A377a</string>
+	<string>9D34</string>
+	<key>targetFramework</key>
+	<string>IBCocoaFramework</string>
 </dict>
 </plist>

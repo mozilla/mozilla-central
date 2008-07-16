@@ -8,9 +8,8 @@
 
 // DSA stuff adapted from code provided by Allan Odgaard. Thanks, Allan!
 
+#import "Sparkle.h"
 #import "NSFileManager+Verification.h"
-#import "SUUtilities.h"
-#import "md5.h"
 
 #import <stdio.h>
 #import <openssl/evp.h>
@@ -19,7 +18,7 @@
 #import <openssl/rsa.h>
 #import <openssl/sha.h>
 
-int b64decode(unsigned char* str)
+long b64decode(unsigned char* str)
 {
     unsigned char *cur, *start;
     int d, dlast, phase;
@@ -83,7 +82,7 @@ EVP_PKEY* load_dsa_key(char *key)
 {
 	EVP_PKEY* pkey = NULL;
 	BIO *bio;
-	if((bio = BIO_new_mem_buf(key, strlen(key))))
+	if((bio = BIO_new_mem_buf(key, (int)strlen(key))))
 	{
 		DSA* dsa_key = 0;
 		if(PEM_read_bio_DSA_PUBKEY(bio, &dsa_key, NULL, NULL))
@@ -105,31 +104,10 @@ EVP_PKEY* load_dsa_key(char *key)
 
 @implementation NSFileManager (SUVerification)
 
-- (BOOL)validatePath:(NSString *)path withMD5Hash:(NSString *)hash
-{
-	NSData *data = [NSData dataWithContentsOfFile:path];
-	if (!data) { return NO; }
-	
-	md5_state_t md5_state;
-	md5_init(&md5_state);
-	md5_append(&md5_state, [data bytes], [data length]);
-	unsigned char digest[16];
-	md5_finish(&md5_state, digest);
-	
-	int di;
-	char hexDigest[32];
-	for (di = 0; di < 16; di++)
-	    sprintf(hexDigest + di*2, "%02x", digest[di]);
-	
-	return [hash isEqualToString:[NSString stringWithCString:hexDigest]];
-}
-
-- (BOOL)validatePath:(NSString *)path withEncodedDSASignature:(NSString *)encodedSignature
+- (BOOL)validatePath:(NSString *)path withEncodedDSASignature:(NSString *)encodedSignature withPublicDSAKey:(NSString *)pkeyString
 {
 	BOOL result = NO;
-	if(!encodedSignature) { return NO; }
-		
-	NSString *pkeyString = SUInfoValueForKey(SUPublicDSAKeyKey); // Fetch the app's public DSA key.
+	if (!encodedSignature) { return NO; }
 	if (!pkeyString) { return NO; }
 	
 	// Remove whitespace around each line of the key.
@@ -163,7 +141,7 @@ EVP_PKEY* load_dsa_key(char *key)
 	if(EVP_VerifyInit(&ctx, EVP_dss1()) == 1) // We're using DSA keys.
 	{
 		EVP_VerifyUpdate(&ctx, md, SHA_DIGEST_LENGTH);
-		result = (EVP_VerifyFinal(&ctx, signature, length, pkey) == 1);
+		result = (EVP_VerifyFinal(&ctx, signature, (unsigned int)length, pkey) == 1);
 	}
 	
 	EVP_PKEY_free(pkey);

@@ -96,13 +96,14 @@
   if ([self getBooleanPref:kGeckoPrefSessionSaveEnabled withSuccess:&gotPref])
     [checkboxRememberWindowState setState:NSOnState];
 
-  if ([[[NSUserDefaults standardUserDefaults] stringForKey:SUFeedURLKey] length] == 0) {
-    // Disable update checking if there's no feed to check.  The tooltip comes
+  if (![[[NSBundle mainBundle] objectForInfoDictionaryKey:SUEnableAutomaticChecksKey] boolValue]) {
+    // Disable update checking if it's turned off for this build.  The tooltip comes
     // from the main application because it's used there too.
     [checkboxAutoUpdate setEnabled:NO];
     [checkboxAutoUpdate setToolTip:NSLocalizedString(@"AutoUpdateDisabledToolTip", @"")];
   }
-  else if ([[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey] > 0) {
+  else if (![[NSUserDefaults standardUserDefaults] objectForKey:SUEnableAutomaticChecksKey]) {
+    // Unset pref and on for the build means on.
     [checkboxAutoUpdate setState:NSOnState];
   }
 
@@ -164,13 +165,12 @@
 {
   if (sender == checkboxAutoUpdate) {
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    if ([sender state] == NSOnState) {
-      [defaults setInteger:USER_DEFAULTS_UPDATE_INTERVAL_DEFAULT
-                    forKey:SUScheduledCheckIntervalKey];
-    }
-    else {
-      [defaults setInteger:0 forKey:SUScheduledCheckIntervalKey];
-    }
+    // We never set SUEnableAutomaticChecksKey to YES; instead we let that case fall
+    // through to the Info.plist, which will be YES for official builds.
+    if ([sender state] == NSOnState)
+      [defaults removeObjectForKey:SUEnableAutomaticChecksKey];
+    else
+      [defaults setBool:NO forKey:SUEnableAutomaticChecksKey];
   }
 }
 

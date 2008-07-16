@@ -6,9 +6,12 @@
 //  Copyright 2008 Mark Mentovai.  All rights reserved.
 //
 
+#ifndef NSFILEMANAGER_PLUS_EXTENDEDATTRIBUTES
+#define NSFILEMANAGER_PLUS_EXTENDEDATTRIBUTES
+
 #import <Cocoa/Cocoa.h>
 
-@interface NSFileManager (ExtendedAttributes)
+@interface NSFileManager (MMExtendedAttributes)
 
 // Wraps the removexattr system call, allowing an AppKit-style NSString* to
 // be used for the pathname argument.  Note that the order of the arguments
@@ -29,7 +32,7 @@
 // The quarantine was introduced on Mac OS X 10.5 and is described at:
 //
 //   http://developer.apple.com/releasenotes/Carbon/RN-LaunchServices/index.html
-#//apple_ref/doc/uid/TP40001369-DontLinkElementID_2
+//#apple_ref/doc/uid/TP40001369-DontLinkElementID_2
 //
 // If |root| is not a directory, then it alone is removed from the quarantine.
 // Symbolic links, including |root| if it is a symbolic link, will not be
@@ -46,3 +49,5 @@
 - (void)releaseFromQuarantine:(NSString*)root;
 
 @end
+
+#endif

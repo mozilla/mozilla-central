@@ -6,35 +6,29 @@
 //  Copyright 2006 Andy Matuschak. All rights reserved.
 //
 
+#import "Sparkle.h"
 #import "SUUpdateAlert.h"
-#import "SUAppcastItem.h"
-#import "SUUtilities.h"
+
 #import <WebKit/WebKit.h>
 
 @implementation SUUpdateAlert
 
-- initWithAppcastItem:(SUAppcastItem *)item
+- (id)initWithAppcastItem:(SUAppcastItem *)item hostBundle:(NSBundle *)hb
 {
-	NSString *path = [[NSBundle bundleForClass:[self class]] pathForResource:@"SUUpdateAlert" ofType:@"nib"];
-	if (!path) // slight hack to resolve issues with running with in configurations
+	self = [super initWithHostBundle:hb windowNibName:@"SUUpdateAlert"];
+	if (self)
 	{
-		NSBundle *current = [NSBundle bundleForClass:[self class]];
-		NSString *frameworkPath = [[[NSBundle mainBundle] sharedFrameworksPath] stringByAppendingFormat:@"/Sparkle.framework", [current bundleIdentifier]];
-		NSBundle *framework = [NSBundle bundleWithPath:frameworkPath];
-		path = [framework pathForResource:@"SUUpdateAlert" ofType:@"nib"];
+		hostBundle = [hb retain];
+		updateItem = [item retain];
+		[self setShouldCascadeWindows:NO];
 	}
-	
-	[super initWithWindowNibPath:path owner:self];
-	
-	updateItem = [item retain];
-	[self setShouldCascadeWindows:NO];
-	
 	return self;
 }
 
 - (void)dealloc
 {
 	[updateItem release];
+	[hostBundle release];
 	[super dealloc];
 }
 
@@ -65,6 +59,8 @@
 
 - (void)displayReleaseNotes
 {
+	[[WebPreferences standardPreferences] setStandardFontFamily:[[NSFont systemFontOfSize:8] familyName]];
+	[releaseNotesView setPreferences:[WebPreferences standardPreferences]];
 	[releaseNotesView setFrameLoadDelegate:self];
 	[releaseNotesView setPolicyDelegate:self];
 	
@@ -89,21 +85,25 @@
 
 - (BOOL)showsReleaseNotes
 {
-	if (!SUInfoValueForKey(SUShowReleaseNotesKey)) { return YES; } // defaults to YES
-	return [SUInfoValueForKey(SUShowReleaseNotesKey) boolValue];
+	NSNumber *shouldShowReleaseNotes = [hostBundle objectForInfoDictionaryKey:SUShowReleaseNotesKey];
+	if (shouldShowReleaseNotes == nil)
+		return YES; // defaults to YES
+	else
+		return [shouldShowReleaseNotes boolValue];
 }
 
 - (BOOL)allowsAutomaticUpdates
 {
-	if (!SUInfoValueForKey(SUExpectsDSASignatureKey)) { return NO; } // automatic updating requires DSA-signed updates
-	if (!SUInfoValueForKey(SUAllowsAutomaticUpdatesKey)) { return YES; } // defaults to YES
-	return [SUInfoValueForKey(SUAllowsAutomaticUpdatesKey) boolValue];
+	if (![[hostBundle objectForInfoDictionaryKey:SUExpectsDSASignatureKey] boolValue])
+		return NO; // Automatic updating requires DSA-signed updates
+	if (![hostBundle objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey])
+		return YES; // defaults to YES
+	return [[hostBundle objectForInfoDictionaryKey:SUAllowsAutomaticUpdatesKey] boolValue];
 }
 
 - (void)awakeFromNib
 {	
 	[[self window] setLevel:NSFloatingWindowLevel];
-	[[self window] setFrameAutosaveName:@"SUUpdateAlertFrame"];
 		
 	// We're gonna do some frame magic to match the window's size to the description field and the presence of the release notes view.
 	NSRect frame = [[self window] frame];
@@ -111,11 +111,8 @@
 	if (![self showsReleaseNotes])
 	{
 		// Resize the window to be appropriate for not having a huge release notes view.
-		frame.size.height -= [releaseNotesView frame].size.height;
-		// No resizing!
+		frame.size.height -= [releaseNotesView frame].size.height + 40; // Extra 40 is for the release notes label and margin.
 		[[self window] setShowsResizeIndicator:NO];
-		[[self window] setMinSize:frame.size];
-		[[self window] setMaxSize:frame.size];
 	}
 	
 	if (![self allowsAutomaticUpdates])
@@ -143,17 +140,17 @@
 
 - (NSImage *)applicationIcon
 {
-	return [NSImage imageNamed:@"NSApplicationIcon"];
+	return [hostBundle icon];
 }
 
 - (NSString *)titleText
 {
-	return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available!", nil), SUHostAppDisplayName()];
+	return [NSString stringWithFormat:SULocalizedString(@"A new version of %@ is available!", nil), [hostBundle name]];
 }
 
 - (NSString *)descriptionText
 {
-	return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available (you have %@). Would you like to download it now?", nil), SUHostAppDisplayName(), [updateItem versionString], SUHostAppVersionString()];	
+	return [NSString stringWithFormat:SULocalizedString(@"%@ %@ is now available\u2014you have %@. Would you like to download it now?", nil), [hostBundle name], [updateItem displayVersionString], [hostBundle displayVersion]];
 }
 
 - (void)webView:(WebView *)sender didFinishLoadForFrame:frame

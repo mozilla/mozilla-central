@@ -6,14 +6,20 @@
 //  Copyright 2006 Andy Matuschak. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#ifndef SUSTATUSCONTROLLER_H
+#define SUSTATUSCONTROLLER_H
 
+#import "SUWindowController.h"
 
-@interface SUStatusController : NSWindowController {
+@interface SUStatusController : SUWindowController {
 	double progressValue, maxProgressValue;
 	NSString *title, *statusText, *buttonTitle;
 	IBOutlet NSButton *actionButton;
+	IBOutlet NSProgressIndicator* progressBar;
+	NSBundle *hostBundle;
 }
+
+- (id)initWithHostBundle:(NSBundle *)hostBundle;
 
 // Pass 0 for the max progress value to get an indeterminate progress bar.
 // Pass nil for the status text to not show it.
@@ -31,3 +37,5 @@
 - (void)setStatusText:(NSString *)statusText;
 
 @end
+
+#endif

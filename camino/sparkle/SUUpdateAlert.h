@@ -6,7 +6,10 @@
 //  Copyright 2006 Andy Matuschak. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+#ifndef SUUPDATEALERT_H
+#define SUUPDATEALERT_H
+
+#import "SUWindowController.h"
 
 typedef enum
 {
@@ -16,8 +19,9 @@ typedef enum
 } SUUpdateAlertChoice;
 
 @class WebView, SUAppcastItem;
-@interface SUUpdateAlert : NSWindowController {
+@interface SUUpdateAlert : SUWindowController {
 	SUAppcastItem *updateItem;
+	NSBundle *hostBundle;
 	id delegate;
 	
 	IBOutlet WebView *releaseNotesView;
@@ -26,7 +30,7 @@ typedef enum
 	BOOL webViewFinishedLoading;
 }
 
-- initWithAppcastItem:(SUAppcastItem *)item;
+- (id)initWithAppcastItem:(SUAppcastItem *)item hostBundle:(NSBundle *)hostBundle;
 - (void)setDelegate:delegate;
 
 - (IBAction)installUpdate:sender;
@@ -38,3 +42,5 @@ typedef enum
 @interface NSObject (SUUpdateAlertDelegate)
 - (void)updateAlert:(SUUpdateAlert *)updateAlert finishedWithChoice:(SUUpdateAlertChoice)updateChoice;
 @end
+
+#endif

@@ -159,9 +159,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 
 - (void)dealloc
 {
-  if ([self isInitialized])
-    [[NSUserDefaults standardUserDefaults] removeObserver:self forKeyPath:SUScheduledCheckIntervalKey];
-
   [mCharsets release];
 
   // Terminate shared menus
@@ -321,13 +318,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   else {
     [[SessionManager sharedInstance] clearSavedState];
   }
-  
-  // Watch for any changes to the Sparkle auto-check pref so we can inform
-  // the updater to adjust accordingly.
-  [[NSUserDefaults standardUserDefaults] addObserver:self
-                                          forKeyPath:SUScheduledCheckIntervalKey
-                                             options:NSKeyValueObservingOptionNew
-                                             context:nil];
 
   [self setInitialized:YES];
 }
@@ -986,20 +976,6 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
 {
   [self delayedFixCloseMenuItemKeyEquivalents];
   [self delayedUpdatePageInfo];
-}
-
-- (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary *)change
-                       context:(void *)context
-{
-  if ([keyPath isEqualToString:SUScheduledCheckIntervalKey]) {
-    NSTimeInterval updatePeriod = [[NSUserDefaults standardUserDefaults] integerForKey:SUScheduledCheckIntervalKey];
-    // Note that this sets up a *repeating* check with this interval, so setting
-    // this shorter to cause the next update to happen quickly would be bad.
-    // An updatePeriod of 0 here disables the checks, which is what we want.
-    [mAutoUpdater scheduleCheckWithInterval:updatePeriod];
-  }
 }
 
 #pragma mark -
@@ -1808,8 +1784,9 @@ NSString* const kPreviousSessionTerminatedNormallyKey = @"PreviousSessionTermina
   }
 
   if (action == @selector(checkForUpdates:) &&
-      [[[NSUserDefaults standardUserDefaults] stringForKey:SUFeedURLKey] length] == 0) {
-    // Disable update checking if there's no feed to check.
+      ![[[NSBundle mainBundle] objectForInfoDictionaryKey:SUEnableAutomaticChecksKey] boolValue])
+  {
+    // Disable update checking if it's been turned off for this build.
     [aMenuItem setToolTip:NSLocalizedString(@"AutoUpdateDisabledToolTip", @"")];
     return NO;
   }
