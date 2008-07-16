@@ -38,10 +38,6 @@
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-#ifndef XP_MACOSX
-<?xml-stylesheet href="chrome://messenger/content/migration/migration.css" type="text/css"?>
-#endif
-
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/migration/migration.dtd" >
  
 <wizard id="migrationWizard"
