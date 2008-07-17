@@ -89,6 +89,25 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResul
   // can't have leading '/' in path
   if (folder.CharAt(0) == '/')
     folder.Cut(0, 1);
+
+  const char *curPos = uriStr + PL_strlen(rootURI);
+  nsCAutoString newPath("");
+  if (curPos) 
+  {
+    // advance past hostname
+    while (*curPos && (*curPos)!='/') 
+      curPos++;
+
+    char *unescaped = NS_strdup(curPos);  
+    if (unescaped) 
+    {
+      nsUnescape(unescaped);
+      NS_MsgCreatePathStringFromFolderURI(unescaped, newPath);
+      NS_Free(unescaped);
+    }
+    else
+      NS_MsgCreatePathStringFromFolderURI(curPos, newPath);
+  }
   // Now find the server from the URL
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
@@ -104,46 +123,20 @@ nsImapURI2Path(const char* rootURI, const char* uriStr, nsILocalFile **pathResul
   if (server) 
   {
     rv = server->GetLocalPath(getter_AddRefs(localPath));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
     
     // This forces the creation of the parent server directory
     // so that we don't get imapservername.sbd instead
     // when the host directory has been deleted. See bug 210683
     localPath->Create(nsIFile::DIRECTORY_TYPE, 0700);
   }
-  
   if (NS_FAILED(rv)) 
   {
     pathResult = nsnull;
     return rv;
   }
+  localPath->AppendRelativeNativePath(newPath);
   
-  if (!folder.IsEmpty())
-  {
-    nsCAutoString parentName = folder;
-    nsCAutoString leafName = folder;
-    PRInt32 dirEnd = parentName.FindChar('/');
-    
-    // FIXME : This would break with multibyte encodings such as 
-    // Shift_JIS, Big5 because '0x5c' in the second byte of a multibyte
-    // character would be mistaken for '/'. 
-    while(dirEnd > 0)
-    {
-      parentName.Right(leafName, parentName.Length() - dirEnd -1);
-      parentName.Truncate(dirEnd);
-      NS_MsgHashIfNecessary(parentName);
-      parentName.Append(NS_LITERAL_CSTRING(FOLDER_SUFFIX));
-      localPath->AppendNative(parentName);
-      // this fixes a strange purify warning.
-      parentName = leafName.get();
-      dirEnd = parentName.FindChar('/');
-    }
-    if (!leafName.IsEmpty()) 
-    {
-      NS_MsgHashIfNecessary(leafName);
-      localPath->AppendNative(leafName);
-    }
-  }
   NS_IF_ADDREF(*pathResult = localPath);
   return NS_OK;
 }
