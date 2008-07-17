@@ -5,3 +5,4 @@ copied files from carbon to cocoa widgets, this always messes up tinderboxes. cl
 2008-01-14 17:40 UTC - Respin just to make sure universal builds work
 2008-01-18 00:00 UTC - Respinning to pick up bustage fix from bug 386432
 2008-01-18 10:00 UTC - Clobber just to make sure universal static builds work
+2008-07-17 08:16 UTC - Clobbering to force pick up of configure.sh change from bug 443398
