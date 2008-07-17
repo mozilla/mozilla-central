@@ -462,17 +462,52 @@ nsAbOSXDirectory::Init(const char *aUri)
   nsresult rv = nsAbDirectoryRDFResource::Init(aUri);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  if (mURINoQuery.Length() > sizeof(NS_ABOSXDIRECTORY_URI_PREFIX)) {
+  NSArray *cards;
+  nsCOMPtr<nsIMutableArray> cardList;
+  if (mURINoQuery.Length() > sizeof(NS_ABOSXDIRECTORY_URI_PREFIX))
+  {
     nsCAutoString uid(Substring(mURINoQuery, sizeof(NS_ABOSXDIRECTORY_URI_PREFIX) - 1));
     ABRecord *card = [addressBook recordForUniqueId:[NSString stringWithUTF8String:uid.get()]];
     NS_ASSERTION([card isKindOfClass:[ABGroup class]], "Huh.");
     
     m_IsMailList = PR_TRUE;
     AppendToString([card valueForProperty:kABGroupNameProperty], m_ListDirName);
+
+    ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
+    cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
+    if (!m_AddressList)
+      m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    else
+      rv = m_AddressList->Clear();
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    cardList = m_AddressList;
   }
   else
+  {
     m_DirPrefId.AssignLiteral("ldap_2.servers.osx");
-  
+
+    cards = [[addressBook people] arrayByAddingObjectsFromArray:[addressBook groups]];
+    if (!mCardList)
+      mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    else
+      rv = mCardList->Clear();
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    cardList = mCardList;
+  }
+
+  unsigned int nbCards = [cards count];
+  nsCOMPtr<nsIAbCard> card;
+  for (unsigned int i = 0; i < nbCards; ++i)
+  {
+    rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
+                       getter_AddRefs(card));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    cardList->AppendElement(card, PR_FALSE);
+  }
+
   return NS_OK;
 }
 
@@ -764,70 +799,45 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 {
   NS_ENSURE_ARG_POINTER(aCards);
   
-  ABAddressBook *addressBook = [ABAddressBook sharedAddressBook];
-  
   nsresult rv;
   NSArray *cards;
-  nsCOMPtr<nsIMutableArray> cardList;
-  if (mIsQueryURI) {
+  if (mIsQueryURI)
+  {
     nsCOMPtr<nsIAbBooleanExpression> expression;
     rv = nsAbQueryStringToExpression::Convert(mQueryString.get(),
                                               getter_AddRefs(expression));
     NS_ENSURE_SUCCESS(rv, rv);
     
     PRBool canHandle = !m_IsMailList && Search(expression, &cards);
-    if (!canHandle) {
+    if (!canHandle)
       return FallbackSearch(expression, aCards);
-    }
-    if (!mCardList)
-    {
-      mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-    cardList = mCardList;
-  }
-  else {
-    if (m_IsMailList) {
-      ABGroup *group = (ABGroup*)[addressBook recordForUniqueId:[NSString stringWithUTF8String:nsCAutoString(Substring(mURINoQuery, 21)).get()]];
-      cards = [[group members] arrayByAddingObjectsFromArray:[group subgroups]];
-      if (!m_AddressList)
-      {
-        m_AddressList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-      }
-      cardList = m_AddressList;
-    }
-    else {
-      cards = [[addressBook people] arrayByAddingObjectsFromArray:[addressBook groups]];
-      if (!mCardList)
-      {
-        mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
-      }
-      cardList = mCardList;
-    }
-  }
-  
-  // Fill the results array and update the card list
-  // Also update the address list and notify any changes.
-  unsigned int nbCards = [cards count];
-  if (nbCards > 0 && cardList)
-  {
-      rv = cardList->Clear();
-      NS_ENSURE_SUCCESS(rv, rv);
-  }
-  
-  unsigned int i;
-  nsCOMPtr<nsIAbCard> card;
-  for (i = 0; i < nbCards; ++i) {
-    rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
-                       getter_AddRefs(card));
-    NS_ENSURE_SUCCESS(rv, rv);
 
-    cardList->AppendElement(card, PR_FALSE);
-  }
+    if (!mCardList)
+      mCardList = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    else
+      mCardList->Clear();
+    NS_ENSURE_SUCCESS(rv, rv);
   
-  return NS_NewArrayEnumerator(aCards, cardList);
+    // Fill the results array and update the card list
+    unsigned int nbCards = [cards count];
+  
+    unsigned int i;
+    nsCOMPtr<nsIAbCard> card;
+    for (i = 0; i < nbCards; ++i)
+    {
+      rv = ConvertToCard(gRDFService, [cards objectAtIndex:i],
+                         getter_AddRefs(card));
+      NS_ENSURE_SUCCESS(rv, rv);
+
+      mCardList->AppendElement(card, PR_FALSE);
+    }
+
+    return NS_NewArrayEnumerator(aCards, mCardList);
+  }
+
+  // Not a search, so just return the appropriate list of items.
+  return m_IsMailList ? NS_NewArrayEnumerator(aCards, m_AddressList) :
+         NS_NewArrayEnumerator(aCards, mCardList);
 }
 
 NS_IMETHODIMP
