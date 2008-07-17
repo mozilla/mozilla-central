@@ -49,7 +49,7 @@ $ENV{MOZ_CRASHREPORTER_NO_REPORT} = '1';
 # Tests
 #$CleanProfile             = 0;
 #$ResetHomeDirForTests     = 1;
-$ProductName              = "Thunderbird";
+$ProductName              = "Shredder";
 #$VendorName               = 'Mozilla';
 
 #$RunMozillaTests          = 1;  # Allow turning off of all tests if needed.
