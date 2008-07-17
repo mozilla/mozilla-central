@@ -285,8 +285,9 @@ function OnLoadEditCard()
         document.getElementById(kPhoneticFields[0]).readOnly = true;
         document.getElementById(kPhoneticFields[3]).readOnly = true;
 
-        // Also disable the mail format popup.
+        // Also disable the mail format popup and allow remote content items.
         document.getElementById("PreferMailFormatPopup").disabled = true;
+        document.getElementById("allowRemoteContent").disabled = true;
 
         document.documentElement.buttons = "accept";
         document.documentElement.removeAttribute("ondialogaccept");
