@@ -3,5 +3,6 @@ functionality. See http://sparkle.andymatuschak.org/ for more information about
 Sparkle. The Sparkle framework is shipped inside Camino's bundle, and some glue
 code is included in Camino itself.
 
-This is an unmodified pull of revision 246 of the lp:sparkle branch from:
-http://code.launchpad.net/sparkle
+This is a pull of revision 246 of the lp:sparkle branch from http://code.launchpad.net/sparkle
+with changes to ConfigCommon.xcconfig to allow building with versions of Xcode earlier than
+3.1.
