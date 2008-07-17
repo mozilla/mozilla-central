@@ -148,7 +148,7 @@ span.moz-txt-formfeed {
 
 .moz-vcard-badge:hover {
   background-position: -30px -270px;
-  -moz-outline: 1px dotted -moz-use-text-color;
+  outline: 1px dotted;
 }
 
 .moz-vcard-badge:hover:active {
