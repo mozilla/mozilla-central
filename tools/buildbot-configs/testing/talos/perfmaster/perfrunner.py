@@ -588,7 +588,7 @@ class TalosFactory(BuildFactory):
     linuxClean = ["rm", "-rf", "*.bz2", "*.gz", "talos/", "firefox/"]
 
     def __init__(self, OS, envName, buildBranch, configFile, buildSearchString, buildDir, buildPath, talosCmd, customManifest='', cvsRoot=":pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot"):
-        BuildFactory.__init__(self, **kwargs)
+        BuildFactory.__init__(self)
         if OS in ('linux', 'linuxbranch',):
             cleanCmd = self.linuxClean
         elif OS in ('win',):
