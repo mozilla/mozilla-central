@@ -68,7 +68,7 @@ typedef long nsMsgBiffState;
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
 
-[scriptable, uuid(a2a555d6-e903-4b8d-9788-ef7bdf6359ef)]
+[scriptable, uuid(3f7232c5-2b63-457a-bda9-585f3a9eee7c)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -596,8 +596,8 @@ interface nsIMsgFolder : nsISupports {
    *        of msg text we want to store.
    * @param aCompressQuotes Replace quotes and citations with " ... " in the preview text
    */
-  ACString getMsgTextFromStream(in nsIMsgDBHdr aMsgHdr, in nsIInputStream aStream,
-                                in long aBytesToRead, in long aMaxOutputLen, in boolean aCompressQuotes);
+  AUTF8String getMsgTextFromStream(in nsIMsgDBHdr aMsgHdr, in nsIInputStream aStream,
+                                   in long aBytesToRead, in long aMaxOutputLen, in boolean aCompressQuotes);
 
   // this allows a folder to have a special identity. E.g., you might want to
   // associate an identity with a particular newsgroup, or for IMAP shared folders in
